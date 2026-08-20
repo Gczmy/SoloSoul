@@ -13,7 +13,61 @@
 use rusqlite::OptionalExtension;
 
 use super::{LockHoldObserver, VaultStore};
-use crate::encryption::{decrypt_field, encrypt_field};
+use crate::encryption::{decrypt_field, encrypt_field, DataEncryptionKey};
+
+/// P025 Phase 2: `list_snapshots_with_data_batch` 行的原始列数据（不解密），两阶段读的中间形态。
+///
+/// 列序：0=object_id, 1=id, 2=timestamp, 3=triggered_by, 4=diff_summary, 5=data（密文 Blob）。
+/// `from_row` 仅装箱，`into_decrypted` 承载原闭包的解密 + meta JSON 组装逻辑
+/// （错误列索引/文案逐字保留）。
+struct SnapshotRowRaw {
+    object_id: String,
+    id: String,
+    timestamp: i64,
+    triggered_by: String,
+    diff_summary: String,
+    data: Vec<u8>,
+}
+
+impl SnapshotRowRaw {
+    fn from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Self> {
+        Ok(Self {
+            object_id: row.get(0)?,
+            id: row.get(1)?,
+            timestamp: row.get(2)?,
+            triggered_by: row.get(3)?,
+            diff_summary: row.get(4)?,
+            data: row.get(5)?,
+        })
+    }
+
+    /// 锁外解密为 (object_id, meta_json, 明文 data)。
+    fn into_decrypted(
+        self,
+        key: &DataEncryptionKey,
+    ) -> Result<(String, serde_json::Value, Vec<u8>), rusqlite::Error> {
+        let decrypted = decrypt_field(key, &self.data).map_err(|e| {
+            rusqlite::Error::FromSqlConversionFailure(
+                5,
+                rusqlite::types::Type::Blob,
+                Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("Snapshot decryption failed: {}", e),
+                )),
+            )
+        })?;
+        Ok((
+            self.object_id,
+            serde_json::json!({
+                "id": self.id,
+                "timestamp": self.timestamp,
+                "triggeredBy": self.triggered_by,
+                "diffSummary": self.diff_summary,
+            }),
+            decrypted,
+        ))
+    }
+}
 
 impl VaultStore {
     // ── Snapshot CRUD（快照域）──────────────────────────────
@@ -60,43 +114,37 @@ impl VaultStore {
         let placeholders = std::iter::repeat_n("?", object_ids.len())
             .collect::<Vec<_>>()
             .join(",");
-        let sql = format!(
-            "SELECT object_id, id, timestamp, triggered_by, diff_summary, data FROM (\
-             SELECT object_id, id, timestamp, triggered_by, diff_summary, data, \
-             ROW_NUMBER() OVER (PARTITION BY object_id ORDER BY timestamp DESC) AS rn \
-             FROM object_snapshots WHERE object_id IN ({}) \
-             ) WHERE rn <= 50",
-            placeholders
-        );
-        let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
-        let rows = stmt
-            .query_map(rusqlite::params_from_iter(object_ids.iter()), |row| {
-                let raw: Vec<u8> = row.get(5)?;
-                let decrypted = decrypt_field(&key, &raw).map_err(|e| {
-                    rusqlite::Error::FromSqlConversionFailure(
-                        5,
-                        rusqlite::types::Type::Blob,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Snapshot decryption failed: {}", e),
-                        )),
-                    )
-                })?;
-                Ok((
-                    row.get::<_, String>(0)?,
-                    serde_json::json!({
-                        "id": row.get::<_, String>(1)?,
-                        "timestamp": row.get::<_, i64>(2)?,
-                        "triggeredBy": row.get::<_, String>(3)?,
-                        "diffSummary": row.get::<_, String>(4)?,
-                    }),
-                    decrypted,
-                ))
-            })
-            .map_err(|e| e.to_string())?
+        // P025 Phase 2: 两阶段读 —— 持锁阶段仅取列装箱（不解密），
+        // 释放锁后统一 AES 解密 + meta JSON 组装。stmt 借自 conn（借自 guard），收在块内先于 guard 释放。
+        let raws = {
+            let sql = format!(
+                "SELECT object_id, id, timestamp, triggered_by, diff_summary, data FROM (\
+                 SELECT object_id, id, timestamp, triggered_by, diff_summary, data, \
+                 ROW_NUMBER() OVER (PARTITION BY object_id ORDER BY timestamp DESC) AS rn \
+                 FROM object_snapshots WHERE object_id IN ({}) \
+                 ) WHERE rn <= 50",
+                placeholders
+            );
+            let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
+            // 拆成两条语句：rows 先于 stmt drop（逆声明序），避免块末临时值借用残留。
+            let rows = stmt
+                .query_map(
+                    rusqlite::params_from_iter(object_ids.iter()),
+                    SnapshotRowRaw::from_row,
+                )
+                .map_err(|e| e.to_string())?;
+            rows.collect::<Result<Vec<_>, _>>()
+                .map_err(|e| e.to_string())?
+        };
+        // 观测结束：hold 现仅覆盖 SQL 取数（不含锁外解密），与改造前基线对比即收益。
+        drop(guard);
+        drop(_obs);
+
+        // 锁外阶段：解密 + meta JSON 组装，错误语义与改造前闭包逐字一致。
+        raws.into_iter()
+            .map(|raw| raw.into_decrypted(&key))
             .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| e.to_string())?;
-        Ok(rows)
+            .map_err(|e| e.to_string())
     }
 
     pub fn get_snapshot(&self, snapshot_id: &str) -> Result<Option<Vec<u8>>, String> {
