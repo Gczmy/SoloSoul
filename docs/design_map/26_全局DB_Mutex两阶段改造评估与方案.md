@@ -4,9 +4,9 @@
 > **Manifesto 对齐**：本地优先 | 隐私优先 | 性能可用
 > **来源**：`docs/CODE_ANALYSIS_REPORT.md` P025（P2 架构/性能）
 >
-> **[状态] 评估完成，待实施**（2026-08）：本文档记录对「SQL 取数 → 释放锁 → 锁外解密」
-> 两阶段改造的评估结论与分阶段实施方案。实施前应完成 Phase 0 观测并据此确认转换清单。
-> 状态迁移：待实施 → 已实施（完成标准见 §5）。
+> **[状态] 已实施（Phase 0/1/2 完成）**（2026-08）：本文档记录对「SQL 取数 → 释放锁 → 锁外解密」
+> 两阶段改造的评估结论与分阶段实施方案。Phase 0 观测、Phase 1 两阶段模式、Phase 2 热点转换
+> 已全部落地（提交见 §3），剩 Phase 3 真实库行为对拍与持锁时长对比（完成标准见 §5）。
 
 ---
 
@@ -64,12 +64,18 @@ N 行读取路径全部采用 `query_map` + 行映射器，AES-GCM 解密与 JSO
 
 ## 3. 实施方案
 
-### Phase 0 —— 观测（先行，半天）
+### Phase 0 —— 观测（先行，半天）✅ 已完成（60bf171f）
 
 给 5~6 个热点读函数加 `tracing::debug!` 持锁时长（`lock()` 前记 `Instant`，guard drop
 后打印），在真实数据上确认瓶颈分布，据观测结果确认 Phase 2 转换清单，避免凭感觉选目标。
 
-### Phase 1 —— 建立两阶段模式（核心重构）
+**落地**：新增 `LockHoldObserver`（`storage.rs`，`pub(crate)`，wait=争用等待 / hold=持锁时长，
+debug 级），插桩 5 个 N 行解密热点——`list_objects` / `list_object_records` /
+`load_objects_batch` / `list_conversations` / `list_snapshots_with_data_batch`。
+`list_audit_log` 经核查已是「先 drop(guard) 再解密」的两阶段形态，无需插桩。
+新增捕获型 subscriber 验证测试（`test_lock_hold_observer`，`--nocapture` 可查看 wait/hold 基线）。
+
+### Phase 1 —— 建立两阶段模式（核心重构）✅ 已完成（e8064bab）
 
 把 `object_row_to_record`（`objects.rs:308`，P225 单一实现）拆为两步：
 
@@ -88,7 +94,7 @@ struct ObjectRowRaw { id, account_id, …, properties: String, property_labels: 
   在解密后执行，移到锁外语义不变。
 - 单遍读取：解锁后不得再次查询（一致性快照不可跨锁保持）。
 
-### Phase 2 —— 按优先级逐函数转换（每个一提交，跑全量测试）
+### Phase 2 —— 按优先级逐函数转换（每个一提交，跑全量测试）✅ 已完成
 
 1. `list_object_records`（持锁最重，先做）
 2. `list_objects` / 分页 impl（含 keyword 过滤）
@@ -100,10 +106,26 @@ struct ObjectRowRaw { id, account_id, …, properties: String, property_labels: 
 **边界约束**：只改非 `_tx` 变体——`load_object_tx` 等事务内调用必须留在锁内
 （事务原子性）；单行 `load_object` 不动（无收益）。
 
-### Phase 3 —— 验证
+**落地记录**（每项独立提交，vault 172 用例全绿 + fmt/clippy 干净）：
+
+| 转换项 | 中间形态 | 提交 |
+|--------|----------|------|
+| `list_object_records`（Phase 1，持锁最重先做） | `ObjectRowRaw`（from_row 装箱 0..21 / into_record 锁外解密+解析） | `e8064bab` |
+| `list_objects`（含 keyword 过滤移锁外） | `ObjectListRowRaw`（from_row 装箱 0..17 / into_summary） | `db87583e` |
+| `load_objects_batch` | 复用 `ObjectRowRaw`（列序与 OBJECT_SELECT_BASE 一致） | `bdacf2da` |
+| `list_conversations` | `ConversationRowRaw`（装箱 id/updated_at/data Blob / into_decrypted） | `70315254` |
+| `list_snapshots_with_data_batch` | `SnapshotRowRaw`（装箱 6 列 / into_decrypted + meta JSON 组装） | `7b295517` |
+| `list_audit_log` | **无需转换**——已先 drop(guard) 再解密（两阶段形态） | — |
+
+**实施要点**：各 `stmt` 借自 `conn`（借自 `guard`），收在块内先于 guard 释放；
+`query_map` 的 `MappedRows` 拆成两条语句绑定局部变量，避免块末临时值借用残留（E0597）。
+错误语义逐字保留（P225 统一前缀、P005 拒绝静默降级、各域原文案与列索引）。
+
+### Phase 3 —— 验证 ⏳ 待办（真实库现场）
 
 - 全量 `cargo test -p solosoul-vault -p solo_soul`（vault 170+ 用例，含既有并发测试）。
-- 用 Phase 0 的 span 对比改造前后持锁时长。
+  **已部分完成**：Phase 0/1/2 每步均跑全量，vault 172 用例 + 全仓 969 用例全绿、fmt/clippy 干净。
+- 用 Phase 0 的 span 对比改造前后持锁时长（真实库现场收集基线，`--nocapture` 查看）。
 - 确认 ORDER BY / 分页 / 过滤语义逐字节不变（行为对拍）。
 
 ---
@@ -122,7 +144,7 @@ struct ObjectRowRaw { id, account_id, …, properties: String, property_labels: 
 GUI 其他 DB 操作在解密期间不再被阻塞；`list_objects` 关键词过滤一并移出锁。
 
 **完成标准**：
-- [ ] Phase 0 观测数据已记录（热点持锁时长基线）
-- [ ] Phase 1 两阶段模式落地，vault 全量测试通过
-- [ ] Phase 2 全部转换项完成，每项独立提交且测试通过
-- [ ] Phase 3 行为对拍 + 持锁时长对比数据记录
+- [x] Phase 0 观测设施落地：`LockHoldObserver` + 5 热点插桩 + 验证测试（60bf171f）；小数据集 hold≈0ms，真实库基线待 Phase 3 现场收集
+- [x] Phase 1 两阶段模式落地，vault 全量测试通过（e8064bab，172 用例全绿）
+- [x] Phase 2 全部转换项完成，每项独立提交且测试通过（db87583e / bdacf2da / 70315254 / 7b295517；`list_audit_log` 核查为已两阶段，免转）
+- [ ] Phase 3 行为对拍 + 真实库持锁时长对比数据记录（待办）
