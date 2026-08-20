@@ -63,7 +63,7 @@
 | P018 | P2 | 可优化（重复） | `tauri/src/components/layout/SearchPopover.tsx:104-140` vs `tauri/src/pages/search/SearchPage.tsx:57-93` | `doSearch` 两处近乎复制，共享逻辑应下沉到 `lib/searchShared.tsx` | `[x]` 已修复（e68fffd0） |
 | P019 | P2 | 性能 | `tauri/src/components/object/useObjectDetailModal.tsx:234-235` | `fieldOrder` 与 `flattenProperties` 每次渲染重算未 memo，与项目已确立的 memo 化范式不一致 | `[x]` 已修复（3a5aa904） |
 | P020 | P2 | 漏洞（资源泄漏） | `tauri/src/lib/vaultDirectory.ts:71-92` | `pickVaultDirectory` 的 `visibilitychange` 监听器仅特定分支移除，桌面端正常返回后永久残留并逐次累积 | `[x]` 已修复（a37a7279） |
-| P021 | P2 | 架构（超长函数） | `tauri/src/hooks/useRecoveryReceive.ts:28`（478 行）、`useLlmChatCore.ts:63`（450 行）、`pages/ai/useLlmConfigPage.ts:49`（437 行）、`components/layout/AddPageButton.tsx:25`（422 行）、`components/settings/PinSection.tsx:20`（415 行） | 前端 5 个 400+ 行超长函数/组件，多职责混杂，建议拆分 | `[ ]` 待修复 |
+| P021 | P2 | 架构（超长函数） | `tauri/src/hooks/useRecoveryReceive.ts:28`（478 行）、`useLlmChatCore.ts:63`（450 行）、`pages/ai/useLlmConfigPage.ts:49`（437 行）、`components/layout/AddPageButton.tsx:25`（422 行）、`components/settings/PinSection.tsx:20`（415 行） | 前端 5 个 400+ 行超长函数/组件，多职责混杂，建议拆分 | `[x]` 已修复（451ac589 等 5 提交） |
 | P022 | P2 | 死代码 | `tauri/src/lib/updater.ts:171,259`（另两处已复核为测试引用，非死代码） | 4 个导出无任何外部引用，仅文件内使用，`export` 多余（API 面污染，非真死代码） | `[x]` 已修复（d57d5e7a） |
 | P023 | P2 | 架构/健壮性 | `tauri/src-tauri/src/commands/llm/conversation.rs:23-27` | `load_conversations` 静默丢弃解析失败的会话行，无日志无上报，用户表现为「会话凭空消失」 | `[x]` 已修复（b063c7e7） |
 | P024 | P2 | 性能 | `tauri/crates/solosoul-vault/src/storage/objects.rs:219-232` | `save_object_tx` 每保存一对象额外执行一次未缓存的模板名 SELECT，批量导入放大为 N 次查询 | `[x]` 已修复（4a425d5b） |
@@ -82,7 +82,7 @@
 
 ## 修复进度
 
-- 已完成：30 / 36（P001、P002、P003、P005、P006、P007、P008、P009、P010、P011、P013、P014、P015、P016、P017、P018、P019、P020、P022、P023、P024、P027、P028、P029、P030、P031、P032、P033、P034、P036）
+- 已完成：31 / 36（P001、P002、P003、P005、P006、P007、P008、P009、P010、P011、P013、P014、P015、P016、P017、P018、P019、P020、P021、P022、P023、P024、P027、P028、P029、P030、P031、P032、P033、P034、P036）
 
 ---
 
@@ -193,6 +193,13 @@
 
 `useRecoveryReceive.ts:28`（478 行）、`useLlmChatCore.ts:63`（450 行）、`useLlmConfigPage.ts:49`（437 行）、`AddPageButton.tsx:25`（422 行）、`PinSection.tsx:20`（415 行），多职责混杂。
 **建议**：按职责拆分子 hook / 子组件（无紧急性，可逐个轮次处理）。
+**修复说明**（5 个文件逐一拆分，公开 API/props 与行为均不变）：
+- `useRecoveryReceive` 478→324 行：手动表单+LAN 发现 → `useRecoveryManualForm`；密码表单+校验 → `useRecoveryCredentials`；错误映射/冲突预检 → `lib/recoveryErrors`（纯函数可测）。（3a78c477）
+- `useLlmChatCore` 450→291 行：provider 配置 → `useLlmProviderConfig`；在线轮询 → `useLlmOnlineStatus`；流式副作用 → `useLlmStreaming`；消息组装 → `lib/llm/chatRequest`；三处保存失败 toast 收敛 → `lib/llm/conversationPersistence`。（c9dfda73）
+- `useLlmConfigPage` 437→86 行（仅剩初始加载编排）：provider 管理 → `useLlmProviders`；AI 功能开关/风险确认 → `useLlmChatFeatureSettings`；本地 embedding → `useLlmLocalEmbedding`。（27b512cf）
+- `AddPageButton` 422→273 行：表单状态/重名校验/提交 → `useAddPageForm`（handleConfirm 返回是否关闭弹层）；弹层 UI → `AddPagePopover`。（ce63aaa4）
+- `PinSection` 415→177 行：设置向导 → `usePinSetup`；禁用确认 → `usePinDisable`；向导弹层 UI → `PinSetupDialog`。（451ac589）
+全量前端测试 100 文件/844 用例通过。
 
 ### P022（P2 死代码）多余 export
 
