@@ -559,9 +559,21 @@ pub async fn attachment_export_content_uri<R: Runtime>(
     let temp_dir = std::env::temp_dir().join("solosoul_export");
     std::fs::create_dir_all(&temp_dir)
         .map_err(|e| format!("Failed to prepare export dir: {}", e))?;
+    // P002: 临时目录 0700，明文中转不对同机其他用户可见（与 decrypt_to_temp_dir 对齐）
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&temp_dir, std::fs::Permissions::from_mode(0o700));
+    }
     let temp_src = temp_dir.join(format!("{}.tmp", uuid::Uuid::new_v4()));
     solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &src, &temp_src)
         .map_err(|e| format!("Failed to decrypt for export: {}", e))?;
+    // P002: 明文文件 0600（防御 umask 宽松环境）
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&temp_src, std::fs::Permissions::from_mode(0o600));
+    }
 
     let handle = app.state::<AttachmentImportPluginHandle<R>>();
     let result = handle.export_content_uri(ExportContentUriPayload {
@@ -643,9 +655,21 @@ pub async fn attachment_export_tree_uri<R: Runtime>(
     let temp_dir = std::env::temp_dir().join("solosoul_export");
     std::fs::create_dir_all(&temp_dir)
         .map_err(|e| format!("Failed to prepare export dir: {}", e))?;
+    // P002: 临时目录 0700，明文中转不对同机其他用户可见（与 decrypt_to_temp_dir 对齐）
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&temp_dir, std::fs::Permissions::from_mode(0o700));
+    }
     let temp_src = temp_dir.join(format!("{}.tmp", uuid::Uuid::new_v4()));
     solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &src, &temp_src)
         .map_err(|e| format!("Failed to decrypt for export: {}", e))?;
+    // P002: 明文文件 0600（防御 umask 宽松环境）
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&temp_src, std::fs::Permissions::from_mode(0o600));
+    }
 
     let handle = app.state::<AttachmentImportPluginHandle<R>>();
     let result = handle.export_to_tree_uri(ExportToTreeUriPayload {
