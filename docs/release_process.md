@@ -485,6 +485,35 @@ node scripts/generate-latest-json.js \
 
 6. 点击 "Publish release"
 
+#### 使用 gh CLI 发布时的注意事项（v2.12.1 教训）
+
+> ⚠️ **发布时不要走 draft**（`gh release create --draft`）！
+>
+> **症状（2026-08-20 v2.12.1）**：用 `gh release create v2.12.1 --draft` 创建草稿、
+> 上传资产后再发布（`gh api -X PATCH ... -f draft=false`），Release 页面 v2.12.1 已排第一、
+> `published_at` 最新，但 `releases/latest` 端点与网页 **Latest 徽标仍指向旧版本**，
+> 首页/客户端更新仍显示旧版本。尝试 `gh release edit`（改 notes）、draft/prerelease
+> toggle 均无法触发重算。
+>
+> **根因**：GitHub 对「draft 创建 → API 转正式」的 release 不自动重算 latest 标记；
+> 文档默认按语义化版本自动分配 latest，但该路径存在已知缺陷，必须显式指定。
+>
+> **正确做法**：发布时**不要走 draft**，直接用 `gh release create` 一步到位
+> （可先 `--notes-file` 带好 release notes）：
+>
+> ```bash
+> gh release create v2.12.1 --title "SoloSoul v2.12.1" --notes-file SoloSoul-Releases/release-notes-v2.12.1.md /tmp/artifacts/*
+> ```
+>
+> **已踩坑后的补救**：强制指定 latest（唯一有效手段）：
+>
+> ```bash
+> gh release edit v2.12.1 --latest
+> ```
+>
+> 然后验证：`gh api repos/Gczmy/SoloSoul/releases/latest` 应返回 v2.12.1。
+> 发布后务必检查该端点，确认 latest 已迁移到新版本。
+
 > 通过 GitHub Releases 上传，而不是通过 git 提交。GitHub Releases 允许上传附件，这些附件不存储在 git 仓库中。
 
 > **当前发布策略说明**：当前版本不进入 Google Play 商店或 Play Store 内部测试轨道，Android 产物以通用 APK 形式随 GitHub Release 发布，方便用户直接下载安装。如未来进入 Play Store，可额外构建 AAB 并提交 Play 商店后台。
