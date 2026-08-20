@@ -70,7 +70,7 @@
 | P025 | P2 | 架构/性能 | `tauri/crates/solosoul-vault/src/storage.rs:484` | 全库单一 `Mutex<Connection>` 串行化，且逐行 AES 解密在持锁闭包内执行，长查询阻塞全部 DB 操作 | `[ ]` 待修复 |
 | P026 | P2 | 性能 | `tauri/crates/solosoul-core/src/export_import.rs:203-205,277-284,334-338` | 导入导出 JSON 层未流式，峰值内存可达明文+密文+JSON 树三份，接近 100MB 上限的库在移动端有 OOM 风险 | `[ ]` 待修复 |
 | P027 | P2 | 架构/并发 | `tauri/src-tauri/src/state/app_state.rs:551-563` | `init_saf_sync` 持 `RwLock` 读锁执行网络 I/O，`replace_vault_service` 写锁被阻塞，std RwLock 有写者饥饿风险 | `[x]` 已修复（31f536dd） |
-| P028 | P2 | 可优化（长函数） | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:795` | `change_password` 126 行、嵌套 5 层，密码学关键路径的失败混态防护难以审查 | `[x]` 已修复（本轮） |
+| P028 | P2 | 可优化（长函数） | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:795` | `change_password` 126 行、嵌套 5 层，密码学关键路径的失败混态防护难以审查 | `[x]` 已修复（562caa0c） |
 | P029 | P2 | 可优化（长函数） | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:990` | `reencrypt_attachments` 122 行、嵌套 6 层，建议按「单文件重加密」提取子函数（与 P003 修复可合并） | `[ ]` 待修复 |
 | P030 | P2 | 可优化（长函数） | `tauri/crates/solosoul-sync/src/session.rs:263` | `handle_inbound` 125 行、嵌套 5 层、7 参数（带 `too_many_arguments` allow） | `[ ]` 待修复 |
 | P031 | P2 | 可优化（嵌套/重复） | `tauri/crates/solosoul-sync/src/manager.rs:321` | `spawn_mdns_discovery` 79 行、嵌套 7 层；TXT 属性解析与 `commands/discovery.rs:136-190` 高度重复 | `[ ]` 待修复 |
@@ -229,7 +229,7 @@
 
 ### P028–P034（P2 可优化）Rust 长函数与局部冗余
 
-- P028 `vault_service/unlock.rs:795` `change_password`：126 行、嵌套 5 层，建议拆出 config 迁移与审计子函数。`[x]` 已修复（本轮）
+- P028 `vault_service/unlock.rs:795` `change_password`：126 行、嵌套 5 层，建议拆出 config 迁移与审计子函数。`[x]` 已修复（562caa0c）
 - P029 `vault_service/unlock.rs:990` `reencrypt_attachments`：122 行、嵌套 6 层，建议提取「单文件重加密」子函数（与 P003 合并修复）。
 - P030 `solosoul-sync/src/session.rs:263` `handle_inbound`：125 行、嵌套 5 层、7 参数，参照已提取的 `validate_handshake_peer` 继续拆。
 - P031 `solosoul-sync/src/manager.rs:321` `spawn_mdns_discovery`：嵌套 7 层；TXT 属性解析与 `commands/discovery.rs:136-190` 高度重复，可提取共用解析结构体。
