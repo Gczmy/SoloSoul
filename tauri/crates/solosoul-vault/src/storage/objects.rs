@@ -59,103 +59,151 @@ fn build_list_objects_sql(
     (sql, param_values)
 }
 
-/// `list_objects` 的行映射闭包（P012 拆分：原内联 ~85 行解密组装抽出）。
+/// P025 Phase 2: `list_objects` 行的原始列数据（不解密、不解析 JSON），两阶段读的中间形态。
 ///
-/// 输入行：0..17 为 OBJECT_COLUMNS 顺序（id/name/type_id/section_type/sensitivity_level/
-/// created_at/updated_at/is_deleted/properties/tags_json/template_id/template_type/
-/// contract_type_id/template_hash/ignored_template_hash/icon_name/property_labels/parent_id）。
-fn map_object_list_row(
-    key: &DataEncryptionKey,
-    row: &rusqlite::Row<'_>,
-) -> Result<ObjectSummary, rusqlite::Error> {
-    let deleted_int: i32 = row.get(7)?;
-    let props_str: String = row.get(8)?;
-    let tags_str: String = row.get(9)?;
-    let decrypted_props = decrypt_text_field(key, &props_str).map_err(|e| {
-        rusqlite::Error::FromSqlConversionFailure(
-            8,
-            rusqlite::types::Type::Text,
-            Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                format!("decrypt object props: {}", e),
-            )),
-        )
-    })?;
-    let labels_str: String = row.get::<_, String>(16).unwrap_or_default();
-    let decrypted_labels = if labels_str.is_empty() {
-        String::new()
-    } else {
-        decrypt_text_field(key, &labels_str).map_err(|e| {
+/// 列序与 `build_list_objects_sql` 一致（0..17）：id/name/type_id/section_type/
+/// sensitivity_level/created_at/updated_at/is_deleted/properties/tags_json/template_id/
+/// template_type/contract_type_id/template_hash/ignored_template_hash/icon_name/
+/// property_labels/parent_id。`from_row` 仅装箱（微秒级），`into_summary` 承载原
+/// `map_object_list_row` 的解密/JSON 解析逻辑（错误列索引与文案逐字保留）。
+struct ObjectListRowRaw {
+    id: String,
+    name: String,
+    type_id: String,
+    section_type: String,
+    sensitivity_level: String,
+    created_at: String,
+    updated_at: String,
+    is_deleted: i32,
+    properties: String,
+    tags_json: String,
+    template_id: Option<String>,
+    template_type: Option<String>,
+    contract_type_id: Option<String>,
+    template_hash: Option<String>,
+    ignored_template_hash: Option<String>,
+    icon_name: String,
+    property_labels: String,
+    parent_id: Option<String>,
+}
+
+impl ObjectListRowRaw {
+    /// 仅按列序装箱（0..17），不触碰加密内容。property_labels 沿用原
+    /// `unwrap_or_default()` 宽容语义（列缺失时置空）。
+    fn from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Self> {
+        Ok(Self {
+            id: row.get(0)?,
+            name: row.get(1)?,
+            type_id: row.get(2)?,
+            section_type: row.get(3)?,
+            sensitivity_level: row.get(4)?,
+            created_at: row.get(5)?,
+            updated_at: row.get(6)?,
+            is_deleted: row.get(7)?,
+            properties: row.get(8)?,
+            tags_json: row.get(9)?,
+            template_id: row.get(10)?,
+            template_type: row.get(11)?,
+            contract_type_id: row.get(12)?,
+            template_hash: row.get(13)?,
+            ignored_template_hash: row.get(14)?,
+            icon_name: row.get(15)?,
+            property_labels: row.get(16).unwrap_or_default(),
+            parent_id: row.get(17)?,
+        })
+    }
+
+    /// 锁外解密 + JSON 解析为 `ObjectSummary`。
+    ///
+    /// 原 `map_object_list_row` 逻辑逐字搬入：错误列索引、文案均不变。
+    fn into_summary(self, key: &DataEncryptionKey) -> Result<ObjectSummary, rusqlite::Error> {
+        let decrypted_props = decrypt_text_field(key, &self.properties).map_err(|e| {
             rusqlite::Error::FromSqlConversionFailure(
-                16,
+                8,
                 rusqlite::types::Type::Text,
                 Box::new(std::io::Error::new(
                     std::io::ErrorKind::InvalidData,
-                    format!("decrypt object labels: {}", e),
+                    format!("decrypt object props: {}", e),
                 )),
             )
-        })?
-    };
-    let property_labels: Option<serde_json::Value> = if decrypted_labels.is_empty() {
-        None
-    } else {
-        Some(serde_json::from_str(&decrypted_labels).map_err(|e| {
+        })?;
+        let decrypted_labels = if self.property_labels.is_empty() {
+            String::new()
+        } else {
+            decrypt_text_field(key, &self.property_labels).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    16,
+                    rusqlite::types::Type::Text,
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        format!("decrypt object labels: {}", e),
+                    )),
+                )
+            })?
+        };
+        let property_labels: Option<serde_json::Value> = if decrypted_labels.is_empty() {
+            None
+        } else {
+            Some(serde_json::from_str(&decrypted_labels).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    9,
+                    rusqlite::types::Type::Text,
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        format!("deserialize property_labels: {}", e),
+                    )),
+                )
+            })?)
+        };
+        let properties: serde_json::Value =
+            serde_json::from_str(&decrypted_props).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    8,
+                    rusqlite::types::Type::Text,
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        format!("deserialize properties: {}", e),
+                    )),
+                )
+            })?;
+        let tags: Vec<String> = serde_json::from_str(&self.tags_json).map_err(|e| {
             rusqlite::Error::FromSqlConversionFailure(
-                9,
+                13,
                 rusqlite::types::Type::Text,
                 Box::new(std::io::Error::new(
                     std::io::ErrorKind::InvalidData,
-                    format!("deserialize property_labels: {}", e),
+                    format!("deserialize tags: {}", e),
                 )),
             )
-        })?)
-    };
-    let properties: serde_json::Value = serde_json::from_str(&decrypted_props).map_err(|e| {
-        rusqlite::Error::FromSqlConversionFailure(
-            8,
-            rusqlite::types::Type::Text,
-            Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                format!("deserialize properties: {}", e),
-            )),
-        )
-    })?;
-    let tags: Vec<String> = serde_json::from_str(&tags_str).map_err(|e| {
-        rusqlite::Error::FromSqlConversionFailure(
-            13,
-            rusqlite::types::Type::Text,
-            Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                format!("deserialize tags: {}", e),
-            )),
-        )
-    })?;
-    // 附件存在性由已解密的 properties 推导（无额外解密成本）。
-    let has_attachments = object_has_attachments(&properties);
-    // 字段级敏感度集合（property_labels / __fields / dynamic_group 推导，升序去重）
-    let sensitivity_levels = object_field_sensitivity_levels(property_labels.as_ref(), &properties);
-    Ok(ObjectSummary {
-        id: row.get(0)?,
-        name: row.get(1)?,
-        collection_type: row.get(2)?,
-        section_type: row.get(3)?,
-        sensitivity_level: row.get(4)?,
-        created_at: row.get(5)?,
-        updated_at: row.get(6)?,
-        is_deleted: deleted_int != 0,
-        template_id: row.get(10)?,
-        template_type: row.get(11)?,
-        contract_type_id: row.get(12)?,
-        template_hash: row.get(13)?,
-        ignored_template_hash: row.get(14)?,
-        icon_name: row.get(15)?,
-        parent_id: row.get(17)?,
-        properties,
-        property_labels,
-        tags,
-        has_attachments,
-        sensitivity_levels,
-    })
+        })?;
+        // 附件存在性由已解密的 properties 推导（无额外解密成本）。
+        let has_attachments = object_has_attachments(&properties);
+        // 字段级敏感度集合（property_labels / __fields / dynamic_group 推导，升序去重）
+        let sensitivity_levels =
+            object_field_sensitivity_levels(property_labels.as_ref(), &properties);
+        Ok(ObjectSummary {
+            id: self.id,
+            name: self.name,
+            collection_type: self.type_id,
+            section_type: self.section_type,
+            sensitivity_level: self.sensitivity_level,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+            is_deleted: self.is_deleted != 0,
+            template_id: self.template_id,
+            template_type: self.template_type,
+            contract_type_id: self.contract_type_id,
+            template_hash: self.template_hash,
+            ignored_template_hash: self.ignored_template_hash,
+            icon_name: self.icon_name,
+            parent_id: self.parent_id,
+            properties,
+            property_labels,
+            tags,
+            has_attachments,
+            sensitivity_levels,
+        })
+    }
 }
 
 /// P025 Phase 1: 行 → 原始列数据（不解密、不解析 JSON），两阶段读模式的中间形态。
@@ -764,20 +812,32 @@ impl VaultStore {
 
         // properties 已加密，无法使用 SQL LIKE。所有 keyword 匹配在解密后的内存数据上进行。
 
-        let mut stmt = conn
-            .prepare(&sql)
-            .map_err(|e| format!("list_objects: {}", e))?;
+        // P025 Phase 2: 两阶段读 —— 持锁阶段仅取列装箱（不解密），
+        // 释放锁后统一 AES 解密 + JSON 解析 + keyword 内存过滤。
+        // stmt 借自 conn（借自 guard），故收在块内先于 guard 释放。
+        let raws = {
+            let mut stmt = conn
+                .prepare(&sql)
+                .map_err(|e| format!("list_objects: {}", e))?;
+            let params_refs: Vec<&dyn rusqlite::types::ToSql> =
+                param_values.iter().map(|p| p.as_ref()).collect();
+            // 拆成两条语句：rows 先于 stmt drop（逆声明序），避免块末临时值借用残留。
+            let rows = stmt
+                .query_map(params_refs.as_slice(), ObjectListRowRaw::from_row)
+                .map_err(|e| format!("list_objects query: {}", e))?;
+            rows.collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("list_objects collect: {}", e))?
+        };
+        // 观测结束：hold 现仅覆盖 SQL 取数（不含锁外解密），与改造前基线对比即收益。
+        drop(guard);
+        drop(_obs);
 
-        let params_refs: Vec<&dyn rusqlite::types::ToSql> =
-            param_values.iter().map(|p| p.as_ref()).collect();
-
-        let objects = stmt
-            .query_map(params_refs.as_slice(), |row: &rusqlite::Row<'_>| {
-                map_object_list_row(&key, row)
-            })
-            .map_err(|e| format!("list_objects query: {}", e))?
+        // 锁外阶段：解密 + JSON 解析，错误语义与 map_object_list_row 逐字一致。
+        let objects = raws
+            .into_iter()
+            .map(|raw| raw.into_summary(&key))
             .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| format!("list_objects collect: {}", e))?;
+            .map_err(|e| format!("list_objects decrypt: {}", e))?;
 
         // Memory-level keyword filtering on decrypted name and properties.
         // P210: properties 用 json_contains_ignore_case 递归匹配，避免整值 to_string() 往返。
