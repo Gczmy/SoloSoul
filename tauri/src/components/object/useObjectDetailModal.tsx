@@ -231,8 +231,16 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   const ObjectDetailIcon = detailTpl?.iconId
     ? resolveCustomIcon(detailTpl.iconId)
     : PAGE_ICON_MAP.custom;
-  const fieldOrder = templates.find((t) => t.id === obj?.templateId)?.properties.map((p) => p.id);
-  const fields = flattenProperties(obj?.properties, fieldOrder, objFieldDefs);
+  // P019: fieldOrder / fields 每次渲染重算改为 useMemo（与 HistoryViewer /
+  // WorkspaceObjectCard 已确立的 memo 化范式一致）。
+  const fieldOrder = useMemo(
+    () => templates.find((t) => t.id === obj?.templateId)?.properties.map((p) => p.id),
+    [templates, obj?.templateId],
+  );
+  const fields = useMemo(
+    () => flattenProperties(obj?.properties, fieldOrder, objFieldDefs),
+    [obj?.properties, fieldOrder, objFieldDefs],
+  );
 
   const isMobilePlatform = isMobilePlatformSync();
 
