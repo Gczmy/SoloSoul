@@ -572,27 +572,42 @@ impl VaultStore {
             placeholders.join(",")
         );
 
-        // P213: prepare_cached 按 SQL 文本缓存（同批量大小命中），避免每次重编译。
-        let mut stmt = conn
-            .prepare_cached(&sql)
-            .map_err(|e| format!("load_objects_batch: {}", e))?;
+        // P025 Phase 2: 两阶段读 —— 持锁阶段仅取列装箱（不解密），
+        // 释放锁后统一 AES 解密 + JSON 解析。列序与 OBJECT_SELECT_BASE 一致，
+        // 复用 ObjectRowRaw（与 list_object_records 同一中间形态）。
+        // stmt 借自 conn（借自 guard），故收在块内先于 guard 释放。
+        let raws = {
+            // P213: prepare_cached 按 SQL 文本缓存（同批量大小命中），避免每次重编译。
+            let mut stmt = conn
+                .prepare_cached(&sql)
+                .map_err(|e| format!("load_objects_batch: {}", e))?;
 
-        // Convert IDs to a slice of &dyn ToSql
-        let params_refs: Vec<&dyn rusqlite::types::ToSql> = ids
-            .iter()
-            .map(|id| id as &dyn rusqlite::types::ToSql)
-            .collect();
+            // Convert IDs to a slice of &dyn ToSql
+            let params_refs: Vec<&dyn rusqlite::types::ToSql> = ids
+                .iter()
+                .map(|id| id as &dyn rusqlite::types::ToSql)
+                .collect();
 
-        let rows = stmt
-            .query_map(params_refs.as_slice(), |row| {
-                Self::object_row_to_record(&key, row)
-            })
-            .map_err(|e| format!("load_objects_batch query: {}", e))?
+            // 拆成两条语句：rows 先于 stmt drop（逆声明序），避免块末临时值借用残留。
+            let rows = stmt
+                .query_map(params_refs.as_slice(), ObjectRowRaw::from_row)
+                .map_err(|e| format!("load_objects_batch query: {}", e))?;
+            rows.collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("load_objects_batch collect: {}", e))?
+        };
+        // 观测结束：hold 现仅覆盖 SQL 取数（不含锁外解密），与改造前基线对比即收益。
+        drop(guard);
+        drop(_obs);
+
+        // 锁外阶段：解密 + JSON 解析，错误语义与 object_row_to_record 逐字一致。
+        let records = raws
+            .into_iter()
+            .map(|raw| raw.into_record(&key))
             .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| format!("load_objects_batch collect: {}", e))?;
+            .map_err(|e| format!("load_objects_batch decrypt: {}", e))?;
 
-        let mut result = std::collections::HashMap::with_capacity(rows.len());
-        for obj in rows {
+        let mut result = std::collections::HashMap::with_capacity(records.len());
+        for obj in records {
             result.insert(obj.id.clone(), obj);
         }
         Ok(result)
