@@ -44,15 +44,10 @@ pub fn encrypt(
         .try_into()
         .map_err(|_| CipherError::NonceGenerationFailed)?;
 
-    let payload = match aad {
-        Some(aad_data) => Payload {
-            msg: plaintext,
-            aad: aad_data,
-        },
-        None => Payload {
-            msg: plaintext,
-            aad: &[],
-        },
+    // P033: aad.unwrap_or(&[]) 一行等价收敛（原先 match 两分支重复）
+    let payload = Payload {
+        msg: plaintext,
+        aad: aad.unwrap_or(&[]),
     };
 
     let ciphertext = cipher
@@ -75,15 +70,10 @@ pub fn decrypt(
 
     let nonce = Nonce::from_slice(&encrypted.nonce);
 
-    let payload = match aad {
-        Some(aad_data) => Payload {
-            msg: &encrypted.ciphertext,
-            aad: aad_data,
-        },
-        None => Payload {
-            msg: &encrypted.ciphertext,
-            aad: &[],
-        },
+    // P033: aad.unwrap_or(&[]) 一行等价收敛
+    let payload = Payload {
+        msg: &encrypted.ciphertext,
+        aad: aad.unwrap_or(&[]),
     };
 
     let plaintext = cipher
