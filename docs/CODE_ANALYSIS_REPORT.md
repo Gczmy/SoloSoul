@@ -232,7 +232,8 @@
 **Phase 0 已完成**（60bf171f）：新增 `LockHoldObserver`（wait=争用等待 / hold=持锁时长，debug 级），插桩 5 个 N 行解密热点——`list_objects` / `list_object_records` / `load_objects_batch` / `list_conversations` / `list_snapshots_with_data_batch`（`list_audit_log` 已先 drop(guard) 再解密，无需插桩）；新增捕获型 subscriber 验证测试（`--nocapture` 可查看 wait/hold 基线）。
 **Phase 1 已完成**（e8064bab）：新增 `ObjectRowRaw`（`from_row` 仅取列装箱 / `into_record` 承载原解密+JSON 解析，P225/P005 错误语义逐字保留），`object_row_to_record` 退化为薄委托（`load_object_tx` / `load_objects_batch` 语义不变）；`list_object_records` 已转换两阶段——持锁仅 SQL 取数、drop 锁后统一解密，hold 观测区间现仅覆盖 SQL 取数。新增测试断言两阶段列表路径同样报 properties 损坏而非静默降级。
 **Phase 2-1 已完成**（db87583e）：`map_object_list_row` 整体替换为 `ObjectListRowRaw`（`from_row` 装箱 0..17 列 / `into_summary` 承载原解密+JSON 解析，错误语义逐字保留）；`list_objects` 两阶段化——持锁仅取列、锁外统一解密 + keyword 内存过滤（P210 递归匹配逻辑不动）。
-**Phase 2-2 已完成**（bdacf2da）：`load_objects_batch` 两阶段化——复用 `ObjectRowRaw`（列序与 OBJECT_SELECT_BASE 一致），持锁仅取列、锁外统一解密 + JSON 解析。下一步按文档 §3 Phase 2 转换 `list_conversations` / `list_snapshots_with_data_batch`。
+**Phase 2-2 已完成**（bdacf2da）：`load_objects_batch` 两阶段化——复用 `ObjectRowRaw`（列序与 OBJECT_SELECT_BASE 一致），持锁仅取列、锁外统一解密 + JSON 解析。
+**Phase 2-3 已完成**（70315254）：`list_conversations` 两阶段化——新增 `ConversationRowRaw`（装箱 id/updated_at/data 密文 Blob / `into_decrypted` 锁外解密），错误语义逐字保留。下一步按文档 §3 Phase 2 转换 `list_snapshots_with_data_batch`。
 
 ### P026（P2 性能）导入导出 JSON 层未流式
 
