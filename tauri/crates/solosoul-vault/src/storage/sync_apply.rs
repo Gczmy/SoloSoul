@@ -567,8 +567,9 @@ impl VaultStore {
             obj.version += 1;
             obj.updated_at = Self::now_rfc3339();
         }
-        // Re-encrypt properties locally.
-        Self::save_object_tx(conn, key, &obj)?;
+        // Re-encrypt properties locally. 同步应用路径逐条处理（P024 模板名
+        // 查询保留原行为），批量导入路径才走预加载 map。
+        Self::save_object_tx(conn, key, &obj, None)?;
         let _ = local_node_id;
         Ok(true)
     }

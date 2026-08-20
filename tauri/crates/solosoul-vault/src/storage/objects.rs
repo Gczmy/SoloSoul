@@ -172,7 +172,7 @@ impl VaultStore {
             "Failed to begin transaction",
             "Failed to commit transaction",
             |c| {
-                Self::save_object_tx(c, &key, obj)?;
+                Self::save_object_tx(c, &key, obj, None)?;
                 Self::set_record_hlc_tx(c, "objects", &obj.id, &hlc)?;
                 Ok(())
             },
@@ -182,6 +182,7 @@ impl VaultStore {
     /// P212: 单事务批量保存对象（导入等批量场景），替代逐条 `save_object` 的
     /// N 次 auto-commit 写事务。任一条失败整体回滚，不产生半导入。
     /// 方案 B：每个对象在写事务内同时落库独立 HLC（new_local_hlc 递增保证唯一）。
+    /// P024: 模板名 map 批内一次性加载（N 次逐对象 SELECT 降为 1 次）。
     pub fn save_objects_batch(&self, objects: &[ObjectRecord]) -> Result<(), String> {
         let key = self.data_key()?;
         // 批内逐个生成 HLC：每个都读 sync_hlc 最大值，保证递增（同批不同对象
@@ -198,8 +199,9 @@ impl VaultStore {
             "Failed to begin transaction",
             "Failed to commit transaction",
             |c| {
+                let template_names = Self::load_template_name_map(c);
                 for (obj, hlc) in objects.iter().zip(hlcs.iter()) {
-                    Self::save_object_tx(c, &key, obj)?;
+                    Self::save_object_tx(c, &key, obj, template_names.as_ref())?;
                     Self::set_record_hlc_tx(c, "objects", &obj.id, hlc)?;
                 }
                 Ok(())
@@ -207,21 +209,44 @@ impl VaultStore {
         )
     }
 
+    /// P024: 一次性加载全部模板 id→name 映射（批量保存路径复用，消除
+    /// 逐对象 `SELECT name FROM user_templates` 的 N 次查询）。
+    fn load_template_name_map(
+        conn: &mut Connection,
+    ) -> Option<std::collections::HashMap<String, String>> {
+        let mut stmt = conn.prepare("SELECT id, name FROM user_templates").ok()?;
+        let rows = stmt
+            .query_map([], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+            })
+            .ok()?;
+        let map: Result<std::collections::HashMap<_, _>, _> = rows.collect();
+        map.ok()
+    }
+
     /// P115: 事务内保存对象（连接由调用方持有，批量应用单事务内复用）。
+    /// P024: `template_names` 为可选预加载映射——`Some` 时直接查表（批量路径），
+    /// `None` 时回退逐对象查询（单条保存与同步应用路径，行为不变）。
     pub(crate) fn save_object_tx(
         conn: &mut Connection,
         key: &DataEncryptionKey,
         obj: &ObjectRecord,
+        template_names: Option<&std::collections::HashMap<String, String>>,
     ) -> Result<(), String> {
         // 保存模板名称到 properties，用于模板被删除后仍能显示原始模板名
         let mut properties = obj.properties.clone();
         if let Some(ref tid) = obj.template_id {
-            let tpl_name: Result<String, _> = conn.query_row(
-                "SELECT name FROM user_templates WHERE id = ?1",
-                params![tid],
-                |row| row.get(0),
-            );
-            if let Ok(name) = tpl_name {
+            let tpl_name: Option<String> = match template_names {
+                Some(map) => map.get(tid).cloned(),
+                None => conn
+                    .query_row(
+                        "SELECT name FROM user_templates WHERE id = ?1",
+                        params![tid],
+                        |row| row.get(0),
+                    )
+                    .ok(),
+            };
+            if let Some(name) = tpl_name {
                 if let Some(map) = properties.as_object_mut() {
                     map.insert(
                         "__templateName".to_string(),
