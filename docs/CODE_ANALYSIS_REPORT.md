@@ -73,7 +73,7 @@
 | P028 | P2 | 可优化（长函数） | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:795` | `change_password` 126 行、嵌套 5 层，密码学关键路径的失败混态防护难以审查 | `[x]` 已修复（562caa0c） |
 | P029 | P2 | 可优化（长函数） | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:990` | `reencrypt_attachments` 122 行、嵌套 6 层，建议按「单文件重加密」提取子函数（与 P003 修复可合并） | `[x]` 已修复（1e9ca0b4） |
 | P030 | P2 | 可优化（长函数） | `tauri/crates/solosoul-sync/src/session.rs:263` | `handle_inbound` 125 行、嵌套 5 层、7 参数（带 `too_many_arguments` allow） | `[x]` 已修复（e501f30b） |
-| P031 | P2 | 可优化（嵌套/重复） | `tauri/crates/solosoul-sync/src/manager.rs:321` | `spawn_mdns_discovery` 79 行、嵌套 7 层；TXT 属性解析与 `commands/discovery.rs:136-190` 高度重复 | `[x]` 已修复（本轮） |
+| P031 | P2 | 可优化（嵌套/重复） | `tauri/crates/solosoul-sync/src/manager.rs:321` | `spawn_mdns_discovery` 79 行、嵌套 7 层；TXT 属性解析与 `commands/discovery.rs:136-190` 高度重复 | `[x]` 已修复（e75ee879） |
 | P032 | P2 | 可优化（重复） | `tauri/crates/solosoul-vault/src/storage/metadata.rs:200-228` | `list_audit_log` 内两段同构解密 match 块，可提取闭包消除 | `[x]` 已修复（e612f1fb） |
 | P033 | P2 | 可优化（冗余） | `tauri/crates/solosoul-crypto/src/cipher.rs:47-56,78-87` | `Payload` 构造的 match 重复且多余，`aad.unwrap_or(&[])` 一行可等价表达 | `[x]` 已修复（e27c2ed4） |
 | P034 | P2 | 可优化 | `tauri/src-tauri/src/commands/object/mod.rs:1021-1028` | `collect_updated_fields` 对 JSON 值双重 clone，大文本字段每字段复制两次 | `[x]` 已修复（89023d26） |
@@ -232,7 +232,7 @@
 - P028 `vault_service/unlock.rs:795` `change_password`：126 行、嵌套 5 层，建议拆出 config 迁移与审计子函数。`[x]` 已修复（562caa0c）
 - P029 `vault_service/unlock.rs:990` `reencrypt_attachments`：122 行、嵌套 6 层，建议提取「单文件重加密」子函数（与 P003 合并修复）。`[x]` 已修复（1e9ca0b4）
 - P030 `solosoul-sync/src/session.rs:263` `handle_inbound`：125 行、嵌套 5 层、7 参数，参照已提取的 `validate_handshake_peer` 继续拆。`[x]` 已修复（e501f30b）
-- P031 `solosoul-sync/src/manager.rs:321` `spawn_mdns_discovery`：嵌套 7 层；TXT 属性解析与 `commands/discovery.rs:136-190` 高度重复，可提取共用解析结构体。`[x]` 已修复（本轮）
+- P031 `solosoul-sync/src/manager.rs:321` `spawn_mdns_discovery`：嵌套 7 层；TXT 属性解析与 `commands/discovery.rs:136-190` 高度重复，可提取共用解析结构体。`[x]` 已修复（e75ee879）
 - P032 `solosoul-vault/src/storage/metadata.rs:200-228`：两段同构解密 match，提取 `decrypt_field` 闭包。`[x]` 已修复（e612f1fb）
 - P033 `solosoul-crypto/src/cipher.rs:47-56,78-87`：`Payload` 构造 match 用 `aad.unwrap_or(&[])` 收敛。`[x]` 已修复（e27c2ed4）
 - P034 `commands/object/mod.rs:1021-1028`：`collect_updated_fields` 双重 clone，按分支移动所有权。`[x]` 已修复（89023d26）
