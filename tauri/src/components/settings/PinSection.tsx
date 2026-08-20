@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { PinInput } from '@/components/forms/PinInput';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
-import { logger } from '@/lib/logger';
-import { Grip, KeyRound, AlertTriangle } from 'lucide-react';
+import { usePinSetup } from '@/hooks/usePinSetup';
+import { usePinDisable } from '@/hooks/usePinDisable';
+import { PinSetupDialog } from './PinSetupDialog';
+import { Grip, AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 
@@ -28,21 +29,6 @@ export function PinSection({ accountId }: PinSectionProps) {
     lockedUntil: string | null;
   } | null>(null);
   const [pinLoading, setPinLoading] = useState(false);
-
-  // Setup flow
-  const [showSetup, setShowSetup] = useState(false);
-  const [setupStep, setSetupStep] = useState<'enter_password' | 'enter_pin' | 'confirm_pin'>(
-    'enter_password',
-  );
-  const [setupPassword, setSetupPassword] = useState('');
-  const [setupPin1, setSetupPin1] = useState('');
-  const [setupError, setSetupError] = useState<string | null>(null);
-  /** 共享对话框的自定义错误文案（P012：密码验证段统一走共享组件） */
-  const [setupPasswordError, setSetupPasswordError] = useState<string | null>(null);
-
-  // Disable flow（P012：禁用确认统一走共享 PasswordVerificationDialog）
-  const [showDisableConfirm, setShowDisableConfirm] = useState(false);
-  const [disablePasswordError, setDisablePasswordError] = useState<string | null>(null);
 
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const passwordHint = currentAccount?.passwordHint || null;
@@ -66,126 +52,9 @@ export function PinSection({ accountId }: PinSectionProps) {
     refreshStatus();
   }, [refreshStatus]);
 
-  // ── Setup Flow ──
-
-  const handleSetupStart = () => {
-    setSetupStep('enter_password');
-    setSetupPassword('');
-    setSetupPin1('');
-    setSetupError(null);
-    setSetupPasswordError(null);
-    setShowSetup(true);
-  };
-
-  /** 共享 PasswordVerificationDialog 的验证回调（P012）：成功推进到 enter_pin 步骤 */
-  const handleSetupVerify = async (password: string): Promise<boolean> => {
-    setSetupPasswordError(null);
-    try {
-      const ok = await invoke<boolean>('verify_password', {
-        accountId: accountId,
-        password,
-      });
-      if (ok) {
-        setSetupPassword(password);
-        return true;
-      }
-      setSetupPasswordError(t('settings:current_password_incorrect'));
-      return false;
-    } catch (e) {
-      // P123: 后端异常≠密码错误——verify_password 对错误密码返回 false（不抛异常），
-      // 走到 catch 的是真实后端故障（锁定/崩溃等），统一报「密码不正确」会误导用户。
-      logger.warn('[PinSection] verify_password failed:', e);
-      // P012：主密码阶梯锁定的原始错误串（镜像 backendError.ts 精确映射表，前缀匹配）
-      setSetupPasswordError(
-        String(e).toLowerCase().includes('too many failed attempts')
-          ? t('common:password_locked')
-          : t('settings:pin_error_setup_failed'),
-      );
-      return false;
-    }
-  };
-
-  /** 密码验证通过后由共享对话框回调：推进向导到 PIN 输入步骤 */
-  const handleSetupPasswordVerified = () => {
-    setSetupStep('enter_pin');
-  };
-
-  const handlePinEntered = (pin: string) => {
-    setSetupPin1(pin);
-    setSetupStep('confirm_pin');
-  };
-
-  const handlePinConfirm = async (pin: string) => {
-    if (pin !== setupPin1) {
-      setSetupError(t('settings:pin_mismatch'));
-      setSetupStep('enter_pin');
-      setSetupPin1('');
-      return;
-    }
-
-    setPinLoading(true);
-    setSetupError(null);
-    try {
-      await invoke('pin_setup', {
-        accountId: accountId,
-        password: setupPassword,
-        pin,
-      });
-      onSuccess(t('settings:pin_setup_success'));
-      setShowSetup(false);
-      refreshStatus();
-    } catch (e) {
-      const msg = String(e);
-      if (msg.includes('__PIN_ERR__:too_short')) {
-        setSetupError(t('settings:pin_error_too_short'));
-      } else if (msg.includes('__PIN_ERR__:too_long')) {
-        setSetupError(t('settings:pin_error_too_long'));
-      } else {
-        setSetupError(t('settings:pin_error_setup_failed'));
-      }
-    } finally {
-      setPinLoading(false);
-    }
-  };
-
-  const handleSetupCancel = () => {
-    setShowSetup(false);
-    setSetupError(null);
-    setSetupPasswordError(null);
-  };
-
-  // ── Disable Flow ──
-
-  const handleDisableStart = () => {
-    setDisablePasswordError(null);
-    setShowDisableConfirm(true);
-  };
-
-  /** 共享 PasswordVerificationDialog 的验证回调（P012）：成功即执行 pin_disable */
-  const handleDisableVerify = async (password: string): Promise<boolean> => {
-    setDisablePasswordError(null);
-    setPinLoading(true);
-    try {
-      await invoke('pin_disable', { accountId: accountId, password });
-      onSuccess(t('settings:pin_disabled_toast'));
-      setShowDisableConfirm(false);
-      refreshStatus();
-      return true;
-    } catch (e) {
-      const msg = String(e);
-      if (msg.includes('__PIN_ERR__:invalid_password')) {
-        setDisablePasswordError(t('settings:current_password_incorrect'));
-      } else if (msg.includes('__PIN_ERR__:locked')) {
-        // P012：主密码阶梯锁定（pin_disable 验证主密码被锁）——区别显示锁定文案
-        setDisablePasswordError(t('common:password_locked'));
-      } else {
-        setDisablePasswordError(t('settings:pin_error_disable_failed'));
-      }
-      return false;
-    } finally {
-      setPinLoading(false);
-    }
-  };
+  // 子 hook：设置向导 / 禁用确认（共享 pinLoading 与 refreshStatus）
+  const setup = usePinSetup({ accountId, t, onSuccess, refreshStatus, setPinLoading });
+  const disable = usePinDisable({ accountId, t, onSuccess, refreshStatus, setPinLoading });
 
   // ── Render ──
 
@@ -250,15 +119,15 @@ export function PinSection({ accountId }: PinSectionProps) {
           <div style={{ display: 'flex', gap: 8 }}>
             {pinStatus.configured ? (
               <>
-                <Button variant="secondary" size="sm" onClick={handleSetupStart}>
+                <Button variant="secondary" size="sm" onClick={setup.handleSetupStart}>
                   {t('settings:pin_change_button')}
                 </Button>
-                <Button variant="secondary" size="sm" onClick={handleDisableStart}>
+                <Button variant="secondary" size="sm" onClick={disable.handleDisableStart}>
                   {t('settings:pin_disable_button')}
                 </Button>
               </>
             ) : (
-              <Button variant="primary" size="sm" onClick={handleSetupStart}>
+              <Button variant="primary" size="sm" onClick={setup.handleSetupStart}>
                 {t('settings:pin_setup_button')}
               </Button>
             )}
@@ -267,167 +136,41 @@ export function PinSection({ accountId }: PinSectionProps) {
       </Card>
 
       {/* ── Setup Dialog ── */}
-      {showSetup && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 'var(--z-modal-important)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.45)',
-            backdropFilter: 'blur(6px)',
-          }}
-        >
-          <div
-            style={{
-              background: 'var(--bg-elevated)',
-              color: 'var(--text-primary)',
-              fontFamily: 'inherit',
-              borderRadius: 16,
-              padding: '28px 32px',
-              maxWidth: 400,
-              width: '90%',
-              boxShadow: 'var(--shadow-lg)',
-              border: '1px solid var(--border-subtle)',
-              textAlign: 'center',
-            }}
-          >
-            {/* P012: 密码验证段由共享 PasswordVerificationDialog 承载（showSetup 为 true 且处于
-                enter_password 步骤时打开），不再手写密码浮层 */}
-            {setupStep === 'enter_pin' && (
-              <>
-                <h3
-                  style={{
-                    fontSize: 'var(--text-md)',
-                    fontWeight: 600,
-                    marginBottom: 12,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                  }}
-                >
-                  <KeyRound size={ICON_SIZE.xl} />
-                  {t('settings:pin_enter_title')}
-                </h3>
-                <p
-                  style={{
-                    fontSize: 'var(--text-body-sm)',
-                    color: 'var(--text-secondary)',
-                    marginBottom: 20,
-                  }}
-                >
-                  {t('settings:pin_enter_desc', { length: PIN_LENGTH })}
-                </p>
-                <PinInput length={PIN_LENGTH} onComplete={handlePinEntered} />
-                {setupError && (
-                  <div
-                    style={{
-                      color: '#dc2626',
-                      fontSize: 'var(--text-body-sm)',
-                      padding: '4px 0',
-                      marginTop: 12,
-                    }}
-                  >
-                    {setupError}
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
-                  <Button variant="secondary" onClick={() => setSetupStep('enter_password')}>
-                    {t('common:back')}
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {setupStep === 'confirm_pin' && (
-              <>
-                <h3
-                  style={{
-                    fontSize: 'var(--text-md)',
-                    fontWeight: 600,
-                    marginBottom: 12,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                  }}
-                >
-                  <KeyRound size={ICON_SIZE.xl} />
-                  {t('settings:pin_confirm_title')}
-                </h3>
-                <p
-                  style={{
-                    fontSize: 'var(--text-body-sm)',
-                    color: 'var(--text-secondary)',
-                    marginBottom: 20,
-                  }}
-                >
-                  {t('settings:pin_confirm_desc')}
-                </p>
-                <PinInput
-                  length={PIN_LENGTH}
-                  onComplete={handlePinConfirm}
-                  disabled={pinLoading}
-                  error={!!setupError}
-                />
-                {setupError && (
-                  <div
-                    style={{
-                      color: '#dc2626',
-                      fontSize: 'var(--text-body-sm)',
-                      padding: '4px 0',
-                      marginTop: 12,
-                    }}
-                  >
-                    {setupError}
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setSetupStep('enter_pin');
-                      setSetupPin1('');
-                      setSetupError(null);
-                    }}
-                  >
-                    {t('common:back')}
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+      {setup.showSetup && (
+        <PinSetupDialog
+          step={setup.setupStep}
+          setupError={setup.setupError}
+          pinLoading={pinLoading}
+          onPinEntered={setup.handlePinEntered}
+          onPinConfirm={setup.handlePinConfirm}
+          onBackToPassword={setup.goToPasswordStep}
+          onBackToEnterPin={setup.backToEnterPin}
+          t={t}
+        />
       )}
 
       {/* ── Disable Dialog（P012: 统一走共享 PasswordVerificationDialog） ── */}
       <PasswordVerificationDialog
-        open={showDisableConfirm}
-        onClose={() => {
-          setShowDisableConfirm(false);
-          setDisablePasswordError(null);
-        }}
-        onVerify={handleDisableVerify}
+        open={disable.showDisableConfirm}
+        onClose={disable.closeDisable}
+        onVerify={disable.handleDisableVerify}
         title={t('settings:pin_disable_title')}
         description={t('settings:pin_disable_desc')}
         hint={passwordHint}
-        errorMessage={disablePasswordError}
-        onPasswordChange={() => setDisablePasswordError(null)}
+        errorMessage={disable.disablePasswordError}
+        onPasswordChange={disable.clearDisablePasswordError}
       />
 
       {/* ── Setup 向导密码验证段（P012: 统一走共享 PasswordVerificationDialog） ── */}
       <PasswordVerificationDialog
-        open={showSetup && setupStep === 'enter_password'}
-        onClose={handleSetupCancel}
-        onVerify={handleSetupVerify}
-        onVerifySuccess={handleSetupPasswordVerified}
+        open={setup.showSetup && setup.setupStep === 'enter_password'}
+        onClose={setup.handleSetupCancel}
+        onVerify={setup.handleSetupVerify}
+        onVerifySuccess={setup.handleSetupPasswordVerified}
         title={t('settings:pin_verify_password_title')}
         hint={passwordHint}
-        errorMessage={setupPasswordError}
-        onPasswordChange={() => setSetupPasswordError(null)}
+        errorMessage={setup.setupPasswordError}
+        onPasswordChange={setup.clearSetupPasswordError}
       />
     </>
   );
