@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-20 00:30:00
+> 最后更新：2026-08-20 16:03:35（独立核验 + P002 残留补修后）
 > 当前分支：`main`（领先 origin/main 2 个提交，工作区干净）
 > 修复轮次：1（全新分析，旧报告不恢复、不继承，问题编号重新编排）
 
@@ -43,8 +43,8 @@
 
 | ID   | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |------|--------|------|----------|------|------|
-| P001 | P1 | 漏洞 | `tauri/crates/solosoul-sync/src/attachments.rs:48-60` | 同步附件落盘路径仅净化 `file_name`，`object_id`/`attachment_id` 未校验，恶意已信任对端可路径遍历写出 vault 目录 | `[ ]` 待修复 |
-| P002 | P1 | 漏洞 | `tauri/src-tauri/src/commands/attachment/mod.rs:450-475` 等 4 处 | 解密附件明文写入共享临时目录，未设 0600/0700，最长驻留 30 分钟，进程崩溃时永久残留 | `[x]` 已修复（4536a393） |
+| P001 | P1 | 漏洞 | `tauri/crates/solosoul-sync/src/attachments.rs:48-60` | 同步附件落盘路径仅净化 `file_name`，`object_id`/`attachment_id` 未校验，恶意已信任对端可路径遍历写出 vault 目录 | `[x]` 已修复（5b9fe1b3，核验确认） |
+| P002 | P1 | 漏洞 | `tauri/src-tauri/src/commands/attachment/mod.rs:450-475` 等 4 处 | 解密附件明文写入共享临时目录，未设 0600/0700，最长驻留 30 分钟，进程崩溃时永久残留 | `[x]` 已修复（4536a393 + 残留补修见详述） |
 | P003 | P1 | 漏洞 | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:1034-1066` | 改密重加密把附件明文写 `.rekey.tmp` 临时文件，崩溃残留后无任何清理路径 | `[x]` 已修复（527f0e44） |
 | P004 | P1 | 漏洞（设计） | `tauri/crates/solosoul-core/src/pin.rs:341,602-613` | PIN（6-8 位纯数字）派生 KEK 加密 session key 落盘，可离线爆破（约 20 bit 熵），拉平主密码强度 | `[x]` 已修复（UI 风险提示，PIN 凭证始终 production KDF） |
 | P005 | P1 | 架构/健壮性 | `tauri/crates/solosoul-vault/src/storage/objects.rs:326` | `object_row_to_record` 对 JSON 反序列化失败静默吞为 `Value::Null`，用户随后编辑保存将用空 properties 覆盖原数据 | `[x]` 已修复（18f0af93） |
@@ -82,7 +82,10 @@
 
 ## 修复进度
 
-- 已完成：33 / 36（P001、P002、P003、P005、P006、P007、P008、P009、P010、P011、P012、P013、P014、P015、P016、P017、P018、P019、P020、P021、P022、P023、P024、P026、P027、P028、P029、P030、P031、P032、P033、P034、P036）
+- 已完成：36 / 36（全部问题修复完成；经 2026-08-20 独立核验确认，P002 残留面已于核验当日补修）
+- 当前处理：无
+
+**独立核验记录（2026-08-20）**：36 项全部对照 git 提交与当前代码逐项核验，35 项声明属实、P002 发现残留面并已补修；P001 报告状态原标「待修复」系登记遗漏（代码实际已由 5b9fe1b3 修复）；基线 `npm run check-all` 复验全绿（100 文件 / 844 用例）。
 
 ---
 
@@ -92,11 +95,14 @@
 
 `crates/solosoul-sync/src/attachments.rs:48-60` 的 `attachment_file_path` 直接 `base.join("attachments").join(object_id).join(attachment_id).join(safe_name)`，仅 `file_name` 过了 `sanitize_file_name`，而 `object_id`/`attachment_id` 来自对端 manifest（接收侧 :422-427）。被攻陷的已信任对端可发送 `../../` 形式的 ID，把附件写到 vault 目录之外。指纹/SAS 信任机制只防陌生攻击者，对端失陷场景无纵深防御。
 **建议**：对 `object_id`/`attachment_id` 同样做白名单校验（如仅允许 `[a-zA-Z0-9_-]`），并在 join 后 canonicalize 校验仍位于 vault 附件目录内（参照 `commands/fs.rs:119-158` 的 reject_traversal 先例）。
+**修复说明**：已由 commit `5b9fe1b3` 修复（报告原标「待修复」系登记遗漏，2026-08-20 独立核验确认）——新增 `validate_attachment_id`（attachments.rs:33-43，仅允许 ASCII 字母数字 + `-`/`_`、长度 ≤64），`attachment_file_path` 对 `object_id`/`attachment_id` 强制校验，`file_name` 走 `sanitize_file_name`；收发两侧（:98/:422-427）均经该校验，无绕过路径。
 
 ### P002（P1 漏洞）解密附件明文落共享临时目录
 
 `commands/attachment/mod.rs:450-475`（`decrypt_to_temp_dir` + `OPEN_TEMP_GRACE = 30min`）、`export_import/export.rs:492-511`、`export_import/import.rs:1225-1240`、`attachment_import_plugin.rs:559-564` 把密文附件解密为明文写入 `std::env::temp_dir()` 子目录；`create_dir_all` + `File::create`（`crates/solosoul-core/src/attachment_crypto.rs:61-77`）未设 0600/0700，Unix 上通常产出 0755 目录 / 0644 文件，多用户系统同机可读，违反项目「文件权限 0600」约定。清理靠 `thread::sleep` 延迟删除，进程被杀时明文永久残留。
 **建议**：临时目录与文件显式 `set_permissions(0700/0600)`（Windows 参照 `icacls` 先例）；打开文件场景考虑改用内存映射或系统安全临时区；进程退出钩子里兜底清理。
+**修复说明**：`decrypt_to_temp_dir` 已由 4536a393 修复（UUID 一次性子目录 + Unix 0700/0600 + 30 分钟宽限后台清理）。
+**残留补修（2026-08-20 核验发现）**：`attachment_import_plugin.rs` 的 `attachment_export_content_uri` 与 `attachment_export_tree_uri` 两处仍把明文解密到 `temp_dir()/solosoul_export/{uuid}.tmp` 且未设权限（命令无 `cfg(android)` 门控，桌面共享 `/tmp` 默认 0644 可读）。已补修：临时目录创建后设 0700、明文文件解密后设 0600（Unix，best-effort 与 `decrypt_to_temp_dir` 同款模式）；清理（`remove_file` 成功/失败均执行）原本已有。
 
 ### P003（P1 漏洞）改密重加密的明文临时文件残留
 
@@ -149,7 +155,7 @@
 
 附件导入：core `import_attachments`（`export_import.rs:961`，137 行，CLI 用）vs GUI 版（`commands/export_import/import.rs:1050`，94 行）——相同 ZIP 布局、相同 HKDF 标签、相同遍历结构，仅进度回调与选择性导入不同。导出侧 core `export_vault`（:190）vs GUI `export_execute`（`export.rs:583`）同理。加密格式是安全敏感面，双实现易出现一边修了一边没修。
 **建议**：以 core 为唯一实现，GUI 仅做进度回调与选择性导入的薄包装；合并时顺带按阶段拆分 core 版 137 行函数。
-**修复说明**（净删 366 行，安全敏感加解密路径单一维护）：
+**修复说明**（删除 366 行 / 新增 159 行，净删约 207 行；原表述「净删 366 行」口径有误，366 为总删除行数。安全敏感加解密路径单一维护）：
 - 导入侧：core `import_attachments` 升级为超集实现——新增 KeepBoth ID 重映射、选择性附件导入、ZIP 条目级进度回调、统一 `now` 时间戳参数，并返回导入数量；非法 ID 行为与 GUI 对齐（跳过而非中止）。GUI 删除平行实现（`import_attachments`/`build_att_meta_map`/`extract_att_meta_for_object`/`write_attachments_back` 共约 230 行）改为委托 core，同时删除已无引用的 `validate_export_id`。
 - 导出侧：core 新增共享 `write_attachment_entries`（含 vault SOLC 密文先解密再加密进包，`vault_att_key` 为 `Option`——CLI 传 None 保持原「加密落盘请用 GUI」报错语义），core `export_vault` 与 GUI `export_execute` 均改用它，GUI 删除本地副本。
 - 已知残留：`import_preferences` 在 core 与 GUI 各存一份（GUI 版静默吞错、core 版 R2-06 传播错误，行为有意不同），未在本项合并，后续可评估。
@@ -198,7 +204,7 @@
 
 `useRecoveryReceive.ts:28`（478 行）、`useLlmChatCore.ts:63`（450 行）、`useLlmConfigPage.ts:49`（437 行）、`AddPageButton.tsx:25`（422 行）、`PinSection.tsx:20`（415 行），多职责混杂。
 **建议**：按职责拆分子 hook / 子组件（无紧急性，可逐个轮次处理）。
-**修复说明**（5 个文件逐一拆分，公开 API/props 与行为均不变）：
+**修复说明**（5 个文件逐一拆分，公开 API/props 与行为均不变。口径说明：下列行数为**文件总行数**，非函数体行数——拆分前文件总行实为 505/512/485/446/434；核验确认拆分后行数与当前文件状态精确一致）：
 - `useRecoveryReceive` 478→324 行：手动表单+LAN 发现 → `useRecoveryManualForm`；密码表单+校验 → `useRecoveryCredentials`；错误映射/冲突预检 → `lib/recoveryErrors`（纯函数可测）。（3a78c477）
 - `useLlmChatCore` 450→291 行：provider 配置 → `useLlmProviderConfig`；在线轮询 → `useLlmOnlineStatus`；流式副作用 → `useLlmStreaming`；消息组装 → `lib/llm/chatRequest`；三处保存失败 toast 收敛 → `lib/llm/conversationPersistence`。（c9dfda73）
 - `useLlmConfigPage` 437→86 行（仅剩初始加载编排）：provider 管理 → `useLlmProviders`；AI 功能开关/风险确认 → `useLlmChatFeatureSettings`；本地 embedding → `useLlmLocalEmbedding`。（27b512cf）
@@ -281,5 +287,5 @@
 ## 备注
 
 - 本报告为全新生成（2026-08-20），未恢复/继承旧报告内容；问题编号与旧报告无对应关系。
-- 按用户要求，本轮仅执行阶段 0–1（基线检查 + 全库分析 + 报告生成），**未执行任何修复**；后续修复从 P001 开始按阶段 3 流程逐项进行。
-- 涉及删除文件级操作的项（P009）按流程约束应先标记暂缓，最后汇总给用户确认。
+- 2026-08-20 独立核验：36 项修复全部完成（P002 残留面当日补修）；按阶段 4 标准，基线检查全绿且无遗留 P0/P1 未决项。
+- P009 的删除文件级操作已经用户确认后执行（db395730）。
