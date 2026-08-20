@@ -54,7 +54,7 @@
 | P009 | P1 | 死代码 | `tauri/crates/solosoul-crypto/src/aes.rs:95-245` | SOLO v3 分块加解密约 150 行仅被自身测试引用，生产路径全走 `cipher.rs` SOLC 格式，属平行重复实现且 v3 blob 已不可读 | `[x]` 已修复（db395730） |
 | P010 | P1 | 重复代码 | `tauri/crates/solosoul-core/src/template_service.rs:199` vs `objects.rs:1248` | `template_fingerprint` 字节级重复实现两处，模板 hash 漂移将产生静默不一致 | `[x]` 已修复（a60a7ada） |
 | P011 | P1 | 重复代码/架构 | `tauri/crates/solosoul-core/src/llm/service.rs:362` vs `tauri/src-tauri/src/commands/llm/mod.rs:24` | LLM 内置 provider 默认值两处定义且已发散（id 体系、模型名均不同），GUI 与 CLI 默认配置不一致 | `[x]` 已修复（3355002b） |
-| P012 | P1 | 重复代码/架构 | `tauri/crates/solosoul-core/src/export_import.rs:961` vs `tauri/src-tauri/src/commands/export_import/import.rs:1050`（导出侧同理） | 加密导入导出存在 core（CLI）与 GUI 两套平行实现，加密格式安全敏感面双维护易漏同步 | `[ ]` 待修复 |
+| P012 | P1 | 重复代码/架构 | `tauri/crates/solosoul-core/src/export_import.rs:961` vs `tauri/src-tauri/src/commands/export_import/import.rs:1050`（导出侧同理） | 加密导入导出存在 core（CLI）与 GUI 两套平行实现，加密格式安全敏感面双维护易漏同步 | `[x]` 已修复（34f31ac5） |
 | P013 | P2 | 漏洞 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:429-433,424` | Vision CLI 失败路径把 OCR 识别文本带进错误消息与 info 级日志，敏感内容外溢到非加密存储面 | `[x]` 已修复（54124ff5） |
 | P014 | P2 | 漏洞 | `tauri/crates/solosoul-core/src/path_util.rs:79-86` | `sanitize_file_name` 错误消息回显完整原始文件名，与 P019「错误不携带完整路径」既定约定不一致 | `[x]` 已修复（35d31d41） |
 | P015 | P2 | 漏洞 | `tauri/src-tauri/src/setup/mod.rs:92-93` | `RUST_LOG` 环境变量可静默提升日志级别，debug 级下更多标识信息落盘；发布构建建议固定上限 | `[x]` 已修复（44168a28） |
@@ -68,7 +68,7 @@
 | P023 | P2 | 架构/健壮性 | `tauri/src-tauri/src/commands/llm/conversation.rs:23-27` | `load_conversations` 静默丢弃解析失败的会话行，无日志无上报，用户表现为「会话凭空消失」 | `[x]` 已修复（b063c7e7） |
 | P024 | P2 | 性能 | `tauri/crates/solosoul-vault/src/storage/objects.rs:219-232` | `save_object_tx` 每保存一对象额外执行一次未缓存的模板名 SELECT，批量导入放大为 N 次查询 | `[x]` 已修复（4a425d5b） |
 | P025 | P2 | 架构/性能 | `tauri/crates/solosoul-vault/src/storage.rs:484` | 全库单一 `Mutex<Connection>` 串行化，且逐行 AES 解密在持锁闭包内执行，长查询阻塞全部 DB 操作 | `[ ]` 待修复 |
-| P026 | P2 | 性能 | `tauri/crates/solosoul-core/src/export_import.rs:203-205,277-284,334-338` | 导入导出 JSON 层未流式，峰值内存可达明文+密文+JSON 树三份，接近 100MB 上限的库在移动端有 OOM 风险 | `[ ]` 待修复 |
+| P026 | P2 | 性能 | `tauri/crates/solosoul-core/src/export_import.rs:203-205,277-284,334-338` | 导入导出 JSON 层未流式，峰值内存可达明文+密文+JSON 树三份，接近 100MB 上限的库在移动端有 OOM 风险 | `[x]` 已修复（f4ab0565） |
 | P027 | P2 | 架构/并发 | `tauri/src-tauri/src/state/app_state.rs:551-563` | `init_saf_sync` 持 `RwLock` 读锁执行网络 I/O，`replace_vault_service` 写锁被阻塞，std RwLock 有写者饥饿风险 | `[x]` 已修复（31f536dd） |
 | P028 | P2 | 可优化（长函数） | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:795` | `change_password` 126 行、嵌套 5 层，密码学关键路径的失败混态防护难以审查 | `[x]` 已修复（562caa0c） |
 | P029 | P2 | 可优化（长函数） | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:990` | `reencrypt_attachments` 122 行、嵌套 6 层，建议按「单文件重加密」提取子函数（与 P003 修复可合并） | `[x]` 已修复（1e9ca0b4） |
@@ -82,7 +82,7 @@
 
 ## 修复进度
 
-- 已完成：31 / 36（P001、P002、P003、P005、P006、P007、P008、P009、P010、P011、P013、P014、P015、P016、P017、P018、P019、P020、P021、P022、P023、P024、P027、P028、P029、P030、P031、P032、P033、P034、P036）
+- 已完成：33 / 36（P001、P002、P003、P005、P006、P007、P008、P009、P010、P011、P012、P013、P014、P015、P016、P017、P018、P019、P020、P021、P022、P023、P024、P026、P027、P028、P029、P030、P031、P032、P033、P034、P036）
 
 ---
 
@@ -148,6 +148,10 @@
 
 附件导入：core `import_attachments`（`export_import.rs:961`，137 行，CLI 用）vs GUI 版（`commands/export_import/import.rs:1050`，94 行）——相同 ZIP 布局、相同 HKDF 标签、相同遍历结构，仅进度回调与选择性导入不同。导出侧 core `export_vault`（:190）vs GUI `export_execute`（`export.rs:583`）同理。加密格式是安全敏感面，双实现易出现一边修了一边没修。
 **建议**：以 core 为唯一实现，GUI 仅做进度回调与选择性导入的薄包装；合并时顺带按阶段拆分 core 版 137 行函数。
+**修复说明**（净删 366 行，安全敏感加解密路径单一维护）：
+- 导入侧：core `import_attachments` 升级为超集实现——新增 KeepBoth ID 重映射、选择性附件导入、ZIP 条目级进度回调、统一 `now` 时间戳参数，并返回导入数量；非法 ID 行为与 GUI 对齐（跳过而非中止）。GUI 删除平行实现（`import_attachments`/`build_att_meta_map`/`extract_att_meta_for_object`/`write_attachments_back` 共约 230 行）改为委托 core，同时删除已无引用的 `validate_export_id`。
+- 导出侧：core 新增共享 `write_attachment_entries`（含 vault SOLC 密文先解密再加密进包，`vault_att_key` 为 `Option`——CLI 传 None 保持原「加密落盘请用 GUI」报错语义），core `export_vault` 与 GUI `export_execute` 均改用它，GUI 删除本地副本。
+- 已知残留：`import_preferences` 在 core 与 GUI 各存一份（GUI 版静默吞错、core 版 R2-06 传播错误，行为有意不同），未在本项合并，后续可评估。
 
 ### P013（P2 漏洞）Vision CLI 错误外泄 OCR 文本
 
@@ -229,6 +233,10 @@
 
 `crates/solosoul-core/src/export_import.rs:203-205,277-284`（导出）与 :334-338（导入）：加解密已流式，但 JSON 层持有全量明文 records + JSON 树 + 字节多份拷贝，导入端 `payload.enc` 整块读入（上限 100MB）后整体解密。峰值内存约三份明文，移动端 OOM 风险。
 **建议**：导入端改为流式解密 + 流式 JSON 解析（如 `serde_json::Deserializer::from_reader` 分段），或降低单包上限并文档化。
+**修复说明**：
+- 导入端（CLI core）：`payload.enc` 由整块读入+整体解密改为流式解密到临时文件（vault 数据目录内、前缀 `solosoul-import-tmp-` 可清扫）后 `serde_json::from_reader` 解析，峰值内存约 3× → 1×；与 GUI 导入 R2-15 同款流程。
+- 导出端（CLI+GUI）：`serde_json::to_writer` 流式序列化到临时文件（共享 `write_payload_to_temp`/`PayloadTemp`，Drop 即删）后从文件流式加密进包，消除「JSON 树 + 完整字节」双份驻留。
+- GUI 导入侧此前已按 R2-15 流式化，未重复改动。
 
 ### P027（P2 并发）init_saf_sync 持读锁做网络 I/O
 
