@@ -282,6 +282,20 @@
 
 **修复说明**：加密参数表与「Apple Silicon Argon2 性能」陷阱小节均已改为与 `from_env()` 实际行为一致——release 默认 production、`SOLOSOUL_SECURE=1` 强制 production、仅 debug 用 development。注：`AGENTS.md` 被项目 `.gitignore` 忽略（代理本地文件），修改仅在工作区生效、不随仓库提交。
 
+### P037（P2 健壮性）登录方式修改后未立即生效（用户反馈）
+
+用户反馈：开启指纹/PIN 后锁定账户，登录页仍只有主密码解锁（不显示新方式）；关闭后锁定，登录页仍显示已关闭的两种方式。均需重启应用才恢复正常。
+
+**根因**：`src/lib/loginAvailabilityPreflight.ts` 的 `preflightLoginAvailability` 模块级 promise 缓存**永不过期**——登录页挂载时对同账户直接复用旧探测结果（`configured` 状态是修改前的），设置页的修改不会刷新该缓存；重启应用清空模块缓存故恢复正常。
+
+**修复**（`9a1f626e`）：
+- 新增 `invalidateLoginAvailabilityPreflight(accountId)`——失效指定账户的预探测缓存（单槽缓存，仅匹配账户时清除，其他账户不受影响），下次登录页挂载即重新探测；
+- 新增 `clearCachedLoginMethod(accountId, method)`——仅当缓存方式与禁用方式一致时清理 localStorage 缓存（避免登录页首帧闪现已禁用方式，其他方式保留）；
+- 四个登录方式修改点接入：`pin_setup` / `pin_disable` 成功（`usePinSetup.ts` / `usePinDisable.ts`）与 `biometric_save_credential` / `biometric_delete_credential` 成功（`BiometricSection.tsx`）后调用；
+- 测试：预探测失效后同账户重新探测、不影响其他账户缓存；`clearCachedLoginMethod` 匹配清除/不匹配保留/空账户不操作。
+
+**验证**：tsc/eslint 干净；新增 5 用例（两个 lib 测试文件共 20 用例）；全仓前端 100 文件 849 用例全绿。
+
 ---
 
 ## 备注
