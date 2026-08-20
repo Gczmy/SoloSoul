@@ -339,15 +339,11 @@ impl SyncManager {
             while running.load(Ordering::SeqCst) {
                 match receiver.recv_timeout(Duration::from_millis(MDNS_TIMEOUT_MS)) {
                     Ok(ServiceEvent::ServiceResolved(info)) => {
-                        let props = info.get_properties();
-                        let peer_account_hash = props
-                            .get("account_hash")
-                            .map(|v| v.to_string())
-                            .unwrap_or_default();
-                        let peer_account_id = props
-                            .get("account_id")
-                            .map(|v| v.to_string())
-                            .unwrap_or_default();
+                        // P031: TXT 解析收敛到 shared::parse_mdns_txt（与
+                        // src-tauri commands/discovery.rs 共用单一实现）。
+                        let txt = crate::shared::parse_mdns_txt(info.get_properties());
+                        let peer_account_hash = txt.account_hash;
+                        let peer_account_id = txt.account_id;
                         // A：发现循环对齐 mdns_discover 的兜底——Android NsdManager 广播的
                         // TXT 属性（account_hash/account_id）存在已知互操作限制：经常不传播到
                         // 标准 mDNS 客户端（桌面 mdns-sd），表现为「安卓能发现 mac、mac 却
@@ -364,14 +360,12 @@ impl SyncManager {
                                 continue;
                             }
                         }
-                        let node_id = props
-                            .get("node_id")
-                            .map(|v| v.to_string())
-                            .unwrap_or_else(|| info.get_fullname().to_string());
-                        let fingerprint = props
-                            .get("fingerprint")
-                            .map(|v| v.to_string())
-                            .unwrap_or_default();
+                        let node_id = if txt.node_id.is_empty() {
+                            info.get_fullname().to_string()
+                        } else {
+                            txt.node_id.clone()
+                        };
+                        let fingerprint = txt.fingerprint;
                         let addrs: Vec<IpAddr> = info.get_addresses().iter().cloned().collect();
                         if let Some(addr) = addrs.first() {
                             let socket = SocketAddr::new(*addr, info.get_port());

@@ -139,3 +139,43 @@ pub fn local_fingerprint_fallback(vault: &VaultStore) -> Result<String, String> 
     let (_node_id, keys) = get_or_create_sync_identity(vault)?;
     Ok(keys.fingerprint())
 }
+
+/// P031: mDNS TXT 属性的共享解析——manager.rs（SyncManager 发现循环）与
+/// src-tauri commands/discovery.rs（一次性扫描）此前各自重复解析同一组键，
+/// 收敛为单一实现防漂移。
+///
+/// 键取值均为 `mdns_sd::TxtProperty`（Display 即字符串值），统一转为 String。
+#[derive(Debug, Clone, Default)]
+pub struct MdnsTxtProps {
+    pub account_hash: String,
+    pub account_id: String,
+    pub node_id: String,
+    pub fingerprint: String,
+    pub client_type: String,
+}
+
+/// 从 `mdns_sd` 服务信息解析 TXT 属性（`ServiceInfo::get_properties()` 返回值）。
+pub fn parse_mdns_txt(props: &mdns_sd::TxtProperties) -> MdnsTxtProps {
+    MdnsTxtProps {
+        account_hash: props
+            .get("account_hash")
+            .map(|v| v.to_string())
+            .unwrap_or_default(),
+        account_id: props
+            .get("account_id")
+            .map(|v| v.to_string())
+            .unwrap_or_default(),
+        node_id: props
+            .get("node_id")
+            .map(|v| v.to_string())
+            .unwrap_or_default(),
+        fingerprint: props
+            .get("fingerprint")
+            .map(|v| v.to_string())
+            .unwrap_or_default(),
+        client_type: props
+            .get("client_type")
+            .map(|v| v.to_string())
+            .unwrap_or_default(),
+    }
+}

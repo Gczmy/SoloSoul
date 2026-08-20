@@ -137,28 +137,14 @@ pub async fn mdns_discover(
         if let Ok(ServiceEvent::ServiceResolved(info)) =
             receiver.recv_timeout(std::time::Duration::from_millis(MDNS_POLL_INTERVAL_MS))
         {
-            // P2：解析 TXT 属性做账户/本机过滤（与 SyncManager 内部 account_hash 过滤一致）
-            let props = info.get_properties();
-            let peer_account_hash = props
-                .get("account_hash")
-                .map(|v| v.to_string())
-                .unwrap_or_default();
-            let peer_account_id = props
-                .get("account_id")
-                .map(|v| v.to_string())
-                .unwrap_or_default();
-            let peer_node_id = props
-                .get("node_id")
-                .map(|v| v.to_string())
-                .unwrap_or_default();
-            let peer_fingerprint = props
-                .get("fingerprint")
-                .map(|v| v.to_string())
-                .unwrap_or_default();
-            let peer_client_type_txt = props
-                .get("client_type")
-                .map(|v| v.to_string())
-                .unwrap_or_default();
+            // P2：解析 TXT 属性做账户/本机过滤（与 SyncManager 内部 account_hash 过滤一致）。
+            // P031: TXT 解析收敛到 solosoul_sync::shared::parse_mdns_txt 单一实现。
+            let txt = solosoul_sync::shared::parse_mdns_txt(info.get_properties());
+            let peer_account_hash = txt.account_hash;
+            let peer_account_id = txt.account_id;
+            let peer_node_id = txt.node_id;
+            let peer_fingerprint = txt.fingerprint;
+            let peer_client_type_txt = txt.client_type;
             if !should_show_device(
                 &peer_account_hash,
                 &peer_account_id,
