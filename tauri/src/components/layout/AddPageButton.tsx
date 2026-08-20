@@ -2,16 +2,14 @@ import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom';
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/stores/authStore';
-import { useSettingsStore } from '@/stores/settingsStore';
-import type { CustomPage } from '@/stores/settingsStore';
 import styles from './SideNavigation.module.css';
-import { DEFAULT_CUSTOM_ICON, type CustomIconId } from '@/lib/pageIcons';
-import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
+import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
 import { useHoverCardPosition } from '@/hooks/useHoverCardPosition';
 import { useToastError } from '@/hooks/useToastError';
-import { IconCategoryPicker } from './IconCategoryPicker';
+import { useAddPageForm } from '@/hooks/useAddPageForm';
+import { AddPagePopover } from './AddPagePopover';
 import { ICON_SIZE, SAFE_AREA_TOP } from '@/lib/constants';
+import type { CustomPage } from '@/stores/settingsStore';
 
 /** 预留的顶部空间：移动 AppBar (48px) + 安全区 + 8px 边距；
  * 桌面端 AppBar 为 56px，64px 也能满足。 */
@@ -20,6 +18,7 @@ const MOBILE_APP_BAR_HEIGHT = 48;
 
 // =============================================================================
 // AddPageButton — "+" button with popover for name + icon selection
+// （P021d 拆分：表单状态 → useAddPageForm，弹层 UI → AddPagePopover）
 // =============================================================================
 
 export function AddPageButton({
@@ -45,10 +44,6 @@ export function AddPageButton({
   );
   const isSmallWindow = viewportHeight < 500;
   const [isCreating, setIsCreating] = useState(false);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [nameError, setNameError] = useState<'empty' | 'duplicate' | null>(null);
-  const [selectedIconId, setSelectedIconId] = useState<CustomIconId>(DEFAULT_CUSTOM_ICON);
   const [buttonRect, setButtonRect] = useState<DOMRect | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -91,60 +86,22 @@ export function AddPageButton({
 
   const { t } = useTranslation(['navigation', 'common']);
   const { onError } = useToastError();
-  const currentAccount = useAuthStore((s) => s.currentAccount);
-  const addCustomPage = useSettingsStore((s) => s.addCustomPage);
+  const form = useAddPageForm({ onCreate, t, onError });
+  // 解构出子 hook 的稳定函数，供本组件 useCallback 依赖使用（避免每次渲染新建对象）
+  const { handleCancel: resetForm, handleConfirm: confirmForm } = form;
 
+  // 关闭弹层并重置表单
   const handleCancel = useCallback(() => {
     setIsCreating(false);
-    setName('');
-    setDescription('');
-    setNameError(null);
-    setSelectedIconId(DEFAULT_CUSTOM_ICON);
-  }, []);
+    resetForm();
+  }, [resetForm]);
 
+  // 确认创建：错误路径（显式空名称/重名）留在弹层，其余关闭
   const handleConfirm = useCallback(
     (isExplicit = false) => {
-      const trimmed = name.trim();
-      if (!trimmed || !currentAccount) {
-        if (isExplicit) {
-          setNameError('empty');
-        } else {
-          handleCancel();
-        }
-        return;
-      }
-      // Check for duplicate page names
-      const store = useSettingsStore.getState();
-      const existingNames = [
-        ...SYSTEM_PAGE_KEYS.map((k) => t(k)),
-        ...store.settings.customPages.filter((p) => !p.deletedAt).map((p) => p.name),
-      ];
-      if (existingNames.some((n) => n.toLowerCase() === trimmed.toLowerCase())) {
-        setNameError('duplicate');
-        return;
-      }
-      const trimmedDesc = description.trim();
-      addCustomPage(currentAccount.id, trimmed, selectedIconId, trimmedDesc || undefined)
-        .then((page) => {
-          onCreate(page);
-        })
-        // P003: 创建失败（store 已回滚并抛错）——提示错误，不导航到不存在的页面。
-        .catch((err) => {
-          onError(err, t('navigation:add_page_failed', { defaultValue: '创建页面失败' }));
-        });
-      handleCancel();
+      if (confirmForm(isExplicit)) setIsCreating(false);
     },
-    [
-      name,
-      description,
-      selectedIconId,
-      currentAccount,
-      addCustomPage,
-      onCreate,
-      onError,
-      t,
-      handleCancel,
-    ],
+    [confirmForm],
   );
 
   // Close popover on outside click
@@ -230,7 +187,7 @@ export function AddPageButton({
           onClick={() => {
             setButtonRect(buttonRef.current?.getBoundingClientRect() || null);
             setIsCreating(true);
-            setSelectedIconId(DEFAULT_CUSTOM_ICON);
+            form.setSelectedIconId(DEFAULT_CUSTOM_ICON);
             setTimeout(() => inputRef.current?.focus(), 100);
           }}
           aria-label={t('add_page')}
@@ -244,9 +201,7 @@ export function AddPageButton({
       {/* Popover create row — portaled to body so it sits above sidebar/tooltips */}
       {createPortal(
         isCreating && (
-          <div
-            ref={popoverRef}
-            className={styles.addPagePopover}
+          <AddPagePopover
             style={{
               position: 'fixed',
               left: isBottom
@@ -290,154 +245,26 @@ export function AddPageButton({
               maxHeight: isBottom ? undefined : `calc(100vh - ${popoverTop}px - 16px)`,
               overflowY: isBottom ? 'hidden' : 'auto',
             }}
-          >
-            {/* Name input */}
-            <input
-              ref={inputRef}
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value.slice(0, 20));
-                setNameError(null);
-              }}
-              onBlur={(e) => {
-                // Only confirm if the blur is not caused by clicking inside the popover
-                if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
-                  handleConfirm(false);
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleConfirm(true);
-                if (e.key === 'Escape') handleCancel();
-              }}
-              placeholder={t('add_page_placeholder')}
-              maxLength={20}
-              autoFocus
-              aria-label={t('add_page_placeholder')}
-              className={styles.addPageInput}
-              data-error={nameError ? 'true' : undefined}
-              style={{ flexShrink: 0 }}
-            />
-            {showDescription && (
-              <input
-                value={description}
-                onChange={(e) => setDescription(e.target.value.slice(0, 30))}
-                onBlur={(e) => {
-                  if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
-                    handleConfirm(false);
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleConfirm(true);
-                  if (e.key === 'Escape') handleCancel();
-                }}
-                placeholder={t('add_page_description_placeholder')}
-                maxLength={30}
-                aria-label={t('add_page_description_placeholder')}
-                className={styles.addPageInput}
-                data-secondary
-                style={{ flexShrink: 0 }}
-              />
-            )}
-            {nameError && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 8,
-                  flexShrink: 0,
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 'var(--text-badge)',
-                    color: '#e74c3c',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {nameError === 'empty' ? t('page_name_required') : t('page_name_exists')}
-                </span>
-                <button onClick={handleCancel} className={styles.cancelTextBtn}>
-                  {t('common:cancel')}
-                </button>
-              </div>
-            )}
-
-            {/* Icon picker with category sections (scrollable) */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 6,
-                ...(isBottom && {
-                  flex: '1 1 auto',
-                  minHeight: isSmallWindow ? 80 : 120,
-                  overflow: 'hidden',
-                }),
-              }}
-            >
-              <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                {t('select_icon')}
-              </span>
-              <div
-                style={{
-                  maxHeight: isBottom ? undefined : scrollMaxHeight,
-                  overflowY: 'auto',
-                  overflowX: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 10,
-                  ...(isBottom && { flex: '1 1 auto', minHeight: 0 }),
-                }}
-              >
-                <IconCategoryPicker selectedIconId={selectedIconId} onSelect={setSelectedIconId} />
-              </div>
-            </div>
-
-            {/* Cancel / Confirm buttons at bottom */}
-            <div
-              style={{
-                display: 'flex',
-                gap: 8,
-                justifyContent: 'flex-end',
-                paddingTop: 4,
-                borderTop: '1px solid var(--border-subtle)',
-                flexShrink: 0,
-                marginTop: isBottom ? 'auto' : undefined,
-              }}
-            >
-              <button
-                onClick={handleCancel}
-                className={styles.cancelTextBtn}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 6,
-                  fontSize: 'var(--text-body-sm)',
-                  background: 'transparent',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-secondary)',
-                  cursor: 'pointer',
-                }}
-              >
-                {t('common:cancel')}
-              </button>{' '}
-              <button
-                onClick={() => handleConfirm(true)}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 6,
-                  fontSize: 'var(--text-body-sm)',
-                  background: 'var(--accent-primary)',
-                  border: 'none',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                }}
-              >
-                {t('common:confirm')}
-              </button>
-            </div>
-          </div>
+            popoverRef={popoverRef}
+            inputRef={inputRef}
+            name={form.name}
+            onNameChange={(v) => {
+              form.setName(v);
+              form.setNameError(null);
+            }}
+            description={form.description}
+            onDescriptionChange={form.setDescription}
+            nameError={form.nameError}
+            selectedIconId={form.selectedIconId}
+            onSelectIcon={form.setSelectedIconId}
+            onConfirm={handleConfirm}
+            onCancel={handleCancel}
+            showDescription={!!showDescription}
+            scrollMaxHeight={scrollMaxHeight}
+            isBottom={isBottom}
+            isSmallWindow={isSmallWindow}
+            t={t}
+          />
         ),
         document.body,
       )}
