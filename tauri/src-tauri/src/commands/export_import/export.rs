@@ -559,7 +559,12 @@ pub async fn export_execute(
     let snapshots = collect_object_snapshots(vault, &records)?;
 
     // ── Serialise payload ──────────────────────────────────────
-    let payload_bytes = serialize_export_payload(&records, &templates, &snapshots)?;
+    let payload_value = serialize_export_payload(&records, &templates, &snapshots)?;
+    // P026: 序列化流式写入临时文件（vault 数据目录内，0700 同姿态），随后从文件
+    // 流式加密进包——避免「JSON 树 + 完整字节」双份驻留内存（大库导出移动端 OOM 风险）。
+    let (payload_tmp, payload_size) =
+        solosoul_core::export_import::write_payload_to_temp(svc.base_path(), &payload_value)
+            .map_err(|e| e.to_string())?;
 
     // ── Derive key & encrypt ──────────────────────────────────
     let salt = solosoul_crypto::kdf::generate_salt();
@@ -579,7 +584,7 @@ pub async fn export_execute(
     };
 
     // Total export size limit (payload + attachments + ~28 bytes overhead per attachment for nonce/chunk_count)
-    let payload_estimate = payload_bytes.len() as u64;
+    let payload_estimate = payload_size;
     let total_export_estimate =
         payload_estimate + total_attachment_bytes + (attachment_entries.len() as u64 * 28);
     if total_export_estimate > MAX_EXPORT_TOTAL_BYTES {
@@ -629,7 +634,14 @@ pub async fn export_execute(
         &req.password_hint,
         &salt,
     );
-    write_manifest_and_payload(&mut zip, options, &manifest, &payload_bytes, &key)?;
+    write_manifest_and_payload(
+        &mut zip,
+        options,
+        &manifest,
+        payload_tmp.path(),
+        payload_size,
+        &key,
+    )?;
 
     zip.finish().map_err(|e| format!("ZIP finish: {e}"))?;
 
@@ -700,12 +712,13 @@ fn write_scope_extra_files(
     Ok((extra_files, preferences_encrypted, behavioral_encrypted))
 }
 
-/// 写明文 manifest.json + 加密 payload.enc（流式分块加密，P1-023）。
+/// 写明文 manifest.json + 加密 payload.enc（流式分块加密，P1-023 / P026 源为临时文件）。
 fn write_manifest_and_payload(
     zip: &mut ZipWriter<File>,
     options: SimpleFileOptions,
     manifest: &serde_json::Value,
-    payload_bytes: &[u8],
+    payload_path: &std::path::Path,
+    payload_size: u64,
     key: &[u8; 32],
 ) -> Result<(), String> {
     let manifest_bytes = serde_json::to_vec_pretty(&manifest).map_err(|e| e.to_string())?;
@@ -717,14 +730,11 @@ fn write_manifest_and_payload(
     zip.start_file("payload.enc", options)
         .map_err(|e| e.to_string())?;
     {
-        let mut cursor = std::io::Cursor::new(payload_bytes);
-        solosoul_crypto::cipher::encrypt_chunked_stream(
-            key,
-            payload_bytes.len() as u64,
-            &mut cursor,
-            zip,
-        )
-        .map_err(|e| format!("encrypt payload stream: {e}"))?;
+        let mut reader = std::io::BufReader::new(
+            std::fs::File::open(payload_path).map_err(|e| format!("open payload tmp: {e}"))?,
+        );
+        solosoul_crypto::cipher::encrypt_chunked_stream(key, payload_size, &mut reader, zip)
+            .map_err(|e| format!("encrypt payload stream: {e}"))?;
     }
     Ok(())
 }
@@ -752,13 +762,14 @@ fn collect_object_snapshots(
     Ok(snapshots)
 }
 
-/// 序列化导出 payload（对象 + 模板 + 快照）。
+/// 构建导出 payload（对象 + 模板 + 快照）。P026: 返回 JSON 树，由调用方
+/// 流式序列化到临时文件（不再产生整块字节驻留内存）。
 fn serialize_export_payload(
     records: &[solosoul_vault::ObjectRecord],
     templates: &[serde_json::Value],
     snapshots: &[serde_json::Value],
-) -> Result<Vec<u8>, String> {
-    let payload = serde_json::json!({
+) -> Result<serde_json::Value, String> {
+    Ok(serde_json::json!({
         "objects": records.iter().map(|r| serde_json::json!({
             "id": r.id,
             "account_id": r.account_id,
@@ -778,11 +789,9 @@ fn serialize_export_payload(
             "version": r.version,
             "template_id": r.template_id,
             "template_type": r.template_type,
-        })).collect::<Vec<_>>(),
-        "templates": templates,
+        })).collect::<Vec<_>>(),        "templates": templates,
         "snapshots": snapshots,
-    });
-    serde_json::to_vec(&payload).map_err(|e| format!("serialize: {e}"))
+    }))
 }
 
 // ── Attachment info for export UI ──────────────────────────────

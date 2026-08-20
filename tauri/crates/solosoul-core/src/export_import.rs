@@ -271,8 +271,9 @@ pub fn export_vault(
     }
 
     let payload = build_payload(vault, &records);
-    let payload_bytes =
-        serde_json::to_vec(&payload).map_err(|e| format!("序列化负载失败: {}", e))?;
+    // P026: 序列化流式写入临时文件（避免 JSON 树 + 完整字节双份驻留内存），
+    // 随后从文件流式加密进包。
+    let (payload_tmp, payload_size) = write_payload_to_temp(base_path, &payload)?;
 
     let salt = solosoul_crypto::kdf::generate_salt();
     let key = derive_export_key(password, &salt)?;
@@ -280,7 +281,7 @@ pub fn export_vault(
     // 收集附件源文件。
     let attachment_entries = collect_attachment_entries(base_path, &records, scope)?;
 
-    let payload_estimate = payload_bytes.len() as u64;
+    let payload_estimate = payload_size;
     let total_attachment_bytes: u64 = attachment_entries
         .iter()
         .map(|(_, _, _, src)| std::fs::metadata(src).map(|m| m.len()).unwrap_or(0))
@@ -333,15 +334,16 @@ pub fn export_vault(
     zip.write_all(&manifest_bytes)
         .map_err(|e| format!("写入 manifest 数据失败: {}", e))?;
 
-    // payload.enc（流式加密）
+    // payload.enc（流式加密，源为临时文件）
     zip.start_file("payload.enc", options)
         .map_err(|e| format!("写入 payload 条目失败: {}", e))?;
     {
-        let mut cursor = std::io::Cursor::new(&payload_bytes);
+        let mut payload_reader =
+            std::io::BufReader::new(std::fs::File::open(payload_tmp.file.path())?);
         solosoul_crypto::cipher::encrypt_chunked_stream(
             &key,
-            payload_bytes.len() as u64,
-            &mut cursor,
+            payload_size,
+            &mut payload_reader,
             &mut zip,
         )
         .map_err(|e| format!("加密 payload 流失败: {}", e))?;
@@ -394,11 +396,9 @@ pub fn import_vault(
     // P202: 按 manifest 声明参数派生（旧格式包无 kdf 字段回退 balanced 兼容）。
     let key = derive_export_key_cfg(password, &salt, &manifest.kdf_config())?;
 
-    let enc_bytes = read_file_from_zip(path, "payload.enc")?;
-    let decrypted = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc_bytes)
-        .map_err(|_| ExportError::DecryptionFailed)?;
-
-    let payload: serde_json::Value = serde_json::from_slice(&decrypted)?;
+    // P026: 流式解密主 payload——payload.enc 经 decrypt_chunked_stream 直接写入
+    // 0700 临时文件，再从文件解析 JSON；峰值内存由「密文+明文+JSON 树」约 3× 降至约 1×。
+    let payload: serde_json::Value = decrypt_payload_stream(path, base_path, &key)?;
     let package_ids = build_package_ids(&payload);
 
     // ── 模板快照导入（内容哈希隔离） ────────
@@ -932,6 +932,79 @@ fn read_manifest(path: &Path) -> Result<ManifestData, ExportError> {
             .map(|s| s.to_string()),
         kdf: kdf_from_manifest_value(v.get("kdf"))?,
     })
+}
+
+/// 导出 payload 的临时序列化持有者：目录与文件同生命周期，Drop 时文件先删、目录后删
+/// （Windows 上打开的文件无法删除，顺序保证目录可被完整移除）。
+pub struct PayloadTemp {
+    _dir: tempfile::TempDir,
+    file: tempfile::NamedTempFile,
+}
+
+impl PayloadTemp {
+    /// 序列化后的 payload 临时文件路径。
+    pub fn path(&self) -> &std::path::Path {
+        self.file.path()
+    }
+}
+
+/// 将 payload JSON 流式序列化到临时文件并返回其大小（P026）：
+/// `serde_json::to_writer` 直接写出，避免「JSON 树 + 完整字节」双份驻留内存；
+/// 临时明文置于保险库数据目录（0700 同姿态），随持有者 Drop 清理。
+/// GUI 导出与 CLI 导出共用。
+pub fn write_payload_to_temp(
+    base_path: &Path,
+    payload: &serde_json::Value,
+) -> Result<(PayloadTemp, u64), ExportError> {
+    let dir = tempfile::Builder::new()
+        .prefix("solosoul-export-tmp-")
+        .tempdir_in(base_path)
+        .map_err(|e| format!("创建导出临时目录失败: {}", e))?;
+    let mut file = tempfile::NamedTempFile::new_in(dir.path())
+        .map_err(|e| format!("创建导出临时文件失败: {}", e))?;
+    serde_json::to_writer(&mut file, payload).map_err(|e| format!("序列化负载失败: {}", e))?;
+    file.flush()
+        .map_err(|e| format!("刷新负载文件失败: {}", e))?;
+    let size = std::fs::metadata(file.path()).map(|m| m.len()).unwrap_or(0);
+    Ok((PayloadTemp { _dir: dir, file }, size))
+}
+
+/// 流式解密并解析 `payload.enc`（P026）：密文/明文不整体驻留内存，
+/// 解密直接写入临时文件（置于保险库数据目录、0700 同姿态）后由
+/// `serde_json::from_reader` 解析，峰值内存约 1× payload。
+/// 临时目录随 TempDir Drop 递归删除（含崩溃残留由调用方按前缀清扫）。
+fn decrypt_payload_stream(
+    path: &Path,
+    base_path: &Path,
+    key: &[u8; 32],
+) -> Result<serde_json::Value, ExportError> {
+    let temp_dir = tempfile::Builder::new()
+        .prefix("solosoul-import-tmp-")
+        .tempdir_in(base_path)
+        .map_err(|e| format!("创建临时目录失败: {}", e))?;
+    let mut tmp = tempfile::NamedTempFile::new_in(temp_dir.path())
+        .map_err(|e| format!("创建临时文件失败: {}", e))?;
+
+    let file = File::open(path)?;
+    let mut archive = ZipArchive::new(file)?;
+    let mut entry = archive
+        .by_name("payload.enc")
+        .map_err(|_| "ZIP 中缺少: payload.enc".to_string())?;
+    if entry.size() > MAX_ZIP_ENTRY_SIZE {
+        return Err(ExportError::Msg(format!(
+            "ZIP 条目 'payload.enc' 过大 ({} 字节, 上限 {} 字节)",
+            entry.size(),
+            MAX_ZIP_ENTRY_SIZE
+        )));
+    }
+    solosoul_crypto::cipher::decrypt_chunked_stream(key, &mut entry, &mut tmp)
+        .map_err(|_| ExportError::DecryptionFailed)?;
+
+    let payload: serde_json::Value = {
+        let f = std::fs::File::open(tmp.path()).map_err(|e| format!("读取临时文件失败: {}", e))?;
+        serde_json::from_reader(f)?
+    };
+    Ok(payload)
 }
 
 /// 从 ZIP 中读取指定名称的文件内容，带大小限制。
