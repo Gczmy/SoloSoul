@@ -51,7 +51,7 @@
 | P006 | P1 | 架构/并发 | `tauri/src-tauri/src/services/profile_prefs.rs:20-44` | `update_profile_prefs` 读-改-写跨两次独立锁获取，全量 UPSERT 无版本校验，并发写者互相覆盖（lost update） | `[x]` 已修复（b913a5d5） |
 | P007 | P1 | 架构/健壮性 | `tauri/src-tauri/src/commands/attachment/crud.rs:110-117` | `attachment_delete` 先删文件后改元数据，物理文件缺失时 `NotFound` 直接中止，元数据永远无法删除（与 batch 版容错行为不一致） | `[x]` 已修复（909539e3） |
 | P008 | P1 | 性能 | `tauri/src-tauri/src/commands/llm/conversation.rs:156,171,199` | 软删/恢复/重命名会话均整表解密只为更新一条记录，单行读取 `load_conversation` 已存在未用 | `[x]` 已修复（8d3d9f52） |
-| P009 | P1 | 死代码 | `tauri/crates/solosoul-crypto/src/aes.rs:95-245` | SOLO v3 分块加解密约 150 行仅被自身测试引用，生产路径全走 `cipher.rs` SOLC 格式，属平行重复实现且 v3 blob 已不可读 | `[ ]` 待修复 |
+| P009 | P1 | 死代码 | `tauri/crates/solosoul-crypto/src/aes.rs:95-245` | SOLO v3 分块加解密约 150 行仅被自身测试引用，生产路径全走 `cipher.rs` SOLC 格式，属平行重复实现且 v3 blob 已不可读 | `[x]` 已修复 |
 | P010 | P1 | 重复代码 | `tauri/crates/solosoul-core/src/template_service.rs:199` vs `objects.rs:1248` | `template_fingerprint` 字节级重复实现两处，模板 hash 漂移将产生静默不一致 | `[x]` 已修复（a60a7ada） |
 | P011 | P1 | 重复代码/架构 | `tauri/crates/solosoul-core/src/llm/service.rs:362` vs `tauri/src-tauri/src/commands/llm/mod.rs:24` | LLM 内置 provider 默认值两处定义且已发散（id 体系、模型名均不同），GUI 与 CLI 默认配置不一致 | `[x]` 已修复（3355002b） |
 | P012 | P1 | 重复代码/架构 | `tauri/crates/solosoul-core/src/export_import.rs:961` vs `tauri/src-tauri/src/commands/export_import/import.rs:1050`（导出侧同理） | 加密导入导出存在 core（CLI）与 GUI 两套平行实现，加密格式安全敏感面双维护易漏同步 | `[ ]` 待修复 |
@@ -132,6 +132,7 @@
 
 `crates/solosoul-crypto/src/aes.rs:95-245`：`encrypt_chunked_stream`/`decrypt_chunked_stream`/`validate_chunked_header` 及 `BLOB_VERSION_V3` 等常量仅被自身测试引用；生产路径 20+ 处调用全走 `cipher.rs` 的 SOLC 格式。且 `decrypt_blob`（:85）只接受 v2，v3 blob 实际不可读。约 150 行与 cipher.rs 平行的重复实现。
 **建议**：删除（属删除文件级操作，按流程约束标记暂缓、最后由用户确认），或注明保留理由并加 `#[allow(dead_code)]`。
+**修复说明**：经用户确认后删除——移除 `encrypt_chunked_stream`/`decrypt_chunked_stream`/`validate_chunked_header`/`BLOB_VERSION_V3`/`DEFAULT_CHUNK_SIZE` 及 4 个 v3 专用测试与 `std::io` 导入；`encrypt_blob`/`decrypt_blob`/`BLOB_MAGIC` 保留（vault 加密与生物识别 legacy 仍在使用）。生产路径 20+ 处 `encrypt_chunked_stream` 调用均为 `cipher.rs` SOLC 版，不受影响。
 
 ### P010（P1 重复代码）template_fingerprint 两处逐字节相同
 
