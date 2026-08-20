@@ -60,7 +60,7 @@
 | P015 | P2 | 漏洞 | `tauri/src-tauri/src/setup/mod.rs:92-93` | `RUST_LOG` 环境变量可静默提升日志级别，debug 级下更多标识信息落盘；发布构建建议固定上限 | `[x]` 已修复（44168a28） |
 | P016 | P2 | 性能 | `tauri/src/hooks/useAttachmentManagerBatchOps.ts:129,177,231` | 三个批量操作跨对象时循环内串行 `await invoke`，N 次顺序 IPC 往返（项目已有 `Promise.allSettled` 并行化先例） | `[x]` 已修复（7afabfdd） |
 | P017 | P2 | 可优化（重复） | `tauri/src/hooks/useAttachmentManagerBatchOps.ts:115-260` | 批量软删/永久删/恢复三函数各约 48 行逐行相同，仅 IPC 命令名与 i18n key 不同 | `[x]` 已修复（c5be1ecd） |
-| P018 | P2 | 可优化（重复） | `tauri/src/components/layout/SearchPopover.tsx:104-140` vs `tauri/src/pages/search/SearchPage.tsx:57-93` | `doSearch` 两处近乎复制，共享逻辑应下沉到 `lib/searchShared.tsx` | `[x]` 已修复（本轮） |
+| P018 | P2 | 可优化（重复） | `tauri/src/components/layout/SearchPopover.tsx:104-140` vs `tauri/src/pages/search/SearchPage.tsx:57-93` | `doSearch` 两处近乎复制，共享逻辑应下沉到 `lib/searchShared.tsx` | `[x]` 已修复（e68fffd0） |
 | P019 | P2 | 性能 | `tauri/src/components/object/useObjectDetailModal.tsx:234-235` | `fieldOrder` 与 `flattenProperties` 每次渲染重算未 memo，与项目已确立的 memo 化范式不一致 | `[ ]` 待修复 |
 | P020 | P2 | 漏洞（资源泄漏） | `tauri/src/lib/vaultDirectory.ts:71-92` | `pickVaultDirectory` 的 `visibilitychange` 监听器仅特定分支移除，桌面端正常返回后永久残留并逐次累积 | `[ ]` 待修复 |
 | P021 | P2 | 架构（超长函数） | `tauri/src/hooks/useRecoveryReceive.ts:28`（478 行）、`useLlmChatCore.ts:63`（450 行）、`pages/ai/useLlmConfigPage.ts:49`（437 行）、`components/layout/AddPageButton.tsx:25`（422 行）、`components/settings/PinSection.tsx:20`（415 行） | 前端 5 个 400+ 行超长函数/组件，多职责混杂，建议拆分 | `[ ]` 待修复 |
