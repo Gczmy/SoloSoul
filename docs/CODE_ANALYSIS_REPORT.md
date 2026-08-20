@@ -48,7 +48,7 @@
 | P003 | P1 | 漏洞 | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:1034-1066` | 改密重加密把附件明文写 `.rekey.tmp` 临时文件，崩溃残留后无任何清理路径 | `[x]` 已修复（527f0e44） |
 | P004 | P1 | 漏洞（设计） | `tauri/crates/solosoul-core/src/pin.rs:341,602-613` | PIN（6-8 位纯数字）派生 KEK 加密 session key 落盘，可离线爆破（约 20 bit 熵），拉平主密码强度 | `[ ]` 待修复 |
 | P005 | P1 | 架构/健壮性 | `tauri/crates/solosoul-vault/src/storage/objects.rs:326` | `object_row_to_record` 对 JSON 反序列化失败静默吞为 `Value::Null`，用户随后编辑保存将用空 properties 覆盖原数据 | `[x]` 已修复（18f0af93） |
-| P006 | P1 | 架构/并发 | `tauri/src-tauri/src/services/profile_prefs.rs:20-44` | `update_profile_prefs` 读-改-写跨两次独立锁获取，全量 UPSERT 无版本校验，并发写者互相覆盖（lost update） | `[x]` 已修复（本轮） |
+| P006 | P1 | 架构/并发 | `tauri/src-tauri/src/services/profile_prefs.rs:20-44` | `update_profile_prefs` 读-改-写跨两次独立锁获取，全量 UPSERT 无版本校验，并发写者互相覆盖（lost update） | `[x]` 已修复（b913a5d5） |
 | P007 | P1 | 架构/健壮性 | `tauri/src-tauri/src/commands/attachment/crud.rs:110-117` | `attachment_delete` 先删文件后改元数据，物理文件缺失时 `NotFound` 直接中止，元数据永远无法删除（与 batch 版容错行为不一致） | `[x]` 已修复（909539e3） |
 | P008 | P1 | 性能 | `tauri/src-tauri/src/commands/llm/conversation.rs:156,171,199` | 软删/恢复/重命名会话均整表解密只为更新一条记录，单行读取 `load_conversation` 已存在未用 | `[x]` 已修复（8d3d9f52） |
 | P009 | P1 | 死代码 | `tauri/crates/solosoul-crypto/src/aes.rs:95-245` | SOLO v3 分块加解密约 150 行仅被自身测试引用，生产路径全走 `cipher.rs` SOLC 格式，属平行重复实现且 v3 blob 已不可读 | `[ ]` 待修复 |
