@@ -111,154 +111,99 @@ export function useAttachmentManagerBatchOps({
     }
   }, [selectedIds, displayPages, t, showToast, clearSelection]);
 
-  /** 根据选中的复合键批量软删除附件 */
-  const handleBatchDelete = useCallback(async () => {
-    setBatchDeleteConfirm(false);
-    const entries = [...selectedIds];
-    if (entries.length === 0) return;
+  /**
+   * P017: 软删/永久删/恢复三函数参数化合并——逐行相同的分组、IPC 循环、
+   * 失败统计与 toast 文案结构收敛为单一实现，仅 IPC 命令名与 i18n key 不同。
+   * 逐个对象串行 await（P016 另行并行化）。
+   */
+  const runBatchOperation = useCallback(
+    async (op: {
+      command: 'attachment_batch_soft_delete' | 'attachment_batch_delete' | 'attachment_batch_restore';
+      closeConfirm: () => void;
+      resultKey: 'batch_delete_result' | 'batch_perm_delete_result' | 'batch_restore_result';
+      opLabel: string;
+      defaultMessage: string;
+    }) => {
+      op.closeConfirm();
+      const entries = [...selectedIds];
+      if (entries.length === 0) return;
 
-    const byObject = new Map<string, string[]>();
-    for (const key of entries) {
-      const [objectId, attachmentId] = key.split('::');
-      if (!byObject.has(objectId)) byObject.set(objectId, []);
-      byObject.get(objectId)!.push(attachmentId);
-    }
-
-    let successCount = 0;
-    let failedCount = 0;
-    for (const [objectId, attachmentIds] of byObject) {
-      try {
-        await invoke('attachment_batch_soft_delete', {
-          objectId: objectId,
-          attachmentIds: attachmentIds,
-        });
-        successCount += attachmentIds.length;
-      } catch (e) {
-        // P121: 逐对象失败不再静默吞错——记录真实错误，批量结果提示失败数
-        failedCount += attachmentIds.length;
-        logger.warn('[AttachmentManager] Batch soft delete failed for object', objectId, ':', e);
+      const byObject = new Map<string, string[]>();
+      for (const key of entries) {
+        const [objectId, attachmentId] = key.split('::');
+        if (!byObject.has(objectId)) byObject.set(objectId, []);
+        byObject.get(objectId)!.push(attachmentId);
       }
-    }
 
-    clearSelection();
-    await loadData();
-    const base = t('common:batch_delete_result', {
-      success: successCount,
-      total: entries.length,
-      defaultValue: `Deleted ${successCount}/${entries.length} attachments`,
+      let successCount = 0;
+      let failedCount = 0;
+      for (const [objectId, attachmentIds] of byObject) {
+        try {
+          await invoke(op.command, {
+            objectId: objectId,
+            attachmentIds: attachmentIds,
+          });
+          successCount += attachmentIds.length;
+        } catch (e) {
+          // P121: 逐对象失败不再静默吞错——记录真实错误，批量结果提示失败数
+          failedCount += attachmentIds.length;
+          logger.warn(`[AttachmentManager] ${op.opLabel} failed for object`, objectId, ':', e);
+        }
+      }
+
+      clearSelection();
+      await loadData();
+      const base = t(`common:${op.resultKey}`, {
+        success: successCount,
+        total: entries.length,
+        defaultValue: op.defaultMessage,
+      });
+      showToast({
+        type: failedCount > 0 ? 'warning' : 'info',
+        message:
+          failedCount > 0
+            ? `${base}${t('common:batch_op_failed_suffix', {
+                count: failedCount,
+                defaultValue: `（${failedCount} 项失败）`,
+              })}`
+            : base,
+      });
+    },
+    [selectedIds, clearSelection, loadData, t, showToast],
+  );
+
+  /** 根据选中的复合键批量软删除附件 */
+  const handleBatchDelete = useCallback(() => {
+    return runBatchOperation({
+      command: 'attachment_batch_soft_delete',
+      closeConfirm: setBatchDeleteConfirm.bind(null, false),
+      resultKey: 'batch_delete_result',
+      opLabel: 'Batch soft delete',
+      defaultMessage: `Deleted ${selectedIds.size}/${selectedIds.size} attachments`,
     });
-    showToast({
-      type: failedCount > 0 ? 'warning' : 'info',
-      message:
-        failedCount > 0
-          ? `${base}${t('common:batch_op_failed_suffix', {
-              count: failedCount,
-              defaultValue: `（${failedCount} 项失败）`,
-            })}`
-          : base,
-    });
-  }, [selectedIds, setBatchDeleteConfirm, clearSelection, loadData, t, showToast]);
+  }, [runBatchOperation, selectedIds.size, setBatchDeleteConfirm]);
 
   /** 根据选中的复合键批量永久删除附件 */
-  const handleBatchPermanentDelete = useCallback(async () => {
-    setBatchPermanentDeleteConfirm(false);
-    const entries = [...selectedIds];
-    if (entries.length === 0) return;
-
-    const byObject = new Map<string, string[]>();
-    for (const key of entries) {
-      const [objectId, attachmentId] = key.split('::');
-      if (!byObject.has(objectId)) byObject.set(objectId, []);
-      byObject.get(objectId)!.push(attachmentId);
-    }
-
-    let successCount = 0;
-    let failedCount = 0;
-    for (const [objectId, attachmentIds] of byObject) {
-      try {
-        await invoke('attachment_batch_delete', {
-          objectId: objectId,
-          attachmentIds: attachmentIds,
-        });
-        successCount += attachmentIds.length;
-      } catch (e) {
-        // P121: 逐对象失败不再静默吞错——记录真实错误，批量结果提示失败数
-        failedCount += attachmentIds.length;
-        logger.warn(
-          '[AttachmentManager] Batch permanent delete failed for object',
-          objectId,
-          ':',
-          e,
-        );
-      }
-    }
-
-    clearSelection();
-    await loadData();
-    const base = t('common:batch_perm_delete_result', {
-      success: successCount,
-      total: entries.length,
-      defaultValue: `Permanently deleted ${successCount}/${entries.length} attachments`,
+  const handleBatchPermanentDelete = useCallback(() => {
+    return runBatchOperation({
+      command: 'attachment_batch_delete',
+      closeConfirm: setBatchPermanentDeleteConfirm.bind(null, false),
+      resultKey: 'batch_perm_delete_result',
+      opLabel: 'Batch permanent delete',
+      defaultMessage: `Permanently deleted ${selectedIds.size}/${selectedIds.size} attachments`,
     });
-    showToast({
-      type: failedCount > 0 ? 'warning' : 'info',
-      message:
-        failedCount > 0
-          ? `${base}${t('common:batch_op_failed_suffix', {
-              count: failedCount,
-              defaultValue: `（${failedCount} 项失败）`,
-            })}`
-          : base,
-    });
-  }, [selectedIds, setBatchPermanentDeleteConfirm, clearSelection, loadData, t, showToast]);
+  }, [runBatchOperation, selectedIds.size, setBatchPermanentDeleteConfirm]);
 
   /** 根据选中的复合键批量恢复附件 */
-  const handleBatchRestore = useCallback(async () => {
-    setBatchRestoreConfirm(false);
-    const entries = [...selectedIds];
-    if (entries.length === 0) return;
-
-    // Group by objectId
-    const byObject = new Map<string, string[]>();
-    for (const key of entries) {
-      const [oid, attachmentId] = key.split('::');
-      if (!byObject.has(oid)) byObject.set(oid, []);
-      byObject.get(oid)!.push(attachmentId);
-    }
-
-    let successCount = 0;
-    let failedCount = 0;
-    for (const [objectId, attachmentIds] of byObject) {
-      try {
-        await invoke('attachment_batch_restore', {
-          objectId: objectId,
-          attachmentIds: attachmentIds,
-        });
-        successCount += attachmentIds.length;
-      } catch (e) {
-        // P121: 逐对象失败不再静默吞错——记录真实错误，批量结果提示失败数
-        failedCount += attachmentIds.length;
-        logger.warn('[AttachmentManager] Batch restore failed for object', objectId, ':', e);
-      }
-    }
-    clearSelection();
-    await loadData();
-    const base = t('common:batch_restore_result', {
-      success: successCount,
-      total: entries.length,
-      defaultValue: `Restored ${successCount}/${entries.length} attachments`,
+  const handleBatchRestore = useCallback(() => {
+    return runBatchOperation({
+      command: 'attachment_batch_restore',
+      closeConfirm: setBatchRestoreConfirm.bind(null, false),
+      resultKey: 'batch_restore_result',
+      opLabel: 'Batch restore',
+      defaultMessage: `Restored ${selectedIds.size}/${selectedIds.size} attachments`,
     });
-    showToast({
-      type: failedCount > 0 ? 'warning' : 'info',
-      message:
-        failedCount > 0
-          ? `${base}${t('common:batch_op_failed_suffix', {
-              count: failedCount,
-              defaultValue: `（${failedCount} 项失败）`,
-            })}`
-          : base,
-    });
-  }, [selectedIds, setBatchRestoreConfirm, clearSelection, loadData, t, showToast]);
+  }, [runBatchOperation, selectedIds.size, setBatchRestoreConfirm]);
 
   return {
     selectedIds,
