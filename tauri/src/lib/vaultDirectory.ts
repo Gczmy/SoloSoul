@@ -65,34 +65,50 @@ export async function pickVaultDirectory(): Promise<string | null> {
     settled = true;
   });
 
+  let graceTimer: ReturnType<typeof window.setInterval> | undefined;
+  let rejectLost: ((e: VaultDirPickLostError) => void) | undefined;
+
   // 兜底检测：页面隐藏（SAF 选择器打开）→ 重新可见（选择器已关闭）后，
   // 给 invoke 结果投递留 8 秒缓冲；仍无结果则判定丢失。
   // 正常路径下结果在选择器关闭后数百毫秒内即返回，不会误触发。
+  let wasHidden = false;
+  const onVisibilityChange = () => {
+    if (document.visibilityState === 'hidden') {
+      wasHidden = true;
+    } else if (wasHidden && !settled && !graceTimer) {
+      const graceStart = Date.now();
+      graceTimer = window.setInterval(() => {
+        if (settled) {
+          window.clearInterval(graceTimer);
+          graceTimer = undefined;
+          return;
+        }
+        if (Date.now() - graceStart >= 8000) {
+          window.clearInterval(graceTimer);
+          graceTimer = undefined;
+          rejectLost?.(new VaultDirPickLostError());
+        }
+      }, 500);
+    }
+  };
+  document.addEventListener('visibilitychange', onVisibilityChange);
+
   const lostResult = new Promise<never>((_, reject) => {
-    let wasHidden = false;
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        wasHidden = true;
-      } else if (wasHidden && !settled) {
-        document.removeEventListener('visibilitychange', onVisibilityChange);
-        const graceStart = Date.now();
-        const graceTimer = window.setInterval(() => {
-          if (settled) {
-            window.clearInterval(graceTimer);
-            return;
-          }
-          if (Date.now() - graceStart >= 8000) {
-            window.clearInterval(graceTimer);
-            reject(new VaultDirPickLostError());
-          }
-        }, 500);
-      }
-    };
-    document.addEventListener('visibilitychange', onVisibilityChange);
+    rejectLost = reject;
   });
 
-  const result = await Promise.race([raw, lostResult]);
-  return result.uri ?? null;
+  try {
+    const result = await Promise.race([raw, lostResult]);
+    return result.uri ?? null;
+  } finally {
+    // P020: 无论正常返回/取消/结果丢失，统一移除监听器并清理宽限定时器——
+    // 桌面端走系统对话框不触发 visibility 变化，旧实现监听器永久残留逐次累积。
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    if (graceTimer) {
+      window.clearInterval(graceTimer);
+      graceTimer = undefined;
+    }
+  }
 }
 
 export async function syncVaultToRemote(): Promise<void> {

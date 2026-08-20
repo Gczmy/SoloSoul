@@ -94,4 +94,19 @@ describe('pickVaultDirectory（SAF 选择器 + 结果丢失兜底）', () => {
     resolveInvoke({ uri: 'content://tree/normal' });
     await expect(promise).resolves.toBe('content://tree/normal');
   });
+
+  it('P020：桌面端正常返回后 visibilitychange 监听器被移除（不累积）', async () => {
+    const addSpy = vi.spyOn(document, 'addEventListener');
+    const removeSpy = vi.spyOn(document, 'removeEventListener');
+    // 桌面端：系统对话框不触发 visibility 变化，invoke 直接返回
+    vi.mocked(invokeCommand).mockResolvedValue({ uri: 'content://tree/desktop' } as never);
+    await pickVaultDirectory();
+
+    const added = addSpy.mock.calls.filter(([type]) => type === 'visibilitychange');
+    const removed = removeSpy.mock.calls.filter(([type]) => type === 'visibilitychange');
+    expect(added.length).toBe(1);
+    expect(removed.length).toBe(1);
+    addSpy.mockRestore();
+    removeSpy.mockRestore();
+  });
 });
