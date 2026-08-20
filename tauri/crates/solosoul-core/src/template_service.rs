@@ -6,8 +6,9 @@
 //! account creation. After import, users can freely edit or delete them.
 
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use std::collections::HashMap;
+
+use crate::objects::template_fingerprint;
 
 // ---------------------------------------------------------------------------
 // Data types (seed format — mirrors the JSON structure)
@@ -194,19 +195,8 @@ pub fn seed_default_templates(
 // Plugin install migration — seed templates contract_bindings 补齐
 // ---------------------------------------------------------------------------
 
-/// 计算模板指纹，用于判断对象是否需要同步模板更新。
-/// 按字段 id 稳定排序后序列化再取 SHA-256 前 16 位。
-fn template_fingerprint(tpl: &solosoul_vault::UserTemplate) -> String {
-    let mut props: Vec<&solosoul_vault::TemplateProperty> = tpl.properties.iter().collect();
-    props.sort_by(|a, b| a.id.cmp(&b.id));
-    let canonical = serde_json::json!({
-        "properties": props,
-    });
-    let bytes = serde_json::to_vec(&canonical).unwrap_or_default();
-    let hash = Sha256::digest(&bytes);
-    hex::encode(&hash[..8])
-}
-
+// P010: 模板指纹统一复用 `objects::template_fingerprint`（pub 单一来源），
+// 避免两处逐字节重复实现随模板 hash 漂移产生静默不一致。
 /// 插件安装后迁移种子模板的 contract_bindings。
 /// 对模板中 contractField: true 但 contract_bindings 为空的字段，
 /// 根据已安装插件的合同合约 roles[].defaultPropertyId 自动推导绑定并持久化。
