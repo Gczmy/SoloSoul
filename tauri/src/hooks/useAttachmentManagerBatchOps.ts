@@ -114,7 +114,9 @@ export function useAttachmentManagerBatchOps({
   /**
    * P017: 软删/永久删/恢复三函数参数化合并——逐行相同的分组、IPC 循环、
    * 失败统计与 toast 文案结构收敛为单一实现，仅 IPC 命令名与 i18n key 不同。
-   * 逐个对象串行 await（P016 另行并行化）。
+   * P016: 跨对象 IPC 由串行 await 改为 Promise.allSettled 并行（各对象独立
+   * 命令互不依赖），allSettled 不会因单项失败整体 reject，success/failed 计数
+   * 语义与串行一致。
    */
   const runBatchOperation = useCallback(
     async (op: {
@@ -135,19 +137,35 @@ export function useAttachmentManagerBatchOps({
         byObject.get(objectId)!.push(attachmentId);
       }
 
+      // P016: 全部对象并发发起 IPC，逐个收集结果（失败不中断其余对象）
+      const results = await Promise.allSettled(
+        [...byObject.entries()].map(async ([objectId, attachmentIds]) => {
+          try {
+            await invoke(op.command, {
+              objectId: objectId,
+              attachmentIds: attachmentIds,
+            });
+            return { objectId, attachmentIds, error: null as string | null };
+          } catch (e) {
+            // P121: 逐对象失败不再静默吞错——记录真实错误，批量结果提示失败数
+            logger.warn(`[AttachmentManager] ${op.opLabel} failed for object`, objectId, ':', e);
+            return { objectId, attachmentIds, error: e instanceof Error ? e.message : String(e) };
+          }
+        }),
+      );
+
       let successCount = 0;
       let failedCount = 0;
-      for (const [objectId, attachmentIds] of byObject) {
-        try {
-          await invoke(op.command, {
-            objectId: objectId,
-            attachmentIds: attachmentIds,
-          });
-          successCount += attachmentIds.length;
-        } catch (e) {
-          // P121: 逐对象失败不再静默吞错——记录真实错误，批量结果提示失败数
-          failedCount += attachmentIds.length;
-          logger.warn(`[AttachmentManager] ${op.opLabel} failed for object`, objectId, ':', e);
+      for (const r of results) {
+        // 内层闭包已 try/catch 所有失败，理论上不会 rejected；防御性兜底按失败计数
+        if (r.status === 'rejected') {
+          failedCount += entries.length;
+          continue;
+        }
+        if (r.value.error === null) {
+          successCount += r.value.attachmentIds.length;
+        } else {
+          failedCount += r.value.attachmentIds.length;
         }
       }
 
