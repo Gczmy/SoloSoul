@@ -2,6 +2,46 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.12.0] - 2026-08-20
+
+### Security
+
+- **附件加密落盘（P001）** — 附件改为 SOLC 分块加密 + HKDF 派生密钥全链路读写；CLI 导入不再明文落盘、重加密原子化（两阶段 prepare/commit + 失败回滚）；打开分享副本不再永久残留（一次性 UUID 子目录 + 30 分钟延迟清理）。
+- **主密码验证全面接入阶梯锁定（P012）** — 导出校验 / 生物识别保存删除 / PIN 关闭三条无限速验证路径全部接入锁定；verify_password_with_lockout 补 recover 前导，崩溃残留不再误判误计；前端落地锁定文案。
+- **分享副本清理竞态（P010）** — 弃用「下次分享前清理」，统一走一次性子目录 + 后台延迟清理，桌面并发分享互不删除对方副本。
+- **删除遗留 unlock IPC 命令（P011）** — password 未 Zeroizing 且前端零调用，统一走 unlock_with_password。
+- **PIN 设置新增便利解锁风险提示（P004）** — 双语提示「PIN 为便利解锁、强度低于主密码」；PIN 凭证始终使用 production KDF。
+- **生物识别降级威胁模型登记（P035）** — macOS 当前文件方案（无 keychain entitlement）的数据副本离线攻击风险登记至 `biometric-spec.md`；运行时系统弹窗门禁与 Keychain 等价。
+- **SAF 导出明文中转目录/文件权限收紧（P002）** — 临时目录/文件 0700/0600。
+- **reencrypt_attachments 崩溃残留临时文件主动清理（P003）**。
+
+### Performance
+
+- **全局 DB Mutex 两阶段改造（P025）** — 5 个 N 行解密热点（列表/批量加载/会话/快照）改为「SQL 取数 → 释放锁 → 锁外解密」，实测持锁时长降 72%~100%，高级搜索期间 GUI 其他 DB 操作不再被阻塞。
+- **导入导出 JSON 层流式化（P026）** — 流式解密 + 临时文件序列化，峰值内存从三份明文降至单份，移动端大库 OOM 风险消除。
+- **加密导入导出双实现收敛（P012）** — 附件导入导出合并到 core 唯一实现（净删 366 行）。
+- **回收站批量恢复改单次 IPC（P014）** — 服务端循环，对齐批量删除。
+- **导出快照 N+M 查询消除（P013）** — 一次 SQL 批量加载含 data 解密。
+- **首页角标轻量计数（P006）** — 单 SQL 解密 + 子串扫描，免全表附件树构建。
+- **回收站子对象列表消除 N+1 冗余解密（P005）**、LLM 会话整表解密改单行（P008）、模板名查询批量加载（P024）。
+
+### Refactor
+
+- **5 个 400+ 行前端文件拆分（P021）** — useRecoveryReceive / useLlmChatCore / useLlmConfigPage / AddPageButton / PinSection 拆分为聚焦子 hook 与子组件，公开 API 与行为不变。
+- **共享实现收敛** — mDNS TXT 解析（P031）、attachment meta 双定义统一（P007）、API key 掩码哨兵（P015）、模板行映射（P020）、导出元信息构建（P021）、LLM provider 合并（P019）。
+- **删除死代码** — aes.rs SOLO v3 分块（P009）、ExportError::Crypto 变体（P017）、4 个一次性 codemod 脚本（P018）。
+
+### Fixed
+
+- **路由导航滚动位置重置** — 切页 scrollTop 清零，不再继承上一页位置。
+- **前端错误处理补齐** — addCustomPage 失败不再返回成功值、updateObject 失败不再静默吞错、LLM Embedding 设置失败回滚。
+- **批量附件下载 catch-all 留痕（P016）** — 真实错误不再误判为「用户取消」。
+
+### Chore
+
+- 版本号同步 2.12.0（package.json / tauri.conf.json / Cargo.toml / tauri.properties versionCode 2012000）。
+- Android 交叉编译修复：tempfile 依赖移入通用段、mDNS TXT 解析按平台门控。
+
 ## [2.11.4] - 2026-08-19
 
 ### Fixed
