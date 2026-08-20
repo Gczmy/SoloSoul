@@ -184,8 +184,31 @@ impl VaultStore {
         drop(guard);
 
         // 逐行解密，解密失败的条目跳过而非中断整个列表。
+        // P032: 两段同构解密 match 收敛为 decrypt_optional 闭包。
         let mut result = Vec::new();
         let mut skip_count = 0u32;
+        let mut decrypt_optional = |key: &DataEncryptionKey,
+                                    id: i64,
+                                    field: &str,
+                                    raw: Option<&String>|
+         -> Option<String> {
+            match raw {
+                Some(s) => match decrypt_text_field(key, s) {
+                    Ok(dec) => Some(dec),
+                    Err(e) => {
+                        tracing::warn!(
+                            "list_audit_log: {} decryption failed for entry id={}: {}",
+                            field,
+                            id,
+                            e
+                        );
+                        skip_count += 1;
+                        Some(format!("[decryption error: {}]", e))
+                    }
+                },
+                None => None,
+            }
+        };
         for (
             id,
             timestamp,
@@ -197,35 +220,8 @@ impl VaultStore {
             raw_details,
         ) in raw_rows
         {
-            let entity_name = match raw_name.as_deref() {
-                Some(n) => match decrypt_text_field(&key, n) {
-                    Ok(dec) => Some(dec),
-                    Err(e) => {
-                        tracing::warn!(
-                            "list_audit_log: entity_name decryption failed for entry id={}: {}",
-                            id,
-                            e
-                        );
-                        skip_count += 1;
-                        Some(format!("[decryption error: {}]", e))
-                    }
-                },
-                None => None,
-            };
-            let details = match raw_details.as_deref() {
-                Some(d) => match decrypt_text_field(&key, d) {
-                    Ok(dec) => Some(dec),
-                    Err(e) => {
-                        tracing::warn!(
-                        "list_audit_log: skipping details for entry id={}, decryption failed: {}",
-                        id, e
-                    );
-                        skip_count += 1;
-                        Some(format!("[decryption error: {}]", e))
-                    }
-                },
-                None => None,
-            };
+            let entity_name = decrypt_optional(&key, id, "entity_name", raw_name.as_ref());
+            let details = decrypt_optional(&key, id, "details", raw_details.as_ref());
             result.push(crate::AuditLogEntry {
                 id,
                 timestamp,
