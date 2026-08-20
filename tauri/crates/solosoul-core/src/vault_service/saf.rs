@@ -15,6 +15,12 @@ impl super::VaultService {
         self.ui_prefs_sync_enabled.load(Ordering::SeqCst)
     }
 
+    /// P027: 取底层文件系统句柄（Arc 克隆）——调用方可在短暂持锁取到句柄后
+    /// 释放锁再做长时间操作（如网络同步），避免 std RwLock 写者饥饿。
+    pub fn file_system(&self) -> Arc<dyn VaultFileSystem> {
+        self.fs.clone()
+    }
+
     pub fn sync_to_remote(&self) -> Result<(), String> {
         self.fs.sync_to_remote()
     }

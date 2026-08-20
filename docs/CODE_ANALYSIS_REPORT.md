@@ -69,7 +69,7 @@
 | P024 | P2 | 性能 | `tauri/crates/solosoul-vault/src/storage/objects.rs:219-232` | `save_object_tx` 每保存一对象额外执行一次未缓存的模板名 SELECT，批量导入放大为 N 次查询 | `[x]` 已修复（4a425d5b） |
 | P025 | P2 | 架构/性能 | `tauri/crates/solosoul-vault/src/storage.rs:484` | 全库单一 `Mutex<Connection>` 串行化，且逐行 AES 解密在持锁闭包内执行，长查询阻塞全部 DB 操作 | `[ ]` 待修复 |
 | P026 | P2 | 性能 | `tauri/crates/solosoul-core/src/export_import.rs:203-205,277-284,334-338` | 导入导出 JSON 层未流式，峰值内存可达明文+密文+JSON 树三份，接近 100MB 上限的库在移动端有 OOM 风险 | `[ ]` 待修复 |
-| P027 | P2 | 架构/并发 | `tauri/src-tauri/src/state/app_state.rs:551-563` | `init_saf_sync` 持 `RwLock` 读锁执行网络 I/O，`replace_vault_service` 写锁被阻塞，std RwLock 有写者饥饿风险 | `[ ]` 待修复 |
+| P027 | P2 | 架构/并发 | `tauri/src-tauri/src/state/app_state.rs:551-563` | `init_saf_sync` 持 `RwLock` 读锁执行网络 I/O，`replace_vault_service` 写锁被阻塞，std RwLock 有写者饥饿风险 | `[x]` 已修复（本轮） |
 | P028 | P2 | 可优化（长函数） | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:795` | `change_password` 126 行、嵌套 5 层，密码学关键路径的失败混态防护难以审查 | `[ ]` 待修复 |
 | P029 | P2 | 可优化（长函数） | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:990` | `reencrypt_attachments` 122 行、嵌套 6 层，建议按「单文件重加密」提取子函数（与 P003 修复可合并） | `[ ]` 待修复 |
 | P030 | P2 | 可优化（长函数） | `tauri/crates/solosoul-sync/src/session.rs:263` | `handle_inbound` 125 行、嵌套 5 层、7 参数（带 `too_many_arguments` allow） | `[ ]` 待修复 |
@@ -82,7 +82,7 @@
 
 ## 修复进度
 
-- 已完成：20 / 36（P001、P002、P003、P005、P006、P007、P008、P010、P011、P013、P014、P015、P016、P017、P018、P019、P020、P022、P023、P024）
+- 已完成：21 / 36（P001、P002、P003、P005、P006、P007、P008、P010、P011、P013、P014、P015、P016、P017、P018、P019、P020、P022、P023、P024、P027）
 
 ---
 

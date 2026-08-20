@@ -549,13 +549,19 @@ impl AppState {
         }
 
         tokio::task::spawn_blocking(move || -> Result<(), String> {
-            let read_guard = svc
-                .read()
-                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            // P027: 只短暂持读锁取文件系统句柄（Arc 克隆）后立即释放——
+            // sync_from_remote 含网络 I/O，原先全程持锁会阻塞 replace_vault_service
+            // 的写锁（std RwLock 有写者饥饿风险）。
+            let fs = {
+                let read_guard = svc
+                    .read()
+                    .map_err(|_| "Vault service lock poisoned".to_string())?;
+                read_guard.file_system()
+            };
             // 始终执行首次同步：
             // 1. 防止本地 temp 中仅有 accounts.json 而账户目录未同步的半拉状态；
             // 2. sync_from_remote 内部按 mtime/size 跳过已一致文件，不会重复大下载。
-            read_guard.sync_from_remote()?;
+            fs.sync_from_remote()?;
             tracing::info!("[AppState] SAF initial sync completed");
             Ok(())
         })
