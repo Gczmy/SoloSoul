@@ -15,6 +15,44 @@ use super::{with_tx, LockHoldObserver, VaultStore};
 use crate::encryption::{decrypt_field, encrypt_field, DataEncryptionKey};
 use crate::BorrowedSyncRecord;
 
+/// P025 Phase 2: `list_conversations` 行的原始列数据（不解密），两阶段读的中间形态。
+///
+/// 列序：0=id, 1=updated_at, 2=data（AES-256-GCM 密文 Blob）。
+/// `from_row` 仅装箱，`into_decrypted` 承载原闭包的解密逻辑（错误列索引/文案逐字保留）。
+struct ConversationRowRaw {
+    id: String,
+    updated_at: String,
+    data: Vec<u8>,
+}
+
+impl ConversationRowRaw {
+    fn from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Self> {
+        Ok(Self {
+            id: row.get(0)?,
+            updated_at: row.get(1)?,
+            data: row.get(2)?,
+        })
+    }
+
+    /// 锁外解密为 (id, updated_at, 明文 data)。
+    fn into_decrypted(
+        self,
+        key: &DataEncryptionKey,
+    ) -> Result<(String, String, Vec<u8>), rusqlite::Error> {
+        let data = decrypt_field(key, &self.data).map_err(|e| {
+            rusqlite::Error::FromSqlConversionFailure(
+                2,
+                rusqlite::types::Type::Blob,
+                Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("Conversation decryption failed: {e}"),
+                )),
+            )
+        })?;
+        Ok((self.id, self.updated_at, data))
+    }
+}
+
 impl VaultStore {
     /// 保存/覆盖单条会话（按 id 行级写入，不触碰其他会话）。返回新 HLC。
     pub fn save_conversation(
@@ -92,31 +130,31 @@ impl VaultStore {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         _obs.acquired();
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let mut stmt = conn
-            .prepare(
-                "SELECT id, updated_at, data FROM llm_conversations WHERE account_id = ?1
-                 ORDER BY updated_at ASC",
-            )
-            .map_err(|e| format!("list_conversations: {e}"))?;
-        let rows = stmt
-            .query_map(params![account_id], |row| {
-                let raw: Vec<u8> = row.get(2)?;
-                let data = decrypt_field(&key, &raw).map_err(|e| {
-                    rusqlite::Error::FromSqlConversionFailure(
-                        2,
-                        rusqlite::types::Type::Blob,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Conversation decryption failed: {e}"),
-                        )),
-                    )
-                })?;
-                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?, data))
-            })
-            .map_err(|e| format!("list_conversations query: {e}"))?
+        // P025 Phase 2: 两阶段读 —— 持锁阶段仅取列装箱（不解密），
+        // 释放锁后统一 AES 解密。stmt 借自 conn（借自 guard），收在块内先于 guard 释放。
+        let raws = {
+            let mut stmt = conn
+                .prepare(
+                    "SELECT id, updated_at, data FROM llm_conversations WHERE account_id = ?1
+                     ORDER BY updated_at ASC",
+                )
+                .map_err(|e| format!("list_conversations: {e}"))?;
+            // 拆成两条语句：rows 先于 stmt drop（逆声明序），避免块末临时值借用残留。
+            let rows = stmt
+                .query_map(params![account_id], ConversationRowRaw::from_row)
+                .map_err(|e| format!("list_conversations query: {e}"))?;
+            rows.collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("list_conversations collect: {e}"))?
+        };
+        // 观测结束：hold 现仅覆盖 SQL 取数（不含锁外解密），与改造前基线对比即收益。
+        drop(guard);
+        drop(_obs);
+
+        // 锁外阶段：解密，错误语义与改造前闭包逐字一致。
+        raws.into_iter()
+            .map(|raw| raw.into_decrypted(&key))
             .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| format!("list_conversations collect: {e}"))?;
-        Ok(rows)
+            .map_err(|e| format!("list_conversations decrypt: {e}"))
     }
 
     /// 统计账户会话密文总字节数（纯 SQL SUM(LENGTH(data))，不解密）。
