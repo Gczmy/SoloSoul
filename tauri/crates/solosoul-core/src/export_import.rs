@@ -177,6 +177,76 @@ impl ManifestData {
 // Public API
 // ════════════════════════════════════════════════════════════════
 
+/// 单个待写入 ZIP 的附件导出条目（P012：GUI 与 CLI 共用 `write_attachment_entries` 的条目类型）。
+pub struct ExportAttachmentEntry {
+    pub obj_id: String,
+    pub att_id: String,
+    pub src: PathBuf,
+}
+
+/// 用 HKDF 派生附件密钥并流式加密写入 ZIP（P012 合并后的唯一实现，GUI 与 CLI 共用）。
+///
+/// `vault_att_key`：P001 vault 附件静态加密密钥——附件源在 vault 内加密落盘（SOLC 头）时
+/// 先解密到临时明文再加密进包；旧明文（未加密历史数据）自动跳过解密直接加密进包。
+/// 为 None（CLI 无解锁会话密钥）时若遇加密源明确报错（避免双重加密）。
+///
+/// 返回是否写入过附件。
+pub fn write_attachment_entries(
+    zip: &mut ZipWriter<File>,
+    options: SimpleFileOptions,
+    key: &[u8; 32],
+    salt: &[u8],
+    entries: &[ExportAttachmentEntry],
+    vault_att_key: Option<&[u8; 32]>,
+) -> Result<bool, ExportError> {
+    if entries.is_empty() {
+        return Ok(false);
+    }
+    let att_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, b"solosoul:attachments:v1")
+        .map_err(|e| format!("派生附件密钥失败: {}", e))?;
+    for entry in entries {
+        let zip_name = format!("attachments/{}/{}.enc", entry.obj_id, entry.att_id);
+        zip.start_file(&zip_name, options)
+            .map_err(|e| format!("写入 ZIP 附件条目失败: {}", e))?;
+
+        // P001: vault 内附件可能为 SOLC 密文——先解密到临时明文再加密进包；
+        // 旧明文（无 SOLC 头）直接作为源（与历史行为一致，零迁移兼容）。
+        if crate::attachment_crypto::is_encrypted_file(&entry.src) {
+            let Some(vault_key) = vault_att_key else {
+                return Err(ExportError::Msg(format!(
+                    "附件 {}/{} 已加密落盘，请使用最新版 GUI 客户端导出（CLI 缺少附件解密密钥）",
+                    entry.obj_id, entry.att_id
+                )));
+            };
+            let temp_dir = std::env::temp_dir().join("solosoul_export_att");
+            std::fs::create_dir_all(&temp_dir)
+                .map_err(|e| format!("准备导出临时目录失败: {}", e))?;
+            let temp_path = temp_dir.join(format!("{}.plain", uuid::Uuid::new_v4()));
+            crate::attachment_crypto::copy_decrypt_file(vault_key, &entry.src, &temp_path)
+                .map_err(|e| format!("解密附件失败: {}", e))?;
+            let file_size = std::fs::metadata(&temp_path).map(|m| m.len()).unwrap_or(0);
+            let mut f = File::open(&temp_path).map_err(|e| format!("打开附件失败: {}", e))?;
+            let mut reader = std::io::BufReader::new(&mut f);
+            let enc_result = solosoul_crypto::cipher::encrypt_chunked_stream(
+                &att_key,
+                file_size,
+                &mut reader,
+                zip,
+            )
+            .map_err(|e| format!("加密附件失败: {}", e));
+            let _ = std::fs::remove_file(&temp_path);
+            enc_result?;
+        } else {
+            let file_size = std::fs::metadata(&entry.src).map(|m| m.len()).unwrap_or(0);
+            let mut f = File::open(&entry.src).map_err(|e| format!("打开附件失败: {}", e))?;
+            let mut reader = std::io::BufReader::new(&mut f);
+            solosoul_crypto::cipher::encrypt_chunked_stream(&att_key, file_size, &mut reader, zip)
+                .map_err(|e| format!("加密附件失败: {}", e))?;
+        }
+    }
+    Ok(true)
+}
+
 /// 执行导出操作。
 ///
 /// # 参数
@@ -238,25 +308,18 @@ pub fn export_vault(
     let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
     // 写入附件（流式加密避免完整明文和密文同时驻留内存）。
-    // P001: vault 附件现已加密落盘——CLI 无附件密钥（未解锁会话），检测到 SOLC 密文
-    // 必须明确报错而非双重加密（否则导入端解出仍是密文，附件损坏）。
-    if let Some(ref ak) = att_key {
-        for (obj_id, att_id, _file_name, src_path) in &attachment_entries {
-            if crate::attachment_crypto::is_encrypted_file(src_path) {
-                return Err(ExportError::Msg(format!(
-                    "附件 {}/{} 已加密落盘，请使用最新版 GUI 客户端导出（CLI 缺少附件解密密钥）",
-                    obj_id, att_id
-                )));
-            }
-            let file_size = std::fs::metadata(src_path).map(|m| m.len()).unwrap_or(0);
-            let zip_name = format!("attachments/{}/{}.enc", obj_id, att_id);
-            zip.start_file(&zip_name, options)
-                .map_err(|e| format!("写入 ZIP 附件条目失败: {}", e))?;
-            let mut f = File::open(src_path)?;
-            let mut reader = std::io::BufReader::new(&mut f);
-            solosoul_crypto::cipher::encrypt_chunked_stream(ak, file_size, &mut reader, &mut zip)
-                .map_err(|e| format!("加密附件失败: {}", e))?;
-        }
+    // P012: 与 GUI 共用唯一实现——CLI 无附件密钥（未解锁会话）传 None，
+    // 检测到 SOLC 密文时由共享实现明确报错而非双重加密。
+    if att_key.is_some() {
+        let shared_entries: Vec<ExportAttachmentEntry> = attachment_entries
+            .iter()
+            .map(|(obj_id, att_id, _file_name, src)| ExportAttachmentEntry {
+                obj_id: obj_id.clone(),
+                att_id: att_id.clone(),
+                src: src.clone(),
+            })
+            .collect();
+        write_attachment_entries(&mut zip, options, &key, &salt, &shared_entries, None)?;
     }
 
     // manifest.json
@@ -369,7 +432,7 @@ pub fn import_vault(
     // P212: 单事务批量写入（替代逐条 save_object 的 N 次 auto-commit）。
     vault.save_objects_batch(&records_to_save)?;
 
-    // 导入附件。
+    // 导入附件（P012：与 GUI 共用唯一实现；CLI 无 KeepBoth/选择性/进度需求，传空值）。
     if manifest.has_attachments {
         import_attachments(
             vault,
@@ -380,6 +443,10 @@ pub fn import_vault(
             &imported_object_ids,
             &payload,
             vault_att_key,
+            &HashMap::new(),
+            None,
+            &now,
+            None,
         )?;
     }
 
@@ -952,13 +1019,21 @@ pub fn resolve_cross_scope_references(
     }
 }
 
-/// 导入附件到 vault 存储目录。
+/// 导入附件到 vault 存储目录（P012 合并后的唯一实现，GUI 与 CLI 共用）。
+///
+/// 以 GUI 版为基准补齐的能力（CLI/测试路径自动获得同等行为）：
+/// - `id_map`：KeepBoth 策略下旧对象 ID → 新对象 ID 的映射，附件目录与写回均用新 ID；
+/// - `sel_att_ids_set`：选择性导入（仅导入选中附件 ID）；
+/// - `now`：附件 created_at 时间戳（与对象导入共用同一时间，避免毫秒漂移）；
+/// - `progress`：ZIP 条目级进度回调（0-100，调用方负责映射到自己的进度区间）。
 ///
 /// P001-1：`vault_att_key` 为 vault 附件静态加密密钥（CLI 从已解锁会话派生）——
 /// 提供时解密 ZIP 条目后以该密钥加密落盘（不再明文写盘，与 GUI 路径一致）；
 /// 为 None（测试等无密钥上下文）时保持原明文写盘行为。
+///
+/// 返回导入的附件数量。
 #[allow(clippy::too_many_arguments)]
-fn import_attachments(
+pub fn import_attachments(
     vault: &VaultStore,
     base_path: &Path,
     path: &Path,
@@ -967,7 +1042,11 @@ fn import_attachments(
     imported_object_ids: &HashSet<String>,
     payload: &serde_json::Value,
     vault_att_key: Option<&[u8; 32]>,
-) -> Result<(), ExportError> {
+    id_map: &HashMap<String, String>,
+    sel_att_ids_set: Option<&HashSet<String>>,
+    now: &str,
+    progress: Option<&(dyn Fn(u8) + Send + Sync)>,
+) -> Result<usize, ExportError> {
     let att_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, b"solosoul:attachments:v1")
         .map_err(|e| format!("派生附件密钥失败: {}", e))?;
 
@@ -992,11 +1071,15 @@ fn import_attachments(
     let zip_file = File::open(path)?;
     let mut archive = ZipArchive::new(zip_file)?;
     let att_prefix = "attachments/";
+    let zip_total = archive.len();
 
     let mut imported_atts: HashMap<String, Vec<AttachmentMeta>> = HashMap::new();
 
     for i in 0..archive.len() {
         let mut f = archive.by_index(i).map_err(|e| e.to_string())?;
+        if let Some(cb) = &progress {
+            cb(((i * 100) / zip_total.max(1)).min(100) as u8);
+        }
         let name = f.name().to_string();
         if !name.starts_with(att_prefix) || name.ends_with('/') {
             continue;
@@ -1015,12 +1098,20 @@ fn import_attachments(
 
         // P002：对象 ID 与附件 ID 来自攻击者可控的解密 payload，必须做字符集
         // 校验后才能用于 `base_path.join("attachments").join(obj_id)`，否则 Windows
-        // 上 `..\..\evil` 可写出 Vault 目录（路径遍历）。
-        validate_import_id(obj_id)?;
-        validate_import_id(old_att_id)?;
+        // 上 `..\..\evil` 可写出 Vault 目录（路径遍历）。非法条目跳过（与 GUI 一致）。
+        if validate_import_id(obj_id).is_err() || validate_import_id(old_att_id).is_err() {
+            continue;
+        }
 
         if !imported_object_ids.contains(obj_id) {
             continue;
+        }
+
+        // 选择性附件导入：跳过未选中的附件
+        if let Some(sel_set) = sel_att_ids_set {
+            if !sel_set.contains(old_att_id) {
+                continue;
+            }
         }
 
         let old_meta = match att_meta_map.get(&(obj_id.to_string(), old_att_id.to_string())) {
@@ -1028,8 +1119,16 @@ fn import_attachments(
             None => continue,
         };
 
+        // KeepBoth：附件目录/写回使用新对象 ID（否则后续按新 ID 查找对象会找不到）
+        let actual_obj_id = id_map
+            .get(obj_id)
+            .cloned()
+            .unwrap_or_else(|| obj_id.to_string());
         let new_att_id = uuid::Uuid::new_v4().to_string();
-        let dest = base_path.join("attachments").join(obj_id).join(&new_att_id);
+        let dest = base_path
+            .join("attachments")
+            .join(&actual_obj_id)
+            .join(&new_att_id);
         std::fs::create_dir_all(&dest)?;
 
         // P003：落盘文件名取末段安全名，并**写回元数据**——此前元数据保留原始
@@ -1081,15 +1180,15 @@ fn import_attachments(
         };
 
         imported_atts
-            .entry(obj_id.to_string())
+            .entry(actual_obj_id.clone())
             .or_default()
             .push(AttachmentMeta {
                 id: new_att_id,
-                object_id: obj_id.to_string(),
+                object_id: actual_obj_id.clone(),
                 file_name: safe_name.clone(),
                 mime_type: old_meta.mime_type.clone(),
                 size_bytes: file_size,
-                created_at: chrono::Utc::now().to_rfc3339(),
+                created_at: now.to_string(),
                 deleted_at: None,
                 src_path: Some(file_path_dest.to_string_lossy().to_string()),
                 vault_path: Some(file_path_dest.to_string_lossy().to_string()),
@@ -1098,7 +1197,8 @@ fn import_attachments(
             });
     }
 
-    // 更新已导入对象的 __attachments
+    // 更新已导入对象的 __attachments（按实际对象 ID）
+    let imported_count = imported_atts.values().map(|v| v.len()).sum::<usize>();
     for (obj_id, atts) in imported_atts {
         let mut obj = vault
             .load_object(&obj_id)?
@@ -1117,7 +1217,7 @@ fn import_attachments(
         vault.save_object(&obj)?;
     }
 
-    Ok(())
+    Ok(imported_count)
 }
 
 /// 净化导入附件的文件名（P003 / P023 收敛到共享实现）。

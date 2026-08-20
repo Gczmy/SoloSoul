@@ -22,8 +22,6 @@ use zip::write::SimpleFileOptions;
 use zip::ZipArchive;
 use zip::ZipWriter;
 
-use super::attachment::AttachmentMeta;
-
 pub(crate) fn generate_id() -> String {
     Uuid::new_v4().to_string()
 }
@@ -54,19 +52,6 @@ pub(crate) fn validate_attachment_path(
             "Attachment path escapes vault attachments directory: {}",
             path.display()
         ));
-    }
-    Ok(())
-}
-
-/// 导出/导入包中的对象 ID 与附件 ID 字符集校验。
-pub(crate) fn validate_export_id(id: &str) -> Result<(), String> {
-    if id.is_empty()
-        || id.len() > 64
-        || !id
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
-    {
-        return Err(format!("Invalid export id: {}", id));
     }
     Ok(())
 }

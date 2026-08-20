@@ -278,13 +278,6 @@ pub async fn export_estimate_size(
 
 // ── Export execution helpers ─────────────────────────────────
 
-/// 单个待写入 ZIP 的附件条目。
-struct ExportAttachmentEntry {
-    obj_id: String,
-    att_id: String,
-    src: std::path::PathBuf,
-}
-
 /// 校验导出密码：非空且与主密码不同。
 fn validate_export_password(
     svc: &solosoul_core::vault_service::VaultService,
@@ -414,10 +407,16 @@ fn collect_attachment_entries(
     svc: &solosoul_core::vault_service::VaultService,
     records: &[solosoul_vault::ObjectRecord],
     scope: &ExportScope,
-) -> Result<(Vec<ExportAttachmentEntry>, u64), String> {
+) -> Result<
+    (
+        Vec<solosoul_core::export_import::ExportAttachmentEntry>,
+        u64,
+    ),
+    String,
+> {
     let selected_attachment_ids: std::collections::HashSet<String> =
         scope.selected_attachment_ids.iter().cloned().collect();
-    let mut entries: Vec<ExportAttachmentEntry> = Vec::new();
+    let mut entries: Vec<solosoul_core::export_import::ExportAttachmentEntry> = Vec::new();
     let mut total_bytes: u64 = 0;
 
     for rec in records {
@@ -453,7 +452,7 @@ fn collect_attachment_entries(
             if let Some(src) = src {
                 validate_attachment_path(svc.base_path().join("attachments").as_path(), &src)?;
                 total_bytes += att.size_bytes;
-                entries.push(ExportAttachmentEntry {
+                entries.push(solosoul_core::export_import::ExportAttachmentEntry {
                     obj_id: rec.id.clone(),
                     att_id: att.id.clone(),
                     src,
@@ -462,63 +461,6 @@ fn collect_attachment_entries(
         }
     }
     Ok((entries, total_bytes))
-}
-
-/// 用 HKDF 派生附件密钥并流式加密写入 ZIP。返回是否写入过附件。
-/// `vault_att_key`：P001 vault 附件静态加密密钥——附件源在 vault 内加密落盘，
-/// 导出前需先解密；旧明文（未加密历史数据）自动跳过解密直接加密进包。
-fn write_attachment_entries(
-    zip: &mut ZipWriter<File>,
-    options: SimpleFileOptions,
-    key: &[u8; 32],
-    salt: &[u8],
-    entries: &[ExportAttachmentEntry],
-    vault_att_key: &[u8; 32],
-) -> Result<bool, String> {
-    if entries.is_empty() {
-        return Ok(false);
-    }
-    // Derive attachment key via HKDF
-    let att_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, b"solosoul:attachments:v1")
-        .map_err(|e| format!("derive att key: {e}"))?;
-    for entry in entries {
-        let zip_name = format!("attachments/{}/{}.enc", entry.obj_id, entry.att_id);
-        zip.start_file(&zip_name, options)
-            .map_err(|e| e.to_string())?;
-
-        // P001: vault 内附件可能为 SOLC 密文——先解密到临时明文再加密进包；
-        // 旧明文（无 SOLC 头）直接作为源（与历史行为一致，零迁移兼容）。
-        if solosoul_core::attachment_crypto::is_encrypted_file(&entry.src) {
-            let temp_dir = std::env::temp_dir().join("solosoul_export_att");
-            std::fs::create_dir_all(&temp_dir).map_err(|e| format!("prepare export temp: {e}"))?;
-            let temp_path = temp_dir.join(format!("{}.plain", uuid::Uuid::new_v4()));
-            solosoul_core::attachment_crypto::copy_decrypt_file(
-                vault_att_key,
-                &entry.src,
-                &temp_path,
-            )
-            .map_err(|e| format!("decrypt attachment: {e}"))?;
-            let file_size = std::fs::metadata(&temp_path).map(|m| m.len()).unwrap_or(0);
-            let mut f = File::open(&temp_path).map_err(|e| format!("open attachment: {e}"))?;
-            let mut reader = std::io::BufReader::new(&mut f);
-            let enc_result = solosoul_crypto::cipher::encrypt_chunked_stream(
-                &att_key,
-                file_size,
-                &mut reader,
-                zip,
-            )
-            .map_err(|e| format!("encrypt attachment: {e}"));
-            let _ = std::fs::remove_file(&temp_path);
-            enc_result?;
-        } else {
-            let file_size = std::fs::metadata(&entry.src).map(|m| m.len()).unwrap_or(0);
-            let mut f = File::open(&entry.src).map_err(|e| format!("open attachment: {e}"))?;
-            let mut reader = std::io::BufReader::new(&mut f);
-            solosoul_crypto::cipher::encrypt_chunked_stream(&att_key, file_size, &mut reader, zip)
-                .map_err(|e| format!("encrypt attachment: {e}"))?;
-        }
-    }
-    Ok(true)
 }
 
 /// 写入一个加密的附加文件（preferences.enc / behavioral.enc），返回写入的 ZIP 条目名。
@@ -652,14 +594,16 @@ pub async fn export_execute(
         .as_slice()
         .try_into()
         .map_err(|_| "附件密钥长度错误".to_string())?;
-    let has_attachments = write_attachment_entries(
+    // P012: 附件加密进包统一走 core 唯一实现（含 vault 密文先解密再加密）。
+    let has_attachments = solosoul_core::export_import::write_attachment_entries(
         &mut zip,
         options,
         &key,
         &salt,
         &attachment_entries,
-        &vault_att_key_arr,
-    )?;
+        Some(&vault_att_key_arr),
+    )
+    .map_err(|e| e.to_string())?;
 
     // ── P2: Preferences + Behavioral data（audit log）──
     let (extra_files, preferences_encrypted, behavioral_encrypted) = write_scope_extra_files(
