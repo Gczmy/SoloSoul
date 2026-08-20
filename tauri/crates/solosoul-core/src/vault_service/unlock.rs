@@ -873,28 +873,12 @@ impl super::VaultService {
             // N-2：config 写入失败 → 回滚（恢复旧 config + 数据重加密回旧密钥），
             // 避免账户不可用；会话密钥尚未切换，回滚后当前会话仍以旧密钥工作。
             // R-4：回滚自身失败（磁盘满等共同根因）必须并入上抛文案。
-            let rollback_note = if let Some(vault_guard) = self.get_vault_store() {
-                match self.rollback_reencrypt_and_config(
-                    account_id,
-                    vault_guard.as_ref(),
-                    &old_config_content,
-                    &old_key,
-                    &new_key_enc,
-                ) {
-                    Ok(_) => {
-                        // 回滚成功：数据已重加密回旧钥、config 已恢复 → pending 同步清除。
-                        self.remove_config_pending(account_id);
-                        "an automatic rollback to the previous key was attempted.".to_string()
-                    }
-                    Err(rb) => {
-                        // 回滚失败：保留 pending——数据可能仍为新钥，下次解锁经
-                        // recover_pending_reencrypt promote 可完成交换（恢复线索）。
-                        format!("automatic rollback FAILED: {}", rb)
-                    }
-                }
-            } else {
-                "automatic rollback skipped (vault unavailable)".to_string()
-            };
+            let rollback_note = self.attempt_rekey_rollback(
+                account_id,
+                &old_config_content,
+                &old_key,
+                &new_key_enc,
+            );
             return Err(format!(
                 "Password updated but config write failed: {}; {}",
                 e, rollback_note
@@ -914,27 +898,12 @@ impl super::VaultService {
         let old_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&old_key_arr)?;
         let new_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&new_key_arr)?;
         if let Err(e) = self.reencrypt_attachments(&old_att_key, &new_att_key) {
-            let rollback_note = if let Some(vault_guard) = self.get_vault_store() {
-                match self.rollback_reencrypt_and_config(
-                    account_id,
-                    vault_guard.as_ref(),
-                    &old_config_content,
-                    &old_key,
-                    &new_key_enc,
-                ) {
-                    Ok(_) => {
-                        // 回滚成功：数据已重加密回旧钥、config 已恢复 → pending 同步清除。
-                        self.remove_config_pending(account_id);
-                        "an automatic rollback to the previous key was attempted.".to_string()
-                    }
-                    Err(rb) => {
-                        // 回滚失败：保留 pending（恢复线索），并明示回滚未生效。
-                        format!("automatic rollback FAILED: {}", rb)
-                    }
-                }
-            } else {
-                "automatic rollback skipped (vault unavailable)".to_string()
-            };
+            let rollback_note = self.attempt_rekey_rollback(
+                account_id,
+                &old_config_content,
+                &old_key,
+                &new_key_enc,
+            );
             return Err(format!(
                 "Password updated but attachment re-encryption failed: {}; {}",
                 e, rollback_note
@@ -973,6 +942,41 @@ impl super::VaultService {
         )?;
 
         Ok(())
+    }
+
+    /// P028: 改密失败路径的统一回滚——config 写失败与附件重加密失败两处
+    /// 逐字相同的「回滚 DB/config 到旧钥 + pending 清理 + 回滚结果文案」
+    /// 收敛为单一实现，消除密码学关键路径上的重复分支（失败混态防护可审查性）。
+    fn attempt_rekey_rollback(
+        &self,
+        account_id: &str,
+        old_config_content: &[u8],
+        old_key: &solosoul_vault::DataEncryptionKey,
+        new_key_enc: &solosoul_vault::DataEncryptionKey,
+    ) -> String {
+        // N-2/R-4：失败 → 回滚（恢复旧 config + 数据重加密回旧密钥），避免账户
+        // 不可用；回滚自身失败（磁盘满等共同根因）必须并入上抛文案。
+        if let Some(vault_guard) = self.get_vault_store() {
+            match self.rollback_reencrypt_and_config(
+                account_id,
+                vault_guard.as_ref(),
+                old_config_content,
+                old_key,
+                new_key_enc,
+            ) {
+                Ok(_) => {
+                    // 回滚成功：数据已重加密回旧钥、config 已恢复 → pending 同步清除。
+                    self.remove_config_pending(account_id);
+                    "an automatic rollback to the previous key was attempted.".to_string()
+                }
+                Err(rb) => {
+                    // 回滚失败：保留 pending（恢复线索），并明示回滚未生效。
+                    format!("automatic rollback FAILED: {}", rb)
+                }
+            }
+        } else {
+            "automatic rollback skipped (vault unavailable)".to_string()
+        }
     }
 
     /// P001-2：附件目录重加密（改密/KDF 升级换钥后调用）——两阶段原子。
