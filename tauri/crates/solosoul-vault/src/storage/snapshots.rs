@@ -12,7 +12,7 @@
 
 use rusqlite::OptionalExtension;
 
-use super::VaultStore;
+use super::{LockHoldObserver, VaultStore};
 use crate::encryption::{decrypt_field, encrypt_field};
 
 impl VaultStore {
@@ -48,7 +48,9 @@ impl VaultStore {
         object_ids: &[String],
     ) -> Result<Vec<(String, serde_json::Value, Vec<u8>)>, String> {
         let key = self.data_key()?;
+        let mut _obs = LockHoldObserver::begin("list_snapshots_with_data_batch");
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        _obs.acquired();
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         if object_ids.is_empty() {
             return Ok(Vec::new());

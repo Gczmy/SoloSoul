@@ -6577,6 +6577,7 @@ dependencies = [
  "solosoul-crypto",
  "tempfile",
  "tracing",
+ "tracing-subscriber",
  "uuid",
  "zeroize",
 ]

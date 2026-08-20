@@ -13,7 +13,8 @@ use rusqlite::{params, Connection, OptionalExtension};
 
 use super::{
     json_contains_ignore_case, object_field_sensitivity_levels, object_has_attachments, with_tx,
-    VaultStore, OBJECT_COLUMNS, OBJECT_LOAD_SQL, OBJECT_SAVE_SQL, OBJECT_SELECT_BASE,
+    LockHoldObserver, VaultStore, OBJECT_COLUMNS, OBJECT_LOAD_SQL, OBJECT_SAVE_SQL,
+    OBJECT_SELECT_BASE,
 };
 use crate::encryption::{decrypt_text_field, encrypt_text_field, DataEncryptionKey};
 use crate::{ObjectRecord, ObjectSummary};
@@ -446,7 +447,9 @@ impl VaultStore {
             return Ok(std::collections::HashMap::new());
         }
         let key = self.data_key()?;
+        let mut _obs = LockHoldObserver::begin("load_objects_batch");
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        _obs.acquired();
         let conn = guard.as_mut().ok_or("Vault is locked")?;
 
         // Build placeholders: (?1,?2,...,?N)
@@ -682,7 +685,9 @@ impl VaultStore {
         only_deleted: bool,
     ) -> Result<Vec<ObjectSummary>, String> {
         let key = self.data_key()?;
+        let mut _obs = LockHoldObserver::begin("list_objects");
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        _obs.acquired();
         let conn = guard.as_mut().ok_or("Vault is locked")?;
 
         let lower_kw = keyword.map(|k| k.to_lowercase());
@@ -1000,7 +1005,9 @@ impl VaultStore {
     /// Single full-table scan shared by advanced search and template-membership expansion.
     pub fn list_object_records(&self, account_id: &str) -> Result<Vec<ObjectRecord>, String> {
         let key = self.data_key()?;
+        let mut _obs = LockHoldObserver::begin("list_object_records");
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        _obs.acquired();
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         // properties 已加密，无法使用 SQL LIKE。所有匹配在解密后的内存数据上进行。
         let mut stmt = conn

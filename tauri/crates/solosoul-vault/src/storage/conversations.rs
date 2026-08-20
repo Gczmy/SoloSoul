@@ -11,7 +11,7 @@
 
 use rusqlite::{params, Connection, OptionalExtension};
 
-use super::{with_tx, VaultStore};
+use super::{with_tx, LockHoldObserver, VaultStore};
 use crate::encryption::{decrypt_field, encrypt_field, DataEncryptionKey};
 use crate::BorrowedSyncRecord;
 
@@ -88,7 +88,9 @@ impl VaultStore {
         account_id: &str,
     ) -> Result<Vec<(String, String, Vec<u8>)>, String> {
         let key = self.data_key()?;
+        let mut _obs = LockHoldObserver::begin("list_conversations");
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        _obs.acquired();
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn
             .prepare(

@@ -188,6 +188,54 @@ fn sql_err(context: &str, e: rusqlite::Error) -> String {
     }
 }
 
+/// P025 Phase 0：观测 conn 锁占用（等待 + 持锁）时长，为两阶段改造圈定热点。
+///
+/// 用法：在 `conn.lock()` **之前**声明 `let mut obs = LockHoldObserver::begin("fn")`，
+/// 锁获取成功后调用 `obs.acquired()`。观测对象声明在 guard 之前，按声明逆序 drop——
+/// guard 先释放、obs 后释放，故测得完整锁占用区间；`wait` 反映争用（被其他操作阻塞），
+/// `hold` 反映持锁工作量（两阶段改造的目标）。debug 级日志，生产无行为影响。
+pub(crate) struct LockHoldObserver {
+    label: &'static str,
+    start: std::time::Instant,
+    acquired: Option<std::time::Instant>,
+}
+
+impl LockHoldObserver {
+    pub(crate) fn begin(label: &'static str) -> Self {
+        Self {
+            label,
+            start: std::time::Instant::now(),
+            acquired: None,
+        }
+    }
+
+    /// 锁获取成功后调用，标记持锁起点。
+    pub(crate) fn acquired(&mut self) {
+        if self.acquired.is_none() {
+            self.acquired = Some(std::time::Instant::now());
+        }
+    }
+}
+
+impl Drop for LockHoldObserver {
+    fn drop(&mut self) {
+        let now = std::time::Instant::now();
+        let (wait_ms, hold_ms) = match self.acquired {
+            Some(a) => (
+                a.duration_since(self.start).as_millis(),
+                now.duration_since(a).as_millis(),
+            ),
+            None => (now.duration_since(self.start).as_millis(), 0),
+        };
+        tracing::debug!(
+            "[vault] P025 lock_observe: fn={} wait={}ms hold={}ms",
+            self.label,
+            wait_ms,
+            hold_ms,
+        );
+    }
+}
+
 fn with_tx<T>(
     conn: &mut Connection,
     begin_err: &'static str,

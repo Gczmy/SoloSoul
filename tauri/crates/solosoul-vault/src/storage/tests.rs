@@ -4961,3 +4961,104 @@ fn test_get_sync_conflict_local_data_batch_objects() {
         .unwrap()
         .is_empty());
 }
+
+// ── P025 Phase 0：锁占用观测日志 ─────────────────────────────────
+
+/// 验证 `LockHoldObserver`（conn 锁等待/持锁时长 debug 日志）在热点读函数上确实发出，
+/// 且日志标签与函数一一对应。同时作为 Phase 0 数据收集入口：本地以
+/// `RUST_LOG=debug` 跑本测试可观察真实持锁时长基线。
+#[test]
+fn test_lock_hold_observer_emits_on_hot_reads() {
+    use std::io::Write;
+    use std::sync::{Arc, Mutex};
+
+    let (vault, _dir) = setup();
+
+    // 捕获型 fmt subscriber：把 debug 记录写进 Vec，断言后释放全局默认。
+    // 本测试是仓库内唯一安装默认 subscriber 的测试（其余测试不依赖 subscriber），
+    // set_default 的守卫保证测试结束后还原。
+    let logs: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    struct VecWriterGuard(Arc<Mutex<Vec<String>>>);
+    impl Write for VecWriterGuard {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            self.0
+                .lock()
+                .unwrap()
+                .push(String::from_utf8_lossy(buf).to_string());
+            Ok(buf.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    struct VecWriter(Arc<Mutex<Vec<String>>>);
+    impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for VecWriter {
+        type Writer = VecWriterGuard;
+        fn make_writer(&'a self) -> Self::Writer {
+            VecWriterGuard(self.0.clone())
+        }
+    }
+    let subscriber = tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .with_writer(VecWriter(logs.clone()))
+        .finish();
+    let _guard = tracing::subscriber::set_default(subscriber);
+
+    // 存几条对象 + 一条会话，让解密路径真实执行
+    for i in 0..5 {
+        let mut props = serde_json::Map::new();
+        props.insert(
+            "content".to_string(),
+            serde_json::json!(format!("payload-{}-{}", i, "x".repeat(2048))),
+        );
+        let obj = ObjectRecord {
+            contract_type_id: None,
+            id: format!("obj-{i}"),
+            account_id: "test_account".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: format!("object {i}"),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::Value::Object(props),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            template_hash: None,
+            ignored_template_hash: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+    }
+
+    // 触发三个对象域热点 + 会话列表（快照批量路径留空列表即可触发）
+    let _ = vault.list_objects("test_account", None, None, None, false, false);
+    let _ = vault.list_object_records("test_account");
+    let _ = vault.list_conversations("test_account");
+    let _ = vault.list_snapshots_with_data_batch(&["obj-0".to_string()]);
+    let _ = vault.load_objects_batch(&["obj-0".to_string(), "obj-1".to_string()]);
+
+    let joined = logs.lock().unwrap().join("\n");
+    // 数据收集：`cargo test -p solosoul-vault test_lock_hold_observer -- --nocapture`
+    // 可查看真实 wait/hold 基线（小数据集下 hold 接近 0，真实库另测）。
+    eprintln!("[P025 Phase 0] lock_observe 基线:\n{joined}");
+    for label in [
+        "fn=list_objects",
+        "fn=list_object_records",
+        "fn=list_conversations",
+        "fn=list_snapshots_with_data_batch",
+        "fn=load_objects_batch",
+    ] {
+        assert!(
+            joined.contains(label),
+            "LockHoldObserver 未对 {label} 发出观测日志, got:\n{joined}"
+        );
+    }
+}
