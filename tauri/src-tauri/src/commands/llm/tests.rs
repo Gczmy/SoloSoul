@@ -373,6 +373,40 @@ fn test_load_save_conversations() {
 }
 
 #[test]
+fn test_load_conversations_skips_corrupt_row_with_warning() {
+    let (vault, _dir) = setup_vault();
+    let account_id = "test_account";
+
+    let good = Conversation {
+        id: "conv-good".into(),
+        name: "Good".into(),
+        is_temporary: false,
+        messages: vec![],
+        updated_at: "2024-01-01T00:00:00Z".into(),
+        deleted_at: None,
+    };
+    save_conversation(&vault, account_id, &good).unwrap();
+
+    // 写入一行「合法 JSON 但非 Conversation 结构」的损坏会话：走公开的
+    // save_conversation 直接给原始 data 字节，解密成功但 serde 反序列化失败，
+    // 与真实损坏行的失败路径一致（无需访问私有 conn）。
+    vault
+        .save_conversation(
+            account_id,
+            "conv-corrupt",
+            "2024-01-02T00:00:00Z",
+            b"{\"not\": \"a conversation\"}",
+        )
+        .unwrap();
+
+    // P023: 损坏行被跳过（不 panic、不静默丢全部），正常行照常返回；
+    // 跳过的行有 warn 日志（此处无法直接断言日志，断言行为不回归）。
+    let loaded = load_conversations(&vault, account_id).unwrap();
+    assert_eq!(loaded.len(), 1);
+    assert_eq!(loaded[0].id, "conv-good");
+}
+
+#[test]
 fn guide_index_loads_successfully() {
     let index = load_guide_index().expect("load_guide_index should succeed");
     assert!(

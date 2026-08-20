@@ -20,9 +20,18 @@ pub(crate) fn load_conversations(
     migrate_legacy_conversations(vault, account_id)?;
     let rows = vault.list_conversations(account_id)?;
     let mut convs = Vec::with_capacity(rows.len());
-    for (_id, _updated, data) in rows {
-        if let Ok(c) = serde_json::from_slice::<Conversation>(&data) {
-            convs.push(c);
+    for (id, _updated, data) in rows {
+        match serde_json::from_slice::<Conversation>(&data) {
+            Ok(c) => convs.push(c),
+            // P023: 损坏会话行不再静默丢弃——记录会话 id 与解析错误，便于诊断
+            // 「会话凭空消失」类问题。
+            Err(e) => {
+                tracing::warn!(
+                    "load_conversations: 跳过解析失败的会话行 (id={}): {}",
+                    id,
+                    e
+                );
+            }
         }
     }
     Ok(convs)
