@@ -5,6 +5,7 @@ import {
   preflightLoginAvailability,
   preflightForLastAccount,
   normalizeBiometryType,
+  invalidateLoginAvailabilityPreflight,
   __resetLoginAvailabilityPreflightForTest,
 } from './loginAvailabilityPreflight';
 
@@ -38,6 +39,33 @@ describe('loginAvailabilityPreflight（方案 C：启动期预探测）', () => 
     await preflightLoginAvailability('acc-2');
 
     expect(invoke).toHaveBeenCalledTimes(4); // 两个账户 × 2 命令
+  });
+
+  it('invalidateLoginAvailabilityPreflight 失效同账户缓存，下次调用重新探测', async () => {
+    vi.mocked(invoke).mockResolvedValue({ configured: false, locked: false });
+
+    const first = await preflightLoginAvailability('acc-1');
+    expect(invoke).toHaveBeenCalledTimes(2);
+
+    // 登录方式修改后失效缓存：同账户再次调用必须重新发起探测（而非复用旧结果）
+    invalidateLoginAvailabilityPreflight('acc-1');
+    await preflightLoginAvailability('acc-1');
+    expect(invoke).toHaveBeenCalledTimes(4);
+    expect(invoke).toHaveBeenCalledWith('biometric_check_availability', { accountId: 'acc-1' });
+    expect(first).toEqual(await preflightLoginAvailability('acc-1'));
+  });
+
+  it('invalidateLoginAvailabilityPreflight 不影响其他账户的缓存', async () => {
+    vi.mocked(invoke).mockResolvedValue({ configured: false, locked: false });
+
+    await preflightLoginAvailability('acc-1');
+    await preflightLoginAvailability('acc-2');
+    expect(invoke).toHaveBeenCalledTimes(4);
+
+    // 修改 acc-1 的登录方式：acc-2 的缓存仍有效，不会重新探测
+    invalidateLoginAvailabilityPreflight('acc-1');
+    await preflightLoginAvailability('acc-2');
+    expect(invoke).toHaveBeenCalledTimes(4);
   });
 
   it('正确映射可用性（configured + available → bioAvailable）', async () => {

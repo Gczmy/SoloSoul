@@ -7,6 +7,8 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invalidateLoginAvailabilityPreflight } from '@/lib/loginAvailabilityPreflight';
+import { clearCachedLoginMethod } from '@/lib/loginMethodCache';
 import { Fingerprint, ShieldCheck, ScanFace, AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
@@ -112,6 +114,8 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
         const r = await refreshAvailability();
         // 遗留标志保持同步：任一槽有凭证即为 true
         await updateSetting(accountId, 'biometricEnabled', !!(r?.strongConfigured || r?.weakConfigured));
+        // 登录方式已变更：失效预探测缓存，锁定后登录页立即显示生物识别
+        invalidateLoginAvailabilityPreflight(accountId);
         onSuccess(t('settings:biometric_enabled_toast', { type: modeType }));
       } else {
         await invoke('biometric_delete_credential', {
@@ -124,6 +128,9 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
         });
         const r = await refreshAvailability();
         await updateSetting(accountId, 'biometricEnabled', !!(r?.strongConfigured || r?.weakConfigured));
+        // 登录方式已变更：失效预探测缓存 + 清理缓存的生物识别方式，锁定后登录页立即生效
+        invalidateLoginAvailabilityPreflight(accountId);
+        clearCachedLoginMethod(accountId, rawType as 'touchId' | 'faceId' | 'windowsHello');
         onSuccess(t('settings:biometric_disabled_toast', { type: modeType }));
       }
       return true;

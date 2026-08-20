@@ -60,3 +60,18 @@ export function writeCachedLoginMethod(accountId: string, method: LoginMethod | 
     // 存储不可用时忽略（进程内降级为探测后即时决定）
   }
 }
+
+/**
+ * 清除指定账户缓存的登录方式——仅当缓存的方法恰好是传入的 method 时清除
+ * （禁用某登录方式后调用，避免登录页首帧闪现已禁用的方式；其他方式不受影响）。
+ */
+export function clearCachedLoginMethod(accountId: string, method: LoginMethod): void {
+  if (!accountId) return;
+  try {
+    if (readCachedLoginMethod(accountId) === method) {
+      localStorage.removeItem(LOGIN_METHOD_CACHE_KEY);
+    }
+  } catch {
+    // 存储不可用时忽略
+  }
+}

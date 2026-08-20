@@ -4,6 +4,8 @@
 import { useState, useCallback } from 'react';
 import type { TFunction } from 'i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invalidateLoginAvailabilityPreflight } from '@/lib/loginAvailabilityPreflight';
+import { clearCachedLoginMethod } from '@/lib/loginMethodCache';
 
 export interface UsePinDisableOptions {
   accountId: string;
@@ -40,6 +42,9 @@ export function usePinDisable({
         await invoke('pin_disable', { accountId: accountId, password });
         onSuccess(t('settings:pin_disabled_toast'));
         setShowDisableConfirm(false);
+        // 登录方式已变更：失效预探测缓存 + 清理缓存的 PIN 方式，锁定后登录页立即生效
+        invalidateLoginAvailabilityPreflight(accountId);
+        clearCachedLoginMethod(accountId, 'pin');
         void refreshStatus();
         return true;
       } catch (e) {

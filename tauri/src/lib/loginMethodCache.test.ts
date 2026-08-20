@@ -3,6 +3,7 @@ import {
   LOGIN_METHOD_CACHE_KEY,
   readCachedLoginMethod,
   writeCachedLoginMethod,
+  clearCachedLoginMethod,
 } from './loginMethodCache';
 
 describe('loginMethodCache（方案 A：登录方式 localStorage 持久化）', () => {
@@ -48,5 +49,23 @@ describe('loginMethodCache（方案 A：登录方式 localStorage 持久化）',
   it('非对象结构返回 null', () => {
     localStorage.setItem(LOGIN_METHOD_CACHE_KEY, JSON.stringify('touchId'));
     expect(readCachedLoginMethod('acc-1')).toBeNull();
+  });
+
+  it('clearCachedLoginMethod 仅清除匹配的登录方式', () => {
+    writeCachedLoginMethod('acc-1', 'pin');
+    clearCachedLoginMethod('acc-1', 'pin');
+    expect(readCachedLoginMethod('acc-1')).toBeNull();
+  });
+
+  it('clearCachedLoginMethod 方式不匹配时保留缓存', () => {
+    writeCachedLoginMethod('acc-1', 'touchId');
+    clearCachedLoginMethod('acc-1', 'pin');
+    expect(readCachedLoginMethod('acc-1')).toBe('touchId');
+  });
+
+  it('clearCachedLoginMethod 空账户不操作', () => {
+    writeCachedLoginMethod('acc-1', 'pin');
+    clearCachedLoginMethod('', 'pin');
+    expect(readCachedLoginMethod('acc-1')).toBe('pin');
   });
 });

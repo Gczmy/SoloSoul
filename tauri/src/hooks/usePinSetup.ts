@@ -5,6 +5,7 @@ import { useState, useCallback } from 'react';
 import type { TFunction } from 'i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { logger } from '@/lib/logger';
+import { invalidateLoginAvailabilityPreflight } from '@/lib/loginAvailabilityPreflight';
 
 export interface UsePinSetupOptions {
   accountId: string;
@@ -102,6 +103,8 @@ export function usePinSetup({
         });
         onSuccess(t('settings:pin_setup_success'));
         setShowSetup(false);
+        // 登录方式已变更：失效预探测缓存，锁定后登录页立即反映新状态（不再读到旧结果）
+        invalidateLoginAvailabilityPreflight(accountId);
         void refreshStatus();
       } catch (e) {
         const msg = String(e);

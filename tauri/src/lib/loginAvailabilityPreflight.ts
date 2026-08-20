@@ -92,6 +92,22 @@ export function preflightForLastAccount(): void {
   );
 }
 
+/**
+ * 使指定账户的预探测缓存失效（登录方式修改后调用）。
+ *
+ * 背景：模块级缓存永不过期——设置页开启/关闭 PIN、生物识别后，锁定账户回到
+ * 登录页仍读到旧探测结果（新方式不显示 / 已关闭方式仍显示），重启应用才消失。
+ * 修改成功后失效缓存，登录页挂载时即可重新探测，立即生效。
+ *
+ * 缓存为单槽（{ accountId, promise }）：仅当缓存账户与修改账户一致时清除，
+ * 其他账户的缓存不受影响（换账户时 preflightLoginAvailability 本就会重发）。
+ */
+export function invalidateLoginAvailabilityPreflight(accountId: string): void {
+  if (preflight?.accountId === accountId) {
+    preflight = null;
+  }
+}
+
 /** 测试专用：清空缓存（模拟新会话/换账户）。 */
 export function __resetLoginAvailabilityPreflightForTest(): void {
   preflight = null;
