@@ -2,6 +2,17 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.12.1] - 2026-08-20
+
+### Fixed
+
+- **登录方式修改后立即生效（P037）** — 锁定账户后登录页仍显示旧登录方式（开启指纹/PIN 不出现、关闭后仍显示），此前需重启应用才恢复；根因是登录预探测的模块级缓存永不过期。新增 `invalidateLoginAvailabilityPreflight(accountId)` 与 `clearCachedLoginMethod(accountId, method)`，在 `pin_setup` / `pin_disable` / `biometric_save_credential` / `biometric_delete_credential` 成功后即时失效缓存并清理陈旧登录方式。
+- **KDF 升级附件重加密误报「Vault not unlocked」（P038）** — release 下主密码登录触发 KDF 透明升级时，`unlock()` 在设置 `unlocked_account` 之前进入 `unlock_with_kdf_upgrade`，而 `reencrypt_attachments` 内部依赖 `get_current_account()` 读取该状态，恒返回 None，附件重加密必然失败并回滚，用户看到 `KDF upgrade succeeded but attachment re-encryption failed: Vault not unlocked`。修复：`reencrypt_attachments` 改为显式接收 `account_id` 参数（两个调用点 `unlock_with_kdf_upgrade` / `change_password` 均有该参数在作用域内），不再依赖 `get_current_account()`；两个 KDF 升级测试补 `svc.lock()` 使路径与生产一致，并在无修复代码下复现出用户原始报错文案。
+
+### Chore
+
+- 版本号同步 2.12.1（package.json / tauri.conf.json / Cargo.toml / tauri.properties versionCode 2012001）。
+
 ## [2.12.0] - 2026-08-20
 
 ### Security
