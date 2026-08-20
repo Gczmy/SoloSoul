@@ -296,6 +296,16 @@
 
 **验证**：tsc/eslint 干净；新增 5 用例（两个 lib 测试文件共 20 用例）；全仓前端 100 文件 849 用例全绿。
 
+### P038（P1 健壮性）KDF 升级路径附件重加密误报「Vault not unlocked」（用户反馈）
+
+用户反馈：关闭 PIN/指纹后重启，主密码登录报错「KDF upgrade succeeded but attachment re-encryption failed: Vault not unlocked; an automatic rollback to the previous key was attempted.」（与 P037 同一轮用户测试暴露）。
+
+**根因**：release 构建下主密码登录若账户 KDF 参数非生产档，`unlock()` 在**设置 `unlocked_account` 之前**进入 `unlock_with_kdf_upgrade` 分支（`unlock.rs:346-347`）；该函数内部的 `reencrypt_attachments` **无条件依赖 `get_current_account()`** 读取 `unlocked_account`（line 1001，甚至先于附件目录存在性检查）→ 恒返回 None → 附件重加密必然失败并触发回滚。此前用户一直用 PIN/指纹（`unlock_with_session_key`，不做 KDF 升级）解锁故从未触发；测试直接调 `unlock_with_kdf_upgrade` 且未 `lock()`，`unlocked_account` 仍为 Some，掩盖缺陷——与生产路径（锁定态触发升级）恰好相反。
+
+**修复**（`3b78a0e0`）：`reencrypt_attachments` 改为显式接收 `account_id: &str` 参数，不再依赖 `get_current_account()`（两个调用点 `unlock_with_kdf_upgrade` / `change_password` 均有该参数在作用域内）；两个 KDF 升级测试补 `svc.lock()` 使路径与生产一致，并在**无修复代码下验证可复现用户原始报错文案**、有修复后全绿。
+
+**验证**：全仓 969 用例全绿（core 200 含 2 个回归测试强化）、fmt/clippy 干净。
+
 ---
 
 ## 备注
