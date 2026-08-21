@@ -86,17 +86,33 @@ fn allowed_fs_bases<R: tauri::Runtime>(
     }
 }
 
-/// 桌面端默认允许基目录集合：Desktop/Documents/Downloads + Vault 附件目录。
+/// 桌面端默认允许基目录集合：Desktop/Documents/Downloads + OneDrive + Vault 附件目录。
 /// 抽为纯函数便于单测；Vault 附件目录放行是为了附件预览（`vaultPath` 指向
 /// `{base}/attachments/...` 落库副本），而 vault 根目录本身（config.json、
 /// vault.db、accounts.json 等）不在集合内。
+/// OneDrive 目录（个人版 `OneDrive`、企业版 `OneDrive - <组织名>`）放行：Windows
+/// 用户默认把文件存放在 `~/OneDrive`，不放行则上传附件时 `fs_get_file_size` /
+/// `attachment_copy_to_vault` 被白名单拒绝；与 Desktop/Documents/Downloads 同级
+/// 的用户自有目录，属同一信任级别。目录不存在时 `resolve_within` 的 canonicalize
+/// 失败即视为该基目录不可用（与静态三个目录同语义）；企业版目录名含组织名无法
+/// 静态枚举，按前缀扫描 home 一级子目录收集。
 #[cfg(desktop)]
 fn desktop_fs_bases(home: &Path, vault_base: Option<&Path>) -> Vec<PathBuf> {
     let mut bases = vec![
         home.join("Desktop"),
         home.join("Documents"),
         home.join("Downloads"),
+        home.join("OneDrive"),
     ];
+    // 企业版 OneDrive：目录名形如 `OneDrive - Contoso`，静态枚举不可行，按前缀收集。
+    if let Ok(entries) = std::fs::read_dir(home) {
+        bases.extend(entries.flatten().map(|e| e.path()).filter(|p| {
+            p.file_name()
+                .and_then(|n| n.to_str())
+                .map(|n| n.starts_with("OneDrive - "))
+                .unwrap_or(false)
+        }));
+    }
     if let Some(vault) = vault_base {
         bases.push(vault.join("attachments"));
     }
@@ -546,11 +562,13 @@ mod tests {
         assert!(bases.contains(&home.join("Desktop")));
         assert!(bases.contains(&home.join("Documents")));
         assert!(bases.contains(&home.join("Downloads")));
+        // OneDrive 个人版默认目录（目录不存在时同样入集合，由 resolve_within 视为不可用）。
+        assert!(bases.contains(&home.join("OneDrive")));
         // 附件预览需要 vaultPath 指向的附件目录。
         assert!(bases.contains(&Path::new("/Users/testuser/.solosoul").join("attachments")));
         // vault 根目录本身（config.json/vault.db/accounts.json）不得在集合内。
         assert!(!bases.contains(&PathBuf::from("/Users/testuser/.solosoul")));
-        assert_eq!(bases.len(), 4);
+        assert_eq!(bases.len(), 5);
     }
 
     #[cfg(desktop)]
@@ -558,10 +576,30 @@ mod tests {
     fn test_desktop_fs_bases_without_vault() {
         let home = Path::new("/Users/testuser");
         let bases = desktop_fs_bases(home, None);
-        assert_eq!(bases.len(), 3);
+        assert_eq!(bases.len(), 4);
         assert!(!bases
             .iter()
             .any(|b| b.to_string_lossy().contains("attachments")));
+    }
+
+    #[cfg(desktop)]
+    #[test]
+    fn test_desktop_fs_bases_collects_onedrive_business_dirs() {
+        // 企业版 OneDrive 目录名含组织名（`OneDrive - Contoso`），无法静态枚举，
+        // 应按前缀扫描 home 一级子目录收集；不匹配的目录不得误入白名单。
+        let dir = TempDir::new().unwrap();
+        let home = dir.path();
+        fs::create_dir(home.join("OneDrive - Contoso")).unwrap();
+        fs::create_dir(home.join("OneDrive - 示例公司")).unwrap();
+        fs::create_dir(home.join("Projects")).unwrap();
+        fs::create_dir(home.join("OneDriveBackup")).unwrap();
+
+        let bases = desktop_fs_bases(home, None);
+        assert!(bases.contains(&home.join("OneDrive - Contoso")));
+        assert!(bases.contains(&home.join("OneDrive - 示例公司")));
+        // 非 `OneDrive - ` 前缀目录（含 `OneDriveBackup`）不得入白名单。
+        assert!(!bases.contains(&home.join("Projects")));
+        assert!(!bases.contains(&home.join("OneDriveBackup")));
     }
 
     #[test]

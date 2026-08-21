@@ -65,8 +65,26 @@ pub(crate) fn allowed_fs_bases() -> Vec<PathBuf> {
     #[cfg(windows)]
     let home_var = "USERPROFILE";
     if let Ok(home) = std::env::var(home_var) {
+        let home_path = PathBuf::from(&home);
         for dir_name in &["Desktop", "Documents", "Downloads"] {
-            let p = PathBuf::from(&home).join(dir_name);
+            let p = home_path.join(dir_name);
+            if let Ok(canon) = p.canonicalize() {
+                bases.push(canon);
+            }
+        }
+        // OneDrive：个人版 `OneDrive` 静态入候选，企业版 `OneDrive - <组织名>` 按前缀
+        // 扫描 home 一级子目录收集；目录存在（canonicalize 成功）才入白名单。与
+        // `commands/fs.rs::desktop_fs_bases` 同步维护，勿只改一边。
+        let mut candidates = vec![home_path.join("OneDrive")];
+        if let Ok(entries) = std::fs::read_dir(&home_path) {
+            candidates.extend(entries.flatten().map(|e| e.path()).filter(|p| {
+                p.file_name()
+                    .and_then(|n| n.to_str())
+                    .map(|n| n.starts_with("OneDrive - "))
+                    .unwrap_or(false)
+            }));
+        }
+        for p in candidates {
             if let Ok(canon) = p.canonicalize() {
                 bases.push(canon);
             }
