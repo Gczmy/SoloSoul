@@ -155,15 +155,35 @@ describe('FieldSuggestions', () => {
     expect(handleItemClickMock).not.toHaveBeenCalled();
   });
 
-  it('超出 limit 时折叠为「还有 N 条」', () => {
+  it('超过 limit 时默认折叠为 limit 条，提供展开/收起按钮', () => {
     const many = Array.from({ length: 7 }, (_, i) =>
       makeSuggestion({ objectId: `obj-${i}`, objectName: `对象${i}` }),
     );
     render(
-      <FieldSuggestions fieldName="身份证号码" suggestions={many} onPick={vi.fn()} limit={5} />,
+      <FieldSuggestions fieldName="身份证号码" suggestions={many} onPick={vi.fn()} />,
     );
-    expect(screen.getAllByTestId('field-suggestion-item')).toHaveLength(5);
-    expect(screen.getByText('+2 more')).toBeInTheDocument();
+    // 默认 limit=3：折叠态只显示 3 条
+    expect(screen.getAllByTestId('field-suggestion-item')).toHaveLength(3);
+    const toggle = screen.getByTestId('field-suggestions-toggle');
+    expect(toggle).toHaveTextContent('Expand (4 more)');
+
+    // 展开：显示全部 7 条，按钮变为收起
+    fireEvent.click(toggle);
+    expect(screen.getAllByTestId('field-suggestion-item')).toHaveLength(7);
+    expect(screen.getByTestId('field-suggestions-toggle')).toHaveTextContent('Collapse');
+
+    // 收起：回到 3 条
+    fireEvent.click(screen.getByTestId('field-suggestions-toggle'));
+    expect(screen.getAllByTestId('field-suggestion-item')).toHaveLength(3);
+  });
+
+  it('不超过 limit 时不显示展开按钮', () => {
+    const few = Array.from({ length: 3 }, (_, i) =>
+      makeSuggestion({ objectId: `obj-${i}`, objectName: `对象${i}` }),
+    );
+    render(<FieldSuggestions fieldName="身份证号码" suggestions={few} onPick={vi.fn()} />);
+    expect(screen.getAllByTestId('field-suggestion-item')).toHaveLength(3);
+    expect(screen.queryByTestId('field-suggestions-toggle')).not.toBeInTheDocument();
   });
 
   it('自定义 limit 与掩码：sensitive 级别同样遮掩', () => {

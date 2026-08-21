@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowDownLeft, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { ArrowDownLeft, ChevronDown, ChevronUp, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { maskValue } from '@/lib/masking';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
@@ -23,7 +24,7 @@ interface FieldSuggestionsProps {
   suggestions: FieldSuggestion[];
   /** 点击「填入」按钮时回填原始值。 */
   onPick: (value: string) => void;
-  /** 最多展示条数（超出折叠为「还有 N 条」）。 */
+  /** 折叠态最多展示条数（超出时提供展开/收起按钮）。 */
   limit?: number;
 }
 
@@ -48,14 +49,17 @@ function truncateForDisplay(value: string): string {
  * - critical：掩码，点击弹出主密码验证框（支持密码/PIN/生物识别），验证成功后才揭示。
  *
  * 每行右侧「填入」按钮将真实值回填到当前字段（不要求先揭示）。
+ *
+ * 超过 limit（默认 3）条时折叠展示，底部提供展开/收起按钮查看其余条目。
  */
 export function FieldSuggestions({
   fieldName,
   suggestions,
   onPick,
-  limit = 5,
+  limit = 3,
 }: FieldSuggestionsProps) {
   const { t } = useTranslation(['editor', 'common']);
+  const [expanded, setExpanded] = useState(false);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const {
     isRevealed,
@@ -71,8 +75,9 @@ export function FieldSuggestions({
 
   if (!suggestions || suggestions.length === 0) return null;
 
-  const shown = suggestions.slice(0, limit);
-  const hidden = suggestions.length - shown.length;
+  const hasMore = suggestions.length > limit;
+  const shown = expanded ? suggestions : suggestions.slice(0, limit);
+  const hiddenCount = expanded ? 0 : suggestions.length - limit;
 
   return (
     <>
@@ -216,16 +221,41 @@ export function FieldSuggestions({
               </div>
             );
           })}
-          {hidden > 0 && (
-            <div
+          {hasMore && (
+            <button
+              type="button"
+              data-testid="field-suggestions-toggle"
+              onClick={() => setExpanded((v) => !v)}
               style={{
-                padding: '2px 10px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '4px 8px',
+                borderRadius: 6,
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--text-secondary)',
                 fontSize: 'var(--text-badge)',
-                color: 'var(--text-tertiary)',
+                fontWeight: 600,
+                cursor: 'pointer',
+                alignSelf: 'flex-start',
               }}
             >
-              {t('field_suggestions_more', { n: hidden, defaultValue: `+${hidden} more` })}
-            </div>
+              {expanded ? (
+                <>
+                  <ChevronUp size={13} />
+                  {t('field_suggestions_collapse', { defaultValue: 'Collapse' })}
+                </>
+              ) : (
+                <>
+                  <ChevronDown size={13} />
+                  {t('field_suggestions_expand', {
+                    n: hiddenCount,
+                    defaultValue: `Expand (${hiddenCount} more)`,
+                  })}
+                </>
+              )}
+            </button>
           )}
         </div>
       </div>
