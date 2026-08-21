@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Lock, Eye, Check, Copy } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
@@ -25,6 +26,8 @@ interface ObjectDetailFieldsListProps {
   isFieldDeprecated: (key: string) => boolean;
   getFieldName: (key: string, label?: string) => string;
   isRevealed: (id: string) => boolean;
+  /** 剩余揭示时长（ms），供揭示态倒计时展示（与 useRevealState 的 1 分钟 TTL 一致）。 */
+  revealRemainingMs: (id: string) => number;
   maskValue: (value: string, id: string, level: SensitivityLevel) => string;
   handleRevealField: (fieldId: string, sens: SensitivityLevel, fieldName: string) => void;
   handleCopy: (value: string, key: string) => void;
@@ -45,12 +48,27 @@ export function ObjectDetailFieldsList({
   isFieldDeprecated,
   getFieldName,
   isRevealed,
+  revealRemainingMs,
   maskValue,
   handleRevealField,
   handleCopy,
   copiedField,
 }: ObjectDetailFieldsListProps) {
   const { t } = useTranslation(['common', 'navigation', 'editor']);
+
+  // 揭示中的字段展示自动隐藏倒计时（每秒跳动，驱动重渲染；具体秒数渲染时实时计算）
+  const [, setTick] = useState(0);
+  const anyRevealed = fields.some((f) => {
+    const sens = getFieldSensitivity(f.key);
+    if (sens !== 'sensitive' && sens !== 'critical') return false;
+    const fieldId = f.fieldId || `${typeId}.${f.key}`;
+    return isRevealed(fieldId);
+  });
+  useEffect(() => {
+    if (!anyRevealed) return;
+    const timer = window.setInterval(() => setTick((t) => t + 1), 1000);
+    return () => window.clearInterval(timer);
+  }, [anyRevealed]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -63,6 +81,9 @@ export function ObjectDetailFieldsList({
         // workspace 卡片仍按 masking.shouldMaskSensitivity 对 internal 模糊（模糊层不同）。
         const needsReveal = sens === 'sensitive' || sens === 'critical';
         const displayMasked = needsReveal && !revealed;
+        const revealSeconds = revealed
+          ? Math.max(0, Math.ceil(revealRemainingMs(fieldId) / 1000))
+          : 0;
         // 字段类型图标：模板定义优先，回退到对象内嵌 __fields，最后按 text 处理
         const fieldType = (getFieldProperty(f.key)?.type ||
           objFieldDefs?.[f.key]?.type ||
@@ -114,6 +135,29 @@ export function ObjectDetailFieldsList({
                       {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
                     </span>
                   </button>
+                )}
+                {needsReveal && revealed && (
+                  <span
+                    title={t('common:reveal_countdown_title', {
+                      seconds: revealSeconds,
+                      defaultValue: `Auto-hides in ${revealSeconds}s`,
+                    })}
+                    data-testid="detail-reveal-countdown"
+                    style={{
+                      flexShrink: 0,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      fontSize: 'var(--text-badge)',
+                      color: 'var(--text-tertiary)',
+                      fontVariantNumeric: 'tabular-nums',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {t('common:reveal_countdown', {
+                      seconds: revealSeconds,
+                      defaultValue: `${revealSeconds}s`,
+                    })}
+                  </span>
                 )}
                 <button
                   onMouseDown={(e) => e.preventDefault()}

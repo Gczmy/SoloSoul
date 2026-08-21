@@ -57,6 +57,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
     getFieldName,
     // 揭示/复制
     isRevealed,
+    revealRemainingMs,
     maskValue,
     handleRevealField,
     handleCopy,
@@ -155,6 +156,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
                     isFieldDeprecated={isFieldDeprecated}
                     getFieldName={getFieldName}
                     isRevealed={isRevealed}
+                    revealRemainingMs={revealRemainingMs}
                     maskValue={maskValue}
                     handleRevealField={handleRevealField}
                     handleCopy={handleCopy}

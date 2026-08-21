@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { flattenProperties, HistoryViewer } from './HistoryViewer';
 import * as invokeModule from '@tauri-apps/api/core';
 
@@ -545,5 +545,59 @@ describe('HistoryViewer', () => {
     // 应显示国际化后的“动态字段组”，而不是原始 __dynamic_group__
     expect(screen.queryByText('__dynamic_group__')).not.toBeInTheDocument();
     expect(screen.getByText('动态字段组')).toBeInTheDocument();
+  });
+
+  it('sensitive 字段揭示后显示自动隐藏倒计时，掩码时不显示', async () => {
+    mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === 'snapshot_list') {
+        return [
+          {
+            id: 'snap-cd',
+            timestamp: Date.now(),
+            triggeredBy: 'user_edit',
+            diffSummary: 'diff_updated',
+          },
+        ];
+      }
+      if (cmd === 'snapshot_get_data') {
+        return {
+          name: 'Test Object',
+          tags: [],
+          properties: {
+            secret: 'hidden-value',
+            __fields: {
+              secret: { name: '密钥', type: 'text', sensitivityLevel: 'sensitive' },
+            },
+          },
+          propertyLabels: { secret: 'sensitive' },
+        };
+      }
+      return null;
+    });
+
+    render(
+      <HistoryViewer
+        objectId="obj-countdown"
+        objectName="Test Object"
+        typeId="identity"
+        onClose={() => {}}
+        passwordVerify={async () => ({ ok: true, method: 'password' })}
+        getFieldSensitivity={() => 'sensitive'}
+        isFieldDeprecated={() => false}
+        getFieldName={(k) => k}
+        fieldOrder={['secret']}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('密钥')).toBeInTheDocument();
+    });
+
+    // 掩码态：无倒计时（值被 blur 遮罩）
+    expect(screen.queryByTestId('history-reveal-countdown')).not.toBeInTheDocument();
+
+    // 点击值揭示（sensitive 直接揭示，无需验证）→ 明文 + 倒计时出现
+    fireEvent.click(screen.getByText('hidden-value'));
+    expect(screen.getByTestId('history-reveal-countdown')).toHaveTextContent('60s');
   });
 });

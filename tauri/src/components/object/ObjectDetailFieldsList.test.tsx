@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { ObjectDetailFieldsList, type FlattenedField } from './ObjectDetailFieldsList';
 import { useRevealState } from '@/hooks/useRevealState';
 import type { SensitivityLevel, TemplateProperty } from '@/types/template';
@@ -40,6 +40,7 @@ function Harness({
       isFieldDeprecated={() => false}
       getFieldName={(k, label) => label ?? k}
       isRevealed={revealState.isRevealed}
+      revealRemainingMs={revealState.revealRemainingMs}
       maskValue={revealState.maskValue}
       handleRevealField={vi.fn()}
       handleCopy={vi.fn()}
@@ -116,6 +117,7 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
           isFieldDeprecated={() => false}
           getFieldName={(k, label) => label ?? k}
           isRevealed={revealState.isRevealed}
+          revealRemainingMs={revealState.revealRemainingMs}
           maskValue={revealState.maskValue}
           handleRevealField={(id) => {
             capturedId = id;
@@ -134,5 +136,93 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
     expect(capturedId).toBe('travel.email');
     expect(screen.queryByText('••••••••')).not.toBeInTheDocument();
     expect(screen.getByText('secret@example.com')).toBeInTheDocument();
+  });
+
+  it('sensitive 字段揭示后显示自动隐藏倒计时（每秒递减），到期自动回到掩码', () => {
+    vi.useFakeTimers();
+    function HarnessWithReveal() {
+      const revealState = useRevealState();
+      return (
+        <ObjectDetailFieldsList
+          fields={[{ key: 'email', value: 'secret@example.com' }]}
+          typeId="travel"
+          contractTypeId={undefined}
+          objFieldDefs={undefined}
+          getFieldProperty={(k) =>
+            ({ id: k, sensitivityLevel: 'sensitive' }) as unknown as TemplateProperty
+          }
+          getFieldSensitivity={() => 'sensitive'}
+          isFieldDeprecated={() => false}
+          getFieldName={(k, label) => label ?? k}
+          isRevealed={revealState.isRevealed}
+          revealRemainingMs={revealState.revealRemainingMs}
+          maskValue={revealState.maskValue}
+          handleRevealField={(id) => {
+            revealState.reveal(id);
+          }}
+          handleCopy={vi.fn()}
+          copiedField={null}
+        />
+      );
+    }
+    render(<HarnessWithReveal />);
+    // 掩码态：无倒计时
+    expect(screen.getByText('••••••••')).toBeInTheDocument();
+    expect(screen.queryByTestId('detail-reveal-countdown')).not.toBeInTheDocument();
+
+    // 揭示态：明文 + 倒计时显示剩余 60s
+    fireEvent.click(screen.getByText('common:reveal'));
+    expect(screen.queryByText('••••••••')).not.toBeInTheDocument();
+    expect(screen.getByText('secret@example.com')).toBeInTheDocument();
+    expect(screen.getByTestId('detail-reveal-countdown')).toHaveTextContent('60s');
+
+    // 1 秒后跳动为 59s
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(screen.getByTestId('detail-reveal-countdown')).toHaveTextContent('59s');
+
+    // 1 分钟到期后自动回到掩码态，倒计时消失
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(screen.queryByText('secret@example.com')).not.toBeInTheDocument();
+    expect(screen.getByText('••••••••')).toBeInTheDocument();
+    expect(screen.queryByTestId('detail-reveal-countdown')).not.toBeInTheDocument();
+  });
+
+  it('internal 字段揭示态也不显示倒计时（本就明文展示）', () => {
+    vi.useFakeTimers();
+    function HarnessInternal() {
+      const revealState = useRevealState();
+      return (
+        <ObjectDetailFieldsList
+          fields={[{ key: 'phone', value: '13800138000' }]}
+          typeId="travel"
+          contractTypeId={undefined}
+          objFieldDefs={undefined}
+          getFieldProperty={(k) =>
+            ({ id: k, sensitivityLevel: 'internal' }) as unknown as TemplateProperty
+          }
+          getFieldSensitivity={() => 'internal'}
+          isFieldDeprecated={() => false}
+          getFieldName={(k, label) => label ?? k}
+          isRevealed={revealState.isRevealed}
+          revealRemainingMs={revealState.revealRemainingMs}
+          maskValue={revealState.maskValue}
+          handleRevealField={vi.fn()}
+          handleCopy={vi.fn()}
+          copiedField={null}
+        />
+      );
+    }
+    render(<HarnessInternal />);
+    // 明文直接可见，无揭示按钮、无倒计时
+    expect(screen.getByText('13800138000')).toBeInTheDocument();
+    expect(screen.queryByTestId('detail-reveal-countdown')).not.toBeInTheDocument();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 });

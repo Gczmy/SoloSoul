@@ -399,6 +399,8 @@
   "first_install_error": "插件安装失败",
   "first_install_retry": "安装失败，重试？",
   "auto_close_countdown": "{{n}}秒后自动关闭",
+  "reveal_countdown": "{{seconds}}s",
+  "reveal_countdown_title": "{{seconds}} 秒后自动隐藏",
   "lock_vault": "锁定保险库",
   "preview": "预览",
   "details": "详情",

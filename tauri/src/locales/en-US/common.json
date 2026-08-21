@@ -400,6 +400,8 @@
   "first_install_error": "Plugin installation failed",
   "first_install_retry": "Installation failed. Retry?",
   "auto_close_countdown": "Auto close in {{n}}s",
+  "reveal_countdown": "{{seconds}}s",
+  "reveal_countdown_title": "Auto-hides in {{seconds}}s",
   "lock_vault": "Lock Vault",
   "preview": "Preview",
   "details": "Details",

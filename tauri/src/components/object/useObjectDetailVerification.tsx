@@ -25,7 +25,7 @@ export function useObjectDetailVerification({
   obj,
   resolveCollectionLabelLocal,
 }: UseObjectDetailVerificationOptions) {
-  const { maskValue, isRevealed, reveal } = useRevealState();
+  const { maskValue, isRevealed, reveal, revealRemainingMs } = useRevealState();
   const [showPwDialog, setShowPwDialog] = useState(false);
   const pwResolveRef = useRef<
     | ((result: {
@@ -183,6 +183,7 @@ export function useObjectDetailVerification({
   return {
     // 揭示状态（useRevealState 随迁——与验证流程同属关键数据访问语义）
     isRevealed,
+    revealRemainingMs,
     maskValue,
     handleRevealField,
     // 关键数据验证

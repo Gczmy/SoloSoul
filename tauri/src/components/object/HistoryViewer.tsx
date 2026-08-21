@@ -99,7 +99,7 @@ function SnapshotCard({
   ) => void;
 }) {
   const [snapData, setSnapData] = useState<Record<string, unknown> | null>(null);
-  const { isRevealed, reveal } = useRevealState();
+  const { isRevealed, reveal, revealRemainingMs } = useRevealState();
   const { t } = useTranslation(['common', 'editor']);
 
   useEffect(() => {
@@ -141,6 +141,19 @@ function SnapshotCard({
     );
   };
 
+  // 揭示中的字段展示自动隐藏倒计时（每秒跳动，驱动重渲染；具体秒数渲染时实时计算）
+  const [, setTick] = useState(0);
+  const anyRevealed = fields.some((f) => {
+    const sens = resolveFieldSensitivity(f);
+    if (sens !== 'sensitive' && sens !== 'critical') return false;
+    return isRevealed(f.key);
+  });
+  useEffect(() => {
+    if (!anyRevealed) return;
+    const timer = window.setInterval(() => setTick((t) => t + 1), 1000);
+    return () => window.clearInterval(timer);
+  }, [anyRevealed]);
+
   const renderValueSpan = (opts: {
     value: string;
     fieldId: string;
@@ -152,50 +165,78 @@ function SnapshotCard({
     // 历史快照：与详情卡片一致——internal/public 直接明文；仅 sensitive/critical 掩码（点击揭示）。
     // workspace 卡片仍按 masking.shouldMaskSensitivity 对 internal 模糊（模糊层不同）。
     const needsReveal = sens === 'sensitive' || sens === 'critical';
+    const revealSeconds = revealed
+      ? Math.max(0, Math.ceil(revealRemainingMs(fieldId) / 1000))
+      : 0;
     return (
-      <span
-        onClick={
-          needsReveal && !revealed
-            ? async () => {
-                try {
-                  if (sens === 'critical') {
-                    const result = await verifyPassword();
-                    if (result.ok) {
+      <>
+        <span
+          onClick={
+            needsReveal && !revealed
+              ? async () => {
+                  try {
+                    if (sens === 'critical') {
+                      const result = await verifyPassword();
+                      if (result.ok) {
+                        reveal(fieldId);
+                        const criticalFieldName = fieldLabel
+                          ? `${t('editor:field_types.dynamic_group')}: ${fieldLabel}`
+                          : getFieldName(fieldId);
+                        onCriticalAccess?.(criticalFieldName, result.method);
+                      }
+                    } else {
                       reveal(fieldId);
-                      const criticalFieldName = fieldLabel
-                        ? `${t('editor:field_types.dynamic_group')}: ${fieldLabel}`
-                        : getFieldName(fieldId);
-                      onCriticalAccess?.(criticalFieldName, result.method);
                     }
-                  } else {
-                    reveal(fieldId);
+                  } catch {
+                    /* ignore */
                   }
-                } catch {
-                  /* ignore */
                 }
-              }
-            : undefined
-        }
-        style={{
-          cursor: needsReveal && !revealed ? 'pointer' : 'default',
-          filter: needsReveal && !revealed ? 'blur(5px)' : 'blur(0px)',
-          userSelect: needsReveal && !revealed ? 'none' : 'auto',
-          background:
-            needsReveal && !revealed ? 'var(--bg-subtle, rgba(128,128,128,0.15))' : 'transparent',
-          borderRadius: 2,
-          padding: '0 2px',
-          color: 'var(--text-primary)',
-          transition: 'filter 0.15s ease, background 0.15s ease',
-          willChange: needsReveal && !revealed ? 'filter' : 'auto',
-        }}
-        title={
-          needsReveal && !revealed
-            ? t('common:click_to_reveal', { defaultValue: 'Click to reveal' })
-            : ''
-        }
-      >
-        {value}
-      </span>
+              : undefined
+          }
+          style={{
+            cursor: needsReveal && !revealed ? 'pointer' : 'default',
+            filter: needsReveal && !revealed ? 'blur(5px)' : 'blur(0px)',
+            userSelect: needsReveal && !revealed ? 'none' : 'auto',
+            background:
+              needsReveal && !revealed ? 'var(--bg-subtle, rgba(128,128,128,0.15))' : 'transparent',
+            borderRadius: 2,
+            padding: '0 2px',
+            color: 'var(--text-primary)',
+            transition: 'filter 0.15s ease, background 0.15s ease',
+            willChange: needsReveal && !revealed ? 'filter' : 'auto',
+          }}
+          title={
+            needsReveal && !revealed
+              ? t('common:click_to_reveal', { defaultValue: 'Click to reveal' })
+              : ''
+          }
+        >
+          {value}
+        </span>
+        {revealed && (
+          <span
+            title={t('common:reveal_countdown_title', {
+              seconds: revealSeconds,
+              defaultValue: `Auto-hides in ${revealSeconds}s`,
+            })}
+            data-testid="history-reveal-countdown"
+            style={{
+              flexShrink: 0,
+              display: 'inline-flex',
+              alignItems: 'center',
+              fontSize: 'var(--text-badge)',
+              color: 'var(--text-tertiary)',
+              fontVariantNumeric: 'tabular-nums',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {t('common:reveal_countdown', {
+              seconds: revealSeconds,
+              defaultValue: `${revealSeconds}s`,
+            })}
+          </span>
+        )}
+      </>
     );
   };
 
@@ -215,8 +256,9 @@ function SnapshotCard({
         <div
           style={{
             marginLeft: 'auto',
-            fontSize: 'var(--text-badge)',
-            color: 'var(--text-tertiary)',
+            fontSize: 'var(--text-body-sm)',
+            color: 'var(--text-primary)',
+            fontWeight: 500,
             overflowWrap: 'break-word',
             wordBreak: 'break-word',
             textAlign: 'right',
