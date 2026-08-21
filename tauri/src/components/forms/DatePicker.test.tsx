@@ -3,9 +3,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { DatePicker } from './DatePicker';
 
 describe('DatePicker', () => {
-  it('renders placeholder when no value is provided', () => {
+  it('renders segment placeholders when no value is provided', () => {
     render(<DatePicker onChange={vi.fn()} />);
-    expect(screen.getByText('YYYY-MM-DD')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('yyyy')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('mm')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('dd')).toBeInTheDocument();
   });
 
   it('opens calendar when trigger is clicked', () => {
@@ -67,6 +69,8 @@ describe('DatePicker', () => {
     render(<DatePicker value="2020-02-15" onChange={onChange} />);
     fireEvent.click(screen.getByLabelText('清除'));
     expect(onChange).toHaveBeenCalledWith(undefined);
+    // 清空后分段占位符恢复
+    expect(screen.getByPlaceholderText('yyyy')).toBeInTheDocument();
   });
 
   it('closes popover when clicking outside', () => {
@@ -89,5 +93,127 @@ describe('DatePicker', () => {
     await waitFor(() => {
       expect(onChange).toHaveBeenLastCalledWith('2022-01-01T12:30');
     });
+  });
+
+  // ── 直输模式（分段输入） ─────────────────────────────
+
+  it('types a date directly into segments and commits YYYY-MM-DD', () => {
+    const onChange = vi.fn();
+    render(<DatePicker onChange={onChange} />);
+
+    fireEvent.change(screen.getByLabelText('年份输入'), { target: { value: '2024' } });
+    fireEvent.change(screen.getByLabelText('月份输入'), { target: { value: '03' } });
+    fireEvent.change(screen.getByLabelText('日期输入'), { target: { value: '15' } });
+
+    expect(onChange).toHaveBeenLastCalledWith('2024-03-15');
+  });
+
+  it('types date and time in datetime mode', () => {
+    const onChange = vi.fn();
+    render(<DatePicker onChange={onChange} includeTime />);
+
+    fireEvent.change(screen.getByLabelText('年份输入'), { target: { value: '2024' } });
+    fireEvent.change(screen.getByLabelText('月份输入'), { target: { value: '03' } });
+    fireEvent.change(screen.getByLabelText('日期输入'), { target: { value: '15' } });
+    fireEvent.change(screen.getByLabelText('小时输入'), { target: { value: '08' } });
+    fireEvent.change(screen.getByLabelText('分钟输入'), { target: { value: '05' } });
+
+    expect(onChange).toHaveBeenLastCalledWith('2024-03-15T08:05');
+  });
+
+  it('does not commit incomplete or invalid dates', () => {
+    const onChange = vi.fn();
+    render(<DatePicker onChange={onChange} />);
+
+    // 只填年份：不提交
+    fireEvent.change(screen.getByLabelText('年份输入'), { target: { value: '2024' } });
+    expect(onChange).not.toHaveBeenCalled();
+
+    // 13 月非法：不提交
+    fireEvent.change(screen.getByLabelText('月份输入'), { target: { value: '13' } });
+    fireEvent.change(screen.getByLabelText('日期输入'), { target: { value: '15' } });
+    expect(onChange).not.toHaveBeenCalled();
+
+    // 非法分段带 aria-invalid 提示
+    expect(screen.getByLabelText('月份输入')).toHaveAttribute('aria-invalid', 'true');
+
+    // 修正为合法月份后提交
+    fireEvent.change(screen.getByLabelText('月份输入'), { target: { value: '04' } });
+    expect(onChange).toHaveBeenLastCalledWith('2024-04-15');
+  });
+
+  it('rejects impossible days like Feb 30', () => {
+    const onChange = vi.fn();
+    render(<DatePicker onChange={onChange} />);
+
+    fireEvent.change(screen.getByLabelText('年份输入'), { target: { value: '2024' } });
+    fireEvent.change(screen.getByLabelText('月份输入'), { target: { value: '02' } });
+    fireEvent.change(screen.getByLabelText('日期输入'), { target: { value: '30' } });
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('日期输入')).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('calendar selection overwrites directly typed value', async () => {
+    const onChange = vi.fn();
+    render(<DatePicker onChange={onChange} />);
+
+    fireEvent.change(screen.getByLabelText('年份输入'), { target: { value: '2024' } });
+    fireEvent.change(screen.getByLabelText('月份输入'), { target: { value: '03' } });
+    fireEvent.change(screen.getByLabelText('日期输入'), { target: { value: '15' } });
+    expect(onChange).toHaveBeenLastCalledWith('2024-03-15');
+
+    // 打开日历选 2020-02-15，应覆盖输入值
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    fireEvent.click(screen.getByLabelText('选择年份'));
+    fireEvent.click(screen.getByText('2020', { selector: '[data-dd-value="2020"]' }));
+    fireEvent.click(screen.getByLabelText('选择月份'));
+    fireEvent.click(screen.getByText('Feb', { selector: '[data-dd-value="1"]' }));
+    fireEvent.click(screen.getByLabelText('2020-02-15'));
+
+    await waitFor(() => {
+      expect(onChange).toHaveBeenLastCalledWith('2020-02-15');
+    });
+    // 分段显示同步为日历选中的值
+    expect((screen.getByLabelText('年份输入') as HTMLInputElement).value).toBe('2020');
+    expect((screen.getByLabelText('月份输入') as HTMLInputElement).value).toBe('02');
+    expect((screen.getByLabelText('日期输入') as HTMLInputElement).value).toBe('15');
+  });
+
+  it('shows input hint when a segment is focused', () => {
+    render(<DatePicker onChange={vi.fn()} />);
+    fireEvent.focus(screen.getByLabelText('年份输入'));
+    expect(screen.getByText(/可直接输入数字/)).toBeInTheDocument();
+    fireEvent.blur(screen.getByLabelText('年份输入'));
+    expect(screen.queryByText(/可直接输入数字/)).not.toBeInTheDocument();
+  });
+
+  it('moves focus to next segment when a segment is filled', () => {
+    render(<DatePicker onChange={vi.fn()} />);
+    const year = screen.getByLabelText('年份输入') as HTMLInputElement;
+    fireEvent.change(year, { target: { value: '2024' } });
+    expect(document.activeElement).toBe(screen.getByLabelText('月份输入'));
+  });
+
+  it('backspace on empty segment moves to previous segment', () => {
+    render(<DatePicker onChange={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText('年份输入'), { target: { value: '2024' } });
+    expect(document.activeElement).toBe(screen.getByLabelText('月份输入'));
+    fireEvent.keyDown(screen.getByLabelText('月份输入'), { key: 'Backspace' });
+    expect(document.activeElement).toBe(screen.getByLabelText('年份输入'));
+  });
+
+  it('strips non-digit characters from segment input', () => {
+    const onChange = vi.fn();
+    render(<DatePicker onChange={onChange} />);
+    fireEvent.change(screen.getByLabelText('年份输入'), { target: { value: '20a24b' } });
+    expect((screen.getByLabelText('年份输入') as HTMLInputElement).value).toBe('2024');
+  });
+
+  it('rejects disabled interaction', () => {
+    const onChange = vi.fn();
+    render(<DatePicker value="2020-02-15" onChange={onChange} disabled />);
+    expect(screen.getByLabelText('年份输入')).toBeDisabled();
+    expect(screen.queryByLabelText('清除')).not.toBeInTheDocument();
   });
 });

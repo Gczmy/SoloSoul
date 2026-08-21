@@ -3,75 +3,116 @@
   width: 100%;
 }
 
-.trigger {
+/* 分段直输 + 日历图标 组合行（替代原纯展示按钮 trigger） */
+.triggerRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   width: 100%;
-  padding: 10px 14px;
-  font-size: var(--text-body);
+  padding: 5px 8px;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
   background: var(--bg-elevated);
-  color: var(--text-primary);
-  font-family: inherit;
-  cursor: pointer;
-  /* 日期居中显示；datetime 文本（yyyy-MM-dd HH:mm）禁止换行 */
-  text-align: center;
-  white-space: nowrap;
-  outline: none;
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
 }
 
-/* 有清除按钮时为其预留空间，避免已选日期末尾数字被 X 按钮遮盖 */
-.triggerHasClear {
-  padding-right: 40px;
+.triggerRow:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: var(--state-focus-ring);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .trigger:hover:not(:focus):not(:disabled) {
+  .triggerRow:hover:not(:has(:disabled)) {
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
   }
 }
 
-.trigger:focus {
-  border-color: var(--accent-primary);
-  box-shadow: var(--state-focus-ring);
+.segment {
+  width: 34px;
+  padding: 4px 1px;
+  font-size: var(--text-body);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: inherit;
+  outline: none;
 }
 
-.trigger:disabled {
+.yearSegment {
+  width: 52px;
+}
+
+/* 聚焦段：高亮提示可编辑，用户可直接输入数字覆盖 */
+.segmentEditing {
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border-color: var(--accent-primary);
+}
+
+/* 非法输入（如 13 月、2 月 30 日）红色提示 */
+.segmentInvalid {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.segment::placeholder {
+  color: var(--text-tertiary);
+}
+
+.segment:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.placeholder {
+.separator {
   color: var(--text-tertiary);
+  font-size: var(--text-body);
+  user-select: none;
 }
 
-.clearButton {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
+.actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.iconButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   border: none;
   border-radius: 6px;
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
-  font-size: var(--text-body);
-  line-height: 1;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .clearButton:hover:not(:disabled) {
+  .iconButton:hover:not(:disabled) {
     background: var(--state-hover);
     color: var(--text-primary);
   }
+}
+
+.iconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 聚焦任意分段时的操作提示 */
+.inputHint {
+  margin-top: 4px;
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
 }
 
 .popover {
@@ -214,15 +255,16 @@
 
 /* 移动端：抵消 global.css 对所有 button 强制 44×44 的规则——
    7 列日期格被撑大后会溢出弹层卡片（最右列数字被裁切）；
-   清除按钮也会被放大，需给 trigger 预留更多右侧空间 */
+   图标按钮保持紧凑尺寸 */
 @media (max-width: 767px) {
   .day {
     min-width: 0;
     min-height: 0;
   }
 
-  .triggerHasClear {
-    padding-right: 56px;
+  .iconButton {
+    min-width: 0;
+    min-height: 0;
   }
 }
 
