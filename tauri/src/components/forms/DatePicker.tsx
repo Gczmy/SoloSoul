@@ -22,7 +22,7 @@ import {
   setMinutes,
 } from 'date-fns';
 import { zhCN, enUS } from 'date-fns/locale';
-import { Calendar, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { DropdownSelect } from '@/components/ui/DropdownSelect';
 import styles from './DatePicker.module.css';
 import { ICON_SIZE } from '@/lib/constants';
@@ -303,7 +303,12 @@ export function DatePicker({ value, onChange, includeTime, disabled }: DatePicke
 
   return (
     <div className={styles.datePicker} ref={containerRef}>
-      <div className={styles.triggerRow} role="group">
+      {/* 点击整个输入区域（含分段/分隔符/留白）弹出日历卡片；clear 按钮除外 */}
+      <div
+        className={styles.triggerRow}
+        role="group"
+        onClick={() => !disabled && setOpen(true)}
+      >
         {segmentKeys.map((key) => {
           const config = SEGMENTS_CONFIG[key];
           const invalid = isSegmentInvalid(key);
@@ -347,6 +352,8 @@ export function DatePicker({ value, onChange, includeTime, disabled }: DatePicke
                 }}
                 onFocus={(e) => {
                   setFocusedKey(key);
+                  // 点击输入框同时弹出日历卡片（clear 按钮除外——它不是分段输入）
+                  setOpen(true);
                   // 聚焦即全选：用户直接输入数字即可覆盖原有内容
                   e.currentTarget.select();
                 }}
@@ -355,37 +362,21 @@ export function DatePicker({ value, onChange, includeTime, disabled }: DatePicke
             </Fragment>
           );
         })}
-        <div className={styles.actions}>
-          {hasValue && !disabled && (
-            <button
-              type="button"
-              className={styles.iconButton}
-              onClick={handleClear}
-              aria-label="清除"
-              title="清除"
-            >
-              <X size={ICON_SIZE.sm} />
-            </button>
-          )}
+        {/* 清除按钮置于最右侧：handleClear 内已 stopPropagation，不触发行级弹出 */}
+        {hasValue && !disabled && (
           <button
             type="button"
-            className={styles.iconButton}
-            onClick={() => !disabled && setOpen((v) => !v)}
-            disabled={disabled}
-            aria-haspopup="dialog"
-            aria-expanded={open}
-            aria-label="打开日历"
-            title="打开日历选择"
+            className={[styles.iconButton, styles.clearAction].join(' ')}
+            onClick={handleClear}
+            aria-label="清除"
+            title="清除"
           >
-            <Calendar
-              size={ICON_SIZE.sm}
-              style={{ color: 'var(--text-tertiary)' }}
-            />
+            <X size={ICON_SIZE.sm} />
           </button>
-        </div>
+        )}
       </div>
       {focusedKey && !disabled && (
-        <div className={styles.inputHint}>可直接输入数字；也可点击右侧日历选择日期</div>
+        <div className={styles.inputHint}>可直接输入数字；也可在日历中选择日期</div>
       )}
 
       {open && (

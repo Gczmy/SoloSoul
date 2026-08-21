@@ -10,16 +10,29 @@ describe('DatePicker', () => {
     expect(screen.getByPlaceholderText('dd')).toBeInTheDocument();
   });
 
-  it('opens calendar when trigger is clicked', () => {
+  it('opens calendar when a segment input is focused', () => {
     render(<DatePicker onChange={vi.fn()} />);
-    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    fireEvent.focus(screen.getByLabelText('年份输入'));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('opens calendar when clicking anywhere in the input area', () => {
+    render(<DatePicker onChange={vi.fn()} />);
+    // fireEvent.click 不触发 focus，验证走 triggerRow 行级 onClick 的路径
+    fireEvent.click(screen.getByLabelText('年份输入'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('clear button does not open the calendar', () => {
+    render(<DatePicker value="2020-02-15" onChange={vi.fn()} />);
+    fireEvent.click(screen.getByLabelText('清除'));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('selects a date and calls onChange with YYYY-MM-DD', async () => {
     const onChange = vi.fn();
     render(<DatePicker onChange={onChange} />);
-    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    fireEvent.click(screen.getByLabelText('年份输入'));
 
     // Open year dropdown and pick 2020（限定到下拉选项，防止与触发器当前年份撞车）
     const yearSelect = screen.getByLabelText('选择年份');
@@ -43,7 +56,7 @@ describe('DatePicker', () => {
   it('selects date and time for datetime mode', async () => {
     const onChange = vi.fn();
     render(<DatePicker onChange={onChange} includeTime />);
-    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    fireEvent.click(screen.getByLabelText('年份输入'));
 
     fireEvent.click(screen.getByLabelText('选择年份'));
     // 限定到下拉选项（触发器显示当前年份可能与之相同），消除时间依赖
@@ -75,7 +88,7 @@ describe('DatePicker', () => {
 
   it('closes popover when clicking outside', () => {
     render(<DatePicker onChange={vi.fn()} />);
-    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    fireEvent.click(screen.getByLabelText('年份输入'));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     fireEvent.mouseDown(document.body);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -84,7 +97,7 @@ describe('DatePicker', () => {
   it('preserves selected time when changing date in datetime mode', async () => {
     const onChange = vi.fn();
     render(<DatePicker value="2020-01-01T12:30" onChange={onChange} includeTime />);
-    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    fireEvent.click(screen.getByLabelText('年份输入'));
 
     fireEvent.click(screen.getByLabelText('选择年份'));
     fireEvent.click(screen.getByText('2022'));
@@ -163,8 +176,11 @@ describe('DatePicker', () => {
     fireEvent.change(screen.getByLabelText('日期输入'), { target: { value: '15' } });
     expect(onChange).toHaveBeenLastCalledWith('2024-03-15');
 
-    // 打开日历选 2020-02-15，应覆盖输入值
-    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    // 打开日历选 2020-02-15，应覆盖输入值（直输自动跳焦已弹出日历卡片；
+    // 未弹出时点击输入区域兜底）
+    if (!screen.queryByRole('dialog')) {
+      fireEvent.click(screen.getByLabelText('年份输入'));
+    }
     fireEvent.click(screen.getByLabelText('选择年份'));
     fireEvent.click(screen.getByText('2020', { selector: '[data-dd-value="2020"]' }));
     fireEvent.click(screen.getByLabelText('选择月份'));

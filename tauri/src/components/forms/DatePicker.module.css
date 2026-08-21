@@ -75,12 +75,9 @@
   user-select: none;
 }
 
-.actions {
+/* 清除按钮：推到最右侧（分段在中间） */
+.clearAction {
   margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
 }
 
 .iconButton {
