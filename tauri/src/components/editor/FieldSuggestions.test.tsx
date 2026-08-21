@@ -1,7 +1,37 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { FieldSuggestions, type FieldSuggestion } from './FieldSuggestions';
 import { MASK_PLACEHOLDER } from '@/lib/masking';
+
+// ── 依赖 mock ────────────────────────────────────────────────────────────
+const { handleItemClickMock, revealedIds } = vi.hoisted(() => ({
+  handleItemClickMock: vi.fn<(item: FieldSuggestion) => void>(),
+  revealedIds: new Set<string>(),
+}));
+
+vi.mock('@/components/editor/useSuggestionReveal', () => ({
+  suggestionItemId: (item: FieldSuggestion) => `${item.objectId}::${item.fieldKey}`,
+  useSuggestionReveal: () => ({
+    isRevealed: (id: string) => revealedIds.has(id),
+    handleItemClick: handleItemClickMock,
+    showPwDialog: false,
+    handlePwDialogClose: vi.fn(),
+    handlePwDialogVerify: vi.fn(),
+    handlePwDialogPinSuccess: vi.fn(),
+    passwordHint: null,
+    bioAvailable: { available: false },
+    handleBiometricUnlock: vi.fn(),
+  }),
+}));
+
+vi.mock('@/stores/authStore', () => ({
+  useAuthStore: (selector: (s: { currentAccount: { id: string } | null }) => unknown) =>
+    selector({ currentAccount: { id: 'acc-1' } }),
+}));
+
+vi.mock('@/lib/logger', () => ({
+  logger: { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() },
+}));
 
 function makeSuggestion(overrides: Partial<FieldSuggestion> = {}): FieldSuggestion {
   return {
@@ -16,6 +46,11 @@ function makeSuggestion(overrides: Partial<FieldSuggestion> = {}): FieldSuggesti
 }
 
 describe('FieldSuggestions', () => {
+  beforeEach(() => {
+    handleItemClickMock.mockClear();
+    revealedIds.clear();
+  });
+
   it('无推荐时不渲染任何内容', () => {
     const { container } = render(
       <FieldSuggestions fieldName="身份证号码" suggestions={[]} onPick={vi.fn()} />,
@@ -24,7 +59,7 @@ describe('FieldSuggestions', () => {
     expect(screen.queryByTestId('field-suggestions')).not.toBeInTheDocument();
   });
 
-  it('展示 [对象名][敏感度徽章][遮掩内容]，非 public 一律 8 圆点掩码', () => {
+  it('展示 [对象名][敏感度徽章][遮掩内容]，sensitive/critical 一律 8 圆点掩码', () => {
     const onPick = vi.fn();
     render(
       <FieldSuggestions
@@ -34,7 +69,7 @@ describe('FieldSuggestions', () => {
           makeSuggestion({
             objectId: 'obj-2',
             objectName: '身份信息',
-            sensitivityLevel: 'internal',
+            sensitivityLevel: 'sensitive',
             value: 'abc',
           }),
         ]}
@@ -46,28 +81,66 @@ describe('FieldSuggestions', () => {
     expect(items).toHaveLength(2);
     expect(screen.getByText('我的身份证')).toBeInTheDocument();
     expect(screen.getByText('身份信息')).toBeInTheDocument();
-    // 遮掩内容：critical 与 internal 均显示统一占位符，而非真实值
+    // 遮掩内容：critical 与 sensitive 均显示统一占位符，而非真实值
     expect(screen.getAllByText(MASK_PLACEHOLDER)).toHaveLength(2);
     expect(screen.queryByText('110101199001011234')).not.toBeInTheDocument();
     // 敏感度徽章（图标模式）：title 含等级
     expect(screen.getByTitle(/critical/)).toBeInTheDocument();
-    expect(screen.getByTitle(/internal/)).toBeInTheDocument();
+    expect(screen.getByTitle(/sensitive/)).toBeInTheDocument();
   });
 
-  it('public 字段明文展示（截断超长值）', () => {
+  it('public 与 internal 字段直接明文展示（截断超长值）', () => {
     render(
       <FieldSuggestions
         fieldName="备注"
-        suggestions={[makeSuggestion({ sensitivityLevel: 'public', value: 'x'.repeat(200) })]}
+        suggestions={[
+          makeSuggestion({ sensitivityLevel: 'public', value: 'x'.repeat(200) }),
+          makeSuggestion({ objectId: 'obj-2', sensitivityLevel: 'internal', value: '内务备注' }),
+        ]}
         onPick={vi.fn()}
       />,
     );
-    // 截断到 80 字符 + 省略号
+    // public：截断到 80 字符 + 省略号
     expect(screen.getByText(`${'x'.repeat(80)}…`)).toBeInTheDocument();
     expect(screen.queryByText('x'.repeat(200))).not.toBeInTheDocument();
+    // internal：直接明文，不掩码
+    expect(screen.getByText('内务备注')).toBeInTheDocument();
+    expect(screen.queryByText(MASK_PLACEHOLDER)).not.toBeInTheDocument();
   });
 
-  it('点击条目回填真实值（即使展示为掩码）', () => {
+  it('点击非 public 条目走揭示逻辑（不直接回填），揭示态显示明文', () => {
+    const onPick = vi.fn();
+    const suggestion = makeSuggestion({ sensitivityLevel: 'sensitive', value: 'a@b.com' });
+    const { rerender } = render(
+      <FieldSuggestions fieldName="邮箱" suggestions={[suggestion]} onPick={onPick} />,
+    );
+    expect(screen.getByText(MASK_PLACEHOLDER)).toBeInTheDocument();
+    expect(screen.queryByText('a@b.com')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('field-suggestion-item'));
+    expect(handleItemClickMock).toHaveBeenCalledWith(suggestion);
+    expect(onPick).not.toHaveBeenCalled();
+
+    // 揭示态：真实值展示（由 hook 的 isRevealed 驱动）
+    revealedIds.add('obj-1::citizen_no');
+    rerender(<FieldSuggestions fieldName="邮箱" suggestions={[suggestion]} onPick={onPick} />);
+    expect(screen.queryByText(MASK_PLACEHOLDER)).not.toBeInTheDocument();
+    expect(screen.getByText('a@b.com')).toBeInTheDocument();
+  });
+
+  it('critical 条目行标题提示需验证主密码', () => {
+    render(
+      <FieldSuggestions
+        fieldName="身份证号码"
+        suggestions={[makeSuggestion({ sensitivityLevel: 'critical' })]}
+        onPick={vi.fn()}
+      />,
+    );
+    // 全局 react-i18next mock 下 t 返回 defaultValue（行容器与眼睛图标各带 title）
+    expect(screen.getAllByTitle('Verify master password to view').length).toBeGreaterThan(0);
+  });
+
+  it('点击「填入」按钮回填真实值（即使展示为掩码）', () => {
     const onPick = vi.fn();
     render(
       <FieldSuggestions
@@ -76,8 +149,10 @@ describe('FieldSuggestions', () => {
         onPick={onPick}
       />,
     );
-    fireEvent.click(screen.getByTestId('field-suggestion-item'));
+    fireEvent.click(screen.getByTestId('field-suggestion-fill'));
     expect(onPick).toHaveBeenCalledWith('110101199001011234');
+    // 填入按钮不触发揭示
+    expect(handleItemClickMock).not.toHaveBeenCalled();
   });
 
   it('超出 limit 时折叠为「还有 N 条」', () => {
@@ -102,5 +177,18 @@ describe('FieldSuggestions', () => {
     );
     expect(screen.getByText(MASK_PLACEHOLDER)).toBeInTheDocument();
     expect(screen.queryByText('a@b.com')).not.toBeInTheDocument();
+  });
+
+  it('internal 条目无揭示交互（行按钮禁用、无眼睛图标）', () => {
+    render(
+      <FieldSuggestions
+        fieldName="备注"
+        suggestions={[makeSuggestion({ sensitivityLevel: 'internal', value: '内务备注' })]}
+        onPick={vi.fn()}
+      />,
+    );
+    const row = screen.getByTestId('field-suggestion-item');
+    expect(row).toBeDisabled();
+    expect(screen.queryByTitle('Click to view plaintext')).not.toBeInTheDocument();
   });
 });

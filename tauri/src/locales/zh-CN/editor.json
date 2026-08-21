@@ -120,6 +120,10 @@
   "deprecated_fields_button": "历史字段 ({{count}})",
   "deprecated_fields_archived_at": "归档于 {{date}}",
   "field_suggestions_label": "其他对象中的「{{field}}」推荐",
-  "field_suggestions_pick": "填入「{{object}}」的值",
+  "field_suggestions_fill": "将「{{object}}」的值填入当前字段",
+  "field_suggestions_fill_short": "填入",
+  "field_suggestions_reveal": "点击查看明文",
+  "field_suggestions_hide": "点击隐藏",
+  "field_suggestions_critical_reveal": "需验证主密码后查看",
   "field_suggestions_more": "还有 {{n}} 条"
 }

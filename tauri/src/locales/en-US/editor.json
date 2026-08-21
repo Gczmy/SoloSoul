@@ -120,6 +120,10 @@
   "deprecated_fields_button": "Historical fields ({{count}})",
   "deprecated_fields_archived_at": "Archived on {{date}}",
   "field_suggestions_label": "\"{{field}}\" from other objects",
-  "field_suggestions_pick": "Fill with value from \"{{object}}\"",
+  "field_suggestions_fill": "Fill into this field with value from \"{{object}}\"",
+  "field_suggestions_fill_short": "Fill",
+  "field_suggestions_reveal": "Click to view plaintext",
+  "field_suggestions_hide": "Click to hide",
+  "field_suggestions_critical_reveal": "Verify master password to view",
   "field_suggestions_more": "+{{n}} more"
 }
