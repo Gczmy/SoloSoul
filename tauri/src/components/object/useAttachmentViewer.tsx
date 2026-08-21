@@ -15,6 +15,7 @@ import {
   type AttachmentItem,
 } from '@/lib/attachmentUtils';
 import type { AttachmentMetaEditResult } from '@/components/attachment/AttachmentMetaEditDialog';
+import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { logger } from '@/lib/logger';
 
 export interface AttachmentViewerProps {
@@ -137,7 +138,7 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
     } catch (e) {
       showToast({
         type: 'error',
-        message: `${t('common:upload_failed')}: ${e}`,
+        message: `${t('common:upload_failed')}: ${resolveBackendErrorMessage(e)}`,
       });
     } finally {
       setUploading(false);
@@ -179,7 +180,10 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
         attachmentId: item.id,
       });
     } catch (e) {
-      showToast({ type: 'error', message: `${t('common:forward_failed')}: ${e}` });
+      showToast({
+        type: 'error',
+        message: `${t('common:forward_failed')}: ${resolveBackendErrorMessage(e)}`,
+      });
     }
   };
 
@@ -215,7 +219,9 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
       (e) => {
         showToast({
           type: 'error',
-          message: t('common:delete_failed', { defaultValue: `Delete failed: ${e}` }),
+          message: t('common:delete_failed', {
+            defaultValue: `Delete failed: ${resolveBackendErrorMessage(e)}`,
+          }),
         });
       },
     );
@@ -231,7 +237,7 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
       logger.warn('[AttachmentViewer] Restore failed:', err);
       showToast({
         type: 'error',
-        message: `${t('common:restore_failed', { defaultValue: 'Restore failed' })}: ${err}`,
+        message: `${t('common:restore_failed', { defaultValue: 'Restore failed' })}: ${resolveBackendErrorMessage(err)}`,
       });
     }
     await loadAttachments();
@@ -247,7 +253,7 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
       logger.warn('[AttachmentViewer] Permanent delete failed:', err);
       showToast({
         type: 'error',
-        message: `${t('common:perm_delete_failed', { defaultValue: 'Delete failed' })}: ${err}`,
+        message: `${t('common:perm_delete_failed', { defaultValue: 'Delete failed' })}: ${resolveBackendErrorMessage(err)}`,
       });
     }
     await loadAttachments();

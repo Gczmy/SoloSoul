@@ -4,6 +4,7 @@ import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 import { downloadViaStage } from '@/lib/mobileFileTransfer';
 import { previewItemByMime, truncateFileName, downloadAttachmentFile } from '@/lib/attachmentUtils';
+import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { isMobilePlatformSync } from '@/lib/platform';
 import type { Toast } from '@/stores/uiStore';
 import type {
@@ -84,7 +85,10 @@ export function useAttachmentManagerItemOps({
           await uploadSingleAttachment(filePath, objectId);
           await loadData();
         } catch (e) {
-          showToast({ type: 'error', message: `${t('common:upload_failed')}: ${e}` });
+          showToast({
+            type: 'error',
+            message: `${t('common:upload_failed')}: ${resolveBackendErrorMessage(e)}`,
+          });
         }
       }
     },
@@ -104,7 +108,10 @@ export function useAttachmentManagerItemOps({
             await invoke('attachment_soft_delete', { objectId: objectId, attachmentId: item.id });
             await loadData();
           } catch (e) {
-            showToast({ type: 'error', message: `${t('common:delete_failed')}: ${e}` });
+            showToast({
+              type: 'error',
+              message: `${t('common:delete_failed')}: ${resolveBackendErrorMessage(e)}`,
+            });
           }
         },
         { confirmLabel: t('common:delete'), cancelLabel: t('common:cancel') },
@@ -146,7 +153,10 @@ export function useAttachmentManagerItemOps({
         attachmentId: shareItem.id,
       });
     } catch (e) {
-      showToast({ type: 'error', message: `${t('common:forward_failed')}: ${e}` });
+      showToast({
+        type: 'error',
+        message: `${t('common:forward_failed')}: ${resolveBackendErrorMessage(e)}`,
+      });
     }
     setShareItem(null);
   }, [shareItem, t, showToast]);
@@ -157,7 +167,10 @@ export function useAttachmentManagerItemOps({
         await invoke('attachment_restore', { objectId: objectId, attachmentId: item.id });
         await loadData();
       } catch (e) {
-        showToast({ type: 'error', message: `${t('common:restore_failed')}: ${e}` });
+        showToast({
+          type: 'error',
+          message: `${t('common:restore_failed')}: ${resolveBackendErrorMessage(e)}`,
+        });
       }
     },
     [loadData, t, showToast],
@@ -176,7 +189,10 @@ export function useAttachmentManagerItemOps({
       });
       await loadData();
     } catch (e) {
-      showToast({ type: 'error', message: `${t('common:perm_delete_failed')}: ${e}` });
+      showToast({
+        type: 'error',
+        message: `${t('common:perm_delete_failed')}: ${resolveBackendErrorMessage(e)}`,
+      });
     }
     setPermDeleteItem(null);
   }, [permDeleteItem, loadData, t, showToast]);
