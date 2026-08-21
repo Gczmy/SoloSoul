@@ -4,8 +4,9 @@ import { FieldSuggestions, type FieldSuggestion } from './FieldSuggestions';
 import { MASK_PLACEHOLDER } from '@/lib/masking';
 
 // ── 依赖 mock ────────────────────────────────────────────────────────────
-const { handleItemClickMock, revealedIds } = vi.hoisted(() => ({
+const { handleItemClickMock, handleFillClickMock, revealedIds } = vi.hoisted(() => ({
   handleItemClickMock: vi.fn<(item: FieldSuggestion) => void>(),
+  handleFillClickMock: vi.fn<(item: FieldSuggestion, onPick: (v: string) => void) => void>(),
   revealedIds: new Set<string>(),
 }));
 
@@ -14,6 +15,7 @@ vi.mock('@/components/editor/useSuggestionReveal', () => ({
   useSuggestionReveal: () => ({
     isRevealed: (id: string) => revealedIds.has(id),
     handleItemClick: handleItemClickMock,
+    handleFillClick: handleFillClickMock,
     showPwDialog: false,
     handlePwDialogClose: vi.fn(),
     handlePwDialogVerify: vi.fn(),
@@ -48,6 +50,7 @@ function makeSuggestion(overrides: Partial<FieldSuggestion> = {}): FieldSuggesti
 describe('FieldSuggestions', () => {
   beforeEach(() => {
     handleItemClickMock.mockClear();
+    handleFillClickMock.mockClear();
     revealedIds.clear();
   });
 
@@ -140,18 +143,20 @@ describe('FieldSuggestions', () => {
     expect(screen.getAllByTitle('Verify master password to view').length).toBeGreaterThan(0);
   });
 
-  it('点击「填入」按钮回填真实值（即使展示为掩码）', () => {
+  it('点击「填入」按钮走 handleFillClick（解锁/回填决策由 hook 负责）', () => {
     const onPick = vi.fn();
+    const suggestion = makeSuggestion({ value: '110101199001011234' });
     render(
       <FieldSuggestions
         fieldName="身份证号码"
-        suggestions={[makeSuggestion({ value: '110101199001011234' })]}
+        suggestions={[suggestion]}
         onPick={onPick}
       />,
     );
     fireEvent.click(screen.getByTestId('field-suggestion-fill'));
-    expect(onPick).toHaveBeenCalledWith('110101199001011234');
-    // 填入按钮不触发揭示
+    expect(handleFillClickMock).toHaveBeenCalledWith(suggestion, onPick);
+    // 填入按钮不直接回填、不触发条目揭示
+    expect(onPick).not.toHaveBeenCalled();
     expect(handleItemClickMock).not.toHaveBeenCalled();
   });
 

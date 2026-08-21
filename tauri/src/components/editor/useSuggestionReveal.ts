@@ -10,6 +10,13 @@ export function suggestionItemId(item: FieldSuggestion): string {
   return `${item.objectId}::${item.fieldKey}`;
 }
 
+/**
+ * critical 解锁宽限期（ms）：解锁成功后此期间内再次查看/填入同一条目
+ * 无需重复验证（与 §7 揭示 TTL 一致，均为 1 分钟；宽限从解锁时刻起算，
+ * 不因宽限期内反复查看而顺延）。
+ */
+const CRITICAL_AUTH_GRACE_MS = 60_000;
+
 type UnlockMethod = 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin';
 
 export interface UseSuggestionRevealResult {
@@ -19,9 +26,19 @@ export interface UseSuggestionRevealResult {
    * 点击推荐条目：
    * - public / internal：无操作（本就明文展示）；
    * - sensitive：切换揭示/隐藏；
-   * - critical：弹出主密码验证框，验证成功（密码/PIN/生物识别）后揭示并写访问日志。
+   * - critical：弹出主密码验证框，验证成功（密码/PIN/生物识别）后揭示并写访问日志；
+   *   解锁后宽限期（1 分钟）内再次查看同一条目直接揭示，无需重复验证。
    */
   handleItemClick: (item: FieldSuggestion) => void;
+  /**
+   * 点击「填入」按钮：
+   * - public / internal 或已揭示（明文）：直接回填；
+   * - sensitive：直接回填（揭示仅影响展示，不影响填入）；
+   * - critical 未揭示：弹出主密码验证框，验证成功后揭示并**直接回填**
+   *   （用户已点击「填入」，解锁后无需再次点击）；验证失败/取消则不回填；
+   *   解锁后宽限期（1 分钟）内再次填入同一条目直接回填，无需重复验证。
+   */
+  handleFillClick: (item: FieldSuggestion, onPick: (value: string) => void) => void;
   showPwDialog: boolean;
   handlePwDialogClose: () => void;
   handlePwDialogVerify: (password: string) => Promise<boolean>;
@@ -36,12 +53,18 @@ export interface UseSuggestionRevealResult {
  * sensitive 点击直接揭示（1 分钟 TTL），critical 先弹主密码验证框（支持
  * 密码/PIN/生物识别），验证成功揭示并写 critical_field_* 访问日志（best
  * effort）。public / internal 明文展示，点击无操作。
+ *
+ * critical 额外带解锁宽限期：验证成功后 1 分钟内（CRITICAL_AUTH_GRACE_MS，
+ * 与 §7 揭示 TTL 一致）再次查看/填入同一条目直接揭示或回填，不重复弹框；
+ * 宽限期从解锁时刻起算，不因反复查看顺延。
  */
 export function useSuggestionReveal(accountId?: string): UseSuggestionRevealResult {
   const { isRevealed, reveal, hide } = useRevealState();
   const [showPwDialog, setShowPwDialog] = useState(false);
   const resolveRef = useRef<((ok: boolean, method?: UnlockMethod) => void) | null>(null);
   const pendingItemRef = useRef<FieldSuggestion | null>(null);
+  // 每条目解锁宽限截止时间（suggestionItemId → Date.now() + GRACE）
+  const authUntilRef = useRef<Record<string, number>>({});
   const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
     available: false,
   });
@@ -128,10 +151,16 @@ export function useSuggestionReveal(accountId?: string): UseSuggestionRevealResu
         return;
       }
       if (level === 'critical') {
+        // 宽限期内再次查看：直接揭示，无需重复验证
+        if (Date.now() < (authUntilRef.current[id] ?? 0)) {
+          reveal(id);
+          return;
+        }
         pendingItemRef.current = item;
         setShowPwDialog(true);
         resolveRef.current = (ok, method) => {
           if (ok) {
+            authUntilRef.current[id] = Date.now() + CRITICAL_AUTH_GRACE_MS;
             reveal(id);
             void writeCriticalAccessLog(method ?? 'password');
           }
@@ -141,6 +170,41 @@ export function useSuggestionReveal(accountId?: string): UseSuggestionRevealResu
       reveal(id);
     },
     [isRevealed, hide, reveal, writeCriticalAccessLog],
+  );
+
+  const handleFillClick = useCallback(
+    (item: FieldSuggestion, onPick: (value: string) => void) => {
+      const id = suggestionItemId(item);
+      const level = (item.sensitivityLevel as SensitivityLevel) || 'internal';
+      // 公开/内部或已揭示（明文）：直接填入，无需验证
+      if (level === 'public' || level === 'internal' || isRevealed(id)) {
+        onPick(item.value);
+        return;
+      }
+      if (level === 'critical') {
+        // 宽限期内填入：直接揭示并回填，无需重复验证
+        if (Date.now() < (authUntilRef.current[id] ?? 0)) {
+          reveal(id);
+          onPick(item.value);
+          return;
+        }
+        pendingItemRef.current = item;
+        setShowPwDialog(true);
+        resolveRef.current = (ok, method) => {
+          if (ok) {
+            authUntilRef.current[id] = Date.now() + CRITICAL_AUTH_GRACE_MS;
+            reveal(id);
+            void writeCriticalAccessLog(method ?? 'password');
+            // 用户已点击「填入」，解锁成功后直接回填，无需再次点击
+            onPick(item.value);
+          }
+        };
+        return;
+      }
+      // sensitive：直接填入（揭示仅影响展示）
+      onPick(item.value);
+    },
+    [isRevealed, reveal, writeCriticalAccessLog],
   );
 
   const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
@@ -182,6 +246,7 @@ export function useSuggestionReveal(accountId?: string): UseSuggestionRevealResu
   return {
     isRevealed,
     handleItemClick,
+    handleFillClick,
     showPwDialog,
     handlePwDialogClose,
     handlePwDialogVerify,

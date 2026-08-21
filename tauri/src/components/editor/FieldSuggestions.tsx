@@ -46,9 +46,13 @@ function truncateForDisplay(value: string): string {
  * 按敏感度分级展示/揭示：
  * - public / internal：始终明文展示（内部级在推荐场景与公开同权）；
  * - sensitive：掩码，点击条目切换揭示/隐藏（1 分钟 TTL 自动重掩）；
- * - critical：掩码，点击弹出主密码验证框（支持密码/PIN/生物识别），验证成功后才揭示。
+ * - critical：掩码，点击弹出主密码验证框（支持密码/PIN/生物识别），验证成功后才揭示；
+ *   解锁后 1 分钟宽限期内再次查看/填入同一条目无需重复验证。
  *
- * 每行右侧「填入」按钮将真实值回填到当前字段（不要求先揭示）。
+ * 每行右侧「填入」按钮将真实值回填到当前字段：公开/内部/敏感或已揭示时直接填入；
+ * critical 未揭示时先弹主密码验证框（与查看同款），验证成功后直接回填、无需再次点击；
+ * 解锁后 1 分钟宽限期内再次填入同一条目无需重复验证。
+ * 提示文案与揭示按钮保持一致：critical 未揭示时点「填入」同样先验证。
  *
  * 超过 limit（默认 3）条时折叠展示，底部提供展开/收起按钮查看其余条目。
  */
@@ -64,6 +68,7 @@ export function FieldSuggestions({
   const {
     isRevealed,
     handleItemClick,
+    handleFillClick,
     showPwDialog,
     handlePwDialogClose,
     handlePwDialogVerify,
@@ -197,7 +202,7 @@ export function FieldSuggestions({
                     object: s.objectName,
                     defaultValue: `Fill into this field with value from "${s.objectName}"`,
                   })}
-                  onClick={() => onPick(s.value)}
+                  onClick={() => handleFillClick(s, onPick)}
                   style={{
                     flexShrink: 0,
                     display: 'inline-flex',
