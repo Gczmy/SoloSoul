@@ -507,6 +507,11 @@ const SUGGESTION_VALUE_LIMIT: usize = 2000;
 /// （模板删除后对象仍保留字段名副本），缺失回退 key 本身；字段级敏感度优先取
 /// `property_labels[key]`（模板删除后对象仍保留敏感度副本），其次
 /// `__fields[key].sensitivityLevel`，再其次默认 `internal`。
+///
+/// 跨语言匹配说明：同一字段在不同语言下 `__fields[key].name` 不同（如
+/// dateOfBirth → 「出生日期」/「Date of Birth」），本命令原样返回各自语言的
+/// 字段名，跨语言归一由前端以 `editor:fields` 映射（lib/fieldNameAliases.ts）
+/// 解析规范字段名后分组匹配。
 fn collect_field_suggestions(
     vault: &solosoul_vault::VaultStore,
     account_id: &str,

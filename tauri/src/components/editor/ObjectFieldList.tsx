@@ -6,6 +6,7 @@ import { PluginBadge } from '@/components/template/PluginBadge';
 import { TemplateFieldInput } from '@/components/TemplateFieldInput';
 import { DynamicGroupEditor } from '@/components/editor/DynamicGroupEditor';
 import { FieldSuggestions, type FieldSuggestion } from '@/components/editor/FieldSuggestions';
+import { resolveCanonicalFieldName } from '@/lib/fieldNameAliases';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import type { PropertyType } from '@/types/template';
 import type { ObjectData } from '@/stores/objectStore';
@@ -110,10 +111,11 @@ export function ObjectFieldList({
             if (validationErrors[field.key]) onClearError(field.key);
           }}
         />
-        {/* 同名字段推荐：其他对象已有该字段内容时展示（内容按敏感度遮掩） */}
+        {/* 同名字段推荐：其他对象已有该字段内容时展示（内容按敏感度遮掩）。
+            按规范字段名匹配——中文名/英文名等同一字段的本地化名归到同一键。 */}
         <FieldSuggestions
           fieldName={field.label}
-          suggestions={suggestions?.[field.label] ?? []}
+          suggestions={suggestions?.[resolveCanonicalFieldName(field.key, field.label)] ?? []}
           onPick={(val) => {
             onChange(field.key, val);
             if (validationErrors[field.key]) onClearError(field.key);
@@ -212,10 +214,11 @@ export function ObjectFieldList({
                         if (validationErrors[key]) onClearError(key);
                       }}
                     />
-                    {/* 同名字段推荐：其他对象已有该字段内容时展示（内容按敏感度遮掩） */}
+                    {/* 同名字段推荐：其他对象已有该字段内容时展示（内容按敏感度遮掩）。
+                        按规范字段名匹配——中文名/英文名等同一字段的本地化名归到同一键。 */}
                     <FieldSuggestions
                       fieldName={fieldName}
-                      suggestions={suggestions?.[fieldName] ?? []}
+                      suggestions={suggestions?.[resolveCanonicalFieldName(key, fieldName)] ?? []}
                       onPick={(v) => {
                         onChange(key, v);
                         if (validationErrors[key]) onClearError(key);

@@ -10,6 +10,7 @@ import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
 import type { PropertyType, UserTemplate } from '@/types/template';
 import type { FieldSuggestion } from '@/components/editor/FieldSuggestions';
 import { invokeCommand } from '@/lib/ipcClient';
+import { resolveCanonicalFieldName } from '@/lib/fieldNameAliases';
 import { logger } from '@/lib/logger';
 
 const FIELD_TYPE_VALIDATORS: Partial<
@@ -243,7 +244,10 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
         if (cancelled) return;
         const grouped: Record<string, FieldSuggestion[]> = {};
         for (const item of items) {
-          (grouped[item.fieldName] ||= []).push(item);
+          // 跨语言归一：中文名/英文名等同一字段的本地化名归到同一规范键
+          // （如「出生日期」与「Date of Birth」→ dateOfBirth）
+          const canonical = resolveCanonicalFieldName(item.fieldKey, item.fieldName);
+          (grouped[canonical] ||= []).push(item);
         }
         setFieldSuggestions(grouped);
       })
