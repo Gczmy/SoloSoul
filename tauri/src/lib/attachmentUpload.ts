@@ -53,9 +53,15 @@ function getMimeType(fileName: string): string {
   return MIME_MAP[ext] || 'application/octet-stream';
 }
 
-/** 获取文件大小（字节），失败时返回 0 */
+/**
+ * 获取文件大小（字节）。
+ *
+ * 失败时向上抛错（如路径不在文件白名单内、元数据读取失败），由调用方的
+ * try/catch 提示上传失败——绝不静默记 0，避免 OneDrive 等白名单外路径
+ * 上传后附件显示 0B 且无任何错误反馈。
+ */
 async function getFileSize(filePath: string): Promise<number> {
-  return invoke<number>('fs_get_file_size', { path: filePath }).catch(() => 0);
+  return invoke<number>('fs_get_file_size', { path: filePath });
 }
 
 /**
