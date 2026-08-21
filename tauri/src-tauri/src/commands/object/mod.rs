@@ -483,6 +483,119 @@ pub async fn object_list(
     .map_err(|e| format!("object_list task failed: {e}"))?
 }
 
+/// 字段推荐：收集其他对象中「同名字段」的标量值，供对象编辑页按字段名匹配展示。
+/// 每个条目携带对象名、字段名、字段级敏感度与值（值是否遮掩由前端按敏感度决定）。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FieldSuggestion {
+    pub object_id: String,
+    pub object_name: String,
+    pub field_key: String,
+    pub field_name: String,
+    pub sensitivity_level: String,
+    pub value: String,
+}
+
+/// 单值上限：防止单个超长文本字段撑爆 IPC 载荷（对象编辑页按账户全量一次加载）。
+const SUGGESTION_VALUE_LIMIT: usize = 2000;
+
+/// 收集字段推荐（纯同步，command 在 spawn_blocking 中调用、单元测试直接调用）。
+///
+/// 遍历账户全部活跃对象（跳过自定义页面 `type_id == "page"` 与
+/// `exclude_object_id` 指定的当前编辑对象），对每个非 `__` 前缀的标量属性
+/// （string/number/boolean）取非空值。字段名优先取 `__fields[key].name`
+/// （模板删除后对象仍保留字段名副本），缺失回退 key 本身；字段级敏感度优先取
+/// `property_labels[key]`（模板删除后对象仍保留敏感度副本），其次
+/// `__fields[key].sensitivityLevel`，再其次默认 `internal`。
+fn collect_field_suggestions(
+    vault: &solosoul_vault::VaultStore,
+    account_id: &str,
+    exclude_object_id: Option<&str>,
+) -> Result<Vec<FieldSuggestion>, String> {
+    let records = vault.list_object_records(account_id)?;
+    let mut out: Vec<FieldSuggestion> = Vec::new();
+    for rec in records {
+        if rec.is_deleted || rec.type_id == "page" {
+            continue;
+        }
+        if exclude_object_id.is_some_and(|e| e == rec.id) {
+            continue;
+        }
+        let Some(props) = rec.properties.as_object() else {
+            continue;
+        };
+        let field_defs = props.get("__fields").and_then(|v| v.as_object());
+        let labels = rec.property_labels.as_ref().and_then(|v| v.as_object());
+        for (key, value) in props {
+            if key.starts_with("__") {
+                continue;
+            }
+            let raw = match value {
+                serde_json::Value::String(s) => s.clone(),
+                serde_json::Value::Number(n) => n.to_string(),
+                serde_json::Value::Bool(b) => b.to_string(),
+                _ => continue,
+            };
+            let trimmed = raw.trim();
+            if trimmed.is_empty() {
+                continue;
+            }
+            let value = trimmed
+                .chars()
+                .take(SUGGESTION_VALUE_LIMIT)
+                .collect::<String>();
+            let field_name = field_defs
+                .and_then(|f| f.get(key))
+                .and_then(|d| d.get("name"))
+                .and_then(|v| v.as_str())
+                .unwrap_or(key.as_str())
+                .to_string();
+            let sensitivity_level = labels
+                .and_then(|l| l.get(key))
+                .and_then(|v| v.as_str())
+                .or_else(|| {
+                    field_defs
+                        .and_then(|f| f.get(key))
+                        .and_then(|d| d.get("sensitivityLevel"))
+                        .and_then(|v| v.as_str())
+                })
+                .unwrap_or("internal")
+                .to_string();
+            out.push(FieldSuggestion {
+                object_id: rec.id.clone(),
+                object_name: rec.name.clone(),
+                field_key: key.clone(),
+                field_name,
+                sensitivity_level,
+                value,
+            });
+        }
+    }
+    // 稳定输出：按字段名 → 对象名排序，前端按字段名分组展示。
+    out.sort_by(|a, b| {
+        a.field_name
+            .cmp(&b.field_name)
+            .then_with(|| a.object_name.cmp(&b.object_name))
+            .then_with(|| a.object_id.cmp(&b.object_id))
+    });
+    Ok(out)
+}
+
+#[tauri::command]
+pub async fn object_field_suggestions(
+    state: State<'_, AppState>,
+    account_id: String,
+    exclude_object_id: Option<String>,
+) -> Result<Vec<FieldSuggestion>, String> {
+    let vault = vault_handle(&state)?;
+    // 全表 AES 解密 + JSON 解析移入 spawn_blocking，避免阻塞 tokio worker（P114 约定）。
+    tokio::task::spawn_blocking(move || {
+        collect_field_suggestions(&vault, &account_id, exclude_object_id.as_deref())
+    })
+    .await
+    .map_err(|e| format!("object_field_suggestions task failed: {e}"))?
+}
+
 #[tauri::command]
 pub async fn object_get(
     state: State<'_, AppState>,

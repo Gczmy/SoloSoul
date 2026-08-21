@@ -5,6 +5,7 @@ import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import { TemplateFieldInput } from '@/components/TemplateFieldInput';
 import { DynamicGroupEditor } from '@/components/editor/DynamicGroupEditor';
+import { FieldSuggestions, type FieldSuggestion } from '@/components/editor/FieldSuggestions';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import type { PropertyType } from '@/types/template';
 import type { ObjectData } from '@/stores/objectStore';
@@ -33,6 +34,8 @@ interface ObjectFieldListProps {
   contractTypeId?: string;
   getSensitivity: (fieldKey: string, templateDefault?: string) => SensitivityLevel;
   isNew: boolean;
+  /** 其他对象同名字段的推荐内容（字段名 → 条目列表），缺失时该字段无推荐列表。 */
+  suggestions?: Record<string, FieldSuggestion[]>;
 }
 
 export function ObjectFieldList({
@@ -46,6 +49,7 @@ export function ObjectFieldList({
   contractTypeId,
   getSensitivity,
   isNew: _isNew,
+  suggestions,
 }: ObjectFieldListProps) {
   const { t } = useTranslation(['common', 'editor', 'navigation']);
 
@@ -79,32 +83,43 @@ export function ObjectFieldList({
 
     const isDeprecated = !!field.deprecatedAt;
     return (
-      <TemplateFieldInput
-        propertyId={field.key}
-        label={field.label}
-        type={propType}
-        options={field.options}
-        value={values[field.key]}
-        icon={<FieldTypeIcon type={propType} />}
-        badge={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <SensitivityBadge level={sensitivity} />
-            {field.contractField && contractTypeId && (
-              <PluginBadge contractTypeId={contractTypeId} size="sm" variant="full" />
-            )}
-            {isDeprecated && <DeprecatedBadge />}
-          </div>
-        }
-        hint={
-          ['email', 'url', 'phone', 'date', 'number'].includes(propType)
-            ? t(`editor:validation_hint_${propType}`)
-            : undefined
-        }
-        onChange={(val) => {
-          onChange(field.key, val);
-          if (validationErrors[field.key]) onClearError(field.key);
-        }}
-      />
+      <>
+        <TemplateFieldInput
+          propertyId={field.key}
+          label={field.label}
+          type={propType}
+          options={field.options}
+          value={values[field.key]}
+          icon={<FieldTypeIcon type={propType} />}
+          badge={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <SensitivityBadge level={sensitivity} />
+              {field.contractField && contractTypeId && (
+                <PluginBadge contractTypeId={contractTypeId} size="sm" variant="full" />
+              )}
+              {isDeprecated && <DeprecatedBadge />}
+            </div>
+          }
+          hint={
+            ['email', 'url', 'phone', 'date', 'number'].includes(propType)
+              ? t(`editor:validation_hint_${propType}`)
+              : undefined
+          }
+          onChange={(val) => {
+            onChange(field.key, val);
+            if (validationErrors[field.key]) onClearError(field.key);
+          }}
+        />
+        {/* 同名字段推荐：其他对象已有该字段内容时展示（内容按敏感度遮掩） */}
+        <FieldSuggestions
+          fieldName={field.label}
+          suggestions={suggestions?.[field.label] ?? []}
+          onPick={(val) => {
+            onChange(field.key, val);
+            if (validationErrors[field.key]) onClearError(field.key);
+          }}
+        />
+      </>
     );
   };
 
@@ -193,6 +208,15 @@ export function ObjectFieldList({
                           : undefined
                       }
                       onChange={(v) => {
+                        onChange(key, v);
+                        if (validationErrors[key]) onClearError(key);
+                      }}
+                    />
+                    {/* 同名字段推荐：其他对象已有该字段内容时展示（内容按敏感度遮掩） */}
+                    <FieldSuggestions
+                      fieldName={fieldName}
+                      suggestions={suggestions?.[fieldName] ?? []}
+                      onPick={(v) => {
                         onChange(key, v);
                         if (validationErrors[key]) onClearError(key);
                       }}

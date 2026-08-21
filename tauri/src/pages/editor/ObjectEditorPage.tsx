@@ -36,6 +36,7 @@ export function ObjectEditorPage() {
     validationErrors,
     handleClearError,
     getSensitivity,
+    fieldSuggestions,
     handleSave,
     handleBack,
     isSaving,
@@ -81,6 +82,7 @@ export function ObjectEditorPage() {
                   contractTypeId={contractTypeId}
                   getSensitivity={getSensitivity}
                   isNew={isNew}
+                  suggestions={fieldSuggestions}
                 />
                 <div className={styles.formActions}>
                   <Button variant="secondary" onClick={() => navigate(-1)}>

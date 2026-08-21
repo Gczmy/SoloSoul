@@ -63,6 +63,7 @@ fn register_core_commands(
         // Object commands
         commands::object::object_list,
         commands::object::object_get,
+        commands::object::object_field_suggestions,
         commands::object::object_create,
         commands::object::object_update,
         commands::object::object_delete,
@@ -517,6 +518,7 @@ mod tests {
                     "init_vault_directory",
                     "object_list",
                     "object_get",
+                    "object_field_suggestions",
                     "object_create",
                     "object_update",
                     "object_delete",
@@ -653,7 +655,7 @@ mod tests {
                 assert_eq!(routed, cmds.len());
             }
         }
-        // 共 196 条命令全覆盖（P006 新增 attachment_count_stats、P014 新增 trash_restore_batch、P011 删除 unlock，净 +1；vault_rename_account 补登）
-        assert_eq!(total, 196);
+        // 共 197 条命令全覆盖（P006 新增 attachment_count_stats、P014 新增 trash_restore_batch、P011 删除 unlock，净 +1；vault_rename_account 补登；本轮新增 object_field_suggestions）
+        assert_eq!(total, 197);
     }
 }

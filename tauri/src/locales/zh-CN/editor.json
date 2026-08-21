@@ -118,5 +118,8 @@
   "deprecated_fields_body": "以下字段因模板更新导致类型不兼容或已被删除，其原值已被安全归档。",
   "deprecated_fields_empty": "暂无历史字段",
   "deprecated_fields_button": "历史字段 ({{count}})",
-  "deprecated_fields_archived_at": "归档于 {{date}}"
+  "deprecated_fields_archived_at": "归档于 {{date}}",
+  "field_suggestions_label": "其他对象中的「{{field}}」推荐",
+  "field_suggestions_pick": "填入「{{object}}」的值",
+  "field_suggestions_more": "还有 {{n}} 条"
 }

@@ -438,6 +438,247 @@ fn test_truncate_preview_properties_field_order_priority() {
     assert!(!obj2.contains_key("f09") && !obj2.contains_key("f10"));
 }
 
+/// 字段推荐收集：同名字段跨对象匹配、敏感度解析、排除当前对象/页面/已删除对象、
+/// 空值与 `__` 元数据跳过、标量类型转换、值限长。
+#[test]
+fn test_collect_field_suggestions() {
+    let (vault, _dir) = setup_vault();
+
+    // 身份证对象：字段 key 为 citizen_no，__fields 名称「身份证号码」，敏感度 critical（property_labels）
+    let id_card = ObjectRecord {
+        contract_type_id: None,
+        id: "obj-idcard".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "identity".to_string(),
+        section_type: "identity".to_string(),
+        name: "我的身份证".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({
+            "citizen_no": "110101199001011234",
+            "birth": "1990-01-01",
+            "__fields": {
+                "citizen_no": { "name": "身份证号码", "type": "text", "sensitivityLevel": "critical" },
+                "birth": { "name": "出生日期", "type": "date" },
+            },
+        }),
+        property_labels: Some(serde_json::json!({ "citizen_no": "critical", "birth": "internal" })),
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+    vault.save_object(&id_card).unwrap();
+
+    // 身份信息对象：同名字段 key 不同（id_number），无 property_labels → 回退 __fields.sensitivityLevel
+    let profile = ObjectRecord {
+        contract_type_id: None,
+        id: "obj-profile".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "identity".to_string(),
+        section_type: "identity".to_string(),
+        name: "身份信息".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({
+            "id_number": "110101199001011234",
+            "empty_field": "",
+            "age": 33,
+            "has_middle_name": false,
+            "note_arr": ["a", "b"],
+            "__fields": {
+                "id_number": { "name": "身份证号码", "type": "text", "sensitivityLevel": "critical" },
+                "empty_field": { "name": "空字段", "type": "text" },
+                "age": { "name": "年龄", "type": "number" },
+                "note_arr": { "name": "备注列表", "type": "multiselect" },
+            },
+        }),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+    vault.save_object(&profile).unwrap();
+
+    // 已删除对象：不应产出推荐
+    let deleted = ObjectRecord {
+        contract_type_id: None,
+        id: "obj-deleted".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "identity".to_string(),
+        section_type: "identity".to_string(),
+        name: "已删除".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({
+            "id_number": "999",
+            "__fields": { "id_number": { "name": "身份证号码", "type": "text" } },
+        }),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: true,
+        deleted_at: Some("2024-01-01T00:00:00Z".to_string()),
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+    vault.save_object(&deleted).unwrap();
+
+    // 自定义页面（type_id = page）：不应产出推荐
+    let page = ObjectRecord {
+        contract_type_id: None,
+        id: "obj-page".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "page".to_string(),
+        section_type: "page".to_string(),
+        name: "我的页面".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({ "note": "x" }),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+    vault.save_object(&page).unwrap();
+
+    // 无排除：身份证号码应有两条（身份证对象 + 身份信息对象），不来自已删除/页面对象
+    let all = collect_field_suggestions(&vault, "acc-1", None).unwrap();
+    let id_no: Vec<&FieldSuggestion> = all
+        .iter()
+        .filter(|s| s.field_name == "身份证号码")
+        .collect();
+    assert_eq!(id_no.len(), 2, "同名字段应跨对象聚合：{all:?}");
+    assert!(id_no.iter().all(|s| s.value == "110101199001011234"));
+    // 敏感度解析：property_labels 优先，回退 __fields.sensitivityLevel
+    let idcard_s = id_no.iter().find(|s| s.object_id == "obj-idcard").unwrap();
+    let profile_s = id_no.iter().find(|s| s.object_id == "obj-profile").unwrap();
+    assert_eq!(idcard_s.sensitivity_level, "critical");
+    assert_eq!(profile_s.sensitivity_level, "critical");
+    assert_eq!(idcard_s.field_key, "citizen_no");
+    assert_eq!(profile_s.field_key, "id_number");
+
+    // 标量转换：number/bool 参与、数组跳过、空字符串跳过、`__` 元数据跳过
+    let age = all.iter().find(|s| s.field_name == "年龄").unwrap();
+    assert_eq!(age.value, "33");
+    let middle = all
+        .iter()
+        .find(|s| s.field_key == "has_middle_name")
+        .unwrap();
+    assert_eq!(middle.value, "false");
+    assert!(all.iter().all(|s| s.field_key != "empty_field"));
+    assert!(all.iter().all(|s| s.field_key != "note_arr"));
+    assert!(all.iter().all(|s| !s.field_key.starts_with("__")));
+
+    // 排除当前编辑对象：身份证号码只剩身份信息对象
+    let excluded = collect_field_suggestions(&vault, "acc-1", Some("obj-idcard")).unwrap();
+    assert!(!excluded.iter().any(|s| s.object_id == "obj-idcard"));
+    assert_eq!(
+        excluded
+            .iter()
+            .filter(|s| s.field_name == "身份证号码")
+            .count(),
+        1
+    );
+
+    // 超长值限长
+    let long = "x".repeat(5000);
+    let long_obj = ObjectRecord {
+        contract_type_id: None,
+        id: "obj-long".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "note".to_string(),
+        section_type: "note".to_string(),
+        name: "长文本".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({ "body": long, "__fields": { "body": { "name": "正文", "type": "multiline" } } }),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+    vault.save_object(&long_obj).unwrap();
+    let with_long = collect_field_suggestions(&vault, "acc-1", None).unwrap();
+    let body = with_long.iter().find(|s| s.field_name == "正文").unwrap();
+    assert_eq!(body.value.len(), SUGGESTION_VALUE_LIMIT);
+
+    // 无字段名回退：key 即字段名（字段定义缺失时）
+    let no_def = ObjectRecord {
+        contract_type_id: None,
+        id: "obj-nodef".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "note".to_string(),
+        section_type: "note".to_string(),
+        name: "无定义".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({ "plain_key": "v" }),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+    vault.save_object(&no_def).unwrap();
+    let with_nodef = collect_field_suggestions(&vault, "acc-1", None).unwrap();
+    let plain = with_nodef
+        .iter()
+        .find(|s| s.field_key == "plain_key")
+        .unwrap();
+    assert_eq!(plain.field_name, "plain_key");
+    assert_eq!(plain.sensitivity_level, "internal");
+}
+
 /// N009: P026 对象输入校验函数边界单测。
 #[test]
 fn test_validate_object_input_boundaries() {

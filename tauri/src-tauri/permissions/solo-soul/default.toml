@@ -119,6 +119,7 @@ commands.allow = [
   "mobile_ocr_take_photo",
   "object_create",
   "object_delete",
+  "object_field_suggestions",
   "object_get",
   "object_ignore_template_sync",
   "object_list",

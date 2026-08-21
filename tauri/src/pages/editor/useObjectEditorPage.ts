@@ -8,6 +8,8 @@ import { useToastError } from '@/hooks/useToastError';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
 import type { PropertyType, UserTemplate } from '@/types/template';
+import type { FieldSuggestion } from '@/components/editor/FieldSuggestions';
+import { invokeCommand } from '@/lib/ipcClient';
 import { logger } from '@/lib/logger';
 
 const FIELD_TYPE_VALIDATORS: Partial<
@@ -71,6 +73,8 @@ export interface UseObjectEditorPageResult {
   validationErrors: Record<string, string>;
   handleClearError: (key: string) => void;
   getSensitivity: (fieldKey: string, templateDefault?: string) => SensitivityLevel;
+  /** 其他对象同名字段的推荐内容（按字段名分组；字段名 → 条目列表）。 */
+  fieldSuggestions: Record<string, FieldSuggestion[]>;
   handleSave: () => Promise<void>;
   handleBack: () => void;
   isSaving: boolean;
@@ -201,6 +205,9 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   // 导致页面只剩对象类型一行、字段全部空白（模拟器时序快恰好绕过，故无法复现）。
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  // 字段推荐：其他对象中「同名字段且有内容」的标量值，按字段名分组供编辑器展示。
+  // 一次加载全账户（排除当前编辑对象），失败仅降级为无推荐（不阻塞编辑流程）。
+  const [fieldSuggestions, setFieldSuggestions] = useState<Record<string, FieldSuggestion[]>>({});
 
   const fields = objectTemplates[selectedType] || [];
   const selectedTemplate = userTemplates.find((t) => t.id === selectedType);
@@ -222,6 +229,29 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   const typeId = isNew
     ? sectionParam || (selectedType ? templateMeta[selectedType]?.category || selectedType : '')
     : currentObject?.typeId || '';
+
+  // 字段推荐加载：accountId/objectId 变化时重新拉取（编辑对象时排除自身）
+  useEffect(() => {
+    if (!accountId) return;
+    let cancelled = false;
+    setFieldSuggestions({});
+    invokeCommand<FieldSuggestion[]>('object_field_suggestions', {
+      accountId,
+      excludeObjectId: objectId ?? null,
+    })
+      .then((items) => {
+        if (cancelled) return;
+        const grouped: Record<string, FieldSuggestion[]> = {};
+        for (const item of items) {
+          (grouped[item.fieldName] ||= []).push(item);
+        }
+        setFieldSuggestions(grouped);
+      })
+      .catch((err) => logger.warn('[ObjectEditor] Load field suggestions failed:', err));
+    return () => {
+      cancelled = true;
+    };
+  }, [accountId, objectId]);
 
   // Load existing object and populate form
   useEffect(() => {
@@ -462,6 +492,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
     validationErrors,
     handleClearError,
     getSensitivity,
+    fieldSuggestions,
     handleSave,
     handleBack,
     isSaving,

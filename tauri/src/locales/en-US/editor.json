@@ -118,5 +118,8 @@
   "deprecated_fields_body": "The following fields were archived because they became incompatible or were removed by a template update.",
   "deprecated_fields_empty": "No historical fields",
   "deprecated_fields_button": "Historical fields ({{count}})",
-  "deprecated_fields_archived_at": "Archived on {{date}}"
+  "deprecated_fields_archived_at": "Archived on {{date}}",
+  "field_suggestions_label": "\"{{field}}\" from other objects",
+  "field_suggestions_pick": "Fill with value from \"{{object}}\"",
+  "field_suggestions_more": "+{{n}} more"
 }
