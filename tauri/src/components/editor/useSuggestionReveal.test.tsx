@@ -327,5 +327,17 @@ describe('useSuggestionReveal', () => {
       expect(result.current.showPwDialog).toBe(true);
       expect(result.current.isRevealed(id)).toBe(false);
     });
+
+    it('revealRemainingMs 随揭示返回剩余毫秒，隐藏后归零', async () => {
+      vi.useFakeTimers();
+      const { result } = renderHook(() => useSuggestionReveal('acc-1'));
+      await act(async () => {});
+      const { item, id } = await unlockOnce(result);
+
+      expect(result.current.revealRemainingMs(id)).toBeGreaterThan(0);
+      act(() => result.current.handleItemClick(item)); // 隐藏
+      expect(result.current.isRevealed(id)).toBe(false);
+      expect(result.current.revealRemainingMs(id)).toBe(0);
+    });
   });
 });

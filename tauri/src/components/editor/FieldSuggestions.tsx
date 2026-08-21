@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowDownLeft, ChevronDown, ChevronUp, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
@@ -49,6 +49,8 @@ function truncateForDisplay(value: string): string {
  * - critical：掩码，点击弹出主密码验证框（支持密码/PIN/生物识别），验证成功后才揭示；
  *   解锁后 1 分钟宽限期内再次查看/填入同一条目无需重复验证。
  *
+ * 揭示中的条目右侧显示自动隐藏倒计时（剩余秒数，每秒更新），到期自动重掩。
+ *
  * 每行右侧「填入」按钮将真实值回填到当前字段：公开/内部/敏感或已揭示时直接填入；
  * critical 未揭示时先弹主密码验证框（与查看同款），验证成功后直接回填、无需再次点击；
  * 解锁后 1 分钟宽限期内再次填入同一条目无需重复验证。
@@ -67,6 +69,7 @@ export function FieldSuggestions({
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const {
     isRevealed,
+    revealRemainingMs,
     handleItemClick,
     handleFillClick,
     showPwDialog,
@@ -77,6 +80,18 @@ export function FieldSuggestions({
     bioAvailable,
     handleBiometricUnlock,
   } = useSuggestionReveal(accountId);
+
+  // 揭示中的条目展示自动隐藏倒计时（每秒跳动，驱动重渲染；具体秒数渲染时实时计算）
+  const [, setTick] = useState(0);
+  const anyRevealed = suggestions.some((s) => {
+    const level = (s.sensitivityLevel as SensitivityLevel) || 'internal';
+    return (level === 'sensitive' || level === 'critical') && isRevealed(suggestionItemId(s));
+  });
+  useEffect(() => {
+    if (!anyRevealed) return;
+    const timer = window.setInterval(() => setTick((t) => t + 1), 1000);
+    return () => window.clearInterval(timer);
+  }, [anyRevealed]);
 
   if (!suggestions || suggestions.length === 0) return null;
 
@@ -114,6 +129,7 @@ export function FieldSuggestions({
             const revealed = isRevealed(itemId);
             const displayValue =
               !needsReveal || revealed ? truncateForDisplay(s.value) : maskValue(s.value, level);
+            const seconds = Math.max(0, Math.ceil(revealRemainingMs(itemId) / 1000));
             const rowTitle = needsReveal
               ? revealed
                 ? t('field_suggestions_hide', { defaultValue: 'Click to hide' })
@@ -188,11 +204,34 @@ export function FieldSuggestions({
                     {displayValue}
                   </span>
                   {needsReveal && (
-                    <span
-                      style={{ flexShrink: 0, color: 'var(--text-tertiary)', display: 'flex' }}
-                    >
-                      {revealed ? <EyeOff size={13} /> : <Eye size={13} />}
-                    </span>
+                    <>
+                      {revealed && (
+                        <span
+                          title={t('field_suggestions_reveal_countdown_title', {
+                            seconds,
+                            defaultValue: `Auto-hides in ${seconds}s`,
+                          })}
+                          data-testid="field-suggestion-countdown"
+                          style={{
+                            flexShrink: 0,
+                            color: 'var(--text-tertiary)',
+                            fontSize: 'var(--text-badge)',
+                            fontVariantNumeric: 'tabular-nums',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {t('field_suggestions_reveal_countdown', {
+                            seconds,
+                            defaultValue: `${seconds}s`,
+                          })}
+                        </span>
+                      )}
+                      <span
+                        style={{ flexShrink: 0, color: 'var(--text-tertiary)', display: 'flex' }}
+                      >
+                        {revealed ? <EyeOff size={13} /> : <Eye size={13} />}
+                      </span>
+                    </>
                   )}
                 </button>
                 <button

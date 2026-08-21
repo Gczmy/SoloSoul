@@ -1,19 +1,28 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { FieldSuggestions, type FieldSuggestion } from './FieldSuggestions';
 import { MASK_PLACEHOLDER } from '@/lib/masking';
 
 // ── 依赖 mock ────────────────────────────────────────────────────────────
-const { handleItemClickMock, handleFillClickMock, revealedIds } = vi.hoisted(() => ({
-  handleItemClickMock: vi.fn<(item: FieldSuggestion) => void>(),
-  handleFillClickMock: vi.fn<(item: FieldSuggestion, onPick: (v: string) => void) => void>(),
-  revealedIds: new Set<string>(),
-}));
+const { handleItemClickMock, handleFillClickMock, revealedIds, revealTimes } = vi.hoisted(() => {
+  const revealTimes: Record<string, number> = {};
+  return {
+    handleItemClickMock: vi.fn<(item: FieldSuggestion) => void>(),
+    handleFillClickMock: vi.fn<(item: FieldSuggestion, onPick: (v: string) => void) => void>(),
+    revealedIds: new Set<string>(),
+    revealTimes,
+  };
+});
 
 vi.mock('@/components/editor/useSuggestionReveal', () => ({
   suggestionItemId: (item: FieldSuggestion) => `${item.objectId}::${item.fieldKey}`,
   useSuggestionReveal: () => ({
     isRevealed: (id: string) => revealedIds.has(id),
+    revealRemainingMs: (id: string) => {
+      const start = revealTimes[id];
+      if (!start || !revealedIds.has(id)) return 0;
+      return Math.max(0, 60_000 - (Date.now() - start));
+    },
     handleItemClick: handleItemClickMock,
     handleFillClick: handleFillClickMock,
     showPwDialog: false,
@@ -52,6 +61,11 @@ describe('FieldSuggestions', () => {
     handleItemClickMock.mockClear();
     handleFillClickMock.mockClear();
     revealedIds.clear();
+    for (const k of Object.keys(revealTimes)) delete revealTimes[k];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('无推荐时不渲染任何内容', () => {
@@ -215,5 +229,43 @@ describe('FieldSuggestions', () => {
     const row = screen.getByTestId('field-suggestion-item');
     expect(row).toBeDisabled();
     expect(screen.queryByTitle('Click to view plaintext')).not.toBeInTheDocument();
+  });
+
+  it('揭示中的条目显示自动隐藏倒计时（每秒递减），掩码时不显示', () => {
+    vi.useFakeTimers();
+    const suggestion = makeSuggestion({ sensitivityLevel: 'critical' });
+    const { rerender } = render(
+      <FieldSuggestions fieldName="身份证号码" suggestions={[suggestion]} onPick={vi.fn()} />,
+    );
+    // 掩码态：无倒计时
+    expect(screen.queryByTestId('field-suggestion-countdown')).not.toBeInTheDocument();
+
+    // 揭示态：显示剩余秒数
+    const id = 'obj-1::citizen_no';
+    revealedIds.add(id);
+    revealTimes[id] = Date.now();
+    rerender(<FieldSuggestions fieldName="身份证号码" suggestions={[suggestion]} onPick={vi.fn()} />);
+    expect(screen.getByTestId('field-suggestion-countdown')).toHaveTextContent('60s');
+
+    // 1 秒后跳动为 59s
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(screen.getByTestId('field-suggestion-countdown')).toHaveTextContent('59s');
+  });
+
+  it('public 条目即使揭示也不显示倒计时', () => {
+    const suggestion = makeSuggestion({ sensitivityLevel: 'public', value: '公开值' });
+    const { rerender } = render(
+      <FieldSuggestions fieldName="备注" suggestions={[suggestion]} onPick={vi.fn()} />,
+    );
+    expect(screen.queryByTestId('field-suggestion-countdown')).not.toBeInTheDocument();
+
+    const id = 'obj-1::citizen_no';
+    revealedIds.add(id);
+    revealTimes[id] = Date.now();
+    rerender(<FieldSuggestions fieldName="备注" suggestions={[suggestion]} onPick={vi.fn()} />);
+    // public 不掩码、无揭示态，不显示倒计时
+    expect(screen.queryByTestId('field-suggestion-countdown')).not.toBeInTheDocument();
   });
 });

@@ -125,6 +125,8 @@
   "field_suggestions_reveal": "点击查看明文",
   "field_suggestions_hide": "点击隐藏",
   "field_suggestions_critical_reveal": "需验证主密码后查看",
+  "field_suggestions_reveal_countdown": "{{seconds}}s",
+  "field_suggestions_reveal_countdown_title": "{{seconds}} 秒后自动隐藏",
   "field_suggestions_expand": "展开（还有 {{n}} 条）",
   "field_suggestions_collapse": "收起"
 }

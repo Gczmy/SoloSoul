@@ -22,6 +22,8 @@ type UnlockMethod = 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin';
 export interface UseSuggestionRevealResult {
   /** 条目当前是否处于揭示态（1 分钟 TTL，与 §7 揭示语义一致）。 */
   isRevealed: (itemId: string) => boolean;
+  /** 条目剩余揭示时长（ms），未揭示/已过期为 0（供倒计时展示）。 */
+  revealRemainingMs: (itemId: string) => number;
   /**
    * 点击推荐条目：
    * - public / internal：无操作（本就明文展示）；
@@ -59,7 +61,7 @@ export interface UseSuggestionRevealResult {
  * 宽限期从解锁时刻起算，不因反复查看顺延。
  */
 export function useSuggestionReveal(accountId?: string): UseSuggestionRevealResult {
-  const { isRevealed, reveal, hide } = useRevealState();
+  const { isRevealed, revealRemainingMs, reveal, hide } = useRevealState();
   const [showPwDialog, setShowPwDialog] = useState(false);
   const resolveRef = useRef<((ok: boolean, method?: UnlockMethod) => void) | null>(null);
   const pendingItemRef = useRef<FieldSuggestion | null>(null);
@@ -245,6 +247,7 @@ export function useSuggestionReveal(accountId?: string): UseSuggestionRevealResu
 
   return {
     isRevealed,
+    revealRemainingMs,
     handleItemClick,
     handleFillClick,
     showPwDialog,

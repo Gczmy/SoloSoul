@@ -92,6 +92,16 @@ export function useRevealState() {
     [revealed],
   );
 
+  /** 剩余揭示时长（ms）：未揭示/已过期返回 0，供倒计时展示。 */
+  const revealRemainingMs = useCallback(
+    (fieldId: string): number => {
+      const entry = revealed[fieldId];
+      if (!entry) return 0;
+      return Math.max(0, entry.expiresAt - Date.now());
+    },
+    [revealed],
+  );
+
   /** Mask a value for display. */
   const maskValue = useCallback(
     (value: string, fieldId: string, sensitivity: SensitivityLevel): string => {
@@ -105,5 +115,5 @@ export function useRevealState() {
     [shouldMask],
   );
 
-  return { reveal, hide, shouldMask, isRevealed, maskValue };
+  return { reveal, hide, shouldMask, isRevealed, revealRemainingMs, maskValue };
 }

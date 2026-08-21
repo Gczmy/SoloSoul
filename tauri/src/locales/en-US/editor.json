@@ -125,6 +125,8 @@
   "field_suggestions_reveal": "Click to view plaintext",
   "field_suggestions_hide": "Click to hide",
   "field_suggestions_critical_reveal": "Verify master password to view",
+  "field_suggestions_reveal_countdown": "{{seconds}}s",
+  "field_suggestions_reveal_countdown_title": "Auto-hides in {{seconds}}s",
   "field_suggestions_expand": "Expand ({{n}} more)",
   "field_suggestions_collapse": "Collapse"
 }
