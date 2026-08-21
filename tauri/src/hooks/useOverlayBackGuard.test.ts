@@ -71,7 +71,11 @@ describe('useOverlayBackGuard', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('内层返回按钮：栈顶是内层标记时主动 history.back()（触发 popstate 回主体）', () => {
+  it('内层返回/关闭按钮：直接关闭内层回主体，不依赖 history.back()', () => {
+    // 回归（T014 用户反馈）：查看器点左上角返回/右上角关闭直接退出到相册上一层。
+    // 原实现栈顶有内层标记时走 history.back()——安卓 WebView 对纯 pushState
+    // 历史栈的 back() 导航不可靠（整栈弹出/页面重载），现改为直接关内层；
+    // 内层标记保留在栈中，由后续硬件返回或卸载清理统一弹出。
     const onClose = vi.fn();
     const onCloseInner = vi.fn();
     const { result, rerender } = renderHook(
@@ -86,16 +90,20 @@ describe('useOverlayBackGuard', () => {
     act(() => {
       result.current.handleInnerBack();
     });
-    expect(window.history.back).toHaveBeenCalledTimes(1);
-    // 浏览器随后弹出内层标记并派发 popstate → 回浮层主体
+    // 直接关内层（回网格），不触发任何浏览器导航
+    expect(onCloseInner).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(window.history.back).not.toHaveBeenCalled();
+
+    // 内层标记仍保留在栈顶：网格态硬件返回 → popstate 关闭整个浮层（标记被弹）
+    act(() => rerender({ innerOpen: false }));
     act(() => {
       window.dispatchEvent(new PopStateEvent('popstate'));
     });
-    expect(onCloseInner).toHaveBeenCalledTimes(1);
-    expect(onClose).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('内层返回按钮兜底：栈顶无内层标记时直接关闭内层', () => {
+  it('内层返回按钮：无内层标记时同样直接关闭内层（同一路径，无分支）', () => {
     const onCloseInner = vi.fn();
     const { result } = renderHook(() =>
       useOverlayBackGuard({ innerOpen: true, onCloseInner, onClose: vi.fn() }),

@@ -60,8 +60,11 @@ function attachStaleMarkerSweeper(): void {
  * 三个相册入口（首页 / 附件管理 GlobalAttachmentManager / 对象详情 AttachmentViewer）
  * 均渲染 PhotoAlbumOverlay，故统一由本 hook 获得「返回关闭相册而非跳路由」行为。
  *
- * @returns handleInnerBack：内层左上角返回按钮的主动返回——内层标记在栈顶时
- *  `history.back()` 触发 popstate 回浮层主体，否则直接关内层（防御性兜底）。
+ * @returns handleInnerBack：内层左上角返回按钮的主动返回——直接关闭内层（回浮层
+ *  主体）。不再走 `history.back()`：安卓 WebView 对纯 pushState 历史栈的 back()
+ *  导航不可靠（可能整栈弹出/页面重载，从全屏查看器直接退到相册上一层页面）；
+ *  内层历史标记保留在栈中，由下次硬件返回（popstate 按 innerOpen 分流）或浮层
+ *  卸载清理（go(-n) 一次性弹出）统一弹出，行为等价且不依赖浏览器导航。
  */
 export function useOverlayBackGuard({
   innerOpen,
@@ -151,15 +154,15 @@ export function useOverlayBackGuard({
     layersRef.current += 1;
   }, [innerOpen]);
 
-  /** 内层左上角返回按钮：内层标记在栈顶时主动弹出（触发 popstate 回浮层主体），
-   *  否则直接关内层（防御性兜底）。 */
+  /** 内层返回/关闭按钮：直接关闭内层（回浮层主体）。
+   *
+   * 不再走 `history.back()`——安卓 WebView 对纯 pushState 历史栈的 back() 导航
+   * 不可靠（曾出现整栈弹出/页面重载，从全屏查看器直接退到相册上一层页面，
+   * 即「查看器点返回/关闭却退出到相册上一页」）。内层历史标记保留在栈中：
+   * 由下次硬件返回（popstate 按 innerOpen 分流 → 关闭整个浮层）或浮层卸载清理
+   * （go(-n) 一次性弹出全部标记）统一处理，行为等价且不依赖浏览器导航。 */
   const handleInnerBack = useCallback(() => {
-    const state = window.history.state as { solosoulOverlayInnerLayer?: boolean } | null;
-    if (state?.solosoulOverlayInnerLayer) {
-      window.history.back();
-    } else {
-      onCloseInnerRef.current();
-    }
+    onCloseInnerRef.current();
   }, []);
 
   return { handleInnerBack };

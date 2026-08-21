@@ -46,6 +46,38 @@ describe('PhotoAlbumOverlay', () => {
     });
   });
 
+  // T014 回归：查看器右上角关闭（X）只回网格、不关闭相册——用户反馈
+  // 「点返回/关闭直接退到相册上一层页面」。修复后两按钮都直接关内层，
+  // 不依赖 history.back()（安卓 WebView 对纯 pushState 历史栈的 back 导航不可靠）。
+  it('查看器右上角关闭按钮：只返回网格，不关闭相册（T014 回归）', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    const onClose = vi.fn();
+    render(<PhotoAlbumOverlay items={[makeItem('a'), makeItem('b')]} onClose={onClose} />);
+
+    const grid = await screen.findByTestId('photo-album-grid');
+    const cells = within(grid).getAllByRole('button');
+    fireEvent.click(cells[0]);
+
+    // 查看器为懒加载（LazyPhotoViewerOverlay 冷启动拉 framer-motion），放宽 waitFor 超时防抖动
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
+      },
+      { timeout: 8000 },
+    );
+
+    // 相册顶栏与查看器顶栏都有名为 common:close 的按钮，限定在查看器内查找
+    const viewer = screen.getByTestId('photo-viewer');
+    fireEvent.click(within(viewer).getByRole('button', { name: /common:close/i }));
+
+    // 回到网格：查看器消失、相册仍在、onClose 未被调用（未退到上一层页面）
+    await waitFor(() => {
+      expect(screen.queryByTestId('photo-viewer-counter')).not.toBeInTheDocument();
+    });
+    expect(screen.getByTestId('photo-album-grid')).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('closes via header close button', async () => {
     mockInvoke.mockResolvedValue('data:image/png;base64,abc');
     const onClose = vi.fn();
