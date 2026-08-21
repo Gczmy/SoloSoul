@@ -102,7 +102,8 @@ function buildValue(s: Segments, includeTime: boolean | undefined): string | nul
     return null;
   }
   if (!includeTime) return `${year}-${month}-${day}`;
-  if (!hour || !minute) return null;
+  // 时分必须输满两位：单数字提交会产出 `T1:00` 这类非 ISO 值，parseISO 解析失败后整行被清空
+  if (hour.length !== 2 || minute.length !== 2) return null;
   if (Number(hour) > 23 || Number(minute) > 59) return null;
   return `${year}-${month}-${day}T${hour}:${minute}`;
 }

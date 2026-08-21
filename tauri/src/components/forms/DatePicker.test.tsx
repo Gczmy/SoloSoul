@@ -134,6 +134,35 @@ describe('DatePicker', () => {
     expect(onChange).toHaveBeenLastCalledWith('2024-03-15T08:05');
   });
 
+  it('keeps the date while typing single digits into time segments', () => {
+    const onChange = vi.fn();
+    render(<DatePicker value="2026-08-22T00:00" onChange={onChange} includeTime />);
+
+    expect((screen.getByLabelText('年份输入') as HTMLInputElement).value).toBe('2026');
+
+    // 单数字分钟：未输满不应提交（不得产出 T00:5 这类非 ISO 值，否则整行被清空）
+    fireEvent.change(screen.getByLabelText('分钟输入'), { target: { value: '5' } });
+    expect(onChange).not.toHaveBeenCalled();
+    expect((screen.getByLabelText('年份输入') as HTMLInputElement).value).toBe('2026');
+    expect((screen.getByLabelText('月份输入') as HTMLInputElement).value).toBe('08');
+    expect((screen.getByLabelText('日期输入') as HTMLInputElement).value).toBe('22');
+
+    // 单数字小时：同样不提交、不清空日期
+    fireEvent.change(screen.getByLabelText('小时输入'), { target: { value: '1' } });
+    expect(onChange).not.toHaveBeenCalled();
+    expect((screen.getByLabelText('年份输入') as HTMLInputElement).value).toBe('2026');
+    expect((screen.getByLabelText('日期输入') as HTMLInputElement).value).toBe('22');
+
+    // 时分均补全为两位后提交为合法格式
+    fireEvent.change(screen.getByLabelText('小时输入'), { target: { value: '15' } });
+    expect(onChange).not.toHaveBeenCalled(); // 分钟仍只有一位
+    fireEvent.change(screen.getByLabelText('分钟输入'), { target: { value: '05' } });
+    expect(onChange).toHaveBeenLastCalledWith('2026-08-22T15:05');
+    expect((screen.getByLabelText('年份输入') as HTMLInputElement).value).toBe('2026');
+    expect((screen.getByLabelText('日期输入') as HTMLInputElement).value).toBe('22');
+    expect((screen.getByLabelText('小时输入') as HTMLInputElement).value).toBe('15');
+  });
+
   it('does not commit incomplete or invalid dates', () => {
     const onChange = vi.fn();
     render(<DatePicker onChange={onChange} />);
