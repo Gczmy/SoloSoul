@@ -85,6 +85,53 @@ describe('WorkspaceObjectCard', () => {
     expect(screen.queryByTestId('count-badge-attachments')).not.toBeInTheDocument();
   });
 
+  it('renders field chips from stored properties (incl. date values)', () => {
+    const withDate: ObjectSummary = {
+      ...baseObj,
+      properties: {
+        birthDate: '2024-12-31',
+        meetTime: '',
+        __fields: {
+          birthDate: { name: '出生日期', type: 'date' },
+          meetTime: { name: '会议时间', type: 'datetime' },
+        },
+        __templateName: '日程',
+      },
+    };
+    const tplDates: UserTemplate[] = [
+      {
+        ...userTemplates[0],
+        id: 'tpl-1',
+        properties: [
+          { id: 'birthDate', name: '出生日期', type: 'date', sensitivityLevel: 'public' },
+          { id: 'meetTime', name: '会议时间', type: 'datetime', sensitivityLevel: 'public' },
+        ],
+      },
+    ];
+    const withDatePublic: ObjectSummary = {
+      ...withDate,
+      propertyLabels: { birthDate: 'public', meetTime: 'public' },
+    };
+    render(
+      <WorkspaceObjectCard
+        obj={withDatePublic}
+        collectionLabel="Identity"
+        userTemplates={tplDates}
+        onClick={vi.fn()}
+        onHistory={vi.fn()}
+        onAttachments={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    // 日期值必须以 chip 形式显示在卡片上（值为 2024-12-31）
+    expect(screen.getByText('出生日期')).toBeInTheDocument();
+    expect(screen.getByText('2024-12-31')).toBeInTheDocument();
+    // 空字符串日期时间字段不显示 chip
+    expect(screen.queryByText('会议时间')).not.toBeInTheDocument();
+  });
+
   it('P118: passes the object to card callbacks (stable handler contract)', () => {
     const onClick = vi.fn();
     const onDelete = vi.fn();

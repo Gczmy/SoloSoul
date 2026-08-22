@@ -72,6 +72,7 @@
   "validation_url": "Please enter a valid URL",
   "validation_phone": "Please enter a valid phone number",
   "validation_date": "Please enter a valid date (YYYY-MM-DD)",
+  "validation_datetime": "Please enter a valid date and time (YYYY-MM-DD HH:MM)",
   "validation_number": "Please enter a valid number",
   "validation_hint_email": "e.g. name@example.com",
   "validation_hint_url": "e.g. example.com or https://example.com",

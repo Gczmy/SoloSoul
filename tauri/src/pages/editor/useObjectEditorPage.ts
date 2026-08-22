@@ -12,31 +12,7 @@ import type { FieldSuggestion } from '@/components/editor/FieldSuggestions';
 import { invokeCommand } from '@/lib/ipcClient';
 import { resolveCanonicalFieldName } from '@/lib/fieldNameAliases';
 import { logger } from '@/lib/logger';
-
-const FIELD_TYPE_VALIDATORS: Partial<
-  Record<PropertyType, { isValid: (v: string) => boolean; hintKey: string }>
-> = {
-  email: {
-    isValid: (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-    hintKey: 'editor:validation_email',
-  },
-  phone: {
-    isValid: (v: string) => /^[+\d][\d\s()-]{3,}$/.test(v),
-    hintKey: 'editor:validation_phone',
-  },
-  url: {
-    isValid: (v: string) => /^https?:\/\/.+\..+/.test(v),
-    hintKey: 'editor:validation_url',
-  },
-  number: {
-    isValid: (v: string) => !Number.isNaN(Number(v)),
-    hintKey: 'editor:validation_number',
-  },
-  date: {
-    isValid: (v: string) => !Number.isNaN(Date.parse(v)),
-    hintKey: 'editor:validation_date',
-  },
-};
+import { FIELD_TYPE_VALIDATORS } from '@/lib/fieldValidators';
 
 interface FieldDef {
   key: string;

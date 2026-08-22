@@ -72,14 +72,35 @@ function parseValue(value?: string): Date | undefined {
 /** 从受控值解析各分段字符串（空值/非法 → 全空） */
 function segmentsFromValue(value?: string): Segments {
   const d = parseValue(value);
-  if (!d) return { ...EMPTY_SEGMENTS };
-  return {
-    year: String(getYear(d)).padStart(4, '0'),
-    month: String(getMonth(d) + 1).padStart(2, '0'),
-    day: String(getDate(d)).padStart(2, '0'),
-    hour: String(getHours(d)).padStart(2, '0'),
-    minute: String(getMinutes(d)).padStart(2, '0'),
-  };
+  if (d) {
+    return {
+      year: String(getYear(d)).padStart(4, '0'),
+      month: String(getMonth(d) + 1).padStart(2, '0'),
+      day: String(getDate(d)).padStart(2, '0'),
+      hour: String(getHours(d)).padStart(2, '0'),
+      minute: String(getMinutes(d)).padStart(2, '0'),
+    };
+  }
+  if (value) {
+    // 宽松解析：ISO 形态但不可能日期（2024-02-30T10:30 等存量脏数据）也尽力填充
+    // 分段，让字段显示原始值而非「看似为空」——保存报错时用户能看到并修正/清空。
+    const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(value);
+    if (m) {
+      return {
+        year: m[1],
+        month: m[2],
+        day: m[3],
+        hour: m[4] || '',
+        minute: m[5] || '',
+      };
+    }
+  }
+  return { ...EMPTY_SEGMENTS };
+}
+
+/** 单数字补零（1 → 01）；空/两位及以上原样返回。 */
+function pad2(v: string): string {
+  return v.length === 1 ? `0${v}` : v;
 }
 
 /**
@@ -87,25 +108,61 @@ function segmentsFromValue(value?: string): Segments {
  * - 全部为空 → ''（表示清除）
  * - 未输满/非法（如 13 月、2 月 30 日、时 25）→ null（暂不提交，等待继续输入）
  * - 完整合法 → 'yyyy-MM-dd' 或 'yyyy-MM-ddTHH:mm'（includeTime 时必须年月日时分齐全）
+ *
+ * 单数字月/日/时/分自动补零（1 → 01）：否则用户输入 `2024-1-5` 这类
+ * 常见写法时值永不提交、保存静默丢弃（字段看着填了，库里却没有）。
+ * 补零后产出的是合法 ISO（`2024-01-05`、`T01:05`），不会触发解析回环。
  */
 function buildValue(s: Segments, includeTime: boolean | undefined): string | null {
   const { year, month, day, hour, minute } = s;
   if (!year && !month && !day && !hour && !minute) return '';
-  if (year.length !== 4 || month.length !== 2 || day.length !== 2) return null;
+  if (year.length !== 4) return null;
+  const m = pad2(month);
+  const d = pad2(day);
+  if (m.length !== 2 || d.length !== 2) return null;
   const y = Number(year);
-  const m = Number(month);
-  const d = Number(day);
-  if (m < 1 || m > 12) return null;
-  const date = new Date(y, m - 1, d);
+  const mNum = Number(m);
+  const dNum = Number(d);
+  if (mNum < 1 || mNum > 12) return null;
+  const date = new Date(y, mNum - 1, dNum);
   // 回环校验：2024-02-30 会被 Date 归一为 2024-03-01，必须拒绝
-  if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) {
+  if (date.getFullYear() !== y || date.getMonth() !== mNum - 1 || date.getDate() !== dNum) {
     return null;
   }
-  if (!includeTime) return `${year}-${month}-${day}`;
-  // 时分必须输满两位：单数字提交会产出 `T1:00` 这类非 ISO 值，parseISO 解析失败后整行被清空
-  if (hour.length !== 2 || minute.length !== 2) return null;
-  if (Number(hour) > 23 || Number(minute) > 59) return null;
-  return `${year}-${month}-${day}T${hour}:${minute}`;
+  if (!includeTime) return `${year}-${m}-${d}`;
+  const h = pad2(hour);
+  const min = pad2(minute);
+  if (h.length !== 2 || min.length !== 2) return null;
+  if (Number(h) > 23 || Number(min) > 59) return null;
+  return `${year}-${m}-${d}T${h}:${min}`;
+}
+
+/** 当前模式下所有分段是否都已输满（年月日；includeTime 时含时分；单数字视为已输满） */
+function isSegmentsComplete(s: Segments, includeTime: boolean | undefined): boolean {
+  if (s.year.length !== 4 || !s.month || !s.day) return false;
+  if (includeTime && (!s.hour || !s.minute)) return false;
+  return true;
+}
+
+/** 当前模式下是否有任意分段内容（用于「填了但未输满」的静默丢值防护） */
+function hasSegmentContent(s: Segments, includeTime: boolean | undefined): boolean {
+  if (s.year || s.month || s.day) return true;
+  if (includeTime && (s.hour || s.minute)) return true;
+  return false;
+}
+
+/** 由分段拼出草稿字符串（不校验合法性，供非法/未输满草稿提交给父组件做保存校验）；
+ *  单数字同样补零；去掉尾部空分段（仅填年份 → '2024'，填了年月 → '2024-12'）。 */
+function draftString(s: Segments, includeTime: boolean | undefined): string {
+  const dateSegs = [s.year, pad2(s.month), pad2(s.day)];
+  while (dateSegs.length > 0 && dateSegs[dateSegs.length - 1] === '') dateSegs.pop();
+  let out = dateSegs.join('-');
+  if (includeTime) {
+    const timeSegs = [pad2(s.hour), pad2(s.minute)];
+    while (timeSegs.length > 0 && timeSegs[timeSegs.length - 1] === '') timeSegs.pop();
+    if (timeSegs.length > 0) out += `T${timeSegs.join(':')}`;
+  }
+  return out;
 }
 
 export function DatePicker({ value, onChange, includeTime, disabled }: DatePickerProps) {
@@ -121,6 +178,13 @@ export function DatePicker({ value, onChange, includeTime, disabled }: DatePicke
   const segmentRefs = useRef<Partial<Record<SegmentKey, HTMLInputElement | null>>>({});
   // 最近一次已提交给父组件的值：外部 value 变化时据此同步分段，避免自身输入被覆盖
   const lastCommittedRef = useRef<string | undefined>(value);
+  // 最近一次合法提交值（非法草稿传播后，分段被改回未输满时用于撤销草稿、恢复旧值）
+  const lastValidRef = useRef<string | undefined>(parseValue(value) ? value : undefined);
+  // 当前父值是否需要「撤销恢复」：来自非法草稿传播（propagateDraft），或
+  // 存量值本身无法解析（DatePicker 显示为宽松分段，清空时应一并清除）。
+  const propagatedDraftRef = useRef(!!value && !parseValue(value));
+  // 标记：内部传播草稿期间禁止 effect 重置分段显示，避免 `1212-1` 被 effect 同步为 `1212-01`。
+  const skipEffectSyncRef = useRef(false);
 
   const segmentKeys: SegmentKey[] = useMemo(
     () => (includeTime ? ['year', 'month', 'day', 'hour', 'minute'] : ['year', 'month', 'day']),
@@ -131,19 +195,60 @@ export function DatePicker({ value, onChange, includeTime, disabled }: DatePicke
     const d = parseValue(value);
     setSelectedDate(d);
     if (d) setViewDate(d);
+    // 内部传播草稿期间跳过分段同步：分段保持用户输入原样（如 month='1'），
+    // 不被 effect 重置为补零值（如 month='01'），避免单数字输入时自动补零干扰连续输入。
+    if (skipEffectSyncRef.current) {
+      skipEffectSyncRef.current = false;
+      return;
+    }
     // 外部（日历选择/清除/回退）改变 value 时同步分段草稿
     if (value !== lastCommittedRef.current) {
       setSegments(segmentsFromValue(value));
       lastCommittedRef.current = value;
+      propagatedDraftRef.current = !!value && !parseValue(value);
     }
   }, [value]);
 
-  /** 统一提交入口：同步 lastCommitted、选中态、分段显示并通知父组件。 */
+  /** 统一提交入口：同步 lastCommitted、选中态并通知父组件。
+   *  @param preserveSegments true — 内部从分段提交（如用户键入），保留分段原样不归一化；
+   *                         false/省略 — 外部来源（日历选择/清除/载入），同步分段为解析后的值。 */
   const applyValue = useCallback(
+    (v: string | undefined, preserveSegments?: boolean) => {
+      lastCommittedRef.current = v;
+      const d = parseValue(v);
+      if (d) lastValidRef.current = v;
+      propagatedDraftRef.current = false;
+      skipEffectSyncRef.current = true;
+      setSelectedDate(d);
+      // 内部提交：保留用户输入的原始分段（如 day='5' 而非被归一为 '05'），
+      // 连续输入时不会出现「输入 5 立刻变成 05」的干扰。
+      if (!preserveSegments) {
+        setSegments(segmentsFromValue(v));
+      }
+      onChange(v);
+    },
+    [onChange],
+  );
+
+  /** 提交非法完整草稿：仅同步 lastCommitted（防外部 value 回写覆盖分段），
+   *  不改选中态/分段显示——草稿仍留在输入框内，保存时由父组件校验并在字段下报错。
+   *  置位 propagatedDraftRef：随后删改回未输满时走撤销恢复（round-2 语义）。 */
+  const propagateDraft = useCallback(
+    (draft: string, markForRevert: boolean) => {
+      lastCommittedRef.current = draft;
+      if (markForRevert) propagatedDraftRef.current = true;
+      skipEffectSyncRef.current = true; // 草稿传播不重置分段
+      onChange(draft);
+    },
+    [onChange],
+  );
+
+  /** 撤销非法草稿：恢复为最近一次合法提交值（或空），分段保持原状。 */
+  const restoreValue = useCallback(
     (v: string | undefined) => {
       lastCommittedRef.current = v;
-      setSelectedDate(parseValue(v));
-      setSegments(segmentsFromValue(v));
+      propagatedDraftRef.current = false;
+      skipEffectSyncRef.current = true; // 恢复值不重置分段
       onChange(v);
     },
     [onChange],
@@ -152,7 +257,24 @@ export function DatePicker({ value, onChange, includeTime, disabled }: DatePicke
   const commitSegments = useCallback(
     (next: Segments) => {
       const committed = buildValue(next, includeTime);
-      if (committed === null) return; // 未输满/非法：等待继续输入
+      if (committed === null) {
+        if (isSegmentsComplete(next, includeTime)) {
+          // 完整但非法（2024-02-30 / 2024-13-01 / 25:00 等）：草稿提交给父组件，
+          // 保存时校验可在对应字段下报错；置位撤销标记供删改时恢复。
+          propagateDraft(draftString(next, includeTime), true);
+        } else if (propagatedDraftRef.current) {
+          // 非法完整草稿被改回未输满（如删掉某一段）：撤销草稿，恢复最近一次合法值（或空），
+          // 避免保存时对「看似未填写」的字段误报错。
+          restoreValue(lastValidRef.current);
+        } else if (hasSegmentContent(next, includeTime)) {
+          // 有内容但未输满（年份不足 4 位如 `12-12-12`、或部分分段缺失）：
+          // 同样传播草稿（不置撤销标记）——否则保存时值不进 values、校验跳过
+          // 空字段，对象以空属性落库，表现为「保存成功但字段没了」。
+          // 传播后保存校验会识别该值非法并在对应字段下报错，用户能看见并修正。
+          propagateDraft(draftString(next, includeTime), false);
+        }
+        return;
+      }
       if (committed === '') {
         if (lastCommittedRef.current !== undefined) {
           applyValue(undefined);
@@ -160,18 +282,15 @@ export function DatePicker({ value, onChange, includeTime, disabled }: DatePicke
         return;
       }
       if (committed !== lastCommittedRef.current) {
-        applyValue(committed);
+        applyValue(committed, true); // 保留用户输入原样（如 day='5'），不归一为 '05'
       }
     },
-    [includeTime, applyValue],
+    [includeTime, applyValue, propagateDraft, restoreValue],
   );
 
-  const focusSegment = useCallback(
-    (key: SegmentKey) => {
-      segmentRefs.current[key]?.focus();
-    },
-    [],
-  );
+  const focusSegment = useCallback((key: SegmentKey) => {
+    segmentRefs.current[key]?.focus();
+  }, []);
 
   const handleSegmentChange = useCallback(
     (key: SegmentKey, raw: string) => {
@@ -305,11 +424,7 @@ export function DatePicker({ value, onChange, includeTime, disabled }: DatePicke
   return (
     <div className={styles.datePicker} ref={containerRef}>
       {/* 点击整个输入区域（含分段/分隔符/留白）弹出日历卡片；clear 按钮除外 */}
-      <div
-        className={styles.triggerRow}
-        role="group"
-        onClick={() => !disabled && setOpen(true)}
-      >
+      <div className={styles.triggerRow} role="group" onClick={() => !disabled && setOpen(true)}>
         {segmentKeys.map((key) => {
           const config = SEGMENTS_CONFIG[key];
           const invalid = isSegmentInvalid(key);

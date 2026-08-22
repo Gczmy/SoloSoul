@@ -699,3 +699,108 @@ fn test_validate_object_input_boundaries() {
     // 正常输入放行
     assert!(validate_object_input("对象名", &serde_json::json!({ "a": 1 })).is_ok());
 }
+
+/// 复现用户场景的端到端链路：真实模板（date + datetime 字段）→ build_create_record
+/// → save_object → load_object / list_objects / truncate_preview_properties。
+/// 此前用户报告「新建对象保存成功，但卡片不显示字段、编辑时字段为空」——
+/// 本测试锁定日期/日期时间值必须完整落库并回读。
+#[test]
+fn test_create_with_date_fields_roundtrip() {
+    use solosoul_vault::{PropertyType, TemplateProperty, UserTemplate};
+
+    let (vault, _dir) = setup_vault();
+
+    // 真实用户模板：date + datetime 字段
+    let tpl = UserTemplate {
+        id: "tpl-dates".to_string(),
+        account_id: "acc-1".to_string(),
+        name: "日程".to_string(),
+        icon_id: None,
+        category: Some("identity".to_string()),
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: None,
+        contract_type_id: None,
+        properties: vec![
+            TemplateProperty {
+                id: "birthDate".to_string(),
+                name: "出生日期".to_string(),
+                prop_type: PropertyType::Date,
+                sensitivity_level: None,
+                sensitive: None,
+                options: None,
+                deprecated_at: None,
+                contract_field: None,
+                contract_bindings: None,
+                allowed_types: None,
+                max_items: None,
+            },
+            TemplateProperty {
+                id: "meetTime".to_string(),
+                name: "会议时间".to_string(),
+                prop_type: PropertyType::DateTime,
+                sensitivity_level: None,
+                sensitive: None,
+                options: None,
+                deprecated_at: None,
+                contract_field: None,
+                contract_bindings: None,
+                allowed_types: None,
+                max_items: None,
+            },
+        ],
+    };
+    vault.save_user_template(&tpl).unwrap();
+
+    // 前端 handleSave 的真实载荷：日期字段有值，日期时间字段为空字符串
+    let input = CreateObjectInput {
+        account_id: "acc-1".to_string(),
+        name: "张三".to_string(),
+        collection_type: "identity".to_string(),
+        properties: serde_json::json!({
+            "birthDate": "2024-12-31",
+            "meetTime": "",
+        }),
+        parent_id: None,
+        icon_name: None,
+        template_id: Some("tpl-dates".to_string()),
+        template_type: Some("user".to_string()),
+        id: None,
+    };
+    let now = chrono::Utc::now().to_rfc3339();
+    let record = build_create_record(&vault, &input, "acc-1", &now).unwrap();
+    vault.save_object(&record).unwrap();
+
+    // 1) load_object：日期值必须完整读回
+    let loaded = vault.load_object(&record.id).unwrap().unwrap();
+    assert_eq!(
+        loaded.properties["birthDate"],
+        serde_json::json!("2024-12-31"),
+        "日期值必须原样落库并读回"
+    );
+    assert_eq!(loaded.properties["meetTime"], serde_json::json!(""));
+    // __fields 必须注入（模板字段定义副本）
+    assert_eq!(
+        loaded.properties["__fields"]["birthDate"]["type"],
+        serde_json::json!("date")
+    );
+    assert_eq!(
+        loaded.properties["__fields"]["meetTime"]["type"],
+        serde_json::json!("datetime")
+    );
+
+    // 2) list_objects：卡片摘要 properties 必须包含日期值（模板 fieldOrder 优先截断）
+    let summaries = vault
+        .list_objects("acc-1", None, None, None, false, false)
+        .unwrap();
+    let summary = summaries.iter().find(|s| s.id == record.id).unwrap();
+    let order: Vec<String> = vec!["birthDate".to_string(), "meetTime".to_string()];
+    let preview = truncate_preview_properties(&summary.properties, Some(order.as_slice()));
+    assert_eq!(
+        preview["birthDate"],
+        serde_json::json!("2024-12-31"),
+        "卡片预览必须保留日期值（模板 fieldOrder 优先）"
+    );
+    // __fields 元数据始终保留
+    assert!(preview.get("__fields").is_some());
+}
+

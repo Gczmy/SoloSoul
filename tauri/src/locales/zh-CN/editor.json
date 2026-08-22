@@ -72,6 +72,7 @@
   "validation_url": "请输入有效的链接地址",
   "validation_phone": "请输入有效的电话号码",
   "validation_date": "请输入有效日期（YYYY-MM-DD）",
+  "validation_datetime": "请输入有效日期时间（YYYY-MM-DD HH:MM）",
   "validation_number": "请输入有效数字",
   "validation_hint_email": "格式示例：name@example.com",
   "validation_hint_url": "格式示例：example.com 或 https://example.com",
