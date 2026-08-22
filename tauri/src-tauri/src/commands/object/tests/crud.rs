@@ -803,4 +803,3 @@ fn test_create_with_date_fields_roundtrip() {
     // __fields 元数据始终保留
     assert!(preview.get("__fields").is_some());
 }
-
