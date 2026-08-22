@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-22 23:35:00
+> 最后更新：2026-08-22 23:45:00
 > 当前分支：`main`
 > 修复轮次：1（全新初始分析，未沿用旧报告；上一轮审计见 tag `code-audit-passed-20260822`）
 
@@ -25,7 +25,7 @@
 
 | ID    | 优先级 | 类别           | 文件位置                                                              | 描述                                                                                             | 状态        |
 |-------|--------|----------------|-----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|-------------|
-| A-001 | P1     | 安全·内存卫生  | `tauri/src/stores/templateStore.ts` + `tauri/src/App/AppRoutes.tsx:248` | 锁定 Vault 后模板解密数据残留内存：templateStore 无任何清理方法且未订阅 vault-locked 清理链路      | `[ ]` 待修复 |
+| A-001 | P1     | 安全·内存卫生  | `tauri/src/stores/templateStore.ts` + `tauri/src/App/AppRoutes.tsx:248` | 锁定 Vault 后模板解密数据残留内存：templateStore 无任何清理方法且未订阅 vault-locked 清理链路      | `[x]` 已修复 |
 | A-002 | P2     | 安全·内存卫生  | `tauri/src/App/AppRoutes.tsx:248-263`                                  | syncStore（设备元数据：地址/指纹）、llmStatsStore（账号用量统计）未在 vault-locked 时清理          | `[ ]` 待修复 |
 
 ## 详细问题描述与修复指引
@@ -50,5 +50,11 @@
 
 ## 修复进度
 
-- 已完成：0 / 2
+- 已完成：1 / 2
 - 当前处理：无
+
+#### 修复说明 A-001
+
+- `templateStore.ts`：新增 `clearOnVaultLock` action（重置 `templates`/`isLoading`/`error`）。
+- `AppRoutes.tsx`：在 `vault-locked` 监听器中追加调用（与其他 store 清理并列，附注释标注 A-001）。
+- 验证：`npx tsc --noEmit` 通过、`npm run lint` 零警告、Vitest 108 文件 / 928 测试全绿。

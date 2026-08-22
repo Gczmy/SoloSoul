@@ -10,6 +10,7 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useTrashStore } from '@/stores/trashStore';
 import { useOcrScanStore } from '@/stores/ocrScanStore';
 import { useLlmStore } from '@/stores/llmStore';
+import { useTemplateStore } from '@/stores/templateStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import { useAutoLock } from '@/hooks/useAutoLock';
 import { useAppUpdate } from '@/hooks/useAppUpdate';
@@ -248,6 +249,8 @@ export function AppRoutes() {
       useObjectStore.getState().clearOnVaultLock();
       useSettingsStore.getState().clearOnVaultLock();
       useProfileStore.getState().clear();
+      // A-001: 锁定后同步清空解密模板数据（名称/自定义字段定义不残留内存）。
+      useTemplateStore.getState().clearOnVaultLock();
       // P004/P005: 锁定后立即清理回收站解密摘要与搜索明文缓存，
       // 避免解密数据残留在内存直至 TTL 自然过期。
       useTrashStore.getState().clearOnVaultLock();

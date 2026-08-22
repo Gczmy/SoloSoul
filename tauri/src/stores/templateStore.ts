@@ -27,12 +27,16 @@ interface TemplateState {
     templateId: string,
     fieldKey: string,
   ) => Promise<{ active: number; softDeleted: number }>;
+  /** A-001: 锁定 Vault 时清空解密模板数据（名称/自定义字段定义不残留内存）。 */
+  clearOnVaultLock: () => void;
 }
 
 export const useTemplateStore = create<TemplateState>((set, get) => ({
   templates: [],
   isLoading: false,
   error: null,
+
+  clearOnVaultLock: () => set({ templates: [], isLoading: false, error: null }),
 
   async loadTemplates() {
     set({ isLoading: true, error: null });
