@@ -2,6 +2,23 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.12.3] - 2026-08-22
+
+### Security
+
+- **Vault 锁定时清空模板解密数据（A-001）** — templateStore 此前无清理方法且未订阅 vault-locked 清理链路，锁定后模板名称与自定义字段定义仍驻留前端内存；新增 `clearOnVaultLock` 并纳入锁定统一清理。
+- **Vault 锁定时清空设备同步元数据与 LLM 用量统计（A-002）** — syncStore 的对端指纹/地址/同步结果/冲突摘要与 llmStatsStore 的账号用量统计在锁定后不再残留内存。
+
+### Fixed
+
+- **DatePicker 日期输入三类静默丢值全链路修复** — 单数字月/日/时分自动补零提交、部分年份草稿传播并在保存时可见报错，不再出现「保存成功但日期属性为空」。
+- **日期时间分段直输单数字不再清空日期** — 分段输入过程中保留用户原始输入，不被归一化覆盖打断连续输入。
+
+### Chore
+
+- 代码审查流程两轮全库扫描，修复格式与死代码问题（N-001/N-002），终版复审零新增问题。
+- 版本号同步 2.12.3（package.json / tauri.conf.json / Cargo.toml / tauri.properties versionCode 2012003）。
+
 ## [2.12.2] - 2026-08-21
 
 ### Added
