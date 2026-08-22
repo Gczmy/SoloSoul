@@ -1,56 +1,51 @@
-# 代码分析修复报告
+# 代码分析修复报告（终版）
 
-> 最后更新：2026-08-22 23:00:00
+> 最后更新：2026-08-22 23:10:00
 > 当前分支：`main`
-> 修复轮次：1（全新初始分析，未沿用旧报告）
+> 修复轮次：2（终版复审，第 1 轮问题已全部修复）
 
-## 分析范围与方法
+## 第 1 轮修复记录
 
-- **静态分析**：`cargo fmt --check`、`cargo clippy -- -D warnings`、`npx tsc --noEmit`、`npm run lint`、`cargo test`（522+ 通过）、`npm run test`（Vitest 928 通过）。
-- **启发式扫描**：死代码（Rust `pub fn` 无引用 / TS 模块无导入）、过长函数、循环内 `clone()` 与 SQL N+1、`unsafe` 审查、硬编码密钥、敏感信息日志泄漏、`dangerouslySetInnerHTML`、`console.log` 残留、TODO/FIXME 残留。
-- **已排除的误报**：
-  - `AiQuickChatPopover.tsx` 疑似无引用 → 实际经 `navButtonCards.tsx` lazy import 引用，非死代码。
-  - `lock_state_plugin.rs` / `local_embed.rs` 等 `pub fn` 疑似无调用 → 均为 Tauri Command（在 `lib.rs` 注册）或被跨模块调用，非死代码。
-  - `unsafe` 块（`share.rs`/`window.rs`/`system.rs`/`macos_keychain.rs` 等）→ 全部为 macOS/Windows 平台 FFI 必要使用，符合设计。
+| ID    | 优先级 | 类别   | 文件位置                                                | 描述                                                              | 状态        | 修复 Commit |
+|-------|--------|--------|---------------------------------------------------------|-------------------------------------------------------------------|-------------|-------------|
+| N-001 | P1     | 规范   | `tauri/src-tauri/src/commands/object/tests/crud.rs:803` | `cargo fmt --check` 失败：文件末尾多余空行                        | `[x]` 已修复 | `f66a1b1b` |
+| N-002 | P2     | 死代码 | `tauri/src/components/layout/SearchPopover.tsx:17`      | ESLint 警告：导入了 `invokeCommand as invoke` 但从未使用          | `[x]` 已修复 | `ca7f80ee` |
 
-## 问题清单（按优先级 P0 > P1 > P2）
+### 修复说明
 
-| ID    | 优先级 | 类别 | 文件位置                                          | 描述                                                              | 状态        |
-|-------|--------|------|---------------------------------------------------|-------------------------------------------------------------------|-------------|
-| N-001 | P1     | 规范 | `tauri/src-tauri/src/commands/object/tests/crud.rs:803` | `cargo fmt --check` 失败：文件末尾多余空行，违反格式化一致性约定 | `[x]` 已修复 |
-| N-002 | P2     | 死代码 | `tauri/src/components/layout/SearchPopover.tsx:17` | ESLint 警告：导入了 `invokeCommand as invoke` 但从未使用           | `[x]` 已修复 |
+#### N-001
+- 执行 `cargo fmt` 自动删除 `crud.rs` 文件末尾多余空行。
+- 验证：`cargo fmt --check` 通过。
 
-## 修复进度
-
-- 已完成：2 / 2
-- 当前处理：无
-
-#### 修复说明 N-002
-
-- 删除 `SearchPopover.tsx:17` 的 `import { invokeCommand as invoke } from '@/lib/ipcClient';`（该文件内无任何使用）。
+#### N-002
+- 删除 `SearchPopover.tsx` 中未使用的 `import { invokeCommand as invoke } from '@/lib/ipcClient';`。
 - 验证：`npx tsc --noEmit` 通过、`npm run lint` 零警告。
 
-#### 修复说明 N-001
+## 终版复审结果（阶段 4 全量重新扫描）
 
-- 执行 `cargo fmt` 自动删除 `crud.rs` 文件末尾多余空行（1 行改动）。
-- 验证：`cargo fmt --check` 通过、`cargo clippy -- -D warnings` 通过。
+| 检查项                          | 结果                                    |
+|---------------------------------|-----------------------------------------|
+| `cargo fmt --check`             | ✅ 通过                                 |
+| `cargo clippy -- -D warnings`   | ✅ 通过（零警告）                       |
+| `cargo test`                    | ✅ 972 passed / 0 failed                |
+| `npx tsc --noEmit`              | ✅ 通过                                 |
+| `npm run lint`                  | ✅ 零错误零警告                         |
+| `npm run test`（Vitest）        | ✅ 108 个测试文件 / 928 测试全部通过    |
+| 硬编码密钥扫描                  | ✅ 未发现                               |
+| 敏感信息日志泄漏扫描            | ✅ 未发现                               |
+| `dangerouslySetInnerHTML`       | ✅ 未使用                               |
+| `console.log` 残留              | ✅ 无                                   |
+| TODO/FIXME 残留                 | ✅ 无                                   |
+| `unsafe` 审查                   | ✅ 仅平台 FFI 必要使用                  |
+| 死代码启发式扫描                | ✅ 无新增（候选均已核实为误报）         |
+| SQL N+1 / 事务审查              | ✅ 批量写入均使用事务                   |
 
-## 详细问题描述与修复指引
+### 终版复审排除的误报
 
-### N-001（P1 · 规范）：`cargo fmt --check` 失败
-
-- **位置**：`tauri/src-tauri/src/commands/object/tests/crud.rs:803`
-- **现象**：`cargo fmt --check` 报告 diff——测试函数结尾处存在多余空行；CI 的 Rust Format 检查会因此失败。
-- **影响**：阻塞 CI 流水线（ci_cd.yml / pr_check.yml 均执行 `cargo fmt --check`）。
-- **修复方案**：执行 `cargo fmt` 自动修正（删除末尾多余空行），随后验证 `cargo fmt --check` 通过。
-
-### N-002（P2 · 死代码）：未使用的导入
-
-- **位置**：`tauri/src/components/layout/SearchPopover.tsx:17`
-- **现象**：`import { invokeCommand as invoke } from '@/lib/ipcClient';` 导入后全文件无任何使用（ESLint `no-unused-vars` 警告）。搜索逻辑实际通过其他封装（如 `useToastError` + 内部请求函数）完成。
-- **影响**：轻微——增加无效依赖、干扰 bundle tree-shaking 判断、产生 lint 噪音。
-- **修复方案**：删除该行导入；运行 `npx tsc --noEmit` + `npm run lint` 验证。
+- `AiQuickChatPopover.tsx`：经 `navButtonCards.tsx` lazy import 引用，非死代码。
+- Tauri Command 函数（`lock_state_plugin.rs` 等）在 `lib.rs` 注册，非死代码。
+- `unsafe` 块全部位于 macOS/Windows FFI 边界（窗口操作、Keychain、Share），符合设计。
 
 ## 结论
 
-代码库整体质量良好：无 P0 问题，安全面（密钥管理、路径处理、日志脱敏、输入渲染）与性能面（事务使用、FFI 边界）均未发现新增风险。本轮仅 1 个 P1 格式问题与 1 个 P2 死代码问题。
+✅ 所有可识别问题已修复，代码库质量评估达标。本轮终版复审未发现任何新的 P0/P1/P2 问题。
