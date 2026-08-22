@@ -14,7 +14,6 @@ import {
   Briefcase,
   FileText,
 } from 'lucide-react';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { createPortal } from 'react-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';

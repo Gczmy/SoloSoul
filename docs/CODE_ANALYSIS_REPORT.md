@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-22 22:55:00
+> 最后更新：2026-08-22 23:00:00
 > 当前分支：`main`
 > 修复轮次：1（全新初始分析，未沿用旧报告）
 
@@ -18,12 +18,17 @@
 | ID    | 优先级 | 类别 | 文件位置                                          | 描述                                                              | 状态        |
 |-------|--------|------|---------------------------------------------------|-------------------------------------------------------------------|-------------|
 | N-001 | P1     | 规范 | `tauri/src-tauri/src/commands/object/tests/crud.rs:803` | `cargo fmt --check` 失败：文件末尾多余空行，违反格式化一致性约定 | `[x]` 已修复 |
-| N-002 | P2     | 死代码 | `tauri/src/components/layout/SearchPopover.tsx:17` | ESLint 警告：导入了 `invokeCommand as invoke` 但从未使用           | `[ ]` 待修复 |
+| N-002 | P2     | 死代码 | `tauri/src/components/layout/SearchPopover.tsx:17` | ESLint 警告：导入了 `invokeCommand as invoke` 但从未使用           | `[x]` 已修复 |
 
 ## 修复进度
 
-- 已完成：1 / 2
+- 已完成：2 / 2
 - 当前处理：无
+
+#### 修复说明 N-002
+
+- 删除 `SearchPopover.tsx:17` 的 `import { invokeCommand as invoke } from '@/lib/ipcClient';`（该文件内无任何使用）。
+- 验证：`npx tsc --noEmit` 通过、`npm run lint` 零警告。
 
 #### 修复说明 N-001
 
