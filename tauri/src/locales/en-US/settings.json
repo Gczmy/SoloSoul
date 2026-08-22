@@ -265,6 +265,7 @@
   "unknown": "Unknown",
   "select_objects": "Select Objects",
   "no_file_selected": "No file selected",
+  "cloud_save_targets": "Save to cloud",
   "export_success": "Export completed successfully",
   "export_as_document": "Export as Document",
   "export_doc_desc": "Export selected objects as a readable document; each object becomes one page. Attachments are listed but not embedded.",

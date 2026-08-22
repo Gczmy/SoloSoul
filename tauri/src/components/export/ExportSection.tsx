@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
+import { Cloud } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { formatBytes } from '@/lib/utils';
 import { TransferButton } from '@/components/transfer/TransferButton';
-import type { AttachmentInfo, ExportEstimate } from '@/types/exportImport';
+import type { AttachmentInfo, ExportEstimate, CloudTargetInfo } from '@/types/exportImport';
 
 import { ExportTreeCard, type PageGroup } from './ExportTreeCard';
 import { ExportOptionsCard } from './ExportOptionsCard';
@@ -20,6 +21,8 @@ interface ExportSectionProps {
   exportPasswordConfirm: string;
   exportHint: string;
   savePath: string | null;
+  /** Phase 1 云打包：检测到的云盘同步目录快捷目标（桌面端；移动端为空）。 */
+  cloudTargets: CloudTargetInfo[];
   isExporting: boolean;
   showHintWarning: boolean;
   selectedTags: Set<string>;
@@ -76,6 +79,7 @@ export function ExportSection({
   exportPasswordConfirm,
   exportHint,
   savePath,
+  cloudTargets,
   isExporting,
   showHintWarning,
   selectedTags,
@@ -247,6 +251,48 @@ export function ExportSection({
         <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
           {t('common:export_path')}
         </h3>
+        {cloudTargets.length > 0 && (
+          <div style={{ marginBottom: 10 }}>
+            <div
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-secondary)',
+                marginBottom: 6,
+              }}
+            >
+              {t('settings:cloud_save_targets')}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {cloudTargets.map((target) => {
+                const sep = target.path.includes('\\') ? '\\' : '/';
+                const cloudPath = `${target.path}${sep}SoloSoul${sep}solosoul_export_${Date.now()}.solosoul`;
+                const isActive = !!savePath && savePath.startsWith(target.path);
+                return (
+                  <button
+                    key={target.path}
+                    type="button"
+                    onClick={() => onSetSavePath(cloudPath)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '4px 10px',
+                      borderRadius: 999,
+                      border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
+                      background: isActive ? 'var(--accent-soft, rgba(0,0,0,0.05))' : 'transparent',
+                      color: 'var(--text-primary)',
+                      fontSize: 'var(--text-body-sm)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Cloud size={14} aria-hidden />
+                    {target.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <div
           style={{
             fontSize: 'var(--text-body-sm)',

@@ -20,6 +20,7 @@ import { useImportState } from '@/hooks/useImportState';
 import { prefetchRegistry } from '@/lib/prefetch/registry';
 import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
 import type { ExportImportTabKey } from '@/components/settings/ExportImportTabBar';
+import type { CloudTargetInfo } from '@/types/exportImport';
 
 type TabKey = ExportImportTabKey;
 
@@ -36,6 +37,23 @@ export function useExportImportPage() {
   const accountId = useAuthStore((s) => s.currentAccount?.id ?? '');
 
   const [tab, setTab] = useState<TabKey>('export');
+
+  // Phase 1 云打包：检测到的云盘同步目录（桌面端；移动端恒为空，走 SAF 选择器）。
+  const [cloudTargets, setCloudTargets] = useState<CloudTargetInfo[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    invoke<CloudTargetInfo[]>('cloud_targets_detect')
+      .then((targets) => {
+        if (!cancelled) setCloudTargets(targets ?? []);
+      })
+      .catch((err) => {
+        logger.warn('[export] cloud_targets_detect failed:', err);
+        if (!cancelled) setCloudTargets([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const exportImportGuidePages = useMemo(
     () => [
@@ -369,6 +387,7 @@ export function useExportImportPage() {
     setExportHint,
     savePath,
     setSavePath,
+    cloudTargets,
     isExporting,
     showHintWarning,
     setShowHintWarning,

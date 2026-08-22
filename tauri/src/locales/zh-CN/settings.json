@@ -265,6 +265,7 @@
   "unknown": "未知",
   "select_objects": "选择对象",
   "no_file_selected": "未选择文件",
+  "cloud_save_targets": "保存到云盘",
   "export_success": "导出成功",
   "export_as_document": "导出为文档",
   "export_doc_desc": "将选中的对象导出为可读文档，每个对象占一页。附件以清单形式列出，不嵌入文件。",

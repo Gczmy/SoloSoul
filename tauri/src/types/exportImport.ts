@@ -93,3 +93,10 @@ export interface ExportDocumentResult {
   objectCount: number;
   fileSizeBytes: number;
 }
+
+/** 云盘同步目标（Phase 1 云打包，Rust cloud_targets_detect）。 */
+export interface CloudTargetInfo {
+  id: string;
+  name: string;
+  path: string;
+}

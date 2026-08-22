@@ -56,6 +56,7 @@ export function ExportImportPage() {
     setExportHint,
     savePath,
     setSavePath,
+    cloudTargets,
     isExporting,
     showHintWarning,
     setShowHintWarning,
@@ -162,6 +163,7 @@ export function ExportImportPage() {
               exportPasswordConfirm={exportPasswordConfirm}
               exportHint={exportHint}
               savePath={savePath}
+              cloudTargets={cloudTargets}
               isExporting={isExporting}
               showHintWarning={showHintWarning}
               selectedTags={selectedTags}
