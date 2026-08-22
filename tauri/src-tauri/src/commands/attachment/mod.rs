@@ -89,6 +89,15 @@ pub(crate) fn allowed_fs_bases() -> Vec<PathBuf> {
                 bases.push(canon);
             }
         }
+        // Phase 1 云打包：其余云盘同步目录（百度网盘/坚果云/Dropbox/Google Drive/
+        // iCloud 等）统一由 `cloud_targets::detect_cloud_sync_dirs` 检测后放行——
+        // 与 OneDrive 同信任级别（用户自有云盘本地同步夹），导出向导的「保存到
+        // 云盘」快捷目标依赖此白名单。
+        for t in crate::commands::cloud_targets::detect_cloud_sync_dirs(&home_path) {
+            if let Ok(canon) = PathBuf::from(&t.path).canonicalize() {
+                bases.push(canon);
+            }
+        }
     }
     // 移动端：文件由前端通过 plugin-fs 中转后放在应用缓存目录，需加入白名单
     #[cfg(any(target_os = "android", target_os = "ios"))]

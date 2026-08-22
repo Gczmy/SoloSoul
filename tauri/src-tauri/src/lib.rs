@@ -109,6 +109,7 @@ fn register_core_commands(
         commands::profile::profile_load,
         commands::vault::get_vault_stats,
         // File System commands
+        commands::cloud_targets::cloud_targets_detect,
         commands::fs::fs_scan_directory,
         commands::fs::fs_get_file_size,
         commands::fs::fs_is_dir,

@@ -116,6 +116,12 @@ fn desktop_fs_bases(home: &Path, vault_base: Option<&Path>) -> Vec<PathBuf> {
     if let Some(vault) = vault_base {
         bases.push(vault.join("attachments"));
     }
+    // Phase 1 云打包：其余云盘同步目录与 attachment 白名单同源（cloud_targets 检测）。
+    for t in crate::commands::cloud_targets::detect_cloud_sync_dirs(home) {
+        if let Ok(canon) = PathBuf::from(&t.path).canonicalize() {
+            bases.push(canon);
+        }
+    }
     bases
 }
 
