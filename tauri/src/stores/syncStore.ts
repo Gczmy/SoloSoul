@@ -192,6 +192,8 @@ interface SyncStoreState extends SyncStatus {
   clearPairingPending: () => void;
   /** 清除 B 侧入站配对请求。 */
   clearIncomingPairingRequest: () => void;
+  /** A-002: 锁定 Vault 时清空账号派生的设备同步元数据（peer/指纹/结果/冲突），不残留内存。 */
+  clearOnVaultLock: () => void;
 }
 
 export const useSyncStore = create<SyncStoreState>((set, get) => {
@@ -556,6 +558,24 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     /** 清除 B 侧入站配对请求（确认或忽略后）。 */
     clearIncomingPairingRequest: () => {
       set({ incomingPairingRequest: null });
+    },
+
+    /** A-002: 锁定 Vault 后清空账号派生的设备元数据与同步结果（保留纯 UI 开关状态）。 */
+    clearOnVaultLock: () => {
+      set({
+        localFingerprint: '',
+        connectedPeers: [],
+        lastResult: null,
+        recentResults: [],
+        discoveredDevices: [],
+        listenAddr: '',
+        conflicts: [],
+        selectedConflict: null,
+        hasUnreadConflicts: false,
+        error: null,
+      });
+      get().clearPairingPending();
+      get().clearIncomingPairingRequest();
     },
 
     /** 初始化 sync-completed 事件监听器（响应方入站同步完成通知）。
