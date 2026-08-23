@@ -2305,19 +2305,18 @@ mod tests {
         );
     }
 
-
-/// P011 核验补修：扫描系统 temp 下全部 solosoul_import_att_* 条目名
-/// （含随机目录与历史遗留的固定目录），供残留对比断言使用。
-fn scan_import_att_entries() -> std::collections::HashSet<String> {
-    let mut out = std::collections::HashSet::new();
-    if let Ok(rd) = std::fs::read_dir(std::env::temp_dir()) {
-        for e in rd.flatten() {
-            let name = e.file_name().to_string_lossy().to_string();
-            if name.starts_with("solosoul_import_att") || name == "solosoul_export_att" {
-                out.insert(name);
+    /// P011 核验补修：扫描系统 temp 下全部 solosoul_import_att_* 条目名
+    /// （含随机目录与历史遗留的固定目录），供残留对比断言使用。
+    fn scan_import_att_entries() -> std::collections::HashSet<String> {
+        let mut out = std::collections::HashSet::new();
+        if let Ok(rd) = std::fs::read_dir(std::env::temp_dir()) {
+            for e in rd.flatten() {
+                let name = e.file_name().to_string_lossy().to_string();
+                if name.starts_with("solosoul_import_att") || name == "solosoul_export_att" {
+                    out.insert(name);
+                }
             }
         }
+        out
     }
-    out
-}
 }
