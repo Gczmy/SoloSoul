@@ -55,7 +55,7 @@
 | P024 | P2 | 死代码 | 详见下文清单 | 6 个 `export` 仅在定义文件内部使用，可去掉 export（无整文件级死代码） | `[x]` 已修复 |
 | P025 | P2 | 重复代码 | 详见下文清单 | 已有共享 `CopyButton.tsx`，仍有 ≥7 处自行实现「复制到剪贴板+已复制反馈」 | `[x]` 已修复（hook 方案） |
 | P026 | P2 | 重复代码 | 详见下文清单 | `visibleLimit`+slice+「加载更多」增量分页模式重复出现于 5+ 文件，可抽公共 hook | `[x]` 已修复 |
-| P027 | P2 | 规范偏离 | `src/components/editor/FieldSuggestions.tsx:47,125-131` | 字段推荐对 internal 级明文展示（有意设计且有注释），与 P036 不一致，建议确认例外或写回 AGENTS.md | `[ ]` 待修复 |
+| P027 | P2 | 规范偏离 | `src/components/editor/FieldSuggestions.tsx:47,125-131` | 字段推荐对 internal 级明文展示（有意设计且有注释），与 P036 不一致，建议确认例外或写回 AGENTS.md | `[x]` 已确认例外并写入 design_map/12 规范 |
 | P028 | P2 | 规范偏离 | `src/components/sync/SyncConflictDialog.tsx:373-433` + `src-tauri/src/commands/sync.rs:371` | 同步冲突对话框明文渲染 sensitive/critical 字段差异值（场景可辩护），建议对受保护字段加揭示交互 | `[ ]` 待修复 |
 | P029 | P2 | 架构 | `src-tauri/src/commands/vault_directory.rs:160-166` | `vault_set_directory` 后端锁定 Vault 但不 emit `vault-locked` 事件，前端认证态不失效，后续命令报锁错误但 UI 仍显示已解锁 | `[x]` 已修复 |
 | P030 | P2 | i18n | `src/pages/settings/CloudSyncPage.tsx:603` | `common:enabled` / `common:disabled` 双语均缺 key 且无 defaultValue，UI 直接渲染原始 key 字符串 | `[x]` 已修复 |
