@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { MASK_PLACEHOLDER, shouldMaskSensitivity } from '@/lib/masking';
+import { useRevealState } from '@/hooks/useRevealState';
+import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { Dialog } from '@/components/ui/Dialog';
@@ -44,6 +47,69 @@ function DiffIcon({ icon }: { icon: LucideIcon }) {
   return <Icon size={14} strokeWidth={1.8} />;
 }
 
+/**
+ * P028：从冲突详情的 properties JSON 提取「字段 key → 敏感度等级」映射。
+ * 口径与 solosoul_vault::object_field_sensitivity_levels 一致（__fields.sensitivityLevel）。
+ * 冲突详情不含 property_labels，仅能取 __fields 内嵌定义；无定义的字段不掩码。
+ */
+function extractFieldLevels(data: unknown): Map<string, SensitivityLevel> {
+  const map = new Map<string, SensitivityLevel>();
+  if (!data || typeof data !== 'object') return map;
+  const fields = (data as Record<string, unknown>)['__fields'];
+  if (!fields || typeof fields !== 'object') return map;
+  for (const [key, def] of Object.entries(fields as Record<string, unknown>)) {
+    if (!def || typeof def !== 'object') continue;
+    const lvl = (def as Record<string, unknown>).sensitivityLevel;
+    if (
+      lvl === 'public' ||
+      lvl === 'internal' ||
+      lvl === 'sensitive' ||
+      lvl === 'critical'
+    ) {
+      // 同一字段本地/远程定义可能不一致时取更严格者
+      const prev = map.get(key);
+      const rank: Record<SensitivityLevel, number> = {
+        public: 0,
+        internal: 1,
+        sensitive: 2,
+        critical: 3,
+      };
+      if (!prev || rank[lvl] > rank[prev]) map.set(key, lvl);
+    }
+  }
+  return map;
+}
+
+/**
+ * P028：冲突差异值渲染——受保护字段默认掩码，点击临时揭示。
+ * 揭示态由父组件 useRevealState 管理（1 分钟 TTL 自动重掩）。
+ */
+function ProtectedValue({
+  fieldKey,
+  protectedField,
+  isRevealed,
+  onReveal,
+  children,
+}: {
+  fieldKey: string;
+  protectedField?: boolean;
+  isRevealed?: (key: string) => boolean;
+  onReveal?: (key: string) => void;
+  children: React.ReactNode;
+}) {
+  if (!protectedField) return <>{children}</>;
+  if (isRevealed?.(fieldKey)) return <>{children}</>;
+  return (
+    <span
+      onClick={() => onReveal?.(fieldKey)}
+      style={{ cursor: 'pointer', userSelect: 'none' }}
+      title="点击揭示"
+    >
+      {MASK_PLACEHOLDER}
+    </span>
+  );
+}
+
 /** 字段级 diff 行：合并本地/远程顶层键，逐字段比对；省略用户无法感知/修改的元数据行。
  * `onlyDifferences` 为 true 时仅保留有差异的行（「只看差异」模式）。 */
 function buildFieldRows(
@@ -77,6 +143,21 @@ export function SyncConflictDialog({
   const { t } = useTranslation(['settings', 'common']);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [onlyDifferences, setOnlyDifferences] = useState(false);
+  // P028：受保护字段（sensitive/critical）揭示交互——冲突解决需看清差异，
+  // 但默认仍按掩码约定遮蔽，点击临时揭示（1 分钟 TTL 自动重掩）。
+  const revealState = useRevealState();
+  const fieldLevels = detail
+    ? (() => {
+        const l = extractFieldLevels(detail.local_data);
+        for (const [k, v] of extractFieldLevels(detail.remote_data)) {
+          const prev = l.get(k);
+          if (!prev || v === 'critical' || (v === 'sensitive' && prev !== 'critical')) {
+            l.set(k, v);
+          }
+        }
+        return l;
+      })()
+    : new Map<string, SensitivityLevel>();
 
   useEffect(() => {
     if (isOpen && conflicts.length > 0 && !selectedId) {
@@ -110,15 +191,22 @@ export function SyncConflictDialog({
 
   // P027: 字段行抽为子组件（降低 JSX 嵌套深度）；diff 行渲染与计数逻辑保持一致。
   // detail 仅在下方 `detail && selectedConflict` 分支内调用，非空断言安全。
-  const renderFieldRow = (row: { key: string; local: unknown; remote: unknown; changed: boolean }) => (
-    <ConflictFieldRow
-      key={row.key}
-      row={row}
-      detail={detail!}
-      onlyDifferences={onlyDifferences}
-      t={t}
-    />
-  );
+  const renderFieldRow = (row: { key: string; local: unknown; remote: unknown; changed: boolean }) => {
+    const level = fieldLevels.get(row.key);
+    const protectedField = !!level && shouldMaskSensitivity(level);
+    return (
+      <ConflictFieldRow
+        key={row.key}
+        row={row}
+        detail={detail!}
+        onlyDifferences={onlyDifferences}
+        t={t}
+        protectedField={protectedField}
+        isRevealed={(k: string) => !revealState.shouldMask(k, level ?? 'public')}
+        onReveal={(k: string) => revealState.reveal(k)}
+      />
+    );
+  };
   const diffCount = fieldRows.reduce(
     (n, row) =>
       n +
@@ -329,11 +417,18 @@ function ConflictFieldRow({
   detail,
   onlyDifferences,
   t,
+  protectedField,
+  isRevealed,
+  onReveal,
 }: {
   row: { key: string; local: unknown; remote: unknown; changed: boolean };
   detail: SyncConflictDetail;
   onlyDifferences: boolean;
   t: TFunction;
+  /** P028：该字段是否为受保护级（sensitive/critical） */
+  protectedField?: boolean;
+  isRevealed?: (key: string) => boolean;
+  onReveal?: (key: string) => void;
 }) {
   // 对象/数组字段展开为叶子级条目，逐行高亮差异；标量字段沿用整值渲染
   const diffEntries = detail.remote_deleted
@@ -374,10 +469,24 @@ function ConflictFieldRow({
                 ) : e.localIcon ? (
                   <span className={styles.diffValueWithIcon}>
                     <DiffIcon icon={e.localIcon} />
-                    {truncateConflictValue(e.localText)}
+                    <ProtectedValue
+                      fieldKey={row.key}
+                      protectedField={protectedField}
+                      isRevealed={isRevealed}
+                      onReveal={onReveal}
+                    >
+                      {truncateConflictValue(e.localText)}
+                    </ProtectedValue>
                   </span>
                 ) : (
-                  truncateConflictValue(e.localText)
+                  <ProtectedValue
+                    fieldKey={row.key}
+                    protectedField={protectedField}
+                    isRevealed={isRevealed}
+                    onReveal={onReveal}
+                  >
+                    {truncateConflictValue(e.localText)}
+                  </ProtectedValue>
                 )}
               </div>
             ))}
@@ -387,10 +496,24 @@ function ConflictFieldRow({
         ) : localIcon ? (
           <span className={styles.diffValueWithIcon}>
             <DiffIcon icon={localIcon} />
-            {truncateConflictValue(formatConflictValue(row.key, row.local, t))}
+            <ProtectedValue
+              fieldKey={row.key}
+              protectedField={protectedField}
+              isRevealed={isRevealed}
+              onReveal={onReveal}
+            >
+              {truncateConflictValue(formatConflictValue(row.key, row.local, t))}
+            </ProtectedValue>
           </span>
         ) : (
-          truncateConflictValue(formatConflictValue(row.key, row.local, t))
+          <ProtectedValue
+            fieldKey={row.key}
+            protectedField={protectedField}
+            isRevealed={isRevealed}
+            onReveal={onReveal}
+          >
+            {truncateConflictValue(formatConflictValue(row.key, row.local, t))}
+          </ProtectedValue>
         )}
       </div>
       <div className={styles.fieldValue}>
@@ -417,10 +540,24 @@ function ConflictFieldRow({
                 ) : e.remoteIcon ? (
                   <span className={styles.diffValueWithIcon}>
                     <DiffIcon icon={e.remoteIcon} />
-                    {truncateConflictValue(e.remoteText)}
+                    <ProtectedValue
+                      fieldKey={row.key}
+                      protectedField={protectedField}
+                      isRevealed={isRevealed}
+                      onReveal={onReveal}
+                    >
+                      {truncateConflictValue(e.remoteText)}
+                    </ProtectedValue>
                   </span>
                 ) : (
-                  truncateConflictValue(e.remoteText)
+                  <ProtectedValue
+                    fieldKey={row.key}
+                    protectedField={protectedField}
+                    isRevealed={isRevealed}
+                    onReveal={onReveal}
+                  >
+                    {truncateConflictValue(e.remoteText)}
+                  </ProtectedValue>
                 )}
               </div>
             ))}
@@ -430,10 +567,24 @@ function ConflictFieldRow({
         ) : remoteIcon ? (
           <span className={styles.diffValueWithIcon}>
             <DiffIcon icon={remoteIcon} />
-            {truncateConflictValue(formatConflictValue(row.key, row.remote, t))}
+            <ProtectedValue
+              fieldKey={row.key}
+              protectedField={protectedField}
+              isRevealed={isRevealed}
+              onReveal={onReveal}
+            >
+              {truncateConflictValue(formatConflictValue(row.key, row.remote, t))}
+            </ProtectedValue>
           </span>
         ) : (
-          truncateConflictValue(formatConflictValue(row.key, row.remote, t))
+          <ProtectedValue
+            fieldKey={row.key}
+            protectedField={protectedField}
+            isRevealed={isRevealed}
+            onReveal={onReveal}
+          >
+            {truncateConflictValue(formatConflictValue(row.key, row.remote, t))}
+          </ProtectedValue>
         )}
       </div>
     </div>
