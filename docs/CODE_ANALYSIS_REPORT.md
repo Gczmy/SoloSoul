@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-23 22:10:00
+> 最后更新：2026-08-23 22:20:00
 > 修复轮次：2（进入阶段 3 修复）
 > 当前分支：`main`
 > 前置轮次：1（初始分析，本轮仅分析不修复）
@@ -41,7 +41,7 @@
 | P010 | P1 | 可维护性 | `src/pages/settings/VaultDirectorySection.tsx:27-423` | 单组件约 369 行 | `[ ]` 待修复 |
 | P011 | P2 | 安全 | `crates/solosoul-core/src/export_import.rs:221-237,1218-1242,2214` | 导出/导入附件临时明文落共享 temp 目录（可预测目录名、未设 0700/0600）；同仓库其他路径均已收紧权限，此处是离群点 | `[x]` 已修复 |
 | P012 | P2 | 安全（加固） | `crates/solosoul-sync/src/recovery.rs:269-279,184` | Recovery 主机指纹校验可选（手动输入路径无 MITM 防线），且主机端接受裸 PIN 认证；已有限流/一次性 nonce 缓解，建议加固 | `[ ]` 待修复 |
-| P013 | P2 | 性能/事务 | `crates/solosoul-vault/src/storage/snapshots.rs:369-414` | `repair_invisible_objects` 循环内逐行 query_row + UPDATE 无事务（有一次性标记兜底，仅跑一次，故 P2） | `[ ]` 待修复 |
+| P013 | P2 | 性能/事务 | `crates/solosoul-vault/src/storage/snapshots.rs:369-414` | `repair_invisible_objects` 循环内逐行 query_row + UPDATE 无事务（有一次性标记兜底，仅跑一次，故 P2） | `[x]` 已修复 |
 | P014 | P2 | 性能 | `crates/solosoul-vault/src/storage/objects.rs:448` | `save_object_tx` 无条件克隆整棵 properties JSON，即使无需注入 `__templateName`；可加 `template_id.is_some()` 惰性克隆 | `[ ]` 待修复 |
 | P015 | P2 | 性能 | `src-tauri/src/commands/export_import/import.rs:130-135` | `import_decrypt_preview` 整包读入内存（上限 100MB，峰值约 3×100MB）；主导入路径已流式化，预览路径遗留 | `[ ]` 待修复 |
 | P016 | P2 | 重复代码 | `crates/solosoul-vault/src/storage/reencrypt.rs:54,106,126` | 三个 reencrypt 函数仅表名不同、函数体逐字节相同；`storage.rs:595` 已有通用版可收敛 | `[ ]` 待修复 |
@@ -62,8 +62,13 @@
 
 ## 修复进度
 
-- 已完成：9 / 30（P0: 0，P1: 6，P2: 3）
-- 当前处理：P013
+- 已完成：10 / 30（P0: 0，P1: 6，P2: 4）
+- 当前处理：P014
+
+#### 修复说明（续）
+- **P013**：`repair_restored_objects` 的 SELECT 先收集、stmt 提前 drop，
+  修复循环整体包 `with_tx`（失败回滚不留半改状态）；REPAIR_FLAG 仅在
+  事务成功后落位。solosoul-vault 测试回归通过。
 
 #### 修复说明（续）
 - **P011**：新增 `create_private_temp_dir`（0700 + UUID 随机目录名）与
