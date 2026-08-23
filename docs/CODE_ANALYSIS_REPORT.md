@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-23 20:30:00
+> 最后更新：2026-08-23 20:50:00
 > 修复轮次：2（进入阶段 3 修复）
 > 当前分支：`main`
 > 前置轮次：1（初始分析，本轮仅分析不修复）
@@ -31,7 +31,7 @@
 |------|--------|------|----------|------|------|
 | P001 | P1 | 规范/CI | `src-tauri/permissions/solo-soul/default.toml` | 8 个 cloud_sync 命令已注册 handler 且前端在调，但未登记 ACL 白名单；`check_acl_consistency.py` exit 1，CI（pr_check.yml）必红，运行时 ACL 拒绝 | `[x]` 已修复 |
 | P002 | P1 | 架构 | `src-tauri/src/lib.rs:46-193`（定义于 `commands/settings.rs:166-181`） | `ui_get_preferences` 有 `#[tauri::command]` 定义且进了 ACL，但从未注册进 `generate_handler!`，前端三处调用永远失败并被静默吞掉 | `[x]` 已修复 |
-| P003 | P1 | 漏洞 | `crates/solosoul-core/src/cloud_sync/webdav.rs:48-65` | WebDAV 连接器允许 `http://` + Basic 认证，账号密码明文传输；与 LLM/OCR 的「非回环强制 https」策略不一致，错误文案与行为自相矛盾 | `[ ]` 待修复 |
+| P003 | P1 | 漏洞 | `crates/solosoul-core/src/cloud_sync/webdav.rs:48-65` | WebDAV 连接器允许 `http://` + Basic 认证，账号密码明文传输；与 LLM/OCR 的「非回环强制 https」策略不一致，错误文案与行为自相矛盾 | `[x]` 已修复 |
 | P004 | P1 | 安全/规范 | `src/lib/searchShared.tsx:175-183` + `crates/solosoul-core/src/search_filter.rs:11` | 搜索结果中 internal 级字段命中值明文渲染，无 `useRevealState`/`maskValue`，违反 P036 掩码统一约定 | `[ ]` 待修复 |
 | P005 | P1 | 安全 | `src/components/layout/SearchPopover.tsx:49-63` | 最近搜索词明文持久化 localStorage（`solosoul_recent_searches`），不按账户隔离，Vault 锁定/退出时不清除 | `[ ]` 待修复 |
 | P006 | P1 | 性能/事务 | `crates/solosoul-vault/src/storage/snapshots.rs:547-584` | `copy_snapshots` 循环逐条 INSERT 无事务包裹（中途失败留半成品），且同钥 decrypt→encrypt 纯浪费，应直接复制密文 | `[ ]` 待修复 |
@@ -62,8 +62,14 @@
 
 ## 修复进度
 
-- 已完成：2 / 30（P0: 0，P1: 2，P2: 0）
-- 当前处理：P003
+- 已完成：3 / 30（P0: 0，P1: 3，P2: 0）
+- 当前处理：P004
+
+#### 修复说明（续）
+- **P003**：新增 `is_local_http_host` 判定——http 仅允许回环/RFC1918 私网/IPv6
+  unique-local/.local 主机名（局域网 NAS 明文属可接受用户选择）；公网 host http
+  返回 `ConfigMissing` 类型化错误并提示改用 https。单测 `test_p003_http_policy`
+  覆盖 9 种地址形态。E2E 9/9 回归通过（本地 wsgidav 即 127.0.0.1 回环）。
 
 #### 修复说明
 - **P001**：default.toml 按字母序补入 8 个命令；`check_acl_consistency.py` 现报
