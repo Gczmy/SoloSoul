@@ -60,10 +60,46 @@
 | P029 | P2 | 架构 | `src-tauri/src/commands/vault_directory.rs:160-166` | `vault_set_directory` 后端锁定 Vault 但不 emit `vault-locked` 事件，前端认证态不失效，后续命令报锁错误但 UI 仍显示已解锁 | `[x]` 已修复 |
 | P030 | P2 | i18n | `src/pages/settings/CloudSyncPage.tsx:603` | `common:enabled` / `common:disabled` 双语均缺 key 且无 defaultValue，UI 直接渲染原始 key 字符串 | `[x]` 已修复 |
 
+#### 修复说明（续）
+- **P027**：核实代码注释（推荐场景用途=引用同名字段快速填入，internal 在编辑页
+  本就以揭示态呈现）后，将例外正式写入 `docs/design_map/12_敏感度等级规范.md`
+  §2.3。
+- **P028**：新增 `extractFieldLevels`（从 __fields.sensitivityLevel 提取字段→
+  敏感度映射，本地/远程取更严格者）+ `ProtectedValue` 组件——受保护字段
+  默认 MASK_PLACEHOLDER，点击临时揭示（useRevealState 1 分钟 TTL）；标量行与
+  diffEntry 叶子行共 6 处值渲染全部包裹。TSC/Vitest(928) 回归通过。
+
 ## 修复进度
 
-- 已完成：19 / 30（P0: 0，P1: 6，P2: 13）
-- 当前处理：P027/P028（规范偏离确认类）
+- 已完成：21 / 30（P0: 0，P1: 6，P2: 15）
+- 延期：9 项（见「延期项处置决定」）
+
+## 延期项处置决定（2026-08-24 审查轮收尾）
+
+以下 9 项**不在本轮修复**，理由与建议时机如下：
+
+| ID | 类别 | 延期理由 | 建议时机 |
+|----|------|----------|----------|
+| P007 | CloudSyncPage 拆分（~535 行） | 纯可维护性、无缺陷；拆分需逐段人工验证 UI 行为，当前无 E2E 覆盖该页 | v2.13.0 发布后专项重构轮 |
+| P008 | DatePicker 拆分（~385 行） | 同上；键盘/滚轮交互回归只能手测 | 同上 |
+| P009 | useExportImportPage 拆分 | 导入导出为发布关键路径，发布前不宜大动 | 同上 |
+| P010 | VaultDirectorySection 拆分 | 同上 | 同上 |
+| P012 | Recovery 指纹强制化 | UX 流程变更（手动输入路径要求录指纹），需产品确认 + GUI/CLI 双端改造 + i18n + 测试 | 产品决策后单独排期 |
+| P018 | 93 处 lock 守卫样板宏收敛 | 报告自述「设计惯性非 bug」；93 处机械替换 churn 大、回归面广、零行为收益 | 触碰 storage 层时渐进采用新 helper，不做一次性迁移 |
+| P019 | Rust 过长函数 Top10 | 与 P007-P010 同理；import_attachments(159行) 等位于发布关键路径 | 专项重构轮 |
+| P020 | Rust 深层嵌套 | auto_sync_core 8 层主要为 tokio::select! 结构性嵌套，实际风险低 | 专项重构轮 |
+| P021 | 前端超长组件第二梯队（8 处） | 同上 | 专项重构轮 |
+
+## 收尾验证基线（本轮修复后）
+
+- `cargo fmt --check` / `clippy -D warnings`：✅
+- Rust workspace：**994 passed / 0 failed**
+- TSC / ESLint：✅（0 error 0 warning）
+- Vitest：**928 passed**
+- `check_acl_consistency.py`：✅ 205 命令全登记
+- `check-missing-i18n.mjs`：✅ 双语 0 缺失
+
+#### 补充修复说明（历史条目存档）
 
 #### 修复说明（续）
 - **P026**：新增 `useIncrementalWindow(initial, step)`（limit/hasMore/showMore/
