@@ -220,14 +220,7 @@ impl CloudConnector for WebDavConnector {
         reader: Pin<Box<dyn AsyncRead + Send>>,
         total_size: u64,
     ) -> CloudResult<(String, String)> {
-        // 确保父目录存在
-        if let Some(parent) = std::path::Path::new(remote_path).parent() {
-            let parent_str = parent.to_string_lossy().to_string();
-            if parent_str != "." && !parent_str.is_empty() {
-                self.ensure_dir(&parent_str).await?;
-            }
-        }
-
+        // N-003：父目录创建由 put_stream 统一处理，此处不再重复
         self.put_stream(remote_path, reader, total_size, None).await
     }
 

@@ -23,7 +23,7 @@ fmt/clippy/tsc/ESLint/Vitest/Rust workspace(993)/E2E(9) 全绿；函数重复定
 |-------|--------|----------|-------------------------------------------------------|------------------------------------------------------------------------------------------|-------------|
 | N-101 | P1     | 行为回归 | `src-tauri/src/commands/recovery.rs`                  | 恢复主机导入完成后丢失 `auto_sync.trigger_debounce()` 触发——原内部实现无条件调用，重构后仅 advanced 调用方补了触发 | `[ ]` 待修复 |
 | N-102 | P2     | 行为偏差 | `commands/export_import/import.rs:272`                | advanced 导入的 debounce 触发移到了结果判定之前：导入失败也会触发自动同步（原为成功才触发） | `[ ]` 待修复 |
-| N-003 | P2     | 性能     | `crates/solosoul-core/src/cloud_sync/webdav.rs:141-149` | `upload` 先做 `ensure_dir` 后委托 `put_stream`，而 put_stream 内部再做一次——每次上传多一轮 PROPFIND/MKCOL 网络往返（快照上传热路径） | `[ ]` 待修复 |
+| N-003 | P2     | 性能     | `crates/solosoul-core/src/cloud_sync/webdav.rs:141-149` | `upload` 先做 `ensure_dir` 后委托 `put_stream`，而 put_stream 内部再做一次——每次上传多一轮 PROPFIND/MKCOL 网络往返（快照上传热路径） | `[x]` 已修复 |
 | N-104 | P3     | i18n     | `src-tauri/src/sync/cloud_auto_sync.rs:756`           | `auto_import_one` 的导入 locale 硬编码 `"zh-CN"`，应使用系统默认 locale                    | `[ ]` 待修复 |
 
 ## 详细说明与修复方案
