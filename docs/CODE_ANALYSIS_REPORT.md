@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-23 23:45:00
+> 最后更新：2026-08-24 00:05:00
 > 修复轮次：2（进入阶段 3 修复）
 > 当前分支：`main`
 > 前置轮次：1（初始分析，本轮仅分析不修复）
@@ -53,7 +53,7 @@
 | P022 | P2 | 性能 | `src/components/attachment/PhotoAlbumGrid.tsx:153` | 相册网格 `items.map` 全量渲染 DOM，无窗口化上限（缩略图已懒加载缓解） | `[x]` 已修复 |
 | P023 | P2 | 性能 | `src/pages/scan/ScanLocalPage.tsx:107` | 目录导入 `Promise.allSettled` 并发无上限，大目录瞬时打出大量 IPC | `[x]` 已修复 |
 | P024 | P2 | 死代码 | 详见下文清单 | 6 个 `export` 仅在定义文件内部使用，可去掉 export（无整文件级死代码） | `[x]` 已修复 |
-| P025 | P2 | 重复代码 | 详见下文清单 | 已有共享 `CopyButton.tsx`，仍有 ≥7 处自行实现「复制到剪贴板+已复制反馈」 | `[ ]` 待修复 |
+| P025 | P2 | 重复代码 | 详见下文清单 | 已有共享 `CopyButton.tsx`，仍有 ≥7 处自行实现「复制到剪贴板+已复制反馈」 | `[x]` 已修复（hook 方案） |
 | P026 | P2 | 重复代码 | 详见下文清单 | `visibleLimit`+slice+「加载更多」增量分页模式重复出现于 5+ 文件，可抽公共 hook | `[ ]` 待修复 |
 | P027 | P2 | 规范偏离 | `src/components/editor/FieldSuggestions.tsx:47,125-131` | 字段推荐对 internal 级明文展示（有意设计且有注释），与 P036 不一致，建议确认例外或写回 AGENTS.md | `[ ]` 待修复 |
 | P028 | P2 | 规范偏离 | `src/components/sync/SyncConflictDialog.tsx:373-433` + `src-tauri/src/commands/sync.rs:371` | 同步冲突对话框明文渲染 sensitive/critical 字段差异值（场景可辩护），建议对受保护字段加揭示交互 | `[ ]` 待修复 |
@@ -62,8 +62,8 @@
 
 ## 修复进度
 
-- 已完成：17 / 30（P0: 0，P1: 6，P2: 11）
-- 当前处理：P004 剩余部分已并入；下一项 P025
+- 已完成：18 / 30（P0: 0，P1: 6，P2: 12）
+- 当前处理：P026
 
 #### 修复说明（续）
 - **P023**：handleImportAll 改 CONCURRENCY=4 分批 allSettled，失败统计语义
@@ -147,6 +147,16 @@
 - **P002**：lib.rs generate_handler! 补注册 `commands::settings::ui_get_preferences`
   （测试断言字符串清单本就含此命令，印证遗漏）；settingsStore/notification/onboarding
   三处读链路恢复。
+
+#### 补充说明（P025 方案选择）
+
+未采用「全部换用 plugin-market 的 CopyButton 组件」——其样式/文案形态与各站点差异大
+（图标按钮、键控多目标、toast 反馈），强行替换会改变视觉与交互。改为抽取共享
+`useCopyToClipboard` hook（copy 返回布尔 + 键控 copied 态 + execCommand fallback），
+6 个站点保留各自样式仅收敛逻辑：GuideCodeBlock、PluginResultPanel、
+useObjectDetailModal（copiedField 键控）、useLlmChatCore（copiedIndex 键控）、
+AccountSettingsPage（toast 驱动）、SyncShowQrDialog（addr/pin 双键，含 fallback）。
+RecoveryQrContent 为纯展示组件（props 驱动），随 SyncShowQrDialog 一并受益。
 
 ## 详细问题描述与修复指引
 
