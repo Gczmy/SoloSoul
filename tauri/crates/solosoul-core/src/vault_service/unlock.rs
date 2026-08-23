@@ -458,22 +458,9 @@ impl super::VaultService {
             .map_err(|_| "Account not found".to_string())?;
 
         // 更新 config：新 salt、新 verify hash、生产参数。
-        let content = String::from_utf8(old_config_content.clone())
-            .map_err(|_| "Config encoding error".to_string())?;
-        let mut config: AccountConfig =
-            serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
-        config.crypto_version = 3; // P2-010: HKDF-based verify hash
-        config.salt =
-            base64::Engine::encode(&base64::engine::general_purpose::STANDARD, salt.as_slice());
-        let mk: [u8; 32] = new_key_arr;
-        config.verify_hash = hex::encode(
-            solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1")
-                .map_err(|e| format!("Verify HKDF failed: {}", e))?,
-        );
-        config.kdf_memory_kb = Some(new_kdf_config.memory_kb);
-        config.kdf_iterations = Some(new_kdf_config.iterations);
-        config.kdf_parallelism = Some(new_kdf_config.parallelism);
-        let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
+        // P019-③：config 构造拆至 build_upgraded_config。
+        let config_json =
+            build_upgraded_config(&old_config_content, &salt, &new_key_arr, &new_kdf_config)?;
 
         // R-4① 方案 2：reencrypt 前先把新 config 原子写入 pending 载体。
         self.write_config_pending(account_id, config_json.as_bytes())?;
@@ -1214,4 +1201,30 @@ impl super::VaultService {
     pub fn get_current_account(&self) -> Option<String> {
         self.unlocked_account.read().ok()?.clone()
     }
+}
+
+
+/// P019-③：KDF 升级用新 AccountConfig 构造（自 unlock_with_kdf_upgrade 拆出）。
+/// 新 salt + HKDF verify hash + 生产 KDF 参数；输入旧 config 内容以保留其余字段。
+fn build_upgraded_config(
+    old_config_content: &[u8],
+    salt: &[u8],
+    new_master_key: &[u8; 32],
+    kdf: &KdfConfig,
+) -> Result<String, String> {
+    let content =
+        String::from_utf8(old_config_content.to_vec()).map_err(|_| "Config encoding error".to_string())?;
+    let mut config: AccountConfig =
+        serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
+    config.crypto_version = 3; // P2-010: HKDF-based verify hash
+    config.salt =
+        base64::Engine::encode(&base64::engine::general_purpose::STANDARD, salt);
+    config.verify_hash = hex::encode(
+        solosoul_crypto::hkdf_ext::derive_hkdf_key(new_master_key, salt, b"SOLOSOUL_VAULT_VERIFY_v1")
+            .map_err(|e| format!("Verify HKDF failed: {}", e))?,
+    );
+    config.kdf_memory_kb = Some(kdf.memory_kb);
+    config.kdf_iterations = Some(kdf.iterations);
+    config.kdf_parallelism = Some(kdf.parallelism);
+    serde_json::to_string_pretty(&config).map_err(|e| e.to_string())
 }
