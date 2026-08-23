@@ -400,7 +400,7 @@ async fn run_sync_inner(
     .await?;
 
     // ── 5. 下行检测：其他设备新水线 → 下载待导入 → 通知前端 ────
-    detect_and_fetch_incoming(connector.as_ref(), pre, app_handle).await?;
+    detect_and_fetch_incoming(connector.as_ref(), pre, vault_service, app_handle).await?;
 
     Ok(())
 }
@@ -628,6 +628,7 @@ async fn apply_retention(
 async fn detect_and_fetch_incoming(
     connector: &dyn CloudConnector,
     pre: &CloudPreContext,
+    vault_service: &Arc<std::sync::RwLock<VaultService>>,
     app_handle: &AppHandle,
 ) -> Result<(), String> {
     let root = root_prefix(&pre.config);
@@ -648,7 +649,6 @@ async fn detect_and_fetch_incoming(
         // 本地已记录的该设备水线（短暂持锁读 sys_config）
         let applied_key = format!("{}{}", APPLIED_KEY_PREFIX, device_id);
         let applied = {
-            // 通过 AppHandle 取 AppState 再借 VaultStore（同步、无 await 点）
             let state = app_handle.try_state::<crate::state::AppState>();
             match state {
                 Some(s) => match s.vault_service.read() {
@@ -683,16 +683,40 @@ async fn detect_and_fetch_incoming(
         incoming_files.push(dest.to_string_lossy().to_string());
     }
 
-    if !incoming_files.is_empty() {
-        tracing::info!(
-            "[CloudSync] {} incoming snapshot(s) ready for import",
-            incoming_files.len()
-        );
+    if incoming_files.is_empty() {
+        return Ok(());
+    }
+    tracing::info!(
+        "[CloudSync] {} incoming snapshot(s) detected",
+        incoming_files.len()
+    );
+
+    // B-06：auto_import 开启 → 静默自动导入（skipExisting 安全策略）并标记水线；
+    // 关闭 → 维持 v1 行为（emit 事件由前端引导一键导入）。导入失败的单个文件保留
+    // 在 incoming 目录，下轮继续尝试/等待手动处理。
+    let mut pending_manual: Vec<String> = Vec::new();
+    for file in &incoming_files {
+        let imported = if pre.config.auto_import {
+            auto_import_one(pre, vault_service, file)
+                .await
+                .unwrap_or_else(|e| {
+                    tracing::warn!("[CloudSync] 自动导入 {:?} 失败: {}", file, e);
+                    false
+                })
+        } else {
+            false
+        };
+        if !imported {
+            pending_manual.push(file.clone());
+        }
+    }
+
+    if !pending_manual.is_empty() {
         app_handle
             .emit(
                 "cloud-sync-incoming",
                 serde_json::json!({
-                    "files": incoming_files,
+                    "files": pending_manual,
                     "hint": "使用导入功能并输入云同步快照口令即可合并其他设备的数据",
                 }),
             )
@@ -701,33 +725,80 @@ async fn detect_and_fetch_incoming(
     Ok(())
 }
 
-// ── 工具函数 ────────────────────────────────────────────────
+/// B-06：静默导入单个云端快照。成功返回 true（并记录已应用水线）。
+///
+/// 复用 `import_execute_internal`（skipExisting + 全量选择），读锁在 spawn_blocking
+/// 内获取；导入成功后从 sys_config 记录该设备水线。
+async fn auto_import_one(
+    pre: &CloudPreContext,
+    vault_service: &Arc<std::sync::RwLock<VaultService>>,
+    file: &str,
+) -> Result<bool, String> {
+    // 从文件路径推导 device_id / hlc：
+    //   {base}/cloud_sync_incoming/{device_id}/{hlc}.solosoul
+    let path = Path::new(file);
+    let hlc = path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .ok_or("非法快照文件名")?
+        .to_string();
+    let device_id = path
+        .parent()
+        .and_then(|p| p.file_name())
+        .and_then(|s| s.to_str())
+        .ok_or("非法快照目录结构")?
+        .to_string();
 
-/// N-002：清理 cloud_sync_tmp 中超过 24h 的陈旧临时快照（best-effort）。
-async fn sweep_stale_temp_snapshots(temp_dir: &Path) {
-    const STALE_SECS: i64 = 24 * 3600;
-    let cutoff = chrono::Utc::now().timestamp() - STALE_SECS;
-    if let Ok(mut entries) = tokio::fs::read_dir(temp_dir).await {
-        while let Ok(Some(entry)) = entries.next_entry().await {
-            let path = entry.path();
-            if !path.is_file() {
-                continue;
-            }
-            let stale = tokio::fs::metadata(&path)
-                .await
-                .and_then(|m| m.modified())
-                .ok()
-                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-                .map(|d| d.as_secs() as i64)
-                .map(|secs| secs < cutoff)
-                .unwrap_or(false);
-            if stale {
-                tracing::info!("[CloudSync] sweeping stale temp snapshot {:?}", path);
-                tokio::fs::remove_file(&path).await.ok();
-            }
+    let vs = vault_service.clone();
+    let account = pre.account_id.clone();
+    let pw = pre.config.snapshot_password.clone();
+    let file_owned = file.to_string();
+    let locale = "zh-CN".to_string();
+
+    // 导入为同步密集操作且需持锁：spawn_blocking 内获取读锁
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        let svc = vs
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        crate::commands::export_import::import_execute_internal(
+            svc,
+            account,
+            file_owned,
+            zeroize::Zeroizing::new(pw),
+            crate::commands::export_import::ImportStrategy::SkipExisting,
+            None,               // selections=None = 全量导入
+            None,               // 附件全选
+            Default::default(), // 无逐对象策略覆盖
+            &locale,
+            None, // 无进度回调
+        )
+        .map(|r| (r.object_count, r.attachment_count))
+    })
+    .await
+    .map_err(|e| format!("导入任务 join 失败: {e}"))?;
+
+    let (objects, attachments) = result.map_err(|e| format!("自动导入失败: {e}"))?;
+    tracing::info!(
+        "[CloudSync] auto-imported snapshot from {}: {} objects, {} attachments",
+        device_id,
+        objects,
+        attachments
+    );
+
+    // 记录已应用水线
+    let applied_key = format!("{}{}", APPLIED_KEY_PREFIX, device_id);
+    if let Ok(svc) = vault_service.read() {
+        if let Some(vault) = svc.get_vault_store() {
+            vault.set_sys_config(&applied_key, &hlc)?;
         }
     }
+
+    // 导入成功后删除本地待导入文件（数据已合并）
+    tokio::fs::remove_file(file).await.ok();
+    Ok(true)
 }
+
+// ── 工具函数 ────────────────────────────────────────────────
 
 fn root_prefix(config: &solosoul_vault::CloudSyncConfig) -> String {
     config
@@ -783,7 +854,31 @@ async fn download_to_vec(
     Ok(buf)
 }
 
-// ── 单元测试 ────────────────────────────────────────────────
+/// N-002：清理 cloud_sync_tmp 中超过 24h 的陈旧临时快照（best-effort）。
+async fn sweep_stale_temp_snapshots(temp_dir: &Path) {
+    const STALE_SECS: i64 = 24 * 3600;
+    let cutoff = chrono::Utc::now().timestamp() - STALE_SECS;
+    if let Ok(mut entries) = tokio::fs::read_dir(temp_dir).await {
+        while let Ok(Some(entry)) = entries.next_entry().await {
+            let path = entry.path();
+            if !path.is_file() {
+                continue;
+            }
+            let stale = tokio::fs::metadata(&path)
+                .await
+                .and_then(|m| m.modified())
+                .ok()
+                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                .map(|d| d.as_secs() as i64)
+                .map(|secs| secs < cutoff)
+                .unwrap_or(false);
+            if stale {
+                tracing::info!("[CloudSync] sweeping stale temp snapshot {:?}", path);
+                tokio::fs::remove_file(&path).await.ok();
+            }
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -851,6 +946,14 @@ mod tests {
         assert_eq!(remote_parent("nofile"), None);
     }
 
+    #[test]
+    fn test_root_prefix_fallback() {
+        let mut config = solosoul_vault::CloudSyncConfig::default();
+        assert_eq!(root_prefix(&config), "/SoloSoul/");
+        config.config_json = serde_json::json!({ "rootPrefix": "/MyVault/" });
+        assert_eq!(root_prefix(&config), "/MyVault/");
+    }
+
     #[tokio::test]
     async fn test_sweep_stale_temp_snapshots() {
         let dir = tempfile::tempdir().unwrap();
@@ -872,13 +975,5 @@ mod tests {
 
         assert!(!stale_path.exists(), "陈旧残留应被清理");
         assert!(fresh_path.exists(), "新鲜文件不应被清理");
-    }
-
-    #[test]
-    fn test_root_prefix_fallback() {
-        let mut config = solosoul_vault::CloudSyncConfig::default();
-        assert_eq!(root_prefix(&config), "/SoloSoul/");
-        config.config_json = serde_json::json!({ "rootPrefix": "/MyVault/" });
-        assert_eq!(root_prefix(&config), "/MyVault/");
     }
 }

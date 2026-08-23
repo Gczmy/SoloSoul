@@ -436,6 +436,9 @@ pub struct CloudSyncConfigPayload {
     /// 快照包加密口令（与主密码独立；保存时经主密码验证后入 Vault）。
     #[serde(default)]
     pub snapshot_password: String,
+    /// 自动导入云端新快照。
+    #[serde(default)]
+    pub auto_import: bool,
 }
 
 #[tauri::command]
@@ -466,6 +469,7 @@ pub async fn cloud_sync_save_config(
         retention: serde_json::from_value::<solosoul_vault::RetentionPolicy>(payload.retention)
             .map_err(|e| e.to_string())?,
         snapshot_password: payload.snapshot_password,
+        auto_import: payload.auto_import,
         last_sync_at: None,
     };
     vault.set_cloud_sync_config(&payload.account_id, config)?;
@@ -493,6 +497,7 @@ pub async fn cloud_sync_test_connection(payload: CloudSyncConfigPayload) -> Resu
         retention: serde_json::from_value::<solosoul_vault::RetentionPolicy>(payload.retention)
             .map_err(|e| e.to_string())?,
         snapshot_password: payload.snapshot_password,
+        auto_import: payload.auto_import,
         last_sync_at: None,
     };
     // Convert to core CloudSyncConfig for connector creation

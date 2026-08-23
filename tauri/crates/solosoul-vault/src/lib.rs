@@ -43,6 +43,9 @@ pub struct CloudSyncConfig {
     /// 同一账户所有设备配置相同口令后，任意设备均可解密云端快照）。
     #[serde(default)]
     pub snapshot_password: String,
+    /// 自动导入云端新快照（B-06，默认关闭：检测到仅通知前端引导手动导入）。
+    #[serde(default)]
+    pub auto_import: bool,
     /// 上次同步时间（用于增量判断）。
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_sync_at: Option<DateTime<Utc>>,

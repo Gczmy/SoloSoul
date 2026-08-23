@@ -387,8 +387,7 @@ pub async fn recovery_restore_from_host(
                 }),
             );
         }) as Arc<dyn Fn(u8) + Send + Sync>),
-    )
-    .await;
+    );
 
     // 清理下载的临时文件
     let _ = std::fs::remove_file(&file_path);

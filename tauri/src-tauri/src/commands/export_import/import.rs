@@ -267,8 +267,7 @@ pub async fn import_execute_advanced<R: tauri::Runtime>(
         req.object_strategies,
         &req.locale,
         None,
-    )
-    .await;
+    );
     // 导入触发本地数据变更自动同步（原核心内部行为，重构后移至调用方）
     state.auto_sync.trigger_debounce();
     result
@@ -278,8 +277,8 @@ pub async fn import_execute_advanced<R: tauri::Runtime>(
 /// 进度语义：对象阶段按循环下标报告 0-80（跳过对象也推进，保证阶段可到达 80），
 /// 附件阶段续接报告 80-100（`import_attachments` 内部换算），整体单调不回落。
 #[allow(clippy::too_many_arguments)]
-pub(crate) async fn import_execute_internal(
-    // B-06 重构：改收读锁 guard，使云同步自动导入等非命令上下文可复用。
+pub(crate) fn import_execute_internal(
+    // B-06 重构：改收读锁 guard（函数体内无 await 点，同步形式避免守卫跨 await 的 !Send），使云同步自动导入等非命令上下文可复用。
     svc: std::sync::RwLockReadGuard<'_, solosoul_core::vault_service::VaultService>,
     account_id: String,
     file_path: String,

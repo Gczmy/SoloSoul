@@ -59,6 +59,7 @@ export function CloudSyncPage() {
   const [enabled, setEnabled] = useState(false);
   const [intervalSecs, setIntervalSecs] = useState(3600);
   const [wifiOnly, setWifiOnly] = useState(true);
+  const [autoImport, setAutoImport] = useState(false);
   const [retention, setRetention] = useState<RetentionPolicy>(DEFAULT_RETENTION);
 
   // UI state
@@ -103,6 +104,7 @@ export function CloudSyncPage() {
         enabled: boolean;
         intervalSecs: number;
         wifiOnly: boolean;
+        autoImport?: boolean;
         retention: RetentionPolicy;
         lastSyncAt?: string;
       } | null>('cloud_sync_get_config', { accountId });
@@ -113,6 +115,7 @@ export function CloudSyncPage() {
         setEnabled(config.enabled);
         setIntervalSecs(config.intervalSecs);
         setWifiOnly(config.wifiOnly);
+        setAutoImport(config.autoImport ?? false);
         setRetention(config.retention);
       }
     } catch (e) {
@@ -144,6 +147,7 @@ export function CloudSyncPage() {
         enabled,
         intervalSecs,
         wifiOnly,
+        autoImport,
         retention,
       });
       onSuccess(t('settings:cloud_sync_saved'));
@@ -181,6 +185,7 @@ export function CloudSyncPage() {
         enabled,
         intervalSecs,
         wifiOnly,
+        autoImport,
         retention,
       });
       setTestResult({ success: true });
@@ -375,6 +380,19 @@ export function CloudSyncPage() {
                     />
                     {t('settings:cloud_sync_wifi_only')}
                   </label>
+                </div>
+
+                <div className={styles.fieldGroup}>
+                  <label className={styles.label}>
+                    <input
+                      type="checkbox"
+                      checked={autoImport}
+                      onChange={(e) => setAutoImport(e.target.checked)}
+                      className={styles.checkbox}
+                    />
+                    {t('settings:cloud_sync_auto_import')}
+                  </label>
+                  <p className={styles.hint}>{t('settings:cloud_sync_auto_import_hint')}</p>
                 </div>
               </>
             )}
