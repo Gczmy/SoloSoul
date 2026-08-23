@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-23 23:25:00
+> 最后更新：2026-08-23 23:35:00
 > 修复轮次：2（进入阶段 3 修复）
 > 当前分支：`main`
 > 前置轮次：1（初始分析，本轮仅分析不修复）
@@ -50,7 +50,7 @@
 | P019 | P2 | 可维护性 | 详见下文清单 | Rust 过长函数 Top10（>50 行非注释，最长 159 行） | `[ ]` 待修复 |
 | P020 | P2 | 可维护性 | 详见下文清单 | Rust 深层嵌套（≥5 层）多处，最深 `auto_sync_core.rs:87` 达 8 层 | `[ ]` 待修复 |
 | P021 | P2 | 可维护性 | 详见下文清单 | 前端超长组件第二梯队（6 个 300+ 行组件 + `pluginStore.runPlugin` 137 行 + `syncStore` 内嵌监听器 120 行） | `[ ]` 待修复 |
-| P022 | P2 | 性能 | `src/components/attachment/PhotoAlbumGrid.tsx:153` | 相册网格 `items.map` 全量渲染 DOM，无窗口化上限（缩略图已懒加载缓解） | `[ ]` 待修复 |
+| P022 | P2 | 性能 | `src/components/attachment/PhotoAlbumGrid.tsx:153` | 相册网格 `items.map` 全量渲染 DOM，无窗口化上限（缩略图已懒加载缓解） | `[x]` 已修复 |
 | P023 | P2 | 性能 | `src/pages/scan/ScanLocalPage.tsx:107` | 目录导入 `Promise.allSettled` 并发无上限，大目录瞬时打出大量 IPC | `[ ]` 待修复 |
 | P024 | P2 | 死代码 | 详见下文清单 | 6 个 `export` 仅在定义文件内部使用，可去掉 export（无整文件级死代码） | `[x]` 已修复 |
 | P025 | P2 | 重复代码 | 详见下文清单 | 已有共享 `CopyButton.tsx`，仍有 ≥7 处自行实现「复制到剪贴板+已复制反馈」 | `[ ]` 待修复 |
@@ -62,8 +62,12 @@
 
 ## 修复进度
 
-- 已完成：15 / 30（P0: 0，P1: 6，P2: 9）
-- 当前处理：P022
+- 已完成：16 / 30（P0: 0，P1: 6，P2: 10）
+- 当前处理：P023
+
+#### 修复说明（续）
+- **P022**：PhotoAlbumGrid 加增量窗口（INITIAL_VISIBLE_LIMIT=200，
+  「加载更多」按钮步进 200，items 变化重置）；组件测试 4 项回归通过。
 
 #### 修复说明（续）
 - **P024**：6 处冗余 export 全部去除（buildPdfPreviewSrc/SWIPE_THRESHOLD/
