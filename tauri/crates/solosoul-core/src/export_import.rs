@@ -191,6 +191,30 @@ pub struct ExportAttachmentEntry {
 /// 为 None（CLI 无解锁会话密钥）时若遇加密源明确报错（避免双重加密）。
 ///
 /// 返回是否写入过附件。
+/// P011：在系统临时目录下创建仅当前用户可访问的私有目录（Unix 0700），
+/// 目录名含随机 UUID 不可预测——避免多用户系统上其他用户预占目录或在
+/// 明文窗口期读取（对齐 GUI 侧 decrypt_to_temp_dir 的既有模式）。
+pub(crate) fn create_private_temp_dir(prefix: &str) -> Result<std::path::PathBuf, String> {
+    let dir = std::env::temp_dir()
+        .join(format!("solosoul_{}_{}", prefix, uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(&dir).map_err(|e| format!("创建临时目录失败: {}", e))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o700));
+    }
+    Ok(dir)
+}
+
+/// P011：临时明文文件权限收紧为仅当前用户可读写（Unix 0600，best-effort）。
+pub(crate) fn tighten_file_perms(path: &std::path::Path) {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600));
+    }
+}
+
 pub fn write_attachment_entries(
     zip: &mut ZipWriter<File>,
     options: SimpleFileOptions,
@@ -218,12 +242,12 @@ pub fn write_attachment_entries(
                     entry.obj_id, entry.att_id
                 )));
             };
-            let temp_dir = std::env::temp_dir().join("solosoul_export_att");
-            std::fs::create_dir_all(&temp_dir)
-                .map_err(|e| format!("准备导出临时目录失败: {}", e))?;
+            // P011：私有临时目录（0700 + 随机名）替代共享固定目录
+            let temp_dir = create_private_temp_dir("export_att")?;
             let temp_path = temp_dir.join(format!("{}.plain", uuid::Uuid::new_v4()));
             crate::attachment_crypto::copy_decrypt_file(vault_key, &entry.src, &temp_path)
                 .map_err(|e| format!("解密附件失败: {}", e))?;
+            tighten_file_perms(&temp_path);
             let file_size = std::fs::metadata(&temp_path).map(|m| m.len()).unwrap_or(0);
             let mut f = File::open(&temp_path).map_err(|e| format!("打开附件失败: {}", e))?;
             let mut reader = std::io::BufReader::new(&mut f);
@@ -1215,9 +1239,8 @@ pub fn import_attachments(
             // 消除明文窗口）。注意这里两个密钥不同：`att_key` 解 ZIP 密文，
             // `vault_att_key` 加密落盘。
             Some(vault_key) => {
-                let temp_dir = std::env::temp_dir().join("solosoul_import_att");
-                std::fs::create_dir_all(&temp_dir)
-                    .map_err(|e| format!("创建临时目录失败: {}", e))?;
+                // P011：私有临时目录（0700 + 随机名）替代共享固定目录
+                let temp_dir = create_private_temp_dir("import_att")?;
                 let temp_path = temp_dir.join(format!("{}.plain", uuid::Uuid::new_v4()));
                 // 解密/加密/清理三阶段，任何失败都必须删除临时明文（不残留）。
                 let result = (|| -> Result<u64, String> {
@@ -1230,6 +1253,7 @@ pub fn import_attachments(
                     )
                     .map_err(|e| format!("解密附件流失败: {}", e))?;
                     drop(temp_file);
+                    tighten_file_perms(&temp_path);
                     let size = std::fs::metadata(&temp_path).map(|m| m.len()).unwrap_or(0);
                     crate::attachment_crypto::encrypt_file_stream(
                         vault_key,
