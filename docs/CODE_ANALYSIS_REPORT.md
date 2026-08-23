@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-23 21:45:00
+> 最后更新：2026-08-23 21:55:00
 > 修复轮次：2（进入阶段 3 修复）
 > 当前分支：`main`
 > 前置轮次：1（初始分析，本轮仅分析不修复）
@@ -57,14 +57,18 @@
 | P026 | P2 | 重复代码 | 详见下文清单 | `visibleLimit`+slice+「加载更多」增量分页模式重复出现于 5+ 文件，可抽公共 hook | `[ ]` 待修复 |
 | P027 | P2 | 规范偏离 | `src/components/editor/FieldSuggestions.tsx:47,125-131` | 字段推荐对 internal 级明文展示（有意设计且有注释），与 P036 不一致，建议确认例外或写回 AGENTS.md | `[ ]` 待修复 |
 | P028 | P2 | 规范偏离 | `src/components/sync/SyncConflictDialog.tsx:373-433` + `src-tauri/src/commands/sync.rs:371` | 同步冲突对话框明文渲染 sensitive/critical 字段差异值（场景可辩护），建议对受保护字段加揭示交互 | `[ ]` 待修复 |
-| P029 | P2 | 架构 | `src-tauri/src/commands/vault_directory.rs:160-166` | `vault_set_directory` 后端锁定 Vault 但不 emit `vault-locked` 事件，前端认证态不失效，后续命令报锁错误但 UI 仍显示已解锁 | `[ ]` 待修复 |
+| P029 | P2 | 架构 | `src-tauri/src/commands/vault_directory.rs:160-166` | `vault_set_directory` 后端锁定 Vault 但不 emit `vault-locked` 事件，前端认证态不失效，后续命令报锁错误但 UI 仍显示已解锁 | `[x]` 已修复 |
 | P030 | P2 | i18n | `src/pages/settings/CloudSyncPage.tsx:603` | `common:enabled` / `common:disabled` 双语均缺 key 且无 defaultValue，UI 直接渲染原始 key 字符串 | `[x]` 已修复 |
 
 ## 修复进度
 
-- 已完成：7 / 30（P0: 0，P1: 6，P2: 1）
-- 当前处理：P029（处理顺序调整：先清偿可独立验证的缺陷类 P2，结构性拆分
-  P007-P010/P019-P021 集中在最后处理）
+- 已完成：8 / 30（P0: 0，P1: 6，P2: 2）
+- 当前处理：P011
+
+#### 修复说明（续）
+- **P029**：`vault_set_directory` 在 `svc.lock()` 之后 emit `vault-locked`
+  （与 commands/vault.rs::lock 对齐），前端 AppRoutes 监听链自动失效认证态。
+  Clippy 回归通过。
 
 #### 修复说明（续）
 - **P006**：`copy_snapshots` 包 `with_tx`（失败整体回滚）；循环内去掉同钥
