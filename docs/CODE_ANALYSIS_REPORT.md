@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-24 00:05:00
+> 最后更新：2026-08-24 00:25:00
 > 修复轮次：2（进入阶段 3 修复）
 > 当前分支：`main`
 > 前置轮次：1（初始分析，本轮仅分析不修复）
@@ -54,7 +54,7 @@
 | P023 | P2 | 性能 | `src/pages/scan/ScanLocalPage.tsx:107` | 目录导入 `Promise.allSettled` 并发无上限，大目录瞬时打出大量 IPC | `[x]` 已修复 |
 | P024 | P2 | 死代码 | 详见下文清单 | 6 个 `export` 仅在定义文件内部使用，可去掉 export（无整文件级死代码） | `[x]` 已修复 |
 | P025 | P2 | 重复代码 | 详见下文清单 | 已有共享 `CopyButton.tsx`，仍有 ≥7 处自行实现「复制到剪贴板+已复制反馈」 | `[x]` 已修复（hook 方案） |
-| P026 | P2 | 重复代码 | 详见下文清单 | `visibleLimit`+slice+「加载更多」增量分页模式重复出现于 5+ 文件，可抽公共 hook | `[ ]` 待修复 |
+| P026 | P2 | 重复代码 | 详见下文清单 | `visibleLimit`+slice+「加载更多」增量分页模式重复出现于 5+ 文件，可抽公共 hook | `[x]` 已修复 |
 | P027 | P2 | 规范偏离 | `src/components/editor/FieldSuggestions.tsx:47,125-131` | 字段推荐对 internal 级明文展示（有意设计且有注释），与 P036 不一致，建议确认例外或写回 AGENTS.md | `[ ]` 待修复 |
 | P028 | P2 | 规范偏离 | `src/components/sync/SyncConflictDialog.tsx:373-433` + `src-tauri/src/commands/sync.rs:371` | 同步冲突对话框明文渲染 sensitive/critical 字段差异值（场景可辩护），建议对受保护字段加揭示交互 | `[ ]` 待修复 |
 | P029 | P2 | 架构 | `src-tauri/src/commands/vault_directory.rs:160-166` | `vault_set_directory` 后端锁定 Vault 但不 emit `vault-locked` 事件，前端认证态不失效，后续命令报锁错误但 UI 仍显示已解锁 | `[x]` 已修复 |
@@ -62,8 +62,15 @@
 
 ## 修复进度
 
-- 已完成：18 / 30（P0: 0，P1: 6，P2: 12）
-- 当前处理：P026
+- 已完成：19 / 30（P0: 0，P1: 6，P2: 13）
+- 当前处理：P027/P028（规范偏离确认类）
+
+#### 修复说明（续）
+- **P026**：新增 `useIncrementalWindow(initial, step)`（limit/hasMore/showMore/
+  reset/setLimit），5 个站点迁移：OperationLogPage、DebugLogPage、HistoryPage、
+  useTrashPage、useObjectWorkspaceData。PhotoAlbumGrid（P022 新增）暂保留内联
+  实现（组件局部 state，无 reset 语义）。ESLint exhaustive-deps 全部补齐。
+  TSC/ESLint/Vitest(928) 回归通过。
 
 #### 修复说明（续）
 - **P023**：handleImportAll 改 CONCURRENCY=4 分批 allSettled，失败统计语义
