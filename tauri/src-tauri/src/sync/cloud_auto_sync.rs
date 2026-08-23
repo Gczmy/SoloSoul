@@ -32,7 +32,7 @@ use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::mpsc;
 
-use crate::commands::export_import::{ExportRequest, ExportScope};
+use crate::commands::export_import::{default_locale, ExportRequest, ExportScope};
 
 /// 快照文件名后缀（与 build_snapshot_remote_path 保持一致）。
 const SNAPSHOT_EXT: &str = ".solosoul";
@@ -753,7 +753,7 @@ async fn auto_import_one(
     let account = pre.account_id.clone();
     let pw = pre.config.snapshot_password.clone();
     let file_owned = file.to_string();
-    let locale = "zh-CN".to_string();
+    let locale = default_locale();
 
     // 导入为同步密集操作且需持锁：spawn_blocking 内获取读锁
     let result = tauri::async_runtime::spawn_blocking(move || {
