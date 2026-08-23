@@ -314,60 +314,16 @@ pub async fn page_delete(
         // 一次批量加载（单条 IN 查询 + 单轮解密）。
         let loaded = vault.load_objects_batch(&target_ids)?;
 
-        // 按收集顺序重建条目（页对象优先；名称用于审计）。
-        let mut trash_items: Vec<solosoul_vault::TrashItem> = Vec::new();
-        let mut soft_delete_ids: Vec<String> = Vec::new();
-        for id in &target_ids {
-            let Some(rec) = loaded.get(id) else {
-                continue;
-            };
-            let is_page = page_object_id.as_ref() == Some(id);
-            let record = serde_json::json!({
-                "id": rec.id,
-                "accountId": rec.account_id,
-                "typeId": rec.type_id,
-                "sectionType": rec.section_type,
-                "name": rec.name,
-                "iconName": rec.icon_name,
-                "parentId": rec.parent_id,
-                "childrenIds": rec.children_ids,
-                "properties": rec.properties,
-                "propertyLabels": rec.property_labels,
-                "sensitivityLevel": rec.sensitivity_level,
-                "tags": rec.tags_json,
-                "createdAt": rec.created_at,
-                "updatedAt": rec.updated_at,
-                "version": rec.version,
-                "templateId": rec.template_id,
-                "templateType": rec.template_type,
-                "contractTypeId": rec.contract_type_id,
-                "templateHash": rec.template_hash,
-            });
-            let mut data = record;
-            if is_page {
-                if page_name.is_empty() {
-                    page_name = rec.name.clone();
-                }
-            } else {
-                data["parentPageName"] = serde_json::Value::String(page_name.clone());
-                data["parentPageIcon"] = serde_json::Value::String(rec.icon_name.clone());
-            }
-            trash_items.push(solosoul_vault::TrashItem {
-                id: format!("trash_{}", uuid::Uuid::new_v4()),
-                item_type: if is_page { "page" } else { "object" }.to_string(),
-                original_id: rec.id.clone(),
-                original_parent_id: if is_page { None } else { rec.parent_id.clone() },
-                original_section_type: Some(rec.section_type.clone()),
-                original_sort_order: None,
-                data: serde_json::to_vec(&data).unwrap_or_default(),
-                deleted_at: now_ms,
-                expires_at: Some(now_ms + retention_ms),
-                deleted_by: "user".to_string(),
-                name_snapshot: rec.name.clone(),
-                icon_snapshot: Some(rec.icon_name.clone()),
-            });
-            soft_delete_ids.push(id.clone());
-        }
+        // P019：条目构建拆至 build_page_delete_trash_items。
+        let (trash_items, soft_delete_ids, page_name) = build_page_delete_trash_items(
+            &vault,
+            &target_ids,
+            &loaded,
+            page_object_id.as_deref(),
+            page_name,
+            now_ms,
+            retention_ms,
+        )?;
 
         // 单事务批量写入：回收站条目 + 对象软删，任一步失败整体回滚。
         vault.trash_and_soft_delete_batch(&trash_items, &soft_delete_ids)?;
@@ -394,4 +350,75 @@ pub async fn page_delete(
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(count)
+}
+
+/// P019：页删除的回收站条目构建（自 page_delete 拆出，逻辑逐字保持）。
+///
+/// 按收集顺序重建条目（页对象优先；名称用于审计）：页对象的快照不含父页名，
+/// 其余对象写入 `parentPageName`/`parentPageIcon` 供回收站展示归属。返回
+/// (条目, 软删 ID 列表, 审计用页名)。
+#[allow(clippy::too_many_arguments)]
+fn build_page_delete_trash_items(
+    vault: &solosoul_vault::VaultStore,
+    target_ids: &[String],
+    loaded: &std::collections::HashMap<String, solosoul_vault::ObjectRecord>,
+    page_object_id: Option<&str>,
+    mut page_name: String,
+    now_ms: i64,
+    retention_ms: i64,
+) -> Result<(Vec<solosoul_vault::TrashItem>, Vec<String>, String), String> {
+    let mut trash_items: Vec<solosoul_vault::TrashItem> = Vec::new();
+    let mut soft_delete_ids: Vec<String> = Vec::new();
+    for id in target_ids {
+        let Some(rec) = loaded.get(id) else {
+            continue;
+        };
+        let is_page = page_object_id == Some(id.as_str());
+        let record = serde_json::json!({
+            "id": rec.id,
+            "accountId": rec.account_id,
+            "typeId": rec.type_id,
+            "sectionType": rec.section_type,
+            "name": rec.name,
+            "iconName": rec.icon_name,
+            "parentId": rec.parent_id,
+            "childrenIds": rec.children_ids,
+            "properties": rec.properties,
+            "propertyLabels": rec.property_labels,
+            "sensitivityLevel": rec.sensitivity_level,
+            "tags": rec.tags_json,
+            "createdAt": rec.created_at,
+            "updatedAt": rec.updated_at,
+            "version": rec.version,
+            "templateId": rec.template_id,
+            "templateType": rec.template_type,
+            "contractTypeId": rec.contract_type_id,
+            "templateHash": rec.template_hash,
+        });
+        let mut data = record;
+        if is_page {
+            if page_name.is_empty() {
+                page_name = rec.name.clone();
+            }
+        } else {
+            data["parentPageName"] = serde_json::Value::String(page_name.clone());
+            data["parentPageIcon"] = serde_json::Value::String(rec.icon_name.clone());
+        }
+        trash_items.push(solosoul_vault::TrashItem {
+            id: format!("trash_{}", uuid::Uuid::new_v4()),
+            item_type: if is_page { "page" } else { "object" }.to_string(),
+            original_id: rec.id.clone(),
+            original_parent_id: if is_page { None } else { rec.parent_id.clone() },
+            original_section_type: Some(rec.section_type.clone()),
+            original_sort_order: None,
+            data: serde_json::to_vec(&data).unwrap_or_default(),
+            deleted_at: now_ms,
+            expires_at: Some(now_ms + retention_ms),
+            deleted_by: "user".to_string(),
+            name_snapshot: rec.name.clone(),
+            icon_snapshot: Some(rec.icon_name.clone()),
+        });
+        soft_delete_ids.push(id.clone());
+    }
+    Ok((trash_items, soft_delete_ids, page_name))
 }
