@@ -26,10 +26,10 @@ impl VaultStore {
 
         let result: Result<(), String> = (|| {
             // 每表「旧钥解密 → 新钥加密」（换钥，全量重写）
-            reencrypt_profiles(&tx, old_key, new_key)?;
+            reencrypt_blob_table(&tx, "profiles", old_key, new_key)?;
             reencrypt_objects(&tx, old_key, new_key)?;
-            reencrypt_trash_items(&tx, old_key, new_key)?;
-            reencrypt_object_snapshots(&tx, old_key, new_key)?;
+            reencrypt_blob_table(&tx, "trash_items", old_key, new_key)?;
+            reencrypt_blob_table(&tx, "object_snapshots", old_key, new_key)?;
             reencrypt_user_templates(&tx, old_key, new_key)?;
             reencrypt_audit_log(&tx, old_key, new_key)?;
             Ok(())
@@ -51,16 +51,19 @@ impl VaultStore {
         }
     }
 }
-fn reencrypt_profiles(
+/// P016：三个「单 blob 列」表（profiles / trash_items / object_snapshots）的
+/// 重加密收敛为一个参数化实现——仅表名不同，闭包逐字节相同。
+fn reencrypt_blob_table(
     tx: &rusqlite::Transaction<'_>,
+    table: &str,
     old_key: &DataEncryptionKey,
     new_key: &DataEncryptionKey,
 ) -> Result<(), String> {
     rewrite_table(
         tx,
-        "SELECT id, data FROM profiles",
-        "UPDATE profiles SET data = ?1 WHERE id = ?2",
-        "profiles",
+        &format!("SELECT id, data FROM {}", table),
+        &format!("UPDATE {} SET data = ?1 WHERE id = ?2", table),
+        table,
         true,
         |row| {
             let data: Vec<u8> = row.get(1).map_err(|e| e.to_string())?;
@@ -99,46 +102,6 @@ fn reencrypt_objects(
                 rusqlite::types::Value::Text(encrypted_props),
                 rusqlite::types::Value::Text(encrypted_labels),
             ]))
-        },
-    )
-}
-
-fn reencrypt_trash_items(
-    tx: &rusqlite::Transaction<'_>,
-    old_key: &DataEncryptionKey,
-    new_key: &DataEncryptionKey,
-) -> Result<(), String> {
-    rewrite_table(
-        tx,
-        "SELECT id, data FROM trash_items",
-        "UPDATE trash_items SET data = ?1 WHERE id = ?2",
-        "trash_items",
-        true,
-        |row| {
-            let data: Vec<u8> = row.get(1).map_err(|e| e.to_string())?;
-            let plain = decrypt_field(old_key, &data)?;
-            let encrypted = encrypt_field(new_key, &plain)?;
-            Ok(Some(vec![rusqlite::types::Value::Blob(encrypted)]))
-        },
-    )
-}
-
-fn reencrypt_object_snapshots(
-    tx: &rusqlite::Transaction<'_>,
-    old_key: &DataEncryptionKey,
-    new_key: &DataEncryptionKey,
-) -> Result<(), String> {
-    rewrite_table(
-        tx,
-        "SELECT id, data FROM object_snapshots",
-        "UPDATE object_snapshots SET data = ?1 WHERE id = ?2",
-        "object_snapshots",
-        true,
-        |row| {
-            let data: Vec<u8> = row.get(1).map_err(|e| e.to_string())?;
-            let plain = decrypt_field(old_key, &data)?;
-            let encrypted = encrypt_field(new_key, &plain)?;
-            Ok(Some(vec![rusqlite::types::Value::Blob(encrypted)]))
         },
     )
 }
