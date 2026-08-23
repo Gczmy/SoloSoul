@@ -83,7 +83,7 @@
 | ~~P007~~ ✅ | CloudSyncPage 拆分 | **已完成**：631 行 → 主组件 96 行 + useCloudSyncPage(251) + 7 个 section（26~116 行） | — |
 | ~~P008~~ ✅ | DatePicker 拆分 | **已完成**：609 行 → 主组件 357（分段输入逻辑）+ helpers 143（纯函数逐字节保真）+ Calendar 189 | — |
 | ~~P009~~ ✅ | useExportImportPage 拆分 | **已完成**：454 行 → 341 行主 hook + useExportExecution(190) + guide 配置(45)；导入/范围/估算本已委托子 hook | — |
-| P010 | VaultDirectorySection 拆分 | 同上 | 同上 |
+| ~~P010~~ ✅ | VaultDirectorySection 拆分 | **已完成**：423 行 → 展示层 261 + useVaultDirectory(216)；顺带收敛目录切换成功后的重复收尾为 afterDirectorySwitched | — |
 | P012 | Recovery 指纹强制化 | UX 流程变更（手动输入路径要求录指纹），需产品确认 + GUI/CLI 双端改造 + i18n + 测试 | 产品决策后单独排期 |
 | P018 | 93 处 lock 守卫样板宏收敛 | 报告自述「设计惯性非 bug」；93 处机械替换 churn 大、回归面广、零行为收益 | 触碰 storage 层时渐进采用新 helper，不做一次性迁移 |
 | P019 | Rust 过长函数 Top10 | 与 P007-P010 同理；import_attachments(159行) 等位于发布关键路径 | 专项重构轮 |
