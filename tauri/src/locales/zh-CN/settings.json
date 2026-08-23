@@ -347,6 +347,7 @@
   "cloud_sync_import_success": "云端快照导入成功，数据已合并",
   "cloud_sync_import_failed": "导入失败",
   "export_success": "导出成功",
+  "export_success_cloud": "导出成功。文件已写入 {{cloud}}，请等待云盘客户端完成同步",
   "export_as_document": "导出为文档",
   "export_doc_desc": "将选中的对象导出为可读文档，每个对象占一页。附件以清单形式列出，不嵌入文件。",
   "export_format_label": "格式",

@@ -340,7 +340,15 @@ export function useExportImportPage() {
       // P034: 导出成功后立即清空密码 state（JS 堆不可清零，尽早缩短驻留窗口）
       setExportPassword('');
       setExportPasswordConfirm('');
-      onSuccess(t('settings:export_success'));
+      // B-04：导出目标位于云盘同步目录时，提示等待云盘客户端完成上传
+      const cloudTargetName = cloudTargets.find((t) =>
+        targetSavePath.startsWith(t.path),
+      )?.name;
+      onSuccess(
+        cloudTargetName
+          ? t('settings:export_success_cloud', { cloud: cloudTargetName })
+          : t('settings:export_success'),
+      );
     } catch (e) {
       onError(new Error(resolveBackendErrorMessage(e)), t('common:export_failed'));
     } finally {

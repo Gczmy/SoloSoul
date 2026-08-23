@@ -347,6 +347,7 @@
   "cloud_sync_import_success": "Cloud snapshot imported, data merged",
   "cloud_sync_import_failed": "Import failed",
   "export_success": "Export completed successfully",
+  "export_success_cloud": "Export succeeded. Written to {{cloud}}; please wait for the cloud client to finish syncing",
   "export_as_document": "Export as Document",
   "export_doc_desc": "Export selected objects as a readable document; each object becomes one page. Attachments are listed but not embedded.",
   "export_format_label": "Format",
