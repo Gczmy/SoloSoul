@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-23 20:50:00
+> 最后更新：2026-08-23 21:05:00
 > 修复轮次：2（进入阶段 3 修复）
 > 当前分支：`main`
 > 前置轮次：1（初始分析，本轮仅分析不修复）
@@ -32,7 +32,7 @@
 | P001 | P1 | 规范/CI | `src-tauri/permissions/solo-soul/default.toml` | 8 个 cloud_sync 命令已注册 handler 且前端在调，但未登记 ACL 白名单；`check_acl_consistency.py` exit 1，CI（pr_check.yml）必红，运行时 ACL 拒绝 | `[x]` 已修复 |
 | P002 | P1 | 架构 | `src-tauri/src/lib.rs:46-193`（定义于 `commands/settings.rs:166-181`） | `ui_get_preferences` 有 `#[tauri::command]` 定义且进了 ACL，但从未注册进 `generate_handler!`，前端三处调用永远失败并被静默吞掉 | `[x]` 已修复 |
 | P003 | P1 | 漏洞 | `crates/solosoul-core/src/cloud_sync/webdav.rs:48-65` | WebDAV 连接器允许 `http://` + Basic 认证，账号密码明文传输；与 LLM/OCR 的「非回环强制 https」策略不一致，错误文案与行为自相矛盾 | `[x]` 已修复 |
-| P004 | P1 | 安全/规范 | `src/lib/searchShared.tsx:175-183` + `crates/solosoul-core/src/search_filter.rs:11` | 搜索结果中 internal 级字段命中值明文渲染，无 `useRevealState`/`maskValue`，违反 P036 掩码统一约定 | `[ ]` 待修复 |
+| P004 | P1 | 安全/规范 | `src/lib/searchShared.tsx:175-183` + `crates/solosoul-core/src/search_filter.rs:11` | 搜索结果中 internal 级字段命中值明文渲染，无 `useRevealState`/`maskValue`，违反 P036 掩码统一约定 | `[x]` 已修复 |
 | P005 | P1 | 安全 | `src/components/layout/SearchPopover.tsx:49-63` | 最近搜索词明文持久化 localStorage（`solosoul_recent_searches`），不按账户隔离，Vault 锁定/退出时不清除 | `[ ]` 待修复 |
 | P006 | P1 | 性能/事务 | `crates/solosoul-vault/src/storage/snapshots.rs:547-584` | `copy_snapshots` 循环逐条 INSERT 无事务包裹（中途失败留半成品），且同钥 decrypt→encrypt 纯浪费，应直接复制密文 | `[ ]` 待修复 |
 | P007 | P1 | 可维护性 | `src/pages/settings/CloudSyncPage.tsx:51-632` | 单组件约 535 行非注释代码，承载 WebDAV 配置/保留策略/连接器/入站列表全部逻辑 | `[ ]` 待修复 |
@@ -62,8 +62,15 @@
 
 ## 修复进度
 
-- 已完成：3 / 30（P0: 0，P1: 3，P2: 0）
-- 当前处理：P004
+- 已完成：4 / 30（P0: 0，P1: 4，P2: 0）
+- 当前处理：P005
+
+#### 修复说明（续）
+- **P004**：MatchHint 的 fieldValue 分支抽出 `FieldValueHint` 子组件——
+  `sensitivityLevels` 任一非 public 即渲染 `MASK_PLACEHOLDER`（点击揭示，
+  复用 useRevealState 1 分钟 TTL）；SearchPage/SearchPopover 共用路径一次收敛。
+  后端 search_filter.rs 保持不变（匹配仍覆盖 internal 值，仅展示层掩码）。
+  TSC/ESLint/Vitest(928) 回归通过。
 
 #### 修复说明（续）
 - **P003**：新增 `is_local_http_host` 判定——http 仅允许回环/RFC1918 私网/IPv6
