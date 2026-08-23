@@ -63,6 +63,15 @@ impl WebDavConnector {
                 config.base_url
             )));
         }
+        // P003：http 仅允许回环/私有网段（局域网 NAS 明文属可接受的用户选择），
+        // 公网 host 走 http 会使 Basic 凭证暴露于不可信链路，与 LLM/OCR 的
+        // 「非回环强制 https」策略对齐（此处放宽至私网）。
+        if base.scheme() == "http" && !is_local_http_host(&base) {
+            return Err(CloudSyncError::ConfigMissing(format!(
+                "公网地址禁止使用 http 明文传输账号密码（Basic 认证），请改用 https：{}",
+                config.base_url
+            )));
+        }
         // 确保以 '/' 结尾
         if !base.as_str().ends_with('/') {
             base.set_path(&format!("{}/", base.path()));
@@ -438,9 +447,47 @@ fn percent_decode(s: &str) -> String {
     String::from_utf8_lossy(&out).to_string()
 }
 
+/// P003：判定 host 是否属于「明文 http 可接受」范围（回环 / RFC1918 私有 IPv4 /
+/// IPv6 unique-local / 链路本地 / .local mDNS 主机名）。公网域名按非本地处理。
+fn is_local_http_host(url: &url::Url) -> bool {
+    match url.host() {
+        Some(url::Host::Domain(domain)) => {
+            let d = domain.to_ascii_lowercase();
+            d == "localhost" || d.ends_with(".localhost") || d.ends_with(".local")
+        }
+        Some(url::Host::Ipv4(ip)) => {
+            ip.is_loopback() || ip.is_private() || ip.is_link_local() || ip.is_broadcast()
+        }
+        Some(url::Host::Ipv6(ip)) => ip.is_loopback() || (ip.segments()[0] & 0xfe00) == 0xfc00,
+        None => false,
+    }
+}
+
 #[cfg(test)]
 mod parse_tests {
     use super::*;
+
+    #[test]
+    fn test_p003_http_policy() {
+        let cfg = |u: &str| WebDavConfig {
+            base_url: u.to_string(),
+            username: "u".into(),
+            password: "p".into(),
+            root_prefix: "/x/".into(),
+        };
+        // 公网 http 拒绝
+        assert!(WebDavConnector::new(cfg("http://example.com/dav/")).is_err());
+        assert!(WebDavConnector::new(cfg("http://1.2.3.4/dav/")).is_err());
+        assert!(WebDavConnector::new(cfg("http://8.8.8.8/")).is_err());
+        // 回环 / 私网 / .local 放行
+        assert!(WebDavConnector::new(cfg("http://127.0.0.1:9988/")).is_ok());
+        assert!(WebDavConnector::new(cfg("http://localhost/dav/")).is_ok());
+        assert!(WebDavConnector::new(cfg("http://192.168.1.10:5005/dav/")).is_ok());
+        assert!(WebDavConnector::new(cfg("http://10.0.0.2/dav/")).is_ok());
+        assert!(WebDavConnector::new(cfg("http://nas.local:8080/")).is_ok());
+        // https 全放行
+        assert!(WebDavConnector::new(cfg("https://dav.jianguoyun.com/dav/")).is_ok());
+    }
 
     #[test]
     fn test_parse_propfind_wsgidav_style_uppercase_prefix() {
