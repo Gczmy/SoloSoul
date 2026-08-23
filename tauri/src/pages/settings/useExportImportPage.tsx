@@ -4,17 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { useToastError } from '@/hooks/useToastError';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { logger } from '@/lib/logger';
-import {
-  cleanupStagedFile,
-  copyStagedFileToDest,
-  isUriPath,
-  prepareStagedDownloadPath,
-} from '@/lib/mobileFileTransfer';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 
 import { useAuthStore } from '@/stores/authStore';
-import { Info, FolderOpen, Lock, GitCompare } from 'lucide-react';
 import { useExportEstimate } from '@/hooks/useExportEstimate';
+import { buildExportImportGuidePages } from './exportImportGuidePages';
+import { useExportExecution } from './useExportExecution';
 import { useExportScope } from '@/hooks/useExportScope';
 import { useImportState } from '@/hooks/useImportState';
 import { prefetchRegistry } from '@/lib/prefetch/registry';
@@ -56,40 +51,7 @@ export function useExportImportPage() {
   }, []);
 
   const exportImportGuidePages = useMemo(
-    () => [
-      {
-        icon: Info,
-        title: t('common:guide_export_import_title', { defaultValue: 'Export & Import Guide' }),
-        steps: [
-          {
-            icon: FolderOpen,
-            title: t('common:guide_export_import_step1_title', { defaultValue: 'Select Scope' }),
-            description:
-              t('common:guide_export_import_step1_desc', { defaultValue: 'Choose the pages, objects, and tags you want to export. You can also include attachments, preferences, and behavioral data.' }),
-          },
-          {
-            icon: Lock,
-            title: t('common:guide_export_import_step2_title', { defaultValue: 'Set Password' }),
-            description:
-              t('common:guide_export_import_step2_desc', { defaultValue: 'Exports are encrypted with a password you provide. Keep the password safe — you will need it to import the package later.' }),
-          },
-          {
-            icon: GitCompare,
-            title: t('common:guide_export_import_step3_title', { defaultValue: 'Import & Strategy' }),
-            description:
-              t('common:guide_export_import_step3_desc', { defaultValue: 'When importing, preview the package and choose how to handle duplicate objects: skip existing, overwrite, or decide per object.' }),
-          },
-        ],
-        helpLinks: [
-          {
-            title: t('common:guide_help_export_import', { defaultValue: 'Export & Import' }),
-            description:
-              t('common:guide_help_export_import_desc', { defaultValue: 'Encrypted export and import of your vault data' }),
-            href: '/help?id=export_import',
-          },
-        ],
-      },
-    ],
+    () => buildExportImportGuidePages(t),
     [t],
   );
 
@@ -111,15 +73,6 @@ export function useExportImportPage() {
     loadSelectedAttachments,
     bulkSelect,
   } = useExportScope({ accountId, includeAttachments });
-  const [exportPassword, setExportPassword] = useState('');
-  const [exportPasswordConfirm, setExportPasswordConfirm] = useState('');
-  const [exportHint, setExportHint] = useState('');
-  const [savePath, setSavePath] = useState<string | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
-  const [showHintWarning, setShowHintWarning] = useState(false);
-  const skipHintCheckRef = useRef(false);
-  const [showWeakPasswordWarning, setShowWeakPasswordWarning] = useState(false);
-  const skipWeakPasswordCheckRef = useRef(false);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [includePreferences, setIncludePreferences] = useState(false);
   const [includeBehavioral, setIncludeBehavioral] = useState(false);
@@ -191,11 +144,9 @@ export function useExportImportPage() {
     reloadScope,
   });
 
-  // P034: 组件卸载时清空密码 state（JS 堆不可清零，尽早缩短驻留窗口）
+  // P034: 组件卸载时清空导入密码 state（导出密码由 useExportExecution 自清理）
   useEffect(() => {
     return () => {
-      setExportPassword('');
-      setExportPasswordConfirm('');
       setImportPw('');
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- setState 引用稳定，仅需挂载时注册一次
@@ -234,6 +185,31 @@ export function useExportImportPage() {
     ],
   );
 
+  // P009：导出执行（密码/警告/Android URI 中转）拆至独立 hook
+  const {
+    exportPassword,
+    setExportPassword,
+    exportPasswordConfirm,
+    setExportPasswordConfirm,
+    exportHint,
+    setExportHint,
+    savePath,
+    setSavePath,
+    isExporting,
+    showHintWarning,
+    setShowHintWarning,
+    showWeakPasswordWarning,
+    setShowWeakPasswordWarning,
+    skipHintCheckRef,
+    skipWeakPasswordCheckRef,
+    handleExport,
+  } = useExportExecution({
+    accountId,
+    cloudTargets,
+    scope: scopeState,
+    totalSelected,
+  });
+
   const { estimate: exportEstimate, estimating } = useExportEstimate(
     accountId,
     scopeState,
@@ -269,95 +245,6 @@ export function useExportImportPage() {
     }
     return Array.from(tagSet);
   }, [pageGroups, selectedObjectIds]);
-
-  // Export handler
-  const handleExport = async () => {
-    if (totalSelected === 0 || !exportPassword || !savePath) return;
-
-    if (exportPassword !== exportPasswordConfirm) {
-      onError(new Error(t('settings:password_mismatch')), '');
-      return;
-    }
-
-    // 检查 1: 密码提示词包含密码内容 → 软警告
-    if (!skipHintCheckRef.current && exportHint && exportPassword.length >= 3) {
-      const pwLower = exportPassword.toLowerCase();
-      const hintLower = exportHint.toLowerCase();
-      let hintContainsPassword = false;
-      for (let i = 0; i <= pwLower.length - 3; i++) {
-        if (hintLower.includes(pwLower.slice(i, i + 3))) {
-          hintContainsPassword = true;
-          break;
-        }
-      }
-      if (hintContainsPassword) {
-        setShowHintWarning(true);
-        return;
-      }
-    }
-
-    // 检查 2: 密码安全性低（不足 8 位）→ 软警告
-    if (!skipWeakPasswordCheckRef.current && exportPassword.length < 8) {
-      setShowWeakPasswordWarning(true);
-      return;
-    }
-
-    setIsExporting(true);
-    let stagedExportPath: string | null = null;
-    try {
-      let targetSavePath = savePath;
-      // Android 保存对话框返回 content:// URI，Rust 无法直接写入，需要先写到缓存再中转
-      if (savePath && isUriPath(savePath)) {
-        stagedExportPath = await prepareStagedDownloadPath('solosoul_export.solosoul');
-        targetSavePath = stagedExportPath;
-      }
-
-      const exportedPath = await invoke<string>('export_execute', {
-        accountId: accountId,
-        req: {
-          scope: {
-            selectedPageIds: Array.from(selectedPageIds),
-            selectedObjectIds: Array.from(selectedObjectIds),
-            selectedTags: Array.from(selectedTags),
-            includeAttachments,
-            selectedAttachmentIds: Array.from(selectedAttachmentIds),
-            includePreferences,
-            includeBehavioral,
-          },
-          password: exportPassword,
-          passwordHint: exportHint || null,
-          savePath: targetSavePath,
-        },
-      });
-
-      if (stagedExportPath && savePath) {
-        await copyStagedFileToDest(exportedPath, savePath);
-      }
-
-      // 导出成功后重置 skip ref，下次导出重新检查
-      skipHintCheckRef.current = false;
-      skipWeakPasswordCheckRef.current = false;
-      // P034: 导出成功后立即清空密码 state（JS 堆不可清零，尽早缩短驻留窗口）
-      setExportPassword('');
-      setExportPasswordConfirm('');
-      // B-04：导出目标位于云盘同步目录时，提示等待云盘客户端完成上传
-      const cloudTargetName = cloudTargets.find((t) =>
-        targetSavePath.startsWith(t.path),
-      )?.name;
-      onSuccess(
-        cloudTargetName
-          ? t('settings:export_success_cloud', { cloud: cloudTargetName })
-          : t('settings:export_success'),
-      );
-    } catch (e) {
-      onError(new Error(resolveBackendErrorMessage(e)), t('common:export_failed'));
-    } finally {
-      if (stagedExportPath) {
-        await cleanupStagedFile(stagedExportPath);
-      }
-      setIsExporting(false);
-    }
-  };
 
   return {
     t,
