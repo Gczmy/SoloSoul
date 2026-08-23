@@ -629,13 +629,7 @@ pub(crate) fn execute_export_core(
 
     // ── P2: Preferences + Behavioral data（audit log）──
     let (extra_files, preferences_encrypted, behavioral_encrypted) = write_scope_extra_files(
-        vault,
-        &mut zip,
-        options,
-        &key,
-        &salt,
-        account_id,
-        &req.scope,
+        vault, &mut zip, options, &key, &salt, account_id, &req.scope,
     )?;
 
     // ── manifest.json (plaintext) ─────────────────────────────

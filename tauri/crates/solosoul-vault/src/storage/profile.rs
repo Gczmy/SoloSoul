@@ -20,8 +20,8 @@ use rusqlite::{params, Connection, OptionalExtension};
 
 use super::{with_tx, VaultStore, PROFILE_LOAD_SQL, PROFILE_SAVE_SQL};
 use crate::encryption::{decrypt_field, encrypt_field, DataEncryptionKey};
-use crate::{Profile, ProfileSummary};
 use crate::CloudSyncConfig;
+use crate::{Profile, ProfileSummary};
 
 impl VaultStore {
     pub fn save_profile(&self, profile: &Profile) -> Result<(), String> {
@@ -210,7 +210,10 @@ impl VaultStore {
     }
 
     /// Phase 2 云同步：获取当前账户的云同步配置。
-    pub fn get_cloud_sync_config(&self, account_id: &str) -> Result<Option<CloudSyncConfig>, String> {
+    pub fn get_cloud_sync_config(
+        &self,
+        account_id: &str,
+    ) -> Result<Option<CloudSyncConfig>, String> {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
@@ -219,15 +222,22 @@ impl VaultStore {
             if profile.data.is_empty() {
                 return Ok(None);
             }
-            let data: serde_json::Value = serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?;
-            Ok(data.get("cloud_sync_config").and_then(|v| serde_json::from_value(v.clone()).ok()))
+            let data: serde_json::Value =
+                serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?;
+            Ok(data
+                .get("cloud_sync_config")
+                .and_then(|v| serde_json::from_value(v.clone()).ok()))
         } else {
             Ok(None)
         }
     }
 
     /// Phase 2 云同步：保存/更新云同步配置（原子读-改-写，含 HLC）。
-    pub fn set_cloud_sync_config(&self, account_id: &str, config: CloudSyncConfig) -> Result<(), String> {
+    pub fn set_cloud_sync_config(
+        &self,
+        account_id: &str,
+        config: CloudSyncConfig,
+    ) -> Result<(), String> {
         let key = self.data_key()?;
         let hlc = self.new_local_hlc()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
@@ -246,7 +256,8 @@ impl VaultStore {
                 } else {
                     serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?
                 };
-                data["cloud_sync_config"] = serde_json::to_value(&config).map_err(|e| e.to_string())?;
+                data["cloud_sync_config"] =
+                    serde_json::to_value(&config).map_err(|e| e.to_string())?;
                 profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
                 profile.updated_at = chrono::Utc::now();
                 profile.version += 1;
@@ -272,7 +283,8 @@ impl VaultStore {
                     Some(p) => p,
                     None => return Ok(()), // 不存在则无需删除
                 };
-                let mut data: serde_json::Value = serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?;
+                let mut data: serde_json::Value =
+                    serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?;
                 if let Some(obj) = data.as_object_mut() {
                     obj.remove("cloud_sync_config");
                 }

@@ -17,9 +17,9 @@ pub mod safe_storage;
 pub mod storage;
 pub mod template_hash;
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use chrono::{DateTime, Utc};
 
 // ── Phase 2 云同步配置类型 ──────────────────────────────
 
@@ -39,6 +39,10 @@ pub struct CloudSyncConfig {
     pub wifi_only: bool,
     /// 云端保留策略：最近 N 份 + 每日/周/月各留一份（GFS）。
     pub retention: RetentionPolicy,
+    /// 快照包加密口令（与主密码独立；随 profile 加密存储，解锁态才可读。
+    /// 同一账户所有设备配置相同口令后，任意设备均可解密云端快照）。
+    #[serde(default)]
+    pub snapshot_password: String,
     /// 上次同步时间（用于增量判断）。
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_sync_at: Option<DateTime<Utc>>,
@@ -727,4 +731,3 @@ mod tests {
         );
     }
 }
-

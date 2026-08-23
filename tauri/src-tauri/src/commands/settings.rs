@@ -421,7 +421,6 @@ pub async fn user_data_update_preference(
     Ok(())
 }
 
-
 // ── Phase 2 云同步配置命令 ─────────────────────────────
 
 #[derive(Deserialize)]
@@ -464,7 +463,8 @@ pub async fn cloud_sync_save_config(
         enabled: payload.enabled,
         interval_secs: payload.interval_secs,
         wifi_only: payload.wifi_only,
-        retention: serde_json::from_value::<solosoul_vault::RetentionPolicy>(payload.retention).map_err(|e| e.to_string())?,
+        retention: serde_json::from_value::<solosoul_vault::RetentionPolicy>(payload.retention)
+            .map_err(|e| e.to_string())?,
         snapshot_password: payload.snapshot_password,
         last_sync_at: None,
     };
@@ -483,16 +483,15 @@ pub async fn cloud_sync_delete_config(
 }
 
 #[tauri::command]
-pub async fn cloud_sync_test_connection(
-    payload: CloudSyncConfigPayload,
-) -> Result<(), String> {
+pub async fn cloud_sync_test_connection(payload: CloudSyncConfigPayload) -> Result<(), String> {
     let config = solosoul_vault::CloudSyncConfig {
         connector_type: payload.connector_type,
         config_json: payload.config_json,
         enabled: payload.enabled,
         interval_secs: payload.interval_secs,
         wifi_only: payload.wifi_only,
-        retention: serde_json::from_value::<solosoul_vault::RetentionPolicy>(payload.retention).map_err(|e| e.to_string())?,
+        retention: serde_json::from_value::<solosoul_vault::RetentionPolicy>(payload.retention)
+            .map_err(|e| e.to_string())?,
         snapshot_password: payload.snapshot_password,
         last_sync_at: None,
     };
@@ -562,7 +561,6 @@ pub async fn cloud_sync_list_incoming(state: State<'_, AppState>) -> Result<Vec<
     }
     Ok(out)
 }
-
 
 #[cfg(test)]
 mod tests {

@@ -366,7 +366,10 @@ pub async fn recovery_restore_from_host(
     // P015: 恢复密码在导入链路同样 Zeroizing 管理。
     let app_for_import = app.clone();
     let import_result = import_execute_internal(
-        state.clone(),
+        state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?,
         account_id.clone(),
         file_path.clone(),
         zeroize::Zeroizing::new(recovery_password),

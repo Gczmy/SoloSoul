@@ -252,8 +252,11 @@ pub async fn import_execute_advanced<R: tauri::Runtime>(
     req: AdvancedImportRequest,
 ) -> Result<ImportResult, String> {
     validate_import_path(&app, &req.source_path)?;
-    import_execute_internal(
-        state,
+    let result = import_execute_internal(
+        state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?,
         account_id,
         req.source_path,
         // P015: IPC 边界立即 Zeroizing 包装
@@ -265,7 +268,10 @@ pub async fn import_execute_advanced<R: tauri::Runtime>(
         &req.locale,
         None,
     )
-    .await
+    .await;
+    // 导入触发本地数据变更自动同步（原核心内部行为，重构后移至调用方）
+    state.auto_sync.trigger_debounce();
+    result
 }
 
 /// 导入执行核心。`progress` 可选进度回调：供恢复等长耗时导入场景展示进度条；常规导入传 `None`。
@@ -273,7 +279,8 @@ pub async fn import_execute_advanced<R: tauri::Runtime>(
 /// 附件阶段续接报告 80-100（`import_attachments` 内部换算），整体单调不回落。
 #[allow(clippy::too_many_arguments)]
 pub(crate) async fn import_execute_internal(
-    state: State<'_, AppState>,
+    // B-06 重构：改收读锁 guard，使云同步自动导入等非命令上下文可复用。
+    svc: std::sync::RwLockReadGuard<'_, solosoul_core::vault_service::VaultService>,
     account_id: String,
     file_path: String,
     password: zeroize::Zeroizing<String>,
@@ -284,10 +291,6 @@ pub(crate) async fn import_execute_internal(
     locale: &str,
     progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
 ) -> Result<ImportResult, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -377,7 +380,6 @@ pub(crate) async fn import_execute_internal(
         "user",
         Some(&details.to_string()),
     );
-    state.auto_sync.trigger_debounce();
 
     Ok(ImportResult {
         object_count: imported,
