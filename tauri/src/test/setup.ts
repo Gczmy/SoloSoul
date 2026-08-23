@@ -55,7 +55,7 @@ Element.prototype.scrollIntoView = vi.fn();
 // Mock ResizeObserver (not available in jsdom)
 // 收集实例并暴露 trigger()，供测试模拟「容器尺寸变化」驱动回调重测。
 export const resizeObserverInstances: MockResizeObserver[] = [];
-export class MockResizeObserver {
+class MockResizeObserver {
   callback: ResizeObserverCallback;
   observe = vi.fn();
   unobserve = vi.fn();

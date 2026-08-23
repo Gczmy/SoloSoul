@@ -327,7 +327,7 @@ function formatValueItem(value: unknown, t: TranslateFn, parentKey = ''): string
 }
 
 /** 顶层字段值的展示上限（字符数），超长截断避免单元格过大。 */
-export const CONFLICT_VALUE_MAX_LEN = 600;
+const CONFLICT_VALUE_MAX_LEN = 600;
 
 /** 截断超长展示值（配合 CSS pre-wrap 换行展示）。 */
 export function truncateConflictValue(text: string): string {

@@ -33,7 +33,7 @@ function scheduleIdle(callback: () => void): void {
  * 已 store 化数据的后台预热任务（templateStore/trashStore 自带缓存与变更刷新，
  * 仅需登录后提前填充，页面零改动）。返回 Promise 供调度吞错。
  */
-export const prefetchWarmupTasks: Array<{ phase: WarmupPhase; run: () => Promise<unknown> }> = [
+const prefetchWarmupTasks: Array<{ phase: WarmupPhase; run: () => Promise<unknown> }> = [
   {
     phase: 'afterAuth',
     run: () => useTemplateStore.getState().loadTemplates(),

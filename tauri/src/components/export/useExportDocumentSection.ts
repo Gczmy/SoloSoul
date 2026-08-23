@@ -18,7 +18,7 @@ import type { DocumentSensitivity, ExportDocumentResult, PageGroup } from '@/typ
 export type DocFormat = 'docx' | 'pdf' | 'html' | 'txt' | 'markdown';
 
 /** 各格式的扩展名与保存对话框过滤器。 */
-export const FORMAT_FILTERS: Record<DocFormat, { name: string; extensions: string[] }> = {
+const FORMAT_FILTERS: Record<DocFormat, { name: string; extensions: string[] }> = {
   docx: { name: 'Word Document', extensions: ['docx'] },
   pdf: { name: 'PDF Document', extensions: ['pdf'] },
   html: { name: 'HTML Document', extensions: ['html', 'htm'] },

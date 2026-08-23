@@ -9,7 +9,7 @@ import { loadFullPreviewUrl } from '@/lib/photoAlbumPreview';
 import { MIN_SCALE, MAX_SCALE, ZOOM_STEP, clampScale, computeFitScale } from '@/lib/photoZoom';
 
 /** 横向滑动翻页阈值（px）。 */
-export const SWIPE_THRESHOLD = 60;
+const SWIPE_THRESHOLD = 60;
 
 /** 纯函数：根据拖拽横向位移判断翻页方向（左滑 → 下一张，右滑 → 上一张）。 */
 export function swipeNavigation(offsetX: number, threshold = SWIPE_THRESHOLD): -1 | 0 | 1 {

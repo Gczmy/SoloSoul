@@ -30,7 +30,7 @@ export function isUriPath(path: string): boolean {
  * 故 macOS/Linux 仍走原 data: URL 路径，不走本协议）。path 经
  * encodeURIComponent 编码（与后端 percent_decode_str 配对）。
  */
-export function buildPdfPreviewSrc(vaultPath: string): string {
+function buildPdfPreviewSrc(vaultPath: string): string {
   const encoded = encodeURIComponent(vaultPath);
   return `http://solosoul-pdf.localhost/${encoded}`;
 }
