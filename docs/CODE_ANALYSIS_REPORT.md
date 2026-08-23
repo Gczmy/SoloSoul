@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-23 21:55:00
+> 最后更新：2026-08-23 22:10:00
 > 修复轮次：2（进入阶段 3 修复）
 > 当前分支：`main`
 > 前置轮次：1（初始分析，本轮仅分析不修复）
@@ -39,7 +39,7 @@
 | P008 | P1 | 可维护性 | `src/components/forms/DatePicker.tsx:168-609` | 主组件约 385 行，段落解析+键盘处理+滚轮渲染混杂 | `[ ]` 待修复 |
 | P009 | P1 | 可维护性 | `src/pages/settings/useExportImportPage.tsx:33-454` | 导出/导入 hook 状态机约 371 行 | `[ ]` 待修复 |
 | P010 | P1 | 可维护性 | `src/pages/settings/VaultDirectorySection.tsx:27-423` | 单组件约 369 行 | `[ ]` 待修复 |
-| P011 | P2 | 安全 | `crates/solosoul-core/src/export_import.rs:221-237,1218-1242,2214` | 导出/导入附件临时明文落共享 temp 目录（可预测目录名、未设 0700/0600）；同仓库其他路径均已收紧权限，此处是离群点 | `[ ]` 待修复 |
+| P011 | P2 | 安全 | `crates/solosoul-core/src/export_import.rs:221-237,1218-1242,2214` | 导出/导入附件临时明文落共享 temp 目录（可预测目录名、未设 0700/0600）；同仓库其他路径均已收紧权限，此处是离群点 | `[x]` 已修复 |
 | P012 | P2 | 安全（加固） | `crates/solosoul-sync/src/recovery.rs:269-279,184` | Recovery 主机指纹校验可选（手动输入路径无 MITM 防线），且主机端接受裸 PIN 认证；已有限流/一次性 nonce 缓解，建议加固 | `[ ]` 待修复 |
 | P013 | P2 | 性能/事务 | `crates/solosoul-vault/src/storage/snapshots.rs:369-414` | `repair_invisible_objects` 循环内逐行 query_row + UPDATE 无事务（有一次性标记兜底，仅跑一次，故 P2） | `[ ]` 待修复 |
 | P014 | P2 | 性能 | `crates/solosoul-vault/src/storage/objects.rs:448` | `save_object_tx` 无条件克隆整棵 properties JSON，即使无需注入 `__templateName`；可加 `template_id.is_some()` 惰性克隆 | `[ ]` 待修复 |
@@ -62,8 +62,14 @@
 
 ## 修复进度
 
-- 已完成：8 / 30（P0: 0，P1: 6，P2: 2）
-- 当前处理：P011
+- 已完成：9 / 30（P0: 0，P1: 6，P2: 3）
+- 当前处理：P013
+
+#### 修复说明（续）
+- **P011**：新增 `create_private_temp_dir`（0700 + UUID 随机目录名）与
+  `tighten_file_perms`（0600），替换导出（write_attachment_entries）与导入
+  （import_vault）两处生产路径的共享固定目录；测试内第 3 处为快照对比用途，
+  不涉明文，保持原样。export_import 17 测试回归通过。
 
 #### 修复说明（续）
 - **P029**：`vault_set_directory` 在 `svc.lock()` 之后 emit `vault-locked`
