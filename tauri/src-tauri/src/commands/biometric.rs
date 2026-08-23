@@ -76,6 +76,42 @@ fn map_bio_error(e: BiometricError, operation: &str) -> String {
     bio_err(code)
 }
 
+/// P020：生物识别审计日志收敛——6 处「get_vault_store + loc/act/type 格式化 +
+/// log_audit_best_effort」样板统一为本 helper（save/unlock/delete × 桌面/移动）。
+fn write_biometric_audit(
+    svc: &solosoul_core::vault_service::VaultService,
+    action_type: &str,
+    account_id: &str,
+    location: &str,
+    action: &str,
+    bio_type: &str,
+) {
+    if let Some(vg) = svc.get_vault_store() {
+        crate::commands::log_audit_best_effort(
+            vg.as_ref(),
+            action_type,
+            "biometric",
+            Some(account_id),
+            None,
+            "user",
+            Some(&format!(
+                "location={} action={} type={}",
+                location, action, bio_type
+            )),
+        );
+    }
+}
+
+/// P020：解锁类审计动作类型推导（touchId/faceId/windowsHello → 细分类型）。
+fn unlock_audit_action_type(bio_type: &str) -> &'static str {
+    match bio_type {
+        "touchId" => "touch_id_unlock",
+        "faceId" => "face_id_unlock",
+        "windowsHello" => "windows_hello_unlock",
+        _ => "biometric_unlock",
+    }
+}
+
 /// 读取 keystore_data.json 双槽凭证（兼容旧版扁平格式，解析失败/不存在返回 None）。
 #[cfg(target_os = "android")]
 fn read_keystore_credentials(
@@ -357,24 +393,14 @@ pub async fn biometric_save_credential(
         .save_credential(&account_id, &password, save_reason)
         .map_err(|e| map_bio_error(e, "save"))?;
 
-    if let Some(vg) = svc.get_vault_store() {
-        let vault = vg.as_ref();
-        let loc = location.unwrap_or_else(|| "unknown".to_string());
-        let act = action.unwrap_or_else(|| "enable".to_string());
-        let bio_type = biometry_type.as_deref().unwrap_or("unknown");
-        crate::commands::log_audit_best_effort(
-            vault,
-            "biometric_saved",
-            "biometric",
-            Some(&account_id),
-            None,
-            "user",
-            Some(&format!(
-                "location={} action={} type={}",
-                loc, act, bio_type
-            )),
-        );
-    }
+    write_biometric_audit(
+        &svc,
+        "biometric_saved",
+        &account_id,
+        location.as_deref().unwrap_or("unknown"),
+        &action.unwrap_or_else(|| "enable".to_string()),
+        biometry_type.as_deref().unwrap_or("unknown"),
+    );
     Ok(())
 }
 
@@ -492,24 +518,14 @@ pub async fn biometric_save_credential(
         .map_err(|e| map_bio_error(e, "save"))?;
 
     // 4. 审计日志
-    if let Some(vg) = svc.get_vault_store() {
-        let vault = vg.as_ref();
-        let loc = location.unwrap_or_else(|| "unknown".to_string());
-        let act = action.unwrap_or_else(|| "enable".to_string());
-        let bio_type = biometry_type.as_deref().unwrap_or("unknown");
-        crate::commands::log_audit_best_effort(
-            &vault,
-            "biometric_saved",
-            "biometric",
-            Some(&account_id),
-            None,
-            "user",
-            Some(&format!(
-                "location={} action={} type={}",
-                loc, act, bio_type
-            )),
-        );
-    }
+    write_biometric_audit(
+        &svc,
+        "biometric_saved",
+        &account_id,
+        location.as_deref().unwrap_or("unknown"),
+        &action.unwrap_or_else(|| "enable".to_string()),
+        biometry_type.as_deref().unwrap_or("unknown"),
+    );
 
     Ok(())
 }
@@ -532,34 +548,20 @@ pub async fn biometric_unlock(
         .unlock(&account_id, &svc, "unlock SoloSoul")
         .map_err(|e| map_bio_error(e, "unlock"))?;
 
-    if let Some(vg) = svc.get_vault_store() {
-        let vault = vg.as_ref();
-        let loc = location.unwrap_or_else(|| "unknown".to_string());
-        let act = action.unwrap_or_else(|| "unlock".to_string());
+    // Critical field access produces a more detailed frontend-side audit
+    // entry (critical_field_touch_id / critical_field_face_id), so skip
+    // the generic biometric unlock entry to avoid duplicates.
+    let loc_str = location.as_deref().unwrap_or("unknown");
+    if loc_str != "critical_data_access" {
         let bio_type = biometry_type.as_deref().unwrap_or(&used_bio_type);
-        // Critical field access produces a more detailed frontend-side audit
-        // entry (critical_field_touch_id / critical_field_face_id), so skip
-        // the generic biometric unlock entry to avoid duplicates.
-        if loc != "critical_data_access" {
-            let action_type = match bio_type {
-                "touchId" => "touch_id_unlock",
-                "faceId" => "face_id_unlock",
-                "windowsHello" => "windows_hello_unlock",
-                _ => "biometric_unlock",
-            };
-            crate::commands::log_audit_best_effort(
-                vault,
-                action_type,
-                "biometric",
-                Some(&account_id),
-                None,
-                "user",
-                Some(&format!(
-                    "location={} action={} type={}",
-                    loc, act, bio_type
-                )),
-            );
-        }
+        write_biometric_audit(
+            &svc,
+            unlock_audit_action_type(bio_type),
+            &account_id,
+            loc_str,
+            &action.unwrap_or_else(|| "unlock".to_string()),
+            bio_type,
+        );
     }
 
     // 生物识别解锁成功后自动清理过期回收站项目
@@ -657,31 +659,19 @@ pub async fn biometric_unlock(
     svc.unlock_with_session_key(&account_id, &key)
         .map_err(|e| map_bio_error(BiometricError::Other(format!("{:#}", e)), "unlock"))?;
 
-    // 3. 审计日志
-    if let Some(vg) = svc.get_vault_store() {
-        let vault = vg.as_ref();
-        let loc = location.unwrap_or_else(|| "unknown".to_string());
-        let act = action.unwrap_or_else(|| "unlock".to_string());
+    // 3. 审计日志（P020：收敛至共享 helper；移动端无 windowsHello，
+    //    unlock_audit_action_type 对未知类型回退 biometric_unlock，语义一致）
+    let loc_str = location.as_deref().unwrap_or("unknown");
+    if loc_str != "critical_data_access" {
         let bio_type = biometry_type.as_deref().unwrap_or("unknown");
-        if loc != "critical_data_access" {
-            let action_type = match bio_type {
-                "touchId" => "touch_id_unlock",
-                "faceId" => "face_id_unlock",
-                _ => "biometric_unlock",
-            };
-            crate::commands::log_audit_best_effort(
-                &vault,
-                action_type,
-                "biometric",
-                Some(&account_id),
-                None,
-                "user",
-                Some(&format!(
-                    "location={} action={} type={}",
-                    loc, act, bio_type
-                )),
-            );
-        }
+        write_biometric_audit(
+            &svc,
+            unlock_audit_action_type(bio_type),
+            &account_id,
+            loc_str,
+            &action.unwrap_or_else(|| "unlock".to_string()),
+            bio_type,
+        );
     }
 
     // 生物识别解锁成功后自动清理过期回收站项目
@@ -711,24 +701,14 @@ pub async fn biometric_delete_credential(
         .delete_credential(&account_id, &password)
         .map_err(|e| map_bio_error(e, "delete"))?;
 
-    if let Some(vg) = svc.get_vault_store() {
-        let vault = vg.as_ref();
-        let loc = location.unwrap_or_else(|| "unknown".to_string());
-        let act = action.unwrap_or_else(|| "disable".to_string());
-        let bio_type = biometry_type.as_deref().unwrap_or("unknown");
-        crate::commands::log_audit_best_effort(
-            vault,
-            "biometric_deleted",
-            "biometric",
-            Some(&account_id),
-            None,
-            "user",
-            Some(&format!(
-                "location={} action={} type={}",
-                loc, act, bio_type
-            )),
-        );
-    }
+    write_biometric_audit(
+        &svc,
+        "biometric_deleted",
+        &account_id,
+        location.as_deref().unwrap_or("unknown"),
+        &action.unwrap_or_else(|| "disable".to_string()),
+        biometry_type.as_deref().unwrap_or("unknown"),
+    );
     Ok(())
 }
 
@@ -809,24 +789,14 @@ pub async fn biometric_delete_credential(
         .map_err(|e| map_bio_error(e, "delete"))?;
 
     // 4. 审计日志
-    if let Some(vg) = svc.get_vault_store() {
-        let vault = vg.as_ref();
-        let loc = location.unwrap_or_else(|| "unknown".to_string());
-        let act = action.unwrap_or_else(|| "disable".to_string());
-        let bio_type = biometry_type.as_deref().unwrap_or("unknown");
-        crate::commands::log_audit_best_effort(
-            &vault,
-            "biometric_deleted",
-            "biometric",
-            Some(&account_id),
-            None,
-            "user",
-            Some(&format!(
-                "location={} action={} type={}",
-                loc, act, bio_type
-            )),
-        );
-    }
+    write_biometric_audit(
+        &svc,
+        "biometric_deleted",
+        &account_id,
+        location.as_deref().unwrap_or("unknown"),
+        &action.unwrap_or_else(|| "disable".to_string()),
+        biometry_type.as_deref().unwrap_or("unknown"),
+    );
 
     Ok(())
 }
