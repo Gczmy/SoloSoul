@@ -128,8 +128,7 @@ pub async fn import_decrypt_preview<R: tauri::Runtime>(
     // 的 ~3× payload 峰值。decrypt_zip_entry_streaming 内部已将解密失败映射为
     // import_err("DECRYPT_FAILED")，前端 i18n 行为与原实现一致，错误直接透传。
     let password = Zeroizing::new(password);
-    let (manifest, payload, _key) =
-        decrypt_package(&file_path, &password, vault.base_path())?;
+    let (manifest, payload, _key) = decrypt_package(&file_path, &password, vault.base_path())?;
 
     let objects: Vec<ObjectSummary> = payload["objects"]
         .as_array()

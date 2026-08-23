@@ -195,8 +195,7 @@ pub struct ExportAttachmentEntry {
 /// 目录名含随机 UUID 不可预测——避免多用户系统上其他用户预占目录或在
 /// 明文窗口期读取（对齐 GUI 侧 decrypt_to_temp_dir 的既有模式）。
 pub(crate) fn create_private_temp_dir(prefix: &str) -> Result<std::path::PathBuf, String> {
-    let dir = std::env::temp_dir()
-        .join(format!("solosoul_{}_{}", prefix, uuid::Uuid::new_v4()));
+    let dir = std::env::temp_dir().join(format!("solosoul_{}_{}", prefix, uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&dir).map_err(|e| format!("创建临时目录失败: {}", e))?;
     #[cfg(unix)]
     {

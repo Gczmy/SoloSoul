@@ -558,39 +558,44 @@ impl VaultStore {
         self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        with_tx(conn, "copy_snapshots begin", "copy_snapshots commit", |tx| {
-            let mut stmt = tx
-                .prepare(
-                    "SELECT timestamp, triggered_by, data, diff_summary
+        with_tx(
+            conn,
+            "copy_snapshots begin",
+            "copy_snapshots commit",
+            |tx| {
+                let mut stmt = tx
+                    .prepare(
+                        "SELECT timestamp, triggered_by, data, diff_summary
                  FROM object_snapshots WHERE object_id = ?1",
-                )
-                .map_err(|e| format!("copy_snapshots select: {}", e))?;
-            let rows: Vec<(i64, String, Vec<u8>, String)> = stmt
-                .query_map(rusqlite::params![from_object_id], |row| {
-                    Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
-                })
-                .map_err(|e| e.to_string())?
-                .collect::<Result<Vec<_>, _>>()
-                .map_err(|e| e.to_string())?;
-            drop(stmt);
-            let mut insert = tx.prepare(
+                    )
+                    .map_err(|e| format!("copy_snapshots select: {}", e))?;
+                let rows: Vec<(i64, String, Vec<u8>, String)> = stmt
+                    .query_map(rusqlite::params![from_object_id], |row| {
+                        Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
+                    })
+                    .map_err(|e| e.to_string())?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| e.to_string())?;
+                drop(stmt);
+                let mut insert = tx.prepare(
                 "INSERT INTO object_snapshots (id, object_id, timestamp, triggered_by, data, diff_summary)
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6)"
             ).map_err(|e| e.to_string())?;
-            for (timestamp, triggered_by, raw_data, diff_summary) in rows {
-                let id = uuid::Uuid::new_v4().to_string();
-                insert
-                    .execute(rusqlite::params![
-                        id,
-                        to_object_id,
-                        timestamp,
-                        triggered_by,
-                        raw_data,
-                        diff_summary
-                    ])
-                    .map_err(|e| e.to_string())?;
-            }
-            Ok(())
-        })
+                for (timestamp, triggered_by, raw_data, diff_summary) in rows {
+                    let id = uuid::Uuid::new_v4().to_string();
+                    insert
+                        .execute(rusqlite::params![
+                            id,
+                            to_object_id,
+                            timestamp,
+                            triggered_by,
+                            raw_data,
+                            diff_summary
+                        ])
+                        .map_err(|e| e.to_string())?;
+                }
+                Ok(())
+            },
+        )
     }
 }
