@@ -267,10 +267,10 @@ pub async fn import_execute_advanced<R: tauri::Runtime>(
         req.object_strategies,
         &req.locale,
         None,
-    );
-    // 导入触发本地数据变更自动同步（原核心内部行为，重构后移至调用方）
+    )?;
+    // 导入触发本地数据变更自动同步（原核心内部行为：仅成功后触发，N-102）
     state.auto_sync.trigger_debounce();
-    result
+    Ok(result)
 }
 
 /// 导入执行核心。`progress` 可选进度回调：供恢复等长耗时导入场景展示进度条；常规导入传 `None`。

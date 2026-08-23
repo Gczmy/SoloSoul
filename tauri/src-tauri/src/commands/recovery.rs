@@ -389,6 +389,11 @@ pub async fn recovery_restore_from_host(
         }) as Arc<dyn Fn(u8) + Send + Sync>),
     );
 
+    // N-101：恢复导入成功后触发 SAF 自动同步（原 import 内部行为，重构后由调用方负责）
+    if import_result.is_ok() {
+        state.auto_sync.trigger_debounce();
+    }
+
     // 清理下载的临时文件
     let _ = std::fs::remove_file(&file_path);
 
