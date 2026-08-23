@@ -62,6 +62,38 @@ const STATIC_CANDIDATES: &[Candidate] = &[
         name: "Nutstore",
     },
     Candidate {
+        rel: "我的坚果云",
+        id: "nutstore",
+        name: "Nutstore",
+    },
+    // 阿里云盘 PC 端同步目录
+    Candidate {
+        rel: "AlibabaCloudDrive",
+        id: "aliyundrive",
+        name: "Aliyun Drive",
+    },
+    Candidate {
+        rel: "阿里云盘",
+        id: "aliyundrive",
+        name: "Aliyun Drive",
+    },
+    // 夸克网盘 / 迅雷云盘 / 115：桌面同步覆盖面小，按常见默认目录探测
+    Candidate {
+        rel: "QuarkCloudDrive",
+        id: "quark",
+        name: "Quark Drive",
+    },
+    Candidate {
+        rel: "迅雷云盘",
+        id: "xunlei",
+        name: "Xunlei Cloud",
+    },
+    Candidate {
+        rel: "115网盘",
+        id: "115",
+        name: "115 Drive",
+    },
+    Candidate {
         rel: "Dropbox",
         id: "dropbox",
         name: "Dropbox",
@@ -87,10 +119,10 @@ pub(crate) fn detect_cloud_sync_dirs(home: &Path) -> Vec<CloudTargetInfo> {
     let mut seen: Vec<PathBuf> = Vec::new();
 
     let push = |p: PathBuf,
-                    id: &str,
-                    name: &str,
-                    out: &mut Vec<CloudTargetInfo>,
-                    seen: &mut Vec<PathBuf>| {
+                id: &str,
+                name: &str,
+                out: &mut Vec<CloudTargetInfo>,
+                seen: &mut Vec<PathBuf>| {
         if !p.is_dir() {
             return;
         }
