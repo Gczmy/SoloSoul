@@ -1,48 +1,60 @@
-# 代码分析修复报告（终版）
+# 代码分析修复报告（云同步专项轮）
 
-> 最后更新：2026-08-22 23:58:00
+> 最后更新：2026-08-23 16:23:38
 > 当前分支：`main`
-> 修复轮次：2（终版复审，第 1 轮问题已全部修复）
+> 修复轮次：1（Phase 2 云同步新代码专项审查）
 
-## 第 1 轮修复记录
+## 审查范围
 
-| ID    | 优先级 | 类别          | 文件位置                                                                | 描述                                                                                        | 状态         | 修复 Commit |
-|-------|--------|---------------|-------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|--------------|-------------|
-| A-001 | P1     | 安全·内存卫生 | `tauri/src/stores/templateStore.ts` + `tauri/src/App/AppRoutes.tsx:248` | 锁定 Vault 后模板解密数据残留内存：templateStore 无清理方法且未订阅 vault-locked 清理链路   | `[x]` 已修复 | `d5083189` |
-| A-002 | P2     | 安全·内存卫生 | `tauri/src/App/AppRoutes.tsx:248-263`                                   | syncStore（设备元数据）、llmStatsStore（账号用量统计）未在 vault-locked 时清理              | `[x]` 已修复 | `9f461cb3` |
+- `crates/solosoul-core/src/cloud_sync/`（mod.rs + webdav.rs，~700 行）
+- `src-tauri/src/sync/cloud_auto_sync.rs`（~750 行）
+- `src-tauri/src/commands/cloud_targets.rs`、`commands/settings.rs` 云同步命令段
+- 前端 `CloudSyncPage.tsx`
 
-### 修复说明
+## 基线检查
 
-#### A-001
-- `templateStore.ts` 新增 `clearOnVaultLock` action；`AppRoutes.tsx` 的 `vault-locked` 监听器中追加调用。
-- 验证：tsc / ESLint / Vitest（928 测试）全绿。
+| 检查项 | 结果 |
+|--------|------|
+| `cargo fmt --check` | ✅（本轮已顺手修复 mod.rs 一处格式） |
+| `cargo clippy --workspace -D warnings` | ✅ 零告警 |
+| `npx tsc --noEmit` / `npm run lint` | ✅ |
+| Rust workspace 测试 + E2E | ✅ 990 passed |
+| 凭据日志泄漏扫描 | ✅ 无（日志仅含 source 标识与错误分类文本） |
 
-#### A-002
-- `syncStore.ts` 新增 `clearOnVaultLock`（清空指纹/peer/同步结果/冲突/配对中状态，保留纯 UI 开关）；`AppRoutes.tsx` 中追加调用 syncStore 与 llmStatsStore（复用已有 `clear()`）。
-- 验证：tsc / ESLint / Vitest（928 测试）全绿。
+## 问题清单
 
-## 终版复审结果（阶段 4 全量重新扫描）
+| ID    | 优先级 | 类别   | 文件位置                                        | 描述                                                                                     | 状态        |
+|-------|--------|--------|-------------------------------------------------|------------------------------------------------------------------------------------------|-------------|
+| N-001 | P1     | 潜在崩溃 | `crates/solosoul-core/src/cloud_sync/webdav.rs:46` | `WebDavConnector::new` 对用户输入的 `base_url` 执行 `Url::from_str(...).expect(...)`——Settings 表单输错 URL 即 panic 整个应用；同函数 `Client::builder().build().expect()` 同理 | `[ ]` 待修复 |
+| N-002 | P2     | 资源泄漏 | `src-tauri/src/sync/cloud_auto_sync.rs:336-363`  | 上传失败时临时快照残留在 `{data_dir}/cloud_sync_tmp/` 无清理，长期累积占用磁盘             | `[ ]` 待修复 |
+| N-003 | P3     | 规范   | `webdav.rs:85,114,127,222`                      | `Method::from_bytes(b"PROPFIND").unwrap()` 重复 4 处（实际不可失败）；应提为常量           | `[ ]` 待修复 |
 
-| 检查项                              | 结果                                     |
-|-------------------------------------|------------------------------------------|
-| `cargo fmt --check`                 | ✅ 通过                                  |
-| `cargo clippy --workspace -D warnings` | ✅ 通过（零警告）                    |
-| `cargo test`                        | ✅ 972 passed / 0 failed                 |
-| `npx tsc --noEmit`                  | ✅ 通过                                  |
-| `npm run lint`                      | ✅ 零错误零警告                          |
-| `npm run test`（Vitest）            | ✅ 108 个测试文件 / 928 测试全部通过     |
-| 非测试 unwrap/expect/panic 全量审查 | ✅ 无新增风险（候选均为误报，见下）      |
-| 吞错误审查（空 catch / let _ =）    | ✅ 均为 best-effort 清理惯例             |
-| Tauri 安全配置（CSP/capabilities）  | ✅ CSP 严格、fs 范围限定、shell 仅 http(s)/mailto/tel |
-| npm audit                           | ✅ 0 漏洞                                |
-| 锁定清理链路终验                    | ✅ 9 类敏感状态全部纳入 vault-locked 清理 |
+## 详细说明与修复方案
 
-### 终版复审排除的误报
+### N-001（P1）：用户输入 URL 触发 panic
 
-- `search/commands.rs:165` `max_by().unwrap()` → else 分支仅在列表非空时进入，安全。
-- 其余非测试 `unwrap/expect` 为编译期定长切片转换、build.rs 常量读取、平台 FFI，均安全。
-- `create_schema_tables`（162 行）/ `register_core_commands`（144 行）→ 声明式 DDL/注册表，设计如此。
+- **场景**：用户在 CloudSyncPage「服务器地址」填入非法 URL（如漏掉 scheme、多余空格），保存后
+  「连接测试」→ `create_connector` → `WebDavConnector::new` → `expect` → 进程 abort。
+  Android Release 构建为 panic=abort，直接闪退。
+- **方案**：`new` 签名改为 `Result<Self, CloudSyncError>`（URL 解析失败 → `ConfigMissing`
+  或新增 `InvalidConfig` 变体；Client 构建失败 → `Internal`）。`create_connector` 已返回
+  `CloudResult`，自然透传。调用方仅 create_connector 与测试。
+- **验证**：单测断言非法 URL 返回 Err 而非 panic；既有测试改用 `.unwrap()` 于合法输入。
 
-## 结论
+### N-002（P2）：上传失败残留临时快照
 
-✅ 所有可识别问题已修复，代码库质量评估达标。终版复审未发现任何新的 P0/P1/P2 问题。
+- **场景**：导出成功但上传失败（网络断开）时，`?` 在 `remove_file` 之前传播，
+  `cloud_sync_tmp/snapshot_*.solosoul` 永久残留（可达数百 MB）。
+- **方案**：①上传结果无论成败均清理本次临时文件；②每轮同步开始时清扫目录内
+  超过 24h 的陈旧残留（覆盖历史崩溃场景）。
+
+### N-003（P3）：重复 Method unwrap
+
+- `Method::from_bytes(b"PROPFIND")` 编译期即可确定为合法方法名，unwrap 不可失败；
+  但四处重复属噪音。提为 `const METHOD_PROPFIND/MKCOL: Method`（Method 为 Copy 类型可常量化
+  ——若 const 不稳则用 `OnceLock` 或就地 `from_bytes` 提取为私有 helper 函数）。
+
+## 修复进度
+
+- 已完成：0 / 3
+- 当前处理：无
