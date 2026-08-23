@@ -140,6 +140,7 @@ fn register_core_commands(
         commands::settings::cloud_sync_now,
         commands::settings::cloud_sync_mark_applied,
         commands::settings::cloud_sync_list_incoming,
+        commands::settings::ui_get_preferences,
         commands::settings::ui_update_preference,
         // Biometric commands
         commands::biometric::biometric_check_availability,
