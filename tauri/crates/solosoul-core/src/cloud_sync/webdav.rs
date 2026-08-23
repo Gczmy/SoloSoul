@@ -315,46 +315,59 @@ impl CloudConnector for WebDavConnector {
 
 /// 解析 PROPFIND 多状态响应。
 ///
-/// A1 实测修正：不同服务器命名空间前缀不一（wsgidav 用 `D:`、其他常见 `d:`/`ns0:`），
-/// 先将所有标签的命名空间前缀剥离归一化为无前缀形式，再做简易提取。
+/// B-02：改用 roxmltree 按本地名匹配（忽略命名空间前缀），替代手写前缀剥离 +
+/// 字符串提取——对属性顺序/自闭合/编码变体更鲁棒。href 仍需百分号解码。
 fn parse_propfind_response(xml: &str, base_path: &str) -> CloudResult<Vec<CloudObjectMeta>> {
-    let normalized = strip_xml_ns_prefixes(xml);
+    let doc = roxmltree::Document::parse(xml)
+        .map_err(|e| CloudSyncError::ListFailed(format!("PROPFIND 响应 XML 解析失败: {e}")))?;
+
+    fn local_name<'a, 'input>(node: &'a roxmltree::Node<'a, 'input>) -> &'a str {
+        // tag_name().name() 即本地名（不含前缀），与命名空间无关
+        node.tag_name().name()
+    }
 
     let mut results = Vec::new();
-    for block in normalized.split("<response>").skip(1) {
-        let mut href = String::new();
+    for response_node in doc.descendants().filter(|n| local_name(n) == "response") {
+        let href = response_node
+            .children()
+            .find(|n| local_name(n) == "href")
+            .and_then(|n| n.text())
+            .map(percent_decode)
+            .unwrap_or_default();
+
+        // 跳过基路径自身（归一化前导/尾随斜杠后比较）
+        let base_trimmed = base_path.trim_matches('/');
+        let href_trimmed = href.trim_matches('/');
+        if href_trimmed == base_trimmed {
+            continue;
+        }
+
         let mut size: u64 = 0;
         let mut modified: Option<DateTime<Utc>> = None;
         let mut etag: Option<String> = None;
         let mut is_collection = false;
 
-        if let Some(h) = extract_xml_tag(block, "href") {
-            // wsgidav 等 server 返回的 href 可能经 URL 编码，先解码再比较
-            href = percent_decode(&h);
-        }
-
-        let base_trimmed = base_path.trim_end_matches('/');
-        // A1 实测修正：调用方可能传相对路径（无前导 /），而 href 恒为绝对路径；
-        // 双方均剥离前导 / 后再比较，否则基路径目录自身会混入结果（size=0）。
-        let href_trimmed = href.trim_start_matches('/').trim_end_matches('/');
-        if href_trimmed == base_trimmed.trim_start_matches('/') {
-            continue; // 跳过基路径自身
-        }
-
-        if let Some(prop_block) = extract_xml_tag(block, "prop") {
-            if let Some(cl) = extract_xml_tag(&prop_block, "getcontentlength") {
-                size = cl.trim().parse().unwrap_or(0);
+        for prop in response_node
+            .descendants()
+            .filter(|n| local_name(n) == "prop")
+        {
+            if let Some(n) = prop
+                .children()
+                .find(|n| local_name(n) == "getcontentlength")
+            {
+                size = n.text().and_then(|t| t.trim().parse().ok()).unwrap_or(0);
             }
-            if let Some(lm) = extract_xml_tag(&prop_block, "getlastmodified") {
-                modified = DateTime::parse_from_rfc2822(lm.trim())
-                    .ok()
+            if let Some(n) = prop.children().find(|n| local_name(n) == "getlastmodified") {
+                modified = n
+                    .text()
+                    .and_then(|t| DateTime::parse_from_rfc2822(t.trim()).ok())
                     .map(|dt| dt.with_timezone(&Utc));
             }
-            if let Some(et) = extract_xml_tag(&prop_block, "getetag") {
-                etag = Some(et.trim().trim_matches('"').to_string());
+            if let Some(n) = prop.children().find(|n| local_name(n) == "getetag") {
+                etag = n.text().map(|t| t.trim().trim_matches('"').to_string());
             }
-            if let Some(rt) = extract_xml_tag(&prop_block, "resourcetype") {
-                is_collection = rt.contains("collection");
+            if let Some(n) = prop.children().find(|n| local_name(n) == "resourcetype") {
+                is_collection = n.children().any(|child| local_name(&child) == "collection");
             }
         }
 
@@ -371,81 +384,6 @@ fn parse_propfind_response(xml: &str, base_path: &str) -> CloudResult<Vec<CloudO
     }
 
     Ok(results)
-}
-
-/// 剥离 XML 标签的命名空间前缀：`<D:response>` / `<ns0:href ...>` → `<response>` / `<href ...>`。
-///
-/// 仅重写标签名的 `prefix:` 部分，属性原样保留；文本节点不触碰。
-fn strip_xml_ns_prefixes(xml: &str) -> String {
-    let bytes = xml.as_bytes();
-    let mut out = String::with_capacity(xml.len());
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'<' {
-            if let Some(rel) = xml[i..].find('>') {
-                let end = i + rel; // '>' 位置
-                out.push_str(&rewrite_tag(&xml[i..=end]));
-                i = end + 1;
-                continue;
-            }
-        }
-        // 非 ASCII 字符按字节拷贝会破坏 UTF-8；以 char 边界推进
-        let ch_len = utf8_char_len(bytes[i]);
-        out.push_str(&xml[i..i + ch_len]);
-        i += ch_len;
-    }
-    out
-}
-
-fn utf8_char_len(b: u8) -> usize {
-    match b {
-        0x00..=0x7F => 1,
-        0xC0..=0xDF => 2,
-        0xE0..=0xEF => 3,
-        0xF0..=0xF7 => 4,
-        _ => 1, // 连续字节不应单独出现，防御性回退
-    }
-}
-
-/// 重写单个标签（含 `<` 与 `>`）：去掉标签名中的命名空间前缀。
-fn rewrite_tag(tag: &str) -> String {
-    debug_assert!(tag.starts_with('<') && tag.ends_with('>'));
-    let inner = &tag[1..tag.len() - 1];
-    let (is_close, body) = if let Some(rest) = inner.strip_prefix('/') {
-        (true, rest)
-    } else {
-        (false, inner)
-    };
-    // 自闭合 `<D:x/>`
-    let self_close = body.ends_with('/');
-    let body_trimmed = if self_close {
-        &body[..body.len() - 1]
-    } else {
-        body
-    };
-
-    // 标签名 = 第一个空白或结尾之前的部分；仅当其中含 ':' 且前缀为合法 NCName 时剥离
-    let name_end = body_trimmed
-        .find(|ch: char| ch.is_whitespace())
-        .unwrap_or(body_trimmed.len());
-    let (name, rest) = body_trimmed.split_at(name_end);
-    let cleaned_name = match name.split_once(':') {
-        Some((_prefix, local)) => local,
-        None => name,
-    };
-
-    let mut s = String::with_capacity(tag.len());
-    s.push('<');
-    if is_close {
-        s.push('/');
-    }
-    s.push_str(cleaned_name);
-    s.push_str(rest);
-    if self_close {
-        s.push('/');
-    }
-    s.push('>');
-    s
 }
 
 /// 极简百分号解码（WebDAV href 常见场景：路径段中的空格/中文/特殊字符）。
@@ -468,69 +406,39 @@ fn percent_decode(s: &str) -> String {
     String::from_utf8_lossy(&out).to_string()
 }
 
-/// 从 XML 片段提取首个 `<name ...>...</name>` 的内容（兼容带属性的开放标签）。
-fn extract_xml_tag(xml: &str, name: &str) -> Option<String> {
-    let open_candidates = [format!("<{}>", name), format!("<{} ", name)];
-    for open in &open_candidates {
-        if let Some(start) = xml.find(open.as_str()) {
-            // 开放标签内容起点：跳过到 '>' 之后
-            let content_start = start + open.len().min(xml.len() - start);
-            let content_start = if open.ends_with('>') {
-                content_start
-            } else {
-                match xml[start..].find('>') {
-                    Some(gt) => start + gt + 1,
-                    None => continue,
-                }
-            };
-            let close = format!("</{}>", name);
-            if let Some(end_rel) = xml[content_start..].find(close.as_str()) {
-                return Some(
-                    xml[content_start..content_start + end_rel]
-                        .trim()
-                        .to_string(),
-                );
-            }
-        }
-    }
-    None
-}
-
 #[cfg(test)]
 mod parse_tests {
     use super::*;
 
     #[test]
-    fn test_strip_ns_prefixes_variants() {
-        let input = r#"<?xml version="1.0"?><D:multistatus xmlns:D="DAV:"><D:response><D:href>/a/one.bin</D:href><D:propstat><D:prop><D:getcontentlength>1024</D:getcontentlength></D:prop></D:propstat></D:response></D:multistatus>"#;
-        let out = strip_xml_ns_prefixes(input);
-        assert!(out.contains("<response>"), "大写前缀应被剥离: {}", out);
-        assert!(out.contains("<href>/a/one.bin</href>"));
-        assert!(out.contains("<getcontentlength>1024</getcontentlength>"));
-
-        let ns0 = r#"<ns0:multistatus xmlns:ns0="DAV:"><ns0:response/></ns0:multistatus>"#;
-        let out2 = strip_xml_ns_prefixes(ns0);
-        assert!(out2.contains("<response/>"));
-        assert!(out2.contains("<multistatus "));
-    }
-
-    #[test]
-    fn test_parse_propfind_wsgidav_style() {
+    fn test_parse_propfind_wsgidav_style_uppercase_prefix() {
+        // wsgidav 真实输出：大写 D: 前缀 + 目录双 propstat（404/200）
         let xml = r#"<?xml version="1.0" encoding="utf-8"?>
 <D:multistatus xmlns:D="DAV:">
  <D:response>
   <D:href>/e2e/listdir/</D:href>
-  <D:propstat><D:prop><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat>
+  <D:propstat><D:prop><D:getcontentlength /><D:getetag /></D:prop><D:status>HTTP/1.1 404 Not Found</D:status></D:propstat>
+  <D:propstat><D:prop><D:getlastmodified>Sun, 23 Aug 2026 13:20:43 GMT</D:getlastmodified><D:resourcetype><D:collection /></D:resourcetype></D:prop><D:status>HTTP/1.1 200 OK</D:status></D:propstat>
  </D:response>
  <D:response>
   <D:href>/e2e/listdir/one.bin</D:href>
-  <D:propstat><D:prop><D:getcontentlength>1024</D:getcontentlength><D:resourcetype/></D:prop></D:propstat>
+  <D:propstat><D:prop><D:getcontentlength>1024</D:getcontentlength><D:getetag>abc123</D:getetag><D:resourcetype /></D:prop></D:propstat>
  </D:response>
 </D:multistatus>"#;
         let items = parse_propfind_response(xml, "/e2e/listdir").unwrap();
-        assert_eq!(items.len(), 1);
+        assert_eq!(items.len(), 1, "目录自身应被跳过");
         assert_eq!(items[0].size, 1024);
         assert_eq!(items[0].path, "/e2e/listdir/one.bin");
+        assert_eq!(items[0].etag.as_deref(), Some("abc123"));
+    }
+
+    #[test]
+    fn test_parse_propfind_ns0_prefix_and_relative_base() {
+        // ns0 前缀 + 调用方传相对路径（无前导斜杠）——B-01 前实测踩过的坑
+        let xml = r#"<ns0:multistatus xmlns:ns0="DAV:"><ns0:response><ns0:href>/dbg2/one.bin</ns0:href><ns0:propstat><ns0:prop><ns0:getcontentlength>10</ns0:getcontentlength></ns0:prop></ns0:propstat></ns0:response></ns0:multistatus>"#;
+        let items = parse_propfind_response(xml, "dbg2").unwrap();
+        assert_eq!(items.len(), 1);
+        assert_eq!(items[0].size, 10);
     }
 
     #[test]
