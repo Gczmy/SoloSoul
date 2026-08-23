@@ -4,6 +4,7 @@ pub mod fs;
 pub mod keystore_plugin;
 pub mod local_embed;
 pub mod lock_state_plugin;
+pub mod network_status_plugin;
 pub mod mobile_ocr_plugin;
 pub mod nsd_plugin;
 pub mod plugin;
@@ -109,7 +110,6 @@ fn register_core_commands(
         commands::profile::profile_load,
         commands::vault::get_vault_stats,
         // File System commands
-        commands::cloud_targets::cloud_targets_detect,
         commands::fs::fs_scan_directory,
         commands::fs::fs_get_file_size,
         commands::fs::fs_is_dir,
@@ -132,7 +132,14 @@ fn register_core_commands(
         // Settings commands
         commands::settings::user_data_get_preferences,
         commands::settings::user_data_update_preference,
-        commands::settings::ui_get_preferences,
+        commands::cloud_targets::cloud_targets_detect,
+        commands::settings::cloud_sync_get_config,
+        commands::settings::cloud_sync_save_config,
+        commands::settings::cloud_sync_delete_config,
+        commands::settings::cloud_sync_test_connection,
+        commands::settings::cloud_sync_now,
+        commands::settings::cloud_sync_mark_applied,
+        commands::settings::cloud_sync_list_incoming,
         commands::settings::ui_update_preference,
         // Biometric commands
         commands::biometric::biometric_check_availability,
@@ -338,6 +345,7 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(status_bar_plugin::init())
         .plugin(lock_state_plugin::init())
+        .plugin(network_status_plugin::init())
         .plugin(attachment_import_plugin::init())
         .plugin(nsd_plugin::init())
         .plugin(mobile_ocr_plugin::init())

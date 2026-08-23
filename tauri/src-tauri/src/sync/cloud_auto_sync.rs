@@ -245,6 +245,11 @@ async fn run_cloud_sync_round(
             tracing::warn!("[CloudSync] snapshot_password 未设置，跳过");
             return Ok(());
         }
+        // B-01：Wi-Fi only 门控（仅移动端有实际语义；桌面 is_on_wifi 恒 true）
+        if cfg.wifi_only && !crate::network_status_plugin::is_on_wifi(app_handle) {
+            tracing::debug!("[CloudSync] wifi_only 开启且当前非 Wi-Fi，跳过本轮 ({})", source_str);
+            return Ok(());
+        }
         // 周期触发的时间间隔门控
         if source == CloudSyncSource::Periodic {
             if let Some(last) = cfg.last_sync_at {
