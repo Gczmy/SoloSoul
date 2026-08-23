@@ -83,7 +83,12 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   const [results, setResults] = useState<SearchItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [recent, setRecent] = useState<string[]>(loadRecent);
+  const [recent, setRecent] = useState<string[]>(() => loadRecent(accountId));
+
+  // P005 核验补修：账户变化时按新账户重新加载最近搜索词
+  useEffect(() => {
+    setRecent(loadRecent(accountId));
+  }, [accountId]);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [detailObjectId, setDetailObjectId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -137,7 +142,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
 
   const handleSubmit = () => {
     if (query.trim()) {
-      saveRecent(query.trim());
+      saveRecent(query.trim(), accountId);
       setRecent(loadRecent(accountId));
     }
   };
@@ -169,7 +174,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   };
 
   const handleClickResult = (item: SearchItem) => {
-    if (query.trim()) saveRecent(query.trim());
+    if (query.trim()) saveRecent(query.trim(), accountId);
     if (item.itemType === 'page') {
       if (item.typeId === 'page') {
         closeAndNavigate(`/workspace/custom/${item.objectId}`);
