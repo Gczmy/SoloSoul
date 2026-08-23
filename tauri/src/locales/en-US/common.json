@@ -257,6 +257,8 @@
   "created": "created",
   "updated": "updated",
   "copy": "Copy",
+  "disabled": "Disabled",
+  "enabled": "Enabled",
   "copied": "Copied",
   "no_properties": "No properties",
   "export_path": "Export Path",

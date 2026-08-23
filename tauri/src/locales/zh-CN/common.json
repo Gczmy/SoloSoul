@@ -256,6 +256,8 @@
   "created": "创建时间",
   "updated": "更新时间",
   "copy": "复制",
+  "disabled": "已停用",
+  "enabled": "已启用",
   "copied": "已复制",
   "no_properties": "无属性数据",
   "export_path": "导出路径",
