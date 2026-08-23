@@ -157,14 +157,15 @@ pub trait CloudConnector: Send + Sync {
     /// 确保远程目录存在（自动创建父目录链，MKCOL 递归）。
     async fn ensure_dir(&self, remote_path: &str) -> CloudResult<()>;
 
-    /// 上传文件（分片上传，支持断点续传）。
+    /// 上传文件（单次流式 PUT，请求体边读边发，内存恒定）。
     ///
-    /// `reader` 必须支持 `AsyncRead + Send + Unpin`；实现内部按 4~8 MiB 分片 PUT。
+    /// `reader` 所有权被接管（`Pin<Box<dyn AsyncRead + Send>>`）；实现内部
+    /// 经 ReaderStream 流式发送，任意大小文件均适用。
     /// 返回最终远程路径与 ETag。
     async fn upload(
         &self,
         remote_path: &str,
-        reader: Pin<&mut (dyn tokio::io::AsyncRead + Send + Unpin)>,
+        reader: Pin<Box<dyn tokio::io::AsyncRead + Send>>,
         total_size: u64,
     ) -> CloudResult<(String, String)>;
 

@@ -345,10 +345,9 @@ async fn run_sync_inner(
     let file_size = tokio::fs::metadata(&temp_path).await.map_err(|e| e.to_string())?.len();
 
     let file = tokio::fs::File::open(&temp_path).await.map_err(|e| e.to_string())?;
-    let mut reader = tokio::io::BufReader::new(file);
-    let pinned: Pin<&mut (dyn tokio::io::AsyncRead + Send + Unpin)> = Pin::new(&mut reader);
+    let reader = tokio::io::BufReader::new(file);
     let (_, etag) = connector
-        .upload(&remote_path, pinned, file_size)
+        .upload(&remote_path, Box::pin(reader), file_size)
         .await
         .map_err(|e| format!("上传快照失败: {}", e))?;
 
@@ -454,13 +453,12 @@ async fn update_latest_index(
 
     let bytes = serde_json::to_vec_pretty(&index).map_err(|e| e.to_string())?;
     let payload_len = bytes.len() as u64;
-    let mut cursor = std::io::Cursor::new(bytes);
-    let pinned: Pin<&mut (dyn tokio::io::AsyncRead + Send + Unpin)> = Pin::new(&mut cursor);
+    let cursor = std::io::Cursor::new(bytes);
     if let Some(parent) = remote_parent(&index_remote) {
         connector.ensure_dir(&parent).await.map_err(|e| format!("ensure_dir 索引目录失败: {}", e))?;
     }
     connector
-        .upload(&index_remote, pinned, payload_len)
+        .upload(&index_remote, Box::pin(cursor), payload_len)
         .await
         .map_err(|e| format!("上传索引失败: {}", e))?;
     Ok(())

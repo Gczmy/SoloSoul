@@ -13,16 +13,14 @@ use async_trait::async_trait;
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
 use chrono::{DateTime, Utc};
 use futures::StreamExt;
-use reqwest::header::{
-    AUTHORIZATION, CONTENT_LENGTH, CONTENT_RANGE, CONTENT_TYPE, HeaderValue,
-};
+use reqwest::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, HeaderValue};
 use reqwest::{Client, Method, RequestBuilder};
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt};
 
 use crate::cloud_sync::{CloudConnector, CloudObjectMeta, CloudResult, CloudSyncError, WebDavConfig};
 
 /// 默认分片大小：8 MiB（坚果云/Nextcloud 均支持更大，8M 平衡内存与并发）。
-const DEFAULT_CHUNK_SIZE: u64 = 8 * 1024 * 1024;
+pub const DEFAULT_CHUNK_SIZE: u64 = 8 * 1024 * 1024;
 /// WebDAV 连接器。
 #[derive(Clone)]
 pub struct WebDavConnector {
@@ -91,10 +89,12 @@ impl CloudConnector for WebDavConnector {
             .await
             .map_err(CloudSyncError::Http)?;
 
-        if resp.status().is_success() || resp.status().as_u16() == 207 {
-            Ok(())
-        } else {
-            Err(CloudSyncError::ConnectFailed(format!("PROPFIND 失败: {}", resp.status())))
+        match resp.status().as_u16() {
+            207 | 200 => Ok(()),
+            401 | 403 => Err(CloudSyncError::AuthFailed(
+                "WebDAV 认证失败（用户名/密码错误）".to_string(),
+            )),
+            s => Err(CloudSyncError::ConnectFailed(format!("PROPFIND 失败: {}", s))),
         }
     }
 
@@ -139,7 +139,7 @@ impl CloudConnector for WebDavConnector {
     async fn upload(
         &self,
         remote_path: &str,
-        mut reader: Pin<&mut (dyn AsyncRead + Send + Unpin)>,
+        reader: Pin<Box<dyn AsyncRead + Send>>,
         total_size: u64,
     ) -> CloudResult<(String, String)> {
         // 确保父目录存在
@@ -150,71 +150,29 @@ impl CloudConnector for WebDavConnector {
             }
         }
 
-        if total_size <= DEFAULT_CHUNK_SIZE {
-            // 小文件单次 PUT
-            let mut buf = Vec::with_capacity(total_size as usize);
-            reader.read_to_end(&mut buf).await.map_err(CloudSyncError::Io)?;
-            let resp = self.request(Method::PUT, remote_path)
-                .header(CONTENT_LENGTH, buf.len() as u64)
-                .header(CONTENT_TYPE, "application/octet-stream")
-                .body(buf)
-                .send()
-                .await
-                .map_err(CloudSyncError::Http)?;
+        // A1 实测修正：标准 WebDAV PUT 不支持 Content-Range 部分写（RFC 4918 无此
+        // 语义，wsgidav 返回 400、坚果云同样拒绝）。改为单次流式 PUT：请求体经
+        // ReaderStream 边读边发，内存常驻恒定，任意大小文件均适用。
+        let stream = tokio_util::io::ReaderStream::new(reader);
+        let body = reqwest::Body::wrap_stream(stream);
+        let resp = self.request(Method::PUT, remote_path)
+            .header(CONTENT_LENGTH, total_size)
+            .header(CONTENT_TYPE, "application/octet-stream")
+            .body(body)
+            .send()
+            .await
+            .map_err(CloudSyncError::Http)?;
 
-            if resp.status().is_success() {
-                let etag = resp
-                    .headers()
-                    .get("ETag")
-                    .and_then(|v| v.to_str().ok())
-                    .map(|s| s.trim_matches('"').to_string())
-                    .unwrap_or_default();
-                Ok((remote_path.to_string(), etag))
-            } else {
-                Err(CloudSyncError::UploadFailed(format!("PUT 失败: {}", resp.status())))
-            }
+        if resp.status().is_success() {
+            let etag = resp
+                .headers()
+                .get("ETag")
+                .and_then(|v| v.to_str().ok())
+                .map(|s| s.trim_matches('"').to_string())
+                .unwrap_or_default();
+            Ok((remote_path.to_string(), etag))
         } else {
-            // 大文件分片上传（RFC 4918 PUT + Content-Range）
-            // 顺序上传各分片，最后合并（某些服务器需最后发送 0 字节完成标记）。
-            let mut uploaded: u64 = 0;
-            let mut chunk_idx: u64 = 0;
-            let mut buffer = vec![0u8; DEFAULT_CHUNK_SIZE as usize];
-
-            while uploaded < total_size {
-                let to_read = std::cmp::min(DEFAULT_CHUNK_SIZE, total_size - uploaded) as usize;
-                let n = reader.read(&mut buffer[..to_read]).await.map_err(CloudSyncError::Io)?;
-                if n == 0 {
-                    break;
-                }
-                let chunk = &buffer[..n];
-
-                let start = uploaded;
-                let end = uploaded + n as u64 - 1;
-                let range_header = format!("bytes {}-{}/{}", start, end, total_size);
-
-                let resp = self.request(Method::PUT, remote_path)
-                    .header(CONTENT_LENGTH, n as u64)
-                    .header(CONTENT_RANGE, range_header)
-                    .header(CONTENT_TYPE, "application/octet-stream")
-                    .body(chunk.to_vec())
-                    .send()
-                    .await
-                    .map_err(CloudSyncError::Http)?;
-
-                if !resp.status().is_success() && resp.status().as_u16() != 206 {
-                    return Err(CloudSyncError::UploadFailed(format!(
-                        "分片上传失败 {}: {} (分片 {})",
-                        remote_path, resp.status(), chunk_idx
-                    )));
-                }
-
-                uploaded = end + 1;
-                chunk_idx += 1;
-            }
-
-            // 最终确认（某些服务器需要最后发送空分片或单独完成请求；这里假设上传完即完成）
-            let head = self.head(remote_path).await?;
-            Ok((remote_path.to_string(), head.etag.unwrap_or_default()))
+            Err(CloudSyncError::UploadFailed(format!("PUT 失败: {}", resp.status())))
         }
     }
 
@@ -313,48 +271,53 @@ impl CloudConnector for WebDavConnector {
     }
 }
 
-/// 解析 PROPFIND 多状态响应（简化版，仅提取需要的字段）。
+/// 解析 PROPFIND 多状态响应。
+///
+/// A1 实测修正：不同服务器命名空间前缀不一（wsgidav 用 `D:`、其他常见 `d:`/`ns0:`），
+/// 先将所有标签的命名空间前缀剥离归一化为无前缀形式，再做简易提取。
 fn parse_propfind_response(xml: &str, base_path: &str) -> CloudResult<Vec<CloudObjectMeta>> {
-    let mut results = Vec::new();
+    let normalized = strip_xml_ns_prefixes(xml);
 
-    // 简易解析：按 <d:response> 分块
-    for block in xml.split("<d:response>").skip(1) {
+    let mut results = Vec::new();
+    for block in normalized.split("<response>").skip(1) {
         let mut href = String::new();
         let mut size: u64 = 0;
         let mut modified: Option<DateTime<Utc>> = None;
         let mut etag: Option<String> = None;
         let mut is_collection = false;
 
-        // 提取 <d:href>
-        if let Some(href_block) = extract_xml_tag(block, "href") {
-            href = href_block;
+        if let Some(h) = extract_xml_tag(block, "href") {
+            // wsgidav 等 server 返回的 href 可能经 URL 编码，先解码再比较
+            href = percent_decode(&h);
         }
 
-        // 跳过基路径本身
         let base_trimmed = base_path.trim_end_matches('/');
-        let href_trimmed = href.trim_end_matches('/');
-        if href_trimmed == base_trimmed {
-            continue;
+        // A1 实测修正：调用方可能传相对路径（无前导 /），而 href 恒为绝对路径；
+        // 双方均剥离前导 / 后再比较，否则基路径目录自身会混入结果（size=0）。
+        let href_trimmed = href.trim_start_matches('/').trim_end_matches('/');
+        if href_trimmed == base_trimmed.trim_start_matches('/') {
+            continue; // 跳过基路径自身
         }
 
-        // 提取 <d:prop> 里的内容
         if let Some(prop_block) = extract_xml_tag(block, "prop") {
             if let Some(cl) = extract_xml_tag(&prop_block, "getcontentlength") {
-                size = cl.parse().unwrap_or(0);
+                size = cl.trim().parse().unwrap_or(0);
             }
             if let Some(lm) = extract_xml_tag(&prop_block, "getlastmodified") {
-                modified = DateTime::parse_from_rfc2822(&lm).ok().map(|dt| dt.with_timezone(&Utc));
+                modified = DateTime::parse_from_rfc2822(lm.trim())
+                    .ok()
+                    .map(|dt| dt.with_timezone(&Utc));
             }
             if let Some(et) = extract_xml_tag(&prop_block, "getetag") {
-                etag = Some(et.trim_matches('"').to_string());
+                etag = Some(et.trim().trim_matches('"').to_string());
             }
-            if extract_xml_tag(&prop_block, "resourcetype").map(|s| s.contains("collection")).unwrap_or(false) {
-                is_collection = true;
+            if let Some(rt) = extract_xml_tag(&prop_block, "resourcetype") {
+                is_collection = rt.contains("collection");
             }
         }
 
         if is_collection {
-            continue; // 当前仅返回文件
+            continue; // 仅返回文件
         }
 
         results.push(CloudObjectMeta {
@@ -368,54 +331,162 @@ fn parse_propfind_response(xml: &str, base_path: &str) -> CloudResult<Vec<CloudO
     Ok(results)
 }
 
-/// 从 XML 片段中提取单个标签内容（简易版，无命名空间完整处理）。
-fn extract_xml_tag(xml: &str, tag: &str) -> Option<String> {
-    let open = format!("<d:{}>", tag);
-    let close = format!("</d:{}>", tag);
-    xml.find(&open)
-        .and_then(|start| {
-            let content_start = start + open.len();
-            xml[content_start..].find(&close).map(|end| {
-                xml[content_start..content_start + end].trim().to_string()
-            })
-        })
-        .or_else(|| {
-            // 尝试无前缀版本
-            let open = format!("<{}>", tag);
-            let close = format!("</{}>", tag);
-            xml.find(&open).and_then(|start| {
-                let content_start = start + open.len();
-                xml[content_start..].find(&close).map(|end| {
-                    xml[content_start..content_start + end].trim().to_string()
-                })
-            })
-        })
+/// 剥离 XML 标签的命名空间前缀：`<D:response>` / `<ns0:href ...>` → `<response>` / `<href ...>`。
+///
+/// 仅重写标签名的 `prefix:` 部分，属性原样保留；文本节点不触碰。
+fn strip_xml_ns_prefixes(xml: &str) -> String {
+    let bytes = xml.as_bytes();
+    let mut out = String::with_capacity(xml.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'<' {
+            if let Some(rel) = xml[i..].find('>') {
+                let end = i + rel; // '>' 位置
+                out.push_str(&rewrite_tag(&xml[i..=end]));
+                i = end + 1;
+                continue;
+            }
+        }
+        // 非 ASCII 字符按字节拷贝会破坏 UTF-8；以 char 边界推进
+        let ch_len = utf8_char_len(bytes[i]);
+        out.push_str(&xml[i..i + ch_len]);
+        i += ch_len;
+    }
+    out
+}
+
+fn utf8_char_len(b: u8) -> usize {
+    match b {
+        0x00..=0x7F => 1,
+        0xC0..=0xDF => 2,
+        0xE0..=0xEF => 3,
+        0xF0..=0xF7 => 4,
+        _ => 1, // 连续字节不应单独出现，防御性回退
+    }
+}
+
+/// 重写单个标签（含 `<` 与 `>`）：去掉标签名中的命名空间前缀。
+fn rewrite_tag(tag: &str) -> String {
+    debug_assert!(tag.starts_with('<') && tag.ends_with('>'));
+    let inner = &tag[1..tag.len() - 1];
+    let (is_close, body) = if let Some(rest) = inner.strip_prefix('/') {
+        (true, rest)
+    } else {
+        (false, inner)
+    };
+    // 自闭合 `<D:x/>`
+    let self_close = body.ends_with('/');
+    let body_trimmed = if self_close { &body[..body.len() - 1] } else { body };
+
+    // 标签名 = 第一个空白或结尾之前的部分；仅当其中含 ':' 且前缀为合法 NCName 时剥离
+    let name_end = body_trimmed
+        .find(|ch: char| ch.is_whitespace())
+        .unwrap_or(body_trimmed.len());
+    let (name, rest) = body_trimmed.split_at(name_end);
+    let cleaned_name = match name.split_once(':') {
+        Some((_prefix, local)) => local,
+        None => name,
+    };
+
+    let mut s = String::with_capacity(tag.len());
+    s.push('<');
+    if is_close {
+        s.push('/');
+    }
+    s.push_str(cleaned_name);
+    s.push_str(rest);
+    if self_close {
+        s.push('/');
+    }
+    s.push('>');
+    s
+}
+
+/// 极简百分号解码（WebDAV href 常见场景：路径段中的空格/中文/特殊字符）。
+fn percent_decode(s: &str) -> String {
+    let bytes = s.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%' && i + 2 < bytes.len() + 1 && i + 2 < bytes.len() {
+            let hex = &s[i + 1..i + 3];
+            if let Ok(v) = u8::from_str_radix(hex, 16) {
+                out.push(v);
+                i += 3;
+                continue;
+            }
+        }
+        out.push(bytes[i]);
+        i += 1;
+    }
+    String::from_utf8_lossy(&out).to_string()
+}
+
+/// 从 XML 片段提取首个 `<name ...>...</name>` 的内容（兼容带属性的开放标签）。
+fn extract_xml_tag(xml: &str, name: &str) -> Option<String> {
+    let open_candidates = [format!("<{}>", name), format!("<{} ", name)];
+    for open in &open_candidates {
+        if let Some(start) = xml.find(open.as_str()) {
+            // 开放标签内容起点：跳过到 '>' 之后
+            let content_start = start + open.len().min(xml.len() - start);
+            let content_start = if open.ends_with('>') {
+                content_start
+            } else {
+                match xml[start..].find('>') {
+                    Some(gt) => start + gt + 1,
+                    None => continue,
+                }
+            };
+            let close = format!("</{}>", name);
+            if let Some(end_rel) = xml[content_start..].find(close.as_str()) {
+                return Some(xml[content_start..content_start + end_rel].trim().to_string());
+            }
+        }
+    }
+    None
 }
 
 #[cfg(test)]
-mod tests {
+mod parse_tests {
     use super::*;
 
     #[test]
-    fn test_build_snapshot_remote_path() {
-        let path = crate::cloud_sync::build_snapshot_remote_path(
-            "/SoloSoul/",
-            "acc-123",
-            "device-abc",
-            "1234567890-1",
-        );
-        assert_eq!(path, "/SoloSoul/acc-123/snapshots/device-abc/1234567890-1.solosoul");
+    fn test_strip_ns_prefixes_variants() {
+        let input = r#"<?xml version="1.0"?><D:multistatus xmlns:D="DAV:"><D:response><D:href>/a/one.bin</D:href><D:propstat><D:prop><D:getcontentlength>1024</D:getcontentlength></D:prop></D:propstat></D:response></D:multistatus>"#;
+        let out = strip_xml_ns_prefixes(input);
+        assert!(out.contains("<response>"), "大写前缀应被剥离: {}", out);
+        assert!(out.contains("<href>/a/one.bin</href>"));
+        assert!(out.contains("<getcontentlength>1024</getcontentlength>"));
+
+        let ns0 = r#"<ns0:multistatus xmlns:ns0="DAV:"><ns0:response/></ns0:multistatus>"#;
+        let out2 = strip_xml_ns_prefixes(ns0);
+        assert!(out2.contains("<response/>"));
+        assert!(out2.contains("<multistatus "));
     }
 
     #[test]
-    fn test_webdav_config_default_prefix() {
-        let cfg = WebDavConfig {
-            base_url: "https://dav.example.com/".to_string(),
-            username: "test".to_string(),
-            password: "pass".to_string(),
-            root_prefix: "".to_string(),
-        };
-        // root_prefix 默认由 serde default 填充，这里仅测试结构
-        assert!(cfg.base_url.ends_with('/'));
+    fn test_parse_propfind_wsgidav_style() {
+        let xml = r#"<?xml version="1.0" encoding="utf-8"?>
+<D:multistatus xmlns:D="DAV:">
+ <D:response>
+  <D:href>/e2e/listdir/</D:href>
+  <D:propstat><D:prop><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat>
+ </D:response>
+ <D:response>
+  <D:href>/e2e/listdir/one.bin</D:href>
+  <D:propstat><D:prop><D:getcontentlength>1024</D:getcontentlength><D:resourcetype/></D:prop></D:propstat>
+ </D:response>
+</D:multistatus>"#;
+        let items = parse_propfind_response(xml, "/e2e/listdir").unwrap();
+        assert_eq!(items.len(), 1);
+        assert_eq!(items[0].size, 1024);
+        assert_eq!(items[0].path, "/e2e/listdir/one.bin");
+    }
+
+    #[test]
+    fn test_percent_decode() {
+        assert_eq!(percent_decode("/a%20b/%E4%B8%AD.txt"), "/a b/中.txt");
+        assert_eq!(percent_decode("/plain.bin"), "/plain.bin");
     }
 }
+

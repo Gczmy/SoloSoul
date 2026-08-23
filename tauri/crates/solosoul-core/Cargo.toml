@@ -46,7 +46,7 @@ uuid = { workspace = true }
 async-trait = { workspace = true }
 url = { workspace = true }
 tokio = { workspace = true }
-tokio-util = { workspace = true }
+tokio-util = { workspace = true, features = ["io"] }
 futures = { workspace = true }
 hex = { workspace = true }
 reqwest = { workspace = true, features = ["blocking"] }
