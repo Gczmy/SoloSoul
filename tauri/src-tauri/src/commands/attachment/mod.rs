@@ -107,23 +107,7 @@ pub(crate) fn allowed_fs_bases() -> Vec<PathBuf> {
     bases
 }
 
-/// Collect all attachment IDs that are currently referenced in any object's __attachments.
-/// P110: Uses existing `list_object_attachment_ids` batch method instead of N+1 load_object calls.
-/// 仅供测试使用（唯一生产调用方 `attachment_cleanup_orphans` 命令已删除，P020）。
-#[cfg(test)]
-pub(crate) fn load_all_referenced_attachment_ids(
-    vault: &solosoul_vault::VaultStore,
-    account_id: &str,
-) -> Result<std::collections::HashSet<String>, String> {
-    let batch = vault.list_object_attachment_ids(account_id)?;
-    let mut active_ids = std::collections::HashSet::new();
-    for (_object_id, att_ids) in &batch {
-        for id in att_ids {
-            active_ids.insert(id.clone());
-        }
-    }
-    Ok(active_ids)
-}
+// P017：load_all_referenced_attachment_ids 已收敛至 solosoul_core::objects 共享实现。
 
 /// Move a duplicate counter suffix before the file extension.
 /// e.g. "a.pdf(1)" -> "a(1).pdf"; "a (1).pdf" -> "a(1).pdf"; "a(1)" -> "a(1)".

@@ -9,6 +9,8 @@ use std::time::Duration;
 use tempfile::TempDir;
 // P047：tree/share 子模块的 pub(crate) 项需显式导入（mod.rs 不做 re-export，避免非测试构建 unused 警告）
 use super::tree::{build_attachment_tree_pages, group_objects_for_attachment_tree};
+// P017：共享实现收敛至 solosoul_core::objects
+use solosoul_core::objects::load_all_referenced_attachment_ids;
 
 fn setup_vault() -> (VaultStore, TempDir) {
     let dir = TempDir::new().unwrap();

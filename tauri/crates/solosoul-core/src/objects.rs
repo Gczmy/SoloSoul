@@ -1099,7 +1099,10 @@ fn infer_mime_type(file_name: &str) -> String {
     .to_string()
 }
 
-fn load_all_referenced_attachment_ids(
+/// P017：跨 crate 共享——收集全部对象 `__attachments` 引用的附件 ID 集合。
+/// GUI 附件孤儿清理（attachment_cleanup_orphans）与 CLI 清理共用此实现，
+/// 消除 solo_soul 侧的 test-only 重复版。
+pub fn load_all_referenced_attachment_ids(
     vault: &VaultStore,
     account_id: &str,
 ) -> Result<HashSet<String>, String> {
