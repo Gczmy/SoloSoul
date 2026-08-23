@@ -363,57 +363,64 @@ impl VaultStore {
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| e.to_string())?;
 
-        let mut fixed = 0usize;
-        let now = chrono::Utc::now().to_rfc3339();
+        drop(stmt);
 
-        for row in rows {
-            let mut new_account_id = row.account_id.clone();
-            let mut new_type_id = row.type_id.clone();
-            let mut new_parent_id = row.parent_id.clone();
+        // P013：修复写入包整体事务——中途失败回滚，不留「改一半」的对象集。
+        let fixed = with_tx(conn, "repair begin", "repair commit", |tx| {
+            let mut fixed = 0usize;
+            let now = chrono::Utc::now().to_rfc3339();
 
-            if new_account_id == "imported" {
-                new_account_id = account_id.clone();
-            }
-            if new_type_id == "note" && row.section_type != "note" {
-                new_type_id = row.section_type.clone();
-            }
-            if new_parent_id.is_none() && !built_in_sections.contains(&row.section_type.as_str()) {
-                // 自定义页面：尝试把 section_type 对应的页面对象 ID 作为 parent_id
-                let page_id: Option<String> = conn
-                    .query_row(
-                        "SELECT id FROM objects WHERE id = ?1 AND is_deleted = 0 LIMIT 1",
-                        rusqlite::params![&row.section_type],
-                        |r| r.get(0),
+            for row in rows {
+                let mut new_account_id = row.account_id.clone();
+                let mut new_type_id = row.type_id.clone();
+                let mut new_parent_id = row.parent_id.clone();
+
+                if new_account_id == "imported" {
+                    new_account_id = account_id.clone();
+                }
+                if new_type_id == "note" && row.section_type != "note" {
+                    new_type_id = row.section_type.clone();
+                }
+                if new_parent_id.is_none()
+                    && !built_in_sections.contains(&row.section_type.as_str())
+                {
+                    // 自定义页面：尝试把 section_type 对应的页面对象 ID 作为 parent_id
+                    let page_id: Option<String> = tx
+                        .query_row(
+                            "SELECT id FROM objects WHERE id = ?1 AND is_deleted = 0 LIMIT 1",
+                            rusqlite::params![&row.section_type],
+                            |r| r.get(0),
+                        )
+                        .optional()
+                        .unwrap_or(None);
+                    if page_id.is_some() {
+                        new_parent_id = page_id;
+                    }
+                }
+
+                if new_account_id != row.account_id
+                    || new_type_id != row.type_id
+                    || new_parent_id != row.parent_id
+                {
+                    tx.execute(
+                        "UPDATE objects
+                         SET account_id = ?1, type_id = ?2, parent_id = ?3, updated_at = ?4, version = version + 1
+                         WHERE id = ?5",
+                        rusqlite::params![
+                            new_account_id,
+                            new_type_id,
+                            new_parent_id,
+                            &now,
+                            &row.id
+                        ],
                     )
-                    .optional()
-                    .unwrap_or(None);
-                if page_id.is_some() {
-                    new_parent_id = page_id;
+                    .map_err(|e| format!("repair object {}: {}", row.id, e))?;
+                    fixed += 1;
                 }
             }
+            Ok(fixed)
+        })?;
 
-            if new_account_id != row.account_id
-                || new_type_id != row.type_id
-                || new_parent_id != row.parent_id
-            {
-                conn.execute(
-                    "UPDATE objects
-                     SET account_id = ?1, type_id = ?2, parent_id = ?3, updated_at = ?4, version = version + 1
-                     WHERE id = ?5",
-                    rusqlite::params![
-                        new_account_id,
-                        new_type_id,
-                        new_parent_id,
-                        &now,
-                        &row.id
-                    ],
-                )
-                .map_err(|e| format!("repair object {}: {}", row.id, e))?;
-                fixed += 1;
-            }
-        }
-
-        drop(stmt);
         drop(guard);
         let _ = self.set_sys_config(REPAIR_FLAG, "1");
         Ok(fixed)
