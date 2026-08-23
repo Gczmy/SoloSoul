@@ -532,14 +532,32 @@ pub async fn export_execute(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let zip_path = resolve_zip_path(&app, &req.save_path)?;
+    execute_export_core(&svc, &account_id, &req, &zip_path)?;
+    Ok(zip_path)
+}
+
+/// Phase 2 云同步：导出核心逻辑（与 `export_execute` 共享，供云同步快照复用）。
+///
+/// 与命令层的差异：
+/// - 落盘路径由调用方显式给定（云同步写入临时文件后上传）；
+/// - 密码校验同样在此执行（快照口令不得为主密码）。
+///
+/// 前置条件：`svc` 处于解锁态。
+pub(crate) fn execute_export_core(
+    svc: &solosoul_core::vault_service::VaultService,
+    account_id: &str,
+    req: &ExportRequest,
+    zip_path: &str,
+) -> Result<(), String> {
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
     // ── 密码校验（非空 + 不得等于主密码）────────────────────
-    validate_export_password(&svc, &account_id, &req.password)?;
+    validate_export_password(svc, account_id, &req.password)?;
 
     // ── Collect objects ────────────────────────────────────────
-    let records = collect_scope_objects(vault, &account_id, &req.scope)?;
+    let records = collect_scope_objects(vault, account_id, &req.scope)?;
     // 全量导出（如恢复主机）时允许空对象列表，普通导出仍要求至少选择一个对象。
     if records.is_empty() && !req.scope.include_all {
         return Err(export_err("NO_OBJECTS_SELECTED"));
@@ -549,7 +567,7 @@ pub async fn export_execute(
     // 全量导出（include_all，如恢复主机）打包账户全部模板（含预置种子模板）；
     // 部分导出仅打包被对象引用的模板（快照隔离）。
     let templates: Vec<serde_json::Value> =
-        collect_export_templates(vault, &account_id, &req.scope, &records)?
+        collect_export_templates(vault, account_id, &req.scope, &records)?
             .iter()
             .filter_map(|tpl| serde_json::to_value(tpl).ok())
             .collect();
@@ -571,14 +589,13 @@ pub async fn export_execute(
     let key = derive_export_key(&req.password, &salt)?;
 
     // ── Build ZIP ──────────────────────────────────────────────
-    let zip_path = resolve_zip_path(&app, &req.save_path)?;
-    let file = File::create(&zip_path).map_err(|e| format!("Create ZIP: {e}"))?;
+    let file = File::create(zip_path).map_err(|e| format!("Create ZIP: {e}"))?;
     let mut zip = ZipWriter::new(file);
     let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
     // ── P1: Attachments ────────────────────────────────────────
     let (attachment_entries, total_attachment_bytes) = if req.scope.include_attachments {
-        collect_attachment_entries(&svc, &records, &req.scope)?
+        collect_attachment_entries(svc, &records, &req.scope)?
     } else {
         (Vec::new(), 0)
     };
@@ -617,7 +634,7 @@ pub async fn export_execute(
         options,
         &key,
         &salt,
-        &account_id,
+        account_id,
         &req.scope,
     )?;
 
@@ -659,7 +676,7 @@ pub async fn export_execute(
         )),
     );
 
-    Ok(zip_path)
+    Ok(())
 }
 
 /// 写入 P2 可选数据（preferences / behavioral audit log）。返回 (extra_files, preferences_encrypted, behavioral_encrypted)。

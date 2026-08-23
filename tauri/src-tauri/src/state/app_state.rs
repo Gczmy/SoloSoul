@@ -4,6 +4,7 @@ use crate::fs::normalize_path;
 use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use crate::plugin::PluginManager;
 use crate::sync::auto_sync::AutoSyncManager;
+use crate::sync::cloud_auto_sync::CloudAutoSyncManager;
 use crate::sync::device_auto_sync::DeviceAutoSyncManager;
 use solosoul_core::vault_service::AccountSummary;
 use solosoul_core::VaultService;
@@ -22,6 +23,8 @@ pub struct AppState {
     pub auto_sync: AutoSyncManager,
     /// 设备间自动同步调度器（前台/数据变更/定时）。
     pub device_auto_sync: DeviceAutoSyncManager,
+    /// 云同步调度器（Phase 2：上行快照 + 下行检测，前台/数据变更/定时/手动）。
+    pub cloud_auto_sync: CloudAutoSyncManager,
     /// 标记是否已有后台过期回收站清理任务在运行，用于防止并发重复执行。
     pub trash_cleanup_running: Arc<AtomicBool>,
     /// 跨设备恢复主机状态（取消信号、后台线程、临时导出文件）。
@@ -195,6 +198,7 @@ impl AppState {
 
         // ── SyncService / 回调 / DeviceAutoSyncManager / 持久化开关恢复 ──
         let (sync_service, device_auto_sync) = Self::init_sync_components(&handle, &vault_service);
+        let cloud_auto_sync = CloudAutoSyncManager::new(vault_service.clone(), handle.clone());
 
         // ── AutoSyncManager（在 VaultService 初始化之后启动） ──
         let auto_sync = AutoSyncManager::new_for_vault(vault_service.clone(), handle.clone());
@@ -209,6 +213,7 @@ impl AppState {
             plugin_manager,
             auto_sync,
             device_auto_sync,
+            cloud_auto_sync,
             trash_cleanup_running: Arc::new(AtomicBool::new(false)),
             recovery_state: Arc::new(Mutex::new(RecoveryState::new())),
             biometric_lockout_until: Arc::new(Mutex::new(None)),

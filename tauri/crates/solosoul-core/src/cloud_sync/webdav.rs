@@ -6,37 +6,29 @@
 //! - Alist (聚合 40+ 网盘的 WebDAV 网关)
 //! - 自建 WebDAV (nginx/apache + dav 模块)
 
-use std::fmt;
-use std::future::Future;
-use std::io;
 use std::pin::Pin;
 use std::str::FromStr;
-use std::sync::Arc;
 
 use async_trait::async_trait;
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
 use chrono::{DateTime, Utc};
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_RANGE, CONTENT_TYPE};
+use futures::StreamExt;
+use reqwest::header::{
+    AUTHORIZATION, CONTENT_LENGTH, CONTENT_RANGE, CONTENT_TYPE, HeaderValue,
+};
 use reqwest::{Client, Method, RequestBuilder};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
-use url::Url;
-
-use futures::StreamExt;
 
 use crate::cloud_sync::{CloudConnector, CloudObjectMeta, CloudResult, CloudSyncError, WebDavConfig};
 
 /// 默认分片大小：8 MiB（坚果云/Nextcloud 均支持更大，8M 平衡内存与并发）。
 const DEFAULT_CHUNK_SIZE: u64 = 8 * 1024 * 1024;
-/// 最大并发上传分片数（单文件顺序上传以保证顺序，避免服务端合并失败）。
-const MAX_CONCURRENT_CHUNKS: usize = 1;
-
 /// WebDAV 连接器。
 #[derive(Clone)]
 pub struct WebDavConnector {
     client: Client,
-    config: WebDavConfig,
     auth_header: HeaderValue,
-    base_url: Url,
+    base_url: url::Url,
 }
 
 impl WebDavConnector {
@@ -50,24 +42,23 @@ impl WebDavConnector {
         let auth_header = HeaderValue::from_str(&format!("Basic {}", BASE64.encode(auth)))
             .expect("Basic auth header build failed");
 
-        let base_url = Url::from_str(&config.base_url)
+        let base_url = url::Url::from_str(&config.base_url)
             .expect("WebDAV base_url 必须是合法 URL");
         // 确保以 '/' 结尾
-        let mut base = base_url;
+        let mut base: url::Url = base_url;
         if !base.as_str().ends_with('/') {
             base.set_path(&format!("{}/", base.path()));
         }
 
         Self {
             client,
-            config,
             auth_header,
             base_url: base,
         }
     }
 
     /// 拼接远程路径（相对路径 → 绝对 URL）。
-    fn join_path(&self, remote_path: &str) -> Url {
+    fn join_path(&self, remote_path: &str) -> url::Url {
         let mut url = self.base_url.clone();
         let path = remote_path.trim_start_matches('/');
         url.set_path(&format!("{}{}", self.base_url.path(), path));
@@ -82,24 +73,6 @@ impl WebDavConnector {
             .header(AUTHORIZATION, self.auth_header.clone())
     }
 
-    /// 执行请求并检查常见错误码。
-    async fn execute_expect(&self, req: RequestBuilder, expected: &[reqwest::StatusCode]) -> CloudResult<reqwest::Response> {
-        let resp = req.send().await.map_err(CloudSyncError::Http)?;
-        let status = resp.status();
-        if expected.iter().any(|s| *s == status) {
-            Ok(resp)
-        } else {
-            let text = resp.text().await.unwrap_or_default();
-            Err(match status.as_u16() {
-                401 => CloudSyncError::AuthFailed("WebDAV 认证失败（用户名/密码错误）".to_string()),
-                403 => CloudSyncError::AuthFailed("WebDAV 权限不足".to_string()),
-                404 => CloudSyncError::NotFound("远程路径不存在".to_string()),
-                409 => CloudSyncError::Conflict("远程路径冲突".to_string()),
-                423 => CloudSyncError::Conflict("远程资源被锁定".to_string()),
-                _ => CloudSyncError::Internal(format!("HTTP {}", status)),
-            })
-        }
-    }
 }
 
 #[async_trait]
@@ -342,8 +315,6 @@ impl CloudConnector for WebDavConnector {
 
 /// 解析 PROPFIND 多状态响应（简化版，仅提取需要的字段）。
 fn parse_propfind_response(xml: &str, base_path: &str) -> CloudResult<Vec<CloudObjectMeta>> {
-    use std::collections::HashMap;
-
     let mut results = Vec::new();
 
     // 简易解析：按 <d:response> 分块

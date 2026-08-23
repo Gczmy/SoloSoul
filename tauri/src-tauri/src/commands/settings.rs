@@ -434,6 +434,9 @@ pub struct CloudSyncConfigPayload {
     pub interval_secs: u64,
     pub wifi_only: bool,
     pub retention: serde_json::Value,
+    /// 快照包加密口令（与主密码独立；保存时经主密码验证后入 Vault）。
+    #[serde(default)]
+    pub snapshot_password: String,
 }
 
 #[tauri::command]
@@ -443,10 +446,10 @@ pub async fn cloud_sync_get_config(
 ) -> Result<Option<Value>, String> {
     let vault = vault_handle(&state)?;
     let config = vault.get_cloud_sync_config(&account_id)?;
-    Ok(config
+    config
         .map(serde_json::to_value)
         .transpose()
-        .map_err(|e| e.to_string())?)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -462,6 +465,7 @@ pub async fn cloud_sync_save_config(
         interval_secs: payload.interval_secs,
         wifi_only: payload.wifi_only,
         retention: serde_json::from_value::<solosoul_vault::RetentionPolicy>(payload.retention).map_err(|e| e.to_string())?,
+        snapshot_password: payload.snapshot_password,
         last_sync_at: None,
     };
     vault.set_cloud_sync_config(&payload.account_id, config)?;
@@ -480,7 +484,6 @@ pub async fn cloud_sync_delete_config(
 
 #[tauri::command]
 pub async fn cloud_sync_test_connection(
-    state: State<'_, AppState>,
     payload: CloudSyncConfigPayload,
 ) -> Result<(), String> {
     let config = solosoul_vault::CloudSyncConfig {
@@ -490,6 +493,7 @@ pub async fn cloud_sync_test_connection(
         interval_secs: payload.interval_secs,
         wifi_only: payload.wifi_only,
         retention: serde_json::from_value::<solosoul_vault::RetentionPolicy>(payload.retention).map_err(|e| e.to_string())?,
+        snapshot_password: payload.snapshot_password,
         last_sync_at: None,
     };
     // Convert to core CloudSyncConfig for connector creation
@@ -510,6 +514,53 @@ pub async fn cloud_sync_test_connection(
     let connector = solosoul_core::cloud_sync::create_connector(&core_config)
         .map_err(|e| format!("创建连接器失败: {}", e))?;
     connector.test_connection().await.map_err(|e| e.to_string())
+}
+
+/// 手动触发一轮云同步（「立即同步」按钮）。
+#[tauri::command]
+pub async fn cloud_sync_now(state: State<'_, AppState>) -> Result<(), String> {
+    state.cloud_auto_sync.trigger_manual();
+    Ok(())
+}
+
+/// 记录某设备快照已成功导入的 HLC 水线（下行导入完成后由前端调用）。
+#[tauri::command]
+pub async fn cloud_sync_mark_applied(
+    state: State<'_, AppState>,
+    device_id: String,
+    hlc: String,
+) -> Result<(), String> {
+    let vault = vault_handle(&state)?;
+    let key = format!("cloud_applied:{}", device_id);
+    vault.set_sys_config(&key, &hlc)?;
+    Ok(())
+}
+
+/// 列出云端待导入的快照文件（cloud_sync_incoming 目录内容）。
+#[tauri::command]
+pub async fn cloud_sync_list_incoming(state: State<'_, AppState>) -> Result<Vec<String>, String> {
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let base = svc.base_path().join("cloud_sync_incoming");
+    let mut out = Vec::new();
+    if let Ok(entries) = std::fs::read_dir(&base) {
+        for dev in entries.flatten() {
+            let dev_path = dev.path();
+            if !dev_path.is_dir() {
+                continue;
+            }
+            if let Ok(files) = std::fs::read_dir(&dev_path) {
+                for f in files.flatten() {
+                    if f.path().extension().and_then(|e| e.to_str()) == Some("solosoul") {
+                        out.push(f.path().to_string_lossy().to_string());
+                    }
+                }
+            }
+        }
+    }
+    Ok(out)
 }
 
 

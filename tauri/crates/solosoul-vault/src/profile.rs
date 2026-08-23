@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 pub const PROFILE_SCHEMA_VERSION: u32 = 2;
 
-use crate::{CloudSyncConfig, WebDavConfig};
+use crate::CloudSyncConfig;
 
 /// Profile stored in vault - wraps encrypted data blob with metadata
 #[derive(Debug, Clone, Serialize, Deserialize)]

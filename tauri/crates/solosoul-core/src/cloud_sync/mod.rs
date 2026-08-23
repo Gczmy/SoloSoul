@@ -10,17 +10,13 @@
 //! - 云端布局：`/SoloSoul/{account_id}/snapshots/{device_id}/{hlc}.solosoul`
 //!   + 索引文件 `/SoloSoul/{account_id}/latest.json`。
 
-use std::fmt;
-use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_RANGE, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use uuid::Uuid;
 
 pub mod webdav;
 
