@@ -25,6 +25,7 @@ import {
   Search,
   User,
 } from 'lucide-react';
+import { Cloud } from 'lucide-react';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 
 import styles from './SettingsPage.module.css';
@@ -97,6 +98,12 @@ export function SettingsPage() {
           icon: Disc,
           path: '/settings/backup',
           desc: t('settings:desc.backup_restore'),
+        },
+        {
+          label: t('settings:items.cloud_sync'),
+          icon: Cloud,
+          path: '/settings/cloud-sync',
+          desc: t('settings:desc.cloud_sync'),
         },
         {
           label: t('settings:items.operation_log'),

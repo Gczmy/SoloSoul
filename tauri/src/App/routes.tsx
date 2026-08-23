@@ -27,6 +27,7 @@ import { TemplateManagerPage } from '@/pages/settings/TemplateManagerPage';
 import { OcrSettingsPage } from '@/pages/settings/OcrSettingsPage';
 import { GlobalAttachmentManager } from '@/pages/settings/GlobalAttachmentManager';
 import { VaultDirectoryPage } from '@/pages/settings/VaultDirectoryPage';
+import { CloudSyncPage } from '@/pages/settings/CloudSyncPage';
 import { LlmStatsPage } from '@/pages/ai/LlmStatsPage';
 import { HelpPage } from '@/pages/help/HelpPage';
 import { ScanLocalPage } from '@/pages/scan/ScanLocalPage';
@@ -66,6 +67,7 @@ export const protectedRoutes: RouteConfig[] = [
   { path: '/settings/attachments', element: <GlobalAttachmentManager /> },
   { path: '/settings/vault-directory', element: <VaultDirectoryPage /> },
   { path: '/settings/ocr', element: <OcrSettingsPage /> },
+  { path: '/settings/cloud-sync', element: <CloudSyncPage /> },
   { path: '/settings/llm', element: <LlmConfigPage /> },
   { path: '/settings/llm/stats', element: <LlmStatsPage /> },
   { path: '/llm-chat', element: <LlmChatPage /> },
