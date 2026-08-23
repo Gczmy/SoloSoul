@@ -282,7 +282,7 @@ RecoveryQrContent 为纯展示组件（props 驱动），随 SyncShowQrDialog �
 
 | # | 文件：行 | 函数 | 非注释行数 | 嵌套深度 |
 |---|----------|------|-----------|---------|
-| 1 | `crates/solosoul-core/src/export_import.rs:1109` | `import_attachments` | 159 | 5 |
+| ~~1~~ | `crates/solosoul-core/src/export_import.rs:1109` | `import_attachments` | ✅ 已拆分（build_attachment_meta_map / write_imported_attachment / write_back_imported_attachments） | — |
 | 2 | `crates/solosoul-vault/src/storage/sync_changes.rs:541` | `list_trash_changes_since_limited` | 123 | 5 |
 | 3 | `src-tauri/src/commands/attachment/mod.rs:223` | `attachment_download` | 123 | 4 |
 | 4 | `crates/solosoul-core/src/vault_service/unlock.rs:428` | `unlock_with_kdf_upgrade` | 118 | 4 |
