@@ -639,12 +639,9 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           // 自动展示合并后的完整交换量（lastResult 浅拷贝另存）。toast 只在首事件
           // 弹一次、展示首会话计数——多源叠加场景下这是可接受的取舍（避免延迟聚合 toast）。
           set({ lastResult: { ...merged } });
-          get()
-            .loadStatus()
-            .catch((err) =>
-              logger.warn('[syncStore] status refresh after merged inbound sync:', err),
-            );
-          // 合并事件若携带新冲突，同样刷新冲突列表（与首事件分支对齐）
+          // 合并分支刷新（loadStatus/loadConflicts/数据 Store）统一走共享尾，
+          // P021 核验补修：删除此处遗留的独立 loadStatus()——refreshAfterInbound
+          // 内部已包含，重复调用会多发一次 IPC。
           refreshAfterInbound(p.conflicts ?? 0, merged.applied, 'merged inbound sync');
           return;
         }
