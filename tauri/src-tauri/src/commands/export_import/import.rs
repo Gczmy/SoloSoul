@@ -123,16 +123,13 @@ pub async fn import_decrypt_preview<R: tauri::Runtime>(
     validate_import_path(&app, &file_path)?;
     let vault = vault_handle(&state)?;
 
-    let manifest = read_manifest(&file_path)?;
-    let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
-    // P202: 按 manifest 声明参数派生（旧格式包无 kdf 字段回退 balanced 兼容）。
-    let key = derive_export_key_cfg(&password, &salt, &manifest.kdf_config())?;
-    let enc_bytes = read_file_from_zip(&file_path, "payload.enc")?;
-    let decrypted = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc_bytes)
-        .map_err(|_| import_err("DECRYPT_FAILED"))?;
-
-    let payload: serde_json::Value =
-        serde_json::from_slice(&decrypted).map_err(|e| format!("Invalid payload: {}", e))?;
+    // P015：预览路径复用主路径的 decrypt_package（流式解密至 0700 数据目录内
+    // 临时文件 + from_reader 解析），替代「整包读内存 + from_bytes + from_slice」
+    // 的 ~3× payload 峰值。decrypt_zip_entry_streaming 内部已将解密失败映射为
+    // import_err("DECRYPT_FAILED")，前端 i18n 行为与原实现一致，错误直接透传。
+    let password = Zeroizing::new(password);
+    let (manifest, payload, _key) =
+        decrypt_package(&file_path, &password, vault.base_path())?;
 
     let objects: Vec<ObjectSummary> = payload["objects"]
         .as_array()
