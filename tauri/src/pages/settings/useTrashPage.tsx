@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useTrashStore, TrashTimeFilter, TrashTypeFilter } from '@/stores/trashStore';
 import { useToastError } from '@/hooks/useToastError';
+import { useIncrementalWindow } from '@/hooks/useIncrementalWindow';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
@@ -68,10 +69,14 @@ export function useTrashPage() {
 
   // P119: 分页游标——回收站可达数百条，仅挂载前 TRASH_PAGE_SIZE 条，
   // 「加载更多」追加；搜索词/类型过滤/条目集变化时重置。
-  const [visibleLimit, setVisibleLimit] = useState(TRASH_PAGE_SIZE);
+  const {
+    limit: visibleLimit,
+    setLimit: setVisibleLimit,
+    reset: resetVisibleLimit,
+  } = useIncrementalWindow(TRASH_PAGE_SIZE);
   useEffect(() => {
-    setVisibleLimit(TRASH_PAGE_SIZE);
-  }, [searchQuery, typeFilter, items]);
+    resetVisibleLimit();
+  }, [searchQuery, typeFilter, items, resetVisibleLimit]);
 
   const trashGuidePages = useMemo(
     () => [

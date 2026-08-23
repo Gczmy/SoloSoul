@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { useIncrementalWindow } from '@/hooks/useIncrementalWindow';
 import { useObjectStore, type ObjectSummary, type ObjectData } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
@@ -66,11 +67,15 @@ export function useObjectWorkspaceData({
   const loadDeprecatedFields = useObjectStore((s) => s.loadDeprecatedFields);
 
   // P011: 对象卡片列表分页「加载更多」，避免数百个对象一次全量挂载。
-  const [visibleLimit, setVisibleLimit] = useState(OBJECT_PAGE_SIZE);
+  const {
+    limit: visibleLimit,
+    setLimit: setVisibleLimit,
+    reset: resetVisibleLimit,
+  } = useIncrementalWindow(OBJECT_PAGE_SIZE);
   // 搜索词或页面变化时重置分页游标。
   useEffect(() => {
-    setVisibleLimit(OBJECT_PAGE_SIZE);
-  }, [debouncedSearchQuery, pageId, sectionFilter]);
+    resetVisibleLimit();
+  }, [debouncedSearchQuery, pageId, sectionFilter, resetVisibleLimit]);
 
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const activeCustomPages = customPages.filter((p) => !p.deletedAt);

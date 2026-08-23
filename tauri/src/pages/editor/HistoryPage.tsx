@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
+import { useIncrementalWindow } from '@/hooks/useIncrementalWindow';
 import { Clock, RotateCcw, ChevronRight } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import type { SnapshotEntry } from '@/types/history';
@@ -25,7 +26,12 @@ export function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState<string | null>(null);
   // P039: 快照随编辑次数无限增长——分页渲染，加载更多
-  const [visibleLimit, setVisibleLimit] = useState(SNAPSHOT_PAGE_SIZE);
+  const {
+    limit: visibleLimit,
+    hasMore: hasMoreSnapshots,
+    showMore: showMoreSnapshots,
+    reset: resetVisibleLimit,
+  } = useIncrementalWindow(SNAPSHOT_PAGE_SIZE);
   const { t } = useTranslation(['common']);
   const showToast = useUiStore((s) => s.showToast);
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
@@ -33,7 +39,7 @@ export function HistoryPage() {
   useEffect(() => {
     if (objectId) {
       // P039(评审反馈): 切换对象时重置分页游标，避免继承上一个对象的展开深度
-      setVisibleLimit(SNAPSHOT_PAGE_SIZE);
+      resetVisibleLimit();
       invoke<SnapshotEntry[]>('snapshot_list', { objectId: objectId })
         .then(setSnapshots)
         .catch((err) => {
@@ -129,10 +135,10 @@ export function HistoryPage() {
                   </div>
                 </Card>
               ))}
-              {visibleLimit < snapshots.length && (
+              {hasMoreSnapshots(snapshots.length) && (
                 <Button
                   variant="secondary"
-                  onClick={() => setVisibleLimit((n) => n + SNAPSHOT_PAGE_SIZE)}
+                  onClick={showMoreSnapshots}
                   style={{ width: '100%', marginTop: 4 }}
                 >
                   {t('common:load_more', { defaultValue: '加载更多' })}

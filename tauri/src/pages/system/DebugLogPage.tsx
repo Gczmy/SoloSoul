@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import {  } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '@/components/layout/PageShell';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { saveWithPause } from '@/lib/dialog';
 import { useToastError } from '@/hooks/useToastError';
+import { useIncrementalWindow } from '@/hooks/useIncrementalWindow';
 import { logger } from '@/lib/logger';
 import { Bug, Download, RefreshCw } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
@@ -26,7 +27,7 @@ export function DebugLogPage() {
   const { data: rawLogs, loading: isLoading, reload } = usePrefetchData(prefetchRegistry.logs);
   const logs = rawLogs ?? [];
   // P053: 分页「加载更多」
-  const [visibleLimit, setVisibleLimit] = useState(LOG_PAGE_SIZE);
+  const { limit: visibleLimit, showMore: showMoreLogs } = useIncrementalWindow(LOG_PAGE_SIZE);
   const { t } = useTranslation(['settings', 'common']);
   const { onError, onSuccess } = useToastError();
 
@@ -189,7 +190,7 @@ export function DebugLogPage() {
                 <Button
                   variant="tertiary"
                   size="sm"
-                  onClick={() => setVisibleLimit((n) => n + LOG_PAGE_SIZE)}
+                  onClick={showMoreLogs}
                   style={{ marginTop: 4 }}
                 >
                   {t('load_more', { defaultValue: '加载更多' })}

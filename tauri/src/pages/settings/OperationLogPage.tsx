@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
+import { useIncrementalWindow } from '@/hooks/useIncrementalWindow';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { saveWithPause } from '@/lib/dialog';
 import { prefetchRegistry } from '@/lib/prefetch/registry';
@@ -52,8 +53,12 @@ export function OperationLogPage() {
   const logs = useMemo(() => rawLogs ?? [], [rawLogs]);
   const [entityTypeFilter, setEntityTypeFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  // P218: 分页「加载更多」，避免 200 条全量挂载。
-  const [visibleLimit, setVisibleLimit] = useState(LOG_PAGE_SIZE);
+  // P218: 分页「加载更多」，避免 200 条全量挂载。（P026: 收敛至共享 hook）
+  const {
+    limit: visibleLimit,
+    showMore: showMoreLogs,
+    reset: resetVisibleLimit,
+  } = useIncrementalWindow(LOG_PAGE_SIZE);
 
   // 加载失败经 store.error 补 toast（原 loadLogs 行为保持）。
   useEffect(() => {
@@ -62,8 +67,8 @@ export function OperationLogPage() {
 
   // P218: 搜索词或筛选变更时重置分页游标。
   useEffect(() => {
-    setVisibleLimit(LOG_PAGE_SIZE);
-  }, [searchQuery, entityTypeFilter]);
+    resetVisibleLimit();
+  }, [searchQuery, entityTypeFilter, resetVisibleLimit]);
 
   const handleExport = async () => {
     try {
@@ -212,7 +217,7 @@ export function OperationLogPage() {
               <Button
                 variant="tertiary"
                 size="sm"
-                onClick={() => setVisibleLimit((n) => n + LOG_PAGE_SIZE)}
+                onClick={showMoreLogs}
                 style={{ marginTop: 4 }}
               >
                 {t('load_more', { defaultValue: '加载更多' })}
