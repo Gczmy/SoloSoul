@@ -594,6 +594,25 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         outboundRecords: number;
       }>('sync-completed', (event) => {
         const p = event.payload;
+        // P021：入站同步后的共同刷新尾——合并分支与新会话分支共用。
+        const refreshAfterInbound = (conflicts: number, applied: number, logTag: string) => {
+          get()
+            .loadStatus()
+            .catch((err) => logger.warn(`[syncStore] status refresh after ${logTag}:`, err));
+          if (conflicts > 0) {
+            get()
+              .loadConflicts()
+              .catch((err) => logger.warn(`[syncStore] conflicts refresh after ${logTag}:`, err));
+          }
+          // P011+P002: 对端有实际数据写入时刷新全部数据 Store，
+          // 否则用户停留在工作区时看不到对端同步进来的新增/修改对象。
+          if (applied > 0) {
+            const accountId = useAuthStore.getState().currentAccount?.id;
+            if (accountId) {
+              refreshDataStores(accountId);
+            }
+          }
+        };
         const outbound = p.outboundRecords ?? 0;
         const now = Date.now();
         // 先清理过期条目，防止高频会话场景 Map 无限增长
@@ -626,21 +645,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
               logger.warn('[syncStore] status refresh after merged inbound sync:', err),
             );
           // 合并事件若携带新冲突，同样刷新冲突列表（与首事件分支对齐）
-          if (p.conflicts > 0) {
-            get()
-              .loadConflicts()
-              .catch((err) =>
-                logger.warn('[syncStore] conflicts refresh after merged inbound sync:', err),
-              );
-          }
-          // P011+P002: 合并事件同样触发数据刷新（累计 applied > 0 时），
-          // 覆盖对象/模板/回收站/偏好设置，避免对端写入后本地数据陈旧。
-          if (merged.applied > 0) {
-            const accountId = useAuthStore.getState().currentAccount?.id;
-            if (accountId) {
-              refreshDataStores(accountId);
-            }
-          }
+          refreshAfterInbound(p.conflicts ?? 0, merged.applied, 'merged inbound sync');
           return;
         }
         // 构造与本地同步同形的结果（inbound 标记让同步页通用 toast 跳过，避免双弹）
@@ -686,23 +691,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           }),
         });
         // 刷新对端列表与冲突（响应方可能因此产生新冲突）
-        get()
-          .loadStatus()
-          .catch((err) => logger.warn('[syncStore] status refresh after inbound sync:', err));
-        if (p.conflicts > 0) {
-          get()
-            .loadConflicts()
-            .catch((err) => logger.warn('[syncStore] conflicts refresh after inbound sync:', err));
-        }
-        // P011+P002: 对端有实际数据写入（applied > 0）时刷新全部数据 Store——
-        // 否则用户停留在工作区时看不到对端同步进来的新增/修改对象，直到切换页面；
-        // 模板、回收站、账户偏好设置同样可能被对端改动。
-        if (p.applied > 0) {
-          const accountId = useAuthStore.getState().currentAccount?.id;
-          if (accountId) {
-            refreshDataStores(accountId);
-          }
-        }
+        refreshAfterInbound(p.conflicts, p.applied, 'inbound sync');
       });
     },
 
