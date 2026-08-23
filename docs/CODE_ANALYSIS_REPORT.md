@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-23 22:30:00
+> 最后更新：2026-08-23 22:45:00
 > 修复轮次：2（进入阶段 3 修复）
 > 当前分支：`main`
 > 前置轮次：1（初始分析，本轮仅分析不修复）
@@ -43,7 +43,7 @@
 | P012 | P2 | 安全（加固） | `crates/solosoul-sync/src/recovery.rs:269-279,184` | Recovery 主机指纹校验可选（手动输入路径无 MITM 防线），且主机端接受裸 PIN 认证；已有限流/一次性 nonce 缓解，建议加固 | `[ ]` 待修复 |
 | P013 | P2 | 性能/事务 | `crates/solosoul-vault/src/storage/snapshots.rs:369-414` | `repair_invisible_objects` 循环内逐行 query_row + UPDATE 无事务（有一次性标记兜底，仅跑一次，故 P2） | `[x]` 已修复 |
 | P014 | P2 | 性能 | `crates/solosoul-vault/src/storage/objects.rs:448` | `save_object_tx` 无条件克隆整棵 properties JSON，即使无需注入 `__templateName`；可加 `template_id.is_some()` 惰性克隆 | `[x]` 已修复 |
-| P015 | P2 | 性能 | `src-tauri/src/commands/export_import/import.rs:130-135` | `import_decrypt_preview` 整包读入内存（上限 100MB，峰值约 3×100MB）；主导入路径已流式化，预览路径遗留 | `[ ]` 待修复 |
+| P015 | P2 | 性能 | `src-tauri/src/commands/export_import/import.rs:130-135` | `import_decrypt_preview` 整包读入内存（上限 100MB，峰值约 3×100MB）；主导入路径已流式化，预览路径遗留 | `[x]` 已修复 |
 | P016 | P2 | 重复代码 | `crates/solosoul-vault/src/storage/reencrypt.rs:54,106,126` | 三个 reencrypt 函数仅表名不同、函数体逐字节相同；`storage.rs:595` 已有通用版可收敛 | `[ ]` 待修复 |
 | P017 | P2 | 重复代码 | `crates/solosoul-core/src/objects.rs:1102` vs `src-tauri/src/commands/attachment/mod.rs:114` | `load_all_referenced_attachment_ids` 跨 crate 双实现（后者 test-only），建议保留一个共享实现 | `[ ]` 待修复 |
 | P018 | P2 | 重复代码 | 全库 93 处 | `conn.lock()` + `ok_or("Vault is locked")?` 守卫样板 93 处，可考虑宏/helper 收敛（设计惯性，非 bug） | `[ ]` 待修复 |
@@ -62,8 +62,15 @@
 
 ## 修复进度
 
-- 已完成：11 / 30（P0: 0，P1: 6，P2: 5）
-- 当前处理：P015
+- 已完成：12 / 30（P0: 0，P1: 6，P2: 6）
+- 当前处理：P016
+
+#### 修复说明（续）
+- **P015**：preview 命令改调主路径 `decrypt_package`（流式解密至数据目录内
+  NamedTempFile + `serde_json::from_reader`），删除 read_file_from_zip +
+  decrypt_chunked_from_bytes + from_slice 链路；解密失败错误码由
+  decrypt_zip_entry_streaming 内部映射，前端 i18n 行为不变。solo_soul 465
+  测试回归通过。
 
 #### 修复说明（续）
 - **P014**：properties 改 `Cow<'_, serde_json::Value>` 借用原值，仅在实际
