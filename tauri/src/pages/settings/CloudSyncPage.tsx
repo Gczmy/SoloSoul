@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { listen } from '@tauri-apps/api/event';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -7,18 +8,18 @@ import { TransferButton } from '@/components/transfer/TransferButton';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 import { useToastError } from '@/hooks/useToastError';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { useAuthStore } from '@/stores/authStore';
+import { resolveBackendErrorMessage } from '@/lib/backendError';
 import {
-  Cloud,
   Shield,
-  Key,
   Trash2,
   CheckCircle,
   AlertCircle,
   Loader2,
-  Zap,
   Clock,
   HardDrive,
   Info,
+  DownloadCloud,
 } from 'lucide-react';
 import styles from './CloudSyncPage.module.css';
 
@@ -27,21 +28,6 @@ interface RetentionPolicy {
   daily: boolean;
   weekly: boolean;
   monthly: boolean;
-}
-
-interface CloudSyncConfig {
-  connectorType: string;
-  configJson: Record<string, unknown>;
-  enabled: boolean;
-  intervalSecs: number;
-  wifiOnly: boolean;
-  retention: RetentionPolicy;
-  lastSyncAt?: string;
-}
-
-interface TestConnectionResult {
-  success: boolean;
-  error?: string;
 }
 
 const CONNECTOR_OPTIONS = [
@@ -63,9 +49,9 @@ const DEFAULT_WEBDAV_CONFIG: Record<string, unknown> = {
 };
 
 export function CloudSyncPage() {
-  const { t } = useTranslation(['settings', 'common']);
+  const { t, i18n } = useTranslation(['settings', 'common']);
   const { onError, onSuccess } = useToastError();
-  const accountId = '' as string; // TODO: get from auth store
+  const accountId = useAuthStore((s) => s.currentAccount?.id ?? '');
 
   // Form state
   const [connectorType, setConnectorType] = useState('webdav');
@@ -89,7 +75,24 @@ export function CloudSyncPage() {
     retention: RetentionPolicy;
     lastSyncAt?: string;
   } | null>(null);
+  const [incomingFiles, setIncomingFiles] = useState<string[]>([]);
+  const [isSyncingNow, setIsSyncingNow] = useState(false);
+  const [importingFile, setImportingFile] = useState<string | null>(null);
   const passwordVerifiedRef = useRef(false);
+
+  // 加载云端待导入快照列表 + 监听下行事件
+  useEffect(() => {
+    if (!accountId) return;
+    invoke<string[]>('cloud_sync_list_incoming')
+      .then((files) => setIncomingFiles(files ?? []))
+      .catch(() => setIncomingFiles([]));
+    const unlisten = listen<{ files: string[] }>('cloud-sync-incoming', (event) => {
+      setIncomingFiles(event.payload.files ?? []);
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [accountId]);
 
   const loadConfig = useCallback(async () => {
     try {
@@ -117,7 +120,7 @@ export function CloudSyncPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [accountId, onError, onSuccess, t]);
+  }, [accountId, onError, t]);
 
   // Load existing config on mount
   useEffect(() => {
@@ -190,10 +193,56 @@ export function CloudSyncPage() {
     }
   };
 
-  const handlePasswordVerified = async () => {
-    passwordVerifiedRef.current = true;
-    setShowPasswordDialog(false);
-    await doSave();
+  const handleSyncNow = async () => {
+    setIsSyncingNow(true);
+    try {
+      await invoke('cloud_sync_now');
+      // 调度器异步执行；稍后刷新待导入列表
+      setTimeout(() => {
+        invoke<string[]>('cloud_sync_list_incoming')
+          .then((files) => setIncomingFiles(files ?? []))
+          .catch(() => {});
+      }, 3000);
+    } catch (e) {
+      onError(new Error(resolveBackendErrorMessage(e)), t('settings:cloud_sync_sync_now_failed'));
+    } finally {
+      setIsSyncingNow(false);
+    }
+  };
+
+  const handleImportIncoming = async (file: string) => {
+    // 文件名 {hlc}.solosoul，父目录名即来源 device_id
+    const parts = file.split('/');
+    const hlc = (parts.pop() ?? '').replace(/\.solosoul$/, '');
+    const deviceId = parts.pop() ?? '';
+    if (!hlc || !deviceId) return;
+    const snapshotPw = (configJson.password as string) || '';
+    if (!snapshotPw) {
+      onError(new Error('missing password'), t('settings:cloud_sync_import_failed'));
+      return;
+    }
+    setImportingFile(file);
+    try {
+      await invoke('import_execute_advanced', {
+        accountId,
+        req: {
+          selections: null,
+          strategy: 'skipExisting',
+          sourcePath: file,
+          password: snapshotPw,
+          selectedAttachmentIds: null,
+          objectStrategies: null,
+          locale: i18n.language || 'zh-CN',
+        },
+      });
+      await invoke('cloud_sync_mark_applied', { deviceId, hlc });
+      onSuccess(t('settings:cloud_sync_import_success'));
+      setIncomingFiles((prev) => prev.filter((f) => f !== file));
+    } catch (e) {
+      onError(new Error(resolveBackendErrorMessage(e)), t('settings:cloud_sync_import_failed'));
+    } finally {
+      setImportingFile(null);
+    }
   };
 
   const handlePasswordCancelled = () => {
@@ -390,6 +439,15 @@ export function CloudSyncPage() {
 
             <div className={styles.actionButtons}>
               <TransferButton
+                variant="plain"
+                onClick={handleSyncNow}
+                disabled={!savedConfig || isTesting}
+                busy={isSyncingNow}
+              >
+                {isSyncingNow ? t('settings:cloud_sync_syncing') : t('settings:cloud_sync_sync_now')}
+              </TransferButton>
+
+              <TransferButton
                 variant="accent"
                 onClick={handleSave}
                 disabled={isLoading || isTesting || !isFormValid}
@@ -470,6 +528,35 @@ export function CloudSyncPage() {
             </ul>
           </Card>
 
+          {incomingFiles.length > 0 && (
+            <Card className={styles.card}>
+              <h2 className={styles.sectionTitle}>
+                <DownloadCloud size={20} style={{ marginRight: 8 }} />
+                {t('settings:cloud_sync_incoming_title')}
+              </h2>
+              <p className={styles.hint}>{t('settings:cloud_sync_incoming_hint')}</p>
+              <div className={styles.incomingList}>
+                {incomingFiles.map((file) => {
+                  const nameParts = file.split('/');
+                  const fileName = nameParts[nameParts.length - 1] || file;
+                  return (
+                    <div key={file} className={styles.incomingItem}>
+                      <span className={styles.incomingName}>{fileName}</span>
+                      <TransferButton
+                        variant="accent"
+                        onClick={() => handleImportIncoming(file)}
+                        busy={importingFile === file}
+                        disabled={!!importingFile}
+                      >
+                        {t('settings:cloud_sync_import')}
+                      </TransferButton>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          )}
+
           {savedConfig && (
             <Card className={styles.statusCard}>
               <h2 className={styles.sectionTitle}>
@@ -511,7 +598,7 @@ export function CloudSyncPage() {
           <PasswordVerificationDialog
             open={showPasswordDialog}
             onClose={handlePasswordCancelled}
-            onVerify={async (password: string) => {
+            onVerify={async (_password: string) => {
               passwordVerifiedRef.current = true;
               setShowPasswordDialog(false);
               await doSave();
