@@ -3,8 +3,6 @@ import { useTranslation } from 'react-i18next';
 import {
   format,
   getMonth,
-  getHours,
-  getMinutes,
   setYear,
   setMonth,
   setHours,
@@ -18,7 +16,6 @@ import { DatePickerCalendar } from './DatePickerCalendar';
 import {
   SEGMENTS_CONFIG,
   SEPARATOR_BEFORE,
-  EMPTY_SEGMENTS,
   type DatePickerProps,
   type SegmentKey,
   type Segments,
