@@ -630,7 +630,6 @@ impl VaultStore {
     }
 }
 
-
 /// P019-⑤：trash 变更行 → (TrashItem, RecordHlc) 映射（自
 /// list_trash_changes_since_limited 的 query_map 闭包拆出，逻辑逐字保持）。
 /// 解密失败映射为 FromSqlConversionFailure 以便 collect 阶段统一报错。

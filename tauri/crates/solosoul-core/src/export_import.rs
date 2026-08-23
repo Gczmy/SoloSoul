@@ -1302,7 +1302,9 @@ fn write_imported_attachment(
             let mut out_file = File::create(file_path_dest)?;
             solosoul_crypto::cipher::decrypt_chunked_stream(att_key, f, &mut out_file)
                 .map_err(|e| format!("解密附件流失败: {}", e))?;
-            Ok(std::fs::metadata(file_path_dest).map(|m| m.len()).unwrap_or(0))
+            Ok(std::fs::metadata(file_path_dest)
+                .map(|m| m.len())
+                .unwrap_or(0))
         }
     }
 }

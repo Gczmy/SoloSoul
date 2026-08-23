@@ -1203,7 +1203,6 @@ impl super::VaultService {
     }
 }
 
-
 /// P019-③：KDF 升级用新 AccountConfig 构造（自 unlock_with_kdf_upgrade 拆出）。
 /// 新 salt + HKDF verify hash + 生产 KDF 参数；输入旧 config 内容以保留其余字段。
 fn build_upgraded_config(
@@ -1212,16 +1211,19 @@ fn build_upgraded_config(
     new_master_key: &[u8; 32],
     kdf: &KdfConfig,
 ) -> Result<String, String> {
-    let content =
-        String::from_utf8(old_config_content.to_vec()).map_err(|_| "Config encoding error".to_string())?;
+    let content = String::from_utf8(old_config_content.to_vec())
+        .map_err(|_| "Config encoding error".to_string())?;
     let mut config: AccountConfig =
         serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
     config.crypto_version = 3; // P2-010: HKDF-based verify hash
-    config.salt =
-        base64::Engine::encode(&base64::engine::general_purpose::STANDARD, salt);
+    config.salt = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, salt);
     config.verify_hash = hex::encode(
-        solosoul_crypto::hkdf_ext::derive_hkdf_key(new_master_key, salt, b"SOLOSOUL_VAULT_VERIFY_v1")
-            .map_err(|e| format!("Verify HKDF failed: {}", e))?,
+        solosoul_crypto::hkdf_ext::derive_hkdf_key(
+            new_master_key,
+            salt,
+            b"SOLOSOUL_VAULT_VERIFY_v1",
+        )
+        .map_err(|e| format!("Verify HKDF failed: {}", e))?,
     );
     config.kdf_memory_kb = Some(kdf.memory_kb);
     config.kdf_iterations = Some(kdf.iterations);

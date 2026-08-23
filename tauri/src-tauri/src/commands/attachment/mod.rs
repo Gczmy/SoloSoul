@@ -233,8 +233,7 @@ pub async fn attachment_download(
     };
 
     // P019-②：源路径安全校验链拆至 validate_attachment_source_path
-    let src =
-        validate_attachment_source_path(&vault_base, &src_path)?;
+    let src = validate_attachment_source_path(&vault_base, &src_path)?;
 
     // P019-②：目标路径白名单校验 + 重名解析拆至 validate_download_dest_path
     let dest = validate_download_dest_path(&dest_path)?;
