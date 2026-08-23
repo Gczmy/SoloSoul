@@ -37,7 +37,7 @@
 | P006 | P1 | 性能/事务 | `crates/solosoul-vault/src/storage/snapshots.rs:547-584` | `copy_snapshots` 循环逐条 INSERT 无事务包裹（中途失败留半成品），且同钥 decrypt→encrypt 纯浪费，应直接复制密文 | `[x]` 已修复 |
 | P007 | P1 | 可维护性 | `src/pages/settings/CloudSyncPage.tsx:51-632` | 单组件约 535 行非注释代码，承载 WebDAV 配置/保留策略/连接器/入站列表全部逻辑 | `[x]` 已修复 |
 | P008 | P1 | 可维护性 | `src/components/forms/DatePicker.tsx:168-609` | 主组件约 385 行，段落解析+键盘处理+滚轮渲染混杂 | `[x]` 已修复 |
-| P009 | P1 | 可维护性 | `src/pages/settings/useExportImportPage.tsx:33-454` | 导出/导入 hook 状态机约 371 行 | `[ ]` 待修复 |
+| P009 | P1 | 可维护性 | `src/pages/settings/useExportImportPage.tsx:33-454` | 导出/导入 hook 状态机约 371 行 | `[x]` 已修复 |
 | P010 | P1 | 可维护性 | `src/pages/settings/VaultDirectorySection.tsx:27-423` | 单组件约 369 行 | `[ ]` 待修复 |
 | P011 | P2 | 安全 | `crates/solosoul-core/src/export_import.rs:221-237,1218-1242,2214` | 导出/导入附件临时明文落共享 temp 目录（可预测目录名、未设 0700/0600）；同仓库其他路径均已收紧权限，此处是离群点 | `[x]` 已修复 |
 | P012 | P2 | 安全（加固） | `crates/solosoul-sync/src/recovery.rs:269-279,184` | Recovery 主机指纹校验可选（手动输入路径无 MITM 防线），且主机端接受裸 PIN 认证；已有限流/一次性 nonce 缓解，建议加固 | `[ ]` 待修复 |
@@ -82,7 +82,7 @@
 |----|------|----------|----------|
 | ~~P007~~ ✅ | CloudSyncPage 拆分 | **已完成**：631 行 → 主组件 96 行 + useCloudSyncPage(251) + 7 个 section（26~116 行） | — |
 | ~~P008~~ ✅ | DatePicker 拆分 | **已完成**：609 行 → 主组件 357（分段输入逻辑）+ helpers 143（纯函数逐字节保真）+ Calendar 189 | — |
-| P009 | useExportImportPage 拆分 | 导入导出为发布关键路径，发布前不宜大动 | 同上 |
+| ~~P009~~ ✅ | useExportImportPage 拆分 | **已完成**：454 行 → 341 行主 hook + useExportExecution(190) + guide 配置(45)；导入/范围/估算本已委托子 hook | — |
 | P010 | VaultDirectorySection 拆分 | 同上 | 同上 |
 | P012 | Recovery 指纹强制化 | UX 流程变更（手动输入路径要求录指纹），需产品确认 + GUI/CLI 双端改造 + i18n + 测试 | 产品决策后单独排期 |
 | P018 | 93 处 lock 守卫样板宏收敛 | 报告自述「设计惯性非 bug」；93 处机械替换 churn 大、回归面广、零行为收益 | 触碰 storage 层时渐进采用新 helper，不做一次性迁移 |
