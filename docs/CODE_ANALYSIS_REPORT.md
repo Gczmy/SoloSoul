@@ -35,7 +35,7 @@
 | P004 | P1 | 安全/规范 | `src/lib/searchShared.tsx:175-183` + `crates/solosoul-core/src/search_filter.rs:11` | 搜索结果中 internal 级字段命中值明文渲染，无 `useRevealState`/`maskValue`，违反 P036 掩码统一约定 | `[x]` 已修复 |
 | P005 | P1 | 安全 | `src/components/layout/SearchPopover.tsx:49-63` | 最近搜索词明文持久化 localStorage（`solosoul_recent_searches`），不按账户隔离，Vault 锁定/退出时不清除 | `[x]` 已修复 |
 | P006 | P1 | 性能/事务 | `crates/solosoul-vault/src/storage/snapshots.rs:547-584` | `copy_snapshots` 循环逐条 INSERT 无事务包裹（中途失败留半成品），且同钥 decrypt→encrypt 纯浪费，应直接复制密文 | `[x]` 已修复 |
-| P007 | P1 | 可维护性 | `src/pages/settings/CloudSyncPage.tsx:51-632` | 单组件约 535 行非注释代码，承载 WebDAV 配置/保留策略/连接器/入站列表全部逻辑 | `[ ]` 待修复 |
+| P007 | P1 | 可维护性 | `src/pages/settings/CloudSyncPage.tsx:51-632` | 单组件约 535 行非注释代码，承载 WebDAV 配置/保留策略/连接器/入站列表全部逻辑 | `[x]` 已修复 |
 | P008 | P1 | 可维护性 | `src/components/forms/DatePicker.tsx:168-609` | 主组件约 385 行，段落解析+键盘处理+滚轮渲染混杂 | `[ ]` 待修复 |
 | P009 | P1 | 可维护性 | `src/pages/settings/useExportImportPage.tsx:33-454` | 导出/导入 hook 状态机约 371 行 | `[ ]` 待修复 |
 | P010 | P1 | 可维护性 | `src/pages/settings/VaultDirectorySection.tsx:27-423` | 单组件约 369 行 | `[ ]` 待修复 |
@@ -80,7 +80,7 @@
 
 | ID | 类别 | 延期理由 | 建议时机 |
 |----|------|----------|----------|
-| P007 | CloudSyncPage 拆分（~535 行） | 纯可维护性、无缺陷；拆分需逐段人工验证 UI 行为，当前无 E2E 覆盖该页 | v2.13.0 发布后专项重构轮 |
+| ~~P007~~ ✅ | CloudSyncPage 拆分 | **已完成**：631 行 → 主组件 96 行 + useCloudSyncPage(251) + 7 个 section（26~116 行） | — |
 | P008 | DatePicker 拆分（~385 行） | 同上；键盘/滚轮交互回归只能手测 | 同上 |
 | P009 | useExportImportPage 拆分 | 导入导出为发布关键路径，发布前不宜大动 | 同上 |
 | P010 | VaultDirectorySection 拆分 | 同上 | 同上 |
