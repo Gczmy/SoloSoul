@@ -1146,23 +1146,7 @@ pub fn import_attachments(
     let att_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, b"solosoul:attachments:v1")
         .map_err(|e| format!("派生附件密钥失败: {}", e))?;
 
-    let mut att_meta_map: HashMap<(String, String), AttachmentMeta> = HashMap::new();
-    if let Some(arr) = payload["objects"].as_array() {
-        for obj_val in arr {
-            let obj_id = obj_val["id"].as_str().unwrap_or("");
-            if obj_id.is_empty() {
-                continue;
-            }
-            let props = obj_val["properties"]
-                .as_object()
-                .cloned()
-                .unwrap_or_default();
-            let atts = load_attachments(&serde_json::Value::Object(props));
-            for att in &atts {
-                att_meta_map.insert((obj_id.to_string(), att.id.clone()), att.clone());
-            }
-        }
-    }
+    let att_meta_map = build_attachment_meta_map(payload);
 
     let zip_file = File::open(path)?;
     let mut archive = ZipArchive::new(zip_file)?;
@@ -1232,48 +1216,8 @@ pub fn import_attachments(
         // 用原始名 join 目标目录造成存储型路径遍历。
         let safe_name = sanitize_import_file_name(&old_meta.file_name)?;
         let file_path_dest = dest.join(&safe_name);
-        let file_size = match vault_att_key {
-            // P001-1：先以导出密钥解密 ZIP 条目到临时明文，再以 vault 附件密钥加密落盘
-            // → 清理临时明文（与 GUI 导入路径 extract_att_meta_for_object 同款流程，
-            // 消除明文窗口）。注意这里两个密钥不同：`att_key` 解 ZIP 密文，
-            // `vault_att_key` 加密落盘。
-            Some(vault_key) => {
-                // P011：私有临时目录（0700 + 随机名）替代共享固定目录
-                let temp_dir = create_private_temp_dir("import_att")?;
-                let temp_path = temp_dir.join(format!("{}.plain", uuid::Uuid::new_v4()));
-                // 解密/加密/清理三阶段，任何失败都必须删除临时明文（不残留）。
-                let result = (|| -> Result<u64, String> {
-                    let mut temp_file =
-                        File::create(&temp_path).map_err(|e| format!("创建临时文件失败: {}", e))?;
-                    solosoul_crypto::cipher::decrypt_chunked_stream(
-                        &att_key,
-                        &mut f,
-                        &mut temp_file,
-                    )
-                    .map_err(|e| format!("解密附件流失败: {}", e))?;
-                    drop(temp_file);
-                    tighten_file_perms(&temp_path);
-                    let size = std::fs::metadata(&temp_path).map(|m| m.len()).unwrap_or(0);
-                    crate::attachment_crypto::encrypt_file_stream(
-                        vault_key,
-                        &temp_path,
-                        &file_path_dest,
-                    )
-                    .map_err(|e| format!("附件加密落盘失败: {}", e))?;
-                    Ok(size)
-                })();
-                let _ = std::fs::remove_file(&temp_path);
-                result?
-            }
-            None => {
-                let mut out_file = File::create(&file_path_dest)?;
-                solosoul_crypto::cipher::decrypt_chunked_stream(&att_key, &mut f, &mut out_file)
-                    .map_err(|e| format!("解密附件流失败: {}", e))?;
-                std::fs::metadata(&file_path_dest)
-                    .map(|m| m.len())
-                    .unwrap_or(0)
-            }
-        };
+        let file_size =
+            write_imported_attachment(&mut f, &att_key, vault_att_key, &file_path_dest)?;
 
         imported_atts
             .entry(actual_obj_id.clone())
@@ -1294,6 +1238,80 @@ pub fn import_attachments(
     }
 
     // 更新已导入对象的 __attachments（按实际对象 ID）
+    write_back_imported_attachments(vault, imported_atts)
+}
+
+/// P019-①：从 payload 提取「(旧对象ID, 旧附件ID) → 附件元数据」映射。
+fn build_attachment_meta_map(
+    payload: &serde_json::Value,
+) -> HashMap<(String, String), AttachmentMeta> {
+    let mut map: HashMap<(String, String), AttachmentMeta> = HashMap::new();
+    if let Some(arr) = payload["objects"].as_array() {
+        for obj_val in arr {
+            let obj_id = obj_val["id"].as_str().unwrap_or("");
+            if obj_id.is_empty() {
+                continue;
+            }
+            let props = obj_val["properties"]
+                .as_object()
+                .cloned()
+                .unwrap_or_default();
+            let atts = load_attachments(&serde_json::Value::Object(props));
+            for att in &atts {
+                map.insert((obj_id.to_string(), att.id.clone()), att.clone());
+            }
+        }
+    }
+    map
+}
+
+/// P019-②：单个 ZIP 条目解密落盘。vault_att_key 存在时经私有临时明文中转再加密
+/// （P001-1/P011），否则直接以导出密钥解密写入；返回落盘字节数。
+fn write_imported_attachment(
+    f: &mut impl std::io::Read,
+    att_key: &[u8; 32],
+    vault_att_key: Option<&[u8; 32]>,
+    file_path_dest: &Path,
+) -> Result<u64, ExportError> {
+    match vault_att_key {
+        Some(vault_key) => {
+            // P011：私有临时目录（0700 + 随机名）替代共享固定目录
+            let temp_dir = create_private_temp_dir("import_att")?;
+            let temp_path = temp_dir.join(format!("{}.plain", uuid::Uuid::new_v4()));
+            // 解密/加密/清理三阶段，任何失败都必须删除临时明文（不残留）。
+            let result = (|| -> Result<u64, String> {
+                let mut temp_file =
+                    File::create(&temp_path).map_err(|e| format!("创建临时文件失败: {}", e))?;
+                solosoul_crypto::cipher::decrypt_chunked_stream(att_key, f, &mut temp_file)
+                    .map_err(|e| format!("解密附件流失败: {}", e))?;
+                drop(temp_file);
+                tighten_file_perms(&temp_path);
+                let size = std::fs::metadata(&temp_path).map(|m| m.len()).unwrap_or(0);
+                crate::attachment_crypto::encrypt_file_stream(
+                    vault_key,
+                    &temp_path,
+                    file_path_dest,
+                )
+                .map_err(|e| format!("附件加密落盘失败: {}", e))?;
+                Ok(size)
+            })();
+            let _ = std::fs::remove_file(&temp_path);
+            result.map_err(ExportError::Msg)
+        }
+        None => {
+            let mut out_file = File::create(file_path_dest)?;
+            solosoul_crypto::cipher::decrypt_chunked_stream(att_key, f, &mut out_file)
+                .map_err(|e| format!("解密附件流失败: {}", e))?;
+            Ok(std::fs::metadata(file_path_dest).map(|m| m.len()).unwrap_or(0))
+        }
+    }
+}
+
+/// P019-③：把导入的附件元数据写回各对象的 __attachments 属性，返回导入总数。
+fn write_back_imported_attachments(
+    vault: &VaultStore,
+    imported_atts: HashMap<String, Vec<AttachmentMeta>>,
+) -> Result<usize, ExportError> {
     let imported_count = imported_atts.values().map(|v| v.len()).sum::<usize>();
     for (obj_id, atts) in imported_atts {
         let mut obj = vault
