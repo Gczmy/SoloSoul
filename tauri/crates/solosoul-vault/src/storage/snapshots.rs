@@ -422,7 +422,10 @@ impl VaultStore {
         })?;
 
         drop(guard);
-        let _ = self.set_sys_config(REPAIR_FLAG, "1");
+        // 标记落位为 best-effort，但失败需留痕（否则下次启动会重复执行修复）
+        if let Err(e) = self.set_sys_config(REPAIR_FLAG, "1") {
+            tracing::warn!("[vault] repair_restored_objects: REPAIR_FLAG write failed: {}", e);
+        }
         Ok(fixed)
     }
 
