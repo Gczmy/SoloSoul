@@ -92,6 +92,60 @@ impl WebDavConnector {
     }
 }
 
+impl WebDavConnector {
+    /// 单次流式 PUT（A1 修正版）。`if_match` 非空时附带 If-Match 条件头：
+    /// 远端 ETag 不匹配返回 412 → [`CloudSyncError::Conflict`]（B-05 并发保护）。
+    async fn put_stream(
+        &self,
+        remote_path: &str,
+        reader: Pin<Box<dyn AsyncRead + Send>>,
+        total_size: u64,
+        if_match: Option<&str>,
+    ) -> CloudResult<(String, String)> {
+        // 确保父目录存在
+        if let Some(parent) = std::path::Path::new(remote_path).parent() {
+            let parent_str = parent.to_string_lossy().to_string();
+            if parent_str != "." && !parent_str.is_empty() {
+                self.ensure_dir(&parent_str).await?;
+            }
+        }
+
+        // 标准 WebDAV PUT 不支持 Content-Range 部分写（RFC 4918 无此语义）：
+        // 单次流式 PUT，请求体边读边发，内存常驻恒定。
+        let stream = tokio_util::io::ReaderStream::new(reader);
+        let body = reqwest::Body::wrap_stream(stream);
+        let mut req = self
+            .request(Method::PUT, remote_path)
+            .header(CONTENT_LENGTH, total_size)
+            .header(CONTENT_TYPE, "application/octet-stream")
+            .body(body);
+        if let Some(etag) = if_match {
+            req = req.header("If-Match", format!("\"{}\"", etag));
+        }
+        let resp = req.send().await.map_err(CloudSyncError::Http)?;
+        let status = resp.status();
+        if status.as_u16() == 412 {
+            return Err(CloudSyncError::Conflict(
+                "远端已被其他设备更新（ETag 不匹配），需重拉合并后重试".to_string(),
+            ));
+        }
+        if status.is_success() {
+            let etag = resp
+                .headers()
+                .get("ETag")
+                .and_then(|v| v.to_str().ok())
+                .map(|s| s.trim_matches('"').to_string())
+                .unwrap_or_default();
+            Ok((remote_path.to_string(), etag))
+        } else {
+            Err(CloudSyncError::UploadFailed(format!(
+                "PUT 失败: {}",
+                resp.status()
+            )))
+        }
+    }
+}
+
 #[async_trait]
 impl CloudConnector for WebDavConnector {
     fn connector_type(&self) -> &'static str {
@@ -174,34 +228,19 @@ impl CloudConnector for WebDavConnector {
             }
         }
 
-        // A1 实测修正：标准 WebDAV PUT 不支持 Content-Range 部分写（RFC 4918 无此
-        // 语义，wsgidav 返回 400、坚果云同样拒绝）。改为单次流式 PUT：请求体经
-        // ReaderStream 边读边发，内存常驻恒定，任意大小文件均适用。
-        let stream = tokio_util::io::ReaderStream::new(reader);
-        let body = reqwest::Body::wrap_stream(stream);
-        let resp = self
-            .request(Method::PUT, remote_path)
-            .header(CONTENT_LENGTH, total_size)
-            .header(CONTENT_TYPE, "application/octet-stream")
-            .body(body)
-            .send()
-            .await
-            .map_err(CloudSyncError::Http)?;
+        self.put_stream(remote_path, reader, total_size, None).await
+    }
 
-        if resp.status().is_success() {
-            let etag = resp
-                .headers()
-                .get("ETag")
-                .and_then(|v| v.to_str().ok())
-                .map(|s| s.trim_matches('"').to_string())
-                .unwrap_or_default();
-            Ok((remote_path.to_string(), etag))
-        } else {
-            Err(CloudSyncError::UploadFailed(format!(
-                "PUT 失败: {}",
-                resp.status()
-            )))
-        }
+    /// B-05：条件上传（If-Match）。ETag 不匹配返回 Conflict。
+    async fn upload_if_match(
+        &self,
+        remote_path: &str,
+        reader: Pin<Box<dyn AsyncRead + Send>>,
+        total_size: u64,
+        if_match: Option<&str>,
+    ) -> CloudResult<(String, String)> {
+        self.put_stream(remote_path, reader, total_size, if_match)
+            .await
     }
 
     async fn download(

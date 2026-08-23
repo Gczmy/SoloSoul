@@ -176,6 +176,22 @@ pub trait CloudConnector: Send + Sync {
         writer: Pin<&mut (dyn tokio::io::AsyncWrite + Send + Unpin)>,
     ) -> CloudResult<u64>;
 
+    /// 条件上传（B-05）：仅当远端当前 ETag 与 `if_match` 匹配时写入；
+    /// 不匹配返回 [`CloudSyncError::Conflict`]，调用方应重拉远端内容、合并后重试。
+    ///
+    /// `if_match` 为 `None` 表示资源不应存在（首次创建）或无条件写——由实现自行
+    /// 决定语义；默认实现忽略条件直接上传（供不支持条件写的连接器兜底）。
+    async fn upload_if_match(
+        &self,
+        remote_path: &str,
+        reader: Pin<Box<dyn tokio::io::AsyncRead + Send>>,
+        total_size: u64,
+        if_match: Option<&str>,
+    ) -> CloudResult<(String, String)> {
+        let _ = if_match;
+        self.upload(remote_path, reader, total_size).await
+    }
+
     /// 列出目录下对象（非递归，仅一级）。
     async fn list(&self, remote_path: &str) -> CloudResult<Vec<CloudObjectMeta>>;
 

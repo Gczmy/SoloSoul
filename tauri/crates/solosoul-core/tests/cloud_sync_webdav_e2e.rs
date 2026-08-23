@@ -35,7 +35,7 @@ fn make_connector(user: &str, pass: &str) -> WebDavConnector {
         password: pass.to_string(),
         root_prefix: "/SoloSoul/".to_string(),
     })
-    .unwrap()  // 测试用合法 URL；非法 URL 行为由 t10 专项覆盖
+    .unwrap() // 测试用合法 URL；非法 URL 行为由 t10 专项覆盖
 }
 
 fn creds() -> (String, String) {
@@ -294,7 +294,13 @@ fn t07_download_missing_is_typed_error() {
 #[test]
 fn t10_invalid_url_returns_err_not_panic() {
     // 不依赖服务器，纯构造路径
-    for bad in ["", "not-a-url", "http://", "ftp://x", "https://host with space"] {
+    for bad in [
+        "",
+        "not-a-url",
+        "http://",
+        "ftp://x",
+        "https://host with space",
+    ] {
         let result = std::panic::catch_unwind(|| {
             WebDavConnector::new(WebDavConfig {
                 base_url: bad.to_string(),
@@ -310,4 +316,59 @@ fn t10_invalid_url_returns_err_not_panic() {
             Err(_) => panic!("URL {:?} 构造发生 panic —— N-001 回归", bad),
         }
     }
+}
+
+/// ⑧ B-05 回归：If-Match 条件上传——正确 ETag 成功、过期 ETag 返回 Conflict。
+#[test]
+fn t08_upload_if_match_conflict_detection() {
+    let result = tokio_main(async {
+        let (user, pass) = creds();
+        let c = make_connector(&user, &pass);
+        let prefix = unique_prefix();
+        let path = format!("{}/cond.json", prefix);
+        c.ensure_dir(&prefix).await.map_err(|e| e.to_string())?;
+
+        use std::io::Cursor;
+        use std::pin::Pin;
+        // 各版本使用不同长度：wsgidav 等 ETag 基于 mtime+size，
+        // 同尺寸同秒重写会产生相同 ETag 导致无法触发 412。
+        // 首次无条件写入 v1（7 字节）
+        let (_, etag_v1) = upload_bytes(&c, &path, br#"{"v":1}"#.to_vec())
+            .await
+            .map_err(|e| e.to_string())?;
+        assert!(!etag_v1.is_empty(), "服务器应返回 ETag");
+
+        // 正确 ETag → 成功（8 字节，size 变化确保 ETag 必然更新）
+        let (_, _etag_v2) = {
+            let cursor = Cursor::new(br#"{"v":22}"#.to_vec());
+            c.upload_if_match(&path, Box::pin(cursor), 8, Some(&etag_v1))
+                .await
+                .map_err(|e| e.to_string())?
+        };
+
+        // 用旧 ETag 再写（9 字节）→ 当前 ETag 已变为非 etag_v1 → 应返回 Conflict
+        let stale = Cursor::new(br#"{"v":333}"#.to_vec());
+        match c
+            .upload_if_match(&path, Box::pin(stale), 9, Some(&etag_v1))
+            .await
+        {
+            Err(solosoul_core::cloud_sync::CloudSyncError::Conflict(_)) => {}
+            other => {
+                return Err(format!(
+                    "过期 ETag 应返回 Conflict，实际 {:?}",
+                    other.map(|_| ())
+                ))
+            }
+        }
+
+        // None = 无条件写 → 也应成功
+        let none_write = Cursor::new(br#"{"v":4444}"#.to_vec());
+        c.upload_if_match(&path, Box::pin(none_write), 10, None)
+            .await
+            .map_err(|e| e.to_string())?;
+
+        c.delete(&prefix).await.map_err(|e| e.to_string())?;
+        Ok(())
+    });
+    result.unwrap();
 }

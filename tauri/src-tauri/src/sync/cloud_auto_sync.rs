@@ -247,7 +247,10 @@ async fn run_cloud_sync_round(
         }
         // B-01：Wi-Fi only 门控（仅移动端有实际语义；桌面 is_on_wifi 恒 true）
         if cfg.wifi_only && !crate::network_status_plugin::is_on_wifi(app_handle) {
-            tracing::debug!("[CloudSync] wifi_only 开启且当前非 Wi-Fi，跳过本轮 ({})", source_str);
+            tracing::debug!(
+                "[CloudSync] wifi_only 开启且当前非 Wi-Fi，跳过本轮 ({})",
+                source_str
+            );
             return Ok(());
         }
         // 周期触发的时间间隔门控
@@ -442,7 +445,11 @@ async fn export_full_snapshot(
     .map_err(|e| format!("导出任务 join 失败: {e}"))?
 }
 
-/// 读取既有 latest.json（不存在视为空索引）→ 写入本设备条目 → 回传云端。
+/// 读取既有 latest.json（不存在视为空索引）→ 写入本设备条目 → 条件回传云端。
+///
+/// B-05 并发保护：PUT 附带 If-Match（当前 ETag），其他设备并发更新时服务器返回
+/// 412 → 映射为 Conflict → 重拉最新索引、合并本设备条目后重试（最多 3 次）。
+/// 重试耗尽仍冲突则报错，交由内核退避重试整轮同步。
 #[allow(clippy::too_many_arguments)]
 async fn update_latest_index(
     connector: &dyn CloudConnector,
@@ -457,41 +464,85 @@ async fn update_latest_index(
     use solosoul_core::cloud_sync::{DeviceSnapshotMeta, LatestIndex};
 
     let index_remote = build_latest_index_path(root, account_id);
-    let mut index = match download_to_vec(connector, &index_remote).await {
-        Ok(bytes) => serde_json::from_slice::<LatestIndex>(&bytes)
-            .map_err(|e| format!("解析 latest.json 失败: {e}"))?,
-        Err(solosoul_core::cloud_sync::CloudSyncError::NotFound(_)) => LatestIndex::default(),
-        Err(e) => return Err(format!("拉取索引失败: {}", e)),
-    };
-
-    index.devices.insert(
-        device_id.to_string(),
-        DeviceSnapshotMeta {
-            device_id: device_id.to_string(),
-            device_name: None,
-            hlc: hlc.to_string(),
-            remote_path: remote_path.to_string(),
-            size,
-            etag: etag.to_string(),
-            uploaded_at: chrono::Utc::now(),
-        },
-    );
-    index.updated_at = chrono::Utc::now();
-
-    let bytes = serde_json::to_vec_pretty(&index).map_err(|e| e.to_string())?;
-    let payload_len = bytes.len() as u64;
-    let cursor = std::io::Cursor::new(bytes);
     if let Some(parent) = remote_parent(&index_remote) {
         connector
             .ensure_dir(&parent)
             .await
             .map_err(|e| format!("ensure_dir 索引目录失败: {}", e))?;
     }
-    connector
-        .upload(&index_remote, Box::pin(cursor), payload_len)
-        .await
-        .map_err(|e| format!("上传索引失败: {}", e))?;
-    Ok(())
+
+    const MAX_MERGE_RETRIES: usize = 3;
+    for attempt in 0..MAX_MERGE_RETRIES {
+        // 拉取当前索引与 ETag（404 视为首次创建：无条件写）
+        let (mut index, current_etag) = match download_to_vec(connector, &index_remote).await {
+            Ok(bytes) => {
+                let parsed: LatestIndex = serde_json::from_slice(&bytes)
+                    .map_err(|e| format!("解析 latest.json 失败: {e}"))?;
+                let cur = connector
+                    .head(&index_remote)
+                    .await
+                    .ok()
+                    .and_then(|m| m.etag);
+                (parsed, cur)
+            }
+            Err(solosoul_core::cloud_sync::CloudSyncError::NotFound(_)) => {
+                (LatestIndex::default(), None)
+            }
+            Err(e) => return Err(format!("拉取索引失败: {}", e)),
+        };
+
+        // 若远端已有本设备条目且水线更新（异常残留），跳过覆盖避免回退
+        if let Some(existing) = index.devices.get(device_id) {
+            if existing.hlc.as_str() > hlc {
+                tracing::info!(
+                    "[CloudSync] 远端已有本设备更新水线 {} >= {}，跳过索引写入",
+                    existing.hlc,
+                    hlc
+                );
+                return Ok(());
+            }
+        }
+
+        index.devices.insert(
+            device_id.to_string(),
+            DeviceSnapshotMeta {
+                device_id: device_id.to_string(),
+                device_name: None,
+                hlc: hlc.to_string(),
+                remote_path: remote_path.to_string(),
+                size,
+                etag: etag.to_string(),
+                uploaded_at: chrono::Utc::now(),
+            },
+        );
+        index.updated_at = chrono::Utc::now();
+
+        let bytes = serde_json::to_vec_pretty(&index).map_err(|e| e.to_string())?;
+        let payload_len = bytes.len() as u64;
+        let cursor = std::io::Cursor::new(bytes);
+
+        match connector
+            .upload_if_match(
+                &index_remote,
+                Box::pin(cursor),
+                payload_len,
+                current_etag.as_deref(),
+            )
+            .await
+        {
+            Ok(_) => return Ok(()),
+            Err(solosoul_core::cloud_sync::CloudSyncError::Conflict(_)) => {
+                tracing::info!(
+                    "[CloudSync] latest.json 并发冲突（第 {}/{} 次重试）",
+                    attempt + 1,
+                    MAX_MERGE_RETRIES
+                );
+                continue;
+            }
+            Err(e) => return Err(format!("上传索引失败: {}", e)),
+        }
+    }
+    Err("latest.json 并发冲突重试耗尽".to_string())
 }
 
 /// GFS 保留清理：保留最近 N 份全量 + 每日/周/月各桶最新一份，删除其余。
