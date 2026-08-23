@@ -1,70 +1,59 @@
-# 代码分析修复报告（云同步专项轮）
+# 代码分析修复报告（B 组新代码专项轮）
 
-> 最后更新：2026-08-23 16:40:00
+> 最后更新：2026-08-23 17:45:00
 > 当前分支：`main`
-> 修复轮次：1（Phase 2 云同步新代码专项审查）
+> 修复轮次：1（B-01~B-06 新增代码专项审查）
 
 ## 审查范围
 
-- `crates/solosoul-core/src/cloud_sync/`（mod.rs + webdav.rs，~700 行）
-- `src-tauri/src/sync/cloud_auto_sync.rs`（~750 行）
-- `src-tauri/src/commands/cloud_targets.rs`、`commands/settings.rs` 云同步命令段
-- 前端 `CloudSyncPage.tsx`
+- B-01~B-06 全部新增/重构代码：
+  - `src-tauri/src/sync/cloud_auto_sync.rs`（多轮文件重建后的完整性复核）
+  - `crates/solosoul-core/src/cloud_sync/webdav.rs`（put_stream/upload_if_match 重构）
+  - `commands/export_import/import.rs` + `commands/recovery.rs`（guard 参数化重构）
+  - `network_status_plugin.rs` + `NetworkStatusPlugin.kt`
+  - 前端 `CloudSyncPage.tsx` / `useExportImportPage.tsx`
 
 ## 基线检查
 
-| 检查项 | 结果 |
-|--------|------|
-| `cargo fmt --check` | ✅（本轮已顺手修复 mod.rs 一处格式） |
-| `cargo clippy --workspace -D warnings` | ✅ 零告警 |
-| `npx tsc --noEmit` / `npm run lint` | ✅ |
-| Rust workspace 测试 + E2E | ✅ 990 passed |
-| 凭据日志泄漏扫描 | ✅ 无（日志仅含 source 标识与错误分类文本） |
+fmt/clippy/tsc/ESLint/Vitest/Rust workspace(993)/E2E(9) 全绿；函数重复定义检查通过。
 
 ## 问题清单
 
-| ID    | 优先级 | 类别   | 文件位置                                        | 描述                                                                                     | 状态        |
-|-------|--------|--------|-------------------------------------------------|------------------------------------------------------------------------------------------|-------------|
-| N-001 | P1     | 潜在崩溃 | `crates/solosoul-core/src/cloud_sync/webdav.rs:46` | `WebDavConnector::new` 对用户输入的 `base_url` 执行 `Url::from_str(...).expect(...)`——Settings 表单输错 URL 即 panic 整个应用；同函数 `Client::builder().build().expect()` 同理 | `[x]` 已修复 |
-| N-002 | P2     | 资源泄漏 | `src-tauri/src/sync/cloud_auto_sync.rs:336-363`  | 上传失败时临时快照残留在 `{data_dir}/cloud_sync_tmp/` 无清理，长期累积占用磁盘             | `[ ]` 待修复 |
-| N-003 | P3     | 规范   | `webdav.rs:85,114,127,222`                      | `Method::from_bytes(b"PROPFIND").unwrap()` 重复 4 处（实际不可失败）；应提为常量           | `[x]` 已修复 |
-
-## 结论
-
-✅ 云同步专项审查 3 项问题全部修复，E2E 与全量测试回归通过。
+| ID    | 优先级 | 类别     | 文件位置                                              | 描述                                                                                     | 状态        |
+|-------|--------|----------|-------------------------------------------------------|------------------------------------------------------------------------------------------|-------------|
+| N-101 | P1     | 行为回归 | `src-tauri/src/commands/recovery.rs`                  | 恢复主机导入完成后丢失 `auto_sync.trigger_debounce()` 触发——原内部实现无条件调用，重构后仅 advanced 调用方补了触发 | `[ ]` 待修复 |
+| N-102 | P2     | 行为偏差 | `commands/export_import/import.rs:272`                | advanced 导入的 debounce 触发移到了结果判定之前：导入失败也会触发自动同步（原为成功才触发） | `[ ]` 待修复 |
+| N-003 | P2     | 性能     | `crates/solosoul-core/src/cloud_sync/webdav.rs:141-149` | `upload` 先做 `ensure_dir` 后委托 `put_stream`，而 put_stream 内部再做一次——每次上传多一轮 PROPFIND/MKCOL 网络往返（快照上传热路径） | `[ ]` 待修复 |
+| N-104 | P3     | i18n     | `src-tauri/src/sync/cloud_auto_sync.rs:756`           | `auto_import_one` 的导入 locale 硬编码 `"zh-CN"`，应使用系统默认 locale                    | `[ ]` 待修复 |
 
 ## 详细说明与修复方案
 
-### N-001（P1）：用户输入 URL 触发 panic
+### N-101（P1 · 行为回归）：恢复流程丢失自动同步触发
 
-- **场景**：用户在 CloudSyncPage「服务器地址」填入非法 URL（如漏掉 scheme、多余空格），保存后
-  「连接测试」→ `create_connector` → `WebDavConnector::new` → `expect` → 进程 abort。
-  Android Release 构建为 panic=abort，直接闪退。
-- **方案**：`new` 签名改为 `Result<Self, CloudSyncError>`（URL 解析失败 → `ConfigMissing`
-  或新增 `InvalidConfig` 变体；Client 构建失败 → `Internal`）。`create_connector` 已返回
-  `CloudResult`，自然透传。调用方仅 create_connector 与测试。
-- **验证**：单测断言非法 URL 返回 Err 而非 panic；既有测试改用 `.unwrap()` 于合法输入。
+- **原行为**：`import_execute_internal` 内部末尾无条件 `state.auto_sync.trigger_debounce()`
+  → 恢复主机等全部导入路径成功后都会触发 SAF 自动同步。
+- **现状**：重构后触发移至 `import_execute_advanced` 调用方，recovery.rs 未补 → 恢复完成后
+  SAF 云盘回灌不再被触发。
+- **方案**：recovery.rs 在 `import_result = import_execute_internal(...)` 成功后补
+  `state.auto_sync.trigger_debounce();`。
 
-### N-002（P2）：上传失败残留临时快照
+### N-102（P2 · 行为偏差）：失败也触发 debounce
 
-- **场景**：导出成功但上传失败（网络断开）时，`?` 在 `remove_file` 之前传播，
-  `cloud_sync_tmp/snapshot_*.solosoul` 永久残留（可达数百 MB）。
-- **方案**：①上传结果无论成败均清理本次临时文件；②每轮同步开始时清扫目录内
-  超过 24h 的陈旧残留（覆盖历史崩溃场景）。
+- **现状**：advanced 调用方在 `.await` 后立即 `trigger_debounce()` 再返回 result；
+  原实现仅在成功路径触发。
+- **方案**：改为 `let result = ...?; state.auto_sync.trigger_debounce(); Ok(result)`
+  （与 N-101 同一提交：同一根因「触发改造」的两半）。
 
-### N-003（P3）：重复 Method unwrap
+### N-003（P2 · 性能）：双重 ensure_dir
 
-- `Method::from_bytes(b"PROPFIND")` 编译期即可确定为合法方法名，unwrap 不可失败；
-  但四处重复属噪音。提为 `const METHOD_PROPFIND/MKCOL: Method`（Method 为 Copy 类型可常量化
-  ——若 const 不稳则用 `OnceLock` 或就地 `from_bytes` 提取为私有 helper 函数）。
+- **方案**：删除 `upload` 内的前置 ensure_dir 段（put_stream 已统一处理），
+  upload_if_match 经 put_stream 同样受益。每轮云同步快照上传省 2 次 RTT。
 
-- 已完成：1 / 3
+### N-104（P3）：locale 硬编码
+
+- **方案**：改用 `crate::commands::export_import::default_locale()`（与 recovery 流程一致）。
+
+## 修复进度
+
+- 已完成：0 / 4
 - 当前处理：无
-
-#### 修复说明 N-001
-
-- `new` 签名改为 `CloudResult<Self>`：URL 解析失败 → `ConfigMissing`（含输入回显与解析错误详情）、
-  scheme 非 http/https → `ConfigMissing`、Client 构建失败 → `Internal`。
-- `create_connector` 经 `?` 透传至前端 toast；Android panic=abort 场景不再闪退。
-- E2E 新增 t10 回归：5 类非法 URL（空串/非 URL/裸 host/ftp/含空格）断言不 panic 且返回
-  `ConfigMissing`。E2E 8/8 通过，clippy 全绿。
