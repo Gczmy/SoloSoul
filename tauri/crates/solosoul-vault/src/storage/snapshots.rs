@@ -12,7 +12,7 @@
 
 use rusqlite::OptionalExtension;
 
-use super::{LockHoldObserver, VaultStore};
+use super::{with_tx, LockHoldObserver, VaultStore};
 use crate::encryption::{decrypt_field, encrypt_field, DataEncryptionKey};
 
 /// P025 Phase 2: `list_snapshots_with_data_batch` 行的原始列数据（不解密），两阶段读的中间形态。
@@ -544,43 +544,46 @@ impl VaultStore {
 
     /// Copy all snapshots from one object to another (used when restoring a trashed object
     /// under a new ID to preserve its history).
+    /// P006：整体包事务（中途失败回滚，不留半成品快照集）；
+    /// 同一 data_key 下解密→重加密为纯浪费，直接复制密文行。
     pub fn copy_snapshots(&self, from_object_id: &str, to_object_id: &str) -> Result<(), String> {
-        let key = self.data_key()?;
+        // data_key() 兼作解锁态校验（密文直接复制，无需实际用钥）
+        self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let mut stmt = conn
-            .prepare(
-                "SELECT timestamp, triggered_by, data, diff_summary
-             FROM object_snapshots WHERE object_id = ?1",
-            )
-            .map_err(|e| e.to_string())?;
-        let rows: Vec<(i64, String, Vec<u8>, String)> = stmt
-            .query_map(rusqlite::params![from_object_id], |row| {
-                Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
-            })
-            .map_err(|e| e.to_string())?
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| e.to_string())?;
-        drop(stmt);
-        let mut insert = conn.prepare(
-            "INSERT INTO object_snapshots (id, object_id, timestamp, triggered_by, data, diff_summary)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)"
-        ).map_err(|e| e.to_string())?;
-        for (timestamp, triggered_by, raw_data, diff_summary) in rows {
-            let plain = decrypt_field(&key, &raw_data)?;
-            let encrypted = encrypt_field(&key, &plain)?;
-            let id = uuid::Uuid::new_v4().to_string();
-            insert
-                .execute(rusqlite::params![
-                    id,
-                    to_object_id,
-                    timestamp,
-                    triggered_by,
-                    encrypted,
-                    diff_summary
-                ])
+        with_tx(conn, "copy_snapshots begin", "copy_snapshots commit", |tx| {
+            let mut stmt = tx
+                .prepare(
+                    "SELECT timestamp, triggered_by, data, diff_summary
+                 FROM object_snapshots WHERE object_id = ?1",
+                )
+                .map_err(|e| format!("copy_snapshots select: {}", e))?;
+            let rows: Vec<(i64, String, Vec<u8>, String)> = stmt
+                .query_map(rusqlite::params![from_object_id], |row| {
+                    Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
+                })
+                .map_err(|e| e.to_string())?
+                .collect::<Result<Vec<_>, _>>()
                 .map_err(|e| e.to_string())?;
-        }
-        Ok(())
+            drop(stmt);
+            let mut insert = tx.prepare(
+                "INSERT INTO object_snapshots (id, object_id, timestamp, triggered_by, data, diff_summary)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)"
+            ).map_err(|e| e.to_string())?;
+            for (timestamp, triggered_by, raw_data, diff_summary) in rows {
+                let id = uuid::Uuid::new_v4().to_string();
+                insert
+                    .execute(rusqlite::params![
+                        id,
+                        to_object_id,
+                        timestamp,
+                        triggered_by,
+                        raw_data,
+                        diff_summary
+                    ])
+                    .map_err(|e| e.to_string())?;
+            }
+            Ok(())
+        })
     }
 }
