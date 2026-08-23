@@ -21,6 +21,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use super::{with_tx, VaultStore, PROFILE_LOAD_SQL, PROFILE_SAVE_SQL};
 use crate::encryption::{decrypt_field, encrypt_field, DataEncryptionKey};
 use crate::{Profile, ProfileSummary};
+use crate::CloudSyncConfig;
 
 impl VaultStore {
     pub fn save_profile(&self, profile: &Profile) -> Result<(), String> {
@@ -206,5 +207,82 @@ impl VaultStore {
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| format!("Failed to collect: {}", e))?;
         Ok(profiles)
+    }
+
+    /// Phase 2 云同步：获取当前账户的云同步配置。
+    pub fn get_cloud_sync_config(&self, account_id: &str) -> Result<Option<CloudSyncConfig>, String> {
+        let key = self.data_key()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let profile_opt = Self::load_profile_tx(conn, &key, account_id)?;
+        if let Some(profile) = profile_opt {
+            if profile.data.is_empty() {
+                return Ok(None);
+            }
+            let data: serde_json::Value = serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?;
+            Ok(data.get("cloud_sync_config").and_then(|v| serde_json::from_value(v.clone()).ok()))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Phase 2 云同步：保存/更新云同步配置（原子读-改-写，含 HLC）。
+    pub fn set_cloud_sync_config(&self, account_id: &str, config: CloudSyncConfig) -> Result<(), String> {
+        let key = self.data_key()?;
+        let hlc = self.new_local_hlc()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        with_tx(
+            conn,
+            "Failed to begin transaction",
+            "Failed to commit transaction",
+            |c| {
+                let mut profile = match Self::load_profile_tx(c, &key, account_id)? {
+                    Some(p) => p,
+                    None => crate::Profile::new_with_id(account_id, account_id, Vec::new()),
+                };
+                let mut data: serde_json::Value = if profile.data.is_empty() {
+                    serde_json::Value::Object(serde_json::Map::new())
+                } else {
+                    serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?
+                };
+                data["cloud_sync_config"] = serde_json::to_value(&config).map_err(|e| e.to_string())?;
+                profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
+                profile.updated_at = chrono::Utc::now();
+                profile.version += 1;
+                Self::save_profile_tx(c, &key, &profile)?;
+                Self::set_record_hlc_tx(c, "profiles", &profile.id, &hlc)?;
+                Ok(())
+            },
+        )
+    }
+
+    /// Phase 2 云同步：删除云同步配置。
+    pub fn delete_cloud_sync_config(&self, account_id: &str) -> Result<(), String> {
+        let key = self.data_key()?;
+        let hlc = self.new_local_hlc()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        with_tx(
+            conn,
+            "Failed to begin transaction",
+            "Failed to commit transaction",
+            |c| {
+                let mut profile = match Self::load_profile_tx(c, &key, account_id)? {
+                    Some(p) => p,
+                    None => return Ok(()), // 不存在则无需删除
+                };
+                let mut data: serde_json::Value = serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?;
+                if let Some(obj) = data.as_object_mut() {
+                    obj.remove("cloud_sync_config");
+                }
+                profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
+                profile.updated_at = chrono::Utc::now();
+                profile.version += 1;
+                Self::save_profile_tx(c, &key, &profile)?;
+                Self::set_record_hlc_tx(c, "profiles", &profile.id, &hlc)?;
+                Ok(())
+            },
+        )
     }
 }

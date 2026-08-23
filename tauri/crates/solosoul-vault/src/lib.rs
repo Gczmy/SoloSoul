@@ -19,6 +19,63 @@ pub mod template_hash;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use chrono::{DateTime, Utc};
+
+// ── Phase 2 云同步配置类型 ──────────────────────────────
+
+/// 云同步配置（存入 Vault 加密字段，仅解锁态可见）。
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct CloudSyncConfig {
+    /// 连接器类型：`webdav` / `onedrive` / `baidu` ...
+    pub connector_type: String,
+    /// 连接器特定配置（JSON 序列化），反序列化为对应 ConnectorConfig 子类型。
+    pub config_json: serde_json::Value,
+    /// 自动同步开关。
+    pub enabled: bool,
+    /// 同步频率秒数（≥ 60）。
+    pub interval_secs: u64,
+    /// 仅 Wi-Fi 同步（移动端）。
+    pub wifi_only: bool,
+    /// 云端保留策略：最近 N 份 + 每日/周/月各留一份（GFS）。
+    pub retention: RetentionPolicy,
+    /// 上次同步时间（用于增量判断）。
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_sync_at: Option<DateTime<Utc>>,
+}
+
+/// 保留策略（Grandfather-Father-Son 简化版）。
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct RetentionPolicy {
+    /// 最近 N 份全量保留。
+    pub recent_full: usize,
+    /// 是否保留每日快照（0 点最近一份）。
+    pub daily: bool,
+    /// 是否保留周快照（周一最近一份）。
+    pub weekly: bool,
+    /// 是否保留月快照（1 号最近一份）。
+    pub monthly: bool,
+}
+
+/// WebDAV 专用配置。
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct WebDavConfig {
+    /// WebDAV 服务器基础 URL（如 `https://dav.jianguoyun.com/dav/`）。
+    pub base_url: String,
+    /// 用户名（坚果云用邮箱，Nextcloud 用用户名）。
+    pub username: String,
+    /// 密码 / App Token（入 Vault 前由前端明文传入，后端加密存储）。
+    pub password: String,
+    /// 云端根路径前缀（默认 `/SoloSoul/`）。
+    #[serde(default = "default_root_prefix")]
+    pub root_prefix: String,
+}
+
+fn default_root_prefix() -> String {
+    "/SoloSoul/".to_string()
+}
 
 /// Vault configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -670,3 +727,4 @@ mod tests {
         );
     }
 }
+

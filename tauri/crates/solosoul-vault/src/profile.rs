@@ -6,6 +6,8 @@ use uuid::Uuid;
 
 pub const PROFILE_SCHEMA_VERSION: u32 = 2;
 
+use crate::{CloudSyncConfig, WebDavConfig};
+
 /// Profile stored in vault - wraps encrypted data blob with metadata
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Profile {
@@ -61,6 +63,9 @@ pub struct ProfileData {
     pub preferences: Option<PreferencesData>,
     #[serde(default, rename = "unified_objects")]
     pub unified_objects: Option<serde_json::Value>,
+    /// Phase 2 云同步：云盘同步配置（WebDAV/OneDrive 等），随 profile 加密存储。
+    #[serde(default)]
+    pub cloud_sync_config: Option<CloudSyncConfig>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
