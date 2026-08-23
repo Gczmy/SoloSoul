@@ -104,8 +104,14 @@ export function ScanLocalPage() {
   };
 
   const handleImportAll = async () => {
-    const results = await Promise.allSettled(files.map((file) => handleImport(file)));
-    const failures = results.filter((r) => r.status === 'rejected');
+    // P023：并发上限分批——大目录不再瞬时打出全部 IPC（每批 CONCURRENCY 个）
+    const CONCURRENCY = 4;
+    const failures: PromiseSettledResult<void>[] = [];
+    for (let i = 0; i < files.length; i += CONCURRENCY) {
+      const batch = files.slice(i, i + CONCURRENCY);
+      const results = await Promise.allSettled(batch.map((file) => handleImport(file)));
+      failures.push(...results.filter((r) => r.status === 'rejected'));
+    }
     if (failures.length > 0) {
       logger.warn(`ImportAll: ${failures.length}/${files.length} files failed`);
     }
