@@ -445,7 +445,10 @@ impl VaultStore {
         template_names: Option<&std::collections::HashMap<String, String>>,
     ) -> Result<(), String> {
         // 保存模板名称到 properties，用于模板被删除后仍能显示原始模板名
-        let mut properties = obj.properties.clone();
+        // P014：Cow 惰性克隆——无 template_id 或查不到模板名时零拷贝借用，
+        // 仅在实际需要注入 __templateName 时才克隆整棵 JSON。
+        let mut properties: std::borrow::Cow<'_, serde_json::Value> =
+            std::borrow::Cow::Borrowed(&obj.properties);
         if let Some(ref tid) = obj.template_id {
             let tpl_name: Option<String> = match template_names {
                 Some(map) => map.get(tid).cloned(),
@@ -458,7 +461,7 @@ impl VaultStore {
                     .ok(),
             };
             if let Some(name) = tpl_name {
-                if let Some(map) = properties.as_object_mut() {
+                if let Some(map) = properties.to_mut().as_object_mut() {
                     map.insert(
                         "__templateName".to_string(),
                         serde_json::Value::String(name),
