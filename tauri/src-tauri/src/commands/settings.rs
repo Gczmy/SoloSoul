@@ -421,6 +421,98 @@ pub async fn user_data_update_preference(
     Ok(())
 }
 
+
+// ── Phase 2 云同步配置命令 ─────────────────────────────
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CloudSyncConfigPayload {
+    pub account_id: String,
+    pub connector_type: String,
+    pub config_json: Value,
+    pub enabled: bool,
+    pub interval_secs: u64,
+    pub wifi_only: bool,
+    pub retention: serde_json::Value,
+}
+
+#[tauri::command]
+pub async fn cloud_sync_get_config(
+    state: State<'_, AppState>,
+    account_id: String,
+) -> Result<Option<Value>, String> {
+    let vault = vault_handle(&state)?;
+    let config = vault.get_cloud_sync_config(&account_id)?;
+    Ok(config
+        .map(serde_json::to_value)
+        .transpose()
+        .map_err(|e| e.to_string())?)
+}
+
+#[tauri::command]
+pub async fn cloud_sync_save_config(
+    state: State<'_, AppState>,
+    payload: CloudSyncConfigPayload,
+) -> Result<(), String> {
+    let vault = vault_handle(&state)?;
+    let config = solosoul_vault::CloudSyncConfig {
+        connector_type: payload.connector_type,
+        config_json: payload.config_json,
+        enabled: payload.enabled,
+        interval_secs: payload.interval_secs,
+        wifi_only: payload.wifi_only,
+        retention: serde_json::from_value::<solosoul_vault::RetentionPolicy>(payload.retention).map_err(|e| e.to_string())?,
+        last_sync_at: None,
+    };
+    vault.set_cloud_sync_config(&payload.account_id, config)?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn cloud_sync_delete_config(
+    state: State<'_, AppState>,
+    account_id: String,
+) -> Result<(), String> {
+    let vault = vault_handle(&state)?;
+    vault.delete_cloud_sync_config(&account_id)?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn cloud_sync_test_connection(
+    state: State<'_, AppState>,
+    payload: CloudSyncConfigPayload,
+) -> Result<(), String> {
+    let config = solosoul_vault::CloudSyncConfig {
+        connector_type: payload.connector_type,
+        config_json: payload.config_json,
+        enabled: payload.enabled,
+        interval_secs: payload.interval_secs,
+        wifi_only: payload.wifi_only,
+        retention: serde_json::from_value::<solosoul_vault::RetentionPolicy>(payload.retention).map_err(|e| e.to_string())?,
+        last_sync_at: None,
+    };
+    // Convert to core CloudSyncConfig for connector creation
+    let core_config = solosoul_core::cloud_sync::CloudSyncConfig {
+        connector_type: config.connector_type,
+        config_json: config.config_json,
+        enabled: config.enabled,
+        interval_secs: config.interval_secs,
+        wifi_only: config.wifi_only,
+        retention: solosoul_core::cloud_sync::RetentionPolicy {
+            recent_full: config.retention.recent_full,
+            daily: config.retention.daily,
+            weekly: config.retention.weekly,
+            monthly: config.retention.monthly,
+        },
+        last_sync_at: config.last_sync_at,
+    };
+    let connector = solosoul_core::cloud_sync::create_connector(&core_config)
+        .map_err(|e| format!("创建连接器失败: {}", e))?;
+    connector.test_connection().await.map_err(|e| e.to_string())
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
