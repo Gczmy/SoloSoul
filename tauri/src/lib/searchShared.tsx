@@ -8,7 +8,10 @@ import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { searchCache } from '@/lib/searchCache';
 import type { CustomPage } from '@/stores/settingsStore';
+import { useId } from 'react';
 import { SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { MASK_PLACEHOLDER, shouldMaskSensitivity } from '@/lib/masking';
+import { useRevealState } from '@/hooks/useRevealState';
 
 /** 系统页面 key（与 FILTER_PAGES 同源，SearchPage/SearchPopover 共用）。 */
 export const SYSTEM_PAGE_KEYS = [
@@ -174,12 +177,7 @@ export function MatchHint({
   }
   if (item.matchType === 'fieldValue' && item.matchedValue) {
     return (
-      <span>
-        {' · '}
-        <Highlight text={fieldLabel} query={query} />
-        {': '}
-        <Highlight text={item.matchedValue} query={query} />
-      </span>
+      <FieldValueHint item={item} fieldLabel={fieldLabel} query={query} />
     );
   }
   if (item.matchType === 'template' && item.matchedValue) {
@@ -194,6 +192,56 @@ export function MatchHint({
 }
 
 /** 统一搜索结果缓存键参数。pageKey 优先级高于 filter 的系统页；自定义页走 parentId。 */
+/**
+ * P004：字段值命中提示。internal/sensitive/critical 命中值按 P036 规则掩码
+ * （仅 public 永不掩码），点击揭示 1 分钟后自动重新隐藏（复用 useRevealState）。
+ */
+function FieldValueHint({
+  item,
+  fieldLabel,
+  query,
+}: {
+  item: SearchItem;
+  fieldLabel: string;
+  query: string;
+}) {
+  const revealState = useRevealState();
+  const revealKey = useId();
+  const levels = (item.sensitivityLevels ?? []) as SensitivityLevel[];
+  // 任一非 public 级别参与聚合即掩码（与 WorkspaceObjectCard 口径一致）
+  const needsMask =
+    levels.length > 0 && levels.some((l) => shouldMaskSensitivity(l));
+  if (!needsMask) {
+    return (
+      <span>
+        {' · '}
+        <Highlight text={fieldLabel} query={query} />
+        {': '}
+        <Highlight text={item.matchedValue ?? ''} query={query} />
+      </span>
+    );
+  }
+  const masked = revealState.shouldMask(revealKey, 'critical');
+  return (
+    <span>
+      {' · '}
+      <Highlight text={fieldLabel} query={query} />
+      {': '}
+      {masked ? (
+        <span
+          onClick={() => revealState.reveal(revealKey)}
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+          title="点击揭示"
+        >
+          {MASK_PLACEHOLDER}
+        </span>
+      ) : (
+        <Highlight text={item.matchedValue ?? ''} query={query} />
+      )}
+    </span>
+  );
+}
+
 export function buildSearchCacheParams(
   accountId: string,
   query: string,
