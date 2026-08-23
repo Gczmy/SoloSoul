@@ -316,7 +316,6 @@ pub async fn page_delete(
 
         // P019：条目构建拆至 build_page_delete_trash_items。
         let (trash_items, soft_delete_ids, page_name) = build_page_delete_trash_items(
-            &vault,
             &target_ids,
             &loaded,
             page_object_id.as_deref(),
@@ -359,7 +358,6 @@ pub async fn page_delete(
 /// (条目, 软删 ID 列表, 审计用页名)。
 #[allow(clippy::too_many_arguments)]
 fn build_page_delete_trash_items(
-    vault: &solosoul_vault::VaultStore,
     target_ids: &[String],
     loaded: &std::collections::HashMap<String, solosoul_vault::ObjectRecord>,
     page_object_id: Option<&str>,

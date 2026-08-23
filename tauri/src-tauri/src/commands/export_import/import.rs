@@ -130,55 +130,8 @@ pub async fn import_decrypt_preview<R: tauri::Runtime>(
     let password = Zeroizing::new(password);
     let (manifest, payload, _key) = decrypt_package(&file_path, &password, vault.base_path())?;
 
-    let objects: Vec<ObjectSummary> = payload["objects"]
-        .as_array()
-        .map(|arr| {
-            arr.iter()
-                .filter_map(|o| {
-                    Some(ObjectSummary {
-                        contract_type_id: o["contract_type_id"].as_str().map(String::from),
-                        id: o["id"].as_str()?.to_string(),
-                        name: o["name"].as_str()?.to_string(),
-                        collection_type: o["type_id"].as_str()?.to_string(),
-                        section_type: o["section_type"].as_str().unwrap_or("").to_string(),
-                        sensitivity_level: o["sensitivity_level"]
-                            .as_str()
-                            .unwrap_or("internal")
-                            .to_string(),
-                        created_at: o["created_at"].as_str().unwrap_or("").to_string(),
-                        updated_at: o["updated_at"].as_str().unwrap_or("").to_string(),
-                        is_deleted: false,
-                        template_id: o["template_id"].as_str().map(String::from),
-                        template_type: o["template_type"].as_str().map(String::from),
-                        template_hash: o["template_hash"].as_str().map(String::from),
-                        ignored_template_hash: o["ignored_template_hash"]
-                            .as_str()
-                            .map(String::from),
-                        icon_name: o["icon_name"].as_str().unwrap_or("document").to_string(),
-                        parent_id: o["parent_id"].as_str().map(String::from),
-                        properties: o["properties"].clone(),
-                        property_labels: None,
-                        // 与导出范围树同一口径（solosoul_vault::object_has_attachments）：
-                        // 未软删附件存在性，供导入侧对象行按附件展开。
-                        has_attachments: solosoul_vault::object_has_attachments(&o["properties"]),
-                        // 字段敏感度集合（导入包无 property_labels，由 __fields/dynamic_group 推导）
-                        sensitivity_levels: solosoul_vault::object_field_sensitivity_levels(
-                            None,
-                            &o["properties"],
-                        ),
-                        tags: o["tags"]
-                            .as_array()
-                            .map(|t| {
-                                t.iter()
-                                    .filter_map(|v| v.as_str().map(String::from))
-                                    .collect()
-                            })
-                            .unwrap_or_default(),
-                    })
-                })
-                .collect()
-        })
-        .unwrap_or_default();
+    // P019：对象映射拆至 build_preview_object_summaries。
+    let objects = build_preview_object_summaries(&payload);
 
     // P043: 批量加载本地对象一次（IN 查询），替代逐条 load_object——
     // 大导入包下将 N 次锁竞争 + N 次查询降为 1 次（非热路径但廉价且语义等价）。
@@ -1072,4 +1025,57 @@ fn import_preferences(
         }
     }
     Ok(())
+}
+
+/// P019：导入预览的对象摘要映射（自 import_decrypt_preview 拆出，逐字保持）。
+fn build_preview_object_summaries(payload: &serde_json::Value) -> Vec<ObjectSummary> {
+    payload["objects"]
+        .as_array()
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|o| {
+                    Some(ObjectSummary {
+                        contract_type_id: o["contract_type_id"].as_str().map(String::from),
+                        id: o["id"].as_str()?.to_string(),
+                        name: o["name"].as_str()?.to_string(),
+                        collection_type: o["type_id"].as_str()?.to_string(),
+                        section_type: o["section_type"].as_str().unwrap_or("").to_string(),
+                        sensitivity_level: o["sensitivity_level"]
+                            .as_str()
+                            .unwrap_or("internal")
+                            .to_string(),
+                        created_at: o["created_at"].as_str().unwrap_or("").to_string(),
+                        updated_at: o["updated_at"].as_str().unwrap_or("").to_string(),
+                        is_deleted: false,
+                        template_id: o["template_id"].as_str().map(String::from),
+                        template_type: o["template_type"].as_str().map(String::from),
+                        template_hash: o["template_hash"].as_str().map(String::from),
+                        ignored_template_hash: o["ignored_template_hash"]
+                            .as_str()
+                            .map(String::from),
+                        icon_name: o["icon_name"].as_str().unwrap_or("document").to_string(),
+                        parent_id: o["parent_id"].as_str().map(String::from),
+                        properties: o["properties"].clone(),
+                        property_labels: None,
+                        // 与导出范围树同一口径（solosoul_vault::object_has_attachments）：
+                        // 未软删附件存在性，供导入侧对象行按附件展开。
+                        has_attachments: solosoul_vault::object_has_attachments(&o["properties"]),
+                        // 字段敏感度集合（导入包无 property_labels，由 __fields/dynamic_group 推导）
+                        sensitivity_levels: solosoul_vault::object_field_sensitivity_levels(
+                            None,
+                            &o["properties"],
+                        ),
+                        tags: o["tags"]
+                            .as_array()
+                            .map(|t| {
+                                t.iter()
+                                    .filter_map(|v| v.as_str().map(String::from))
+                                    .collect()
+                            })
+                            .unwrap_or_default(),
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default()
 }
