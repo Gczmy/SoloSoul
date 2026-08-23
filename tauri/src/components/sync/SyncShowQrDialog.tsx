@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { QrModalShell } from '@/components/sync/QrModalShell';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { translateRustError } from '@/lib/rustErrors';
@@ -29,8 +30,10 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
   const [recoveryLoading, setRecoveryLoading] = useState(false);
   const [recoveryError, setRecoveryError] = useState<string | null>(null);
   const [manualOpen, setManualOpen] = useState(false);
-  const [copiedAddr, setCopiedAddr] = useState(false);
-  const [copiedPin, setCopiedPin] = useState(false);
+  // P025：复制反馈收敛至共享 hook（addr/pin 两键）
+  const { copy: copyText, isCopied } = useCopyToClipboard(2000);
+  const copiedAddr = isCopied('addr');
+  const copiedPin = isCopied('pin');
   // 防止重复启动 / 重复取消恢复会话（state 异步更新，用 ref 保证生命周期正确）
   const recoveryStartedRef = useRef(false);
 
@@ -152,26 +155,6 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
     }
   };
 
-  const copyToClipboard = async (text: string, setCopied: (v: boolean) => void) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // fallback for older browsers
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
   if (!isOpen) return null;
 
   const isRecovery = mode === 'recovery';
@@ -192,10 +175,10 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
               copiedPin={copiedPin}
               onToggleManual={() => setManualOpen(!manualOpen)}
               onCopyAddr={() => {
-                if (recoveryInfo) copyToClipboard(recoveryInfo.displayAddr, setCopiedAddr);
+                if (recoveryInfo) copyText(recoveryInfo.displayAddr, 'addr');
               }}
               onCopyPin={() => {
-                if (recoveryInfo) copyToClipboard(recoveryInfo.pin, setCopiedPin);
+                if (recoveryInfo) copyText(recoveryInfo.pin, 'pin');
               }}
               onCancel={() => switchMode('sync')}
             />

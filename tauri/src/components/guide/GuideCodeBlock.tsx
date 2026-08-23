@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { ICON_SIZE } from '@/lib/constants';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 
 interface GuideCodeBlockProps {
   children?: React.ReactNode;
@@ -9,24 +10,21 @@ interface GuideCodeBlockProps {
 }
 
 export function GuideCodeBlock({ children, className }: GuideCodeBlockProps) {
-  const [copied, setCopied] = useState(false);
+  // P025：复制逻辑收敛至共享 hook（降级行为改为选中文本，保留原 UX）
+  const { copy, isCopied } = useCopyToClipboard(2000);
+  const copied = isCopied();
   const ref = useRef<HTMLPreElement>(null);
 
   const handleCopy = async () => {
     const text = String(children).replace(/\n$/, '');
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
+    const ok = await copy(text);
+    if (!ok && ref.current) {
       // 降级：选中文本
-      if (ref.current) {
-        const selection = window.getSelection();
-        const range = document.createRange();
-        range.selectNodeContents(ref.current);
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-      }
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(ref.current);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
     }
   };
 

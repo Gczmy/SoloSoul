@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy, Check, Eye, Download } from 'lucide-react';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { saveWithPause, openWithPause } from '@/lib/dialog';
 import { dirname, basename } from '@tauri-apps/api/path';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
@@ -194,17 +195,13 @@ function PerPairCopyRow({
   pair: { key: string; value: string; tag?: string; tagCode?: string };
 }) {
   const { t, i18n } = useTranslation('plugin');
-  const [copied, setCopied] = useState(false);
+  // P025：复制反馈收敛至共享 hook
+  const { copy, isCopied } = useCopyToClipboard();
+  const copied = isCopied();
   const locale = i18n.language?.startsWith('zh') ? 'zh' : 'en';
 
   const copyPair = async () => {
-    try {
-      await navigator.clipboard.writeText(`${pair.key}: ${pair.value}`);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      // 静默忽略
-    }
+    await copy(`${pair.key}: ${pair.value}`);
   };
 
   const badgeLabel = resolveCountryLabel(pair.tag, pair.tagCode, locale);

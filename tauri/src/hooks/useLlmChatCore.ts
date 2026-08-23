@@ -3,6 +3,7 @@ import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore } from '@/stores/authStore';
 import { useLlmStore } from '@/stores/llmStore';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { logger } from '@/lib/logger';
 import { useTranslation } from 'react-i18next';
 import { markConversationPending } from '@/lib/notification';
@@ -75,8 +76,9 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // P025：复制反馈收敛至共享 hook（按消息下标键控）
+  const { copy, copiedKey } = useCopyToClipboard(COPY_FEEDBACK_DURATION_MS);
+  const copiedIndex = copiedKey === null ? null : Number(copiedKey);
 
   // 子 hook：provider 配置加载 / 在线状态轮询 / 流式副作用编排
   const { activeProvider, isConfigured, isAiEnabled, loading } = useLlmProviderConfig({ accountId });
@@ -112,13 +114,6 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   useEffect(() => {
     loadConversationList();
   }, [loadConversationList]);
-
-  /* Cleanup copy timeout */
-  useEffect(() => {
-    return () => {
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-    };
-  }, []);
 
   /* Load single conversation */
   const loadConversation = useCallback(
@@ -249,17 +244,16 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     t,
   ]);
 
-  const handleCopy = useCallback(async (content: string, index: number) => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopiedIndex(index);
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), COPY_FEEDBACK_DURATION_MS);
-    } catch (err) {
-      // P227: 剪贴板写入失败（权限拒绝等）静默降级，留痕。
-      logger.warn('[useLlmChatCore] Copy to clipboard failed:', err);
-    }
-  }, []);
+  const handleCopy = useCallback(
+    async (content: string, index: number) => {
+      const ok = await copy(content, String(index));
+      if (!ok) {
+        // P227: 剪贴板写入失败（权限拒绝等）静默降级，留痕。
+        logger.warn('[useLlmChatCore] Copy to clipboard failed');
+      }
+    },
+    [copy],
+  );
 
   const isLocal = activeProvider ? isOllama(activeProvider.baseUrl) : false;
 

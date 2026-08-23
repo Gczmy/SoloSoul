@@ -10,6 +10,7 @@ import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
 import { useToastError } from '@/hooks/useToastError';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { Copy } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -20,6 +21,7 @@ export function AccountSettingsPage() {
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const refreshCurrentAccount = useAuthStore((s) => s.refreshCurrentAccount);
   const showToast = useUiStore((s) => s.showToast);
+  const { copy } = useCopyToClipboard();
   const { onError } = useToastError();
   const [name, setName] = useState(currentAccount?.name ?? '');
   const [saving, setSaving] = useState(false);
@@ -34,14 +36,13 @@ export function AccountSettingsPage() {
 
   const handleCopyId = async () => {
     if (!currentAccount) return;
-    try {
-      await navigator.clipboard.writeText(currentAccount.id);
+    // P025：复制逻辑收敛至共享 hook（成功与否由返回值驱动 toast）
+    const ok = await copy(currentAccount.id);
+    if (ok) {
       showToast({
         type: 'success',
         message: t('settings:account_id_copied', { defaultValue: 'Account ID copied' }),
       });
-    } catch {
-      // 剪贴板不可用时静默降级（桌面 WebView 一般可用）
     }
   };
 

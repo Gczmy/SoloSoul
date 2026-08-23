@@ -10,6 +10,7 @@ import { useObjectDetailVerification } from './useObjectDetailVerification';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { TemplateProperty } from '@/types/template';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
@@ -69,15 +70,10 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   // 再拉取——完整数据直接可用，避免双重 object_get。ObjectSummary 无 accountId。
   const isCompleteObject = useMemo(() => !!object && 'accountId' in object, [object]);
   const [loading, setLoading] = useState(!object && !!objId);
-  const [copiedField, setCopiedField] = useState<string | null>(null);
-  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // P025：复制反馈收敛至共享 hook（按字段名键控）
+  const { copy: copyText, copiedKey: copiedField } =
+    useCopyToClipboard(COPY_FEEDBACK_DURATION_MS);
   const fetchIdRef = useRef(0);
-
-  useEffect(() => {
-    return () => {
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-    };
-  }, []);
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -187,14 +183,7 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   };
 
   const handleCopy = async (value: string, key: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopiedField(key);
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = setTimeout(() => setCopiedField(null), COPY_FEEDBACK_DURATION_MS);
-    } catch {
-      /* ignore */
-    }
+    await copyText(value, key);
   };
 
   const handleDelete = async () => {
