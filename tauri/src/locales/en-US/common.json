@@ -23,6 +23,8 @@
   "error": "Error",
   "success": "Success",
   "warning": "Warning",
+  "hour": "Hour",
+  "minute": "Minute",
   "info": "Info",
   "yes": "Yes",
   "no": "No",
