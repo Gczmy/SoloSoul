@@ -594,50 +594,7 @@ impl VaultStore {
                         local_node_id,
                         limit_param,
                     ],
-                    |row| {
-                        let raw_data: Vec<u8> = row.get(6)?;
-                        let data = decrypt_field(&key, &raw_data).map_err(|e| {
-                            rusqlite::Error::FromSqlConversionFailure(
-                                6,
-                                rusqlite::types::Type::Blob,
-                                Box::new(std::io::Error::new(
-                                    std::io::ErrorKind::InvalidData,
-                                    format!("Trash data decryption failed: {}", e),
-                                )),
-                            )
-                        })?;
-                        let deleted_at: i64 = row.get(7)?;
-                        let item = crate::TrashItem {
-                            id: row.get(0)?,
-                            item_type: row.get(1)?,
-                            original_id: row.get(2)?,
-                            original_parent_id: row.get(3)?,
-                            original_section_type: row.get(4)?,
-                            original_sort_order: row.get(5)?,
-                            data,
-                            deleted_at,
-                            expires_at: row.get(8)?,
-                            deleted_by: row.get(9)?,
-                            name_snapshot: row.get(10)?,
-                            icon_snapshot: row.get(11)?,
-                        };
-                        // 有效 HLC：有 HLC 行用落库三元组，否则回退 deleted_at(毫秒)
-                        let hlc_wall: Option<i64> = row.get(12)?;
-                        let hlc = if let Some(wall) = hlc_wall {
-                            crate::RecordHlc {
-                                wall_time_ms: wall as u64,
-                                counter: row.get::<_, Option<i32>>(13)?.unwrap_or(0) as u32,
-                                node_id: row.get::<_, Option<String>>(14)?.unwrap_or_default(),
-                            }
-                        } else {
-                            crate::RecordHlc {
-                                wall_time_ms: deleted_at as u64,
-                                counter: 0,
-                                node_id: local_node_id.to_string(),
-                            }
-                        };
-                        Ok((item, hlc))
-                    },
+                    |row| map_trash_change_row(row, &key, local_node_id),
                 )
                 .map_err(|e| format!("list_trash_changes query: {}", e))?
                 .collect::<Result<Vec<_>, _>>()
@@ -671,4 +628,58 @@ impl VaultStore {
         // 投递，对端据此删除对应回收站条目。排序/截断语义见 `merge_tombstones`。
         self.merge_tombstones(out, "trash_items", watermark, local_node_id, limit)
     }
+}
+
+
+/// P019-⑤：trash 变更行 → (TrashItem, RecordHlc) 映射（自
+/// list_trash_changes_since_limited 的 query_map 闭包拆出，逻辑逐字保持）。
+/// 解密失败映射为 FromSqlConversionFailure 以便 collect 阶段统一报错。
+#[allow(clippy::type_complexity)]
+fn map_trash_change_row(
+    row: &rusqlite::Row<'_>,
+    key: &crate::DataEncryptionKey,
+    local_node_id: &str,
+) -> rusqlite::Result<(crate::TrashItem, crate::RecordHlc)> {
+    let raw_data: Vec<u8> = row.get(6)?;
+    let data = decrypt_field(key, &raw_data).map_err(|e| {
+        rusqlite::Error::FromSqlConversionFailure(
+            6,
+            rusqlite::types::Type::Blob,
+            Box::new(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!("Trash data decryption failed: {}", e),
+            )),
+        )
+    })?;
+    let deleted_at: i64 = row.get(7)?;
+    let item = crate::TrashItem {
+        id: row.get(0)?,
+        item_type: row.get(1)?,
+        original_id: row.get(2)?,
+        original_parent_id: row.get(3)?,
+        original_section_type: row.get(4)?,
+        original_sort_order: row.get(5)?,
+        data,
+        deleted_at,
+        expires_at: row.get(8)?,
+        deleted_by: row.get(9)?,
+        name_snapshot: row.get(10)?,
+        icon_snapshot: row.get(11)?,
+    };
+    // 有效 HLC：有 HLC 行用落库三元组，否则回退 deleted_at(毫秒)
+    let hlc_wall: Option<i64> = row.get(12)?;
+    let hlc = if let Some(wall) = hlc_wall {
+        crate::RecordHlc {
+            wall_time_ms: wall as u64,
+            counter: row.get::<_, Option<i32>>(13)?.unwrap_or(0) as u32,
+            node_id: row.get::<_, Option<String>>(14)?.unwrap_or_default(),
+        }
+    } else {
+        crate::RecordHlc {
+            wall_time_ms: deleted_at as u64,
+            counter: 0,
+            node_id: local_node_id.to_string(),
+        }
+    };
+    Ok((item, hlc))
 }
