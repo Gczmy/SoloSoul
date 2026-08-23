@@ -30,6 +30,11 @@ pub struct WebDavConnector {
     base_url: url::Url,
 }
 
+/// N-003：非标准方法名集中构造（`from_bytes` 对合法字节串不可失败，unwrap 集中一处）。
+fn method(name: &'static [u8]) -> Method {
+    Method::from_bytes(name).expect("静态 HTTP 方法名必为合法值")
+}
+
 impl WebDavConnector {
     /// N-001：构造不再 panic——`base_url` 来自用户输入（Settings 表单），
     /// 非法 URL 返回 `ConfigMissing` 而非 `expect` abort（Android Release
@@ -95,7 +100,7 @@ impl CloudConnector for WebDavConnector {
 
     async fn test_connection(&self) -> CloudResult<()> {
         // PROPFIND 根目录，Depth: 0
-        let resp = self.request(Method::from_bytes(b"PROPFIND").unwrap(), "")
+        let resp = self.request(method(b"PROPFIND"), "")
             .header("Depth", "0")
             .header("Content-Type", "application/xml; charset=utf-8")
             .body(r#"<?xml version="1.0"?><propfind xmlns="DAV:"><prop><resourcetype/></prop></propfind>"#)
@@ -124,7 +129,7 @@ impl CloudConnector for WebDavConnector {
             current.push('/');
             current.push_str(seg);
             // PROPFIND 检查是否已存在
-            let check = self.request(Method::from_bytes(b"PROPFIND").unwrap(), &current)
+            let check = self.request(method(b"PROPFIND"), &current)
                 .header("Depth", "0")
                 .header("Content-Type", "application/xml; charset=utf-8")
                 .body(r#"<?xml version="1.0"?><propfind xmlns="DAV:"><prop><resourcetype/></prop></propfind>"#)
@@ -137,7 +142,7 @@ impl CloudConnector for WebDavConnector {
                 _ => {
                     // 不存在，MKCOL 创建
                     let mkcol = self
-                        .request(Method::from_bytes(b"MKCOL").unwrap(), &current)
+                        .request(method(b"MKCOL"), &current)
                         .send()
                         .await
                         .map_err(CloudSyncError::Http)?;
@@ -232,7 +237,7 @@ impl CloudConnector for WebDavConnector {
         // PROPFIND Depth: 1
         let body = r#"<?xml version="1.0"?><propfind xmlns="DAV:"><prop><getcontentlength/><getlastmodified/><getetag/><resourcetype/></prop></propfind>"#;
         let resp = self
-            .request(Method::from_bytes(b"PROPFIND").unwrap(), remote_path)
+            .request(method(b"PROPFIND"), remote_path)
             .header("Depth", "1")
             .header("Content-Type", "application/xml; charset=utf-8")
             .body(body)

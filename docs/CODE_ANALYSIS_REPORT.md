@@ -27,7 +27,11 @@
 |-------|--------|--------|-------------------------------------------------|------------------------------------------------------------------------------------------|-------------|
 | N-001 | P1     | 潜在崩溃 | `crates/solosoul-core/src/cloud_sync/webdav.rs:46` | `WebDavConnector::new` 对用户输入的 `base_url` 执行 `Url::from_str(...).expect(...)`——Settings 表单输错 URL 即 panic 整个应用；同函数 `Client::builder().build().expect()` 同理 | `[x]` 已修复 |
 | N-002 | P2     | 资源泄漏 | `src-tauri/src/sync/cloud_auto_sync.rs:336-363`  | 上传失败时临时快照残留在 `{data_dir}/cloud_sync_tmp/` 无清理，长期累积占用磁盘             | `[ ]` 待修复 |
-| N-003 | P3     | 规范   | `webdav.rs:85,114,127,222`                      | `Method::from_bytes(b"PROPFIND").unwrap()` 重复 4 处（实际不可失败）；应提为常量           | `[ ]` 待修复 |
+| N-003 | P3     | 规范   | `webdav.rs:85,114,127,222`                      | `Method::from_bytes(b"PROPFIND").unwrap()` 重复 4 处（实际不可失败）；应提为常量           | `[x]` 已修复 |
+
+## 结论
+
+✅ 云同步专项审查 3 项问题全部修复，E2E 与全量测试回归通过。
 
 ## 详细说明与修复方案
 
