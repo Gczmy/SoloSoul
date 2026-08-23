@@ -174,6 +174,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // checkHasAccount 确认后端账户状态。
       hasAccount: null,
     });
+    clearRecentSearches();
     try {
       await invoke<void>('logout');
     } catch (err) {
@@ -187,6 +188,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // 锁定不改变账户存在性，因此保留 hasAccount/accounts——
     // 否则 vault-locked 事件丢失（本修复针对的场景）时 /login 会卡在
     // hasAccount===null 的 Connecting... 分支上。
+    clearRecentSearches();
     set({
       isAuthenticated: false,
       currentAccount: null,
@@ -212,3 +214,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   clearError: () => set({ error: null }),
 }));
+
+/** P005：清除全部账户的最近搜索词（含证件号等敏感片段，不跨会话残留）。 */
+export function clearRecentSearches(): void {
+  try {
+    for (const k of Object.keys(localStorage)) {
+      if (k.startsWith('solosoul_recent_searches')) localStorage.removeItem(k);
+    }
+  } catch {
+    // localStorage 不可用环境静默跳过
+  }
+}

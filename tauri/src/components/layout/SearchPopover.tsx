@@ -46,20 +46,29 @@ interface SearchPopoverProps {
   onClose: () => void;
 }
 
-const RECENT_KEY = 'solosoul_recent_searches';
+const RECENT_KEY_PREFIX = 'solosoul_recent_searches';
 
-function loadRecent(): string[] {
+/** P005：按账户隔离存储最近搜索词；锁定/退出时由 authStore 统一清除。 */
+function recentStorageKey(accountId?: string): string | null {
+  return accountId ? `${RECENT_KEY_PREFIX}:${accountId}` : null;
+}
+
+function loadRecent(accountId?: string): string[] {
+  const key = recentStorageKey(accountId);
+  if (!key) return [];
   try {
-    return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+    return JSON.parse(localStorage.getItem(key) || '[]');
   } catch {
     return [];
   }
 }
 
-function saveRecent(query: string) {
-  const prev = loadRecent();
+function saveRecent(query: string, accountId?: string) {
+  const key = recentStorageKey(accountId);
+  if (!key) return;
+  const prev = loadRecent(accountId);
   const next = [query, ...prev.filter((q) => q !== query)].slice(0, 3);
-  localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  localStorage.setItem(key, JSON.stringify(next));
 }
 
 export function SearchPopover({ onClose }: SearchPopoverProps) {
@@ -129,7 +138,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   const handleSubmit = () => {
     if (query.trim()) {
       saveRecent(query.trim());
-      setRecent(loadRecent());
+      setRecent(loadRecent(accountId));
     }
   };
 
