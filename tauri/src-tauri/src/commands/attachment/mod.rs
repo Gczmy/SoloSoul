@@ -232,14 +232,44 @@ pub async fn attachment_download(
         )
     };
 
-    // Security: ensure the source path is within vault storage.
+    // P019-②：源路径安全校验链拆至 validate_attachment_source_path
+    let src =
+        validate_attachment_source_path(&vault_base, &src_path)?;
+
+    // P019-②：目标路径白名单校验 + 重名解析拆至 validate_download_dest_path
+    let dest = validate_download_dest_path(&dest_path)?;
+
+    // P007: 建目录 + 大文件复制移入阻塞线程池，避免卡住 tokio worker
+    // P001: 解密复制（源为 SOLC 密文则解密，旧明文直接复制）。
+    let (src, dest) = (src.clone(), dest.to_path_buf());
+    tauri::async_runtime::spawn_blocking(move || {
+        if let Some(parent) = dest.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("Failed to create destination directory: {}", e))?;
+        }
+        solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &src, &dest)
+            .map_err(|e| format!("Failed to copy file: {}", e))?;
+        Ok::<(), String>(())
+    })
+    .await
+    .map_err(|e| format!("Copy task panicked: {}", e))??;
+
+    Ok(())
+}
+
+/// P019-②：下载源路径安全校验链（自 attachment_download 拆出）。
+///
+/// canonicalize（失败时 Android symlink 兜底保留原路径）→ 拒绝 `..` 组件 →
+/// `path_within_base` 组件级前缀校验（R2-V8/X1：成功时仅用 canonical 结果，
+/// 杜绝字面前缀绕过 symlink 旁路）。
+fn validate_attachment_source_path(vault_base: &Path, src_path: &str) -> Result<PathBuf, String> {
     // 在 Android 上 /data/data/... 与 /data/user/0/... 可能互为 symlink，
     // canonicalize 失败但文件存在时保留原始路径做前缀比较。
-    let (src, src_canonicalized) = std::path::Path::new(&src_path)
+    let (src, src_canonicalized) = std::path::Path::new(src_path)
         .canonicalize()
         .map(|p| (p, true))
         .or_else(|_| {
-            let p = std::path::PathBuf::from(&src_path);
+            let p = std::path::PathBuf::from(src_path);
             if p.exists() {
                 Ok((p, false))
             } else {
@@ -253,7 +283,7 @@ pub async fn attachment_download(
 
     // R2-01: 拒绝 `..` 组件；回退分支改用组件级 Path::starts_with，
     // 避免共享前缀的兄弟目录（如 ~/.solosoul_evil/）绕过 in_vault 检查。
-    let src_raw = std::path::Path::new(&src_path);
+    let src_raw = std::path::Path::new(src_path);
     if src_raw
         .components()
         .any(|c| matches!(c, std::path::Component::ParentDir))
@@ -265,8 +295,6 @@ pub async fn attachment_download(
     let attachments_canon = attachments_dir
         .canonicalize()
         .unwrap_or_else(|_| attachments_dir.clone());
-    // R2-V8/X1: `src_raw`（字面路径）仅当 canonicalize 失败（Android symlink 兜底）时
-    // 参与判定——成功时只用 canonicalize 结果，杜绝字面前缀绕过 symlink 旁路。
     let in_attachments = path_within_base(
         &src,
         src_raw,
@@ -274,15 +302,19 @@ pub async fn attachment_download(
         &attachments_canon,
         &attachments_dir,
     );
-    let in_vault = path_within_base(&src, src_raw, src_canonicalized, &vault_base, &vault_base);
+    let in_vault = path_within_base(&src, src_raw, src_canonicalized, vault_base, vault_base);
 
     if !in_attachments && !in_vault {
         return Err("Source path must be within vault storage".to_string());
     }
+    Ok(src)
+}
 
-    // Security: validate dest_path is in an allowed download directory.
+/// P019-②：下载目标路径校验 + 重名解析（自 attachment_download 拆出）。
+/// 拒绝 `..` 组件；白名单为空 fail-closed；canonical 化后组件级前缀校验。
+fn validate_download_dest_path(dest_path: &str) -> Result<PathBuf, String> {
     // Reject path traversal components.
-    let dest = std::path::Path::new(&dest_path);
+    let dest = std::path::Path::new(dest_path);
     if dest
         .components()
         .any(|c| matches!(c, std::path::Component::ParentDir))
@@ -302,62 +334,43 @@ pub async fn attachment_download(
         );
     }
 
-    {
-        let dest_canon = if dest.exists() {
-            dest.canonicalize()
-                .map_err(|e| format!("Invalid destination: {}", e))?
-        } else if let Some(parent) = dest.parent() {
-            if parent.exists() {
-                parent
-                    .canonicalize()
-                    .map_err(|_| "Cannot resolve destination parent".to_string())?
-            } else {
-                return Err("Destination parent directory does not exist".to_string());
-            }
+    let dest_canon = if dest.exists() {
+        dest.canonicalize()
+            .map_err(|e| format!("Invalid destination: {}", e))?
+    } else if let Some(parent) = dest.parent() {
+        if parent.exists() {
+            parent
+                .canonicalize()
+                .map_err(|_| "Cannot resolve destination parent".to_string())?
         } else {
-            return Err("Invalid destination path".to_string());
-        };
-
-        let in_allowed_dir = allowed_bases.iter().any(|base| {
-            if dest_canon.starts_with(base) {
-                return true;
-            }
-            // Also allow the destination's parent directory itself to be an allowed dir
-            if let Some(parent) = dest_canon.parent() {
-                parent.starts_with(base)
-            } else {
-                false
-            }
-        });
-
-        if !in_allowed_dir {
-            // R004-①: 中文 + 自救提示（与复制路径文案一致，N010 漏改此处）。
-            return Err(
-                "目标位置必须在 Desktop、Documents、Downloads 或 SOLOSOUL_FS_BASE 目录内（如需其他位置，可设置 SOLOSOUL_FS_BASE 环境变量）"
-                    .to_string(),
-            );
+            return Err("Destination parent directory does not exist".to_string());
         }
+    } else {
+        return Err("Invalid destination path".to_string());
+    };
+
+    let in_allowed_dir = allowed_bases.iter().any(|base| {
+        if dest_canon.starts_with(base) {
+            return true;
+        }
+        // Also allow the destination's parent directory itself to be an allowed dir
+        if let Some(parent) = dest_canon.parent() {
+            parent.starts_with(base)
+        } else {
+            false
+        }
+    });
+
+    if !in_allowed_dir {
+        // R004-①: 中文 + 自救提示（与复制路径文案一致，N010 漏改此处）。
+        return Err(
+            "目标位置必须在 Desktop、Documents、Downloads 或 SOLOSOUL_FS_BASE 目录内（如需其他位置，可设置 SOLOSOUL_FS_BASE 环境变量）"
+                .to_string(),
+        );
     }
 
     // Resolve duplicate file names: a.pdf -> a(1).pdf -> a(2).pdf
-    let dest = make_unique_dest_path(dest);
-
-    // P007: 建目录 + 大文件复制移入阻塞线程池，避免卡住 tokio worker
-    // P001: 解密复制（源为 SOLC 密文则解密，旧明文直接复制）。
-    let (src, dest) = (src.clone(), dest.to_path_buf());
-    tauri::async_runtime::spawn_blocking(move || {
-        if let Some(parent) = dest.parent() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| format!("Failed to create destination directory: {}", e))?;
-        }
-        solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &src, &dest)
-            .map_err(|e| format!("Failed to copy file: {}", e))?;
-        Ok::<(), String>(())
-    })
-    .await
-    .map_err(|e| format!("Copy task panicked: {}", e))??;
-
-    Ok(())
+    Ok(make_unique_dest_path(dest))
 }
 
 /// 解析并校验附件文件路径（`attachment_open` 与 `attachment_share` 共享的安全关键路径）。
