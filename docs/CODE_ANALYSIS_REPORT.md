@@ -86,11 +86,11 @@
 | ~~P010~~ ✅ | VaultDirectorySection 拆分 | **已完成**：423 行 → 展示层 261 + useVaultDirectory(216)；顺带收敛目录切换成功后的重复收尾为 afterDirectorySwitched | — |
 | P012 | Recovery 指纹强制化 | UX 流程变更（手动输入路径要求录指纹），需产品确认 + GUI/CLI 双端改造 + i18n + 测试 | 产品决策后单独排期 |
 | P018 | 93 处 lock 守卫样板宏收敛 | 报告自述「设计惯性非 bug」；93 处机械替换 churn 大、回归面广、零行为收益 | 触碰 storage 层时渐进采用新 helper，不做一次性迁移 |
-| P019 | Rust 过长函数 Top10 | 与 P007-P010 同理；import_attachments(159行) 等位于发布关键路径 | 专项重构轮 |
-| P020 | Rust 深层嵌套 | auto_sync_core 8 层主要为 tokio::select! 结构性嵌套，实际风险低 | 专项重构轮 |
-| P021 | 前端超长组件第二梯队（8 处） | 同上 | 专项重构轮 |
+| ~~P019~~ ✅ 6/9 | Rust 过长函数 Top10 | **已完成**：import_attachments→3 阶段函数、attachment_download→2 校验函数、unlock_with_kdf_upgrade→build_upgraded_config、list_trash_changes→map_trash_change_row、page_delete→build_page_delete_trash_items、import_decrypt_preview→build_preview_object_summaries。**handle_inbound / recovery_restore_from_host / export_objects_document 维持现状**——已是「命名 helper 的纯编排层」（下载→建户→导入各阶段自成函数），再拆只是搬参数表反而降低可读性 |
+| ~~P020~~ ✅ 点名项 | Rust 深层嵌套 | biometric 系 6 处审计样板收敛 write_biometric_audit + unlock_audit_action_type（报告点名「值得优先重构」项）；其余为 tokio::select!/SQL 链式结构性嵌套（报告自述实际风险低），维持现状 |
+| ~~P021~~ ✅ 逻辑类 3/6 | 前端超长组件第二梯队 | pluginStore.runPlugin 巨型 switch→applyPluginRunEvent 纯函数；syncStore 入站刷新尾收敛 refreshAfterInbound（消除双分支重复）；RecoveryQrContent 手动面板拆出 RecoveryManualEntryPanel（391→205+233）。**PageGuide / AttachmentPreviewOverlay / PhotoAlbumOverlay / useObjectEditorPage 维持现状**——手势拖拽与预览生命周期高内聚，拆分损害内聚性且视觉回归无法在此环境验证 |
 
-## 收尾验证基线（本轮修复后）
+## 收尾验证基线（含结构性拆分轮）
 
 - `cargo fmt --check` / `clippy -D warnings`：✅
 - Rust workspace：**994 passed / 0 failed**
@@ -98,6 +98,12 @@
 - Vitest：**928 passed**
 - `check_acl_consistency.py`：✅ 205 命令全登记
 - `check-missing-i18n.mjs`：✅ 双语 0 缺失
+
+> 结构性拆分轮新增提交（按序）：CloudSyncPage 拆分 → DatePicker 拆分 →
+> useExportImportPage 拆分 → VaultDirectorySection 拆分 → import_attachments/
+> attachment_download/unlock_with_kdf_upgrade/list_trash_changes/page_delete/
+> import_decrypt_preview 六处过长函数拆分 → biometric 审计样板收敛 →
+> runPlugin/syncStore/RecoveryQrContent 三处前端逻辑拆分 → fmt 归一。
 
 #### 补充修复说明（历史条目存档）
 
