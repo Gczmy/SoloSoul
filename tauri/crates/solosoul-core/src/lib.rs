@@ -34,6 +34,8 @@ pub mod pdfium;
 ))]
 pub mod watermark;
 
+pub mod cloud_sync;
+
 /// Crate version (from Cargo.toml at compile time).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
