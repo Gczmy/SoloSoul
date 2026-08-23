@@ -137,22 +137,49 @@ function ThumbCell({ item, index, onSelect }: ThumbCellProps) {
  * 照片集网格：移动端固定 4 列；桌面端 `auto-fill + minmax` 自适应列数铺满可用宽度。
  * 网格项统一 `aspect-ratio: 1/1` + `object-fit: cover`。
  */
+/** P022：单批渲染上限——大相册（数千张）不再一次性全量挂载 DOM。 */
+const INITIAL_VISIBLE_LIMIT = 200;
+const LOAD_MORE_STEP = 200;
+
 export function PhotoAlbumGrid({ items, onSelect }: PhotoAlbumGridProps) {
+  const { t } = useTranslation();
   const isMobile = isMobilePlatformSync();
+  const [visibleLimit, setVisibleLimit] = useState(INITIAL_VISIBLE_LIMIT);
+  // items 变化（切换相册）时重置窗口
+  useEffect(() => {
+    setVisibleLimit(INITIAL_VISIBLE_LIMIT);
+  }, [items]);
+  const visibleItems = items.slice(0, visibleLimit);
   return (
-    <div
-      data-testid="photo-album-grid"
-      style={{
-        display: 'grid',
-        gap: 8,
-        gridTemplateColumns: isMobile
-          ? 'repeat(4, 1fr)'
-          : 'repeat(auto-fill, minmax(160px, 1fr))',
-      }}
-    >
-      {items.map((item, index) => (
-        <ThumbCell key={item.id} item={item} index={index} onSelect={onSelect} />
-      ))}
-    </div>
+    <>
+      <div
+        data-testid="photo-album-grid"
+        style={{
+          display: 'grid',
+          gap: 8,
+          gridTemplateColumns: isMobile
+            ? 'repeat(4, 1fr)'
+            : 'repeat(auto-fill, minmax(160px, 1fr))',
+        }}
+      >
+        {visibleItems.map((item, index) => (
+          <ThumbCell key={item.id} item={item} index={index} onSelect={onSelect} />
+        ))}
+      </div>
+      {visibleLimit < items.length && (
+        <button
+          type="button"
+          onClick={() => setVisibleLimit((v) => v + LOAD_MORE_STEP)}
+          style={{
+            marginTop: 12,
+            padding: '8px 16px',
+            cursor: 'pointer',
+            alignSelf: 'center',
+          }}
+        >
+          {t('common:load_more')}（{items.length - visibleLimit}）
+        </button>
+      )}
+    </>
   );
 }
