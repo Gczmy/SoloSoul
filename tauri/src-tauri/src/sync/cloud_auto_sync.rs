@@ -104,10 +104,7 @@ pub struct CloudAutoSyncManager {
 
 impl CloudAutoSyncManager {
     /// 创建并启动云同步调度任务（生产入口）。
-    pub fn new(
-        vault_service: Arc<std::sync::RwLock<VaultService>>,
-        app_handle: AppHandle,
-    ) -> Self {
+    pub fn new(vault_service: Arc<std::sync::RwLock<VaultService>>, app_handle: AppHandle) -> Self {
         let action = Arc::new(CloudSyncActionImpl {
             vault_service,
             app_handle,
@@ -275,7 +272,10 @@ async fn run_cloud_sync_round(
     };
 
     app_handle
-        .emit("cloud-sync-status", serde_json::json!({ "phase": "sync_start", "source": source_str }))
+        .emit(
+            "cloud-sync-status",
+            serde_json::json!({ "phase": "sync_start", "source": source_str }),
+        )
         .ok();
 
     let connector = solosoul_core::cloud_sync::create_connector(&to_core_config(&pre.config))
@@ -311,7 +311,6 @@ async fn run_cloud_sync_round(
         }
     }
     result
-
 }
 
 /// 一轮同步的预取上下文（解锁态下一次性收集，避免跨 await 持锁）。
@@ -332,26 +331,42 @@ async fn run_sync_inner(
 
     // ── 2. 上行：导出 → 上传 ──────────────────────────────────
     let hlc = format!("{}-0", chrono::Utc::now().timestamp_millis());
-    let remote_path =
-        build_snapshot_remote_path(&root, &pre.account_id, &pre.device_id, &hlc);
+    let remote_path = build_snapshot_remote_path(&root, &pre.account_id, &pre.device_id, &hlc);
 
     let temp_dir = pre.base_path.join("cloud_sync_tmp");
     tokio::fs::create_dir_all(&temp_dir)
         .await
         .map_err(|e| format!("创建临时目录失败: {e}"))?;
+    // N-002：清扫历史残留（崩溃/上传中断留下的陈旧快照，>24h 即清理）
+    sweep_stale_temp_snapshots(&temp_dir).await;
     let temp_path = temp_dir.join(format!("snapshot_{hlc}{}", SNAPSHOT_EXT));
 
-    export_full_snapshot(vault_service, &pre.account_id, &pre.config.snapshot_password, &temp_path).await?;
-    let file_size = tokio::fs::metadata(&temp_path).await.map_err(|e| e.to_string())?.len();
-
-    let file = tokio::fs::File::open(&temp_path).await.map_err(|e| e.to_string())?;
-    let reader = tokio::io::BufReader::new(file);
-    let (_, etag) = connector
-        .upload(&remote_path, Box::pin(reader), file_size)
+    export_full_snapshot(
+        vault_service,
+        &pre.account_id,
+        &pre.config.snapshot_password,
+        &temp_path,
+    )
+    .await?;
+    let file_size = tokio::fs::metadata(&temp_path)
         .await
-        .map_err(|e| format!("上传快照失败: {}", e))?;
+        .map_err(|e| e.to_string())?
+        .len();
 
+    // N-002：无论上传成败均清理本次临时快照，避免 `?` 提前传播导致残留累积
+    let upload_result = async {
+        let file = tokio::fs::File::open(&temp_path)
+            .await
+            .map_err(|e| e.to_string())?;
+        let reader = tokio::io::BufReader::new(file);
+        connector
+            .upload(&remote_path, Box::pin(reader), file_size)
+            .await
+            .map_err(|e| format!("上传快照失败: {}", e))
+    }
+    .await;
     tokio::fs::remove_file(&temp_path).await.ok();
+    let (_, etag) = upload_result?;
 
     // ── 3. 更新 latest.json 索引 ──────────────────────────────
     update_latest_index(
@@ -367,7 +382,14 @@ async fn run_sync_inner(
     .await?;
 
     // ── 4. 保留策略清理（仅本设备目录）─────────────────────────
-    apply_retention(connector.as_ref(), &pre.config, &root, &pre.account_id, &pre.device_id).await?;
+    apply_retention(
+        connector.as_ref(),
+        &pre.config,
+        &root,
+        &pre.account_id,
+        &pre.device_id,
+    )
+    .await?;
 
     // ── 5. 下行检测：其他设备新水线 → 下载待导入 → 通知前端 ────
     detect_and_fetch_incoming(connector.as_ref(), pre, app_handle).await?;
@@ -427,7 +449,7 @@ async fn update_latest_index(
     size: u64,
     etag: &str,
 ) -> Result<(), String> {
-    use solosoul_core::cloud_sync::{LatestIndex, DeviceSnapshotMeta};
+    use solosoul_core::cloud_sync::{DeviceSnapshotMeta, LatestIndex};
 
     let index_remote = build_latest_index_path(root, account_id);
     let mut index = match download_to_vec(connector, &index_remote).await {
@@ -455,7 +477,10 @@ async fn update_latest_index(
     let payload_len = bytes.len() as u64;
     let cursor = std::io::Cursor::new(bytes);
     if let Some(parent) = remote_parent(&index_remote) {
-        connector.ensure_dir(&parent).await.map_err(|e| format!("ensure_dir 索引目录失败: {}", e))?;
+        connector
+            .ensure_dir(&parent)
+            .await
+            .map_err(|e| format!("ensure_dir 索引目录失败: {}", e))?;
     }
     connector
         .upload(&index_remote, Box::pin(cursor), payload_len)
@@ -478,7 +503,10 @@ async fn apply_retention(
         account_id,
         device_id
     );
-    let metas = connector.list(&dir).await.map_err(|e| format!("列取快照列表失败: {}", e))?;
+    let metas = connector
+        .list(&dir)
+        .await
+        .map_err(|e| format!("列取快照列表失败: {}", e))?;
 
     // 解析 (millis, path)，按时间降序
     let mut entries: Vec<(i64, String)> = metas
@@ -512,9 +540,7 @@ async fn apply_retention(
                         hit = true;
                     }
                 }
-                if !hit
-                    && retention.monthly
-                    && seen_monthly.insert(dt.format("%Y-%m").to_string())
+                if !hit && retention.monthly && seen_monthly.insert(dt.format("%Y-%m").to_string())
                 {
                     hit = true;
                 }
@@ -533,7 +559,11 @@ async fn apply_retention(
         }
     }
     if removed > 0 {
-        tracing::info!("[CloudSync] retention removed {} old snapshots of {}", removed, device_id);
+        tracing::info!(
+            "[CloudSync] retention removed {} old snapshots of {}",
+            removed,
+            device_id
+        );
     }
     Ok(())
 }
@@ -583,9 +613,12 @@ async fn detect_and_fetch_incoming(
         tokio::fs::create_dir_all(&incoming_dir).await.ok();
         let dest = incoming_dir.join(format!("{}{}", meta.hlc, SNAPSHOT_EXT));
         if !dest.exists() {
-            let file = tokio::fs::File::create(&dest).await.map_err(|e| e.to_string())?;
+            let file = tokio::fs::File::create(&dest)
+                .await
+                .map_err(|e| e.to_string())?;
             let mut writer = tokio::io::BufWriter::new(file);
-            let pinned: Pin<&mut (dyn tokio::io::AsyncWrite + Send + Unpin)> = Pin::new(&mut writer);
+            let pinned: Pin<&mut (dyn tokio::io::AsyncWrite + Send + Unpin)> =
+                Pin::new(&mut writer);
             connector
                 .download(&meta.remote_path, pinned)
                 .await
@@ -595,7 +628,10 @@ async fn detect_and_fetch_incoming(
     }
 
     if !incoming_files.is_empty() {
-        tracing::info!("[CloudSync] {} incoming snapshot(s) ready for import", incoming_files.len());
+        tracing::info!(
+            "[CloudSync] {} incoming snapshot(s) ready for import",
+            incoming_files.len()
+        );
         app_handle
             .emit(
                 "cloud-sync-incoming",
@@ -610,6 +646,32 @@ async fn detect_and_fetch_incoming(
 }
 
 // ── 工具函数 ────────────────────────────────────────────────
+
+/// N-002：清理 cloud_sync_tmp 中超过 24h 的陈旧临时快照（best-effort）。
+async fn sweep_stale_temp_snapshots(temp_dir: &Path) {
+    const STALE_SECS: i64 = 24 * 3600;
+    let cutoff = chrono::Utc::now().timestamp() - STALE_SECS;
+    if let Ok(mut entries) = tokio::fs::read_dir(temp_dir).await {
+        while let Ok(Some(entry)) = entries.next_entry().await {
+            let path = entry.path();
+            if !path.is_file() {
+                continue;
+            }
+            let stale = tokio::fs::metadata(&path)
+                .await
+                .and_then(|m| m.modified())
+                .ok()
+                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                .map(|d| d.as_secs() as i64)
+                .map(|secs| secs < cutoff)
+                .unwrap_or(false);
+            if stale {
+                tracing::info!("[CloudSync] sweeping stale temp snapshot {:?}", path);
+                tokio::fs::remove_file(&path).await.ok();
+            }
+        }
+    }
+}
 
 fn root_prefix(config: &solosoul_vault::CloudSyncConfig) -> String {
     config
@@ -696,7 +758,9 @@ mod tests {
     async fn test_manual_triggers_immediately() {
         let calls = Arc::new(AtomicUsize::new(0));
         let manager = CloudAutoSyncManager::new_with_action(
-            Arc::new(MockAction { calls: calls.clone() }),
+            Arc::new(MockAction {
+                calls: calls.clone(),
+            }),
             test_config(),
         );
         manager.trigger_manual();
@@ -708,7 +772,9 @@ mod tests {
     async fn test_data_change_debounce() {
         let calls = Arc::new(AtomicUsize::new(0));
         let manager = CloudAutoSyncManager::new_with_action(
-            Arc::new(MockAction { calls: calls.clone() }),
+            Arc::new(MockAction {
+                calls: calls.clone(),
+            }),
             test_config(),
         );
         for _ in 0..5 {
@@ -727,6 +793,29 @@ mod tests {
         );
         assert_eq!(remote_parent("/file.solosoul"), Some("/".to_string()));
         assert_eq!(remote_parent("nofile"), None);
+    }
+
+    #[tokio::test]
+    async fn test_sweep_stale_temp_snapshots() {
+        let dir = tempfile::tempdir().unwrap();
+        // 陈旧文件：mtime 设为 2 天前
+        let stale_path = dir.path().join("snapshot_old.solosoul");
+        std::fs::write(&stale_path, b"x").unwrap();
+        let old_time = std::time::SystemTime::now() - std::time::Duration::from_secs(48 * 3600);
+        std::fs::OpenOptions::new()
+            .write(true)
+            .open(&stale_path)
+            .unwrap()
+            .set_modified(old_time)
+            .unwrap();
+        // 新鲜文件
+        let fresh_path = dir.path().join("snapshot_new.solosoul");
+        std::fs::write(&fresh_path, b"y").unwrap();
+
+        sweep_stale_temp_snapshots(dir.path()).await;
+
+        assert!(!stale_path.exists(), "陈旧残留应被清理");
+        assert!(fresh_path.exists(), "新鲜文件不应被清理");
     }
 
     #[test]
