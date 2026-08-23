@@ -92,6 +92,67 @@ export interface RunningPlugin {
   toastShown?: boolean;
 }
 
+/**
+ * P021：插件运行事件 → 运行态对象的纯函数应用（自 runPlugin 的巨型 switch 拆出）。
+ * 就地修改传入的 draft 并返回；log/result 按 P215 环形上限截断。
+ */
+/** 插件运行事件的最小形状（lib/plugin 的 PluginEvent 为内部类型，此处按需声明）。 */
+type RunPluginEvent = { eventType: string; jsonData: string };
+
+function applyPluginRunEvent(next: RunningPlugin, event: RunPluginEvent): RunningPlugin {
+  switch (event.eventType) {
+    case 'log':
+      try {
+        const parsed = JSON.parse(event.jsonData);
+        if (isPluginLogLine(parsed)) {
+          // P215: 环形截断到上限，每次 append 的拷贝成本从 O(当前长度) 收敛为 O(上限)。
+          next.logs = [...next.logs, parsed].slice(-MAX_PLUGIN_LOGS);
+        }
+      } catch {
+        // ignore malformed log
+      }
+      break;
+    case 'result':
+      try {
+        const parsed = JSON.parse(event.jsonData);
+        if (isPluginResultPayload(parsed)) {
+          next.results = [...next.results, parsed].slice(-MAX_PLUGIN_RESULTS);
+        }
+      } catch {
+        // ignore malformed result
+      }
+      break;
+    case 'consent_request':
+      if (isConsentRequestEvent(event)) {
+        next.consentRequests = [...next.consentRequests, event];
+      }
+      break;
+    case 'dialog_request':
+      if (isDialogRequestEvent(event)) {
+        next.dialogRequests = [...next.dialogRequests, event];
+      }
+      break;
+    case 'completed':
+      next.completed = true;
+      next.toastShown = true;
+      try {
+        const parsed = JSON.parse(event.jsonData);
+        if (isPluginCompletedEvent(parsed)) {
+          next.exitCode = parsed.exitCode;
+        }
+      } catch {
+        // ignore
+      }
+      break;
+    case 'error':
+      next.completed = true;
+      next.toastShown = true;
+      next.error = event.jsonData;
+      break;
+  }
+  return next;
+}
+
 // P031: 仅本文件使用，取消导出（死导出）
 const DEFAULT_ENABLED_TIERS: PluginTier[] = ['p0', 'p1', 'p2'];
 
@@ -222,60 +283,12 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
     }));
 
     try {
+      // P021：事件分发收敛至模块级纯函数 applyPluginRunEvent
       const result = await pluginCommands.run(pluginId, mergedParams, (event) => {
         set((state) => {
-          const next = { ...state.runningPlugins[pluginId] };
-          if (!next) return state;
-          switch (event.eventType) {
-            case 'log':
-              try {
-                const parsed = JSON.parse(event.jsonData);
-                if (isPluginLogLine(parsed)) {
-                  // P215: 环形截断到上限，每次 append 的拷贝成本从 O(当前长度) 收敛为 O(上限)。
-                  next.logs = [...next.logs, parsed].slice(-MAX_PLUGIN_LOGS);
-                }
-              } catch {
-                // ignore malformed log
-              }
-              break;
-            case 'result':
-              try {
-                const parsed = JSON.parse(event.jsonData);
-                if (isPluginResultPayload(parsed)) {
-                  next.results = [...next.results, parsed].slice(-MAX_PLUGIN_RESULTS);
-                }
-              } catch {
-                // ignore malformed result
-              }
-              break;
-            case 'consent_request':
-              if (isConsentRequestEvent(event)) {
-                next.consentRequests = [...next.consentRequests, event];
-              }
-              break;
-            case 'dialog_request':
-              if (isDialogRequestEvent(event)) {
-                next.dialogRequests = [...next.dialogRequests, event];
-              }
-              break;
-            case 'completed':
-              next.completed = true;
-              next.toastShown = true;
-              try {
-                const parsed = JSON.parse(event.jsonData);
-                if (isPluginCompletedEvent(parsed)) {
-                  next.exitCode = parsed.exitCode;
-                }
-              } catch {
-                // ignore
-              }
-              break;
-            case 'error':
-              next.completed = true;
-              next.toastShown = true;
-              next.error = event.jsonData;
-              break;
-          }
+          const draft = state.runningPlugins[pluginId];
+          if (!draft) return state;
+          const next = applyPluginRunEvent({ ...draft }, event);
           return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
         });
       });
