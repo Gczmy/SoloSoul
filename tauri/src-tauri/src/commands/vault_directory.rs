@@ -164,6 +164,13 @@ pub async fn vault_set_directory(
             .map_err(|_| "Vault service lock poisoned".to_string())?;
         svc.lock();
     }
+    // P029：与 commands/vault.rs::lock 对齐——目录切换锁定 Vault 后必须 emit
+    // `vault-locked`，前端认证态监听链（AppRoutes）据此失效登录态，
+    // 否则 UI 仍显示已解锁而后续命令报「No account is currently unlocked」。
+    {
+        let app_handle = state.handle.clone();
+        let _ = app_handle.emit("vault-locked", ());
+    }
 
     if let Some(uri) = &payload.saf_tree_uri {
         if !cfg!(target_os = "android") {
