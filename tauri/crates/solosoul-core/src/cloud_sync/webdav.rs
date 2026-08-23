@@ -7,17 +7,18 @@
 //! - 自建 WebDAV (nginx/apache + dav 模块)
 
 use std::pin::Pin;
-use std::str::FromStr;
 
 use async_trait::async_trait;
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
 use chrono::{DateTime, Utc};
 use futures::StreamExt;
-use reqwest::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, HeaderValue};
+use reqwest::header::{HeaderValue, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE};
 use reqwest::{Client, Method, RequestBuilder};
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt};
 
-use crate::cloud_sync::{CloudConnector, CloudObjectMeta, CloudResult, CloudSyncError, WebDavConfig};
+use crate::cloud_sync::{
+    CloudConnector, CloudObjectMeta, CloudResult, CloudSyncError, WebDavConfig,
+};
 
 /// 默认分片大小：8 MiB（坚果云/Nextcloud 均支持更大，8M 平衡内存与并发）。
 pub const DEFAULT_CHUNK_SIZE: u64 = 8 * 1024 * 1024;
@@ -30,29 +31,43 @@ pub struct WebDavConnector {
 }
 
 impl WebDavConnector {
-    pub fn new(config: WebDavConfig) -> Self {
+    /// N-001：构造不再 panic——`base_url` 来自用户输入（Settings 表单），
+    /// 非法 URL 返回 `ConfigMissing` 而非 `expect` abort（Android Release
+    /// panic=abort 下会直接闪退）。
+    pub fn new(config: WebDavConfig) -> CloudResult<Self> {
         let client = Client::builder()
             .timeout(std::time::Duration::from_secs(120))
             .build()
-            .expect("reqwest client build failed");
+            .map_err(|e| CloudSyncError::Internal(format!("HTTP 客户端初始化失败: {e}")))?;
 
         let auth = format!("{}:{}", config.username, config.password);
+        // Base64 输出恒为 ASCII，HeaderValue 解析实际不可失败；防御性映射。
         let auth_header = HeaderValue::from_str(&format!("Basic {}", BASE64.encode(auth)))
-            .expect("Basic auth header build failed");
+            .map_err(|e| CloudSyncError::Internal(format!("认证头构造失败: {e}")))?;
 
-        let base_url = url::Url::from_str(&config.base_url)
-            .expect("WebDAV base_url 必须是合法 URL");
+        let mut base: url::Url = url::Url::parse(&config.base_url).map_err(|e| {
+            CloudSyncError::ConfigMissing(format!(
+                "服务器地址非法（需形如 https://host/path/）：{} ({})",
+                config.base_url, e
+            ))
+        })?;
+        if !matches!(base.scheme(), "http" | "https") {
+            return Err(CloudSyncError::ConfigMissing(format!(
+                "服务器地址 scheme 必须为 http/https，实际为 {}:{}",
+                base.scheme(),
+                config.base_url
+            )));
+        }
         // 确保以 '/' 结尾
-        let mut base: url::Url = base_url;
         if !base.as_str().ends_with('/') {
             base.set_path(&format!("{}/", base.path()));
         }
 
-        Self {
+        Ok(Self {
             client,
             auth_header,
             base_url: base,
-        }
+        })
     }
 
     /// 拼接远程路径（相对路径 → 绝对 URL）。
@@ -70,7 +85,6 @@ impl WebDavConnector {
             .request(method, url)
             .header(AUTHORIZATION, self.auth_header.clone())
     }
-
 }
 
 #[async_trait]
@@ -94,7 +108,10 @@ impl CloudConnector for WebDavConnector {
             401 | 403 => Err(CloudSyncError::AuthFailed(
                 "WebDAV 认证失败（用户名/密码错误）".to_string(),
             )),
-            s => Err(CloudSyncError::ConnectFailed(format!("PROPFIND 失败: {}", s))),
+            s => Err(CloudSyncError::ConnectFailed(format!(
+                "PROPFIND 失败: {}",
+                s
+            ))),
         }
     }
 
@@ -119,7 +136,8 @@ impl CloudConnector for WebDavConnector {
                 }
                 _ => {
                     // 不存在，MKCOL 创建
-                    let mkcol = self.request(Method::from_bytes(b"MKCOL").unwrap(), &current)
+                    let mkcol = self
+                        .request(Method::from_bytes(b"MKCOL").unwrap(), &current)
                         .send()
                         .await
                         .map_err(CloudSyncError::Http)?;
@@ -127,7 +145,8 @@ impl CloudConnector for WebDavConnector {
                         // 405 Method Not Allowed 可能是已存在文件同名，忽略
                         return Err(CloudSyncError::UploadFailed(format!(
                             "MKCOL 创建目录失败 {}: {}",
-                            current, mkcol.status()
+                            current,
+                            mkcol.status()
                         )));
                     }
                 }
@@ -155,7 +174,8 @@ impl CloudConnector for WebDavConnector {
         // ReaderStream 边读边发，内存常驻恒定，任意大小文件均适用。
         let stream = tokio_util::io::ReaderStream::new(reader);
         let body = reqwest::Body::wrap_stream(stream);
-        let resp = self.request(Method::PUT, remote_path)
+        let resp = self
+            .request(Method::PUT, remote_path)
             .header(CONTENT_LENGTH, total_size)
             .header(CONTENT_TYPE, "application/octet-stream")
             .body(body)
@@ -172,7 +192,10 @@ impl CloudConnector for WebDavConnector {
                 .unwrap_or_default();
             Ok((remote_path.to_string(), etag))
         } else {
-            Err(CloudSyncError::UploadFailed(format!("PUT 失败: {}", resp.status())))
+            Err(CloudSyncError::UploadFailed(format!(
+                "PUT 失败: {}",
+                resp.status()
+            )))
         }
     }
 
@@ -181,14 +204,16 @@ impl CloudConnector for WebDavConnector {
         remote_path: &str,
         mut writer: Pin<&mut (dyn AsyncWrite + Send + Unpin)>,
     ) -> CloudResult<u64> {
-        let resp = self.request(Method::GET, remote_path)
+        let resp = self
+            .request(Method::GET, remote_path)
             .send()
             .await
             .map_err(CloudSyncError::Http)?;
 
         if !resp.status().is_success() {
             return Err(CloudSyncError::DownloadFailed(format!(
-                "GET 失败: {}", resp.status()
+                "GET 失败: {}",
+                resp.status()
             )));
         }
 
@@ -206,7 +231,8 @@ impl CloudConnector for WebDavConnector {
     async fn list(&self, remote_path: &str) -> CloudResult<Vec<CloudObjectMeta>> {
         // PROPFIND Depth: 1
         let body = r#"<?xml version="1.0"?><propfind xmlns="DAV:"><prop><getcontentlength/><getlastmodified/><getetag/><resourcetype/></prop></propfind>"#;
-        let resp = self.request(Method::from_bytes(b"PROPFIND").unwrap(), remote_path)
+        let resp = self
+            .request(Method::from_bytes(b"PROPFIND").unwrap(), remote_path)
             .header("Depth", "1")
             .header("Content-Type", "application/xml; charset=utf-8")
             .body(body)
@@ -215,7 +241,10 @@ impl CloudConnector for WebDavConnector {
             .map_err(CloudSyncError::Http)?;
 
         if !resp.status().is_success() && resp.status().as_u16() != 207 {
-            return Err(CloudSyncError::ListFailed(format!("PROPFIND 失败: {}", resp.status())));
+            return Err(CloudSyncError::ListFailed(format!(
+                "PROPFIND 失败: {}",
+                resp.status()
+            )));
         }
 
         let text = resp.text().await.map_err(CloudSyncError::Http)?;
@@ -223,7 +252,8 @@ impl CloudConnector for WebDavConnector {
     }
 
     async fn delete(&self, remote_path: &str) -> CloudResult<()> {
-        let resp = self.request(Method::DELETE, remote_path)
+        let resp = self
+            .request(Method::DELETE, remote_path)
             .send()
             .await
             .map_err(CloudSyncError::Http)?;
@@ -231,18 +261,25 @@ impl CloudConnector for WebDavConnector {
         if resp.status().is_success() || resp.status().as_u16() == 404 {
             Ok(())
         } else {
-            Err(CloudSyncError::DeleteFailed(format!("DELETE 失败: {}", resp.status())))
+            Err(CloudSyncError::DeleteFailed(format!(
+                "DELETE 失败: {}",
+                resp.status()
+            )))
         }
     }
 
     async fn head(&self, remote_path: &str) -> CloudResult<CloudObjectMeta> {
-        let resp = self.request(Method::HEAD, remote_path)
+        let resp = self
+            .request(Method::HEAD, remote_path)
             .send()
             .await
             .map_err(CloudSyncError::Http)?;
 
         if !resp.status().is_success() {
-            return Err(CloudSyncError::NotFound(format!("HEAD 失败: {}", resp.status())));
+            return Err(CloudSyncError::NotFound(format!(
+                "HEAD 失败: {}",
+                resp.status()
+            )));
         }
 
         let headers = resp.headers();
@@ -376,7 +413,11 @@ fn rewrite_tag(tag: &str) -> String {
     };
     // 自闭合 `<D:x/>`
     let self_close = body.ends_with('/');
-    let body_trimmed = if self_close { &body[..body.len() - 1] } else { body };
+    let body_trimmed = if self_close {
+        &body[..body.len() - 1]
+    } else {
+        body
+    };
 
     // 标签名 = 第一个空白或结尾之前的部分；仅当其中含 ':' 且前缀为合法 NCName 时剥离
     let name_end = body_trimmed
@@ -439,7 +480,11 @@ fn extract_xml_tag(xml: &str, name: &str) -> Option<String> {
             };
             let close = format!("</{}>", name);
             if let Some(end_rel) = xml[content_start..].find(close.as_str()) {
-                return Some(xml[content_start..content_start + end_rel].trim().to_string());
+                return Some(
+                    xml[content_start..content_start + end_rel]
+                        .trim()
+                        .to_string(),
+                );
             }
         }
     }
@@ -489,4 +534,3 @@ mod parse_tests {
         assert_eq!(percent_decode("/plain.bin"), "/plain.bin");
     }
 }
-

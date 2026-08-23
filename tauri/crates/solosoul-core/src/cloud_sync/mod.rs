@@ -192,7 +192,7 @@ pub fn create_connector(config: &CloudSyncConfig) -> CloudResult<Arc<dyn CloudCo
         "webdav" => {
             let cfg: WebDavConfig = serde_json::from_value(config.config_json.clone())
                 .map_err(|e| CloudSyncError::ConfigMissing(format!("WebDAV 配置解析失败: {e}")))?;
-            Ok(Arc::new(WebDavConnector::new(cfg)))
+            Ok(Arc::new(WebDavConnector::new(cfg)?))
         }
         other => Err(CloudSyncError::ConfigMissing(format!(
             "未知连接器类型: {other}，当前仅支持 webdav"
@@ -209,12 +209,22 @@ pub fn build_snapshot_remote_path(
     device_id: &str,
     hlc: &str,
 ) -> String {
-    format!("{}/{}/snapshots/{}/{}.solosoul", root_prefix.trim_end_matches('/'), account_id, device_id, hlc)
+    format!(
+        "{}/{}/snapshots/{}/{}.solosoul",
+        root_prefix.trim_end_matches('/'),
+        account_id,
+        device_id,
+        hlc
+    )
 }
 
 /// 云端索引文件路径：`{root_prefix}{account_id}/latest.json`
 pub fn build_latest_index_path(root_prefix: &str, account_id: &str) -> String {
-    format!("{}{}/latest.json", root_prefix.trim_end_matches('/'), account_id)
+    format!(
+        "{}{}/latest.json",
+        root_prefix.trim_end_matches('/'),
+        account_id
+    )
 }
 
 /// latest.json 索引结构。

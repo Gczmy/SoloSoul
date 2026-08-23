@@ -35,6 +35,7 @@ fn make_connector(user: &str, pass: &str) -> WebDavConnector {
         password: pass.to_string(),
         root_prefix: "/SoloSoul/".to_string(),
     })
+    .unwrap()  // 测试用合法 URL；非法 URL 行为由 t10 专项覆盖
 }
 
 fn creds() -> (String, String) {
@@ -48,9 +49,7 @@ fn unique_prefix() -> String {
     format!("e2e-{}", uuid::Uuid::new_v4().simple())
 }
 
-fn tokio_main<F: std::future::Future<Output = Result<(), String>>>(
-    f: F,
-) -> Result<(), String> {
+fn tokio_main<F: std::future::Future<Output = Result<(), String>>>(f: F) -> Result<(), String> {
     if server_url().is_none() {
         eprintln!("skip: SOLOSOUL_WEBDAV_E2E_URL 未设置");
         return Ok(());
@@ -86,10 +85,21 @@ async fn upload_bytes(
 fn t01_test_connection_and_auth_failure() {
     let result = tokio_main(async {
         let (user, pass) = creds();
-        make_connector(&user, &pass).test_connection().await.map_err(|e| e.to_string())?;
-        match make_connector(&user, "definitely-wrong").test_connection().await {
+        make_connector(&user, &pass)
+            .test_connection()
+            .await
+            .map_err(|e| e.to_string())?;
+        match make_connector(&user, "definitely-wrong")
+            .test_connection()
+            .await
+        {
             Err(solosoul_core::cloud_sync::CloudSyncError::AuthFailed(_)) => {}
-            other => return Err(format!("错误密码应返回 AuthFailed，实际 {:?}", other.map(|_| ()))),
+            other => {
+                return Err(format!(
+                    "错误密码应返回 AuthFailed，实际 {:?}",
+                    other.map(|_| ())
+                ))
+            }
         }
         Ok(())
     });
@@ -124,7 +134,9 @@ fn t03_small_file_roundtrip() {
         let path = format!("{}/small.bin", prefix);
 
         let payload: Vec<u8> = (0..64 * 1024u32).map(|i| (i % 251) as u8).collect();
-        let (_, etag) = upload_bytes(&c, &path, payload.clone()).await.map_err(|e| e.to_string())?;
+        let (_, etag) = upload_bytes(&c, &path, payload.clone())
+            .await
+            .map_err(|e| e.to_string())?;
 
         let meta = c.head(&path).await.map_err(|e| e.to_string())?;
         assert_eq!(meta.size, payload.len() as u64, "HEAD size 不一致");
@@ -164,7 +176,9 @@ fn t04_large_file_chunked_roundtrip() {
             *b = (seed & 0xFF) as u8;
         }
 
-        upload_bytes(&c, &path, payload.clone()).await.map_err(|e| e.to_string())?;
+        upload_bytes(&c, &path, payload.clone())
+            .await
+            .map_err(|e| e.to_string())?;
 
         let meta = c.head(&path).await.map_err(|e| e.to_string())?;
         assert_eq!(meta.size, total, "大文件 HEAD size 与上传不符");
@@ -196,7 +210,9 @@ fn t05_list_directory_entries() {
         c.ensure_dir(&dir).await.map_err(|e| e.to_string())?;
 
         for name in ["one.bin", "two.bin"] {
-            upload_bytes(&c, &format!("{}/{}", dir, name), vec![1u8; 1024]).await.map_err(|e| e.to_string())?;
+            upload_bytes(&c, &format!("{}/{}", dir, name), vec![1u8; 1024])
+                .await
+                .map_err(|e| e.to_string())?;
         }
 
         let entries = c.list(&dir).await.map_err(|e| e.to_string())?;
@@ -228,13 +244,18 @@ fn t06_delete_makes_resource_gone() {
         let c = make_connector(&user, &pass);
         let prefix = unique_prefix();
         let path = format!("{}/gone.bin", prefix);
-        upload_bytes(&c, &path, vec![7u8; 128]).await.map_err(|e| e.to_string())?;
+        upload_bytes(&c, &path, vec![7u8; 128])
+            .await
+            .map_err(|e| e.to_string())?;
         c.delete(&path).await.map_err(|e| e.to_string())?;
 
         match c.head(&path).await {
             Err(CloudSyncError::NotFound(_)) => {}
             other => {
-                return Err(format!("删除后 HEAD 应 NotFound，实际 {:?}", other.map(|m| m.size)))
+                return Err(format!(
+                    "删除后 HEAD 应 NotFound，实际 {:?}",
+                    other.map(|m| m.size)
+                ))
             }
         }
         Ok(())
@@ -257,11 +278,36 @@ fn t07_download_missing_is_typed_error() {
             match c.download(&path, pinned).await {
                 Err(CloudSyncError::DownloadFailed(_) | CloudSyncError::NotFound(_)) => {}
                 other => {
-                    return Err(format!("缺失资源应返回类型化错误，实际 {:?}", other.map(|_| ())))
+                    return Err(format!(
+                        "缺失资源应返回类型化错误，实际 {:?}",
+                        other.map(|_| ())
+                    ))
                 }
             }
         }
         Ok(())
     });
     result.unwrap();
+}
+
+/// ⑩ N-001 回归：非法服务器 URL 返回类型化错误而非 panic。
+#[test]
+fn t10_invalid_url_returns_err_not_panic() {
+    // 不依赖服务器，纯构造路径
+    for bad in ["", "not-a-url", "http://", "ftp://x", "https://host with space"] {
+        let result = std::panic::catch_unwind(|| {
+            WebDavConnector::new(WebDavConfig {
+                base_url: bad.to_string(),
+                username: "u".into(),
+                password: "p".into(),
+                root_prefix: "/SoloSoul/".to_string(),
+            })
+        });
+        match result {
+            Ok(Err(solosoul_core::cloud_sync::CloudSyncError::ConfigMissing(_))) => {}
+            Ok(Ok(_)) => panic!("URL {:?} 应被拒绝", bad),
+            Ok(Err(other)) => panic!("URL {:?} 应返回 ConfigMissing，实际 {:?}", bad, other),
+            Err(_) => panic!("URL {:?} 构造发生 panic —— N-001 回归", bad),
+        }
+    }
 }

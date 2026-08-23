@@ -1,6 +1,6 @@
 # 代码分析修复报告（云同步专项轮）
 
-> 最后更新：2026-08-23 16:23:38
+> 最后更新：2026-08-23 16:40:00
 > 当前分支：`main`
 > 修复轮次：1（Phase 2 云同步新代码专项审查）
 
@@ -25,7 +25,7 @@
 
 | ID    | 优先级 | 类别   | 文件位置                                        | 描述                                                                                     | 状态        |
 |-------|--------|--------|-------------------------------------------------|------------------------------------------------------------------------------------------|-------------|
-| N-001 | P1     | 潜在崩溃 | `crates/solosoul-core/src/cloud_sync/webdav.rs:46` | `WebDavConnector::new` 对用户输入的 `base_url` 执行 `Url::from_str(...).expect(...)`——Settings 表单输错 URL 即 panic 整个应用；同函数 `Client::builder().build().expect()` 同理 | `[ ]` 待修复 |
+| N-001 | P1     | 潜在崩溃 | `crates/solosoul-core/src/cloud_sync/webdav.rs:46` | `WebDavConnector::new` 对用户输入的 `base_url` 执行 `Url::from_str(...).expect(...)`——Settings 表单输错 URL 即 panic 整个应用；同函数 `Client::builder().build().expect()` 同理 | `[x]` 已修复 |
 | N-002 | P2     | 资源泄漏 | `src-tauri/src/sync/cloud_auto_sync.rs:336-363`  | 上传失败时临时快照残留在 `{data_dir}/cloud_sync_tmp/` 无清理，长期累积占用磁盘             | `[ ]` 待修复 |
 | N-003 | P3     | 规范   | `webdav.rs:85,114,127,222`                      | `Method::from_bytes(b"PROPFIND").unwrap()` 重复 4 处（实际不可失败）；应提为常量           | `[ ]` 待修复 |
 
@@ -54,7 +54,13 @@
   但四处重复属噪音。提为 `const METHOD_PROPFIND/MKCOL: Method`（Method 为 Copy 类型可常量化
   ——若 const 不稳则用 `OnceLock` 或就地 `from_bytes` 提取为私有 helper 函数）。
 
-## 修复进度
-
-- 已完成：0 / 3
+- 已完成：1 / 3
 - 当前处理：无
+
+#### 修复说明 N-001
+
+- `new` 签名改为 `CloudResult<Self>`：URL 解析失败 → `ConfigMissing`（含输入回显与解析错误详情）、
+  scheme 非 http/https → `ConfigMissing`、Client 构建失败 → `Internal`。
+- `create_connector` 经 `?` 透传至前端 toast；Android panic=abort 场景不再闪退。
+- E2E 新增 t10 回归：5 类非法 URL（空串/非 URL/裸 host/ftp/含空格）断言不 panic 且返回
+  `ConfigMissing`。E2E 8/8 通过，clippy 全绿。
