@@ -1296,6 +1296,9 @@ fn write_imported_attachment(
                 Ok(size)
             })();
             let _ = std::fs::remove_file(&temp_path);
+            // P011 核验补修：一次性目录用后即删（remove_dir 仅空目录成功，
+            // 防止 0700 UUID 空目录在系统 temp 无限累积）。
+            let _ = std::fs::remove_dir(&temp_dir);
             result.map_err(ExportError::Msg)
         }
         None => {
@@ -2253,17 +2256,9 @@ mod tests {
         vault.delete_object("obj_1", false).unwrap();
 
         // 以 vault 附件静态密钥导入（CLI 从已解锁会话派生）。
-        // 先快照临时目录（与其他测试共享，仅对比本次新增）。
-        let temp_dir = std::env::temp_dir().join("solosoul_import_att");
-        let snapshot_before: std::collections::HashSet<String> = if temp_dir.exists() {
-            std::fs::read_dir(&temp_dir)
-                .unwrap()
-                .flatten()
-                .map(|e| e.file_name().to_string_lossy().to_string())
-                .collect()
-        } else {
-            Default::default()
-        };
+        // P011 核验补修：生产已改为 solosoul_import_att_{uuid} 随机目录——
+        // 快照改按前缀扫描系统 temp 下全部匹配条目（与其他测试共享，仅对比本次新增）。
+        let snapshot_before = scan_import_att_entries();
         let vault_att_key: [u8; 32] = [0x11; 32];
         let imported = import_vault(
             &vault,
@@ -2298,21 +2293,31 @@ mod tests {
                 .expect("以 vault 密钥解密导入附件");
         assert_eq!(decrypted, plain);
 
-        // 本次导入不得在临时目录留下新明文文件（对比导入前后快照）。
-        let new_leftovers: Vec<_> = if temp_dir.exists() {
-            std::fs::read_dir(&temp_dir)
-                .unwrap()
-                .flatten()
-                .map(|e| e.file_name().to_string_lossy().to_string())
-                .filter(|n| !snapshot_before.contains(n))
-                .collect()
-        } else {
-            vec![]
-        };
+        // 本次导入不得在临时目录留下新条目（明文文件或未清理的随机目录）。
+        let new_leftovers: Vec<String> = scan_import_att_entries()
+            .into_iter()
+            .filter(|n| !snapshot_before.contains(n))
+            .collect();
         assert!(
             new_leftovers.is_empty(),
-            "本次导入不应残留临时明文: {:?}",
+            "本次导入不应残留临时明文/临时目录: {:?}",
             new_leftovers
         );
     }
+
+
+/// P011 核验补修：扫描系统 temp 下全部 solosoul_import_att_* 条目名
+/// （含随机目录与历史遗留的固定目录），供残留对比断言使用。
+fn scan_import_att_entries() -> std::collections::HashSet<String> {
+    let mut out = std::collections::HashSet::new();
+    if let Ok(rd) = std::fs::read_dir(std::env::temp_dir()) {
+        for e in rd.flatten() {
+            let name = e.file_name().to_string_lossy().to_string();
+            if name.starts_with("solosoul_import_att") || name == "solosoul_export_att" {
+                out.insert(name);
+            }
+        }
+    }
+    out
+}
 }
