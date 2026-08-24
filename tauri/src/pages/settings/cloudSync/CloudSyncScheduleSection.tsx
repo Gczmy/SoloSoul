@@ -60,7 +60,8 @@ export function CloudSyncScheduleSection({
                 onChange={(e) =>
                   onIntervalSecs(Math.max(60, parseInt(e.target.value) || 60))
                 }
-                style={{ ...(styles.input as React.CSSProperties), width: 100 }}
+                className={styles.input}
+                style={{ width: 100 }}
               />
               {' '}{t('settings:cloud_sync_interval_hint')}
             </label>

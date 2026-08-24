@@ -37,7 +37,8 @@ export function CloudSyncRetentionSection({
                 recentFull: Math.max(1, parseInt(e.target.value) || 1),
               })
             }
-            style={{ ...(styles.input as React.CSSProperties), width: 80 }}
+            className={styles.input}
+            style={{ width: 80 }}
           />
           <span>{t('settings:cloud_sync_recent_full')}</span>
         </label>
