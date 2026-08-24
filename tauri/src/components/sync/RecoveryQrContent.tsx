@@ -1,6 +1,5 @@
 import { QRCodeSVG } from 'qrcode.react';
 import { motion } from 'framer-motion';
-import { Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import type { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { QrStatusBlock } from './QrStatusBlock';
