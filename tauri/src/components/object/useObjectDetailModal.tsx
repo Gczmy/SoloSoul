@@ -15,7 +15,10 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import type { TemplateProperty } from '@/types/template';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { isMobilePlatformSync } from '@/lib/platform';
-import { flattenProperties, buildDetailGuidePages } from '@/components/object/objectDetailUtils';
+import {
+  flattenPropertiesGrouped,
+  buildDetailGuidePages,
+} from '@/components/object/objectDetailUtils';
 
 export interface ObjectDetailModalProps {
   /** 已加载的对象摘要/完整数据。与 objectId 二选一，优先使用此值。 */
@@ -226,8 +229,9 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
     () => templates.find((t) => t.id === obj?.templateId)?.properties.map((p) => p.id),
     [templates, obj?.templateId],
   );
+  // 详情卡片：动态字段组保留树状结构（组头 + 子行），与历史快照渲染同构
   const fields = useMemo(
-    () => flattenProperties(obj?.properties, fieldOrder, objFieldDefs),
+    () => flattenPropertiesGrouped(obj?.properties, fieldOrder, objFieldDefs),
     [obj?.properties, fieldOrder, objFieldDefs],
   );
 

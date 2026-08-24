@@ -3,6 +3,7 @@ import type { useTranslation } from 'react-i18next';
 import type { GuidePage } from '@/components/guide/PageGuide';
 import {
   flattenPropertyEntries,
+  type DynamicChildItem,
   type FlattenedPropertyEntry,
 } from '@/lib/propertyFlatten';
 
@@ -13,6 +14,56 @@ export type FlattenedObjectDetailField = {
   value: string;
   fieldId?: string;
 };
+
+/** 对象详情字段条目（分组保留模式）：普通字段或动态字段组（含子行）。 */
+export type ObjectDetailFieldEntry =
+  | {
+        kind: 'field';
+        key: string;
+        label?: string;
+        value: string;
+        fieldId?: string;
+    }
+  | {
+        kind: 'dynamicGroup';
+        key: string;
+        label?: string;
+        type?: string;
+        children: DynamicChildItem[];
+    };
+
+/**
+ * 分组保留模式展平——详情卡片树状渲染动态字段组用（与历史快照同构）。
+ * dynamic_group 不再拆散为独立条目，而是返回组头 + 子行结构；
+ * 普通字段语义与 flattenProperties 完全一致。
+ */
+export function flattenPropertiesGrouped(
+  props: Record<string, unknown> | undefined,
+  fieldOrder?: string[],
+  fieldDefs?: Record<string, { type?: string }>,
+): ObjectDetailFieldEntry[] {
+  return flattenPropertyEntries(props, fieldOrder, fieldDefs, {
+    keepMetaKeys: false,
+    flattenDynamicGroups: false,
+    injectFieldLabels: false,
+  }).map((e) =>
+    e.kind === 'field'
+      ? {
+          kind: 'field' as const,
+          key: e.key,
+          label: e.label,
+          value: e.value,
+          fieldId: e.fieldId,
+        }
+      : {
+          kind: 'dynamicGroup' as const,
+          key: e.key,
+          label: e.label,
+          type: e.type,
+          children: e.children,
+        },
+  );
+}
 
 /**
  * P024: 收敛至共享核心 flattenPropertyEntries（展平模式 + 过滤 `__` 字段）。

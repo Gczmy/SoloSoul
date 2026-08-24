@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { ObjectDetailFieldsList, type FlattenedField } from './ObjectDetailFieldsList';
+import { ObjectDetailFieldsList } from './ObjectDetailFieldsList';
+import type { ObjectDetailFieldEntry } from './objectDetailUtils';
 import { useRevealState } from '@/hooks/useRevealState';
 import type { SensitivityLevel, TemplateProperty } from '@/types/template';
 
@@ -23,7 +24,7 @@ function Harness({
   fields,
   sensitivities,
 }: {
-  fields: FlattenedField[];
+  fields: ObjectDetailFieldEntry[];
   sensitivities: Record<string, SensitivityLevel>;
 }) {
   const revealState = useRevealState();
@@ -53,7 +54,7 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
   it('internal 字段：直接显示明文，无揭示按钮', () => {
     render(
       <Harness
-        fields={[{ key: 'phone', value: '13800138000' }]}
+        fields={[{ kind: 'field' as const, key: 'phone', value: '13800138000' }]}
         sensitivities={{ phone: 'internal' }}
       />,
     );
@@ -67,7 +68,7 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
   it('public 字段：直接显示明文，无揭示按钮', () => {
     render(
       <Harness
-        fields={[{ key: 'nickname', value: 'Alice' }]}
+        fields={[{ kind: 'field' as const, key: 'nickname', value: 'Alice' }]}
         sensitivities={{ nickname: 'public' }}
       />,
     );
@@ -78,7 +79,7 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
   it('sensitive 字段：掩码为 8 圆点 + 显示揭示按钮', () => {
     render(
       <Harness
-        fields={[{ key: 'email', value: 'secret@example.com' }]}
+        fields={[{ kind: 'field' as const, key: 'email', value: 'secret@example.com' }]}
         sensitivities={{ email: 'sensitive' }}
       />,
     );
@@ -90,7 +91,7 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
   it('critical 字段：掩码 + 显示解锁按钮', () => {
     render(
       <Harness
-        fields={[{ key: 'password', value: 'p@ss' }]}
+        fields={[{ kind: 'field' as const, key: 'password', value: 'p@ss' }]}
         sensitivities={{ password: 'critical' }}
       />,
     );
@@ -106,7 +107,7 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
       const revealState = useRevealState();
       return (
         <ObjectDetailFieldsList
-          fields={[{ key: 'email', value: 'secret@example.com' }]}
+          fields={[{ kind: 'field' as const, key: 'email', value: 'secret@example.com' }]}
           typeId="travel"
           contractTypeId={undefined}
           objFieldDefs={undefined}
@@ -144,7 +145,7 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
       const revealState = useRevealState();
       return (
         <ObjectDetailFieldsList
-          fields={[{ key: 'email', value: 'secret@example.com' }]}
+          fields={[{ kind: 'field' as const, key: 'email', value: 'secret@example.com' }]}
           typeId="travel"
           contractTypeId={undefined}
           objFieldDefs={undefined}
@@ -197,7 +198,7 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
       const revealState = useRevealState();
       return (
         <ObjectDetailFieldsList
-          fields={[{ key: 'phone', value: '13800138000' }]}
+          fields={[{ kind: 'field' as const, key: 'phone', value: '13800138000' }]}
           typeId="travel"
           contractTypeId={undefined}
           objFieldDefs={undefined}
@@ -224,5 +225,49 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+});
+
+
+describe('动态字段组树状渲染（与历史快照同构）', () => {
+  const groupEntry: ObjectDetailFieldEntry = {
+    kind: 'dynamicGroup',
+    key: '__dynamic_group__',
+    type: 'dynamic_group',
+    children: [
+      { label: '备注一', value: 'hello world', type: 'text' },
+      { label: '备注二', value: 'second value', type: 'text' },
+    ],
+  };
+
+  function renderGroup(sensitivities: Record<string, SensitivityLevel>) {
+    return render(
+      <Harness fields={[groupEntry]} sensitivities={sensitivities} />,
+    );
+  }
+
+  it('组头仅显示一次敏感度徽章；子行不重复显示', () => {
+    renderGroup({ __dynamic_group__: 'internal' });
+    // 子行值可见（internal 在详情卡片明文）
+    expect(screen.getByText('hello world')).toBeInTheDocument();
+    expect(screen.getByText('second value')).toBeInTheDocument();
+    // 子行名称可见
+    expect(screen.getByText('备注一')).toBeInTheDocument();
+    expect(screen.getByText('备注二')).toBeInTheDocument();
+    // 组名回退为本地化「动态字段组」
+    expect(screen.getByText(/动态字段组/)).toBeInTheDocument();
+    // 敏感度徽章恰好一个（组头），子行不重复——按徽章文本匹配计数
+    const badges = screen.getAllByText(/internal/);
+    expect(badges.length).toBe(1);
+  });
+
+  it('sensitive 组：子行值随组掩码，揭示按钮仅组头一个', () => {
+    renderGroup({ __dynamic_group__: 'sensitive' });
+    // 两个子行值均随组掩码
+    expect(screen.getAllByText('••••••••').length).toBe(2);
+    expect(screen.queryByText('hello world')).not.toBeInTheDocument();
+    expect(screen.queryByText('second value')).not.toBeInTheDocument();
+    // 揭示按钮仅组头一个
+    expect(screen.getAllByText('common:reveal').length).toBe(1);
   });
 });
