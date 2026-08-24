@@ -6,6 +6,7 @@
  * 下行待导入 / 状态卡。本文件仅做编排与密码验证对话框。
  */
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
@@ -21,12 +22,13 @@ import styles from './CloudSyncPage.module.css';
 
 export function CloudSyncPage() {
   const { t } = useTranslation(['settings']);
+  const navigate = useNavigate();
   const s = useCloudSyncPage();
 
   return (
-    <PageShell title={t('settings:cloud_sync_title')}>
-      <PageContainer>
-        <div className={styles.container}>
+    <PageShell title={t('settings:cloud_sync_title')} onBack={() => navigate('/settings')}>
+      <PageContainer variant="form" gap="default">
+        <div>
           <h1 className={styles.title}>{t('settings:cloud_sync_title')}</h1>
           <p className={styles.subtitle}>{t('settings:cloud_sync_subtitle')}</p>
 

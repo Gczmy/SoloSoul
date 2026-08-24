@@ -20,7 +20,7 @@ export function CloudSyncIncomingSection({
 }: CloudSyncIncomingSectionProps) {
   const { t } = useTranslation(['settings']);
   return (
-    <Card className={styles.card}>
+    <Card>
       <h2 className={styles.sectionTitle}>
         <DownloadCloud size={20} style={{ marginRight: 8 }} />
         {t('settings:cloud_sync_incoming_title')}

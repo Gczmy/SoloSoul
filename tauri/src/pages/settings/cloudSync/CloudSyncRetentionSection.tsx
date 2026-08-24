@@ -18,7 +18,7 @@ export function CloudSyncRetentionSection({
 }: CloudSyncRetentionSectionProps) {
   const { t } = useTranslation(['settings']);
   return (
-    <Card className={styles.card}>
+    <Card>
       <h2 className={styles.sectionTitle}>
         <HardDrive size={20} style={{ marginRight: 8 }} />
         {t('settings:cloud_sync_retention')}

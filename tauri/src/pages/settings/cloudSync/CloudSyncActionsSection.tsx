@@ -34,7 +34,7 @@ export function CloudSyncActionsSection({
 }: CloudSyncActionsSectionProps) {
   const { t } = useTranslation(['settings']);
   return (
-    <Card className={styles.card}>
+    <Card>
       <h2 className={styles.sectionTitle}>
         <HardDrive size={20} style={{ marginRight: 8 }} />
         {t('settings:cloud_sync_actions')}
@@ -87,15 +87,15 @@ export function CloudSyncActionsSection({
         <div
           className={styles.testResult}
           style={{
+            // P007 核验补修：改用主题令牌（--success-soft/--error-soft 未定义，
+            // 旧 fallback 为浅色硬编码，深色模式下刺眼）
             backgroundColor: testResult.success
-              ? 'var(--success-soft, #d1fae5)'
-              : 'var(--error-soft, #fee2e2)',
-            color: testResult.success
-              ? 'var(--success, #065f46)'
-              : 'var(--error, #991b1b)',
+              ? 'var(--success-subtle)'
+              : 'var(--danger-subtle)',
+            color: testResult.success ? 'var(--success)' : 'var(--danger)',
             borderColor: testResult.success
-              ? 'var(--success, #065f46)'
-              : 'var(--error, #991b1b)',
+              ? 'color-mix(in srgb, var(--success) 45%, transparent)'
+              : 'color-mix(in srgb, var(--danger) 45%, transparent)',
           }}
         >
           {testResult.success ? (

@@ -9,7 +9,7 @@ import styles from '../CloudSyncPage.module.css';
 export function CloudSyncInfoCard() {
   const { t } = useTranslation(['settings']);
   return (
-    <Card className={[styles.card, styles.infoCard].join(' ')}>
+    <Card className={styles.infoCard}>
       <h2 className={styles.sectionTitle}>
         <Info size={20} style={{ marginRight: 8 }} />
         {t('settings:cloud_sync_info_title')}

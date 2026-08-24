@@ -23,7 +23,7 @@ export function CloudSyncConnectionSection({
 }: CloudSyncConnectionSectionProps) {
   const { t } = useTranslation(['settings']);
   return (
-    <Card className={styles.card}>
+    <Card>
       <h2 className={styles.sectionTitle}>
         <Shield size={20} style={{ marginRight: 8 }} />
         {t('settings:cloud_sync_connection')}

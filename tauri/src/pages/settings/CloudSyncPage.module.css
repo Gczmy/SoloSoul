@@ -1,8 +1,4 @@
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 16px;
-}
+
 
 .title {
   font-size: var(--text-h1);
@@ -15,14 +11,6 @@
   font-size: var(--text-body);
   color: var(--text-secondary);
   margin-bottom: 24px;
-}
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
 }
 
 .sectionTitle {
@@ -50,34 +38,34 @@
   width: 100%;
   padding: 10px 12px;
   font-size: var(--text-body);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--background);
+  background: var(--bg-base);
   color: var(--text-primary);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft, rgba(59, 130, 246, 0.15));
+  border-color: var(--accent-primary));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary)-primary) 18%, transparent);
 }
 
 .select {
   width: 100%;
   padding: 10px 12px;
   font-size: var(--text-body);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--background);
+  background: var(--bg-base);
   color: var(--text-primary);
   cursor: pointer;
 }
 
 .select:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft, rgba(59, 130, 246, 0.15));
+  border-color: var(--accent-primary));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary)-primary) 18%, transparent);
 }
 
 .hint {
@@ -90,7 +78,7 @@
   margin-right: 8px;
   width: 16px;
   height: 16px;
-  accent-color: var(--accent);
+  accent-color: var(--accent-primary));
 }
 
 .retentionGrid {
@@ -114,7 +102,7 @@
 .checkbox {
   width: 16px;
   height: 16px;
-  accent-color: var(--accent);
+  accent-color: var(--accent-primary));
 }
 
 .actionButtons {
@@ -134,8 +122,8 @@
 }
 
 .infoCard {
-  background: var(--info-soft, #eff6ff);
-  border-color: var(--info, #3b82f6);
+  background: var(--info-subtle);
+  border-color: color-mix(in srgb, var(--info) 45%, transparent);
 }
 
 .infoList {
@@ -151,8 +139,8 @@
 }
 
 .statusCard {
-  background: var(--success-soft, #d1fae5);
-  border-color: var(--success, #065f46);
+  background: var(--success-subtle);
+  border-color: color-mix(in srgb, var(--success) 45%, transparent);
 }
 
 .statusGrid {
@@ -206,9 +194,9 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  background: var(--background);
+  background: var(--bg-base);
 }
 
 .incomingName {
