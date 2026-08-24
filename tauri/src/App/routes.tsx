@@ -35,6 +35,7 @@ import { OcrPage } from '@/pages/scan/OcrPage';
 import { HistoryPage } from '@/pages/editor/HistoryPage';
 import { SyncPage } from '@/pages/sync/SyncPage';
 import { useAuthStore } from '@/stores/authStore';
+import { isDevOrDebug } from '@/lib/utils';
 import type { ReactNode } from 'react';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -67,7 +68,11 @@ export const protectedRoutes: RouteConfig[] = [
   { path: '/settings/attachments', element: <GlobalAttachmentManager /> },
   { path: '/settings/vault-directory', element: <VaultDirectoryPage /> },
   { path: '/settings/ocr', element: <OcrSettingsPage /> },
-  { path: '/settings/cloud-sync', element: <CloudSyncPage /> },
+  // Manifesto「本地优先」：发布版不开放云同步——直连 URL 重定向回设置页；
+  // 开发/调试版本正常注册路由。
+  ...(isDevOrDebug()
+    ? [{ path: '/settings/cloud-sync', element: <CloudSyncPage /> }]
+    : [{ path: '/settings/cloud-sync', element: <Navigate to="/settings" replace /> }]),
   { path: '/settings/llm', element: <LlmConfigPage /> },
   { path: '/settings/llm/stats', element: <LlmStatsPage /> },
   { path: '/llm-chat', element: <LlmChatPage /> },

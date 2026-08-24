@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
-import { formatBytes } from '@/lib/utils';
+import { formatBytes, isDevOrDebug } from '@/lib/utils';
 import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
 import { prefetchRegistry } from '@/lib/prefetch/registry';
 import {
@@ -99,12 +99,17 @@ export function SettingsPage() {
           path: '/settings/backup',
           desc: t('settings:desc.backup_restore'),
         },
-        {
-          label: t('settings:items.cloud_sync'),
-          icon: Cloud,
-          path: '/settings/cloud-sync',
-          desc: t('settings:desc.cloud_sync'),
-        },
+        // Manifesto「本地优先」：云同步尚未对外开放，仅开发/调试版本显示入口
+        ...(isDevOrDebug()
+          ? [
+              {
+                label: t('settings:items.cloud_sync'),
+                icon: Cloud,
+                path: '/settings/cloud-sync',
+                desc: t('settings:desc.cloud_sync'),
+              },
+            ]
+          : []),
         {
           label: t('settings:items.operation_log'),
           icon: ClipboardList,
