@@ -14,6 +14,11 @@ import re
 import sys
 from pathlib import Path
 
+# Windows 重定向输出可能使用 cp1252，显式支持中文诊断。
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, "reconfigure"):
+        stream.reconfigure(encoding="utf-8", errors="replace")
+
 ROOT = Path(__file__).resolve().parent.parent
 LIB_RS = ROOT / "src-tauri" / "src" / "lib.rs"
 ACL_TOML = ROOT / "src-tauri" / "permissions" / "solo-soul" / "default.toml"

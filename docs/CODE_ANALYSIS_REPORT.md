@@ -45,6 +45,7 @@
 | P031 | P1 | 规范/构建 | `crates/solosoul-core/src/export_import.rs:209` | 权限 helper 的参数仅在 Unix 分支使用，Windows Clippy 在 `-D warnings` 下报 unused variable 并中断 | `[x]` 已修复 |
 | P032 | P1 | 生命周期 | `src/pages/settings/useVaultDirectory.ts` 等 7 处模块 | 异步订阅晚于卸载时监听器泄漏；目录进度在 StrictMode 重建后不消失，旧计时器还会隐藏新操作 | `[x]` 已修复 |
 | P033 | P1 | 规范/CI | `../solosoul_cli/src/commands/security.rs:5` | 生物识别导入顺序不符合 rustfmt，CLI 格式检查失败 | `[x]` 已修复 |
+| P034 | P1 | 规范/构建 | `package.json`、`scripts/check_acl_consistency.py` | check-all 硬编码 python3，本机只有 python；ACL 中文输出在 cp1252 下异常 | `[x]` 已修复 |
 | P011 | P2 | 安全 | `crates/solosoul-core/src/export_import.rs:221-237,1218-1242,2214` | 导出/导入附件临时明文落共享 temp 目录（可预测目录名、未设 0700/0600）；同仓库其他路径均已收紧权限，此处是离群点 | `[x]` 已修复（核验补修：残留测试改按前缀扫描恢复效力；一次性空目录用后即删） |
 | P012 | P2 | 安全（加固） | `crates/solosoul-sync/src/recovery.rs:269-279,184` | Recovery 主机指纹校验可选（手动输入路径无 MITM 防线），且主机端接受裸 PIN 认证；已有限流/一次性 nonce 缓解，建议加固 | `[ ]` 待修复 |
 | P013 | P2 | 性能/事务 | `crates/solosoul-vault/src/storage/snapshots.rs:369-414` | `repair_invisible_objects` 循环内逐行 query_row + UPDATE 无事务（有一次性标记兜底，仅跑一次，故 P2） | `[x]` 已修复 |
@@ -77,11 +78,13 @@
 
 ## 修复进度
 
-- 已关闭：28 / 33（按问题清单统计；含已修复及已确认设计例外）
+- 已关闭：29 / 34（按问题清单统计；含已修复及已确认设计例外）
 - 未关闭：5 项（P012、P018、P019、P020、P021）
 - 当前处理：无；继续后续核验
 
 ## 本轮核验（2026-09-10）
+
+- **P034**：增加跨平台 `run-python-check.cjs`，按平台选择 Python 3 入口并启用 UTF-8；仅 ENOENT 才尝试下一个解释器，保留真实检查失败的退出码。check-all 统一调用 check:acl/check:pref-keys，ACL 脚本直接运行时也设置 UTF-8 输出。验证：Node 语法检查通过；本机无 python3 时两个 npm 检查分别通过（205 命令、20 键），直接运行 ACL 也通过；注入 `sys.exit(7)` 确认退出码 7 原样传递。
 
 - **P033**：CLI `security.rs` 生物识别导入按 rustfmt 排序；修改前该行使 `cargo fmt --manifest-path solosoul_cli/Cargo.toml --check` 失败，修改后通过。仅导入排序，无运行时行为变化，不新增重复测试。
 
