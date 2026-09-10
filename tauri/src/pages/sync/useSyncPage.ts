@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { trackAsyncListener } from '@/lib/asyncListener';
 import { useTranslation } from 'react-i18next';
 import { Wifi, RefreshCw, Smartphone, Info } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -75,27 +76,34 @@ export function useSyncPage() {
           {
             icon: Wifi,
             title: t('common:guide_sync_step1_title', { defaultValue: 'Enable Sync' }),
-            description:
-              t('common:guide_sync_step1_desc', { defaultValue: 'Turn on sync to make your device discoverable and start listening on a local port. Both devices must be on the same Wi-Fi network.' }),
+            description: t('common:guide_sync_step1_desc', {
+              defaultValue:
+                'Turn on sync to make your device discoverable and start listening on a local port. Both devices must be on the same Wi-Fi network.',
+            }),
           },
           {
             icon: RefreshCw,
             title: t('common:guide_sync_step2_title', { defaultValue: 'Discover & Pair' }),
-            description:
-              t('common:guide_sync_step2_desc', { defaultValue: 'Tap Discover to scan for nearby devices. Tap Sync on a discovered device to pair, then verify the fingerprint to trust it.' }),
+            description: t('common:guide_sync_step2_desc', {
+              defaultValue:
+                'Tap Discover to scan for nearby devices. Tap Sync on a discovered device to pair, then verify the fingerprint to trust it.',
+            }),
           },
           {
             icon: Smartphone,
             title: t('common:guide_sync_step3_title', { defaultValue: 'Automatic Sync' }),
-            description:
-              t('common:guide_sync_step3_desc', { defaultValue: 'Enable Automatic Sync to keep data in sync when the app is in the foreground, on data changes, and periodically.' }),
+            description: t('common:guide_sync_step3_desc', {
+              defaultValue:
+                'Enable Automatic Sync to keep data in sync when the app is in the foreground, on data changes, and periodically.',
+            }),
           },
         ],
         helpLinks: [
           {
             title: t('common:guide_help_device_sync', { defaultValue: 'Device Sync' }),
-            description:
-              t('common:guide_help_device_sync_desc', { defaultValue: 'Pair devices over LAN and keep data in sync' }),
+            description: t('common:guide_help_device_sync_desc', {
+              defaultValue: 'Pair devices over LAN and keep data in sync',
+            }),
             href: '/help?id=device-sync',
           },
         ],
@@ -160,16 +168,7 @@ export function useSyncPage() {
   }, []);
 
   // 监听移动端 NSD 注册失败事件：后端已回滚为禁用，重读状态避免开关 UI 漂移
-  useEffect(() => {
-    let unlisten: (() => void) | undefined;
-    useSyncStore
-      .getState()
-      .initNsdFailedListener()
-      .then((fn) => {
-        unlisten = fn;
-      });
-    return () => unlisten?.();
-  }, []);
+  useEffect(() => trackAsyncListener(useSyncStore.getState().initNsdFailedListener()), []);
 
   // 组件卸载时取消在途的配对自动重试循环
   useEffect(() => {

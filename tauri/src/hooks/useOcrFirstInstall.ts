@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { trackAsyncListener } from '@/lib/asyncListener';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -10,7 +11,6 @@ import {
 } from '@/stores/ocrInstallStore';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { logger } from '@/lib/logger';
 import type { OcrInstallPhase } from '@/components/ui/OcrInstallBanner';
 import type { OcrModelStatus } from '@/lib/ipc';
 
@@ -71,10 +71,10 @@ export function useOcrFirstInstall() {
     if (isMobilePlatform || !isInstalling) return;
 
     const appWindow = getCurrentWindow();
-    let unlisten: (() => void) | undefined;
-
-    appWindow
-      .onCloseRequested(async (event) => {
+    let active = true;
+    const dispose = trackAsyncListener(
+      appWindow.onCloseRequested(async (event) => {
+        if (!active) return;
         event.preventDefault();
         const confirmed = await confirmWithPause(t('quit_while_installing_message'), {
           title: t('quit_while_installing_title'),
@@ -83,14 +83,11 @@ export function useOcrFirstInstall() {
         if (confirmed) {
           await appWindow.close();
         }
-      })
-      .then((fn) => {
-        unlisten = fn;
-      })
-      .catch((err) => logger.warn('[useOcrFirstInstall] CloseRequested listener failed:', err));
-
+      }),
+    );
     return () => {
-      unlisten?.();
+      active = false;
+      dispose();
     };
   }, [isInstalling, t, isMobilePlatform]);
 

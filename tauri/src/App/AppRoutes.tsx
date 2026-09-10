@@ -1,4 +1,5 @@
 import { Suspense, useEffect } from 'react';
+import { trackAsyncListener } from '@/lib/asyncListener';
 import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
@@ -223,9 +224,10 @@ export function AppRoutes() {
 
   // Listen for system theme changes (via Tauri Event from Rust backend)
   useEffect(() => {
-    let unlistenSystemTheme: (() => void) | undefined;
-    (async () => {
-      unlistenSystemTheme = await listenForSystemTheme((mode) => {
+    let active = true;
+    const dispose = trackAsyncListener(
+      listenForSystemTheme((mode) => {
+        if (!active) return;
         const s = useSettingsStore.getState().settings;
         if (s.theme !== 'system') return;
         void applyTheme({
@@ -237,11 +239,12 @@ export function AppRoutes() {
           defaultDarkTheme: s.defaultDarkTheme,
           resolvedSystemTheme: mode,
         });
-      });
-    })();
+      }),
+    );
 
     return () => {
-      unlistenSystemTheme?.();
+      active = false;
+      dispose();
     };
   }, []);
 

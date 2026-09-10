@@ -3,6 +3,7 @@
  * 下载进度事件、知识库重建。
  */
 import { useState, useEffect, useCallback } from 'react';
+import { trackAsyncListener } from '@/lib/asyncListener';
 import type { TFunction } from 'i18next';
 import i18n from '@/lib/i18n';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
@@ -83,17 +84,17 @@ export function useLlmLocalEmbedding({
 
   // 下载进度事件
   useEffect(() => {
-    let unlisten: (() => void) | undefined;
-    listen<{ modelId: string; progress: number }>('embed-download-progress', (event) => {
-      if (event.payload.modelId === downloadingId) {
-        setDownloadProgress(event.payload.progress);
-      }
-    }).then((fn) => {
-      unlisten = fn;
-    });
-
+    let active = true;
+    const dispose = trackAsyncListener(
+      listen<{ modelId: string; progress: number }>('embed-download-progress', (event) => {
+        if (active && event.payload.modelId === downloadingId) {
+          setDownloadProgress(event.payload.progress);
+        }
+      }),
+    );
     return () => {
-      if (unlisten) unlisten();
+      active = false;
+      dispose();
     };
   }, [downloadingId]);
 

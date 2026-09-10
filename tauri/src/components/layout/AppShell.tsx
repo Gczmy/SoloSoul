@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
+import { trackAsyncListener } from '@/lib/asyncListener';
 import { useLocation } from 'react-router-dom';
 import styles from './AppShell.module.css';
 import { SideNavigation } from './SideNavigation';
@@ -39,29 +40,11 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
   // 入站 Hello 落库一条新的未信任 peer 记录时，后端 emit sync-pairing-request。
   // 使用 selector 只订阅 incomingPairingRequest，避免整个 store 变化导致全页面重渲染。
   const incomingPairingRequest = useSyncStore((s) => s.incomingPairingRequest);
-  useEffect(() => {
-    let unlisten: (() => void) | undefined;
-    useSyncStore
-      .getState()
-      .initPairingRequestListener()
-      .then((fn) => {
-        unlisten = fn;
-      });
-    return () => unlisten?.();
-  }, []);
+  useEffect(() => trackAsyncListener(useSyncStore.getState().initPairingRequestListener()), []);
 
   // 入站同步完成通知：全局挂载监听（响应方用户不在同步页也能收到「同步完成 + 条数」
   // toast）。与配对请求监听对称，B 侧任意页面都能感知对端完成的同步。
-  useEffect(() => {
-    let unlisten: (() => void) | undefined;
-    useSyncStore
-      .getState()
-      .initSyncCompletedListener()
-      .then((fn) => {
-        unlisten = fn;
-      });
-    return () => unlisten?.();
-  }, []);
+  useEffect(() => trackAsyncListener(useSyncStore.getState().initSyncCompletedListener()), []);
 
   const handleIncomingTrust = async () => {
     const s = useSyncStore.getState();

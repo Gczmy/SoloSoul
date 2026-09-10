@@ -3,7 +3,8 @@
  * 承载目录信息加载、SAF 选择/迁移/回切、双向同步、进度事件监听与重启流程；
  * 展示层见 VaultDirectorySection.tsx。
  */
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { trackAsyncListener } from '@/lib/asyncListener';
 import { useTranslation } from 'react-i18next';
 import { useToastError } from '@/hooks/useToastError';
 import { getPlatform } from '@/lib/platform';
@@ -37,7 +38,6 @@ export function useVaultDirectory() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [platformName, setPlatformName] = useState<string>('');
   const [syncProgress, setSyncProgress] = useState<SyncProgress | null>(null);
-  const unmountedRef = useRef(false);
 
   const loadInfo = useCallback(async () => {
     try {
@@ -54,7 +54,9 @@ export function useVaultDirectory() {
   }, [t, onError]);
 
   useEffect(() => {
+    let active = true;
     getPlatform().then((p) => {
+      if (!active) return;
       setPlatformName(p);
       if (p === 'android') {
         loadInfo();
@@ -62,28 +64,36 @@ export function useVaultDirectory() {
         setLoading(false);
       }
     });
-
-    let unlisten: (() => void) | null = null;
-    listen<SyncProgress>('sync-progress', (event) => {
-      const { phase, current, total } = event.payload;
-      if (phase === 'auto_sync') return;
-      if (current >= total) {
-        setSyncProgress({ phase, current, total });
-        setTimeout(() => {
-          if (!unmountedRef.current) setSyncProgress(null);
-        }, 2000);
-      } else {
-        setSyncProgress({ phase, current, total });
-      }
-    }).then((fn) => {
-      unlisten = fn;
-    });
-
     return () => {
-      unmountedRef.current = true;
-      if (unlisten) unlisten();
+      active = false;
     };
   }, [loadInfo]);
+
+  // 进度监听不依赖翻译函数，切换语言时继续保留当前操作的清除计时。
+  useEffect(() => {
+    let active = true;
+    let clearProgressTimer: ReturnType<typeof setTimeout> | undefined;
+    const dispose = trackAsyncListener(
+      listen<SyncProgress>('sync-progress', (event) => {
+        const { phase, current, total } = event.payload;
+        if (!active || phase === 'auto_sync') return;
+        // 新进度到达后取消上一轮的清除计时，避免隐藏正在进行的同步。
+        clearTimeout(clearProgressTimer);
+        setSyncProgress({ phase, current, total });
+        if (current >= total) {
+          clearProgressTimer = setTimeout(() => {
+            if (active) setSyncProgress(null);
+          }, 2000);
+        }
+      }),
+    );
+
+    return () => {
+      active = false;
+      clearTimeout(clearProgressTimer);
+      dispose();
+    };
+  }, []);
 
   /** 切换目录成功后的共同收尾：清授权失效横幅 + 刷新信息。 */
   const afterDirectorySwitched = useCallback(async () => {
@@ -98,8 +108,8 @@ export function useVaultDirectory() {
   }, [loadInfo]);
 
   const handlePickAndSet = async () => {
-    const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
-      (m) => m.useAutoLockPauseStore.getState(),
+    const { pause, resume } = await import('@/stores/autoLockPauseStore').then((m) =>
+      m.useAutoLockPauseStore.getState(),
     );
     pause();
     try {
@@ -177,10 +187,14 @@ export function useVaultDirectory() {
   const getProgressLabel = useCallback(
     (phase: SyncProgress['phase']): string => {
       switch (phase) {
-        case 'sync_to_remote': return t('settings:vault_directory_sync_to_remote');
-        case 'sync_from_remote': return t('settings:vault_directory_sync_from_remote');
-        case 'migrate': return t('settings:vault_directory_migrating_title');
-        default: return '';
+        case 'sync_to_remote':
+          return t('settings:vault_directory_sync_to_remote');
+        case 'sync_from_remote':
+          return t('settings:vault_directory_sync_from_remote');
+        case 'migrate':
+          return t('settings:vault_directory_migrating_title');
+        default:
+          return '';
       }
     },
     [t],

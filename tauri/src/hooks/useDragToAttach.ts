@@ -6,6 +6,7 @@ import {
   type MutableRefObject,
   type SetStateAction,
 } from 'react';
+import { trackAsyncListener } from '@/lib/asyncListener';
 import { uploadAttachmentsSequentially, filterOutDirectories } from '@/lib/attachmentUpload';
 import { useUiStore } from '@/stores/uiStore';
 import i18n from '@/lib/i18n';
@@ -222,12 +223,12 @@ export function useDragToAttach(objectId: string | null, options?: UseDragToAtta
   const mountedRef = useRef(true);
 
   useEffect(() => {
-    let unlisten: (() => void) | null = null;
+    let active = true;
     mountedRef.current = true;
 
-    (async () => {
-      unlisten = await registerDragDropListener((payload) => {
-        if (!mountedRef.current) return;
+    const dispose = trackAsyncListener(
+      registerDragDropListener((payload) => {
+        if (!active || !mountedRef.current) return;
 
         const el = ref.current;
         const currentObjectId = objectIdRef.current;
@@ -276,10 +277,11 @@ export function useDragToAttach(objectId: string | null, options?: UseDragToAtta
             break;
           }
         }
-      });
-    })();
+      }),
+    );
 
     return () => {
+      active = false;
       mountedRef.current = false;
       pendingQueueRef.current = []; // 卸载时丢弃队列
       // 清理去重定时器
@@ -287,7 +289,7 @@ export function useDragToAttach(objectId: string | null, options?: UseDragToAtta
         clearTimeout(entry.timer);
       }
       recentDropSignaturesRef.current = [];
-      unlisten?.();
+      dispose();
     };
     // 只在 mount/unmount 时注册/注销监听器
     // P212: empty deps intentional — all mutable state is stored in refs.
