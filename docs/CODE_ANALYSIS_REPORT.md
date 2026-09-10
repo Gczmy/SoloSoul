@@ -57,7 +57,7 @@
 | P018 | P2 | 重复代码 | 全库 93 处 | `conn.lock()` + `ok_or("Vault is locked")?` 守卫样板 93 处，可考虑宏/helper 收敛（设计惯性，非 bug） | `[x]` 已确认设计保留（沿用既有渐进治理决定） |
 | P019 | P2 | 可维护性 | 详见下文清单 | Rust 过长函数 Top10（>50 行非注释，最长 159 行） | `[x]` 已核实既有拆分，其余编排函数按设计保留 |
 | P020 | P2 | 可维护性 | 详见下文清单 | Rust 深层嵌套（≥5 层）多处，最深 `auto_sync_core.rs:87` 达 8 层 | `[x]` 已核实审计样板收敛，其余结构性嵌套保留 |
-| P021 | P2 | 可维护性 | 详见下文清单 | 前端超长组件第二梯队（6 个 300+ 行组件 + `pluginStore.runPlugin` 137 行 + `syncStore` 内嵌监听器 120 行） | `[ ]` 待修复 |
+| P021 | P2 | 可维护性 | 详见下文清单 | 前端超长组件第二梯队（6 个 300+ 行组件 + `pluginStore.runPlugin` 137 行 + `syncStore` 内嵌监听器 120 行） | `[x]` 已核实逻辑拆分，其余内聚组件按设计保留 |
 | P022 | P2 | 性能 | `src/components/attachment/PhotoAlbumGrid.tsx:153` | 相册网格 `items.map` 全量渲染 DOM，无窗口化上限（缩略图已懒加载缓解） | `[x]` 已修复 |
 | P023 | P2 | 性能 | `src/pages/scan/ScanLocalPage.tsx:107` | 目录导入 `Promise.allSettled` 并发无上限，大目录瞬时打出大量 IPC | `[x]` 已修复 |
 | P024 | P2 | 死代码 | 详见下文清单 | 6 个 `export` 仅在定义文件内部使用，可去掉 export（无整文件级死代码） | `[x]` 已修复 |
@@ -79,11 +79,13 @@
 
 ## 修复进度
 
-- 已关闭：33 / 35（按问题清单统计；含已修复及已确认设计例外）
-- 未关闭：2 项（P012、P021）
+- 已关闭：34 / 35（按问题清单统计；含已修复及已确认设计例外）
+- 未关闭：1 项（P012）
 - 当前处理：无；继续后续核验
 
 ## 本轮核验（2026-09-10）
+
+- **P021**：核实 pluginStore.applyPluginRunEvent、syncStore.refreshAfterInbound、RecoveryManualEntryPanel 已落地；同步合并分支亦无旧的重复 loadStatus。PageGuide、附件/相册预览及对象编辑器沿用内聚保留决定；补查 PluginDashboardPage 已委托卡片、结果、日志、参数及授权对话框，并用 useMemo 处理派生数据，无仅因行数而继续拆分的依据。该项仅校正报告状态。验证：源码与调用点核对、`git diff --check`；本项只修改报告，不重复运行已通过的代码测试。
 
 - **P020**：核实 commands/biometric.rs 的 write_biometric_audit 与 unlock_audit_action_type 已收敛点名的六处审计样板；tokio::select! 分支及 SQL 链式访问保留既有结构。该项关闭表示已完成针对性重构并保留已评估结构，不表示消除全部五层以上嵌套。验证：源码与调用点核对、`git diff --check`；本项只修改报告，不重复运行已通过的代码测试。
 
