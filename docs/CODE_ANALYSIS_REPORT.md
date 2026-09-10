@@ -55,7 +55,7 @@
 | P016 | P2 | 重复代码 | `crates/solosoul-vault/src/storage/reencrypt.rs:54,106,126` | 三个 reencrypt 函数仅表名不同、函数体逐字节相同；`storage.rs:595` 已有通用版可收敛 | `[x]` 已修复 |
 | P017 | P2 | 重复代码 | `crates/solosoul-core/src/objects.rs:1102` vs `src-tauri/src/commands/attachment/mod.rs:114` | `load_all_referenced_attachment_ids` 跨 crate 双实现（后者 test-only），建议保留一个共享实现 | `[x]` 已修复 |
 | P018 | P2 | 重复代码 | 全库 93 处 | `conn.lock()` + `ok_or("Vault is locked")?` 守卫样板 93 处，可考虑宏/helper 收敛（设计惯性，非 bug） | `[x]` 已确认设计保留（沿用既有渐进治理决定） |
-| P019 | P2 | 可维护性 | 详见下文清单 | Rust 过长函数 Top10（>50 行非注释，最长 159 行） | `[ ]` 待修复 |
+| P019 | P2 | 可维护性 | 详见下文清单 | Rust 过长函数 Top10（>50 行非注释，最长 159 行） | `[x]` 已核实既有拆分，其余编排函数按设计保留 |
 | P020 | P2 | 可维护性 | 详见下文清单 | Rust 深层嵌套（≥5 层）多处，最深 `auto_sync_core.rs:87` 达 8 层 | `[ ]` 待修复 |
 | P021 | P2 | 可维护性 | 详见下文清单 | 前端超长组件第二梯队（6 个 300+ 行组件 + `pluginStore.runPlugin` 137 行 + `syncStore` 内嵌监听器 120 行） | `[ ]` 待修复 |
 | P022 | P2 | 性能 | `src/components/attachment/PhotoAlbumGrid.tsx:153` | 相册网格 `items.map` 全量渲染 DOM，无窗口化上限（缩略图已懒加载缓解） | `[x]` 已修复 |
@@ -79,11 +79,13 @@
 
 ## 修复进度
 
-- 已关闭：31 / 35（按问题清单统计；含已修复及已确认设计例外）
-- 未关闭：4 项（P012、P019、P020、P021）
+- 已关闭：32 / 35（按问题清单统计；含已修复及已确认设计例外）
+- 未关闭：3 项（P012、P020、P021）
 - 当前处理：无；继续后续核验
 
 ## 本轮核验（2026-09-10）
+
+- **P019**：核实 import_attachments 三个阶段 helper、attachment_download 源/目标校验 helper、build_upgraded_config、map_trash_change_row、build_page_delete_trash_items、build_preview_object_summaries 均已存在并被调用。handle_inbound、recovery_restore_from_host、export_objects_document 仍为分阶段编排，沿用旧报告的保留决定；biometric 审计重复归入 P020。关闭落后的待修复状态，不为函数行数重复拆分。验证：源码与调用点核对、`git diff --check`；本项只修改报告，不重复运行已通过的代码测试。
 
 - **P018**：核对 storage.rs 的 with_tx 与 LockHoldObserver，显式锁守卫承载锁生命周期和观测边界；原报告已确认这些样板不属于行为缺陷，既有处置决定为触碰存储层时渐进收敛。本轮沿用该决定关闭机械迁移建议，未声称完成 93 处改写。验证：源码与调用点核对、`git diff --check`；本项只修改报告，不重复运行已通过的代码测试。
 
