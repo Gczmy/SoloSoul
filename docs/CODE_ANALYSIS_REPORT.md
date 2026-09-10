@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-09-10（轮次 5：按审查流程继续逐项核验与修复）
+> 最后更新：2026-09-10（轮次 5：本地修复完成，完整验收受 GUI 测试启动错误阻断）
 > 修复轮次：5（逐项核验与修复）
 > 上轮：4 —— 云同步设置页渲染崩溃修复：CSS module 类名字符串误展开为 style 索引属性
 > （`style={{ ...styles.input }}`），WebKit 抛「Cannot set indexed properties on this object」；
@@ -49,7 +49,7 @@
 | P035 | P2 | 测试稳定性 | `src/components/attachment/PhotoAlbumOverlay.test.tsx` | 懒加载断言允许等待 8 秒，但测试仍在默认 5 秒被终止，异步操作干扰下一用例 | `[x]` 已修复 |
 | P036 | P2 | 规范/测试 | `crates/solosoul-vault/tests/p025_baseline.rs:115`、`crates/solosoul-core/tests/cloud_sync_webdav_e2e.rs:332` | 测试存在未用循环变量和局部导入，扩大 Clippy 覆盖到测试时会失败 | `[x]` 已修复 |
 | P011 | P2 | 安全 | `crates/solosoul-core/src/export_import.rs:221-237,1218-1242,2214` | 导出/导入附件临时明文落共享 temp 目录（可预测目录名、未设 0700/0600）；同仓库其他路径均已收紧权限，此处是离群点 | `[x]` 已修复（核验补修：残留测试改按前缀扫描恢复效力；一次性空目录用后即删） |
-| P012 | P2 | 安全（加固） | `crates/solosoul-sync/src/recovery.rs:269-279,184` | Recovery 主机指纹校验可选（手动输入路径无 MITM 防线），且主机端接受裸 PIN 认证；已有限流/一次性 nonce 缓解，建议加固 | `[ ]` 待修复 |
+| P012 | P2 | 安全（加固） | `crates/solosoul-sync/src/recovery.rs:269-279,184` | Recovery 主机指纹校验可选（手动输入路径无 MITM 防线），且主机端接受裸 PIN 认证；已有限流/一次性 nonce 缓解，建议加固 | `[ ]` 延期（沿用既有处置决定） |
 | P013 | P2 | 性能/事务 | `crates/solosoul-vault/src/storage/snapshots.rs:369-414` | `repair_invisible_objects` 循环内逐行 query_row + UPDATE 无事务（有一次性标记兜底，仅跑一次，故 P2） | `[x]` 已修复 |
 | P014 | P2 | 性能 | `crates/solosoul-vault/src/storage/objects.rs:448` | `save_object_tx` 无条件克隆整棵 properties JSON，即使无需注入 `__templateName`；可加 `template_id.is_some()` 惰性克隆 | `[x]` 已修复 |
 | P015 | P2 | 性能 | `src-tauri/src/commands/export_import/import.rs:130-135` | `import_decrypt_preview` 整包读入内存（上限 100MB，峰值约 3×100MB）；主导入路径已流式化，预览路径遗留 | `[x]` 已修复 |
@@ -82,9 +82,13 @@
 
 - 已关闭：35 / 36（按问题清单统计；含已修复及已确认设计例外）
 - 未关闭：1 项（P012）
-- 当前处理：无；进入本轮复审收尾
+- 当前处理：无；本轮复审见 [CODE_ANALYSIS_REPORT_FINAL.md](CODE_ANALYSIS_REPORT_FINAL.md)
 
 ## 本轮核验（2026-09-10）
+
+- **复审结果**：本轮 P031–P036 六项实际修复与 P010/P018–P021 五项历史状态校正均已逐项独立提交，清单 35/36 已关闭。P012 仍存在：不提供可信预期指纹时没有主机身份校验，PIN/nonce/限流不防御主动中间人；本轮未收到变更旧延期决定的答复，继续保留为 P2，不标为已修复。
+- **补充验证**：`cargo test --workspace --exclude solo_soul --no-fail-fast -j 2` 编译及执行成功，527 passed / 0 failed / 3 ignored；随后 P036 的性能基线以 `--ignored` 显式运行并通过。WebDAV 依赖外部服务的用例因缺少 URL 自行跳过。GUI 的 STATUS_ENTRYPOINT_NOT_FOUND 仍未定位，故 check-all 不计为全链通过，不创建 audit-passed 标签。
+- **提交边界**：仅提交本轮明确路径；用户原有子模块指针、NSIS 位图及搜索索引改动保留。`git push origin main` 曾被自动审批拒绝，远程推送未执行；审批理由为未明确授权将具体报告/项目内容发送到 github.com/Gczmy/SoloSoul 的 main。
 
 - **P036**：性能基线循环使用 `_` 表达不读取索引，WebDAV 测试去除局部未用 Pin 导入（顶层仍有真实用途的导入保留）。验证：cargo fmt 通过，两份测试各自 `cargo clippy --test ... -- -D warnings` 通过；显式运行通常被忽略的大数据集基线 1/1 通过，WebDAV 测试目标 9/9 返回成功，其中依赖外部服务的用例因未设置 URL 自行跳过网络操作，不计为真实 WebDAV 服务验证。
 
@@ -109,9 +113,9 @@
 - **P010**：既有提交 `77e53977` 已将目录设置的状态与处理器迁入 `useVaultDirectory.ts`，`VaultDirectorySection.tsx` 仅组合展示。核对两个文件及 Git 历史后关闭遗漏的待修复状态，本次未重复拆分。文档变更用 `git diff --check` 验证。
 - 启动时工作区已有 NSIS 位图、搜索索引和插件市场子模块指针改动，本轮按明确路径暂存，保留这些既有改动。本轮前端基线：TSC、ESLint、109 文件/931 用例、Markdown 分块、205 条 ACL、20 个偏好键、双语 0 缺键均通过。Vitest 初次 7 个 worker 启动超时，降低并发后这 7 个文件的 183 个用例全部通过。Windows 上 Python 检查使用 `python -X utf8` 运行，原 check-all 入口的兼容问题另项处理。
 
-## 延期项处置决定（2026-08-24 审查轮收尾）
+## 历史延期项处置决定（2026-08-24 审查轮收尾）
 
-以下 9 项**不在本轮修复**，理由与建议时机如下：
+以下为当时的处置记录；2026-09-10 当前状态以问题清单与本轮核验为准：
 
 | ID | 类别 | 延期理由 | 建议时机 |
 |----|------|----------|----------|
@@ -125,7 +129,7 @@
 | ~~P020~~ ✅ 点名项 | Rust 深层嵌套 | biometric 系 6 处审计样板收敛 write_biometric_audit + unlock_audit_action_type（报告点名「值得优先重构」项）；其余为 tokio::select!/SQL 链式结构性嵌套（报告自述实际风险低），维持现状 |
 | ~~P021~~ ✅ 逻辑类 3/6 | 前端超长组件第二梯队 | pluginStore.runPlugin 巨型 switch→applyPluginRunEvent 纯函数；syncStore 入站刷新尾收敛 refreshAfterInbound（消除双分支重复）；RecoveryQrContent 手动面板拆出 RecoveryManualEntryPanel（391→205+233）。**PageGuide / AttachmentPreviewOverlay / PhotoAlbumOverlay / useObjectEditorPage 维持现状**——手势拖拽与预览生命周期高内聚，拆分损害内聚性且视觉回归无法在此环境验证 |
 
-## 收尾验证基线（含结构性拆分轮）
+## 历史收尾验证基线（2026-08，含结构性拆分轮）
 
 - `cargo fmt --check` / `clippy -D warnings`：✅
 - Rust workspace：**994 passed / 0 failed**
@@ -242,7 +246,7 @@ useObjectDetailModal（copiedField 键控）、useLlmChatCore（copiedIndex 键�
 AccountSettingsPage（toast 驱动）、SyncShowQrDialog（addr/pin 双键，含 fallback）。
 RecoveryQrContent 为纯展示组件（props 驱动），随 SyncShowQrDialog 一并受益。
 
-## 详细问题描述与修复指引
+## 初始问题描述与修复指引（历史证据，行号与计数未代表当前代码）
 
 ### P001 — cloud_sync 命令未登记 ACL 白名单（P1，规范/CI）
 
@@ -392,7 +396,7 @@ TODO/FIXME 注释：全库 **零**。
 - **证据**：`node scripts/check-missing-i18n.mjs` 实测 zh-CN、en-US 各缺 `common:enabled`、`common:disabled`；使用点 `CloudSyncPage.tsx:603` 无 defaultValue，缺失时直接渲染原始 key 字符串。
 - **建议修复**：补两份语言的 key。
 
-## 已核查无发现的维度（留档）
+## 初始分析未发现问题的维度（历史留档，不作为本轮保证）
 
 - **Rust 安全**：无不安全 `unsafe`（4 处均为必要平台 FFI）；无命令注入（Command 全分离参数 + 用户名白名单）；路径遍历防护完整有测试；无硬编码密钥；无 `serde(untagged)`；加密无误用（nonce 唯一、KDF 参数正确、ct 比较、Zeroizing 贯穿）；无 SQL 注入（全参数化）。
 - **Rust 死代码**：无确凿发现（全部非 command 非测试函数均有真实调用点；唯一 `#[allow(dead_code)]` 是 RAII 锁句柄的有意保留）。
