@@ -1,19 +1,20 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-24（真机回归修复轮）
-> 修复轮次：4 —— 云同步设置页渲染崩溃修复：CSS module 类名字符串误展开为 style 索引属性
+> 最后更新：2026-09-10（轮次 5：按审查流程继续逐项核验与修复）
+> 修复轮次：5（逐项核验与修复）
+> 上轮：4 —— 云同步设置页渲染崩溃修复：CSS module 类名字符串误展开为 style 索引属性
 > （`style={{ ...styles.input }}`），WebKit 抛「Cannot set indexed properties on this object」；
 > 隐患自 Phase 2 创建页面即存在，非 P007 拆分引入。新增页面级渲染冒烟测试锁定回归。
 > 历史轮次：1 初始分析 → 2 逐项修复（25/30）→ 3 外部核验补修（P005/P008/P011/P021② 等 5 项）
 > 当前分支：`main`
 
-## 本轮说明
+## 历史轮次说明（2026-08-24）
 
 - 按用户要求：**重新全量分析生成新报告，不延续旧报告，生成后不进行修复**。
 - 分析范围：`tauri/`（Rust `src-tauri/src` + `crates/`，前端 `src/`），跳过 `node_modules/`、`target/`、`dist/`、`.vite/`、`gen/` 等生成目录。
 - Git 状态：仅 2 个未跟踪的 `bugreport-*.zip` 文件（位于 `tauri/`），无代码改动，未做任何提交。
 
-## 基线检查结果（`npm run check-all`）
+## 历史基线检查结果（2026-08-24，`npm run check-all`）
 
 | 检查项 | 结果 |
 |--------|------|
@@ -40,7 +41,7 @@
 | P007 | P1 | 可维护性 | `src/pages/settings/CloudSyncPage.tsx:51-632` | 单组件约 535 行非注释代码，承载 WebDAV 配置/保留策略/连接器/入站列表全部逻辑 | `[x]` 已修复 |
 | P008 | P1 | 可维护性 | `src/components/forms/DatePicker.tsx:168-609` | 主组件约 385 行，段落解析+键盘处理+滚轮渲染混杂 | `[x]` 已修复（核验补修：Calendar 新增的 common:hour/minute 双语键已入库） |
 | P009 | P1 | 可维护性 | `src/pages/settings/useExportImportPage.tsx:33-454` | 导出/导入 hook 状态机约 371 行 | `[x]` 已修复 |
-| P010 | P1 | 可维护性 | `src/pages/settings/VaultDirectorySection.tsx:27-423` | 单组件约 369 行 | `[ ]` 待修复 |
+| P010 | P1 | 可维护性 | `src/pages/settings/VaultDirectorySection.tsx:27-423` | 单组件约 369 行 | `[x]` 已修复（2026-09-10 核实既有拆分，补正状态） |
 | P011 | P2 | 安全 | `crates/solosoul-core/src/export_import.rs:221-237,1218-1242,2214` | 导出/导入附件临时明文落共享 temp 目录（可预测目录名、未设 0700/0600）；同仓库其他路径均已收紧权限，此处是离群点 | `[x]` 已修复（核验补修：残留测试改按前缀扫描恢复效力；一次性空目录用后即删） |
 | P012 | P2 | 安全（加固） | `crates/solosoul-sync/src/recovery.rs:269-279,184` | Recovery 主机指纹校验可选（手动输入路径无 MITM 防线），且主机端接受裸 PIN 认证；已有限流/一次性 nonce 缓解，建议加固 | `[ ]` 待修复 |
 | P013 | P2 | 性能/事务 | `crates/solosoul-vault/src/storage/snapshots.rs:369-414` | `repair_invisible_objects` 循环内逐行 query_row + UPDATE 无事务（有一次性标记兜底，仅跑一次，故 P2） | `[x]` 已修复 |
@@ -73,8 +74,14 @@
 
 ## 修复进度
 
-- 已完成：21 / 30（P0: 0，P1: 6，P2: 15）
-- 延期：9 项（见「延期项处置决定」）
+- 已关闭：25 / 30（按问题清单统计；含已修复及已确认设计例外）
+- 未关闭：5 项（P012、P018、P019、P020、P021，继续核对历史处置与代码）
+- 当前处理：无
+
+## 本轮核验（2026-09-10）
+
+- **P010**：既有提交 `77e53977` 已将目录设置的状态与处理器迁入 `useVaultDirectory.ts`，`VaultDirectorySection.tsx` 仅组合展示。核对两个文件及 Git 历史后关闭遗漏的待修复状态，本次未重复拆分。文档变更用 `git diff --check` 验证。
+- 启动时工作区已有 NSIS 位图、搜索索引和插件市场子模块指针改动，本轮按明确路径暂存，保留这些既有改动。当前完整基线正在执行，历史通过记录不代表本轮结果。
 
 ## 延期项处置决定（2026-08-24 审查轮收尾）
 
@@ -366,7 +373,7 @@ TODO/FIXME 注释：全库 **零**。
 - **前端安全**：无 `dangerouslySetInnerHTML`/`eval`/`new Function`；Markdown 统一经 `SafeMarkdown` 消毒；无敏感数据写日志；文件对话框全部经 `lib/dialog.ts` 封装（18 个调用方无裸调）。
 - **架构**：crates 依赖为单向 DAG 无循环；capabilities 无过度授权（fs/shell 均最小权限）；IPC 统一走 `ipcClient.ts` 不吞错；Zustand↔Rust 事件同步主链路完整（唯一缺口即 P029）。
 
-## 备注
+## 初始分析备注（历史，不适用于本轮执行）
 
 - 按用户要求，本轮**不进入阶段 3 修复流程**，所有问题保持 `[ ]` 待修复状态。
 - P001/P002 为 CI 阻断项，建议优先处理；P003 为唯一安全策略不一致项，建议紧随其后。
