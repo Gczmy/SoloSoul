@@ -42,6 +42,7 @@
 | P008 | P1 | 可维护性 | `src/components/forms/DatePicker.tsx:168-609` | 主组件约 385 行，段落解析+键盘处理+滚轮渲染混杂 | `[x]` 已修复（核验补修：Calendar 新增的 common:hour/minute 双语键已入库） |
 | P009 | P1 | 可维护性 | `src/pages/settings/useExportImportPage.tsx:33-454` | 导出/导入 hook 状态机约 371 行 | `[x]` 已修复 |
 | P010 | P1 | 可维护性 | `src/pages/settings/VaultDirectorySection.tsx:27-423` | 单组件约 369 行 | `[x]` 已修复（2026-09-10 核实既有拆分，补正状态） |
+| P031 | P1 | 规范/构建 | `crates/solosoul-core/src/export_import.rs:209` | 权限 helper 的参数仅在 Unix 分支使用，Windows Clippy 在 `-D warnings` 下报 unused variable 并中断 | `[x]` 已修复 |
 | P011 | P2 | 安全 | `crates/solosoul-core/src/export_import.rs:221-237,1218-1242,2214` | 导出/导入附件临时明文落共享 temp 目录（可预测目录名、未设 0700/0600）；同仓库其他路径均已收紧权限，此处是离群点 | `[x]` 已修复（核验补修：残留测试改按前缀扫描恢复效力；一次性空目录用后即删） |
 | P012 | P2 | 安全（加固） | `crates/solosoul-sync/src/recovery.rs:269-279,184` | Recovery 主机指纹校验可选（手动输入路径无 MITM 防线），且主机端接受裸 PIN 认证；已有限流/一次性 nonce 缓解，建议加固 | `[ ]` 待修复 |
 | P013 | P2 | 性能/事务 | `crates/solosoul-vault/src/storage/snapshots.rs:369-414` | `repair_invisible_objects` 循环内逐行 query_row + UPDATE 无事务（有一次性标记兜底，仅跑一次，故 P2） | `[x]` 已修复 |
@@ -74,14 +75,16 @@
 
 ## 修复进度
 
-- 已关闭：25 / 30（按问题清单统计；含已修复及已确认设计例外）
-- 未关闭：5 项（P012、P018、P019、P020、P021，继续核对历史处置与代码）
+- 已关闭：26 / 31（按问题清单统计；含已修复及已确认设计例外）
+- 未关闭：5 项（P012、P018、P019、P020、P021）
 - 当前处理：无
 
 ## 本轮核验（2026-09-10）
 
+- **P031**：本机 `npm run check-all` 已通过 TypeScript 与 Rust fmt，随后 Clippy 因 `tighten_file_perms(path)` 的非 Unix 未用参数失败。将参数及 Unix 分支引用统一命名为 `_path`，保留现有权限行为；验证：`cargo fmt --check`、全 workspace `cargo clippy -- -D warnings` 通过；`cargo test -p solosoul-core --lib` 202/202 通过。全量 `cargo test` 编译完成，但 GUI 测试程序启动以 `0xc0000139 (STATUS_ENTRYPOINT_NOT_FOUND)` 退出，尚未执行用例；直接 `--list` 同样失败，具体 DLL 入口仍待定位，不计为全量测试通过。
+
 - **P010**：既有提交 `77e53977` 已将目录设置的状态与处理器迁入 `useVaultDirectory.ts`，`VaultDirectorySection.tsx` 仅组合展示。核对两个文件及 Git 历史后关闭遗漏的待修复状态，本次未重复拆分。文档变更用 `git diff --check` 验证。
-- 启动时工作区已有 NSIS 位图、搜索索引和插件市场子模块指针改动，本轮按明确路径暂存，保留这些既有改动。当前完整基线正在执行，历史通过记录不代表本轮结果。
+- 启动时工作区已有 NSIS 位图、搜索索引和插件市场子模块指针改动，本轮按明确路径暂存，保留这些既有改动。本轮前端基线：TSC、ESLint、109 文件/931 用例、Markdown 分块、205 条 ACL、20 个偏好键、双语 0 缺键均通过。Vitest 初次 7 个 worker 启动超时，降低并发后这 7 个文件的 183 个用例全部通过。Windows 上 Python 检查使用 `python -X utf8` 运行，原 check-all 入口的兼容问题另项处理。
 
 ## 延期项处置决定（2026-08-24 审查轮收尾）
 

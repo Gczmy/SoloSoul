@@ -206,11 +206,11 @@ pub(crate) fn create_private_temp_dir(prefix: &str) -> Result<std::path::PathBuf
 }
 
 /// P011：临时明文文件权限收紧为仅当前用户可读写（Unix 0600，best-effort）。
-pub(crate) fn tighten_file_perms(path: &std::path::Path) {
+pub(crate) fn tighten_file_perms(_path: &std::path::Path) {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600));
+        let _ = std::fs::set_permissions(_path, std::fs::Permissions::from_mode(0o600));
     }
 }
 
