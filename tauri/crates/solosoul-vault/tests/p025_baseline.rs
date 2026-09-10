@@ -112,7 +112,7 @@ fn p025_hold_baseline_large_dataset() {
             .unwrap();
     }
     for id in ids.iter().take(200) {
-        for s in 0..3 {
+        for _ in 0..3 {
             vault
                 .save_snapshot(id, "manual", b"{\"snapshot\":true}", "benchmark")
                 .unwrap();

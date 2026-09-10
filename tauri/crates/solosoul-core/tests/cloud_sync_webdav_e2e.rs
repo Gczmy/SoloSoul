@@ -329,7 +329,6 @@ fn t08_upload_if_match_conflict_detection() {
         c.ensure_dir(&prefix).await.map_err(|e| e.to_string())?;
 
         use std::io::Cursor;
-        use std::pin::Pin;
         // 各版本使用不同长度：wsgidav 等 ETag 基于 mtime+size，
         // 同尺寸同秒重写会产生相同 ETag 导致无法触发 412。
         // 首次无条件写入 v1（7 字节）

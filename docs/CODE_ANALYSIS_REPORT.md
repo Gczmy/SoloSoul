@@ -47,6 +47,7 @@
 | P033 | P1 | 规范/CI | `../solosoul_cli/src/commands/security.rs:5` | 生物识别导入顺序不符合 rustfmt，CLI 格式检查失败 | `[x]` 已修复 |
 | P034 | P1 | 规范/构建 | `package.json`、`scripts/check_acl_consistency.py` | check-all 硬编码 python3，本机只有 python；ACL 中文输出在 cp1252 下异常 | `[x]` 已修复 |
 | P035 | P2 | 测试稳定性 | `src/components/attachment/PhotoAlbumOverlay.test.tsx` | 懒加载断言允许等待 8 秒，但测试仍在默认 5 秒被终止，异步操作干扰下一用例 | `[x]` 已修复 |
+| P036 | P2 | 规范/测试 | `crates/solosoul-vault/tests/p025_baseline.rs:115`、`crates/solosoul-core/tests/cloud_sync_webdav_e2e.rs:332` | 测试存在未用循环变量和局部导入，扩大 Clippy 覆盖到测试时会失败 | `[x]` 已修复 |
 | P011 | P2 | 安全 | `crates/solosoul-core/src/export_import.rs:221-237,1218-1242,2214` | 导出/导入附件临时明文落共享 temp 目录（可预测目录名、未设 0700/0600）；同仓库其他路径均已收紧权限，此处是离群点 | `[x]` 已修复（核验补修：残留测试改按前缀扫描恢复效力；一次性空目录用后即删） |
 | P012 | P2 | 安全（加固） | `crates/solosoul-sync/src/recovery.rs:269-279,184` | Recovery 主机指纹校验可选（手动输入路径无 MITM 防线），且主机端接受裸 PIN 认证；已有限流/一次性 nonce 缓解，建议加固 | `[ ]` 待修复 |
 | P013 | P2 | 性能/事务 | `crates/solosoul-vault/src/storage/snapshots.rs:369-414` | `repair_invisible_objects` 循环内逐行 query_row + UPDATE 无事务（有一次性标记兜底，仅跑一次，故 P2） | `[x]` 已修复 |
@@ -79,11 +80,13 @@
 
 ## 修复进度
 
-- 已关闭：34 / 35（按问题清单统计；含已修复及已确认设计例外）
+- 已关闭：35 / 36（按问题清单统计；含已修复及已确认设计例外）
 - 未关闭：1 项（P012）
-- 当前处理：无；继续后续核验
+- 当前处理：无；进入本轮复审收尾
 
 ## 本轮核验（2026-09-10）
+
+- **P036**：性能基线循环使用 `_` 表达不读取索引，WebDAV 测试去除局部未用 Pin 导入（顶层仍有真实用途的导入保留）。验证：cargo fmt 通过，两份测试各自 `cargo clippy --test ... -- -D warnings` 通过；显式运行通常被忽略的大数据集基线 1/1 通过，WebDAV 测试目标 9/9 返回成功，其中依赖外部服务的用例因未设置 URL 自行跳过网络操作，不计为真实 WebDAV 服务验证。
 
 - **P021**：核实 pluginStore.applyPluginRunEvent、syncStore.refreshAfterInbound、RecoveryManualEntryPanel 已落地；同步合并分支亦无旧的重复 loadStatus。PageGuide、附件/相册预览及对象编辑器沿用内聚保留决定；补查 PluginDashboardPage 已委托卡片、结果、日志、参数及授权对话框，并用 useMemo 处理派生数据，无仅因行数而继续拆分的依据。该项仅校正报告状态。验证：源码与调用点核对、`git diff --check`；本项只修改报告，不重复运行已通过的代码测试。
 
