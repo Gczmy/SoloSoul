@@ -5,6 +5,8 @@ import { PhotoAlbumOverlay } from './PhotoAlbumOverlay';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 
 const mockInvoke = vi.mocked(invoke);
+// 8 秒懒加载等待之外，保留后续返回操作的断言时间，避免用例先于 waitFor 超时。
+const VIEWER_TEST_TIMEOUT = 12000;
 
 function makeItem(id: string): AttachmentItem {
   return {
@@ -24,59 +26,67 @@ describe('PhotoAlbumOverlay', () => {
     mockInvoke.mockReset();
   });
 
-  it('opens the viewer on cell click and returns to grid on back', async () => {
-    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
-    render(<PhotoAlbumOverlay items={[makeItem('a'), makeItem('b')]} onClose={vi.fn()} />);
+  it(
+    'opens the viewer on cell click and returns to grid on back',
+    async () => {
+      mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+      render(<PhotoAlbumOverlay items={[makeItem('a'), makeItem('b')]} onClose={vi.fn()} />);
 
-    const grid = await screen.findByTestId('photo-album-grid');
-    const cells = within(grid).getAllByRole('button');
-    fireEvent.click(cells[0]);
+      const grid = await screen.findByTestId('photo-album-grid');
+      const cells = within(grid).getAllByRole('button');
+      fireEvent.click(cells[0]);
 
-    // 查看器为懒加载（LazyPhotoViewerOverlay 冷启动拉 framer-motion），放宽 waitFor 超时防抖动
-    await waitFor(
-      () => {
-        expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
-      },
-      { timeout: 8000 },
-    );
+      // 查看器为懒加载（LazyPhotoViewerOverlay 冷启动拉 framer-motion），放宽 waitFor 超时防抖动
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
+        },
+        { timeout: 8000 },
+      );
 
-    fireEvent.click(screen.getByRole('button', { name: /common:back_to_album/i }));
-    await waitFor(() => {
-      expect(screen.queryByTestId('photo-viewer-counter')).not.toBeInTheDocument();
-    });
-  });
+      fireEvent.click(screen.getByRole('button', { name: /common:back_to_album/i }));
+      await waitFor(() => {
+        expect(screen.queryByTestId('photo-viewer-counter')).not.toBeInTheDocument();
+      });
+    },
+    VIEWER_TEST_TIMEOUT,
+  );
 
   // T014 回归：查看器右上角关闭（X）只回网格、不关闭相册——用户反馈
   // 「点返回/关闭直接退到相册上一层页面」。修复后两按钮都直接关内层，
   // 不依赖 history.back()（安卓 WebView 对纯 pushState 历史栈的 back 导航不可靠）。
-  it('查看器右上角关闭按钮：只返回网格，不关闭相册（T014 回归）', async () => {
-    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
-    const onClose = vi.fn();
-    render(<PhotoAlbumOverlay items={[makeItem('a'), makeItem('b')]} onClose={onClose} />);
+  it(
+    '查看器右上角关闭按钮：只返回网格，不关闭相册（T014 回归）',
+    async () => {
+      mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+      const onClose = vi.fn();
+      render(<PhotoAlbumOverlay items={[makeItem('a'), makeItem('b')]} onClose={onClose} />);
 
-    const grid = await screen.findByTestId('photo-album-grid');
-    const cells = within(grid).getAllByRole('button');
-    fireEvent.click(cells[0]);
+      const grid = await screen.findByTestId('photo-album-grid');
+      const cells = within(grid).getAllByRole('button');
+      fireEvent.click(cells[0]);
 
-    // 查看器为懒加载（LazyPhotoViewerOverlay 冷启动拉 framer-motion），放宽 waitFor 超时防抖动
-    await waitFor(
-      () => {
-        expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
-      },
-      { timeout: 8000 },
-    );
+      // 查看器为懒加载（LazyPhotoViewerOverlay 冷启动拉 framer-motion），放宽 waitFor 超时防抖动
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
+        },
+        { timeout: 8000 },
+      );
 
-    // 相册顶栏与查看器顶栏都有名为 common:close 的按钮，限定在查看器内查找
-    const viewer = screen.getByTestId('photo-viewer');
-    fireEvent.click(within(viewer).getByRole('button', { name: /common:close/i }));
+      // 相册顶栏与查看器顶栏都有名为 common:close 的按钮，限定在查看器内查找
+      const viewer = screen.getByTestId('photo-viewer');
+      fireEvent.click(within(viewer).getByRole('button', { name: /common:close/i }));
 
-    // 回到网格：查看器消失、相册仍在、onClose 未被调用（未退到上一层页面）
-    await waitFor(() => {
-      expect(screen.queryByTestId('photo-viewer-counter')).not.toBeInTheDocument();
-    });
-    expect(screen.getByTestId('photo-album-grid')).toBeInTheDocument();
-    expect(onClose).not.toHaveBeenCalled();
-  });
+      // 回到网格：查看器消失、相册仍在、onClose 未被调用（未退到上一层页面）
+      await waitFor(() => {
+        expect(screen.queryByTestId('photo-viewer-counter')).not.toBeInTheDocument();
+      });
+      expect(screen.getByTestId('photo-album-grid')).toBeInTheDocument();
+      expect(onClose).not.toHaveBeenCalled();
+    },
+    VIEWER_TEST_TIMEOUT,
+  );
 
   it('closes via header close button', async () => {
     mockInvoke.mockResolvedValue('data:image/png;base64,abc');
@@ -89,36 +99,40 @@ describe('PhotoAlbumOverlay', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('Android 硬件返回：查看器打开时先回网格而非关闭相册，再返回才关闭', async () => {
-    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
-    const onClose = vi.fn();
-    render(<PhotoAlbumOverlay items={[makeItem('a'), makeItem('b')]} onClose={onClose} />);
+  it(
+    'Android 硬件返回：查看器打开时先回网格而非关闭相册，再返回才关闭',
+    async () => {
+      mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+      const onClose = vi.fn();
+      render(<PhotoAlbumOverlay items={[makeItem('a'), makeItem('b')]} onClose={onClose} />);
 
-    const grid = await screen.findByTestId('photo-album-grid');
-    const cells = within(grid).getAllByRole('button');
-    fireEvent.click(cells[0]);
-    // 查看器为懒加载（LazyPhotoViewerOverlay 冷启动拉 framer-motion），放宽 waitFor 超时防抖动
-    await waitFor(
-      () => {
-        expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
-      },
-      { timeout: 8000 },
-    );
+      const grid = await screen.findByTestId('photo-album-grid');
+      const cells = within(grid).getAllByRole('button');
+      fireEvent.click(cells[0]);
+      // 查看器为懒加载（LazyPhotoViewerOverlay 冷启动拉 framer-motion），放宽 waitFor 超时防抖动
+      await waitFor(
+        () => {
+          expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
+        },
+        { timeout: 8000 },
+      );
 
-    // 第一次返回：查看器层标记被弹出 → 回到网格，相册保持打开
-    fireEvent.popState(window);
-    await waitFor(() => {
-      expect(screen.queryByTestId('photo-viewer-counter')).not.toBeInTheDocument();
-    });
-    expect(screen.getByTestId('photo-album-grid')).toBeInTheDocument();
-    expect(onClose).not.toHaveBeenCalled();
+      // 第一次返回：查看器层标记被弹出 → 回到网格，相册保持打开
+      fireEvent.popState(window);
+      await waitFor(() => {
+        expect(screen.queryByTestId('photo-viewer-counter')).not.toBeInTheDocument();
+      });
+      expect(screen.getByTestId('photo-album-grid')).toBeInTheDocument();
+      expect(onClose).not.toHaveBeenCalled();
 
-    // 第二次返回：相册层标记被弹出 → 关闭相册
-    fireEvent.popState(window);
-    await waitFor(() => {
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
-  });
+      // 第二次返回：相册层标记被弹出 → 关闭相册
+      fireEvent.popState(window);
+      await waitFor(() => {
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+    },
+    VIEWER_TEST_TIMEOUT,
+  );
 
   it('Android 硬件返回：网格态直接关闭相册（回到上一页）', async () => {
     mockInvoke.mockResolvedValue('data:image/png;base64,abc');
