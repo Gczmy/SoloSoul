@@ -2,7 +2,7 @@
 
 use color_eyre::Result;
 use serde_json::Value;
-use solosoul_core::biometric::{BiometricError, BiometricManager, trigger_system_biometric};
+use solosoul_core::biometric::{trigger_system_biometric, BiometricError, BiometricManager};
 use std::time::Instant;
 use zeroize::Zeroizing;
 
