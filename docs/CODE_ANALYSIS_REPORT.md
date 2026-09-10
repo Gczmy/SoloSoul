@@ -54,7 +54,7 @@
 | P015 | P2 | 性能 | `src-tauri/src/commands/export_import/import.rs:130-135` | `import_decrypt_preview` 整包读入内存（上限 100MB，峰值约 3×100MB）；主导入路径已流式化，预览路径遗留 | `[x]` 已修复 |
 | P016 | P2 | 重复代码 | `crates/solosoul-vault/src/storage/reencrypt.rs:54,106,126` | 三个 reencrypt 函数仅表名不同、函数体逐字节相同；`storage.rs:595` 已有通用版可收敛 | `[x]` 已修复 |
 | P017 | P2 | 重复代码 | `crates/solosoul-core/src/objects.rs:1102` vs `src-tauri/src/commands/attachment/mod.rs:114` | `load_all_referenced_attachment_ids` 跨 crate 双实现（后者 test-only），建议保留一个共享实现 | `[x]` 已修复 |
-| P018 | P2 | 重复代码 | 全库 93 处 | `conn.lock()` + `ok_or("Vault is locked")?` 守卫样板 93 处，可考虑宏/helper 收敛（设计惯性，非 bug） | `[ ]` 待修复 |
+| P018 | P2 | 重复代码 | 全库 93 处 | `conn.lock()` + `ok_or("Vault is locked")?` 守卫样板 93 处，可考虑宏/helper 收敛（设计惯性，非 bug） | `[x]` 已确认设计保留（沿用既有渐进治理决定） |
 | P019 | P2 | 可维护性 | 详见下文清单 | Rust 过长函数 Top10（>50 行非注释，最长 159 行） | `[ ]` 待修复 |
 | P020 | P2 | 可维护性 | 详见下文清单 | Rust 深层嵌套（≥5 层）多处，最深 `auto_sync_core.rs:87` 达 8 层 | `[ ]` 待修复 |
 | P021 | P2 | 可维护性 | 详见下文清单 | 前端超长组件第二梯队（6 个 300+ 行组件 + `pluginStore.runPlugin` 137 行 + `syncStore` 内嵌监听器 120 行） | `[ ]` 待修复 |
@@ -79,11 +79,13 @@
 
 ## 修复进度
 
-- 已关闭：30 / 35（按问题清单统计；含已修复及已确认设计例外）
-- 未关闭：5 项（P012、P018、P019、P020、P021）
+- 已关闭：31 / 35（按问题清单统计；含已修复及已确认设计例外）
+- 未关闭：4 项（P012、P019、P020、P021）
 - 当前处理：无；继续后续核验
 
 ## 本轮核验（2026-09-10）
+
+- **P018**：核对 storage.rs 的 with_tx 与 LockHoldObserver，显式锁守卫承载锁生命周期和观测边界；原报告已确认这些样板不属于行为缺陷，既有处置决定为触碰存储层时渐进收敛。本轮沿用该决定关闭机械迁移建议，未声称完成 93 处改写。验证：源码与调用点核对、`git diff --check`；本项只修改报告，不重复运行已通过的代码测试。
 
 - **P035**：相册 3 个用例内部已有 8 秒懒加载等待，但默认用例超时仅 5 秒，冷启动时等待尚未结束便被终止。将这 3 个用例的总预算明确为 12 秒，保留原断言和 8 秒等待上限，不调整全局测试超时。验证：Prettier、TSC、ESLint 通过；最终完整 Vitest 回归 **111 文件/939 用例全部通过**（maxWorkers=2，164.79 秒）。
 
