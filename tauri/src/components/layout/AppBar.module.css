@@ -1,7 +1,7 @@
 .appBar {
   position: fixed;
   top: 0;
-  left: 48px;
+  left: var(--sidebar-width, 48px);
   right: 0;
   height: 56px;
   display: flex;
@@ -32,7 +32,7 @@
 /* Right sidebar leaves the app bar full-width but with right inset. */
 .rightSidebar {
   left: 0;
-  right: 48px;
+  right: var(--sidebar-width, 48px);
 }
 .left {
   display: flex;
@@ -112,5 +112,19 @@
     align-items: center;
     justify-content: center;
     pointer-events: auto;
+  }
+}
+
+@media (min-width: 768px) {
+  .appBar.vertical {
+    top: 8px;
+    right: 8px;
+    height: 56px;
+    border-radius: 14px 14px 0 0;
+    background: var(--bg-base);
+  }
+  .appBar.rightSidebar {
+    left: 8px;
+    right: var(--sidebar-width, 48px);
   }
 }

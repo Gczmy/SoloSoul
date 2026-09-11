@@ -40,5 +40,8 @@
   "icon_category_education": "教育",
   "icon_category_life": "生活",
   "icon_category_nature": "自然/生物",
-  "icon_category_special": "特色"
+  "icon_category_special": "特色",
+  "sidebar_collapse": "收起侧栏",
+  "sidebar_expand": "展开侧栏",
+  "sidebar_tools": "工具"
 }

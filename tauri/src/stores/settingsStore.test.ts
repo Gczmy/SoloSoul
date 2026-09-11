@@ -475,4 +475,19 @@ describe('settingsStore', () => {
       expect(useSettingsStore.getState().settings.customPages).toHaveLength(0);
     });
   });
+  it('保存新的主题定义，不把尚未重绘的 DOM 颜色写进启动缓存', async () => {
+    const { THEME_SCHEMES } = await import('@/lib/themeSchemes');
+    const next = THEME_SCHEMES.filter((scheme) => scheme.mode === 'light')[1];
+    vi.mocked(invoke).mockResolvedValue(undefined);
+    document.documentElement.style.setProperty('--bg-base', '#010203');
+    try {
+      await useSettingsStore.getState().updateSetting('acc-1', 'defaultLightTheme', next.id);
+      const cached = JSON.parse(localStorage.getItem('solosoul_ui_prefs')!);
+      expect(cached.startupThemes.light.background).toBe(next.variables['--bg-base']);
+      expect(cached.startupThemes.light.background).not.toBe('#010203');
+      expect(cached.startupThemes.dark.background).toMatch(/^#[0-9a-f]{6}$/i);
+    } finally {
+      document.documentElement.style.removeProperty('--bg-base');
+    }
+  });
 });

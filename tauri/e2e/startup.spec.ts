@@ -119,3 +119,22 @@ test('Windows 首次显示请求发生在 Mica 状态和图标就绪之后', asy
   await expect(page.locator('html')).toHaveAttribute('data-first-frame-ready', 'true');
   await expect(page.locator('html')).toHaveAttribute('data-desktop-platform', 'windows');
 });
+
+test('跟随系统时从双主题缓存选取当前配色', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      'solosoul_ui_prefs',
+      JSON.stringify({
+        theme: 'system',
+        startupThemes: {
+          light: { background: '#f5f4f0', foreground: '#303030', secondary: '#666666' },
+          dark: { background: '#202224', foreground: '#eeeeee', secondary: '#aaaaaa' },
+        },
+      }),
+    ),
+  );
+  await page.route('**/src/main.tsx', (route) => route.abort());
+  await page.goto('/');
+  await expect(page.locator('#startup-screen')).toHaveCSS('background-color', 'rgb(32, 34, 36)');
+});

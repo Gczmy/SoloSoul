@@ -40,5 +40,8 @@
   "icon_category_education": "Education",
   "icon_category_life": "Life",
   "icon_category_nature": "Nature",
-  "icon_category_special": "Special"
+  "icon_category_special": "Special",
+  "sidebar_collapse": "Collapse sidebar",
+  "sidebar_expand": "Expand sidebar",
+  "sidebar_tools": "Tools"
 }

@@ -173,8 +173,8 @@ export function OcrQuickScanPopover({
         ...(isFloating
           ? { right: 12, left: 'auto' }
           : isRight
-            ? { right: 52, left: 'auto' }
-            : { left: 52, right: 'auto' }),
+            ? { right: 'calc(var(--sidebar-width, 48px) + 4px)', left: 'auto' }
+            : { left: 'calc(var(--sidebar-width, 48px) + 4px)', right: 'auto' }),
         top: position?.top ?? 100,
       }}
     >

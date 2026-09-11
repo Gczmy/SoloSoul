@@ -21,6 +21,8 @@ export interface SafSyncProgress {
 }
 
 interface UiState {
+  sidebarExpanded: boolean;
+  toggleSidebarExpanded: () => void;
   toasts: Toast[];
   /** SAF 自动同步当前状态（仅 Android SAF 目录模式下有意义）。 */
   safSyncState: SafSyncPhase;
@@ -52,7 +54,27 @@ interface UiState {
 
 let toastCounter = 0;
 
+const SIDEBAR_EXPANDED_KEY = 'solosoul_sidebar_expanded';
+function readSidebarExpanded(): boolean {
+  try {
+    return localStorage.getItem(SIDEBAR_EXPANDED_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+}
+
 export const useUiStore = create<UiState>((set) => ({
+  sidebarExpanded: readSidebarExpanded(),
+  toggleSidebarExpanded: () =>
+    set((s) => {
+      const sidebarExpanded = !s.sidebarExpanded;
+      try {
+        localStorage.setItem(SIDEBAR_EXPANDED_KEY, String(sidebarExpanded));
+      } catch {
+        /* 缓存失败不影响本次操作。 */
+      }
+      return { sidebarExpanded };
+    }),
   toasts: [],
   safSyncState: 'idle',
   safSyncProgress: { current: 0, total: 0 },

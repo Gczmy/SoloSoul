@@ -266,6 +266,21 @@ body {
   height: 100vh;
 }
 
+/* AppKit 的提高对比度设置不一定映射成 WebView 的 forced-colors。 */
+:root[data-high-contrast='true'] {
+  --border-subtle: var(--text-primary) !important;
+  --text-secondary: var(--text-primary) !important;
+  --text-tertiary: var(--text-primary) !important;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border-subtle: var(--text-primary) !important;
+    --text-secondary: var(--text-primary) !important;
+    --text-tertiary: var(--text-primary) !important;
+  }
+}
+
 /* Scrollbar styles */
 ::-webkit-scrollbar {
   width: 6px;

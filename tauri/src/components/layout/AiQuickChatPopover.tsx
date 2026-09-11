@@ -145,8 +145,8 @@ export function AiQuickChatPopover({
         ...(isFloating
           ? { right: 12, left: 'auto' }
           : isRight
-            ? { right: 52, left: 'auto' }
-            : { left: 52, right: 'auto' }),
+            ? { right: 'calc(var(--sidebar-width, 48px) + 4px)', left: 'auto' }
+            : { left: 'calc(var(--sidebar-width, 48px) + 4px)', right: 'auto' }),
         top: position?.top ?? 100,
       }}
     >
@@ -192,9 +192,7 @@ export function AiQuickChatPopover({
               <button
                 onClick={() => setShowHistory((prev) => !prev)}
                 title={t('settings:ai_history')}
-                className={
-                  showHistory ? 'interactive-icon selected-accent' : 'interactive-icon'
-                }
+                className={showHistory ? 'interactive-icon selected-accent' : 'interactive-icon'}
                 style={{
                   padding: 4,
                   borderRadius: 6,

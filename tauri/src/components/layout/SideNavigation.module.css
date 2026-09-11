@@ -489,3 +489,120 @@
     animation: none;
   }
 }
+
+/* 桌面可展开导航：原生材质确认后透出外壳，按钮与正文仍使用主题对比色。 */
+.sideNav {
+  flex-shrink: 0;
+  min-height: 0;
+}
+:global(html[data-native-material]:not([data-native-material='solid'])) .sideNav {
+  background: transparent;
+}
+.brandHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+.sideNav[data-expanded='true'] .brandHeader {
+  flex-direction: row;
+  gap: 10px;
+  height: 40px;
+  padding: 0 6px;
+}
+.brandName {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.sidebarToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.sidebarToggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.sidebarToggle:focus-visible,
+.arrowToggle:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+.sectionLabel {
+  align-self: stretch;
+  padding: 12px 12px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.arrowToggle {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.sideNav[data-expanded='true'] .foldableContent {
+  align-items: stretch;
+  max-height: none;
+  height: 100%;
+  scrollbar-width: thin;
+}
+
+.sideNav[data-expanded='true'] .foldableContent::-webkit-scrollbar {
+  display: block;
+  width: 4px;
+}
+.sideNav[data-expanded='true'] .foldableContent > div {
+  flex-shrink: 0;
+}
+.sideNav[data-expanded='true'] .foldableWrapper {
+  flex: 1;
+  min-height: 0;
+}
+.sideNav[data-expanded='true'] .foldableArea {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+.fixedActions {
+  width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+.sideNav[data-expanded='true'] .navPrimary {
+  gap: 2px;
+}
+.sideNav[data-expanded='true'] .addPageRow {
+  align-self: stretch;
+  align-items: stretch;
+  padding: 4px 0;
+}
+.sideNav[data-expanded='true'] .addPageButton {
+  width: 100%;
+  height: 40px;
+  justify-content: flex-start;
+  padding: 0 12px;
+  gap: 10px;
+  border-radius: 8px;
+}
+.sideNav[data-expanded='true'] .addPageLabel {
+  font-size: 13px;
+}

@@ -5,7 +5,15 @@ import { PageContainer } from '@/components/layout/PageContainer';
 
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useMemo } from 'react';
-import { MessageSquare, Settings, BarChart3, Info, Bot, MessageCircle, History } from 'lucide-react';
+import {
+  MessageSquare,
+  Settings,
+  BarChart3,
+  Info,
+  Bot,
+  MessageCircle,
+  History,
+} from 'lucide-react';
 import buttonStyles from '@/components/ui/Button.module.css';
 import { ConversationSidebar } from '@/components/llm/ConversationSidebar';
 import { MessageArea } from '@/components/llm/MessageArea';
@@ -28,27 +36,34 @@ export function LlmChatPage() {
           {
             icon: Bot,
             title: t('common:guide_ai_chat_step1_title', { defaultValue: 'Select Provider' }),
-            description:
-              t('common:guide_ai_chat_step1_desc', { defaultValue: 'Choose a configured AI provider or add a new one in settings. Local and remote providers are supported.' }),
+            description: t('common:guide_ai_chat_step1_desc', {
+              defaultValue:
+                'Choose a configured AI provider or add a new one in settings. Local and remote providers are supported.',
+            }),
           },
           {
             icon: MessageCircle,
             title: t('common:guide_ai_chat_step2_title', { defaultValue: 'Start Conversation' }),
-            description:
-              t('common:guide_ai_chat_step2_desc', { defaultValue: 'Create a new conversation or continue an existing one. Ask questions based on your vault data.' }),
+            description: t('common:guide_ai_chat_step2_desc', {
+              defaultValue:
+                'Create a new conversation or continue an existing one. Ask questions based on your vault data.',
+            }),
           },
           {
             icon: History,
             title: t('common:guide_ai_chat_step3_title', { defaultValue: 'Manage Conversations' }),
-            description:
-              t('common:guide_ai_chat_step3_desc', { defaultValue: 'Rename, delete, or archive conversations. Review token usage and model statistics.' }),
+            description: t('common:guide_ai_chat_step3_desc', {
+              defaultValue:
+                'Rename, delete, or archive conversations. Review token usage and model statistics.',
+            }),
           },
         ],
         helpLinks: [
           {
             title: t('common:guide_help_ai_chat', { defaultValue: 'AI Chat' }),
-            description:
-              t('common:guide_help_ai_chat_desc', { defaultValue: 'Chat with AI using your local vault data' }),
+            description: t('common:guide_help_ai_chat_desc', {
+              defaultValue: 'Chat with AI using your local vault data',
+            }),
             href: '/help?id=ai_chat',
           },
         ],
@@ -63,10 +78,10 @@ export function LlmChatPage() {
         <div
           style={{
             position: 'fixed',
-            top: 56,
-            left: 48,
-            right: 0,
-            bottom: 0,
+            top: 'var(--shell-content-top, 56px)',
+            left: 'var(--shell-content-left, 48px)',
+            right: 'var(--shell-content-right, 0px)',
+            bottom: 'var(--shell-content-bottom, 0px)',
             display: 'flex',
             overflow: 'hidden',
           }}
@@ -102,31 +117,31 @@ export function LlmChatPage() {
         title={t('settings:ai_chat')}
         onBack={() => navigate('/home')}
         actions={
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <PageGuideButton pages={aiChatGuidePages} />
-          <button
-            type="button"
-            className={`interactive-toolbar ${buttonStyles.hideLabelOnMobile}`}
-            onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
-            style={{
-              fontSize: 'var(--text-caption)',
-              padding: '6px 12px',
-              borderRadius: 6,
-              borderWidth: 1,
-              borderStyle: 'solid',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              fontWeight: 500,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            <Settings size={ICON_SIZE.sm} />{' '}
-            <span className={buttonStyles.label}>{t('settings:ai_chat_configure')}</span>
-          </button>
-        </div>
-      }
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <PageGuideButton pages={aiChatGuidePages} />
+            <button
+              type="button"
+              className={`interactive-toolbar ${buttonStyles.hideLabelOnMobile}`}
+              onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
+              style={{
+                fontSize: 'var(--text-caption)',
+                padding: '6px 12px',
+                borderRadius: 6,
+                borderWidth: 1,
+                borderStyle: 'solid',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <Settings size={ICON_SIZE.sm} />{' '}
+              <span className={buttonStyles.label}>{t('settings:ai_chat_configure')}</span>
+            </button>
+          </div>
+        }
       >
         <PageContainer variant="small" gap="default">
           <div style={{ textAlign: 'center', paddingTop: 48, paddingBottom: 48 }}>
@@ -212,10 +227,10 @@ export function LlmChatPage() {
       <div
         style={{
           position: 'fixed',
-          top: 56,
-          left: 48,
-          right: 0,
-          bottom: 0,
+          top: 'var(--shell-content-top, 56px)',
+          left: 'var(--shell-content-left, 48px)',
+          right: 'var(--shell-content-right, 0px)',
+          bottom: 'var(--shell-content-bottom, 0px)',
           display: 'flex',
           overflow: 'hidden',
         }}

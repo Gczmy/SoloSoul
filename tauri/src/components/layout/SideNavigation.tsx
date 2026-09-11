@@ -1,4 +1,7 @@
 import { useCallback } from 'react';
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { DesktopSidebarContext } from './DesktopSidebarContext';
+import { useUiStore } from '@/stores/uiStore';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
@@ -24,6 +27,8 @@ export function SideNavigation() {
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('navigation');
+  const expanded = useUiStore((s) => s.sidebarExpanded) && !isHorizontal;
+  const toggleExpanded = useUiStore((s) => s.toggleSidebarExpanded);
   const vaultLock = useAuthStore((s) => s.lock);
 
   const handleLock = useCallback(() => vaultLock(), [vaultLock]);
@@ -41,45 +46,65 @@ export function SideNavigation() {
         overflow: 'visible',
       }
     : {
-        width: 48,
+        width: expanded ? 232 : 48,
         height: '100vh',
         flexDirection: 'column',
         borderRight: sidebarPosition === 'left' ? '1px solid var(--border-subtle)' : 'none',
         borderLeft: sidebarPosition === 'right' ? '1px solid var(--border-subtle)' : 'none',
         borderBottom: 'none',
         borderTop: 'none',
-        padding: '12px 0',
+        padding: expanded ? '12px 10px' : '12px 0',
       };
 
   return (
-    <nav className={styles.sideNav} aria-label={t('home')} style={navStyle}>
-      <ShieldLogo
-        size={ICON_SIZE['3xl']}
-        style={isHorizontal ? { marginBottom: 0, marginRight: 12 } : { marginBottom: 16 }}
-      />
+    <DesktopSidebarContext.Provider value={expanded}>
+      <nav
+        id="desktop-navigation"
+        className={styles.sideNav}
+        aria-label={t('home')}
+        style={navStyle}
+        data-expanded={expanded}
+      >
+        <div className={styles.brandHeader}>
+          <ShieldLogo size={expanded ? 26 : ICON_SIZE['3xl']} />
+          {expanded && <span className={styles.brandName}>SoloSoul</span>}
+          <button
+            type="button"
+            className={styles.sidebarToggle}
+            onClick={toggleExpanded}
+            aria-label={t(expanded ? 'sidebar_collapse' : 'sidebar_expand')}
+            aria-expanded={expanded}
+            aria-controls="desktop-navigation"
+          >
+            {expanded ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+          </button>
+        </div>
 
-      <PrimaryNavZone sidebarPosition={sidebarPosition} isHorizontal={isHorizontal} />
+        <PrimaryNavZone sidebarPosition={sidebarPosition} isHorizontal={isHorizontal} />
 
-      {/* Foldable function button area */}
-      <SecondaryActionBar sidebarPosition={sidebarPosition} isHorizontal={isHorizontal} />
+        {/* Foldable function button area */}
+        <SecondaryActionBar sidebarPosition={sidebarPosition} isHorizontal={isHorizontal} />
 
-      {/* Lock — always fixed, outside foldable area */}
-      <NavButton
-        Icon={PAGE_ICON_MAP.lock}
-        label={t('lock_vault')}
-        onClick={handleLock}
-        position={sidebarPosition}
-      />
+        <div className={styles.fixedActions}>
+          {/* Lock — always fixed, outside foldable area */}
+          <NavButton
+            Icon={PAGE_ICON_MAP.lock}
+            label={t('lock_vault')}
+            onClick={handleLock}
+            position={sidebarPosition}
+          />
 
-      {/* Settings — always fixed at the bottom */}
-      <NavButton
-        path="/settings"
-        Icon={PAGE_ICON_MAP.settings}
-        label={t('settings')}
-        isActive={location.pathname.startsWith('/settings')}
-        onClick={() => navigate('/settings')}
-        position={sidebarPosition}
-      />
-    </nav>
+          {/* Settings — always fixed at the bottom */}
+          <NavButton
+            path="/settings"
+            Icon={PAGE_ICON_MAP.settings}
+            label={t('settings')}
+            isActive={location.pathname.startsWith('/settings')}
+            onClick={() => navigate('/settings')}
+            position={sidebarPosition}
+          />
+        </div>
+      </nav>
+    </DesktopSidebarContext.Provider>
   );
 }

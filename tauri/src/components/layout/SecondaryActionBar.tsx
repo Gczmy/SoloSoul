@@ -1,4 +1,14 @@
-import { useState, useRef, useCallback, useEffect, useLayoutEffect, type MouseEvent } from 'react';
+import {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useContext,
+  type MouseEvent,
+} from 'react';
+import { useTranslation } from 'react-i18next';
+import { DesktopSidebarContext } from './DesktopSidebarContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronUp } from 'lucide-react';
 import { useOcrScanStore } from '@/stores/ocrScanStore';
@@ -28,6 +38,8 @@ export function SecondaryActionBar({
 }: SecondaryActionBarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const sidebarExpanded = useContext(DesktopSidebarContext);
+  const { t } = useTranslation('navigation');
   const { items, showSearch, setShowSearch } = useBoundNavActions();
 
   // ── Hover expand/collapse ──────────────────────────────────────
@@ -45,7 +57,7 @@ export function SecondaryActionBar({
   const isAnyCardOpen = isOcrCardOpen || isPluginPanelOpen || showSearch || showQuickChat;
   const isAnyCardOpenRef = useRef(isAnyCardOpen);
   isAnyCardOpenRef.current = isAnyCardOpen;
-  const expanded = isHovering || isAnyCardOpen;
+  const expanded = sidebarExpanded || isHovering || isAnyCardOpen;
 
   // Collapse when mouse leaves the entire window (browser/webview may not fire
   // mouseleave on the wrapper in this case)
@@ -189,12 +201,22 @@ export function SecondaryActionBar({
       onMouseLeave={handleMouseLeave}
     >
       {/* Arrow toggle — full-size button */}
-      <div className={styles.arrowToggle}>
-        <ChevronUp
-          size={ICON_SIZE.xl}
-          className={`${styles.arrowIcon} ${expanded ? styles.arrowIconExpanded : ''}`}
-        />
-      </div>
+      {sidebarExpanded ? (
+        <div className={styles.sectionLabel}>{t('sidebar_tools')}</div>
+      ) : (
+        <button
+          type="button"
+          className={styles.arrowToggle}
+          aria-label={t('sidebar_tools')}
+          aria-expanded={expanded}
+          onClick={() => setHovering(!isHovering)}
+        >
+          <ChevronUp
+            size={ICON_SIZE.xl}
+            className={`${styles.arrowIcon} ${expanded ? styles.arrowIconExpanded : ''}`}
+          />
+        </button>
+      )}
 
       {/* Foldable button area — always rendered for smooth CSS transition */}
       <div className={`${styles.foldableArea} ${expanded ? styles.foldableAreaOpen : ''}`}>

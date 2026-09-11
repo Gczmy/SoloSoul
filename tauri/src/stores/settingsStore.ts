@@ -1,4 +1,5 @@
 import { withTimeout } from '@/lib/withTimeout';
+import { getSchemeById } from '@/lib/themeSchemes';
 import { create } from 'zustand';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { z } from 'zod';
@@ -199,6 +200,14 @@ const CACHE_PREF_KEYS = new Set<string>([
  */
 function writeUiPrefsCache(settings: AppSettings): void {
   try {
+    const startupColors = (schemeId: string, fallback: string) => {
+      const variables = (getSchemeById(schemeId) ?? getSchemeById(fallback))!.variables;
+      return {
+        background: variables['--bg-base'],
+        foreground: variables['--text-primary'],
+        secondary: variables['--text-secondary'],
+      };
+    };
     localStorage.setItem(
       ST_UI_PREFS,
       JSON.stringify({
@@ -206,17 +215,9 @@ function writeUiPrefsCache(settings: AppSettings): void {
         accentColor: settings.accentColor,
         defaultLightTheme: settings.defaultLightTheme,
         defaultDarkTheme: settings.defaultDarkTheme,
-        startupTheme: {
-          mode: document.documentElement.dataset.theme,
-          background: getComputedStyle(document.documentElement)
-            .getPropertyValue('--bg-base')
-            .trim(),
-          foreground: getComputedStyle(document.documentElement)
-            .getPropertyValue('--text-primary')
-            .trim(),
-          secondary: getComputedStyle(document.documentElement)
-            .getPropertyValue('--text-secondary')
-            .trim(),
+        startupThemes: {
+          light: startupColors(settings.defaultLightTheme, 'warm-stone'),
+          dark: startupColors(settings.defaultDarkTheme, 'warm-stone-dark'),
         },
       }),
     );

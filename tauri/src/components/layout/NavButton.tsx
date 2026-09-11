@@ -1,4 +1,5 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useContext } from 'react';
+import { DesktopSidebarContext } from './DesktopSidebarContext';
 import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { LucideIcon } from 'lucide-react';
@@ -29,6 +30,7 @@ export function NavButton({
   const [indicatorStyle, setIndicatorStyle] = useState<CSSProperties | null>(null);
 
   const isHorizontal = position === 'top' || position === 'bottom';
+  const sidebarExpanded = useContext(DesktopSidebarContext) && !isHorizontal;
   const isBottom = position === 'bottom';
   const isRight = position === 'right';
 
@@ -38,6 +40,10 @@ export function NavButton({
   );
 
   const updateIndicator = useCallback(() => {
+    if (sidebarExpanded) {
+      setIndicatorStyle(null);
+      return;
+    }
     if (!wrapperRef.current || !isActive) return;
     const rect = wrapperRef.current.getBoundingClientRect();
     if (position === 'top') {
@@ -74,7 +80,7 @@ export function NavButton({
         height: 20,
       });
     }
-  }, [isActive, position]);
+  }, [isActive, position, sidebarExpanded]);
 
   useEffect(() => {
     if (!isActive) return;
@@ -87,23 +93,24 @@ export function NavButton({
     };
   }, [isActive, updateIndicator]);
 
-  const nameCard = isHovered ? (
-    <div
-      className={isHorizontal ? styles.nameCardPortalHorizontal : styles.nameCardPortal}
-      style={{
-        position: 'fixed',
-        ...cardStyle,
-        zIndex: 200,
-      }}
-      role="tooltip"
-      aria-hidden="true"
-    >
-      {label}
-    </div>
-  ) : null;
+  const nameCard =
+    isHovered && !sidebarExpanded ? (
+      <div
+        className={isHorizontal ? styles.nameCardPortalHorizontal : styles.nameCardPortal}
+        style={{
+          position: 'fixed',
+          ...cardStyle,
+          zIndex: 200,
+        }}
+        role="tooltip"
+        aria-hidden="true"
+      >
+        {label}
+      </div>
+    ) : null;
 
   const activeIndicator =
-    path && isActive ? (
+    path && isActive && !sidebarExpanded ? (
       <div
         className={styles.activeIndicatorPortal}
         style={{
@@ -118,7 +125,7 @@ export function NavButton({
   return (
     <div
       ref={wrapperRef}
-      className={styles.navItemWrapper}
+      className={`${styles.navItemWrapper} ${sidebarExpanded ? styles.expanded : ''}`}
       style={isHorizontal ? { width: 40, height: 40 } : {}}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -132,6 +139,7 @@ export function NavButton({
         data-tauri-drag-region="false"
       >
         <Icon size={ICON_SIZE.xl} />
+        {sidebarExpanded && <span className={styles.label}>{label}</span>}
       </button>
       {createPortal(nameCard, document.body)}
       {createPortal(activeIndicator, document.body)}

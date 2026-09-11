@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useContext } from 'react';
+import { DesktopSidebarContext } from './DesktopSidebarContext';
 import { useTranslation } from 'react-i18next';
 
 import type { CustomPage } from '@/stores/settingsStore';
@@ -23,6 +24,7 @@ export function RenameableNavButton({
 }) {
   useTranslation(['navigation', 'common']);
   const [isEditing, setIsEditing] = useState(false);
+  const expanded = useContext(DesktopSidebarContext);
   const [renameCardRect, setRenameCardRect] = useState<DOMRect | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -37,7 +39,11 @@ export function RenameableNavButton({
   };
 
   return (
-    <div ref={wrapperRef} style={{ position: 'relative' }} onDoubleClick={handleDoubleClick}>
+    <div
+      ref={wrapperRef}
+      style={{ position: 'relative', width: expanded ? '100%' : undefined }}
+      onDoubleClick={handleDoubleClick}
+    >
       <NavButton
         path={`/workspace/custom/${page.id}`}
         Icon={resolveCustomIcon(page.iconId)}

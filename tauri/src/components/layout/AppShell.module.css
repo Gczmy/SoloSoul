@@ -44,3 +44,23 @@
     padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 12px + 56px);
   }
 }
+
+:global(html[data-native-material]:not([data-native-material='solid'])) .appShell {
+  background: transparent;
+}
+@media (min-width: 768px) {
+  .appShell[data-navigation='left'] .main,
+  .appShell[data-navigation='right'] .main {
+    margin: 8px 8px 8px 0;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: var(--bg-base);
+  }
+  .appShell[data-navigation='right'] .main {
+    margin: 8px 0 8px 8px;
+  }
+  .content {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}

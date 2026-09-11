@@ -1,4 +1,5 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useContext } from 'react';
+import { DesktopSidebarContext } from './DesktopSidebarContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { RenameableNavButton } from './RenameableNavButton';
@@ -21,6 +22,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
   const location = useLocation();
   const { t } = useTranslation('navigation');
   const activeCustomPages = useActiveCustomPages();
+  const expanded = useContext(DesktopSidebarContext);
   const horizontalNavRef = useRef<HTMLDivElement>(null);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -131,7 +133,13 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
       ) : (
         <div
           className={styles.navPrimary}
-          style={{ ...zoneStyle, flex: 1, overflowX: 'hidden', overflowY: 'auto' }}
+          style={{
+            ...zoneStyle,
+            flex: expanded ? '0 1 auto' : 1,
+            maxHeight: expanded ? '40vh' : undefined,
+            overflowX: 'hidden',
+            overflowY: 'auto',
+          }}
         >
           {primaryItems.slice(1).map((item) => (
             <NavButton
@@ -163,6 +171,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
             navigate(`/workspace/custom/${page.id}`);
           }}
           position={sidebarPosition}
+          showLabel={expanded}
           showDescription
         />
       )}

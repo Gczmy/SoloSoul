@@ -10,8 +10,10 @@
     if (storedLanguage === 'zh-CN' || storedLanguage === 'en-US') language = storedLanguage;
     var prefs = JSON.parse(localStorage.getItem('solosoul_ui_prefs') || '{}');
     if (prefs.theme === 'light' || prefs.theme === 'dark') mode = prefs.theme;
-    var snapshot = prefs.startupTheme;
-    if (snapshot && snapshot.mode === mode) {
+    var snapshot = prefs.startupThemes && prefs.startupThemes[mode];
+    if (!snapshot && prefs.startupTheme && prefs.startupTheme.mode === mode)
+      snapshot = prefs.startupTheme;
+    if (snapshot) {
       ['background', 'foreground', 'secondary'].forEach(function (key) {
         if (/^#[\da-f]{6}$/i.test(snapshot[key])) {
           root.style.setProperty('--startup-' + key, snapshot[key]);

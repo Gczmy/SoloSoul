@@ -8,6 +8,7 @@ import { MobileBottomNav } from './MobileBottomNav';
 import { AppBar } from './AppBar';
 import { PairingDialog } from '@/components/sync/PairingDialog';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useUiStore } from '@/stores/uiStore';
 import { useSyncStore } from '@/stores/syncStore';
 import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 
@@ -23,6 +24,7 @@ interface AppShellProps {
 export function AppShell({ children, title, actions, onBack }: AppShellProps) {
   const isNarrowViewport = useIsNarrowViewport();
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
+  const sidebarExpanded = useUiStore((s) => s.sidebarExpanded);
   // 路由导航后内容区滚动位置重置到顶部——滚动发生在 .content（overflow-y: scroll）
   // 而非 window，React Router 不会自动重置，上一页的 scrollTop 会被新页面继承
   // （从长页面中部进入导出/同步等页面时表现为「页面从下方开始」）。
@@ -35,6 +37,21 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
   const effectivePosition = isNarrowViewport ? 'bottom' : sidebarPosition;
   const isTop = effectivePosition === 'top';
   const isHorizontal = isTop || effectivePosition === 'bottom';
+  const sidebarWidth = sidebarExpanded ? 232 : 48;
+
+  // Portal 快捷卡片与固定聊天面板也读取同一尺寸，避免展开后仍使用 48px 偏移。
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const values: Record<string, string> = {
+      '--sidebar-width': `${sidebarWidth}px`,
+      '--shell-content-left': `${isHorizontal ? 0 : effectivePosition === 'left' ? sidebarWidth : 8}px`,
+      '--shell-content-right': `${isHorizontal ? 0 : effectivePosition === 'right' ? sidebarWidth : 8}px`,
+      '--shell-content-top': `${isNarrowViewport ? 48 : isTop ? 104 : isHorizontal ? 56 : 64}px`,
+      '--shell-content-bottom': `${isNarrowViewport ? 56 : effectivePosition === 'bottom' ? 48 : 8}px`,
+    };
+    Object.entries(values).forEach(([key, value]) => root.style.setProperty(key, value));
+    return () => Object.keys(values).forEach((key) => root.style.removeProperty(key));
+  }, [sidebarWidth, effectivePosition, isHorizontal, isTop, isNarrowViewport]);
 
   // B 侧入站配对请求：全局挂载监听（响应方用户不在同步页也能弹出配对确认对话框）。
   // 入站 Hello 落库一条新的未信任 peer 记录时，后端 emit sync-pairing-request。
@@ -66,6 +83,7 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
   return (
     <div
       className={styles.appShell}
+      data-navigation={effectivePosition}
       style={{
         flexDirection: isHorizontal
           ? effectivePosition === 'top'

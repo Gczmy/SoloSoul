@@ -148,10 +148,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
   const handleRunPlugin = (info: (typeof marketPlugins)[number]) => {
     const name = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
     const savedParams = pluginRunParamsRef.current[info.pluginId];
-    if (
-      info.pluginId === WATERMARK_PLUGIN_ID &&
-      !hasUsableWatermarkSelection(savedParams)
-    ) {
+    if (info.pluginId === WATERMARK_PLUGIN_ID && !hasUsableWatermarkSelection(savedParams)) {
       useUiStore.getState().showToast({
         type: 'warning',
         message: t('plugin:watermark.select_attachments_first', {
@@ -172,13 +169,19 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
     ...(isFloating
       ? { right: 12, left: 'auto' }
       : isRight
-        ? { right: 52, left: 'auto' }
-        : { left: 52, right: 'auto' }),
+        ? { right: 'calc(var(--sidebar-width, 48px) + 4px)', left: 'auto' }
+        : { left: 'calc(var(--sidebar-width, 48px) + 4px)', right: 'auto' }),
     top: position?.top ?? 100,
   };
 
   return (
-    <div ref={cardRef} className={styles.card} style={cardStyle}>
+    <div
+      ref={cardRef}
+      className={styles.card}
+      style={cardStyle}
+      role="dialog"
+      aria-label={t('common:plugins', { defaultValue: 'Plugins' })}
+    >
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>

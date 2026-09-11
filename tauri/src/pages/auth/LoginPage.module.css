@@ -93,3 +93,13 @@
     box-shadow: 0 0 0 1.5px var(--accent-primary);
   }
 }
+
+@media (min-width: 768px) {
+  .loginCard {
+    max-width: 392px;
+    padding: 36px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    box-shadow: 0 12px 36px rgb(0 0 0 / 8%);
+  }
+}
