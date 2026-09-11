@@ -1,0 +1,83 @@
+/* 在应用样式和 React 加载前生效；系统材质接入后仍复用同一启动层。 */
+:root {
+  color-scheme: light dark;
+  --startup-background: #fafaf8;
+  --startup-foreground: #252a2e;
+  --startup-secondary: #67717a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --startup-background: #1c1c1e;
+    --startup-foreground: #ecedef;
+    --startup-secondary: #adb6c0;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --startup-background: #1c1c1e;
+  --startup-foreground: #ecedef;
+  --startup-secondary: #adb6c0;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--startup-background);
+}
+
+#startup-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  box-sizing: border-box;
+  background: var(--bg-base, var(--startup-background));
+  color: var(--text-primary, var(--startup-foreground));
+  font:
+    14px -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  transition: opacity 180ms ease;
+}
+
+#startup-screen[data-ready='true'] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.startup-logo {
+  display: block;
+  width: 80px;
+  height: 80px;
+  filter: drop-shadow(0 8px 16px rgb(0 0 0 / 12%));
+}
+
+.startup-name {
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.startup-status {
+  min-height: 20px;
+  color: var(--text-secondary, var(--startup-secondary));
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #startup-screen {
+    transition: none;
+  }
+}

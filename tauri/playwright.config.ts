@@ -9,6 +9,8 @@ export default defineConfig({
   reporter: 'list',
   use: {
     baseURL: 'http://localhost:1420',
+    // 本机可复用已安装的 Chrome/Edge；CI 默认仍使用 Playwright Chromium。
+    channel: process.env.SOLOSOUL_E2E_CHANNEL || undefined,
     trace: 'on-first-retry',
   },
   projects: [

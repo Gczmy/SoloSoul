@@ -2,34 +2,47 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0"
+    />
     <title>SoloSoul</title>
+    <link rel="stylesheet" href="/src/styles/startup.css" />
     <script>
-    /* Apply cached UI prefs before React/Vite load. Runs sync from localStorage. */
-    try {
-      var r = localStorage.getItem('solosoul_ui_prefs');
-      if (r) {
-        var p = JSON.parse(r), d = document.documentElement;
-        if (p.theme) d.setAttribute('data-theme', p.theme === 'dark' ? 'dark' : p.theme === 'light' ? 'light' : 'system');
-        var cs = {ocean:'#5B7C99',amber:'#C4925C',forest:'#5B8C6F',rose:'#B06B7A'};
-        if (p.accentColor) d.style.setProperty('--accent-primary', cs[p.accentColor] || '#5B7C99');
-      }
-    } catch(e){}
-    /* Simple fallback: detect locale in case IPC isn't ready yet.
+      /* Apply cached UI prefs before React/Vite load. Runs sync from localStorage. */
+      try {
+        var r = localStorage.getItem('solosoul_ui_prefs');
+        if (r) {
+          var p = JSON.parse(r),
+            d = document.documentElement;
+          if (p.theme)
+            d.setAttribute(
+              'data-theme',
+              p.theme === 'dark' ? 'dark' : p.theme === 'light' ? 'light' : 'system',
+            );
+          var cs = { ocean: '#5B7C99', amber: '#C4925C', forest: '#5B8C6F', rose: '#B06B7A' };
+          if (p.accentColor)
+            d.style.setProperty('--accent-primary', cs[p.accentColor] || '#5B7C99');
+        }
+      } catch (e) {}
+      /* Simple fallback: detect locale in case IPC isn't ready yet.
        The authoritative source is initI18n() via get_system_locale IPC. */
-    try {
-      if (!localStorage.getItem('i18nextLng')) {
-        var nl = (navigator.language || 'en-US').toLowerCase();
-        localStorage.setItem('i18nextLng', nl.startsWith('zh') ? 'zh-CN' : 'en-US');
-      }
-    } catch(e){}
+      try {
+        if (!localStorage.getItem('i18nextLng')) {
+          var nl = (navigator.language || 'en-US').toLowerCase();
+          localStorage.setItem('i18nextLng', nl.startsWith('zh') ? 'zh-CN' : 'en-US');
+        }
+      } catch (e) {}
     </script>
-    <style>
-      /* Fallback to dark if no cache — prevents white flash. */
-      html:not([data-theme]) { background: #1c1c1e; --bg-base: #1c1c1e; }
-    </style>
   </head>
   <body>
+    <!-- 启动层独立于 React：模块下载、求值及 IPC 等待期间也有可见的品牌首帧。 -->
+    <div id="startup-screen" role="status" aria-label="SoloSoul">
+      <img class="startup-logo" src="/src-tauri/icons/icon.svg" width="80" height="80" alt="" />
+      <div class="startup-name">SoloSoul</div>
+      <div class="startup-status" aria-live="polite"></div>
+      <noscript>SoloSoul requires JavaScript to start.</noscript>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

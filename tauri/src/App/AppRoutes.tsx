@@ -1,5 +1,6 @@
 import { Suspense, useEffect } from 'react';
 import { trackAsyncListener } from '@/lib/asyncListener';
+import { dismissStartupScreen } from '@/lib/startupScreen';
 import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
@@ -71,6 +72,10 @@ export function AppRoutes() {
   useEffect(() => {
     checkHasAccount();
   }, [checkHasAccount]);
+
+  useEffect(() => {
+    if (hasAccount !== null) return dismissStartupScreen();
+  }, [hasAccount]);
 
   // Check SAF vault directory validity after login
   useEffect(() => {
