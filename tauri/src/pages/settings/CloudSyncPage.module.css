@@ -47,8 +47,8 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--accent-primary));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary)-primary) 18%, transparent);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 
 .select {
@@ -64,8 +64,8 @@
 
 .select:focus {
   outline: none;
-  border-color: var(--accent-primary));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary)-primary) 18%, transparent);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
 
 .hint {
@@ -78,7 +78,7 @@
   margin-right: 8px;
   width: 16px;
   height: 16px;
-  accent-color: var(--accent-primary));
+  accent-color: var(--accent-primary);
 }
 
 .retentionGrid {
@@ -102,7 +102,7 @@
 .checkbox {
   width: 16px;
   height: 16px;
-  accent-color: var(--accent-primary));
+  accent-color: var(--accent-primary);
 }
 
 .actionButtons {
