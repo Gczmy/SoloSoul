@@ -6,5 +6,24 @@
       "resources-desktop/SoloSoul_plugin_market/plugins": "SoloSoul_plugin_market/plugins",
       "resources-desktop/SoloSoul_plugin_market/registry.json": "SoloSoul_plugin_market/registry.json"
     }
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "SoloSoul",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "decorations": true,
+        "transparent": true,
+        "backgroundColor": "#00000000",
+        "titleBarStyle": "Transparent",
+        "visible": false
+      }
+    ]
   }
 }

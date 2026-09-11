@@ -7,7 +7,7 @@
 | D01 品牌启动首帧 | 已完成（DOM 层） | 静态启动层不依赖 React/IPC；账户路由绘制后淡出，系统减少动态效果时不播放过渡 |
 | D02 初始化状态与异常兜底 | 已完成 | 缓存先行、应用模块后移、超时/错误/重试、启动诊断 |
 | D03 macOS 原生材质 | 实现完成，原生验收待补 | macOS 26+ Liquid Glass、旧版 Vibrancy、主题与系统可访问性联动、首次显示 |
-| D04 Windows 原生材质与外壳 | 待实施 | Windows 11 Mica、兼容回退、原生标题栏交互、首次显示 |
+| D04 Windows 原生材质与外壳 | 实现完成，原生验收待补 | Windows 11 Mica、兼容回退、原生标题栏交互、首次显示 |
 | D05 桌面导航与内容层级 | 待实施 | 可展开侧栏、现有导航位置兼容、统一登录与内容表面 |
 
 ## 验收目标
@@ -21,7 +21,7 @@
 
 ## D01 验证记录
 
-- 图标直接引用现有 `src-tauri/icons/icon.svg`，生产构建生成带哈希资源；静态启动样式在 React 之前加载。
+- 图标直接引用现有 `src-tauri/icons/icon.svg`，生产构建自动打包资源（当前内联为 SVG data URL）；静态启动样式在 React 之前加载。
 - 路由账户状态明确后，等待目标页面绘制再做 180ms 淡出；支持 StrictMode 清理与减少动态效果。
 - TypeScript、ESLint、Vite 生产构建通过；启动层 3 个单元测试、真实 Chrome 2 个 E2E 通过（阻断主模块、缓存浅色覆盖系统深色）。
 - 原生窗口隐藏/首次显示由 D03/D04 实施；D01 验证的是 WebView 首帧。
@@ -42,3 +42,12 @@
 - 当前 Windows 主机 cargo check、严格 Clippy、TypeScript、定向 ESLint、ACL 206 命令检查通过；启动/IPC 16 项单元测试及 6 项 Chrome E2E 通过。材质 E2E 使用平台响应 mock，仅验证前端透出和强制颜色回退。
 - macOS 26/旧 macOS 的实际编译、材质观感、窗口按钮与辅助功能切换仍需原生机器验证，不以 Windows 编译或浏览器结果替代。
 - API 依据：[window-vibrancy](https://github.com/tauri-apps/window-vibrancy) 的已发布 0.8.0 实现。
+
+## D04 验证记录
+
+- Windows 11 应用 Mica，Windows 10/API 不可用、透明度关闭和高对比度场景回退实色；透明度、对比度与动画偏好变化复用现有轮询通知前端。
+- 原生标题栏仍负责窗口按钮、拖动、缩放、Snap 与 DPI；移除材质上方的固定标题栏颜色覆盖，WebView2 背景同步透明。
+- macOS/Windows 先恢复窗口位置和大小；最大化/全屏延后至品牌首帧就绪，避免窗口状态插件提前显示空窗。
+- 最终 Rust fmt 与严格 Clippy 通过；Chrome 7 项启动 E2E 通过，包含 Mica 响应与图标解码之后才请求首次显示。
+- Windows 原生程序构建成功（8m44s）；随后窗口恢复时序调整通过最终严格 Clippy。原生访问工具请求应用授权超时，未获得窗口截图，也未完成实际 Mica、缩放或 Snap 验收；最终整合包仍需重建与原生验收。
+- API 依据：[Microsoft Mica](https://learn.microsoft.com/en-us/windows/apps/design/style/mica) 和 [DWM 窗口属性](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute)。

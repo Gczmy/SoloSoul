@@ -363,17 +363,16 @@ pub fn run() {
     // 桌面端专属插件
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
+        let mut window_state = tauri_plugin_window_state::Builder::new();
+        if cfg!(any(target_os = "macos", target_os = "windows")) {
+            // 最大化/全屏恢复也可能显示窗口，统一推迟到品牌首帧就绪。
+            window_state = window_state.skip_initial_state("main").with_state_flags(
+                tauri_plugin_window_state::StateFlags::all()
+                    - tauri_plugin_window_state::StateFlags::VISIBLE,
+            );
+        }
         builder = builder
-            .plugin(
-                tauri_plugin_window_state::Builder::new()
-                    .with_state_flags(if cfg!(target_os = "macos") {
-                        tauri_plugin_window_state::StateFlags::all()
-                            - tauri_plugin_window_state::StateFlags::VISIBLE
-                    } else {
-                        tauri_plugin_window_state::StateFlags::all()
-                    })
-                    .build(),
-            )
+            .plugin(window_state.build())
             .plugin(tauri_plugin_updater::Builder::new().build());
     }
 

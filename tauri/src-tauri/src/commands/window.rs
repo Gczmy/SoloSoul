@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(target_os = "macos")]
 mod macos;
+#[cfg(target_os = "windows")]
+mod windows;
 
 #[derive(Clone, Copy, Deserialize)]
 pub struct TitlebarColor {
@@ -42,31 +44,12 @@ pub async fn set_titlebar_color(
                 let _ = sender.send(macos::apply(&target, native, color));
             })
             .map_err(|e| e.to_string())?;
-        return receiver.await.map_err(|e| e.to_string())?;
+        receiver.await.map_err(|e| e.to_string())?
     }
 
     #[cfg(target_os = "windows")]
     {
-        use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_CAPTION_COLOR};
-
-        let hwnd = window.hwnd().map_err(|e| format!("无法获取 HWND: {}", e))?;
-
-        // 将 RGB 打包为 Windows COLORREF (0x00BBGGRR)
-        let caption_color: u32 =
-            ((color.blue as u32) << 16) | ((color.green as u32) << 8) | (color.red as u32);
-
-        // SAFETY: DwmSetWindowAttribute 是 Windows DWM API；hwnd 是 Tauri 提供的
-        // 有效窗口句柄，caption_color 是栈上分配的 u32 值，size 正确。调用期间
-        // 不会修改 Rust 内存，仅由 DWM 读取标题栏颜色配置。
-        unsafe {
-            DwmSetWindowAttribute(
-                hwnd,
-                DWMWA_CAPTION_COLOR,
-                &caption_color as *const u32 as *const std::ffi::c_void,
-                std::mem::size_of::<u32>() as u32,
-            )
-            .map_err(|e| format!("DwmSetWindowAttribute 失败: {:?}", e))?;
-        }
+        windows::apply(&window, color)
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
@@ -75,7 +58,7 @@ pub async fn set_titlebar_color(
         let _ = color;
     }
 
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     Ok(WindowAppearance {
         material: "solid",
         platform: if cfg!(target_os = "windows") {
@@ -95,34 +78,45 @@ pub fn show_main_window(window: tauri::WebviewWindow) -> Result<(), String> {
     if window.label() != "main" {
         return Err("Only the main window can finish startup".into());
     }
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    if !WINDOW_SHOWN.load(std::sync::atomic::Ordering::Relaxed) {
+        use tauri_plugin_window_state::{StateFlags, WindowExt};
+        let _ = window.restore_state(StateFlags::MAXIMIZED | StateFlags::FULLSCREEN);
+    }
     window.show().map_err(|e| e.to_string())?;
     WINDOW_SHOWN.store(true, std::sync::atomic::Ordering::Relaxed);
     Ok(())
 }
 
 pub(crate) fn setup_startup_window(app: &tauri::AppHandle) {
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     {
         use tauri::Manager;
+        use tauri_plugin_window_state::{StateFlags, WindowExt};
+        if let Some(window) = app.get_webview_window("main") {
+            let _ = window.restore_state(StateFlags::SIZE | StateFlags::POSITION);
+        }
         let handle = app.clone();
         tauri::async_runtime::spawn(async move {
             tokio::time::sleep(std::time::Duration::from_secs(12)).await;
             // 模块或 WebView 初始化失败时仍呈现静态错误页，避免窗口永久不可见。
-            if !WINDOW_SHOWN.swap(true, std::sync::atomic::Ordering::Relaxed) {
+            if !WINDOW_SHOWN.load(std::sync::atomic::Ordering::Relaxed) {
                 if let Some(window) = handle.get_webview_window("main") {
-                    let _ = window.show();
+                    let _ = show_main_window(window);
                 }
             }
         });
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     let _ = app;
 }
 
 pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {
     #[cfg(target_os = "macos")]
     macos::poll_accessibility(app);
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    windows::poll_accessibility(app);
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     let _ = app;
 }
 
