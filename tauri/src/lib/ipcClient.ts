@@ -83,6 +83,7 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   // 不豁免则主题应用被守卫拦截且产生 unhandled rejection
   'get_system_theme',
   'set_titlebar_color',
+  'show_main_window',
   'set_status_bar_style',
   'ui_get_preferences',
   'ui_update_preference',

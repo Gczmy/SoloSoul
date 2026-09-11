@@ -179,6 +179,7 @@ fn register_core_commands(
         attachment_import_plugin::vault_pick_directory,
         // Window chrome commands
         commands::window::set_titlebar_color,
+        commands::window::show_main_window,
         status_bar_plugin::set_status_bar_style,
         lock_state_plugin::dismiss_lock_mask,
         lock_state_plugin::get_lock_pending,
@@ -363,7 +364,16 @@ pub fn run() {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
         builder = builder
-            .plugin(tauri_plugin_window_state::Builder::new().build())
+            .plugin(
+                tauri_plugin_window_state::Builder::new()
+                    .with_state_flags(if cfg!(target_os = "macos") {
+                        tauri_plugin_window_state::StateFlags::all()
+                            - tauri_plugin_window_state::StateFlags::VISIBLE
+                    } else {
+                        tauri_plugin_window_state::StateFlags::all()
+                    })
+                    .build(),
+            )
             .plugin(tauri_plugin_updater::Builder::new().build());
     }
 
@@ -622,6 +632,7 @@ mod tests {
                     "copy_content_uri_to_path",
                     "vault_pick_directory",
                     "set_titlebar_color",
+                    "show_main_window",
                     "set_status_bar_style",
                     "dismiss_lock_mask",
                     "get_lock_pending",

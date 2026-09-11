@@ -75,3 +75,24 @@ test('偏好 IPC 不返回仍进入登录页，启动层完成交接', async ({ 
   await expect(page.locator('#startup-screen')).toHaveCount(0, { timeout: 10000 });
   await expect(page.locator('button[type="submit"]')).toBeVisible();
 });
+
+test('原生确认玻璃材质后透出背景，系统强制颜色时回到实色', async ({ page }) => {
+  await page.addInitScript({
+    content:
+      readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
+      `
+    window.__E2E_MOCKS__ = {
+      set_titlebar_color: () => ({ material: 'liquid-glass', platform: 'macos', reduceMotion: false, highContrast: false }),
+    };
+  `,
+  });
+  await page.route('**/src/bootstrapApp.tsx', (route) => route.abort());
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('data-native-material', 'liquid-glass');
+  await expect(page.locator('#startup-screen')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await expect(page.locator('#startup-screen')).not.toHaveCSS(
+    'background-color',
+    'rgba(0, 0, 0, 0)',
+  );
+});

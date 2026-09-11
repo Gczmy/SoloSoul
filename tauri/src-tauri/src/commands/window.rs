@@ -1,6 +1,9 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize)]
+#[cfg(target_os = "macos")]
+mod macos;
+
+#[derive(Clone, Copy, Deserialize)]
 pub struct TitlebarColor {
     pub red: u8,
     pub green: u8,
@@ -15,47 +18,31 @@ pub(crate) fn calculate_luminance(color: &TitlebarColor) -> f64 {
     0.299 * f64::from(color.red) + 0.587 * f64::from(color.green) + 0.114 * f64::from(color.blue)
 }
 
-/// 设置 macOS 原生窗口背景色（影响透明标题栏的交通灯区域）。
-/// 其他平台直接忽略，避免编译与运行时问题。
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WindowAppearance {
+    pub material: &'static str,
+    pub platform: &'static str,
+    pub reduce_motion: bool,
+    pub high_contrast: bool,
+}
+
+/// 主题同步保持原生材质；AppKit 通过 with_webview 保证在主线程调用。
 #[tauri::command]
-pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result<(), String> {
+pub async fn set_titlebar_color(
+    window: tauri::WebviewWindow,
+    color: TitlebarColor,
+) -> Result<WindowAppearance, String> {
     #[cfg(target_os = "macos")]
     {
-        use objc2_app_kit::{
-            NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua,
-            NSAppearanceNameDarkAqua, NSColor, NSWindow,
-        };
-
-        let ptr = window
-            .ns_window()
-            .map_err(|e| format!("无法获取 NSWindow: {}", e))? as *mut NSWindow;
-        if ptr.is_null() {
-            return Err("NSWindow pointer is null".to_string());
-        }
-        // SAFETY: ptr 是 Tauri 框架通过 ns_window() 返回的有效 NSWindow 指针，
-        // 已经过非空检查。在 Tauri 窗口生命周期内该指针始终有效。&*ptr 创建
-        // 一个借用引用，不转移所有权，Tauri 负责 NSWindow 的生命周期。
-        let ns_window = unsafe { &*ptr };
-        let bg = NSColor::colorWithRed_green_blue_alpha(
-            color.red as f64 / 255.0,
-            color.green as f64 / 255.0,
-            color.blue as f64 / 255.0,
-            1.0,
-        );
-        ns_window.setBackgroundColor(Some(&bg));
-
-        // 根据标题栏背景亮度设置窗口 appearance，确保深色主题下标题文字为白色。
-        let luminance = calculate_luminance(&color);
-        let appearance_name = if luminance < 128.0 {
-            // SAFETY: NSAppearanceNameDarkAqua 是 AppKit 公开的全局 NSString 常量，
-            // 从 ObjC extern 静态变量中读取不会产生数据竞争或内存安全问题。
-            unsafe { NSAppearanceNameDarkAqua }
-        } else {
-            // SAFETY: NSAppearanceNameAqua 是 AppKit 公开的全局 NSString 常量。
-            unsafe { NSAppearanceNameAqua }
-        };
-        let appearance = NSAppearance::appearanceNamed(appearance_name);
-        ns_window.setAppearance(appearance.as_deref());
+        let (sender, receiver) = tokio::sync::oneshot::channel();
+        let target = window.clone();
+        window
+            .with_webview(move |native| {
+                let _ = sender.send(macos::apply(&target, native, color));
+            })
+            .map_err(|e| e.to_string())?;
+        return receiver.await.map_err(|e| e.to_string())?;
     }
 
     #[cfg(target_os = "windows")]
@@ -88,7 +75,55 @@ pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result
         let _ = color;
     }
 
+    #[cfg(not(target_os = "macos"))]
+    Ok(WindowAppearance {
+        material: "solid",
+        platform: if cfg!(target_os = "windows") {
+            "windows"
+        } else {
+            "other"
+        },
+        reduce_motion: false,
+        high_contrast: false,
+    })
+}
+
+static WINDOW_SHOWN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+#[tauri::command]
+pub fn show_main_window(window: tauri::WebviewWindow) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("Only the main window can finish startup".into());
+    }
+    window.show().map_err(|e| e.to_string())?;
+    WINDOW_SHOWN.store(true, std::sync::atomic::Ordering::Relaxed);
     Ok(())
+}
+
+pub(crate) fn setup_startup_window(app: &tauri::AppHandle) {
+    #[cfg(target_os = "macos")]
+    {
+        use tauri::Manager;
+        let handle = app.clone();
+        tauri::async_runtime::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_secs(12)).await;
+            // 模块或 WebView 初始化失败时仍呈现静态错误页，避免窗口永久不可见。
+            if !WINDOW_SHOWN.swap(true, std::sync::atomic::Ordering::Relaxed) {
+                if let Some(window) = handle.get_webview_window("main") {
+                    let _ = window.show();
+                }
+            }
+        });
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = app;
+}
+
+pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {
+    #[cfg(target_os = "macos")]
+    macos::poll_accessibility(app);
+    #[cfg(not(target_os = "macos"))]
+    let _ = app;
 }
 
 #[cfg(test)]

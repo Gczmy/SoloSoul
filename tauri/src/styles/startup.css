@@ -104,6 +104,29 @@ body {
   white-space: pre-wrap;
 }
 
+/* 仅原生确认材质可用后才透出窗口背景；浏览器、旧系统继续实色回退。 */
+html[data-native-material='vibrancy'],
+html[data-native-material='liquid-glass'],
+html[data-native-material='mica'],
+html[data-native-material]:not([data-native-material='solid']) body,
+html[data-native-material]:not([data-native-material='solid']) #root,
+html[data-native-material]:not([data-native-material='solid']) #startup-screen {
+  background: transparent;
+}
+
+:root[data-reduce-motion='true'] #startup-screen {
+  transition: none;
+}
+
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  html[data-native-material],
+  html[data-native-material] body,
+  html[data-native-material] #root,
+  html[data-native-material] #startup-screen {
+    background: var(--bg-base, var(--startup-background));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #startup-screen {
     transition: none;

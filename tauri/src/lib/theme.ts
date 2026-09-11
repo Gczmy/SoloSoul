@@ -7,6 +7,7 @@ import { applyScheme, resolveActiveScheme, getSchemeById } from './themeSchemes'
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { logger } from './logger';
 import { withTimeout } from './withTimeout';
+import { syncNativeAppearance } from './nativeWindow';
 
 const ACCENT_COLORS: Record<AccentPreset, string> = {
   ocean: '#5B7C99',
@@ -47,9 +48,7 @@ async function syncTitleBarColor(config: ThemeConfig) {
     const scheme = getSchemeById(schemeId);
     const bg = scheme?.variables['--bg-base'] || '#1c1c1e';
     const rgb = hexToRgb(bg) || [28, 28, 30];
-    await invoke('set_titlebar_color', {
-      color: { red: rgb[0], green: rgb[1], blue: rgb[2] },
-    });
+    await syncNativeAppearance({ red: rgb[0], green: rgb[1], blue: rgb[2] });
   } catch {
     // ignore when running in browser or API unavailable
   }

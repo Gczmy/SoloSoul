@@ -22,7 +22,9 @@ export function dismissStartupScreen(): () => void {
       screen.dataset.ready = 'true';
       screen.setAttribute('aria-hidden', 'true');
       performance.mark('solosoul:startup-dismissed');
-      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const reducedMotion =
+        matchMedia('(prefers-reduced-motion: reduce)').matches ||
+        document.documentElement.dataset.reduceMotion === 'true';
       removeTimer = setTimeout(() => screen.remove(), reducedMotion ? 0 : 180);
     });
   });

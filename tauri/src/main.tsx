@@ -1,4 +1,7 @@
 import type {} from '@/lib/startupScreen';
+import { prepareStartupWindow } from '@/lib/nativeWindow';
+
+void prepareStartupWindow();
 
 void import('./bootstrapApp')
   .then(({ mountApplication }) => mountApplication())

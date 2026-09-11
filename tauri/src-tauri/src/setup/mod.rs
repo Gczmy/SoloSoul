@@ -296,6 +296,7 @@ fn setup_spawn_theme_polling(app: &tauri::AppHandle) {
         let mut last_theme = String::new();
         loop {
             tokio::time::sleep(Duration::from_secs(1)).await;
+            commands::window::poll_accessibility(&app_handle);
             if let Ok(theme) = commands::system::get_system_theme() {
                 if theme != last_theme {
                     last_theme = theme.clone();
@@ -313,6 +314,7 @@ pub(crate) fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::
 
     // 0. 解析日志目录并初始化 tracing
     setup_logging(app.handle())?;
+    commands::window::setup_startup_window(app.handle());
 
     // 1. 检查数据目录是否可写
     setup_check_data_dir(app.handle())?;

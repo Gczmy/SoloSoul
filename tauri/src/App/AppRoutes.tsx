@@ -1,6 +1,7 @@
 import { Suspense, useEffect } from 'react';
 import { trackAsyncListener } from '@/lib/asyncListener';
 import { dismissStartupScreen } from '@/lib/startupScreen';
+import { refreshNativeAppearance } from '@/lib/nativeWindow';
 import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
@@ -73,6 +74,16 @@ export function AppRoutes() {
   useEffect(() => {
     checkHasAccount();
   }, [checkHasAccount]);
+
+  useEffect(
+    () =>
+      trackAsyncListener(
+        listen('native-appearance-changed', () => {
+          void refreshNativeAppearance();
+        }),
+      ),
+    [],
+  );
 
   useEffect(() => {
     if (hasAccount !== null) return dismissStartupScreen();

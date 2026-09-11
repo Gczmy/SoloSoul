@@ -129,7 +129,10 @@
       case 'biometric_check_availability':
         return { available: false };
       case 'set_titlebar_color':
-        return undefined;
+        return userMocks()[cmd] ? userMocks()[cmd](args) : {
+          material: 'solid', platform: window.__MOCK_PLATFORM__ || 'macos',
+          reduceMotion: false, highContrast: false,
+        };
       case 'check_for_update':
         return null;
       case 'user_data_get_preferences':
