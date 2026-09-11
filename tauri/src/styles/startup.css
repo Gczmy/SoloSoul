@@ -76,6 +76,34 @@ body {
   text-align: center;
 }
 
+.startup-actions:not([hidden]) {
+  display: flex;
+  gap: 12px;
+}
+
+.startup-actions button {
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  padding: 8px 14px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.startup-actions button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.startup-diagnostics {
+  margin: 0;
+  font:
+    12px/1.6 ui-monospace,
+    monospace;
+  white-space: pre-wrap;
+}
+
 @media (prefers-reduced-motion: reduce) {
   #startup-screen {
     transition: none;

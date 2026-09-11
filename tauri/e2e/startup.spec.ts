@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 
 test('应用模块尚未加载时已有品牌首帧', async ({ page }) => {
   await page.route('**/src/main.tsx', (route) => route.abort());
@@ -18,4 +19,59 @@ test('显式浅色偏好优先于系统深色，启动层无需 React 即可应�
   await page.route('**/src/main.tsx', (route) => route.abort());
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#startup-screen')).toHaveCSS('background-color', 'rgb(250, 250, 248)');
+});
+
+test('模块缺失时限时显示重试；迟到的就绪不会撤下错误页', async ({ page }) => {
+  await page.clock.install();
+  await page.route('**/src/main.tsx', (route) => route.abort());
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.clock.fastForward(8001);
+  const startup = page.locator('#startup-screen');
+  await expect(startup).toHaveAttribute('data-state', 'error');
+  await page.getByRole('button', { name: 'Diagnostics', exact: true }).click();
+  await expect(startup.locator('pre')).toContainText('reason: timeout');
+  const ready = await page.evaluate(() => window.__SOLOSOUL_STARTUP__?.ready());
+  expect(ready).toBe(false);
+  await expect(startup).toBeVisible();
+  await page.getByRole('button', { name: 'Restart', exact: true }).click();
+  await expect(startup).toHaveAttribute('data-state', 'loading');
+});
+
+test('首帧使用上次已解析的配色，不把浏览器语言写成用户偏好', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.removeItem('i18nextLng');
+    localStorage.setItem(
+      'solosoul_ui_prefs',
+      JSON.stringify({
+        theme: 'light',
+        startupTheme: {
+          mode: 'light',
+          background: '#f5f4f0',
+          foreground: '#303030',
+          secondary: '#666666',
+        },
+      }),
+    );
+  });
+  await page.route('**/src/main.tsx', (route) => route.abort());
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#startup-screen')).toHaveCSS('background-color', 'rgb(245, 244, 240)');
+  expect(await page.evaluate(() => localStorage.getItem('i18nextLng'))).toBeNull();
+});
+
+test('偏好 IPC 不返回仍进入登录页，启动层完成交接', async ({ page }) => {
+  await page.addInitScript({
+    content:
+      readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
+      `
+    const originalInvoke = window.__TAURI_INTERNALS__.invoke;
+    window.__TAURI_INTERNALS__.invoke = function(cmd, args) {
+      if (cmd === 'ui_get_preferences') return new Promise(() => {});
+      return originalInvoke(cmd, args);
+    };
+  `,
+  });
+  await page.goto('/login');
+  await expect(page.locator('#startup-screen')).toHaveCount(0, { timeout: 10000 });
+  await expect(page.locator('button[type="submit"]')).toBeVisible();
 });

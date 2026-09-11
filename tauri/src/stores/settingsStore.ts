@@ -1,3 +1,4 @@
+import { withTimeout } from '@/lib/withTimeout';
 import { create } from 'zustand';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { z } from 'zod';
@@ -205,6 +206,18 @@ function writeUiPrefsCache(settings: AppSettings): void {
         accentColor: settings.accentColor,
         defaultLightTheme: settings.defaultLightTheme,
         defaultDarkTheme: settings.defaultDarkTheme,
+        startupTheme: {
+          mode: document.documentElement.dataset.theme,
+          background: getComputedStyle(document.documentElement)
+            .getPropertyValue('--bg-base')
+            .trim(),
+          foreground: getComputedStyle(document.documentElement)
+            .getPropertyValue('--text-primary')
+            .trim(),
+          secondary: getComputedStyle(document.documentElement)
+            .getPropertyValue('--text-secondary')
+            .trim(),
+        },
       }),
     );
   } catch (e) {
@@ -268,13 +281,16 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
     // Step 2: fetch fresh prefs from IPC (slow, async)
     try {
-      const prefs = await invoke<{
-        theme?: string;
-        accentColor?: string;
-        language?: string;
-        defaultLightTheme?: string;
-        defaultDarkTheme?: string;
-      }>('ui_get_preferences');
+      const prefs = await withTimeout(
+        invoke<{
+          theme?: string;
+          accentColor?: string;
+          language?: string;
+          defaultLightTheme?: string;
+          defaultDarkTheme?: string;
+        }>('ui_get_preferences'),
+        1200,
+      );
       const parsed = { ...get().settings };
       if (prefs.theme) parsed.theme = prefs.theme as AppSettings['theme'];
       if (prefs.accentColor) parsed.accentColor = prefs.accentColor as AppSettings['accentColor'];

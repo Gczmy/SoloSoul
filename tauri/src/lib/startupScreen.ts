@@ -1,7 +1,19 @@
+declare global {
+  interface Window {
+    __SOLOSOUL_STARTUP__?: {
+      phase(next: 'application' | 'preferences' | 'accounts'): void;
+      active(): boolean;
+      fail(reason: 'timeout' | 'initialization-failed' | 'backend-unavailable'): void;
+      ready(): boolean;
+    };
+  }
+}
+
 /** 仅操作静态启动层，不引入 React、Store 或 IPC，避免启动依赖闭环。 */
 export function dismissStartupScreen(): () => void {
   const screen = document.getElementById('startup-screen');
   if (!screen) return () => {};
+  if (window.__SOLOSOUL_STARTUP__?.ready() === false) return () => {};
   let secondFrame = 0;
   let removeTimer: ReturnType<typeof setTimeout> | undefined;
   // 确保目标页面已有一次绘制机会，再撤下覆盖层；不增加最短展示时长。

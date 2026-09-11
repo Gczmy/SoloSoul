@@ -56,11 +56,12 @@ export function AppRoutes() {
   }, []);
   const { t } = useTranslation(['settings']);
   // P022: useShallow 字段级选择——避免 store 任意字段（error/backendError 等）翻转时整页重渲染
-  const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore(
+  const { checkHasAccount, hasAccount, isAuthenticated, backendError } = useAuthStore(
     useShallow((s) => ({
       checkHasAccount: s.checkHasAccount,
       hasAccount: s.hasAccount,
       isAuthenticated: s.isAuthenticated,
+      backendError: s.backendError,
     })),
   );
   // P041: 统一更新状态机（桌面 plugin-updater + Android GitHub Release）与 OCR 首装逻辑
@@ -75,7 +76,8 @@ export function AppRoutes() {
 
   useEffect(() => {
     if (hasAccount !== null) return dismissStartupScreen();
-  }, [hasAccount]);
+    if (backendError) window.__SOLOSOUL_STARTUP__?.fail('backend-unavailable');
+  }, [hasAccount, backendError]);
 
   // Check SAF vault directory validity after login
   useEffect(() => {

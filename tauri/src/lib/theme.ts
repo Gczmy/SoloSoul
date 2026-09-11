@@ -6,6 +6,7 @@ import type { AccentPreset, ThemeConfig } from '@/types';
 import { applyScheme, resolveActiveScheme, getSchemeById } from './themeSchemes';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { logger } from './logger';
+import { withTimeout } from './withTimeout';
 
 const ACCENT_COLORS: Record<AccentPreset, string> = {
   ocean: '#5B7C99',
@@ -93,7 +94,7 @@ function applyAccentColor(accent: AccentPreset, customHex?: string) {
  *  work correctly inside the Tauri WebView (e.g. on macOS). */
 export async function getSystemTheme(): Promise<'light' | 'dark'> {
   try {
-    const mode = await invoke<string>('get_system_theme');
+    const mode = await withTimeout(invoke<string>('get_system_theme'), 600);
     return mode === 'dark' ? 'dark' : 'light';
   } catch {
     // Fallback to window.matchMedia if IPC fails

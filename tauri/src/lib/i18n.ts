@@ -2,6 +2,7 @@ import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { logger } from '@/lib/logger';
+import { withTimeout } from './withTimeout';
 
 import enCommon from '@/locales/en-US/common.json';
 import enNav from '@/locales/en-US/navigation.json';
@@ -71,15 +72,19 @@ export async function initI18n(): Promise<typeof i18next> {
   let detectedLng: SupportedLang | null = null;
 
   // Layer 1: localStorage — user's explicit preference (most authoritative)
-  const stored = localStorage.getItem(LANG_KEY);
-  if (stored === 'zh-CN' || stored === 'en-US') detectedLng = stored;
+  try {
+    const stored = localStorage.getItem(LANG_KEY);
+    if (stored === 'zh-CN' || stored === 'en-US') detectedLng = stored;
+  } catch {
+    /* 存储不可用时继续系统语言探测。 */
+  }
 
   // Layer 2: Rust IPC (取代此前 window.eval + window.__SOLOSOUL_LOCALE__)
   if (!detectedLng) {
     // P008: IPC 异常（后端未就绪/调用失败）不得中断初始化链——捕获后落入
     // Layer 3 navigator.language 兜底，杜绝启动白屏。
     try {
-      const locale = await invoke<string>('get_system_locale');
+      const locale = await withTimeout(invoke<string>('get_system_locale'), 600);
       if (locale) {
         detectedLng = locale.startsWith('zh') ? 'zh-CN' : 'en-US';
       }
@@ -102,8 +107,10 @@ export async function initI18n(): Promise<typeof i18next> {
     interpolation: { escapeValue: false },
   });
 
-  if (typeof localStorage !== 'undefined') {
+  try {
     localStorage.setItem(LANG_KEY, detectedLng);
+  } catch {
+    /* 缓存失败不影响已经初始化的语言。 */
   }
 
   return i18next;
