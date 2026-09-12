@@ -75,6 +75,16 @@ pub fn apply(
 ) -> Result<WindowAppearance, String> {
     let (reduce_transparency, high_contrast, reduce_motion) = accessibility();
     let dark = calculate_luminance(&color) < 128.0;
+    // 同步 Tauri 保存的窗口主题，不能只改 DWM 属性：否则窗口仍跟随系统主题，
+    // Windows 设置变更时 tao 会将 Mica/标题栏重新写回系统的浅深色。
+    // 应用的 system 模式由现有主题轮询解析后传入，此处始终使用已解析的颜色。
+    window
+        .set_theme(Some(if dark {
+            tauri::Theme::Dark
+        } else {
+            tauri::Theme::Light
+        }))
+        .map_err(|e| e.to_string())?;
     let mica = !reduce_transparency
         && !high_contrast
         && window_vibrancy::apply_mica(window, Some(dark)).is_ok();
