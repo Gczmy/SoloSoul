@@ -19,6 +19,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:production": "playwright test --config playwright.production.config.ts",
     "test:e2e:mobile": "playwright test --project=mobile",
     "check-all": "tsc --noEmit && cargo fmt --check && cargo clippy -- -D warnings && cargo test && npm run lint && npm run test && node scripts/check-markdown-chunk-boundary.mjs && npm run check:acl && npm run check:pref-keys",
     "check:acl": "node scripts/run-python-check.cjs scripts/check_acl_consistency.py",

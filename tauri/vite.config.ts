@@ -42,7 +42,10 @@ export default defineConfig({
               // —— 这些留在 index chunk 后与 markdown-vendor 形成跨 chunk 循环依赖：
               // vendor 内 micromark 求值时 index 尚未初始化完，constructs 数组里塞入 undefined，
               // 运行期 combineExtensions 报 `t[n].add`（帮助文档全灭，含平凡内容）。
-              test: /node_modules[\\/](react-markdown|remark-|rehype-|micromark[^\\/]*|mdast-|hast-|unist-|unified|vfile|vfile-message|lowlight|refractor|highlight\.js|comma-separated-tokens|property-information|space-separated-tokens|stringify-entities|character-entities|decode-named-character-reference|ccount|bail|trough|extend|is-plain-obj|trim-lines|zwitch|longest-streak|markdown-table|escape-string-regexp|devlop|html-void-elements|html-whitespace|web-namespaces|estree-util-|style-to-object|style-to-jsx|inline-style-parser)[\\/]/,
+              // 前缀家族必须匹配完整包名；style-to-js 是真实依赖（不是 style-to-jsx）。
+              // 否则 hast-util-to-jsx-runtime 留在 SafeMarkdown，而 style-to-object 留在
+              // vendor，互相导入后 CommonJS 初始化器尚未赋值，生产启动立即失败。
+              test: /node_modules[\\/](react-markdown|(?:remark-|rehype-|micromark|mdast-|hast-|unist-|estree-util-)[^\\/]*|unified|vfile|vfile-message|lowlight|refractor|highlight\.js|comma-separated-tokens|property-information|space-separated-tokens|stringify-entities|character-entities|decode-named-character-reference|ccount|bail|trough|extend|is-plain-obj|trim-lines|zwitch|longest-streak|markdown-table|escape-string-regexp|devlop|html-void-elements|html-whitespace|web-namespaces|style-to-object|style-to-js|inline-style-parser)[\\/]/,
             },
             {
               name: 'motion-vendor',

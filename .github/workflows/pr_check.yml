@@ -1,6 +1,6 @@
 name: SoloSoul PR Checks
 
-# Fast feedback for pull requests - no builds, just tests
+# Fast feedback for pull requests, including a production frontend smoke test (no installers).
 on:
   pull_request:
     branches: [main]
@@ -37,6 +37,12 @@ jobs:
 
       - name: Unit tests
         run: npm run test
+
+      - name: Install production smoke browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Production startup smoke test
+        run: npm run test:e2e:production
 
   rust-check:
     name: Rust Format, Clippy & Tests

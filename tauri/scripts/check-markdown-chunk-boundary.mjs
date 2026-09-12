@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // =============================================================================
-// 回归守卫：micromark 家族必须与 micromark 核心同 chunk。
+// 回归守卫：Markdown 解析与渲染依赖必须与 micromark 核心同 chunk。
 //
 // 背景（帮助文档 `t[n].add` 崩溃根因）：vite.config.ts 的 markdown-vendor
 // codeSplitting 组正则曾写作 `micromark[\\/]`，只匹配核心包 micromark，
@@ -29,6 +29,15 @@ const FAMILY = [
   'micromark-extension-gfm/',
   'micromark-extension-gfm-table/',
   'micromark-extension-gfm-task-list-item/',
+  // D06: 生产首屏 SafeMarkdown -> vendor -> SafeMarkdown 循环曾导致
+  // style-to-js 求值时 style-to-object 的 CommonJS 初始化器仍是 undefined。
+  'remark-parse/',
+  'remark-rehype/',
+  'mdast-util-from-markdown/',
+  'hast-util-to-jsx-runtime/',
+  'style-to-js/',
+  'style-to-object/',
+  'inline-style-parser/',
 ];
 
 const result = await build({
@@ -66,7 +75,7 @@ for (const fam of FAMILY) {
   } else if (chunk !== coreChunk) {
     console.error(
       `[check-markdown-chunk-boundary] FAIL: ${fam} 在 ${chunk}，与 micromark 核心（${coreChunk}）不同 chunk —— ` +
-        'markdown-vendor 正则漏配会复现帮助文档 `t[n].add` 崩溃，请检查 vite.config.ts 的 codeSplitting 组',
+        'markdown-vendor 正则漏配可能导致生产启动或 Markdown 渲染崩溃，请检查 vite.config.ts 的 codeSplitting 组',
     );
     failed = true;
   }
@@ -75,4 +84,6 @@ for (const fam of FAMILY) {
 if (failed) {
   process.exit(1);
 }
-console.log(`[check-markdown-chunk-boundary] OK: micromark 家族与核心同处 ${coreChunk}`);
+console.log(
+  `[check-markdown-chunk-boundary] OK: ${FAMILY.length} 个解析/渲染依赖与核心同处 ${coreChunk}`,
+);
