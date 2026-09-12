@@ -8,6 +8,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { applyTheme, getSystemTheme } from '@/lib/theme';
 import { applyScheme, getSchemeById } from '@/lib/themeSchemes';
+import { refreshNativeAppearance } from '@/lib/nativeWindow';
 import { useTranslation } from 'react-i18next';
 import { ThemeSchemePanel } from '@/components/settings/ThemeSchemePanel';
 import type { AccentPreset } from '@/types';
@@ -121,6 +122,7 @@ export function AppearanceSettingsPage() {
     } else {
       // Apply scheme immediately (mode matches current theme)
       applyScheme(scheme.id);
+      await refreshNativeAppearance();
     }
     // Persist as default for the scheme's mode
     const key = scheme.mode === 'light' ? 'defaultLightTheme' : 'defaultDarkTheme';

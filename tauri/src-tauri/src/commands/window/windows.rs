@@ -101,7 +101,9 @@ pub fn apply(
         )))
         .map_err(|e| e.to_string())?;
     let hwnd = window.hwnd().map_err(|e| e.to_string())?;
-    let caption = if mica || high_contrast {
+    // 原生 Mica 标题栏的壁纸色无法跟随应用配色；使用同一主题底色衔接 WebView 着色层。
+    // 高对比度仍由系统决定颜色。
+    let caption = if high_contrast {
         DWMWA_COLOR_DEFAULT
     } else {
         u32::from(color.red) | (u32::from(color.green) << 8) | (u32::from(color.blue) << 16)
