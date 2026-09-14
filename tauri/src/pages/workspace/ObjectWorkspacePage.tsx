@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -19,6 +19,8 @@ import { WorkspaceObjectCard } from './WorkspaceObjectCard';
 import type { ObjectSummary, ObjectData } from '@/stores/objectStore';
 import { WorkspaceCategoryTabs } from '@/components/workspace/WorkspaceCategoryTabs';
 import { ConfirmDeleteDialog } from '@/components/workspace/ConfirmDeleteDialog';
+import { WorkspaceObjectRuler } from '@/components/workspace/WorkspaceObjectRuler';
+import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { useWorkspaceGuidePages } from './workspaceGuidePages';
 import { ICON_SIZE } from '@/lib/constants';
@@ -42,6 +44,17 @@ export function ObjectWorkspacePage() {
   const { t } = ws;
   // 本地别名：属性访问无法在 JSX 守卫中做类型收窄，解构后可对 nullable 值正常 narrow。
   const { detailObj, historyObj, OBJECT_PAGE_SIZE } = ws;
+  const listRef = useRef<HTMLDivElement>(null);
+  const isNarrowViewport = useIsNarrowViewport();
+  const { setVisibleLimit } = ws;
+  const revealRulerObject = useCallback(
+    (index: number) => {
+      setVisibleLimit((limit) =>
+        Math.max(limit, Math.ceil((index + 1) / OBJECT_PAGE_SIZE) * OBJECT_PAGE_SIZE),
+      );
+    },
+    [setVisibleLimit, OBJECT_PAGE_SIZE],
+  );
   // V004: fieldOrder 从内联 .find()?.properties.map() 提取为 useMemo——每次渲染新数组引用
   // 会让 HistoryViewer 内部的 useMemo（依赖 [rawProps, fieldOrder]）在异步快照稳定后仍每次失效。
   const historyFieldOrder = useMemo(
@@ -164,9 +177,7 @@ export function ObjectWorkspacePage() {
           )}
           {!ws.isLoading && ws.error && (
             <Card>
-              <p style={{ textAlign: 'center', color: '#e74c3c', padding: '24px 0' }}>
-                {ws.error}
-              </p>
+              <p style={{ textAlign: 'center', color: '#e74c3c', padding: '24px 0' }}>{ws.error}</p>
             </Card>
           )}
           {!ws.isLoading && !ws.error && ws.visibleObjects.length === 0 && (
@@ -184,7 +195,10 @@ export function ObjectWorkspacePage() {
             </Card>
           )}
           {!ws.isLoading && ws.visibleObjects.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
+            <div
+              ref={listRef}
+              style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}
+            >
               {ws.visibleObjects.slice(0, ws.visibleLimit).map((obj) => (
                 <WorkspaceObjectCard
                   key={obj.id}
@@ -287,6 +301,17 @@ export function ObjectWorkspacePage() {
           />
         </div>
       </PageContainer>
+      {!isNarrowViewport && !ws.isLoading && !ws.error && ws.visibleObjects.length > 1 && (
+        <WorkspaceObjectRuler
+          objects={ws.visibleObjects}
+          renderedCount={Math.min(ws.visibleLimit, ws.visibleObjects.length)}
+          listRef={listRef}
+          revealObject={revealRulerObject}
+          userTemplates={ws.userTemplates}
+          resolveCollectionLabel={ws.resolveCollectionLabel}
+          attachmentCounts={ws.attachmentCounts}
+        />
+      )}
       {historyObj &&
         (() => {
           const historyObjData = ws.objects.find((o) => o.id === historyObj.id);
@@ -303,7 +328,9 @@ export function ObjectWorkspacePage() {
               getFieldSensitivity={(fieldKey) =>
                 ws.getFieldSensitivity(historyObj.templateId, fieldKey, historyLabels)
               }
-              isFieldDeprecated={(fieldKey) => ws.isFieldDeprecated(historyObj.templateId, fieldKey)}
+              isFieldDeprecated={(fieldKey) =>
+                ws.isFieldDeprecated(historyObj.templateId, fieldKey)
+              }
               getFieldName={(fieldKey) =>
                 ws.getFieldName(historyObj.templateId, fieldKey, historyFields)
               }

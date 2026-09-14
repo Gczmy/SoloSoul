@@ -14,10 +14,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { ICON_SIZE } from '@/lib/constants';
-import {
-  flattenPropertyEntries,
-  type FlattenedPropertyEntry,
-} from '@/lib/propertyFlatten';
+import { objectRulerAnchorId } from '@/components/workspace/objectRuler';
+import { flattenPropertyEntries, type FlattenedPropertyEntry } from '@/lib/propertyFlatten';
 import styles from './WorkspaceObjectCard.module.css';
 
 /**
@@ -138,7 +136,12 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   });
 
   return (
-    <div ref={dragRef} style={{ position: 'relative' }} data-testid="workspace-object-card">
+    <div
+      ref={dragRef}
+      id={objectRulerAnchorId(obj.id)}
+      className={styles.anchor}
+      data-testid="workspace-object-card"
+    >
       <Card interactive onClick={() => onClick(obj)}>
         {/* 模板更新提示条 */}
         {needsSync && onSync && (

@@ -711,5 +711,10 @@
   "group_by_object": "按对象",
   "album_group_mode": "分组方式",
   "no_photos_for_filter": "没有带「{{tag}}」标签的照片",
-  "unknown_page": "未知页面"
+  "unknown_page": "未知页面",
+  "object_ruler_label": "对象尺标",
+  "object_ruler_keyboard_hint": "上下方向键浏览对象，Home 和 End 跳至首尾，Enter 定位对象，Esc 关闭简介。",
+  "object_ruler_go_to": "定位到 {{name}}，第 {{index}} / {{total}} 个对象",
+  "object_ruler_preview": "对象简介",
+  "object_ruler_jump": "定位到此对象"
 }

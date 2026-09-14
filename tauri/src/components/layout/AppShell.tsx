@@ -44,10 +44,10 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
     const root = document.documentElement;
     const values: Record<string, string> = {
       '--sidebar-width': `${sidebarWidth}px`,
-      '--shell-content-left': `${isHorizontal ? 0 : effectivePosition === 'left' ? sidebarWidth : 8}px`,
-      '--shell-content-right': `${isHorizontal ? 0 : effectivePosition === 'right' ? sidebarWidth : 8}px`,
-      '--shell-content-top': `${isNarrowViewport ? 48 : isTop ? 104 : isHorizontal ? 56 : 64}px`,
-      '--shell-content-bottom': `${isNarrowViewport ? 56 : effectivePosition === 'bottom' ? 48 : 8}px`,
+      '--shell-content-left': `${effectivePosition === 'left' ? sidebarWidth : 0}px`,
+      '--shell-content-right': `${effectivePosition === 'right' ? sidebarWidth : 0}px`,
+      '--shell-content-top': `${isNarrowViewport ? 48 : isTop ? 104 : 56}px`,
+      '--shell-content-bottom': `${isNarrowViewport ? 56 : effectivePosition === 'bottom' ? 48 : 0}px`,
     };
     Object.entries(values).forEach(([key, value]) => root.style.setProperty(key, value));
     return () => Object.keys(values).forEach((key) => root.style.removeProperty(key));

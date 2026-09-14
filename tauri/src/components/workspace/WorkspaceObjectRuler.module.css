@@ -1,0 +1,198 @@
+.ruler {
+  position: fixed;
+  top: calc(var(--shell-content-top, 56px) + 16px);
+  bottom: calc(var(--shell-content-bottom, 0px) + 16px);
+  right: calc(var(--shell-content-right, 0px) + 8px);
+  width: 40px;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.rail {
+  width: 100%;
+  max-height: min(360px, 100%);
+  overflow-y: auto;
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+  padding: 8px 4px;
+  pointer-events: auto;
+  border-radius: 20px;
+  transition: background 180ms ease;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
+.rail:hover,
+.rail:focus-within {
+  background: color-mix(in srgb, var(--bg-elevated) 85%, transparent);
+}
+.tick {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 32px;
+  height: var(--ruler-step);
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  outline-offset: 2px;
+}
+.tickLine {
+  display: block;
+  height: 2px;
+  flex-shrink: 0;
+  border-radius: 2px;
+  background: var(--text-tertiary);
+  opacity: 0.38;
+  transition:
+    width 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 150ms,
+    background 150ms;
+}
+.tick[aria-current] .tickLine {
+  background: var(--accent-primary);
+  opacity: 1;
+}
+.tick[data-preview] .tickLine,
+.tick:focus-visible .tickLine {
+  background: var(--text-primary);
+  opacity: 1;
+}
+.tick:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  border-radius: 3px;
+}
+
+.preview {
+  position: fixed;
+  right: calc(var(--shell-content-right, 0px) + 48px);
+  width: 288px;
+  max-width: calc(100vw - var(--shell-content-left, 0px) - var(--shell-content-right, 0px) - 64px);
+  max-height: calc(
+    100vh - var(--shell-content-top, 56px) - var(--shell-content-bottom, 0px) - 16px
+  );
+  overflow-y: auto;
+  padding: 16px;
+  pointer-events: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  animation: previewAppear 130ms ease both;
+}
+@keyframes previewAppear {
+  from {
+    opacity: 0;
+    transform: translateX(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.previewMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.previewMeta > :first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.previewMeta > :last-child {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.previewTitle {
+  margin: 10px 0 8px;
+  font-size: 15px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.attachments {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0 0;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.field dt {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.field dd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.field dd > :first-child {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.jumpButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 8px;
+  width: 100%;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-toolbar);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.jumpButton:hover {
+  border-color: var(--accent-primary);
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 767px) {
+  .ruler {
+    display: none;
+  }
+}

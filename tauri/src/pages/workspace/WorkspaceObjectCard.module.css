@@ -144,3 +144,20 @@
     display: none;
   }
 }
+.anchor {
+  position: relative;
+  border-radius: 12px;
+}
+.anchor[data-ruler-target='true'] {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 4px;
+  animation: rulerTarget 1.8s ease-out;
+}
+@keyframes rulerTarget {
+  from {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent-primary) 18%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}

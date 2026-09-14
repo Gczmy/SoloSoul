@@ -117,14 +117,6 @@
 
 @media (min-width: 768px) {
   .appBar.vertical {
-    top: 8px;
-    right: 8px;
-    height: 56px;
-    border-radius: 14px 14px 0 0;
     background: var(--bg-base);
-  }
-  .appBar.rightSidebar {
-    left: 8px;
-    right: var(--sidebar-width, 48px);
   }
 }

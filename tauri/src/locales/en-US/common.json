@@ -712,5 +712,10 @@
   "group_by_object": "By object",
   "album_group_mode": "Group by",
   "no_photos_for_filter": "No photos with tag \"{{tag}}\"",
-  "unknown_page": "Unknown page"
+  "unknown_page": "Unknown page",
+  "object_ruler_label": "Object ruler",
+  "object_ruler_keyboard_hint": "Use arrow keys to browse, Home or End for first or last, Enter to locate an object, and Escape to close the preview.",
+  "object_ruler_go_to": "Locate {{name}}, object {{index}} of {{total}}",
+  "object_ruler_preview": "Object preview",
+  "object_ruler_jump": "Locate this object"
 }

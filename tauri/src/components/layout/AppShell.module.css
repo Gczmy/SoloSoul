@@ -51,13 +51,8 @@
 @media (min-width: 768px) {
   .appShell[data-navigation='left'] .main,
   .appShell[data-navigation='right'] .main {
-    margin: 8px 8px 8px 0;
-    border: 1px solid var(--border-subtle);
-    border-radius: 14px;
+    /* 内容区直接铺满侧栏之外的窗口区域。 */
     background: var(--bg-base);
-  }
-  .appShell[data-navigation='right'] .main {
-    margin: 8px 0 8px 8px;
   }
   .content {
     padding-left: 24px;
