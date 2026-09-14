@@ -14,7 +14,6 @@ import { LoginIconBar } from './LoginIconBar';
 import styles from './LoginPage.module.css';
 import { LazyRecoveryReceiveDialog } from '@/components/recovery/LazyRecoveryReceiveDialog';
 import { RecoveryDialogSkeleton } from '@/components/recovery/RecoveryDialogSkeleton';
-import { WindowTransparencySetting } from '@/components/settings/WindowTransparencySetting';
 
 /**
  * 登录页 — P046 拆分后为纯展示组合层：
@@ -182,8 +181,6 @@ export function LoginPage() {
           onIconLeave={handleIconLeave}
           onIconClick={handleIconClick}
         />
-
-        <WindowTransparencySetting compact />
 
         {recoveryOpen && (
           <Suspense fallback={<RecoveryDialogSkeleton />}>

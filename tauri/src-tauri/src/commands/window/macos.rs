@@ -101,7 +101,6 @@ pub fn apply(
     window: &tauri::WebviewWindow,
     native: tauri::webview::PlatformWebview,
     color: TitlebarColor,
-    force_opaque: bool,
 ) -> Result<WindowAppearance, String> {
     let (reduce_transparency, high_contrast, reduce_motion) = accessibility();
     // SAFETY: PlatformWebview 在主线程回调中提供有效 NSWindow/WKWebView；仅在该回调内借用。
@@ -129,8 +128,8 @@ pub fn apply(
             entry.insert("solid")
         }
     };
-    // 保留设备兼容与辅助功能回退；不透明模式完全关闭背景材质采样。
-    if force_opaque || reduce_transparency || high_contrast {
+    // 尊重系统辅助功能偏好；应用不再提供独立的不透明兼容模式。
+    if reduce_transparency || high_contrast {
         if *material == "liquid-glass" {
             clear_liquid_glass(window).map_err(|e| e.to_string())?;
         }

@@ -3,7 +3,6 @@
 //! 追加 -- --manual 可在自动检查后保留窗口，验收台前调度、最小化和全屏切换。
 //! --native-only 隐藏 WebView，仅观察原生材质；--unthrottled 禁用测试 WebView 的后台节流。
 //! --vibrancy 在回归检查后替换为始终活跃的传统毛玻璃，供前后台切换对照。
-//! --solid 使用生产不透明兼容模式；所有模式都检查透明/不透明往返切换。
 //! 玻璃底色 alpha=0.001 用于修复后台恢复闪黑，必须跨主题/尺寸/材质切换保留。
 //! 几何断言只验证恢复后的布局，不证明恢复过程没有瞬间黑帧。
 
@@ -130,7 +129,6 @@ fn main() {
     let native_only = std::env::args().any(|arg| arg == "--native-only");
     let unthrottled = std::env::args().any(|arg| arg == "--unthrottled");
     let vibrancy = std::env::args().any(|arg| arg == "--vibrancy");
-    let solid = std::env::args().any(|arg| arg == "--solid");
     let mut context = tauri::test::mock_context(RegressionAssets);
     context.config_mut().identifier = "com.solosoul.appearance-regression".into();
     context.config_mut().app.macos_private_api = true;
@@ -159,7 +157,7 @@ fn main() {
             let checks = tauri::async_runtime::spawn(async move {
                 let dark = window::TitlebarColor { red: 28, green: 28, blue: 30 };
                 let light = window::TitlebarColor { red: 250, green: 250, blue: 248 };
-                let appearance = window::set_titlebar_color(window.clone(), dark, Some(solid)).await.unwrap();
+                let appearance = window::set_titlebar_color(window.clone(), dark).await.unwrap();
                 println!("[appearance] material={}; native-only={native_only}; unthrottled={unthrottled}", appearance.material);
                 if native_only {
                     let (tx, rx) = tokio::sync::oneshot::channel();
@@ -176,7 +174,7 @@ fn main() {
                 let original = snapshot(&window, appearance.material).await;
                 // 覆盖首帧后约一秒的重复外观同步，以及浅深色切换。
                 for color in [dark, dark, light, dark] {
-                    let appearance = window::set_titlebar_color(window.clone(), color, Some(solid)).await.unwrap();
+                    let appearance = window::set_titlebar_color(window.clone(), color).await.unwrap();
                     tokio::time::sleep(Duration::from_millis(300)).await;
                     assert_eq!(snapshot(&window, appearance.material).await, original);
                 }
@@ -188,18 +186,6 @@ fn main() {
                     assert_eq!(snapshot(&window, appearance.material).await, original);
                 }
                 println!("PASS: native title bar coverage, content layout, stable WebView/material identity, theme sync, hide/show and resize");
-                for opaque in [true, false, true, solid] {
-                    let mode = window::set_titlebar_color(window.clone(), dark, Some(opaque)).await.unwrap();
-                    if opaque { assert_eq!(mode.material, "solid"); }
-                    window.hide().unwrap();
-                    window.show().unwrap();
-                    tokio::time::sleep(Duration::from_millis(300)).await;
-                    let current = snapshot(&window, mode.material).await;
-                    assert_eq!(current.0, original.0, "切换兼容模式不得重建 WebView");
-                    window::set_titlebar_color(window.clone(), dark, Some(opaque)).await.unwrap();
-                    assert_eq!(snapshot(&window, mode.material).await, current);
-                }
-                println!("PASS: glass/opaque transitions, native opacity and background alpha, stable WebView and layout");
                 if vibrancy {
                     if appearance.material == "solid" {
                         println!("SKIP: vibrancy comparison respects accessibility settings requiring a solid background");

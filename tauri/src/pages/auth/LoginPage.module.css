@@ -95,11 +95,28 @@
 }
 
 @media (min-width: 768px) {
+  .loginWrapper {
+    /* root 禁止溢出；限定可视高度，避免长卡片把下沿推到窗口外。 */
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    padding: 24px;
+    overflow: hidden;
+  }
+
   .loginCard {
     max-width: 392px;
+    min-height: min(420px, 100%);
+    max-height: 100%;
     padding: 36px;
     border: 1px solid var(--border-subtle);
     border-radius: 20px;
     box-shadow: 0 12px 36px rgb(0 0 0 / 8%);
+    overflow-y: auto;
+  }
+
+  .loginCard > * {
+    /* 矮窗口在卡片内部滚动，保留上下留白与完整圆角，不挤压登录控件。 */
+    flex-shrink: 0;
   }
 }
