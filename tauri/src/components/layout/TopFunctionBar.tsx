@@ -25,6 +25,7 @@ import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import type { CustomPage } from '@/stores/settingsStore';
 import type { WheelEvent } from 'react';
 import { ICON_SIZE } from '@/lib/constants';
+import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 
 const FUNCTION_BAR_HEIGHT = 48;
 
@@ -211,17 +212,15 @@ export function TopFunctionBar({
   });
 
   const isBottom = sidebarPosition === 'bottom';
+  const isMacOS = useNativeWindowStore((s) => s.isMacOS);
 
   return (
     <header
       className={styles.functionBar}
-      data-tauri-drag-region
+      data-tauri-drag-region={isMacOS ? 'false' : 'true'}
       style={{
-        height: isBottom
-          ? FUNCTION_BAR_HEIGHT
-          : `calc(${FUNCTION_BAR_HEIGHT}px + var(--native-titlebar-height, 0px))`,
-        paddingTop: isBottom ? 0 : 'var(--native-titlebar-height, 0px)',
-        top: isBottom ? 'auto' : 0,
+        height: FUNCTION_BAR_HEIGHT,
+        top: isBottom ? 'auto' : isMacOS ? 'var(--appbar-height, 52px)' : 0,
         bottom: isBottom ? 0 : 'auto',
         borderBottom: isBottom ? 'none' : '1px solid var(--border-subtle)',
         borderTop: isBottom ? '1px solid var(--border-subtle)' : 'none',

@@ -3,11 +3,11 @@
   top: 0;
   left: var(--sidebar-width, 48px);
   right: 0;
-  height: calc(56px + var(--native-titlebar-height, 0px));
+  height: var(--appbar-height, 56px);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--native-titlebar-height, 0px) 20px 0;
+  padding: 0 20px;
   z-index: 1000;
   background: var(--bg-toolbar);
   border-bottom: 1px solid var(--border-subtle);
@@ -26,7 +26,7 @@
 
 /* When the function bar is at the top, the app bar sits below it. */
 .belowTopBar {
-  top: calc(var(--function-bar-height) + var(--native-titlebar-height, 0px));
+  top: var(--function-bar-height);
   height: 56px;
   padding-top: 0;
 }
@@ -120,5 +120,30 @@
 @media (min-width: 768px) {
   .appBar.vertical {
     background: var(--bg-base);
+  }
+
+  .appBar[data-native-compact='true'] {
+    top: 0;
+    height: var(--appbar-height, 52px);
+    padding: 0 12px 0 var(--appbar-leading-inset, 12px);
+  }
+  .appBar[data-native-compact='true'] .title {
+    font-size: 18px;
+    line-height: 24px;
+  }
+  .appBar[data-native-compact='true'] .backButton,
+  .appBar[data-native-compact='true'] .actions :is(button, input, select) {
+    min-height: 0 !important;
+    max-height: calc(var(--appbar-height, 52px) - 12px);
+    padding-block: 6px !important;
+    font-size: 14px !important;
+    line-height: 20px;
+  }
+  .appBar[data-native-compact='true'] .backButton {
+    padding-inline: 6px;
+  }
+  .appBar[data-native-compact='true'] .backButton svg {
+    width: 20px;
+    height: 20px;
   }
 }

@@ -109,6 +109,9 @@ async fn snapshot(
                         // 从窗口最外层命中测试，保证透明拖拽视图不会吞掉交通灯点击。
                         // 全屏的交通灯由系统隐藏工具栏管理，不能用普通窗口的可见命中断言。
                     let frame = button.convertRect_toView(button.bounds(), None);
+                    let root_frame = root.convertRect_fromView(button.bounds(), Some(&button));
+                    assert!((root.bounds().size.height - root_frame.origin.y - root_frame.size.height / 2.0 - expected_height / 2.0).abs() <= 1.0,
+                        "交通灯必须由系统居中于整条顶部栏");
                     let point = NSPoint::new(
                         frame.origin.x + frame.size.width / 2.0,
                         frame.origin.y + frame.size.height / 2.0,
@@ -170,6 +173,68 @@ async fn install_vibrancy(window: &tauri::WebviewWindow) {
         })
         .unwrap();
     rx.await.unwrap().unwrap();
+}
+
+#[cfg(target_os = "macos")]
+async fn check_titlebar_controls(window: &tauri::WebviewWindow) {
+    use objc2_app_kit::{NSView, NSWindow};
+    use objc2_foundation::NSPoint;
+    for enabled in [true, false] {
+        let regions = if enabled {
+            vec![window::TitlebarControlRect {
+                x: 400.0,
+                y: 0.0,
+                width: 80.0,
+                height: 52.0,
+            }]
+        } else {
+            vec![]
+        };
+        window::set_titlebar_controls(window.clone(), regions)
+            .await
+            .unwrap();
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        window
+            .with_webview(move |native| {
+                // SAFETY: 仅在主线程借用测试窗口的原生视图。
+                let window = unsafe { &*native.ns_window().cast::<NSWindow>() };
+                let webview = unsafe { &*native.inner().cast::<NSView>() };
+                let root = window.contentView().unwrap();
+                let top = root.bounds().origin.y + root.bounds().size.height;
+                // 从最外层开始，避免空原生工具栏遮住网页按钮而根视图测试仍通过。
+                let frame_view = unsafe { root.superview() }.unwrap();
+                let hit = |x, y| {
+                    frame_view
+                        .hitTest(
+                            frame_view.convertPoint_fromView(NSPoint::new(x, top - y), Some(&root)),
+                        )
+                        .unwrap()
+                };
+                for y in [16.0, 40.0, 51.0] {
+                    assert_eq!(
+                        hit(200.0, y).tag(),
+                        0x53535442,
+                        "整条顶部栏空白维持原生拖拽"
+                    );
+                }
+                let control_hit = hit(440.0, 26.0);
+                if enabled {
+                    assert!(
+                        control_hit.isDescendantOf(webview),
+                        "顶部控件必须穿透原生拖拽层"
+                    );
+                } else {
+                    assert_eq!(control_hit.tag(), 0x53535442, "卸载控件后恢复空白拖拽");
+                }
+                assert!(
+                    hit(200.0, 60.0).isDescendantOf(webview),
+                    "标题栏下方禁止扩展原生拖拽"
+                );
+                tx.send(()).unwrap();
+            })
+            .unwrap();
+        rx.await.unwrap();
+    }
 }
 
 #[cfg(target_os = "macos")]
@@ -239,14 +304,27 @@ fn main() {
                     tokio::time::sleep(Duration::from_millis(1200)).await;
                     assert_eq!(snapshot(&window, appearance.material).await, original);
                 }
+                check_titlebar_controls(&window).await;
+                let normal_titlebar_height = appearance.titlebar_height;
                 for fullscreen in [true, false] {
                     window.set_fullscreen(fullscreen).unwrap();
                     tokio::time::sleep(Duration::from_millis(1500)).await;
                     let appearance = window::set_titlebar_color(window.clone(), dark).await.unwrap();
                     assert_eq!(snapshot(&window, appearance.material).await, original);
-                    assert_eq!(appearance.titlebar_height == 0.0, fullscreen, "全屏时取消标题栏避让，退出后恢复");
+                    println!("[appearance] fullscreen={fullscreen}; titlebar-height={}; traffic-lights-right={}",
+                        appearance.titlebar_height, appearance.traffic_lights_right);
+                    assert!(appearance.traffic_lights_right >= 0.0 && appearance.traffic_lights_right <= 96.0,
+                        "全屏工具栏不能把交通灯坐标误换算成屏幕偏移");
+                    if fullscreen {
+                        // 加入原生工具栏后，系统可以保留工具栏，也可以按偏好自动隐藏。
+                        assert!(appearance.titlebar_height >= 0.0 && appearance.titlebar_height <= normal_titlebar_height,
+                            "全屏不能叠加额外的标题栏高度");
+                    } else {
+                        assert_eq!(appearance.titlebar_height, normal_titlebar_height, "退出全屏后恢复同一栏高");
+                    }
                 }
-                println!("PASS: full-window WebView, native button hit testing, stable WebView/material/drag-view/buttons, theme sync, hide/show, resize and fullscreen");
+                check_titlebar_controls(&window).await;
+                println!("PASS: full-window WebView, native button hit testing, stable WebView/material/drag-view/buttons, theme sync, hide/show, resize, fullscreen, titlebar controls and drag boundary");
                 if vibrancy {
                     if appearance.material == "solid" {
                         println!("SKIP: vibrancy comparison respects accessibility settings requiring a solid background");

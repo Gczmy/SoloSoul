@@ -28,6 +28,47 @@ pub struct WindowAppearance {
     pub reduce_motion: bool,
     pub high_contrast: bool,
     pub titlebar_height: f64,
+    pub traffic_lights_right: f64,
+}
+
+/// WebView 逻辑像素坐标，供原生拖拽带避让真实网页控件。
+#[derive(Clone, Copy, Deserialize)]
+pub struct TitlebarControlRect {
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+}
+
+#[tauri::command]
+pub async fn set_titlebar_controls(
+    window: tauri::WebviewWindow,
+    regions: Vec<TitlebarControlRect>,
+) -> Result<(), String> {
+    if regions.len() > 128
+        || regions.iter().any(|r| {
+            ![r.x, r.y, r.width, r.height].iter().all(|v| v.is_finite())
+                || r.width < 0.0
+                || r.height < 0.0
+        })
+    {
+        return Err("Invalid titlebar control regions".into());
+    }
+    #[cfg(target_os = "macos")]
+    {
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        window
+            .with_webview(move |native| {
+                let _ = tx.send(macos::titlebar::set_controls(native, regions));
+            })
+            .map_err(|e| e.to_string())?;
+        rx.await.map_err(|e| e.to_string())?
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (window, regions);
+        Ok(())
+    }
 }
 
 /// 主题同步保持原生材质；AppKit 通过 with_webview 保证在主线程调用。
@@ -70,6 +111,7 @@ pub async fn set_titlebar_color(
         reduce_motion: false,
         high_contrast: false,
         titlebar_height: 0.0,
+        traffic_lights_right: 0.0,
     })
 }
 

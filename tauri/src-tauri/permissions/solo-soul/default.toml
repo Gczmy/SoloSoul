@@ -173,6 +173,7 @@ commands.allow = [
   "search_unified",
   "set_status_bar_style",
   "set_titlebar_color",
+  "set_titlebar_controls",
   "show_main_window",
   "snapshot_count_batch",
   "snapshot_get_data",

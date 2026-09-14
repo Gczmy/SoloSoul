@@ -18,7 +18,7 @@ use window_vibrancy::{
 };
 
 #[path = "macos_titlebar.rs"]
-mod titlebar;
+pub(super) mod titlebar;
 
 // 每个窗口最多安装一个材质视图，主题同步不重复挂载/移动 WebView。
 static MATERIALS: Mutex<BTreeMap<String, &'static str>> = Mutex::new(BTreeMap::new());
@@ -161,5 +161,6 @@ pub fn apply(
         reduce_motion,
         high_contrast,
         titlebar_height: titlebar::height(ns_window),
+        traffic_lights_right: titlebar::traffic_lights_right(ns_window),
     })
 }

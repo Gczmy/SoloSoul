@@ -8,6 +8,7 @@ interface WindowAppearance {
   reduceMotion: boolean;
   highContrast: boolean;
   titlebarHeight?: number;
+  trafficLightsRight?: number;
 }
 
 export async function syncNativeAppearance(color: { red: number; green: number; blue: number }) {
@@ -26,7 +27,14 @@ export async function syncNativeAppearance(color: { red: number; green: number; 
   const titlebarHeight =
     typeof height === 'number' && Number.isFinite(height) ? Math.max(0, height) : 0;
   root.style.setProperty('--native-titlebar-height', `${titlebarHeight}px`);
-  useNativeWindowStore.setState({ titlebarHeight });
+  const right = appearance.platform === 'macos' ? appearance.trafficLightsRight : 0;
+  const trafficLightsRight =
+    typeof right === 'number' && Number.isFinite(right) ? Math.max(0, right) : 0;
+  useNativeWindowStore.setState({
+    isMacOS: appearance.platform === 'macos',
+    titlebarHeight,
+    trafficLightsRight,
+  });
 }
 
 /** 全屏/缩放完成布局后重新测量系统避让区，不使用固定像素或主题轮询时序。 */

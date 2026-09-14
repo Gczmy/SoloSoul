@@ -1,20 +1,22 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { login } from './fixtures/auth';
 
-async function mockMacOS(page: Page, position = 'left') {
+async function mockMacOS(page: Page, position = 'left', trafficLightsRight = 79) {
   await page.addInitScript({
     content:
       readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
       `
     window.__MOCK_PLATFORM__ = 'macos';
-    window.__NATIVE_TITLEBAR_HEIGHT__ = 32;
+    window.__NATIVE_TITLEBAR_HEIGHT__ = 52;
     window.__E2E_MOCKS__ = {
       vault_check_directory: () => true,
       ocr_get_model_status: () => ({ installed: true, bundled: true }),
       sync_list_conflicts: () => [],
       set_titlebar_color: () => ({ material: 'liquid-glass', platform: 'macos',
-        reduceMotion: false, highContrast: false, titlebarHeight: window.__NATIVE_TITLEBAR_HEIGHT__ }),
+        reduceMotion: false, highContrast: false, titlebarHeight: window.__NATIVE_TITLEBAR_HEIGHT__,
+        trafficLightsRight: window.__NATIVE_TITLEBAR_HEIGHT__ ? ${trafficLightsRight} : 0 }),
+      set_titlebar_controls: ({ regions }) => { window.__TITLEBAR_CONTROLS__ = regions; },
     };
     localStorage.setItem('i18nextLng', 'en-US');
     const originalInvoke = window.__TAURI_INTERNALS__.invoke;
@@ -27,23 +29,66 @@ async function mockMacOS(page: Page, position = 'left') {
   });
 }
 
+async function expectNativeControl(control: Locator) {
+  const bounds = (await control.boundingBox())!;
+  expect(bounds.y).toBeGreaterThanOrEqual(0);
+  expect(bounds.y + bounds.height).toBeLessThanOrEqual(52);
+  await expect
+    .poll(() =>
+      control.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        const regions =
+          (
+            window as unknown as {
+              __TITLEBAR_CONTROLS__?: { x: number; y: number; width: number; height: number }[];
+            }
+          ).__TITLEBAR_CONTROLS__ || [];
+        return regions.some(
+          (r) =>
+            rect.x >= r.x &&
+            rect.right <= r.x + r.width + 1 &&
+            rect.y >= r.y &&
+            rect.bottom <= r.y + r.height + 1,
+        );
+      }),
+    )
+    .toBe(true);
+}
+
 for (const position of ['left', 'right', 'top', 'bottom']) {
   test(`macOS ${position} 导航背景铺至顶部，控件避开交通灯`, async ({ page }) => {
     await mockMacOS(page, position);
     await login(page);
-    await expect(page.locator('html')).toHaveCSS('--native-titlebar-height', '32px');
-    const header = page.locator('header[data-tauri-drag-region="deep"]');
+    await expect(page.locator('html')).toHaveCSS('--native-titlebar-height', '52px');
+    const header = page.locator('header[data-appbar]');
     const headerBox = (await header.boundingBox())!;
-    expect(headerBox.y).toBe(position === 'top' ? 80 : 0);
+    expect(headerBox.y).toBe(0);
+    expect(headerBox.height).toBe(52);
+    await expect(header).toHaveAttribute('data-tauri-drag-region', 'false');
     const title = (await header.locator('h1').boundingBox())!;
-    expect(title.y).toBeGreaterThanOrEqual(32);
+    expect(title.y).toBeGreaterThanOrEqual(0);
+    expect(title.y + title.height).toBeLessThanOrEqual(52);
+    expect(title.x).toBeGreaterThanOrEqual(91);
+    await expect(header.locator('h1')).toHaveCSS('font-size', '18px');
     const mainBox = (await page.locator('main').boundingBox())!;
-    expect(mainBox.y).toBe(position === 'top' ? 80 : 32);
+    expect(mainBox.y).toBe(position === 'top' ? 48 : 0);
+    await expect(page.locator('main')).toHaveCSS('padding-top', '68px');
+    const guide = header.getByRole('button', { name: 'Guide', exact: true });
+    await expect(guide).toHaveCSS('font-size', '14px');
+    await expectNativeControl(guide);
+    if (position === 'top' || position === 'bottom') {
+      const navigationBar = page.locator('header:not([data-appbar])');
+      await expect(navigationBar).toHaveAttribute('data-tauri-drag-region', 'false');
+      if (position === 'top') expect((await navigationBar.boundingBox())!.y).toBe(52);
+    }
     if (position === 'left' || position === 'right') {
       // 同一背景面横跨原生标题栏和正文，侧栏顶部仍透明。
       const surfaces = await header.evaluate((element) => ({
         top: getComputedStyle(
-          document.elementFromPoint(element.getBoundingClientRect().x + 120, 8)!,
+          document.elementFromPoint(
+            element.getBoundingClientRect().x + element.getBoundingClientRect().width / 2,
+            2,
+          )!,
         ).backgroundColor,
         main: getComputedStyle(document.querySelector('main')!.parentElement!).backgroundColor,
         sidebar: getComputedStyle(document.querySelector('#desktop-navigation')!).backgroundColor,
@@ -52,11 +97,18 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
       expect(surfaces.top).not.toBe('rgba(0, 0, 0, 0)');
       expect(surfaces.sidebar).toBe('rgba(0, 0, 0, 0)');
       const sidebar = page.locator('#desktop-navigation');
-      await expect(sidebar).toHaveCSS('padding-top', '44px');
+      await expect(sidebar).toHaveCSS('padding-top', '64px');
       await sidebar.getByRole('button', { name: 'Collapse sidebar' }).click();
-      await expect(sidebar).toHaveCSS('width', '48px');
-      await expect(sidebar).toHaveCSS('padding-top', '44px');
-      expect((await header.locator('h1').boundingBox())!.y).toBeGreaterThanOrEqual(32);
+      await expect(sidebar).toHaveCSS('width', '96px');
+      await expect(sidebar).toHaveCSS('padding-top', '64px');
+      // 交通灯右沿为 79px，折叠后背景边界仍留在整组按钮之外。
+      const collapsed = (await sidebar.boundingBox())!;
+      if (position === 'left') {
+        expect(collapsed.x + collapsed.width).toBeGreaterThanOrEqual(79 + 16);
+        expect((await header.boundingBox())!.x).toBe(collapsed.width);
+        expect((await page.locator('main').boundingBox())!.x).toBe(collapsed.width);
+      }
+      expect((await header.locator('h1').boundingBox())!.x).toBeGreaterThanOrEqual(91);
       await sidebar.getByRole('button', { name: 'Tools', exact: true }).hover();
       await expect(sidebar.getByRole('button', { name: 'Tools', exact: true })).toHaveAttribute(
         'aria-expanded',
@@ -66,7 +118,9 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
       const panel = page.getByRole('dialog', { name: 'Plugins', exact: true });
       await expect(panel).toBeVisible();
       const bounds = (await panel.boundingBox())!;
-      expect(bounds.y).toBeGreaterThanOrEqual(40);
+      expect(bounds.y).toBeGreaterThanOrEqual(60);
+      if (position === 'left') expect(bounds.x).toBeGreaterThanOrEqual(collapsed.width);
+      else expect(bounds.x + bounds.width).toBeLessThanOrEqual(collapsed.x);
       expect(bounds.y + bounds.height).toBeLessThanOrEqual(720);
       await page.keyboard.press('Escape');
     }
@@ -74,18 +128,61 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
   });
 }
 
-test('macOS 全屏测量变化后清除并恢复顶部避让', async ({ page }) => {
+test('macOS 切页、折叠和缩放后更新顶部按钮命中区', async ({ page }) => {
   await mockMacOS(page);
   await login(page);
-  for (const height of [0, 32]) {
+  const sidebar = page.locator('#desktop-navigation');
+  await sidebar.getByRole('button', { name: 'Identity', exact: true }).click();
+  const header = page.locator('header[data-appbar]');
+  const back = header.getByRole('button', { name: 'Back', exact: true });
+  const create = header.getByRole('button', { name: '+ New', exact: true });
+  await expectNativeControl(back);
+  await expectNativeControl(create);
+  await sidebar.getByRole('button', { name: 'Collapse sidebar' }).click();
+  await expect(sidebar).toHaveCSS('width', '96px');
+  await expectNativeControl(back);
+  expect((await back.boundingBox())!.x).toBeGreaterThanOrEqual(91);
+  await page.setViewportSize({ width: 800, height: 600 });
+  await expectNativeControl(back);
+  await expectNativeControl(create);
+  await create.click();
+  await expect(page).toHaveURL(/\/editor(?:\?|$)/);
+  await expectNativeControl(back);
+  await back.click();
+  await expect(page).toHaveURL(/\/workspace/);
+  await expectNativeControl(create);
+  await back.click();
+  await expect(page).toHaveURL('http://localhost:1420/');
+  await expect(back).toHaveCount(0);
+  await expectNativeControl(header.getByRole('button', { name: 'Guide', exact: true }));
+});
+
+test('macOS 全屏往返保持单行 AppBar，无重复顶部留白', async ({ page }) => {
+  await mockMacOS(page);
+  await login(page);
+  const sidebar = page.locator('#desktop-navigation');
+  await sidebar.getByRole('button', { name: 'Collapse sidebar' }).click();
+  for (const height of [0, 52]) {
     await page.evaluate((value) => {
       Object.assign(window, { __NATIVE_TITLEBAR_HEIGHT__: value });
       window.dispatchEvent(new Event('resize'));
     }, height);
     await expect(page.locator('html')).toHaveCSS('--native-titlebar-height', `${height}px`);
-    await expect.poll(async () => (await page.locator('main').boundingBox())!.y).toBe(height);
+    await expect.poll(async () => (await page.locator('main').boundingBox())!.y).toBe(0);
+    expect((await page.locator('header').boundingBox())!.height).toBe(52);
     expect((await page.locator('header').boundingBox())!.y).toBe(0);
+    await expect(sidebar).toHaveCSS('width', '96px');
   }
+});
+
+test('macOS 交通灯范围变宽时折叠侧栏和正文同步避让', async ({ page }) => {
+  await mockMacOS(page, 'left', 106);
+  await login(page);
+  const sidebar = page.locator('#desktop-navigation');
+  await sidebar.getByRole('button', { name: 'Collapse sidebar' }).click();
+  await expect(sidebar).toHaveCSS('width', '122px');
+  expect((await page.locator('header[data-appbar]').boundingBox())!.x).toBe(122);
+  expect((await page.locator('main').boundingBox())!.x).toBe(122);
 });
 
 test('macOS 小窗口登录卡片保留上下留白及完整圆角', async ({ page }) => {

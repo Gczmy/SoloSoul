@@ -131,5 +131,6 @@ pub fn apply(
         reduce_motion,
         high_contrast,
         titlebar_height: 0.0,
+        traffic_lights_right: 0.0,
     })
 }

@@ -247,6 +247,7 @@ test('尺标触控板小幅输入累计为完整刻度，缩放后也保持整�
   await page.mouse.wheel(0, -5);
   await expect.poll(() => rail.evaluate((element) => element.scrollTop)).toBe(0);
   await page.setViewportSize({ width: 1280, height: 407 });
+  // macOS 单行 AppBar 为 52px，扣除上下留白后仍按完整刻度取整。
   await expect(rail).toHaveCSS('height', '294px');
   await rail.hover();
   await page.mouse.wheel(0, 19);

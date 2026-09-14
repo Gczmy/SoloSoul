@@ -18,7 +18,8 @@ beforeEach(() => {
         platform: 'macos',
         reduceMotion: false,
         highContrast: false,
-        titlebarHeight: 32,
+        titlebarHeight: 52,
+        trafficLightsRight: 79,
       };
     }
   });
@@ -42,10 +43,12 @@ describe('原生窗口启动', () => {
     expect(localStorage.getItem).not.toHaveBeenCalled();
     expect(document.documentElement.dataset.nativeMaterial).toBe('liquid-glass');
     expect(document.documentElement.style.getPropertyValue('--native-titlebar-height')).toBe(
-      '32px',
+      '52px',
     );
     const { useNativeWindowStore } = await import('@/stores/nativeWindowStore');
-    expect(useNativeWindowStore.getState().titlebarHeight).toBe(32);
+    expect(useNativeWindowStore.getState().titlebarHeight).toBe(52);
+    expect(useNativeWindowStore.getState().trafficLightsRight).toBe(79);
+    expect(useNativeWindowStore.getState().isMacOS).toBe(true);
   });
 
   it('继续尊重原生系统辅助功能返回的材质与对比度', async () => {
@@ -80,7 +83,7 @@ describe('原生窗口启动', () => {
   });
 
   it.each([
-    { platform: 'windows', titlebarHeight: 32 },
+    { platform: 'windows', titlebarHeight: 52 },
     { platform: 'macos', titlebarHeight: -12 },
     { platform: 'macos', titlebarHeight: Number.NaN },
     { platform: 'macos' },

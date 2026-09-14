@@ -46,7 +46,7 @@ export function SideNavigation() {
         overflow: 'visible',
       }
     : {
-        width: expanded ? 232 : 48,
+        width: `var(--sidebar-width, ${expanded ? 232 : 48}px)`,
         height: '100vh',
         flexDirection: 'column',
         borderRight: sidebarPosition === 'left' ? '1px solid var(--border-subtle)' : 'none',

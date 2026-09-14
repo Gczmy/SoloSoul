@@ -179,6 +179,7 @@ fn register_core_commands(
         attachment_import_plugin::vault_pick_directory,
         // Window chrome commands
         commands::window::set_titlebar_color,
+        commands::window::set_titlebar_controls,
         commands::window::show_main_window,
         status_bar_plugin::set_status_bar_style,
         lock_state_plugin::dismiss_lock_mask,
@@ -631,6 +632,7 @@ mod tests {
                     "copy_content_uri_to_path",
                     "vault_pick_directory",
                     "set_titlebar_color",
+                    "set_titlebar_controls",
                     "show_main_window",
                     "set_status_bar_style",
                     "dismiss_lock_mask",

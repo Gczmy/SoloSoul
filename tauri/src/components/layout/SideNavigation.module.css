@@ -1,7 +1,7 @@
 /* ── Container ─────────────────────────────────────────── */
 .sideNav {
-  width: 48px;
-  min-width: 48px;
+  width: var(--sidebar-width, 48px);
+  min-width: var(--sidebar-width, 48px);
   height: 100vh;
   display: flex;
   flex-direction: column;
