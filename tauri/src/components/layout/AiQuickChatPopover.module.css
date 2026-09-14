@@ -13,6 +13,8 @@
   animation: quickChatSlideIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   width: 380px;
   height: 520px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 16px);
 }
 
 @keyframes quickChatSlideIn {
@@ -35,4 +37,20 @@
       100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px
     );
   }
+}
+
+/* 加载前后复用同一外框，内容区仅负责内部布局。 */
+.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
 }

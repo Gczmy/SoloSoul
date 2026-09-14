@@ -19,15 +19,7 @@ import styles from './AiQuickChatPopover.module.css';
 // AiQuickChatPopover — quick AI chat floating card beside sidebar
 // =============================================================================
 
-export function AiQuickChatPopover({
-  position,
-  onClose,
-  placement = 'left',
-}: {
-  position: { top: number } | null;
-  onClose: () => void;
-  placement?: 'left' | 'right' | 'bottom' | 'top';
-}) {
+export function AiQuickChatPopover({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation(['settings', 'common']);
   const navigate = useNavigate();
   const accountId = useAuthStore((s) => s.currentAccount?.id);
@@ -133,23 +125,8 @@ export function AiQuickChatPopover({
     if (quickChatStorageKey) localStorage.setItem(quickChatStorageKey, convId);
   };
 
-  const isFloating = placement === 'bottom' || placement === 'top';
-  const isRight = placement === 'right';
-
   return (
-    <div
-      ref={cardRef}
-      data-ai-quick-chat="open"
-      className={styles.card}
-      style={{
-        ...(isFloating
-          ? { right: 12, left: 'auto' }
-          : isRight
-            ? { right: 'calc(var(--sidebar-width, 48px) + 4px)', left: 'auto' }
-            : { left: 'calc(var(--sidebar-width, 48px) + 4px)', right: 'auto' }),
-        top: position?.top ?? 100,
-      }}
-    >
+    <div ref={cardRef} className={styles.content}>
       {/* Header */}
       <div
         style={{

@@ -48,7 +48,12 @@ export function SecondaryActionBar({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const isOcrCardOpen = useOcrScanStore((s) => s.isCardOpen);
   const isPluginPanelOpen = usePluginQuickStore((s) => s.isOpen);
-  const [showQuickChat, setShowQuickChat] = useState(false);
+  const cardPlacement =
+    sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
+  const { showQuickChat, setShowQuickChat, aiButtonRef, quickChatPos } = useAiQuickChat(
+    520,
+    cardPlacement,
+  );
 
   const verticalScrollTop = useSidebarHoverStore((s) => s.verticalScrollTop);
   const setVerticalScrollTop = useSidebarHoverStore((s) => s.setVerticalScrollTop);
@@ -143,33 +148,8 @@ export function SecondaryActionBar({
     [isAnyCardOpen, setHovering],
   );
 
-  // ── Card positioning hooks ─────────────────────────────────────
-  const ocrQuickScanPlacement =
-    sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
-  const pluginQuickPanelPlacement =
-    sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
-  const aiQuickChatPlacement =
-    sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
-  const { ocrButtonRef, quickScanPos } = useOcrQuickScan(560, ocrQuickScanPlacement);
-  const { pluginButtonRef, quickPanelPos } = usePluginQuickPanel(560, pluginQuickPanelPlacement);
-  const { aiButtonRef, quickChatPos, updateQuickChatPos } = useAiQuickChat(
-    520,
-    aiQuickChatPlacement,
-  );
-
-  // AI chat uses local state (not Zustand), so trigger position update and
-  // attach scroll/resize listeners manually (hook's internal useEffect never
-  // fires because its internal showQuickChat is always false here).
-  useEffect(() => {
-    if (!showQuickChat) return;
-    updateQuickChatPos();
-    window.addEventListener('scroll', updateQuickChatPos, true);
-    window.addEventListener('resize', updateQuickChatPos);
-    return () => {
-      window.removeEventListener('scroll', updateQuickChatPos, true);
-      window.removeEventListener('resize', updateQuickChatPos);
-    };
-  }, [showQuickChat, updateQuickChatPos]);
+  const { ocrButtonRef, quickScanPos } = useOcrQuickScan(560, cardPlacement);
+  const { pluginButtonRef, quickPanelPos } = usePluginQuickPanel(560, cardPlacement);
 
   // ── Render helpers (shared with TopFunctionBar) ────────────────
   const { renderButtonWithCard, renderPlainButton } = useNavButtonCards({
@@ -187,9 +167,9 @@ export function SecondaryActionBar({
     quickScanPos,
     quickPanelPos,
     placements: {
-      quickChat: aiQuickChatPlacement,
-      quickScan: ocrQuickScanPlacement,
-      pluginPanel: pluginQuickPanelPlacement,
+      quickChat: cardPlacement,
+      quickScan: cardPlacement,
+      pluginPanel: cardPlacement,
     },
   });
 

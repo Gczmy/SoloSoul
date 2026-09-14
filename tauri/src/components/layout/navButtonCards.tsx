@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import type { NavigateFunction, Location } from 'react-router-dom';
 import type { Dispatch, MutableRefObject, ReactNode, SetStateAction } from 'react';
 import { NavButton } from './NavButton';
+import { getNavCardStyle, type PopoverPlacement } from './navCardPosition';
+import quickChatStyles from './AiQuickChatPopover.module.css';
 import { SearchPopover } from './SearchPopover';
 import { OcrQuickScanPopover } from './OcrQuickScanPopover';
 import { PluginQuickPanel } from '@/components/plugin/PluginQuickPanel';
@@ -40,9 +42,6 @@ export interface SharedNavAction {
   action: () => void;
 }
 export type SharedNavItem = SharedNavLink | SharedNavAction;
-
-/** 弹层放置方向（与 AiQuickChatPopover/OcrQuickScanPopover/PluginQuickPanel 兼容）。 */
-export type PopoverPlacement = 'top' | 'right' | 'bottom' | 'left';
 
 export interface NavButtonCardInput {
   position: NavPosition;
@@ -174,47 +173,25 @@ export function useNavButtonCards(input: NavButtonCardInput) {
           />
           {showQuickChat &&
             createPortal(
-              <Suspense
-                fallback={
-                  // P015-R4: chunk 拉取期占位（对齐 AiQuickChatPopover 卡片几何，
-                  // 避免弹层打开瞬间空白）。位置/尺寸与 styles.card 保持一致。
-                  <div
-                    data-testid="quick-chat-loading"
-                    style={{
-                      position: 'fixed',
-                      zIndex: 200,
-                      width: 380,
-                      height: 520,
-                      maxWidth: 'calc(100vw - 24px)',
-                      maxHeight: 'calc(100vh - 24px)',
-                      background: 'var(--bg-elevated)',
-                      borderRadius: 14,
-                      boxShadow: 'var(--shadow-lg), 0 0 0 1px var(--border-subtle)',
-                      border: '1px solid var(--border-subtle)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      ...(placements.quickChat === 'right'
-                        ? { right: 52, left: 'auto' }
-                        : placements.quickChat === 'top' || placements.quickChat === 'bottom'
-                          ? { right: 12, left: 'auto' }
-                          : { left: 52, right: 'auto' }),
-                      top: quickChatPos?.top ?? 100,
-                    }}
-                  >
-                    <div
-                      className="spinner"
-                      style={{ width: 24, height: 24, borderTopColor: 'var(--text-secondary)' }}
-                    />
-                  </div>
-                }
+              // 外框常驻 Suspense 外：chunk 就绪只替换内容，不改变定位或重播入场动画。
+              <div
+                data-ai-quick-chat="open"
+                className={quickChatStyles.card}
+                style={getNavCardStyle(quickChatPos, placements.quickChat)}
               >
-                <AiQuickChatPopover
-                  position={quickChatPos}
-                  onClose={() => setShowQuickChat(false)}
-                  placement={placements.quickChat}
-                />
-              </Suspense>,
+                <Suspense
+                  fallback={
+                    <div data-testid="quick-chat-loading" className={quickChatStyles.loading}>
+                      <div
+                        className="spinner"
+                        style={{ width: 24, height: 24, borderTopColor: 'var(--text-secondary)' }}
+                      />
+                    </div>
+                  }
+                >
+                  <AiQuickChatPopover onClose={() => setShowQuickChat(false)} />
+                </Suspense>
+              </div>,
               document.body,
             )}
         </div>

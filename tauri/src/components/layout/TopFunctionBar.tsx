@@ -46,15 +46,17 @@ export function TopFunctionBar({
   const isOcrCardOpen = useOcrScanStore((s) => s.isCardOpen);
   const isPluginPanelOpen = usePluginQuickStore((s) => s.isOpen);
 
+  const cardPlacement = sidebarPosition === 'bottom' ? 'top' : 'bottom';
+
   // ── Card positioning hooks (single calls) ───────────────────────
   const {
     showQuickChat: quickChatFromHook,
     setShowQuickChat,
     aiButtonRef,
     quickChatPos,
-  } = useAiQuickChat(520, 'bottom');
-  const { ocrButtonRef, quickScanPos } = useOcrQuickScan(560, 'bottom');
-  const { pluginButtonRef, quickPanelPos } = usePluginQuickPanel(560, 'bottom');
+  } = useAiQuickChat(520, cardPlacement);
+  const { ocrButtonRef, quickScanPos } = useOcrQuickScan(560, cardPlacement);
+  const { pluginButtonRef, quickPanelPos } = usePluginQuickPanel(560, cardPlacement);
 
   const showQuickChat = quickChatFromHook;
 
@@ -202,9 +204,9 @@ export function TopFunctionBar({
     quickScanPos,
     quickPanelPos,
     placements: {
-      quickChat: 'bottom',
-      quickScan: 'bottom',
-      pluginPanel: 'bottom',
+      quickChat: cardPlacement,
+      quickScan: cardPlacement,
+      pluginPanel: cardPlacement,
     },
   });
 

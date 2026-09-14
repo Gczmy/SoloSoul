@@ -9,6 +9,7 @@ import { prefetchRegistry } from '@/lib/prefetch/registry';
 import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
 import { OcrPopoverHeader } from '@/components/ocr/OcrPopoverHeader';
 import styles from './OcrQuickScanPopover.module.css';
+import { getNavCardStyle } from './navCardPosition';
 import { OcrHistoryTrashDropdown } from '@/components/ocr/OcrHistoryTrashDropdown';
 import { OcrScanControls } from '@/components/ocr/OcrScanControls';
 import { OcrResultPanel } from '@/components/ocr/OcrResultPanel';
@@ -161,22 +162,12 @@ export function OcrQuickScanPopover({
   const trash = scanHistory.filter((h) => h.isDeleted);
   const currentEntry = scanHistory.find((h) => h.id === currentScanId) || null;
 
-  const isFloating = placement === 'bottom' || placement === 'top';
-  const isRight = placement === 'right';
-
   return (
     <div
       ref={cardRef}
       data-ocr-quick-scan="open"
       className={styles.card}
-      style={{
-        ...(isFloating
-          ? { right: 12, left: 'auto' }
-          : isRight
-            ? { right: 'calc(var(--sidebar-width, 48px) + 4px)', left: 'auto' }
-            : { left: 'calc(var(--sidebar-width, 48px) + 4px)', right: 'auto' }),
-        top: position?.top ?? 100,
-      }}
+      style={getNavCardStyle(position, placement)}
     >
       <OcrPopoverHeader
         showHistory={showHistory}

@@ -14,6 +14,7 @@ import { WatermarkPluginConfig } from './WatermarkPluginConfig';
 import { useUiStore } from '@/stores/uiStore';
 import { isDevOrDebug } from '@/lib/utils';
 import styles from './PluginQuickPanel.module.css';
+import { getNavCardStyle } from '@/components/layout/navCardPosition';
 import { ICON_SIZE } from '@/lib/constants';
 
 interface PluginQuickPanelProps {
@@ -161,24 +162,11 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
     runPlugin(info.pluginId, name, savedParams);
   };
 
-  const isFloating = placement === 'bottom' || placement === 'top';
-  const isRight = placement === 'right';
-
-  const cardStyle: React.CSSProperties = {
-    position: 'fixed',
-    ...(isFloating
-      ? { right: 12, left: 'auto' }
-      : isRight
-        ? { right: 'calc(var(--sidebar-width, 48px) + 4px)', left: 'auto' }
-        : { left: 'calc(var(--sidebar-width, 48px) + 4px)', right: 'auto' }),
-    top: position?.top ?? 100,
-  };
-
   return (
     <div
       ref={cardRef}
       className={styles.card}
-      style={cardStyle}
+      style={getNavCardStyle(position, placement)}
       role="dialog"
       aria-label={t('common:plugins', { defaultValue: 'Plugins' })}
     >
