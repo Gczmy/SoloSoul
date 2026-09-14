@@ -14,6 +14,7 @@ import type { ObjectSummary } from '@/stores/objectStore';
 import type { UserTemplate } from '@/types/template';
 import { ObjectRulerPreview } from './ObjectRulerPreview';
 import { useObjectRulerPosition } from './useObjectRulerPosition';
+import { useRulerRail } from './useRulerRail';
 import { shellInset } from './objectRuler';
 import styles from './WorkspaceObjectRuler.module.css';
 
@@ -42,6 +43,7 @@ export function WorkspaceObjectRuler(props: WorkspaceObjectRulerProps) {
   const hintId = useId();
   const hoveredIndex = objects.findIndex((object) => object.id === hoveredId);
   const hovered = objects[hoveredIndex];
+  const { step, scrollToIndex } = useRulerRail(containerRef, railRef, objects.length);
 
   const cancelClose = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -92,6 +94,7 @@ export function WorkspaceObjectRuler(props: WorkspaceObjectRulerProps) {
     const observer = new ResizeObserver(update);
     if (previewRef.current) observer.observe(previewRef.current);
     const rail = railRef.current;
+    if (rail) observer.observe(rail);
     rail?.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update);
     return () => {
@@ -109,13 +112,10 @@ export function WorkspaceObjectRuler(props: WorkspaceObjectRulerProps) {
     )
       return;
     const index = objects.findIndex((object) => object.id === activeId);
-    const rail = railRef.current;
-    const button = rail?.querySelector<HTMLElement>(`[data-ruler-index="${index}"]`);
-    if (!rail || !button) return;
-    rail.scrollTop +=
-      button.getBoundingClientRect().top - rail.getBoundingClientRect().top - rail.clientHeight / 2;
+    if (index < 0) return;
+    scrollToIndex(index);
     setFocusIndex(index);
-  }, [activeId, hoveredId, objects]);
+  }, [activeId, hoveredId, objects, scrollToIndex]);
 
   const jump = (index: number, keyboard = false) => {
     closePreview();
@@ -147,12 +147,8 @@ export function WorkspaceObjectRuler(props: WorkspaceObjectRulerProps) {
     setFocusIndex(next);
     const rail = railRef.current;
     const button = rail?.querySelector<HTMLButtonElement>(`[data-ruler-index="${next}"]`);
+    scrollToIndex(next);
     button?.focus({ preventScroll: true });
-    if (rail && button)
-      rail.scrollTop +=
-        button.getBoundingClientRect().top -
-        rail.getBoundingClientRect().top -
-        rail.clientHeight / 2;
   };
 
   if (objects.length < 2) return null;
@@ -174,62 +170,53 @@ export function WorkspaceObjectRuler(props: WorkspaceObjectRulerProps) {
       <span id={hintId} className={styles.srOnly}>
         {t('object_ruler_keyboard_hint')}
       </span>
-      <div
-        ref={railRef}
-        className={styles.rail}
-        style={
-          {
-            '--ruler-step': `${Math.max(6, Math.min(18, 320 / objects.length))}px`,
-          } as CSSProperties
-        }
-      >
-        {objects.map((object, index) => {
-          const distance = hoveredIndex < 0 ? Infinity : Math.abs(index - hoveredIndex);
-          const width =
-            distance === 0
-              ? 28
-              : distance === 1
-                ? 23
-                : distance === 2
-                  ? 18
-                  : object.id === activeId
-                    ? 20
-                    : index % 5 === 0
-                      ? 15
-                      : 9;
-          return (
-            <button
-              key={object.id}
-              type="button"
-              className={styles.tick}
-              data-ruler-index={index}
-              aria-label={t('object_ruler_go_to', {
-                name: object.name,
-                index: index + 1,
-                total: objects.length,
-              })}
-              aria-current={object.id === activeId ? 'location' : undefined}
-              aria-describedby={hoveredId === object.id ? previewId : undefined}
-              tabIndex={focusIndex === index ? 0 : -1}
-              onMouseEnter={() => {
-                if (supportsHover()) {
+      <div className={styles.railFrame}>
+        <div
+          ref={railRef}
+          className={styles.rail}
+          style={
+            {
+              '--ruler-step': `${step}px`,
+            } as CSSProperties
+          }
+        >
+          {objects.map((object, index) => {
+            const distance = hoveredIndex < 0 ? Infinity : Math.abs(index - hoveredIndex);
+            const width = distance === 0 ? 28 : distance === 1 ? 23 : distance === 2 ? 18 : 12;
+            return (
+              <button
+                key={object.id}
+                type="button"
+                className={styles.tick}
+                data-ruler-index={index}
+                aria-label={t('object_ruler_go_to', {
+                  name: object.name,
+                  index: index + 1,
+                  total: objects.length,
+                })}
+                aria-current={object.id === activeId ? 'location' : undefined}
+                aria-describedby={hoveredId === object.id ? previewId : undefined}
+                tabIndex={focusIndex === index ? 0 : -1}
+                onMouseEnter={() => {
+                  if (supportsHover()) {
+                    cancelClose();
+                    setHoveredId(object.id);
+                  }
+                }}
+                onFocus={() => {
                   cancelClose();
+                  setFocusIndex(index);
                   setHoveredId(object.id);
-                }
-              }}
-              onFocus={() => {
-                cancelClose();
-                setFocusIndex(index);
-                setHoveredId(object.id);
-              }}
-              onClick={(event) => jump(index, event.detail === 0)}
-              onKeyDown={(event) => onKeyDown(event, index)}
-              data-preview={hoveredId === object.id || undefined}
-            >
-              <span className={styles.tickLine} style={{ width }} />
-            </button>
-          );
-        })}
+                }}
+                onClick={(event) => jump(index, event.detail === 0)}
+                onKeyDown={(event) => onKeyDown(event, index)}
+                data-preview={hoveredId === object.id || undefined}
+              >
+                <span className={styles.tickLine} style={{ transform: `scaleX(${width / 28})` }} />
+              </button>
+            );
+          })}
+        </div>
       </div>
       {hovered && (
         <div
