@@ -34,14 +34,22 @@ pub struct WindowAppearance {
 pub async fn set_titlebar_color(
     window: tauri::WebviewWindow,
     color: TitlebarColor,
+    opaque: Option<bool>,
 ) -> Result<WindowAppearance, String> {
+    #[cfg(not(target_os = "macos"))]
+    let _ = opaque;
     #[cfg(target_os = "macos")]
     {
         let (sender, receiver) = tokio::sync::oneshot::channel();
         let target = window.clone();
         window
             .with_webview(move |native| {
-                let _ = sender.send(macos::apply(&target, native, color));
+                let _ = sender.send(macos::apply(
+                    &target,
+                    native,
+                    color,
+                    opaque.unwrap_or(false),
+                ));
             })
             .map_err(|e| e.to_string())?;
         receiver.await.map_err(|e| e.to_string())?

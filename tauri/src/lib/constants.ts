@@ -47,6 +47,9 @@ export const ICON_SIZE = {
 /** 用户界面偏好缓存（主题、强调色等） */
 export const ST_UI_PREFS = 'solosoul_ui_prefs';
 
+/** 本机 macOS 窗口透明兼容选项；登录前同步读取，不参与账户偏好同步。 */
+export const ST_MACOS_WINDOW_OPAQUE = 'solosoul_macos_window_opaque';
+
 /** 用户已跳过的版本号（更新提示） */
 export const ST_SKIPPED_VERSION = 'solosoul_skipped_version';
 

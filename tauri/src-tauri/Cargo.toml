@@ -98,7 +98,7 @@ workspace = true
 tauri = { version = "2", features = ["macos-private-api"] }
 window-vibrancy = "0.8.0"
 objc2 = { version = "0.6", default-features = false, features = ["std", "alloc"] }
-objc2-app-kit = { version = "0.3", default-features = false, features = ["NSWindow", "NSColor", "NSAppearance", "NSSharingService", "NSView", "NSResponder", "NSWorkspace", "NSAccessibility"] }
+objc2-app-kit = { version = "0.3", default-features = false, features = ["NSWindow", "NSColor", "NSAppearance", "NSSharingService", "NSView", "NSResponder", "NSWorkspace", "NSAccessibility", "NSLayoutConstraint"] }
 objc2-foundation = { version = "0.3", default-features = false, features = ["NSString", "NSURL", "NSArray", "NSGeometry", "objc2-core-foundation"] }
 block2 = { version = "0.6", default-features = false, features = ["std"] }
 
