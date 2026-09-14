@@ -101,6 +101,7 @@
     height: 100dvh;
     min-height: 0;
     padding: 24px;
+    padding-top: calc(24px + var(--native-titlebar-height, 0px));
     overflow: hidden;
   }
 

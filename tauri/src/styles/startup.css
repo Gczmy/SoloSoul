@@ -41,6 +41,7 @@ body {
   justify-content: center;
   gap: 16px;
   padding: 24px;
+  padding-top: calc(24px + var(--native-titlebar-height, 0px));
   box-sizing: border-box;
   background: var(--bg-base, var(--startup-background));
   color: var(--text-primary, var(--startup-foreground));

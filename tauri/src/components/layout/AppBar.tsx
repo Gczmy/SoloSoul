@@ -16,6 +16,7 @@ export function AppBar({ title, actions, onBack, sidebarPosition = 'left' }: App
 
   return (
     <header
+      data-tauri-drag-region="deep"
       className={[
         styles.appBar,
         isHorizontal ? styles.horizontal : styles.vertical,
@@ -38,7 +39,9 @@ export function AppBar({ title, actions, onBack, sidebarPosition = 'left' }: App
         )}
         <h1 className={styles.title}>{title}</h1>
       </div>
-      <div className={styles.actions}>{actions}</div>
+      <div className={styles.actions} data-tauri-drag-region="false">
+        {actions}
+      </div>
     </header>
   );
 }

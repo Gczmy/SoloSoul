@@ -8,6 +8,7 @@
     "core:default",
     "core:window:allow-set-size",
     "core:window:allow-inner-size",
+    "core:window:allow-start-dragging",
     "process:default",
     {
       "identifier": "shell:allow-open",

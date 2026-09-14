@@ -42,8 +42,12 @@ impl tauri::Assets<tauri::Wry> for RegressionAssets {
 }
 
 #[cfg(target_os = "macos")]
-async fn snapshot(window: &tauri::WebviewWindow, material: &str) -> (usize, usize) {
-    use objc2_app_kit::{NSColor, NSView, NSWindow};
+async fn snapshot(
+    window: &tauri::WebviewWindow,
+    material: &str,
+) -> (usize, usize, usize, [usize; 3]) {
+    use objc2_app_kit::{NSColor, NSView, NSWindow, NSWindowButton, NSWindowStyleMask};
+    use objc2_foundation::NSPoint;
     let glass = material != "solid";
     let (tx, rx) = tokio::sync::oneshot::channel();
     window
@@ -58,7 +62,9 @@ async fn snapshot(window: &tauri::WebviewWindow, material: &str) -> (usize, usiz
                 if glass { 0.001 } else { 1.0 },
                 "玻璃不能被主题同步或窗口恢复改回全透明底色"
             );
-            assert!(ns_window.hasShadow(), "修复不得移除原生窗口阴影");
+            if !ns_window.styleMask().contains(NSWindowStyleMask::FullScreen) {
+                assert!(ns_window.hasShadow(), "普通窗口必须保留原生阴影");
+            }
             if glass {
                 assert_eq!(
                     ns_window.backgroundColor(),
@@ -71,21 +77,69 @@ async fn snapshot(window: &tauri::WebviewWindow, material: &str) -> (usize, usiz
             assert_eq!(root.frame().size.height, ns_window.frame().size.height);
             assert_eq!(
                 webview.frame(),
-                root.convertRect_fromView(ns_window.contentLayoutRect(), None),
-                "WebView 必须留在标题栏下方的可用内容区"
+                root.bounds(),
+                "网页背景必须覆盖包括标题栏在内的完整窗口"
             );
+            let subviews = root.subviews();
+            let drag_views: Vec<_> = subviews
+                .iter()
+                .filter(|view| view.tag() == 0x53535442)
+                .collect();
+            assert_eq!(drag_views.len(), 1, "标题栏拖拽区域只安装一次");
+            let drag = &*drag_views[0];
+            let layout = root.convertRect_fromView(ns_window.contentLayoutRect(), None);
+            let expected_height = root.bounds().size.height - layout.origin.y - layout.size.height;
+            assert_eq!(drag.frame().size.width, root.bounds().size.width);
+            assert_eq!(drag.frame().size.height, expected_height);
+            assert_eq!(drag.frame().origin.y, layout.origin.y + layout.size.height);
+            assert!(
+                drag.acceptsFirstMouse(None),
+                "只有顶部空白带接收后台首次拖拽"
+            );
+            let buttons = [
+                NSWindowButton::CloseButton,
+                NSWindowButton::MiniaturizeButton,
+                NSWindowButton::ZoomButton,
+            ]
+            .map(|kind| {
+                    let button = ns_window.standardWindowButton(kind).unwrap();
+                    let owner = button.window().unwrap();
+                    if !ns_window.styleMask().contains(NSWindowStyleMask::FullScreen)
+                        && owner.isVisible() && !button.isHiddenOrHasHiddenAncestor() {
+                        // 从窗口最外层命中测试，保证透明拖拽视图不会吞掉交通灯点击。
+                        // 全屏的交通灯由系统隐藏工具栏管理，不能用普通窗口的可见命中断言。
+                    let frame = button.convertRect_toView(button.bounds(), None);
+                    let point = NSPoint::new(
+                        frame.origin.x + frame.size.width / 2.0,
+                        frame.origin.y + frame.size.height / 2.0,
+                    );
+                        let frame_view = unsafe { owner.contentView().unwrap().superview() }.unwrap();
+                    let hit = frame_view.hitTest(frame_view.convertPoint_fromView(point, None));
+                        assert!(
+                            hit.as_ref().is_some_and(|hit| hit.isDescendantOf(&button)),
+                            "交通灯必须仍可点击: button={button:?}; hit={hit:?}; frame={frame:?}; window={:?}; style={:?}",
+                            ns_window.frame(), ns_window.styleMask()
+                        );
+                }
+                &*button as *const _ as usize
+            });
             let backgrounds: Vec<_> = root
                 .subviews()
                 .iter()
-                .filter(|view| &**view != webview)
+                .filter(|view| &**view != webview && view.tag() != 0x53535442)
                 .collect();
             assert_eq!(backgrounds.len(), usize::from(glass));
             let background_id = backgrounds.first().map_or(0, |background| {
                 assert_eq!(background.frame(), root.bounds(), "材质必须覆盖完整窗口");
                 &**background as *const NSView as usize
             });
-            tx.send((webview as *const NSView as usize, background_id))
-                .unwrap();
+            tx.send((
+                webview as *const NSView as usize,
+                background_id,
+                drag as *const NSView as usize,
+                buttons,
+            ))
+            .unwrap();
         })
         .unwrap();
     rx.await.unwrap()
@@ -185,7 +239,14 @@ fn main() {
                     tokio::time::sleep(Duration::from_millis(1200)).await;
                     assert_eq!(snapshot(&window, appearance.material).await, original);
                 }
-                println!("PASS: native title bar coverage, content layout, stable WebView/material identity, theme sync, hide/show and resize");
+                for fullscreen in [true, false] {
+                    window.set_fullscreen(fullscreen).unwrap();
+                    tokio::time::sleep(Duration::from_millis(1500)).await;
+                    let appearance = window::set_titlebar_color(window.clone(), dark).await.unwrap();
+                    assert_eq!(snapshot(&window, appearance.material).await, original);
+                    assert_eq!(appearance.titlebar_height == 0.0, fullscreen, "全屏时取消标题栏避让，退出后恢复");
+                }
+                println!("PASS: full-window WebView, native button hit testing, stable WebView/material/drag-view/buttons, theme sync, hide/show, resize and fullscreen");
                 if vibrancy {
                     if appearance.material == "solid" {
                         println!("SKIP: vibrancy comparison respects accessibility settings requiring a solid background");

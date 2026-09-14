@@ -130,5 +130,6 @@ pub fn apply(
         platform: "windows",
         reduce_motion,
         high_contrast,
+        titlebar_height: 0.0,
     })
 }

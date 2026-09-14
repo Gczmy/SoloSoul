@@ -27,6 +27,7 @@ pub struct WindowAppearance {
     pub platform: &'static str,
     pub reduce_motion: bool,
     pub high_contrast: bool,
+    pub titlebar_height: f64,
 }
 
 /// 主题同步保持原生材质；AppKit 通过 with_webview 保证在主线程调用。
@@ -68,6 +69,7 @@ pub async fn set_titlebar_color(
         },
         reduce_motion: false,
         high_contrast: false,
+        titlebar_height: 0.0,
     })
 }
 

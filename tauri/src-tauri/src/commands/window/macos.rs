@@ -17,6 +17,9 @@ use window_vibrancy::{
     NSVisualEffectMaterial,
 };
 
+#[path = "macos_titlebar.rs"]
+mod titlebar;
+
 // 每个窗口最多安装一个材质视图，主题同步不重复挂载/移动 WebView。
 static MATERIALS: Mutex<BTreeMap<String, &'static str>> = Mutex::new(BTreeMap::new());
 static ACCESSIBILITY: AtomicU8 = AtomicU8::new(u8::MAX);
@@ -43,12 +46,12 @@ fn apply_window_backing(ns_window: &NSWindow, color: &TitlebarColor, opaque: boo
     }
 }
 
-/// Overlay 让材质覆盖交通灯区域；WebView 仍限制在系统标题栏下方。
-/// 使用原生布局指南，缩放、全屏与恢复窗口时由 AppKit 同步更新，避免固定像素补偿。
+/// 网页背景覆盖完整窗口；交通灯避让由独立的标题栏高度处理。
+/// 约束只安装一次，不在聚焦或主题同步时改变 WebView 层级。
 fn constrain_webview(ns_window: &NSWindow, webview: &NSView) -> Result<(), String> {
-    let guide = ns_window
-        .contentLayoutGuide()
-        .ok_or("Window content layout guide unavailable")?;
+    let root = ns_window
+        .contentView()
+        .ok_or("Window content view unavailable")?;
     let constraints = [
         NSLayoutAttribute::Left,
         NSLayoutAttribute::Right,
@@ -62,7 +65,7 @@ fn constrain_webview(ns_window: &NSWindow, webview: &NSView) -> Result<(), Strin
                 webview,
                 edge,
                 NSLayoutRelation::Equal,
-                Some(&guide),
+                Some(&root),
                 edge,
                 1.0,
                 0.0,
@@ -71,9 +74,8 @@ fn constrain_webview(ns_window: &NSWindow, webview: &NSView) -> Result<(), Strin
     });
     webview.setTranslatesAutoresizingMaskIntoConstraints(false);
     NSLayoutConstraint::activateConstraints(&NSArray::from_retained_slice(&constraints));
-    if let Some(root) = ns_window.contentView() {
-        root.layoutSubtreeIfNeeded();
-    }
+    titlebar::install(ns_window, &root)?;
+    root.layoutSubtreeIfNeeded();
     Ok(())
 }
 
@@ -158,5 +160,6 @@ pub fn apply(
         platform: "macos",
         reduce_motion,
         high_contrast,
+        titlebar_height: titlebar::height(ns_window),
     })
 }

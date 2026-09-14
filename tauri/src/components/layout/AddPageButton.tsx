@@ -236,7 +236,7 @@ export function AddPageButton({
               background: 'var(--bg-elevated)',
               borderRadius: 8,
               boxShadow: 'var(--shadow-lg)',
-              zIndex: 300,
+              zIndex: 'var(--z-nav-popover)',
               border: '1px solid var(--border-subtle)',
               transformOrigin: 'top',
               maxWidth: 'calc(100vw - 32px)',

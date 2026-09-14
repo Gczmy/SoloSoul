@@ -53,7 +53,7 @@ export function SideNavigation() {
         borderLeft: sidebarPosition === 'right' ? '1px solid var(--border-subtle)' : 'none',
         borderBottom: 'none',
         borderTop: 'none',
-        padding: expanded ? '12px 10px' : '12px 0',
+        padding: `calc(12px + var(--native-titlebar-height, 0px)) ${expanded ? '10px' : '0'} 12px`,
       };
 
   return (

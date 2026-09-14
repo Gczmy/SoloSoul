@@ -1,6 +1,6 @@
 .card {
   position: fixed;
-  z-index: 200;
+  z-index: var(--z-nav-popover);
   background: var(--bg-elevated);
   border-radius: 14px;
   box-shadow:
@@ -13,7 +13,7 @@
   animation: ocrQuickScanSlideIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   width: 400px;
   height: 560px;
-  max-height: calc(100vh - 16px);
+  max-height: calc(100vh - var(--native-titlebar-height, 0px) - 16px);
 }
 
 @keyframes ocrQuickScanSlideIn {

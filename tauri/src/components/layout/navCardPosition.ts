@@ -1,4 +1,5 @@
 import { useCallback, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 
 export type PopoverPlacement = 'top' | 'right' | 'bottom' | 'left';
 export type NavCardPosition = { top: number } | null;
@@ -9,6 +10,7 @@ export function useNavCardPosition(
   cardHeight: number,
   placement: PopoverPlacement,
 ) {
+  const titlebarHeight = useNativeWindowStore((s) => s.titlebarHeight);
   const buttonRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<NavCardPosition>(null);
   const updatePosition = useCallback(() => {
@@ -21,9 +23,12 @@ export function useNavCardPosition(
         : placement === 'top'
           ? rect.top - cardHeight - 8
           : rect.top;
-    const top = Math.max(8, Math.min(preferredTop, window.innerHeight - cardHeight - 8));
+    const top = Math.max(
+      titlebarHeight + 8,
+      Math.min(preferredTop, window.innerHeight - cardHeight - 8),
+    );
     setPosition((previous) => (previous?.top === top ? previous : { top }));
-  }, [cardHeight, placement]);
+  }, [cardHeight, placement, titlebarHeight]);
 
   useLayoutEffect(() => {
     if (!isOpen) return;

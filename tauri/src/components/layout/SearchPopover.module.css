@@ -1,11 +1,11 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  z-index: 300;
+  z-index: var(--z-nav-popover);
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 48px;
+  padding-top: calc(48px + var(--native-titlebar-height, 0px));
   background: rgba(0, 0, 0, 0.25);
 }
 .card {

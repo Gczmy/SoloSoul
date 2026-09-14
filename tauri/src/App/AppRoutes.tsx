@@ -1,7 +1,7 @@
 import { Suspense, useEffect } from 'react';
 import { trackAsyncListener } from '@/lib/asyncListener';
 import { dismissStartupScreen } from '@/lib/startupScreen';
-import { refreshNativeAppearance } from '@/lib/nativeWindow';
+import { observeNativeWindowLayout, refreshNativeAppearance } from '@/lib/nativeWindow';
 import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
@@ -43,6 +43,7 @@ import { BootstrapPage } from '@/pages/auth/BootstrapPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 
 export function AppRoutes() {
+  useEffect(observeNativeWindowLayout, []);
   const navigate = useNavigate();
   useEffect(() => {
     setGlobalNavigate(navigate);
@@ -342,7 +343,7 @@ export function AppRoutes() {
         <div
           style={{
             position: 'fixed',
-            top: SAFE_AREA_TOP,
+            top: `calc(${SAFE_AREA_TOP} + var(--native-titlebar-height, 0px))`,
             left: 0,
             right: 0,
             // 高于 AppBar（1000）：登录解锁后横幅不被顶部栏遮挡；

@@ -1,6 +1,6 @@
 .card {
   position: fixed;
-  z-index: 200;
+  z-index: var(--z-nav-popover);
   background: var(--bg-elevated);
   border-radius: 14px;
   box-shadow:
@@ -14,7 +14,7 @@
   width: 380px;
   height: 520px;
   max-width: calc(100vw - 24px);
-  max-height: calc(100vh - 16px);
+  max-height: calc(100vh - var(--native-titlebar-height, 0px) - 16px);
 }
 
 @keyframes quickChatSlideIn {

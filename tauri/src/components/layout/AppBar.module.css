@@ -3,11 +3,11 @@
   top: 0;
   left: var(--sidebar-width, 48px);
   right: 0;
-  height: 56px;
+  height: calc(56px + var(--native-titlebar-height, 0px));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: var(--native-titlebar-height, 0px) 20px 0;
   z-index: 1000;
   background: var(--bg-toolbar);
   border-bottom: 1px solid var(--border-subtle);
@@ -26,7 +26,9 @@
 
 /* When the function bar is at the top, the app bar sits below it. */
 .belowTopBar {
-  top: var(--function-bar-height);
+  top: calc(var(--function-bar-height) + var(--native-titlebar-height, 0px));
+  height: 56px;
+  padding-top: 0;
 }
 
 /* Right sidebar leaves the app bar full-width but with right inset. */

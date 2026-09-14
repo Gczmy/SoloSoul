@@ -217,7 +217,10 @@ export function TopFunctionBar({
       className={styles.functionBar}
       data-tauri-drag-region
       style={{
-        height: FUNCTION_BAR_HEIGHT,
+        height: isBottom
+          ? FUNCTION_BAR_HEIGHT
+          : `calc(${FUNCTION_BAR_HEIGHT}px + var(--native-titlebar-height, 0px))`,
+        paddingTop: isBottom ? 0 : 'var(--native-titlebar-height, 0px)',
         top: isBottom ? 'auto' : 0,
         bottom: isBottom ? 0 : 'auto',
         borderBottom: isBottom ? 'none' : '1px solid var(--border-subtle)',

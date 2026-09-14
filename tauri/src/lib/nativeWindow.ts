@@ -1,11 +1,13 @@
 import { invokeCommand as invoke } from './ipcClient';
 import { withTimeout } from './withTimeout';
+import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 
 interface WindowAppearance {
   material: 'solid' | 'vibrancy' | 'liquid-glass' | 'mica';
   platform: 'macos' | 'windows' | 'other';
   reduceMotion: boolean;
   highContrast: boolean;
+  titlebarHeight?: number;
 }
 
 export async function syncNativeAppearance(color: { red: number; green: number; blue: number }) {
@@ -20,6 +22,29 @@ export async function syncNativeAppearance(color: { red: number; green: number; 
   root.dataset.desktopPlatform = appearance.platform;
   root.dataset.reduceMotion = String(appearance.reduceMotion);
   root.dataset.highContrast = String(appearance.highContrast);
+  const height = appearance.platform === 'macos' ? appearance.titlebarHeight : 0;
+  const titlebarHeight =
+    typeof height === 'number' && Number.isFinite(height) ? Math.max(0, height) : 0;
+  root.style.setProperty('--native-titlebar-height', `${titlebarHeight}px`);
+  useNativeWindowStore.setState({ titlebarHeight });
+}
+
+/** 全屏/缩放完成布局后重新测量系统避让区，不使用固定像素或主题轮询时序。 */
+export function observeNativeWindowLayout() {
+  let frame = 0;
+  const update = () => {
+    if (document.documentElement.dataset.desktopPlatform !== 'macos') return;
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      void refreshNativeAppearance();
+    });
+  };
+  window.addEventListener('resize', update);
+  update();
+  return () => {
+    cancelAnimationFrame(frame);
+    window.removeEventListener('resize', update);
+  };
 }
 
 /** 图标解码后显示原生窗口；隐藏 WebView 不保证调度 RAF，因此设置有界绘制等待。 */

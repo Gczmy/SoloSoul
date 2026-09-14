@@ -3,9 +3,12 @@
   width: min(400px, calc(100vw - 32px));
   height: min(
     560px,
-    calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px)
+    calc(
+      100vh - var(--native-titlebar-height, 0px) - env(safe-area-inset-top, 0px) -
+        env(safe-area-inset-bottom, 0px) - 32px
+    )
   );
-  z-index: 200;
+  z-index: var(--z-nav-popover);
   background: var(--bg-elevated);
   border-radius: 14px;
   box-shadow:

@@ -11,6 +11,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useUiStore } from '@/stores/uiStore';
 import { useSyncStore } from '@/stores/syncStore';
 import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
+import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 
 const FUNCTION_BAR_HEIGHT = 48;
 
@@ -23,6 +24,7 @@ interface AppShellProps {
 
 export function AppShell({ children, title, actions, onBack }: AppShellProps) {
   const isNarrowViewport = useIsNarrowViewport();
+  const titlebarHeight = useNativeWindowStore((s) => s.titlebarHeight);
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
   const sidebarExpanded = useUiStore((s) => s.sidebarExpanded);
   // 路由导航后内容区滚动位置重置到顶部——滚动发生在 .content（overflow-y: scroll）
@@ -46,12 +48,12 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
       '--sidebar-width': `${sidebarWidth}px`,
       '--shell-content-left': `${effectivePosition === 'left' ? sidebarWidth : 0}px`,
       '--shell-content-right': `${effectivePosition === 'right' ? sidebarWidth : 0}px`,
-      '--shell-content-top': `${isNarrowViewport ? 48 : isTop ? 104 : 56}px`,
+      '--shell-content-top': `${titlebarHeight + (isNarrowViewport ? 48 : isTop ? 104 : 56)}px`,
       '--shell-content-bottom': `${isNarrowViewport ? 56 : effectivePosition === 'bottom' ? 48 : 0}px`,
     };
     Object.entries(values).forEach(([key, value]) => root.style.setProperty(key, value));
     return () => Object.keys(values).forEach((key) => root.style.removeProperty(key));
-  }, [sidebarWidth, effectivePosition, isHorizontal, isTop, isNarrowViewport]);
+  }, [sidebarWidth, effectivePosition, isHorizontal, isTop, isNarrowViewport, titlebarHeight]);
 
   // B 侧入站配对请求：全局挂载监听（响应方用户不在同步页也能弹出配对确认对话框）。
   // 入站 Hello 落库一条新的未信任 peer 记录时，后端 emit sync-pairing-request。
@@ -104,13 +106,10 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
       )}
       <div
         className={styles.main}
-        style={
-          isTop
-            ? { paddingTop: FUNCTION_BAR_HEIGHT }
-            : effectivePosition === 'bottom'
-              ? { paddingBottom: FUNCTION_BAR_HEIGHT }
-              : undefined
-        }
+        style={{
+          paddingTop: titlebarHeight + (isTop ? FUNCTION_BAR_HEIGHT : 0),
+          paddingBottom: effectivePosition === 'bottom' ? FUNCTION_BAR_HEIGHT : 0,
+        }}
       >
         <main ref={contentRef} className={styles.content}>
           {children}
