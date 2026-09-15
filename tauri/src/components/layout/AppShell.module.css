@@ -6,6 +6,13 @@
   /* 移动端禁用双指缩放（继承到子元素） */
   touch-action: manipulation;
 }
+
+@media (min-width: 768px) and (forced-colors: active) {
+  :global(html[data-desktop-platform='windows']) .content {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+}
 .main {
   flex: 1;
   display: flex;
@@ -72,5 +79,20 @@
   .content {
     padding-left: 24px;
     padding-right: 24px;
+  }
+
+  :global(html[data-desktop-platform='windows']) .appShell .main {
+    background: transparent;
+  }
+  :global(html[data-desktop-platform='windows']) .content {
+    /* 顶部留出真实滚动边界，正文不能滚进透明的 AppBar；水平导航由 main 的内边距避让。 */
+    margin-top: var(--appbar-height, 40px);
+    padding-top: var(--shell-page-padding, 24px);
+    background: var(--bg-elevated);
+    border-radius: 12px 12px 0 0;
+    box-shadow: inset 0 0 0 1px var(--border-subtle);
+  }
+  :global(html[data-desktop-platform='windows'][data-native-material='acrylic']) .content {
+    background: var(--bg-base);
   }
 }

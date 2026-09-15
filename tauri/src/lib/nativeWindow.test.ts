@@ -32,6 +32,24 @@ afterEach(() => {
 });
 
 describe('原生窗口启动', () => {
+  it('接受 Windows Acrylic，并在系统关闭透明效果后切回实色', async () => {
+    const { syncNativeAppearance } = await import('./nativeWindow');
+    for (const material of ['acrylic', 'solid']) {
+      invoke.mockResolvedValueOnce({
+        material,
+        platform: 'windows',
+        reduceMotion: false,
+        highContrast: material === 'solid',
+      });
+      await syncNativeAppearance({ red: 42, green: 38, blue: 32 });
+      expect(document.documentElement.dataset.nativeMaterial).toBe(material);
+      expect(document.documentElement.dataset.highContrast).toBe(String(material === 'solid'));
+      expect(document.documentElement.style.getPropertyValue('--native-titlebar-height')).toBe(
+        '0px',
+      );
+    }
+  });
+
   it('首次显示前同步玻璃外观，忽略旧版本的不透明偏好', async () => {
     const { prepareStartupWindow } = await import('./nativeWindow');
     await prepareStartupWindow();

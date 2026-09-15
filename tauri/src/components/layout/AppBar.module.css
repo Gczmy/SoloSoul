@@ -137,6 +137,9 @@
     font-size: 18px;
     line-height: 24px;
   }
+  :global(html[data-desktop-platform='windows'][data-native-material='acrylic']) .appBar {
+    background: transparent;
+  }
 
   .appBar[data-native-compact='true'] {
     top: 0;

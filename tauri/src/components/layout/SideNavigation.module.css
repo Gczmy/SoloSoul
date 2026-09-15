@@ -498,12 +498,18 @@
   flex-shrink: 0;
   min-height: 0;
 }
-:global(html[data-desktop-platform='macos'][data-native-material]:not([data-native-material='solid'])) .sideNav {
+:global(
+    html[data-desktop-platform='macos'][data-native-material]:not([data-native-material='solid'])
+  )
+  .sideNav {
   background: transparent;
 }
 :global(html[data-desktop-platform='windows']) .sideNav {
-  /* 与 DWM 主题标题栏使用同一实色；避免壁纸色透过侧栏造成色块拼接。 */
+  /* Mica/实色回退与 DWM 主题标题栏同色；Acrylic 在下面透出原生材质。 */
   background: var(--bg-base);
+}
+:global(html[data-desktop-platform='windows'][data-native-material='acrylic']) .sideNav {
+  background: transparent;
 }
 .brandHeader {
   display: flex;

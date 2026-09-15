@@ -109,6 +109,7 @@ body {
 html[data-native-material='vibrancy'],
 html[data-native-material='liquid-glass'],
 html[data-native-material='mica'],
+html[data-native-material='acrylic'],
 html[data-native-material]:not([data-native-material='solid']) body,
 html[data-native-material]:not([data-native-material='solid']) #root,
 html[data-native-material]:not([data-native-material='solid']) #startup-screen {
@@ -120,6 +121,11 @@ html[data-native-material]:not([data-native-material='solid']) #startup-screen {
  * 主题色主导背景，少量透出原生材质；应用样式加载前使用首帧缓存色。 */
 html[data-native-material='mica'] {
   background: color-mix(in srgb, var(--bg-base, var(--startup-background)) 90%, transparent);
+}
+
+/* 原生 Acrylic 已提供模糊和明暗控制，仅单层轻着色以保留背景层次。 */
+html[data-native-material='acrylic'] {
+  background: color-mix(in srgb, var(--bg-base, var(--startup-background)) 20%, transparent);
 }
 
 :root[data-reduce-motion='true'] #startup-screen {

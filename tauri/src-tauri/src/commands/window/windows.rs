@@ -4,8 +4,8 @@ use ::windows::{
     core::{w, BOOL},
     Win32::{
         Graphics::Dwm::{
-            DwmSetWindowAttribute, DWMWA_CAPTION_COLOR, DWMWA_COLOR_DEFAULT,
-            DWMWA_USE_IMMERSIVE_DARK_MODE,
+            DwmSetWindowAttribute, DWMSBT_TRANSIENTWINDOW, DWMWA_CAPTION_COLOR,
+            DWMWA_COLOR_DEFAULT, DWMWA_SYSTEMBACKDROP_TYPE, DWMWA_USE_IMMERSIVE_DARK_MODE,
         },
         System::Registry::{RegGetValueW, HKEY_CURRENT_USER, RRF_RT_REG_DWORD},
         UI::{
@@ -85,10 +85,32 @@ pub fn apply(
             tauri::Theme::Light
         }))
         .map_err(|e| e.to_string())?;
-    let mica = !reduce_transparency
-        && !high_contrast
-        && window_vibrancy::apply_mica(window, Some(dark)).is_ok();
-    if !mica {
+    let hwnd = window.hwnd().map_err(|e| e.to_string())?;
+    // 优先使用 Windows 11 22H2 的公开 Desktop Acrylic API。
+    // 不调用旧版 Acrylic 的未公开接口，避免 Windows 10/早期 Windows 11 拖动卡顿。
+    let material = if reduce_transparency || high_contrast {
+        "solid"
+    } else {
+        // SAFETY: HWND 来自 Tauri；枚举指针与大小符合 DWMWA_SYSTEMBACKDROP_TYPE 契约。
+        let acrylic = unsafe {
+            DwmSetWindowAttribute(
+                hwnd,
+                DWMWA_SYSTEMBACKDROP_TYPE,
+                std::ptr::from_ref(&DWMSBT_TRANSIENTWINDOW).cast(),
+                std::mem::size_of_val(&DWMSBT_TRANSIENTWINDOW) as u32,
+            )
+            .is_ok()
+        };
+        if acrylic {
+            "acrylic"
+        } else if window_vibrancy::apply_mica(window, Some(dark)).is_ok() {
+            "mica"
+        } else {
+            "solid"
+        }
+    };
+    if material == "solid" {
+        // clear_mica 在支持 SystemBackdrop 的系统上清除同一 DWM 背景，包括 Acrylic。
         let _ = window_vibrancy::clear_mica(window);
     }
     // WebView2 的背景必须也透明，CSS 才能透出 DWM 材质；旧系统与禁用透明度使用实色。
@@ -97,13 +119,12 @@ pub fn apply(
             color.red,
             color.green,
             color.blue,
-            if mica { 0 } else { 255 },
+            if material == "solid" { 255 } else { 0 },
         )))
         .map_err(|e| e.to_string())?;
-    let hwnd = window.hwnd().map_err(|e| e.to_string())?;
-    // 原生 Mica 标题栏的壁纸色无法跟随应用配色；使用同一主题底色衔接 WebView 着色层。
-    // 高对比度仍由系统决定颜色。
-    let caption = if high_contrast {
+    // Acrylic 由 DWM 连续绘制到系统标题栏，不能再用实色盖住原生材质。
+    // Mica/实色回退沿用主题标题栏；高对比度仍由系统决定颜色。
+    let caption = if high_contrast || material == "acrylic" {
         DWMWA_COLOR_DEFAULT
     } else {
         u32::from(color.red) | (u32::from(color.green) << 8) | (u32::from(color.blue) << 16)
@@ -126,7 +147,7 @@ pub fn apply(
         );
     }
     Ok(WindowAppearance {
-        material: if mica { "mica" } else { "solid" },
+        material,
         platform: "windows",
         reduce_motion,
         high_contrast,

@@ -2,6 +2,19 @@
 
 执行日期：2026-09-11。范围来自已确认方案：品牌启动层、初始化兜底、macOS Liquid Glass/Vibrancy、Windows Mica、桌面导航展开及内容层级。每项验证后独立提交，完成一项再进入下一项。
 
+## D18 Windows 毛玻璃与内容分层（2026-09-15）
+
+用户要求 Windows 外壳与内容更容易区分。本项更新 D08/D14 的 Windows 材质策略：支持公开 API 的系统优先使用 Desktop Acrylic，顶部操作栏与导航透出同一原生背景，正文使用不透明主题色面板和 12px 顶部圆角。macOS 材质与几何逻辑不变。
+
+- 原生层调用 `DWMWA_SYSTEMBACKDROP_TYPE = DWMSBT_TRANSIENTWINDOW`；适用 Windows 11 22H2（Build 22621）及以上。API 不可用时依次尝试 Mica、实色；关闭透明效果或高对比度直接实色。使用公开 API，避免旧版 Acrylic 接口的拖动/缩放性能问题。
+- 保留系统标题栏和窗口按钮，由 DWM 绘制标题栏毛玻璃。WebView2 背景透明，网页最底层仅叠加一次 20% 当前主题色，保留主题倾向与原生模糊。Mica 回退沿用原有 90% 主题色和同色标题栏。
+- 正文保持实色，Acrylic 下使用 `--bg-base`，回退时使用 `--bg-elevated` 保留层次。通过真实滚动区域边界避让 40px AppBar，正文不再滚到透明顶栏后方；兼容左、右、顶部和底部导航。强制颜色模式关闭透明背景，并用系统颜色描边保留边界。
+- Acrylic 会由系统依据焦点、节能和辅助功能偏好自动调整或降为实色，不能将失焦时的实色回退判定为材质失效。
+- TypeScript、全量 ESLint、Rust fmt 与严格 Clippy 通过。窗口逻辑单元测试 10 项、Chrome 定向 E2E 39 项通过：覆盖四种 Windows 导航、内容滚动边界、四套浅深配色、实色/强制颜色回退、启动显示时序及 macOS 布局回归。前端生产构建和 13 个 Markdown 分块守卫通过，保留已有大分块/动态导入提示。
+- Windows 原生程序构建成功（9m00s）。实际运行路径确认为 `tauri/target/debug/solo_soul.exe`，当前 Windows 11 Build 26100、暖石深配置下，登录卡片外的模糊背景已可见，卡片保持实色；系统窗口按钮显示、最大化、恢复、标题栏拖动和双击最大化通过。标题栏保留系统绘制与明暗处理。还原后的首次抓取短暂报告窗口最小化，重新定位并激活后正常恢复。
+- 本次原生观察限定于登录窗口；工作区四方向分层由浏览器 mock 验证。未补验旧版 Windows、系统透明度/高对比度实际切换、不同 DPI 或 macOS 原生行为；这些检查不能由浏览器结果替代。
+- 依据：[Microsoft DWM_SYSTEMBACKDROP_TYPE](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwm_systembackdrop_type)、[Microsoft Acrylic](https://learn.microsoft.com/en-us/windows/apps/design/style/acrylic)。
+
 ## 第二轮：桌面外壳统一（2026-09-15）
 
 用户已确认推荐方案：macOS 左侧折叠栏容纳交通灯，使用图标与短标签；Windows 64px 图标栏；展开宽度 232px；统一原生材质、顶部操作区与正文留白。每个 D 编号独立修复、验证和提交，不混入已有的子模块、安装器资源或其他未提交修改。

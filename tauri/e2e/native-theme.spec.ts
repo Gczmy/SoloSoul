@@ -43,7 +43,12 @@ async function mockTheme(page: Page, schemeId: string, material = 'mica') {
   });
 }
 
-async function expectThemeBackground(page: Page, schemeId: string, translucent: boolean) {
+async function expectThemeBackground(
+  page: Page,
+  schemeId: string,
+  translucent: boolean,
+  opacity = 0.9,
+) {
   const hex = getSchemeById(schemeId)!.variables['--bg-base'];
   const expected = [1, 3, 5].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
   await expect(page.locator('html')).toHaveAttribute('data-caption-rgb', expected.join(','));
@@ -57,11 +62,12 @@ async function expectThemeBackground(page: Page, schemeId: string, translucent: 
     return Array.from(context.getImageData(0, 0, 1, 1).data);
   });
   expected.forEach((component, index) =>
-    expect(Math.abs(actual[index] - component)).toBeLessThanOrEqual(1),
+    expect(Math.abs(actual[index] - component)).toBeLessThanOrEqual(
+      translucent ? Math.ceil(0.5 / opacity) : 1,
+    ),
   );
   if (translucent) {
-    expect(actual[3]).toBeGreaterThan(210);
-    expect(actual[3]).toBeLessThan(255);
+    expect(Math.abs(actual[3] - Math.round(255 * opacity))).toBeLessThanOrEqual(1);
     await expect(page.locator('body')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     await expect(page.locator('#root')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   } else {
@@ -70,6 +76,14 @@ async function expectThemeBackground(page: Page, schemeId: string, translucent: 
 }
 
 for (const scheme of ['warm-stone-dark', 'deep-ocean', 'forest-night', 'soft-cream']) {
+  test(`Windows Acrylic ${scheme} 保留毛玻璃并轻度跟随主题`, async ({ page }) => {
+    await mockTheme(page, scheme, 'acrylic');
+    await page.goto('/login');
+    await expect(page.locator('#startup-screen')).toHaveCount(0);
+    await expect(page.locator('html')).toHaveAttribute('data-native-material', 'acrylic');
+    await expectThemeBackground(page, scheme, true, 0.2);
+  });
+
   test(`Windows ${scheme} 登录背景取自主题且只着色一层`, async ({ page }) => {
     await mockTheme(page, scheme);
     await page.goto('/login');
@@ -109,4 +123,26 @@ test('无 Mica 时采用当前主题实色，不受首帧缓存颜色锁定', as
   await page.getByRole('button', { name: 'More Appearances', exact: true }).click();
   await page.getByRole('button', { name: 'Deep Ocean', exact: true }).click();
   await expectThemeBackground(page, 'deep-ocean', false);
+});
+
+test('Windows 实色回退仍能区分外壳和正文', async ({ page }) => {
+  await mockTheme(page, 'warm-stone-dark', 'solid');
+  await login(page);
+  const header = page.locator('[data-appbar]');
+  const chrome = await header.evaluate((el) => getComputedStyle(el).backgroundColor);
+  await expect(page.locator('#desktop-navigation')).toHaveCSS('background-color', chrome);
+  expect(chrome).not.toBe('rgba(0, 0, 0, 0)');
+  await expect(page.locator('main')).not.toHaveCSS('background-color', chrome);
+  await expectThemeBackground(page, 'warm-stone-dark', false);
+});
+
+test('Windows 强制颜色模式关闭透明背景并保留正文边界', async ({ page }) => {
+  await mockTheme(page, 'warm-stone-dark', 'acrylic');
+  await login(page);
+  await page.emulateMedia({ forcedColors: 'active' });
+  for (const selector of ['html', 'body', '#root', 'main']) {
+    await expect(page.locator(selector)).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  }
+  await expect(page.locator('main')).toHaveCSS('outline-style', 'solid');
+  await expect(page.locator('main')).toHaveCSS('outline-width', '1px');
 });
