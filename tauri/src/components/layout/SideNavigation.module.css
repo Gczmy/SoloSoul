@@ -334,7 +334,10 @@
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
-  transition: all 0.15s var(--ease-smooth, ease);
+  /* 折叠时直接切换百分比宽度和内边距，避免加号先偏移、过渡结束后再跳回。 */
+  transition:
+    background-color 0.15s var(--ease-smooth, ease),
+    color 0.15s var(--ease-smooth, ease);
   flex-shrink: 0;
 }
 
@@ -504,10 +507,14 @@
 }
 .brandHeader {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 4px;
   width: 100%;
+  height: 40px;
+  /* 宽轨道沿用展开时的 16px 左留白；窄轨道只压缩留白，不缩放图标。 */
+  padding: 0 clamp(0px, calc(var(--sidebar-width, 64px) - 80px), 16px);
   margin-bottom: 12px;
   flex-shrink: 0;
 }
@@ -522,6 +529,41 @@
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.02em;
+}
+.sidebarToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.sideNav[data-expanded='true'] .sidebarToggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .sidebarToggle:hover {
+    background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+    color: var(--text-primary);
+  }
+}
+.sidebarToggle:active {
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+}
+.sidebarToggle:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
 }
 .arrowToggle:focus-visible {
   outline: 2px solid var(--accent-primary);

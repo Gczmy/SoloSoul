@@ -20,7 +20,10 @@
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.15s var(--ease-smooth, ease);
+  /* 折叠时尺寸和间距立即切换，避免纵向布局把图标先压小再撑大。 */
+  transition:
+    background-color 0.15s var(--ease-smooth, ease),
+    color 0.15s var(--ease-smooth, ease);
   position: relative;
   flex-shrink: 0;
 }
@@ -39,7 +42,7 @@
   border-radius: 8px;
 }
 
-.expanded svg {
+.navButton > svg {
   flex-shrink: 0;
 }
 .label {

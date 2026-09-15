@@ -11,6 +11,7 @@ import { PrimaryNavZone } from './PrimaryNavZone';
 import { SecondaryActionBar } from './SecondaryActionBar';
 import { NavButton } from './NavButton';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react';
 
 export { RenameableNavButton } from './RenameableNavButton';
 export { AddPageButton } from './AddPageButton';
@@ -26,6 +27,16 @@ export function SideNavigation() {
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('navigation');
   const expanded = useUiStore((s) => s.sidebarExpanded) && !isHorizontal;
+  const toggleExpanded = useUiStore((s) => s.toggleSidebarExpanded);
+  const ToggleIcon =
+    sidebarPosition === 'right'
+      ? expanded
+        ? PanelRightClose
+        : PanelRightOpen
+      : expanded
+        ? PanelLeftClose
+        : PanelLeftOpen;
+  const toggleLabel = t(expanded ? 'sidebar_collapse' : 'sidebar_expand');
   const vaultLock = useAuthStore((s) => s.lock);
 
   const handleLock = useCallback(() => vaultLock(), [vaultLock]);
@@ -62,10 +73,22 @@ export function SideNavigation() {
         style={navStyle}
         data-expanded={expanded}
       >
-        {expanded && (
+        {!isHorizontal && (
           <div className={styles.brandHeader}>
             <ShieldLogo size={26} />
-            <span className={styles.brandName}>SoloSoul</span>
+            {expanded && <span className={styles.brandName}>SoloSoul</span>}
+            <button
+              type="button"
+              className={styles.sidebarToggle}
+              onClick={toggleExpanded}
+              aria-label={toggleLabel}
+              title={toggleLabel}
+              aria-expanded={expanded}
+              aria-controls="desktop-navigation"
+              data-tauri-drag-region="false"
+            >
+              <ToggleIcon size={20} />
+            </button>
           </div>
         )}
 
