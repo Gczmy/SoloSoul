@@ -56,6 +56,9 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
       '--shell-content-right': `${effectivePosition === 'right' ? sidebarWidth : 0}px`,
       '--shell-content-top': `${appbarHeight + (isTop ? FUNCTION_BAR_HEIGHT : 0)}px`,
       '--shell-content-bottom': `${isNarrowViewport ? 56 : effectivePosition === 'bottom' ? 48 : 0}px`,
+      '--shell-page-padding': isNarrowViewport ? '16px' : '24px',
+      '--shell-content-height':
+        'calc(100dvh - var(--shell-content-top) - var(--shell-content-bottom))',
     };
     Object.entries(values).forEach(([key, value]) => root.style.setProperty(key, value));
     return () => Object.keys(values).forEach((key) => root.style.removeProperty(key));

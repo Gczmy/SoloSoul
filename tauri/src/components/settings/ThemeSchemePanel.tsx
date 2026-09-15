@@ -39,6 +39,9 @@ export function ThemeSchemePanel({
 
   return (
     <div
+      data-theme-scheme-panel
+      role="region"
+      aria-label={t('settings:theme_schemes')}
       style={{
         width: 240,
         flexShrink: 0,
@@ -169,7 +172,8 @@ function SchemeThumbnail({
 }) {
   const { t } = useTranslation('settings');
 
-  return (      <button
+  return (
+    <button
       onClick={onClick}
       className="interactive-lift"
       style={{
@@ -186,7 +190,6 @@ function SchemeThumbnail({
         cursor: 'pointer',
         position: 'relative',
       }}
-
     >
       {/* Thumbnail preview */}
       <div

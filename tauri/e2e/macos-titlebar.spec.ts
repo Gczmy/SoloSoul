@@ -75,7 +75,7 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
     await expect(header.locator('h1')).toHaveCSS('font-size', '18px');
     const mainBox = (await page.locator('main').boundingBox())!;
     expect(mainBox.y).toBe(position === 'top' ? 48 : 0);
-    await expect(page.locator('main')).toHaveCSS('padding-top', '68px');
+    await expect(page.locator('main')).toHaveCSS('padding-top', '76px');
     const guide = header.getByRole('button', { name: 'Guide', exact: true });
     await expect(guide).toHaveCSS('font-size', '14px');
     await expectNativeControl(guide);

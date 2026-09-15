@@ -19,6 +19,7 @@ import type { ThemeScheme } from '@/lib/themeSchemes';
 import type { AppSettings } from '@/stores/settingsStore';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { ICON_SIZE } from '@/lib/constants';
+import styles from './AppearanceSettingsPage.module.css';
 
 const ACCENT_OPTIONS: { value: AccentPreset; label: string; color: string }[] = [
   { value: 'ocean', label: 'Ocean', color: '#5B7C99' },
@@ -55,11 +56,6 @@ export function AppearanceSettingsPage() {
   const isMobilePlatform = isMobilePlatformSync();
   const { t } = useTranslation(['settings', 'common']);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-
-  const isHorizontal = settings.sidebarPosition === 'top' || settings.sidebarPosition === 'bottom';
-  const contentHeight = isHorizontal
-    ? 'calc(100vh - 48px - 56px - 32px)'
-    : 'calc(100vh - 56px - 32px)';
 
   const lightSchemeName = t(
     getSchemeById(settings.defaultLightTheme)?.nameKey.replace('settings:', '') as string,
@@ -131,13 +127,7 @@ export function AppearanceSettingsPage() {
 
   return (
     <PageShell title={t('settings:items.theme_appearance')} onBack={() => navigate('/settings')}>
-      <div
-        style={{
-          display: 'flex',
-          height: contentHeight,
-          margin: '-16px',
-        }}
-      >
+      <div className={styles.layout}>
         <ThemeSchemePanel
           isOpen={isPanelOpen}
           onClose={() => setIsPanelOpen(false)}
@@ -147,12 +137,7 @@ export function AppearanceSettingsPage() {
           onSelectScheme={handleSelectScheme}
         />
 
-        <div
-          style={{
-            flex: 1,
-            padding: '16px 0',
-          }}
-        >
+        <div className={styles.settings}>
           <PageContainer variant="form" gap="default">
             {/* Theme preset */}
             <Card>
