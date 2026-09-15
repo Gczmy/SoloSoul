@@ -29,164 +29,191 @@ import { Cloud } from 'lucide-react';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 
 import styles from './SettingsPage.module.css';
+import { isAndroidSync } from '@/lib/platform';
+import { useAuthStore } from '@/stores/authStore';
 
 export function SettingsPage() {
+  const isAndroid = isAndroidSync();
+  const accountName = useAuthStore((s) => s.currentAccount?.name);
   const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);
   // Prefetch Runtime: 保险库统计共享缓存（与数据管理页一致）
   const { data: vaultStats } = usePrefetchData(prefetchRegistry.vaultStats);
   const vaultSize = vaultStats ? formatBytes(vaultStats.totalSizeBytes) : null;
 
-  const settingGroups = useMemo(() => [
-    {
-      title: t('settings:groups.appearance'),
-      items: [
-        {
-          label: t('settings:items.theme_appearance'),
-          icon: Palette,
-          path: '/settings/appearance',
-          desc: t('settings:desc.theme_appearance'),
-        },
-      ],
-    },
-    {
-      title: t('settings:groups.security'),
-      items: [
-        {
-          label: t('settings:items.security_settings'),
-          icon: Shield,
-          path: '/settings/security',
-          desc: t('settings:desc.security_settings'),
-        },
-      ],
-    },
-    {
-      title: t('settings:groups.account'),
-      items: [
-        {
-          label: t('settings:items.account_management'),
-          icon: User,
-          path: '/settings/account',
-          desc: t('settings:desc.account_management'),
-        },
-      ],
-    },
-    {
-      title: t('settings:groups.data'),
-      items: [
-        {
-          label: t('settings:items.data_management'),
-          icon: HardDrive,
-          path: '/settings/data',
-          badge: vaultSize,
-          desc: t('settings:desc.data_management'),
-        },
-        {
-          label: t('settings:items.export_import'),
-          icon: Upload,
-          path: '/settings/export-import',
-          desc: t('settings:desc.export_import'),
-        },
-        {
-          label: t('settings:items.trash'),
-          icon: Trash2,
-          path: '/settings/trash',
-          desc: t('settings:desc.trash'),
-        },
-        {
-          label: t('settings:items.backup_restore'),
-          icon: Disc,
-          path: '/settings/backup',
-          desc: t('settings:desc.backup_restore'),
-        },
-        // Manifesto「本地优先」：云同步尚未对外开放，仅开发/调试版本显示入口
-        ...(isDevOrDebug()
-          ? [
-              {
-                label: t('settings:items.cloud_sync'),
-                icon: Cloud,
-                path: '/settings/cloud-sync',
-                desc: t('settings:desc.cloud_sync'),
-              },
-            ]
-          : []),
-        {
-          label: t('settings:items.operation_log'),
-          icon: ClipboardList,
-          path: '/settings/operation-log',
-          desc: t('settings:desc.operation_log'),
-        },
-        {
-          label: t('settings:items.global_attachments'),
-          icon: Paperclip,
-          path: '/settings/attachments',
-          desc: t('settings:desc.global_attachments'),
-        },
-        {
-          label: t('settings:items.templates', { defaultValue: '模板管理' }),
-          icon: LayoutTemplate,
-          path: '/settings/templates',
-          desc: t('settings:desc.templates', { defaultValue: '管理自定义对象模板' }),
-        },
-        {
-          label: t('settings:items.plugins', { defaultValue: '插件' }),
-          icon: Puzzle,
-          path: '/plugins',
-          desc: t('settings:desc.plugins', { defaultValue: '管理本地插件市场' }),
-        },
-        {
-          label: t('settings:items.sync', { defaultValue: '设备同步' }),
-          // §7.4 单源规范：与首页快捷入口/底部导航同源（PAGE_ICON_MAP.sync = 双向循环箭头）
-          icon: PAGE_ICON_MAP.sync,
-          path: '/sync',
-          desc: t('settings:desc.sync', { defaultValue: '与其他设备同步数据' }),
-        },
-      ],
-    },
-    {
-      title: t('settings:groups.system'),
-      items: [
-        {
-          label: t('settings:items.search', { defaultValue: '搜索' }),
-          icon: Search,
-          path: '/search',
-          desc: t('settings:desc.search', { defaultValue: '全局搜索' }),
-        },
-        {
-          label: t('settings:items.ocr', { defaultValue: 'OCR' }),
-          icon: Scan,
-          path: '/ocr',
-          desc: t('settings:desc.ocr', { defaultValue: 'Manage OCR models and preferences' }),
-        },
-        {
-          label: t('settings:items.help_docs'),
-          icon: BookOpen,
-          path: '/help',
-          desc: t('settings:desc.help_docs'),
-        },
-        {
-          label: t('settings:items.debug_log'),
-          icon: Bug,
-          path: '/debug-log',
-          desc: t('settings:desc.debug_log'),
-        },
-        {
-          label: t('settings:items.about'),
-          icon: Info,
-          path: '/about',
-          desc: t('settings:desc.about'),
-        },
-      ],
-    },
-  ], [t, vaultSize]);
+  const settingGroups = useMemo(
+    () => [
+      {
+        title: t('settings:groups.appearance'),
+        items: [
+          {
+            label: t('settings:items.theme_appearance'),
+            icon: Palette,
+            path: '/settings/appearance',
+            desc: t('settings:desc.theme_appearance'),
+          },
+        ],
+      },
+      {
+        title: t('settings:groups.security'),
+        items: [
+          {
+            label: t('settings:items.security_settings'),
+            icon: Shield,
+            path: '/settings/security',
+            desc: t('settings:desc.security_settings'),
+          },
+        ],
+      },
+      {
+        title: t('settings:groups.account'),
+        items: [
+          {
+            label: t('settings:items.account_management'),
+            icon: User,
+            path: '/settings/account',
+            desc: t('settings:desc.account_management'),
+          },
+        ],
+      },
+      {
+        title: t('settings:groups.data'),
+        items: [
+          {
+            label: t('settings:items.data_management'),
+            icon: HardDrive,
+            path: '/settings/data',
+            badge: vaultSize,
+            desc: t('settings:desc.data_management'),
+          },
+          {
+            label: t('settings:items.export_import'),
+            icon: Upload,
+            path: '/settings/export-import',
+            desc: t('settings:desc.export_import'),
+          },
+          {
+            label: t('settings:items.trash'),
+            icon: Trash2,
+            path: '/settings/trash',
+            desc: t('settings:desc.trash'),
+          },
+          {
+            label: t('settings:items.backup_restore'),
+            icon: Disc,
+            path: '/settings/backup',
+            desc: t('settings:desc.backup_restore'),
+          },
+          // Manifesto「本地优先」：云同步尚未对外开放，仅开发/调试版本显示入口
+          ...(isDevOrDebug()
+            ? [
+                {
+                  label: t('settings:items.cloud_sync'),
+                  icon: Cloud,
+                  path: '/settings/cloud-sync',
+                  desc: t('settings:desc.cloud_sync'),
+                },
+              ]
+            : []),
+          {
+            label: t('settings:items.operation_log'),
+            icon: ClipboardList,
+            path: '/settings/operation-log',
+            desc: t('settings:desc.operation_log'),
+          },
+          {
+            label: t('settings:items.global_attachments'),
+            icon: Paperclip,
+            path: '/settings/attachments',
+            desc: t('settings:desc.global_attachments'),
+          },
+          {
+            label: t('settings:items.templates', { defaultValue: '模板管理' }),
+            icon: LayoutTemplate,
+            path: '/settings/templates',
+            desc: t('settings:desc.templates', { defaultValue: '管理自定义对象模板' }),
+          },
+          {
+            label: t('settings:items.plugins', { defaultValue: '插件' }),
+            icon: Puzzle,
+            path: '/plugins',
+            desc: t('settings:desc.plugins', { defaultValue: '管理本地插件市场' }),
+          },
+          {
+            label: t('settings:items.sync', { defaultValue: '设备同步' }),
+            // §7.4 单源规范：与首页快捷入口/底部导航同源（PAGE_ICON_MAP.sync = 双向循环箭头）
+            icon: PAGE_ICON_MAP.sync,
+            path: '/sync',
+            desc: t('settings:desc.sync', { defaultValue: '与其他设备同步数据' }),
+          },
+        ],
+      },
+      {
+        title: t('settings:groups.system'),
+        items: [
+          {
+            label: t('settings:items.search', { defaultValue: '搜索' }),
+            icon: Search,
+            path: '/search',
+            desc: t('settings:desc.search', { defaultValue: '全局搜索' }),
+          },
+          {
+            label: t('settings:items.ocr', { defaultValue: 'OCR' }),
+            icon: Scan,
+            path: '/ocr',
+            desc: t('settings:desc.ocr', { defaultValue: 'Manage OCR models and preferences' }),
+          },
+          {
+            label: t('settings:items.help_docs'),
+            icon: BookOpen,
+            path: '/help',
+            desc: t('settings:desc.help_docs'),
+          },
+          {
+            label: t('settings:items.debug_log'),
+            icon: Bug,
+            path: '/debug-log',
+            desc: t('settings:desc.debug_log'),
+          },
+          {
+            label: t('settings:items.about'),
+            icon: Info,
+            path: '/about',
+            desc: t('settings:desc.about'),
+          },
+        ],
+      },
+    ],
+    [t, vaultSize],
+  );
 
   return (
     <PageShell title={t('settings:title')} onBack={() => navigate('/')}>
-      <PageContainer variant="small" gap="large">
+      <PageContainer
+        variant="small"
+        gap="large"
+        className={isAndroid ? 'android-settings' : undefined}
+      >
+        {isAndroid && (
+          <button
+            type="button"
+            className="android-account-card"
+            onClick={() => navigate('/settings/account')}
+          >
+            <span className="android-row-icon">
+              <User size={24} />
+            </span>
+            <span className="android-row-copy">
+              <strong>{accountName}</strong>
+              <small>{t('common:material.local_vault')}</small>
+            </span>
+            <span>›</span>
+          </button>
+        )}
         {settingGroups.map((group) => (
           <div key={group.title} className={styles.settingGroup}>
             <h3 className={styles.groupTitle}>{group.title}</h3>
-            <div className={styles.items}>
+            <div className={`${styles.items} ${isAndroid ? 'android-settings-group' : ''}`}>
               {group.items.map((item) => (
                 <Card
                   key={item.label}

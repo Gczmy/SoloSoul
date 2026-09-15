@@ -56,6 +56,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <div className={styles.inputWrap}>
           {prefixIcon && <span className={styles.prefixIcon}>{prefixIcon}</span>}
           <input
+            data-ui-input
             ref={ref}
             className={[
               styles.input,

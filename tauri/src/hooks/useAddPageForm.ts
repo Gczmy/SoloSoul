@@ -14,9 +14,16 @@ export interface UseAddPageFormOptions {
   onCreate: (page: CustomPage) => void;
   t: TFunction;
   onError: (err: unknown, context: string) => void;
+  /** 提交后仍展示表单的弹层保留草稿，失败可直接重试。 */
+  keepValuesOnSubmit?: boolean;
 }
 
-export function useAddPageForm({ onCreate, t, onError }: UseAddPageFormOptions) {
+export function useAddPageForm({
+  onCreate,
+  t,
+  onError,
+  keepValuesOnSubmit = false,
+}: UseAddPageFormOptions) {
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const addCustomPage = useSettingsStore((s) => s.addCustomPage);
 
@@ -67,10 +74,21 @@ export function useAddPageForm({ onCreate, t, onError }: UseAddPageFormOptions) 
         .catch((err) => {
           onError(err, t('navigation:add_page_failed', { defaultValue: '创建页面失败' }));
         });
-      handleCancel();
+      if (!keepValuesOnSubmit) handleCancel();
       return true;
     },
-    [name, description, selectedIconId, currentAccount, addCustomPage, onCreate, onError, t, handleCancel],
+    [
+      name,
+      description,
+      selectedIconId,
+      currentAccount,
+      addCustomPage,
+      onCreate,
+      onError,
+      t,
+      handleCancel,
+      keepValuesOnSubmit,
+    ],
   );
 
   return {

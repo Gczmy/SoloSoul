@@ -6,6 +6,7 @@ import { Navigate } from 'react-router-dom';
 // 首个被访问页面的 chunk 在点击时刻尚未编译完 → 骨架 ~330ms，WebKit 实测）。
 // 静态导入后所有页面模块随首包加载，切页零等待；代价是首包体积回退（本地资源无感知）。
 import { HomePage } from '@/pages/home/HomePage';
+import { ToolsPage } from '@/pages/home/ToolsPage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { SecuritySettingsPage } from '@/pages/settings/SecuritySettingsPage';
 import { AccountSettingsPage } from '@/pages/settings/AccountSettingsPage';
@@ -52,6 +53,7 @@ export interface RouteConfig {
 export const protectedRoutes: RouteConfig[] = [
   // 首页统一使用 /；跳到未注册的 /home 会命中壳外兜底重定向，卸载整壳并闪屏。
   { path: '/', element: <HomePage /> },
+  { path: '/tools', element: <ToolsPage /> },
   { path: '/search', element: <SearchPage /> },
   { path: '/settings', element: <SettingsPage /> },
   { path: '/settings/appearance', element: <AppearanceSettingsPage /> },

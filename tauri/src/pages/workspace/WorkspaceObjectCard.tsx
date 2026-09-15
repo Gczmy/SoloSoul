@@ -17,6 +17,8 @@ import { ICON_SIZE } from '@/lib/constants';
 import { objectRulerAnchorId } from '@/components/workspace/objectRuler';
 import { flattenPropertyEntries, type FlattenedPropertyEntry } from '@/lib/propertyFlatten';
 import styles from './WorkspaceObjectCard.module.css';
+import { isAndroidSync } from '@/lib/platform';
+import { AndroidObjectRow } from '@/components/android/AndroidObjectRow';
 
 /**
  * P024: 收敛至共享核心 flattenPropertyEntries（展平模式 + 过滤 `__` 字段）。
@@ -134,6 +136,25 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   const { ref: dragRef, dragState } = useDragToAttach(obj.id, {
     onComplete: onUploadComplete,
   });
+
+  if (isAndroidSync())
+    return (
+      <AndroidObjectRow
+        obj={obj}
+        Icon={TemplateIcon}
+        collectionLabel={collectionLabel}
+        snapshotCount={snapshotCount}
+        attachmentCount={attachmentCount}
+        needsSync={needsSync}
+        onClick={() => onClick(obj)}
+        onHistory={() => onHistory(obj)}
+        onAttachments={() => onAttachments(obj)}
+        onEdit={() => onEdit(obj)}
+        onDelete={() => onDelete(obj)}
+        onSync={onSync ? () => onSync(obj) : undefined}
+        onDismissSync={onDismissSync ? () => onDismissSync(obj) : undefined}
+      />
+    );
 
   return (
     <div

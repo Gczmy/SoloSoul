@@ -8,6 +8,8 @@ import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { logger } from './logger';
 import { withTimeout } from './withTimeout';
 import { syncNativeAppearance } from './nativeWindow';
+import { isAndroidSync } from './platform';
+import { applyAndroidMaterial } from './androidMaterial';
 
 const ACCENT_COLORS: Record<AccentPreset, string> = {
   ocean: '#5B7C99',
@@ -135,6 +137,7 @@ export async function applyTheme(config: ThemeConfig) {
     config.resolvedSystemTheme,
   );
   applyScheme(activeScheme);
+  if (isAndroidSync()) applyAndroidMaterial(config.accentColor as AccentPreset);
 
   // Sync native title bar background with the active theme (desktop only)
   void syncTitleBarColor(config);

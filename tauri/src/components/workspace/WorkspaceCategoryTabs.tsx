@@ -3,6 +3,8 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import type { CustomPage } from '@/stores/settingsStore';
+import { Check, Layers } from 'lucide-react';
+import { isAndroidSync } from '@/lib/platform';
 
 const CATEGORY_TYPES = ['identity', 'travel', 'financial', 'professional', 'document'] as const;
 const CATEGORY_ICONS: Record<string, typeof PAGE_ICON_MAP.profile> = {
@@ -30,6 +32,48 @@ export function WorkspaceCategoryTabs({
 }: WorkspaceCategoryTabsProps) {
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'navigation', 'editor']);
+
+  if (isAndroidSync()) {
+    const chips = [
+      {
+        id: 'all',
+        name: t('material.all'),
+        path: '/workspace',
+        active: !sectionFilter && !pageId,
+        Icon: Layers,
+      },
+      ...CATEGORY_TYPES.map((type) => ({
+        id: type,
+        name: t(`navigation:${type}`),
+        path: `/workspace?section=${type}`,
+        active: !pageId && sectionFilter === type,
+        Icon: CATEGORY_ICONS[type],
+      })),
+      ...activeCustomPages.map((page) => ({
+        id: page.id,
+        name: page.name,
+        path: `/workspace/custom/${page.id}`,
+        active: pageId === page.id,
+        Icon: resolveCustomIcon(page.iconId),
+      })),
+    ];
+    return (
+      <div className="android-chips" aria-label={t('material.categories')}>
+        {chips.map(({ id, name, path, active, Icon }) => (
+          <button
+            type="button"
+            key={id}
+            className="android-chip"
+            aria-pressed={active}
+            onClick={() => navigate(path)}
+          >
+            {active ? <Check size={18} /> : <Icon size={18} />}
+            {name}
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   const tabStyle = (isActive: boolean): React.CSSProperties => ({
     padding: '6px 14px',

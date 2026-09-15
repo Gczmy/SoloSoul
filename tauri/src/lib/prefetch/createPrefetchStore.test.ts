@@ -16,6 +16,36 @@ function makeStore<T>(
 }
 
 describe('createPrefetchStore', () => {
+  it('锁定后的迟到响应不得恢复解密缓存，也不能抢占新会话请求', async () => {
+    let finishOld!: (value: string) => void;
+    let finishNew!: (value: string) => void;
+    const loader = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise<string>((resolve) => {
+            finishOld = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise<string>((resolve) => {
+            finishNew = resolve;
+          }),
+      );
+    const store = makeStore(loader);
+    const oldRequest = store.load();
+    store.reset();
+    const newRequest = store.load();
+    finishOld('old account secret');
+    expect(await oldRequest).toBeNull();
+    expect(store.getSnapshot().data).toBeNull();
+    expect(store.getSnapshot().loading).toBe(true);
+    expect(store.load()).toBe(newRequest);
+    finishNew('new account');
+    await newRequest;
+    expect(store.getSnapshot().data).toBe('new account');
+  });
   beforeEach(() => {
     vi.useFakeTimers();
   });

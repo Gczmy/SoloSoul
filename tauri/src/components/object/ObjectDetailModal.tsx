@@ -95,6 +95,9 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
             onClick={(e) => e.stopPropagation()}
             className={styles.modal}
             data-testid="object-detail-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={obj.name}
           >
             <>
               {/* Header */}

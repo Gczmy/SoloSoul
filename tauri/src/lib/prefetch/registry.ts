@@ -7,7 +7,8 @@
  */
 import { createPrefetchStore } from './createPrefetchStore';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { isMobilePlatformSync } from '@/lib/platform';
+import { isMobilePlatformSync, isAndroidSync } from '@/lib/platform';
+import type { ObjectSummary } from '@/stores/objectStore';
 import { useAuthStore } from '@/stores/authStore';
 import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
 import type { VaultStats } from '@/pages/settings/StorageBreakdownCard';
@@ -39,6 +40,31 @@ async function loadOcrModelState(): Promise<OcrModelState> {
 }
 
 export const prefetchRegistry = {
+  /** 安卓首页只缓存名称/分类/更新时间；字段内容继续由详情安全组件负责。 */
+  androidOverview: createPrefetchStore<AndroidOverview>({
+    key: 'android-overview',
+    loader: async () => {
+      const accountId = useAuthStore.getState().currentAccount?.id;
+      if (!accountId || !useAuthStore.getState().isAuthenticated) throw new Error('Vault locked');
+      const objects = await invoke<ObjectSummary[]>('object_list', { accountId });
+      const visible = objects.filter(
+        (obj) => !obj.isDeleted && obj.typeId !== 'page' && obj.typeId !== 'unknown',
+      );
+      const counts: Record<string, number> = {};
+      for (const obj of visible) counts[obj.typeId] = (counts[obj.typeId] ?? 0) + 1;
+      return {
+        count: visible.length,
+        counts,
+        recent: visible
+          .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+          .slice(0, 5)
+          .map(({ id, name, typeId, updatedAt }) => ({ id, name, typeId, updatedAt })),
+      };
+    },
+    ttlMs: 0,
+    warmupPolicy: 'afterAuth',
+    enabledOnPlatform: isAndroidSync,
+  }),
   /** OCR 模型状态：移动端用系统 ML Kit 不渲染模型卡片，跳过预热。 */
   ocrModel: createPrefetchStore<OcrModelState>({
     key: 'ocr-model',
@@ -103,6 +129,12 @@ export const prefetchRegistry = {
     warmupPolicy: 'afterAuth',
   }),
 };
+
+export interface AndroidOverview {
+  count: number;
+  counts: Record<string, number>;
+  recent: Pick<ObjectSummary, 'id' | 'name' | 'typeId' | 'updatedAt'>[];
+}
 
 /** LLM provider 精简信息（与 useLlmChatCore 消费字段一致）。 */
 export interface LlmProviderInfo {

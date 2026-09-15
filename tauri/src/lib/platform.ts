@@ -21,6 +21,11 @@ export function isMobilePlatformSync(): boolean {
   return cachedPlatform === 'android' || cachedPlatform === 'ios';
 }
 
+/** 安卓外观按运行平台启用，窄桌面窗口仍保留桌面设计。 */
+export function isAndroidSync(): boolean {
+  return cachedPlatform === 'android';
+}
+
 /**
  * P133: 同步判断是否为 macOS（基于缓存）。
  * 若缓存未命中则返回 false（非 macOS 默认行为），建议在应用初始化时调用一次 getPlatform()。
@@ -47,7 +52,7 @@ export function isWindowsSync(): boolean {
  * 在应用初始化时预加载平台信息。
  */
 export async function initPlatform(): Promise<void> {
-  await getPlatform();
+  document.documentElement.dataset.platform = await getPlatform();
 }
 
 /**

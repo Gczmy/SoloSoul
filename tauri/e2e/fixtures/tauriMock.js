@@ -94,6 +94,7 @@
     // Default mocks to let the app boot and login.
     switch (cmd) {
       case 'ui_get_preferences':
+        if (userMocks()[cmd]) return userMocks()[cmd](args);
         return { hasSeenOnboarding: true, theme: 'system', accentColor: 'ocean' };
       case 'list_accounts':
       case 'vault_list_accounts':
@@ -140,6 +141,7 @@
       case 'check_for_update':
         return null;
       case 'user_data_get_preferences':
+        if (userMocks()[cmd]) return userMocks()[cmd](args);
         return {
           theme: 'system',
           accentColor: 'ocean',
@@ -182,7 +184,7 @@
         return undefined;
       case 'ui_update_preference':
       case 'user_data_update_preference':
-        return undefined;
+        return userMocks()[cmd] ? userMocks()[cmd](args) : undefined;
       case 'plugin_list_all':
         return userMocks()[cmd] ? userMocks()[cmd](args) : [];
       case 'plugin_list_installed':

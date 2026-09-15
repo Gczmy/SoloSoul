@@ -50,6 +50,8 @@ export function createPrefetchStore<T>(options: PrefetchStoreOptions<T>): Prefet
   let error: string | null = null;
   let lastLoadedAt: number | null = null;
   let pending: Promise<T | null> | null = null;
+  // 锁定/重载后，先前请求不得把解密数据重新写回缓存。
+  let generation = 0;
   const listeners = new Set<() => void>();
   let snapshot: PrefetchSnapshot<T> = {
     data: null,
@@ -68,20 +70,25 @@ export function createPrefetchStore<T>(options: PrefetchStoreOptions<T>): Prefet
   }
 
   async function runLoader(): Promise<T | null> {
+    const requestGeneration = ++generation;
     loading = true;
     error = null;
     emit();
     try {
       const result = await loader();
+      if (requestGeneration !== generation) return null;
       data = result;
       lastLoadedAt = Date.now();
       return result;
     } catch (e) {
+      if (requestGeneration !== generation) return null;
       error = e instanceof Error ? e.message : String(e);
       return null;
     } finally {
-      loading = false;
-      emit();
+      if (requestGeneration === generation) {
+        loading = false;
+        emit();
+      }
     }
   }
 
@@ -92,9 +99,10 @@ export function createPrefetchStore<T>(options: PrefetchStoreOptions<T>): Prefet
       const force = opts?.force ?? false;
       if (!force && pending) return pending;
       if (!force && isFresh() && data !== null) return Promise.resolve(data);
-      pending = runLoader().finally(() => {
-        pending = null;
+      const request = runLoader().finally(() => {
+        if (pending === request) pending = null;
       });
+      pending = request;
       return pending;
     },
     invalidate: () => {
@@ -107,6 +115,7 @@ export function createPrefetchStore<T>(options: PrefetchStoreOptions<T>): Prefet
       void store.load().catch(() => {});
     },
     reset: () => {
+      generation += 1;
       data = null;
       loading = false;
       error = null;

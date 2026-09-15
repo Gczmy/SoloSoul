@@ -13,7 +13,8 @@ import { useTranslation } from 'react-i18next';
 import { ThemeSchemePanel } from '@/components/settings/ThemeSchemePanel';
 import type { AccentPreset } from '@/types';
 import type { SupportedLang } from '@/lib/i18n';
-import { isMobilePlatformSync } from '@/lib/platform';
+import { isMobilePlatformSync, isAndroidSync } from '@/lib/platform';
+import { AndroidAppearance } from '@/components/android/AndroidAppearance';
 import { Palette, PanelTop, PanelBottom, PanelLeft, PanelRight } from 'lucide-react';
 import type { ThemeScheme } from '@/lib/themeSchemes';
 import type { AppSettings } from '@/stores/settingsStore';
@@ -124,6 +125,8 @@ export function AppearanceSettingsPage() {
     const key = scheme.mode === 'light' ? 'defaultLightTheme' : 'defaultDarkTheme';
     updateSetting(accountId, key, scheme.id);
   };
+
+  if (isAndroidSync()) return <AndroidAppearance />;
 
   return (
     <PageShell title={t('settings:items.theme_appearance')} onBack={() => navigate('/settings')}>

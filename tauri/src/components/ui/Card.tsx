@@ -35,6 +35,7 @@ export const Card = memo(
     return (
       <div
         ref={ref}
+        data-ui-card
         className={`${styles.card} ${interactive ? styles.interactive : ''} ${className || ''}`}
         onClick={onClick}
         onDoubleClick={onDoubleClick}

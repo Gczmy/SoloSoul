@@ -5,6 +5,7 @@ import './styles/tokens.css';
 import './styles/global.css';
 import './styles/themes.css';
 import './styles/animations.css';
+import './styles/android.css';
 import { initI18n } from './lib/i18n';
 import { initPlatform } from '@/lib/platform';
 import { preloadCameraCapability } from '@/lib/cameraCapability';
@@ -24,6 +25,9 @@ export async function mountApplication(): Promise<void> {
   await initI18n();
   await initPlatform().catch((err) => logger.warn('[main] Platform init failed:', err));
   await useSettingsStore.getState().loadUiPreferences();
+  document.documentElement.dataset.userReduceMotion = String(
+    useSettingsStore.getState().settings.reduceMotion,
+  );
   if (window.__SOLOSOUL_STARTUP__?.active() === false) return;
   window.__SOLOSOUL_STARTUP__?.phase('accounts');
   performance.mark('solosoul:react-mount');

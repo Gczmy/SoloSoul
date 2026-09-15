@@ -41,6 +41,7 @@ describe('settingsStore', () => {
         theme: 'system',
         accentColor: 'ocean',
         customAccentHex: '',
+        reduceMotion: false,
         backgroundType: 'solid',
         backgroundValue: '',
         language: 'en-US',

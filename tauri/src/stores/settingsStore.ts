@@ -27,6 +27,8 @@ export interface AppSettings {
   theme: 'light' | 'dark' | 'system';
   accentColor: 'ocean' | 'amber' | 'forest' | 'rose' | 'purple' | 'custom';
   customAccentHex: string;
+  /** 安卓动效偏好，系统减少动态效果仍优先生效。 */
+  reduceMotion: boolean;
   backgroundType: 'solid' | 'gradient' | 'image';
   backgroundValue: string;
   language: string;
@@ -81,6 +83,7 @@ const uiPrefsSchema = z.object({
   accentColor: z.enum(['ocean', 'amber', 'forest', 'rose', 'purple', 'custom']).optional(),
   defaultLightTheme: z.string().optional(),
   defaultDarkTheme: z.string().optional(),
+  reduceMotion: z.boolean().optional(),
 });
 
 const customPageSchema = z.object({
@@ -99,6 +102,7 @@ const accountPrefsSchema = z
     accentColor: z.enum(['ocean', 'amber', 'forest', 'rose', 'purple', 'custom']).optional(),
     defaultLightTheme: z.string().optional(),
     defaultDarkTheme: z.string().optional(),
+    reduceMotion: z.boolean().optional(),
     customAccentHex: z.string().optional(),
     backgroundType: z.enum(['solid', 'gradient', 'image']).optional(),
     backgroundValue: z.string().optional(),
@@ -123,6 +127,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
   accentColor: 'ocean',
   customAccentHex: '',
+  reduceMotion: false,
   backgroundType: 'solid',
   backgroundValue: '',
   language: detectSystemLanguage(),
@@ -184,6 +189,7 @@ const PLAINTEXT_PREF_KEYS = new Set<string>([
   'language',
   'defaultLightTheme',
   'defaultDarkTheme',
+  'reduceMotion',
 ]);
 
 /** ② localStorage ST_UI_PREFS 缓存副本涉及的键（无 language——schema 不含）。 */
@@ -192,6 +198,7 @@ const CACHE_PREF_KEYS = new Set<string>([
   'accentColor',
   'defaultLightTheme',
   'defaultDarkTheme',
+  'reduceMotion',
 ]);
 
 /**
@@ -213,6 +220,7 @@ function writeUiPrefsCache(settings: AppSettings): void {
       JSON.stringify({
         theme: settings.theme,
         accentColor: settings.accentColor,
+        reduceMotion: settings.reduceMotion,
         defaultLightTheme: settings.defaultLightTheme,
         defaultDarkTheme: settings.defaultDarkTheme,
         startupThemes: {
@@ -256,6 +264,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         if (parsed.success) {
           const cached = parsed.data;
           const p = { ...get().settings };
+          if (typeof cached.reduceMotion === 'boolean') p.reduceMotion = cached.reduceMotion;
           if (cached.theme) p.theme = cached.theme;
           if (cached.accentColor) p.accentColor = cached.accentColor;
           if (cached.defaultLightTheme) p.defaultLightTheme = cached.defaultLightTheme;
@@ -285,6 +294,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       const prefs = await withTimeout(
         invoke<{
           theme?: string;
+          reduceMotion?: boolean;
           accentColor?: string;
           language?: string;
           defaultLightTheme?: string;
@@ -293,6 +303,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         1200,
       );
       const parsed = { ...get().settings };
+      if (typeof prefs.reduceMotion === 'boolean') parsed.reduceMotion = prefs.reduceMotion;
       if (prefs.theme) parsed.theme = prefs.theme as AppSettings['theme'];
       if (prefs.accentColor) parsed.accentColor = prefs.accentColor as AppSettings['accentColor'];
       if (prefs.language) parsed.language = prefs.language;
@@ -338,6 +349,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         ...get().settings,
         sidebarButtonModes: { ...get().settings.sidebarButtonModes },
       };
+      if (typeof prefs.reduceMotion === 'boolean') parsed.reduceMotion = prefs.reduceMotion;
       if (prefs.theme) parsed.theme = prefs.theme;
       if (prefs.accentColor) parsed.accentColor = prefs.accentColor;
       if (prefs.defaultLightTheme) parsed.defaultLightTheme = prefs.defaultLightTheme;
@@ -577,6 +589,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         theme: state.settings.theme,
         accentColor: state.settings.accentColor,
         customAccentHex: state.settings.customAccentHex,
+        reduceMotion: state.settings.reduceMotion,
         backgroundType: state.settings.backgroundType,
         backgroundValue: state.settings.backgroundValue,
         language: state.settings.language,

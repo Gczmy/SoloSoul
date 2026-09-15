@@ -15,6 +15,35 @@ import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import { prefetchRegistry } from './registry';
 
+describe('安卓首页概览', () => {
+  it('排除页面/已删除对象，缓存只保留摘要而不包含字段内容', async () => {
+    vi.mocked(useAuthStore).getState.mockReturnValue({
+      currentAccount: { id: 'acc-1' },
+      isAuthenticated: true,
+    } as never);
+    const object = {
+      id: 'a',
+      name: 'Name',
+      typeId: 'identity',
+      updatedAt: '2026-09-15',
+      properties: { secret: 'PRIVATE' },
+    };
+    vi.mocked(invoke).mockResolvedValue([
+      object,
+      { ...object, id: 'b', typeId: 'page' },
+      { ...object, id: 'c', isDeleted: true },
+    ]);
+    prefetchRegistry.androidOverview.reset();
+    const result = await prefetchRegistry.androidOverview.load();
+    expect(result?.count).toBe(1);
+    expect(result?.counts.identity).toBe(1);
+    expect(result?.recent).toEqual([
+      { id: 'a', name: 'Name', typeId: 'identity', updatedAt: '2026-09-15' },
+    ]);
+    expect(JSON.stringify(result)).not.toContain('PRIVATE');
+  });
+});
+
 describe('prefetchRegistry.exportScope（导入导出页导出范围树）', () => {
   beforeEach(() => {
     vi.mocked(invoke).mockReset();

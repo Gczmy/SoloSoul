@@ -1,3 +1,5 @@
+import { AndroidHome } from '@/components/android/AndroidHome';
+import { isAndroidSync } from '@/lib/platform';
 import React, { Fragment, useCallback, useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -370,94 +372,109 @@ export function HomePage() {
         />
       }
     >
-      <PageContainer variant="wide" gap="section">
-        <Card>
-          <h2 style={{ fontSize: 'var(--text-page-title)', fontWeight: 600, marginBottom: 4 }}>
-            {accountName
-              ? t('common:welcome_back_name', { name: accountName })
-              : t('common:welcome_back')}
-          </h2>
-          <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)' }}>
-            {t('common:vault_description')}
-          </p>
-        </Card>
-
-        <h2
-          style={{
-            fontSize: 'var(--text-section-title)',
-            fontWeight: 600,
-            marginBottom: -8,
-            color: 'var(--text-primary)',
-          }}
-        >
-          {t('common:data_sections')}
-        </h2>
-
-        {/* Profile Sections + Custom Pages */}
-        <CardGrid>
-          {sections.map((s) => (
-            <HomeCard
-              key={s.type}
-              icon={s.icon}
-              title={t(`navigation:${s.labelKey}`)}
-              desc={t(`common:${s.descKey}`)}
-              onClick={() => navigate(`/workspace?section=${s.type}`)}
-            />
-          ))}
-          {activeCustomPages.map((page) => (
-            <EditableCustomPageCard key={page.id} page={page} onStartEdit={handleStartEdit} />
-          ))}
+      {isAndroidSync() ? (
+        <>
+          <AndroidHome onEditPage={handleStartEdit} onPhotos={() => void handleOpenPhotoAlbum()} />
           {editingPage && (
             <CustomPageEditPopover
               page={editingPage}
-              isOpen={!!editingPage}
+              isOpen
               onClose={handleCloseEdit}
               triggerRect={editingCardRect}
               position="bottom"
             />
           )}
-        </CardGrid>
+        </>
+      ) : (
+        <PageContainer variant="wide" gap="section">
+          <Card>
+            <h2 style={{ fontSize: 'var(--text-page-title)', fontWeight: 600, marginBottom: 4 }}>
+              {accountName
+                ? t('common:welcome_back_name', { name: accountName })
+                : t('common:welcome_back')}
+            </h2>
+            <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)' }}>
+              {t('common:vault_description')}
+            </p>
+          </Card>
 
-        <h2
-          style={{
-            fontSize: 'var(--text-section-title)',
-            fontWeight: 600,
-            marginBottom: -8,
-            color: 'var(--text-primary)',
-          }}
-        >
-          {t('common:quick_access')}
-        </h2>
+          <h2
+            style={{
+              fontSize: 'var(--text-section-title)',
+              fontWeight: 600,
+              marginBottom: -8,
+              color: 'var(--text-primary)',
+            }}
+          >
+            {t('common:data_sections')}
+          </h2>
 
-        {/* Quick Access Cards */}
-        <CardGrid>
-          {quickCards.map((q) => (
-            <Fragment key={q.path}>
+          {/* Profile Sections + Custom Pages */}
+          <CardGrid>
+            {sections.map((s) => (
               <HomeCard
-                icon={q.icon}
-                title={t(`navigation:${q.labelKey}`)}
-                desc={t(`common:${q.descKey}`)}
-                badge={
-                  q.path === '/settings/attachments' ? (attachmentCount ?? undefined) : undefined
-                }
-                onClick={() => navigate(q.path, { state: { fromHome: true } })}
+                key={s.type}
+                icon={s.icon}
+                title={t(`navigation:${s.labelKey}`)}
+                desc={t(`common:${s.descKey}`)}
+                onClick={() => navigate(`/workspace?section=${s.type}`)}
               />
-              {/* 照片集快捷入口：紧跟附件管理卡片，点击直接进入全 Vault 照片集 */}
-              {q.path === '/settings/attachments' && (
+            ))}
+            {activeCustomPages.map((page) => (
+              <EditableCustomPageCard key={page.id} page={page} onStartEdit={handleStartEdit} />
+            ))}
+            {editingPage && (
+              <CustomPageEditPopover
+                page={editingPage}
+                isOpen={!!editingPage}
+                onClose={handleCloseEdit}
+                triggerRect={editingCardRect}
+                position="bottom"
+              />
+            )}
+          </CardGrid>
+
+          <h2
+            style={{
+              fontSize: 'var(--text-section-title)',
+              fontWeight: 600,
+              marginBottom: -8,
+              color: 'var(--text-primary)',
+            }}
+          >
+            {t('common:quick_access')}
+          </h2>
+
+          {/* Quick Access Cards */}
+          <CardGrid>
+            {quickCards.map((q) => (
+              <Fragment key={q.path}>
                 <HomeCard
-                  icon={Images}
-                  title={t('navigation:photo_album', { defaultValue: 'Photo Album' })}
-                  desc={t('common:photo_album_desc', {
-                    defaultValue: 'Browse photos across all objects',
-                  })}
-                  badge={photoCount ?? undefined}
-                  onClick={() => void handleOpenPhotoAlbum()}
+                  icon={q.icon}
+                  title={t(`navigation:${q.labelKey}`)}
+                  desc={t(`common:${q.descKey}`)}
+                  badge={
+                    q.path === '/settings/attachments' ? (attachmentCount ?? undefined) : undefined
+                  }
+                  onClick={() => navigate(q.path, { state: { fromHome: true } })}
                 />
-              )}
-            </Fragment>
-          ))}
-        </CardGrid>
-      </PageContainer>
+                {/* 照片集快捷入口：紧跟附件管理卡片，点击直接进入全 Vault 照片集 */}
+                {q.path === '/settings/attachments' && (
+                  <HomeCard
+                    icon={Images}
+                    title={t('navigation:photo_album', { defaultValue: 'Photo Album' })}
+                    desc={t('common:photo_album_desc', {
+                      defaultValue: 'Browse photos across all objects',
+                    })}
+                    badge={photoCount ?? undefined}
+                    onClick={() => void handleOpenPhotoAlbum()}
+                  />
+                )}
+              </Fragment>
+            ))}
+          </CardGrid>
+        </PageContainer>
+      )}
 
       {/* 照片集全屏相册（首页快捷入口，覆盖整个视口） */}
       {albumItems && (

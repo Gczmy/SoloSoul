@@ -16,6 +16,10 @@
   backdrop-filter: blur(4px);
 }
 
+:global([data-platform='android']) .overlay { backdrop-filter: none; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+:global([data-platform='android']) .modal { border: 0; border-radius: 28px; padding: 24px; background: var(--bg-elevated); max-height: calc(100dvh - 48px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
+:global([data-platform='android']) .fieldRow { border: 0; border-radius: 16px; background: var(--bg-base); padding: 16px; }
+
 .modal {
   background: var(--bg-elevated);
 

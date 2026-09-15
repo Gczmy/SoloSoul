@@ -13,6 +13,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
+        data-ui-button={variant}
         className={`${styles.button} ${variantClass} ${styles[size]} ${className || ''}`}
         disabled={disabled || loading}
         {...props}

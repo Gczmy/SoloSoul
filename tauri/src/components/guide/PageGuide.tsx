@@ -272,8 +272,8 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
           fontSize: 'var(--button-font-size, var(--text-badge))',
           fontWeight: 500,
           transition: 'background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease',
-          minWidth: 32,
-          minHeight: 'var(--button-min-height, 32px)',
+          minWidth: 'var(--guide-target-size, 32px)',
+          minHeight: 'var(--guide-target-size, var(--button-min-height, 32px))',
         }}
       >
         <CircleHelp size={ICON_SIZE.sm} />

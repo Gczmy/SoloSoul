@@ -6,6 +6,8 @@ import { ICON_SIZE } from '@/lib/constants';
 import { useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { observeTitlebarControls } from '@/lib/nativeTitlebarControls';
+import { isAndroidSync } from '@/lib/platform';
+import { AndroidAppBar } from '@/components/android/AndroidAppBar';
 
 interface AppBarProps {
   title: string;
@@ -33,6 +35,16 @@ export function AppBar({
   }, [isMacOS]);
   // 右侧或横向导航时，正文左上控件仍需横向避让交通灯。
   const contentLeft = sidebarPosition === 'left' ? 'var(--sidebar-width, 48px)' : '0px';
+
+  if (isAndroidSync())
+    return (
+      <AndroidAppBar
+        title={title}
+        actions={actions}
+        primaryActions={primaryActions}
+        onBack={onBack}
+      />
+    );
 
   return (
     <header

@@ -145,7 +145,10 @@ export function AppRoutes() {
   // Prefetch Runtime: 登录/解锁完成后后台预热页面数据（OCR 模型等），
   // 用户在解锁期间完成加载，进入页面直接渲染（无骨架期）
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      resetPrefetchRegistry();
+      return;
+    }
     warmupPrefetchRegistry('afterAuth');
   }, [isAuthenticated]);
 

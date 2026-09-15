@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -25,6 +25,7 @@ import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { useWorkspaceGuidePages } from './workspaceGuidePages';
 import { ICON_SIZE } from '@/lib/constants';
 import styles from './ObjectWorkspacePage.module.css';
+import { isAndroidSync } from '@/lib/platform';
 
 /**
  * 对象工作区页：
@@ -40,6 +41,17 @@ export function ObjectWorkspacePage() {
   const detailObjectId = searchParams.get('objectId');
 
   const ws = useObjectWorkspaceData({ pageId, sectionFilter, detailObjectId });
+  const isAndroid = isAndroidSync();
+  const [sort, setSort] = useState('updated');
+  const displayedObjects = useMemo(
+    () =>
+      !isAndroid
+        ? ws.visibleObjects
+        : [...ws.visibleObjects].sort((a, b) =>
+            sort === 'name' ? a.name.localeCompare(b.name) : b.updatedAt.localeCompare(a.updatedAt),
+          ),
+    [ws.visibleObjects, isAndroid, sort],
+  );
   const guidePages = useWorkspaceGuidePages();
   const { t } = ws;
   // 本地别名：属性访问无法在 JSX 守卫中做类型收窄，解构后可对 nullable 值正常 narrow。
@@ -124,12 +136,14 @@ export function ObjectWorkspacePage() {
       title={ws.customPage?.name || ws.activeCategoryLabel || t('objects')}
       onBack={() => navigate('/')}
       primaryActions={
-        <button
-          className={`${buttonStyles.hideLabelOnMobile} ${styles.createBtn}`}
-          onClick={() => navigate(ws.newObjectUrl)}
-        >
-          + <span className={buttonStyles.label}>{t('create')}</span>
-        </button>
+        !isAndroid && (
+          <button
+            className={`${buttonStyles.hideLabelOnMobile} ${styles.createBtn}`}
+            onClick={() => navigate(ws.newObjectUrl)}
+          >
+            + <span className={buttonStyles.label}>{t('create')}</span>
+          </button>
+        )
       }
       actions={
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -150,7 +164,11 @@ export function ObjectWorkspacePage() {
         </div>
       }
     >
-      <PageContainer variant="medium" gap="default">
+      <PageContainer
+        variant="medium"
+        gap="default"
+        className={isAndroid ? 'android-workspace' : undefined}
+      >
         <div
           className={styles.controls}
           onMouseDown={(e) => {
@@ -166,12 +184,26 @@ export function ObjectWorkspacePage() {
           />
 
           <Input
+            aria-label={t('search_objects_placeholder')}
             placeholder={t('search_objects_placeholder')}
             value={ws.searchQuery}
             onChange={(e) => ws.setSearchQuery(e.target.value)}
             onClear={() => ws.setSearchQuery('')}
             prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
           />
+          {isAndroid && (
+            <div className="android-workspace-toolbar">
+              <span>{t('material.category_count', { count: ws.visibleObjects.length })}</span>
+              <select
+                aria-label={t('material.sort')}
+                value={sort}
+                onChange={(event) => setSort(event.target.value)}
+              >
+                <option value="updated">{t('material.sort_updated')}</option>
+                <option value="name">{t('material.sort_name')}</option>
+              </select>
+            </div>
+          )}
 
           {ws.isLoading && (
             <Card>
@@ -200,9 +232,14 @@ export function ObjectWorkspacePage() {
           {!ws.isLoading && ws.visibleObjects.length > 0 && (
             <div
               ref={listRef}
-              style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}
+              className={isAndroid ? 'android-group' : undefined}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: isAndroid ? 2 : 'var(--card-gap-sm)',
+              }}
             >
-              {ws.visibleObjects.slice(0, ws.visibleLimit).map((obj) => (
+              {displayedObjects.slice(0, ws.visibleLimit).map((obj) => (
                 <WorkspaceObjectCard
                   key={obj.id}
                   obj={obj}
@@ -304,17 +341,21 @@ export function ObjectWorkspacePage() {
           />
         </div>
       </PageContainer>
-      {!isNarrowViewport && !ws.isLoading && !ws.error && ws.visibleObjects.length > 1 && (
-        <WorkspaceObjectRuler
-          objects={ws.visibleObjects}
-          renderedCount={Math.min(ws.visibleLimit, ws.visibleObjects.length)}
-          listRef={listRef}
-          revealObject={revealRulerObject}
-          userTemplates={ws.userTemplates}
-          resolveCollectionLabel={ws.resolveCollectionLabel}
-          attachmentCounts={ws.attachmentCounts}
-        />
-      )}
+      {!isAndroid &&
+        !isNarrowViewport &&
+        !ws.isLoading &&
+        !ws.error &&
+        ws.visibleObjects.length > 1 && (
+          <WorkspaceObjectRuler
+            objects={ws.visibleObjects}
+            renderedCount={Math.min(ws.visibleLimit, ws.visibleObjects.length)}
+            listRef={listRef}
+            revealObject={revealRulerObject}
+            userTemplates={ws.userTemplates}
+            resolveCollectionLabel={ws.resolveCollectionLabel}
+            attachmentCounts={ws.attachmentCounts}
+          />
+        )}
       {historyObj &&
         (() => {
           const historyObjData = ws.objects.find((o) => o.id === historyObj.id);

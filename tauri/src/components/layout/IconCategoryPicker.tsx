@@ -56,13 +56,14 @@ export function IconCategoryPicker({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(6, 1fr)',
+                gridTemplateColumns: 'var(--icon-picker-columns, repeat(6, 1fr))',
                 gap: 4,
               }}
             >
               {categoryIcons.map(([id, IconComp]) =>
                 variant === 'module' ? (
                   <button
+                    type="button"
                     key={id}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => onSelect(id)}
@@ -84,6 +85,7 @@ export function IconCategoryPicker({
                   </button>
                 ) : (
                   <button
+                    type="button"
                     key={id}
                     onClick={() => onSelect(id)}
                     className={

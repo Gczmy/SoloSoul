@@ -12,7 +12,13 @@ import { login, setupTauriMock } from './fixtures/auth';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript({
-    content: `window.__MOCK_PLATFORM__ = 'android';`,
+    content: `window.__MOCK_PLATFORM__ = 'android';
+      window.__E2E_MOCKS__ = {
+        vault_check_directory: () => true,
+        object_list: () => [{ id: 'mobile-object', name: 'Mobile note', typeId: 'document', sensitivityLevel: 'internal', properties: {}, createdAt: '2026-09-15', updatedAt: '2026-09-15' }],
+        object_get: () => ({ id: 'mobile-object', name: 'Mobile note', typeId: 'document', sensitivityLevel: 'internal', properties: {}, createdAt: '2026-09-15', updatedAt: '2026-09-15' }),
+        attachment_count_stats: () => ({ attachmentCount: 0, photoCount: 0 }),
+      };`,
   });
   await setupTauriMock(page);
 });
@@ -23,7 +29,7 @@ test('mobile smoke: login and render home bottom navigation', async ({ page }) =
   // 首页应渲染
   await expect(page.locator('text=Welcome back')).toBeVisible();
 
-  // 移动端底部导航应存在（依赖 AppShell 在窄视口下渲染 MobileBottomNav）
+  // 移动端底部导航应存在（真实 Android 平台使用四入口导航）
   const bottomNav = page.locator('[data-testid="mobile-bottom-nav"], nav');
   await expect(bottomNav).toBeVisible();
 });
@@ -31,69 +37,62 @@ test('mobile smoke: login and render home bottom navigation', async ({ page }) =
 test('mobile smoke: navigate to settings from home', async ({ page }) => {
   await login(page);
 
-  // 通过底部导航或首页入口进入设置
-  const settingsLink = page.locator('a[href="/settings"], button').filter({ hasText: /settings|设置/i }).first();
-  // 若首页有设置快捷卡片，优先点击
-  const settingsCard = page.locator('text=/settings/i').first();
-  if (await settingsCard.isVisible().catch(() => false)) {
-    await settingsCard.click();
-  } else {
-    await page.goto('/settings');
-  }
-
-  await page.waitForURL('/settings', { timeout: 10000 });
-  await expect(page.locator('text=Settings')).toBeVisible();
+  await page.locator('.android-navigation a[href="/settings"]').click();
+  await expect(page).toHaveURL('/settings');
+  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
 });
 
 test('mobile smoke: bottom nav switches between top-level routes', async ({ page }) => {
   await login(page);
 
-  // 底部导航应至少包含 Home / Search / Settings 入口
-  const homeLink = page.locator('[data-testid="mobile-bottom-nav"] a, nav a').filter({ hasText: /home|首页/i }).first();
-  const searchLink = page.locator('[data-testid="mobile-bottom-nav"] a, nav a').filter({ hasText: /search|搜索/i }).first();
-
-  if (await homeLink.isVisible().catch(() => false)) {
-    await homeLink.click();
-    await expect(page).toHaveURL(/\/(home)?/);
-  }
-
-  if (await searchLink.isVisible().catch(() => false)) {
-    await searchLink.click();
-    await expect(page).toHaveURL(/\/search/);
+  for (const path of ['/workspace', '/tools', '/settings', '/']) {
+    await page.locator(`.android-navigation a[href="${path}"]`).click();
+    await expect(page).toHaveURL(path);
+    await expect(page.locator(`.android-navigation a[href="${path}"]`)).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   }
 });
 
 test('mobile smoke: object detail modal opens and closes', async ({ page }) => {
   await login(page);
 
-  // 等待对象列表渲染（桌面工作区在移动端以卡片网格呈现）
-  await page.waitForSelector('[data-testid="object-card"], [data-testid="workspace-object-card"]', { timeout: 10000 });
-  const firstCard = page.locator('[data-testid="object-card"], [data-testid="workspace-object-card"]').first();
-  await firstCard.click();
+  await page.locator('.android-navigation a[href="/workspace"]').click();
+  // 通过真实对象入口打开详情。
+  await page.waitForSelector('[data-testid="object-card"], [data-testid="workspace-object-card"]', {
+    timeout: 10000,
+  });
+  const firstCard = page
+    .locator('[data-testid="object-card"], [data-testid="workspace-object-card"]')
+    .first();
+  await firstCard.locator('button').first().click();
 
   // 详情弹窗/页面应出现
-  const detail = page.locator('[data-testid="object-detail-modal"], [data-testid="object-detail-page"]');
+  const detail = page.locator(
+    '[data-testid="object-detail-modal"], [data-testid="object-detail-page"]',
+  );
   await expect(detail).toBeVisible({ timeout: 10000 });
 
   // 关闭弹窗
-  const closeBtn = page.locator('[data-testid="object-detail-close"], button[aria-label="Close"]').first();
+  const closeBtn = page
+    .locator('[data-testid="object-detail-close"], button[aria-label="Close"]')
+    .first();
   if (await closeBtn.isVisible().catch(() => false)) {
     await closeBtn.click();
     await expect(detail).not.toBeVisible();
   }
 });
 
-test('mobile smoke: desktop-only route /plugins is guarded on mobile', async ({ page }) => {
+test('mobile smoke: tools keeps the mobile plugin entry reachable', async ({ page }) => {
   await login(page);
-
-  // 直接导航到桌面专属的 /plugins 路由
-  await page.goto('/plugins');
-
-  // DesktopOnlyGuard 应在移动端重定向到首页
-  await expect(page).toHaveURL(/\/(home)?$/);
-
-  // 首页内容应正常渲染
-  await expect(page.locator('text=Welcome back')).toBeVisible();
+  await page.locator('.android-navigation a[href="/tools"]').click();
+  await page
+    .locator('.android-tool')
+    .filter({ hasText: /plugin/i })
+    .click();
+  await expect(page).toHaveURL('/plugins');
+  await expect(page.locator('header[data-appbar] h1')).toContainText(/plugin/i);
 });
 
 test('mobile smoke: touch target sizes are at least 44px', async ({ page }) => {
@@ -144,7 +143,13 @@ test('mobile smoke: touch target sizes are at least 44px', async ({ page }) => {
 
   for (const el of interactiveElements) {
     // 允许 1px 浮点误差
-    expect(el.width, `Element <${el.tag}> width ${el.width}px is below 44px`).toBeGreaterThanOrEqual(43);
-    expect(el.height, `Element <${el.tag}> height ${el.height}px is below 44px`).toBeGreaterThanOrEqual(43);
+    expect(
+      el.width,
+      `Element <${el.tag}> width ${el.width}px is below 44px`,
+    ).toBeGreaterThanOrEqual(43);
+    expect(
+      el.height,
+      `Element <${el.tag}> height ${el.height}px is below 44px`,
+    ).toBeGreaterThanOrEqual(43);
   }
 });

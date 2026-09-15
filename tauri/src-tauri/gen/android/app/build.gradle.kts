@@ -49,11 +49,9 @@ android {
             (System.getenv("GITHUB_RUN_NUMBER") ?: "0").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
 
-        // 只打包 arm64 与 armv7，覆盖绝大多数 Android 真机；
-        // x86/x86_64 仅用于模拟器调试，release universal 包不再携带。
-        ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
-        }
+        // ABI 由上方 universal 限制与 RustPlugin 的单架构 flavor 各自决定。
+        // 不能在 defaultConfig 合并两种 ARM ABI，否则 --split-per-abi 的 ARM64
+        // Debug 包也会混入 jniLibs 目录中遗留的 ARMv7 旧库。
     }
     signingConfigs {
         create("release") {

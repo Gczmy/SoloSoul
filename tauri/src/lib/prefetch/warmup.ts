@@ -77,6 +77,7 @@ const prefetchWarmupTasks: Array<{ phase: WarmupPhase; run: () => Promise<unknow
 
 export function warmupPrefetchRegistry(phase: WarmupPhase): void {
   scheduleIdle(() => {
+    if (phase === 'afterAuth' && !useAuthStore.getState().isAuthenticated) return;
     for (const store of Object.values(prefetchRegistry)) {
       if (store.options.warmupPolicy === 'always' || store.options.warmupPolicy === phase) {
         store.warmup();

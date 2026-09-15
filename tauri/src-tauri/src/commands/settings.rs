@@ -142,6 +142,8 @@ fn maybe_migrate_ui_prefs(
 pub struct UiPreferences {
     pub theme: String,
     pub accent_color: String,
+    #[serde(default)]
+    pub reduce_motion: bool,
     pub language: String,
     #[serde(default)]
     pub has_seen_onboarding: bool,
@@ -159,6 +161,7 @@ impl Default for UiPreferences {
             language: String::new(),
             has_seen_onboarding: false,
             notification_permission_requested: false,
+            reduce_motion: false,
         }
     }
 }
@@ -317,6 +320,7 @@ pub fn write_ui_prefs_sync_pref<R: tauri::Runtime>(
 const ALLOWED_PREF_KEYS: &[&str] = &[
     "theme",
     "accentColor",
+    "reduceMotion",
     "defaultLightTheme",
     "defaultDarkTheme",
     "customAccentHex",
@@ -598,6 +602,7 @@ mod tests {
             language: "zh-CN".to_string(),
             has_seen_onboarding: true,
             notification_permission_requested: false,
+            reduce_motion: true,
         };
         let json = serde_json::to_string(&original).unwrap();
         assert!(json.contains("\"theme\":\"dark\""));
@@ -610,12 +615,14 @@ mod tests {
         assert_eq!(restored.accent_color, original.accent_color);
         assert_eq!(restored.language, original.language);
         assert!(restored.has_seen_onboarding);
+        assert!(restored.reduce_motion);
     }
 
     #[test]
     fn test_ui_preferences_missing_onboarding_defaults_to_false() {
         let json = r#"{"theme":"light","accentColor":"ocean","language":"en-US"}"#;
         let restored: UiPreferences = serde_json::from_str(json).unwrap();
+        assert!(!restored.reduce_motion);
         assert!(!restored.has_seen_onboarding);
     }
 
@@ -770,6 +777,7 @@ mod tests {
             language: "zh-CN".to_string(),
             has_seen_onboarding: true,
             notification_permission_requested: false,
+            reduce_motion: false,
         };
         std::fs::write(&path, serde_json::to_string(&original).unwrap()).unwrap();
 
@@ -793,6 +801,7 @@ mod tests {
             language: "zh-CN".to_string(),
             has_seen_onboarding: false,
             notification_permission_requested: false,
+            reduce_motion: false,
         };
         std::fs::write(&old, serde_json::to_string(&original).unwrap()).unwrap();
 
