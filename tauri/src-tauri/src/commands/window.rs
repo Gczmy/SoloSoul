@@ -31,6 +31,42 @@ pub struct WindowAppearance {
     pub traffic_lights_right: f64,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WindowLayout {
+    pub platform: &'static str,
+    pub titlebar_height: f64,
+    pub traffic_lights_right: f64,
+}
+
+/// 只读窗口几何，避免恢复/缩放时经由主题命令重复进入材质合成路径。
+#[tauri::command]
+pub async fn get_window_layout(window: tauri::WebviewWindow) -> Result<WindowLayout, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let (tx, rx) = tokio::sync::oneshot::channel();
+        window
+            .with_webview(move |native| {
+                let _ = tx.send(macos::layout(native));
+            })
+            .map_err(|e| e.to_string())?;
+        rx.await.map_err(|e| e.to_string())
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = window;
+        Ok(WindowLayout {
+            platform: if cfg!(target_os = "windows") {
+                "windows"
+            } else {
+                "other"
+            },
+            titlebar_height: 0.0,
+            traffic_lights_right: 0.0,
+        })
+    }
+}
+
 /// WebView 逻辑像素坐标，供原生拖拽带避让真实网页控件。
 #[derive(Clone, Copy, Deserialize)]
 pub struct TitlebarControlRect {

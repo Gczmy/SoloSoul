@@ -84,6 +84,7 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   'get_system_theme',
   'set_titlebar_color',
   'set_titlebar_controls',
+  'get_window_layout',
   'show_main_window',
   'set_status_bar_style',
   'ui_get_preferences',

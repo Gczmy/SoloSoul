@@ -133,6 +133,10 @@
           material: 'solid', platform: window.__MOCK_PLATFORM__ || 'macos',
           reduceMotion: false, highContrast: false,
         };
+      case 'get_window_layout':
+        return userMocks()[cmd] ? userMocks()[cmd](args) : {
+          platform: window.__MOCK_PLATFORM__ || 'macos', titlebarHeight: 0, trafficLightsRight: 0,
+        };
       case 'check_for_update':
         return null;
       case 'user_data_get_preferences':

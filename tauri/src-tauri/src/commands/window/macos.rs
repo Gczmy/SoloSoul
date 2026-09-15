@@ -20,6 +20,16 @@ use window_vibrancy::{
 #[path = "macos_titlebar.rs"]
 pub(super) mod titlebar;
 
+pub fn layout(native: tauri::webview::PlatformWebview) -> super::WindowLayout {
+    // SAFETY: with_webview 在主线程提供存活的 NSWindow；这里只读取布局。
+    let window = unsafe { &*native.ns_window().cast::<NSWindow>() };
+    super::WindowLayout {
+        platform: "macos",
+        titlebar_height: titlebar::height(window),
+        traffic_lights_right: titlebar::traffic_lights_right(window),
+    }
+}
+
 // 每个窗口最多安装一个材质视图，主题同步不重复挂载/移动 WebView。
 static MATERIALS: Mutex<BTreeMap<String, &'static str>> = Mutex::new(BTreeMap::new());
 static ACCESSIBILITY: AtomicU8 = AtomicU8::new(u8::MAX);

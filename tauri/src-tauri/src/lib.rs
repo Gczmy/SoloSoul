@@ -180,6 +180,7 @@ fn register_core_commands(
         // Window chrome commands
         commands::window::set_titlebar_color,
         commands::window::set_titlebar_controls,
+        commands::window::get_window_layout,
         commands::window::show_main_window,
         status_bar_plugin::set_status_bar_style,
         lock_state_plugin::dismiss_lock_mask,
@@ -633,6 +634,7 @@ mod tests {
                     "vault_pick_directory",
                     "set_titlebar_color",
                     "set_titlebar_controls",
+                    "get_window_layout",
                     "show_main_window",
                     "set_status_bar_style",
                     "dismiss_lock_mask",

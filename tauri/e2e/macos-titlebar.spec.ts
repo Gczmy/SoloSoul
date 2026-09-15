@@ -17,6 +17,8 @@ async function mockMacOS(page: Page, position = 'left', trafficLightsRight = 79)
         reduceMotion: false, highContrast: false, titlebarHeight: window.__NATIVE_TITLEBAR_HEIGHT__,
         trafficLightsRight: window.__NATIVE_TITLEBAR_HEIGHT__ ? ${trafficLightsRight} : 0 }),
       set_titlebar_controls: ({ regions }) => { window.__TITLEBAR_CONTROLS__ = regions; },
+      get_window_layout: () => ({ platform: 'macos', titlebarHeight: window.__NATIVE_TITLEBAR_HEIGHT__,
+        trafficLightsRight: window.__NATIVE_TITLEBAR_HEIGHT__ ? ${trafficLightsRight} : 0 }),
     };
     localStorage.setItem('i18nextLng', 'en-US');
     const originalInvoke = window.__TAURI_INTERNALS__.invoke;
@@ -30,6 +32,7 @@ async function mockMacOS(page: Page, position = 'left', trafficLightsRight = 79)
 }
 
 async function expectNativeControl(control: Locator) {
+  await expect(control).toBeVisible();
   const bounds = (await control.boundingBox())!;
   expect(bounds.y).toBeGreaterThanOrEqual(0);
   expect(bounds.y + bounds.height).toBeLessThanOrEqual(52);
