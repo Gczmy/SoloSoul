@@ -1,10 +1,18 @@
-import { ArrowLeft } from 'lucide-react';
+import {
+  ArrowLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import styles from './AppBar.module.css';
 import { ICON_SIZE } from '@/lib/constants';
 import { useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { observeTitlebarControls } from '@/lib/nativeTitlebarControls';
+import { useUiStore } from '@/stores/uiStore';
+import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 
 interface AppBarProps {
   title: string;
@@ -16,6 +24,18 @@ interface AppBarProps {
 export function AppBar({ title, actions, onBack, sidebarPosition = 'left' }: AppBarProps) {
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('common');
+  const { t: nav } = useTranslation('navigation');
+  const isNarrow = useIsNarrowViewport();
+  const expanded = useUiStore((s) => s.sidebarExpanded);
+  const toggleExpanded = useUiStore((s) => s.toggleSidebarExpanded);
+  const ToggleIcon =
+    sidebarPosition === 'right'
+      ? expanded
+        ? PanelRightClose
+        : PanelRightOpen
+      : expanded
+        ? PanelLeftClose
+        : PanelLeftOpen;
   const isMacOS = useNativeWindowStore((s) => s.isMacOS);
   const trafficLightsRight = useNativeWindowStore((s) => s.trafficLightsRight);
   const headerRef = useRef<HTMLElement>(null);
@@ -47,6 +67,20 @@ export function AppBar({ title, actions, onBack, sidebarPosition = 'left' }: App
         .join(' ')}
     >
       <div className={styles.left}>
+        {!isHorizontal && !isNarrow && (
+          <button
+            data-titlebar-control
+            data-tauri-drag-region="false"
+            type="button"
+            className={styles.backButton}
+            onClick={toggleExpanded}
+            aria-label={nav(expanded ? 'sidebar_collapse' : 'sidebar_expand')}
+            aria-expanded={expanded}
+            aria-controls="desktop-navigation"
+          >
+            <ToggleIcon size={20} />
+          </button>
+        )}
         {onBack && (
           <button
             data-titlebar-control

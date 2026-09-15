@@ -43,7 +43,8 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
   const isTop = effectivePosition === 'top';
   const isHorizontal = isTop || effectivePosition === 'bottom';
   // 折叠侧栏仍完整容纳交通灯，并保留右侧留白；全屏隐藏按钮时也不缩回窄条。
-  const collapsedWidth = isMacOS ? Math.max(96, Math.ceil(trafficLightsRight + 16)) : 48;
+  const collapsedWidth =
+    isMacOS && effectivePosition === 'left' ? Math.max(96, Math.ceil(trafficLightsRight + 16)) : 64;
   const sidebarWidth = sidebarExpanded ? Math.max(232, collapsedWidth) : collapsedWidth;
 
   // Portal 快捷卡片与固定聊天面板也读取同一尺寸，避免展开后仍使用 48px 偏移。

@@ -100,10 +100,10 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
       expect(surfaces.top).not.toBe('rgba(0, 0, 0, 0)');
       expect(surfaces.sidebar).toBe('rgba(0, 0, 0, 0)');
       const sidebar = page.locator('#desktop-navigation');
-      await expect(sidebar).toHaveCSS('padding-top', '64px');
-      await sidebar.getByRole('button', { name: 'Collapse sidebar' }).click();
-      await expect(sidebar).toHaveCSS('width', '96px');
-      await expect(sidebar).toHaveCSS('padding-top', '64px');
+      await expect(sidebar).toHaveCSS('padding-top', '60px');
+      await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+      await expect(sidebar).toHaveCSS('width', position === 'left' ? '96px' : '64px');
+      await expect(sidebar).toHaveCSS('padding-top', '60px');
       // 交通灯右沿为 79px，折叠后背景边界仍留在整组按钮之外。
       const collapsed = (await sidebar.boundingBox())!;
       if (position === 'left') {
@@ -141,7 +141,7 @@ test('macOS 切页、折叠和缩放后更新顶部按钮命中区', async ({ pa
   const create = header.getByRole('button', { name: '+ New', exact: true });
   await expectNativeControl(back);
   await expectNativeControl(create);
-  await sidebar.getByRole('button', { name: 'Collapse sidebar' }).click();
+  await page.getByRole('button', { name: 'Collapse sidebar' }).click();
   await expect(sidebar).toHaveCSS('width', '96px');
   await expectNativeControl(back);
   expect((await back.boundingBox())!.x).toBeGreaterThanOrEqual(91);
@@ -164,7 +164,7 @@ test('macOS 全屏往返保持单行 AppBar，无重复顶部留白', async ({ p
   await mockMacOS(page);
   await login(page);
   const sidebar = page.locator('#desktop-navigation');
-  await sidebar.getByRole('button', { name: 'Collapse sidebar' }).click();
+  await page.getByRole('button', { name: 'Collapse sidebar' }).click();
   for (const height of [0, 52]) {
     await page.evaluate((value) => {
       Object.assign(window, { __NATIVE_TITLEBAR_HEIGHT__: value });
@@ -182,7 +182,7 @@ test('macOS 交通灯范围变宽时折叠侧栏和正文同步避让', async ({
   await mockMacOS(page, 'left', 106);
   await login(page);
   const sidebar = page.locator('#desktop-navigation');
-  await sidebar.getByRole('button', { name: 'Collapse sidebar' }).click();
+  await page.getByRole('button', { name: 'Collapse sidebar' }).click();
   await expect(sidebar).toHaveCSS('width', '122px');
   expect((await page.locator('header[data-appbar]').boundingBox())!.x).toBe(122);
   expect((await page.locator('main').boundingBox())!.x).toBe(122);

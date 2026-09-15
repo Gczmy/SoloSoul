@@ -30,12 +30,12 @@ for (const position of ['left', 'right'] as const) {
     await expect(
       sidebar.getByRole('button', { name: 'Settings', exact: true }).locator('span'),
     ).toBeVisible();
-    await sidebar.getByRole('button', { name: 'Collapse sidebar' }).click();
-    await expect(sidebar).toHaveCSS('width', '48px');
+    await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+    await expect(sidebar).toHaveCSS('width', '64px');
     await sidebar.getByRole('button', { name: 'Settings', exact: true }).click();
     await expect(page).toHaveURL(/\/settings$/);
     await expect(sidebar).toHaveAttribute('data-expanded', 'false');
-    await sidebar.getByRole('button', { name: 'Expand sidebar' }).click();
+    await page.getByRole('button', { name: 'Expand sidebar' }).click();
     await expect(sidebar).toHaveCSS('width', '232px');
     expect(await page.evaluate(() => localStorage.getItem('solosoul_sidebar_expanded'))).toBe(
       'true',
@@ -147,7 +147,7 @@ test('深色主题和减少动态效果在最小桌面窗口保持可用', async
   await sidebar.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(root).toHaveAttribute('data-theme', 'dark');
   await expect(root).toHaveAttribute('data-reduce-motion', 'true');
-  await expect(sidebar.getByRole('button', { name: 'Collapse sidebar' })).toBeInViewport();
+  await expect(page.getByRole('button', { name: 'Collapse sidebar' })).toBeInViewport();
   await expect(sidebar.getByRole('button', { name: 'Settings', exact: true })).toBeInViewport();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(800);
   const navBounds = await sidebar.boundingBox();

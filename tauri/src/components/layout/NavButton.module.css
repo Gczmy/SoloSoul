@@ -4,23 +4,14 @@
   position: relative;
   display: flex;
   align-items: center;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   justify-content: center;
 }
 
-/* 9.4 — 选中状态指示器（Portal 到 body，避免被父容器裁剪） */
-.activeIndicatorPortal {
-  background: var(--accent-primary);
-  border-radius: 2px;
-  pointer-events: none;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
-  transition: opacity 0.2s var(--ease-smooth, ease);
-}
-
 .navButton {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -52,6 +43,7 @@
   flex-shrink: 0;
 }
 .label {
+  display: none;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -124,4 +116,28 @@
 .nameCardPortalHorizontal {
   composes: nameCardPortal;
   animation: none;
+}
+
+/* 宽轨道以图标和短标签占满视觉重心，按钮仍保持稳定的 72×48。 */
+.compactLabels {
+  width: 72px;
+  height: 48px;
+}
+.compactLabels .navButton {
+  width: 72px;
+  height: 48px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 10px;
+}
+.compactLabels .label {
+  display: block;
+  max-width: 100%;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+}
+.expanded .label {
+  display: block;
 }

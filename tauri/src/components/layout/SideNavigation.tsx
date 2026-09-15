@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { DesktopSidebarContext } from './DesktopSidebarContext';
 import { useUiStore } from '@/stores/uiStore';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -12,7 +11,6 @@ import { PrimaryNavZone } from './PrimaryNavZone';
 import { SecondaryActionBar } from './SecondaryActionBar';
 import { NavButton } from './NavButton';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
-import { ICON_SIZE } from '@/lib/constants';
 
 export { RenameableNavButton } from './RenameableNavButton';
 export { AddPageButton } from './AddPageButton';
@@ -28,7 +26,6 @@ export function SideNavigation() {
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('navigation');
   const expanded = useUiStore((s) => s.sidebarExpanded) && !isHorizontal;
-  const toggleExpanded = useUiStore((s) => s.toggleSidebarExpanded);
   const vaultLock = useAuthStore((s) => s.lock);
 
   const handleLock = useCallback(() => vaultLock(), [vaultLock]);
@@ -46,14 +43,14 @@ export function SideNavigation() {
         overflow: 'visible',
       }
     : {
-        width: `var(--sidebar-width, ${expanded ? 232 : 48}px)`,
+        width: `var(--sidebar-width, ${expanded ? 232 : 64}px)`,
         height: '100vh',
         flexDirection: 'column',
         borderRight: sidebarPosition === 'left' ? '1px solid var(--border-subtle)' : 'none',
         borderLeft: sidebarPosition === 'right' ? '1px solid var(--border-subtle)' : 'none',
         borderBottom: 'none',
         borderTop: 'none',
-        padding: `calc(12px + var(--native-titlebar-height, 0px)) ${expanded ? '10px' : '0'} 12px`,
+        padding: `calc(8px + var(--appbar-height, 52px)) ${expanded ? '10px' : '0'} 12px`,
       };
 
   return (
@@ -65,20 +62,12 @@ export function SideNavigation() {
         style={navStyle}
         data-expanded={expanded}
       >
-        <div className={styles.brandHeader}>
-          <ShieldLogo size={expanded ? 26 : ICON_SIZE['3xl']} />
-          {expanded && <span className={styles.brandName}>SoloSoul</span>}
-          <button
-            type="button"
-            className={styles.sidebarToggle}
-            onClick={toggleExpanded}
-            aria-label={t(expanded ? 'sidebar_collapse' : 'sidebar_expand')}
-            aria-expanded={expanded}
-            aria-controls="desktop-navigation"
-          >
-            {expanded ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
-          </button>
-        </div>
+        {expanded && (
+          <div className={styles.brandHeader}>
+            <ShieldLogo size={26} />
+            <span className={styles.brandName}>SoloSoul</span>
+          </div>
+        )}
 
         <PrimaryNavZone sidebarPosition={sidebarPosition} isHorizontal={isHorizontal} />
 

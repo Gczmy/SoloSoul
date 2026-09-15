@@ -1,7 +1,7 @@
 /* ── Container ─────────────────────────────────────────── */
 .sideNav {
-  width: var(--sidebar-width, 48px);
-  min-width: var(--sidebar-width, 48px);
+  width: var(--sidebar-width, 64px);
+  min-width: var(--sidebar-width, 64px);
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -519,25 +519,6 @@
   font-weight: 600;
   letter-spacing: -0.02em;
 }
-.sidebarToggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-}
-.sidebarToggle:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-.sidebarToggle:focus-visible,
 .arrowToggle:focus-visible {
   outline: 2px solid var(--accent-primary);
   outline-offset: -2px;
