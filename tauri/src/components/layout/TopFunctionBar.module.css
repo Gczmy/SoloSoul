@@ -22,7 +22,7 @@
 :global(html[data-desktop-platform='windows']) .functionBar {
   background: var(--bg-base);
 }
-:global(html[data-desktop-platform='windows'][data-native-material='acrylic']) .functionBar {
+:global(html[data-desktop-platform='windows'][data-native-material='mica']) .functionBar {
   background: transparent;
 }
 :global(

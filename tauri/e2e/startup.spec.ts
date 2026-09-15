@@ -97,30 +97,30 @@ test('原生确认玻璃材质后透出背景，系统强制颜色时回到实�
   );
 });
 
-for (const material of ['mica', 'acrylic']) {
-  test(`Windows 首次显示请求发生在 ${material} 状态和图标就绪之后`, async ({ page }) => {
-    await page.addInitScript({
-      content:
-        readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
-        `
+test('Windows 首次显示请求发生在 Mica 状态和图标就绪之后', async ({ page }) => {
+  await page.addInitScript({
+    content:
+      readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
+      `
     window.__MOCK_PLATFORM__ = 'windows';
     window.__E2E_MOCKS__ = {
-      set_titlebar_color: () => ({ material: '${material}', platform: 'windows', reduceMotion: false, highContrast: false }),
+      set_titlebar_color: () => ({ material: 'mica', platform: 'windows', reduceMotion: false, highContrast: false }),
       show_main_window: () => {
         const logo = document.querySelector('.startup-logo');
         document.documentElement.dataset.firstFrameReady = String(
-          document.documentElement.dataset.nativeMaterial === '${material}' && logo.complete && logo.naturalWidth > 0
+          document.documentElement.dataset.nativeMaterial === 'mica' && logo.complete && logo.naturalWidth > 0
         );
       },
     };
   `,
-    });
-    await page.route('**/src/bootstrapApp.tsx', (route) => route.abort());
-    await page.goto('/');
-    await expect(page.locator('html')).toHaveAttribute('data-first-frame-ready', 'true');
-    await expect(page.locator('html')).toHaveAttribute('data-desktop-platform', 'windows');
   });
-}
+  await page.route('**/src/bootstrapApp.tsx', (route) => route.abort());
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('data-first-frame-ready', 'true');
+  await expect(page.locator('html')).toHaveAttribute('data-desktop-platform', 'windows');
+  await expect(page.locator('html')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(page.locator('#startup-screen')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+});
 
 test('跟随系统时从双主题缓存选取当前配色', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });

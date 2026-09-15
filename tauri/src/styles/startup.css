@@ -105,27 +105,14 @@ body {
   white-space: pre-wrap;
 }
 
-/* 仅原生确认材质可用后才透出窗口背景；浏览器、旧系统继续实色回退。 */
+/* 原生确认材质后直接透出背景，不叠加主题色；浏览器、旧系统继续实色回退。 */
 html[data-native-material='vibrancy'],
 html[data-native-material='liquid-glass'],
 html[data-native-material='mica'],
-html[data-native-material='acrylic'],
 html[data-native-material]:not([data-native-material='solid']) body,
 html[data-native-material]:not([data-native-material='solid']) #root,
 html[data-native-material]:not([data-native-material='solid']) #startup-screen {
   background: transparent;
-}
-
-/* Windows Mica 的色调来自壁纸，只同步浅深色不足以匹配应用配色。
- * 仅在最底层着色一次：启动层、登录页和工作区共用，避免多层叠加变成实色。
- * 主题色主导背景，少量透出原生材质；应用样式加载前使用首帧缓存色。 */
-html[data-native-material='mica'] {
-  background: color-mix(in srgb, var(--bg-base, var(--startup-background)) 90%, transparent);
-}
-
-/* 原生 Acrylic 已提供模糊和明暗控制，仅单层轻着色以保留背景层次。 */
-html[data-native-material='acrylic'] {
-  background: color-mix(in srgb, var(--bg-base, var(--startup-background)) 20%, transparent);
 }
 
 :root[data-reduce-motion='true'] #startup-screen {

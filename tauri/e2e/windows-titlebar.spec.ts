@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { login } from './fixtures/auth';
 
 for (const position of ['left', 'right', 'top', 'bottom']) {
-  test(`Windows Acrylic ${position} 外壳透出材质且正文独立滚动`, async ({ page }) => {
+  test(`Windows Mica ${position} 外壳透出材质且正文独立滚动`, async ({ page }) => {
     await page.setViewportSize({ width: 800, height: 600 });
     await page.addInitScript({
       content:
@@ -14,7 +14,7 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
       window.__E2E_MOCKS__ = {
         vault_check_directory: () => true, ocr_get_model_status: () => ({ installed: true, bundled: true }),
         sync_list_conflicts: () => [], get_window_layout: () => layout,
-        set_titlebar_color: () => ({ ...layout, material: 'acrylic', reduceMotion: false, highContrast: false }),
+        set_titlebar_color: () => ({ ...layout, material: 'mica', reduceMotion: false, highContrast: false }),
       };
       localStorage.setItem('i18nextLng', 'en-US');
       const invoke = window.__TAURI_INTERNALS__.invoke;

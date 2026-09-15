@@ -32,9 +32,9 @@ afterEach(() => {
 });
 
 describe('原生窗口启动', () => {
-  it('接受 Windows Acrylic，并在系统关闭透明效果后切回实色', async () => {
+  it('接受 Windows Mica，并在系统关闭透明效果后切回实色', async () => {
     const { syncNativeAppearance } = await import('./nativeWindow');
-    for (const material of ['acrylic', 'solid']) {
+    for (const material of ['mica', 'solid']) {
       invoke.mockResolvedValueOnce({
         material,
         platform: 'windows',

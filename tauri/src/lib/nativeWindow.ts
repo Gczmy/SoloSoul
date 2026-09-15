@@ -9,7 +9,7 @@ interface WindowLayout {
 }
 
 interface WindowAppearance extends WindowLayout {
-  material: 'solid' | 'vibrancy' | 'liquid-glass' | 'mica' | 'acrylic';
+  material: 'solid' | 'vibrancy' | 'liquid-glass' | 'mica';
   reduceMotion: boolean;
   highContrast: boolean;
 }
@@ -51,7 +51,7 @@ export function syncNativeAppearance(color: { red: number; green: number; blue: 
       if (
         revision !== appearanceRevision ||
         !appearance ||
-        !['solid', 'vibrancy', 'liquid-glass', 'mica', 'acrylic'].includes(appearance.material)
+        !['solid', 'vibrancy', 'liquid-glass', 'mica'].includes(appearance.material)
       )
         return;
       const root = document.documentElement;
