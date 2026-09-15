@@ -1,2 +1,5 @@
 # Force LF line endings for shell scripts so they work in Git Bash on Windows
 *.sh text eol=lf
+
+# 签名绑定原始字节，Windows 检出时也必须保留已签名 JSON 的 LF。
+tauri/src-tauri/resources/models/registry.json text eol=lf
