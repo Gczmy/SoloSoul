@@ -61,7 +61,8 @@ export function SideNavigation() {
         borderLeft: sidebarPosition === 'right' ? '1px solid var(--border-subtle)' : 'none',
         borderBottom: 'none',
         borderTop: 'none',
-        padding: `calc(8px + var(--appbar-height, 52px)) ${expanded ? '10px' : '0'} 12px`,
+        paddingInline: expanded ? 10 : 0,
+        paddingBottom: 12,
       };
 
   return (

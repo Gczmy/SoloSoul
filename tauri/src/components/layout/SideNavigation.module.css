@@ -6,7 +6,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 12px;
+  /* Windows 品牌行与 AppBar 对齐；macOS 单独避让交通灯。 */
+  padding-top: 0;
   padding-bottom: 12px;
   background: var(--bg-toolbar);
   border-right: 1px solid var(--border-subtle);
@@ -498,6 +499,9 @@
   flex-shrink: 0;
   min-height: 0;
 }
+:global(html[data-desktop-platform='macos']) .sideNav {
+  padding-top: calc(8px + var(--appbar-height, 52px));
+}
 :global(
     html[data-desktop-platform='macos'][data-native-material]:not([data-native-material='solid'])
   )
@@ -521,7 +525,7 @@
   height: 40px;
   /* 宽轨道沿用展开时的 16px 左留白；窄轨道只压缩留白，不缩放图标。 */
   padding: 0 clamp(0px, calc(var(--sidebar-width, 64px) - 80px), 16px);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   flex-shrink: 0;
 }
 .sideNav[data-expanded='true'] .brandHeader {
