@@ -86,6 +86,12 @@ for (const scheme of ['warm-stone-dark', 'deep-ocean', 'forest-night', 'soft-cre
       'rgba(0, 0, 0, 0)',
     );
     await page.screenshot({ path: `test-results/login-${scheme}.png` });
+    await login(page);
+    const surface = await page
+      .locator('main')
+      .evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(surface).not.toBe('rgba(0, 0, 0, 0)');
+    await expect(page.locator('[data-appbar]')).toHaveCSS('background-color', surface);
   });
 }
 
@@ -105,10 +111,15 @@ test('同一深色模式切换配色后，Mica 外壳仍不叠加主题色', asy
     await page.getByRole('button', { name, exact: true }).click();
     await expectThemeBackground(page, scheme, true);
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    for (const selector of ['#desktop-navigation', '[data-appbar]']) {
-      await expect(page.locator(selector)).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-    }
-    await expect(page.locator('main')).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(page.locator('#desktop-navigation')).toHaveCSS(
+      'background-color',
+      'rgba(0, 0, 0, 0)',
+    );
+    const surface = await page
+      .locator('main')
+      .evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(surface).not.toBe('rgba(0, 0, 0, 0)');
+    await expect(page.locator('[data-appbar]')).toHaveCSS('background-color', surface);
   }
 });
 
@@ -129,10 +140,10 @@ test('Windows 实色回退仍能区分外壳和正文', async ({ page }) => {
   await mockTheme(page, 'warm-stone-dark', 'solid');
   await login(page);
   const header = page.locator('[data-appbar]');
-  const chrome = await header.evaluate((el) => getComputedStyle(el).backgroundColor);
-  await expect(page.locator('#desktop-navigation')).toHaveCSS('background-color', chrome);
-  expect(chrome).not.toBe('rgba(0, 0, 0, 0)');
-  await expect(page.locator('main')).not.toHaveCSS('background-color', chrome);
+  const surface = await header.evaluate((el) => getComputedStyle(el).backgroundColor);
+  await expect(page.locator('#desktop-navigation')).not.toHaveCSS('background-color', surface);
+  expect(surface).not.toBe('rgba(0, 0, 0, 0)');
+  await expect(page.locator('main')).toHaveCSS('background-color', surface);
   await expectThemeBackground(page, 'warm-stone-dark', false);
 });
 
@@ -140,7 +151,7 @@ test('Windows 强制颜色模式关闭透明背景并保留正文边界', async 
   await mockTheme(page, 'warm-stone-dark');
   await login(page);
   await page.emulateMedia({ forcedColors: 'active' });
-  for (const selector of ['html', 'body', '#root', 'main']) {
+  for (const selector of ['html', 'body', '#root', 'main', '[data-appbar]']) {
     await expect(page.locator(selector)).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   }
   await expect(page.locator('main')).toHaveCSS('outline-style', 'solid');

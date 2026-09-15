@@ -3,7 +3,9 @@ import { readFileSync } from 'node:fs';
 import { login } from './fixtures/auth';
 
 for (const position of ['left', 'right', 'top', 'bottom']) {
-  test(`Windows Mica ${position} 外壳透出材质且正文独立滚动`, async ({ page }) => {
+  test(`Windows Mica ${position} 操作栏与正文同色、导航透出材质且正文独立滚动`, async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 800, height: 600 });
     await page.addInitScript({
       content:
@@ -39,19 +41,19 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
       position === 'left' || position === 'right'
         ? page.locator('#desktop-navigation')
         : page.locator('header:not([data-appbar])');
-    expect(await navigation.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(
-      await header.evaluate((el) => getComputedStyle(el).backgroundColor),
-    );
-    await expect(header).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(navigation).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(header).toHaveCSS('border-top-left-radius', '12px');
+    await expect(header).toHaveCSS('border-top-right-radius', '12px');
     const content = page.locator('main');
     const bounds = (await content.boundingBox())!;
     expect(bounds.y).toBe(position === 'top' ? 88 : 40);
     expect(bounds.y + bounds.height).toBe(position === 'bottom' ? 552 : 600);
-    await expect(content).toHaveCSS('border-top-left-radius', '12px');
-    expect(await content.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(
-      'rgba(0, 0, 0, 0)',
-    );
-    // 正文滚动后仍在独立的裁剪区域内，不会穿到透明操作栏下面。
+    await expect(content).toHaveCSS('border-top-left-radius', position === 'top' ? '12px' : '0px');
+    await expect(content).toHaveCSS('border-top-right-radius', position === 'top' ? '12px' : '0px');
+    const surface = await content.evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(surface).not.toBe('rgba(0, 0, 0, 0)');
+    await expect(header).toHaveCSS('background-color', surface);
+    // 正文滚动后仍在独立的裁剪区域内，不会穿到操作栏下面。
     await content.evaluate((el) => {
       const filler = document.createElement('div');
       filler.dataset.scrollProbe = 'true';

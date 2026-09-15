@@ -130,17 +130,18 @@
   }
 
   :global(html[data-desktop-platform='windows']) .appBar {
-    background: var(--bg-base);
+    background: var(--shell-content-surface, var(--bg-elevated));
+    border-radius: 12px 12px 0 0;
+    box-shadow:
+      inset 1px 0 0 var(--border-subtle),
+      inset -1px 0 0 var(--border-subtle),
+      inset 0 1px 0 var(--border-subtle);
     font-size: 14px;
   }
   :global(html[data-desktop-platform='windows']) .title {
     font-size: 18px;
     line-height: 24px;
   }
-  :global(html[data-desktop-platform='windows'][data-native-material='mica']) .appBar {
-    background: transparent;
-  }
-
   .appBar[data-native-compact='true'] {
     top: 0;
     height: var(--appbar-height, 52px);
