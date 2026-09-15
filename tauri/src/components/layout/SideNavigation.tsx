@@ -54,7 +54,7 @@ export function SideNavigation() {
         overflow: 'visible',
       }
     : {
-        width: `var(--sidebar-width, ${expanded ? 232 : 64}px)`,
+        width: `var(--sidebar-width, ${expanded ? 232 : 96}px)`,
         height: '100vh',
         flexDirection: 'column',
         borderRight: sidebarPosition === 'left' ? '1px solid var(--border-subtle)' : 'none',

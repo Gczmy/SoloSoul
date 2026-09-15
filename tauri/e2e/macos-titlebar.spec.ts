@@ -105,7 +105,7 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
       const sidebar = page.locator('#desktop-navigation');
       await expect(sidebar).toHaveCSS('padding-top', '60px');
       await page.getByRole('button', { name: 'Collapse sidebar' }).click();
-      await expect(sidebar).toHaveCSS('width', position === 'left' ? '96px' : '64px');
+      await expect(sidebar).toHaveCSS('width', '96px');
       await expect(sidebar).toHaveCSS('padding-top', '60px');
       // 交通灯右沿为 79px，折叠后背景边界仍留在整组按钮之外。
       const collapsed = (await sidebar.boundingBox())!;

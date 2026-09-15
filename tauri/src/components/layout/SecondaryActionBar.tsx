@@ -210,6 +210,7 @@ export function SecondaryActionBar({
             size={ICON_SIZE.xl}
             className={`${styles.arrowIcon} ${expanded ? styles.arrowIconExpanded : ''}`}
           />
+          <span className={styles.compactActionLabel}>{t('sidebar_tools')}</span>
         </button>
       )}
 

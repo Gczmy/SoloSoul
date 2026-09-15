@@ -1,7 +1,7 @@
 /* ── Container ─────────────────────────────────────────── */
 .sideNav {
-  width: var(--sidebar-width, 64px);
-  min-width: var(--sidebar-width, 64px);
+  width: var(--sidebar-width, 96px);
+  min-width: var(--sidebar-width, 96px);
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -523,8 +523,8 @@
   gap: 4px;
   width: 100%;
   height: 40px;
-  /* 宽轨道沿用展开时的 16px 左留白；窄轨道只压缩留白，不缩放图标。 */
-  padding: 0 clamp(0px, calc(var(--sidebar-width, 64px) - 80px), 16px);
+  /* 图文轨道沿用展开时的 16px 左留白，品牌图标与开关保持固定尺寸。 */
+  padding: 0 16px;
   margin-bottom: 8px;
   flex-shrink: 0;
 }
@@ -642,4 +642,25 @@
 }
 .sideNav[data-expanded='true'] .addPageLabel {
   font-size: 13px;
+}
+
+/* 添加页面与工具开关沿用普通导航的折叠图文尺寸。 */
+.sideNav[data-expanded='false'] .addPageButton,
+.sideNav[data-expanded='false'] .arrowToggle {
+  width: 72px;
+  height: 48px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 10px;
+}
+.sideNav[data-expanded='false'] .addPageLabel,
+.compactActionLabel {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
 }

@@ -3,7 +3,6 @@ import { DesktopSidebarContext } from './DesktopSidebarContext';
 import { createPortal } from 'react-dom';
 import type { LucideIcon } from 'lucide-react';
 import styles from './NavButton.module.css';
-import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { useHoverCardPosition } from '@/hooks/useHoverCardPosition';
 
 export type NavPosition = 'left' | 'right' | 'top' | 'bottom';
@@ -26,7 +25,6 @@ export function NavButton({
   position = 'left',
 }: NavButtonProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const isMacOS = useNativeWindowStore((s) => s.isMacOS);
 
   const isHorizontal = position === 'top' || position === 'bottom';
   const sidebarExpanded = useContext(DesktopSidebarContext) && !isHorizontal;
@@ -57,7 +55,7 @@ export function NavButton({
   return (
     <div
       ref={wrapperRef}
-      className={`${styles.navItemWrapper} ${sidebarExpanded ? styles.expanded : isMacOS && position === 'left' ? styles.compactLabels : ''}`}
+      className={`${styles.navItemWrapper} ${sidebarExpanded ? styles.expanded : !isHorizontal ? styles.compactLabels : ''}`}
       style={isHorizontal ? { width: 40, height: 40 } : {}}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
