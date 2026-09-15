@@ -15,6 +15,8 @@
 | D13 页面尺寸与留白 | 已完成 | 壳统一内容高度与 24px/16px 留白，内层 PageContainer 不重复加边距；外观页移除 56px 和负边距，窄窗配色面板浮层避免挤压；TypeScript、16 项壳回归与 4 项外观布局回归通过 |
 | D14 桌面顶栏与统一材质 | 已完成，Windows 采用兼容路径 | macOS 顶部/侧栏透出同一原生玻璃、正文保持实色；Windows 系统标题栏 + 40px AppBar、侧栏/顶栏同主题底色；Chrome 布局/主题回归通过；Windows 原生按钮显示、最大化、恢复及拖动复验通过 |
 | D15 顶部操作密度与窄窗口收纳 | 已完成 | 桌面操作使用 14px 字号、32px 基础高度，移动/粗指针保留 44px；新建操作常驻，窄顶栏次要操作进入“更多”；指南使用 Portal、焦点归还和 Tab 约束；30 项桌面布局与键盘回归通过 |
+| D16 IPC 路由守卫数量过期 | 已完成 | 守卫在本轮之前已漏计 set_titlebar_controls 和 show_main_window；加上 D09 的 get_window_layout 后总数为 200；更新断言与说明，从源码原样提取整个纯 Rust 测试模块编译执行通过，Rust fmt 通过 |
+| D17 Windows 签名资源换行 | 待修复 | Windows autocrlf 将已签名 registry.json 的 LF 改为 CRLF，真实注册表签名测试失败 |
 
 原生验收保留为独立状态：macOS 冷启动、后台恢复、全屏往返和玻璃圆角；Windows 窗口按钮、拖动、Snap、最大化、DPI 和材质回退。浏览器 mock 验证不能替代这些检查。
 

@@ -416,7 +416,7 @@ mod tests {
     #[test]
     fn test_dispatch_cluster_prefixes_consistent() {
         // 各簇命令名与其路由前缀的映射（与 dispatch_ipc / register_*_commands 一一对应）
-        // ⚠️ 新增命令时同步更新下方命令名与总数断言（当前 total == 196）。
+        // ⚠️ 新增命令时同步更新下方命令名与总数断言（当前 total == 200）。
         let clusters: [(&str, &[&str], &[&str]); 5] = [
             (
                 "sync",
@@ -679,7 +679,7 @@ mod tests {
                 assert_eq!(routed, cmds.len());
             }
         }
-        // 共 197 条命令全覆盖（P006 新增 attachment_count_stats、P014 新增 trash_restore_batch、P011 删除 unlock，净 +1；vault_rename_account 补登；本轮新增 object_field_suggestions）
-        assert_eq!(total, 197);
+        // 补齐 set_titlebar_controls、show_main_window、get_window_layout 后共 200 条命令。
+        assert_eq!(total, 200);
     }
 }
