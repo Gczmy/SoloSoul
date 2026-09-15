@@ -3,7 +3,12 @@
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 fn main() {
-    tauri_build::build();
+    // 内联移动插件的事件监听同样需要 ACL；只开放监听，菜单命令仍经 Rust 校验。
+    let attributes = tauri_build::Attributes::new().plugin(
+        "android-glass",
+        tauri_build::InlinedPlugin::new().commands(&["register_listener", "remove_listener"]),
+    );
+    tauri_build::try_build(attributes).expect("failed to build Tauri application");
     generate_app_level_names();
 }
 

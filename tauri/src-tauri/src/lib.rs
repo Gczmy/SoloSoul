@@ -1,3 +1,4 @@
+pub mod android_glass_plugin;
 pub mod attachment_import_plugin;
 pub mod commands;
 pub mod fs;
@@ -183,6 +184,9 @@ fn register_core_commands(
         commands::window::get_window_layout,
         commands::window::show_main_window,
         status_bar_plugin::set_status_bar_style,
+        android_glass_plugin::android_glass_capabilities,
+        android_glass_plugin::android_show_glass_menu,
+        android_glass_plugin::android_close_glass_menu,
         lock_state_plugin::dismiss_lock_mask,
         lock_state_plugin::get_lock_pending,
         // Android 更新命令
@@ -348,6 +352,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_os::init())
         .plugin(status_bar_plugin::init())
+        .plugin(android_glass_plugin::init())
         .plugin(lock_state_plugin::init())
         .plugin(network_status_plugin::init())
         .plugin(attachment_import_plugin::init())
@@ -637,6 +642,9 @@ mod tests {
                     "get_window_layout",
                     "show_main_window",
                     "set_status_bar_style",
+                    "android_glass_capabilities",
+                    "android_show_glass_menu",
+                    "android_close_glass_menu",
                     "dismiss_lock_mask",
                     "get_lock_pending",
                     "android_check_update",
@@ -679,7 +687,7 @@ mod tests {
                 assert_eq!(routed, cmds.len());
             }
         }
-        // 补齐 set_titlebar_controls、show_main_window、get_window_layout 后共 200 条命令。
-        assert_eq!(total, 200);
+        // 包含 Android 玻璃能力、打开/关闭快捷菜单，共 203 条命令。
+        assert_eq!(total, 203);
     }
 }

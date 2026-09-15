@@ -129,11 +129,12 @@
 }
 .android-navigation {
   position: fixed;
-  inset: auto 0 0;
+  inset: auto max(12px, env(safe-area-inset-right, 0px))
+    calc(6px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
   z-index: var(--z-sidebar, 90);
-  height: calc(80px + env(safe-area-inset-bottom, 0px));
-  padding: 8px max(8px, env(safe-area-inset-right, 0px))
-    calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+  height: 80px;
+  padding: 8px 4px;
+  border-radius: 27px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   background: var(--bg-elevated);
@@ -184,7 +185,7 @@
 .android-fab {
   position: fixed;
   right: max(20px, env(safe-area-inset-right, 0px));
-  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(102px + env(safe-area-inset-bottom, 0px));
   z-index: 85;
   height: 56px;
   padding: 0 20px;
@@ -213,7 +214,7 @@
   align-items: flex-end;
   justify-content: center;
   padding-top: max(24px, env(safe-area-inset-top, 0px));
-  padding-bottom: var(--android-keyboard-inset);
+  padding-bottom: calc(var(--android-keyboard-inset) + env(safe-area-inset-bottom, 0px) + 6px);
 }
 .android-sheet-scrim {
   position: absolute;
@@ -222,14 +223,14 @@
 }
 .android-sheet {
   position: relative;
-  width: 100%;
+  width: calc(100% - 24px);
   max-width: 640px;
   max-height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--bg-elevated);
-  border-radius: 28px 28px 0 0;
-  padding: 12px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+  border-radius: 30px;
+  padding: 12px 24px 24px;
   animation: android-sheet-enter 340ms var(--md-motion);
 }
 .android-sheet-handle {
@@ -341,10 +342,73 @@
   gap: 12px;
 }
 .android-overview {
+  position: relative;
+  overflow: hidden;
   background: var(--md-primary-container);
   color: var(--md-on-primary-container);
   padding: 24px;
   border-radius: 28px 28px 48px 28px;
+}
+.android-overview-copy {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  max-width: 66%;
+  overflow-wrap: anywhere;
+}
+.android-home-intro h2 {
+  font-size: 1.625rem;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+.android-home-intro p {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.android-overview[data-liquid] .android-overview-copy {
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--md-primary-container) 96%, transparent);
+  box-shadow: 0 0 16px 12px color-mix(in srgb, var(--md-primary-container) 94%, transparent);
+}
+.android-liquid-artwork,
+.android-liquid-artwork canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.android-liquid-artwork canvas {
+  opacity: 0;
+  touch-action: pan-y;
+}
+.android-liquid-artwork[data-liquid-ready='true'] canvas {
+  opacity: 1;
+}
+.android-liquid-fallback {
+  position: absolute;
+  inset: 15% 5% 15% 60%;
+  border-radius: 35%;
+  border: 14px solid color-mix(in srgb, var(--accent-primary) 20%, transparent);
+}
+.android-liquid-artwork[data-liquid-ready='true'] .android-liquid-fallback {
+  display: none;
+}
+.android-liquid-mark {
+  position: absolute;
+  left: 78%;
+  top: 49%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  color: var(--md-on-primary-container);
+  opacity: 0.6;
+  pointer-events: none;
+}
+.android-liquid-artwork[data-liquid-ready='true'] .android-liquid-mark {
+  color: white;
+  opacity: 0.85;
+  filter: drop-shadow(0 1px 1px #325e6a77);
 }
 .android-overview h2 {
   font-size: 1.625rem;
@@ -684,6 +748,7 @@
     inset: 0 auto 0 0;
     width: 88px;
     height: auto;
+    border-radius: 0;
     padding: calc(80px + env(safe-area-inset-top, 0px)) 4px 24px;
     display: flex;
     flex-direction: column;
@@ -740,4 +805,52 @@
   animation-duration: 0.01ms !important;
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
+}
+
+/* Android 的玻璃只覆盖导航与短时弹层；正文和主窗口色底保持不透明。 */
+:root[data-platform='android'] {
+  --android-glass-fill: rgb(249 250 246 / 76%);
+  --android-glass-edge: rgb(255 255 255 / 80%);
+  --android-glass-blur: 18px;
+}
+:root[data-platform='android'][data-theme='dark'] {
+  --android-glass-fill: rgb(29 38 33 / 80%);
+  --android-glass-edge: rgb(180 213 199 / 24%);
+}
+.android-material-description {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  margin: 12px 0;
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  [data-platform='android']:is([data-android-glass='local'], [data-android-glass='enhanced'])
+    .android-glass-surface {
+    background: var(--android-glass-fill);
+    -webkit-backdrop-filter: blur(var(--android-glass-blur)) saturate(1.24);
+    backdrop-filter: blur(var(--android-glass-blur)) saturate(1.24);
+    box-shadow:
+      inset 0 1px 0 var(--android-glass-edge),
+      inset 0 0 0 1px var(--android-glass-edge);
+  }
+  .android-sheet {
+    --android-glass-blur: 24px;
+  }
+  /* 直接过滤背景，文字不参与滤镜；滚动弹层的材质始终覆盖整个可见区域。 */
+  @media (min-width: 768px) {
+    [data-platform='android']:is([data-android-glass='local'], [data-android-glass='enhanced'])
+      .android-navigation {
+      background: var(--bg-elevated);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      box-shadow: none;
+    }
+  }
+}
+@media (forced-colors: active), (prefers-reduced-transparency: reduce) {
+  [data-platform='android'] .android-glass-surface {
+    background: var(--bg-elevated) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
 }

@@ -19,6 +19,7 @@ import { IconCategoryPicker } from '@/components/layout/IconCategoryPicker';
 import { useAddPageForm } from '@/hooks/useAddPageForm';
 import { useToastError } from '@/hooks/useToastError';
 import { useAuthStore } from '@/stores/authStore';
+import { useAndroidCreateMenu } from '@/hooks/useAndroidCreateMenu';
 
 export function androidDestination(path: string) {
   if (path === '/') return '/';
@@ -41,14 +42,16 @@ function CreateSheet({
   onClose,
   trigger,
   newObjectUrl,
+  startWithPage = false,
 }: {
   onClose: () => void;
   trigger: HTMLElement | null;
   newObjectUrl: string;
+  startWithPage?: boolean;
 }) {
   const { t } = useTranslation(['navigation', 'common']);
   const navigate = useNavigate();
-  const [pageForm, setPageForm] = useState(false);
+  const [pageForm, setPageForm] = useState(startWithPage);
   const pageFormRef = useRef(pageForm);
   pageFormRef.current = pageForm;
   const [submitting, setSubmitting] = useState(false);
@@ -172,9 +175,19 @@ export function AndroidNavigation() {
   const { t } = useTranslation(['navigation', 'common']);
   const { pathname, search, key } = useLocation();
   const [open, setOpen] = useState(false);
+  const [startWithPage, setStartWithPage] = useState(false);
+  const navigate = useNavigate();
   const trigger = useRef<HTMLButtonElement>(null);
   useLayoutEffect(() => setOpen(false), [key]);
   const destination = androidDestination(pathname);
+  const nativeMenu = useAndroidCreateMenu((action) => {
+    if (action === 'object') navigate(androidNewObjectUrl(pathname, search));
+    else if (action === 'scan') navigate('/ocr');
+    else {
+      setStartWithPage(action === 'page');
+      setOpen(true);
+    }
+  });
   const destinations = [
     { path: '/', Icon: Home, label: t('home') },
     { path: '/workspace', Icon: Layers, label: t('common:objects') },
@@ -184,7 +197,10 @@ export function AndroidNavigation() {
   const showFab = pathname === '/' || pathname.startsWith('/workspace') || pathname === '/tools';
   return (
     <>
-      <nav className="android-navigation" aria-label={t('common:material.navigation')}>
+      <nav
+        className="android-navigation android-glass-surface"
+        aria-label={t('common:material.navigation')}
+      >
         {destinations.map(({ path, Icon, label }) => (
           <Link
             key={path}
@@ -205,8 +221,10 @@ export function AndroidNavigation() {
           type="button"
           className="android-fab"
           aria-haspopup="dialog"
-          aria-expanded={open}
-          onClick={() => setOpen(true)}
+          aria-expanded={open || nativeMenu.busy}
+          aria-busy={nativeMenu.busy}
+          disabled={nativeMenu.busy}
+          onClick={() => void nativeMenu.open(trigger.current)}
         >
           <Plus size={24} />
           <span>{t('common:material.new_title')}</span>
@@ -217,6 +235,7 @@ export function AndroidNavigation() {
           trigger={trigger.current}
           onClose={() => setOpen(false)}
           newObjectUrl={androidNewObjectUrl(pathname, search)}
+          startWithPage={startWithPage}
         />
       )}
     </>

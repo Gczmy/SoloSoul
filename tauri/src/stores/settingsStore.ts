@@ -9,6 +9,7 @@ import { applyTheme } from '@/lib/theme';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
 import { ST_UI_PREFS } from '@/lib/constants';
 import { logger } from '@/lib/logger';
+import { isAndroidGlassMode, type AndroidGlassMode } from '@/lib/androidGlass';
 
 // 9.8.3 — Custom page data structure
 // Custom pages are now stored in the objects table (P0-1), not in preferences.
@@ -29,6 +30,8 @@ export interface AppSettings {
   customAccentHex: string;
   /** 安卓动效偏好，系统减少动态效果仍优先生效。 */
   reduceMotion: boolean;
+  /** Android 材质偏好，系统能力不足时独立降级。 */
+  androidGlass: AndroidGlassMode;
   backgroundType: 'solid' | 'gradient' | 'image';
   backgroundValue: string;
   language: string;
@@ -84,6 +87,7 @@ const uiPrefsSchema = z.object({
   defaultLightTheme: z.string().optional(),
   defaultDarkTheme: z.string().optional(),
   reduceMotion: z.boolean().optional(),
+  androidGlass: z.enum(['off', 'local', 'enhanced']).optional(),
 });
 
 const customPageSchema = z.object({
@@ -103,6 +107,7 @@ const accountPrefsSchema = z
     defaultLightTheme: z.string().optional(),
     defaultDarkTheme: z.string().optional(),
     reduceMotion: z.boolean().optional(),
+    androidGlass: z.enum(['off', 'local', 'enhanced']).optional(),
     customAccentHex: z.string().optional(),
     backgroundType: z.enum(['solid', 'gradient', 'image']).optional(),
     backgroundValue: z.string().optional(),
@@ -128,6 +133,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   accentColor: 'ocean',
   customAccentHex: '',
   reduceMotion: false,
+  androidGlass: 'local',
   backgroundType: 'solid',
   backgroundValue: '',
   language: detectSystemLanguage(),
@@ -190,6 +196,7 @@ const PLAINTEXT_PREF_KEYS = new Set<string>([
   'defaultLightTheme',
   'defaultDarkTheme',
   'reduceMotion',
+  'androidGlass',
 ]);
 
 /** ② localStorage ST_UI_PREFS 缓存副本涉及的键（无 language——schema 不含）。 */
@@ -199,6 +206,7 @@ const CACHE_PREF_KEYS = new Set<string>([
   'defaultLightTheme',
   'defaultDarkTheme',
   'reduceMotion',
+  'androidGlass',
 ]);
 
 /**
@@ -221,6 +229,7 @@ function writeUiPrefsCache(settings: AppSettings): void {
         theme: settings.theme,
         accentColor: settings.accentColor,
         reduceMotion: settings.reduceMotion,
+        androidGlass: settings.androidGlass,
         defaultLightTheme: settings.defaultLightTheme,
         defaultDarkTheme: settings.defaultDarkTheme,
         startupThemes: {
@@ -265,6 +274,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           const cached = parsed.data;
           const p = { ...get().settings };
           if (typeof cached.reduceMotion === 'boolean') p.reduceMotion = cached.reduceMotion;
+          if (isAndroidGlassMode(cached.androidGlass)) p.androidGlass = cached.androidGlass;
           if (cached.theme) p.theme = cached.theme;
           if (cached.accentColor) p.accentColor = cached.accentColor;
           if (cached.defaultLightTheme) p.defaultLightTheme = cached.defaultLightTheme;
@@ -295,6 +305,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         invoke<{
           theme?: string;
           reduceMotion?: boolean;
+          androidGlass?: AndroidGlassMode;
           accentColor?: string;
           language?: string;
           defaultLightTheme?: string;
@@ -304,6 +315,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       );
       const parsed = { ...get().settings };
       if (typeof prefs.reduceMotion === 'boolean') parsed.reduceMotion = prefs.reduceMotion;
+      if (isAndroidGlassMode(prefs.androidGlass)) parsed.androidGlass = prefs.androidGlass;
       if (prefs.theme) parsed.theme = prefs.theme as AppSettings['theme'];
       if (prefs.accentColor) parsed.accentColor = prefs.accentColor as AppSettings['accentColor'];
       if (prefs.language) parsed.language = prefs.language;
@@ -350,6 +362,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         sidebarButtonModes: { ...get().settings.sidebarButtonModes },
       };
       if (typeof prefs.reduceMotion === 'boolean') parsed.reduceMotion = prefs.reduceMotion;
+      if (isAndroidGlassMode(prefs.androidGlass)) parsed.androidGlass = prefs.androidGlass;
       if (prefs.theme) parsed.theme = prefs.theme;
       if (prefs.accentColor) parsed.accentColor = prefs.accentColor;
       if (prefs.defaultLightTheme) parsed.defaultLightTheme = prefs.defaultLightTheme;
@@ -590,6 +603,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         accentColor: state.settings.accentColor,
         customAccentHex: state.settings.customAccentHex,
         reduceMotion: state.settings.reduceMotion,
+        androidGlass: state.settings.androidGlass,
         backgroundType: state.settings.backgroundType,
         backgroundValue: state.settings.backgroundValue,
         language: state.settings.language,

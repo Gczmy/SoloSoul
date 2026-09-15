@@ -42,6 +42,7 @@ describe('settingsStore', () => {
         accentColor: 'ocean',
         customAccentHex: '',
         reduceMotion: false,
+        androidGlass: 'local',
         backgroundType: 'solid',
         backgroundValue: '',
         language: 'en-US',
@@ -476,6 +477,22 @@ describe('settingsStore', () => {
       expect(useSettingsStore.getState().settings.customPages).toHaveLength(0);
     });
   });
+  it('安卓材质偏好同步四份设置，并在锁定后保留', async () => {
+    vi.mocked(invoke).mockResolvedValue(undefined);
+    await useSettingsStore.getState().updateSetting('acc-1', 'androidGlass', 'enhanced');
+    expect(useSettingsStore.getState().settings.androidGlass).toBe('enhanced');
+    expect(JSON.parse(localStorage.getItem('solosoul_ui_prefs')!).androidGlass).toBe('enhanced');
+    expect(invoke).toHaveBeenCalledWith('ui_update_preference', {
+      key: 'androidGlass',
+      value: 'enhanced',
+    });
+    expect(invoke).toHaveBeenCalledWith('user_data_update_preference', {
+      payload: { accountId: 'acc-1', preferences: { androidGlass: 'enhanced' } },
+    });
+    useSettingsStore.getState().clearOnVaultLock();
+    expect(useSettingsStore.getState().settings.androidGlass).toBe('enhanced');
+  });
+
   it('保存新的主题定义，不把尚未重绘的 DOM 颜色写进启动缓存', async () => {
     const { THEME_SCHEMES } = await import('@/lib/themeSchemes');
     const next = THEME_SCHEMES.filter((scheme) => scheme.mode === 'light')[1];

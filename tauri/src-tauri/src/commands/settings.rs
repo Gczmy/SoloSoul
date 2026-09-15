@@ -137,6 +137,15 @@ fn maybe_migrate_ui_prefs(
     Ok(())
 }
 
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AndroidGlassMode {
+    Off,
+    #[default]
+    Local,
+    Enhanced,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiPreferences {
@@ -144,6 +153,8 @@ pub struct UiPreferences {
     pub accent_color: String,
     #[serde(default)]
     pub reduce_motion: bool,
+    #[serde(default)]
+    pub android_glass: AndroidGlassMode,
     pub language: String,
     #[serde(default)]
     pub has_seen_onboarding: bool,
@@ -162,6 +173,7 @@ impl Default for UiPreferences {
             has_seen_onboarding: false,
             notification_permission_requested: false,
             reduce_motion: false,
+            android_glass: AndroidGlassMode::Local,
         }
     }
 }
@@ -321,6 +333,7 @@ const ALLOWED_PREF_KEYS: &[&str] = &[
     "theme",
     "accentColor",
     "reduceMotion",
+    "androidGlass",
     "defaultLightTheme",
     "defaultDarkTheme",
     "customAccentHex",
@@ -603,6 +616,7 @@ mod tests {
             has_seen_onboarding: true,
             notification_permission_requested: false,
             reduce_motion: true,
+            android_glass: AndroidGlassMode::Enhanced,
         };
         let json = serde_json::to_string(&original).unwrap();
         assert!(json.contains("\"theme\":\"dark\""));
@@ -616,6 +630,7 @@ mod tests {
         assert_eq!(restored.language, original.language);
         assert!(restored.has_seen_onboarding);
         assert!(restored.reduce_motion);
+        assert_eq!(restored.android_glass, AndroidGlassMode::Enhanced);
     }
 
     #[test]
@@ -623,6 +638,7 @@ mod tests {
         let json = r#"{"theme":"light","accentColor":"ocean","language":"en-US"}"#;
         let restored: UiPreferences = serde_json::from_str(json).unwrap();
         assert!(!restored.reduce_motion);
+        assert_eq!(restored.android_glass, AndroidGlassMode::Local);
         assert!(!restored.has_seen_onboarding);
     }
 
@@ -778,6 +794,7 @@ mod tests {
             has_seen_onboarding: true,
             notification_permission_requested: false,
             reduce_motion: false,
+            android_glass: AndroidGlassMode::Local,
         };
         std::fs::write(&path, serde_json::to_string(&original).unwrap()).unwrap();
 
@@ -802,6 +819,7 @@ mod tests {
             has_seen_onboarding: false,
             notification_permission_requested: false,
             reduce_motion: false,
+            android_glass: AndroidGlassMode::Local,
         };
         std::fs::write(&old, serde_json::to_string(&original).unwrap()).unwrap();
 

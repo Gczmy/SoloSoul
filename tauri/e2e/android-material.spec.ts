@@ -182,3 +182,142 @@ test('appearance persists across reload and a locked vault drops cached names', 
   await expect(page.getByText('Passport', { exact: true })).toHaveCount(0);
   await expect(page.locator('.android-sheet')).toHaveCount(0);
 });
+
+async function selectGlass(page: import('@playwright/test').Page, label: string) {
+  await page.locator('.android-navigation a[href="/settings"]').click();
+  await page.getByText('Theme & Appearance', { exact: true }).click();
+  await page.getByRole('button', { name: label, exact: true }).click();
+}
+
+test('glass switches retain navigation geometry, forced colors use solid surfaces', async ({
+  page,
+}) => {
+  await expect(page.locator('html')).toHaveAttribute('data-android-glass', 'local');
+  const before = await page.locator('.android-navigation').boundingBox();
+  expect(
+    await page.locator('.android-appbar').evaluate((el) => getComputedStyle(el).backdropFilter),
+  ).toContain('blur');
+  await selectGlass(page, 'Off');
+  await expect(page.locator('html')).toHaveAttribute('data-android-glass', 'off');
+  expect(await page.locator('.android-navigation').boundingBox()).toEqual(before);
+  expect(
+    await page.locator('.android-appbar').evaluate((el) => getComputedStyle(el).backdropFilter),
+  ).toBe('none');
+  await page.getByRole('button', { name: 'Enhanced glass', exact: true }).click();
+  await page.emulateMedia({ forcedColors: 'active' });
+  await expect(page.locator('html')).toHaveAttribute('data-android-glass', 'off');
+  await page.emulateMedia({ forcedColors: 'none' });
+  await expect(page.locator('html')).toHaveAttribute('data-android-glass', 'enhanced');
+  await page.reload();
+  await login(page);
+  await expect(page.locator('html')).toHaveAttribute('data-android-glass', 'enhanced');
+});
+
+test('liquid artwork recovers context loss, stops when hidden and clears on lock', async ({
+  page,
+}) => {
+  await selectGlass(page, 'Enhanced glass');
+  await page.locator('.android-navigation a[href="/"]').click();
+  const art = page.locator('.android-liquid-artwork');
+  await expect(art).toHaveAttribute('data-liquid-ready', 'true');
+  await page.screenshot({ path: test.info().outputPath('enhanced-home.png') });
+  // 包装 drawArrays 计数验证实际绘制生命周期，未读取画布中的业务字段。
+  await art.locator('canvas').evaluate((canvas) => {
+    const gl = (canvas as HTMLCanvasElement).getContext('webgl')!;
+    const draw = gl.drawArrays.bind(gl);
+    Object.assign(window, {
+      __glassFrames: 0,
+      __glassContext: gl.getExtension('WEBGL_lose_context'),
+    });
+    gl.drawArrays = (...args) => {
+      (window as any).__glassFrames++;
+      draw(...args);
+    };
+  });
+  await page.waitForTimeout(180);
+  expect(await page.evaluate(() => (window as any).__glassFrames)).toBe(0);
+  await page.evaluate(() => (window as any).__glassContext.loseContext());
+  await expect(art).toHaveAttribute('data-liquid-ready', 'false');
+  await page.evaluate(() => (window as any).__glassContext.restoreContext());
+  await expect(art).toHaveAttribute('data-liquid-ready', 'true');
+  await page.setViewportSize({ width: 390, height: 640 });
+  await page.locator('[data-shell-content]').evaluate((el) => (el.scrollTop = el.scrollHeight));
+  await page.waitForTimeout(180);
+  expect(await art.evaluate((el) => el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(0);
+  const before = await page.evaluate(() => (window as any).__glassFrames);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.waitForTimeout(180);
+  expect(await page.evaluate(() => (window as any).__glassFrames)).toBe(before);
+  await page.getByRole('button', { name: /Lock Vault/i }).click();
+  await expect(art).toHaveCount(0);
+});
+
+test('native menu returns contextual actions and uses web fallback when unavailable', async ({
+  page,
+}) => {
+  await selectGlass(page, 'Enhanced glass');
+  await page.evaluate(() => {
+    const mocks = (window as any).__E2E_MOCKS__;
+    mocks.android_glass_capabilities = () => ({
+      apiLevel: 36,
+      windowBlur: true,
+      webViewVersion: 'test',
+    });
+    mocks.android_show_glass_menu = ({ payload }: any) => ({
+      requestId: payload.requestId,
+      action: 'object',
+    });
+  });
+  await page.locator('.android-navigation a[href="/workspace"]').click();
+  await page.locator('.android-chip').filter({ hasText: 'Identity' }).click();
+  const historyLength = await page.evaluate(() => history.length);
+  await page.locator('.android-fab').click();
+  await expect(page).toHaveURL('/editor?section=identity');
+  expect(await page.evaluate(() => history.length)).toBe(historyLength + 1);
+  await page.locator('.android-navigation a[href="/"]').click();
+  await page.evaluate(() => {
+    (window as any).__E2E_MOCKS__.android_show_glass_menu = ({ payload }: any) => ({
+      requestId: payload.requestId,
+      action: 'page',
+    });
+  });
+  await page.locator('.android-fab').click();
+  await expect(page.locator('.android-page-form')).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Page name', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.android-create-options')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.evaluate(() => {
+    (window as any).__E2E_MOCKS__.android_glass_capabilities = () => ({ windowBlur: false });
+  });
+  await page.locator('.android-fab').click();
+  await expect(page.locator('.android-create-options')).toBeVisible();
+});
+
+test('late native menu results cannot navigate after route change or lock', async ({ page }) => {
+  await selectGlass(page, 'Enhanced glass');
+  await page.locator('.android-navigation a[href="/"]').click();
+  await page.evaluate(() => {
+    const mocks = (window as any).__E2E_MOCKS__;
+    mocks.android_glass_capabilities = () => ({ windowBlur: true });
+    mocks.android_show_glass_menu = ({ payload }: any) =>
+      new Promise((resolve) => {
+        (window as any).__finishGlass = () =>
+          resolve({ requestId: payload.requestId, action: 'object' });
+      });
+    mocks.android_close_glass_menu = () => {
+      (window as any).__glassClosed = true;
+    };
+  });
+  await page.locator('.android-fab').click();
+  await expect
+    .poll(() => page.evaluate(() => typeof (window as any).__finishGlass))
+    .toBe('function');
+  await page.locator('.android-navigation a[href="/settings"]').click();
+  await expect.poll(() => page.evaluate(() => (window as any).__glassClosed)).toBe(true);
+  await page.evaluate(() => (window as any).__finishGlass());
+  await expect(page).toHaveURL('/settings');
+  await page.getByRole('button', { name: /Lock Vault/i }).click();
+  await expect(page).toHaveURL('/login');
+});

@@ -44,6 +44,7 @@ android {
         applicationId = "com.solosoul.app"
         minSdk = 28
         targetSdk = 36
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // versionCode = 基础值（tauri.properties）+ CI 构建序号，保证每次发布单调递增
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt() +
             (System.getenv("GITHUB_RUN_NUMBER") ?: "0").toInt()
@@ -195,6 +196,8 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.4")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")
+    // 与 tauri-android 的 Invoke 参数解析版本保持一致，仅用于原生桥接回归。
+    androidTestImplementation("com.fasterxml.jackson.core:jackson-databind:2.15.3")
 }
 
 apply(from = "tauri.build.gradle.kts")

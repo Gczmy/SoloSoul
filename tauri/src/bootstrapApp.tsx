@@ -28,6 +28,7 @@ export async function mountApplication(): Promise<void> {
   document.documentElement.dataset.userReduceMotion = String(
     useSettingsStore.getState().settings.reduceMotion,
   );
+  document.documentElement.dataset.androidGlass = useSettingsStore.getState().settings.androidGlass;
   if (window.__SOLOSOUL_STARTUP__?.active() === false) return;
   window.__SOLOSOUL_STARTUP__?.phase('accounts');
   performance.mark('solosoul:react-mount');

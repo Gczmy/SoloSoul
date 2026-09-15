@@ -1,0 +1,7 @@
+{
+  "identifier": "android-glass",
+  "description": "Android 主窗口监听玻璃能力变化，快捷菜单仍使用受校验的应用命令",
+  "windows": ["main"],
+  "platforms": ["android"],
+  "permissions": ["android-glass:allow-register-listener", "android-glass:allow-remove-listener"]
+}

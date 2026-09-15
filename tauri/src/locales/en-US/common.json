@@ -25,7 +25,7 @@
   "success": "Success",
   "warning": "Warning",
   "hour": "Hour",
-  "minute": "Minute",
+  "minute": "minute",
   "info": "Info",
   "yes": "Yes",
   "no": "No",
@@ -146,7 +146,6 @@
     "system": "System"
   },
   "never": "Never",
-  "minute": "minute",
   "minutes": "minutes",
   "welcome_back": "Welcome back",
   "welcome_back_name": "Welcome back, {{name}}",
@@ -759,6 +758,16 @@
     "palette_forest": "Sage",
     "palette_amber": "Clay",
     "reduce_motion": "Reduce motion",
-    "reduce_motion_desc": "Show the final state immediately. Also respects the system preference."
+    "reduce_motion_desc": "Show the final state immediately. Also respects the system preference.",
+    "glass_title": "Glass material",
+    "glass_desc": "Add depth to navigation and action sheets while keeping content clear.",
+    "glass_off": "Off",
+    "glass_local": "Local glass",
+    "glass_enhanced": "Enhanced glass",
+    "glass_off_desc": "Use solid tonal surfaces with the same layout and touch targets.",
+    "glass_local_desc": "Frost the app bar, floating navigation and action sheets.",
+    "glass_enhanced_desc": "Add liquid refraction on Home and a system-blurred create menu on supported devices. Basic materials are used when unavailable.",
+    "create_description": "Choose how you want to record it.",
+    "vault_title": "My vault"
   }
 }

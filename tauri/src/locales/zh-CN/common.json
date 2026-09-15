@@ -146,7 +146,6 @@
     "system": "跟随系统"
   },
   "never": "永不",
-  "minute": "分钟",
   "minutes": "分钟",
   "welcome_back": "欢迎回来",
   "welcome_back_name": "欢迎回来，{{name}}",
@@ -756,6 +755,16 @@
     "palette_forest": "鼠尾草",
     "palette_amber": "陶土",
     "reduce_motion": "减少动态效果",
-    "reduce_motion_desc": "直接显示最终状态。系统开启此选项时也会生效。"
+    "reduce_motion_desc": "直接显示最终状态。系统开启此选项时也会生效。",
+    "glass_title": "玻璃材质",
+    "glass_desc": "为导航与操作浮层增加通透层次，正文保持清晰。",
+    "glass_off": "关闭",
+    "glass_local": "局部玻璃",
+    "glass_enhanced": "增强玻璃",
+    "glass_off_desc": "使用实色色调表面，保留相同布局与操作区域。",
+    "glass_local_desc": "顶部栏、悬浮底栏和操作浮层使用毛玻璃。",
+    "glass_enhanced_desc": "加入首页液态折射；支持的设备使用系统模糊新建菜单。设备不支持时自动使用基础材质。",
+    "create_description": "选择你想记录的方式。",
+    "vault_title": "我的资料库"
   }
 }

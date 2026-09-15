@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- 仅 Debug：原生材质回归使用虚构页面，不打开真实账户。 -->
+        <activity android:name=".GlassRegressionActivity" android:exported="false"
+            android:theme="@style/Theme.solo_soul" />
+    </application>
+</manifest>

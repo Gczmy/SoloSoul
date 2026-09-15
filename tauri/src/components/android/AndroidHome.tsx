@@ -7,6 +7,8 @@ import type { CustomPage } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
 import { prefetchRegistry } from '@/lib/prefetch/registry';
+import { useAndroidGlassMode } from '@/hooks/useAndroidGlass';
+import { AndroidLiquidArtwork } from './AndroidLiquidArtwork';
 
 export function AndroidHome({
   onEditPage,
@@ -17,6 +19,7 @@ export function AndroidHome({
 }) {
   const { t, i18n } = useTranslation(['common', 'navigation']);
   const navigate = useNavigate();
+  const glassMode = useAndroidGlassMode();
   const accountName = useAuthStore((s) => s.currentAccount?.name);
   const pages = useActiveCustomPages();
   const { data, error, reload } = usePrefetchData(prefetchRegistry.androidOverview);
@@ -38,14 +41,20 @@ export function AndroidHome({
   ];
   return (
     <div className="android-page" data-testid="android-home">
-      <section className="android-overview">
+      <div className="android-home-intro">
         <h2>{t('welcome_back_name', { name: accountName })}</h2>
         <p>{t('material.home_subtitle')}</p>
-        <div className="android-overview-stat">
-          <strong>{data?.count ?? '—'}</strong>
-          <span>{t('material.object_count_label')}</span>
+      </div>
+      <section className="android-overview" data-liquid={glassMode === 'enhanced' || undefined}>
+        {glassMode === 'enhanced' && <AndroidLiquidArtwork />}
+        <div className="android-overview-copy">
+          <p>{t('material.vault_title')}</p>
+          <div className="android-overview-stat">
+            <strong>{data?.count ?? '—'}</strong>
+            <span>{t('material.object_count_label')}</span>
+          </div>
+          <p>{t('material.local_vault')}</p>
         </div>
-        <p>{t('material.local_vault')}</p>
       </section>
       <div className="android-home-columns">
         <section>

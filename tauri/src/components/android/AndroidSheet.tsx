@@ -89,7 +89,7 @@ export function AndroidSheet({
       <div className="android-sheet-scrim" onClick={onClose} />
       <div
         ref={panel}
-        className="android-sheet"
+        className="android-sheet android-glass-surface"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

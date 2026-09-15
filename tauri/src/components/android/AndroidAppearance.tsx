@@ -8,16 +8,18 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { applyTheme, getSystemTheme } from '@/lib/theme';
 import { ANDROID_PALETTES, androidMaterialTokens } from '@/lib/androidMaterial';
+import { ANDROID_GLASS_MODES } from '@/lib/androidGlass';
 
 export function AndroidAppearance() {
   const { t } = useTranslation(['common', 'settings']);
   const navigate = useNavigate();
   const accountId = useAuthStore((s) => s.currentAccount?.id) ?? '';
-  const { theme, accentColor, reduceMotion, language } = useSettingsStore(
+  const { theme, accentColor, reduceMotion, androidGlass, language } = useSettingsStore(
     useShallow((s) => ({
       theme: s.settings.theme,
       accentColor: s.settings.accentColor,
       reduceMotion: s.settings.reduceMotion,
+      androidGlass: s.settings.androidGlass,
       language: s.settings.language,
     })),
   );
@@ -87,6 +89,24 @@ export function AndroidAppearance() {
               </button>
             ))}
           </div>
+        </section>
+        <section className="android-theme-section">
+          <h2>{t('material.glass_title')}</h2>
+          <p className="android-material-description">{t('material.glass_desc')}</p>
+          <div className="android-theme-options" aria-label={t('material.glass_title')}>
+            {ANDROID_GLASS_MODES.map((mode) => (
+              <button
+                type="button"
+                key={mode}
+                className="android-theme-option"
+                aria-pressed={androidGlass === mode}
+                onClick={() => void update(accountId, 'androidGlass', mode)}
+              >
+                {t(`material.glass_${mode}`)}
+              </button>
+            ))}
+          </div>
+          <p className="android-material-description">{t(`material.glass_${androidGlass}_desc`)}</p>
         </section>
         <section className="android-theme-section">
           <label className="android-switch-row">

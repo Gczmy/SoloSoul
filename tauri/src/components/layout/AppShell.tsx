@@ -1,3 +1,4 @@
+import { useAndroidGlassSurface } from '@/hooks/useAndroidGlass';
 import { useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { trackAsyncListener } from '@/lib/asyncListener';
 import { useLocation } from 'react-router-dom';
@@ -84,7 +85,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
         : `${appbarHeight + (isTop ? FUNCTION_BAR_HEIGHT : 0)}px`,
       '--shell-content-bottom': isAndroid
         ? isNarrowViewport
-          ? 'calc(80px + env(safe-area-inset-bottom, 0px))'
+          ? 'calc(86px + env(safe-area-inset-bottom, 0px))'
           : 'env(safe-area-inset-bottom, 0px)'
         : `${isNarrowViewport ? 56 : effectivePosition === 'bottom' ? 48 : 0}px`,
       '--shell-page-padding': isNarrowViewport ? '16px' : '24px',
@@ -103,6 +104,7 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
     isAndroid,
   ]);
 
+  useAndroidGlassSurface();
   const reduceMotion = useSettingsStore((s) => s.settings.reduceMotion);
   useLayoutEffect(() => {
     document.documentElement.dataset.userReduceMotion = String(reduceMotion);

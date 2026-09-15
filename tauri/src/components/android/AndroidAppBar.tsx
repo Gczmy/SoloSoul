@@ -23,7 +23,11 @@ export function AndroidAppBar({
   const lock = useAuthStore((s) => s.lock);
   const rootPage = ['/', '/workspace', '/tools', '/settings'].includes(pathname);
   return (
-    <header data-appbar data-tauri-drag-region="false" className="android-appbar">
+    <header
+      data-appbar
+      data-tauri-drag-region="false"
+      className="android-appbar android-glass-surface"
+    >
       <div className="android-appbar-leading">
         {onBack && !rootPage ? (
           <button
