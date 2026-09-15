@@ -128,7 +128,7 @@ export function SearchPage() {
   return (
     <PageShell
       title={t('navigation:search')}
-      onBack={() => navigate('/home')}
+      onBack={() => navigate('/')}
       actions={<PageGuideButton pages={searchGuidePages} />}
     >
       <PageContainer variant="small" gap="default">

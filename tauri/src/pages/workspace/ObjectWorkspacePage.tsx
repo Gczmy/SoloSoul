@@ -122,7 +122,7 @@ export function ObjectWorkspacePage() {
   return (
     <PageShell
       title={ws.customPage?.name || ws.activeCategoryLabel || t('objects')}
-      onBack={() => navigate('/home')}
+      onBack={() => navigate('/')}
       primaryActions={
         <button
           className={`${buttonStyles.hideLabelOnMobile} ${styles.createBtn}`}

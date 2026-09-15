@@ -102,7 +102,7 @@ describe('SettingsPage', () => {
 
     const backBtn = screen.getByTestId('back-btn');
     fireEvent.click(backBtn);
-    expect(navigate).toHaveBeenCalledWith('/home');
+    expect(navigate).toHaveBeenCalledWith('/');
   });
 
   it('displays vault size badge when loaded', async () => {

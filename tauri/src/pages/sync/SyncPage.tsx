@@ -105,7 +105,7 @@ export function SyncPage() {
   return (
     <PageShell
       title={t('settings:sync', { defaultValue: 'Device Sync' })}
-      onBack={() => navigate(backTo || '/home', { replace: true })}
+      onBack={() => navigate(backTo || '/', { replace: true })}
       actions={<PageGuideButton pages={syncGuidePages} />}
     >
       <PageContainer variant="xs" gap="default">

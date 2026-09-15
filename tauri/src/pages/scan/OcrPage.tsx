@@ -336,7 +336,7 @@ export function OcrPage() {
       onBack={() => {
         const state = location.state as { fromHome?: boolean } | undefined;
         if (state?.fromHome) {
-          navigate('/home');
+          navigate('/');
         } else {
           navigate(-1);
         }

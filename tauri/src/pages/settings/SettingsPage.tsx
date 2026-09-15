@@ -181,7 +181,7 @@ export function SettingsPage() {
   ], [t, vaultSize]);
 
   return (
-    <PageShell title={t('settings:title')} onBack={() => navigate('/home')}>
+    <PageShell title={t('settings:title')} onBack={() => navigate('/')}>
       <PageContainer variant="small" gap="large">
         {settingGroups.map((group) => (
           <div key={group.title} className={styles.settingGroup}>

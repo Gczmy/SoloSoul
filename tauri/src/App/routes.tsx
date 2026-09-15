@@ -50,6 +50,7 @@ export interface RouteConfig {
 }
 
 export const protectedRoutes: RouteConfig[] = [
+  // 首页统一使用 /；跳到未注册的 /home 会命中壳外兜底重定向，卸载整壳并闪屏。
   { path: '/', element: <HomePage /> },
   { path: '/search', element: <SearchPage /> },
   { path: '/settings', element: <SettingsPage /> },

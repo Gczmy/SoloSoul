@@ -74,7 +74,7 @@ export function LlmChatPage() {
 
   if (chat.loading) {
     return (
-      <PageShell title={t('settings:ai_chat')} onBack={() => navigate('/home')}>
+      <PageShell title={t('settings:ai_chat')} onBack={() => navigate('/')}>
         <div
           style={{
             position: 'fixed',
@@ -115,7 +115,7 @@ export function LlmChatPage() {
     return (
       <PageShell
         title={t('settings:ai_chat')}
-        onBack={() => navigate('/home')}
+        onBack={() => navigate('/')}
         actions={
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <PageGuideButton pages={aiChatGuidePages} />
@@ -187,7 +187,7 @@ export function LlmChatPage() {
   return (
     <PageShell
       title={t('settings:ai_chat')}
-      onBack={() => navigate('/home')}
+      onBack={() => navigate('/')}
       actions={
         <div style={{ display: 'flex', gap: 8 }}>
           <PageGuideButton pages={aiChatGuidePages} />

@@ -12,7 +12,7 @@ import { RecoveryManualView } from '@/components/recovery/RecoveryManualView';
 interface RecoveryReceiveDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  /** 恢复成功后调用；若提供则替代默认的 /home 导航 */
+  /** 恢复成功后调用；若提供则替代默认的首页导航 */
   onSuccess?: () => void;
 }
 

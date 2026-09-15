@@ -18,7 +18,7 @@ import type {
 export interface UseRecoveryReceiveOptions {
   isOpen: boolean;
   onClose: () => void;
-  /** 恢复成功后调用；若提供则替代默认的 /home 导航 */
+  /** 恢复成功后调用；若提供则替代默认的首页导航 */
   onSuccess?: () => void;
 }
 
@@ -117,7 +117,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
       if (onSuccess) {
         onSuccess();
       } else {
-        navigate('/home', { replace: true });
+        navigate('/', { replace: true });
       }
     }
     resetState();

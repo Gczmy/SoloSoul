@@ -126,7 +126,7 @@ export function HelpPage() {
     } else if (backTo) {
       navigate(backTo, { replace: true });
     } else {
-      navigate('/home', { replace: true });
+      navigate('/', { replace: true });
     }
   };
 

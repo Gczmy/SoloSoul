@@ -138,8 +138,8 @@ export function GlobalAttachmentManager() {
     <PageShell
       title={t('settings:items.global_attachments', { defaultValue: 'Attachments' })}
       onBack={() => {
-        const state = location.state as { from?: string } | undefined;
-        if (state?.from === '/home') navigate('/home');
+        const state = location.state as { from?: string; fromHome?: boolean } | undefined;
+        if (state?.fromHome || state?.from === '/' || state?.from === '/home') navigate('/');
         else navigate('/settings');
       }}
       actions={<PageGuideButton pages={attachmentGuidePages} />}
