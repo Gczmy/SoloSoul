@@ -65,6 +65,7 @@ export function TopFunctionBar({
   const isHovering = useSidebarHoverStore((s) => s.isHovering);
   const setHovering = useSidebarHoverStore((s) => s.setHovering);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const hoverZoneRef = useRef<HTMLDivElement>(null);
   const horizontalScrollLeft = useSidebarHoverStore((s) => s.horizontalScrollLeft);
   const setHorizontalScrollLeft = useSidebarHoverStore((s) => s.setHorizontalScrollLeft);
@@ -73,6 +74,12 @@ export function TopFunctionBar({
   const isAnyCardOpenRef = useRef(isAnyCardOpen);
   isAnyCardOpenRef.current = isAnyCardOpen;
   const expanded = isHovering || isAnyCardOpen;
+
+  useLayoutEffect(() => {
+    if (!expanded && funcScrollRef.current?.contains(document.activeElement)) {
+      toggleRef.current?.focus();
+    }
+  }, [expanded]);
 
   // Collapse when mouse leaves the entire window (browser/webview may not fire
   // mouseleave on the wrapper in this case)
@@ -290,18 +297,33 @@ export function TopFunctionBar({
             ref={wrapperRef}
             className={styles.horizontalFoldableWrapper}
             onMouseEnter={handleMouseEnter}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape' && !isAnyCardOpen) {
+                event.stopPropagation();
+                toggleRef.current?.focus();
+                setHovering(false);
+              }
+            }}
           >
             {/* Arrow toggle — full-size button */}
-            <div className={styles.horizontalArrowToggle}>
+            <button
+              ref={toggleRef}
+              type="button"
+              className={styles.horizontalArrowToggle}
+              aria-label={t('sidebar_tools')}
+              aria-expanded={expanded}
+              onClick={() => setHovering(!isHovering)}
+            >
               <ChevronRight
                 size={ICON_SIZE.xl}
                 className={`${styles.horizontalArrowIcon} ${!expanded ? styles.horizontalArrowIconExpanded : ''}`}
               />
-            </div>
+            </button>
 
             {/* Scrollable function buttons — always rendered for smooth CSS transition */}
             <div
               className={`${styles.horizontalButtonArea} ${expanded ? styles.horizontalButtonAreaOpen : ''}`}
+              inert={!expanded}
             >
               <div
                 ref={funcScrollRef}

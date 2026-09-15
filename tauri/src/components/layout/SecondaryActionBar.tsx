@@ -46,6 +46,7 @@ export function SecondaryActionBar({
   const isHovering = useSidebarHoverStore((s) => s.isHovering);
   const setHovering = useSidebarHoverStore((s) => s.setHovering);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const isOcrCardOpen = useOcrScanStore((s) => s.isCardOpen);
   const isPluginPanelOpen = usePluginQuickStore((s) => s.isOpen);
   const cardPlacement =
@@ -63,6 +64,12 @@ export function SecondaryActionBar({
   const isAnyCardOpenRef = useRef(isAnyCardOpen);
   isAnyCardOpenRef.current = isAnyCardOpen;
   const expanded = sidebarExpanded || isHovering || isAnyCardOpen;
+
+  useLayoutEffect(() => {
+    if (!expanded && contentRef.current?.contains(document.activeElement)) {
+      toggleRef.current?.focus();
+    }
+  }, [expanded]);
 
   // Collapse when mouse leaves the entire window (browser/webview may not fire
   // mouseleave on the wrapper in this case)
@@ -179,12 +186,20 @@ export function SecondaryActionBar({
       className={styles.foldableWrapper}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && !sidebarExpanded && !isAnyCardOpen) {
+          event.stopPropagation();
+          toggleRef.current?.focus();
+          setHovering(false);
+        }
+      }}
     >
       {/* Arrow toggle — full-size button */}
       {sidebarExpanded ? (
         <div className={styles.sectionLabel}>{t('sidebar_tools')}</div>
       ) : (
         <button
+          ref={toggleRef}
           type="button"
           className={styles.arrowToggle}
           aria-label={t('sidebar_tools')}
@@ -199,7 +214,10 @@ export function SecondaryActionBar({
       )}
 
       {/* Foldable button area — always rendered for smooth CSS transition */}
-      <div className={`${styles.foldableArea} ${expanded ? styles.foldableAreaOpen : ''}`}>
+      <div
+        className={`${styles.foldableArea} ${expanded ? styles.foldableAreaOpen : ''}`}
+        inert={!expanded}
+      >
         <div
           ref={contentRef}
           className={styles.foldableContent}
