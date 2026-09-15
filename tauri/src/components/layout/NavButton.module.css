@@ -77,12 +77,12 @@
 /* 9.4 — 选中状态 */
 .activeButton {
   color: var(--accent-primary);
-  background: rgba(91, 124, 153, 0.1);
+  background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .activeButton:hover {
-    background: rgba(91, 124, 153, 0.15);
+    background: color-mix(in srgb, var(--accent-primary) 22%, transparent);
     color: var(--accent-primary);
   }
 }
