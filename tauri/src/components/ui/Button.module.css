@@ -3,12 +3,18 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-height: var(--button-min-height, auto);
+  line-height: 20px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-family: inherit;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
   white-space: nowrap;
 }
 .button:disabled {
@@ -89,17 +95,17 @@
 
 /* Sizes */
 .sm {
-  padding: 6px 12px;
-  font-size: var(--text-body-sm);
+  padding: var(--button-padding, 6px 12px);
+  font-size: var(--button-font-size, var(--text-body-sm));
   border-radius: 6px;
 }
 .md {
-  padding: 10px 20px;
-  font-size: var(--text-body);
+  padding: var(--button-padding, 10px 20px);
+  font-size: var(--button-font-size, var(--text-body));
 }
 .lg {
-  padding: 14px 28px;
-  font-size: var(--text-section-title);
+  padding: var(--button-padding, 14px 28px);
+  font-size: var(--button-font-size, var(--text-section-title));
 }
 
 .spinner {
@@ -141,10 +147,10 @@
     margin-right: 0 !important;
   }
 
-  /* 与页面右上角指南按钮一致的紧凑图标按钮（移动端 32×32） */
+  /* 与页面右上角指南按钮一致的紧凑图标按钮（移动端 44×44） */
   .compactMobile.button {
-    min-height: 32px;
-    min-width: 32px;
+    min-height: 44px;
+    min-width: 44px;
     padding: 6px;
   }
 }

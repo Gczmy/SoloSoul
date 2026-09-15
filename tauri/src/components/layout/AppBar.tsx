@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import styles from './AppBar.module.css';
+import { ToolbarActions } from './ToolbarActions';
 import { ICON_SIZE } from '@/lib/constants';
 import { useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
@@ -17,11 +18,18 @@ import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 interface AppBarProps {
   title: string;
   actions?: React.ReactNode;
+  primaryActions?: React.ReactNode;
   onBack?: () => void;
   sidebarPosition?: 'left' | 'right' | 'top' | 'bottom';
 }
 
-export function AppBar({ title, actions, onBack, sidebarPosition = 'left' }: AppBarProps) {
+export function AppBar({
+  title,
+  actions,
+  primaryActions,
+  onBack,
+  sidebarPosition = 'left',
+}: AppBarProps) {
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('common');
   const { t: nav } = useTranslation('navigation');
@@ -95,7 +103,7 @@ export function AppBar({ title, actions, onBack, sidebarPosition = 'left' }: App
         <h1 className={styles.title}>{title}</h1>
       </div>
       <div className={styles.actions} data-titlebar-control data-tauri-drag-region="false">
-        {actions}
+        <ToolbarActions primary={primaryActions}>{actions}</ToolbarActions>
       </div>
     </header>
   );

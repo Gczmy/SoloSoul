@@ -5,6 +5,7 @@ export interface PageShellProps {
   children: ReactNode;
   title: string;
   actions?: ReactNode;
+  primaryActions?: ReactNode;
   onBack?: () => void;
 }
 
@@ -16,10 +17,10 @@ export interface PageShellProps {
  * 与旧 <AppShell> 的 props 形状完全一致，页面迁移仅需替换包装组件名。
  * useLayoutEffect 保证标题/操作在浏览器绘制前生效，不闪旧标题。
  */
-export function PageShell({ children, title, actions, onBack }: PageShellProps) {
+export function PageShell({ children, title, actions, primaryActions, onBack }: PageShellProps) {
   const setConfig = useShellConfigStore((s) => s.setConfig);
   useLayoutEffect(() => {
-    setConfig({ title, actions, onBack });
-  }, [setConfig, title, actions, onBack]);
+    setConfig({ title, actions, primaryActions, onBack });
+  }, [setConfig, title, actions, primaryActions, onBack]);
   return <>{children}</>;
 }

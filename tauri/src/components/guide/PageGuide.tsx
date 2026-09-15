@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -66,7 +67,11 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
 
   // 每次打开时重置到第一页
   useEffect(() => {
-    if (open) setPageIndex(0);
+    if (!open) return;
+    setPageIndex(0);
+    cardRef.current?.focus();
+    const trigger = triggerRef.current;
+    return () => trigger?.focus();
   }, [open]);
 
   // 点击外部关闭卡片
@@ -96,6 +101,25 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
     if (!open) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Tab' && cardRef.current) {
+        const buttons = Array.from(
+          cardRef.current.querySelectorAll<HTMLElement>(
+            'button:not(:disabled), a[href], input, [tabindex="0"]',
+          ),
+        ).filter((el) => !el.closest('[inert]') && el.getClientRects().length > 0);
+        const first = buttons[0];
+        const last = buttons.at(-1);
+        if (
+          e.shiftKey &&
+          (document.activeElement === first || document.activeElement === cardRef.current)
+        ) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
@@ -245,11 +269,11 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
           borderStyle: 'solid',
           borderWidth: 1,
           cursor: 'pointer',
-          fontSize: 'var(--text-badge)',
+          fontSize: 'var(--button-font-size, var(--text-badge))',
           fontWeight: 500,
-          transition: 'all 0.15s ease',
+          transition: 'background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease',
           minWidth: 32,
-          minHeight: 32,
+          minHeight: 'var(--button-min-height, 32px)',
         }}
       >
         <CircleHelp size={ICON_SIZE.sm} />
@@ -257,176 +281,186 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
       </button>
 
       {/* 指南卡片 — 居中浮层 */}
-      {open && currentPage && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 'var(--z-onboarding)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'var(--bg-overlay)',
-            backdropFilter: 'blur(4px)',
-          }}
-          onClick={handleClose}
-        >
+      {open &&
+        currentPage &&
+        createPortal(
           <div
-            ref={cardRef}
-            onClick={(e) => e.stopPropagation()}
             style={{
-              background: 'var(--bg-elevated)',
-              borderRadius: 16,
-              boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
-              border: '1px solid var(--border-subtle)',
-              maxWidth: 500,
-              width: '90%',
-              maxHeight: '85vh',
+              position: 'fixed',
+              inset: 0,
+              zIndex: 'var(--z-onboarding)',
               display: 'flex',
-              flexDirection: 'column',
-              padding: 0,
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'var(--bg-overlay)',
+              backdropFilter: 'blur(4px)',
             }}
+            data-page-guide-overlay
+            onClick={handleClose}
           >
-            {/* Header */}
             <div
+              ref={cardRef}
+              role="dialog"
+              tabIndex={-1}
+              aria-modal="true"
+              aria-label={currentPage.title}
+              onClick={(e) => e.stopPropagation()}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 20px',
-                borderBottom: '1px solid var(--border-subtle)',
-                flexShrink: 0,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    background: 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <currentPage.icon
-                    size={ICON_SIZE.md}
-                    style={{ color: 'var(--accent-primary)' }}
-                  />
-                </div>
-                <span
-                  style={{
-                    fontSize: 'var(--text-section-title)',
-                    fontWeight: 700,
-                    color: 'var(--text-primary)',
-                  }}
-                >
-                  {currentPage.title}
-                </span>
-              </div>
-              <button
-                onClick={handleClose}
-                className="interactive-accent"
-                style={{
-                  padding: 6,
-                  borderRadius: 8,
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <X size={ICON_SIZE.xl} />
-              </button>
-            </div>
-
-            {/* 页面指示小圆点 */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                padding: '12px 20px 0',
-                flexShrink: 0,
-              }}
-            >
-              {pages.map((p, i) => (
-                // 使用 span 而非 button：纯装饰性指示点，且避免移动端全局
-                // button{min-height/width:44px} 触控基线把 3px 圆点撑大
-                <span
-                  key={i}
-                  aria-hidden="true"
-                  style={{
-                    width: 3,
-                    height: 3,
-                    borderRadius: '50%',
-                    background: i === pageIndex ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                    transition: 'all 0.25s ease',
-                  }}
-                  title={p.title}
-                />
-              ))}
-            </div>
-
-            {/* 滑动条容器 — 左右滑动实时跟手；pan-y 让竖向滚动完全交给原生，避免与横向翻页手势竞争。
-                注意：容器必须是 flex 列布局，strip 用 flex:1 撑高——height:100% 对 flex 布局
-                动态高度的容器会退化为 auto（内容高度），导致内部页永远不需要滚动 */}
-            <div
-              ref={containerRef}
-              style={{
-                flex: 1,
-                minHeight: 0,
-                overflow: 'hidden',
-                position: 'relative',
-                touchAction: 'pan-y',
+                background: 'var(--bg-elevated)',
+                borderRadius: 16,
+                boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+                border: '1px solid var(--border-subtle)',
+                maxWidth: 500,
+                width: '90%',
+                maxHeight: '85vh',
                 display: 'flex',
                 flexDirection: 'column',
+                padding: 0,
               }}
             >
+              {/* Header */}
               <div
-                ref={stripRef}
                 style={{
                   display: 'flex',
-                  width: `${pages.length * 100}%`,
-                  flex: 1,
-                  minHeight: 0,
-                  transform: stripTransform,
-                  transition: stripTransition,
-                  willChange: 'transform',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '16px 20px',
+                  borderBottom: '1px solid var(--border-subtle)',
+                  flexShrink: 0,
                 }}
               >
-                {pages.map((page, pageIdx) => (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div
-                    key={pageIdx}
                     style={{
-                      width: `${100 / pages.length}%`,
-                      flexShrink: 0,
-                      overflowY: 'auto',
-                      overflowX: 'hidden',
-                      padding: '16px 20px 8px',
-                      boxSizing: 'border-box',
+                      width: 32,
+                      height: 32,
+                      borderRadius: 10,
+                      background: 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
-                    <GuidePageContent page={page} t={t} onHelpLinkClick={handleHelpLinkClick} />
+                    <currentPage.icon
+                      size={ICON_SIZE.md}
+                      style={{ color: 'var(--accent-primary)' }}
+                    />
                   </div>
+                  <span
+                    style={{
+                      fontSize: 'var(--text-section-title)',
+                      fontWeight: 700,
+                      color: 'var(--text-primary)',
+                    }}
+                  >
+                    {currentPage.title}
+                  </span>
+                </div>
+                <button
+                  onClick={handleClose}
+                  className="interactive-accent"
+                  style={{
+                    padding: 6,
+                    borderRadius: 8,
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <X size={ICON_SIZE.xl} />
+                </button>
+              </div>
+
+              {/* 页面指示小圆点 */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  padding: '12px 20px 0',
+                  flexShrink: 0,
+                }}
+              >
+                {pages.map((p, i) => (
+                  // 使用 span 而非 button：纯装饰性指示点，且避免移动端全局
+                  // button{min-height/width:44px} 触控基线把 3px 圆点撑大
+                  <span
+                    key={i}
+                    aria-hidden="true"
+                    style={{
+                      width: 3,
+                      height: 3,
+                      borderRadius: '50%',
+                      background:
+                        i === pageIndex ? 'var(--accent-primary)' : 'var(--border-subtle)',
+                      transition: 'all 0.25s ease',
+                    }}
+                    title={p.title}
+                  />
                 ))}
               </div>
-            </div>
 
-            {/* Footer — 导航 + 关闭 */}
-            <GuidePageFooter
-              t={t}
-              pageIndex={pageIndex}
-              total={pages.length}
-              isFirst={isFirst}
-              isLast={isLast}
-              onPrev={handlePrev}
-              onNext={handleNext}
-              onClose={handleClose}
-            />
-          </div>
-        </div>
-      )}
+              {/* 滑动条容器 — 左右滑动实时跟手；pan-y 让竖向滚动完全交给原生，避免与横向翻页手势竞争。
+                注意：容器必须是 flex 列布局，strip 用 flex:1 撑高——height:100% 对 flex 布局
+                动态高度的容器会退化为 auto（内容高度），导致内部页永远不需要滚动 */}
+              <div
+                ref={containerRef}
+                style={{
+                  flex: 1,
+                  minHeight: 0,
+                  overflow: 'hidden',
+                  position: 'relative',
+                  touchAction: 'pan-y',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <div
+                  ref={stripRef}
+                  style={{
+                    display: 'flex',
+                    width: `${pages.length * 100}%`,
+                    flex: 1,
+                    minHeight: 0,
+                    transform: stripTransform,
+                    transition: stripTransition,
+                    willChange: 'transform',
+                  }}
+                >
+                  {pages.map((page, pageIdx) => (
+                    <div
+                      key={pageIdx}
+                      inert={pageIdx !== pageIndex}
+                      style={{
+                        width: `${100 / pages.length}%`,
+                        flexShrink: 0,
+                        overflowY: 'auto',
+                        overflowX: 'hidden',
+                        padding: '16px 20px 8px',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      <GuidePageContent page={page} t={t} onHelpLinkClick={handleHelpLinkClick} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer — 导航 + 关闭 */}
+              <GuidePageFooter
+                t={t}
+                pageIndex={pageIndex}
+                total={pages.length}
+                isFirst={isFirst}
+                isLast={isLast}
+                onPrev={handlePrev}
+                onNext={handleNext}
+                onClose={handleClose}
+              />
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

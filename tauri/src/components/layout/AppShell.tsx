@@ -19,10 +19,11 @@ interface AppShellProps {
   children: React.ReactNode;
   title: string;
   actions?: React.ReactNode;
+  primaryActions?: React.ReactNode;
   onBack?: () => void;
 }
 
-export function AppShell({ children, title, actions, onBack }: AppShellProps) {
+export function AppShell({ children, title, actions, primaryActions, onBack }: AppShellProps) {
   const isNarrowViewport = useIsNarrowViewport();
   const titlebarHeight = useNativeWindowStore((s) => s.titlebarHeight);
   const isMacOS = useNativeWindowStore((s) => s.isMacOS);
@@ -115,7 +116,13 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
         } as CSSProperties
       }
     >
-      <AppBar title={title} actions={actions} onBack={onBack} sidebarPosition={effectivePosition} />
+      <AppBar
+        title={title}
+        primaryActions={primaryActions}
+        actions={actions}
+        onBack={onBack}
+        sidebarPosition={effectivePosition}
+      />
       {isNarrowViewport ? (
         <MobileBottomNav />
       ) : isHorizontal ? (

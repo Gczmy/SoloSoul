@@ -41,6 +41,7 @@
   align-items: center;
   gap: 12px;
   min-width: 0;
+  flex: 1;
 }
 .title {
   font-size: var(--text-section-title);
@@ -58,6 +59,9 @@
   min-width: 0;
 }
 .backButton {
+  flex-shrink: 0;
+  min-width: 32px;
+  min-height: 32px;
   background: none;
   border: none;
   color: inherit;
@@ -146,14 +150,6 @@
   .appBar[data-native-compact='true'] .title {
     font-size: 18px;
     line-height: 24px;
-  }
-  .appBar[data-native-compact='true'] .backButton,
-  .appBar[data-native-compact='true'] .actions :is(button, input, select) {
-    min-height: 0 !important;
-    max-height: calc(var(--appbar-height, 52px) - 12px);
-    padding-block: 6px !important;
-    font-size: 14px !important;
-    line-height: 20px;
   }
   .appBar[data-native-compact='true'] .backButton {
     padding-inline: 6px;

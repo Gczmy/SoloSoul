@@ -138,7 +138,7 @@ export function HelpPage() {
     <PageShell
       title={content ? content.title : t('settings:items.help_docs')}
       onBack={handleBack}
-      actions={
+      primaryActions={
         guideId ? undefined : (
           <BookOpen size={ICON_SIZE.xl} style={{ color: 'var(--text-secondary)' }} />
         )

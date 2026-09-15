@@ -13,11 +13,16 @@ import { ContentLoadingSkeleton } from '@/components/ui/ContentLoadingSkeleton';
  * 页面通过 <PageShell> 注册 title/actions/onBack（见 shellConfigStore）。
  */
 export function ShellLayout() {
-  const { title, actions, onBack } = useShellConfigStore(
-    useShallow((s) => ({ title: s.title, actions: s.actions, onBack: s.onBack })),
+  const { title, actions, primaryActions, onBack } = useShellConfigStore(
+    useShallow((s) => ({
+      title: s.title,
+      actions: s.actions,
+      primaryActions: s.primaryActions,
+      onBack: s.onBack,
+    })),
   );
   return (
-    <AppShell title={title} actions={actions} onBack={onBack}>
+    <AppShell title={title} primaryActions={primaryActions} actions={actions} onBack={onBack}>
       <Suspense fallback={<ContentLoadingSkeleton />}>
         <Outlet />
       </Suspense>

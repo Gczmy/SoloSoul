@@ -108,7 +108,10 @@ export function TemplateManagerPage() {
       if (cp) {
         return { name: cp.name, deleted: !!cp.deletedAt };
       }
-      return { name: t('settings:deleted_page', { defaultValue: '（页面已删除）' }), deleted: true };
+      return {
+        name: t('settings:deleted_page', { defaultValue: '（页面已删除）' }),
+        deleted: true,
+      };
     },
     [settings.customPages, t],
   );
@@ -187,27 +190,34 @@ export function TemplateManagerPage() {
           {
             icon: LayoutTemplate,
             title: t('common:guide_template_step1_title', { defaultValue: 'View Templates' }),
-            description:
-              t('common:guide_template_step1_desc', { defaultValue: 'Browse templates by page category. Use the search and page filters to find the template you need.' }),
+            description: t('common:guide_template_step1_desc', {
+              defaultValue:
+                'Browse templates by page category. Use the search and page filters to find the template you need.',
+            }),
           },
           {
             icon: Pencil,
             title: t('common:guide_template_step2_title', { defaultValue: 'Create & Edit' }),
-            description:
-              t('common:guide_template_step2_desc', { defaultValue: 'Create a new template or edit an existing one. Define fields, types, and sensitivity levels.' }),
+            description: t('common:guide_template_step2_desc', {
+              defaultValue:
+                'Create a new template or edit an existing one. Define fields, types, and sensitivity levels.',
+            }),
           },
           {
             icon: BookOpen,
             title: t('common:guide_template_step3_title', { defaultValue: 'Sample Templates' }),
-            description:
-              t('common:guide_template_step3_desc', { defaultValue: 'Use the sample template gallery to quickly add commonly used templates to your vault.' }),
+            description: t('common:guide_template_step3_desc', {
+              defaultValue:
+                'Use the sample template gallery to quickly add commonly used templates to your vault.',
+            }),
           },
         ],
         helpLinks: [
           {
             title: t('common:guide_help_templates', { defaultValue: 'Template Management' }),
-            description:
-              t('common:guide_help_templates_desc', { defaultValue: 'Create, edit, and manage object templates' }),
+            description: t('common:guide_help_templates_desc', {
+              defaultValue: 'Create, edit, and manage object templates',
+            }),
             href: '/help?id=templates',
           },
         ],
@@ -231,6 +241,19 @@ export function TemplateManagerPage() {
     <PageShell
       title={t('settings:template_manager_title', { defaultValue: '模板管理' })}
       onBack={handleBack}
+      primaryActions={
+        <Button
+          variant="secondary"
+          className={`${buttonStyles.hideLabelOnMobile} ${buttonStyles.compactMobile}`}
+          aria-label={t('settings:new_template', { defaultValue: 'New template' })}
+          onClick={editor.openCreate}
+        >
+          <Plus size={ICON_SIZE.md} style={{ marginRight: 4 }} />
+          <span className={buttonStyles.label}>
+            {t('settings:new_template', { defaultValue: '新建模板' })}
+          </span>
+        </Button>
+      }
       actions={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <PageGuideButton pages={templateGuidePages} />
@@ -244,15 +267,6 @@ export function TemplateManagerPage() {
             <span className={buttonStyles.label}>
               {t('settings:sample_templates', { defaultValue: '模板示例' })}
             </span>
-          </Button>
-          <Button
-            variant="secondary"
-            className={`${buttonStyles.hideLabelOnMobile} ${buttonStyles.compactMobile}`}
-            aria-label={t('settings:new_template', { defaultValue: 'New template' })}
-            onClick={editor.openCreate}
-          >
-            <Plus size={ICON_SIZE.md} style={{ marginRight: 4 }} />
-            <span className={buttonStyles.label}>{t('settings:new_template', { defaultValue: '新建模板' })}</span>
           </Button>
         </div>
       }

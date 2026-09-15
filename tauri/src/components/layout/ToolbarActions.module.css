@@ -1,0 +1,78 @@
+.toolbar,
+.primary,
+.secondary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.toolbar {
+  position: relative;
+  --button-padding: 6px 12px;
+  --button-font-size: 14px;
+  --button-min-height: 32px;
+}
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.toggle:hover,
+.toggle[aria-expanded='true'] {
+  background: var(--state-hover);
+  color: var(--text-primary);
+}
+.toggle:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+.toolbar[data-compact='true'] .secondary {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 32px));
+  max-height: calc(100dvh - 120px);
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-elevated);
+  flex-direction: column;
+  align-items: stretch;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+.toolbar[data-compact='true'] .secondary[data-open='true'] {
+  visibility: visible;
+  pointer-events: auto;
+}
+.toolbar[data-compact='true'] .secondary > div {
+  flex-direction: column;
+  align-items: stretch;
+}
+.toolbar[data-compact='true'] .secondary button {
+  width: 100%;
+  white-space: normal;
+  text-align: left;
+}
+@media (max-width: 767px), (pointer: coarse) {
+  .toolbar {
+    --button-min-height: 44px;
+    --button-padding: 8px 12px;
+  }
+  .toggle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

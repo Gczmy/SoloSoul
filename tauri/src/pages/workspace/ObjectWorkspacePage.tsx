@@ -123,15 +123,18 @@ export function ObjectWorkspacePage() {
     <PageShell
       title={ws.customPage?.name || ws.activeCategoryLabel || t('objects')}
       onBack={() => navigate('/home')}
+      primaryActions={
+        <button
+          className={`${buttonStyles.hideLabelOnMobile} ${styles.createBtn}`}
+          onClick={() => navigate(ws.newObjectUrl)}
+        >
+          + <span className={buttonStyles.label}>{t('create')}</span>
+        </button>
+      }
       actions={
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <PageGuideButton pages={guidePages} />
-          <button
-            className={`${buttonStyles.hideLabelOnMobile} ${styles.createBtn}`}
-            onClick={() => navigate(ws.newObjectUrl)}
-          >
-            + <span className={buttonStyles.label}>{t('create')}</span>
-          </button>
+
           {pageId && ws.customPage && (
             <Button
               variant="danger-outline"

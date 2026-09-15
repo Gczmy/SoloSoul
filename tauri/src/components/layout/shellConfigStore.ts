@@ -10,6 +10,7 @@ import type { ReactNode } from 'react';
 export interface ShellConfig {
   title: string;
   actions?: ReactNode;
+  primaryActions?: ReactNode;
   onBack?: () => void;
 }
 
@@ -27,6 +28,7 @@ export const useShellConfigStore = create<ShellConfigState>((set) => ({
       if (
         prev.title === config.title &&
         prev.actions === config.actions &&
+        prev.primaryActions === config.primaryActions &&
         prev.onBack === config.onBack
       ) {
         return prev;

@@ -30,6 +30,8 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
     await expect(header).toHaveCSS('height', '40px');
     expect((await header.boundingBox())!.y).toBe(0);
     const guide = header.getByRole('button', { name: 'Guide', exact: true });
+    const more = header.getByRole('button', { name: 'More actions', exact: true });
+    if (await more.isVisible()) await more.click();
     await expect(guide).toBeVisible();
     const guideBounds = (await guide.boundingBox())!;
     expect(guideBounds.x + guideBounds.width).toBeLessThanOrEqual(800);
