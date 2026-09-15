@@ -26,8 +26,15 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
   const isNarrowViewport = useIsNarrowViewport();
   const titlebarHeight = useNativeWindowStore((s) => s.titlebarHeight);
   const isMacOS = useNativeWindowStore((s) => s.isMacOS);
+  const isWindows = useNativeWindowStore((s) => s.isWindows);
   const trafficLightsRight = useNativeWindowStore((s) => s.trafficLightsRight);
-  const appbarHeight = isNarrowViewport ? 48 : isMacOS ? titlebarHeight || 52 : 56;
+  const appbarHeight = isNarrowViewport
+    ? 48
+    : isMacOS
+      ? titlebarHeight || 52
+      : isWindows
+        ? titlebarHeight || 40
+        : 48;
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
   const sidebarExpanded = useUiStore((s) => s.sidebarExpanded);
   // 路由导航后内容区滚动位置重置到顶部——滚动发生在 .content（overflow-y: scroll）

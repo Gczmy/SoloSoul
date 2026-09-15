@@ -227,7 +227,7 @@ export function TopFunctionBar({
       data-tauri-drag-region={isMacOS ? 'false' : 'true'}
       style={{
         height: FUNCTION_BAR_HEIGHT,
-        top: isBottom ? 'auto' : isMacOS ? 'var(--appbar-height, 52px)' : 0,
+        top: isBottom ? 'auto' : 'var(--appbar-height, 48px)',
         bottom: isBottom ? 0 : 'auto',
         borderBottom: isBottom ? 'none' : '1px solid var(--border-subtle)',
         borderTop: isBottom ? '1px solid var(--border-subtle)' : 'none',

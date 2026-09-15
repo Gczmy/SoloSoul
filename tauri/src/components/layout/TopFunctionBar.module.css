@@ -19,6 +19,15 @@
   -webkit-user-select: none;
   cursor: default;
 }
+:global(html[data-desktop-platform='windows']) .functionBar {
+  background: var(--bg-base);
+}
+:global(
+    html[data-desktop-platform='macos'][data-native-material]:not([data-native-material='solid'])
+  )
+  .functionBar {
+  background: transparent;
+}
 
 .leftZone,
 .rightZone {

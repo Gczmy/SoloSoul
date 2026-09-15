@@ -96,8 +96,11 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
         main: getComputedStyle(document.querySelector('main')!.parentElement!).backgroundColor,
         sidebar: getComputedStyle(document.querySelector('#desktop-navigation')!).backgroundColor,
       }));
-      expect(surfaces.top).toBe(surfaces.main);
-      expect(surfaces.top).not.toBe('rgba(0, 0, 0, 0)');
+      expect(surfaces.top).toBe('rgba(0, 0, 0, 0)');
+      await expect(page.locator('main').locator('..')).toHaveCSS(
+        'background-image',
+        /linear-gradient/,
+      );
       expect(surfaces.sidebar).toBe('rgba(0, 0, 0, 0)');
       const sidebar = page.locator('#desktop-navigation');
       await expect(sidebar).toHaveCSS('padding-top', '60px');

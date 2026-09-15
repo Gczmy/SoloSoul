@@ -30,6 +30,7 @@ function applyWindowLayout(appearance: WindowLayout) {
     typeof right === 'number' && Number.isFinite(right) ? Math.max(0, right) : 0;
   useNativeWindowStore.setState({
     isMacOS: appearance.platform === 'macos',
+    isWindows: appearance.platform === 'windows',
     titlebarHeight,
     trafficLightsRight,
   });

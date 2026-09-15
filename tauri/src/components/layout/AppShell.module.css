@@ -50,6 +50,20 @@
   background: transparent;
 }
 @media (min-width: 768px) {
+  :global(
+      html[data-desktop-platform='macos'][data-native-material]:not([data-native-material='solid'])
+    )
+    .appShell
+    .main {
+    background: linear-gradient(
+      to bottom,
+      transparent 0 var(--shell-content-top),
+      var(--bg-base) var(--shell-content-top) calc(100% - var(--shell-content-bottom)),
+      transparent calc(100% - var(--shell-content-bottom))
+    );
+  }
+}
+@media (min-width: 768px) {
   .appShell[data-navigation='left'] .main,
   .appShell[data-navigation='right'] .main {
     /* 内容区直接铺满侧栏之外的窗口区域。 */

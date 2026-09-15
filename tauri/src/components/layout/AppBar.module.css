@@ -26,8 +26,8 @@
 
 /* When the function bar is at the top, the app bar sits below it. */
 .belowTopBar {
-  top: var(--function-bar-height);
-  height: 56px;
+  top: 0;
+  height: var(--appbar-height, 48px);
   padding-top: 0;
 }
 
@@ -121,11 +121,27 @@
   .appBar.vertical {
     background: var(--bg-base);
   }
+  .appBar {
+    padding: 0 var(--appbar-trailing-inset, 12px) 0 var(--appbar-leading-inset, 12px);
+  }
+
+  :global(html[data-desktop-platform='windows']) .appBar {
+    background: var(--bg-base);
+    font-size: 14px;
+  }
+  :global(html[data-desktop-platform='windows']) .title {
+    font-size: 18px;
+    line-height: 24px;
+  }
 
   .appBar[data-native-compact='true'] {
     top: 0;
     height: var(--appbar-height, 52px);
     padding: 0 12px 0 var(--appbar-leading-inset, 12px);
+  }
+  :global(html[data-native-material]:not([data-native-material='solid']))
+    .appBar[data-native-compact='true'] {
+    background: transparent;
   }
   .appBar[data-native-compact='true'] .title {
     font-size: 18px;
