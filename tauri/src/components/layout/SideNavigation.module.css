@@ -1,5 +1,7 @@
 /* ── Container ─────────────────────────────────────────── */
 .sideNav {
+  --tools-reveal-duration: 420ms;
+  --tools-reveal-easing: cubic-bezier(0.25, 0.1, 0.25, 1);
   width: var(--sidebar-width, 96px);
   min-width: var(--sidebar-width, 96px);
   height: 100vh;
@@ -40,8 +42,12 @@
   min-height: 0;
 }
 
-/* 菜单直接透出原生玻璃；裁掉被覆盖的内容，不改变导航/添加按钮的布局。
-   clip-path 同时排除被覆盖区域的鼠标命中，关闭菜单即恢复。 */
+/* 菜单与被覆盖的导航按同一进度裁剪；底边固定，文字/按钮不缩放、不重排。
+   clip-path 同时排除被覆盖区域的鼠标命中，收起过程中逐步恢复导航。 */
+.sideNav .primaryZone {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path var(--tools-reveal-duration) var(--tools-reveal-easing);
+}
 .sideNav:has([data-sidebar-tools][data-open='true']) .primaryZone {
   clip-path: inset(0 0 var(--tools-cover-height, 0px) 0);
 }
@@ -627,12 +633,18 @@
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.12s ease;
+  clip-path: inset(100% -24px 0 -24px);
+  transition:
+    clip-path var(--tools-reveal-duration) var(--tools-reveal-easing),
+    opacity 300ms ease,
+    visibility 0s linear var(--tools-reveal-duration);
 }
 .sideNav .foldableAreaOpen {
   visibility: visible;
   opacity: 1;
   pointer-events: auto;
+  clip-path: inset(0 -24px 0 -24px);
+  transition-delay: 0s;
 }
 .sideNav[data-expanded='true'] .foldableContent {
   align-items: stretch;
@@ -655,9 +667,14 @@
   font-weight: 500;
 }
 @media (prefers-reduced-motion: reduce) {
-  .sideNav .foldableArea {
+  .sideNav :is(.foldableArea, .primaryZone, .arrowIcon) {
     transition: none;
   }
+}
+:global(html:is([data-reduce-motion='true'], [data-user-reduce-motion='true']))
+  .sideNav
+  :is(.foldableArea, .primaryZone, .arrowIcon) {
+  transition: none;
 }
 .fixedActions {
   width: 100%;

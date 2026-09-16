@@ -370,3 +370,99 @@ test('工具入口支持点击、键盘和 Escape，关闭后菜单退出 Tab �
   await expect(tools).toBeFocused();
   await expect(list).toBeHidden();
 });
+
+// 暂停真实 CSS transition 采样中间帧，验证展开/收起方向，而非只检查最终 class。
+async function sampleMenuSweep(menu: Locator) {
+  return menu.evaluate(async (element) => {
+    const zone = element.closest('nav')!.querySelector('[class*="primaryZone"]')!;
+    const animation = element
+      .getAnimations()
+      .find((a) => a instanceof CSSTransition && a.transitionProperty === 'clip-path');
+    const zoneAnimation = zone
+      .getAnimations()
+      .find((a) => a instanceof CSSTransition && a.transitionProperty === 'clip-path');
+    if (!animation || !zoneAnimation) throw new Error('Menu and navigation must animate together');
+    animation.pause();
+    zoneAnimation.pause();
+    const duration = Number(animation.effect!.getTiming().duration);
+    const samples = [];
+    for (const progress of [0.15, 0.5, 0.85]) {
+      animation.currentTime = duration * progress;
+      zoneAnimation.currentTime = duration * progress;
+      await new Promise(requestAnimationFrame);
+      const rect = element.getBoundingClientRect();
+      const top = parseFloat(getComputedStyle(element).clipPath.slice(6));
+      const zoneBottom = parseFloat(getComputedStyle(zone).clipPath.split(' ')[2]);
+      samples.push({
+        top,
+        revealed: rect.height * (1 - top / 100),
+        zoneBottom,
+        bottom: rect.bottom,
+      });
+    }
+    animation.finish();
+    zoneAnimation.finish();
+    return samples;
+  });
+}
+
+for (const platform of ['macos', 'windows']) {
+  for (const collapsed of [false, true]) {
+    test(`${platform} ${collapsed ? '折叠' : '展开'}侧栏工具沿底边向上展开、向下收起且不缩放按钮`, async ({
+      page,
+    }) => {
+      await setupSidebar(page, 'left', platform);
+      const nav = page.locator('#desktop-navigation');
+      if (collapsed)
+        await nav.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+      const tools = nav.getByRole('button', { name: 'Tools', exact: true });
+      const menu = nav.locator('[data-sidebar-tools]');
+      const toggleBounds = await tools.boundingBox();
+      await tools.hover();
+      const buttonBounds = await menu.locator('button').first().boundingBox();
+      const opening = await sampleMenuSweep(menu);
+      expect(opening[0].top).toBeGreaterThan(opening[1].top);
+      expect(opening[1].top).toBeGreaterThan(opening[2].top);
+      expect(await menu.locator('button').first().boundingBox()).toEqual(buttonBounds);
+      await expect(menu).toHaveCSS('opacity', '1');
+      await page.mouse.move(640, 400);
+      await expect(menu).toHaveJSProperty('inert', true);
+      const closing = await sampleMenuSweep(menu);
+      expect(closing[0].top).toBeLessThan(closing[1].top);
+      expect(closing[1].top).toBeLessThan(closing[2].top);
+      for (const sample of [...opening, ...closing]) {
+        expect(sample.bottom).toBe(opening[0].bottom);
+        expect(Math.abs(sample.zoneBottom - sample.revealed)).toBeLessThan(1);
+      }
+      await expect(menu).toBeHidden();
+      expect(await tools.boundingBox()).toEqual(toggleBounds);
+      // 快速反向悬停后仍能完成展开，卡片保持最终锚点位置。
+      await tools.hover();
+      await page.mouse.move(640, 400);
+      await tools.hover();
+      await menu.getByRole('button', { name: 'Search', exact: true }).click();
+      await expect(page.getByPlaceholder('Search objects, profiles...')).toBeFocused();
+    });
+  }
+}
+
+test('系统和应用减少动态效果时，工具菜单立即展开/收起', async ({ page }) => {
+  await setupSidebar(page, 'left');
+  const tools = page.getByRole('button', { name: 'Tools', exact: true });
+  const menu = page.locator('[data-sidebar-tools]');
+  for (const source of ['media', 'native', 'app']) {
+    await page.emulateMedia({ reducedMotion: source === 'media' ? 'reduce' : 'no-preference' });
+    await page.locator('html').evaluate((root, source) => {
+      root.setAttribute('data-reduce-motion', String(source === 'native'));
+      root.setAttribute('data-user-reduce-motion', String(source === 'app'));
+    }, source);
+    await tools.hover();
+    await expect(menu).toBeVisible();
+    expect(
+      await menu.evaluate((element) => parseFloat(getComputedStyle(element).transitionDuration)),
+    ).toBeLessThan(0.001);
+    await expect(menu).toHaveCSS('clip-path', /^inset\(0px -24px(?: 0px)?\)$/);
+    await page.mouse.move(640, 400);
+    await expect(menu).toBeHidden();
+  }
+});
