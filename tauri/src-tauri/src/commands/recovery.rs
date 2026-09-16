@@ -4,15 +4,17 @@
 //! 加密通道传送给新设备；新设备创建同名账户后导入数据，从而保证
 //! `account_id` 一致，后续可直接使用 Device Sync。
 
-use crate::commands::export_import::export::export_execute;
+use crate::commands::export_import::export::execute_export_core;
 use crate::commands::export_import::import::import_execute_internal;
 use crate::commands::export_import::{default_locale, ExportRequest, ExportScope, ImportStrategy};
 use crate::state::AppState;
+use solosoul_core::vault_service::VaultService;
 use solosoul_sync::recovery::{generate_recovery_password, recover_from_host, RecoveryHost};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tauri::{Emitter, Manager, State};
+use zeroize::Zeroize;
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -35,10 +37,6 @@ pub struct ImportResultSummary {
     pub account_id: String,
     /// 恢复包的账户名。
     pub account_name: String,
-}
-
-fn nanoid() -> String {
-    uuid::Uuid::new_v4().to_string().replace("-", "")
 }
 
 /// 从 VaultService 读取当前解锁账户的名称。
@@ -69,37 +67,15 @@ pub async fn recovery_host_start(
     // 驻留内存，普通 String 可被内存转储/交换分区还原，进而解密已导出的备份包。
     let recovery_password = zeroize::Zeroizing::new(generate_recovery_password());
 
-    // 临时导出文件路径
-    let tmp_dir = std::env::temp_dir();
-    std::fs::create_dir_all(&tmp_dir).map_err(|e| e.to_string())?;
-    let export_path = tmp_dir.join(format!(
-        "solosoul_recovery_{}_{}.solosoul",
-        account_id,
-        nanoid()
-    ));
-
-    // 收集全部附件 ID，保证恢复包包含附件
-    let all_attachment_ids = collect_all_attachment_ids(&state, &account_id)?;
-
-    let export_req = ExportRequest {
-        scope: ExportScope {
-            selected_page_ids: Vec::new(),
-            selected_object_ids: Vec::new(),
-            selected_tags: Vec::new(),
-            include_attachments: true,
-            selected_attachment_ids: all_attachment_ids,
-            include_preferences: true,
-            include_behavioral: false,
-            include_all: true,
-        },
-        password: (*recovery_password).clone(),
-        password_hint: Some("Recovery transfer".to_string()),
-        save_path: export_path.to_string_lossy().to_string(),
+    // 恢复包的位置由后端生成，走内部导出核心；用户导出 IPC 仍执行目录白名单校验。
+    let export_file = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        export_recovery_package(&svc, &account_id, &recovery_password)?
     };
-
-    // 复用现有导出命令生成加密恢复包（State 不可 Clone，从 AppHandle 重新获取）
-    let export_state: State<'_, AppState> = app.state::<AppState>();
-    export_execute(app.clone(), export_state, account_id.clone(), export_req).await?;
+    let export_path = export_file.to_path_buf();
 
     // 取消并清理之前可能残留的主机（在锁外 join，避免阻塞）
     cancel_and_cleanup_old_host(&state)?;
@@ -116,28 +92,22 @@ pub async fn recovery_host_start(
     let host_cancel = Arc::new(AtomicBool::new(false));
     let host_cancel_for_thread = host_cancel.clone();
 
-    let export_path_for_thread = export_path.clone();
-    let thread = std::thread::spawn(move || {
-        if let Err(e) = host.run(host_cancel_for_thread) {
-            tracing::warn!("Recovery host session ended: {}", e);
-        }
-        // 会话结束后清理临时导出文件
-        let _ = std::fs::remove_file(&export_path_for_thread);
-    });
-
-    // 注册恢复主机的 mDNS 广告，让局域网内的新设备能自动发现本机
-    #[cfg(desktop)]
     // 注册恢复主机的 mDNS 广告，让局域网内的新设备能自动发现本机
     #[cfg(desktop)]
     let mdns_instance_name =
         advertise_recovery_mdns(&app, &info.fingerprint, &info.display_addr).await?;
     #[cfg(not(desktop))]
     let mdns_instance_name: Option<String> = None;
-    #[cfg(not(desktop))]
-    let mdns_instance_name: Option<String> = None;
 
     {
         let mut rec = state.recovery_state.lock().map_err(|e| e.to_string())?;
+        let thread = std::thread::spawn(move || {
+            if let Err(e) = host.run(host_cancel_for_thread) {
+                tracing::warn!("Recovery host session ended: {}", e);
+            }
+            // TempPath 由会话持有；正常结束、取消及线程退栈时均会删除临时包。
+            drop(export_file);
+        });
         rec.host_cancel = host_cancel;
         rec.host_thread = Some(thread);
         rec.export_path = Some(export_path);
@@ -164,12 +134,47 @@ pub async fn recovery_host_start(
         qr_payload,
     })
 }
-/// 收集全部附件 ID（未删除项），保证恢复包包含附件。
-fn collect_all_attachment_ids(
-    state: &State<'_, AppState>,
+
+/// 创建仅供恢复传输使用的加密临时包，不接收前端传入的输出路径。
+/// TempPath 在导出/启动失败时自动删除文件，成功后交给恢复会话持有。
+fn export_recovery_package(
+    svc: &VaultService,
     account_id: &str,
-) -> Result<Vec<String>, String> {
-    let vault = crate::commands::vault_handle(state)?;
+    recovery_password: &str,
+) -> Result<tempfile::TempPath, String> {
+    let all_attachment_ids = collect_all_attachment_ids(svc, account_id)?;
+    // NamedTempFile 原子创建随机文件（Unix 0600）。先关闭文件句柄，兼容 Windows 重开写入。
+    let export_file = tempfile::Builder::new()
+        .prefix("solosoul-recovery-")
+        .suffix(".solosoul")
+        .tempfile()
+        .map_err(|e| format!("Create recovery package: {e}"))?
+        .into_temp_path();
+    let export_path = export_file.to_string_lossy().to_string();
+    let mut req = ExportRequest {
+        scope: ExportScope {
+            selected_page_ids: Vec::new(),
+            selected_object_ids: Vec::new(),
+            selected_tags: Vec::new(),
+            include_attachments: true,
+            selected_attachment_ids: all_attachment_ids,
+            include_preferences: true,
+            include_behavioral: false,
+            include_all: true,
+        },
+        password: recovery_password.to_string(),
+        password_hint: Some("Recovery transfer".to_string()),
+        save_path: export_path.clone(),
+    };
+    let result = execute_export_core(svc, account_id, &req, &export_path);
+    req.password.zeroize();
+    result?;
+    Ok(export_file)
+}
+
+/// 收集全部附件 ID（未删除项），保证恢复包包含附件。
+fn collect_all_attachment_ids(svc: &VaultService, account_id: &str) -> Result<Vec<String>, String> {
+    let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let objects = vault
         .list_objects(account_id, None, None, None, false, false)
         .map_err(|e| e.to_string())?;
@@ -486,4 +491,88 @@ fn create_recovery_account(
     emit_progress("create", 50);
     svc.create_account_with_id(account_id, account_name, master_password, password_hint)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::export_import::{
+        decrypt_zip_entry_streaming, derive_export_key_cfg, read_manifest,
+    };
+
+    const MASTER_PASSWORD: &str = "recovery-test-master-password";
+
+    fn setup_vault() -> (tempfile::TempDir, VaultService, String) {
+        let dir = tempfile::tempdir().unwrap();
+        let svc = VaultService::with_base_path(dir.path().to_path_buf());
+        let account = svc
+            .create_account("Recovery test", MASTER_PASSWORD, None)
+            .unwrap();
+        let account_id = account["id"].as_str().unwrap().to_string();
+        svc.unlock(&account_id, MASTER_PASSWORD).unwrap();
+        (dir, svc, account_id)
+    }
+
+    #[test]
+    fn recovery_package_exports_to_temp_and_cleans_up() {
+        let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+        let (_dir, svc, account_id) = setup_vault();
+        let now = chrono::Utc::now().to_rfc3339();
+        svc.get_vault_store()
+            .unwrap()
+            .save_object(&solosoul_vault::ObjectRecord {
+                id: "recovery-test-object".to_string(),
+                account_id: account_id.clone(),
+                type_id: "note".to_string(),
+                section_type: "identity".to_string(),
+                name: "Recovery test note".to_string(),
+                properties: serde_json::json!({ "note": "private-recovery-value" }),
+                sensitivity_level: "internal".to_string(),
+                created_at: now.clone(),
+                updated_at: now,
+                version: 1,
+                ..Default::default()
+            })
+            .unwrap();
+
+        let password = zeroize::Zeroizing::new(generate_recovery_password());
+        let package = export_recovery_package(&svc, &account_id, &password).unwrap();
+        let path = package.to_path_buf();
+        assert!(path.starts_with(std::env::temp_dir()));
+        assert!(path.exists());
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(
+                std::fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+                0o600
+            );
+        }
+
+        // 实际解密本次生成的包，确认共用核心仍完整导出对象内容。
+        let manifest = read_manifest(path.to_str().unwrap()).unwrap();
+        let salt = hex::decode(&manifest.salt_hex).unwrap();
+        let key = derive_export_key_cfg(&password, &salt, &manifest.kdf_config()).unwrap();
+        let mut payload = zeroize::Zeroizing::new(Vec::new());
+        decrypt_zip_entry_streaming(path.to_str().unwrap(), "payload.enc", &key, &mut *payload)
+            .unwrap();
+        let payload: serde_json::Value = serde_json::from_slice(&payload).unwrap();
+        assert!(payload["objects"].as_array().unwrap().iter().any(|obj| {
+            obj["id"] == "recovery-test-object"
+                && obj["properties"]["note"] == "private-recovery-value"
+        }));
+        drop(package);
+        assert!(!path.exists());
+    }
+
+    #[test]
+    fn recovery_package_requires_unlocked_vault_and_distinct_password() {
+        let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+        let (_dir, svc, account_id) = setup_vault();
+        let err = export_recovery_package(&svc, &account_id, MASTER_PASSWORD).unwrap_err();
+        assert!(err.contains("SAME_AS_MASTER_PASSWORD"));
+        svc.lock();
+        let err = export_recovery_package(&svc, &account_id, "recovery-password").unwrap_err();
+        assert_eq!(err, "Vault not unlocked");
+    }
 }

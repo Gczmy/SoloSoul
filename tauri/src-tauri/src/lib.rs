@@ -18,6 +18,10 @@ pub mod status_bar_plugin;
 pub mod sync;
 pub mod update_plugin;
 
+/// 涉及 VaultService 的测试共用此锁，避免账户生命周期测试并发干扰。
+#[cfg(test)]
+pub(crate) static VAULT_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 // ─────────────────────────────────────────────────────────────────────────
 // IPC 命令分簇注册
 // ─────────────────────────────────────────────────────────────────────────
