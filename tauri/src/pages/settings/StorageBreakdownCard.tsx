@@ -50,6 +50,7 @@ export function StorageBreakdownCard({
 
       {stats && (
         <div
+          data-macos-glass="panel"
           ref={cardRef}
           style={{
             position: 'fixed',

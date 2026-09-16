@@ -65,6 +65,7 @@ export function ToolbarActions({
           {compact && (
             <button
               ref={toggle}
+              data-macos-glass="control"
               type="button"
               className={styles.toggle}
               aria-label={t('more_actions')}
@@ -78,6 +79,7 @@ export function ToolbarActions({
           <div
             ref={secondary}
             id="toolbar-secondary-actions"
+            data-macos-glass={compact ? 'popover' : undefined}
             role="group"
             aria-label={t('more_actions')}
             className={styles.secondary}

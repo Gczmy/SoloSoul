@@ -17,6 +17,7 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
 
   return (
     <div
+      data-macos-glass-backdrop
       style={{
         position: 'fixed',
         inset: 0,
@@ -29,6 +30,7 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
       }}
     >
       <div
+        data-macos-glass="panel"
         style={{
           background: 'var(--bg-elevated)',
           borderRadius: 16,

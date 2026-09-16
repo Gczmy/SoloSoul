@@ -45,6 +45,7 @@ export function MandatoryUpdateOverlay({
   }
   return createPortal(
     <div
+      data-macos-glass-backdrop
       style={{
         position: 'fixed',
         inset: 0,
@@ -57,6 +58,7 @@ export function MandatoryUpdateOverlay({
       }}
     >
       <div
+        data-macos-glass="panel"
         style={{
           // 卡片背景：--bg-elevated（全主题已定义；勿用未定义的 --bg-card，否则背景透明）
           background: 'var(--bg-elevated)',

@@ -33,6 +33,7 @@ export function OnboardingFrame({
 }: OnboardingFrameProps) {
   return (
     <div
+      data-macos-glass-backdrop
       style={{
         position: 'fixed',
         inset: 0,
@@ -45,6 +46,7 @@ export function OnboardingFrame({
       }}
     >
       <div
+        data-macos-glass="panel"
         style={{
           background: 'var(--bg-elevated)',
           borderRadius: 18,
@@ -147,13 +149,7 @@ export function OnboardingBackButton({ onClick }: { onClick: () => void }) {
 }
 
 /** 底部「下一步/完成」按钮。 */
-export function OnboardingNextButton({
-  label,
-  onClick,
-}: {
-  label: string;
-  onClick: () => void;
-}) {
+export function OnboardingNextButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
       type="button"

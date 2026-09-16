@@ -166,6 +166,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
     <div
       ref={cardRef}
       className={styles.card}
+      data-macos-glass="panel"
       style={getNavCardStyle(position, placement)}
       role="dialog"
       aria-label={t('common:plugins', { defaultValue: 'Plugins' })}

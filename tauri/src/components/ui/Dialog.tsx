@@ -53,10 +53,11 @@ export function Dialog({
       onClick={(e) => e.stopPropagation()}
     >
       {/* Backdrop overlay */}
-      <div className={styles.backdrop} onClick={onClose} />
+      <div className={styles.backdrop} data-macos-glass-backdrop onClick={onClose} />
       {/* Dialog content */}
       <div
         className={styles.dialog}
+        data-macos-glass="panel"
         role="dialog"
         aria-modal="true"
         style={dialogStyle}

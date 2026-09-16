@@ -46,6 +46,7 @@ export function NavButton({
           zIndex: 200,
         }}
         role="tooltip"
+        data-macos-glass="tooltip"
         aria-hidden="true"
       >
         {label}

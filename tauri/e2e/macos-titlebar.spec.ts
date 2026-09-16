@@ -217,6 +217,7 @@ for (const position of ['left', 'right']) {
       ['OCR', '[data-ocr-quick-scan="open"]'],
       ['AI Chat', '[data-ai-quick-chat="open"]'],
     ]) {
+      await navigation.getByRole('button', { name: 'Tools', exact: true }).hover();
       await navigation.getByRole('button', { name, exact: true }).click();
       const card =
         name === 'Search'

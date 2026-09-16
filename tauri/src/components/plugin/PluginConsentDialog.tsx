@@ -29,8 +29,8 @@ export function PluginConsentDialog({
   const { t } = useTranslation('plugin');
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.dialog}>
+    <div data-macos-glass-backdrop className={styles.overlay}>
+      <div data-macos-glass="panel" className={styles.dialog}>
         <h3 className={styles.title}>
           {t('consent_title', { defaultValue: 'Plugin Requests Data Access' })}
         </h3>

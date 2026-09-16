@@ -164,6 +164,7 @@ export function OcrQuickScanPopover({
 
   return (
     <div
+      data-macos-glass="panel"
       ref={cardRef}
       data-ocr-quick-scan="open"
       className={styles.card}

@@ -63,8 +63,8 @@ export function PluginRunParamsDialog({
   };
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.dialog}>
+    <div data-macos-glass-backdrop className={styles.overlay}>
+      <div data-macos-glass="panel" className={styles.dialog}>
         <div className={styles.header}>
           <Settings2 size={ICON_SIZE.xl} className={styles.icon} />
           <h3 className={styles.title}>{t('run_params_title', { defaultValue: 'Run Plugin' })}</h3>

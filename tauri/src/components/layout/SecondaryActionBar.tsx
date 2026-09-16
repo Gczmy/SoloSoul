@@ -5,7 +5,8 @@ import {
   useEffect,
   useLayoutEffect,
   useContext,
-  type MouseEvent,
+  useId,
+  type CSSProperties,
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DesktopSidebarContext } from './DesktopSidebarContext';
@@ -47,6 +48,9 @@ export function SecondaryActionBar({
   const setHovering = useSidebarHoverStore((s) => s.setHovering);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const toolsId = useId();
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [availableHeight, setAvailableHeight] = useState(0);
   const isOcrCardOpen = useOcrScanStore((s) => s.isCardOpen);
   const isPluginPanelOpen = usePluginQuickStore((s) => s.isOpen);
   const cardPlacement =
@@ -59,11 +63,37 @@ export function SecondaryActionBar({
   const verticalScrollTop = useSidebarHoverStore((s) => s.verticalScrollTop);
   const setVerticalScrollTop = useSidebarHoverStore((s) => s.setVerticalScrollTop);
   const contentRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const isAnyCardOpen = isOcrCardOpen || isPluginPanelOpen || showSearch || showQuickChat;
-  const isAnyCardOpenRef = useRef(isAnyCardOpen);
-  isAnyCardOpenRef.current = isAnyCardOpen;
-  const expanded = sidebarExpanded || isHovering || isAnyCardOpen;
+  const expanded = isHovering || keyboardOpen || isAnyCardOpen;
+
+  // 展开和折叠侧栏共用向上浮出的工具菜单，不挤压分类区或移动触发按钮。
+  // 高度以品牌行下沿和工具入口之间的实际空间为准，小窗口才滚动。
+  useLayoutEffect(() => {
+    const wrapper = wrapperRef.current;
+    const nav = wrapper?.closest('nav');
+    const menu = menuRef.current;
+    if (!wrapper || !nav || !menu) return;
+    const measure = () => {
+      const brand = nav.querySelector(`.${styles.brandHeader}`);
+      const top = brand?.getBoundingClientRect().bottom ?? nav.getBoundingClientRect().top;
+      setAvailableHeight(Math.max(0, Math.floor(wrapper.getBoundingClientRect().top - top - 8)));
+      // 只裁去被菜单实际覆盖的导航内容，透明表面直接使用窗口底层玻璃。
+      nav.style.setProperty('--tools-cover-height', `${menu.getBoundingClientRect().height}px`);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(nav);
+    observer.observe(wrapper);
+    observer.observe(menu);
+    window.addEventListener('resize', measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+      nav.style.removeProperty('--tools-cover-height');
+    };
+  }, [sidebarExpanded, expanded]);
 
   useLayoutEffect(() => {
     if (!expanded && contentRef.current?.contains(document.activeElement)) {
@@ -75,11 +105,22 @@ export function SecondaryActionBar({
   // mouseleave on the wrapper in this case)
   useEffect(() => {
     const handleDocMouseLeave = () => {
-      if (!isAnyCardOpenRef.current) setHovering(false);
+      setHovering(false);
     };
     document.documentElement.addEventListener('mouseleave', handleDocMouseLeave);
     return () => document.documentElement.removeEventListener('mouseleave', handleDocMouseLeave);
   }, [setHovering]);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const handleOutsidePointer = (event: PointerEvent) => {
+      if (wrapperRef.current?.contains(event.target as Node) || isAnyCardOpen) return;
+      setHovering(false);
+      setKeyboardOpen(false);
+    };
+    document.addEventListener('pointerdown', handleOutsidePointer);
+    return () => document.removeEventListener('pointerdown', handleOutsidePointer);
+  }, [expanded, isAnyCardOpen, setHovering]);
 
   // Restore scroll position when expanded (useLayoutEffect to avoid flash before paint)
   useLayoutEffect(() => {
@@ -89,7 +130,7 @@ export function SecondaryActionBar({
   }, [expanded, verticalScrollTop]);
 
   // P216: 折叠时保存滚动位置（而非每帧 onScroll 写 store）。
-  // foldableContent 常驻 DOM（仅父容器 max-height 归零），scrollTop 不丢失，
+  // foldableContent 常驻 DOM（隐藏时保留几何尺寸），scrollTop 不丢失，
   // 故只需在展开→折叠的瞬间持久化一次，重新展开时由上面的 useLayoutEffect 恢复。
   // 注意：必须只在 true→false 转换时保存——初始挂载（未展开）时 DOM 的 scrollTop 为 0，
   // 若直接写会清掉上次会话持久化的滚动位置（sidebarHoverStore 跨路由持久化的目的）。
@@ -112,48 +153,37 @@ export function SecondaryActionBar({
     };
   }, [setVerticalScrollTop]);
 
-  // Suppress name card tooltips during the 180ms expand CSS transition (buttons moving → flicker).
-  // Use setTimeout rather than onTransitionEnd because React re-renders during the animation
-  // can cause onTransitionEnd not to fire, leaving pointer-events permanently disabled.
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  useEffect(() => {
-    if (expanded) {
-      setIsTransitioning(true);
-      const timer = setTimeout(() => setIsTransitioning(false), 200);
-      return () => clearTimeout(timer);
-    } else {
-      setIsTransitioning(false);
-    }
-  }, [expanded]);
-
-  const handleMouseEnter = useCallback(() => {
-    // 触屏设备不触发展开（Android WebView hover 会粘住）
-    if (!supportsHover()) return;
-    setHovering(true);
-  }, [setHovering]);
+  const handleMouseEnter = useCallback(
+    (event: globalThis.MouseEvent) => {
+      if (!supportsHover() || !wrapperRef.current?.contains(event.target as Node)) return;
+      setHovering(true);
+    },
+    [setHovering],
+  );
   const handleMouseLeave = useCallback(
-    (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.relatedTarget as Node)) {
-        const relatedTarget = e.relatedTarget as HTMLElement | null;
-        const addPageZone = relatedTarget?.closest('[data-add-page-zone="true"]');
-        if (addPageZone) {
-          // Moving to AddPageButton: register one-time mouseleave to collapse
-          // when mouse leaves the add page zone (unless re-entering wrapper).
-          const handleLeaveAddPage = (leaveEvent: globalThis.MouseEvent) => {
-            const leaveTarget = leaveEvent.relatedTarget as HTMLElement | null;
-            if (wrapperRef.current?.contains(leaveTarget as Node)) return;
-            if (!isAnyCardOpenRef.current) setHovering(false);
-          };
-          (addPageZone as HTMLElement).addEventListener('mouseleave', handleLeaveAddPage, {
-            once: true,
-          });
-        } else if (!isAnyCardOpen) {
-          setHovering(false);
-        }
+    (e: globalThis.MouseEvent) => {
+      if (
+        wrapperRef.current &&
+        !(e.relatedTarget instanceof Node && wrapperRef.current.contains(e.relatedTarget))
+      ) {
+        setHovering(false);
       }
     },
-    [isAnyCardOpen, setHovering],
+    [setHovering],
   );
+
+  // 原生 enter/leave 以实际 DOM 范围判定；React 的合成事件会把 Portal
+  // 卡片也当作工具区后代，导致鼠标已移出菜单但悬停状态仍然保留。
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    wrapper.addEventListener('mouseenter', handleMouseEnter);
+    wrapper.addEventListener('mouseleave', handleMouseLeave);
+    return () => {
+      wrapper.removeEventListener('mouseenter', handleMouseEnter);
+      wrapper.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [handleMouseEnter, handleMouseLeave]);
 
   const { ocrButtonRef, quickScanPos } = useOcrQuickScan(560, cardPlacement);
   const { pluginButtonRef, quickPanelPos } = usePluginQuickPanel(560, cardPlacement);
@@ -184,46 +214,71 @@ export function SecondaryActionBar({
     <div
       ref={wrapperRef}
       className={styles.foldableWrapper}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      style={{ '--tools-available-height': `${availableHeight}px` } as CSSProperties}
+      onBlur={(event) => {
+        if (
+          !(
+            event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)
+          )
+        ) {
+          setKeyboardOpen(false);
+          // 搜索卡片自动聚焦输入框时，鼠标仍可能停在工具按钮上。
+          // Portal 的焦点变化不清除实际悬停；返回其他导航按钮时才释放菜单。
+          if (
+            event.relatedTarget instanceof Node &&
+            event.currentTarget.closest('nav')?.contains(event.relatedTarget)
+          ) {
+            setHovering(false);
+          }
+        }
+      }}
       onKeyDown={(event) => {
-        if (event.key === 'Escape' && !sidebarExpanded && !isAnyCardOpen) {
+        // Portal 卡片的按键由卡片自身处理。
+        if (!event.currentTarget.contains(event.target as Node)) return;
+        if (event.key === 'Tab' && expanded) setKeyboardOpen(true);
+        if (event.key === 'Escape' && !isAnyCardOpen) {
           event.stopPropagation();
           toggleRef.current?.focus();
           setHovering(false);
+          setKeyboardOpen(false);
         }
       }}
     >
       {/* Arrow toggle — full-size button */}
-      {sidebarExpanded ? (
-        <div className={styles.sectionLabel}>{t('sidebar_tools')}</div>
-      ) : (
-        <button
-          ref={toggleRef}
-          type="button"
-          className={styles.arrowToggle}
-          aria-label={t('sidebar_tools')}
-          aria-expanded={expanded}
-          onClick={() => setHovering(!isHovering)}
-        >
-          <ChevronUp
-            size={ICON_SIZE.xl}
-            className={`${styles.arrowIcon} ${expanded ? styles.arrowIconExpanded : ''}`}
-          />
-          <span className={styles.compactActionLabel}>{t('sidebar_tools')}</span>
-        </button>
-      )}
+      <button
+        ref={toggleRef}
+        type="button"
+        className={styles.arrowToggle}
+        aria-label={t('sidebar_tools')}
+        aria-expanded={expanded}
+        aria-controls={toolsId}
+        onClick={() => {
+          // 鼠标悬停已打开时，点击保留展开；再次点击可收起。
+          // 键盘直接激活也能打开，无需依赖 hover。
+          setKeyboardOpen(!keyboardOpen);
+          setHovering(false);
+        }}
+      >
+        <ChevronUp
+          size={sidebarExpanded ? ICON_SIZE.sm : ICON_SIZE.xl}
+          className={`${styles.arrowIcon} ${expanded ? styles.arrowIconExpanded : ''}`}
+        />
+        <span className={styles.compactActionLabel}>{t('sidebar_tools')}</span>
+      </button>
 
       {/* Foldable button area — always rendered for smooth CSS transition */}
       <div
+        ref={menuRef}
+        id={toolsId}
+        role="group"
+        aria-label={t('sidebar_tools')}
+        data-sidebar-tools
+        data-open={expanded}
+        data-macos-glass="sidebar-menu"
         className={`${styles.foldableArea} ${expanded ? styles.foldableAreaOpen : ''}`}
         inert={!expanded}
       >
-        <div
-          ref={contentRef}
-          className={styles.foldableContent}
-          style={isTransitioning ? { pointerEvents: 'none' as const } : undefined}
-        >
+        <div ref={contentRef} className={styles.foldableContent}>
           {items.map((item) => {
             const isCardButton = (CARD_ACTION_IDS as readonly string[]).includes(item.iconKey);
             if (isCardButton) {

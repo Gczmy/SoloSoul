@@ -41,6 +41,7 @@ export function OnboardingAccountSourceDecision({
 
   return (
     <div
+      data-macos-glass-backdrop
       style={{
         position: 'absolute',
         inset: 0,
@@ -55,6 +56,7 @@ export function OnboardingAccountSourceDecision({
       }}
     >
       <div
+        data-macos-glass="panel"
         style={{
           background: 'var(--bg-elevated)',
           borderRadius: 18,

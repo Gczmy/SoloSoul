@@ -13,8 +13,8 @@ import styles from './RecoveryDialogSkeleton.module.css';
  */
 export function RecoveryDialogSkeleton() {
   return (
-    <div className={styles.overlay} aria-hidden="true">
-      <div className={styles.card}>
+    <div data-macos-glass-backdrop className={styles.overlay} aria-hidden="true">
+      <div data-macos-glass="panel" className={styles.card}>
         <div className={styles.title} />
         <div className={styles.tabs}>
           <div className={styles.tab} />

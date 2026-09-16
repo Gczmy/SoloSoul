@@ -285,6 +285,7 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
         currentPage &&
         createPortal(
           <div
+            data-macos-glass-backdrop
             style={{
               position: 'fixed',
               inset: 0,
@@ -299,6 +300,7 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
             onClick={handleClose}
           >
             <div
+              data-macos-glass="panel"
               ref={cardRef}
               role="dialog"
               tabIndex={-1}

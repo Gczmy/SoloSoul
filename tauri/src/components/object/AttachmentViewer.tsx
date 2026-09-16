@@ -89,6 +89,7 @@ export function AttachmentViewer(props: AttachmentViewerProps) {
 
   return (
     <div
+      data-macos-glass-backdrop
       style={{
         position: 'fixed',
         inset: 0,
@@ -116,6 +117,7 @@ export function AttachmentViewer(props: AttachmentViewerProps) {
     >
       {!loading && (
         <div
+          data-macos-glass="panel"
           onClick={(e) => e.stopPropagation()}
           ref={dragRef}
           style={{

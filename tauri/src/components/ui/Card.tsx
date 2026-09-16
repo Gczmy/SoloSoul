@@ -5,6 +5,8 @@ interface CardProps {
   children: React.ReactNode;
   className?: string;
   interactive?: boolean;
+  /** 浮层外壳与正文卡片分开选材质，保留同一布局组件。 */
+  surface?: 'default' | 'floating';
   onClick?: () => void;
   onDoubleClick?: () => void;
   onMouseDown?: (e: React.MouseEvent) => void;
@@ -21,6 +23,7 @@ export const Card = memo(
       children,
       className,
       interactive,
+      surface = 'default',
       onClick,
       onDoubleClick,
       onMouseDown,
@@ -36,6 +39,7 @@ export const Card = memo(
       <div
         ref={ref}
         data-ui-card
+        data-macos-glass={surface === 'floating' ? 'panel' : undefined}
         className={`${styles.card} ${interactive ? styles.interactive : ''} ${className || ''}`}
         onClick={onClick}
         onDoubleClick={onDoubleClick}

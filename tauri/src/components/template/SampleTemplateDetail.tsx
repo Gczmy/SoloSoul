@@ -46,6 +46,7 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
 
   return (
     <div
+      data-macos-glass-backdrop
       style={{
         position: 'fixed',
         inset: 0,
@@ -62,6 +63,7 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
       }}
     >
       <motion.div
+        data-macos-glass="panel"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}

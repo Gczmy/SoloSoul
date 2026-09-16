@@ -20,6 +20,7 @@ export function ToastContainer() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
+          data-macos-glass="notification"
           className={`${styles.toast} ${styles[toast.type]} ${toast.action ? styles.clickable : ''}`}
           onClick={toast.action ? () => handleAction(toast) : undefined}
           role={toast.action ? 'button' : undefined}

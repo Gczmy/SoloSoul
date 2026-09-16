@@ -33,6 +33,7 @@ export function PinSetupDialog({
 }: PinSetupDialogProps) {
   return (
     <div
+      data-macos-glass-backdrop
       style={{
         position: 'fixed',
         inset: 0,
@@ -45,6 +46,7 @@ export function PinSetupDialog({
       }}
     >
       <div
+        data-macos-glass="panel"
         style={{
           background: 'var(--bg-elevated)',
           color: 'var(--text-primary)',

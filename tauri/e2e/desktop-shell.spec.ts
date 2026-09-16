@@ -58,6 +58,7 @@ for (const position of ['left', 'right'] as const) {
     if (position === 'left')
       expect(headerBounds!.x).toBeGreaterThanOrEqual(navBounds!.x + navBounds!.width);
     else expect(headerBounds!.x + headerBounds!.width).toBeLessThanOrEqual(navBounds!.x + 1);
+    await sidebar.getByRole('button', { name: 'Tools', exact: true }).hover();
     await sidebar.getByRole('button', { name: 'Plugins', exact: true }).click();
     const panel = page.getByRole('dialog', { name: 'Plugins', exact: true });
     await expect(panel).toBeVisible();

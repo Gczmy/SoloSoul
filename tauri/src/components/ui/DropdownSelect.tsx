@@ -84,7 +84,7 @@ export function DropdownSelect({
         <ChevronDown size={ICON_SIZE.xs} className={styles.chevron} />
       </button>
       {open && (
-        <div className={styles.popover} ref={listRef} style={{ width }}>
+        <div className={styles.popover} data-macos-glass="popover" ref={listRef} style={{ width }}>
             {options.map((opt) => {
               const isActive = opt.value === value;
               return (

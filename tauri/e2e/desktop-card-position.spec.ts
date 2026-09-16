@@ -59,6 +59,7 @@ for (const side of ['left', 'right'] as const) {
         height: 560,
       },
     ]) {
+      await sidebar.getByRole('button', { name: 'Tools', exact: true }).hover();
       const button = sidebar.locator(card.button);
       await button.scrollIntoViewIfNeeded();
       const buttonBounds = (await button.boundingBox())!;
@@ -142,7 +143,9 @@ for (const side of ['left', 'right'] as const) {
     await aiButton.scrollIntoViewIfNeeded();
     await aiButton.click();
     const chat = page.locator('[data-ai-quick-chat]');
-    await expect(chat).toHaveCSS(side, '52px');
+    // macOS 折叠侧栏为交通灯保留 96px；浮层在侧栏外再留 4px。
+    await expect(sidebar).toHaveCSS('width', '96px');
+    await expect(chat).toHaveCSS(side, '100px');
     const anchor = (await aiButton.boundingBox())!;
     await expect(chat).toHaveCSS('top', `${Math.min(Math.max(anchor.y, 8), 372)}px`);
     await page.setViewportSize({ width: 1000, height: 600 });

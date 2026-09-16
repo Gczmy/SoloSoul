@@ -141,7 +141,7 @@ export function useNavButtonCards(input: NavButtonCardInput) {
     }
     if (item.iconKey === 'search') {
       return (
-        <div key="search" style={{ position: 'relative' }}>
+        <div key="search" data-search-button style={{ position: 'relative' }}>
           <NavButton
             Icon={PAGE_ICON_MAP[item.iconKey]}
             label={t(item.labelKey)}
@@ -176,6 +176,7 @@ export function useNavButtonCards(input: NavButtonCardInput) {
               // 外框常驻 Suspense 外：chunk 就绪只替换内容，不改变定位或重播入场动画。
               <div
                 data-ai-quick-chat="open"
+                data-macos-glass="panel"
                 className={quickChatStyles.card}
                 style={getNavCardStyle(quickChatPos, placements.quickChat)}
               >

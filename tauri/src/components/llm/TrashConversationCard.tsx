@@ -27,6 +27,7 @@ export function TrashConversationCard({
 
   return (
     <div
+      data-macos-glass-backdrop
       style={{
         position: 'fixed',
         inset: 0,
@@ -39,6 +40,7 @@ export function TrashConversationCard({
       onClick={onClose}
     >
       <div
+        data-macos-glass="panel"
         onClick={(e) => e.stopPropagation()}
         style={{
           width: 600,

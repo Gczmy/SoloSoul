@@ -167,6 +167,7 @@ export function CustomPageEditPopover({
     isOpen && (
       <div
         ref={popoverRef}
+        data-macos-glass="panel"
         className={styles.addPagePopover}
         style={{
           position: 'fixed',

@@ -31,6 +31,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
 
   return (
     <div
+      data-macos-glass-backdrop
       style={{
         position: 'fixed',
         inset: 0,
@@ -47,6 +48,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
       }}
     >
       <Card
+        surface="floating"
         style={{
           maxWidth: 420,
           width: '100%',

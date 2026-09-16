@@ -78,7 +78,7 @@ export function DatePickerCalendar({
   }, [locale]);
 
   return (
-    <div className={styles.popover} role="dialog" aria-label="日期选择">
+    <div className={styles.popover} data-macos-glass="popover" role="dialog" aria-label="日期选择">
       <div className={styles.header}>
         <button
           type="button"

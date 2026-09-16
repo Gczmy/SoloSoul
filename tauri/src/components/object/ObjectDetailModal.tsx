@@ -88,13 +88,14 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
 
   return (
     <>
-      <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.overlay} data-macos-glass-backdrop onClick={onClose}>
         {!loading && obj && (
           <div
             ref={detailDragRef}
             onClick={(e) => e.stopPropagation()}
             className={styles.modal}
             data-testid="object-detail-modal"
+            data-macos-glass="panel"
             role="dialog"
             aria-modal="true"
             aria-label={obj.name}

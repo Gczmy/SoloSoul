@@ -137,7 +137,7 @@ export function useBoundNavActions(): UseBoundNavActionsResult {
             type: 'action',
             iconKey: 'search',
             labelKey: 'search',
-            action: () => setShowSearch(true),
+            action: () => setShowSearch((open) => !open),
           } as NavAction;
         }
         if (id === 'ocr') {

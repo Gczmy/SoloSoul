@@ -7,8 +7,11 @@
   align-items: flex-start;
   padding-top: calc(48px + var(--native-titlebar-height, 0px));
   background: rgba(0, 0, 0, 0.25);
+  /* 仅保留视觉遮罩；导航仍接收悬停和点击，外部关闭由 document 处理。 */
+  pointer-events: none;
 }
 .card {
+  pointer-events: auto;
   width: min(520px, calc(100vw - 32px));
   max-width: 90vw;
   max-height: 70vh;

@@ -128,4 +128,39 @@ describe('SearchPopover (P027 渲染回归)', () => {
     );
     expect(screen.getByText('navigation:settings')).toBeInTheDocument();
   });
+
+  it('外部点击关闭，搜索触发器和输入框点击交给自身处理', () => {
+    const onClose = vi.fn();
+    render(
+      <MemoryRouter>
+        <div data-search-button>
+          <button>搜索入口</button>
+        </div>
+        <button>其他工具</button>
+        <SearchPopover onClose={onClose} />
+      </MemoryRouter>,
+    );
+    fireEvent.mouseDown(screen.getByPlaceholderText('common:search_placeholder'));
+    fireEvent.mouseDown(screen.getByText('搜索入口'));
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.mouseDown(screen.getByText('其他工具'));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('结果打开对象详情后，详情点击和 Escape 不关闭底层搜索', async () => {
+    mockInvoke.mockResolvedValue({ items: [objectResult], total: 1, hasMore: false });
+    const onClose = vi.fn();
+    render(
+      <MemoryRouter>
+        <SearchPopover onClose={onClose} />
+      </MemoryRouter>,
+    );
+    fireEvent.change(screen.getByPlaceholderText('common:search_placeholder'), {
+      target: { value: '护照' },
+    });
+    fireEvent.click(await screen.findByText('护照'));
+    fireEvent.mouseDown(screen.getByTestId('object-detail-modal'));
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).not.toHaveBeenCalled();
+  });
 });

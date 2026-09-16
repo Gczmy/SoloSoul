@@ -70,6 +70,7 @@ export function AppBar({
         {onBack && (
           <button
             data-titlebar-control
+            data-macos-glass="control"
             type="button"
             className={styles.backButton}
             onClick={onBack}

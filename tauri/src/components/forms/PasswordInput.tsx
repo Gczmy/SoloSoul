@@ -331,6 +331,7 @@ export function SecurePasswordInput({
               {isHintHovered &&
                 createPortal(
                   <div
+                    data-macos-glass="tooltip"
                     data-testid="password-hint-tooltip"
                     style={{
                       position: 'fixed',

@@ -91,6 +91,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   }, [accountId]);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [detailObjectId, setDetailObjectId] = useState<string | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const filterBarRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -101,14 +102,28 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && !detailObjectId) onClose();
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [onClose]);
+  }, [onClose, detailObjectId]);
+
+  // 与其他侧栏快捷卡片一致：外部点击关闭，但不由遮罩吞掉导航点击。
+  // 搜索触发器自行切换开关；对象详情及其 Portal 打开时由详情处理外部交互。
+  useEffect(() => {
+    if (detailObjectId) return;
+    const handleOutsideMouseDown = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node) || cardRef.current?.contains(target)) return;
+      if (target instanceof Element && target.closest('[data-search-button]')) return;
+      onClose();
+    };
+    document.addEventListener('mousedown', handleOutsideMouseDown);
+    return () => document.removeEventListener('mousedown', handleOutsideMouseDown);
+  }, [onClose, detailObjectId]);
 
   // P018: doSearch 收敛到 lib/searchShared 的 runUnifiedSearch（SearchPage 共用）
   const doSearch = useCallback(
@@ -194,10 +209,6 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     doSearch(q, selectedFilter);
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
   const showDefaultView = !hasSearched || (query.trim() === '' && !selectedFilter);
 
   // P027: 结果行抽为子组件（降 JSX 嵌套深度，resolvePageName/resolveResultName 经 props 传入）
@@ -226,8 +237,8 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
 
   return createPortal(
     <>
-      <div className={styles.backdrop} onClick={handleBackdropClick}>
-        <div className={styles.card}>
+      <div className={styles.backdrop} data-macos-glass-backdrop>
+        <div ref={cardRef} className={styles.card} data-macos-glass="panel">
           {/* 1. Search input */}
           <div className={styles.inputRow}>
             <div className={styles.leftControl}>
@@ -340,11 +351,8 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
           </div>
 
           {/* Settings — always pinned to the bottom of the card */}
-          <div className={styles.footer}>
-            <button
-              className={styles.settingsItem}
-              onClick={() => closeAndNavigate('/settings')}
-            >
+          <div className={styles.footer} data-macos-glass-section>
+            <button className={styles.settingsItem} onClick={() => closeAndNavigate('/settings')}>
               <Settings size={ICON_SIZE.md} />
               <span>{t('navigation:settings')}</span>
             </button>
@@ -407,13 +415,16 @@ function SearchResultRow({
               <span> · {resolvePageName(item)}</span>
               {item.objectCount !== undefined && (
                 <span>
-                  {' '}· {item.objectCount} {t('settings:search_objects_count')}
+                  {' '}
+                  · {item.objectCount} {t('settings:search_objects_count')}
                 </span>
               )}
             </>
           ) : item.itemType === 'template' ? (
             <>
-              <span className={styles.typeTag}>{t('settings:search_type_template', 'Template')}</span>
+              <span className={styles.typeTag}>
+                {t('settings:search_type_template', 'Template')}
+              </span>
               {item.fieldCount !== undefined && (
                 <span>
                   {' · '}
@@ -425,7 +436,8 @@ function SearchResultRow({
             <>
               <span className={styles.typeTag}>{t('settings:search_type_object')}</span>
               <span>
-                {' '}·{' '}
+                {' '}
+                ·{' '}
                 {item.matchType === 'template' ? (
                   <Highlight text={resolvePageName(item)} query={query} />
                 ) : (
@@ -444,7 +456,8 @@ function SearchResultRow({
               )}
               {item.fieldCount !== undefined && (
                 <span>
-                  {' '}· {item.fieldCount} {t('settings:search_fields_count')}
+                  {' '}
+                  · {item.fieldCount} {t('settings:search_fields_count')}
                 </span>
               )}
               {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (

@@ -94,8 +94,8 @@ export function PluginDialog({ pluginName, request, onSubmit, onCancel }: Plugin
   };
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.dialog}>
+    <div data-macos-glass-backdrop className={styles.overlay}>
+      <div data-macos-glass="panel" className={styles.dialog}>
         <div className={styles.header}>
           <Icon size={ICON_SIZE['2xl']} className={styles.icon} />
           <h3 className={styles.title}>{title}</h3>

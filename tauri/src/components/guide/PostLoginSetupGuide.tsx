@@ -142,6 +142,7 @@ export function PostLoginSetupGuide() {
 
   return (
     <div
+      data-macos-glass="panel"
       style={{
         position: 'fixed',
         left: '50%',
@@ -245,7 +246,9 @@ export function PostLoginSetupGuide() {
               gap: 2,
             }}
           >
-            <span>{t('settings:biometric_setup_guide', { defaultValue: '设置指纹/面容解锁' })}</span>
+            <span>
+              {t('settings:biometric_setup_guide', { defaultValue: '设置指纹/面容解锁' })}
+            </span>
             <span
               style={{
                 fontSize: 'var(--text-badge)',

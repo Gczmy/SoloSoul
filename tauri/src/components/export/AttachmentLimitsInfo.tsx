@@ -46,6 +46,7 @@ export function AttachmentLimitsInfo() {
         pos &&
         createPortal(
           <div
+            data-macos-glass="tooltip"
             style={{
               position: 'fixed',
               top: pos.top,

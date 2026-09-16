@@ -1,4 +1,4 @@
-import type { CSSProperties, RefObject } from 'react';
+import type { CSSProperties, FocusEvent, RefObject } from 'react';
 import type { TFunction } from 'i18next';
 import type { CustomIconId } from '@/lib/pageIcons';
 import { IconCategoryPicker } from './IconCategoryPicker';
@@ -48,8 +48,25 @@ export function AddPagePopover({
   isSmallWindow,
   t,
 }: AddPagePopoverProps) {
+  const handleInputBlur = (event: FocusEvent<HTMLInputElement>) => {
+    // WebKit 点击内部按钮时 relatedTarget 可能为空，不能因此提前提交并关闭。
+    // 外部鼠标点击由 AddPageButton 处理；这里仅处理明确移向卡片外的键盘焦点。
+    if (
+      event.relatedTarget instanceof Node &&
+      popoverRef.current &&
+      !popoverRef.current.contains(event.relatedTarget)
+    ) {
+      onConfirm(false);
+    }
+  };
   return (
-    <div ref={popoverRef} className={styles.addPagePopover} style={style}>
+    <div
+      ref={popoverRef}
+      className={styles.addPagePopover}
+      data-add-page-popover
+      data-macos-glass="panel"
+      style={style}
+    >
       {/* Name input */}
       <input
         ref={inputRef}
@@ -57,12 +74,7 @@ export function AddPagePopover({
         onChange={(e) => {
           onNameChange(e.target.value.slice(0, 20));
         }}
-        onBlur={(e) => {
-          // Only confirm if the blur is not caused by clicking inside the popover
-          if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
-            onConfirm(false);
-          }
-        }}
+        onBlur={handleInputBlur}
         onKeyDown={(e) => {
           if (e.key === 'Enter') onConfirm(true);
           if (e.key === 'Escape') onCancel();
@@ -79,11 +91,7 @@ export function AddPagePopover({
         <input
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value.slice(0, 30))}
-          onBlur={(e) => {
-            if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
-              onConfirm(false);
-            }
-          }}
+          onBlur={handleInputBlur}
           onKeyDown={(e) => {
             if (e.key === 'Enter') onConfirm(true);
             if (e.key === 'Escape') onCancel();
@@ -127,17 +135,16 @@ export function AddPagePopover({
           display: 'flex',
           flexDirection: 'column',
           gap: 6,
-          ...(isBottom && {
-            flex: '1 1 auto',
-            minHeight: isSmallWindow ? 80 : 120,
-            overflow: 'hidden',
-          }),
+          flex: '1 1 auto',
+          minHeight: isBottom ? (isSmallWindow ? 80 : 120) : 0,
+          overflow: 'hidden',
         }}
       >
         <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
           {t('select_icon')}
         </span>
         <div
+          data-icon-picker-scroll
           style={{
             maxHeight: isBottom ? undefined : scrollMaxHeight,
             overflowY: 'auto',
@@ -145,7 +152,8 @@ export function AddPagePopover({
             display: 'flex',
             flexDirection: 'column',
             gap: 10,
-            ...(isBottom && { flex: '1 1 auto', minHeight: 0 }),
+            flex: '1 1 auto',
+            minHeight: 0,
           }}
         >
           <IconCategoryPicker selectedIconId={selectedIconId} onSelect={onSelectIcon} />

@@ -145,6 +145,7 @@ export function AttachmentPreviewOverlay({
       case 'text':
         return (
           <div
+            data-macos-glass="panel"
             onClick={(e) => e.stopPropagation()}
             style={{
               margin: 'auto',

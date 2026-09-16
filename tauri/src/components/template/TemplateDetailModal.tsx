@@ -55,6 +55,7 @@ export function TemplateDetailModal({
 
   return (
     <div
+      data-macos-glass-backdrop
       style={{
         position: 'fixed',
         inset: 0,
@@ -68,6 +69,7 @@ export function TemplateDetailModal({
       onClick={onClose}
     >
       <motion.div
+        data-macos-glass="panel"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
@@ -118,7 +120,8 @@ export function TemplateDetailModal({
                 </span>
                 <span>·</span>
                 <span>
-                  {detailTemplate.properties.length} {t('settings:template_fields', { defaultValue: '个字段' })}
+                  {detailTemplate.properties.length}{' '}
+                  {t('settings:template_fields', { defaultValue: '个字段' })}
                 </span>
                 <SensitivityBadges properties={detailTemplate.properties} />
               </span>

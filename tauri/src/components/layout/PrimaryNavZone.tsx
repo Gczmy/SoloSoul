@@ -136,7 +136,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
           style={{
             ...zoneStyle,
             flex: expanded ? '0 1 auto' : 1,
-            maxHeight: expanded ? '40vh' : undefined,
+            minHeight: 0,
             overflowX: 'hidden',
             overflowY: 'auto',
           }}

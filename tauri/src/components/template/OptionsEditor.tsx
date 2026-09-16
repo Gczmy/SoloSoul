@@ -39,6 +39,7 @@ export function OptionsEditor({ options, onChange, fieldName, fieldType }: Optio
       </button>
       {open && (
         <div
+          data-macos-glass-backdrop
           style={{
             position: 'fixed',
             inset: 0,
@@ -52,6 +53,7 @@ export function OptionsEditor({ options, onChange, fieldName, fieldType }: Optio
           onClick={() => setOpen(false)}
         >
           <div
+            data-macos-glass="panel"
             onClick={(e) => e.stopPropagation()}
             style={{
               background: 'var(--bg-elevated)',

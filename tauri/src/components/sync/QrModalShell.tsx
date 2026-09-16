@@ -22,6 +22,7 @@ export function QrModalShell({ onClose, title, scrollable = false, children }: Q
 
   return (
     <div
+      data-macos-glass-backdrop
       style={{
         position: 'fixed',
         inset: 0,
@@ -45,6 +46,7 @@ export function QrModalShell({ onClose, title, scrollable = false, children }: Q
         style={{ width: '100%', maxWidth: 420 }}
       >
         <Card
+          surface="floating"
           style={{
             // 宽度由外层 motion.div（width:100% + maxWidth:420）约束，这里只填满，避免双重 maxWidth
             width: '100%',

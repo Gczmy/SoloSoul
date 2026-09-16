@@ -79,6 +79,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
 
   return (
     <div
+      data-macos-glass-backdrop
       style={{
         position: 'fixed',
         inset: 0,
@@ -92,6 +93,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
       onClick={onClose}
     >
       <motion.div
+        data-macos-glass="panel"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
@@ -265,10 +267,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <SampleIcon
-                      size={ICON_SIZE['2xl']}
-                      style={{ color: 'var(--text-primary)' }}
-                    />
+                    <SampleIcon size={ICON_SIZE['2xl']} style={{ color: 'var(--text-primary)' }} />
                     <div>
                       <div
                         style={{

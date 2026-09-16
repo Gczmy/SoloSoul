@@ -31,6 +31,7 @@ export function OcrHistoryTrashDropdown({
 
   return (
     <div
+      data-macos-glass="popover"
       style={{
         position: 'absolute',
         top: 44,

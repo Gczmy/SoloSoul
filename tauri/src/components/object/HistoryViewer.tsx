@@ -165,9 +165,7 @@ function SnapshotCard({
     // 历史快照：与详情卡片一致——internal/public 直接明文；仅 sensitive/critical 掩码（点击揭示）。
     // workspace 卡片仍按 masking.shouldMaskSensitivity 对 internal 模糊（模糊层不同）。
     const needsReveal = sens === 'sensitive' || sens === 'critical';
-    const revealSeconds = revealed
-      ? Math.max(0, Math.ceil(revealRemainingMs(fieldId) / 1000))
-      : 0;
+    const revealSeconds = revealed ? Math.max(0, Math.ceil(revealRemainingMs(fieldId) / 1000)) : 0;
     return (
       <>
         <span
@@ -547,6 +545,7 @@ export function HistoryViewer({
 
   return (
     <div
+      data-macos-glass-backdrop
       style={{
         position: 'fixed',
         inset: 0,
@@ -561,6 +560,7 @@ export function HistoryViewer({
     >
       {!loading && (
         <div
+          data-macos-glass="panel"
           onClick={(e) => e.stopPropagation()}
           style={{
             position: 'relative',

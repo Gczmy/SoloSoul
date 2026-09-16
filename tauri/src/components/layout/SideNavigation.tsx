@@ -93,7 +93,13 @@ export function SideNavigation() {
           </div>
         )}
 
-        <PrimaryNavZone sidebarPosition={sidebarPosition} isHorizontal={isHorizontal} />
+        {isHorizontal ? (
+          <PrimaryNavZone sidebarPosition={sidebarPosition} isHorizontal />
+        ) : (
+          <div className={styles.primaryZone}>
+            <PrimaryNavZone sidebarPosition={sidebarPosition} isHorizontal={false} />
+          </div>
+        )}
 
         {/* Foldable function button area */}
         <SecondaryActionBar sidebarPosition={sidebarPosition} isHorizontal={isHorizontal} />
