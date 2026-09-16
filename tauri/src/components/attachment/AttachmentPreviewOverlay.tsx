@@ -8,6 +8,7 @@ import { ICON_SIZE, SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
 // P048: 加载/缩放/手势逻辑抽到 hook
 import { useAttachmentPreview, isUriPath } from './useAttachmentPreview';
 import { PreviewTitlebar } from './PreviewTitlebar';
+import { PreviewWindow } from './PreviewWindow';
 
 interface AttachmentPreviewOverlayProps {
   item: AttachmentItem | null;
@@ -219,7 +220,7 @@ export function AttachmentPreviewOverlay({
   const showZoomControls = previewKind === 'image' && !loading && !error;
 
   return (
-    <div
+    <PreviewWindow
       data-testid="attachment-preview-overlay"
       style={{
         position: 'fixed',
@@ -434,6 +435,6 @@ export function AttachmentPreviewOverlay({
           </button>
         </div>
       )}
-    </div>
+    </PreviewWindow>
   );
 }

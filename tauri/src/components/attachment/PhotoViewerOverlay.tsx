@@ -19,6 +19,7 @@ import type { AttachmentItem } from '@/lib/attachmentUtils';
 // P048: 翻页/加载/缩放/手势逻辑抽到 hook
 import { usePhotoViewer, swipeNavigation } from './usePhotoViewer';
 import { PreviewTitlebar } from './PreviewTitlebar';
+import { PreviewWindow } from './PreviewWindow';
 export { computeFitScale } from '@/lib/photoZoom';
 export { swipeNavigation } from './usePhotoViewer';
 
@@ -223,8 +224,9 @@ export function PhotoViewerOverlay({
   };
 
   return (
-    <div
+    <PreviewWindow
       data-testid="photo-viewer"
+      portal={false}
       style={{
         position: 'absolute',
         inset: 0,
@@ -420,6 +422,6 @@ export function PhotoViewerOverlay({
           </button>
         </div>
       )}
-    </div>
+    </PreviewWindow>
   );
 }

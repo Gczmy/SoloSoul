@@ -11,6 +11,7 @@ import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { usePhotoAlbumState, tagCountBadge } from './usePhotoAlbumState';
 import type { AlbumGroupMode } from './usePhotoAlbumState';
 import { PreviewTitlebar } from './PreviewTitlebar';
+import { PreviewWindow } from './PreviewWindow';
 
 export type { AlbumGroupMode } from './usePhotoAlbumState';
 
@@ -64,7 +65,7 @@ export function PhotoAlbumOverlay({
   } = usePhotoAlbumState({ items, onClose, onItemMetaUpdated });
 
   return (
-    <div
+    <PreviewWindow
       data-testid="photo-album-overlay"
       // 阻止冒泡：AttachmentViewer 外层容器点击背景即关闭，照片集内部点击不应触发
       onClick={(e) => e.stopPropagation()}
@@ -365,7 +366,8 @@ export function PhotoAlbumOverlay({
       {viewerIndex !== null && viewerItems[viewerIndex] && (
         <Suspense
           fallback={
-            <div
+            <PreviewWindow
+              portal={false}
               style={{
                 position: 'fixed',
                 inset: 0,
@@ -380,7 +382,7 @@ export function PhotoAlbumOverlay({
                 className="spinner"
                 style={{ width: 24, height: 24, borderTopColor: 'var(--text-secondary)' }}
               />
-            </div>
+            </PreviewWindow>
           }
         >
           <LazyPhotoViewerOverlay
@@ -393,6 +395,6 @@ export function PhotoAlbumOverlay({
           />
         </Suspense>
       )}
-    </div>
+    </PreviewWindow>
   );
 }

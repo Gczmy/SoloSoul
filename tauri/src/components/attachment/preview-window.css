@@ -1,0 +1,56 @@
+/* macOS 预览由 Portal 放在 body 下：整条顶栏直接透出同一个原生材质。
+   原页面（包括 AppBar、侧栏边线和多层附件卡片）在这一行不绘制，
+   防止透明预览顶栏透出旧标题/按钮。退出预览后自动恢复，无原生外观重设。 */
+html[data-desktop-platform='macos']:has([data-preview-window]) {
+  --preview-titlebar-height: max(52px, var(--native-titlebar-height, 0px));
+}
+html[data-desktop-platform='macos']:has([data-preview-window]) #root,
+html[data-desktop-platform='macos']:has([data-preview-window]) [data-macos-glass-backdrop] {
+  clip-path: inset(var(--preview-titlebar-height) 0 0);
+}
+
+/* 深色背景和网页模糊仅绘制在顶栏下方，不能再覆盖整窗。
+   外壳保留自己的堆叠上下文，负层级伪元素位于内容后、底层页面前。 */
+html[data-desktop-platform='macos'] [data-preview-window] {
+  isolation: isolate;
+  background: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-desktop-platform='macos'] [data-preview-window]::before {
+  content: '';
+  position: absolute;
+  inset: var(--preview-titlebar-height) 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--preview-surface);
+  -webkit-backdrop-filter: var(--preview-blur);
+  backdrop-filter: var(--preview-blur);
+}
+
+html[data-desktop-platform='macos'] [data-preview-titlebar] {
+  background: transparent !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-primary);
+}
+/* 查看器打开或懒加载时，相册标题仍占位，但不与查看器顶栏重叠。 */
+html[data-desktop-platform='macos'] [data-preview-titlebar][data-active='false'] {
+  visibility: hidden;
+}
+html[data-desktop-platform='macos'] [data-preview-titlebar] :is(button, span) {
+  color: inherit !important;
+}
+html[data-desktop-platform='macos'] [data-preview-titlebar] [data-testid='photo-viewer-counter'] {
+  color: var(--text-secondary) !important;
+}
+
+/* 遵循原生减少透明度/高对比偏好。 */
+html[data-desktop-platform='macos']:is([data-native-material='solid'], [data-high-contrast='true'])
+  [data-preview-titlebar] {
+  background: var(--bg-base) !important;
+}
+@media (forced-colors: active), (prefers-reduced-transparency: reduce) {
+  html[data-desktop-platform='macos'] [data-preview-titlebar] {
+    background: var(--bg-base) !important;
+  }
+}

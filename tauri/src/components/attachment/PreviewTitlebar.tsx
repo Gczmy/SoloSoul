@@ -1,8 +1,9 @@
 import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { observeTitlebarControls } from '@/lib/nativeTitlebarControls';
+import './preview-window.css';
 
-/** 文件预览/照片集共用顶栏：背景铺满窗口，控件按原生交通灯的实际右沿避让。 */
+/** 文件预览/照片集共用整行原生玻璃顶栏，控件避开交通灯。 */
 export function PreviewTitlebar({
   children,
   style,
@@ -25,6 +26,7 @@ export function PreviewTitlebar({
     <div
       ref={headerRef}
       data-preview-titlebar
+      data-active={active}
       data-tauri-drag-region="false"
       onClick={(event) => event.stopPropagation()}
       style={{
