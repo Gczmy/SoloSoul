@@ -10,6 +10,7 @@ import type { AttachmentItem } from '@/lib/attachmentUtils';
 // P048: 数据层抽到 hook（state/筛选/排序/分组/查看器列表/硬件返回守卫）
 import { usePhotoAlbumState, tagCountBadge } from './usePhotoAlbumState';
 import type { AlbumGroupMode } from './usePhotoAlbumState';
+import { PreviewTitlebar } from './PreviewTitlebar';
 
 export type { AlbumGroupMode } from './usePhotoAlbumState';
 
@@ -85,15 +86,13 @@ export function PhotoAlbumOverlay({
         .photo-album-tag-filter::-webkit-scrollbar { display: none; }
       `}</style>
       {/* 顶栏 */}
-      <div
+      <PreviewTitlebar
+        active={viewerIndex === null || !viewerItems[viewerIndex]}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '10px 16px',
+          paddingLeft: 16,
+          paddingRight: 16,
           borderBottom: '1px solid var(--border-subtle)',
           background: 'var(--bg-toolbar)',
-          flexShrink: 0,
         }}
       >
         <BadgeIconButton
@@ -121,7 +120,7 @@ export function PhotoAlbumOverlay({
           title={t('common:close', 'Close')}
           iconSize={ICON_SIZE.md}
         />
-      </div>
+      </PreviewTitlebar>
 
       {/* 工具栏：标签筛选 + 排序 + 分组 */}
       {(tagOptions.length > 0 || visibleItems.length > 0) && (
@@ -377,7 +376,10 @@ export function PhotoAlbumOverlay({
                 background: '#000',
               }}
             >
-              <div className="spinner" style={{ width: 24, height: 24, borderTopColor: 'var(--text-secondary)' }} />
+              <div
+                className="spinner"
+                style={{ width: 24, height: 24, borderTopColor: 'var(--text-secondary)' }}
+              />
             </div>
           }
         >

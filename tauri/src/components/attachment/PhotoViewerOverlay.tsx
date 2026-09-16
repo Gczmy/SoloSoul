@@ -18,6 +18,7 @@ import { ICON_SIZE } from '@/lib/constants';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 // P048: 翻页/加载/缩放/手势逻辑抽到 hook
 import { usePhotoViewer, swipeNavigation } from './usePhotoViewer';
+import { PreviewTitlebar } from './PreviewTitlebar';
 export { computeFitScale } from '@/lib/photoZoom';
 export { swipeNavigation } from './usePhotoViewer';
 
@@ -239,15 +240,10 @@ export function PhotoViewerOverlay({
       }}
     >
       {/* 顶栏：返回网格 + 文件名 + 计数 + 关闭 */}
-      <div
+      <PreviewTitlebar
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '10px 14px',
           background: 'rgba(28,28,30,0.6)',
           borderBottom: '1px solid rgba(255,255,255,0.08)',
-          flexShrink: 0,
         }}
       >
         <button
@@ -309,7 +305,7 @@ export function PhotoViewerOverlay({
         >
           <X size={ICON_SIZE.md} />
         </button>
-      </div>
+      </PreviewTitlebar>
 
       {/* 描述/标签编辑对话框（覆盖查看器） */}
       {metaEditOpen && item && (

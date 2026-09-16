@@ -7,6 +7,7 @@ import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { ICON_SIZE, SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
 // P048: 加载/缩放/手势逻辑抽到 hook
 import { useAttachmentPreview, isUriPath } from './useAttachmentPreview';
+import { PreviewTitlebar } from './PreviewTitlebar';
 
 interface AttachmentPreviewOverlayProps {
   item: AttachmentItem | null;
@@ -219,6 +220,7 @@ export function AttachmentPreviewOverlay({
 
   return (
     <div
+      data-testid="attachment-preview-overlay"
       style={{
         position: 'fixed',
         top: SAFE_AREA_TOP,
@@ -239,15 +241,7 @@ export function AttachmentPreviewOverlay({
         onClose();
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '10px 14px',
-          background: 'var(--bg-toolbar)',
-        }}
-      >
+      <PreviewTitlebar style={{ background: 'var(--bg-toolbar)' }}>
         {/* 左上角返回按钮：与照片集全屏查看器一致，返回附件列表 */}
         <button
           onClick={(e) => {
@@ -337,7 +331,7 @@ export function AttachmentPreviewOverlay({
         >
           <X size={ICON_SIZE.lg} />
         </button>
-      </div>
+      </PreviewTitlebar>
 
       {/* 描述/标签编辑对话框 */}
       {metaEditOpen && (
