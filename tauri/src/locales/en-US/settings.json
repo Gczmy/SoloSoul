@@ -766,6 +766,7 @@
   "edit_template": "Edit Template",
   "filter_all": "All",
   "filter_user": "Custom Templates",
+  "account_card_description": "Account management · Local vault",
   "account_id": "Account ID",
   "account_id_hint": "The account ID identifies your vault and cannot be changed after creation.",
   "account_id_copied": "Account ID copied",

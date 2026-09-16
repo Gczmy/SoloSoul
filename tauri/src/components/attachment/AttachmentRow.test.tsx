@@ -6,6 +6,7 @@ import type { AttachmentMeta } from './attachmentManagerTypes';
 
 vi.mock('@/lib/platform', () => ({
   isMobilePlatformSync: vi.fn(() => false),
+  isAndroidSync: vi.fn(() => false),
 }));
 
 const item: AttachmentMeta = {

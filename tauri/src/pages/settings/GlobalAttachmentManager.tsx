@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useEntryBack } from '@/hooks/useEntryBack';
 import { motion } from 'framer-motion';
 import { Paperclip, Info, FolderTree, Upload, Trash2 } from 'lucide-react';
 import { PageShell } from '@/components/layout/PageShell';
@@ -26,6 +27,11 @@ export function GlobalAttachmentManager() {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
   const navigate = useNavigate();
   const location = useLocation();
+  const handleBack = useEntryBack(() => {
+    const state = location.state as { from?: string; fromHome?: boolean } | undefined;
+    if (state?.fromHome || state?.from === '/' || state?.from === '/home') navigate('/');
+    else navigate('/settings');
+  });
 
   const {
     confirmDialog,
@@ -137,11 +143,7 @@ export function GlobalAttachmentManager() {
   return (
     <PageShell
       title={t('settings:items.global_attachments', { defaultValue: 'Attachments' })}
-      onBack={() => {
-        const state = location.state as { from?: string; fromHome?: boolean } | undefined;
-        if (state?.fromHome || state?.from === '/' || state?.from === '/home') navigate('/');
-        else navigate('/settings');
-      }}
+      onBack={handleBack}
       actions={<PageGuideButton pages={attachmentGuidePages} />}
     >
       <PageContainer variant="medium" gap="default">

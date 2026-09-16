@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useEntryBack } from '@/hooks/useEntryBack';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -25,6 +26,10 @@ import { useTrashPage, TIME_OPTIONS, TYPE_OPTIONS, TRASH_PAGE_SIZE } from './use
 export function TrashPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const handleBack = useEntryBack(() => {
+    const state = location.state as { fromHome?: boolean } | undefined;
+    navigate(state?.fromHome ? '/' : '/settings');
+  });
   const {
     t,
     // store 状态
@@ -70,17 +75,9 @@ export function TrashPage() {
     <PageShell
       title={t('settings:trash')}
       actions={<PageGuideButton pages={trashGuidePages} />}
-      onBack={() => {
-        const state = location.state as { fromHome?: boolean } | undefined;
-        if (state?.fromHome) {
-          navigate('/');
-        } else {
-          navigate('/settings');
-        }
-      }}
+      onBack={handleBack}
     >
       <PageContainer variant="medium" gap="default">
-
         <Input
           placeholder={t('settings:search_trash')}
           value={searchQuery}
@@ -256,7 +253,10 @@ export function TrashPage() {
                 gap: 12,
               }}
             >
-              <Info size={ICON_SIZE['2xl']} style={{ opacity: 0.4, color: 'var(--text-tertiary)' }} />
+              <Info
+                size={ICON_SIZE['2xl']}
+                style={{ opacity: 0.4, color: 'var(--text-tertiary)' }}
+              />
               <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)' }}>
                 {t('settings:trash_detail_load_failed', { defaultValue: '加载回收站详情失败' })}
               </p>
@@ -270,11 +270,7 @@ export function TrashPage() {
               >
                 {detailError.message}
               </p>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => openDetail(detailError.trashId)}
-              >
+              <Button variant="primary" size="sm" onClick={() => openDetail(detailError.trashId)}>
                 {t('common:retry')}
               </Button>
             </div>

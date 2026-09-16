@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 
 import { HardDrive, PieChart } from 'lucide-react';
 import { formatBytes } from '@/lib/utils';
@@ -169,41 +170,13 @@ export function DataManagementPage() {
           >
             {t('settings:backup_desc')}
           </p>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              type="button"
-              onClick={() => navigate('/settings/backup')}
-              className="interactive-toolbar"
-              style={{
-                fontSize: 'var(--text-caption)',
-                padding: '6px 12px',
-                borderRadius: 6,
-                borderWidth: 1,
-                borderStyle: 'solid',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: 500,
-              }}
-            >
+          <div className="android-action-group" style={{ display: 'flex', gap: 8 }}>
+            <Button variant="secondary" onClick={() => navigate('/settings/backup')}>
               {t('settings:create_backup')}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/settings/backup')}
-              className="interactive-toolbar"
-              style={{
-                fontSize: 'var(--text-caption)',
-                padding: '6px 12px',
-                borderRadius: 6,
-                borderWidth: 1,
-                borderStyle: 'solid',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: 500,
-              }}
-            >
+            </Button>
+            <Button variant="secondary" onClick={() => navigate('/settings/backup')}>
               {t('settings:restore')}
-            </button>
+            </Button>
           </div>
         </Card>
 
@@ -220,41 +193,13 @@ export function DataManagementPage() {
           >
             {t('settings:export_import_desc')}
           </p>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              type="button"
-              onClick={() => navigate('/settings/export-import')}
-              className="interactive-toolbar"
-              style={{
-                fontSize: 'var(--text-caption)',
-                padding: '6px 12px',
-                borderRadius: 6,
-                borderWidth: 1,
-                borderStyle: 'solid',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: 500,
-              }}
-            >
+          <div className="android-action-group" style={{ display: 'flex', gap: 8 }}>
+            <Button variant="secondary" onClick={() => navigate('/settings/export-import')}>
               {t('settings:export')}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/settings/export-import')}
-              className="interactive-toolbar"
-              style={{
-                fontSize: 'var(--text-caption)',
-                padding: '6px 12px',
-                borderRadius: 6,
-                borderWidth: 1,
-                borderStyle: 'solid',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: 500,
-              }}
-            >
+            </Button>
+            <Button variant="secondary" onClick={() => navigate('/settings/export-import')}>
               {t('settings:import')}
-            </button>
+            </Button>
           </div>
         </Card>
 
@@ -271,23 +216,9 @@ export function DataManagementPage() {
           >
             {t('settings:trash_empty')}
           </p>
-          <button
-            type="button"
-            onClick={() => navigate('/settings/trash')}
-            className="interactive-toolbar"
-            style={{
-              fontSize: 'var(--text-caption)',
-              padding: '6px 12px',
-              borderRadius: 6,
-              borderWidth: 1,
-              borderStyle: 'solid',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              fontWeight: 500,
-            }}
-          >
+          <Button variant="secondary" onClick={() => navigate('/settings/trash')}>
             {t('settings:trash')}
-          </button>
+          </Button>
         </Card>
 
         {/* Snapshot retention config */}
@@ -308,6 +239,7 @@ export function DataManagementPage() {
             {(['unlimited', '50', '100', '200'] as const).map((opt) => (
               <label
                 key={opt}
+                className="android-option-row"
                 style={{
                   display: 'flex',
                   alignItems: 'center',

@@ -47,7 +47,10 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {/* Category tabs */}
-      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+      <div
+        className="template-icon-categories"
+        style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}
+      >
         {CATEGORY_ORDER.map((cat) => {
           const isActive = categoryFilter === cat;
           return (
@@ -75,6 +78,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
 
       {/* Icon grid */}
       <div
+        className="template-icon-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(8, 1fr)',
@@ -88,9 +92,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
             type="button"
             onClick={() => onChange(id)}
             title={id}
-            className={
-              currentId === id ? 'interactive-tile selected-accent' : 'interactive-tile'
-            }
+            className={currentId === id ? 'interactive-tile selected-accent' : 'interactive-tile'}
             style={{
               width: 32,
               height: 32,

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useEntryBack } from '@/hooks/useEntryBack';
 import { useTranslation } from 'react-i18next';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -25,6 +26,7 @@ export function SyncPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const backTo = (location.state as { from?: string } | null)?.from;
+  const handleBack = useEntryBack(() => navigate(backTo || '/', { replace: true }));
   const { t } = useTranslation(['settings', 'common']);
   // 已知设备详情弹窗目标 id（列表卡片点击后打开）。
   // peer 对象从 store.connectedPeers 派生而非存快照：点击「撤销信任/信任并配对」后
@@ -105,7 +107,7 @@ export function SyncPage() {
   return (
     <PageShell
       title={t('settings:sync', { defaultValue: 'Device Sync' })}
-      onBack={() => navigate(backTo || '/', { replace: true })}
+      onBack={handleBack}
       actions={<PageGuideButton pages={syncGuidePages} />}
     >
       <PageContainer variant="xs" gap="default">
@@ -357,7 +359,9 @@ function SyncStatusCard({
           )}
           {store.syncEnabled && store.listenAddr && (
             <div style={{ marginTop: 6, lineHeight: 1.6 }}>
-              <strong>{t('settings:sync_your_addr', { defaultValue: 'Your listen address' })}:</strong>{' '}
+              <strong>
+                {t('settings:sync_your_addr', { defaultValue: 'Your listen address' })}:
+              </strong>{' '}
               {store.listenAddr}
             </div>
           )}

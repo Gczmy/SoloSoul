@@ -111,7 +111,7 @@ test('responsive surfaces and navigation rail have no horizontal overflow', asyn
   await page.screenshot({ path: test.info().outputPath('android-home.png') });
 });
 
-test('new sheet traps focus, hardware back closes it, page creation preserves route', async ({
+test('page sheets keep focus, stay within the viewport and preserve create/edit routes', async ({
   page,
 }) => {
   await page.locator('.android-fab').click();
@@ -137,6 +137,93 @@ test('new sheet traps focus, hardware back closes it, page creation preserves ro
   await expect(page).toHaveURL(/\/workspace\/custom\//);
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.locator('header h1')).toHaveText('Reading');
+
+  await page.locator('.android-navigation a[href="/"]').click();
+  await page.evaluate(() => {
+    Object.assign(window, { __pageUpdates: [] });
+    (window as any).__E2E_MOCKS__.object_update = (args: unknown) => {
+      (window as any).__pageUpdates.push(args);
+    };
+  });
+  await page.getByRole('button', { name: 'Edit page: Reading', exact: true }).click();
+  const editor = page.getByRole('dialog', { name: 'Edit page: Reading', exact: true });
+  await expect(editor).toBeVisible();
+  await expect(page.locator('#root')).toHaveJSProperty('inert', true);
+  // 右列卡片的菜单不能沿锚点溢出；旋转屏幕后整个编辑器仍在可视区域内。
+  for (const viewport of [
+    { width: 320, height: 640 },
+    { width: 844, height: 390 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await expect
+      .poll(() =>
+        editor.evaluate((panel) => {
+          const rect = panel.getBoundingClientRect();
+          return (
+            rect.left >= 12 &&
+            rect.right <= innerWidth - 12 &&
+            rect.top >= 24 &&
+            rect.bottom <= innerHeight - 6 &&
+            panel.scrollWidth <= panel.clientWidth
+          );
+        }),
+      )
+      .toBe(true);
+    await editor.getByRole('button', { name: 'Save', exact: true }).scrollIntoViewIfNeeded();
+    await expect(editor.getByRole('button', { name: 'Save', exact: true })).toBeInViewport();
+  }
+  await page.screenshot({ path: test.info().outputPath('edit-page-portrait.png') });
+
+  // 模拟软键盘压缩 visualViewport，走实际键盘避让监听而非直接改面板坐标。
+  await editor.getByRole('textbox').first().fill('Reading room');
+  await editor.getByRole('textbox').nth(1).fill('Books and notes');
+  await page.evaluate(() => {
+    Object.defineProperty(window.visualViewport, 'height', {
+      configurable: true,
+      get: () => innerHeight - 300,
+    });
+    window.visualViewport!.dispatchEvent(new Event('resize'));
+  });
+  await expect
+    .poll(() =>
+      editor.evaluate((panel) => {
+        const rect = panel.getBoundingClientRect();
+        return rect.top >= 24 && rect.bottom <= window.visualViewport!.height - 6;
+      }),
+    )
+    .toBe(true);
+  await editor.getByRole('button', { name: 'star', exact: true }).click();
+  await editor.getByRole('button', { name: 'Save', exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: test.info().outputPath('edit-page-keyboard.png') });
+  await editor.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(editor).toHaveCount(0);
+  await expect(page).toHaveURL('/');
+  expect(await page.evaluate(() => (window as any).__pageUpdates)).toEqual([
+    expect.objectContaining({
+      input: {
+        name: 'Reading room',
+        properties: { description: 'Books and notes' },
+        iconName: 'star',
+      },
+    }),
+  ]);
+  await page.evaluate(() => {
+    Reflect.deleteProperty(window.visualViewport!, 'height');
+    window.visualViewport!.dispatchEvent(new Event('resize'));
+  });
+  const editAgain = page.getByRole('button', { name: 'Edit page: Reading room', exact: true });
+  await editAgain.click();
+  await page.getByRole('dialog').getByRole('textbox').first().fill('Discarded draft');
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await editAgain.click();
+  await expect(page.getByRole('dialog').getByRole('textbox').first()).toHaveValue('Reading room');
+  await page.goBack();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page).toHaveURL('/');
+  await expect(page.locator('#root')).toHaveJSProperty('inert', false);
+  expect(await page.evaluate(() => (window as any).__pageUpdates.length)).toBe(1);
 });
 
 test('all objects, filters, search, details and contextual creation reuse business routes', async ({

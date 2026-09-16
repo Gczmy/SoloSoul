@@ -82,3 +82,13 @@
   justify-content: flex-end;
   gap: 12px;
 }
+
+:global([data-platform='android']) .dialog {
+  min-width: 0;
+  width: calc(100% - 32px);
+  max-width: 480px;
+  border-radius: 28px;
+}
+:global([data-platform='android']) .actions {
+  flex-wrap: wrap;
+}

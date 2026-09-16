@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,7 @@ export function AndroidSheet({
   innerOpen = false,
   onBack = onClose,
   trigger,
+  zIndex,
 }: {
   title: string;
   children: ReactNode;
@@ -19,6 +20,8 @@ export function AndroidSheet({
   innerOpen?: boolean;
   onBack?: () => void;
   trigger?: HTMLElement | null;
+  /** 附件等面板内的菜单需要高于宿主覆盖层。 */
+  zIndex?: CSSProperties['zIndex'];
 }) {
   const { t } = useTranslation('common');
   const titleId = useId();
@@ -85,7 +88,11 @@ export function AndroidSheet({
     )?.focus();
   }, [innerOpen]);
   return createPortal(
-    <div className="android-sheet-layer" onClick={(event) => event.stopPropagation()}>
+    <div
+      className="android-sheet-layer"
+      style={zIndex !== undefined ? { zIndex } : undefined}
+      onClick={(event) => event.stopPropagation()}
+    >
       <div className="android-sheet-scrim" onClick={onClose} />
       <div
         ref={panel}

@@ -1,5 +1,6 @@
 {
   "more_actions": "More actions",
+  "attachment_actions_for": "Attachment actions: {{name}}",
   "save": "Save",
   "cancel": "Cancel",
   "continue": "Continue",
@@ -741,6 +742,8 @@
     "tools_title": "Organize, connect, explore",
     "tools_description": "Your everyday tools, together in one place.",
     "object_actions": "Actions for {{name}}",
+    "attachments_with_count": "Attachments ({{count}})",
+    "detail_guide_actions": "Use Attachments to manage files and see their count, or Edit to update the object. Open the … menu for History, Guide, and Delete. Deleting requires confirmation and moves the object to trash.",
     "history": "History",
     "attachments": "Attachments",
     "skip_sync": "Skip template update",

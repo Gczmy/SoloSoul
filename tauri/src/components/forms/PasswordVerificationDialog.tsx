@@ -3,7 +3,10 @@ import { Dialog } from '@/components/ui/Dialog';
 import { PinEntryCard } from '@/components/forms/PinEntryCard';
 import { LoginIconBar } from '@/pages/auth/LoginIconBar';
 
-import { usePasswordVerification, type PasswordVerificationDialogProps } from './usePasswordVerification';
+import {
+  usePasswordVerification,
+  type PasswordVerificationDialogProps,
+} from './usePasswordVerification';
 import { PasswordVerificationBiometricCard } from './PasswordVerificationBiometricCard';
 import { PasswordVerificationPasswordCard } from './PasswordVerificationPasswordCard';
 
@@ -21,13 +24,7 @@ export type { PasswordVerificationDialogProps } from './usePasswordVerification'
  * 生物识别/密码卡片为独立展示子组件，PIN 卡片复用共享 PinEntryCard。
  */
 export function PasswordVerificationDialog(props: PasswordVerificationDialogProps) {
-  const {
-    open,
-    title,
-    description,
-    confirmLabel,
-    hint,
-  } = props;
+  const { open, title, description, confirmLabel, hint } = props;
   const { t } = useTranslation(['auth', 'common', 'settings']);
   const {
     loginMethod,
@@ -54,7 +51,10 @@ export function PasswordVerificationDialog(props: PasswordVerificationDialogProp
 
   return (
     <Dialog isOpen={open} onClose={handleClose} dialogStyle={{ maxWidth: 360 }} priority="auth">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 320 }}>
+      <div
+        className="password-verification-content"
+        style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 320 }}
+      >
         <h2 style={{ fontSize: 'var(--text-section-title)', fontWeight: 600, margin: 0 }}>
           {title || t('auth:verification_title')}
         </h2>

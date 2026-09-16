@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useEntryBack } from '@/hooks/useEntryBack';
+import { isAndroidSync } from '@/lib/platform';
 import { useTranslation } from 'react-i18next';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -29,6 +31,7 @@ import { PageGuideButton } from '@/components/guide/PageGuideButton';
 
 export function SearchPage() {
   const navigate = useNavigate();
+  const handleBack = useEntryBack(() => navigate('/'));
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { onError } = useToastError();
   const { t } = useTranslation(['common', 'navigation', 'settings', 'editor']);
@@ -81,7 +84,7 @@ export function SearchPage() {
         navigate(`/workspace?section=${item.objectId}`);
       }
     } else if (item.itemType === 'template') {
-      navigate('/settings/templates');
+      navigate('/settings/templates', isAndroidSync() ? { state: { from: '/search' } } : undefined);
     } else {
       setDetailObjectId(item.objectId);
     }
@@ -96,27 +99,34 @@ export function SearchPage() {
           {
             icon: Search,
             title: t('common:guide_search_step1_title', { defaultValue: 'Enter Keywords' }),
-            description:
-              t('common:guide_search_step1_desc', { defaultValue: 'Type keywords to search across objects, fields, and attachments. Use quoted phrases for exact matches.' }),
+            description: t('common:guide_search_step1_desc', {
+              defaultValue:
+                'Type keywords to search across objects, fields, and attachments. Use quoted phrases for exact matches.',
+            }),
           },
           {
             icon: Type,
             title: t('common:guide_search_step2_title', { defaultValue: 'Filter Results' }),
-            description:
-              t('common:guide_search_step2_desc', { defaultValue: 'Filter results by sensitivity, object type, or date to narrow down the matches.' }),
+            description: t('common:guide_search_step2_desc', {
+              defaultValue:
+                'Filter results by sensitivity, object type, or date to narrow down the matches.',
+            }),
           },
           {
             icon: FolderOpen,
             title: t('common:guide_search_step3_title', { defaultValue: 'Open Objects' }),
-            description:
-              t('common:guide_search_step3_desc', { defaultValue: 'Tap a result to open the object detail. You can edit or copy values from the detail view.' }),
+            description: t('common:guide_search_step3_desc', {
+              defaultValue:
+                'Tap a result to open the object detail. You can edit or copy values from the detail view.',
+            }),
           },
         ],
         helpLinks: [
           {
             title: t('common:guide_help_search', { defaultValue: 'Global Search' }),
-            description:
-              t('common:guide_help_search_desc', { defaultValue: 'Search objects, fields, and attachments across the vault' }),
+            description: t('common:guide_help_search_desc', {
+              defaultValue: 'Search objects, fields, and attachments across the vault',
+            }),
             href: '/help?id=search',
           },
         ],
@@ -128,7 +138,7 @@ export function SearchPage() {
   return (
     <PageShell
       title={t('navigation:search')}
-      onBack={() => navigate('/')}
+      onBack={handleBack}
       actions={<PageGuideButton pages={searchGuidePages} />}
     >
       <PageContainer variant="small" gap="default">

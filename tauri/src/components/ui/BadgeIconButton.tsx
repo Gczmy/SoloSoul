@@ -58,6 +58,7 @@ export const BadgeIconButton = memo(function BadgeIconButton({
   return (
     <div className={styles.wrapper}>
       <button
+        data-ui-icon-button={dangerOutline ? 'danger-outline' : danger ? 'danger' : 'default'}
         type="button"
         onClick={onClick}
         title={title}

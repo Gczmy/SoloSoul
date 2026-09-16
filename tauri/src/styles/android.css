@@ -16,6 +16,84 @@
 :root[data-platform='android'][data-theme='dark'] {
   color-scheme: dark;
 }
+/* 所有安卓页面及 Portal 弹层的触控底线。用 !important 覆盖旧组件的 inline/模块级
+   紧凑尺寸；卡片、图片、导航的视觉样式仍由组件控制。 */
+:root[data-platform='android'] :is(button, [role='button'], [role='tab'], [role='menuitem']) {
+  min-width: 48px !important;
+  min-height: 48px !important;
+  touch-action: manipulation;
+}
+/* 附件展开箭头是整行点击的视觉提示：保留紧凑箭头与名称起点，由整行提供触控区。 */
+[data-platform='android'] [data-attachment-toggle-row] {
+  min-height: 48px;
+}
+:root[data-platform='android'] [data-attachment-toggle-row] > .toggle-arrow-btn {
+  min-width: 0 !important;
+  min-height: 0 !important;
+}
+/* 旧工具栏按钮沿用统一的安卓圆角、字号与按压反馈，保留其选中/危险语义。 */
+[data-platform='android']
+  button:is(
+    .interactive-toolbar,
+    .interactive-toolbar-selected,
+    .interactive-toolbar-warm,
+    .interactive-guide-trigger
+  ) {
+  border-radius: 24px !important;
+  font-size: var(--text-body-sm) !important;
+  line-height: 1.4;
+  padding: 10px 16px !important;
+}
+[data-platform='android']
+  button:is(.interactive-toolbar, .interactive-guide-trigger):active:not(:disabled) {
+  background: var(--bg-active);
+}
+[data-platform='android']
+  button:is(.interactive-icon, .interactive-icon-danger, .interactive-accent) {
+  border-radius: 24px !important;
+}
+[data-platform='android'] [data-ui-icon-button] {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+}
+[data-platform='android'] [data-ui-icon-button] > svg {
+  width: 20px;
+  height: 20px;
+}
+[data-platform='android'] [data-ui-icon-button]:active:not(:disabled) {
+  background: var(--bg-active);
+}
+[data-platform='android'] .android-action-group {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+[data-platform='android'] .android-option-row {
+  min-height: 48px;
+}
+[data-platform='android'] [data-ui-switch] {
+  min-width: 48px;
+  min-height: 48px;
+}
+[data-ui-switch] input:focus-visible + [data-switch-track] {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px;
+}
+[data-platform='android'] .interactive-password-field {
+  min-height: 56px;
+  border-radius: 16px !important;
+}
+[data-platform='android'] .interactive-password-field > input {
+  min-width: 0;
+  min-height: 54px;
+  padding-right: 60px !important;
+}
+[data-platform='android'] .interactive-password-field[data-has-hint] > input {
+  padding-right: 110px !important;
+}
+[data-platform='android'] .password-verification-content {
+  min-width: 0 !important;
+}
 [data-platform='android'] [data-ui-card] {
   border: 0;
   border-radius: 24px;
@@ -29,12 +107,18 @@
 }
 [data-platform='android'] [data-ui-button] {
   min-height: 48px;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
   border-radius: 24px;
   gap: 8px;
   font-size: 0.875rem;
 }
 [data-platform='android'] [data-ui-button='primary'] {
   color: var(--md-on-primary);
+}
+[data-platform='android'] [data-ui-button] > svg {
+  flex-shrink: 0;
 }
 [data-platform='android'] [data-ui-button='secondary'],
 [data-platform='android'] [data-ui-button='glass'] {
@@ -297,6 +381,128 @@
   display: grid;
   gap: 16px;
 }
+.android-attachment-menu-name,
+.android-object-menu-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  color: var(--text-secondary);
+  font-size: var(--text-body-sm);
+  margin-bottom: 16px;
+}
+.android-attachment-menu-actions,
+.android-object-menu-actions {
+  display: grid;
+  gap: 4px;
+}
+.android-attachment-menu-actions > button,
+.android-object-menu-actions > button {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 56px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--md-surface-high);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.android-attachment-menu-actions svg,
+.android-object-menu-actions svg {
+  flex-shrink: 0;
+}
+.android-attachment-menu-actions > button[data-danger] {
+  color: var(--danger);
+  margin-top: 8px;
+}
+.android-attachment-menu-actions > button:active,
+.android-object-menu-actions > button:active {
+  background: var(--bg-active);
+}
+.android-object-menu-actions > button[data-danger] {
+  color: var(--danger);
+}
+.android-object-menu-divider {
+  width: 100%;
+  margin: 8px 0;
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+.android-object-detail-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+.android-object-detail-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  gap: 6px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 24px;
+  background: var(--md-surface-high);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--text-body-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.android-object-detail-action svg {
+  flex-shrink: 0;
+}
+.android-object-detail-edit {
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+}
+.android-object-detail-action:active {
+  background: var(--bg-active);
+}
+.android-object-attachment-count {
+  flex-shrink: 0;
+  min-width: 20px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  background: var(--bg-inset);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+.android-object-detail-guide button {
+  min-height: 48px;
+}
+@media (max-width: 767px) {
+  .android-object-detail-footer {
+    margin-top: 0;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+}
+@media (max-width: 359px) {
+  .android-object-detail-action {
+    padding-inline: 8px;
+  }
+  /* 极窄屏优先保留完整文字和数量，图标由文字表达同一含义。 */
+  .android-object-detail-action > svg {
+    display: none;
+  }
+}
+.android-page-form-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
 .android-icon-picker {
   border: 0;
   padding: 0;
@@ -308,6 +514,26 @@
 .android-icon-picker button {
   min-width: 48px;
   min-height: 48px;
+}
+[data-platform='android'] .template-icon-grid {
+  grid-template-columns: repeat(auto-fit, minmax(48px, 1fr)) !important;
+  gap: 8px !important;
+  max-height: min(40dvh, 320px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  align-content: start;
+}
+[data-platform='android'] .template-icon-categories {
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
+  padding: 2px 0;
+}
+[data-platform='android'] .template-icon-categories > button {
+  flex-shrink: 0;
+}
+[data-platform='android'] .template-icon-grid > button {
+  width: 100% !important;
+  border-radius: 16px !important;
 }
 .android-text-button {
   display: inline-flex;
@@ -741,15 +967,34 @@
 .android-account-card {
   display: flex;
   width: 100%;
+  min-height: 84px;
   align-items: center;
   gap: 16px;
-  padding: 24px;
+  padding: 16px;
   border: 0;
-  border-radius: 28px;
-  background: var(--md-primary-container);
-  color: var(--md-on-primary-container);
+  border-radius: 24px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
   text-align: start;
   cursor: pointer;
+  transition: background 160ms;
+}
+.android-account-card:active {
+  background: var(--bg-active);
+}
+@media (hover: hover) {
+  .android-account-card:hover {
+    background: var(--bg-hover);
+  }
+}
+.android-account-card .android-row-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.android-account-chevron {
+  flex-shrink: 0;
+  color: var(--text-secondary);
 }
 .android-settings-group {
   border-radius: 24px;

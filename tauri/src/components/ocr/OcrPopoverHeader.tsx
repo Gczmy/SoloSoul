@@ -35,6 +35,7 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <button
           onClick={onToggleHistory}
+          aria-pressed={showHistory}
           title={t('ocr:scan_history')}
           className="interactive-icon"
           style={{

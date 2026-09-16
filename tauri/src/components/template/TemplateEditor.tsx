@@ -181,6 +181,8 @@ export function TemplateEditor({
         <button
           type="button"
           onClick={() => setShowIconPicker((v) => !v)}
+          data-desktop-control
+          aria-expanded={showIconPicker}
           style={{
             display: 'flex',
             alignItems: 'center',

@@ -164,6 +164,7 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
           <Button
             variant="secondary"
             style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }}
+            data-desktop-control="accent"
             onClick={onUse}
           >
             {t('settings:use_sample_template')}

@@ -70,6 +70,7 @@ export function LoginPasswordView({
         <button
           type="submit"
           disabled={isLoading}
+          aria-busy={isLoading}
           className="interactive-toolbar"
           style={{
             width: '100%',

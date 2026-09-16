@@ -1,5 +1,6 @@
 {
   "more_actions": "更多操作",
+  "attachment_actions_for": "附件操作：{{name}}",
   "save": "保存",
   "cancel": "取消",
   "continue": "继续",
@@ -738,6 +739,8 @@
     "tools_title": "整理、连接、拓展",
     "tools_description": "常用工具集中在这里，随时处理你的资料。",
     "object_actions": "对象操作：{{name}}",
+    "attachments_with_count": "附件（{{count}}）",
+    "detail_guide_actions": "底部的「附件」显示附件数量，点击可管理文件；「编辑」用于修改对象。点击「…」可打开历史记录、使用指南或删除对象。删除时仍需确认，对象会移入回收站。",
     "history": "历史记录",
     "attachments": "附件",
     "skip_sync": "暂不更新模板",

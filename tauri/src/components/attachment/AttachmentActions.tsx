@@ -1,10 +1,14 @@
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Eye, Download, RotateCcw, Share2, FilePen } from 'lucide-react';
+import { Eye, Download, RotateCcw, Share2, FilePen, MoreHorizontal, Trash2 } from 'lucide-react';
+import { AndroidSheet } from '@/components/android/AndroidSheet';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { ICON_SIZE } from '@/lib/constants';
+import { isAndroidSync } from '@/lib/platform';
 
 interface AttachmentActionsProps {
+  fileName: string;
   showTrash: boolean;
   onPreview: () => void;
   onDownload: () => void;
@@ -16,6 +20,78 @@ interface AttachmentActionsProps {
   onPermanentDelete: () => void;
 }
 
+function AndroidAttachmentActions({ fileName, showTrash, ...handlers }: AttachmentActionsProps) {
+  const { t } = useTranslation('common');
+  const [open, setOpen] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const options = showTrash
+    ? [
+        { label: t('restore'), Icon: RotateCcw, action: handlers.onRestore, danger: false },
+        {
+          label: t('delete_permanently'),
+          Icon: Trash2,
+          action: handlers.onPermanentDelete,
+          danger: true,
+        },
+      ]
+    : [
+        { label: t('preview'), Icon: Eye, action: handlers.onPreview, danger: false },
+        { label: t('download'), Icon: Download, action: handlers.onDownload, danger: false },
+        { label: t('forward'), Icon: Share2, action: handlers.onShare, danger: false },
+        ...(handlers.onEditMeta
+          ? [{ label: t('edit_meta'), Icon: FilePen, action: handlers.onEditMeta, danger: false }]
+          : []),
+        { label: t('delete'), Icon: Trash2, action: handlers.onSoftDelete, danger: true },
+      ];
+
+  return (
+    <>
+      <button
+        ref={trigger}
+        type="button"
+        className="android-icon-button"
+        aria-label={t('attachment_actions_for', { name: fileName })}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={(event) => {
+          event.stopPropagation();
+          setOpen(true);
+        }}
+      >
+        <MoreHorizontal size={24} />
+      </button>
+      {open && (
+        <AndroidSheet
+          title={t('more_actions')}
+          onClose={() => setOpen(false)}
+          trigger={trigger.current}
+          zIndex="var(--z-preview-overlay)"
+        >
+          <p className="android-attachment-menu-name" title={fileName}>
+            {fileName}
+          </p>
+          <div className="android-attachment-menu-actions">
+            {options.map(({ label, Icon, action, danger }) => (
+              <button
+                key={label}
+                type="button"
+                data-danger={danger || undefined}
+                onClick={() => {
+                  setOpen(false);
+                  action();
+                }}
+              >
+                <Icon size={24} aria-hidden="true" />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </AndroidSheet>
+      )}
+    </>
+  );
+}
+
 /**
  * P226: 附件行操作按钮组——回收站态（恢复 + 永久删除）与常规态（预览/下载/转发/编辑属性 + 删除）。
  *
@@ -24,6 +100,7 @@ interface AttachmentActionsProps {
  * 弹卡内提供名称/描述/标签三输入框；恢复图标统一为 RotateCcw。
  */
 export function AttachmentActions({
+  fileName,
   showTrash,
   onPreview,
   onDownload,
@@ -34,6 +111,22 @@ export function AttachmentActions({
   onPermanentDelete,
 }: AttachmentActionsProps) {
   const { t } = useTranslation(['common']);
+
+  if (isAndroidSync()) {
+    return (
+      <AndroidAttachmentActions
+        fileName={fileName}
+        showTrash={showTrash}
+        onPreview={onPreview}
+        onDownload={onDownload}
+        onShare={onShare}
+        onEditMeta={onEditMeta}
+        onSoftDelete={onSoftDelete}
+        onRestore={onRestore}
+        onPermanentDelete={onPermanentDelete}
+      />
+    );
+  }
 
   if (showTrash) {
     return (

@@ -124,6 +124,7 @@ export function DeprecatedFieldsSection({
                       variant="tertiary"
                       size="sm"
                       onClick={() => onPermanentlyRemoveProperty(idx)}
+                      data-desktop-control="danger-text"
                       style={{ color: '#e74c3c' }}
                     >
                       {t('common:clean_up', { defaultValue: '清理' })}

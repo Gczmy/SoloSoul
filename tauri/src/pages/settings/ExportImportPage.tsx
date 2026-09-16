@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useEntryBack } from '@/hooks/useEntryBack';
 
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -112,25 +113,32 @@ export function ExportImportPage() {
     skipHintCheckRef,
     skipWeakPasswordCheckRef,
   } = useExportImportPage();
+  const handleBack = useEntryBack(() => navigate('/settings'));
 
   return (
     <PageShell
       title={t('settings:export_import')}
-      onBack={() => navigate('/settings')}
+      onBack={handleBack}
       actions={<PageGuideButton pages={exportImportGuidePages} />}
     >
       <PageContainer variant="medium" gap="default">
-
         <ExportImportTabBar tab={tab} onChange={setTab} />
 
         {(tab === 'export' || tab === 'document') && scopeLoaded && scopeError ? (
           // N-11: 加载失败态与「空数据」同态问题——失败时显示错误占位 + 重试，
           // 不再渲染空导出树（用户误以为数据丢失）。
           <Card style={{ padding: '48px 24px', textAlign: 'center' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <Info size={ICON_SIZE['2xl']} style={{ opacity: 0.4, color: 'var(--text-tertiary)' }} />
+            <div
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
+            >
+              <Info
+                size={ICON_SIZE['2xl']}
+                style={{ opacity: 0.4, color: 'var(--text-tertiary)' }}
+              />
               <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)' }}>
-                {t('settings:export_scope_load_failed', { defaultValue: '导出范围加载失败，请重试' })}
+                {t('settings:export_scope_load_failed', {
+                  defaultValue: '导出范围加载失败，请重试',
+                })}
               </p>
               <p
                 style={{

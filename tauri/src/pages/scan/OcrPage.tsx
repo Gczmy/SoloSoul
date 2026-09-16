@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useEntryBack } from '@/hooks/useEntryBack';
 import { useTranslation } from 'react-i18next';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -21,6 +22,11 @@ import { ScanDropZone, type ScanMode } from './ScanDropZone';
 export function OcrPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const handleBack = useEntryBack(() => {
+    const state = location.state as { fromHome?: boolean } | undefined;
+    if (state?.fromHome) navigate('/');
+    else navigate(-1);
+  });
   const { t } = useTranslation(['ocr', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   // P047: 仅订阅 createObject action（store 级选择器，避免任意字段变化触发整页重渲染）
@@ -333,14 +339,7 @@ export function OcrPage() {
   return (
     <PageShell
       title={t('ocr:title')}
-      onBack={() => {
-        const state = location.state as { fromHome?: boolean } | undefined;
-        if (state?.fromHome) {
-          navigate('/');
-        } else {
-          navigate(-1);
-        }
-      }}
+      onBack={handleBack}
       actions={<PageGuideButton pages={ocrGuidePages} />}
     >
       <PageContainer variant="wide" gap="default">

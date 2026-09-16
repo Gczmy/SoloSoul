@@ -8,6 +8,10 @@ import { CUSTOM_ICON_MAP, type CustomIconId } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
 import { IconCategoryPicker } from './IconCategoryPicker';
 import { SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
+import { isAndroidSync } from '@/lib/platform';
+import { AndroidSheet } from '@/components/android/AndroidSheet';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 import styles from './SideNavigation.module.css';
 
 // =============================================================================
@@ -31,6 +35,7 @@ export function CustomPageEditPopover({
   triggerRect,
   position = 'left',
 }: CustomPageEditPopoverProps) {
+  const isAndroid = isAndroidSync();
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const isHorizontal = position === 'top' || position === 'bottom';
   const isBottom = position === 'bottom';
@@ -55,8 +60,11 @@ export function CustomPageEditPopover({
     setSelectedIconId(page.iconId as CustomIconId);
     setRenameError(false);
     setShowIconPicker(false);
-    setTimeout(() => inputRef.current?.focus(), 50);
-  }, [isOpen, page]);
+    // Android 由 Sheet 管理焦点，打开编辑面板时不自动唤起键盘。
+    if (isAndroid) return;
+    const timeout = setTimeout(() => inputRef.current?.focus(), 50);
+    return () => clearTimeout(timeout);
+  }, [isOpen, page, isAndroid]);
 
   // Compute max height for icon grid based on available viewport space
   const scrollMaxHeight = useMemo(() => {
@@ -145,7 +153,7 @@ export function CustomPageEditPopover({
 
   // Close on outside click
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isAndroid) return;
     const handler = (e: MouseEvent) => {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         handleConfirmRef.current();
@@ -161,7 +169,56 @@ export function CustomPageEditPopover({
       }
       document.removeEventListener('mousedown', handler);
     };
-  }, [isOpen]);
+  }, [isOpen, isAndroid]);
+
+  // 触屏使用受视口和键盘安全区约束的底部面板，避免桌面锚点定位越过屏幕边缘。
+  if (isAndroid) {
+    return isOpen ? (
+      <AndroidSheet
+        title={t('common:material.edit_page', { name: page.name })}
+        onClose={handleCancel}
+      >
+        <form
+          className="android-page-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleConfirm();
+          }}
+        >
+          <Input
+            aria-label={t('add_page_placeholder')}
+            placeholder={t('add_page_placeholder')}
+            maxLength={30}
+            value={name}
+            onChange={(event) => {
+              setName(event.target.value);
+              setRenameError(false);
+            }}
+            error={renameError ? t('page_name_exists') : undefined}
+          />
+          <Input
+            aria-label={t('add_page_description_placeholder')}
+            placeholder={t('add_page_description_placeholder')}
+            maxLength={30}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+          />
+          <p>{t('select_icon')}</p>
+          <fieldset className="android-icon-picker" aria-label={t('select_icon')}>
+            <IconCategoryPicker selectedIconId={selectedIconId} onSelect={setSelectedIconId} />
+          </fieldset>
+          <div className="android-page-form-actions">
+            <Button type="button" variant="secondary" onClick={handleCancel}>
+              {t('common:cancel')}
+            </Button>
+            <Button type="submit" disabled={!name.trim()}>
+              {t('common:save')}
+            </Button>
+          </div>
+        </form>
+      </AndroidSheet>
+    ) : null;
+  }
 
   return createPortal(
     isOpen && (

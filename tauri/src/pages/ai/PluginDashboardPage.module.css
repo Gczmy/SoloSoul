@@ -380,6 +380,38 @@
   display: inline;
 }
 
+/* 安卓将四个选项铺为两列，刷新按钮保留独立触控区，避免窄屏互相挤压。 */
+:global([data-platform='android']) .tabsCard {
+  min-width: 0;
+}
+:global([data-platform='android']) .tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  overflow: visible;
+}
+:global([data-platform='android']) .tab {
+  padding: 8px;
+  font-size: var(--text-body-sm);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  border-radius: 24px;
+}
+:global([data-platform='android']) .refreshBtn {
+  flex-shrink: 0;
+  align-self: flex-start;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 24px;
+}
+:global([data-platform='android']) .refreshLabel {
+  display: none;
+}
+:global([data-platform='android']) .tierChip {
+  font-size: var(--text-body-sm);
+}
+
 @media (max-width: 767px) {
   .header {
     gap: 8px;

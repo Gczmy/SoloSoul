@@ -1,4 +1,5 @@
 import { PageShell } from '@/components/layout/PageShell';
+import { useEntryBack } from '@/hooks/useEntryBack';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { BarChart3 } from 'lucide-react';
@@ -49,9 +50,10 @@ export function LlmConfigPage() {
     handleDeleteProvider,
     handleTestConnection,
   } = useLlmConfigPage();
+  const handleBack = useEntryBack(() => navigate(backPath));
 
   return (
-    <PageShell title={t('settings:llm_config')} onBack={() => navigate(backPath)}>
+    <PageShell title={t('settings:llm_config')} onBack={handleBack}>
       {confirmDialog}
       <PageContainer variant="xs" gap="default">
         {!hasAcceptedRisk && (

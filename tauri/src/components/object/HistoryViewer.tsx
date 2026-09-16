@@ -154,6 +154,37 @@ function SnapshotCard({
     return () => window.clearInterval(timer);
   }, [anyRevealed]);
 
+  // 倒计时追加在左侧字段名和徽章之后，保留原有标签位置，避免与右侧字段值连读。
+  const renderRevealCountdown = (fieldId: string) => {
+    if (!isRevealed(fieldId)) return null;
+    const seconds = Math.max(0, Math.ceil(revealRemainingMs(fieldId) / 1000));
+    const title = t('common:reveal_countdown_title', {
+      seconds,
+      defaultValue: `Auto-hides in ${seconds}s`,
+    });
+    return (
+      <span
+        title={title}
+        aria-label={title}
+        data-testid="history-reveal-countdown"
+        style={{
+          flexShrink: 0,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 3,
+          minWidth: '3.5em',
+          fontSize: 'var(--text-badge)',
+          color: 'var(--text-tertiary)',
+          fontVariantNumeric: 'tabular-nums',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <Clock size={12} aria-hidden="true" />
+        {t('common:reveal_countdown', { seconds, defaultValue: `${seconds}s` })}
+      </span>
+    );
+  };
+
   const renderValueSpan = (opts: {
     value: string;
     fieldId: string;
@@ -165,7 +196,6 @@ function SnapshotCard({
     // 历史快照：与详情卡片一致——internal/public 直接明文；仅 sensitive/critical 掩码（点击揭示）。
     // workspace 卡片仍按 masking.shouldMaskSensitivity 对 internal 模糊（模糊层不同）。
     const needsReveal = sens === 'sensitive' || sens === 'critical';
-    const revealSeconds = revealed ? Math.max(0, Math.ceil(revealRemainingMs(fieldId) / 1000)) : 0;
     return (
       <>
         <span
@@ -211,29 +241,6 @@ function SnapshotCard({
         >
           {value}
         </span>
-        {revealed && (
-          <span
-            title={t('common:reveal_countdown_title', {
-              seconds: revealSeconds,
-              defaultValue: `Auto-hides in ${revealSeconds}s`,
-            })}
-            data-testid="history-reveal-countdown"
-            style={{
-              flexShrink: 0,
-              display: 'inline-flex',
-              alignItems: 'center',
-              fontSize: 'var(--text-badge)',
-              color: 'var(--text-tertiary)',
-              fontVariantNumeric: 'tabular-nums',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {t('common:reveal_countdown', {
-              seconds: revealSeconds,
-              defaultValue: `${revealSeconds}s`,
-            })}
-          </span>
-        )}
       </>
     );
   };
@@ -303,6 +310,7 @@ function SnapshotCard({
                       </span>
                       <SensitivityBadge level={sens} />
                       {deprecated && <DeprecatedBadge />}
+                      {renderRevealCountdown(fieldId)}
                     </div>
                   </div>
                   {/* Child fields */}
@@ -390,6 +398,7 @@ function SnapshotCard({
                   </span>
                   <SensitivityBadge level={sens} />
                   {deprecated && <DeprecatedBadge />}
+                  {renderRevealCountdown(fieldId)}
                 </div>
                 <ValueContainer value={f.value}>
                   {renderValueSpan({ value: f.value, fieldId, sens, fieldLabel: f.label })}

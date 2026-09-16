@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useCallback, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useEntryBack } from '@/hooks/useEntryBack';
 import { useTranslation } from 'react-i18next';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -227,7 +228,7 @@ export function TemplateManagerPage() {
   );
 
   const from = (location.state as { from?: string } | null)?.from;
-  const handleBack = () => {
+  const handleBack = useEntryBack(() => {
     if (from && from.startsWith('/editor')) {
       navigate(-1);
     } else if (from && from.startsWith('/')) {
@@ -235,7 +236,7 @@ export function TemplateManagerPage() {
     } else {
       navigate('/settings');
     }
-  };
+  });
 
   return (
     <PageShell

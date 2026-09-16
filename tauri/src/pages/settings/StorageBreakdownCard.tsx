@@ -57,7 +57,7 @@ export function StorageBreakdownCard({
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: 340,
+            width: 'min(340px, calc(100vw - 32px))',
             maxHeight: '80vh',
             overflowY: 'auto',
             zIndex: 100,
@@ -79,6 +79,9 @@ export function StorageBreakdownCard({
               {t('settings:storage_breakdown')}
             </h3>
             <button
+              data-desktop-control
+              type="button"
+              aria-label={t('common:close')}
               onClick={onClose}
               style={{
                 background: 'none',

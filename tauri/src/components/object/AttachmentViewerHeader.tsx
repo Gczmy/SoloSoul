@@ -58,6 +58,7 @@ export function AttachmentViewerHeader({
             variant="secondary"
             size="sm"
             onClick={onShowActive}
+            aria-pressed={!showTrash}
             style={{
               fontSize: 'var(--text-caption)',
               ...(!showTrash
@@ -76,6 +77,7 @@ export function AttachmentViewerHeader({
             variant="secondary"
             size="sm"
             onClick={onShowTrash}
+            aria-pressed={showTrash}
             className="interactive-danger-tab"
             style={{
               fontSize: 'var(--text-caption)',

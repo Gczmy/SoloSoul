@@ -141,6 +141,11 @@
 /* 移动端：三段式布局——头部/底部固定，仅内容区滚动 */
 
 @media (max-width: 767px) {
+  /* Android 的外层留白交给头部、内容区和底栏，避免叠加两层 padding。 */
+  :global([data-platform='android']) .modal {
+    padding: 0;
+  }
+
   .modal {
     width: 92%;
 

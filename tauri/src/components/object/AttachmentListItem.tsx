@@ -1,10 +1,13 @@
-import { Paperclip, Image, FileText } from 'lucide-react';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { AttachmentFileNameBlock } from '@/components/attachment/AttachmentFileNameBlock';
 import { AttachmentActions } from '@/components/attachment/AttachmentActions';
+import {
+  AttachmentTypeIcon,
+  AttachmentExtBadge,
+} from '@/components/attachment/AttachmentFormatBadge';
 import { type AttachmentItem } from '@/lib/attachmentUtils';
 import { ICON_SIZE } from '@/lib/constants';
-import { isMobilePlatformSync } from '@/lib/platform';
+import { isAndroidSync, isMobilePlatformSync } from '@/lib/platform';
 
 interface AttachmentListItemProps {
   item: AttachmentItem;
@@ -21,21 +24,6 @@ interface AttachmentListItemProps {
   onEditMeta?: (item: AttachmentItem) => void;
   onDelete: (item: AttachmentItem) => void;
   onPermanentDelete: (item: AttachmentItem) => void;
-}
-
-function TypeIcon({ item, showTrash }: { item: AttachmentItem; showTrash: boolean }) {
-  const style = {
-    color: 'var(--text-tertiary)',
-    flexShrink: 0,
-    opacity: showTrash ? 0.5 : 1,
-  };
-  if (item.mimeType.startsWith('image/')) {
-    return <Image size={ICON_SIZE.sm} style={style} />;
-  }
-  if (item.mimeType === 'application/pdf') {
-    return <FileText size={ICON_SIZE.sm} style={style} />;
-  }
-  return <Paperclip size={ICON_SIZE.sm} style={style} />;
 }
 
 /**
@@ -57,20 +45,56 @@ export function AttachmentListItem({
   onDelete,
   onPermanentDelete,
 }: AttachmentListItemProps) {
-  // 安卓端：附件信息（图标/名称/大小时间）与操作按钮并排会被按钮挤占，
-  // 按钮单独一行放在信息下方；桌面端保持原横向布局。
-  const isMobile = isMobilePlatformSync();
+  // Android 将操作收进单个菜单按钮，与附件信息并排；其他移动端保留独立按钮行。
+  const isAndroid = isAndroidSync();
+  const stackActions = isMobilePlatformSync() && !isAndroid;
+  const typeIcon = (
+    <AttachmentTypeIcon
+      item={item}
+      size={ICON_SIZE.sm}
+      style={{
+        color: 'var(--text-tertiary)',
+        flexShrink: 0,
+        opacity: !isAndroid && showTrash ? 0.5 : 1,
+      }}
+    />
+  );
+  const checkbox = (
+    <SelectCheckbox
+      checked={checked}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggleSelect(compositeKey);
+      }}
+    />
+  );
 
   const infoRow = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-      <SelectCheckbox
-        checked={checked}
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleSelect(compositeKey);
-        }}
-      />
-      <TypeIcon item={item} showTrash={showTrash} />
+    <div
+      style={{
+        display: 'flex',
+        alignItems: isAndroid ? 'flex-start' : 'center',
+        gap: 8,
+        minWidth: 0,
+        flex: 1,
+      }}
+    >
+      {isAndroid ? (
+        // 与全局附件行一致：勾选框只对齐名称首行，不随描述/标签增高而下移。
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            height: 'calc(var(--text-body-sm) * 1.4)',
+            flexShrink: 0,
+          }}
+        >
+          {checkbox}
+        </div>
+      ) : (
+        checkbox
+      )}
+      {!isAndroid && typeIcon}
       <AttachmentFileNameBlock
         fileName={item.fileName}
         sizeBytes={item.sizeBytes}
@@ -79,17 +103,26 @@ export function AttachmentListItem({
         description={item.description}
         tags={item.tags}
         metaStyle={{ fontSize: 'var(--text-badge)' }}
+        metaLeadingIcon={
+          isAndroid ? (
+            <>
+              {typeIcon}
+              <AttachmentExtBadge fileName={item.fileName} />
+            </>
+          ) : undefined
+        }
       />
     </div>
   );
 
   const actions = (
     <AttachmentActions
+      fileName={item.fileName}
       showTrash={showTrash}
       onPreview={() => onPreview(item)}
       onDownload={() => onDownload(item)}
       onShare={() => onShare(item)}
-      onEditMeta={() => onEditMeta?.(item)}
+      onEditMeta={onEditMeta ? () => onEditMeta(item) : undefined}
       onSoftDelete={() => onDelete(item)}
       onRestore={() => onRestore(item)}
       onPermanentDelete={() => onPermanentDelete(item)}
@@ -100,20 +133,28 @@ export function AttachmentListItem({
     <div
       style={{
         display: 'flex',
-        flexDirection: isMobile ? 'column' : 'row',
-        alignItems: isMobile ? 'stretch' : 'center',
+        flexDirection: stackActions ? 'column' : 'row',
+        alignItems: stackActions ? 'stretch' : 'center',
         gap: 8,
         padding: '8px 12px',
         borderBottom: isLast ? 'none' : '1px solid var(--border-subtle)',
         fontSize: 'var(--text-body-sm)',
+        lineHeight: isAndroid ? 1.4 : undefined,
       }}
     >
       {infoRow}
-      {isMobile ? (
+      {stackActions ? (
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>{actions}</div>
       ) : (
-        // 桌面端：marginLeft auto 将按钮组推到行尾右对齐
-        <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', gap: 2 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginLeft: 'auto',
+            gap: 2,
+            flexShrink: 0,
+          }}
+        >
           {actions}
         </div>
       )}

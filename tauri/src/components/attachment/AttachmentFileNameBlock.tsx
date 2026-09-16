@@ -87,8 +87,8 @@ function ToggleButton({
         flexShrink: 0,
         width: 18,
         height: 18,
-        // 覆盖 global.css 移动端 button 触控基线（min-height/min-width: 44px）——
-        // 否则安卓端按钮被撑成 44×44 视觉占两行；触控面积由整行可点承担。
+        // 箭头保持紧凑；Android 由 data-attachment-toggle-row 整行提供 48px 触控区，
+        // 避免箭头本身变宽后挤压文件名、描述与标签。
         minWidth: 0,
         minHeight: 0,
         padding: 0,
@@ -120,6 +120,7 @@ function CollapseHandleRow({ label, onCollapse }: { label: string; onCollapse: (
   const { t } = useTranslation(['common']);
   return (
     <div
+      data-attachment-toggle-row
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -205,6 +206,7 @@ function ExpandableBlock({
     >
       {expanded && <CollapseHandleRow label={label} onCollapse={onCollapse} />}
       <div
+        data-attachment-toggle-row={!expanded && canExpand ? '' : undefined}
         style={{
           display: 'flex',
           alignItems: 'flex-start',

@@ -108,6 +108,15 @@
   transform: translateY(-50%) scale(0.88);
 }
 
+:global([data-platform='android']) .hasClear {
+  padding-right: 60px;
+}
+
+:global([data-platform='android']) .clearBtn {
+  right: 4px;
+  border-radius: 24px;
+}
+
 .hasError {
   border-color: #e74c3c;
 }

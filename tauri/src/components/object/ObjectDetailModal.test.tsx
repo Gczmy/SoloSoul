@@ -12,6 +12,7 @@ vi.mock('@/lib/ipcClient', () => ({
 }));
 
 vi.mock('@/lib/platform', () => ({
+  isAndroidSync: vi.fn(() => false),
   isMobilePlatformSync: vi.fn(() => false),
 }));
 

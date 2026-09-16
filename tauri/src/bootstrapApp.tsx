@@ -7,6 +7,7 @@ import './styles/themes.css';
 import './styles/animations.css';
 import './styles/android.css';
 import './styles/macos-glass.css';
+import './styles/desktop-controls.css';
 import { initI18n } from './lib/i18n';
 import { initPlatform } from '@/lib/platform';
 import { preloadCameraCapability } from '@/lib/cameraCapability';

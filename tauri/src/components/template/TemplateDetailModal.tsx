@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Pencil, LayoutTemplate } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -31,6 +31,7 @@ export function TemplateDetailModal({
   onEdit,
 }: TemplateDetailModalProps) {
   const { t } = useTranslation(['common', 'settings', 'editor']);
+  const titleId = useId();
   const installedPlugins = usePluginStore((s) => s.installedPlugins);
   const loadInstalled = usePluginStore((s) => s.loadInstalled);
 
@@ -70,6 +71,8 @@ export function TemplateDetailModal({
     >
       <motion.div
         data-macos-glass="panel"
+        role="dialog"
+        aria-labelledby={titleId}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
@@ -86,50 +89,39 @@ export function TemplateDetailModal({
           border: '1px solid var(--border-subtle)',
         }}
       >
-        {/* Title row */}
+        {/* 图标只与名称对齐；分类和字段信息独立换行，避免将标题挤出手机屏幕。 */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 20,
+            gap: 10,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <DetailIcon size={ICON_SIZE['2xl']} color="var(--accent-primary)" />
-            <div>
-              <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 700, margin: 0 }}>
-                {detailTemplate.name}
-              </h2>
-              <span
-                style={{
-                  fontSize: 'var(--text-badge)',
-                  color: 'var(--text-tertiary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
-              >
-                <PluginBadge contractTypeId={detailTemplate.contractTypeId} size="sm" />
-                <span
-                  style={
-                    page.deleted ? { textDecoration: 'line-through', opacity: 0.6 } : undefined
-                  }
-                >
-                  {page.name}
-                </span>
-                <span>·</span>
-                <span>
-                  {detailTemplate.properties.length}{' '}
-                  {t('settings:template_fields', { defaultValue: '个字段' })}
-                </span>
-                <SensitivityBadges properties={detailTemplate.properties} />
-              </span>
-            </div>
-          </div>
+          <DetailIcon
+            size={ICON_SIZE['2xl']}
+            color="var(--accent-primary)"
+            style={{ flexShrink: 0 }}
+            aria-hidden="true"
+          />
+          <h2
+            id={titleId}
+            style={{
+              fontSize: 'var(--text-md)',
+              fontWeight: 700,
+              margin: 0,
+              flex: 1,
+              minWidth: 0,
+              overflowWrap: 'anywhere',
+            }}
+          >
+            {detailTemplate.name}
+          </h2>
           <button
+            type="button"
+            aria-label={t('common:close')}
             onClick={onClose}
             style={{
+              flexShrink: 0,
               padding: 6,
               borderRadius: 8,
               border: 'none',
@@ -140,6 +132,30 @@ export function TemplateDetailModal({
           >
             <X size={ICON_SIZE.xl} />
           </button>
+        </div>
+        <div
+          style={{
+            fontSize: 'var(--text-badge)',
+            color: 'var(--text-tertiary)',
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 8,
+            marginTop: 8,
+            marginBottom: 20,
+            overflowWrap: 'anywhere',
+          }}
+        >
+          <PluginBadge contractTypeId={detailTemplate.contractTypeId} size="sm" />
+          <span style={page.deleted ? { textDecoration: 'line-through', opacity: 0.6 } : undefined}>
+            {page.name}
+          </span>
+          <span>·</span>
+          <span>
+            {detailTemplate.properties.length}{' '}
+            {t('settings:template_fields', { defaultValue: '个字段' })}
+          </span>
+          <SensitivityBadges properties={detailTemplate.properties} />
         </div>
 
         {/* Divider */}
@@ -188,6 +204,7 @@ export function TemplateDetailModal({
           <Button
             variant="secondary"
             style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }}
+            data-desktop-control="accent"
             onClick={() => {
               const ut = templates.find((u) => u.id === detailTemplate.id);
               if (ut) {

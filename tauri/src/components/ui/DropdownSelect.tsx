@@ -74,6 +74,7 @@ export function DropdownSelect({
   return (
     <div data-dropdown-area={areaId} style={{ position: 'relative' }}>
       <button
+        data-desktop-control
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={styles.trigger}
@@ -85,23 +86,23 @@ export function DropdownSelect({
       </button>
       {open && (
         <div className={styles.popover} data-macos-glass="popover" ref={listRef} style={{ width }}>
-            {options.map((opt) => {
-              const isActive = opt.value === value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  data-dd-value={opt.value}
-                  className={`${styles.item} ${isActive ? styles.itemActive : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSelect(opt.value);
-                  }}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
+          {options.map((opt) => {
+            const isActive = opt.value === value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                data-dd-value={opt.value}
+                className={`${styles.item} ${isActive ? styles.itemActive : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelect(opt.value);
+                }}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

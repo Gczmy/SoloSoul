@@ -24,6 +24,7 @@ import {
   Paperclip,
   Search,
   User,
+  ChevronRight,
 } from 'lucide-react';
 import { Cloud } from 'lucide-react';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
@@ -65,17 +66,22 @@ export function SettingsPage() {
           },
         ],
       },
-      {
-        title: t('settings:groups.account'),
-        items: [
-          {
-            label: t('settings:items.account_management'),
-            icon: User,
-            path: '/settings/account',
-            desc: t('settings:desc.account_management'),
-          },
-        ],
-      },
+      // Android 顶部账户卡片已提供入口，避免再显示重复的账户分组。
+      ...(!isAndroid
+        ? [
+            {
+              title: t('settings:groups.account'),
+              items: [
+                {
+                  label: t('settings:items.account_management'),
+                  icon: User,
+                  path: '/settings/account',
+                  desc: t('settings:desc.account_management'),
+                },
+              ],
+            },
+          ]
+        : []),
       {
         title: t('settings:groups.data'),
         items: [
@@ -184,7 +190,7 @@ export function SettingsPage() {
         ],
       },
     ],
-    [t, vaultSize],
+    [t, vaultSize, isAndroid],
   );
 
   return (
@@ -198,16 +204,18 @@ export function SettingsPage() {
           <button
             type="button"
             className="android-account-card"
-            onClick={() => navigate('/settings/account')}
+            onClick={() => navigate('/settings/account', { state: { from: '/settings' } })}
           >
             <span className="android-row-icon">
               <User size={24} />
             </span>
             <span className="android-row-copy">
-              <strong>{accountName}</strong>
-              <small>{t('common:material.local_vault')}</small>
+              <strong title={accountName}>
+                {accountName || t('settings:items.account_management')}
+              </strong>
+              <small>{t('settings:account_card_description')}</small>
             </span>
-            <span>›</span>
+            <ChevronRight size={20} className="android-account-chevron" aria-hidden="true" />
           </button>
         )}
         {settingGroups.map((group) => (

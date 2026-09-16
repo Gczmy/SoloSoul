@@ -33,7 +33,6 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
     onSyncTemplate,
     onDismissSync,
     onViewDeprecatedFields,
-    onAttachmentsChange,
   } = props;
   const {
     t,
@@ -41,6 +40,8 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
     // 数据
     loading,
     obj,
+    attachmentCount,
+    handleAttachmentsChange,
     objFieldDefs,
     fields,
     fieldOrder,
@@ -178,6 +179,8 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
               {/* Actions */}
               <ObjectDetailFooter
                 t={t}
+                objectName={obj.name}
+                attachmentCount={attachmentCount}
                 guidePages={detailGuidePages}
                 onHistory={onHistory ?? (() => setShowHistory(true))}
                 onAttachments={onAttachments ?? (() => setShowAttachments(true))}
@@ -217,7 +220,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
         <AttachmentViewer
           objectId={obj.id}
           onClose={() => setShowAttachments(false)}
-          onCountChange={onAttachmentsChange}
+          onCountChange={handleAttachmentsChange}
           zIndex={5100}
         />
       )}

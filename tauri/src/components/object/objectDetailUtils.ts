@@ -85,6 +85,7 @@ export function flattenProperties(
 export function buildDetailGuidePages(
   t: ReturnType<typeof useTranslation>['t'],
   isMobilePlatform: boolean,
+  isAndroid = false,
 ): GuidePage[] {
   return isMobilePlatform
     ? [
@@ -108,7 +109,9 @@ export function buildDetailGuidePages(
               icon: History,
               title: t('common:guide_detail_mobile_step3_title', { defaultValue: '操作按钮' }),
               description:
-                t('common:guide_detail_mobile_step3_desc', { defaultValue: '卡片底部提供四个常用操作：历史记录（时钟图标）查看版本快照、附件（回形针图标）管理文件、编辑（铅笔图标）进入编辑器、删除（垃圾桶图标）将对象移入回收站。' }),
+                isAndroid
+                  ? t('common:material.detail_guide_actions')
+                  : t('common:guide_detail_mobile_step3_desc', { defaultValue: '卡片底部提供四个常用操作：历史记录（时钟图标）查看版本快照、附件（回形针图标）管理文件、编辑（铅笔图标）进入编辑器、删除（垃圾桶图标）将对象移入回收站。' }),
             },
           ],
           helpLinks: [

@@ -4,7 +4,7 @@ import { AttachmentFileNameBlock } from './AttachmentFileNameBlock';
 import { AttachmentActions } from './AttachmentActions';
 import { AttachmentTypeIcon, AttachmentExtBadge } from './AttachmentFormatBadge';
 import { ICON_SIZE } from '@/lib/constants';
-import { isMobilePlatformSync } from '@/lib/platform';
+import { isAndroidSync, isMobilePlatformSync } from '@/lib/platform';
 import type { AttachmentMeta } from './attachmentManagerTypes';
 
 /** 移动端操作按钮行间距：原 4px 的 80%——窄屏让宽，防按钮溢出卡片（软删除不可见）。 */
@@ -43,14 +43,16 @@ function AttachmentRowBase({
 }: AttachmentRowProps) {
   const compositeKey = `${objectId}::${item.id}`;
   const isMobile = isMobilePlatformSync();
+  const isAndroid = isAndroidSync();
 
   const actions = (
     <AttachmentActions
+      fileName={item.fileName}
       showTrash={showTrash}
       onPreview={() => onPreview(item)}
       onDownload={() => onDownload(item)}
       onShare={() => onShare(item)}
-      onEditMeta={() => onEditMeta?.(item, objectId)}
+      onEditMeta={onEditMeta ? () => onEditMeta(item, objectId) : undefined}
       onSoftDelete={() => onSoftDelete(item, objectId)}
       onRestore={() => onRestore(item, objectId)}
       onPermanentDelete={() => onPermanentDelete(item, objectId)}
@@ -59,7 +61,7 @@ function AttachmentRowBase({
 
   // 移动端：多行布局 — 勾选框独占左上角；内容列（勾选框宽度的天然缩进）第1行 文件名，
   // 第2行 [格式图标][格式名称徽章]大小·时间（图标+徽章经 metaLeadingIcon 移入元信息行
-  // 左侧，与名称列对齐），第3行 操作按钮；无层级缩进与页面/对象行对齐
+  // 左侧，与名称列对齐）。Android 的「更多」按钮置于行尾，其他移动端保留独立操作行。
   if (isMobile) {
     return (
       <div
@@ -70,12 +72,20 @@ function AttachmentRowBase({
           gap: 6,
           padding: '6px 8px 6px 14px',
           fontSize: 'var(--text-sm)',
+          lineHeight: 1.4,
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        {/* 第1行：勾选框 + 内容列（文件名 / 元信息） */}
+        {/* 勾选框 + 内容列（文件名 / 元信息）+ Android 更多操作 */}
         <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              height: 'calc(var(--text-sm) * 1.4)',
+              flexShrink: 0,
+            }}
+          >
             <SelectCheckbox
               checked={isChecked}
               onClick={(e) => {
@@ -105,10 +115,10 @@ function AttachmentRowBase({
               }
             />
           </div>
+          {isAndroid && actions}
         </div>
-        {/* 第2行：操作按钮——0 缩进（移出内容列，与勾选框同左缘对齐），
-            间距 4px → 3.2px（80%），窄屏下按钮（含软删除）可全部落在卡片范围内。 */}
-        <div style={{ display: 'flex', gap: MOBILE_ACTIONS_GAP }}>{actions}</div>
+        {/* 其他移动端保留原按钮行和紧凑间距。 */}
+        {!isAndroid && <div style={{ display: 'flex', gap: MOBILE_ACTIONS_GAP }}>{actions}</div>}
       </div>
     );
   }

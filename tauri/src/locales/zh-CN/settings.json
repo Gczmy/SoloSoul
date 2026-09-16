@@ -766,6 +766,7 @@
   "edit_template": "编辑模板",
   "filter_all": "全部",
   "filter_user": "自定义模板",
+  "account_card_description": "账户管理 · 本地保险库",
   "account_id": "账户 ID",
   "account_id_hint": "账户 ID 用于标识您的保险库，创建后不可修改。",
   "account_id_copied": "账户 ID 已复制",

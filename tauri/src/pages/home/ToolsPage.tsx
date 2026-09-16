@@ -24,7 +24,11 @@ export function ToolsPage() {
                 type="button"
                 key={item.iconKey}
                 className="android-tool"
-                onClick={() => (item.type === 'link' ? navigate(item.path) : item.action())}
+                onClick={() =>
+                  item.type === 'link'
+                    ? navigate(item.path, { state: { from: '/tools' } })
+                    : item.action()
+                }
               >
                 <Icon size={28} />
                 <strong>{t(`navigation:${item.labelKey}`)}</strong>

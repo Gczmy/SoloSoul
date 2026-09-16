@@ -6,6 +6,8 @@ import { DeleteButton } from '@/components/ui/DeleteButton';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import type { GuidePage } from '@/components/guide/PageGuide';
 import { ICON_SIZE } from '@/lib/constants';
+import { isAndroidSync } from '@/lib/platform';
+import { AndroidObjectDetailFooter } from './AndroidObjectDetailFooter';
 import styles from './ObjectDetailModal.module.css';
 
 type T = ReturnType<typeof useTranslation>['t'];
@@ -89,6 +91,7 @@ export function ObjectDetailHeader({
       </div>
       <button
         onClick={onClose}
+        data-desktop-control
         className={styles.closeBtn}
         data-testid="object-detail-close"
         aria-label={t('common:close')}
@@ -129,6 +132,7 @@ export function ObjectDetailTemplateSyncBanner({
       <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
         <button
           onClick={onSync}
+          data-desktop-control="primary"
           style={{
             padding: '4px 10px',
             borderRadius: 6,
@@ -176,6 +180,7 @@ export function ObjectDetailDeprecatedEntry({
     <div style={{ marginBottom: 12 }}>
       <button
         onClick={onView}
+        data-desktop-control
         style={{
           padding: '6px 10px',
           borderRadius: 6,
@@ -218,6 +223,8 @@ export function ObjectDetailTags({ tags }: { tags: string[] }) {
 /** 详情卡片底部操作栏：指南 + 历史/附件/编辑/删除。 */
 export function ObjectDetailFooter({
   t,
+  objectName,
+  attachmentCount,
   guidePages,
   onHistory,
   onAttachments,
@@ -225,28 +232,58 @@ export function ObjectDetailFooter({
   onDelete,
 }: {
   t: T;
+  objectName: string;
+  attachmentCount?: number;
   guidePages: GuidePage[];
   onHistory: () => void;
   onAttachments: () => void;
   onEdit?: () => void;
   onDelete: () => void;
 }) {
+  if (isAndroidSync()) {
+    return (
+      <AndroidObjectDetailFooter
+        objectName={objectName}
+        attachmentCount={attachmentCount}
+        guidePages={guidePages}
+        onHistory={onHistory}
+        onAttachments={onAttachments}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    );
+  }
   return (
     <div className={styles.modalFooter}>
       <div className={styles.guideWrapper}>
         <PageGuideButton pages={guidePages} />
       </div>
       <div className={styles.footerActions}>
-        <button onClick={onHistory} className={`${styles.actionBtn} ${styles.footerBtn}`}>
+        <button
+          onClick={onHistory}
+          data-desktop-control
+          aria-label={t('common:history')}
+          className={`${styles.actionBtn} ${styles.footerBtn}`}
+        >
           <Clock size={ICON_SIZE.sm} />
           <span className={styles.actionLabel}>{t('common:history')}</span>
         </button>
-        <button onClick={onAttachments} className={`${styles.actionBtn} ${styles.footerBtn}`}>
+        <button
+          onClick={onAttachments}
+          data-desktop-control
+          aria-label={t('common:attachments')}
+          className={`${styles.actionBtn} ${styles.footerBtn}`}
+        >
           <Paperclip size={ICON_SIZE.sm} />
           <span className={styles.actionLabel}>{t('common:attachments')}</span>
         </button>
         {onEdit && (
-          <button onClick={onEdit} className={`${styles.actionBtn} ${styles.footerBtn}`}>
+          <button
+            onClick={onEdit}
+            data-desktop-control
+            aria-label={t('common:edit')}
+            className={`${styles.actionBtn} ${styles.footerBtn}`}
+          >
             <Pencil size={ICON_SIZE.sm} />
             <span className={styles.actionLabel}>{t('common:edit')}</span>
           </button>

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { PageShell } from '@/components/layout/PageShell';
+import { useEntryBack } from '@/hooks/useEntryBack';
 import { PageContainer } from '@/components/layout/PageContainer';
 import styles from './LlmStatsPage.module.css';
 import { Button } from '@/components/ui/Button';
@@ -45,6 +46,7 @@ export function LlmStatsPage() {
   const [lastLoadTime, setLastLoadTime] = useState<string | undefined>();
 
   const backPath = (location.state as { from?: string } | null)?.from || '/settings';
+  const handleBack = useEntryBack(() => navigate(backPath));
 
   const lastUsedTime = useMemo(() => {
     const times = stats?.perModelStats?.map((m) => m.lastUsedTime).filter((t): t is string => !!t);
@@ -56,14 +58,21 @@ export function LlmStatsPage() {
     if (!accountId) return;
     (async () => {
       try {
-        const cfg = await invoke<{ activeProviderId?: string }>('llm_get_config', { accountId: accountId });
-        const providers = await invoke<ProviderConfig[]>('llm_get_providers', { accountId: accountId });
+        const cfg = await invoke<{ activeProviderId?: string }>('llm_get_config', {
+          accountId: accountId,
+        });
+        const providers = await invoke<ProviderConfig[]>('llm_get_providers', {
+          accountId: accountId,
+        });
         const active = providers.find((p) => p.id === cfg.activeProviderId);
         if (active) {
           setActiveProvider({ name: active.name, model: active.model, apiType: active.apiType });
           let key = '';
           try {
-            key = await invoke<string>('llm_get_api_key', { accountId: accountId, providerId: active.id });
+            key = await invoke<string>('llm_get_api_key', {
+              accountId: accountId,
+              providerId: active.id,
+            });
           } catch {
             /* no key */
           }
@@ -99,7 +108,7 @@ export function LlmStatsPage() {
 
   if (loading && !stats) {
     return (
-      <PageShell title={t('settings:llm_stats_page_title')} onBack={() => navigate(backPath)}>
+      <PageShell title={t('settings:llm_stats_page_title')} onBack={handleBack}>
         <LoadingPlaceholder variant="base" />
       </PageShell>
     );
@@ -108,7 +117,7 @@ export function LlmStatsPage() {
   const hasData = stats && (stats.usageCount > 0 || stats.totalTokens > 0);
 
   return (
-    <PageShell title={t('settings:llm_stats_page_title')} onBack={() => navigate(backPath)}>
+    <PageShell title={t('settings:llm_stats_page_title')} onBack={handleBack}>
       <PageContainer variant="medium" gap="section" className={styles.page}>
         {/* Model Info */}
         <section>

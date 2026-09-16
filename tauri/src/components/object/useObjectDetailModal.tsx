@@ -14,7 +14,7 @@ import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { TemplateProperty } from '@/types/template';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
-import { isMobilePlatformSync } from '@/lib/platform';
+import { isAndroidSync, isMobilePlatformSync } from '@/lib/platform';
 import {
   flattenPropertiesGrouped,
   buildDetailGuidePages,
@@ -68,6 +68,28 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   // P020 复核：object 可能是截断预览摘要（object_list 仅保留前 8 字段/200 字符），
   // 详情弹窗必须始终拉取完整对象，避免丢字段/值被静默截断。
   const objId = objectId ?? object?.id;
+  const isAndroid = isAndroidSync();
+  const [attachmentRevision, setAttachmentRevision] = useState(0);
+  const [attachmentStats, setAttachmentStats] = useState<{ objectId: string; count: number }>();
+  const attachmentCount = attachmentStats?.objectId === objId ? attachmentStats?.count : undefined;
+  const handleAttachmentsChange = useCallback(() => {
+    if (isAndroid) setAttachmentRevision((revision) => revision + 1);
+    onAttachmentsChange?.();
+  }, [isAndroid, onAttachmentsChange]);
+
+  // 只查询计数，不为底栏解密/加载整个附件列表；切换对象时忽略旧请求。
+  useEffect(() => {
+    if (!isAndroid || !objId || !accountId) return;
+    let cancelled = false;
+    invoke<Record<string, number>>('attachment_count_batch', { objectIds: [objId] })
+      .then((counts) => {
+        if (!cancelled) setAttachmentStats({ objectId: objId, count: counts[objId] ?? 0 });
+      })
+      .catch((error) => logger.warn('[ObjectDetail] Attachment count failed:', error));
+    return () => {
+      cancelled = true;
+    };
+  }, [isAndroid, objId, accountId, attachmentRevision]);
   // P020 二次复核：调用方已传入完整 ObjectData（含 accountId，如 ?objectId= 路径
   // 经 object_get 拉取后传入、或模板同步后 refreshDetailObjAfterSync 刷新）时无需
   // 再拉取——完整数据直接可用，避免双重 object_get。ObjectSummary 无 accountId。
@@ -87,7 +109,7 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   // 完整数据（fetchedObj）到达后立即升级，保证详情弹窗渲染完整 properties。
   const obj = useMemo(() => fetchedObj ?? object, [object, fetchedObj]);
   const { ref: detailDragRef, dragState: detailDragState } = useDragToAttach(obj?.id || null, {
-    onComplete: onAttachmentsChange,
+    onComplete: handleAttachmentsChange,
   });
 
   useEffect(() => {
@@ -238,8 +260,8 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   const isMobilePlatform = isMobilePlatformSync();
 
   const detailGuidePages = useMemo(
-    () => buildDetailGuidePages(t, isMobilePlatform),
-    [t, isMobilePlatform],
+    () => buildDetailGuidePages(t, isMobilePlatform, isAndroid),
+    [t, isMobilePlatform, isAndroid],
   );
 
   return {
@@ -248,6 +270,8 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
     // 数据
     loading,
     obj,
+    attachmentCount,
+    handleAttachmentsChange,
     objFieldDefs,
     fields,
     fieldOrder,

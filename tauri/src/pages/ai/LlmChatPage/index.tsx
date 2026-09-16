@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useEntryBack } from '@/hooks/useEntryBack';
 import { useTranslation } from 'react-i18next';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -24,6 +25,7 @@ import { PageGuideButton } from '@/components/guide/PageGuideButton';
 
 export function LlmChatPage() {
   const navigate = useNavigate();
+  const handleBack = useEntryBack(() => navigate('/'));
   const { t } = useTranslation(['settings', 'common']);
   const chat = useLlmChat();
 
@@ -74,7 +76,7 @@ export function LlmChatPage() {
 
   if (chat.loading) {
     return (
-      <PageShell title={t('settings:ai_chat')} onBack={() => navigate('/')}>
+      <PageShell title={t('settings:ai_chat')} onBack={handleBack}>
         <div
           style={{
             position: 'fixed',
@@ -115,7 +117,7 @@ export function LlmChatPage() {
     return (
       <PageShell
         title={t('settings:ai_chat')}
-        onBack={() => navigate('/')}
+        onBack={handleBack}
         actions={
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <PageGuideButton pages={aiChatGuidePages} />
@@ -187,7 +189,7 @@ export function LlmChatPage() {
   return (
     <PageShell
       title={t('settings:ai_chat')}
-      onBack={() => navigate('/')}
+      onBack={handleBack}
       actions={
         <div style={{ display: 'flex', gap: 8 }}>
           <PageGuideButton pages={aiChatGuidePages} />

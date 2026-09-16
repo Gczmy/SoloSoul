@@ -15,9 +15,12 @@ export function ToggleSwitch({
 }) {
   return (
     <label
+      data-ui-switch
       style={{
         position: 'relative',
-        display: 'inline-block',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         width: 44,
         height: 24,
         cursor: disabled ? 'not-allowed' : 'pointer',
@@ -28,31 +31,46 @@ export function ToggleSwitch({
       <input
         type="checkbox"
         checked={checked}
+        disabled={disabled}
         onChange={disabled ? () => {} : onChange}
-        style={{ opacity: 0, width: 0, height: 0 }}
-      />
-      <span
         style={{
           position: 'absolute',
           inset: 0,
+          opacity: 0,
+          width: '100%',
+          height: '100%',
+          margin: 0,
+          cursor: 'inherit',
+        }}
+      />
+      <span
+        aria-hidden="true"
+        data-switch-track
+        style={{
+          position: 'relative',
+          width: 44,
+          height: 24,
+          flexShrink: 0,
+          pointerEvents: 'none',
           background: checked ? 'var(--accent-primary)' : 'var(--border-subtle)',
           borderRadius: 12,
           transition: '0.2s',
         }}
-      />
-      <span
-        style={{
-          position: 'absolute',
-          top: 2,
-          left: checked ? 22 : 2,
-          width: 20,
-          height: 20,
-          borderRadius: '50%',
-          background: 'white',
-          transition: '0.2s',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-        }}
-      />
+      >
+        <span
+          style={{
+            position: 'absolute',
+            top: 2,
+            left: checked ? 22 : 2,
+            width: 20,
+            height: 20,
+            borderRadius: '50%',
+            background: 'white',
+            transition: '0.2s',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+          }}
+        />
+      </span>
     </label>
   );
 }

@@ -105,6 +105,7 @@ export function AttachmentToolbar({
               variant="secondary"
               size="sm"
               onClick={onShowActive}
+              aria-pressed={!showTrash}
               style={
                 !showTrash
                   ? {
@@ -128,6 +129,7 @@ export function AttachmentToolbar({
               variant="secondary"
               size="sm"
               onClick={onShowTrash}
+              aria-pressed={showTrash}
               className="interactive-danger-tab"
               style={
                 showTrash

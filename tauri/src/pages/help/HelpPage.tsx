@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useEntryBack } from '@/hooks/useEntryBack';
+import { isAndroidSync } from '@/lib/platform';
 import { useTranslation } from 'react-i18next';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -117,10 +119,13 @@ export function HelpPage() {
   }, [guideId, loadContent]);
 
   const handleSelect = (id: string) => {
-    setSearchParams({ id });
+    setSearchParams(
+      { id },
+      isAndroidSync() ? { state: { from: location.pathname + location.search } } : undefined,
+    );
   };
 
-  const handleBack = () => {
+  const handleBack = useEntryBack(() => {
     if (guideId) {
       navigate('/help', { replace: true });
     } else if (backTo) {
@@ -128,7 +133,7 @@ export function HelpPage() {
     } else {
       navigate('/', { replace: true });
     }
-  };
+  });
 
   const handleSearch = async (query: string): Promise<GuideContent[]> => {
     return searchGuides(query, language);
@@ -208,7 +213,7 @@ export function HelpPage() {
               onLinkClick={(href) => {
                 // 文件名可能与 id 不一致（如 device_sync.md → id device-sync），
                 // 通过索引反查真实 id，避免 Guide not found。
-                setSearchParams({ id: resolveGuideIdFromHref(href, index?.guides) });
+                handleSelect(resolveGuideIdFromHref(href, index?.guides));
               }}
             />
           </motion.div>

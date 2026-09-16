@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useNavigate } from 'react-router-dom';
+import { useEntryBack } from '@/hooks/useEntryBack';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw, Info, LayoutGrid, Download, Settings } from 'lucide-react';
 import { PageShell } from '@/components/layout/PageShell';
@@ -34,6 +35,7 @@ const TIERS: PluginTier[] = ['p0', 'p1', 'p2', 'p3', 'p4'];
 
 export function PluginDashboardPage() {
   const navigate = useNavigate();
+  const handleBack = useEntryBack(() => navigate('/settings'));
   const { t, i18n } = useTranslation(['plugin', 'settings', 'common']);
   const [activeTab, setActiveTab] = useState<Tab>('all');
   const [pendingRun, setPendingRun] = useState<{
@@ -230,27 +232,34 @@ export function PluginDashboardPage() {
           {
             icon: LayoutGrid,
             title: t('common:guide_plugin_step1_title', { defaultValue: 'Browse & Filter' }),
-            description:
-              t('common:guide_plugin_step1_desc', { defaultValue: 'Use the tabs to view all, installed, running, or log entries. Tier filters help you find plugins by phase.' }),
+            description: t('common:guide_plugin_step1_desc', {
+              defaultValue:
+                'Use the tabs to view all, installed, running, or log entries. Tier filters help you find plugins by phase.',
+            }),
           },
           {
             icon: Download,
             title: t('common:guide_plugin_step2_title', { defaultValue: 'Install & Run' }),
-            description:
-              t('common:guide_plugin_step2_desc', { defaultValue: 'Install a plugin from the market, then run it. Some plugins require parameters or consent before execution.' }),
+            description: t('common:guide_plugin_step2_desc', {
+              defaultValue:
+                'Install a plugin from the market, then run it. Some plugins require parameters or consent before execution.',
+            }),
           },
           {
             icon: Settings,
             title: t('common:guide_plugin_step3_title', { defaultValue: 'Manage & Refresh' }),
-            description:
-              t('common:guide_plugin_step3_desc', { defaultValue: 'Update, uninstall, or stop plugins as needed. Refresh the registry to see the latest available plugins.' }),
+            description: t('common:guide_plugin_step3_desc', {
+              defaultValue:
+                'Update, uninstall, or stop plugins as needed. Refresh the registry to see the latest available plugins.',
+            }),
           },
         ],
         helpLinks: [
           {
             title: t('common:guide_help_plugins', { defaultValue: 'Plugins' }),
-            description:
-              t('common:guide_help_plugins_desc', { defaultValue: 'Discover, install, and run plugins in SoloSoul' }),
+            description: t('common:guide_help_plugins_desc', {
+              defaultValue: 'Discover, install, and run plugins in SoloSoul',
+            }),
             href: '/help?id=plugins',
           },
         ],
@@ -262,7 +271,7 @@ export function PluginDashboardPage() {
   return (
     <PageShell
       title={t('settings:items.plugins', { defaultValue: 'Plugins' })}
-      onBack={() => navigate('/settings')}
+      onBack={handleBack}
       actions={<PageGuideButton pages={pluginGuidePages} />}
     >
       <PageContainer variant="wide" gap="section">
@@ -272,6 +281,8 @@ export function PluginDashboardPage() {
               {(['all', 'installed', 'running', 'logs'] as Tab[]).map((tab) => (
                 <button
                   key={tab}
+                  data-desktop-control
+                  aria-pressed={activeTab === tab}
                   className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
                   onClick={() => setActiveTab(tab)}
                 >
@@ -287,6 +298,7 @@ export function PluginDashboardPage() {
             </div>
           </Card>
           <button
+            data-desktop-control
             className={styles.refreshBtn}
             onClick={() => refreshRegistry()}
             disabled={isLoadingMarket}
@@ -308,6 +320,8 @@ export function PluginDashboardPage() {
           <Card className={styles.tierCard}>
             <div className={styles.tierChips}>
               <button
+                data-desktop-control
+                aria-pressed={selectedTier === 'all'}
                 className={`${styles.tierChip} ${selectedTier === 'all' ? styles.tierChipActive : ''}`}
                 onClick={() => setSelectedTier('all')}
               >
@@ -318,6 +332,8 @@ export function PluginDashboardPage() {
                 return (
                   <button
                     key={tier}
+                    data-desktop-control
+                    aria-pressed={selectedTier === tier}
                     className={`${styles.tierChip} ${selectedTier === tier ? styles.tierChipActive : ''} ${!enabled ? styles.tierChipDisabled : ''}`}
                     onClick={() => enabled && setSelectedTier(tier)}
                     disabled={!enabled}
