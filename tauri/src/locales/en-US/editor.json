@@ -46,6 +46,10 @@
     "contact": "Contact"
   },
   "in_section": "in {{section}}",
+  "choose_destination": "Choose a page",
+  "choose_destination_description": "Your object will be saved to this page. Next, choose from its templates.",
+  "save_to": "Save to: {{page}}",
+  "destination_unavailable": "The page or template is no longer available. Please go back and choose again.",
   "field_types": {
     "text": "Text",
     "multiline": "Multiline",

@@ -367,9 +367,30 @@
   line-height: 1.6;
 }
 .android-overview[data-liquid] .android-overview-copy {
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--md-primary-container) 96%, transparent);
-  box-shadow: 0 0 16px 12px color-mix(in srgb, var(--md-primary-container) 94%, transparent);
+  max-width: 60%;
+}
+.android-overview[data-liquid] {
+  isolation: isolate;
+  min-height: 192px;
+  border-radius: 28px;
+  background: var(--md-primary-container);
+}
+/* 高光只描画容器边缘，文字直接落在平缓色底上，不再垫一块实色卡片。 */
+.android-overview[data-liquid]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 55%),
+    inset 0 0 0 1px color-mix(in srgb, var(--md-on-primary-container) 10%, transparent);
+  pointer-events: none;
+}
+[data-theme='dark'] .android-overview[data-liquid]::after {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 18%),
+    inset 0 0 0 1px rgb(255 255 255 / 8%);
 }
 .android-liquid-artwork,
 .android-liquid-artwork canvas {
@@ -387,9 +408,27 @@
 }
 .android-liquid-fallback {
   position: absolute;
-  inset: 15% 5% 15% 60%;
-  border-radius: 35%;
-  border: 14px solid color-mix(in srgb, var(--accent-primary) 20%, transparent);
+  inset: 0;
+  background:
+    linear-gradient(90deg, var(--md-primary-container) 30%, transparent 75%),
+    radial-gradient(ellipse at 90% 90%, var(--md-tertiary-container), transparent 65%),
+    radial-gradient(ellipse at 70% 15%, var(--accent-bg), var(--md-secondary-container));
+}
+.android-liquid-fallback::after {
+  content: '';
+  position: absolute;
+  left: 78%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(31%, 112px);
+  aspect-ratio: 1 / 1.14;
+  border-radius: 30%;
+  background: linear-gradient(145deg, rgb(255 255 255 / 28%), rgb(255 255 255 / 4%));
+  border: 1px solid rgb(255 255 255 / 50%);
+  box-shadow:
+    inset 1px 1px 2px rgb(255 255 255 / 42%),
+    inset -1px -1px 2px color-mix(in srgb, var(--md-on-primary-container) 12%, transparent),
+    0 8px 18px color-mix(in srgb, var(--md-on-primary-container) 12%, transparent);
 }
 .android-liquid-artwork[data-liquid-ready='true'] .android-liquid-fallback {
   display: none;
@@ -397,18 +436,16 @@
 .android-liquid-mark {
   position: absolute;
   left: 78%;
-  top: 49%;
+  top: 50%;
   transform: translate(-50%, -50%);
   width: 32px;
   height: 32px;
   color: var(--md-on-primary-container);
-  opacity: 0.6;
+  opacity: 0.85;
   pointer-events: none;
 }
 .android-liquid-artwork[data-liquid-ready='true'] .android-liquid-mark {
-  color: white;
-  opacity: 0.85;
-  filter: drop-shadow(0 1px 1px #325e6a77);
+  filter: drop-shadow(0 1px 0 rgb(255 255 255 / 30%));
 }
 .android-overview h2 {
   font-size: 1.625rem;
@@ -421,6 +458,7 @@
 .android-overview-stat {
   display: flex;
   align-items: baseline;
+  flex-wrap: wrap;
   gap: 12px;
   margin: 20px 0 8px;
 }
@@ -568,14 +606,23 @@
   background: var(--bg-elevated);
   color: var(--text-primary);
   cursor: pointer;
+  transition: background-color 160ms var(--md-motion);
+}
+.android-tool > svg {
+  color: var(--accent-primary);
+  flex-shrink: 0;
 }
 .android-tool strong {
   font-size: 0.9375rem;
+  overflow-wrap: anywhere;
 }
-.android-tool:nth-child(1),
-.android-tool:nth-child(3) {
-  background: var(--md-primary-container);
-  color: var(--md-on-primary-container);
+@media (hover: hover) {
+  .android-tool:hover {
+    background: var(--bg-hover);
+  }
+}
+.android-tool:active {
+  background: var(--bg-active);
 }
 .android-chips {
   display: flex;

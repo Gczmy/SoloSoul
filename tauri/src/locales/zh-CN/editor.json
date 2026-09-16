@@ -46,6 +46,10 @@
     "contact": "联系人"
   },
   "in_section": "位于{{section}}",
+  "choose_destination": "选择所属页面",
+  "choose_destination_description": "对象会保存到所选页面，下一步仅显示该页面的模板。",
+  "save_to": "保存到：{{page}}",
+  "destination_unavailable": "所属页面或模板已不可用，请返回后重新选择。",
   "field_types": {
     "text": "文本",
     "multiline": "多行文本",

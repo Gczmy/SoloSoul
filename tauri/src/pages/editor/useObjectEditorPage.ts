@@ -13,6 +13,7 @@ import { invokeCommand } from '@/lib/ipcClient';
 import { resolveCanonicalFieldName } from '@/lib/fieldNameAliases';
 import { logger } from '@/lib/logger';
 import { FIELD_TYPE_VALIDATORS } from '@/lib/fieldValidators';
+import { SYSTEM_PAGE_KEYS } from '@/components/layout/useNavigationItems';
 
 interface FieldDef {
   key: string;
@@ -40,7 +41,6 @@ export interface UseObjectEditorPageResult {
   currentObject: ObjectData | null;
   contractTypeId: string | undefined;
   customPages: CustomPage[];
-  sectionParam: string;
   name: string;
   setName: React.Dispatch<React.SetStateAction<string>>;
   fields: FieldDef[];
@@ -204,8 +204,13 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
 
   // Determine typeId
   const typeId = isNew
-    ? sectionParam || (selectedType ? templateMeta[selectedType]?.category || selectedType : '')
+    ? sectionParam ||
+      parentId ||
+      (selectedType ? templateMeta[selectedType]?.category || selectedType : '')
     : currentObject?.typeId || '';
+  // 全局入口按模板分类推导自定义父页面，兼容桌面及已有的无参数编辑器入口。
+  const destinationPage = customPages.find((page) => page.id === typeId && !page.deletedAt);
+  const resolvedParentId = parentId || destinationPage?.id;
 
   // 字段推荐加载：accountId/objectId 变化时重新拉取（编辑对象时排除自身）
   useEffect(() => {
@@ -411,6 +416,19 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
 
   const handleSave = async () => {
     if (!accountId) return;
+    if (isNew) {
+      const knownDestination = SYSTEM_PAGE_KEYS.some((key) => key === typeId) || destinationPage;
+      if (
+        !knownDestination ||
+        (parentId && parentId !== destinationPage?.id) ||
+        !selectedType ||
+        !visibleTemplates.includes(selectedType) ||
+        templateMeta[selectedType]?.category !== typeId
+      ) {
+        onError(t('editor:destination_unavailable'), t('common:object_save_failed'));
+        return;
+      }
+    }
     if (!validateFields()) {
       onError(t('editor:validation_failed'), t('common:object_save_failed'));
       return;
@@ -423,7 +441,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
           name: name || templateMeta[selectedType]?.label || 'Untitled',
           typeId,
           properties: values,
-          parentId,
+          parentId: resolvedParentId,
           templateId: selectedType || undefined,
           templateType: selectedType ? 'user' : undefined,
         });
@@ -462,7 +480,6 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
     currentObject,
     contractTypeId,
     customPages,
-    sectionParam,
     name,
     setName,
     fields,

@@ -2,6 +2,24 @@ import { useCallback, useLayoutEffect, useSyncExternalStore } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { isAndroidSync } from '@/lib/platform';
 
+function subscribeAppliedTheme(notify: () => void) {
+  const observer = new MutationObserver(notify);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  });
+  return () => observer.disconnect();
+}
+
+/** 原生解析后的主题也是正文 CSS 的来源；Android WebView 的媒体查询可能仍返回浅色。 */
+export function useAppliedDarkTheme() {
+  return useSyncExternalStore(
+    subscribeAppliedTheme,
+    () => document.documentElement.dataset.theme === 'dark',
+    () => false,
+  );
+}
+
 export function useMediaPreference(query: string) {
   const subscribe = useCallback(
     (notify: () => void) => {

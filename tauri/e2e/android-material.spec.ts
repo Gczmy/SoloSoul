@@ -252,6 +252,60 @@ test('liquid artwork recovers context loss, stops when hidden and clears on lock
   await expect(art).toHaveCount(0);
 });
 
+test('enhanced glass follows the applied native theme when WebView media queries disagree', async ({
+  page,
+}) => {
+  await selectGlass(page, 'Enhanced glass');
+  await page.getByRole('button', { name: 'System', exact: true }).click();
+  await page.locator('.android-navigation a[href="/"]').click();
+  const art = page.locator('.android-liquid-artwork');
+  await expect(art).toHaveAttribute('data-liquid-ready', 'true');
+
+  for (const theme of ['dark', 'light'] as const) {
+    // 原生深浅主题可能与 Android WebView 的 matchMedia 返回值相反。
+    await page.emulateMedia({ colorScheme: theme === 'dark' ? 'light' : 'dark' });
+    await page.evaluate(async (mode) => {
+      await (window as any).__TAURI_INTERNALS__.invoke('plugin:event|emit', {
+        event: 'system-theme-changed',
+        // 测试桥直接转发 callback 数据，因此传入原生事件信封。
+        payload: { event: 'system-theme-changed', id: 0, payload: mode },
+      });
+    }, theme);
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+
+    const checkSurface = async () => {
+      await expect
+        .poll(() =>
+          art.locator('canvas').evaluate((el) => {
+            const gl = (el as HTMLCanvasElement).getContext('webgl')!;
+            const program = gl.getParameter(gl.CURRENT_PROGRAM)!;
+            const container = Array.from(
+              gl.getUniform(program, gl.getUniformLocation(program, 'container')) as Float32Array,
+            ).map((channel) => Math.round(channel * 255));
+            const css = getComputedStyle(document.documentElement)
+              .getPropertyValue('--md-primary-container')
+              .trim();
+            const expected = [1, 3, 5].map((offset) => parseInt(css.slice(offset, offset + 2), 16));
+            return {
+              dark: gl.getUniform(program, gl.getUniformLocation(program, 'dark')),
+              sameContainer: container.every((value, index) => value === expected[index]),
+            };
+          }),
+        )
+        .toEqual({ dark: theme === 'dark' ? 1 : 0, sameContainer: true });
+      await expect(page.locator('.android-overview-copy')).toContainText('My vault');
+      await expect(page.locator('.android-overview-stat strong')).toHaveText('2');
+    };
+    await checkSurface();
+    // 再次进入首页时也必须使用已解析的主题，不能退回 WebView 的媒体查询。
+    await page.locator('.android-navigation a[href="/tools"]').click();
+    await page.locator('.android-navigation a[href="/"]').click();
+    await expect(art).toHaveAttribute('data-liquid-ready', 'true');
+    await checkSurface();
+    await page.screenshot({ path: test.info().outputPath(`native-theme-${theme}.png`) });
+  }
+});
+
 test('native menu returns contextual actions and uses web fallback when unavailable', async ({
   page,
 }) => {

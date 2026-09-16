@@ -20,7 +20,6 @@ interface ObjectTemplateSelectorProps {
   currentObject?: ObjectData | null;
   contractTypeId?: string;
   customPages: CustomPage[];
-  sectionParam?: string;
 }
 
 export function ObjectTemplateSelector({
@@ -34,7 +33,6 @@ export function ObjectTemplateSelector({
   currentObject,
   contractTypeId,
   customPages,
-  sectionParam,
 }: ObjectTemplateSelectorProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,21 +43,21 @@ export function ObjectTemplateSelector({
       <Card>
         <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 12 }}>
           {t('common:object_type')}
-          {sectionParam && (
-            <span
-              style={{
-                fontSize: 'var(--text-badge)',
-                color: 'var(--text-tertiary)',
-                marginLeft: 8,
-                fontWeight: 400,
-              }}
-            >
-              {t('editor:in_section', {
-                section: resolveCollectionLabel(sectionParam, customPages, t),
-              })}
-            </span>
-          )}
         </h3>
+        {typeId && (
+          <p
+            data-testid="object-save-destination"
+            aria-live="polite"
+            style={{
+              marginBottom: 16,
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              overflowWrap: 'anywhere',
+            }}
+          >
+            {t('editor:save_to', { page: resolveCollectionLabel(typeId, customPages, t) })}
+          </p>
+        )}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {visibleTemplates.map((type) => {
             const label = templateMeta[type]?.label || type;
@@ -67,6 +65,8 @@ export function ObjectTemplateSelector({
             return (
               <button
                 key={type}
+                type="button"
+                aria-pressed={selectedType === type}
                 onClick={() => onSelect(type)}
                 className={selectedType === type ? undefined : 'interactive-elevated'}
                 style={{

@@ -20,40 +20,45 @@ uniform vec3 container; uniform vec3 accent; uniform vec3 secondary; uniform vec
 float box(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return min(max(q.x,q.y),0.)+length(max(q,0.))-r;}
 vec3 scene(vec2 uv){
   vec3 base=container;
-  float blue=exp(-dot((uv-vec2(.75,.7))*vec2(1.5,1.4),(uv-vec2(.75,.7))*vec2(1.5,1.4))*2.8);
-  float clay=exp(-dot((uv-vec2(.86,.05))*2.5,(uv-vec2(.86,.05))*2.5));
-  float green=exp(-dot((uv-vec2(.12,.78))*2.2,(uv-vec2(.12,.78))*2.2));
-  base=mix(base,accent,blue*mix(.45,.25,dark));
-  base=mix(base,tertiary,clay*.60);base=mix(base,secondary,green*.66);
-  vec2 grid=abs(fract(uv*vec2(16.,10.))-.5);
-  float line=1.-smoothstep(.014,.034,min(grid.x,grid.y));
-  base=mix(base,mix(vec3(.95,.99,1.),vec3(.55,.8,.81),dark),line*.25);
-  float wave=sin(uv.x*5.2+uv.y*3.)*.1+.41;
-  float stripe=1.-smoothstep(.006,.010,abs(uv.y-wave));
-  return mix(base,vec3(.94,.97,.87),stripe*.5);
+  float cool=exp(-dot((uv-vec2(.82,.85))*2.,(uv-vec2(.82,.85))*2.));
+  float warm=exp(-dot((uv-vec2(.98,.08))*2.3,(uv-vec2(.98,.08))*2.3));
+  base=mix(base,accent,cool*mix(.24,.16,dark));
+  base=mix(base,tertiary,warm*.68);
+  base=mix(base,secondary,exp(-dot((uv-vec2(.5,.1))*3.,(uv-vec2(.5,.1))*3.))*.25);
+  // 用柔和光带呈现折射，左侧平缓过渡到主题色底，保证前景文字的对比度。
+  float wave=.28+sin(uv.x*4.4)*.085;
+  float ribbonDistance=(uv.y-wave)/.045;
+  float strandDistance=(uv.y-wave-.025)/.005;
+  float ribbon=exp(-ribbonDistance*ribbonDistance);
+  float strand=exp(-strandDistance*strandDistance);
+  base=mix(base,mix(vec3(1.),accent,dark*.6),(ribbon*.16+strand*.2)*smoothstep(.35,.72,uv.x));
+  return mix(container,base,smoothstep(.25,.72,uv.x));
 }
 void main(){
   vec2 uv=gl_FragCoord.xy/resolution;
   float aspect=resolution.x/resolution.y;
-  vec2 center=vec2(.78,.51)+(pointer-vec2(.5))*.055;
+  // 装饰与盾牌固定在同一中心，触摸只改变光线和折射，不挤占文字区域。
+  vec2 center=vec2(.78,.5);
   vec2 p=(uv-center)*vec2(aspect,1.);
-  vec2 size=vec2(.28,.34);float radius=.155;
+  float halfWidth=min(.29,aspect*.155);
+  vec2 size=vec2(halfWidth,halfWidth*1.14);float radius=halfWidth*.6;
   float d=box(p,size,radius);float aa=1.7/resolution.y;
   float mask=1.-smoothstep(-aa,aa,d);float eps=.002;
   vec2 n=normalize(vec2(box(p+vec2(eps,0),size,radius)-box(p-vec2(eps,0),size,radius),box(p+vec2(0,eps),size,radius)-box(p-vec2(0,eps),size,radius))+vec2(.00001));
-  float edge=exp(-abs(d)*32.);float lens=max(0.,1.-length(p/size));
-  vec2 offset=(n*edge*.09+p*.18+lens*p*.08)*.35/vec2(aspect,1.);
-  vec2 sampleUV=uv-offset;float dispersion=.007*edge*.35;
+  float edge=exp(-abs(d)*38.);float lens=max(0.,1.-length(p/size));
+  vec2 offset=(n*edge*.055+p*.08+lens*p*.1+(pointer-vec2(.5))*.006)/vec2(aspect,1.);
+  vec2 sampleUV=uv-offset;float dispersion=.002*edge;
   vec3 refract=vec3(scene(sampleUV+vec2(dispersion,0)).r,scene(sampleUV).g,scene(sampleUV-vec2(dispersion,0)).b);
-  refract=mix(refract,mix(vec3(.99),vec3(.48,.65,.63),dark),.095);
-  float highlight=pow(max(0.,dot(n,normalize(vec2(-.5,.85)))),3.);
-  float rim=exp(-abs(d+.006)*135.);
-  refract+=vec3(.7,.86,.91)*edge*highlight*.25;
-  refract+=vec3(.9,.99,1.)*rim*(.08+highlight*.58);
-  refract-=vec3(.03,.075,.09)*edge*(1.-highlight)*.5;
+  refract=mix(refract,mix(vec3(1.),container,dark),mix(.12,.08,dark));
+  vec2 light=normalize(vec2(-.55,.85)+(pointer-vec2(.5))*.35);
+  float highlight=pow(max(0.,dot(n,light)),3.);
+  float rim=exp(-abs(d+aa)*180.);
+  refract+=vec3(.92,.97,1.)*edge*highlight*mix(.16,.1,dark);
+  refract+=vec3(.94,.98,1.)*rim*(.09+highlight*.48);
+  refract-=vec3(.055,.065,.08)*edge*(1.-highlight)*.55;
   vec3 bg=scene(uv);
-  float shadow=exp(-max(0.,box(p+vec2(-.015,.04),size,radius))*28.)*(1.-mask);
-  bg*=1.-shadow*.15;gl_FragColor=vec4(mix(bg,refract,mask),1.);
+  float shadow=exp(-max(0.,box(p+vec2(0.,.035),size,radius))*32.)*(1.-mask);
+  bg*=1.-shadow*.12;gl_FragColor=vec4(mix(bg,refract,mask),1.);
 }`;
 
 function rgb(hex: string): [number, number, number] {

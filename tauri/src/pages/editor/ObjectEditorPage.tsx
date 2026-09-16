@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -7,10 +7,30 @@ import { Button } from '@/components/ui/Button';
 import { useTranslation } from 'react-i18next';
 import { ObjectTemplateSelector } from '@/components/editor/ObjectTemplateSelector';
 import { ObjectFieldList } from '@/components/editor/ObjectFieldList';
+import { AndroidObjectDestination } from '@/components/android/AndroidObjectDestination';
+import { isAndroidSync } from '@/lib/platform';
 import { useObjectEditorPage } from './useObjectEditorPage';
 import styles from './ObjectEditorPage.module.css';
 
 export function ObjectEditorPage() {
+  const { objectId } = useParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { t } = useTranslation('common');
+  const section = searchParams.get('section') || '';
+  const parentId = searchParams.get('parentId') || '';
+  if (isAndroidSync() && !objectId && !section && !parentId) {
+    return (
+      <PageShell title={t('new_object')} onBack={() => navigate(-1)}>
+        <AndroidObjectDestination />
+      </PageShell>
+    );
+  }
+  // 页面归属变化时重新挂载表单，避免上一页面的模板、字段和校验状态串入。
+  return <ObjectEditorForm key={JSON.stringify([objectId, section, parentId])} />;
+}
+
+function ObjectEditorForm() {
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'editor', 'navigation']);
   const {
@@ -26,7 +46,6 @@ export function ObjectEditorPage() {
     currentObject,
     contractTypeId,
     customPages,
-    sectionParam,
     name,
     setName,
     fields,
@@ -56,7 +75,6 @@ export function ObjectEditorPage() {
           currentObject={currentObject}
           contractTypeId={contractTypeId}
           customPages={customPages}
-          sectionParam={sectionParam}
         />
 
         {!isNew && loadedFor !== objectId
@@ -66,6 +84,7 @@ export function ObjectEditorPage() {
                 <Card>
                   <Input
                     label={t('common:object_name')}
+                    aria-label={t('common:object_name')}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder={t('common:object_name_placeholder')}

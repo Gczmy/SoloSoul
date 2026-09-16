@@ -6,6 +6,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import type { UserTemplate } from '@/types/template';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 vi.mock('@/components/layout/PageShell', () => ({
   PageShell: ({ children, title }: { children: React.ReactNode; title: string }) => (
@@ -62,6 +63,7 @@ describe('ObjectEditorPage datetime save validation', () => {
     vi.mocked(useParams).mockReturnValue({});
     vi.mocked(useSearchParams).mockReturnValue([new URLSearchParams(), vi.fn()]);
     useAuthStore.setState({ currentAccount: { id: 'acc1', name: 'Acc' } });
+    useSettingsStore.setState((s) => ({ settings: { ...s.settings, customPages: [] } }));
     useTemplateStore.setState({
       templates: [template],
       loadTemplates: vi.fn().mockResolvedValue(undefined),
@@ -83,6 +85,65 @@ describe('ObjectEditorPage datetime save validation', () => {
       return undefined;
     });
   });
+
+  it.each(['', 'parentId=reading-page'])(
+    '自定义页面模板保存同时写入分类与父页面，入口参数：%s',
+    async (query) => {
+      vi.mocked(useSearchParams).mockReturnValue([new URLSearchParams(query), vi.fn()]);
+      useSettingsStore.setState((s) => ({
+        settings: {
+          ...s.settings,
+          customPages: [
+            {
+              id: 'reading-page',
+              name: 'Reading',
+              iconId: 'notebook',
+              createdAt: '',
+              sortOrder: 0,
+            },
+          ],
+        },
+      }));
+      useTemplateStore.setState({ templates: [{ ...template, category: 'reading-page' }] });
+      render(
+        <MemoryRouter>
+          <ObjectEditorPage />
+        </MemoryRouter>,
+      );
+      fireEvent.click(await screen.findByRole('button', { name: 'common:save' }));
+      await waitFor(() =>
+        expect(vi.mocked(invoke)).toHaveBeenCalledWith(
+          'object_create',
+          expect.objectContaining({
+            input: expect.objectContaining({
+              typeId: 'reading-page',
+              parentId: 'reading-page',
+              templateId: 'tpl1',
+            }),
+          }),
+        ),
+      );
+    },
+  );
+
+  it.each(['parentId=deleted-page', 'section=identity&parentId=missing-page'])(
+    '阻止将新对象保存到无效或冲突的归属：%s',
+    async (query) => {
+      vi.mocked(useSearchParams).mockReturnValue([new URLSearchParams(query), vi.fn()]);
+      useTemplateStore.setState({
+        templates: [
+          { ...template, category: query.startsWith('parentId') ? 'deleted-page' : 'identity' },
+        ],
+      });
+      render(
+        <MemoryRouter>
+          <ObjectEditorPage />
+        </MemoryRouter>,
+      );
+      fireEvent.click(await screen.findByRole('button', { name: 'common:save' }));
+      expect(vi.mocked(invoke)).not.toHaveBeenCalledWith('object_create', expect.anything());
+    },
+  );
 
   it('fills only the date field and saves without an error on the empty datetime field', async () => {
     render(
