@@ -316,6 +316,18 @@ test('工具菜单随原生玻璃与辅助功能切换材质', async ({ page }) 
     element.setAttribute('data-high-contrast', 'true');
   });
   await expect(menu).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await root.evaluate((element) => element.setAttribute('data-high-contrast', 'false'));
+  await expect(menu).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  // 浏览器的辅助功能偏好也必须覆盖原生玻璃分支，不能被选择器优先级吞掉。
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setEmulatedMedia', {
+    features: [{ name: 'prefers-reduced-transparency', value: 'reduce' }],
+  });
+  await expect(menu).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await cdp.send('Emulation.setEmulatedMedia', { features: [] });
+  await cdp.detach();
+  await page.emulateMedia({ forcedColors: 'active' });
+  await expect(menu).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
 });
 
 test('小窗口工具列表利用剩余高度，卡片打开期间保持菜单且不遮挡固定操作', async ({ page }) => {

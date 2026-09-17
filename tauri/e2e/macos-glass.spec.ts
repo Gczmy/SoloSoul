@@ -65,10 +65,21 @@ async function setupMac(page: Page, theme: 'light' | 'dark') {
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
 }
 
-async function expectGlass(surface: Locator) {
+async function expectContentSurface(surface: Locator) {
+  await expect(surface).toBeVisible();
+  await expect(surface).toHaveCSS('backdrop-filter', 'none');
+  await expect(surface).toHaveCSS('background-image', 'none');
+}
+
+async function expectFlatControl(control: Locator) {
+  await expectContentSurface(control);
+  await expect(control).toHaveCSS('box-shadow', 'none');
+}
+
+async function expectNavigationGlass(surface: Locator) {
   await expect(surface).toBeVisible();
   await expect(surface).toHaveCSS('backdrop-filter', /blur\(/);
-  await expect(surface).toHaveCSS('background-image', /linear-gradient/);
+  await expect(surface).toHaveCSS('background-image', 'none');
 }
 
 async function expectUnobstructed(surface: Locator) {
@@ -85,15 +96,15 @@ async function expectUnobstructed(surface: Locator) {
 }
 
 for (const theme of ['light', 'dark'] as const) {
-  test(`${theme} AppBar 玻璃按钮保持原生标题栏尺寸与操作`, async ({ page }) => {
+  test(`${theme} AppBar 平面按钮保持原生标题栏尺寸与操作`, async ({ page }) => {
     await setupMac(page, theme);
     const header = page.locator('[data-appbar]');
     const guide = header.getByRole('button', { name: 'Guide', exact: true });
-    await expectGlass(guide);
+    await expectFlatControl(guide);
     expect((await header.boundingBox())!.height).toBe(52);
     await guide.click();
     const guidePanel = page.locator('[data-page-guide-overlay] [role="dialog"]');
-    await expectGlass(guidePanel);
+    await expectContentSurface(guidePanel);
     await expectUnobstructed(guidePanel);
     await page.screenshot({ path: test.info().outputPath('guide.png') });
     await page.keyboard.press('Escape');
@@ -102,7 +113,7 @@ for (const theme of ['light', 'dark'] as const) {
       .getByRole('button', { name: 'Identity', exact: true })
       .click();
     const create = header.getByRole('button', { name: '+ New', exact: true });
-    await expectGlass(create);
+    await expectFlatControl(create);
     const before = await create.boundingBox();
     // 改变材质能力不能改变顶栏布局或原生按钮命中区。
     await page
@@ -117,7 +128,7 @@ for (const theme of ['light', 'dark'] as const) {
     await create.click();
     await expect(page).toHaveURL(/\/editor(?:\?|$)/);
     const back = header.getByRole('button', { name: 'Back', exact: true });
-    await expectGlass(back);
+    await expectFlatControl(back);
     await back.click();
     await expect(page).toHaveURL(/\/workspace/);
   });
@@ -137,7 +148,7 @@ for (const theme of ['light', 'dark'] as const) {
       await nav.getByRole('button', { name: 'Tools', exact: true }).hover();
       await nav.getByRole('button', { name, exact: true }).click();
       const card = page.locator(selector);
-      await expectGlass(card);
+      await expectContentSurface(card);
       await expectUnobstructed(card);
       if (name === 'Search') {
         await card.getByRole('textbox').click();
@@ -157,14 +168,14 @@ for (const theme of ['light', 'dark'] as const) {
     await nav.getByRole('button', { name: 'Identity', exact: true }).click();
     await page.getByRole('button', { name: /^Passport/ }).click();
     const detail = page.getByTestId('object-detail-modal');
-    await expectGlass(detail);
+    await expectContentSurface(detail);
     await expectUnobstructed(detail);
     await expect(page.getByText('PRIVATE-TEST-VALUE', { exact: true })).toHaveCount(0);
     await page.screenshot({ path: test.info().outputPath('object.png') });
     // 指南是详情内部触发的 Portal，不能被父卡片的滤镜截断或改成局部定位。
     await detail.getByRole('button', { name: 'Guide', exact: true }).click();
     const guide = page.locator('[data-page-guide-overlay] [role="dialog"]');
-    await expectGlass(guide);
+    await expectContentSurface(guide);
     await expectUnobstructed(guide);
     const rect = (await guide.boundingBox())!;
     expect(rect.x + rect.width / 2).toBeCloseTo(640, 0);
@@ -174,7 +185,7 @@ for (const theme of ['light', 'dark'] as const) {
     const confirm = page
       .getByRole('dialog')
       .filter({ has: page.getByRole('button', { name: 'Cancel', exact: true }) });
-    await expectGlass(confirm);
+    await expectContentSurface(confirm);
     await expectUnobstructed(confirm);
     await confirm.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(confirm).toHaveCount(0);
@@ -188,10 +199,10 @@ test('小窗口菜单与辅助功能回退保持键盘操作及清晰表面', as
   const more = page
     .locator('[data-appbar]')
     .getByRole('button', { name: 'More actions', exact: true });
-  await expectGlass(more);
+  await expectFlatControl(more);
   await more.click();
   const menu = page.locator('#toolbar-secondary-actions');
-  await expectGlass(menu);
+  await expectNavigationGlass(menu);
   await expectUnobstructed(menu);
   const guide = menu.getByRole('button', { name: 'Guide', exact: true });
   await expect(guide).toBeFocused();
@@ -204,7 +215,7 @@ test('小窗口菜单与辅助功能回退保持键盘操作及清晰表面', as
   await expect(menu).toHaveCSS('backdrop-filter', 'none');
   await expectUnobstructed(menu);
   await page.locator('html').evaluate((root) => root.setAttribute('data-high-contrast', 'false'));
-  await expectGlass(menu);
+  await expectNavigationGlass(menu);
   await page.emulateMedia({ forcedColors: 'active' });
   await expect(menu).toHaveCSS('backdrop-filter', 'none');
 });

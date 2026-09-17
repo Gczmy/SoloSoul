@@ -220,7 +220,7 @@ export function WorkspaceObjectRuler(props: WorkspaceObjectRulerProps) {
       </div>
       {hovered && (
         <div
-          data-macos-glass="popover"
+          data-macos-glass="panel"
           ref={previewRef}
           id={previewId}
           role="region"

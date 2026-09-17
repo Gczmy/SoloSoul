@@ -180,6 +180,7 @@ export function GlobalSyncIndicator() {
       {/* 冲突徽章 — 独立于同步进度状态显示 */}
       {showConflictBadge && (
         <button
+          data-sync-conflict-badge
           onClick={() => markConflictsRead()}
           style={{
             position: 'fixed',

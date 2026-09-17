@@ -216,7 +216,7 @@ for (const platform of ['macos', 'windows'] as const) {
       for (const name of ['History', 'Attachments', 'Edit', 'Close']) {
         await expect(detail.getByRole('button', { name, exact: true })).toHaveCSS(
           'border-radius',
-          platform === 'macos' ? '999px' : '4px',
+          platform === 'macos' ? '8px' : '4px',
         );
       }
       const remove = detail.getByRole('button', { name: 'Delete', exact: true });
@@ -263,11 +263,19 @@ for (const platform of ['macos', 'windows'] as const) {
         await page.setViewportSize({ width: 1100, height: 800 });
         await navigate(page, '/settings/data');
         const backup = page.getByRole('button', { name: 'Create Backup', exact: true });
-        await expect(backup).toHaveCSS('border-radius', platform === 'macos' ? '999px' : '4px');
-        await expect(backup).toHaveCSS('backdrop-filter', platform === 'macos' ? /blur\(/ : 'none');
-        const resting = await backup.evaluate((button) => getComputedStyle(button).backgroundImage);
+        await expect(backup).toHaveCSS('border-radius', platform === 'macos' ? '8px' : '4px');
+        await expect(backup).toHaveCSS('backdrop-filter', 'none');
+        if (platform === 'macos') {
+          await expect(backup).toHaveCSS('background-image', 'none');
+          await expect(backup).toHaveCSS('box-shadow', 'none');
+        }
+        const stateProperty = platform === 'macos' ? 'background-color' : 'background-image';
+        const resting = await backup.evaluate(
+          (button, property) => getComputedStyle(button).getPropertyValue(property),
+          stateProperty,
+        );
         await backup.hover();
-        await expect(backup).not.toHaveCSS('background-image', resting);
+        await expect(backup).not.toHaveCSS(stateProperty, resting);
         await page.mouse.down();
         await expect(backup).toHaveCSS('transform', 'none');
         await page.mouse.move(1000, 700);
@@ -282,7 +290,11 @@ for (const platform of ['macos', 'windows'] as const) {
           .locator('[data-macos-glass="panel"]')
           .filter({ has: page.getByRole('heading', { name: 'Storage Breakdown', exact: true }) });
         const close = panel.getByRole('button', { name: 'Close', exact: true });
-        // 控件在玻璃弹层中继续有轮廓，但不叠加第二层实时模糊。
+        // 内容面板与内部按钮都不叠加实时模糊，正文和操作保持清晰。
+        if (platform === 'macos') {
+          await expect(panel).toHaveCSS('backdrop-filter', 'none');
+          await expect(panel).toHaveCSS('background-image', 'none');
+        }
         await expect(close).toHaveCSS('backdrop-filter', 'none');
         await close.click();
         await expect(panel).toHaveCount(0);

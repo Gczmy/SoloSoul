@@ -65,7 +65,7 @@ export function ToolbarActions({
           {compact && (
             <button
               ref={toggle}
-              data-macos-glass="control"
+              data-desktop-control="icon"
               type="button"
               className={styles.toggle}
               aria-label={t('more_actions')}
