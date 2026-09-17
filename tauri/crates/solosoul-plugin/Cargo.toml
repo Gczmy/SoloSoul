@@ -68,5 +68,5 @@ hex = { workspace = true }
 wasmtime = { version = "45.0.1", features = ["async", "cranelift", "pulley", "call-hook"] }
 wasmtime-wasi = { version = "45.0.1", features = ["p1"] }
 
-[dev-dependencies]
+# 私有运行工作区的 RAII 生命周期
 tempfile = { workspace = true }

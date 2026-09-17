@@ -59,21 +59,40 @@ pub fn encrypt_file_stream(key: &[u8; 32], src: &Path, dst: &Path) -> Result<(),
 
 /// 把 `src` 复制到 `dst`：若 `src` 是 SOLC 密文则解密复制，否则原样复制（旧明文兼容）。
 pub fn copy_decrypt_file(key: &[u8; 32], src: &Path, dst: &Path) -> Result<(), String> {
-    if is_encrypted_file(src) {
-        let mut reader =
-            BufReader::new(File::open(src).map_err(|e| format!("打开源文件失败: {e}"))?);
-        let mut writer =
-            BufWriter::new(File::create(dst).map_err(|e| format!("创建目标文件失败: {e}"))?);
-        decrypt_chunked_stream(key, &mut reader, &mut writer)
-            .map_err(|e| format!("解密附件失败: {e}"))?;
+    write_private_copy(src, dst, Some(key))
+}
+
+/// 不解密的私有复制；旧明文附件也不能继承源文件的宽松权限。
+pub fn copy_private_file(src: &Path, dst: &Path) -> Result<(), String> {
+    write_private_copy(src, dst, None)
+}
+
+fn write_private_copy(src: &Path, dst: &Path, key: Option<&[u8; 32]>) -> Result<(), String> {
+    let parent = dst
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    // NamedTempFile 在 Unix 从创建时即为 0600；不先写明文再 chmod。
+    // 成功后原子替换目标；解密/写入失败自动删除临时文件并保留原目标。
+    let mut temporary = tempfile::NamedTempFile::new_in(parent)
+        .map_err(|e| format!("创建私有目标文件失败: {e}"))?;
+    let mut reader = BufReader::new(File::open(src).map_err(|e| format!("打开源文件失败: {e}"))?);
+    {
+        let mut writer = BufWriter::new(temporary.as_file_mut());
+        if let Some(key) = key.filter(|_| is_encrypted_file(src)) {
+            decrypt_chunked_stream(key, &mut reader, &mut writer)
+                .map_err(|e| format!("解密附件失败: {e}"))?;
+        } else {
+            std::io::copy(&mut reader, &mut writer).map_err(|e| format!("复制文件失败: {e}"))?;
+        }
         writer
             .flush()
             .map_err(|e| format!("写入目标文件失败: {e}"))?;
-        Ok(())
-    } else {
-        std::fs::copy(src, dst).map_err(|e| format!("复制文件失败: {e}"))?;
-        Ok(())
     }
+    temporary
+        .persist(dst)
+        .map_err(|e| format!("保存目标文件失败: {}", e.error))?;
+    Ok(())
 }
 
 /// 读取文件全部内容：SOLC 密文则解密，否则原样（旧明文兼容）。
@@ -144,6 +163,9 @@ mod tests {
         copy_decrypt_file(&roundtrip_key(), &src, &dst).unwrap();
         assert_eq!(std::fs::read(&dst).unwrap(), data);
         assert!(!is_encrypted_file(&dst));
+        let raw_copy = dir.path().join("without-key.out");
+        copy_private_file(&src, &raw_copy).unwrap();
+        assert_eq!(std::fs::read(raw_copy).unwrap(), data);
     }
 
     #[test]
@@ -178,5 +200,52 @@ mod tests {
 
         let wrong = [0x99u8; 32];
         assert!(copy_decrypt_file(&wrong, &enc, &dst).is_err());
+        assert!(!dst.exists());
+    }
+
+    #[test]
+    fn damaged_late_chunk_leaves_no_partial_plaintext_and_preserves_destination() {
+        let dir = TempDir::new().unwrap();
+        let src = dir.path().join("source");
+        let enc = dir.path().join("encrypted");
+        let dst = dir.path().join("destination");
+        std::fs::write(&src, vec![42; 2 * 1024 * 1024]).unwrap();
+        encrypt_file_stream(&roundtrip_key(), &src, &enc).unwrap();
+        let mut damaged = std::fs::read(&enc).unwrap();
+        *damaged.last_mut().unwrap() ^= 1;
+        std::fs::write(&enc, damaged).unwrap();
+        std::fs::write(&dst, b"original").unwrap();
+        assert!(copy_decrypt_file(&roundtrip_key(), &enc, &dst).is_err());
+        assert_eq!(std::fs::read(&dst).unwrap(), b"original");
+        assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 3);
+        assert!(copy_decrypt_file(&roundtrip_key(), &enc, &dir.path().join("new")).is_err());
+        assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 3);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn plaintext_copies_are_private_for_encrypted_and_legacy_sources() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = TempDir::new().unwrap();
+        let plain = dir.path().join("plain");
+        let encrypted = dir.path().join("encrypted");
+        std::fs::write(&plain, b"secret").unwrap();
+        std::fs::set_permissions(&plain, std::fs::Permissions::from_mode(0o644)).unwrap();
+        encrypt_file_stream(&roundtrip_key(), &plain, &encrypted).unwrap();
+        for src in [&plain, &encrypted] {
+            let dst = dir.path().join("copy");
+            copy_decrypt_file(&roundtrip_key(), src, &dst).unwrap();
+            assert_eq!(
+                std::fs::metadata(&dst).unwrap().permissions().mode() & 0o777,
+                0o600
+            );
+            assert_eq!(std::fs::read(&dst).unwrap(), b"secret");
+        }
+        let dst = dir.path().join("legacy-copy");
+        copy_private_file(&plain, &dst).unwrap();
+        assert_eq!(
+            std::fs::metadata(&dst).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
     }
 }

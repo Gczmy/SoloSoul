@@ -16,18 +16,29 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-/// 插件 ID 允许字符集，防止通过 ID 构造路径遍历。
-/// 将插件 ID 转换为可安全用于文件路径的名称。
-fn sanitize_plugin_id(id: &str) -> String {
-    id.chars()
-        .map(|c| {
-            if c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.' {
-                c
-            } else {
-                '_'
-            }
-        })
-        .collect()
+/// 随机私有工作区；Unix 创建时即收紧为 0700，Windows 使用用户临时目录 ACL。
+fn create_plugin_workspace() -> Result<tempfile::TempDir, PluginError> {
+    let mut builder = tempfile::Builder::new();
+    builder.prefix("solosoul-plugin-");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        builder.permissions(std::fs::Permissions::from_mode(0o700));
+    }
+    builder
+        .tempdir()
+        .map_err(|e| PluginError::ExecutionFailed(format!("创建插件工作区失败: {e}")))
+}
+
+/// 清理所有权跟随真正的阻塞 worker；外层异步任务取消不能提前删除正在使用的文件。
+fn spawn_plugin_worker<T: Send + 'static>(
+    workspace: tempfile::TempDir,
+    execute: impl FnOnce() -> T + Send + 'static,
+) -> tokio::task::JoinHandle<T> {
+    tokio::task::spawn_blocking(move || {
+        let _workspace = workspace;
+        execute()
+    })
 }
 
 /// 根据 locale 生成插件启动日志文本。
@@ -550,12 +561,8 @@ impl PluginManager {
             .get("locale")
             .map(|s| s.to_string())
             .unwrap_or_else(|| "zh-CN".to_string());
-        let workspace_dir = std::env::temp_dir()
-            .join("solosoul-plugin")
-            .join(sanitize_plugin_id(plugin_id))
-            .join(&session_id);
-        std::fs::create_dir_all(&workspace_dir)
-            .map_err(|e| PluginError::ExecutionFailed(format!("创建插件工作区失败: {}", e)))?;
+        let workspace = create_plugin_workspace()?;
+        let workspace_dir = workspace.path().to_path_buf();
         let host = super::SoloHostFunctions::new_with_workspace(
             plugin_id,
             &manifest.name,
@@ -578,20 +585,15 @@ impl PluginManager {
         let sandbox = self.sandbox;
         let consent = self.consent_manager.clone();
         let session_for_spawn = session.clone();
-        let result = tokio::task::spawn_blocking(move || {
+        let result = spawn_plugin_worker(workspace, move || {
             let module = sandbox.compile(&wasm_bytes)?;
             sandbox.execute(&module, host, &session_for_spawn, &consent)
         })
         .await
         .map_err(|e| PluginError::ExecutionFailed(format!("任务 Join 失败: {}", e)))?;
 
-        let cleanup = || {
-            let _ = std::fs::remove_dir_all(&workspace_dir);
-        };
-
         match result {
             Ok(r) => {
-                cleanup();
                 field_resolver.ensure_live()?;
                 self.audit.log(
                     plugin_id,
@@ -603,7 +605,6 @@ impl PluginManager {
                 Ok(r)
             }
             Err(e) => {
-                cleanup();
                 let _ = channel.send(PluginEvent::error(plugin_id, e.to_string()));
                 self.audit.log(
                     plugin_id,
@@ -661,5 +662,70 @@ impl PluginManager {
     /// 刷新注册表（从远程拉取并验证签名）
     pub async fn update_registry(&self) -> Result<(), PluginError> {
         self.registry.update_from_remote().await
+    }
+}
+
+#[cfg(test)]
+mod workspace_tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn workspace_is_removed_after_success_error_and_panic() {
+        for outcome in 0..3 {
+            let workspace = create_plugin_workspace().unwrap();
+            let path = workspace.path().to_path_buf();
+            let worker_path = path.clone();
+            let result = spawn_plugin_worker(workspace, move || {
+                std::fs::write(worker_path.join("plaintext"), b"private").unwrap();
+                match outcome {
+                    0 => Ok(()),
+                    1 => Err("execution failed"),
+                    _ => panic!("simulated worker panic"),
+                }
+            })
+            .await;
+            match outcome {
+                0 => assert!(result.unwrap().is_ok()),
+                1 => assert!(result.unwrap().is_err()),
+                _ => assert!(result.unwrap_err().is_panic()),
+            }
+            assert!(!path.exists());
+        }
+    }
+
+    #[tokio::test]
+    async fn cancelling_started_worker_keeps_workspace_until_worker_exits() {
+        let workspace = create_plugin_workspace().unwrap();
+        let path = workspace.path().to_path_buf();
+        let (started_tx, started_rx) = tokio::sync::oneshot::channel();
+        let (release_tx, release_rx) = std::sync::mpsc::channel();
+        let worker_path = path.clone();
+        let worker = spawn_plugin_worker(workspace, move || {
+            started_tx.send(()).unwrap();
+            release_rx.recv().unwrap();
+            assert!(worker_path.exists());
+            std::fs::write(worker_path.join("plaintext"), b"private").unwrap();
+        });
+        started_rx.await.unwrap();
+        worker.abort();
+        assert!(path.exists());
+        release_tx.send(()).unwrap();
+        worker.await.unwrap();
+        assert!(!path.exists());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn workspace_is_private_at_creation() {
+        use std::os::unix::fs::PermissionsExt;
+        let workspace = create_plugin_workspace().unwrap();
+        assert_eq!(
+            std::fs::metadata(workspace.path())
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o777,
+            0o700
+        );
     }
 }

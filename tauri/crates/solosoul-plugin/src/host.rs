@@ -1334,10 +1334,19 @@ fn copy_attachment_to_workspace(
             format!("找不到附件文件: vault_path 或 {}", fallback.display())
         })?;
 
-    let dst_dir = workspace.join(object_id).join(attachment_id);
+    // 外部对象/附件 ID 不参与临时路径，防止旧元数据将明文带出私有工作区。
+    let dst_dir = workspace.join(uuid::Uuid::new_v4().to_string());
     let dst = dst_dir.join(&safe_name);
 
-    std::fs::create_dir_all(&dst_dir).map_err(|e| format!("创建工作区目录失败: {}", e))?;
+    let builder = &mut std::fs::DirBuilder::new();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::DirBuilderExt;
+        builder.mode(0o700);
+    }
+    builder
+        .create(&dst_dir)
+        .map_err(|e| format!("创建工作区目录失败: {}", e))?;
     // P001: vault 附件加密落盘——插件需要明文，SOLC 密文先解密（旧明文直拷）。
     match resolver.attachment_key_ref() {
         Some(key) => {
@@ -1345,7 +1354,7 @@ fn copy_attachment_to_workspace(
                 .map_err(|e| format!("复制附件失败 ({}): {}", src.display(), e))?;
         }
         None => {
-            std::fs::copy(&src, &dst)
+            solosoul_core::attachment_crypto::copy_private_file(&src, &dst)
                 .map_err(|e| format!("复制附件失败 ({}): {}", src.display(), e))?;
         }
     }
