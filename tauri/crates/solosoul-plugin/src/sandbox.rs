@@ -72,10 +72,19 @@ impl WasmSandbox {
     pub fn execute(
         &self,
         module: &Module,
-        host: SoloHostFunctions,
-        _session: &PluginSession,
+        mut host: SoloHostFunctions,
+        session: &PluginSession,
         _consent_manager: &ConsentManager,
     ) -> Result<PluginResult, PluginError> {
+        if host.plugin_id != session.plugin_id || host.session_id != session.id {
+            return Err(PluginError::ExecutionFailed("插件与会话不匹配".into()));
+        }
+        host.field_resolver = Arc::new((*host.field_resolver).clone().with_session(session));
+        host.channel = Arc::new(super::event::SessionEventSink {
+            resolver: host.field_resolver.clone(),
+            inner: host.channel.clone(),
+        });
+        host.ensure_live()?;
         let engine = module.engine().clone();
         let mut linker = Linker::<SoloHostState>::new(&engine);
 
@@ -98,6 +107,15 @@ impl WasmSandbox {
         let wasi = wasmtime_wasi::WasiCtx::builder().build_p1();
         let state = SoloHostState { wasi, host };
         let mut store = Store::new(&engine, state);
+        // 覆盖所有自定义及 WASI 宿主入口，并在阻塞调用返回后再次检查。
+        // 即便插件继续计算，下一次数据/网络/输出访问及最终结果均会被拒绝。
+        store.call_hook(|context, _| {
+            context
+                .data()
+                .host
+                .ensure_live()
+                .map_err(|e| wasmtime::Error::msg(e.to_string()))
+        });
         store
             .set_fuel(self.fuel_limit)
             .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
@@ -137,6 +155,7 @@ impl WasmSandbox {
         let fuel_consumed = self.fuel_limit.saturating_sub(remaining);
 
         let host = store.into_data().host;
+        host.ensure_live()?;
         let logs = host.take_logs();
         let results = host.take_results();
 
@@ -152,5 +171,146 @@ impl WasmSandbox {
             results,
             fuel_consumed,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        event::PluginEventSink, FieldResolver, PluginAuditLogger, PluginManifest,
+        PluginSessionManager, RateLimiter,
+    };
+    use std::sync::Mutex;
+
+    #[derive(Default)]
+    struct Events {
+        values: Mutex<Vec<PluginEvent>>,
+        lock_on_log: Option<Arc<solosoul_vault::VaultStore>>,
+    }
+
+    impl PluginEventSink for Events {
+        fn send(&self, event: PluginEvent) -> Result<(), String> {
+            if event.event_type == "log" {
+                if let Some(vault) = &self.lock_on_log {
+                    vault.lock();
+                }
+            }
+            self.values.lock().unwrap().push(event);
+            Ok(())
+        }
+    }
+
+    fn host(
+        session: &PluginSession,
+        resolver: FieldResolver,
+        events: Arc<Events>,
+    ) -> SoloHostFunctions {
+        let manifest: PluginManifest = serde_json::from_value(serde_json::json!({
+            "id": "test", "name": "Test", "version": "1.0.0", "description": "test"
+        }))
+        .unwrap();
+        SoloHostFunctions::new(
+            "test",
+            "Test",
+            &session.id,
+            manifest,
+            Default::default(),
+            Arc::new(PluginAuditLogger::default()),
+            Arc::new(RateLimiter::new(100)),
+            Arc::new(ConsentManager::new()),
+            Arc::new(resolver),
+            events,
+        )
+    }
+
+    const LOG_THEN_RESULT: &[u8] = br#"(module
+        (import "env" "solosoul_log" (func $log (param i32 i32 i32 i32)))
+        (import "env" "solosoul_result" (func $result (param i32 i32) (result i32)))
+        (memory (export "memory") 1)
+        (data (i32.const 0) "info") (data (i32.const 4) "start") (data (i32.const 9) "{}")
+        (func (export "run") (result i32)
+            i32.const 0 i32.const 4 i32.const 4 i32.const 5 call $log
+            i32.const 9 i32.const 2 call $result drop i32.const 0))"#;
+
+    #[test]
+    fn wasm_rejects_expired_and_mismatched_sessions_before_execution() {
+        let sandbox = WasmSandbox::new();
+        let module = sandbox.compile(LOG_THEN_RESULT).unwrap();
+        let events = Arc::new(Events::default());
+        let mut session = PluginSessionManager::new().create("test", 0);
+        assert!(sandbox
+            .execute(
+                &module,
+                host(&session, FieldResolver::new(), events.clone()),
+                &session,
+                &ConsentManager::new()
+            )
+            .is_err());
+        session.expires_at = chrono::Utc::now().timestamp_millis() + 60_000;
+        let h = host(&session, FieldResolver::new(), events.clone());
+        session.plugin_id = "another-plugin".into();
+        assert!(sandbox
+            .execute(&module, h, &session, &ConsentManager::new())
+            .is_err());
+        assert!(events.values.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn wasm_lock_during_host_call_blocks_later_result_and_completion() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let vault = Arc::new(
+            solosoul_vault::VaultStore::open(
+                solosoul_vault::VaultConfig::new("test", dir.path().to_path_buf())
+                    .with_data_key([7; 32]),
+            )
+            .unwrap(),
+        );
+        let events = Arc::new(Events {
+            lock_on_log: Some(vault.clone()),
+            ..Default::default()
+        });
+        let resolver = FieldResolver::with_vault(vault, "test".into(), vec!["*".into()]);
+        let sandbox = WasmSandbox::new();
+        let module = sandbox.compile(LOG_THEN_RESULT).unwrap();
+        let session = PluginSessionManager::new().create("test", 60);
+        assert!(sandbox
+            .execute(
+                &module,
+                host(&session, resolver.clone(), events.clone()),
+                &session,
+                &ConsentManager::new()
+            )
+            .is_err());
+        assert_eq!(events.values.lock().unwrap().len(), 1);
+        assert_eq!(events.values.lock().unwrap()[0].event_type, "log");
+        let guarded = crate::event::SessionEventSink {
+            resolver: Arc::new(resolver),
+            inner: events.clone(),
+        };
+        assert!(guarded.send(PluginEvent::result("private-result")).is_err());
+        assert_eq!(events.values.lock().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn wasm_expiry_during_blocking_host_call_traps_on_return() {
+        let sandbox = WasmSandbox::new();
+        let module = sandbox
+            .compile(
+                br#"(module
+            (import "env" "solosoul_sleep" (func $sleep (param i64) (result i32)))
+            (func (export "run") (result i32) i64.const 1000 call $sleep drop i32.const 0))"#,
+            )
+            .unwrap();
+        let events = Arc::new(Events::default());
+        let mut session = PluginSessionManager::new().create("test", 60);
+        let h = host(&session, FieldResolver::new(), events.clone());
+        session.expires_at = chrono::Utc::now().timestamp_millis() + 400;
+        let start = std::time::Instant::now();
+        assert!(sandbox
+            .execute(&module, h, &session, &ConsentManager::new())
+            .is_err());
+        assert!(start.elapsed() >= std::time::Duration::from_millis(400));
+        assert!(events.values.lock().unwrap().is_empty());
     }
 }

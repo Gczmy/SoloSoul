@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-09-17（轮次 6：按用户要求逐项修复，已完成 P037、P038、P040、P041、P042、P043、P045）
+> 最后更新：2026-09-17（轮次 6：按用户要求逐项修复，已完成 P037、P038、P040、P041、P042、P043、P045、P048）
 > 修复轮次：6（前端、Rust 核心、CLI、平台桥接及发布脚本）
 > 上轮：4 —— 云同步设置页渲染崩溃修复：CSS module 类名字符串误展开为 style 索引属性
 > （`style={{ ...styles.input }}`），WebKit 抛「Cannot set indexed properties on this object」；
@@ -40,7 +40,7 @@
 | P042 | P1 | 安全/授权 | `crates/solosoul-plugin/src/field.rs:615` | 插件 list_objects 直接返回全部属性，未按字段声明与授权过滤 | `[x]` 已修复 |
 | P043 | P1 | 安全/数据丢失 | `crates/solosoul-core/src/vault_service/account.rs` | 恢复账户 ID 未校验，`.` 等值可令失败恢复的清理删除 Vault 根内数据 | `[x]` 已修复 |
 | P044 | P1 | 安全/展示 | `src/components/trash/TrashDetailSections.tsx`、`TrashSnapshotView.tsx` | 回收站字段及历史快照只展示敏感度标签，受保护字段默认明文展示 | `[ ]` 待修复 |
-| P048 | P1 | 安全/插件生命周期 | `crates/solosoul-plugin/src/field.rs:91`、`sandbox.rs:76` | 插件缓存命中不检查锁定状态，执行入口未使用会话过期信息 | `[ ]` 待修复 |
+| P048 | P1 | 安全/插件生命周期 | `crates/solosoul-plugin/src/field.rs:91`、`sandbox.rs:76` | 插件缓存命中不检查锁定状态，执行入口未使用会话过期信息 | `[x]` 已修复 |
 | P001 | P1 | 规范/CI | `src-tauri/permissions/solo-soul/default.toml` | 8 个 cloud_sync 命令已注册 handler 且前端在调，但未登记 ACL 白名单；`check_acl_consistency.py` exit 1，CI（pr_check.yml）必红，运行时 ACL 拒绝 | `[x]` 已修复 |
 | P002 | P1 | 架构 | `src-tauri/src/lib.rs:46-193`（定义于 `commands/settings.rs:166-181`） | `ui_get_preferences` 有 `#[tauri::command]` 定义且进了 ACL，但从未注册进 `generate_handler!`，前端三处调用永远失败并被静默吞掉 | `[x]` 已修复 |
 | P003 | P1 | 漏洞 | `crates/solosoul-core/src/cloud_sync/webdav.rs:48-65` | WebDAV 连接器允许 `http://` + Basic 认证，账号密码明文传输；与 LLM/OCR 的「非回环强制 https」策略不一致，错误文案与行为自相矛盾 | `[x]` 已修复 |
@@ -93,9 +93,9 @@
 
 ## 修复进度
 
-- 已关闭：42 / 49（含已修复及已确认设计例外；本轮完成 P037、P038、P040、P041、P042、P043、P045）
-- 未关闭：7 项（P012、P039、P044、P046–P049）
-- 当前处理：P048。原有子模块与生成资源改动保留；本轮修复按明确路径独立提交。
+- 已关闭：43 / 49（含已修复及已确认设计例外；本轮完成 P037、P038、P040、P041、P042、P043、P045、P048）
+- 未关闭：6 项（P012、P039、P044、P046、P047、P049）
+- 当前处理：P047。原有子模块与生成资源改动保留；本轮修复按明确路径独立提交。
 
 ## 第六轮全面复审（2026-09-17）
 
@@ -187,6 +187,9 @@
 
 - **证据与触发**：`field.rs:91–160` 的三个 cached_* 仅确认持有 Vault/account 引用，缓存命中后直接返回明文，不查看 Vault 当前锁定状态。插件先读数据再锁定后继续执行，仍可读取已缓存内容。`sandbox.rs:76` 将 session 参数标为未使用，列表清理过期会话不等于 Host 访问被撤销。
 - **修复与验证要求**：在实际 Host 数据访问时校验会话有效期和对应 Vault 解锁状态，锁定/撤销后失效缓存及运行访问。测试预热→锁定→再读拒绝，以及会话过期拒绝，不能仅依赖前端 P039 清理。
+
+- **修复说明（2026-09-17）**：缓存命中前后复核 Vault 状态及单调时钟截止时间，失效清空缓存并撤销所有克隆；每次运行使用独立解析器。Wasmtime call-hook 覆盖自定义/WASI 入口、阻塞调用返回及最终返回，失效清空输出并取消待完成 HTTP；事件发送及 manager 返回结果再次校验。该检查不抢占已开始的纯计算或撤回已发出的网络请求，燃料限制保持生效。
+- **验证**：插件测试 68 项通过、2 原有忽略，严格 Clippy 通过。新增缓存预热后锁定/过期及克隆撤销测试，真实 Wasm 验证过期/身份不匹配入口拒绝、宿主调用中锁定不再返回结果/完成事件、阻塞期间过期在返回处终止。
 
 ### P049 — 浮层历史所有权误依赖对象身份（P2）
 

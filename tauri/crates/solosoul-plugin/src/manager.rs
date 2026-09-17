@@ -91,7 +91,6 @@ pub struct PluginManager {
     audit: Arc<PluginAuditLogger>,
     rate_limiter: Arc<RateLimiter>,
     consent_manager: Arc<ConsentManager>,
-    field_resolver: Arc<FieldResolver>,
     sandbox: WasmSandbox,
 }
 
@@ -131,7 +130,6 @@ impl PluginManager {
             audit: Arc::new(PluginAuditLogger::new(Some(audit_path))),
             rate_limiter: Arc::new(RateLimiter::new(60)),
             consent_manager: Arc::new(ConsentManager::new()),
-            field_resolver: Arc::new(FieldResolver::new()),
             sandbox: WasmSandbox::new(),
         })
     }
@@ -539,8 +537,13 @@ impl PluginManager {
                 }
                 Arc::new(resolver)
             }
-            _ => self.field_resolver.clone(),
+            _ => Arc::new(FieldResolver::new()),
         };
+        let field_resolver = Arc::new((*field_resolver).clone().with_session(&session));
+        let channel: Arc<dyn PluginEventSink> = Arc::new(super::event::SessionEventSink {
+            resolver: field_resolver.clone(),
+            inner: channel,
+        });
 
         let session_id = session.id.clone();
         let locale = params
@@ -562,7 +565,7 @@ impl PluginManager {
             self.audit.clone(),
             self.rate_limiter.clone(),
             self.consent_manager.clone(),
-            field_resolver,
+            field_resolver.clone(),
             channel.clone(),
             Some(workspace_dir.clone()),
         );
@@ -589,6 +592,7 @@ impl PluginManager {
         match result {
             Ok(r) => {
                 cleanup();
+                field_resolver.ensure_live()?;
                 self.audit.log(
                     plugin_id,
                     Some(&session.id),

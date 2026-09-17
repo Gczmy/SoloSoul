@@ -171,3 +171,16 @@ pub trait PluginEventSink: Send + Sync {
     /// Send a plugin event to the sink.
     fn send(&self, event: PluginEvent) -> Result<(), String>;
 }
+
+/// 阻塞宿主调用可能跨越锁定/过期；发送前再校验，避免迟到结果和日志流出。
+pub(crate) struct SessionEventSink {
+    pub resolver: std::sync::Arc<super::FieldResolver>,
+    pub inner: std::sync::Arc<dyn PluginEventSink>,
+}
+
+impl PluginEventSink for SessionEventSink {
+    fn send(&self, event: PluginEvent) -> Result<(), String> {
+        self.resolver.ensure_live().map_err(|e| e.to_string())?;
+        self.inner.send(event)
+    }
+}

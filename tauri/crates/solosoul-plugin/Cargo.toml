@@ -65,7 +65,7 @@ hex = { workspace = true }
 # 的 p1 feature 传递依赖 wasmtime/async（sandbox.rs 使用 p1::add_to_linker_sync），
 # 即使 default-features=false 也会被重新拉起。`pulley` 为移动端 sandbox pulley64
 # target 必需、非默认；`cranelift` 为桌面 JIT（默认已含，显式声明保持自文档化）。
-wasmtime = { version = "45.0.1", features = ["async", "cranelift", "pulley"] }
+wasmtime = { version = "45.0.1", features = ["async", "cranelift", "pulley", "call-hook"] }
 wasmtime-wasi = { version = "45.0.1", features = ["p1"] }
 
 [dev-dependencies]

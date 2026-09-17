@@ -95,6 +95,24 @@ pub struct SoloHostFunctions {
 }
 
 impl SoloHostFunctions {
+    pub(crate) fn ensure_live(&self) -> Result<(), PluginError> {
+        if let Err(error) = self.field_resolver.ensure_live() {
+            self.logs.lock().unwrap_or_else(|e| e.into_inner()).clear();
+            self.results
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .clear();
+            let mut handles = self.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+            for (_, state) in handles.drain() {
+                if let HttpHandleState::Running { abort, .. } = state {
+                    abort.abort();
+                }
+            }
+            return Err(error);
+        }
+        Ok(())
+    }
+
     /// 频率限制检查：以当前插件身份对指定操作名做限流。
     ///
     /// WASI 宿主函数共用同一检查模式（`rate_limiter.check(&plugin_id, name)`），

@@ -21,7 +21,9 @@ use super::manifest::PluginContractBinding;
 use super::PluginError;
 use solosoul_vault::{TemplateProperty, UserTemplate, VaultStore};
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
 /// 附件列表项（用于 list_attachments）
 #[derive(serde::Serialize)]
@@ -78,6 +80,8 @@ pub struct FieldResolver {
     attachment_key: Option<[u8; 32]>,
     /// P004: 惰性缓存（templates / 全量对象 / 按 type_id 的对象）
     cache: Arc<Mutex<FieldCache>>,
+    deadline: Option<Instant>,
+    revoked: Arc<AtomicBool>,
 }
 
 impl FieldResolver {
@@ -86,8 +90,43 @@ impl FieldResolver {
         Self::default()
     }
 
+    /// 将协议中的过期时刻转换为单调时钟截止时间，避免系统时钟回拨延长授权。
+    pub(crate) fn with_session(mut self, session: &super::PluginSession) -> Self {
+        let remaining = session
+            .expires_at
+            .saturating_sub(chrono::Utc::now().timestamp_millis())
+            .max(0) as u64;
+        let now = Instant::now();
+        let deadline = now
+            .checked_add(Duration::from_millis(remaining))
+            .unwrap_or(now);
+        self.deadline = Some(
+            self.deadline
+                .map_or(deadline, |previous| previous.min(deadline)),
+        );
+        self
+    }
+
+    /// 每次访问（包括缓存命中）复核；失效不可恢复，所有克隆共享撤销与缓存清理。
+    pub(crate) fn ensure_live(&self) -> Result<(), PluginError> {
+        let expired = self.deadline.is_some_and(|d| Instant::now() >= d);
+        let locked = self
+            .vault
+            .as_ref()
+            .is_some_and(|v| v.state() != solosoul_vault::VaultState::Unlocked);
+        if self.revoked.load(Ordering::Acquire) || expired || locked {
+            self.revoked.store(true, Ordering::Release);
+            *self.cache.lock().unwrap_or_else(|e| e.into_inner()) = FieldCache::default();
+            return Err(PluginError::ExecutionFailed(
+                "插件会话已失效：Vault 已锁定或授权已过期".into(),
+            ));
+        }
+        Ok(())
+    }
+
     /// P004: 缓存读写助手——模板列表（全表解密一次）
     fn cached_templates(&self) -> Result<Vec<UserTemplate>, PluginError> {
+        self.ensure_live()?;
         let vault = self
             .vault
             .as_ref()
@@ -107,11 +146,15 @@ impl FieldResolver {
                     .map_err(|e| PluginError::ExecutionFailed(format!("读取模板失败: {}", e)))?,
             );
         }
-        Ok(cache.templates.clone().unwrap_or_default())
+        let result = cache.templates.clone().unwrap_or_default();
+        drop(cache);
+        self.ensure_live()?;
+        Ok(result)
     }
 
     /// P004: 缓存读写助手——全量对象列表（全表解密一次）
     fn cached_all_objects(&self) -> Result<Vec<solosoul_vault::ObjectSummary>, PluginError> {
+        self.ensure_live()?;
         let vault = self
             .vault
             .as_ref()
@@ -131,7 +174,10 @@ impl FieldResolver {
                     .map_err(|e| PluginError::ExecutionFailed(format!("查询对象失败: {}", e)))?,
             );
         }
-        Ok(cache.all_objects.clone().unwrap_or_default())
+        let result = cache.all_objects.clone().unwrap_or_default();
+        drop(cache);
+        self.ensure_live()?;
+        Ok(result)
     }
 
     /// P004: 缓存读写助手——按 type_id 的对象列表（全表解密一次，之后内存过滤）
@@ -139,6 +185,7 @@ impl FieldResolver {
         &self,
         type_id: &str,
     ) -> Result<Vec<solosoul_vault::ObjectSummary>, PluginError> {
+        self.ensure_live()?;
         let vault = self
             .vault
             .as_ref()
@@ -157,7 +204,10 @@ impl FieldResolver {
                 .map_err(|e| PluginError::ExecutionFailed(format!("查询对象失败: {}", e)))?;
             cache.objects_by_type.insert(type_id.to_string(), objects);
         }
-        Ok(cache.objects_by_type[type_id].clone())
+        let result = cache.objects_by_type[type_id].clone();
+        drop(cache);
+        self.ensure_live()?;
+        Ok(result)
     }
 
     /// 绑定 Vault 与会话信息
@@ -173,6 +223,8 @@ impl FieldResolver {
             contracts: Vec::new(),
             attachment_key: None,
             cache: Arc::new(Mutex::new(FieldCache::default())),
+            deadline: None,
+            revoked: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -184,6 +236,7 @@ impl FieldResolver {
 
     /// P001: 获取附件静态加密密钥。
     pub(crate) fn attachment_key_ref(&self) -> Option<&[u8; 32]> {
+        self.ensure_live().ok()?;
         self.attachment_key.as_ref()
     }
 
@@ -196,6 +249,8 @@ impl FieldResolver {
             contracts,
             attachment_key: None,
             cache: Arc::new(Mutex::new(FieldCache::default())),
+            deadline: None,
+            revoked: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -213,16 +268,20 @@ impl FieldResolver {
             contracts,
             attachment_key: None,
             cache: Arc::new(Mutex::new(FieldCache::default())),
+            deadline: None,
+            revoked: Arc::new(AtomicBool::new(false)),
         }
     }
 
     /// 获取 Vault 引用（供 Host Functions 使用）
     pub fn vault_ref(&self) -> Option<&Arc<VaultStore>> {
+        self.ensure_live().ok()?;
         self.vault.as_ref()
     }
 
     /// 获取账户 ID 引用（供 Host Functions 使用）
     pub fn account_id_ref(&self) -> Option<&String> {
+        self.ensure_live().ok()?;
         self.account_id.as_ref()
     }
 
@@ -395,7 +454,7 @@ impl FieldResolver {
     /// - `<typeId>.<prop>`（默认取第一个对象）
     /// - 嵌套属性取第一级属性名匹配
     pub fn field_metadata(&self, field_id: &str) -> Result<(String, String), PluginError> {
-        // 注：Vault/账户解锁状态由缓存助手（cached_*）在首次查询时校验。
+        // 注：Vault/账户解锁状态由缓存助手（cached_*）在每次访问时校验。
         if field_id.is_empty() {
             return Err(PluginError::InvalidField("字段路径为空".to_string()));
         }
@@ -425,7 +484,7 @@ impl FieldResolver {
 
     /// 构建用户数据结构树（仅元数据，不含字段值）
     pub fn build_structure_tree(&self) -> Result<String, PluginError> {
-        // 注：Vault/账户解锁状态由缓存助手（cached_*）在首次查询时校验。
+        // 注：Vault/账户解锁状态由缓存助手（cached_*）在每次访问时校验。
         let templates = self.cached_templates()?;
 
         let types: Vec<serde_json::Value> = templates
@@ -642,7 +701,7 @@ impl FieldResolver {
 
     /// 列出所有可水印的附件（图片/PDF），按页面 → 对象分组返回 JSON。
     pub fn list_attachments(&self) -> Result<String, PluginError> {
-        // 注：Vault/账户解锁状态由缓存助手（cached_*）在首次查询时校验。
+        // 注：Vault/账户解锁状态由缓存助手（cached_*）在每次访问时校验。
         let vault = self
             .vault
             .as_ref()
@@ -1121,6 +1180,53 @@ mod tests {
                 ..Default::default()
             },
         )
+    }
+
+    #[test]
+    fn warmed_caches_and_clones_are_revoked_after_vault_lock() {
+        let (_dir, vault, contract) = projection_fixture();
+        let resolver = FieldResolver::with_vault_and_contracts(
+            vault.clone(),
+            "acc_projection".into(),
+            vec!["address.*".into()],
+            vec![contract],
+        );
+        assert!(!resolver.cached_templates().unwrap().is_empty());
+        assert!(!resolver.cached_all_objects().unwrap().is_empty());
+        assert!(!resolver
+            .cached_objects_by_type("address")
+            .unwrap()
+            .is_empty());
+        let clone = resolver.clone();
+        vault.lock();
+        for r in [&resolver, &clone] {
+            assert!(r.cached_templates().is_err());
+            assert!(r.cached_all_objects().is_err());
+            assert!(r.cached_objects_by_type("address").is_err());
+            assert!(r.list_objects("address").is_err());
+            assert!(r.resolve("address.street").is_err());
+            assert!(r.vault_ref().is_none());
+        }
+        let cache = resolver.cache.lock().unwrap();
+        assert!(
+            cache.templates.is_none()
+                && cache.all_objects.is_none()
+                && cache.objects_by_type.is_empty()
+        );
+    }
+
+    #[test]
+    fn expired_session_revokes_warm_cache_even_with_unlocked_vault() {
+        let (_dir, vault, _) = projection_fixture();
+        let resolver =
+            FieldResolver::with_vault(vault, "acc_projection".into(), vec!["address.*".into()]);
+        resolver.cached_objects_by_type("address").unwrap();
+        let clone = resolver.clone();
+        let expired = super::super::PluginSessionManager::new().create("test", 0);
+        let resolver = resolver.with_session(&expired);
+        assert!(resolver.list_objects("address").is_err());
+        assert!(clone.cached_objects_by_type("address").is_err());
+        assert!(resolver.cache.lock().unwrap().objects_by_type.is_empty());
     }
 
     #[test]
