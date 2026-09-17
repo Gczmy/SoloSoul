@@ -979,7 +979,10 @@ mod tests {
     #[test]
     fn test_macos_biometric_availability_shape() {
         // 使用 manager.availability() 以保持平台无关，避免直接调用 #[cfg] 限定的函数
-        let manager = manager_from_home();
+        // 独立目录避免依赖 Windows 缺失的 HOME，也不借用并行测试修改的环境。
+        let dir = TempDir::new().unwrap();
+        let base = dir.path().join(".solosoul");
+        let manager = BiometricManager::with_storage(base.clone(), file_storage(base));
         let result = manager.availability("nonexistent");
         let available = result.available;
         let bt = result.biometry_type;
