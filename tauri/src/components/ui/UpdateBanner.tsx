@@ -6,6 +6,8 @@ import { ICON_SIZE } from '@/lib/constants';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { Dialog } from '@/components/ui/Dialog';
 import styles from './NotificationBanner.module.css';
+import { UpdateTransferStatus } from './UpdateTransferStatus';
+import type { UpdateTransferInfo } from '@/lib/updater';
 
 // P015-R2: 更新说明（react-markdown 全家桶约 350K）按需动态加载——
 // UpdateBanner 被入口 AppRoutes 静态引用，原静态导入把整个 markdown 栈打进入口 chunk，
@@ -35,6 +37,7 @@ interface UpdateBannerProps {
   totalBytes: number;
   /** Android 下载进度百分比（0–100），totalBytes 为 0 时作为回退显示 */
   progressPercent?: number;
+  transfer?: UpdateTransferInfo;
   error?: string;
   /** 强制更新时隐藏「跳过」与关闭按钮 */
   mandatory?: boolean;
@@ -55,6 +58,7 @@ export function UpdateBanner({
   downloadedBytes,
   totalBytes,
   progressPercent,
+  transfer,
   error,
   mandatory,
   releaseNotes,
@@ -115,6 +119,9 @@ export function UpdateBanner({
                   ? t('update_cancelling')
                   : t('update_downloading', { version })}
               </span>
+              {state === 'downloading' && (
+                <UpdateTransferStatus transfer={transfer} className={styles.transferStatus} />
+              )}
               <div className={styles.progressGroup}>
                 <div
                   className={styles.progressTrack}

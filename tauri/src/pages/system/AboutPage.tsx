@@ -35,6 +35,7 @@ export function AboutPage() {
     cancelling,
     installing,
     downloadProgress,
+    transfer,
     downloadedBytes,
     totalBytes,
     downloadError,
@@ -120,6 +121,7 @@ export function AboutPage() {
             totalBytes={totalBytes}
             downloadError={downloadError}
             progressPercent={progressPercent}
+            transfer={transfer}
             runCheck={runCheck}
             handleUpdate={handleUpdate}
             cancelDownload={cancelDownload}
@@ -141,6 +143,7 @@ export function AboutPage() {
           downloadedBytes={downloadedBytes}
           totalBytes={totalBytes}
           progressPercent={progressPercent}
+          transfer={transfer}
           downloadError={downloadError}
           handleUpdate={handleUpdate}
           cancelDownload={cancelDownload}

@@ -141,6 +141,7 @@ describe('invokeCommand（统一 IPC 调用层）', () => {
   it.each([
     ['create_update_download', undefined],
     ['cancel_update_download', { operationId: 41 }],
+    ['desktop_prepare_update', undefined],
     ['desktop_download_update', { updateRid: 17, operationId: 41, onEvent: 9 }],
     ['desktop_install_update', { downloadRid: 91 }],
   ] as const)('登录前允许新下载管线命令 %s，不受 Vault 解锁守卫阻断', async (command, args) => {

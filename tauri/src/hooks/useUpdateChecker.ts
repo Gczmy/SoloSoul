@@ -9,6 +9,7 @@ import {
   isUpdateDownloadCancelled,
   type UpdateProgress,
   type ApkDownloadProgress,
+  type UpdateTransferInfo,
 } from '@/lib/updater';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { logger } from '@/lib/logger';
@@ -53,6 +54,7 @@ export function useUpdateChecker() {
   const [downloadProgress, setDownloadProgress] = useState<
     UpdateProgress | ApkDownloadProgress | null
   >(null);
+  const [transfer, setTransfer] = useState<UpdateTransferInfo>();
   const [downloadedBytes, setDownloadedBytes] = useState(0);
   const [totalBytes, setTotalBytes] = useState(0);
   const [downloadError, setDownloadError] = useState<string | null>(null);
@@ -166,6 +168,8 @@ export function useUpdateChecker() {
     };
     setChecking(false);
     setUpdatePhase('downloading');
+    setTransfer({ phase: 'probing' });
+    let receivedTransfer = false;
     setDownloadError(null);
     setDownloadProgress(null);
     setDownloadedBytes(0);
@@ -187,6 +191,11 @@ export function useUpdateChecker() {
               setDownloadProgress(progress);
               setDownloadedBytes(progress.downloaded);
               setTotalBytes(progress.total);
+              setTransfer({
+                phase: progress.phase ?? 'downloading',
+                source: progress.source,
+                bytesPerSecond: progress.bytesPerSecond,
+              });
             },
             operation.controller.signal,
           );
@@ -201,9 +210,16 @@ export function useUpdateChecker() {
           (progress) => {
             if (!canProgress()) return;
             setDownloadProgress(progress);
-            if (progress.event === 'Started') {
+            if (progress.event === 'Transfer') {
+              receivedTransfer = true;
+              const { downloaded, total, ...details } = progress.data;
+              setDownloadedBytes(downloaded);
+              setTotalBytes(total);
+              setTransfer(details);
+            } else if (progress.event === 'Started' && !receivedTransfer) {
+              setTransfer({ phase: 'downloading' });
               setTotalBytes(progress.data.contentLength ?? 0);
-            } else if (progress.event === 'Progress') {
+            } else if (progress.event === 'Progress' && !receivedTransfer) {
               setDownloadedBytes((prev) => prev + (progress.data.chunkLength ?? 0));
             }
           },
@@ -221,6 +237,7 @@ export function useUpdateChecker() {
         operationRef.current = null;
         if (mountedRef.current) {
           setUpdatePhase('idle');
+          setTransfer(undefined);
           setDownloadProgress(null);
           setDownloadedBytes(0);
           setTotalBytes(0);
@@ -250,6 +267,7 @@ export function useUpdateChecker() {
     cancelling: updatePhase === 'cancelling',
     installing: updatePhase === 'installing',
     downloadProgress,
+    transfer,
     downloadedBytes,
     totalBytes,
     downloadError,

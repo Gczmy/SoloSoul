@@ -375,6 +375,7 @@ export function AppRoutes() {
           downloadedBytes={updateState.downloadedBytes}
           totalBytes={updateState.totalBytes}
           progressPercent={updateState.progressPercent}
+          transfer={updateState.transfer}
           mandatory={updateState.mandatory}
           error={updateState.error}
           releaseNotes={updateState.releaseNotes}

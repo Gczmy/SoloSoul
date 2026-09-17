@@ -205,6 +205,8 @@ fn register_core_commands(
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         commands::update::desktop_check_update,
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        commands::update::desktop_prepare_update,
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         commands::update::desktop_download_update,
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         commands::update::desktop_install_update,
@@ -663,6 +665,7 @@ mod tests {
                     "android_is_apk_downloaded",
                     "android_install_apk",
                     "desktop_check_update",
+                    "desktop_prepare_update",
                     "desktop_download_update",
                     "desktop_install_update",
                     "create_update_download",

@@ -155,6 +155,112 @@ describe('useAppUpdate', () => {
     expect(result.current.updateState).toMatchObject({ kind: 'downloaded', mandatory: true });
   });
 
+  it('桌面 Transfer 使用绝对进度，换源不重复累计，取消重试恢复缓存进度', async () => {
+    available(false);
+    const first = deferred<never>();
+    const second = deferred<{
+      close: ReturnType<typeof vi.fn>;
+      install: ReturnType<typeof vi.fn>;
+    }>();
+    mocks.desktopDownload.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    const { result } = renderHook(() => useAppUpdate());
+    await waitFor(() => expect(result.current.updateState.kind).toBe('available'));
+    let task!: Promise<void>;
+    act(() => {
+      task = result.current.startDownload();
+    });
+    expect(result.current.updateState).toMatchObject({ transfer: { phase: 'probing' } });
+    await waitFor(() => expect(mocks.desktopDownload).toHaveBeenCalledOnce());
+    const progress = mocks.desktopDownload.mock.calls[0][1] as (p: UpdateProgress) => void;
+    act(() => {
+      progress({ event: 'Started', data: { contentLength: 100 } });
+      progress({
+        event: 'Transfer',
+        data: {
+          downloaded: 40,
+          total: 100,
+          source: 'github.com',
+          bytesPerSecond: 2048,
+          phase: 'downloading',
+        },
+      });
+      progress({ event: 'Progress', data: { chunkLength: 40 } });
+    });
+    expect(result.current.updateState).toMatchObject({
+      downloadedBytes: 40,
+      progressPercent: 40,
+      transfer: { source: 'github.com', bytesPerSecond: 2048 },
+    });
+    act(() => {
+      progress({
+        event: 'Transfer',
+        data: {
+          downloaded: 50,
+          total: 100,
+          source: 'mirror.example',
+          bytesPerSecond: 0,
+          phase: 'switching',
+        },
+      });
+    });
+    expect(result.current.updateState).toMatchObject({
+      downloadedBytes: 50,
+      transfer: { phase: 'switching' },
+    });
+    act(() => result.current.cancelDownload());
+    await act(async () => {
+      first.reject(new DOMException('Cancelled', 'AbortError'));
+      await task;
+    });
+    expect(result.current.updateState).toMatchObject({ kind: 'available', transfer: undefined });
+    act(() => {
+      task = result.current.startDownload();
+    });
+    await waitFor(() => expect(mocks.desktopDownload).toHaveBeenCalledTimes(2));
+    const resumed = mocks.desktopDownload.mock.calls[1][1] as (p: UpdateProgress) => void;
+    act(() => {
+      resumed({
+        event: 'Transfer',
+        data: {
+          downloaded: 50,
+          total: 100,
+          source: 'mirror.example',
+          bytesPerSecond: 0,
+          phase: 'probing',
+        },
+      });
+      progress({
+        event: 'Transfer',
+        data: {
+          downloaded: 99,
+          total: 100,
+          source: 'old.example',
+          bytesPerSecond: 999,
+          phase: 'downloading',
+        },
+      });
+    });
+    expect(result.current.updateState).toMatchObject({
+      downloadedBytes: 50,
+      transfer: { source: 'mirror.example' },
+    });
+    await act(async () => {
+      resumed({
+        event: 'Transfer',
+        data: {
+          downloaded: 100,
+          total: 100,
+          source: 'mirror.example',
+          bytesPerSecond: 4096,
+          phase: 'downloading',
+        },
+      });
+      second.resolve({ close: vi.fn().mockResolvedValue(undefined), install: vi.fn() });
+      await task;
+    });
+    expect(result.current.updateState).toMatchObject({ kind: 'downloaded', downloadedBytes: 100 });
+  });
+
   it('取消赢过桌面下载完成时释放产物，回到选项', async () => {
     available(false);
     const pending = deferred<{

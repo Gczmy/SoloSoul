@@ -89,9 +89,23 @@ describe('useUpdateChecker cancellation', () => {
     });
     const [, firstProgress, firstSignal] = vi.mocked(ensureApkDownloaded).mock.calls[0];
     act(() =>
-      firstProgress?.({ downloaded: 20, total: 100, progress: 20, done: false, error: null }),
+      firstProgress?.({
+        downloaded: 20,
+        total: 100,
+        progress: 20,
+        done: false,
+        error: null,
+        phase: 'switching',
+        source: 'mirror.example',
+        bytesPerSecond: 0,
+      }),
     );
     expect(result.current.downloadedBytes).toBe(20);
+    expect(result.current.transfer).toEqual({
+      phase: 'switching',
+      source: 'mirror.example',
+      bytesPerSecond: 0,
+    });
     act(() => result.current.cancelDownload());
     expect(firstSignal?.aborted).toBe(true);
     expect(result.current.cancelling).toBe(true);
@@ -109,6 +123,7 @@ describe('useUpdateChecker cancellation', () => {
     });
     expect(androidInstallApk).not.toHaveBeenCalled();
     expect(result.current.downloading).toBe(false);
+    expect(result.current.transfer).toBeUndefined();
     expect(result.current.downloadError).toBeNull();
     expect(result.current.isMandatory).toBe(true);
     expect(result.current.versionInfo?.state).toBe('available');
@@ -139,11 +154,26 @@ describe('useUpdateChecker cancellation', () => {
     const [progress, signal] = vi.mocked(downloadAndInstallUpdate).mock.calls[0];
     act(() => {
       progress?.({ event: 'Started', data: { contentLength: 100 } });
+      progress?.({
+        event: 'Transfer',
+        data: {
+          downloaded: 25,
+          total: 100,
+          source: 'mirror.example',
+          bytesPerSecond: 2048,
+          phase: 'downloading',
+        },
+      });
       progress?.({ event: 'Progress', data: { chunkLength: 25 } });
       result.current.cancelDownload();
       progress?.({ event: 'Progress', data: { chunkLength: 75 } });
     });
     expect(result.current.downloadedBytes).toBe(25);
+    expect(result.current.transfer).toEqual({
+      source: 'mirror.example',
+      bytesPerSecond: 2048,
+      phase: 'downloading',
+    });
     expect(result.current.installing).toBe(false);
     expect(result.current.cancelling).toBe(true);
     expect(signal?.aborted).toBe(true);
@@ -152,6 +182,7 @@ describe('useUpdateChecker cancellation', () => {
       await run;
     });
     expect(result.current.downloading).toBe(false);
+    expect(result.current.transfer).toBeUndefined();
     expect(result.current.downloadError).toBeNull();
   });
 

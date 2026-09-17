@@ -11,6 +11,7 @@ import {
   isUpdateDownloadCancelled,
   type DownloadedDesktopUpdate,
   type AndroidUpdateInfo,
+  type UpdateTransferInfo,
 } from '@/lib/updater';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { useAuthStore } from '@/stores/authStore';
@@ -29,6 +30,7 @@ export type AppUpdateState =
       downloadedBytes: number;
       totalBytes: number;
       progressPercent: number;
+      transfer?: UpdateTransferInfo;
       mandatory: boolean;
       /** P012: APK 校验和不可用原因（Android），供横幅展示可感知警告 */
       checksumWarning?: string | null;
@@ -149,9 +151,11 @@ export function useAppUpdate() {
     checkGeneration.current += 1; // 废弃在点击下载之前发出的迟到检查结果。
     readyToInstall.current = false;
     const isCurrent = () => activeDownload.current === controller;
+    let receivedTransfer = false;
     setUpdateState({
       ...updateState,
       kind: 'downloading',
+      transfer: { phase: 'probing' },
       error: undefined,
       downloadedBytes: 0,
       totalBytes: 0,
@@ -173,6 +177,11 @@ export function useAppUpdate() {
                     downloadedBytes: progress.downloaded,
                     totalBytes: progress.total,
                     progressPercent: progress.progress,
+                    transfer: {
+                      phase: progress.phase ?? 'downloading',
+                      source: progress.source,
+                      bytesPerSecond: progress.bytesPerSecond,
+                    },
                   }
                 : prev,
             );
@@ -185,11 +194,27 @@ export function useAppUpdate() {
           updateState.update,
           (event) => {
             if (!isCurrent() || controller.signal.aborted) return;
+            if (event.event === 'Transfer') receivedTransfer = true;
+            const useLegacyProgress = !receivedTransfer;
             setUpdateState((prev) => {
               if (prev.kind !== 'downloading') return prev;
-              if (event.event === 'Started')
-                return { ...prev, totalBytes: event.data.contentLength ?? 0 };
-              if (event.event === 'Progress')
+              if (event.event === 'Transfer') {
+                const { downloaded, total, ...transfer } = event.data;
+                return {
+                  ...prev,
+                  downloadedBytes: downloaded,
+                  totalBytes: total,
+                  progressPercent: total > 0 ? Math.min(100, (downloaded / total) * 100) : 0,
+                  transfer,
+                };
+              }
+              if (event.event === 'Started' && useLegacyProgress)
+                return {
+                  ...prev,
+                  totalBytes: event.data.contentLength ?? 0,
+                  transfer: { phase: 'downloading' },
+                };
+              if (event.event === 'Progress' && useLegacyProgress)
                 return { ...prev, downloadedBytes: prev.downloadedBytes + event.data.chunkLength };
               return prev;
             });
@@ -217,6 +242,7 @@ export function useAppUpdate() {
           ? {
               ...prev,
               kind: 'available',
+              transfer: undefined,
               error: undefined,
               downloadedBytes: 0,
               totalBytes: 0,

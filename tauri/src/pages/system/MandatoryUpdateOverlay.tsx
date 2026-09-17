@@ -4,6 +4,8 @@ import { createPortal } from 'react-dom';
 import { ReleaseNotesMarkdown } from '@/components/ui/ReleaseNotesMarkdown';
 import { AlertTriangle, Download, Info } from 'lucide-react';
 import { DownloadProgressBar } from '@/components/ui/DownloadProgressBar';
+import { UpdateTransferStatus } from '@/components/ui/UpdateTransferStatus';
+import type { UpdateTransferInfo } from '@/lib/updater';
 import { Dialog } from '@/components/ui/Dialog';
 import { ICON_SIZE } from '@/lib/constants';
 import { isMobilePlatformSync } from '@/lib/platform';
@@ -19,6 +21,7 @@ interface MandatoryUpdateOverlayProps {
   downloadedBytes: number;
   totalBytes: number;
   progressPercent: number;
+  transfer?: UpdateTransferInfo;
   downloadError: string | null;
   handleUpdate: () => void;
   cancelDownload?: () => void;
@@ -38,6 +41,7 @@ export function MandatoryUpdateOverlay({
   downloadedBytes,
   totalBytes,
   progressPercent,
+  transfer,
   downloadError,
   handleUpdate,
   cancelDownload,
@@ -212,6 +216,8 @@ export function MandatoryUpdateOverlay({
             />
           </div>
         )}
+
+        {downloading && !installing && !cancelling && <UpdateTransferStatus transfer={transfer} />}
 
         {/* 取消只终止下载，强制更新遮罩及版本信息继续保留。 */}
         {downloading && !installing && cancelDownload && (

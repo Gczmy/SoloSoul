@@ -1,4 +1,4 @@
-import { check, type Update, type DownloadEvent } from '@tauri-apps/plugin-updater';
+import { Update, type DownloadEvent } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Channel, Resource } from '@tauri-apps/api/core';
@@ -10,7 +10,21 @@ interface UpdateInfo {
   date?: string;
 }
 
-export type UpdateProgress = DownloadEvent;
+export type UpdateTransferPhase = 'probing' | 'downloading' | 'switching';
+
+export interface UpdateTransferInfo {
+  phase: UpdateTransferPhase;
+  /** 后端仅传主机名，不包含 URL 路径、查询参数或凭据。 */
+  source?: string;
+  bytesPerSecond?: number;
+}
+
+export type UpdateProgress =
+  | DownloadEvent
+  | {
+      event: 'Transfer';
+      data: UpdateTransferInfo & { downloaded: number; total: number };
+    };
 
 type UpdateCheckResult =
   | { kind: 'available'; info: UpdateInfo; update: Update }
@@ -25,13 +39,17 @@ type UpdateCheckResult =
  * - 'up-to-date': 当前已是最新版
  * - 'error': 检查失败（如网络异常、端点不可达）
  */
-// T003: updater 插件默认无请求超时，直连黑洞（hang 而非 RST）时会卡住代理回退；
-// 显式传 15s 超时（毫秒），超时后插件自动尝试下一个 endpoint。
-const UPDATE_REQUEST_TIMEOUT_MS = 15_000;
+// 原生层并行探测更新清单并保留可信 Update 资源，避免 JS 插件串行等待失效端点。
+async function prepareDesktopUpdate(): Promise<Update | null> {
+  const metadata = await invoke<ConstructorParameters<typeof Update>[0] | null>(
+    'desktop_prepare_update',
+  );
+  return metadata ? new Update(metadata) : null;
+}
 
 export async function checkForUpdate(): Promise<UpdateCheckResult> {
   try {
-    const update = await check({ timeout: UPDATE_REQUEST_TIMEOUT_MS });
+    const update = await prepareDesktopUpdate();
     if (!update) {
       return { kind: 'up-to-date' };
     }
@@ -158,7 +176,7 @@ export async function downloadAndInstallUpdate(
   let downloaded: DownloadedDesktopUpdate | undefined;
   try {
     if (signal?.aborted) throw cancelledDownload();
-    update = await check({ timeout: UPDATE_REQUEST_TIMEOUT_MS });
+    update = await prepareDesktopUpdate();
     if (signal?.aborted) throw cancelledDownload();
     if (!update) throw new Error('No update available');
     downloaded = await downloadDesktopUpdate(update, onProgress, signal);
@@ -230,6 +248,9 @@ export interface AndroidUpdateInfo {
 }
 
 export interface ApkDownloadProgress {
+  phase?: UpdateTransferPhase;
+  source?: string;
+  bytesPerSecond?: number;
   progress: number;
   downloaded: number;
   total: number;

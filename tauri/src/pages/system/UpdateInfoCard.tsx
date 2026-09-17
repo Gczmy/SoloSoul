@@ -4,6 +4,8 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { ReleaseNotesMarkdown } from '@/components/ui/ReleaseNotesMarkdown';
 import { AlertTriangle, Download, RefreshCw } from 'lucide-react';
 import { DownloadProgressBar } from '@/components/ui/DownloadProgressBar';
+import { UpdateTransferStatus } from '@/components/ui/UpdateTransferStatus';
+import type { UpdateTransferInfo } from '@/lib/updater';
 import { ICON_SIZE } from '@/lib/constants';
 import type { AppInfo, VersionInfo } from '@/hooks/useUpdateChecker';
 import type { ApkDownloadProgress, UpdateProgress } from '@/lib/updater';
@@ -25,6 +27,7 @@ interface UpdateInfoCardProps {
   totalBytes: number;
   downloadError: string | null;
   progressPercent: number;
+  transfer?: UpdateTransferInfo;
   runCheck: () => void;
   handleUpdate: () => void;
   cancelDownload?: () => void;
@@ -46,6 +49,7 @@ export function UpdateInfoCard({
   totalBytes,
   downloadError,
   progressPercent,
+  transfer,
   runCheck,
   handleUpdate,
   cancelDownload,
@@ -254,6 +258,7 @@ export function UpdateInfoCard({
                               : undefined
                         }
                       />
+                      {!installing && !cancelling && <UpdateTransferStatus transfer={transfer} />}
                       {!installing && cancelDownload && (
                         <button
                           type="button"

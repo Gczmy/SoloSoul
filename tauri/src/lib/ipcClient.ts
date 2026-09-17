@@ -103,6 +103,7 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   'android_is_apk_downloaded',
   'android_install_apk',
   'desktop_check_update',
+  'desktop_prepare_update',
   'create_update_download',
   'cancel_update_download',
   'desktop_download_update',

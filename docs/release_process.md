@@ -326,7 +326,7 @@ Android 客户端下载 APK 后会自动验证 SHA-256 校验和。发布前需�
 > （`.sha256.minisig`），验签失败即拒绝该校验和（不执行 SHA-256 校验）。
 >
 > `.sha256` 与 `.sha256.minisig` 文件都很小，**必须与 APK 一同上传到 GitHub Release**。
-> 缺少签名文件时 Android 客户端不会进行 SHA-256 校验（不阻断下载，但失去完整性保障）。
+> 发布时不得缺少任一文件；新的清单生成流程会拒绝不完整的 APK/校验和/签名组合。
 
 ---
 
@@ -342,11 +342,12 @@ Android 客户端下载 APK 后会自动验证 SHA-256 校验和。发布前需�
 ├── SoloSoul_2.1.0_arm64.dmg                 # macOS 首次安装 DMG（可选但推荐）
 ├── SoloSoul_2.1.0_x64-setup.exe             # Windows 安装包
 ├── SoloSoul_2.1.0_universal-release.apk      # Android 通用安装包
-└── SoloSoul_2.1.0_universal-release.apk.sha256 # Android APK SHA-256 校验和（推荐）
+├── SoloSoul_2.1.0_universal-release.apk.sha256 # Android APK SHA-256 校验和
+└── SoloSoul_2.1.0_universal-release.apk.sha256.minisig # 校验和签名
 ```
 
-> Android 校验和文件（`.sha256`）需在 Android 构建后通过 `./scripts/compute-apk-checksum.sh` 生成。
-> 如果不包含此文件，Android 客户端在下载后不会进行 SHA-256 验证，但更新功能不受影响。
+> Android 校验和与签名文件需在 Android 构建后通过 `./scripts/compute-apk-checksum.sh` 生成。
+> 发布时必须与 APK 一起收集，新的 `release.json` 生成流程会拒绝缺少任一文件的资产组合。
 
 ### 6. 统一签名（在 Mac 上执行）
 
@@ -412,14 +413,11 @@ bash scripts/verify-release-signatures.sh SoloSoul-Releases
 - 验证启动、Vault 解锁、对象 CRUD、设置页面等基础功能
 - 对于 Release APK，确认安装后验证启动、Vault 解锁、对象 CRUD、设置页面等基础功能
 
-### 8. 生成 latest.json（含国内加速镜像清单）
+### 8. 生成更新清单（桌面、兼容镜像和 Android）
 
-> **先写 release notes 文件，再生成清单**：latest.json 的 `notes` 字段（桌面端更新横幅
-> 「查看更新内容」弹卡的数据源）取自 `--notes-file` 指定的 markdown 文件。缺省时仅为
-> 占位符 `SoloSoul v<版本>`（横幅只会显示一行标题）。发布前先把完整的
-> `SoloSoul-Releases/release-notes-v<版本>.md` 写好，再执行下面的命令。
-
-在 Mac 上执行：
+先写完整的 `SoloSoul-Releases/release-notes-v<版本>.md`，再生成清单。
+桌面 `latest.json.notes` 和 Android `release.json.body` 都取自 `--notes-file`；
+省略时只有 `SoloSoul v<版本>` 标题。
 
 ```bash
 cd tauri
@@ -427,27 +425,49 @@ node scripts/generate-latest-json.js \
   "$(node -p "require('./src-tauri/tauri.conf.json').version")" \
   ../SoloSoul-Releases \
   ../SoloSoul-Releases/latest.json \
-  --notes-file ../SoloSoul-Releases/release-notes-v$(node -p "require('./src-tauri/tauri.conf.json').version").md
+  --notes-file ../SoloSoul-Releases/release-notes-v$(node -p "require('./src-tauri/tauri.conf.json').version").md \
+  --no-probe
+node scripts/verify-update-distribution.js ../SoloSoul-Releases/latest.json --offline
 ```
 
-生成的 `latest.json` 包含各平台安装包下载地址、Ed25519 签名与完整 release notes，供应用内更新器读取。
+生成以下文件，发版时必须保留全部兼容清单：
 
-脚本会**实时探测国内 GitHub 加速代理**（ghfast.top / ghproxy.net / gh-proxy.com / ghps.cc）：
+- `latest.json`：桌面 updater 平台 URL、原始 `.sig` 签名、正文、发布时间。
+- `latest-mirror-ghfast.json`、`latest-mirror-ghproxy-net.json`、
+  `latest-mirror-ghproxy.json`、`latest-mirror-ghps.json`：已安装版本使用的固定兼容文件。
+- `release.json`：Android 自有源元数据，包含 `tag_name`、`body`、`published_at` 和
+  `assets`；每个 APK 都列出 APK、`.sha256`、`.sha256.minisig` 的 URL 与精确字节数。
+  有 APK 但缺少校验和或签名时生成失败；纯桌面发版的 `assets` 为空。
 
-- 每个存活的代理会额外生成一份 `latest-mirror-<id>.json`（清单内平台 URL 带该代理前缀，
-  元数据与安装包走同一通道）；
-- 不可用/超时的代理自动剔除，不生成对应镜像；全部探测失败时仅生成直连清单；
-- 探测目标是 `releases/latest` 路径（与真实下载一致）——ghproxy 类服务对仓库主页
-  返回 403 属正常拦截，**勿改为仓库主页作探测目标**；
-- 如需跳过探测（离线/不发网络请求）：追加 `--no-probe`；
-- 如需覆盖代理列表：`--proxies ghfast=https://ghfast.top/,ghproxy=https://gh-proxy.com/`。
+`--no-probe` 只关闭网络探测，**仍生成全部清单**。默认探测实际版本安装包的
+`Range: bytes=0-1023`，检查 HTTP 206、Content-Range、总大小和本地首段内容；
+未上传资产、超时、代理故障都会输出诊断，**不再因一次探测失败省略兼容文件**。
+`--proxies id=https-prefix,...` 可增补代理或覆盖同名代理，固定兼容 id 保留。
+第三方代理仍能看到用户 IP、目标版本及响应元数据；产物签名校验不能阻止其压制更新。
 
-> 安全说明：镜像清单与直连清单的签名一致（签名针对安装包二进制而非清单本身），
-> Tauri updater 无论从哪个 endpoint 下载安装包都会用 pubkey 严格验签，指向代理无供应链风险。
+接入自有对象存储/CDN 后，生成时增加：
 
-> 注意：`latest.json` 目前仅用于桌面端（macOS + Windows）自动更新。Android 更新通过
-> GitHub Release 分发（客户端内置代理回退 + 多线程分段下载，见 `update.rs` 的
-> `PROXY_PREFIXES`，与桌面端镜像清单同源维护）。
+```bash
+# SOLOSOUL_UPDATE_BASE 必须由维护者设为真实、已验证的 HTTPS 分发根路径。
+node scripts/generate-latest-json.js \
+  "$(node -p "require('./src-tauri/tauri.conf.json').version")" \
+  ../SoloSoul-Releases ../SoloSoul-Releases/latest.json \
+  --notes-file ../SoloSoul-Releases/release-notes-v$(node -p "require('./src-tauri/tauri.conf.json').version").md \
+  --download-base-url "${SOLOSOUL_UPDATE_BASE:?请先配置真实自有分发根路径}" --no-probe
+```
+
+该参数把 `latest.json`、**全部 legacy 镜像清单**以及 `release.json` 的包 URL
+统一改为 `<base>/v<版本>/<文件名>`；不重签、不修改安装包及其现有签名。
+桌面 v2.12.1 等已安装版本拿到更新后的兼容清单后，也可直接从自有源下载包。
+它们的元数据请求入口仍是原 GitHub/代理地址，因此必须同时更新原 Release 上的兼容清单。
+
+新客户端的编译期源配置位于 `tauri/src-tauri/update-sources.json`，默认两个空数组，
+未配置域名时继续使用现有来源。配置方法、目录布局、缓存、发布顺序和只读在线验收见
+[自有更新分发接入指南](update-distribution.md)。`release.json` 必须同时发布到
+`<base>/v<版本>/release.json` 与 `<base>/latest/release.json`。
+
+在线验收使用 `scripts/verify-update-distribution.js`；每个安装包只读首 1024 字节，
+不替代步骤 6 的签名一致性自检，也不替代完整 APK SHA-256 或客户端 updater 验签。
 
 ### 9. GitHub Release 发布
 
@@ -461,8 +481,10 @@ node scripts/generate-latest-json.js \
    - `SoloSoul_2.1.0_arm64.dmg`                    # macOS 首次安装 DMG（推荐）
    - `SoloSoul_2.1.0_x64-setup.exe`                # Windows 安装包
    - `SoloSoul_2.1.0_universal-release.apk`         # Android 通用安装包
-   - `SoloSoul_2.1.0_universal-release.apk.sha256`  # Android APK SHA-256 校验和（推荐）
+   - `SoloSoul_2.1.0_universal-release.apk.sha256`  # Android APK SHA-256 校验和
+   - `SoloSoul_2.1.0_universal-release.apk.sha256.minisig` # 校验和签名
    - `latest.json`
+   - `release.json` # Android 自有源元数据副本
    - `latest-mirror-ghfast.json` 等（步骤 8 生成的**全部** `latest-mirror-*.json`）
 5. **上传无版本号资产副本**（README 下载链接指向的稳定文件名，必须同步上传，确保链接始终指向最新版）：
    - `SoloSoul_macOS.dmg`   # 复制自 `SoloSoul_2.1.0_arm64.dmg`

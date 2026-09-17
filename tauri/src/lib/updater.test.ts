@@ -3,14 +3,20 @@ import type { Update } from '@tauri-apps/plugin-updater';
 
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn(),
-  check: vi.fn(),
+  prepare: vi.fn(),
   relaunch: vi.fn(),
   close: vi.fn(),
   channels: [] as Array<{ onmessage: (message: unknown) => void }>,
 }));
 
 vi.mock('@/lib/ipcClient', () => ({ invokeCommand: mocks.invoke }));
-vi.mock('@tauri-apps/plugin-updater', () => ({ check: mocks.check }));
+vi.mock('@tauri-apps/plugin-updater', () => ({
+  Update: class {
+    constructor(metadata: object) {
+      Object.assign(this, metadata);
+    }
+  },
+}));
 vi.mock('@tauri-apps/plugin-process', () => ({ relaunch: mocks.relaunch }));
 vi.mock('@tauri-apps/api/core', () => ({
   Channel: class {
@@ -29,6 +35,7 @@ vi.mock('@tauri-apps/api/core', () => ({
 vi.mock('@/lib/logger', () => ({ logger: { warn: vi.fn(), error: vi.fn() } }));
 
 import {
+  checkForUpdate,
   downloadAndInstallUpdate,
   downloadDesktopUpdate,
   ensureApkDownloaded,
@@ -73,6 +80,8 @@ beforeEach(() => {
   };
   mocks.invoke.mockImplementation((command: string) => {
     switch (command) {
+      case 'desktop_prepare_update':
+        return mocks.prepare();
       case 'android_is_apk_downloaded':
         return native.cache();
       case 'create_update_download':
@@ -131,7 +140,7 @@ describe('ensureApkDownloaded', () => {
       downloadDesktopUpdate(desktopUpdate(), undefined, controller.signal),
     ).rejects.toMatchObject({ name: 'AbortError' });
     expect(mocks.invoke).not.toHaveBeenCalled();
-    expect(mocks.check).not.toHaveBeenCalled();
+    expect(mocks.prepare).not.toHaveBeenCalled();
   });
 
   it('缓存查询期间取消后不再创建下载操作', async () => {
@@ -247,6 +256,55 @@ describe('ensureApkDownloaded', () => {
 });
 
 describe('desktop update resources and cancellation', () => {
+  it('更新检查使用原生选源管线，并由返回的 metadata 建立 Update', async () => {
+    const metadata = {
+      ...desktopUpdate(),
+      currentVersion: '2.12.3',
+      body: 'Release notes',
+      date: '2026-09-17',
+      rawJson: {},
+    };
+    mocks.prepare.mockResolvedValue(metadata);
+    await expect(checkForUpdate()).resolves.toMatchObject({
+      kind: 'available',
+      info: { version: '2.13.0', body: 'Release notes' },
+      update: { rid: 17, currentVersion: '2.12.3' },
+    });
+    expect(mocks.invoke).toHaveBeenCalledExactlyOnceWith('desktop_prepare_update');
+    mocks.prepare.mockResolvedValue(null);
+    await expect(checkForUpdate()).resolves.toEqual({ kind: 'up-to-date' });
+  });
+
+  it('Transfer 绝对进度与选源事件通过独立 Channel 透传，取消后忽略迟到事件', async () => {
+    const pending = deferred<number>();
+    native.desktopDownload = () => pending.promise;
+    const onProgress = vi.fn();
+    const controller = new AbortController();
+    const task = downloadDesktopUpdate(desktopUpdate(), onProgress, controller.signal);
+    const cancelled = expect(task).rejects.toMatchObject({ name: 'AbortError' });
+    await vi.waitFor(() => expect(mocks.channels).toHaveLength(1));
+    const probing = {
+      event: 'Transfer',
+      data: { downloaded: 50, total: 100, phase: 'probing', source: '', bytesPerSecond: 0 },
+    };
+    const resumed = {
+      event: 'Transfer',
+      data: {
+        downloaded: 75,
+        total: 100,
+        phase: 'downloading',
+        source: 'github.com',
+        bytesPerSecond: 1024,
+      },
+    };
+    mocks.channels[0].onmessage(probing);
+    mocks.channels[0].onmessage(resumed);
+    controller.abort();
+    mocks.channels[0].onmessage({ ...resumed, data: { ...resumed.data, downloaded: 100 } });
+    pending.reject('UPDATE_DOWNLOAD_CANCELLED');
+    await cancelled;
+    expect(onProgress.mock.calls).toEqual([[probing], [resumed]]);
+  });
   it('下载只传原生 Update ID，进度结束后保留安装资源；丢弃资源只关闭一次', async () => {
     const download = deferred<number>();
     native.desktopDownload = () => download.promise;
@@ -275,7 +333,7 @@ describe('desktop update resources and cancellation', () => {
 
   it('更新检查期间取消：检查完成后释放 Update，不启动下载或安装', async () => {
     const check = deferred<Update>();
-    mocks.check.mockReturnValue(check.promise);
+    mocks.prepare.mockReturnValue(check.promise);
     const update = desktopUpdate();
     const controller = new AbortController();
     const result = downloadAndInstallUpdate(undefined, controller.signal);
@@ -284,7 +342,7 @@ describe('desktop update resources and cancellation', () => {
     check.resolve(update);
     await cancelled;
     expect(update.close).toHaveBeenCalledOnce();
-    expect(mocks.invoke).not.toHaveBeenCalled();
+    expect(mocks.invoke).toHaveBeenCalledExactlyOnceWith('desktop_prepare_update');
     expect(mocks.relaunch).not.toHaveBeenCalled();
   });
 
@@ -292,7 +350,7 @@ describe('desktop update resources and cancellation', () => {
     const download = deferred<number>();
     native.desktopDownload = () => download.promise;
     const update = desktopUpdate();
-    mocks.check.mockResolvedValue(update);
+    mocks.prepare.mockResolvedValue(update);
     const controller = new AbortController();
     const onProgress = vi.fn();
     const onInstalling = vi.fn();
@@ -335,7 +393,7 @@ describe('desktop update resources and cancellation', () => {
 
   it('成功安装按下载→安装提示→安装→重启顺序执行，资源不重复消费', async () => {
     const update = desktopUpdate();
-    mocks.check.mockResolvedValue(update);
+    mocks.prepare.mockResolvedValue(update);
     const order: string[] = [];
     native.desktopDownload = async () => {
       order.push('download');
@@ -349,7 +407,7 @@ describe('desktop update resources and cancellation', () => {
     });
     await downloadAndInstallUpdate(undefined, undefined, () => order.push('installing'));
     expect(order).toEqual(['download', 'installing', 'install', 'relaunch']);
-    expect(mocks.check).toHaveBeenCalledExactlyOnceWith({ timeout: 15_000 });
+    expect(mocks.invoke).toHaveBeenCalledWith('desktop_prepare_update');
     expect(mocks.invoke).toHaveBeenCalledWith('desktop_install_update', { downloadRid: 91 });
     // Rust 安装成功已消费 91；finally 只能释放操作 41 和检查得到的 Update。
     expect(mocks.close.mock.calls).toEqual([[41]]);
@@ -358,7 +416,7 @@ describe('desktop update resources and cancellation', () => {
 
   it('安装失败时释放保留的下载资源与 Update，且不重启', async () => {
     const update = desktopUpdate();
-    mocks.check.mockResolvedValue(update);
+    mocks.prepare.mockResolvedValue(update);
     native.install = async () => {
       throw new Error('installer failed');
     };

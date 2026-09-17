@@ -27,7 +27,22 @@ async function setup(
       const titlebarHeight = platform === 'macos' ? 52 : platform === 'windows' ? 40 : 0;
       const material = platform === 'macos' ? 'liquid-glass' : platform === 'windows' ? 'mica' : 'solid';
       let nextRid = 100;
-      let rejectDownload;
+      const downloads = window.__E2E_UPDATE_DOWNLOADS__ = [];
+      function startDownload({ operationId, onEvent }) {
+        return new Promise((_, reject) => {
+          let index = 0;
+          downloads.push({
+            operationId,
+            cancel: () => reject('UPDATE_DOWNLOAD_CANCELLED'),
+            emit: (data) => {
+              const message = platform === 'android'
+                ? { ...data, progress: data.total ? data.downloaded / data.total * 100 : 0, done: false, error: null }
+                : { event: 'Transfer', data };
+              window.__TAURI_INTERNALS__.runCallback(onEvent.id, { message, index: index++ });
+            },
+          });
+        });
+      }
       const prefs = { theme: 'light', accentColor: 'ocean', hasSeenOnboarding: true,
         language: 'en-US', reduceMotion: true, autoLockTimeoutMinutes: 0,
         sidebarPosition: ${JSON.stringify(navigation)}, sidebarBottomActions: ['search', 'plugins', 'ai_chat'],
@@ -43,15 +58,15 @@ async function setup(
         set_titlebar_color: () => ({ material, platform, titlebarHeight, trafficLightsRight: platform === 'macos' ? 79 : 0,
           reduceMotion: true, highContrast: false }),
         get_window_layout: () => ({ platform, titlebarHeight, trafficLightsRight: platform === 'macos' ? 79 : 0 }),
-        'plugin:updater|check': () => ({ rid: nextRid++, currentVersion: '2.13.0', version: '9.9.9', body: notes, rawJson: {} }),
+        desktop_prepare_update: () => ({ rid: nextRid++, currentVersion: '2.13.0', version: '9.9.9', body: notes, rawJson: {} }),
         android_check_update: () => ({ currentVersion: '2.13.0', latestVersion: '9.9.9',
           downloadUrl: 'https://example.test/app.apk', releaseNotes: notes,
           mandatory: false, checksum: 'verified', checksumWarning: ${JSON.stringify(warning)} }),
         android_is_apk_downloaded: () => false,
         create_update_download: () => nextRid++,
-        desktop_download_update: () => new Promise((_, reject) => { rejectDownload = reject; }),
-        android_download_apk: () => new Promise((_, reject) => { rejectDownload = reject; }),
-        cancel_update_download: () => { rejectDownload?.('UPDATE_DOWNLOAD_CANCELLED'); },
+        desktop_download_update: startDownload,
+        android_download_apk: startDownload,
+        cancel_update_download: ({ operationId }) => downloads.find((download) => download.operationId === operationId)?.cancel(),
         object_list: ({ filter }) => filter?.typeId === 'page' ? [] : Array.from({ length: 35 }, (_, i) => ({
           id: 'notice-' + i, name: 'Notice object ' + i, typeId: 'identity', sensitivityLevel: 'public',
           createdAt: '2026-09-20T00:00:00Z', updatedAt: '2026-09-20T00:00:00Z',
@@ -74,6 +89,29 @@ async function setup(
   await expect(
     page.locator('[data-shell-notifications]').getByRole('button', { name: 'Update Now' }),
   ).toBeVisible();
+}
+
+type Transfer = {
+  downloaded: number;
+  total: number;
+  source: string;
+  bytesPerSecond: number;
+  phase: 'probing' | 'downloading' | 'switching';
+};
+type DownloadMockWindow = Window & {
+  __E2E_UPDATE_DOWNLOADS__: Array<{ operationId: number; emit: (data: Transfer) => void }>;
+};
+
+async function emitTransfer(page: Page, index: number, data: Transfer) {
+  await expect
+    .poll(() => page.evaluate(() => (window as DownloadMockWindow).__E2E_UPDATE_DOWNLOADS__.length))
+    .toBeGreaterThan(index);
+  await page.evaluate(
+    ({ index, data }) => {
+      (window as DownloadMockWindow).__E2E_UPDATE_DOWNLOADS__[index].emit(data);
+    },
+    { index, data },
+  );
 }
 
 /** 检查真实布局边界和元素命中，而不是只检查声明了某段 CSS。 */
@@ -166,6 +204,63 @@ for (const width of [320, 390, 1024]) {
     await expectUnobscuredContent(page);
     expect(await bar.boundingBox()).toEqual(barBefore);
     expect(await navigation.boundingBox()).toEqual(navBefore);
+  });
+}
+
+for (const platform of ['macos', 'windows', 'android'] as const) {
+  test(`${platform} 下载选源、换源及取消续传保持正文可见`, async ({ page }) => {
+    await page.setViewportSize(
+      platform === 'android' ? { width: 320, height: 844 } : { width: 1000, height: 650 },
+    );
+    await setup(page, platform);
+    const slot = page.locator('[data-shell-notifications]');
+    await slot.getByRole('button', { name: 'Update Now' }).click();
+    await expect(slot.getByText('Choosing a download source…')).toBeVisible();
+    await expect(slot.getByRole('button', { name: 'Cancel download' })).toBeEnabled();
+    await expectUnobscuredContent(page);
+
+    const progress: Transfer = {
+      downloaded: 40,
+      total: 100,
+      source: 'cdn.example.test',
+      bytesPerSecond: 2097152,
+      phase: 'downloading',
+    };
+    await emitTransfer(page, 0, progress);
+    await expect(slot.getByText('Source: cdn.example.test · 2.0 MB/s')).toBeVisible();
+    await expect(slot.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');
+    await expectUnobscuredContent(page);
+    await emitTransfer(page, 0, {
+      ...progress,
+      downloaded: 55,
+      source: 'backup.example.test',
+      bytesPerSecond: 0,
+      phase: 'switching',
+    });
+    await expect(
+      slot.getByText('Switching download source… · Source: backup.example.test'),
+    ).toBeVisible();
+    await expect
+      .poll(async () => Number(await slot.getByRole('progressbar').getAttribute('aria-valuenow')))
+      .toBeCloseTo(55, 6);
+    await expectUnobscuredContent(page);
+    await slot.getByRole('button', { name: 'Cancel download' }).click();
+    await expect(slot.getByRole('button', { name: 'Update Now' })).toBeVisible();
+    await expect(slot.locator('[data-update-transfer-phase]')).toHaveCount(0);
+    await expectUnobscuredContent(page);
+
+    await slot.getByRole('button', { name: 'Update Now' }).click();
+    await expect(slot.getByText('Choosing a download source…')).toBeVisible();
+    await emitTransfer(page, 1, { ...progress, downloaded: 55, source: 'backup.example.test' });
+    await emitTransfer(page, 0, { ...progress, downloaded: 99, source: 'old.example.test' });
+    await expect
+      .poll(async () => Number(await slot.getByRole('progressbar').getAttribute('aria-valuenow')))
+      .toBeCloseTo(55, 6);
+    await expect(slot.getByText('Source: backup.example.test · 2.0 MB/s')).toBeVisible();
+    await expect(slot.getByText(/old\.example\.test/)).toHaveCount(0);
+    await expectUnobscuredContent(page);
+    await slot.getByRole('button', { name: 'Cancel download' }).click();
+    await expect(slot.getByRole('button', { name: 'Update Now' })).toBeVisible();
   });
 }
 

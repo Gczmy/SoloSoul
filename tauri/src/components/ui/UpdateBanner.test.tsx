@@ -100,6 +100,35 @@ describe('UpdateBanner', () => {
     expect(screen.queryByRole('button', { name: 'close' })).not.toBeInTheDocument();
   });
 
+  it('选择线路时仍可取消，切换线路保留进度，取消期间隐藏已过期的传输状态', () => {
+    const cancel = vi.fn();
+    const { rerender } = render(
+      <UpdateBanner
+        {...baseProps}
+        state="downloading"
+        transfer={{ phase: 'probing' }}
+        onCancel={cancel}
+      />,
+    );
+    expect(screen.getByText('update_selecting_source')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'cancel_download' }));
+    expect(cancel).toHaveBeenCalledOnce();
+    rerender(
+      <UpdateBanner
+        {...baseProps}
+        state="downloading"
+        downloadedBytes={60}
+        totalBytes={100}
+        transfer={{ phase: 'switching' }}
+      />,
+    );
+    expect(screen.getByText('update_switching_source')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '60');
+    rerender(<UpdateBanner {...baseProps} state="cancelling" transfer={{ phase: 'switching' }} />);
+    expect(screen.queryByText('update_switching_source')).not.toBeInTheDocument();
+    expect(screen.getByText('update_cancelling')).toBeInTheDocument();
+  });
+
   it('强制更新仍可取消下载，但不能跳过或关闭', () => {
     render(<UpdateBanner {...baseProps} state="downloading" mandatory />);
     expect(screen.getByRole('button', { name: 'cancel_download' })).toBeEnabled();
