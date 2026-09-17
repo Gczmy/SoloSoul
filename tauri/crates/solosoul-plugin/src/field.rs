@@ -301,219 +301,91 @@ impl FieldResolver {
         }
 
         // 2. 旧版兼容：字段 ID 等于 role_id 且 contract_field == true
-        template
-            .properties
-            .iter()
-            .find(|p| p.id == role_id && p.contract_field == Some(true))
-    }
-
-    fn resolve_typed(&self, field_id: &str) -> Result<String, PluginError> {
-        // 1. 解析 typed 路径
-        let parsed = self.parse_typed_field(field_id)?;
-        let (ctid, prop_path) =
-            parsed.ok_or_else(|| PluginError::InvalidField("typed 路径不能解析".into()))?;
-
-        // 2. 按 contract_type_id 反查 UserTemplate（优先 contract_type_id，fallback t.id）
-        let alias = parse_type_property(field_id)
-            .map(|(a, _)| a)
-            .unwrap_or_default();
-        let templates = self.cached_templates()?;
-        let template = templates
-            .iter()
-            .find(|t| t.contract_type_id.as_deref() == Some(&ctid))
-            .or_else(|| templates.iter().find(|t| t.id == alias))
-            .ok_or_else(|| {
-                PluginError::InvalidField(format!(
-                    "未找到 contract_type_id={} 或 id={} 的用户类型",
-                    ctid, alias
-                ))
-            })?
-            .clone();
-
-        // 3. 按 template.contract_type_id 反查对象（不依赖 type_id，因为对象
-        //    type_id 可能为 section/category 而非模板 ID）
-        let target_ctid = template.contract_type_id.clone();
-        let target_tpl_id = template.id.clone();
-        let all_objects = self.cached_all_objects()?;
-
-        let mut objects: Vec<_> = all_objects
-            .into_iter()
-            .filter(|o| {
-                // 通过 template_id 匹配（避免 contract_type_id 跨模板污染）。
-                // 对于无 template_id 的旧对象，回退到 contract_type_id 匹配。
-                o.template_id.as_deref() == Some(&target_tpl_id)
-                    || (o.template_id.is_none()
-                        && o.contract_type_id.as_deref() == target_ctid.as_deref())
-                    || o.collection_type == alias
-            })
-            .collect();
-        if objects.is_empty() {
-            return Ok(String::new());
-        }
-        objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
-
-        // 4. 通过 role binding 查询：新版 contract_bindings 优先，旧版 contract_field 兜底
-        let prop_first = prop_path.split('.').next().unwrap_or("");
-        let prop = Self::find_property_for_role(&template, &ctid, prop_first).ok_or_else(|| {
-            PluginError::InvalidField(format!(
-                "contract {} 没有角色 {} 的绑定字段",
-                ctid, prop_first
-            ))
-        })?;
-
-        // 若 role 绑定到了不同字段 id，将 prop_path 中的 role 前缀替换为实际字段 id
-        let actual_prop_path = if prop.id != prop_first {
-            let suffix = &prop_path[prop_first.len()..];
-            format!("{}{}", prop.id, suffix)
-        } else {
-            prop_path.to_string()
-        };
-
-        Ok(extract_property(&objects[0].properties, &actual_prop_path))
+        template.properties.iter().find(|p| {
+            template.contract_type_id.as_deref() == Some(ctid)
+                && p.id == role_id
+                && p.contract_field == Some(true)
+        })
     }
 
     /// Typed-lookup 获取字段元数据（Stage 4-B）
     fn field_metadata_typed(&self, field_id: &str) -> Result<(String, String), PluginError> {
-        // 复用 parse_typed_field 获取 ctid（保持与 resolve_typed 一致）
-        let parsed = self.parse_typed_field(field_id)?;
-        let (ctid, prop_path) = parsed.ok_or_else(|| {
-            PluginError::InvalidField(format!("typed 路径不能解析字段元数据: {}", field_id))
-        })?;
-
-        let prop_first = prop_path.split('.').next().unwrap_or("").to_string();
-        if prop_first.is_empty() {
-            return Err(PluginError::InvalidField(format!(
-                "字段路径缺少属性名: {}",
-                field_id
-            )));
-        }
-
+        let (alias, _, property) = parse_indexed_field(field_id)
+            .or_else(|| parse_type_property(field_id).map(|(a, p)| (a, 0, p)))
+            .ok_or_else(|| PluginError::InvalidField(format!("不支持的字段路径: {field_id}")))?;
+        let role = property.split('.').next().unwrap_or_default();
         let templates = self.cached_templates()?;
-
-        let template = templates
-            .iter()
-            .find(|t| t.contract_type_id.as_deref() == Some(&ctid))
-            .or_else(|| {
-                let alias = parse_type_property(field_id)
-                    .map(|(a, _)| a)
-                    .unwrap_or_default();
-                templates.iter().find(|t| t.id == alias)
+        let exact = templates.iter().find(|t| t.id == alias);
+        let mut metadata = Vec::new();
+        for template in &templates {
+            let selected = exact.map_or_else(
+                || {
+                    self.contracts.iter().any(|c| {
+                        c.type_id_aliases.contains(&alias)
+                            && Self::template_supports_contract(template, &c.type_id)
+                    })
+                },
+                |t| t.id == template.id,
+            );
+            if !selected {
+                continue;
+            }
+            let (fields, _) = self.template_projection(template, &alias);
+            for (output, source, whole_role) in fields {
+                if output != role
+                    || (!whole_role && !self.explicitly_allowed(&format!("{alias}.{property}")))
+                {
+                    continue;
+                }
+                if let Some(p) = template.properties.iter().find(|p| p.id == source) {
+                    metadata.push((
+                        p.name.clone(),
+                        p.sensitivity_level
+                            .clone()
+                            .unwrap_or_else(|| "internal".into()),
+                    ));
+                }
+            }
+        }
+        // 一个契约别名包含多个用户模板时，授权提示采用其中最严格的敏感度。
+        metadata
+            .into_iter()
+            .max_by_key(|(_, level)| match level.as_str() {
+                "public" => 0,
+                "internal" => 1,
+                "sensitive" => 2,
+                _ => 3,
             })
-            .ok_or_else(|| PluginError::InvalidField(format!("未找到类型: {}", ctid)))?
-            .clone();
-
-        let property =
-            Self::find_property_for_role(&template, &ctid, &prop_first).ok_or_else(|| {
-                PluginError::InvalidField(format!(
-                    "contract {} 没有角色 {} 的绑定字段",
-                    ctid, prop_first
-                ))
-            })?;
-
-        let label = property.name.clone();
-        let sensitivity = property
-            .sensitivity_level
-            .clone()
-            .unwrap_or_else(|| "internal".to_string());
-        Ok((label, sensitivity))
+            .ok_or_else(|| PluginError::InvalidField(format!("字段未声明或未绑定: {field_id}")))
     }
 
     // ── 公共 API ────────────────────────────────────────────────────────
 
     /// 解析字段值
     pub fn resolve(&self, field_id: &str) -> Result<String, PluginError> {
-        // 注：Vault/账户解锁状态由缓存助手（cached_*）在首次查询时校验。
-        if field_id.is_empty() {
-            return Err(PluginError::InvalidField("字段路径为空".to_string()));
+        normalize_for_permission(field_id)
+            .ok_or_else(|| PluginError::InvalidField(format!("非法字段路径: {field_id}")))?;
+        let (alias, index, property) = parse_indexed_field(field_id)
+            .or_else(|| parse_type_property(field_id).map(|(a, p)| (a, 0, p)))
+            .ok_or_else(|| PluginError::InvalidField(format!("不支持的字段路径: {field_id}")))?;
+        if self.contracts.is_empty() && property != "__name__" {
+            return Err(PluginError::InvalidField("Legacy field parsing is disabled. Plugins must declare contracts for typed-lookup access.".into()));
         }
-
-        // 验证并简化权限路径（去掉数组下标）
-        let normalized = normalize_for_permission(field_id)
-            .ok_or_else(|| PluginError::InvalidField(format!("非法字段路径: {}", field_id)))?;
-
-        if !self.is_allowed(&normalized) {
+        // 单字段与批量接口共用投影，空声明、其他契约及未绑定字段均不能绕过。
+        let objects: Vec<serde_json::Value> = serde_json::from_str(&self.list_objects(&alias)?)?;
+        let Some(object) = objects.get(index) else {
+            return Ok(String::new());
+        };
+        if property == "__name__" {
+            return Ok(object["name"].as_str().unwrap_or_default().to_string());
+        }
+        let role = property.split('.').next().unwrap_or_default();
+        if object["properties"].get(role).is_none() {
             return Err(PluginError::InvalidField(format!(
-                "字段未在 manifest 中声明: {}",
-                field_id
+                "字段未声明或未绑定: {field_id}"
             )));
         }
-
-        // __name__ 特殊路径：返回对象名称（系统字段，非 properties 内的自定义属性）
-        if self.is_name_field(field_id) {
-            // Stage 4-B typed-lookup：当插件声明 contracts 时，同 .count 一样需要
-            // 通过 contract_type_id 查询对象，而非 type_id。
-            if !self.contracts.is_empty() {
-                let alias = field_id.find('.').map(|dot| &field_id[..dot]).unwrap_or("");
-                if let Some((ctid, _)) = self.parse_typed_field(&format!("{}.dummy", alias))? {
-                    let all = self.cached_all_objects()?;
-                    let mut objects: Vec<_> = all
-                        .into_iter()
-                        .filter(|o| {
-                            // 通过 template_id 匹配（避免 contract_type_id 跨模板污染）。
-                            // 对于无 template_id 的旧对象，回退到 contract_type_id 匹配。
-                            o.template_id.as_deref() == Some(alias)
-                                || (o.template_id.is_none()
-                                    && o.contract_type_id.as_deref() == Some(&ctid))
-                                || o.collection_type == alias
-                        })
-                        .collect();
-                    if objects.is_empty() {
-                        return Ok(String::new());
-                    }
-                    objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
-
-                    // 检查是否带下标
-                    if let Some((_, index, _)) = parse_indexed_field(field_id) {
-                        return Ok(objects
-                            .get(index)
-                            .ok_or_else(|| {
-                                PluginError::InvalidField(format!("索引越界: {}", field_id))
-                            })?
-                            .name
-                            .clone());
-                    }
-                    return Ok(objects[0].name.clone());
-                }
-            }
-
-            // Legacy __name__ 路径
-            if let Some((type_id, index, _)) = parse_indexed_field(field_id) {
-                let mut objects = self.cached_objects_by_type(&type_id)?;
-                objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
-                let record = objects
-                    .get(index)
-                    .ok_or_else(|| PluginError::InvalidField(format!("索引越界: {}", field_id)))?;
-                return Ok(record.name.clone());
-            }
-            if let Some((type_id, _)) = parse_type_property(field_id) {
-                let mut objects = self.cached_objects_by_type(&type_id)?;
-                if objects.is_empty() {
-                    return Ok(String::new());
-                }
-                objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
-                return Ok(objects[0].name.clone());
-            }
-        }
-
-        // Stage 4-B：typed lookup（当 manifest 声明了 contracts 时）
-        if !self.contracts.is_empty() {
-            return self.resolve_typed(field_id);
-        }
-
-        // legacy_field_parse feature 已移除 — 插件必须声明 contracts
-        Err(PluginError::InvalidField(
-            "Legacy field parsing is disabled. Plugins must declare contracts for typed-lookup access.".into(),
-        ))
-    }
-
-    fn is_allowed(&self, normalized: &str) -> bool {
-        if self.allowed_patterns.is_empty() {
-            // 没有声明权限时默认放行（兼容旧插件与测试）
-            return true;
-        }
-        self.allowed_patterns
-            .iter()
-            .any(|p| pattern_matches(p, normalized))
+        Ok(extract_property(&object["properties"], &property))
     }
 
     /// 获取字段元数据（字段标签与敏感度等级）
@@ -551,19 +423,6 @@ impl FieldResolver {
         ))
     }
 
-    // ── __name__ 路径辅助 ─────────────────────────────────────────────
-
-    /// 判断 field_id 是否为 `__name__` 路径
-    fn is_name_field(&self, field_id: &str) -> bool {
-        if let Some((_, _, prop_path)) = parse_indexed_field(field_id) {
-            return prop_path == "__name__";
-        }
-        if let Some((_, prop_path)) = parse_type_property(field_id) {
-            return prop_path == "__name__";
-        }
-        false
-    }
-
     /// 构建用户数据结构树（仅元数据，不含字段值）
     pub fn build_structure_tree(&self) -> Result<String, PluginError> {
         // 注：Vault/账户解锁状态由缓存助手（cached_*）在首次查询时校验。
@@ -571,32 +430,37 @@ impl FieldResolver {
 
         let types: Vec<serde_json::Value> = templates
             .into_iter()
-            .map(|tpl| {
+            .filter_map(|tpl| {
+                let (projection, name_allowed) = self.template_projection(&tpl, &tpl.id);
+                if !self.contracts.is_empty() && projection.is_empty() && !name_allowed {
+                    return None;
+                }
                 let count = self
                     .cached_objects_by_type(&tpl.id)
                     .map(|list| list.len())
                     .unwrap_or(0);
 
-                let properties: Vec<serde_json::Value> = tpl
-                    .properties
-                    .into_iter()
-                    .map(|p| {
-                        serde_json::json!({
-                            "id": p.id,
-                            "name": p.name,
-                            "type": p.prop_type,
-                            "sensitivity": p.sensitivity_level.unwrap_or_else(|| "internal".to_string())
-                        })
-                    })
-                    .collect();
+                let properties: Vec<serde_json::Value> =
+                    if self.contracts.is_empty() {
+                        tpl.properties.iter().map(|p| serde_json::json!({
+                        "id": p.id, "name": p.name, "type": p.prop_type,
+                        "sensitivity": p.sensitivity_level.as_deref().unwrap_or("internal"),
+                    })).collect()
+                    } else {
+                        projection.iter().filter_map(|(role, source, _)| {
+                        let p = tpl.properties.iter().find(|p| &p.id == source)?;
+                        Some(serde_json::json!({"id": role, "name": p.name, "type": p.prop_type,
+                            "sensitivity": p.sensitivity_level.as_deref().unwrap_or("internal")}))
+                    }).collect()
+                    };
 
-                serde_json::json!({
+                Some(serde_json::json!({
                     "id": tpl.id,
                     "name": tpl.name,
                     "category": tpl.category.unwrap_or_default(),
                     "count": count,
                     "properties": properties
-                })
+                }))
             })
             .collect();
 
@@ -608,57 +472,172 @@ impl FieldResolver {
     ///
     /// 插件通过 SDK `list_objects()` 调用此方法。返回的 JSON 数组每个元素包含：
     /// - `id`: 对象 ID
-    /// - `name`: 对象名称
-    /// - `properties`: 对象属性 JSON 对象
+    /// - `name`: 获准读取时为对象名称，否则为空
+    /// - `properties`: 已声明且由用户模板绑定的属性；typed 模式以角色名为键
     ///
     /// 插件在本地完成计数（`objects.len()`）和属性提取，不再需要 .count 字段。
     pub fn list_objects(&self, type_id: &str) -> Result<String, PluginError> {
-        // 注：Vault/账户解锁状态由缓存助手（cached_*）在首次查询时校验。
-
-        // typed-lookup：当插件声明 contracts 时，通过 contract_type_id/template_id 匹配对象
-        if !self.contracts.is_empty() {
-            if let Some((ctid, _)) = self.parse_typed_field(&format!("{}.dummy", type_id))? {
-                let all = self.cached_all_objects()?;
-                let mut objects: Vec<_> = all
-                    .into_iter()
-                    .filter(|o| {
-                        // 通过 template_id（即 type_id 别名）匹配对象，避免跨模板污染。
-                        // 多个模板可能共享同一 contract_type_id，因此不能仅用 contract_type_id 过滤。
-                        // 对于无 template_id 的旧对象，回退到 contract_type_id 匹配。
-                        o.template_id.as_deref() == Some(type_id)
-                            || (o.template_id.is_none()
-                                && o.contract_type_id.as_deref() == Some(&ctid))
-                            || o.collection_type == type_id
-                    })
-                    .collect();
-                objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
-                let items: Vec<serde_json::Value> = objects
-                    .iter()
-                    .map(|o| {
-                        serde_json::json!({
-                            "id": o.id,
-                            "name": o.name,
-                            "properties": o.properties,
-                        })
-                    })
-                    .collect();
-                return Ok(serde_json::to_string(&items).unwrap_or_else(|_| "[]".to_string()));
+        let templates = self.cached_templates()?;
+        if self.contracts.is_empty() {
+            if !self.declares_type(type_id) {
+                return Err(PluginError::InvalidField(format!(
+                    "类型未在 manifest 中声明: {type_id}"
+                )));
             }
+            let mut objects = self.cached_objects_by_type(type_id)?;
+            objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+            let items: Vec<_> = objects.iter().map(|o| serde_json::json!({
+                "id": o.id,
+                "name": if self.explicitly_allowed(&format!("{type_id}.__name__")) { &o.name } else { "" },
+                "properties": project_properties(&o.properties, type_id, &|path| self.explicitly_allowed(path)).unwrap_or_else(|| serde_json::json!({})),
+            })).collect();
+            return Ok(serde_json::Value::Array(items).to_string());
         }
 
-        // Legacy 路径：按 type_id 直接查询
-        let objects = self.cached_objects_by_type(type_id)?;
-        let items: Vec<serde_json::Value> = objects
+        // 真实模板 ID 优先；仅 manifest 中的契约别名可选择多个已绑定模板。
+        let exact = templates.iter().find(|t| t.id == type_id);
+        let candidates: Vec<_> = templates
             .iter()
-            .map(|o| {
-                serde_json::json!({
-                    "id": o.id,
-                    "name": o.name,
-                    "properties": o.properties,
+            .filter(|t| {
+                if let Some(exact) = exact {
+                    return t.id == exact.id;
+                }
+                self.contracts.iter().any(|c| {
+                    (c.type_id == type_id || c.type_id_aliases.iter().any(|a| a == type_id))
+                        && Self::template_supports_contract(t, &c.type_id)
                 })
             })
             .collect();
-        Ok(serde_json::to_string(&items).unwrap_or_else(|_| "[]".to_string()))
+        let mut access = Vec::new();
+        for template in candidates {
+            let (fields, name_allowed) = self.template_projection(template, type_id);
+            if !fields.is_empty() || name_allowed {
+                access.push((template, fields, name_allowed));
+            }
+        }
+        if access.is_empty() {
+            return Err(PluginError::InvalidField(format!(
+                "类型没有已声明且绑定的字段: {type_id}"
+            )));
+        }
+        let mut objects = self.cached_all_objects()?;
+        objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+        let mut items = Vec::new();
+        for object in objects {
+            let matches: Vec<_> = access
+                .iter()
+                .filter(|(t, _, _)| match &object.template_id {
+                    Some(id) => id == &t.id,
+                    None => {
+                        object.collection_type == t.id
+                            || (object.contract_type_id.is_some()
+                                && object.contract_type_id == t.contract_type_id)
+                    }
+                })
+                .collect();
+            // 旧对象无法唯一归属模板时不猜测其绑定，避免共享契约串读。
+            if matches.len() != 1 {
+                continue;
+            }
+            let (_, fields, name_allowed) = matches[0];
+            let mut projected = serde_json::Map::new();
+            for (role, property, whole_role) in fields {
+                if let Some(value) = object.properties.get(property) {
+                    let path = format!("{type_id}.{role}");
+                    let value = if *whole_role {
+                        Some(value.clone())
+                    } else {
+                        project_properties(value, &path, &|p| self.explicitly_allowed(p))
+                    };
+                    if let Some(value) = value {
+                        projected.insert(role.clone(), value);
+                    }
+                }
+            }
+            items.push(serde_json::json!({
+                "id": object.id,
+                "name": if *name_allowed { object.name } else { String::new() },
+                "properties": projected,
+            }));
+        }
+        Ok(serde_json::Value::Array(items).to_string())
+    }
+
+    fn explicitly_allowed(&self, path: &str) -> bool {
+        self.allowed_patterns
+            .iter()
+            .any(|p| pattern_matches(p, path))
+    }
+
+    fn declares_type(&self, alias: &str) -> bool {
+        self.allowed_patterns
+            .iter()
+            .any(|p| p == "*" || p.starts_with("*.") || p.starts_with(&format!("{alias}.")))
+    }
+
+    fn template_supports_contract(template: &UserTemplate, ctid: &str) -> bool {
+        template.contract_type_id.as_deref() == Some(ctid)
+            || template.properties.iter().any(|p| {
+                p.contract_bindings
+                    .as_ref()
+                    .is_some_and(|bs| bs.iter().any(|b| b.contract_type_id == ctid))
+            })
+    }
+
+    /// 返回 (角色输出名, 用户绑定字段, 是否声明整个角色)，名称单独授权。
+    fn template_projection(
+        &self,
+        template: &UserTemplate,
+        alias: &str,
+    ) -> (Vec<(String, String, bool)>, bool) {
+        let mut fields = Vec::new();
+        let mut name_allowed = false;
+        for contract in &self.contracts {
+            if !Self::template_supports_contract(template, &contract.type_id) {
+                continue;
+            }
+            let mut roles: Vec<String> = contract.roles.iter().map(|r| r.role_id.clone()).collect();
+            for prop in &template.properties {
+                if template.contract_type_id.as_deref() == Some(&contract.type_id)
+                    && prop.contract_field == Some(true)
+                {
+                    roles.push(prop.id.clone());
+                }
+                if let Some(bindings) = &prop.contract_bindings {
+                    roles.extend(
+                        bindings
+                            .iter()
+                            .filter(|b| b.contract_type_id == contract.type_id)
+                            .map(|b| b.role_id.clone()),
+                    );
+                }
+            }
+            roles.sort();
+            roles.dedup();
+            for role in roles {
+                let declaration = contract.roles.iter().find(|r| r.role_id == role);
+                let property = Self::find_property_for_role(template, &contract.type_id, &role)
+                    .or_else(|| {
+                        let id = declaration?.default_property_id.as_deref()?;
+                        template.properties.iter().find(|p| {
+                            p.id == id
+                                && p.contract_field == Some(true)
+                                && template.contract_type_id.as_deref() == Some(&contract.type_id)
+                        })
+                    });
+                if let Some(property) = property {
+                    if declaration.is_some() || self.declares_type(alias) {
+                        fields.push((role, property.id.clone(), declaration.is_some()));
+                    }
+                } else if declaration
+                    .is_some_and(|r| r.default_property_id.as_deref() == Some("__name__"))
+                {
+                    name_allowed = true;
+                }
+            }
+            name_allowed |= self.explicitly_allowed(&format!("{alias}.__name__"));
+        }
+        (fields, name_allowed)
     }
 
     /// 列出所有可水印的附件（图片/PDF），按页面 → 对象分组返回 JSON。
@@ -793,6 +772,50 @@ impl FieldResolver {
                 }
             })
             .collect()
+    }
+}
+
+/// 精确声明父字段允许其完整值；只声明子字段时递归投影，绝不带出同级属性。
+fn project_properties(
+    value: &serde_json::Value,
+    path: &str,
+    allowed: &impl Fn(&str) -> bool,
+) -> Option<serde_json::Value> {
+    if allowed(path) {
+        return Some(value.clone());
+    }
+    match value {
+        serde_json::Value::Object(map) => {
+            let filtered: serde_json::Map<_, _> = map
+                .iter()
+                .filter_map(|(key, value)| {
+                    project_properties(value, &format!("{path}.{key}"), allowed)
+                        .map(|v| (key.clone(), v))
+                })
+                .collect();
+            if filtered.is_empty() {
+                None
+            } else {
+                Some(filtered.into())
+            }
+        }
+        serde_json::Value::Array(items) => {
+            let projected: Vec<_> = items
+                .iter()
+                .map(|v| project_properties(v, path, allowed))
+                .collect();
+            if projected.iter().all(Option::is_none) {
+                None
+            } else {
+                Some(
+                    projected
+                        .into_iter()
+                        .map(|v| v.unwrap_or(serde_json::Value::Null))
+                        .collect(),
+                )
+            }
+        }
+        _ => None,
     }
 }
 
@@ -1067,6 +1090,206 @@ mod tests {
 
     // ── Stage 4-B typed-lookup 单元测试 ─────────────────────────────────
 
+    fn projection_fixture() -> (tempfile::TempDir, Arc<VaultStore>, PluginContractBinding) {
+        let (dir, vault) = test_vault("acc_projection");
+        for id in ["address", "other"] {
+            let template: UserTemplate = serde_json::from_value(serde_json::json!({
+                "id": id, "accountId": "acc_projection", "name": id, "createdAt": "2026-09-17",
+                "contractTypeId": "address/v1",
+                "properties": [
+                    {"id": "customStreet", "name": "Street", "type": "text", "contractBindings": [{"contractTypeId": "address/v1", "roleId": "street"}]},
+                    {"id": "secret", "name": "Secret", "type": "text", "contractField": true},
+                    {"id": "nested", "name": "Nested", "type": "text", "contractField": true},
+                    {"id": "unbound", "name": "Unbound", "type": "text"}
+                ]
+            })).unwrap();
+            vault.save_user_template(&template).unwrap();
+            vault.save_object(&ObjectRecord {
+                id: id.into(), account_id: "acc_projection".into(), type_id: id.into(),
+                template_id: Some(id.into()), contract_type_id: Some("address/v1".into()), name: "private-name".into(),
+                properties: serde_json::json!({"customStreet": "allowed-street", "secret": "private-secret", "unbound": "private-unbound",
+                    "nested": {"city": "allowed-city", "secret": "private-nested"}}),
+                ..Default::default()
+            }).unwrap();
+        }
+        (
+            dir,
+            vault,
+            PluginContractBinding {
+                type_id: "address/v1".into(),
+                type_id_aliases: vec!["address".into()],
+                ..Default::default()
+            },
+        )
+    }
+
+    #[test]
+    fn list_objects_projects_fields_and_rejects_other_templates_or_empty_permissions() {
+        let (_dir, vault, contract) = projection_fixture();
+        let resolver = FieldResolver::with_vault_and_contracts(
+            vault.clone(),
+            "acc_projection".into(),
+            vec!["address.street".into()],
+            vec![contract.clone()],
+        );
+        let items: serde_json::Value =
+            serde_json::from_str(&resolver.list_objects("address").unwrap()).unwrap();
+        assert_eq!(items.as_array().unwrap().len(), 1);
+        assert_eq!(
+            items[0]["properties"],
+            serde_json::json!({"street": "allowed-street"})
+        );
+        assert_eq!(items[0]["name"], "");
+        assert!(!items.to_string().contains("private-"));
+        assert!(resolver.list_objects("other").is_err());
+        assert!(resolver.resolve("address.secret").is_err());
+        assert_eq!(
+            resolver.resolve("address.street").unwrap(),
+            "allowed-street"
+        );
+        for contracts in [vec![], vec![contract]] {
+            let denied = FieldResolver::with_vault_and_contracts(
+                vault.clone(),
+                "acc_projection".into(),
+                vec![],
+                contracts,
+            );
+            assert!(denied.list_objects("address").is_err());
+        }
+    }
+
+    #[test]
+    fn list_objects_limits_nested_fields_and_typed_wildcards_to_user_bindings() {
+        let (_dir, vault, contract) = projection_fixture();
+        let resolver = FieldResolver::with_vault_and_contracts(
+            vault.clone(),
+            "acc_projection".into(),
+            vec!["address.nested.city".into()],
+            vec![contract.clone()],
+        );
+        let items: serde_json::Value =
+            serde_json::from_str(&resolver.list_objects("address").unwrap()).unwrap();
+        assert_eq!(
+            items[0]["properties"],
+            serde_json::json!({"nested": {"city": "allowed-city"}})
+        );
+        let wildcard = FieldResolver::with_vault_and_contracts(
+            vault.clone(),
+            "acc_projection".into(),
+            vec!["address.*".into()],
+            vec![contract],
+        );
+        let items: serde_json::Value =
+            serde_json::from_str(&wildcard.list_objects("address").unwrap()).unwrap();
+        assert!(items[0]["properties"].get("secret").is_some()); // 明确声明通配且已绑定
+        assert!(items[0]["properties"].get("unbound").is_none());
+        assert_eq!(items[0]["name"], "private-name");
+        let legacy = FieldResolver::with_vault(
+            vault,
+            "acc_projection".into(),
+            vec!["address.nested.city".into()],
+        );
+        let items: serde_json::Value =
+            serde_json::from_str(&legacy.list_objects("address").unwrap()).unwrap();
+        assert_eq!(
+            items[0]["properties"],
+            serde_json::json!({"nested": {"city": "allowed-city"}})
+        );
+        assert!(legacy.list_objects("other").is_err());
+    }
+
+    #[test]
+    fn roles_only_plugin_uses_custom_bindings_and_role_metadata() {
+        let (_dir, vault, mut contract) = projection_fixture();
+        contract.roles = vec![
+            super::super::manifest::PluginContractRole {
+                role_id: "street".into(),
+                ..Default::default()
+            },
+            super::super::manifest::PluginContractRole {
+                role_id: "document".into(),
+                default_property_id: Some("__name__".into()),
+                ..Default::default()
+            },
+        ];
+        let resolver = FieldResolver::with_vault_and_contracts(
+            vault,
+            "acc_projection".into(),
+            vec![],
+            vec![contract],
+        );
+        let items: serde_json::Value =
+            serde_json::from_str(&resolver.list_objects("address").unwrap()).unwrap();
+        assert_eq!(
+            items[0]["properties"],
+            serde_json::json!({"street": "allowed-street"})
+        );
+        assert_eq!(items[0]["name"], "private-name");
+        let tree: serde_json::Value =
+            serde_json::from_str(&resolver.build_structure_tree().unwrap()).unwrap();
+        assert_eq!(tree["types"][0]["properties"][0]["id"], "street");
+        assert!(resolver.resolve("address.secret").is_err());
+    }
+
+    #[test]
+    fn nested_projection_preserves_array_shape_without_sibling_values() {
+        let input =
+            serde_json::json!({"contacts": [{"email": "a", "secret": "b"}, {"secret": "c"}]});
+        let actual = project_properties(&input, "address", &|p| {
+            pattern_matches("address.contacts.email", p)
+        })
+        .unwrap();
+        assert_eq!(
+            actual,
+            serde_json::json!({"contacts": [{"email": "a"}, null]})
+        );
+    }
+
+    #[test]
+    fn expiry_roles_work_with_a_field_binding_on_another_template_contract() {
+        let (_dir, vault, _) = projection_fixture();
+        let mut template = vault.load_user_template("address").unwrap().unwrap();
+        template.contract_type_id = Some("identity/v1".into());
+        template.properties[0].contract_bindings = Some(vec![ContractRoleBinding {
+            contract_type_id: "com.solosoul.expiry/guardian/v1".into(),
+            role_id: "expiryDate".into(),
+        }]);
+        vault.save_user_template(&template).unwrap();
+        let contract = serde_json::from_value(serde_json::json!({
+            "typeId": "com.solosoul.expiry/guardian/v1", "strictContractGate": true,
+            "roles": [
+                {"roleId": "expiryDate", "defaultPropertyId": "expiryDate"},
+                {"roleId": "document", "defaultPropertyId": "__name__"}
+            ]
+        }))
+        .unwrap();
+        let resolver = FieldResolver::with_vault_and_contracts(
+            vault,
+            "acc_projection".into(),
+            vec![],
+            vec![contract],
+        );
+        let items: serde_json::Value =
+            serde_json::from_str(&resolver.list_objects("address").unwrap()).unwrap();
+        assert_eq!(
+            items[0]["properties"],
+            serde_json::json!({"expiryDate": "allowed-street"})
+        );
+        assert_eq!(
+            resolver.resolve("address.expiryDate").unwrap(),
+            "allowed-street"
+        );
+        assert_eq!(
+            resolver.field_metadata("address.expiryDate").unwrap(),
+            ("Street".into(), "internal".into())
+        );
+        let tree: serde_json::Value =
+            serde_json::from_str(&resolver.build_structure_tree().unwrap()).unwrap();
+        assert_eq!(tree["types"].as_array().unwrap().len(), 1);
+        assert_eq!(tree["types"][0]["properties"][0]["id"], "expiryDate");
+        assert!(resolver.list_objects("other").is_err());
+    }
+
     /// typed-lookup happy path：UserTemplate + ObjectRecord 都标 contract
     #[test]
     fn test_resolve_typed_happy_path() {
@@ -1163,7 +1386,7 @@ mod tests {
         let result = resolver.resolve("address.street");
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
-        assert!(err.contains("contract_type_id"));
+        assert!(err.contains("没有已声明且绑定的字段"));
     }
 
     /// typed-lookup：property 上 contract_field != Some(true) → InvalidField（gate）
@@ -1240,7 +1463,7 @@ mod tests {
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
         assert!(
-            err.contains("没有角色") || err.contains("gate") || err.contains("contract_field"),
+            err.contains("没有已声明且绑定的字段"),
             "Expected role binding rejection error, got: {}",
             err
         );
