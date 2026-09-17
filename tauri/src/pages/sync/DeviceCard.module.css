@@ -1,0 +1,26 @@
+.card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bg-toolbar);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast, 150ms) ease,
+    border-color var(--duration-fast, 150ms) ease;
+}
+
+/* 只改变表面颜色，避免上浮动画让设备图标和文字随悬停发生位移。 */
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    background: color-mix(in srgb, var(--accent-primary) 6%, var(--bg-toolbar));
+    border-color: var(--accent-primary);
+  }
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}

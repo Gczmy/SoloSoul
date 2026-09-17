@@ -248,14 +248,82 @@ for (const position of ['left', 'right'] as const) {
 }
 
 for (const position of ['top', 'bottom'] as const) {
-  test(`${position} 横向导航添加页面表单和底部操作保持可见`, async ({ page }) => {
-    await page.setViewportSize({ width: 800, height: 600 });
+  test(`${position} 横向导航添加页面打开后位置固定，缩放后表单和操作保持可见`, async ({ page }) => {
+    await page.setViewportSize({ width: 1000, height: 600 });
     await setupSidebar(page, position);
-    await page.getByRole('button', { name: 'Add Page', exact: true }).click();
+    const tools = page.getByRole('button', { name: 'Tools', exact: true });
+    const trigger = page.getByRole('button', { name: 'Add Page', exact: true });
+    await tools.hover();
+    await expect(tools).toHaveAttribute('aria-expanded', 'true');
+    await trigger.click();
+    const openingTriggerBounds = (await trigger.boundingBox())!;
     const card = page.locator('[data-add-page-popover]');
-    await expect(card.getByRole('textbox', { name: 'Page name', exact: true })).toBeInViewport();
-    await expect(card.getByRole('button', { name: 'Confirm', exact: true })).toBeInViewport();
+    const icons = card.locator('[data-icon-picker-scroll]');
+    const name = card.getByRole('textbox', { name: 'Page name', exact: true });
+    const confirm = card.getByRole('button', { name: 'Confirm', exact: true });
+    await expect(name).toBeInViewport();
+    await expect(confirm).toBeInViewport();
+    await card.evaluate(async (element) => {
+      await Promise.all(element.getAnimations().map((animation) => animation.finished));
+    });
+    const openingBounds = (await card.boundingBox())!;
+
+    // 真实悬停离开工具区后，添加按钮随菜单收起向右移动；已打开的卡片不能跟随。
+    // 经过按钮与卡片的间隙，避免 hover 瞬移到 React Portal 后仍被视为组件内部移动。
+    await page.mouse.move(
+      openingTriggerBounds.x + openingTriggerBounds.width / 2,
+      position === 'top'
+        ? openingTriggerBounds.y + openingTriggerBounds.height + 4
+        : openingTriggerBounds.y - 4,
+    );
+    await icons.hover();
+    await expect(tools).toHaveAttribute('aria-expanded', 'false');
+    await tools.evaluate(async (element) => {
+      await Promise.all(
+        element
+          .closest('header')!
+          .getAnimations({ subtree: true })
+          .map((animation) => animation.finished),
+      );
+    });
+    expect((await trigger.boundingBox())!.x - openingTriggerBounds.x).toBeGreaterThan(100);
+    expect(await card.boundingBox()).toEqual(openingBounds);
+    await page.mouse.wheel(0, 300);
+    await expect.poll(() => icons.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    expect(await card.boundingBox()).toEqual(openingBounds);
+
+    await name.fill('New collection');
+    await card
+      .getByRole('textbox', { name: 'Page description (optional)', exact: true })
+      .fill('Draft');
+    await icons.getByRole('button').last().click();
+    await expect(name).toHaveValue('New collection');
+    expect(await card.boundingBox()).toEqual(openingBounds);
     await card.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(card).toHaveCount(0);
+
+    // 关闭重开应取新锚点；底栏卡片沿用居中布局，上栏卡片靠近当前添加按钮。
+    await trigger.click();
+    await card.evaluate(async (element) => {
+      await Promise.all(element.getAnimations().map((animation) => animation.finished));
+    });
+    await expect(tools).toHaveAttribute('aria-expanded', 'false');
+    const reopenedBounds = (await card.boundingBox())!;
+    if (position === 'top') expect(reopenedBounds.x).toBeGreaterThan(openingBounds.x + 100);
+    else expect(reopenedBounds).toEqual(openingBounds);
+
+    // 固定打开锚点不应阻止窗口缩小时避让视口边缘。
+    await page.setViewportSize({ width: 800, height: 480 });
+    await expect(name).toBeInViewport();
+    await expect(confirm).toBeInViewport();
+    const smallBounds = (await card.boundingBox())!;
+    expect(smallBounds.x).toBeGreaterThanOrEqual(12);
+    expect(smallBounds.x + smallBounds.width).toBeLessThanOrEqual(788);
+    expect(smallBounds.y).toBeGreaterThanOrEqual(56);
+    expect(smallBounds.y + smallBounds.height).toBeLessThanOrEqual(464);
+    await name.fill(`${position} collection`);
+    await confirm.click();
+    await expect(page).toHaveURL(/\/workspace\/custom\//);
     await expect(card).toHaveCount(0);
   });
 }

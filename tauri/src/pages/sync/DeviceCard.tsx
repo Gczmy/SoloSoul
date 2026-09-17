@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { ClientTypeIcon } from '@/components/sync/ClientTypeIcon';
 import { ICON_SIZE } from '@/lib/constants';
+import styles from './DeviceCard.module.css';
 
 interface DeviceCardShellProps {
   clientType?: string;
@@ -15,7 +16,7 @@ interface DeviceCardShellProps {
 
 /**
  * P012: 设备卡片共享外壳——已发现设备与已知设备两张卡片此前重复约 40 行
- * （交互容器 interactive-card-lift + 键盘可访问性 + 客户端类型图标 + 名称行）。
+ * （固定位置的交互容器 + 键盘可访问性 + 客户端类型图标 + 名称行）。
  * 副标题与操作区由调用方注入，保持两张卡片各自的语义差异。
  */
 export function DeviceCardShell({
@@ -36,18 +37,7 @@ export function DeviceCardShell({
           onOpen();
         }
       }}
-      className="interactive-card-lift"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '10px 12px',
-        borderRadius: 8,
-        background: 'var(--bg-toolbar)',
-        // 细线边框：与设备卡片同款，区分卡片与页面背景
-        border: '1px solid var(--border-subtle)',
-        cursor: 'pointer',
-      }}
+      className={styles.card}
     >
       {/* 客户端类型图标（macos 笔记本 / android 手机…），与两张卡片同源 */}
       <ClientTypeIcon clientType={clientType} size={ICON_SIZE.lg} />

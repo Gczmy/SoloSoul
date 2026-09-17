@@ -57,12 +57,19 @@ export function AddPageButton({
   const isRight = position === 'right';
   const titlebarHeight = useNativeWindowStore((state) => state.titlebarHeight);
   const topReserved = Math.max(TOP_RESERVED_OFFSET, titlebarHeight + 8);
-  const [viewportHeight, setViewportHeight] = useState(
-    typeof window !== 'undefined' ? window.innerHeight : 0,
-  );
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+  }));
+  const { width: viewportWidth, height: viewportHeight } = viewport;
   const isSmallWindow = viewportHeight < 500;
   const [isCreating, setIsCreating] = useState(false);
-  const [buttonRect, setButtonRect] = useState<DOMRect | null>(null);
+  const [openingAnchor, setOpeningAnchor] = useState<{
+    rect: DOMRect;
+    rightInset: number;
+    bottomInset: number;
+  } | null>(null);
+  const buttonRect = openingAnchor?.rect;
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -99,13 +106,8 @@ export function AddPageButton({
     if (!buttonRect || !isCreating) return 56;
     const ESTIMATED_WIDTH = 276; // ~212px icon grid + 24px padding + 40px buffer
     const MARGIN = 12;
-    const idealLeft = buttonRect.left;
-    const rightEdge = idealLeft + ESTIMATED_WIDTH + MARGIN;
-    if (rightEdge > window.innerWidth) {
-      return Math.max(MARGIN, window.innerWidth - ESTIMATED_WIDTH - MARGIN);
-    }
-    return idealLeft;
-  }, [buttonRect, isCreating]);
+    return Math.max(MARGIN, Math.min(buttonRect.left, viewportWidth - ESTIMATED_WIDTH - MARGIN));
+  }, [buttonRect, isCreating, viewportWidth]);
 
   const { t } = useTranslation(['navigation', 'common']);
   const { onError } = useToastError();
@@ -161,35 +163,23 @@ export function AddPageButton({
     { isHorizontal, isBottom, isRight },
   );
 
-  // 首帧完成定位；打开期间随窗口缩放、侧栏宽度及滚动更新锚点，避免使用旧按钮坐标。
+  // 锚点只在打开时记录。工具区收起会移动按钮；卡片内的滚动不能重新取锚点。
+  // 打开期间仅更新视口尺寸以适配窗口缩放，卡片继续使用本次打开时的坐标/边距。
   useLayoutEffect(() => {
     if (!isCreating) return;
-    const button = buttonRef.current;
-    if (!button) return;
-    const updatePosition = () => {
-      setViewportHeight(window.innerHeight);
-      const rect = button.getBoundingClientRect();
-      setButtonRect((previous) =>
-        previous &&
-        previous.x === rect.x &&
-        previous.y === rect.y &&
-        previous.width === rect.width &&
-        previous.height === rect.height
-          ? previous
-          : rect,
+    const updateViewport = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      setViewport((previous) =>
+        previous.width === width && previous.height === height ? previous : { width, height },
       );
     };
-    updatePosition();
-    const observer = new ResizeObserver(updatePosition);
-    observer.observe(button);
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
     return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updateViewport);
     };
-  }, [isCreating, sidebarExpanded, position]);
+  }, [isCreating]);
 
   const nameCard =
     isHovered && !isCreating && !sidebarExpanded ? (
@@ -240,7 +230,15 @@ export function AddPageButton({
                 : {}
           }
           onClick={() => {
-            setButtonRect(buttonRef.current?.getBoundingClientRect() || null);
+            if (isCreating) return;
+            const rect = buttonRef.current?.getBoundingClientRect();
+            if (!rect) return;
+            setOpeningAnchor({
+              rect,
+              rightInset: window.innerWidth - rect.left + 8,
+              bottomInset: window.innerHeight - rect.top + 8,
+            });
+            setViewport({ width: window.innerWidth, height: window.innerHeight });
             setIsCreating(true);
             form.setSelectedIconId(DEFAULT_CUSTOM_ICON);
             setTimeout(() => inputRef.current?.focus(), 100);
@@ -272,22 +270,12 @@ export function AddPageButton({
                     : buttonRect
                       ? buttonRect.right + 8
                       : 56,
-              right: isBottom
-                ? 0
-                : isRight
-                  ? buttonRect
-                    ? window.innerWidth - buttonRect.left + 8
-                    : 56
-                  : 'auto',
+              right: isBottom ? 0 : isRight ? (openingAnchor?.rightInset ?? 56) : 'auto',
               margin: isBottom ? '0 auto' : undefined,
               top: isBottom
                 ? `calc(${MOBILE_APP_BAR_HEIGHT}px + ${SAFE_AREA_TOP} + 8px)`
                 : popoverTop,
-              bottom: isBottom
-                ? buttonRect
-                  ? window.innerHeight - buttonRect.top + 8
-                  : 56
-                : 'auto',
+              bottom: isBottom ? (openingAnchor?.bottomInset ?? 56) : 'auto',
               display: 'flex',
               flexDirection: 'column',
               gap: 8,
