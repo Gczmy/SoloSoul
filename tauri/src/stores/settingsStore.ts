@@ -57,6 +57,8 @@ export interface AppSettings {
 }
 
 interface SettingsState {
+  /** 仅来自旧 preferences，独立于已落库的页面列表，供部分迁移重试。 */
+  legacyCustomPages: CustomPage[];
   settings: AppSettings;
   isLoading: boolean;
 
@@ -259,6 +261,7 @@ export async function syncPlaintextPref(key: string, value: unknown): Promise<vo
   }
 }
 export const useSettingsStore = create<SettingsState>((set, get) => ({
+  legacyCustomPages: [],
   settings: DEFAULT_SETTINGS,
   isLoading: false,
 
@@ -400,7 +403,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // Load old-format customPages from preferences for migration.
       // Once loaded, also try the new objects-table source via loadCustomPages().
       if (prefs.customPages) parsed.customPages = prefs.customPages;
-      set({ settings: parsed, isLoading: false });
+      set({ settings: parsed, legacyCustomPages: prefs.customPages ?? [], isLoading: false });
       // Sync UI prefs to plaintext file so next startup shows correct theme.
       // P129: ③ 副本写入收敛到 syncPlaintextPref（唯一写入点），原 5 段顺序 if 收敛为循环。
       for (const key of PLAINTEXT_PREF_KEYS) {
@@ -415,9 +418,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 
-  /** Load custom pages from the objects table (P0-1 — objects storage layer).
-   *  If the objects table has pages, use those (new format).
-   *  If empty but old-format pages exist in preferences, migrate them automatically. */
+  /** 按稳定 ID 补齐旧页面；成功列表与待迁移来源分离，部分失败可再次加载重试。 */
   loadCustomPages: async (accountId) => {
     try {
       const objects = await invoke<
@@ -434,70 +435,66 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           properties?: Record<string, unknown>;
         }>
       >('object_list', { accountId: accountId, filter: { typeId: 'page', includeDeleted: true } });
-      if (objects.length > 0) {
-        // New-format pages exist in objects table — use them (including deleted pages so
-        // templates referencing deleted pages can still show the original page name)
-        const pages: CustomPage[] = objects.map((o, i) => {
-          // 原实现仅对非 deleted 页面拉取 description，保持行为等价
-          const desc = !o.isDeleted ? o.properties?.description : undefined;
-          return {
-            id: o.id,
-            name: o.name,
-            iconId: o.iconName || DEFAULT_CUSTOM_ICON,
-            description: typeof desc === 'string' ? desc : undefined,
-            createdAt: o.createdAt,
-            sortOrder: i,
-            deletedAt: o.isDeleted ? o.updatedAt : undefined,
-          };
-        });
-        set((s) => ({ settings: { ...s.settings, customPages: pages } }));
-        return;
-      }
-
-      // No pages in objects table — check for old-format pages from preferences
-      const oldPages = get().settings.customPages;
-      if (oldPages.length > 0) {
-        // P030: 并行迁移——一次性路径页面数个位数，allSettled 保证单条失败不阻断其余
-        // （原串行 await 对个位数页面影响极小，并行化消除无谓的串行等待）。
-        const results = await Promise.allSettled(
-          oldPages.map((p) =>
-            invoke('object_create', {
-              input: {
-                accountId,
-                name: p.name,
-                typeId: 'page',
-                iconName: p.iconId || DEFAULT_CUSTOM_ICON,
-                properties: {},
+      const oldPages = get().legacyCustomPages;
+      const pages: CustomPage[] = objects.map((o, i) => {
+        const metadata = o.properties;
+        return {
+          id: o.id,
+          name: o.name,
+          iconId: o.iconName || DEFAULT_CUSTOM_ICON,
+          description: typeof metadata?.description === 'string' ? metadata.description : undefined,
+          createdAt:
+            typeof metadata?.legacyCreatedAt === 'string' ? metadata.legacyCreatedAt : o.createdAt,
+          sortOrder: typeof metadata?.sortOrder === 'number' ? metadata.sortOrder : i,
+          deletedAt: o.isDeleted ? o.updatedAt : undefined,
+        };
+      });
+      const present = new Set(pages.map((p) => p.id));
+      const missing = oldPages.filter((p) => !present.has(p.id) && !p.deletedAt);
+      const results = await Promise.allSettled(
+        missing.map((p) =>
+          invoke('object_create', {
+            input: {
+              id: p.id,
+              accountId,
+              name: p.name,
+              typeId: 'page',
+              iconName: p.iconId || DEFAULT_CUSTOM_ICON,
+              properties: {
+                description: p.description,
+                legacyCreatedAt: p.createdAt,
+                sortOrder: p.sortOrder,
               },
-            }),
-          ),
-        );
-        const migrated: CustomPage[] = [];
-        results.forEach((r, i) => {
-          if (r.status === 'fulfilled') {
-            migrated.push(oldPages[i]);
-          } else {
-            logger.warn(
-              '[settingsStore] Failed to migrate custom page:',
-              oldPages[i].name,
-              r.reason,
-            );
-          }
-        });
-        if (migrated.length > 0) {
-          set((s) => ({ settings: { ...s.settings, customPages: migrated } }));
-          // P030-R1: 仅当**全部**迁移成功才清空 preferences 旧格式 customPages——
-          // 原实现只要有一条成功就整体清空，部分失败时失败页数据被误删且无重试机会；
-          // 全部成功才清空，部分失败时失败页保留在 preferences（下次加载仍可重试）。
-          if (migrated.length === oldPages.length) {
-            try {
-              await invoke('user_data_update_preference', {
-                payload: { accountId, preferences: { customPages: [] } },
-              });
-            } catch (e) {
-              logger.warn('[settingsStore] Failed to clear old-format custom pages:', e);
-            }
-          }
+            },
+          }),
+        ),
+      );
+      results.forEach((r, i) => {
+        if (r.status === 'fulfilled') {
+          pages.push(missing[i]);
+          present.add(missing[i].id);
+        } else {
+          logger.warn('[settingsStore] Failed to migrate custom page:', missing[i].id, r.reason);
+        }
+      });
+      // 未落库的旧删除页仅作为引用标签保留，绝不新建成活跃页面。
+      const deletedLegacy = oldPages.filter((p) => p.deletedAt && !present.has(p.id));
+      set((state) => ({
+        settings: {
+          ...state.settings,
+          customPages: [...pages, ...deletedLegacy].sort((a, b) => a.sortOrder - b.sortOrder),
+        },
+      }));
+      if (oldPages.length > 0 && results.every((r) => r.status === 'fulfilled')) {
+        // 已存在（含软删除）或本次成功落库的 ID 才能从旧来源删除。
+        // 旧删除页仍保留原记录，避免丢失模板引用和删除状态。
+        try {
+          await invoke('user_data_update_preference', {
+            payload: { accountId, preferences: { customPages: deletedLegacy } },
+          });
+          set({ legacyCustomPages: deletedLegacy });
+        } catch (e) {
+          logger.warn('[settingsStore] Failed to clear old-format custom pages:', e);
         }
       }
     } catch (e) {
@@ -596,6 +593,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   clearOnVaultLock: () =>
     set((state) => ({
+      legacyCustomPages: [],
       // Keep UI-only preferences so lock screen retains user's language/theme/accent
       settings: {
         ...DEFAULT_SETTINGS,

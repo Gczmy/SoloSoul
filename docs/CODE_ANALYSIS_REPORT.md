@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-09-17（轮次 6：按用户要求逐项修复，已完成 P037、P038、P040、P041、P042、P043、P045、P047、P048、P044）
+> 最后更新：2026-09-17（轮次 6：按用户要求逐项修复，已完成 P037、P038、P040、P041、P042、P043、P045、P047、P048、P044、P046）
 > 修复轮次：6（前端、Rust 核心、CLI、平台桥接及发布脚本）
 > 上轮：4 —— 云同步设置页渲染崩溃修复：CSS module 类名字符串误展开为 style 索引属性
 > （`style={{ ...styles.input }}`），WebKit 抛「Cannot set indexed properties on this object」；
@@ -78,7 +78,7 @@
 | P029 | P2 | 架构 | `src-tauri/src/commands/vault_directory.rs:160-166` | `vault_set_directory` 后端锁定 Vault 但不 emit `vault-locked` 事件，前端认证态不失效，后续命令报锁错误但 UI 仍显示已解锁 | `[x]` 已修复 |
 | P030 | P2 | i18n | `src/pages/settings/CloudSyncPage.tsx:603` | `common:enabled` / `common:disabled` 双语均缺 key 且无 defaultValue，UI 直接渲染原始 key 字符串 | `[x]` 已修复 |
 | P045 | P2 | 安全/内存 | `crates/solosoul-vault/src/encryption.rs:13`、`storage.rs:728` | 密钥仅实现清零标记 trait，未实现 Drop；Vault 配置还保留锁定时未擦除的密钥副本 | `[x]` 已修复 |
-| P046 | P2 | 兼容/迁移 | `src/stores/settingsStore.ts:434` | 旧页面迁移不保留 ID，且部分成功后失败页面不再重试 | `[ ]` 待修复 |
+| P046 | P2 | 兼容/迁移 | `src/stores/settingsStore.ts:434` | 旧页面按稳定 ID 差集迁移，部分失败保留独立重试来源 | `[x]` 已修复 |
 | P047 | P2 | 安全/临时文件 | `crates/solosoul-plugin/src/manager.rs:564`、`host.rs:1322` | 插件解密附件使用普通临时目录和默认文件权限，共享临时目录环境可暴露明文 | `[x]` 已修复 |
 | P049 | P2 | 移动端导航 | `src/hooks/useOverlayBackGuard.ts:24` | 用对象引用识别 History 标记，真实浏览器结构化克隆后会把活跃相册当残留额外后退 | `[ ]` 待修复 |
 
@@ -93,9 +93,9 @@
 
 ## 修复进度
 
-- 已关闭：45 / 49（含已修复及已确认设计例外；本轮完成 P037、P038、P040、P041、P042、P043、P045、P047、P048、P044）
-- 未关闭：4 项（P012、P039、P046、P049）
-- 当前处理：P046。原有子模块与生成资源改动保留；本轮修复按明确路径独立提交。
+- 已关闭：46 / 49（含已修复及已确认设计例外；本轮完成 P037、P038、P040、P041、P042、P043、P045、P047、P048、P044、P046）
+- 未关闭：3 项（P012、P039、P049）
+- 当前处理：P049。原有子模块与生成资源改动保留；本轮修复按明确路径独立提交。
 
 ## 第六轮全面复审（2026-09-17）
 
@@ -180,6 +180,9 @@
 
 - **证据与触发**：`settingsStore.ts:434–497` 只要 objects 已有任一 page 就提前返回，迁移创建又未保留旧 ID。真实 store 模拟 A/B 两旧页、A 成功 B 失败：首轮成功页仍用悬空旧 ID；再次加载遇到 A 即返回，B 不再重试。保留旧 preferences 的旧修复没有闭合重试链。
 - **修复与验证要求**：保留稳定 ID、按 ID 差集迁移并合并，全部确认成功才清旧数据。覆盖部分失败→重启→补齐、迁移成功立即导航、已有新页与旧页并存。
+
+- **修复说明（2026-09-17）**：创建显式传入旧 ID，按 objects 与旧 preferences 的 ID 差集迁移；已落库列表与 legacyCustomPages 分离，避免部分成功截断重试来源。保留名称、图标、说明、原创建时间及排序；全部活跃页确认落库才清理旧来源。尚未落库的旧删除页留在 preferences 作引用标签，不重新创建成活跃页。
+- **验证**：设置及迁移 25 项测试通过；模拟部分失败→清空内存→从 preferences 重载→补齐，再次加载不重复创建；检查已有新页共存、旧 ID 可定位、删除状态不复活。TypeScript、定向 ESLint 通过。
 
 ### P047 — 插件明文附件临时文件权限与异常清理（P2）
 

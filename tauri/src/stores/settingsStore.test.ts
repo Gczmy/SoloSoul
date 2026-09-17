@@ -66,6 +66,7 @@ describe('settingsStore', () => {
         },
         trashRetention: '30d',
       },
+      legacyCustomPages: [],
       isLoading: false,
     });
 
@@ -363,6 +364,9 @@ describe('settingsStore', () => {
           updatedAt: '2024-06-02T00:00:00Z',
         },
       ]);
+      useSettingsStore.setState({
+        legacyCustomPages: useSettingsStore.getState().settings.customPages,
+      });
       await useSettingsStore.getState().loadCustomPages('acc-1');
       const pages = useSettingsStore.getState().settings.customPages;
       expect(pages).toHaveLength(2);
@@ -396,6 +400,9 @@ describe('settingsStore', () => {
         if (cmd === 'user_data_update_preference') return undefined;
         return undefined;
       });
+      useSettingsStore.setState({
+        legacyCustomPages: useSettingsStore.getState().settings.customPages,
+      });
       await useSettingsStore.getState().loadCustomPages('acc-1');
       const pages = useSettingsStore.getState().settings.customPages;
       expect(pages).toHaveLength(1);
@@ -403,7 +410,7 @@ describe('settingsStore', () => {
       expect(invoke).toHaveBeenCalledWith(
         'object_create',
         expect.objectContaining({
-          input: expect.objectContaining({ name: 'Old Page', typeId: 'page' }),
+          input: expect.objectContaining({ id: 'old-1', name: 'Old Page', typeId: 'page' }),
         }),
       );
     });
@@ -436,6 +443,9 @@ describe('settingsStore', () => {
         if (cmd === 'user_data_update_preference') return undefined;
         return undefined;
       });
+      useSettingsStore.setState({
+        legacyCustomPages: useSettingsStore.getState().settings.customPages,
+      });
       await useSettingsStore.getState().loadCustomPages('acc-1');
       // store 只保留成功迁移的页
       const pages = useSettingsStore.getState().settings.customPages;
@@ -463,6 +473,9 @@ describe('settingsStore', () => {
         if (cmd === 'user_data_update_preference') return undefined;
         return undefined;
       });
+      useSettingsStore.setState({
+        legacyCustomPages: useSettingsStore.getState().settings.customPages,
+      });
       await useSettingsStore.getState().loadCustomPages('acc-1');
       expect(useSettingsStore.getState().settings.customPages).toHaveLength(2);
       // 全部成功 → 清空 preferences
@@ -473,6 +486,9 @@ describe('settingsStore', () => {
 
     it('should handle object_list failure gracefully', async () => {
       vi.mocked(invoke).mockRejectedValue(new Error('db locked'));
+      useSettingsStore.setState({
+        legacyCustomPages: useSettingsStore.getState().settings.customPages,
+      });
       await useSettingsStore.getState().loadCustomPages('acc-1');
       expect(useSettingsStore.getState().settings.customPages).toHaveLength(0);
     });
