@@ -11,7 +11,7 @@ use super::rewrite_table;
 
 impl VaultStore {
     /// 整库换钥重加密：全部表用 `new_key` 重写（profiles / objects / trash_items /
-    /// object_snapshots / user_templates / audit_log / sync_conflicts）。
+    /// object_snapshots / user_templates / audit_log / sync_conflicts / llm_conversations）。
     ///
     /// 调用方（改密/KDF 升级）负责在调用前已验证 `old_key` 可解密全部数据。
     /// 持连接锁 + 单事务；任一行失败整体回滚。
@@ -33,6 +33,7 @@ impl VaultStore {
             reencrypt_user_templates(&tx, old_key, new_key)?;
             reencrypt_audit_log(&tx, old_key, new_key)?;
             reencrypt_sync_conflicts(&tx, old_key, new_key)?;
+            reencrypt_blob_table(&tx, "llm_conversations", old_key, new_key)?;
             Ok(())
         })();
 

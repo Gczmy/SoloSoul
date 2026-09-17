@@ -45,6 +45,103 @@ fn conflict_entry(id: &str) -> crate::SyncConflictBatchEntry {
     }
 }
 
+#[test]
+fn conversations_rotate_and_probe_without_other_encrypted_records() {
+    let (vault, dir) = setup();
+    let path = dir.path().join("vault.db");
+    let old = DataEncryptionKey(test_key());
+    let new = DataEncryptionKey([0x73; 32]);
+    assert!(probe_data_key(&path, &new).unwrap()); // 空库无密文可证
+    vault
+        .save_profile(&Profile::new_with_id(
+            "legacy",
+            "Legacy",
+            b"legacy".to_vec(),
+        ))
+        .unwrap();
+    // 旧明文不能充当密钥认证，必须继续探测聊天。
+    vault
+        .conn
+        .lock()
+        .unwrap()
+        .as_ref()
+        .unwrap()
+        .execute("UPDATE profiles SET data = ?1", [b"legacy".as_slice()])
+        .unwrap();
+    vault
+        .save_conversation("test_account", "chat", "2026-09-17", b"chat-secret")
+        .unwrap();
+    assert!(probe_data_key(&path, &old).unwrap());
+    assert!(!probe_data_key(&path, &new).unwrap());
+    vault.reencrypt_all(&old, &new).unwrap();
+    vault.set_data_key(new.clone());
+    // 移除其余表，确保换钥后仍是聊天本身在认证。
+    vault
+        .conn
+        .lock()
+        .unwrap()
+        .as_ref()
+        .unwrap()
+        .execute("DELETE FROM profiles", [])
+        .unwrap();
+    assert!(probe_data_key(&path, &new).unwrap());
+    assert!(!probe_data_key(&path, &old).unwrap());
+    vault.lock();
+    let reopened = VaultStore::open(
+        VaultConfig::new("test_account", dir.path().to_path_buf()).with_data_key(new.0),
+    )
+    .unwrap();
+    assert_eq!(
+        reopened.load_conversation("test_account", "chat").unwrap(),
+        Some(b"chat-secret".to_vec())
+    );
+}
+
+#[test]
+fn damaged_conversation_rolls_back_all_reencrypted_tables() {
+    let (vault, _) = setup();
+    vault
+        .save_profile(&Profile::new_with_id(
+            "profile",
+            "Profile",
+            b"profile-secret".to_vec(),
+        ))
+        .unwrap();
+    vault
+        .save_conversation("test_account", "chat", "2026-09-17", b"chat-secret")
+        .unwrap();
+    let before: Vec<u8> = {
+        let guard = vault.conn.lock().unwrap();
+        let conn = guard.as_ref().unwrap();
+        conn.execute(
+            "UPDATE llm_conversations SET data = ?1",
+            [b"SOLO-invalid".as_slice()],
+        )
+        .unwrap();
+        conn.query_row("SELECT data FROM profiles", [], |r| r.get(0))
+            .unwrap()
+    };
+    assert!(vault
+        .reencrypt_all(
+            &DataEncryptionKey(test_key()),
+            &DataEncryptionKey([0x73; 32])
+        )
+        .is_err());
+    let after: Vec<u8> = vault
+        .conn
+        .lock()
+        .unwrap()
+        .as_ref()
+        .unwrap()
+        .query_row("SELECT data FROM profiles", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(before, after);
+    assert_eq!(
+        vault.load_profile("profile").unwrap().unwrap().data,
+        b"profile-secret"
+    );
+}
+
 fn raw_conflict(vault: &VaultStore, record_id: &str) -> (String, String) {
     vault
         .conn
@@ -64,7 +161,9 @@ fn raw_conflict(vault: &VaultStore, record_id: &str) -> (String, String) {
 fn conflict_payloads_are_encrypted_upserted_resolved_and_locked() {
     let (vault, _dir) = setup();
     let mut entry = conflict_entry("conflict-object");
-    vault.save_sync_conflicts_batch(std::slice::from_ref(&entry)).unwrap();
+    vault
+        .save_sync_conflicts_batch(std::slice::from_ref(&entry))
+        .unwrap();
     let raw = raw_conflict(&vault, &entry.record_id);
     for text in [&raw.0, &raw.1] {
         assert!(text.starts_with(crate::encryption::ENCRYPTED_TEXT_PREFIX));
@@ -81,7 +180,9 @@ fn conflict_payloads_are_encrypted_upserted_resolved_and_locked() {
         entry.remote_data
     );
     entry.local_data = serde_json::json!({"secret": "updated-conflict-secret"});
-    vault.save_sync_conflicts_batch(std::slice::from_ref(&entry)).unwrap();
+    vault
+        .save_sync_conflicts_batch(std::slice::from_ref(&entry))
+        .unwrap();
     assert_eq!(vault.list_sync_conflicts().unwrap().len(), 1);
     assert!(vault
         .get_sync_conflict(&id)
@@ -108,7 +209,9 @@ fn conflict_payloads_are_encrypted_upserted_resolved_and_locked() {
 fn conflict_migration_covers_v1_databases_and_scrubs_live_pages() {
     let (vault, dir) = setup();
     let entry = conflict_entry("legacy-conflict");
-    vault.save_sync_conflicts_batch(std::slice::from_ref(&entry)).unwrap();
+    vault
+        .save_sync_conflicts_batch(std::slice::from_ref(&entry))
+        .unwrap();
     {
         let guard = vault.conn.lock().unwrap();
         let conn = guard.as_ref().unwrap();
@@ -200,7 +303,9 @@ fn corrupt_conflict_rolls_back_migration_without_completion_marker() {
 fn conflicts_rotate_keys_probe_and_roll_back_with_other_tables() {
     let (vault, dir) = setup();
     let entry = conflict_entry("only-conflict");
-    vault.save_sync_conflicts_batch(std::slice::from_ref(&entry)).unwrap();
+    vault
+        .save_sync_conflicts_batch(std::slice::from_ref(&entry))
+        .unwrap();
     let old = DataEncryptionKey::new(test_key());
     let new = DataEncryptionKey::new([0x99; 32]);
     let path = dir.path().join("vault.db");

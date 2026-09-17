@@ -501,6 +501,31 @@ fn test_change_password() {
     assert_eq!(stored_hex, expected_hex);
 }
 
+#[test]
+fn test_change_password_preserves_conversations_after_reopen() {
+    let (svc, dir) = setup_service();
+    let account = svc.create_account("Chat", "oldpassword", None).unwrap();
+    let id = account["id"].as_str().unwrap();
+    svc.get_vault_store()
+        .unwrap()
+        .save_conversation(id, "chat", "2026-09-17", b"private-chat")
+        .unwrap();
+    svc.change_password(id, "oldpassword", "newpassword")
+        .unwrap();
+    svc.lock();
+    drop(svc);
+    let reopened = VaultService::with_base_path(dir.path().join(".solosoul"));
+    reopened.unlock(id, "newpassword").unwrap();
+    assert_eq!(
+        reopened
+            .get_vault_store()
+            .unwrap()
+            .load_conversation(id, "chat")
+            .unwrap(),
+        Some(b"private-chat".to_vec())
+    );
+}
+
 // ── R-4: 回滚失败必须并入上抛文案（而非「已尝试自动回滚」掩盖）──────────
 //
 // N-2 残余：rollback_reencrypt_and_config 失败时仅记日志，调用方文案仍写
@@ -905,6 +930,10 @@ fn test_unlock_with_kdf_upgrade_reencrypts_and_upgrades_params() {
         .create_account("KdfUpgrade", "password123", None)
         .unwrap();
     let account_id = account["id"].as_str().unwrap();
+    svc.get_vault_store()
+        .unwrap()
+        .save_conversation(account_id, "kdf-chat", "2026-09-17", b"before-upgrade-chat")
+        .unwrap();
 
     // 写入一条审计日志（加密数据），用于验证升级后仍可解密。
     {
@@ -967,6 +996,15 @@ fn test_unlock_with_kdf_upgrade_reencrypts_and_upgrades_params() {
     assert!(logs
         .iter()
         .any(|l| l.details.as_deref() == Some("before-upgrade")));
+    svc.lock();
+    svc.unlock(account_id, "password123").unwrap();
+    assert_eq!(
+        svc.get_vault_store()
+            .unwrap()
+            .load_conversation(account_id, "kdf-chat")
+            .unwrap(),
+        Some(b"before-upgrade-chat".to_vec())
+    );
 }
 
 // ── P135: 原子写 + 崩溃恢复端到端 ──────────────────────────
