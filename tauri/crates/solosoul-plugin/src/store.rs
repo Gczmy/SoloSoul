@@ -14,9 +14,11 @@ use std::path::{Path, PathBuf};
 const MAX_WASM_SIZE: usize = 10 * 1024 * 1024;
 
 /// 插件 ID 允许字符集，防止通过 ID 构造路径遍历。
-fn validate_plugin_id(id: &str) -> Result<(), PluginError> {
+pub(crate) fn validate_plugin_id(id: &str) -> Result<(), PluginError> {
     if id.is_empty()
         || id.len() > 64
+        // 同时拒绝点路径及 Windows 会折叠的尾点，保证 ID 是独立目录名。
+        || id.ends_with('.')
         || !id
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.')
@@ -194,6 +196,52 @@ pub fn compute_sha256(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn manifest(id: &str) -> PluginManifest {
+        serde_json::from_value(serde_json::json!({
+            "id": id, "name": "Test", "version": "1.0.0", "description": "Test"
+        }))
+        .unwrap()
+    }
+
+    #[test]
+    fn invalid_ids_cannot_read_write_or_delete_outside_plugin() {
+        let root = tempfile::tempdir().unwrap();
+        let store = PluginStore::new_with_data_dir(root.path().to_owned()).unwrap();
+        let sentinel = root.path().join("account-sentinel");
+        fs::write(&sentinel, b"account data").unwrap();
+        store
+            .save_plugin(&manifest("safe.plugin-1"), b"wasm")
+            .unwrap();
+        for id in [
+            "",
+            ".",
+            "..",
+            "...",
+            "safe.plugin-1.",
+            "../account-sentinel",
+            "./safe.plugin-1",
+            "a/b",
+            "a\\b",
+            "/tmp",
+            "C:\\tmp",
+        ] {
+            assert!(
+                store.save_plugin(&manifest(id), b"bad").is_err(),
+                "save {id:?}"
+            );
+            assert!(store.load_manifest(id).is_err(), "manifest {id:?}");
+            assert!(store.load_wasm(id).is_err(), "wasm {id:?}");
+            assert!(store.delete_plugin(id).is_err(), "delete {id:?}");
+            assert_eq!(fs::read(&sentinel).unwrap(), b"account data");
+            assert_eq!(store.load_wasm("safe.plugin-1").unwrap(), b"wasm");
+            assert_eq!(fs::read_dir(root.path()).unwrap().count(), 2);
+            assert_eq!(store.installed_manifests().unwrap().len(), 1);
+        }
+        store.delete_plugin("safe.plugin-1").unwrap();
+        assert!(store.installed_manifests().unwrap().is_empty());
+        assert_eq!(fs::read(sentinel).unwrap(), b"account data");
+    }
 
     #[test]
     fn test_compute_sha256_known_value() {

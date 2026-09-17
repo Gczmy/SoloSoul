@@ -9,6 +9,7 @@ use super::{
     RateLimiter, WasmSandbox,
 };
 use crate::event::PluginEventSink;
+use crate::store::validate_plugin_id;
 use serde::Deserialize;
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;
@@ -37,21 +38,6 @@ fn plugin_start_message(locale: &str, plugin_name: &str) -> String {
     } else {
         format!("启动插件: {}", plugin_name)
     }
-}
-
-fn validate_plugin_id(id: &str) -> Result<(), PluginError> {
-    if id.is_empty()
-        || id.len() > 64
-        || !id
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.')
-    {
-        return Err(PluginError::StoreError(format!(
-            "Invalid plugin id: {}",
-            id
-        )));
-    }
-    Ok(())
 }
 
 /// 市场 manifest 原始结构（与 `SoloSoul_plugin_market/plugins/*/manifest.json` 对应）
