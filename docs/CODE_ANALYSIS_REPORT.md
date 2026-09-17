@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-09-17（轮次 6：按用户要求逐项修复，已完成 P037、P038）
+> 最后更新：2026-09-17（轮次 6：按用户要求逐项修复，已完成 P037、P038、P043）
 > 修复轮次：6（前端、Rust 核心、CLI、平台桥接及发布脚本）
 > 上轮：4 —— 云同步设置页渲染崩溃修复：CSS module 类名字符串误展开为 style 索引属性
 > （`style={{ ...styles.input }}`），WebKit 抛「Cannot set indexed properties on this object」；
@@ -38,7 +38,7 @@
 | P040 | P1 | 安全/存储 | `crates/solosoul-vault/src/storage/sync_apply.rs:142` | 同步冲突的双方完整数据明文写入普通 SQLite，绕过 Vault 应用层加密 | `[ ]` 待修复 |
 | P041 | P1 | 数据可用性 | `crates/solosoul-vault/src/storage/reencrypt.rs` | 改密/KDF 升级漏重加密聊天表，切换密钥后历史对话不能解密 | `[ ]` 待修复 |
 | P042 | P1 | 安全/授权 | `crates/solosoul-plugin/src/field.rs:615` | 插件 list_objects 直接返回全部属性，未按字段声明与授权过滤 | `[ ]` 待修复 |
-| P043 | P1 | 安全/数据丢失 | `crates/solosoul-core/src/vault_service/account.rs` | 恢复账户 ID 未校验，`.` 等值可令失败恢复的清理删除 Vault 根内数据 | `[ ]` 待修复 |
+| P043 | P1 | 安全/数据丢失 | `crates/solosoul-core/src/vault_service/account.rs` | 恢复账户 ID 未校验，`.` 等值可令失败恢复的清理删除 Vault 根内数据 | `[x]` 已修复 |
 | P044 | P1 | 安全/展示 | `src/components/trash/TrashDetailSections.tsx`、`TrashSnapshotView.tsx` | 回收站字段及历史快照只展示敏感度标签，受保护字段默认明文展示 | `[ ]` 待修复 |
 | P048 | P1 | 安全/插件生命周期 | `crates/solosoul-plugin/src/field.rs:91`、`sandbox.rs:76` | 插件缓存命中不检查锁定状态，执行入口未使用会话过期信息 | `[ ]` 待修复 |
 | P001 | P1 | 规范/CI | `src-tauri/permissions/solo-soul/default.toml` | 8 个 cloud_sync 命令已注册 handler 且前端在调，但未登记 ACL 白名单；`check_acl_consistency.py` exit 1，CI（pr_check.yml）必红，运行时 ACL 拒绝 | `[x]` 已修复 |
@@ -93,9 +93,9 @@
 
 ## 修复进度
 
-- 已关闭：37 / 49（含已修复及已确认设计例外；本轮完成 P037、P038）
-- 未关闭：12 项（P012、P039–P049）
-- 当前处理：P038 已验证，下一项 P043。原有子模块与生成资源改动保留；本轮修复按明确路径独立提交。
+- 已关闭：38 / 49（含已修复及已确认设计例外；本轮完成 P037、P038、P043）
+- 未关闭：11 项（P012、P039–P042、P044–P049）
+- 当前处理：P043 已验证，下一项 P040。原有子模块与生成资源改动保留；本轮修复按明确路径独立提交。
 
 ## 第六轮全面复审（2026-09-17）
 
@@ -121,7 +121,7 @@
 - **证据与触发**：`solosoul-plugin/src/store.rs:17–30` 的白名单允许 `.` 与 `..`；`plugin_dir` 直接 join，`delete_plugin:153–156` 递归删除。GUI 的 `plugin_uninstall` 经 manager 进入该共享入口，无补充校验。独立 Rust 临时沙箱复用当前规则，传 `..` 后同级假账户文件被删除，调用返回成功；没有接触用户目录。
 - **修复与验证要求**：在共享 ID 校验拒绝点路径及路径分隔符，不能只修 UI。为保存、读取、卸载添加无副作用失败测试，验证根目录和其他插件/假账户哨兵保留。
 - **修复说明（2026-09-17）**：存储与市场安装共用同一校验，拒绝尾点（含 `.`、`..` 及 Windows 尾点折叠别名），保留合法的点分隔插件 ID。所有文件访问先经过校验。
-- **验证**：当前源码编译生成的插件测试程序 58 项通过、2 项原有忽略；新回归使用 TempDir，覆盖 11 类非法 ID 的保存/manifest/wasm/卸载拒绝及合法卸载，确认假账户和其他插件哨兵完整。Rust 格式和 diff 检查通过；全工作区检查已通过 TypeScript、fmt、Clippy，Windows GUI 测试仍在编译，尚未计为全量通过。
+- **验证**：当前源码编译生成的插件测试程序 58 项通过、2 项原有忽略；新回归使用 TempDir，覆盖 11 类非法 ID 的保存/manifest/wasm/卸载拒绝及合法卸载，确认假账户和其他插件哨兵完整。Rust 格式和 diff 检查通过；后续追加含测试目标的严格 Clippy 通过。该项提交时 GUI 测试尚在编译，后续运行结果见终审报告的 Windows 修复验证。
 
 ### P039 — 前端会话缓存晚到回填及插件输出串账户（P1）
 
@@ -148,6 +148,8 @@
 
 - **证据与触发**：恢复协议接收网络 account_id，`vault_service/account.rs:307–334` 未做路径语义校验就创建账户。ID 为 `.` 或 `./` 时可写到根目录；随后故意无效的恢复包导入失败，`commands/recovery.rs:413` 清理账户，`delete_account:335–347` 最终递归删除根内文件。此链经静态完整调用链核对，未运行真实恢复攻击。空 ID 在创建阶段被 `/config.json` 拒绝，不能用空 ID 描述完整远程复现；但删除入口单独接受空 ID 仍不安全。
 - **修复与验证要求**：共享账户 ID 校验覆盖创建、删除、清单加载、配置读写和解锁，且在锁定/缓存/KDF/磁盘副作用前拒绝非法输入。兼容现有 `acc_...`、`acc-1`、`acc_restore_same_name`；不要禁止文件系统抽象合法的根相对路径操作。用 TempDir 哨兵验证恶意 ID 不改变根目录、其他账户、缓存和解锁状态。
+- **修复说明（2026-09-17）**：共享路径 helper 返回校验结果，限定为现有 `acc_`/`acc-` 前缀和 ASCII 字母、数字、下划线、连字符，拒绝根/点/分隔符/设备路径及 `plugins` 等非账户目录名。创建在 KDF 前校验，删除在锁定与清缓存前校验，会话钥解锁在赋值前校验；清单加载和孤儿扫描过滤非法 ID，文件系统抽象仍允许根相对操作。
+- **验证**：`cargo test -p solosoul-core --lib --quiet` 204 项全通过；core/plugin 含测试目标的严格 Clippy、Rust 格式与 diff 检查通过。新增 2 项回归覆盖 16 类非法输入的无副作用失败、文件和会话哨兵、清单过滤及三类合法历史 ID。没有访问真实账户或运行真实网络恢复。
 
 ### P044 — 回收站/快照受保护字段默认明文（P1）
 

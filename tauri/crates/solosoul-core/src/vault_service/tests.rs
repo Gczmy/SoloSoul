@@ -14,6 +14,107 @@ fn setup_service() -> (VaultService, TempDir) {
 }
 
 #[test]
+fn invalid_account_ids_have_no_filesystem_or_session_side_effects() {
+    let (svc, _dir) = setup_service();
+    let id = "acc-1";
+    svc.create_account_with_id(id, "Safe", "password123", None)
+        .unwrap();
+    let vault = svc.get_vault_store().unwrap();
+    let key = svc.get_session_key().unwrap();
+    let manifest_path = svc.base_path().join("accounts.json");
+    let manifest_before = fs::read(&manifest_path).unwrap();
+    let config_path = svc.base_path().join(id).join("config.json");
+    let config_before = fs::read(&config_path).unwrap();
+    let sentinel = svc.base_path().join("acc_other").join("sentinel");
+    fs::create_dir_all(sentinel.parent().unwrap()).unwrap();
+    fs::write(&sentinel, b"other account data").unwrap();
+    fs::create_dir_all(svc.base_path().join("plugins")).unwrap();
+
+    for invalid in [
+        "",
+        ".",
+        "..",
+        "./",
+        "../",
+        "acc_",
+        "acc_..",
+        "acc-1.",
+        "acc-1/..",
+        "acc-1\\..",
+        "/acc-1",
+        "C:\\acc-1",
+        "plugins",
+        "logs",
+        "accounts.json",
+        "acc_foo:bar",
+    ] {
+        assert!(svc
+            .create_account_with_id(invalid, "Restore", "password123", None)
+            .is_err());
+        assert!(svc.delete_account(invalid).is_err());
+        assert!(svc.unlock(invalid, "password123").is_err());
+        assert!(svc.unlock_with_session_key(invalid, &[9; 32]).is_err());
+        assert!(svc.read_account_config(invalid).is_err());
+        assert!(svc.write_config_atomic(invalid, &config_before).is_err());
+        assert!(svc.write_config_pending(invalid, &config_before).is_err());
+        assert!(svc.reset_security_flags(invalid).is_err());
+        assert!(svc.update_password_hint(invalid, "bad").is_err());
+        assert!(svc.rename_account(invalid, "Bad").is_err());
+        assert!(
+            svc.is_unlocked(),
+            "invalid ID locked the active account: {invalid:?}"
+        );
+        assert_eq!(svc.get_current_account().as_deref(), Some(id));
+        assert_eq!(*svc.get_session_key().unwrap(), *key);
+        assert!(Arc::ptr_eq(&svc.get_vault_store().unwrap(), &vault));
+        assert_eq!(svc.list_accounts().len(), 1);
+        assert_eq!(fs::read(&manifest_path).unwrap(), manifest_before);
+        assert_eq!(fs::read(&config_path).unwrap(), config_before);
+        assert_eq!(fs::read(&sentinel).unwrap(), b"other account data");
+        assert!(svc.base_path().join("plugins").is_dir());
+        assert!(!svc.base_path().join("config.json").exists());
+    }
+    // 文件系统本身仍允许合法的根相对操作；约束仅作用于账户 ID。
+    assert!(svc.fs.exists("").unwrap());
+    svc.fs.create_dir_all("").unwrap();
+}
+
+#[test]
+fn account_manifest_skips_invalid_ids_and_keeps_legacy_formats() {
+    let (svc, _dir) = setup_service();
+    let entries: Vec<_> = [
+        ".",
+        "..",
+        "plugins",
+        "acc_x/..",
+        "acc_abc123",
+        "acc-1",
+        "acc_restore_same_name",
+    ]
+    .into_iter()
+    .map(|id| AccountEntry {
+        id: id.into(),
+        name: id.into(),
+        created_at: "2026-09-17".into(),
+        last_accessed: None,
+    })
+    .collect();
+    fs::write(
+        svc.base_path().join("accounts.json"),
+        serde_json::to_vec(&entries).unwrap(),
+    )
+    .unwrap();
+    svc.load_accounts();
+    assert_eq!(svc.list_accounts().len(), 3);
+    for entry in entries {
+        assert_eq!(
+            svc.has_account(&entry.id),
+            ["acc_abc123", "acc-1", "acc_restore_same_name"].contains(&entry.id.as_str())
+        );
+    }
+}
+
+#[test]
 fn test_scan_orphan_accounts_recovers_missing_from_manifest() {
     let dir = TempDir::new().unwrap();
     let base = dir.path().join(".solosoul");

@@ -177,7 +177,7 @@ impl super::VaultService {
     ///
     /// 常态（无 pending 文件）零开销。probe 为只读，不触发迁移类副作用。
     fn recover_pending_reencrypt(&self, account_id: &str, password: &str) -> Result<(), String> {
-        let pending_rel = self.config_pending_path_rel(account_id);
+        let pending_rel = self.config_pending_path_rel(account_id)?;
         if !self.fs.exists(&pending_rel).map_err(|e| e.to_string())? {
             return Ok(()); // 常态零开销
         }
@@ -237,7 +237,7 @@ impl super::VaultService {
     fn probe_data_key(&self, account_id: &str, key: &[u8; 32]) -> Result<bool, String> {
         let account_dir_path = self
             .fs
-            .local_path(&self.account_dir_rel(account_id))
+            .local_path(&self.account_dir_rel(account_id)?)
             .ok_or("无法解析账户本地目录")?;
         let db_path = account_dir_path.join("vault.db");
         solosoul_vault::probe_data_key(&db_path, &solosoul_vault::DataEncryptionKey::new(*key))
@@ -365,7 +365,7 @@ impl super::VaultService {
         // Open vault with data key
         let account_dir_path = self
             .fs
-            .local_path(&self.account_dir_rel(account_id))
+            .local_path(&self.account_dir_rel(account_id)?)
             .ok_or("无法解析账户本地目录")?;
         let vault_config =
             VaultConfig::new(account_id, account_dir_path).with_data_key(master_key_arr);
@@ -403,7 +403,7 @@ impl super::VaultService {
         // 1) 恢复旧 config（盐/参数/verify_hash 与旧密钥一致）——原子写，
         //    避免回滚自身再次写坏 config。
         self.fs
-            .write_file_atomic(&self.config_path_rel(account_id), old_config_content)
+            .write_file_atomic(&self.config_path_rel(account_id)?, old_config_content)
             .map_err(|e| format!("rollback: failed to restore config: {}", e))?;
         // 2) 数据重加密回旧密钥：同一 store 先切内存密钥为新钥读回，再以旧钥写回
         vault.set_data_key(new_key.clone());
@@ -431,6 +431,7 @@ impl super::VaultService {
         password: &str,
         old_master_key: &Zeroizing<Vec<u8>>,
     ) -> Result<(), String> {
+        Self::validate_account_id(account_id)?;
         // 旧密钥（已验证通过）。
         let old_key_arr: [u8; 32] = old_master_key
             .as_slice()
@@ -451,7 +452,7 @@ impl super::VaultService {
 
         // N-2：备份旧 config——reencrypt 成功后若 config 写入失败，恢复旧 config 并
         // 把数据重加密回旧密钥，避免“数据已换新钥、config 仍记旧参数”的账户不可用态。
-        let config_rel = self.config_path_rel(account_id);
+        let config_rel = self.config_path_rel(account_id)?;
         let old_config_content = self
             .fs
             .read_file(&config_rel)
@@ -469,7 +470,7 @@ impl super::VaultService {
         // N-2：reencrypt_all 事务内全有或全无（任一行失败整体回滚，数据保持旧密钥）。
         let account_dir_path = self
             .fs
-            .local_path(&self.account_dir_rel(account_id))
+            .local_path(&self.account_dir_rel(account_id)?)
             .ok_or("无法解析账户本地目录")?;
         let vault_config =
             VaultConfig::new(account_id, account_dir_path).with_data_key(old_key_arr);
@@ -638,7 +639,7 @@ impl super::VaultService {
         // R-4① 方案 2：存在未完成的 reencrypt→config 交换时，会话密钥（生物识别/
         // PIN）可能是旧钥而数据已是新钥——需密码派生密钥才能恢复，这里显式拒绝
         // 并引导走密码解锁（recover_pending_reencrypt 会完成交换）。
-        let pending_rel = self.config_pending_path_rel(account_id);
+        let pending_rel = self.config_pending_path_rel(account_id)?;
         if self.fs.exists(&pending_rel).map_err(|e| e.to_string())? {
             return Err(
                 "Pending key rotation detected; please unlock with your password".to_string(),
@@ -659,7 +660,7 @@ impl super::VaultService {
         // Open vault with data key
         let account_dir_path = self
             .fs
-            .local_path(&self.account_dir_rel(account_id))
+            .local_path(&self.account_dir_rel(account_id)?)
             .ok_or("无法解析账户本地目录")?;
         let vault_config =
             VaultConfig::new(account_id, account_dir_path).with_data_key(*session_key);
@@ -687,6 +688,7 @@ impl super::VaultService {
         new_key_arr: [u8; 32],
         err_prefix: &str,
     ) -> Result<(), String> {
+        Self::validate_account_id(account_id)?;
         // P001：锁中毒按不可恢复处理——`into_inner()` 强制取回写锁（与
         // create_account_common / lock() 同款）。改密/KDF 升级的关键路径上
         // 静默跳过会话密钥/句柄更新会导致「新钥已生效但会话状态未切换」。
@@ -695,7 +697,7 @@ impl super::VaultService {
         *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = None;
         let account_dir_path = self
             .fs
-            .local_path(&self.account_dir_rel(account_id))
+            .local_path(&self.account_dir_rel(account_id)?)
             .ok_or("无法解析账户本地目录")?;
         let vault_config =
             VaultConfig::new(account_id, account_dir_path).with_data_key(new_key_arr);
@@ -808,7 +810,7 @@ impl super::VaultService {
         // N-2：在 reencrypt 之前读取并解析旧 config（备份 + 校验）。任何读取/解析失败
         // 都发生在数据改动之前——若失败直接返回，杜绝"数据已换新钥、config 仍记旧参数"
         // 的混态（旧实现把读取放在 reencrypt 之后，读取失败会留下混态）。
-        let config_rel = self.config_path_rel(account_id);
+        let config_rel = self.config_path_rel(account_id)?;
         let old_config_content = self
             .fs
             .read_file(&config_rel)
@@ -986,7 +988,7 @@ impl super::VaultService {
     ) -> Result<(), String> {
         let account_dir = self
             .fs
-            .local_path(&self.account_dir_rel(account_id))
+            .local_path(&self.account_dir_rel(account_id)?)
             .ok_or("无法解析账户本地目录")?;
         let attachments_root = account_dir.join("attachments");
         if !attachments_root.exists() {

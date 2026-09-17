@@ -299,25 +299,40 @@ impl VaultService {
         "accounts.json"
     }
 
-    fn account_dir_rel(&self, id: &str) -> String {
-        id.to_string()
+    /// 账户 ID 不是文件系统路径。保留 acc_ / acc- 历史格式，隔离根目录的插件、日志等数据。
+    fn validate_account_id(id: &str) -> Result<(), String> {
+        if id.len() <= 4
+            || id.len() > 128
+            || !(id.starts_with("acc_") || id.starts_with("acc-"))
+            || !id
+                .bytes()
+                .all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_')
+        {
+            return Err("Invalid account ID".to_string());
+        }
+        Ok(())
     }
 
-    fn config_path_rel(&self, id: &str) -> String {
-        format!("{id}/config.json")
+    fn account_dir_rel(&self, id: &str) -> Result<String, String> {
+        Self::validate_account_id(id)?;
+        Ok(id.to_string())
+    }
+
+    fn config_path_rel(&self, id: &str) -> Result<String, String> {
+        Ok(format!("{}/config.json", self.account_dir_rel(id)?))
     }
 
     /// R-4① 方案 2：两阶段 config 交换的 pending 载体路径。
     /// reencrypt 前先把新 config 内容原子写到这里，交换完成后删除；
     /// 崩溃后残留的 pending 文件由 `recover_pending_reencrypt` 消费。
-    fn config_pending_path_rel(&self, id: &str) -> String {
-        format!("{id}/config.json.pending")
+    fn config_pending_path_rel(&self, id: &str) -> Result<String, String> {
+        Ok(format!("{}/config.json.pending", self.account_dir_rel(id)?))
     }
 
     /// R-4① 方案 2：原子写 pending config（意图记录）。与 `write_config_atomic`
     /// 同款 .tmp+rename 原子语义（复用 fs 层的 write_file_atomic）。
     fn write_config_pending(&self, account_id: &str, content: &[u8]) -> Result<(), String> {
-        let pending_rel = self.config_pending_path_rel(account_id);
+        let pending_rel = self.config_pending_path_rel(account_id)?;
         self.fs.write_file_atomic(&pending_rel, content)?;
         self.ensure_private_file(&pending_rel)?;
         Ok(())
@@ -325,7 +340,9 @@ impl VaultService {
 
     /// R-4① 方案 2：删除 pending config（best-effort，日志兜底）。
     fn remove_config_pending(&self, account_id: &str) {
-        let pending_rel = self.config_pending_path_rel(account_id);
+        let Ok(pending_rel) = self.config_pending_path_rel(account_id) else {
+            return;
+        };
         if self.fs.exists(&pending_rel).unwrap_or(false) {
             if let Err(e) = self.fs.remove_file(&pending_rel) {
                 tracing::warn!("Failed to remove pending config for {}: {}", account_id, e);
@@ -340,7 +357,7 @@ impl VaultService {
     /// 不会出现截断/损坏的 config（崩溃后残留孤儿 .tmp 由读取侧
     /// `recover_config_or_load` 或下次原子写覆盖）。
     fn write_config_atomic(&self, account_id: &str, content: &[u8]) -> Result<(), String> {
-        let config_rel = self.config_path_rel(account_id);
+        let config_rel = self.config_path_rel(account_id)?;
         self.fs.write_file_atomic(&config_rel, content)?;
         self.ensure_private_file(&config_rel)?;
         // 评审补强：write_atomic 的 fs::copy 生成的 .bak 权限为 umask 默认（0644），
@@ -365,7 +382,7 @@ impl VaultService {
     /// 旧版本残留/手工改动）仍可能留下非法 JSON——此时也回退到
     /// `safe_storage::recover_or_load`（提升孤儿 .tmp、回退 .bak）。
     fn read_config_with_recovery(&self, account_id: &str) -> Result<Vec<u8>, String> {
-        let config_rel = self.config_path_rel(account_id);
+        let config_rel = self.config_path_rel(account_id)?;
         let recover = |path: &std::path::Path| -> Option<Vec<u8>> {
             if let Some(content) = solosoul_vault::safe_storage::recover_or_load(path) {
                 // 评审补强：提升/回退直接改写本地文件，SAF 场景需标脏以便同步到远端。

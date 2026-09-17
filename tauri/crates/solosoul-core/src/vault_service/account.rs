@@ -20,6 +20,10 @@ impl super::VaultService {
                 Ok(accounts) => {
                     if let Ok(mut cache) = self.accounts_cache.write() {
                         for a in accounts {
+                            if Self::validate_account_id(&a.id).is_err() {
+                                tracing::warn!("Skipping invalid account ID in accounts manifest");
+                                continue;
+                            }
                             cache.insert(a.id.clone(), a);
                         }
                         tracing::debug!("Loaded {} account(s) from {}", cache.len(), rel);
@@ -59,6 +63,9 @@ impl super::VaultService {
     /// 仅查内存缓存（accounts_cache），不做任何文件 IO，
     /// 适合需要高频判断但无需账户详情（如恢复覆盖前的存在性检查）的场景。
     pub fn has_account(&self, account_id: &str) -> bool {
+        if Self::validate_account_id(account_id).is_err() {
+            return false;
+        }
         self.accounts_cache
             .read()
             .map(|c| c.contains_key(account_id))
@@ -76,14 +83,14 @@ impl super::VaultService {
         let names = self.fs.list_dir("").map_err(|e| e.to_string())?;
         let mut recovered = Vec::new();
         for name in names {
-            if !name.starts_with("acc_") {
+            if Self::validate_account_id(&name).is_err() {
                 continue;
             }
             // 已存在于清单中的账户跳过
             if self.has_account(&name) {
                 continue;
             }
-            let config_rel = self.config_path_rel(&name);
+            let config_rel = self.config_path_rel(&name)?;
             let content = match self.fs.read_file(&config_rel) {
                 Ok(c) => c,
                 Err(_) => continue,
@@ -135,7 +142,9 @@ impl super::VaultService {
         };
         let mut result = Vec::new();
         for entry in &accounts {
-            let config_rel = self.config_path_rel(&entry.id);
+            let Ok(config_rel) = self.config_path_rel(&entry.id) else {
+                continue;
+            };
             let (password_hint, created_at, has_biometric_history, has_pin_history) =
                 match self.fs.read_file(&config_rel) {
                     Ok(content) => match serde_json::from_slice::<AccountConfig>(&content) {
@@ -172,6 +181,7 @@ impl super::VaultService {
         password: &str,
         password_hint: Option<&str>,
     ) -> Result<serde_json::Value, String> {
+        Self::validate_account_id(account_id)?;
         let salt = generate_salt();
         let kdf_config = KdfConfig::from_env();
         let master_key = derive_key(password, &salt, &kdf_config)
@@ -186,7 +196,7 @@ impl super::VaultService {
                 .map_err(|e| format!("Verify HKDF failed: {}", e))?,
         );
 
-        let dir_rel = self.account_dir_rel(account_id);
+        let dir_rel = self.account_dir_rel(account_id)?;
         self.fs.create_dir_all(&dir_rel)?;
         self.ensure_private_dir(&dir_rel)?;
 
@@ -311,6 +321,7 @@ impl super::VaultService {
         password: &str,
         password_hint: Option<&str>,
     ) -> Result<serde_json::Value, String> {
+        Self::validate_account_id(account_id)?;
         if name.trim().is_empty() {
             return Err("Account name is required".to_string());
         }
@@ -337,12 +348,12 @@ impl super::VaultService {
     /// P225: 加载账户配置并派生主密钥（unlock / verify_password 共享前缀收敛）。
     /// 返回 (config, salt_arr, mk, master_key)。
     pub fn delete_account(&self, account_id: &str) -> Result<(), String> {
+        let dir_rel = self.account_dir_rel(account_id)?;
         self.lock();
         if let Ok(mut cache) = self.accounts_cache.write() {
             cache.remove(account_id);
         }
         self.save_accounts()?;
-        let dir_rel = self.account_dir_rel(account_id);
         if self.fs.exists(&dir_rel).unwrap_or(false) {
             self.fs.remove_dir_all(&dir_rel)?;
         }
@@ -350,7 +361,7 @@ impl super::VaultService {
     }
 
     pub fn reset_security_flags(&self, account_id: &str) -> Result<(), String> {
-        let config_rel = self.config_path_rel(account_id);
+        let config_rel = self.config_path_rel(account_id)?;
         let content = self
             .fs
             .read_file(&config_rel)
@@ -371,7 +382,7 @@ impl super::VaultService {
         self.write_config_atomic(account_id, json.as_bytes())?;
 
         // 清理可能残留的凭证文件
-        let dir_rel = self.account_dir_rel(account_id);
+        let dir_rel = self.account_dir_rel(account_id)?;
         // keystore_data.json（Android 双槽凭证）
         let keystore_path_rel = format!("{dir_rel}/keystore_data.json");
         if self.fs.exists(&keystore_path_rel).unwrap_or(false) {
@@ -430,7 +441,7 @@ impl super::VaultService {
     }
 
     pub fn update_password_hint(&self, account_id: &str, hint: &str) -> Result<(), String> {
-        let config_rel = self.config_path_rel(account_id);
+        let config_rel = self.config_path_rel(account_id)?;
         let content = self
             .fs
             .read_file(&config_rel)
@@ -451,6 +462,7 @@ impl super::VaultService {
     /// 名称唯一性检查与其他账户（大小写不敏感）冲突时报错，与 `create_account` 一致；
     /// 复用 `create_lock` 消除「检查唯一性 → 写入」之间的竞态（R024 同款）。
     pub fn rename_account(&self, account_id: &str, new_name: &str) -> Result<(), String> {
+        Self::validate_account_id(account_id)?;
         let name = new_name.trim();
         if name.is_empty() {
             return Err("Account name is required".to_string());
