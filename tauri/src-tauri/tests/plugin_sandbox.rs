@@ -94,9 +94,16 @@ async fn test_hello_world_plugin_runs() {
 }
 
 #[test]
-fn test_plugin_manager_new() {
-    let manager = PluginManager::new();
-    assert!(manager.is_ok());
+fn test_plugin_manager_with_isolated_directory() {
+    let data_dir = tempfile::TempDir::new().expect("创建临时数据目录失败");
+    let manager = PluginManager::new_with_dirs(
+        solo_soul::plugin::paths::default_market_dir(),
+        data_dir.path().to_path_buf(),
+    )
+    .expect("创建 PluginManager 失败");
+    assert!(manager.list_installed().unwrap().is_empty());
+    drop(manager);
+    data_dir.close().expect("清理测试数据失败");
 }
 
 #[tokio::test]
