@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
-import { ValueContainer } from '@/components/ui/ValueContainer';
+import { ProtectedTrashValue, trashSensitivity } from './ProtectedTrashValue';
 import { ICON_SIZE } from '@/lib/constants';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { AttachmentFileNameBlock } from '@/components/attachment/AttachmentFileNameBlock';
@@ -187,7 +187,7 @@ export function TrashFieldList({ item }: { item: TrashDetail }) {
               | undefined;
             const fieldId = (p as Record<string, unknown>).fieldId as string | undefined;
             const fallbackSensitivity = fieldId ? item.propertyLabels?.[fieldId] : undefined;
-            const sensitivity = explicitSensitivity || fallbackSensitivity;
+            const sensitivity = trashSensitivity(explicitSensitivity || fallbackSensitivity);
             const displayKey =
               p.key === '__dynamic_group__'
                 ? t('editor:field_types.dynamic_group', p.key)
@@ -226,6 +226,7 @@ export function TrashFieldList({ item }: { item: TrashDetail }) {
                           ? JSON.stringify(child.value)
                           : '',
                     type: typeof child.type === 'string' ? (child.type as PropertyType) : undefined,
+                    sensitivity: trashSensitivity(child.sensitivityLevel, sensitivity),
                   })) ?? [];
 
               return (
@@ -237,7 +238,7 @@ export function TrashFieldList({ item }: { item: TrashDetail }) {
                     {sensitivity && <SensitivityBadge level={sensitivity} />}
                   </div>
                   {/* Child fields */}
-                  {childItems.map((child) => {
+                  {childItems.map((child, childIndex) => {
                     const childValue = isTemplate ? formatTypeLabel(child.type) : child.value;
                     return (
                       <div
@@ -263,9 +264,15 @@ export function TrashFieldList({ item }: { item: TrashDetail }) {
                           {child.type && <FieldTypeIcon type={child.type} size={ICON_SIZE.sm} />}
                           <span style={{ fontWeight: 500, flexShrink: 0 }}>{child.name}</span>
                         </div>
-                        <ValueContainer value={childValue}>
-                          <span style={{ color: 'var(--text-tertiary)' }}>{childValue}</span>
-                        </ValueContainer>
+                        {child.sensitivity !== sensitivity && (
+                          <SensitivityBadge level={child.sensitivity} />
+                        )}
+                        <ProtectedTrashValue
+                          identity={`${item.id}:${fieldId ?? i}:${childIndex}`}
+                          label={child.name}
+                          value={childValue}
+                          sensitivity={isTemplate ? 'public' : child.sensitivity}
+                        />
                       </div>
                     );
                   })}
@@ -295,9 +302,12 @@ export function TrashFieldList({ item }: { item: TrashDetail }) {
                   <span style={{ fontWeight: 500, flexShrink: 0 }}>{displayKey}</span>
                   {sensitivity && <SensitivityBadge level={sensitivity} />}
                 </div>
-                <ValueContainer value={displayValue}>
-                  <span style={{ color: 'var(--text-tertiary)' }}>{displayValue}</span>
-                </ValueContainer>
+                <ProtectedTrashValue
+                  identity={`${item.id}:${fieldId ?? i}`}
+                  label={displayKey}
+                  value={displayValue}
+                  sensitivity={isTemplate ? 'public' : sensitivity}
+                />
               </div>
             );
           })}
@@ -562,6 +572,7 @@ export function SnapshotSummaryRow({
         {expanded && (
           <SnapshotContent
             _detailId={item.id}
+            schemaOnly={item.itemType === 'template'}
             snapshots={item.snapshots}
             currentSnapIdx={currentSnapIdx}
             data={data}

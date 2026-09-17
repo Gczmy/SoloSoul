@@ -99,7 +99,7 @@ describe('SnapshotDataView', () => {
           id: 'fullName',
           name: '姓名',
           type: 'text',
-          sensitivityLevel: 'private',
+          sensitivityLevel: 'internal',
         },
       ],
     } as unknown as UserTemplate;
@@ -116,7 +116,7 @@ describe('SnapshotDataView', () => {
       currentPropertyLabels: { fullName: 'critical' },
     });
 
-    expect(screen.getByText('private')).toBeInTheDocument();
+    expect(screen.getByText('internal')).toBeInTheDocument();
     expect(screen.queryByText('critical')).not.toBeInTheDocument();
   });
 

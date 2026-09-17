@@ -12,11 +12,13 @@ import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { ICON_SIZE } from '@/lib/constants';
+import { ProtectedTrashValue, trashSensitivity } from './ProtectedTrashValue';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import type { SnapshotEntry } from './types';
 
 interface SnapshotContentProps {
   _detailId: string;
+  schemaOnly?: boolean;
   snapshots: SnapshotEntry[];
   currentSnapIdx: number;
   data: Record<string, unknown> | null | undefined;
@@ -27,6 +29,7 @@ interface SnapshotContentProps {
 }
 export function SnapshotContent({
   _detailId,
+  schemaOnly,
   snapshots,
   currentSnapIdx,
   data,
@@ -156,6 +159,8 @@ export function SnapshotContent({
             {loading && !data && <LoadingPlaceholder variant="base" minHeight={60} />}
             {data && (
               <SnapshotDataView
+                key={`${_detailId}:${currentSnap.id}`}
+                schemaOnly={schemaOnly}
                 data={data}
                 detailTemplate={detailTemplate}
                 currentPropertyLabels={currentPropertyLabels}
@@ -168,6 +173,7 @@ export function SnapshotContent({
   );
 }
 export interface SnapshotDataViewProps {
+  schemaOnly?: boolean;
   data: Record<string, unknown>;
   detailTemplate: UserTemplate | null;
   currentPropertyLabels?: Record<string, SensitivityLevel>;
@@ -182,6 +188,7 @@ function isMetaPropertyKey(key: string): boolean {
   ].includes(key);
 }
 export function SnapshotDataView({
+  schemaOnly = false,
   data,
   detailTemplate,
   currentPropertyLabels: _currentPropertyLabels,
@@ -235,6 +242,7 @@ export function SnapshotDataView({
       key: string;
       value: string;
       type?: PropertyType;
+      sensitivityLevel?: SensitivityLevel;
     };
     type FieldEntry =
       | {
@@ -362,6 +370,7 @@ export function SnapshotDataView({
             <DynamicGroupSnapshotRow
               key={f.key}
               groupKey={f.key}
+              schemaOnly={schemaOnly}
               sensitivityLevel={f.sensitivityLevel}
               children={f.children}
             />
@@ -388,20 +397,14 @@ export function SnapshotDataView({
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {f.type && <FieldTypeIcon type={f.type} size={ICON_SIZE.sm} />}
               <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{displayKey}</span>
-              {f.sensitivityLevel && <SensitivityBadge level={f.sensitivityLevel} />}
+              <SensitivityBadge level={trashSensitivity(f.sensitivityLevel)} />
             </div>
-            <span
-              style={{
-                color: 'var(--text-primary)',
-                textAlign: 'right',
-                overflowWrap: 'break-word',
-                wordBreak: 'break-word',
-                whiteSpace: 'pre-wrap',
-                width: '100%',
-              }}
-            >
-              {f.value}
-            </span>
+            <ProtectedTrashValue
+              identity={f.key}
+              label={displayKey}
+              value={f.value}
+              sensitivity={schemaOnly ? 'public' : trashSensitivity(f.sensitivityLevel)}
+            />
           </div>
         );
       })}
@@ -431,6 +434,7 @@ function parseDynamicGroupValue(v: unknown): {
   key: string;
   value: string;
   type?: PropertyType;
+  sensitivityLevel?: SensitivityLevel;
 }[] {
   let arr: unknown[] | undefined;
   if (Array.isArray(v)) {
@@ -455,16 +459,24 @@ function parseDynamicGroupValue(v: unknown): {
             ? JSON.stringify(item.value)
             : '',
       type: typeof item.type === 'string' ? (item.type as PropertyType) : undefined,
+      sensitivityLevel: item.sensitivityLevel as SensitivityLevel | undefined,
     }));
 }
 function DynamicGroupSnapshotRow({
+  schemaOnly,
   groupKey,
   sensitivityLevel,
   children,
 }: {
+  schemaOnly?: boolean;
   groupKey: string;
   sensitivityLevel?: SensitivityLevel;
-  children: { key: string; value: string; type?: PropertyType }[];
+  children: {
+    key: string;
+    value: string;
+    type?: PropertyType;
+    sensitivityLevel?: SensitivityLevel;
+  }[];
 }) {
   const { t } = useTranslation(['editor', 'common']);
   const displayKey =
@@ -488,7 +500,7 @@ function DynamicGroupSnapshotRow({
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <FieldTypeIcon type="dynamic_group" size={ICON_SIZE.sm} />
           <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{displayKey}</span>
-          {sensitivityLevel && <SensitivityBadge level={sensitivityLevel} />}
+          <SensitivityBadge level={trashSensitivity(sensitivityLevel)} />
         </div>
       </div>
       {children.map((child) => (
@@ -506,19 +518,23 @@ function DynamicGroupSnapshotRow({
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {child.type && <FieldTypeIcon type={child.type} size={ICON_SIZE.sm} />}
             <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{child.key}</span>
+            {trashSensitivity(child.sensitivityLevel, trashSensitivity(sensitivityLevel)) !==
+              trashSensitivity(sensitivityLevel) && (
+              <SensitivityBadge
+                level={trashSensitivity(child.sensitivityLevel, trashSensitivity(sensitivityLevel))}
+              />
+            )}
           </div>
-          <span
-            style={{
-              color: 'var(--text-primary)',
-              textAlign: 'right',
-              overflowWrap: 'break-word',
-              wordBreak: 'break-word',
-              whiteSpace: 'pre-wrap',
-              width: '100%',
-            }}
-          >
-            {child.value}
-          </span>
+          <ProtectedTrashValue
+            identity={`${groupKey}:${child.key}`}
+            label={child.key}
+            value={child.value}
+            sensitivity={
+              schemaOnly
+                ? 'public'
+                : trashSensitivity(child.sensitivityLevel, trashSensitivity(sensitivityLevel))
+            }
+          />
         </div>
       ))}
     </div>

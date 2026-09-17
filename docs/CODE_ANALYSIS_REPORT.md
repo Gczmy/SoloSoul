@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-09-17（轮次 6：按用户要求逐项修复，已完成 P037、P038、P040、P041、P042、P043、P045、P047、P048）
+> 最后更新：2026-09-17（轮次 6：按用户要求逐项修复，已完成 P037、P038、P040、P041、P042、P043、P045、P047、P048、P044）
 > 修复轮次：6（前端、Rust 核心、CLI、平台桥接及发布脚本）
 > 上轮：4 —— 云同步设置页渲染崩溃修复：CSS module 类名字符串误展开为 style 索引属性
 > （`style={{ ...styles.input }}`），WebKit 抛「Cannot set indexed properties on this object」；
@@ -39,7 +39,7 @@
 | P041 | P1 | 数据可用性 | `crates/solosoul-vault/src/storage/reencrypt.rs` | 改密/KDF 升级漏重加密聊天表，切换密钥后历史对话不能解密 | `[x]` 已修复 |
 | P042 | P1 | 安全/授权 | `crates/solosoul-plugin/src/field.rs:615` | 插件 list_objects 直接返回全部属性，未按字段声明与授权过滤 | `[x]` 已修复 |
 | P043 | P1 | 安全/数据丢失 | `crates/solosoul-core/src/vault_service/account.rs` | 恢复账户 ID 未校验，`.` 等值可令失败恢复的清理删除 Vault 根内数据 | `[x]` 已修复 |
-| P044 | P1 | 安全/展示 | `src/components/trash/TrashDetailSections.tsx`、`TrashSnapshotView.tsx` | 回收站字段及历史快照只展示敏感度标签，受保护字段默认明文展示 | `[ ]` 待修复 |
+| P044 | P1 | 安全/展示 | `src/components/trash/TrashDetailSections.tsx`、`TrashSnapshotView.tsx` | 回收站普通/动态字段及快照共用掩码与关键字段验证 | `[x]` 已修复 |
 | P048 | P1 | 安全/插件生命周期 | `crates/solosoul-plugin/src/field.rs:91`、`sandbox.rs:76` | 插件缓存命中不检查锁定状态，执行入口未使用会话过期信息 | `[x]` 已修复 |
 | P001 | P1 | 规范/CI | `src-tauri/permissions/solo-soul/default.toml` | 8 个 cloud_sync 命令已注册 handler 且前端在调，但未登记 ACL 白名单；`check_acl_consistency.py` exit 1，CI（pr_check.yml）必红，运行时 ACL 拒绝 | `[x]` 已修复 |
 | P002 | P1 | 架构 | `src-tauri/src/lib.rs:46-193`（定义于 `commands/settings.rs:166-181`） | `ui_get_preferences` 有 `#[tauri::command]` 定义且进了 ACL，但从未注册进 `generate_handler!`，前端三处调用永远失败并被静默吞掉 | `[x]` 已修复 |
@@ -93,9 +93,9 @@
 
 ## 修复进度
 
-- 已关闭：44 / 49（含已修复及已确认设计例外；本轮完成 P037、P038、P040、P041、P042、P043、P045、P047、P048）
-- 未关闭：5 项（P012、P039、P044、P046、P049）
-- 当前处理：P044。原有子模块与生成资源改动保留；本轮修复按明确路径独立提交。
+- 已关闭：45 / 49（含已修复及已确认设计例外；本轮完成 P037、P038、P040、P041、P042、P043、P045、P047、P048、P044）
+- 未关闭：4 项（P012、P039、P046、P049）
+- 当前处理：P046。原有子模块与生成资源改动保留；本轮修复按明确路径独立提交。
 
 ## 第六轮全面复审（2026-09-17）
 
@@ -164,6 +164,9 @@
 
 - **证据与触发**：打开回收站详情无需揭示操作；`TrashDetailSections.tsx:266,298`、`TrashSnapshotView.tsx:403,520` 只放敏感度标签，真实值直接交给 ValueContainer。真实组件 SSR 注入合成 critical 字段，默认 HTML 中包含明文且无掩码。
 - **修复与验证要求**：复用 useRevealState、统一敏感度与验证组件，覆盖普通值、动态子字段和快照。必须同时保护 ValueContainer 的复制/展开值，不能只用 CSS 遮住。验证 public 可见、其余默认 8 圆点、揭示验证失败仍隐藏及到期回隐；模板字段类型说明不应误掩码。
+
+- **修复说明（2026-09-17）**：普通字段、动态子字段及历史快照使用共享 useRevealState；ValueContainer 只接收掩码后的展示值，避免复制/展开泄露。关键字段复用 PasswordVerificationDialog，通过 verify_password 只验证、不重新解锁；取消、卸载、内容或账户变化使旧验证失效。子字段不能降低组敏感度，未知标签按 internal 保护，模板类型说明保持可见。
+- **验证**：2 个组件文件共 16 项测试通过，覆盖 DOM 无明文、public、60 秒回隐、验证失败/成功及 4 类迟到验证。TypeScript、定向 ESLint 通过；首次模板测试夹具断言错误已修正。
 
 ### P045 — 密钥自动擦除实现和配置副本遗漏（P2）
 
