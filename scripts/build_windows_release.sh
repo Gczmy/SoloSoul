@@ -10,8 +10,8 @@
 #   ./build_windows_release.sh --verbose          # 详细输出
 #
 # 重要说明:
-#   - 本脚本需在 Windows 环境（Git Bash / MSYS2 / WSL）中运行
-#   - 确保已安装 Node.js >= 22、Rust (stable)、npm
+#   - 本脚本需在 Windows 原生环境（Git Bash / MSYS2）中运行，不支持 WSL
+#   - 确保已安装 Node.js >= 22、Rust (stable)、npm、Visual Studio MSVC 工具链
 #   - Windows 代码签名需另行购买证书并使用 signtool，当前未在脚本中实现
 #   - 产物为 NSIS 安装包（.exe）
 # ============================================================
@@ -85,6 +85,14 @@ echo ""
 # --- 前置检查 ---
 log_step "Checking prerequisites..."
 
+case "$(uname -s)" in
+    MINGW*|MSYS*) ;;
+    *)
+        log_error "Windows Release 必须在 Windows 原生 Git Bash / MSYS2 与 MSVC 工具链下构建，不支持 WSL/macOS/Linux。"
+        exit 1
+        ;;
+esac
+
 check_cmd() {
     if ! command -v "$1" >/dev/null 2>&1; then
         log_error "$1 is required but not installed"
@@ -121,14 +129,18 @@ if [[ ! -d "${MODELS_DIR}/all-MiniLM-L6-v2" || ! -d "${MODELS_DIR}/pp-ocr-v6-sma
     exit 1
 fi
 
-# 检查 PDFium 动态库是否存在；缺失时自动下载对应平台库
-PDFIUM_DIR="${TAURI_DIR}/src-tauri/resources/pdfium"
-if [[ ! -d "${PDFIUM_DIR}" || -z "$(find "${PDFIUM_DIR}" -maxdepth 1 -type f 2>/dev/null)" ]]; then
-    log_warn "找不到 PDFium 动态库，尝试自动下载..."
-    bash "${TAURI_DIR}/scripts/download-pdfium.sh"
+# 检查 Windows x64 DLL；macOS dylib、空文件、错误架构和截断下载均不能放行。
+PDFIUM_DLL="${TAURI_DIR}/src-tauri/resources/pdfium/pdfium.dll"
+PDFIUM_CHECK="scripts/verify-windows-pdfium.mjs"
+if ! node "${PDFIUM_CHECK}" "${PDFIUM_DLL}"; then
+    log_warn "缺少有效的 Windows x64 PDFium DLL，尝试自动下载..."
+    if ! bash "${TAURI_DIR}/scripts/download-pdfium.sh"; then
+        log_error "PDFium 下载失败，请检查网络后重试。"
+        exit 1
+    fi
 fi
-if [[ ! -d "${PDFIUM_DIR}" || -z "$(find "${PDFIUM_DIR}" -maxdepth 1 -type f 2>/dev/null)" ]]; then
-    log_error "PDFium 动态库准备失败: ${PDFIUM_DIR}"
+if ! node "${PDFIUM_CHECK}" "${PDFIUM_DLL}"; then
+    log_error "Windows x64 PDFium DLL 准备失败: ${PDFIUM_DLL}"
     log_error "请手动运行: bash tauri/scripts/download-pdfium.sh"
     exit 1
 fi

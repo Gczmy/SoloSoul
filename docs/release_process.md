@@ -34,6 +34,11 @@ ls tauri/src-tauri/resources/pdfium
 bash tauri/scripts/download-pdfium.sh
 ```
 
+Windows 构建必须准备 `resources/pdfium/pdfium.dll`，不能以该目录中存在 macOS
+的 `libpdfium.dylib` 或其他文件作为就绪依据。`tauri.windows.conf.json` 将 DLL
+明确打包到 `pdfium/pdfium.dll`；缺少此库时，PDF OCR 与水印功能无法在普通
+Windows 环境加载 PDFium。`scripts/build_windows_release.sh` 在构建前校验 DLL。
+
 ### Tauri 自动更新器签名密钥
 
 应用内「检查更新」依赖 Tauri Updater，要求 Release 包附带 Ed25519 签名文件（`.sig`）以及 `latest.json`。构建前必须配置私钥。
@@ -173,7 +178,8 @@ tauri/target/release/bundle/                  # 注意：是 tauri/target，不�
 
 ### 4b. Windows 构建（在 Windows 上执行）
 
-在 Windows PC（或 Parallels/VMware 虚拟机）的 **Git Bash**（或 MSYS2 / WSL）中：
+在 Windows PC（或 Parallels/VMware 虚拟机）的 **Git Bash**（或 MSYS2）中使用原生
+Windows Node.js 与 Rust MSVC 工具链；本脚本不支持 WSL/Linux 交叉构建：
 
 ```bash
 # 1. 先拉取最新代码（确保版本号已更新）
@@ -400,6 +406,7 @@ bash scripts/verify-release-signatures.sh SoloSoul-Releases
 - 验证 Vault 解锁、对象 CRUD、设置页面等基础功能
 
 #### Windows
+- 解包 `.exe` 检查 `pdfium/pdfium.dll` 确实存在且为 x64 DLL；同时核对应用版本、架构、插件、文档与 OCR 模型资源。
 - 双击 `.exe` 安装包完成安装
 - 从开始菜单或桌面快捷方式启动 SoloSoul
 - 验证 Vault 解锁、对象 CRUD、设置页面等基础功能

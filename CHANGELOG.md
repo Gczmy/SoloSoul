@@ -2,7 +2,7 @@
 
 All notable changes to SoloSoul are documented in this file.
 
-## [2.13.1] - 2026-09-17
+## [2.13.1] - 2026-09-18
 
 ### Added
 
@@ -23,6 +23,7 @@ All notable changes to SoloSoul are documented in this file.
 - **检查更新等待失效来源** — 桌面更新清单采用错峰并发请求，Android 元数据及签名读取增加短连接时限与有界响应，减少一个失效入口长时间阻塞其他来源的情况。
 - **取消与迟到事件竞态** — 下载操作在原生层绑定独立资源和取消信号；界面卸载、取消或新一轮下载后，旧进度和完成事件不再恢复已取消状态或触发安装，安装阶段单独管理。
 - **Android 资产匹配与缓存清理** — APK 与其同名 `.sha256`、`.sha256.minisig` 成组解析，避免选错校验资产；清理旧版本和遗留分段缓存，保留当前版本有效断点。
+- **Windows PDF 资源打包** — Windows 安装包补齐 PDFium 动态库，修复未额外安装该库时 PDF 识别及水印功能无法加载依赖的问题；构建前检查平台对应的 DLL，避免其他平台的库文件被误判为资源已就绪。
 
 ### Security
 

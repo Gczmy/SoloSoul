@@ -246,6 +246,12 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
+      - name: Prepare Windows PDFium
+        shell: bash
+        run: |
+          bash scripts/download-pdfium.sh
+          node ../scripts/verify-windows-pdfium.mjs src-tauri/resources/pdfium/pdfium.dll
+
       - name: Build Tauri app
         run: npm run tauri build
 
