@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import {
   desktopCheckForUpdate,
@@ -6,6 +6,7 @@ import {
   androidCheckForUpdate,
   androidInstallApk,
   ensureApkDownloaded,
+  isUpdateDownloadCancelled,
   type UpdateProgress,
   type ApkDownloadProgress,
 } from '@/lib/updater';
@@ -40,7 +41,15 @@ export function useUpdateChecker() {
   const [checking, setChecking] = useState(false);
 
   // 更新下载/安装状态
-  const [downloading, setDownloading] = useState(false);
+  const [updatePhase, setUpdatePhase] = useState<
+    'idle' | 'downloading' | 'cancelling' | 'installing'
+  >('idle');
+  const mountedRef = useRef(true);
+  const checkRevisionRef = useRef(0);
+  const operationRef = useRef<{
+    controller: AbortController;
+    installing: boolean;
+  } | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<
     UpdateProgress | ApkDownloadProgress | null
   >(null);
@@ -49,6 +58,9 @@ export function useUpdateChecker() {
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const runCheck = useCallback(async () => {
+    if (operationRef.current) return;
+    const revision = ++checkRevisionRef.current;
+    const isCurrent = () => mountedRef.current && checkRevisionRef.current === revision;
     setChecking(true);
     const isMobilePlatform = isMobilePlatformSync();
     try {
@@ -113,24 +125,47 @@ export function useUpdateChecker() {
               };
             }),
       ]);
+      if (!isCurrent()) return;
       setInfo(app);
       setVersionInfo({ ...ver, currentVersion: app.version });
     } catch (err) {
       // get_app_info 失败：保留现有信息，仅结束加载态。
       // P227: 更新检查静默失败可接受（非关键路径），但需留痕。
-      logger.warn('[useUpdateChecker] Initial check failed:', err);
+      if (isCurrent()) logger.warn('[useUpdateChecker] Initial check failed:', err);
     } finally {
-      setChecking(false);
-      setLoading(false);
+      if (isCurrent()) {
+        setChecking(false);
+        setLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-    runCheck();
+    mountedRef.current = true;
+    void runCheck();
+    return () => {
+      mountedRef.current = false;
+      checkRevisionRef.current += 1;
+      const operation = operationRef.current;
+      // 文件替换/系统安装器启动后不再中断；未结束的下载由原生层清理。
+      if (operation && !operation.installing) operation.controller.abort();
+    };
   }, [runCheck]);
 
   const handleUpdate = useCallback(async () => {
-    setDownloading(true);
+    if (!mountedRef.current || operationRef.current) return;
+    const operation = { controller: new AbortController(), installing: false };
+    operationRef.current = operation;
+    checkRevisionRef.current += 1;
+    const isCurrent = () => mountedRef.current && operationRef.current === operation;
+    const canProgress = () => isCurrent() && !operation.controller.signal.aborted;
+    const startInstalling = () => {
+      if (!canProgress()) return;
+      operation.installing = true;
+      setUpdatePhase('installing');
+    };
+    setChecking(false);
+    setUpdatePhase('downloading');
     setDownloadError(null);
     setDownloadProgress(null);
     setDownloadedBytes(0);
@@ -145,31 +180,61 @@ export function useUpdateChecker() {
         if (versionInfo?.downloadUrl) {
           // P010: 统一封装——检查已下载、事件驱动下载、清理监听
           // P002: URL/校验和由 Rust 端按 version 重新拉取并验签，前端不再回传
-          await ensureApkDownloaded(targetVersion, (progress) => {
-            setDownloadProgress(progress);
-            setDownloadedBytes(progress.downloaded);
-            setTotalBytes(progress.total);
-          });
+          await ensureApkDownloaded(
+            targetVersion,
+            (progress) => {
+              if (!canProgress()) return;
+              setDownloadProgress(progress);
+              setDownloadedBytes(progress.downloaded);
+              setTotalBytes(progress.total);
+            },
+            operation.controller.signal,
+          );
         }
+        if (!canProgress()) return;
+        startInstalling();
         // 安装已下载的 APK
         await androidInstallApk(targetVersion);
-        setDownloading(false);
       } else {
         // 桌面端更新流程
-        await downloadAndInstallUpdate((progress) => {
-          setDownloadProgress(progress);
-          if (progress.event === 'Started') {
-            setTotalBytes(progress.data.contentLength ?? 0);
-          } else if (progress.event === 'Progress') {
-            setDownloadedBytes((prev) => prev + (progress.data.chunkLength ?? 0));
-          }
-        });
+        await downloadAndInstallUpdate(
+          (progress) => {
+            if (!canProgress()) return;
+            setDownloadProgress(progress);
+            if (progress.event === 'Started') {
+              setTotalBytes(progress.data.contentLength ?? 0);
+            } else if (progress.event === 'Progress') {
+              setDownloadedBytes((prev) => prev + (progress.data.chunkLength ?? 0));
+            }
+          },
+          operation.controller.signal,
+          startInstalling,
+        );
       }
     } catch (err) {
-      setDownloading(false);
-      setDownloadError(err instanceof Error ? err.message : String(err));
+      if (isCurrent() && !operation.controller.signal.aborted && !isUpdateDownloadCancelled(err)) {
+        setDownloadError(err instanceof Error ? err.message : String(err));
+      }
+    } finally {
+      // 只有原生下载真正结束后才允许重试，避免取消与重试共享同一临时文件。
+      if (operationRef.current === operation) {
+        operationRef.current = null;
+        if (mountedRef.current) {
+          setUpdatePhase('idle');
+          setDownloadProgress(null);
+          setDownloadedBytes(0);
+          setTotalBytes(0);
+        }
+      }
     }
   }, [versionInfo]);
+
+  const cancelDownload = useCallback(() => {
+    const operation = operationRef.current;
+    if (!operation || operation.installing || operation.controller.signal.aborted) return;
+    setUpdatePhase('cancelling');
+    operation.controller.abort();
+  }, []);
 
   const progressPercent =
     totalBytes > 0 ? Math.min(Math.round((downloadedBytes / totalBytes) * 100), 100) : 0;
@@ -181,7 +246,9 @@ export function useUpdateChecker() {
     versionInfo,
     loading,
     checking,
-    downloading,
+    downloading: updatePhase !== 'idle',
+    cancelling: updatePhase === 'cancelling',
+    installing: updatePhase === 'installing',
     downloadProgress,
     downloadedBytes,
     totalBytes,
@@ -190,5 +257,6 @@ export function useUpdateChecker() {
     isMandatory,
     runCheck,
     handleUpdate,
+    cancelDownload,
   };
 }

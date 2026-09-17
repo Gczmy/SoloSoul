@@ -1,0 +1,22 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: var(--auth-viewport-height, 100dvh);
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding-top: calc(var(--native-titlebar-height, 0px) + env(safe-area-inset-top, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.content {
+  /* 子页面只填满横幅之后的剩余空间；独立预览时继续使用自己的视口回退值。 */
+  --auth-page-height: 100%;
+  --auth-page-top-inset: 0px;
+  --auth-page-bottom-inset: 0px;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}

@@ -1,4 +1,7 @@
 {
+  "cancel_download": "Cancel download",
+  "update_cancelling": "Cancelling download…",
+  "update_installing": "Installing update…",
   "more_actions": "More actions",
   "attachment_actions_for": "Attachment actions: {{name}}",
   "save": "Save",

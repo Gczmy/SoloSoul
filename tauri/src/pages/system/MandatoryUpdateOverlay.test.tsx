@@ -35,6 +35,55 @@ describe('MandatoryUpdateOverlay', () => {
     expect(container.innerHTML).toBe('');
   });
 
+  it('cancels only the download and keeps the mandatory update options after it settles', () => {
+    const cancelDownload = vi.fn();
+    const { rerender } = render(
+      <MandatoryUpdateOverlay {...baseProps} downloading cancelDownload={cancelDownload} />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'common:cancel_download' }));
+    expect(cancelDownload).toHaveBeenCalledOnce();
+    rerender(
+      <MandatoryUpdateOverlay
+        {...baseProps}
+        downloading
+        cancelling
+        cancelDownload={cancelDownload}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'common:cancel_download' })).toBeDisabled();
+    expect(screen.getByText('common:update_cancelling')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Update Now' })).not.toBeInTheDocument();
+    rerender(<MandatoryUpdateOverlay {...baseProps} cancelDownload={cancelDownload} />);
+    expect(screen.getByRole('heading', { name: '关键安全更新' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Update Now' })).toBeInTheDocument();
+  });
+
+  it('hides cancel only once installation actually starts, not at 100% download progress', () => {
+    const { rerender } = render(
+      <MandatoryUpdateOverlay
+        {...baseProps}
+        downloading
+        progressPercent={100}
+        cancelDownload={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'common:cancel_download' })).toBeEnabled();
+    expect(screen.queryByText('common:update_installing')).not.toBeInTheDocument();
+    rerender(
+      <MandatoryUpdateOverlay
+        {...baseProps}
+        downloading
+        installing
+        progressPercent={100}
+        cancelDownload={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByRole('button', { name: 'common:cancel_download' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('common:update_installing')).toBeInTheDocument();
+  });
+
   it('shows view-release-notes button only when release notes provided', () => {
     const { rerender } = render(<MandatoryUpdateOverlay {...baseProps} />);
     // 无 body：按钮不渲染

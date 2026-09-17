@@ -15,6 +15,7 @@ import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { isAndroidSync } from '@/lib/platform';
 import { AndroidNavigation } from '@/components/android/AndroidNavigation';
+import { ShellNotificationSlot } from './ShellNotifications';
 
 const FUNCTION_BAR_HEIGHT = 48;
 
@@ -73,27 +74,55 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
       ? Math.max(232, collapsedWidth)
       : collapsedWidth;
 
-  // Portal 快捷卡片与固定聊天面板也读取同一尺寸，避免展开后仍使用 48px 偏移。
+  // 导航避让与正文边界分开：通知出现不能移动交通灯/AppBar 的材质分界。
   useLayoutEffect(() => {
     const root = document.documentElement;
     const values: Record<string, string> = {
       '--sidebar-width': `${sidebarWidth}px`,
-      '--shell-content-left': `${effectivePosition === 'left' ? sidebarWidth : 0}px`,
-      '--shell-content-right': `${effectivePosition === 'right' ? sidebarWidth : 0}px`,
-      '--shell-content-top': isAndroid
-        ? 'calc(64px + env(safe-area-inset-top, 0px))'
-        : `${appbarHeight + (isTop ? FUNCTION_BAR_HEIGHT : 0)}px`,
-      '--shell-content-bottom': isAndroid
+      '--shell-chrome-bottom':
+        isAndroid || isNarrowViewport
+          ? `calc(${appbarHeight}px + env(safe-area-inset-top, 0px))`
+          : `${appbarHeight + (isTop ? FUNCTION_BAR_HEIGHT : 0)}px`,
+      '--shell-navigation-bottom': isAndroid
         ? isNarrowViewport
           ? 'calc(86px + env(safe-area-inset-bottom, 0px))'
           : 'env(safe-area-inset-bottom, 0px)'
-        : `${isNarrowViewport ? 56 : effectivePosition === 'bottom' ? 48 : 0}px`,
+        : isNarrowViewport
+          ? 'calc(56px + env(safe-area-inset-bottom, 0px))'
+          : `${effectivePosition === 'bottom' ? FUNCTION_BAR_HEIGHT : 0}px`,
       '--shell-page-padding': isNarrowViewport ? '16px' : '24px',
-      '--shell-content-height':
-        'calc(100dvh - var(--shell-content-top) - var(--shell-content-bottom))',
     };
     Object.entries(values).forEach(([key, value]) => root.style.setProperty(key, value));
-    return () => Object.keys(values).forEach((key) => root.style.removeProperty(key));
+    // 固定聊天面板、尺标及高度受限页面读取真实正文边界（包含通知实际高度）。
+    // 发布像素值，兼容 objectRuler 对这些变量的数值读取；不对内容加 transform。
+    const content = contentRef.current;
+    const geometryKeys = ['top', 'bottom', 'left', 'right', 'height'].map(
+      (edge) => `--shell-content-${edge}`,
+    );
+    const measure = () => {
+      if (!content) return;
+      const rect = content.getBoundingClientRect();
+      const geometry = [
+        rect.top,
+        window.innerHeight - rect.bottom,
+        rect.left,
+        window.innerWidth - rect.right,
+        rect.height,
+      ];
+      geometryKeys.forEach((key, index) => {
+        const value = `${Math.max(0, geometry[index])}px`;
+        if (root.style.getPropertyValue(key) !== value) root.style.setProperty(key, value);
+      });
+    };
+    measure();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    if (content) observer?.observe(content);
+    window.addEventListener('resize', measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', measure);
+      [...Object.keys(values), ...geometryKeys].forEach((key) => root.style.removeProperty(key));
+    };
   }, [
     sidebarWidth,
     effectivePosition,
@@ -192,10 +221,11 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
         className={styles.main}
         data-shell-main
         style={{
-          paddingTop: isTop ? FUNCTION_BAR_HEIGHT : 0,
-          paddingBottom: !isAndroid && effectivePosition === 'bottom' ? FUNCTION_BAR_HEIGHT : 0,
+          paddingTop: 'var(--shell-chrome-bottom)',
+          paddingBottom: 'var(--shell-navigation-bottom)',
         }}
       >
+        <ShellNotificationSlot />
         <main ref={contentRef} className={styles.content} data-shell-content>
           {children}
         </main>

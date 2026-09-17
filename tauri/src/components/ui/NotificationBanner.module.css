@@ -1,0 +1,270 @@
+.banner {
+  min-width: 0;
+  width: 100%;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: var(--text-body-sm);
+  line-height: 1.4;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  min-height: 47px;
+  padding: 6px 12px;
+}
+
+.content {
+  display: flex;
+  flex: 1 1 12rem;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.message {
+  min-width: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.summary {
+  display: flex;
+  flex: 1 1 12rem;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.summary .message {
+  flex: 1;
+}
+
+.messageGroup {
+  flex: 1;
+  min-width: 0;
+}
+
+.messageGroup .message {
+  display: block;
+}
+
+.statusIcon {
+  flex-shrink: 0;
+  color: var(--accent-primary);
+}
+
+.banner[data-tone='error'] .statusIcon {
+  color: var(--color-error-text, #c0392b);
+}
+
+.banner[data-tone='success'] .statusIcon {
+  color: var(--color-success-text, #2e7d32);
+}
+
+.actions {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  margin-left: auto;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 32px;
+  min-height: 32px;
+  max-width: 100%;
+  padding: 5px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--text-caption);
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.button svg {
+  flex-shrink: 0;
+}
+
+.primaryButton {
+  border-color: transparent;
+  background: var(--accent-primary);
+  color: white;
+}
+
+.iconButton {
+  flex: 0 0 auto;
+  width: 32px;
+  padding: 0;
+}
+
+.closeButton {
+  border-color: transparent;
+  color: var(--text-secondary);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button:hover:not(:disabled) {
+    background: var(--bg-hover);
+  }
+
+  .primaryButton:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
+}
+
+.progressGroup {
+  display: flex;
+  flex: 1 1 14rem;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  max-width: 360px;
+}
+
+.progressTrack {
+  flex: 1;
+  min-width: 48px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--bg-inset);
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-primary);
+  transition: width 0.2s ease;
+}
+
+.progressCount {
+  min-width: 96px;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.errorText {
+  display: -webkit-box;
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--color-error-text, #c0392b);
+  font-size: var(--text-caption);
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 12px 8px;
+  color: var(--color-warning-text, #946200);
+  font-size: var(--text-caption);
+  overflow-wrap: anywhere;
+}
+
+.warning svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.countdown {
+  margin-left: 6px;
+  color: var(--text-secondary);
+  font-size: var(--text-caption);
+  overflow-wrap: anywhere;
+}
+
+.spinner {
+  animation: notification-spin 1s linear infinite;
+}
+
+@keyframes notification-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 手机及窄窗口允许整组按钮换行，关闭/取消始终占据布局空间。 */
+@media (max-width: 767px) {
+  .content {
+    flex-basis: 8rem;
+  }
+}
+
+@media (pointer: coarse) {
+  .button {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .iconButton {
+    width: 48px;
+  }
+}
+
+.banner[data-mobile='true'] .button {
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.banner[data-mobile='true'] .iconButton {
+  width: 48px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .progressFill {
+    transition: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}
+
+:global([data-user-reduce-motion='true']) .button,
+:global([data-user-reduce-motion='true']) .progressFill {
+  transition: none;
+}
+
+:global([data-user-reduce-motion='true']) .spinner {
+  animation: none;
+}

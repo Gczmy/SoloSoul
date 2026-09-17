@@ -18,11 +18,34 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: var(--auth-page-height, 100vh);
+  height: var(--auth-page-height, 100dvh);
+  min-height: 0;
   overflow-y: auto;
   padding: 16px;
+  padding-top: calc(
+    16px +
+      var(
+        --auth-page-top-inset,
+        calc(var(--native-titlebar-height, 0px) + env(safe-area-inset-top, 0px))
+      )
+  );
+  padding-bottom: calc(16px + var(--auth-page-bottom-inset, env(safe-area-inset-bottom, 0px)));
   box-sizing: border-box;
+}
+
+/* 创建账户沿用同一剩余空间布局，保留原有表单宽度与左对齐。 */
+.bootstrapCard {
+  background: var(--bg-elevated);
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 400px;
+  min-width: 0;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 8%);
+  margin: auto;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 /* 登录卡片：保持居中，但允许内容超出时滚动 */
@@ -47,9 +70,18 @@
   .loginWrapper {
     align-items: flex-start;
     padding: 12px;
+    padding-top: calc(
+      12px +
+        var(
+          --auth-page-top-inset,
+          calc(var(--native-titlebar-height, 0px) + env(safe-area-inset-top, 0px))
+        )
+    );
+    padding-bottom: calc(12px + var(--auth-page-bottom-inset, env(safe-area-inset-bottom, 0px)));
   }
 
-  .loginCard {
+  .loginCard,
+  .bootstrapCard {
     padding: 24px 20px;
     min-height: auto;
     margin: auto 0;
@@ -97,11 +129,16 @@
 @media (min-width: 768px) {
   .loginWrapper {
     /* root 禁止溢出；限定可视高度，避免长卡片把下沿推到窗口外。 */
-    height: 100vh;
-    height: 100dvh;
     min-height: 0;
     padding: 24px;
-    padding-top: calc(24px + var(--native-titlebar-height, 0px));
+    padding-top: calc(
+      24px +
+        var(
+          --auth-page-top-inset,
+          calc(var(--native-titlebar-height, 0px) + env(safe-area-inset-top, 0px))
+        )
+    );
+    padding-bottom: calc(24px + var(--auth-page-bottom-inset, env(safe-area-inset-bottom, 0px)));
     overflow: hidden;
   }
 
@@ -119,5 +156,10 @@
   .loginCard > * {
     /* 矮窗口在卡片内部滚动，保留上下留白与完整圆角，不挤压登录控件。 */
     flex-shrink: 0;
+  }
+
+  .bootstrapCard {
+    max-height: 100%;
+    overflow-y: auto;
   }
 }

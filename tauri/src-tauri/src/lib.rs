@@ -193,6 +193,8 @@ fn register_core_commands(
         android_glass_plugin::android_close_glass_menu,
         lock_state_plugin::dismiss_lock_mask,
         lock_state_plugin::get_lock_pending,
+        commands::update::create_update_download,
+        commands::update::cancel_update_download,
         // Android 更新命令
         commands::update::android_check_update,
         commands::update::android_download_apk,
@@ -202,6 +204,10 @@ fn register_core_commands(
         // 桌面端更新检查命令（仅桌面端编译）
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         commands::update::desktop_check_update,
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        commands::update::desktop_download_update,
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        commands::update::desktop_install_update,
     ]
 }
 
@@ -425,7 +431,7 @@ mod tests {
     #[test]
     fn test_dispatch_cluster_prefixes_consistent() {
         // 各簇命令名与其路由前缀的映射（与 dispatch_ipc / register_*_commands 一一对应）
-        // ⚠️ 新增命令时同步更新下方命令名与总数断言（当前 total == 200）。
+        // ⚠️ 新增命令时同步更新下方命令名与总数断言（当前 total == 207）。
         let clusters: [(&str, &[&str], &[&str]); 5] = [
             (
                 "sync",
@@ -657,6 +663,10 @@ mod tests {
                     "android_is_apk_downloaded",
                     "android_install_apk",
                     "desktop_check_update",
+                    "desktop_download_update",
+                    "desktop_install_update",
+                    "create_update_download",
+                    "cancel_update_download",
                 ],
                 &[],
             ),
@@ -691,7 +701,7 @@ mod tests {
                 assert_eq!(routed, cmds.len());
             }
         }
-        // 包含 Android 玻璃能力、打开/关闭快捷菜单，共 203 条命令。
-        assert_eq!(total, 203);
+        // 包含原生更新下载控制、已验签桌面安装，共 207 条命令。
+        assert_eq!(total, 207);
     }
 }

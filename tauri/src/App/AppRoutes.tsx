@@ -26,10 +26,10 @@ import { initLlmNotificationListener } from '@/lib/notification';
 import { searchCache } from '@/lib/searchCache';
 import { applyTheme, getSystemTheme, listenForSystemTheme } from '@/lib/theme';
 import { confirmWithPause } from '@/lib/dialog';
-import { UpdateBanner, type UpdateBannerState } from '@/components/ui/UpdateBanner';
+import { UpdateBanner } from '@/components/ui/UpdateBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { OcrInstallBanner } from '@/components/ui/OcrInstallBanner';
-import { ST_SKIPPED_VERSION, SAFE_AREA_TOP } from '@/lib/constants';
+import { ST_SKIPPED_VERSION } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 import { setGlobalNavigate } from '@/lib/navigation';
 import { useSafSyncStore } from '@/stores/safSyncStore';
@@ -39,6 +39,8 @@ import { PostLoginSetupGuide } from '@/components/guide/PostLoginSetupGuide';
 import { protectedRoutes, AuthGuard } from './routes';
 import { RouteLoadingSkeleton } from '@/components/ui/RouteLoadingSkeleton';
 import { ShellLayout } from '@/components/layout/ShellLayout';
+import { ShellNotificationsProvider } from '@/components/layout/ShellNotifications';
+import { AuthLayout } from '@/components/layout/AuthLayout';
 import { warmupPrefetchRegistry, resetPrefetchRegistry } from '@/lib/prefetch/warmup';
 // 方案 A 扩展（桌面 + 移动端全面静态导入）：认证页随首包加载，不再懒加载。
 import { BootstrapPage } from '@/pages/auth/BootstrapPage';
@@ -79,7 +81,8 @@ export function AppRoutes() {
   );
   // P041: 统一更新状态机（桌面 plugin-updater + Android GitHub Release）与 OCR 首装逻辑
   // 已各自拆入 useAppUpdate / useOcrFirstInstall。
-  const { updateState, startDownload, installUpdate, dismissUpdate } = useAppUpdate();
+  const { updateState, startDownload, cancelDownload, installUpdate, dismissUpdate } =
+    useAppUpdate();
   const { showOcrBanner, ocrPhase, progress, error, retryOcrInstall, closeOcrBanner } =
     useOcrFirstInstall();
 
@@ -363,105 +366,97 @@ export function AppRoutes() {
   const [searchParams] = useSearchParams();
   const bootstrapMode = searchParams.get('mode');
 
-  return (
+  const notifications = (
     <>
-      {(updateState.kind !== 'hidden' || showOcrBanner) && (
-        <div
-          style={{
-            position: 'fixed',
-            top: `calc(${SAFE_AREA_TOP} + var(--native-titlebar-height, 0px))`,
-            left: 0,
-            right: 0,
-            // 高于 AppBar（1000）：登录解锁后横幅不被顶部栏遮挡；
-            // 低于弹窗（--z-auth-modal: 8000）与 toast（--z-toast: 9000）
-            zIndex: 'var(--z-modal)',
-            display: 'flex',
-            flexDirection: 'column',
+      {updateState.kind !== 'hidden' && (
+        <UpdateBanner
+          version={updateState.version}
+          state={updateState.kind}
+          downloadedBytes={updateState.downloadedBytes}
+          totalBytes={updateState.totalBytes}
+          progressPercent={updateState.progressPercent}
+          mandatory={updateState.mandatory}
+          error={updateState.error}
+          releaseNotes={updateState.releaseNotes}
+          checksumWarning={updateState.checksumWarning}
+          onUpdate={startDownload}
+          onCancel={cancelDownload}
+          onInstall={installUpdate}
+          onSkip={() => {
+            if (!updateState.mandatory) {
+              localStorage.setItem(ST_SKIPPED_VERSION, updateState.version);
+            }
+            dismissUpdate();
           }}
-        >
-          {updateState.kind !== 'hidden' && (
-            <UpdateBanner
-              version={updateState.version}
-              state={updateState.kind as UpdateBannerState}
-              downloadedBytes={updateState.downloadedBytes}
-              totalBytes={updateState.totalBytes}
-              progressPercent={updateState.progressPercent}
-              mandatory={updateState.mandatory}
-              error={updateState.error}
-              releaseNotes={updateState.releaseNotes}
-              checksumWarning={updateState.checksumWarning}
-              onUpdate={startDownload}
-              onInstall={installUpdate}
-              onSkip={() => {
-                if (!updateState.mandatory) {
-                  localStorage.setItem(ST_SKIPPED_VERSION, updateState.version);
-                }
-                dismissUpdate();
-              }}
-              onClose={dismissUpdate}
-            />
-          )}
-          {showOcrBanner && (
-            <OcrInstallBanner
-              phase={ocrPhase}
-              progress={progress}
-              error={error}
-              onRetry={retryOcrInstall}
-              onClose={closeOcrBanner}
-            />
-          )}
-          <SafSyncIndicator />
-        </div>
+          onClose={dismissUpdate}
+        />
       )}
+      {showOcrBanner && (
+        <OcrInstallBanner
+          phase={ocrPhase}
+          progress={progress}
+          error={error}
+          onRetry={retryOcrInstall}
+          onClose={closeOcrBanner}
+        />
+      )}
+    </>
+  );
+
+  return (
+    <ShellNotificationsProvider notifications={notifications}>
+      <SafSyncIndicator />
       {isAuthenticated && <PostLoginSetupGuide />}
       {/* 方案 A 扩展：全部页面静态导入后无 lazy 组件，Suspense 边界保留（零触发）作为
           未来若重新引入懒加载时的结构位；B1 壳常驻布局保持不变。 */}
       <Suspense fallback={<RouteLoadingSkeleton />}>
         <Routes>
-          <Route
-            path="/bootstrap"
-            element={
-              hasAccount === false || bootstrapMode === 'create' ? (
-                <BootstrapPage />
-              ) : hasAccount === true ? (
-                <Navigate to="/login" replace />
-              ) : (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100vh',
-                    color: 'var(--text-secondary)',
-                    fontSize: 'var(--text-body)',
-                  }}
-                >
-                  Connecting to backend...
-                </div>
-              )
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              hasAccount === null ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100vh',
-                    color: 'var(--text-secondary)',
-                    fontSize: 'var(--text-body)',
-                  }}
-                >
-                  Connecting...
-                </div>
-              ) : (
-                <LoginPage />
-              )
-            }
-          />
+          <Route element={<AuthLayout />}>
+            <Route
+              path="/bootstrap"
+              element={
+                hasAccount === false || bootstrapMode === 'create' ? (
+                  <BootstrapPage />
+                ) : hasAccount === true ? (
+                  <Navigate to="/login" replace />
+                ) : (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      color: 'var(--text-secondary)',
+                      fontSize: 'var(--text-body)',
+                    }}
+                  >
+                    Connecting to backend...
+                  </div>
+                )
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                hasAccount === null ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      color: 'var(--text-secondary)',
+                      fontSize: 'var(--text-body)',
+                    }}
+                  >
+                    Connecting...
+                  </div>
+                ) : (
+                  <LoginPage />
+                )
+              }
+            />
+          </Route>
           {/* B1: 受保护路由统一挂在常驻壳布局下（AuthGuard 提升到布局层），
               切页仅内容区（Outlet）等待新页面 chunk，壳不卸载。 */}
           <Route
@@ -482,6 +477,6 @@ export function AppRoutes() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
-    </>
+    </ShellNotificationsProvider>
   );
 }

@@ -145,8 +145,8 @@
   min-height: 0;
 }
 [data-android-shell] [data-shell-content] {
-  padding: calc(64px + env(safe-area-inset-top, 0px) + 16px) 20px
-    calc(168px + env(safe-area-inset-bottom, 0px));
+  /* AppBar、通知与导航由壳占位，这里只保留正文留白和浮动操作的空间。 */
+  padding: 16px 20px 82px;
   scrollbar-gutter: auto;
   background: var(--bg-base);
   overflow-x: hidden;
@@ -1030,8 +1030,7 @@
     margin-left: 88px;
   }
   [data-android-shell] [data-shell-content] {
-    padding: calc(80px + env(safe-area-inset-top, 0px)) 32px
-      calc(96px + env(safe-area-inset-bottom, 0px));
+    padding: 16px 32px 96px;
   }
   .android-appbar {
     left: 88px;

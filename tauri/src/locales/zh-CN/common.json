@@ -1,4 +1,7 @@
 {
+  "cancel_download": "取消下载",
+  "update_cancelling": "正在取消下载…",
+  "update_installing": "正在安装更新…",
   "more_actions": "更多操作",
   "attachment_actions_for": "附件操作：{{name}}",
   "save": "保存",

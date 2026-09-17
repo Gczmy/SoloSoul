@@ -1,4 +1,4 @@
-import { useState, useEffect, type CSSProperties } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
@@ -12,6 +12,7 @@ import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { AlertTriangle } from 'lucide-react';
 import { ICON_SIZE, MIN_PASSWORD_LENGTH } from '@/lib/constants';
 import { translateRustError } from '@/lib/rustErrors';
+import styles from './LoginPage.module.css';
 
 export function BootstrapPage() {
   useApplyThemeFromSettings();
@@ -102,39 +103,20 @@ export function BootstrapPage() {
   const isNameTakenError = translatedError === 'common:account_name_taken';
   const backendErrorText =
     error && !isNameTakenError
-      ? (translatedError
-          ? t(translatedError)
-          : error.toLowerCase().includes('8 characters') || error.toLowerCase().includes('至少')
-            ? t('auth:password_too_short')
-            : error.toLowerCase().includes('password') || error.toLowerCase().includes('invalid')
-              ? t('auth:incorrect_password')
-              : error.toLowerCase().includes('required')
-                ? t('auth:password_required')
-                : error)
+      ? translatedError
+        ? t(translatedError)
+        : error.toLowerCase().includes('8 characters') || error.toLowerCase().includes('至少')
+          ? t('auth:password_too_short')
+          : error.toLowerCase().includes('password') || error.toLowerCase().includes('invalid')
+            ? t('auth:incorrect_password')
+            : error.toLowerCase().includes('required')
+              ? t('auth:password_required')
+              : error
       : null;
 
   return (
-    <div
-      style={
-        {
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100vh',
-        } as CSSProperties
-      }
-    >
-      <div
-        style={{
-          background: 'var(--bg-elevated)',
-          borderRadius: 16,
-          padding: 32,
-          width: '100%',
-          maxWidth: 400,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-          margin: '0 16px',
-        }}
-      >
+    <div className={styles.loginWrapper}>
+      <div className={styles.bootstrapCard}>
         <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 600, marginBottom: 8 }}>
           {t('auth:bootstrap_title')}
         </h1>

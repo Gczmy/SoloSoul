@@ -1,7 +1,7 @@
 import { check, type Update, type DownloadEvent } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { Channel, Resource } from '@tauri-apps/api/core';
 import { logger } from '@/lib/logger';
 
 interface UpdateInfo {
@@ -54,23 +54,124 @@ export async function checkForUpdate(): Promise<UpdateCheckResult> {
   }
 }
 
+/** 取消是正常用户操作，不作为下载失败展示。 */
+export function isUpdateDownloadCancelled(error: unknown): boolean {
+  return (
+    (error instanceof Error && error.name === 'AbortError') ||
+    String(error).includes('UPDATE_DOWNLOAD_CANCELLED')
+  );
+}
+
+function cancelledDownload(): Error {
+  return new DOMException('Update download cancelled', 'AbortError');
+}
+
 /**
- * 下载并安装更新，同时通过回调报告进度事件。
- * 安装完成后自动重启应用。
+ * 先登记可取消操作，再启动下载，保证「立即取消」不会早于后端注册。
+ * 取消后等待原生命令退出，避免旧请求仍写文件时已经允许下一次重试。
  */
-export async function downloadAndInstallUpdate(
-  onProgress?: (progress: UpdateProgress) => void,
-): Promise<void> {
-  const update = await check({ timeout: UPDATE_REQUEST_TIMEOUT_MS });
-  if (!update) {
-    throw new Error('No update available');
+async function withUpdateDownload<T>(
+  signal: AbortSignal | undefined,
+  run: (operationId: number) => Promise<T>,
+  discard?: (result: T) => Promise<void>,
+): Promise<T> {
+  if (signal?.aborted) throw cancelledDownload();
+  const operation = new Resource(await invoke<number>('create_update_download'));
+  let cancellation: Promise<void> | undefined;
+  const cancel = () => {
+    cancellation ??= invoke<void>('cancel_update_download', { operationId: operation.rid }).catch(
+      (error) => logger.warn('[updater] cancel request failed:', error),
+    );
+  };
+  signal?.addEventListener('abort', cancel, { once: true });
+  let result: T;
+  try {
+    if (signal?.aborted) {
+      cancel();
+      throw cancelledDownload();
+    }
+    result = await run(operation.rid);
+  } catch (error) {
+    if (signal?.aborted || isUpdateDownloadCancelled(error)) throw cancelledDownload();
+    throw error;
+  } finally {
+    signal?.removeEventListener('abort', cancel);
+    await cancellation;
+    await operation
+      .close()
+      .catch((error) => logger.warn('[updater] release operation failed:', error));
+  }
+  if (signal?.aborted) {
+    await discard?.(result);
+    throw cancelledDownload();
+  }
+  return result;
+}
+
+/** Rust 持有已验签数据与其 Update，前端不回传下载地址或签名。 */
+export class DownloadedDesktopUpdate extends Resource {
+  private released = false;
+
+  async install(): Promise<void> {
+    if (this.released) throw new Error('Downloaded update already released');
+    await invoke<void>('desktop_install_update', { downloadRid: this.rid });
+    this.released = true; // 安装成功时 Rust 已消费资源；失败时保留供重试。
   }
 
-  await update.downloadAndInstall((event) => {
-    onProgress?.(event);
-  });
+  override async close(): Promise<void> {
+    if (this.released) return;
+    this.released = true;
+    await super.close();
+  }
+}
 
-  await relaunch();
+export function downloadDesktopUpdate(
+  update: Update,
+  onProgress?: (progress: UpdateProgress) => void,
+  signal?: AbortSignal,
+): Promise<DownloadedDesktopUpdate> {
+  return withUpdateDownload(
+    signal,
+    async (operationId) => {
+      const onEvent = new Channel<UpdateProgress>();
+      onEvent.onmessage = (progress) => {
+        if (!signal?.aborted) onProgress?.(progress);
+      };
+      const rid = await invoke<number>('desktop_download_update', {
+        updateRid: update.rid,
+        operationId,
+        onEvent,
+      });
+      return new DownloadedDesktopUpdate(rid);
+    },
+    (downloaded) => downloaded.close(),
+  );
+}
+
+/** 下载期间可取消；开始安装后交给原生安装器，不再中断文件替换。 */
+export async function downloadAndInstallUpdate(
+  onProgress?: (progress: UpdateProgress) => void,
+  signal?: AbortSignal,
+  onInstalling?: () => void,
+): Promise<void> {
+  let update: Update | null = null;
+  let downloaded: DownloadedDesktopUpdate | undefined;
+  try {
+    if (signal?.aborted) throw cancelledDownload();
+    update = await check({ timeout: UPDATE_REQUEST_TIMEOUT_MS });
+    if (signal?.aborted) throw cancelledDownload();
+    if (!update) throw new Error('No update available');
+    downloaded = await downloadDesktopUpdate(update, onProgress, signal);
+    if (signal?.aborted) throw cancelledDownload();
+    onInstalling?.();
+    await downloaded.install();
+    await relaunch();
+  } finally {
+    await downloaded
+      ?.close()
+      .catch((error) => logger.warn('[updater] release download failed:', error));
+    await update?.close().catch((error) => logger.warn('[updater] release update failed:', error));
+  }
 }
 
 // ── Desktop check (updater plugin + GitHub Release notes) ─────
@@ -161,88 +262,26 @@ export async function androidCheckForUpdate(): Promise<AndroidUpdateCheckResult>
 }
 
 /**
- * 下载 Android APK 并监听进度事件。
- *
- * P002: 下载 URL 与校验和由 Rust 端按 version 重新拉取 GitHub Release 元数据
- * 并重新验签（不信任前端回传，杜绝 XSS 诱导下载任意 APK），因此前端仅传 version。
- *
- * 返回一个取消监听函数。
- */
-async function androidDownloadApk(
-  version: string,
-  onProgress?: (progress: ApkDownloadProgress) => void,
-): Promise<UnlistenFn> {
-  const unlisten = await listen<ApkDownloadProgress>('apk-download-progress', (event) => {
-    onProgress?.(event.payload);
-  });
-
-  // 在后台启动下载（不 await，让事件驱动进度）
-  invoke<void>('android_download_apk', {
-    version,
-  }).catch((err) => {
-    logger.error('[updater] android download failed:', err);
-    onProgress?.({
-      progress: 0,
-      downloaded: 0,
-      total: 0,
-      done: true,
-      error: String(err),
-    });
-  });
-
-  return unlisten;
-}
-
-/**
- * P010: Android APK 下载流程统一封装——两个 hook（useUpdateChecker / useAppUpdate）
- * 曾各自重复实现「检查已下载 → 启动事件驱动下载 → 等待 done → 清理事件监听」约 80 行。
- *
- * 返回 true 表示本次完成了实际下载（调用方无需再查是否已下载）；
- * 若 APK 已存在则直接返回 false（调用方据此跳转到安装阶段）。
- *
- * P002: URL/校验和参数已移除——Rust 端按 version 重新拉取元数据并验签。
- *
- * @param onProgress 下载进度回调（含 done/error 终态）。
+ * 共享 APK 下载流程。进度 Channel 只属于本次操作，迟到事件不串到重试。
+ * URL/校验和仍由 Rust 按版本号读取并验签；只有原生命令成功退出才算完成。
  */
 export async function ensureApkDownloaded(
   version: string,
   onProgress?: (progress: ApkDownloadProgress) => void,
+  signal?: AbortSignal,
 ): Promise<boolean> {
+  if (signal?.aborted) throw cancelledDownload();
   const alreadyDownloaded = await androidIsApkDownloaded(version);
-  if (alreadyDownloaded) {
-    return false;
-  }
-  // 启动下载（事件驱动进度），等待 done 终态；unlisten 用于完成后移除事件监听防止泄漏
-  let unlistenFn: UnlistenFn | undefined;
-  let settled = false;
-  try {
-    await new Promise<void>((resolve, reject) => {
-      androidDownloadApk(version, (progress) => {
-        onProgress?.(progress);
-        if (progress.done && !settled) {
-          settled = true;
-          if (progress.error) {
-            reject(new Error(progress.error));
-          } else {
-            resolve();
-          }
-        }
-      })
-        .then((fn) => {
-          unlistenFn = fn;
-        })
-        .catch((err) => {
-          if (!settled) {
-            settled = true;
-            reject(err);
-          }
-        });
-    });
-  } finally {
-    // 无论成功或失败，都移除 Tauri 事件监听器，防止累积泄漏
-    unlistenFn?.();
-  }
-  return true;
+  if (signal?.aborted) throw cancelledDownload();
+  if (alreadyDownloaded) return false;
+  return withUpdateDownload(signal, async (operationId) => {
+    const onEvent = new Channel<ApkDownloadProgress>();
+    onEvent.onmessage = (progress) => {
+      if (!signal?.aborted) onProgress?.(progress);
+    };
+    await invoke<void>('android_download_apk', { version, operationId, onEvent });
+    return true;
+  });
 }
 
 /**
@@ -259,4 +298,3 @@ export async function androidInstallApk(version: string): Promise<void> {
 async function androidIsApkDownloaded(version: string): Promise<boolean> {
   return invoke<boolean>('android_is_apk_downloaded', { version });
 }
-

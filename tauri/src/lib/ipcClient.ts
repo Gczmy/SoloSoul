@@ -103,6 +103,10 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   'android_is_apk_downloaded',
   'android_install_apk',
   'desktop_check_update',
+  'create_update_download',
+  'cancel_update_download',
+  'desktop_download_update',
+  'desktop_install_update',
   // ── OCR 模型管理（useOcrFirstInstall / useOcrModelManager：模型与 vault 数据
   //    无关，后端不校验解锁；设置页与首次引导在未解锁时也可访问）──
   'ocr_get_model_status',

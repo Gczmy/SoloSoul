@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
-import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
+import { ReleaseNotesMarkdown } from '@/components/ui/ReleaseNotesMarkdown';
 import { AlertTriangle, Download, Info } from 'lucide-react';
 import { DownloadProgressBar } from '@/components/ui/DownloadProgressBar';
 import { Dialog } from '@/components/ui/Dialog';
@@ -14,11 +14,14 @@ interface MandatoryUpdateOverlayProps {
   info: AppInfo | null;
   versionInfo: VersionInfo | null;
   downloading: boolean;
+  cancelling?: boolean;
+  installing?: boolean;
   downloadedBytes: number;
   totalBytes: number;
   progressPercent: number;
   downloadError: string | null;
   handleUpdate: () => void;
+  cancelDownload?: () => void;
 }
 
 /**
@@ -30,11 +33,14 @@ export function MandatoryUpdateOverlay({
   info,
   versionInfo,
   downloading,
+  cancelling = false,
+  installing = false,
   downloadedBytes,
   totalBytes,
   progressPercent,
   downloadError,
   handleUpdate,
+  cancelDownload,
 }: MandatoryUpdateOverlayProps) {
   const { t } = useTranslation(['settings', 'common']);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -196,8 +202,37 @@ export function MandatoryUpdateOverlay({
               downloadedBytes={downloadedBytes}
               totalBytes={totalBytes}
               progressPercent={progressPercent}
+              statusText={
+                installing
+                  ? t('common:update_installing')
+                  : cancelling
+                    ? t('common:update_cancelling')
+                    : undefined
+              }
             />
           </div>
+        )}
+
+        {/* 取消只终止下载，强制更新遮罩及版本信息继续保留。 */}
+        {downloading && !installing && cancelDownload && (
+          <button
+            type="button"
+            className="interactive-toolbar"
+            onClick={cancelDownload}
+            disabled={cancelling}
+            style={{
+              minHeight: 48,
+              width: '100%',
+              padding: '10px 16px',
+              borderRadius: 10,
+              border: '1px solid var(--border-subtle)',
+              font: 'inherit',
+              cursor: cancelling ? 'default' : 'pointer',
+              opacity: cancelling ? 0.6 : 1,
+            }}
+          >
+            {t('common:cancel_download')}
+          </button>
         )}
 
         {/* 更新按钮或错误 */}
@@ -227,20 +262,6 @@ export function MandatoryUpdateOverlay({
           </button>
         )}
 
-        {/* 下载完成后自动安装提示 */}
-        {downloading && progressPercent >= 100 && (
-          <p
-            style={{
-              margin: 0,
-              fontSize: 'var(--text-caption)',
-              color: 'var(--text-secondary)',
-              textAlign: 'center',
-            }}
-          >
-            {t('settings:installing', { defaultValue: 'Installing...' })}
-          </p>
-        )}
-
         {/* Release notes 弹卡：zIndex 高于遮罩本体（9999），Portal 到 body 后不被遮挡 */}
         {notesOpen && versionInfo?.body && (
           <Dialog
@@ -253,8 +274,7 @@ export function MandatoryUpdateOverlay({
             priority="default"
             zIndex={10000}
           >
-            <SafeMarkdown
-              className="release-notes-md"
+            <ReleaseNotesMarkdown
               style={{
                 fontSize: 'var(--text-body-sm)',
                 color: 'var(--text-secondary)',
@@ -264,7 +284,7 @@ export function MandatoryUpdateOverlay({
               }}
             >
               {versionInfo.body}
-            </SafeMarkdown>
+            </ReleaseNotesMarkdown>
           </Dialog>
         )}
 

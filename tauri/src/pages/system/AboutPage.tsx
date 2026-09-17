@@ -32,6 +32,8 @@ export function AboutPage() {
     loading,
     checking,
     downloading,
+    cancelling,
+    installing,
     downloadProgress,
     downloadedBytes,
     totalBytes,
@@ -40,6 +42,7 @@ export function AboutPage() {
     isMandatory,
     runCheck,
     handleUpdate,
+    cancelDownload,
   } = updater;
 
   const links = [
@@ -110,6 +113,8 @@ export function AboutPage() {
             versionInfo={versionInfo}
             checking={checking}
             downloading={downloading}
+            cancelling={cancelling}
+            installing={installing}
             downloadProgress={downloadProgress}
             downloadedBytes={downloadedBytes}
             totalBytes={totalBytes}
@@ -117,6 +122,7 @@ export function AboutPage() {
             progressPercent={progressPercent}
             runCheck={runCheck}
             handleUpdate={handleUpdate}
+            cancelDownload={cancelDownload}
           />
 
           <LinksCard links={links} showToast={showToast} />
@@ -130,11 +136,14 @@ export function AboutPage() {
           info={info}
           versionInfo={versionInfo}
           downloading={downloading}
+          cancelling={cancelling}
+          installing={installing}
           downloadedBytes={downloadedBytes}
           totalBytes={totalBytes}
           progressPercent={progressPercent}
           downloadError={downloadError}
           handleUpdate={handleUpdate}
+          cancelDownload={cancelDownload}
         />
       </PageShell>
     </>

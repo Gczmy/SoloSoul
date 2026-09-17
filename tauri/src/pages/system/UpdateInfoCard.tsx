@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
-import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
+import { ReleaseNotesMarkdown } from '@/components/ui/ReleaseNotesMarkdown';
 import { AlertTriangle, Download, RefreshCw } from 'lucide-react';
 import { DownloadProgressBar } from '@/components/ui/DownloadProgressBar';
 import { ICON_SIZE } from '@/lib/constants';
@@ -18,6 +18,8 @@ interface UpdateInfoCardProps {
   versionInfo: VersionInfo | null;
   checking: boolean;
   downloading: boolean;
+  cancelling?: boolean;
+  installing?: boolean;
   downloadProgress: UpdateProgress | ApkDownloadProgress | null;
   downloadedBytes: number;
   totalBytes: number;
@@ -25,6 +27,7 @@ interface UpdateInfoCardProps {
   progressPercent: number;
   runCheck: () => void;
   handleUpdate: () => void;
+  cancelDownload?: () => void;
 }
 
 /**
@@ -37,13 +40,15 @@ export function UpdateInfoCard({
   versionInfo,
   checking,
   downloading,
-  downloadProgress,
+  cancelling = false,
+  installing = false,
   downloadedBytes,
   totalBytes,
   downloadError,
   progressPercent,
   runCheck,
   handleUpdate,
+  cancelDownload,
 }: UpdateInfoCardProps) {
   const { t } = useTranslation(['settings', 'common']);
   return (
@@ -219,8 +224,7 @@ export function UpdateInfoCard({
                     </div>
                   )}
                   {versionInfo.body && (
-                    <SafeMarkdown
-                      className="release-notes-md"
+                    <ReleaseNotesMarkdown
                       style={
                         {
                           fontSize: 'var(--text-caption)',
@@ -232,21 +236,45 @@ export function UpdateInfoCard({
                       }
                     >
                       {versionInfo.body}
-                    </SafeMarkdown>
+                    </ReleaseNotesMarkdown>
                   )}
 
                   {/* 下载按钮或进度（P043: 共享 DownloadProgressBar） */}
                   {downloading ? (
-                    <DownloadProgressBar
-                      downloadedBytes={downloadedBytes}
-                      totalBytes={totalBytes}
-                      progressPercent={progressPercent}
-                      statusText={
-                        'event' in (downloadProgress || {})
-                          ? t('settings:installing', { defaultValue: 'Installing...' })
-                          : undefined
-                      }
-                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <DownloadProgressBar
+                        downloadedBytes={downloadedBytes}
+                        totalBytes={totalBytes}
+                        progressPercent={progressPercent}
+                        statusText={
+                          installing
+                            ? t('common:update_installing')
+                            : cancelling
+                              ? t('common:update_cancelling')
+                              : undefined
+                        }
+                      />
+                      {!installing && cancelDownload && (
+                        <button
+                          type="button"
+                          className="interactive-toolbar"
+                          onClick={cancelDownload}
+                          disabled={cancelling}
+                          style={{
+                            alignSelf: 'flex-start',
+                            minHeight: 36,
+                            padding: '8px 16px',
+                            borderRadius: 8,
+                            border: '1px solid var(--border-subtle)',
+                            font: 'inherit',
+                            cursor: cancelling ? 'default' : 'pointer',
+                            opacity: cancelling ? 0.6 : 1,
+                          }}
+                        >
+                          {t('common:cancel_download')}
+                        </button>
+                      )}
+                    </div>
                   ) : (
                     <button
                       type="button"

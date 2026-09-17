@@ -1,0 +1,45 @@
+.notes {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* 表格只在自身区域横向滚动，长文件名不撑宽弹窗或手机页面。 */
+.tableScroll {
+  width: 100%;
+  max-width: 100%;
+  margin: 8px 0;
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+}
+
+.tableScroll table {
+  width: 100%;
+  min-width: 20rem;
+  border-collapse: collapse;
+  font-size: inherit;
+}
+
+.tableScroll th,
+.tableScroll td {
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.tableScroll th {
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-toolbar);
+}
+
+.tableScroll th + th,
+.tableScroll td + td {
+  border-left: 1px solid var(--border-subtle);
+}
+
+.tableScroll tbody tr:last-child td {
+  border-bottom: 0;
+}

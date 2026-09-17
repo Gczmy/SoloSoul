@@ -138,6 +138,25 @@ describe('invokeCommand（统一 IPC 调用层）', () => {
     }
   });
 
+  it.each([
+    ['create_update_download', undefined],
+    ['cancel_update_download', { operationId: 41 }],
+    ['desktop_download_update', { updateRid: 17, operationId: 41, onEvent: 9 }],
+    ['desktop_install_update', { downloadRid: 91 }],
+  ] as const)('登录前允许新下载管线命令 %s，不受 Vault 解锁守卫阻断', async (command, args) => {
+    vi.stubEnv('MODE', 'development');
+    try {
+      await expect(invokeCommand(command, args)).resolves.toBeUndefined();
+      if (args) {
+        expect(invoke).toHaveBeenCalledExactlyOnceWith(command, args);
+      } else {
+        expect(invoke).toHaveBeenCalledExactlyOnceWith(command);
+      }
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('P027 默认守卫：登录页可用性探测命令（biometric/pin check availability）未解锁时可调', async () => {
     vi.stubEnv('MODE', 'development');
     vi.mocked(useAuthStore).getState.mockReturnValue({ isAuthenticated: false } as never);

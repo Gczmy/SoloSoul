@@ -1,7 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, fireEvent, act, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route, Link } from 'react-router-dom';
 import { AppShell } from './AppShell';
+import { ShellNotificationsProvider } from './ShellNotifications';
+import { resizeObserverInstances } from '@/test/setup';
 
 vi.mock('@/hooks/useIsNarrowViewport', () => ({
   useIsNarrowViewport: () => false,
@@ -52,9 +54,63 @@ function TallPageA() {
 }
 
 describe('AppShell 路由导航后内容区滚动重置', () => {
-  beforeEach(() => {
-    // 全局 reset：jsdom 的 scrollTop 读写存在但无实际布局，直接断言调用即可。
-    // 用 spy 确认 useLayoutEffect 在导航后设置了 scrollTop=0。
+  afterEach(() => vi.restoreAllMocks());
+
+  it('通知按正常顺序插入，不重建正文或重置输入、焦点和滚动位置', () => {
+    const layout = (notifications: React.ReactNode) => (
+      <MemoryRouter>
+        <ShellNotificationsProvider notifications={notifications}>
+          <AppShell title="首页">
+            <input aria-label="未完成的编辑" />
+          </AppShell>
+        </ShellNotificationsProvider>
+      </MemoryRouter>
+    );
+    const { rerender } = render(layout(null));
+    const content = document.querySelector<HTMLElement>('[data-shell-content]')!;
+    const input = screen.getByLabelText('未完成的编辑');
+    fireEvent.change(input, { target: { value: '保留草稿' } });
+    input.focus();
+    content.scrollTop = 500;
+    rerender(layout(<button>取消下载</button>));
+    expect(content.previousElementSibling).toBe(
+      document.querySelector('[data-shell-notifications]'),
+    );
+    expect(content.previousElementSibling).toContainElement(screen.getByText('取消下载'));
+    expect(document.querySelector('[data-shell-content]')).toBe(content);
+    expect(content.scrollTop).toBe(500);
+    expect(input).toHaveValue('保留草稿');
+    expect(input).toHaveFocus();
+    rerender(layout(null));
+    expect(content.scrollTop).toBe(500);
+    expect(input).toHaveFocus();
+  });
+
+  it('通知换行后的正文边界以像素同步给固定面板，卸载后释放观察器与变量', () => {
+    let rect = { top: 48, bottom: 700, left: 96, right: 1024, height: 652 };
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      () => rect as DOMRect,
+    );
+    const { unmount } = render(
+      <MemoryRouter>
+        <AppShell title="首页">内容</AppShell>
+      </MemoryRouter>,
+    );
+    const content = document.querySelector('[data-shell-content]');
+    const observer = [...resizeObserverInstances].reverse().find((instance) =>
+      instance.observe.mock.calls.some(([node]) => node === content),
+    )!;
+    const root = document.documentElement;
+    expect(root.style.getPropertyValue('--shell-content-top')).toBe('48px');
+    const chrome = root.style.getPropertyValue('--shell-chrome-bottom');
+    rect = { ...rect, top: 144, height: 556 };
+    act(() => observer.trigger());
+    expect(root.style.getPropertyValue('--shell-content-top')).toBe('144px');
+    expect(root.style.getPropertyValue('--shell-content-height')).toBe('556px');
+    expect(root.style.getPropertyValue('--shell-chrome-bottom')).toBe(chrome);
+    unmount();
+    expect(observer.disconnect).toHaveBeenCalledOnce();
+    expect(root.style.getPropertyValue('--shell-content-top')).toBe('');
   });
 
   it('切页后 .content 滚动位置重置到顶部（继承的 scrollTop 被清零）', () => {

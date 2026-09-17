@@ -1,6 +1,7 @@
 .appShell {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--bg-base);
   /* 移动端禁用双指缩放（继承到子元素） */
@@ -19,19 +20,21 @@
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
+  min-height: 0;
   touch-action: manipulation;
 }
 
 /* 键盘弹出时 .content 是主要滚动容器；overscroll-behavior 防止系统手势误触 */
 .content {
   flex: 1;
+  min-height: 0;
+  min-width: 0;
   overflow-x: hidden;
   /* Use scroll instead of auto so the vertical scrollbar track is always reserved.
      This prevents content from shifting left when a scrollbar appears/disappears. */
   overflow-y: scroll;
   --page-padding: 0px;
   padding: var(--shell-page-padding, 24px);
-  padding-top: calc(var(--appbar-height, 56px) + var(--shell-page-padding, 24px));
   /* Extra fallback for browsers that support scrollbar-gutter. */
   scrollbar-gutter: stable;
   overscroll-behavior: none;
@@ -46,10 +49,8 @@
 
   .content {
     padding: 16px;
-    /* app bar covers from top of screen, so content starts below the taller app bar */
-    padding-top: calc(48px + env(safe-area-inset-top, 0px) + 16px);
-    /* extra bottom padding for fixed formActions bar */
-    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 16px + 56px);
+    /* 导航由 main 避让；仅保留页面留白和固定表单操作栏的空间。 */
+    padding-bottom: calc(16px + 56px);
   }
 }
 
@@ -64,9 +65,9 @@
     .main {
     background: linear-gradient(
       to bottom,
-      transparent 0 var(--shell-content-top),
-      var(--bg-base) var(--shell-content-top) calc(100% - var(--shell-content-bottom)),
-      transparent calc(100% - var(--shell-content-bottom))
+      transparent 0 var(--shell-chrome-bottom),
+      var(--bg-base) var(--shell-chrome-bottom) calc(100% - var(--shell-navigation-bottom)),
+      transparent calc(100% - var(--shell-navigation-bottom))
     );
   }
 }
@@ -93,8 +94,6 @@
   }
   :global(html[data-desktop-platform='windows']) .content {
     /* 保持独立滚动边界，水平导航由 main 的内边距避让；顶部圆角由 AppBar 承接。 */
-    margin-top: var(--appbar-height, 40px);
-    padding-top: var(--shell-page-padding, 24px);
     background: var(--shell-content-surface);
     box-shadow:
       inset 1px 0 0 var(--border-subtle),

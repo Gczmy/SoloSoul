@@ -74,8 +74,10 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
     expect(title.x).toBeGreaterThanOrEqual(91);
     await expect(header.locator('h1')).toHaveCSS('font-size', '18px');
     const mainBox = (await page.locator('main').boundingBox())!;
-    expect(mainBox.y).toBe(position === 'top' ? 48 : 0);
-    await expect(page.locator('main')).toHaveCSS('padding-top', '76px');
+    expect(mainBox.y).toBe(position === 'top' ? 100 : 52);
+    await expect(page.locator('main')).toHaveCSS('padding-top', '24px');
+    // 避让移到壳的正常流，正文首行绝对起点维持原来的 76/124px。
+    expect(mainBox.y + 24).toBe(position === 'top' ? 124 : 76);
     const guide = header.getByRole('button', { name: 'Guide', exact: true });
     await expect(guide).toHaveCSS('font-size', '14px');
     await expectNativeControl(guide);
@@ -174,7 +176,7 @@ test('macOS 全屏往返保持单行 AppBar，无重复顶部留白', async ({ p
       window.dispatchEvent(new Event('resize'));
     }, height);
     await expect(page.locator('html')).toHaveCSS('--native-titlebar-height', `${height}px`);
-    await expect.poll(async () => (await page.locator('main').boundingBox())!.y).toBe(0);
+    await expect.poll(async () => (await page.locator('main').boundingBox())!.y).toBe(52);
     expect((await page.locator('header').boundingBox())!.height).toBe(52);
     expect((await page.locator('header').boundingBox())!.y).toBe(0);
     await expect(sidebar).toHaveCSS('width', '96px');

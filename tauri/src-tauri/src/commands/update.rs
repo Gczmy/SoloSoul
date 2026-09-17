@@ -1,12 +1,14 @@
-//! Android 应用内更新命令。
+//! 应用内更新检查、可取消下载和安装命令。
 //!
 //! 通过 GitHub Release API 检查新版本，下载 APK 并触发系统安装。
-//! 桌面端仍使用 `@tauri-apps/plugin-updater`，本模块仅对 Android 有效。
+//! 桌面端复用 updater 插件的签名验证；两端下载均由独立资源控制取消。
 
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 use std::path::PathBuf;
-use tauri::{Emitter, Manager};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use tauri::{ipc::Channel, Manager, Resource, ResourceId, Webview};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use tauri_plugin_updater::UpdaterExt;
 
@@ -232,6 +234,177 @@ pub struct DesktopUpdateInfo {
     pub published_at: Option<String>,
 }
 
+// ── 可取消下载资源 ────────────────────────────────────────────
+
+const DOWNLOAD_CANCELLED: &str = "UPDATE_DOWNLOAD_CANCELLED";
+
+/// 先创建资源再发起下载，取消信号即使先于下载命令到达也不会丢失。
+/// 每个资源仅允许启动一次，避免重用 ID 导致两个请求共享取消/完成状态。
+struct UpdateDownloadOperation {
+    cancelled: tokio::sync::watch::Sender<bool>,
+    started: AtomicBool,
+}
+
+impl UpdateDownloadOperation {
+    fn new() -> Self {
+        let (cancelled, _) = tokio::sync::watch::channel(false);
+        Self {
+            cancelled,
+            started: AtomicBool::new(false),
+        }
+    }
+
+    fn cancel(&self) {
+        self.cancelled.send_replace(true);
+    }
+
+    fn check_cancelled(&self) -> Result<(), String> {
+        if *self.cancelled.borrow() {
+            Err(DOWNLOAD_CANCELLED.to_string())
+        } else {
+            Ok(())
+        }
+    }
+
+    async fn run<T>(
+        &self,
+        download: impl std::future::Future<Output = Result<T, String>>,
+    ) -> Result<T, String> {
+        if self.started.swap(true, Ordering::AcqRel) {
+            return Err("更新下载操作已启动，请创建新操作".to_string());
+        }
+        let mut cancelled = self.cancelled.subscribe();
+        self.check_cancelled()?;
+        tokio::select! {
+            biased;
+            _ = cancelled.changed() => Err(DOWNLOAD_CANCELLED.to_string()),
+            result = download => {
+                self.check_cancelled()?;
+                result
+            }
+        }
+    }
+}
+
+impl Resource for UpdateDownloadOperation {
+    fn close(self: Arc<Self>) {
+        self.cancel();
+    }
+}
+
+#[tauri::command]
+pub fn create_update_download(webview: Webview) -> ResourceId {
+    webview
+        .resources_table()
+        .add(UpdateDownloadOperation::new())
+}
+
+#[tauri::command]
+pub fn cancel_update_download(webview: Webview, operation_id: ResourceId) -> Result<(), String> {
+    let operation = webview
+        .resources_table()
+        .get::<UpdateDownloadOperation>(operation_id)
+        .map_err(|e| e.to_string())?;
+    operation.cancel();
+    Ok(())
+}
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[derive(Clone, Serialize)]
+#[serde(tag = "event", content = "data")]
+pub enum DesktopDownloadEvent {
+    #[serde(rename_all = "camelCase")]
+    Started {
+        content_length: Option<u64>,
+    },
+    #[serde(rename_all = "camelCase")]
+    Progress {
+        chunk_length: usize,
+    },
+    Finished,
+}
+
+/// 安装包与原生 Update 绑定，前端无法把未验签字节或其他 URL 注入安装命令。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+struct VerifiedDesktopDownload {
+    update: Arc<tauri_plugin_updater::Update>,
+    bytes: Vec<u8>,
+    installed: tokio::sync::Mutex<bool>,
+}
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+impl Resource for VerifiedDesktopDownload {}
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[tauri::command]
+pub async fn desktop_download_update(
+    webview: Webview,
+    update_rid: ResourceId,
+    operation_id: ResourceId,
+    on_event: Channel<DesktopDownloadEvent>,
+) -> Result<ResourceId, String> {
+    let operation = webview
+        .resources_table()
+        .get::<UpdateDownloadOperation>(operation_id)
+        .map_err(|e| e.to_string())?;
+    let update = webview
+        .resources_table()
+        .get::<tauri_plugin_updater::Update>(update_rid)
+        .map_err(|e| e.to_string())?;
+    let mut first_chunk = true;
+    let bytes = operation
+        .run(async {
+            update
+                .download(
+                    |chunk_length, content_length| {
+                        if first_chunk {
+                            first_chunk = false;
+                            let _ = on_event.send(DesktopDownloadEvent::Started { content_length });
+                        }
+                        let _ = on_event.send(DesktopDownloadEvent::Progress { chunk_length });
+                    },
+                    || {},
+                )
+                .await
+                .map_err(|e| e.to_string())
+        })
+        .await?;
+    // Finished 只在原生验签通过之后发送，前端仍以 invoke 返回值作为最终完成信号。
+    let rid = webview.resources_table().add(VerifiedDesktopDownload {
+        update,
+        bytes,
+        installed: tokio::sync::Mutex::new(false),
+    });
+    let _ = on_event.send(DesktopDownloadEvent::Finished);
+    Ok(rid)
+}
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[tauri::command]
+pub async fn desktop_install_update(
+    webview: Webview,
+    download_rid: ResourceId,
+) -> Result<(), String> {
+    let download = webview
+        .resources_table()
+        .get::<VerifiedDesktopDownload>(download_rid)
+        .map_err(|e| e.to_string())?;
+    let mut installed = download
+        .installed
+        .try_lock()
+        .map_err(|_| "更新安装正在进行中".to_string())?;
+    if *installed {
+        return Err("此更新包已经安装".to_string());
+    }
+    download
+        .update
+        .install(&download.bytes)
+        .map_err(|e| e.to_string())?;
+    *installed = true;
+    let _ = webview.resources_table().close(download_rid);
+    Ok(())
+}
+
 // ── Helper: 获取当前版本号 ──────────────────────────────────────
 
 fn current_version() -> String {
@@ -288,34 +461,22 @@ fn apk_part_path(app: &tauri::AppHandle, version: &str) -> Result<PathBuf, Strin
     Ok(path)
 }
 
-/// U003: 进程内「APK 下载进行中」标志——Tauri commands 并发执行，用户在分段下载
-/// 进行中触发 `android_check_update`（AboutPage/横幅）时，若 cleanup 照常执行会删除
-/// `download_range_to_file` **正在写入**的 `.part.seg{i}`。下载进行中 cleanup 直接跳过
-/// （后果可自愈：合并 open 失败 → 回退单流 → SHA-256 终检兜底，但避免浪费带宽/进度归零）。
-static APK_DOWNLOAD_ACTIVE: std::sync::atomic::AtomicBool =
-    std::sync::atomic::AtomicBool::new(false);
+/// 下载与缓存清理使用同一把锁：检查后删除、两个窗口同时下载均不能互相覆盖文件。
+static APK_CACHE_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
-/// V003: Drop guard（scopeguard 式，无需外部依赖）——无论正常返回、`?` 提前返回还是
-/// panic unwind，离开作用域时都恢复 `APK_DOWNLOAD_ACTIVE`，杜绝标志永久置位导致
-/// cleanup 此后整体失效。
-struct ApkDownloadActiveGuard;
-
-impl Drop for ApkDownloadActiveGuard {
-    fn drop(&mut self) {
-        use std::sync::atomic::Ordering;
-        APK_DOWNLOAD_ACTIVE.store(false, Ordering::Relaxed);
-    }
+/// 检查更新时如果有下载进行中，跳过缓存清理。
+fn cleanup_stale_apk_cache(app: &tauri::AppHandle, current_version: &str) -> Result<(), String> {
+    let Ok(_guard) = APK_CACHE_LOCK.try_lock() else {
+        return Ok(());
+    };
+    cleanup_stale_apk_cache_locked(app, current_version)
 }
 
-/// 清理非当前版本的 APK 缓存文件，避免旧版本安装包占用空间并被误用。
-///
-/// 下载进行中（`APK_DOWNLOAD_ACTIVE` 为 true）时**整体跳过**，保护正在写入的
-/// `.part.seg{i}`；调用点均为下载开始前或检查更新时，下次下载前仍会正常清理。
-fn cleanup_stale_apk_cache(app: &tauri::AppHandle, current_version: &str) -> Result<(), String> {
-    use std::sync::atomic::Ordering;
-    if APK_DOWNLOAD_ACTIVE.load(Ordering::Relaxed) {
-        return Ok(());
-    }
+/// 调用方必须持有 APK_CACHE_LOCK，下载前清理也复用这条路径。
+fn cleanup_stale_apk_cache_locked(
+    app: &tauri::AppHandle,
+    current_version: &str,
+) -> Result<(), String> {
     let cache_dir = app
         .path()
         .resolve("", tauri::path::BaseDirectory::Cache)
@@ -730,63 +891,79 @@ pub async fn desktop_check_update(app: tauri::AppHandle) -> Result<DesktopUpdate
 /// 复用 `resolve_verified_checksum` 重新验签；元数据缺失或验签失败则 **fail-closed**
 /// 拒绝下载（绝不降级为「无校验下载」）。下载完成后仍强制 SHA-256 校验。
 ///
-/// 事件名：`apk-download-progress`
+/// 进度通过当前请求的 Channel 发送，避免旧操作事件污染重试后的界面。
 #[tauri::command]
-pub async fn android_download_apk(app: tauri::AppHandle, version: String) -> Result<(), String> {
+pub async fn android_download_apk(
+    app: tauri::AppHandle,
+    webview: Webview,
+    version: String,
+    operation_id: ResourceId,
+    on_event: Channel<ApkDownloadProgress>,
+) -> Result<(), String> {
+    let operation = webview
+        .resources_table()
+        .get::<UpdateDownloadOperation>(operation_id)
+        .map_err(|e| e.to_string())?;
     let dest = apk_cache_path(&app, &version)?;
     let part_path = apk_part_path(&app, &version)?;
-
-    // 下载前再次清理旧版本缓存，确保不会把旧版本的 .part/.apk 混淆。
-    let _ = cleanup_stale_apk_cache(&app, &version);
-
-    // P002: Rust 侧重新拉取 release 元数据，提取 APK 下载地址并重新验签校验和。
-    let client = github_client()?;
-    let tag = if version.starts_with('v') {
-        version.clone()
-    } else {
-        format!("v{}", version)
-    };
-    let release = fetch_github_release_by_tag(&client, &tag).await?;
-    let (download_url, _apk_size) =
-        find_apk_asset(&release).ok_or_else(|| "Release 中未找到 APK 资产".to_string())?;
-    let expected_checksum = resolve_verified_checksum(&client, &release)
-        .await
-        .0
-        .ok_or_else(|| "APK 校验和不可信（签名缺失或验签失败），已拒绝下载".to_string())?;
-
-    // 下载候选通道：直连优先 + 代理回退（元数据/校验和/APK 全链路同策略）
-    let candidates = download_candidates(&download_url);
-
-    // 探测下载通道并判定策略：直连健康→单流直连；直连失败/过慢→并行+代理
-    let strategy = probe_download(&candidates).await?; // U003: 标记下载进行中（cleanup 据此跳过，避免并发删除正在写入的 .seg 文件）。
-                                                       // 探测阶段已完成（不写 seg），从下载主体开始标记。
-    use std::sync::atomic::Ordering;
-    APK_DOWNLOAD_ACTIVE.store(true, Ordering::Relaxed);
-    let _active_guard = ApkDownloadActiveGuard; // V003: Drop 时恢复标志，panic 路径也不泄漏
-    let result = download_apk_to_part(
-        &app,
-        &candidates,
-        strategy,
-        &part_path,
-        &dest,
-        &expected_checksum,
-    )
-    .await;
+    let _cache_guard = APK_CACHE_LOCK
+        .try_lock()
+        .map_err(|_| "已有 APK 下载正在进行中".to_string())?;
+    let result = operation
+        .run(async {
+            let _ = cleanup_stale_apk_cache_locked(&app, &version);
+            // URL 与 SHA-256 校验和均重新从 Rust 侧验签后的 Release 元数据取得。
+            let client = github_client()?;
+            let tag = if version.starts_with('v') {
+                version.clone()
+            } else {
+                format!("v{version}")
+            };
+            let release = fetch_github_release_by_tag(&client, &tag).await?;
+            let (download_url, _) =
+                find_apk_asset(&release).ok_or_else(|| "Release 中未找到 APK 资产".to_string())?;
+            let expected_checksum = resolve_verified_checksum(&client, &release)
+                .await
+                .0
+                .ok_or_else(|| "APK 校验和不可信（签名缺失或验签失败），已拒绝下载".to_string())?;
+            let candidates = download_candidates(&download_url);
+            let strategy = probe_download(&candidates).await?;
+            download_apk_to_part(
+                &on_event,
+                &candidates,
+                strategy,
+                &part_path,
+                &dest,
+                &expected_checksum,
+                &operation,
+            )
+            .await
+        })
+        .await;
+    if result.as_ref().is_err_and(|e| e == DOWNLOAD_CANCELLED) {
+        // run 已 drop 全部请求 future，确保没有并行写入者再清理；已验证 .apk 保留。
+        cleanup_cancelled_apk(&part_path);
+    }
     let final_size = result?;
-
-    // 发送完成事件
-    let _ = app.emit(
-        "apk-download-progress",
-        ApkDownloadProgress {
-            progress: 100,
-            downloaded: final_size,
-            total: final_size,
-            done: true,
-            error: None,
-        },
-    );
-
+    let _ = on_event.send(ApkDownloadProgress {
+        progress: 100,
+        downloaded: final_size,
+        total: final_size,
+        done: true,
+        error: None,
+    });
     Ok(())
+}
+
+fn cleanup_cancelled_apk(part_path: &std::path::Path) {
+    let _ = std::fs::remove_file(part_path);
+    for suffix in std::iter::once(".merge".to_string())
+        .chain((0..PARALLEL_SEGMENTS).map(|i| format!(".seg{i}")))
+    {
+        let mut path = part_path.as_os_str().to_owned();
+        path.push(suffix);
+        let _ = std::fs::remove_file(PathBuf::from(path));
+    }
 }
 
 /// 构造并行下载的段级候选顺序（修复①）。
@@ -808,20 +985,20 @@ fn parallel_candidate_order(candidates: &[String], idx: usize) -> Vec<String> {
 /// 下载主体：按探测策略执行（直连健康→单流直连；需加速→并行分段或单流），
 /// 随后 SHA-256 校验并返回最终大小。
 ///
-/// 抽为独立 async 函数使 `android_download_apk` 的 U003 活动标志在错误路径也能恢复
-/// （调用方 await 后无论 Ok/Err 都 store(false)）。
+/// 不启动脱离当前 future 的任务，调用方取消时所有下载和写入同步停止。
 async fn download_apk_to_part(
-    app: &tauri::AppHandle,
+    on_event: &Channel<ApkDownloadProgress>,
     candidates: &[String],
     strategy: DownloadStrategy,
     part_path: &std::path::Path,
     dest: &std::path::Path,
     expected_checksum: &str,
+    operation: &UpdateDownloadOperation,
 ) -> Result<u64, String> {
     match strategy {
         // 修复④：直连健康 → 旧版单流直连（候选仍直连优先，代理仅作段级兜底）
         DownloadStrategy::DirectSingleStream => {
-            download_apk_single_stream(app, candidates, part_path).await?;
+            download_apk_single_stream(on_event, candidates, part_path).await?;
         }
         // 直连失败/过慢（国内受限场景）→ 启用并行分段 + 代理回退
         DownloadStrategy::Accelerated {
@@ -837,21 +1014,23 @@ async fn download_apk_to_part(
                     // 并行失败（代理限流/中途断连等）时回退单流重试一次：
                     // parallel 已把完成段合并为 part_path 前缀（修复②），单流可断点
                     // 续传；单流再失败则错误传播，由调用方处理。
-                    if let Err(e) = download_apk_parallel(app, &ordered, total, part_path).await {
+                    if let Err(e) =
+                        download_apk_parallel(on_event, &ordered, total, part_path).await
+                    {
                         tracing::warn!("[updater] 分段并行下载失败，回退单流重试: {e}");
-                        download_apk_single_stream(app, candidates, part_path).await?;
+                        download_apk_single_stream(on_event, candidates, part_path).await?;
                     }
                 } else {
-                    download_apk_single_stream(app, candidates, part_path).await?;
+                    download_apk_single_stream(on_event, candidates, part_path).await?;
                 }
             } else {
-                download_apk_single_stream(app, candidates, part_path).await?;
+                download_apk_single_stream(on_event, candidates, part_path).await?;
             }
         }
     }
 
     // SHA-256 校验（P002：校验和由 Rust 侧验签获取，必非空，强制校验）+ 落盘
-    let final_size = verify_and_finalize(part_path, dest, expected_checksum)?;
+    let final_size = verify_and_finalize(part_path, dest, expected_checksum, operation)?;
     Ok(final_size)
 }
 
@@ -1017,7 +1196,7 @@ fn merge_seg_files(part_path: &std::path::Path, seg_paths: &[PathBuf]) -> Result
 /// 任一段失败即中止其余任务，并把**已完成的段（必为连续前缀）合并为 `part_path`**
 /// 断点供回退单流续传（修复②），不再从 0 重下。
 async fn download_apk_parallel(
-    app: &tauri::AppHandle,
+    on_event: &Channel<ApkDownloadProgress>,
     candidates: &[String],
     total: u64,
     part_path: &std::path::Path,
@@ -1039,47 +1218,41 @@ async fn download_apk_parallel(
         })
         .collect();
 
-    let mut handles = Vec::with_capacity(seg_count);
+    use futures::stream::{FuturesUnordered, StreamExt};
+    let mut pending = FuturesUnordered::new();
     for (i, &(start, end)) in segments.iter().enumerate() {
         let client = client.clone();
         let candidates = candidates.to_vec();
         let path = seg_paths[i].clone();
         let sink = ProgressSink {
-            app: app.clone(),
+            on_event: on_event.clone(),
             downloaded: downloaded.clone(),
             last_reported: std::sync::atomic::AtomicU64::new(0),
             file_total: total,
         };
-        handles.push(tokio::spawn(async move {
-            download_range_to_file(&client, &candidates, start, end, &path, &sink).await
-        }));
+        pending.push(async move {
+            (
+                i,
+                download_range_to_file(&client, &candidates, start, end, &path, &sink).await,
+            )
+        });
     }
-    // 顺序等待各段结果（0..seg_count）；任一段失败即中止其余仍在运行的分段任务
-    // （否则它们会继续写已清理的 .seg 文件并 emit 进度事件）。
-    // 因按序等待，首个失败段下标即「已完成段数」：0..fail_idx 均已成功写盘。
-    let mut iter = handles.into_iter();
-    let mut failure: Option<(usize, String)> = None;
-    for (i, handle) in iter.by_ref().enumerate() {
-        let result = handle
-            .await
-            .map_err(|e| format!("分段下载任务异常: {e}"))
-            .and_then(|r| r.map_err(|e| format!("分段下载失败: {e}")));
-        if let Err(e) = result {
-            failure = Some((i, e));
-            break;
+    // 子 future 归父 future 所有，取消时 drop 会立即释放 HTTP 流和文件句柄，
+    // 不使用 tokio::spawn，避免丢弃 JoinHandle 后仍在后台写入孤儿 .seg 文件。
+    let mut completed = vec![false; seg_count];
+    let mut failure = None;
+    while let Some((i, result)) = pending.next().await {
+        match result {
+            Ok(()) => completed[i] = true,
+            Err(error) => {
+                failure = Some(error);
+                break;
+            }
         }
     }
-    if let Some((fail_idx, e)) = failure {
-        // U005: abort() 是异步信号——任务可能已越过最后的 await 点仍在执行
-        // （写完文件才返回），若立刻删 seg 文件，任务收尾时可能重建孤儿 .seg。
-        // 先 abort 全部剩余句柄，再逐个 await（忽略结果）确保完全停止，之后清理。
-        let remaining: Vec<_> = iter.collect();
-        for handle in &remaining {
-            handle.abort();
-        }
-        for handle in remaining {
-            let _ = handle.await;
-        }
+    drop(pending);
+    if let Some(e) = failure {
+        let fail_idx = completed.iter().take_while(|&&done| done).count();
         // 修复②：已完成段（0..fail_idx）构成连续前缀，合并为 part_path 断点供
         // 回退单流续传（Range: bytes={prefix}-），避免从 0 重下整个文件。
         // 仅当前缀长于既有 .part（上次单流遗留断点）时才覆盖，否则保留更长断点。
@@ -1122,7 +1295,7 @@ async fn download_apk_parallel(
 
 /// 分段下载的进度上报集合（打包传输，避免函数参数过多）。
 struct ProgressSink {
-    app: tauri::AppHandle,
+    on_event: Channel<ApkDownloadProgress>,
     downloaded: std::sync::Arc<std::sync::atomic::AtomicU64>,
     /// 已上报过的最大累计值——并发段可能乱序 fetch_add，只上报上升值保证进度条单调不回退。
     last_reported: std::sync::atomic::AtomicU64,
@@ -1142,16 +1315,13 @@ impl ProgressSink {
             }
             self.last_reported.store(done, Ordering::Relaxed);
             let pct = (done as f64 / self.file_total as f64 * 100.0) as u32;
-            let _ = self.app.emit(
-                "apk-download-progress",
-                ApkDownloadProgress {
-                    progress: pct.min(100),
-                    downloaded: done,
-                    total: self.file_total,
-                    done: false,
-                    error: None,
-                },
-            );
+            let _ = self.on_event.send(ApkDownloadProgress {
+                progress: pct.min(100),
+                downloaded: done,
+                total: self.file_total,
+                done: false,
+                error: None,
+            });
         }
     }
 }
@@ -1243,7 +1413,7 @@ fn next_resume_offset(part_len: Option<u64>) -> u64 {
 /// 单流下载（不支持 Range 或文件较小）：候选通道回退 + 断点续传 + 进度事件。
 /// 成功返回后 `part_path` 即完整文件，交由调用方校验落盘。
 async fn download_apk_single_stream(
-    app: &tauri::AppHandle,
+    on_event: &Channel<ApkDownloadProgress>,
     candidates: &[String],
     part_path: &std::path::Path,
 ) -> Result<(), String> {
@@ -1333,16 +1503,13 @@ async fn download_apk_single_stream(
             let downloaded = initial_offset + new_bytes;
             if file_total > 0 {
                 let pct = (downloaded as f64 / file_total as f64 * 100.0) as u32;
-                let _ = app.emit(
-                    "apk-download-progress",
-                    ApkDownloadProgress {
-                        progress: pct.min(100),
-                        downloaded,
-                        total: file_total,
-                        done: false,
-                        error: None,
-                    },
-                );
+                let _ = on_event.send(ApkDownloadProgress {
+                    progress: pct.min(100),
+                    downloaded,
+                    total: file_total,
+                    done: false,
+                    error: None,
+                });
             }
         }
         // U005: 流中途失败（分块读取/写入错误）→ 保留已写字节作为断点，切下一候选；
@@ -1373,6 +1540,7 @@ fn verify_and_finalize(
     part_path: &std::path::Path,
     dest: &std::path::Path,
     expected_checksum: &str,
+    operation: &UpdateDownloadOperation,
 ) -> Result<u64, String> {
     use std::io::Read;
     let mut file =
@@ -1381,6 +1549,7 @@ fn verify_and_finalize(
     let mut buf = [0u8; 8192];
     let mut size = 0u64;
     loop {
+        operation.check_cancelled()?;
         let n = file
             .read(&mut buf)
             .map_err(|e| format!("读取文件校验: {e}"))?;
@@ -1398,6 +1567,7 @@ fn verify_and_finalize(
             expected_checksum, actual
         ));
     }
+    operation.check_cancelled()?;
     // 先删除可能存在的旧最终文件
     let _ = std::fs::remove_file(dest);
     std::fs::rename(part_path, dest).map_err(|e| format!("重命名 APK 文件失败: {e}"))?;
@@ -1446,6 +1616,132 @@ pub async fn android_is_apk_downloaded(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn cancelled_before_download_never_polls_request() {
+        let operation = UpdateDownloadOperation::new();
+        operation.cancel();
+        let polled = AtomicBool::new(false);
+        let result = operation
+            .run(async {
+                polled.store(true, Ordering::SeqCst);
+                Ok(())
+            })
+            .await;
+        assert_eq!(result.unwrap_err(), DOWNLOAD_CANCELLED);
+        assert!(!polled.load(Ordering::SeqCst));
+    }
+
+    #[tokio::test]
+    async fn closed_download_resource_cancels_and_cannot_be_reused() {
+        let operation = Arc::new(UpdateDownloadOperation::new());
+        let (started, ready) = tokio::sync::oneshot::channel();
+        let (result, ()) = tokio::join!(
+            operation.run(async {
+                let _ = started.send(());
+                std::future::pending::<Result<(), String>>().await
+            }),
+            async {
+                ready.await.unwrap();
+                Resource::close(operation.clone());
+            }
+        );
+        assert_eq!(result.unwrap_err(), DOWNLOAD_CANCELLED);
+        assert!(operation
+            .run(async { Ok(()) })
+            .await
+            .unwrap_err()
+            .contains("已启动"));
+    }
+
+    /// 真实本地 HTTP 流：四段各写一字节后停流。取消返回之前，全部套接字均应关闭，
+    /// 临时文件可以删除且不会被后台任务重建，原有已验签 APK 不受影响。
+    #[tokio::test]
+    async fn cancelling_parallel_download_closes_all_streams_and_preserves_apk() {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+        let dir = tempfile::tempdir().unwrap();
+        let part = dir.path().join("update_test.part");
+        let apk = dir.path().join("update_test.apk");
+        std::fs::write(&apk, b"verified previous package").unwrap();
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let candidates = vec![format!("http://{}/app.apk", listener.local_addr().unwrap())];
+        let server = tokio::spawn(async move {
+            let mut streams = Vec::new();
+            for _ in 0..PARALLEL_SEGMENTS {
+                let (mut socket, _) = listener.accept().await.unwrap();
+                streams.push(tokio::spawn(async move {
+                    let mut request = Vec::new();
+                    let mut buffer = [0u8; 4096];
+                    while !request.windows(4).any(|w| w == b"\r\n\r\n") {
+                        let n = socket.read(&mut buffer).await.unwrap();
+                        assert!(n > 0);
+                        request.extend_from_slice(&buffer[..n]);
+                    }
+                    socket
+                        .write_all(
+                            b"HTTP/1.1 206 Partial Content\r\nContent-Length: 5242880\r\n\r\nx",
+                        )
+                        .await
+                        .unwrap();
+                    // 未传完响应体就收到 EOF，说明取消真实关闭了网络请求。
+                    assert_eq!(socket.read(&mut buffer).await.unwrap(), 0);
+                }));
+            }
+            for stream in streams {
+                stream.await.unwrap();
+            }
+        });
+        let (reported, mut progress) = tokio::sync::mpsc::unbounded_channel();
+        let on_event = Channel::new(move |_| {
+            let _ = reported.send(());
+            Ok(())
+        });
+        let operation = UpdateDownloadOperation::new();
+        let (result, ()) = tokio::join!(
+            operation.run(download_apk_parallel(
+                &on_event,
+                &candidates,
+                PARALLEL_MIN_FILE_SIZE,
+                &part
+            )),
+            async {
+                for _ in 0..PARALLEL_SEGMENTS {
+                    tokio::time::timeout(std::time::Duration::from_secs(5), progress.recv())
+                        .await
+                        .unwrap()
+                        .unwrap();
+                }
+                operation.cancel();
+            }
+        );
+        assert_eq!(result.unwrap_err(), DOWNLOAD_CANCELLED);
+        cleanup_cancelled_apk(&part);
+        tokio::time::timeout(std::time::Duration::from_secs(5), server)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(std::fs::read(&apk).unwrap(), b"verified previous package");
+        assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
+    }
+
+    #[test]
+    fn cancellation_during_verification_does_not_replace_verified_apk() {
+        let dir = tempfile::tempdir().unwrap();
+        let part = dir.path().join("update_test.part");
+        let apk = dir.path().join("update_test.apk");
+        std::fs::write(&part, b"new package").unwrap();
+        std::fs::write(&apk, b"verified previous package").unwrap();
+        let operation = UpdateDownloadOperation::new();
+        operation.cancel();
+        let checksum = format!("{:x}", sha2::Sha256::digest(b"new package"));
+        assert_eq!(
+            verify_and_finalize(&part, &apk, &checksum, &operation).unwrap_err(),
+            DOWNLOAD_CANCELLED
+        );
+        cleanup_cancelled_apk(&part);
+        assert_eq!(std::fs::read(&apk).unwrap(), b"verified previous package");
+        assert!(!part.exists());
+    }
 
     // T004 防抖：SOLOSOUL_PROXY_PREFIXES 是进程级环境变量，涉及它的测试必须
     // 串行执行（Rust 测试默认多线程并发，set_var/remove_var 会相互干扰）。

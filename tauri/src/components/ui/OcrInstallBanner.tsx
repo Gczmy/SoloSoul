@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader2, AlertTriangle, RotateCcw, CheckCircle, X } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
+import { isMobilePlatformSync } from '@/lib/platform';
+import styles from './NotificationBanner.module.css';
 
 export type OcrInstallPhase = 'installing' | 'completed' | 'error';
 
@@ -62,74 +64,77 @@ export function OcrInstallBanner({
   const isError = phase === 'error' || error !== null;
   const isCompleted = phase === 'completed';
 
+  const progressValue = Math.min(100, Math.max(0, progress));
+
   return (
     <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-        padding: '10px 16px',
-        background: isError
-          ? 'var(--color-error-bg, #fdeaea)'
-          : isCompleted
-            ? 'var(--color-success-bg, #e8f5e9)'
-            : 'var(--accent-primary)',
-        color: isError
-          ? 'var(--color-error-text, #c0392b)'
-          : isCompleted
-            ? 'var(--color-success-text, #2e7d32)'
-            : 'white',
-        fontSize: 'var(--text-body-sm)',
-        boxShadow: 'var(--shadow-md)',
-      }}
+      className={styles.banner}
+      data-notification-banner="ocr"
+      data-mobile={isMobilePlatformSync() ? 'true' : undefined}
+      data-tone={isError ? 'error' : isCompleted ? 'success' : undefined}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {isError ? (
-            <AlertTriangle size={ICON_SIZE.md} />
-          ) : isCompleted ? (
-            <CheckCircle size={ICON_SIZE.md} />
-          ) : (
-            <Loader2 size={ICON_SIZE.md} className="spin" />
-          )}
-          <span style={{ fontWeight: 500 }}>
-            {isError
-              ? t('first_install_error')
-              : isCompleted
-                ? t('first_install_completed')
-                : t('first_install_banner', { progress })}
-          </span>
-          {isCompleted && (
-            <span style={{ fontSize: 'var(--text-badge)', opacity: 0.8 }}>
-              ({t('auto_close_countdown', { seconds: remainingSeconds })})
-            </span>
+      <div className={styles.row}>
+        <div className={styles.content}>
+          <div className={styles.summary}>
+            {isError ? (
+              <AlertTriangle size={ICON_SIZE.md} className={styles.statusIcon} />
+            ) : isCompleted ? (
+              <CheckCircle size={ICON_SIZE.md} className={styles.statusIcon} />
+            ) : (
+              <Loader2 size={ICON_SIZE.md} className={`${styles.statusIcon} ${styles.spinner}`} />
+            )}
+            <div className={styles.messageGroup}>
+              <span className={styles.message}>
+                {isError
+                  ? t('first_install_error')
+                  : isCompleted
+                    ? t('first_install_completed')
+                    : t('first_install_banner', { progress: progressValue })}
+                {isCompleted && (
+                  <span className={styles.countdown}>
+                    ({t('auto_close_countdown', { seconds: remainingSeconds })})
+                  </span>
+                )}
+              </span>
+              {isError && error && (
+                <span className={styles.errorText} title={error}>
+                  {error}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {!isError && !isCompleted && (
+            <div className={styles.progressGroup}>
+              <div
+                className={styles.progressTrack}
+                role="progressbar"
+                aria-label={t('first_install_banner', { progress: progressValue })}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={progressValue}
+              >
+                <div className={styles.progressFill} style={{ width: `${progressValue}%` }} />
+              </div>
+            </div>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+
+        <div className={styles.actions}>
           {isError && (
             <button
               type="button"
+              className={`${styles.button} ${styles.primaryButton}`}
               onClick={onRetry}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                padding: '5px 10px',
-                borderRadius: 6,
-                border: 'none',
-                background: 'rgba(192, 57, 43, 0.12)',
-                color: 'var(--color-error-text, #c0392b)',
-                fontSize: 'var(--text-caption)',
-                fontWeight: 500,
-                cursor: 'pointer',
-              }}
             >
               <RotateCcw size={ICON_SIZE.xs} /> {t('first_install_retry')}
             </button>
           )}
           <button
             type="button"
+            className={`${styles.button} ${styles.iconButton} ${styles.closeButton}`}
             aria-label={t('close', { ns: 'common' })}
+            title={t('close', { ns: 'common' })}
             onClick={() => {
               if (intervalRef.current) {
                 window.clearInterval(intervalRef.current);
@@ -137,47 +142,11 @@ export function OcrInstallBanner({
               }
               onClose?.();
             }}
-            title={t('close', { ns: 'common' })}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 24,
-              height: 24,
-              borderRadius: 6,
-              border: 'none',
-              background: 'rgba(0,0,0,0.08)',
-              color: 'inherit',
-              cursor: 'pointer',
-              padding: 0,
-            }}
           >
             <X size={ICON_SIZE.sm} />
           </button>
         </div>
       </div>
-
-      {!isError && !isCompleted && (
-        <div
-          style={{
-            width: '100%',
-            height: 4,
-            borderRadius: 2,
-            background: 'rgba(255,255,255,0.25)',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              width: `${Math.min(100, Math.max(0, progress))}%`,
-              height: '100%',
-              background: 'linear-gradient(90deg, rgba(255,255,255,0.95), #ffe9c4)',
-              borderRadius: 2,
-              transition: 'width 0.2s ease',
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 }
