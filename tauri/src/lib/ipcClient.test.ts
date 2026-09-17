@@ -173,6 +173,30 @@ describe('invokeCommand（统一 IPC 调用层）', () => {
     }
   });
 
+  it('P039：异步鉴权后会话已变更时不发送 IPC', async () => {
+    vi.stubEnv('MODE', 'development');
+    let current = true;
+    vi.mocked(useAuthStore).getState.mockImplementation(() => {
+      current = false;
+      return { isAuthenticated: true } as never;
+    });
+    try {
+      await expect(
+        invokeCommand('object_list', {}, { requestIsCurrent: () => current }),
+      ).rejects.toThrow('expired session');
+      expect(invoke).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  it('P039：无需解锁的偏好写入也检查调用方会话', async () => {
+    await expect(
+      invokeCommand('ui_update_preference', {}, { requestIsCurrent: () => false }),
+    ).rejects.toThrow('expired session');
+    expect(invoke).not.toHaveBeenCalled();
+  });
+
   it('P027 默认守卫：requireUnlocked:true 强制拦截豁免名单命令', async () => {
     vi.stubEnv('MODE', 'development');
     vi.mocked(useAuthStore).getState.mockReturnValue({ isAuthenticated: false } as never);

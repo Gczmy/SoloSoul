@@ -1,3 +1,5 @@
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
+import { usePluginStore } from '@/stores/pluginStore';
 import { Suspense, useEffect } from 'react';
 import { trackAsyncListener } from '@/lib/asyncListener';
 import { dismissStartupScreen } from '@/lib/startupScreen';
@@ -42,6 +44,14 @@ import { warmupPrefetchRegistry, resetPrefetchRegistry } from '@/lib/prefetch/wa
 import { BootstrapPage } from '@/pages/auth/BootstrapPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 
+const settingsRequests = createSessionRequests();
+onRequestSessionChange(() => {
+  useOcrScanStore.getState().clearOnVaultLock();
+  useLlmStore.getState().reset();
+  searchCache.clear();
+  resetPrefetchRegistry();
+});
+
 export function AppRoutes() {
   useEffect(observeNativeWindowLayout, []);
   const navigate = useNavigate();
@@ -58,12 +68,13 @@ export function AppRoutes() {
   }, []);
   const { t } = useTranslation(['settings']);
   // P022: useShallow 字段级选择——避免 store 任意字段（error/backendError 等）翻转时整页重渲染
-  const { checkHasAccount, hasAccount, isAuthenticated, backendError } = useAuthStore(
+  const { checkHasAccount, hasAccount, isAuthenticated, backendError, accountId } = useAuthStore(
     useShallow((s) => ({
       checkHasAccount: s.checkHasAccount,
       hasAccount: s.hasAccount,
       isAuthenticated: s.isAuthenticated,
       backendError: s.backendError,
+      accountId: s.currentAccount?.id,
     })),
   );
   // P041: 统一更新状态机（桌面 plugin-updater + Android GitHub Release）与 OCR 首装逻辑
@@ -155,15 +166,19 @@ export function AppRoutes() {
   // Load settings and profile after authentication
   useEffect(() => {
     const account = useAuthStore.getState().currentAccount;
+    let active = true;
+    const request = settingsRequests.begin('settings-chain', account?.id);
     if (isAuthenticated && account) {
       useProfileStore.getState().loadProfile(account.id);
       useSettingsStore
         .getState()
         .loadSettings(account.id)
         .then(async () => {
+          if (!active || !request.isCurrent()) return;
           // Re-apply theme with loaded settings (otherwise stays at defaults)
           const s = useSettingsStore.getState().settings;
           const resolvedSystemTheme = s.theme === 'system' ? await getSystemTheme() : undefined;
+          if (!active || !request.isCurrent()) return;
           await applyTheme({
             preset:
               s.theme === 'dark'
@@ -186,14 +201,21 @@ export function AppRoutes() {
           // Must run AFTER loadSettings finishes to avoid race condition where
           // loadSettings overwrites customPages with DEFAULT_SETTINGS.
           // P127: await + catch——失败不再产生 unhandled rejection 或自定义页面静默缺失。
+          if (!active || !request.isCurrent()) return;
           try {
             await useSettingsStore.getState().loadCustomPages(account.id);
           } catch (err) {
             logger.warn('[AppRoutes] Failed to load custom pages:', err);
           }
+        })
+        .catch((err) => {
+          if (active && request.isCurrent()) logger.warn('[AppRoutes] settings load failed:', err);
         });
     }
-  }, [isAuthenticated]);
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated, accountId]);
 
   useApplyThemeFromSettings();
   useAutoLock();
@@ -284,6 +306,7 @@ export function AppRoutes() {
       // P004/P005: 锁定后立即清理回收站解密摘要与搜索明文缓存，
       // 避免解密数据残留在内存直至 TTL 自然过期。
       useTrashStore.getState().clearOnVaultLock();
+      usePluginStore.getState().clearOnVaultLock();
       // P230: 锁定后清空 OCR 扫描结果内存态（含 MRZ 证件号）。
       useOcrScanStore.getState().clearOnVaultLock();
       // N-3: 锁定后清空 LLM 流式缓冲明文（streamBuffer/streamError），
@@ -296,7 +319,7 @@ export function AppRoutes() {
       // Re-check account state so hasAccount resolves from null → true/false
       // (otherwise /login route stays on "Connecting...")
       await useAuthStore.getState().checkHasAccount();
-      navigate('/login');
+      if (!useAuthStore.getState().isAuthenticated) navigate('/login');
     });
     return () => {
       unlisten.then((f) => f());
@@ -444,7 +467,7 @@ export function AppRoutes() {
           <Route
             element={
               <AuthGuard>
-                <ShellLayout />
+                <ShellLayout key={accountId} />
               </AuthGuard>
             }
           >

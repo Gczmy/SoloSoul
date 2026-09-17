@@ -1,5 +1,5 @@
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { create } from 'zustand';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 
 interface ProfileSectionData {
   sectionType: string;
@@ -31,6 +31,8 @@ interface ProfileState {
   clear: () => void;
 }
 
+const requests = createSessionRequests();
+
 export const useProfileStore = create<ProfileState>((set) => ({
   accountId: null,
   sections: [],
@@ -38,11 +40,17 @@ export const useProfileStore = create<ProfileState>((set) => ({
   error: null,
 
   loadProfile: async (accountId) => {
-    set({ isLoading: true, error: null });
+    const request = requests.begin('profile', accountId);
+    const setCurrent = request.guardSet<ProfileState>(set);
+    setCurrent({ isLoading: true, error: null });
     try {
-      const profile = await invoke<{ accountId: string; data: number[] } | null>('profile_load', {
-        accountId: accountId,
-      });
+      const profile = await request.invoke<{ accountId: string; data: number[] } | null>(
+        'profile_load',
+        {
+          accountId: accountId,
+        },
+      );
+      request.assertCurrent();
       if (profile?.data) {
         const json = JSON.parse(new TextDecoder().decode(new Uint8Array(profile.data)));
         const loadedSections: ProfileSectionData[] = (json.sections || []).map(
@@ -56,14 +64,20 @@ export const useProfileStore = create<ProfileState>((set) => ({
             })),
           }),
         );
-        set({ accountId: profile.accountId, sections: loadedSections, isLoading: false });
+        setCurrent({ accountId: profile.accountId, sections: loadedSections, isLoading: false });
       } else {
-        set({ accountId, sections: [], isLoading: false });
+        setCurrent({ accountId, sections: [], isLoading: false });
       }
     } catch (err) {
-      set({ error: String(err), isLoading: false });
+      if (!request.isCurrent()) return;
+      setCurrent({ error: String(err), isLoading: false });
     }
   },
 
-  clear: () => set({ accountId: null, sections: [], error: null }),
+  clear: () => {
+    requests.invalidate();
+    return set({ accountId: null, sections: [], isLoading: false, error: null });
+  },
 }));
+
+onRequestSessionChange(() => useProfileStore.getState().clear());

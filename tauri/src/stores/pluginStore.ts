@@ -1,3 +1,4 @@
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { create } from 'zustand';
 import {
   ConsentRequestEvent,
@@ -78,6 +79,7 @@ export function isPluginCompletedEvent(value: unknown): value is { exitCode: num
 }
 
 export interface RunningPlugin {
+  runId?: string;
   pluginId: string;
   pluginName: string;
   startTime: number;
@@ -179,9 +181,12 @@ interface PluginState {
   stopPlugin: (pluginId: string) => void;
   clearPluginOutput: (pluginId: string) => void;
   resolveDialog: (pluginId: string, requestId: string, value?: string) => Promise<void>;
+  clearOnVaultLock: () => void;
   clearError: () => void;
   refreshRegistry: () => Promise<void>;
 }
+
+const requests = createSessionRequests();
 
 export const usePluginStore = create<PluginState>()((set, get) => ({
   marketPlugins: [],
@@ -194,12 +199,17 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
   error: null,
 
   loadMarket: async () => {
-    set({ isLoadingMarket: true, error: null });
+    const request = requests.begin('market');
+    const setCurrent = request.guardSet<PluginState>(set);
+    setCurrent({ isLoadingMarket: true, error: null });
     try {
+      request.assertCurrent();
       const list = await pluginCommands.listAll();
-      set({ marketPlugins: list, isLoadingMarket: false });
+      request.assertCurrent();
+      setCurrent({ marketPlugins: list, isLoadingMarket: false });
     } catch (err) {
-      set({ error: String(err), isLoadingMarket: false });
+      if (!request.isCurrent()) return;
+      setCurrent({ error: String(err), isLoadingMarket: false });
     }
   },
 
@@ -207,61 +217,94 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
     set({ selectedTier: tier });
   },
 
+  clearOnVaultLock: () => {
+    requests.invalidate();
+    set({ runningPlugins: {}, error: null, isLoadingMarket: false, isLoadingInstalled: false });
+  },
+
   clearError: () => {
     set({ error: null });
   },
 
   loadInstalled: async () => {
-    set({ isLoadingInstalled: true, error: null });
+    const request = requests.begin('installed');
+    const setCurrent = request.guardSet<PluginState>(set);
+    setCurrent({ isLoadingInstalled: true, error: null });
     try {
+      request.assertCurrent();
       const list = await pluginCommands.listInstalled();
-      set({ installedPlugins: list, isLoadingInstalled: false });
+      request.assertCurrent();
+      setCurrent({ installedPlugins: list, isLoadingInstalled: false });
     } catch (err) {
-      set({ error: String(err), isLoadingInstalled: false });
+      if (!request.isCurrent()) return;
+      setCurrent({ error: String(err), isLoadingInstalled: false });
     }
   },
 
   installPlugin: async (pluginId: string, version: string) => {
+    const request = requests.begin();
+    const setCurrent = request.guardSet<PluginState>(set);
     try {
+      request.assertCurrent();
       await pluginCommands.install(pluginId, version);
+      request.assertCurrent();
       await get().loadMarket();
+      request.assertCurrent();
       await get().loadInstalled();
+      request.assertCurrent();
       // 触发模板重载，使 seed 模板的 contract_bindings 迁移结果即时反映在 UI
       useTemplateStore
         .getState()
         .loadTemplates()
         .catch((err) => logger.warn('[pluginStore] installPlugin: template reload failed:', err));
     } catch (err) {
-      set({ error: String(err) });
+      if (!request.isCurrent()) return;
+      setCurrent({ error: String(err) });
     }
   },
 
   updatePlugin: async (pluginId: string) => {
+    const request = requests.begin();
+    const setCurrent = request.guardSet<PluginState>(set);
     try {
+      request.assertCurrent();
       await pluginCommands.update(pluginId);
+      request.assertCurrent();
       await get().loadMarket();
+      request.assertCurrent();
       await get().loadInstalled();
+      request.assertCurrent();
       // 更新可能带来新的合同/role，同样触发模板重载
       useTemplateStore
         .getState()
         .loadTemplates()
         .catch((err) => logger.warn('[pluginStore] updatePlugin: template reload failed:', err));
     } catch (err) {
-      set({ error: String(err) });
+      if (!request.isCurrent()) return;
+      setCurrent({ error: String(err) });
     }
   },
 
   uninstallPlugin: async (pluginId: string) => {
+    const request = requests.begin();
+    const setCurrent = request.guardSet<PluginState>(set);
     try {
+      request.assertCurrent();
       await pluginCommands.uninstall(pluginId);
+      request.assertCurrent();
       await get().loadMarket();
+      request.assertCurrent();
       await get().loadInstalled();
+      request.assertCurrent();
     } catch (err) {
-      set({ error: String(err) });
+      if (!request.isCurrent()) return;
+      setCurrent({ error: String(err) });
     }
   },
 
   runPlugin: async (pluginId: string, pluginName: string, params?: Record<string, string>) => {
+    const request = requests.begin(`run:${pluginId}`);
+    const setCurrent = request.guardSet<PluginState>(set);
     // 注入当前 UI locale，供插件国际化使用
     const mergedParams: Record<string, string> = {
       locale: i18next.language || 'en',
@@ -269,6 +312,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
     };
     const startTime = Date.now();
     const running: RunningPlugin = {
+      runId: crypto.randomUUID(),
       pluginId,
       pluginName,
       startTime,
@@ -278,20 +322,27 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       dialogRequests: [],
       completed: false,
     };
-    set((state) => ({
+    setCurrent((state) => ({
       runningPlugins: { ...state.runningPlugins, [pluginId]: running },
     }));
 
     try {
       // P021：事件分发收敛至模块级纯函数 applyPluginRunEvent
-      const result = await pluginCommands.run(pluginId, mergedParams, (event) => {
-        set((state) => {
-          const draft = state.runningPlugins[pluginId];
-          if (!draft) return state;
-          const next = applyPluginRunEvent({ ...draft }, event);
-          return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
-        });
-      });
+      request.assertCurrent();
+      const result = await pluginCommands.run(
+        pluginId,
+        mergedParams,
+        (event) => {
+          setCurrent((state) => {
+            const draft = state.runningPlugins[pluginId];
+            if (!draft) return state;
+            const next = applyPluginRunEvent({ ...draft }, event);
+            return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+          });
+        },
+        request.isCurrent,
+      );
+      request.assertCurrent();
 
       // 根据运行结果决定 Toast 类型（在同一个 set 中同时标记 completed + toastShown，
       // 避免 PluginQuickNotificationListener 在两次 set 之间误触发重复 Toast）
@@ -316,7 +367,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
           duration: 3000,
         });
       }
-      set((state) => {
+      setCurrent((state) => {
         const next = { ...state.runningPlugins[pluginId], completed: true, toastShown: true };
         next.exitCode = result.exitCode;
         // 结果已通过事件通道实时累积，此处不重复添加。
@@ -324,7 +375,8 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
         return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
       });
     } catch (err) {
-      set((state) => {
+      if (!request.isCurrent()) return;
+      setCurrent((state) => {
         const next = { ...state.runningPlugins[pluginId], completed: true, error: String(err) };
         return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
       });
@@ -336,7 +388,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
         }),
         duration: 5000,
       });
-      set((state) => {
+      setCurrent((state) => {
         const next = {
           ...state.runningPlugins[pluginId],
           completed: true,
@@ -349,6 +401,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
   },
 
   stopPlugin: (pluginId: string) => {
+    requests.invalidate(`run:${pluginId}`);
     set((state) => {
       const next = { ...state.runningPlugins[pluginId], completed: true, toastShown: true };
       return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
@@ -356,6 +409,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
   },
 
   clearPluginOutput: (pluginId: string) => {
+    requests.invalidate(`run:${pluginId}`);
     set((state) => ({
       runningPlugins: Object.fromEntries(
         Object.entries(state.runningPlugins).filter(([id]) => id !== pluginId),
@@ -364,32 +418,46 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
   },
 
   resolveDialog: async (pluginId: string, requestId: string, value?: string) => {
+    const request = requests.begin();
+    const setCurrent = request.guardSet<PluginState>(set);
+    const runId = get().runningPlugins[pluginId]?.runId;
     try {
+      request.assertCurrent();
       await pluginCommands.dialogResponse(requestId, value);
+      request.assertCurrent();
     } catch (err) {
-      set({ error: String(err) });
+      if (!request.isCurrent()) return;
+      setCurrent({ error: String(err) });
     }
-    set((state) => {
-      const next = { ...state.runningPlugins[pluginId] };
-      if (!next) return state;
+    setCurrent((state) => {
+      const current = state.runningPlugins[pluginId];
+      if (!current || current.runId !== runId) return state;
+      const next = { ...current };
       next.dialogRequests = next.dialogRequests.filter((r) => r.requestId !== requestId);
       return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
     });
   },
 
   refreshRegistry: async () => {
-    set({ isLoadingMarket: true, error: null });
+    const request = requests.begin();
+    const setCurrent = request.guardSet<PluginState>(set);
+    setCurrent({ isLoadingMarket: true, error: null });
     try {
+      request.assertCurrent();
       await pluginCommands.updateRegistry();
+      request.assertCurrent();
       await get().loadMarket();
+      request.assertCurrent();
       await get().loadInstalled();
+      request.assertCurrent();
       useUiStore.getState().showToast({
         type: 'success',
         message: i18next.t('plugin:refresh_success', { defaultValue: 'Plugin registry updated' }),
         duration: 3000,
       });
     } catch (err) {
-      set({ error: String(err), isLoadingMarket: false });
+      if (!request.isCurrent()) return;
+      setCurrent({ error: String(err), isLoadingMarket: false });
       useUiStore.getState().showToast({
         type: 'error',
         message: i18next.t('plugin:refresh_failed', {
@@ -400,3 +468,5 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
     }
   },
 }));
+
+onRequestSessionChange(() => usePluginStore.getState().clearOnVaultLock());

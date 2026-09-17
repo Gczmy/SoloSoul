@@ -1,3 +1,4 @@
+import { setRequestSession } from '@/lib/sessionRequests';
 import { create } from 'zustand';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { AccountInfo } from '@/lib/ipc';
@@ -50,7 +51,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   accounts: [],
   error: null,
   hasAccount: null,
-  backendError: false,    checkHasAccount: async () => {
+  backendError: false,
+  checkHasAccount: async () => {
     try {
       const result = await invoke<boolean>('check_has_account');
       set({ hasAccount: result, backendError: false });
@@ -225,3 +227,9 @@ export function clearRecentSearches(): void {
     // localStorage 不可用环境静默跳过
   }
 }
+
+useAuthStore.subscribe((state, previous) => {
+  const account = state.isAuthenticated ? (state.currentAccount?.id ?? null) : null;
+  const oldAccount = previous.isAuthenticated ? (previous.currentAccount?.id ?? null) : null;
+  if (account !== oldAccount) setRequestSession(account);
+});

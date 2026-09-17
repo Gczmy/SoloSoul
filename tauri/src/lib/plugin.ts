@@ -312,10 +312,13 @@ export const pluginCommands = {
     pluginId: string,
     params: Record<string, string>,
     onEvent: (event: PluginEvent) => void,
+    requestIsCurrent?: () => boolean,
   ): Promise<PluginResult> {
     const channel = new Channel<PluginEvent>();
-    channel.onmessage = onEvent;
-    return invoke('plugin_run', { pluginId, params, channel });
+    channel.onmessage = (event) => {
+      if (!requestIsCurrent || requestIsCurrent()) onEvent(event);
+    };
+    return invoke('plugin_run', { pluginId, params, channel }, { requestIsCurrent });
   },
 
   async consentResponse(requestId: string, approved: boolean, value?: string): Promise<void> {

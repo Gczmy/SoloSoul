@@ -1,5 +1,5 @@
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { create } from 'zustand';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { UserTemplate, TemplateProperty } from '@/types/template';
 
 interface TemplateState {
@@ -31,38 +31,51 @@ interface TemplateState {
   clearOnVaultLock: () => void;
 }
 
+const requests = createSessionRequests();
+
 export const useTemplateStore = create<TemplateState>((set, get) => ({
   templates: [],
   isLoading: false,
   error: null,
 
-  clearOnVaultLock: () => set({ templates: [], isLoading: false, error: null }),
+  clearOnVaultLock: () => {
+    requests.invalidate();
+    return set({ templates: [], isLoading: false, error: null });
+  },
 
   async loadTemplates() {
-    set({ isLoading: true, error: null });
+    const request = requests.begin('templates');
+    const setCurrent = request.guardSet<TemplateState>(set);
+    setCurrent({ isLoading: true, error: null });
     try {
-      const templates = await invoke<UserTemplate[]>('template_list');
-      set({ templates, isLoading: false });
+      const templates = await request.invoke<UserTemplate[]>('template_list');
+      request.assertCurrent();
+      setCurrent({ templates, isLoading: false });
     } catch (err) {
-      set({ error: String(err), isLoading: false });
+      if (!request.isCurrent()) return;
+      setCurrent({ error: String(err), isLoading: false });
       throw err;
     }
   },
 
   async createTemplate(name, iconId, category, properties, contractTypeId) {
-    const id = await invoke<string>('template_create', {
+    const request = requests.begin();
+    const id = await request.invoke<string>('template_create', {
       name,
       iconId: iconId,
       category,
       properties,
       contractTypeId: contractTypeId,
     });
+    request.assertCurrent();
     await get().loadTemplates();
+    request.assertCurrent();
     return id;
   },
 
   async updateTemplate(id, updates) {
-    await invoke('template_update', {
+    const request = requests.begin();
+    await request.invoke('template_update', {
       templateId: id,
       name: updates.name,
       iconId: updates.iconId,
@@ -70,20 +83,27 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
       properties: updates.properties,
       contractTypeId: updates.contractTypeId,
     });
+    request.assertCurrent();
     await get().loadTemplates();
+    request.assertCurrent();
   },
 
   async deleteTemplate(id) {
-    await invoke('template_delete', { templateId: id });
-    set((state) => ({
+    const request = requests.begin();
+    const setCurrent = request.guardSet<TemplateState>(set);
+    await request.invoke('template_delete', { templateId: id });
+    request.assertCurrent();
+    setCurrent((state) => ({
       templates: state.templates.filter((t) => t.id !== id),
     }));
   },
 
   async getTemplate(id) {
+    const request = requests.begin();
     try {
-      return await invoke<UserTemplate>('template_get', { templateId: id });
+      return await request.invoke<UserTemplate>('template_get', { templateId: id });
     } catch (err) {
+      request.assertCurrent();
       // P126: 仅「模板不存在」返回 null（合法语义）；其余为真实后端异常（如
       // 无权访问、后端故障），抛出保留错误细节，不再与「不存在」混为一谈。
       const msg = typeof err === 'string' ? err : err instanceof Error ? err.message : String(err);
@@ -95,9 +115,15 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
   },
 
   async checkFieldUsage(templateId, fieldKey) {
-    return await invoke<{ active: number; softDeleted: number }>('template_check_field_usage', {
-      templateId: templateId,
-      fieldKey: fieldKey,
-    });
+    const request = requests.begin();
+    return await request.invoke<{ active: number; softDeleted: number }>(
+      'template_check_field_usage',
+      {
+        templateId: templateId,
+        fieldKey: fieldKey,
+      },
+    );
   },
 }));
+
+onRequestSessionChange(() => useTemplateStore.getState().clearOnVaultLock());

@@ -32,6 +32,8 @@ export interface InvokeOptions {
    * - `false`：显式豁免（仅用于确定无需解锁的命令，避免与后端鉴权冲突）。
    */
   requireUnlocked?: boolean;
+  /** 会话请求在异步鉴权后、真正发送 IPC 前再次检查。 */
+  requestIsCurrent?: () => boolean;
 }
 
 /**
@@ -164,6 +166,9 @@ export async function invokeCommand<T>(
       devWarn(`[ipc] '${cmd}' blocked: vault not unlocked`);
       throw err;
     }
+  }
+  if (opts?.requestIsCurrent && !opts.requestIsCurrent()) {
+    throw new Error('Request belongs to an expired session');
   }
   try {
     // args 缺省时不再传第二参：既有测试断言 `toHaveBeenCalledWith('cmd')`

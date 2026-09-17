@@ -1,5 +1,5 @@
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { create } from 'zustand';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import i18next from '@/lib/i18n';
 import type {
@@ -196,6 +196,8 @@ interface SyncStoreState extends SyncStatus {
   clearOnVaultLock: () => void;
 }
 
+const requests = createSessionRequests();
+
 export const useSyncStore = create<SyncStoreState>((set, get) => {
   /** 串行化 enable 切换的队列尾（闭包内私有，不进 state，避免每次入队触发 re-render）。 */
   let enableChain: Promise<void> = Promise.resolve();
@@ -233,35 +235,47 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     incomingPairingRequest: null,
 
     loadStatus: async () => {
+      const request = requests.begin('status');
+      const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        const status = await invoke<SyncStatus>('sync_get_status');
-        set({ ...status, error: null });
+        const status = await request.invoke<SyncStatus>('sync_get_status');
+        request.assertCurrent();
+        setCurrent({ ...status, error: null });
       } catch (err) {
-        set({ error: String(err) });
+        if (!request.isCurrent()) return;
+        setCurrent({ error: String(err) });
       }
     },
 
     loadListenAddr: async () => {
+      const request = requests.begin('address');
+      const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        const addr = await invoke<string>('sync_listen_addr');
-        set({ listenAddr: addr });
+        const addr = await request.invoke<string>('sync_listen_addr');
+        request.assertCurrent();
+        setCurrent({ listenAddr: addr });
       } catch (err) {
-        set({ error: String(err) });
+        if (!request.isCurrent()) return;
+        setCurrent({ error: String(err) });
       }
     },
 
     enable: async (enabled) => {
+      const request = requests.begin();
+      const setCurrent = request.guardSet<SyncStoreState>(set);
       // 串行化：若已有 enable 流程在途，排队等待其完成后再执行本次切换，
       // 确保快速连点“启用→禁用”时最终状态与最后一次点击一致。
       await enqueueEnable(async () => {
-        set({ isLoading: true, error: null, lastResult: null });
+        setCurrent({ isLoading: true, error: null, lastResult: null });
         let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
         try {
           // 超时保护：sync_enable + sync_get_status 总耗时超过 15 秒时自动重置 isLoading
+          request.assertCurrent();
           const result = await Promise.race([
             (async () => {
-              await invoke<void>('sync_enable', { enable: enabled });
-              const status = await invoke<SyncStatus>('sync_get_status');
+              await request.invoke<void>('sync_enable', { enable: enabled });
+              const status = await request.invoke<SyncStatus>('sync_get_status');
+              request.assertCurrent();
               return { status };
             })(),
             new Promise<never>((_, reject) => {
@@ -271,18 +285,20 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
               );
             }),
           ]);
+          request.assertCurrent();
           clearTimeout(timeoutHandle);
-          set({ ...result.status, isLoading: false, error: null });
+          setCurrent({ ...result.status, isLoading: false, error: null });
           // 启用后自动发现附近设备，同时刷新监听地址用于手动 fallback
           if (enabled) {
             void get().discoverDevices(5000);
             void get().loadListenAddr();
           } else {
-            set({ discoveredDevices: [], listenAddr: '', isDiscoveringDevices: false });
+            setCurrent({ discoveredDevices: [], listenAddr: '', isDiscoveringDevices: false });
           }
         } catch (err) {
           clearTimeout(timeoutHandle);
-          set({ isLoading: false, error: String(err) });
+          if (!request.isCurrent()) return;
+          setCurrent({ isLoading: false, error: String(err) });
           // 超时/失败后主动重读后端状态：Android 上 sync_enable 可能因 NSD 权限弹窗
           // 或命令排队导致超时，但服务端最终可能已切换成功。重读可让开关 UI 与
           // 实际状态保持一致，避免“禁用失败但实际已禁用”的假卡死。
@@ -294,15 +310,18 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     },
 
     discoverDevices: async (timeoutMs = 5000) => {
+      const request = requests.begin();
+      const setCurrent = request.guardSet<SyncStoreState>(set);
       // 已在发现中则忽略，避免 enable 成功回调与页面 useEffect 重复触发叠加
       if (get().isDiscoveringDevices) {
         return;
       }
-      set({ isDiscoveringDevices: true, error: null });
+      setCurrent({ isDiscoveringDevices: true, error: null });
       let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
       try {
+        request.assertCurrent();
         const devices = await Promise.race([
-          invoke<DiscoveredDevice[]>('mdns_discover', { timeoutMs: timeoutMs }),
+          request.invoke<DiscoveredDevice[]>('mdns_discover', { timeoutMs: timeoutMs }),
           new Promise<never>((_, reject) => {
             // 兜底超时：移动端 request_permissions 弹窗未响应时 mdns_discover 可能挂起
             timeoutHandle = setTimeout(
@@ -311,25 +330,32 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
             );
           }),
         ]);
+        request.assertCurrent();
         clearTimeout(timeoutHandle);
         // 禁用同步后，在途发现结果不再回写，避免设备列表复活
         if (!get().syncEnabled) {
-          set({ isDiscoveringDevices: false });
+          setCurrent({ isDiscoveringDevices: false });
           return;
         }
-        set({ discoveredDevices: devices, isDiscoveringDevices: false, error: null });
+        setCurrent({ discoveredDevices: devices, isDiscoveringDevices: false, error: null });
       } catch (err) {
         clearTimeout(timeoutHandle);
-        set({ isDiscoveringDevices: false, error: String(err) });
+        if (!request.isCurrent()) return;
+        setCurrent({ isDiscoveringDevices: false, error: String(err) });
       }
     },
 
     syncWithDevice: async (deviceId) => {
-      set({ isLoading: true, error: null, lastResult: null });
+      const request = requests.begin();
+      const setCurrent = request.guardSet<SyncStoreState>(set);
+      setCurrent({ isLoading: true, error: null, lastResult: null });
       try {
-        const result = await invoke<SyncResult>('sync_with_device', { deviceId: deviceId });
+        const result = await request.invoke<SyncResult>('sync_with_device', { deviceId: deviceId });
+        request.assertCurrent();
         await get().loadStatus();
+        request.assertCurrent();
         await get().loadConflicts();
+        request.assertCurrent();
         // 同步活动盖章：本地时间戳 + 对端设备信息（loadStatus 已刷新 connectedPeers）
         const peer = findPeerInfo(deviceId);
         const stamped: SyncResult = {
@@ -339,12 +365,13 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           peerClientType: peer.clientType,
           peerNodeId: deviceId,
         };
-        set((state) => ({
+        setCurrent((state) => ({
           isLoading: false,
           lastResult: stamped,
           recentResults: pushSyncHistory([stamped, ...state.recentResults]),
         }));
       } catch (err) {
+        if (!request.isCurrent()) return;
         const raw = String(err);
         // 对端尚未信任本设备 → 进入双侧确认配对流程（A 侧发起方）。
         // B 已被 record_peer 持久化（含指纹），重读状态后弹配对卡片。
@@ -354,8 +381,10 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         if (pairingMatch) {
           const peerId = pairingMatch[1];
           const sasCode = pairingMatch[2] ?? null;
+          request.assertCurrent();
           await get().loadStatus();
-          set({
+          request.assertCurrent();
+          setCurrent({
             isLoading: false,
             error: null,
             pairingPendingPeerId: peerId,
@@ -383,7 +412,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           peerClientType: peer.clientType,
           peerNodeId: deviceId,
         };
-        set((state) => ({
+        setCurrent((state) => ({
           isLoading: false,
           error: raw,
           recentResults: pushSyncHistory([failed, ...state.recentResults]),
@@ -392,80 +421,113 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     },
 
     trustPeer: async (peerNodeId, trusted, fingerprint) => {
-      set({ isLoading: true, error: null });
+      const request = requests.begin();
+      const setCurrent = request.guardSet<SyncStoreState>(set);
+      setCurrent({ isLoading: true, error: null });
       try {
-        await invoke<void>('sync_trust_peer', {
+        await request.invoke<void>('sync_trust_peer', {
           peerNodeId: peerNodeId,
           trusted,
           fingerprint: fingerprint ?? null,
         });
+        request.assertCurrent();
         await get().loadStatus();
-        set({ isLoading: false });
+        request.assertCurrent();
+        setCurrent({ isLoading: false });
       } catch (err) {
-        set({ isLoading: false, error: String(err) });
+        if (!request.isCurrent()) return;
+        setCurrent({ isLoading: false, error: String(err) });
       }
     },
 
     forgetPeer: async (peerNodeId) => {
-      set({ isLoading: true, error: null });
+      const request = requests.begin();
+      const setCurrent = request.guardSet<SyncStoreState>(set);
+      setCurrent({ isLoading: true, error: null });
       try {
-        await invoke<void>('sync_forget_peer', { peerNodeId: peerNodeId });
+        await request.invoke<void>('sync_forget_peer', { peerNodeId: peerNodeId });
+        request.assertCurrent();
         await get().loadStatus();
-        set({ isLoading: false });
+        request.assertCurrent();
+        setCurrent({ isLoading: false });
       } catch (err) {
-        set({ isLoading: false, error: String(err) });
+        if (!request.isCurrent()) return;
+        setCurrent({ isLoading: false, error: String(err) });
       }
     },
 
     loadAutoSyncStatus: async () => {
+      const request = requests.begin('auto');
+      const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        const enabled = await invoke<boolean>('sync_get_auto_status');
-        set({ autoSyncEnabled: enabled });
+        const enabled = await request.invoke<boolean>('sync_get_auto_status');
+        request.assertCurrent();
+        setCurrent({ autoSyncEnabled: enabled });
       } catch (err) {
-        set({ error: String(err) });
+        if (!request.isCurrent()) return;
+        setCurrent({ error: String(err) });
       }
     },
 
     setAutoSyncEnabled: async (enabled) => {
-      set({ isLoading: true, error: null });
+      const request = requests.begin();
+      const setCurrent = request.guardSet<SyncStoreState>(set);
+      setCurrent({ isLoading: true, error: null });
       try {
-        const result = await invoke<boolean>('sync_set_auto_enabled', { enabled });
-        set({ autoSyncEnabled: result, isLoading: false });
+        const result = await request.invoke<boolean>('sync_set_auto_enabled', { enabled });
+        request.assertCurrent();
+        setCurrent({ autoSyncEnabled: result, isLoading: false });
       } catch (err) {
-        set({ isLoading: false, error: String(err) });
+        if (!request.isCurrent()) return;
+        setCurrent({ isLoading: false, error: String(err) });
       }
     },
 
     loadUiPrefsSync: async () => {
+      const request = requests.begin('uiPrefs');
+      const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        const enabled = await invoke<boolean>('sync_get_ui_prefs_sync');
-        set({ uiPrefsSyncEnabled: enabled });
+        const enabled = await request.invoke<boolean>('sync_get_ui_prefs_sync');
+        request.assertCurrent();
+        setCurrent({ uiPrefsSyncEnabled: enabled });
       } catch (err) {
-        set({ error: String(err) });
+        if (!request.isCurrent()) return;
+        setCurrent({ error: String(err) });
       }
     },
 
     setUiPrefsSyncEnabled: async (enabled) => {
-      set({ isLoading: true, error: null });
+      const request = requests.begin();
+      const setCurrent = request.guardSet<SyncStoreState>(set);
+      setCurrent({ isLoading: true, error: null });
       try {
-        const result = await invoke<boolean>('sync_set_ui_prefs_sync', { enabled });
-        set({ uiPrefsSyncEnabled: result, isLoading: false });
+        const result = await request.invoke<boolean>('sync_set_ui_prefs_sync', { enabled });
+        request.assertCurrent();
+        setCurrent({ uiPrefsSyncEnabled: result, isLoading: false });
       } catch (err) {
-        set({ isLoading: false, error: String(err) });
+        if (!request.isCurrent()) return;
+        setCurrent({ isLoading: false, error: String(err) });
       }
     },
 
     triggerForegroundSync: async () => {
+      const request = requests.begin();
+      const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        await invoke<void>('sync_trigger_foreground');
+        await request.invoke<void>('sync_trigger_foreground');
+        request.assertCurrent();
       } catch (err) {
-        set({ error: String(err) });
+        if (!request.isCurrent()) return;
+        setCurrent({ error: String(err) });
       }
     },
 
     loadConflicts: async () => {
+      const request = requests.begin('conflicts');
+      const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        const conflicts = await invoke<SyncConflictSummary[]>('sync_list_conflicts');
+        const conflicts = await request.invoke<SyncConflictSummary[]>('sync_list_conflicts');
+        request.assertCurrent();
         // 防御：后端异常返回（undefined/null/非数组）时归一化为空数组。
         // 否则 conflicts 被置为非数组后，GlobalSyncIndicator 等消费点 `.length`
         // 会抛 TypeError，全局壳层崩溃 → 整页白屏（与「帮助文档 t[n].add」同级的
@@ -475,12 +537,13 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
             '[syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: ' +
               `${conflicts === null ? 'null' : typeof conflicts})`,
           );
-          set({ conflicts: [], error: null });
+          setCurrent({ conflicts: [], error: null });
           return;
         }
-        set({ conflicts, error: null });
+        setCurrent({ conflicts, error: null });
       } catch (err) {
-        set({ error: String(err) });
+        if (!request.isCurrent()) return;
+        setCurrent({ error: String(err) });
       }
     },
 
@@ -492,10 +555,13 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     /** 初始化 sync-conflicts-updated 事件监听器。
      *  返回 unlisten 函数，调用方应在组件卸载时调用以清理。 */
     initConflictListener: (): Promise<UnlistenFn> => {
+      const request = requests.begin();
+      const setCurrent = request.guardSet<SyncStoreState>(set);
       return listen<{ count: number }>('sync-conflicts-updated', (event) => {
+        if (!request.isCurrent()) return;
         const count = event.payload?.count ?? 0;
         if (count > 0) {
-          set({ hasUnreadConflicts: true });
+          setCurrent({ hasUnreadConflicts: true });
           // 自动刷新冲突列表，确保 UI 数据是最新的
           get()
             .loadConflicts()
@@ -503,6 +569,9 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
               logger.warn('[syncStore] Failed to auto-reload conflicts after event:', err),
             );
         }
+      }).then((unlisten) => {
+        if (!request.isCurrent()) unlisten();
+        return unlisten;
       });
     },
 
@@ -511,6 +580,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
      *  AppShell 全局挂载后，B 用户不在同步页也能收到配对确认对话框。
      *  返回 unlisten 函数，调用方应在组件卸载时调用以清理。 */
     initPairingRequestListener: (): Promise<UnlistenFn> => {
+      const request = requests.begin();
+      const setCurrent = request.guardSet<SyncStoreState>(set);
       return listen<{
         nodeId: string;
         fingerprint: string;
@@ -518,6 +589,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         deviceName: string;
         sasCode?: string;
       }>('sync-pairing-request', (event) => {
+        if (!request.isCurrent()) return;
         const p = event.payload;
         // P103: 未信任 peer 不再落库，同一 peer 重连会重复触发本事件。
         // 若已展示同一 peer 的配对请求：仅更新本次会话的 SAS 验证码（A 侧
@@ -527,13 +599,13 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         const existing = get().incomingPairingRequest;
         if (existing?.id === p.nodeId) {
           if (p.sasCode && existing.sasCode !== p.sasCode) {
-            set({ incomingPairingRequest: { ...existing, sasCode: p.sasCode } });
+            setCurrent({ incomingPairingRequest: { ...existing, sasCode: p.sasCode } });
           }
           return;
         }
         const deviceName =
           p.deviceName || (p.fingerprint ? `SoloSoul-${p.fingerprint.slice(0, 8)}` : p.nodeId);
-        set({
+        setCurrent({
           incomingPairingRequest: {
             id: p.nodeId,
             name: deviceName,
@@ -547,6 +619,9 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
             sasCode: p.sasCode || '',
           },
         });
+      }).then((unlisten) => {
+        if (!request.isCurrent()) unlisten();
+        return unlisten;
       });
     },
 
@@ -562,6 +637,9 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
 
     /** A-002: 锁定 Vault 后清空账号派生的设备元数据与同步结果（保留纯 UI 开关状态）。 */
     clearOnVaultLock: () => {
+      requests.invalidate();
+      syncCompletedMergeCache.clear();
+      enableChain = Promise.resolve();
       set({
         localFingerprint: '',
         connectedPeers: [],
@@ -573,6 +651,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         selectedConflict: null,
         hasUnreadConflicts: false,
         error: null,
+        isLoading: false,
+        isDiscoveringDevices: false,
       });
       get().clearPairingPending();
       get().clearIncomingPairingRequest();
@@ -585,6 +665,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
      *  后端产生多个入站会话），只弹一次 toast、只写一条历史，计数累加展示完整交换量。
      *  返回 unlisten 函数，调用方应在组件卸载时调用以清理。 */
     initSyncCompletedListener: (): Promise<UnlistenFn> => {
+      const request = requests.begin();
+      const setCurrent = request.guardSet<SyncStoreState>(set);
       return listen<{
         peerNodeId: string;
         examined: number;
@@ -593,6 +675,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         conflicts: number;
         outboundRecords: number;
       }>('sync-completed', (event) => {
+        if (!request.isCurrent()) return;
         const p = event.payload;
         // P021：入站同步后的共同刷新尾——合并分支与新会话分支共用。
         const refreshAfterInbound = (conflicts: number, applied: number, logTag: string) => {
@@ -638,7 +721,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           // 注意：merged 与首事件写入历史的是同一对象引用，原地累加后历史条目
           // 自动展示合并后的完整交换量（lastResult 浅拷贝另存）。toast 只在首事件
           // 弹一次、展示首会话计数——多源叠加场景下这是可接受的取舍（避免延迟聚合 toast）。
-          set({ lastResult: { ...merged } });
+          setCurrent({ lastResult: { ...merged } });
           // 合并分支刷新（loadStatus/loadConflicts/数据 Store）统一走共享尾，
           // P021 核验补修：删除此处遗留的独立 loadStatus()——refreshAfterInbound
           // 内部已包含，重复调用会多发一次 IPC。
@@ -671,7 +754,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         if (allZero) {
           return;
         }
-        set((state) => ({
+        setCurrent((state) => ({
           lastResult: result,
           recentResults: pushSyncHistory([result, ...state.recentResults]),
         }));
@@ -689,6 +772,9 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         });
         // 刷新对端列表与冲突（响应方可能因此产生新冲突）
         refreshAfterInbound(p.conflicts, p.applied, 'inbound sync');
+      }).then((unlisten) => {
+        if (!request.isCurrent()) unlisten();
+        return unlisten;
       });
     },
 
@@ -697,42 +783,62 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
      *  避免开关 UI 仍显示「已启用」与实际状态漂移。
      *  返回 unlisten 函数，调用方应在组件卸载时调用以清理。 */
     initNsdFailedListener: (): Promise<UnlistenFn> => {
+      const request = requests.begin();
+      const setCurrent = request.guardSet<SyncStoreState>(set);
       return listen<{ error?: string }>('sync-nsd-failed', (event) => {
+        if (!request.isCurrent()) return;
         logger.warn('[syncStore] NSD registration failed:', event.payload?.error);
-        set({ isLoading: false });
+        setCurrent({ isLoading: false });
         // 先重读后端状态（后端已回滚为禁用），完成后再设置错误提示，
         // 避免 loadStatus 成功路径的 error: null 把提示清掉。
         get()
           .loadStatus()
           .catch((err) => logger.warn('[syncStore] status resync after nsd failure:', err))
-          .finally(() => set({ error: '__SYNC_ERR__:nsd_failed' }));
+          .finally(() => setCurrent({ error: '__SYNC_ERR__:nsd_failed' }));
+      }).then((unlisten) => {
+        if (!request.isCurrent()) unlisten();
+        return unlisten;
       });
     },
 
     loadConflictDetail: async (conflictId) => {
+      const request = requests.begin('detail');
+      const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        const detail = await invoke<SyncConflictDetail>('sync_get_conflict_detail', {
+        const detail = await request.invoke<SyncConflictDetail>('sync_get_conflict_detail', {
           conflictId: conflictId,
         });
-        set({ selectedConflict: detail, error: null });
+        request.assertCurrent();
+        setCurrent({ selectedConflict: detail, error: null });
       } catch (err) {
-        set({ error: String(err) });
+        if (!request.isCurrent()) return;
+        setCurrent({ error: String(err) });
       }
     },
 
     resolveConflict: async (conflictId, strategy) => {
-      set({ isLoading: true, error: null });
+      const request = requests.begin();
+      const setCurrent = request.guardSet<SyncStoreState>(set);
+      setCurrent({ isLoading: true, error: null });
       try {
-        await invoke<boolean>('sync_resolve_conflict', { conflictId: conflictId, strategy });
+        await request.invoke<boolean>('sync_resolve_conflict', {
+          conflictId: conflictId,
+          strategy,
+        });
+        request.assertCurrent();
         await get().loadConflicts();
-        set((state) => ({
+        request.assertCurrent();
+        setCurrent((state) => ({
           selectedConflict:
             state.selectedConflict?.id === conflictId ? null : state.selectedConflict,
           isLoading: false,
         }));
       } catch (err) {
-        set({ isLoading: false, error: String(err) });
+        if (!request.isCurrent()) return;
+        setCurrent({ isLoading: false, error: String(err) });
       }
     },
   };
 });
+
+onRequestSessionChange(() => useSyncStore.getState().clearOnVaultLock());

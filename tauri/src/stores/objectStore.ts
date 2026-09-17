@@ -1,5 +1,5 @@
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { create } from 'zustand';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { searchCache } from '@/lib/searchCache';
 import { useAuthStore } from '@/stores/authStore';
 // P228: 从 types/ 导入共享类型，断开 objectStore ↔ templateSync 循环依赖
@@ -98,6 +98,8 @@ interface ObjectState {
   clearOnVaultLock: () => void;
 }
 
+const requests = createSessionRequests();
+
 export const useObjectStore = create<ObjectState>((set) => ({
   objects: [],
   currentObjectCache: {},
@@ -105,42 +107,53 @@ export const useObjectStore = create<ObjectState>((set) => ({
   error: null,
 
   loadObjects: async (accountId, filter) => {
+    const request = requests.begin('objects', accountId);
+    const setCurrent = request.guardSet<ObjectState>(set);
     // 立即清空之前页面的陈旧对象，避免页面切换时闪烁旧卡片
-    set({ objects: [], isLoading: true, error: null });
+    setCurrent({ objects: [], isLoading: true, error: null });
     try {
-      const objects = await invoke<ObjectSummary[]>('object_list', {
+      const objects = await request.invoke<ObjectSummary[]>('object_list', {
         accountId: accountId,
         filter: filter || null,
       });
-      set({ objects, isLoading: false });
+      request.assertCurrent();
+      setCurrent({ objects, isLoading: false });
     } catch (err) {
-      set({ error: String(err), isLoading: false });
+      if (!request.isCurrent()) return;
+      setCurrent({ error: String(err), isLoading: false });
     }
   },
 
   getObject: async (accountId, objectId) => {
-    set({ isLoading: true, error: null });
+    const request = requests.begin(`object:${objectId}`, accountId);
+    const setCurrent = request.guardSet<ObjectState>(set);
+    setCurrent({ isLoading: true, error: null });
     try {
-      const obj = await invoke<ObjectData | null>('object_get', {
+      const obj = await request.invoke<ObjectData | null>('object_get', {
         accountId: accountId,
         objectId: objectId,
       });
-      set((s) => ({
+      request.assertCurrent();
+      setCurrent((s) => ({
         currentObjectCache: obj
           ? { ...s.currentObjectCache, [objectId]: obj }
           : s.currentObjectCache,
         isLoading: false,
       }));
     } catch (err) {
-      set({ error: String(err), isLoading: false });
+      if (!request.isCurrent()) return;
+      setCurrent({ error: String(err), isLoading: false });
     }
   },
 
   createObject: async (input) => {
-    set({ isLoading: true, error: null });
+    const request = requests.begin(undefined, input.accountId);
+    const setCurrent = request.guardSet<ObjectState>(set);
+    setCurrent({ isLoading: true, error: null });
     try {
-      const obj = await invoke<ObjectData>('object_create', { input });
-      set((s) => ({
+      const obj = await request.invoke<ObjectData>('object_create', { input });
+      request.assertCurrent();
+      setCurrent((s) => ({
         objects: [
           ...s.objects,
           {
@@ -162,16 +175,20 @@ export const useObjectStore = create<ObjectState>((set) => ({
       invalidateSearchCache();
       return obj;
     } catch (err) {
-      set({ error: String(err), isLoading: false });
+      request.assertCurrent();
+      setCurrent({ error: String(err), isLoading: false });
       throw err;
     }
   },
 
   updateObject: async (objectId, input) => {
-    set({ isLoading: true, error: null });
+    const request = requests.begin(`object:${objectId}`);
+    const setCurrent = request.guardSet<ObjectState>(set);
+    setCurrent({ isLoading: true, error: null });
     try {
-      const obj = await invoke<ObjectData>('object_update', { objectId: objectId, input });
-      set((s) => ({
+      const obj = await request.invoke<ObjectData>('object_update', { objectId: objectId, input });
+      request.assertCurrent();
+      setCurrent((s) => ({
         currentObjectCache: { ...s.currentObjectCache, [objectId]: obj },
         // 同步更新摘要列表对应项，避免列表与详情缓存不一致（P057）。
         objects: s.objects.map((o) =>
@@ -195,7 +212,8 @@ export const useObjectStore = create<ObjectState>((set) => ({
       // P038: 编辑对象后立即失效搜索缓存
       invalidateSearchCache();
     } catch (err) {
-      set({ error: String(err), isLoading: false });
+      if (!request.isCurrent()) return;
+      setCurrent({ error: String(err), isLoading: false });
       // P002: 与 createObject 对齐——失败必须向上抛，调用方（useObjectEditorPage
       // handleSave）依赖异常进入 onError 分支；吞错会导致「保存失败被误报成功并
       // 退出页面」，编辑内容静默丢失。
@@ -204,10 +222,13 @@ export const useObjectStore = create<ObjectState>((set) => ({
   },
 
   deleteObject: async (objectId) => {
-    set({ isLoading: true, error: null });
+    const request = requests.begin(`object:${objectId}`);
+    const setCurrent = request.guardSet<ObjectState>(set);
+    setCurrent({ isLoading: true, error: null });
     try {
-      await invoke('object_delete', { objectId: objectId });
-      set((s) => {
+      await request.invoke('object_delete', { objectId: objectId });
+      request.assertCurrent();
+      setCurrent((s) => {
         // P043: 删除对象时同步清理详情缓存，避免残留旧数据被误读
         const nextCache = { ...s.currentObjectCache };
         delete nextCache[objectId];
@@ -220,12 +241,14 @@ export const useObjectStore = create<ObjectState>((set) => ({
       // P038: 删除对象后立即失效搜索缓存
       invalidateSearchCache();
     } catch (err) {
-      set({ error: String(err), isLoading: false });
+      if (!request.isCurrent()) return;
+      setCurrent({ error: String(err), isLoading: false });
     }
   },
 
   previewSyncTemplate: async (accountId, objectId) => {
-    return invoke<TemplateSyncResult>('object_sync_with_template', {
+    const request = requests.begin(undefined, accountId);
+    return request.invoke<TemplateSyncResult>('object_sync_with_template', {
       accountId,
       objectId: objectId,
       dryRun: true,
@@ -233,28 +256,40 @@ export const useObjectStore = create<ObjectState>((set) => ({
   },
 
   applySyncTemplate: async (accountId, objectId) => {
-    const result = await invoke<TemplateSyncResult>('object_sync_with_template', {
+    const request = requests.begin(undefined, accountId);
+    const result = await request.invoke<TemplateSyncResult>('object_sync_with_template', {
       accountId,
       objectId: objectId,
       dryRun: false,
     });
+    request.assertCurrent();
     // 同步成功后刷新该对象缓存，使 UI 立即反映最新字段与敏感度。
+    request.assertCurrent();
     await useObjectStore.getState().getObject(accountId, objectId);
+    request.assertCurrent();
     // P038: 模板同步改写对象内容后立即失效搜索缓存
     searchCache.invalidateAccount(accountId);
     return result;
   },
 
   ignoreTemplateSync: async (objectId: string, hash: string) => {
-    await invoke('object_ignore_template_sync', { objectId: objectId, hash });
+    const request = requests.begin();
+    await request.invoke('object_ignore_template_sync', { objectId: objectId, hash });
+    request.assertCurrent();
   },
 
   loadDeprecatedFields: async (accountId, objectId) => {
-    return invoke<DeprecatedField[]>('object_list_deprecated_fields', {
+    const request = requests.begin(undefined, accountId);
+    return request.invoke<DeprecatedField[]>('object_list_deprecated_fields', {
       accountId,
       objectId: objectId,
     });
   },
 
-  clearOnVaultLock: () => set({ objects: [], currentObjectCache: {}, error: null }),
+  clearOnVaultLock: () => {
+    requests.invalidate();
+    return set({ objects: [], currentObjectCache: {}, isLoading: false, error: null });
+  },
 }));
+
+onRequestSessionChange(() => useObjectStore.getState().clearOnVaultLock());

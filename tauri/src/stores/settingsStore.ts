@@ -1,3 +1,4 @@
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { withTimeout } from '@/lib/withTimeout';
 import { getSchemeById } from '@/lib/themeSchemes';
 import { create } from 'zustand';
@@ -253,13 +254,19 @@ function writeUiPrefsCache(settings: AppSettings): void {
  * （notificationPermissionRequested）等跨模块 UI 偏好写入复用——N-8：
  * 两处原绕过 helper 直写③，现收敛到本唯一写入点。
  */
-export async function syncPlaintextPref(key: string, value: unknown): Promise<void> {
+export async function syncPlaintextPref(
+  key: string,
+  value: unknown,
+  requestIsCurrent?: () => boolean,
+): Promise<void> {
   try {
-    await invoke('ui_update_preference', { key, value });
+    await invoke('ui_update_preference', { key, value }, { requestIsCurrent });
   } catch (e) {
     logger.warn('[settingsStore] Failed to sync UI pref:', key, e);
   }
 }
+const requests = createSessionRequests();
+
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   legacyCustomPages: [],
   settings: DEFAULT_SETTINGS,
@@ -268,6 +275,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   /** Load UI-only prefs: read localStorage cache sync first (instant),
    *  then refresh from IPC asynchronously. */
   loadUiPreferences: async () => {
+    const request = requests.begin('ui');
+    const setCurrent = request.guardSet<SettingsState>(set);
     // Step 1: apply cached prefs instantly from localStorage
     try {
       const raw = localStorage.getItem(ST_UI_PREFS);
@@ -282,6 +291,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           if (cached.accentColor) p.accentColor = cached.accentColor;
           if (cached.defaultLightTheme) p.defaultLightTheme = cached.defaultLightTheme;
           if (cached.defaultDarkTheme) p.defaultDarkTheme = cached.defaultDarkTheme;
+          request.assertCurrent();
           await applyTheme({
             preset:
               p.theme === 'dark'
@@ -295,17 +305,20 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
             defaultLightTheme: p.defaultLightTheme,
             defaultDarkTheme: p.defaultDarkTheme,
           });
-          set({ settings: p });
+          request.assertCurrent();
+          setCurrent({ settings: p });
         }
       }
     } catch (e) {
+      if (!request.isCurrent()) return;
       logger.warn('[settingsStore] Failed to load cached UI prefs:', e);
     }
 
     // Step 2: fetch fresh prefs from IPC (slow, async)
     try {
+      request.assertCurrent();
       const prefs = await withTimeout(
-        invoke<{
+        request.invoke<{
           theme?: string;
           reduceMotion?: boolean;
           androidGlass?: AndroidGlassMode;
@@ -316,6 +329,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         }>('ui_get_preferences'),
         1200,
       );
+      request.assertCurrent();
       const parsed = { ...get().settings };
       if (typeof prefs.reduceMotion === 'boolean') parsed.reduceMotion = prefs.reduceMotion;
       if (isAndroidGlassMode(prefs.androidGlass)) parsed.androidGlass = prefs.androidGlass;
@@ -324,6 +338,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (prefs.language) parsed.language = prefs.language;
       if (prefs.defaultLightTheme) parsed.defaultLightTheme = prefs.defaultLightTheme;
       if (prefs.defaultDarkTheme) parsed.defaultDarkTheme = prefs.defaultDarkTheme;
+      request.assertCurrent();
       await applyTheme({
         preset:
           parsed.theme === 'dark'
@@ -337,7 +352,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         defaultLightTheme: parsed.defaultLightTheme,
         defaultDarkTheme: parsed.defaultDarkTheme,
       });
-      set({ settings: parsed });
+      request.assertCurrent();
+      setCurrent({ settings: parsed });
       // P129: ② 副本写入收敛到 writeUiPrefsCache（唯一写入点）
       writeUiPrefsCache(parsed);
       // Language is set by initI18n() via Rust IPC (confirmed working = zh-CN).
@@ -345,14 +361,20 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // overwriting correct IPC detection with stale/stored values from vault.
       // Theme/accent/bg are safe to apply immediately.
     } catch (e) {
+      if (!request.isCurrent()) return;
       logger.warn('[settingsStore] No ui_preferences file yet:', e);
     }
   },
 
   loadSettings: async (accountId) => {
-    set({ isLoading: true });
+    const request = requests.begin('settings', accountId);
+    const setCurrent = request.guardSet<SettingsState>(set);
+    setCurrent({ isLoading: true });
     try {
-      const raw = await invoke<unknown>('user_data_get_preferences', { accountId: accountId });
+      const raw = await request.invoke<unknown>('user_data_get_preferences', {
+        accountId: accountId,
+      });
+      request.assertCurrent();
       const parsedPrefsResult = accountPrefsSchema.safeParse(raw);
       const prefs: AccountPrefs = parsedPrefsResult.success ? parsedPrefsResult.data : {};
       // P029: 合并基准为「当前 settings + DEFAULT 兜底」——vault ④ 缺失的键沿用
@@ -403,25 +425,34 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // Load old-format customPages from preferences for migration.
       // Once loaded, also try the new objects-table source via loadCustomPages().
       if (prefs.customPages) parsed.customPages = prefs.customPages;
-      set({ settings: parsed, legacyCustomPages: prefs.customPages ?? [], isLoading: false });
+      setCurrent({
+        settings: parsed,
+        legacyCustomPages: prefs.customPages ?? [],
+        isLoading: false,
+      });
       // Sync UI prefs to plaintext file so next startup shows correct theme.
       // P129: ③ 副本写入收敛到 syncPlaintextPref（唯一写入点），原 5 段顺序 if 收敛为循环。
       for (const key of PLAINTEXT_PREF_KEYS) {
         const v = parsed[key as keyof AppSettings];
         if (v !== undefined && v !== '') {
-          await syncPlaintextPref(key, v);
+          request.assertCurrent();
+          await syncPlaintextPref(key, v, request.isCurrent);
+          request.assertCurrent();
         }
       }
     } catch (e) {
+      if (!request.isCurrent()) return;
       logger.error('[settingsStore] Failed to load settings:', e);
-      set({ isLoading: false });
+      setCurrent({ isLoading: false });
     }
   },
 
   /** 按稳定 ID 补齐旧页面；成功列表与待迁移来源分离，部分失败可再次加载重试。 */
   loadCustomPages: async (accountId) => {
+    const request = requests.begin('pages', accountId);
+    const setCurrent = request.guardSet<SettingsState>(set);
     try {
-      const objects = await invoke<
+      const objects = await request.invoke<
         Array<{
           id: string;
           name: string;
@@ -434,7 +465,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           // 直接读取 description，消除对每个页面单独 object_get 的 N+1 IPC。
           properties?: Record<string, unknown>;
         }>
-      >('object_list', { accountId: accountId, filter: { typeId: 'page', includeDeleted: true } });
+      >('object_list', {
+        accountId: accountId,
+        filter: { typeId: 'page', includeDeleted: true },
+      });
+      request.assertCurrent();
       const oldPages = get().legacyCustomPages;
       const pages: CustomPage[] = objects.map((o, i) => {
         const metadata = o.properties;
@@ -451,9 +486,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       });
       const present = new Set(pages.map((p) => p.id));
       const missing = oldPages.filter((p) => !present.has(p.id) && !p.deletedAt);
+      request.assertCurrent();
       const results = await Promise.allSettled(
         missing.map((p) =>
-          invoke('object_create', {
+          request.invoke('object_create', {
             input: {
               id: p.id,
               accountId,
@@ -469,6 +505,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           }),
         ),
       );
+      request.assertCurrent();
       results.forEach((r, i) => {
         if (r.status === 'fulfilled') {
           pages.push(missing[i]);
@@ -479,7 +516,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       });
       // 未落库的旧删除页仅作为引用标签保留，绝不新建成活跃页面。
       const deletedLegacy = oldPages.filter((p) => p.deletedAt && !present.has(p.id));
-      set((state) => ({
+      setCurrent((state) => ({
         settings: {
           ...state.settings,
           customPages: [...pages, ...deletedLegacy].sort((a, b) => a.sortOrder - b.sortOrder),
@@ -489,50 +526,62 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         // 已存在（含软删除）或本次成功落库的 ID 才能从旧来源删除。
         // 旧删除页仍保留原记录，避免丢失模板引用和删除状态。
         try {
-          await invoke('user_data_update_preference', {
+          await request.invoke('user_data_update_preference', {
             payload: { accountId, preferences: { customPages: deletedLegacy } },
           });
-          set({ legacyCustomPages: deletedLegacy });
+          request.assertCurrent();
+          setCurrent({ legacyCustomPages: deletedLegacy });
         } catch (e) {
+          if (!request.isCurrent()) return;
           logger.warn('[settingsStore] Failed to clear old-format custom pages:', e);
         }
       }
     } catch (e) {
+      if (!request.isCurrent()) return;
       logger.warn('[settingsStore] Failed to load custom pages:', e);
     }
   },
 
   updateSetting: async (accountId, key, value) => {
+    const request = requests.begin(`setting:${key}`, accountId);
+    const setCurrent = request.guardSet<SettingsState>(set);
     const oldValue = get().settings[key];
-    set((s) => ({ settings: { ...s.settings, [key]: value } }));
+    setCurrent((s) => ({ settings: { ...s.settings, [key]: value } }));
     try {
-      await invoke('user_data_update_preference', {
+      await request.invoke('user_data_update_preference', {
         payload: { accountId, preferences: { [key]: value } },
       });
+      request.assertCurrent();
       // P129: UI 键变更时同步 ②③ 副本（唯一写入点，页面不再各自写）。
       // ④ vault 写入成功后才触发，失败回滚时不会产生副本漂移。
       if (PLAINTEXT_PREF_KEYS.has(key)) {
-        void syncPlaintextPref(key, value);
+        void syncPlaintextPref(key, value, request.isCurrent);
         if (CACHE_PREF_KEYS.has(key)) {
           writeUiPrefsCache(get().settings);
         }
       }
       if (key === 'language' && typeof value === 'string') {
+        request.assertCurrent();
         await i18next.changeLanguage(value);
+        request.assertCurrent();
         // ③ 已由上方 PLAINTEXT_PREF_KEYS 分支同步；此处仅补 ② i18nextLng 冷启动缓存。
         try {
           localStorage.setItem('i18nextLng', value);
         } catch (e) {
+          if (!request.isCurrent()) return;
           logger.warn('[settingsStore] Failed to cache language:', e);
         }
       }
     } catch (e) {
+      if (!request.isCurrent()) return;
       logger.warn('[settingsStore] Failed to update setting:', key, e);
-      set((s) => ({ settings: { ...s.settings, [key]: oldValue } }));
+      setCurrent((s) => ({ settings: { ...s.settings, [key]: oldValue } }));
     }
   },
 
   addCustomPage: async (accountId, name, iconId, description) => {
+    const request = requests.begin(undefined, accountId);
+    const setCurrent = request.guardSet<SettingsState>(set);
     const prevPages = get().settings.customPages;
     const id = crypto.randomUUID();
     const newPage: CustomPage = {
@@ -544,11 +593,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       sortOrder: prevPages.length,
     };
     // Optimistic UI update
-    set((s) => ({ settings: { ...s.settings, customPages: [...prevPages, newPage] } }));
+    setCurrent((s) => ({ settings: { ...s.settings, customPages: [...prevPages, newPage] } }));
     try {
       // P0-1: Store in objects table (not preferences JSON)
       // Pass the client-generated id so frontend state stays in sync with the database record.
-      await invoke('object_create', {
+      await request.invoke('object_create', {
         input: {
           accountId,
           name,
@@ -558,10 +607,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           id,
         },
       });
+      request.assertCurrent();
     } catch (e) {
+      request.assertCurrent();
       logger.warn('[settingsStore] Failed to add custom page:', name, e);
       // Rollback
-      set((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
+      setCurrent((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
       // P003: 失败必须向上抛——调用方（AddPageButton）依赖异常进入 catch 提示错误；
       // 此前无条件 return newPage，调用方 onCreate 导航到后端不存在的页面（刷新即消失）。
       throw e;
@@ -570,29 +621,34 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   },
 
   removeCustomPage: async (accountId, pageId) => {
+    const request = requests.begin(undefined, accountId);
+    const setCurrent = request.guardSet<SettingsState>(set);
     const prevPages = get().settings.customPages;
     const now = new Date().toISOString();
     // Mark as deleted locally (keep in array so templates can still reference the name)
     const pages = prevPages.map((p) => (p.id === pageId ? { ...p, deletedAt: now } : p));
-    set((s) => ({ settings: { ...s.settings, customPages: pages } }));
+    setCurrent((s) => ({ settings: { ...s.settings, customPages: pages } }));
     try {
       // P0-1: Use page_delete to create a "page" type trash item
       // sectionType must be the actual page UUID so that page_delete's sub-object
       // matching (section_type == section_type || collection_type == section_type)
       // correctly finds all child objects assigned to this custom page.
-      await invoke('page_delete', {
+      await request.invoke('page_delete', {
         accountId: accountId,
         sectionType: pageId,
         pageObjectId: pageId,
       });
+      request.assertCurrent();
     } catch (e) {
+      if (!request.isCurrent()) return;
       logger.warn('[settingsStore] Failed to remove custom page:', pageId, e);
-      set((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
+      setCurrent((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
     }
   },
 
-  clearOnVaultLock: () =>
-    set((state) => ({
+  clearOnVaultLock: () => {
+    requests.invalidate();
+    return set((state) => ({
       legacyCustomPages: [],
       // Keep UI-only preferences so lock screen retains user's language/theme/accent
       settings: {
@@ -617,5 +673,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         sidebarButtonModes: state.settings.sidebarButtonModes,
       },
       isLoading: false,
-    })),
+    }));
+  },
 }));
+
+onRequestSessionChange(() => useSettingsStore.getState().clearOnVaultLock());
