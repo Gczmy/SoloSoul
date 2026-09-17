@@ -10,10 +10,10 @@ export interface UseOverlayBackGuardOptions {
 }
 
 /**
- * 模块级：仍由「活跃（已挂载）浮层钩子」认领的标记状态对象集合。
+ * 模块级：仍由「活跃（已挂载）浮层钩子」认领的标记 ID 集合。
  * 每个钩子压入标记时登记，卸载时释放——释放后该标记即视为「残留」。
  */
-const ownedMarkers = new Set<object>();
+const ownedMarkers = new Set<string>();
 let sweeperAttached = false;
 
 /**
@@ -29,15 +29,20 @@ let sweeperAttached = false;
  * ownedMarkers 中），立即再 `history.go(-1)` 跳过——一次返回连续跨越全部残留标记，
  * 直达真实历史条目。活跃钩子自身的标记仍在 ownedMarkers 中，不会被误跳过。
  *
- * 注：依赖 popstate 事件的 state 与 pushState 传入为同一对象引用（浏览器与 jsdom
- * 均保持该引用不变）；此所有权判定若改为结构化克隆将失效。
+ * History 对 state 做结构化克隆，所有权使用可序列化 ID，不能比较对象引用。
  */
+function markerId(state: unknown): string | null {
+  if (!state || typeof state !== 'object') return null;
+  const id = (state as { solosoulOverlayMarkerId?: unknown }).solosoulOverlayMarkerId;
+  return typeof id === 'string' ? id : null;
+}
+
 function attachStaleMarkerSweeper(): void {
   if (sweeperAttached) return;
   sweeperAttached = true;
   window.addEventListener('popstate', (e) => {
     const state = e.state as { solosoulOverlayLayer?: boolean } | null;
-    if (state?.solosoulOverlayLayer && !ownedMarkers.has(state)) {
+    if (state?.solosoulOverlayLayer && !ownedMarkers.has(markerId(state) ?? '')) {
       window.history.go(-1);
     }
   });
@@ -78,8 +83,8 @@ export function useOverlayBackGuard({
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const layersRef = useRef(0);
-  /** 本钩子压入的所有标记状态对象（供卸载时释放所有权）。 */
-  const markerStatesRef = useRef<object[]>([]);
+  /** 本钩子压入的所有标记 ID（供卸载时释放所有权）。 */
+  const markerStatesRef = useRef<string[]>([]);
 
   // 浮层层：挂载压入标记 + popstate 分层处理 + 卸载清理。
   // popstate 时浏览器已弹出顶层标记：内层开着则回浮层主体（内层层被弹），
@@ -90,11 +95,12 @@ export function useOverlayBackGuard({
     const baseMarker = {
       ...(prevState ?? {}),
       solosoulOverlayLayer: true,
+      solosoulOverlayMarkerId: crypto.randomUUID(),
       idx: (prevState?.idx ?? 0) + 1,
     };
     window.history.pushState(baseMarker, '');
-    ownedMarkers.add(baseMarker);
-    markerStatesRef.current.push(baseMarker);
+    ownedMarkers.add(baseMarker.solosoulOverlayMarkerId);
+    markerStatesRef.current.push(baseMarker.solosoulOverlayMarkerId);
     layersRef.current += 1;
 
     const onPopState = () => {
@@ -112,7 +118,13 @@ export function useOverlayBackGuard({
       // 若浮层打开期间叠加了外部历史条目（如 vault 锁定 navigate('/login')），
       // 顶层非标记则跳过，避免误弹外部条目（残留标记交给 sweeper 后续跳过）。
       const top = window.history.state as { solosoulOverlayLayer?: boolean } | null;
-      if (top?.solosoulOverlayLayer && layersRef.current > 0) {
+      const topId = markerId(top);
+      if (
+        top?.solosoulOverlayLayer &&
+        topId &&
+        markerStatesRef.current.includes(topId) &&
+        layersRef.current > 0
+      ) {
         // 延迟到微任务 + 栈顶身份校验（dev StrictMode 竞态防护）：
         // 开发构建下 React StrictMode 会「挂载→清理→重挂载」同步连续执行——清理期的
         // history.go() 是异步排队的遍历，若在此直接调用，会在重挂载实例的 pushState
@@ -122,9 +134,9 @@ export function useOverlayBackGuard({
         // 清理；dev 重挂载场景下重挂载实例已同步压入新标记，栈顶身份不再相等 → 跳过，
         // 由新实例接管（首实例遗留的旧标记按「残留标记」交给 sweeper 在返回时自动跳过）。
         const n = layersRef.current;
-        const capturedTop = top;
+        const capturedTop = topId;
         queueMicrotask(() => {
-          if (window.history.state === capturedTop) {
+          if (markerId(window.history.state) === capturedTop) {
             window.history.go(-n);
           }
         });
@@ -145,12 +157,13 @@ export function useOverlayBackGuard({
     const innerMarker = {
       ...(prevState ?? {}),
       solosoulOverlayLayer: true,
+      solosoulOverlayMarkerId: crypto.randomUUID(),
       solosoulOverlayInnerLayer: true,
       idx: (prevState?.idx ?? 0) + 1,
     };
     window.history.pushState(innerMarker, '');
-    ownedMarkers.add(innerMarker);
-    markerStatesRef.current.push(innerMarker);
+    ownedMarkers.add(innerMarker.solosoulOverlayMarkerId);
+    markerStatesRef.current.push(innerMarker.solosoulOverlayMarkerId);
     layersRef.current += 1;
   }, [innerOpen]);
 

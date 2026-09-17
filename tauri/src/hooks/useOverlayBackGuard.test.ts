@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, cleanup } from '@testing-library/react';
 import { useOverlayBackGuard } from './useOverlayBackGuard';
 
 /** 读取当前 history.state（测试专用辅助）。 */
@@ -9,6 +9,11 @@ function topState(): Record<string, unknown> {
 
 describe('useOverlayBackGuard', () => {
   beforeEach(() => {
+    // jsdom 默认不克隆 state；模拟浏览器每次读取得到新的结构化克隆。
+    const stateGetter = Object.getOwnPropertyDescriptor(History.prototype, 'state')!.get!;
+    vi.spyOn(window.history, 'state', 'get').mockImplementation(() =>
+      structuredClone(stateGetter.call(window.history)),
+    );
     // jsdom 无真实导航：go/back 全部 mock，避免清理期触发真实 history 操作
     vi.spyOn(window.history, 'go').mockImplementation(() => {});
     vi.spyOn(window.history, 'back').mockImplementation(() => {});
@@ -16,6 +21,7 @@ describe('useOverlayBackGuard', () => {
   });
 
   afterEach(() => {
+    cleanup();
     vi.restoreAllMocks();
   });
 
@@ -149,10 +155,11 @@ describe('useOverlayBackGuard', () => {
     const onClose = vi.fn();
     renderHook(() => useOverlayBackGuard({ innerOpen: false, onCloseInner: vi.fn(), onClose }));
 
-    // 取当前顶层 state（即本钩子压入的标记对象，引用一致 → 仍在 ownedMarkers 中）
+    // 取当前顶层 state（本钩子标记的克隆，ID 相同 → 仍被认领）
     const markerState = window.history.state as Record<string, unknown>;
+    expect(window.history.state).not.toBe(markerState);
     act(() => {
-      window.dispatchEvent(new PopStateEvent('popstate', { state: markerState }));
+      window.dispatchEvent(new PopStateEvent('popstate', { state: structuredClone(markerState) }));
     });
 
     // sweeper 不跳过（owned）；钩子自身 popstate 监听关闭浮层
@@ -267,5 +274,25 @@ describe('useOverlayBackGuard', () => {
     });
     expect(onClose2).toHaveBeenCalledTimes(1);
     expect(onClose1).not.toHaveBeenCalled();
+  });
+  it('卸载旧浮层不能清理另一个活跃浮层的标记', async () => {
+    const first = renderHook(() =>
+      useOverlayBackGuard({ innerOpen: false, onCloseInner: vi.fn(), onClose: vi.fn() }),
+    );
+    const firstId = topState().solosoulOverlayMarkerId;
+    const second = renderHook(() =>
+      useOverlayBackGuard({ innerOpen: false, onCloseInner: vi.fn(), onClose: vi.fn() }),
+    );
+    expect(topState().solosoulOverlayMarkerId).not.toBe(firstId);
+    first.unmount();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(window.history.go).not.toHaveBeenCalled();
+    second.unmount();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(window.history.go).toHaveBeenCalledWith(-1);
   });
 });
