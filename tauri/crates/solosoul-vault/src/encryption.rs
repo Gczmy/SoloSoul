@@ -10,16 +10,8 @@ use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// 数据加密密钥（32 字节 AES-256 密钥）。
 /// 包装 `[u8; 32]` 并实现自动安全擦除。
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Zeroize, ZeroizeOnDrop)]
 pub struct DataEncryptionKey(pub [u8; 32]);
-
-impl Zeroize for DataEncryptionKey {
-    fn zeroize(&mut self) {
-        self.0.zeroize();
-    }
-}
-
-impl ZeroizeOnDrop for DataEncryptionKey {}
 
 impl DataEncryptionKey {
     pub fn new(key: [u8; 32]) -> Self {
@@ -103,6 +95,15 @@ pub fn ensure_encrypted_text(key: &DataEncryptionKey, value: &str) -> Result<Str
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn key_has_drop_glue_and_zeroizes_live_storage() {
+        // 标记 trait 本身不会生成 Drop；此断言防止退回仅实现标记的旧行为。
+        assert!(std::mem::needs_drop::<DataEncryptionKey>());
+        let mut key = test_key();
+        key.zeroize();
+        assert_eq!(key.0, [0; 32]);
+    }
 
     fn test_key() -> DataEncryptionKey {
         DataEncryptionKey([0x42u8; 32])

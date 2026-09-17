@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-09-17（轮次 6：按用户要求逐项修复，已完成 P037、P038、P040、P041、P043）
+> 最后更新：2026-09-17（轮次 6：按用户要求逐项修复，已完成 P037、P038、P040、P041、P043、P045）
 > 修复轮次：6（前端、Rust 核心、CLI、平台桥接及发布脚本）
 > 上轮：4 —— 云同步设置页渲染崩溃修复：CSS module 类名字符串误展开为 style 索引属性
 > （`style={{ ...styles.input }}`），WebKit 抛「Cannot set indexed properties on this object」；
@@ -77,7 +77,7 @@
 | P028 | P2 | 规范偏离 | `src/components/sync/SyncConflictDialog.tsx:373-433` + `src-tauri/src/commands/sync.rs:371` | 同步冲突对话框明文渲染 sensitive/critical 字段差异值（场景可辩护），建议对受保护字段加揭示交互 | `[x]` 已修复 |
 | P029 | P2 | 架构 | `src-tauri/src/commands/vault_directory.rs:160-166` | `vault_set_directory` 后端锁定 Vault 但不 emit `vault-locked` 事件，前端认证态不失效，后续命令报锁错误但 UI 仍显示已解锁 | `[x]` 已修复 |
 | P030 | P2 | i18n | `src/pages/settings/CloudSyncPage.tsx:603` | `common:enabled` / `common:disabled` 双语均缺 key 且无 defaultValue，UI 直接渲染原始 key 字符串 | `[x]` 已修复 |
-| P045 | P2 | 安全/内存 | `crates/solosoul-vault/src/encryption.rs:13`、`storage.rs:728` | 密钥仅实现清零标记 trait，未实现 Drop；Vault 配置还保留锁定时未擦除的密钥副本 | `[ ]` 待修复 |
+| P045 | P2 | 安全/内存 | `crates/solosoul-vault/src/encryption.rs:13`、`storage.rs:728` | 密钥仅实现清零标记 trait，未实现 Drop；Vault 配置还保留锁定时未擦除的密钥副本 | `[x]` 已修复 |
 | P046 | P2 | 兼容/迁移 | `src/stores/settingsStore.ts:434` | 旧页面迁移不保留 ID，且部分成功后失败页面不再重试 | `[ ]` 待修复 |
 | P047 | P2 | 安全/临时文件 | `crates/solosoul-plugin/src/manager.rs:564`、`host.rs:1322` | 插件解密附件使用普通临时目录和默认文件权限，共享临时目录环境可暴露明文 | `[ ]` 待修复 |
 | P049 | P2 | 移动端导航 | `src/hooks/useOverlayBackGuard.ts:24` | 用对象引用识别 History 标记，真实浏览器结构化克隆后会把活跃相册当残留额外后退 | `[ ]` 待修复 |
@@ -93,9 +93,9 @@
 
 ## 修复进度
 
-- 已关闭：40 / 49（含已修复及已确认设计例外；本轮完成 P037、P038、P040、P041、P043）
-- 未关闭：9 项（P012、P039、P042、P044–P049）
-- 当前处理：P045。原有子模块与生成资源改动保留；本轮修复按明确路径独立提交。
+- 已关闭：41 / 49（含已修复及已确认设计例外；本轮完成 P037、P038、P040、P041、P043、P045）
+- 未关闭：8 项（P012、P039、P042、P044、P046–P049）
+- 当前处理：P042。原有子模块与生成资源改动保留；本轮修复按明确路径独立提交。
 
 ## 第六轮全面复审（2026-09-17）
 
@@ -166,6 +166,9 @@
 
 - **证据**：`encryption.rs:13–23` 仅手工实现 `ZeroizeOnDrop` 标记，未实现 Drop；该 trait 本身不负责擦除。`storage.rs:728` 从可复制的 `config.data_key` 创建会话密钥后还保存完整 config，lock 只擦会话字段，配置副本保留。该项为静态实现缺口，没有读取进程内存或真实密钥。
 - **修复与验证要求**：实现实际清零 Drop；open 时取走配置密钥，避免持久保存副本。用析构调用/配置内容的安全测试验证，不使用读取已释放内存的未定义行为测试。
+
+- **修复说明（2026-09-17）**：密钥包装类型通过 zeroize 派生真实 Drop，实现所有克隆在销毁时擦除；open 一开始将配置密钥 take 到受保护类型，配置不再长期保留副本，打开失败也触发擦除。
+- **验证**：存储单元测试 180 项及严格 Clippy 通过；回归验证 Drop glue、活对象显式清零、配置无密钥及锁定移除当前密钥，不读取已释放内存。P041 后续含测试的严格 Clippy 同样通过。
 
 ### P046 — 旧自定义页面部分迁移后无法补齐（P2）
 

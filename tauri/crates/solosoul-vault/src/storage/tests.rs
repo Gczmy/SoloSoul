@@ -17,6 +17,17 @@ fn setup() -> (VaultStore, TempDir) {
     (vault, dir)
 }
 
+#[test]
+fn vault_config_never_retains_key_and_lock_removes_active_key() {
+    let (vault, _dir) = setup();
+    assert!(vault.config.data_key.is_none());
+    assert!(vault.data_key().is_ok());
+    vault.lock();
+    assert!(vault.config.data_key.is_none());
+    assert!(vault.data_key.lock().unwrap().is_none());
+    assert!(vault.data_key().is_err());
+}
+
 fn conflict_entry(id: &str) -> crate::SyncConflictBatchEntry {
     crate::SyncConflictBatchEntry {
         table: "objects".into(),

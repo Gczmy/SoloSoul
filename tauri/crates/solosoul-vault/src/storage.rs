@@ -698,7 +698,9 @@ fn write_encryption_version_marker(tx: &rusqlite::Transaction<'_>) -> Result<(),
 
 impl VaultStore {
     /// Open or create a vault at the given path
-    pub fn open(config: VaultConfig) -> Result<Self, String> {
+    pub fn open(mut config: VaultConfig) -> Result<Self, String> {
+        // 从配置转移密钥，打开失败也由包装类型清零；长期保存的配置不再携带副本。
+        let data_key = config.data_key.take().map(DataEncryptionKey::new);
         let path = config.path.join("vault.db");
         let mut conn =
             Connection::open(&path).map_err(|e| format!("Failed to open vault: {}", e))?;
@@ -718,7 +720,6 @@ impl VaultStore {
         Self::init_schema(&conn)?;
         run_migrations(&mut conn)?;
 
-        let data_key = config.data_key.map(DataEncryptionKey::new);
         let store = Self {
             conn: Mutex::new(Some(conn)),
             config,
