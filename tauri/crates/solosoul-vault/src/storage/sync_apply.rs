@@ -17,7 +17,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde::Deserialize;
 
 use super::{with_tx, VaultStore};
-use crate::encryption::{decrypt_field, DataEncryptionKey};
+use crate::encryption::{decrypt_field, decrypt_text_field, encrypt_text_field, DataEncryptionKey};
 
 impl VaultStore {
     /// Apply a single incoming sync record. Returns true if the local state changed.
@@ -135,6 +135,43 @@ impl VaultStore {
 
     // ── Sync conflict helpers ────────────────────────────────
 
+    /// 独立于 encryption_version=1 的旧库迁移，包含已解决但尚未删除的冲突。
+    pub(super) fn migrate_sync_conflicts_encryption(&self) -> Result<(), String> {
+        let key = self.data_key()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let version: Option<String> = conn
+            .query_row(
+                "SELECT value FROM sys_config WHERE key = 'sync_conflict_encryption_version'",
+                [],
+                |r| r.get(0),
+            )
+            .optional()
+            .map_err(|e| e.to_string())?;
+        if version.as_deref() == Some("1") {
+            return Ok(());
+        }
+        let tx = conn.transaction().map_err(|e| e.to_string())?;
+        super::reencrypt::reencrypt_sync_conflicts(&tx, &key, &key)?;
+        tx.commit().map_err(|e| e.to_string())?;
+
+        // 清理当前数据库空闲页及 WAL；备份/文件系统历史副本不在此清理范围。
+        // 完成标记最后写入：清理失败或中断时，下次打开可安全重试幂等转换。
+        conn.execute_batch("VACUUM;")
+            .map_err(|e| format!("Conflict migration vacuum failed: {e}"))?;
+        let busy: i64 = conn
+            .query_row("PRAGMA wal_checkpoint(TRUNCATE)", [], |r| r.get(0))
+            .map_err(|e| format!("Conflict migration checkpoint failed: {e}"))?;
+        if busy != 0 {
+            return Err("Conflict migration checkpoint busy; retry opening the vault".into());
+        }
+        conn.execute(
+            "INSERT OR REPLACE INTO sys_config (key, value, updated_at) VALUES ('sync_conflict_encryption_version', '1', ?1)",
+            params![Self::now_rfc3339()],
+        ).map_err(|e| e.to_string())?;
+        Ok(())
+    }
+
     /// P016: 批量持久化同步冲突——单连接 + 单事务，N 条冲突一次 commit。
     ///
     /// 相比旧单条版（每次锁 + execute + 隐式事务）：大量冲突时
@@ -143,6 +180,7 @@ impl VaultStore {
         &self,
         entries: &[crate::SyncConflictBatchEntry],
     ) -> Result<(), String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let now = Self::now_rfc3339();
@@ -152,10 +190,14 @@ impl VaultStore {
                     serde_json::to_string(&e.local_hlc).map_err(|err| err.to_string())?;
                 let remote_hlc_json =
                     serde_json::to_string(&e.remote_hlc).map_err(|err| err.to_string())?;
-                let local_data_json =
-                    serde_json::to_string(&e.local_data).map_err(|err| err.to_string())?;
-                let remote_data_json =
-                    serde_json::to_string(&e.remote_data).map_err(|err| err.to_string())?;
+                let local_data_json = encrypt_text_field(
+                    &key,
+                    &serde_json::to_string(&e.local_data).map_err(|err| err.to_string())?,
+                )?;
+                let remote_data_json = encrypt_text_field(
+                    &key,
+                    &serde_json::to_string(&e.remote_data).map_err(|err| err.to_string())?,
+                )?;
                 c.execute(
                     "INSERT INTO sync_conflicts (id, table_name, record_id, local_hlc, remote_hlc, local_data, remote_data, remote_deleted, winner, created_at, resolved)
                      VALUES ((lower(hex(randomblob(16)))), ?1, ?2, ?3, ?4, ?5, ?6, ?7, 'local', ?8, 0)
@@ -249,9 +291,10 @@ impl VaultStore {
         &self,
         conflict_id: &str,
     ) -> Result<Option<crate::SyncConflictDetail>, String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let result = conn
+        let mut result = conn
         .query_row(
             "SELECT id, table_name, record_id, local_hlc, remote_hlc, local_data, remote_data, remote_deleted, winner, created_at
              FROM sync_conflicts WHERE id = ?1 AND resolved = 0",
@@ -273,6 +316,10 @@ impl VaultStore {
         )
         .optional()
         .map_err(|e| format!("get_sync_conflict: {}", e))?;
+        if let Some(detail) = result.as_mut() {
+            detail.local_data_json = decrypt_text_field(&key, &detail.local_data_json)?;
+            detail.remote_data_json = decrypt_text_field(&key, &detail.remote_data_json)?;
+        }
         Ok(result)
     }
 

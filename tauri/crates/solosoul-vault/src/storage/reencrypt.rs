@@ -11,7 +11,7 @@ use super::rewrite_table;
 
 impl VaultStore {
     /// 整库换钥重加密：全部表用 `new_key` 重写（profiles / objects / trash_items /
-    /// object_snapshots / user_templates / audit_log）。
+    /// object_snapshots / user_templates / audit_log / sync_conflicts）。
     ///
     /// 调用方（改密/KDF 升级）负责在调用前已验证 `old_key` 可解密全部数据。
     /// 持连接锁 + 单事务；任一行失败整体回滚。
@@ -32,6 +32,7 @@ impl VaultStore {
             reencrypt_blob_table(&tx, "object_snapshots", old_key, new_key)?;
             reencrypt_user_templates(&tx, old_key, new_key)?;
             reencrypt_audit_log(&tx, old_key, new_key)?;
+            reencrypt_sync_conflicts(&tx, old_key, new_key)?;
             Ok(())
         })();
 
@@ -50,6 +51,31 @@ impl VaultStore {
             }
         }
     }
+}
+
+/// 冲突迁移与换钥共用同一事务转换；先解密可同时校验已有密文，损坏行阻止整批提交。
+pub(super) fn reencrypt_sync_conflicts(
+    tx: &rusqlite::Transaction<'_>,
+    old_key: &DataEncryptionKey,
+    new_key: &DataEncryptionKey,
+) -> Result<(), String> {
+    rewrite_table(
+        tx,
+        "SELECT id, local_data, remote_data FROM sync_conflicts",
+        "UPDATE sync_conflicts SET local_data = ?1, remote_data = ?2 WHERE id = ?3",
+        "sync_conflicts",
+        false,
+        |row| {
+            let local: String = row.get(1).map_err(|e| e.to_string())?;
+            let remote: String = row.get(2).map_err(|e| e.to_string())?;
+            let local = decrypt_text_field(old_key, &local)?;
+            let remote = decrypt_text_field(old_key, &remote)?;
+            Ok(Some(vec![
+                rusqlite::types::Value::Text(encrypt_text_field(new_key, &local)?),
+                rusqlite::types::Value::Text(encrypt_text_field(new_key, &remote)?),
+            ]))
+        },
+    )
 }
 /// P016：三个「单 blob 列」表（profiles / trash_items / object_snapshots）的
 /// 重加密收敛为一个参数化实现——仅表名不同，闭包逐字节相同。

@@ -17,6 +17,249 @@ fn setup() -> (VaultStore, TempDir) {
     (vault, dir)
 }
 
+fn conflict_entry(id: &str) -> crate::SyncConflictBatchEntry {
+    crate::SyncConflictBatchEntry {
+        table: "objects".into(),
+        record_id: id.into(),
+        local_hlc: crate::RecordHlc {
+            wall_time_ms: 1,
+            counter: 0,
+            node_id: "local".into(),
+        },
+        remote_hlc: crate::RecordHlc {
+            wall_time_ms: 2,
+            counter: 0,
+            node_id: "remote".into(),
+        },
+        local_data: serde_json::json!({"secret": "local-conflict-secret"}),
+        remote_data: serde_json::to_value(ObjectRecord {
+            id: id.into(),
+            account_id: "test_account".into(),
+            type_id: "note".into(),
+            name: "Remote".into(),
+            properties: serde_json::json!({"secret": "remote-conflict-secret"}),
+            ..Default::default()
+        })
+        .unwrap(),
+        remote_deleted: false,
+    }
+}
+
+fn raw_conflict(vault: &VaultStore, record_id: &str) -> (String, String) {
+    vault
+        .conn
+        .lock()
+        .unwrap()
+        .as_ref()
+        .unwrap()
+        .query_row(
+            "SELECT local_data, remote_data FROM sync_conflicts WHERE record_id = ?1",
+            [record_id],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )
+        .unwrap()
+}
+
+#[test]
+fn conflict_payloads_are_encrypted_upserted_resolved_and_locked() {
+    let (vault, _dir) = setup();
+    let mut entry = conflict_entry("conflict-object");
+    vault.save_sync_conflicts_batch(std::slice::from_ref(&entry)).unwrap();
+    let raw = raw_conflict(&vault, &entry.record_id);
+    for text in [&raw.0, &raw.1] {
+        assert!(text.starts_with(crate::encryption::ENCRYPTED_TEXT_PREFIX));
+        assert!(!text.contains("conflict-secret"));
+    }
+    let id = vault.list_sync_conflicts().unwrap()[0].id.clone();
+    let detail = vault.get_sync_conflict(&id).unwrap().unwrap();
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(&detail.local_data_json).unwrap(),
+        entry.local_data
+    );
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(&detail.remote_data_json).unwrap(),
+        entry.remote_data
+    );
+    entry.local_data = serde_json::json!({"secret": "updated-conflict-secret"});
+    vault.save_sync_conflicts_batch(std::slice::from_ref(&entry)).unwrap();
+    assert_eq!(vault.list_sync_conflicts().unwrap().len(), 1);
+    assert!(vault
+        .get_sync_conflict(&id)
+        .unwrap()
+        .unwrap()
+        .local_data_json
+        .contains("updated-conflict-secret"));
+    assert!(vault.resolve_sync_conflict(&id, "keep_remote").unwrap());
+    assert_eq!(
+        vault
+            .load_object(&entry.record_id)
+            .unwrap()
+            .unwrap()
+            .properties["secret"],
+        "remote-conflict-secret"
+    );
+    assert!(vault.get_sync_conflict(&id).unwrap().is_none());
+    vault.lock();
+    assert!(vault.get_sync_conflict(&id).is_err());
+    assert!(vault.save_sync_conflicts_batch(&[entry]).is_err());
+}
+
+#[test]
+fn conflict_migration_covers_v1_databases_and_scrubs_live_pages() {
+    let (vault, dir) = setup();
+    let entry = conflict_entry("legacy-conflict");
+    vault.save_sync_conflicts_batch(std::slice::from_ref(&entry)).unwrap();
+    {
+        let guard = vault.conn.lock().unwrap();
+        let conn = guard.as_ref().unwrap();
+        conn.execute(
+            "UPDATE sync_conflicts SET local_data = ?1, remote_data = ?2",
+            params![entry.local_data.to_string(), entry.remote_data.to_string()],
+        )
+        .unwrap();
+        conn.execute(
+            "DELETE FROM sys_config WHERE key = 'sync_conflict_encryption_version'",
+            [],
+        )
+        .unwrap();
+    }
+    assert_eq!(
+        vault
+            .get_sys_config("encryption_version")
+            .unwrap()
+            .as_deref(),
+        Some("1")
+    );
+    vault.lock();
+    let config = VaultConfig::new("test_account", dir.path().to_owned()).with_data_key(test_key());
+    let migrated = VaultStore::open(config).unwrap();
+    let id = migrated.list_sync_conflicts().unwrap()[0].id.clone();
+    let detail = migrated.get_sync_conflict(&id).unwrap().unwrap();
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(&detail.local_data_json).unwrap(),
+        entry.local_data
+    );
+    let raw = raw_conflict(&migrated, &entry.record_id);
+    assert!(raw.0.starts_with("solo:"));
+    assert!(raw.1.starts_with("solo:"));
+    migrated.migrate_sync_conflicts_encryption().unwrap();
+    assert_eq!(
+        raw_conflict(&migrated, &entry.record_id),
+        raw,
+        "完成后不重复改写"
+    );
+    migrated.lock();
+    for file in ["vault.db", "vault.db-wal"] {
+        if let Ok(bytes) = std::fs::read(dir.path().join(file)) {
+            assert!(
+                !String::from_utf8_lossy(&bytes).contains("conflict-secret"),
+                "残留明文: {file}"
+            );
+        }
+    }
+}
+
+#[test]
+fn corrupt_conflict_rolls_back_migration_without_completion_marker() {
+    let (vault, _dir) = setup();
+    vault
+        .save_sync_conflicts_batch(&[conflict_entry("good"), conflict_entry("bad")])
+        .unwrap();
+    let plain = r#"{"secret":"legacy-conflict-secret"}"#;
+    {
+        let guard = vault.conn.lock().unwrap();
+        let conn = guard.as_ref().unwrap();
+        conn.execute(
+            "UPDATE sync_conflicts SET local_data = ?1 WHERE record_id = 'good'",
+            [plain],
+        )
+        .unwrap();
+        conn.execute(
+            "UPDATE sync_conflicts SET remote_data = 'solo:invalid!' WHERE record_id = 'bad'",
+            [],
+        )
+        .unwrap();
+        conn.execute(
+            "DELETE FROM sys_config WHERE key = 'sync_conflict_encryption_version'",
+            [],
+        )
+        .unwrap();
+    }
+    let before_good = raw_conflict(&vault, "good");
+    let before_bad = raw_conflict(&vault, "bad");
+    assert!(vault.migrate_sync_conflicts_encryption().is_err());
+    assert_eq!(raw_conflict(&vault, "good"), before_good);
+    assert_eq!(raw_conflict(&vault, "bad"), before_bad);
+    assert!(vault
+        .get_sys_config("sync_conflict_encryption_version")
+        .unwrap()
+        .is_none());
+}
+
+#[test]
+fn conflicts_rotate_keys_probe_and_roll_back_with_other_tables() {
+    let (vault, dir) = setup();
+    let entry = conflict_entry("only-conflict");
+    vault.save_sync_conflicts_batch(std::slice::from_ref(&entry)).unwrap();
+    let old = DataEncryptionKey::new(test_key());
+    let new = DataEncryptionKey::new([0x99; 32]);
+    let path = dir.path().join("vault.db");
+    assert!(probe_data_key(&path, &old).unwrap());
+    assert!(!probe_data_key(&path, &new).unwrap());
+    vault.reencrypt_all(&old, &new).unwrap();
+    vault.set_data_key(new.clone());
+    assert!(!probe_data_key(&path, &old).unwrap());
+    assert!(probe_data_key(&path, &new).unwrap());
+    let id = vault.list_sync_conflicts().unwrap()[0].id.clone();
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(
+            &vault
+                .get_sync_conflict(&id)
+                .unwrap()
+                .unwrap()
+                .local_data_json
+        )
+        .unwrap(),
+        entry.local_data
+    );
+    vault
+        .save_profile(&Profile::new_with_id(
+            "profile",
+            "Profile",
+            b"profile secret".to_vec(),
+        ))
+        .unwrap();
+    let before: Vec<u8> = {
+        let guard = vault.conn.lock().unwrap();
+        let conn = guard.as_ref().unwrap();
+        conn.execute(
+            "UPDATE sync_conflicts SET remote_data = 'solo:invalid!'",
+            [],
+        )
+        .unwrap();
+        conn.query_row("SELECT data FROM profiles WHERE id = 'profile'", [], |r| {
+            r.get(0)
+        })
+        .unwrap()
+    };
+    assert!(vault.reencrypt_all(&new, &old).is_err());
+    let after: Vec<u8> = vault
+        .conn
+        .lock()
+        .unwrap()
+        .as_ref()
+        .unwrap()
+        .query_row("SELECT data FROM profiles WHERE id = 'profile'", [], |r| {
+            r.get(0)
+        })
+        .unwrap();
+    assert_eq!(after, before);
+    assert_eq!(
+        vault.load_profile("profile").unwrap().unwrap().data,
+        b"profile secret"
+    );
+}
+
 #[test]
 fn test_vault_open() {
     let dir = TempDir::new().unwrap();

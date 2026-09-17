@@ -524,6 +524,22 @@ pub fn probe_data_key(db_path: &std::path::Path, key: &DataEncryptionKey) -> Res
             return Ok(decrypt_text_field(key, &props).is_ok());
         }
     }
+    // 冲突可能是崩溃换钥恢复时库中唯一的加密记录。
+    if let Some((local, remote)) = conn
+        .query_row(
+            "SELECT local_data, remote_data FROM sync_conflicts LIMIT 1",
+            [],
+            |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)),
+        )
+        .optional()
+        .map_err(|e| e.to_string())?
+    {
+        for data in [local, remote] {
+            if data.starts_with(crate::encryption::ENCRYPTED_TEXT_PREFIX) {
+                return Ok(decrypt_text_field(key, &data).is_ok());
+            }
+        }
+    }
     Ok(true)
 }
 
@@ -720,6 +736,8 @@ impl VaultStore {
         // 只读 probe 连接（probe_data_key）在 WAL 下依赖快照隔离读未提交事务前的旧
         // 数据，reencrypt 崩溃恢复判定不受影响。
         let _: Result<_, _> = conn.query_row("PRAGMA journal_mode = WAL;", [], |_| Ok(()));
+        conn.execute_batch("PRAGMA secure_delete = ON;")
+            .map_err(|e| format!("Failed to enable secure deletion: {e}"))?;
 
         // Initialize schema
         Self::init_schema(&conn)?;
@@ -736,6 +754,9 @@ impl VaultStore {
 
         // Migrate plaintext legacy data to encrypted format on first open.
         store.migrate_to_encrypted_format()?;
+        if store.data_key().is_ok() {
+            store.migrate_sync_conflicts_encryption()?;
+        }
 
         // 一次性补齐旧对象缺失的初始 snapshot，使历史 badge 能正常显示。
         // 仅在 Vault 已解锁（有 data_key）时执行；已标记过的 Vault 会自动跳过。
