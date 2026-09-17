@@ -1,7 +1,7 @@
 # 代码分析修复报告
 
-> 最后更新：2026-09-10（轮次 5：本地修复完成，完整验收受 GUI 测试启动错误阻断）
-> 修复轮次：5（逐项核验与修复）
+> 最后更新：2026-09-17（轮次 6：分析和基线检查完成，P037 修复及报告获授权提交推送）
+> 修复轮次：6（前端、Rust 核心、CLI、平台桥接及发布脚本）
 > 上轮：4 —— 云同步设置页渲染崩溃修复：CSS module 类名字符串误展开为 style 索引属性
 > （`style={{ ...styles.input }}`），WebKit 抛「Cannot set indexed properties on this object」；
 > 隐患自 Phase 2 创建页面即存在，非 P007 拆分引入。新增页面级渲染冒烟测试锁定回归。
@@ -32,6 +32,15 @@
 
 | ID   | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |------|--------|------|----------|------|------|
+| P037 | P1 | 安全/发布 | `../scripts/build_macos_release.sh`、`../scripts/sign_artifacts.sh` | 发布脚本的 shell xtrace 输出签名私钥，且 signer 的命令行参数携带完整私钥 | `[x]` 已修复，与本轮报告一同交付 |
+| P038 | P1 | 安全/数据丢失 | `crates/solosoul-plugin/src/store.rs:17` | 插件 ID 校验允许 `.`/`..`，卸载时递归删除越过插件目录边界 | `[ ]` 待修复 |
+| P039 | P1 | 安全/会话隔离 | `src/stores/`、`src/App/AppRoutes.tsx` | 锁定后晚到响应回填解密缓存，插件运行结果未清除且可跨账户展示 | `[ ]` 待修复 |
+| P040 | P1 | 安全/存储 | `crates/solosoul-vault/src/storage/sync_apply.rs:142` | 同步冲突的双方完整数据明文写入普通 SQLite，绕过 Vault 应用层加密 | `[ ]` 待修复 |
+| P041 | P1 | 数据可用性 | `crates/solosoul-vault/src/storage/reencrypt.rs` | 改密/KDF 升级漏重加密聊天表，切换密钥后历史对话不能解密 | `[ ]` 待修复 |
+| P042 | P1 | 安全/授权 | `crates/solosoul-plugin/src/field.rs:615` | 插件 list_objects 直接返回全部属性，未按字段声明与授权过滤 | `[ ]` 待修复 |
+| P043 | P1 | 安全/数据丢失 | `crates/solosoul-core/src/vault_service/account.rs` | 恢复账户 ID 未校验，`.` 等值可令失败恢复的清理删除 Vault 根内数据 | `[ ]` 待修复 |
+| P044 | P1 | 安全/展示 | `src/components/trash/TrashDetailSections.tsx`、`TrashSnapshotView.tsx` | 回收站字段及历史快照只展示敏感度标签，受保护字段默认明文展示 | `[ ]` 待修复 |
+| P048 | P1 | 安全/插件生命周期 | `crates/solosoul-plugin/src/field.rs:91`、`sandbox.rs:76` | 插件缓存命中不检查锁定状态，执行入口未使用会话过期信息 | `[ ]` 待修复 |
 | P001 | P1 | 规范/CI | `src-tauri/permissions/solo-soul/default.toml` | 8 个 cloud_sync 命令已注册 handler 且前端在调，但未登记 ACL 白名单；`check_acl_consistency.py` exit 1，CI（pr_check.yml）必红，运行时 ACL 拒绝 | `[x]` 已修复 |
 | P002 | P1 | 架构 | `src-tauri/src/lib.rs:46-193`（定义于 `commands/settings.rs:166-181`） | `ui_get_preferences` 有 `#[tauri::command]` 定义且进了 ACL，但从未注册进 `generate_handler!`，前端三处调用永远失败并被静默吞掉 | `[x]` 已修复 |
 | P003 | P1 | 漏洞 | `crates/solosoul-core/src/cloud_sync/webdav.rs:48-65` | WebDAV 连接器允许 `http://` + Basic 认证，账号密码明文传输；与 LLM/OCR 的「非回环强制 https」策略不一致，错误文案与行为自相矛盾 | `[x]` 已修复 |
@@ -68,6 +77,10 @@
 | P028 | P2 | 规范偏离 | `src/components/sync/SyncConflictDialog.tsx:373-433` + `src-tauri/src/commands/sync.rs:371` | 同步冲突对话框明文渲染 sensitive/critical 字段差异值（场景可辩护），建议对受保护字段加揭示交互 | `[x]` 已修复 |
 | P029 | P2 | 架构 | `src-tauri/src/commands/vault_directory.rs:160-166` | `vault_set_directory` 后端锁定 Vault 但不 emit `vault-locked` 事件，前端认证态不失效，后续命令报锁错误但 UI 仍显示已解锁 | `[x]` 已修复 |
 | P030 | P2 | i18n | `src/pages/settings/CloudSyncPage.tsx:603` | `common:enabled` / `common:disabled` 双语均缺 key 且无 defaultValue，UI 直接渲染原始 key 字符串 | `[x]` 已修复 |
+| P045 | P2 | 安全/内存 | `crates/solosoul-vault/src/encryption.rs:13`、`storage.rs:728` | 密钥仅实现清零标记 trait，未实现 Drop；Vault 配置还保留锁定时未擦除的密钥副本 | `[ ]` 待修复 |
+| P046 | P2 | 兼容/迁移 | `src/stores/settingsStore.ts:434` | 旧页面迁移不保留 ID，且部分成功后失败页面不再重试 | `[ ]` 待修复 |
+| P047 | P2 | 安全/临时文件 | `crates/solosoul-plugin/src/manager.rs:564`、`host.rs:1322` | 插件解密附件使用普通临时目录和默认文件权限，共享临时目录环境可暴露明文 | `[ ]` 待修复 |
+| P049 | P2 | 移动端导航 | `src/hooks/useOverlayBackGuard.ts:24` | 用对象引用识别 History 标记，真实浏览器结构化克隆后会把活跃相册当残留额外后退 | `[ ]` 待修复 |
 
 #### 修复说明（续）
 - **P027**：核实代码注释（推荐场景用途=引用同名字段快速填入，internal 在编辑页
@@ -80,9 +93,89 @@
 
 ## 修复进度
 
-- 已关闭：35 / 36（按问题清单统计；含已修复及已确认设计例外）
-- 未关闭：1 项（P012）
-- 当前处理：无；本轮复审见 [CODE_ANALYSIS_REPORT_FINAL.md](CODE_ANALYSIS_REPORT_FINAL.md)
+- 已关闭：36 / 49（含已修复及已确认设计例外；本轮完成 P037）
+- 未关闭：13 项（P012、P038–P049）
+- 当前处理：本轮发现 13 项（9 项 P1、4 项 P2），P037 修复已验证；用户已明确授权提交推送本轮报告和现有修复。其余 12 项新问题及历史 P012 保留待修复/延期状态，尚未达到最终验收条件。
+
+## 第六轮全面复审（2026-09-17）
+
+- **依据与基线**：按 `review_code_process.md` 执行，基线提交 `39e43634`；保留历史清单并复核唯一未关闭项 P012。审查前端、Tauri Rust workspace、CLI、平台桥接、权限边界及发布脚本，跳过依赖、构建和生成目录。静态扫描和重点调用链复核不等于每个源文件逐行审计。
+- **工作区边界**：开始时已有 `src-tauri/Cargo.toml` 的 macOS feature 变更、Android 打包插件资产和两个诊断 ZIP。生成资产和诊断包不纳入审查提交；不为取得干净状态发布诊断资料或覆盖用户文件。Cargo 差异单独核验，不混入修复。每项修复按明确文件路径独立提交并推送。
+- **CLI 检查副产物**：独立 Cargo 检查因锁文件滞后自动同步了路径依赖版本和已有依赖；测试完成后已保存生成副本并恢复检查前的 `solosoul_cli/Cargo.lock`，不把该派生变更混入审查。
+- **备份**：修复前原文件保存于 `/private/tmp/solosoul-audit-20260917/.backup/`，不将备份提交到仓库。
+- **检查进度**：TypeScript、Rust fmt、Clippy、ESLint 通过。首次 Rust 测试中 5 项因沙箱禁止绑定本地回环端口失败，允许本地监听后完整 `cargo test` 通过，GUI 460 项已全部执行，不再有旧报告的 Windows DLL 启动阻断。首次 Vitest 因 Node 实验性 Web Storage 与测试环境冲突出现 42 个用例失败及 3 个未处理错误；使用 `NODE_OPTIONS=--no-experimental-webstorage npm run test` 后 **117 文件 / 975 用例全部通过**。Markdown 分块、211 条 ACL、22 个偏好键检查通过。CLI fmt/Clippy 通过，166 个单元测试和 2 个集成测试通过，1 个文档示例按既有设置忽略。上述环境失败与修正运行条件均保留记录，不将环境故障当作产品代码修复。
+- **P012**：复核仍有可选指纹、裸 PIN 兼容；沿用旧延期状态。已询问本轮是否改变手动恢复的产品约束，未将其当成已修复。
+- **提交授权**：首次 P037 的提交推送被自动审批拒绝，当时操作没有执行；理由为全面审查未被认定包含发布授权。随后用户明确要求“提交推送”，本次交付包含 P037 的两个签名脚本、假密钥回归测试及两份审查报告，推送目标为 `origin/main`。其余发现的代码尚未修改，不创建审查通过标签。
+- **覆盖和边界**：Git 跟踪的前端 TS/TSX/CSS 664 文件、GUI Rust 96 文件、共享 Rust 98 文件、CLI Rust 79 文件纳入静态扫描；另检查构建与发布脚本、CI、capabilities。crate 本地依赖图无环。未发现新的裸文件对话框调用、`eval` 或 `dangerouslySetInnerHTML`，近期添加页面定位快照和材质平台隔离未发现新的确定问题。未做原生 Android/Windows 运行验证、真实网络恢复攻击、真实签名或用户数据库读取，也不以函数行数/重复率直接判定缺陷。
+
+### P037 — 发布签名私钥泄露到调试日志及进程参数（P1）
+
+- **触发与证据**：`build_macos_release.sh --verbose` 开启 `set -x`，读取私钥、检查非空及调用 signer 时都会展开并记录私钥。两个脚本均使用 `--private-key "$TAURI_SIGNING_PRIVATE_KEY"`，使私钥进入 signer 进程参数；`bash -x scripts/sign_artifacts.sh` 同样泄露到 trace。
+- **影响**：构建日志及进程参数可能包含可签发伪造更新的私钥。本轮仅用假密钥进行回归，不读取真实密钥，也不断言历史日志已实际泄露。
+- **修复方案**：在脚本开头关闭 shell xtrace，详细模式只传递给 Tauri 构建命令；利用 signer 已支持的环境变量输入私钥，移除私钥命令行参数。回归覆盖详细模式、外部 `bash -x` 及环境传递。
+- **修复说明**：两个脚本开头 `set +x`，构建详细模式改为 Tauri 的 `--verbose`；signer 从导出的 `TAURI_SIGNING_PRIVATE_KEY` 读取私钥，命令参数不再带其内容。签名工具环境变量支持已核对本地 CLI 帮助。
+- **验证**：`bash -n`、`git diff --check` 通过；`python3 scripts/tests/test_signing_secrets.py` 的 3 项测试共 14 个子场景通过，覆盖文件/环境变量输入、正常/详细/外部追踪模式及缺失私钥。测试运行临时工程与假工具，仅使用假密钥，验证 stdout/stderr/argv 不含私钥且 signer 环境获得正确值；未运行真实发布构建或签名。
+
+### P038 — 插件点路径卸载可删除数据根目录内容（P1）
+
+- **证据与触发**：`solosoul-plugin/src/store.rs:17–30` 的白名单允许 `.` 与 `..`；`plugin_dir` 直接 join，`delete_plugin:153–156` 递归删除。GUI 的 `plugin_uninstall` 经 manager 进入该共享入口，无补充校验。独立 Rust 临时沙箱复用当前规则，传 `..` 后同级假账户文件被删除，调用返回成功；没有接触用户目录。
+- **修复与验证要求**：在共享 ID 校验拒绝点路径及路径分隔符，不能只修 UI。为保存、读取、卸载添加无副作用失败测试，验证根目录和其他插件/假账户哨兵保留。
+
+### P039 — 前端会话缓存晚到回填及插件输出串账户（P1）
+
+- **证据与触发**：`AppRoutes.tsx:275–295` 在锁定时 clear；object/template/trash/profile store 的异步 action 在 await 后无会话代次检查，再次写入已清空缓存。对真实 store 注入延迟 Promise，四类 store 均复现「load→clear→resolve，0 条重新变 1 条」。settings/sync/llmStats 有同类路径；旧 `loadSettings().then(...)` 还会发起新一轮旧账户页面加载。
+- **独立表现**：pluginStore 的结果、日志、交互请求按插件 ID 保存，锁定入口没有清理；A 账户运行插件后锁定，B 登录打开插件页可显示 A 的结果。
+- **修复与验证要求**：共享会话代次守卫，clear 令旧请求失效，覆盖成功、失败与后续加载；列表请求还需防乱序。插件清运行态、保留公开安装/市场信息，并拒绝旧运行事件和最终结果回填。回归包括 A→锁定→B、旧成功/失败晚到、重复列表读取、保存失败不得回滚 B 设置。该项与后端插件访问控制 P048 分开处理。
+
+### P040 — 同步冲突完整内容绕过 Vault 加密（P1）
+
+- **证据与触发**：`sync/delta.rs:190–240` 从已解密对象/资料/会话构造冲突；`storage/sync_apply.rs:142–180` 序列化后直接写入 `sync_conflicts.local_data/remote_data`。存储使用普通 `Connection::open`，无 SQLCipher；详情读取也不解密。冲突发生后，即便锁定，数据库中的这两列仍为明文 JSON。
+- **修复与验证要求**：写入前加密、详情读取解密；对既有 `encryption_version=1` 数据另做幂等事务迁移，并纳入密钥轮换。验证旧库迁移、原始 SQL 无明文、upsert、锁定、详情与解决冲突、损坏密文整事务回滚。不能仅修改首次加密迁移，否则现有用户早退漏迁移；旧 WAL/空闲页需单独考虑，不能声称历史备份已清除。
+
+### P041 — 更换主密码/KDF 后聊天记录仍用旧密钥（P1）
+
+- **证据与触发**：`conversations.rs:93–100` 用 Vault data_key 加密聊天；`reencrypt.rs:28–35` 的整库换钥清单遗漏 `llm_conversations`。改密及 KDF 升级都调用该入口，然后切换新密钥，旧聊天读取和同步解密失败。
+- **修复与验证要求**：把聊天 blob 表纳入同一重加密事务；`probe_data_key` 也需覆盖仅有聊天/冲突的崩溃恢复场景。测试真实改密后锁定重开可读取聊天、损坏行整体回滚。已被旧版改密损坏的聊天需要旧密码和旧盐值另行恢复，不能把预防修复描述成自动修复所有历史损坏。
+
+### P042 — 插件列对象 API 绕过字段声明（P1）
+
+- **证据与触发**：`field.rs:615–662` 两条 list_objects 路径都直接返回全部 `properties`；host `solosoul_list_objects` 无附加字段过滤。插件只声明地址街道字段，也能从同对象得到未声明的敏感字段；旧路径还能请求其他类型。request_field 的声明检查没有覆盖该入口。
+- **修复与验证要求**：统一按声明字段、contract/role 绑定投影属性，拒绝未声明类型与空权限。需兼容只声明 contracts/roles 的现有到期提醒插件，不能简单全部禁用。回归覆盖允许 street、拒绝 secret/其他模板、自定义角色映射、通配及嵌套字段。
+
+### P043 — 恢复账户 ID 可指向 Vault 根目录（P1）
+
+- **证据与触发**：恢复协议接收网络 account_id，`vault_service/account.rs:307–334` 未做路径语义校验就创建账户。ID 为 `.` 或 `./` 时可写到根目录；随后故意无效的恢复包导入失败，`commands/recovery.rs:413` 清理账户，`delete_account:335–347` 最终递归删除根内文件。此链经静态完整调用链核对，未运行真实恢复攻击。空 ID 在创建阶段被 `/config.json` 拒绝，不能用空 ID 描述完整远程复现；但删除入口单独接受空 ID 仍不安全。
+- **修复与验证要求**：共享账户 ID 校验覆盖创建、删除、清单加载、配置读写和解锁，且在锁定/缓存/KDF/磁盘副作用前拒绝非法输入。兼容现有 `acc_...`、`acc-1`、`acc_restore_same_name`；不要禁止文件系统抽象合法的根相对路径操作。用 TempDir 哨兵验证恶意 ID 不改变根目录、其他账户、缓存和解锁状态。
+
+### P044 — 回收站/快照受保护字段默认明文（P1）
+
+- **证据与触发**：打开回收站详情无需揭示操作；`TrashDetailSections.tsx:266,298`、`TrashSnapshotView.tsx:403,520` 只放敏感度标签，真实值直接交给 ValueContainer。真实组件 SSR 注入合成 critical 字段，默认 HTML 中包含明文且无掩码。
+- **修复与验证要求**：复用 useRevealState、统一敏感度与验证组件，覆盖普通值、动态子字段和快照。必须同时保护 ValueContainer 的复制/展开值，不能只用 CSS 遮住。验证 public 可见、其余默认 8 圆点、揭示验证失败仍隐藏及到期回隐；模板字段类型说明不应误掩码。
+
+### P045 — 密钥自动擦除实现和配置副本遗漏（P2）
+
+- **证据**：`encryption.rs:13–23` 仅手工实现 `ZeroizeOnDrop` 标记，未实现 Drop；该 trait 本身不负责擦除。`storage.rs:728` 从可复制的 `config.data_key` 创建会话密钥后还保存完整 config，lock 只擦会话字段，配置副本保留。该项为静态实现缺口，没有读取进程内存或真实密钥。
+- **修复与验证要求**：实现实际清零 Drop；open 时取走配置密钥，避免持久保存副本。用析构调用/配置内容的安全测试验证，不使用读取已释放内存的未定义行为测试。
+
+### P046 — 旧自定义页面部分迁移后无法补齐（P2）
+
+- **证据与触发**：`settingsStore.ts:434–497` 只要 objects 已有任一 page 就提前返回，迁移创建又未保留旧 ID。真实 store 模拟 A/B 两旧页、A 成功 B 失败：首轮成功页仍用悬空旧 ID；再次加载遇到 A 即返回，B 不再重试。保留旧 preferences 的旧修复没有闭合重试链。
+- **修复与验证要求**：保留稳定 ID、按 ID 差集迁移并合并，全部确认成功才清旧数据。覆盖部分失败→重启→补齐、迁移成功立即导航、已有新页与旧页并存。
+
+### P047 — 插件明文附件临时文件权限与异常清理（P2）
+
+- **证据与条件**：`manager.rs:564–569` 用普通 create_dir_all 创建插件临时工作区；`host.rs:1322–1326` 解密附件，`attachment_crypto.rs:66` 使用默认 File::create。共享 `/tmp` 且 umask022 时目录/文件可被其他本地用户读取；macOS 默认私有 TMPDIR 有外围保护，不能泛称所有平台均暴露。spawn join 出错路径还会跳过后续清理。
+- **修复与验证要求**：0700 临时目录与 0600 明文文件，RAII 管理所有失败退出清理。测试仅用临时假附件，检查权限及成功/异常路径；不读取真实附件。
+
+### P048 — 插件缓存与会话过期未重新校验（P1）
+
+- **证据与触发**：`field.rs:91–160` 的三个 cached_* 仅确认持有 Vault/account 引用，缓存命中后直接返回明文，不查看 Vault 当前锁定状态。插件先读数据再锁定后继续执行，仍可读取已缓存内容。`sandbox.rs:76` 将 session 参数标为未使用，列表清理过期会话不等于 Host 访问被撤销。
+- **修复与验证要求**：在实际 Host 数据访问时校验会话有效期和对应 Vault 解锁状态，锁定/撤销后失效缓存及运行访问。测试预热→锁定→再读拒绝，以及会话过期拒绝，不能仅依赖前端 P039 清理。
+
+### P049 — 浮层历史所有权误依赖对象身份（P2）
+
+- **证据与触发**：`useOverlayBackGuard.ts:24–32` 假设 pushState/popstate 保持同一对象引用；原对象放入 Set，sweeper 用事件对象查询。隔离真实 Chrome 空白页实测 history.state 与 marker 不同，popstate.state 也不等于原对象。全屏查看器返回相册层时，活跃相册被判成残留，额外 history.go(-1)，导致多退一层。
+- **修复与验证要求**：用稳定字符串 marker ID 判断所有权，保留 StrictMode 和卸载竞态保护。补真实浏览器或结构化克隆语义的回归，验证内层→相册→页面逐层返回及锁定残留跳过。未在真实 Android WebView 上运行本轮验证。
 
 ## 本轮核验（2026-09-10）
 

@@ -23,6 +23,8 @@
 #   - macOS (脚本针对 macOS 设计，其他平台需调整)
 # ============================================================
 
+# 即使调用方使用 bash -x，也不能把签名密钥展开到构建日志。
+set +x
 set -euo pipefail
 
 # --- 配置区 ---
@@ -57,10 +59,6 @@ while [[ $# -gt 0 ]]; do
         *) echo -e "${RED}Unknown option: $1${NC}"; exit 1 ;;
     esac
 done
-
-if [[ "$VERBOSE" -eq 1 ]]; then
-    set -x
-fi
 
 # --- 工具函数 ---
 log_info()  { echo -e "${GREEN}[INFO]${NC}  $1"; }
@@ -164,7 +162,11 @@ npm ci
 
 # --- 构建 Tauri (仅生成 .app，DMG 后面手动打包以确保签名生效) ---
 log_step "Building Tauri release (target: app bundle only)..."
-npm run tauri build -- --bundles app
+TAURI_BUILD_ARGS=(--bundles app)
+if [[ "$VERBOSE" -eq 1 ]]; then
+    TAURI_BUILD_ARGS+=(--verbose)
+fi
+npm run tauri build -- "${TAURI_BUILD_ARGS[@]}"
 
 cd ".."
 
@@ -283,7 +285,8 @@ fi
 APP_TAR_OUTPUT_ABS="$(cd "${TAURI_DIR}/.." && pwd)/${APP_TAR_OUTPUT}"
 (
     cd "${TAURI_DIR}"
-    npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$APP_TAR_OUTPUT_ABS"
+    # signer 从已导出的环境变量取私钥，避免私钥出现在进程参数中。
+    npx tauri signer sign --password "" "$APP_TAR_OUTPUT_ABS"
 )
 
 # 清理 staging

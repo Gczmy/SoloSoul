@@ -17,6 +17,8 @@
 #   2. ~/SoloSoul/signing/tauri-updater/secret.key
 # ============================================================
 
+# 即使调用方使用 bash -x，也不能把签名密钥展开到日志。
+set +x
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -66,6 +68,7 @@ if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
     log_error "请在 macOS 上配置私钥后重试。"
     exit 1
 fi
+export TAURI_SIGNING_PRIVATE_KEY
 
 # --- 签名函数 ---
 sign_file() {
@@ -87,7 +90,8 @@ sign_file() {
     log_info "正在签名: $(basename "$abs_file")"
     (
         cd "${TAURI_DIR}"
-        npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$abs_file"
+        # signer 从环境变量取私钥，避免私钥出现在进程参数中。
+        npx tauri signer sign --password "" "$abs_file"
     )
 }
 
