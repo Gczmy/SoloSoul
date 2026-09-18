@@ -40,7 +40,7 @@ pub(crate) static VAULT_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(
 //   sync_* / recovery_* / mdns_*      → register_sync_commands（同步）
 //   ocr_* / mobile_ocr_*             → register_ocr_commands（OCR）
 //   llm_* / guide_*                  → register_llm_commands（LLM + Embedding）
-//   plugin_*                         → register_plugin_commands（插件市场）
+//   plugin_* / create_plugin_install → register_plugin_commands（插件市场）
 //   其余（auth/vault/object/template/…）→ register_core_commands（核心，兜底）
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -328,26 +328,41 @@ fn register_plugin_commands(
     ]
 }
 
-/// IPC 命令分发器：按命令名前缀路由到对应簇，未命中前缀的落入核心簇（兜底）。
-/// 语义与原先单个 `generate_handler!` 大列表逐字等价（分发 + 簇内精确匹配双层兜底）。
-///
-/// ⚠️ P042 维护提醒：新增命令时必须同步三处——①加入对应 `register_*_commands` 的
-/// `generate_handler!` 列表；②若新命令前缀不在现有路由条件下，更新此处路由；
-/// ③同步 `tests::test_dispatch_cluster_prefixes_consistent` 的簇命令名/前缀映射
-/// 列表（该测试断言两处一致性，防止静默失配）。
-fn dispatch_ipc(invoke: tauri::ipc::Invoke<tauri::Wry>) -> bool {
-    // 借用命令名（NLL：借用在其最后一次使用——路由 if 条件——后即结束，分支内 move invoke 不冲突，避免每 invoke 一次 String 分配）
-    let cmd = invoke.message.command();
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum IpcCommandCluster {
+    Core,
+    Sync,
+    Ocr,
+    Llm,
+    Plugin,
+}
+
+/// 分发器与回归测试共用此路由，避免测试另写一套前缀判断而漏掉实际失配。
+fn ipc_command_cluster(cmd: &str) -> IpcCommandCluster {
     if cmd.starts_with("sync_") || cmd.starts_with("recovery_") || cmd.starts_with("mdns_") {
-        register_sync_commands()(invoke)
+        IpcCommandCluster::Sync
     } else if cmd.starts_with("ocr_") || cmd.starts_with("mobile_ocr_") {
-        register_ocr_commands()(invoke)
+        IpcCommandCluster::Ocr
     } else if cmd.starts_with("llm_") || cmd.starts_with("guide_") {
-        register_llm_commands()(invoke)
-    } else if cmd.starts_with("plugin_") {
-        register_plugin_commands()(invoke)
+        IpcCommandCluster::Llm
+    } else if cmd.starts_with("plugin_") || cmd == "create_plugin_install" {
+        // 安装取消资源的创建命令沿用 create_* 命名，必须显式进入插件簇。
+        IpcCommandCluster::Plugin
     } else {
-        register_core_commands()(invoke)
+        IpcCommandCluster::Core
+    }
+}
+
+/// IPC 命令分发器：按前缀及明确的例外路由，簇内仍按完整命令名精确匹配。
+/// 新增命令需加入对应 generate_handler!、同步 ACL；不符合现有前缀时同时更新
+/// ipc_command_cluster。测试从注册列表提取命令并验证实际路由，无需另维护一份列表。
+fn dispatch_ipc(invoke: tauri::ipc::Invoke<tauri::Wry>) -> bool {
+    match ipc_command_cluster(invoke.message.command()) {
+        IpcCommandCluster::Core => register_core_commands()(invoke),
+        IpcCommandCluster::Sync => register_sync_commands()(invoke),
+        IpcCommandCluster::Ocr => register_ocr_commands()(invoke),
+        IpcCommandCluster::Llm => register_llm_commands()(invoke),
+        IpcCommandCluster::Plugin => register_plugin_commands()(invoke),
     }
 }
 
@@ -427,290 +442,54 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    /// P223-③ 前缀路由守卫：每簇命令名必须匹配 `dispatch_ipc` 的路由前缀，
-    /// 防止未来新增命令被放进错误簇导致静默失配（返回 false 等同未知命令）。
-    ///
-    /// ⚠️ P042 维护提醒：本列表为命令名的第二份真相（第一份是各 `register_*_commands`
-    /// 的 `generate_handler!` 列表）。Rust 宏输出不可内省，无法自动提取命令名，故以
-    /// 本守卫测试保证两份真相同步——新增命令时**必须**同时更新对应簇的列表与本映射。
+    use super::{ipc_command_cluster, IpcCommandCluster};
+    use std::collections::HashSet;
+
+    /// 直接检查注册源码与生产路由，覆盖所有平台的条件命令；不复制命令名或前缀表。
     #[test]
     fn test_dispatch_cluster_prefixes_consistent() {
-        // 各簇命令名与其路由前缀的映射（与 dispatch_ipc / register_*_commands 一一对应）
-        // ⚠️ 新增命令时同步更新下方命令名与总数断言（当前 total == 207）。
-        let clusters: [(&str, &[&str], &[&str]); 5] = [
-            (
-                "sync",
-                &[
-                    "sync_get_status",
-                    "sync_enable",
-                    "sync_listen_addr",
-                    "sync_generate_qr_payload",
-                    "sync_with_device",
-                    "sync_trust_peer",
-                    "sync_forget_peer",
-                    "sync_rename_peer",
-                    "sync_trigger_foreground",
-                    "sync_set_auto_enabled",
-                    "sync_get_auto_status",
-                    "sync_set_ui_prefs_sync",
-                    "sync_get_ui_prefs_sync",
-                    "sync_list_conflicts",
-                    "sync_get_conflict_detail",
-                    "sync_resolve_conflict",
-                    "recovery_host_start",
-                    "recovery_host_cancel",
-                    "recovery_restore_from_host",
-                    "mdns_discover",
-                    "recovery_discover_hosts",
-                ],
-                &["sync_", "recovery_", "mdns_"],
-            ),
-            (
-                "ocr",
-                &[
-                    "mobile_ocr_take_photo",
-                    "ocr_scan_image",
-                    "ocr_scan_mrz",
-                    "ocr_list_available_tiers",
-                    "ocr_get_active_tier",
-                    "ocr_set_active_tier",
-                    "ocr_get_model_status",
-                    "ocr_install_bundled_model",
-                    "ocr_install_bundled_model_with_progress",
-                    "ocr_download_model",
-                    "ocr_delete_model",
-                ],
-                &["ocr_", "mobile_ocr_"],
-            ),
-            (
-                "llm",
-                &[
-                    "llm_get_config",
-                    "llm_get_providers",
-                    "llm_save_provider",
-                    "llm_set_active_provider",
-                    "llm_set_ai_features",
-                    "llm_set_system_prompt_switch",
-                    "llm_accept_risk",
-                    "llm_delete_provider",
-                    "llm_get_api_key",
-                    "llm_test_provider",
-                    "llm_list_conversations",
-                    "llm_get_conversation",
-                    "llm_save_conversation",
-                    "llm_rename_conversation",
-                    "llm_soft_delete_conversation",
-                    "llm_restore_conversation",
-                    "llm_permanent_delete",
-                    "llm_list_trash",
-                    "llm_check_connection",
-                    "llm_get_stats",
-                    "llm_reset_stats",
-                    "llm_send_message_stream",
-                    "guide_load_index",
-                    "guide_load_content",
-                    "guide_search",
-                    "llm_search_guide_chunks",
-                    "llm_rebuild_guide_embeddings",
-                    "llm_check_embedding_available",
-                    "llm_set_local_embedding",
-                    "llm_get_embed_models",
-                    "llm_download_embed_model",
-                    "llm_delete_embed_model",
-                ],
-                &["llm_", "guide_"],
-            ),
-            (
-                "plugin",
-                &[
-                    "plugin_list_all",
-                    "plugin_list_installed",
-                    "plugin_list_attachments",
-                    "create_plugin_install",
-                    "plugin_install",
-                    "plugin_update",
-                    "plugin_uninstall",
-                    "plugin_run",
-                    "plugin_consent_response",
-                    "plugin_dialog_response",
-                    "plugin_list_sessions",
-                    "plugin_audit_log",
-                    "plugin_update_registry",
-                    "plugin_open_output_file",
-                    "plugin_copy_output_file",
-                ],
-                &["plugin_"],
-            ),
-            (
-                "core",
-                &[
-                    "check_has_account",
-                    "bootstrap",
-                    "login",
-                    "logout",
-                    "verify_password",
-                    "unlock_with_password",
-                    "reset_security_flags",
-                    "lock",
-                    "vault_get_directory",
-                    "vault_set_directory",
-                    "vault_sync_to_remote",
-                    "vault_sync_from_remote",
-                    "vault_sync_background",
-                    "vault_check_directory",
-                    "init_vault_directory",
-                    "object_list",
-                    "object_get",
-                    "object_field_suggestions",
-                    "object_create",
-                    "object_update",
-                    "object_delete",
-                    "object_sync_with_template",
-                    "object_ignore_template_sync",
-                    "object_list_deprecated_fields",
-                    "object_trash_list",
-                    "trash_restore",
-                    "trash_restore_batch",
-                    "trash_permanent_delete_batch",
-                    "page_delete",
-                    "trash_get_detail",
-                    "snapshot_list",
-                    "snapshot_count_batch",
-                    "snapshot_get_data",
-                    "snapshot_rollback",
-                    "template_create",
-                    "template_update",
-                    "template_delete",
-                    "template_restore",
-                    "template_get",
-                    "template_list",
-                    "template_hash_map",
-                    "template_check_field_usage",
-                    "search_unified",
-                    "export_get_scope_tree",
-                    "export_estimate_size",
-                    "export_get_attachments_batch",
-                    "export_execute",
-                    "export_document_preflight",
-                    "export_objects_document",
-                    "import_parse_package",
-                    "import_decrypt_preview",
-                    "import_execute_advanced",
-                    "change_password",
-                    "vault_list_accounts",
-                    "vault_update_hint",
-                    "vault_rename_account",
-                    "profile_load",
-                    "get_vault_stats",
-                    "fs_scan_directory",
-                    "fs_get_file_size",
-                    "fs_is_dir",
-                    "fs_read_file_as_data_url",
-                    "fs_read_image_preview",
-                    "fs_read_file_as_text",
-                    "get_app_info",
-                    "get_system_theme",
-                    "get_system_locale",
-                    "log_write",
-                    "log_get_recent",
-                    "log_export",
-                    "backup_list",
-                    "backup_create",
-                    "backup_restore",
-                    "backup_delete",
-                    "user_data_get_preferences",
-                    "user_data_update_preference",
-                    "ui_get_preferences",
-                    "ui_update_preference",
-                    "biometric_check_availability",
-                    "biometric_save_credential",
-                    "biometric_unlock",
-                    "biometric_delete_credential",
-                    "biometric_test",
-                    "pin_check_availability",
-                    "pin_setup",
-                    "pin_unlock",
-                    "pin_disable",
-                    "attachment_list",
-                    "attachment_save",
-                    "attachment_soft_delete",
-                    "attachment_batch_soft_delete",
-                    "attachment_batch_restore",
-                    "attachment_batch_delete",
-                    "attachment_restore",
-                    "attachment_rename",
-                    "attachment_update_meta",
-                    "attachment_delete",
-                    "attachment_count_batch",
-                    "attachment_copy_to_vault",
-                    "attachment_list_all",
-                    "attachment_count_stats",
-                    "attachment_download",
-                    "attachment_open",
-                    "attachment_share",
-                    "attachment_import_content_uri",
-                    "attachment_export_content_uri",
-                    "attachment_export_tree_uri",
-                    "attachment_pick_tree_uri",
-                    "copy_content_uri_to_path",
-                    "vault_pick_directory",
-                    "set_titlebar_color",
-                    "set_titlebar_controls",
-                    "get_window_layout",
-                    "show_main_window",
-                    "set_status_bar_style",
-                    "android_glass_capabilities",
-                    "android_show_glass_menu",
-                    "android_close_glass_menu",
-                    "dismiss_lock_mask",
-                    "get_lock_pending",
-                    "android_cached_update",
-                    "android_check_update",
-                    "android_download_apk",
-                    "android_get_apk_path",
-                    "android_is_apk_downloaded",
-                    "android_install_apk",
-                    "desktop_check_update",
-                    "desktop_prepare_update",
-                    "desktop_download_update",
-                    "desktop_install_update",
-                    "create_update_download",
-                    "cancel_update_download",
-                ],
-                &[],
-            ),
-        ];
-
-        // 前缀路由必须不重叠：每个命令名应恰好被一个簇的前缀覆盖（core 兜底）
-        let mut total = 0usize;
-        for (name, cmds, prefixes) in &clusters {
-            let mut routed = 0usize;
-            for cmd in *cmds {
-                if name == &"core" {
-                    // core 是兜底：不应命中任何其他簇的前缀
-                    assert!(
-                        !clusters
-                            .iter()
-                            .filter(|(n, _, _)| *n != "core")
-                            .any(|(_, _, ps)| ps.iter().any(|p| cmd.starts_with(p))),
-                        "core 命令 {cmd} 命中其他簇前缀"
-                    );
-                } else {
-                    assert!(
-                        prefixes.iter().any(|p| cmd.starts_with(p)),
-                        "簇 {name} 命令 {cmd} 未命中自身前缀 {:?}",
-                        prefixes
-                    );
-                    routed += 1;
+        let source = include_str!("lib.rs");
+        let mut registered = HashSet::new();
+        for (name, expected) in [
+            ("core", IpcCommandCluster::Core),
+            ("sync", IpcCommandCluster::Sync),
+            ("ocr", IpcCommandCluster::Ocr),
+            ("llm", IpcCommandCluster::Llm),
+            ("plugin", IpcCommandCluster::Plugin),
+        ] {
+            let function = format!("fn register_{name}_commands(");
+            let body = source.split_once(&function).expect("注册函数存在").1;
+            let block = body
+                .split_once("tauri::generate_handler![")
+                .expect("注册宏存在")
+                .1
+                .split_once("\n    ]")
+                .expect("注册宏结束")
+                .0;
+            let mut count = 0;
+            for line in block.lines().map(str::trim) {
+                if line.starts_with("//") || line.starts_with("#[") || line.is_empty() {
+                    continue;
                 }
-                total += 1;
+                let (_, command) = line
+                    .trim_end_matches(',')
+                    .rsplit_once("::")
+                    .expect("每行注册一个完整命令路径");
+                assert!(registered.insert(command), "命令 {command} 重复注册");
+                assert_eq!(
+                    ipc_command_cluster(command),
+                    expected,
+                    "命令 {command} 无法路由到已注册的 {name} 簇"
+                );
+                count += 1;
             }
-            // core 为兜底簇，不参与 routed 断言
-            if name != &"core" {
-                assert_eq!(routed, cmds.len());
-            }
+            assert!(count > 0, "{name} 簇应包含命令");
         }
-        // 包含原生更新下载控制、已验签桌面安装，共 207 条命令。
-        assert_eq!(total, 207);
+        assert!(registered.contains("create_plugin_install"));
+        assert!(registered.contains("create_update_download"));
+        assert_eq!(
+            ipc_command_cluster("unknown_command"),
+            IpcCommandCluster::Core
+        );
     }
 }
