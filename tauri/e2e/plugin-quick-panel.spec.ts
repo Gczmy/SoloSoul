@@ -1,0 +1,130 @@
+import { expect, test, type Page } from '@playwright/test';
+import { login, setupTauriMock } from './fixtures/auth';
+
+async function setupPlugin(page: Page, platform: 'macos' | 'windows') {
+  await setupTauriMock(page);
+  await page.addInitScript((platform) => {
+    let installed = true;
+    const plugin = {
+      id: 'com.solosoul.official.address-fmt',
+      name: 'Address Formatter',
+      version: '1.0.0',
+      author: 'SoloSoul',
+      description: 'Format addresses',
+      tier: 'p1',
+      category: 'productivity',
+      permissions: [],
+    };
+    const prefs = {
+      language: 'en-US',
+      hasSeenOnboarding: true,
+      autoLockTimeoutMinutes: 0,
+      sidebarButtonModes: { plugins: 'card' },
+      lastBackupAt: new Date().toISOString(),
+    };
+    Object.assign(window, {
+      __MOCK_PLATFORM__: platform,
+      __E2E_UNINSTALL_CALLS__: [] as string[],
+      __E2E_MOCKS__: {
+        ui_get_preferences: () => prefs,
+        user_data_get_preferences: () => prefs,
+        vault_check_directory: () => true,
+        ocr_get_model_status: () => ({ installed: true, bundled: true }),
+        sync_list_conflicts: () => [],
+        plugin_list_all: () => [
+          {
+            pluginId: plugin.id,
+            installedVersion: installed ? plugin.version : undefined,
+            hasUpdate: false,
+            isCompatible: true,
+            tier: plugin.tier,
+            category: plugin.category,
+            registryEntry: { ...plugin, latestVersion: plugin.version, params: [] },
+          },
+        ],
+        plugin_list_installed: () => (installed ? [plugin] : []),
+        plugin_uninstall: ({ pluginId }: { pluginId: string }) => {
+          (window as unknown as { __E2E_UNINSTALL_CALLS__: string[] }).__E2E_UNINSTALL_CALLS__.push(
+            pluginId,
+          );
+          installed = false;
+        },
+      },
+    });
+    localStorage.setItem('i18nextLng', 'en-US');
+  }, platform);
+  await login(page);
+  await page
+    .locator('#desktop-navigation')
+    .getByRole('button', { name: 'Tools', exact: true })
+    .hover();
+  await page
+    .locator('#desktop-navigation')
+    .getByRole('button', { name: 'Plugins', exact: true })
+    .click();
+}
+
+for (const platform of ['macos', 'windows'] as const) {
+  test(`${platform} 侧栏卸载确认执行一次，列表与重新打开后的状态同步`, async ({ page }) => {
+    await setupPlugin(page, platform);
+    const panel = page.getByRole('dialog', { name: 'Plugins', exact: true });
+    const uninstall = panel.getByRole('button', { name: 'Uninstall', exact: true });
+    await expect(uninstall).toBeVisible();
+    await uninstall.click();
+    // 必须使用真实的 mousedown → mouseup → click，才能覆盖 Portal 被父面板提前卸载的故障。
+    await page.getByRole('button', { name: 'Confirm', exact: true }).click();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            (window as unknown as { __E2E_UNINSTALL_CALLS__: string[] }).__E2E_UNINSTALL_CALLS__,
+        ),
+      )
+      .toEqual(['com.solosoul.official.address-fmt']);
+    await expect(panel).toBeVisible();
+    await expect(panel.getByRole('button', { name: 'Install', exact: true })).toBeVisible();
+    await expect(uninstall).toHaveCount(0);
+    await panel.getByRole('button', { name: 'Installed', exact: true }).click();
+    await expect(panel.getByText('Address Formatter', { exact: true })).toHaveCount(0);
+    await panel.getByRole('button', { name: 'All', exact: true }).click();
+    await page.getByRole('heading', { name: 'Home', exact: true }).click();
+    await expect(panel).toHaveCount(0);
+    await page
+      .locator('#desktop-navigation')
+      .getByRole('button', { name: 'Tools', exact: true })
+      .hover();
+    await page
+      .locator('#desktop-navigation')
+      .getByRole('button', { name: 'Plugins', exact: true })
+      .click();
+    await expect(panel.getByRole('button', { name: 'Install', exact: true })).toBeVisible();
+  });
+
+  test(`${platform} 取消和 Escape 只关闭卸载确认，不关闭侧栏卡片`, async ({ page }) => {
+    await setupPlugin(page, platform);
+    const panel = page.getByRole('dialog', { name: 'Plugins', exact: true });
+    const uninstall = panel.getByRole('button', { name: 'Uninstall', exact: true });
+    for (const cancel of ['button', 'escape', 'backdrop']) {
+      await uninstall.click();
+      await expect(
+        page.getByRole('heading', { name: 'Uninstall plugin', exact: true }),
+      ).toBeVisible();
+      if (cancel === 'button')
+        await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+      else if (cancel === 'escape') await page.keyboard.press('Escape');
+      else await page.locator('[data-macos-glass-backdrop]').click({ position: { x: 5, y: 5 } });
+      await expect(
+        page.getByRole('heading', { name: 'Uninstall plugin', exact: true }),
+      ).toHaveCount(0);
+      await expect(uninstall).toBeVisible();
+    }
+    expect(
+      await page.evaluate(
+        () => (window as unknown as { __E2E_UNINSTALL_CALLS__: string[] }).__E2E_UNINSTALL_CALLS__,
+      ),
+    ).toEqual([]);
+    // 没有子确认框时，原本的 Escape 关闭仍然有效。
+    await page.keyboard.press('Escape');
+    await expect(panel).toHaveCount(0);
+  });
+}

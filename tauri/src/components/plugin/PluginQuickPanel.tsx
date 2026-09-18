@@ -35,7 +35,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
       setActiveTab: s.setActiveTab,
     })),
   );
-  const { requestConfirm, dialog: uninstallDialog } = useConfirm();
+  const { requestConfirm, dialog: uninstallDialog, isOpen: isUninstallConfirmOpen } = useConfirm();
 
   // 存储插件运行参数（用于水印插件等的侧边栏配置）
   const pluginRunParamsRef = useRef<Record<string, Record<string, string>>>({});
@@ -81,8 +81,10 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
     loadInstalled();
   }, [loadMarket, loadInstalled]);
 
-  // Close on outside click
+  // 确认框通过 Portal 渲染在 body：确认期间暂停底层卡片的外部点击关闭，
+  // 避免 mousedown 先卸载确认框，使后续 click 无法执行卸载回调。
   useEffect(() => {
+    if (isUninstallConfirmOpen) return;
     const handler = (e: MouseEvent) => {
       if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
         if ((e.target as HTMLElement).closest('[data-plugin-button]')) return;
@@ -97,16 +99,18 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
       if (outsideClickTimeoutRef.current) clearTimeout(outsideClickTimeoutRef.current);
       document.removeEventListener('mousedown', handler);
     };
-  }, [onClose]);
+  }, [onClose, isUninstallConfirmOpen]);
 
   // Close on Escape
   useEffect(() => {
+    // 子确认框处理本次 Escape，保留底层插件列表。
+    if (isUninstallConfirmOpen) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [onClose]);
+  }, [onClose, isUninstallConfirmOpen]);
 
   const displayedPlugins = useMemo(() => {
     let filtered = marketPlugins;

@@ -62,5 +62,5 @@ export function useConfirm() {
     />
   );
 
-  return { requestConfirm, close, dialog };
+  return { requestConfirm, close, dialog, isOpen: state.isOpen };
 }
