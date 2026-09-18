@@ -1,4 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { PluginInstallProgress } from '@/lib/plugin';
+
+vi.mock('@/stores/templateStore', () => ({
+  useTemplateStore: { getState: () => ({ loadTemplates: vi.fn().mockResolvedValue(undefined) }) },
+}));
 
 vi.mock('@tauri-apps/api/core', () => ({
   Channel: vi.fn(),
@@ -239,6 +244,76 @@ describe('pluginStore Toast behavior', () => {
 });
 
 describe('pluginStore installation task', () => {
+  it.each(['install', 'update'] as const)(
+    '%s shares monotonic progress and completes only after native success',
+    async (operation) => {
+      const { pluginCommands } = await import('@/lib/plugin');
+      const { usePluginStore } = await import('./pluginStore');
+      usePluginStore.getState().clearOnVaultLock();
+      let finish!: (value: { pluginId: string; version: string }) => void;
+      const pending = new Promise<{ pluginId: string; version: string }>((resolve) => {
+        finish = resolve;
+      });
+      vi.mocked(pluginCommands[operation]).mockReturnValue(pending);
+      const task =
+        operation === 'install'
+          ? usePluginStore.getState().installPlugin('example', '1.0.0')
+          : usePluginStore.getState().updatePlugin('example');
+      const args = vi.mocked(pluginCommands[operation]).mock.calls.at(-1)!;
+      const report = args.at(-1) as (progress: PluginInstallProgress) => void;
+      const progress: PluginInstallProgress = {
+        percent: 50,
+        phase: 'downloading',
+        downloadedBytes: 500,
+        totalBytes: 1000,
+      };
+      report(progress);
+      expect(usePluginStore.getState().installingPlugins.example.progress.percent).toBe(50);
+      report({ ...progress, percent: 20 });
+      expect(usePluginStore.getState().installingPlugins.example.progress.percent).toBe(50);
+      report({ ...progress, percent: 98, phase: 'finalizing' });
+      expect(usePluginStore.getState().installingPlugins.example.progress.percent).toBe(98);
+      finish({ pluginId: 'example', version: '1.0.0' });
+      await vi.waitFor(() =>
+        expect(usePluginStore.getState().installingPlugins.example.progress.percent).toBe(100),
+      );
+      await task;
+      expect(usePluginStore.getState().installingPlugins.example).toBeUndefined();
+      report(progress);
+      expect(usePluginStore.getState().installingPlugins.example).toBeUndefined();
+    },
+  );
+
+  it('late progress from a locked account cannot overwrite a new install', async () => {
+    const { pluginCommands } = await import('@/lib/plugin');
+    const { usePluginStore } = await import('./pluginStore');
+    usePluginStore.getState().clearOnVaultLock();
+    let rejectOld!: (error: Error) => void;
+    let rejectNew!: (error: Error) => void;
+    vi.mocked(pluginCommands.install).mockReturnValueOnce(
+      new Promise((_, reject) => {
+        rejectOld = reject;
+      }),
+    );
+    const oldTask = usePluginStore.getState().installPlugin('example', '1.0.0');
+    const report = vi.mocked(pluginCommands.install).mock.calls.at(-1)![3]!;
+    usePluginStore.getState().clearOnVaultLock();
+    vi.mocked(pluginCommands.install).mockReturnValueOnce(
+      new Promise((_, reject) => {
+        rejectNew = reject;
+      }),
+    );
+    const newTask = usePluginStore.getState().installPlugin('example', '1.0.0');
+    report({ percent: 90, phase: 'verifying', downloadedBytes: 1000, totalBytes: 1000 });
+    expect(usePluginStore.getState().installingPlugins.example.progress.percent).toBe(0);
+    rejectOld(new Error('PLUGIN_INSTALL_CANCELLED'));
+    await oldTask;
+    expect(usePluginStore.getState().installingPlugins.example).toBeDefined();
+    usePluginStore.getState().cancelInstall('example');
+    rejectNew(new Error('PLUGIN_INSTALL_CANCELLED'));
+    await newTask;
+  });
+
   it('prevents double installation and keeps cancel pending until native cleanup', async () => {
     const { pluginCommands } = await import('@/lib/plugin');
     const { usePluginStore } = await import('./pluginStore');

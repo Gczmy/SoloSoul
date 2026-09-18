@@ -250,7 +250,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
         ) : (
           displayedPlugins.map((info) => {
             const installed = !!info.installedVersion;
-            const installing = !!installingPlugins[info.pluginId];
+            const installing = installingPlugins[info.pluginId];
             const running = runningPlugins[info.pluginId];
             const isRunning = running && !running.completed;
             const displayName = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
@@ -279,7 +279,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
                       <button
                         className={styles.runBtn}
                         onClick={() => handleRunPlugin(info)}
-                        disabled={isRunning || installing}
+                        disabled={isRunning || !!installing}
                       >
                         {isRunning ? <Loader2 size={ICON_SIZE.xs} /> : <Play size={ICON_SIZE.xs} />}
                         {t('plugin:run', { defaultValue: 'Run' })}
@@ -287,6 +287,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
                     )}
                     {installing && (
                       <PluginInstallProgress
+                        progress={installing.progress}
                         compact
                         onCancel={() => cancelInstall(info.pluginId)}
                       />
@@ -304,7 +305,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
                     )}
                     {installed && (
                       <DeleteButton
-                        disabled={installing}
+                        disabled={!!installing}
                         onClick={() =>
                           requestConfirm(
                             t('plugin:uninstall_confirm_title', {

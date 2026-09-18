@@ -121,5 +121,14 @@
     "summary_angle": "旋转角度：",
     "summary_position": "位置："
   },
-  "cancel_install": "取消安装"
+  "cancel_install": "取消安装",
+  "install_progress": {
+    "label": "安装进度",
+    "preparing": "准备安装",
+    "downloading": "正在下载",
+    "verifying": "正在校验",
+    "installing": "正在安装",
+    "finalizing": "正在完成安装",
+    "completed": "安装完成"
+  }
 }

@@ -5,6 +5,7 @@ import {
   DialogRequestEvent,
   MarketPluginInfo,
   PluginManifest,
+  PluginInstallProgress,
   PluginResultPayload,
   PluginTier,
   pluginCommands,
@@ -158,10 +159,46 @@ function applyPluginRunEvent(next: RunningPlugin, event: RunPluginEvent): Runnin
 // P031: 仅本文件使用，取消导出（死导出）
 const DEFAULT_ENABLED_TIERS: PluginTier[] = ['p0', 'p1', 'p2'];
 
+interface PluginInstallTask {
+  controller: AbortController;
+  progress: PluginInstallProgress;
+}
+
+const INITIAL_INSTALL_PROGRESS: PluginInstallProgress = {
+  percent: 0,
+  phase: 'preparing',
+  downloadedBytes: 0,
+  totalBytes: null,
+};
+
+/** 同一安装任务跨页面共享进度；取消、锁定及旧任务迟到的事件不能覆盖新任务。 */
+function installProgressUpdater(pluginId: string, controller: AbortController) {
+  return (progress: PluginInstallProgress) => {
+    usePluginStore.setState((state) => {
+      const task = state.installingPlugins[pluginId];
+      if (
+        !task ||
+        task.controller !== controller ||
+        controller.signal.aborted ||
+        !Number.isFinite(progress.percent)
+      )
+        return state;
+      const percent = Math.min(100, Math.max(0, progress.percent));
+      if (percent < task.progress.percent) return state;
+      return {
+        installingPlugins: {
+          ...state.installingPlugins,
+          [pluginId]: { ...task, progress: { ...progress, percent } },
+        },
+      };
+    });
+  };
+}
+
 interface PluginState {
   marketPlugins: MarketPluginInfo[];
   installedPlugins: PluginManifest[];
-  installingPlugins: Record<string, AbortController>;
+  installingPlugins: Record<string, PluginInstallTask>;
   cancelInstall: (pluginId: string) => void;
   runningPlugins: Record<string, RunningPlugin>;
   selectedTier: 'all' | PluginTier;
@@ -195,7 +232,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
   installedPlugins: [],
   installingPlugins: {},
   cancelInstall: (pluginId) => {
-    get().installingPlugins[pluginId]?.abort();
+    get().installingPlugins[pluginId]?.controller.abort();
   },
   runningPlugins: {},
   selectedTier: 'all',
@@ -224,7 +261,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
   },
 
   clearOnVaultLock: () => {
-    Object.values(get().installingPlugins).forEach((controller) => controller.abort());
+    Object.values(get().installingPlugins).forEach((task) => task.controller.abort());
     set({ installingPlugins: {} });
     requests.invalidate();
     set({ runningPlugins: {}, error: null, isLoadingMarket: false, isLoadingInstalled: false });
@@ -253,18 +290,27 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
     if (get().installingPlugins[pluginId]) return;
     const controller = new AbortController();
     set((state) => ({
-      installingPlugins: { ...state.installingPlugins, [pluginId]: controller },
+      installingPlugins: {
+        ...state.installingPlugins,
+        [pluginId]: { controller, progress: INITIAL_INSTALL_PROGRESS },
+      },
       error: null,
     }));
     const request = requests.begin();
     const setCurrent = request.guardSet<PluginState>(set);
     try {
       request.assertCurrent();
-      await pluginCommands.install(pluginId, version, controller.signal);
+      const onProgress = installProgressUpdater(pluginId, controller);
+      await pluginCommands.install(pluginId, version, controller.signal, onProgress);
       request.assertCurrent();
+      // 100% 来自命令成功；短暂保留满环反馈，同时刷新列表，不延长真实安装过程。
+      onProgress({ ...INITIAL_INSTALL_PROGRESS, percent: 100, phase: 'completed' });
+      const completedFeedback = new Promise<void>((resolve) => setTimeout(resolve, 250));
       await get().loadMarket();
       request.assertCurrent();
       await get().loadInstalled();
+      request.assertCurrent();
+      await completedFeedback;
       request.assertCurrent();
       // 触发模板重载，使 seed 模板的 contract_bindings 迁移结果即时反映在 UI
       useTemplateStore
@@ -276,7 +322,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       if (!controller.signal.aborted && !String(err).includes('PLUGIN_INSTALL_CANCELLED'))
         setCurrent({ error: String(err) });
     } finally {
-      if (get().installingPlugins[pluginId] === controller)
+      if (get().installingPlugins[pluginId]?.controller === controller)
         set((state) => {
           const installingPlugins = { ...state.installingPlugins };
           delete installingPlugins[pluginId];
@@ -289,18 +335,26 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
     if (get().installingPlugins[pluginId]) return;
     const controller = new AbortController();
     set((state) => ({
-      installingPlugins: { ...state.installingPlugins, [pluginId]: controller },
+      installingPlugins: {
+        ...state.installingPlugins,
+        [pluginId]: { controller, progress: INITIAL_INSTALL_PROGRESS },
+      },
       error: null,
     }));
     const request = requests.begin();
     const setCurrent = request.guardSet<PluginState>(set);
     try {
       request.assertCurrent();
-      await pluginCommands.update(pluginId, controller.signal);
+      const onProgress = installProgressUpdater(pluginId, controller);
+      await pluginCommands.update(pluginId, controller.signal, onProgress);
       request.assertCurrent();
+      onProgress({ ...INITIAL_INSTALL_PROGRESS, percent: 100, phase: 'completed' });
+      const completedFeedback = new Promise<void>((resolve) => setTimeout(resolve, 250));
       await get().loadMarket();
       request.assertCurrent();
       await get().loadInstalled();
+      request.assertCurrent();
+      await completedFeedback;
       request.assertCurrent();
       // 更新可能带来新的合同/role，同样触发模板重载
       useTemplateStore
@@ -312,7 +366,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       if (!controller.signal.aborted && !String(err).includes('PLUGIN_INSTALL_CANCELLED'))
         setCurrent({ error: String(err) });
     } finally {
-      if (get().installingPlugins[pluginId] === controller)
+      if (get().installingPlugins[pluginId]?.controller === controller)
         set((state) => {
           const installingPlugins = { ...state.installingPlugins };
           delete installingPlugins[pluginId];

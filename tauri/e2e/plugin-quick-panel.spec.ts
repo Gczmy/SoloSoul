@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { login, setupTauriMock } from './fixtures/auth';
+import type { PluginInstallProgress } from '../src/lib/plugin';
 
 async function openPluginPanel(page: Page) {
   await page
@@ -22,6 +23,7 @@ async function setupPlugin(page: Page, platform: 'macos' | 'windows', initiallyI
         | { rid: number; resolve: () => void; reject: (error: string) => void }
         | undefined;
       const installCalls: string[] = [];
+      let reportProgress: ((progress: PluginInstallProgress) => void) | undefined;
       const plugin = {
         id: 'com.solosoul.official.address-fmt',
         name: 'Address Formatter',
@@ -43,6 +45,12 @@ async function setupPlugin(page: Page, platform: 'macos' | 'windows', initiallyI
         __MOCK_PLATFORM__: platform,
         __E2E_UNINSTALL_CALLS__: [] as string[],
         __E2E_INSTALL_CALLS__: installCalls,
+        __E2E_INSTALL_PROGRESS__: (
+          percent: number,
+          phase: PluginInstallProgress['phase'] = 'downloading',
+        ) => {
+          reportProgress?.({ percent, phase, downloadedBytes: percent * 10, totalBytes: 1000 });
+        },
         __E2E_FINISH_INSTALL__: (error?: string) => {
           const operation = pending;
           pending = undefined;
@@ -75,11 +83,14 @@ async function setupPlugin(page: Page, platform: 'macos' | 'windows', initiallyI
           plugin_install: ({
             pluginId,
             operationId,
+            onProgress,
           }: {
             pluginId: string;
             operationId: number;
+            onProgress: { onmessage: (progress: PluginInstallProgress) => void };
           }) => {
             installCalls.push(pluginId);
+            reportProgress = (progress) => onProgress.onmessage(progress);
             return new Promise<void>((resolve, reject) => {
               pending = { rid: operationId, resolve, reject };
             });
@@ -128,6 +139,25 @@ async function finishInstall(page: Page, error?: string) {
   );
 }
 
+async function reportInstallProgress(
+  page: Page,
+  percent: number,
+  phase: PluginInstallProgress['phase'] = 'downloading',
+) {
+  await page.evaluate(
+    ({ percent, phase }) =>
+      (
+        window as unknown as {
+          __E2E_INSTALL_PROGRESS__: (
+            percent: number,
+            phase: PluginInstallProgress['phase'],
+          ) => void;
+        }
+      ).__E2E_INSTALL_PROGRESS__(percent, phase),
+    { percent, phase },
+  );
+}
+
 for (const platform of ['macos', 'windows'] as const) {
   test(`${platform} 侧栏安装显示进度，重新打开后可取消，失败后可重试`, async ({ page }) => {
     await setupPlugin(page, platform, false);
@@ -138,10 +168,27 @@ for (const platform of ['macos', 'windows'] as const) {
     await expectInstallCalls(page, 1);
     await expect(cancel).toBeVisible();
     await expect(install).toHaveCount(0);
+    const ring = panel.getByRole('progressbar');
+    await expect(ring).toHaveAttribute('aria-valuenow', '0');
+    for (const percent of [25, 50]) {
+      await reportInstallProgress(page, percent);
+      await expect(ring).toHaveAttribute('aria-valuenow', String(percent));
+      await expect(ring.locator('circle').last()).toHaveAttribute(
+        'stroke-dashoffset',
+        String(100 - percent),
+      );
+      await expect(ring.locator('circle').last()).toHaveCSS(
+        'stroke-dashoffset',
+        `${100 - percent}px`,
+      );
+      await expect(ring.locator('circle').last()).toHaveCSS('animation-name', 'none');
+    }
+    await page.screenshot({ path: test.info().outputPath('install-progress-50.png') });
     await page.keyboard.press('Escape');
     await expect(panel).toHaveCount(0);
     await openPluginPanel(page);
     await expect(cancel).toBeVisible();
+    await expect(ring).toHaveAttribute('aria-valuenow', '50');
     await expectInstallCalls(page, 1);
     await cancel.click();
     await expect(install).toBeVisible();
@@ -154,7 +201,14 @@ for (const platform of ['macos', 'windows'] as const) {
     await install.click();
     await expectInstallCalls(page, 3);
     await expect(panel.getByRole('alert')).toHaveCount(0);
+    await reportInstallProgress(page, 98, 'finalizing');
+    await expect(ring).toHaveAttribute('aria-valuenow', '98');
     await finishInstall(page);
+    await expect(ring).toHaveAttribute('aria-valuenow', '100');
+    await expect(
+      panel.getByRole('button', { name: 'Installation complete', exact: true }),
+    ).toBeDisabled();
+    await expect(ring).toHaveCount(0);
     await expect(cancel).toHaveCount(0);
     await expect(panel.getByRole('button', { name: 'Uninstall', exact: true })).toBeVisible();
     await panel.getByRole('button', { name: 'Installed 1', exact: true }).click();
@@ -224,3 +278,35 @@ for (const platform of ['macos', 'windows'] as const) {
     await expect(panel).toHaveCount(0);
   });
 }
+
+test('安装进度从侧栏同步到完整页面，减少动态效果不影响真实进度', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await setupPlugin(page, 'macos', false);
+  const panel = page.getByRole('dialog', { name: 'Plugins', exact: true });
+  await panel.getByRole('button', { name: 'Install', exact: true }).click();
+  await expectInstallCalls(page, 1);
+  await reportInstallProgress(page, 50);
+  await panel.getByRole('button', { name: 'View All', exact: true }).click();
+  await expect(page).toHaveURL('/plugins');
+  const ring = page.getByRole('progressbar', { name: 'Installation progress', exact: true });
+  await expect(ring).toHaveAttribute('aria-valuenow', '50');
+  await reportInstallProgress(page, 75);
+  await expect(ring).toHaveAttribute('aria-valuenow', '75');
+  // 全局减少动态效果规则允许 0.01ms 的兼容值，同样应立即到达真实进度。
+  expect(
+    await ring
+      .locator('circle')
+      .last()
+      .evaluate((element) => parseFloat(getComputedStyle(element).transitionDuration)),
+  ).toBeLessThanOrEqual(0.001);
+  await expect(ring.locator('circle').last()).toHaveAttribute('stroke-dashoffset', '25');
+  await expect(page.getByRole('button', { name: 'Cancel installation', exact: true })).toHaveCSS(
+    'border-width',
+    '0px',
+  );
+  await page.screenshot({ path: test.info().outputPath('full-page-install-progress-75.png') });
+  await page.getByRole('button', { name: 'Cancel installation', exact: true }).click();
+  await expect(ring).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Install', exact: true })).toBeVisible();
+  await expectInstallCalls(page, 1);
+});

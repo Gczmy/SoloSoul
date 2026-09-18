@@ -4,41 +4,60 @@
   place-items: center;
   width: 48px;
   height: 48px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
   color: var(--accent-primary);
-  cursor: pointer;
   flex-shrink: 0;
 }
 .progress[data-compact='true'] {
   width: 36px;
   height: 36px;
 }
-.progress > svg {
+.ring,
+.cancel {
   grid-area: 1 / 1;
 }
-.spinner {
-  animation: installSpin 1.3s linear infinite;
+.ring {
+  z-index: 1;
+  pointer-events: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
 }
-.progress:hover {
+.track {
+  opacity: 0.2;
+}
+.fill {
+  transform: rotate(-90deg);
+  transform-origin: 18px 18px;
+  transition: stroke-dashoffset 150ms linear;
+}
+.progress .cancel {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.progress .cancel:hover:not(:disabled) {
   background: var(--state-hover);
 }
-.progress:focus-visible {
+.progress .cancel:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.progress .cancel:focus-visible {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
-@keyframes installSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .spinner {
-    animation: none;
+  .fill {
+    transition: none;
   }
 }
-:global(html:is([data-user-reduce-motion='true'], [data-reduce-motion='true'])) .spinner {
-  animation: none;
+:global(html:is([data-user-reduce-motion='true'], [data-reduce-motion='true'])) .fill {
+  transition: none;
 }

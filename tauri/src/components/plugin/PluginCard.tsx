@@ -134,7 +134,12 @@ export function PluginCard({
               {t('clear', { defaultValue: 'Clear' })}
             </button>
           )}
-          {installing && <PluginInstallProgress onCancel={() => cancelInstall(info.pluginId)} />}
+          {installing && (
+            <PluginInstallProgress
+              progress={installing.progress}
+              onCancel={() => cancelInstall(info.pluginId)}
+            />
+          )}
           {!installing && !installed && info.isCompatible && (
             <button className={styles.installBtn} onClick={onInstall}>
               <Download size={ICON_SIZE.sm} />

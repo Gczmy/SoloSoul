@@ -9,6 +9,7 @@ use super::{
     RateLimiter, WasmSandbox,
 };
 use crate::event::PluginEventSink;
+use crate::install_progress::{InstallProgressReporter, PluginInstallPhase, PluginInstallProgress};
 use crate::store::validate_plugin_id;
 use serde::Deserialize;
 use solosoul_vault::VaultStore;
@@ -115,6 +116,25 @@ fn http_client() -> &'static reqwest::Client {
             .build()
             .unwrap_or_else(|_| reqwest::Client::new())
     })
+}
+
+/// 分块读取响应，下载进度来自实际接收字节，不按时间推算。
+async fn read_wasm_response(
+    mut response: reqwest::Response,
+    progress: &mut InstallProgressReporter<'_>,
+) -> Result<Vec<u8>, PluginError> {
+    let total = response.content_length();
+    progress.download(0, total);
+    let mut bytes = Vec::new();
+    while let Some(chunk) = response
+        .chunk()
+        .await
+        .map_err(|e| PluginError::NetworkError(format!("读取下载响应失败: {}", e)))?
+    {
+        bytes.extend_from_slice(&chunk);
+        progress.download(bytes.len() as u64, total);
+    }
+    Ok(bytes)
 }
 
 impl PluginManager {
@@ -258,6 +278,7 @@ impl PluginManager {
         plugin_id: &str,
         target_version: &str,
         entry: &crate::RegistryEntry,
+        progress: &mut InstallProgressReporter<'_>,
     ) -> Result<Option<PluginInstallResult>, PluginError> {
         let bundled_dir = self.market_dir.join("plugins").join(plugin_id);
         let bundled_manifest = bundled_dir.join("manifest.json");
@@ -294,6 +315,8 @@ impl PluginManager {
         let wasm_bytes = std::fs::read(&bundled_wasm).map_err(|_| {
             PluginError::NetworkError("无法下载 WASM 且 bundled 资源不存在".to_string())
         })?;
+        progress.download(wasm_bytes.len() as u64, Some(wasm_bytes.len() as u64));
+        progress.phase(PluginInstallPhase::Verifying);
         let actual_hash = compute_sha256(&wasm_bytes);
         if actual_hash != bundled_version_info.sha256 {
             return Err(PluginError::ChecksumMismatch);
@@ -303,6 +326,7 @@ impl PluginManager {
             bundled_version.clone(),
             Some(bundled_version_info.sha256.clone()),
         );
+        progress.phase(PluginInstallPhase::Installing);
         self.store.save_plugin(&manifest, &wasm_bytes)?;
         self.audit.log(
             plugin_id,
@@ -311,6 +335,7 @@ impl PluginManager {
                 version: bundled_version.clone(),
             },
         );
+        progress.phase(PluginInstallPhase::Completed);
         Ok(Some(PluginInstallResult {
             plugin_id: plugin_id.to_string(),
             version: bundled_version,
@@ -323,6 +348,17 @@ impl PluginManager {
         plugin_id: &str,
         version: &str,
     ) -> Result<PluginInstallResult, PluginError> {
+        self.install_from_registry_with_progress(plugin_id, version, &|_| {})
+            .await
+    }
+
+    pub async fn install_from_registry_with_progress(
+        &self,
+        plugin_id: &str,
+        version: &str,
+        on_progress: &(dyn Fn(PluginInstallProgress) + Send + Sync),
+    ) -> Result<PluginInstallResult, PluginError> {
+        let mut progress = InstallProgressReporter::new(on_progress);
         let entry = self.registry.get_entry(plugin_id)?;
         let version_info = entry
             .versions
@@ -345,6 +381,7 @@ impl PluginManager {
                 plugin_id,
                 version
             );
+            progress.phase(PluginInstallPhase::Completed);
             return Ok(PluginInstallResult {
                 plugin_id: plugin_id.to_string(),
                 version: version.to_string(),
@@ -360,7 +397,9 @@ impl PluginManager {
                     "Remote manifest download failed: {}, falling back to bundled market_dir",
                     remote_err
                 );
-                if let Some(result) = self.install_bundled_fallback(plugin_id, version, &entry)? {
+                if let Some(result) =
+                    self.install_bundled_fallback(plugin_id, version, &entry, &mut progress)?
+                {
                     return Ok(result);
                 }
                 // bundled 版本与目标一致：读回 bundled manifest 继续按目标版本安装
@@ -379,7 +418,8 @@ impl PluginManager {
         };
 
         // ── 4. 优先从远程下载 WASM，失败回退 bundled ──
-        let wasm_bytes = match self.fetch_wasm(version_info).await {
+        progress.phase(PluginInstallPhase::Downloading);
+        let wasm_bytes = match self.fetch_wasm(version_info, &mut progress).await {
             Ok(bytes) => bytes,
             Err(remote_err) => {
                 tracing::warn!(
@@ -398,6 +438,8 @@ impl PluginManager {
         };
 
         // ── 5. 校验 ──
+        progress.download(wasm_bytes.len() as u64, Some(wasm_bytes.len() as u64));
+        progress.phase(PluginInstallPhase::Verifying);
         let actual_hash = compute_sha256(&wasm_bytes);
         if actual_hash != version_info.sha256 {
             return Err(PluginError::ChecksumMismatch);
@@ -408,6 +450,7 @@ impl PluginManager {
             version.to_string(),
             Some(version_info.sha256.clone()),
         );
+        progress.phase(PluginInstallPhase::Installing);
         self.store.save_plugin(&manifest, &wasm_bytes)?;
         self.audit.log(
             plugin_id,
@@ -417,6 +460,7 @@ impl PluginManager {
             },
         );
 
+        progress.phase(PluginInstallPhase::Completed);
         Ok(PluginInstallResult {
             plugin_id: plugin_id.to_string(),
             version: version.to_string(),
@@ -426,11 +470,20 @@ impl PluginManager {
 
     /// 更新插件到注册表最新版本
     pub async fn update(&self, plugin_id: &str) -> Result<PluginInstallResult, PluginError> {
+        self.update_with_progress(plugin_id, &|_| {}).await
+    }
+
+    pub async fn update_with_progress(
+        &self,
+        plugin_id: &str,
+        on_progress: &(dyn Fn(PluginInstallProgress) + Send + Sync),
+    ) -> Result<PluginInstallResult, PluginError> {
         let entry = self.registry.get_entry(plugin_id)?;
         let latest = entry
             .latest_version
             .ok_or_else(|| PluginError::RegistryError("缺少最新版本信息".to_string()))?;
-        self.install_from_registry(plugin_id, &latest).await
+        self.install_from_registry_with_progress(plugin_id, &latest, on_progress)
+            .await
     }
 
     /// 从远程 URL 下载插件 manifest
@@ -477,6 +530,7 @@ impl PluginManager {
     async fn fetch_wasm(
         &self,
         version_info: &crate::RegistryVersion,
+        progress: &mut InstallProgressReporter<'_>,
     ) -> Result<Vec<u8>, PluginError> {
         let url = version_info
             .download_url
@@ -488,17 +542,16 @@ impl PluginManager {
 
         let client = http_client();
 
-        let bytes = client
+        let response = client
             .get(url)
             .timeout(std::time::Duration::from_secs(60))
             .send()
             .await
             .map_err(|e| PluginError::NetworkError(format!("下载插件失败: {}", e)))?
-            .bytes()
-            .await
-            .map_err(|e| PluginError::NetworkError(format!("读取下载响应失败: {}", e)))?;
+            .error_for_status()
+            .map_err(|e| PluginError::NetworkError(format!("下载插件失败: {}", e)))?;
 
-        Ok(bytes.to_vec())
+        read_wasm_response(response, progress).await
     }
 
     /// 卸载插件
@@ -727,5 +780,110 @@ mod workspace_tests {
                 & 0o777,
             0o700
         );
+    }
+}
+
+#[cfg(test)]
+mod install_progress_tests {
+    use super::*;
+    use std::sync::Mutex;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    #[tokio::test]
+    async fn reports_received_bytes_before_download_finishes() {
+        let server = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("http://{}/plugin.wasm", server.local_addr().unwrap());
+        let (half_tx, half_rx) = tokio::sync::oneshot::channel();
+        let half_tx = Mutex::new(Some(half_tx));
+        let writer = tokio::spawn(async move {
+            let (mut stream, _) = server.accept().await.unwrap();
+            let mut request = [0; 2048];
+            stream.read(&mut request).await.unwrap();
+            stream
+                .write_all(
+                    b"HTTP/1.1 200 OK\r\nContent-Length: 10\r\nConnection: close\r\n\r\n12345",
+                )
+                .await
+                .unwrap();
+            tokio::time::timeout(std::time::Duration::from_secs(5), half_rx)
+                .await
+                .unwrap()
+                .unwrap();
+            stream.write_all(b"67890").await.unwrap();
+        });
+        let events = Mutex::new(Vec::new());
+        let emit = |event: PluginInstallProgress| {
+            if event.downloaded_bytes == 5 {
+                if let Some(tx) = half_tx.lock().unwrap().take() {
+                    tx.send(()).unwrap();
+                }
+            }
+            events.lock().unwrap().push(event);
+        };
+        let response = reqwest::Client::builder()
+            .no_proxy()
+            .build()
+            .unwrap()
+            .get(url)
+            .send()
+            .await
+            .unwrap();
+        let bytes = read_wasm_response(response, &mut InstallProgressReporter::new(&emit))
+            .await
+            .unwrap();
+        writer.await.unwrap();
+        assert_eq!(bytes, b"1234567890");
+        let events = events.lock().unwrap();
+        assert!(events
+            .iter()
+            .any(|p| p.percent == 50 && p.downloaded_bytes == 5 && p.total_bytes == Some(10)));
+        assert_eq!(events.last().unwrap().percent, 90);
+    }
+
+    #[tokio::test]
+    async fn bundled_install_and_update_complete_only_after_verified_write() {
+        for (bundled_version, valid_hash) in [("1.0.0", true), ("0.9.0", true), ("1.0.0", false)] {
+            let directory = tempfile::tempdir().unwrap();
+            let market = directory.path().join("market");
+            let data = directory.path().join("installed");
+            let plugin = "com.solosoul.test.progress";
+            let bundled = market.join("plugins").join(plugin);
+            std::fs::create_dir_all(&bundled).unwrap();
+            let bytes = b"\0asm\x01\0\0\0";
+            let hash = if valid_hash {
+                compute_sha256(bytes)
+            } else {
+                "invalid-hash".to_string()
+            };
+            let version = serde_json::json!({ "sha256": hash, "min_app_version": "0.0.0", "max_app_version": "99.0.0" });
+            std::fs::write(market.join("registry.json"), serde_json::json!({
+                "plugins": { (plugin): { "name": "Test", "latest_version": "1.0.0", "versions": { "1.0.0": version, "0.9.0": version } } }
+            }).to_string()).unwrap();
+            std::fs::write(bundled.join("manifest.json"), serde_json::json!({ "plugin_id": plugin, "name": "Test", "version": bundled_version }).to_string()).unwrap();
+            std::fs::write(bundled.join("plugin.wasm"), bytes).unwrap();
+            let manager = PluginManager::new_with_dirs(market, data).unwrap();
+            let events = Mutex::new(Vec::new());
+            let emit = |event: PluginInstallProgress| {
+                if event.phase == PluginInstallPhase::Completed {
+                    // 100% 发出时包与 manifest 已可从安装目录读取，不能把下载完成冒充安装完成。
+                    assert_eq!(manager.store.load_wasm(plugin).unwrap(), bytes);
+                }
+                events.lock().unwrap().push(event);
+            };
+            let result = manager.update_with_progress(plugin, &emit).await;
+            if valid_hash {
+                assert_eq!(result.unwrap().version, bundled_version);
+                assert_eq!(events.lock().unwrap().last().unwrap().percent, 100);
+                // 重装同版本走已验证的本地缓存，仍然报告完成。
+                manager
+                    .install_from_registry_with_progress(plugin, bundled_version, &emit)
+                    .await
+                    .unwrap();
+            } else {
+                assert!(matches!(result, Err(PluginError::ChecksumMismatch)));
+                assert!(events.lock().unwrap().iter().all(|p| p.percent < 100));
+                assert!(manager.list_installed().unwrap().is_empty());
+            }
+        }
     }
 }

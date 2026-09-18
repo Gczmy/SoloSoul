@@ -8,6 +8,7 @@ pub mod error;
 pub mod event;
 pub mod field;
 pub mod host;
+pub mod install_progress;
 pub mod manager;
 pub mod manifest;
 pub mod paths;
@@ -25,6 +26,7 @@ pub use event::PluginEvent;
 pub use event::PluginEventSink;
 pub use field::FieldResolver;
 pub use host::{register_host_functions, SoloHostFunctions, SoloHostState};
+pub use install_progress::{PluginInstallPhase, PluginInstallProgress};
 pub use manager::PluginManager;
 pub use manifest::{
     MarketPluginInfo, PluginAuditAction, PluginAuditEntry, PluginInstallResult, PluginLogLine,

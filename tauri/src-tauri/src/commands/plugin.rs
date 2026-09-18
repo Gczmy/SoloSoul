@@ -6,6 +6,7 @@ use crate::plugin::{
     PluginResult, PluginSession, PluginTier,
 };
 use crate::state::AppState;
+use solosoul_plugin::{PluginInstallPhase, PluginInstallProgress};
 use std::collections::HashMap;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
@@ -49,6 +50,18 @@ impl PluginInstallOperation {
     }
 }
 static PLUGIN_INSTALL_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
+/// 核心包落盘后还需同步状态/迁移绑定；命令真正完成之前保留最后 2%。
+fn emit_install_progress(
+    channel: &Channel<PluginInstallProgress>,
+    mut progress: PluginInstallProgress,
+) {
+    if progress.phase == PluginInstallPhase::Completed {
+        progress.phase = PluginInstallPhase::Finalizing;
+        progress.percent = 98;
+    }
+    let _ = channel.send(progress);
+}
 #[command]
 pub fn create_plugin_install(webview: Webview) -> ResourceId {
     webview.resources_table().add(PluginInstallOperation::new())
@@ -153,6 +166,7 @@ pub async fn plugin_install(
     plugin_id: String,
     version: String,
     operation_id: Option<ResourceId>,
+    on_progress: Channel<PluginInstallProgress>,
 ) -> Result<PluginInstallResult, String> {
     let operation = match operation_id {
         Some(id) => webview
@@ -166,7 +180,9 @@ pub async fn plugin_install(
             let _guard = PLUGIN_INSTALL_LOCK.lock().await;
             state
                 .plugin_manager
-                .install_from_registry(&plugin_id, &version)
+                .install_from_registry_with_progress(&plugin_id, &version, &|progress| {
+                    emit_install_progress(&on_progress, progress);
+                })
                 .await
                 .map_err(|e| e.to_string())
         })
@@ -174,6 +190,7 @@ pub async fn plugin_install(
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     migrate_seed_bindings(&state, &plugin_id);
+    let _ = on_progress.send(PluginInstallProgress::completed());
     Ok(result)
 }
 
@@ -183,6 +200,7 @@ pub async fn plugin_update(
     webview: Webview,
     plugin_id: String,
     operation_id: Option<ResourceId>,
+    on_progress: Channel<PluginInstallProgress>,
 ) -> Result<PluginInstallResult, String> {
     let operation = match operation_id {
         Some(id) => webview
@@ -196,13 +214,16 @@ pub async fn plugin_update(
             let _guard = PLUGIN_INSTALL_LOCK.lock().await;
             state
                 .plugin_manager
-                .update(&plugin_id)
+                .update_with_progress(&plugin_id, &|progress| {
+                    emit_install_progress(&on_progress, progress);
+                })
                 .await
                 .map_err(|e| e.to_string())
         })
         .await?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
+    let _ = on_progress.send(PluginInstallProgress::completed());
     Ok(result)
 }
 

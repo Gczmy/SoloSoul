@@ -225,6 +225,13 @@ interface PluginInstallResult {
   version: string;
 }
 
+export interface PluginInstallProgress {
+  percent: number;
+  phase: 'preparing' | 'downloading' | 'verifying' | 'installing' | 'finalizing' | 'completed';
+  downloadedBytes: number;
+  totalBytes: number | null;
+}
+
 /**
  * 运行时推导插件契约角色绑定。
  * 当字段有 contractField: true 但无硬编码 contractBindings 时，
@@ -291,9 +298,15 @@ async function installWithCancellation(
   command: string,
   args: Record<string, unknown>,
   signal?: AbortSignal,
+  onProgress?: (progress: PluginInstallProgress) => void,
 ): Promise<PluginInstallResult> {
   if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
   const operation = new Resource(await invoke<number>('create_plugin_install'));
+  const progress = new Channel<PluginInstallProgress>();
+  let active = true;
+  progress.onmessage = (event) => {
+    if (active && !signal?.aborted) onProgress?.(event);
+  };
   let closing: Promise<void> | undefined;
   const cancel = () => {
     closing ??= operation.close().catch(() => {});
@@ -301,8 +314,9 @@ async function installWithCancellation(
   signal?.addEventListener('abort', cancel, { once: true });
   try {
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
-    return await invoke(command, { ...args, operationId: operation.rid });
+    return await invoke(command, { ...args, operationId: operation.rid, onProgress: progress });
   } finally {
+    active = false;
     signal?.removeEventListener('abort', cancel);
     await (closing ?? operation.close()).catch(() => {});
   }
@@ -321,12 +335,17 @@ export const pluginCommands = {
     pluginId: string,
     version: string,
     signal?: AbortSignal,
+    onProgress?: (progress: PluginInstallProgress) => void,
   ): Promise<PluginInstallResult> {
-    return installWithCancellation('plugin_install', { pluginId, version }, signal);
+    return installWithCancellation('plugin_install', { pluginId, version }, signal, onProgress);
   },
 
-  async update(pluginId: string, signal?: AbortSignal): Promise<PluginInstallResult> {
-    return installWithCancellation('plugin_update', { pluginId }, signal);
+  async update(
+    pluginId: string,
+    signal?: AbortSignal,
+    onProgress?: (progress: PluginInstallProgress) => void,
+  ): Promise<PluginInstallResult> {
+    return installWithCancellation('plugin_update', { pluginId }, signal, onProgress);
   },
 
   async uninstall(pluginId: string): Promise<void> {
