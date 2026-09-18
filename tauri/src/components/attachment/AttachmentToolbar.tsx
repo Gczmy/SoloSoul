@@ -134,10 +134,10 @@ export function AttachmentToolbar({
               style={
                 showTrash
                   ? {
-                      background: 'color-mix(in srgb, #e74c3c 10%, transparent)',
-                      borderColor: '#e74c3c',
-                      color: '#e74c3c',
-                      boxShadow: '0 0 0 1px #e74c3c',
+                      background: 'color-mix(in srgb, var(--accent-danger) 10%, transparent)',
+                      borderColor: 'var(--accent-danger)',
+                      color: 'var(--accent-danger)',
+                      boxShadow: '0 0 0 1px var(--accent-danger)',
                     }
                   : undefined
               }

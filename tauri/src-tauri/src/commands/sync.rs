@@ -69,6 +69,7 @@ fn conflict_to_dto(c: &solosoul_sync::types::ConflictRecord) -> SyncConflictDto 
 pub struct SyncPeer {
     pub id: String,
     pub name: String,
+    pub custom_name: Option<String>,
     pub addr: String,
     pub fingerprint: String,
     pub trusted: bool,
@@ -144,16 +145,20 @@ impl From<&ApplyStats> for SyncResult {
 /// 历史遗留：曾声明为 `#[tauri::command]`，但从未注册进 `register_sync_commands`、
 /// 不在 capabilities allowlist、前端亦无调用方——纯内部复用（P138 附带发现收尾）。
 async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, String> {
+    let prefs = current_sync_preferences(&state)?;
+    let vault = crate::commands::vault_handle(&state)?;
+    let names = vault.device_names()?;
     let peers = state.sync_service.known_peers().await?;
     let local_fingerprint = state.sync_service.local_fingerprint().await?;
     Ok(SyncStatus {
         is_discovering: state.sync_service.is_enabled().await,
         sync_enabled: state.sync_service.is_enabled().await,
-        auto_sync_enabled: state.device_auto_sync.enabled(),
+        auto_sync_enabled: prefs.auto_sync_enabled,
         local_fingerprint,
         connected_peers: peers
             .into_iter()
             .map(|p| SyncPeer {
+                custom_name: names.get(&p.node_id).cloned(),
                 id: p.node_id,
                 name: p.name,
                 addr: p.addr,
@@ -175,23 +180,26 @@ pub async fn sync_trigger_foreground(state: State<'_, AppState>) -> Result<(), S
     Ok(())
 }
 
-/// 设置是否启用设备自动同步。
+fn current_sync_preferences(
+    state: &AppState,
+) -> Result<solosoul_vault::storage::DeviceSyncPreferences, String> {
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned")?;
+    crate::services::device_preferences::load_sync_preferences(&state.handle, &svc)
+}
+
+/// 先落盘到加密 Profile，成功后才更新运行状态，写入失败必须反馈给用户。
 #[tauri::command]
 pub async fn sync_set_auto_enabled(
     state: State<'_, AppState>,
     enabled: bool,
 ) -> Result<bool, String> {
-    state.device_auto_sync.set_enabled(enabled);
-    // P0#1: 开关持久化——AtomicBool 仅内存，重启即丢（用户感知"已打开"实际失效）。
-    // 写入 ui_preferences.json（明文非敏感偏好，随 Vault 目录可移植），
-    // AppState 启动时据此恢复。失败仅记录日志，不阻断开关操作。
-    if let Ok(svc) = state.vault_service.read() {
-        if let Err(e) =
-            crate::commands::settings::write_auto_sync_pref(&state.handle, &svc, enabled)
-        {
-            tracing::warn!("[sync] persist auto_sync_enabled failed: {}", e);
-        }
-    }
+    current_sync_preferences(&state)?;
+    let vault = crate::commands::vault_handle(&state)?;
+    vault.update_device_sync_preferences(|prefs| prefs.auto_sync_enabled = enabled)?;
+    state.auto_sync.trigger_debounce();
     log_sync_action(
         &state,
         if enabled {
@@ -205,50 +213,31 @@ pub async fn sync_set_auto_enabled(
     Ok(enabled)
 }
 
-/// 获取设备自动同步开关状态。
 #[tauri::command]
 pub async fn sync_get_auto_status(state: State<'_, AppState>) -> Result<bool, String> {
-    Ok(state.device_auto_sync.enabled())
+    Ok(current_sync_preferences(&state)?.auto_sync_enabled)
 }
 
-/// 获取「账户设置偏好（主题、主题色等 UI 外观）是否随设备同步」开关状态。
-///
-/// 由本机 VaultService 的原子开关驱动（Vault 未解锁时也可读）；
-/// 该开关同步引擎在发送侧剥离 / 接收侧保留本机偏好。
 #[tauri::command]
 pub async fn sync_get_ui_prefs_sync(state: State<'_, AppState>) -> Result<bool, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    Ok(svc.ui_prefs_sync_enabled())
+    Ok(current_sync_preferences(&state)?.ui_prefs_sync_enabled)
 }
 
-/// 设置「账户设置偏好（主题、主题色等 UI 外观）是否随设备同步」开关。
-///
-/// 写入 VaultService 原子开关 + 持久化到 ui_preferences.json，
-/// AppState 启动时据此恢复（与 auto_sync_enabled 同模式）。
 #[tauri::command]
 pub async fn sync_set_ui_prefs_sync(
     state: State<'_, AppState>,
     enabled: bool,
 ) -> Result<bool, String> {
-    // set_ui_prefs_sync_enabled 是 &self（AtomicBool），读锁足够，
-    // 避免写锁短暂阻塞正在进行的 vault 操作。
-    {
-        let svc = state
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        svc.set_ui_prefs_sync_enabled(enabled);
-    }
-    if let Ok(svc) = state.vault_service.read() {
-        if let Err(e) =
-            crate::commands::settings::write_ui_prefs_sync_pref(&state.handle, &svc, enabled)
-        {
-            tracing::warn!("[sync] persist ui_prefs_sync_enabled failed: {}", e);
-        }
-    }
+    current_sync_preferences(&state)?;
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned")?;
+    let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    vault.update_device_sync_preferences(|prefs| prefs.ui_prefs_sync_enabled = enabled)?;
+    svc.set_ui_prefs_sync_enabled(enabled);
+    drop(svc);
+    state.auto_sync.trigger_debounce();
     log_sync_action(
         &state,
         if enabled {
@@ -260,6 +249,21 @@ pub async fn sync_set_ui_prefs_sync(
         None,
     );
     Ok(enabled)
+}
+
+/// 为已知设备保存账户内备注，不修改设备广播名/指纹/信任状态。
+#[tauri::command]
+pub async fn sync_rename_peer(
+    state: State<'_, AppState>,
+    peer_node_id: String,
+    name: String,
+) -> Result<Option<String>, String> {
+    let vault = crate::commands::vault_handle(&state)?;
+    let name = vault.set_device_name(&peer_node_id, &name)?;
+    state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
+    log_sync_action(&state, "sync_peer_renamed", name.as_deref(), None);
+    Ok(name)
 }
 
 /// 获取同步状态（发现对端 + 开关状态）。
@@ -468,6 +472,9 @@ pub async fn sync_resolve_conflict(
 #[cfg(desktop)]
 #[tauri::command]
 pub async fn sync_enable(state: State<'_, AppState>, enable: bool) -> Result<(), String> {
+    if enable {
+        current_sync_preferences(&state)?;
+    }
     // P013：进程内只保留一个 mDNS daemon。把 discovery 命令共用的 SharedDaemon
     // 注入 SyncService，避免 SyncManager 再自建一个 daemon 造成双 daemon 并存。
     let shared_daemon = if enable {
@@ -504,6 +511,9 @@ pub async fn sync_enable(
     state: State<'_, AppState>,
     enable: bool,
 ) -> Result<(), String> {
+    if enable {
+        current_sync_preferences(&state)?;
+    }
     state.sync_service.enable(enable).await?;
 
     // 移动端：启用同步后自动注册 NSD 服务，让桌面端可以发现本机；
@@ -778,6 +788,10 @@ pub async fn sync_forget_peer(
     state: State<'_, AppState>,
     peer_node_id: String,
 ) -> Result<(), String> {
+    let vault = crate::commands::vault_handle(&state)?;
+    if vault.load_peer_state(&peer_node_id)?.is_some() {
+        vault.set_device_name(&peer_node_id, "")?;
+    }
     state.sync_service.forget_peer(peer_node_id.clone()).await?;
     log_sync_action(&state, "sync_peer_forgotten", Some(&peer_node_id), None);
     Ok(())
@@ -818,6 +832,7 @@ mod tests {
     #[test]
     fn test_sync_peer_serialization() {
         let peer = SyncPeer {
+            custom_name: None,
             id: "node-1".to_string(),
             name: "My Mac".to_string(),
             addr: "192.168.1.5:42069".to_string(),
@@ -942,6 +957,7 @@ mod tests {
     #[test]
     fn test_sync_peer_untrusted_serialization() {
         let peer = SyncPeer {
+            custom_name: None,
             id: "n2".to_string(),
             name: "Phone".to_string(),
             addr: "10.0.0.2:42069".to_string(),
@@ -961,6 +977,7 @@ mod tests {
     #[test]
     fn test_sync_peer_serialization_matches_camel_case() {
         let peer = SyncPeer {
+            custom_name: None,
             id: "p1".to_string(),
             name: "Device".to_string(),
             addr: "0.0.0.0:0".to_string(),

@@ -85,8 +85,6 @@ pub trait DeviceSyncAction: Send + Sync + 'static {
 #[derive(Clone)]
 pub struct DeviceAutoSyncManager {
     tx: mpsc::Sender<DeviceSyncEvent>,
-    /// 运行时开关，可通过 `set_enabled` 在运行时开启/关闭自动同步。
-    enabled: Arc<AtomicBool>,
 }
 
 impl DeviceAutoSyncManager {
@@ -101,7 +99,15 @@ impl DeviceAutoSyncManager {
             vault_service,
             app_handle,
         ));
-        Self::new_with_action(action, DeviceAutoSyncConfig::default())
+        // 调度器持续接收事件；每次任务从当前解锁账户读取真实开关。
+        // 避免账户 A 关闭自动同步后导致账户 B 的任务永远不再调度。
+        Self::new_with_action(
+            action,
+            DeviceAutoSyncConfig {
+                enabled: true,
+                ..Default::default()
+            },
+        )
     }
 
     /// 创建并启动设备自动同步任务（可注入同步动作与配置）。
@@ -111,22 +117,9 @@ impl DeviceAutoSyncManager {
     ) -> Self {
         let (tx, rx) = mpsc::channel(64);
         let enabled = Arc::new(AtomicBool::new(config.enabled));
-        let manager = Self {
-            tx,
-            enabled: enabled.clone(),
-        };
+        let manager = Self { tx };
         manager.start_loop(rx, action, config, enabled);
         manager
-    }
-
-    /// 设置是否启用自动同步。
-    pub fn set_enabled(&self, enabled: bool) {
-        self.enabled.store(enabled, Ordering::SeqCst);
-    }
-
-    /// 当前是否启用自动同步。
-    pub fn enabled(&self) -> bool {
-        self.enabled.load(Ordering::SeqCst)
     }
 
     /// 触发一次前台同步。
@@ -215,14 +208,20 @@ impl SyncServiceDeviceSyncAction {
 
 impl DeviceSyncAction for SyncServiceDeviceSyncAction {
     fn run(&self, source: DeviceSyncSource) -> BoxFuture<'static, Result<(), String>> {
-        let is_unlocked = self
+        let enabled = self
             .vault_service
             .read()
             .ok()
-            .and_then(|svc| svc.get_vault_store())
-            .is_some();
-        if !is_unlocked {
-            tracing::debug!("[DeviceAutoSync] vault is locked, skipping sync");
+            .and_then(|svc| {
+                let vault = svc.get_vault_store()?;
+                vault
+                    .device_sync_preferences()
+                    .ok()
+                    .flatten()
+                    .map(|p| p.auto_sync_enabled)
+            })
+            .unwrap_or(false);
+        if !enabled {
             return Box::pin(async { Ok(()) });
         }
 

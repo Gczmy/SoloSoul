@@ -192,6 +192,7 @@ commands.allow = [
   "snapshot_rollback",
   "sync_enable",
   "sync_forget_peer",
+  "sync_rename_peer",
   "sync_generate_qr_payload",
   "sync_get_auto_status",
   "sync_get_conflict_detail",

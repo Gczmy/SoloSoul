@@ -10,6 +10,7 @@ import { PluginQuickNotificationListener } from '@/components/plugin/PluginQuick
 import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { AccountSourceOverlay } from '@/components/onboarding/AccountSourceOverlay';
 import { AppRoutes } from './AppRoutes';
+import { useAuthStore } from '@/stores/authStore';
 import { useSyncStore } from '@/stores/syncStore';
 import { useUiStore } from '@/stores/uiStore';
 
@@ -33,6 +34,14 @@ function App() {
       /* ignore */
     });
   }, []);
+
+  const syncAccountId = useAuthStore((s) => (s.isAuthenticated ? s.currentAccount?.id : null));
+  useEffect(() => {
+    if (!syncAccountId) return;
+    // 主密码、PIN、生物识别及切换账户共用：解锁后迁移并恢复账户同步偏好。
+    void useSyncStore.getState().loadAutoSyncStatus();
+    void useSyncStore.getState().loadUiPrefsSync();
+  }, [syncAccountId]);
 
   // 设备自动同步：应用切回前台时触发一次同步，但最多每分钟一次，避免反复切换应用导致同步风暴。
   const lastForegroundSyncRef = useRef<number>(0);

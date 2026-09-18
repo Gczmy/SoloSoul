@@ -40,6 +40,7 @@ export function useSyncPage() {
       syncWithDevice: s.syncWithDevice,
       trustPeer: s.trustPeer,
       forgetPeer: s.forgetPeer,
+      renamePeer: s.renamePeer,
       enable: s.enable,
       setAutoSyncEnabled: s.setAutoSyncEnabled,
       setUiPrefsSyncEnabled: s.setUiPrefsSyncEnabled,

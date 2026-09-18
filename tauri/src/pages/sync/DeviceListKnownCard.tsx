@@ -139,6 +139,7 @@ export function DeviceListKnownCard({
                       </Button>
                     )}
                     <DeleteButton
+                      className="interactive-danger-tinted"
                       onClick={(e) => {
                         e.stopPropagation();
                         onForgetRequest(peer);

@@ -16,7 +16,9 @@ use crate::{VaultConfig, VaultState, VaultStats};
 // 方法体逐行搬运到 src/storage/<domain>.rs 的 `impl VaultStore { .. }`，
 // 跨域被根模块调用的私有助手提升为 `pub(crate)`，其余保持私有。
 mod conversations;
+mod device_preferences;
 mod metadata;
+pub use device_preferences::DeviceSyncPreferences;
 mod objects;
 mod profile;
 mod reencrypt;

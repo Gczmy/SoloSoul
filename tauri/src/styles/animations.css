@@ -1049,8 +1049,8 @@
   }
 
   .interactive-danger-tab:hover:not(:disabled) {
-    background: color-mix(in srgb, #e74c3c 10%, transparent) !important;
-    border-color: #e74c3c !important;
+    background: color-mix(in srgb, var(--accent-danger) 12%, transparent) !important;
+    border-color: var(--accent-danger) !important;
   }
 
   .interactive-clear:hover:not(:disabled) {
@@ -1161,4 +1161,23 @@
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
+}
+
+/* 忘记设备：常态保留淡红底，悬停/按压加深，不改变按钮尺寸和位置。 */
+.interactive-danger-tinted {
+  background: color-mix(in srgb, var(--accent-danger) 8%, transparent);
+  color: var(--accent-danger);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .interactive-danger-tinted:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-danger) 16%, transparent);
+    color: var(--accent-danger);
+  }
+}
+.interactive-danger-tinted:active:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-danger) 22%, transparent);
 }

@@ -1319,3 +1319,40 @@ fn test_write_config_atomic_tightens_bak_permissions() {
         }
     }
 }
+
+#[test]
+fn device_sync_preferences_restore_for_password_session_key_and_account_switch() {
+    let (svc, _dir) = setup_service();
+    let first = svc.create_account("First", "password123", None).unwrap();
+    let first_id = first["id"].as_str().unwrap();
+    svc.get_vault_store()
+        .unwrap()
+        .update_device_sync_preferences(|p| {
+            p.ui_prefs_sync_enabled = false;
+            p.auto_sync_enabled = true;
+        })
+        .unwrap();
+    let key = svc.get_session_key().unwrap();
+    svc.lock();
+    let second = svc.create_account("Second", "password456", None).unwrap();
+    let second_id = second["id"].as_str().unwrap();
+    assert!(svc.ui_prefs_sync_enabled());
+    svc.lock();
+    svc.unlock(first_id, "password123").unwrap();
+    assert!(!svc.ui_prefs_sync_enabled());
+    assert!(!svc.get_vault_store().unwrap().ui_prefs_sync_enabled());
+    svc.lock();
+    svc.unlock(second_id, "password456").unwrap();
+    assert!(svc.ui_prefs_sync_enabled());
+    svc.lock();
+    svc.unlock_with_session_key(first_id, &key).unwrap();
+    assert!(!svc.ui_prefs_sync_enabled());
+    assert!(
+        svc.get_vault_store()
+            .unwrap()
+            .device_sync_preferences()
+            .unwrap()
+            .unwrap()
+            .auto_sync_enabled
+    );
+}

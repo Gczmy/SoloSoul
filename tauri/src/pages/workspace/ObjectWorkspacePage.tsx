@@ -147,8 +147,6 @@ export function ObjectWorkspacePage() {
       }
       actions={
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <PageGuideButton pages={guidePages} />
-
           {pageId && ws.customPage && (
             <Button
               variant="danger-outline"
@@ -161,6 +159,7 @@ export function ObjectWorkspacePage() {
               <span className={buttonStyles.label}>{t('delete')}</span>
             </Button>
           )}
+          <PageGuideButton pages={guidePages} />
         </div>
       }
     >

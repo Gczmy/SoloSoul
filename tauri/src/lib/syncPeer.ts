@@ -1,5 +1,5 @@
 /**
- * 设备显示名格式化：fingerprint 非空 → SoloSoul-<fp 前 8 位>，否则回退 device name。
+ * 设备显示名格式化：优先使用账户内的自定义备注；fingerprint 非空 → SoloSoul-<fp 前 8 位>，否则回退 device name。
  *
  * 与后端 record_peer（session.rs）新记录存 `SoloSoul-<fp8>`、QR 卡片设备名
  * （sync.rs:854-858）、移动端 NSD 注册名的规则保持一致。
@@ -12,8 +12,10 @@
 export function formatPeerName(peer: {
   id: string;
   name?: string;
+  customName?: string | null;
   fingerprint?: string;
 }): string {
+  if (peer.customName?.trim()) return peer.customName.trim();
   if (peer.fingerprint && peer.fingerprint.length > 0) {
     return `SoloSoul-${peer.fingerprint.slice(0, 8)}`;
   }
@@ -37,9 +39,7 @@ export function formatPeerName(peer: {
 export function formatDiscoveredName(device: { name?: string }): string {
   let raw = (device.name || '').trim();
   if (!raw) return 'Unknown device';
-  raw = raw
-    .replace(/\._solosoul(?:_recovery)?\._tcp\.local\.$/i, '')
-    .replace(/\.local\.$/i, '');
+  raw = raw.replace(/\._solosoul(?:_recovery)?\._tcp\.local\.$/i, '').replace(/\.local\.$/i, '');
   if (/^node_[0-9a-f]{8,}$/i.test(raw) || /^[0-9a-f]{32}$/i.test(raw)) {
     return `${raw.slice(0, 13)}…`;
   }

@@ -1,3 +1,4 @@
+import { DeviceNameEditor } from './DeviceNameEditor';
 import { useTranslation } from 'react-i18next';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
@@ -17,6 +18,7 @@ interface DeviceDetailDialogProps {
   /** 切换信任状态（trusted → 撤销；未信任 → 配对）。 */
   onToggleTrust: (peer: SyncPeer) => void;
   onForgetRequest: (peer: SyncPeer) => void;
+  onRenamePeer: (peerId: string, name: string) => Promise<void>;
   /** 对发现的设备发起立即同步（host:port 地址）。 */
   onSyncDiscovered?: (addr: string) => void;
   /** 信任/撤销等异步操作在途：禁用操作按钮并显示加载态，避免重复点击。 */
@@ -46,6 +48,7 @@ export function DeviceDetailDialog({
   onClose,
   onToggleTrust,
   onForgetRequest,
+  onRenamePeer,
   onSyncDiscovered,
   isLoading = false,
 }: DeviceDetailDialogProps) {
@@ -98,18 +101,25 @@ export function DeviceDetailDialog({
           >
             <ClientTypeIcon clientType={clientType} size={ICON_SIZE.lg} />
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: 'var(--text-card-title)',
-                fontWeight: 600,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {displayName}
-            </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            {peer ? (
+              <DeviceNameEditor
+                key={peer.id}
+                peer={peer}
+                onSave={onRenamePeer}
+                disabled={isLoading}
+              />
+            ) : (
+              <div
+                style={{
+                  fontSize: 'var(--text-card-title)',
+                  fontWeight: 600,
+                  overflowWrap: 'anywhere',
+                }}
+              >
+                {displayName}
+              </div>
+            )}
             <div style={{ marginTop: 2 }}>
               <span
                 style={{
@@ -215,7 +225,7 @@ export function DeviceDetailDialog({
                   loading={isLoading}
                 >
                   <ShieldOff size={ICON_SIZE.sm} />
-                  {t('settings:sync_revoke_tooltip', { defaultValue: 'Revoke trust' })}
+                  {t('settings:sync_revoke', { defaultValue: 'Revoke trust' })}
                 </Button>
               ) : (
                 <Button
@@ -230,6 +240,7 @@ export function DeviceDetailDialog({
                 </Button>
               )}
               <DeleteButton
+                className="interactive-danger-tinted"
                 onClick={() => onForgetRequest(peer!)}
                 disabled={isLoading}
                 title={t('settings:sync_forget_tooltip', {

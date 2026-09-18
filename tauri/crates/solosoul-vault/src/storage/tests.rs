@@ -5474,3 +5474,138 @@ fn test_lock_hold_observer_emits_on_hot_reads() {
         );
     }
 }
+
+#[test]
+fn device_preferences_are_encrypted_account_scoped_and_survive_reopen() {
+    let (vault, dir) = setup();
+    make_peer(&vault, "peer-device");
+    vault
+        .update_device_sync_preferences(|p| {
+            p.auto_sync_enabled = true;
+            p.ui_prefs_sync_enabled = false;
+        })
+        .unwrap();
+    vault
+        .set_device_name("peer-device", "  我的工作电脑  ")
+        .unwrap();
+    assert_eq!(vault.device_names().unwrap()["peer-device"], "我的工作电脑");
+    // 模拟后续握手刷新元数据，备注必须保留且不写入明文 sync_peers。
+    let mut peer = vault.load_peer_state("peer-device").unwrap().unwrap();
+    peer.peer_name = Some("SoloSoul-12345678".into());
+    vault.save_peer_state(&peer).unwrap();
+    assert_eq!(vault.device_names().unwrap()["peer-device"], "我的工作电脑");
+    let raw: Vec<u8> = vault
+        .conn
+        .lock()
+        .unwrap()
+        .as_ref()
+        .unwrap()
+        .query_row(
+            "SELECT data FROM profiles WHERE id = 'test_account'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert!(crate::encryption::is_encrypted_blob(&raw));
+    assert!(!raw
+        .windows("我的工作电脑".len())
+        .any(|part| part == "我的工作电脑".as_bytes()));
+    assert_eq!(
+        vault
+            .load_peer_state("peer-device")
+            .unwrap()
+            .unwrap()
+            .peer_name
+            .as_deref(),
+        Some("SoloSoul-12345678")
+    );
+    drop(vault);
+    let reopened = VaultStore::open(
+        VaultConfig::new("test_account", dir.path().to_path_buf()).with_data_key(test_key()),
+    )
+    .unwrap();
+    let prefs = reopened.device_sync_preferences().unwrap().unwrap();
+    assert!(prefs.auto_sync_enabled);
+    assert!(!prefs.ui_prefs_sync_enabled);
+    assert_eq!(
+        reopened.device_names().unwrap()["peer-device"],
+        "我的工作电脑"
+    );
+    let (other, _other_dir) = setup();
+    assert!(other.device_sync_preferences().unwrap().is_none());
+    assert!(other.device_names().unwrap().is_empty());
+    reopened.lock();
+    assert!(reopened.device_names().is_err());
+    assert!(reopened.set_device_name("peer-device", "new").is_err());
+}
+
+#[test]
+fn device_name_validation_and_reset_preserve_identity_and_trust() {
+    let (vault, _dir) = setup();
+    make_peer(&vault, "peer-device");
+    vault.set_peer_trusted("peer-device", true).unwrap();
+    let before = vault.load_peer_state("peer-device").unwrap().unwrap();
+    assert!(vault.set_device_name("missing", "name").is_err());
+    assert!(vault
+        .set_device_name("peer-device", &"字".repeat(65))
+        .is_err());
+    assert!(vault.set_device_name("peer-device", "line\nbreak").is_err());
+    vault
+        .set_device_name("peer-device", &"字".repeat(64))
+        .unwrap();
+    assert_eq!(vault.set_device_name("peer-device", "   ").unwrap(), None);
+    assert!(vault.device_names().unwrap().is_empty());
+    let after = vault.load_peer_state("peer-device").unwrap().unwrap();
+    assert_eq!(before.trusted, after.trusted);
+    assert_eq!(before.public_key_fingerprint, after.public_key_fingerprint);
+    assert_eq!(before.trusted_at, after.trusted_at);
+}
+
+#[test]
+fn device_sync_policy_stays_local_while_device_names_sync() {
+    for ui_enabled in [true, false] {
+        let (vault, _dir) = setup();
+        make_peer(&vault, "peer");
+        let local = vault
+            .update_device_sync_preferences(|p| {
+                p.auto_sync_enabled = false;
+                p.ui_prefs_sync_enabled = ui_enabled;
+            })
+            .unwrap();
+        vault.set_device_name("peer", "Work Mac").unwrap();
+        let outgoing = vault
+            .list_sync_changes_since(
+                "profiles",
+                &SyncWatermark::default(),
+                "test_account",
+                "local",
+            )
+            .unwrap();
+        let raw = base64::Engine::decode(
+            &base64::engine::general_purpose::STANDARD,
+            outgoing[0].data["data"].as_str().unwrap(),
+        )
+        .unwrap();
+        let sent: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+        assert!(sent["preferences"].get("deviceSync").is_none());
+        assert_eq!(sent["preferences"]["deviceNames"]["peer"], "Work Mac");
+        let remote = serde_json::json!({ "preferences": {
+            "deviceSync": { "autoSyncEnabled": true, "uiPrefsSyncEnabled": !ui_enabled },
+            "deviceNames": { "peer": "Home Mac" }
+        }});
+        let record = crate::VaultSyncRecord {
+            id: "test_account".into(),
+            table: "profiles".into(),
+            deleted: false,
+            hlc: crate::RecordHlc {
+                wall_time_ms: 2_000_000_000_000_000,
+                counter: 0,
+                node_id: "remote".into(),
+            },
+            data: serde_json::json!({ "id": "test_account", "name": "test", "data": base64::Engine::encode(&base64::engine::general_purpose::STANDARD, serde_json::to_vec(&remote).unwrap()), "version": 2 }),
+        };
+        assert!(vault.apply_sync_record(&record, "local").unwrap());
+        assert_eq!(vault.device_sync_preferences().unwrap().unwrap(), local);
+        assert_eq!(vault.device_names().unwrap()["peer"], "Home Mac");
+    }
+}

@@ -146,20 +146,17 @@ impl VaultStore {
             if !Self::hlc_after_watermark(&hlc, watermark) {
                 continue;
             }
-            // 设备关闭「同步设置偏好」时：剥离 preferences 中**仅外观 UI 键**
-            // （主题/主题色/背景/语言/侧边栏等，见 UI_PREF_SYNC_EXCLUDED_KEYS）。
-            // AI 对话、回收站保留期、自动锁定等账户级设置不受影响、照常同步。
-            // 剥失败保持原样发送（不阻断同步）。
-            if !self.ui_prefs_sync_enabled() {
-                if let Ok(mut v) = serde_json::from_slice::<serde_json::Value>(&data) {
-                    if let Some(prefs) = v.get_mut("preferences").and_then(|p| p.as_object_mut()) {
+            // 本机同步开关只在账户保险库中保存，不由对端同步改写。
+            // UI 外观键按用户选择剥离；设备备注等账户数据照常同步。
+            if let Ok(mut v) = serde_json::from_slice::<serde_json::Value>(&data) {
+                if let Some(prefs) = v.get_mut("preferences").and_then(|p| p.as_object_mut()) {
+                    prefs.remove("deviceSync");
+                    if !self.ui_prefs_sync_enabled() {
                         for k in super::UI_PREF_SYNC_EXCLUDED_KEYS {
                             prefs.remove(*k);
                         }
-                        if let Ok(re) = serde_json::to_vec(&v) {
-                            data = re;
-                        }
                     }
+                    data = serde_json::to_vec(&v).map_err(|e| e.to_string())?;
                 }
             }
             let value = serde_json::json!({

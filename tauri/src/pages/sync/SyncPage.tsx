@@ -176,6 +176,7 @@ export function SyncPage() {
             setDetailPeerId(peer.id);
           }}
           onCloseDetail={handleCloseDetail}
+          onRenamePeer={store.renamePeer}
           onSyncDiscovered={handleSyncWithDevice}
         />
 

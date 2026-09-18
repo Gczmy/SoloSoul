@@ -257,7 +257,6 @@ export function TemplateManagerPage() {
       }
       actions={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <PageGuideButton pages={templateGuidePages} />
           <Button
             variant="secondary"
             className={`${buttonStyles.hideLabelOnMobile} ${buttonStyles.compactMobile}`}
@@ -269,6 +268,7 @@ export function TemplateManagerPage() {
               {t('settings:sample_templates', { defaultValue: '模板示例' })}
             </span>
           </Button>
+          <PageGuideButton pages={templateGuidePages} />
         </div>
       }
     >

@@ -634,3 +634,65 @@ describe('syncStore loadConflicts 异常数据归一化（防整页白屏）', (
     expect(useSyncStore.getState().error).toBeNull();
   });
 });
+
+describe('syncStore encrypted device names', () => {
+  const peer = {
+    id: 'peer',
+    name: 'original',
+    addr: '',
+    fingerprint: '12345678',
+    trusted: true,
+    lastSeen: '',
+  };
+  beforeEach(() => {
+    mockInvoke.mockReset();
+    useSyncStore.setState({ connectedPeers: [peer] });
+  });
+  it('updates the visible alias only after the vault confirms saving', async () => {
+    mockInvoke.mockResolvedValueOnce('Work Mac');
+    await useSyncStore.getState().renamePeer('peer', 'Work Mac');
+    expect(mockInvoke).toHaveBeenCalledWith('sync_rename_peer', {
+      peerNodeId: 'peer',
+      name: 'Work Mac',
+    });
+    expect(useSyncStore.getState().connectedPeers[0]).toEqual({ ...peer, customName: 'Work Mac' });
+  });
+  it('ignores a stale status response that started before the rename', async () => {
+    let finish!: (status: unknown) => void;
+    mockInvoke.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const loading = useSyncStore.getState().loadStatus();
+    mockInvoke.mockResolvedValueOnce('Work Mac');
+    await useSyncStore.getState().renamePeer('peer', 'Work Mac');
+    finish({ connectedPeers: [peer] });
+    await loading;
+    expect(useSyncStore.getState().connectedPeers[0].customName).toBe('Work Mac');
+  });
+
+  it('propagates save failures and keeps the existing name', async () => {
+    mockInvoke.mockRejectedValueOnce(new Error('disk full'));
+    await expect(useSyncStore.getState().renamePeer('peer', 'Work Mac')).rejects.toThrow(
+      'disk full',
+    );
+    expect(useSyncStore.getState().connectedPeers[0]).toEqual(peer);
+  });
+  it('rejects a late save after locking without repopulating device data', async () => {
+    let finish!: (name: string) => void;
+    mockInvoke.mockImplementationOnce(
+      () =>
+        new Promise<string>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const saving = useSyncStore.getState().renamePeer('peer', 'Work Mac');
+    const result = expect(saving).rejects.toThrow('expired session');
+    useSyncStore.getState().clearOnVaultLock();
+    finish('Work Mac');
+    await result;
+    expect(useSyncStore.getState().connectedPeers).toEqual([]);
+  });
+});

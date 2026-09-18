@@ -372,8 +372,11 @@ impl super::VaultService {
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
-        // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
-        vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
+        // 从当前账户的加密偏好恢复，禁止沿用上一账户的开关。
+        let prefs = vault_arc.device_sync_preferences()?.unwrap_or_default();
+        self.ui_prefs_sync_enabled
+            .store(prefs.ui_prefs_sync_enabled, Ordering::SeqCst);
+        vault_arc.set_ui_prefs_sync_enabled(prefs.ui_prefs_sync_enabled);
         *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
 
         // 用户已通过主密码验证身份，重置 PIN 锁定状态。
@@ -667,8 +670,11 @@ impl super::VaultService {
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
-        // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
-        vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
+        // 从当前账户的加密偏好恢复，禁止沿用上一账户的开关。
+        let prefs = vault_arc.device_sync_preferences()?.unwrap_or_default();
+        self.ui_prefs_sync_enabled
+            .store(prefs.ui_prefs_sync_enabled, Ordering::SeqCst);
+        vault_arc.set_ui_prefs_sync_enabled(prefs.ui_prefs_sync_enabled);
         *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
 
         // 用户已通过更强因子（生物识别 / PIN 本身）验证身份，重置 PIN 锁定状态。
@@ -704,9 +710,10 @@ impl super::VaultService {
         match VaultStore::open(vault_config) {
             Ok(vault) => {
                 let vault_arc = Arc::new(vault);
-                // 设备级偏好同步开关：新建 VaultStore 后应用期望值（默认 true）。
-                vault_arc
-                    .set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
+                let prefs = vault_arc.device_sync_preferences()?.unwrap_or_default();
+                self.ui_prefs_sync_enabled
+                    .store(prefs.ui_prefs_sync_enabled, Ordering::SeqCst);
+                vault_arc.set_ui_prefs_sync_enabled(prefs.ui_prefs_sync_enabled);
                 *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
             }
             Err(e) => {

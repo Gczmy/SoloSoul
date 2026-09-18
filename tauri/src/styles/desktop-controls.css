@@ -243,6 +243,34 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     cursor: not-allowed;
   }
 
+  /* 回收站标签与忘记设备使用一致的红色色相；覆盖通用桌面按钮的灰色 hover。 */
+  &:is(button).interactive-danger-tinted {
+    --control-fill: color-mix(in srgb, var(--accent-danger) 8%, transparent);
+    --control-ink: var(--accent-danger);
+    --control-edge: transparent;
+    --control-glint: transparent;
+    background: var(--control-fill) !important;
+  }
+  &.interactive-danger-tab[aria-pressed='true'] {
+    --control-fill: color-mix(in srgb, var(--accent-danger) 12%, transparent);
+    --control-ink: var(--accent-danger);
+    --control-edge: var(--accent-danger);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    &.interactive-danger-tab:hover:not(:disabled),
+    &.interactive-danger-tinted:hover:not(:disabled) {
+      --control-fill: color-mix(in srgb, var(--accent-danger) 16%, transparent);
+      --control-ink: var(--accent-danger);
+      --control-edge: var(--accent-danger);
+      background: var(--control-fill) !important;
+      border-color: var(--control-edge) !important;
+    }
+  }
+  &:is(.interactive-danger-tab, .interactive-danger-tinted):active:not(:disabled) {
+    --control-fill: color-mix(in srgb, var(--accent-danger) 22%, transparent);
+    background: var(--control-fill) !important;
+  }
+
   /* 与原生辅助功能状态同步；保留操作颜色，不把危险/确认按钮刷成同一种灰色。 */
   &:is([data-native-material='solid'] button, [data-high-contrast='true'] button) {
     -webkit-backdrop-filter: none !important;

@@ -258,8 +258,11 @@ impl super::VaultService {
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
-        // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
-        vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
+        // 从当前账户的加密偏好恢复，禁止沿用上一账户的开关。
+        let prefs = vault_arc.device_sync_preferences()?.unwrap_or_default();
+        self.ui_prefs_sync_enabled
+            .store(prefs.ui_prefs_sync_enabled, Ordering::SeqCst);
+        vault_arc.set_ui_prefs_sync_enabled(prefs.ui_prefs_sync_enabled);
         *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
         *self.session_key.write().unwrap_or_else(|e| e.into_inner()) =
             Some(Zeroizing::new(master_key_arr));

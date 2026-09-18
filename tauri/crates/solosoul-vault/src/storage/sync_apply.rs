@@ -477,12 +477,8 @@ impl VaultStore {
             .ok_or("Missing profile data")?;
         let mut data = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, data_b64)
             .map_err(|e| format!("profile data decode: {}", e))?;
-        // 设备关闭「同步设置偏好」：外观 UI 偏好各设备独立——剥掉对端发来的
-        // UI 外观键，并把本地已有值合并回来（不被对端覆盖）；AI 对话、回收站
-        // 保留期等其余账户级键照常接收。合并失败保持原样应用（不阻断同步）。
-        if !ui_prefs_enabled {
-            Self::merge_local_ui_prefs(conn, key, record.id, &mut data)?;
-        }
+        // 本机同步策略始终保留；UI 外观偏好仅在关闭偏好同步时保留。
+        Self::merge_local_ui_prefs(conn, key, record.id, &mut data, ui_prefs_enabled)?;
         let now = Self::now_rfc3339();
         let created = record
             .data
@@ -519,9 +515,9 @@ impl VaultStore {
         Ok(true)
     }
 
-    /// 接收侧偏好合并：incoming profile data 剥掉 UI 外观键，并回填本地 UI 外观键。
+    /// 接收侧保留本机同步策略；关闭偏好同步时同时保留本地 UI 外观键。
     ///
-    /// 设备关闭「同步设置偏好」时调用：外观 UI 偏好（主题/主题色/背景/语言/侧边栏等）
+    /// 本机 deviceSync 始终保留。关闭「同步设置偏好」时，外观偏好（主题/主题色/背景/语言/侧边栏等）
     /// 各设备独立——对端发来的值丢弃（不被覆盖），本地已有值保留；其余账户级键
     /// （AI 对话、回收站保留期、自动锁定等）照常接受。
     fn merge_local_ui_prefs(
@@ -529,6 +525,7 @@ impl VaultStore {
         key: &DataEncryptionKey,
         id: &str,
         data: &mut Vec<u8>,
+        ui_prefs_enabled: bool,
     ) -> Result<(), String> {
         // 明文 data 解析失败时保持原样（不阻断同步，防御性降级）。
         let Ok(mut incoming) = serde_json::from_slice::<serde_json::Value>(data) else {
@@ -543,7 +540,10 @@ impl VaultStore {
                 .unwrap_or_default(),
             None => serde_json::Map::new(),
         };
-        let ui_keys = super::UI_PREF_SYNC_EXCLUDED_KEYS;
+        let keep_local = |key: &str| {
+            key == "deviceSync"
+                || (!ui_prefs_enabled && super::UI_PREF_SYNC_EXCLUDED_KEYS.contains(&key))
+        };
         // incoming 非对象（异常数据）时不做合并。
         let Some(obj) = incoming.as_object_mut() else {
             return Ok(());
@@ -556,11 +556,9 @@ impl VaultStore {
             );
         }
         if let Some(prefs) = obj.get_mut("preferences").and_then(|p| p.as_object_mut()) {
-            for k in ui_keys {
-                prefs.remove(*k);
-            }
+            prefs.retain(|k, _| !keep_local(k));
             for (k, v) in local_prefs {
-                if ui_keys.contains(&k.as_str()) {
+                if keep_local(&k) {
                     prefs.insert(k, v);
                 }
             }

@@ -2,10 +2,18 @@ import { describe, it, expect } from 'vitest';
 import { formatDiscoveredName, formatPeerName } from './syncPeer';
 
 describe('formatPeerName', () => {
+  it('prefers a custom name and restores fingerprint naming when cleared', () => {
+    expect(formatPeerName({ id: 'peer', fingerprint: '1234567890', customName: 'Work Mac' })).toBe(
+      'Work Mac',
+    );
+    expect(formatPeerName({ id: 'peer', fingerprint: '1234567890', customName: '' })).toBe(
+      'SoloSoul-12345678',
+    );
+  });
   it('uses SoloSoul-<fp 前 8 位> when fingerprint is present', () => {
-    expect(
-      formatPeerName({ id: 'node-1', fingerprint: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6' }),
-    ).toBe('SoloSoul-a1b2c3d4');
+    expect(formatPeerName({ id: 'node-1', fingerprint: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6' })).toBe(
+      'SoloSoul-a1b2c3d4',
+    );
   });
 
   it('truncates short fingerprints without panic', () => {
@@ -27,9 +35,9 @@ describe('formatDiscoveredName', () => {
   });
 
   it('truncates bare node_<uuid> names', () => {
-    expect(
-      formatDiscoveredName({ name: 'node_f2c22bc0a1b2c3d4e5f6a7b8c9d0e1f2' }),
-    ).toBe('node_f2c22bc0…');
+    expect(formatDiscoveredName({ name: 'node_f2c22bc0a1b2c3d4e5f6a7b8c9d0e1f2' })).toBe(
+      'node_f2c22bc0…',
+    );
   });
 
   it('strips mDNS fullname suffix and truncates node_<uuid>', () => {

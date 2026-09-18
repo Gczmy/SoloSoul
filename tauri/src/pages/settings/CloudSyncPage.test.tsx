@@ -61,13 +61,11 @@ describe('CloudSyncPage 渲染冒烟', () => {
       </MemoryRouter>,
     );
 
-    // 配置加载完成后状态卡与各 section 出现
+    // 等待异步配置真正回填；WebDAV 选项在加载前已存在，不能作为完成标志。
     await waitFor(() => {
-      expect(screen.getByText(/WebDAV \(坚果云/)).toBeInTheDocument();
+      expect(screen.getByDisplayValue('https://dav.example.com/')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('u')).toBeInTheDocument();
     });
-
-    // 关键交互控件存在
-    expect(screen.getByDisplayValue('https://dav.example.com/')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('u')).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /WebDAV \(坚果云/ })).toBeInTheDocument();
   });
 });

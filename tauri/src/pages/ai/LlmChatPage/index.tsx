@@ -120,7 +120,6 @@ export function LlmChatPage() {
         onBack={handleBack}
         actions={
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <PageGuideButton pages={aiChatGuidePages} />
             <button
               type="button"
               className={`interactive-toolbar ${buttonStyles.hideLabelOnMobile}`}
@@ -142,6 +141,7 @@ export function LlmChatPage() {
               <Settings size={ICON_SIZE.sm} />{' '}
               <span className={buttonStyles.label}>{t('settings:ai_chat_configure')}</span>
             </button>
+            <PageGuideButton pages={aiChatGuidePages} />
           </div>
         }
       >
@@ -192,7 +192,6 @@ export function LlmChatPage() {
       onBack={handleBack}
       actions={
         <div style={{ display: 'flex', gap: 8 }}>
-          <PageGuideButton pages={aiChatGuidePages} />
           <span className="tooltip-btn" data-tooltip={t('settings:llm_stats_title')}>
             <button
               onClick={() => navigate('/settings/llm/stats', { state: { from: '/llm-chat' } })}
@@ -223,6 +222,7 @@ export function LlmChatPage() {
               <Settings size={ICON_SIZE.md} />
             </button>
           </span>
+          <PageGuideButton pages={aiChatGuidePages} />
         </div>
       }
     >

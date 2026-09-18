@@ -13,6 +13,8 @@ interface DeleteButtonProps {
   iconOnly?: boolean;
   /** Optional button text. Ignored when iconOnly is true. */
   children?: React.ReactNode;
+  /** 自定义表面样式，供局部危险操作调整。 */
+  className?: string;
   /** Disable interaction */
   disabled?: boolean;
 }
@@ -31,6 +33,7 @@ export const DeleteButton = memo(function DeleteButton({
   iconOnly = false,
   children,
   disabled = false,
+  className,
 }: DeleteButtonProps) {
   if (iconOnly) {
     return (
@@ -38,6 +41,7 @@ export const DeleteButton = memo(function DeleteButton({
         Icon={Trash2}
         onClick={onClick}
         title={title}
+        className={className}
         dangerOutline
         iconSize={ICON_SIZE.sm}
         disabled={disabled}
@@ -46,7 +50,14 @@ export const DeleteButton = memo(function DeleteButton({
   }
 
   return (
-    <Button variant="danger-outline" size="sm" onClick={onClick} disabled={disabled} title={title}>
+    <Button
+      variant="danger-outline"
+      size="sm"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={className}
+    >
       <Trash2 size={ICON_SIZE.sm} />
       {children}
     </Button>

@@ -106,6 +106,8 @@ export function __resetSyncCompletedMergeForTest() {
 export interface SyncPeer {
   id: string;
   name: string;
+  /** 账户内加密保存的设备备注；不参与配对身份验证。 */
+  customName?: string | null;
   addr: string;
   fingerprint: string;
   trusted: boolean;
@@ -171,6 +173,7 @@ interface SyncStoreState extends SyncStatus {
   /** 标记 peer 信任状态。fingerprint（可选）：配对确认时绑定握手认证指纹（P001/P103）。 */
   trustPeer: (peerNodeId: string, trusted: boolean, fingerprint?: string) => Promise<void>;
   forgetPeer: (peerNodeId: string) => Promise<void>;
+  renamePeer: (peerNodeId: string, name: string) => Promise<void>;
   loadAutoSyncStatus: () => Promise<void>;
   setAutoSyncEnabled: (enabled: boolean) => Promise<void>;
   /** 读取「账户设置偏好是否随设备同步」开关状态。 */
@@ -456,6 +459,22 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       }
     },
 
+    renamePeer: async (peerNodeId, name) => {
+      const request = requests.begin();
+      const customName = await request.invoke<string | null>('sync_rename_peer', {
+        peerNodeId,
+        name,
+      });
+      request.assertCurrent();
+      // 取消保存前已发出的状态读取，避免旧响应把刚保存的备注覆盖回去。
+      requests.invalidate('status');
+      request.guardSet<SyncStoreState>(set)((state) => ({
+        connectedPeers: state.connectedPeers.map((peer) =>
+          peer.id === peerNodeId ? { ...peer, customName } : peer,
+        ),
+      }));
+    },
+
     loadAutoSyncStatus: async () => {
       const request = requests.begin('auto');
       const setCurrent = request.guardSet<SyncStoreState>(set);
@@ -635,12 +654,14 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       set({ incomingPairingRequest: null });
     },
 
-    /** A-002: 锁定 Vault 后清空账号派生的设备元数据与同步结果（保留纯 UI 开关状态）。 */
+    /** 锁定/切换账户后清空设备元数据、同步结果和账户偏好。 */
     clearOnVaultLock: () => {
       requests.invalidate();
       syncCompletedMergeCache.clear();
       enableChain = Promise.resolve();
       set({
+        autoSyncEnabled: false,
+        uiPrefsSyncEnabled: true,
         localFingerprint: '',
         connectedPeers: [],
         lastResult: null,

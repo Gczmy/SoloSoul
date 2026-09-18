@@ -37,6 +37,7 @@ interface DeviceListPanelProps {
   /** 点击卡片主体打开已知设备详情弹窗。 */
   onOpenDetail: (peer: SyncPeer) => void;
   onCloseDetail: () => void;
+  onRenamePeer: (peerId: string, name: string) => Promise<void>;
   /** 对未匹配已知设备的发现设备发起立即同步。 */
   onSyncDiscovered?: (addr: string) => void;
 }
@@ -71,6 +72,7 @@ export function DeviceListPanel({
   onOpenDiscoveredDetail,
   onOpenDetail,
   onCloseDetail,
+  onRenamePeer,
   onSyncDiscovered,
 }: DeviceListPanelProps) {
   const { t } = useTranslation(['settings', 'common']);
@@ -167,6 +169,7 @@ export function DeviceListPanel({
       </ConfirmDialog>
       <DeviceDetailDialog
         peer={detailPeer}
+        onRenamePeer={onRenamePeer}
         discovered={detailDiscovered}
         onClose={onCloseDetail}
         isLoading={isLoading}
