@@ -26,14 +26,12 @@ import type { BackupInfo } from '@/types/backup';
  * 系统权限弹窗会触发 visibilitychange，期间暂停自动锁定，
  * 避免用户点「允许/拒绝」后回到应用发现已被锁定。
  */
-async function requestNotificationPermissionOnce(): Promise<boolean> {
+export async function requestNotificationPermissionOnce(): Promise<boolean> {
   if (await isPermissionGranted()) return true;
 
   let alreadyRequested = false;
   try {
-    const prefs = await invoke<{ notificationPermissionRequested?: boolean }>(
-      'ui_get_preferences',
-    );
+    const prefs = await invoke<{ notificationPermissionRequested?: boolean }>('ui_get_preferences');
     alreadyRequested = prefs.notificationPermissionRequested === true;
   } catch (err) {
     // 读取失败时降级为允许请求，不因存储故障阻断功能
@@ -178,7 +176,9 @@ export async function checkBackupReminder(accountId: string | undefined): Promis
 
     // 直接读后端权威值，规避与 loadSettings 的竞态
     // （解锁后 2s 时内存 settings 可能还是默认值）
-    const prefs = await invoke<Record<string, unknown>>('user_data_get_preferences', { accountId: accountId });
+    const prefs = await invoke<Record<string, unknown>>('user_data_get_preferences', {
+      accountId: accountId,
+    });
     const days =
       typeof prefs.backupReminderDays === 'number'
         ? prefs.backupReminderDays
@@ -241,7 +241,9 @@ export async function checkBackupReminder(accountId: string | undefined): Promis
         useSettingsStore
           .getState()
           .updateSetting(accountId, 'lastBackupReminderAt', now)
-          .catch((err) => logger.warn('[notification] Failed to persist backup reminder time:', err));
+          .catch((err) =>
+            logger.warn('[notification] Failed to persist backup reminder time:', err),
+          );
       }
     }
   } catch (err) {

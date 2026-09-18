@@ -20,6 +20,7 @@ interface UpdateInfoCardProps {
   versionInfo: VersionInfo | null;
   checking: boolean;
   downloading: boolean;
+  downloaded?: boolean;
   cancelling?: boolean;
   installing?: boolean;
   downloadProgress: UpdateProgress | ApkDownloadProgress | null;
@@ -43,6 +44,7 @@ export function UpdateInfoCard({
   versionInfo,
   checking,
   downloading,
+  downloaded = false,
   cancelling = false,
   installing = false,
   downloadedBytes,
@@ -301,7 +303,9 @@ export function UpdateInfoCard({
                       }}
                     >
                       <Download size={ICON_SIZE.sm} />
-                      {t('settings:update_now', { defaultValue: 'Update Now' })}
+                      {downloaded
+                        ? t('common:install_update', { defaultValue: '安装更新' })
+                        : t('settings:update_now', { defaultValue: 'Update Now' })}
                     </button>
                   )}
                   {downloadError && (

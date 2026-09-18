@@ -1,5 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { isAndroidSync } from '@/lib/platform';
+vi.mock('@/lib/platform', async (original) => ({
+  ...(await original<typeof import('@/lib/platform')>()),
+  isAndroidSync: vi.fn(() => false),
+}));
 import { WorkspaceObjectCard } from './WorkspaceObjectCard';
 import type { ObjectSummary } from '@/stores/objectStore';
 import type { UserTemplate } from '@/types/template';
@@ -156,4 +161,40 @@ describe('WorkspaceObjectCard', () => {
     fireEvent.click(screen.getAllByTitle('Move to trash')[0]);
     expect(onDelete).toHaveBeenCalledWith(baseObj);
   });
+});
+
+it('Android footer shows template and all icon-only field levels, including summary-truncated/group fields', () => {
+  vi.mocked(isAndroidSync).mockReturnValue(true);
+  const { container } = render(
+    <WorkspaceObjectCard
+      obj={{
+        ...baseObj,
+        propertyLabels: {
+          username: 'public',
+          later: 'sensitive',
+          __dynamic_group__: 'critical',
+          internal: 'internal',
+        },
+        properties: {
+          username: 'alice',
+          __fields: { __dynamic_group__: { name: 'Group', type: 'dynamic_group' } },
+        },
+      }}
+      collectionLabel="Identity"
+      userTemplates={userTemplates}
+      onClick={vi.fn()}
+      onHistory={vi.fn()}
+      onAttachments={vi.fn()}
+      onEdit={vi.fn()}
+      onDelete={vi.fn()}
+    />,
+  );
+  expect(screen.getByText('Identity · Account')).toBeInTheDocument();
+  const badges = container.querySelectorAll('.android-row-meta [title]');
+  expect(badges).toHaveLength(4);
+  for (const badge of badges) {
+    expect(badge.querySelector('svg')).not.toBeNull();
+    expect(badge.textContent).toBe('');
+  }
+  vi.mocked(isAndroidSync).mockReturnValue(false);
 });

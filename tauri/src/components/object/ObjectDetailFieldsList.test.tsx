@@ -120,9 +120,10 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
           isRevealed={revealState.isRevealed}
           revealRemainingMs={revealState.revealRemainingMs}
           maskValue={revealState.maskValue}
-          handleRevealField={(id) => {
+          handleRevealField={async (id) => {
             capturedId = id;
             revealState.reveal(id);
+            return true;
           }}
           handleCopy={vi.fn()}
           copiedField={null}
@@ -158,8 +159,9 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
           isRevealed={revealState.isRevealed}
           revealRemainingMs={revealState.revealRemainingMs}
           maskValue={revealState.maskValue}
-          handleRevealField={(id) => {
+          handleRevealField={async (id) => {
             revealState.reveal(id);
+            return true;
           }}
           handleCopy={vi.fn()}
           copiedField={null}
@@ -228,7 +230,6 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
   });
 });
 
-
 describe('动态字段组树状渲染（与历史快照同构）', () => {
   const groupEntry: ObjectDetailFieldEntry = {
     kind: 'dynamicGroup',
@@ -241,9 +242,7 @@ describe('动态字段组树状渲染（与历史快照同构）', () => {
   };
 
   function renderGroup(sensitivities: Record<string, SensitivityLevel>) {
-    return render(
-      <Harness fields={[groupEntry]} sensitivities={sensitivities} />,
-    );
+    return render(<Harness fields={[groupEntry]} sensitivities={sensitivities} />);
   }
 
   it('组头仅显示一次敏感度徽章；子行不重复显示', () => {
@@ -269,5 +268,65 @@ describe('动态字段组树状渲染（与历史快照同构）', () => {
     expect(screen.queryByText('second value')).not.toBeInTheDocument();
     // 揭示按钮仅组头一个
     expect(screen.getAllByText('common:reveal').length).toBe(1);
+  });
+});
+
+describe('复制先揭示/验证', () => {
+  function setup(
+    sens: SensitivityLevel,
+    verify: () => Promise<boolean>,
+    copy: (v: string, key: string) => void,
+  ) {
+    function CopyHarness() {
+      const state = useRevealState();
+      return (
+        <ObjectDetailFieldsList
+          fields={[{ kind: 'field', key: 'secret', value: 'actual text' }]}
+          typeId="identity"
+          getFieldProperty={() => undefined}
+          getFieldSensitivity={() => sens}
+          isFieldDeprecated={() => false}
+          getFieldName={() => 'Secret'}
+          isRevealed={state.isRevealed}
+          revealRemainingMs={state.revealRemainingMs}
+          maskValue={state.maskValue}
+          handleRevealField={async (id) => {
+            if (!(await verify())) return false;
+            state.reveal(id);
+            return true;
+          }}
+          handleCopy={copy}
+          copiedField={null}
+        />
+      );
+    }
+    render(<CopyHarness />);
+  }
+  it('敏感字段先显示明文再复制原始内容', async () => {
+    const verify = vi.fn().mockResolvedValue(true),
+      copy = vi.fn();
+    setup('sensitive', verify, copy);
+    await act(async () => fireEvent.click(screen.getByText('common:copy')));
+    expect(verify).toHaveBeenCalledOnce();
+    expect(screen.getByText('actual text')).toBeInTheDocument();
+    expect(copy).toHaveBeenCalledExactlyOnceWith('actual text', 'secret');
+  });
+  it.each([false, true])('关键字段验证结果=%s；等待期间不复制', async (ok) => {
+    let finish!: (ok: boolean) => void;
+    const verify = vi.fn(
+        () =>
+          new Promise<boolean>((resolve) => {
+            finish = resolve;
+          }),
+      ),
+      copy = vi.fn();
+    setup('critical', verify, copy);
+    fireEvent.click(screen.getByText('common:copy'));
+    expect(copy).not.toHaveBeenCalled();
+    expect(screen.getByText('••••••••')).toBeInTheDocument();
+    await act(async () => finish(ok));
+    expect(copy).toHaveBeenCalledTimes(ok ? 1 : 0);
+    if (ok) expect(copy).toHaveBeenCalledWith('actual text', 'secret');
+    else expect(screen.getByText('••••••••')).toBeInTheDocument();
   });
 });

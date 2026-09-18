@@ -1145,3 +1145,13 @@
     backdrop-filter: none !important;
   }
 }
+
+/* 设备详情操作允许整颗按钮换行，文字不拆成单字。 */
+[data-platform='android'] .device-detail-actions {
+  flex-wrap: wrap;
+}
+[data-platform='android'] .device-detail-actions [data-ui-button] {
+  flex: 1 0 auto;
+  min-width: max-content;
+  white-space: nowrap;
+}

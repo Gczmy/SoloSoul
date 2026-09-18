@@ -143,6 +143,24 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
         obj={obj}
         Icon={TemplateIcon}
         collectionLabel={collectionLabel}
+        templateName={
+          tpl?.name ||
+          String(
+            obj.properties?.__templateName ||
+              t('editor:no_template', { defaultValue: '未关联模板' }),
+          )
+        }
+        sensitivities={(['public', 'internal', 'sensitive', 'critical'] as const).filter((level) =>
+          [
+            ...new Set([
+              ...Object.keys(obj.properties ?? {}),
+              ...Object.keys(objLabels ?? {}),
+              ...Object.keys(objFieldDefs ?? {}),
+            ]),
+          ]
+            .filter((key) => !key.startsWith('__') || !!objFieldDefs?.[key])
+            .some((key) => getFieldSensitivity(key) === level),
+        )}
         snapshotCount={snapshotCount}
         attachmentCount={attachmentCount}
         needsSync={needsSync}

@@ -15,6 +15,7 @@ permissions = ["allow-app-commands"]
 identifier = "allow-app-commands"
 description = "显式允许前端实际使用的 SoloSoul 自定义 command（least-privilege allowlist）。"
 commands.allow = [
+  "android_cached_update",
   "android_check_update",
   "android_download_apk",
   "android_get_apk_path",
@@ -159,6 +160,7 @@ commands.allow = [
   "plugin_consent_response",
   "plugin_copy_output_file",
   "plugin_dialog_response",
+  "create_plugin_install",
   "plugin_install",
   "plugin_list_all",
   "plugin_list_attachments",

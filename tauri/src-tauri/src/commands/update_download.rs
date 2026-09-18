@@ -187,8 +187,36 @@ fn load_cache(path: &Path, identity: &str, policy: &Policy) -> Result<Cache, Str
 
 fn save_metadata(path: &Path, metadata: &CacheMetadata) -> Result<(), String> {
     let bytes = serde_json::to_vec(metadata).map_err(|_| "无法编码更新缓存元数据".to_string())?;
-    // 写入前更新元数据；意外退出导致 JSON 不完整时，下次会安全丢弃该前缀。
-    std::fs::write(metadata_path(path), bytes).map_err(|_| "无法保存更新缓存元数据".to_string())
+    let target = metadata_path(path);
+    let mut temporary = tempfile::NamedTempFile::new_in(target.parent().ok_or("缓存目录无效")?)
+        .map_err(|_| "无法创建更新缓存元数据".to_string())?;
+    temporary
+        .write_all(&bytes)
+        .map_err(|_| "无法写入更新缓存元数据".to_string())?;
+    temporary
+        .as_file()
+        .sync_all()
+        .map_err(|_| "无法保存更新缓存元数据".to_string())?;
+    temporary
+        .persist(&target)
+        .map_err(|_| "无法提交更新缓存元数据".to_string())?;
+    Ok(())
+}
+
+/// 只读断点快照，不因检查更新重置或清理下载中的文件。
+pub(super) fn cached_progress(path: &Path, identity: &str) -> Option<(u64, u64)> {
+    let sidecar = metadata_path(path);
+    if std::fs::metadata(&sidecar).ok()?.len() > 16 * 1024 {
+        return None;
+    }
+    let metadata: CacheMetadata = serde_json::from_slice(&std::fs::read(sidecar).ok()?).ok()?;
+    let downloaded = std::fs::metadata(path).ok()?.len();
+    (metadata.version == 1
+        && metadata.identity == digest(identity)
+        && metadata.total > 0
+        && metadata.total <= Policy::default().maximum_size
+        && downloaded <= metadata.total)
+        .then_some((downloaded, metadata.total))
 }
 
 fn header_u64(
@@ -1197,6 +1225,21 @@ mod tests {
         .unwrap();
         assert_eq!(fast.transfer_requests()[0].start as u64, length);
         assert_eq!(std::fs::read(path).unwrap(), package());
+    }
+
+    #[test]
+    fn cached_progress_uses_file_length_and_never_changes_other_version_cache() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("package.part");
+        seed_cache(&path, "signed-1", "https://example.com/file", 4096);
+        assert_eq!(
+            cached_progress(&path, "signed-1"),
+            Some((4096, PACKAGE_SIZE as u64))
+        );
+        assert_eq!(cached_progress(&path, "signed-2"), None);
+        assert_eq!(std::fs::metadata(&path).unwrap().len(), 4096);
+        std::fs::write(&path, vec![0u8; PACKAGE_SIZE + 1]).unwrap();
+        assert_eq!(cached_progress(&path, "signed-1"), None);
     }
 
     #[test]

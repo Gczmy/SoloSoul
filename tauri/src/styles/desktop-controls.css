@@ -181,6 +181,34 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
       --control-edge: transparent;
     }
 
+    /* AppBar 统一平面按钮；主操作保留强调文字，危险操作保留红色文字。 */
+    &:is([data-appbar] button) {
+      --control-fill: transparent;
+      --control-edge: transparent;
+      --control-ink: var(--text-secondary);
+    }
+    &:is(
+      [data-appbar] button[data-ui-button='primary'],
+      [data-appbar] button[data-desktop-control='primary']
+    ) {
+      --control-ink: var(--accent-primary);
+    }
+    &:is(button):is(
+        [data-ui-button='danger'],
+        [data-ui-button='danger-outline'],
+        [data-ui-icon-button='danger'],
+        [data-ui-icon-button='danger-outline'],
+        [data-desktop-control='danger-text'],
+        .interactive-danger-solid,
+        .interactive-danger,
+        .interactive-danger-soft,
+        .interactive-icon-danger
+      ) {
+      --control-fill: transparent;
+      --control-edge: transparent;
+      --control-ink: var(--accent-danger);
+    }
+
     &[aria-expanded='true'] {
       --control-fill: color-mix(in srgb, var(--text-primary) 10%, var(--bg-elevated));
     }

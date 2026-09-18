@@ -63,6 +63,7 @@ async function setup(
           downloadUrl: 'https://example.test/app.apk', releaseNotes: notes,
           mandatory: false, checksum: 'verified', checksumWarning: ${JSON.stringify(warning)} }),
         android_is_apk_downloaded: () => false,
+        get_app_info: () => ({ appName: "SoloSoul", version: "2.13.0", os: platform, arch: "aarch64" }),
         create_update_download: () => nextRid++,
         desktop_download_update: startDownload,
         android_download_apk: startDownload,
@@ -357,3 +358,40 @@ test('登录页通知位于卡片上方，短窗多条通知可滚动且正文�
   const main = (await page.locator('[data-shell-content]').boundingBox())!;
   expect(main.height).toBeGreaterThan(120);
 });
+
+for (const platform of ['macos', 'android'] as const) {
+  test(`${platform} 登录下载跨解锁和关于页保持唯一任务`, async ({ page }) => {
+    await page.setViewportSize(
+      platform === 'android' ? { width: 390, height: 844 } : { width: 1100, height: 800 },
+    );
+    await setup(page, platform, 'left', '', false);
+    const slot = page.locator('[data-shell-notifications]');
+    await slot.getByRole('button', { name: 'Update Now' }).click();
+    await emitTransfer(page, 0, {
+      downloaded: 40,
+      total: 100,
+      source: 'cdn.example.test',
+      bytesPerSecond: 1000,
+      phase: 'downloading',
+    });
+    await expect(slot.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');
+    await page.locator('input[type="text"]').fill('any-password');
+    await page.locator('button[type="submit"]').click();
+    await page.waitForURL('/');
+    await expect(slot.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');
+    await expect(slot.getByRole('button', { name: 'Update Now' })).toHaveCount(0);
+    await page.evaluate(() => {
+      history.pushState({ ...history.state, idx: history.state.idx + 1 }, '', '/about');
+      dispatchEvent(new PopStateEvent('popstate', { state: history.state }));
+    });
+    await expect(page.getByText('40 B / 100 B (40%)', { exact: true })).toBeVisible();
+    await expect(slot.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');
+    await expect(page.getByRole('button', { name: 'Cancel download', exact: true })).toHaveCount(2);
+    expect(
+      await page.evaluate(() => (window as DownloadMockWindow).__E2E_UPDATE_DOWNLOADS__.length),
+    ).toBe(1);
+    await slot.getByRole('button', { name: 'Cancel download' }).click();
+    await expect(slot.getByRole('button', { name: 'Update Now' })).toBeVisible();
+    await expect(page.getByRole('progressbar')).toHaveCount(0);
+  });
+}

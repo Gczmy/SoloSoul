@@ -7,7 +7,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import styles from './PluginCard.module.css';
 import type { MarketPluginInfo, PluginManifest } from '@/lib/plugin';
-import type { RunningPlugin } from '@/stores/pluginStore';
+import { usePluginStore, type RunningPlugin } from '@/stores/pluginStore';
 import { ICON_SIZE } from '@/lib/constants';
 
 interface PluginCardProps {
@@ -37,6 +37,8 @@ export function PluginCard({
   onStop,
   onClear,
 }: PluginCardProps) {
+  const installing = usePluginStore((s) => s.installingPlugins[info.pluginId]);
+  const cancelInstall = usePluginStore((s) => s.cancelInstall);
   const { t, i18n } = useTranslation('plugin');
   const { requestConfirm, dialog } = useConfirm();
 
@@ -114,7 +116,7 @@ export function PluginCard({
       <div className={styles.actions}>
         <div className={styles.actionsLeft}>
           {installed && info.isCompatible && (
-            <button className={styles.runBtn} onClick={onRun} disabled={isRunning}>
+            <button className={styles.runBtn} onClick={onRun} disabled={isRunning || !!installing}>
               {isRunning ? (
                 <Loader2 size={ICON_SIZE.sm} className={styles.spin} />
               ) : (
@@ -131,13 +133,25 @@ export function PluginCard({
               {t('clear', { defaultValue: 'Clear' })}
             </button>
           )}
-          {!installed && info.isCompatible && (
+          {installing && (
+            <button
+              type="button"
+              className={styles.installProgress}
+              aria-label={t('cancel_install', { defaultValue: '取消安装' })}
+              title={t('cancel_install', { defaultValue: '取消安装' })}
+              onClick={() => cancelInstall(info.pluginId)}
+            >
+              <Loader2 className={styles.installSpinner} size={34} aria-hidden="true" />
+              <X size={16} aria-hidden="true" />
+            </button>
+          )}
+          {!installing && !installed && info.isCompatible && (
             <button className={styles.installBtn} onClick={onInstall}>
               <Download size={ICON_SIZE.sm} />
               {t('install', { defaultValue: 'Install' })}
             </button>
           )}
-          {installed && info.hasUpdate && info.isCompatible && (
+          {!installing && installed && info.hasUpdate && info.isCompatible && (
             <button className={styles.updateBtn} onClick={onUpdate}>
               <RefreshCw size={ICON_SIZE.sm} />
               {t('update', { defaultValue: 'Update' })}
@@ -147,6 +161,7 @@ export function PluginCard({
         {installed && (
           <div className={styles.actionsRight}>
             <DeleteButton
+              disabled={!!installing}
               onClick={() =>
                 requestConfirm(
                   t('uninstall_confirm_title', { defaultValue: 'Uninstall Plugin' }),

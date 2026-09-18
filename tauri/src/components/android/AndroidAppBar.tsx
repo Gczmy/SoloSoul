@@ -21,7 +21,7 @@ export function AndroidAppBar({
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const lock = useAuthStore((s) => s.lock);
-  const rootPage = ['/', '/workspace', '/tools', '/settings'].includes(pathname);
+  const rootPage = ['/', '/tools', '/settings'].includes(pathname);
   return (
     <header
       data-appbar

@@ -32,7 +32,11 @@ interface ObjectDetailFieldsListProps {
   /** 剩余揭示时长（ms），供揭示态倒计时展示（与 useRevealState 的 1 分钟 TTL 一致）。 */
   revealRemainingMs: (id: string) => number;
   maskValue: (value: string, id: string, level: SensitivityLevel) => string;
-  handleRevealField: (fieldId: string, sens: SensitivityLevel, fieldName: string) => void;
+  handleRevealField: (
+    fieldId: string,
+    sens: SensitivityLevel,
+    fieldName: string,
+  ) => Promise<boolean>;
   handleCopy: (value: string, key: string) => void;
   copiedField: string | null;
 }
@@ -63,6 +67,20 @@ export function ObjectDetailFieldsList({
 }: ObjectDetailFieldsListProps) {
   const { t } = useTranslation(['common', 'navigation', 'editor']);
 
+  // 复制明文必须经过与“显示/解锁”完全相同的流程，取消验证不触碰剪贴板。
+  const copyField = async (
+    value: string,
+    key: string,
+    fieldId: string,
+    sens: SensitivityLevel,
+    name: string,
+  ) => {
+    if ((sens === 'sensitive' || sens === 'critical') && !isRevealed(fieldId)) {
+      if (!(await handleRevealField(fieldId, sens, name))) return;
+    }
+    handleCopy(value, key);
+  };
+
   // 组条目的揭示/复制统一使用 `${typeId}.${key}` 作为 fieldId
   const entryFieldId = (f: ObjectDetailFieldEntry): string =>
     'fieldId' in f && f.fieldId ? f.fieldId : `${typeId}.${f.key}`;
@@ -88,9 +106,7 @@ export function ObjectDetailFieldsList({
     const revealed = isRevealed(fieldId);
     const needsReveal = sens === 'sensitive' || sens === 'critical';
     const displayMasked = needsReveal && !revealed;
-    const revealSeconds = revealed
-      ? Math.max(0, Math.ceil(revealRemainingMs(fieldId) / 1000))
-      : 0;
+    const revealSeconds = revealed ? Math.max(0, Math.ceil(revealRemainingMs(fieldId) / 1000)) : 0;
 
     // 组名：模板名优先；`__dynamic_group__` 元键回退为本地化「动态字段组」
     const rawName = f.label || getFieldName(f.key);
@@ -99,13 +115,7 @@ export function ObjectDetailFieldsList({
         ? t('editor:field_types.dynamic_group', { defaultValue: '动态字段组' })
         : rawName;
 
-    // 整组复制：逐子行 "label: value"，掩码态复制占位符（不泄露明文）
-    const groupCopyValue = f.children
-      .map((child) => {
-        const v = displayMasked ? maskValue(child.value, fieldId, sens) : child.value;
-        return `${child.label}: ${v}`;
-      })
-      .join('\n');
+    const groupCopyValue = f.children.map((child) => `${child.label}: ${child.value}`).join('\n');
 
     return (
       <div key={f.key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -140,11 +150,7 @@ export function ObjectDetailFieldsList({
                   }}
                   className={`${styles.revealBtn} ${sens === 'critical' ? styles.revealBtnCritical : ''}`}
                 >
-                  {sens === 'critical' ? (
-                    <Lock size={ICON_SIZE.xs} />
-                  ) : (
-                    <Eye size={ICON_SIZE.xs} />
-                  )}
+                  {sens === 'critical' ? <Lock size={ICON_SIZE.xs} /> : <Eye size={ICON_SIZE.xs} />}
                   <span className={styles.btnLabel}>
                     {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
                   </span>
@@ -175,7 +181,7 @@ export function ObjectDetailFieldsList({
               )}
               <button
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => handleCopy(groupCopyValue, fieldId)}
+                onClick={() => void copyField(groupCopyValue, fieldId, fieldId, sens, groupName)}
                 className={`${styles.copyBtn} ${copiedField === fieldId ? styles.copyBtnCopied : ''}`}
               >
                 {copiedField === fieldId ? (
@@ -215,12 +221,7 @@ export function ObjectDetailFieldsList({
                 <button
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() =>
-                    handleCopy(
-                      displayMasked
-                        ? maskValue(child.value, `${fieldId}.${idx}`, sens)
-                        : child.value,
-                      `${fieldId}.${idx}`,
-                    )
+                    void copyField(child.value, `${fieldId}.${idx}`, fieldId, sens, groupName)
                   }
                   className={`${styles.copyBtn} ${
                     copiedField === `${fieldId}.${idx}` ? styles.copyBtnCopied : ''
@@ -274,11 +275,7 @@ export function ObjectDetailFieldsList({
           objFieldDefs?.[f.key]?.type ||
           'text') as PropertyType;
         return (
-          <div
-            key={f.key}
-            className={styles.fieldRow}
-            style={{ opacity: deprecated ? 0.7 : 1 }}
-          >
+          <div key={f.key} className={styles.fieldRow} style={{ opacity: deprecated ? 0.7 : 1 }}>
             <div className={styles.fieldRowTop}>
               <div className={styles.fieldLabel}>
                 <FieldTypeIcon type={fieldType} />
@@ -347,10 +344,7 @@ export function ObjectDetailFieldsList({
                 <button
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() =>
-                    handleCopy(
-                      displayMasked ? maskValue(f.value, fieldId, sens) : f.value,
-                      f.key,
-                    )
+                    void copyField(f.value, f.key, fieldId, sens, getFieldName(f.key, f.label))
                   }
                   className={`${styles.copyBtn} ${copiedField === f.key ? styles.copyBtnCopied : ''}`}
                 >

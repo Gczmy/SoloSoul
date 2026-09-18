@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { createSessionRequests } from '@/lib/sessionRequests';
 import { logger } from '@/lib/logger';
 import { useRevealState } from '@/hooks/useRevealState';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
@@ -27,6 +28,8 @@ export function useObjectDetailVerification({
 }: UseObjectDetailVerificationOptions) {
   const { maskValue, isRevealed, reveal, revealRemainingMs } = useRevealState();
   const [showPwDialog, setShowPwDialog] = useState(false);
+  const [verificationId, setVerificationId] = useState(0);
+  const verificationSequence = useRef(0);
   const pwResolveRef = useRef<
     | ((result: {
         ok: boolean;
@@ -34,6 +37,16 @@ export function useObjectDetailVerification({
       }) => void)
     | null
   >(null);
+  const accessRequests = useRef(createSessionRequests()).current;
+  useEffect(
+    () => () => {
+      accessRequests.invalidate();
+      verificationSequence.current += 1;
+      pwResolveRef.current?.({ ok: false, method: 'password' });
+      pwResolveRef.current = null;
+    },
+    [accessRequests, accountId, obj?.id],
+  );
   const pendingRevealRef = useRef<{ fieldId: string; fieldName: string } | null>(null);
   const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
     available: false,
@@ -87,7 +100,9 @@ export function useObjectDetailVerification({
     method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin';
   }> => {
     return new Promise((resolve) => {
+      pwResolveRef.current?.({ ok: false, method: 'password' });
       pwResolveRef.current = resolve;
+      setVerificationId(++verificationSequence.current);
       setShowPwDialog(true);
     });
   }, []);
@@ -126,6 +141,7 @@ export function useObjectDetailVerification({
 
   const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
     if (!accountId) return false;
+    const resolve = pwResolveRef.current;
     try {
       await invoke('biometric_unlock', {
         accountId: accountId,
@@ -135,7 +151,9 @@ export function useObjectDetailVerification({
       });
       const method =
         (bioAvailable.biometryType as 'touchId' | 'faceId' | 'windowsHello') || 'touchId';
-      pwResolveRef.current?.({ ok: true, method });
+      if (pwResolveRef.current !== resolve) return false;
+      resolve?.({ ok: true, method });
+      pwResolveRef.current = null;
       return true;
     } catch (err) {
       // P124: 记录失败细节（用户取消 vs 后端异常在 UI 上保持静默停留，但日志不再丢失）
@@ -146,39 +164,50 @@ export function useObjectDetailVerification({
 
   const handleRevealField = useCallback(
     async (fieldId: string, sens: SensitivityLevel, fieldName: string) => {
+      const request = accessRequests.begin('reveal', accountId);
       if (sens === 'critical') {
         pendingRevealRef.current = { fieldId, fieldName };
         const result = await passwordVerify();
-        if (result.ok) {
-          reveal(fieldId);
-          await writeCriticalAccessLog(result.method);
-        }
+        if (!result.ok || !request.isCurrent()) return false;
+        reveal(fieldId);
+        await writeCriticalAccessLog(result.method);
       } else {
         reveal(fieldId);
       }
+      return request.isCurrent();
     },
-    [passwordVerify, reveal, writeCriticalAccessLog],
+    [accessRequests, accountId, passwordVerify, reveal, writeCriticalAccessLog],
   );
 
   // 密码验证对话框的联动 handler（验证成功/取消/ PIN 成功），收敛 pwResolveRef 细节
   const handlePwDialogClose = useCallback(() => {
+    verificationSequence.current += 1;
     setShowPwDialog(false);
     pwResolveRef.current?.({ ok: false, method: 'password' });
+    pwResolveRef.current = null;
   }, []);
 
   const handlePwDialogVerify = useCallback(
     async (password: string) => {
+      const resolve = pwResolveRef.current;
       const ok = await unlockVaultWithPassword(password);
-      if (ok) pwResolveRef.current?.({ ok: true, method: 'password' });
+      if (pwResolveRef.current !== resolve) return false;
+      if (ok) {
+        resolve?.({ ok: true, method: 'password' });
+        pwResolveRef.current = null;
+      }
       return ok;
     },
     [unlockVaultWithPassword],
   );
 
   const handlePwDialogPinSuccess = useCallback(() => {
+    // PIN 在对话框内部异步验证；取消后迟到的回调不能批准另一字段的新复制请求。
+    if (verificationId !== verificationSequence.current) return;
     pwResolveRef.current?.({ ok: true, method: 'pin' });
+    pwResolveRef.current = null;
     setShowPwDialog(false);
-  }, []);
+  }, [verificationId]);
 
   return {
     // 揭示状态（useRevealState 随迁——与验证流程同属关键数据访问语义）

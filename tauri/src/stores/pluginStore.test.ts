@@ -237,3 +237,29 @@ describe('pluginStore Toast behavior', () => {
     expect(plugin?.completed).toBe(true);
   });
 });
+
+describe('pluginStore installation task', () => {
+  it('prevents double installation and keeps cancel pending until native cleanup', async () => {
+    const { pluginCommands } = await import('@/lib/plugin');
+    const { usePluginStore } = await import('./pluginStore');
+    usePluginStore.getState().clearOnVaultLock();
+    let reject!: (e: Error) => void;
+    vi.mocked(pluginCommands.install).mockReturnValue(
+      new Promise((_, rej) => {
+        reject = rej;
+      }),
+    );
+    const task = usePluginStore.getState().installPlugin('example', '1.0.0');
+    const signal = vi.mocked(pluginCommands.install).mock.calls.at(-1)![2]!;
+    const count = vi.mocked(pluginCommands.install).mock.calls.length;
+    await usePluginStore.getState().installPlugin('example', '1.0.0');
+    expect(pluginCommands.install).toHaveBeenCalledTimes(count);
+    usePluginStore.getState().cancelInstall('example');
+    expect(signal.aborted).toBe(true);
+    expect(usePluginStore.getState().installingPlugins.example).toBeDefined();
+    reject(new Error('PLUGIN_INSTALL_CANCELLED'));
+    await task;
+    expect(usePluginStore.getState().installingPlugins.example).toBeUndefined();
+    expect(usePluginStore.getState().error).toBeNull();
+  });
+});

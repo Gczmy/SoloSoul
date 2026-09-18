@@ -49,6 +49,7 @@ export const SensitivityBadge = memo(function SensitivityBadge({
   return (
     <span
       title={`${t('sensitivity_label')}: ${label}`}
+      aria-label={showText ? undefined : `${t('sensitivity_label')}: ${label}`}
       style={{
         display: 'inline-flex',
         alignItems: 'center',

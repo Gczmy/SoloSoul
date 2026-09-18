@@ -17,6 +17,8 @@ export function AndroidObjectRow({
   obj,
   Icon,
   collectionLabel,
+  templateName,
+  sensitivities,
   snapshotCount,
   attachmentCount,
   needsSync,
@@ -31,6 +33,8 @@ export function AndroidObjectRow({
   obj: ObjectSummary | ObjectData;
   Icon: LucideIcon;
   collectionLabel: string;
+  templateName: string;
+  sensitivities: SensitivityLevel[];
   snapshotCount?: number;
   attachmentCount?: number;
   needsSync: boolean;
@@ -42,7 +46,7 @@ export function AndroidObjectRow({
   onSync?: () => void;
   onDismissSync?: () => void;
 }) {
-  const { t, i18n } = useTranslation(['common', 'editor']);
+  const { t } = useTranslation(['common', 'editor']);
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const action = (callback: () => void) => {
@@ -58,14 +62,12 @@ export function AndroidObjectRow({
         <span className="android-row-copy">
           <strong>{obj.name}</strong>
           <small>
-            {collectionLabel} ·{' '}
-            {new Date(obj.updatedAt).toLocaleDateString(i18n.language, {
-              month: 'short',
-              day: 'numeric',
-            })}
+            {collectionLabel} · {templateName}
           </small>
           <span className="android-row-meta">
-            <SensitivityBadge level={obj.sensitivityLevel as SensitivityLevel} />
+            {sensitivities.map((level) => (
+              <SensitivityBadge key={level} level={level} showText={false} />
+            ))}
             {needsSync && <RefreshCw size={16} aria-label={t('editor:template_updated_hint')} />}
           </span>
         </span>

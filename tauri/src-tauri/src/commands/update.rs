@@ -3,7 +3,7 @@
 //! 通过 GitHub Release API 检查新版本，下载 APK 并触发系统安装。
 //! 桌面端保留 updater 相同公钥验签；两端共用有界测速、低速换源、续传和取消。
 
-use super::update_download::{download_file, TransferProgress};
+use super::update_download::{cached_progress, download_file, TransferProgress};
 use super::update_sources::{artifact_candidates, secure_url, UpdateSources};
 use futures::{stream::FuturesUnordered, StreamExt};
 use serde::{Deserialize, Serialize};
@@ -42,10 +42,9 @@ const USER_AGENT: &str = concat!("SoloSoul/", env!("CARGO_PKG_VERSION"));
 /// 维护注意：这些第三方代理服务存活期不稳定，失效条目应在此处替换为可用条目；
 /// 清单错峰请求、大包按实际吞吐选源，单个代理失效不会阻断其他候选。
 const PROXY_PREFIXES: &[&str] = &[
-    "https://ghfast.top/",
     "https://ghproxy.net/",
     "https://gh-proxy.com/",
-    "https://ghps.cc/",
+    "https://ghfast.top/",
 ];
 
 /// T004: 代理前缀列表（可被环境变量 `SOLOSOUL_PROXY_PREFIXES` 覆盖，逗号分隔）。
@@ -110,6 +109,7 @@ async fn request_small<T: Send>(
     candidates: &[String],
     limit: usize,
     parse: impl Fn(&[u8]) -> Result<T, String> + Sync,
+    preferred: impl Fn(&T) -> bool,
 ) -> Result<T, String> {
     let parse = &parse;
     let mut pending: FuturesUnordered<_> = candidates
@@ -122,13 +122,15 @@ async fn request_small<T: Send>(
         })
         .collect();
     let mut last_error = "未配置更新源".to_string();
+    let mut fallback = None;
     while let Some(result) = pending.next().await {
         match result {
-            Ok(value) => return Ok(value),
+            Ok(value) if preferred(&value) => return Ok(value),
+            Ok(value) => fallback = Some(value),
             Err(error) => last_error = error,
         }
     }
-    Err(format!("所有更新源均不可用: {last_error}"))
+    fallback.ok_or_else(|| format!("所有更新源均不可用: {last_error}"))
 }
 
 /// P003: APK 校验和（`.sha256`）的 minisign 公钥，**复用 embed 注册表密钥对**
@@ -179,6 +181,15 @@ pub struct AndroidUpdateInfo {
     pub release_notes: Option<String>,
     pub published_at: Option<String>,
     pub apk_size: Option<i64>,
+    #[serde(default)]
+    pub cached_download: Option<CachedDownload>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CachedDownload {
+    pub downloaded: u64,
+    pub total: u64,
+    pub done: bool,
 }
 
 /// APK 下载进度事件负载。
@@ -624,14 +635,6 @@ fn apk_part_path(app: &tauri::AppHandle, version: &str) -> Result<PathBuf, Strin
 /// 下载与缓存清理使用同一把锁：检查后删除、两个窗口同时下载均不能互相覆盖文件。
 static APK_CACHE_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
-/// 检查更新时如果有下载进行中，跳过缓存清理。
-fn cleanup_stale_apk_cache(app: &tauri::AppHandle, current_version: &str) -> Result<(), String> {
-    let Ok(_guard) = APK_CACHE_LOCK.try_lock() else {
-        return Ok(());
-    };
-    cleanup_stale_apk_cache_locked(app, current_version)
-}
-
 /// 调用方必须持有 APK_CACHE_LOCK，下载前清理也复用这条路径。
 fn cleanup_stale_apk_cache_locked(
     app: &tauri::AppHandle,
@@ -717,23 +720,41 @@ async fn fetch_release(
     let github = tag
         .map(|tag| format!("{GITHUB_API_TAG}{tag}"))
         .unwrap_or_else(|| GITHUB_API.into());
+    // 静态 Release 资产适配只代理 github.com 下载、却不支持 api.github.com 的线路。
+    let static_url = match tag {
+        Some(tag) => {
+            format!("https://github.com/Gczmy/SoloSoul/releases/download/{tag}/release.json")
+        }
+        None => "https://github.com/Gczmy/SoloSoul/releases/latest/download/release.json".into(),
+    };
+    candidates.extend(download_candidates(&static_url));
     candidates.extend(download_candidates(&github));
-    request_small(client, &candidates, 2 * 1024 * 1024, |bytes| {
-        let release: GitHubRelease =
-            serde_json::from_slice(bytes).map_err(|e| format!("更新清单解析失败: {e}"))?;
-        let version = release
-            .tag_name
-            .strip_prefix('v')
-            .unwrap_or(&release.tag_name);
-        semver::Version::parse(version).map_err(|_| "更新清单版本号无效")?;
-        if tag.is_some_and(|expected| expected.strip_prefix('v').unwrap_or(expected) != version) {
-            return Err("更新清单版本与请求版本不一致".into());
-        }
-        if require_apk && !has_complete_apk_assets(&release) {
-            return Err("更新清单缺少完整 APK、校验和及签名资产".into());
-        }
-        Ok(release)
-    })
+    request_small(
+        client,
+        &candidates,
+        2 * 1024 * 1024,
+        |bytes| {
+            let release: GitHubRelease =
+                serde_json::from_slice(bytes).map_err(|e| format!("更新清单解析失败: {e}"))?;
+            let version = release
+                .tag_name
+                .strip_prefix('v')
+                .unwrap_or(&release.tag_name);
+            semver::Version::parse(version).map_err(|_| "更新清单版本号无效")?;
+            if tag.is_some_and(|expected| expected.strip_prefix('v').unwrap_or(expected) != version)
+            {
+                return Err("更新清单版本与请求版本不一致".into());
+            }
+            if require_apk && !has_complete_apk_assets(&release) {
+                return Err("更新清单缺少完整 APK、校验和及签名资产".into());
+            }
+            Ok(release)
+        },
+        |release| {
+            tag.is_some()
+                || version_is_newer(release.tag_name.trim_start_matches('v'), &current_version())
+        },
+    )
     .await
 }
 
@@ -880,6 +901,58 @@ async fn resolve_verified_checksum(
     )
 }
 
+/// 仅持久化新版本提示，旧镜像的迟到响应不能覆盖已有的新版本断点入口。
+fn remember_update_info(path: &std::path::Path, info: &AndroidUpdateInfo) -> Result<(), String> {
+    use std::io::Write;
+    if !version_is_newer(&info.latest_version, &info.current_version) {
+        return Ok(());
+    }
+    if std::fs::metadata(path).is_ok_and(|m| m.len() <= 2 * 1024 * 1024) {
+        if let Some(previous) = std::fs::read(path)
+            .ok()
+            .and_then(|bytes| serde_json::from_slice::<AndroidUpdateInfo>(&bytes).ok())
+        {
+            if version_is_newer(&previous.latest_version, &info.latest_version) {
+                return Ok(());
+            }
+        }
+    }
+    let parent = path.parent().ok_or("更新信息缓存目录无效")?;
+    std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    let mut temporary = tempfile::NamedTempFile::new_in(parent).map_err(|e| e.to_string())?;
+    let bytes = serde_json::to_vec(info).map_err(|e| e.to_string())?;
+    temporary.write_all(&bytes).map_err(|e| e.to_string())?;
+    temporary.as_file().sync_all().map_err(|e| e.to_string())?;
+    temporary.persist(path).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// 启动先展示上次检查结果及真实断点，同时继续在线检查；缓存不授权安装。
+#[tauri::command]
+pub fn android_cached_update(app: tauri::AppHandle) -> Option<AndroidUpdateInfo> {
+    let path = app.path().app_cache_dir().ok()?.join("update-info.json");
+    if std::fs::metadata(&path).ok()?.len() > 2 * 1024 * 1024 {
+        return None;
+    }
+    let mut info: AndroidUpdateInfo = serde_json::from_slice(&std::fs::read(path).ok()?).ok()?;
+    if !version_is_newer(&info.latest_version, &current_version()) {
+        return None;
+    }
+    info.current_version = current_version();
+    // 上次检查的缓存仅用于提示，下载命令仍重新拉取元数据和签名。
+    info.mandatory = false;
+    let identity = format!("android:{}:{}", info.latest_version, info.checksum);
+    info.cached_download =
+        cached_progress(&apk_part_path(&app, &info.latest_version).ok()?, &identity).map(
+            |(downloaded, total)| CachedDownload {
+                downloaded,
+                total,
+                done: false,
+            },
+        );
+    Some(info)
+}
+
 /// 检查 GitHub Release 是否有新版本。
 ///
 /// 仅在 Android 上有效；桌面端使用 `desktop_check_update`。
@@ -929,10 +1002,18 @@ pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdate
         .map(|body| body.replace("[MANDATORY]", "").trim().to_string())
         .filter(|s| !s.is_empty());
 
-    // 检查到新版本后，立即清理旧版本缓存，避免旧 APK 被误当作已下载。
-    let _ = cleanup_stale_apk_cache(&app, &latest);
+    // 检查本身只读：迟到/陈旧清单不得删除用户正在等待续传的新版本断点。
+    let cached_download = checksum.as_ref().and_then(|checksum| {
+        let path = apk_part_path(&app, &latest).ok()?;
+        let identity = format!("android:{latest}:{checksum}");
+        cached_progress(&path, &identity).map(|(downloaded, total)| CachedDownload {
+            downloaded,
+            total,
+            done: false,
+        })
+    });
 
-    Ok(AndroidUpdateInfo {
+    let info = AndroidUpdateInfo {
         latest_version: latest,
         current_version: current,
         download_url: apk_download_url,
@@ -942,7 +1023,15 @@ pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdate
         release_notes: clean_body,
         published_at: release.published_at,
         apk_size,
-    })
+        cached_download,
+    };
+    // 下载期间保留其版本提示；检查结果只读断点，不争用下载文件。
+    if let Ok(_guard) = APK_CACHE_LOCK.try_lock() {
+        if let Ok(directory) = app.path().app_cache_dir() {
+            let _ = remember_update_info(&directory.join("update-info.json"), &info);
+        }
+    }
+    Ok(info)
 }
 
 // ── Command: 桌面端检查更新 ─────────────────────────────────────
@@ -1056,6 +1145,15 @@ pub async fn android_download_apk(
     let _cache_guard = APK_CACHE_LOCK
         .try_lock()
         .map_err(|_| "已有 APK 下载正在进行中".to_string())?;
+    let notify = |downloaded: u64, total: u64, status: &str| {
+        app.state::<crate::update_plugin::UpdatePluginHandle<tauri::Wry>>()
+            .notify_download(
+                serde_json::json!({ "version": version, "downloaded": downloaded,
+                "total": total, "status": status }),
+            );
+    };
+    notify(0, 0, "preparing");
+    let last_notification = std::sync::Mutex::new(std::time::Instant::now());
     let result = operation
         .run(async {
             let _ = cleanup_stale_apk_cache_locked(&app, &version);
@@ -1082,6 +1180,12 @@ pub async fn android_download_apk(
                 &part_path,
                 &identity,
                 &|progress: TransferProgress| {
+                    if let Ok(mut last) = last_notification.lock() {
+                        if last.elapsed() >= std::time::Duration::from_secs(1) {
+                            notify(progress.downloaded, progress.total, "downloading");
+                            *last = std::time::Instant::now();
+                        }
+                    }
                     let percent = progress
                         .downloaded
                         .saturating_mul(100)
@@ -1105,7 +1209,24 @@ pub async fn android_download_apk(
             Ok(size)
         })
         .await;
-    let final_size = result?;
+    let final_size = match result {
+        Ok(size) => {
+            notify(size, size, "done");
+            size
+        }
+        Err(error) => {
+            notify(
+                0,
+                0,
+                if error == DOWNLOAD_CANCELLED {
+                    "cancelled"
+                } else {
+                    "failed"
+                },
+            );
+            return Err(error);
+        }
+    };
     let _ = on_event.send(ApkDownloadProgress {
         progress: 100,
         downloaded: final_size,
@@ -1188,6 +1309,37 @@ pub async fn android_is_apk_downloaded(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn stale_version_metadata_cannot_hide_cached_newer_update_after_restart() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("update-info.json");
+        let mut info = AndroidUpdateInfo {
+            latest_version: "2.13.3".into(),
+            current_version: "2.13.1".into(),
+            download_url: None,
+            checksum: "verified".into(),
+            checksum_warning: None,
+            mandatory: false,
+            release_notes: None,
+            published_at: None,
+            apk_size: Some(108),
+            cached_download: None,
+        };
+        remember_update_info(&path, &info).unwrap();
+        for older in ["2.13.2", "2.13.1"] {
+            info.latest_version = older.into();
+            remember_update_info(&path, &info).unwrap();
+            let saved: AndroidUpdateInfo =
+                serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+            assert_eq!(saved.latest_version, "2.13.3");
+        }
+        info.latest_version = "2.13.4".into();
+        remember_update_info(&path, &info).unwrap();
+        let saved: AndroidUpdateInfo =
+            serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+        assert_eq!(saved.latest_version, "2.13.4");
+    }
 
     #[tokio::test]
     async fn cancelled_before_download_never_polls_request() {

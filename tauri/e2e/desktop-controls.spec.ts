@@ -237,10 +237,18 @@ for (const platform of ['macos', 'windows'] as const) {
         .filter({ has: cancel })
         .locator('[data-ui-button="danger-outline"]');
       await expect(confirm).toHaveCSS('color', dangerColor);
-      await expect(confirm).not.toHaveCSS(
-        'background-color',
-        await cancel.evaluate((button) => getComputedStyle(button).backgroundColor),
-      );
+      if (platform === 'macos') {
+        await page.mouse.move(0, 0);
+        await expect(confirm).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+        await confirm.hover();
+        await expect(confirm).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+        await expect(confirm).toHaveCSS('color', dangerColor);
+      } else {
+        await expect(confirm).not.toHaveCSS(
+          'background-color',
+          await cancel.evaluate((button) => getComputedStyle(button).backgroundColor),
+        );
+      }
       // 辅助功能回退后也保留危险操作颜色；测试只取消，不执行删除。
       await page
         .locator('html')
@@ -248,7 +256,16 @@ for (const platform of ['macos', 'windows'] as const) {
       await expect(confirm).toHaveCSS('color', dangerColor);
       await expect(confirm).toHaveCSS('backdrop-filter', 'none');
       await cancel.click();
+      await page.setViewportSize({ width: 1280, height: 800 });
       await navigate(page, '/settings/templates');
+      if (platform === 'macos') {
+        for (const name of ['New Template', 'Sample Templates']) {
+          await expect(page.getByRole('button', { name, exact: true })).toHaveCSS(
+            'background-color',
+            'rgba(0, 0, 0, 0)',
+          );
+        }
+      }
       await page.getByRole('button', { name: 'New Template', exact: true }).click();
       const save = page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true });
       await expect(save).toHaveAttribute('data-ui-button', 'primary');

@@ -32,6 +32,7 @@ export function AboutPage() {
     loading,
     checking,
     downloading,
+    downloaded,
     cancelling,
     installing,
     downloadProgress,
@@ -113,6 +114,7 @@ export function AboutPage() {
             info={info}
             versionInfo={versionInfo}
             checking={checking}
+            downloaded={downloaded}
             downloading={downloading}
             cancelling={cancelling}
             installing={installing}
@@ -137,6 +139,7 @@ export function AboutPage() {
           isMandatory={isMandatory}
           info={info}
           versionInfo={versionInfo}
+          downloaded={downloaded}
           downloading={downloading}
           cancelling={cancelling}
           installing={installing}

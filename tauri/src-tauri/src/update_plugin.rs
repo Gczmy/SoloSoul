@@ -41,6 +41,19 @@ pub struct UpdatePluginHandle<R: Runtime> {
 }
 
 impl<R: Runtime> UpdatePluginHandle<R> {
+    /// 下载通知来自原生绝对进度；切换账户/页面不影响通知任务。
+    pub fn notify_download(&self, payload: serde_json::Value) {
+        #[cfg(target_os = "android")]
+        if let Err(error) = self
+            .handle
+            .run_mobile_plugin::<serde_json::Value>("downloadProgress", payload)
+        {
+            tracing::warn!("更新下载通知不可用: {error}");
+        }
+        #[cfg(not(target_os = "android"))]
+        let _ = payload;
+    }
+
     /// 在 Android 端通过 FileProvider + Intent 安装 APK。
     /// 非 Android 平台直接返回不支持错误。
     pub fn install_apk(&self, payload: InstallApkPayload) -> Result<InstallApkResult, String> {

@@ -4,12 +4,15 @@ import { useUpdateChecker } from './useUpdateChecker';
 import {
   androidCheckForUpdate,
   androidInstallApk,
-  desktopCheckForUpdate,
-  downloadAndInstallUpdate,
+  checkForUpdate,
+  downloadDesktopUpdate,
   ensureApkDownloaded,
 } from '@/lib/updater';
+import { useUpdateStore } from '@/stores/updateStore';
+import { useAppUpdate } from './useAppUpdate';
 import { isMobilePlatformSync } from '@/lib/platform';
 
+vi.mock('@tauri-apps/plugin-process', () => ({ relaunch: vi.fn() }));
 vi.mock('@/lib/ipcClient', () => ({
   invokeCommand: vi.fn(async () => ({
     appName: 'SoloSoul',
@@ -21,10 +24,11 @@ vi.mock('@/lib/ipcClient', () => ({
 vi.mock('@/lib/platform', () => ({ isMobilePlatformSync: vi.fn(() => true) }));
 vi.mock('@/lib/updater', () => ({
   androidCheckForUpdate: vi.fn(),
-  desktopCheckForUpdate: vi.fn(),
+  androidCachedUpdate: vi.fn().mockResolvedValue(null),
+  checkForUpdate: vi.fn(),
   androidInstallApk: vi.fn(),
   ensureApkDownloaded: vi.fn(),
-  downloadAndInstallUpdate: vi.fn(),
+  downloadDesktopUpdate: vi.fn(),
   isUpdateDownloadCancelled: (error: unknown) =>
     error instanceof Error && error.name === 'AbortError',
 }));
@@ -41,6 +45,7 @@ function deferred<T>() {
 
 async function ready() {
   const hook = renderHook(useUpdateChecker);
+  await waitFor(() => expect(hook.result.current.versionInfo?.state).toBe('available'));
   await waitFor(() => expect(hook.result.current.loading).toBe(false));
   return hook;
 }
@@ -48,6 +53,8 @@ async function ready() {
 describe('useUpdateChecker cancellation', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    useUpdateStore.setState(useUpdateStore.getInitialState(), true);
+    localStorage.clear();
     vi.mocked(isMobilePlatformSync).mockReturnValue(true);
     vi.mocked(androidCheckForUpdate).mockResolvedValue({
       kind: 'available',
@@ -63,15 +70,10 @@ describe('useUpdateChecker cancellation', () => {
         checksumWarning: null,
       },
     });
-    vi.mocked(desktopCheckForUpdate).mockResolvedValue({
+    vi.mocked(checkForUpdate).mockResolvedValue({
       kind: 'available',
-      info: {
-        currentVersion: '2.13.0',
-        latestVersion: '2.13.1',
-        mandatory: false,
-        releaseNotes: null,
-        publishedAt: null,
-      },
+      update: { version: '2.13.1', close: vi.fn().mockResolvedValue(undefined) } as never,
+      info: { version: '2.13.1', body: 'notes' },
     });
     vi.mocked(androidInstallApk).mockResolvedValue(undefined);
   });
@@ -133,7 +135,7 @@ describe('useUpdateChecker cancellation', () => {
       secondRun = result.current.handleUpdate();
       firstProgress?.({ downloaded: 100, total: 100, progress: 100, done: true, error: null });
     });
-    expect(result.current.downloadedBytes).toBe(0);
+    expect(result.current.downloadedBytes).toBe(20);
     expect(ensureApkDownloaded).toHaveBeenCalledTimes(2);
     await act(async () => {
       second.resolve(true);
@@ -144,14 +146,14 @@ describe('useUpdateChecker cancellation', () => {
 
   it('keeps cancellation pending until the desktop download rejects and allows retry afterward', async () => {
     vi.mocked(isMobilePlatformSync).mockReturnValue(false);
-    const download = deferred<void>();
-    vi.mocked(downloadAndInstallUpdate).mockReturnValue(download.promise);
+    const download = deferred<Awaited<ReturnType<typeof downloadDesktopUpdate>>>();
+    vi.mocked(downloadDesktopUpdate).mockReturnValue(download.promise);
     const { result } = await ready();
     let run!: Promise<void>;
     act(() => {
       run = result.current.handleUpdate();
     });
-    const [progress, signal] = vi.mocked(downloadAndInstallUpdate).mock.calls[0];
+    const [, progress, signal] = vi.mocked(downloadDesktopUpdate).mock.calls[0];
     act(() => {
       progress?.({ event: 'Started', data: { contentLength: 100 } });
       progress?.({
@@ -188,24 +190,23 @@ describe('useUpdateChecker cancellation', () => {
 
   it('does not cancel desktop installation once file replacement starts', async () => {
     vi.mocked(isMobilePlatformSync).mockReturnValue(false);
-    const download = deferred<void>();
-    vi.mocked(downloadAndInstallUpdate).mockReturnValue(download.promise);
+    const install = deferred<void>();
+    vi.mocked(downloadDesktopUpdate).mockResolvedValue({
+      install: vi.fn(() => install.promise),
+      close: vi.fn(),
+    } as never);
     const { result, unmount } = await ready();
     let run!: Promise<void>;
-    act(() => {
+    await act(async () => {
       run = result.current.handleUpdate();
     });
-    const [, signal, installing] = vi.mocked(downloadAndInstallUpdate).mock.calls[0];
-    act(() => {
-      installing?.();
-      result.current.cancelDownload();
-    });
+    const [, , signal] = vi.mocked(downloadDesktopUpdate).mock.calls[0];
+    act(() => result.current.cancelDownload());
     expect(result.current.installing).toBe(true);
     expect(result.current.cancelling).toBe(false);
     expect(signal?.aborted).toBe(false);
     unmount();
-    expect(signal?.aborted).toBe(false);
-    download.resolve(undefined);
+    install.resolve(undefined);
     await run;
   });
 
@@ -228,7 +229,7 @@ describe('useUpdateChecker cancellation', () => {
     expect(result.current.downloading).toBe(false);
   });
 
-  it('aborts downloads on unmount and does not install on a late successful response', async () => {
+  it('continues a single shared task after leaving About and opening the banner', async () => {
     const download = deferred<boolean>();
     vi.mocked(ensureApkDownloaded).mockReturnValue(download.promise);
     const { result, unmount } = await ready();
@@ -238,9 +239,15 @@ describe('useUpdateChecker cancellation', () => {
     });
     const [, , signal] = vi.mocked(ensureApkDownloaded).mock.calls[0];
     unmount();
-    expect(signal?.aborted).toBe(true);
-    download.resolve(true);
-    await run;
-    expect(androidInstallApk).not.toHaveBeenCalled();
+    expect(signal?.aborted).toBe(false);
+    const banner = renderHook(useAppUpdate);
+    expect(banner.result.current.updateState.kind).toBe('downloading');
+    await act(async () => banner.result.current.startDownload());
+    expect(ensureApkDownloaded).toHaveBeenCalledOnce();
+    await act(async () => {
+      download.resolve(true);
+      await run;
+    });
+    expect(androidInstallApk).toHaveBeenCalledOnce();
   });
 });

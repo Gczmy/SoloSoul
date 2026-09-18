@@ -1,6 +1,14 @@
 package com.solosoul.app
 
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.Manifest
+import android.content.pm.PackageManager
+import android.text.format.Formatter
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -23,6 +31,63 @@ import java.io.File
  */
 @TauriPlugin
 class UpdatePlugin(private val activity: Activity): Plugin(activity) {
+
+    private val notificationId = 213100
+    private val channelId = "app_updates"
+
+    init {
+        // 进程被结束后不残留“仍在下载”；断点由 Rust 在下一次操作恢复。
+        activity.getSystemService(NotificationManager::class.java).cancel(notificationId)
+    }
+
+    @Command
+    fun downloadProgress(invoke: Invoke) {
+        try {
+            val args = invoke.parseArgs(DownloadProgressArgs::class.java)
+            val manager = activity.getSystemService(NotificationManager::class.java)
+            if (args.status == "cancelled") {
+                manager.cancel(notificationId)
+                invoke.resolve()
+                return
+            }
+            if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(activity,
+                    Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                invoke.resolve() // 拒绝通知权限不阻断下载。
+                return
+            }
+            val zh = activity.resources.configuration.locales[0].language == "zh"
+            if (Build.VERSION.SDK_INT >= 26) {
+                manager.createNotificationChannel(NotificationChannel(channelId,
+                    if (zh) "应用更新" else "App updates", NotificationManager.IMPORTANCE_LOW))
+            }
+            val done = args.status == "done"
+            val failed = args.status == "failed"
+            val total = args.total.coerceAtLeast(0)
+            val downloaded = if (total > 0) args.downloaded.coerceIn(0, total) else args.downloaded.coerceAtLeast(0)
+            val text = when {
+                done -> if (zh) "下载完成，点击返回应用安装" else "Ready to install. Tap to open SoloSoul"
+                failed -> if (zh) "下载中断，点击返回应用继续" else "Download interrupted. Tap to resume"
+                total == 0L -> if (zh) "正在准备下载…" else "Preparing download…"
+                else -> "${Formatter.formatFileSize(activity, downloaded)} / ${Formatter.formatFileSize(activity, total)}"
+            }
+            val openApp = activity.packageManager.getLaunchIntentForPackage(activity.packageName)
+            val builder = NotificationCompat.Builder(activity, channelId)
+                .setSmallIcon(android.R.drawable.stat_sys_download)
+                .setContentTitle("SoloSoul ${args.version}").setContentText(text)
+                .setOnlyAlertOnce(true).setOngoing(!done && !failed).setAutoCancel(done || failed)
+                .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            if (openApp != null) builder.setContentIntent(PendingIntent.getActivity(activity, notificationId,
+                openApp, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+            if (!done && !failed) builder.setProgress(100,
+                if (total > 0) ((downloaded.toDouble() / total) * 100).toInt().coerceIn(0, 99) else 0, total == 0L)
+            else builder.setSmallIcon(android.R.drawable.stat_sys_download_done)
+            manager.notify(notificationId, builder.build())
+            invoke.resolve()
+        } catch (e: Exception) {
+            invoke.reject("DOWNLOAD_NOTIFICATION_FAILED: ${e.message}")
+        }
+    }
 
     /**
      * 检查并引导用户开启「安装未知应用」权限（Android 8+ 需要）。
@@ -112,4 +177,11 @@ class UpdatePlugin(private val activity: Activity): Plugin(activity) {
  */
 class InstallApkArgs {
     lateinit var filePath: String
+}
+
+class DownloadProgressArgs {
+    var version: String = ""
+    var downloaded: Long = 0
+    var total: Long = 0
+    var status: String = "preparing"
 }

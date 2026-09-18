@@ -161,6 +161,8 @@ const DEFAULT_ENABLED_TIERS: PluginTier[] = ['p0', 'p1', 'p2'];
 interface PluginState {
   marketPlugins: MarketPluginInfo[];
   installedPlugins: PluginManifest[];
+  installingPlugins: Record<string, AbortController>;
+  cancelInstall: (pluginId: string) => void;
   runningPlugins: Record<string, RunningPlugin>;
   selectedTier: 'all' | PluginTier;
   enabledTiers: PluginTier[];
@@ -191,6 +193,10 @@ const requests = createSessionRequests();
 export const usePluginStore = create<PluginState>()((set, get) => ({
   marketPlugins: [],
   installedPlugins: [],
+  installingPlugins: {},
+  cancelInstall: (pluginId) => {
+    get().installingPlugins[pluginId]?.abort();
+  },
   runningPlugins: {},
   selectedTier: 'all',
   enabledTiers: DEFAULT_ENABLED_TIERS,
@@ -218,6 +224,8 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
   },
 
   clearOnVaultLock: () => {
+    Object.values(get().installingPlugins).forEach((controller) => controller.abort());
+    set({ installingPlugins: {} });
     requests.invalidate();
     set({ runningPlugins: {}, error: null, isLoadingMarket: false, isLoadingInstalled: false });
   },
@@ -242,11 +250,17 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
   },
 
   installPlugin: async (pluginId: string, version: string) => {
+    if (get().installingPlugins[pluginId]) return;
+    const controller = new AbortController();
+    set((state) => ({
+      installingPlugins: { ...state.installingPlugins, [pluginId]: controller },
+      error: null,
+    }));
     const request = requests.begin();
     const setCurrent = request.guardSet<PluginState>(set);
     try {
       request.assertCurrent();
-      await pluginCommands.install(pluginId, version);
+      await pluginCommands.install(pluginId, version, controller.signal);
       request.assertCurrent();
       await get().loadMarket();
       request.assertCurrent();
@@ -259,16 +273,30 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
         .catch((err) => logger.warn('[pluginStore] installPlugin: template reload failed:', err));
     } catch (err) {
       if (!request.isCurrent()) return;
-      setCurrent({ error: String(err) });
+      if (!controller.signal.aborted && !String(err).includes('PLUGIN_INSTALL_CANCELLED'))
+        setCurrent({ error: String(err) });
+    } finally {
+      if (get().installingPlugins[pluginId] === controller)
+        set((state) => {
+          const installingPlugins = { ...state.installingPlugins };
+          delete installingPlugins[pluginId];
+          return { installingPlugins };
+        });
     }
   },
 
   updatePlugin: async (pluginId: string) => {
+    if (get().installingPlugins[pluginId]) return;
+    const controller = new AbortController();
+    set((state) => ({
+      installingPlugins: { ...state.installingPlugins, [pluginId]: controller },
+      error: null,
+    }));
     const request = requests.begin();
     const setCurrent = request.guardSet<PluginState>(set);
     try {
       request.assertCurrent();
-      await pluginCommands.update(pluginId);
+      await pluginCommands.update(pluginId, controller.signal);
       request.assertCurrent();
       await get().loadMarket();
       request.assertCurrent();
@@ -281,7 +309,15 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
         .catch((err) => logger.warn('[pluginStore] updatePlugin: template reload failed:', err));
     } catch (err) {
       if (!request.isCurrent()) return;
-      setCurrent({ error: String(err) });
+      if (!controller.signal.aborted && !String(err).includes('PLUGIN_INSTALL_CANCELLED'))
+        setCurrent({ error: String(err) });
+    } finally {
+      if (get().installingPlugins[pluginId] === controller)
+        set((state) => {
+          const installingPlugins = { ...state.installingPlugins };
+          delete installingPlugins[pluginId];
+          return { installingPlugins };
+        });
     }
   },
 

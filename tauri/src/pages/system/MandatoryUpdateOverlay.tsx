@@ -16,6 +16,7 @@ interface MandatoryUpdateOverlayProps {
   info: AppInfo | null;
   versionInfo: VersionInfo | null;
   downloading: boolean;
+  downloaded?: boolean;
   cancelling?: boolean;
   installing?: boolean;
   downloadedBytes: number;
@@ -36,6 +37,7 @@ export function MandatoryUpdateOverlay({
   info,
   versionInfo,
   downloading,
+  downloaded = false,
   cancelling = false,
   installing = false,
   downloadedBytes,
@@ -264,7 +266,9 @@ export function MandatoryUpdateOverlay({
             }}
           >
             <Download size={18} />
-            {t('settings:update_now', { defaultValue: 'Update Now' })}
+            {downloaded
+              ? t('common:install_update', { defaultValue: '安装更新' })
+              : t('settings:update_now', { defaultValue: 'Update Now' })}
           </button>
         )}
 

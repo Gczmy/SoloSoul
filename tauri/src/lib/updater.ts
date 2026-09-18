@@ -245,6 +245,7 @@ export interface AndroidUpdateInfo {
   releaseNotes: string | null;
   publishedAt: string | null;
   apkSize: number | null;
+  cachedDownload?: { downloaded: number; total: number; done: boolean };
 }
 
 export interface ApkDownloadProgress {
@@ -263,9 +264,11 @@ type AndroidUpdateCheckResult =
   | { kind: 'up-to-date' }
   | { kind: 'error'; message?: string };
 
-/**
- * 检查 Android GitHub Release 更新。
- */
+/** 读取 Android 上次版本信息和实际断点，不进行网络请求。 */
+export async function androidCachedUpdate(): Promise<AndroidUpdateInfo | null> {
+  return invoke<AndroidUpdateInfo | null>('android_cached_update');
+}
+
 export async function androidCheckForUpdate(): Promise<AndroidUpdateCheckResult> {
   try {
     const info = await invoke<AndroidUpdateInfo>('android_check_update');
@@ -295,6 +298,12 @@ export async function ensureApkDownloaded(
   const alreadyDownloaded = await androidIsApkDownloaded(version);
   if (signal?.aborted) throw cancelledDownload();
   if (alreadyDownloaded) return false;
+  try {
+    const { requestNotificationPermissionOnce } = await import('@/lib/notification');
+    await requestNotificationPermissionOnce();
+  } catch (error) {
+    logger.warn('[updater] notification permission:', error);
+  }
   return withUpdateDownload(signal, async (operationId) => {
     const onEvent = new Channel<ApkDownloadProgress>();
     onEvent.onmessage = (progress) => {

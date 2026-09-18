@@ -97,6 +97,7 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   //    与 Vault 数据完全无关。启动期（锁屏）即允许检查更新，横幅可提前出现；
   //    否则 P027 在 App 挂载（未解锁）时拦截 android_check_update，Android 端
   //    更新横幅永远不出现（桌面端走 updater 插件直连 HTTP 不受影响）。
+  'android_cached_update',
   'android_check_update',
   'android_download_apk',
   'android_get_apk_path',

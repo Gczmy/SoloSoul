@@ -7,7 +7,52 @@ use crate::plugin::{
 };
 use crate::state::AppState;
 use std::collections::HashMap;
-use tauri::{command, ipc::Channel, State};
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
+use tauri::{command, ipc::Channel, Manager, Resource, ResourceId, State, Webview};
+
+/// 取消即丢弃下载 future；同步校验/落盘开始后完成提交，不谎报“取消但已安装”。
+struct PluginInstallOperation {
+    cancelled: tokio::sync::watch::Sender<bool>,
+    started: AtomicBool,
+}
+impl Resource for PluginInstallOperation {
+    fn close(self: Arc<Self>) {
+        self.cancelled.send_replace(true);
+    }
+}
+impl PluginInstallOperation {
+    fn new() -> Self {
+        let (cancelled, _) = tokio::sync::watch::channel(false);
+        Self {
+            cancelled,
+            started: AtomicBool::new(false),
+        }
+    }
+    async fn run<T>(
+        &self,
+        future: impl std::future::Future<Output = Result<T, String>>,
+    ) -> Result<T, String> {
+        if self.started.swap(true, Ordering::AcqRel) {
+            return Err("安装任务已启动".into());
+        }
+        let mut cancel = self.cancelled.subscribe();
+        if *cancel.borrow() {
+            return Err("PLUGIN_INSTALL_CANCELLED".into());
+        }
+        tokio::select! { biased;
+            _ = cancel.changed() => Err("PLUGIN_INSTALL_CANCELLED".into()),
+            result = future => result,
+        }
+    }
+}
+static PLUGIN_INSTALL_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+#[command]
+pub fn create_plugin_install(webview: Webview) -> ResourceId {
+    webview.resources_table().add(PluginInstallOperation::new())
+}
 
 #[command]
 pub async fn plugin_list_all(
@@ -104,34 +149,58 @@ fn migrate_seed_bindings(state: &AppState, plugin_id: &str) {
 #[command]
 pub async fn plugin_install(
     state: State<'_, AppState>,
+    webview: Webview,
     plugin_id: String,
     version: String,
+    operation_id: Option<ResourceId>,
 ) -> Result<PluginInstallResult, String> {
-    let result = state
-        .plugin_manager
-        .install_from_registry(&plugin_id, &version)
-        .await
-        .map_err(|e| e.to_string())?;
-
+    let operation = match operation_id {
+        Some(id) => webview
+            .resources_table()
+            .get::<PluginInstallOperation>(id)
+            .map_err(|e| e.to_string())?,
+        None => Arc::new(PluginInstallOperation::new()),
+    };
+    let result = operation
+        .run(async {
+            let _guard = PLUGIN_INSTALL_LOCK.lock().await;
+            state
+                .plugin_manager
+                .install_from_registry(&plugin_id, &version)
+                .await
+                .map_err(|e| e.to_string())
+        })
+        .await?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
-
-    // 安装成功后，对已解锁的 Vault 执行种子模板 contract_bindings 迁移
     migrate_seed_bindings(&state, &plugin_id);
-
     Ok(result)
 }
 
 #[command]
 pub async fn plugin_update(
     state: State<'_, AppState>,
+    webview: Webview,
     plugin_id: String,
+    operation_id: Option<ResourceId>,
 ) -> Result<PluginInstallResult, String> {
-    let result = state
-        .plugin_manager
-        .update(&plugin_id)
-        .await
-        .map_err(|e| e.to_string())?;
+    let operation = match operation_id {
+        Some(id) => webview
+            .resources_table()
+            .get::<PluginInstallOperation>(id)
+            .map_err(|e| e.to_string())?,
+        None => Arc::new(PluginInstallOperation::new()),
+    };
+    let result = operation
+        .run(async {
+            let _guard = PLUGIN_INSTALL_LOCK.lock().await;
+            state
+                .plugin_manager
+                .update(&plugin_id)
+                .await
+                .map_err(|e| e.to_string())
+        })
+        .await?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(result)
@@ -139,6 +208,7 @@ pub async fn plugin_update(
 
 #[command]
 pub async fn plugin_uninstall(state: State<'_, AppState>, plugin_id: String) -> Result<(), String> {
+    let _guard = PLUGIN_INSTALL_LOCK.lock().await;
     state
         .plugin_manager
         .uninstall(&plugin_id)
@@ -330,4 +400,58 @@ pub fn plugin_copy_output_file(
     std::fs::copy(&canon, &dest)
         .map(|_| ())
         .map_err(|e| format!("复制文件失败: {}", e))
+}
+
+#[cfg(test)]
+mod install_operation_tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn cancel_before_start_never_polls_download() {
+        let operation = Arc::new(PluginInstallOperation::new());
+        Resource::close(operation.clone());
+        let polled = AtomicBool::new(false);
+        let result = operation
+            .run(async {
+                polled.store(true, Ordering::SeqCst);
+                Ok(())
+            })
+            .await;
+        assert_eq!(result.unwrap_err(), "PLUGIN_INSTALL_CANCELLED");
+        assert!(!polled.load(Ordering::SeqCst));
+    }
+
+    #[tokio::test]
+    async fn close_aborts_pending_download_and_disallows_duplicate_start() {
+        let operation = Arc::new(PluginInstallOperation::new());
+        let (started, ready) = tokio::sync::oneshot::channel();
+        let (result, ()) = tokio::join!(
+            operation.run(async {
+                let _ = started.send(());
+                std::future::pending::<Result<(), String>>().await
+            }),
+            async {
+                ready.await.unwrap();
+                Resource::close(operation.clone());
+            }
+        );
+        assert_eq!(result.unwrap_err(), "PLUGIN_INSTALL_CANCELLED");
+        assert!(operation
+            .run(async { Ok(()) })
+            .await
+            .unwrap_err()
+            .contains("已启动"));
+    }
+
+    #[tokio::test]
+    async fn cancellation_after_commit_does_not_report_false_failure() {
+        let operation = Arc::new(PluginInstallOperation::new());
+        let result = operation
+            .run(async {
+                Resource::close(operation.clone());
+                Ok("installed")
+            })
+            .await;
+        assert_eq!(result.unwrap(), "installed");
+    }
 }

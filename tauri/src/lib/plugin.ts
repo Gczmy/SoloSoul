@@ -1,5 +1,5 @@
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { Channel } from '@tauri-apps/api/core';
+import { Channel, Resource } from '@tauri-apps/api/core';
 import type { ContractRoleBinding } from '@/types/template';
 
 interface RegistryEntry {
@@ -287,6 +287,27 @@ export function resolvePluginName(
   return plugin.name;
 }
 
+async function installWithCancellation(
+  command: string,
+  args: Record<string, unknown>,
+  signal?: AbortSignal,
+): Promise<PluginInstallResult> {
+  if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
+  const operation = new Resource(await invoke<number>('create_plugin_install'));
+  let closing: Promise<void> | undefined;
+  const cancel = () => {
+    closing ??= operation.close().catch(() => {});
+  };
+  signal?.addEventListener('abort', cancel, { once: true });
+  try {
+    if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
+    return await invoke(command, { ...args, operationId: operation.rid });
+  } finally {
+    signal?.removeEventListener('abort', cancel);
+    await (closing ?? operation.close()).catch(() => {});
+  }
+}
+
 export const pluginCommands = {
   async listAll(tier?: PluginTier): Promise<MarketPluginInfo[]> {
     return invoke('plugin_list_all', { tier });
@@ -296,12 +317,16 @@ export const pluginCommands = {
     return invoke('plugin_list_installed');
   },
 
-  async install(pluginId: string, version: string): Promise<PluginInstallResult> {
-    return invoke('plugin_install', { pluginId, version });
+  async install(
+    pluginId: string,
+    version: string,
+    signal?: AbortSignal,
+  ): Promise<PluginInstallResult> {
+    return installWithCancellation('plugin_install', { pluginId, version }, signal);
   },
 
-  async update(pluginId: string): Promise<PluginInstallResult> {
-    return invoke('plugin_update', { pluginId });
+  async update(pluginId: string, signal?: AbortSignal): Promise<PluginInstallResult> {
+    return installWithCancellation('plugin_update', { pluginId }, signal);
   },
 
   async uninstall(pluginId: string): Promise<void> {

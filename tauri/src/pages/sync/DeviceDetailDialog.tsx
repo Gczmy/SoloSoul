@@ -116,9 +116,7 @@ export function DeviceDetailDialog({
                   fontSize: 'var(--text-badge)',
                   padding: '2px 8px',
                   borderRadius: 999,
-                  background: peer?.trusted
-                    ? 'rgba(39,174,96,0.12)'
-                    : 'rgba(128,128,128,0.1)',
+                  background: peer?.trusted ? 'rgba(39,174,96,0.12)' : 'rgba(128,128,128,0.1)',
                   color: peer?.trusted ? '#27ae60' : 'var(--text-tertiary)',
                   whiteSpace: 'nowrap',
                 }}
@@ -168,7 +166,9 @@ export function DeviceDetailDialog({
           </div>
           {peer && (
             <div style={{ fontSize: 'var(--text-caption)' }}>
-              <strong>{t('settings:sync_device_trusted_at', { defaultValue: 'Trusted at' })}:</strong>{' '}
+              <strong>
+                {t('settings:sync_device_trusted_at', { defaultValue: 'Trusted at' })}:
+              </strong>{' '}
               {formatTime(peer.trustedAt)}
             </div>
           )}
@@ -179,7 +179,9 @@ export function DeviceDetailDialog({
             </div>
           )}
           <div style={{ fontSize: 'var(--text-caption)' }}>
-            <strong>{t('settings:sync_device_client_type', { defaultValue: 'Client type' })}:</strong>{' '}
+            <strong>
+              {t('settings:sync_device_client_type', { defaultValue: 'Client type' })}:
+            </strong>{' '}
             {t(`settings:sync_client_${clientType}`, {
               defaultValue: clientType === 'unknown' ? 'Unknown' : clientType,
             })}
@@ -187,7 +189,10 @@ export function DeviceDetailDialog({
         </div>
 
         {/* 操作 */}
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
+        <div
+          className="device-detail-actions"
+          style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}
+        >
           {isDiscoveredOnly ? (
             <Button
               variant="primary"

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useAppUpdate } from './useAppUpdate';
+import { useUpdateStore } from '@/stores/updateStore';
 import { useAuthStore } from '@/stores/authStore';
 import type { ApkDownloadProgress, UpdateProgress } from '@/lib/updater';
 
@@ -17,6 +18,7 @@ vi.mock('@/lib/platform', () => ({ isMobilePlatformSync: () => mocks.mobile }));
 vi.mock('@tauri-apps/plugin-process', () => ({ relaunch: mocks.relaunch }));
 vi.mock('@/lib/updater', () => ({
   androidCheckForUpdate: mocks.androidCheck,
+  androidCachedUpdate: vi.fn().mockResolvedValue(null),
   checkForUpdate: mocks.desktopCheck,
   ensureApkDownloaded: mocks.androidDownload,
   downloadDesktopUpdate: mocks.desktopDownload,
@@ -59,6 +61,7 @@ function available(mobile = true, mandatory = false) {
 
 beforeEach(() => {
   vi.resetAllMocks();
+  useUpdateStore.setState(useUpdateStore.getInitialState(), true);
   mocks.mobile = true;
   localStorage.clear();
   useAuthStore.setState({ isAuthenticated: false });
@@ -113,7 +116,7 @@ describe('useAppUpdate', () => {
         kind: 'available',
         version: '2.13.1',
         downloadedBytes: 0,
-        totalBytes: 0,
+        totalBytes: mobile ? 100 : 0,
         error: undefined,
       });
       expect(mocks.androidInstall).not.toHaveBeenCalled();
@@ -352,7 +355,7 @@ describe('useAppUpdate', () => {
     });
   });
 
-  it('卸载中止正在下载的任务并忽略其完成', async () => {
+  it('登录页卸载及解锁后重新挂载保留同一任务和进度', async () => {
     available();
     const pending = deferred<boolean>();
     mocks.androidDownload.mockReturnValue(pending.promise);
@@ -364,8 +367,19 @@ describe('useAppUpdate', () => {
     });
     await waitFor(() => expect(mocks.androidDownload).toHaveBeenCalledOnce());
     const signal = mocks.androidDownload.mock.calls[0][2] as AbortSignal;
+    const progress = mocks.androidDownload.mock.calls[0][1];
+    act(() => progress({ downloaded: 45, total: 100, progress: 45 }));
     unmount();
-    expect(signal.aborted).toBe(true);
+    expect(signal.aborted).toBe(false);
+    act(() => useAuthStore.setState({ isAuthenticated: true }));
+    const next = renderHook(() => useAppUpdate());
+    expect(next.result.current.updateState).toMatchObject({
+      kind: 'downloading',
+      downloadedBytes: 45,
+    });
+    await act(async () => next.result.current.startDownload());
+    expect(mocks.androidDownload).toHaveBeenCalledOnce();
+    expect(mocks.androidCheck).toHaveBeenCalledOnce();
     await act(async () => {
       pending.resolve(true);
       await task;

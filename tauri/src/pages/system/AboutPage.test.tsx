@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { useUpdateStore } from '@/stores/updateStore';
 import { AboutPage } from './AboutPage';
 import { invoke } from '@tauri-apps/api/core';
 
@@ -18,13 +19,15 @@ vi.mock('@tauri-apps/api/core', () => ({
 
 const mockDesktopCheckForUpdate = vi.fn();
 vi.mock('@/lib/updater', () => ({
-  desktopCheckForUpdate: () => mockDesktopCheckForUpdate(),
+  checkForUpdate: () => mockDesktopCheckForUpdate(),
   downloadAndInstallUpdate: vi.fn(),
 }));
 
 describe('AboutPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useUpdateStore.setState(useUpdateStore.getInitialState(), true);
+    localStorage.clear();
   });
 
   it('renders loading placeholder initially', () => {
@@ -72,13 +75,8 @@ describe('AboutPage', () => {
     });
     mockDesktopCheckForUpdate.mockResolvedValue({
       kind: 'available',
-      info: {
-        latestVersion: '1.2.0',
-        currentVersion: '1.0.0',
-        mandatory: false,
-        releaseNotes: 'New features',
-        publishedAt: null,
-      },
+      info: { version: '1.2.0', body: 'New features' },
+      update: { version: '1.2.0', close: vi.fn() },
     });
 
     render(
@@ -92,6 +90,23 @@ describe('AboutPage', () => {
     });
 
     expect(screen.getByText('Windows')).toBeInTheDocument();
+  });
+
+  it('shows the installed version while the network check is still pending', async () => {
+    vi.mocked(invoke).mockResolvedValue({
+      appName: 'SoloSoul',
+      version: '2.13.1',
+      os: 'macos',
+      arch: 'aarch64',
+    });
+    mockDesktopCheckForUpdate.mockReturnValue(new Promise(() => {}));
+    render(
+      <MemoryRouter>
+        <AboutPage />
+      </MemoryRouter>,
+    );
+    await waitFor(() => expect(screen.getByText('v2.13.1')).toBeInTheDocument());
+    expect(screen.queryByTestId('loading-placeholder')).not.toBeInTheDocument();
   });
 
   it('renders external links', async () => {

@@ -120,5 +120,6 @@
     "summary_opacity": "不透明度：",
     "summary_angle": "旋转角度：",
     "summary_position": "位置："
-  }
+  },
+  "cancel_install": "取消安装"
 }

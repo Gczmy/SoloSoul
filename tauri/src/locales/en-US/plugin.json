@@ -120,5 +120,6 @@
     "summary_opacity": "Opacity: ",
     "summary_angle": "Angle: ",
     "summary_position": "Position: "
-  }
+  },
+  "cancel_install": "Cancel installation"
 }
