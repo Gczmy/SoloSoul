@@ -22,3 +22,50 @@
 .interactive:active {
   transform: translateY(0);
 }
+
+/* Windows 卡片用明度和轻阴影承载层级，悬停不整圈描边或移动内容。 */
+:global(html[data-desktop-platform='windows']) .card {
+  border-color: transparent;
+  box-shadow: var(--windows-card-shadow);
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  :global(html[data-desktop-platform='windows']) .interactive:hover {
+    background: color-mix(in srgb, var(--bg-elevated), var(--text-primary) 4%);
+    box-shadow: 0 3px 8px var(--shadow-color-sm);
+    transform: none;
+  }
+}
+:global(html[data-desktop-platform='windows']) .interactive:active {
+  background: color-mix(in srgb, var(--bg-elevated), var(--text-primary) 7%);
+}
+:global(html[data-desktop-platform='windows']) .card:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+:global(html[data-desktop-platform='windows'][data-high-contrast='true']) .card {
+  border-color: var(--text-primary);
+  box-shadow: none;
+}
+@media (forced-colors: active) {
+  :global(html[data-desktop-platform='windows']) .card {
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :global(html[data-desktop-platform='windows']) .card {
+    transition: none;
+  }
+}
+:global(
+    html:is(
+        [data-reduce-motion='true'],
+        [data-user-reduce-motion='true']
+      )[data-desktop-platform='windows']
+  )
+  .card {
+  transition: none;
+}

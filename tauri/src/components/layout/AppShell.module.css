@@ -83,26 +83,32 @@
   }
 
   :global(html[data-desktop-platform='windows']) .appShell {
-    /* AppBar 与正文共用不透明表面，原生 Mica 仅从导航与系统标题栏透出。 */
-    --shell-content-surface: var(--bg-elevated);
-  }
-  :global(html[data-desktop-platform='windows'][data-native-material='mica']) .appShell {
+    /* 单一内容面：AppBar 与正文同色；外侧留出少量 Mica，不叠加描边。 */
     --shell-content-surface: var(--bg-base);
+    --windows-content-inset-left: 8px;
+    --windows-content-inset-right: 8px;
+  }
+  :global(html[data-desktop-platform='windows']) .appShell[data-navigation='left'] {
+    --windows-content-inset-left: 0px;
+  }
+  :global(html[data-desktop-platform='windows']) .appShell[data-navigation='right'] {
+    --windows-content-inset-right: 0px;
   }
   :global(html[data-desktop-platform='windows']) .appShell .main {
     background: transparent;
+    margin: 0 var(--windows-content-inset-right) 8px var(--windows-content-inset-left);
   }
   :global(html[data-desktop-platform='windows']) .content {
     /* 保持独立滚动边界，水平导航由 main 的内边距避让；顶部圆角由 AppBar 承接。 */
     background: var(--shell-content-surface);
-    box-shadow:
-      inset 1px 0 0 var(--border-subtle),
-      inset -1px 0 0 var(--border-subtle),
-      inset 0 -1px 0 var(--border-subtle);
+    border-radius: 0 0 12px 12px;
   }
   :global(html[data-desktop-platform='windows']) .appShell[data-navigation='top'] .content {
-    /* 顶部导航位于 AppBar 与正文之间，正文仍保留自己的上边界。 */
-    border-radius: 12px 12px 0 0;
-    box-shadow: inset 0 0 0 1px var(--border-subtle);
+    /* 横向导航分隔两层表面，正文独立保留圆角。 */
+    border-radius: 12px;
+  }
+  :global(html[data-desktop-platform='windows'][data-high-contrast='true']) .content {
+    outline: 1px solid var(--text-primary);
+    outline-offset: -1px;
   }
 }

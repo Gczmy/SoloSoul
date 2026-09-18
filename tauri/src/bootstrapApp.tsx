@@ -8,6 +8,7 @@ import './styles/animations.css';
 import './styles/android.css';
 import './styles/macos-glass.css';
 import './styles/desktop-controls.css';
+import './styles/windows-material.css';
 import { initI18n } from './lib/i18n';
 import { initPlatform } from '@/lib/platform';
 import { preloadCameraCapability } from '@/lib/cameraCapability';

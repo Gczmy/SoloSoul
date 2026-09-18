@@ -132,11 +132,18 @@
   :global(html[data-desktop-platform='windows']) .appBar {
     background: var(--shell-content-surface, var(--bg-elevated));
     border-radius: 12px 12px 0 0;
-    box-shadow:
-      inset 1px 0 0 var(--border-subtle),
-      inset -1px 0 0 var(--border-subtle),
-      inset 0 1px 0 var(--border-subtle);
+    border-bottom-color: var(--navigation-divider, transparent);
+    left: calc(var(--sidebar-width, 48px) + var(--windows-content-inset-left, 0px));
+    right: var(--windows-content-inset-right, 8px);
     font-size: 14px;
+  }
+  :global(html[data-desktop-platform='windows']) .appBar.rightSidebar {
+    left: var(--windows-content-inset-left, 8px);
+    right: calc(var(--sidebar-width, 48px) + var(--windows-content-inset-right, 0px));
+  }
+  :global(html[data-desktop-platform='windows']) .appBar.horizontal {
+    left: var(--windows-content-inset-left, 8px);
+    right: var(--windows-content-inset-right, 8px);
   }
   :global(html[data-desktop-platform='windows']) .title {
     font-size: 18px;

@@ -20,7 +20,7 @@
   cursor: default;
 }
 :global(html[data-desktop-platform='windows']) .functionBar {
-  background: var(--bg-base);
+  background: var(--windows-navigation-surface, var(--bg-base));
 }
 :global(html[data-desktop-platform='windows'][data-native-material='mica']) .functionBar {
   background: transparent;

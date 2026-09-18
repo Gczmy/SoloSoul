@@ -286,7 +286,7 @@ for (const platform of ['macos', 'windows'] as const) {
           await expect(backup).toHaveCSS('background-image', 'none');
           await expect(backup).toHaveCSS('box-shadow', 'none');
         }
-        const stateProperty = platform === 'macos' ? 'background-color' : 'background-image';
+        const stateProperty = 'background-color';
         const resting = await backup.evaluate(
           (button, property) => getComputedStyle(button).getPropertyValue(property),
           stateProperty,

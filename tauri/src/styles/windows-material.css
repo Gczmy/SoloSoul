@@ -1,0 +1,84 @@
+/* Windows 层级：DWM Mica 底层 → 实色正文 → 明度区分的卡片 → 局部 Acrylic 式浮层。
+   复用既有 data-macos-glass 语义入口，避免两套浮层标记；不更改定位或交互。
+   系统标题栏、窗口边框与失焦时的 Mica 回退继续交给 DWM。 */
+html[data-desktop-platform='windows'] {
+  --navigation-divider: transparent;
+  --windows-navigation-surface: color-mix(in srgb, var(--bg-base), var(--text-primary) 5%);
+  --windows-flyout-fill: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
+  --windows-flyout-shadow: 0 12px 32px var(--shadow-color-lg), 0 2px 6px var(--shadow-color-sm);
+  --windows-card-shadow: 0 1px 3px var(--shadow-color-sm);
+
+  button[data-sync-conflict-badge] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border-radius: var(--desktop-control-radius) !important;
+    box-shadow: none !important;
+  }
+
+  /* 正文面板和通知保持实色，只有紧凑菜单启用局部模糊。 */
+  [data-macos-glass] {
+    background: var(--bg-elevated) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: var(--windows-flyout-shadow) !important;
+  }
+  :is(
+    [data-macos-glass='panel'],
+    [data-macos-glass='popover'],
+    [data-macos-glass='sidebar-menu'],
+    [data-macos-glass='tooltip']
+  ) {
+    /* 外壳只留一道很淡的轮廓，通知仍保留业务状态色边框。 */
+    border-color: color-mix(in srgb, var(--text-primary) 8%, transparent) !important;
+  }
+  [data-macos-glass='tooltip'] {
+    color: var(--text-primary) !important;
+  }
+  [data-macos-glass-section] {
+    background: var(--bg-base) !important;
+  }
+  [data-macos-glass-backdrop] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  html[data-desktop-platform='windows'][data-native-material='mica']:where(
+      :not([data-high-contrast='true'])
+    )
+    :is([data-macos-glass='popover'], [data-macos-glass='sidebar-menu']) {
+    background: var(--windows-flyout-fill) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(1.1) !important;
+    backdrop-filter: blur(20px) saturate(1.1) !important;
+  }
+}
+
+html[data-desktop-platform='windows'][data-high-contrast='true'] {
+  --navigation-divider: var(--text-primary);
+  [data-macos-glass] {
+    border-color: var(--text-primary) !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  html[data-desktop-platform='windows'][data-native-material]
+    :is([data-macos-glass], [data-macos-glass-backdrop]) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  html[data-desktop-platform='windows'][data-native-material] [data-macos-glass] {
+    background: var(--bg-elevated) !important;
+  }
+}
+@media (forced-colors: active) {
+  html[data-desktop-platform='windows'] {
+    --navigation-divider: CanvasText;
+    --windows-navigation-surface: Canvas;
+    [data-macos-glass] {
+      border-color: CanvasText !important;
+      box-shadow: none !important;
+    }
+  }
+}

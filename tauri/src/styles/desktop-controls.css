@@ -30,13 +30,12 @@ html[data-desktop-platform='macos'] {
   }
 }
 html[data-desktop-platform='windows'] {
-  /* Fluent：轻量轮廓和分层填色；Mica 留在窗口背景，按钮不重复叠加模糊。 */
-  --desktop-control-fill: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
-  --desktop-control-edge: color-mix(in srgb, var(--text-primary) 18%, transparent);
-}
-html[data-desktop-platform='windows'][data-theme='dark'] {
-  --desktop-control-glint: rgb(255 255 255 / 5%);
-  --desktop-control-edge: color-mix(in srgb, var(--text-primary) 14%, transparent);
+  /* Mica 只用于窗口底层；普通按钮用填色和状态反馈，不逐个绘制反光边框。 */
+  --desktop-control-fill: color-mix(in srgb, var(--text-primary) 6%, var(--bg-elevated));
+  --desktop-control-edge: transparent;
+  --desktop-control-glint: transparent;
+  --desktop-control-shadow: transparent;
+  --desktop-reduced-control-shadow: none;
 }
 
 html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
@@ -62,7 +61,8 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     :not(
       [role='menuitem'],
       [role='menu'] button,
-      [data-macos-glass='popover'] button,
+      [data-macos-glass='popover']
+        button:not([data-desktop-platform='windows'] [data-appbar] button),
       [data-macos-glass='sidebar-menu'] button,
       .interactive-tile,
       .interactive-password-field button,
@@ -159,12 +159,16 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     --control-ink: var(--accent-danger);
   }
 
-  /* macOS 以填色区分主/次操作，以状态反馈表达交互，不绘制玻璃反光或外阴影。
+  /* 桌面端以填色区分主/次操作，以状态反馈表达交互，不绘制玻璃反光或外阴影。
      使用低优先级的默认值，让上面的选中、主要和危险操作语义继续生效。 */
-  &:where([data-desktop-platform='macos'] button) {
+  &:where(:is([data-desktop-platform='macos'], [data-desktop-platform='windows']) button) {
     background: var(--control-fill) !important;
     border-color: var(--control-edge) !important;
     box-shadow: none !important;
+
+    &:where([data-desktop-platform='windows'] button) {
+      border-color: transparent !important;
+    }
 
     &:where(
         [data-ui-icon-button],
@@ -181,16 +185,20 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
       --control-edge: transparent;
     }
 
-    /* AppBar 统一平面按钮；主操作保留强调文字，危险操作保留红色文字。 */
-    &:is([data-appbar] button) {
+    /* macOS 主操作用强调文字；Windows 保留填色主按钮，工具/指南用平面按钮。 */
+    &:is([data-appbar] button):where([data-desktop-platform='macos'] button),
+    &:is([data-appbar] button):where(
+        [data-desktop-platform='windows']
+          button:not([data-ui-button='primary'], [data-desktop-control='primary'])
+      ) {
       --control-fill: transparent;
       --control-edge: transparent;
       --control-ink: var(--text-secondary);
     }
-    &:is(
-      [data-appbar] button[data-ui-button='primary'],
-      [data-appbar] button[data-desktop-control='primary']
-    ) {
+    &:where([data-desktop-platform='macos'] button):is(
+        [data-appbar] button[data-ui-button='primary'],
+        [data-appbar] button[data-desktop-control='primary']
+      ) {
       --control-ink: var(--accent-primary);
     }
     &:is(button):is(
@@ -272,17 +280,26 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
   }
 
   /* 与原生辅助功能状态同步；保留操作颜色，不把危险/确认按钮刷成同一种灰色。 */
-  &:is([data-native-material='solid'] button, [data-high-contrast='true'] button) {
+  &:is(
+    [data-desktop-platform='macos'][data-native-material='solid'] button,
+    [data-high-contrast='true'] button
+  ) {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
     background: var(--control-fill) !important;
-    box-shadow: inset 0 0 0 1px var(--control-edge) !important;
+    box-shadow: var(
+      --desktop-reduced-control-shadow,
+      inset 0 0 0 1px var(--control-edge)
+    ) !important;
   }
   @media (prefers-reduced-transparency: reduce) {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
     background: var(--control-fill) !important;
-    box-shadow: inset 0 0 0 1px var(--control-edge) !important;
+    box-shadow: var(
+      --desktop-reduced-control-shadow,
+      inset 0 0 0 1px var(--control-edge)
+    ) !important;
   }
   @media (forced-colors: active) {
     transition: none;
@@ -316,9 +333,21 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
-  &:where([data-user-reduce-motion='true'] button) {
+  &:where(:is([data-user-reduce-motion='true'], [data-reduce-motion='true']) button) {
     transition: none;
   }
+}
+
+/* 关闭透明效果只替换材质；Windows 高对比模式才恢复必要轮廓。 */
+html[data-desktop-platform='windows'][data-native-material='solid']:not(
+    [data-high-contrast='true']
+  ) {
+  --desktop-control-fill: color-mix(in srgb, var(--text-primary) 6%, var(--bg-elevated));
+  --desktop-control-edge: transparent;
+}
+html[data-desktop-platform='windows'][data-high-contrast='true'] {
+  --desktop-control-edge: var(--text-primary);
+  --desktop-reduced-control-shadow: inset 0 0 0 1px var(--text-primary);
 }
 
 /* 降低透明度时从根变量切换实色；上面的语义色再在此基础上派生。 */

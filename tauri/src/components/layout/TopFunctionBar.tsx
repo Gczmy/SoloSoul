@@ -229,8 +229,10 @@ export function TopFunctionBar({
         height: FUNCTION_BAR_HEIGHT,
         top: isBottom ? 'auto' : 'var(--appbar-height, 48px)',
         bottom: isBottom ? 0 : 'auto',
-        borderBottom: isBottom ? 'none' : '1px solid var(--border-subtle)',
-        borderTop: isBottom ? '1px solid var(--border-subtle)' : 'none',
+        borderBottom: isBottom
+          ? 'none'
+          : '1px solid var(--navigation-divider, var(--border-subtle))',
+        borderTop: isBottom ? '1px solid var(--navigation-divider, var(--border-subtle))' : 'none',
       }}
     >
       {/* Left zone: logo + primary pages + custom pages */}

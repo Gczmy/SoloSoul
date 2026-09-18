@@ -525,7 +525,7 @@
 }
 :global(html[data-desktop-platform='windows']) .sideNav {
   /* 实色回退与 DWM 主题标题栏同色；Mica 在下面直接透出原生材质。 */
-  background: var(--bg-base);
+  background: var(--windows-navigation-surface, var(--bg-base));
 }
 :global(html[data-desktop-platform='windows'][data-native-material='mica']) .sideNav {
   background: transparent;
@@ -683,7 +683,7 @@
   flex-direction: column;
   align-items: center;
   padding-top: 8px;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--navigation-divider, var(--border-subtle));
 }
 .sideNav[data-expanded='true'] .navPrimary {
   gap: 2px;

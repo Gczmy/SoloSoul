@@ -47,12 +47,18 @@ for (const position of ['left', 'right', 'top', 'bottom']) {
     const content = page.locator('main');
     const bounds = (await content.boundingBox())!;
     expect(bounds.y).toBe(position === 'top' ? 88 : 40);
-    expect(bounds.y + bounds.height).toBe(position === 'bottom' ? 552 : 600);
+    expect(bounds.y + bounds.height).toBe(position === 'bottom' ? 544 : 592);
     await expect(content).toHaveCSS('border-top-left-radius', position === 'top' ? '12px' : '0px');
     await expect(content).toHaveCSS('border-top-right-radius', position === 'top' ? '12px' : '0px');
     const surface = await content.evaluate((el) => getComputedStyle(el).backgroundColor);
     expect(surface).not.toBe('rgba(0, 0, 0, 0)');
     await expect(header).toHaveCSS('background-color', surface);
+    await expect(header).toHaveCSS('border-bottom-color', 'rgba(0, 0, 0, 0)');
+    await expect(header).toHaveCSS('box-shadow', 'none');
+    await expect(content).toHaveCSS('box-shadow', 'none');
+    const headerBounds = (await header.boundingBox())!;
+    expect(headerBounds.x).toBe(bounds.x);
+    expect(headerBounds.width).toBe(bounds.width);
     // 正文滚动后仍在独立的裁剪区域内，不会穿到操作栏下面。
     await content.evaluate((el) => {
       const filler = document.createElement('div');

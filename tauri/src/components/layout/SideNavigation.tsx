@@ -48,8 +48,14 @@ export function SideNavigation() {
         flexDirection: 'row',
         borderRight: 'none',
         borderLeft: 'none',
-        borderBottom: sidebarPosition === 'top' ? '1px solid var(--border-subtle)' : 'none',
-        borderTop: sidebarPosition === 'bottom' ? '1px solid var(--border-subtle)' : 'none',
+        borderBottom:
+          sidebarPosition === 'top'
+            ? '1px solid var(--navigation-divider, var(--border-subtle))'
+            : 'none',
+        borderTop:
+          sidebarPosition === 'bottom'
+            ? '1px solid var(--navigation-divider, var(--border-subtle))'
+            : 'none',
         padding: '0 12px',
         overflow: 'visible',
       }
@@ -57,8 +63,14 @@ export function SideNavigation() {
         width: `var(--sidebar-width, ${expanded ? 232 : 96}px)`,
         height: '100vh',
         flexDirection: 'column',
-        borderRight: sidebarPosition === 'left' ? '1px solid var(--border-subtle)' : 'none',
-        borderLeft: sidebarPosition === 'right' ? '1px solid var(--border-subtle)' : 'none',
+        borderRight:
+          sidebarPosition === 'left'
+            ? '1px solid var(--navigation-divider, var(--border-subtle))'
+            : 'none',
+        borderLeft:
+          sidebarPosition === 'right'
+            ? '1px solid var(--navigation-divider, var(--border-subtle))'
+            : 'none',
         borderBottom: 'none',
         borderTop: 'none',
         paddingInline: expanded ? 10 : 0,
