@@ -1,0 +1,44 @@
+.progress {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.progress[data-compact='true'] {
+  width: 36px;
+  height: 36px;
+}
+.progress > svg {
+  grid-area: 1 / 1;
+}
+.spinner {
+  animation: installSpin 1.3s linear infinite;
+}
+.progress:hover {
+  background: var(--state-hover);
+}
+.progress:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+@keyframes installSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+:global(html:is([data-user-reduce-motion='true'], [data-reduce-motion='true'])) .spinner {
+  animation: none;
+}

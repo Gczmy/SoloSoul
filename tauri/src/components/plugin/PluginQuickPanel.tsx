@@ -16,6 +16,8 @@ import { isDevOrDebug } from '@/lib/utils';
 import styles from './PluginQuickPanel.module.css';
 import { getNavCardStyle } from '@/components/layout/navCardPosition';
 import { ICON_SIZE } from '@/lib/constants';
+import { resolveBackendErrorMessage } from '@/lib/backendError';
+import { PluginInstallProgress } from './PluginInstallProgress';
 
 interface PluginQuickPanelProps {
   position: { top: number } | null;
@@ -44,12 +46,15 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
   const {
     marketPlugins,
     installedPlugins,
+    installingPlugins,
     runningPlugins,
+    error,
     isLoadingMarket,
     isLoadingInstalled,
     loadMarket,
     loadInstalled,
     installPlugin,
+    cancelInstall,
     uninstallPlugin,
     runPlugin,
     stopPlugin,
@@ -59,12 +64,15 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
     useShallow((s) => ({
       marketPlugins: s.marketPlugins,
       installedPlugins: s.installedPlugins,
+      installingPlugins: s.installingPlugins,
       runningPlugins: s.runningPlugins,
+      error: s.error,
       isLoadingMarket: s.isLoadingMarket,
       isLoadingInstalled: s.isLoadingInstalled,
       loadMarket: s.loadMarket,
       loadInstalled: s.loadInstalled,
       installPlugin: s.installPlugin,
+      cancelInstall: s.cancelInstall,
       uninstallPlugin: s.uninstallPlugin,
       runPlugin: s.runPlugin,
       stopPlugin: s.stopPlugin,
@@ -225,6 +233,11 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
       </div>
 
       {/* Body */}
+      {error && (
+        <div className={styles.error} role="alert">
+          {t('plugin:operation_failed')}: {resolveBackendErrorMessage(error)}
+        </div>
+      )}
       <div className={styles.body}>
         {isLoadingMarket || isLoadingInstalled ? (
           <div className={styles.loading}>
@@ -237,6 +250,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
         ) : (
           displayedPlugins.map((info) => {
             const installed = !!info.installedVersion;
+            const installing = !!installingPlugins[info.pluginId];
             const running = runningPlugins[info.pluginId];
             const isRunning = running && !running.completed;
             const displayName = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
@@ -265,13 +279,19 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
                       <button
                         className={styles.runBtn}
                         onClick={() => handleRunPlugin(info)}
-                        disabled={isRunning}
+                        disabled={isRunning || installing}
                       >
                         {isRunning ? <Loader2 size={ICON_SIZE.xs} /> : <Play size={ICON_SIZE.xs} />}
                         {t('plugin:run', { defaultValue: 'Run' })}
                       </button>
                     )}
-                    {!installed && info.isCompatible && (
+                    {installing && (
+                      <PluginInstallProgress
+                        compact
+                        onCancel={() => cancelInstall(info.pluginId)}
+                      />
+                    )}
+                    {!installing && !installed && info.isCompatible && (
                       <button
                         className={styles.installBtn}
                         onClick={() =>
@@ -284,6 +304,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
                     )}
                     {installed && (
                       <DeleteButton
+                        disabled={installing}
                         onClick={() =>
                           requestConfirm(
                             t('plugin:uninstall_confirm_title', {

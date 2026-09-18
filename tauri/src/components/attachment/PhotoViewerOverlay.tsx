@@ -372,6 +372,7 @@ export function PhotoViewerOverlay({
           按下即响应），键盘激活经 click(detail===0) 兜底，右键/中键不缩放。 */}
       {showZoomControls && (
         <div
+          data-preview-zoom-controls
           onClick={(e) => e.stopPropagation()}
           style={{
             position: 'absolute',

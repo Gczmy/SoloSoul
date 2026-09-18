@@ -54,3 +54,23 @@ html[data-desktop-platform='macos']:is([data-native-material='solid'], [data-hig
     background: var(--bg-base) !important;
   }
 }
+
+/* Windows 预览沿用 AppBar 的实色表面，避免旧的半透明工具栏叠上深色照片背景后变黑。
+   仅调整顶栏；照片区域与底部缩放栏继续使用深色表面。 */
+html[data-desktop-platform='windows'] [data-preview-titlebar] {
+  background: var(--bg-elevated) !important;
+  border-bottom-color: var(--navigation-divider, transparent) !important;
+  color: var(--text-primary);
+}
+@media (min-width: 768px) {
+  html[data-desktop-platform='windows'] [data-preview-titlebar] {
+    /* 对象附件卡片可能通过 Portal 脱离 AppShell，回退色与正文表面一致。 */
+    background: var(--shell-content-surface, var(--bg-base)) !important;
+  }
+}
+html[data-desktop-platform='windows'] [data-preview-titlebar] > span {
+  color: inherit !important;
+}
+html[data-desktop-platform='windows'] [data-preview-titlebar] [data-testid='photo-viewer-counter'] {
+  color: var(--text-secondary) !important;
+}

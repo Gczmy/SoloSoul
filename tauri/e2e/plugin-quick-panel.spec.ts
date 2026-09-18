@@ -1,59 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { login, setupTauriMock } from './fixtures/auth';
 
-async function setupPlugin(page: Page, platform: 'macos' | 'windows') {
-  await setupTauriMock(page);
-  await page.addInitScript((platform) => {
-    let installed = true;
-    const plugin = {
-      id: 'com.solosoul.official.address-fmt',
-      name: 'Address Formatter',
-      version: '1.0.0',
-      author: 'SoloSoul',
-      description: 'Format addresses',
-      tier: 'p1',
-      category: 'productivity',
-      permissions: [],
-    };
-    const prefs = {
-      language: 'en-US',
-      hasSeenOnboarding: true,
-      autoLockTimeoutMinutes: 0,
-      sidebarButtonModes: { plugins: 'card' },
-      lastBackupAt: new Date().toISOString(),
-    };
-    Object.assign(window, {
-      __MOCK_PLATFORM__: platform,
-      __E2E_UNINSTALL_CALLS__: [] as string[],
-      __E2E_MOCKS__: {
-        ui_get_preferences: () => prefs,
-        user_data_get_preferences: () => prefs,
-        vault_check_directory: () => true,
-        ocr_get_model_status: () => ({ installed: true, bundled: true }),
-        sync_list_conflicts: () => [],
-        plugin_list_all: () => [
-          {
-            pluginId: plugin.id,
-            installedVersion: installed ? plugin.version : undefined,
-            hasUpdate: false,
-            isCompatible: true,
-            tier: plugin.tier,
-            category: plugin.category,
-            registryEntry: { ...plugin, latestVersion: plugin.version, params: [] },
-          },
-        ],
-        plugin_list_installed: () => (installed ? [plugin] : []),
-        plugin_uninstall: ({ pluginId }: { pluginId: string }) => {
-          (window as unknown as { __E2E_UNINSTALL_CALLS__: string[] }).__E2E_UNINSTALL_CALLS__.push(
-            pluginId,
-          );
-          installed = false;
-        },
-      },
-    });
-    localStorage.setItem('i18nextLng', 'en-US');
-  }, platform);
-  await login(page);
+async function openPluginPanel(page: Page) {
   await page
     .locator('#desktop-navigation')
     .getByRole('button', { name: 'Tools', exact: true })
@@ -64,7 +12,155 @@ async function setupPlugin(page: Page, platform: 'macos' | 'windows') {
     .click();
 }
 
+async function setupPlugin(page: Page, platform: 'macos' | 'windows', initiallyInstalled = true) {
+  await setupTauriMock(page);
+  await page.addInitScript(
+    ({ platform, initiallyInstalled }) => {
+      let installed = initiallyInstalled;
+      let operationId = 0;
+      let pending:
+        | { rid: number; resolve: () => void; reject: (error: string) => void }
+        | undefined;
+      const installCalls: string[] = [];
+      const plugin = {
+        id: 'com.solosoul.official.address-fmt',
+        name: 'Address Formatter',
+        version: '1.0.0',
+        author: 'SoloSoul',
+        description: 'Format addresses',
+        tier: 'p1',
+        category: 'productivity',
+        permissions: [],
+      };
+      const prefs = {
+        language: 'en-US',
+        hasSeenOnboarding: true,
+        autoLockTimeoutMinutes: 0,
+        sidebarButtonModes: { plugins: 'card' },
+        lastBackupAt: new Date().toISOString(),
+      };
+      Object.assign(window, {
+        __MOCK_PLATFORM__: platform,
+        __E2E_UNINSTALL_CALLS__: [] as string[],
+        __E2E_INSTALL_CALLS__: installCalls,
+        __E2E_FINISH_INSTALL__: (error?: string) => {
+          const operation = pending;
+          pending = undefined;
+          if (!operation) throw new Error('No pending install');
+          if (error) operation.reject(error);
+          else {
+            installed = true;
+            operation.resolve();
+          }
+        },
+        __E2E_MOCKS__: {
+          ui_get_preferences: () => prefs,
+          user_data_get_preferences: () => prefs,
+          vault_check_directory: () => true,
+          ocr_get_model_status: () => ({ installed: true, bundled: true }),
+          sync_list_conflicts: () => [],
+          plugin_list_all: () => [
+            {
+              pluginId: plugin.id,
+              installedVersion: installed ? plugin.version : undefined,
+              hasUpdate: false,
+              isCompatible: true,
+              tier: plugin.tier,
+              category: plugin.category,
+              registryEntry: { ...plugin, latestVersion: plugin.version, params: [] },
+            },
+          ],
+          plugin_list_installed: () => (installed ? [plugin] : []),
+          create_plugin_install: () => ++operationId,
+          plugin_install: ({
+            pluginId,
+            operationId,
+          }: {
+            pluginId: string;
+            operationId: number;
+          }) => {
+            installCalls.push(pluginId);
+            return new Promise<void>((resolve, reject) => {
+              pending = { rid: operationId, resolve, reject };
+            });
+          },
+          'plugin:resources|close': ({ rid }: { rid: number }) => {
+            if (pending?.rid === rid) {
+              const operation = pending;
+              pending = undefined;
+              operation.reject('PLUGIN_INSTALL_CANCELLED');
+            }
+          },
+          plugin_uninstall: ({ pluginId }: { pluginId: string }) => {
+            (
+              window as unknown as { __E2E_UNINSTALL_CALLS__: string[] }
+            ).__E2E_UNINSTALL_CALLS__.push(pluginId);
+            installed = false;
+          },
+        },
+      });
+      localStorage.setItem('i18nextLng', 'en-US');
+    },
+    { platform, initiallyInstalled },
+  );
+  await login(page);
+  await openPluginPanel(page);
+}
+
+async function expectInstallCalls(page: Page, count: number) {
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as unknown as { __E2E_INSTALL_CALLS__: string[] }).__E2E_INSTALL_CALLS__.length,
+      ),
+    )
+    .toBe(count);
+}
+
+async function finishInstall(page: Page, error?: string) {
+  await page.evaluate(
+    (error) =>
+      (
+        window as unknown as { __E2E_FINISH_INSTALL__: (error?: string) => void }
+      ).__E2E_FINISH_INSTALL__(error),
+    error,
+  );
+}
+
 for (const platform of ['macos', 'windows'] as const) {
+  test(`${platform} 侧栏安装显示进度，重新打开后可取消，失败后可重试`, async ({ page }) => {
+    await setupPlugin(page, platform, false);
+    const panel = page.getByRole('dialog', { name: 'Plugins', exact: true });
+    const install = panel.getByRole('button', { name: 'Install', exact: true });
+    const cancel = panel.getByRole('button', { name: 'Cancel installation', exact: true });
+    await install.click();
+    await expectInstallCalls(page, 1);
+    await expect(cancel).toBeVisible();
+    await expect(install).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(panel).toHaveCount(0);
+    await openPluginPanel(page);
+    await expect(cancel).toBeVisible();
+    await expectInstallCalls(page, 1);
+    await cancel.click();
+    await expect(install).toBeVisible();
+    await expect(panel.getByRole('alert')).toHaveCount(0);
+    await install.click();
+    await expectInstallCalls(page, 2);
+    await finishInstall(page, 'Download timed out');
+    await expect(panel.getByRole('alert')).toContainText('Download timed out');
+    await expect(install).toBeVisible();
+    await install.click();
+    await expectInstallCalls(page, 3);
+    await expect(panel.getByRole('alert')).toHaveCount(0);
+    await finishInstall(page);
+    await expect(cancel).toHaveCount(0);
+    await expect(panel.getByRole('button', { name: 'Uninstall', exact: true })).toBeVisible();
+    await panel.getByRole('button', { name: 'Installed 1', exact: true }).click();
+    await expect(panel.getByText('Address Formatter', { exact: true })).toBeVisible();
+  });
+
   test(`${platform} 侧栏卸载确认执行一次，列表与重新打开后的状态同步`, async ({ page }) => {
     await setupPlugin(page, platform);
     const panel = page.getByRole('dialog', { name: 'Plugins', exact: true });

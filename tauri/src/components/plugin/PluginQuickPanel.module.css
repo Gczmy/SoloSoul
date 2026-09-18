@@ -288,6 +288,19 @@
   border-top: 1px solid var(--border-subtle);
 }
 
+.error {
+  flex-shrink: 0;
+  max-height: 120px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  margin: 8px 12px 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  font-size: var(--text-body-sm);
+}
+
 .loading,
 .empty {
   padding: 48px 16px;

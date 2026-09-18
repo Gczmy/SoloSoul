@@ -9,6 +9,7 @@ import styles from './PluginCard.module.css';
 import type { MarketPluginInfo, PluginManifest } from '@/lib/plugin';
 import { usePluginStore, type RunningPlugin } from '@/stores/pluginStore';
 import { ICON_SIZE } from '@/lib/constants';
+import { PluginInstallProgress } from './PluginInstallProgress';
 
 interface PluginCardProps {
   info: MarketPluginInfo;
@@ -133,18 +134,7 @@ export function PluginCard({
               {t('clear', { defaultValue: 'Clear' })}
             </button>
           )}
-          {installing && (
-            <button
-              type="button"
-              className={styles.installProgress}
-              aria-label={t('cancel_install', { defaultValue: '取消安装' })}
-              title={t('cancel_install', { defaultValue: '取消安装' })}
-              onClick={() => cancelInstall(info.pluginId)}
-            >
-              <Loader2 className={styles.installSpinner} size={34} aria-hidden="true" />
-              <X size={16} aria-hidden="true" />
-            </button>
-          )}
+          {installing && <PluginInstallProgress onCancel={() => cancelInstall(info.pluginId)} />}
           {!installing && !installed && info.isCompatible && (
             <button className={styles.installBtn} onClick={onInstall}>
               <Download size={ICON_SIZE.sm} />

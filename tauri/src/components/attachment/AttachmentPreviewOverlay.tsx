@@ -369,6 +369,7 @@ export function AttachmentPreviewOverlay({
       {/* Zoom controls (image only) */}
       {showZoomControls && (
         <div
+          data-preview-zoom-controls
           onClick={(e) => e.stopPropagation()}
           style={{
             position: 'absolute',
@@ -382,7 +383,8 @@ export function AttachmentPreviewOverlay({
             borderRadius: 24,
             background: 'rgba(28,28,30,0.85)',
             border: '1px solid rgba(255,255,255,0.12)',
-            color: 'var(--text-primary)',
+            // 工具栏固定为深色，与相册查看器一致使用浅色文字，不能跟随页面主题。
+            color: '#fff',
             fontSize: 'var(--text-body-sm)',
             userSelect: 'none',
           }}

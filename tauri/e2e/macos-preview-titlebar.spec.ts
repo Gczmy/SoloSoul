@@ -45,7 +45,8 @@ async function setupPreview(page: Page, platform = 'macos', kind = 'text', theme
             (window as any).__previewAppearanceCalls++;
             return {
               ...layout,
-              material: platform === 'macos' ? 'liquid-glass' : 'solid',
+              material:
+                platform === 'macos' ? 'liquid-glass' : platform === 'windows' ? 'mica' : 'solid',
               reduceMotion: false,
               highContrast: false,
             };
@@ -126,6 +127,40 @@ async function expectNativeControls(header: Locator) {
     .toBe(true);
 }
 
+async function expectLegibleZoomControls(overlay: Locator) {
+  const toolbar = overlay.locator('[data-preview-zoom-controls]');
+  await expect(toolbar).toBeVisible();
+  const contrasts = await toolbar.evaluate((element) => {
+    const rgba = (color: string) => color.match(/[\d.]+/g)!.map(Number);
+    const composite = (front: number[], back: number[]) =>
+      front
+        .slice(0, 3)
+        .map((channel, i) => channel * (front[3] ?? 1) + back[i] * (1 - (front[3] ?? 1)));
+    const luminance = (color: number[]) =>
+      color.reduce((sum, channel, i) => {
+        const value = channel / 255;
+        return (
+          sum +
+          (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4) *
+            [0.2126, 0.7152, 0.0722][i]
+        );
+      }, 0);
+    // 按照片中最亮的纯白区域计算半透明工具栏背景，保证文字与图标都可读。
+    const background = composite(rgba(getComputedStyle(element).backgroundColor), [255, 255, 255]);
+    const bg = luminance(background);
+    return Array.from(element.querySelectorAll('span, button')).map((child) => {
+      const fg = luminance(composite(rgba(getComputedStyle(child).color), background));
+      return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
+    });
+  });
+  expect(contrasts).toHaveLength(4);
+  for (const contrast of contrasts) expect(contrast).toBeGreaterThanOrEqual(4.5);
+  const percentage = toolbar.locator('span');
+  const before = await percentage.innerText();
+  await toolbar.getByRole('button', { name: 'Zoom In', exact: true }).click();
+  await expect(percentage).not.toHaveText(before);
+}
+
 async function expectPreviewTitlebar(header: Locator, trafficLightsRight: number) {
   await expect(header).toBeVisible();
   await expect(header).toHaveAttribute('data-tauri-drag-region', 'false');
@@ -200,6 +235,7 @@ for (const theme of ['light', 'dark']) {
       const overlay = page.getByTestId('attachment-preview-overlay');
       const header = overlay.locator('[data-preview-titlebar]');
       await expectPreviewTitlebar(header, 79);
+      if (kind === 'image') await expectLegibleZoomControls(overlay);
       await page.screenshot({ path: test.info().outputPath('preview-open.png') });
       expect(
         await page.screenshot({
@@ -254,6 +290,7 @@ test('macOS photo viewer returns through album and restores each titlebar hit re
   const viewer = page.getByTestId('photo-viewer');
   const header = viewer.locator('[data-preview-titlebar]');
   await expectPreviewTitlebar(header, 79);
+  await expectLegibleZoomControls(viewer);
   await expect(albumHeader).toBeHidden();
   await expectWholeRowGlass(page);
   expect(await page.screenshot({ clip: trafficLightsClip })).toEqual(originalGlass);
@@ -312,5 +349,69 @@ for (const platform of ['windows', 'android']) {
     await expect(header).toHaveCSS('padding-top', '10px');
     await header.getByRole('button', { name: 'Close', exact: true }).click();
     await expect(overlay).toHaveCount(0);
+  });
+}
+
+for (const theme of ['light', 'dark']) {
+  test(`Windows ${theme} photo preview and album keep the AppBar surface`, async ({ page }) => {
+    await setupPreview(page, 'windows', 'image', theme);
+    const appbar = page.locator('[data-appbar]');
+    const original = await appbar.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        background: style.backgroundColor,
+        divider: style.borderBottomColor,
+        color: style.color,
+      };
+    });
+    const iconColor = await appbar
+      .getByRole('button', { name: 'Guide', exact: true })
+      .evaluate((element) => getComputedStyle(element).color);
+    const expectAppbarSurface = async (header: Locator) => {
+      await expect(header).toBeVisible();
+      await expect(header).toHaveCSS('background-color', original.background);
+      await expect(header).toHaveCSS('border-bottom-color', original.divider);
+      await expect(header).toHaveCSS('color', original.color);
+      for (const button of await header.getByRole('button').all()) {
+        await expect(button).toHaveCSS('color', iconColor);
+      }
+    };
+
+    await page.getByRole('button', { name: 'Preview', exact: true }).click();
+    const preview = page.getByTestId('attachment-preview-overlay');
+    await expectAppbarSurface(preview.locator('[data-preview-titlebar]'));
+    await expect(preview.getByText('Travel photo.png', { exact: true })).toHaveCSS(
+      'color',
+      original.color,
+    );
+    await expectLegibleZoomControls(preview);
+    await preview.getByRole('button', { name: 'Close', exact: true }).click();
+
+    await page.getByRole('button', { name: /Photo Album/ }).click();
+    const album = page.getByTestId('photo-album-overlay');
+    const albumHeader = album.locator(':scope > [data-preview-titlebar]');
+    await expectAppbarSurface(albumHeader);
+    await album.getByRole('button', { name: 'Travel photo.png', exact: true }).click();
+    const viewer = page.getByTestId('photo-viewer');
+    const viewerHeader = viewer.locator('[data-preview-titlebar]');
+    await expectAppbarSurface(viewerHeader);
+    await expect(viewerHeader.getByText('Travel photo.png', { exact: true })).toHaveCSS(
+      'color',
+      original.color,
+    );
+    await expectLegibleZoomControls(viewer);
+    await page.screenshot({ path: test.info().outputPath(`windows-photo-${theme}.png`) });
+
+    // 缩窄桌面窗口后，预览也跟随 AppBar 的窄屏表面，不继承黑色照片背景。
+    await page.setViewportSize({ width: 640, height: 600 });
+    await expect(viewerHeader).toHaveCSS(
+      'background-color',
+      await appbar.evaluate((element) => getComputedStyle(element).backgroundColor),
+    );
+    await viewerHeader.getByRole('button', { name: 'Back to album', exact: true }).click();
+    await expect(viewer).toHaveCount(0);
+    await albumHeader.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(album).toHaveCount(0);
+    await expect(appbar).toBeVisible();
   });
 }
