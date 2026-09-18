@@ -82,7 +82,12 @@ export function AboutPage() {
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
             <ShieldLogo
               size={ICON_SIZE['6xl']}
-              style={{ margin: '0 auto 14px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}
+              style={{
+                margin: '0 auto 14px',
+                background: 'transparent',
+                borderRadius: '25%',
+                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))',
+              }}
             />
             <h1
               style={{
