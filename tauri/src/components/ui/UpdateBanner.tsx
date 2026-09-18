@@ -1,19 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, CheckCircle2, X, Info, AlertTriangle } from 'lucide-react';
 import { formatBytes } from '@/lib/utils';
 import { ICON_SIZE } from '@/lib/constants';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { Dialog } from '@/components/ui/Dialog';
+import { ReleaseNotesMarkdown } from '@/components/ui/ReleaseNotesMarkdown';
 import styles from './NotificationBanner.module.css';
 import { UpdateTransferStatus } from './UpdateTransferStatus';
 import type { UpdateTransferInfo } from '@/lib/updater';
 
-// P015-R2: 更新说明（react-markdown 全家桶约 350K）按需动态加载——
-// UpdateBanner 被入口 AppRoutes 静态引用，原静态导入把整个 markdown 栈打进入口 chunk，
-// 每次启动（含登录页）都需解析。动态化后 markdown 仅在真正打开 release notes 时拉取。
-type ReleaseNotesComponent =
-  (typeof import('@/components/ui/ReleaseNotesMarkdown'))['ReleaseNotesMarkdown'];
+// 与关于页、强制更新共用渲染器；正文仍仅在打开弹窗时挂载。
+// 生产包已通过其他入口包含此模块，额外动态导入只会增加失败后显示源码的分支。
 const MARKDOWN_STYLE: React.CSSProperties = {
   fontSize: 'var(--text-body-sm)',
   color: 'var(--text-secondary)',
@@ -71,26 +69,8 @@ export function UpdateBanner({
 }: UpdateBannerProps) {
   const { t } = useTranslation('common');
   const [notesOpen, setNotesOpen] = useState(false);
-  const [MarkdownRenderer, setMarkdownRenderer] = useState<ReleaseNotesComponent | null>(null);
   // 移动端仅显示图标按钮（竖屏空间有限），桌面端图标 + 文字。
   const isMobile = isMobilePlatformSync();
-
-  // 仅在用户真正打开 release notes 时才拉取 markdown 栈（横幅常驻期间不提前加载）；
-  // 模块缓存保证重复打开零成本，加载失败静默降级为纯文本。
-  useEffect(() => {
-    if (!notesOpen) return;
-    let mounted = true;
-    import('@/components/ui/ReleaseNotesMarkdown')
-      .then((m) => {
-        if (mounted) setMarkdownRenderer(() => m.ReleaseNotesMarkdown);
-      })
-      .catch(() => {
-        // 加载失败静默降级：release notes 以纯文本展示，不阻塞横幅
-      });
-    return () => {
-      mounted = false;
-    };
-  }, [notesOpen]);
 
   const downloadInProgress = state === 'downloading' || state === 'cancelling';
   const progressValue = Math.min(
@@ -256,25 +236,10 @@ export function UpdateBanner({
           isOpen={notesOpen}
           onClose={() => setNotesOpen(false)}
           title={t('release_notes_title', { version })}
-          dialogStyle={{ maxWidth: 480 }}
+          dialogStyle={{ width: 'min(480px, calc(100% - 32px))', minWidth: 0, maxWidth: 480 }}
           priority="default"
         >
-          {MarkdownRenderer ? (
-            <MarkdownRenderer style={MARKDOWN_STYLE}>{releaseNotes}</MarkdownRenderer>
-          ) : (
-            <pre
-              className="release-notes-md"
-              style={{
-                ...MARKDOWN_STYLE,
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                margin: 0,
-                fontFamily: 'inherit',
-              }}
-            >
-              {releaseNotes}
-            </pre>
-          )}
+          <ReleaseNotesMarkdown style={MARKDOWN_STYLE}>{releaseNotes}</ReleaseNotesMarkdown>
         </Dialog>
       )}
     </div>

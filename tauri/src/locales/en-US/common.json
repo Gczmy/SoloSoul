@@ -779,5 +779,6 @@
     "glass_enhanced_desc": "Add liquid refraction on Home and a system-blurred create menu on supported devices. Basic materials are used when unavailable.",
     "create_description": "Choose how you want to record it.",
     "vault_title": "My vault"
-  }
+  },
+  "release_notes_table": "Release notes table"
 }

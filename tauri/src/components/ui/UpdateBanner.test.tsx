@@ -5,7 +5,7 @@ import { isMobilePlatformSync } from '@/lib/platform';
 
 vi.mock('@/lib/platform', () => ({ isMobilePlatformSync: vi.fn(() => false) }));
 
-// P015-R2: 更新说明动态导入——mock 使动态加载解析快速且确定性
+// 此文件验证横幅交互；ReleaseNotesMarkdown.test 使用真实 GFM 解析器。
 vi.mock('@/components/ui/ReleaseNotesMarkdown', () => ({
   ReleaseNotesMarkdown: ({ children }: { children: string }) => (
     <div data-testid="release-notes-md">{children}</div>
@@ -163,14 +163,11 @@ describe('UpdateBanner', () => {
     expect(screen.queryByText('warn')).not.toBeInTheDocument();
   });
 
-  it('P015-R2: release notes 先以纯文本降级渲染，动态加载后切换到 markdown', async () => {
+  it('打开更新说明时直接渲染 Markdown，不闪现或降级为源码', async () => {
     render(<UpdateBanner {...baseProps} releaseNotes="第一行\n- 列表项" />);
     fireEvent.click(screen.getByLabelText('view_release_notes'));
-    // 动态导入未完成前：纯文本 <pre> 兜底（不空白）
-    const pre = document.querySelector('pre.release-notes-md');
-    expect(pre).not.toBeNull();
-    expect(pre?.textContent).toContain('第一行');
-    // 动态导入完成后：切换到 markdown 渲染
+    expect(document.querySelector('pre.release-notes-md')).toBeNull();
+    // 正文仅在打开后挂载，但不经过第二次动态加载。
     expect(await screen.findByTestId('release-notes-md')).toBeInTheDocument();
   });
 });

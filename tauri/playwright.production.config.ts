@@ -4,7 +4,11 @@ import base from './playwright.config';
 // 开发服务器不生成共享 chunk，无法发现仅在生产包中出现的循环初始化错误。
 export default defineConfig({
   ...base,
-  testMatch: ['**/production-startup.spec.ts', '**/native-theme.spec.ts'],
+  testMatch: [
+    '**/production-startup.spec.ts',
+    '**/native-theme.spec.ts',
+    '**/*.production.spec.ts',
+  ],
   testIgnore: [],
   outputDir: 'test-results/production',
   use: { ...base.use, baseURL: 'http://127.0.0.1:1423' },

@@ -4,6 +4,9 @@
 //! 桌面端保留 updater 相同公钥验签；两端共用有界测速、低速换源、续传和取消。
 
 use super::update_download::{cached_progress, download_file, TransferProgress};
+use super::update_preferences::{
+    select_source, Channel as SourceChannel, Metadata, SourcePreferences,
+};
 use super::update_sources::{artifact_candidates, secure_url, UpdateSources};
 use futures::{stream::FuturesUnordered, StreamExt};
 use serde::{Deserialize, Serialize};
@@ -102,35 +105,6 @@ async fn read_small_response(
         bytes.extend_from_slice(&chunk);
     }
     Ok(bytes)
-}
-
-async fn request_small<T: Send>(
-    client: &reqwest::Client,
-    candidates: &[String],
-    limit: usize,
-    parse: impl Fn(&[u8]) -> Result<T, String> + Sync,
-    preferred: impl Fn(&T) -> bool,
-) -> Result<T, String> {
-    let parse = &parse;
-    let mut pending: FuturesUnordered<_> = candidates
-        .iter()
-        .enumerate()
-        .map(|(i, url)| async move {
-            tokio::time::sleep(std::time::Duration::from_millis(i.min(8) as u64 * 350)).await;
-            let bytes = read_small_response(client, url, limit).await?;
-            parse(&bytes)
-        })
-        .collect();
-    let mut last_error = "未配置更新源".to_string();
-    let mut fallback = None;
-    while let Some(result) = pending.next().await {
-        match result {
-            Ok(value) if preferred(&value) => return Ok(value),
-            Ok(value) => fallback = Some(value),
-            Err(error) => last_error = error,
-        }
-    }
-    fallback.ok_or_else(|| format!("所有更新源均不可用: {last_error}"))
 }
 
 /// P003: APK 校验和（`.sha256`）的 minisign 公钥，**复用 embed 注册表密钥对**
@@ -377,42 +351,51 @@ async fn check_desktop_sources(
     }
     let mut seen = std::collections::HashSet::new();
     endpoints.retain(|url| seen.insert(url.clone()));
-    let mut pending: FuturesUnordered<_> = endpoints
-        .iter()
-        .enumerate()
-        .map(|(i, endpoint)| async move {
-            let endpoint = secure_url(endpoint)?;
-            tokio::time::sleep(std::time::Duration::from_millis(i.min(8) as u64 * 350)).await;
-            app.updater_builder()
-                .endpoints(vec![endpoint])
-                .map_err(|e| e.to_string())?
-                .timeout(std::time::Duration::from_secs(8))
-                .configure_client(|client| {
-                    client
-                        .connect_timeout(std::time::Duration::from_secs(3))
-                        .https_only(true)
-                })
-                .build()
-                .map_err(|e| e.to_string())?
-                .check()
-                .await
-                .map_err(|e| e.to_string())
-        })
-        .collect();
-    let mut saw_current = false;
-    let mut last_error = "未配置更新清单".to_string();
-    while let Some(result) = pending.next().await {
-        match result {
-            Ok(Some(update)) => return Ok(Some(update)),
-            Ok(None) => saw_current = true,
-            Err(error) => last_error = error,
-        }
-    }
-    if saw_current {
-        Ok(None)
-    } else {
-        Err(format!("检查更新失败: {last_error}"))
-    }
+    let preferences = SourcePreferences::load(app);
+    let current = semver::Version::parse(&current_version()).map_err(|e| e.to_string())?;
+    let selected = select_source(
+        &endpoints,
+        preferences.preferred(SourceChannel::Manifest, &endpoints),
+        &current,
+        |endpoint| {
+            Box::pin(async move {
+                let endpoint = secure_url(endpoint)?;
+                // 插件在没有更新时返回 None；保留已解析的真实版本用于日志和陈旧源判定。
+                let remote = Arc::new(std::sync::OnceLock::new());
+                let observed = remote.clone();
+                let value = app
+                    .updater_builder()
+                    .endpoints(vec![endpoint])
+                    .map_err(|e| e.to_string())?
+                    .version_comparator(move |current, release| {
+                        let _ = observed.set(release.version.clone());
+                        release.version > current
+                    })
+                    .timeout(std::time::Duration::from_secs(8))
+                    .configure_client(|client| {
+                        client
+                            .connect_timeout(std::time::Duration::from_secs(3))
+                            .https_only(true)
+                    })
+                    .build()
+                    .map_err(|e| e.to_string())?
+                    .check()
+                    .await
+                    .map_err(|e| e.to_string())?;
+                let version = remote.get().cloned().ok_or("更新源未返回版本清单")?;
+                Ok(Metadata { value, version })
+            })
+        },
+    )
+    .await?;
+    log_version_success(
+        "updater 清单",
+        &selected.url,
+        &current.to_string(),
+        &selected.metadata.version,
+    );
+    preferences.remember(SourceChannel::Manifest, &selected.url, selected.full_probe);
+    Ok(selected.metadata.value)
 }
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -604,6 +587,22 @@ fn normalize_to_newer(latest: String, current: &str) -> String {
     }
 }
 
+/// 仅输出公开来源主机和版本，不记录带参数 URL 或账户信息。
+fn log_version_success(channel: &str, url: &str, current: &str, remote: &semver::Version) {
+    let source = url::Url::parse(url)
+        .ok()
+        .and_then(|url| url.host_str().map(str::to_owned))
+        .unwrap_or_default();
+    tracing::info!(
+        "[updater] 成功读取版本信息：通道={}，来源={}，当前版本={}，读取版本={}，发现新版本={}",
+        channel,
+        source,
+        current,
+        remote,
+        version_is_newer(&remote.to_string(), current)
+    );
+}
+
 // ── Helper: APK 缓存路径 ──────────────────────────────────────
 
 /// 将版本号转换为安全的文件名字符串。
@@ -699,19 +698,23 @@ fn github_client() -> Result<reqwest::Client, String> {
 }
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-async fn fetch_github_release(client: &reqwest::Client) -> Result<GitHubRelease, String> {
-    fetch_release(client, None, false).await
+async fn fetch_github_release(
+    app: &tauri::AppHandle,
+    client: &reqwest::Client,
+) -> Result<GitHubRelease, String> {
+    fetch_release(Some(app), client, None, false).await
 }
 
 async fn fetch_github_release_by_tag(
     client: &reqwest::Client,
     tag: &str,
 ) -> Result<GitHubRelease, String> {
-    fetch_release(client, Some(tag), true).await
+    fetch_release(None, client, Some(tag), true).await
 }
 
 /// 优先自有 CDN 的 release.json，GitHub 与允许的代理仅作后备。
 async fn fetch_release(
+    app: Option<&tauri::AppHandle>,
     client: &reqwest::Client,
     tag: Option<&str>,
     require_apk: bool,
@@ -729,33 +732,46 @@ async fn fetch_release(
     };
     candidates.extend(download_candidates(&static_url));
     candidates.extend(download_candidates(&github));
-    request_small(
-        client,
-        &candidates,
-        2 * 1024 * 1024,
-        |bytes| {
+    let preferences = app.map(SourcePreferences::load);
+    let preferred = preferences
+        .as_ref()
+        .and_then(|prefs| prefs.preferred(SourceChannel::Release, &candidates));
+    let current = semver::Version::parse(&current_version()).map_err(|e| e.to_string())?;
+    let selected = select_source(&candidates, preferred, &current, |url| {
+        Box::pin(async move {
+            let bytes = read_small_response(client, url, 2 * 1024 * 1024).await?;
             let release: GitHubRelease =
-                serde_json::from_slice(bytes).map_err(|e| format!("更新清单解析失败: {e}"))?;
-            let version = release
+                serde_json::from_slice(&bytes).map_err(|e| format!("更新清单解析失败: {e}"))?;
+            let raw_version = release
                 .tag_name
                 .strip_prefix('v')
                 .unwrap_or(&release.tag_name);
-            semver::Version::parse(version).map_err(|_| "更新清单版本号无效")?;
-            if tag.is_some_and(|expected| expected.strip_prefix('v').unwrap_or(expected) != version)
-            {
+            let version = semver::Version::parse(raw_version).map_err(|_| "更新清单版本号无效")?;
+            if tag.is_some_and(|expected| {
+                expected.strip_prefix('v').unwrap_or(expected) != raw_version
+            }) {
                 return Err("更新清单版本与请求版本不一致".into());
             }
             if require_apk && !has_complete_apk_assets(&release) {
                 return Err("更新清单缺少完整 APK、校验和及签名资产".into());
             }
-            Ok(release)
-        },
-        |release| {
-            tag.is_some()
-                || version_is_newer(release.tag_name.trim_start_matches('v'), &current_version())
-        },
-    )
-    .await
+            Ok(Metadata {
+                value: release,
+                version,
+            })
+        })
+    })
+    .await?;
+    log_version_success(
+        "Release 元数据",
+        &selected.url,
+        &current.to_string(),
+        &selected.metadata.version,
+    );
+    if let Some(preferences) = preferences {
+        preferences.remember(SourceChannel::Release, &selected.url, selected.full_probe);
+    }
+    Ok(selected.metadata.value)
 }
 
 /// P003: 校验 APK 校验和文件的 minisign 签名（与 embed_model 的
@@ -960,7 +976,7 @@ pub fn android_cached_update(app: tauri::AppHandle) -> Option<AndroidUpdateInfo>
 pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdateInfo, String> {
     let current = current_version();
     let client = github_client()?;
-    let release = fetch_release(&client, None, true).await?;
+    let release = fetch_release(Some(&app), &client, None, true).await?;
 
     // tag_name 格式为 "v2.6.1"，去掉 v 前缀
     let latest = release
@@ -1077,6 +1093,19 @@ fn desktop_info_from_github_release(current: &str, release: &GitHubRelease) -> D
 pub async fn desktop_check_update(app: tauri::AppHandle) -> Result<DesktopUpdateInfo, String> {
     let current = current_version();
 
+    // 上次成功的是 Release 备用通道时，先给它短暂的独占窗口；慢/失败仍回到完整探测。
+    if SourcePreferences::load(&app).prefers_release() {
+        if let Ok(client) = github_client() {
+            if let Ok(Ok(release)) = tokio::time::timeout(
+                std::time::Duration::from_millis(900),
+                fetch_github_release(&app, &client),
+            )
+            .await
+            {
+                return Ok(desktop_info_from_github_release(&current, &release));
+            }
+        }
+    }
     match check_desktop_sources(&app).await {
         Ok(Some(update)) => {
             let body = update.body.unwrap_or_default();
@@ -1106,9 +1135,9 @@ pub async fn desktop_check_update(app: tauri::AppHandle) -> Result<DesktopUpdate
         }
         Err(plugin_err) => {
             // 3. 兜底：通过 GitHub Release API 检测版本（仅需 api.github.com）
-            tracing::error!("[updater] updater 插件检查失败，回退 GitHub API: {plugin_err}");
+            tracing::warn!("[updater] updater 清单暂不可用，尝试 Release 备用通道: {plugin_err}");
             match github_client() {
-                Ok(client) => match fetch_github_release(&client).await {
+                Ok(client) => match fetch_github_release(&app, &client).await {
                     Ok(release) => Ok(desktop_info_from_github_release(&current, &release)),
                     Err(fallback_err) => Err(format!(
                         "检查更新失败: {plugin_err}（GitHub API 兜底失败: {fallback_err}）"

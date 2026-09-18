@@ -22,6 +22,7 @@ pub mod system;
 pub mod template;
 pub mod update;
 mod update_download;
+mod update_preferences;
 mod update_sources;
 pub mod vault;
 pub mod vault_directory;

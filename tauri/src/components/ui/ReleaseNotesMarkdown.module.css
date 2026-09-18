@@ -1,17 +1,32 @@
 .notes {
+  width: 100%;
   min-width: 0;
   max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
   overflow-wrap: anywhere;
 }
 
 /* 表格只在自身区域横向滚动，长文件名不撑宽弹窗或手机页面。 */
 .tableScroll {
+  box-sizing: border-box;
   width: 100%;
   max-width: 100%;
   margin: 8px 0;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
+}
+
+.tableScroll:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
+.tableScroll code {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .tableScroll table {

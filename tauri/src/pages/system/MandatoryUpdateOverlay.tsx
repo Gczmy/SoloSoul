@@ -280,7 +280,7 @@ export function MandatoryUpdateOverlay({
             title={t('common:release_notes_title', {
               version: versionInfo.latestVersion ?? '?',
             })}
-            dialogStyle={{ maxWidth: 480 }}
+            dialogStyle={{ width: 'min(480px, calc(100% - 32px))', minWidth: 0, maxWidth: 480 }}
             priority="default"
             zIndex={10000}
           >

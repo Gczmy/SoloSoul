@@ -776,5 +776,6 @@
     "glass_enhanced_desc": "加入首页液态折射；支持的设备使用系统模糊新建菜单。设备不支持时自动使用基础材质。",
     "create_description": "选择你想记录的方式。",
     "vault_title": "我的资料库"
-  }
+  },
+  "release_notes_table": "更新说明表格"
 }
