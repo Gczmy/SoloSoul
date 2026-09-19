@@ -29,6 +29,7 @@ import { useToastError } from '@/hooks/useToastError';
 import styles from './PluginDashboardPage.module.css';
 import { ICON_SIZE } from '@/lib/constants';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
+import { sortPluginsByName } from '@/lib/pluginOrdering';
 
 type Tab = 'all' | 'installed' | 'running' | 'logs';
 const TIERS: PluginTier[] = ['p0', 'p1', 'p2', 'p3', 'p4'];
@@ -37,6 +38,7 @@ export function PluginDashboardPage() {
   const navigate = useNavigate();
   const handleBack = useEntryBack(() => navigate('/settings'));
   const { t, i18n } = useTranslation(['plugin', 'settings', 'common']);
+  const locale = i18n.language?.startsWith('zh') ? 'zh' : 'en';
   const [activeTab, setActiveTab] = useState<Tab>('all');
   const [pendingRun, setPendingRun] = useState<{
     pluginId: string;
@@ -136,8 +138,8 @@ export function PluginDashboardPage() {
   }, [runningPlugins]);
 
   const displayedPlugins = useMemo(() => {
-    // 发布版本仅显示地址格式化器，开发/调试版本始终显示全部
-    let filtered = marketPlugins;
+    // 发布版本仅显示已开放的插件，开发/调试版本始终显示全部。
+    let filtered = sortPluginsByName(marketPlugins, locale);
     if (!isDevOrDebug()) {
       filtered = filtered.filter(
         (p) =>
@@ -165,7 +167,7 @@ export function PluginDashboardPage() {
         return list;
       }
     }
-  }, [marketPlugins, runningPlugins, activeTab, selectedTier, enabledTiers]);
+  }, [marketPlugins, runningPlugins, activeTab, selectedTier, enabledTiers, locale]);
 
   const handleRun = async (pluginId: string) => {
     const info = marketPlugins.find((p) => p.pluginId === pluginId);

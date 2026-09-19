@@ -92,6 +92,37 @@ async function openMenu(page: Page, fileName = 'Travel report.pdf') {
   return menu;
 }
 
+test('Android Back closes object details and preserves the current filtered workspace', async ({
+  page,
+}) => {
+  await page
+    .locator('.android-category')
+    .filter({ hasText: 'Travel' })
+    .getByRole('button')
+    .first()
+    .click();
+  await expect(page).toHaveURL('/workspace?section=travel');
+  const search = page.getByRole('textbox');
+  await search.fill('Travel');
+  await page.getByTestId('workspace-object-card').getByRole('button').first().click();
+  await expect(page.getByTestId('object-detail-modal')).toBeVisible();
+  await page.goBack();
+  await expect(page.getByTestId('object-detail-modal')).toHaveCount(0);
+  await expect(page).toHaveURL('/workspace?section=travel');
+  await expect(search).toHaveValue('Travel');
+  await expect(page.getByTestId('workspace-object-card')).toHaveCount(1);
+
+  // 再次打开并通过关闭按钮收起：清理详情历史，下一次返回应直接回到首页。
+  await page.getByTestId('workspace-object-card').getByRole('button').first().click();
+  await page.getByTestId('object-detail-close').click();
+  await expect
+    .poll(() => page.evaluate(() => Boolean(window.history.state?.solosoulOverlayLayer)))
+    .toBe(false);
+  await expect(page).toHaveURL('/workspace?section=travel');
+  await page.goBack();
+  await expect(page).toHaveURL('/');
+});
+
 test('global attachment menus preserve actions, confirmations and the trash menu', async ({
   page,
 }) => {
@@ -212,6 +243,14 @@ test('object attachment menu stays above its host and closes without dismissing 
   await expect(
     page.getByRole('button', { name: 'Attachment actions: Travel report.pdf', exact: true }),
   ).toBeVisible();
+  await page.goBack();
+  await expect(
+    page.getByRole('button', { name: 'Attachment actions: Travel report.pdf', exact: true }),
+  ).toHaveCount(0);
+  await expect(detail).toBeVisible();
+  await page.goBack();
+  await expect(detail).toHaveCount(0);
+  await expect(page).toHaveURL('/workspace');
 });
 
 test('object detail keeps primary actions visible and groups secondary actions safely', async ({
@@ -296,7 +335,8 @@ test('object detail keeps primary actions visible and groups secondary actions s
   await menu.getByRole('button', { name: 'History', exact: true }).click();
   await expect(menu).toHaveCount(0);
   await expect(page.getByText(/^Version #1 ·/)).toBeVisible();
-  await page.getByRole('button', { name: 'Close', exact: true }).last().click();
+  await page.goBack();
+  await expect(page.getByText(/^Version #1 ·/)).toHaveCount(0);
   await expect(detail).toBeVisible();
 
   await more.click();

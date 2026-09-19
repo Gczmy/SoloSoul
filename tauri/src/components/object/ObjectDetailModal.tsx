@@ -11,6 +11,8 @@ import {
   ObjectDetailFooter,
 } from '@/components/object/ObjectDetailSections';
 import { ObjectDetailDeleteDialog } from '@/components/object/ObjectDetailDeleteDialog';
+import { useOverlayBackGuard } from '@/hooks/useOverlayBackGuard';
+import { isAndroidSync } from '@/lib/platform';
 import styles from './ObjectDetailModal.module.css';
 
 import { useObjectDetailModal, type ObjectDetailModalProps } from './useObjectDetailModal';
@@ -86,6 +88,19 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
     detailDragRef,
     detailDragState,
   } = useObjectDetailModal(props);
+
+  // 对象详情以本地状态覆盖工作区；Android 返回应先关闭最上层卡片，保留列表路由。
+  useOverlayBackGuard({
+    enabled: isAndroidSync(),
+    innerOpen: showHistory || showAttachments || confirmDelete || showPwDialog,
+    onCloseInner: () => {
+      if (showPwDialog) handlePwDialogClose();
+      else if (confirmDelete) setConfirmDelete(false);
+      else if (showAttachments) setShowAttachments(false);
+      else setShowHistory(false);
+    },
+    onClose,
+  });
 
   return (
     <>

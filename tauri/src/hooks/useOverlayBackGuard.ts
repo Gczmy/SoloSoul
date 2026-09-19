@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 export interface UseOverlayBackGuardOptions {
+  /** 可按平台启用；禁用时不修改页面历史。 */
+  enabled?: boolean;
   /** 内层（如全屏查看器）是否打开：true 时硬件返回先关闭内层，false 时关闭整个浮层。 */
   innerOpen: boolean;
   /** 关闭内层（如全屏查看器回网格）。 */
@@ -72,6 +74,7 @@ function attachStaleMarkerSweeper(): void {
  *  卸载清理（go(-n) 一次性弹出）统一弹出，行为等价且不依赖浏览器导航。
  */
 export function useOverlayBackGuard({
+  enabled = true,
   innerOpen,
   onCloseInner,
   onClose,
@@ -85,11 +88,13 @@ export function useOverlayBackGuard({
   const layersRef = useRef(0);
   /** 本钩子压入的所有标记 ID（供卸载时释放所有权）。 */
   const markerStatesRef = useRef<string[]>([]);
+  const markerIndexesRef = useRef<number[]>([]);
 
   // 浮层层：挂载压入标记 + popstate 分层处理 + 卸载清理。
   // popstate 时浏览器已弹出顶层标记：内层开着则回浮层主体（内层层被弹），
   // 否则关闭整个浮层（浮层层被弹）。
   useEffect(() => {
+    if (!enabled) return;
     attachStaleMarkerSweeper();
     const prevState = window.history.state as { idx?: number } | null;
     const baseMarker = {
@@ -101,9 +106,19 @@ export function useOverlayBackGuard({
     window.history.pushState(baseMarker, '');
     ownedMarkers.add(baseMarker.solosoulOverlayMarkerId);
     markerStatesRef.current.push(baseMarker.solosoulOverlayMarkerId);
+    markerIndexesRef.current.push(baseMarker.idx);
     layersRef.current += 1;
 
-    const onPopState = () => {
+    const onPopState = (event: PopStateEvent) => {
+      const target = event.state as { idx?: number; solosoulOverlayLayer?: boolean } | null;
+      // 残留层由 sweeper 连续跳过，等抵达有效历史条目后再关闭对应浮层。
+      if (target?.solosoulOverlayLayer && !ownedMarkers.has(markerId(target) ?? '')) return;
+      const topIndex = markerIndexesRef.current.at(-1);
+      // 子菜单/相册返回到本浮层标记时，本层并未被弹出，不能一起关闭。
+      // 主动关闭子浮层后的 history.go 清理同样会触发 popstate。
+      if (typeof target?.idx === 'number' && topIndex !== undefined && target.idx >= topIndex)
+        return;
+      markerIndexesRef.current.pop();
       if (layersRef.current > 0) layersRef.current -= 1;
       if (innerOpenRef.current) {
         onCloseInnerRef.current();
@@ -146,13 +161,14 @@ export function useOverlayBackGuard({
       // 所有权，使 sweeper 能在用户后续返回时自动跳过残留标记。
       for (const m of markerStatesRef.current) ownedMarkers.delete(m);
       markerStatesRef.current = [];
+      markerIndexesRef.current = [];
     };
-  }, []);
+  }, [enabled]);
 
   // 内层层：内层打开时再压入一层标记（供返回先回浮层主体）。
   // 关闭统一由 popstate / handleInnerBack 负责，本 effect 无需 cleanup。
   useEffect(() => {
-    if (!innerOpen) return;
+    if (!enabled || !innerOpen) return;
     const prevState = window.history.state as { idx?: number } | null;
     const innerMarker = {
       ...(prevState ?? {}),
@@ -164,8 +180,9 @@ export function useOverlayBackGuard({
     window.history.pushState(innerMarker, '');
     ownedMarkers.add(innerMarker.solosoulOverlayMarkerId);
     markerStatesRef.current.push(innerMarker.solosoulOverlayMarkerId);
+    markerIndexesRef.current.push(innerMarker.idx);
     layersRef.current += 1;
-  }, [innerOpen]);
+  }, [enabled, innerOpen]);
 
   /** 内层返回/关闭按钮：直接关闭内层（回浮层主体）。
    *

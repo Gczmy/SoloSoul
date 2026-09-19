@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { formatPeerName } from '@/lib/syncPeer';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import type { SyncPeer } from '@/stores/syncStore';
+import styles from './DeviceNameEditor.module.css';
 
 export function DeviceNameEditor({
   peer,
@@ -66,21 +67,21 @@ export function DeviceNameEditor({
           setSaving(false);
         }
       }}
-      style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+      className={styles.form}
     >
-      <Input
-        aria-label={t('settings:sync_device_name_label')}
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        maxLength={64}
-        autoFocus
-        disabled={saving || disabled}
-        error={error}
-      />
-      <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)' }}>
-        {t('settings:sync_device_name_hint')}
-      </span>
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+      <div className={styles.field}>
+        <Input
+          aria-label={t('settings:sync_device_name_label')}
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          maxLength={64}
+          autoFocus
+          disabled={saving || disabled}
+          error={error}
+        />
+      </div>
+      <span className={styles.hint}>{t('settings:sync_device_name_hint')}</span>
+      <div className={styles.actions}>
         <Button
           type="button"
           size="sm"

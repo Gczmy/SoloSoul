@@ -36,6 +36,41 @@ describe('useOverlayBackGuard', () => {
     expect(window.location.pathname).toBe('/');
   });
 
+  it('禁用时不占用路由历史或响应返回', () => {
+    const onClose = vi.fn();
+    const push = vi.spyOn(window.history, 'pushState');
+    renderHook(() =>
+      useOverlayBackGuard({ enabled: false, innerOpen: true, onCloseInner: vi.fn(), onClose }),
+    );
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(push).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('子浮层返回仅关闭子层，再次返回才关闭对象详情', () => {
+    const closeDetail = vi.fn();
+    const closeMenu = vi.fn();
+    renderHook(() =>
+      useOverlayBackGuard({ innerOpen: false, onCloseInner: vi.fn(), onClose: closeDetail }),
+    );
+    const detailState = topState();
+    const menu = renderHook(() =>
+      useOverlayBackGuard({ innerOpen: false, onCloseInner: vi.fn(), onClose: closeMenu }),
+    );
+    act(() => {
+      window.history.replaceState(detailState, '');
+      window.dispatchEvent(new PopStateEvent('popstate', { state: detailState }));
+    });
+    expect(closeMenu).toHaveBeenCalledTimes(1);
+    expect(closeDetail).not.toHaveBeenCalled();
+    menu.unmount();
+    act(() => {
+      window.history.replaceState({ idx: 0 }, '');
+      window.dispatchEvent(new PopStateEvent('popstate', { state: { idx: 0 } }));
+    });
+    expect(closeDetail).toHaveBeenCalledTimes(1);
+  });
+
   it('网格态硬件返回（popstate）：关闭整个浮层而非跳路由', () => {
     const onClose = vi.fn();
     const onCloseInner = vi.fn();
@@ -151,7 +186,7 @@ describe('useOverlayBackGuard', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('活跃浮层返回时 sweeper 不跳过（标记仍被认领，由钩子自身监听关闭）', () => {
+  it('子层返回落到活跃浮层标记时不跳过或误关浮层', () => {
     const onClose = vi.fn();
     renderHook(() => useOverlayBackGuard({ innerOpen: false, onCloseInner: vi.fn(), onClose }));
 
@@ -162,9 +197,9 @@ describe('useOverlayBackGuard', () => {
       window.dispatchEvent(new PopStateEvent('popstate', { state: structuredClone(markerState) }));
     });
 
-    // sweeper 不跳过（owned）；钩子自身 popstate 监听关闭浮层
+    // 目标仍是本浮层的标记：说明返回的是其上的子层，而非本浮层。
     expect(window.history.go).not.toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('vault 锁定埋藏两层标记：后续返回连续跳过全部残留标记', () => {
@@ -270,7 +305,7 @@ describe('useOverlayBackGuard', () => {
 
     // 用户真实硬件返回（浏览器弹出新实例标记）：正常关闭浮层
     act(() => {
-      window.dispatchEvent(new PopStateEvent('popstate', { state: window.history.state }));
+      window.dispatchEvent(new PopStateEvent('popstate', { state: { idx: 0 } }));
     });
     expect(onClose2).toHaveBeenCalledTimes(1);
     expect(onClose1).not.toHaveBeenCalled();

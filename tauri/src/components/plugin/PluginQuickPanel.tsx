@@ -18,6 +18,7 @@ import { getNavCardStyle } from '@/components/layout/navCardPosition';
 import { ICON_SIZE } from '@/lib/constants';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { PluginInstallProgress } from './PluginInstallProgress';
+import { sortPluginsByName } from '@/lib/pluginOrdering';
 
 interface PluginQuickPanelProps {
   position: { top: number } | null;
@@ -121,7 +122,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
   }, [onClose, isUninstallConfirmOpen]);
 
   const displayedPlugins = useMemo(() => {
-    let filtered = marketPlugins;
+    let filtered = sortPluginsByName(marketPlugins, locale);
     if (!isDevOrDebug()) {
       filtered = filtered.filter(
         (p) =>
@@ -145,7 +146,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
       default:
         return filtered;
     }
-  }, [marketPlugins, runningPlugins, activeTab]);
+  }, [marketPlugins, runningPlugins, activeTab, locale]);
 
   const activeRunningCount = useMemo(
     () => Object.values(runningPlugins).filter((rp) => !rp.completed).length,

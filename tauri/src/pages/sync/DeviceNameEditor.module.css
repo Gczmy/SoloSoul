@@ -1,0 +1,46 @@
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 16rem) auto;
+  grid-template-areas:
+    'field actions'
+    'hint hint';
+  align-items: start;
+  gap: 8px;
+}
+
+.field {
+  grid-area: field;
+  min-width: 0;
+}
+
+.hint {
+  grid-area: hint;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+/* 窄屏保留完整输入宽度和触控按钮尺寸，避免设备图标挤压名称编辑区。 */
+@media (max-width: 767px) {
+  .form {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'field'
+      'hint'
+      'actions';
+  }
+
+  .actions {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    padding-top: 0;
+  }
+}

@@ -310,3 +310,46 @@ test('安装进度从侧栏同步到完整页面，减少动态效果不影响�
   await expect(page.getByRole('button', { name: 'Install', exact: true })).toBeVisible();
   await expectInstallCalls(page, 1);
 });
+
+test('侧栏反复打开与完整插件页面均按名称保持固定顺序', async ({ page }) => {
+  await setupPlugin(page, 'macos');
+  await page.evaluate(() => {
+    const mocks = (window as unknown as { __E2E_MOCKS__: Record<string, unknown> }).__E2E_MOCKS__;
+    let reads = 0;
+    mocks.plugin_list_all = () => {
+      const plugins = [
+        ['com.solosoul.official.address-fmt', 'Zebra Formatter'],
+        ['com.solosoul.official.watermark', 'alpha Watermark'],
+        ['com.solosoul.official.expiry-guardian', 'Beta Guardian'],
+      ].map(([pluginId, name]) => ({
+        pluginId,
+        installedVersion: '1.0.0',
+        isCompatible: true,
+        hasUpdate: false,
+        tier: 'p1',
+        category: 'productivity',
+        registryEntry: {
+          id: pluginId,
+          name,
+          author: 'SoloSoul',
+          description: '',
+          latestVersion: '1.0.0',
+          params: [],
+        },
+      }));
+      reads++;
+      return reads % 2 ? plugins : plugins.reverse();
+    };
+  });
+  const expected = ['alpha Watermark', 'Beta Guardian', 'Zebra Formatter'];
+  const panel = page.getByRole('dialog', { name: 'Plugins', exact: true });
+  for (let i = 0; i < 3; i++) {
+    await page.keyboard.press('Escape');
+    await expect(panel).toHaveCount(0);
+    await openPluginPanel(page);
+    await expect(panel.locator('[class*="pluginName"]')).toHaveText(expected);
+  }
+  await panel.getByRole('button', { name: 'View All', exact: true }).click();
+  await expect(page).toHaveURL('/plugins');
+  await expect(page.getByRole('heading', { level: 3 })).toHaveText(expected);
+});
