@@ -153,6 +153,7 @@ export function UpdateBanner({
               {releaseNotes && (
                 <button
                   type="button"
+                  data-ui-button="secondary"
                   className={`${styles.button} ${isMobile ? styles.iconButton : ''}`}
                   onClick={() => setNotesOpen(true)}
                   aria-label={t('view_release_notes')}
@@ -164,6 +165,7 @@ export function UpdateBanner({
               )}
               <button
                 type="button"
+                data-ui-button="primary"
                 className={`${styles.button} ${styles.primaryButton} ${isMobile ? styles.iconButton : ''}`}
                 onClick={onUpdate}
                 aria-label={t('update_now')}
@@ -173,7 +175,12 @@ export function UpdateBanner({
                 {!isMobile && t('update_now')}
               </button>
               {!mandatory && (
-                <button type="button" className={styles.button} onClick={onSkip}>
+                <button
+                  type="button"
+                  data-ui-button="secondary"
+                  className={styles.button}
+                  onClick={onSkip}
+                >
                   {t('skip')}
                 </button>
               )}
@@ -183,6 +190,7 @@ export function UpdateBanner({
           {downloadInProgress && (
             <button
               type="button"
+              data-ui-button="secondary"
               className={styles.button}
               onClick={onCancel}
               disabled={state === 'cancelling'}
@@ -194,6 +202,7 @@ export function UpdateBanner({
           {state === 'downloaded' && (
             <button
               type="button"
+              data-ui-button="primary"
               className={`${styles.button} ${styles.primaryButton}`}
               onClick={onInstall}
             >
@@ -204,6 +213,7 @@ export function UpdateBanner({
           {state === 'error' && (
             <button
               type="button"
+              data-ui-button="primary"
               className={`${styles.button} ${styles.primaryButton}`}
               onClick={onUpdate}
             >
@@ -214,6 +224,7 @@ export function UpdateBanner({
           {canClose && (
             <button
               type="button"
+              data-ui-icon-button="neutral"
               className={`${styles.button} ${styles.iconButton} ${styles.closeButton}`}
               onClick={onClose}
               aria-label={t('close')}

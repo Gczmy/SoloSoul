@@ -23,6 +23,8 @@ describe('Android Material 的可读性与平台门控', () => {
           ['--text-primary', '--bg-base'],
           ['--text-secondary', '--bg-elevated'],
           ['--md-on-primary', '--accent-primary'],
+          ['--accent-primary-text', '--accent-primary'],
+          ['--accent-hover-text', '--accent-hover'],
           ['--md-on-primary-container', '--md-primary-container'],
         ]) {
           const a = luminance(tokens[foreground]);

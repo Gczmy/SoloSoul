@@ -30,6 +30,9 @@
   /* Accents */
   --accent-primary: var(--accent-cool);
   --accent-hover: var(--accent-cool-hover);
+  /* JS 在主题与强调色应用后按最终色值更新；这里提供首帧默认配色。 */
+  --accent-primary-text: #000000;
+  --accent-hover-text: #ffffff;
   --accent-danger: #dc2626;
   --accent-danger-hover: #b91d1d;
   --accent-danger-text: #ffffff;
@@ -102,6 +105,8 @@
   /* Accents — desaturated and warm for dark backgrounds */
   --accent-primary: #7a9ab5;
   --accent-hover: #8eafc8;
+  --accent-primary-text: #000000;
+  --accent-hover-text: #000000;
   --accent-danger: #c0392b;
   --accent-danger-hover: #a93226;
   --accent-danger-text: #ffffff;

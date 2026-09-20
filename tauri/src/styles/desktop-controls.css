@@ -114,7 +114,7 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
       var(--accent-primary) var(--desktop-control-accent-opacity),
       transparent
     );
-    --control-ink: white;
+    --control-ink: var(--accent-primary-text);
     --control-edge: color-mix(in srgb, var(--accent-primary) 75%, var(--desktop-control-edge));
     --control-glint: rgb(255 255 255 / 18%);
   }
@@ -229,6 +229,34 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     @media (forced-colors: none) {
       &:active:not(:disabled) {
         background: color-mix(in srgb, var(--control-fill), var(--control-ink) 14%) !important;
+      }
+    }
+    /* 填色主操作使用成对的 hover 色；任意自定义色不能再混入文字色后沿用旧前景。
+       macOS AppBar 主操作是文字按钮，继续使用上面的平面反馈。 */
+    &:is([data-ui-button='primary'], [data-desktop-control='primary']):not(
+        [data-desktop-platform='macos'] [data-appbar] button
+      ) {
+      @media (forced-colors: none) {
+        /* 自定义强调色可能接近横幅背景，保留细边界标明操作范围。 */
+        &:where([data-notification-banner] button) {
+          border-color: color-mix(
+            in srgb,
+            var(--accent-primary-text) 50%,
+            var(--accent-primary)
+          ) !important;
+        }
+      }
+      @media (hover: hover) and (pointer: fine) and (forced-colors: none) {
+        &:hover:not(:disabled) {
+          background: var(--accent-hover) !important;
+          color: var(--accent-hover-text) !important;
+        }
+      }
+      @media (forced-colors: none) {
+        &:active:not(:disabled) {
+          background: var(--accent-hover) !important;
+          color: var(--accent-hover-text) !important;
+        }
       }
     }
   }

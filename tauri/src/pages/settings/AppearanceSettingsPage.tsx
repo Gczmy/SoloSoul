@@ -74,6 +74,7 @@ export function AppearanceSettingsPage() {
       preset:
         preset === 'dark' ? 'warm-stone-dark' : preset === 'light' ? 'warm-stone-light' : 'system',
       accentColor: settings.accentColor as AccentPreset,
+      customAccentHex: settings.customAccentHex,
       backgroundType: 'solid',
       backgroundValue: '',
       defaultLightTheme: settings.defaultLightTheme,
@@ -93,6 +94,7 @@ export function AppearanceSettingsPage() {
             ? 'warm-stone-light'
             : 'system',
       accentColor: accent,
+      customAccentHex: settings.customAccentHex,
       backgroundType: 'solid',
       backgroundValue: '',
       defaultLightTheme: settings.defaultLightTheme,
@@ -111,6 +113,7 @@ export function AppearanceSettingsPage() {
       await applyTheme({
         preset: newTheme === 'dark' ? 'warm-stone-dark' : 'warm-stone-light',
         accentColor: settings.accentColor as AccentPreset,
+        customAccentHex: settings.customAccentHex,
         backgroundType: 'solid',
         backgroundValue: '',
         defaultLightTheme: scheme.mode === 'light' ? scheme.id : settings.defaultLightTheme,

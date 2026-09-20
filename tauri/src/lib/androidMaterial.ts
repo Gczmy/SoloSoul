@@ -46,6 +46,8 @@ export function androidMaterialTokens(dark: boolean, accent: AccentPreset): Reco
     '--border-default': dark ? '#67736A' : '#8A958A',
     '--accent-primary': primary,
     '--accent-hover': primary,
+    '--accent-primary-text': onPrimary,
+    '--accent-hover-text': onPrimary,
     '--accent-bg': container,
     '--accent-bg-hover': container,
     '--md-primary-container': container,

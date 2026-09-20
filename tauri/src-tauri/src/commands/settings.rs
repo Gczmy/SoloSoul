@@ -154,6 +154,8 @@ pub struct UiPreferences {
     pub theme: String,
     pub accent_color: String,
     #[serde(default)]
+    pub custom_accent_hex: String,
+    #[serde(default)]
     pub reduce_motion: bool,
     #[serde(default)]
     pub android_glass: AndroidGlassMode,
@@ -171,6 +173,7 @@ impl Default for UiPreferences {
         Self {
             theme: "system".to_string(),
             accent_color: "ocean".to_string(),
+            custom_accent_hex: String::new(),
             language: String::new(),
             has_seen_onboarding: false,
             notification_permission_requested: false,
@@ -517,6 +520,7 @@ mod tests {
         let prefs = UiPreferences::default();
         assert_eq!(prefs.theme, "system");
         assert_eq!(prefs.accent_color, "ocean");
+        assert_eq!(prefs.custom_accent_hex, "");
         assert_eq!(prefs.language, "");
         assert!(!prefs.has_seen_onboarding);
     }
@@ -525,7 +529,8 @@ mod tests {
     fn test_ui_preferences_serde_roundtrip() {
         let original = UiPreferences {
             theme: "dark".to_string(),
-            accent_color: "rose".to_string(),
+            accent_color: "custom".to_string(),
+            custom_accent_hex: "#777777".to_string(),
             language: "zh-CN".to_string(),
             has_seen_onboarding: true,
             notification_permission_requested: false,
@@ -534,13 +539,15 @@ mod tests {
         };
         let json = serde_json::to_string(&original).unwrap();
         assert!(json.contains("\"theme\":\"dark\""));
-        assert!(json.contains("\"accentColor\":\"rose\""));
+        assert!(json.contains("\"accentColor\":\"custom\""));
+        assert!(json.contains("\"customAccentHex\":\"#777777\""));
         assert!(json.contains("\"language\":\"zh-CN\""));
         assert!(json.contains("\"hasSeenOnboarding\":true"));
         assert!(json.contains("\"notificationPermissionRequested\":false"));
         let restored: UiPreferences = serde_json::from_str(&json).unwrap();
         assert_eq!(restored.theme, original.theme);
         assert_eq!(restored.accent_color, original.accent_color);
+        assert_eq!(restored.custom_accent_hex, original.custom_accent_hex);
         assert_eq!(restored.language, original.language);
         assert!(restored.has_seen_onboarding);
         assert!(restored.reduce_motion);
@@ -552,6 +559,7 @@ mod tests {
         let json = r#"{"theme":"light","accentColor":"ocean","language":"en-US"}"#;
         let restored: UiPreferences = serde_json::from_str(json).unwrap();
         assert!(!restored.reduce_motion);
+        assert!(restored.custom_accent_hex.is_empty());
         assert_eq!(restored.android_glass, AndroidGlassMode::Local);
         assert!(!restored.has_seen_onboarding);
     }
@@ -704,6 +712,7 @@ mod tests {
         let original = UiPreferences {
             theme: "dark".to_string(),
             accent_color: "ocean".to_string(),
+            custom_accent_hex: String::new(),
             language: "zh-CN".to_string(),
             has_seen_onboarding: true,
             notification_permission_requested: false,
@@ -729,6 +738,7 @@ mod tests {
         let original = UiPreferences {
             theme: "dark".to_string(),
             accent_color: "rose".to_string(),
+            custom_accent_hex: String::new(),
             language: "zh-CN".to_string(),
             has_seen_onboarding: false,
             notification_permission_requested: false,

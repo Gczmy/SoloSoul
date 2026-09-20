@@ -87,9 +87,9 @@
   min-height: 32px;
   max-width: 100%;
   padding: 5px 10px;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-default);
   border-radius: 7px;
-  background: transparent;
+  background: var(--bg-toolbar);
   color: var(--text-primary);
   font-family: inherit;
   font-size: var(--text-caption);
@@ -108,9 +108,9 @@
 }
 
 .primaryButton {
-  border-color: transparent;
+  border-color: color-mix(in srgb, var(--accent-primary-text) 50%, var(--accent-primary));
   background: var(--accent-primary);
-  color: white;
+  color: var(--accent-primary-text);
 }
 
 .iconButton {
@@ -121,6 +121,7 @@
 
 .closeButton {
   border-color: transparent;
+  background: transparent;
   color: var(--text-secondary);
 }
 
@@ -130,7 +131,7 @@
 }
 
 .button:focus-visible {
-  outline: 2px solid var(--focus-ring);
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
@@ -141,6 +142,45 @@
 
   .primaryButton:hover:not(:disabled) {
     background: var(--accent-hover);
+    color: var(--accent-hover-text);
+  }
+}
+
+.button:active:not(:disabled) {
+  background: var(--bg-active);
+}
+
+.primaryButton:active:not(:disabled) {
+  background: var(--accent-hover);
+  color: var(--accent-hover-text);
+}
+
+/* 横幅复用平台按钮语义，布局仍由横幅管理；关闭键保留独立的圆形触控区。 */
+:global([data-platform='android']) .button {
+  border-radius: 24px;
+  padding: 10px 16px;
+  font-size: var(--text-body-sm);
+}
+
+:global([data-platform='android']) .iconButton {
+  padding: 0;
+}
+
+:global([data-platform='android']) .button svg {
+  width: 20px;
+  height: 20px;
+}
+
+@media (forced-colors: active) {
+  .button {
+    background: ButtonFace !important;
+    color: ButtonText !important;
+    border: 1px solid ButtonText !important;
+  }
+
+  .primaryButton {
+    background: Highlight !important;
+    color: HighlightText !important;
   }
 }
 

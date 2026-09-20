@@ -87,6 +87,7 @@ interface SettingsState {
 const uiPrefsSchema = z.object({
   theme: z.enum(['light', 'dark', 'system']).optional(),
   accentColor: z.enum(['ocean', 'amber', 'forest', 'rose', 'purple', 'custom']).optional(),
+  customAccentHex: z.string().optional(),
   defaultLightTheme: z.string().optional(),
   defaultDarkTheme: z.string().optional(),
   reduceMotion: z.boolean().optional(),
@@ -195,6 +196,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 const PLAINTEXT_PREF_KEYS = new Set<string>([
   'theme',
   'accentColor',
+  'customAccentHex',
   'language',
   'defaultLightTheme',
   'defaultDarkTheme',
@@ -206,6 +208,7 @@ const PLAINTEXT_PREF_KEYS = new Set<string>([
 const CACHE_PREF_KEYS = new Set<string>([
   'theme',
   'accentColor',
+  'customAccentHex',
   'defaultLightTheme',
   'defaultDarkTheme',
   'reduceMotion',
@@ -231,6 +234,7 @@ function writeUiPrefsCache(settings: AppSettings): void {
       JSON.stringify({
         theme: settings.theme,
         accentColor: settings.accentColor,
+        customAccentHex: settings.customAccentHex,
         reduceMotion: settings.reduceMotion,
         androidGlass: settings.androidGlass,
         defaultLightTheme: settings.defaultLightTheme,
@@ -289,6 +293,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           if (isAndroidGlassMode(cached.androidGlass)) p.androidGlass = cached.androidGlass;
           if (cached.theme) p.theme = cached.theme;
           if (cached.accentColor) p.accentColor = cached.accentColor;
+          if (typeof cached.customAccentHex === 'string')
+            p.customAccentHex = cached.customAccentHex;
           if (cached.defaultLightTheme) p.defaultLightTheme = cached.defaultLightTheme;
           if (cached.defaultDarkTheme) p.defaultDarkTheme = cached.defaultDarkTheme;
           request.assertCurrent();
@@ -300,6 +306,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
                   ? 'warm-stone-light'
                   : 'system',
             accentColor: p.accentColor,
+            customAccentHex: p.customAccentHex,
             backgroundType: 'solid',
             backgroundValue: '',
             defaultLightTheme: p.defaultLightTheme,
@@ -323,6 +330,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           reduceMotion?: boolean;
           androidGlass?: AndroidGlassMode;
           accentColor?: string;
+          customAccentHex?: string;
           language?: string;
           defaultLightTheme?: string;
           defaultDarkTheme?: string;
@@ -335,6 +343,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (isAndroidGlassMode(prefs.androidGlass)) parsed.androidGlass = prefs.androidGlass;
       if (prefs.theme) parsed.theme = prefs.theme as AppSettings['theme'];
       if (prefs.accentColor) parsed.accentColor = prefs.accentColor as AppSettings['accentColor'];
+      if (typeof prefs.customAccentHex === 'string') parsed.customAccentHex = prefs.customAccentHex;
       if (prefs.language) parsed.language = prefs.language;
       if (prefs.defaultLightTheme) parsed.defaultLightTheme = prefs.defaultLightTheme;
       if (prefs.defaultDarkTheme) parsed.defaultDarkTheme = prefs.defaultDarkTheme;
@@ -347,6 +356,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
               ? 'warm-stone-light'
               : 'system',
         accentColor: parsed.accentColor,
+        customAccentHex: parsed.customAccentHex,
         backgroundType: 'solid',
         backgroundValue: '',
         defaultLightTheme: parsed.defaultLightTheme,

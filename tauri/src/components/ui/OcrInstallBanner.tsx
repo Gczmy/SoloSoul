@@ -124,6 +124,7 @@ export function OcrInstallBanner({
           {isError && (
             <button
               type="button"
+              data-ui-button="primary"
               className={`${styles.button} ${styles.primaryButton}`}
               onClick={onRetry}
             >
@@ -132,6 +133,7 @@ export function OcrInstallBanner({
           )}
           <button
             type="button"
+            data-ui-icon-button="neutral"
             className={`${styles.button} ${styles.iconButton} ${styles.closeButton}`}
             aria-label={t('close', { ns: 'common' })}
             title={t('close', { ns: 'common' })}

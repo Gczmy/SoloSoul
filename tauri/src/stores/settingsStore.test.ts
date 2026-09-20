@@ -85,6 +85,29 @@ describe('settingsStore', () => {
   });
 
   describe('loadUiPreferences', () => {
+    it('缓存和 IPC 恢复均保留自定义强调色，并传给主题应用', async () => {
+      localStorageData['solosoul_ui_prefs'] = JSON.stringify({
+        theme: 'dark',
+        accentColor: 'custom',
+        customAccentHex: '#17382A',
+      });
+      vi.mocked(invoke).mockResolvedValue({
+        theme: 'light',
+        accentColor: 'custom',
+        customAccentHex: '#ffffff',
+      });
+      await useSettingsStore.getState().loadUiPreferences();
+      expect(applyTheme).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ accentColor: 'custom', customAccentHex: '#17382A' }),
+      );
+      expect(applyTheme).toHaveBeenLastCalledWith(
+        expect.objectContaining({ accentColor: 'custom', customAccentHex: '#ffffff' }),
+      );
+      expect(useSettingsStore.getState().settings.customAccentHex).toBe('#ffffff');
+      expect(JSON.parse(localStorageData['solosoul_ui_prefs']).customAccentHex).toBe('#ffffff');
+    });
+
     it('should apply cached theme from localStorage instantly', async () => {
       localStorageData['solosoul_ui_prefs'] = JSON.stringify({
         theme: 'dark',
@@ -213,6 +236,16 @@ describe('settingsStore', () => {
   });
 
   describe('updateSetting', () => {
+    it('修改自定义色后同时更新登录偏好与缓存', async () => {
+      vi.mocked(invoke).mockResolvedValue(undefined);
+      await useSettingsStore.getState().updateSetting('acc-1', 'customAccentHex', '#777777');
+      expect(invoke).toHaveBeenCalledWith('ui_update_preference', {
+        key: 'customAccentHex',
+        value: '#777777',
+      });
+      expect(JSON.parse(localStorageData['solosoul_ui_prefs']).customAccentHex).toBe('#777777');
+    });
+
     it('should update setting optimistically and persist', async () => {
       vi.mocked(invoke).mockResolvedValue(undefined);
       await useSettingsStore.getState().updateSetting('acc-1', 'theme', 'dark');
@@ -313,6 +346,8 @@ describe('settingsStore', () => {
         settings: {
           ...useSettingsStore.getState().settings,
           theme: 'dark',
+          accentColor: 'custom',
+          customAccentHex: '#17382A',
           customPages: [
             { id: 'p1', name: 'Page1', iconId: 'document', createdAt: '2024-01-01', sortOrder: 0 },
           ],
@@ -322,6 +357,8 @@ describe('settingsStore', () => {
       useSettingsStore.getState().clearOnVaultLock();
       // UI preferences (theme/language/accent/etc.) must survive vault lock
       expect(useSettingsStore.getState().settings.theme).toBe('dark');
+      expect(useSettingsStore.getState().settings.accentColor).toBe('custom');
+      expect(useSettingsStore.getState().settings.customAccentHex).toBe('#17382A');
       // Account-related state should be reset
       expect(useSettingsStore.getState().settings.customPages).toHaveLength(0);
       expect(useSettingsStore.getState().isLoading).toBe(false);

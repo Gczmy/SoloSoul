@@ -190,6 +190,7 @@ export function AppRoutes() {
                   ? 'warm-stone-light'
                   : 'system',
             accentColor: s.accentColor,
+            customAccentHex: s.customAccentHex,
             backgroundType: s.backgroundType,
             backgroundValue: s.backgroundValue,
             defaultLightTheme: s.defaultLightTheme,
@@ -280,6 +281,7 @@ export function AppRoutes() {
         void applyTheme({
           preset: 'system',
           accentColor: s.accentColor,
+          customAccentHex: s.customAccentHex,
           backgroundType: s.backgroundType,
           backgroundValue: s.backgroundValue,
           defaultLightTheme: s.defaultLightTheme,

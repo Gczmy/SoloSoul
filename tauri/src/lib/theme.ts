@@ -10,6 +10,7 @@ import { withTimeout } from './withTimeout';
 import { syncNativeAppearance } from './nativeWindow';
 import { isAndroidSync } from './platform';
 import { applyAndroidMaterial } from './androidMaterial';
+import { applyAccentTextColors, customAccentHover } from './accentContrast';
 
 const ACCENT_COLORS: Record<AccentPreset, string> = {
   ocean: '#5B7C99',
@@ -74,13 +75,11 @@ export async function syncStatusBarStyle(theme: 'light' | 'dark') {
  *  variant inline. */
 function applyAccentColor(accent: AccentPreset, customHex?: string) {
   const root = document.documentElement;
-  if (accent === 'custom' && customHex) {
+  const customHover = customHex ? customAccentHover(customHex) : null;
+  if (accent === 'custom' && customHex && customHover) {
     root.setAttribute('data-accent', 'custom');
     root.style.setProperty('--accent-primary', customHex);
-    root.style.setProperty(
-      '--accent-hover',
-      'color-mix(in srgb, var(--accent-primary), black 12%)',
-    );
+    root.style.setProperty('--accent-hover', customHover);
     return;
   }
   const preset = accent && ACCENT_COLORS[accent] ? accent : 'ocean';
@@ -138,6 +137,7 @@ export async function applyTheme(config: ThemeConfig) {
   );
   applyScheme(activeScheme);
   if (isAndroidSync()) applyAndroidMaterial(config.accentColor as AccentPreset);
+  else applyAccentTextColors();
 
   // Sync native title bar background with the active theme (desktop only)
   void syncTitleBarColor(config);

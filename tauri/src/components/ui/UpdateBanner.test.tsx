@@ -143,6 +143,19 @@ describe('UpdateBanner', () => {
     expect(screen.queryByRole('button', { name: 'close' })).not.toBeInTheDocument();
   });
 
+  it('下载完成后安装操作保持独立，关闭通知不会触发安装', () => {
+    const onInstall = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <UpdateBanner {...baseProps} state="downloaded" onInstall={onInstall} onClose={onClose} />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'close' }));
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(onInstall).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'install_update' }));
+    expect(onInstall).toHaveBeenCalledOnce();
+  });
+
   it('P012: renders checksum warning strip in available state when provided', () => {
     render(
       <UpdateBanner

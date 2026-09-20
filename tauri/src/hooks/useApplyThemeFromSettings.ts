@@ -21,6 +21,7 @@ export function useApplyThemeFromSettings() {
               ? 'warm-stone-light'
               : 'system',
         accentColor: s.accentColor,
+        customAccentHex: s.customAccentHex,
         backgroundType: s.backgroundType,
         backgroundValue: s.backgroundValue,
         defaultLightTheme: s.defaultLightTheme,
