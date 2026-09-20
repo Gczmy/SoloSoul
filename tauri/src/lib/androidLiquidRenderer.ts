@@ -201,6 +201,16 @@ export function createAndroidLiquidRenderer(
     if (initialize()) invalidate();
   }
   if (!initialize()) return null;
+  // 可见首页在浏览器首帧前完成绘制，避免先呈现 fallback 再跨帧硬切。
+  // Observer 仍负责之后的离屏停绘，不增加持续动画循环。
+  const initialRect = canvas.getBoundingClientRect();
+  visible =
+    initialRect.width > 0 &&
+    initialRect.height > 0 &&
+    initialRect.bottom > 0 &&
+    initialRect.right > 0 &&
+    initialRect.top < window.innerHeight &&
+    initialRect.left < window.innerWidth;
   const intersection = new IntersectionObserver((entries) => {
     visible = entries[0].isIntersecting;
     if (visible) invalidate();
@@ -214,6 +224,7 @@ export function createAndroidLiquidRenderer(
   canvas.addEventListener('webglcontextlost', contextLost);
   canvas.addEventListener('webglcontextrestored', contextRestored);
   document.addEventListener('visibilitychange', visibility);
+  draw();
   return {
     update(next) {
       appearance = next;

@@ -300,6 +300,37 @@ test('glass switches retain navigation geometry, forced colors use solid surface
   await expect(page.locator('html')).toHaveAttribute('data-android-glass', 'enhanced');
 });
 
+test('enhanced home has its final artwork on the first visible frame after navigation', async ({
+  page,
+}) => {
+  await selectGlass(page, 'Enhanced glass');
+  for (const theme of ['Dark', 'Light']) {
+    await page.getByRole('button', { name: theme, exact: true }).click();
+    for (let visit = 0; visit < 3; visit++) {
+      await page.locator('.android-navigation a[href="/tools"]').click();
+      await expect(page.locator('.android-liquid-artwork')).toHaveCount(0);
+      await page.evaluate(() => {
+        const samples: string[] = [];
+        Object.assign(window, { __liquidFirstFrames: samples });
+        function sample() {
+          const artwork = document.querySelector<HTMLElement>('.android-liquid-artwork');
+          if (artwork && artwork.getBoundingClientRect().height > 0) {
+            samples.push(artwork.dataset.liquidReady || 'false');
+          }
+          if (samples.length < 3) requestAnimationFrame(sample);
+        }
+        requestAnimationFrame(sample);
+      });
+      await page.locator('.android-navigation a[href="/"]').click();
+      await expect
+        .poll(() => page.evaluate(() => (window as any).__liquidFirstFrames))
+        .toEqual(['true', 'true', 'true']);
+    }
+    await page.locator('.android-navigation a[href="/settings"]').click();
+    await page.getByText('Theme & Appearance', { exact: true }).click();
+  }
+});
+
 test('liquid artwork recovers context loss, stops when hidden and clears on lock', async ({
   page,
 }) => {

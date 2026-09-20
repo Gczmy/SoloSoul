@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -29,7 +29,7 @@ export function AndroidLiquidArtwork() {
   };
   const appearanceRef = useRef(appearance);
   appearanceRef.current = appearance;
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!canvas.current) return;
     renderer.current = createAndroidLiquidRenderer(
       canvas.current,
