@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Cloud } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
+import { FilterChip } from '@/components/ui/FilterChipGroup';
 import { formatBytes } from '@/lib/utils';
 import { TransferButton } from '@/components/transfer/TransferButton';
 import type { AttachmentInfo, ExportEstimate, CloudTargetInfo } from '@/types/exportImport';
@@ -157,8 +158,9 @@ export function ExportSection({
             {allTags.map((tag) => {
               const isSelected = selectedTags.has(tag);
               return (
-                <button
+                <FilterChip
                   key={tag}
+                  selected={isSelected}
                   onClick={() =>
                     onSetSelectedTags((prev) => {
                       const next = new Set(prev);
@@ -167,18 +169,9 @@ export function ExportSection({
                       return next;
                     })
                   }
-                  style={{
-                    fontSize: 'var(--text-caption)',
-                    padding: '4px 10px',
-                    borderRadius: 12,
-                    border: '1px solid var(--border-subtle)',
-                    background: isSelected ? 'var(--accent-primary)' : 'var(--bg-elevated)',
-                    color: isSelected ? 'white' : 'var(--text-primary)',
-                    cursor: 'pointer',
-                  }}
                 >
                   {tag}
-                </button>
+                </FilterChip>
               );
             })}
           </div>
@@ -268,26 +261,14 @@ export function ExportSection({
                 const cloudPath = `${target.path}${sep}SoloSoul${sep}solosoul_export_${Date.now()}.solosoul`;
                 const isActive = !!savePath && savePath.startsWith(target.path);
                 return (
-                  <button
+                  <FilterChip
                     key={target.path}
-                    type="button"
+                    selected={isActive}
                     onClick={() => onSetSavePath(cloudPath)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '4px 10px',
-                      borderRadius: 999,
-                      border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
-                      background: isActive ? 'var(--accent-soft, rgba(0,0,0,0.05))' : 'transparent',
-                      color: 'var(--text-primary)',
-                      fontSize: 'var(--text-body-sm)',
-                      cursor: 'pointer',
-                    }}
                   >
                     <Cloud size={14} aria-hidden />
                     {target.name}
-                  </button>
+                  </FilterChip>
                 );
               })}
             </div>

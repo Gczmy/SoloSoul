@@ -108,6 +108,9 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     --control-fill: color-mix(in srgb, var(--accent-primary) 10%, var(--desktop-control-fill));
     --control-ink: var(--accent-primary);
   }
+  &[data-ui-choice] {
+    --control-ink: var(--text-primary);
+  }
   &:is([data-ui-button='primary'], [data-desktop-control='primary']) {
     --control-fill: color-mix(
       in srgb,
@@ -127,6 +130,11 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     --control-ink: var(--accent-danger-text);
     --control-edge: var(--accent-danger);
     --control-glint: rgb(255 255 255 / 18%);
+  }
+  &[data-ui-button='warning'] {
+    --control-fill: color-mix(in srgb, var(--warning) 12%, var(--bg-elevated));
+    --control-ink: var(--text-primary);
+    --control-edge: var(--warning);
   }
   &:is(
     [data-ui-button='danger-outline'],

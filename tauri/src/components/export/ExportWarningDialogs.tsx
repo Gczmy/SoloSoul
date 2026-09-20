@@ -39,7 +39,7 @@ export function ExportWarningDialogs({
         >
           <p style={{ marginBottom: 8, fontWeight: 600 }}>{t('settings:weak_password_title')}</p>
           <p style={{ marginBottom: 10 }}>{t('settings:weak_password_confirm')}</p>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             <WarningCancelButton onClick={() => onSetShowWeakPasswordWarning(false)}>
               {t('common:cancel')}
             </WarningCancelButton>
@@ -66,7 +66,7 @@ export function ExportWarningDialogs({
             {t('settings:hint_contains_password_title')}
           </p>
           <p style={{ marginBottom: 10 }}>{t('settings:hint_contains_password_confirm')}</p>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             <WarningCancelButton onClick={() => onSetShowHintWarning(false)}>
               {t('common:cancel')}
             </WarningCancelButton>

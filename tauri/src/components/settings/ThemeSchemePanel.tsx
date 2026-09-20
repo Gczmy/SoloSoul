@@ -269,7 +269,7 @@ function SchemeThumbnail({
             padding: '1px 5px',
             borderRadius: 3,
             background: 'var(--accent-primary)',
-            color: '#fff',
+            color: 'var(--accent-primary-text)',
           }}
         >
           {defaultLabel}

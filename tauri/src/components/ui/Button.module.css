@@ -94,6 +94,17 @@
   transform: scale(0.97);
 }
 
+.warning {
+  background: color-mix(in srgb, var(--warning) 12%, var(--bg-elevated));
+  border: 1px solid var(--warning);
+  color: var(--text-primary);
+}
+@media (hover: hover) and (pointer: fine) {
+  .warning:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--warning) 20%, var(--bg-elevated));
+  }
+}
+
 /* Sizes */
 .sm {
   padding: var(--button-padding, 6px 12px);

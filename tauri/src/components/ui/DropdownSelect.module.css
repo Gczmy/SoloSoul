@@ -120,13 +120,13 @@
 
 .itemActive {
   background: var(--accent-primary);
-  color: white;
+  color: var(--accent-primary-text);
   font-weight: 600;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .itemActive:hover {
     background: var(--accent-hover);
-    color: white;
+    color: var(--accent-hover-text);
   }
 }

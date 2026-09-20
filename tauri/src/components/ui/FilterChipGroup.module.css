@@ -1,0 +1,19 @@
+.choice[data-ui-choice] {
+  /* 选项通过填色与描边表达选中，不用低对比的强调文字承载标签。 */
+  color: var(--text-primary) !important;
+}
+
+.choice[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-elevated));
+  border-color: var(--accent-primary);
+}
+
+.choice:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px;
+}
+
+.choice:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

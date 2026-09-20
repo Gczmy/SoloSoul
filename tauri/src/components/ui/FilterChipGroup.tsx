@@ -1,4 +1,44 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react';
+import styles from './FilterChipGroup.module.css';
+
+/** 单选格式与多选标签共用的选择按钮；选中状态同时提供给辅助技术和平台样式。 */
+export function FilterChip({
+  selected,
+  children,
+  className = '',
+  style,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & { selected: boolean }) {
+  return (
+    <button
+      {...props}
+      type="button"
+      data-ui-choice
+      aria-pressed={selected}
+      className={`interactive-toolbar ${styles.choice} ${className}`}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        maxWidth: '100%',
+        padding: '5px 12px',
+        borderRadius: 6,
+        borderWidth: 1,
+        borderStyle: 'solid',
+        fontSize: 'var(--text-body-sm)',
+        fontWeight: 500,
+        fontFamily: 'inherit',
+        whiteSpace: 'normal',
+        overflowWrap: 'anywhere',
+        cursor: 'pointer',
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
 
 export interface FilterChipOption<T extends string = string> {
   /** 选项值；null 表示「全部」类选项（如 OperationLog 页的 all 筛选） */
@@ -28,7 +68,7 @@ interface FilterChipGroupProps<T extends string = string> {
 
 /**
  * P049: 统一筛选 chip 按钮组。原 5 处手写「isActive 三态 style + hover 双事件 + map」
- * 重复块收敛于此。激活态：accent 边框 + 淡色底 + 阴影；非激活 hover：accent 描边预览。
+ * 重复块收敛于此。激活态使用描边与淡色底，文字保持易读的主题前景。
  */
 export function FilterChipGroup<T extends string = string>({
   options,
@@ -46,10 +86,9 @@ export function FilterChipGroup<T extends string = string>({
       {options.map((opt) => {
         const isActive = value === opt.id;
         return (
-          <button
+          <FilterChip
             key={opt.id ?? 'all'}
-            type="button"
-            aria-pressed={isActive}
+            selected={isActive}
             data-testid={opt.testId}
             onClick={() => {
               if (toggle && isActive) {
@@ -58,20 +97,14 @@ export function FilterChipGroup<T extends string = string>({
                 onChange(opt.id);
               }
             }}
-            className={`interactive-toolbar ${isActive ? 'selected-accent' : ''}`}
             style={{
-              padding: '5px 12px',
               borderRadius: radius,
-              borderWidth: 1,
-              borderStyle: 'solid',
-              boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
               fontSize: size === 'caption' ? 'var(--text-caption)' : 'var(--text-sm)',
               fontWeight,
-              cursor: 'pointer',
             }}
           >
             {opt.label}
-          </button>
+          </FilterChip>
         );
       })}
     </div>

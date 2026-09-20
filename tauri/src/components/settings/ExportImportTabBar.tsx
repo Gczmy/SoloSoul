@@ -37,6 +37,8 @@ export function ExportImportTabBar({ tab, onChange }: ExportImportTabBarProps) {
         return (
           <button
             key={tabKey}
+            type="button"
+            aria-pressed={isActive}
             onClick={() => onChange(tabKey)}
             className={`${styles.tab} ${isActive ? styles.tabActive : ''}`}
           >

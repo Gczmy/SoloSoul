@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
+import { FilterChip } from '@/components/ui/FilterChipGroup';
 import { TransferButton } from '@/components/transfer/TransferButton';
 import { ObjectSelectionTree } from '@/components/transfer/ObjectSelectionTree';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
@@ -114,28 +115,9 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
                       ? t('settings:export_format_txt')
                       : t('settings:export_format_markdown');
             return (
-              <button
-                key={f}
-                type="button"
-                onClick={() => setFormat(f)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  whiteSpace: 'nowrap',
-                  padding: '8px 14px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: active ? 'var(--accent-primary)' : 'var(--bg-elevated)',
-                  color: active ? '#fff' : 'var(--text-primary)',
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  fontSize: 'var(--text-body-sm)',
-                }}
-              >
+              <FilterChip key={f} selected={active} onClick={() => setFormat(f)}>
                 {label}
-              </button>
+              </FilterChip>
             );
           })}
         </div>

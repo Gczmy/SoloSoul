@@ -45,3 +45,22 @@
 .tabIconActive {
   transform: scale(1.05);
 }
+
+:global([data-platform='android']) .container {
+  border-radius: 28px;
+  border: 0;
+  background: var(--bg-inset);
+  flex-wrap: wrap;
+}
+
+:global([data-platform='android']) .tab {
+  min-width: 0;
+  border-radius: 24px;
+  white-space: normal;
+  color: var(--text-secondary);
+}
+
+:global([data-platform='android']) .tabActive {
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+}
