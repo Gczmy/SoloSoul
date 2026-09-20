@@ -62,10 +62,8 @@ export function AttachmentListItem({
   const checkbox = (
     <SelectCheckbox
       checked={checked}
-      onClick={(e) => {
-        e.stopPropagation();
-        onToggleSelect(compositeKey);
-      }}
+      onChange={() => onToggleSelect(compositeKey)}
+      aria-label={item.fileName}
     />
   );
 
@@ -80,12 +78,12 @@ export function AttachmentListItem({
       }}
     >
       {isAndroid ? (
-        // 与全局附件行一致：勾选框只对齐名称首行，不随描述/标签增高而下移。
+        // 与全局附件行一致：保留完整触控目标，并固定在内容顶部而非长描述中部。
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            height: 'calc(var(--text-body-sm) * 1.4)',
+            minHeight: 'max(calc(var(--text-body-sm) * 1.4), var(--select-checkbox-target-size))',
             flexShrink: 0,
           }}
         >

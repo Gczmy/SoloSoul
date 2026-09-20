@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import type { PropertyType, SensitivityLevel } from '@/types/template';
 import { ICON_SIZE } from '@/lib/constants';
 import styles from './DynamicGroupConfig.module.css';
@@ -92,8 +93,7 @@ export function DynamicGroupConfig({
             <div className={styles.typeGrid}>
               {ALL_PROPERTY_TYPES.map((type) => (
                 <label key={type} className={styles.typeChip}>
-                  <input
-                    type="checkbox"
+                  <SelectCheckbox
                     checked={effectiveAllowed.includes(type)}
                     onChange={() => toggleType(type)}
                   />

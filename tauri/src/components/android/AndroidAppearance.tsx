@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Sun, Moon, Monitor, Check } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { PageShell } from '@/components/layout/PageShell';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { applyTheme, getSystemTheme } from '@/lib/theme';
@@ -114,13 +115,11 @@ export function AndroidAppearance() {
               <strong>{t('material.reduce_motion')}</strong>
               <small>{t('material.reduce_motion_desc')}</small>
             </span>
-            <span className="android-switch-target">
-              <input
-                type="checkbox"
-                checked={reduceMotion}
-                onChange={(event) => void update(accountId, 'reduceMotion', event.target.checked)}
-              />
-            </span>
+            <SelectCheckbox
+              checked={reduceMotion}
+              onChange={(checked) => void update(accountId, 'reduceMotion', checked)}
+              aria-label={t('material.reduce_motion')}
+            />
           </label>
         </section>
         <section className="android-theme-section">

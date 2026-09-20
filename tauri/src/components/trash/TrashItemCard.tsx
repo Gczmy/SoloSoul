@@ -121,10 +121,8 @@ export const TrashItemCard = memo(function TrashItemCard({
   const checkbox = (
     <SelectCheckbox
       checked={isSelected}
-      onClick={(e) => {
-        e.stopPropagation();
-        onToggle(item.id);
-      }}
+      aria-label={item.name}
+      onChange={() => onToggle(item.id)}
     />
   );
 

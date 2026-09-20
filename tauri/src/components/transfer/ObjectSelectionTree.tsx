@@ -121,6 +121,7 @@ export function ObjectSelectionTree({
           onClick={() => onSelectAll(selectAll)}
         >
           <SelectCheckbox
+            aria-label={t('common:select_all')}
             checked={totalSelected > 0 && totalSelected === totalObjects}
             indeterminate={totalSelected > 0 && totalSelected < totalObjects}
             onChange={() => onSelectAll(selectAll)}
@@ -176,6 +177,10 @@ export function ObjectSelectionTree({
                 }}
               >
                 <SelectCheckbox
+                  aria-label={t(
+                    `navigation:${group.sectionType}`,
+                    group.pageName ?? group.sectionType,
+                  )}
                   checked={pageChecked}
                   indeterminate={someChecked && !pageChecked}
                   onChange={() => onTogglePage(group.sectionType, allIds)}
@@ -240,6 +245,7 @@ export function ObjectSelectionTree({
                       }}
                     >
                       <SelectCheckbox
+                        aria-label={obj.name}
                         checked={isObjectSelected(obj.id)}
                         onChange={() => onToggleObject(obj.id, group.sectionType, allIds)}
                       />
@@ -334,6 +340,7 @@ export function ObjectSelectionTree({
                                 }}
                               >
                                 <SelectCheckbox
+                                  aria-label={att.fileName}
                                   checked={selectedAttachmentIds.has(att.id)}
                                   onChange={() =>
                                     onToggleAttachment(att.id, obj.id, group.sectionType, allIds)

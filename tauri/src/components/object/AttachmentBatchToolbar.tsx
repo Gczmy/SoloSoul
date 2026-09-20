@@ -46,7 +46,8 @@ export function AttachmentBatchToolbar({
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <SelectCheckbox
           checked={allSelected}
-          onClick={onToggleSelectAll}
+          onChange={onToggleSelectAll}
+          aria-label={allSelected ? t('deselect_all') : t('select_all')}
           indeterminate={selectedCount > 0 && !allSelected}
         />
         <span

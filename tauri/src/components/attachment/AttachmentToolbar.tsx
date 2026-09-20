@@ -309,6 +309,8 @@ export function AttachmentToolbar({
                   checked={allSelected}
                   indeterminate={selectedCount > 0 && !allSelected}
                   disabled={visibleKeys.length === 0}
+                  onChange={onSelectAll}
+                  aria-label={t('common:select_all')}
                 />
               </div>
 

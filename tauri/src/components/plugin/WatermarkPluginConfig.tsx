@@ -315,11 +315,11 @@ export function WatermarkPluginConfig({ onParamsChange }: WatermarkPluginConfigP
             </select>
           </label>
 
-          <label
-            className={styles.fieldInline}
-            onClick={() => setConfig((c) => ({ ...c, tile: !c.tile }))}
-          >
-            <SelectCheckbox checked={config.tile} />
+          <label className={styles.fieldInline}>
+            <SelectCheckbox
+              checked={config.tile}
+              onChange={(tile) => setConfig((c) => ({ ...c, tile }))}
+            />
             <span>{t('watermark.tile', { defaultValue: '平铺水印' })}</span>
           </label>
         </div>
@@ -355,12 +355,12 @@ export function WatermarkPluginConfig({ onParamsChange }: WatermarkPluginConfigP
                   <div key={objectName} className={styles.treeObject}>
                     <div className={styles.treeObjectName}>{objectName}</div>
                     {atts.map((a) => (
-                      <label
-                        key={a.id}
-                        className={styles.treeItem}
-                        onClick={() => handleToggleAttachment(a.id)}
-                      >
-                        <SelectCheckbox checked={selectedIds.has(a.id)} />
+                      <label key={a.id} className={styles.treeItem}>
+                        <SelectCheckbox
+                          checked={selectedIds.has(a.id)}
+                          onChange={() => handleToggleAttachment(a.id)}
+                          aria-label={a.fileName}
+                        />
                         <span className={styles.treeItemName}>{a.fileName}</span>
                         <span className={styles.treeItemMime}>{a.mimeType}</span>
                       </label>

@@ -82,16 +82,14 @@ function AttachmentRowBase({
             style={{
               display: 'flex',
               alignItems: 'center',
-              height: 'calc(var(--text-sm) * 1.4)',
+              minHeight: 'max(calc(var(--text-sm) * 1.4), var(--select-checkbox-target-size))',
               flexShrink: 0,
             }}
           >
             <SelectCheckbox
               checked={isChecked}
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleSelect(compositeKey);
-              }}
+              onChange={() => onToggleSelect(compositeKey)}
+              aria-label={item.fileName}
             />
           </div>
 
@@ -126,10 +124,7 @@ function AttachmentRowBase({
   // 桌面端：两行布局 — 第1行 [勾选框] 附件名称（勾选框与名称行对齐）；
   // 第2行 [格式图标][格式徽章] 附件信息（图标+徽章经 metaLeadingIcon 移入元信息行左侧，
   // 不再占据名称行首部）；操作按钮居右垂直居中。
-  // 勾选框垂直对齐：名称行行高（14px 字号 × 1.4 ≈ 19.6px）大于勾选框自身 14px——
-  // 容器 alignSelf 对齐的是整块（名称+元信息），故用定高容器 + 内部垂直居中，
-  // 使勾选框与名称文本行高中心对齐。行容器显式声明 lineHeight: 1.4，勾选框
-  // 容器高度用同一度量（text-sm × 1.4）推导，两者始终一致、不依赖字体默认值。
+  // 桌面按名称行高居中；共享最小高度同时容纳移动平台的完整触控目标。
   return (
     <div
       key={item.id}
@@ -147,16 +142,14 @@ function AttachmentRowBase({
         style={{
           display: 'flex',
           alignItems: 'center',
-          height: 'calc(var(--text-sm) * 1.4)',
+          minHeight: 'max(calc(var(--text-sm) * 1.4), var(--select-checkbox-target-size))',
           flexShrink: 0,
         }}
       >
         <SelectCheckbox
           checked={isChecked}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleSelect(compositeKey);
-          }}
+          onChange={() => onToggleSelect(compositeKey)}
+          aria-label={item.fileName}
         />
       </div>
 

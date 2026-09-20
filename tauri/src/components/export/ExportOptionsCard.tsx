@@ -50,7 +50,7 @@ export function ExportOptionsCard({
         </div>
         <div
           style={{
-            paddingLeft: 24,
+            paddingInlineStart: 'calc(var(--select-checkbox-target-size) + 8px)',
             fontSize: 'var(--text-badge)',
             color: 'var(--text-tertiary)',
             marginTop: 2,
@@ -77,7 +77,7 @@ export function ExportOptionsCard({
         </label>
         <div
           style={{
-            paddingLeft: 24,
+            paddingInlineStart: 'calc(var(--select-checkbox-target-size) + 8px)',
             fontSize: 'var(--text-badge)',
             color: 'var(--text-tertiary)',
             marginTop: 2,
@@ -96,15 +96,12 @@ export function ExportOptionsCard({
             fontSize: 'var(--text-body-sm)',
           }}
         >
-          <SelectCheckbox
-            checked={includeBehavioral}
-            onChange={(v) => onSetIncludeBehavioral(v)}
-          />
+          <SelectCheckbox checked={includeBehavioral} onChange={(v) => onSetIncludeBehavioral(v)} />
           {t('settings:include_behavioral')}
         </label>
         <div
           style={{
-            paddingLeft: 24,
+            paddingInlineStart: 'calc(var(--select-checkbox-target-size) + 8px)',
             fontSize: 'var(--text-badge)',
             color: 'var(--text-tertiary)',
             marginTop: 2,

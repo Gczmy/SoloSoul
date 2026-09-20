@@ -353,7 +353,10 @@ function WatermarkResultContent({
           destDir: await dirname(dest),
           fileName: await basename(dest),
         });
-        showToast({ type: 'success', message: t('watermark.downloaded', { defaultValue: '已下载' }) });
+        showToast({
+          type: 'success',
+          message: t('watermark.downloaded', { defaultValue: '已下载' }),
+        });
       }
     } catch (err) {
       showToast({
@@ -381,7 +384,10 @@ function WatermarkResultContent({
       );
       showToast({
         type: 'success',
-        message: t('watermark.downloaded_selected', { defaultValue: '已下载 {{count}} 项', count: selected.length }),
+        message: t('watermark.downloaded_selected', {
+          defaultValue: '已下载 {{count}} 项',
+          count: selected.length,
+        }),
       });
     } catch (err) {
       showToast({
@@ -396,7 +402,12 @@ function WatermarkResultContent({
       {/* 全选 + 批量操作（同一行） */}
       <div className={styles.watermarkSelectAll}>
         <div className={styles.watermarkSelectAllLeft} onClick={handleSelectAll}>
-          <SelectCheckbox checked={allSelected} indeterminate={someSelected} />
+          <SelectCheckbox
+            checked={allSelected}
+            indeterminate={someSelected}
+            onChange={handleSelectAll}
+            aria-label={t('watermark.select_all', { defaultValue: '全选' })}
+          />
           <span className={styles.watermarkSelectAllLabel}>
             {t('watermark.select_all', { defaultValue: '全选' })}
           </span>
@@ -431,7 +442,11 @@ function WatermarkResultContent({
         {items.map((item) => (
           <div key={resultItemId(item)} className={styles.watermarkItem}>
             <div className={styles.watermarkMain} onClick={() => handleToggle(resultItemId(item))}>
-              <SelectCheckbox checked={selectedIds.has(resultItemId(item))} />
+              <SelectCheckbox
+                checked={selectedIds.has(resultItemId(item))}
+                onChange={() => handleToggle(resultItemId(item))}
+                aria-label={item.fileName}
+              />
               <div className={styles.watermarkInfo}>
                 <span className={styles.watermarkName} title={item.fileName}>
                   {item.fileName}

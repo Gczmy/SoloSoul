@@ -33,7 +33,7 @@ export function SystemPromptCard({ checked, onToggle }: SystemPromptCardProps) {
           fontSize: 'var(--text-badge)',
           color: 'var(--text-tertiary)',
           marginTop: 4,
-          paddingLeft: 26,
+          paddingInlineStart: 'calc(var(--select-checkbox-target-size) + 10px)',
         }}
       >
         {t('settings:ai_system_prompt_desc')}

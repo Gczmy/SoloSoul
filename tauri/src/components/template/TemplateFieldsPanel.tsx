@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import type {
   ContractRoleBinding,
   PropertyType,
@@ -218,16 +219,10 @@ export function TemplateFieldsPanel({
             color: 'var(--text-primary)',
           }}
         >
-          <input
-            type="checkbox"
+          <SelectCheckbox
             checked={dynamicGroupEnabled}
-            onChange={(e) => onDynamicGroupEnabledChange(e.target.checked)}
-            style={{
-              width: 16,
-              height: 16,
-              cursor: 'pointer',
-              accentColor: 'var(--accent-primary)',
-            }}
+            onChange={onDynamicGroupEnabledChange}
+            size={16}
           />
           {t('editor:enable_dynamic_group')}
         </label>

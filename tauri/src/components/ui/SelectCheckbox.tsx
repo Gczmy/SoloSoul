@@ -1,9 +1,10 @@
-import React, { memo, useMemo } from 'react';
+import { memo, useEffect, useRef, type CSSProperties, type MouseEvent } from 'react';
+import styles from './SelectCheckbox.module.css';
 
 interface SelectCheckboxProps {
   checked: boolean;
-  /** Click handler. If omitted, the click event will bubble naturally to parent elements. */
-  onClick?: (e: React.MouseEvent) => void;
+  /** 兼容旧的行选择回调；新调用优先使用 onChange。 */
+  onClick?: (e: MouseEvent) => void;
   /** Boolean change handler. Preferred for form-like usage. */
   onChange?: (checked: boolean) => void;
   /** Size in pixels. Default 14 (matches GlobalAttachmentManager). */
@@ -14,13 +15,17 @@ interface SelectCheckboxProps {
   indeterminate?: boolean;
   /** Disable interaction and dim the checkbox. */
   disabled?: boolean;
+  /** 未包裹在文本 label 中时必须提供可访问名称。 */
+  'aria-label'?: string;
+  'aria-labelledby'?: string;
+  'aria-describedby'?: string;
+  id?: string;
+  name?: string;
 }
 
 /**
- * A small checkbox component used for batch selection of rows and form toggles.
- * Uses the project's accent color when checked with an SVG checkmark.
- *
- * Default size/radius matches the GlobalAttachmentManager attachment rows.
+ * 原生复选框负责 label、键盘和混合状态；视觉尺寸与触控目标独立。
+ * Android 使用 20px 标记 / 48px 触控目标，iOS 使用 44px 触控目标。
  */
 export const SelectCheckbox = memo(function SelectCheckbox({
   checked,
@@ -30,63 +35,69 @@ export const SelectCheckbox = memo(function SelectCheckbox({
   borderRadius = 3,
   indeterminate = false,
   disabled = false,
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
+  'aria-describedby': ariaDescribedBy,
+  id,
+  name,
 }: SelectCheckboxProps) {
-  const markSize = useMemo(() => Math.max(6, Math.round(size * 0.55)), [size]);
-  const isActive = checked || indeterminate;
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (inputRef.current) inputRef.current.indeterminate = indeterminate;
+  }, [checked, indeterminate]);
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: MouseEvent) => {
+    // 有自己的回调时，不再触发外层行的选择/导航；disabled 也不能借父行切换。
+    if (disabled || onChange || onClick) e.stopPropagation();
     if (disabled) return;
-    onChange?.(!checked);
     onClick?.(e);
   };
 
   return (
-    <div
-      data-testid="select-checkbox"
+    <span
+      className={styles.control}
+      data-ui-checkbox
       onClick={handleClick}
-      style={{
-        width: size,
-        height: size,
-        borderRadius,
-        border: isActive ? 'none' : `1.5px solid var(--accent-primary)`,
-        background: isActive ? 'var(--accent-primary)' : 'transparent',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: disabled ? 'default' : 'pointer',
-        flexShrink: 0,
-        boxSizing: 'border-box',
-        opacity: disabled ? 0.5 : 1,
-        transition: 'all 0.15s ease',
-      }}
-      role="checkbox"
-      aria-checked={indeterminate ? 'mixed' : checked}
-      aria-disabled={disabled}
+      style={
+        {
+          '--checkbox-size': `${size}px`,
+          '--checkbox-radius': `${borderRadius}px`,
+        } as CSSProperties
+      }
     >
-      {checked && !indeterminate && (
+      <input
+        ref={inputRef}
+        id={id}
+        name={name}
+        type="checkbox"
+        data-testid="select-checkbox"
+        className={styles.input}
+        checked={checked}
+        disabled={disabled}
+        readOnly={!onChange}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
+        aria-describedby={ariaDescribedBy}
+        aria-checked={indeterminate ? 'mixed' : checked}
+        onChange={(event) => {
+          if (!disabled) onChange?.(event.target.checked);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === ' ' || event.key === 'Enter') event.stopPropagation();
+        }}
+      />
+      <span className={styles.visual} aria-hidden="true" data-checkbox-visual>
         <svg
-          width={markSize}
-          height={markSize}
           viewBox="0 0 24 24"
           fill="none"
-          stroke="white"
+          stroke="currentColor"
           strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <polyline points="20 6 9 17 4 12" />
+          {indeterminate ? <path d="M5 12h14" /> : <polyline points="20 6 9 17 4 12" />}
         </svg>
-      )}
-      {indeterminate && (
-        <div
-          style={{
-            width: markSize,
-            height: 2,
-            borderRadius: 1,
-            background: 'white',
-          }}
-        />
-      )}
-    </div>
+      </span>
+    </span>
   );
 });

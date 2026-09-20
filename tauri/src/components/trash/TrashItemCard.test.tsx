@@ -63,4 +63,13 @@ describe('TrashItemCard', () => {
     rerender(<TrashItemCard {...baseProps} isSelected={false} />);
     expect(screen.getAllByRole('checkbox')[0]).not.toBeChecked();
   });
+
+  it('selects once without opening the detail card', () => {
+    const onToggle = vi.fn();
+    const onOpenDetail = vi.fn();
+    render(<TrashItemCard {...baseProps} onToggle={onToggle} onOpenDetail={onOpenDetail} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Old Object' }));
+    expect(onToggle).toHaveBeenCalledExactlyOnceWith('trash-1');
+    expect(onOpenDetail).not.toHaveBeenCalled();
+  });
 });

@@ -1,0 +1,132 @@
+/* 描述行使用同一列宽；视觉标记与触控目标分开，避免放大后挤进固定行高。 */
+:global(:root) {
+  --select-checkbox-target-size: 14px;
+}
+
+:global(:root[data-platform='android']) {
+  --select-checkbox-target-size: 48px;
+}
+
+:global(:root[data-platform='ios']) {
+  --select-checkbox-target-size: 44px;
+}
+
+.control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: max(var(--checkbox-size), var(--select-checkbox-target-size));
+  height: max(var(--checkbox-size), var(--select-checkbox-target-size));
+  flex-shrink: 0;
+  vertical-align: middle;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.control > .input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+  z-index: 1;
+}
+
+.visual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--checkbox-platform-size, var(--checkbox-size));
+  height: var(--checkbox-platform-size, var(--checkbox-size));
+  border: 1.5px solid var(--text-secondary);
+  border-radius: var(--checkbox-platform-radius, var(--checkbox-radius));
+  background: transparent;
+  color: var(--accent-primary-text, #fff);
+  pointer-events: none;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    opacity 120ms ease;
+}
+
+.visual svg {
+  width: 78%;
+  height: 78%;
+  opacity: 0;
+}
+
+.input:checked + .visual,
+.input:indeterminate + .visual {
+  border-color: var(--accent-primary);
+  background: var(--accent-primary);
+}
+
+.input:checked + .visual svg,
+.input:indeterminate + .visual svg {
+  opacity: 1;
+}
+
+.input:focus-visible + .visual {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px;
+}
+
+.input:disabled {
+  cursor: default;
+}
+
+.input:disabled + .visual {
+  opacity: 0.45;
+}
+
+:global(:root[data-platform='android']) .control {
+  --checkbox-platform-size: 20px;
+  --checkbox-platform-radius: 4px;
+}
+
+:global(:root[data-platform='ios']) .control {
+  --checkbox-platform-size: 20px;
+  --checkbox-platform-radius: 5px;
+}
+
+:global(html:is([data-user-reduce-motion='true'], [data-reduce-motion='true'])) .visual {
+  transition: none;
+}
+
+@media (forced-colors: active) {
+  .visual {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    background: Canvas;
+    color: HighlightText;
+  }
+
+  .input:checked + .visual,
+  .input:indeterminate + .visual {
+    border-color: Highlight;
+    background: Highlight;
+  }
+
+  .input:disabled + .visual {
+    border-color: GrayText;
+    opacity: 1;
+  }
+
+  .input:disabled:is(:checked, :indeterminate) + .visual {
+    background: GrayText;
+    color: Canvas;
+  }
+
+  .input:focus-visible + .visual {
+    outline-color: Highlight;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visual {
+    transition: none;
+  }
+}

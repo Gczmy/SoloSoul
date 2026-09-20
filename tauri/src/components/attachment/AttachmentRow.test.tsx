@@ -133,15 +133,17 @@ describe('AttachmentRow', () => {
     expect(metaRow!.querySelector('input[type=checkbox]')).toBeNull();
   });
 
-  it('桌面端：勾选框在定高容器内垂直居中（与名称行高中心对齐）', () => {
+  it('桌面端：勾选框容器保留名称行高，并可容纳平台触控目标', () => {
     vi.mocked(isMobilePlatformSync).mockReturnValue(false);
     setupRow();
-    // 勾选框（role=checkbox）外层应为 flex 垂直居中容器，高度 = text-sm × 1.4
+    // 原生 input 外层为触控目标，再外层对齐名称行；最小高度不裁切移动端目标。
     const checkbox = screen.getByRole('checkbox');
-    const wrapper = checkbox.parentElement!;
+    const wrapper = checkbox.closest('[data-ui-checkbox]')!.parentElement!;
     expect(wrapper.style.display).toBe('flex');
     expect(wrapper.style.alignItems).toBe('center');
-    expect(wrapper.style.height).toBe('calc(var(--text-sm) * 1.4)');
+    expect(wrapper.style.minHeight).toBe(
+      'max(calc(var(--text-sm) * 1.4), var(--select-checkbox-target-size))',
+    );
     // 行容器显式 lineHeight 1.4——勾选框中心与名称行高中心同源度量，始终对齐
     const row = wrapper.parentElement!;
     expect(row.style.lineHeight).toBe('1.4');

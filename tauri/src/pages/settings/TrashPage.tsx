@@ -123,6 +123,7 @@ export function TrashPage() {
             >
               <SelectCheckbox
                 checked={allFilteredSelected}
+                aria-label={t('settings:select_all')}
                 indeterminate={!allFilteredSelected && hasSelection}
                 onChange={() =>
                   allFilteredSelected ? clearSelection() : selectAll(filtered.map((i) => i.id))

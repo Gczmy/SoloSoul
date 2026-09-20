@@ -4,6 +4,7 @@
 import { HardDrive } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import type { RetentionPolicy } from './cloudSyncShared';
 import styles from '../CloudSyncPage.module.css';
 
@@ -44,31 +45,28 @@ export function CloudSyncRetentionSection({
         </label>
 
         <label className={styles.retentionItem}>
-          <input
-            type="checkbox"
+          <SelectCheckbox
             checked={retention.daily}
-            onChange={(e) => onRetentionChange({ ...retention, daily: e.target.checked })}
-            className={styles.checkbox}
+            onChange={(checked) => onRetentionChange({ ...retention, daily: checked })}
+            size={16}
           />
           {t('settings:cloud_sync_daily')}
         </label>
 
         <label className={styles.retentionItem}>
-          <input
-            type="checkbox"
+          <SelectCheckbox
             checked={retention.weekly}
-            onChange={(e) => onRetentionChange({ ...retention, weekly: e.target.checked })}
-            className={styles.checkbox}
+            onChange={(checked) => onRetentionChange({ ...retention, weekly: checked })}
+            size={16}
           />
           {t('settings:cloud_sync_weekly')}
         </label>
 
         <label className={styles.retentionItem}>
-          <input
-            type="checkbox"
+          <SelectCheckbox
             checked={retention.monthly}
-            onChange={(e) => onRetentionChange({ ...retention, monthly: e.target.checked })}
-            className={styles.checkbox}
+            onChange={(checked) => onRetentionChange({ ...retention, monthly: checked })}
+            size={16}
           />
           {t('settings:cloud_sync_monthly')}
         </label>

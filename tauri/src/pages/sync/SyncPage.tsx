@@ -310,6 +310,8 @@ function SyncStatusCard({
         <div style={{ paddingTop: 1 }}>
           <SelectCheckbox
             checked={store.uiPrefsSyncEnabled}
+            onChange={onToggleUiPrefsSync}
+            aria-label={t('settings:sync_ui_prefs', { defaultValue: 'Sync UI preferences' })}
             size={16}
             borderRadius={4}
             disabled={!store.syncEnabled || store.isLoading}

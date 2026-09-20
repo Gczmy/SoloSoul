@@ -4,6 +4,7 @@
 import { HardDrive } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import styles from '../CloudSyncPage.module.css';
 
 interface CloudSyncScheduleSectionProps {
@@ -36,13 +37,8 @@ export function CloudSyncScheduleSection({
       </h2>
 
       <div className={styles.fieldGroup}>
-        <label className={styles.label}>
-          <input
-            type="checkbox"
-            checked={enabled}
-            onChange={(e) => onEnabledChange(e.target.checked)}
-            className={styles.checkbox}
-          />
+        <label className={`${styles.label} ${styles.checkboxLabel}`}>
+          <SelectCheckbox checked={enabled} onChange={onEnabledChange} size={16} />
           {t('settings:cloud_sync_auto_sync')}
         </label>
       </div>
@@ -57,36 +53,24 @@ export function CloudSyncScheduleSection({
                 min={60}
                 max={86400}
                 value={intervalSecs}
-                onChange={(e) =>
-                  onIntervalSecs(Math.max(60, parseInt(e.target.value) || 60))
-                }
+                onChange={(e) => onIntervalSecs(Math.max(60, parseInt(e.target.value) || 60))}
                 className={styles.input}
                 style={{ width: 100 }}
-              />
-              {' '}{t('settings:cloud_sync_interval_hint')}
+              />{' '}
+              {t('settings:cloud_sync_interval_hint')}
             </label>
           </div>
 
           <div className={styles.fieldGroup}>
-            <label className={styles.label}>
-              <input
-                type="checkbox"
-                checked={wifiOnly}
-                onChange={(e) => onWifiOnlyChange(e.target.checked)}
-                className={styles.checkbox}
-              />
+            <label className={`${styles.label} ${styles.checkboxLabel}`}>
+              <SelectCheckbox checked={wifiOnly} onChange={onWifiOnlyChange} size={16} />
               {t('settings:cloud_sync_wifi_only')}
             </label>
           </div>
 
           <div className={styles.fieldGroup}>
-            <label className={styles.label}>
-              <input
-                type="checkbox"
-                checked={autoImport}
-                onChange={(e) => onAutoImportChange(e.target.checked)}
-                className={styles.checkbox}
-              />
+            <label className={`${styles.label} ${styles.checkboxLabel}`}>
+              <SelectCheckbox checked={autoImport} onChange={onAutoImportChange} size={16} />
               {t('settings:cloud_sync_auto_import')}
             </label>
             <p className={styles.hint}>{t('settings:cloud_sync_auto_import_hint')}</p>
