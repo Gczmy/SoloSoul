@@ -131,6 +131,7 @@ export const TrashItemCard = memo(function TrashItemCard({
   return (
     <Card
       interactive
+      className="trash-item-card"
       onClick={() => onOpenDetail(item.id)}
       style={{
         cursor: 'pointer',
@@ -138,26 +139,28 @@ export const TrashItemCard = memo(function TrashItemCard({
       }}
     >
       {isMobile ? (
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-          {checkbox}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-              flex: 1,
-              minWidth: 0,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Icon size={ICON_SIZE.xl} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-              {meta}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>{actions}</div>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
+          <div data-trash-item-header style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {checkbox}
+            <Icon
+              data-trash-item-icon
+              size={ICON_SIZE.xl}
+              style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+            />
+            {meta}
           </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>{actions}</div>
         </div>
       ) : (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div data-trash-item-header style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {checkbox}
           <div
             style={{
@@ -168,7 +171,11 @@ export const TrashItemCard = memo(function TrashItemCard({
               minWidth: 0,
             }}
           >
-            <Icon size={ICON_SIZE.xl} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+            <Icon
+              data-trash-item-icon
+              size={ICON_SIZE.xl}
+              style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+            />
             {meta}
           </div>
           {actions}
