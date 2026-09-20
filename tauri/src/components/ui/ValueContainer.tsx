@@ -35,12 +35,20 @@ function useFieldWrapState(value: string) {
   return { ref, state };
 }
 
-export function ValueContainer({ value, children }: { value: string; children: React.ReactNode }) {
+export function ValueContainer({
+  value,
+  children,
+  action,
+}: {
+  value: string;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
   const { ref, state } = useFieldWrapState(value);
   const isFull = state === 'full' || state === 'full-wrapped';
   return (
     <div
-      ref={ref}
+      data-field-value
       style={{
         flex: isFull ? '0 0 100%' : '1 1 0%',
         minWidth: 0,
@@ -49,9 +57,17 @@ export function ValueContainer({ value, children }: { value: string; children: R
         whiteSpace: 'normal',
         wordBreak: 'break-word',
         overflowWrap: 'break-word',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: state === 'full-wrapped' ? 'flex-start' : 'flex-end',
+        gap: 6,
       }}
     >
-      {children}
+      {/* 只测量文本是否换行，避免把移动端按钮的 48px 触控区误判为多行。 */}
+      <div ref={ref} data-field-value-text style={{ minWidth: 0, maxWidth: '100%' }}>
+        {children}
+      </div>
+      {action}
     </div>
   );
 }

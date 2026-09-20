@@ -62,33 +62,38 @@ function ProtectedValue({
 
   return (
     <>
-      <ValueContainer value={display}>
+      <ValueContainer
+        value={display}
+        action={
+          level !== 'public' && (
+            <button
+              type="button"
+              className="interactive-icon"
+              aria-label={`${label}: ${t(masked ? 'sensitivity:click_to_reveal' : 'sensitivity:hide')}`}
+              onClick={() => {
+                if (!masked) hide(identity);
+                else if (level === 'critical') setVerifying(true);
+                else reveal(identity);
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                padding: 3,
+                border: 0,
+                borderRadius: 4,
+                background: 'transparent',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+              }}
+            >
+              {masked ? <Eye size={14} /> : <EyeOff size={14} />}
+            </button>
+          )
+        }
+      >
         <span style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{display}</span>
-        {level !== 'public' && (
-          <button
-            type="button"
-            className="interactive-icon"
-            aria-label={`${label}: ${t(masked ? 'sensitivity:click_to_reveal' : 'sensitivity:hide')}`}
-            onClick={() => {
-              if (!masked) hide(identity);
-              else if (level === 'critical') setVerifying(true);
-              else reveal(identity);
-            }}
-            style={{
-              display: 'inline-flex',
-              verticalAlign: 'middle',
-              marginLeft: 6,
-              padding: 3,
-              border: 0,
-              borderRadius: 4,
-              background: 'transparent',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-            }}
-          >
-            {masked ? <Eye size={14} /> : <EyeOff size={14} />}
-          </button>
-        )}
       </ValueContainer>
       {verifying && (
         <PasswordVerificationDialog
