@@ -84,12 +84,16 @@ export const PinInput = forwardRef<PinInputHandle, PinInputProps>(function PinIn
   return (
     <div
       onClick={handleContainerClick}
+      data-pin-input
       style={{
         position: 'relative',
         display: 'flex',
         gap: 8,
         justifyContent: 'center',
         alignItems: 'center',
+        width: '100%',
+        maxWidth: length * 40 + (length - 1) * 8,
+        minWidth: 0,
         height: 48,
         cursor: 'default',
       }}
@@ -124,7 +128,10 @@ export const PinInput = forwardRef<PinInputHandle, PinInputProps>(function PinIn
       {/* 纯视觉方框 — verifying 时淡出 */}
       <div
         style={{
-          display: 'flex',
+          // 保留桌面的 40px 格宽，窄屏按实际空间等分，避免溢出卡片内边距。
+          display: 'grid',
+          gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))`,
+          width: '100%',
           gap: 8,
           opacity: verifying ? 0 : 1,
           transition: 'opacity 0.25s ease',
@@ -134,8 +141,9 @@ export const PinInput = forwardRef<PinInputHandle, PinInputProps>(function PinIn
         {Array.from({ length }).map((_, i) => (
           <div
             key={i}
+            data-pin-digit
             style={{
-              width: 40,
+              minWidth: 0,
               height: 48,
               display: 'flex',
               alignItems: 'center',

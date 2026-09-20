@@ -40,15 +40,16 @@ export function LoginPasswordView({
 
   return (
     <div
+      data-login-method-region="password"
       style={{
-        minHeight: 152,
+        minHeight: 'var(--login-method-min-height, 152px)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         marginBottom: 16,
       }}
     >
-      <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <SecurePasswordInput
           value={password}
           onChange={onPasswordChange}
@@ -63,12 +64,18 @@ export function LoginPasswordView({
           errorTick={passwordErrorTick}
           reserveErrorSpace
         />
-        {/* 非密码错误区：minHeight 固定占位，错误出现/消失不改变表单高度（防闪烁） */}
-        <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)', minHeight: 20 }}>
-          {displayError}
-        </div>
+        {/* 输入框已预留密码错误行；额外错误仅在发生时占位，避免叠加空白。 */}
+        {displayError && (
+          <div
+            role="alert"
+            style={{ color: 'var(--accent-danger)', fontSize: 'var(--text-body-sm)' }}
+          >
+            {displayError}
+          </div>
+        )}
         <button
           type="submit"
+          data-login-password-submit
           disabled={isLoading}
           aria-busy={isLoading}
           className="interactive-toolbar"

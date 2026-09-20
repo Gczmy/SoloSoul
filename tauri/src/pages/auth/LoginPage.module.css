@@ -50,6 +50,8 @@
 
 /* 登录卡片：保持居中，但允许内容超出时滚动 */
 .loginCard {
+  /* 容纳 Android 的 56px 输入框和 48px 操作区，各正常解锁方式保持等高。 */
+  --login-method-min-height: 160px;
   background: var(--bg-elevated);
   border-radius: 16px;
   padding: 32px;

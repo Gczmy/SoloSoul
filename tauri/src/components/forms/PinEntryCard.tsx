@@ -39,8 +39,9 @@ export function PinEntryCard({
 
   return (
     <div
+      data-login-method-region="pin"
       style={{
-        minHeight: 152,
+        minHeight: 'var(--login-method-min-height, 152px)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',

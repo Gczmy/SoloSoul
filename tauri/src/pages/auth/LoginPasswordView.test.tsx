@@ -18,13 +18,14 @@ describe('LoginPasswordView', () => {
 
   it('renders passwordFieldError inline inside the password input, not duplicated in the standalone error area', () => {
     render(<LoginPasswordView {...baseProps} passwordFieldError="common:invalid_password" />);
-    // 主密码错误只出现在 SecurePasswordInput 行内（红边 + 行内红字），独立错误区为空
-    expect(screen.getAllByText('common:invalid_password')).toHaveLength(1);
+    // 主密码错误仍由输入框展示，不增加第二个重复提示。
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(screen.getByRole('alert')).toHaveTextContent('common:invalid_password');
   });
 
-  it('shows submitError in the standalone error area (non-password errors keep the div)', () => {
+  it('announces a submit error when present', () => {
     render(<LoginPasswordView {...baseProps} submitError="auth:no_account_selected" />);
-    expect(screen.getByText('auth:no_account_selected')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('auth:no_account_selected');
   });
 
   it('renders both independently when both password and submit errors exist', () => {
@@ -35,13 +36,40 @@ describe('LoginPasswordView', () => {
         submitError="auth:no_account_selected"
       />,
     );
-    expect(screen.getAllByText('common:invalid_password')).toHaveLength(1);
-    expect(screen.getByText('auth:no_account_selected')).toBeInTheDocument();
+    expect(screen.getAllByRole('alert').map((alert) => alert.textContent)).toEqual([
+      'common:invalid_password',
+      'auth:no_account_selected',
+    ]);
   });
 
-  it('always reserves the error area height (minHeight div present even without errors)', () => {
-    render(<LoginPasswordView {...baseProps} />);
-    // 独立错误区容器常驻（minHeight 预留），无错误时为空
-    expect(screen.queryByText('auth:no_account_selected')).not.toBeInTheDocument();
+  it('removes the standalone alert after the error is cleared', () => {
+    const { rerender } = render(<LoginPasswordView {...baseProps} />);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    rerender(<LoginPasswordView {...baseProps} submitError="auth:no_account_selected" />);
+    expect(screen.getByRole('alert')).toHaveTextContent('auth:no_account_selected');
+
+    rerender(<LoginPasswordView {...baseProps} />);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'auth:login_button' })).toBeEnabled();
+  });
+
+  it('keeps PIN and submit errors ahead of a biometric fallback error', () => {
+    const { rerender } = render(
+      <LoginPasswordView
+        {...baseProps}
+        pinError="PIN error"
+        submitError="Submit error"
+        bioError="Biometric error"
+      />,
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent('PIN error');
+    expect(screen.queryByText('Submit error')).not.toBeInTheDocument();
+    expect(screen.queryByText('Biometric error')).not.toBeInTheDocument();
+
+    rerender(
+      <LoginPasswordView {...baseProps} submitError="Submit error" bioError="Biometric error" />,
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent('Submit error');
   });
 });

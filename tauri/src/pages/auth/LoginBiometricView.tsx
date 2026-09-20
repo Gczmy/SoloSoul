@@ -36,8 +36,9 @@ export function LoginBiometricView({
 
   return (
     <div
+      data-login-method-region="biometric"
       style={{
-        minHeight: 152,
+        minHeight: 'var(--login-method-min-height, 152px)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -62,10 +63,7 @@ export function LoginBiometricView({
             lineHeight: 1.4,
           }}
         >
-          <AlertTriangle
-            size={ICON_SIZE.md}
-            style={{ flexShrink: 0, marginTop: 1 }}
-          />
+          <AlertTriangle size={ICON_SIZE.md} style={{ flexShrink: 0, marginTop: 1 }} />
           <span>{t('settings:biometric_lockout_desc')}</span>
         </div>
       )}

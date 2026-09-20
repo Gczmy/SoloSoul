@@ -59,9 +59,9 @@ describe('LoginPage 登录方式渲染（防闪烁，方案 B）', () => {
     mockUseLoginPage.mockReturnValue(baseHook());
   });
 
-  it('loginMethod 为 null（可用性探测中）：不渲染主密码表单，渲染固定高度占位', () => {
+  it('loginMethod 为 null（可用性探测中）：不渲染主密码表单，渲染登录方式占位', () => {
     render(<LoginPage />);
-    // 占位（minHeight 152 与各视图一致）——不再「先闪主密码」
+    // 探测期间保留登录方式区域，不再「先闪主密码」。
     expect(screen.getByTestId('login-method-placeholder')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'auth:login_button' })).not.toBeInTheDocument();
   });

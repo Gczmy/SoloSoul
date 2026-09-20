@@ -74,7 +74,7 @@ export function LoginPage() {
 
   return (
     <div className={styles.loginWrapper}>
-      <div className={styles.loginCard}>
+      <div className={styles.loginCard} data-login-card>
         <ShieldLogo size={ICON_SIZE['5xl']} style={{ margin: '0 auto 16px' }} />
         <h1 style={{ fontSize: 'var(--text-page-title)', fontWeight: 600, marginBottom: 4 }}>
           {t('auth:login_title')}
@@ -117,14 +117,15 @@ export function LoginPage() {
           />
         )}
 
-        {/* 登录方式视图区 — minHeight 152 与各视图一致，切换时不产生高度变化 */}
+        {/* 登录方式视图区共用最小高度；错误和长文案仍可自然撑开。 */}
         {/* 占位：loginMethod 尚未确定（首次无缓存 + 可用性探测中）时渲染空占位，
             而不是先闪主密码再跳指纹（方案 B：消灭「先密码后指纹」内容闪现）。 */}
         {loginMethod === null && (
           <div
             data-testid="login-method-placeholder"
+            data-login-method-region="pending"
             style={{
-              minHeight: 152,
+              minHeight: 'var(--login-method-min-height, 152px)',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
