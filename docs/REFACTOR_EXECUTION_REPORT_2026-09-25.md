@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**91**（P1：32；P2：58；P3：1）。
-- 已关闭：**6 / 91**；实际修复（已关闭）：6；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900。
-- 当前处理：**无实施项**；当前阶段：RF-100、RF-900、RF-316、RF-101、RF-102、RF-103 已完成；RF-001 因 R 基线受阻，依赖它的任务暂缓。RF-104 依赖阻塞；下一项为 RF-105。
+- 已关闭：**7 / 91**；实际修复（已关闭）：7；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900。
+- 当前处理：**无实施项**；当前阶段：RF-100、RF-900、RF-316、RF-101、RF-102、RF-103、RF-105 已完成；RF-001 因 R 基线受阻，依赖它的任务暂缓。RF-104 依赖阻塞；下一项为 RF-106。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -136,7 +136,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 8 | [RF-102](#rf-102) | P1 | 搜索查询与缓存写入绑定会话和请求代次 | 无 | [x] 完成 |
 | 9 | [RF-103](#rf-103) | P1 | 聊天会话读取只接纳最新选择 | 无 | [x] 完成 |
 | 10 | [RF-104](#rf-104) | P1 | 聊天流归属明确且最终回复只有一个持久化写入者 | [RF-101](#rf-101)、[RF-103](#rf-103)、[RF-002](#rf-002)、[RF-005](#rf-005) | [ ] 待执行 |
-| 11 | [RF-105](#rf-105) | P1 | 历史未揭示值不再以原文加 blur 渲染 | 无 | [ ] 待执行 |
+| 11 | [RF-105](#rf-105) | P1 | 历史未揭示值不再以原文加 blur 渲染 | 无 | [x] 完成 |
 | 12 | [RF-106](#rf-106) | P1 | 对象详情采用共享字段展示策略 | [RF-100](#rf-100) | [ ] 待执行 |
 | 13 | [RF-107](#rf-107) | P1 | 历史快照迁入共享字段展示策略 | [RF-105](#rf-105)、[RF-106](#rf-106) | [ ] 待执行 |
 | 14 | [RF-108](#rf-108) | P1 | 搜索命中值采用共享保护与验证入口 | [RF-102](#rf-102)、[RF-106](#rf-106) | [ ] 待执行 |
@@ -1387,4 +1387,12 @@ git commit -m "<任务卡的提交标题>"
 - 快捷入口只在 core 已接纳当前会话后记忆 ID；移除 await 后写旧 ID，恢复 effect 随账户变化重新读取，关闭动作在卸载前失效请求。保留在线状态 AbortController，不再与列表读取共用。LLM 规范 §6.7 已补读取边界，流与最终持久化未混入本项。
 - 新增 useLlmChatCore.test.tsx，12 项使用 deferred IPC 验证正文 A/B 倒序、独立列表、最新列表、new/close/unmount、锁定重登、换账户、页面新建、回收站预览关闭与列表、真实快捷组件新建/关闭。与 RF-101 回归一起 20/20 通过（exit 0）。
 - F：完整 TypeScript exit 0；完整 ESLint exit 0，最初有 2 条快捷入口 effect 依赖 warning，改为显式解构稳定函数后 4 个修改文件定向 ESLint exit 0、无 warning；最终真实 hook/快捷组件回归 12/12 通过。默认 npm run test exit 0，143 文件/1,178 测试通过，无跳过，94.72s；之后仅解构等价函数引用并重跑对应回归。修改 TS/TSX 单独 Prettier，git diff --check 通过。
-- 结论：**完成**；本提交（标题含 RF-103），未推送。无关原有文件保留，RF-104 后端依赖仍受 R 基线阻塞。
+- 结论：**完成**；独立提交 `b97778df`，未推送。无关原有文件保留，RF-104 后端依赖仍受 R 基线阻塞。
+
+### RF-105 执行记录
+
+- 修复前 HEAD：`b97778df`。HistoryViewer 原先将 sensitive/critical 原值放入 span，只用 CSS blur 遮蔽，鼠标点击揭示且没有原生键盘按钮语义。
+- 修改：未揭示时只渲染共享 MASK_PLACEHOLDER 的原生 button，title/aria-label 只含揭示提示；已揭示和 public/internal 渲染明文 span。保留 critical 验证、真实 log_write 审计和 useRevealState 的 60 秒 TTL，不夹带 RF-107 的 internal/快照身份策略迁移。对象规范 §5.2 已补实际边界。
+- 单元回归：修改旧 blur 断言为 DOM 原文缺失/原生按钮断言；新增 critical 取消/成功/审计/TTL。初次新增测试误传内部 SnapshotCard 的 onCriticalAccess 属性，TypeScript 和审计断言正确报错；已改为外部 HistoryViewer 的 objectName 并检查实际 log_write，最终 16/16 passed、exit 0（2.90s）。
+- 浏览器：新增 history-keyboard.spec.ts 及仅供 Vite 测试挂载的 historyKeyboardHarness.tsx，真实 HistoryViewer 与合成 IPC；Chrome 验证两项隐藏值的 DOM 不含原文，实际按 Enter/Space 后分别揭示。1/1 passed，exit 0；本次 Vite 服务仍需核对 PID/命令后定向清理，未修改 runner 配置或中断测试用例。仅测试夹具动态挂载组件，不进入生产入口。
+- F：完整 TypeScript、完整 ESLint 均 exit 0、无 warning；默认 npm run test exit 0，143 文件/1,180 测试全部通过，无跳过（86.90s）。修改 TS/TSX 文件单独 Prettier，git diff --check、91 项索引/任务卡一致性检查通过。结论：**完成**；本提交（标题含 RF-105），未推送。

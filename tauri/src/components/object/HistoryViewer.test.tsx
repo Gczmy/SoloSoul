@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { flattenProperties, HistoryViewer } from './HistoryViewer';
 import * as invokeModule from '@tauri-apps/api/core';
 
@@ -430,13 +430,13 @@ describe('HistoryViewer', () => {
     });
 
     // internal 字段明文直接可见（与详情卡片规则一致），无实际 blur 掩码
-    // （renderValueSpan 对非掩码渲染 blur(0px)）
+    // 受保护占位也不再使用 CSS blur。
     const valueEl = screen.getByText('13800138000');
     expect(valueEl).toBeInTheDocument();
-    expect(valueEl.style.filter).toBe('blur(0px)');
+    expect(valueEl.style.filter).toBe('');
   });
 
-  it('renders sensitive field masked with blur until revealed', async () => {
+  it('renders sensitive field as a placeholder without protected text in DOM', async () => {
     mockInvoke.mockImplementation(async (cmd) => {
       if (cmd === 'snapshot_list') {
         return [
@@ -482,10 +482,9 @@ describe('HistoryViewer', () => {
       expect(screen.getByText('密钥')).toBeInTheDocument();
     });
 
-    // sensitive 字段值被 blur 遮罩，明文不直接可见
-    const valueEl = screen.getByText('hidden-value');
-    expect(valueEl).toBeInTheDocument();
-    expect(valueEl.style.filter).toContain('blur');
+    // 占位态 DOM、title 和可访问名称不含敏感值。
+    expect(document.body.innerHTML).not.toContain('hidden-value');
+    expect(screen.getByText('••••••••').tagName).toBe('BUTTON');
   });
 
   it('localizes __dynamic_group__ label even when snapshot __fields name is the raw key', async () => {
@@ -593,11 +592,74 @@ describe('HistoryViewer', () => {
       expect(screen.getByText('密钥')).toBeInTheDocument();
     });
 
-    // 掩码态：无倒计时（值被 blur 遮罩）
+    // 掩码态：无倒计时，原文未渲染。
     expect(screen.queryByTestId('history-reveal-countdown')).not.toBeInTheDocument();
 
     // 点击值揭示（sensitive 直接揭示，无需验证）→ 明文 + 倒计时出现
-    fireEvent.click(screen.getByText('hidden-value'));
+    fireEvent.click(screen.getByText('••••••••'));
     expect(screen.getByTestId('history-reveal-countdown')).toHaveTextContent('60s');
   });
+});
+
+describe('RF-105 concealed history values', () => {
+  afterEach(() => vi.useRealTimers());
+  it.each([false, true])(
+    'critical verification ok=%s preserves masking, auditing and TTL',
+    async (ok) => {
+      mockInvoke.mockImplementation(async (cmd) => {
+        if (cmd === 'snapshot_list')
+          return [
+            {
+              id: 'protected',
+              timestamp: Date.now(),
+              triggeredBy: 'user_edit',
+              diffSummary: 'diff_updated',
+            },
+          ];
+        if (cmd === 'snapshot_get_data')
+          return {
+            properties: {
+              key: 'CRITICAL_SECRET',
+              __fields: { key: { name: 'Key', type: 'text', sensitivityLevel: 'critical' } },
+            },
+            propertyLabels: { key: 'critical' },
+          };
+        return null;
+      });
+      const verify = vi.fn().mockResolvedValue({ ok, method: 'password' });
+
+      const { container } = render(
+        <HistoryViewer
+          objectId="protected"
+          onClose={() => {}}
+          passwordVerify={verify}
+          objectName="Protected object"
+          getFieldSensitivity={() => 'critical'}
+          isFieldDeprecated={() => false}
+          getFieldName={() => 'Key'}
+        />,
+      );
+      const button = await screen.findByText('••••••••');
+      expect(container.innerHTML).not.toContain('CRITICAL_SECRET');
+      expect(button).toHaveAttribute('type', 'button');
+      expect(button).toHaveAccessibleName();
+      vi.useFakeTimers();
+      await act(async () => {
+        fireEvent.click(button, { detail: 0 });
+      });
+      expect(verify).toHaveBeenCalledTimes(1);
+      if (!ok) {
+        expect(container.innerHTML).not.toContain('CRITICAL_SECRET');
+        expect(mockInvoke.mock.calls.filter(([cmd]) => cmd === 'log_write')).toHaveLength(0);
+      } else {
+        expect(screen.getByText('CRITICAL_SECRET')).toBeInTheDocument();
+        expect(mockInvoke.mock.calls.filter(([cmd]) => cmd === 'log_write')).toHaveLength(1);
+        await act(async () => {
+          vi.advanceTimersByTime(60_001);
+        });
+        expect(container.innerHTML).not.toContain('CRITICAL_SECRET');
+        expect(screen.getByText('••••••••')).toBeInTheDocument();
+      }
+    },
+  );
 });

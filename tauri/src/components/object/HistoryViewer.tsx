@@ -9,6 +9,7 @@ import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
 import { useRevealState } from '@/hooks/useRevealState';
+import { MASK_PLACEHOLDER } from '@/lib/masking';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUiStore } from '@/stores/uiStore';
@@ -193,58 +194,45 @@ function SnapshotCard({
   }) => {
     const { value, fieldId, sens, fieldLabel } = opts;
     const revealed = isRevealed(fieldId);
-    // 历史快照：与详情卡片一致——internal/public 直接明文；仅 sensitive/critical 掩码（点击揭示）。
-    // workspace 卡片仍按 masking.shouldMaskSensitivity 对 internal 模糊（模糊层不同）。
+    // RF-105 先移除 sensitive/critical 原文；internal 策略迁移由 RF-107 承接。
     const needsReveal = sens === 'sensitive' || sens === 'critical';
+    if (!needsReveal || revealed) return <span>{value}</span>;
+    const label = t('common:click_to_reveal', { defaultValue: 'Click to reveal' });
     return (
-      <>
-        <span
-          onClick={
-            needsReveal && !revealed
-              ? async () => {
-                  try {
-                    if (sens === 'critical') {
-                      const result = await verifyPassword();
-                      if (result.ok) {
-                        reveal(fieldId);
-                        const criticalFieldName = fieldLabel
-                          ? `${t('editor:field_types.dynamic_group')}: ${fieldLabel}`
-                          : getFieldName(fieldId);
-                        onCriticalAccess?.(criticalFieldName, result.method);
-                      }
-                    } else {
-                      reveal(fieldId);
-                    }
-                  } catch {
-                    /* ignore */
-                  }
-                }
-              : undefined
+      <button
+        type="button"
+        onClick={async () => {
+          try {
+            if (sens === 'critical') {
+              const result = await verifyPassword();
+              if (!result.ok) return;
+              reveal(fieldId);
+              const criticalFieldName = fieldLabel
+                ? `${t('editor:field_types.dynamic_group')}: ${fieldLabel}`
+                : getFieldName(fieldId);
+              onCriticalAccess?.(criticalFieldName, result.method);
+            } else reveal(fieldId);
+          } catch {
+            /* 验证失败保持占位。 */
           }
-          style={{
-            cursor: needsReveal && !revealed ? 'pointer' : 'default',
-            filter: needsReveal && !revealed ? 'blur(5px)' : 'blur(0px)',
-            userSelect: needsReveal && !revealed ? 'none' : 'auto',
-            background:
-              needsReveal && !revealed ? 'var(--bg-subtle, rgba(128,128,128,0.15))' : 'transparent',
-            borderRadius: 2,
-            padding: '0 2px',
-            color: 'var(--text-primary)',
-            transition: 'filter 0.15s ease, background 0.15s ease',
-            willChange: needsReveal && !revealed ? 'filter' : 'auto',
-          }}
-          title={
-            needsReveal && !revealed
-              ? t('common:click_to_reveal', { defaultValue: 'Click to reveal' })
-              : ''
-          }
-        >
-          {value}
-        </span>
-      </>
+        }}
+        title={label}
+        aria-label={label}
+        style={{
+          cursor: 'pointer',
+          userSelect: 'none',
+          background: 'var(--bg-subtle, rgba(128,128,128,0.15))',
+          border: 'none',
+          borderRadius: 2,
+          padding: '0 2px',
+          color: 'var(--text-primary)',
+          font: 'inherit',
+        }}
+      >
+        {MASK_PLACEHOLDER}
+      </button>
     );
   };
-
   const getFieldNameLabel = (field: FlattenedField): string => {
     const rawLabel = field.label || getFieldName(field.key);
     if (field.key === '__dynamic_group__' || rawLabel === '__dynamic_group__') {
