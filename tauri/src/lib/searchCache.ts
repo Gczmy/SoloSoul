@@ -77,6 +77,8 @@ export class SearchCache {
 }
 
 import { SEARCH_CACHE_TTL_MS } from '@/lib/constants';
+import { onRequestSessionChange } from '@/lib/sessionRequests';
 
 /** Singleton search result cache shared by SearchPage and SearchPopover. */
 export const searchCache = new SearchCache(SEARCH_CACHE_TTL_MS);
+onRequestSessionChange(() => searchCache.clear());

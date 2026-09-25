@@ -93,7 +93,11 @@ describe('SearchPopover (P027 渲染回归)', () => {
     fireEvent.change(input, { target: { value: '护照' } });
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('search_unified', expect.any(Object));
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'search_unified',
+        expect.any(Object),
+        expect.objectContaining({ requestIsCurrent: expect.any(Function) }),
+      );
     });
     // 结果行渲染（对象名 + 页面标签 + 元信息）
     await waitFor(() => {

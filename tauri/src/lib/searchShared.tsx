@@ -155,15 +155,7 @@ function resolveFieldLabel(fieldPath: string | undefined, t: TFunction): string 
 }
 
 /** 渲染搜索结果的字段命中提示（字段名/字段值/模板命中）。 */
-export function MatchHint({
-  item,
-  query,
-  t,
-}: {
-  item: SearchItem;
-  query: string;
-  t: TFunction;
-}) {
+export function MatchHint({ item, query, t }: { item: SearchItem; query: string; t: TFunction }) {
   if (!item.matchedField || item.itemType === 'page' || item.matchType === 'name') return null;
   const fieldLabel = resolveFieldLabel(item.matchedField, t);
   if (item.matchType === 'fieldName' && item.matchedValue) {
@@ -176,9 +168,7 @@ export function MatchHint({
     );
   }
   if (item.matchType === 'fieldValue' && item.matchedValue) {
-    return (
-      <FieldValueHint item={item} fieldLabel={fieldLabel} query={query} />
-    );
+    return <FieldValueHint item={item} fieldLabel={fieldLabel} query={query} />;
   }
   if (item.matchType === 'template' && item.matchedValue) {
     return (
@@ -209,8 +199,7 @@ function FieldValueHint({
   const revealKey = useId();
   const levels = (item.sensitivityLevels ?? []) as SensitivityLevel[];
   // 任一非 public 级别参与聚合即掩码（与 WorkspaceObjectCard 口径一致）
-  const needsMask =
-    levels.length > 0 && levels.some((l) => shouldMaskSensitivity(l));
+  const needsMask = levels.length > 0 && levels.some((l) => shouldMaskSensitivity(l));
   if (!needsMask) {
     return (
       <span>
@@ -252,7 +241,11 @@ export function buildSearchCacheParams(
   const isCustom = filter ? customPages.some((p) => p.id === filter) : false;
   const effectiveCollectionType = pageKey ?? (filter && !isCustom ? filter : null);
   const parentId = filter && isCustom ? filter : null;
-  return { cacheKey: searchCache.buildKey(accountId, query, effectiveCollectionType, parentId), effectiveCollectionType, parentId };
+  return {
+    cacheKey: searchCache.buildKey(accountId, query, effectiveCollectionType, parentId),
+    effectiveCollectionType,
+    parentId,
+  };
 }
 
 /** 构造 search_unified 请求体。 */
@@ -301,55 +294,36 @@ export function ensurePageResultExists(items: SearchItem[], pageKey: string): Se
   ];
 }
 
-/**
- * P018: 统一搜索执行（SearchPage / SearchPopover 的 doSearch 收敛）。
- *
- * 共享：空查询守卫、页面名翻译匹配、缓存命中短路、search_unified 调用、
- * 页面结果补齐、缓存写入与错误处理。差异仅剩调用方的 state setter 与 filter。
- */
+/** 只读取并返回结果；缓存与 UI 提交由 useUnifiedSearch 校验会话和查询代次后完成。 */
 export async function runUnifiedSearch(params: {
   accountId: string | null | undefined;
   query: string;
   filter: string | null;
   customPages: CustomPage[];
   t: TFunction;
-  onError: (e: unknown, fallback: string) => void;
-  setResults: (items: SearchItem[]) => void;
-  setHasSearched: (v: boolean) => void;
-  setIsSearching: (v: boolean) => void;
-}): Promise<void> {
-  const { accountId, query, filter, customPages, t, onError } = params;
-  const { setResults, setHasSearched, setIsSearching } = params;
-
+  invokeSearch?: typeof invoke;
+}): Promise<{
+  items: SearchItem[];
+  hasSearched: boolean;
+  cacheKey: string | null;
+  cached: boolean;
+}> {
+  const { accountId, query, filter, customPages, t, invokeSearch = invoke } = params;
   if (!accountId || (!query.trim() && !filter)) {
-    setResults([]);
-    setHasSearched(false);
-    return;
+    return { items: [], hasSearched: false, cacheKey: null, cached: false };
   }
-
-  // filter 存在时不参与页面名翻译匹配（popover 现状；page 页 filter 恒为 null 等价）
   const pageKey = !filter ? matchPageTranslation(query, t) : null;
   const { cacheKey } = buildSearchCacheParams(accountId, query, pageKey, filter, customPages);
   const cached = searchCache.get<SearchItem[]>(cacheKey);
-  if (cached) {
-    setResults(cached);
-    setHasSearched(true);
-    return;
-  }
-
-  setIsSearching(true);
-  setHasSearched(true);
-  try {
-    const res = await invoke<{ items: SearchItem[]; total: number; hasMore: boolean }>(
-      'search_unified',
-      buildSearchPayload(accountId, query, pageKey, filter, customPages),
-    );
-    const items = pageKey ? ensurePageResultExists(res.items, pageKey) : res.items;
-    searchCache.set(cacheKey, items);
-    setResults(items);
-  } catch (e) {
-    onError(e, t('common:search_failed'));
-  } finally {
-    setIsSearching(false);
-  }
+  if (cached) return { items: cached, hasSearched: true, cacheKey, cached: true };
+  const res = await invokeSearch<{ items: SearchItem[]; total: number; hasMore: boolean }>(
+    'search_unified',
+    buildSearchPayload(accountId, query, pageKey, filter, customPages),
+  );
+  return {
+    items: pageKey ? ensurePageResultExists(res.items, pageKey) : res.items,
+    hasSearched: true,
+    cacheKey,
+    cached: false,
+  };
 }

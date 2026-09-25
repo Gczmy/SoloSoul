@@ -12,8 +12,11 @@ export function setRequestSession(accountId: string | null): void {
   for (const clear of sessionCleanups) clear();
 }
 
-export function onRequestSessionChange(clear: () => void): void {
+export function onRequestSessionChange(clear: () => void): () => void {
   sessionCleanups.add(clear);
+  return () => {
+    sessionCleanups.delete(clear);
+  };
 }
 
 type Setter<T> = (partial: T | Partial<T> | ((state: T) => T | Partial<T>)) => void;

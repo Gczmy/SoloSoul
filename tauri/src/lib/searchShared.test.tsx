@@ -62,7 +62,11 @@ describe('searchShared helpers', () => {
 
   it('resolveResultName：系统页面翻译、自定义页面用名称、对象用原始 name', () => {
     expect(
-      resolveResultName({ itemType: 'page', objectId: 'identity', name: 'identity' }, customPages, tMock),
+      resolveResultName(
+        { itemType: 'page', objectId: 'identity', name: 'identity' },
+        customPages,
+        tMock,
+      ),
     ).toBe('Identity');
     expect(
       resolveResultName({ itemType: 'page', objectId: 'cp1', name: 'cp1' }, customPages, tMock),
@@ -163,7 +167,13 @@ describe('searchShared helpers', () => {
 
     // 已存在则不重复
     const withPage = [
-      { objectId: 'identity', name: 'identity', typeId: 'identity', itemType: 'page', relevance: 1 },
+      {
+        objectId: 'identity',
+        name: 'identity',
+        typeId: 'identity',
+        itemType: 'page',
+        relevance: 1,
+      },
     ] as SearchItem[];
     const result2 = ensurePageResultExists(withPage, 'identity');
     expect(result2.length).toBe(1);
@@ -202,113 +212,49 @@ describe('searchShared helpers', () => {
   });
 });
 
-describe('runUnifiedSearch（P018 共享 doSearch）', () => {
-  const setResults = vi.fn();
-  const setHasSearched = vi.fn();
-  const setIsSearching = vi.fn();
-  const onError = vi.fn();
-  const tSearch = tMock;
-
+describe('runUnifiedSearch（只返回结果）', () => {
+  const params = { accountId: 'acc-1', query: 'xyz', filter: null, customPages, t: tMock };
   beforeEach(() => {
-    setResults.mockClear();
-    setHasSearched.mockClear();
-    setIsSearching.mockClear();
-    onError.mockClear();
     searchCache.clear();
     vi.mocked(invokeCommand).mockReset();
     vi.mocked(invokeCommand).mockResolvedValue({ items: [], total: 0, hasMore: false });
   });
-
-  it('空查询且无 filter：清空结果且不发起 invoke', async () => {
-    await runUnifiedSearch({
-      accountId: 'acc-1',
-      query: '   ',
-      filter: null,
-      customPages,
-      t: tSearch,
-      onError,
-      setResults,
-      setHasSearched,
-      setIsSearching,
+  it('空查询且无 filter 不发请求', async () => {
+    expect(await runUnifiedSearch({ ...params, query: ' ' })).toMatchObject({
+      items: [],
+      hasSearched: false,
     });
-    expect(setResults).toHaveBeenCalledWith([]);
-    expect(setHasSearched).toHaveBeenCalledWith(false);
     expect(invokeCommand).not.toHaveBeenCalled();
   });
-
-  it('有 filter 时空查询仍发起搜索（popover 按分类筛选）', async () => {
-    await runUnifiedSearch({
-      accountId: 'acc-1',
-      query: '',
-      filter: 'cp1',
-      customPages,
-      t: tSearch,
-      onError,
-      setResults,
-      setHasSearched,
-      setIsSearching,
-    });
-    expect(invokeCommand).toHaveBeenCalledWith('search_unified', expect.any(Object));
+  it('有 filter 的空查询仍发起搜索', async () => {
+    await runUnifiedSearch({ ...params, query: '', filter: 'cp1' });
+    expect(invokeCommand).toHaveBeenCalledWith(
+      'search_unified',
+      expect.objectContaining({ parentId: 'cp1' }),
+    );
   });
-
-  it('成功路径：设置结果并写入缓存、状态收敛', async () => {
-    vi.mocked(invokeCommand).mockResolvedValue({
-      items: [{ objectId: 'o1', name: 'Doc', typeId: 'note', relevance: 5 }],
-      total: 1,
-      hasMore: false,
-    });
-    await runUnifiedSearch({
-      accountId: 'acc-1',
-      query: 'xyz',
-      filter: null,
-      customPages,
-      t: tSearch,
-      onError,
-      setResults,
-      setHasSearched,
-      setIsSearching,
-    });
-    expect(setIsSearching).toHaveBeenNthCalledWith(1, true);
-    expect(setResults).toHaveBeenCalledWith([
-      expect.objectContaining({ objectId: 'o1', name: 'Doc' }),
-    ]);
-    expect(setHasSearched).toHaveBeenCalledWith(true);
-    expect(setIsSearching).toHaveBeenLastCalledWith(false);
-    expect(onError).not.toHaveBeenCalled();
+  it('成功只返回结果，不在会话校验前写缓存', async () => {
+    const items = [{ objectId: 'o1', name: 'Doc', typeId: 'note', relevance: 5 }];
+    vi.mocked(invokeCommand).mockResolvedValue({ items });
+    const result = await runUnifiedSearch(params);
+    expect(result.items).toEqual(items);
+    expect(result.hasSearched).toBe(true);
+    expect(searchCache.get(result.cacheKey!)).toBeNull();
   });
-
-  it('失败路径：调用 onError 且收敛 searching 状态', async () => {
+  it('失败交给调用方判定是否仍应显示错误', async () => {
     vi.mocked(invokeCommand).mockRejectedValue(new Error('boom'));
-    await runUnifiedSearch({
-      accountId: 'acc-1',
-      query: 'xyz',
-      filter: null,
-      customPages,
-      t: tSearch,
-      onError,
-      setResults,
-      setHasSearched,
-      setIsSearching,
-    });
-    expect(onError).toHaveBeenCalledTimes(1);
-    expect(setIsSearching).toHaveBeenLastCalledWith(false);
+    await expect(runUnifiedSearch(params)).rejects.toThrow('boom');
   });
-
-  it('系统页名查询：结果缺失页面时合成 page 项', async () => {
-    vi.mocked(invokeCommand).mockResolvedValue({ items: [], total: 0, hasMore: false });
-    await runUnifiedSearch({
-      accountId: 'acc-1',
-      query: 'Identity',
-      filter: null,
-      customPages,
-      t: tSearch,
-      onError,
-      setResults,
-      setHasSearched,
-      setIsSearching,
-    });
-    expect(setResults).toHaveBeenCalledWith([
+  it('系统页名查询仍合成缺失的页面项', async () => {
+    const result = await runUnifiedSearch({ ...params, query: 'Identity' });
+    expect(result.items).toEqual([
       expect.objectContaining({ objectId: 'identity', itemType: 'page' }),
     ]);
+  });
+  it('缓存命中不重复请求', async () => {
+    const items = [{ objectId: 'cached', name: 'Doc', typeId: 'note', relevance: 5 }];
+    searchCache.set(searchCache.buildKey('acc-1', 'xyz'), items);
+    expect(await runUnifiedSearch(params)).toMatchObject({ items, cached: true });
+    expect(invokeCommand).not.toHaveBeenCalled();
   });
 });

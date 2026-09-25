@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -19,7 +19,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
-import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
+import { useUnifiedSearch } from '@/hooks/useUnifiedSearch';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import {
@@ -28,7 +28,6 @@ import {
   SearchItem,
   resolveResultIcon,
   resolveResultName,
-  runUnifiedSearch,
   sortSensitivityLevels,
 } from '@/lib/searchShared';
 import styles from './SearchPopover.module.css';
@@ -79,22 +78,27 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   const { onError } = useToastError();
   const { t } = useTranslation(['common', 'navigation', 'settings', 'sensitivity', 'editor']);
 
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchItem[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
+  const {
+    query,
+    filter: selectedFilter,
+    results,
+    isSearching,
+    hasSearched,
+    changeQuery,
+    changeFilter,
+    searchNow,
+    clear,
+  } = useUnifiedSearch({ accountId, customPages, t, onError });
   const [recent, setRecent] = useState<string[]>(() => loadRecent(accountId));
 
   // P005 核验补修：账户变化时按新账户重新加载最近搜索词
   useEffect(() => {
     setRecent(loadRecent(accountId));
   }, [accountId]);
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [detailObjectId, setDetailObjectId] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const filterBarRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -107,7 +111,6 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [onClose, detailObjectId]);
 
@@ -125,35 +128,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     return () => document.removeEventListener('mousedown', handleOutsideMouseDown);
   }, [onClose, detailObjectId]);
 
-  // P018: doSearch 收敛到 lib/searchShared 的 runUnifiedSearch（SearchPage 共用）
-  const doSearch = useCallback(
-    async (q: string, filter: string | null) => {
-      await runUnifiedSearch({
-        accountId,
-        query: q,
-        filter,
-        customPages,
-        t,
-        onError,
-        setResults,
-        setHasSearched,
-        setIsSearching,
-      });
-    },
-    [accountId, customPages, onError, t],
-  );
-
-  const handleChange = (val: string) => {
-    setQuery(val);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => doSearch(val, selectedFilter), DEBOUNCE_DELAY_MS);
-  };
-
-  const handleFilter = (key: string | null) => {
-    const next = selectedFilter === key ? null : key;
-    setSelectedFilter(next);
-    doSearch(query, next);
-  };
+  const handleFilter = (key: string | null) => changeFilter(selectedFilter === key ? null : key);
 
   const handleSubmit = () => {
     if (query.trim()) {
@@ -204,10 +179,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     }
   };
 
-  const handleRecentClick = (q: string) => {
-    setQuery(q);
-    doSearch(q, selectedFilter);
-  };
+  const handleRecentClick = searchNow;
 
   const showDefaultView = !hasSearched || (query.trim() === '' && !selectedFilter);
 
@@ -258,7 +230,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
               className={styles.input}
               placeholder={t('common:search_placeholder')}
               value={query}
-              onChange={(e) => handleChange(e.target.value)}
+              onChange={(e) => changeQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSubmit();
               }}
@@ -267,10 +239,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
               <button
                 className={styles.clearBtn}
                 onClick={() => {
-                  setQuery('');
-                  setResults([]);
-                  setHasSearched(false);
-                  if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                  clear();
                 }}
                 aria-label={t('common:clear')}
                 tabIndex={-1}

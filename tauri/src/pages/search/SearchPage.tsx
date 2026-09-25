@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEntryBack } from '@/hooks/useEntryBack';
 import { isAndroidSync } from '@/lib/platform';
@@ -15,14 +15,13 @@ import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
+import { useUnifiedSearch } from '@/hooks/useUnifiedSearch';
 import {
   Highlight,
   MatchHint,
   SearchItem,
   resolveResultIcon,
   resolveResultName,
-  runUnifiedSearch,
   sortSensitivityLevels,
 } from '@/lib/searchShared';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
@@ -36,45 +35,16 @@ export function SearchPage() {
   const { onError } = useToastError();
   const { t } = useTranslation(['common', 'navigation', 'settings', 'editor']);
   const customPages = useSettingsStore((s) => s.settings.customPages);
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchItem[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
+  const { query, results, isSearching, hasSearched, changeQuery, clear } = useUnifiedSearch({
+    accountId,
+    customPages,
+    t,
+    onError,
+  });
 
   // Object detail + attachment state
   const [detailObjectId, setDetailObjectId] = useState<string | null>(null);
   const [attachmentObjId, setAttachmentObjId] = useState<string | null>(null);
-
-  // P018: doSearch 收敛到 lib/searchShared 的 runUnifiedSearch（SearchPopover 共用）
-  const doSearch = useCallback(
-    async (q: string) => {
-      await runUnifiedSearch({
-        accountId,
-        query: q,
-        filter: null,
-        customPages,
-        t,
-        onError,
-        setResults,
-        setHasSearched,
-        setIsSearching,
-      });
-    },
-    [accountId, customPages, onError, t],
-  );
-
-  const handleChange = (val: string) => {
-    setQuery(val);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => doSearch(val), DEBOUNCE_DELAY_MS);
-  };
 
   const handleClickResult = (item: SearchItem) => {
     if (item.itemType === 'page') {
@@ -145,12 +115,8 @@ export function SearchPage() {
         <Input
           placeholder={t('common:search_placeholder')}
           value={query}
-          onChange={(e) => handleChange(e.target.value)}
-          onClear={() => {
-            setQuery('');
-            setResults([]);
-            setHasSearched(false);
-          }}
+          onChange={(e) => changeQuery(e.target.value)}
+          onClear={clear}
           autoFocus
           prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
         />

@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**91**（P1：32；P2：58；P3：1）。
-- 已关闭：**4 / 91**；实际修复（已关闭）：4；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900。
-- 当前处理：**无实施项**；当前阶段：RF-100、RF-900、RF-316、RF-101 已完成；RF-001 因 R 基线受阻，依赖它的任务暂缓。下一项为无依赖的 RF-102。
+- 已关闭：**5 / 91**；实际修复（已关闭）：5；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900。
+- 当前处理：**无实施项**；当前阶段：RF-100、RF-900、RF-316、RF-101、RF-102 已完成；RF-001 因 R 基线受阻，依赖它的任务暂缓。下一项为无依赖的 RF-103。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -133,7 +133,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 5 | [RF-101](#rf-101) | P2 | 本次用户消息只追加一次 | 无 | [x] 完成 |
 | 6 | [RF-004](#rf-004) | P1 | Rust 生成普通聊天的受控自动上下文 | [RF-001](#rf-001)、[RF-100](#rf-100)、[RF-101](#rf-101) | [ ] 待执行 |
 | 7 | [RF-005](#rf-005) | P1 | 普通聊天通过 provider ID 在 Rust 解析凭证 | [RF-001](#rf-001)、[RF-002](#rf-002)、[RF-004](#rf-004) | [ ] 待执行 |
-| 8 | [RF-102](#rf-102) | P1 | 搜索查询与缓存写入绑定会话和请求代次 | 无 | [ ] 待执行 |
+| 8 | [RF-102](#rf-102) | P1 | 搜索查询与缓存写入绑定会话和请求代次 | 无 | [x] 完成 |
 | 9 | [RF-103](#rf-103) | P1 | 聊天会话读取只接纳最新选择 | 无 | [ ] 待执行 |
 | 10 | [RF-104](#rf-104) | P1 | 聊天流归属明确且最终回复只有一个持久化写入者 | [RF-101](#rf-101)、[RF-103](#rf-103)、[RF-002](#rf-002)、[RF-005](#rf-005) | [ ] 待执行 |
 | 11 | [RF-105](#rf-105) | P1 | 历史未揭示值不再以原文加 blur 渲染 | 无 | [ ] 待执行 |
@@ -1368,4 +1368,14 @@ git commit -m "<任务卡的提交标题>"
 - 回归：新增 `chatRequest.test.ts` 的 8 项测试，组合系统提示开启/关闭、空历史/多轮历史，既检查真实 builder 的完整序列、指南合并、历史不可变，也用真实 hook 与 builder 捕获最终 IPC 请求、UI 消息和首次保存。系统 IPC/指南/流监听采用合成 fixture，无外部发送。
 - 修复前：测试 fixture 初次加载因 i18n mock 缺依赖失败（0 tests），补齐 store 隔离后 4 个 builder 测试通过、4 个真实 hook 测试稳定复现重复输入。修复后定向执行 chatRequest 与 systemPromptBuilder，2 文件/14 测试全部通过，exit 0。
 - F 验证：TypeScript（本地 `node node_modules/typescript/bin/tsc --noEmit`）、`npm run lint` 均 exit 0；4 个修改的 TS 文件已单独 Prettier 格式化；默认 `npm run test` exit 0，141 文件/1,156 测试全部通过，无跳过或 worker 错误，75.69s。`git diff --check` 和报告 ID/索引一致性检查通过。
-- 结论：**完成**；本提交（标题含 RF-101），未推送。原有 Cargo 配置、NSIS 图片与搜索索引改动未纳入。
+- 结论：**完成**；独立提交 `d8fe12b3`，未推送。原有 Cargo 配置、NSIS 图片与搜索索引改动未纳入。
+
+### RF-102 执行记录
+
+- 修复前 HEAD：`d8fe12b3`。确认 SearchPage/Popover 的异步 helper 直接写结果和缓存；旧请求 finally 能结束新查询 loading，页面清空遗漏 debounce，筛选不取消旧计时器。
+- 修复：新增共享 useUnifiedSearch，输入/清空/筛选时同步取消计时器并失效旧查询；复用 createSessionRequests，通过 request.invoke 在 IPC 鉴权后再次校验。查询函数只返回结果，由 hook 验证当前请求后提交缓存、结果、错误和 loading。缓存自身订阅会话清理；sessionRequests 的订阅新增注销函数，组件卸载清理监听及请求，不泄漏订阅。
+- 两个 UI 入口统一使用该 hook；保留系统页面名匹配、自定义页筛选、结果展示和点击行为。清空关键词但保留筛选时立即按现有筛选重查。前端架构规范 §5 已更新。
+- 定向验证：共享 helper、SearchPopover 与 hook 首轮 3 文件/30 测试通过（exit 0）；覆盖 A/B 倒序、debounce 窗口旧错误、清空、筛选、锁定换账户、卸载、缓存与当前失败。复审后强化卸载断言并新增“同账户重新解锁、两个入口并存”，最终 hook 单独 9/9 通过（exit 0），未减少原场景。
+- F：完整 TypeScript、完整 ESLint、默认 `npm run test` 均 exit 0；全量 142 文件/1,165 测试通过，无跳过、无 worker 错误，112.90s。此后仅补强测试，已定向重跑 9/9，并重做 TypeScript 和修改测试文件 ESLint；不把新用例伪计入先前全量数字。修改 TS/TSX/E2E 文件单独 Prettier 格式化，git diff --check 通过。
+- WEB：本机 Chrome，`playwright test e2e/sidebar-tools.spec.ts --project=chromium --grep '侧栏打开搜索' --workers=1`，4/4 passed、exit 0；用例结束后本次 Vite 服务未自动退出，核对 PID/命令/父进程后用 .NET Process.Kill 清理该服务（Stop-Process 自身报内部错误），runner 正常输出最终摘要，未杀测试 worker。新增 `search-lifecycle.spec.ts` 在 chromium/mobile 各 1/1，通过真实页面操作与合成 IPC deferred 响应验证乱序及清空，exit 0（13.3s）。仅证明浏览器交互，不声称 Android 原生测试。未改启动/路由定义、IPC 命令契约或主题，因此不触发生产启动额外门禁。
+- 结论：**完成**；本提交（标题含 RF-102），未推送。Rust 基线阻塞保持原记录；无关原有改动保留。
