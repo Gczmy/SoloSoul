@@ -14,6 +14,261 @@ fn setup_service() -> (VaultService, TempDir) {
 }
 
 #[test]
+fn rf001_capture_requires_matching_live_account_and_original_service() {
+    let (svc, _dir) = setup_service();
+    assert!(svc.capture_session("acc_a").is_err());
+    svc.create_account_with_id("acc_a", "A", "password123", None)
+        .unwrap();
+    let token = svc.capture_session("acc_a").unwrap();
+    assert_eq!(token.account_id(), "acc_a");
+    assert!(svc.capture_session("acc_b").is_err());
+    svc.with_session(&token, |vault| {
+        vault.save_profile(&solosoul_vault::Profile::new("A", b"private".to_vec()))
+    })
+    .unwrap();
+    assert_eq!(token.vault().list_profiles().unwrap().len(), 1);
+    let (other, _other_dir) = setup_service();
+    other
+        .create_account_with_id("acc_a", "A", "password123", None)
+        .unwrap();
+    assert_eq!(
+        other.capture_session("acc_a").unwrap().generation(),
+        token.generation()
+    );
+    assert!(other
+        .with_session(&token, |_| -> Result<(), String> {
+            panic!("foreign token accepted")
+        })
+        .is_err());
+}
+
+#[test]
+fn rf001_lock_reunlock_and_failed_unlock_never_revive_old_token() {
+    let (svc, _dir) = setup_service();
+    svc.create_account_with_id("acc_a", "A", "password123", None)
+        .unwrap();
+    let old = svc.capture_session("acc_a").unwrap();
+    svc.lock();
+    assert!(old.vault().list_profiles().is_err());
+    assert!(svc.unlock("acc_a", "incorrect").is_err());
+    assert!(!svc.is_unlocked());
+    assert!(svc.get_session_key().is_none());
+    assert!(svc.capture_session("acc_a").is_err());
+    svc.unlock("acc_a", "password123").unwrap();
+    let fresh = svc.capture_session("acc_a").unwrap();
+    assert_ne!(fresh.generation(), old.generation());
+    assert!(svc
+        .with_session(&old, |_| -> Result<(), String> {
+            panic!("expired token accepted")
+        })
+        .is_err());
+    svc.with_session(&fresh, |_| Ok(())).unwrap();
+    let failure: Result<(), String> = svc.with_session(&fresh, |_| Err("write failed".into()));
+    assert_eq!(failure.unwrap_err(), "write failed");
+    svc.with_session(&fresh, |_| Ok(())).unwrap();
+}
+
+#[test]
+fn rf001_account_creation_and_session_key_unlock_revoke_previous_handles() {
+    let (svc, _dir) = setup_service();
+    svc.create_account_with_id("acc_a", "A", "password123", None)
+        .unwrap();
+    let a = svc.capture_session("acc_a").unwrap();
+    svc.create_account_with_id("acc_b", "B", "password456", None)
+        .unwrap();
+    let b = svc.capture_session("acc_b").unwrap();
+    assert!(a.vault().list_profiles().is_err());
+    assert!(svc
+        .with_session(&a, |_| -> Result<(), String> { panic!("A wrote into B") })
+        .is_err());
+    assert!(svc.capture_session("acc_a").is_err());
+    let key = svc.get_session_key().unwrap();
+    svc.unlock_with_session_key("acc_b", &key).unwrap();
+    assert!(svc
+        .with_session(&b, |_| -> Result<(), String> {
+            panic!("old biometric session accepted")
+        })
+        .is_err());
+    assert!(b.vault().list_profiles().is_err());
+    assert!(svc
+        .capture_session("acc_b")
+        .unwrap()
+        .vault()
+        .list_profiles()
+        .unwrap()
+        .is_empty());
+}
+
+#[test]
+fn rf001_prepared_unlock_cannot_publish_after_lock_or_replacement() {
+    use solosoul_vault::VaultConfig;
+    let (svc, _dir) = setup_service();
+    svc.create_account_with_id("acc_a", "A", "password123", None)
+        .unwrap();
+    let key = svc.get_session_key().unwrap();
+    for replace in [false, true] {
+        let generation = svc.session_generation().unwrap();
+        let prepared = Arc::new(
+            VaultStore::open(
+                VaultConfig::new("acc_a", svc.base_path().join("acc_a")).with_data_key(*key),
+            )
+            .unwrap(),
+        );
+        svc.lock();
+        if replace {
+            svc.unlock("acc_a", "password123").unwrap();
+        }
+        assert!(svc
+            .publish_session("acc_a", *key, prepared.clone(), generation)
+            .is_err());
+        assert!(prepared.list_profiles().is_err());
+        assert_eq!(svc.is_unlocked(), replace);
+        if replace {
+            svc.with_session(&svc.capture_session("acc_a").unwrap(), |_| Ok(()))
+                .unwrap();
+        }
+    }
+}
+
+#[test]
+fn rf001_failed_vault_open_leaves_no_partial_unlocked_state() {
+    let (svc, _dir) = setup_service();
+    svc.create_account_with_id("acc_a", "A", "password123", None)
+        .unwrap();
+    let old = svc.capture_session("acc_a").unwrap();
+    svc.lock();
+    let path = svc.base_path().join("acc_a").join("vault.db");
+    let saved = path.with_extension("saved");
+    fs::rename(&path, &saved).unwrap();
+    fs::create_dir(&path).unwrap();
+    assert!(svc.unlock("acc_a", "password123").is_err());
+    assert!(!svc.is_unlocked());
+    assert!(svc.get_session_key().is_none());
+    assert!(svc.get_current_account().is_none());
+    assert!(svc.capture_session("acc_a").is_err());
+    fs::remove_dir(&path).unwrap();
+    fs::rename(&saved, &path).unwrap();
+    svc.unlock("acc_a", "password123").unwrap();
+    assert!(svc.with_session(&old, |_| Ok(())).is_err());
+}
+
+#[test]
+fn rf001_lock_between_validation_and_write_waits_for_whole_commit() {
+    use std::sync::mpsc;
+    use std::time::Duration;
+    let (svc, _dir) = setup_service();
+    svc.create_account_with_id("acc_a", "A", "password123", None)
+        .unwrap();
+    let svc = Arc::new(svc);
+    let token = svc.capture_session("acc_a").unwrap();
+    let (entered_tx, entered_rx) = mpsc::channel();
+    let (release_tx, release_rx) = mpsc::channel();
+    let writer_svc = svc.clone();
+    let writer_token = token.clone();
+    let writer = std::thread::spawn(move || {
+        writer_svc.with_session(&writer_token, |vault| {
+            entered_tx.send(()).unwrap();
+            release_rx.recv_timeout(Duration::from_secs(10)).unwrap();
+            vault.save_profile(&solosoul_vault::Profile::new(
+                "committed",
+                b"value".to_vec(),
+            ))
+        })
+    });
+    entered_rx.recv_timeout(Duration::from_secs(10)).unwrap();
+    assert!(svc.session_gate.try_lock().is_err());
+    let (locking_tx, locking_rx) = mpsc::channel();
+    let (locked_tx, locked_rx) = mpsc::channel();
+    let locker_svc = svc.clone();
+    let locker = std::thread::spawn(move || {
+        locking_tx.send(()).unwrap();
+        locker_svc.lock();
+        locked_tx.send(()).unwrap();
+    });
+    locking_rx.recv_timeout(Duration::from_secs(10)).unwrap();
+    assert!(locked_rx.recv_timeout(Duration::from_millis(50)).is_err());
+    release_tx.send(()).unwrap();
+    writer.join().unwrap().unwrap();
+    locked_rx.recv_timeout(Duration::from_secs(10)).unwrap();
+    locker.join().unwrap();
+    assert!(!svc.is_unlocked());
+    svc.unlock("acc_a", "password123").unwrap();
+    assert_eq!(
+        svc.capture_session("acc_a")
+            .unwrap()
+            .vault()
+            .list_profiles()
+            .unwrap()
+            .len(),
+        1
+    );
+    assert!(svc
+        .with_session(&token, |_| -> Result<(), String> {
+            panic!("old request accepted")
+        })
+        .is_err());
+}
+
+#[test]
+fn rf001_network_wait_does_not_block_lock_and_late_write_is_rejected() {
+    use std::sync::mpsc;
+    use std::time::Duration;
+    let (svc, _dir) = setup_service();
+    svc.create_account_with_id("acc_a", "A", "password123", None)
+        .unwrap();
+    let svc = Arc::new(svc);
+    let token = svc.capture_session("acc_a").unwrap();
+    let (network_tx, network_rx) = mpsc::channel();
+    let worker_svc = svc.clone();
+    let worker = std::thread::spawn(move || {
+        network_rx.recv_timeout(Duration::from_secs(10)).unwrap();
+        worker_svc.with_session(&token, |_| -> Result<(), String> {
+            panic!("late network result persisted")
+        })
+    });
+    let (locked_tx, locked_rx) = mpsc::channel();
+    let locker_svc = svc.clone();
+    let locker = std::thread::spawn(move || {
+        locker_svc.lock();
+        locked_tx.send(()).unwrap();
+    });
+    let locked_without_network = locked_rx.recv_timeout(Duration::from_secs(5));
+    network_tx.send(()).unwrap();
+    locker.join().unwrap();
+    assert!(locked_without_network.is_ok());
+    assert!(worker.join().unwrap().is_err());
+    svc.unlock("acc_a", "password123").unwrap();
+    assert!(svc
+        .get_vault_store()
+        .unwrap()
+        .list_profiles()
+        .unwrap()
+        .is_empty());
+}
+
+#[test]
+fn rf001_panicking_commit_fails_closed_until_explicit_lock() {
+    let (svc, _dir) = setup_service();
+    svc.create_account_with_id("acc_a", "A", "password123", None)
+        .unwrap();
+    let token = svc.capture_session("acc_a").unwrap();
+    let panic = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        svc.with_session(&token, |_| -> Result<(), String> {
+            panic!("injected commit panic")
+        })
+    }));
+    assert!(panic.is_err());
+    assert!(svc.capture_session("acc_a").is_err());
+    assert!(svc.with_session(&token, |_| Ok(())).is_err());
+    svc.lock();
+    assert!(svc.get_session_key().is_none());
+    svc.unlock("acc_a", "password123").unwrap();
+    svc.with_session(&svc.capture_session("acc_a").unwrap(), |_| Ok(()))
+        .unwrap();
+    assert!(svc.with_session(&token, |_| Ok(())).is_err());
+}
+
+#[test]
 fn invalid_account_ids_have_no_filesystem_or_session_side_effects() {
     let (svc, _dir) = setup_service();
     let id = "acc-1";
@@ -881,8 +1136,13 @@ fn test_kdf_upgrade_reencrypts_attachments() {
     svc.lock();
 
     // 执行 KDF 升级。
-    svc.unlock_with_kdf_upgrade(account_id, "password123", &old_key)
-        .unwrap();
+    svc.unlock_with_kdf_upgrade(
+        account_id,
+        "password123",
+        &old_key,
+        svc.session_generation().unwrap(),
+    )
+    .unwrap();
 
     // 升级后：旧附件密钥解不开，新附件密钥可解密且内容一致。
     let att_key_after = {
@@ -973,8 +1233,13 @@ fn test_unlock_with_kdf_upgrade_reencrypts_and_upgrades_params() {
     // unlocked_account 之前进入升级分支）。此前未 lock 时 unlocked_account 仍为
     // Some，掩盖了 reencrypt_attachments 依赖 get_current_account 的缺陷。
     svc.lock();
-    svc.unlock_with_kdf_upgrade(account_id, "password123", &old_key)
-        .unwrap();
+    svc.unlock_with_kdf_upgrade(
+        account_id,
+        "password123",
+        &old_key,
+        svc.session_generation().unwrap(),
+    )
+    .unwrap();
 
     // config 应已升级为生产参数。
     let content = fs::read_to_string(&config_path).unwrap();

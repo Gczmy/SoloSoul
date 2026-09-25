@@ -301,6 +301,8 @@ impl super::VaultService {
     }
 
     pub fn unlock(&self, account_id: &str, password: &str) -> Result<(), String> {
+        Self::validate_account_id(account_id)?;
+        let session_generation = self.session_generation()?;
         // R-4① 方案 2：解锁入口先恢复未完成的 reencrypt→config 交换。
         // 常态（无 pending 文件）零开销；有 pending 时 promote/discard 后
         // 再走正常解锁路径（config 已恢复一致，verify 与数据密钥对齐）。
@@ -344,7 +346,12 @@ impl super::VaultService {
         // 16MiB/3iter），在 release 构建下解锁成功后透明升级到生产参数并重加密
         // 整个 Vault。debug 构建保持开发档以加速本地开发/测试。
         if !cfg!(debug_assertions) && config.kdf_config() != KdfConfig::production() {
-            return self.unlock_with_kdf_upgrade(account_id, password, &master_key);
+            return self.unlock_with_kdf_upgrade(
+                account_id,
+                password,
+                &master_key,
+                session_generation,
+            );
         }
 
         // Store session key
@@ -352,16 +359,6 @@ impl super::VaultService {
             .as_slice()
             .try_into()
             .map_err(|_| "Argon2id output must be 32 bytes".to_string())?;
-        // P001：锁中毒按不可恢复处理——`into_inner()` 强制取回写锁（与
-        // create_account_common / lock() 同款），杜绝 unlock 成功后会话状态
-        // 部分缺失（密钥已设、unlocked_account/vault_store 未设）的不一致。
-        *self.session_key.write().unwrap_or_else(|e| e.into_inner()) =
-            Some(Zeroizing::new(master_key_arr));
-        *self
-            .unlocked_account
-            .write()
-            .unwrap_or_else(|e| e.into_inner()) = Some(account_id.to_string());
-
         // Open vault with data key
         let account_dir_path = self
             .fs
@@ -372,12 +369,7 @@ impl super::VaultService {
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
-        // 从当前账户的加密偏好恢复，禁止沿用上一账户的开关。
-        let prefs = vault_arc.device_sync_preferences()?.unwrap_or_default();
-        self.ui_prefs_sync_enabled
-            .store(prefs.ui_prefs_sync_enabled, Ordering::SeqCst);
-        vault_arc.set_ui_prefs_sync_enabled(prefs.ui_prefs_sync_enabled);
-        *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
+        self.publish_session(account_id, master_key_arr, vault_arc, session_generation)?;
 
         // 用户已通过主密码验证身份，重置 PIN 锁定状态。
         let pin_manager = PinManager::new(self.base_path().clone());
@@ -433,6 +425,7 @@ impl super::VaultService {
         account_id: &str,
         password: &str,
         old_master_key: &Zeroizing<Vec<u8>>,
+        session_generation: u64,
     ) -> Result<(), String> {
         Self::validate_account_id(account_id)?;
         // 旧密钥（已验证通过）。
@@ -546,16 +539,11 @@ impl super::VaultService {
         drop(vault);
 
         // 更新会话密钥并重开 Vault（新密钥）。
-        // P001：锁中毒按不可恢复处理（同 unlock 侧统一），杜绝改密/KDF 升级后
-        // unlocked_account 未设置的会话不一致。
-        *self
-            .unlocked_account
-            .write()
-            .unwrap_or_else(|e| e.into_inner()) = Some(account_id.to_string());
         self.reopen_vault_with_new_key(
             account_id,
             new_key_arr,
             "KDF upgrade succeeded but vault reopen failed",
+            session_generation,
         )?;
 
         // 此路径不再单独调用 pin_manager.reset_attempts：clear_credential 已
@@ -586,23 +574,11 @@ impl super::VaultService {
     /// 在锁定后仍驻留内存（fail-open）。即使写锁内状态因 panic 部分更新，取回后
     /// 执行 `take()`/`zeroize()` 仍保证各状态收敛（密钥清零、会话与 vault 句柄移除）。
     pub fn lock(&self) {
-        let mut store = self.vault_store.write().unwrap_or_else(|e| e.into_inner());
-        if let Some(ref mut v) = *store {
-            v.lock();
-        }
-        store.take();
-        if let Some(mut k) = self
-            .session_key
-            .write()
-            .unwrap_or_else(|e| e.into_inner())
-            .take()
-        {
-            k.zeroize();
-        }
-        self.unlocked_account
-            .write()
-            .unwrap_or_else(|e| e.into_inner())
-            .take();
+        let mut generation = self.session_gate.lock().unwrap_or_else(|e| e.into_inner());
+        *generation = generation.wrapping_add(1);
+        self.clear_session_state();
+        // 提交回调 panic 后拒绝继续使用该会话；显式锁定清理后才允许新会话。
+        self.session_gate.clear_poison();
     }
 
     pub fn is_unlocked(&self) -> bool {
@@ -639,6 +615,8 @@ impl super::VaultService {
         account_id: &str,
         session_key: &[u8; 32],
     ) -> Result<(), String> {
+        Self::validate_account_id(account_id)?;
+        let session_generation = self.session_generation()?;
         // R-4① 方案 2：存在未完成的 reencrypt→config 交换时，会话密钥（生物识别/
         // PIN）可能是旧钥而数据已是新钥——需密码派生密钥才能恢复，这里显式拒绝
         // 并引导走密码解锁（recover_pending_reencrypt 会完成交换）。
@@ -648,17 +626,6 @@ impl super::VaultService {
                 "Pending key rotation detected; please unlock with your password".to_string(),
             );
         }
-
-        // Set session key
-        // P001：锁中毒按不可恢复处理——`into_inner()` 强制取回写锁（与
-        // create_account_common / lock() 同款），杜绝会话密钥解锁成功后
-        // unlocked_account/vault_store 部分缺失的不一致。
-        *self.session_key.write().unwrap_or_else(|e| e.into_inner()) =
-            Some(Zeroizing::new(*session_key));
-        *self
-            .unlocked_account
-            .write()
-            .unwrap_or_else(|e| e.into_inner()) = Some(account_id.to_string());
 
         // Open vault with data key
         let account_dir_path = self
@@ -670,12 +637,7 @@ impl super::VaultService {
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
-        // 从当前账户的加密偏好恢复，禁止沿用上一账户的开关。
-        let prefs = vault_arc.device_sync_preferences()?.unwrap_or_default();
-        self.ui_prefs_sync_enabled
-            .store(prefs.ui_prefs_sync_enabled, Ordering::SeqCst);
-        vault_arc.set_ui_prefs_sync_enabled(prefs.ui_prefs_sync_enabled);
-        *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
+        self.publish_session(account_id, *session_key, vault_arc, session_generation)?;
 
         // 用户已通过更强因子（生物识别 / PIN 本身）验证身份，重置 PIN 锁定状态。
         let pin_manager = PinManager::new(self.base_path().clone());
@@ -693,14 +655,10 @@ impl super::VaultService {
         account_id: &str,
         new_key_arr: [u8; 32],
         err_prefix: &str,
+        session_generation: u64,
     ) -> Result<(), String> {
         Self::validate_account_id(account_id)?;
-        // P001：锁中毒按不可恢复处理——`into_inner()` 强制取回写锁（与
-        // create_account_common / lock() 同款）。改密/KDF 升级的关键路径上
-        // 静默跳过会话密钥/句柄更新会导致「新钥已生效但会话状态未切换」。
-        *self.session_key.write().unwrap_or_else(|e| e.into_inner()) =
-            Some(Zeroizing::new(new_key_arr));
-        *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = None;
+        let session_generation = self.invalidate_session(session_generation)?;
         let account_dir_path = self
             .fs
             .local_path(&self.account_dir_rel(account_id)?)
@@ -710,11 +668,7 @@ impl super::VaultService {
         match VaultStore::open(vault_config) {
             Ok(vault) => {
                 let vault_arc = Arc::new(vault);
-                let prefs = vault_arc.device_sync_preferences()?.unwrap_or_default();
-                self.ui_prefs_sync_enabled
-                    .store(prefs.ui_prefs_sync_enabled, Ordering::SeqCst);
-                vault_arc.set_ui_prefs_sync_enabled(prefs.ui_prefs_sync_enabled);
-                *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
+                self.publish_session(account_id, new_key_arr, vault_arc, session_generation)?;
             }
             Err(e) => {
                 return Err(format!("{}: {}", err_prefix, e));
@@ -796,6 +750,7 @@ impl super::VaultService {
     ) -> Result<(), String> {
         // Verify old password first; this opens the vault with the old data key.
         self.unlock(account_id, old_password)?;
+        let session_generation = self.capture_session(account_id)?.generation();
 
         // Capture old data key.
         let old_key_arr = self
@@ -911,6 +866,7 @@ impl super::VaultService {
             account_id,
             new_key_arr,
             "Password updated but vault reopen failed",
+            session_generation,
         )?;
 
         // 如果用户已启用生物识别，同步更新其中保存的主密钥，使改密后 Touch ID 仍可用。

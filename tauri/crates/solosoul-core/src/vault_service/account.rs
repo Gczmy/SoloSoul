@@ -3,7 +3,6 @@
 use super::*;
 use solosoul_crypto::kdf::{derive_key, generate_salt, KdfConfig};
 use solosoul_vault::{VaultConfig, VaultStore};
-use zeroize::Zeroizing;
 
 impl super::VaultService {
     pub fn load_accounts(&self) {
@@ -182,6 +181,7 @@ impl super::VaultService {
         password_hint: Option<&str>,
     ) -> Result<serde_json::Value, String> {
         Self::validate_account_id(account_id)?;
+        let session_generation = self.session_generation()?;
         let salt = generate_salt();
         let kdf_config = KdfConfig::from_env();
         let master_key = derive_key(password, &salt, &kdf_config)
@@ -258,18 +258,7 @@ impl super::VaultService {
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
-        // 从当前账户的加密偏好恢复，禁止沿用上一账户的开关。
-        let prefs = vault_arc.device_sync_preferences()?.unwrap_or_default();
-        self.ui_prefs_sync_enabled
-            .store(prefs.ui_prefs_sync_enabled, Ordering::SeqCst);
-        vault_arc.set_ui_prefs_sync_enabled(prefs.ui_prefs_sync_enabled);
-        *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
-        *self.session_key.write().unwrap_or_else(|e| e.into_inner()) =
-            Some(Zeroizing::new(master_key_arr));
-        *self
-            .unlocked_account
-            .write()
-            .unwrap_or_else(|e| e.into_inner()) = Some(account_id.to_string());
+        self.publish_session(account_id, master_key_arr, vault_arc, session_generation)?;
 
         // P010: 返回值不再携带 salt/verifyHash——前端零消费（auth::bootstrap 仅读
         // id/name/passwordHint，CLI 仅读 id），暴露会扩大 WebView 攻击面（verifyHash

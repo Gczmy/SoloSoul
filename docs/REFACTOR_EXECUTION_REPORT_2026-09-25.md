@@ -119,15 +119,15 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**92**（P1：32；P2：59；P3：1）。
-- 已关闭：**13 / 92**；实际修复（已关闭）：13；排除：0；待验证/阻塞：0。原计划 90 项，基线新增 RF-900、RF-901。
-- 当前处理：**无（RF-901 已完成）**。Windows GUI Rust 测试启动故障已修复且 R 全量通过；RF-001/006/009 恢复待执行，下一项回到 RF-001。
+- 已关闭：**14 / 92**；实际修复（已关闭）：14；排除：0；待验证/阻塞：0。原计划 90 项，基线新增 RF-900、RF-901。
+- 当前处理：**无（RF-001 已完成）**。账户/代次/Vault 会话令牌与短临界区提交校验已通过 R + CORE + CLI；下一项 RF-002。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
 | 顺序 | ID | 优先级 | 任务 | 前置任务 | 状态 |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | [RF-100](#rf-100) | P1 | 自动上下文立即排除非公开字段 | 无 | [x] 完成 |
-| 2 | [RF-001](#rf-001) | P1 | 建立最小会话捕获与提交校验机制 | 无 | [ ] 待执行 |
+| 2 | [RF-001](#rf-001) | P1 | 建立最小会话捕获与提交校验机制 | 无 | [x] 完成 |
 | 3 | [RF-002](#rf-002) | P1 | LLM 流式回复绑定请求开始时的会话 | [RF-001](#rf-001) | [ ] 待执行 |
 | 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001) | [ ] 待执行 |
 | 5 | [RF-101](#rf-101) | P2 | 本次用户消息只追加一次 | 无 | [x] 完成 |
@@ -261,7 +261,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 **建立最小会话捕获与提交校验机制** · P1 · 来源：R01
 
 - **前置：**无。
-- **入口：**`tauri/crates/solosoul-core/src/vault_service/mod.rs`；`tauri/crates/solosoul-core/src/vault_service/unlock.rs`；`tauri/crates/solosoul-core/src/vault_service/account.rs`；`tauri/crates/solosoul-core/src/vault_service/tests.rs`。
+- **入口：**`tauri/crates/solosoul-core/src/vault_service/mod.rs`；`tauri/crates/solosoul-core/src/vault_service/session.rs`（本项新增）；`tauri/crates/solosoul-core/src/vault_service/unlock.rs`；`tauri/crates/solosoul-core/src/vault_service/account.rs`；`tauri/crates/solosoul-core/src/vault_service/tests.rs`。
 - **执行：**增加包含账户、代次和原始 Vault 句柄的会话令牌，一次性捕获并拒绝账户不匹配。锁定、会话替换使旧令牌永久失效；提供短临界区内校验并提交的 API，明确锁顺序。仅服务已确认的 LLM/云同步竞态，不引入通用 JobRunner，不在网络、KDF、压缩或推理期间持有提交门闩。
 - **验收：**同账户重新解锁也使旧令牌失效；失败解锁不复活旧代次；校验与写入之间插入锁定屏障时，提交只能在锁定前完整完成或明确拒绝；锁定不等待网络。
 - **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**新增 vault_service/tests.rs::rf001_*；在 tauri/ 运行 cargo test -p solosoul-core --lib rf001_ -- --test-threads=1。
@@ -1469,4 +1469,15 @@ git commit -m "<任务卡的提交标题>"
 - R 全量：正常主机 `cargo test --verbose` exit 0；编译 10m57s，全部 19 组测试结果合计 1,053 passed / 0 failed / 3 ignored，包含 GUI 库 485/485、core/vault/crypto/sync/plugin 及集成/文档测试。原有 ignored 项未改动或新增。构建期间多个原生目标同时链接、可用内存约 1 GB，等待全部完成；后续可通过当前进程的 CARGO_BUILD_JOBS=2 限制编译并发，测试范围不变。
 - 应用验收：全量 Cargo 日志确认正常 src/main.rs 的 `--crate-type bin` 编译成功，产物时间晚于本次构建开始。mt 只读提取应用清单确认 Common Controls v6 / asInvoker；以数据资源方式加载并核对 group icon 32512、version 1、manifest 1 均存在，ProductName/FileDescription 为 SoloSoul，ProductVersion 为 2.13.2。未启动真实账户应用，未修改任何产物来取得验收结果。
 - 平台范围：分支同时核对 CARGO_CFG_TARGET_OS=windows 与 CARGO_CFG_TARGET_ENV=msvc；其他目标继续传递原 Attributes。此轮未声称运行 macOS/Android/iOS 或 GNU 交叉构建。
-- DOC：`git diff --check`、92 项索引/任务卡及状态计数核对。结论：**完成**；独立提交为本提交（标题含 RF-901），未推送；RF-001/006/009 的环境阻塞已解除，回到 RF-001。原有 Cargo/NSIS/搜索索引修改保持。
+- DOC：`git diff --check`、92 项索引/任务卡及状态计数核对。结论：**完成**；独立提交 `16516ea8`，未推送；RF-001/006/009 的环境阻塞已解除，回到 RF-001。原有 Cargo/NSIS/搜索索引修改保持。
+
+### RF-001 执行记录（2026-09-25）
+
+- 修复前 HEAD：`16516ea8`。新增 VaultSession（账户、代次、原 Vault Arc），capture_session 一次性捕获并校验预期账户；with_session 在同一短临界区验证代次/账户/Arc 身份并执行同步提交。令牌不复制密钥、不序列化进 IPC；回调错误原样传播，数据库多写原子性仍由业务事务负责。
+- 生命周期：创建账户、密码解锁、会话密钥解锁及换密钥后重开统一发布会话。准备阶段仅捕获代次，KDF/打开数据库/读取偏好均在提交门闩外；发布前再次检查，防止锁定或新会话被迟到结果覆盖。替换时关闭旧 Vault 并擦除其密钥；锁定/重开使旧令牌失效，换密钥后重开失败保持锁定。锁顺序及禁止网络/压缩/推理/重入已记录于 session.rs。LLM/云同步调用方迁移留给 RF-002/003。
+- 定向：8 个 rf001_ 测试通过（exit 0），包括真实临时 Vault、线程/通道屏障；覆盖账户/服务不匹配、同账户重新解锁、失败解锁、数据库打开失败不留下部分状态、旧句柄撤销、迟到发布拒绝、提交中途锁定、网络等待不阻塞锁定、回调错误及 panic 后显式锁定恢复。首轮仅出现一个新增无用导入警告，已清除；复核统一清理路径的状态锁顺序后，core 库全量 215/215 通过（exit 0），包含 8 个新增用例及原有改密/KDF/附件回归。
+- 已通过：Tauri fmt、Tauri Clippy（exit 0，2m36s）、CLI fmt 与 CLI 全目标 Clippy。CLI 全量 `cargo test --verbose --no-fail-fast` exit 0：171 库测试 + 2 集成测试通过，0 失败，1 个既有文档测试 ignored；编译 22m23s。正常主机临时 Vault 测试，sqlite3 仅加入本次进程 PATH；Cargo 自动更新的 5 个本地 crate 版本已定向还原。
+- R 全量：`cargo test --verbose` exit 0，19 组结果合计 **1,061 passed / 0 failed / 3 ignored**，包含 GUI 485/485、core 215/215、vault 183/183 及同步/密码学/插件/集成/文档测试。3 个 ignored 为既有的 2 个 legacy 插件字段用例与 1 个 P025 手动性能测量，未新增或修改跳过项。编译 37m20s；本轮 Tauri/CLI 编译并发分别限制为 2/1，两套原生链接同时运行耗时较长，后续共享核心验证改为顺序执行，避免内存竞争。
+- 入口点弹窗复核：用户反馈 `solo_soul-a1179f00737fbea1.exe` 的 TaskDialogIndirect 错误。当前文件时间为 19:24:43；只读提取清单确认 Common Controls v6 / asInvoker，实际 rustc 链接参数包含 RF-901 的两项设置。直接运行当前文件 `--list` 正常列出 485 tests、exit 0；系统中错误窗口归属 csrss，无对应失败测试进程，本轮 Cargo 当时仍在编译、尚未启动 GUI 测试。证据支持此前加载失败遗留窗口，不能据此把当前全量判失败或通过，继续等待正式结果。
+- 弹窗清理：按用户要求，通过 Computer Use 定位唯一错误窗口，定向发送 Return 后窗口列表确认消失；未结束 csrss、Cargo 或编译进程。
+- 最终结论：当前正式 GUI 485 项及全部 workspace 测试成功运行，弹窗未在本轮复现。`git diff --check`、92 项索引/任务卡及状态计数核对通过。本项只改变共享 Rust 会话基础，不涉及前端或 LLM/云同步调用方迁移。**完成**；独立提交为本提交（标题含 RF-001），未推送；原有 Cargo/NSIS/搜索索引修改保留，下一项 RF-002。

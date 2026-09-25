@@ -43,7 +43,7 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub use vault_file_system::{
     LocalVaultFileSystem, NoOpSafSyncDriver, SafSyncDriver, SafVaultFileSystem, VaultFileSystem,
 };
-pub use vault_service::{AccountConfig, AccountSummary, VaultService};
+pub use vault_service::{AccountConfig, AccountSummary, VaultService, VaultSession};
 
 // Re-export vault storage types so CLI/GUI hosts can use them through a single crate.
 pub use solosoul_vault::{

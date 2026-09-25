@@ -33,7 +33,7 @@ use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 use zeroize::{Zeroize, Zeroizing};
 
 // ── Platform‑specific private file/directory permissions ──────────
@@ -215,6 +215,8 @@ pub struct VaultService {
     session_key: RwLock<Option<Zeroizing<[u8; 32]>>>,
     unlocked_account: RwLock<Option<String>>,
     vault_store: RwLock<Option<Arc<VaultStore>>>,
+    /// RF-001：会话发布、锁定与受保护提交共用；值为会话代次。
+    session_gate: Mutex<u64>,
     /// 设备级「同步设置偏好」开关（默认 true=偏好照常同步）。
     /// 跨 unlock 生命周期持久：每次 unlock 新建 VaultStore（其内部开关重置为
     /// 默认 true）时，把本期望值应用上去——用户锁屏再解锁后偏好开关不丢失。
@@ -266,6 +268,7 @@ impl VaultService {
             session_key: RwLock::new(None),
             unlocked_account: RwLock::new(None),
             vault_store: RwLock::new(None),
+            session_gate: Mutex::new(0),
             ui_prefs_sync_enabled: AtomicBool::new(true),
             create_lock: std::sync::Mutex::new(()),
         }
@@ -442,6 +445,8 @@ impl Default for VaultService {
 // P025: impl VaultService 按域拆分——账户 CRUD / 解锁会话 / SAF 同步
 mod account;
 mod saf;
+mod session;
+pub use session::VaultSession;
 #[cfg(test)]
 mod tests;
 mod unlock;
