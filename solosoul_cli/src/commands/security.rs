@@ -381,7 +381,9 @@ mod tests {
             .create_account("Test", crate::TEST_PASSWORD, None)
             .unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
-        let app = App::new(Arc::new(vault)).unwrap();
+        let mut app = App::new(Arc::new(vault)).unwrap();
+        // 这些用例断言中文文案，不依赖运行测试的系统语言。
+        app.i18n.set_locale("zh-CN");
         (app, account_id, dir)
     }
 
