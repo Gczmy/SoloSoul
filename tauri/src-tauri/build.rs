@@ -8,6 +8,22 @@ fn main() {
         "android-glass",
         tauri_build::InlinedPlugin::new().commands(&["register_listener", "remove_listener"]),
     );
+    let attributes = if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows")
+        && std::env::var("CARGO_CFG_TARGET_ENV").as_deref() == Ok("msvc")
+    {
+        // RF-901：Tauri 的资源默认只链接 bins，库测试缺少 Common Controls v6
+        // 清单会在加载 TaskDialogIndirect 时退出。由链接器为所有可执行目标嵌入，
+        // 同时关闭资源中的重复清单；应用图标和版本仍由 Tauri 生成。
+        println!("cargo:rustc-link-arg=/MANIFEST:EMBED");
+        println!(
+            "cargo:rustc-link-arg=/MANIFESTDEPENDENCY:type='win32' \
+             name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
+             processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'"
+        );
+        attributes.windows_attributes(tauri_build::WindowsAttributes::new_without_app_manifest())
+    } else {
+        attributes
+    };
     tauri_build::try_build(attributes).expect("failed to build Tauri application");
     generate_app_level_names();
 }
