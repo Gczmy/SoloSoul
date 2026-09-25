@@ -118,9 +118,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**91**（P1：32；P2：58；P3：1）。
-- 已关闭：**11 / 91**；实际修复（已关闭）：11；排除：0；待验证/阻塞：3。原计划 90 项，基线新增 RF-900。
-- 当前处理：**无（RF-007 已完成）**。RF-001、RF-006 与 RF-009 所需 GUI Rust 测试验收仍受阻；下一项为仅需 CLI 配置的 RF-011，无依赖任务继续执行。
+- 任务总数：**92**（P1：32；P2：59；P3：1）。
+- 已关闭：**12 / 92**；实际修复（已关闭）：12；排除：0；待验证/阻塞：3。原计划 90 项，基线新增 RF-900、RF-901。
+- 当前处理：**无（RF-011 已完成）**。GUI Rust 启动故障已定位为测试产物缺少 Common Controls v6 清单，登记 RF-901；下一项优先完成其正式构建修复与 R 验收，再返回 RF-001。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -143,7 +143,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 15 | [RF-006](#rf-006) | P1 | GUI 回滚拒绝其他对象的快照 | 无 | [!] 阻塞（R 基线启动失败） |
 | 16 | [RF-007](#rf-007) | P1 | CLI 回滚恢复并保留字段标签 | 无 | [x] 完成 |
 | 17 | [RF-009](#rf-009) | P1 | 修复 CLI 创建对象缺失模板元数据 | 无 | [!] 阻塞（R 基线启动失败） |
-| 18 | [RF-011](#rf-011) | P1 | CLI 恢复兼容 GUI Base64 Profile 备份 | 无 | [ ] 待执行 |
+| 18 | [RF-011](#rf-011) | P1 | CLI 恢复兼容 GUI Base64 Profile 备份 | 无 | [x] 完成 |
 | 19 | [RF-012](#rf-012) | P1 | GUI 备份遇到 Profile 读取失败时中止 | 无 | [ ] 待执行 |
 | 20 | [RF-014](#rf-014) | P1 | 全量云快照包含全部有效附件 | 无 | [ ] 待执行 |
 | 21 | [RF-017](#rf-017) | P1 | 导出完成后才替换目标包 | 无 | [ ] 待执行 |
@@ -217,6 +217,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 89 | [RF-320](#rf-320) | P2 | 迁移插件结构化错误 | [RF-306](#rf-306)、[RF-307](#rf-307) | [ ] 待执行 |
 | 90 | [RF-312](#rf-312) | P3 | 建立可重跑的性能基线与下一步决策 | 无 | [ ] 待执行 |
 | 91 | [RF-900](#rf-900) | P2 | CLI 中文断言测试显式隔离系统语言 | 无（Rust 任务验收前优先处理） | [x] 完成 |
+| 92 | [RF-901](#rf-901) | P2 | Windows GUI Rust 测试嵌入 Common Controls 清单 | 无（R 配置恢复前优先处理） | [ ] 待执行 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -1264,6 +1265,19 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**`CLI`。先运行 5 个 commands 模块的测试，随后完整 CLI fmt、Clippy 和 test；`sqlite3` 环境缺失未解决时仍记录全量检查受阻，不冒充全绿。
 - **建议提交：**`test: resolve [RF-900] - isolate CLI command fixtures from system locale`。
 
+### RF-901
+
+**Windows GUI Rust 测试嵌入 Common Controls 清单** · P2 · 来源：本轮执行基线新增（不属于原 R01–R22）
+
+- **前置：**无；RF-011 提交后优先恢复 R 验证能力，再返回 RF-001。
+- **入口：**`tauri/src-tauri/build.rs`；Windows 构建资源；现有 tauri-build/tauri-winres 的资源链接输出。
+- **证据：**原 GUI 库测试程序无资源区/嵌入清单，导入 `comctl32!TaskDialogIndirect`，启动返回 0xc0000139。现有资源编译只输出 `cargo:rustc-link-arg-bins`，未覆盖库测试。将原产物复制成单独诊断副本并用 mt 嵌入 Tauri 默认 Common Controls v6 清单后，`--list` exit 0，列出 485 tests；原产物未改。外部旁路清单未生效，故不能依赖本机临时文件解决。
+- **执行：**让正常 Windows Cargo 构建的库测试产物携带所需 Common Controls v6 清单；保留应用的图标、版本资源与其他平台构建，不修改系统 DLL、注册表、测试二进制或依赖缓存作为产品修复。核对链接范围，避免重复嵌入资源。
+- **方案探针：**独立零依赖微型工程验证：在原资源同时包含 manifest 时加 `/MANIFEST:EMBED` 会报 CVT1100 重复资源；保留图标/版本、去除原资源中的 manifest，再统一通过 MSVC `/MANIFEST:EMBED` + `/MANIFESTDEPENDENCY` 嵌入，则库测试 1/1、应用运行均 exit 0，ProductName/ProductVersion/FileDescription 保持。正式实现可在 Windows MSVC 目标使用 `WindowsAttributes::new_without_app_manifest`，其他目标仍保留 Tauri 原行为；此探针不替代正式 R 验收。
+- **验收：**清理诊断产物后，正常 Cargo 生成的 GUI 测试程序可自行列出并运行全部测试；应用资源保持；R 全量检查取得真实结果，失败用例按实际原因处理，不裁剪测试。
+- **验证配置：**`R` + `DOC`。定向先 `cargo test -p solo_soul --lib -- --list`，核验生成二进制的 manifest，再执行 `cargo test --verbose`；Windows 应用目标构建/资源读取检查，其他目标至少确认条件编译范围。
+- **建议提交：**`build: resolve [RF-901] - embed Windows manifest in GUI Rust tests`。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -1436,4 +1450,14 @@ git commit -m "<任务卡的提交标题>"
 - 环境：首次沙箱定向测试在创建临时账户的原子写入处因 Windows ACL 返回 Access denied，尚未进入回滚；正常主机权限下重新执行通过。测试仅使用临时目录，未访问真实保险库。
 - CLI 全量：`cargo fmt --check`、`cargo clippy --all-targets -- -D warnings`、`cargo test --verbose --no-fail-fast` 均 exit 0；167 个库测试及 2 个集成测试通过，0 失败，1 个原有文档测试 ignored。sqlite3 仅通过当前测试进程 PATH 使用此前验证的缓存工具。Cargo 自动同步的 5 个本地依赖版本已在命令结束后还原，未混入本项。
 - R 阻塞复核：正常主机下原 GUI 测试程序 `--list` 仍以 0xc0000139 退出。只读导入检查发现默认系统 comctl32 缺少 TaskDialogIndirect，mt 确认测试程序无资源区/嵌入清单；临时外部 Common Controls v6 清单未解决，已删除，故此线索尚不能认定为完整根因。未修改二进制或系统运行库。RF-009 要求 R+CORE+CLI，同样暂缓，优先继续 RF-011。
-- DOC：`git diff --check`、任务索引/任务卡及状态计数核对。结论：**完成**；独立提交为本提交（标题含 RF-007），未推送；原有 Cargo/NSIS/搜索索引修改保留。
+- DOC：`git diff --check`、任务索引/任务卡及状态计数核对。结论：**完成**；独立提交 `297721c5`，未推送；原有 Cargo/NSIS/搜索索引修改保留。
+
+### RF-011 执行记录（2026-09-25）
+
+- 修复前 HEAD：`297721c5`。CLI 恢复条目强制要求 `data` 数组，GUI 2.0 输出的 `data_b64` 无法读取；原路径逐条写入，未预先完成全部解码。
+- 修复：读取 Base64 与旧字节数组；非空 Base64 优先，空 Base64 回退旧数组；显式空数据合法，缺失/null 的两种载荷均不可伪造为空 Profile，非法 Base64 不降级回退。先解码完整清单再开始写入，后续条目损坏不提前覆盖已有 Profile。原有确认、范围、版本和更新时间存储规则保持；用户指南 §4.6 已说明语义。
+- 依赖：显式声明已存在于依赖树和 lockfile 的 base64 0.22，锁文件仅新增 CLI 直接依赖引用；还原 Cargo 自动同步的 5 个本地 crate 版本副产物，未升级库。
+- 定向：新增 4 个真实临时 Vault 测试，覆盖 GUI/旧格式非 UTF-8 字节与元数据、确认前不写入、双字段优先级、显式空数据、空清单保留既有内容、非法后续条目不修改前面的 Profile、取消与错误反馈。首轮 2/4 失败源于测试误假设 updated_at 保留传入值；核对 storage/profile.rs 的统一更新时间规则后，改为恢复时间区间断言及与原持久化记录比较，保留完整不变性断言。最终 `cargo test --lib rf011_` 4/4、`cargo test --lib commands::backup` 10/10，exit 0。
+- CLI 全量：`cargo fmt --check`、`cargo clippy --all-targets -- -D warnings`、`cargo test --verbose --no-fail-fast` 均 exit 0；171 库测试 + 2 集成测试通过，0 失败，1 个既有文档测试 ignored。正常主机权限运行临时 Vault 测试，sqlite3 仅加入该测试进程 PATH，未访问真实保险库。
+- 阻塞调查：独立副本嵌入 Tauri 默认 manifest 后可列出 485 GUI 测试，随后微型链接探针验证避免双份 manifest 的构建方案，详见新增 RF-901。诊断副本/微型工程已删除，原 GUI 产物未改；尚未以正常项目构建验证，RF-001/006/009 保留阻塞。
+- DOC：`git diff --check`、92 项索引/任务卡及状态计数核对通过。结论：**完成**；独立提交为本提交（标题含 RF-011），未推送；原有无关修改保留。

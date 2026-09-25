@@ -59,7 +59,8 @@ struct RestoreManifest {
 struct RestoreProfileEntry {
     id: String,
     name: String,
-    data: Vec<u8>,
+    data_b64: Option<String>,
+    data: Option<Vec<u8>>,
     created_at: String,
     updated_at: String,
     version: u32,
@@ -336,19 +337,37 @@ fn do_restore(app: &mut App, backup_id: &str) -> Result<()> {
     })?;
 
     use solosoul_core::Profile;
-    for entry in &manifest.profiles {
-        let profile = Profile {
-            id: entry.id.clone(),
-            name: entry.name.clone(),
-            data: entry.data.clone(),
-            created_at: chrono::DateTime::parse_from_rfc3339(&entry.created_at)
-                .map(|dt| dt.with_timezone(&chrono::Utc))
-                .unwrap_or_else(|_| chrono::Utc::now()),
-            updated_at: chrono::DateTime::parse_from_rfc3339(&entry.updated_at)
-                .map(|dt| dt.with_timezone(&chrono::Utc))
-                .unwrap_or_else(|_| chrono::Utc::now()),
-            version: entry.version,
-        };
+    // RF-011：先解码整个清单，后续条目损坏时不能先覆盖前面的 Profile。
+    let profiles = manifest
+        .profiles
+        .into_iter()
+        .map(|entry| {
+            // 与 GUI 一致：非空 Base64 优先；空字符串回退旧数组。
+            // 显式空内容合法，但缺失两种数据不能伪造成空 Profile。
+            let data = match (entry.data_b64, entry.data) {
+                (Some(encoded), _) if !encoded.is_empty() => {
+                    base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &encoded)
+                        .map_err(|e| color_eyre::eyre::eyre!("Profile 数据 Base64 无效: {}", e))?
+                }
+                (_, Some(data)) => data,
+                (Some(_), None) => Vec::new(),
+                (None, None) => return Err(color_eyre::eyre::eyre!("Profile 缺少备份数据")),
+            };
+            Ok(Profile {
+                id: entry.id,
+                name: entry.name,
+                data,
+                created_at: chrono::DateTime::parse_from_rfc3339(&entry.created_at)
+                    .map(|dt| dt.with_timezone(&chrono::Utc))
+                    .unwrap_or_else(|_| chrono::Utc::now()),
+                updated_at: chrono::DateTime::parse_from_rfc3339(&entry.updated_at)
+                    .map(|dt| dt.with_timezone(&chrono::Utc))
+                    .unwrap_or_else(|_| chrono::Utc::now()),
+                version: entry.version,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    for profile in profiles {
         vault
             .save_profile(&profile)
             .map_err(|e| color_eyre::eyre::eyre!(e))?;
@@ -654,5 +673,170 @@ mod tests {
     fn test_backup_delete_not_found() {
         let (mut app, _id, _dir) = unlocked_app();
         assert!(handle(&mut app, &["delete", "missing_id"]).is_err());
+    }
+
+    fn rf011_entry(id: &str, payload: serde_json::Value) -> serde_json::Value {
+        let mut entry = serde_json::json!({
+            "id": id, "name": "历史 Profile", "version": 3,
+            "created_at": "2025-01-02T03:04:05Z",
+            "updated_at": "2026-02-03T04:05:06Z"
+        });
+        entry
+            .as_object_mut()
+            .unwrap()
+            .extend(payload.as_object().unwrap().clone());
+        entry
+    }
+
+    fn rf011_write_backup(app: &App, entries: Vec<serde_json::Value>) {
+        let dir = backups_dir(app);
+        fs::create_dir_all(&dir).unwrap();
+        let manifest = serde_json::json!({
+            "version": "2.0", "created_at": "2026-09-25T00:00:00Z",
+            "profile_count": entries.len(), "profiles": entries
+        });
+        crate::util::write_private_file(
+            &dir.join("rf011.solosoul_backup"),
+            &serde_json::to_vec(&manifest).unwrap(),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn rf011_restores_gui_and_legacy_profile_bytes_and_metadata() {
+        let (mut app, _id, _dir) = unlocked_app();
+        // 固定 GUI 2.0 线格式，含非 UTF-8 字节，不能只验证文本或空清单。
+        rf011_write_backup(
+            &app,
+            vec![
+                rf011_entry("gui", serde_json::json!({"data_b64": "AAH+/2Zvbw=="})),
+                rf011_entry(
+                    "legacy",
+                    serde_json::json!({"data": [0, 1, 254, 255, 102, 111, 111]}),
+                ),
+            ],
+        );
+        handle(&mut app, &["restore", "rf011"]).unwrap();
+        let vault = app.vault_service.get_vault_store().unwrap();
+        assert!(vault.list_profiles().unwrap().is_empty(), "确认前不能写入");
+        let restore_started_at = chrono::Utc::now();
+        confirm_prompt(&mut app);
+        let restore_finished_at = chrono::Utc::now();
+        assert!(app.error_message.is_none(), "{:?}", app.error_message);
+        assert!(app.success_message.is_some());
+        for id in ["gui", "legacy"] {
+            let restored = vault.load_profile(id).unwrap().unwrap();
+            assert_eq!(restored.data, vec![0, 1, 254, 255, 102, 111, 111]);
+            assert_eq!(restored.name, "历史 Profile");
+            assert_eq!(restored.version, 3);
+            assert_eq!(
+                restored.created_at.to_rfc3339(),
+                "2025-01-02T03:04:05+00:00"
+            );
+            // Vault 保存时统一更新修改时间，恢复沿用这条现有存储规则。
+            assert!(restored.updated_at >= restore_started_at);
+            assert!(restored.updated_at <= restore_finished_at);
+        }
+    }
+
+    #[test]
+    fn rf011_dual_fields_and_explicit_empty_payloads_are_compatible() {
+        let (mut app, _id, _dir) = unlocked_app();
+        let cases = [
+            (
+                "preferred",
+                serde_json::json!({"data_b64": "Zm9v", "data": [42]}),
+                b"foo".to_vec(),
+            ),
+            (
+                "fallback",
+                serde_json::json!({"data_b64": "", "data": [42]}),
+                vec![42],
+            ),
+            ("empty_b64", serde_json::json!({"data_b64": ""}), vec![]),
+            ("empty_array", serde_json::json!({"data": []}), vec![]),
+        ];
+        rf011_write_backup(
+            &app,
+            cases
+                .iter()
+                .map(|(id, payload, _)| rf011_entry(id, payload.clone()))
+                .collect(),
+        );
+        do_restore(&mut app, "rf011").unwrap();
+        let vault = app.vault_service.get_vault_store().unwrap();
+        for (id, _, expected) in &cases {
+            assert_eq!(&vault.load_profile(id).unwrap().unwrap().data, expected);
+        }
+        // 空 profiles 清单仍是有效备份，且不会删除现有 Profile。
+        rf011_write_backup(&app, vec![]);
+        do_restore(&mut app, "rf011").unwrap();
+        assert_eq!(vault.list_profiles().unwrap().len(), cases.len());
+        assert_eq!(
+            vault.load_profile("preferred").unwrap().unwrap().data,
+            b"foo"
+        );
+    }
+
+    #[test]
+    fn rf011_invalid_later_entry_does_not_write_any_profile() {
+        let (mut app, _id, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+        let mut original = Profile::new("original", b"keep secret".to_vec());
+        original.id = "existing".to_owned();
+        vault.save_profile(&original).unwrap();
+        let original = vault.load_profile("existing").unwrap().unwrap();
+        for invalid in [
+            serde_json::json!({"data_b64": "!invalid", "data": [42]}),
+            serde_json::json!({"data_b64": "Zg="}),
+            serde_json::json!({}),
+            serde_json::json!({"data_b64": null, "data": null}),
+            serde_json::json!({"data_b64": 42}),
+            serde_json::json!({"data": [256]}),
+        ] {
+            rf011_write_backup(
+                &app,
+                vec![
+                    rf011_entry("existing", serde_json::json!({"data_b64": "Zm9v"})),
+                    rf011_entry("invalid", invalid),
+                ],
+            );
+            assert!(do_restore(&mut app, "rf011").is_err());
+            let actual = vault.load_profile("existing").unwrap().unwrap();
+            assert_eq!(actual.data, original.data);
+            assert_eq!(actual.name, original.name);
+            assert_eq!(actual.version, original.version);
+            assert_eq!(actual.created_at, original.created_at);
+            assert_eq!(actual.updated_at, original.updated_at);
+            assert!(vault.load_profile("invalid").unwrap().is_none());
+            assert_eq!(vault.list_profiles().unwrap().len(), 1);
+        }
+    }
+
+    #[test]
+    fn rf011_cancel_and_decode_error_do_not_report_success() {
+        let (mut app, _id, _dir) = unlocked_app();
+        rf011_write_backup(
+            &app,
+            vec![rf011_entry("gui", serde_json::json!({"data_b64": "Zm9v"}))],
+        );
+        handle(&mut app, &["restore", "rf011"]).unwrap();
+        crate::widgets::prompt::handle_key(&mut app, KeyEvent::from(KeyCode::Enter));
+        let vault = app.vault_service.get_vault_store().unwrap();
+        assert!(vault.list_profiles().unwrap().is_empty());
+        assert!(app.success_message.is_none());
+
+        rf011_write_backup(
+            &app,
+            vec![rf011_entry(
+                "gui",
+                serde_json::json!({"data_b64": "invalid!"}),
+            )],
+        );
+        handle(&mut app, &["restore", "rf011"]).unwrap();
+        confirm_prompt(&mut app);
+        assert!(app.error_message.as_deref().unwrap().contains("Base64"));
+        assert!(app.success_message.is_none());
+        assert!(vault.list_profiles().unwrap().is_empty());
     }
 }
