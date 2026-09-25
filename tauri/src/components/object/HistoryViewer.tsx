@@ -1,6 +1,5 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
@@ -8,15 +7,22 @@ import type { PropertyType } from '@/types/template';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
-import { useRevealState } from '@/hooks/useRevealState';
-import { MASK_PLACEHOLDER } from '@/lib/masking';
+import { ProtectedFieldValue } from '@/components/ui/ProtectedFieldValue';
+import {
+  fieldPresentationIdentity,
+  fieldPresentationPolicy,
+  strongestSensitivity,
+} from '@/lib/fieldPresentationPolicy';
+import { asFieldRecord } from '@/lib/fieldSensitivity';
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
+import { useAuthStore } from '@/stores/authStore';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUiStore } from '@/stores/uiStore';
 import { logger } from '@/lib/logger';
 import { ICON_SIZE } from '@/lib/constants';
 import { ValueContainer } from '@/components/ui/ValueContainer';
-import { flattenPropertyEntries } from '@/lib/propertyFlatten';
+import { flattenPropertyEntries, type DynamicChildItem } from '@/lib/propertyFlatten';
 
 import type { SnapshotEntry } from '@/types/history';
 
@@ -35,7 +41,7 @@ export type FlattenedField =
       label?: string;
       sensitivity?: SensitivityLevel;
       type?: PropertyType;
-      children: { label: string; value: string; type?: string }[];
+      children: DynamicChildItem[];
     };
 
 // P024: 收敛至共享核心 flattenPropertyEntries——历史快照需要保留 __fields 中的
@@ -51,6 +57,7 @@ export function flattenProperties(
     keepMetaKeys: true,
     flattenDynamicGroups: false,
     injectFieldLabels: true,
+    preserveChildSensitivity: true,
   }).map((e) =>
     e.kind === 'field'
       ? {
@@ -70,180 +77,223 @@ export function flattenProperties(
   );
 }
 
+type Verification = HistoryViewerProps['passwordVerify'];
+type HistoryRequest = ReturnType<ReturnType<typeof createSessionRequests>['begin']>;
+type CriticalAccess = (
+  name: string,
+  method: Awaited<ReturnType<Verification>>['method'],
+  request: HistoryRequest,
+) => Promise<void>;
+
+/** 读取与审计也受实例寿命约束，卡片卸载时同步拒绝迟到响应。 */
+function useHistoryRequests() {
+  const [requests] = useState(createSessionRequests);
+  useLayoutEffect(() => () => requests.invalidate(), [requests]);
+  return requests;
+}
+
+function HistoryField({
+  accountId,
+  objectId,
+  snapshotId,
+  fieldId,
+  label,
+  value,
+  sensitivity,
+  type,
+  deprecated,
+  child,
+  showBadge = true,
+  verifyPassword,
+  onCriticalAccess,
+}: {
+  accountId?: string;
+  objectId: string;
+  snapshotId: string;
+  fieldId: string;
+  label: string;
+  value: string;
+  sensitivity: SensitivityLevel;
+  type?: PropertyType;
+  deprecated?: boolean;
+  child?: boolean;
+  showBadge?: boolean;
+  verifyPassword: Verification;
+  onCriticalAccess: CriticalAccess;
+}) {
+  const { t } = useTranslation(['common']);
+  const requests = useHistoryRequests();
+  const policy = fieldPresentationPolicy({
+    fieldId,
+    definition: { sensitivityLevel: sensitivity },
+  });
+  const authorize = async () => {
+    const request = requests.begin('verify', accountId);
+    if (!request.isCurrent()) return false;
+    if (policy.requiresVerification) {
+      const result = await verifyPassword();
+      if (!result.ok || !request.isCurrent()) return false;
+      await onCriticalAccess(label, result.method, request);
+    }
+    return request.isCurrent();
+  };
+  return (
+    <ProtectedFieldValue
+      accountId={accountId}
+      objectId={objectId}
+      fieldId={fieldId}
+      contentVersion={snapshotId}
+      value={value}
+      policy={policy}
+      authorize={authorize}
+    >
+      {(control) => {
+        const seconds = Math.max(0, Math.ceil(control.remainingMs / 1000));
+        const countdownTitle = t('common:reveal_countdown_title', {
+          seconds,
+          defaultValue: `Auto-hides in ${seconds}s`,
+        });
+        const revealLabel = t('common:click_to_reveal', { defaultValue: 'Click to reveal' });
+        return (
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'flex-start',
+              gap: 8,
+              marginLeft: child ? 16 : undefined,
+              fontSize: 'var(--text-caption)',
+              padding: '6px 8px',
+              borderRadius: 6,
+              background: 'var(--bg-toolbar)',
+              border: '1px solid var(--border-subtle)',
+              opacity: deprecated ? 0.7 : 1,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                minWidth: child ? 74 : 90,
+                flex: '0 0 auto',
+              }}
+            >
+              <FieldTypeIcon type={type || 'text'} />
+              <span
+                style={{
+                  fontWeight: 500,
+                  color: 'var(--text-secondary)',
+                  textDecoration: deprecated ? 'line-through' : 'none',
+                }}
+              >
+                {label}
+              </span>
+              {showBadge && <SensitivityBadge level={sensitivity} />}
+              {deprecated && <DeprecatedBadge />}
+              {control.revealed && (
+                <span
+                  title={countdownTitle}
+                  aria-label={countdownTitle}
+                  data-testid="history-reveal-countdown"
+                  style={{
+                    flexShrink: 0,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 3,
+                    minWidth: '3.5em',
+                    fontSize: 'var(--text-badge)',
+                    color: 'var(--text-tertiary)',
+                    fontVariantNumeric: 'tabular-nums',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <Clock size={12} aria-hidden="true" />
+                  {t('common:reveal_countdown', { seconds, defaultValue: `${seconds}s` })}
+                </span>
+              )}
+            </div>
+            <ValueContainer value={control.displayValue}>
+              {policy.concealed && !control.revealed ? (
+                <button
+                  type="button"
+                  onClick={() => void control.reveal()}
+                  title={revealLabel}
+                  aria-label={revealLabel}
+                  style={{
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    background: 'var(--bg-subtle, rgba(128,128,128,0.15))',
+                    border: 'none',
+                    borderRadius: 2,
+                    padding: '0 2px',
+                    color: 'var(--text-primary)',
+                    font: 'inherit',
+                  }}
+                >
+                  {control.displayValue}
+                </button>
+              ) : (
+                <span>{control.displayValue}</span>
+              )}
+            </ValueContainer>
+          </div>
+        );
+      }}
+    </ProtectedFieldValue>
+  );
+}
+
 function SnapshotCard({
   snap,
+  accountId,
+  objectId,
   index,
   total,
-  t: _t,
-  getFieldSensitivity,
-  isFieldDeprecated,
-  getFieldName,
-  fieldOrder,
   verifyPassword,
   onCriticalAccess,
 }: {
   snap: SnapshotEntry;
+  accountId?: string;
+  objectId: string;
   index: number;
   total: number;
-  t: (k: string) => string;
-  getFieldSensitivity: (fieldKey: string) => SensitivityLevel;
-  isFieldDeprecated: (fieldKey: string) => boolean;
-  getFieldName: (fieldKey: string) => string;
-  fieldOrder?: string[];
-  verifyPassword: () => Promise<{
-    ok: boolean;
-    method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin';
-  }>;
-  onCriticalAccess?: (
-    fieldName: string,
-    method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin',
-  ) => void;
+  verifyPassword: Verification;
+  onCriticalAccess: CriticalAccess;
 }) {
   const [snapData, setSnapData] = useState<Record<string, unknown> | null>(null);
-  const { isRevealed, reveal, revealRemainingMs } = useRevealState();
+  const requests = useHistoryRequests();
   const { t } = useTranslation(['common', 'editor']);
-
   useEffect(() => {
-    invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshotId: snap.id })
-      .then(setSnapData)
+    const request = requests.begin('data', accountId);
+    request
+      .invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshotId: snap.id })
+      .then((data) => {
+        if (request.isCurrent()) setSnapData(data);
+      })
       .catch((err) => {
-        // P059: 补齐 .catch；加载失败保持 snapData 为 null（快照体渲染为空），记录日志便于排查
-        logger.warn('[HistoryViewer] snapshot_get_data failed:', err);
+        if (request.isCurrent()) logger.warn('[HistoryViewer] snapshot_get_data failed:', err);
       });
-  }, [snap.id]);
+    return () => requests.invalidate('data');
+  }, [requests, accountId, snap.id]);
 
-  const rawProps =
-    snapData && typeof snapData === 'object' && 'properties' in snapData
-      ? (snapData.properties as Record<string, unknown> | undefined)
-      : undefined;
-  const snapPropertyLabels =
-    snapData && typeof snapData === 'object' && 'propertyLabels' in snapData
-      ? (snapData.propertyLabels as Record<string, string> | undefined)
-      : undefined;
-  const fieldDefs = rawProps?.__fields as
-    | Record<string, { type?: string; sensitivityLevel?: string }>
-    | undefined;
-  // P050: fields 派生自异步快照数据（加载后稳定）+ 静态 fieldOrder，useMemo 避免每次渲染重算
-  const fields = useMemo(() => flattenProperties(rawProps, fieldOrder), [rawProps, fieldOrder]);
-  const snapName =
-    snapData && typeof snapData === 'object' && 'name' in snapData ? String(snapData.name) : '';
-  const tags: string[] =
-    snapData && typeof snapData === 'object' && 'tags' in snapData && Array.isArray(snapData.tags)
-      ? (snapData.tags as string[])
-      : [];
-
-  const resolveFieldSensitivity = (field: FlattenedField): SensitivityLevel => {
-    return (
-      field.sensitivity ||
-      (snapPropertyLabels?.[field.key] as SensitivityLevel | undefined) ||
-      (fieldDefs?.[field.key]?.sensitivityLevel as SensitivityLevel | undefined) ||
-      getFieldSensitivity(field.key) ||
-      'internal'
-    );
-  };
-
-  // 揭示中的字段展示自动隐藏倒计时（每秒跳动，驱动重渲染；具体秒数渲染时实时计算）
-  const [, setTick] = useState(0);
-  const anyRevealed = fields.some((f) => {
-    const sens = resolveFieldSensitivity(f);
-    if (sens !== 'sensitive' && sens !== 'critical') return false;
-    return isRevealed(f.key);
-  });
-  useEffect(() => {
-    if (!anyRevealed) return;
-    const timer = window.setInterval(() => setTick((t) => t + 1), 1000);
-    return () => window.clearInterval(timer);
-  }, [anyRevealed]);
-
-  // 倒计时追加在左侧字段名和徽章之后，保留原有标签位置，避免与右侧字段值连读。
-  const renderRevealCountdown = (fieldId: string) => {
-    if (!isRevealed(fieldId)) return null;
-    const seconds = Math.max(0, Math.ceil(revealRemainingMs(fieldId) / 1000));
-    const title = t('common:reveal_countdown_title', {
-      seconds,
-      defaultValue: `Auto-hides in ${seconds}s`,
-    });
-    return (
-      <span
-        title={title}
-        aria-label={title}
-        data-testid="history-reveal-countdown"
-        style={{
-          flexShrink: 0,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 3,
-          minWidth: '3.5em',
-          fontSize: 'var(--text-badge)',
-          color: 'var(--text-tertiary)',
-          fontVariantNumeric: 'tabular-nums',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        <Clock size={12} aria-hidden="true" />
-        {t('common:reveal_countdown', { seconds, defaultValue: `${seconds}s` })}
-      </span>
-    );
-  };
-
-  const renderValueSpan = (opts: {
-    value: string;
-    fieldId: string;
-    sens: SensitivityLevel;
-    fieldLabel?: string;
-  }) => {
-    const { value, fieldId, sens, fieldLabel } = opts;
-    const revealed = isRevealed(fieldId);
-    // RF-105 先移除 sensitive/critical 原文；internal 策略迁移由 RF-107 承接。
-    const needsReveal = sens === 'sensitive' || sens === 'critical';
-    if (!needsReveal || revealed) return <span>{value}</span>;
-    const label = t('common:click_to_reveal', { defaultValue: 'Click to reveal' });
-    return (
-      <button
-        type="button"
-        onClick={async () => {
-          try {
-            if (sens === 'critical') {
-              const result = await verifyPassword();
-              if (!result.ok) return;
-              reveal(fieldId);
-              const criticalFieldName = fieldLabel
-                ? `${t('editor:field_types.dynamic_group')}: ${fieldLabel}`
-                : getFieldName(fieldId);
-              onCriticalAccess?.(criticalFieldName, result.method);
-            } else reveal(fieldId);
-          } catch {
-            /* 验证失败保持占位。 */
-          }
-        }}
-        title={label}
-        aria-label={label}
-        style={{
-          cursor: 'pointer',
-          userSelect: 'none',
-          background: 'var(--bg-subtle, rgba(128,128,128,0.15))',
-          border: 'none',
-          borderRadius: 2,
-          padding: '0 2px',
-          color: 'var(--text-primary)',
-          font: 'inherit',
-        }}
-      >
-        {MASK_PLACEHOLDER}
-      </button>
-    );
-  };
-  const getFieldNameLabel = (field: FlattenedField): string => {
-    const rawLabel = field.label || getFieldName(field.key);
-    if (field.key === '__dynamic_group__' || rawLabel === '__dynamic_group__') {
-      return t('editor:field_types.dynamic_group', { defaultValue: '动态字段组' });
-    }
-    return rawLabel;
-  };
-
+  const rawProps = asFieldRecord(snapData?.properties);
+  const labels = asFieldRecord(snapData?.propertyLabels);
+  const fieldDefs = asFieldRecord(rawProps?.__fields);
+  // 只采用快照定义顺序；缺少定义的旧快照保留其 properties 顺序。
+  const fields = useMemo(
+    () =>
+      flattenProperties(rawProps, [
+        ...new Set([...Object.keys(fieldDefs ?? {}), ...Object.keys(rawProps ?? {})]),
+      ]),
+    [rawProps, fieldDefs],
+  );
+  const snapName = snapData?.name == null ? '' : String(snapData.name);
+  const tags = Array.isArray(snapData?.tags)
+    ? snapData.tags.filter((tag): tag is string => typeof tag === 'string')
+    : [];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {/* Version badge */}
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <SnapshotVersionBadge index={index} total={total} />
         <div
@@ -261,120 +311,77 @@ function SnapshotCard({
           {snapName}
         </div>
       </div>
-      {/* Properties — tree-structured dynamic groups */}
       {fields.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
-          {fields.map((f) => {
-            if (f.kind === 'dynamicGroup') {
-              const sens = resolveFieldSensitivity(f);
-              const deprecated = isFieldDeprecated(f.key);
-              const fieldId = f.key;
-              return (
-                <div key={fieldId} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {/* Parent dynamic group row */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      fontSize: 'var(--text-caption)',
-                      padding: '6px 8px',
-                      borderRadius: 6,
-                      background: 'var(--bg-toolbar)',
-                      border: '1px solid var(--border-subtle)',
-                      opacity: deprecated ? 0.7 : 1,
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 90 }}>
-                      <FieldTypeIcon type={f.type || 'text'} />
-                      <span
-                        style={{
-                          fontWeight: 500,
-                          color: 'var(--text-secondary)',
-                          textDecoration: deprecated ? 'line-through' : 'none',
-                        }}
-                      >
-                        {getFieldNameLabel(f)}
-                      </span>
-                      <SensitivityBadge level={sens} />
-                      {deprecated && <DeprecatedBadge />}
-                      {renderRevealCountdown(fieldId)}
-                    </div>
-                  </div>
-                  {/* Child fields */}
-                  {f.children.map((child, idx) => (
-                    <div
-                      key={`${fieldId}-child-${idx}`}
-                      style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        alignItems: 'flex-start',
-                        gap: 8,
-                        marginLeft: 16,
-                        fontSize: 'var(--text-caption)',
-                        padding: '6px 8px',
-                        borderRadius: 6,
-                        background: 'var(--bg-toolbar)',
-                        border: '1px solid var(--border-subtle)',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          minWidth: 74,
-                          flex: '0 0 auto',
-                        }}
-                      >
-                        <FieldTypeIcon type={(child.type as PropertyType) || 'text'} />
-                        <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>
-                          {child.label}
-                        </span>
-                      </div>
-                      <ValueContainer value={child.value}>
-                        {renderValueSpan({
-                          value: child.value,
-                          fieldId,
-                          sens,
-                          fieldLabel: child.label,
-                        })}
-                      </ValueContainer>
-                    </div>
-                  ))}
-                </div>
-              );
-            }
-
-            const sens = resolveFieldSensitivity(f);
-            const deprecated = isFieldDeprecated(f.key);
-            const fieldId = f.key;
+          {fields.map((field) => {
+            const definition = asFieldRecord(fieldDefs?.[field.key]);
+            const sensitivity = fieldPresentationPolicy({
+              fieldId: field.key,
+              propertyLabels: labels,
+              definition,
+            }).sensitivity;
+            const deprecated = !!definition?.deprecatedAt;
+            const name = field.label ?? field.key;
+            const label =
+              field.key === '__dynamic_group__' || name === '__dynamic_group__'
+                ? t('editor:field_types.dynamic_group', { defaultValue: '动态字段组' })
+                : name;
+            const renderField = (
+              fieldId: string,
+              fieldLabel: string,
+              value: string,
+              level: SensitivityLevel,
+              type?: PropertyType,
+              child = false,
+            ) => (
+              <HistoryField
+                key={fieldPresentationIdentity(accountId, objectId, fieldId, [
+                  snap.id,
+                  value,
+                  level,
+                  fieldLabel,
+                ])}
+                accountId={accountId}
+                objectId={objectId}
+                snapshotId={snap.id}
+                fieldId={fieldId}
+                label={fieldLabel}
+                value={value}
+                sensitivity={level}
+                type={type}
+                deprecated={deprecated}
+                child={child}
+                showBadge={!child}
+                verifyPassword={verifyPassword}
+                onCriticalAccess={onCriticalAccess}
+              />
+            );
+            if (field.kind === 'field')
+              return renderField(field.key, label, field.value, sensitivity, field.type);
+            const children = field.children.map((child) => ({
+              ...child,
+              level: fieldPresentationPolicy({
+                fieldId: child.id ?? child.label,
+                definition: { sensitivityLevel: child.sensitivityLevel },
+                parent: sensitivity,
+              }).sensitivity,
+            }));
             return (
-              <div
-                key={`${f.key}-${f.label}`}
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'flex-start',
-                  gap: 8,
-                  fontSize: 'var(--text-caption)',
-                  padding: '6px 8px',
-                  borderRadius: 6,
-                  background: 'var(--bg-toolbar)',
-                  border: '1px solid var(--border-subtle)',
-                  opacity: deprecated ? 0.7 : 1,
-                }}
-              >
+              <div key={field.key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 4,
-                    minWidth: 90,
-                    flex: '0 0 auto',
+                    fontSize: 'var(--text-caption)',
+                    padding: '6px 8px',
+                    borderRadius: 6,
+                    background: 'var(--bg-toolbar)',
+                    border: '1px solid var(--border-subtle)',
+                    opacity: deprecated ? 0.7 : 1,
                   }}
                 >
-                  <FieldTypeIcon type={f.type || 'text'} />
+                  <FieldTypeIcon type={field.type || 'dynamic_group'} />
                   <span
                     style={{
                       fontWeight: 500,
@@ -382,21 +389,31 @@ function SnapshotCard({
                       textDecoration: deprecated ? 'line-through' : 'none',
                     }}
                   >
-                    {getFieldNameLabel(f)}
+                    {label}
                   </span>
-                  <SensitivityBadge level={sens} />
+                  <SensitivityBadge
+                    level={strongestSensitivity([
+                      sensitivity,
+                      ...children.map((child) => child.level),
+                    ])}
+                  />
                   {deprecated && <DeprecatedBadge />}
-                  {renderRevealCountdown(fieldId)}
                 </div>
-                <ValueContainer value={f.value}>
-                  {renderValueSpan({ value: f.value, fieldId, sens, fieldLabel: f.label })}
-                </ValueContainer>
+                {children.map((child, index) =>
+                  renderField(
+                    `${field.key}.${child.id ?? index}`,
+                    child.label,
+                    child.value,
+                    child.level,
+                    child.type as PropertyType,
+                    true,
+                  ),
+                )}
               </div>
             );
           })}
         </div>
       )}
-      {/* Tags */}
       {tags.length > 0 && (
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
           {tags.map((tag) => (
@@ -419,7 +436,6 @@ function SnapshotCard({
     </div>
   );
 }
-
 export interface HistoryViewerProps {
   objectId: string;
   objectName?: string;
@@ -429,6 +445,7 @@ export interface HistoryViewerProps {
     ok: boolean;
     method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin';
   }>;
+  /** 兼容旧调用方；当前模板元数据不参与历史展示。 */
   getFieldSensitivity: (fieldKey: string) => SensitivityLevel;
   isFieldDeprecated: (fieldKey: string) => boolean;
   getFieldName: (fieldKey: string) => string;
@@ -436,18 +453,32 @@ export interface HistoryViewerProps {
   zIndex?: number;
 }
 
-export function HistoryViewer({
+export function HistoryViewer(props: HistoryViewerProps) {
+  const accountId = useAuthStore((s) => s.currentAccount?.id);
+  const [sessionVersion, setSessionVersion] = useState(0);
+  useLayoutEffect(
+    () => onRequestSessionChange(() => setSessionVersion((version) => version + 1)),
+    [],
+  );
+  return (
+    <HistoryViewerSession
+      key={JSON.stringify([accountId, props.objectId, sessionVersion])}
+      {...props}
+      accountId={accountId}
+    />
+  );
+}
+
+function HistoryViewerSession({
+  accountId,
   objectId,
   objectName,
   typeId,
   onClose,
   passwordVerify,
-  getFieldSensitivity,
-  isFieldDeprecated,
-  getFieldName,
-  fieldOrder,
   zIndex = 2000,
-}: HistoryViewerProps) {
+}: HistoryViewerProps & { accountId?: string }) {
+  const requests = useHistoryRequests();
   const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -463,6 +494,7 @@ export function HistoryViewer({
   const writeCriticalAccessLog = async (
     fieldName: string,
     method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin',
+    request: HistoryRequest,
   ) => {
     if (!objectName) return;
     const actionType =
@@ -479,7 +511,7 @@ export function HistoryViewer({
     const pageLabel = typeId ? resolveCollectionLabelLocal(typeId) : '';
     const details = `objectName=${objectName} page=${pageLabel} fieldName=${fieldName}`;
     try {
-      await invoke('log_write', {
+      await request.invoke('log_write', {
         request: {
           actionType,
           entityType,
@@ -494,21 +526,29 @@ export function HistoryViewer({
   };
 
   useEffect(() => {
-    invoke<SnapshotEntry[]>('snapshot_list', { objectId: objectId })
-      .then(setSnapshots)
+    const request = requests.begin('list', accountId);
+    request
+      .invoke<SnapshotEntry[]>('snapshot_list', { objectId: objectId })
+      .then((data) => {
+        if (request.isCurrent()) setSnapshots(data);
+      })
       .catch((err) => {
+        if (!request.isCurrent()) return;
         // P059: 补齐 .catch，失败时给出提示而非 unhandled rejection
         showToast({
           type: 'error',
           message: `${t('common:history_load_failed', 'Failed to load history')}: ${err}`,
         });
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (request.isCurrent()) setLoading(false);
+      });
+    return () => requests.invalidate('list');
     // showToast/t 为稳定引用，仅需在 objectId 变化时重新加载
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [objectId]);
+  }, [objectId, accountId, requests]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     return () => {
       if (navTimeoutRef.current) {
         clearTimeout(navTimeoutRef.current);
@@ -517,7 +557,7 @@ export function HistoryViewer({
   }, []);
 
   const goPrev = () => {
-    if (currentIdx < snapshots.length - 1) {
+    if (!animDir && currentIdx < snapshots.length - 1) {
       setAnimDir('right');
       navTimeoutRef.current = setTimeout(() => {
         setCurrentIdx((i) => i + 1);
@@ -526,7 +566,7 @@ export function HistoryViewer({
     }
   };
   const goNext = () => {
-    if (currentIdx > 0) {
+    if (!animDir && currentIdx > 0) {
       setAnimDir('left');
       navTimeoutRef.current = setTimeout(() => {
         setCurrentIdx((i) => i - 1);
@@ -648,16 +688,14 @@ export function HistoryViewer({
               >
                 {t('common:no_history')}
               </div>
-            ) : (
+            ) : animDir ? null : (
               <SnapshotCard
+                key={snap.id}
+                accountId={accountId}
+                objectId={objectId}
                 snap={snap}
                 index={currentIdx}
                 total={total}
-                t={t}
-                getFieldSensitivity={getFieldSensitivity}
-                isFieldDeprecated={isFieldDeprecated}
-                getFieldName={getFieldName}
-                fieldOrder={fieldOrder}
                 verifyPassword={passwordVerify}
                 onCriticalAccess={writeCriticalAccessLog}
               />

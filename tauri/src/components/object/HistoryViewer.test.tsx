@@ -1,7 +1,8 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, fireEvent, act, cleanup } from '@testing-library/react';
 import { flattenProperties, HistoryViewer } from './HistoryViewer';
 import * as invokeModule from '@tauri-apps/api/core';
+import { setRequestSession } from '@/lib/sessionRequests';
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
@@ -327,6 +328,8 @@ describe('HistoryViewer', () => {
 
     // 历史记录应显示快照中的旧字段名 "1"，而不是当前模板的 "2"
     expect(screen.queryByText('2')).not.toBeInTheDocument();
+    expect(screen.queryByText('a')).not.toBeInTheDocument();
+    await act(async () => fireEvent.click(screen.getByText('••••••••')));
     expect(screen.getByText('a')).toBeInTheDocument();
   });
 
@@ -385,7 +388,7 @@ describe('HistoryViewer', () => {
     expect(screen.queryByText('sensitive')).not.toBeInTheDocument();
   });
 
-  it('renders internal sensitivity field as plaintext (no mask, no blur)', async () => {
+  it('masks internal fields until explicitly revealed', async () => {
     mockInvoke.mockImplementation(async (cmd) => {
       if (cmd === 'snapshot_list') {
         return [
@@ -429,11 +432,9 @@ describe('HistoryViewer', () => {
       expect(screen.getByText('手机')).toBeInTheDocument();
     });
 
-    // internal 字段明文直接可见（与详情卡片规则一致），无实际 blur 掩码
-    // 受保护占位也不再使用 CSS blur。
-    const valueEl = screen.getByText('13800138000');
-    expect(valueEl).toBeInTheDocument();
-    expect(valueEl.style.filter).toBe('');
+    expect(document.body.innerHTML).not.toContain('13800138000');
+    await act(async () => fireEvent.click(screen.getByText('••••••••')));
+    expect(screen.getByText('13800138000')).toBeInTheDocument();
   });
 
   it('renders sensitive field as a placeholder without protected text in DOM', async () => {
@@ -596,7 +597,7 @@ describe('HistoryViewer', () => {
     expect(screen.queryByTestId('history-reveal-countdown')).not.toBeInTheDocument();
 
     // 点击值揭示（sensitive 直接揭示，无需验证）→ 明文 + 倒计时出现
-    fireEvent.click(screen.getByText('••••••••'));
+    await act(async () => fireEvent.click(screen.getByText('••••••••')));
     expect(screen.getByTestId('history-reveal-countdown')).toHaveTextContent('60s');
   });
 });
@@ -662,4 +663,233 @@ describe('RF-105 concealed history values', () => {
       }
     },
   );
+});
+
+describe('RF-107 snapshot protection and identity', () => {
+  beforeEach(() => vi.clearAllMocks());
+  const entry = (id: string) => ({ id, timestamp: 1, triggeredBy: 'user_edit', diffSummary: '' });
+  const props = {
+    objectId: 'object',
+    objectName: 'Object',
+    onClose: vi.fn(),
+    passwordVerify: vi.fn(async () => ({ ok: true, method: 'password' as const })),
+    getFieldSensitivity: vi.fn(() => 'public' as const),
+    getFieldName: vi.fn(() => 'CURRENT_TEMPLATE_NAME'),
+    isFieldDeprecated: vi.fn(() => true),
+    fieldOrder: ['second', 'first'],
+  };
+  afterEach(() => {
+    cleanup();
+    setRequestSession(null);
+    vi.useRealTimers();
+  });
+  function serve(data: Record<string, unknown>) {
+    mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === 'snapshot_list') return [entry('one')];
+      if (cmd === 'snapshot_get_data') return data;
+      return null;
+    });
+  }
+
+  it.each(['public', 'internal', 'sensitive', 'critical', 'unknown'])(
+    'snapshot %s follows shared policy without consulting current template',
+    async (level) => {
+      serve({
+        properties: {
+          first: 'ORIGINAL_VALUE',
+          __fields: { first: { name: 'Historical name', sensitivityLevel: 'public' } },
+        },
+        propertyLabels: { first: level },
+      });
+      const verify = vi.fn().mockResolvedValue({ ok: false, method: 'password' });
+      const { container, rerender } = render(<HistoryViewer {...props} passwordVerify={verify} />);
+      await screen.findByText('Historical name');
+      expect(container.innerHTML.includes('ORIGINAL_VALUE')).toBe(level === 'public');
+      // 模板删除/改名/重排/更改等级不影响已加载快照。
+      rerender(
+        <HistoryViewer
+          {...props}
+          passwordVerify={verify}
+          getFieldName={() => 'RENAMED'}
+          getFieldSensitivity={() => 'critical'}
+          fieldOrder={[]}
+        />,
+      );
+      expect(screen.getByText('Historical name')).toBeInTheDocument();
+      expect(container.innerHTML).not.toContain('RENAMED');
+      if (level !== 'public') {
+        await act(async () => fireEvent.click(screen.getByText('••••••••')));
+        expect(container.innerHTML.includes('ORIGINAL_VALUE')).toBe(level !== 'critical');
+        expect(verify).toHaveBeenCalledTimes(level === 'critical' ? 1 : 0);
+      }
+    },
+  );
+
+  it('keeps historical definition order and uses key/internal when snapshot metadata is absent', async () => {
+    serve({
+      properties: {
+        second: 'TWO',
+        first: 'ONE',
+        __fields: {
+          first: { name: 'Old first', sensitivityLevel: 'public' },
+          second: { name: 'Old second', sensitivityLevel: 'public' },
+        },
+      },
+    });
+    const { container, unmount } = render(<HistoryViewer {...props} />);
+    await screen.findByText('Old first');
+    expect(container.textContent!.indexOf('Old first')).toBeLessThan(
+      container.textContent!.indexOf('Old second'),
+    );
+    unmount();
+    serve({ properties: { legacy_key: 'LEGACY_SECRET' } });
+    render(<HistoryViewer {...props} />);
+    await screen.findByText('legacy_key');
+    expect(document.body.innerHTML).not.toContain('LEGACY_SECRET');
+    expect(screen.queryByText('CURRENT_TEMPLATE_NAME')).toBeNull();
+  });
+
+  it('inherits parent protection and independently protects critical children of public groups', async () => {
+    serve({
+      properties: {
+        __fields: {
+          parent: { type: 'dynamic_group', sensitivityLevel: 'sensitive' },
+          mixed: { type: 'dynamic_group', sensitivityLevel: 'public' },
+        },
+        parent: [
+          { id: 'p', name: 'Inherited child', value: 'PARENT_SECRET', sensitivityLevel: 'public' },
+        ],
+        mixed: [
+          { id: 'open', name: 'Open child', value: 'OPEN_VALUE', sensitivityLevel: 'public' },
+          {
+            id: 'locked',
+            name: 'Locked child',
+            value: 'CHILD_SECRET',
+            sensitivityLevel: 'critical',
+          },
+        ],
+      },
+    });
+    const verify = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, method: 'pin' })
+      .mockResolvedValue({ ok: true, method: 'pin' });
+    const { container } = render(<HistoryViewer {...props} passwordVerify={verify} />);
+    await screen.findByText('Open child');
+    expect(screen.getByText('OPEN_VALUE')).toBeInTheDocument();
+    expect(container.innerHTML).not.toContain('PARENT_SECRET');
+    expect(container.innerHTML).not.toContain('CHILD_SECRET');
+    await act(async () => fireEvent.click(screen.getAllByText('••••••••')[1]));
+    expect(container.innerHTML).not.toContain('CHILD_SECRET');
+    await act(async () => fireEvent.click(screen.getAllByText('••••••••')[1]));
+    expect(screen.getByText('CHILD_SECRET')).toBeInTheDocument();
+    expect(container.innerHTML).not.toContain('PARENT_SECRET');
+    expect(mockInvoke.mock.calls.filter(([cmd]) => cmd === 'log_write')).toHaveLength(1);
+  });
+
+  it.each(['snapshot', 'object', 'session', 'unmount'] as const)(
+    '%s change rejects late critical verification and auditing',
+    async (change) => {
+      setRequestSession('a');
+      let resolve!: (result: { ok: boolean; method: 'password' }) => void;
+      const verify = vi.fn(
+        () =>
+          new Promise<{ ok: boolean; method: 'password' }>((finish) => {
+            resolve = finish;
+          }),
+      );
+      mockInvoke.mockImplementation(async (cmd, args) => {
+        if (cmd === 'snapshot_list') return [entry('one'), entry('two')];
+        if (cmd === 'snapshot_get_data')
+          return {
+            properties: { secret: `SECRET_${(args as { snapshotId: string }).snapshotId}` },
+            propertyLabels: { secret: 'critical' },
+          };
+        return null;
+      });
+      const { rerender, unmount } = render(<HistoryViewer {...props} passwordVerify={verify} />);
+      fireEvent.click(await screen.findByText('••••••••'));
+      if (change === 'snapshot') {
+        vi.useFakeTimers();
+        fireEvent.click(screen.getByTitle('Previous'));
+        await act(async () => vi.advanceTimersByTime(151));
+        vi.useRealTimers();
+      } else if (change === 'object')
+        rerender(<HistoryViewer {...props} objectId="other" passwordVerify={verify} />);
+      else if (change === 'session')
+        act(() => {
+          setRequestSession(null);
+          setRequestSession('a');
+        });
+      else unmount();
+      await act(async () => resolve({ ok: true, method: 'password' }));
+      expect(document.body.innerHTML).not.toContain('SECRET_');
+      expect(mockInvoke.mock.calls.filter(([cmd]) => cmd === 'log_write')).toHaveLength(0);
+    },
+  );
+
+  it('returning to a revealed snapshot requires revealing again', async () => {
+    mockInvoke.mockImplementation(async (cmd, args) => {
+      if (cmd === 'snapshot_list') return [entry('one'), entry('two')];
+      if (cmd === 'snapshot_get_data')
+        return {
+          properties: {
+            field:
+              (args as { snapshotId: string }).snapshotId === 'one'
+                ? 'FIRST_SECRET'
+                : 'SECOND_SECRET',
+          },
+          propertyLabels: { field: 'internal' },
+        };
+      return null;
+    });
+    render(<HistoryViewer {...props} />);
+    const button = await screen.findByText('••••••••');
+    await act(async () => fireEvent.click(button));
+    expect(screen.getByText('FIRST_SECRET')).toBeInTheDocument();
+    vi.useFakeTimers();
+    fireEvent.click(screen.getByTitle('Previous'));
+    expect(screen.queryByText('FIRST_SECRET')).toBeNull();
+    await act(async () => vi.advanceTimersByTime(151));
+    expect(screen.queryByText('SECOND_SECRET')).toBeNull();
+    fireEvent.click(screen.getByTitle('Next'));
+    await act(async () => vi.advanceTimersByTime(151));
+    expect(screen.queryByText('FIRST_SECRET')).toBeNull();
+    expect(screen.getByText('••••••••')).toBeInTheDocument();
+  });
+
+  it('rejects late snapshot data after navigation', async () => {
+    let finish!: (data: unknown) => void;
+    mockInvoke.mockImplementation(async (cmd, args) => {
+      if (cmd === 'snapshot_list') return [entry('one'), entry('two')];
+      if (cmd === 'snapshot_get_data') {
+        if ((args as { snapshotId: string }).snapshotId === 'one')
+          return new Promise((resolve) => {
+            finish = resolve;
+          });
+        return {
+          name: 'SECOND_SNAPSHOT',
+          properties: { field: 'CURRENT_PUBLIC' },
+          propertyLabels: { field: 'public' },
+        };
+      }
+      return null;
+    });
+    render(<HistoryViewer {...props} />);
+    await screen.findByTitle('Previous');
+    await waitFor(() => expect(finish).toBeDefined());
+    vi.useFakeTimers();
+    fireEvent.click(screen.getByTitle('Previous'));
+    await act(async () => vi.advanceTimersByTime(151));
+    await act(async () =>
+      finish({
+        name: 'STALE_SNAPSHOT',
+        properties: { field: 'STALE_PUBLIC' },
+        propertyLabels: { field: 'public' },
+      }),
+    );
+    expect(screen.getByText('SECOND_SNAPSHOT')).toBeInTheDocument();
+    expect(screen.getByText('CURRENT_PUBLIC')).toBeInTheDocument();
+    expect(document.body.innerHTML).not.toContain('STALE_');
+  });
 });
