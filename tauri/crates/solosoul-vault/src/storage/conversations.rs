@@ -62,6 +62,10 @@ impl VaultStore {
         updated_at: &str,
         data: &[u8],
     ) -> Result<crate::RecordHlc, String> {
+        // 普通写入口必须绑定该 Vault 的账户，在生成 HLC 或执行 SQL 前拒绝错配。
+        if account_id != self.config.account_id {
+            return Err("Conversation account does not match vault".to_string());
+        }
         let key = self.data_key()?;
         let hlc = self.new_local_hlc()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
@@ -174,6 +178,9 @@ impl VaultStore {
 
     /// 物理删除会话行（记墓碑，供设备同步传播删除）。
     pub fn delete_conversation(&self, account_id: &str, id: &str) -> Result<(), String> {
+        if account_id != self.config.account_id {
+            return Err("Conversation account does not match vault".to_string());
+        }
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let affected = conn
@@ -380,6 +387,59 @@ mod tests {
             VaultConfig::new("test_account", dir.path().to_path_buf()).with_data_key([0x42u8; 32]);
         let vault = VaultStore::open(config).unwrap();
         (vault, dir)
+    }
+
+    #[test]
+    fn rf002_wrong_account_writes_leave_data_and_sync_metadata_unchanged() {
+        let (vault, _dir) = setup_vault();
+        let original = vault
+            .save_conversation("test_account", "c1", "2026-09-25", b"original")
+            .unwrap();
+        assert!(vault
+            .save_conversation("other_account", "c1", "later", b"overwrite")
+            .is_err());
+        assert!(vault
+            .save_conversation("other_account", "foreign", "later", b"insert")
+            .is_err());
+        assert!(vault.delete_conversation("other_account", "c1").is_err());
+        assert_eq!(
+            vault
+                .load_conversation("test_account", "c1")
+                .unwrap()
+                .unwrap(),
+            b"original"
+        );
+        assert!(vault
+            .list_conversations("other_account")
+            .unwrap()
+            .is_empty());
+        let changes = vault
+            .list_sync_changes_since(
+                "llm_conversations",
+                &crate::SyncWatermark {
+                    wall_time_ms: 0,
+                    counter: 0,
+                    node_id: String::new(),
+                },
+                "test_account",
+                "node",
+            )
+            .unwrap();
+        assert_eq!(changes.len(), 1);
+        assert_eq!(changes[0].hlc, original);
+        assert!(!changes[0].deleted);
+        assert!(vault
+            .list_tombstones_since(
+                "llm_conversations",
+                &crate::SyncWatermark {
+                    wall_time_ms: 0,
+                    counter: 0,
+                    node_id: String::new(),
+                },
+                "node"
+            )
+            .unwrap()
+            .is_empty());
     }
 
     #[test]

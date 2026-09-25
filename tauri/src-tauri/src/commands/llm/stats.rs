@@ -71,14 +71,28 @@ pub async fn record_usage(
     prompt_tokens: u64,
     completion_tokens: u64,
 ) {
+    let mut map = STATS_MAP.write().await;
+    accumulate_usage(
+        map.entry(account_id.to_string()).or_default(),
+        model,
+        provider,
+        prompt_tokens,
+        completion_tokens,
+    );
+}
+
+/// 同步聚合：调用方可以在会话门闩内同时保护内存统计与持久化。
+pub(super) fn accumulate_usage(
+    stats: &mut LlmUsageStats,
+    model: &str,
+    provider: &str,
+    prompt_tokens: u64,
+    completion_tokens: u64,
+) {
     let total = prompt_tokens + completion_tokens;
     let now_iso = chrono::Utc::now().to_rfc3339();
     let model_key = format!("{}/{}", provider, model);
     let today = chrono::Local::now().format("%Y-%m-%d").to_string();
-
-    let mut map: tokio::sync::RwLockWriteGuard<'_, HashMap<String, LlmUsageStats>> =
-        STATS_MAP.write().await;
-    let stats: &mut LlmUsageStats = map.entry(account_id.to_string()).or_default();
 
     // 1. Account-level totals
     stats.usage_count += 1;

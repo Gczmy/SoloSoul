@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**92**（P1：32；P2：59；P3：1）。
-- 已关闭：**14 / 92**；实际修复（已关闭）：14；排除：0；待验证/阻塞：0。原计划 90 项，基线新增 RF-900、RF-901。
-- 当前处理：**无（RF-001 已完成）**。账户/代次/Vault 会话令牌与短临界区提交校验已通过 R + CORE + CLI；下一项 RF-002。
+- 已关闭：**15 / 92**；实际修复（已关闭）：15；排除：0；待验证/阻塞：0。原计划 90 项，基线新增 RF-900、RF-901。
+- 当前处理：无。RF-002 已完成（本提交，按 ID 检索）；下一项 RF-003，绑定云同步一轮操作的账户与会话。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -128,7 +128,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | ---: | --- | --- | --- | --- | --- |
 | 1 | [RF-100](#rf-100) | P1 | 自动上下文立即排除非公开字段 | 无 | [x] 完成 |
 | 2 | [RF-001](#rf-001) | P1 | 建立最小会话捕获与提交校验机制 | 无 | [x] 完成 |
-| 3 | [RF-002](#rf-002) | P1 | LLM 流式回复绑定请求开始时的会话 | [RF-001](#rf-001) | [ ] 待执行 |
+| 3 | [RF-002](#rf-002) | P1 | LLM 流式回复绑定请求开始时的会话 | [RF-001](#rf-001) | [x] 完成 |
 | 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001) | [ ] 待执行 |
 | 5 | [RF-101](#rf-101) | P2 | 本次用户消息只追加一次 | 无 | [x] 完成 |
 | 6 | [RF-004](#rf-004) | P1 | Rust 生成普通聊天的受控自动上下文 | [RF-001](#rf-001)、[RF-100](#rf-100)、[RF-101](#rf-101) | [ ] 待执行 |
@@ -274,7 +274,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 **LLM 流式回复绑定请求开始时的会话** · P1 · 来源：R01
 
 - **前置：**[RF-001](#rf-001)。
-- **入口：**`tauri/src-tauri/src/commands/llm/stream.rs`；`tauri/crates/solosoul-vault/src/storage/conversations.rs`。
+- **入口：**`tauri/src-tauri/src/commands/llm/stream.rs`；`tauri/src-tauri/src/commands/llm/stats.rs`；`tauri/crates/solosoul-vault/src/storage/conversations.rs`；`tauri/crates/solosoul-core/src/llm/service.rs`（测试夹具账户一致性）。
 - **执行：**llm_send_message_stream 开始时捕获会话；handle_sse_stream 事件、persist_conversation_reply 和 record_and_persist_usage 使用原会话，禁止完成后重取当前 Vault。提交使用会话门闩；普通会话写入口检查账户与 Vault 对应关系。保留 provider 登记及网络地址检查。 流事件携带 accountId、sessionGeneration、conversationId、requestId，RF-104 据此隔离前端；此项新增字段保留现有事件名称与旧调用兼容，后续再迁移消费者。
 - **验收：**暂停 A 的流请求，锁定并登录 B 后放行：B 会话和统计不变，旧请求不再发有效业务事件；正常流只持久化一次；普通会话写入拒绝错误账户。
 - **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**在 stream.rs 和 storage/conversations.rs 新增 rf002_* 屏障测试；cargo test -p solo_soul --lib rf002_；cargo test -p solosoul-vault --lib rf002_。使用模拟 HTTP 流及临时 Vault。
@@ -1480,4 +1480,23 @@ git commit -m "<任务卡的提交标题>"
 - R 全量：`cargo test --verbose` exit 0，19 组结果合计 **1,061 passed / 0 failed / 3 ignored**，包含 GUI 485/485、core 215/215、vault 183/183 及同步/密码学/插件/集成/文档测试。3 个 ignored 为既有的 2 个 legacy 插件字段用例与 1 个 P025 手动性能测量，未新增或修改跳过项。编译 37m20s；本轮 Tauri/CLI 编译并发分别限制为 2/1，两套原生链接同时运行耗时较长，后续共享核心验证改为顺序执行，避免内存竞争。
 - 入口点弹窗复核：用户反馈 `solo_soul-a1179f00737fbea1.exe` 的 TaskDialogIndirect 错误。当前文件时间为 19:24:43；只读提取清单确认 Common Controls v6 / asInvoker，实际 rustc 链接参数包含 RF-901 的两项设置。直接运行当前文件 `--list` 正常列出 485 tests、exit 0；系统中错误窗口归属 csrss，无对应失败测试进程，本轮 Cargo 当时仍在编译、尚未启动 GUI 测试。证据支持此前加载失败遗留窗口，不能据此把当前全量判失败或通过，继续等待正式结果。
 - 弹窗清理：按用户要求，通过 Computer Use 定位唯一错误窗口，定向发送 Return 后窗口列表确认消失；未结束 csrss、Cargo 或编译进程。
-- 最终结论：当前正式 GUI 485 项及全部 workspace 测试成功运行，弹窗未在本轮复现。`git diff --check`、92 项索引/任务卡及状态计数核对通过。本项只改变共享 Rust 会话基础，不涉及前端或 LLM/云同步调用方迁移。**完成**；独立提交为本提交（标题含 RF-001），未推送；原有 Cargo/NSIS/搜索索引修改保留，下一项 RF-002。
+- 最终结论：当前正式 GUI 485 项及全部 workspace 测试成功运行，弹窗未在本轮复现。`git diff --check`、92 项索引/任务卡及状态计数核对通过。本项只改变共享 Rust 会话基础，不涉及前端或 LLM/云同步调用方迁移。**完成**；独立提交 `390a5f8e`，未推送；原有 Cargo/NSIS/搜索索引修改保留，下一项 RF-002。
+
+### RF-002 执行记录（2026-09-25）
+
+- 修复前 HEAD：`390a5f8e`。流事件只携带 conversationId；网络完成后的回复保存与统计持久化重新获取当前 Vault，账户参数与该 Vault 未绑定；统计内存更新发生在会话校验之前。
+- 修改：首次异步等待前捕获 RF-001 令牌，StreamContext 将事件发布、回复提交与统计更新绑定原账户/代次/Vault。所有流事件统一携带 accountId/sessionGeneration/conversationId/requestId；新增可选 requestId 命令参数，旧调用方省略时生成 UUID，原事件名和内容字段保持。SSE、JSON 打字机、完成与持久化失败发布均经会话门闩校验。provider 登记及网络地址校验保留。
+- 统计：先等待异步统计锁，再进入短会话临界区；原 Vault 持久化成功后才更新内存。缺内存缓存时从原 Vault 加载既有统计。普通会话保存/删除在生成 HLC、执行 SQL 之前拒绝账户错配。前端队列过滤与消除前后端重复写入继续由 RF-104 完成。
+- 回归：新增真实本地 HTTP 流/临时 Vault 用例，覆盖完整后端成功路径、换账户/同账户重登/锁定后的迟到流、JSON 降级与完成后锁定、统计锁等待期间锁定；另有存储账户错配及数据/HLC/墓碑不变测试。未访问外部模型服务。
+- 已通过：Tauri fmt；`cargo test -p solosoul-vault --lib rf002_` 1/1，exit 0，编译 1m24s；`cargo test -p solo_soul --lib rf002_` 4/4，exit 0，编译 9m40s、执行 1.26s。正常路径通过真实本地 HTTP 调用完整 run_chat_stream，验证仅追加一条回复与一次用量；其他用例验证会话失效后事件、持久化和内存统计均拒绝。首次 fmt 命令误重复工作目录前缀导致格式未执行，修正为 tauri/ 下相对路径后 fmt check exit 0。
+- CONTRACT：`npm run check:acl`（219 命令）、`npm run check:pref-keys`（22 key）、`node scripts/check-markdown-chunk-boundary.mjs`（13 依赖同处 markdown-vendor）均通过，整组 exit 0。
+- Tauri Clippy：`cargo clippy -- -D warnings` exit 0。进行中：workspace 全量 → CLI fmt/全目标 Clippy/全量测试，按顺序执行，CARGO_BUILD_JOBS=1。R/CORE/CLI 全量完成前不提交、不关闭；CLI 将使用既有 sqlite3 测试缓存，运行结束后定向还原 Cargo 自动更新的本地 crate 版本。
+- 构建记录：workspace Cargo 提示同包 `solo_soul` 的 lib/bin 目标共用 `solo_soul.pdb` 文件名。两个目标名称均为本项修改前的配置；当前为非致命 Cargo 警告，保留实际记录，不在会话修复中改动产物命名。
+- 首轮全量结果：编译 31m26s，GUI 489/489 通过；core 212 passed / 3 failed，整组 exit 101，后续 CLI 尚未启动。失败均来自 llm/service.rs 的共用测试夹具：VaultConfig 账户为 test，Profile 与会话账户为 test_account，被本项新增的存储校验拒绝。统一夹具使用同一个 account_id，不改生产校验或原有 CRUD/LWW/防复活断言；另核对同步与 vault 相关会话夹具，账户一致。
+- 容错复核与修复：有效会话的统计读写失败记录错误、保持已完成回复成功且不污染缓存；事件交付失败记录日志后仍保存后台回复。两者均在会话门闩内处理，外层会话失效仍必须拒绝。新增真实 HTTP 完成路径回归覆盖统计读取/写入失败和事件交付失败。临时补丁已应用并删除，canonical 规范同步更新。
+- 最终验证进行中：Tauri fmt/Clippy → core LLM 定向 → GUI rf002_（6 项）→ R 全量 → CLI fmt/全目标 Clippy/全量。此轮 Tauri 构建并发为 2，CLI 为 1，顺序执行，不同时链接两套工程。未完成的检查不能以首轮局部通过替代，本项继续保持进行中。
+- 最终验证阶段结果：fmt 与 Clippy 已通过（exit 0；Clippy 2m07s）；core LLM 定向 5/5 passed、exit 0，包含首轮失败的 3 个用例。最终 GUI rf002_ 6/6 passed、exit 0（编译 6m44s，执行 1.40s），新增统计读/写失败和事件交付失败回归通过。当前进入最终 R 全量，CLI 随后顺序执行。92 个任务卡与索引逐一匹配，未提前增加关闭计数。
+- 规范复核：清理当前“使用统计”章节残留的 30 秒 debounce/退出时保存描述，明确普通流完成后的立即持久化及独立步骤失败边界；历史实施记录注明由 RF-002 当前行为取代。
+- 最终 R 全量：`cargo test --verbose` exit 0，编译 20m43s；19 组结果合计 **1,068 passed / 0 failed / 3 ignored**，包括 GUI 491/491、core 215/215、vault 184/184、同步/密码学/插件及集成/文档测试。3 个 ignored 仍为既有 legacy 字段 2 项及 P025 手动性能工具 1 项，未新增跳过。首轮账户夹具失败已在此轮验证消除。队列已进入 CLI 检查，结束前不关闭或提交本项。
+- CLI 全量：fmt、全目标 Clippy、`cargo test --verbose --no-fail-fast` 均 exit 0；编译 7m17s，171 库测试 + 2 集成测试通过，0 失败，1 个既有 i18n 文档测试 ignored。正常主机临时 Vault 测试，sqlite3 仅通过本次进程 PATH 使用既有缓存。运行结束后定向还原 Cargo 自动更新的 5 个本地 crate 版本，CLI lockfile 无残余差异。
+- 最终结论：定向、R/CORE/CLI/CONTRACT 全部满足；规范、92 项索引/任务卡与状态计数、`git diff --check` 和暂存范围核对通过。**完成**；独立提交为本提交（按 RF-002 检索），未推送。提交只含本项 6 个文件，原有 Cargo/NSIS/搜索索引修改保留；下一项 RF-003。

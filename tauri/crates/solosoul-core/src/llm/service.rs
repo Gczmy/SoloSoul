@@ -666,10 +666,10 @@ mod tests {
 
     fn setup_vault() -> (tempfile::TempDir, VaultStore, String) {
         let dir = tempfile::TempDir::new().unwrap();
-        let config = solosoul_vault::VaultConfig::new("test", dir.path().to_path_buf())
+        let account_id = "test_account";
+        let config = solosoul_vault::VaultConfig::new(account_id, dir.path().to_path_buf())
             .with_data_key([0x42u8; 32]);
         let vault = VaultStore::open(config).unwrap();
-        let account_id = "test_account";
         // Initialize profile
         vault
             .save_profile(&Profile::new_with_id(account_id, account_id, Vec::new()))
