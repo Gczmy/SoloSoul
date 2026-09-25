@@ -1,14 +1,14 @@
 # SoloSoul 重构修复执行报告
 
-> 最后更新：2026-09-25 14:38:51 +01:00（任务编制，尚未开始修复）
+> 最后更新：2026-09-25（进入逐项修复）
 > 当前分支：`main`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
-> 修复轮次：第 1 轮，状态为待执行。Cua 接入继续暂缓。
+> 修复轮次：第 1 轮，执行中。Cua 接入继续暂缓。
 
 ## 1. 文档用途与执行边界
 
 本报告将 [全栈调查报告](ARCHITECTURE_REFACTOR_REVIEW_2026-09-25.md) 的 R01–R22 拆成可独立执行、验证和提交的任务，参考 [代码审查流程](review_code_process.md) 的“准备→排序→逐项修复→更新报告→独立提交→复审”步骤。原报告保留事实与背景；**本文件是这轮修复的执行台账**，无需从旧 `CODE_ANALYSIS_REPORT.md` 重新选择历史任务，也不覆盖旧终版报告。
 
-当前授权范围是编制执行报告，下面的修复、提交、推送和设备操作均为后续执行说明，本轮不执行。任务涵盖缺陷修复、行为保持的重构、验证设施、文档和测量，不应将任务总数解读成缺陷总数。
+用户已授权按照本报告开始逐项修复与独立提交；本次不自动推送或发布。任务涵盖缺陷修复、行为保持的重构、验证设施、文档和测量，不应将任务总数解读成缺陷总数。
 
 ### 1.1 对参考流程的具体化
 
@@ -118,15 +118,15 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**90**（P1：32；P2：57；P3：1）。
-- 已关闭：**0 / 90**；实际修复：0；排除：0；待验证/阻塞：0。
-- 当前处理：**无**；当前阶段：执行报告编制完成，等待进入修复。
+- 任务总数：**91**（P1：32；P2：58；P3：1）。
+- 已关闭：**0 / 91**；实际修复（已关闭）：0；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900；RF-100 代码已修复，完整验收尚未关闭。
+- 当前处理：**无实施项**；当前阶段：RF-100 等待前端基线恢复；先处理 RF-316 与 RF-900 的验证阻塞，再进入 RF-001。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
 | 顺序 | ID | 优先级 | 任务 | 前置任务 | 状态 |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | [RF-100](#rf-100) | P1 | 自动上下文立即排除非公开字段 | 无 | [ ] 待执行 |
+| 1 | [RF-100](#rf-100) | P1 | 自动上下文立即排除非公开字段 | 无 | [!] 待验证 |
 | 2 | [RF-001](#rf-001) | P1 | 建立最小会话捕获与提交校验机制 | 无 | [ ] 待执行 |
 | 3 | [RF-002](#rf-002) | P1 | LLM 流式回复绑定请求开始时的会话 | [RF-001](#rf-001) | [ ] 待执行 |
 | 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001) | [ ] 待执行 |
@@ -216,6 +216,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 88 | [RF-319](#rf-319) | P2 | 迁移同步结构化错误 | [RF-305](#rf-305)、[RF-307](#rf-307) | [ ] 待执行 |
 | 89 | [RF-320](#rf-320) | P2 | 迁移插件结构化错误 | [RF-306](#rf-306)、[RF-307](#rf-307) | [ ] 待执行 |
 | 90 | [RF-312](#rf-312) | P3 | 建立可重跑的性能基线与下一步决策 | 无 | [ ] 待执行 |
+| 91 | [RF-900](#rf-900) | P2 | CLI 中文断言测试显式隔离系统语言 | 无（Rust 任务验收前优先处理） | [ ] 待执行 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -1250,9 +1251,44 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**`F` + `R` + `CONTRACT`。**定向验证：**插件安装取消、会话隔离、授权拒绝与backendError测试。
 - **建议提交：**`refactor(errors): type plugin failures [RF-320]`。
 
+### RF-900
+
+**CLI 中文断言测试显式隔离系统语言** · P2 · 来源：本轮执行基线新增（不属于原 R01–R22）
+
+- **前置：**无；影响包含 CLI 配置的 Rust 任务验收，应优先修复。
+- **入口：**`solosoul_cli/src/commands/ocr.rs`、`profile.rs`、`security.rs`、`template.rs`、`backup.rs` 中的测试 fixture；参考 `solosoul_cli/src/app.rs` 的 `App::new` / `detect_initial_locale`。
+- **证据：**2026-09-25 英文 Windows 上 CLI lib 150 passed / 14 failed。其中 13 项断言中文字符串，但 fixture 调用 App::new 自动选择系统语言；OCR 失败输出明确为英文 `unknown flag` / `rejecting extra argument`。另 1 项缺少 sqlite3 CLI，作为环境前置单独记录，不与此修复混合。
+- **执行：**让断言中文业务文案的测试 fixture 显式选择中文；保留产品自动检测系统语言的行为，避免修改进程全局语言或扩大串行锁。确认独立的语言检测/切换测试仍覆盖中文和英文。
+- **验收：**上述 13 项在英文系统上通过；不修改生产语言策略，不把断言删除或仅改成 `is_some()`。
+- **验证配置：**`CLI`。先运行 5 个 commands 模块的测试，随后完整 CLI fmt、Clippy 和 test；`sqlite3` 环境缺失未解决时仍记录全量检查受阻，不冒充全绿。
+- **建议提交：**`test: resolve [RF-900] - isolate CLI command fixtures from system locale`。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
+
+### 2026-09-25 执行基线
+
+- 环境：Windows x64，Node `v24.16.0`，Cargo `1.96.0`；分支 `main`，起点 `f77c0e20`。两份调查/执行报告已独立提交为 `e20afe85`。
+- 保留原有未提交的 `tauri/src-tauri/Cargo.toml`、3 张 NSIS BMP、`resources/docs/guides/search-index.json`；不纳入修复提交。CLI 基线运行自动刷新了 5 个本地 crate 的 lockfile 版本，已仅撤销这部分工具副产物，未升级依赖。
+- `tauri/npm run check-all` 与 CLI 检查已启动。CLI 首次 Clippy 因 Cargo 缓存目录写权限失败（exit 101），在获得执行权限后重试。Tauri TypeScript、Rust fmt/Clippy 和 CLI fmt/Clippy 已通过，Rust 测试结果另行回填。
+- 合约检查 exit 0：ACL 219 个命令、偏好键 22 个、Markdown 分块边界 13 个依赖。
+- 首次定向 Vitest 在线程工作进程启动阶段超时（exit 1，0 tests）；直接调用同一 Vitest 入口重试后 6/6 通过。保留此环境失败，不声称默认 runner 稳定性已修复（RF-316）。
+- CLI Clippy 通过后执行 `cargo test --verbose --no-fail-fast`：lib 150 passed / 14 failed。13 项中文断言与系统英文语言不一致，登记 RF-900；`test_backup_create_aborts_on_unreadable_profile` 因缺少 `sqlite3` 命令失败，不认定为数据备份行为缺陷。
+- CLI 全部测试已结束，exit 101：合计 152 passed / 14 failed / 1 ignored（lib 150/14，向导集成 2/0，文档示例 1 ignored）。没有将该全量检查登记为通过。
+- 两条 Tauri 基线命令均已完成 Clippy；第二条仅等待第一条的 Cargo test 构建锁、没有编译子进程时已取消（exit -1），避免重复构建。第一条继续保留原始测试结果。
+
+### RF-100 执行记录
+
+- 开始：2026-09-25；修复前 HEAD：`e20afe85`。
+- 已确认：旧 `buildSection3PublicObjectData` 仅筛选对象级 public，随后截取前 8 个属性并直接 String 转换，没有字段级过滤。
+- 修改：新增纯 `resolveFieldSensitivity` helper；按标签、对象字段定义、已加载模板的优先级解析，显式非法值与未知字段默认 internal。自动上下文只接受公开叶值，递归过滤动态组；排除内部键和无类型嵌套对象，父级保护不能被子项降低，深度上限 16。先过滤再截断，不修改 store 和原始对象。
+- 回归：新增 `systemPromptBuilder.test.ts`，调用最终 `buildChatRequestMessages`，使用 mock 指南服务与合成数据，无外部 API 调用。6 项覆盖四等级/未知等级、优先级冲突、已删除模板、嵌套动态组、未识别结构、过滤后数量限制与对象不可变。
+- 已通过：`tauri/npx tsc --noEmit`、`npm run lint`，exit 0；定向 `node node_modules/vitest/vitest.mjs run src/lib/llm/systemPromptBuilder.test.ts --pool=threads --maxWorkers=2 --reporter=verbose`，exit 0，1 文件/6 测试，无跳过；修改的 3 个 TS 文件已单独 Prettier 格式化。
+- 规范：`docs/design_map/20_LLM配置与AI对话规范.md` §6.6。现有 `propertyFlatten` 与回收站显示行为未改动；本项不扩大出站授权、不变更手工消息，Rust 权限投影仍由 RF-004 承接。
+- 当前结论：代码已修复，定向回归通过；由于前端全量检查存在其他模块失败，保留 **待验证**，不计入已关闭。本提交标题含 RF-100；未推送。
+- 首次全量前端结果：`node node_modules/vitest/vitest.mjs run --pool=threads --maxWorkers=2 --reporter=dot`，exit 1，134 文件通过 / 2 文件失败，1,111 测试通过 / 3 失败，另 4 个工作进程启动超时。失败文件为 `updater.test.ts`（2 项）、`LazyRecoveryReceiveDialog.test.tsx`（1 项）；未启动文件为 Button、SensitivityBadge、exportFormat、syncPeer 的测试。正在串行复跑这 6 个文件以区分负载超时与实际缺陷，保留首跑失败记录。
+- 串行复跑命令：`node node_modules/vitest/vitest.mjs run src/lib/updater.test.ts src/components/recovery/LazyRecoveryReceiveDialog.test.tsx src/components/ui/Button.test.tsx src/components/ui/SensitivityBadge.test.tsx src/lib/exportFormat.test.ts src/lib/syncPeer.test.ts --pool=threads --maxWorkers=1 --reporter=verbose`；exit 1，4 文件/34 测试通过，恢复弹窗 1 项仍在 1 秒断言窗口超时，updater 工作进程启动超时。4 个首跑未启动文件已得到通过证据；不把重跑描述为全绿，也不提高超时或删除断言。RF-316 优先排查 runner/资源争用及异步测试稳定性，再补 RF-100 全量验收。
 
 ```markdown
 ### RF-xxx 执行记录

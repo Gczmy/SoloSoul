@@ -8,6 +8,9 @@
 import i18n from '@/lib/i18n';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useTemplateStore } from '@/stores/templateStore';
+import { asFieldRecord, resolveFieldSensitivity } from '@/lib/fieldSensitivity';
+import type { SensitivityLevel } from '@/types/template';
 
 const APP_NAME = 'SoloSoul（独灵）';
 const AI_NAME = 'Solon';
@@ -42,8 +45,50 @@ function buildSection2SoftwareInfo(): string {
 界面语言：${getLanguage()}`;
 }
 
+// 只序列化已审核的叶值；未知结构不能通过 String/JSON.stringify 绕过字段过滤。
+function publicValueEntries(
+  key: string,
+  value: unknown,
+  type: unknown,
+  sensitivity: SensitivityLevel,
+  depth = 0,
+): Array<[string, string]> {
+  if (sensitivity !== 'public' || key.startsWith('__') || depth > 16) return [];
+  if (type === 'dynamic_group') {
+    let children: unknown = value;
+    if (typeof value === 'string') {
+      try {
+        children = JSON.parse(value);
+      } catch {
+        return [];
+      }
+    }
+    if (!Array.isArray(children)) return [];
+    return children.flatMap((item) => {
+      const child = asFieldRecord(item);
+      if (!child || (typeof child.id === 'string' && child.id.startsWith('__'))) return [];
+      const name = typeof child.name === 'string' ? child.name : child.id;
+      if (typeof name !== 'string' || !name || name.startsWith('__')) return [];
+      const level = resolveFieldSensitivity({
+        fieldId: name,
+        definition: child,
+        parent: sensitivity,
+      });
+      return publicValueEntries(`${key}.${name}`, child.value, child.type, level, depth + 1);
+    });
+  }
+  const scalar = (v: unknown): v is string | number | boolean =>
+    typeof v === 'string' ||
+    typeof v === 'boolean' ||
+    (typeof v === 'number' && Number.isFinite(v));
+  if (scalar(value)) return [[key, String(value)]];
+  if (Array.isArray(value) && value.every(scalar)) return [[key, value.join(', ')]];
+  return [];
+}
+
 function buildSection3PublicObjectData(): string {
   const objects = useObjectStore.getState().objects;
+  const templates = useTemplateStore.getState().templates;
   const publicObjects = objects
     .filter((o) => o.sensitivityLevel === 'public' && !o.isDeleted)
     .slice(0, 3); // 最多 3 个对象
@@ -55,10 +100,24 @@ function buildSection3PublicObjectData(): string {
   const lines: string[] = [];
   for (const obj of publicObjects) {
     const props = obj.properties || {};
+    const definitions = asFieldRecord(props.__fields);
+    const template = templates.find((t) => t.id === obj.templateId);
     const propEntries = Object.entries(props)
-      .slice(0, 8) // 每对象最多 8 个属性
+      .flatMap(([key, value]) => {
+        if (key.startsWith('__')) return [];
+        const definition = asFieldRecord(definitions?.[key]);
+        const property = template?.properties.find((p) => p.id === key);
+        const sensitivity = resolveFieldSensitivity({
+          fieldId: key,
+          propertyLabels: obj.propertyLabels,
+          definition,
+          template: property,
+        });
+        return publicValueEntries(key, value, definition?.type ?? property?.type, sensitivity);
+      })
+      .slice(0, 8) // 先过滤，再限制公开叶字段数
       .map(([k, v]) => {
-        const str = String(v ?? '');
+        const str = v;
         return `${k}: ${str.length > 100 ? str.slice(0, 100) + '…' : str}`;
       });
     lines.push(`${obj.typeId}（${obj.name}）：${propEntries.join('、') || '（无属性）'}`);
