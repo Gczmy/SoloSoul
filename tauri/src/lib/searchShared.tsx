@@ -8,10 +8,16 @@ import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { searchCache } from '@/lib/searchCache';
 import type { CustomPage } from '@/stores/settingsStore';
-import { useId } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { SensitivityLevel } from '@/components/ui/SensitivityBadge';
-import { MASK_PLACEHOLDER, shouldMaskSensitivity } from '@/lib/masking';
-import { useRevealState } from '@/hooks/useRevealState';
+import { ProtectedFieldValue } from '@/components/ui/ProtectedFieldValue';
+import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
+import {
+  fieldPresentationIdentity,
+  fieldPresentationPolicy,
+  strongestSensitivity,
+} from '@/lib/fieldPresentationPolicy';
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 
 /** 系统页面 key（与 FILTER_PAGES 同源，SearchPage/SearchPopover 共用）。 */
 export const SYSTEM_PAGE_KEYS = [
@@ -155,7 +161,14 @@ function resolveFieldLabel(fieldPath: string | undefined, t: TFunction): string 
 }
 
 /** 渲染搜索结果的字段命中提示（字段名/字段值/模板命中）。 */
-export function MatchHint({ item, query, t }: { item: SearchItem; query: string; t: TFunction }) {
+export interface MatchHintProps {
+  item: SearchItem;
+  query: string;
+  t: TFunction;
+  accountId?: string;
+  onVerificationChange?: (open: boolean) => void;
+}
+export function MatchHint({ item, query, t, accountId, onVerificationChange }: MatchHintProps) {
   if (!item.matchedField || item.itemType === 'page' || item.matchType === 'name') return null;
   const fieldLabel = resolveFieldLabel(item.matchedField, t);
   if (item.matchType === 'fieldName' && item.matchedValue) {
@@ -168,7 +181,22 @@ export function MatchHint({ item, query, t }: { item: SearchItem; query: string;
     );
   }
   if (item.matchType === 'fieldValue' && item.matchedValue) {
-    return <FieldValueHint item={item} fieldLabel={fieldLabel} query={query} />;
+    const level = searchMatchSensitivity(item.sensitivityLevels);
+    return (
+      <FieldValueHint
+        key={fieldPresentationIdentity(accountId, item.objectId, item.matchedField, [
+          query,
+          item.matchedValue,
+          level,
+        ])}
+        item={item}
+        fieldLabel={fieldLabel}
+        query={query}
+        t={t}
+        accountId={accountId}
+        onVerificationChange={onVerificationChange}
+      />
+    );
   }
   if (item.matchType === 'template' && item.matchedValue) {
     return (
@@ -181,56 +209,146 @@ export function MatchHint({ item, query, t }: { item: SearchItem; query: string;
   return null;
 }
 
-/** 统一搜索结果缓存键参数。pageKey 优先级高于 filter 的系统页；自定义页走 parentId。 */
-/**
- * P004：字段值命中提示。internal/sensitive/critical 命中值按 P036 规则掩码
- * （仅 public 永不掩码），点击揭示 1 分钟后自动重新隐藏（复用 useRevealState）。
- */
+/** 返回的等级是对象聚合值，无法定位命中字段时必须采用最高保护强度。 */
+export function searchMatchSensitivity(levels?: string[]): SensitivityLevel {
+  return strongestSensitivity(
+    (levels?.length ? levels : [undefined]).map(
+      (sensitivityLevel) =>
+        fieldPresentationPolicy({ fieldId: '', definition: { sensitivityLevel } }).sensitivity,
+    ),
+  );
+}
+
+/** 搜索业务只适配验证与审计；DOM 保护、身份隔离及 TTL 由共享组件管理。 */
 function FieldValueHint({
   item,
   fieldLabel,
   query,
-}: {
-  item: SearchItem;
-  fieldLabel: string;
-  query: string;
-}) {
-  const revealState = useRevealState();
-  const revealKey = useId();
-  const levels = (item.sensitivityLevels ?? []) as SensitivityLevel[];
-  // 任一非 public 级别参与聚合即掩码（与 WorkspaceObjectCard 口径一致）
-  const needsMask = levels.length > 0 && levels.some((l) => shouldMaskSensitivity(l));
-  if (!needsMask) {
-    return (
-      <span>
-        {' · '}
-        <Highlight text={fieldLabel} query={query} />
-        {': '}
-        <Highlight text={item.matchedValue ?? ''} query={query} />
-      </span>
-    );
-  }
-  const masked = revealState.shouldMask(revealKey, 'critical');
+  t,
+  accountId,
+  onVerificationChange,
+}: MatchHintProps & { fieldLabel: string }) {
+  const [requests] = useState(createSessionRequests);
+  const [verifying, setVerifying] = useState(false);
+  const resolveRef = useRef<((ok: boolean) => void) | null>(null);
+  const level = searchMatchSensitivity(item.sensitivityLevels);
+  const policy = fieldPresentationPolicy({
+    fieldId: item.matchedField ?? '',
+    definition: { sensitivityLevel: level },
+  });
+  useLayoutEffect(() => {
+    const invalidate = () => {
+      requests.invalidate();
+      resolveRef.current?.(false);
+      resolveRef.current = null;
+      setVerifying(false);
+      onVerificationChange?.(false);
+    };
+    const unsubscribe = onRequestSessionChange(invalidate);
+    return () => {
+      unsubscribe();
+      invalidate();
+    };
+  }, [requests, onVerificationChange]);
+  const close = () => {
+    requests.invalidate();
+    resolveRef.current?.(false);
+    resolveRef.current = null;
+    setVerifying(false);
+    onVerificationChange?.(false);
+  };
+  const authorize = async () => {
+    if (!policy.requiresVerification) return true;
+    if (!accountId) return false;
+    resolveRef.current?.(false);
+    requests.invalidate();
+    setVerifying(true);
+    onVerificationChange?.(true);
+    return new Promise<boolean>((resolve) => {
+      resolveRef.current = resolve;
+    });
+  };
+  const revealLabel = t(level === 'critical' ? 'common:unlock' : 'common:reveal');
   return (
-    <span>
+    <span
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') event.stopPropagation();
+      }}
+    >
       {' · '}
       <Highlight text={fieldLabel} query={query} />
       {': '}
-      {masked ? (
-        <span
-          onClick={() => revealState.reveal(revealKey)}
-          style={{ cursor: 'pointer', userSelect: 'none' }}
-          title="点击揭示"
-        >
-          {MASK_PLACEHOLDER}
-        </span>
-      ) : (
-        <Highlight text={item.matchedValue ?? ''} query={query} />
+      <ProtectedFieldValue
+        accountId={accountId}
+        objectId={item.objectId}
+        fieldId={item.matchedField ?? ''}
+        contentVersion={query}
+        value={item.matchedValue ?? ''}
+        policy={policy}
+        authorize={authorize}
+      >
+        {(control) =>
+          policy.concealed && !control.revealed ? (
+            <button
+              type="button"
+              className="interactive-toolbar"
+              title={revealLabel}
+              aria-label={`${fieldLabel}: ${revealLabel}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                void control.reveal();
+              }}
+              style={{ color: 'var(--text-secondary)', font: 'inherit' }}
+            >
+              {control.displayValue}
+            </button>
+          ) : (
+            <Highlight text={control.displayValue} query={query} />
+          )
+        }
+      </ProtectedFieldValue>
+      {verifying && (
+        <PasswordVerificationDialog
+          open
+          onClose={close}
+          title={t('common:critical_access_title')}
+          description={t('common:critical_access_desc')}
+          onVerify={async (password) => {
+            const request = requests.begin('verify', accountId);
+            if (!accountId || !resolveRef.current || !request.isCurrent()) return false;
+            let ok: boolean;
+            try {
+              ok = await request.invoke<boolean>('verify_password', { accountId, password });
+            } catch (error) {
+              if (!request.isCurrent()) return false;
+              throw error;
+            }
+            if (!ok || !request.isCurrent()) return false;
+            try {
+              await request.invoke('log_write', {
+                request: {
+                  actionType: 'critical_field_login',
+                  entityType: 'auth',
+                  entityId: item.objectId,
+                  entityName: null,
+                  details: `source=search fieldName=${fieldLabel}`,
+                },
+              });
+            } catch {
+              /* 审计 best effort，过期验证仍须拒绝。 */
+            }
+            if (!request.isCurrent()) return false;
+            resolveRef.current?.(true);
+            resolveRef.current = null;
+            return true;
+          }}
+        />
       )}
     </span>
   );
 }
 
+/** 统一搜索结果缓存键参数。pageKey 优先级高于 filter 的系统页；自定义页走 parentId。 */
 export function buildSearchCacheParams(
   accountId: string,
   query: string,

@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**91**（P1：32；P2：58；P3：1）。
-- 已关闭：**9 / 91**；实际修复（已关闭）：9；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900。
-- 当前处理：**无（RF-107 已完成，下一项 RF-108）**；RF-001 因 Windows GUI Rust 测试程序启动失败而无法验收，依赖它的任务暂缓。并非全项目停止，继续按顺序执行依赖满足的任务。
+- 已关闭：**10 / 91**；实际修复（已关闭）：10；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900。
+- 当前处理：**无（RF-108 已完成）**；下一项按索引核对 RF-006 的 R 环境，若仍受阻则执行仅需 CLI 配置的 RF-007。RF-001 因 Windows GUI Rust 测试程序启动失败而无法验收，依赖它的任务暂缓；无依赖任务继续执行。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -139,7 +139,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 11 | [RF-105](#rf-105) | P1 | 历史未揭示值不再以原文加 blur 渲染 | 无 | [x] 完成 |
 | 12 | [RF-106](#rf-106) | P1 | 对象详情采用共享字段展示策略 | [RF-100](#rf-100) | [x] 完成 |
 | 13 | [RF-107](#rf-107) | P1 | 历史快照迁入共享字段展示策略 | [RF-105](#rf-105)、[RF-106](#rf-106) | [x] 完成 |
-| 14 | [RF-108](#rf-108) | P1 | 搜索命中值采用共享保护与验证入口 | [RF-102](#rf-102)、[RF-106](#rf-106) | [ ] 待执行 |
+| 14 | [RF-108](#rf-108) | P1 | 搜索命中值采用共享保护与验证入口 | [RF-102](#rf-102)、[RF-106](#rf-106) | [x] 完成 |
 | 15 | [RF-006](#rf-006) | P1 | GUI 回滚拒绝其他对象的快照 | 无 | [ ] 待执行 |
 | 16 | [RF-007](#rf-007) | P1 | CLI 回滚恢复并保留字段标签 | 无 | [ ] 待执行 |
 | 17 | [RF-009](#rf-009) | P1 | 修复 CLI 创建对象缺失模板元数据 | 无 | [ ] 待执行 |
@@ -1415,4 +1415,14 @@ git commit -m "<任务卡的提交标题>"
 - 定向：原 16 项历史用例通过，新增 13 项覆盖五种标签、模板改名/删除、历史顺序和缺元数据、动态组、版本/对象/会话/卸载期间迟到验证、返回旧版本及迟到数据；与共享组件 6 项合计 35/35 passed，exit 0。新测试首轮 5 项失败来自前一用例审计调用记录累积，加 beforeEach 清理 mock 调用记录后通过，没有放宽断言。
 - F：完整 TypeScript、完整 ESLint、默认 npm run test 均 exit 0；145 文件/1,212 测试全通过，无跳过，88.34s。修改 TSX 单独 Prettier；git diff --check 与 91 项任务卡/索引核对通过。
 - 键盘复测：本机 Chrome，playwright test e2e/history-keyboard.spec.ts --project=chromium --workers=1，1/1 passed、exit 0，真实 Enter/Space 与原文 DOM 缺失断言通过。用例结束后核对 PID 33576 的路径/命令，只清理本次 Vite 服务，runner 正常退出。此证据不替代原生平台验收，本项未改原生代码。
-- 结论：**完成**；独立提交为本提交（标题含 RF-107），未推送。原有无关修改保留，Rust 启动阻塞未解除；下一项 RF-108。
+- 结论：**完成**；独立提交 `edda39d7`，未推送。原有无关修改保留，Rust 启动阻塞未解除；下一项 RF-108。
+
+### RF-108 执行记录
+
+- 修复前 HEAD：`edda39d7`。FieldValueHint 对 critical 直接点击揭示，空聚合标签默认明文；span 缺乏键盘语义，揭示点击冒泡到父结果。快捷弹层原生 button 包整行，嵌入揭示按钮会形成按钮嵌套。
+- 修改：两入口共享 ProtectedFieldValue，按聚合最高等级保护，缺失/未知标签按 internal；key 绑定账户/对象/字段/查询/值/有效等级。critical 经统一 PasswordVerificationDialog 调用 verify_password，成功写 source=search 审计；验证取消、会话变化或卸载使旧请求失效。internal/sensitive 无密码揭示，共享 60 秒 TTL；标题/aria 不含原值。
+- 交互：原生揭示按钮停止点击及 Enter/Space 冒泡；快捷结果容器保留键盘打开能力且不嵌套原生按钮。验证期间暂停弹层外部点击和 Escape 关闭，密码框操作与取消不触发详情。复用现有查询生命周期，输入或筛选立即移除旧结果并取消验证。对象规范与前端架构规范更新。
+- 定向：新增共享搜索 13 项及真实弹层 1 项，与原 helper/Popover/useUnifiedSearch 合计 45/45 passed，exit 0。覆盖四等级及混合/未知/空等级、取消/错误密码/成功审计/TTL、查询/内容/账户/锁定/卸载迟到验证和事件冒泡。首轮新增成功断言因 Highlight 与字段名同一文本容器而定位不精确，改为检查容器完整 textContent；未改变保护实现或放宽安全断言。
+- F：完整 TypeScript、完整 ESLint 均 exit 0；修改 TSX/TS/E2E 单独 Prettier。首轮默认全量 1,225 passed/1 failed，LazyPhotoViewerOverlay 冷加载超过测试默认 5 秒；保持测试和 runner 配置不变，浏览器检查结束后单独重跑 npm run test，145 文件/1,226 测试全部通过、exit 0，无跳过，60.46s。保留首轮超时事实，不宣称其长期波动已修复。
+- WEB：本机 Chrome。首次运行 search-protection.spec.ts + sidebar-tools.spec.ts 的搜索筛选共 6 项，原侧栏 4/4 通过；新增 page 在登录前启动等待失败，popover 因用例错误定位 input[type=password] 超时（实际 SecurePasswordInput 为遮罩 text）。更正为可访问 textbox 定位，并给搜索 fixture 提供已安装 OCR 状态，单独复跑新增两项 2/2 passed、exit 0（40.8s），覆盖 Enter/Space、取消、实际密码框点击、验证成功、无详情误开及新查询重掩。两轮均在全部用例结束后核对并清理各自 Vite PID，未中断用例。
+- DOC：git diff --check、修改文件格式检查及 91 项索引/任务卡一致性通过。结论：**完成**；独立提交为本提交（标题含 RF-108），未推送；无关原有文件保留。R 启动阻塞继续保留。

@@ -198,7 +198,7 @@ export function SearchPage() {
                               ))}
                             </>
                           )}
-                        <MatchHint item={item} query={query} t={t} />
+                        <MatchHint item={item} query={query} t={t} accountId={accountId} />
                       </div>
                     </div>
                   </div>

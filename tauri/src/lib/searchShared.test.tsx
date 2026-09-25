@@ -1,5 +1,22 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
+import { setRequestSession } from '@/lib/sessionRequests';
+import type { PasswordVerificationDialogProps } from '@/components/forms/PasswordVerificationDialog';
+
+vi.mock('@/components/forms/PasswordVerificationDialog', () => ({
+  PasswordVerificationDialog: ({ onVerify, onClose }: PasswordVerificationDialogProps) => (
+    <div role="dialog">
+      <button
+        onClick={async () => {
+          if (await onVerify('test-password')) onClose();
+        }}
+      >
+        Verify
+      </button>
+      <button onClick={onClose}>Cancel</button>
+    </div>
+  ),
+}));
 
 // 共享模块引用 PAGE_ICON_MAP / searchCache，此处按真实实现使用（二者无副作用）即可。
 
@@ -21,6 +38,7 @@ import {
   runUnifiedSearch,
   sortSensitivityLevels,
   MatchHint,
+  searchMatchSensitivity,
 } from './searchShared';
 
 const tMock = ((key: string, fallback?: string) => {
@@ -188,6 +206,7 @@ describe('searchShared helpers', () => {
             matchedValue: 'alice@example.com',
             matchType: 'fieldValue',
             itemType: 'object',
+            sensitivityLevels: ['public'],
           } as SearchItem
         }
         query="alice"
@@ -257,4 +276,130 @@ describe('runUnifiedSearch（只返回结果）', () => {
     expect(await runUnifiedSearch(params)).toMatchObject({ items, cached: true });
     expect(invokeCommand).not.toHaveBeenCalled();
   });
+});
+
+describe('RF-108 protected match values', () => {
+  const item: SearchItem = {
+    objectId: 'one',
+    name: 'Object',
+    typeId: 'identity',
+    itemType: 'object',
+    relevance: 1,
+    matchType: 'fieldValue',
+    matchedField: 'credential',
+    matchedValue: 'TOP_SECRET',
+    sensitivityLevels: ['critical'],
+  };
+  beforeEach(() => {
+    vi.mocked(invokeCommand).mockReset();
+    setRequestSession('a');
+  });
+  afterEach(() => {
+    cleanup();
+    setRequestSession(null);
+    vi.useRealTimers();
+  });
+  it.each([
+    { levels: ['public'], expected: 'public' },
+    { levels: ['internal'], expected: 'internal' },
+    { levels: ['sensitive'], expected: 'sensitive' },
+    { levels: ['critical'], expected: 'critical' },
+    { levels: ['public', 'critical', 'internal'], expected: 'critical' },
+    { levels: ['public', 'unknown'], expected: 'internal' },
+    { levels: [], expected: 'internal' },
+  ])(
+    'uses aggregate $expected for $levels without guessing the matching field',
+    async ({ levels, expected }) => {
+      expect(searchMatchSensitivity(levels)).toBe(expected);
+      const navigate = vi.fn();
+      const { container } = render(
+        <div onClick={navigate} onKeyDown={navigate}>
+          <MatchHint
+            item={{ ...item, sensitivityLevels: levels }}
+            query="TOP"
+            t={tMock}
+            accountId="a"
+          />
+        </div>,
+      );
+      expect(container.textContent?.includes('TOP_SECRET')).toBe(expected === 'public');
+      if (expected !== 'public') {
+        const reveal = screen.getByText('••••••••');
+        expect(reveal.tagName).toBe('BUTTON');
+        expect(reveal).toHaveAccessibleName();
+        fireEvent.keyDown(reveal, { key: 'Enter' });
+        await act(async () => fireEvent.click(reveal));
+        expect(navigate).not.toHaveBeenCalled();
+        if (expected === 'critical') {
+          expect(screen.getByRole('dialog')).toBeInTheDocument();
+          expect(container.innerHTML).not.toContain('TOP_SECRET');
+        } else expect(container.textContent).toContain('TOP_SECRET');
+      }
+    },
+  );
+
+  it('cancel and incorrect password stay concealed; success audits and expires after TTL', async () => {
+    vi.mocked(invokeCommand).mockImplementation(async (cmd) =>
+      cmd === 'verify_password' ? false : undefined,
+    );
+    const { container } = render(<MatchHint item={item} query="" t={tMock} accountId="a" />);
+    await act(async () => fireEvent.click(screen.getByText('••••••••')));
+    await act(async () => fireEvent.click(screen.getByText('Cancel')));
+    expect(container.innerHTML).not.toContain('TOP_SECRET');
+    await act(async () => fireEvent.click(screen.getByText('••••••••')));
+    await act(async () => fireEvent.click(screen.getByText('Verify')));
+    expect(container.innerHTML).not.toContain('TOP_SECRET');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    vi.mocked(invokeCommand).mockImplementation(async (cmd) =>
+      cmd === 'verify_password' ? true : undefined,
+    );
+    vi.useFakeTimers();
+    await act(async () => fireEvent.click(screen.getByText('Verify')));
+    expect(container.textContent).toContain('TOP_SECRET');
+    expect(vi.mocked(invokeCommand).mock.calls.filter(([cmd]) => cmd === 'log_write')).toHaveLength(
+      1,
+    );
+    act(() => vi.advanceTimersByTime(60_001));
+    expect(container.innerHTML).not.toContain('TOP_SECRET');
+  });
+
+  it.each(['query', 'value', 'account', 'lock', 'unmount'] as const)(
+    '%s changes cancel pending verification',
+    async (change) => {
+      let finish!: (ok: boolean) => void;
+      vi.mocked(invokeCommand).mockImplementation(async (cmd) =>
+        cmd === 'verify_password'
+          ? new Promise<boolean>((resolve) => {
+              finish = resolve;
+            })
+          : undefined,
+      );
+      const { rerender, unmount } = render(
+        <MatchHint item={item} query="one" t={tMock} accountId="a" />,
+      );
+      await act(async () => fireEvent.click(screen.getByText('••••••••')));
+      fireEvent.click(screen.getByText('Verify'));
+      if (change === 'unmount') unmount();
+      else if (change === 'lock')
+        act(() => {
+          setRequestSession(null);
+          setRequestSession('a');
+        });
+      else
+        rerender(
+          <MatchHint
+            item={{ ...item, matchedValue: change === 'value' ? 'OTHER_SECRET' : 'TOP_SECRET' }}
+            query={change === 'query' ? 'two' : 'one'}
+            t={tMock}
+            accountId={change === 'account' ? 'b' : 'a'}
+          />,
+        );
+      await act(async () => finish(true));
+      expect(document.body.innerHTML).not.toContain('TOP_SECRET');
+      expect(document.body.innerHTML).not.toContain('OTHER_SECRET');
+      expect(
+        vi.mocked(invokeCommand).mock.calls.filter(([cmd]) => cmd === 'log_write'),
+      ).toHaveLength(0);
+    },
+  );
 });

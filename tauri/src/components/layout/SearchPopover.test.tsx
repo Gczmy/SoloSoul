@@ -55,6 +55,7 @@ vi.mock('react-dom', async () => {
 });
 
 import type { SearchItem } from '@/lib/searchShared';
+import { searchCache } from '@/lib/searchCache';
 
 const objectResult: SearchItem = {
   itemType: 'object',
@@ -78,6 +79,50 @@ const pageResult: SearchItem = {
 describe('SearchPopover (P027 渲染回归)', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
+    searchCache.clear();
+  });
+
+  it('验证弹窗不触发结果打开或搜索外部关闭，取消后保持掩码', async () => {
+    mockInvoke.mockImplementation(async (cmd: string) =>
+      cmd === 'search_unified'
+        ? {
+            items: [
+              {
+                ...objectResult,
+                matchType: 'fieldValue',
+                matchedField: 'key',
+                matchedValue: 'CRITICAL_MATCH',
+                sensitivityLevels: ['public', 'critical'],
+              },
+            ],
+            total: 1,
+            hasMore: false,
+          }
+        : undefined,
+    );
+    const onClose = vi.fn();
+    render(
+      <MemoryRouter>
+        <SearchPopover onClose={onClose} />
+      </MemoryRouter>,
+    );
+    fireEvent.change(screen.getByPlaceholderText('common:search_placeholder'), {
+      target: { value: 'secret-query' },
+    });
+    const reveal = await screen.findByText('••••••••');
+    expect(reveal.closest('button')?.parentElement?.closest('button')).toBeNull();
+    fireEvent.click(reveal);
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.mouseDown(dialog);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('object-detail-modal')).toBeNull();
+    expect(document.body.innerHTML).not.toContain('CRITICAL_MATCH');
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByText('••••••••')).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('输入关键词触发搜索并渲染结果行（SearchResultRow 提取后完整渲染）', async () => {

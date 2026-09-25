@@ -96,6 +96,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     setRecent(loadRecent(accountId));
   }, [accountId]);
   const [detailObjectId, setDetailObjectId] = useState<string | null>(null);
+  const [verifyingField, setVerifyingField] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const filterBarRef = useRef<HTMLDivElement>(null);
@@ -106,18 +107,18 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !detailObjectId) onClose();
+      if (e.key === 'Escape' && !detailObjectId && !verifyingField) onClose();
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onClose, detailObjectId]);
+  }, [onClose, detailObjectId, verifyingField]);
 
   // 与其他侧栏快捷卡片一致：外部点击关闭，但不由遮罩吞掉导航点击。
   // 搜索触发器自行切换开关；对象详情及其 Portal 打开时由详情处理外部交互。
   useEffect(() => {
-    if (detailObjectId) return;
+    if (detailObjectId || verifyingField) return;
     const handleOutsideMouseDown = (event: MouseEvent) => {
       const target = event.target;
       if (!(target instanceof Node) || cardRef.current?.contains(target)) return;
@@ -126,7 +127,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     };
     document.addEventListener('mousedown', handleOutsideMouseDown);
     return () => document.removeEventListener('mousedown', handleOutsideMouseDown);
-  }, [onClose, detailObjectId]);
+  }, [onClose, detailObjectId, verifyingField]);
 
   const handleFilter = (key: string | null) => changeFilter(selectedFilter === key ? null : key);
 
@@ -189,6 +190,8 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
       key={`${item.itemType}-${item.objectId}`}
       item={item}
       query={query}
+      accountId={accountId}
+      onVerificationChange={setVerifyingField}
       customPages={customPages}
       t={t}
       resolvePageName={resolvePageName}
@@ -355,6 +358,8 @@ function SearchResultRow({
   t,
   resolvePageName,
   onClick,
+  accountId,
+  onVerificationChange,
 }: {
   item: SearchItem;
   query: string;
@@ -362,10 +367,23 @@ function SearchResultRow({
   t: TFunction;
   resolvePageName: (item: SearchItem) => string;
   onClick: () => void;
+  accountId?: string;
+  onVerificationChange: (open: boolean) => void;
 }) {
   const ResultIcon = resolveResultIcon(item, customPages);
   return (
-    <button className={styles.resultItem} onClick={onClick}>
+    <div
+      className={styles.resultItem}
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+    >
       <ResultIcon size={16} />
       <div className={styles.resultText}>
         <div className={styles.resultName}>
@@ -446,9 +464,15 @@ function SearchResultRow({
               )}
             </>
           )}
-          <MatchHint item={item} query={query} t={t} />
+          <MatchHint
+            item={item}
+            query={query}
+            t={t}
+            accountId={accountId}
+            onVerificationChange={onVerificationChange}
+          />
         </div>
       </div>
-    </button>
+    </div>
   );
 }
