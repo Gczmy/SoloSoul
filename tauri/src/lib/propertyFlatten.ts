@@ -9,10 +9,14 @@
  *   还是保留分组结构（历史快照渲染组头 + 子行）。
  */
 
+import { dynamicFieldSensitivity } from './fieldPresentationPolicy';
+
 export interface DynamicChildItem {
   label: string;
   value: string;
   type?: string;
+  id?: string;
+  sensitivityLevel?: unknown;
 }
 
 export type FlattenedPropertyEntry =
@@ -34,6 +38,8 @@ export type FlattenedPropertyEntry =
     };
 
 export interface FlattenPropertyOptions {
+  /** 详情策略需要保留子项等级；历史旧语义由后续迁移显式启用。 */
+  preserveChildSensitivity?: boolean;
   /** 保留 fieldDefs 中定义的 `__` 前缀 key（默认 false：一律跳过）。 */
   keepMetaKeys?: boolean;
   /** dynamic_group 子字段展平为独立条目（默认 true）；false 时保留分组结构。 */
@@ -69,9 +75,7 @@ export function flattenPropertyEntries(
 ): FlattenedPropertyEntry[] {
   if (!props) return [];
   const { keepMetaKeys = false, flattenDynamicGroups = true, injectFieldLabels = false } = options;
-  const defs =
-    fieldDefs ??
-    ((props.__fields as Record<string, FieldDefShape> | undefined) ?? {});
+  const defs = fieldDefs ?? (props.__fields as Record<string, FieldDefShape> | undefined) ?? {};
   const entries: FlattenedPropertyEntry[] = [];
 
   for (const [k, v] of Object.entries(props)) {
@@ -119,6 +123,12 @@ export function flattenPropertyEntries(
             label: String(name),
             value: displayVal,
             type: typeof itemType === 'string' ? itemType : undefined,
+            ...(options.preserveChildSensitivity
+              ? {
+                  id: typeof item.id === 'string' ? item.id : undefined,
+                  sensitivityLevel: dynamicFieldSensitivity(item),
+                }
+              : {}),
           });
         }
         entries.push({

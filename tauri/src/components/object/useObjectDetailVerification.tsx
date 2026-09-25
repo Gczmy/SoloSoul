@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { createSessionRequests } from '@/lib/sessionRequests';
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { logger } from '@/lib/logger';
 import { useRevealState } from '@/hooks/useRevealState';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
@@ -26,7 +26,7 @@ export function useObjectDetailVerification({
   obj,
   resolveCollectionLabelLocal,
 }: UseObjectDetailVerificationOptions) {
-  const { maskValue, isRevealed, reveal, revealRemainingMs } = useRevealState();
+  const { maskValue, isRevealed, reveal, revealRemainingMs, clear } = useRevealState();
   const [showPwDialog, setShowPwDialog] = useState(false);
   const [verificationId, setVerificationId] = useState(0);
   const verificationSequence = useRef(0);
@@ -38,15 +38,23 @@ export function useObjectDetailVerification({
     | null
   >(null);
   const accessRequests = useRef(createSessionRequests()).current;
-  useEffect(
-    () => () => {
+  const contentVersion = JSON.stringify([obj?.id, obj?.properties, obj?.propertyLabels]);
+  useLayoutEffect(() => {
+    const invalidate = () => {
       accessRequests.invalidate();
       verificationSequence.current += 1;
       pwResolveRef.current?.({ ok: false, method: 'password' });
       pwResolveRef.current = null;
-    },
-    [accessRequests, accountId, obj?.id],
-  );
+      clear();
+      setShowPwDialog(false);
+    };
+    invalidate();
+    const unsubscribe = onRequestSessionChange(invalidate);
+    return () => {
+      unsubscribe();
+      invalidate();
+    };
+  }, [accessRequests, accountId, contentVersion, clear]);
   const pendingRevealRef = useRef<{ fieldId: string; fieldName: string } | null>(null);
   const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
     available: false,
@@ -108,7 +116,10 @@ export function useObjectDetailVerification({
   }, []);
 
   const writeCriticalAccessLog = useCallback(
-    async (method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin') => {
+    async (
+      method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin',
+      request: ReturnType<typeof accessRequests.begin>,
+    ) => {
       if (!accountId || !obj || !pendingRevealRef.current) return;
       const actionType =
         method === 'password'
@@ -123,7 +134,7 @@ export function useObjectDetailVerification({
       const entityType = method === 'password' || method === 'pin' ? 'auth' : 'biometric';
       const details = `objectName=${obj.name} page=${resolveCollectionLabelLocal(obj.typeId)} fieldName=${pendingRevealRef.current.fieldName}`;
       try {
-        await invoke('log_write', {
+        await request.invoke('log_write', {
           request: {
             actionType,
             entityType,
@@ -136,7 +147,7 @@ export function useObjectDetailVerification({
         // best effort
       }
     },
-    [accountId, obj, resolveCollectionLabelLocal],
+    [accountId, obj, resolveCollectionLabelLocal, accessRequests],
   );
 
   const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
@@ -165,12 +176,13 @@ export function useObjectDetailVerification({
   const handleRevealField = useCallback(
     async (fieldId: string, sens: SensitivityLevel, fieldName: string) => {
       const request = accessRequests.begin('reveal', accountId);
+      if (!request.isCurrent()) return false;
       if (sens === 'critical') {
         pendingRevealRef.current = { fieldId, fieldName };
         const result = await passwordVerify();
         if (!result.ok || !request.isCurrent()) return false;
         reveal(fieldId);
-        await writeCriticalAccessLog(result.method);
+        await writeCriticalAccessLog(result.method, request);
       } else {
         reveal(fieldId);
       }

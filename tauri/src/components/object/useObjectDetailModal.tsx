@@ -1,3 +1,4 @@
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
@@ -50,13 +51,7 @@ export interface ObjectDetailModalProps {
  * ObjectDetailModal 组件退化为纯展示组合层。
  */
 export function useObjectDetailModal(props: ObjectDetailModalProps) {
-  const {
-    object,
-    objectId,
-    onClose,
-    onDelete,
-    onAttachmentsChange,
-  } = props;
+  const { object, objectId, onClose, onDelete, onAttachmentsChange } = props;
 
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'navigation', 'editor']);
@@ -96,8 +91,7 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   const isCompleteObject = useMemo(() => !!object && 'accountId' in object, [object]);
   const [loading, setLoading] = useState(!object && !!objId);
   // P025：复制反馈收敛至共享 hook（按字段名键控）
-  const { copy: copyText, copiedKey: copiedField } =
-    useCopyToClipboard(COPY_FEEDBACK_DURATION_MS);
+  const { copy: copyText, copiedKey: copiedField } = useCopyToClipboard(COPY_FEEDBACK_DURATION_MS);
   const fetchIdRef = useRef(0);
 
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -175,7 +169,9 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   // 从 properties 中提取 __fields（即使模板被删除，字段定义仍保留在对象上）
   const objFieldDefs = useMemo(() => {
     const raw = (obj?.properties as Record<string, unknown>)?.__fields;
-    return raw as Record<string, { name: string; type: string }> | undefined;
+    return raw as
+      | Record<string, { name: string; type: string; sensitivityLevel?: unknown }>
+      | undefined;
   }, [obj?.properties]);
 
   // 已归档的历史字段（模板字段类型不兼容变更时产生）
@@ -189,15 +185,13 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   };
 
   const getFieldSensitivity = (fieldKey: string): SensitivityLevel => {
-    // 1. 对象自有 propertyLabels（即使模板被删除也保留敏感度）
-    const labels = obj?.propertyLabels as Record<string, string> | undefined;
-    if (labels?.[fieldKey]) {
-      return labels[fieldKey] as SensitivityLevel;
-    }
-    // 2. 回退到模板定义
-    return (getFieldProperty(fieldKey)?.sensitivityLevel as SensitivityLevel) || 'internal';
+    return resolveFieldSensitivity({
+      fieldId: fieldKey,
+      propertyLabels: obj?.propertyLabels,
+      definition: objFieldDefs?.[fieldKey],
+      template: getFieldProperty(fieldKey),
+    });
   };
-
   const isFieldDeprecated = (fieldKey: string): boolean => {
     return !!getFieldProperty(fieldKey)?.deprecatedAt;
   };

@@ -59,9 +59,6 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
     isFieldDeprecated,
     getFieldName,
     // 揭示/复制
-    isRevealed,
-    revealRemainingMs,
-    maskValue,
     handleRevealField,
     handleCopy,
     copiedField,
@@ -167,6 +164,8 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
                   </p>
                 ) : (
                   <ObjectDetailFieldsList
+                    accountId={accountId}
+                    objectId={obj.id}
                     fields={fields}
                     typeId={obj.typeId}
                     contractTypeId={obj.contractTypeId}
@@ -175,9 +174,6 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
                     getFieldSensitivity={getFieldSensitivity}
                     isFieldDeprecated={isFieldDeprecated}
                     getFieldName={getFieldName}
-                    isRevealed={isRevealed}
-                    revealRemainingMs={revealRemainingMs}
-                    maskValue={maskValue}
                     handleRevealField={handleRevealField}
                     handleCopy={handleCopy}
                     copiedField={copiedField}

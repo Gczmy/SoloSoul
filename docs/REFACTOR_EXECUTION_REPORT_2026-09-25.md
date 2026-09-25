@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**91**（P1：32；P2：58；P3：1）。
-- 已关闭：**7 / 91**；实际修复（已关闭）：7；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900。
-- 当前处理：**无实施项**；当前阶段：RF-100、RF-900、RF-316、RF-101、RF-102、RF-103、RF-105 已完成；RF-001 因 R 基线受阻，依赖它的任务暂缓。RF-104 依赖阻塞；下一项为 RF-106。
+- 已关闭：**8 / 91**；实际修复（已关闭）：8；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900。
+- 当前处理：**无（RF-106 已完成，下一项 RF-107）**；RF-001 因 Windows GUI Rust 测试程序启动失败而无法验收，依赖它的任务暂缓。并非全项目停止，继续按顺序执行依赖满足的任务。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -137,7 +137,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 9 | [RF-103](#rf-103) | P1 | 聊天会话读取只接纳最新选择 | 无 | [x] 完成 |
 | 10 | [RF-104](#rf-104) | P1 | 聊天流归属明确且最终回复只有一个持久化写入者 | [RF-101](#rf-101)、[RF-103](#rf-103)、[RF-002](#rf-002)、[RF-005](#rf-005) | [ ] 待执行 |
 | 11 | [RF-105](#rf-105) | P1 | 历史未揭示值不再以原文加 blur 渲染 | 无 | [x] 完成 |
-| 12 | [RF-106](#rf-106) | P1 | 对象详情采用共享字段展示策略 | [RF-100](#rf-100) | [ ] 待执行 |
+| 12 | [RF-106](#rf-106) | P1 | 对象详情采用共享字段展示策略 | [RF-100](#rf-100) | [x] 完成 |
 | 13 | [RF-107](#rf-107) | P1 | 历史快照迁入共享字段展示策略 | [RF-105](#rf-105)、[RF-106](#rf-106) | [ ] 待执行 |
 | 14 | [RF-108](#rf-108) | P1 | 搜索命中值采用共享保护与验证入口 | [RF-102](#rf-102)、[RF-106](#rf-106) | [ ] 待执行 |
 | 15 | [RF-006](#rf-006) | P1 | GUI 回滚拒绝其他对象的快照 | 无 | [ ] 待执行 |
@@ -1279,6 +1279,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - CLI 全部测试已结束，exit 101：合计 152 passed / 14 failed / 1 ignored（lib 150/14，向导集成 2/0，文档示例 1 ignored）。没有将该全量检查登记为通过。
 - 两条 Tauri 基线命令均已完成 Clippy；第二条仅等待第一条的 Cargo test 构建锁、没有编译子进程时已取消（exit -1），避免重复构建。第一条继续保留原始测试结果。
 - 原始 Tauri 全量基线已结束：Rust 测试编译完成（30m27s），GUI 测试程序 `solo_soul-a1179f00737fbea1.exe` 在运行用例前报 `0xc0000139 / STATUS_ENTRYPOINT_NOT_FOUND`，shell 返回 `-1073741511`。没有获得 GUI Rust 用例通过证据；RF-001 所需 R 配置仍受阻。禁止用只做 cargo check 或修改测试二进制来声称通过。
+- 阻塞解释：已确认失败发生在测试程序启动阶段，不是测试断言失败，也不涉及等待用户授权。具体缺失的运行库入口尚未定位，不能据此认定某个 DLL 有问题。下一步需检查该测试二进制实际加载的依赖及导出符号，修复后重跑 R；此前只暂缓需要该验收配置及相关依赖的任务，其他任务继续执行。
 
 ### RF-900 执行记录
 
@@ -1395,4 +1396,13 @@ git commit -m "<任务卡的提交标题>"
 - 修改：未揭示时只渲染共享 MASK_PLACEHOLDER 的原生 button，title/aria-label 只含揭示提示；已揭示和 public/internal 渲染明文 span。保留 critical 验证、真实 log_write 审计和 useRevealState 的 60 秒 TTL，不夹带 RF-107 的 internal/快照身份策略迁移。对象规范 §5.2 已补实际边界。
 - 单元回归：修改旧 blur 断言为 DOM 原文缺失/原生按钮断言；新增 critical 取消/成功/审计/TTL。初次新增测试误传内部 SnapshotCard 的 onCriticalAccess 属性，TypeScript 和审计断言正确报错；已改为外部 HistoryViewer 的 objectName 并检查实际 log_write，最终 16/16 passed、exit 0（2.90s）。
 - 浏览器：新增 history-keyboard.spec.ts 及仅供 Vite 测试挂载的 historyKeyboardHarness.tsx，真实 HistoryViewer 与合成 IPC；Chrome 验证两项隐藏值的 DOM 不含原文，实际按 Enter/Space 后分别揭示。1/1 passed，exit 0；本次 Vite 服务仍需核对 PID/命令后定向清理，未修改 runner 配置或中断测试用例。仅测试夹具动态挂载组件，不进入生产入口。
-- F：完整 TypeScript、完整 ESLint 均 exit 0、无 warning；默认 npm run test exit 0，143 文件/1,180 测试全部通过，无跳过（86.90s）。修改 TS/TSX 文件单独 Prettier，git diff --check、91 项索引/任务卡一致性检查通过。结论：**完成**；本提交（标题含 RF-105），未推送。
+- F：完整 TypeScript、完整 ESLint 均 exit 0、无 warning；默认 npm run test exit 0，143 文件/1,180 测试全部通过，无跳过（86.90s）。修改 TS/TSX 文件单独 Prettier，git diff --check、91 项索引/任务卡一致性检查通过。结论：**完成**；独立提交 `97bb6dbb`，未推送。
+
+### RF-106 执行记录
+
+- 修复前 HEAD：`97bb6dbb`。详情等级解析遗漏对象 `__fields`，动态组未保留子项等级，旧揭示状态只按字段 ID 保存，内容或账户变化时待处理验证可能继续返回。
+- 修改：新增 `fieldPresentationPolicy.ts` 与无业务 Store 依赖的 `ProtectedFieldValue`，复用 RF-100 的等级解析和 `useRevealState`。详情仅 public 默认明文，其他等级只渲染 8 圆点；复制与揭示共用授权和 60 秒有效期。账户/对象/字段/内容/等级构成内部实例身份，锁定或卸载同步失效请求。真实验证 hook 取消旧验证、清理揭示状态，审计写入也受会话请求保护。
+- 动态组：仅详情展平显式保留子项等级，不改变尚未迁移的历史/工作区返回结构。子项继承父级最低保护，嵌套组按最高后代等级保护；整组揭示和组内/整组复制按最高等级验证，公开父级下显式公开的子项可直接显示。规范 `docs/design_map/08_对象与模板规范.md` §2.4、§4.5、§7 已更新，其他入口后续迁移的边界保留。
+- 回归覆盖：取消/成功/TTL、复制与揭示共用授权、内容 A→B→A、账户/对象变化、锁定重登、卸载、迟到 PIN、混合敏感度动态组。新增策略 8 项、共享 UI 6 项、真实验证 hook 4 项、组级 1 项；模态框改用真实 hook 并验证原值不进入 DOM。最终相关 5 文件/40 测试通过，exit 0。
+- F：完整 TypeScript exit 0；完整 ESLint exit 0，修复两条依赖/未用参数 warning 后受影响文件定向 ESLint exit 0、无 warning。第一次全量 1,194 passed/5 failed，原因是旧 Modal 测试 mock 缺少 revealRemainingMs，移除该 mock 后修复。第二次全量 1,195 passed/4 failed（引导页 3 项等待失败、编辑器日期 1 项断言失败）；这两个未修改文件定向复跑 21/21 passed、exit 0，波动根因尚未确定。最终保持默认 runner 与原配置执行 npm run test：145 文件/1,199 测试全部通过，exit 0，无跳过，67.15s。未修改无关业务代码或放宽测试标准。
+- DOC：修改 TS/TSX 单独 Prettier；git diff --check 与 91 项任务索引/任务卡一致性检查通过。Rust 启动阻塞不属于本项 F+DOC 验收，仍单列保留。结论：**完成**；独立提交为本提交（标题含 RF-106），未推送；原有 Cargo/NSIS/搜索索引改动保留。

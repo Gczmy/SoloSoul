@@ -48,14 +48,6 @@ vi.mock('@/stores/objectStore', () => ({
   },
 }));
 
-vi.mock('@/hooks/useRevealState', () => ({
-  useRevealState: () => ({
-    maskValue: (v: string) => v,
-    isRevealed: () => false,
-    reveal: vi.fn(),
-  }),
-}));
-
 vi.mock('@/hooks/useDragToAttach', () => ({
   useDragToAttach: () => ({ ref: { current: null }, dragState: 'idle' }),
 }));
@@ -98,6 +90,9 @@ describe('ObjectDetailModal', () => {
     // 底部操作栏（ObjectDetailFooter 提取后仍正常渲染；t 返回 key）
     expect(screen.getByText('common:history')).toBeInTheDocument();
     expect(screen.getByText('common:attachments')).toBeInTheDocument();
+    // 使用真实共享保护 hook，模板缺失时仍不能把内部字段原值写入 DOM。
+    expect(screen.queryByText('张三')).not.toBeInTheDocument();
+    expect(screen.queryByText('E12345678')).not.toBeInTheDocument();
     // 删除确认对话框初始不渲染
     expect(screen.queryByText('common:object_delete_confirm_title')).not.toBeInTheDocument();
   });

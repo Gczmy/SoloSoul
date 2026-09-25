@@ -6,7 +6,7 @@ import { useRevealState } from '@/hooks/useRevealState';
 import type { SensitivityLevel, TemplateProperty } from '@/types/template';
 
 // 使用真实 useRevealState（含真实 maskValue 逻辑），验证详情卡片掩码规则：
-// - internal / public：直接显示明文（无揭示按钮）；
+// - public 明文；其他等级默认掩码；
 // - sensitive / critical：掩码 + 揭示按钮（critical 弹密码）。
 vi.mock('@/lib/ipcClient', () => ({
   invokeCommand: vi.fn().mockResolvedValue(undefined),
@@ -27,9 +27,10 @@ function Harness({
   fields: ObjectDetailFieldEntry[];
   sensitivities: Record<string, SensitivityLevel>;
 }) {
-  const revealState = useRevealState();
   return (
     <ObjectDetailFieldsList
+      objectId="object"
+      accountId="account"
       fields={fields}
       typeId="travel"
       contractTypeId={undefined}
@@ -40,9 +41,6 @@ function Harness({
       getFieldSensitivity={(k) => sensitivities[k] || 'internal'}
       isFieldDeprecated={() => false}
       getFieldName={(k, label) => label ?? k}
-      isRevealed={revealState.isRevealed}
-      revealRemainingMs={revealState.revealRemainingMs}
-      maskValue={revealState.maskValue}
       handleRevealField={vi.fn()}
       handleCopy={vi.fn()}
       copiedField={null}
@@ -51,18 +49,16 @@ function Harness({
 }
 
 describe('ObjectDetailFieldsList 掩码规则', () => {
-  it('internal 字段：直接显示明文，无揭示按钮', () => {
+  it('internal 字段：默认掩码并提供揭示按钮', () => {
     render(
       <Harness
         fields={[{ kind: 'field' as const, key: 'phone', value: '13800138000' }]}
         sensitivities={{ phone: 'internal' }}
       />,
     );
-    // 明文直接可见
-    expect(screen.getByText('13800138000')).toBeInTheDocument();
-    // 无掩码圆点、无揭示按钮
-    expect(screen.queryByText('••••••••')).not.toBeInTheDocument();
-    expect(screen.queryByText('common:reveal')).not.toBeInTheDocument();
+    expect(screen.queryByText('13800138000')).not.toBeInTheDocument();
+    expect(screen.getByText('••••••••')).toBeInTheDocument();
+    expect(screen.getByText('common:reveal')).toBeInTheDocument();
   });
 
   it('public 字段：直接显示明文，无揭示按钮', () => {
@@ -100,13 +96,14 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
     expect(screen.getByText('common:unlock')).toBeInTheDocument();
   });
 
-  it('sensitive 字段点击揭示后显示明文（reveal 链路完整）', () => {
+  it('sensitive 字段点击揭示后显示明文（reveal 链路完整）', async () => {
     // 模拟 modal 层 handleRevealField 的真实行为：非 critical 直接 reveal
     let capturedId: string | null = null;
     function HarnessWithReveal() {
-      const revealState = useRevealState();
       return (
         <ObjectDetailFieldsList
+          objectId="object"
+          accountId="account"
           fields={[{ kind: 'field' as const, key: 'email', value: 'secret@example.com' }]}
           typeId="travel"
           contractTypeId={undefined}
@@ -117,12 +114,8 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
           getFieldSensitivity={() => 'sensitive'}
           isFieldDeprecated={() => false}
           getFieldName={(k, label) => label ?? k}
-          isRevealed={revealState.isRevealed}
-          revealRemainingMs={revealState.revealRemainingMs}
-          maskValue={revealState.maskValue}
           handleRevealField={async (id) => {
             capturedId = id;
-            revealState.reveal(id);
             return true;
           }}
           handleCopy={vi.fn()}
@@ -134,18 +127,21 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
     // 初始掩码
     expect(screen.getByText('••••••••')).toBeInTheDocument();
     // 点击揭示 → 掩码占位消失、明文出现
-    fireEvent.click(screen.getByText('common:reveal'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('common:reveal'));
+    });
     expect(capturedId).toBe('travel.email');
     expect(screen.queryByText('••••••••')).not.toBeInTheDocument();
     expect(screen.getByText('secret@example.com')).toBeInTheDocument();
   });
 
-  it('sensitive 字段揭示后显示自动隐藏倒计时（每秒递减），到期自动回到掩码', () => {
+  it('sensitive 字段揭示后显示自动隐藏倒计时（每秒递减），到期自动回到掩码', async () => {
     vi.useFakeTimers();
     function HarnessWithReveal() {
-      const revealState = useRevealState();
       return (
         <ObjectDetailFieldsList
+          objectId="object"
+          accountId="account"
           fields={[{ kind: 'field' as const, key: 'email', value: 'secret@example.com' }]}
           typeId="travel"
           contractTypeId={undefined}
@@ -156,11 +152,7 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
           getFieldSensitivity={() => 'sensitive'}
           isFieldDeprecated={() => false}
           getFieldName={(k, label) => label ?? k}
-          isRevealed={revealState.isRevealed}
-          revealRemainingMs={revealState.revealRemainingMs}
-          maskValue={revealState.maskValue}
-          handleRevealField={async (id) => {
-            revealState.reveal(id);
+          handleRevealField={async () => {
             return true;
           }}
           handleCopy={vi.fn()}
@@ -174,7 +166,9 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
     expect(screen.queryByTestId('detail-reveal-countdown')).not.toBeInTheDocument();
 
     // 揭示态：明文 + 倒计时显示剩余 60s
-    fireEvent.click(screen.getByText('common:reveal'));
+    await act(async () => {
+      fireEvent.click(screen.getByText('common:reveal'));
+    });
     expect(screen.queryByText('••••••••')).not.toBeInTheDocument();
     expect(screen.getByText('secret@example.com')).toBeInTheDocument();
     expect(screen.getByTestId('detail-reveal-countdown')).toHaveTextContent('60s');
@@ -194,12 +188,13 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
     expect(screen.queryByTestId('detail-reveal-countdown')).not.toBeInTheDocument();
   });
 
-  it('internal 字段揭示态也不显示倒计时（本就明文展示）', () => {
+  it('internal 未揭示时无倒计时', () => {
     vi.useFakeTimers();
     function HarnessInternal() {
-      const revealState = useRevealState();
       return (
         <ObjectDetailFieldsList
+          objectId="object"
+          accountId="account"
           fields={[{ kind: 'field' as const, key: 'phone', value: '13800138000' }]}
           typeId="travel"
           contractTypeId={undefined}
@@ -210,9 +205,6 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
           getFieldSensitivity={() => 'internal'}
           isFieldDeprecated={() => false}
           getFieldName={(k, label) => label ?? k}
-          isRevealed={revealState.isRevealed}
-          revealRemainingMs={revealState.revealRemainingMs}
-          maskValue={revealState.maskValue}
           handleRevealField={vi.fn()}
           handleCopy={vi.fn()}
           copiedField={null}
@@ -220,8 +212,8 @@ describe('ObjectDetailFieldsList 掩码规则', () => {
       );
     }
     render(<HarnessInternal />);
-    // 明文直接可见，无揭示按钮、无倒计时
-    expect(screen.getByText('13800138000')).toBeInTheDocument();
+    // 未揭示不显示倒计时。
+    expect(screen.queryByText('13800138000')).not.toBeInTheDocument();
     expect(screen.queryByTestId('detail-reveal-countdown')).not.toBeInTheDocument();
   });
 
@@ -247,9 +239,9 @@ describe('动态字段组树状渲染（与历史快照同构）', () => {
 
   it('组头仅显示一次敏感度徽章；子行不重复显示', () => {
     renderGroup({ __dynamic_group__: 'internal' });
-    // 子行值可见（internal 在详情卡片明文）
-    expect(screen.getByText('hello world')).toBeInTheDocument();
-    expect(screen.getByText('second value')).toBeInTheDocument();
+    // internal 子项默认占位。
+    expect(screen.queryByText('hello world')).not.toBeInTheDocument();
+    expect(screen.queryByText('second value')).not.toBeInTheDocument();
     // 子行名称可见
     expect(screen.getByText('备注一')).toBeInTheDocument();
     expect(screen.getByText('备注二')).toBeInTheDocument();
@@ -272,6 +264,47 @@ describe('动态字段组树状渲染（与历史快照同构）', () => {
 });
 
 describe('复制先揭示/验证', () => {
+  it('public 组保留子项等级，整组及子项复制不能绕过最高保护等级', async () => {
+    const copy = vi.fn(),
+      authorize = vi.fn().mockResolvedValue(false);
+    const { container } = render(
+      <ObjectDetailFieldsList
+        objectId="group-object"
+        accountId="a"
+        typeId="identity"
+        fields={[
+          {
+            kind: 'dynamicGroup',
+            key: 'group',
+            children: [
+              { id: 'open', label: 'Open', value: 'PUBLIC_VALUE', sensitivityLevel: 'public' },
+              {
+                id: 'protected',
+                label: 'Protected',
+                value: 'CRITICAL_VALUE',
+                sensitivityLevel: 'critical',
+              },
+              { id: 'unknown', label: 'Unknown', value: 'UNKNOWN_VALUE' },
+            ],
+          },
+        ]}
+        getFieldProperty={() => undefined}
+        getFieldSensitivity={() => 'public'}
+        isFieldDeprecated={() => false}
+        getFieldName={() => 'Group'}
+        handleRevealField={authorize}
+        handleCopy={copy}
+        copiedField={null}
+      />,
+    );
+    expect(screen.getByText('PUBLIC_VALUE')).toBeInTheDocument();
+    expect(container.innerHTML).not.toContain('CRITICAL_VALUE');
+    expect(container.innerHTML).not.toContain('UNKNOWN_VALUE');
+    expect(screen.getByText('common:unlock')).toBeInTheDocument();
+    await act(async () => fireEvent.click(screen.getAllByText('common:copy')[0]));
+    expect(authorize).toHaveBeenCalledWith('identity.group', 'critical', 'Group');
+    expect(copy).not.toHaveBeenCalled();
+  });
   function setup(
     sens: SensitivityLevel,
     verify: () => Promise<boolean>,
@@ -281,15 +314,14 @@ describe('复制先揭示/验证', () => {
       const state = useRevealState();
       return (
         <ObjectDetailFieldsList
+          objectId="object"
+          accountId="account"
           fields={[{ kind: 'field', key: 'secret', value: 'actual text' }]}
           typeId="identity"
           getFieldProperty={() => undefined}
           getFieldSensitivity={() => sens}
           isFieldDeprecated={() => false}
           getFieldName={() => 'Secret'}
-          isRevealed={state.isRevealed}
-          revealRemainingMs={state.revealRemainingMs}
-          maskValue={state.maskValue}
           handleRevealField={async (id) => {
             if (!(await verify())) return false;
             state.reveal(id);

@@ -58,6 +58,12 @@ export function useRevealState() {
     });
   }, []);
 
+  const clear = useCallback(() => {
+    Object.values(timersRef.current).forEach(clearTimeout);
+    timersRef.current = {};
+    setRevealed({});
+  }, []);
+
   // P026: 过期清理移到 effect——渲染期（shouldMask）不再触发 setState，
   // 保证渲染纯净性；监听 revealed 变化，发现过期条目即 hide（触发新一轮
   // render 后无过期条目，effect 空转停止）。
@@ -115,5 +121,5 @@ export function useRevealState() {
     [shouldMask],
   );
 
-  return { reveal, hide, shouldMask, isRevealed, revealRemainingMs, maskValue };
+  return { reveal, hide, clear, shouldMask, isRevealed, revealRemainingMs, maskValue };
 }
