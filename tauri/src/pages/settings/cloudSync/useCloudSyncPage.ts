@@ -10,6 +10,8 @@ import { useToastError } from '@/hooks/useToastError';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore } from '@/stores/authStore';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
+import { importOutcomeError } from '@/lib/importOutcome';
+import type { ImportResult } from '@/types/exportImport';
 import {
   DEFAULT_RETENTION,
   DEFAULT_WEBDAV_CONFIG,
@@ -59,9 +61,10 @@ export function useCloudSyncPage() {
   const loadConfig = useCallback(async () => {
     try {
       setIsLoading(true);
-      const config = await invoke<
-        (SavedCloudSyncConfig & { autoImport?: boolean }) | null
-      >('cloud_sync_get_config', { accountId });
+      const config = await invoke<(SavedCloudSyncConfig & { autoImport?: boolean }) | null>(
+        'cloud_sync_get_config',
+        { accountId },
+      );
       if (config) {
         setSavedConfig(config);
         setConnectorType(config.connectorType);
@@ -171,7 +174,7 @@ export function useCloudSyncPage() {
 
   const handleImportIncoming = async (file: string) => {
     // 文件名 {hlc}.solosoul，父目录名即来源 device_id
-    const parts = file.split('/');
+    const parts = file.split(/[\\/]/);
     const hlc = (parts.pop() ?? '').replace(/\.solosoul$/, '');
     const deviceId = parts.pop() ?? '';
     if (!hlc || !deviceId) return;
@@ -182,7 +185,7 @@ export function useCloudSyncPage() {
     }
     setImportingFile(file);
     try {
-      await invoke('import_execute_advanced', {
+      const result = await invoke<ImportResult>('import_execute_advanced', {
         accountId,
         req: {
           selections: null,
@@ -190,10 +193,15 @@ export function useCloudSyncPage() {
           sourcePath: file,
           password: snapshotPw,
           selectedAttachmentIds: null,
-          objectStrategies: null,
+          objectStrategies: {},
           locale: i18n.language || 'zh-CN',
         },
       });
+      const incomplete = importOutcomeError(result, t);
+      if (incomplete) {
+        onError(new Error(incomplete), t('settings:cloud_sync_import_failed'));
+        return;
+      }
       await invoke('cloud_sync_mark_applied', { deviceId, hlc });
       onSuccess(t('settings:cloud_sync_import_success'));
       setIncomingFiles((prev) => prev.filter((f) => f !== file));

@@ -1,8 +1,7 @@
 /** RecoveryReceiveDialog 的共享类型与常量。 */
+import type { ImportResult } from '@/types/exportImport';
 
-export interface RecoveryResultSummary {
-  objectCount: number;
-  attachmentCount: number;
+export interface RecoveryResultSummary extends ImportResult {
   /** 恢复包的账户 ID（与旧设备一致）。 */
   accountId: string;
   /** 恢复包的账户名。 */

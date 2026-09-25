@@ -189,7 +189,8 @@ pub(crate) fn default_locale() -> String {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AdvancedImportRequest {
-    pub selections: Vec<ImportSelection>,
+    /// None = 全量；Some([]) = 不选对象。普通界面继续发送显式选择数组。
+    pub selections: Option<Vec<ImportSelection>>,
     pub strategy: ImportStrategy,
     pub source_path: String,
     pub password: String,
@@ -203,11 +204,84 @@ pub struct AdvancedImportRequest {
     pub locale: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ImportStatus {
+    #[default]
+    Complete,
+    Partial,
+    NotCommitted,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ImportStage {
+    #[default]
+    Preparation,
+    Templates,
+    Objects,
+    Snapshots,
+    Attachments,
+    Preferences,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ImportResult {
     pub object_count: usize,
     pub attachment_count: usize,
+    pub status: ImportStatus,
+    pub template_count: usize,
+    pub snapshot_count: usize,
+    pub preferences_imported: bool,
+    /// 文件已写入但未必关联成功；不计入 attachment_count。
+    pub attachment_files_written: usize,
+    pub failure_stage: Option<ImportStage>,
+    /// 固定错误码，不携带包内容、路径或数据库错误文本。
+    pub error_code: Option<String>,
+}
+
+impl ImportResult {
+    pub(crate) fn is_complete(&self) -> bool {
+        self.status == ImportStatus::Complete
+    }
+
+    pub(crate) fn require_complete(self) -> Result<Self, String> {
+        if self.is_complete() {
+            Ok(self)
+        } else {
+            Err(format!(
+                "Import incomplete: stage={:?}, objects={}, attachments={}",
+                self.failure_stage, self.object_count, self.attachment_count
+            ))
+        }
+    }
+
+    fn fail(&mut self, stage: ImportStage, error: &str) {
+        self.status = if self.object_count
+            + self.attachment_count
+            + self.template_count
+            + self.snapshot_count
+            + self.attachment_files_written
+            > 0
+            || self.preferences_imported
+        {
+            ImportStatus::Partial
+        } else {
+            ImportStatus::NotCommitted
+        };
+        self.failure_stage = Some(stage);
+        // 只允许无明细的已知密码码保留；原始错误可能含敏感 JSON/路径。
+        self.error_code = Some(
+            match error {
+                "__IMPORT_ERR__:PASSWORD_REQUIRED" => "PASSWORD_REQUIRED",
+                "__IMPORT_ERR__:BAD_PASSWORD" => "BAD_PASSWORD",
+                "__IMPORT_ERR__:DECRYPT_FAILED" => "DECRYPT_FAILED",
+                _ => "IMPORT_FAILED",
+            }
+            .to_string(),
+        );
+    }
 }
 
 // ── Helpers ────────────────────────────────────────────────────

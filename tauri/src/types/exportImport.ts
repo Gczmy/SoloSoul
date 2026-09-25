@@ -83,6 +83,20 @@ export type ImportStrategy = 'skipExisting' | 'overwrite' | 'keepBoth';
 export interface ImportResult {
   objectCount: number;
   attachmentCount: number;
+  status: 'complete' | 'partial' | 'notCommitted';
+  templateCount: number;
+  snapshotCount: number;
+  preferencesImported: boolean;
+  attachmentFilesWritten: number;
+  failureStage:
+    | 'preparation'
+    | 'templates'
+    | 'objects'
+    | 'snapshots'
+    | 'attachments'
+    | 'preferences'
+    | null;
+  errorCode: string | null;
 }
 
 /** 文档导出 preflight 返回的字段最高敏感度（Rust export_document_preflight）。 */

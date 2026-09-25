@@ -3,6 +3,7 @@ import type { TFunction, i18n as I18n } from 'i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { cleanupStagedFile, isUriPath, stageImportPackage } from '@/lib/mobileFileTransfer';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
+import { importOutcomeError } from '@/lib/importOutcome';
 import type {
   ImportPreview,
   DecryptedImportPreview,
@@ -141,6 +142,12 @@ export function useImportState({
           locale: i18n.language,
         },
       });
+      const incomplete = importOutcomeError(result, t);
+      if (incomplete) {
+        if (result.status === 'partial') reloadScope();
+        onError(new Error(incomplete), t('common:import_failed'));
+        return;
+      }
       onSuccess(
         t('settings:import_success_with_attachments', {
           count: result.objectCount,
@@ -150,8 +157,9 @@ export function useImportState({
       setImportPreview(null);
       setDecryptedPreview(null);
       setImportPath('');
-      if (stagedImportPath) {
-        cleanupStagedFile(stagedImportPath);
+      const completedStagedPath = stagedImportPath ?? (isUriPath(importPath) ? sourcePath : null);
+      if (completedStagedPath) {
+        cleanupStagedFile(completedStagedPath);
         setStagedImportPath(null);
       }
       setImportPw('');

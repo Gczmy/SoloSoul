@@ -96,7 +96,7 @@ fn rf018_template_write_failures_abort_before_objects() {
         // 走真实解密与导入入口，确认失败不会继续写引用该模板的对象。
         let package = dir.path().join("incoming.solosoul");
         package_with_template(&package, &template);
-        let error = import_execute_internal(
+        let outcome = import_execute_internal(
             service.read().unwrap(),
             account.clone(),
             package.to_string_lossy().into_owned(),
@@ -108,11 +108,9 @@ fn rf018_template_write_failures_abort_before_objects() {
             "en-US",
             None,
         )
-        .unwrap_err();
-        assert!(
-            error.contains("rf018 injected template write failure"),
-            "{error}"
-        );
+        .unwrap();
+        assert_eq!(outcome.status, ImportStatus::NotCommitted);
+        assert_eq!(outcome.failure_stage, Some(ImportStage::Templates));
         assert!(vault.load_object("rf018-object").unwrap().is_none());
         assert_eq!(
             serde_json::to_value(vault.list_user_templates(&account).unwrap()).unwrap(),

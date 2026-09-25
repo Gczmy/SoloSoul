@@ -8,6 +8,7 @@ import { useCameraCapability } from '@/hooks/useCameraCapability';
 import { useRecoveryManualForm } from '@/hooks/useRecoveryManualForm';
 import { useRecoveryCredentials } from '@/hooks/useRecoveryCredentials';
 import { friendlyConnectError, checkRecoveryIdConflict } from '@/lib/recoveryErrors';
+import { importOutcomeError } from '@/lib/importOutcome';
 import type {
   RecoveryResultSummary,
   ScannedRecoveryQr,
@@ -24,7 +25,7 @@ export interface UseRecoveryReceiveOptions {
 
 /** RecoveryReceiveDialog 的完整状态机与业务逻辑。 */
 export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryReceiveOptions) {
-  const { t } = useTranslation(['common']);
+  const { t } = useTranslation(['common', 'settings']);
   const navigate = useNavigate();
   const mountedRef = useRef(true);
   // 设备摄像头能力（启动时预加载，模块级缓存）。
@@ -140,7 +141,8 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
       if (parsed.t !== 'rec') {
         setError(
           t('common:recovery_qr_invalid_reverse', {
-            defaultValue: 'Invalid QR code. Please scan the recovery QR shown on your old device (Settings → Device Sync → Show Recovery QR).',
+            defaultValue:
+              'Invalid QR code. Please scan the recovery QR shown on your old device (Settings → Device Sync → Show Recovery QR).',
           }),
         );
         return;
@@ -210,6 +212,12 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
         overwrite: overwriteApproved,
       });
       if (!mountedRef.current) return;
+      const incomplete = importOutcomeError(result, t);
+      if (incomplete) {
+        setError(incomplete);
+        await useAuthStore.getState().checkHasAccount();
+        return;
+      }
       setSuccess(result);
       setStep('success');
       // 记住最近恢复的账户：返回登录页后自动选中它，方便用新密码解锁

@@ -31,8 +31,8 @@ pub struct RecoveryHostInfo {
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ImportResultSummary {
-    pub object_count: usize,
-    pub attachment_count: usize,
+    #[serde(flatten)]
+    pub outcome: crate::commands::export_import::ImportResult,
     /// 恢复包的账户 ID（与旧设备一致，用于在卡片上展示）。
     pub account_id: String,
     /// 恢复包的账户名。
@@ -395,12 +395,14 @@ pub async fn recovery_restore_from_host(
     );
 
     // N-101：恢复导入成功后触发 SAF 自动同步（原 import 内部行为，重构后由调用方负责）
-    if import_result.is_ok() {
+    if import_result.as_ref().is_ok_and(|r| r.is_complete()) {
         state.auto_sync.trigger_debounce();
     }
 
-    // 清理下载的临时文件
-    let _ = std::fs::remove_file(&file_path);
+    // 只有完整导入后才清理源包；部分提交保留恢复证据。
+    if import_result.as_ref().is_ok_and(|r| r.is_complete()) {
+        let _ = std::fs::remove_file(&file_path);
+    }
 
     let import_result = match import_result {
         Ok(r) => r,
@@ -421,10 +423,14 @@ pub async fn recovery_restore_from_host(
         }
     };
 
-    emit_progress("done", 100);
+    if import_result.is_complete() {
+        emit_progress("done", 100);
+    } else {
+        // 保留部分导入的账户，避免误删已写入的数据；前端展示实际结果。
+        emit_progress("incomplete", 95);
+    }
     Ok(ImportResultSummary {
-        object_count: import_result.object_count,
-        attachment_count: import_result.attachment_count,
+        outcome: import_result,
         account_id,
         account_name,
     })

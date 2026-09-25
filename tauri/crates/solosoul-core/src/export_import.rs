@@ -1128,6 +1128,12 @@ pub fn resolve_cross_scope_references(
 /// 为 None（测试等无密钥上下文）时保持原明文写盘行为。
 ///
 /// 返回导入的附件数量。
+#[derive(Debug, Default)]
+pub struct AttachmentImportProgress {
+    pub committed_count: usize,
+    pub written_file_count: usize,
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn import_attachments(
     vault: &VaultStore,
@@ -1142,6 +1148,41 @@ pub fn import_attachments(
     sel_att_ids_set: Option<&HashSet<String>>,
     now: &str,
     progress: Option<&(dyn Fn(u8) + Send + Sync)>,
+) -> Result<usize, ExportError> {
+    import_attachments_tracked(
+        vault,
+        base_path,
+        path,
+        key,
+        salt,
+        imported_object_ids,
+        payload,
+        vault_att_key,
+        id_map,
+        sel_att_ids_set,
+        now,
+        progress,
+        &mut AttachmentImportProgress::default(),
+    )
+}
+
+/// 与 import_attachments 共用执行路径；失败时保留已提交元数据和已写文件计数。
+/// committed 仅在对象保存成功后增加，写文件成功不等于附件可用。
+#[allow(clippy::too_many_arguments)]
+pub fn import_attachments_tracked(
+    vault: &VaultStore,
+    base_path: &Path,
+    path: &Path,
+    key: &[u8; 32],
+    salt: &[u8],
+    imported_object_ids: &HashSet<String>,
+    payload: &serde_json::Value,
+    vault_att_key: Option<&[u8; 32]>,
+    id_map: &HashMap<String, String>,
+    sel_att_ids_set: Option<&HashSet<String>>,
+    now: &str,
+    progress: Option<&(dyn Fn(u8) + Send + Sync)>,
+    committed: &mut AttachmentImportProgress,
 ) -> Result<usize, ExportError> {
     let att_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, b"solosoul:attachments:v1")
         .map_err(|e| format!("派生附件密钥失败: {}", e))?;
@@ -1218,6 +1259,7 @@ pub fn import_attachments(
         let file_path_dest = dest.join(&safe_name);
         let file_size =
             write_imported_attachment(&mut f, &att_key, vault_att_key, &file_path_dest)?;
+        committed.written_file_count += 1;
 
         imported_atts
             .entry(actual_obj_id.clone())
@@ -1238,7 +1280,7 @@ pub fn import_attachments(
     }
 
     // 更新已导入对象的 __attachments（按实际对象 ID）
-    write_back_imported_attachments(vault, imported_atts)
+    write_back_imported_attachments(vault, imported_atts, committed)
 }
 
 /// P019-①：从 payload 提取「(旧对象ID, 旧附件ID) → 附件元数据」映射。
@@ -1316,6 +1358,7 @@ fn write_imported_attachment(
 fn write_back_imported_attachments(
     vault: &VaultStore,
     imported_atts: HashMap<String, Vec<AttachmentMeta>>,
+    committed: &mut AttachmentImportProgress,
 ) -> Result<usize, ExportError> {
     let imported_count = imported_atts.values().map(|v| v.len()).sum::<usize>();
     for (obj_id, atts) in imported_atts {
@@ -1334,6 +1377,7 @@ fn write_back_imported_attachments(
             }
         }
         vault.save_object(&obj)?;
+        committed.committed_count += atts.len();
     }
 
     Ok(imported_count)

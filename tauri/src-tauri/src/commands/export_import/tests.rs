@@ -10,6 +10,7 @@ use std::sync::Arc;
 use tempfile::TempDir;
 
 mod rf018;
+pub(crate) mod rf020;
 
 // ── 1. Error formatting functions ───────────────────────────
 

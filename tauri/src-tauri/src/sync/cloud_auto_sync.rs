@@ -772,6 +772,7 @@ async fn auto_import_one(
             &locale,
             None, // 无进度回调
         )
+        .and_then(|r| r.require_complete())
         .map(|r| (r.object_count, r.attachment_count))
     })
     .await
@@ -884,6 +885,42 @@ async fn sweep_stale_temp_snapshots(temp_dir: &Path) {
 mod tests {
     use super::*;
     use std::sync::atomic::AtomicUsize;
+
+    #[tokio::test]
+    async fn rf020_cloud_partial_preserves_source_and_waterline() {
+        use crate::commands::export_import::tests::rf020::{objects, package, Fixture};
+        for partial in [true, false] {
+            let f = Fixture::new();
+            if partial {
+                f.reject_nth_object_write(2);
+            }
+            let incoming = f
+                .dir
+                .path()
+                .join("cloud_sync_incoming")
+                .join("remote-device");
+            std::fs::create_dir_all(&incoming).unwrap();
+            let path = package(&incoming, objects(), false, false, false);
+            let applied_key = format!("{APPLIED_KEY_PREFIX}remote-device");
+            f.vault.set_sys_config(&applied_key, "previous").unwrap();
+            let pre = CloudPreContext {
+                account_id: f.account.clone(),
+                config: solosoul_vault::CloudSyncConfig {
+                    snapshot_password: "export-password".into(),
+                    ..Default::default()
+                },
+                base_path: f.dir.path().to_path_buf(),
+                device_id: "local-device".into(),
+            };
+            let result = auto_import_one(&pre, &f.service, path.to_str().unwrap()).await;
+            assert_eq!(result.is_err(), partial);
+            assert_eq!(path.exists(), partial);
+            assert_eq!(
+                f.vault.get_sys_config(&applied_key).unwrap().as_deref(),
+                Some(if partial { "previous" } else { "incoming" })
+            );
+        }
+    }
 
     struct MockAction {
         calls: Arc<AtomicUsize>,

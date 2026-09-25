@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**92**（P1：32；P2：59；P3：1）。
-- 已关闭：**16 / 92**；实际修复（已关闭）：16；排除：0；待验证/阻塞：0。原计划 90 项，基线新增 RF-900、RF-901。
-- 当前处理：无；下一项 **RF-020**。RF-018 已完成全部验证并随本项独立提交。RF-003 的完整成功判定依赖 RF-020 的部分提交结果，补齐后回到云同步会话绑定。
+- 已关闭：**17 / 92**；实际修复（已关闭）：17；排除：0；待验证/阻塞：0。原计划 90 项，基线新增 RF-900、RF-901。
+- 当前处理：无。RF-020 完成，下一项 RF-003；RF-018（`38940f33`）与 RF-020 已补齐完整导入判定依赖，回到云同步会话绑定。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -150,7 +150,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 22 | [RF-018](#rf-018) | P1 | 导入模板保存失败必须传播 | 无 | [x] 完成 |
 | 23 | [RF-019](#rf-019) | P2 | 数据库事务失败时自动回滚 | 无 | [ ] 待执行 |
 | 24 | [RF-016](#rf-016) | P1 | 永久删除附件采用可恢复清理意图 | [RF-019](#rf-019) | [ ] 待执行 |
-| 25 | [RF-020](#rf-020) | P1 | 导入失败返回真实部分提交状态 | [RF-018](#rf-018) | [ ] 待执行 |
+| 25 | [RF-020](#rf-020) | P1 | 导入失败返回真实部分提交状态 | [RF-018](#rf-018) | [x] 完成 |
 | 26 | [RF-021](#rf-021) | P1 | 对象模板与历史按导入批次事务提交 | [RF-018](#rf-018)、[RF-019](#rf-019)、[RF-020](#rf-020) | [ ] 待执行 |
 | 27 | [RF-022](#rf-022) | P1 | 附件导入可恢复且同一任务重试幂等 | [RF-020](#rf-020)、[RF-021](#rf-021) | [ ] 待执行 |
 | 28 | [RF-208](#rf-208) | P2 | 移除 Android 构建的本机 JDK 路径依赖 | 无 | [ ] 待执行 |
@@ -476,7 +476,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **入口：**`tauri/src-tauri/src/commands/export_import/mod.rs`；`tauri/src-tauri/src/commands/export_import/import.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`；`tauri/src-tauri/src/sync/cloud_auto_sync.rs`；`tauri/src-tauri/src/commands/recovery.rs`；`tauri/src/hooks/useImportState.ts`；`tauri/src/hooks/useImportState.test.ts（拟新增）`；`tauri/src/lib/ipc.ts`；`tauri/src/pages/settings/cloudSync/useCloudSyncPage.ts`。
 - **执行：**ImportResult/import_execute_internal 累计真实已提交对象、附件及失败阶段，区分完成/部分完成/未提交；IPC 和界面准确展示；云同步部分完成不推进水线、不删除待导入源；恢复调用者不误报完成；错误明细不包含敏感值。
 - **验收：**第 N 个对象或附件失败时，报告数量与数据库相符；未写入失败和部分写入失败可区分；成功路径兼容；云水线只在完整成功时推进。
-- **验证配置：**`R` + `F` + `CONTRACT`。**定向验证：**Host 新增 rf020_*；cargo test -p solo_soul --lib rf020_；定向 Vitest src/hooks/useImportState.test.ts，覆盖普通导入和云页面结果适配。
+- **验证配置：**`R` + `F` + `CONTRACT` + `CLI`（共享附件计数实现改变）。**定向验证：**Host 新增 rf020_*；cargo test -p solo_soul --lib rf020_；定向 Vitest src/hooks/useImportState.test.ts 与 src/hooks/useRecoveryReceive.test.tsx，覆盖普通导入、云页面和恢复结果适配。实际范围还含共享 core export_import.rs、结果类型 exportImport.ts / recoveryReceiveTypes.ts、importOutcome.ts 和双语提示；不要求修改无调用封装的 ipc.ts。
 - **建议提交：**`fix: resolve [RF-020] - report partial import outcomes accurately`。
 
 ### RF-021
@@ -497,7 +497,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **前置：**[RF-020](#rf-020)、[RF-021](#rf-021)。
 - **入口：**`tauri/crates/solosoul-core/src/export_import.rs`；`tauri/src-tauri/src/commands/export_import/import.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`；`tauri/crates/solosoul-vault/src/storage.rs`；`tauri/crates/solosoul-vault/src/storage/import_operations.rs（拟新增）`。
 - **执行：**为一次导入记录稳定操作 ID、源包标识及 KeepBoth ID 映射；附件先写加密 staging，再按可恢复阶段发布并提交元数据；同一任务重试复用记录，不持久化密码或会话密钥。独立新导入仍允许 KeepBoth 生成副本。
-- **验收：**附件写入、发布及元数据提交间中断均能恢复；同一操作重试不重复创建对象/附件；失败不不可恢复地覆盖已有附件；重新解锁后需要时重新索取包密码。
+- **验收：**附件写入、发布及元数据提交间中断均能恢复；同一操作重试不重复创建对象/附件；失败不不可恢复地覆盖已有附件；重新解锁后需要时重新索取包密码。云端 skipExisting 重试已部分写入的对象时，必须继续补全缺失附件，不能因对象已存在而跳过后误报完整成功、推进水线或清理源包（RF-020 复核补充）。
 - **验证配置：**`R` + `CORE` + `F` + `CONTRACT` + `CLI`。**定向验证：**core/Host 新增 rf022_* 稳定操作 ID 与阶段注入测试；cargo test -p solosoul-core --lib rf022_；cargo test -p solo_soul --lib rf022_；按实际重试交互补 useImportState 定向测试。
 - **建议提交：**`fix: resolve [RF-022] - resume attachment imports without duplicate records`。
 
@@ -1513,3 +1513,19 @@ git commit -m "<任务卡的提交标题>"
 - 原有回归：`cargo test -p solo_soul --lib test_rebuild_templates_` 2/2 passed、exit 0，原始 ID 保留与冲突派生路径保持。当前已进入 `cargo test --verbose` 全量验证，结束前不关闭或提交。
 - 最终 R 全量：`cargo test --verbose` exit 0，编译 13m14s；19 组结果合计 **1,071 passed / 0 failed / 3 ignored**，包括 GUI 494/494、core 215/215、vault 184/184 及同步/密码学/插件/集成/文档测试。3 个 ignored 仍为既有 legacy 字段 2 项及 P025 手动性能工具 1 项，未新增跳过。本项生产修改仅在 Host，未改变共享核心或 CLI 接口。
 - 最终结论：定向与 R 检查满足，规范、92 项索引/任务卡与状态计数、暂存范围和 `git diff --check` 核对通过。**完成**；提交为本提交（按 RF-018 检索），未推送；只含本项 7 个文件，原有 NSIS 图片和搜索索引修改保留。下一项 RF-020。
+
+### RF-020 执行记录（2026-09-25，完成）
+
+- 修复前 HEAD：`38940f33`（RF-018）。Host 导入仅在最终成功返回两个计数，中途错误丢失已提交数量；历史及偏好保存错误可被吞掉。共享附件导入先写文件再逐对象关联元数据，后续失败无法报告先前已提交附件数。
+- 正在实施：添加完整/部分/未提交状态、各阶段已提交数量与脱敏失败阶段；共享附件唯一实现提供进度累计，保留原 CLI API；普通导入、手动/自动云导入及账户恢复改为显式检查完整状态，保留未完成源包，拒绝误报成功或推进水线。云页面原有 null selections 与 Vec 契约不匹配，同时改为 Option 区分全量与空选择；Windows 路径分隔符纳入解析。
+- 验证范围补充：本项改变共享 core 附件函数，因此除任务卡 R/F/CONTRACT 外，增加 CLI fmt/全目标 Clippy/全量测试，按顺序执行两套 Rust 构建。当前仅初步 `cargo check -p solo_soul --tests` 通过（exit 0，2m00s），不等同于回归或全量验收。
+- 新增真实 SQLite 故障与加密包回归，覆盖对象、模板、历史、附件解密/元数据写回和偏好失败；自动云同步验证源包/水线仅在完整成功时变化。Rust 定向和前端类型/定向测试已启动，结果尚未全部返回；保持进行中，未提交。
+- 首轮前端：TypeScript exit 0；定向 6 项中普通导入 3 项通过、云页面 3 项超时（exit 1）。测试全局 react-i18next mock 每次返回新的 t，导致依赖 t 的配置加载 effect 重复触发；定向 fixture 改为稳定的真实 i18next 绑定，不改生产逻辑或超时。增加恢复成功/部分/未提交 3 项回归，正在重跑。还原 JSON 格式化造成的无关缩进，双语文件仅新增本项 8 个键。
+- 前端重跑：2 文件、9/9 passed、exit 0（22.88s）。最终 TypeScript、Lint、ACL 219 命令、偏好 22 key、Markdown 13 依赖检查全部 exit 0。完整默认 `npm run test` 已启动，定向通过不替代全量。
+- 首轮 Rust 定向：编译 10m08s，6 passed / 1 failed，exit 101。新增模板夹具使用 snake_case 而 UserTemplate 契约为 camelCase，导入在写入前正确拒绝，因此与测试预期“先成功一个模板”不符；已修正夹具字段，未弱化验证。追加重复对象 ID 仅计一次的回归，并使 Windows 测试夹具先关闭数据库再删除临时目录。当前顺序运行 Clippy → rf020_ → 现有 export_import 回归，尚未取得最终 R/CLI 全量结果。
+- F 全量：默认 `npm run test` exit 0，**147 文件、1,235 passed**，无失败/跳过，121.63s；未修改 pool/worker/超时。与已通过的 TypeScript、Lint 和 CONTRACT 共同满足前端检查。Rust Clippy exit 0，正在继续定向及现有回归，R/CLI 尚未完成。
+- Rust 重跑：Clippy exit 0（3m52s）；`cargo test -p solo_soul --lib rf020_` **8/8 passed**、exit 0（编译 3m23s，执行 1.23s），模板部分写入、重复对象 ID 与真实云端水线/源包场景通过。现有 `commands::export_import::tests` **51/51 passed**、exit 0（1.12s），包含 RF-018 查询/保存错误与原有快照兼容行为。Windows 夹具顺序修正后本轮 11 个临时目录无残留；首轮 10 个已在核对日志归属和 Temp 路径边界后清理。
+- 收尾检查：修改的 8 个 TS/TSX 文件 Prettier check exit 0；92 项台账核对为 16 已关闭、仅 RF-020 进行中；云同步 canonical 文档同步改为显式 complete 判定。已启动 workspace fmt/full → CLI fmt/Clippy/full 顺序队列，fmt exit 0，其余未结束前不提交或关闭本项。
+- R 全量：`cargo test --verbose` exit 0，编译 19m49s；19 个 suite 合计 **1,079 passed / 0 failed / 3 ignored**，其中 GUI 502、core 215、vault 184。跳过项仍为既有两项 legacy field 测试与手动大数据基准，未新增跳过。CLI fmt exit 0、全目标 Clippy exit 0（1m22s）；CLI 完整测试仍在编译，保持进行中。
+- CLI 全量：`cargo test --verbose --no-fail-fast` exit 0，编译 5m20s；**173 passed / 0 failed / 1 ignored**（171 单元 + 2 集成，既有 i18n 文档示例跳过）。顺序队列整体 exit 0。测试自动更新的 CLI lockfile 仅 5 个本地 crate 版本，已定向还原，无依赖升级。
+- 最终结论：定向、R/F/CONTRACT/CLI 均满足；受影响规范同步更新，暂存范围仅本项 21 文件，92 项台账核对为 17 已关闭。**完成**；提交为本提交（按 RF-020 检索），未推送。附件持久重试与云端 skipExisting 补全仍由 RF-022 验收，本项不声称已实现事务或幂等；下一项 RF-003。
