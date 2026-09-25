@@ -1,0 +1,1302 @@
+# SoloSoul 重构修复执行报告
+
+> 最后更新：2026-09-25 14:38:51 +01:00（任务编制，尚未开始修复）
+> 当前分支：`main`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
+> 修复轮次：第 1 轮，状态为待执行。Cua 接入继续暂缓。
+
+## 1. 文档用途与执行边界
+
+本报告将 [全栈调查报告](ARCHITECTURE_REFACTOR_REVIEW_2026-09-25.md) 的 R01–R22 拆成可独立执行、验证和提交的任务，参考 [代码审查流程](review_code_process.md) 的“准备→排序→逐项修复→更新报告→独立提交→复审”步骤。原报告保留事实与背景；**本文件是这轮修复的执行台账**，无需从旧 `CODE_ANALYSIS_REPORT.md` 重新选择历史任务，也不覆盖旧终版报告。
+
+当前授权范围是编制执行报告，下面的修复、提交、推送和设备操作均为后续执行说明，本轮不执行。任务涵盖缺陷修复、行为保持的重构、验证设施、文档和测量，不应将任务总数解读成缺陷总数。
+
+### 1.1 对参考流程的具体化
+
+- 保留“一项一修复一提交”。一个任务可包含同一行为修复所需的 Rust、TS、测试和规范更新；按语言分组只是同优先级、无依赖时的调度偏好，不能拆断跨端正确性。
+- 参考流程要求先处理脏工作树；本轮已知的 Cargo 配置、NSIS 图片和搜索索引等改动不能不加区分地提交。后续先核对归属，保留无关改动，只暂存当前 ID 的路径或补丁；确实重叠时在实施前协调，或在合适的隔离分支执行。
+- 仓库根目录含 `tauri/`；Rust workspace 清单位于 `tauri/Cargo.toml`，CLI 位于独立的 `solosoul_cli/`。不能照旧文档假设根目录有 Cargo.toml。
+- 不照抄固定 `git push origin main` 或 `git push --tags`。后续推送沿用届时已授权的远端/分支；已有授权不重复询问，本报告也不额外授权发布或打“审计通过”标签。
+- 长文件和重复选择器是排查线索，不能仅因行数超过阈值就重写。新架构先在现有 crates 和目录内落地，不引入 Cua 或全面换栈。
+- 文档/测量任务通过产出和证据验收；可逆低影响样式变更优先复用现有 E2E，不编写仅复述实现的单元测试。
+- 发现误报时记录当前代码、复现方法和证据，结论写“排除/现有实现满足”；不能为凑提交制造无行为价值的修改。此类任务提交的是有依据的报告更新。
+
+### 1.2 状态与关闭条件
+
+| 标记 | 含义 | 是否计入已关闭 |
+| --- | --- | --- |
+| `[ ] 待执行` | 未开始，或前置任务未完成 | 否 |
+| `[~] 进行中` | 当前唯一的实施任务 | 否 |
+| `[!] 待验证/阻塞` | 记录具体缺失环境、失败检查或外部条件 | 否 |
+| `[x] 完成` | 行为验收、必需检查、规范更新与独立提交完成 | 是 |
+| `[x] 排除` | 已核实误报/现有实现满足，并提交证据 | 是，但不计作修复 |
+
+提交了代码但缺少必需的目标平台验证，仍为 `[!] 待验证`。跳过测试、没有设备、只做 cargo check、只通过浏览器 mock，均不能替代任务要求的原生运行证据。
+
+**每项共同完成定义：**确认现状和影响范围；只实现任务列出的行为；新增有意义的回归或使用已有验证；运行该项验证配置；记录真实退出码、测试数量、跳过项与设备；更新受影响的 canonical 规范；检查 staged diff 只含本项；完成一条包含任务 ID 的提交。
+
+## 2. 开始与续跑步骤
+
+1. 读取本文件、当前 AGENTS.md、参考流程和相关领域规范；运行 `git status --short`、`git branch --show-current`、`git log -1 --oneline`。核对当前代码是否已被其他任务改变，不仅依据旧行号。
+2. 记录分支、HEAD、工具版本和脏文件归属。不要自动 reset、清理用户数据或打包无关改动。新分支如有需要使用 `codex/` 前缀。
+   若调查/执行报告尚未入库，进入实际修复阶段后先做单独的 docs 基线提交，不能将它与首个业务修复或未知本地改动打包。
+3. 首次修复前运行适用的全量基线：`tauri/` 的 `npm run check-all`，以及 CLI 检查配置；原生相关任务核对 SDK/设备。基线失败先区分环境阻塞与产品缺陷；缺 SDK、工具下载失败等记录具体阻塞，确认独立代码缺陷后再登记 RF-900 起的新任务。先解决影响当前验收的失败，独立区域可以继续。
+4. 按任务索引顺序选取第一个前置已关闭、执行环境可用的未完成任务。P1 优先；P1 必需的基础任务可以先执行。被设备阻塞的任务记录原因并保留未完成，不阻塞无依赖任务。
+5. 更新“当前处理”为该 ID → 确认触发条件/建立回归 → 修复 → 定向验证 → 所属栈必需检查 → 回填记录 → 独立提交。
+6. 提交前更新索引状态和日志；“提交”栏可写“本提交，使用 ID 检索”，避免试图把当前提交自身的 SHA 写进自身。下一任务或最终复审时补录 `git log --grep=<ID>` 得到的 SHA。
+7. 不重复运行已经通过且未受后续改动影响的检查；每项仍需完成本次改动对应的必要检查。失败后只能把真实原因登记为失败/阻塞，不能通过减少测试、跳过错误或降低安全规则换通过。
+8. 当前索引清空前不能宣称“全库所有问题修复”。最终复审按第 8 节进行；新发现继续追加 ID，不重新编号或删掉历史任务。
+
+可直接用于后续执行的指令：
+
+> 按 docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md 继续修复。先核对当前工作树和未完成任务，从依赖满足的最高优先级项开始；一项一修复一验证一提交，每项同步回填报告。保留无关改动，缺少平台验证时如实标记，不提前标完成。Cua 接入保持暂缓。
+
+## 3. 验证配置与真实工作目录
+
+每张任务卡列出配置代码及定向场景。**定向测试用于快速定位，不替代所属栈的公共检查。** 下列命令以正确工作目录执行，每条分别检查退出码；依赖未安装时先按 lockfile 安装，不为本次重构顺手升级依赖。
+
+| 配置 | 工作目录 | 必需命令/证据 |
+| --- | --- | --- |
+| F | `tauri/` | `npx tsc --noEmit`；`npm run lint`；`npm run test`。对修改的 TS/TSX 文件单独运行 Prettier，不运行全仓库格式化。 |
+| R | `tauri/` | `cargo fmt --all -- --check`；`cargo clippy -- -D warnings`；`cargo test --verbose`。修改前使用定向包/用例定位，完成时检查受影响 workspace。 |
+| CORE | `tauri/` | 对实际受影响包执行 `cargo test -p solosoul-core`、`cargo test -p solosoul-vault` 等定向检查；仍须满足 R。GUI 包名是 `solo_soul`。 |
+| CLI | `solosoul_cli/` | `cargo fmt --check`；`cargo clippy --all-targets -- -D warnings`；`cargo test --verbose --no-fail-fast`。共享 Rust 变化同时检查 R。 |
+| CONTRACT | `tauri/` | `npm run check:acl`；`npm run check:pref-keys`；`node scripts/check-markdown-chunk-boundary.mjs`；RF-301 完成后再加其实际生成检查命令。 |
+| WEB | `tauri/` | 卡片列出的 Playwright 用例，分别按适用的 `--project=chromium`/`--project=mobile` 运行；启动/路由/IPC/主题变化另跑 `npm run test:e2e:production`。 |
+| COVERAGE | `tauri/` | `npm run test -- --coverage`，保存覆盖率报告和阈值结果；不得将未运行的阈值配置视为已达标。 |
+| IOS | macOS 上的 `tauri/` | 安装需要的 Rust targets 后 `cargo check --target aarch64-apple-ios --target aarch64-apple-ios-sim`；原生桥接改动另执行 `npm run tauri:ios:build:sim` 和相关运行验收。 |
+| ANDROID_BUILD | `tauri/` 与生成 Android 工程 | 下节 Android target check、Debug 构建及本项 Kotlin 单元检查；需要 SDK/NDK/JDK，不默认要求连接玻璃设备。 |
+| ANDROID_NATIVE | 生成 Android 工程与设备 | 在已验证 Debug 构建上运行任务指定的 instrumented/设备场景；RF-310 必须执行现有玻璃原生测试。记录 ABI/API、测试计数与跳过项。 |
+| NATIVE | 对应平台图形会话 | 原生应用或例程中的具体操作，记录 OS、设备、构建 ID、主题/辅助功能设置和结果；无统一跨平台替代命令。 |
+| PERF | 对应平台 release 测试构建 | 固定合成数据集、冷/热启动口径、重复次数、设备/版本，记录时延分布、内存与 IPC 指标。单次主观观感不算证据。 |
+| DOC | 仓库根目录 | 检查新改文档链接、路径、任务 ID、依赖与事实；`git diff --check`。纯文档任务不重新跑业务测试。 |
+
+任务卡中的“新增测试”指建议落点，不声称当前文件已存在；筛选器必须确认确实运行了目标测试，0 tests 不算通过。优先复用现有测试模块，现有测试名在执行时通过 `--list`/源码核对，不臆造一个筛选名称然后接受零命中。
+
+### 3.1 本机前端历史基线
+
+2026-09-25 调查时 TypeScript、Lint、Rust fmt、ACL（219 命令）、偏好键（22 key）通过；默认 Vitest 进程池未正常结束，换成下列命令后 139 文件、1,142 测试通过：
+
+```text
+npm run test -- --pool=threads --maxWorkers=2
+```
+
+这只是调查基线，本轮编制报告未重跑。若后续再次出现同样环境现象，记录默认运行的失败/超时，再使用线程池核验；优先使用 CI 的 Node 22。RF-316 专门处理默认入口稳定性。不要取消检查或把替代命令的通过写成默认入口已经修好。
+
+### 3.2 Android 命令与前置条件
+
+**首次构建前先处理 JDK：**其他需要 Android 构建的任务先完成 RF-208；执行 RF-208 本身时，先移除项目中的机器专属 JDK 配置，再进行其构建验收。确认 `JAVA_HOME` 指向有效 JDK，运行生成 Android 工程的 `gradlew --version` 核对实际 JVM。仅设置 `JAVA_HOME` 不会覆盖仍存在的项目 `org.gradle.java.home`，不要等第一次 Tauri build 失败后才处理。
+
+在 `tauri/`：
+
+```text
+cargo ndk -t aarch64-linux-android check
+npx tauri android build --debug --target aarch64 --split-per-abi --apk --ci
+```
+
+需要有效 Android SDK、NDK、JDK 和 Rust Android target；当前 CI 配置 JDK 21、NDK 27.0.12077973。项目 `gen/android/gradle.properties` 固定了 macOS JBR 路径，因此按上面的 RF-208 前置先消除该依赖。Debug 验证不读取 Release 签名密钥。
+
+在 `tauri/src-tauri/gen/android/`，Windows 的已存在文档路线如下；须先确认 `JAVA_HOME` 指向可用 JDK：
+
+```powershell
+.\gradlew.bat "-Dorg.gradle.java.home=$env:JAVA_HOME" :app:assembleArm64DebugAndroidTest -x :app:rustBuildArm64Debug
+adb install -r app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
+adb install -r app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk
+adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTest com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner
+```
+
+只有**刚完成对应本次源码的 Rust/APK 构建**才可使用上述 `-x`；不能跳过待验证的 Rust 改动。macOS 用 `./gradlew`。可用连接设备任务应按 flavor 核对为 `:app:connectedArm64DebugAndroidTest`，先用 `tasks --all` 确认实际任务；本轮仅核对配置，未运行 Gradle。
+
+上述路线需要 ARM64 设备/模拟器。现有 universal APK 仅包含 ARM ABI，不能拿普通 x86_64 模拟器安装失败来判断功能失败。玻璃测试要求 API ≥31 且系统允许窗口模糊；assumption 跳过只能登记覆盖不足。运行前使用专用测试账户/设备，安装覆盖不会用于用户生产数据。
+
+### 3.3 macOS、Windows 与 iOS 原生证据
+
+- macOS 窗口例程：在 `tauri/` 运行 `cargo run -p solo_soul --example macos_window_appearance -- --manual`；检查交通灯、圆角、背景恢复与主题切换。其他 OS 打印“不支持”且退出 0 不算通过。
+- Windows：工作目录保持 `tauri/`，设置 `SOLOSOUL_DATA_DIR` 指向专用测试目录后运行 `npm run tauri -- dev`，验收 Mica、内容/AppBar、一致主题、缩放、最小化恢复、高对比。
+- iOS 的 device/sim Rust check 已在 PR CI 存在，不能描述成零覆盖；它不证明 Xcode 链接、安装、Keychain/生物识别或 OCR 运行。
+- 浏览器 mobile/native-theme/glass 用例保留，但只证明模拟下的布局与状态，不证明 DWM/NSGlass/Android 合成器。
+- SDK 缺失、端口/子进程受限、设备未授权、工具下载失败单列为环境阻塞；编译错误、断言失败、错误 UI 行为列为产品失败。`npm run build` 会生成资源，执行后核对差异，禁止顺手提交无关生成产物。
+
+## 4. 修复进度与执行索引
+
+- 任务总数：**90**（P1：32；P2：57；P3：1）。
+- 已关闭：**0 / 90**；实际修复：0；排除：0；待验证/阻塞：0。
+- 当前处理：**无**；当前阶段：执行报告编制完成，等待进入修复。
+- 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
+- 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
+
+| 顺序 | ID | 优先级 | 任务 | 前置任务 | 状态 |
+| ---: | --- | --- | --- | --- | --- |
+| 1 | [RF-100](#rf-100) | P1 | 自动上下文立即排除非公开字段 | 无 | [ ] 待执行 |
+| 2 | [RF-001](#rf-001) | P1 | 建立最小会话捕获与提交校验机制 | 无 | [ ] 待执行 |
+| 3 | [RF-002](#rf-002) | P1 | LLM 流式回复绑定请求开始时的会话 | [RF-001](#rf-001) | [ ] 待执行 |
+| 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001) | [ ] 待执行 |
+| 5 | [RF-101](#rf-101) | P2 | 本次用户消息只追加一次 | 无 | [ ] 待执行 |
+| 6 | [RF-004](#rf-004) | P1 | Rust 生成普通聊天的受控自动上下文 | [RF-001](#rf-001)、[RF-100](#rf-100)、[RF-101](#rf-101) | [ ] 待执行 |
+| 7 | [RF-005](#rf-005) | P1 | 普通聊天通过 provider ID 在 Rust 解析凭证 | [RF-001](#rf-001)、[RF-002](#rf-002)、[RF-004](#rf-004) | [ ] 待执行 |
+| 8 | [RF-102](#rf-102) | P1 | 搜索查询与缓存写入绑定会话和请求代次 | 无 | [ ] 待执行 |
+| 9 | [RF-103](#rf-103) | P1 | 聊天会话读取只接纳最新选择 | 无 | [ ] 待执行 |
+| 10 | [RF-104](#rf-104) | P1 | 聊天流归属明确且最终回复只有一个持久化写入者 | [RF-101](#rf-101)、[RF-103](#rf-103)、[RF-002](#rf-002)、[RF-005](#rf-005) | [ ] 待执行 |
+| 11 | [RF-105](#rf-105) | P1 | 历史未揭示值不再以原文加 blur 渲染 | 无 | [ ] 待执行 |
+| 12 | [RF-106](#rf-106) | P1 | 对象详情采用共享字段展示策略 | [RF-100](#rf-100) | [ ] 待执行 |
+| 13 | [RF-107](#rf-107) | P1 | 历史快照迁入共享字段展示策略 | [RF-105](#rf-105)、[RF-106](#rf-106) | [ ] 待执行 |
+| 14 | [RF-108](#rf-108) | P1 | 搜索命中值采用共享保护与验证入口 | [RF-102](#rf-102)、[RF-106](#rf-106) | [ ] 待执行 |
+| 15 | [RF-006](#rf-006) | P1 | GUI 回滚拒绝其他对象的快照 | 无 | [ ] 待执行 |
+| 16 | [RF-007](#rf-007) | P1 | CLI 回滚恢复并保留字段标签 | 无 | [ ] 待执行 |
+| 17 | [RF-009](#rf-009) | P1 | 修复 CLI 创建对象缺失模板元数据 | 无 | [ ] 待执行 |
+| 18 | [RF-011](#rf-011) | P1 | CLI 恢复兼容 GUI Base64 Profile 备份 | 无 | [ ] 待执行 |
+| 19 | [RF-012](#rf-012) | P1 | GUI 备份遇到 Profile 读取失败时中止 | 无 | [ ] 待执行 |
+| 20 | [RF-014](#rf-014) | P1 | 全量云快照包含全部有效附件 | 无 | [ ] 待执行 |
+| 21 | [RF-017](#rf-017) | P1 | 导出完成后才替换目标包 | 无 | [ ] 待执行 |
+| 22 | [RF-018](#rf-018) | P1 | 导入模板保存失败必须传播 | 无 | [ ] 待执行 |
+| 23 | [RF-019](#rf-019) | P2 | 数据库事务失败时自动回滚 | 无 | [ ] 待执行 |
+| 24 | [RF-016](#rf-016) | P1 | 永久删除附件采用可恢复清理意图 | [RF-019](#rf-019) | [ ] 待执行 |
+| 25 | [RF-020](#rf-020) | P1 | 导入失败返回真实部分提交状态 | [RF-018](#rf-018) | [ ] 待执行 |
+| 26 | [RF-021](#rf-021) | P1 | 对象模板与历史按导入批次事务提交 | [RF-018](#rf-018)、[RF-019](#rf-019)、[RF-020](#rf-020) | [ ] 待执行 |
+| 27 | [RF-022](#rf-022) | P1 | 附件导入可恢复且同一任务重试幂等 | [RF-020](#rf-020)、[RF-021](#rf-021) | [ ] 待执行 |
+| 28 | [RF-208](#rf-208) | P2 | 移除 Android 构建的本机 JDK 路径依赖 | 无 | [ ] 待执行 |
+| 29 | [RF-201](#rf-201) | P1 | 修正移动端跟随系统的主题来源 | [RF-208](#rf-208) | [ ] 待执行 |
+| 30 | [RF-110](#rf-110) | P1 | 同次主题应用只解析一次系统模式 | 无 | [ ] 待执行 |
+| 31 | [RF-111](#rf-111) | P1 | 设置保存失败返回明确结果并反馈用户 | 无 | [ ] 待执行 |
+| 32 | [RF-112](#rf-112) | P1 | ThemeController 成为唯一主题应用协调器 | [RF-110](#rf-110)、[RF-111](#rf-111)、[RF-201](#rf-201) | [ ] 待执行 |
+| 33 | [RF-202](#rf-202) | P1 | 将 APK 更新入口限定为 Android | 无 | [ ] 待执行 |
+| 34 | [RF-203](#rf-203) | P1 | 明确 iOS OCR 不支持时的前后端行为 | [RF-208](#rf-208) | [ ] 待执行 |
+| 35 | [RF-204](#rf-204) | P1 | 核实并修正 iOS Keychain 成功状态符号 | 无 | [ ] 待执行 |
+| 36 | [RF-008](#rf-008) | P2 | GUI 与 CLI 迁移到同一回滚用例 | [RF-006](#rf-006)、[RF-007](#rf-007) | [ ] 待执行 |
+| 37 | [RF-010](#rf-010) | P2 | 共享对象创建的模板初始化规则 | [RF-009](#rf-009) | [ ] 待执行 |
+| 38 | [RF-013](#rf-013) | P2 | 共享 Profile 备份清单与兼容解码 | [RF-011](#rf-011)、[RF-012](#rf-012) | [ ] 待执行 |
+| 39 | [RF-015](#rf-015) | P2 | 显式表示附件导出范围 | [RF-014](#rf-014) | [ ] 待执行 |
+| 40 | [RF-023](#rf-023) | P2 | 加密包导出用例下沉 core | [RF-015](#rf-015)、[RF-017](#rf-017) | [ ] 待执行 |
+| 41 | [RF-024](#rf-024) | P2 | 加密包导入用例下沉 core | [RF-018](#rf-018)、[RF-020](#rf-020)、[RF-021](#rf-021)、[RF-022](#rf-022) | [ ] 待执行 |
+| 42 | [RF-025](#rf-025) | P2 | GUI 导出移出异步运行时工作线程 | 无 | [ ] 待执行 |
+| 43 | [RF-026](#rf-026) | P2 | 解密导入预览移出异步运行时工作线程 | 无 | [ ] 待执行 |
+| 44 | [RF-027](#rf-027) | P2 | 高级导入移出异步运行时工作线程 | 无 | [ ] 待执行 |
+| 45 | [RF-028](#rf-028) | P2 | PDF OCR 临时页面由 RAII 清理 | 无 | [ ] 待执行 |
+| 46 | [RF-029](#rf-029) | P2 | OCR 增加受控排队与分页取消 | [RF-001](#rf-001)、[RF-028](#rf-028) | [ ] 待执行 |
+| 47 | [RF-109](#rf-109) | P2 | 回收站保护层复用共享字段策略 | [RF-106](#rf-106) | [ ] 待执行 |
+| 48 | [RF-113](#rf-113) | P2 | 常驻壳配置注册和注销具有页面所有者 | 无 | [ ] 待执行 |
+| 49 | [RF-114](#rf-114) | P2 | AppRoutes 生命周期编排按职责收敛 | [RF-112](#rf-112)、[RF-113](#rf-113) | [ ] 待执行 |
+| 50 | [RF-115](#rf-115) | P2 | 普通操作按钮族迁入语义样式入口 | [RF-112](#rf-112) | [ ] 待执行 |
+| 51 | [RF-116](#rf-116) | P2 | 图标按钮族统一结构和平台尺寸 | [RF-115](#rf-115) | [ ] 待执行 |
+| 52 | [RF-117](#rf-117) | P2 | 互斥选项与下拉选择族统一状态语义 | [RF-115](#rf-115) | [ ] 待执行 |
+| 53 | [RF-118](#rf-118) | P2 | 开关控件族统一尺寸与状态 token | [RF-115](#rf-115) | [ ] 待执行 |
+| 54 | [RF-119](#rf-119) | P2 | Checkbox 控件族样式归属收敛 | [RF-115](#rf-115) | [ ] 待执行 |
+| 55 | [RF-120](#rf-120) | P2 | 字段值与操作按钮采用统一行布局 | [RF-107](#rf-107)、[RF-109](#rf-109)、[RF-116](#rf-116) | [ ] 待执行 |
+| 56 | [RF-121](#rf-121) | P2 | 普通卡片表面使用平台无关语义 | [RF-110](#rf-110) | [ ] 待执行 |
+| 57 | [RF-122](#rf-122) | P2 | 模态对话框表面迁入统一语义 | [RF-121](#rf-121)、[RF-115](#rf-115)、[RF-116](#rf-116) | [ ] 待执行 |
+| 58 | [RF-123](#rf-123) | P2 | 侧栏快捷浮层表面迁入统一语义 | [RF-121](#rf-121)、[RF-102](#rf-102)、[RF-104](#rf-104) | [ ] 待执行 |
+| 59 | [RF-124](#rf-124) | P2 | 迁移菜单、日期选择和 Tooltip 表面 | [RF-117](#rf-117)、[RF-121](#rf-121) | [ ] 待执行 |
+| 60 | [RF-125](#rf-125) | P2 | 迁移对象详情与附件预览浮层表面 | [RF-107](#rf-107)、[RF-109](#rf-109)、[RF-121](#rf-121)、[RF-122](#rf-122) | [ ] 待执行 |
+| 61 | [RF-126](#rf-126) | P2 | 迁移独立业务对话框到中立表面标记 | [RF-122](#rf-122) | [ ] 待执行 |
+| 62 | [RF-127](#rf-127) | P2 | 迁移通知表面并关闭旧材质兼容清单 | [RF-115](#rf-115)、[RF-116](#rf-116)、[RF-117](#rf-117)、[RF-118](#rf-118)、[RF-119](#rf-119)、[RF-120](#rf-120)、[RF-121](#rf-121)、[RF-122](#rf-122)、[RF-123](#rf-123)、[RF-124](#rf-124)、[RF-125](#rf-125)、[RF-126](#rf-126) | [ ] 待执行 |
+| 63 | [RF-205](#rf-205) | P2 | 建立并接入平台能力契约 | [RF-202](#rf-202)、[RF-203](#rf-203)、[RF-204](#rf-204) | [ ] 待执行 |
+| 64 | [RF-206](#rf-206) | P2 | 提取可恢复且按版本跳过的 Android 资源安装器 | [RF-208](#rf-208) | [ ] 待执行 |
+| 65 | [RF-207](#rf-207) | P2 | 将 Android 资源准备移出主线程并接入就绪屏障 | [RF-206](#rf-206)、[RF-208](#rf-208) | [ ] 待执行 |
+| 66 | [RF-211](#rf-211) | P2 | 为 CLI 建立任务事件与会话失效基础 | [RF-001](#rf-001) | [ ] 待执行 |
+| 67 | [RF-212](#rf-212) | P2 | 将 CLI 模型下载迁移到任务事件 | [RF-211](#rf-211) | [ ] 待执行 |
+| 68 | [RF-213](#rf-213) | P2 | 将 CLI 同步迁移到任务事件 | [RF-211](#rf-211) | [ ] 待执行 |
+| 69 | [RF-214](#rf-214) | P2 | 将 CLI 插件安装迁移到任务事件 | [RF-211](#rf-211) | [ ] 待执行 |
+| 70 | [RF-215](#rf-215) | P2 | 将 CLI OCR 迁移到可取消后台任务 | [RF-211](#rf-211)、[RF-029](#rf-029) | [ ] 待执行 |
+| 71 | [RF-301](#rf-301) | P2 | 建立 Rust 到 TypeScript 的增量 IPC 契约生成 | 无 | [ ] 待执行 |
+| 72 | [RF-302](#rf-302) | P2 | 迁移对象和回滚 IPC 契约 | [RF-301](#rf-301)、[RF-008](#rf-008)、[RF-010](#rf-010) | [ ] 待执行 |
+| 73 | [RF-303](#rf-303) | P2 | 迁移 LLM 会话与流事件契约 | [RF-301](#rf-301)、[RF-002](#rf-002)、[RF-004](#rf-004)、[RF-005](#rf-005)、[RF-104](#rf-104) | [ ] 待执行 |
+| 74 | [RF-304](#rf-304) | P2 | 迁移备份与导入导出 IPC 契约 | [RF-301](#rf-301)、[RF-013](#rf-013)、[RF-015](#rf-015)、[RF-024](#rf-024) | [ ] 待执行 |
+| 75 | [RF-305](#rf-305) | P2 | 迁移同步 IPC 与事件契约 | [RF-301](#rf-301)、[RF-003](#rf-003) | [ ] 待执行 |
+| 76 | [RF-306](#rf-306) | P2 | 迁移插件 IPC 与资源事件契约 | [RF-301](#rf-301) | [ ] 待执行 |
+| 77 | [RF-307](#rf-307) | P2 | 建立结构化后端错误并迁移对象用例 | [RF-301](#rf-301)、[RF-302](#rf-302) | [ ] 待执行 |
+| 78 | [RF-309](#rf-309) | P2 | 建立 Windows Rust 关键用例执行门禁 | 无 | [ ] 待执行 |
+| 79 | [RF-310](#rf-310) | P2 | 把 Android 原生回归接入明确的设备任务 | [RF-201](#rf-201)、[RF-208](#rf-208) | [ ] 待执行 |
+| 80 | [RF-313](#rf-313) | P2 | 修正 canonical 架构与安全事实文档 | 无 | [ ] 待执行 |
+| 81 | [RF-314](#rf-314) | P2 | 建立平台能力与验收证据矩阵 | [RF-205](#rf-205) | [ ] 待执行 |
+| 82 | [RF-315](#rf-315) | P2 | 对齐 LLM 数据流与隐私说明 | [RF-100](#rf-100)、[RF-004](#rf-004)、[RF-005](#rf-005) | [ ] 待执行 |
+| 83 | [RF-316](#rf-316) | P2 | 诊断并稳定默认前端测试运行入口 | 无 | [ ] 待执行 |
+| 84 | [RF-308](#rf-308) | P2 | 接入有实际执行证据的覆盖率门禁 | [RF-316](#rf-316) | [ ] 待执行 |
+| 85 | [RF-311](#rf-311) | P2 | 收敛重复 CI 步骤且保持平台覆盖 | [RF-308](#rf-308)、[RF-309](#rf-309)、[RF-310](#rf-310) | [ ] 待执行 |
+| 86 | [RF-317](#rf-317) | P2 | 迁移 LLM 结构化错误 | [RF-303](#rf-303)、[RF-307](#rf-307) | [ ] 待执行 |
+| 87 | [RF-318](#rf-318) | P2 | 迁移备份与导入导出结构化错误 | [RF-304](#rf-304)、[RF-307](#rf-307) | [ ] 待执行 |
+| 88 | [RF-319](#rf-319) | P2 | 迁移同步结构化错误 | [RF-305](#rf-305)、[RF-307](#rf-307) | [ ] 待执行 |
+| 89 | [RF-320](#rf-320) | P2 | 迁移插件结构化错误 | [RF-306](#rf-306)、[RF-307](#rf-307) | [ ] 待执行 |
+| 90 | [RF-312](#rf-312) | P3 | 建立可重跑的性能基线与下一步决策 | 无 | [ ] 待执行 |
+
+## 5. 原报告到执行任务的映射
+
+R 编号只用于追溯，不作为混合提交单位。每个 RF ID 才是本轮独立执行/提交单位；同一 R 拆分为多个 RF 时，所有相关任务完成或有明确排除证据，才能宣布该 R 的本轮目标收敛。
+
+| 原建议 | 范围 | 执行任务 |
+| --- | --- | --- |
+| R01 | 后端账户会话绑定 | [RF-001](#rf-001)、[RF-002](#rf-002)、[RF-003](#rf-003) |
+| R02 | 搜索和聊天请求生命周期 | [RF-102](#rf-102)、[RF-103](#rf-103)、[RF-104](#rf-104) |
+| R03 | LLM 字段出站与凭证 | [RF-004](#rf-004)、[RF-005](#rf-005)、[RF-100](#rf-100)、[RF-315](#rf-315) |
+| R04 | 聊天消息重复追加 | [RF-101](#rf-101) |
+| R05 | 敏感字段显示策略 | [RF-105](#rf-105)、[RF-106](#rf-106)、[RF-107](#rf-107)、[RF-108](#rf-108)、[RF-109](#rf-109) |
+| R06 | GUI/CLI 对象用例 | [RF-006](#rf-006)、[RF-007](#rf-007)、[RF-008](#rf-008)、[RF-009](#rf-009)、[RF-010](#rf-010) |
+| R07 | 备份兼容与完整性 | [RF-011](#rf-011)、[RF-012](#rf-012)、[RF-013](#rf-013) |
+| R08 | 云快照与附件导出范围 | [RF-014](#rf-014)、[RF-015](#rf-015)、[RF-023](#rf-023) |
+| R09 | 附件删除提交过程 | [RF-016](#rf-016) |
+| R10 | 导出目标文件完整性 | [RF-017](#rf-017)、[RF-023](#rf-023) |
+| R11 | 导入提交与恢复契约 | [RF-018](#rf-018)、[RF-020](#rf-020)、[RF-021](#rf-021)、[RF-022](#rf-022)、[RF-024](#rf-024) |
+| R12 | 主题解析、保存与协调 | [RF-110](#rf-110)、[RF-111](#rf-111)、[RF-112](#rf-112)、[RF-201](#rf-201) |
+| R13 | 平台能力 | [RF-202](#rf-202)、[RF-203](#rf-203)、[RF-204](#rf-204)、[RF-205](#rf-205) |
+| R14 | 数据库事务回滚 | [RF-019](#rf-019) |
+| R15 | 长任务与资源生命周期 | [RF-025](#rf-025)、[RF-026](#rf-026)、[RF-027](#rf-027)、[RF-028](#rf-028)、[RF-029](#rf-029)、[RF-211](#rf-211)、[RF-212](#rf-212)、[RF-213](#rf-213)、[RF-214](#rf-214)、[RF-215](#rf-215) |
+| R16 | 控件与材质设计系统 | [RF-115](#rf-115)、[RF-116](#rf-116)、[RF-117](#rf-117)、[RF-118](#rf-118)、[RF-119](#rf-119)、[RF-120](#rf-120)、[RF-121](#rf-121)、[RF-122](#rf-122)、[RF-123](#rf-123)、[RF-124](#rf-124)、[RF-125](#rf-125)、[RF-126](#rf-126)、[RF-127](#rf-127) |
+| R17 | 常驻壳与应用生命周期 | [RF-113](#rf-113)、[RF-114](#rf-114) |
+| R18 | IPC 类型与结构化错误 | [RF-205](#rf-205)、[RF-301](#rf-301)、[RF-302](#rf-302)、[RF-303](#rf-303)、[RF-304](#rf-304)、[RF-305](#rf-305)、[RF-306](#rf-306)、[RF-307](#rf-307)、[RF-317](#rf-317)、[RF-318](#rf-318)、[RF-319](#rf-319)、[RF-320](#rf-320) |
+| R19 | Android 资源准备 | [RF-206](#rf-206)、[RF-207](#rf-207)、[RF-208](#rf-208) |
+| R20 | 性能测量 | [RF-312](#rf-312) |
+| R21 | 验证设施与 CI | [RF-208](#rf-208)、[RF-308](#rf-308)、[RF-309](#rf-309)、[RF-310](#rf-310)、[RF-311](#rf-311)、[RF-314](#rf-314)、[RF-316](#rf-316) |
+| R22 | 架构与隐私文档 | [RF-313](#rf-313)、[RF-314](#rf-314)、[RF-315](#rf-315) |
+
+R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插件领域。其余命令保留兼容入口，并在 RF-301 的登记清单中逐项标明“未迁移”；不能把试点或这些领域的完成宣称为全部 219 个命令已迁移。扩展到其余命令时按领域新增 RF-900 系列任务。
+
+## 6. 可执行任务卡
+
+“入口”是实施前应读的源码及建议新增位置，并不要求修改列出的每个文件。涉及安全/数据格式的行为修复需先建立失败路径回归；结构抽取保留旧入口适配，迁移完当前领域再移除死代码。任务中的公共名（如 SessionContext、ThemeController）表示责任边界，最终命名可以遵循项目现有风格。
+
+## 6.1 Rust 核心与数据提交
+
+### RF-001
+
+**建立最小会话捕获与提交校验机制** · P1 · 来源：R01
+
+- **前置：**无。
+- **入口：**`tauri/crates/solosoul-core/src/vault_service/mod.rs`；`tauri/crates/solosoul-core/src/vault_service/unlock.rs`；`tauri/crates/solosoul-core/src/vault_service/account.rs`；`tauri/crates/solosoul-core/src/vault_service/tests.rs`。
+- **执行：**增加包含账户、代次和原始 Vault 句柄的会话令牌，一次性捕获并拒绝账户不匹配。锁定、会话替换使旧令牌永久失效；提供短临界区内校验并提交的 API，明确锁顺序。仅服务已确认的 LLM/云同步竞态，不引入通用 JobRunner，不在网络、KDF、压缩或推理期间持有提交门闩。
+- **验收：**同账户重新解锁也使旧令牌失效；失败解锁不复活旧代次；校验与写入之间插入锁定屏障时，提交只能在锁定前完整完成或明确拒绝；锁定不等待网络。
+- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**新增 vault_service/tests.rs::rf001_*；在 tauri/ 运行 cargo test -p solosoul-core --lib rf001_ -- --test-threads=1。
+- **建议提交：**`fix: resolve [RF-001] - add generation-bound vault session guards`。
+
+### RF-002
+
+**LLM 流式回复绑定请求开始时的会话** · P1 · 来源：R01
+
+- **前置：**[RF-001](#rf-001)。
+- **入口：**`tauri/src-tauri/src/commands/llm/stream.rs`；`tauri/crates/solosoul-vault/src/storage/conversations.rs`。
+- **执行：**llm_send_message_stream 开始时捕获会话；handle_sse_stream 事件、persist_conversation_reply 和 record_and_persist_usage 使用原会话，禁止完成后重取当前 Vault。提交使用会话门闩；普通会话写入口检查账户与 Vault 对应关系。保留 provider 登记及网络地址检查。 流事件携带 accountId、sessionGeneration、conversationId、requestId，RF-104 据此隔离前端；此项新增字段保留现有事件名称与旧调用兼容，后续再迁移消费者。
+- **验收：**暂停 A 的流请求，锁定并登录 B 后放行：B 会话和统计不变，旧请求不再发有效业务事件；正常流只持久化一次；普通会话写入拒绝错误账户。
+- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**在 stream.rs 和 storage/conversations.rs 新增 rf002_* 屏障测试；cargo test -p solo_soul --lib rf002_；cargo test -p solosoul-vault --lib rf002_。使用模拟 HTTP 流及临时 Vault。
+- **建议提交：**`fix: resolve [RF-002] - bind LLM completion to its original session`。
+
+### RF-003
+
+**云同步一轮操作固定账户与会话** · P1 · 来源：R01
+
+- **前置：**[RF-001](#rf-001)。
+- **入口：**`tauri/src-tauri/src/sync/cloud_auto_sync.rs`。
+- **执行：**CloudPreContext 捕获会话；run_cloud_sync_round、export_full_snapshot、auto_import_one 的导出、导入、状态和应用水线均使用原会话。移除网络等待后重取当前 Vault 的写入；失效或部分失败不推进水线，不删除未完成的待导入包。
+- **验收：**在下载结束、导入前、导入后水线提交前分别插入屏障，切换账户后新账户数据库与水线均不变；原账户重新进入后允许重试；完整成功才删除待导入源。
+- **验证配置：**`R`。**定向验证：**cloud_auto_sync.rs 新增 rf003_*，模拟 connector 和阶段屏障；cargo test -p solo_soul --lib rf003_ -- --test-threads=1。
+- **建议提交：**`fix: resolve [RF-003] - bind cloud sync rounds to their source session`。
+
+### RF-004
+
+**Rust 生成普通聊天的受控自动上下文** · P1 · 来源：R03
+
+- **前置：**[RF-001](#rf-001)、[RF-100](#rf-100)、[RF-101](#rf-101)。
+- **入口：**`tauri/crates/solosoul-core/src/llm/context.rs（拟新增）`；`tauri/crates/solosoul-core/src/llm/mod.rs`；`tauri/src-tauri/src/commands/llm/stream.rs`；`tauri/src-tauri/src/services/llm_context.rs`；`tauri/src/lib/llm/chatRequest.ts`；`tauri/src/lib/llm/systemPromptBuilder.ts`；`tauri/src/hooks/useLlmChatCore.ts`；`tauri/src/lib/llm/chatRequest.test.ts（拟新增）`。
+- **执行：**实现 LlmContextProjection，统一解析标签副本、__fields、已删除模板和动态组，排除内部键，未知敏感度不自动附加。普通发送传上下文选择标识，由 Rust 在绑定会话中读取并追加受控上下文；区分用户输入、用户提示词与自动附加数据。RF-100 先提供前端止血，不等待本次迁移。
+- **验收：**捕获模拟 provider 最终请求：public 对象内所有非 public/未知字段、内部元数据及嵌套敏感值均不外发；关闭自动上下文不读取附加对象；用户主动输入不被误当作自动字段处理。
+- **验证配置：**`R` + `CORE` + `F` + `CONTRACT` + `CLI`。**定向验证：**新增 core/llm/context.rs::rf004_* 和 Host 出站请求测试；cargo test -p solosoul-core --lib rf004_；cargo test -p solo_soul --lib rf004_；定向 Vitest src/lib/llm/chatRequest.test.ts。
+- **建议提交：**`fix: resolve [RF-004] - build permitted LLM context in Rust`。
+
+### RF-005
+
+**普通聊天通过 provider ID 在 Rust 解析凭证** · P1 · 来源：R03
+
+- **前置：**[RF-001](#rf-001)、[RF-002](#rf-002)、[RF-004](#rf-004)。
+- **入口：**`tauri/src-tauri/src/commands/llm/stream.rs`；`tauri/src-tauri/src/commands/llm/provider.rs`；`tauri/src-tauri/src/commands/llm/unified_chat.rs`；`tauri/crates/solosoul-core/src/llm/service.rs`；`tauri/src/hooks/useLlmChatCore.ts`；`tauri/src/hooks/useLlmChatCore.test.tsx（拟新增）`。
+- **执行：**普通发送参数改为 provider ID，Rust 从绑定会话解析保存的地址、模型和凭证；移除普通发送中的 llm_get_api_key 往返。保留历史内置 provider ID 映射及网络校验；设置页明确使用的凭证查看/测试入口不在本项顺带删除。与 RF-004 的文件重叠按顺序处理。
+- **验收：**普通发送 IPC 不携带 API key；未知、禁用或其他账户 provider 被拒绝；切换账户不能沿用旧凭证；历史内置 provider ID 可用；模拟传输收到正确测试认证头。
+- **验证配置：**`R` + `CORE` + `F` + `CONTRACT` + `CLI`。**定向验证：**Host/provider 测试新增 rf005_*；cargo test -p solo_soul --lib rf005_；定向 Vitest src/hooks/useLlmChatCore.test.tsx，仅使用测试密钥和模拟传输。
+- **建议提交：**`fix: resolve [RF-005] - resolve chat provider credentials in Rust`。
+
+### RF-006
+
+**GUI 回滚拒绝其他对象的快照** · P1 · 来源：R06
+
+- **前置：**无。
+- **入口：**`tauri/src-tauri/src/commands/object/snapshot.rs`；`tauri/src-tauri/src/commands/object/tests/snapshot.rs`；`tauri/crates/solosoul-vault/src/storage/snapshots.rs`。
+- **执行：**snapshot_rollback 应用数据前校验快照归属；必要时增加按 object_id 与 snapshot_id 联合读取的方法。无归属、目标不存在和归属不符均在写入前退出；不迁移整个回滚用例。
+- **验收：**A 的快照不能应用到 B；拒绝后对象、版本、历史与审计均不新增；正常同对象回滚保持行为。
+- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**commands/object/tests/snapshot.rs 新增 rf006_*；cargo test -p solo_soul --lib rf006_；新增存储联合读取时运行 cargo test -p solosoul-vault --lib rf006_。
+- **建议提交：**`fix: resolve [RF-006] - validate snapshot ownership before GUI rollback`。
+
+### RF-007
+
+**CLI 回滚恢复并保留字段标签** · P1 · 来源：R06
+
+- **前置：**无。
+- **入口：**`solosoul_cli/src/commands/history.rs`。
+- **执行：**do_rollback 恢复 propertyLabels 并兼容 property_labels；生成的回滚快照也携带标签。明确字段缺失、显式 null 和历史格式处理，避免无意清空标签；保持现有归属校验及交互。
+- **验收：**两种标签键名均能恢复；模板删除后字段语义副本保留；连续回滚不丢标签；跨对象拒绝测试继续通过。
+- **验证配置：**`CLI`。**定向验证：**history.rs 现有测试模块新增 rf007_*；在 solosoul_cli/ 运行 cargo test --lib rf007_ 和 cargo test --lib rollback。
+- **建议提交：**`fix: resolve [RF-007] - preserve field labels during CLI rollback`。
+
+### RF-008
+
+**GUI 与 CLI 迁移到同一回滚用例** · P2 · 来源：R06
+
+- **前置：**[RF-006](#rf-006)、[RF-007](#rf-007)。
+- **入口：**`tauri/crates/solosoul-core/src/objects.rs`；`tauri/src-tauri/src/commands/object/snapshot.rs`；`tauri/src-tauri/src/commands/object/tests/snapshot.rs`；`solosoul_cli/src/commands/history.rs`。
+- **执行：**在 core 新增 rollback_object 用例，收敛归属校验、字段恢复、版本更新、快照构建及审计结果；GUI/CLI 只适配输入、通知和本地化。返回明确操作结果，保留既有审计失败可见行为，不顺带改对象 CRUD。
+- **验收：**相同合成输入经两端得到等价对象及快照；RF-006/007 全部通过；错误阶段与已提交状态可识别；原有交互与同步通知不丢失。
+- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**core/objects.rs 新增 rf008_*；cargo test -p solosoul-core --lib rf008_；Host rf006_；CLI rollback 测试。
+- **建议提交：**`refactor: resolve [RF-008] - share the object rollback use case`。
+
+### RF-009
+
+**修复 CLI 创建对象缺失模板元数据** · P1 · 来源：R06
+
+- **前置：**无。
+- **入口：**`tauri/crates/solosoul-core/src/objects.rs`；`solosoul_cli/src/commands/vault_write.rs`。
+- **执行：**在 core::objects::create_object 补齐模板字段定义、敏感度标签副本、契约 ID 与模板指纹，复用 template_fingerprint；以 GUI build_create_record/inherit_template_properties 为规则对照。保留 CLI 页面归属、交互及用户输入；本项不迁移 GUI 创建入口。
+- **验收：**相同模板和输入下 GUI/CLI 的字段语义、标签及指纹一致；无模板路径兼容；删除模板后仍保留必要字段语义；不覆盖用户已填值。
+- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**core/objects.rs 新增 rf009_*；cargo test -p solosoul-core --lib rf009_；CLI commands::vault_write 创建路径定向回归。
+- **建议提交：**`fix: resolve [RF-009] - inherit template metadata in CLI object creation`。
+
+### RF-010
+
+**共享对象创建的模板初始化规则** · P2 · 来源：R06
+
+- **前置：**[RF-009](#rf-009)。
+- **入口：**`tauri/crates/solosoul-core/src/objects.rs`；`tauri/src-tauri/src/commands/object/mod.rs`；`tauri/src-tauri/src/commands/object/tests/crud.rs`；`tauri/src-tauri/src/commands/object/tests/template_sync.rs`。
+- **执行：**将 build_create_record、inherit_template_properties、inherit_contract_type_id 的共同模板初始化与记录构造规则下沉 core，GUI 与 CLI 调用同一规则。保留 GUI 客户端指定 ID、CLI 默认页面等显式输入差异；不扩大调整父页面更新或通知。
+- **验收：**RF-009 等价性 fixture 不变；GUI 乐观创建 ID、CLI 无模板创建、模板指纹及用户值保持兼容；被替代的平行初始化规则删除。
+- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**core 新增 rf010_*；cargo test -p solosoul-core --lib rf010_；Host commands::object::tests；CLI 创建定向测试。
+- **建议提交：**`refactor: resolve [RF-010] - share object template initialization`。
+
+### RF-011
+
+**CLI 恢复兼容 GUI Base64 Profile 备份** · P1 · 来源：R07
+
+- **前置：**无。
+- **入口：**`solosoul_cli/src/commands/backup.rs`。
+- **执行：**RestoreProfileEntry/do_restore 兼容 data_b64 和旧 data 数组，明确双字段优先级及空数据处理。非法 Base64 报错，不退化成空 Profile；尽可能在写入前验证解码。本项不更改备份范围或格式版本。
+- **验收：**含 Profile 的 GUI 2.0 fixture 可恢复；CLI 旧数组格式可读；非法编码不写入伪造空内容；空 profiles 清单仍合法。
+- **验证配置：**`CLI`。**定向验证：**backup.rs 测试模块新增 rf011_*；在 solosoul_cli/ 运行 cargo test --lib rf011_ 和 cargo test --lib commands::backup。
+- **建议提交：**`fix: resolve [RF-011] - restore GUI Base64 backups in CLI`。
+
+### RF-012
+
+**GUI 备份遇到 Profile 读取失败时中止** · P1 · 来源：R07
+
+- **前置：**无。
+- **入口：**`tauri/src-tauri/src/commands/backup.rs`。
+- **执行：**backup_create 替换静默跳过读取失败的分支，区分读取错误与枚举后条目消失；清单数量来自完整收集结果；收集失败不发布成功备份或报告成功数量。本项不迁移共享 codec。
+- **验收：**任意 Profile 读取失败使命令失败；已有有效备份不被不完整结果替代；成功清单数量与内容一致。
+- **验证配置：**`R`。**定向验证：**backup.rs 新增 rf012_*；参考 CLI test_backup_create_aborts_on_unreadable_profile；cargo test -p solo_soul --lib rf012_。
+- **建议提交：**`fix: resolve [RF-012] - fail GUI backup on unreadable profiles`。
+
+### RF-013
+
+**共享 Profile 备份清单与兼容解码** · P2 · 来源：R07
+
+- **前置：**[RF-011](#rf-011)、[RF-012](#rf-012)。
+- **入口：**`tauri/crates/solosoul-core/src/backup.rs（拟新增）`；`tauri/crates/solosoul-core/src/lib.rs`；`tauri/src-tauri/src/commands/backup.rs`；`solosoul_cli/src/commands/backup.rs`。
+- **执行：**迁移共同 manifest/entry、版本检查、Base64/数组兼容和完整性验证到 core codec；两端调用同一解码规则。文件选择、确认与现有写出格式兼容策略留在适配器，不将 Profile 备份扩为完整 Vault 备份。
+- **验收：**GUI→CLI、CLI→GUI、两种旧格式、损坏条目和非法版本共享 fixture 通过；相同输入两端解码结果一致；既有合法备份仍可读取。
+- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**core/backup.rs 新增 rf013_*；cargo test -p solosoul-core --lib rf013_；GUI 与 CLI commands::backup 测试。
+- **建议提交：**`refactor: resolve [RF-013] - share profile backup encoding contracts`。
+
+### RF-014
+
+**全量云快照包含全部有效附件** · P1 · 来源：R08
+
+- **前置：**无。
+- **入口：**`tauri/src-tauri/src/sync/cloud_auto_sync.rs`；`tauri/src-tauri/src/commands/recovery.rs`；`tauri/src-tauri/src/commands/export_import/export.rs`。
+- **执行：**export_full_snapshot 显式提供全部未删除附件 ID；需要复用时只抽出与 recovery::collect_all_attachment_ids 等价的小助手。不把手动空选择集解释为全选，不等待 ExportPlan 重构；保留 RF-003 会话绑定。
+- **验收：**云快照 ZIP 含附件字节，能在空测试 Vault 中恢复解密；已删除附件不重新带入；手动全不选仍为零附件。
+- **验证配置：**`R` + `CORE`。**定向验证：**cloud_auto_sync/export tests 新增 rf014_*；cargo test -p solo_soul --lib rf014_。使用临时 Vault 与本地包往返，不接真实云端。
+- **建议提交：**`fix: resolve [RF-014] - include attachments in full cloud snapshots`。
+
+### RF-015
+
+**显式表示附件导出范围** · P2 · 来源：R08
+
+- **前置：**[RF-014](#rf-014)。
+- **入口：**`tauri/src-tauri/src/commands/export_import/mod.rs`；`tauri/src-tauri/src/commands/export_import/export.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`；`tauri/crates/solosoul-core/src/export_import.rs`；`tauri/src-tauri/src/sync/cloud_auto_sync.rs`；`tauri/src-tauri/src/commands/recovery.rs`。
+- **执行：**内部附件范围统一为 None/All/Selected(ids)；既有 IPC 布尔值和数组经适配器映射，手动空数组仍为零选中；云同步与恢复显式选择 All；收集逻辑只解释新类型。
+- **验收：**三种范围参数化测试通过；手动全不选、部分选择、全量云同步与恢复均正确；存量 IPC 载荷继续可读。
+- **验证配置：**`R` + `CORE` + `CONTRACT` + `CLI`。**定向验证：**Host/core 导出范围新增 rf015_*；cargo test -p solo_soul --lib rf015_；cargo test -p solosoul-core --lib rf015_；复跑 rf014_。
+- **建议提交：**`refactor: resolve [RF-015] - model attachment export scope explicitly`。
+
+### RF-016
+
+**永久删除附件采用可恢复清理意图** · P1 · 来源：R09
+
+- **前置：**[RF-019](#rf-019)。
+- **入口：**`tauri/src-tauri/src/commands/attachment/crud.rs`；`tauri/src-tauri/src/commands/attachment/tests.rs`；`tauri/crates/solosoul-core/src/objects.rs`；`tauri/crates/solosoul-vault/src/storage.rs`；`tauri/crates/solosoul-vault/src/storage/attachment_cleanup.rs（拟新增）`。
+- **执行：**在同一数据库事务提交附件元数据删除与清理意图，再删除实体文件；NotFound 可视为完成，其他错误保留重试记录。单删、批删和 core::objects::purge_attachment 复用执行器；在已解锁维护入口恢复未完成清理，保留路径边界校验。
+- **验收：**数据库失败时实体文件仍存在；文件删除失败时意图可追踪可重试；事务提交前后中断均可恢复；GUI 单删/批删和 CLI 使用同一规则。
+- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**新增 rf016_* 临时目录故障注入；cargo test -p solosoul-vault --lib rf016_；cargo test -p solosoul-core --lib rf016_；cargo test -p solo_soul --lib rf016_；CLI 附件删除回归。
+- **建议提交：**`fix: resolve [RF-016] - make attachment deletion recoverable`。
+
+### RF-017
+
+**导出完成后才替换目标包** · P1 · 来源：R10
+
+- **前置：**无。
+- **入口：**`tauri/src-tauri/src/commands/export_import/export.rs`；`tauri/src-tauri/src/commands/export_import/helpers.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`。
+- **执行：**execute_export_core 在最终目标同目录创建临时输出，ZIP 完成、刷新及必要校验后才平台适配替换；错误由 RAII 清理临时输出；复用流式加密，避免完整包内存副本。移动端本项覆盖本地 staging，不把后续 SAF 复制宣称为同卷原子替换。
+- **验收：**超限、附件读取失败、写入失败及 ZIP 收尾失败均保持原目标字节不变；成功才替换；Windows 已有目标场景通过；临时输出不残留。
+- **验证配置：**`R` + `NATIVE`。**定向验证：**新增 rf017_* 可失败 Writer/文件操作测试；cargo test -p solo_soul --lib rf017_；Windows 已有文件替换定向验证，不靠填满真实磁盘制造失败。
+- **建议提交：**`fix: resolve [RF-017] - preserve existing exports on write failure`。
+
+### RF-018
+
+**导入模板保存失败必须传播** · P1 · 来源：R11
+
+- **前置：**无。
+- **入口：**`tauri/src-tauri/src/commands/export_import/import.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`。
+- **执行：**resolve_template_id 的查询错误不再伪装不存在，保存错误不再返回成功模板 ID；rebuild_imported_templates 只登记已存在或成功保存的映射。本项不改整体导入事务。
+- **验收：**原始 ID 和派生 ID 两个保存分支失败均报错；失败模板不进入映射，不产生引用该模板的新对象；按内容哈希复用保持行为。
+- **验证配置：**`R`。**定向验证：**export_import/tests.rs 新增 rf018_*；cargo test -p solo_soul --lib rf018_。
+- **建议提交：**`fix: resolve [RF-018] - propagate imported template storage errors`。
+
+### RF-019
+
+**数据库事务失败时自动回滚** · P2 · 来源：R14
+
+- **前置：**无。
+- **入口：**`tauri/crates/solosoul-vault/src/storage.rs`；`tauri/crates/solosoul-vault/src/storage/tests.rs`；`tauri/crates/solosoul-vault/src/storage/objects.rs`；`tauri/crates/solosoul-vault/src/storage/profile.rs`；`tauri/crates/solosoul-vault/src/storage/snapshots.rs`；`tauri/crates/solosoul-vault/src/storage/conversations.rs`；`tauri/crates/solosoul-vault/src/storage/metadata.rs`；`tauri/crates/solosoul-vault/src/storage/trash.rs`；`tauri/crates/solosoul-vault/src/storage/sync_apply.rs`；`tauri/crates/solosoul-vault/src/storage/sync_meta.rs`。
+- **执行：**with_tx 核对当前 rusqlite API，将无需可变连接的事务 helper 收敛为 &Connection；使用 RAII Transaction，特殊路径才使用有 Drop 回滚的 guard；COMMIT 失败仍收尾；修正 prepare_cached 注释。只调整真实受影响的 helper，不全目录格式化。
+- **验收：**回调 Err、保留活动事务的 COMMIT 失败和 unwind 后没有残留活动事务；下一次事务能执行；测试区分事务回滚与外围 Mutex 中毒，不把二者混为一项。
+- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**storage/tests.rs 新增 rf019_*；cargo test -p solosoul-vault --lib rf019_；随后运行受影响对象、会话、同步存储测试。
+- **建议提交：**`fix: resolve [RF-019] - restore automatic transaction rollback`。
+
+### RF-020
+
+**导入失败返回真实部分提交状态** · P1 · 来源：R11
+
+- **前置：**[RF-018](#rf-018)。
+- **入口：**`tauri/src-tauri/src/commands/export_import/mod.rs`；`tauri/src-tauri/src/commands/export_import/import.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`；`tauri/src-tauri/src/sync/cloud_auto_sync.rs`；`tauri/src-tauri/src/commands/recovery.rs`；`tauri/src/hooks/useImportState.ts`；`tauri/src/hooks/useImportState.test.ts（拟新增）`；`tauri/src/lib/ipc.ts`；`tauri/src/pages/settings/cloudSync/useCloudSyncPage.ts`。
+- **执行：**ImportResult/import_execute_internal 累计真实已提交对象、附件及失败阶段，区分完成/部分完成/未提交；IPC 和界面准确展示；云同步部分完成不推进水线、不删除待导入源；恢复调用者不误报完成；错误明细不包含敏感值。
+- **验收：**第 N 个对象或附件失败时，报告数量与数据库相符；未写入失败和部分写入失败可区分；成功路径兼容；云水线只在完整成功时推进。
+- **验证配置：**`R` + `F` + `CONTRACT`。**定向验证：**Host 新增 rf020_*；cargo test -p solo_soul --lib rf020_；定向 Vitest src/hooks/useImportState.test.ts，覆盖普通导入和云页面结果适配。
+- **建议提交：**`fix: resolve [RF-020] - report partial import outcomes accurately`。
+
+### RF-021
+
+**对象模板与历史按导入批次事务提交** · P1 · 来源：R11
+
+- **前置：**[RF-018](#rf-018)、[RF-019](#rf-019)、[RF-020](#rf-020)。
+- **入口：**`tauri/src-tauri/src/commands/export_import/import.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`；`tauri/crates/solosoul-vault/src/storage/objects.rs`；`tauri/crates/solosoul-vault/src/storage/snapshots.rs`；`tauri/crates/solosoul-vault/src/storage/metadata.rs`；`tauri/crates/solosoul-vault/src/storage/tests.rs`。
+- **执行：**在进入事务前解析验证模板映射、对象及历史操作；用一个存储事务提交对象、相关模板、历史替换与 HLC。事务内不做 KDF、ZIP 解密或附件 I/O；附件阶段仍经 RF-020 报告独立结果。
+- **验收：**任一对象、模板或历史写入失败使该数据库批次全部回滚；Overwrite 不先丢旧历史；KeepBoth 引用重写不变；HLC 与对应记录共同提交。
+- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**新增 rf021_* 第 N 条失败测试；cargo test -p solosoul-vault --lib rf021_；cargo test -p solo_soul --lib rf021_；覆盖三个导入策略。
+- **建议提交：**`fix: resolve [RF-021] - commit imported records and history atomically`。
+
+### RF-022
+
+**附件导入可恢复且同一任务重试幂等** · P1 · 来源：R11
+
+- **前置：**[RF-020](#rf-020)、[RF-021](#rf-021)。
+- **入口：**`tauri/crates/solosoul-core/src/export_import.rs`；`tauri/src-tauri/src/commands/export_import/import.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`；`tauri/crates/solosoul-vault/src/storage.rs`；`tauri/crates/solosoul-vault/src/storage/import_operations.rs（拟新增）`。
+- **执行：**为一次导入记录稳定操作 ID、源包标识及 KeepBoth ID 映射；附件先写加密 staging，再按可恢复阶段发布并提交元数据；同一任务重试复用记录，不持久化密码或会话密钥。独立新导入仍允许 KeepBoth 生成副本。
+- **验收：**附件写入、发布及元数据提交间中断均能恢复；同一操作重试不重复创建对象/附件；失败不不可恢复地覆盖已有附件；重新解锁后需要时重新索取包密码。
+- **验证配置：**`R` + `CORE` + `F` + `CONTRACT` + `CLI`。**定向验证：**core/Host 新增 rf022_* 稳定操作 ID 与阶段注入测试；cargo test -p solosoul-core --lib rf022_；cargo test -p solo_soul --lib rf022_；按实际重试交互补 useImportState 定向测试。
+- **建议提交：**`fix: resolve [RF-022] - resume attachment imports without duplicate records`。
+
+### RF-023
+
+**加密包导出用例下沉 core** · P2 · 来源：R08、R10
+
+- **前置：**[RF-015](#rf-015)、[RF-017](#rf-017)。
+- **入口：**`tauri/src-tauri/src/commands/export_import/export.rs`；`tauri/src-tauri/src/commands/export_import/mod.rs`；`tauri/crates/solosoul-core/src/export_import.rs`；`tauri/src-tauri/src/sync/cloud_auto_sync.rs`；`tauri/src-tauri/src/commands/recovery.rs`；`solosoul_cli/src/commands/export_import.rs`。
+- **执行：**抽出不依赖 Tauri/AppState/前端错误文案的导出计划与执行服务；保留 GUI/CLI scope 适配及包格式；GUI、云同步、恢复经薄入口转调，移除同步对 Commands 业务实现的反向依赖；CLI 旧公开接口保留兼容适配。只迁加密包导出，不迁文档导出。
+- **验收：**相同 fixture 经兼容入口和 core 得到语义等价包；密码/KDF、模板、历史、偏好和附件范围保持契约；RF-014/017 继续通过；不引入 crate 循环。
+- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**core 新增 rf023_*；cargo test -p solosoul-core --lib rf023_；Host commands::export_import::tests、恢复和云快照回归；CLI commands::export_import。
+- **建议提交：**`refactor: resolve [RF-023] - move encrypted export execution into core`。
+
+### RF-024
+
+**加密包导入用例下沉 core** · P2 · 来源：R11
+
+- **前置：**[RF-018](#rf-018)、[RF-020](#rf-020)、[RF-021](#rf-021)、[RF-022](#rf-022)。
+- **入口：**`tauri/src-tauri/src/commands/export_import/import.rs`；`tauri/src-tauri/src/commands/export_import/mod.rs`；`tauri/crates/solosoul-core/src/export_import.rs`；`tauri/src-tauri/src/sync/cloud_auto_sync.rs`；`tauri/src-tauri/src/commands/recovery.rs`；`solosoul_cli/src/commands/export_import.rs`。
+- **执行：**将验证、计划、提交、恢复和结果语义收敛为 core 服务；输入使用会话/存储上下文与普通 DTO，不要求宿主 RwLockReadGuard；Host 仅做路径授权、IPC和进度事件。保留 GUI 选择性导入、CLI 默认策略的适配参数，不以较窄 CLI 接口替换高级导入。
+- **验收：**GUI、CLI、云同步和恢复使用同一提交规则；三策略、选择性附件、历史恢复、部分完成及重试 fixture 通过；既有包格式不变。
+- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**core 新增 rf024_*；cargo test -p solosoul-core --lib rf024_；Host commands::export_import::tests；CLI commands::export_import；复跑 rf020_/rf021_/rf022_。
+- **建议提交：**`refactor: resolve [RF-024] - share encrypted import execution`。
+
+### RF-025
+
+**GUI 导出移出异步运行时工作线程** · P2 · 来源：R15
+
+- **前置：**无。
+- **入口：**`tauri/src-tauri/src/commands/export_import/export.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`。
+- **执行：**export_execute 用 spawn_blocking 执行同步导出，移动 owned 参数，必要锁在闭包内获取释放；保留路径授权与错误语义；显式处理 JoinError。无需等待 RF-023；若共享服务已落地则调度该服务。
+- **验收：**屏障暂停模拟导出时，独立轻量异步任务仍推进；成功和失败结果不变；不持同步锁跨 await；任务 Join 失败不误报完成。
+- **验证配置：**`R`。**定向验证：**新增 rf025_* 屏障测试；cargo test -p solo_soul --lib rf025_；RF-017 已完成时复跑，不用脆弱 sleep 阈值断言。
+- **建议提交：**`fix: resolve [RF-025] - run GUI export on the blocking pool`。
+
+### RF-026
+
+**解密导入预览移出异步运行时工作线程** · P2 · 来源：R15
+
+- **前置：**无。
+- **入口：**`tauri/src-tauri/src/commands/export_import/import.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`。
+- **执行：**import_decrypt_preview 在路径授权后将 KDF、解密、解析及同步预览读取放入阻塞闭包；密码沿 Zeroizing 路径转移；只跨 await 返回普通 DTO，不携带同步锁守卫。
+- **验收：**慢解密期间轻量任务仍推进；错误密码、损坏包与正常冲突预览行为保持；Join 失败不返回空预览作为成功。
+- **验证配置：**`R`。**定向验证：**新增 rf026_* 屏障及预览 fixture；cargo test -p solo_soul --lib rf026_；运行现有导入预览测试。
+- **建议提交：**`fix: resolve [RF-026] - offload decrypted import preview`。
+
+### RF-027
+
+**高级导入移出异步运行时工作线程** · P2 · 来源：R15
+
+- **前置：**无。
+- **入口：**`tauri/src-tauri/src/commands/export_import/import.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`。
+- **执行：**import_execute_advanced 以 owned 请求与状态句柄调度同步执行，闭包内取得上下文；外层按实际提交结果触发同步与通知。若 RF-020 已落地须保留部分完成契约，不能用调度抽取改变导入策略。
+- **验收：**慢导入期间轻量异步任务推进；完整成功、未提交失败和部分完成的后续行为正确；JoinError 不误报完成；不持同步锁跨 await。
+- **验证配置：**`R`。**定向验证：**新增 rf027_* 屏障测试；cargo test -p solo_soul --lib rf027_；RF-020/021 已完成时复跑对应回归。
+- **建议提交：**`fix: resolve [RF-027] - offload advanced import execution`。
+
+### RF-028
+
+**PDF OCR 临时页面由 RAII 清理** · P2 · 来源：R15
+
+- **前置：**无。
+- **入口：**`tauri/crates/solosoul-core/src/ocr/engine.rs`；`tauri/crates/solosoul-core/src/ocr/pdf.rs`。
+- **执行：**scan_pdf 用受控 TempDir 或等价所有权对象替代手工创建和成功尾部清理；渲染失败、某页推理失败和提前返回均由所有者清理；保留文本层优先路径。
+- **验收：**渲染部分页面后失败、扫描中途失败及正常完成均不残留页面；文本层直接返回不创建多余目录；测试不要求真实模型。
+- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**OCR 模块新增 rf028_*，用可注入渲染/识别实现；cargo test -p solosoul-core --lib rf028_；既有 OCR fixture 定向回归。
+- **建议提交：**`fix: resolve [RF-028] - clean OCR page files on every exit path`。
+
+### RF-029
+
+**OCR 增加受控排队与分页取消** · P2 · 来源：R15
+
+- **前置：**[RF-001](#rf-001)、[RF-028](#rf-028)。
+- **入口：**`tauri/src-tauri/src/commands/ocr.rs`；`tauri/src-tauri/src/services/ocr_jobs.rs（拟新增）`；`tauri/src-tauri/src/services/mod.rs`；`tauri/crates/solosoul-core/src/ocr/engine.rs`；`tauri/src/pages/scan/OcrPage.tsx`；`tauri/src-tauri/src/lib.rs`。
+- **执行：**仅为 OCR 建立有限队列、任务 ID、会话归属与取消令牌；获取推理资源前和 PDF 各页之间检查取消；事件包含任务身份，锁定后丢弃失效结果；UI 区分请求取消与实际结束。单次不可中断 ONNX 推理允许结束后停止，不承诺立即终止；同步登记必要 IPC/ACL。
+- **验收：**取消排队任务不进入推理；分页取消后不启动下一页；当前推理结束后清理页面；A 锁定/切 B 后旧结果不进入新会话；取消与完成竞争只有一个终态。
+- **验证配置：**`R` + `CORE` + `F` + `CONTRACT` + `CLI`。**定向验证：**Host/core 新增 rf029_* 引擎屏障测试；cargo test -p solo_soul --lib rf029_；cargo test -p solosoul-core --lib rf029_；OCR 实际调用入口补 Vitest，不使用真实敏感文件。
+- **建议提交：**`feat: resolve [RF-029] - add session-bound OCR cancellation`。
+
+## 6.2 前端行为与控件
+
+### RF-100
+
+**自动上下文立即排除非公开字段** · P1 · 来源：R03
+
+- **前置：**无。
+- **入口：**`tauri/src/lib/llm/systemPromptBuilder.ts`；`tauri/src/lib/llm/chatRequest.ts`；`tauri/src/lib/propertyFlatten.ts`；`tauri/src/components/trash/ProtectedTrashValue.tsx`；`tauri/src/lib/fieldSensitivity.ts（拟新增）`；`tauri/src/lib/llm/systemPromptBuilder.test.ts（拟新增）`。
+- **执行：**从现有字段语义提取纯敏感度解析 helper，遵循 propertyLabels → __fields → 模板 → internal；显式非法标签不得回退成 public。buildSection3PublicObjectData 保留对象级 public 筛选，并逐属性仅输出明确允许的 public 值；排除 __* 内部键；动态组按既有定义递归解析，子项不得降低父级保护等级，不得用 String(value) 整组输出。先过滤再限数量和长度；不修改原对象/store，不增加外发设置。该前端止血先于后端 Rust 出站投影迁移，后续显示策略复用同一解析 helper，避免新增局部规则。
+- **验收：**public 对象的四级字段中只出现明确允许的 public 值；缺失/非法标签、父级受保护的子项、内部元数据均不进入最终消息。模板删除、标签优先级冲突及动态组混合等级仍按同一规则；输入对象未被修改。
+- **验证配置：**`F` + `DOC`。**定向验证：**新增 systemPromptBuilder.test.ts，用合成对象覆盖四等级、未知标签、__fields/模板回退、动态组、内部键；调用 buildChatRequestMessages 捕获最终请求消息，不发真实网络请求。
+- **建议提交：**`fix: resolve [RF-100] - filter non-public fields from automatic LLM context`。
+
+### RF-101
+
+**本次用户消息只追加一次** · P2 · 来源：R04
+
+- **前置：**无。
+- **入口：**`tauri/src/hooks/useLlmChatCore.ts`；`tauri/src/lib/llm/chatRequest.ts`；`tauri/src/lib/llm/systemPromptBuilder.ts`；`tauri/src/lib/llm/chatRequest.test.ts（拟新增）`。
+- **执行：**统一 builder 接收本次输入之前的历史。sendMessage 的 UI 仍使用已追加用户消息的 updatedMessages，传给 builder 的 history 使用追加前列表；修正接口注释和全部调用点，不夹带流状态或协议重构。
+- **验收：**系统提示开启/关闭、空历史/多轮历史中，本次输入恰好一条，旧历史顺序及 system/guide 合并行为不变。
+- **验证配置：**`F`。**定向验证：**新增 chatRequest.test.ts，断言最终消息序列；复核 useLlmChatCore 的真实传参，不只单测 builder 假定输入。
+- **建议提交：**`fix: resolve [RF-101] - append the current chat message exactly once`。
+
+### RF-102
+
+**搜索查询与缓存写入绑定会话和请求代次** · P1 · 来源：R02
+
+- **前置：**无。
+- **入口：**`tauri/src/lib/searchShared.tsx`；`tauri/src/lib/searchShared.test.tsx`；`tauri/src/lib/searchCache.ts`；`tauri/src/pages/search/SearchPage.tsx`；`tauri/src/components/layout/SearchPopover.tsx`；`tauri/src/hooks/useUnifiedSearch.ts（拟新增）`；`tauri/src/hooks/useUnifiedSearch.test.tsx（拟新增）`。
+- **执行：**新增 useUnifiedSearch 管理 debounce、查询代次、filter、清空和卸载，复用 sessionRequests。搜索执行函数返回结果而非直接接收页面 setter；仅当前会话/查询可写缓存、结果、错误和 loading。清空及 filter 变化立即失效旧查询并清理计时器；两个搜索入口共用控制器。
+- **验收：**A/B 倒序响应只保留 B；清空后旧查询不能恢复结果或缓存；锁定/换账户后旧数据及错误不回填；旧请求 finally 不结束新请求 loading；卸载后无迟到写入。
+- **验证配置：**`F` + `WEB`。**定向验证：**扩展 searchShared.test.tsx，新增 useUnifiedSearch.test.tsx，用 deferred Promise 和假计时器验证乱序、清空、切 filter、卸载及 A→锁定→B；复用 SearchPopover.test.tsx 和 sidebar-tools.spec.ts 搜索场景。
+- **建议提交：**`fix: resolve [RF-102] - isolate search requests and cache writes by session`。
+
+### RF-103
+
+**聊天会话读取只接纳最新选择** · P1 · 来源：R02
+
+- **前置：**无。
+- **入口：**`tauri/src/hooks/useLlmChatCore.ts`；`tauri/src/pages/ai/LlmChatPage/useLlmChat.ts`；`tauri/src/components/layout/AiQuickChatPopover.tsx`；`tauri/src/hooks/useLlmChatCore.test.tsx（拟新增）`。
+- **执行：**用 sessionRequests 隔离会话正文、列表和回收站读取；正文选择使用独立 latest-request key。新建、选择会话、关闭快捷聊天及账户变化使相关旧读取失效；替换仅保护部分读取的共享 AbortController 做法。
+- **验收：**选择 A→B 后即使 A 最后返回仍显示 B；读取途中新建、关闭或锁定不会恢复旧内容；旧错误不提示到新会话；列表请求不意外取消正文请求。
+- **验证配置：**`F`。**定向验证：**新增 useLlmChatCore.test.tsx，使用 deferred Promise 覆盖正文/列表乱序、回收站读取、新建会话、快捷入口卸载和会话切换。
+- **建议提交：**`fix: resolve [RF-103] - reject stale conversation loads`。
+
+### RF-104
+
+**聊天流归属明确且最终回复只有一个持久化写入者** · P1 · 来源：R02
+
+- **前置：**[RF-101](#rf-101)、[RF-103](#rf-103)、[RF-002](#rf-002)、[RF-005](#rf-005)。
+- **入口：**`tauri/src/stores/llmStore.ts`；`tauri/src/stores/llmStore.test.ts`；`tauri/src/hooks/useLlmStreaming.ts`；`tauri/src/hooks/useLlmChatCore.ts`；`tauri/src/lib/llm/conversationPersistence.ts`；`tauri/src/hooks/useLlmStreaming.test.tsx（拟新增）`。
+- **执行：**按 RF-002 后端事件契约将流与 accountId、conversationId、requestId 绑定；不再将全局 chunk 写入当前列表末尾的 assistant。聊天页与快捷聊天只读对应投影；后端负责最终回复保存，删除前端流结束时整段覆盖保存，保留创建、改名等明确操作及持久化失败提示。
+- **验收：**A 生成时切 B、两个聊天入口同时打开、旧请求事件迟到及锁定换账户都不污染 B；只更新目标 assistant；最终回复只保存一次且目标明确；后端保存失败保留回复并给出一次提示。
+- **验证配置：**`F`。**定向验证：**扩展 llmStore.test.ts，新增 useLlmStreaming.test.tsx；模拟带身份的流事件、两个订阅入口、会话切换、后端持久化成功/失败；统计最终保存调用。
+- **建议提交：**`fix: resolve [RF-104] - bind chat streams to their originating conversation`。
+
+### RF-105
+
+**历史未揭示值不再以原文加 blur 渲染** · P1 · 来源：R05
+
+- **前置：**无。
+- **入口：**`tauri/src/components/object/HistoryViewer.tsx`；`tauri/src/components/object/HistoryViewer.test.tsx`。
+- **执行：**renderValueSpan 对未揭示 sensitive/critical 值渲染占位内容，去掉原文 blur；使用可键盘操作的按钮触发揭示，保留 critical 验证与审计。本项暂不改变 internal 上下文规则，后续共享策略迁移单独提交。
+- **验收：**验证前 DOM、title 和可访问名称均不含受保护原文；Enter/Space 可触发；验证取消不揭示；成功后显示，TTL 后恢复占位。
+- **验证配置：**`F`。**定向验证：**修改 HistoryViewer.test.tsx 的旧 blur 断言；补 DOM 不含原值、键盘触发、验证取消及 TTL 用例。
+- **建议提交：**`fix: resolve [RF-105] - remove concealed history values from rendered content`。
+
+### RF-106
+
+**对象详情采用共享字段展示策略** · P1 · 来源：R05
+
+- **前置：**[RF-100](#rf-100)。
+- **入口：**`tauri/src/components/object/ObjectDetailFieldsList.tsx`；`tauri/src/components/object/ObjectDetailFieldsList.test.tsx`；`tauri/src/components/object/useObjectDetailVerification.tsx`；`tauri/src/components/object/useObjectDetailVerification.test.tsx`；`tauri/src/hooks/useRevealState.ts`；`tauri/src/lib/masking.ts`；`tauri/src/lib/fieldPresentationPolicy.ts（拟新增）`；`tauri/src/lib/fieldPresentationPolicy.test.ts（拟新增）`；`tauri/src/components/ui/ProtectedFieldValue.tsx（拟新增）`。
+- **执行：**新增 FieldPresentationPolicy 与共享保护值组件，首批接入对象详情。默认 public 明文、其他三级占位、critical 通过现有验证接口；等级解析复用 RF-100 helper。共享 UI 接收验证/复制 callback，不读取业务 store；字段 identity 绑定对象、字段和内容版本，旧验证不得揭示新内容；复制和揭示使用同一门控。
+- **验收：**四等级和未知标签遵守同一规则；受保护原文不出现在未揭示 DOM；取消验证不揭示/复制；TTL 后重掩；动态组继承保护强度；对象、内容或账户变化后旧验证无效。
+- **验证配置：**`F` + `DOC`。**定向验证：**扩展 ObjectDetailFieldsList.test.tsx、useObjectDetailVerification.test.tsx；新增 fieldPresentationPolicy.test.ts，覆盖等级解析、动态组、取消、复制、TTL、身份变化及锁定迟到验证。
+- **建议提交：**`fix: resolve [RF-106] - apply the shared protected-field policy to object details`。
+
+### RF-107
+
+**历史快照迁入共享字段展示策略** · P1 · 来源：R05
+
+- **前置：**[RF-105](#rf-105)、[RF-106](#rf-106)。
+- **入口：**`tauri/src/components/object/HistoryViewer.tsx`；`tauri/src/components/object/HistoryViewer.test.tsx`。
+- **执行：**使用共享保护值组件，internal 同样默认掩码；保留历史快照自身的名称、等级和顺序，不以当前模板覆盖历史语义。删除重复 TTL/揭示渲染，保留历史验证和审计适配。
+- **验收：**四等级规则统一；删除/修改模板不改写历史展示语义；快照切换不继承旧揭示或迟到验证；动态组、TTL 和键盘揭示正确。
+- **验证配置：**`F`。**定向验证：**更新 HistoryViewer.test.tsx 的 internal 明文测试，覆盖四等级、模板删除/改名、快照切换、动态组、迟到验证及 TTL。
+- **建议提交：**`fix: resolve [RF-107] - unify protected-field behavior in history snapshots`。
+
+### RF-108
+
+**搜索命中值采用共享保护与验证入口** · P1 · 来源：R05
+
+- **前置：**[RF-102](#rf-102)、[RF-106](#rf-106)。
+- **入口：**`tauri/src/lib/searchShared.tsx`；`tauri/src/lib/searchShared.test.tsx`；`tauri/src/pages/search/SearchPage.tsx`；`tauri/src/components/layout/SearchPopover.tsx`；`tauri/src/components/layout/SearchPopover.test.tsx`。
+- **执行：**替换 FieldValueHint 局部 span 揭示，复用共享保护和验证入口，critical 不得普通点击直接揭示。结果仅有聚合等级而无法确定命中字段等级时使用既有聚合最严格等级，不推测降级；保护值不进入未揭示 title/aria；显示操作阻止误触父结果导航。
+- **验收：**四等级及混合等级按策略保护；验证取消不显示；键盘可操作；显示按钮不打开父结果详情；TTL 和新查询替换结果后旧揭示失效。
+- **验证配置：**`F` + `WEB`。**定向验证：**扩展 searchShared.test.tsx、SearchPopover.test.tsx；用合成命中结果覆盖混合等级、验证取消、冒泡、键盘、TTL 和查询替换；复用 sidebar-tools.spec.ts 搜索交互。
+- **建议提交：**`fix: resolve [RF-108] - enforce shared protection for search match values`。
+
+### RF-109
+
+**回收站保护层复用共享字段策略** · P2 · 来源：R05
+
+- **前置：**[RF-106](#rf-106)。
+- **入口：**`tauri/src/components/trash/ProtectedTrashValue.tsx`；`tauri/src/components/trash/ProtectedTrashValue.test.tsx`；`tauri/src/components/trash/TrashDetailSections.tsx`；`tauri/src/components/trash/TrashSnapshotView.tsx`；`tauri/src/components/trash/TrashDetailPanel.test.tsx`。
+- **执行：**将 ProtectedTrashValue 收为共享保护值组件的薄适配；保留回收站解析、验证来源审计，以及账户/快照/内容变化使旧验证失效的保障。父子等级使用公共 helper；schemaOnly 模板定义与真实字段值保持区分。
+- **验收：**现有保护行为不弱化；四等级、父子继承、旧验证失效和 schemaOnly 场景正确；操作按钮对齐、长值换行和触控面积保持。
+- **验证配置：**`F` + `WEB`。**定向验证：**运行 ProtectedTrashValue.test.tsx、TrashDetailPanel.test.tsx；仅为新增行为边界补用例；复用 e2e/trash-field-layout.spec.ts。
+- **建议提交：**`refactor: resolve [RF-109] - reuse protected-field presentation in trash views`。
+
+### RF-110
+
+**同次主题应用只解析一次系统模式** · P1 · 来源：R12
+
+- **前置：**无。
+- **入口：**`tauri/src/lib/theme.ts`；`tauri/src/lib/themeSchemes.ts`；`tauri/src/lib/theme.test.ts（拟新增）`；`tauri/e2e/native-theme.spec.ts`。
+- **执行：**applyTheme 先得到本次统一 resolvedMode、scheme 和 accent，再使用同一结果更新 DOM、色板、标题栏及状态栏；内部函数不得再次独立解析 system，兼容已有 resolvedSystemTheme 调用者。不修改移动端系统来源，后者由 RF-201 负责。
+- **验收：**IPC 与 matchMedia 返回相反值时，DOM 模式、色板、原生 RGB 和状态栏模式一致；system 一次解析，显式 light/dark 不查询系统；浏览器回退仍可用。
+- **验证配置：**`F` + `WEB`。**定向验证：**新增 theme.test.ts，mock 相反主题来源并捕获原生调用参数；复用 native-theme.spec.ts。移动端实机最终验收由 RF-112 联同 RF-201 完成。
+- **建议提交：**`fix: resolve [RF-110] - share one resolved theme across web and native surfaces`。
+
+### RF-111
+
+**设置保存失败返回明确结果并反馈用户** · P1 · 来源：R12
+
+- **前置：**无。
+- **入口：**`tauri/src/stores/settingsStore.ts`；`tauri/src/stores/settingsStore.test.ts`；`tauri/src/stores/sessionIsolation.test.ts`；`tauri/src/pages/settings/AppearanceSettingsPage.tsx`；`tauri/src/pages/settings/SecuritySettingsPage.tsx`；`tauri/src/pages/settings/BackupConfigPage.tsx`；`tauri/src/hooks/useSettingAction.ts（拟新增）`。
+- **执行：**updateSetting 明确返回成功、失败或会话失效结果；失败回滚仅作用当前写入，不再只记日志后表现为成功。通过共享设置交互 helper 提示失败，调用者不得失败后写缓存或执行成功流程；保持每键代次，迟到失败不能撤销新值。
+- **验收：**保存失败可见且提示一次，当前值回滚到正确基线；同键连续保存、切账户后失败不回滚新状态；失败不更新持久化缓存或触发成功逻辑。
+- **验证配置：**`F`。**定向验证：**扩展 settingsStore.test.ts、sessionIsolation.test.ts，用 deferred Promise 覆盖失败、连续写和账户切换；外观与安全设置各补一个失败交互用例（对应测试文件不存在时实施阶段明确新增）。
+- **建议提交：**`fix: resolve [RF-111] - surface setting write failures without stale rollback`。
+
+### RF-112
+
+**ThemeController 成为唯一主题应用协调器** · P1 · 来源：R12
+
+- **前置：**[RF-110](#rf-110)、[RF-111](#rf-111)、[RF-201](#rf-201)。
+- **入口：**`tauri/src/App/AppRoutes.tsx`；`tauri/src/hooks/useApplyThemeFromSettings.ts`；`tauri/src/hooks/useApplyThemeFromSettings.test.ts`；`tauri/src/pages/settings/AppearanceSettingsPage.tsx`；`tauri/src/pages/auth/useLoginPage.tsx`；`tauri/src/pages/auth/BootstrapPage.tsx`；`tauri/src/bootstrapApp.tsx`；`tauri/src/lib/theme.ts`；`tauri/src/lib/themeController.ts（拟新增）`；`tauri/src/lib/themeController.test.ts（拟新增）`。
+- **执行：**应用级协调器订阅有效设置和系统主题并管理请求代次，慢 system 结果不得覆盖新 light/dark 或新账户。页面仅更新偏好；React 挂载前保留缓存首帧再交接协调器。移除 AppRoutes、登录/创建页及外观页面的重复应用入口，保留 nativeWindow 现有串行化，不改平台能力模型。
+- **验收：**system→light 快速切换最终为 light；StrictMode 不重复监听；失败回滚、锁定解锁及账户切换后 DOM、色板和原生栏一致；旧任务不能应用过期外观；首帧缓存仍生效。
+- **验证配置：**`F` + `WEB` + `NATIVE` + `DOC`。**定向验证：**新增 themeController.test.ts，调整 useApplyThemeFromSettings.test.ts；复用 appearance-layout.spec.ts、native-theme.spec.ts、login-method-layout.spec.ts；RF-201 完成后在 Android/iOS 系统切色和桌面锁定恢复场景实测。
+- **建议提交：**`refactor: resolve [RF-112] - centralize theme application in a single controller`。
+
+### RF-113
+
+**常驻壳配置注册和注销具有页面所有者** · P2 · 来源：R17
+
+- **前置：**无。
+- **入口：**`tauri/src/components/layout/PageShell.tsx`；`tauri/src/components/layout/PageShell.test.tsx`；`tauri/src/components/layout/shellConfigStore.ts`；`tauri/src/components/layout/ShellLayout.tsx`；`tauri/src/components/layout/ShellLayout.test.tsx`。
+- **执行：**配置增加 owner/route identity；PageShell 卸载仅注销仍归自己的配置，旧 cleanup 不能清掉新页面注册。会话变化清空 ReactNode 和闭包；无有效配置采用明确空态，页面渲染失败不得保留上一页操作。
+- **验收：**A注册→B注册→A cleanup 后 B 配置仍在；页面抛错、动态参数切换、锁定换账户均无旧标题、按钮或 callback 残留；常驻壳不因正常导航卸载。
+- **验证配置：**`F` + `WEB`。**定向验证：**扩展 PageShell.test.tsx、ShellLayout.test.tsx，包含故意抛错页面、交错注册/清理、账户变化；复用 desktop-shell.spec.ts 和 home-navigation.spec.ts。
+- **建议提交：**`fix: resolve [RF-113] - scope shell actions to their owning page`。
+
+### RF-114
+
+**AppRoutes 生命周期编排按职责收敛** · P2 · 来源：R17
+
+- **前置：**[RF-112](#rf-112)、[RF-113](#rf-113)。
+- **入口：**`tauri/src/App/AppRoutes.tsx`；`tauri/src/App/index.tsx`；`tauri/src/lib/asyncListener.ts`；`tauri/src/lib/sessionRequests.ts`；`tauri/src/App/useSessionLifecycle.ts（拟新增）`；`tauri/src/App/useNativeAppEvents.ts（拟新增）`；`tauri/src/App/AppNotifications.tsx（拟新增）`；`tauri/src/App/appLifecycle.test.tsx（拟新增）`。
+- **执行：**分别抽取会话启动/清理、原生及 SAF 事件监听、全局通知装配模块。清理保持单入口和幂等，复用已有 store 会话清理注册，避免重复全量名单。保留认证路由、常驻 Shell 和静态页面加载，不夹带 lazy 或数据模型修改。
+- **验收：**StrictMode 无重复监听，卸载后 listener 被释放；单次 vault-locked 完成一次清理和导航；认证加载顺序、更新/OCR/SAF 横幅及常驻壳行为不变。
+- **验证配置：**`F` + `WEB`。**定向验证：**新增 appLifecycle.test.tsx 验证真实事件与清理行为；复用 sessionIsolation.test.ts、startup.spec.ts、home-navigation.spec.ts、desktop-shell.spec.ts，不增加仅验证函数拆分的镜像测试。
+- **建议提交：**`refactor: resolve [RF-114] - isolate application lifecycle orchestration`。
+
+### RF-115
+
+**普通操作按钮族迁入语义样式入口** · P2 · 来源：R16
+
+- **前置：**[RF-112](#rf-112)。
+- **入口：**`tauri/src/components/ui/Button.tsx`；`tauri/src/components/ui/Button.module.css`；`tauri/src/components/ui/Button.test.tsx`；`tauri/src/components/ui/DeleteButton.tsx`；`tauri/src/components/transfer/TransferButton.tsx`；`tauri/src/components/transfer/TransferButton.test.tsx`；`tauri/src/styles/desktop-controls.css`；`tauri/src/styles/android.css`。
+- **执行：**保留 variant API，以 intent/size 语义映射公共 token；组件负责结构和状态，平台层提供颜色、圆角和目标尺寸。迁移 Button、DeleteButton、TransferButton 及其遗留 toolbar 适配，只删除这些已覆盖调用者对应规则；不同时改变 icon、choice、checkbox。
+- **验收：**primary/secondary/danger/warning、disabled/loading、hover/focus 和长文案在三平台浅深主题保持正确；自定义强调色对比可读；旧 variant 调用兼容，无触控尺寸回退。
+- **验证配置：**`F` + `WEB`。**定向验证：**保留 Button.test.tsx、TransferButton.test.tsx；运行 desktop-controls.spec.ts、update-button-style.spec.ts、notification-layout.spec.ts、android-touch-targets.spec.ts。低影响样式不新增 CSS 镜像单测。
+- **建议提交：**`refactor: resolve [RF-115] - give action buttons a single semantic style contract`。
+
+### RF-116
+
+**图标按钮族统一结构和平台尺寸** · P2 · 来源：R16
+
+- **前置：**[RF-115](#rf-115)。
+- **入口：**`tauri/src/components/ui/BadgeIconButton.tsx`；`tauri/src/components/ui/BadgeIconButton.module.css`；`tauri/src/components/layout/ToolbarActions.tsx`；`tauri/src/components/guide/PageGuideButton.tsx`；`tauri/src/styles/desktop-controls.css`；`tauri/src/styles/android.css`。
+- **执行：**统一 accessible label、图标尺寸、hit area、危险 intent、pressed/focus 状态，保留 BadgeIconButton 兼容 API。迁移这些入口的 icon legacy class，删除已无调用者的对应覆盖；不改变导航卡片点击模型。
+- **验收：**移动端触控目标、桌面紧凑尺寸、禁用、键盘焦点及 tooltip 正确；图标视觉尺寸不随 hit area 放大失衡；操作只执行一次。
+- **验证配置：**`F` + `WEB`。**定向验证：**运行 toolbar-actions.spec.ts、android-touch-targets.spec.ts、desktop-controls.spec.ts；仅在交互契约变化时补行为测试，不新增样式镜像单测。
+- **建议提交：**`refactor: resolve [RF-116] - unify semantic icon-button sizing and states`。
+
+### RF-117
+
+**互斥选项与下拉选择族统一状态语义** · P2 · 来源：R16
+
+- **前置：**[RF-115](#rf-115)。
+- **入口：**`tauri/src/components/ui/FilterChipGroup.tsx`；`tauri/src/components/ui/FilterChipGroup.module.css`；`tauri/src/components/ui/DropdownSelect.tsx`；`tauri/src/components/ui/DropdownSelect.module.css`；`tauri/src/components/export/ExportDocumentSection.tsx`；`tauri/src/components/settings/ExportImportTabBar.tsx`；`tauri/src/components/settings/ExportImportTabBar.module.css`；`tauri/src/styles/android.css`；`tauri/src/styles/desktop-controls.css`。
+- **执行：**选择组件自身的 selected/disabled/focus 语义驱动样式，不从背景色或历史 class 推断。保留 aria-pressed 及现有选择交互，平台 token 提供表面和尺寸；移除对应旧覆盖，不涉及 checkbox/switch。
+- **验收：**深浅主题、自定义强调色下选中状态明确；长格式名不溢出；键盘选择、disabled 和 Portal 菜单行为正确；导出格式及现有选择结果不变。
+- **验证配置：**`F` + `WEB`。**定向验证：**运行 export-choice-layout.spec.ts、appearance-layout.spec.ts、android-material.spec.ts，补到现有展示场景验证长文案与 Portal；不新增样式镜像单测。
+- **建议提交：**`refactor: resolve [RF-117] - standardize choice-control presentation`。
+
+### RF-118
+
+**开关控件族统一尺寸与状态 token** · P2 · 来源：R16
+
+- **前置：**[RF-115](#rf-115)。
+- **入口：**`tauri/src/components/ui/ToggleSwitch.tsx`；`tauri/src/styles/android.css`；`tauri/src/pages/settings/SecuritySettingsPage.tsx`；`tauri/src/pages/settings/AppearanceSettingsPage.tsx`。
+- **执行：**开关自身管理轨道、thumb、checked/disabled/focus 和触控目标，平台层只提供 token；保留 boolean callback，移除重复尺寸覆盖。不改变 RF-111 已定义的设置保存行为。
+- **验收：**鼠标、Space、label 点击各切换一次；disabled 不变；Android 目标至少48px；深浅主题下状态可辨识，桌面布局无膨胀。
+- **验证配置：**`F` + `WEB`。**定向验证：**复用 appearance-layout.spec.ts、android-touch-targets.spec.ts 的设置页面；增加开关键盘和 label 场景到现有 E2E，不写 CSS 镜像单测。
+- **建议提交：**`refactor: resolve [RF-118] - centralize switch platform styling`。
+
+### RF-119
+
+**Checkbox 控件族样式归属收敛** · P2 · 来源：R16
+
+- **前置：**[RF-115](#rf-115)。
+- **入口：**`tauri/src/components/ui/SelectCheckbox.tsx`；`tauri/src/components/ui/SelectCheckbox.module.css`；`tauri/src/components/ui/SelectCheckbox.test.tsx`；`tauri/src/components/transfer/ObjectSelectionTree.tsx`；`tauri/src/components/trash/TrashItemCard.tsx`；`tauri/src/styles/android.css`；`tauri/src/styles/desktop-controls.css`。
+- **执行：**保留既有三态、父行事件和触控尺寸契约；将尺寸/形状/边界 token 收入 checkbox 自身语义入口，平台仅提供变量；移除对应历史覆盖，不重写选择逻辑。
+- **验收：**checked/mixed/disabled/focus 保持；整行选择和 label 不重复触发；三平台深浅主题对比和触控目标不回退；回收站选择框仍与图标对齐。
+- **验证配置：**`F` + `WEB`。**定向验证：**运行 SelectCheckbox.test.tsx、checkbox-platform.spec.ts、trash-selection-layout.spec.ts；只有行为发生变化才补单测，不新增样式镜像测试。
+- **建议提交：**`refactor: resolve [RF-119] - consolidate checkbox surface and target tokens`。
+
+### RF-120
+
+**字段值与操作按钮采用统一行布局** · P2 · 来源：R16
+
+- **前置：**[RF-107](#rf-107)、[RF-109](#rf-109)、[RF-116](#rf-116)。
+- **入口：**`tauri/src/components/ui/ValueContainer.tsx`；`tauri/src/components/object/ObjectDetailFieldsList.tsx`；`tauri/src/components/object/ObjectDetailModal.module.css`；`tauri/src/components/trash/ProtectedTrashValue.tsx`；`tauri/src/components/object/HistoryViewer.tsx`。
+- **执行：**收敛标签、徽章、值、操作槽位与垂直对齐；保护组件负责行为，字段行仅负责布局。长文本换行重测后，值缩短或视口变宽能恢复适合的布局；不修改敏感度规则。
+- **验收：**短值→长值→掩码、缩放、动态组、多语言及放大字体下不溢出；揭示/解锁按钮与值对齐；移动端目标尺寸保留；宽度恢复后不永久停留在扩展行布局。
+- **验证配置：**`F` + `WEB`。**定向验证：**运行 trash-field-layout.spec.ts、object-ruler.spec.ts，复用现有详情/历史展示场景增加值变化、缩放与长文案；低影响布局不添加镜像单测。
+- **建议提交：**`refactor: resolve [RF-120] - unify protected-field row layout`。
+
+### RF-121
+
+**普通卡片表面使用平台无关语义** · P2 · 来源：R16
+
+- **前置：**[RF-110](#rf-110)。
+- **入口：**`tauri/src/components/ui/Card.tsx`；`tauri/src/components/ui/Card.module.css`；`tauri/src/components/ui/CardGrid.tsx`；`tauri/src/styles/macos-glass.css`；`tauri/src/styles/windows-material.css`。
+- **执行：**Card 输出平台无关 surface 标记，适配层映射现有 macOS 玻璃、Windows 内容表面和 Android Material token；Windows 不再依赖 data-macos-glass 解释普通卡片。保持导航区 Mica 与内容区分工，不调整侧栏结构。仅该 Card 调用族全部迁完后删除对应旧规则。
+- **验收：**内嵌/浮动卡片在三平台浅深主题、减少透明度和高对比下表面正确；长内容不溢出；Windows 导航/内容分区及 macOS 玻璃恢复不回退。
+- **验证配置：**`F` + `WEB` + `NATIVE`。**定向验证：**运行 macos-glass.spec.ts、desktop-shell.spec.ts、android-material.spec.ts、home-navigation.spec.ts；原生设备检查恢复和材质合成。浏览器 mock 不作为原生材质验证证据。
+- **建议提交：**`refactor: resolve [RF-121] - express card surfaces without platform-specific markup`。
+
+### RF-122
+
+**模态对话框表面迁入统一语义** · P2 · 来源：R16
+
+- **前置：**[RF-121](#rf-121)、[RF-115](#rf-115)、[RF-116](#rf-116)。
+- **入口：**`tauri/src/components/ui/Dialog.tsx`；`tauri/src/components/ui/Dialog.module.css`；`tauri/src/components/ui/Dialog.test.tsx`；`tauri/src/components/ui/ConfirmDialog.tsx`；`tauri/src/components/ui/PromptDialog.tsx`；`tauri/src/components/forms/PasswordVerificationDialog.tsx`；`tauri/src/styles/windows-material.css`；`tauri/src/styles/macos-glass.css`。
+- **执行：**统一 dialog/backdrop 表面和优先级标记，移除 Windows 对 data-macos-glass 的依赖；保留 Portal、关闭、表单和密码验证行为。不在样式迁移中重写验证流程或嵌套弹窗管理，旧规则仅在该模态族迁完后删除。
+- **验收：**auth 优先级、Portal 继承、背景点击/Escape、窄屏和键盘遮挡、深浅主题与减少透明度行为保持；密码取消/提交流程不变。
+- **验证配置：**`F` + `WEB` + `NATIVE`。**定向验证：**运行 Dialog.test.tsx 和相关验证组件测试；复用 notification-layout.spec.ts、login-method-layout.spec.ts、详情弹窗场景；原生检查材质表面，不写样式镜像单测。
+- **建议提交：**`refactor: resolve [RF-122] - unify modal surface styling`。
+
+### RF-123
+
+**侧栏快捷浮层表面迁入统一语义** · P2 · 来源：R16
+
+- **前置：**[RF-121](#rf-121)、[RF-102](#rf-102)、[RF-104](#rf-104)。
+- **入口：**`tauri/src/components/layout/SearchPopover.tsx`；`tauri/src/components/layout/SearchPopover.module.css`；`tauri/src/components/layout/AiQuickChatPopover.tsx`；`tauri/src/components/layout/AiQuickChatPopover.module.css`；`tauri/src/components/layout/OcrQuickScanPopover.tsx`；`tauri/src/components/layout/OcrQuickScanPopover.module.css`；`tauri/src/components/layout/navButtonCards.tsx`；`tauri/src/styles/macos-glass.css`；`tauri/src/styles/windows-material.css`。
+- **执行：**仅迁快捷浮层族的 surface/placement/density 标记和 token，替换平台命名标记；保留位置计算、外部点击、导航和既有玻璃容器层次。该族调用点迁完才删除旧选择器；其他菜单/预览浮层不作全局替换。
+- **验收：**侧栏展开/折叠、左右侧、视口边缘、Portal、焦点、外部点击和长内容均正确；搜索/聊天功能不变；macOS/Windows 浮层材质恢复不回退。
+- **验证配置：**`F` + `WEB` + `NATIVE`。**定向验证：**运行 desktop-card-position.spec.ts、sidebar-tools.spec.ts、plugin-quick-panel.spec.ts 中相关表面场景及 macos-glass.spec.ts；真实平台检查材质恢复，不写 CSS 镜像测试。
+- **建议提交：**`refactor: resolve [RF-123] - standardize sidebar popover surfaces`。
+
+### RF-124
+
+**迁移菜单、日期选择和 Tooltip 表面** · P2 · 来源：R16
+
+- **前置：**[RF-117](#rf-117)、[RF-121](#rf-121)。
+- **入口：**`tauri/src/components/layout/SecondaryActionBar.tsx`；`tauri/src/components/forms/DatePickerCalendar.tsx`；`tauri/src/components/forms/PasswordInput.tsx`；`tauri/src/components/ui/DropdownSelect.tsx`；`tauri/src/components/layout/NavButton.tsx`；`tauri/src/components/export/AttachmentLimitsInfo.tsx`。
+- **执行：**将该菜单/提示族 data-macos-glass 标记迁为中立 surface/role token，保留Portal定位、hover/焦点/键盘和外部关闭语义；删除本族已无引用的兼容选择器。
+- **验收：**深浅主题、边缘定位、键盘导航与长tooltip可读；密码提示不新增明文；对应Windows表面不再借用macOS命名。
+- **验证配置：**`F` + `WEB` + `NATIVE`。**定向验证：**现有desktop-controls/sidebar-tools/Android触控与日期选择场景，分别验证Portal和键盘。
+- **建议提交：**`refactor(ui): migrate menu surfaces [RF-124]`。
+
+### RF-125
+
+**迁移对象详情与附件预览浮层表面** · P2 · 来源：R16
+
+- **前置：**[RF-107](#rf-107)、[RF-109](#rf-109)、[RF-121](#rf-121)、[RF-122](#rf-122)。
+- **入口：**`tauri/src/components/object/ObjectDetailModal.tsx`；`tauri/src/components/object/AttachmentViewer.tsx`；`tauri/src/components/object/HistoryViewer.tsx`；`tauri/src/components/trash/TrashDetailPanel.tsx`；`tauri/src/components/attachment/AttachmentPreviewOverlay.tsx`。
+- **执行：**将详情/预览浮层接入中立surface与backdrop token；保留原生预览窗交通灯、独立窗口几何、关闭和附件打开逻辑；移除这些入口旧材质标记对应的覆盖。
+- **验收：**对象→附件→返回层级与点击关闭一致；macOS圆角/交通灯、Windows内容表面和Android触控不回退；未揭示字段仍不出现在DOM。
+- **验证配置：**`F` + `WEB` + `NATIVE`。**定向验证：**详情/附件现有组件测试、macos-preview-titlebar.spec.ts 与原生预览窗恢复验收。
+- **建议提交：**`refactor(ui): migrate detail and preview surfaces [RF-125]`。
+
+### RF-126
+
+**迁移独立业务对话框到中立表面标记** · P2 · 来源：R16
+
+- **前置：**[RF-122](#rf-122)。
+- **入口：**`tauri/src/components/plugin`；`tauri/src/components/template`；`tauri/src/components/recovery`；`tauri/src/components/onboarding`；`tauri/src/components/guide`；`tauri/src/components/settings/PinSetupDialog.tsx`；`tauri/src/components/llm-config/RiskAcceptanceDialog.tsx`。
+- **执行：**限定为自有Dialog包装未覆盖的业务弹层，逐一登记调用者，将材质/遮罩标记接入同一surface token；保持表单、PIN、授权与引导状态机，禁止借样式迁移重写验证流程。同一根因的标记迁移可一起提交，若发现行为缺陷另列ID。
+- **验收：**登记的独立弹层无漏迁；Portal主题继承、认证弹层优先级、取消/确认与原行为一致；浅深色和减少透明度可读。
+- **验证配置：**`F` + `WEB` + `NATIVE`。**定向验证：**既有Dialog/PIN/恢复/模板/插件授权测试及相关E2E，原生抽查认证和恢复弹层。
+- **建议提交：**`refactor(ui): migrate standalone dialog surfaces [RF-126]`。
+
+### RF-127
+
+**迁移通知表面并关闭旧材质兼容清单** · P2 · 来源：R16
+
+- **前置：**[RF-115](#rf-115)、[RF-116](#rf-116)、[RF-117](#rf-117)、[RF-118](#rf-118)、[RF-119](#rf-119)、[RF-120](#rf-120)、[RF-121](#rf-121)、[RF-122](#rf-122)、[RF-123](#rf-123)、[RF-124](#rf-124)、[RF-125](#rf-125)、[RF-126](#rf-126)。
+- **入口：**`tauri/src/components/ui/ToastContainer.tsx`；`tauri/src/styles/windows-material.css`；`tauri/src/styles/macos-glass.css`；`tauri/src/styles/desktop-controls.css`；`tauri/src/styles/android.css`。
+- **执行：**迁移Toast notification表面；逐条核对剩余data-macos-glass和控件legacy选择器的调用者，确认全部对应任务完成后才移除死兼容规则。确需保留的真实平台适配明确注释；发现未覆盖业务族先新增任务，不能全局替换后宣称完成。
+- **验收：**通知焦点/关闭/层级不变；Windows组件语义不依赖macOS标记；旧控件覆盖清单可追溯且没有无主例外，既有平台回归矩阵保持。
+- **验证配置：**`F` + `WEB` + `NATIVE`。**定向验证：**notification-layout、desktop-controls、android-material、macos-glass与生产启动E2E；检查所有剩余材质标记的归属。
+- **建议提交：**`refactor(ui): retire legacy material selectors [RF-127]`。
+
+## 6.3 平台适配与 CLI
+
+### RF-201
+
+**修正移动端跟随系统的主题来源** · P1 · 来源：R12
+
+- **前置：**[RF-208](#rf-208)。
+- **入口：**`tauri/src-tauri/src/commands/system.rs`；`tauri/src-tauri/src/setup/mod.rs`；`tauri/src/lib/theme.ts`。
+- **执行：**移动端不再把固定 dark 当成成功检测结果；使用真实原生主题事件或明确让前端 matchMedia 接管，并为同一平台只保留一个系统主题事件源。保留桌面检测和登录前主题缓存。
+- **验收：**Android/iOS 系统浅色→深色→浅色均可更新；跟随系统才响应事件，显式 light/dark 不被覆盖；IPC 不可用有回退，无每秒固定 dark 覆盖。
+- **验证配置：**`F` + `R` + `IOS` + `NATIVE` + `ANDROID_BUILD`。**定向验证：**扩展 theme/native-theme 测试，模拟原生与 WebView 相反值；移动设备执行跟随系统切换。
+- **建议提交：**`fix(theme): resolve mobile system appearance [RF-201]`。
+
+### RF-202
+
+**将 APK 更新入口限定为 Android** · P1 · 来源：R13
+
+- **前置：**无。
+- **入口：**`tauri/src/stores/updateStore.ts`；`tauri/src/stores/updateStore.test.ts`；`tauri/src/lib/platform.ts`；`tauri/src/lib/updater.ts`。
+- **执行：**分别门控缓存检查、版本检查、下载和安装四阶段；只有 Android 进入 APK 路径，iOS 返回明确不支持该更新方式并提供适当状态；保留 Windows/macOS 更新逻辑，不等待能力框架。
+- **验收：**iOS 检查/下载/安装均不调用 android_*；Android 全流程保持；桌面 updater 保持；不支持不显示为网络失败。
+- **验证配置：**`F`。**定向验证：**updateStore.test.ts 增加 Android/iOS/macOS/Windows 调用断言及下载完成后安装状态用例。
+- **建议提交：**`fix(updater): gate APK operations to Android [RF-202]`。
+
+### RF-203
+
+**明确 iOS OCR 不支持时的前后端行为** · P1 · 来源：R13
+
+- **前置：**[RF-208](#rf-208)。
+- **入口：**`tauri/src-tauri/src/commands/ocr.rs`；`tauri/src-tauri/src/mobile_ocr_plugin.rs`；`tauri/src/pages/scan/OcrPage.tsx`；`tauri/src/pages/settings/OcrSettingsPage.tsx`；`tauri/src/lib/ipc.ts`。
+- **执行：**拆开 Android/iOS 编译分支；没有原生实现的 iOS 返回稳定 unsupported 错误，前端禁用相应扫描动作并说明原因。保留模型信息/设置中仍可用的操作，不在此任务新增 iOS OCR 引擎。
+- **验收：**iOS 不调用 Android bridge、不进入无限 loading；Android 扫描与桌面本地推理不变；设备支持状态与页面一致。
+- **验证配置：**`F` + `R` + `IOS` + `ANDROID_BUILD`。**定向验证：**OCR 命令分支/前端 OcrPage 测试；iOS 编译证明分支无 Android 实现引用。
+- **建议提交：**`fix(ocr): handle unsupported iOS bridge explicitly [RF-203]`。
+
+### RF-204
+
+**核实并修正 iOS Keychain 成功状态符号** · P1 · 来源：R13
+
+- **前置：**无。
+- **入口：**`tauri/crates/solosoul-core/src/biometric/ios.rs`；`.github/workflows/pr_check.yml`。
+- **执行：**先在 macOS 对 iOS 真机与模拟器目标编译，记录 errSecSuccess 是否缺失；若确认，使用当前依赖导出的正确常量并保持错误码映射。只修此符号/相关直接编译问题，不顺手改认证策略。若误报，给出目标编译和解析证据。
+- **验收：**两个 iOS target 均能通过本项涉及模块的检查；不存在用裸 0 替代命名常量来规避问题；误报必须有证据后才排除。
+- **验证配置：**`R` + `IOS` + `CLI`。**定向验证：**cargo check 的 iOS 双 target。仅修 import/命名常量且认证行为保持时，以双目标检查和相关回归关闭；若修改 Keychain 调用或认证行为，则真机/模拟器支持的成功、取消、失败运行验证成为必需，缺设备标待验证。
+- **建议提交：**`fix(ios): resolve Keychain success status [RF-204]`。
+
+### RF-205
+
+**建立并接入平台能力契约** · P2 · 来源：R13、R18
+
+- **前置：**[RF-202](#rf-202)、[RF-203](#rf-203)、[RF-204](#rf-204)。
+- **入口：**`tauri/src-tauri/src/commands/system.rs`；`tauri/src-tauri/src/lib.rs`；`tauri/src/lib/platform.ts`；`tauri/src/lib/ipc.ts`；`tauri/src/stores/updateStore.ts`；`tauri/src/pages/scan/OcrPage.tsx`。
+- **执行：**定义 PlatformCapabilities 的 OS、更新方式、OCR、原生材质、生物识别和文件打开能力，区分 supported/unsupported/unavailable 及原因；由后端编译目标和实际桥接探测提供，允许启动期读取。将 updater/OCR 的临时门控迁移到契约；同步 IPC/ACL，不扩大权限。
+- **验收：**macOS/Windows/Android/iOS 有固定契约 fixture，Linux 桌面回退单列；未知能力安全禁用且有原因；UI 不再从 mobile 布尔值推导 APK/OCR 支持。
+- **验证配置：**`F` + `R` + `CONTRACT` + `IOS` + `ANDROID_BUILD`。**定向验证：**新增能力契约与平台矩阵测试，复跑 RF-202/203 用例。
+- **建议提交：**`refactor(platform): centralize capability contracts [RF-205]`。
+
+### RF-206
+
+**提取可恢复且按版本跳过的 Android 资源安装器** · P2 · 来源：R19
+
+- **前置：**[RF-208](#rf-208)。
+- **入口：**`tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/MainActivity.kt`；`tauri/scripts/stage-mobile-resources.cjs`。
+- **执行：**提取 ResourceInstaller；随资源生成版本/内容 manifest，先写临时目录、校验后切换完成标记；相同版本跳过写入。此项先保持现有同步就绪语义，仅解决重复复制与中断恢复，Activity 仍等待安装完成。
+- **验收：**首次安装可读、同版本重启零重写、升级替换、中断后重试可恢复；未知临时目录不会被 Rust 当成完成资源；保留用户数据目录中的非内置内容。
+- **验证配置：**`ANDROID_BUILD`。**定向验证：**新安装器的版本、校验失败和中断恢复测试；记录重复启动写入次数，检查 docs/插件实际可读。
+- **建议提交：**`refactor(android): version bundled resource installation [RF-206]`。
+
+### RF-207
+
+**将 Android 资源准备移出主线程并接入就绪屏障** · P2 · 来源：R19
+
+- **前置：**[RF-206](#rf-206)、[RF-208](#rf-208)。
+- **入口：**`tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/MainActivity.kt`；`tauri/src-tauri/src/setup/mod.rs`；`tauri/src-tauri/src/commands/llm`；`tauri/src-tauri/src/plugin`。
+- **执行：**使用安装器的显式 ready/error 状态在后台准备资源；定位 docs、插件消费者，等待相应资源就绪再读取；Activity 重建复用同一安装操作。只阻塞依赖资源的能力，不阻塞整个窗口绘制。
+- **验收：**低速复制期间主线程仍可绘制/响应；消费者不会读半成品；失败可重试且可见；Activity 重建不重复启动安装；首次/重复启动耗时有对照。
+- **验证配置：**`R` + `ANDROID_BUILD` + `NATIVE` + `ANDROID_NATIVE`。**定向验证：**慢安装器与失败注入、Activity 重建 instrumentation；实际启动主线程 trace。
+- **建议提交：**`perf(android): prepare resources off the main thread [RF-207]`。
+
+### RF-208
+
+**移除 Android 构建的本机 JDK 路径依赖** · P2 · 来源：R19、R21
+
+- **前置：**无。
+- **入口：**`tauri/src-tauri/gen/android/gradle.properties`；`.github/workflows/build-android.yml`；`docs/platform-mobile/android-glass-implementation.md`。
+- **执行：**执行计划核验新增项：项目 Gradle 属性当前固定 macOS JBR 路径。移除机器专属路径，使用受支持的 JDK 环境/本地覆盖约定，CI 显式配置 JDK；文档区分项目配置与机器私有路径，不提交 Windows 绝对路径替代。
+- **验收：**Windows/Linux/macOS 不依赖 /Applications/... 才能启动 Gradle；Gradle 实际 JVM 版本符合项目要求；Android 编译入口保持有效。
+- **验证配置：**`ANDROID_BUILD` + `DOC`。**定向验证：**各环境 gradlew --version 与目标 Debug 构建；本机缺 SDK 记录阻塞，不伪造跨平台成功。
+- **建议提交：**`build(android): remove machine-specific JDK configuration [RF-208]`。
+
+### RF-211
+
+**为 CLI 建立任务事件与会话失效基础** · P2 · 来源：R15
+
+- **前置：**[RF-001](#rf-001)。
+- **入口：**`solosoul_cli/src/app.rs`；`solosoul_cli/src/events.rs`；`solosoul_cli/src/tui.rs`；`solosoul_cli/src/commands`。
+- **执行：**复用已有 runtime，建立 task ID、账户会话代次、进度/完成/失败/取消事件和退出清理；主循环只接收事件，不等待业务 Future。先通过一个测试任务接入，不迁移所有命令；旧事件到达不得恢复锁定状态。
+- **验收：**慢测试任务期间按键、重绘、Tick 和自动锁定正常；锁定/换账户使旧任务结果失效；退出完成取消/回收，不另建每命令 runtime。
+- **验证配置：**`CLI`。**定向验证：**CLI 事件循环屏障测试及假时钟自动锁定；任务事件是唯一应用状态写入入口。
+- **建议提交：**`refactor(cli): add session-bound task events [RF-211]`。
+
+### RF-212
+
+**将 CLI 模型下载迁移到任务事件** · P2 · 来源：R15
+
+- **前置：**[RF-211](#rf-211)。
+- **入口：**`solosoul_cli/src/commands/embed_model.rs`；`solosoul_cli/src/app.rs`。
+- **执行：**将模型下载的 block_on 从输入循环移到后台任务；显示进度并允许取消，完成前不登记半文件为可用模型；退出清理由任务所有者处理。
+- **验收：**慢下载时能输入/重绘/锁定；取消不残留有效模型记录；失败可重试，旧任务不能覆盖新下载状态。
+- **验证配置：**`CLI`。**定向验证：**本地假下载流与取消/网络错误测试，不下载真实大模型作为普通单测。
+- **建议提交：**`refactor(cli): run model downloads as tasks [RF-212]`。
+
+### RF-213
+
+**将 CLI 同步迁移到任务事件** · P2 · 来源：R15
+
+- **前置：**[RF-211](#rf-211)。
+- **入口：**`solosoul_cli/src/commands/sync.rs`；`solosoul_cli/src/app.rs`。
+- **执行：**将同步等待从输入循环迁出，进度/配对结果通过 task ID 回传；接入已有同步取消/停机机制，不改协议、SAS 或授权策略。
+- **验收：**同步等待期间输入和 Tick 可处理；锁定/退出取消或停止提交，旧事件不切回已解密页面；配对取消不被当成功。
+- **验证配置：**`CLI`。**定向验证：**假 peer/阻塞屏障覆盖取消、失败、锁定与迟到完成。
+- **建议提交：**`refactor(cli): run synchronization as a task [RF-213]`。
+
+### RF-214
+
+**将 CLI 插件安装迁移到任务事件** · P2 · 来源：R15
+
+- **前置：**[RF-211](#rf-211)。
+- **入口：**`solosoul_cli/src/commands/plugin.rs`；`solosoul_cli/src/app.rs`。
+- **执行：**将插件安装网络等待移入任务，复用既有签名/校验/取消能力；仅成功完成后更新已安装列表，保留授权与沙箱规则。
+- **验收：**安装时 CLI 不冻结；取消和失败不留下成功状态；锁定期间无旧账户 UI 回填；不降低签名检查。
+- **验证配置：**`CLI`。**定向验证：**假安装源/校验失败/取消/迟到事件测试。
+- **建议提交：**`refactor(cli): run plugin installation as a task [RF-214]`。
+
+### RF-215
+
+**将 CLI OCR 迁移到可取消后台任务** · P2 · 来源：R15
+
+- **前置：**[RF-211](#rf-211)、[RF-029](#rf-029)。
+- **入口：**`solosoul_cli/src/commands/ocr.rs`；`solosoul_cli/src/app.rs`；`tauri/crates/solosoul-core/src/ocr/engine.rs`。
+- **执行：**将 OCR 模型加载和推理放入受限阻塞任务；接入共享引擎分页取消点；状态修改经主循环事件，锁定后丢弃结果并清理临时页。分页取消能力任务完成后再接入，不用取消 Future 冒充已停止推理。
+- **验收：**OCR 中能处理 Esc/Tick；锁定不回填识别原文；取消在约定页边界生效，临时文件被回收；连续发起不会无限并发。
+- **验证配置：**`CLI` + `CORE` + `R`。**定向验证：**假 OCR 引擎/多页文档，测试队列取消、运行中取消、失败和锁定。
+- **建议提交：**`refactor(cli): run OCR through cancellable tasks [RF-215]`。
+
+## 6.4 契约、验证、性能与文档
+
+### RF-301
+
+**建立 Rust 到 TypeScript 的增量 IPC 契约生成** · P2 · 来源：R18
+
+- **前置：**无。
+- **入口：**`tauri/src-tauri/src/lib.rs`；`tauri/src/lib/ipcClient.ts`；`tauri/src/lib/ipc.ts`；`tauri/scripts/check_acl_consistency.py`；`tauri/package.json`。
+- **执行：**以 Rust DTO/命令登记为来源建立参数、响应、事件类型生成和 check 模式；先用一个只读 system 命令贯通 typed invoke，保留未迁移命令兼容适配。记录生成工具与版本选择，不在此项迁移全部命令。
+- **验收：**重复生成无 diff；改 Rust 试点参数可触发 TS 错误或生成检查失败；命令登记/ACL/生成命令集可对照；生成过程不读取密钥或运行业务命令。
+- **验证配置：**`F` + `R` + `CONTRACT`。**定向验证：**生成器 fixture、命令集合比较与编译型负例；生成检查加入 package script。
+- **建议提交：**`refactor(ipc): generate incremental command contracts [RF-301]`。
+
+### RF-302
+
+**迁移对象和回滚 IPC 契约** · P2 · 来源：R18
+
+- **前置：**[RF-301](#rf-301)、[RF-008](#rf-008)、[RF-010](#rf-010)。
+- **入口：**`tauri/src-tauri/src/commands/object`；`tauri/src/lib/ipc.ts`；`tauri/src/stores/objectStore.ts`；`tauri/src/components/object`。
+- **执行：**迁移 object_* 与 snapshot_* 参数/返回类型；由生成模型替代对应手写 wire DTO，前端衍生展示字段留在 ViewModel。删除前先确认该组旧声明无引用。
+- **验收：**该组无任意字符串调用和自选返回泛型；序列化键、可空值、标签兼容不变；对象/回滚用例通过。
+- **验证配置：**`F` + `R` + `CONTRACT`。**定向验证：**对象与快照现有测试、生成无漂移检查。
+- **建议提交：**`refactor(ipc): type object and snapshot commands [RF-302]`。
+
+### RF-303
+
+**迁移 LLM 会话与流事件契约** · P2 · 来源：R18
+
+- **前置：**[RF-301](#rf-301)、[RF-002](#rf-002)、[RF-004](#rf-004)、[RF-005](#rf-005)、[RF-104](#rf-104)。
+- **入口：**`tauri/src-tauri/src/commands/llm`；`tauri/src/hooks/useLlmChatCore.ts`；`tauri/src/hooks/useLlmStreaming.ts`；`tauri/src/stores/llmStore.ts`。
+- **执行：**生成聊天命令与流事件类型，包含 account/session/request/conversation 标识以及完成/持久化失败区分；移除本组手写 wire 副本，保留展示模型。先完成会话修复和凭证迁移后冻结这一契约。
+- **验收：**流事件缺标识能在编译/验证时暴露；普通发送不要求 API key；回放旧会话、临时聊天、保存失败提示保持。
+- **验证配置：**`F` + `R` + `CONTRACT`。**定向验证：**LLM 组序列化 fixture 与前端流隔离回归。
+- **建议提交：**`refactor(ipc): type LLM commands and stream events [RF-303]`。
+
+### RF-304
+
+**迁移备份与导入导出 IPC 契约** · P2 · 来源：R18
+
+- **前置：**[RF-301](#rf-301)、[RF-013](#rf-013)、[RF-015](#rf-015)、[RF-024](#rf-024)。
+- **入口：**`tauri/src-tauri/src/commands/backup.rs`；`tauri/src-tauri/src/commands/export_import`；`tauri/src/lib/ipc.ts`；`tauri/src/pages`。
+- **执行：**生成备份、导入预览/执行、导出请求与结果类型；表达附件范围、部分失败/恢复状态，不通过含糊布尔值丢失含义；不改已有包格式。
+- **验收：**前后端的枚举/空值/失败结果一致，旧文件仍可读；前端不能将部分失败当全部成功；生成无 diff。
+- **验证配置：**`F` + `R` + `CONTRACT`。**定向验证：**备份/导入导出 fixture 和前端流程测试。
+- **建议提交：**`refactor(ipc): type backup and transfer contracts [RF-304]`。
+
+### RF-305
+
+**迁移同步 IPC 与事件契约** · P2 · 来源：R18
+
+- **前置：**[RF-301](#rf-301)、[RF-003](#rf-003)。
+- **入口：**`tauri/src-tauri/src/sync`；`tauri/src/stores/syncStore.ts`；`tauri/src/lib/ipc.ts`。
+- **执行：**分开后端 wire DTO 与 syncStore 中的 UI 派生字段；同步命令、配对/进度/完成事件使用生成类型；保留现有协议和旧数据兼容。
+- **验收：**本组命令/事件无重复 wire 类型；乱序/失效事件回归通过；配对、冲突和停机状态不丢字段。
+- **验证配置：**`F` + `R` + `CONTRACT`。**定向验证：**syncStore 与后端同步测试；生成契约检查。
+- **建议提交：**`refactor(ipc): type sync commands and events [RF-305]`。
+
+### RF-306
+
+**迁移插件 IPC 与资源事件契约** · P2 · 来源：R18
+
+- **前置：**[RF-301](#rf-301)。
+- **入口：**`tauri/src-tauri/src/commands/plugin.rs`；`tauri/src/lib/plugin.ts`；`tauri/src/stores/pluginStore.ts`；`tauri/src/lib/ipc.ts`。
+- **执行：**生成插件查询、安装、运行与取消命令及事件类型，准确表达 Resource/Channel 生命周期；保留会话、授权、沙箱和安装取消能力。
+- **验收：**不将 Resource 当普通 JSON DTO；旧插件 manifest/运行结果兼容；取消、会话过期和权限拒绝用例通过。
+- **验证配置：**`F` + `R` + `CONTRACT`。**定向验证：**plugin.install、pluginStore 及后端插件测试。
+- **建议提交：**`refactor(ipc): type plugin commands and lifecycle events [RF-306]`。
+
+### RF-307
+
+**建立结构化后端错误并迁移对象用例** · P2 · 来源：R18
+
+- **前置：**[RF-301](#rf-301)、[RF-302](#rf-302)。
+- **入口：**`tauri/src-tauri/src/commands/object`；`tauri/src/lib/backendError.ts`；`tauri/src/lib/backendError.test.ts`；`tauri/src/lib/ipcClient.ts`。
+- **执行：**定义 code/safeDetails/retryable 错误包及旧字符串兼容适配，先迁移对象/回滚错误；翻译只在展示层完成，原始 cause 留在脱敏日志。LLM、备份导入导出、同步、插件由 RF-317～RF-320 分别迁移；本项不一次改全部错误。
+- **验收：**对象已知错误无需匹配英文句子；未知错误安全回退；日志与 UI 不含字段原文/密钥；旧字符串调用仍可识别。
+- **验证配置：**`F` + `R` + `CONTRACT`。**定向验证：**错误包序列化/本地化/脱敏 fixture 和对象失败用例。
+- **建议提交：**`refactor(errors): add structured object errors [RF-307]`。
+
+### RF-308
+
+**接入有实际执行证据的覆盖率门禁** · P2 · 来源：R21
+
+- **前置：**[RF-316](#rf-316)。
+- **入口：**`tauri/vitest.config.ts`；`tauri/package.json`；`.github/workflows/pr_check.yml`；`.github/workflows/ci_cd.yml`。
+- **执行：**实际运行 coverage 获取当前基线，新增显式 coverage script/job；沿现有门槛检查，不只配置阈值而不执行。若当前达不到门槛，登记具体缺口任务并保持本项未完成，禁止直接降低数值换通过。去除重复 coverage 执行。
+- **验收：**CI 执行 coverage 并上传报告；故意降低已覆盖风险分支会触发门禁；阈值来源与排除范围有记录。
+- **验证配置：**`F` + `COVERAGE`。**定向验证：**npm run test -- --coverage；核对 CI job 的实际日志，不以 YAML 出现 threshold 为通过。
+- **建议提交：**`ci(test): enforce measured frontend coverage [RF-308]`。
+
+### RF-309
+
+**建立 Windows Rust 关键用例执行门禁** · P2 · 来源：R21
+
+- **前置：**无。
+- **入口：**`.github/workflows/pr_check.yml`；`.github/workflows/ci_cd.yml`；`tauri/src-tauri/build.rs`；`tauri/src-tauri/bundles`。
+- **执行：**增加 Windows 关键 Rust 测试实际运行 job，先完成 Vault/core 与会话/导入导出 Host 用例；检查测试进程 manifest、运行时库等必要条件，采用正式配置。不得把 DLL 启动失败记为测试通过，也不提交本机二进制绕过。
+- **验收：**windows-latest 实际执行测试并上传失败日志；不是仅 cargo check 或打包成功；平台配置不改变 release 安全属性。
+- **验证配置：**`R` + `CORE`。**定向验证：**Windows cargo test -p solosoul-vault -p solosoul-core 与 cargo test -p solo_soul；失败按运行环境/断言失败分类。
+- **建议提交：**`ci(windows): execute Rust regression tests [RF-309]`。
+
+### RF-310
+
+**把 Android 原生回归接入明确的设备任务** · P2 · 来源：R21
+
+- **前置：**[RF-201](#rf-201)、[RF-208](#rf-208)。
+- **入口：**`.github/workflows/build-android.yml`；`tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidGlassInstrumentedTest.kt`；`tauri/src-tauri/gen/android/app/build.gradle.kts`。
+- **执行：**为现有 Android instrumentation 提供可重复的模拟器/设备 CI 入口、系统镜像条件和结果附件；在测试机支持的 API/ABI 上执行。浏览器 mobile 测试继续保留，不用它代替原生任务。
+- **验收：**能看到实际设备 ID、API、测试计数和失败截图；跳过/无设备不能算通过；玻璃与系统主题验证区分支持和回退环境。
+- **验证配置：**`ANDROID_BUILD` + `ANDROID_NATIVE`。**定向验证：**按验证矩阵的 :app:connectedArm64DebugAndroidTest，或 assembleArm64DebugAndroidTest + adb instrumentation 执行 AndroidGlassInstrumentedTest；运行前通过 Gradle tasks --all 核实任务可用。
+- **建议提交：**`ci(android): run native glass regression tests [RF-310]`。
+
+### RF-311
+
+**收敛重复 CI 步骤且保持平台覆盖** · P2 · 来源：R21
+
+- **前置：**[RF-308](#rf-308)、[RF-309](#rf-309)、[RF-310](#rf-310)。
+- **入口：**`.github/workflows/pr_check.yml`；`.github/workflows/ci_cd.yml`；`.github/workflows/build-android.yml`。
+- **执行：**将重复前端/CLI 检查抽成可复用 workflow 或共用脚本，保持 PR 与 main 触发意图、Linux/macOS/Windows差异、iOS编译、submodule 校验和失败附件。发布步骤不混入此次迁移。
+- **验收：**列出重构前后 job 对照表；相同检查不无谓重复；原有受保护检查名/依赖明确兼容；每个平台仍有原来的覆盖与新门禁。
+- **验证配置：**`F` + `R` + `CLI` + `CONTRACT`。**定向验证：**实际 PR workflow 运行记录；仅 YAML 静态检查不足以关闭。
+- **建议提交：**`ci: share validation workflows without losing coverage [RF-311]`。
+
+### RF-312
+
+**建立可重跑的性能基线与下一步决策** · P3 · 来源：R20
+
+- **前置：**无。
+- **入口：**`tauri/src/bootstrapApp.tsx`；`tauri/src/App/routes.tsx`；`tauri/src/lib/logger.ts`；`tauri/e2e`。
+- **执行：**用合成小/大 Vault 建立启动、解锁、搜索、首次 OCR/预览、锁定恢复、内存和 IPC 次数测量；记录设备/构建/样本量和采样口径，输出基线文档。测得瓶颈才新增具体优化 ID，当前任务不改全路由加载策略。
+- **验收：**他人按记录能复跑并得到同口径数据；有重复样本与中位/尾部指标，失败样本不丢；明确是否值得懒加载/分页及其证据。若无瓶颈可完成测量项，不制造优化提交。
+- **验证配置：**`PERF` + `NATIVE`。**定向验证：**启动/解锁/搜索测量脚本与多端实测；固定数据集种子、构建模式和可重复步骤。
+- **建议提交：**`docs(perf): record reproducible application baselines [RF-312]`。
+
+### RF-313
+
+**修正 canonical 架构与安全事实文档** · P2 · 来源：R22
+
+- **前置：**无。
+- **入口：**`AGENTS.md`；`docs/attachment-storage-spec.md`；`docs/design_map/10_跨平台视觉规范与主题系统.md`；`docs/solosoul_cli/USER_GUIDE.md`。
+- **执行：**修正 crates 路径、过时 Go API/会话描述、原生材质状态；明确新附件加密与旧明文兼容的区别，撤销尚不成立的 GUI/CLI 1:1 声明并链接对应待修任务。只描述当前证据，不把待实现能力写成已完成。
+- **验收：**文档中的入口路径存在；安全描述可对应当前实现；旧数据是否迁移有清楚边界；历史报告保留日期不改为新事实。
+- **验证配置：**`DOC`。**定向验证：**逐条核对代码/引用；文档链接与路径检查；无需业务测试。
+- **建议提交：**`docs(architecture): align current implementation facts [RF-313]`。
+
+### RF-314
+
+**建立平台能力与验收证据矩阵** · P2 · 来源：R21、R22
+
+- **前置：**[RF-205](#rf-205)。
+- **入口：**`docs/design_map`；`docs/solosoul_cli/USER_GUIDE.md`；`.github/workflows`。
+- **执行：**在现有架构文档内登记功能→入口→共享用例→支持平台→验证方式/日期；区分已实现、编译通过、浏览器模拟、设备验证和待实现。将测试/实现链接作为证据，不另建竞争的长期规范。
+- **验收：**macOS/Windows/Android/iOS及Linux回退状态可查；每条“跨端一致/原生支持”均有证据或明确未验证；后续任务定义同步更新位置。
+- **验证配置：**`DOC`。**定向验证：**抽查主题/OCR/更新/回滚/备份/玻璃六条能力链及引用。
+- **建议提交：**`docs(platform): track capabilities and verification evidence [RF-314]`。
+
+### RF-315
+
+**对齐 LLM 数据流与隐私说明** · P2 · 来源：R03、R22
+
+- **前置：**[RF-100](#rf-100)、[RF-004](#rf-004)、[RF-005](#rf-005)。
+- **入口：**`docs/design_map/20_LLM配置与AI对话规范.md`；`docs/legal/隐私政策.md`；`docs/legal/服务条款.md`；`docs/legal/Privacy Policy.md`；`docs/legal/Terms of Service.md`；`tauri/src/locales/zh-CN/settings.json`；`tauri/src/locales/en-US/settings.json`；`tauri/src/components/llm-config/RiskAcceptanceDialog.tsx`；`tauri/src/pages/ai/LlmConfigPage.tsx`。
+- **执行：**核对实际本地/远程 provider 模式、用户输入和自动附加字段的来源与去向；更新现有产品/隐私说明及风险确认的中英 UI 文案，使其与字段筛选和凭证边界一致。保留用户主动选择远程服务的流程，不声称所有启用模式都不外传任何内容；以当前 docs/legal 为准，不创建已过时文档中声称存在的 zh-CN/en-US 副本。
+- **验收：**声明可逐项对应发送链路；不虚构第三方服务的数据保留政策；中英文含义一致；旧附件/备份等无关声明不混入。
+- **验证配置：**`DOC`。**定向验证：**对照捕获的合成出站 fixture 审查文案；若修改 TSX 再执行 F。
+- **建议提交：**`docs(privacy): describe actual LLM data flows [RF-315]`。
+
+### RF-316
+
+**诊断并稳定默认前端测试运行入口** · P2 · 来源：R21
+
+- **前置：**无。
+- **入口：**`tauri/vitest.config.ts`；`tauri/package.json`；`.github/workflows/pr_check.yml`；`.github/workflows/ci_cd.yml`。
+- **执行：**在相同依赖和限定超时下复现默认 pool 未结束与 threads 成功的差异，区分发现范围、worker、未释放句柄和本机环境；修复确认的配置/测试生命周期原因，必要时把有证据的平台适配写入脚本。不能仅因一次挂起全局改 runner。
+- **验收：**默认 npm run test 在干净环境可靠结束，测试文件/用例不因修复减少；不能复现时记录环境和有限复现证据，保留待复现状态。只有证据足以说明原问题已解决或仅为已排除的环境问题时关闭，不能以一次线程池成功认定默认入口已修复。
+- **验证配置：**`F`。**定向验证：**对照 npm run test -- --maxWorkers=2 与 npm run test -- --pool=threads --maxWorkers=2 的退出码/用例集合；只结束本次启动的进程。
+- **建议提交：**`test: stabilize the frontend test runner [RF-316]`。
+
+### RF-317
+
+**迁移 LLM 结构化错误** · P2 · 来源：R18
+
+- **前置：**[RF-303](#rf-303)、[RF-307](#rf-307)。
+- **入口：**`tauri/src-tauri/src/commands/llm`；`tauri/src/lib/backendError.ts`；`tauri/src/hooks/useLlmStreaming.ts`。
+- **执行：**将 provider/发送/持久化失败错误迁到结构化错误包；区分流失败与回复已生成但保存失败，保留旧前缀兼容读取，敏感响应细节仅在脱敏日志中记录。
+- **验收：**模拟网络、provider拒绝、会话失效和保存失败时 UI 行为与真实状态一致；不用匹配英文正文；旧错误 fixture 仍可解析。
+- **验证配置：**`F` + `R` + `CONTRACT`。**定向验证：**LLM 请求/流失败与 backendError 测试。
+- **建议提交：**`refactor(errors): type LLM failures [RF-317]`。
+
+### RF-318
+
+**迁移备份与导入导出结构化错误** · P2 · 来源：R18
+
+- **前置：**[RF-304](#rf-304)、[RF-307](#rf-307)。
+- **入口：**`tauri/src-tauri/src/commands/backup.rs`；`tauri/src-tauri/src/commands/export_import`；`tauri/src/lib/backendError.ts`；`tauri/src/hooks/useImportState.ts`。
+- **执行：**迁移格式、密码、范围、写入与恢复错误；错误码和 ImportOutcome 分开，不能把部分提交状态压成普通 error string；保留旧包格式与旧前缀适配。
+- **验收：**用户能区分未提交失败/部分完成/可重试；文件路径和明文数据不进入不必要提示；旧兼容 fixture 不变。
+- **验证配置：**`F` + `R` + `CONTRACT`。**定向验证：**导入失败阶段 fixture、备份坏包与 UI结果测试。
+- **建议提交：**`refactor(errors): type transfer failures [RF-318]`。
+
+### RF-319
+
+**迁移同步结构化错误** · P2 · 来源：R18
+
+- **前置：**[RF-305](#rf-305)、[RF-307](#rf-307)。
+- **入口：**`tauri/src-tauri/src/sync`；`tauri/src/stores/syncStore.ts`；`tauri/src/lib/backendError.ts`。
+- **执行：**将同步连接、握手、配对、冲突与会话失效错误映射为稳定 code/safeDetails；底层 IO错误保持cause，UI仅使用可本地化字段；保留既有配对状态机。
+- **验收：**超时/拒绝/等待配对/锁定被区分；SAS与节点标识处理不回退；旧事件/前缀在兼容期可读。
+- **验证配置：**`F` + `R` + `CONTRACT`。**定向验证：**syncStore配对/错误测试与后端握手失败fixture。
+- **建议提交：**`refactor(errors): type synchronization failures [RF-319]`。
+
+### RF-320
+
+**迁移插件结构化错误** · P2 · 来源：R18
+
+- **前置：**[RF-306](#rf-306)、[RF-307](#rf-307)。
+- **入口：**`tauri/src-tauri/src/commands/plugin.rs`；`tauri/src/lib/plugin.ts`；`tauri/src/stores/pluginStore.ts`；`tauri/src/lib/backendError.ts`。
+- **执行：**将权限拒绝、会话过期、校验失败、执行失败与取消转成稳定错误码；保留安装资源取消和WASM约束，不把用户取消提示成执行错误。
+- **验收：**四类错误及取消可正确区分；不泄露字段/密钥；旧插件接口和结果schema保持兼容。
+- **验证配置：**`F` + `R` + `CONTRACT`。**定向验证：**插件安装取消、会话隔离、授权拒绝与backendError测试。
+- **建议提交：**`refactor(errors): type plugin failures [RF-320]`。
+
+## 7. 每项执行记录模板
+
+选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
+
+```markdown
+### RF-xxx 执行记录
+- 开始/结束时间、分支与修复前 HEAD：
+- 原问题是否仍存在；复现或静态证据：
+- 实际修改范围与行为变化：
+- 验证：工作目录、完整命令、退出码、用例数量、跳过项：
+- 平台证据：OS/设备/API/构建、操作步骤、结果或阻塞原因：
+- 兼容与恢复：旧格式/旧入口是否兼容；失败后数据状态：
+- 规范更新位置：
+- 剩余问题或新增任务：
+- 结论：完成 / 排除 / 待验证 / 阻塞：
+- 提交：本提交（标题含 RF-xxx，后续补 SHA）；推送结果（仅在已授权时）：
+```
+
+后续实施时的 Git 步骤（命令中的路径替换为该 ID 的实际文件，不能原样执行占位符）：
+
+```text
+git diff --check
+git diff -- <当前任务路径>
+git add -- <当前任务路径> docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md
+git diff --cached --stat
+git diff --cached
+git commit -m "<任务卡的提交标题>"
+```
+
+同文件含其他未提交工作时使用补丁级暂存或隔离工作树，不把整个文件无差别加入。提交失败保持当前任务状态并解决实际原因；推送失败保留本地提交及错误，不 amend/force push 掩盖历史。只有届时明确授权推送时，才推送已核对的远端与分支。
+
+## 8. 最终复审与新增任务
+
+1. 核对每个完成 ID 都有独立提交、验证记录和实际关闭结论。未获设备验证的任务保留待验证；“已关闭”“实际修复”“排除”分别计数。
+2. 对照第 5 节映射，确认 R01–R22 的每个子目标均有归宿。保留未迁移适配器时必须列出调用者和独立后续 ID，不能用“后续再做”关闭涵盖它的任务。
+3. 重新检查账户切换、字段出站、GUI/CLI 互操作、文件/数据库提交失败、平台能力及原生主题；运行 F/R/CLI/CONTRACT、相关 WEB 与可用原生矩阵。扩大测试只针对最终集成和新增疑点。
+4. 新问题使用 RF-900 起的新 ID，包含同样的入口、依赖、验收与提交要求；维护映射和计数，不复用旧 ID。严重程度高的新增问题优先进入队列。
+5. 形成新的 `docs/REFACTOR_EXECUTION_REPORT_FINAL_YYYY-MM-DD.md`，记录本轮修复基线、最终 HEAD、已关闭/待验证/排除项、平台覆盖和残余限制；保留旧审查报告。
+6. 尚有 P1、失败检查或必需原生验收缺口时，不使用“所有问题已修复/审计通过”等措辞，也不打通过标签。性能测量无瓶颈时可完成测量任务，不凭空追加优化实现。
+7. 推送、标签和发布按届时用户授权执行；本执行台账不把“完成复审”自动等同于批准发布。
+
+## 9. 本轮编制验证
+
+本轮只编写执行报告，不运行修复，不执行业务测试，不提交/推送。交付前校验任务 ID 唯一、依赖存在且无环、全部 R01–R22 有映射、索引与任务卡计数一致、源文件路径可定位及新增文件有标注；保留调查基线而不冒充重新验证。
+
+编制校验已通过：90 个唯一任务 ID、90 行执行索引、22 项来源映射；所有依赖均先于依赖者出现在推荐顺序中，无环或悬空引用；任务卡字段齐全，现有入口路径均可定位，计划新建文件明确标注。已复核 Android/iOS 命令与平台关闭条件，未把环境阻塞或跳过测试记作通过。
+
+编制过程中识别出 Android Gradle 的机器专属 JDK 路径这一执行障碍，单列 RF-208；调查时默认 Vitest pool 未结束的问题单列 RF-316。两项均要求后续核实和验收，不在本轮修改。
+
+工作树原有的 Cargo 配置、NSIS 图片和搜索索引改动继续保留；前一轮调查报告也保留。本轮专用任务合并临时文件在交付前删除。
