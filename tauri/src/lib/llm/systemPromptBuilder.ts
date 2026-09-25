@@ -239,6 +239,7 @@ function buildMessagesWithSystemPrompt(
 /**
  * 将 Help Doc 合并到单条 system message 中，避免多 system message 导致模型忽略。
  * Help Doc 放在 system prompt 之后，用明确的分隔线隔开。
+ * history 只包含本次输入之前的消息；userPrompt 在末尾追加一次。
  */
 export function buildMessagesWithSystemPromptAndGuide(
   userPrompt: string,

@@ -9,7 +9,7 @@ import type { ChatMsg } from '@/types/llmChat';
 export interface BuildChatRequestMessagesOptions {
   /** 用户当前输入。 */
   text: string;
-  /** 已追加用户消息的历史（含本次用户消息）。 */
+  /** 本次输入之前的历史；当前输入由 builder 追加一次。 */
   history: ChatMsg[];
   /** 是否注入系统提示词与指南上下文。 */
   includeSystemPrompt: boolean;

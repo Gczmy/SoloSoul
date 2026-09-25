@@ -81,7 +81,9 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   const copiedIndex = copiedKey === null ? null : Number(copiedKey);
 
   // 子 hook：provider 配置加载 / 在线状态轮询 / 流式副作用编排
-  const { activeProvider, isConfigured, isAiEnabled, loading } = useLlmProviderConfig({ accountId });
+  const { activeProvider, isConfigured, isAiEnabled, loading } = useLlmProviderConfig({
+    accountId,
+  });
   const { isOnline, checkingOnline, checkOnline } = useLlmOnlineStatus({
     activeProvider,
     accountId,
@@ -103,7 +105,9 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      const list = await invoke<ConversationSummary[]>('llm_list_conversations', { accountId: accountId });
+      const list = await invoke<ConversationSummary[]>('llm_list_conversations', {
+        accountId: accountId,
+      });
       if (!controller.signal.aborted) setConversations(list);
     } catch (err) {
       // P227: 会话列表加载失败静默降级（列表留空），留痕。
@@ -184,7 +188,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       const effectiveIncludeSystemPrompt = optIncludeSystemPrompt ?? true;
       const allMessages = await buildChatRequestMessages({
         text,
-        history: updatedMessages,
+        history: messages,
         includeSystemPrompt: effectiveIncludeSystemPrompt,
       });
 

@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**91**（P1：32；P2：58；P3：1）。
-- 已关闭：**3 / 91**；实际修复（已关闭）：3；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900。
-- 当前处理：**无实施项**；当前阶段：RF-100、RF-900、RF-316 已完成；RF-001 因 R 基线受阻，依赖它的任务暂缓，可继续无依赖的 RF-101。
+- 已关闭：**4 / 91**；实际修复（已关闭）：4；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900。
+- 当前处理：**无实施项**；当前阶段：RF-100、RF-900、RF-316、RF-101 已完成；RF-001 因 R 基线受阻，依赖它的任务暂缓。下一项为无依赖的 RF-102。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -130,7 +130,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 2 | [RF-001](#rf-001) | P1 | 建立最小会话捕获与提交校验机制 | 无 | [!] 阻塞（R 基线启动失败） |
 | 3 | [RF-002](#rf-002) | P1 | LLM 流式回复绑定请求开始时的会话 | [RF-001](#rf-001) | [ ] 待执行 |
 | 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001) | [ ] 待执行 |
-| 5 | [RF-101](#rf-101) | P2 | 本次用户消息只追加一次 | 无 | [ ] 待执行 |
+| 5 | [RF-101](#rf-101) | P2 | 本次用户消息只追加一次 | 无 | [x] 完成 |
 | 6 | [RF-004](#rf-004) | P1 | Rust 生成普通聊天的受控自动上下文 | [RF-001](#rf-001)、[RF-100](#rf-100)、[RF-101](#rf-101) | [ ] 待执行 |
 | 7 | [RF-005](#rf-005) | P1 | 普通聊天通过 provider ID 在 Rust 解析凭证 | [RF-001](#rf-001)、[RF-002](#rf-002)、[RF-004](#rf-004) | [ ] 待执行 |
 | 8 | [RF-102](#rf-102) | P1 | 搜索查询与缓存写入绑定会话和请求代次 | 无 | [ ] 待执行 |
@@ -1299,7 +1299,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - 正在使用同一依赖比较默认 forks（`npm run test -- --maxWorkers=2 --reporter=dot`）与 threads，并保留原始默认入口的验收；未将单次定向通过当作 runner 已稳定。
 - 默认 forks/2 的首次完整结果：140 文件启动，139 文件通过、1 文件失败，1,147 passed / 1 failed；剩余 PhotoAlbumOverlay 的冷查看器加载超过其原有 8 秒交互等待。该文件现预载真实 PhotoViewerOverlay 模块以隔离 Vite/framer-motion 冷编译耗时，lazy 导出和查看器交互保持真实，未增加 8 秒/12 秒超时值。该文件在 forks/2 定向重跑 12/12 通过（3.98s）。本项实际范围追加 `tauri/src/components/attachment/PhotoAlbumOverlay.test.tsx`。
 - 最终代码的 `npm run test`（没有 pool、worker 或 reporter 参数）exit 0：140 文件、1,148 测试全部通过，无跳过/worker 错误，71.20s 正常退出。新修改文件定向 ESLint、完整 TypeScript 与 Prettier check 均 exit 0；先前完整 Lint 已通过且未修改其他前端文件。threads 全量对照仍在运行。
-- 对照完成：`npm run test -- --pool=threads --maxWorkers=2 --reporter=dot` exit 0，140 文件/1,148 测试全部通过，无跳过/worker 错误，129.83s；用例数量与默认入口一致。原始内存压力下的 worker 启动超时仍保留在历史记录，未将所有环境问题归因于测试代码。结论：**完成**，已修复确认的测试依赖/生命周期问题并恢复默认完整入口；无证据需要切换全局 runner 或修改 CI。提交为本提交（标题含 RF-316），未推送。
+- 对照完成：`npm run test -- --pool=threads --maxWorkers=2 --reporter=dot` exit 0，140 文件/1,148 测试全部通过，无跳过/worker 错误，129.83s；用例数量与默认入口一致。原始内存压力下的 worker 启动超时仍保留在历史记录，未将所有环境问题归因于测试代码。结论：**完成**，已修复确认的测试依赖/生命周期问题并恢复默认完整入口；无证据需要切换全局 runner 或修改 CI。独立提交 `e6743095`，未推送。
 
 ### RF-100 执行记录
 
@@ -1360,3 +1360,12 @@ git commit -m "<任务卡的提交标题>"
 编制过程中识别出 Android Gradle 的机器专属 JDK 路径这一执行障碍，单列 RF-208；调查时默认 Vitest pool 未结束的问题单列 RF-316。两项均要求后续核实和验收，不在本轮修改。
 
 工作树原有的 Cargo 配置、NSIS 图片和搜索索引改动继续保留；前一轮调查报告也保留。本轮专用任务合并临时文件在交付前删除。
+
+### RF-101 执行记录
+
+- 修复前 HEAD：`e6743095`。`useLlmChatCore.sendMessage` 原先将已追加输入的 `updatedMessages` 传给仍会追加输入的 builder，开启/关闭系统提示均重复发送。
+- 修复：传入追加前的 `messages`；UI、首次持久化继续使用 `updatedMessages`，不改动流归属、保存流程或协议。明确两个 builder 的 history 契约，并更新 LLM 规范 §6.7。
+- 回归：新增 `chatRequest.test.ts` 的 8 项测试，组合系统提示开启/关闭、空历史/多轮历史，既检查真实 builder 的完整序列、指南合并、历史不可变，也用真实 hook 与 builder 捕获最终 IPC 请求、UI 消息和首次保存。系统 IPC/指南/流监听采用合成 fixture，无外部发送。
+- 修复前：测试 fixture 初次加载因 i18n mock 缺依赖失败（0 tests），补齐 store 隔离后 4 个 builder 测试通过、4 个真实 hook 测试稳定复现重复输入。修复后定向执行 chatRequest 与 systemPromptBuilder，2 文件/14 测试全部通过，exit 0。
+- F 验证：TypeScript（本地 `node node_modules/typescript/bin/tsc --noEmit`）、`npm run lint` 均 exit 0；4 个修改的 TS 文件已单独 Prettier 格式化；默认 `npm run test` exit 0，141 文件/1,156 测试全部通过，无跳过或 worker 错误，75.69s。`git diff --check` 和报告 ID/索引一致性检查通过。
+- 结论：**完成**；本提交（标题含 RF-101），未推送。原有 Cargo 配置、NSIS 图片与搜索索引改动未纳入。
