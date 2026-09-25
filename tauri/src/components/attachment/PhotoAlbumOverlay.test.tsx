@@ -3,6 +3,9 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import { invoke } from '@tauri-apps/api/core';
 import { PhotoAlbumOverlay } from './PhotoAlbumOverlay';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
+// 本组验证真实查看器的打开/返回交互，预载依赖以隔离 Vite/framer-motion 冷编译耗时。
+// LazyPhotoViewerOverlay 仍走真实命名导出映射，不替换查看器实现。
+import './PhotoViewerOverlay';
 
 const mockInvoke = vi.mocked(invoke);
 // 8 秒懒加载等待之外，保留后续返回操作的断言时间，避免用例先于 waitFor 超时。

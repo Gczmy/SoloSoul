@@ -119,15 +119,15 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**91**（P1：32；P2：58；P3：1）。
-- 已关闭：**1 / 91**；实际修复（已关闭）：1；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900；RF-100 代码已修复，完整验收尚未关闭。
-- 当前处理：**无实施项**；当前阶段：RF-900 已关闭，继续 RF-316 的前端验证阻塞；RF-001 的 R 检查仍有 GUI 测试启动错误。
+- 已关闭：**3 / 91**；实际修复（已关闭）：3；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900。
+- 当前处理：**无实施项**；当前阶段：RF-100、RF-900、RF-316 已完成；RF-001 因 R 基线受阻，依赖它的任务暂缓，可继续无依赖的 RF-101。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
 | 顺序 | ID | 优先级 | 任务 | 前置任务 | 状态 |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | [RF-100](#rf-100) | P1 | 自动上下文立即排除非公开字段 | 无 | [!] 待验证 |
-| 2 | [RF-001](#rf-001) | P1 | 建立最小会话捕获与提交校验机制 | 无 | [ ] 待执行 |
+| 1 | [RF-100](#rf-100) | P1 | 自动上下文立即排除非公开字段 | 无 | [x] 完成 |
+| 2 | [RF-001](#rf-001) | P1 | 建立最小会话捕获与提交校验机制 | 无 | [!] 阻塞（R 基线启动失败） |
 | 3 | [RF-002](#rf-002) | P1 | LLM 流式回复绑定请求开始时的会话 | [RF-001](#rf-001) | [ ] 待执行 |
 | 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001) | [ ] 待执行 |
 | 5 | [RF-101](#rf-101) | P2 | 本次用户消息只追加一次 | 无 | [ ] 待执行 |
@@ -208,7 +208,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 80 | [RF-313](#rf-313) | P2 | 修正 canonical 架构与安全事实文档 | 无 | [ ] 待执行 |
 | 81 | [RF-314](#rf-314) | P2 | 建立平台能力与验收证据矩阵 | [RF-205](#rf-205) | [ ] 待执行 |
 | 82 | [RF-315](#rf-315) | P2 | 对齐 LLM 数据流与隐私说明 | [RF-100](#rf-100)、[RF-004](#rf-004)、[RF-005](#rf-005) | [ ] 待执行 |
-| 83 | [RF-316](#rf-316) | P2 | 诊断并稳定默认前端测试运行入口 | 无 | [ ] 待执行 |
+| 83 | [RF-316](#rf-316) | P2 | 诊断并稳定默认前端测试运行入口 | 无 | [x] 完成 |
 | 84 | [RF-308](#rf-308) | P2 | 接入有实际执行证据的覆盖率门禁 | [RF-316](#rf-316) | [ ] 待执行 |
 | 85 | [RF-311](#rf-311) | P2 | 收敛重复 CI 步骤且保持平台覆盖 | [RF-308](#rf-308)、[RF-309](#rf-309)、[RF-310](#rf-310) | [ ] 待执行 |
 | 86 | [RF-317](#rf-317) | P2 | 迁移 LLM 结构化错误 | [RF-303](#rf-303)、[RF-307](#rf-307) | [ ] 待执行 |
@@ -265,6 +265,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验收：**同账户重新解锁也使旧令牌失效；失败解锁不复活旧代次；校验与写入之间插入锁定屏障时，提交只能在锁定前完整完成或明确拒绝；锁定不等待网络。
 - **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**新增 vault_service/tests.rs::rf001_*；在 tauri/ 运行 cargo test -p solosoul-core --lib rf001_ -- --test-threads=1。
 - **建议提交：**`fix: resolve [RF-001] - add generation-bound vault session guards`。
+- **2026-09-25 执行阻塞：**尚未修改本项代码。R 全量基线的 GUI 测试程序在执行用例前返回 `0xc0000139 / STATUS_ENTRYPOINT_NOT_FOUND`；需先定位入口点/运行依赖问题并恢复 R 验证能力，不能用 CLI 或 cargo check 通过替代。CLI 的语言和 sqlite3 前置已由 RF-900/环境配置解决。
 
 ### RF-002
 
@@ -1113,7 +1114,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 **接入有实际执行证据的覆盖率门禁** · P2 · 来源：R21
 
 - **前置：**[RF-316](#rf-316)。
-- **入口：**`tauri/vitest.config.ts`；`tauri/package.json`；`.github/workflows/pr_check.yml`；`.github/workflows/ci_cd.yml`。
+- **入口：**`tauri/vitest.config.ts`；`tauri/package.json`；`.github/workflows/pr_check.yml`；`.github/workflows/ci_cd.yml`；本轮复现涉及 `tauri/src/lib/updater.test.ts` 与 `tauri/src/components/recovery/LazyRecoveryReceiveDialog.test.tsx`。
 - **执行：**实际运行 coverage 获取当前基线，新增显式 coverage script/job；沿现有门槛检查，不只配置阈值而不执行。若当前达不到门槛，登记具体缺口任务并保持本项未完成，禁止直接降低数值换通过。去除重复 coverage 执行。
 - **验收：**CI 执行 coverage 并上传报告；故意降低已覆盖风险分支会触发门禁；阈值来源与排除范围有记录。
 - **验证配置：**`F` + `COVERAGE`。**定向验证：**npm run test -- --coverage；核对 CI job 的实际日志，不以 YAML 出现 threshold 为通过。
@@ -1287,7 +1288,18 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - 补齐环境前置：从 [SQLite 官方下载页](https://www.sqlite.org/download.html) 获取 Windows x64 tools 3.53.4，SHA3-256 `88b4659fe747896b853af10157316b4ade143553efb89c1c8ca7423a278dcc8b` 与官网元数据一致后解压至 `solosoul_cli/target/rf-test-tools`，仅对测试进程 PATH 生效，没有系统安装。该目录是被忽略的测试依赖缓存，不入库；后续 CLI 验证须在 PATH 包含此目录或已有 sqlite3 CLI 的环境执行。
 - 验证命令（`solosoul_cli/`）：`$env:PATH = "$PWD/target/rf-test-tools;" + $env:PATH`，随后 `cargo test -j 1 --verbose --no-fail-fast`。不跳过原先因缺 sqlite3 失败的损坏 profile 测试。
 - 完整结果：exit 0，lib 164/164、向导集成 2/2，通过合计 166；1 个原有文档示例 ignored。中英文初始化及 `test_set_locale_switch` 均通过；13 个语言相关失败与损坏 profile 测试全部通过，未增加 skip 或放宽断言。仅恢复 Cargo 自动刷新的 5 个 workspace crate 版本，无 lockfile 变更纳入提交。
-- 结论：**完成**；提交为本提交（标题含 RF-900），未推送。
+- 结论：**完成**；提交 `81acdc77`，未推送。
+
+### RF-316 执行记录
+
+- 修复前 HEAD：`81acdc77`。先处理 RF-100 全量验收中重复出现的 2 个失败文件；没有修改 Vitest pool、worker 配置、CI 或任何超时值。
+- 确认原因：`ensureApkDownloaded` 在创建操作前动态导入真实 notification 模块，下载测试没有隔离系统权限及其 store 依赖，导致 waitFor 超时后旧异步操作进入后续测试。该模块现用异步权限成功 fixture 隔离，保留所有下载取消/释放/失败断言。
+- 恢复弹窗测试原本既依赖冷模块加载在 1 秒内完成，又依赖摄像头能力探测尚未完成时的临时扫码 tab。现在先 render 触发懒加载，再通过 `act + vi.dynamicImportSettled` 等待真实模块与 React 更新；显式固定摄像头 supported，仅 mock 扫码视图，保留真实对话框、useRecoveryReceive 和命名导出映射断言。
+- 定位过程中定向测试仍发现“加载已完成但已切换手动 tab”的失败，未删除扫码视图断言，改为明确其硬件 fixture。最终 `node node_modules/vitest/vitest.mjs run src/lib/updater.test.ts src/components/recovery/LazyRecoveryReceiveDialog.test.tsx --pool=threads --maxWorkers=2 --reporter=verbose` exit 0，2 文件/17 测试，无跳过，2.02s。
+- 正在使用同一依赖比较默认 forks（`npm run test -- --maxWorkers=2 --reporter=dot`）与 threads，并保留原始默认入口的验收；未将单次定向通过当作 runner 已稳定。
+- 默认 forks/2 的首次完整结果：140 文件启动，139 文件通过、1 文件失败，1,147 passed / 1 failed；剩余 PhotoAlbumOverlay 的冷查看器加载超过其原有 8 秒交互等待。该文件现预载真实 PhotoViewerOverlay 模块以隔离 Vite/framer-motion 冷编译耗时，lazy 导出和查看器交互保持真实，未增加 8 秒/12 秒超时值。该文件在 forks/2 定向重跑 12/12 通过（3.98s）。本项实际范围追加 `tauri/src/components/attachment/PhotoAlbumOverlay.test.tsx`。
+- 最终代码的 `npm run test`（没有 pool、worker 或 reporter 参数）exit 0：140 文件、1,148 测试全部通过，无跳过/worker 错误，71.20s 正常退出。新修改文件定向 ESLint、完整 TypeScript 与 Prettier check 均 exit 0；先前完整 Lint 已通过且未修改其他前端文件。threads 全量对照仍在运行。
+- 对照完成：`npm run test -- --pool=threads --maxWorkers=2 --reporter=dot` exit 0，140 文件/1,148 测试全部通过，无跳过/worker 错误，129.83s；用例数量与默认入口一致。原始内存压力下的 worker 启动超时仍保留在历史记录，未将所有环境问题归因于测试代码。结论：**完成**，已修复确认的测试依赖/生命周期问题并恢复默认完整入口；无证据需要切换全局 runner 或修改 CI。提交为本提交（标题含 RF-316），未推送。
 
 ### RF-100 执行记录
 
@@ -1297,7 +1309,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - 回归：新增 `systemPromptBuilder.test.ts`，调用最终 `buildChatRequestMessages`，使用 mock 指南服务与合成数据，无外部 API 调用。6 项覆盖四等级/未知等级、优先级冲突、已删除模板、嵌套动态组、未识别结构、过滤后数量限制与对象不可变。
 - 已通过：`tauri/npx tsc --noEmit`、`npm run lint`，exit 0；定向 `node node_modules/vitest/vitest.mjs run src/lib/llm/systemPromptBuilder.test.ts --pool=threads --maxWorkers=2 --reporter=verbose`，exit 0，1 文件/6 测试，无跳过；修改的 3 个 TS 文件已单独 Prettier 格式化。
 - 规范：`docs/design_map/20_LLM配置与AI对话规范.md` §6.6。现有 `propertyFlatten` 与回收站显示行为未改动；本项不扩大出站授权、不变更手工消息，Rust 权限投影仍由 RF-004 承接。
-- 当前结论：代码已修复，定向回归通过；由于前端全量检查存在其他模块失败，保留 **待验证**，不计入已关闭。本提交标题含 RF-100；未推送。
+- 初次提交结论为待验证；RF-316 修复测试基线后，默认与 threads 完整前端检查均已通过（140 文件/1,148 测试），其余 F/DOC 检查已通过。最终结论：**完成**。修复独立提交 `3ae797ca`，本轮不推送。
 - 首次全量前端结果：`node node_modules/vitest/vitest.mjs run --pool=threads --maxWorkers=2 --reporter=dot`，exit 1，134 文件通过 / 2 文件失败，1,111 测试通过 / 3 失败，另 4 个工作进程启动超时。失败文件为 `updater.test.ts`（2 项）、`LazyRecoveryReceiveDialog.test.tsx`（1 项）；未启动文件为 Button、SensitivityBadge、exportFormat、syncPeer 的测试。正在串行复跑这 6 个文件以区分负载超时与实际缺陷，保留首跑失败记录。
 - 串行复跑命令：`node node_modules/vitest/vitest.mjs run src/lib/updater.test.ts src/components/recovery/LazyRecoveryReceiveDialog.test.tsx src/components/ui/Button.test.tsx src/components/ui/SensitivityBadge.test.tsx src/lib/exportFormat.test.ts src/lib/syncPeer.test.ts --pool=threads --maxWorkers=1 --reporter=verbose`；exit 1，4 文件/34 测试通过，恢复弹窗 1 项仍在 1 秒断言窗口超时，updater 工作进程启动超时。4 个首跑未启动文件已得到通过证据；不把重跑描述为全绿，也不提高超时或删除断言。RF-316 优先排查 runner/资源争用及异步测试稳定性，再补 RF-100 全量验收。
 - Tauri 编译结束后再次全量重跑（同 threads/2 命令）：exit 1，138 文件通过 / 2 失败，1,144 测试通过 / 4 失败；140 个文件均启动，没有 worker 启动错误。剩余 updater 3 项及 LazyRecoveryReceiveDialog 1 项，因此不能仅将所有失败归因于内存压力；需 RF-316 核对异步依赖和测试生命周期。RF-100 提交 SHA：`3ae797ca`。

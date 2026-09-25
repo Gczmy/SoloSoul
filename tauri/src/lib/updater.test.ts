@@ -33,6 +33,10 @@ vi.mock('@tauri-apps/api/core', () => ({
   },
 }));
 vi.mock('@/lib/logger', () => ({ logger: { warn: vi.fn(), error: vi.fn() } }));
+// 下载状态机测试不加载真实通知权限模块及其 store/系统 API 依赖。
+vi.mock('@/lib/notification', () => ({
+  requestNotificationPermissionOnce: async () => true,
+}));
 
 import {
   checkForUpdate,
