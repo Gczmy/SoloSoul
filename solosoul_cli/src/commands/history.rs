@@ -123,6 +123,18 @@ fn do_rollback(app: &mut App, object_id: &str, snapshot_id: &str) -> Result<()> 
     if !snapshot["properties"].is_null() {
         record.properties = snapshot["properties"].clone();
     }
+    // RF-007：camelCase 优先，兼容旧 snake_case。缺字段保留当前标签，
+    // 显式 null 清除标签；非法结构在任何持久化之前拒绝，不能当成空标签。
+    if let Some(labels) = snapshot
+        .get("propertyLabels")
+        .or_else(|| snapshot.get("property_labels"))
+    {
+        record.property_labels = match labels {
+            serde_json::Value::Null => None,
+            serde_json::Value::Object(_) => Some(labels.clone()),
+            _ => return Err(color_eyre::eyre::eyre!("快照字段标签必须是对象或 null")),
+        };
+    }
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
 
@@ -135,6 +147,7 @@ fn do_rollback(app: &mut App, object_id: &str, snapshot_id: &str) -> Result<()> 
         "name": record.name,
         "tags": record.tags_json,
         "properties": record.properties,
+        "propertyLabels": record.property_labels,
     }))
     .map_err(|e| color_eyre::eyre::eyre!("序列化回滚快照失败: {}", e))?;
     vault
@@ -363,5 +376,168 @@ mod tests {
         assert_eq!(rolled.name, "old_name");
         assert_eq!(rolled.properties["title"], "old_title");
         assert!(app.success_message.is_some());
+    }
+
+    /// 两种历史格式都恢复标签；新生成的回滚快照可再回滚而不丢字段语义。
+    #[test]
+    fn rf007_restores_both_label_formats_and_chained_snapshots() {
+        let (mut app, account_id, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+        for key in ["propertyLabels", "property_labels"] {
+            let id = format!("rf007_{}", obj_counter());
+            let mut object = make_obj(account_id.clone(), &id, "current");
+            object.property_labels = Some(serde_json::json!({ "title": "public" }));
+            vault.save_object(&object).unwrap();
+            let fields = serde_json::json!({
+                "title": "old secret",
+                "__fields": { "title": { "name": "Historical label", "type": "text", "sensitivityLevel": "critical" } }
+            });
+            let mut snapshot = serde_json::json!({ "name": "historical", "properties": fields });
+            snapshot[key] = serde_json::json!({ "title": "critical" });
+            vault
+                .save_snapshot(
+                    &id,
+                    "user_edit",
+                    &serde_json::to_vec(&snapshot).unwrap(),
+                    "old",
+                )
+                .unwrap();
+            let source = snapshot_id_of(&vault, &id);
+            do_rollback(&mut app, &id, &source).unwrap();
+            let restored = vault.load_object(&id).unwrap().unwrap();
+            assert_eq!(
+                restored.property_labels,
+                Some(serde_json::json!({ "title": "critical" }))
+            );
+            assert_eq!(restored.properties, fields);
+            assert!(restored.template_id.is_none(), "标签恢复不依赖现存模板");
+            let rollback_id = vault
+                .list_snapshots(&id)
+                .unwrap()
+                .into_iter()
+                .find(|entry| entry["triggeredBy"] == "rollback")
+                .unwrap()["id"]
+                .as_str()
+                .unwrap()
+                .to_owned();
+            let generated: serde_json::Value =
+                serde_json::from_slice(&vault.get_snapshot(&rollback_id).unwrap().unwrap())
+                    .unwrap();
+            assert_eq!(
+                generated["propertyLabels"],
+                restored.property_labels.clone().unwrap()
+            );
+            let mut changed = restored.clone();
+            changed.property_labels = Some(serde_json::json!({ "title": "public" }));
+            changed.properties = serde_json::json!({ "title": "changed" });
+            vault.save_object(&changed).unwrap();
+            do_rollback(&mut app, &id, &rollback_id).unwrap();
+            let chained = vault.load_object(&id).unwrap().unwrap();
+            assert_eq!(chained.property_labels, restored.property_labels);
+            assert_eq!(chained.properties, restored.properties);
+            assert_eq!(chained.version, restored.version + 1);
+        }
+    }
+
+    #[test]
+    fn rf007_missing_null_empty_and_alias_priority_are_explicit() {
+        let (mut app, account_id, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+        let preserved = serde_json::json!({ "title": "critical" });
+        for (snapshot, expected) in [
+            (
+                serde_json::json!({ "properties": { "title": "legacy" } }),
+                Some(preserved.clone()),
+            ),
+            (serde_json::json!({ "propertyLabels": null }), None),
+            (serde_json::json!({ "property_labels": null }), None),
+            (
+                serde_json::json!({ "propertyLabels": {} }),
+                Some(serde_json::json!({})),
+            ),
+            (
+                serde_json::json!({ "propertyLabels": { "title": "sensitive" }, "property_labels": { "title": "public" } }),
+                Some(serde_json::json!({ "title": "sensitive" })),
+            ),
+            (
+                serde_json::json!({ "propertyLabels": null, "property_labels": { "title": "critical" } }),
+                None,
+            ),
+        ] {
+            let id = format!("rf007_{}", obj_counter());
+            let mut object = make_obj(account_id.clone(), &id, "current");
+            object.property_labels = Some(preserved.clone());
+            vault.save_object(&object).unwrap();
+            vault
+                .save_snapshot(
+                    &id,
+                    "user_edit",
+                    &serde_json::to_vec(&snapshot).unwrap(),
+                    "old",
+                )
+                .unwrap();
+            do_rollback(&mut app, &id, &snapshot_id_of(&vault, &id)).unwrap();
+            assert_eq!(
+                vault.load_object(&id).unwrap().unwrap().property_labels,
+                expected
+            );
+            let generated_id = vault
+                .list_snapshots(&id)
+                .unwrap()
+                .into_iter()
+                .find(|entry| entry["triggeredBy"] == "rollback")
+                .unwrap()["id"]
+                .as_str()
+                .unwrap()
+                .to_owned();
+            let generated: serde_json::Value =
+                serde_json::from_slice(&vault.get_snapshot(&generated_id).unwrap().unwrap())
+                    .unwrap();
+            assert_eq!(
+                generated.get("propertyLabels"),
+                Some(&expected.unwrap_or(serde_json::Value::Null))
+            );
+        }
+    }
+
+    #[test]
+    fn rf007_invalid_labels_reject_before_object_history_or_audit_writes() {
+        let (mut app, account_id, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+        for (key, bad) in [
+            ("propertyLabels", serde_json::json!([])),
+            ("property_labels", serde_json::json!("bad")),
+            ("propertyLabels", serde_json::json!(false)),
+        ] {
+            let id = format!("rf007_{}", obj_counter());
+            let mut object = make_obj(account_id.clone(), &id, "unchanged");
+            object.property_labels = Some(serde_json::json!({ "title": "critical" }));
+            vault.save_object(&object).unwrap();
+            let mut snapshot =
+                serde_json::json!({ "name": "changed", "properties": { "title": "changed" } });
+            snapshot[key] = bad;
+            if key == "propertyLabels" {
+                snapshot["property_labels"] = serde_json::json!({ "title": "public" });
+            }
+            vault
+                .save_snapshot(
+                    &id,
+                    "user_edit",
+                    &serde_json::to_vec(&snapshot).unwrap(),
+                    "bad",
+                )
+                .unwrap();
+            let snapshots = vault.list_snapshots(&id).unwrap();
+            let audit_count = vault.list_audit_log(100).unwrap().len();
+            assert!(do_rollback(&mut app, &id, &snapshot_id_of(&vault, &id)).is_err());
+            let actual = vault.load_object(&id).unwrap().unwrap();
+            assert_eq!(actual.name, object.name);
+            assert_eq!(actual.properties, object.properties);
+            assert_eq!(actual.property_labels, object.property_labels);
+            assert_eq!(actual.version, object.version);
+            assert_eq!(actual.updated_at, object.updated_at);
+            assert_eq!(vault.list_snapshots(&id).unwrap(), snapshots);
+            assert_eq!(vault.list_audit_log(100).unwrap().len(), audit_count);
+        }
     }
 }
