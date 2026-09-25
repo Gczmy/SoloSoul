@@ -12,6 +12,7 @@ import { useLlmOnlineStatus } from '@/hooks/useLlmOnlineStatus';
 import { useLlmStreaming } from '@/hooks/useLlmStreaming';
 import { buildChatRequestMessages } from '@/lib/llm/chatRequest';
 import { saveConversationSafely } from '@/lib/llm/conversationPersistence';
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import {
   type ChatMsg,
   type Conversation,
@@ -53,6 +54,7 @@ export interface UseLlmChatCoreReturn {
   sendMessage: () => Promise<void>;
   loadConversation: (convId: string) => Promise<void>;
   loadConversationList: () => Promise<void>;
+  invalidateReads: () => void;
   handleCopy: (content: string, index: number) => Promise<void>;
   checkOnline: () => void;
 }
@@ -63,6 +65,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   const { t } = useTranslation(['settings', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const abortRef = useRef<AbortController | null>(null);
+  const [readRequests] = useState(createSessionRequests);
   // P117: 字段级选择器——避免整店订阅导致每次 token 更新整页重渲染；
   // action（startStream/onChunk/reset）在 store 中定义一次，引用稳定，
   // 使 useCallback 依赖不随 store 更新而漂移。
@@ -72,10 +75,34 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   const reset = useLlmStore((s) => s.reset);
 
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
-  const [currentConvId, setCurrentConvId] = useState<string | null>(null);
+  const [currentConvId, setCurrentConvIdState] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const invalidateReads = useCallback(() => readRequests.invalidate(), [readRequests]);
+  const setCurrentConvId = useCallback(
+    (id: string | null) => {
+      readRequests.invalidate('body');
+      setCurrentConvIdState(id);
+    },
+    [readRequests],
+  );
+  useEffect(() => {
+    const clear = () => {
+      invalidateReads();
+      setConversations([]);
+      setCurrentConvIdState(null);
+      setMessages([]);
+      setInput('');
+      setIsSending(false);
+    };
+    clear();
+    const unsubscribe = onRequestSessionChange(clear);
+    return () => {
+      unsubscribe();
+      invalidateReads();
+    };
+  }, [accountId, invalidateReads]);
   // P025：复制反馈收敛至共享 hook（按消息下标键控）
   const { copy, copiedKey } = useCopyToClipboard(COPY_FEEDBACK_DURATION_MS);
   const copiedIndex = copiedKey === null ? null : Number(copiedKey);
@@ -101,19 +128,17 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   /* Load conversation list */
   const loadConversationList = useCallback(async () => {
     if (!accountId || !isAiEnabled || !isConfigured) return;
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
+    const request = readRequests.begin('list', accountId);
     try {
-      const list = await invoke<ConversationSummary[]>('llm_list_conversations', {
+      const list = await request.invoke<ConversationSummary[]>('llm_list_conversations', {
         accountId: accountId,
       });
-      if (!controller.signal.aborted) setConversations(list);
+      if (request.isCurrent()) setConversations(list);
     } catch (err) {
       // P227: 会话列表加载失败静默降级（列表留空），留痕。
-      logger.warn('[useLlmChatCore] Load conversation list failed:', err);
+      if (request.isCurrent()) logger.warn('[useLlmChatCore] Load conversation list failed:', err);
     }
-  }, [accountId, isAiEnabled, isConfigured]);
+  }, [accountId, isAiEnabled, isConfigured, readRequests]);
 
   useEffect(() => {
     loadConversationList();
@@ -123,19 +148,21 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   const loadConversation = useCallback(
     async (convId: string) => {
       if (!accountId) return;
+      const request = readRequests.begin('body', accountId);
       try {
-        const conv = await invoke<Conversation>('llm_get_conversation', {
+        const conv = await request.invoke<Conversation>('llm_get_conversation', {
           accountId: accountId,
           conversationId: convId,
         });
-        setCurrentConvId(conv.id);
+        if (!request.isCurrent()) return;
+        setCurrentConvIdState(conv.id);
         setMessages(conv.messages.map((m) => (m.id ? m : { ...m, id: generateId() })));
       } catch (err) {
         // P227: 会话可能已被删除（可接受降级），留痕。
-        logger.warn('[useLlmChatCore] Load conversation failed:', err);
+        if (request.isCurrent()) logger.warn('[useLlmChatCore] Load conversation failed:', err);
       }
     },
-    [accountId],
+    [accountId, readRequests],
   );
 
   /* Send message */
@@ -244,6 +271,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     startStream,
     onChunk,
     reset,
+    setCurrentConvId,
     onConversationSaved,
     t,
   ]);
@@ -283,6 +311,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     sendMessage,
     loadConversation,
     loadConversationList,
+    invalidateReads,
     handleCopy,
     checkOnline,
   };

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,32 +41,31 @@ export function AiQuickChatPopover({ onClose }: { onClose: () => void }) {
   const core = useLlmChatCore({
     includeSystemPrompt: true,
   });
+  const { invalidateReads, loadConversation: loadCoreConversation } = core;
 
-  // Restore previous conversation from localStorage
+  const close = useCallback(() => {
+    invalidateReads();
+    onClose();
+  }, [invalidateReads, onClose]);
+
+  // 账户变化重新恢复；只有 core 接纳的当前会话才进入本地记忆。
   useEffect(() => {
     if (!core.loading && quickChatStorageKey) {
       const savedConvId = localStorage.getItem(quickChatStorageKey);
-      if (savedConvId) {
-        core.loadConversation(savedConvId).catch(() => {
-          localStorage.removeItem(quickChatStorageKey!);
-        });
-      }
+      if (savedConvId) void loadCoreConversation(savedConvId);
     }
-    // Only run on mount / when loading completes
-    // P212: quickChatStorageKey/core.loadConversation omitted intentionally —
-    // they are stable; adding them would re-trigger after every conversation load.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [core.loading]);
+  }, [core.loading, quickChatStorageKey, loadCoreConversation]);
 
-  // Save conv ID to localStorage when it changes
-  const prevConvIdRef = useRef<string | null>(null);
+  const previousStorageKey = useRef(quickChatStorageKey);
   useEffect(() => {
-    if (core.currentConvId && core.currentConvId !== prevConvIdRef.current && quickChatStorageKey) {
-      prevConvIdRef.current = core.currentConvId;
+    if (previousStorageKey.current !== quickChatStorageKey) {
+      previousStorageKey.current = quickChatStorageKey;
+      return; // 账户变化这一帧，core 正在清空旧账户的本地 state。
+    }
+    if (quickChatStorageKey && core.currentConvId) {
       localStorage.setItem(quickChatStorageKey, core.currentConvId);
     }
   }, [core.currentConvId, quickChatStorageKey]);
-
   // Close history dropdown on outside click within card
   useEffect(() => {
     if (!showHistory) return;
@@ -84,7 +83,7 @@ export function AiQuickChatPopover({ onClose }: { onClose: () => void }) {
     const handler = (e: MouseEvent) => {
       if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
         if ((e.target as HTMLElement).closest('[data-ai-button]')) return;
-        onClose();
+        close();
       }
     };
     outsideClickTimeoutRef.current = setTimeout(
@@ -97,16 +96,16 @@ export function AiQuickChatPopover({ onClose }: { onClose: () => void }) {
       }
       document.removeEventListener('mousedown', handler);
     };
-  }, [onClose]);
+  }, [close]);
 
   // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') close();
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [onClose]);
+  }, [close]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -122,7 +121,6 @@ export function AiQuickChatPopover({ onClose }: { onClose: () => void }) {
 
   const loadConversation = async (convId: string) => {
     await core.loadConversation(convId);
-    if (quickChatStorageKey) localStorage.setItem(quickChatStorageKey, convId);
   };
 
   return (
@@ -183,7 +181,7 @@ export function AiQuickChatPopover({ onClose }: { onClose: () => void }) {
           )}
           <button
             onClick={() => {
-              onClose();
+              close();
               navigate('/llm-chat');
             }}
             title={t('settings:ai_quick_chat_go_full')}
@@ -198,7 +196,7 @@ export function AiQuickChatPopover({ onClose }: { onClose: () => void }) {
             <ArrowUpRight size={ICON_SIZE.sm} />
           </button>
           <button
-            onClick={onClose}
+            onClick={close}
             title={t('common:close')}
             className="interactive-icon"
             style={{
@@ -255,7 +253,7 @@ export function AiQuickChatPopover({ onClose }: { onClose: () => void }) {
       {core.loading ? (
         <LoadingPlaceholder variant="elevated" />
       ) : !core.isAiEnabled || !core.isConfigured ? (
-        <UnconfiguredHint onClose={onClose} />
+        <UnconfiguredHint onClose={close} />
       ) : (
         <>
           <ChatMessageList

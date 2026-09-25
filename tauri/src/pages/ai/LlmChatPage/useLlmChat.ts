@@ -13,6 +13,7 @@ import {
   generateId,
 } from '@/types/llmChat';
 import { logger } from '@/lib/logger';
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 
 export type { Conversation, ConversationSummary };
 
@@ -61,40 +62,70 @@ export function useLlmChat(): UseLlmChatReturn {
   const [trashList, setTrashList] = useState<ConversationSummary[]>([]);
   const [showTrash, setShowTrash] = useState(false);
   const [currentConv, setCurrentConv] = useState<Conversation | null>(null);
-  const [floatingConv, setFloatingConv] = useState<Conversation | null>(null);
+  const [floatingConv, setFloatingConvState] = useState<Conversation | null>(null);
   const [confirmPermanentDelete, setConfirmPermanentDelete] = useState<string | null>(null);
 
-  const currentConvRef = useRef(currentConv);
-  currentConvRef.current = currentConv;
-
+  const [readRequests] = useState(createSessionRequests);
+  const refreshCoreList = useRef<() => Promise<void>>(async () => {});
+  const setFloatingConv = useCallback(
+    (conv: Conversation | null) => {
+      readRequests.invalidate('trashBody');
+      setFloatingConvState(conv);
+    },
+    [readRequests],
+  );
+  useEffect(() => {
+    const clear = () => {
+      readRequests.invalidate();
+      setTrashList([]);
+      setFloatingConvState(null);
+      setCurrentConv(null);
+      setShowTrash(false);
+      setConfirmPermanentDelete(null);
+    };
+    clear();
+    const unsubscribe = onRequestSessionChange(clear);
+    return () => {
+      unsubscribe();
+      readRequests.invalidate();
+    };
+  }, [accountId, readRequests]);
   useEffect(() => {
     setAiPageOpen(true);
     return () => setAiPageOpen(false);
   }, []);
 
-  const refreshLists = useCallback(() => {
+  const loadTrashList = useCallback(async () => {
     if (!accountId) return;
-    Promise.all([
-      invoke<ConversationSummary[]>('llm_list_conversations', { accountId: accountId }),
-      invoke<ConversationSummary[]>('llm_list_trash', { accountId: accountId }),
-    ])
-      .then(([list, trash]) => {
-        core?.setConversations(list);
-        setTrashList(trash);
-      })
-      .catch((err) => logger.warn('[useLlmChat] Refresh conversation lists failed:', err));
-    // P212: core omitted intentionally — adding it causes re-subscription loop on every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accountId]);
+    const request = readRequests.begin('trashList', accountId);
+    try {
+      const trash = await request.invoke<ConversationSummary[]>('llm_list_trash', { accountId });
+      if (request.isCurrent()) setTrashList(trash);
+    } catch (err) {
+      if (request.isCurrent()) logger.warn('[useLlmChat] Refresh trash list failed:', err);
+    }
+  }, [accountId, readRequests]);
+  const refreshLists = useCallback(() => {
+    void refreshCoreList.current();
+    void loadTrashList();
+  }, [loadTrashList]);
 
-  const core = useLlmChatCore({
-    includeSystemPrompt,
-    onConversationSaved: refreshLists,
-  });
-
+  const core = useLlmChatCore({ includeSystemPrompt, onConversationSaved: refreshLists });
+  refreshCoreList.current = core.loadConversationList;
+  useEffect(() => {
+    if (showTrash) void loadTrashList();
+    else {
+      readRequests.invalidate('trashBody');
+      setFloatingConvState(null);
+    }
+  }, [showTrash, loadTrashList, readRequests]);
   // Sync core's currentConvId to our currentConv tracking
   const prevConvIdRef = useRef<string | null>(null);
   useEffect(() => {
+    if (!core.currentConvId) {
+      prevConvIdRef.current = null;
+      setCurrentConv(null);
+    }
     if (core.currentConvId && core.currentConvId !== prevConvIdRef.current) {
       prevConvIdRef.current = core.currentConvId;
       if (core.messages.length > 0) {
@@ -110,11 +141,12 @@ export function useLlmChat(): UseLlmChatReturn {
   }, [core.currentConvId, core.messages]);
 
   const handleNewConversation = useCallback(() => {
+    setFloatingConv(null);
     const id = generateId();
     core.setCurrentConvId(id);
     setCurrentConv({ id, name: '', isTemporary: true, messages: [], updatedAt: nowISO() });
     core.setMessages([]);
-  }, [core]);
+  }, [core, setFloatingConv]);
 
   const handleRename = useCallback(
     async (convId: string, newName: string) => {
@@ -190,27 +222,40 @@ export function useLlmChat(): UseLlmChatReturn {
       }
       setTrashList((prev) => prev.filter((c) => c.id !== convId));
       setConfirmPermanentDelete(null);
-      setFloatingConv((prev) => (prev?.id === convId ? null : prev));
+      readRequests.invalidate('trashBody');
+      setFloatingConvState((prev) => (prev?.id === convId ? null : prev));
     },
-    [accountId, onError, t],
+    [accountId, onError, t, readRequests],
   );
 
   const handleViewTrashConv = useCallback(
     async (convId: string) => {
       if (!accountId) return;
+      if (floatingConv?.id === convId) {
+        setFloatingConv(null);
+        return;
+      }
+      const request = readRequests.begin('trashBody', accountId);
+      setFloatingConvState(null);
       try {
-        const conv = await invoke<Conversation>('llm_get_conversation', {
-          accountId: accountId,
+        const conv = await request.invoke<Conversation>('llm_get_conversation', {
+          accountId,
           conversationId: convId,
         });
-        setFloatingConv((prev) => (prev?.id === convId ? null : conv));
-      } catch {
-        /* ignore */
+        if (request.isCurrent()) setFloatingConvState(conv);
+      } catch (err) {
+        if (request.isCurrent()) logger.warn('[useLlmChat] Load trash conversation failed:', err);
       }
     },
-    [accountId],
+    [accountId, floatingConv?.id, readRequests, setFloatingConv],
   );
-
+  const loadConversation = useCallback(
+    async (convId: string) => {
+      setFloatingConv(null);
+      await core.loadConversation(convId);
+    },
+    [core, setFloatingConv],
+  );
   // Scroll to bottom on new messages
   const lastMessageKey =
     core.messages.length > 0 ? core.messages[core.messages.length - 1].createdAt : null;
@@ -245,7 +290,7 @@ export function useLlmChat(): UseLlmChatReturn {
     setFloatingConv,
     sendMessage: core.sendMessage,
     handleNewConversation,
-    loadConversation: core.loadConversation,
+    loadConversation,
     handleRename,
     handleSoftDelete,
     handleRestore,

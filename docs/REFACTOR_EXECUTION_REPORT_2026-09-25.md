@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**91**（P1：32；P2：58；P3：1）。
-- 已关闭：**5 / 91**；实际修复（已关闭）：5；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900。
-- 当前处理：**无实施项**；当前阶段：RF-100、RF-900、RF-316、RF-101、RF-102 已完成；RF-001 因 R 基线受阻，依赖它的任务暂缓。下一项为无依赖的 RF-103。
+- 已关闭：**6 / 91**；实际修复（已关闭）：6；排除：0；待验证/阻塞：1。原计划 90 项，基线新增 RF-900。
+- 当前处理：**无实施项**；当前阶段：RF-100、RF-900、RF-316、RF-101、RF-102、RF-103 已完成；RF-001 因 R 基线受阻，依赖它的任务暂缓。RF-104 依赖阻塞；下一项为 RF-105。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -134,7 +134,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 6 | [RF-004](#rf-004) | P1 | Rust 生成普通聊天的受控自动上下文 | [RF-001](#rf-001)、[RF-100](#rf-100)、[RF-101](#rf-101) | [ ] 待执行 |
 | 7 | [RF-005](#rf-005) | P1 | 普通聊天通过 provider ID 在 Rust 解析凭证 | [RF-001](#rf-001)、[RF-002](#rf-002)、[RF-004](#rf-004) | [ ] 待执行 |
 | 8 | [RF-102](#rf-102) | P1 | 搜索查询与缓存写入绑定会话和请求代次 | 无 | [x] 完成 |
-| 9 | [RF-103](#rf-103) | P1 | 聊天会话读取只接纳最新选择 | 无 | [ ] 待执行 |
+| 9 | [RF-103](#rf-103) | P1 | 聊天会话读取只接纳最新选择 | 无 | [x] 完成 |
 | 10 | [RF-104](#rf-104) | P1 | 聊天流归属明确且最终回复只有一个持久化写入者 | [RF-101](#rf-101)、[RF-103](#rf-103)、[RF-002](#rf-002)、[RF-005](#rf-005) | [ ] 待执行 |
 | 11 | [RF-105](#rf-105) | P1 | 历史未揭示值不再以原文加 blur 渲染 | 无 | [ ] 待执行 |
 | 12 | [RF-106](#rf-106) | P1 | 对象详情采用共享字段展示策略 | [RF-100](#rf-100) | [ ] 待执行 |
@@ -1378,4 +1378,13 @@ git commit -m "<任务卡的提交标题>"
 - 定向验证：共享 helper、SearchPopover 与 hook 首轮 3 文件/30 测试通过（exit 0）；覆盖 A/B 倒序、debounce 窗口旧错误、清空、筛选、锁定换账户、卸载、缓存与当前失败。复审后强化卸载断言并新增“同账户重新解锁、两个入口并存”，最终 hook 单独 9/9 通过（exit 0），未减少原场景。
 - F：完整 TypeScript、完整 ESLint、默认 `npm run test` 均 exit 0；全量 142 文件/1,165 测试通过，无跳过、无 worker 错误，112.90s。此后仅补强测试，已定向重跑 9/9，并重做 TypeScript 和修改测试文件 ESLint；不把新用例伪计入先前全量数字。修改 TS/TSX/E2E 文件单独 Prettier 格式化，git diff --check 通过。
 - WEB：本机 Chrome，`playwright test e2e/sidebar-tools.spec.ts --project=chromium --grep '侧栏打开搜索' --workers=1`，4/4 passed、exit 0；用例结束后本次 Vite 服务未自动退出，核对 PID/命令/父进程后用 .NET Process.Kill 清理该服务（Stop-Process 自身报内部错误），runner 正常输出最终摘要，未杀测试 worker。新增 `search-lifecycle.spec.ts` 在 chromium/mobile 各 1/1，通过真实页面操作与合成 IPC deferred 响应验证乱序及清空，exit 0（13.3s）。仅证明浏览器交互，不声称 Android 原生测试。未改启动/路由定义、IPC 命令契约或主题，因此不触发生产启动额外门禁。
-- 结论：**完成**；本提交（标题含 RF-102），未推送。Rust 基线阻塞保持原记录；无关原有改动保留。
+- 结论：**完成**；独立提交 `0279100d`，未推送。Rust 基线阻塞保持原记录；无关原有改动保留。
+
+### RF-103 执行记录
+
+- 修复前 HEAD：`0279100d`。正文没有时序守卫；页面列表绕过 core 的部分取消；快捷入口 await 旧读取后仍把旧 ID 写入 localStorage，回收站读取同样没有会话保护。
+- 修改：core 正文/list 使用独立 sessionRequests key；新建、发送时设置会话 ID 会失效旧正文；关闭/卸载使所有读取失效。账户会话变化同步清空本地正文、列表和输入。页面列表刷新复用 core.loadConversationList，回收站 list/body 分别保护，关闭预览、切回正常会话及新建会话都失效旧预览。
+- 快捷入口只在 core 已接纳当前会话后记忆 ID；移除 await 后写旧 ID，恢复 effect 随账户变化重新读取，关闭动作在卸载前失效请求。保留在线状态 AbortController，不再与列表读取共用。LLM 规范 §6.7 已补读取边界，流与最终持久化未混入本项。
+- 新增 useLlmChatCore.test.tsx，12 项使用 deferred IPC 验证正文 A/B 倒序、独立列表、最新列表、new/close/unmount、锁定重登、换账户、页面新建、回收站预览关闭与列表、真实快捷组件新建/关闭。与 RF-101 回归一起 20/20 通过（exit 0）。
+- F：完整 TypeScript exit 0；完整 ESLint exit 0，最初有 2 条快捷入口 effect 依赖 warning，改为显式解构稳定函数后 4 个修改文件定向 ESLint exit 0、无 warning；最终真实 hook/快捷组件回归 12/12 通过。默认 npm run test exit 0，143 文件/1,178 测试通过，无跳过，94.72s；之后仅解构等价函数引用并重跑对应回归。修改 TS/TSX 单独 Prettier，git diff --check 通过。
+- 结论：**完成**；本提交（标题含 RF-103），未推送。无关原有文件保留，RF-104 后端依赖仍受 R 基线阻塞。
