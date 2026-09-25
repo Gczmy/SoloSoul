@@ -9,6 +9,8 @@ use solosoul_vault::{
 use std::sync::Arc;
 use tempfile::TempDir;
 
+mod rf018;
+
 // ── 1. Error formatting functions ───────────────────────────
 
 #[test]

@@ -881,34 +881,24 @@ fn resolve_template_id(
     }
 
     let original_id = tpl.id.clone();
-    if vault
-        .load_user_template(&original_id)
-        .ok()
-        .flatten()
-        .is_none()
-    {
+    if vault.load_user_template(&original_id)?.is_none() {
         // 本地无同 ID 模板 → 保留原始 ID
         tpl.id = original_id.clone();
         tpl.account_id = account_id.to_string();
         tpl.created_at = now.to_string();
         tpl.updated_at = Some(now.to_string());
-        let _ = vault.save_user_template(tpl);
+        vault.save_user_template(tpl)?;
         return Ok(original_id);
     }
 
     // 本地已有同 ID 但内容不同 → 派生 ID
     let imported_id = solosoul_core::export_import::imported_template_id(&original_id, hash);
-    if vault
-        .load_user_template(&imported_id)
-        .ok()
-        .flatten()
-        .is_none()
-    {
+    if vault.load_user_template(&imported_id)?.is_none() {
         tpl.id = imported_id.clone();
         tpl.account_id = account_id.to_string();
         tpl.created_at = now.to_string();
         tpl.updated_at = Some(now.to_string());
-        let _ = vault.save_user_template(tpl);
+        vault.save_user_template(tpl)?;
     }
     Ok(imported_id)
 }

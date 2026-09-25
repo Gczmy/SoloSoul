@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**92**（P1：32；P2：59；P3：1）。
-- 已关闭：**15 / 92**；实际修复（已关闭）：15；排除：0；待验证/阻塞：0。原计划 90 项，基线新增 RF-900、RF-901。
-- 当前处理：无。RF-002 已完成（本提交，按 ID 检索）；下一项 RF-003，绑定云同步一轮操作的账户与会话。
+- 已关闭：**16 / 92**；实际修复（已关闭）：16；排除：0；待验证/阻塞：0。原计划 90 项，基线新增 RF-900、RF-901。
+- 当前处理：无；下一项 **RF-020**。RF-018 已完成全部验证并随本项独立提交。RF-003 的完整成功判定依赖 RF-020 的部分提交结果，补齐后回到云同步会话绑定。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -129,7 +129,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 1 | [RF-100](#rf-100) | P1 | 自动上下文立即排除非公开字段 | 无 | [x] 完成 |
 | 2 | [RF-001](#rf-001) | P1 | 建立最小会话捕获与提交校验机制 | 无 | [x] 完成 |
 | 3 | [RF-002](#rf-002) | P1 | LLM 流式回复绑定请求开始时的会话 | [RF-001](#rf-001) | [x] 完成 |
-| 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001) | [ ] 待执行 |
+| 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001)、[RF-020](#rf-020) | [ ] 待执行 |
 | 5 | [RF-101](#rf-101) | P2 | 本次用户消息只追加一次 | 无 | [x] 完成 |
 | 6 | [RF-004](#rf-004) | P1 | Rust 生成普通聊天的受控自动上下文 | [RF-001](#rf-001)、[RF-100](#rf-100)、[RF-101](#rf-101) | [ ] 待执行 |
 | 7 | [RF-005](#rf-005) | P1 | 普通聊天通过 provider ID 在 Rust 解析凭证 | [RF-001](#rf-001)、[RF-002](#rf-002)、[RF-004](#rf-004) | [ ] 待执行 |
@@ -147,7 +147,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 19 | [RF-012](#rf-012) | P1 | GUI 备份遇到 Profile 读取失败时中止 | 无 | [ ] 待执行 |
 | 20 | [RF-014](#rf-014) | P1 | 全量云快照包含全部有效附件 | 无 | [ ] 待执行 |
 | 21 | [RF-017](#rf-017) | P1 | 导出完成后才替换目标包 | 无 | [ ] 待执行 |
-| 22 | [RF-018](#rf-018) | P1 | 导入模板保存失败必须传播 | 无 | [ ] 待执行 |
+| 22 | [RF-018](#rf-018) | P1 | 导入模板保存失败必须传播 | 无 | [x] 完成 |
 | 23 | [RF-019](#rf-019) | P2 | 数据库事务失败时自动回滚 | 无 | [ ] 待执行 |
 | 24 | [RF-016](#rf-016) | P1 | 永久删除附件采用可恢复清理意图 | [RF-019](#rf-019) | [ ] 待执行 |
 | 25 | [RF-020](#rf-020) | P1 | 导入失败返回真实部分提交状态 | [RF-018](#rf-018) | [ ] 待执行 |
@@ -284,12 +284,13 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 
 **云同步一轮操作固定账户与会话** · P1 · 来源：R01
 
-- **前置：**[RF-001](#rf-001)。
+- **前置：**[RF-001](#rf-001)、[RF-020](#rf-020)。
 - **入口：**`tauri/src-tauri/src/sync/cloud_auto_sync.rs`。
 - **执行：**CloudPreContext 捕获会话；run_cloud_sync_round、export_full_snapshot、auto_import_one 的导出、导入、状态和应用水线均使用原会话。移除网络等待后重取当前 Vault 的写入；失效或部分失败不推进水线，不删除未完成的待导入包。
 - **验收：**在下载结束、导入前、导入后水线提交前分别插入屏障，切换账户后新账户数据库与水线均不变；原账户重新进入后允许重试；完整成功才删除待导入源。
 - **验证配置：**`R`。**定向验证：**cloud_auto_sync.rs 新增 rf003_*，模拟 connector 和阶段屏障；cargo test -p solo_soul --lib rf003_ -- --test-threads=1。
 - **建议提交：**`fix: resolve [RF-003] - bind cloud sync rounds to their source session`。
+- **2026-09-25 依赖复核：**auto_import_one 只按 import_execute_internal 的 Ok/Err 判成功；当前 resolve_template_id 忽略保存错误，偏好和快照路径也存在 best-effort，无法证明“完整成功才推进水线”。该结果契约已归 RF-020（依赖 RF-018），先完成既有任务，避免在 RF-003 复制一套导入实现或提前宣称部分失败已被识别。导出/导入的固定句柄、事件、水线与文件删除仍全部由本项验收，未缩小范围。
 
 ### RF-004
 
@@ -450,7 +451,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 **导入模板保存失败必须传播** · P1 · 来源：R11
 
 - **前置：**无。
-- **入口：**`tauri/src-tauri/src/commands/export_import/import.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`。
+- **入口：**`tauri/src-tauri/src/commands/export_import/import.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`；`tauri/src-tauri/src/commands/export_import/tests/rf018.rs`；`tauri/src-tauri/Cargo.toml`（测试依赖）。
 - **执行：**resolve_template_id 的查询错误不再伪装不存在，保存错误不再返回成功模板 ID；rebuild_imported_templates 只登记已存在或成功保存的映射。本项不改整体导入事务。
 - **验收：**原始 ID 和派生 ID 两个保存分支失败均报错；失败模板不进入映射，不产生引用该模板的新对象；按内容哈希复用保持行为。
 - **验证配置：**`R`。**定向验证：**export_import/tests.rs 新增 rf018_*；cargo test -p solo_soul --lib rf018_。
@@ -1499,4 +1500,16 @@ git commit -m "<任务卡的提交标题>"
 - 规范复核：清理当前“使用统计”章节残留的 30 秒 debounce/退出时保存描述，明确普通流完成后的立即持久化及独立步骤失败边界；历史实施记录注明由 RF-002 当前行为取代。
 - 最终 R 全量：`cargo test --verbose` exit 0，编译 20m43s；19 组结果合计 **1,068 passed / 0 failed / 3 ignored**，包括 GUI 491/491、core 215/215、vault 184/184、同步/密码学/插件及集成/文档测试。3 个 ignored 仍为既有 legacy 字段 2 项及 P025 手动性能工具 1 项，未新增跳过。首轮账户夹具失败已在此轮验证消除。队列已进入 CLI 检查，结束前不关闭或提交本项。
 - CLI 全量：fmt、全目标 Clippy、`cargo test --verbose --no-fail-fast` 均 exit 0；编译 7m17s，171 库测试 + 2 集成测试通过，0 失败，1 个既有 i18n 文档测试 ignored。正常主机临时 Vault 测试，sqlite3 仅通过本次进程 PATH 使用既有缓存。运行结束后定向还原 Cargo 自动更新的 5 个本地 crate 版本，CLI lockfile 无残余差异。
-- 最终结论：定向、R/CORE/CLI/CONTRACT 全部满足；规范、92 项索引/任务卡与状态计数、`git diff --check` 和暂存范围核对通过。**完成**；独立提交为本提交（按 RF-002 检索），未推送。提交只含本项 6 个文件，原有 Cargo/NSIS/搜索索引修改保留；下一项 RF-003。
+- 最终结论：定向、R/CORE/CLI/CONTRACT 全部满足；规范、92 项索引/任务卡与状态计数、`git diff --check` 和暂存范围核对通过。**完成**；独立提交 `d682485b`，未推送。提交只含本项 6 个文件，原有 Cargo/NSIS/搜索索引修改保留；下一项 RF-003。
+
+### RF-018 执行记录（2026-09-25）
+
+- 修复前 HEAD：`d682485b`。RF-003 排查发现完整导入判定依赖 RF-020，而模板保存失败被吞掉的问题已归 RF-018；依赖补入 RF-003 任务卡与索引，先完成 RF-018，再处理 RF-020，随后回到 RF-003。未开始或缩减 RF-003 的会话绑定实现。
+- 修改：resolve_template_id 的两处按 ID 查询从 ok/flatten 改为传播错误，两处模板保存使用 `?`，仅在真实存在或保存成功后返回 ID。rebuild_imported_templates 原有 `?` 使模板阶段失败时对象阶段不执行；按内容哈希复用保持原行为，不顺带改整体导入事务。
+- 回归：新增 rf018 测试模块，使用临时 SQLite 的拒绝写入触发器覆盖原始/派生 ID 两个分支，真实加密包走 import_execute_internal 并断言失败后无关联对象；损坏行验证两处读取错误均不被当成不存在；拒绝写入时按内容哈希复用仍成功。新增 rusqlite workspace 测试依赖，复用已有版本，无新增运行时依赖；原 Cargo.toml 的本地状态仅有换行差异，新增语义差异仅这一项 dev-dependency。
+- 规范：导入导出设计新增模板失败边界，明确早先保存的模板可能保留，不误称整包回滚。验证队列已启动：fmt → Clippy → rf018_ 定向 → 原有 test_rebuild_templates_ → R 全量；完成前保持进行中，不提交。
+- 已通过：fmt、Clippy 均 exit 0（Clippy 2m48s）。定向回归正在构建；92 项任务依赖引用与无环检查通过。Cargo.lock 只增加 GUI 包对现有 rusqlite 的依赖引用，未升级库。
+- 定向结果：`cargo test -p solo_soul --lib rf018_` 3/3 passed、exit 0（编译 5m06s、执行 0.69s）。真实模板写入触发器和损坏行覆盖两处保存/两处查询，真实加密包导入在模板失败后未创建关联对象；哈希复用不触发保存。原有模板用例及 R 全量仍按队列继续，尚未关闭本项。
+- 原有回归：`cargo test -p solo_soul --lib test_rebuild_templates_` 2/2 passed、exit 0，原始 ID 保留与冲突派生路径保持。当前已进入 `cargo test --verbose` 全量验证，结束前不关闭或提交。
+- 最终 R 全量：`cargo test --verbose` exit 0，编译 13m14s；19 组结果合计 **1,071 passed / 0 failed / 3 ignored**，包括 GUI 494/494、core 215/215、vault 184/184 及同步/密码学/插件/集成/文档测试。3 个 ignored 仍为既有 legacy 字段 2 项及 P025 手动性能工具 1 项，未新增跳过。本项生产修改仅在 Host，未改变共享核心或 CLI 接口。
+- 最终结论：定向与 R 检查满足，规范、92 项索引/任务卡与状态计数、暂存范围和 `git diff --check` 核对通过。**完成**；提交为本提交（按 RF-018 检索），未推送；只含本项 7 个文件，原有 NSIS 图片和搜索索引修改保留。下一项 RF-020。
