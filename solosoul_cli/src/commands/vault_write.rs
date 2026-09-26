@@ -691,4 +691,247 @@ mod tests {
             .unwrap();
         assert_eq!(objects_list[0].name, "新名称");
     }
+
+    // RF-009：仅使用 synthetic 模板与用户输入；两端固定同一字段语义。
+    fn rf009_template(account_id: &str) -> solosoul_core::UserTemplate {
+        serde_json::from_value(serde_json::json!({
+        "id": "rf009-template", "accountId": account_id, "name": "Synthetic metadata template",
+        "iconId": "synthetic-icon", "category": "identity", "createdAt": "2026-01-01T00:00:00Z",
+        "contractTypeId": "com.synthetic.rf009/v1",
+        "properties": [
+            {"id": "public_text", "name": "公开文本", "type": "text", "sensitivityLevel": "public", "contractField": true},
+            {"id": "internal_choice", "name": "内部选项", "type": "select", "sensitivityLevel": "internal", "options": ["first", "chosen"], "deprecatedAt": "2025-12-01T00:00:00Z", "contractField": false, "allowedTypes": ["number"], "maxItems": 99},
+            {"id": "sensitive_phone", "name": "敏感电话", "type": "phone", "sensitivityLevel": "sensitive"},
+            {"id": "critical_token", "name": "关键文本", "type": "text", "sensitivityLevel": "critical"},
+            {"id": "unspecified_flag", "name": "未分级布尔", "type": "boolean"},
+            {"id": "group", "name": "动态字段组", "type": "dynamic_group", "sensitivityLevel": "public", "allowedTypes": ["text", "phone"], "maxItems": 2}
+        ]
+    })).unwrap()
+    }
+
+    fn rf009_expected_fields() -> serde_json::Value {
+        serde_json::json!({
+            "public_text": {"name": "公开文本", "type": "text", "contractField": true},
+            "internal_choice": {"name": "内部选项", "type": "select", "options": ["first", "chosen"], "deprecatedAt": "2025-12-01T00:00:00Z", "contractField": false},
+            "sensitive_phone": {"name": "敏感电话", "type": "phone"},
+            "critical_token": {"name": "关键文本", "type": "text"},
+            "unspecified_flag": {"name": "未分级布尔", "type": "boolean"},
+            "group": {"name": "动态字段组", "type": "dynamic_group", "allowedTypes": ["text", "phone"], "maxItems": 2}
+        })
+    }
+
+    fn rf009_expected_labels() -> serde_json::Value {
+        serde_json::json!({
+            "public_text": "public", "internal_choice": "internal", "sensitive_phone": "sensitive",
+            "critical_token": "critical", "group": "public"
+        })
+    }
+
+    fn rf009_user_values() -> serde_json::Value {
+        serde_json::json!({
+            "public_text": "Synthetic user text", "internal_choice": "chosen", "sensitive_phone": "",
+            "critical_token": "SYNTHETIC_TEST_VALUE", "unspecified_flag": false,
+            "group": [
+                {"id": "synthetic-child-text", "name": "用户文本", "type": "text", "value": "保留文本"},
+                {"id": "synthetic-child-phone", "name": "用户电话", "type": "phone", "value": "+10000000000"}
+            ],
+            "zero": 0, "nothing": null, "empty": "", "list": [0, false, null, ""],
+            "user_extra": {"nested": ["保留", 7]}, "contractTypeId": "Synthetic ordinary user value",
+            "__fields": {"group": {"name": "Stale field", "type": "text"}},
+            "__templateName": "Stale name", "__templateHash": "stale-hash"
+        })
+    }
+
+    #[test]
+    fn rf009_save_new_object_inherits_metadata_and_preserves_wizard_values() {
+        let (mut app, account, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+        let template = rf009_template(&account);
+        vault.save_user_template(&template).unwrap();
+        super::newpage(&mut app, Some("Synthetic parent page")).unwrap();
+        let parent = match &app.phase {
+            AppPhase::ObjectDetail { object } => object.clone(),
+            other => panic!("expected parent detail, got {other:?}"),
+        };
+        super::start_fill_fields(
+            &mut app,
+            parent.id.clone(),
+            parent.name.clone(),
+            Some(template.clone()),
+        )
+        .unwrap();
+        let mut values = rf009_user_values();
+        for key in ["__fields", "__templateName", "__templateHash"] {
+            values.as_object_mut().unwrap().remove(key);
+        }
+        let mut fields = match &app.phase {
+            AppPhase::NewObjectWizard {
+                step:
+                    crate::app::NewObjectStep::FillFields {
+                        fields,
+                        template: Some(selected),
+                        ..
+                    },
+            } => {
+                assert_eq!(selected.id, template.id);
+                assert_eq!(fields.len(), template.properties.len());
+                fields.clone()
+            }
+            other => panic!("expected template field wizard, got {other:?}"),
+        };
+        for field in &mut fields {
+            field.value = values[&field.key].clone();
+        }
+        let extra: serde_json::Map<String, serde_json::Value> = values
+            .as_object()
+            .unwrap()
+            .iter()
+            .filter(|(key, _)| !fields.iter().any(|field| &field.key == *key))
+            .map(|(key, value)| (key.clone(), value.clone()))
+            .collect();
+        fields.extend(
+            crate::widgets::field_editor::EditableField::from_properties_and_template(
+                &serde_json::Value::Object(extra),
+                None,
+            ),
+        );
+        super::save_new_object(
+            &mut app,
+            parent.id.clone(),
+            parent.name.clone(),
+            Some(template.clone()),
+            "Synthetic typed object".into(),
+            fields,
+        )
+        .unwrap();
+        assert!(app.error_message.is_none(), "{:?}", app.error_message);
+        let displayed = match &app.phase {
+            AppPhase::ObjectDetail { object } => object.clone(),
+            other => panic!("expected saved ObjectDetail, got {other:?}"),
+        };
+        let stored = vault.load_object(&displayed.id).unwrap().unwrap();
+        assert_eq!(
+            serde_json::to_value(&displayed).unwrap(),
+            serde_json::to_value(&stored).unwrap()
+        );
+        assert_eq!(stored.account_id, account);
+        assert_eq!(stored.name, "Synthetic typed object");
+        assert_eq!(stored.parent_id.as_deref(), Some(parent.id.as_str()));
+        assert_eq!(stored.type_id, template.id);
+        assert_eq!(stored.section_type, "identity");
+        assert_eq!(stored.icon_name, "synthetic-icon");
+        assert_eq!(stored.template_type.as_deref(), Some("user"));
+        assert_eq!(stored.properties["__fields"], rf009_expected_fields());
+        assert_eq!(stored.property_labels, Some(rf009_expected_labels()));
+        assert_eq!(
+            stored.contract_type_id.as_deref(),
+            Some("com.synthetic.rf009/v1")
+        );
+        let fingerprint = objects::template_fingerprint(&template);
+        assert_eq!(stored.template_hash.as_deref(), Some(fingerprint.as_str()));
+        assert_eq!(stored.properties["__templateHash"], fingerprint);
+        assert_eq!(stored.properties["__templateName"], template.name);
+        for (key, value) in values.as_object().unwrap() {
+            assert_eq!(&stored.properties[key], value, "wizard value {key} changed");
+        }
+        let updated_parent = vault.load_object(&parent.id).unwrap().unwrap();
+        assert_eq!(updated_parent.children_ids, vec![stored.id.clone()]);
+        assert_eq!(updated_parent.version, parent.version + 1);
+
+        // 进入真实编辑入口，字段列表应继续保留用户项并排除三个系统副本。
+        super::edit(&mut app, Some(&stored.id)).unwrap();
+        let editable = match &app.phase {
+            AppPhase::EditObjectWizard {
+                step: crate::app::EditObjectStep::Overview { fields, .. },
+                ..
+            } => fields,
+            other => panic!("expected saved object editor, got {other:?}"),
+        };
+        for key in ["__fields", "__templateName", "__templateHash"] {
+            assert!(!editable.iter().any(|field| field.key == key));
+        }
+        for (key, value) in values.as_object().unwrap() {
+            assert_eq!(
+                &editable
+                    .iter()
+                    .find(|field| &field.key == key)
+                    .unwrap()
+                    .value,
+                value
+            );
+        }
+        let snapshots = vault.list_snapshots(&stored.id).unwrap();
+        assert_eq!(snapshots.len(), 1);
+        let snapshot_id = snapshots[0]["id"].as_str().unwrap();
+        let snapshot_bytes = vault.get_snapshot(snapshot_id).unwrap().unwrap();
+        let snapshot: serde_json::Value = serde_json::from_slice(&snapshot_bytes).unwrap();
+        assert_eq!(snapshot["properties"], stored.properties);
+        assert_eq!(snapshot["propertyLabels"], rf009_expected_labels());
+        vault.delete_user_template(&template.id).unwrap();
+        assert!(vault.load_user_template(&template.id).unwrap().is_none());
+        assert_eq!(
+            serde_json::to_value(vault.load_object(&stored.id).unwrap().unwrap()).unwrap(),
+            serde_json::to_value(&stored).unwrap()
+        );
+        assert_eq!(
+            vault.get_snapshot(snapshot_id).unwrap().unwrap(),
+            snapshot_bytes
+        );
+    }
+
+    #[test]
+    fn rf009_save_new_object_without_template_keeps_existing_wizard_behavior() {
+        let (mut app, account, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+        let parent = objects::create_page(&vault, &account, "Synthetic plain page").unwrap();
+        super::start_fill_fields(&mut app, parent.id.clone(), parent.name.clone(), None).unwrap();
+        match &app.phase {
+            AppPhase::NewObjectWizard {
+                step:
+                    crate::app::NewObjectStep::FillFields {
+                        fields, template, ..
+                    },
+            } => {
+                assert!(fields.is_empty());
+                assert!(template.is_none());
+            }
+            other => panic!("expected plain object wizard, got {other:?}"),
+        }
+        let values = serde_json::json!({"text": "Synthetic plain value", "zero": 0, "flag": false, "nothing": null, "empty": "", "list": [0, false, null]});
+        let fields = crate::widgets::field_editor::EditableField::from_properties_and_template(
+            &values, None,
+        );
+        super::save_new_object(
+            &mut app,
+            parent.id.clone(),
+            parent.name,
+            None,
+            "Synthetic plain object".into(),
+            fields,
+        )
+        .unwrap();
+        assert!(app.error_message.is_none(), "{:?}", app.error_message);
+        let displayed = match &app.phase {
+            AppPhase::ObjectDetail { object } => object,
+            other => panic!("expected plain ObjectDetail, got {other:?}"),
+        };
+        let stored = vault.load_object(&displayed.id).unwrap().unwrap();
+        assert_eq!(
+            serde_json::to_value(displayed).unwrap(),
+            serde_json::to_value(&stored).unwrap()
+        );
+        assert_eq!(stored.properties, values);
+        assert_eq!(stored.type_id, "note");
+        assert_eq!(stored.icon_name, "document");
+        assert_eq!(stored.parent_id.as_deref(), Some(parent.id.as_str()));
+        assert!(stored.template_id.is_none());
+        assert!(stored.template_type.is_none());
+        assert!(stored.property_labels.is_none());
+        assert!(stored.contract_type_id.is_none());
+        assert!(stored.template_hash.is_none());
+        assert_eq!(
+            vault.load_object(&parent.id).unwrap().unwrap().children_ids,
+            vec![stored.id]
+        );
+    }
 }

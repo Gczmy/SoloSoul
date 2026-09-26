@@ -803,3 +803,205 @@ fn test_create_with_date_fields_roundtrip() {
     // __fields 元数据始终保留
     assert!(preview.get("__fields").is_some());
 }
+
+// RF-009：仅使用 synthetic 模板与用户输入；两端固定同一字段语义。
+fn rf009_template(account_id: &str) -> UserTemplate {
+    serde_json::from_value(serde_json::json!({
+        "id": "rf009-template", "accountId": account_id, "name": "Synthetic metadata template",
+        "iconId": "synthetic-icon", "category": "identity", "createdAt": "2026-01-01T00:00:00Z",
+        "contractTypeId": "com.synthetic.rf009/v1",
+        "properties": [
+            {"id": "public_text", "name": "公开文本", "type": "text", "sensitivityLevel": "public", "contractField": true},
+            {"id": "internal_choice", "name": "内部选项", "type": "select", "sensitivityLevel": "internal", "options": ["first", "chosen"], "deprecatedAt": "2025-12-01T00:00:00Z", "contractField": false, "allowedTypes": ["number"], "maxItems": 99},
+            {"id": "sensitive_phone", "name": "敏感电话", "type": "phone", "sensitivityLevel": "sensitive"},
+            {"id": "critical_token", "name": "关键文本", "type": "text", "sensitivityLevel": "critical"},
+            {"id": "unspecified_flag", "name": "未分级布尔", "type": "boolean"},
+            {"id": "group", "name": "动态字段组", "type": "dynamic_group", "sensitivityLevel": "public", "allowedTypes": ["text", "phone"], "maxItems": 2}
+        ]
+    })).unwrap()
+}
+
+fn rf009_expected_fields() -> serde_json::Value {
+    serde_json::json!({
+        "public_text": {"name": "公开文本", "type": "text", "contractField": true},
+        "internal_choice": {"name": "内部选项", "type": "select", "options": ["first", "chosen"], "deprecatedAt": "2025-12-01T00:00:00Z", "contractField": false},
+        "sensitive_phone": {"name": "敏感电话", "type": "phone"},
+        "critical_token": {"name": "关键文本", "type": "text"},
+        "unspecified_flag": {"name": "未分级布尔", "type": "boolean"},
+        "group": {"name": "动态字段组", "type": "dynamic_group", "allowedTypes": ["text", "phone"], "maxItems": 2}
+    })
+}
+
+fn rf009_expected_labels() -> serde_json::Value {
+    serde_json::json!({
+        "public_text": "public", "internal_choice": "internal", "sensitive_phone": "sensitive",
+        "critical_token": "critical", "group": "public"
+    })
+}
+
+fn rf009_user_values() -> serde_json::Value {
+    serde_json::json!({
+        "public_text": "Synthetic user text", "internal_choice": "chosen", "sensitive_phone": "",
+        "critical_token": "SYNTHETIC_TEST_VALUE", "unspecified_flag": false,
+        "group": [
+            {"id": "synthetic-child-text", "name": "用户文本", "type": "text", "value": "保留文本"},
+            {"id": "synthetic-child-phone", "name": "用户电话", "type": "phone", "value": "+10000000000"}
+        ],
+        "zero": 0, "nothing": null, "empty": "", "list": [0, false, null, ""],
+        "user_extra": {"nested": ["保留", 7]}, "contractTypeId": "Synthetic ordinary user value",
+        "__fields": {"group": {"name": "Stale field", "type": "text"}},
+        "__templateName": "Stale name", "__templateHash": "stale-hash"
+    })
+}
+
+fn rf009_metadata(record: &ObjectRecord) -> serde_json::Value {
+    serde_json::json!({
+        "properties": record.properties, "labels": record.property_labels,
+        "contract": record.contract_type_id, "hash": record.template_hash,
+        "templateId": record.template_id, "templateType": record.template_type,
+    })
+}
+
+#[test]
+fn rf009_gui_and_core_create_preserve_equivalent_template_metadata() {
+    let (vault, _dir) = setup_vault();
+    let account = "test_account";
+    let template = rf009_template(account);
+    vault.save_user_template(&template).unwrap();
+    let page = solosoul_core::objects::create_page(&vault, account, "Synthetic page").unwrap();
+    let values = rf009_user_values();
+    let input = CreateObjectInput {
+        account_id: account.into(),
+        name: "Synthetic object".into(),
+        collection_type: template.id.clone(),
+        properties: values.clone(),
+        parent_id: Some(page.id.clone()),
+        icon_name: template.icon_id.clone(),
+        template_id: Some(template.id.clone()),
+        template_type: Some("user".into()),
+        id: None,
+    };
+    let gui = build_create_record(&vault, &input, account, "2026-01-02T00:00:00Z").unwrap();
+    vault.save_object(&gui).unwrap();
+    let core = solosoul_core::objects::create_object(
+        &vault,
+        account,
+        &page.id,
+        &input.name,
+        values.clone(),
+        Some(&template.id),
+        template.icon_id.as_deref(),
+    )
+    .unwrap();
+    let gui_loaded = vault.load_object(&gui.id).unwrap().unwrap();
+    let core_loaded = vault.load_object(&core.id).unwrap().unwrap();
+    assert_eq!(rf009_metadata(&gui_loaded), rf009_metadata(&core_loaded));
+    assert_eq!(rf009_metadata(&core), rf009_metadata(&core_loaded));
+    assert_eq!(core_loaded.properties["__fields"], rf009_expected_fields());
+    assert_eq!(core_loaded.property_labels, Some(rf009_expected_labels()));
+    assert_eq!(
+        core_loaded.contract_type_id.as_deref(),
+        Some("com.synthetic.rf009/v1")
+    );
+    let fingerprint = solosoul_core::objects::template_fingerprint(&template);
+    assert_eq!(
+        core_loaded.template_hash.as_deref(),
+        Some(fingerprint.as_str())
+    );
+    assert_eq!(core_loaded.properties["__templateHash"], fingerprint);
+    assert_eq!(core_loaded.properties["__templateName"], template.name);
+    for (key, value) in values.as_object().unwrap() {
+        if !["__fields", "__templateName", "__templateHash"].contains(&key.as_str()) {
+            assert_eq!(
+                &core_loaded.properties[key], value,
+                "user field {key} changed"
+            );
+        }
+    }
+
+    let snapshots = vault.list_snapshots(&core.id).unwrap();
+    assert_eq!(snapshots.len(), 1);
+    let snapshot_id = snapshots[0]["id"].as_str().unwrap();
+    let snapshot_bytes = vault.get_snapshot(snapshot_id).unwrap().unwrap();
+    let snapshot: serde_json::Value = serde_json::from_slice(&snapshot_bytes).unwrap();
+    assert_eq!(snapshot["properties"], core_loaded.properties);
+    assert_eq!(snapshot["propertyLabels"], rf009_expected_labels());
+
+    vault.delete_user_template(&template.id).unwrap();
+    assert!(vault.load_user_template(&template.id).unwrap().is_none());
+    assert_eq!(
+        rf009_metadata(&vault.load_object(&gui.id).unwrap().unwrap()),
+        rf009_metadata(&gui_loaded)
+    );
+    assert_eq!(
+        rf009_metadata(&vault.load_object(&core.id).unwrap().unwrap()),
+        rf009_metadata(&core_loaded)
+    );
+    assert_eq!(
+        vault.get_snapshot(snapshot_id).unwrap().unwrap(),
+        snapshot_bytes
+    );
+}
+
+#[test]
+fn rf009_gui_and_core_match_without_fields_or_available_template() {
+    for mode in ["none", "missing", "empty"] {
+        let (vault, _dir) = setup_vault();
+        let account = "test_account";
+        let mut template = rf009_template(account);
+        template.properties.clear();
+        let template_id = match mode {
+            "none" => None,
+            "missing" => Some("rf009-missing-template"),
+            _ => {
+                vault.save_user_template(&template).unwrap();
+                Some(template.id.as_str())
+            }
+        };
+        let values = serde_json::json!({
+            "user_value": [0, false, null, ""],
+            "__fields": {"user_value": {"name": "User field", "type": "text"}},
+            "__templateName": "Existing user metadata", "__templateHash": "existing-hash"
+        });
+        let page = solosoul_core::objects::create_page(&vault, account, "Synthetic page").unwrap();
+        let input = CreateObjectInput {
+            account_id: account.into(),
+            name: "Synthetic fallback object".into(),
+            collection_type: "note".into(),
+            properties: values.clone(),
+            parent_id: Some(page.id.clone()),
+            icon_name: None,
+            template_id: template_id.map(String::from),
+            template_type: template_id.map(|_| "user".into()),
+            id: None,
+        };
+        let gui = build_create_record(&vault, &input, account, "2026-01-02T00:00:00Z").unwrap();
+        let core = solosoul_core::objects::create_object(
+            &vault,
+            account,
+            &page.id,
+            &input.name,
+            values.clone(),
+            template_id,
+            None,
+        )
+        .unwrap();
+        let loaded = vault.load_object(&core.id).unwrap().unwrap();
+        assert_eq!(rf009_metadata(&gui), rf009_metadata(&loaded), "{mode}");
+        assert_eq!(loaded.properties["user_value"], values["user_value"]);
+        assert_eq!(loaded.properties["__fields"], values["__fields"]);
+        assert!(loaded.property_labels.is_none());
+        if mode == "empty" {
+            assert_eq!(loaded.contract_type_id, template.contract_type_id);
+            assert_eq!(loaded.properties["__templateName"], template.name);
+            assert_eq!(
+                loaded.template_hash,
+                Some(solosoul_core::objects::template_fingerprint(&template))
+            );
+        } else {
+            assert_eq!(loaded.properties, values);
+            assert!(loaded.contract_type_id.is_none());
+            assert!(loaded.template_hash.is_none());
+        }
+    }
+}

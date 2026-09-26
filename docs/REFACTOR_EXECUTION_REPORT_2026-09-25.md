@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**93**（P1：32；P2：60；P3：1）。
-- 已关闭：**22 / 93**；实际修复（已关闭）：22；排除：0；待验证/阻塞：1。原计划 90 项，执行中新增 RF-900、RF-901、RF-902。
-- 当前处理：无。RF-006 已完成全部验收并纳入本提交；下一项 RF-009。RF-104 保留未提交改动，等待聊天 Hook 写入的明确授权。
+- 已关闭：**23 / 93**；实际修复（已关闭）：23；排除：0；待验证/阻塞：1。原计划 90 项，执行中新增 RF-900、RF-901、RF-902。
+- 当前处理：无。RF-009 已完成全部验收并纳入本提交；下一项 RF-012。RF-104 保留未提交改动，等待聊天 Hook 写入的明确授权。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -142,7 +142,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 14 | [RF-108](#rf-108) | P1 | 搜索命中值采用共享保护与验证入口 | [RF-102](#rf-102)、[RF-106](#rf-106) | [x] 完成 |
 | 15 | [RF-006](#rf-006) | P1 | GUI 回滚拒绝其他对象的快照 | 无 | [x] 完成 |
 | 16 | [RF-007](#rf-007) | P1 | CLI 回滚恢复并保留字段标签 | 无 | [x] 完成 |
-| 17 | [RF-009](#rf-009) | P1 | 修复 CLI 创建对象缺失模板元数据 | 无 | [ ] 待执行 |
+| 17 | [RF-009](#rf-009) | P1 | 修复 CLI 创建对象缺失模板元数据 | 无 | [x] 完成 |
 | 18 | [RF-011](#rf-011) | P1 | CLI 恢复兼容 GUI Base64 Profile 备份 | 无 | [x] 完成 |
 | 19 | [RF-012](#rf-012) | P1 | GUI 备份遇到 Profile 读取失败时中止 | 无 | [ ] 待执行 |
 | 20 | [RF-014](#rf-014) | P1 | 全量云快照包含全部有效附件 | 无 | [ ] 待执行 |
@@ -1629,4 +1629,18 @@ git commit -m "<任务卡的提交标题>"
 - 定向结果：`cargo test -p solo_soul --lib rf006_` **5 passed / 0 failed / 0 ignored**，exit 0，编译及执行 226.78s（用例执行 0.20s）；Tauri Clippy exit 0（38.45s）。队列继续 R/CLI 全量，尚未关闭。
 - 最终 R：`cargo test --verbose` exit 0（队列耗时538.05s），19 组结果合计 **1,142 passed / 0 failed / 3 ignored**，含 GUI 536、core 244、vault 184。3 个跳过仍为两项 legacy field 和 P025 手动性能工具；保留既有 lib/bin PDB 输出重名警告，未更改构建配置。
 - CLI：fmt、全目标 Clippy、`cargo test --verbose --no-fail-fast` 均 exit 0；Clippy 21.23s，测试队列86.15s（编译8.62s，171单元36.71s、2集成1.15s）。合计 **173 passed / 0 failed / 1 ignored**，既有 i18n 文档示例跳过。结束后只恢复 Cargo 自动刷新的 5 个本地 crate 版本，锁文件无差异。
-- 最终结论：R/CORE/CLI、定向回归、两份 canonical 规范与台账检查满足；93 项索引/任务卡一致，22 已关闭、RF-104 仍阻塞。仅暂存 RF-006 的生产/测试、规范中的快照相关段落与执行台账；RF-104 代码/聊天规范和 3 张 NSIS 图片保持未暂存。本项 **完成**；提交：本提交（按 RF-006 检索），未推送。
+- 最终结论：R/CORE/CLI、定向回归、两份 canonical 规范与台账检查满足；93 项索引/任务卡一致，22 已关闭、RF-104 仍阻塞。仅暂存 RF-006 的生产/测试、规范中的快照相关段落与执行台账；RF-104 代码/聊天规范和 3 张 NSIS 图片保持未暂存。本项 **完成**；提交：`0028acac`，未推送。
+### RF-009 执行记录（2026-09-26，完成）
+
+- 修复前 HEAD：`0028acac`（RF-006），有效工作区仍为 C 盘恢复副本；RF-104 和原有 NSIS 图片保持不动。CLI save_new_object 已传模板 ID 与用户值，但 core create_object 没有继承字段定义、敏感度标签、契约 ID、模板名称和指纹。
+- 范围：仅在既有 core 创建入口补齐与 GUI 相同的元数据投影、复用 template_fingerprint；保留 CLI 对象 ID、类型、父页、图标、普通用户字段值与无模板行为。读取模板失败在写入前传播，缺失模板保持兼容；不迁移 GUI 或提前实施 RF-010。
+- 验证计划：core 真实 Vault 定向回归、Host 同模板同输入直接对照两端创建结果、CLI 实际 save_new_object 路径及父页面/状态验证；实现冻结后完成 R/CORE/CLI。本项仍进行中，尚未验证或提交。
+- 接入复核发现：CLI 详情和编辑器会把新保存的 `__fields`、`__templateName`、`__templateHash` 当作普通属性。为避免本项使新对象出现内部字段并允许误改，同项补充仅这三个保留键的展示/编辑过滤及真实 TUI/编辑回归；不扩大到所有下划线键。模板删除后的编辑器字段名/类型/敏感度回退仍有既有局限，本项只保证副本留存，不宣称已统一整个消费端。
+- 范围核对：仅读取到真实模板时引入动态组校验；无/缺失模板保持旧输入行为。模板读取当前仅按 ID、所在 Vault 隔离，不在此项改变 GUI/CLI 的账户归属规则；该接口边界留 RF-010 共享创建收敛时评估。
+- 实现完成并冻结：core 仅改 create_object 及本模块回归；Host 增加真实 build_create_record/Core 对照，CLI 增加真实创建→保存→详情→编辑回归，并精确过滤三个保留元数据键。共 13 个 rf009_ 测试（Core 6、Host 2、CLI 5），包含真实 TestBackend，尚未取得运行结果。
+- 主 Agent 与独立只读复核未发现阻断问题；定向 rustfmt、diff 检查通过。Tauri workspace fmt exit 0、CLI fmt exit 0；正按既有 PDFium/SQLite 环境顺序运行定向与 R/CORE/CLI 队列。编译期间不修改源码或并行启动另一套 Cargo，本项仍进行中。
+- Core 定向：`cargo test -p solosoul-core --lib rf009_` **6 passed / 0 failed / 0 ignored**，exit 0（队列115.50s，编译1m49s、执行0.13s）。其余 GUI/CLI 定向与完整检查尚未结束，不提前关闭。
+- Host 定向 **2/2 passed**、exit 0（队列260.77s，编译4m12s、执行0.26s）；CLI 定向 **5/5 passed**、exit 0（队列115.08s，编译1m42s、执行0.73s）。合计 13 项定向全部通过，0失败、0跳过；真实 CLI 创建→编辑及 TestBackend 内部元数据过滤通过。Tauri Clippy exit 0（26.87s），现继续 R 全量与 CLI Clippy/全量。
+- 最终 R：`cargo test --verbose` exit 0（队列510.29s），19 组结果合计 **1,150 passed / 0 failed / 3 ignored**，含 GUI 538、core 250、vault 184。既有两项 legacy field 与 P025 手动性能工具继续跳过，没有新增跳过。
+- 最终 CLI：全目标 Clippy exit 0（48.77s）；`cargo test --verbose --no-fail-fast` exit 0（队列123.03s，编译1m13s），176 单元（35.13s）+ 2 集成（1.20s），合计 **178 passed / 0 failed / 1 ignored**；既有 i18n 文档示例跳过。结束后确认并恢复 Cargo 自动刷新的 5 个本地 crate 版本，未升级依赖。
+- 最终结论：R/CORE/CLI、13项定向、主 Agent/独立复核、两份使用规范与执行台账检查满足；仅暂存本项 8 个文件。RF-104 未提交修改和 3 张 NSIS 图片继续保留。93项索引/任务卡一致，23已关闭，RF-104仍阻塞；本项 **完成**，提交：本提交（按 RF-009 检索），未推送。

@@ -8,6 +8,7 @@ use solosoul_core::{is_protected_sensitivity, ObjectRecord, UserTemplate};
 
 use crate::i18n::I18n;
 use crate::t;
+use crate::widgets::field_editor::is_template_metadata_key;
 
 /// 渲染对象详情。
 ///
@@ -62,6 +63,7 @@ pub fn render(
 
     let rows: Vec<Row> = if let serde_json::Value::Object(map) = &object.properties {
         map.iter()
+            .filter(|(key, _)| !is_template_metadata_key(key))
             .map(|(k, v)| {
                 let value_str = format_value(v);
                 let display = field_display_value(k, &value_str, &field_levels, object_masked);
@@ -176,6 +178,80 @@ mod tests {
             .iter()
             .map(|(k, v)| (k.to_string(), v.to_string()))
             .collect()
+    }
+
+    #[test]
+    fn rf009_detail_render_hides_metadata_and_keeps_ordinary_fields() {
+        let record = ObjectRecord {
+            id: "rf009-object".into(),
+            account_id: "synthetic-account".into(),
+            type_id: "note".into(),
+            section_type: "identity".into(),
+            name: "Synthetic object".into(),
+            icon_name: "document".into(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({
+                "title": "visible content",
+                "_private": "single underscore value",
+                "__custom": "other metadata-like key",
+                "__fields": {"title": {"name": "internal-definition-marker"}},
+                "__templateName": "internal-name-marker",
+                "__templateHash": "internal-hash-marker"
+            }),
+            property_labels: None,
+            sensitivity_level: "public".into(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: Some("removed-template".into()),
+            template_type: Some("user".into()),
+            contract_type_id: None,
+            template_hash: Some("internal-hash-marker".into()),
+            ignored_template_hash: None,
+            created_at: "2026-09-26T00:00:00Z".into(),
+            updated_at: "2026-09-26T00:00:00Z".into(),
+            version: 1,
+        };
+        let backend = ratatui::backend::TestBackend::new(100, 28);
+        let mut terminal = ratatui::Terminal::new(backend).unwrap();
+        let i18n = I18n::new("en-US");
+        terminal
+            .draw(|frame| render(frame, frame.area(), &record, &HashMap::new(), &i18n))
+            .unwrap();
+        let content: String = terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect();
+        for visible in [
+            "title",
+            "visible content",
+            "_private",
+            "single underscore value",
+            "__custom",
+            "other metadata-like key",
+        ] {
+            assert!(
+                content.contains(visible),
+                "missing ordinary field: {visible}"
+            );
+        }
+        for hidden in [
+            "__fields",
+            "__templateName",
+            "__templateHash",
+            "internal-definition-marker",
+            "internal-name-marker",
+            "internal-hash-marker",
+        ] {
+            assert!(
+                !content.contains(hidden),
+                "metadata reached terminal: {hidden}"
+            );
+        }
     }
 
     #[test]

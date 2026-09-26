@@ -99,6 +99,67 @@ pub fn create_object(
     let type_id = template_id.unwrap_or("note").to_string();
     let icon = icon_name.unwrap_or("document").to_string();
 
+    // RF-009：一次读取模板，保留与 GUI 创建入口相同的字段语义副本。
+    // 缺失模板沿用旧行为；读取失败不能降级为缺少敏感度标签的成功对象。
+    let template = template_id
+        .map(|tid| vault.load_user_template(tid))
+        .transpose()?
+        .flatten();
+    let mut properties = properties;
+    let mut property_labels = None;
+    let contract_type_id = template
+        .as_ref()
+        .and_then(|tpl| tpl.contract_type_id.clone());
+    let template_hash = template.as_ref().map(template_fingerprint);
+    if let Some(tpl) = template.as_ref() {
+        let mut labels = serde_json::Map::new();
+        let mut fields = serde_json::Map::new();
+        for prop in &tpl.properties {
+            if let Some(level) = &prop.sensitivity_level {
+                labels.insert(prop.id.clone(), serde_json::json!(level));
+            }
+            let mut field = serde_json::Map::new();
+            field.insert("name".into(), serde_json::json!(prop.name));
+            field.insert("type".into(), serde_json::json!(prop.prop_type.as_str()));
+            if let Some(options) = &prop.options {
+                field.insert("options".into(), serde_json::json!(options));
+            }
+            if let Some(deprecated_at) = &prop.deprecated_at {
+                field.insert("deprecatedAt".into(), serde_json::json!(deprecated_at));
+            }
+            if let Some(contract_field) = prop.contract_field {
+                field.insert("contractField".into(), serde_json::json!(contract_field));
+            }
+            if prop.prop_type == PropertyType::DynamicGroup {
+                if let Some(allowed_types) = &prop.allowed_types {
+                    field.insert(
+                        "allowedTypes".into(),
+                        serde_json::json!(allowed_types
+                            .iter()
+                            .map(PropertyType::as_str)
+                            .collect::<Vec<_>>()),
+                    );
+                }
+                if let Some(max_items) = prop.max_items {
+                    field.insert("maxItems".into(), serde_json::json!(max_items));
+                }
+            }
+            fields.insert(prop.id.clone(), serde_json::Value::Object(field));
+        }
+        if !labels.is_empty() {
+            property_labels = Some(serde_json::Value::Object(labels));
+        }
+        if let Some(values) = properties.as_object_mut() {
+            if !fields.is_empty() {
+                values.insert("__fields".into(), serde_json::Value::Object(fields));
+            }
+            values.insert("__templateName".into(), serde_json::json!(tpl.name));
+            values.insert("__templateHash".into(), serde_json::json!(template_hash));
+        }
+        // 新继承的动态组约束必须在首次写入前校验；无/缺失模板保持旧路径。
+        validate_dynamic_groups(&properties)?;
+    }
+
     let record = ObjectRecord {
         id: id.clone(),
         account_id: account_id.to_string(),
@@ -109,15 +170,15 @@ pub fn create_object(
         parent_id: Some(page_id.to_string()),
         children_ids: vec![],
         properties,
-        property_labels: None,
+        property_labels,
         sensitivity_level: "internal".to_string(),
         is_deleted: false,
         deleted_at: None,
         tags_json: vec![],
         template_id: template_id.map(|s| s.to_string()),
-        contract_type_id: None,
+        contract_type_id,
         template_type: template_id.map(|_| "user".to_string()),
-        template_hash: None,
+        template_hash,
         ignored_template_hash: None,
         created_at: now.clone(),
         updated_at: now,
@@ -1322,6 +1383,325 @@ mod tests {
         // 验证父页面 children_ids 已更新
         let updated_page = vault.load_object(&page.id).unwrap().unwrap();
         assert!(updated_page.children_ids.contains(&obj.id));
+    }
+
+    fn rf009_setup() -> (TempDir, VaultStore, String) {
+        let dir = TempDir::new().unwrap();
+        let account = "rf009-account".to_string();
+        let config = solosoul_vault::VaultConfig::new(&account, dir.path().to_path_buf())
+            .with_data_key([0x42; 32]);
+        let vault = VaultStore::open(config).unwrap();
+        (dir, vault, account)
+    }
+
+    fn rf009_template(account: &str) -> solosoul_vault::UserTemplate {
+        serde_json::from_value(serde_json::json!({
+            "id": "rf009-template",
+            "accountId": account,
+            "name": "旅行凭证",
+            "iconId": "template-icon",
+            "createdAt": "2026-09-26T00:00:00Z",
+            "contractTypeId": "travel.identity",
+            "properties": [
+                {"id": "public", "name": "姓名", "type": "text",
+                 "sensitivityLevel": "public", "contractField": true},
+                {"id": "internal", "name": "类别", "type": "select",
+                 "sensitivityLevel": "internal", "options": ["A", "B"],
+                 "deprecatedAt": "2026-09-20T00:00:00Z", "contractField": false,
+                 "allowedTypes": ["number"], "maxItems": 9},
+                {"id": "sensitive", "name": "电话", "type": "phone",
+                 "sensitivityLevel": "sensitive"},
+                {"id": "critical", "name": "凭证", "type": "text",
+                 "sensitivityLevel": "critical"},
+                {"id": "unlabelled", "name": "确认", "type": "boolean"},
+                {"id": "group", "name": "其他信息", "type": "dynamic_group",
+                 "sensitivityLevel": "public", "allowedTypes": ["text", "phone"],
+                 "maxItems": 2}
+            ]
+        }))
+        .unwrap()
+    }
+
+    #[test]
+    fn rf009_inherits_template_metadata_and_preserves_input() {
+        let (_dir, vault, account) = rf009_setup();
+        let page = create_page(&vault, &account, "旅行").unwrap();
+        let template = rf009_template(&account);
+        vault.save_user_template(&template).unwrap();
+        let input = serde_json::json!({
+            "public": "", "internal": "B", "sensitive": "+123",
+            "critical": "user-secret", "unlabelled": false,
+            "group": [{"id": "child", "name": "补充", "type": "text", "value": ""}],
+            "zero": 0, "empty": null, "extra": {"nested": ["value"]},
+            "__custom": "keep",
+            "__fields": {"old": {"name": "旧字段", "type": "number"}},
+            "__templateName": "旧名称", "__templateHash": "old-hash"
+        });
+        let object = create_object(
+            &vault,
+            &account,
+            &page.id,
+            "用户填写的名称",
+            input.clone(),
+            Some(&template.id),
+            Some("user-icon"),
+        )
+        .unwrap();
+
+        for (key, value) in input.as_object().unwrap() {
+            if !["__fields", "__templateName", "__templateHash"].contains(&key.as_str()) {
+                assert_eq!(&object.properties[key], value, "用户字段 {key} 被覆盖");
+            }
+        }
+        assert_eq!(
+            object.properties["__fields"],
+            serde_json::json!({
+                "public": {"name": "姓名", "type": "text", "contractField": true},
+                "internal": {"name": "类别", "type": "select", "options": ["A", "B"],
+                             "deprecatedAt": "2026-09-20T00:00:00Z", "contractField": false},
+                "sensitive": {"name": "电话", "type": "phone"},
+                "critical": {"name": "凭证", "type": "text"},
+                "unlabelled": {"name": "确认", "type": "boolean"},
+                "group": {"name": "其他信息", "type": "dynamic_group",
+                          "allowedTypes": ["text", "phone"], "maxItems": 2}
+            })
+        );
+        assert_eq!(
+            object.property_labels,
+            Some(serde_json::json!({
+                "public": "public", "internal": "internal", "sensitive": "sensitive",
+                "critical": "critical", "group": "public"
+            }))
+        );
+        let fingerprint = template_fingerprint(&template);
+        assert_eq!(object.template_hash.as_deref(), Some(fingerprint.as_str()));
+        assert_eq!(object.properties["__templateHash"], fingerprint);
+        assert_eq!(object.properties["__templateName"], template.name);
+        assert_eq!(object.contract_type_id, template.contract_type_id);
+        assert_eq!(object.template_id.as_deref(), Some(template.id.as_str()));
+        assert_eq!(object.template_type.as_deref(), Some("user"));
+        assert!(object.id.starts_with("obj_"));
+        assert_eq!(object.type_id, template.id);
+        assert_eq!(object.section_type, "identity");
+        assert_eq!(object.parent_id.as_deref(), Some(page.id.as_str()));
+        assert_eq!(object.name, "用户填写的名称");
+        assert_eq!(object.icon_name, "user-icon");
+        assert_eq!(object.sensitivity_level, "internal");
+        assert_eq!(
+            vault.load_object(&page.id).unwrap().unwrap().children_ids,
+            vec![object.id.clone()]
+        );
+        let saved = vault.load_object(&object.id).unwrap().unwrap();
+        assert_eq!(saved.properties, object.properties);
+        assert_eq!(saved.property_labels, object.property_labels);
+        assert_eq!(saved.template_hash, object.template_hash);
+        assert_eq!(saved.contract_type_id, object.contract_type_id);
+    }
+
+    #[test]
+    fn rf009_template_copy_survives_deletion_and_is_in_initial_snapshot() {
+        let (_dir, vault, account) = rf009_setup();
+        let page = create_page(&vault, &account, "旅行").unwrap();
+        let template = rf009_template(&account);
+        vault.save_user_template(&template).unwrap();
+        let object = create_object(
+            &vault,
+            &account,
+            &page.id,
+            "凭证",
+            serde_json::json!({"critical": "保留值"}),
+            Some(&template.id),
+            None,
+        )
+        .unwrap();
+        vault.delete_user_template(&template.id).unwrap();
+        assert!(vault.load_user_template(&template.id).unwrap().is_none());
+
+        let saved = vault.load_object(&object.id).unwrap().unwrap();
+        assert_eq!(saved.properties, object.properties);
+        assert_eq!(saved.property_labels, object.property_labels);
+        assert_eq!(saved.contract_type_id, object.contract_type_id);
+        assert_eq!(saved.template_hash, object.template_hash);
+        let snapshots = vault.list_snapshots(&object.id).unwrap();
+        assert_eq!(snapshots.len(), 1);
+        assert_eq!(snapshots[0]["diffSummary"], "diff_created");
+        let bytes = vault
+            .get_snapshot(snapshots[0]["id"].as_str().unwrap())
+            .unwrap()
+            .unwrap();
+        let snapshot: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(snapshot["name"], "凭证");
+        assert_eq!(snapshot["properties"], object.properties);
+        assert_eq!(snapshot["propertyLabels"], object.property_labels.unwrap());
+    }
+
+    #[test]
+    fn rf009_absent_or_missing_template_preserves_existing_properties() {
+        let (_dir, vault, account) = rf009_setup();
+        let page = create_page(&vault, &account, "笔记").unwrap();
+        // 无/缺失模板沿用旧行为，不借本项收紧历史自定义 __fields 的校验。
+        let input = serde_json::json!({
+            "group": "legacy value",
+            "__fields": {"group": {"name": "旧组", "type": "dynamic_group", "maxItems": 0}},
+            "__templateName": "旧名称", "__templateHash": "旧指纹",
+            "false": false, "zero": 0, "empty": "", "null": null
+        });
+        for template_id in [None, Some("missing-template")] {
+            let object = create_object(
+                &vault,
+                &account,
+                &page.id,
+                " ",
+                input.clone(),
+                template_id,
+                None,
+            )
+            .unwrap();
+            assert_eq!(object.properties, input);
+            assert!(object.property_labels.is_none());
+            assert!(object.contract_type_id.is_none());
+            assert!(object.template_hash.is_none());
+            assert_eq!(object.name, "未命名对象");
+            assert_eq!(object.icon_name, "document");
+            assert_eq!(object.type_id, template_id.unwrap_or("note"));
+            assert_eq!(object.template_id.as_deref(), template_id);
+            assert_eq!(object.template_type.as_deref(), template_id.map(|_| "user"));
+        }
+    }
+
+    #[test]
+    fn rf009_empty_and_unlabelled_templates_preserve_optional_semantics() {
+        let (_dir, vault, account) = rf009_setup();
+        let page = create_page(&vault, &account, "笔记").unwrap();
+        let mut template = rf009_template(&account);
+        template.properties.retain(|prop| prop.id == "unlabelled");
+        template.contract_type_id = None;
+        for empty in [false, true] {
+            if empty {
+                template.properties.clear();
+            }
+            vault.save_user_template(&template).unwrap();
+            let input = serde_json::json!({
+                "unlabelled": false,
+                "__fields": {"local": {"name": "本地字段", "type": "text"}}
+            });
+            let object = create_object(
+                &vault,
+                &account,
+                &page.id,
+                "笔记",
+                input.clone(),
+                Some(&template.id),
+                None,
+            )
+            .unwrap();
+            assert!(object.property_labels.is_none());
+            assert!(object.contract_type_id.is_none());
+            assert_eq!(object.properties["unlabelled"], false);
+            assert_eq!(object.properties["__templateName"], template.name);
+            assert_eq!(object.template_hash, Some(template_fingerprint(&template)));
+            assert_eq!(
+                object.properties["__templateHash"],
+                serde_json::json!(object.template_hash)
+            );
+            if empty {
+                assert_eq!(object.properties["__fields"], input["__fields"]);
+            } else {
+                assert_eq!(
+                    object.properties["__fields"],
+                    serde_json::json!({"unlabelled": {"name": "确认", "type": "boolean"}})
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn rf009_invalid_dynamic_group_is_rejected_without_writes() {
+        let (_dir, vault, account) = rf009_setup();
+        let page = create_page(&vault, &account, "旅行").unwrap();
+        let template = rf009_template(&account);
+        vault.save_user_template(&template).unwrap();
+        let audit_count = vault.list_audit_log(100).unwrap().len();
+        let page_snapshot_count = vault.list_snapshots(&page.id).unwrap().len();
+        let child =
+            serde_json::json!({"id": "child", "name": "子字段", "type": "text", "value": ""});
+        for group in [
+            serde_json::Value::Null,
+            serde_json::json!("not-an-array"),
+            serde_json::json!([{"id": "wrong", "name": "非法类型", "type": "number", "value": 1}]),
+            serde_json::json!([{"id": "missing", "name": "缺少值", "type": "text"}]),
+            serde_json::json!([child.clone(), child.clone(), child]),
+        ] {
+            let error = create_object(
+                &vault,
+                &account,
+                &page.id,
+                "不得保存",
+                serde_json::json!({
+                    "group": group,
+                    "__fields": {"group": {"name": "伪造定义", "type": "text"}}
+                }),
+                Some(&template.id),
+                None,
+            )
+            .unwrap_err();
+            assert!(error.contains("group"), "{error}");
+            assert_eq!(
+                vault
+                    .list_object_metadata(&account, None, None, false, false)
+                    .unwrap()
+                    .len(),
+                1
+            );
+            let parent = vault.load_object(&page.id).unwrap().unwrap();
+            assert!(parent.children_ids.is_empty());
+            assert_eq!(parent.version, page.version);
+            assert_eq!(parent.updated_at, page.updated_at);
+            assert_eq!(
+                vault.list_snapshots(&page.id).unwrap().len(),
+                page_snapshot_count
+            );
+            assert_eq!(vault.list_audit_log(100).unwrap().len(), audit_count);
+        }
+    }
+
+    #[test]
+    fn rf009_template_read_error_is_not_treated_as_missing_template() {
+        let (_dir, vault, account) = rf009_setup();
+        let page = create_page(&vault, &account, "旅行").unwrap();
+        let template = rf009_template(&account);
+        vault.save_user_template(&template).unwrap();
+        let audit_count = vault.list_audit_log(100).unwrap().len();
+
+        // 仅临时测试库切换内存密钥：模板读取真实解密失败，但写入 API 仍可执行。
+        // 若读取错误被吞掉，旧实现会使用错误密钥创建缺少模板安全语义的对象。
+        vault.set_data_key(solosoul_vault::DataEncryptionKey::new([0x73; 32]));
+        let expected_error = vault.load_user_template(&template.id).unwrap_err();
+        let result = create_object(
+            &vault,
+            &account,
+            &page.id,
+            "不得保存",
+            serde_json::json!({}),
+            Some(&template.id),
+            None,
+        );
+        vault.set_data_key(solosoul_vault::DataEncryptionKey::new([0x42; 32]));
+
+        assert_eq!(result.unwrap_err(), expected_error);
+        assert_eq!(
+            vault
+                .list_object_metadata(&account, None, None, false, false)
+                .unwrap()
+                .len(),
+            1
+        );
+        let parent = vault.load_object(&page.id).unwrap().unwrap();
+        assert!(parent.children_ids.is_empty());
+        assert_eq!(parent.version, page.version);
+        assert_eq!(parent.updated_at, page.updated_at);
+        assert_eq!(vault.list_snapshots(&page.id).unwrap().len(), 1);
+        assert_eq!(vault.list_audit_log(100).unwrap().len(), audit_count);
     }
 
     #[test]

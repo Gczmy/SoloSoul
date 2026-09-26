@@ -6,6 +6,11 @@ use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, Borders, Paragraph, Row, Table};
 use solosoul_core::{PropertyType, UserTemplate};
 
+/// RF-009：模板初始化写入的元数据不属于可展示、可编辑的普通字段。
+pub(crate) fn is_template_metadata_key(key: &str) -> bool {
+    matches!(key, "__fields" | "__templateName" | "__templateHash")
+}
+
 /// 可编辑字段。
 #[derive(Debug, Clone)]
 pub struct EditableField {
@@ -27,6 +32,9 @@ impl EditableField {
 
         if let Some(tpl) = template {
             for prop in &tpl.properties {
+                if is_template_metadata_key(&prop.id) {
+                    continue;
+                }
                 let value = properties
                     .get(&prop.id)
                     .cloned()
@@ -48,7 +56,7 @@ impl EditableField {
         // 如果模板未覆盖某些属性，则以推断类型追加。
         if let serde_json::Value::Object(map) = properties {
             for (k, v) in map {
-                if fields.iter().any(|f| f.key == *k) {
+                if is_template_metadata_key(k) || fields.iter().any(|f| f.key == *k) {
                     continue;
                 }
                 let prop_type = PropertyType::infer_from_value(v, k);
@@ -326,6 +334,72 @@ pub fn value_from_result(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn rf009_edit_fields_hide_only_reserved_metadata_and_preserve_values() {
+        let ordinary = serde_json::json!({
+            "title": "user value",
+            "empty": "",
+            "zero": 0,
+            "disabled": false,
+            "unset": null,
+            "items": ["one", 2],
+            "_private": "single underscore",
+            "__custom": "other double underscore",
+            "__fieldsExtra": "near match"
+        });
+        let mut properties = ordinary.clone();
+        properties["__fields"] = serde_json::json!({"title": {"name": "hidden definition"}});
+        properties["__templateName"] = serde_json::json!("hidden template name");
+        properties["__templateHash"] = serde_json::json!("hidden template hash");
+
+        let fields = EditableField::from_properties_and_template(&properties, None);
+        let actual: serde_json::Map<String, serde_json::Value> = fields
+            .into_iter()
+            .map(|field| (field.key, field.value))
+            .collect();
+        assert_eq!(serde_json::Value::Object(actual), ordinary);
+        assert_eq!(properties["__templateName"], "hidden template name");
+    }
+
+    #[test]
+    fn rf009_template_definitions_cannot_expose_reserved_metadata() {
+        let template: UserTemplate = serde_json::from_value(serde_json::json!({
+            "id": "rf009-template",
+            "accountId": "synthetic-account",
+            "name": "Synthetic",
+            "createdAt": "2026-09-26T00:00:00Z",
+            "properties": [
+                {"id": "__fields", "name": "hidden fields", "type": "text"},
+                {"id": "__templateName", "name": "hidden name", "type": "text"},
+                {"id": "__templateHash", "name": "hidden hash", "type": "text"},
+                {"id": "choice", "name": "Visible choice", "type": "select",
+                 "sensitivityLevel": "public", "options": ["first", "second"]},
+                {"id": "_private", "name": "Single underscore", "type": "text"},
+                {"id": "__custom", "name": "Other key", "type": "text"}
+            ]
+        }))
+        .unwrap();
+        // 保留键即使只在模板声明，也不能生成可编辑的默认字段。
+        let properties = serde_json::json!({
+            "choice": "second", "_private": "one", "__custom": "two"
+        });
+        let fields = EditableField::from_properties_and_template(&properties, Some(&template));
+        assert_eq!(
+            fields
+                .iter()
+                .map(|field| field.key.as_str())
+                .collect::<Vec<_>>(),
+            vec!["choice", "_private", "__custom"]
+        );
+        assert_eq!(fields[0].label, "Visible choice");
+        assert_eq!(fields[0].prop_type, PropertyType::Select);
+        assert_eq!(fields[0].sensitivity, "public");
+        assert_eq!(fields[0].options, vec!["first", "second"]);
+        for field in fields {
+            assert_eq!(field.value, properties[&field.key]);
+        }
+    }
 
     #[test]
     fn format_dynamic_group_value() {
