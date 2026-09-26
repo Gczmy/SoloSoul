@@ -125,6 +125,72 @@ impl LlmService {
             }))
     }
 
+    /// 从当前账户的一份 Profile 快照解析普通聊天的服务商及真实密钥。
+    ///
+    /// 调用方必须传入同一 VaultSession 的 vault/account_id。这里只接受已保存且
+    /// 启用的精确 ID，不补默认服务商，也不重命名历史 builtin_* ID。配置与密钥
+    /// 共用一次读取，避免保存期间把不同版本的目标地址和凭据配在一起。
+    pub fn resolve_chat_provider(
+        &self,
+        vault: &VaultStore,
+        account_id: &str,
+        provider_id: &str,
+    ) -> LlmResult<ProviderWithKey> {
+        if account_id.is_empty() || provider_id.is_empty() {
+            return Err("Chat provider is not saved".to_string());
+        }
+        // 存储/serde 错误可能包含配置值；此授权入口只返回固定文案。
+        let profile = vault
+            .load_profile(account_id)
+            .map_err(|_| "Failed to load chat provider configuration".to_string())?
+            .ok_or_else(|| "Chat provider configuration is missing".to_string())?;
+        let data: serde_json::Value = serde_json::from_slice(&profile.data)
+            .map_err(|_| "Invalid chat provider configuration".to_string())?;
+        let preferences = data
+            .as_object()
+            .and_then(|root| root.get("preferences"))
+            .and_then(serde_json::Value::as_object)
+            .ok_or_else(|| "Invalid chat provider configuration".to_string())?;
+        let config: LlmConfig = preferences
+            .get("llmConfig")
+            .ok_or_else(|| "Chat provider configuration is missing".to_string())
+            .and_then(|value| {
+                serde_json::from_value(value.clone())
+                    .map_err(|_| "Invalid chat provider configuration".to_string())
+            })?;
+        let mut matching = config
+            .providers
+            .into_iter()
+            .filter(|provider| provider.id == provider_id);
+        let provider = matching
+            .next()
+            .ok_or_else(|| "Chat provider is not saved".to_string())?;
+        if matching.next().is_some() {
+            return Err("Invalid chat provider configuration".to_string());
+        }
+        if !provider.is_enabled {
+            return Err("Chat provider is disabled".to_string());
+        }
+        let keys: std::collections::HashMap<String, String> = match preferences.get("llmApiKeys") {
+            Some(value) => serde_json::from_value(value.clone())
+                .map_err(|_| "Invalid chat provider credentials".to_string())?,
+            None => std::collections::HashMap::new(),
+        };
+        // 未配置密钥仍可使用本地无认证服务，但显式坏类型不得当成空密钥。
+        let api_key = keys.get(&provider.id).cloned().unwrap_or_default();
+        Ok(ProviderWithKey {
+            id: provider.id,
+            name: provider.name,
+            base_url: provider.base_url,
+            model: provider.model,
+            is_enabled: provider.is_enabled,
+            is_built_in: provider.is_built_in,
+            api_key,
+            api_type: provider.api_type,
+            embedding_model: provider.embedding_model,
+        })
+    }
+
     // ── Conversations ──────────────────────────────────────────────
 
     /// P004 懒迁移：旧版本会话存于 profile preferences 的 `llmConversations` blob。
@@ -660,6 +726,9 @@ fn compare_updated_at(a: &str, b: &str) -> std::cmp::Ordering {
         _ => a.cmp(b),
     }
 }
+#[cfg(test)]
+mod rf005;
+
 #[cfg(test)]
 mod tests {
     use super::*;

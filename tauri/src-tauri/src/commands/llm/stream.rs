@@ -417,10 +417,7 @@ pub async fn llm_send_message_stream(
     state: State<'_, AppState>,
     account_id: String,
     conversation_id: String,
-    base_url: String,
-    api_key: String,
-    model: String,
-    api_type: ApiType,
+    provider_id: String,
     messages: Vec<serde_json::Value>,
     request_id: Option<String>,
     context_selection: Option<ChatContextSelection>,
@@ -436,20 +433,33 @@ pub async fn llm_send_message_stream(
                 .map_err(|e| e.to_string())
         },
     )?;
-    // P102：网络出口收窄——base_url 必须通过 scheme/host 校验，且必须属于
-    // 当前账户已登记的 provider（内置默认 ∪ 设置中保存过的地址）。
-    // 防止聊天内容（可能含敏感数据）被 XSS 借 LLM 通道外传到任意地址。
-    request::validate_llm_base_url(&base_url)?;
-    // P016：SSRF 内网段防护——字面内网 IP 已被 validate 拦截，此处对主机名再做
-    // 异步解析复核（防 `http://nas.local` 这类解析到内网地址的绕过），与 chat_http 一致。
-    request::ensure_public_llm_host(&base_url).await?;
-    ensure_registered_provider(&context, &base_url)?;
-    run_chat_stream(
-        &context,
-        base_url,
-        api_key,
-        model,
-        api_type,
+    run_chat_stream(&context, provider_id, messages, context_selection).await
+}
+
+/// RF-005：普通发送只接受 provider ID，配置与凭证来自原会话的同份 Profile。
+async fn run_chat_stream(
+    context: &StreamContext,
+    provider_id: String,
+    messages: Vec<serde_json::Value>,
+    context_selection: Option<ChatContextSelection>,
+) -> Result<(), String> {
+    let provider = context.with_vault(|vault| {
+        solosoul_core::llm::service::LlmService::new().resolve_chat_provider(
+            vault,
+            context.session.account_id(),
+            &provider_id,
+        )
+    })?;
+    // 保留 P102/P015/P016：已保存的配置同样必须通过 URL、DNS 与登记校验。
+    request::validate_llm_base_url(&provider.base_url)?;
+    request::ensure_public_llm_host(&provider.base_url).await?;
+    ensure_registered_provider(context, &provider.base_url)?;
+    run_resolved_chat_stream(
+        context,
+        provider.base_url,
+        provider.api_key,
+        provider.model,
+        provider.api_type,
         messages,
         context_selection,
     )
@@ -485,8 +495,8 @@ fn prepare_chat_messages(
     Ok(messages)
 }
 
-/// 普通流请求的唯一完成路径，供真实 HTTP 回归覆盖发送、保存与统计的串联。
-async fn run_chat_stream(
+/// 已解析配置后的唯一完成路径；RF-002/RF-004 回归覆盖发送、保存和统计，RF-005 覆盖前置解析。
+async fn run_resolved_chat_stream(
     context: &StreamContext,
     base_url: String,
     api_key: String,
@@ -670,6 +680,7 @@ async fn record_and_persist_usage(
 #[cfg(test)]
 mod tests {
     mod rf004;
+    mod rf005;
 
     use super::*;
     use crate::commands::llm::stats::TokenUsage;
@@ -820,7 +831,7 @@ mod tests {
         let context = &fixture.context;
         let (url, release, server) = paused_server("text/event-stream", SSE_REPLY).await;
         release.send(()).unwrap();
-        run_chat_stream(
+        run_resolved_chat_stream(
             context,
             url,
             "test-key".into(),
@@ -994,7 +1005,7 @@ mod tests {
                 .unwrap();
             let (url, release, server) = paused_server("text/event-stream", SSE_REPLY).await;
             release.send(()).unwrap();
-            run_chat_stream(
+            run_resolved_chat_stream(
                 context,
                 url,
                 "test-key".into(),
@@ -1034,7 +1045,7 @@ mod tests {
         let context = &fixture.context;
         let (url, release, server) = paused_server("text/event-stream", SSE_REPLY).await;
         release.send(()).unwrap();
-        run_chat_stream(
+        run_resolved_chat_stream(
             context,
             url,
             "test-key".into(),

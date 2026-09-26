@@ -2,6 +2,8 @@ import { act, renderHook, render, fireEvent, screen, cleanup } from '@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useLlmChatCore } from '@/hooks/useLlmChatCore';
 import { invokeCommand } from '@/lib/ipcClient';
+import { searchGuideChunks } from '@/lib/llm/guideService';
+import type { ChatMsg } from '@/types/llmChat';
 
 const fixtures = vi.hoisted(() => ({
   auth: { currentAccount: { id: 'account' } },
@@ -298,6 +300,66 @@ describe('RF-103 conversation reads', () => {
       expect(screen.queryByText('body-old')).toBeNull();
       if (action === 'new') expect(localStorage.getItem(key)).toBeNull();
       else expect(onClose).toHaveBeenCalledTimes(1);
+    },
+  );
+});
+
+describe('RF-005 ordinary chat provider selection', () => {
+  it.each([false, true])(
+    'sends only providerId with the existing conversation and context (includeSystemPrompt=%s)',
+    async (includeSystemPrompt) => {
+      vi.mocked(searchGuideChunks).mockResolvedValue([]);
+      vi.mocked(invokeCommand).mockImplementation(async (command) => {
+        if (command === 'llm_get_api_key')
+          throw new Error('Ordinary chat must not read credentials');
+        return [];
+      });
+      const history: ChatMsg[] = [
+        { id: 'user-one', role: 'user', content: '旧问题', createdAt: '' },
+        { id: 'assistant-one', role: 'assistant', content: '旧回答', createdAt: '' },
+      ];
+      const { result } = renderHook(() => useLlmChatCore({ includeSystemPrompt }));
+      act(() => {
+        result.current.setCurrentConvId('existing-conversation');
+        result.current.setMessages(history);
+        result.current.setInput('  本次问题  ');
+      });
+
+      await act(async () => {
+        await result.current.sendMessage();
+      });
+
+      const sends = vi
+        .mocked(invokeCommand)
+        .mock.calls.filter(([command]) => command === 'llm_send_message_stream');
+      expect(sends).toHaveLength(1);
+      expect(sends[0][1]).toEqual({
+        accountId: 'account',
+        conversationId: 'existing-conversation',
+        providerId: fixtures.provider.id,
+        messages: [
+          { role: 'user', content: '旧问题' },
+          { role: 'assistant', content: '旧回答' },
+          { role: 'user', content: '本次问题' },
+        ],
+        contextSelection: includeSystemPrompt
+          ? { mode: 'publicProfile', objectIds: [], language: 'zh-CN', guideChunks: [] }
+          : { mode: 'none' },
+      });
+      for (const field of ['baseUrl', 'apiKey', 'model', 'apiType']) {
+        expect(sends[0][1]).not.toHaveProperty(field);
+      }
+      expect(
+        vi.mocked(invokeCommand).mock.calls.some(([command]) => command === 'llm_get_api_key'),
+      ).toBe(false);
+      expect(fixtures.stream.startStream).toHaveBeenCalledWith('existing-conversation');
+      expect(result.current.messages.slice(0, history.length)).toEqual(history);
+      expect(result.current.messages.map(({ role, content }) => ({ role, content }))).toEqual([
+        { role: 'user', content: '旧问题' },
+        { role: 'assistant', content: '旧回答' },
+        { role: 'user', content: '本次问题' },
+        { role: 'assistant', content: '' },
+      ]);
     },
   );
 });

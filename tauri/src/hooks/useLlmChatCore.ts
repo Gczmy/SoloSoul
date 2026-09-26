@@ -211,11 +211,6 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     startStream(convId);
 
     try {
-      const apiKey = await invoke<string>('llm_get_api_key', {
-        accountId: accountId,
-        providerId: activeProvider.id,
-      });
-
       const effectiveIncludeSystemPrompt =
         optIncludeSystemPrompt !== false && savedIncludeSystemPrompt !== false;
       const request = await buildChatRequest({
@@ -229,10 +224,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       invoke('llm_send_message_stream', {
         accountId: accountId,
         conversationId: convId,
-        baseUrl: activeProvider.baseUrl,
-        apiKey: apiKey,
-        model: activeProvider.model,
-        apiType: activeProvider.apiType,
+        providerId: activeProvider.id,
         messages: request.messages,
         contextSelection: request.contextSelection,
       }).catch((err) => {

@@ -1,5 +1,5 @@
 //! RF-004：使用 synthetic Vault 数据捕获真正发往本地 provider 的最终 JSON。
-//! 这里直接调用生产 run_chat_stream，覆盖投影、协议转换、发送和回复保存。
+//! 这里直接调用生产 run_resolved_chat_stream，覆盖投影、协议转换、发送和回复保存。
 
 use super::*;
 use crate::commands::llm::rag::GuideChunk;
@@ -215,7 +215,7 @@ async fn send_and_capture(
     let (url, server) = capture_server(&api_type).await;
     tokio::time::timeout(
         Duration::from_secs(10),
-        run_chat_stream(
+        run_resolved_chat_stream(
             &fixture.context,
             url,
             SYNTHETIC_KEY.into(),
@@ -282,7 +282,7 @@ async fn reject_messages(
     let url = format!("http://{}", listener.local_addr().unwrap());
     let error = assert_rejected_before_connect(
         &listener,
-        run_chat_stream(
+        run_resolved_chat_stream(
             &fixture.context,
             url,
             SYNTHETIC_KEY.into(),
@@ -553,7 +553,7 @@ async fn rf004_lock_or_account_switch_after_projection_prevents_any_connection()
         let url = format!("http://{}", listener.local_addr().unwrap());
         let account = fixture.context.session.account_id().to_owned();
         let other = format!("acc_{}", uuid::Uuid::new_v4().simple());
-        let pending = run_chat_stream(
+        let pending = run_resolved_chat_stream(
             &fixture.context,
             url,
             SYNTHETIC_KEY.into(),

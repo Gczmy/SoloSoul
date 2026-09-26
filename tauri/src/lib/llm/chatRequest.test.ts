@@ -69,7 +69,18 @@ function sentRequest(): ChatRequest {
     .mocked(invokeCommand)
     .mock.calls.filter(([command]) => command === 'llm_send_message_stream');
   expect(sends).toHaveLength(1);
-  return sends[0][1] as unknown as ChatRequest;
+  const payload = sends[0][1];
+  expect(payload).toEqual({
+    accountId: 'account',
+    conversationId: expect.any(String),
+    providerId: fixtures.provider.id,
+    messages: expect.any(Array),
+    contextSelection: expect.any(Object),
+  });
+  expect(
+    vi.mocked(invokeCommand).mock.calls.some(([command]) => command === 'llm_get_api_key'),
+  ).toBe(false);
+  return payload as unknown as ChatRequest;
 }
 
 beforeEach(() => {
@@ -77,9 +88,10 @@ beforeEach(() => {
   fixtures.includeSystemPrompt = true;
   vi.mocked(searchGuideChunks).mockResolvedValue(guideChunks);
   vi.mocked(saveConversationSafely).mockResolvedValue(true);
-  vi.mocked(invokeCommand).mockImplementation(async (command) =>
-    command === 'llm_get_api_key' ? 'test-key' : [],
-  );
+  vi.mocked(invokeCommand).mockImplementation(async (command) => {
+    if (command === 'llm_get_api_key') throw new Error('Ordinary chat must not read credentials');
+    return [];
+  });
 });
 
 describe('chat request message ownership', () => {

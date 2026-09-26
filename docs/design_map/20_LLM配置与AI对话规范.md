@@ -3,7 +3,7 @@
 > **前置阅读**：`13_用户数据边界与加密存储.md`、`24_矛盾冲突与决策记录.md`、`10_跨平台视觉规范与主题系统.md`（侧边栏规范）
 > **Manifesto 对齐**：用户主权 | 隐私优先 | 安全默认
 >
-> **[状态] 当前实现校正（2026-09-26，RF-004）**：普通聊天以第 5–7 节的 `llm_send_message_stream` 和 Rust 受控自动上下文为准。下方 2026-08 记录仅保留历史方案，不作为当前调用图或缓存已实现的证据。
+> **[状态] 当前实现校正（2026-09-26，RF-004/RF-005）**：普通聊天以第 5–7 节的 `llm_send_message_stream` 和 Rust 受控自动上下文为准。下方 2026-08 记录仅保留历史方案，不作为当前调用图或缓存已实现的证据。
 > **文档定位**：定义 SoloSoul LLM（大语言模型）集成的全部规范，包括 Provider 管理、API 配置、模型选择，AI 对话页面的功能规格与 UI 设计，以及系统提示词、上下文注入、帮助文档嵌入等 AI 智能能力。AI 功能是软件的附加扩展，不影响核心离线本地功能。
 
 ---
@@ -249,7 +249,7 @@ interface ProviderConfig {
 
 ### 5.1 后端代理架构
 
-普通聊天和快捷对话通过 `llm_send_message_stream` 发送请求，由 Rust 代理访问外部 LLM；此入口是实际用户路径，并非 SSE 降级专用入口。RF-004 将自动上下文从前端 Store 序列化迁到 Rust：
+普通聊天和快捷对话通过 `llm_send_message_stream` 发送请求，由 Rust 代理访问外部 LLM；此入口是实际用户路径，并非 SSE 降级专用入口。RF-004 将自动上下文从前端 Store 序列化迁到 Rust；RF-005 将普通发送的配置与凭证解析移到 Rust：
 
 ```text
 前端 buildChatRequest
@@ -258,6 +258,7 @@ interface ProviderConfig {
     publicProfile 仅含 objectIds、language、guideChunks，不含 Vault 字段值
 Host llm_send_message_stream
   → 首次 await 前捕获原账户/会话（RF-002）
+  → Core 从原 Vault 的单份 Profile 解析保存且启用的 providerId 及同份 API key
   → 保留地址、DNS 与已登记 provider 校验
   → 保存的 includeSystemPrompt 约束自动附加；关闭时不读对象/模板
   → 原 Vault 读取候选对象/模板/允许的偏好
@@ -267,7 +268,7 @@ Host llm_send_message_stream
 
 指南检索继续由前端调用既有 `llm_search_guide_chunks`，回传片段由 Host 限量并包装；RF-004 不迁移检索算法。前端关闭时不检索指南，Host 的保存开关为最终约束。保存开关后刷新共享配置缓存，已挂载聊天会收到新状态，刷新等待期间不把已知关闭恢复为开启。
 
-本阶段 provider 地址、模型和 API key 仍沿现有普通发送参数传递；凭证按 provider ID 在 Rust 解析由 RF-005 单独实施，不能声称密钥已不离开 Rust。非 SSE 响应的打字机效果仍在 Host 内部处理，不改变上述上下文边界。
+普通发送只传 `providerId`，不再调用 `llm_get_api_key` 或携带 `baseUrl/apiKey/model/apiType`。Core 严格解析原账户 Profile，拒绝未知、禁用、其他账户 provider 及读取/解析失败；配置和 key 从同一快照按精确 ID 配对，空 key 继续支持本地无认证服务。GUI 历史 `builtin_openai/anthropic/ollama/deepseek/alibaba` ID 与保存覆盖项不改名；五个未保存内置默认项均禁用，不作为发送授权。Host 对保存的地址仍执行 URL、DNS 和登记校验，异步等待后及实际发送前核对原会话。设置页查看/测试、聊天在线检测与统计页连接检查仍有既有凭证入口，因此不声称整个渲染器不接触 key。非 SSE 响应的打字机效果仍在 Host 内部处理。
 
 ### 5.2 OpenAI 兼容格式
 
@@ -320,7 +321,7 @@ struct Message {
 **SSE 流式路径（默认）**：
 
 ```
-前端调用: invoke('llm_send_message_stream', { accountId, conversationId, messages, contextSelection, ...provider参数 })
+前端调用: invoke('llm_send_message_stream', { accountId, conversationId, providerId, messages, contextSelection, requestId? })
     ↓
 Rust 后端: 启动异步任务，发送 HTTP 请求（stream: true）
     ↓
@@ -657,7 +658,7 @@ Host 最多接受前三个片段参与包装，每个标题最多 120、正文�
 |------|---------|
 | 13_用户数据边界 | API 密钥 `critical` 级别加密存储；AI 功能开关状态存储位置；敏感数据分级规则 |
 | 24_矛盾冲突 | AI 功能默认禁用；风险告知；本地模型（Ollama）推荐 |
-| 07_IPC 接口 | 普通聊天 `llm_send_message_stream` 接收消息及 contextSelection；其余配置、统计和指南入口沿既有命令 |
+| 07_IPC 接口 | 普通聊天 `llm_send_message_stream` 接收 providerId、消息及 contextSelection；其余配置、统计和指南入口沿既有命令 |
 | 10_跨平台视觉规范 | 设置页 LLM 配置区域 UI 风格；侧边栏 AI 对话入口 |
 | 08_对象与模板规范 | AI 智能填充功能调用的对象属性接口 |
 
@@ -1108,6 +1109,7 @@ fn estimate_tokens(text: &str) -> u64 {
 - [ ] 每个 AI 功能可独立开关
 - [ ] 系统提示词 7 Section 模板实现（AI 身份 / 软件信息 / 用户公开对象数据 / 偏好 / 插件 / 统计 / 行为规范）
 - [ ] 普通聊天自动上下文由 Rust 从绑定会话读取并投影，客户端仅传选择标识
+- [ ] 普通发送仅传 provider ID；原会话中解析配置与凭证，拒绝禁用、未知或其他账户配置
 - [ ] 隐私分级过滤（仅 `public` 级别数据进入系统提示词）
 - [ ] 候选对象最多三个，空列表不遍历全库；不复用跨请求提示词缓存
 - [ ] 长度限制：七段提示最多 1500 个 Unicode 字符；指南正文每段最多 1500 字符；合并 system 最多 3000 字符；用户输入和历史不截断

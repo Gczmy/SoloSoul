@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**93**（P1：32；P2：60；P3：1）。
-- 已关闭：**20 / 93**；实际修复（已关闭）：20；排除：0；待验证/阻塞：0。原计划 90 项，执行中新增 RF-900、RF-901、RF-902。
-- 当前处理：无。RF-004 已完成全部验收并纳入本提交；下一项 RF-005。
+- 已关闭：**21 / 93**；实际修复（已关闭）：21；排除：0；待验证/阻塞：0。原计划 90 项，执行中新增 RF-900、RF-901、RF-902。
+- 当前处理：无。RF-005 已完成全部验收并纳入本提交；下一项 RF-104。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -132,7 +132,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001)、[RF-020](#rf-020) | [x] 完成 |
 | 5 | [RF-101](#rf-101) | P2 | 本次用户消息只追加一次 | 无 | [x] 完成 |
 | 6 | [RF-004](#rf-004) | P1 | Rust 生成普通聊天的受控自动上下文 | [RF-001](#rf-001)、[RF-100](#rf-100)、[RF-101](#rf-101) | [x] 完成 |
-| 7 | [RF-005](#rf-005) | P1 | 普通聊天通过 provider ID 在 Rust 解析凭证 | [RF-001](#rf-001)、[RF-002](#rf-002)、[RF-004](#rf-004) | [ ] 待执行 |
+| 7 | [RF-005](#rf-005) | P1 | 普通聊天通过 provider ID 在 Rust 解析凭证 | [RF-001](#rf-001)、[RF-002](#rf-002)、[RF-004](#rf-004) | [x] 完成 |
 | 8 | [RF-102](#rf-102) | P1 | 搜索查询与缓存写入绑定会话和请求代次 | 无 | [x] 完成 |
 | 9 | [RF-103](#rf-103) | P1 | 聊天会话读取只接纳最新选择 | 无 | [x] 完成 |
 | 10 | [RF-104](#rf-104) | P1 | 聊天流归属明确且最终回复只有一个持久化写入者 | [RF-101](#rf-101)、[RF-103](#rf-103)、[RF-002](#rf-002)、[RF-005](#rf-005) | [ ] 待执行 |
@@ -1594,4 +1594,17 @@ git commit -m "<任务卡的提交标题>"
 
 - 最终原生验证：fmt、Clippy 均 exit 0（Clippy 1m53s）；Core `rf004_` **15/15 passed**，Host `rf004_` **13/13 passed**，RF-002 **6/6 passed**，均 exit 0。R 全量 `cargo test --verbose` exit 0，编译 12m42s；19 组结果合计 **1,115 passed / 0 failed / 3 ignored**，含 GUI 523、core 230、vault 184。跳过项仍为两项 legacy field 和 P025 手动性能工具。
 - CLI：fmt、全目标 Clippy、完整 `cargo test --verbose --no-fail-fast` 全部 exit 0；Clippy 54.41s，测试编译 2m32s，171 单元（34.38s）+ 2 集成（1.21s）通过，合计 **173 passed / 0 failed / 1 ignored**；既有 i18n 文档示例跳过。验证结束后核对并恢复 Cargo 自动刷新的 5 个本地 crate 版本，未升级依赖。
-- 最终复审：纠正 canonical 规范残留的旧长度标准与空候选指南说明；93 项索引/任务卡、关闭计数与 `git diff --check` 核对通过。F/R/CORE/CLI/CONTRACT 与生产包冒烟全部满足；本项 **完成**，仅暂存本项 22 个路径，保留 3 张 NSIS 图片。提交：本提交（按 RF-004 检索），未推送。
+- 最终复审：纠正 canonical 规范残留的旧长度标准与空候选指南说明；93 项索引/任务卡、关闭计数与 `git diff --check` 核对通过。F/R/CORE/CLI/CONTRACT 与生产包冒烟全部满足；本项 **完成**，仅暂存本项 22 个路径，保留 3 张 NSIS 图片。提交：`c5b5dad3`，未推送。
+
+### RF-005 执行记录（2026-09-26，完成）
+
+- 修复前 HEAD：`c5b5dad3`（RF-004）；有效工作区仍为 C 盘恢复副本。原普通发送先由前端读取 API key，再传回地址、模型、协议与 key；保存配置只用于 URL 登记校验，不能保证按原账户启用的 provider 解析凭证。
+- 实施边界：普通发送只传 provider ID；Core 从原会话 Vault 的单份 Profile 快照严格解析已保存且启用的 provider 和同份密钥，Host 保留 URL/主机解析/登记检查及发送前会话校验。设置页和在线状态检测的凭证入口维持现有行为；不声称整个渲染器不再接触凭证。RF-104 流归属与单一持久化写入者后续处理。
+
+- 实现与复核：Core 新增严格 resolver 及 14 项真实 Vault 回归；Host providerId 网关新增 9 项测试、22 个场景，捕获真实 loopback HTTP 的 URL/模型/认证头，并在锁定/切换屏障后验证两个账户均无外连。旧 RF-002/RF-004 测试继续覆盖同一生产完成阶段，仅函数改名；新 RF-005 测试覆盖完整解析与出口链路。独立只读复核未发现新验收阻碍。所选 provider ID 重复时拒绝；错误固定脱敏文案，不透出配置值。
+- 最终 F：三文件 Prettier、TypeScript、Lint 全部 exit 0；定向 2 文件 **30/30 passed**（27.67s），默认全量 **148 文件、1,251 passed / 0 failed**（79.64s）、exit 0。CONTRACT：ACL 219 命令、偏好 22 key、Markdown 13 依赖全部 exit 0。生产包冒烟 **14/14 passed**（27.5s）、exit 0，真实 Vite production build / Chrome 151.0.7922.108。未修改超时、pool、worker 或跳过规则。
+- Rust fmt exit 0，代码已冻结；按既有已验证 PDFium/SQLite 环境顺序执行 Clippy、RF-005 Core/Host、RF-004/RF-002 回归、R 全量和 CLI fmt/Clippy/全量。此时尚未获得原生最终结果，本项保持进行中，未提交。
+
+- 原生定向与回归：Clippy exit 0（1m18s）；Core RF-005 **14/14 passed**（编译1m25s、执行0.23s），Host RF-005 **9/9 passed**（编译3m57s、执行1.48s）；RF-004 **13/13 passed**（2.12s）、RF-002 **6/6 passed**（1.19s），全部 exit 0。真实认证头、保存配置覆盖、坏数据拒绝和解析后失效会话不建连均通过。
+- R 全量：`cargo test --verbose` exit 0，编译10m27s；19 组结果合计 **1,138 passed / 0 failed / 3 ignored**，含 GUI 532、core 244、vault 184。跳过仍为两项 legacy field 和 P025 手动性能工具，未新增跳过。CLI fmt、全目标 Clippy（50.99s）、完整测试全部 exit 0；测试编译2m03s，171 单元（35.62s）+ 2 集成（1.12s）通过，合计 **173 passed / 0 failed / 1 ignored**，既有 i18n 文档示例跳过。
+- 最终结论：F/R/CORE/CLI/CONTRACT、定向及生产包冒烟全部满足；规范、93 项索引/任务卡及 `git diff --check` 通过。已恢复 CLI 构建自动刷新的 5 个本地 crate 版本，保留原有 3 张 NSIS 图片。仅暂存本项 11 个路径；本项 **完成**，提交：本提交（按 RF-005 检索），未推送。下一项 RF-104 只读预研确认需每轮预存 user、在 invoke 完成前保留流归属与失败提示，尚未实施。
