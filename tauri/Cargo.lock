@@ -6415,6 +6415,7 @@ name = "solo_soul"
 version = "2.13.2"
 dependencies = [
  "anyhow",
+ "async-trait",
  "base64 0.22.1",
  "blake2",
  "block2 0.6.2",

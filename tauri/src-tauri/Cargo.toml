@@ -111,6 +111,7 @@ windows-collections = "0.2"
 version = "3"
 
 [dev-dependencies]
+async-trait = { workspace = true }
 rusqlite = { workspace = true }
 ring = "0.17"
 blake2 = "0.10"

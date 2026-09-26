@@ -1,11 +1,19 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '@/lib/i18n';
+import { setRequestSession } from '@/lib/sessionRequests';
 import type { ImportResult } from '@/types/exportImport';
 import { useImportState } from './useImportState';
 import { useCloudSyncPage } from '@/pages/settings/cloudSync/useCloudSyncPage';
 
+type IncomingEvent = {
+  payload: { accountId: string; sessionGeneration: number; files?: string[] };
+};
+
 const mocks = vi.hoisted(() => ({
+  accountId: 'account',
+  listen: vi.fn(),
+  incomingListeners: [] as ((event: IncomingEvent) => void)[],
   invoke: vi.fn(),
   cleanup: vi.fn(),
   stage: vi.fn(),
@@ -29,11 +37,12 @@ vi.mock('@/hooks/useToastError', () => ({
 }));
 vi.mock('@/stores/authStore', () => ({
   useAuthStore: (selector: (s: unknown) => unknown) =>
-    selector({ currentAccount: { id: 'account' } }),
+    selector({ currentAccount: { id: mocks.accountId } }),
 }));
-vi.mock('@tauri-apps/api/event', () => ({ listen: vi.fn().mockResolvedValue(() => {}) }));
+vi.mock('@tauri-apps/api/event', () => ({ listen: mocks.listen }));
 
 const complete: ImportResult = {
+  sessionGeneration: 7,
   status: 'complete',
   objectCount: 2,
   attachmentCount: 1,
@@ -63,6 +72,14 @@ const uncommitted: ImportResult = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  setRequestSession(null);
+  mocks.accountId = 'account';
+  setRequestSession(mocks.accountId);
+  mocks.incomingListeners.length = 0;
+  mocks.listen.mockImplementation((_name: string, callback: (event: IncomingEvent) => void) => {
+    mocks.incomingListeners.push(callback);
+    return Promise.resolve(vi.fn());
+  });
   mocks.stage.mockResolvedValue('cached.solosoul');
 });
 
@@ -133,12 +150,14 @@ describe('RF-020 cloud incoming outcomes', () => {
             sourcePath: source,
           }),
         }),
+        expect.objectContaining({ requestIsCurrent: expect.any(Function) }),
       );
       if (outcome.status === 'complete') {
-        expect(mocks.invoke).toHaveBeenCalledWith('cloud_sync_mark_applied', {
-          deviceId: 'remote-device',
-          hlc: '123',
-        });
+        expect(mocks.invoke).toHaveBeenCalledWith(
+          'cloud_sync_mark_applied',
+          { accountId: 'account', sessionGeneration: 7, sourcePath: source },
+          expect.objectContaining({ requestIsCurrent: expect.any(Function) }),
+        );
         expect(result.current.incomingFiles).toEqual([]);
         expect(mocks.onSuccess).toHaveBeenCalledOnce();
       } else {
@@ -151,4 +170,115 @@ describe('RF-020 cloud incoming outcomes', () => {
       }
     },
   );
+});
+
+describe('RF-003 cloud incoming session isolation', () => {
+  it('ignores a completed import from the previous account after switching accounts', async () => {
+    const sourceA = 'C:/cache/account/remote-device/123.solosoul';
+    const sourceB = 'C:/cache/account-b/remote-device/456.solosoul';
+    let resolveImport!: (result: ImportResult) => void;
+    const deferredImport = new Promise<ImportResult>((resolve) => {
+      resolveImport = resolve;
+    });
+    mocks.invoke.mockImplementation(async (cmd: string) => {
+      if (cmd === 'cloud_sync_list_incoming') {
+        return [mocks.accountId === 'account' ? sourceA : sourceB];
+      }
+      if (cmd === 'import_execute_advanced') return deferredImport;
+      return null;
+    });
+    const { result, rerender } = renderHook(() => useCloudSyncPage());
+    await waitFor(() => expect(result.current.incomingFiles).toEqual([sourceA]));
+    act(() => result.current.setConfigJson({ password: 'account-a-password' }));
+    let pendingImport!: Promise<void>;
+    act(() => {
+      pendingImport = result.current.handleImportIncoming(sourceA);
+    });
+    expect(result.current.importingFile).toBe(sourceA);
+
+    act(() => {
+      setRequestSession('account-b');
+      mocks.accountId = 'account-b';
+      rerender();
+    });
+    await waitFor(() => expect(result.current.incomingFiles).toEqual([sourceB]));
+    const configB = { username: 'account-b', password: 'account-b-password' };
+    act(() => {
+      result.current.setConfigJson(configB);
+      result.current.setIntervalSecs(7200);
+      result.current.setShowPasswordDialog(true);
+    });
+
+    await act(async () => {
+      resolveImport(complete);
+      await pendingImport;
+    });
+
+    expect(result.current.configJson).toEqual(configB);
+    expect(result.current.intervalSecs).toBe(7200);
+    expect(result.current.showPasswordDialog).toBe(true);
+    expect(result.current.incomingFiles).toEqual([sourceB]);
+    expect(result.current.importingFile).toBeNull();
+    expect(mocks.invoke.mock.calls.some(([cmd]) => cmd === 'cloud_sync_mark_applied')).toBe(false);
+    expect(mocks.onSuccess).not.toHaveBeenCalled();
+    expect(mocks.onError).not.toHaveBeenCalled();
+  });
+
+  it('ignores stale listeners and foreign events and refreshes current files from the backend', async () => {
+    const sourceA = 'C:/cache/account/remote-device/123.solosoul';
+    const sourceB = 'C:/cache/account-b/remote-device/456.solosoul';
+    const newSourceB = 'C:/cache/account-b/remote-device/789.solosoul';
+    let resolveRefresh!: (files: string[]) => void;
+    const deferredRefresh = new Promise<string[]>((resolve) => {
+      resolveRefresh = resolve;
+    });
+    let refreshPending = false;
+    mocks.invoke.mockImplementation(async (cmd: string) => {
+      if (cmd !== 'cloud_sync_list_incoming') return null;
+      if (refreshPending) return deferredRefresh;
+      return [mocks.accountId === 'account' ? sourceA : sourceB];
+    });
+    const { result, rerender } = renderHook(() => useCloudSyncPage());
+    await waitFor(() => expect(result.current.incomingFiles).toEqual([sourceA]));
+    expect(mocks.incomingListeners).toHaveLength(1);
+    const oldListener = mocks.incomingListeners[0];
+
+    act(() => {
+      setRequestSession('account-b');
+      mocks.accountId = 'account-b';
+      rerender();
+    });
+    await waitFor(() => expect(result.current.incomingFiles).toEqual([sourceB]));
+    expect(mocks.incomingListeners).toHaveLength(2);
+    const currentListener = mocks.incomingListeners[1];
+    const incomingCallCount = () =>
+      mocks.invoke.mock.calls.filter(([cmd]) => cmd === 'cloud_sync_list_incoming').length;
+    const callsBeforeEvents = incomingCallCount();
+
+    act(() => {
+      const oldEvent = {
+        payload: { accountId: 'account', sessionGeneration: 7, files: [sourceA] },
+      };
+      oldListener(oldEvent);
+      currentListener(oldEvent);
+    });
+    expect(incomingCallCount()).toBe(callsBeforeEvents);
+    expect(result.current.incomingFiles).toEqual([sourceB]);
+
+    refreshPending = true;
+    act(() => {
+      currentListener({
+        payload: { accountId: 'account-b', sessionGeneration: 8, files: [sourceA] },
+      });
+    });
+    expect(incomingCallCount()).toBe(callsBeforeEvents + 1);
+    expect(result.current.incomingFiles).toEqual([sourceB]);
+    await act(async () => {
+      resolveRefresh([sourceB, newSourceB]);
+      await deferredRefresh;
+    });
+    expect(result.current.incomingFiles).toEqual([sourceB, newSourceB]);
+    expect(mocks.onSuccess).not.toHaveBeenCalled();
+    expect(mocks.onError).not.toHaveBeenCalled();
+  });
 });

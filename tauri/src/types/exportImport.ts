@@ -81,6 +81,8 @@ export interface ConflictInfo {
 export type ImportStrategy = 'skipExisting' | 'overwrite' | 'keepBoth';
 
 export interface ImportResult {
+  /** 后端导入所绑定的会话代次；后续云水线提交必须回传。 */
+  sessionGeneration: number;
   objectCount: number;
   attachmentCount: number;
   status: 'complete' | 'partial' | 'notCommitted';

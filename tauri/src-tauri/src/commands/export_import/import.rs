@@ -1,3 +1,4 @@
+use solosoul_core::export_import::ImportTarget;
 use std::sync::Arc;
 
 use super::helpers::ManifestData;
@@ -241,11 +242,43 @@ pub(crate) fn import_execute_internal(
     locale: &str,
     progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
 ) -> Result<ImportResult, String> {
-    let mut result = ImportResult::default();
+    let session = svc.capture_session(&account_id)?;
+    import_execute_for_session(
+        &svc,
+        &session,
+        file_path,
+        password,
+        strategy,
+        selections,
+        selected_attachment_ids,
+        object_strategies,
+        locale,
+        progress,
+    )
+}
+
+/// 后台导入使用任务开始时的会话；同步解析不持有会话门闩，每次提交分别验证。
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn import_execute_for_session(
+    svc: &solosoul_core::VaultService,
+    session: &solosoul_core::VaultSession,
+    file_path: String,
+    password: zeroize::Zeroizing<String>,
+    strategy: ImportStrategy,
+    selections: Option<Vec<ImportSelection>>,
+    selected_attachment_ids: Option<Vec<String>>,
+    object_strategies: HashMap<String, ImportStrategy>,
+    locale: &str,
+    progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
+) -> Result<ImportResult, String> {
+    let mut result = ImportResult {
+        session_generation: session.generation(),
+        ..Default::default()
+    };
     let mut stage = ImportStage::Preparation;
     if let Err(error) = import_execute_steps(
         svc,
-        account_id,
+        session,
         file_path,
         password,
         strategy,
@@ -264,8 +297,8 @@ pub(crate) fn import_execute_internal(
 
 #[allow(clippy::too_many_arguments)]
 fn import_execute_steps(
-    svc: std::sync::RwLockReadGuard<'_, solosoul_core::vault_service::VaultService>,
-    account_id: String,
+    svc: &solosoul_core::VaultService,
+    session: &solosoul_core::VaultSession,
     file_path: String,
     password: zeroize::Zeroizing<String>,
     strategy: ImportStrategy,
@@ -277,8 +310,13 @@ fn import_execute_steps(
     result: &mut ImportResult,
     stage: &mut ImportStage,
 ) -> Result<(), String> {
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let target = ImportTarget::Session {
+        service: svc,
+        session,
+    };
+    target.commit(|_| Ok(()))?;
+    let account_id = session.account_id();
+    let vault_att_key = svc.attachment_key_for_session(session)?;
 
     if password.is_empty() {
         return Err(import_err("PASSWORD_REQUIRED"));
@@ -304,7 +342,8 @@ fn import_execute_steps(
 
     // ── 阶段 2：重建包内引用模板（快照隔离，按内容哈希去重）──
     *stage = ImportStage::Templates;
-    let template_id_map = rebuild_imported_templates_tracked(vault, &account_id, &payload, result)?;
+    let template_id_map =
+        rebuild_imported_templates_tracked(&target, account_id, &payload, result)?;
 
     let now = chrono::Utc::now().to_rfc3339();
 
@@ -314,9 +353,9 @@ fn import_execute_steps(
     // ── 阶段 4：对象导入主循环（策略/模板/KeepBoth/快照已抽至 import_one_object）──
     *stage = ImportStage::Objects;
     let imported_object_ids = import_objects_loop(
-        vault,
+        &target,
         objects,
-        &account_id,
+        account_id,
         strategy,
         &object_strategies,
         selected_ids.as_ref(),
@@ -336,17 +375,10 @@ fn import_execute_steps(
         selected_attachment_ids.map(|ids| ids.into_iter().collect());
 
     // ── 阶段 5+6：导入附件与偏好设置（附件进度续接 80-100）──
-    // P001: 导入落盘前取 vault 附件密钥（附件需加密落盘）。
+    // 密钥已在入口绑定原会话，不能在耗时解密后重新读取当前账户密钥。
     *stage = ImportStage::Attachments;
-    let vault_att_key = svc
-        .attachment_encryption_key()
-        .map_err(|e| format!("无法获取附件密钥: {}", e))?;
-    let vault_att_key_arr: [u8; 32] = vault_att_key
-        .as_slice()
-        .try_into()
-        .map_err(|_| "附件密钥长度错误".to_string())?;
     import_attachments_and_preferences(
-        vault,
+        &target,
         svc.base_path(),
         &file_path,
         &key,
@@ -357,8 +389,8 @@ fn import_execute_steps(
         sel_att_ids_set.as_ref(),
         &now,
         progress.clone(),
-        &account_id,
-        &vault_att_key_arr,
+        account_id,
+        &vault_att_key,
         result,
         stage,
     )?;
@@ -369,15 +401,18 @@ fn import_execute_steps(
         &file_path,
         strategy,
     );
-    crate::commands::log_audit_best_effort(
-        vault,
-        "import_execute",
-        "import",
-        None,
-        None,
-        "user",
-        Some(&details.to_string()),
-    );
+    target.commit(|vault| {
+        crate::commands::log_audit_best_effort(
+            vault,
+            "import_execute",
+            "import",
+            None,
+            None,
+            "user",
+            Some(&details.to_string()),
+        );
+        Ok(())
+    })?;
 
     Ok(())
 }
@@ -397,7 +432,7 @@ pub(crate) fn build_selected_ids(
 /// 返回 (imported 计数, 已导入对象 ID 集合)。
 #[allow(clippy::too_many_arguments)]
 fn import_objects_loop(
-    vault: &solosoul_vault::VaultStore,
+    target: &ImportTarget<'_>,
     objects: &[serde_json::Value],
     account_id: &str,
     strategy: ImportStrategy,
@@ -421,7 +456,7 @@ fn import_objects_loop(
         *stage = ImportStage::Objects;
         // 阶段 4 主体抽至 import_one_object：策略解析/模板继承/KeepBoth 重写/快照恢复
         let outcome = import_one_object(
-            vault,
+            target,
             obj_val,
             account_id,
             strategy,
@@ -456,7 +491,7 @@ fn import_objects_loop(
 /// 附件阶段进度续接对象阶段末尾（80-100），避免进度条回落。返回附件导入数量。
 #[allow(clippy::too_many_arguments)]
 fn import_attachments_and_preferences(
-    vault: &solosoul_vault::VaultStore,
+    target: &ImportTarget<'_>,
     base_path: &std::path::Path,
     file_path: &str,
     key: &[u8; 32],
@@ -478,8 +513,8 @@ fn import_attachments_and_preferences(
         // 不再有 GUI 侧平行实现。
         let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {e}"))?;
         let mut committed = solosoul_core::export_import::AttachmentImportProgress::default();
-        let attachment_result = solosoul_core::export_import::import_attachments_tracked(
-            vault,
+        let attachment_result = solosoul_core::export_import::import_attachments_into(
+            target,
             base_path,
             std::path::Path::new(file_path),
             key,
@@ -498,7 +533,7 @@ fn import_attachments_and_preferences(
         attachment_result.map_err(|e| e.to_string())?;
     }
     *stage = ImportStage::Preferences;
-    import_preferences(vault, file_path, key, manifest, account_id)?;
+    import_preferences(target, file_path, key, manifest, account_id)?;
     result.preferences_imported = manifest
         .extra_files
         .iter()
@@ -578,7 +613,7 @@ pub(crate) fn wrap_attachment_progress(
 /// 副作用：写对象行、恢复/创建快照、更新进度回调。
 #[allow(clippy::too_many_arguments)]
 fn import_one_object(
-    vault: &solosoul_vault::VaultStore,
+    target: &ImportTarget<'_>,
     obj_val: &serde_json::Value,
     account_id: &str,
     strategy: ImportStrategy,
@@ -597,6 +632,8 @@ fn import_one_object(
     stage: &mut ImportStage,
     committed_object_ids: &mut std::collections::HashSet<String>,
 ) -> Result<Option<(String, bool)>, String> {
+    target.commit(|_| Ok(()))?;
+    let vault = target.vault();
     let id = obj_val["id"].as_str().unwrap_or("");
     if id.is_empty() {
         return Ok(None);
@@ -654,8 +691,8 @@ fn import_one_object(
         now,
     );
 
-    vault
-        .save_object(&record)
+    target
+        .commit(|vault| vault.save_object(&record))
         .map_err(|e| format!("save: {}", e))?;
     committed_object_ids.insert(final_id.clone());
     result.object_count = committed_object_ids.len();
@@ -668,7 +705,7 @@ fn import_one_object(
         id
     };
     restore_import_snapshots(
-        vault,
+        target,
         snapshot_key,
         package_snapshots,
         id,
@@ -765,7 +802,7 @@ fn inherit_import_template_meta(
 /// 恢复包内历史快照（若有），否则创建 diff_imported 初始快照使历史 badge 正常显示。
 /// KeepBoth 场景下对象获得新 ID，快照随之挂到新 ID 上。
 fn restore_import_snapshots(
-    vault: &solosoul_vault::VaultStore,
+    target: &ImportTarget<'_>,
     snapshot_key: &str,
     package_snapshots: &HashMap<String, Vec<serde_json::Value>>,
     id: &str,
@@ -781,9 +818,9 @@ fn restore_import_snapshots(
         // 历史，避免本地历史被误删后仅剩一条 diff_imported 的数据丢失。
         // SkipExisting 遇既有对象会跳过；KeepBoth 使用新 ID 天然无旧历史，均不受影响。
         if effective_strategy == ImportStrategy::Overwrite && snapshots_any_restorable(snaps) {
-            vault.delete_snapshots(snapshot_key)?;
+            target.commit(|vault| vault.delete_snapshots(snapshot_key))?;
         }
-        restore_package_snapshots_tracked(vault, snapshot_key, snaps, result)?
+        restore_package_snapshots_tracked(target, snapshot_key, snaps, result)?
     } else {
         0
     };
@@ -791,7 +828,9 @@ fn restore_import_snapshots(
         // 旧包或对象无历史时，保持既有行为：创建 diff_imported 初始快照
         let snapshot_data =
             serde_json::to_vec(&record).map_err(|e| format!("snapshot ser: {}", e))?;
-        vault.save_snapshot(snapshot_key, "import", &snapshot_data, "diff_imported")?;
+        target.commit(|vault| {
+            vault.save_snapshot(snapshot_key, "import", &snapshot_data, "diff_imported")
+        })?;
         result.snapshot_count += 1;
     }
     Ok(())
@@ -849,12 +888,17 @@ pub(crate) fn restore_package_snapshots(
     object_id: &str,
     snaps: &[serde_json::Value],
 ) -> usize {
-    restore_package_snapshots_tracked(vault, object_id, snaps, &mut ImportResult::default())
-        .unwrap()
+    restore_package_snapshots_tracked(
+        &ImportTarget::Direct(vault),
+        object_id,
+        snaps,
+        &mut ImportResult::default(),
+    )
+    .unwrap()
 }
 
 fn restore_package_snapshots_tracked(
-    vault: &solosoul_vault::VaultStore,
+    target: &ImportTarget<'_>,
     object_id: &str,
     snaps: &[serde_json::Value],
     result: &mut ImportResult,
@@ -887,7 +931,9 @@ fn restore_package_snapshots_tracked(
         if data.is_empty() {
             continue;
         }
-        vault.save_snapshot_at(object_id, triggered_by, &data, diff_summary, timestamp)?;
+        target.commit(|vault| {
+            vault.save_snapshot_at(object_id, triggered_by, &data, diff_summary, timestamp)
+        })?;
         restored += 1;
         result.snapshot_count += 1;
     }
@@ -901,11 +947,16 @@ pub(crate) fn rebuild_imported_templates(
     account_id: &str,
     payload: &serde_json::Value,
 ) -> Result<std::collections::HashMap<String, String>, String> {
-    rebuild_imported_templates_tracked(vault, account_id, payload, &mut ImportResult::default())
+    rebuild_imported_templates_tracked(
+        &ImportTarget::Direct(vault),
+        account_id,
+        payload,
+        &mut ImportResult::default(),
+    )
 }
 
 fn rebuild_imported_templates_tracked(
-    vault: &solosoul_vault::VaultStore,
+    target: &ImportTarget<'_>,
     account_id: &str,
     payload: &serde_json::Value,
     result: &mut ImportResult,
@@ -921,8 +972,9 @@ fn rebuild_imported_templates_tracked(
                     let hash = solosoul_core::export_import::user_template_content_hash(&tpl);
 
                     // P035: 三分支去重逻辑抽纯函数。
-                    let local_id =
-                        resolve_template_id(vault, account_id, &mut tpl, &hash, &now, result)?;
+                    let local_id = target.commit(|vault| {
+                        resolve_template_id(vault, account_id, &mut tpl, &hash, &now, result)
+                    })?;
 
                     template_id_map.insert(original_id, local_id);
                 }
@@ -1062,7 +1114,7 @@ fn merge_labels_into(tpl: &serde_json::Value, existing: &mut serde_json::Value) 
 
 /// 阶段 6：导入偏好设置（如包内含 preferences.enc）。
 fn import_preferences(
-    vault: &solosoul_vault::VaultStore,
+    target: &ImportTarget<'_>,
     file_path: &str,
     key: &[u8; 32],
     manifest: &ManifestData,
@@ -1083,7 +1135,7 @@ fn import_preferences(
     let prefs_dec = solosoul_crypto::cipher::decrypt_from_bytes(&prefs_key, &prefs_enc, None)
         .map_err(|_| "Invalid imported preferences".to_string())?;
     let profile = solosoul_vault::Profile::new_with_id(account_id, account_id, prefs_dec.to_vec());
-    vault.save_profile(&profile)?;
+    target.commit(|vault| vault.save_profile(&profile))?;
     Ok(())
 }
 

@@ -550,11 +550,24 @@ pub(crate) fn execute_export_core(
     req: &ExportRequest,
     zip_path: &str,
 ) -> Result<(), String> {
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let session = svc.capture_session(account_id)?;
+    execute_export_for_session(svc, &session, req, zip_path)
+}
+
+/// 云同步固定起始会话；导出算法与前台/恢复共用，不能在 KDF 后换读当前 Vault。
+pub(crate) fn execute_export_for_session(
+    svc: &solosoul_core::VaultService,
+    session: &solosoul_core::VaultSession,
+    req: &ExportRequest,
+    zip_path: &str,
+) -> Result<(), String> {
+    let vault = session.vault();
+    let account_id = session.account_id();
+    let vault_att_key = svc.attachment_key_for_session(session)?;
 
     // ── 密码校验（非空 + 不得等于主密码）────────────────────
     validate_export_password(svc, account_id, &req.password)?;
+    svc.with_session(session, |_| Ok(()))?;
 
     // ── Collect objects ────────────────────────────────────────
     let records = collect_scope_objects(vault, account_id, &req.scope)?;
@@ -609,13 +622,6 @@ pub(crate) fn execute_export_core(
     }
 
     // P001: 导出附件需 vault 附件密钥（源文件可能加密落盘，先解密再加密进包）。
-    let vault_att_key = svc
-        .attachment_encryption_key()
-        .map_err(|e| format!("无法获取附件密钥: {}", e))?;
-    let vault_att_key_arr: [u8; 32] = vault_att_key
-        .as_slice()
-        .try_into()
-        .map_err(|_| "附件密钥长度错误".to_string())?;
     // P012: 附件加密进包统一走 core 唯一实现（含 vault 密文先解密再加密）。
     let has_attachments = solosoul_core::export_import::write_attachment_entries(
         &mut zip,
@@ -623,7 +629,7 @@ pub(crate) fn execute_export_core(
         &key,
         &salt,
         &attachment_entries,
-        Some(&vault_att_key_arr),
+        Some(&vault_att_key),
     )
     .map_err(|e| e.to_string())?;
 
@@ -656,19 +662,22 @@ pub(crate) fn execute_export_core(
 
     zip.finish().map_err(|e| format!("ZIP finish: {e}"))?;
 
-    crate::commands::log_audit_best_effort(
-        vault,
-        "export_execute",
-        "export",
-        None,
-        None,
-        "user",
-        Some(&format!(
-            "exported {} objects to {}",
-            records.len(),
-            zip_path
-        )),
-    );
+    svc.with_session(session, |vault| {
+        crate::commands::log_audit_best_effort(
+            vault,
+            "export_execute",
+            "export",
+            None,
+            None,
+            "user",
+            Some(&format!(
+                "exported {} objects to {}",
+                records.len(),
+                zip_path
+            )),
+        );
+        Ok(())
+    })?;
 
     Ok(())
 }

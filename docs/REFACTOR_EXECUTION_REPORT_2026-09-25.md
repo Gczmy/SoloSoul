@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**93**（P1：32；P2：60；P3：1）。
-- 已关闭：**18 / 93**；实际修复（已关闭）：18；排除：0；待验证/阻塞：0。原计划 90 项，执行中新增 RF-900、RF-901、RF-902。
-- 当前处理：**RF-003**。RF-902 已恢复生产包冒烟检查并独立提交；RF-003 正补齐 PDFium 环境后的 R/CLI 验证，尚未提交。
+- 已关闭：**19 / 93**；实际修复（已关闭）：19；排除：0；待验证/阻塞：0。原计划 90 项，执行中新增 RF-900、RF-901、RF-902。
+- 当前处理：无。RF-003 全部验证通过并在本提交关闭；下一项按依赖顺序为 RF-004。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -129,7 +129,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 1 | [RF-100](#rf-100) | P1 | 自动上下文立即排除非公开字段 | 无 | [x] 完成 |
 | 2 | [RF-001](#rf-001) | P1 | 建立最小会话捕获与提交校验机制 | 无 | [x] 完成 |
 | 3 | [RF-002](#rf-002) | P1 | LLM 流式回复绑定请求开始时的会话 | [RF-001](#rf-001) | [x] 完成 |
-| 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001)、[RF-020](#rf-020) | [~] 进行中 |
+| 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001)、[RF-020](#rf-020) | [x] 完成 |
 | 5 | [RF-101](#rf-101) | P2 | 本次用户消息只追加一次 | 无 | [x] 完成 |
 | 6 | [RF-004](#rf-004) | P1 | Rust 生成普通聊天的受控自动上下文 | [RF-001](#rf-001)、[RF-100](#rf-100)、[RF-101](#rf-101) | [ ] 待执行 |
 | 7 | [RF-005](#rf-005) | P1 | 普通聊天通过 provider ID 在 Rust 解析凭证 | [RF-001](#rf-001)、[RF-002](#rf-002)、[RF-004](#rf-004) | [ ] 待执行 |
@@ -1543,7 +1543,7 @@ git commit -m "<任务卡的提交标题>"
 - CLI 全量：`cargo test --verbose --no-fail-fast` exit 0，编译 5m20s；**173 passed / 0 failed / 1 ignored**（171 单元 + 2 集成，既有 i18n 文档示例跳过）。顺序队列整体 exit 0。测试自动更新的 CLI lockfile 仅 5 个本地 crate 版本，已定向还原，无依赖升级。
 - 最终结论：定向、R/F/CONTRACT/CLI 均满足；受影响规范同步更新，暂存范围仅本项 21 文件，92 项台账核对为 17 已关闭。**完成**；提交为本提交（按 RF-020 检索），未推送。附件持久重试与云端 skipExisting 补全仍由 RF-022 验收，本项不声称已实现事务或幂等；下一项 RF-003。
 
-### RF-003 执行记录（2026-09-25，进行中）
+### RF-003 执行记录（2026-09-25—2026-09-26，完成）
 
 - 修复前 HEAD：`d696efe0`（RF-020）。起始上下文只含 account_id，导出/导入在 spawn_blocking 内重新取当前 Vault；导入后水线与整轮 last_sync_at 也再次读取当前 Vault，允许账户切换后写入新库。待导入缓存目录未隔离账户。
 - 实施中：CloudPreContext 持有 RF-001 会话令牌；导入/导出唯一算法读取原 Vault，入口绑定原附件密钥，短时数据库写入、附件文件发布、事件、水线和源包删除均校验原会话。HKDF/ZIP/加解密置于门闩外，CLI 继续复用同一附件算法。下载完整刷新后发布到按账户隔离的 incoming 目录，列表同步按当前账户读取，原无归属缓存保留且不自动认领。
@@ -1567,6 +1567,16 @@ git commit -m "<任务卡的提交标题>"
 - ONNX 环境修正后：构建输出已链接 C 盘缓存的 static onnxruntime；Clippy exit 0（1m02s）。RF-003 定向 **8/8 passed**、exit 0（重建1m13s、执行4.66s），包括此次补强的实际附件解密、临时清理与已有 B 目录隔离断言；RF-020 **8/8 passed**、exit 0（1.01s），原有导入导出 **51/51 passed**、exit 0（1.11s）。顺序队列已进入 R 全量，后续 CLI 尚待完成，RF-003 仍未关闭或提交。
 
 - 恢复后 R 全量首轮 exit 101：GUI **510/510 passed**；core **214 passed / 1 failed**，唯一失败 test_apply_to_pdf_smoke 为 PDFium 动态库未找到（LoadLibraryError 126），后续 suite 与 CLI 未运行。已核对恢复资源中的 pdfium.dll 哈希；core 测试工作目录不在 GUI 资源目录，需显式设置现有 PDFIUM_LIBRARY_PATH 指向 C 盘已验证库后重跑，保留该失败记录，不更改或跳过测试。
+
+- PDFium 路径修正后：仅对验证进程设置 PDFIUM_LIBRARY_PATH=C:\Users\40299571\SoloSoul\tauri\src-tauri\resources\pdfium\pdfium.dll；`cargo test -p solosoul-core --lib test_apply_to_pdf_smoke` **1/1 passed**、exit 0（该 feature 组合首次编译 14m02s，执行 0.12s）。DLL 加载、生成及重新读取加水印 PDF 均通过。后续 R 全量正运行，CLI 尚待完成；不因定向通过提前关闭。
+
+- 恢复后的最终 R：`cargo test --verbose` exit 0，生产包冒烟更新 dist 后重编译 5m47s；19 组结果合计 **1,087 passed / 0 failed / 3 ignored**，其中 GUI 510、core 215、vault 184。3 个 ignored 为既有 legacy field 两项和 P025 手动性能工具，未新增跳过；本轮水印测试通过。CLI fmt exit 0，全目标 Clippy 与完整测试按队列继续，结束前不关闭或提交 RF-003。
+
+- CLI 全目标 Clippy exit 0（恢复副本首次检查 12m01s），fmt 已通过。完整 `cargo test --verbose --no-fail-fast` 正在首次构建；13:04–13:08 出现一次编译子进程短暂停滞，随后自行恢复，未中断或重启构建。相关系统事件无明确崩溃/磁盘错误/拦截证据，不将审计事件误判为阻止。
+
+- 最终 CLI：`cargo fmt --check`、`cargo clippy --all-targets -- -D warnings`、`cargo test --verbose --no-fail-fast` 均 exit 0。完整测试冷构建 35m31s；单元测试 **171 passed**（33.93s）、集成测试 **2 passed**（1.13s），合计 **173 passed / 0 failed / 1 ignored**；忽略项为既有 `i18n::t` 文档示例，未新增跳过。期间编译子进程和 rustdoc 曾短暂停顿并自行恢复，未终止或重新启动队列。
+- 完成验收：F（147 文件、1,237 测试）、R（1,087 passed / 3 既有 ignored）、CLI、CONTRACT、RF-003 8 项、RF-020 8 项、导入导出 51 项均通过；生产包冒烟经独立 RF-902 修复后 **14/14 passed**。已同步导入导出、云同步 canonical 规范。验证日志保留于 `C:\Users\40299571\AppData\Local\Temp\SoloSoul-recovery-20260926-111523`；当前有效仓库为 `C:\Users\40299571\SoloSoul`。
+- 提交边界：CLI 构建仅生成 5 个本地 crate 的版本号变化，核对后恢复，不混入本项；保留原有 3 张 NSIS 图片改动。仅提交 RF-003 的 17 个代码、测试和规范路径。提交：本提交（使用 `git log --grep=RF-003` 检索），未推送。
 
 ### RF-902 执行记录（2026-09-26，完成）
 

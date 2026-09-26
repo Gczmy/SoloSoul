@@ -30,6 +30,7 @@ it.each(['complete', 'partial', 'notCommitted'] as const)(
   'RF-020 recovery shows success only for complete imports (%s)',
   async (status) => {
     const summary: RecoveryResultSummary = {
+      sessionGeneration: 7,
       status,
       accountId: 'account',
       accountName: 'Synthetic',

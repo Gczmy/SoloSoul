@@ -228,6 +228,7 @@ pub enum ImportStage {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ImportResult {
+    pub session_generation: u64,
     pub object_count: usize,
     pub attachment_count: usize,
     pub status: ImportStatus,

@@ -1134,6 +1134,35 @@ pub struct AttachmentImportProgress {
     pub written_file_count: usize,
 }
 
+/// 导入写入目标。GUI 的后台工作必须携带起始会话；CLI 的同步入口保留直接句柄。
+/// 解密、KDF 与压缩不在 commit 回调内运行。
+pub enum ImportTarget<'a> {
+    Direct(&'a VaultStore),
+    Session {
+        service: &'a crate::VaultService,
+        session: &'a crate::VaultSession,
+    },
+}
+
+impl ImportTarget<'_> {
+    pub fn vault(&self) -> &VaultStore {
+        match self {
+            Self::Direct(vault) => vault,
+            Self::Session { session, .. } => session.vault(),
+        }
+    }
+
+    pub fn commit<T>(
+        &self,
+        write: impl FnOnce(&VaultStore) -> Result<T, String>,
+    ) -> Result<T, String> {
+        match self {
+            Self::Direct(vault) => write(vault),
+            Self::Session { service, session } => service.with_session(session, write),
+        }
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn import_attachments(
     vault: &VaultStore,
@@ -1184,6 +1213,41 @@ pub fn import_attachments_tracked(
     progress: Option<&(dyn Fn(u8) + Send + Sync)>,
     committed: &mut AttachmentImportProgress,
 ) -> Result<usize, ExportError> {
+    import_attachments_into(
+        &ImportTarget::Direct(vault),
+        base_path,
+        path,
+        key,
+        salt,
+        imported_object_ids,
+        payload,
+        vault_att_key,
+        id_map,
+        sel_att_ids_set,
+        now,
+        progress,
+        committed,
+    )
+}
+
+/// 与同步入口共用附件实现；会话目标在发布文件与保存元数据时重新校验。
+#[allow(clippy::too_many_arguments)]
+pub fn import_attachments_into(
+    target: &ImportTarget<'_>,
+    base_path: &Path,
+    path: &Path,
+    key: &[u8; 32],
+    salt: &[u8],
+    imported_object_ids: &HashSet<String>,
+    payload: &serde_json::Value,
+    vault_att_key: Option<&[u8; 32]>,
+    id_map: &HashMap<String, String>,
+    sel_att_ids_set: Option<&HashSet<String>>,
+    now: &str,
+    progress: Option<&(dyn Fn(u8) + Send + Sync)>,
+    committed: &mut AttachmentImportProgress,
+) -> Result<usize, ExportError> {
+    target.commit(|_| Ok(()))?;
     let att_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, b"solosoul:attachments:v1")
         .map_err(|e| format!("派生附件密钥失败: {}", e))?;
 
@@ -1250,15 +1314,23 @@ pub fn import_attachments_tracked(
             .join("attachments")
             .join(&actual_obj_id)
             .join(&new_att_id);
-        std::fs::create_dir_all(&dest)?;
 
         // P003：落盘文件名取末段安全名，并**写回元数据**——此前元数据保留原始
         // `file_name`（如 `../../evil.txt`），后续插件主机 `copy_attachment_to_workspace`
         // 用原始名 join 目标目录造成存储型路径遍历。
         let safe_name = sanitize_import_file_name(&old_meta.file_name)?;
         let file_path_dest = dest.join(&safe_name);
-        let file_size =
-            write_imported_attachment(&mut f, &att_key, vault_att_key, &file_path_dest)?;
+        // 耗时解密/加密写入随机临时文件；只有短时发布才进入会话门闩。
+        // 随机附件 ID 不覆盖其他导入，失效时 TempDir 自动清理尚未发布文件。
+        let staged = tempfile::Builder::new()
+            .prefix("attachment-import-")
+            .tempdir_in(base_path)?;
+        let staged_file = staged.path().join("attachment");
+        let file_size = write_imported_attachment(&mut f, &att_key, vault_att_key, &staged_file)?;
+        target.commit(|_| {
+            std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
+            std::fs::rename(&staged_file, &file_path_dest).map_err(|e| e.to_string())
+        })?;
         committed.written_file_count += 1;
 
         imported_atts
@@ -1280,7 +1352,7 @@ pub fn import_attachments_tracked(
     }
 
     // 更新已导入对象的 __attachments（按实际对象 ID）
-    write_back_imported_attachments(vault, imported_atts, committed)
+    write_back_imported_attachments(target, imported_atts, committed)
 }
 
 /// P019-①：从 payload 提取「(旧对象ID, 旧附件ID) → 附件元数据」映射。
@@ -1356,13 +1428,14 @@ fn write_imported_attachment(
 
 /// P019-③：把导入的附件元数据写回各对象的 __attachments 属性，返回导入总数。
 fn write_back_imported_attachments(
-    vault: &VaultStore,
+    target: &ImportTarget<'_>,
     imported_atts: HashMap<String, Vec<AttachmentMeta>>,
     committed: &mut AttachmentImportProgress,
 ) -> Result<usize, ExportError> {
     let imported_count = imported_atts.values().map(|v| v.len()).sum::<usize>();
     for (obj_id, atts) in imported_atts {
-        let mut obj = vault
+        let mut obj = target
+            .vault()
             .load_object(&obj_id)?
             .ok_or_else(|| format!("找不到对象 {}", obj_id))?;
         let att_json = serde_json::to_value(&atts)?;
@@ -1376,7 +1449,7 @@ fn write_back_imported_attachments(
                 obj.properties = serde_json::Value::Object(map);
             }
         }
-        vault.save_object(&obj)?;
+        target.commit(|vault| vault.save_object(&obj))?;
         committed.committed_count += atts.len();
     }
 

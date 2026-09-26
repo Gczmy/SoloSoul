@@ -465,13 +465,32 @@ pub async fn cloud_sync_now(state: State<'_, AppState>) -> Result<(), String> {
 #[tauri::command]
 pub async fn cloud_sync_mark_applied(
     state: State<'_, AppState>,
-    device_id: String,
-    hlc: String,
+    account_id: String,
+    session_generation: u64,
+    source_path: String,
 ) -> Result<(), String> {
-    let vault = vault_handle(&state)?;
-    let key = format!("cloud_applied:{}", device_id);
-    vault.set_sys_config(&key, &hlc)?;
-    Ok(())
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned")?;
+    mark_applied_for_import(&svc, &account_id, session_generation, &source_path)
+}
+
+fn mark_applied_for_import(
+    svc: &solosoul_core::VaultService,
+    account_id: &str,
+    session_generation: u64,
+    source_path: &str,
+) -> Result<(), String> {
+    let session = svc.capture_session(account_id)?;
+    if session.generation() != session_generation {
+        return Err("Vault session is no longer current".into());
+    }
+    crate::sync::cloud_auto_sync::finalize_cloud_import(
+        svc,
+        &session,
+        std::path::Path::new(source_path),
+    )
 }
 
 /// 列出云端待导入的快照文件（cloud_sync_incoming 目录内容）。
@@ -481,7 +500,19 @@ pub async fn cloud_sync_list_incoming(state: State<'_, AppState>) -> Result<Vec<
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let base = svc.base_path().join("cloud_sync_incoming");
+    cloud_sync_incoming_for_service(&svc)
+}
+
+fn cloud_sync_incoming_for_service(
+    svc: &solosoul_core::VaultService,
+) -> Result<Vec<String>, String> {
+    let account_id = svc.get_current_account().ok_or("Vault not unlocked")?;
+    let session = svc.capture_session(&account_id)?;
+    // 旧版本未绑定账户的缓存保留在原处，不推断归属或展示给其他账户。
+    let base = svc
+        .base_path()
+        .join("cloud_sync_incoming")
+        .join(&account_id);
     let mut out = Vec::new();
     if let Ok(entries) = std::fs::read_dir(&base) {
         for dev in entries.flatten() {
@@ -498,7 +529,7 @@ pub async fn cloud_sync_list_incoming(state: State<'_, AppState>) -> Result<Vec<
             }
         }
     }
-    Ok(out)
+    svc.with_session(&session, |_| Ok(out))
 }
 
 #[cfg(test)]
@@ -507,12 +538,129 @@ mod tests {
     use solosoul_vault::{Profile, VaultConfig, VaultStore};
     use tempfile::TempDir;
 
+    #[test]
+    fn rf003_incoming_list_never_claims_other_account_or_legacy_files() {
+        let dir = TempDir::new().unwrap();
+        let service = solosoul_core::VaultService::with_base_path(dir.path().join("vault"));
+        service
+            .create_account_with_id("acc_rf003_a", "A", "password123", None)
+            .unwrap();
+        let root = service.base_path().join("cloud_sync_incoming");
+        for path in [
+            "acc_rf003_a/device/a.solosoul",
+            "acc_rf003_b/device/b.solosoul",
+            "legacy-device/old.solosoul",
+        ] {
+            let dest = root.join(path);
+            std::fs::create_dir_all(dest.parent().unwrap()).unwrap();
+            std::fs::write(dest, b"synthetic cached package").unwrap();
+        }
+        assert_eq!(
+            cloud_sync_incoming_for_service(&service).unwrap(),
+            vec![root
+                .join("acc_rf003_a")
+                .join("device")
+                .join("a.solosoul")
+                .to_string_lossy()
+                .to_string()]
+        );
+        service
+            .create_account_with_id("acc_rf003_b", "B", "password456", None)
+            .unwrap();
+        assert_eq!(
+            cloud_sync_incoming_for_service(&service).unwrap(),
+            vec![root
+                .join("acc_rf003_b")
+                .join("device")
+                .join("b.solosoul")
+                .to_string_lossy()
+                .to_string()]
+        );
+        assert!(root.join("legacy-device/old.solosoul").is_file());
+        service.lock();
+        assert!(cloud_sync_incoming_for_service(&service).is_err());
+    }
+
     fn setup_vault() -> (VaultStore, TempDir) {
         let dir = TempDir::new().unwrap();
         let config =
             VaultConfig::new("test_account", dir.path().to_path_buf()).with_data_key([0x42u8; 32]);
         let vault = VaultStore::open(config).unwrap();
         (vault, dir)
+    }
+
+    #[test]
+    fn rf003_manual_waterline_requires_import_session_and_owned_source() {
+        use crate::commands::export_import::tests::rf020::Fixture;
+        let f = Fixture::new();
+        let svc = f.service.read().unwrap();
+        let session = svc.capture_session(&f.account).unwrap();
+        let generation = session.generation();
+        let source = svc
+            .base_path()
+            .join("cloud_sync_incoming")
+            .join(&f.account)
+            .join("device")
+            .join("123-0.solosoul");
+        std::fs::create_dir_all(source.parent().unwrap()).unwrap();
+        std::fs::write(&source, b"synthetic completed import source").unwrap();
+        svc.create_account_with_id("acc_rf003_b", "B", "password456", None)
+            .unwrap();
+        assert!(
+            mark_applied_for_import(&svc, &f.account, generation, source.to_str().unwrap())
+                .is_err()
+        );
+        assert!(
+            mark_applied_for_import(&svc, "acc_rf003_b", generation, source.to_str().unwrap())
+                .is_err()
+        );
+        let b_session = svc.capture_session("acc_rf003_b").unwrap();
+        // B 目录真实存在时仍拒绝 A 的源包，避免只因根目录缺失而假通过。
+        let b_source = svc
+            .base_path()
+            .join("cloud_sync_incoming")
+            .join("acc_rf003_b")
+            .join("device")
+            .join("123-0.solosoul");
+        std::fs::create_dir_all(b_source.parent().unwrap()).unwrap();
+        std::fs::write(&b_source, b"B pending source").unwrap();
+        assert!(mark_applied_for_import(
+            &svc,
+            "acc_rf003_b",
+            b_session.generation(),
+            source.to_str().unwrap()
+        )
+        .is_err());
+        assert!(b_session
+            .vault()
+            .get_sys_config("cloud_applied:device")
+            .unwrap()
+            .is_none());
+        assert!(source.exists());
+        assert_eq!(std::fs::read(&b_source).unwrap(), b"B pending source");
+        svc.unlock(&f.account, "password123").unwrap();
+        assert!(
+            mark_applied_for_import(&svc, &f.account, generation, source.to_str().unwrap())
+                .is_err()
+        );
+        assert!(source.exists());
+        let fresh = svc.capture_session(&f.account).unwrap();
+        mark_applied_for_import(
+            &svc,
+            &f.account,
+            fresh.generation(),
+            source.to_str().unwrap(),
+        )
+        .unwrap();
+        assert!(!source.exists());
+        assert_eq!(
+            fresh
+                .vault()
+                .get_sys_config("cloud_applied:device")
+                .unwrap()
+                .as_deref(),
+            Some("123-0")
+        );
     }
 
     #[test]

@@ -3,7 +3,7 @@
  * 承载全部表单状态、配置加载/保存/删除/测试、立即同步与下行导入逻辑；
  * 纯展示的 section 子组件见同目录各 Section 文件。
  */
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { listen } from '@tauri-apps/api/event';
 import { useToastError } from '@/hooks/useToastError';
@@ -12,6 +12,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { importOutcomeError } from '@/lib/importOutcome';
 import type { ImportResult } from '@/types/exportImport';
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import {
   DEFAULT_RETENTION,
   DEFAULT_WEBDAV_CONFIG,
@@ -23,6 +24,7 @@ export function useCloudSyncPage() {
   const { t, i18n } = useTranslation(['settings', 'common']);
   const { onError, onSuccess } = useToastError();
   const accountId = useAuthStore((s) => s.currentAccount?.id ?? '');
+  const requests = useMemo(createSessionRequests, []);
 
   // Form state
   const [connectorType, setConnectorType] = useState('webdav');
@@ -43,25 +45,71 @@ export function useCloudSyncPage() {
   const [isSyncingNow, setIsSyncingNow] = useState(false);
   const [importingFile, setImportingFile] = useState<string | null>(null);
   const passwordVerifiedRef = useRef(false);
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const clear = () => {
+      requests.invalidate();
+      if (refreshTimer.current !== null) clearTimeout(refreshTimer.current);
+      refreshTimer.current = null;
+      passwordVerifiedRef.current = false;
+      setSavedConfig(null);
+      setConnectorType('webdav');
+      setConfigJson(DEFAULT_WEBDAV_CONFIG);
+      setEnabled(false);
+      setIntervalSecs(3600);
+      setWifiOnly(true);
+      setAutoImport(false);
+      setRetention(DEFAULT_RETENTION);
+      setIncomingFiles([]);
+      setImportingFile(null);
+      setIsSyncingNow(false);
+      setIsLoading(false);
+      setIsTesting(false);
+      setTestResult(null);
+      setShowPasswordDialog(false);
+    };
+    const unsubscribe = onRequestSessionChange(clear);
+    return () => {
+      unsubscribe();
+      requests.invalidate();
+      if (refreshTimer.current !== null) clearTimeout(refreshTimer.current);
+    };
+  }, [requests]);
+
+  const loadIncoming = useCallback(async () => {
+    const request = requests.begin('incoming', accountId);
+    try {
+      const files = await request.invoke<string[]>('cloud_sync_list_incoming');
+      setIncomingFiles(files ?? []);
+    } catch {
+      if (request.isCurrent()) setIncomingFiles([]);
+    }
+  }, [accountId, requests]);
 
   // 加载云端待导入快照列表 + 监听下行事件
   useEffect(() => {
     if (!accountId) return;
-    invoke<string[]>('cloud_sync_list_incoming')
-      .then((files) => setIncomingFiles(files ?? []))
-      .catch(() => setIncomingFiles([]));
-    const unlisten = listen<{ files: string[] }>('cloud-sync-incoming', (event) => {
-      setIncomingFiles(event.payload.files ?? []);
-    });
+    const lifetime = requests.begin(undefined, accountId);
+    void loadIncoming();
+    const unlisten = listen<{ accountId: string; sessionGeneration: number }>(
+      'cloud-sync-incoming',
+      (event) => {
+        if (!lifetime.isCurrent() || event.payload.accountId !== accountId) return;
+        // 事件只触发读取，不直接采用可能排队迟到的旧会话文件列表。
+        void loadIncoming();
+      },
+    );
     return () => {
       unlisten.then((fn) => fn());
     };
-  }, [accountId]);
+  }, [accountId, loadIncoming, requests]);
 
   const loadConfig = useCallback(async () => {
+    const request = requests.begin('config', accountId);
     try {
       setIsLoading(true);
-      const config = await invoke<(SavedCloudSyncConfig & { autoImport?: boolean }) | null>(
+      const config = await request.invoke<(SavedCloudSyncConfig & { autoImport?: boolean }) | null>(
         'cloud_sync_get_config',
         { accountId },
       );
@@ -76,11 +124,11 @@ export function useCloudSyncPage() {
         setRetention(config.retention);
       }
     } catch (e) {
-      onError(new Error(String(e)), t('settings:cloud_sync_load_failed'));
+      if (request.isCurrent()) onError(new Error(String(e)), t('settings:cloud_sync_load_failed'));
     } finally {
-      setIsLoading(false);
+      if (request.isCurrent()) setIsLoading(false);
     }
-  }, [accountId, onError, t]);
+  }, [accountId, onError, t, requests]);
 
   // Load existing config on mount
   useEffect(() => {
@@ -156,23 +204,25 @@ export function useCloudSyncPage() {
   };
 
   const handleSyncNow = async () => {
+    const request = requests.begin('sync-now', accountId);
     setIsSyncingNow(true);
     try {
-      await invoke('cloud_sync_now');
+      await request.invoke('cloud_sync_now');
       // 调度器异步执行；稍后刷新待导入列表
-      setTimeout(() => {
-        invoke<string[]>('cloud_sync_list_incoming')
-          .then((files) => setIncomingFiles(files ?? []))
-          .catch(() => {});
+      if (refreshTimer.current !== null) clearTimeout(refreshTimer.current);
+      refreshTimer.current = setTimeout(() => {
+        if (request.isCurrent()) void loadIncoming();
       }, 3000);
     } catch (e) {
-      onError(new Error(resolveBackendErrorMessage(e)), t('settings:cloud_sync_sync_now_failed'));
+      if (request.isCurrent())
+        onError(new Error(resolveBackendErrorMessage(e)), t('settings:cloud_sync_sync_now_failed'));
     } finally {
-      setIsSyncingNow(false);
+      if (request.isCurrent()) setIsSyncingNow(false);
     }
   };
 
   const handleImportIncoming = async (file: string) => {
+    const request = requests.begin('import', accountId);
     // 文件名 {hlc}.solosoul，父目录名即来源 device_id
     const parts = file.split(/[\\/]/);
     const hlc = (parts.pop() ?? '').replace(/\.solosoul$/, '');
@@ -185,7 +235,7 @@ export function useCloudSyncPage() {
     }
     setImportingFile(file);
     try {
-      const result = await invoke<ImportResult>('import_execute_advanced', {
+      const result = await request.invoke<ImportResult>('import_execute_advanced', {
         accountId,
         req: {
           selections: null,
@@ -202,13 +252,18 @@ export function useCloudSyncPage() {
         onError(new Error(incomplete), t('settings:cloud_sync_import_failed'));
         return;
       }
-      await invoke('cloud_sync_mark_applied', { deviceId, hlc });
+      await request.invoke('cloud_sync_mark_applied', {
+        accountId,
+        sessionGeneration: result.sessionGeneration,
+        sourcePath: file,
+      });
       onSuccess(t('settings:cloud_sync_import_success'));
       setIncomingFiles((prev) => prev.filter((f) => f !== file));
     } catch (e) {
-      onError(new Error(resolveBackendErrorMessage(e)), t('settings:cloud_sync_import_failed'));
+      if (request.isCurrent())
+        onError(new Error(resolveBackendErrorMessage(e)), t('settings:cloud_sync_import_failed'));
     } finally {
-      setImportingFile(null);
+      if (request.isCurrent()) setImportingFile(null);
     }
   };
 

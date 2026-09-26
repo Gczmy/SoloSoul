@@ -13,7 +13,7 @@
 //!    `{root}{account}/snapshots/{device_id}/{hlc}.solosoul` → 更新 `latest.json`
 //!    索引 → 按保留策略清理本设备旧快照。
 //! 3. **下行检测**：拉取 `latest.json`，发现其他设备有新水线 → 下载到
-//!    `{data_dir}/cloud_sync_incoming/{device_id}/` 并 emit `cloud-sync-incoming`
+//!    `{data_dir}/cloud_sync_incoming/{account_id}/{device_id}/` 并 emit `cloud-sync-incoming`
 //!    事件，由前端引导用户一键导入（复用既有 import 命令 + 冲突 UI）。
 //!
 //! 锁纪律：所有跨 await 的阶段均不持有 `vault_service` 读锁——导出走
@@ -23,13 +23,14 @@ use futures::future::BoxFuture;
 use solosoul_core::cloud_sync::{
     build_latest_index_path, build_snapshot_remote_path, CloudConnector,
 };
-use solosoul_core::VaultService;
+use solosoul_core::{VaultService, VaultSession};
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter};
+use tokio::io::AsyncWriteExt;
 use tokio::sync::mpsc;
 
 use crate::commands::export_import::{default_locale, ExportRequest, ExportScope};
@@ -226,17 +227,15 @@ async fn run_cloud_sync_round(
         let svc = vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        let vault = match svc.get_vault_store() {
-            Some(v) => v,
+        let account_id = match svc.get_current_account() {
+            Some(id) => id,
             None => {
                 tracing::debug!("[CloudSync] vault locked, skipping ({})", source_str);
                 return Ok(());
             }
         };
-        let account_id = svc.get_current_account().unwrap_or_default();
-        if account_id.is_empty() {
-            return Ok(());
-        }
+        let session = svc.capture_session(&account_id)?;
+        let vault = session.vault();
         let cfg = match vault.get_cloud_sync_config(&account_id)? {
             Some(c) if c.enabled => c,
             _ => return Ok(()), // 未配置或未启用：静默跳过
@@ -267,55 +266,46 @@ async fn run_cloud_sync_round(
             Some(id) => id,
             None => {
                 let id = uuid::Uuid::new_v4().to_string();
-                vault.set_sync_node_id(&id)?;
+                svc.with_session(&session, |vault| vault.set_sync_node_id(&id))?;
                 id
             }
         };
         CloudPreContext {
+            service: vault_service.clone(),
+            session,
             account_id,
             config: cfg,
             base_path: svc.base_path().to_path_buf(),
             device_id,
+            emit_event: {
+                let app = app_handle.clone();
+                Arc::new(move |name, payload| app.emit(name, payload).map_err(|e| e.to_string()))
+            },
+            #[cfg(test)]
+            barrier: None,
         }
     };
 
-    app_handle
-        .emit(
-            "cloud-sync-status",
-            serde_json::json!({ "phase": "sync_start", "source": source_str }),
-        )
-        .ok();
+    pre.emit(
+        "cloud-sync-status",
+        serde_json::json!({ "phase": "sync_start", "source": source_str }),
+    )?;
 
     let connector = solosoul_core::cloud_sync::create_connector(&to_core_config(&pre.config))
         .map_err(|e| format!("创建连接器失败: {}", e))?;
 
-    let result = run_sync_inner(&connector, &pre, vault_service, app_handle).await;
+    let result = run_sync_inner(&connector, &pre).await;
 
     match &result {
         Ok(()) => {
-            // 更新 last_sync_at（原子读-改-写）
-            if let Ok(svc) = vault_service.read() {
-                if let Some(vault) = svc.get_vault_store() {
-                    let mut cfg = pre.config.clone();
-                    cfg.last_sync_at = Some(chrono::Utc::now());
-                    let _ = vault.set_cloud_sync_config(&pre.account_id, cfg);
-                }
-            }
-            app_handle
-                .emit(
-                    "cloud-sync-status",
-                    serde_json::json!({ "phase": "sync_complete", "source": source_str }),
-                )
-                .ok();
+            pre.finish(source_str)?;
         }
         Err(e) => {
             tracing::warn!("[CloudSync] round failed ({}): {}", source_str, e);
-            app_handle
-                .emit(
-                    "cloud-sync-status",
-                    serde_json::json!({ "phase": "error", "source": source_str, "message": e }),
-                )
-                .ok();
+            let _ = pre.emit(
+                "cloud-sync-status",
+                serde_json::json!({ "phase": "error", "source": source_str, "message": e }),
+            );
         }
     }
     result
@@ -323,25 +313,90 @@ async fn run_cloud_sync_round(
 
 /// 一轮同步的预取上下文（解锁态下一次性收集，避免跨 await 持锁）。
 struct CloudPreContext {
+    service: Arc<std::sync::RwLock<VaultService>>,
+    session: VaultSession,
     account_id: String,
     config: solosoul_vault::CloudSyncConfig,
     base_path: PathBuf,
     device_id: String,
+    emit_event: CloudEventSink,
+    #[cfg(test)]
+    barrier: Option<CloudTestBarrier>,
 }
+
+type CloudEventSink = Arc<dyn Fn(&str, serde_json::Value) -> Result<(), String> + Send + Sync>;
+
+impl CloudPreContext {
+    fn finish(&self, source: &str) -> Result<(), String> {
+        // 只更新原会话当前配置的时间戳，保留网络等待期间的设置变更。
+        self.with_vault(|vault| {
+            if let Some(mut cfg) = vault.get_cloud_sync_config(&self.account_id)? {
+                cfg.last_sync_at = Some(chrono::Utc::now());
+                vault.set_cloud_sync_config(&self.account_id, cfg)?;
+            }
+            Ok(())
+        })?;
+        self.emit(
+            "cloud-sync-status",
+            serde_json::json!({"phase":"sync_complete", "source":source}),
+        )
+    }
+
+    fn with_vault<T>(
+        &self,
+        action: impl FnOnce(&solosoul_vault::VaultStore) -> Result<T, String>,
+    ) -> Result<T, String> {
+        self.service
+            .read()
+            .map_err(|_| "Vault service lock poisoned")?
+            .with_session(&self.session, action)
+    }
+
+    fn check(&self) -> Result<(), String> {
+        self.with_vault(|_| Ok(()))
+    }
+
+    fn emit(&self, name: &str, mut payload: serde_json::Value) -> Result<(), String> {
+        payload["accountId"] = self.account_id.clone().into();
+        payload["sessionGeneration"] = self.session.generation().into();
+        self.with_vault(|_| {
+            if let Err(e) = (self.emit_event)(name, payload) {
+                tracing::warn!("[CloudSync] event delivery failed: {e}");
+            }
+            Ok(())
+        })
+    }
+
+    #[cfg(test)]
+    async fn checkpoint(&self, stage: CloudTestStage) {
+        if let Some(barrier) = &self.barrier {
+            barrier(stage).await;
+        }
+    }
+}
+
+#[cfg(test)]
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum CloudTestStage {
+    Downloaded,
+    BeforeImport,
+    BeforeWaterline,
+}
+#[cfg(test)]
+type CloudTestBarrier = Arc<dyn Fn(CloudTestStage) -> BoxFuture<'static, ()> + Send + Sync>;
 
 async fn run_sync_inner(
     connector: &Arc<dyn CloudConnector>,
     pre: &CloudPreContext,
-    vault_service: &Arc<std::sync::RwLock<VaultService>>,
-    app_handle: &AppHandle,
 ) -> Result<(), String> {
+    pre.check()?;
     let root = root_prefix(&pre.config);
 
     // ── 2. 上行：导出 → 上传 ──────────────────────────────────
     let hlc = format!("{}-0", chrono::Utc::now().timestamp_millis());
     let remote_path = build_snapshot_remote_path(&root, &pre.account_id, &pre.device_id, &hlc);
 
-    let temp_dir = pre.base_path.join("cloud_sync_tmp");
+    let temp_dir = pre.base_path.join("cloud_sync_tmp").join(&pre.account_id);
     tokio::fs::create_dir_all(&temp_dir)
         .await
         .map_err(|e| format!("创建临时目录失败: {e}"))?;
@@ -349,13 +404,10 @@ async fn run_sync_inner(
     sweep_stale_temp_snapshots(&temp_dir).await;
     let temp_path = temp_dir.join(format!("snapshot_{hlc}{}", SNAPSHOT_EXT));
 
-    export_full_snapshot(
-        vault_service,
-        &pre.account_id,
-        &pre.config.snapshot_password,
-        &temp_path,
-    )
-    .await?;
+    if let Err(error) = export_full_snapshot(pre, &temp_path).await {
+        tokio::fs::remove_file(&temp_path).await.ok();
+        return Err(error);
+    }
     let file_size = tokio::fs::metadata(&temp_path)
         .await
         .map_err(|e| e.to_string())?
@@ -363,6 +415,7 @@ async fn run_sync_inner(
 
     // N-002：无论上传成败均清理本次临时快照，避免 `?` 提前传播导致残留累积
     let upload_result = async {
+        pre.check()?;
         let file = tokio::fs::File::open(&temp_path)
             .await
             .map_err(|e| e.to_string())?;
@@ -375,6 +428,7 @@ async fn run_sync_inner(
     .await;
     tokio::fs::remove_file(&temp_path).await.ok();
     let (_, etag) = upload_result?;
+    pre.check()?;
 
     // ── 3. 更新 latest.json 索引 ──────────────────────────────
     update_latest_index(
@@ -388,6 +442,7 @@ async fn run_sync_inner(
         &etag,
     )
     .await?;
+    pre.check()?;
 
     // ── 4. 保留策略清理（仅本设备目录）─────────────────────────
     apply_retention(
@@ -398,9 +453,10 @@ async fn run_sync_inner(
         &pre.device_id,
     )
     .await?;
+    pre.check()?;
 
     // ── 5. 下行检测：其他设备新水线 → 下载待导入 → 通知前端 ────
-    detect_and_fetch_incoming(connector.as_ref(), pre, vault_service, app_handle).await?;
+    detect_and_fetch_incoming(connector.as_ref(), pre).await?;
 
     Ok(())
 }
@@ -409,15 +465,10 @@ async fn run_sync_inner(
 ///
 /// 导出为纯同步 CPU/IO 密集操作，放 `spawn_blocking` 执行并在闭包内部
 /// 获取读锁（不跨 await 持锁）。口令校验（≠ 主密码）在核心函数内执行。
-async fn export_full_snapshot(
-    vault_service: &Arc<std::sync::RwLock<VaultService>>,
-    account_id: &str,
-    password: &str,
-    dest: &Path,
-) -> Result<(), String> {
-    let vs = vault_service.clone();
-    let account = account_id.to_string();
-    let pw = password.to_string();
+async fn export_full_snapshot(pre: &CloudPreContext, dest: &Path) -> Result<(), String> {
+    let vs = pre.service.clone();
+    let session = pre.session.clone();
+    let pw = pre.config.snapshot_password.clone();
     let dest_str = dest.to_string_lossy().to_string();
 
     tauri::async_runtime::spawn_blocking(move || {
@@ -439,7 +490,7 @@ async fn export_full_snapshot(
             password_hint: None,
             save_path: dest_str.clone(),
         };
-        crate::commands::export_import::execute_export_core(&svc, &account, &req, &dest_str)
+        crate::commands::export_import::execute_export_for_session(&svc, &session, &req, &dest_str)
     })
     .await
     .map_err(|e| format!("导出任务 join 失败: {e}"))?
@@ -628,9 +679,8 @@ async fn apply_retention(
 async fn detect_and_fetch_incoming(
     connector: &dyn CloudConnector,
     pre: &CloudPreContext,
-    vault_service: &Arc<std::sync::RwLock<VaultService>>,
-    app_handle: &AppHandle,
 ) -> Result<(), String> {
+    pre.check()?;
     let root = root_prefix(&pre.config);
     let index_remote = build_latest_index_path(&root, &pre.account_id);
     let bytes = match download_to_vec(connector, &index_remote).await {
@@ -640,6 +690,7 @@ async fn detect_and_fetch_incoming(
     };
     let index: solosoul_core::cloud_sync::LatestIndex =
         serde_json::from_slice(&bytes).map_err(|e| format!("解析 latest.json 失败: {e}"))?;
+    pre.check()?;
 
     let mut incoming_files: Vec<String> = Vec::new();
     for (device_id, meta) in &index.devices {
@@ -648,28 +699,28 @@ async fn detect_and_fetch_incoming(
         }
         // 本地已记录的该设备水线（短暂持锁读 sys_config）
         let applied_key = format!("{}{}", APPLIED_KEY_PREFIX, device_id);
-        let applied = {
-            let state = app_handle.try_state::<crate::state::AppState>();
-            match state {
-                Some(s) => match s.vault_service.read() {
-                    Ok(svc) => match svc.get_vault_store() {
-                        Some(vault) => vault.get_sys_config(&applied_key).unwrap_or(None),
-                        None => None,
-                    },
-                    Err(_) => None,
-                },
-                None => None,
-            }
-        };
+        let applied = pre.with_vault(|vault| vault.get_sys_config(&applied_key))?;
         if applied.as_deref() == Some(meta.hlc.as_str()) {
             continue; // 已应用
         }
 
-        let incoming_dir = pre.base_path.join(INCOMING_DIR).join(device_id);
-        tokio::fs::create_dir_all(&incoming_dir).await.ok();
+        // 不允许远端索引把文件写到其他账户或目录。
+        validate_cloud_path_component(device_id)?;
+        validate_cloud_path_component(&meta.hlc)?;
+        let incoming_dir = pre
+            .base_path
+            .join(INCOMING_DIR)
+            .join(&pre.account_id)
+            .join(device_id);
+        tokio::fs::create_dir_all(&incoming_dir)
+            .await
+            .map_err(|e| e.to_string())?;
         let dest = incoming_dir.join(format!("{}{}", meta.hlc, SNAPSHOT_EXT));
         if !dest.exists() {
-            let file = tokio::fs::File::create(&dest)
+            // 未下载完整的文件不发布为待导入包；BufWriter 必须显式 flush。
+            let staging =
+                tempfile::NamedTempFile::new_in(&incoming_dir).map_err(|e| e.to_string())?;
+            let file = tokio::fs::File::create(staging.path())
                 .await
                 .map_err(|e| e.to_string())?;
             let mut writer = tokio::io::BufWriter::new(file);
@@ -679,7 +730,13 @@ async fn detect_and_fetch_incoming(
                 .download(&meta.remote_path, pinned)
                 .await
                 .map_err(|e| format!("下载快照 {} 失败: {}", meta.hlc, e))?;
+            writer.flush().await.map_err(|e| e.to_string())?;
+            drop(writer);
+            staging.persist(&dest).map_err(|e| e.to_string())?;
         }
+        #[cfg(test)]
+        pre.checkpoint(CloudTestStage::Downloaded).await;
+        pre.check()?;
         incoming_files.push(dest.to_string_lossy().to_string());
     }
 
@@ -696,46 +753,43 @@ async fn detect_and_fetch_incoming(
     // 在 incoming 目录，下轮继续尝试/等待手动处理。
     let mut pending_manual: Vec<String> = Vec::new();
     for file in &incoming_files {
+        #[cfg(test)]
+        pre.checkpoint(CloudTestStage::BeforeImport).await;
+        pre.check()?;
         let imported = if pre.config.auto_import {
-            auto_import_one(pre, vault_service, file)
-                .await
-                .unwrap_or_else(|e| {
-                    tracing::warn!("[CloudSync] 自动导入 {:?} 失败: {}", file, e);
-                    false
-                })
+            auto_import_one(pre, file).await.unwrap_or_else(|e| {
+                tracing::warn!("[CloudSync] 自动导入 {:?} 失败: {}", file, e);
+                false
+            })
         } else {
             false
         };
+        pre.check()?;
         if !imported {
             pending_manual.push(file.clone());
         }
     }
 
     if !pending_manual.is_empty() {
-        app_handle
-            .emit(
-                "cloud-sync-incoming",
-                serde_json::json!({
-                    "files": pending_manual,
-                    "hint": "使用导入功能并输入云同步快照口令即可合并其他设备的数据",
-                }),
-            )
-            .ok();
+        pre.emit(
+            "cloud-sync-incoming",
+            serde_json::json!({
+                "files": pending_manual,
+                "hint": "使用导入功能并输入云同步快照口令即可合并其他设备的数据",
+            }),
+        )?;
     }
     Ok(())
 }
 
 /// B-06：静默导入单个云端快照。成功返回 true（并记录已应用水线）。
 ///
-/// 复用 `import_execute_internal`（skipExisting + 全量选择），读锁在 spawn_blocking
-/// 内获取；导入成功后从 sys_config 记录该设备水线。
-async fn auto_import_one(
-    pre: &CloudPreContext,
-    vault_service: &Arc<std::sync::RwLock<VaultService>>,
-    file: &str,
-) -> Result<bool, String> {
+/// 复用 `import_execute_for_session`（skipExisting + 全量选择），读锁在 spawn_blocking
+/// 内获取；仅原会话完整导入后提交水线与清理源包。
+async fn auto_import_one(pre: &CloudPreContext, file: &str) -> Result<bool, String> {
+    pre.check()?;
     // 从文件路径推导 device_id / hlc：
-    //   {base}/cloud_sync_incoming/{device_id}/{hlc}.solosoul
+    //   {base}/cloud_sync_incoming/{account_id}/{device_id}/{hlc}.solosoul
     let path = Path::new(file);
     let hlc = path
         .file_stem()
@@ -748,9 +802,11 @@ async fn auto_import_one(
         .and_then(|s| s.to_str())
         .ok_or("非法快照目录结构")?
         .to_string();
+    validate_cloud_path_component(&device_id)?;
+    validate_cloud_path_component(&hlc)?;
 
-    let vs = vault_service.clone();
-    let account = pre.account_id.clone();
+    let vs = pre.service.clone();
+    let session = pre.session.clone();
     let pw = pre.config.snapshot_password.clone();
     let file_owned = file.to_string();
     let locale = default_locale();
@@ -760,9 +816,9 @@ async fn auto_import_one(
         let svc = vs
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        crate::commands::export_import::import_execute_internal(
-            svc,
-            account,
+        crate::commands::export_import::import_execute_for_session(
+            &svc,
+            &session,
             file_owned,
             zeroize::Zeroizing::new(pw),
             crate::commands::export_import::ImportStrategy::SkipExisting,
@@ -779,6 +835,8 @@ async fn auto_import_one(
     .map_err(|e| format!("导入任务 join 失败: {e}"))?;
 
     let (objects, attachments) = result.map_err(|e| format!("自动导入失败: {e}"))?;
+    #[cfg(test)]
+    pre.checkpoint(CloudTestStage::BeforeWaterline).await;
     tracing::info!(
         "[CloudSync] auto-imported snapshot from {}: {} objects, {} attachments",
         device_id,
@@ -786,20 +844,68 @@ async fn auto_import_one(
         attachments
     );
 
-    // 记录已应用水线
-    let applied_key = format!("{}{}", APPLIED_KEY_PREFIX, device_id);
-    if let Ok(svc) = vault_service.read() {
-        if let Some(vault) = svc.get_vault_store() {
-            vault.set_sys_config(&applied_key, &hlc)?;
-        }
-    }
-
-    // 导入成功后删除本地待导入文件（数据已合并）
-    tokio::fs::remove_file(file).await.ok();
+    let svc = pre
+        .service
+        .read()
+        .map_err(|_| "Vault service lock poisoned")?;
+    finalize_cloud_import(&svc, &pre.session, path)?;
     Ok(true)
 }
 
+/// 自动/手动导入共用提交；源包必须属于该账户的受控 incoming 目录。
+pub(crate) fn finalize_cloud_import(
+    svc: &VaultService,
+    session: &VaultSession,
+    path: &Path,
+) -> Result<(), String> {
+    let root = svc
+        .base_path()
+        .join(INCOMING_DIR)
+        .join(session.account_id());
+    let root = root.canonicalize().map_err(|e| e.to_string())?;
+    let source = path.canonicalize().map_err(|e| e.to_string())?;
+    let relative = source
+        .strip_prefix(&root)
+        .map_err(|_| "Cloud snapshot belongs to another account")?;
+    if relative.components().count() != 2
+        || source.extension().and_then(|s| s.to_str()) != Some("solosoul")
+    {
+        return Err("Invalid cloud snapshot path".into());
+    }
+    let device_id = relative
+        .parent()
+        .and_then(|p| p.file_name())
+        .and_then(|s| s.to_str())
+        .ok_or("Invalid device ID")?;
+    let hlc = relative
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .ok_or("Invalid snapshot HLC")?;
+    validate_cloud_path_component(device_id)?;
+    validate_cloud_path_component(hlc)?;
+    let applied_key = format!("{APPLIED_KEY_PREFIX}{device_id}");
+    svc.with_session(session, |vault| {
+        vault.set_sys_config(&applied_key, hlc)?;
+        // 删除与水线在同一会话提交区内，不留 await 后切换账户的窗口。
+        if let Err(error) = std::fs::remove_file(&source) {
+            tracing::warn!("[CloudSync] imported source cleanup failed: {error}");
+        }
+        Ok(())
+    })
+}
+
 // ── 工具函数 ────────────────────────────────────────────────
+
+fn validate_cloud_path_component(value: &str) -> Result<(), String> {
+    if value.is_empty()
+        || !value
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+    {
+        return Err("Invalid cloud snapshot path component".into());
+    }
+    Ok(())
+}
 
 fn root_prefix(config: &solosoul_vault::CloudSyncConfig) -> String {
     config
@@ -886,6 +992,8 @@ mod tests {
     use super::*;
     use std::sync::atomic::AtomicUsize;
 
+    mod rf003;
+
     #[tokio::test]
     async fn rf020_cloud_partial_preserves_source_and_waterline() {
         use crate::commands::export_import::tests::rf020::{objects, package, Fixture};
@@ -895,15 +1003,25 @@ mod tests {
                 f.reject_nth_object_write(2);
             }
             let incoming = f
-                .dir
-                .path()
+                .service
+                .read()
+                .unwrap()
+                .base_path()
                 .join("cloud_sync_incoming")
+                .join(&f.account)
                 .join("remote-device");
             std::fs::create_dir_all(&incoming).unwrap();
             let path = package(&incoming, objects(), false, false, false);
             let applied_key = format!("{APPLIED_KEY_PREFIX}remote-device");
             f.vault.set_sys_config(&applied_key, "previous").unwrap();
             let pre = CloudPreContext {
+                service: f.service.clone(),
+                session: f
+                    .service
+                    .read()
+                    .unwrap()
+                    .capture_session(&f.account)
+                    .unwrap(),
                 account_id: f.account.clone(),
                 config: solosoul_vault::CloudSyncConfig {
                     snapshot_password: "export-password".into(),
@@ -911,8 +1029,10 @@ mod tests {
                 },
                 base_path: f.dir.path().to_path_buf(),
                 device_id: "local-device".into(),
+                emit_event: Arc::new(|_, _| Ok(())),
+                barrier: None,
             };
-            let result = auto_import_one(&pre, &f.service, path.to_str().unwrap()).await;
+            let result = auto_import_one(&pre, path.to_str().unwrap()).await;
             assert_eq!(result.is_err(), partial);
             assert_eq!(path.exists(), partial);
             assert_eq!(

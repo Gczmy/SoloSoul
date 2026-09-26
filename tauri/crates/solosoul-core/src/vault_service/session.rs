@@ -30,6 +30,18 @@ impl VaultSession {
 }
 
 impl VaultService {
+    /// 固定原会话的附件密钥；门闩内只复制会话密钥，HKDF 在门闩外运行。
+    pub fn attachment_key_for_session(
+        &self,
+        session: &VaultSession,
+    ) -> Result<Zeroizing<[u8; 32]>, String> {
+        let key = self.with_session(session, |_| {
+            self.get_session_key()
+                .ok_or_else(|| STALE_SESSION.to_string())
+        })?;
+        crate::attachment_crypto::derive_attachment_key(&key).map(Zeroizing::new)
+    }
+
     pub fn capture_session(&self, expected_account: &str) -> Result<VaultSession, String> {
         let generation = self.session_gate.lock().map_err(|_| STALE_SESSION)?;
         let vault = self.get_vault_store().ok_or(STALE_SESSION)?;
