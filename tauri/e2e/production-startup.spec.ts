@@ -15,13 +15,16 @@ test('生产包完成启动并正常渲染 Markdown', async ({ page }) => {
       ocr_get_model_status: () => ({ installed: true, bundled: true }),
       sync_list_conflicts: () => [],
       get_app_info: () => ({ appName: 'SoloSoul', version: '1.0.0', os: 'windows', arch: 'x86_64' }),
-      desktop_check_update: () => ({
-        currentVersion: '1.0.0',
-        latestVersion: location.pathname === '/about' ? '1.0.1' : '1.0.0',
-        mandatory: false,
-        releaseNotes: '# Release smoke\\n\\n- **Production Markdown renders**',
-        publishedAt: null,
-      }),
+      desktop_prepare_update: () =>
+        location.pathname === '/about'
+          ? {
+              rid: 19,
+              currentVersion: '1.0.0',
+              version: '1.0.1',
+              body: '# Release smoke\\n\\n- **Production Markdown renders**',
+              rawJson: {},
+            }
+          : null,
     };
   `,
   });

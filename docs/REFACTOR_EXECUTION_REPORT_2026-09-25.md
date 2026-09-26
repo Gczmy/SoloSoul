@@ -1,6 +1,6 @@
 # SoloSoul 重构修复执行报告
 
-> 最后更新：2026-09-25（进入逐项修复）
+> 最后更新：2026-09-26（继续逐项修复）
 > 当前分支：`main`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
 > 修复轮次：第 1 轮，执行中。Cua 接入继续暂缓。
 
@@ -118,9 +118,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**92**（P1：32；P2：59；P3：1）。
-- 已关闭：**17 / 92**；实际修复（已关闭）：17；排除：0；待验证/阻塞：0。原计划 90 项，基线新增 RF-900、RF-901。
-- 当前处理：无。RF-020 完成，下一项 RF-003；RF-018（`38940f33`）与 RF-020 已补齐完整导入判定依赖，回到云同步会话绑定。
+- 任务总数：**93**（P1：32；P2：60；P3：1）。
+- 已关闭：**18 / 93**；实际修复（已关闭）：18；排除：0；待验证/阻塞：0。原计划 90 项，执行中新增 RF-900、RF-901、RF-902。
+- 当前处理：**RF-003**。RF-902 已恢复生产包冒烟检查并独立提交；RF-003 正补齐 PDFium 环境后的 R/CLI 验证，尚未提交。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -129,7 +129,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 1 | [RF-100](#rf-100) | P1 | 自动上下文立即排除非公开字段 | 无 | [x] 完成 |
 | 2 | [RF-001](#rf-001) | P1 | 建立最小会话捕获与提交校验机制 | 无 | [x] 完成 |
 | 3 | [RF-002](#rf-002) | P1 | LLM 流式回复绑定请求开始时的会话 | [RF-001](#rf-001) | [x] 完成 |
-| 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001)、[RF-020](#rf-020) | [ ] 待执行 |
+| 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001)、[RF-020](#rf-020) | [~] 进行中 |
 | 5 | [RF-101](#rf-101) | P2 | 本次用户消息只追加一次 | 无 | [x] 完成 |
 | 6 | [RF-004](#rf-004) | P1 | Rust 生成普通聊天的受控自动上下文 | [RF-001](#rf-001)、[RF-100](#rf-100)、[RF-101](#rf-101) | [ ] 待执行 |
 | 7 | [RF-005](#rf-005) | P1 | 普通聊天通过 provider ID 在 Rust 解析凭证 | [RF-001](#rf-001)、[RF-002](#rf-002)、[RF-004](#rf-004) | [ ] 待执行 |
@@ -218,6 +218,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 90 | [RF-312](#rf-312) | P3 | 建立可重跑的性能基线与下一步决策 | 无 | [ ] 待执行 |
 | 91 | [RF-900](#rf-900) | P2 | CLI 中文断言测试显式隔离系统语言 | 无（Rust 任务验收前优先处理） | [x] 完成 |
 | 92 | [RF-901](#rf-901) | P2 | Windows GUI Rust 测试嵌入 Common Controls 清单 | 无（R 配置恢复前优先处理） | [x] 完成 |
+| 93 | [RF-902](#rf-902) | P2 | 生产启动冒烟使用当前桌面更新契约 | 无（生产包检查恢复前优先处理） | [x] 完成 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -288,7 +289,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **入口：**`tauri/src-tauri/src/sync/cloud_auto_sync.rs`。
 - **执行：**CloudPreContext 捕获会话；run_cloud_sync_round、export_full_snapshot、auto_import_one 的导出、导入、状态和应用水线均使用原会话。移除网络等待后重取当前 Vault 的写入；失效或部分失败不推进水线，不删除未完成的待导入包。
 - **验收：**在下载结束、导入前、导入后水线提交前分别插入屏障，切换账户后新账户数据库与水线均不变；原账户重新进入后允许重试；完整成功才删除待导入源。
-- **验证配置：**`R`。**定向验证：**cloud_auto_sync.rs 新增 rf003_*，模拟 connector 和阶段屏障；cargo test -p solo_soul --lib rf003_ -- --test-threads=1。
+- **验证配置：**`R` + `F` + `CLI` + `CONTRACT`（共享附件提交、会话密钥入口及手动水线 IPC 改变）。**定向验证：**cloud_auto_sync/tests/rf003.rs 与 settings.rs 新增 rf003_*，模拟 connector 和阶段屏障；cargo test -p solo_soul --lib rf003_ -- --test-threads=1；复跑 RF-020 与现有导入导出回归；前端 useImportState.test.ts 覆盖迟到结果与跨账户事件，复跑恢复与 CloudSyncPage 冒烟。
 - **建议提交：**`fix: resolve [RF-003] - bind cloud sync rounds to their source session`。
 - **2026-09-25 依赖复核：**auto_import_one 只按 import_execute_internal 的 Ok/Err 判成功；当前 resolve_template_id 忽略保存错误，偏好和快照路径也存在 best-effort，无法证明“完整成功才推进水线”。该结果契约已归 RF-020（依赖 RF-018），先完成既有任务，避免在 RF-003 复制一套导入实现或提前宣称部分失败已被识别。导出/导入的固定句柄、事件、水线与文件删除仍全部由本项验收，未缩小范围。
 
@@ -1280,6 +1281,18 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**`R` + `DOC`。定向先 `cargo test -p solo_soul --lib -- --list`，核验生成二进制的 manifest，再执行 `cargo test --verbose`；Windows 应用目标构建/资源读取检查，其他目标至少确认条件编译范围。
 - **建议提交：**`build: resolve [RF-901] - embed Windows manifest in GUI Rust tests`。
 
+### RF-902
+
+**生产启动冒烟使用当前桌面更新契约** · P2 · 来源：执行中生产包验证新增
+
+- **前置：**无；与 RF-003 云同步代码无关，独立提交。
+- **入口：**`tauri/e2e/production-startup.spec.ts`；对照 `src/lib/updater.ts` 与 `@tauri-apps/plugin-updater` 的实际 Update 构造参数。
+- **证据：**生产检查 13 passed / 1 failed；启动、路由与其他更新说明用例正常，旧夹具只模拟 desktop_check_update，实际调用 desktop_prepare_update 得到 undefined 后显示 Latest，预期 Markdown 未渲染。
+- **执行：**改为模拟 desktop_prepare_update；仅 /about 返回带 rid/currentVersion/version/body/rawJson 的可用更新，其他路由返回 null。保留现有生产入口、启动、导航、Markdown 与 pageerror 断言，不改生产更新实现或超时。
+- **验收：**真实 Vite 生产包中关于页展示 Release smoke 标题及粗体列表，全部 production 配置用例通过。
+- **验证配置：**`WEB` + `DOC`；修改文件 Prettier check，`SOLOSOUL_E2E_CHANNEL=chrome npm run test:e2e:production`，记录本机 Chrome 与实际计数。未改前端生产源码，不重复已通过的 F 或启动另一套 Rust 构建。
+- **建议提交：**`test: resolve [RF-902] - align production smoke with desktop update contract`。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -1529,3 +1542,35 @@ git commit -m "<任务卡的提交标题>"
 - R 全量：`cargo test --verbose` exit 0，编译 19m49s；19 个 suite 合计 **1,079 passed / 0 failed / 3 ignored**，其中 GUI 502、core 215、vault 184。跳过项仍为既有两项 legacy field 测试与手动大数据基准，未新增跳过。CLI fmt exit 0、全目标 Clippy exit 0（1m22s）；CLI 完整测试仍在编译，保持进行中。
 - CLI 全量：`cargo test --verbose --no-fail-fast` exit 0，编译 5m20s；**173 passed / 0 failed / 1 ignored**（171 单元 + 2 集成，既有 i18n 文档示例跳过）。顺序队列整体 exit 0。测试自动更新的 CLI lockfile 仅 5 个本地 crate 版本，已定向还原，无依赖升级。
 - 最终结论：定向、R/F/CONTRACT/CLI 均满足；受影响规范同步更新，暂存范围仅本项 21 文件，92 项台账核对为 17 已关闭。**完成**；提交为本提交（按 RF-020 检索），未推送。附件持久重试与云端 skipExisting 补全仍由 RF-022 验收，本项不声称已实现事务或幂等；下一项 RF-003。
+
+### RF-003 执行记录（2026-09-25，进行中）
+
+- 修复前 HEAD：`d696efe0`（RF-020）。起始上下文只含 account_id，导出/导入在 spawn_blocking 内重新取当前 Vault；导入后水线与整轮 last_sync_at 也再次读取当前 Vault，允许账户切换后写入新库。待导入缓存目录未隔离账户。
+- 实施中：CloudPreContext 持有 RF-001 会话令牌；导入/导出唯一算法读取原 Vault，入口绑定原附件密钥，短时数据库写入、附件文件发布、事件、水线和源包删除均校验原会话。HKDF/ZIP/加解密置于门闩外，CLI 继续复用同一附件算法。下载完整刷新后发布到按账户隔离的 incoming 目录，列表同步按当前账户读取，原无归属缓存保留且不自动认领。
+- 新增真实加密包与内存 connector 场景：下载后、导入前、导入后水线前用通知屏障切换账户，检查新库无污染、原源包保留、重新进入原账户可重试；另覆盖导入中途切换、旧会话导出/导入和带身份事件。当前仅开始 cargo check --tests，尚未取得运行证据，不关闭或提交。
+- 首轮 `cargo check -p solo_soul --tests` exit 0（2m50s）。复核后补充整轮完成保留当前配置、拒绝旧会话更新时间，以及 incoming 列表账户隔离回归；附件中途切换点放在 core 循环入口校验之后、发布文件之前。开始 Clippy → RF-003 定向顺序队列，尚未取得最终结果。共享 core 变化按任务卡追加 CLI，导入/云同步 canonical 文档同步说明边界；新增 dev-dependency async-trait 仅用于内存 connector，lockfile 无版本升级。
+- 调用方复核待收尾：手动云页面在导入 IPC 返回后仍单独调用不含账户/代次的 `cloud_sync_mark_applied`；该入口直接使用当前 Vault，且 incoming 监听尚未过滤事件身份。后台路径的门闩不能替代这条手动路径的保障，RF-003 关闭前需把导入结果与水线提交绑定同一会话，并补迟到结果/事件测试（相应增加 F 验证），不能以本轮后台定向通过提前关闭。
+- 首轮 Clippy exit 0（50.76s）；Rust 定向编译 6m27s，**4 passed / 3 failed**，exit 101。新内存 connector 的 HEAD 错误返回 NotFound，使下载路径提前退出，造成屏障未到达和对象不存在；另一个新列表断言比较 Windows 混合分隔符字符串而非同形路径。已正确模拟索引 HEAD，并用分段 join 构造预期路径，保留全部跨账户与数据断言，未放宽超时或删除场景。
+- 手动路径实现：ImportResult 返回原 sessionGeneration；mark_applied 要求 accountId/sessionGeneration/sourcePath，拒绝旧会话与其他账户目录，自动/手动共用 finalize_cloud_import 的短时提交。前端采用 RF-101 请求守卫，退出会话清空表单与延迟计时器；事件不直接写入携带的旧文件列表，按当前账户重新读取。TypeScript exit 0；前端定向 **3 文件、12 passed**、exit 0（43.28s），含 RF-020 普通/云/恢复语义及新增迟到响应/事件回归。随后补齐清空其余表单开关，须完成最终 F。
+- CONTRACT：ACL 219 命令、偏好 22 key、Markdown 13 依赖检查均 exit 0。本项保留原命令名，仅更新手动水线参数。当前重跑 Clippy → RF-003 → RF-020 → 全部导入导出定向队列；最终 R/F/CLI 尚未完成，未提交。
+- 第二轮 Clippy exit 0（2m12s）；最终 TypeScript、Lint 均 exit 0。首次默认前端全量 exit 1：147 文件中 146 通过，**1,236 passed / 1 failed**，84.02s；唯一失败为未修改的 LazyPhotoViewerOverlay 冷动态导入测试触发全局 5s timeout（自身 waitFor 配置 8s），非云同步断言失败。该轮与 Rust 编译并行；保留失败，不上调超时或改 pool/worker，待原生编译结束后单独复跑失败用例及默认全量再判断。
+
+- 2026-09-26 恢复记录：续跑时原 D 盘工作区 `.git/index` 缺失，NTFS 状态为 Full Repair Needed，系统存在坏块事件；1,509 个主仓库跟踪文件中 1,505 个可完整读取，2 份前端测试、RF-020 Rust 测试和 importOutcome.ts 共 4 文件损坏或缺失。先将全部本地引用导出 Git bundle、可读源码及原有无关改动复制到独立 C 盘并逐文件校验；恢复仓库的 git fsck 无错误，HEAD 仍为 d696efe0。4 文件从已提交版本恢复，其中两份前端测试的 RF-003 未提交改动按原验收场景重建；未修复/覆盖 D 盘现场，未推送。
+- 原 RF-003 第二轮定向日志可读取：8 passed / 0 failed / 0 ignored（5.24s）；后续 RF-020 日志损坏、现有导入导出队列日志缺失，不能据此声称完成。C 盘重建前端回归已通过 2 文件、11 tests；追加已有 Rust 场景的附件密文真实解密、失效临时目录清理，以及 B 缓存目录真实存在时仍拒绝 A 源包断言，需在恢复副本重新执行原生验证。Rust fmt 与 CONTRACT 全部 exit 0；TypeScript、Lint、原 LazyPhotoViewerOverlay 失败用例单独运行均 exit 0，默认前端全量仍在运行。
+
+- 恢复后的最终 F：TypeScript、Lint 均 exit 0；原失败 LazyPhotoViewerOverlay 单独运行 1/1 passed（3.92s）；默认 npm run test **147 文件、1,237 passed / 0 failed**、exit 0（98.89s），未改变超时、pool 或 worker。正在 C 盘从本机依赖缓存顺序执行 Clippy → RF-003 → RF-020 → 现有导入导出 → R 全量 → CLI 全量，尚未关闭本项。
+
+- C 盘首次 Clippy exit 101：依赖检查推进到 GUI 入口后，tauri::generate_context! 因恢复副本没有 ../dist 产物而失败。已完整恢复 Windows PDF/OCR/插件运行资源（50文件哈希一致）、原插件子模块与本地 AGENTS.md；正通过 npx vite build 生成真实前端产物后续跑，未用占位 dist 或跳过入口替代验证。
+
+- Vite 产物生成成功（exit 0，7.60s）；随后 Clippy exit 0（56.83s）。原生 RF-003 首次测试构建在链接阶段 exit 101，尚未运行测试：本次临时设置的 CARGO_NET_OFFLINE=true 使 ort-sys 进入 link_error 分支，缺失 OrtGetApiBase；这是验证环境配置错误。已核对所锁定 ort-sys 2.0.0-rc.12 的 build/vars.rs 与构建输出，移除离线参数，利用其内置运行库下载/哈希验证并自动重跑受影响构建脚本；未关闭 ONNX 功能或缩减测试范围。
+
+- ONNX 环境修正后：构建输出已链接 C 盘缓存的 static onnxruntime；Clippy exit 0（1m02s）。RF-003 定向 **8/8 passed**、exit 0（重建1m13s、执行4.66s），包括此次补强的实际附件解密、临时清理与已有 B 目录隔离断言；RF-020 **8/8 passed**、exit 0（1.01s），原有导入导出 **51/51 passed**、exit 0（1.11s）。顺序队列已进入 R 全量，后续 CLI 尚待完成，RF-003 仍未关闭或提交。
+
+- 恢复后 R 全量首轮 exit 101：GUI **510/510 passed**；core **214 passed / 1 failed**，唯一失败 test_apply_to_pdf_smoke 为 PDFium 动态库未找到（LoadLibraryError 126），后续 suite 与 CLI 未运行。已核对恢复资源中的 pdfium.dll 哈希；core 测试工作目录不在 GUI 资源目录，需显式设置现有 PDFIUM_LIBRARY_PATH 指向 C 盘已验证库后重跑，保留该失败记录，不更改或跳过测试。
+
+### RF-902 执行记录（2026-09-26，完成）
+
+- 修复前 HEAD：`d696efe0`；RF-003 未提交代码与原有安装器图片保留。补充的生产包检查 exit 1，13 passed / 1 failed（49.8s），失败仅为旧启动夹具未覆盖 desktop_prepare_update；涉及夹具与生产适配器相对 HEAD 均无改动。
+- 正在仅修正模拟命令与返回类型；待生产包全量通过后单独提交。RF-003 的完整进度一并保留在台账作为执行上下文，不将其业务代码混入本项。
+- 最终验证：Prettier check exit 0；Windows x64 / Chrome 151.0.7922.108，`SOLOSOUL_E2E_CHANNEL=chrome npm run test:e2e:production` **14 passed / 0 failed / 0 skipped**、exit 0（23.4s），运行真实 Vite 生产包；原生产启动/Markdown 断言通过。93 项索引与任务卡一一对应，18 已关闭，只有 RF-003 进行中；`git diff --check` 通过。
+- **完成**；本提交（按 RF-902 检索），未推送。暂存仅启动测试与执行台账 2 文件，RF-003 业务改动及其规范、原有 BMP 均保持未暂存；返回 RF-003 验证队列。
