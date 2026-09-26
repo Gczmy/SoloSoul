@@ -164,6 +164,224 @@ mod tests {
         let dir = backups_dir(base);
         assert_eq!(dir, std::path::PathBuf::from("/tmp/solosoul_test/backups"));
     }
+    struct Rf012Fixture {
+        // Vault 先于临时目录释放，避免 Windows 上数据库句柄阻止清理。
+        vault: solosoul_vault::VaultStore,
+        directory: tempfile::TempDir,
+    }
+
+    impl Rf012Fixture {
+        fn new() -> Self {
+            let directory = tempfile::tempdir().unwrap();
+            // 仅合成测试账户与固定测试密钥，不访问用户 Vault。
+            let config = solosoul_vault::VaultConfig::new(
+                "rf012-synthetic-account",
+                directory.path().to_path_buf(),
+            )
+            .with_data_key([0x42; 32]);
+            let vault = solosoul_vault::VaultStore::open(config).unwrap();
+            Self { vault, directory }
+        }
+
+        fn seed_profiles(&self) -> Vec<solosoul_vault::Profile> {
+            let entries = [
+                (
+                    "synthetic-unicode",
+                    "合成档案🌟",
+                    "多语言内容：你好 / café / 🌍".as_bytes().to_vec(),
+                ),
+                (
+                    "synthetic-binary",
+                    "合成二进制",
+                    vec![0, 255, 128, 1, 10, 13, 0],
+                ),
+                ("synthetic-empty", "合成空内容", Vec::new()),
+            ];
+            entries
+                .into_iter()
+                .enumerate()
+                .map(|(index, (id, name, data))| {
+                    let mut profile = solosoul_vault::Profile::new_with_id(id, name, data);
+                    profile.created_at = rf012_now() - chrono::Duration::days(index as i64 + 1);
+                    profile.version = index as u32 + 3;
+                    self.vault.save_profile(&profile).unwrap();
+                    // save_profile 会更新 updated_at，断言以真实落库元数据为准。
+                    self.vault.load_profile(id).unwrap().unwrap()
+                })
+                .collect()
+        }
+
+        fn corrupt_profile(&self, id: &str) {
+            let conn = rusqlite::Connection::open(self.vault.base_path().join("vault.db")).unwrap();
+            // 保留 SOLO magic，确保走真实解密失败，而不是旧明文兼容分支。
+            assert_eq!(
+                conn.execute(
+                    "UPDATE profiles SET data = X'534F4C4FDEADBEEF' WHERE id = ?1",
+                    rusqlite::params![id],
+                )
+                .unwrap(),
+                1
+            );
+        }
+
+        fn create(
+            &self,
+            name: &str,
+            profiles: &[solosoul_vault::ProfileSummary],
+        ) -> Result<BackupInfo, String> {
+            create_profile_backup(
+                &self.vault,
+                self.directory.path(),
+                name,
+                profiles,
+                rf012_now(),
+            )
+        }
+
+        fn backup_files(&self) -> std::collections::BTreeMap<String, Vec<u8>> {
+            let directory = backups_dir(self.directory.path());
+            if !directory.exists() {
+                return std::collections::BTreeMap::new();
+            }
+            fs::read_dir(directory)
+                .unwrap()
+                .map(|entry| {
+                    let entry = entry.unwrap();
+                    assert!(
+                        entry.file_type().unwrap().is_file(),
+                        "备份目录不应残留临时目录"
+                    );
+                    (
+                        entry.file_name().into_string().unwrap(),
+                        fs::read(entry.path()).unwrap(),
+                    )
+                })
+                .collect()
+        }
+    }
+
+    fn rf012_now() -> chrono::DateTime<chrono::Utc> {
+        chrono::DateTime::parse_from_rfc3339("2026-09-26T12:34:56Z")
+            .unwrap()
+            .with_timezone(&chrono::Utc)
+    }
+
+    #[test]
+    fn rf012_unreadable_last_profile_aborts_without_publishing() {
+        let fixture = Rf012Fixture::new();
+        fixture.seed_profiles();
+        let profiles = fixture.vault.list_profiles().unwrap();
+        assert_eq!(profiles.len(), 3);
+        let damaged_id = &profiles.last().unwrap().id;
+        fixture.corrupt_profile(damaged_id);
+        assert!(fixture.vault.load_profile(damaged_id).is_err());
+        for summary in &profiles[..profiles.len() - 1] {
+            assert!(fixture.vault.load_profile(&summary.id).unwrap().is_some());
+        }
+        // 元数据枚举仍成功，生产收集路径必须在最后一条读取失败时中止。
+        let profiles = fixture.vault.list_profiles().unwrap();
+        assert_eq!(profiles.len(), 3);
+        let error = fixture
+            .create("synthetic-unreadable", &profiles)
+            .unwrap_err();
+        assert!(error.contains("failed to load profile"), "{error}");
+        assert!(error.contains(damaged_id), "{error}");
+        assert!(!error.contains("disappeared"), "{error}");
+        assert!(fixture.backup_files().is_empty());
+        assert!(!backups_dir(fixture.directory.path()).exists());
+    }
+
+    #[test]
+    fn rf012_missing_enumerated_profile_aborts_without_publishing() {
+        let fixture = Rf012Fixture::new();
+        fixture.seed_profiles();
+        let profiles = fixture.vault.list_profiles().unwrap();
+        let missing_id = &profiles.last().unwrap().id;
+        fixture.vault.delete_profile(missing_id).unwrap();
+        assert!(fixture.vault.load_profile(missing_id).unwrap().is_none());
+        assert_eq!(fixture.vault.list_profiles().unwrap().len(), 2);
+
+        let error = fixture.create("synthetic-missing", &profiles).unwrap_err();
+        assert!(error.contains("disappeared after enumeration"), "{error}");
+        assert!(error.contains(missing_id), "{error}");
+        assert!(!error.contains("failed to load"), "{error}");
+        assert!(fixture.backup_files().is_empty());
+        assert!(!backups_dir(fixture.directory.path()).exists());
+    }
+
+    #[test]
+    fn rf012_failed_collection_preserves_existing_same_name_backup() {
+        for disappears in [false, true] {
+            let fixture = Rf012Fixture::new();
+            fixture.seed_profiles();
+            let profiles = fixture.vault.list_profiles().unwrap();
+            let info = fixture.create("synthetic-same-second", &profiles).unwrap();
+            fixture.create("synthetic-unrelated", &profiles).unwrap();
+            let before = fixture.backup_files();
+            assert_eq!(before.len(), 2);
+            assert!(before.contains_key(&format!("{}.solosoul_backup", info.id)));
+
+            let last_id = &profiles.last().unwrap().id;
+            if disappears {
+                fixture.vault.delete_profile(last_id).unwrap();
+            } else {
+                fixture.corrupt_profile(last_id);
+            }
+            // 同一生产 worker、名称及秒级时间，失败不能截断已有有效文件。
+            assert!(fixture.create("synthetic-same-second", &profiles).is_err());
+            assert_eq!(fixture.backup_files(), before);
+        }
+    }
+
+    #[test]
+    fn rf012_complete_manifest_matches_profile_bytes_metadata_and_counts() {
+        for empty_vault in [false, true] {
+            let fixture = Rf012Fixture::new();
+            let expected = if empty_vault {
+                Vec::new()
+            } else {
+                fixture.seed_profiles()
+            };
+            let profiles = fixture.vault.list_profiles().unwrap();
+            let name = "合成 backup/fixture";
+            let info = fixture.create(name, &profiles).unwrap();
+            assert_eq!(info.id, "合成_backup_fixture_20260926_123456");
+            assert_eq!(info.name, name);
+            assert_eq!(info.created_at, rf012_now().to_rfc3339());
+            assert_eq!(info.object_count, expected.len());
+
+            let files = fixture.backup_files();
+            assert_eq!(files.len(), 1);
+            let bytes = files.get(&format!("{}.solosoul_backup", info.id)).unwrap();
+            assert_eq!(info.size_bytes, bytes.len() as u64);
+            let manifest: serde_json::Value = serde_json::from_slice(bytes).unwrap();
+            assert_eq!(manifest["version"], "2.0");
+            assert_eq!(manifest["created_at"], info.created_at);
+            assert_eq!(
+                manifest["profile_count"].as_u64().unwrap() as usize,
+                info.object_count
+            );
+            let entries = manifest["profiles"].as_array().unwrap();
+            assert_eq!(entries.len(), expected.len());
+            let mut seen_ids = std::collections::BTreeSet::new();
+            for entry in entries {
+                let id = entry["id"].as_str().unwrap();
+                assert!(seen_ids.insert(id));
+                let profile = expected.iter().find(|profile| profile.id == id).unwrap();
+                assert_eq!(entry["name"], profile.name);
+                assert_eq!(entry["created_at"], profile.created_at.to_rfc3339());
+                assert_eq!(entry["updated_at"], profile.updated_at.to_rfc3339());
+                assert_eq!(entry["version"], profile.version);
+                assert!(entry.get("data").is_none(), "2.0 清单保留 data_b64 格式");
+                let decoded = base64::Engine::decode(
+                    &base64::engine::general_purpose::STANDARD,
+                    entry["data_b64"].as_str().unwrap(),
+                )
+                .unwrap();
+                assert_eq!(decoded, profile.data);
+            }
+        }
+    }
 }
 
 #[tauri::command]
@@ -174,17 +392,26 @@ pub async fn backup_create(state: State<'_, AppState>, name: String) -> Result<B
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
-
-    let backup_dir = backups_dir(svc.base_path());
-    fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
-
-    let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
-    let safe_name = sanitize_backup_name(&name)?;
-    let backup_path = backup_dir.join(format!("{}_{}.solosoul_backup", safe_name, timestamp));
-
-    // Collect all profiles
     let profiles = vault.list_profiles()?;
-    let object_count = profiles.len();
+    let info = create_profile_backup(vault, svc.base_path(), &name, &profiles, chrono::Utc::now())?;
+
+    state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
+    Ok(info)
+}
+
+/// RF-012：完整读取枚举结果后才写出文件，读取错误或条目消失均中止备份。
+fn create_profile_backup(
+    vault: &solosoul_vault::VaultStore,
+    base_path: &std::path::Path,
+    name: &str,
+    profiles: &[solosoul_vault::ProfileSummary],
+    now: chrono::DateTime<chrono::Utc>,
+) -> Result<BackupInfo, String> {
+    let timestamp = now.format("%Y%m%d_%H%M%S");
+    let safe_name = sanitize_backup_name(name)?;
+    let backup_dir = backups_dir(base_path);
+    let backup_path = backup_dir.join(format!("{}_{}.solosoul_backup", safe_name, timestamp));
 
     #[derive(Serialize)]
     struct BackupManifest {
@@ -204,41 +431,52 @@ pub async fn backup_create(state: State<'_, AppState>, name: String) -> Result<B
         version: u32,
     }
 
-    let mut backup_profiles = Vec::new();
-    for p in &profiles {
-        if let Ok(Some(profile)) = vault.load_profile(&p.id) {
-            backup_profiles.push(ProfileBackupEntry {
-                id: profile.id,
-                name: profile.name,
-                data_b64: base64::Engine::encode(
-                    &base64::engine::general_purpose::STANDARD,
-                    &profile.data,
-                ),
-                created_at: profile.created_at.to_rfc3339(),
-                updated_at: profile.updated_at.to_rfc3339(),
-                version: profile.version,
-            });
-        }
+    let mut backup_profiles = Vec::with_capacity(profiles.len());
+    for summary in profiles {
+        let profile = vault
+            .load_profile(&summary.id)
+            .map_err(|e| {
+                format!(
+                    "Backup aborted: failed to load profile '{}': {}",
+                    summary.id, e
+                )
+            })?
+            .ok_or_else(|| {
+                format!(
+                    "Backup aborted: profile '{}' disappeared after enumeration",
+                    summary.id
+                )
+            })?;
+        backup_profiles.push(ProfileBackupEntry {
+            id: profile.id,
+            name: profile.name,
+            data_b64: base64::Engine::encode(
+                &base64::engine::general_purpose::STANDARD,
+                &profile.data,
+            ),
+            created_at: profile.created_at.to_rfc3339(),
+            updated_at: profile.updated_at.to_rfc3339(),
+            version: profile.version,
+        });
     }
 
+    let object_count = backup_profiles.len();
     let manifest = BackupManifest {
         version: "2.0".to_string(),
-        created_at: chrono::Utc::now().to_rfc3339(),
-        profile_count: backup_profiles.len(),
+        created_at: now.to_rfc3339(),
+        profile_count: object_count,
         profiles: backup_profiles,
     };
 
     let json = serde_json::to_string_pretty(&manifest).map_err(|e| e.to_string())?;
+    fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
     fs::write(&backup_path, json).map_err(|e| e.to_string())?;
-
     let metadata = fs::metadata(&backup_path).map_err(|e| e.to_string())?;
-    state.auto_sync.trigger_debounce();
-    state.device_auto_sync.trigger_data_change();
 
     Ok(BackupInfo {
         id: format!("{}_{}", safe_name, timestamp),
-        name,
-        created_at: chrono::Utc::now().to_rfc3339(),
+        name: name.to_string(),
+        created_at: now.to_rfc3339(),
         size_bytes: metadata.len(),
         object_count,
     })

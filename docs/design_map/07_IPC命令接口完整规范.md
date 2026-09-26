@@ -52,6 +52,8 @@
 | 导入导出 (Export/Import) | 9 | `export_get_scope_tree`、`export_estimate_size`、`export_execute`、`export_get_attachments`、`import_parse_package`、`import_get_password_hint`、`import_decrypt_preview`、`import_execute`、`import_execute_advanced` |
 | 备份 (Backup) | 5 | `backup_list`、`backup_create`、`backup_restore`、`backup_delete`、`inspect_backup` |
 
+**Profile 备份创建契约（RF-012）**：`backup_create(name)` 保持 2.0 JSON 清单和 `data_b64` 编码，仅备份当前 Vault 的 Profile 条目。枚举后必须完整读取全部条目；读取错误与条目消失分别返回失败，不能静默跳过。全部条目收集、序列化成功后才写出备份；收集失败不修改已有同名文件、不返回成功数量，也不触发自动同步或设备同步。成功返回的 `BackupInfo.object_count` 沿用历史字段名，值与 `manifest.profile_count` 一致，均为完整 Profile 集合的长度；该文件不是包含对象和附件的完整 Vault 导出包。
+
 ### 插件与同步（Plugin & Sync）
 
 | 模块 | 命令数 | 典型命令 |
