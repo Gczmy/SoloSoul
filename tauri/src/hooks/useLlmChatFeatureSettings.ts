@@ -90,6 +90,7 @@ export function useLlmChatFeatureSettings({
     if (accountId) {
       try {
         await invoke('llm_set_system_prompt_switch', { accountId: accountId, enabled: next });
+        void prefetchRegistry.llmConfig.invalidate();
       } catch (err) {
         // P028-R1: 失败回滚需防竞态——仅当当前状态仍是本次操作写入的 next 时才回滚
         logger.warn('[LLMConfig] Set system prompt switch failed:', err);

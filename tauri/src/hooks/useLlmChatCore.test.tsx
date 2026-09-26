@@ -30,6 +30,7 @@ vi.mock('@/hooks/useLlmProviderConfig', () => ({
     activeProvider: fixtures.provider,
     isConfigured: true,
     isAiEnabled: true,
+    includeSystemPrompt: true,
     loading: false,
   }),
 }));
@@ -48,11 +49,6 @@ vi.mock('@/lib/notification', () => ({
 vi.mock('@/lib/llm/conversationPersistence', () => ({ saveConversationSafely: vi.fn() }));
 vi.mock('@/lib/llm/guideService', () => ({
   searchGuideChunks: vi.fn(),
-  formatChunksAsSystemMessage: vi.fn(),
-}));
-vi.mock('@/lib/llm/systemPromptBuilder', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/lib/llm/systemPromptBuilder')>()),
-  buildSystemPrompt: () => 'SYSTEM',
 }));
 
 import { useLlmChat } from '@/pages/ai/LlmChatPage/useLlmChat';

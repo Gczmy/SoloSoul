@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**93**（P1：32；P2：60；P3：1）。
-- 已关闭：**19 / 93**；实际修复（已关闭）：19；排除：0；待验证/阻塞：0。原计划 90 项，执行中新增 RF-900、RF-901、RF-902。
-- 当前处理：无。RF-003 全部验证通过并在本提交关闭；下一项按依赖顺序为 RF-004。
+- 已关闭：**20 / 93**；实际修复（已关闭）：20；排除：0；待验证/阻塞：0。原计划 90 项，执行中新增 RF-900、RF-901、RF-902。
+- 当前处理：无。RF-004 已完成全部验收并纳入本提交；下一项 RF-005。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -131,7 +131,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 3 | [RF-002](#rf-002) | P1 | LLM 流式回复绑定请求开始时的会话 | [RF-001](#rf-001) | [x] 完成 |
 | 4 | [RF-003](#rf-003) | P1 | 云同步一轮操作固定账户与会话 | [RF-001](#rf-001)、[RF-020](#rf-020) | [x] 完成 |
 | 5 | [RF-101](#rf-101) | P2 | 本次用户消息只追加一次 | 无 | [x] 完成 |
-| 6 | [RF-004](#rf-004) | P1 | Rust 生成普通聊天的受控自动上下文 | [RF-001](#rf-001)、[RF-100](#rf-100)、[RF-101](#rf-101) | [ ] 待执行 |
+| 6 | [RF-004](#rf-004) | P1 | Rust 生成普通聊天的受控自动上下文 | [RF-001](#rf-001)、[RF-100](#rf-100)、[RF-101](#rf-101) | [x] 完成 |
 | 7 | [RF-005](#rf-005) | P1 | 普通聊天通过 provider ID 在 Rust 解析凭证 | [RF-001](#rf-001)、[RF-002](#rf-002)、[RF-004](#rf-004) | [ ] 待执行 |
 | 8 | [RF-102](#rf-102) | P1 | 搜索查询与缓存写入绑定会话和请求代次 | 无 | [x] 完成 |
 | 9 | [RF-103](#rf-103) | P1 | 聊天会话读取只接纳最新选择 | 无 | [x] 完成 |
@@ -1584,3 +1584,14 @@ git commit -m "<任务卡的提交标题>"
 - 正在仅修正模拟命令与返回类型；待生产包全量通过后单独提交。RF-003 的完整进度一并保留在台账作为执行上下文，不将其业务代码混入本项。
 - 最终验证：Prettier check exit 0；Windows x64 / Chrome 151.0.7922.108，`SOLOSOUL_E2E_CHANNEL=chrome npm run test:e2e:production` **14 passed / 0 failed / 0 skipped**、exit 0（23.4s），运行真实 Vite 生产包；原生产启动/Markdown 断言通过。93 项索引与任务卡一一对应，18 已关闭，只有 RF-003 进行中；`git diff --check` 通过。
 - **完成**；本提交（按 RF-902 检索），未推送。暂存仅启动测试与执行台账 2 文件，RF-003 业务改动及其规范、原有 BMP 均保持未暂存；返回 RF-003 验证队列。
+### RF-004 执行记录（2026-09-26，完成）
+
+- 修复前 HEAD：`0665f333`（RF-003）；有效工作区 `C:\Users\40299571\SoloSoul`，保留原有 3 张 NSIS 图片。前置 RF-001/RF-100/RF-101 已完成。原普通聊天由前端 Store 读取对象字段并拼接 system；保存的 includeSystemPrompt 未传入聊天配置缓存，页面固定开启。
+- 本项边界：前端只传 user/assistant 发送副本及上下文选择（none/publicProfile、候选对象 ID、界面语言、检索指南片段）；Host 绑定原会话、以保存开关为硬约束、从原 Vault 读取，Core 统一投影公开字段，Host 包装系统提示及指南为一条 system。保留持久化历史 role 字符串兼容；旧非 user/assistant 消息保留展示/存储但不作为新的出站角色。候选空列表不扩大为全库，关闭不读取附加对象/模板。指南仍由现有检索获取，回传文本不视为可信指令。provider 凭证迁移与流单写入者分别留 RF-005/RF-104。
+- 已实施：Core 投影及 15 项定向回归；Host 实际发送路径及 13 项 TCP/契约/长度测试；前端 ID-only 选择、保存开关缓存传播及发送副本兼容。独立只读复核未发现新增 P1/P2 实现缺陷；补齐 camelCase 反序列化和 Unicode 1500/3000、指南数量/标题/正文边界。provider 校验仍会读取配置，所谓 none 零 Profile 读取仅针对自动上下文构造，不声称整个命令无 Profile IO。
+- 前端定向 6 文件 **48/48 passed**（29.34s）；最终 F：TypeScript、Lint 均 exit 0，默认 `npm run test` **148 文件、1,249 passed / 0 failed**、exit 0（70.62s）。CONTRACT：ACL 219 命令、偏好 22 key、Markdown 13 依赖均 exit 0。生产包冒烟 **14/14 passed**、exit 0（20.1s），使用已安装 Chrome 151.0.7922.108 与真实 Vite production build，未跳过或调整测试配置。
+- Rust 最终 fmt exit 0；已固定源码，在正确 PDFIUM_LIBRARY_PATH 与验证过的 SQLite 工具环境下顺序运行 Clippy → RF-004 Core → RF-004 Host → RF-002 → R 全量 → CLI fmt/Clippy/全量。原生检查尚未完成，本项仍进行中，未提交。
+
+- 最终原生验证：fmt、Clippy 均 exit 0（Clippy 1m53s）；Core `rf004_` **15/15 passed**，Host `rf004_` **13/13 passed**，RF-002 **6/6 passed**，均 exit 0。R 全量 `cargo test --verbose` exit 0，编译 12m42s；19 组结果合计 **1,115 passed / 0 failed / 3 ignored**，含 GUI 523、core 230、vault 184。跳过项仍为两项 legacy field 和 P025 手动性能工具。
+- CLI：fmt、全目标 Clippy、完整 `cargo test --verbose --no-fail-fast` 全部 exit 0；Clippy 54.41s，测试编译 2m32s，171 单元（34.38s）+ 2 集成（1.21s）通过，合计 **173 passed / 0 failed / 1 ignored**；既有 i18n 文档示例跳过。验证结束后核对并恢复 Cargo 自动刷新的 5 个本地 crate 版本，未升级依赖。
+- 最终复审：纠正 canonical 规范残留的旧长度标准与空候选指南说明；93 项索引/任务卡、关闭计数与 `git diff --check` 核对通过。F/R/CORE/CLI/CONTRACT 与生产包冒烟全部满足；本项 **完成**，仅暂存本项 22 个路径，保留 3 张 NSIS 图片。提交：本提交（按 RF-004 检索），未推送。

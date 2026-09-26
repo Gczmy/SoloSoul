@@ -1,3 +1,4 @@
+use crate::services::llm_context::{build_automatic_system_prompt, ChatContextSelection};
 use crate::state::AppState;
 use serde::Serialize;
 use solosoul_core::{VaultService, VaultSession};
@@ -33,6 +34,8 @@ struct StreamContext {
     conversation_id: String,
     request_id: String,
     emit_event: Box<dyn Fn(LlmStreamPayload) -> Result<(), String> + Send + Sync>,
+    #[cfg(test)]
+    before_send: Option<Arc<dyn Fn() -> futures::future::BoxFuture<'static, ()> + Send + Sync>>,
 }
 
 impl StreamContext {
@@ -53,6 +56,8 @@ impl StreamContext {
             conversation_id,
             request_id: request_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string()),
             emit_event: Box::new(emit_event),
+            #[cfg(test)]
+            before_send: None,
         })
     }
 
@@ -418,6 +423,7 @@ pub async fn llm_send_message_stream(
     api_type: ApiType,
     messages: Vec<serde_json::Value>,
     request_id: Option<String>,
+    context_selection: Option<ChatContextSelection>,
 ) -> Result<(), String> {
     // 在任何异步等待前捕获；旧调用方可不传 requestId，由后端生成。
     let context = StreamContext::capture(
@@ -438,7 +444,45 @@ pub async fn llm_send_message_stream(
     // 异步解析复核（防 `http://nas.local` 这类解析到内网地址的绕过），与 chat_http 一致。
     request::ensure_public_llm_host(&base_url).await?;
     ensure_registered_provider(&context, &base_url)?;
-    run_chat_stream(&context, base_url, api_key, model, api_type, messages).await
+    run_chat_stream(
+        &context,
+        base_url,
+        api_key,
+        model,
+        api_type,
+        messages,
+        context_selection,
+    )
+    .await
+}
+
+/// RF-004：用户消息与自动附加资料分离；旧存储模型保持 string role 兼容。
+fn prepare_chat_messages(
+    context: &StreamContext,
+    selection: &ChatContextSelection,
+    messages: Vec<serde_json::Value>,
+) -> Result<Vec<serde_json::Value>, String> {
+    context.with_vault(|_| Ok(()))?;
+    let mut messages = messages
+        .into_iter()
+        .map(|message| {
+            let role = message.get("role").and_then(serde_json::Value::as_str);
+            let content = message.get("content").and_then(serde_json::Value::as_str);
+            match (role, content) {
+                (Some(role @ ("user" | "assistant")), Some(content)) => {
+                    Ok(serde_json::json!({"role": role, "content": content}))
+                }
+                _ => Err(
+                    "Chat messages must contain a user/assistant role and text content".to_string(),
+                ),
+            }
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    if let Some(prompt) = build_automatic_system_prompt(&context.session, selection)? {
+        messages.insert(0, serde_json::json!({"role": "system", "content": prompt}));
+    }
+    context.with_vault(|_| Ok(()))?;
+    Ok(messages)
 }
 
 /// 普通流请求的唯一完成路径，供真实 HTTP 回归覆盖发送、保存与统计的串联。
@@ -449,7 +493,14 @@ async fn run_chat_stream(
     model: String,
     api_type: ApiType,
     messages: Vec<serde_json::Value>,
+    context_selection: Option<ChatContextSelection>,
 ) -> Result<(), String> {
+    let messages =
+        prepare_chat_messages(context, &context_selection.unwrap_or_default(), messages)?;
+    #[cfg(test)]
+    if let Some(before_send) = &context.before_send {
+        before_send().await;
+    }
     let prompt_text: String = messages
         .iter()
         .filter_map(|m| {
@@ -618,6 +669,8 @@ async fn record_and_persist_usage(
 
 #[cfg(test)]
 mod tests {
+    mod rf004;
+
     use super::*;
     use crate::commands::llm::stats::TokenUsage;
     use std::sync::Mutex;
@@ -774,6 +827,7 @@ mod tests {
             "model".into(),
             ApiType::OpenAI,
             vec![serde_json::json!({"role": "user", "content": "hello"})],
+            None,
         )
         .await
         .unwrap();
@@ -947,6 +1001,7 @@ mod tests {
                 "model".into(),
                 ApiType::OpenAI,
                 vec![serde_json::json!({"role": "user", "content": "hello"})],
+                None,
             )
             .await
             .unwrap();
@@ -986,6 +1041,7 @@ mod tests {
             "model".into(),
             ApiType::OpenAI,
             vec![serde_json::json!({"role": "user", "content": "hello"})],
+            None,
         )
         .await
         .unwrap();

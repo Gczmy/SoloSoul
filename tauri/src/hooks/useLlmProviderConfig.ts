@@ -17,6 +17,7 @@ export function useLlmProviderConfig({ accountId }: UseLlmProviderConfigOptions)
   const [activeProvider, setActiveProvider] = useState<ActiveProvider | null>(null);
   const [isConfigured, setIsConfigured] = useState(false);
   const [isAiEnabled, setIsAiEnabled] = useState(false);
+  const [includeSystemPrompt, setIncludeSystemPrompt] = useState(true);
   const [loading, setLoading] = useState(true);
 
   const { data: llmConfig, error: llmConfigError } = usePrefetchData(prefetchRegistry.llmConfig, {
@@ -32,6 +33,8 @@ export function useLlmProviderConfig({ accountId }: UseLlmProviderConfigOptions)
     if (llmConfig === null && !llmConfigError) return;
     if (llmConfig) {
       setIsAiEnabled(llmConfig.aiFeaturesEnabled.chat ?? false);
+      // invalidate 的空快照保留已知开关，避免刷新期间把 false 恢复为默认 true。
+      setIncludeSystemPrompt(llmConfig.includeSystemPrompt);
       const active = llmConfig.providers.find((p) => p.id === llmConfig.activeProviderId);
       if (active) {
         setActiveProvider({
@@ -53,5 +56,5 @@ export function useLlmProviderConfig({ accountId }: UseLlmProviderConfigOptions)
     setLoading(false);
   }, [accountId, llmConfig, llmConfigError]);
 
-  return { activeProvider, isConfigured, isAiEnabled, loading };
+  return { activeProvider, isConfigured, isAiEnabled, includeSystemPrompt, loading };
 }

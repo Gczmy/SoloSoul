@@ -1,13 +1,19 @@
-//! LLM Context Service — public_data_version 维护
+//! LLM Context Service — RF-004 自动上下文与 public_data_version 维护
 //!
 //! 原系统提示词构建（`build_context`，模式 B 后端构建）已无任何生产调用方
 //! （整棵私有子树约 330 行仅被模块内测试引用），于 R2-11 连同其内存缓存层
 //! （`PROMPT_CACHE`/`clear_cache`）一并移除。
 //!
+//! RF-004 在 automatic 子模块实现绑定会话的读取与 Host 提示包装；旧缓存不恢复。
 //! 本模块保留仍被活跃路径使用的 public_data_version 机制：
 //! - `bump_public_data_version`：object_create / object_update 检测到 public
 //!   级别变更时调用（`commands/object/mod.rs`）；
 //! - 配套的 profile 读写辅助。
+
+mod automatic;
+
+pub(crate) use automatic::build_automatic_system_prompt;
+pub use automatic::ChatContextSelection;
 
 use super::profile_prefs::update_profile_prefs;
 use solosoul_vault::VaultStore;

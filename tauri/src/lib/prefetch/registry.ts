@@ -116,12 +116,14 @@ export const prefetchRegistry = {
         invoke<{
           activeProviderId?: string;
           aiFeaturesEnabled?: { chat: boolean };
+          includeSystemPrompt?: boolean;
         }>('llm_get_config', { accountId }),
         invoke<LlmProviderInfo[]>('llm_get_providers', { accountId }),
       ]);
       return {
         activeProviderId: cfg.activeProviderId ?? '',
         aiFeaturesEnabled: cfg.aiFeaturesEnabled ?? { chat: false },
+        includeSystemPrompt: cfg.includeSystemPrompt !== false,
         providers,
       };
     },
@@ -149,5 +151,6 @@ export interface LlmProviderInfo {
 export interface LlmConfigState {
   activeProviderId: string;
   aiFeaturesEnabled: { chat: boolean };
+  includeSystemPrompt: boolean;
   providers: LlmProviderInfo[];
 }

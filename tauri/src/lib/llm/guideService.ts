@@ -37,29 +37,3 @@ export async function searchGuideChunks(
     return [];
   }
 }
-
-/**
- * 将检索到的文档片段格式化为 system message 注入文本。
- * @param chunks 文档片段列表
- * @returns 格式化后的注入文本
- */
-export function formatChunksAsSystemMessage(chunks: GuideChunk[]): string | null {
-  if (chunks.length === 0) return null;
-
-  const parts: string[] = ['以下是与用户问题相关的官方功能使用文档片段，请优先依据这些片段回答：'];
-
-  chunks.forEach((chunk, i) => {
-    parts.push(
-      `\n【文档片段 ${i + 1}】来源：《${chunk.guideTitle}》 相关度：${(chunk.similarity * 100).toFixed(1)}%`,
-      '```text',
-      chunk.chunkText,
-      '```',
-    );
-  });
-
-  parts.push(
-    '\n如果以上文档片段中完全没有涉及用户问题的内容，才回答"我暂时不清楚这个细节，建议你查看软件内的帮助页面"。否则请基于文档积极回答。',
-  );
-
-  return parts.join('\n');
-}

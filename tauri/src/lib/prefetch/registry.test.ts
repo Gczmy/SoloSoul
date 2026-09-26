@@ -112,6 +112,7 @@ describe('prefetchRegistry.llmConfig（AI 对话弹层/聊天页 provider 配置
     expect(data).toEqual({
       activeProviderId: 'openai',
       aiFeaturesEnabled: { chat: true },
+      includeSystemPrompt: true,
       providers,
     });
   });
@@ -124,5 +125,16 @@ describe('prefetchRegistry.llmConfig（AI 对话弹层/聊天页 provider 配置
     expect(data).toBeNull();
     expect(invoke).not.toHaveBeenCalled();
     expect(prefetchRegistry.llmConfig.getSnapshot().error).not.toBeNull();
+  });
+  it('保留持久化的 includeSystemPrompt=false，而非替换为默认 true', async () => {
+    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+      if (cmd === 'llm_get_config') return { includeSystemPrompt: false };
+      if (cmd === 'llm_get_providers') return [];
+      return undefined;
+    });
+
+    const data = await prefetchRegistry.llmConfig.load({ force: true });
+
+    expect(data?.includeSystemPrompt).toBe(false);
   });
 });

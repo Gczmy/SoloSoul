@@ -10,7 +10,7 @@ import { markConversationPending } from '@/lib/notification';
 import { useLlmProviderConfig } from '@/hooks/useLlmProviderConfig';
 import { useLlmOnlineStatus } from '@/hooks/useLlmOnlineStatus';
 import { useLlmStreaming } from '@/hooks/useLlmStreaming';
-import { buildChatRequestMessages } from '@/lib/llm/chatRequest';
+import { buildChatRequest } from '@/lib/llm/chatRequest';
 import { saveConversationSafely } from '@/lib/llm/conversationPersistence';
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import {
@@ -108,9 +108,13 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   const copiedIndex = copiedKey === null ? null : Number(copiedKey);
 
   // 子 hook：provider 配置加载 / 在线状态轮询 / 流式副作用编排
-  const { activeProvider, isConfigured, isAiEnabled, loading } = useLlmProviderConfig({
-    accountId,
-  });
+  const {
+    activeProvider,
+    isConfigured,
+    isAiEnabled,
+    includeSystemPrompt: savedIncludeSystemPrompt,
+    loading,
+  } = useLlmProviderConfig({ accountId });
   const { isOnline, checkingOnline, checkOnline } = useLlmOnlineStatus({
     activeProvider,
     accountId,
@@ -212,8 +216,9 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         providerId: activeProvider.id,
       });
 
-      const effectiveIncludeSystemPrompt = optIncludeSystemPrompt ?? true;
-      const allMessages = await buildChatRequestMessages({
+      const effectiveIncludeSystemPrompt =
+        optIncludeSystemPrompt !== false && savedIncludeSystemPrompt !== false;
+      const request = await buildChatRequest({
         text,
         history: messages,
         includeSystemPrompt: effectiveIncludeSystemPrompt,
@@ -228,7 +233,8 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         apiKey: apiKey,
         model: activeProvider.model,
         apiType: activeProvider.apiType,
-        messages: allMessages,
+        messages: request.messages,
+        contextSelection: request.contextSelection,
       }).catch((err) => {
         onChunk({
           conversationId: convId,
@@ -268,6 +274,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     messages,
     currentConvId,
     optIncludeSystemPrompt,
+    savedIncludeSystemPrompt,
     startStream,
     onChunk,
     reset,

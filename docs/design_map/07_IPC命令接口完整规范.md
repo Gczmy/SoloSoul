@@ -364,6 +364,20 @@ pub async fn snapshot_count_batch(object_ids: Vec<String>) -> Result<Vec<Snapsho
 
 ## 11. LLM 大语言模型模块（部分核心命令）
 
+普通聊天实际入口（RF-004，保留 RF-002 会话捕获与事件身份）：
+
+```rust
+// app/state 注入参数省略；IPC 使用 camelCase 参数名。
+async fn llm_send_message_stream(
+    account_id: String, conversation_id: String,
+    base_url: String, api_key: String, model: String, api_type: ApiType,
+    messages: Vec<serde_json::Value>, request_id: Option<String>,
+    context_selection: Option<ChatContextSelection>,
+) -> Result<(), String>;
+```
+
+`messages` 必须只有 user/assistant 文本消息；Host 拒绝客户端 system/未知角色。`contextSelection` 为 `{mode:"none"}` 或 `{mode:"publicProfile",objectIds,language,guideChunks}`；省略即 none。指南片段字段为 guideId/guideTitle/chunkText/similarity。Host 以原会话保存的 includeSystemPrompt 为最终约束，并从原 Vault 读取/过滤候选公开对象，前端不传自动字段值。空 objectIds 不遍历全库。provider 凭证参数在 RF-005 前仍保留，不能把本项描述为凭证已隐藏。持久化 Message 的 string role 兼容性不变。
+
 ```rust
 // 对话管理
 #[tauri::command] pub async fn llm_chat(conversation_id: String, message: String, provider_id: String) -> Result<(), String>;
