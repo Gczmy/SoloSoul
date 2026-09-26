@@ -109,95 +109,303 @@ fn test_copy_snapshots() {
     assert_eq!(copied_snaps.len(), 2);
 }
 
-#[test]
-fn test_snapshot_rollback_via_vault() {
-    let (vault, _dir) = setup_vault();
-    let record = ObjectRecord {
-        contract_type_id: None,
-        id: "obj-roll-1".to_string(),
-        account_id: "acc-1".to_string(),
+// RF-006 夹具只含 synthetic 数据；setup_vault 使用临时目录及固定测试密钥。
+fn rf006_object(id: &str, name: &str) -> ObjectRecord {
+    ObjectRecord {
+        id: id.to_string(),
+        account_id: "test_account".to_string(),
         type_id: "note".to_string(),
         section_type: "identity".to_string(),
-        name: "Original".to_string(),
-        icon_name: "document".to_string(),
-        parent_id: None,
-        children_ids: vec![],
-        properties: serde_json::json!({"content": "v1"}),
-        property_labels: None,
-        sensitivity_level: "internal".to_string(),
-        is_deleted: false,
-        deleted_at: None,
-        tags_json: vec!["tag1".to_string()],
-        template_id: None,
-        template_type: None,
-        template_hash: None,
-        created_at: chrono::Utc::now().to_rfc3339(),
-        updated_at: chrono::Utc::now().to_rfc3339(),
-        version: 1,
+        name: name.to_string(),
+        icon_name: "synthetic-icon".to_string(),
+        parent_id: Some("synthetic-parent".to_string()),
+        children_ids: vec!["synthetic-child".to_string()],
+        properties: serde_json::json!({"content": format!("Synthetic current {id}")}),
+        property_labels: Some(serde_json::json!({"content": "internal"})),
+        sensitivity_level: "sensitive".to_string(),
+        tags_json: vec!["synthetic-current-tag".to_string()],
+        template_id: Some("synthetic-template".to_string()),
+        template_type: Some("user".to_string()),
+        template_hash: Some("synthetic-template-hash".to_string()),
+        ignored_template_hash: Some("synthetic-ignored-hash".to_string()),
+        contract_type_id: Some("synthetic-contract".to_string()),
+        created_at: "2000-01-01T00:00:00Z".to_string(),
+        updated_at: "2000-01-02T00:00:00Z".to_string(),
+        version: 7,
         ..Default::default()
-    };
-    vault.save_object(&record).unwrap();
+    }
+}
 
-    // Save snapshot
-    let snap = serde_json::to_vec(&serde_json::json!({
-        "name": "Original", "tags": ["tag1"], "properties": {"content": "v1"}
-    }))
-    .unwrap();
+fn rf006_vault() -> (solosoul_vault::VaultStore, tempfile::TempDir) {
+    let (vault, dir) = setup_vault();
+    for (id, name) in [
+        ("rf006-a", "Synthetic object A"),
+        ("rf006-b", "Synthetic object B"),
+    ] {
+        vault.save_object(&rf006_object(id, name)).unwrap();
+    }
     vault
-        .save_snapshot(&record.id, "user_edit", &snap, "")
+        .log_structured(
+            "synthetic_seed",
+            "object",
+            Some("rf006-a"),
+            Some("Synthetic object A"),
+            "test",
+            Some("Synthetic audit baseline"),
+        )
         .unwrap();
+    (vault, dir)
+}
 
-    // Update object
-    let mut updated = vault.load_object(&record.id).unwrap().unwrap();
-    updated.name = "Updated".to_string();
-    updated.properties = serde_json::json!({"content": "v2"});
-    updated.tags_json = vec!["tag2".to_string()];
-    updated.version += 1;
-    vault.save_object(&updated).unwrap();
+fn rf006_save_snapshot(
+    vault: &solosoul_vault::VaultStore,
+    owner: &str,
+    data: &serde_json::Value,
+) -> String {
+    let old_ids: Vec<_> = vault
+        .list_snapshots(owner)
+        .unwrap()
+        .into_iter()
+        .map(|snapshot| snapshot["id"].as_str().unwrap().to_string())
+        .collect();
+    vault
+        .save_snapshot(
+            owner,
+            "user_edit",
+            &serde_json::to_vec(data).unwrap(),
+            "Synthetic source",
+        )
+        .unwrap();
+    vault
+        .list_snapshots(owner)
+        .unwrap()
+        .into_iter()
+        .find_map(|snapshot| {
+            let id = snapshot["id"].as_str().unwrap();
+            (!old_ids.iter().any(|old| old == id)).then(|| id.to_string())
+        })
+        .unwrap()
+}
 
-    // Rollback: load snapshot and restore (snapshot_rollback logic)
-    let snapshots = vault.list_snapshots(&record.id).unwrap();
-    let snap_id = snapshots[0]["id"].as_str().unwrap();
-    let data = vault.get_snapshot(snap_id).unwrap().unwrap();
-    let snapshot: serde_json::Value = serde_json::from_slice(&data).unwrap();
+/// 比较完整记录（含版本/时间）、历史内容与元数据、全量历史计数和审计内容。
+fn rf006_vault_state(vault: &solosoul_vault::VaultStore) -> serde_json::Value {
+    let mut objects: Vec<_> = vault
+        .list_objects("test_account", None, None, None, true, false)
+        .unwrap()
+        .into_iter()
+        .map(|summary| vault.load_object(&summary.id).unwrap().unwrap())
+        .collect();
+    objects.sort_by(|left, right| left.id.cmp(&right.id));
+    let owners: Vec<_> = ["rf006-a", "rf006-b", "", "rf006-missing-target"]
+        .into_iter()
+        .map(String::from)
+        .collect();
+    let histories: Vec<_> = owners
+        .iter()
+        .map(|owner| {
+            let entries: Vec<_> = vault
+                .list_snapshots(owner)
+                .unwrap()
+                .into_iter()
+                .map(|metadata| {
+                    let id = metadata["id"].as_str().unwrap();
+                    serde_json::json!({
+                        "owner": vault.get_snapshot_owner(id).unwrap(),
+                        "data": vault.get_snapshot(id).unwrap().unwrap(),
+                        "metadata": metadata,
+                    })
+                })
+                .collect();
+            serde_json::json!({"objectId": owner, "entries": entries})
+        })
+        .collect();
+    serde_json::json!({
+        "objects": objects,
+        "history": histories,
+        "historyCounts": vault.count_snapshots_batch(&owners).unwrap(),
+        "audit": vault.list_audit_log(100).unwrap(),
+    })
+}
 
-    let mut rec = vault.load_object(&record.id).unwrap().unwrap();
-    if let Some(name) = snapshot["name"].as_str() {
-        rec.name = name.to_string();
-    }
-    if let Some(tags) = snapshot["tags"].as_array() {
-        rec.tags_json = tags
-            .iter()
-            .filter_map(|v| v.as_str().map(|s| s.to_string()))
-            .collect();
-    }
-    if !snapshot["properties"].is_null() {
-        rec.properties = snapshot["properties"].clone();
-    }
-    rec.updated_at = chrono::Utc::now().to_rfc3339();
-    rec.version += 1;
-    vault.save_object(&rec).unwrap();
-
-    // Save rollback snapshot
-    let rollback_data = serde_json::to_vec(&serde_json::json!({
-        "name": rec.name, "tags": rec.tags_json, "properties": rec.properties,
-    }))
-    .unwrap_or_default();
-    let _ = vault.save_snapshot(
-        &record.id,
-        "rollback",
-        &rollback_data,
-        "Rolled back to previous version",
+#[test]
+fn rf006_rejects_cross_object_snapshot_even_with_forged_json_owner() {
+    let (vault, _dir) = rf006_vault();
+    let snapshot = rf006_save_snapshot(
+        &vault,
+        "rf006-a",
+        &serde_json::json!({
+            "objectId": "rf006-b", "object_id": "rf006-b", "id": "rf006-b",
+            "name": "Synthetic forged B", "tags": ["forged"],
+            "properties": {"content": "Synthetic A snapshot content"},
+            "propertyLabels": {"content": "critical"},
+        }),
     );
+    assert_eq!(
+        vault.get_snapshot_owner(&snapshot).unwrap().as_deref(),
+        Some("rf006-a")
+    );
+    let before = rf006_vault_state(&vault);
+    let error = super::super::snapshot::rollback_snapshot_in_vault(&vault, &snapshot, "rf006-b")
+        .unwrap_err();
+    assert_eq!(error, "Snapshot does not belong to object");
+    assert_eq!(rf006_vault_state(&vault), before);
+}
 
-    // Verify rollback
-    let rolled = vault.load_object(&record.id).unwrap().unwrap();
-    assert_eq!(rolled.name, "Original");
-    assert_eq!(rolled.properties, serde_json::json!({"content": "v1"}));
-    assert_eq!(rolled.tags_json, vec!["tag1"]);
+#[test]
+fn rf006_rejects_missing_snapshot_without_mutation() {
+    let (vault, _dir) = rf006_vault();
+    rf006_save_snapshot(
+        &vault,
+        "rf006-a",
+        &serde_json::json!({"name": "Synthetic baseline"}),
+    );
+    let before = rf006_vault_state(&vault);
+    let error = super::super::snapshot::rollback_snapshot_in_vault(
+        &vault,
+        "rf006-missing-snapshot",
+        "rf006-a",
+    )
+    .unwrap_err();
+    assert_eq!(error, "Snapshot not found");
+    assert_eq!(rf006_vault_state(&vault), before);
+}
 
-    let final_snaps = vault.list_snapshots(&record.id).unwrap();
-    assert_eq!(final_snaps.len(), 2);
+#[test]
+fn rf006_rejects_empty_owner_even_when_target_id_is_empty() {
+    let (vault, _dir) = rf006_vault();
+    // 历史损坏记录可同时为空；仅做相等比较不能授权这一组合。
+    vault
+        .save_object(&rf006_object("", "Synthetic empty ID record"))
+        .unwrap();
+    let snapshot = rf006_save_snapshot(
+        &vault,
+        "",
+        &serde_json::json!({
+            "objectId": "rf006-a", "name": "Synthetic invalid owner", "properties": {"changed": true},
+        }),
+    );
+    assert_eq!(
+        vault.get_snapshot_owner(&snapshot).unwrap().as_deref(),
+        Some("")
+    );
+    let before = rf006_vault_state(&vault);
+    for target in ["rf006-a", ""] {
+        let error = super::super::snapshot::rollback_snapshot_in_vault(&vault, &snapshot, target)
+            .unwrap_err();
+        assert_eq!(error, "Snapshot does not belong to object");
+        assert_eq!(rf006_vault_state(&vault), before);
+    }
+}
+
+#[test]
+fn rf006_rejects_missing_target_without_mutation() {
+    let (vault, _dir) = rf006_vault();
+    let target = "rf006-missing-target";
+    let snapshot = rf006_save_snapshot(
+        &vault,
+        target,
+        &serde_json::json!({
+            "name": "Synthetic orphan snapshot", "properties": {"content": "Synthetic orphan"},
+        }),
+    );
+    assert!(vault.load_object(target).unwrap().is_none());
+    let before = rf006_vault_state(&vault);
+    let error =
+        super::super::snapshot::rollback_snapshot_in_vault(&vault, &snapshot, target).unwrap_err();
+    assert_eq!(error, "Object not found");
+    assert_eq!(rf006_vault_state(&vault), before);
+    assert!(vault.load_object(target).unwrap().is_none());
+}
+
+#[test]
+fn rf006_rollback_restores_fields_labels_and_records_history_audit() {
+    for label_key in ["propertyLabels", "property_labels"] {
+        let (vault, _dir) = rf006_vault();
+        let original = vault.load_object("rf006-a").unwrap().unwrap();
+        let untouched = vault.load_object("rf006-b").unwrap().unwrap();
+        let labels = serde_json::json!({"content": "critical", "group": "public"});
+        let mut payload = serde_json::json!({
+            "name": "Synthetic recovered name", "tags": ["synthetic-restored-tag"],
+            "properties": {"content": "Synthetic historical value", "group": [{"name": "Synthetic child", "value": "historical"}]},
+        });
+        payload[label_key] = labels.clone();
+        let snapshot = rf006_save_snapshot(&vault, &original.id, &payload);
+        let before_counts = vault
+            .count_snapshots_batch(&[original.id.clone(), untouched.id.clone()])
+            .unwrap();
+        let before_audit = vault.list_audit_log(100).unwrap();
+
+        super::super::snapshot::rollback_snapshot_in_vault(&vault, &snapshot, &original.id)
+            .unwrap();
+
+        let restored = vault.load_object(&original.id).unwrap().unwrap();
+        let mut expected = original.clone();
+        expected.name = "Synthetic recovered name".to_string();
+        expected.tags_json = vec!["synthetic-restored-tag".to_string()];
+        expected.properties = payload["properties"].clone();
+        expected.property_labels = Some(labels);
+        expected.version += 1;
+        assert_ne!(restored.updated_at, original.updated_at);
+        expected.updated_at = restored.updated_at.clone();
+        assert_eq!(
+            serde_json::to_value(&restored).unwrap(),
+            serde_json::to_value(&expected).unwrap(),
+            "{label_key}: non-rollback fields must be preserved"
+        );
+        assert_eq!(
+            serde_json::to_value(vault.load_object(&untouched.id).unwrap().unwrap()).unwrap(),
+            serde_json::to_value(&untouched).unwrap()
+        );
+        let counts = vault
+            .count_snapshots_batch(&[original.id.clone(), untouched.id.clone()])
+            .unwrap();
+        assert_eq!(
+            counts.get(&original.id).copied().unwrap_or(0),
+            before_counts.get(&original.id).copied().unwrap_or(0) + 1
+        );
+        assert_eq!(counts.get(&untouched.id), before_counts.get(&untouched.id));
+        let histories = vault.list_snapshots(&original.id).unwrap();
+        let rollback = histories
+            .iter()
+            .find(|entry| entry["id"].as_str() != Some(snapshot.as_str()))
+            .unwrap();
+        assert_eq!(rollback["triggeredBy"], "rollback");
+        assert_eq!(rollback["diffSummary"], "diff_rollback");
+        let rollback_id = rollback["id"].as_str().unwrap();
+        assert_eq!(
+            vault.get_snapshot_owner(rollback_id).unwrap().as_deref(),
+            Some(original.id.as_str())
+        );
+        let data: serde_json::Value =
+            serde_json::from_slice(&vault.get_snapshot(rollback_id).unwrap().unwrap()).unwrap();
+        assert_eq!(
+            data,
+            serde_json::json!({
+                "name": restored.name, "tags": restored.tags_json,
+                "properties": restored.properties, "propertyLabels": restored.property_labels,
+            })
+        );
+        let audit = vault.list_audit_log(100).unwrap();
+        assert_eq!(audit.len(), before_audit.len() + 1);
+        assert_eq!(audit[0].action_type, "object_rollback");
+        assert_eq!(audit[0].entity_type, "object");
+        assert_eq!(audit[0].entity_id.as_deref(), Some(original.id.as_str()));
+        assert_eq!(
+            audit[0].entity_name.as_deref(),
+            Some("Synthetic recovered name")
+        );
+        assert_eq!(audit[0].performed_by, "user");
+        let details: serde_json::Value =
+            serde_json::from_str(audit[0].details.as_deref().unwrap()).unwrap();
+        assert_eq!(
+            details,
+            serde_json::json!({"section": "identity", "snapshot": snapshot})
+        );
+        assert_eq!(
+            serde_json::to_value(&audit[1..]).unwrap(),
+            serde_json::to_value(&before_audit).unwrap()
+        );
+    }
 }
 
 #[test]

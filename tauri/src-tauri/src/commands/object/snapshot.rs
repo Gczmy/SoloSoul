@@ -49,16 +49,33 @@ pub async fn snapshot_rollback(
     object_id: String,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
+    rollback_snapshot_in_vault(&vault, &snapshot_id, &object_id)?;
+    state.auto_sync.trigger_debounce();
+    Ok(())
+}
+
+/// RF-006：回滚只接受数据库记录的同对象快照，全部校验必须先于任何写入。
+pub(super) fn rollback_snapshot_in_vault(
+    vault: &solosoul_vault::VaultStore,
+    snapshot_id: &str,
+    object_id: &str,
+) -> Result<(), String> {
+    let owner = vault
+        .get_snapshot_owner(snapshot_id)?
+        .ok_or("Snapshot not found")?;
+    if owner.is_empty() || owner != object_id {
+        return Err("Snapshot does not belong to object".to_string());
+    }
 
     // Get snapshot data
     let data = vault
-        .get_snapshot(&snapshot_id)?
+        .get_snapshot(snapshot_id)?
         .ok_or("Snapshot not found")?;
     let snapshot: serde_json::Value =
         serde_json::from_slice(&data).map_err(|e| format!("Parse: {}", e))?;
 
     // Load current object and restore from snapshot
-    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
+    let mut record = vault.load_object(object_id)?.ok_or("Object not found")?;
     if let Some(name) = snapshot["name"].as_str() {
         record.name = name.to_string();
     }
@@ -89,17 +106,17 @@ pub async fn snapshot_rollback(
     }))
     .unwrap_or_default();
     crate::commands::save_snapshot_best_effort(
-        &vault,
-        &object_id,
+        vault,
+        object_id,
         "rollback",
         &rollback_data,
         "diff_rollback",
     );
     crate::commands::log_audit_best_effort(
-        &vault,
+        vault,
         "object_rollback",
         "object",
-        Some(&object_id),
+        Some(object_id),
         Some(&record.name),
         "user",
         Some(&format!(
@@ -107,7 +124,6 @@ pub async fn snapshot_rollback(
             record.section_type, snapshot_id
         )),
     );
-    state.auto_sync.trigger_debounce();
     Ok(())
 }
 

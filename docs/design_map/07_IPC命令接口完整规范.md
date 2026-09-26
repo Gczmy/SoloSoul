@@ -352,13 +352,15 @@ pub async fn snapshot_get_data(snapshot_id: String) -> Result<serde_json::Value,
 // 获取快照的完整数据内容
 
 #[tauri::command]
-pub async fn snapshot_rollback(snapshot_id: String) -> Result<ObjectData, String>;
+pub async fn snapshot_rollback(snapshot_id: String, object_id: String) -> Result<(), String>;
 // 回滚对象到指定快照状态
 
 #[tauri::command]
 pub async fn snapshot_count_batch(object_ids: Vec<String>) -> Result<Vec<SnapshotCount>, String>;
 // 批量查询多个对象的快照数量
 ```
+
+`snapshot_rollback` 的 `object_id` 是请求目标；应用快照前必须读取数据库记录的归属，拒绝快照不存在、归属为空、归属不符及目标不存在。快照 JSON 内的 `objectId` / `object_id` 不作为归属依据。上述拒绝均发生在对象、版本、回滚快照及审计写入之前，也不触发自动同步（RF-006）。正常同对象回滚仍恢复名称、标签、属性和兼容字段标签，增加对象版本；按原有 best-effort 策略生成回滚历史和审计，成功后触发自动同步。
 
 ---
 
