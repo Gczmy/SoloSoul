@@ -85,7 +85,7 @@ impl VaultStore {
 
     /// P115 风格：事务内保存会话（连接由调用方持有，批量应用单事务内复用）。
     pub(crate) fn save_conversation_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         key: &DataEncryptionKey,
         account_id: &str,
         id: &str,
@@ -197,7 +197,7 @@ impl VaultStore {
     }
 
     /// 事务内物理删除（sync_apply 远端 tombstone 路径使用）。
-    pub(crate) fn delete_conversation_tx(conn: &mut Connection, id: &str) -> Result<(), String> {
+    pub(crate) fn delete_conversation_tx(conn: &Connection, id: &str) -> Result<(), String> {
         conn.execute("DELETE FROM llm_conversations WHERE id = ?1", params![id])
             .map_err(|e| format!("delete_conversation_tx: {e}"))?;
         Ok(())
@@ -285,7 +285,7 @@ impl VaultStore {
 
     /// 事务内应用单条会话同步记录（连接由调用方持有）。
     pub(crate) fn apply_conversation_sync_record_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         key: &DataEncryptionKey,
         record: &BorrowedSyncRecord,
     ) -> Result<bool, String> {

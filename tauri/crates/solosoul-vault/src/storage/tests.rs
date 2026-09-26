@@ -17,6 +17,247 @@ fn setup() -> (VaultStore, TempDir) {
     (vault, dir)
 }
 
+fn rf019_connection() -> Connection {
+    let conn = Connection::open_in_memory().unwrap();
+    conn.execute_batch("CREATE TABLE rf019_rows (id INTEGER PRIMARY KEY)")
+        .unwrap();
+    conn
+}
+
+fn rf019_row_count(conn: &Connection) -> i64 {
+    conn.query_row("SELECT COUNT(*) FROM rf019_rows", [], |row| row.get(0))
+        .unwrap()
+}
+
+fn rf019_assert_connection_reusable(conn: &mut Connection) {
+    with_tx(
+        conn,
+        "rf019 next begin",
+        "rf019 next commit",
+        |conn: &Connection| {
+            conn.execute("INSERT INTO rf019_rows (id) VALUES (2)", [])
+                .map_err(|e| e.to_string())?;
+            Ok(())
+        },
+    )
+    .unwrap();
+    assert!(conn.is_autocommit());
+    assert_eq!(
+        conn.query_row("SELECT COUNT(*) FROM rf019_rows WHERE id = 2", [], |row| {
+            row.get::<_, i64>(0)
+        })
+        .unwrap(),
+        1
+    );
+}
+
+#[test]
+fn rf019_with_tx_commits_cached_statement_and_returns_value() {
+    let mut conn = rf019_connection();
+    let result = with_tx(
+        &mut conn,
+        "rf019 begin",
+        "rf019 commit",
+        |conn: &Connection| {
+            let mut statement = conn
+                .prepare_cached("INSERT INTO rf019_rows (id) VALUES (?1)")
+                .map_err(|e| e.to_string())?;
+            statement.execute([1]).map_err(|e| e.to_string())?;
+            Ok("committed")
+        },
+    );
+    assert_eq!(result.unwrap(), "committed");
+    assert!(conn.is_autocommit());
+    assert_eq!(rf019_row_count(&conn), 1);
+    rf019_assert_connection_reusable(&mut conn);
+}
+
+#[test]
+fn rf019_with_tx_callback_error_rolls_back_and_preserves_error() {
+    let mut conn = rf019_connection();
+    let result = with_tx::<()>(
+        &mut conn,
+        "rf019 begin",
+        "rf019 commit",
+        |conn: &Connection| {
+            let mut statement = conn
+                .prepare_cached("INSERT INTO rf019_rows (id) VALUES (?1)")
+                .map_err(|e| e.to_string())?;
+            statement.execute([1]).map_err(|e| e.to_string())?;
+            Err("rf019 callback sentinel".to_string())
+        },
+    );
+    assert_eq!(result, Err("rf019 callback sentinel".to_string()));
+    assert!(conn.is_autocommit());
+    assert_eq!(rf019_row_count(&conn), 0);
+    rf019_assert_connection_reusable(&mut conn);
+}
+
+#[test]
+fn rf019_with_tx_deferred_fk_commit_failure_rolls_back_unlike_raw_commit() {
+    let mut conn = rf019_connection();
+    conn.execute_batch(
+        "PRAGMA foreign_keys = ON;
+         CREATE TABLE rf019_parents (id INTEGER PRIMARY KEY);
+         CREATE TABLE rf019_children (
+             id INTEGER PRIMARY KEY,
+             parent_id INTEGER NOT NULL REFERENCES rf019_parents(id)
+                 DEFERRABLE INITIALLY DEFERRED
+         );",
+    )
+    .unwrap();
+    assert_eq!(
+        conn.query_row("PRAGMA foreign_keys", [], |row| row.get::<_, i64>(0))
+            .unwrap(),
+        1
+    );
+    let child_count = |conn: &Connection| {
+        conn.query_row("SELECT COUNT(*) FROM rf019_children", [], |row| {
+            row.get::<_, i64>(0)
+        })
+        .unwrap()
+    };
+
+    // 真实 SQLite 对照：延迟外键只在 COMMIT 报错，失败后事务及未提交行仍然存在。
+    conn.execute_batch("BEGIN DEFERRED").unwrap();
+    conn.execute(
+        "INSERT INTO rf019_children (id, parent_id) VALUES (1, 42)",
+        [],
+    )
+    .unwrap();
+    let raw_error = conn.execute_batch("COMMIT").unwrap_err();
+    assert_eq!(
+        raw_error.sqlite_error_code(),
+        Some(rusqlite::ErrorCode::ConstraintViolation)
+    );
+    assert!(!conn.is_autocommit());
+    assert_eq!(child_count(&conn), 1);
+    conn.execute_batch("ROLLBACK").unwrap();
+    assert!(conn.is_autocommit());
+    assert_eq!(child_count(&conn), 0);
+
+    let callback_completed = std::cell::Cell::new(false);
+    let result = with_tx(
+        &mut conn,
+        "rf019 begin",
+        "rf019 commit",
+        |conn: &Connection| {
+            conn.execute(
+                "INSERT INTO rf019_children (id, parent_id) VALUES (1, 42)",
+                [],
+            )
+            .map_err(|e| e.to_string())?;
+            callback_completed.set(true);
+            Ok(())
+        },
+    );
+    assert!(callback_completed.get());
+    assert!(result.unwrap_err().starts_with("rf019 commit:"));
+    // 被测路径不补手工 ROLLBACK，直接检验 RAII 清理结果。
+    assert!(conn.is_autocommit());
+    assert_eq!(child_count(&conn), 0);
+    with_tx(
+        &mut conn,
+        "rf019 valid begin",
+        "rf019 valid commit",
+        |conn: &Connection| {
+            conn.execute("INSERT INTO rf019_parents (id) VALUES (42)", [])
+                .map_err(|e| e.to_string())?;
+            conn.execute(
+                "INSERT INTO rf019_children (id, parent_id) VALUES (1, 42)",
+                [],
+            )
+            .map_err(|e| e.to_string())?;
+            Ok(())
+        },
+    )
+    .unwrap();
+    assert!(conn.is_autocommit());
+    assert_eq!(child_count(&conn), 1);
+}
+
+#[test]
+fn rf019_with_tx_panic_rolls_back_and_connection_remains_reusable() {
+    let mut conn = rf019_connection();
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        with_tx::<()>(
+            &mut conn,
+            "rf019 begin",
+            "rf019 commit",
+            |conn: &Connection| {
+                conn.execute("INSERT INTO rf019_rows (id) VALUES (1)", [])
+                    .unwrap();
+                panic!("rf019 direct panic");
+            },
+        )
+    }));
+    assert_eq!(
+        result.unwrap_err().downcast_ref::<&str>(),
+        Some(&"rf019 direct panic")
+    );
+    assert!(conn.is_autocommit());
+    assert_eq!(rf019_row_count(&conn), 0);
+    rf019_assert_connection_reusable(&mut conn);
+}
+
+#[test]
+fn rf019_with_tx_begin_failure_preserves_callers_transaction() {
+    let mut conn = rf019_connection();
+    conn.execute_batch("BEGIN DEFERRED").unwrap();
+    conn.execute("INSERT INTO rf019_rows (id) VALUES (1)", [])
+        .unwrap();
+    let callback_called = std::cell::Cell::new(false);
+    let result = with_tx(
+        &mut conn,
+        "rf019 begin",
+        "rf019 commit",
+        |_conn: &Connection| {
+            callback_called.set(true);
+            Ok(())
+        },
+    );
+    assert!(result.unwrap_err().starts_with("rf019 begin:"));
+    assert!(!callback_called.get());
+    assert!(!conn.is_autocommit());
+    assert_eq!(rf019_row_count(&conn), 1);
+    // BEGIN 失败不能替调用者清理已有事务；调用者仍可自行提交。
+    conn.execute_batch("COMMIT").unwrap();
+    assert!(conn.is_autocommit());
+    assert_eq!(rf019_row_count(&conn), 1);
+    rf019_assert_connection_reusable(&mut conn);
+}
+
+#[test]
+fn rf019_with_tx_panic_poison_does_not_leave_database_transaction_active() {
+    // 保持 VaultStore 的 Mutex<Option<Connection>> 形状，单独核验数据库与锁状态。
+    let connection = Mutex::new(Some(rf019_connection()));
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let mut guard = connection.lock().unwrap();
+        let conn = guard.as_mut().unwrap();
+        with_tx::<()>(conn, "rf019 begin", "rf019 commit", |conn: &Connection| {
+            conn.execute("INSERT INTO rf019_rows (id) VALUES (1)", [])
+                .unwrap();
+            panic!("rf019 mutex panic");
+        })
+    }));
+    assert_eq!(
+        result.unwrap_err().downcast_ref::<&str>(),
+        Some(&"rf019 mutex panic")
+    );
+    assert!(connection.is_poisoned());
+    let mut guard = match connection.lock() {
+        Err(poisoned) => poisoned.into_inner(),
+        Ok(_) => panic!("rf019 expected poisoned mutex"),
+    };
+    let conn = guard.as_mut().unwrap();
+    assert!(conn.is_autocommit());
+    assert_eq!(rf019_row_count(conn), 0);
+    rf019_assert_connection_reusable(conn);
+    drop(guard);
+    // 测试只恢复访问以检查连接，不把生产 Mutex poison 策略改成自动恢复。
+    assert!(connection.is_poisoned());
+}
+
 #[test]
 fn vault_config_never_retains_key_and_lock_removes_active_key() {
     let (vault, _dir) = setup();

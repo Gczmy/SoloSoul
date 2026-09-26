@@ -442,7 +442,7 @@ impl VaultStore {
 
     /// P115: 事务内保存用户模板（连接由调用方持有，批量应用单事务内复用）。
     pub(crate) fn save_user_template_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         key: &DataEncryptionKey,
         template: &crate::UserTemplate,
     ) -> Result<(), String> {
@@ -480,7 +480,7 @@ impl VaultStore {
 
     /// P115: 事务内加载用户模板（连接由调用方持有）。
     pub(crate) fn load_user_template_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         key: &DataEncryptionKey,
         template_id: &str,
     ) -> Result<Option<crate::UserTemplate>, String> {

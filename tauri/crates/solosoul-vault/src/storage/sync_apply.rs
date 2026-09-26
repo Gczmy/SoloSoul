@@ -38,7 +38,7 @@ impl VaultStore {
         let ui_prefs_enabled = self.ui_prefs_sync_enabled();
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        // P213: 手动事务（Transaction 无 DerefMut，prepare_cached 需要 &mut Connection）。
+        // RF-019: RAII 事务内可通过 &Connection 复用 prepare_cached。
         let outcome = with_tx(
             conn,
             "apply_sync_record begin",
@@ -53,7 +53,7 @@ impl VaultStore {
     /// 与 `apply_sync_record` 的差异：不获取/持有连接，适用于批量事务循环；
     /// 返回 [`crate::SyncApplyOutcome`]，包含写前本地 HLC 供冲突报告复用。
     fn apply_sync_record_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         key: &DataEncryptionKey,
         record: &crate::BorrowedSyncRecord,
         local_node_id: &str,
@@ -108,7 +108,8 @@ impl VaultStore {
         let key = self.data_key()?;
         let ui_prefs_enabled = self.ui_prefs_sync_enabled();
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?; // P213: 手动事务（Transaction 无 DerefMut，prepare_cached 需要 &mut Connection）。
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        // RF-019: RAII 事务内可通过 &Connection 复用 prepare_cached。
         with_tx(conn, "apply batch begin", "apply batch commit", |c| {
             let mut outcomes = Vec::with_capacity(records.len());
             for record in records {
@@ -458,7 +459,7 @@ impl VaultStore {
 
     /// P115: 事务内应用单条 Profile 同步记录（连接由调用方持有）。
     fn apply_profile_sync_record_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         key: &DataEncryptionKey,
         record: &crate::BorrowedSyncRecord,
         ui_prefs_enabled: bool,
@@ -593,7 +594,7 @@ impl VaultStore {
 
     /// P115: 事务内应用单条对象同步记录（连接由调用方持有）。
     fn apply_object_sync_record_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         key: &DataEncryptionKey,
         record: &crate::BorrowedSyncRecord,
         local_node_id: &str,
@@ -621,7 +622,7 @@ impl VaultStore {
 
     /// P115: 事务内应用单条模板同步记录（连接由调用方持有）。
     fn apply_user_template_sync_record_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         key: &DataEncryptionKey,
         record: &crate::BorrowedSyncRecord,
     ) -> Result<bool, String> {
@@ -642,7 +643,7 @@ impl VaultStore {
 
     /// P115: 事务内应用单条回收站同步记录（连接由调用方持有）。
     fn apply_trash_sync_record_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         key: &DataEncryptionKey,
         record: &crate::BorrowedSyncRecord,
     ) -> Result<bool, String> {

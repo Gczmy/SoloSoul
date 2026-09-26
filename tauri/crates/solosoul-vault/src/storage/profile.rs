@@ -47,7 +47,7 @@ impl VaultStore {
     /// P115: 事务内保存 Profile（连接由调用方持有，批量应用单事务内复用）。
     /// P213: 事务内保存 Profile（连接由调用方持有，批量应用单事务内复用）。
     pub(crate) fn save_profile_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         key: &DataEncryptionKey,
         profile: &Profile,
     ) -> Result<(), String> {

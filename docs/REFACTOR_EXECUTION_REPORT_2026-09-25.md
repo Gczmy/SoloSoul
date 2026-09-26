@@ -1,6 +1,6 @@
 # SoloSoul 重构修复执行报告
 
-> 最后更新：2026-09-26（继续逐项修复）
+> 最后更新：2026-09-27（继续逐项修复）
 > 当前分支：`main`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
 > 修复轮次：第 1 轮，执行中。Cua 接入继续暂缓。
 
@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**93**（P1：32；P2：60；P3：1）。
-- 已关闭：**25 / 93**；实际修复（已关闭）：25；排除：0；待验证/阻塞：2。原计划 90 项，执行中新增 RF-900、RF-901、RF-902。
-- 当前处理：无。RF-017 已完成本地验证与独立提交收尾，下一项 RF-019；RF-014 与 RF-104 仍等待自动审批要求的明确授权。
+- 已关闭：**26 / 93**；实际修复（已关闭）：26；排除：0；待验证/阻塞：2。原计划 90 项，执行中新增 RF-900、RF-901、RF-902。
+- 当前处理：无。RF-019 已完成全部验证与独立提交收尾；下一步优先用真实临时数据验证附件孤儿清理的跨账户归属疑点，再登记单独修复。RF-014 与 RF-104 仍等待自动审批要求的明确授权。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -148,7 +148,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 20 | [RF-014](#rf-014) | P1 | 全量云快照包含全部有效附件 | 无 | [!] 阻塞：待明确授权 |
 | 21 | [RF-017](#rf-017) | P1 | 导出完成后才替换目标包 | 无 | [x] 完成 |
 | 22 | [RF-018](#rf-018) | P1 | 导入模板保存失败必须传播 | 无 | [x] 完成 |
-| 23 | [RF-019](#rf-019) | P2 | 数据库事务失败时自动回滚 | 无 | [ ] 待执行 |
+| 23 | [RF-019](#rf-019) | P2 | 数据库事务失败时自动回滚 | 无 | [x] 完成 |
 | 24 | [RF-016](#rf-016) | P1 | 永久删除附件采用可恢复清理意图 | [RF-019](#rf-019) | [ ] 待执行 |
 | 25 | [RF-020](#rf-020) | P1 | 导入失败返回真实部分提交状态 | [RF-018](#rf-018) | [x] 完成 |
 | 26 | [RF-021](#rf-021) | P1 | 对象模板与历史按导入批次事务提交 | [RF-018](#rf-018)、[RF-019](#rf-019)、[RF-020](#rf-020) | [ ] 待执行 |
@@ -1679,4 +1679,22 @@ git commit -m "<任务卡的提交标题>"
 
 - RF-003 会话回归 **8 passed / 0 failed / 0 ignored**、exit 0（队列7.30s，执行2.40s）；Clippy exit 0（315.24s）。最后 R 全量 `cargo test --verbose` exit 0（队列1,483.27s），19 组结果合计 **1,164 passed / 0 failed / 3 ignored**，含 GUI 552、core 250、vault 184。跳过项仍为既有两项 legacy field 和 P025 手动性能工具，未新增跳过；保留既有 PDB 输出重名警告。
 - 构建等待期间只读核验确认编译子进程会短暂低活动后自行运行并写入 C 盘产物，没有中断、重复启动或修改系统设置；无法据此确定启动等待原因。文档测试最终正常完成。
-- 最终结论：R、10项定向、RF-003 回归与本机 Windows 真实文件替换满足验收，canonical 规范、93项索引/任务卡及 staged diff 检查通过；锁文件无变化。仅暂存本项 6 个路径，保留 RF-104 未提交修改和原有 3 张 NSIS 图片。25已关闭、2阻塞；本项 **完成**，提交：本提交（按 RF-017 检索），未推送。
+- 最终结论：R、10项定向、RF-003 回归与本机 Windows 真实文件替换满足验收，canonical 规范、93项索引/任务卡及 staged diff 检查通过；锁文件无变化。仅暂存本项 6 个路径，保留 RF-104 未提交修改和原有 3 张 NSIS 图片。25已关闭、2阻塞；本项 **完成**，提交：`fe4e2c96`，未推送。
+
+### RF-019 执行记录（2026-09-26—27，完成）
+
+- 修复前 HEAD：`fe4e2c96`（RF-017），有效工作区仍为 C 盘恢复副本，RF-104 和原有 NSIS 图片保留。with_tx 手工 BEGIN/COMMIT/ROLLBACK，仅业务 Err 会回滚；COMMIT 失败或回调 unwind 可留下活动事务，且原 prepare_cached 需要可变连接的注释不符合所锁定 rusqlite API。
+- 实施边界：使用 rusqlite 0.32.1 的 Deferred Transaction，回调及实际所需事务 helper 改收 &Connection；保留 begin/commit 脱敏上下文、原业务错误、既有锁和提交范围。仅由成功创建的事务负责回滚，不清理调用者已有事务，不自动清除 Mutex poison，也不改变同步逐条错误收集规则。
+- 验证计划：6 项真实 SQLite 回归覆盖成功/prepare_cached、业务 Err、deferred FK 的真实 COMMIT 失败与裸 SQL 对照、直接 Connection 回调 panic、外层已有事务的 BEGIN 失败，以及持锁 panic 后保留 poison 但连接已回滚；之后完成 R/CORE/CLI。此时尚未验证或提交。
+
+- 实施完成并冻结：8 个生产文件仅调整共用 with_tx、17 个 helper 连接参数及旧注释；测试文件新增 6 项真实 SQLite 回归。保留同步批量逐条错误收集规则、既有 SQL/HLC/持锁范围，未修改 snapshots 或独立事务。主 Agent 与独立只读复核均未发现必须修复的问题，已核对所锁定 rusqlite 的默认回滚及提交失败析构路径。
+- 定向 rustfmt、git diff --check 通过；workspace fmt exit 0（1.98s）。正在顺序执行 rf019_ → Vault 全量 → Clippy → R 全量 → CLI fmt/Clippy/全量；未取得后续结果前保持进行中，不提前关闭或提交。
+
+- 定向 `cargo test -p solosoul-vault --lib rf019_` **6 passed / 0 failed / 0 ignored**，exit 0（队列181.36s）。随后 `cargo test -p solosoul-vault` **190 passed / 0 failed / 1 ignored**、exit 0（252.63s）；跳过仅既有 P025 手动性能工具，文档测试正常结束。Clippy exit 0（174.46s），队列继续 R 全量和 CLI，本项未关闭。
+- 编译等待期间只读环境核验未发现进程/用户/系统 PATH 或已知 Cargo 配置引用 D 盘；无证据据此调整环境。原队列保持不动。后续独立任务的只读预研保存在恢复日志目录 `readonly-preplans-20260927.md`，包含附件清理归属和实际附件布局与改密扫描不一致的待复现疑点，不混入 RF-019 修复。
+
+- R 全量最终 `cargo test --verbose` exit 0（队列1,556.56s），19 组结果合计 **1,170 passed / 0 failed / 3 ignored**，含 GUI 552、core 250、vault 190；既有两项 legacy field 和 P025 手动性能工具继续跳过。编译/链接等待期间的只读采样确认链接器 CPU、IO 与工作集增长，没有中断或重启原队列。
+- CLI fmt exit 0（1.58s），全目标 Clippy exit 0（171.31s），完整 `cargo test --verbose --no-fail-fast` 正在运行。验证完成前不恢复 Cargo 自动刷新的本地 crate 版本锁文件，不提前关闭本项。
+
+- CLI 完整 `cargo test --verbose --no-fail-fast` exit 0（队列471.73s，编译6m27s），176 单元（36.64s）+ 2 集成（1.18s）全部通过，合计 **178 passed / 0 failed / 1 ignored**；跳过为既有 i18n 文档示例。所有 Cargo 已退出后，核对并恢复仅自动刷新的 5 个本地 crate 版本，锁文件无剩余差异。
+- 最终结论：R/CORE/CLI、6项定向、主 Agent 与独立复核、两份 canonical 规范及台账检查满足；93项索引/任务卡一致，26已关闭、2阻塞。仅暂存本项 12 个文件，保留 RF-104 未提交修改和原有 3 张 NSIS 图片。本项 **完成**，提交：本提交（按 RF-019 检索），未推送。

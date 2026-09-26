@@ -167,15 +167,6 @@ fn map_user_template_row(
 const OBJECT_SOFT_DELETE_SQL: &str =
     "UPDATE objects SET is_deleted = 1, deleted_at = ?1, updated_at = ?1 WHERE id = ?2";
 
-/// P213: 手动事务封装——BEGIN/COMMIT/ROLLBACK 三件套。
-///
-/// rusqlite 的 [`rusqlite::Transaction`] 只实现不可变 Deref（无法获得 `&mut Connection`，
-/// 因而无法在其上使用 `prepare_cached`）。本助手改为在调用方持有的 `&mut Connection` 上
-/// 手动 BEGIN/COMMIT/ROLLBACK：回调内可直接 `prepare_cached` 复用预编译语句，
-/// 失败自动 ROLLBACK，成功 COMMIT。语义与 `conn.transaction()` 等价。
-///
-/// 注意：与 `Transaction` 不同，回调 panic 时不会自动回滚（无法在 unwind 中持有借用）。
-/// 调用方应确保回调内无 panic 操作；本库约定错误一律经 `Result` 返回，故可接受。
 /// P007: rusqlite 错误对外消息脱敏。
 ///
 /// `rusqlite::Error::SqliteFailure(_, Some(sql))` 的 Display 会把 SQL 语句文本
@@ -238,24 +229,21 @@ impl Drop for LockHoldObserver {
     }
 }
 
+/// RF-019：Deferred 事务统一入口，回调错误、提交失败和 panic 退栈均由 Transaction 回滚。
+/// `prepare_cached` 只需要 `&Connection`，可直接经 Transaction 的 Deref 复用缓存。
+/// 业务错误原样返回；事务回滚与调用方的 Mutex 中毒处理相互独立。
 fn with_tx<T>(
     conn: &mut Connection,
     begin_err: &'static str,
     commit_err: &'static str,
-    f: impl FnOnce(&mut Connection) -> Result<T, String>,
+    f: impl FnOnce(&Connection) -> Result<T, String>,
 ) -> Result<T, String> {
-    conn.execute_batch("BEGIN")
+    let tx = conn
+        .transaction_with_behavior(rusqlite::TransactionBehavior::Deferred)
         .map_err(|e| sql_err(begin_err, e))?;
-    let result = f(conn);
-    match &result {
-        Ok(_) => conn
-            .execute_batch("COMMIT")
-            .map_err(|e| sql_err(commit_err, e))?,
-        Err(_) => {
-            let _ = conn.execute_batch("ROLLBACK");
-        }
-    }
-    result
+    let result = f(&tx)?;
+    tx.commit().map_err(|e| sql_err(commit_err, e))?;
+    Ok(result)
 }
 
 /// 动态字段组内部键。对象属性中以该键存动态字段组数据数组，

@@ -66,7 +66,7 @@ impl VaultStore {
             .collect::<Result<Vec<_>, _>>()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        // P213: 手动事务（Transaction 无 DerefMut，prepare_cached 需要 &mut Connection）。
+        // RF-019: RAII 事务内可通过 &Connection 复用 prepare_cached。
         with_tx(
             conn,
             "Failed to begin transaction",
@@ -100,7 +100,7 @@ impl VaultStore {
 
     /// P115: 事务内保存回收站条目（连接由调用方持有，批量应用单事务内复用）。
     pub(crate) fn save_trash_item_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         key: &DataEncryptionKey,
         item: &TrashItem,
     ) -> Result<(), String> {

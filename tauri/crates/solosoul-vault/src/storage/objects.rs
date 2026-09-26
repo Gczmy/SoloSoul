@@ -404,7 +404,7 @@ impl VaultStore {
             .collect::<Result<Vec<_>, _>>()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        // P213: 手动事务（Transaction 无 DerefMut，prepare_cached 需要 &mut Connection）。
+        // RF-019: RAII 事务内可通过 &Connection 复用 prepare_cached。
         with_tx(
             conn,
             "Failed to begin transaction",
@@ -423,7 +423,7 @@ impl VaultStore {
     /// P024: 一次性加载全部模板 id→name 映射（批量保存路径复用，消除
     /// 逐对象 `SELECT name FROM user_templates` 的 N 次查询）。
     fn load_template_name_map(
-        conn: &mut Connection,
+        conn: &Connection,
     ) -> Option<std::collections::HashMap<String, String>> {
         let mut stmt = conn.prepare("SELECT id, name FROM user_templates").ok()?;
         let rows = stmt
@@ -439,7 +439,7 @@ impl VaultStore {
     /// P024: `template_names` 为可选预加载映射——`Some` 时直接查表（批量路径），
     /// `None` 时回退逐对象查询（单条保存与同步应用路径，行为不变）。
     pub(crate) fn save_object_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         key: &DataEncryptionKey,
         obj: &ObjectRecord,
         template_names: Option<&std::collections::HashMap<String, String>>,
@@ -537,7 +537,7 @@ impl VaultStore {
 
     /// P115: 事务内加载对象（连接由调用方持有，批量应用单事务内复用）。
     pub(crate) fn load_object_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         key: &DataEncryptionKey,
         id: &str,
     ) -> Result<Option<ObjectRecord>, String> {

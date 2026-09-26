@@ -21,6 +21,8 @@
 - `data_key()`（`storage.rs:729`）持有**独立** Mutex 且克隆密钥（`DataEncryptionKey`）——
   「锁外解密」无需触碰 conn 锁，前提成立。
 
+**RF-019 补充**：共用 `with_tx` 已采用 Deferred RAII 事务，失败或 unwind 时由事务守卫尝试回滚；事务仍完整处于原连接锁内。回滚不清除外层 Mutex poison，也不改变本方案的锁外解密范围，详见 [文档 06 §2.1](06_数据库与服务层.md#21-sqlite-连接管理)。
+
 ### 1.2 解密确在持锁闭包内
 
 N 行读取路径全部采用 `query_map` + 行映射器，AES-GCM 解密与 JSON 解析发生在**查询迭代

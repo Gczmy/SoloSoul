@@ -41,7 +41,7 @@ impl VaultStore {
 
     /// P115: 事务内 HLC 查询（连接由调用方持有，批量应用单事务内复用）。
     pub(crate) fn get_record_hlc_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         table: &str,
         record_id: &str,
     ) -> Result<Option<crate::RecordHlc>, String> {
@@ -73,7 +73,7 @@ impl VaultStore {
 
     /// P115: 事务内 HLC 写入（连接由调用方持有）。
     pub(crate) fn set_record_hlc_tx(
-        conn: &mut Connection,
+        conn: &Connection,
         table: &str,
         record_id: &str,
         hlc: &crate::RecordHlc,
