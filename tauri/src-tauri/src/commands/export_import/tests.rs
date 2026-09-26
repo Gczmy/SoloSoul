@@ -9,6 +9,7 @@ use solosoul_vault::{
 use std::sync::Arc;
 use tempfile::TempDir;
 
+mod rf017;
 mod rf018;
 pub(crate) mod rf020;
 

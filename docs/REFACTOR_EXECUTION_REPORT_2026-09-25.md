@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**93**（P1：32；P2：60；P3：1）。
-- 已关闭：**24 / 93**；实际修复（已关闭）：24；排除：0；待验证/阻塞：1。原计划 90 项，执行中新增 RF-900、RF-901、RF-902。
-- 当前处理：无。RF-012 已完成，随本项独立提交；下一项 RF-014。RF-104 保留未提交改动，等待聊天 Hook 写入的明确授权。
+- 已关闭：**25 / 93**；实际修复（已关闭）：25；排除：0；待验证/阻塞：2。原计划 90 项，执行中新增 RF-900、RF-901、RF-902。
+- 当前处理：无。RF-017 已完成本地验证与独立提交收尾，下一项 RF-019；RF-014 与 RF-104 仍等待自动审批要求的明确授权。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -145,8 +145,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 17 | [RF-009](#rf-009) | P1 | 修复 CLI 创建对象缺失模板元数据 | 无 | [x] 完成 |
 | 18 | [RF-011](#rf-011) | P1 | CLI 恢复兼容 GUI Base64 Profile 备份 | 无 | [x] 完成 |
 | 19 | [RF-012](#rf-012) | P1 | GUI 备份遇到 Profile 读取失败时中止 | 无 | [x] 完成 |
-| 20 | [RF-014](#rf-014) | P1 | 全量云快照包含全部有效附件 | 无 | [ ] 待执行 |
-| 21 | [RF-017](#rf-017) | P1 | 导出完成后才替换目标包 | 无 | [ ] 待执行 |
+| 20 | [RF-014](#rf-014) | P1 | 全量云快照包含全部有效附件 | 无 | [!] 阻塞：待明确授权 |
+| 21 | [RF-017](#rf-017) | P1 | 导出完成后才替换目标包 | 无 | [x] 完成 |
 | 22 | [RF-018](#rf-018) | P1 | 导入模板保存失败必须传播 | 无 | [x] 完成 |
 | 23 | [RF-019](#rf-019) | P2 | 数据库事务失败时自动回滚 | 无 | [ ] 待执行 |
 | 24 | [RF-016](#rf-016) | P1 | 永久删除附件采用可恢复清理意图 | [RF-019](#rf-019) | [ ] 待执行 |
@@ -1652,4 +1652,31 @@ git commit -m "<任务卡的提交标题>"
 - 实施与独立复审：生产命令保留原服务读锁和 Vault，新增 worker 对读取错误、枚举后消失分别报错，收集/序列化完成后才建目录写文件。4 项定向回归覆盖 6 个场景，均使用真实临时 Vault；已有同名同秒文件及无关备份逐字节保持。已更新 IPC 备份契约，并纠正规范中将 Profile JSON/Base64 备份描述为加密全库备份的旧表述。
 - 工作区 fmt exit 0；源码冻结，正运行定向 → Clippy → R 全量。此时尚未取得测试结果，不提前关闭或提交。
 - 最终验证：workspace fmt exit 0（4.57s）；`cargo test -p solo_soul --lib rf012_` **4 passed / 0 failed / 0 ignored**、exit 0（队列244.76s，执行0.21s）；Clippy exit 0（36.80s）。R 全量 `cargo test --verbose` exit 0（555.72s），19 组结果合计 **1,154 passed / 0 failed / 3 ignored**，含 GUI 542、core 250、vault 184。3 个跳过仍为两项 legacy field 和 P025 手动性能工具；未新增跳过，保留既有 lib/bin PDB 输出重名警告。
-- 最终结论：任务卡 R、定向回归、独立复审、两份 canonical 规范与台账检查满足；锁文件无差异。只暂存备份生产/测试、IPC 的 RF-012 段落、导出规范备份表及执行台账共 4 文件，保留 RF-104 与 3 张 NSIS 图片。93项索引/任务卡一致，24已关闭、1阻塞。本项 **完成**，提交：本提交（按 RF-012 检索），未推送。
+- 最终结论：任务卡 R、定向回归、独立复审、两份 canonical 规范与台账检查满足；锁文件无差异。只暂存备份生产/测试、IPC 的 RF-012 段落、导出规范备份表及执行台账共 4 文件，保留 RF-104 与 3 张 NSIS 图片。93项索引/任务卡一致，24已关闭、1阻塞。本项 **完成**，提交：`b76ee6cb`，未推送。
+
+### RF-014 执行记录（2026-09-26，阻塞）
+
+- 修复前 HEAD：`b76ee6cb`（RF-012），有效工作区 C 盘恢复副本。云 export_full_snapshot 设置 include_attachments=true，但传入空 selected_attachment_ids；共用导出器只导出显式 ID，因此云快照缺少附件字节。
+- 实施边界：复用恢复包的未删除附件枚举逻辑，将小助手参数固定为 VaultStore/account_id；云入口从捕获会话取得原 Vault/账户，短时校验后在门闩外枚举，再交给 execute_export_for_session。手动空 ID 仍为零附件，不改包格式、大小/路径校验或密码规则，不进入 RF-015 ExportPlan 重构。
+- 验证计划：真实云导出入口与独立临时 Vault 导入往返，覆盖 SOLC 密文及旧明文附件字节、删除对象/附件排除、手动空选择、账户切换及同账户重新解锁、空库；之后完成 R/CORE 和 RF-003 会话回归。只使用本地测试包，不连接实际云端。
+- 阻塞：自动审批在 CreateProcess 执行前拒绝生产写入，认为全量附件改变自动上传范围，而当前缺少对数据范围与已配置云端目的地的具体授权。生产/测试均未落盘、未运行 Cargo、未触发云同步；已停止重试并请求明确确认。规范草案补丁已保存在恢复日志目录 `rf014-documentation-proposal.patch`，两份 canonical 文档恢复到已提交内容，避免误标已实现。
+- 本项不计入已关闭，继续无依赖的 RF-017。
+
+### RF-017 执行记录（2026-09-26，完成）
+
+- 修复前 HEAD：`b76ee6cb`（RF-012），有效工作区 C 盘恢复副本。Host 导出在附件校验、加密、ZIP 收尾前直接 File::create 最终路径，任一后续失败均可能截断原有效导出包。
+- 边界：同目录随机临时输出，保持流式 ZIP/加密；finish、flush、sync_all 并关闭句柄后，在原会话短时校验内以平台支持的替换发布，错误由 RAII 清理临时文件。成功审计仍在发布之后。移动端只覆盖本地 staging，不宣称后续 SAF 复制原子性；CLI 独立导出迁移留 RF-023。
+- 验证计划：真实临时 Vault 的导出成功可读/可解密；附件/总量超限、附件解密失败保留已有目标；可失败 Writer/文件操作覆盖写入、ZIP finish、flush/sync、发布失败；Windows 真实已有文件替换与禁止删除共享的占用失败；旧会话拒绝发布且不记成功审计，失败无临时残留。完成后运行 R 和本机 Windows 文件系统原生验证。
+- 已实施并冻结：生产写入同目录随机临时文件；共用 finish helper 依次完成 ZIP、flush、sync_all 并关闭 writer，生产 finalize 在 with_session 内 persist 后记录 best-effort 审计。复用锁定的 tempfile 3.27.0，未新增依赖；Windows 实现为 MoveFileExW(REPLACE_EXISTING)，无删除目标 fallback。
+- 新增 9 项 rf017_ 回归：5 项真实导出/导入/会话/Windows 流程，以及 4 项故障测试覆盖正文写入、ZIP finish 写入/seek、flush/sync 和实际 persist 失败。失败核对目标字节、输出目录和成功审计；只用合成临时数据。运行环境 Windows NT 10.0.26100 x64，测试产物位于 C 盘系统临时目录。
+- workspace fmt exit 0（4.76s），正在顺序执行定向 → RF-003 会话回归 → Clippy → R 全量，源码冻结；尚未取得测试结果，不提前关闭。
+- 首次定向编译 exit 101（104.54s，0 tests）：测试包装 FailingFile 未实现 zip 2.4.2 的 set_flush_on_finish_file 所需 Read trait。队列已停止，未执行后续检查。仅补透明 Read 转发，生产逻辑不变；保留首次失败日志，修正后重新冻结并重跑验证。
+- 第二次定向 exit 101（189.36s，执行1.30s）：**8 passed / 1 failed / 0 ignored**。失败保留了有价值的真实依赖问题：zip 2.4.2 更新局部头时 write 返回错误，finish 按值退栈触发 Drop 重试，游标已回到头部，导致内部 debug_assert panic。成功往返、超限、SOLC、Windows占用/释放和会话失效场景已通过，但本项仍未关闭。
+- 修复仅在 `zip.finish()` 外增加窄 catch_unwind，固定错误文案；writer 被消费并先关闭，TempPath 保留外层 RAII，不能发布。保留持续 Write/Seek 故障注入不降级，不修改 panic hook，也不将会话门闩包入 catch。项目 release 已为 panic=unwind；本项不声称能处理 abort/双 panic。重新冻结后完整重跑，保留两次失败日志。
+- 扩展复审确认 start_file 收尾前一条目也存在同类依赖清理 panic；同项增加局部 write_export_output，在捕获范围内创建并拥有 writer，成功才转交 finish helper。附件收集与总量检查提前到临时输出创建之前，KDF 和会话发布保持范围之外。
+- 新增第二条目开始时的持续 Write 故障回归，正文写入测试也改用真实写包 worker；原 finish 故障点未改变。现在共 **10 项 rf017_**，主 Agent 与独立复审通过。第三次 fmt exit 0（2.16s），源码冻结，正在重新运行全部定向、会话及 R 检查。
+- 第三次定向：`cargo test -p solo_soul --lib rf017_` **10 passed / 0 failed / 0 ignored**、exit 0（队列371.46s，执行1.29s）。原持续故障与新增条目切换故障全部通过；Windows占用拒绝/释放后替换、真实独立 Vault 解密导入、会话失效拒绝、旧文件及目录清理证据齐备。故障测试有预期 ZipWriter drop failed stderr，属于合成 Write/Seek 故障，退出码为 0；未屏蔽错误输出。队列继续 RF-003/Clippy/R，尚未关闭。
+
+- RF-003 会话回归 **8 passed / 0 failed / 0 ignored**、exit 0（队列7.30s，执行2.40s）；Clippy exit 0（315.24s）。最后 R 全量 `cargo test --verbose` exit 0（队列1,483.27s），19 组结果合计 **1,164 passed / 0 failed / 3 ignored**，含 GUI 552、core 250、vault 184。跳过项仍为既有两项 legacy field 和 P025 手动性能工具，未新增跳过；保留既有 PDB 输出重名警告。
+- 构建等待期间只读核验确认编译子进程会短暂低活动后自行运行并写入 C 盘产物，没有中断、重复启动或修改系统设置；无法据此确定启动等待原因。文档测试最终正常完成。
+- 最终结论：R、10项定向、RF-003 回归与本机 Windows 真实文件替换满足验收，canonical 规范、93项索引/任务卡及 staged diff 检查通过；锁文件无变化。仅暂存本项 6 个路径，保留 RF-104 未提交修改和原有 3 张 NSIS 图片。25已关闭、2阻塞；本项 **完成**，提交：本提交（按 RF-017 检索），未推送。

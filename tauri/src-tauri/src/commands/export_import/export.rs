@@ -601,11 +601,6 @@ pub(crate) fn execute_export_for_session(
     let salt = solosoul_crypto::kdf::generate_salt();
     let key = derive_export_key(&req.password, &salt)?;
 
-    // ── Build ZIP ──────────────────────────────────────────────
-    let file = File::create(zip_path).map_err(|e| format!("Create ZIP: {e}"))?;
-    let mut zip = ZipWriter::new(file);
-    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
-
     // ── P1: Attachments ────────────────────────────────────────
     let (attachment_entries, total_attachment_bytes) = if req.scope.include_attachments {
         collect_attachment_entries(svc, &records, &req.scope)?
@@ -621,65 +616,83 @@ pub(crate) fn execute_export_for_session(
         return Err(export_err("TOTAL_SIZE_EXCEEDED"));
     }
 
-    // P001: 导出附件需 vault 附件密钥（源文件可能加密落盘，先解密再加密进包）。
-    // P012: 附件加密进包统一走 core 唯一实现（含 vault 密文先解密再加密）。
-    let has_attachments = solosoul_core::export_import::write_attachment_entries(
-        &mut zip,
-        options,
-        &key,
-        &salt,
-        &attachment_entries,
-        Some(&vault_att_key),
-    )
-    .map_err(|e| e.to_string())?;
+    // ── Build ZIP ──────────────────────────────────────────────
+    let (file, output) = create_export_output(std::path::Path::new(zip_path))?;
+    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+    let zip = write_export_output(file, |zip| {
+        // P001: 导出附件需 vault 附件密钥（源文件可能加密落盘，先解密再加密进包）。
+        // P012: 附件加密进包统一走 core 唯一实现（含 vault 密文先解密再加密）。
+        let has_attachments = solosoul_core::export_import::write_attachment_entries(
+            zip,
+            options,
+            &key,
+            &salt,
+            &attachment_entries,
+            Some(&vault_att_key),
+        )
+        .map_err(|e| e.to_string())?;
 
-    // ── P2: Preferences + Behavioral data（audit log）──
-    let (extra_files, preferences_encrypted, behavioral_encrypted) = write_scope_extra_files(
-        vault, &mut zip, options, &key, &salt, account_id, &req.scope,
-    )?;
+        // ── P2: Preferences + Behavioral data（audit log）──
+        let (extra_files, preferences_encrypted, behavioral_encrypted) =
+            write_scope_extra_files(vault, zip, options, &key, &salt, account_id, &req.scope)?;
 
-    // ── manifest.json (plaintext) ─────────────────────────────
-    let has_templates = !templates.is_empty();
-    let manifest = build_manifest_json(
-        &req.scope,
-        records.len(),
-        has_attachments,
-        preferences_encrypted,
-        behavioral_encrypted,
-        has_templates,
-        &extra_files,
-        &req.password_hint,
-        &salt,
-    );
-    write_manifest_and_payload(
-        &mut zip,
-        options,
-        &manifest,
-        payload_tmp.path(),
-        payload_size,
-        &key,
-    )?;
-
-    zip.finish().map_err(|e| format!("ZIP finish: {e}"))?;
-
-    svc.with_session(session, |vault| {
-        crate::commands::log_audit_best_effort(
-            vault,
-            "export_execute",
-            "export",
-            None,
-            None,
-            "user",
-            Some(&format!(
-                "exported {} objects to {}",
-                records.len(),
-                zip_path
-            )),
+        // ── manifest.json (plaintext) ─────────────────────────────
+        let has_templates = !templates.is_empty();
+        let manifest = build_manifest_json(
+            &req.scope,
+            records.len(),
+            has_attachments,
+            preferences_encrypted,
+            behavioral_encrypted,
+            has_templates,
+            &extra_files,
+            &req.password_hint,
+            &salt,
         );
+        write_manifest_and_payload(
+            zip,
+            options,
+            &manifest,
+            payload_tmp.path(),
+            payload_size,
+            &key,
+        )?;
         Ok(())
     })?;
 
-    Ok(())
+    finalize_export_for_session(svc, session, zip, output, zip_path, records.len())
+}
+
+/// RF-017：收尾 IO 不持会话门闩，只有最终替换与成功审计在原会话内发布。
+pub(super) fn finalize_export_for_session(
+    svc: &solosoul_core::VaultService,
+    session: &solosoul_core::VaultSession,
+    zip: ZipWriter<File>,
+    output: tempfile::TempPath,
+    zip_path: &str,
+    object_count: usize,
+) -> Result<(), String> {
+    finish_export_output(zip, output, File::sync_all, |output| {
+        svc.with_session(session, |vault| {
+            // persist 在同卷替换目标，失败保留原目标并由错误中的 TempPath 清理源文件。
+            output
+                .persist(zip_path)
+                .map_err(|e| format!("Publish ZIP: {}", e.error))?;
+            crate::commands::log_audit_best_effort(
+                vault,
+                "export_execute",
+                "export",
+                None,
+                None,
+                "user",
+                Some(&format!(
+                    "exported {} objects to {}",
+                    object_count, zip_path
+                )),
+            );
+            Ok(())
+        })
+    })
 }
 
 /// 写入 P2 可选数据（preferences / behavioral audit log）。返回 (extra_files, preferences_encrypted, behavioral_encrypted)。

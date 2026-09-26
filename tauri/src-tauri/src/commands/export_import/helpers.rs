@@ -2,6 +2,60 @@ use super::*;
 
 // ── Internal helpers ──────────────────────────────────────────
 
+/// RF-017：输出临时文件与最终目标同目录，保证发布不跨文件系统。
+pub(crate) fn create_export_output(
+    target: &std::path::Path,
+) -> Result<(File, tempfile::TempPath), String> {
+    let parent = target
+        .parent()
+        .filter(|path| !path.as_os_str().is_empty())
+        .unwrap_or_else(|| std::path::Path::new("."));
+    tempfile::Builder::new()
+        .prefix(".solosoul-export-")
+        .suffix(".tmp")
+        .tempfile_in(parent)
+        .map(|file| file.into_parts())
+        .map_err(|e| format!("Create ZIP temporary file: {e}"))
+}
+
+/// RF-017：只隔离 ZIP 写入及失败析构；TempPath 由调用者持有，收集/KDF/发布不进入此范围。
+pub(crate) fn write_export_output<W: Write + std::io::Seek>(
+    file: W,
+    write: impl FnOnce(&mut ZipWriter<W>) -> Result<(), String>,
+) -> Result<ZipWriter<W>, String> {
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(
+        move || -> Result<ZipWriter<W>, String> {
+            let mut zip = ZipWriter::new(file);
+            // start_file 会先收尾前一条目；写局部头失败后 Drop 重试也可能触发 zip 2.4 断言。
+            write(&mut zip)?;
+            Ok(zip)
+        },
+    ))
+    .map_err(|_| "Write ZIP: writer cleanup failed".to_string())?
+}
+
+/// RF-017：ZIP 完成、刷新、同步并关闭句柄后才能发布。
+/// 独立作用域确保任一收尾错误先释放 writer，再由 TempPath 清理临时文件（含 Windows）。
+pub(crate) fn finish_export_output<W: Write + std::io::Seek>(
+    zip: ZipWriter<W>,
+    output: tempfile::TempPath,
+    sync: impl FnOnce(&W) -> std::io::Result<()>,
+    publish: impl FnOnce(tempfile::TempPath) -> Result<(), String>,
+) -> Result<(), String> {
+    // zip 2.4 的局部头写入失败后，Drop 重试收尾可能因游标位置触发断言。
+    // 这里只消费 writer 并隔离该清理 panic；TempPath 留在外层，退栈关闭文件后再清理。
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(move || zip.finish()))
+        .map_err(|_| "ZIP finish: writer cleanup failed".to_string())?
+        .map_err(|e| format!("ZIP finish: {e}"))
+        .and_then(|mut file| {
+            file.flush().map_err(|e| format!("Flush ZIP: {e}"))?;
+            sync(&file).map_err(|e| format!("Sync ZIP: {e}"))?;
+            drop(file);
+            Ok(())
+        })?;
+    publish(output)
+}
+
 pub struct ManifestData {
     pub salt_hex: String,
     pub has_attachments: bool,
@@ -293,4 +347,259 @@ pub fn read_file_from_zip(file_path: &str, name: &str) -> Result<Vec<u8>, String
         .map_err(|e| format!("Read {}: {}", name, e))?;
 
     Ok(buf)
+}
+
+#[cfg(test)]
+mod rf017_output_tests {
+    use super::*;
+    use std::cell::Cell;
+    use std::io::{self, Seek, SeekFrom};
+    use std::path::PathBuf;
+    use std::rc::Rc;
+
+    const OLD_BYTES: &[u8] = b"synthetic existing export must survive";
+
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum Fault {
+        None,
+        Write,
+        Seek,
+        Flush,
+        Sync,
+    }
+
+    struct FailingFile {
+        file: File,
+        fault: Rc<Cell<Fault>>,
+        closed: Rc<Cell<bool>>,
+    }
+
+    impl Read for FailingFile {
+        fn read(&mut self, bytes: &mut [u8]) -> io::Result<usize> {
+            self.file.read(bytes)
+        }
+    }
+
+    impl Write for FailingFile {
+        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+            if self.fault.get() == Fault::Write {
+                return Err(io::Error::other("rf017 synthetic write failure"));
+            }
+            self.file.write(bytes)
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+            if self.fault.get() == Fault::Flush {
+                return Err(io::Error::other("rf017 synthetic flush failure"));
+            }
+            self.file.flush()
+        }
+    }
+
+    impl Seek for FailingFile {
+        fn seek(&mut self, position: SeekFrom) -> io::Result<u64> {
+            if self.fault.get() == Fault::Seek {
+                return Err(io::Error::other("rf017 synthetic seek failure"));
+            }
+            self.file.seek(position)
+        }
+    }
+
+    impl Drop for FailingFile {
+        fn drop(&mut self) {
+            self.closed.set(true);
+        }
+    }
+
+    struct OutputFixture {
+        directory: tempfile::TempDir,
+        target: PathBuf,
+        fault: Rc<Cell<Fault>>,
+        closed: Rc<Cell<bool>>,
+    }
+
+    impl OutputFixture {
+        fn new() -> Self {
+            let directory = tempfile::tempdir().unwrap();
+            let target = directory.path().join("synthetic-existing.solosoul");
+            std::fs::write(&target, OLD_BYTES).unwrap();
+            Self {
+                directory,
+                target,
+                fault: Rc::new(Cell::new(Fault::None)),
+                closed: Rc::new(Cell::new(false)),
+            }
+        }
+
+        fn output(&self) -> (FailingFile, tempfile::TempPath) {
+            let (file, output) = create_export_output(&self.target).unwrap();
+            assert_eq!(output.parent(), self.target.parent());
+            (
+                FailingFile {
+                    file,
+                    fault: self.fault.clone(),
+                    closed: self.closed.clone(),
+                },
+                output,
+            )
+        }
+
+        fn zip(&self) -> (ZipWriter<FailingFile>, tempfile::TempPath) {
+            let (file, output) = self.output();
+            let mut zip = ZipWriter::new(file);
+            // Stored + 显式禁用逐条刷新，让 Flush 故障准确发生在 finish 后的生产刷新阶段。
+            zip.set_flush_on_finish_file(false);
+            zip.start_file(
+                "synthetic.txt",
+                SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored),
+            )
+            .unwrap();
+            zip.write_all(b"synthetic replacement content").unwrap();
+            (zip, output)
+        }
+
+        fn assert_preserved(&self) {
+            assert!(self.closed.get(), "临时文件句柄必须先释放");
+            assert_eq!(std::fs::read(&self.target).unwrap(), OLD_BYTES);
+            let paths: Vec<_> = std::fs::read_dir(self.directory.path())
+                .unwrap()
+                .map(|entry| entry.unwrap().path())
+                .collect();
+            assert_eq!(paths, vec![self.target.clone()], "失败后不残留临时输出");
+        }
+    }
+
+    #[test]
+    fn rf017_zip_body_write_failure_preserves_target() {
+        fn write_body(fixture: &OutputFixture) -> Result<(), String> {
+            let (file, output) = fixture.output();
+            let zip = write_export_output(file, |zip| {
+                zip.start_file(
+                    "synthetic.txt",
+                    SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored),
+                )
+                .map_err(|e| format!("Write ZIP: {e}"))?;
+                zip.write_all(b"synthetic replacement content")
+                    .map_err(|e| format!("Write ZIP: {e}"))?;
+                fixture.fault.set(Fault::Write);
+                zip.write_all(b"synthetic additional body")
+                    .map_err(|e| format!("Write ZIP: {e}"))
+            })?;
+            finish_export_output(
+                zip,
+                output,
+                |_| panic!("正文写入失败后不能同步"),
+                |_| panic!("正文写入失败后不能发布"),
+            )
+        }
+
+        let fixture = OutputFixture::new();
+        let error = write_body(&fixture).unwrap_err();
+        assert!(error.starts_with("Write ZIP:"), "{error}");
+        fixture.assert_preserved();
+    }
+
+    #[test]
+    fn rf017_next_entry_close_failure_preserves_target() {
+        fn write_next_entry(fixture: &OutputFixture) -> Result<(), String> {
+            let (file, output) = fixture.output();
+            let zip = write_export_output(file, |zip| {
+                let options =
+                    SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
+                zip.start_file("first.txt", options)
+                    .map_err(|e| format!("Write ZIP: {e}"))?;
+                zip.write_all(b"synthetic first entry content")
+                    .map_err(|e| format!("Write ZIP: {e}"))?;
+                // 持续 Write 故障不降级：开始下一条目时收尾前条目，头写入失败后 Drop 再次收尾。
+                fixture.fault.set(Fault::Write);
+                zip.start_file("second.txt", options)
+                    .map_err(|e| format!("Write ZIP: {e}"))
+            })?;
+            finish_export_output(
+                zip,
+                output,
+                |_| panic!("切换条目失败后不能同步"),
+                |_| panic!("切换条目失败后不能发布"),
+            )
+        }
+
+        let fixture = OutputFixture::new();
+        let error = write_next_entry(&fixture).unwrap_err();
+        assert!(error.starts_with("Write ZIP:"), "{error}");
+        fixture.assert_preserved();
+    }
+
+    #[test]
+    fn rf017_zip_finish_write_and_seek_failures_preserve_target() {
+        for fault in [Fault::Write, Fault::Seek] {
+            let fixture = OutputFixture::new();
+            let (zip, output) = fixture.zip();
+            // 已写入真实 ZIP 内容后才启用故障，实际执行 ZipWriter::finish 的写入/seek。
+            fixture.fault.set(fault);
+            let error = finish_export_output(
+                zip,
+                output,
+                |_| panic!("ZIP finish 失败后不能同步"),
+                |_| panic!("ZIP finish 失败后不能发布"),
+            )
+            .unwrap_err();
+            assert!(error.starts_with("ZIP finish:"), "{error}");
+            fixture.assert_preserved();
+        }
+    }
+
+    #[test]
+    fn rf017_flush_and_sync_failures_preserve_target() {
+        for fault in [Fault::Flush, Fault::Sync] {
+            let fixture = OutputFixture::new();
+            let (zip, output) = fixture.zip();
+            fixture.fault.set(fault);
+            let synced = Cell::new(false);
+            let error = finish_export_output(
+                zip,
+                output,
+                |_| {
+                    synced.set(true);
+                    Err(io::Error::other("rf017 synthetic sync failure"))
+                },
+                |_| panic!("刷新/同步失败后不能发布"),
+            )
+            .unwrap_err();
+            let stage = if fault == Fault::Flush {
+                "Flush ZIP:"
+            } else {
+                "Sync ZIP:"
+            };
+            assert!(error.starts_with(stage), "{error}");
+            assert_eq!(synced.get(), fault == Fault::Sync);
+            fixture.assert_preserved();
+        }
+    }
+
+    #[test]
+    fn rf017_persist_failure_preserves_destination_and_cleans_output() {
+        let directory = tempfile::tempdir().unwrap();
+        // 真实 persist 错误：最终目标是含合成文件的目录，不能被 ZIP 文件替换。
+        let target = directory.path().join("synthetic-existing.solosoul");
+        std::fs::create_dir(&target).unwrap();
+        let sentinel = target.join("keep.txt");
+        std::fs::write(&sentinel, OLD_BYTES).unwrap();
+        let (file, output) = create_export_output(&target).unwrap();
+        let temporary_path = output.to_path_buf();
+        let mut zip = ZipWriter::new(file);
+        zip.start_file("synthetic.txt", SimpleFileOptions::default())
+            .unwrap();
+        zip.write_all(b"synthetic replacement content").unwrap();
+        let error = finish_export_output(zip, output, File::sync_all, |output| {
+            output
+                .persist(&target)
+                .map_err(|e| format!("Publish ZIP: {}", e.error))
+        })
+        .unwrap_err();
+        assert!(error.starts_with("Publish ZIP:"), "{error}");
+        assert_eq!(std::fs::read(&sentinel).unwrap(), OLD_BYTES);
+        assert!(!temporary_path.exists());
+        assert_eq!(std::fs::read_dir(directory.path()).unwrap().count(), 1);
+        assert_eq!(std::fs::read_dir(&target).unwrap().count(), 1);
+    }
 }
