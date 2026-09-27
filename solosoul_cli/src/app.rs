@@ -1,5 +1,6 @@
 //! 全局状态机与 App 状态。
 
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -21,6 +22,7 @@ use crate::commands::plugin::PluginSummary;
 use crate::commands::search::SearchResultItem;
 use crate::i18n::I18n;
 use crate::t;
+use crate::tasks::{TaskEvent, TaskEventKind, TaskId, TaskOutput, Tasks};
 use crate::widgets::command_input::CommandInput;
 use crate::widgets::command_palette::{CommandPalette, PaletteAction};
 use crate::widgets::field_editor::{self, EditableField};
@@ -376,6 +378,9 @@ pub struct App {
     pub chat_state: Option<crate::screens::llm_chat::LlmChatState>,
     /// 插件运行结果等待句柄（后台线程写入，主线程 tick 轮询）。
     pub plugin_run_pending: Option<std::sync::Arc<std::sync::Mutex<Option<PluginRunMessage>>>>,
+    /// RF211：后台只发送事件，受管任务的状态由主循环发布。
+    pub(crate) tasks: Tasks,
+    pub(crate) task_progress: HashMap<TaskId, (u64, Option<u64>)>,
     pub process_lock: Option<ProcessLock>,
     pub command_input: CommandInput,
     pub password_input: PasswordInput,
@@ -450,6 +455,8 @@ impl App {
         Ok(Self {
             phase,
             previous_phase: None,
+            tasks: Tasks::new(Arc::clone(&vault_service)),
+            task_progress: HashMap::new(),
             vault_service,
             process_lock,
             command_input: CommandInput::new(),
@@ -495,6 +502,8 @@ impl App {
     fn enter_home(&mut self, account_id: impl AsRef<str>) {
         let account_id = account_id.as_ref().to_string();
         self.account_name = self.lookup_account_name(&account_id);
+        // 登录前开始的旧插件目录消息也不能覆盖新会话。
+        self.plugin_run_pending = None;
         self.selected_shortcut = 0;
         self.phase = AppPhase::Home { account_id };
     }
@@ -767,16 +776,29 @@ impl App {
 
     /// 处理事件，返回 true 表示应退出事件循环。
     pub fn handle_event(&mut self, event: crate::events::Event) -> Result<bool> {
+        self.handle_event_at(event, Instant::now())
+    }
+
+    /// 生产循环提供单调时钟；测试可推进同一入口而不等待墙钟。
+    pub(crate) fn handle_event_at(
+        &mut self,
+        event: crate::events::Event,
+        now: Instant,
+    ) -> Result<bool> {
         match event {
             crate::events::Event::Key(key) => {
-                self.last_activity = Instant::now();
+                self.last_activity = now;
                 self.handle_key(key)
             }
             crate::events::Event::Mouse(mouse) => {
-                self.last_activity = Instant::now();
+                self.last_activity = now;
                 self.handle_mouse(mouse)
             }
-            crate::events::Event::Tick => self.handle_tick(),
+            crate::events::Event::Tick => self.handle_tick_at(now),
+            crate::events::Event::Task(event) => {
+                self.apply_task_event(event);
+                Ok(false)
+            }
         }
     }
 
@@ -787,15 +809,76 @@ impl App {
         self.prompt = None;
         self.previous_phase = None;
         self.chat_state = None;
+        // 旧插件线程尚未迁移至任务事件；撤销其结果槽，锁定后不能回填正文。
+        self.plugin_run_pending = None;
+        self.tasks.cancel_all();
+        self.task_progress.clear();
     }
 
-    fn handle_tick(&mut self) -> Result<bool> {
+    /// 每轮有界消费，进度/完成不算用户活动；会话变化先释放旧进度。
+    pub(crate) fn drain_task_events(&mut self, limit: usize) -> Result<()> {
+        for id in self.tasks.cancel_stale() {
+            self.task_progress.remove(&id);
+        }
+        for event in self.tasks.poll_events(limit) {
+            self.handle_event(crate::events::Event::Task(event))?;
+        }
+        Ok(())
+    }
+
+    fn apply_task_event(&mut self, event: TaskEvent) {
+        let id = event.identity.task_id;
+        let Self {
+            tasks,
+            task_progress,
+            info_message,
+            error_message,
+            ..
+        } = self;
+        // apply_event 在原 VaultSession 门闩内发布；闭包只更新 UI，不重入 Vault。
+        let applied = tasks.apply_event(event, |kind| match kind {
+            TaskEventKind::Progress { current, total } => {
+                task_progress.insert(id, (current, total));
+            }
+            TaskEventKind::Completed(TaskOutput::Message(message)) => {
+                task_progress.remove(&id);
+                *info_message = Some(message);
+            }
+            TaskEventKind::Failed(error) => {
+                task_progress.remove(&id);
+                *error_message = Some(error);
+            }
+            TaskEventKind::Cancelled => {
+                task_progress.remove(&id);
+            }
+        });
+        if !applied && !tasks.is_current(id) {
+            task_progress.remove(&id);
+        }
+    }
+
+    /// 只在循环退出/失败后等待所有受管任务；正常事件处理不等待业务 Future。
+    pub(crate) fn shutdown_tasks(&mut self) -> Result<()> {
+        self.tasks.cancel_all();
+        self.task_progress.clear();
+        self.plugin_run_pending = None;
+        let report = crate::util::shared_runtime()?.block_on(self.tasks.shutdown());
+        if report.panicked > 0 {
+            tracing::warn!(
+                count = report.panicked,
+                "CLI task panic observed during shutdown"
+            );
+        }
+        Ok(())
+    }
+
+    fn handle_tick_at(&mut self, now: Instant) -> Result<bool> {
         // 自动锁定检测（模态提示期间暂停）
         if self.auto_lock_paused {
-            self.last_activity = Instant::now();
+            self.last_activity = now;
         }
         if self.vault_service.is_unlocked() {
-            let idle = Instant::now().duration_since(self.last_activity);
+            let idle = now.saturating_duration_since(self.last_activity);
             if idle >= self.auto_lock_duration {
                 self.vault_service.lock();
                 self.clear_sensitive_state();
@@ -812,7 +895,7 @@ impl App {
 
         // 设置成功 toast 过期清理（5 秒后让位给后续消息）。
         if let Some((_, ts)) = self.success_message {
-            if ts.elapsed() > Duration::from_secs(5) {
+            if now.saturating_duration_since(ts) > Duration::from_secs(5) {
                 self.success_message = None;
             }
         }
@@ -861,7 +944,9 @@ impl App {
 
         // 模态提示优先消费事件
         if self.prompt.is_some() {
-            return Ok(prompt::handle_key(self, key));
+            // 提示框返回的是「已消费」，不是「退出」；只有确认后的 Quit 才结束循环。
+            prompt::handle_key(self, key);
+            return Ok(matches!(self.phase, AppPhase::Quit));
         }
 
         // 根据当前阶段分发（借用匹配，仅克隆小字段，避免每次按键深拷贝整个 AppPhase 的大列表）
@@ -3966,3 +4051,6 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod rf211_tests;

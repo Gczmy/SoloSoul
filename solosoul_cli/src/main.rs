@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use clap::Parser;
 use color_eyre::Result;
 use solosoul_cli::cli::Cli;
-use solosoul_cli::tui::{restore_terminal, Tui};
+use solosoul_cli::tui::{install_panic_hook, Tui};
 use solosoul_core::VaultService;
 use tracing_appender::non_blocking::WorkerGuard;
 
@@ -28,11 +28,8 @@ fn main() -> Result<()> {
     }
     let vault_service = VaultService::new();
 
-    // panic 时恢复终端。
-    std::panic::set_hook(Box::new(|info| {
-        let _ = restore_terminal();
-        eprintln!("Panic: {}", info);
-    }));
+    // 只有 TUI 线程异常才恢复终端；受管 worker 的异常由任务事件反馈。
+    install_panic_hook();
 
     // 进入全屏 TUI。
     let mut tui = Tui::new(vault_service)?;

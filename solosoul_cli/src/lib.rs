@@ -15,6 +15,7 @@ pub mod commands;
 pub mod events;
 pub mod i18n;
 pub mod screens;
+pub mod tasks;
 pub mod theme;
 pub mod tui;
 pub mod util;

@@ -14,6 +14,8 @@ pub enum Event {
     Mouse(MouseEvent),
     /// 定时 tick，用于空闲检测与自动锁定
     Tick,
+    /// RF211：携带原账户/会话代次的受管任务事件。
+    Task(crate::tasks::TaskEvent),
 }
 
 /// 在指定超时时间内轮询事件。
