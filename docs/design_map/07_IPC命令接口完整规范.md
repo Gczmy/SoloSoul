@@ -447,6 +447,8 @@ async fn llm_send_message_stream(
 
 ## 12. OCR 模块
 
+**桌面 PDFium 互斥契约（RF-907）**：OCR的PDF文本提取、栅格化和PDF水印处理共用进程内的PDFium排他guard。原生文档、页面、文本、字体和位图须在guard释放前结束使用及析构；guard在同步操作内部取得，不跨异步等待或递归获取。库仍只初始化一次，业务错误退出释放guard，锁损坏仍明确返回错误。此项只约束原生调用并发，不改变PDF页序、页数上限、识别结果或临时页面清理策略。
+
 ```rust
 #[tauri::command]
 pub async fn ocr_scan_image(file_path: String) -> Result<OcrResult, String>;

@@ -88,6 +88,13 @@ jobs:
           cd tauri
           cargo check -p solosoul-core --features future-keychain
 
+      - name: Prepare PDFium for Rust tests
+        working-directory: tauri
+        run: |
+          bash scripts/download-pdfium.sh
+          test -s src-tauri/resources/pdfium/libpdfium.dylib
+          echo "PDFIUM_LIBRARY_PATH=$PWD/src-tauri/resources/pdfium/libpdfium.dylib" >> "$GITHUB_ENV"
+
       - name: Run Rust Tests
         run: |
           cd tauri

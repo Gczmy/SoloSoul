@@ -3,8 +3,9 @@
 //! 供 OCR、PDF 水印等需要 PDFium 的功能复用。
 
 use pdfium_render::prelude::*;
+use std::ops::Deref;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard};
 
 static PDFIUM: Mutex<Option<&'static Pdfium>> = Mutex::new(None);
 
@@ -86,17 +87,37 @@ fn store_pdfium(pdfium: Pdfium) -> &'static Pdfium {
     leaked
 }
 
-/// 初始化 PDFium 绑定。
+/// 一次 PDFium 原生操作的独占访问权。
+///
+/// PDFium 的原生 API 不支持并发调用，锁必须覆盖文档、页面、文本、位图等对象
+/// 的使用和析构。调用方应在同步作用域内先取得 guard，再创建这些原生对象；
+/// 不得在持有 guard 时再次初始化，也不得跨越 await 保留 guard。
+pub struct PdfiumGuard {
+    guard: MutexGuard<'static, Option<&'static Pdfium>>,
+}
+
+impl Deref for PdfiumGuard {
+    type Target = Pdfium;
+
+    fn deref(&self) -> &Self::Target {
+        // 仅 init_pdfium 能构造 guard，且返回前已经完成初始化。
+        self.guard
+            .as_ref()
+            .expect("PDFium guard must be initialized")
+    }
+}
+
+/// 初始化 PDFium 绑定并取得本次操作的独占访问权。
 ///
 /// 优先加载打包的动态库；未找到时尝试绑定系统库。
-/// 同一进程内仅初始化一次，后续调用返回同一实例的静态引用。
-pub fn init_pdfium() -> Result<&'static Pdfium, String> {
+/// 同一进程内仅初始化一次，后续调用复用同一实例并等待前一次操作释放 guard。
+pub fn init_pdfium() -> Result<PdfiumGuard, String> {
     let mut guard = PDFIUM.lock().map_err(|_| "PDFium 锁被污染".to_string())?;
-    if let Some(pdfium) = *guard {
-        return Ok(pdfium);
+    if guard.is_none() {
+        *guard = Some(store_pdfium(do_init_pdfium()?));
     }
-    let pdfium = do_init_pdfium()?;
-    let leaked = store_pdfium(pdfium);
-    *guard = Some(leaked);
-    Ok(leaked)
+    Ok(PdfiumGuard { guard })
 }
+
+#[cfg(test)]
+mod rf907_tests;
