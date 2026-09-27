@@ -1,4 +1,4 @@
-// Theme system utilities (per 09_跨平台材质系统与视觉规范 §4.3)
+// Theme system utilities (per 10_跨平台视觉规范与主题系统 §4.3)
 // Applies accent colors and theme mode by setting CSS custom properties
 // on <html>, driving light/dark via [data-theme] selectors.
 
@@ -40,14 +40,8 @@ function hexToRgb(hex: string): [number, number, number] | null {
 
 /** Sync the native window background color with the active scheme so the
  *  system title bar (traffic lights area) matches the app theme. */
-async function syncTitleBarColor(config: ThemeConfig) {
+async function syncTitleBarColor(schemeId: string) {
   try {
-    const schemeId = resolveActiveScheme(
-      config.preset,
-      config.defaultLightTheme || 'warm-stone',
-      config.defaultDarkTheme || 'warm-stone-dark',
-      config.resolvedSystemTheme,
-    );
     const scheme = getSchemeById(schemeId);
     const bg = scheme?.variables['--bg-base'] || '#1c1c1e';
     const rgb = hexToRgb(bg) || [28, 28, 30];
@@ -106,45 +100,32 @@ export async function getSystemTheme(): Promise<'light' | 'dark'> {
 export async function applyTheme(config: ThemeConfig) {
   const root = document.documentElement;
 
-  // When preset is 'system', resolve to actual light/dark so all compound
-  // [data-theme] CSS selectors (e.g. [data-theme='dark'][data-accent='ocean'])
-  // match correctly. Relying on @media (prefers-color-scheme) for
-  // [data-theme='system'] leaves gaps for accent colors and other overrides.
-  if (config.preset === 'warm-stone-light') {
-    root.setAttribute('data-theme', 'light');
-  } else if (config.preset === 'warm-stone-dark') {
-    root.setAttribute('data-theme', 'dark');
-  } else {
-    // preset === 'system' — resolve to actual OS mode
-    // Use backend-provided resolvedSystemTheme if available (more reliable on macOS),
-    // otherwise fall back to window.matchMedia.
-    const resolved = config.resolvedSystemTheme ?? (await getSystemTheme());
-    root.setAttribute('data-theme', resolved === 'dark' ? 'dark' : 'light');
-  }
-
-  // Apply accent color
-  applyAccentColor(
-    config.accentColor as AccentPreset,
-    (config as { customAccentHex?: string }).customAccentHex,
-  );
-
-  // Apply active scheme variables
+  // 一次解析后由 DOM、色板和原生栏共用，避免 IPC 与 WebView 主题不一致。
+  const resolvedMode =
+    config.preset === 'system'
+      ? (config.resolvedSystemTheme ?? (await getSystemTheme()))
+      : config.preset === 'warm-stone-dark'
+        ? 'dark'
+        : 'light';
   const activeScheme = resolveActiveScheme(
     config.preset,
     config.defaultLightTheme || 'warm-stone',
     config.defaultDarkTheme || 'warm-stone-dark',
-    config.resolvedSystemTheme,
+    resolvedMode,
   );
+  const accent = config.accentColor;
+
+  root.setAttribute('data-theme', resolvedMode);
+  applyAccentColor(accent, config.customAccentHex);
   applyScheme(activeScheme);
-  if (isAndroidSync()) applyAndroidMaterial(config.accentColor as AccentPreset);
+  if (isAndroidSync()) applyAndroidMaterial(accent);
   else applyAccentTextColors();
 
   // Sync native title bar background with the active theme (desktop only)
-  void syncTitleBarColor(config);
+  void syncTitleBarColor(activeScheme);
 
   // Sync Android status/navigation bar icon color with the active theme
-  const resolvedTheme = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-  void syncStatusBarStyle(resolvedTheme);
+  void syncStatusBarStyle(resolvedMode);
 }
 
 /** Listen for system theme changes (4.3.5) via Tauri Event from Rust backend.

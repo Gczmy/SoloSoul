@@ -3,7 +3,12 @@ import { readFileSync } from 'node:fs';
 import { getSchemeById } from '../src/lib/themeSchemes';
 import { login } from './fixtures/auth';
 
-async function mockTheme(page: Page, schemeId: string, material = 'mica') {
+async function mockTheme(
+  page: Page,
+  schemeId: string,
+  material = 'mica',
+  systemMode?: 'light' | 'dark',
+) {
   const scheme = getSchemeById(schemeId)!;
   await page.addInitScript({
     content:
@@ -12,7 +17,7 @@ async function mockTheme(page: Page, schemeId: string, material = 'mica') {
     window.__MOCK_PLATFORM__ = 'windows';
     localStorage.setItem('i18nextLng', 'en-US');
     const prefs = ${JSON.stringify({
-      theme: scheme.mode,
+      theme: systemMode ? 'system' : scheme.mode,
       defaultLightTheme: scheme.mode === 'light' ? schemeId : 'warm-stone',
       defaultDarkTheme: scheme.mode === 'dark' ? schemeId : 'warm-stone-dark',
       startupThemes: {
@@ -33,8 +38,14 @@ async function mockTheme(page: Page, schemeId: string, material = 'mica') {
         return { material: '${material}', platform: 'windows', reduceMotion: false, highContrast: false };
       },
     };
+    const systemMode = ${JSON.stringify(systemMode ?? null)};
     const originalInvoke = window.__TAURI_INTERNALS__.invoke;
     window.__TAURI_INTERNALS__.invoke = async (cmd, args) => {
+      // 通用 fixture 对该命令固定返回 light，因此在外层模拟原生系统结果。
+      if (cmd === 'get_system_theme' && systemMode !== null) return systemMode;
+      if (cmd === 'set_status_bar_style') {
+        document.documentElement.dataset.statusBarStyle = args.payload.style;
+      }
       const result = await originalInvoke(cmd, args);
       if (cmd === 'ui_get_preferences' || cmd === 'user_data_get_preferences') Object.assign(result, prefs);
       return result;
@@ -68,6 +79,42 @@ async function expectThemeBackground(page: Page, schemeId: string, transparent: 
     expect(Math.abs(actual[index] - component)).toBeLessThanOrEqual(1),
   );
   expect(actual[3]).toBe(255);
+}
+
+// 只验证浏览器 CSS 与模拟 IPC 参数一致，不代表真实 Windows/Android 材质验收。
+for (const { systemMode, mediaMode, schemeId } of [
+  { systemMode: 'dark', mediaMode: 'light', schemeId: 'deep-ocean' },
+  { systemMode: 'light', mediaMode: 'dark', schemeId: 'soft-cream' },
+] as const) {
+  test(`system 主题在模拟 IPC=${systemMode}、媒体查询=${mediaMode} 时保持一致`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: mediaMode });
+    await mockTheme(page, schemeId, 'mica', systemMode);
+    await page.goto('/login');
+    await expect(page.locator('#startup-screen')).toHaveCount(0);
+    expect(
+      await page.evaluate(() => window.matchMedia('(prefers-color-scheme: dark)').matches),
+    ).toBe(mediaMode === 'dark');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', systemMode);
+    await expect
+      .poll(() =>
+        page
+          .locator('html')
+          .evaluate((root) => getComputedStyle(root).getPropertyValue('--bg-base').trim()),
+      )
+      .toBe(getSchemeById(schemeId)!.variables['--bg-base']);
+    await expect(page.locator('html')).toHaveAttribute('data-native-material', 'mica');
+    await expectThemeBackground(page, schemeId, true);
+    await expect(page.locator('html')).toHaveAttribute('data-status-bar-style', systemMode);
+    await expect(page.locator('[class*="loginWrapper"]')).toHaveCSS(
+      'background-color',
+      'rgba(0, 0, 0, 0)',
+    );
+    const card = page.locator('[data-login-card]');
+    await expect(card).toBeVisible();
+    await expect(card).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  });
 }
 
 for (const scheme of ['warm-stone-dark', 'deep-ocean', 'forest-night', 'soft-cream']) {
