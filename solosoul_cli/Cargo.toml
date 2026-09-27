@@ -65,7 +65,9 @@ rand = "0.8"
 fluent-bundle = "0.15"
 unic-langid = "0.9"
 
-[dev-dependencies]
+# RF212：复用既有 tempfile 依赖，用于模型下载暂存及不覆盖发布。
 tempfile = "3.14.0"
+
+[dev-dependencies]
 # RF008: 仅合成 Vault 回归通过真实 SQLite 触发器注入失败。
 rusqlite = "0.32.1"

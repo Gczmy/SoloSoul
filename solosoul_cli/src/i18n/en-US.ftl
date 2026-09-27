@@ -657,3 +657,16 @@ cmd-export-password-complexity = Export password must contain both letters and d
 cmd-account-not-found-generic = Current account not found
 cmd-export-password-same-as-master = Export password cannot be the same as the master password
 cmd-verify-master-failed = Failed to verify master password: {$err}
+
+### RF212 background model downloads
+cmd-embed-invalid-id = Model ID must be a valid single directory name, without a path or device name.
+cmd-embed-in-progress = Model {$model} is in progress. Wait for completion or cancellation cleanup.
+cmd-embed-cancel-usage = Usage: /embed_model cancel <model_id>
+cmd-embed-no-download = No active download for model {$model}.
+cmd-embed-finishing = Model {$model} is committing or already finished. Waiting for its result.
+cmd-embed-cancelled = Download cancelled for model {$model}.
+embed-model-downloading = Downloading
+embed-model-cancelling = Cancelling
+embed-model-local = Local
+embed-model-cancel-hint = Cancel a download: /embed_model cancel <id>
+status-embed-downloads = Downloads: {$count}

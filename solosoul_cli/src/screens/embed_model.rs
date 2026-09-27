@@ -16,13 +16,28 @@ pub struct EmbedModelEntry {
     pub source: String,
 }
 
-pub fn render(frame: &mut Frame, area: Rect, models: &[EmbedModelEntry], info: &str, i18n: &I18n) {
+#[derive(Debug, Clone)]
+pub struct EmbedDownloadView {
+    pub model_id: String,
+    pub current: u64,
+    pub total: Option<u64>,
+    pub cancelling: bool,
+}
+
+pub fn render(
+    frame: &mut Frame,
+    area: Rect,
+    models: &[EmbedModelEntry],
+    info: &str,
+    downloads: &[EmbedDownloadView],
+    i18n: &I18n,
+) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Length(3),
             Constraint::Min(0),
-            Constraint::Length(2),
+            Constraint::Length(3),
         ])
         .split(area);
 
@@ -40,7 +55,7 @@ pub fn render(frame: &mut Frame, area: Rect, models: &[EmbedModelEntry], info: &
     .block(Block::default().borders(Borders::ALL));
     frame.render_widget(header, chunks[0]);
 
-    if models.is_empty() {
+    if models.is_empty() && downloads.is_empty() {
         let empty = Paragraph::new(Line::from(vec![
             Span::styled(
                 t!(i18n, "embed-model-not-installed"),
@@ -57,7 +72,7 @@ pub fn render(frame: &mut Frame, area: Rect, models: &[EmbedModelEntry], info: &
         );
         frame.render_widget(empty, chunks[1]);
     } else {
-        let items: Vec<ListItem> = models
+        let mut items: Vec<ListItem> = models
             .iter()
             .map(|m| {
                 let line = Line::from(vec![
@@ -73,6 +88,27 @@ pub fn render(frame: &mut Frame, area: Rect, models: &[EmbedModelEntry], info: &
                 ListItem::new(line)
             })
             .collect();
+        for download in downloads {
+            let progress = match download.total {
+                Some(total) => format!("{} / {} B", download.current, total),
+                None => format!("{} B", download.current),
+            };
+            let state = if download.cancelling {
+                t!(i18n, "embed-model-cancelling")
+            } else {
+                t!(i18n, "embed-model-downloading")
+            };
+            items.push(ListItem::new(Line::from(vec![
+                Span::styled(
+                    &download.model_id,
+                    Style::default().add_modifier(Modifier::BOLD),
+                ),
+                Span::raw("  "),
+                Span::styled(state, Style::default().fg(Color::Yellow)),
+                Span::raw("  "),
+                Span::styled(progress, Style::default().fg(Color::Magenta)),
+            ])));
+        }
         let list = List::new(items).block(
             Block::default()
                 .borders(Borders::ALL)
@@ -81,19 +117,22 @@ pub fn render(frame: &mut Frame, area: Rect, models: &[EmbedModelEntry], info: &
         frame.render_widget(list, chunks[1]);
     }
 
-    let hint = Paragraph::new(Line::from(vec![
-        Span::styled(
-            t!(i18n, "ocr-hint-prefix"),
-            Style::default().fg(Color::Cyan),
-        ),
-        Span::raw(": "),
-        Span::raw(t!(i18n, "embed-model-registry-hint")),
-        Span::raw(" "),
-        Span::styled(
-            "SOLOSOUL_EMBED_REGISTRY",
-            Style::default().fg(Color::Yellow),
-        ),
-        Span::raw("。"),
-    ]));
+    let hint = Paragraph::new(vec![
+        Line::from(vec![
+            Span::styled(
+                t!(i18n, "ocr-hint-prefix"),
+                Style::default().fg(Color::Cyan),
+            ),
+            Span::raw(": "),
+            Span::raw(t!(i18n, "embed-model-registry-hint")),
+            Span::raw(" "),
+            Span::styled(
+                "SOLOSOUL_EMBED_REGISTRY",
+                Style::default().fg(Color::Yellow),
+            ),
+            Span::raw("。"),
+        ]),
+        Line::from(t!(i18n, "embed-model-cancel-hint")),
+    ]);
     frame.render_widget(hint, chunks[2]);
 }

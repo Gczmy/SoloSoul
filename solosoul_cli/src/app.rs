@@ -381,6 +381,7 @@ pub struct App {
     /// RF211：后台只发送事件，受管任务的状态由主循环发布。
     pub(crate) tasks: Tasks,
     pub(crate) task_progress: HashMap<TaskId, (u64, Option<u64>)>,
+    pub(crate) embed_downloads: HashMap<String, commands::embed_model::EmbedDownload>,
     pub process_lock: Option<ProcessLock>,
     pub command_input: CommandInput,
     pub password_input: PasswordInput,
@@ -457,6 +458,7 @@ impl App {
             previous_phase: None,
             tasks: Tasks::new(Arc::clone(&vault_service)),
             task_progress: HashMap::new(),
+            embed_downloads: HashMap::new(),
             vault_service,
             process_lock,
             command_input: CommandInput::new(),
@@ -813,12 +815,14 @@ impl App {
         self.plugin_run_pending = None;
         self.tasks.cancel_all();
         self.task_progress.clear();
+        self.embed_downloads.clear();
     }
 
     /// 每轮有界消费，进度/完成不算用户活动；会话变化先释放旧进度。
     pub(crate) fn drain_task_events(&mut self, limit: usize) -> Result<()> {
         for id in self.tasks.cancel_stale() {
             self.task_progress.remove(&id);
+            self.embed_downloads.retain(|_, task| task.task_id != id);
         }
         for event in self.tasks.poll_events(limit) {
             self.handle_event(crate::events::Event::Task(event))?;
@@ -828,14 +832,24 @@ impl App {
 
     fn apply_task_event(&mut self, event: TaskEvent) {
         let id = event.identity.task_id;
+        // 仅由精确 TaskId 查找当前下载，旧任务不能移除同模型的新占位。
+        let model = self
+            .embed_downloads
+            .iter()
+            .find(|(_, download)| download.task_id == id)
+            .map(|(model, _)| model.clone());
         let Self {
             tasks,
             task_progress,
+            embed_downloads,
             info_message,
             error_message,
+            success_message,
+            phase,
+            previous_phase,
+            i18n,
             ..
         } = self;
-        // apply_event 在原 VaultSession 门闩内发布；闭包只更新 UI，不重入 Vault。
         let applied = tasks.apply_event(event, |kind| match kind {
             TaskEventKind::Progress { current, total } => {
                 task_progress.insert(id, (current, total));
@@ -844,16 +858,49 @@ impl App {
                 task_progress.remove(&id);
                 *info_message = Some(message);
             }
+            TaskEventKind::Completed(TaskOutput::EmbedModelInstalled { model_id, bytes }) => {
+                task_progress.remove(&id);
+                if model.as_deref() == Some(model_id.as_str()) {
+                    embed_downloads.remove(&model_id);
+                    *success_message = Some((
+                        t!(i18n, "cmd-embed-installed", model = &model_id),
+                        Instant::now(),
+                    ));
+                    // 同步当前与返回缓存中的列表；完成不能抢回焦点，也不能让 /back 恢复旧空列表。
+                    for page in std::iter::once(phase).chain(previous_phase.iter_mut()) {
+                        if let AppPhase::EmbedModelList { models, .. } = page {
+                            models.retain(|entry| entry.id != model_id);
+                            models.push(crate::screens::embed_model::EmbedModelEntry {
+                                id: model_id.clone(),
+                                installed: true,
+                                size_mb: bytes as f32 / 1024.0 / 1024.0,
+                                source: t!(i18n, "embed-model-local"),
+                            });
+                            models.sort_by(|left, right| left.id.cmp(&right.id));
+                        }
+                    }
+                }
+            }
             TaskEventKind::Failed(error) => {
                 task_progress.remove(&id);
-                *error_message = Some(error);
+                if let Some(model) = model.as_deref() {
+                    embed_downloads.remove(model);
+                    *error_message = Some(t!(i18n, "cmd-embed-install-failed", err = error));
+                } else {
+                    *error_message = Some(error);
+                }
             }
             TaskEventKind::Cancelled => {
                 task_progress.remove(&id);
+                if let Some(model) = model.as_deref() {
+                    embed_downloads.remove(model);
+                    *info_message = Some(t!(i18n, "cmd-embed-cancelled", model = model));
+                }
             }
         });
         if !applied && !tasks.is_current(id) {
             task_progress.remove(&id);
+            embed_downloads.retain(|_, task| task.task_id != id);
         }
     }
 
@@ -861,6 +908,7 @@ impl App {
     pub(crate) fn shutdown_tasks(&mut self) -> Result<()> {
         self.tasks.cancel_all();
         self.task_progress.clear();
+        self.embed_downloads.clear();
         self.plugin_run_pending = None;
         let report = crate::util::shared_runtime()?.block_on(self.tasks.shutdown());
         if report.panicked > 0 {
@@ -3174,9 +3222,14 @@ impl App {
                 )
             }
 
-            AppPhase::EmbedModelList { models, info } => {
-                crate::screens::embed_model::render(frame, area, models, info, &self.i18n)
-            }
+            AppPhase::EmbedModelList { models, info } => crate::screens::embed_model::render(
+                frame,
+                area,
+                models,
+                info,
+                &commands::embed_model::download_views(self),
+                &self.i18n,
+            ),
 
             _ => {}
         }

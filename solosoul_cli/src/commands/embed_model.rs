@@ -1,61 +1,46 @@
-//! /embed_model 本地 Embedding 模型管理命令。
+//! /embed_model 本地模型列表与受管下载命令。
 //!
-//! CLI 直接管理本地 embedding 模型目录 `{base_path}/embed_models/<id>/`，
-//! 通过 reqwest 从 SoloSoul 模型注册表拉取清单，sha256 校验后写入磁盘。
-//! 激活的 `local_embed_model_id` 仍由 GUI 设置（LlmConfig），CLI 当前不修改。
-//!
-//! 子命令：
-//! - `/embed_model list` —— 列出本地目录中的模型
-//! - `/embed_model install <id>` —— 下载并安装
-//! - `/embed_model remove <id>` —— 删除本地模型目录
-//! - `/embed_model status` —— 显示本地目录（不读 LLM config）
-//! - `/embed_model help` —— 帮助
+//! CLI 保持原始二进制 model.bin 格式；GUI 的激活模型与安装格式由 GUI 管理。
 
-use crate::app::App;
+use crate::app::{App, AppPhase};
+use crate::screens::embed_model::EmbedDownloadView;
 use crate::t;
+use crate::tasks::TaskId;
 use color_eyre::Result;
-use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::time::Instant;
 
+mod download;
+
 const DEFAULT_REGISTRY_URL: &str = "https://models.solosoul.dev/embed-registry.json";
+
+/// 模型占位保留到真实终态；取消请求本身不能让同模型重复启动。
+#[derive(Debug, Clone)]
+pub(crate) struct EmbedDownload {
+    pub task_id: TaskId,
+    pub cancelling: bool,
+}
 
 pub fn handle(app: &mut App, argv: &[&str]) -> Result<()> {
     let sub = argv.first().copied().unwrap_or("status");
     match sub {
-        "list" => {
-            list(app);
-            Ok(())
-        }
-        "install" => {
-            install(app, argv.get(1).copied().unwrap_or(""));
-            Ok(())
-        }
-        "remove" => {
-            remove(app, argv.get(1).copied().unwrap_or(""));
-            Ok(())
-        }
-        "status" => {
-            status(app);
-            Ok(())
-        }
-        "help" | "--help" | "-h" => {
-            print_help();
-            Ok(())
-        }
-        other => {
-            app.error_message = Some(t!(app.i18n, "cmd-unknown-subcommand", cmd = other));
-            Ok(())
-        }
+        "list" => list(app),
+        "install" => install(app, argv.get(1).copied().unwrap_or("")),
+        "cancel" => cancel(app, argv.get(1).copied().unwrap_or("")),
+        "remove" => remove(app, argv.get(1).copied().unwrap_or("")),
+        "status" => status(app),
+        "help" | "--help" | "-h" => print_help(),
+        other => app.error_message = Some(t!(app.i18n, "cmd-unknown-subcommand", cmd = other)),
     }
+    Ok(())
 }
 
-/// 帮助文本，供 `/embed_model help` 显示。
 pub fn help_text() -> Vec<&'static str> {
     vec![
         "用法: /embed_model <subcommand> [args]",
-        "  list                       列出本地已安装/可用模型",
-        "  install <model_id>         从注册表下载并安装指定模型",
+        "  list                       列出本地模型和下载进度",
+        "  install <model_id>         在后台下载并安装指定模型",
+        "  cancel <model_id>          取消尚未提交的下载",
         "  remove <model_id>          删除本地 embedding 模型目录",
         "  status                     显示当前本地目录情况",
         "  help                       显示本帮助",
@@ -68,7 +53,6 @@ fn print_help() {
     }
 }
 
-/// CLI 用户使用的 embedding 模型本地目录：`{base_path}/embed_models`。
 pub fn install_dir(app: &App) -> PathBuf {
     app.vault_service.base_path().join("embed_models")
 }
@@ -76,89 +60,90 @@ pub fn install_dir(app: &App) -> PathBuf {
 fn list(app: &mut App) {
     let dir = install_dir(app);
     let entries = scan_local_models(&dir);
-    app.previous_phase = Some(app.phase.clone());
-    app.phase = crate::app::AppPhase::EmbedModelList {
+    if !matches!(app.phase, AppPhase::EmbedModelList { .. }) {
+        app.previous_phase = Some(app.phase.clone());
+    }
+    app.phase = AppPhase::EmbedModelList {
         models: entries,
         info: format!("本地目录: {}", dir.display()),
     };
 }
 
 fn status(app: &mut App) {
-    let dir = install_dir(app);
-    let entries = scan_local_models(&dir);
-    app.previous_phase = Some(app.phase.clone());
-    app.phase = crate::app::AppPhase::EmbedModelList {
-        models: entries,
-        info: format!(
-            "本地目录: {}；激活模型请在 GUI 设置，CLI 不直接读写 LlmConfig.active_embed_model_id。",
-            dir.display()
-        ),
-    };
+    list(app);
+    if let AppPhase::EmbedModelList { info, .. } = &mut app.phase {
+        info.push_str("；CLI 管理 model.bin，GUI 模型安装与激活由 GUI 设置。");
+    }
 }
 
-fn scan_local_models(dir: &PathBuf) -> Vec<crate::screens::embed_model::EmbedModelEntry> {
+fn scan_local_models(dir: &std::path::Path) -> Vec<crate::screens::embed_model::EmbedModelEntry> {
     let mut entries = Vec::new();
-    if !dir.exists() {
-        return entries;
-    }
     if let Ok(read) = std::fs::read_dir(dir) {
-        for e in read.flatten() {
-            let path = e.path();
-            if !path.is_dir() {
+        for entry in read.flatten() {
+            let Some(id) = entry.file_name().to_str().map(str::to_owned) else {
                 continue;
+            };
+            if let Some(bytes) = download::installed_size(dir, &id) {
+                entries.push(crate::screens::embed_model::EmbedModelEntry {
+                    id,
+                    installed: true,
+                    size_mb: bytes as f32 / 1024.0 / 1024.0,
+                    source: "本地".to_string(),
+                });
             }
-            entries.push(crate::screens::embed_model::EmbedModelEntry {
-                id: e.file_name().to_string_lossy().to_string(),
-                installed: true,
-                size_mb: dir_size(&path) as f32 / 1024.0 / 1024.0,
-                source: "本地".to_string(),
-            });
         }
     }
+    entries.sort_by(|left, right| left.id.cmp(&right.id));
     entries
 }
 
-fn dir_size(path: &PathBuf) -> u64 {
-    let mut total = 0u64;
-    if let Ok(read) = std::fs::read_dir(path) {
-        for entry in read.flatten() {
-            let p = entry.path();
-            if p.is_file() {
-                total += entry.metadata().map(|m| m.len()).unwrap_or(0);
-            } else if p.is_dir() {
-                total += dir_size(&p);
+pub(crate) fn download_views(app: &App) -> Vec<EmbedDownloadView> {
+    let mut downloads: Vec<_> = app
+        .embed_downloads
+        .iter()
+        .map(|(id, task)| {
+            let (current, total) = app
+                .task_progress
+                .get(&task.task_id)
+                .copied()
+                .unwrap_or((0, None));
+            EmbedDownloadView {
+                model_id: id.clone(),
+                current,
+                total,
+                cancelling: task.cancelling,
             }
-        }
-    }
-    total
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct RegistryEntry {
-    id: String,
-    name: String,
-    size_mb: f32,
-    #[serde(default)]
-    description: String,
-    sha256: String,
-    download_url: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct RegistryFile {
-    #[serde(default)]
-    models: Vec<RegistryEntry>,
+        })
+        .collect();
+    downloads.sort_by(|left, right| left.model_id.cmp(&right.model_id));
+    downloads
 }
 
 fn install(app: &mut App, model_id: &str) {
-    if model_id.is_empty() {
-        app.error_message = Some(t!(app.i18n, "cmd-embed-usage"));
+    if !download::valid_model_id(model_id) {
+        app.error_message = Some(t!(app.i18n, "cmd-embed-invalid-id"));
+        return;
+    }
+    let Ok(account) = super::require_unlocked(app) else {
+        return;
+    };
+    let session = match app.vault_service.capture_session(&account) {
+        Ok(session) => session,
+        Err(_) => {
+            app.error_message = Some(t!(app.i18n, "cmd-need-unlock"));
+            return;
+        }
+    };
+    if let Err(error) = app.drain_task_events(32) {
+        app.error_message = Some(error.to_string());
+        return;
+    }
+    if app.embed_downloads.contains_key(model_id) {
+        app.info_message = Some(t!(app.i18n, "cmd-embed-in-progress", model = model_id));
         return;
     }
     let dir = install_dir(app);
-    let target = dir.join(model_id);
-    if target.exists() {
-        // R2-X2: 已安装提示为信息语义，走中性 info overlay
+    if download::installed_size(&dir, model_id).is_some() {
         app.info_message = Some(t!(
             app.i18n,
             "cmd-embed-already-installed",
@@ -166,108 +151,88 @@ fn install(app: &mut App, model_id: &str) {
         ));
         return;
     }
-
-    // R2-V7：运行时初始化失败优雅降级（不再 panic 退出 TUI）
-    let rt = match crate::util::shared_runtime() {
-        Ok(rt) => rt,
-        Err(e) => {
-            app.error_message = Some(format!("初始化共享运行时失败: {e}"));
-            return;
+    let registry = std::env::var("SOLOSOUL_EMBED_REGISTRY")
+        .unwrap_or_else(|_| DEFAULT_REGISTRY_URL.to_string());
+    let id = model_id.to_string();
+    match app.tasks.spawn(session, move |context| {
+        download::download_model(context, id, dir, registry)
+    }) {
+        Ok(task_id) => {
+            app.embed_downloads.insert(
+                model_id.to_string(),
+                EmbedDownload {
+                    task_id,
+                    cancelling: false,
+                },
+            );
+            list(app);
         }
-    };
-    let result = rt.block_on(download_model(model_id, &target));
-    match result {
-        Ok(report) => {
-            tracing::info!("embed_model install {} ok: {}", model_id, report);
-            app.success_message = Some((
-                t!(app.i18n, "cmd-embed-installed", model = model_id),
-                Instant::now(),
-            ));
-        }
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-embed-install-failed", err = e));
+        Err(error) => {
+            app.error_message = Some(t!(app.i18n, "cmd-embed-install-failed", err = error))
         }
     }
 }
 
-async fn download_model(model_id: &str, target_dir: &std::path::Path) -> Result<String, String> {
-    let registry_url = std::env::var("SOLOSOUL_EMBED_REGISTRY")
-        .unwrap_or_else(|_| DEFAULT_REGISTRY_URL.to_string());
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(30))
-        .build()
-        .map_err(|e| format!("构造 HTTP 客户端失败: {}", e))?;
-    let registry_text = client
-        .get(&registry_url)
-        .send()
-        .await
-        .map_err(|e| format!("拉取注册表失败: {}", e))?
-        .error_for_status()
-        .map_err(|e| format!("注册表返回错误: {}", e))?
-        .text()
-        .await
-        .map_err(|e| format!("读取注册表响应失败: {}", e))?;
-    let registry: RegistryFile = serde_json::from_str(&registry_text)
-        .map_err(|e| format!("解析注册表失败: {} (顶层需为 {{\"models\": [...]}})", e))?;
-    let entry = registry
-        .models
-        .iter()
-        .find(|m| m.id == model_id)
-        .ok_or_else(|| format!("注册表中未找到模型 {}", model_id))?;
-
-    let bytes = client
-        .get(&entry.download_url)
-        .send()
-        .await
-        .map_err(|e| format!("下载失败: {}", e))?
-        .error_for_status()
-        .map_err(|e| format!("下载返回错误: {}", e))?
-        .bytes()
-        .await
-        .map_err(|e| format!("读取模型字节失败: {}", e))?;
-
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(&bytes);
-    let got = format!("{:x}", hasher.finalize());
-    if !entry.sha256.is_empty() && got != entry.sha256 {
-        return Err(format!(
-            "sha256 校验失败: 期望 {} 实际 {}",
-            entry.sha256, got
-        ));
+fn cancel(app: &mut App, model_id: &str) {
+    if !download::valid_model_id(model_id) {
+        app.error_message = Some(t!(app.i18n, "cmd-embed-cancel-usage"));
+        return;
     }
-
-    std::fs::create_dir_all(target_dir).map_err(|e| format!("创建模型目录失败: {}", e))?;
-    let bin_path = target_dir.join("model.bin");
-    std::fs::write(&bin_path, &bytes).map_err(|e| format!("写入模型文件失败: {}", e))?;
-
-    Ok(format!(
-        "写入 {} ({} bytes)",
-        bin_path.display(),
-        bytes.len()
-    ))
+    let Some(download) = app.embed_downloads.get_mut(model_id) else {
+        app.info_message = Some(t!(app.i18n, "cmd-embed-no-download", model = model_id));
+        return;
+    };
+    if app.tasks.request_cancel(download.task_id) {
+        download.cancelling = true;
+    } else {
+        app.info_message = Some(t!(app.i18n, "cmd-embed-finishing", model = model_id));
+    }
 }
 
 fn remove(app: &mut App, model_id: &str) {
-    if model_id.is_empty() {
-        app.error_message = Some(t!(app.i18n, "cmd-embed-remove-usage"));
+    if !download::valid_model_id(model_id) {
+        app.error_message = Some(t!(app.i18n, "cmd-embed-invalid-id"));
         return;
     }
-    let dir = install_dir(app).join(model_id);
+    if app.embed_downloads.contains_key(model_id) {
+        app.error_message = Some(t!(app.i18n, "cmd-embed-in-progress", model = model_id));
+        return;
+    }
+    let root = install_dir(app);
+    let dir = root.join(model_id);
     if !dir.exists() {
         app.error_message = Some(t!(app.i18n, "cmd-embed-not-installed", model = model_id));
         return;
     }
-    // 激活模型由 GUI 端 LlmConfig 管理,此处仅删除目录。
+    // 删除路径必须是模型根下的真实直接子目录，不能追随符号链接/重解析跳转。
+    let safe = root
+        .canonicalize()
+        .ok()
+        .zip(dir.canonicalize().ok())
+        .is_some_and(|(root, target)| {
+            target.parent() == Some(root.as_path())
+                && target.file_name() == dir.file_name()
+                && std::fs::symlink_metadata(&dir)
+                    .is_ok_and(|m| !m.file_type().is_symlink() && m.is_dir())
+        });
+    if !safe {
+        app.error_message = Some(t!(app.i18n, "cmd-embed-invalid-id"));
+        return;
+    }
     match std::fs::remove_dir_all(&dir) {
         Ok(()) => {
+            for page in std::iter::once(&mut app.phase).chain(app.previous_phase.iter_mut()) {
+                if let AppPhase::EmbedModelList { models, .. } = page {
+                    models.retain(|model| model.id != model_id);
+                }
+            }
             app.success_message = Some((
                 t!(app.i18n, "cmd-embed-removed", model = model_id),
                 Instant::now(),
             ));
         }
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-embed-remove-failed", err = e));
+        Err(error) => {
+            app.error_message = Some(t!(app.i18n, "cmd-embed-remove-failed", err = error))
         }
     }
 }
@@ -335,3 +300,7 @@ mod tests {
         assert!(app.error_message.is_some());
     }
 }
+
+#[cfg(test)]
+#[path = "embed_model/rf212_tests.rs"]
+mod rf212_tests;

@@ -89,6 +89,18 @@ pub fn render(app: &App) -> Paragraph<'_> {
         Span::styled(lock_text, theme.style_muted()),
     ];
 
+    if !app.embed_downloads.is_empty() {
+        spans.push(Span::styled(" | ", theme.style_muted()));
+        spans.push(Span::styled(
+            t!(
+                app.i18n,
+                "status-embed-downloads",
+                count = &app.embed_downloads.len().to_string()
+            ),
+            theme.style_cream(),
+        ));
+    }
+
     // 已登录时显示剩余锁定时间（<60 秒时橘红色强调提醒）
     if app.vault_service.is_unlocked() {
         let idle = Instant::now().duration_since(app.last_activity);

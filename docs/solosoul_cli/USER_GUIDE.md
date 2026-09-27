@@ -205,15 +205,20 @@ GUI 和 CLI 已共用备份编解码规则（RF-013），CLI 创建仍为 2.0/�
 
 | 子命令 | 说明 |
 |--------|------|
-| `list` | 列出本地目录中的 embedding 模型 |
-| `install <model_id>` | 从注册表下载并安装（reqwest + sha256 校验） |
+| `list` | 列出已安装模型，以及下载字节进度和取消状态 |
+| `install <model_id>` | 登录后从注册表后台下载，完成校验后安装 |
+| `cancel <model_id>` | 取消尚未进入最终提交的下载，等待临时文件清理 |
 | `remove <model_id>` | 删除本地模型目录 |
 | `status` | 显示本地目录（CLI 不直接读写 GUI 端 LlmConfig） |
 | `help` | 帮助 |
 
 环境变量 `SOLOSOUL_EMBED_REGISTRY=https://...embed-registry.json` 覆盖默认 URL。
 本地目录：`{SOLOSOUL_DATA_DIR}/embed_models/<model_id>/model.bin`。
-激活的 embedding model 仍由 **GUI** 的 LlmConfig 设置，CLI 当前不修改。
+下载期间可继续输入命令、切换页面或锁定；`/embed_model list` 可查看进度。同一模型的下载在实际结束前不能重复启动。取消、下载失败或提交前锁定会清理本次临时文件，随后可重试；最终提交已开始时会等待真实结果，已完成的模型不会被取消命令删除。只有普通、非空模型文件才列为已安装，空目录可直接重新安装；存在的模型文件不会被覆盖。
+
+注册表保持顶层 `models` 数组；每项包含 `id`、`name`、`size_mb`、`sha256`、`download_url`，非空 `sha256` 必须匹配；空摘要沿用既有兼容规则。旧模型没有存储摘要，因此列表显示不代表重新验证过历史文件的完整性。
+
+此命令保持 CLI 的原始二进制格式；GUI 使用另一模型安装目录和 ONNX/tokenizer 格式，CLI 下载不会自动安装或激活 GUI 模型。GUI 模型仍需通过 GUI 管理。
 
 ### 4.14 设置菜单  ← *本期新增*
 

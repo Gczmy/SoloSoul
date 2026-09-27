@@ -7,7 +7,9 @@
 
 use std::collections::HashMap;
 use std::future::Future;
-use std::sync::atomic::{AtomicBool, Ordering};
+#[cfg(test)]
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
 
 use solosoul_core::{VaultService, VaultSession};
@@ -16,6 +18,9 @@ use tokio::task::{AbortHandle, Id, JoinError, JoinSet};
 use uuid::Uuid;
 
 const PROGRESS_CAPACITY: usize = 64;
+const TASK_ACTIVE: u8 = 0;
+const TASK_CANCEL_REQUESTED: u8 = 1;
+const TASK_COMMIT_CLAIMED: u8 = 2;
 const TASK_PANICKED: &str = "后台任务执行失败";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -28,10 +33,11 @@ pub struct TaskIdentity {
     pub session_generation: u64,
 }
 
-/// 首个调用者仅需消息结果；业务迁移时增加具体变体，不传回修改 App 的闭包。
+/// 工作任务返回具体数据，不传回修改 App 的闭包。
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TaskOutput {
     Message(String),
+    EmbedModelInstalled { model_id: String, bytes: u64 },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -64,8 +70,9 @@ pub struct TaskEvent {
 pub struct TaskContext {
     identity: TaskIdentity,
     session: VaultSession,
-    cancel_requested: Arc<AtomicBool>,
+    task_state: Arc<AtomicU8>,
     progress: mpsc::Sender<TaskEvent>,
+    service: Arc<VaultService>,
 }
 
 impl TaskContext {
@@ -79,7 +86,35 @@ impl TaskContext {
     }
 
     pub fn is_cancel_requested(&self) -> bool {
-        self.cancel_requested.load(Ordering::Acquire)
+        self.task_state.load(Ordering::Acquire) == TASK_CANCEL_REQUESTED
+    }
+
+    /// 原会话内的一次性最终提交。取消先取得许可时不执行 publish；提交先取得
+    /// 许可后取消不再 abort，真实成功或失败仍由 JoinSet 返回。
+    /// 网络、校验、flush 和文件关闭须在调用前完成。publish 仅做短同步发布，
+    /// 不得重入 VaultService；调用本方法后必须直接返回，不再 await 或追加业务步骤。
+    pub fn commit(
+        self,
+        publish: impl FnOnce() -> Result<TaskOutput, String>,
+    ) -> Result<TaskOutput, TaskFailure> {
+        self.service
+            .with_session(&self.session, |_| {
+                if self
+                    .task_state
+                    .compare_exchange(
+                        TASK_ACTIVE,
+                        TASK_COMMIT_CLAIMED,
+                        Ordering::AcqRel,
+                        Ordering::Acquire,
+                    )
+                    .is_err()
+                {
+                    return Ok(Err(TaskFailure::Cancelled));
+                }
+                // 发布失败同样封住取消，保留实际失败，不能改报取消。
+                Ok(publish().map_err(TaskFailure::Failed))
+            })
+            .map_err(|_| TaskFailure::Cancelled)?
     }
 
     /// 中间进度允许丢弃；终态由 JoinSet 的真实完成结果单独产生。
@@ -99,7 +134,7 @@ impl TaskContext {
 struct TaskRecord {
     identity: TaskIdentity,
     session: VaultSession,
-    cancel_requested: Arc<AtomicBool>,
+    task_state: Arc<AtomicU8>,
     abort: AbortHandle,
     // Some 表示已真实 join，但事件尚待主循环接纳；禁止再发布进度。
     terminal: Option<TaskEventKind>,
@@ -157,12 +192,13 @@ impl Tasks {
             account_id: session.account_id().to_string(),
             session_generation: session.generation(),
         };
-        let cancel_requested = Arc::new(AtomicBool::new(false));
+        let task_state = Arc::new(AtomicU8::new(TASK_ACTIVE));
         let context = TaskContext {
             identity: identity.clone(),
             session: session.clone(),
-            cancel_requested: Arc::clone(&cancel_requested),
+            task_state: Arc::clone(&task_state),
             progress: self.progress_tx.clone(),
+            service: Arc::clone(&self.service),
         };
         let service = Arc::clone(&self.service);
         let abort = self.jobs.spawn_on(
@@ -183,7 +219,7 @@ impl Tasks {
             TaskRecord {
                 identity,
                 session,
-                cancel_requested,
+                task_state,
                 abort,
                 terminal: None,
                 stale: false,
@@ -193,6 +229,7 @@ impl Tasks {
     }
 
     /// true 仅表示仍受管的任务已收到取消请求，不代表已结束。
+    /// 已取得最终提交许可或已 join 时返回 false，不再 abort。
     pub fn request_cancel(&mut self, task_id: TaskId) -> bool {
         let Some(record) = self.records.get(&task_id) else {
             return false;
@@ -200,8 +237,7 @@ impl Tasks {
         if record.terminal.is_some() {
             return false;
         }
-        Self::cancel_record(record);
-        true
+        Self::cancel_record(record)
     }
 
     pub fn cancel_all(&mut self) {
@@ -233,9 +269,20 @@ impl Tasks {
         stale
     }
 
-    fn cancel_record(record: &TaskRecord) {
-        record.cancel_requested.store(true, Ordering::Release);
-        record.abort.abort();
+    fn cancel_record(record: &TaskRecord) -> bool {
+        match record.task_state.compare_exchange(
+            TASK_ACTIVE,
+            TASK_CANCEL_REQUESTED,
+            Ordering::AcqRel,
+            Ordering::Acquire,
+        ) {
+            Ok(_) | Err(TASK_CANCEL_REQUESTED) => {
+                record.abort.abort();
+                true
+            }
+            // 最终发布已取得许可：等待真实 join，不能把已提交工作改报取消。
+            Err(_) => false,
+        }
     }
 
     /// 非阻塞、有数量上限。真实终态优先于进度，进度积压不能饿死终态。
@@ -276,7 +323,7 @@ impl Tasks {
                 .is_some_and(|record| {
                     record.identity == event.identity
                         && record.terminal.is_none()
-                        && !record.cancel_requested.load(Ordering::Acquire)
+                        && record.task_state.load(Ordering::Acquire) != TASK_CANCEL_REQUESTED
                 })
             {
                 events.push(event);
@@ -301,7 +348,9 @@ impl Tasks {
             if record.terminal.as_ref() != Some(&event.kind) {
                 return false;
             }
-        } else if record.terminal.is_some() || record.cancel_requested.load(Ordering::Acquire) {
+        } else if record.terminal.is_some()
+            || record.task_state.load(Ordering::Acquire) == TASK_CANCEL_REQUESTED
+        {
             return false;
         }
         let accepted = self
@@ -338,7 +387,7 @@ impl Tasks {
     }
 
     /// 退出主循环后在 shared_runtime 上等待；不会新建或关闭共享 runtime。
-    /// 先撤销全部任务，再逐个 join；一个 panic 也不能阻止其他任务回收。
+    /// 撤销可取消任务，等待已取得提交许可的任务，再逐个 join；panic 不阻止回收。
     pub async fn shutdown(&mut self) -> ShutdownReport {
         self.shutting_down = true;
         self.progress_rx.close();
@@ -388,3 +437,6 @@ impl Drop for Tasks {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod rf212_tests;

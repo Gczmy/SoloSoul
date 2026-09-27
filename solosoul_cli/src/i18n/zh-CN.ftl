@@ -657,3 +657,16 @@ cmd-export-password-complexity = 导出密码必须同时包含字母和数字
 cmd-account-not-found-generic = 未找到当前账户
 cmd-export-password-same-as-master = 导出密码不能与主密码相同
 cmd-verify-master-failed = 校验主密码失败: {$err}
+
+### RF212 模型后台下载
+cmd-embed-invalid-id = 模型 ID 必须是有效的单个目录名，不能含路径或设备名。
+cmd-embed-in-progress = 模型 {$model} 正在处理，请等待完成或取消后回收。
+cmd-embed-cancel-usage = 用法：/embed_model cancel <model_id>
+cmd-embed-no-download = 模型 {$model} 没有进行中的下载。
+cmd-embed-finishing = 模型 {$model} 已进入提交或完成阶段，等待结果。
+cmd-embed-cancelled = 已取消模型 {$model} 的下载。
+embed-model-downloading = 下载中
+embed-model-cancelling = 正在取消
+embed-model-local = 本地
+embed-model-cancel-hint = 取消下载：/embed_model cancel <id>
+status-embed-downloads = 下载中：{$count}
