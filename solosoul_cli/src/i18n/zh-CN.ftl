@@ -670,3 +670,19 @@ embed-model-cancelling = 正在取消
 embed-model-local = 本地
 embed-model-cancel-hint = 取消下载：/embed_model cancel <id>
 status-embed-downloads = 下载中：{$count}
+
+# RF214：受管插件安装
+cmd-plugin-usage-cancel = 用法：/plugin_cancel <plugin_id>
+cmd-plugin-task-active = 插件 {$id} 正在安装。可先取消，等待结束后重试。
+cmd-plugin-run-active = 请等待当前插件运行结束后再安装或更新。
+cmd-plugin-task-started = 正在后台安装 {$id}，可用 /plugin_cancel {$id} 取消。
+cmd-plugin-no-task = 插件 {$id} 没有进行中的安装。
+cmd-plugin-task-finishing = 插件 {$id} 正在提交，等待实际结果。
+cmd-plugin-task-cancelled = 已取消插件安装：{$id}。
+plugin-task-cancelling = 正在取消
+plugin-task-preparing = 正在准备
+plugin-task-downloading = 正在下载
+plugin-task-verifying = 正在校验
+plugin-task-installing = 正在安装
+plugin-installed-version = 已安装：{$ver}
+status-plugin-installs = 插件任务（{$count}）

@@ -155,14 +155,21 @@ GUI 和 CLI 已共用备份编解码规则（RF-013），CLI 创建仍为 2.0/�
 |------|------|
 | `/plugin` 或 `/plugin_list` 或 `/plugin-market` 或 `/plugin_market` | 插件列表（可按名称过滤） |
 | `/plugin_run <id> [args...]` | 运行插件 |
-| `/plugin_install <id>` | 安装 |
-| `/plugin_update <id>` | 更新 |
+| `/plugin_install <id>` | 登录后后台下载、校验并安装 |
+| `/plugin_update <id>` | 登录后后台准备注册表最新版本，发布成功后切换 |
+| `/plugin_cancel <id>` | 请求取消尚未提交的安装或更新 |
 | `/plugin_uninstall <id>` | 卸载 |
 | `/plugin_sessions` | 列出插件会话 |
 | `/plugin_list_installed` | 已安装列表 |
 | `/plugin_audit_log` | 插件审计日志 |
 | `/plugin_registry_update` | 更新本地市场 registry |
 | `/plugin_search <kw>` | 按关键词搜索 |
+
+插件列表下方显示实际下载字节、安装阶段和取消命令；其他页面的状态栏显示活动安装。插件页可直接输入斜杠命令，下载期间可继续输入、切换页面或锁定。同一插件的活动任务结束前不能再次安装、更新、运行或卸载；取消保留占位直至真正回收，之后可以重试。已有插件运行任务尚未结束时，也不能启动新的安装或更新。
+
+`/plugin_list_installed` 只显示结构完整的安装，运行前另做 WASM 内容校验。后台成功后同时刷新当前页面和返回页面缓存中的列表/详情，不强制跳回插件页。下载、校验或发布失败保留原已安装版本；锁定、同账户重登或切换账户使未提交任务失效。最终提交已经开始时等待真实结果，取消不删除已发布版本，旧会话也不能把完成提示写进新会话。
+
+安装与更新均选择注册表的最新版本；远程获取失败时可采用注册表已知且校验通过的 bundled 版本，完成提示显示实际版本。CLI 沿用全局插件目录 `~/.solosoul/plugins/`，不随账户、`--data-dir` 或 `SOLOSOUL_DATA_DIR` 改变。安装使用完整版本目录与 `current.json` 指针，没有指针时仍可读取旧版 `manifest.json` + `plugin.wasm`；旧客户端可能看不到新安装，或只读到遗留旧版，降级不能作为可靠回退。具体发布和读取约定见[插件运行时](../plugin_market/02-runtime.md)。插件运行和注册表刷新仍使用原入口，本项只迁移显式安装与更新任务。
 
 ### 4.11 设备同步  ← *本期新增*
 

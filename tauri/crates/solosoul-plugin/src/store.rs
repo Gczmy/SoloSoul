@@ -1,58 +1,166 @@
-//! 插件本地存储
+//! 插件本地存储。
 //!
-//! 插件数据保存在 `~/.solosoul/plugins/{plugin_id}/`，目录权限 `0700`，文件权限 `0600`。
+//! 新安装使用不可变版本目录和原子替换的 current.json；没有指针时兼容旧两文件布局。
+//! 暂存目录由准备结果持有，取消/失败自动清理；未引用版本不作为已安装插件。
 
 use super::{PluginError, PluginManifest};
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fs;
-use std::io::Write;
+use std::io::{Read, Write};
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, MutexGuard};
+use std::time::SystemTime;
+use tempfile::{TempDir, TempPath};
 
-/// Wasm 文件最大 10 MiB
-const MAX_WASM_SIZE: usize = 10 * 1024 * 1024;
+pub(crate) const MAX_WASM_SIZE: usize = 10 * 1024 * 1024;
+const MAX_POINTER_SIZE: usize = 4096;
+const MAX_MANIFEST_SIZE: usize = 1024 * 1024;
+// 所有 Store 实例共同协调配对读取、发布与删除；准备阶段的网络和正文写入不持锁。
+static STORE_ACCESS: Mutex<()> = Mutex::new(());
 
-/// 插件 ID 允许字符集，防止通过 ID 构造路径遍历。
+fn store_lock() -> Result<MutexGuard<'static, ()>, PluginError> {
+    STORE_ACCESS
+        .lock()
+        .map_err(|_| PluginError::StoreError("Plugin store lock poisoned".into()))
+}
+
 pub(crate) fn validate_plugin_id(id: &str) -> Result<(), PluginError> {
+    let stem = id
+        .split('.')
+        .next()
+        .unwrap_or_default()
+        .to_ascii_uppercase();
+    let reserved = matches!(stem.as_str(), "CON" | "PRN" | "AUX" | "NUL")
+        || (stem.len() == 4
+            && (stem.starts_with("COM") || stem.starts_with("LPT"))
+            && matches!(stem.as_bytes()[3], b'1'..=b'9'));
     if id.is_empty()
         || id.len() > 64
-        // 同时拒绝点路径及 Windows 会折叠的尾点，保证 ID 是独立目录名。
         || id.ends_with('.')
+        || reserved
         || !id
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.')
     {
-        return Err(PluginError::StoreError(format!(
-            "Invalid plugin id: {}",
-            id
-        )));
+        return Err(PluginError::StoreError("Invalid plugin id".into()));
     }
     Ok(())
 }
 
-/// 插件本地存储
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct CurrentPointer {
+    schema_version: u32,
+    generation: String,
+    manifest_sha256: String,
+    wasm_sha256: String,
+    wasm_size: u64,
+}
+
+impl CurrentPointer {
+    fn validate(&self) -> Result<(), PluginError> {
+        let suffix = self.generation.strip_prefix("v-").unwrap_or_default();
+        if self.schema_version != 1
+            || suffix.len() < 8
+            || suffix.len() > 64
+            || !suffix.bytes().all(|c| c.is_ascii_alphanumeric())
+            || !valid_sha256(&self.manifest_sha256)
+            || !valid_sha256(&self.wasm_sha256)
+            || self.wasm_size == 0
+            || self.wasm_size > MAX_WASM_SIZE as u64
+        {
+            return Err(PluginError::StoreError(
+                "Invalid plugin current pointer".into(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+fn valid_sha256(value: &str) -> bool {
+    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct FileStamp {
+    len: u64,
+    modified: SystemTime,
+    created: Option<SystemTime>,
+    #[cfg(unix)]
+    device: u64,
+    #[cfg(unix)]
+    inode: u64,
+}
+
+impl FileStamp {
+    fn read(path: &Path) -> Result<Self, PluginError> {
+        let metadata = regular_file(path)?;
+        Ok(Self {
+            len: metadata.len(),
+            modified: metadata.modified()?,
+            created: metadata.created().ok(),
+            #[cfg(unix)]
+            device: std::os::unix::fs::MetadataExt::dev(&metadata),
+            #[cfg(unix)]
+            inode: std::os::unix::fs::MetadataExt::ino(&metadata),
+        })
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Selection {
+    pointer: Option<CurrentPointer>,
+    manifest: FileStamp,
+    wasm: FileStamp,
+}
+
+#[derive(Debug)]
+enum PreparedKind {
+    Staged {
+        directory: TempDir,
+        pointer: TempPath,
+        pointer_bytes: Vec<u8>,
+        manifest_stamp: FileStamp,
+        wasm_stamp: FileStamp,
+    },
+    Reuse(Selection),
+}
+
+/// 准备结果只能由其所属 Store 发布；Drop 不会触碰已经安装的版本。
+#[derive(Debug)]
+pub(crate) struct PreparedStoredPlugin {
+    store_root: PathBuf,
+    manifest: PluginManifest,
+    kind: PreparedKind,
+}
+
+impl PreparedStoredPlugin {
+    pub(crate) fn manifest(&self) -> &PluginManifest {
+        &self.manifest
+    }
+}
+
 pub struct PluginStore {
     base_dir: PathBuf,
 }
 
 impl PluginStore {
-    /// 创建插件存储，使用默认数据根目录
     pub fn new() -> Result<Self, PluginError> {
-        let data_dir = Self::data_dir()?;
-        Self::new_with_data_dir(data_dir)
+        Self::new_with_data_dir(Self::data_dir()?)
     }
 
-    /// 创建插件存储，使用指定的 SoloSoul 数据根目录
     pub fn new_with_data_dir(data_dir: PathBuf) -> Result<Self, PluginError> {
+        let _guard = store_lock()?;
         let base_dir = data_dir.join("plugins");
-        Self::ensure_dir(&base_dir)?;
-        Ok(Self { base_dir })
+        ensure_dir(&base_dir)?;
+        Ok(Self {
+            base_dir: base_dir.canonicalize()?,
+        })
     }
 
-    /// 获取 SoloSoul 数据根目录
-    /// - 桌面端: ~/.solosoul
-    /// - 移动端: {current_dir}/.solosoul （Android/iOS 无传统 home 目录，使用应用当前工作目录作为兜底）
     pub fn data_dir() -> Result<PathBuf, PluginError> {
         #[cfg(any(target_os = "android", target_os = "ios"))]
         {
@@ -68,125 +176,385 @@ impl PluginStore {
         }
     }
 
-    /// 确保目录存在并设置权限
-    fn ensure_dir(path: &Path) -> Result<(), PluginError> {
-        if !path.exists() {
-            fs::create_dir_all(path)?;
-            #[cfg(unix)]
-            fs::set_permissions(path, fs::Permissions::from_mode(0o700))?;
-        }
-        Ok(())
+    fn plugin_dir(&self, id: &str) -> Result<PathBuf, PluginError> {
+        validate_plugin_id(id)?;
+        regular_dir(&self.base_dir)?;
+        Ok(self.base_dir.join(id))
     }
 
-    fn plugin_dir(&self, plugin_id: &str) -> Result<PathBuf, PluginError> {
-        validate_plugin_id(plugin_id)?;
-        Ok(self.base_dir.join(plugin_id))
-    }
-
-    fn manifest_path(&self, plugin_id: &str) -> Result<PathBuf, PluginError> {
-        Ok(self.plugin_dir(plugin_id)?.join("manifest.json"))
-    }
-
-    fn wasm_path(&self, plugin_id: &str) -> Result<PathBuf, PluginError> {
-        Ok(self.plugin_dir(plugin_id)?.join("plugin.wasm"))
-    }
-
-    /// 保存插件 manifest 与 wasm 到本地
-    pub fn save_plugin(
+    pub(crate) fn prepare_plugin(
         &self,
         manifest: &PluginManifest,
         wasm_bytes: &[u8],
-    ) -> Result<(), PluginError> {
-        if wasm_bytes.len() > MAX_WASM_SIZE {
-            return Err(PluginError::WasmTooLarge(wasm_bytes.len()));
+    ) -> Result<PreparedStoredPlugin, PluginError> {
+        validate_plugin_id(&manifest.id)?;
+        validate_wasm(wasm_bytes, manifest.wasm_hash_sha256.as_deref())?;
+        let manifest_bytes = serde_json::to_vec_pretty(manifest)?;
+        if manifest_bytes.len() > MAX_MANIFEST_SIZE {
+            return Err(PluginError::InvalidManifest(
+                "Plugin manifest exceeds size limit".into(),
+            ));
         }
-
-        let dir = self.plugin_dir(&manifest.id)?;
-        Self::ensure_dir(&dir)?;
-
-        let manifest_json = serde_json::to_string_pretty(manifest)?;
-        let manifest_path = dir.join("manifest.json");
-        let mut file = fs::File::create(&manifest_path)?;
-        file.write_all(manifest_json.as_bytes())?;
+        let (directory, mut pointer) = {
+            let _guard = store_lock()?;
+            let plugin_dir = self.plugin_dir(&manifest.id)?;
+            ensure_dir(&plugin_dir)?;
+            let versions = plugin_dir.join("versions");
+            ensure_dir(&versions)?;
+            let directory = tempfile::Builder::new()
+                .prefix("v-")
+                .rand_bytes(16)
+                .tempdir_in(&versions)?;
+            let pointer = tempfile::Builder::new()
+                .prefix(".current-")
+                .suffix(".tmp")
+                .tempfile_in(&plugin_dir)?;
+            (directory, pointer)
+        };
+        // 正文只写入私有版本目录；完成所有写入并关闭句柄后才产生可提交结果。
+        let manifest_path = directory.path().join("manifest.json");
+        let wasm_path = directory.path().join("plugin.wasm");
+        write_private_file(&manifest_path, &manifest_bytes)?;
+        write_private_file(&wasm_path, wasm_bytes)?;
+        let current = CurrentPointer {
+            schema_version: 1,
+            generation: directory
+                .path()
+                .file_name()
+                .and_then(|name| name.to_str())
+                .ok_or_else(|| PluginError::StoreError("Invalid plugin generation".into()))?
+                .to_owned(),
+            manifest_sha256: compute_sha256(&manifest_bytes),
+            wasm_sha256: compute_sha256(wasm_bytes),
+            wasm_size: wasm_bytes.len() as u64,
+        };
+        current.validate()?;
+        let pointer_bytes = serde_json::to_vec(&current)?;
         #[cfg(unix)]
-        file.set_permissions(fs::Permissions::from_mode(0o600))?;
+        pointer
+            .as_file()
+            .set_permissions(fs::Permissions::from_mode(0o600))?;
+        pointer.write_all(&pointer_bytes)?;
+        pointer.flush()?;
+        pointer.as_file().sync_all()?;
+        let manifest_stamp = FileStamp::read(&manifest_path)?;
+        let wasm_stamp = FileStamp::read(&wasm_path)?;
+        Ok(PreparedStoredPlugin {
+            store_root: self.base_dir.clone(),
+            manifest: manifest.clone(),
+            kind: PreparedKind::Staged {
+                directory,
+                pointer: pointer.into_temp_path(),
+                pointer_bytes,
+                manifest_stamp,
+                wasm_stamp,
+            },
+        })
+    }
 
-        let wasm_path = dir.join("plugin.wasm");
-        let mut wasm_file = fs::File::create(&wasm_path)?;
-        wasm_file.write_all(wasm_bytes)?;
-        #[cfg(unix)]
-        wasm_file.set_permissions(fs::Permissions::from_mode(0o600))?;
+    /// 一次读取绑定复用版本；提交时只核对选择器/文件元数据，不在会话门闩内重算大文件摘要。
+    pub(crate) fn prepare_reuse(
+        &self,
+        id: &str,
+        version: &str,
+        expected_hash: &str,
+    ) -> Result<Option<PreparedStoredPlugin>, PluginError> {
+        let _guard = store_lock()?;
+        let (manifest, bytes, selection) = self.load_plugin_locked(id)?;
+        if manifest.version != version || compute_sha256(&bytes) != expected_hash {
+            return Ok(None);
+        }
+        Ok(Some(PreparedStoredPlugin {
+            store_root: self.base_dir.clone(),
+            manifest,
+            kind: PreparedKind::Reuse(selection),
+        }))
+    }
 
+    pub(crate) fn publish_prepared(
+        &self,
+        prepared: PreparedStoredPlugin,
+    ) -> Result<(), PluginError> {
+        let _guard = store_lock()?;
+        if prepared.store_root != self.base_dir {
+            return Err(PluginError::StoreError(
+                "Prepared plugin belongs to another store".into(),
+            ));
+        }
+        let plugin_dir = self.plugin_dir(&prepared.manifest.id)?;
+        regular_dir(&plugin_dir)?;
+        match prepared.kind {
+            PreparedKind::Reuse(expected) => {
+                let (selection, _) = self.select_locked(&prepared.manifest.id)?;
+                if selection != expected {
+                    return Err(PluginError::StoreError(
+                        "Prepared plugin is no longer current".into(),
+                    ));
+                }
+            }
+            PreparedKind::Staged {
+                directory,
+                pointer,
+                pointer_bytes,
+                manifest_stamp,
+                wasm_stamp,
+            } => {
+                let versions = plugin_dir.join("versions");
+                regular_dir(&versions)?;
+                regular_dir(directory.path())?;
+                if directory.path().parent() != Some(versions.as_path())
+                    || pointer.parent() != Some(plugin_dir.as_path())
+                    || FileStamp::read(&directory.path().join("manifest.json"))? != manifest_stamp
+                    || FileStamp::read(&directory.path().join("plugin.wasm"))? != wasm_stamp
+                    || read_limited(&pointer, MAX_POINTER_SIZE)? != pointer_bytes
+                {
+                    return Err(PluginError::StoreError(
+                        "Prepared plugin changed before publication".into(),
+                    ));
+                }
+                let target = plugin_dir.join("current.json");
+                if metadata_if_present(&target)?.is_some() {
+                    regular_file(&target)?;
+                }
+                // 文件句柄已关闭。Windows 替换失败保留旧指针，禁止先删除旧目标的回退。
+                pointer.persist(&target).map_err(|error| {
+                    PluginError::StoreError(format!("Plugin publication failed: {}", error.error))
+                })?;
+                // 唯一发布点之后无可失败业务步骤；保留完整新代及所有未删除的旧代。
+                let _ = directory.keep();
+            }
+        }
         Ok(())
     }
 
-    /// 加载插件 manifest
-    pub fn load_manifest(&self, plugin_id: &str) -> Result<PluginManifest, PluginError> {
-        let path = self.manifest_path(plugin_id)?;
-        if !path.exists() {
-            return Err(PluginError::NotFound(plugin_id.to_string()));
-        }
-        let content = fs::read_to_string(path)?;
-        let manifest: PluginManifest = serde_json::from_str(&content)?;
-        Ok(manifest)
+    pub fn save_plugin(&self, manifest: &PluginManifest, bytes: &[u8]) -> Result<(), PluginError> {
+        self.publish_prepared(self.prepare_plugin(manifest, bytes)?)
     }
 
-    /// 加载插件 wasm 并校验 SHA-256（manifest 中提供时）
-    pub fn load_wasm(&self, plugin_id: &str) -> Result<Vec<u8>, PluginError> {
-        let manifest = self.load_manifest(plugin_id)?;
-        let path = self.wasm_path(plugin_id)?;
-        if !path.exists() {
-            return Err(PluginError::NotFound(plugin_id.to_string()));
+    /// 在一次共享锁内读取同一选择器的 manifest 和 WASM，避免运行时权限/字节混代。
+    pub fn load_plugin(&self, id: &str) -> Result<(PluginManifest, Vec<u8>), PluginError> {
+        let _guard = store_lock()?;
+        let (manifest, bytes, _) = self.load_plugin_locked(id)?;
+        Ok((manifest, bytes))
+    }
+
+    pub fn load_manifest(&self, id: &str) -> Result<PluginManifest, PluginError> {
+        let _guard = store_lock()?;
+        self.load_manifest_locked(id)
+            .map(|(manifest, _, _)| manifest)
+    }
+
+    pub fn load_wasm(&self, id: &str) -> Result<Vec<u8>, PluginError> {
+        self.load_plugin(id).map(|(_, bytes)| bytes)
+    }
+
+    fn select_locked(&self, id: &str) -> Result<(Selection, PathBuf), PluginError> {
+        let plugin_dir = self.plugin_dir(id)?;
+        if metadata_if_present(&plugin_dir)?.is_none() {
+            return Err(PluginError::NotFound(id.to_owned()));
         }
-        let bytes = fs::read(path)?;
-        if bytes.len() > MAX_WASM_SIZE {
-            return Err(PluginError::WasmTooLarge(bytes.len()));
+        regular_dir(&plugin_dir)?;
+        let current = plugin_dir.join("current.json");
+        let (pointer, directory) = if metadata_if_present(&current)?.is_some() {
+            // 指针存在但损坏时拒绝读取，不退回旧布局或猜测最新版本目录。
+            let pointer: CurrentPointer =
+                serde_json::from_slice(&read_limited(&current, MAX_POINTER_SIZE)?)?;
+            pointer.validate()?;
+            let versions = plugin_dir.join("versions");
+            regular_dir(&versions)?;
+            let directory = versions.join(&pointer.generation);
+            regular_dir(&directory)?;
+            (Some(pointer), directory)
+        } else {
+            (None, plugin_dir)
+        };
+        Ok((
+            Selection {
+                pointer,
+                manifest: FileStamp::read(&directory.join("manifest.json"))?,
+                wasm: FileStamp::read(&directory.join("plugin.wasm"))?,
+            },
+            directory,
+        ))
+    }
+
+    // 市场/已安装列表仅检查 manifest 和包结构，不在输入线程读/哈希每个大 WASM。
+    fn load_manifest_locked(
+        &self,
+        id: &str,
+    ) -> Result<(PluginManifest, Selection, PathBuf), PluginError> {
+        let (selection, directory) = self.select_locked(id)?;
+        if selection.wasm.len > MAX_WASM_SIZE as u64 {
+            return Err(PluginError::WasmTooLarge(
+                usize::try_from(selection.wasm.len).unwrap_or(usize::MAX),
+            ));
         }
-        if let Some(expected_hash) = manifest.wasm_hash_sha256 {
-            let actual = compute_sha256(&bytes);
-            if actual != expected_hash {
+        if selection.wasm.len == 0 {
+            return Err(PluginError::InvalidManifest("Empty plugin WASM".into()));
+        }
+        let manifest_bytes = read_limited(&directory.join("manifest.json"), MAX_MANIFEST_SIZE)?;
+        let manifest: PluginManifest = serde_json::from_slice(&manifest_bytes)?;
+        if manifest.id != id {
+            return Err(PluginError::InvalidManifest(
+                "Plugin manifest id does not match directory".into(),
+            ));
+        }
+        if let Some(pointer) = &selection.pointer {
+            if compute_sha256(&manifest_bytes) != pointer.manifest_sha256
+                || selection.wasm.len != pointer.wasm_size
+            {
                 return Err(PluginError::ChecksumMismatch);
             }
         }
-        Ok(bytes)
+        if self.select_locked(id)?.0 != selection {
+            return Err(PluginError::StoreError("Plugin changed during read".into()));
+        }
+        Ok((manifest, selection, directory))
     }
 
-    /// 删除已安装的插件
-    pub fn delete_plugin(&self, plugin_id: &str) -> Result<(), PluginError> {
-        let dir = self.plugin_dir(plugin_id)?;
-        if dir.exists() {
-            fs::remove_dir_all(dir)?;
+    fn load_plugin_locked(
+        &self,
+        id: &str,
+    ) -> Result<(PluginManifest, Vec<u8>, Selection), PluginError> {
+        let (manifest, selection, directory) = self.load_manifest_locked(id)?;
+        let bytes = read_limited(&directory.join("plugin.wasm"), MAX_WASM_SIZE)?;
+        validate_wasm(&bytes, manifest.wasm_hash_sha256.as_deref())?;
+        if let Some(pointer) = &selection.pointer {
+            if compute_sha256(&bytes) != pointer.wasm_sha256 {
+                return Err(PluginError::ChecksumMismatch);
+            }
+        }
+        if self.select_locked(id)?.0 != selection {
+            return Err(PluginError::StoreError("Plugin changed during read".into()));
+        }
+        Ok((manifest, bytes, selection))
+    }
+    pub fn delete_plugin(&self, id: &str) -> Result<(), PluginError> {
+        let _guard = store_lock()?;
+        let directory = self.plugin_dir(id)?;
+        if metadata_if_present(&directory)?.is_some() {
+            regular_dir(&directory)?;
+            fs::remove_dir_all(directory)?;
         }
         Ok(())
     }
 
-    /// 列出所有已安装插件的 manifest
-    ///
-    /// 加载后会为旧插件（有 field_bindings 但 contracts.roles 为空）自动推导
-    /// effective roles，保证前端绑定 UI 与运行时看到的角色列表一致。
     pub fn installed_manifests(&self) -> Result<Vec<PluginManifest>, PluginError> {
+        let _guard = store_lock()?;
         let mut manifests = Vec::new();
-        if !self.base_dir.exists() {
+        if metadata_if_present(&self.base_dir)?.is_none() {
             return Ok(manifests);
         }
+        regular_dir(&self.base_dir)?;
         for entry in fs::read_dir(&self.base_dir)? {
             let entry = entry?;
-            if entry.file_type()?.is_dir() {
-                let id = entry.file_name().to_string_lossy().to_string();
-                if let Ok(mut manifest) = self.load_manifest(&id) {
-                    let field_bindings = manifest.field_bindings.clone();
-                    for contract in &mut manifest.contracts {
-                        contract.roles = contract.effective_roles(&field_bindings);
-                    }
-                    manifests.push(manifest);
+            let id = entry.file_name().to_string_lossy().to_string();
+            if let Ok((mut manifest, _, _)) = self.load_manifest_locked(&id) {
+                let field_bindings = manifest.field_bindings.clone();
+                for contract in &mut manifest.contracts {
+                    contract.roles = contract.effective_roles(&field_bindings);
                 }
+                manifests.push(manifest);
             }
         }
         Ok(manifests)
     }
 }
 
-/// 计算 SHA-256 十六进制字符串
+fn metadata_if_present(path: &Path) -> Result<Option<fs::Metadata>, PluginError> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) => Ok(Some(metadata)),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(error.into()),
+    }
+}
+
+fn is_link(metadata: &fs::Metadata) -> bool {
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        metadata.file_type().is_symlink() || metadata.file_attributes() & 0x400 != 0
+    }
+    #[cfg(not(windows))]
+    {
+        metadata.file_type().is_symlink()
+    }
+}
+
+fn regular_dir(path: &Path) -> Result<(), PluginError> {
+    let metadata = fs::symlink_metadata(path)?;
+    if is_link(&metadata) || !metadata.is_dir() {
+        return Err(PluginError::StoreError(
+            "Plugin directory is not a regular directory".into(),
+        ));
+    }
+    Ok(())
+}
+
+fn regular_file(path: &Path) -> Result<fs::Metadata, PluginError> {
+    let metadata = fs::symlink_metadata(path)?;
+    if is_link(&metadata) || !metadata.is_file() {
+        return Err(PluginError::StoreError(
+            "Plugin file is not a regular file".into(),
+        ));
+    }
+    Ok(metadata)
+}
+
+fn ensure_dir(path: &Path) -> Result<(), PluginError> {
+    if metadata_if_present(path)?.is_none() {
+        fs::create_dir_all(path)?;
+        #[cfg(unix)]
+        fs::set_permissions(path, fs::Permissions::from_mode(0o700))?;
+    }
+    regular_dir(path)
+}
+
+fn write_private_file(path: &Path, bytes: &[u8]) -> Result<(), PluginError> {
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)?;
+    #[cfg(unix)]
+    file.set_permissions(fs::Permissions::from_mode(0o600))?;
+    file.write_all(bytes)?;
+    file.flush()?;
+    file.sync_all()?;
+    Ok(())
+}
+
+fn read_limited(path: &Path, limit: usize) -> Result<Vec<u8>, PluginError> {
+    let metadata = regular_file(path)?;
+    if metadata.len() > limit as u64 {
+        return Err(PluginError::StoreError(
+            "Plugin file exceeds size limit".into(),
+        ));
+    }
+    let mut bytes = Vec::new();
+    fs::File::open(path)?
+        .take(limit as u64 + 1)
+        .read_to_end(&mut bytes)?;
+    if bytes.len() > limit {
+        return Err(PluginError::StoreError(
+            "Plugin file exceeds size limit".into(),
+        ));
+    }
+    Ok(bytes)
+}
+
+fn validate_wasm(bytes: &[u8], expected_hash: Option<&str>) -> Result<(), PluginError> {
+    if bytes.len() > MAX_WASM_SIZE {
+        return Err(PluginError::WasmTooLarge(bytes.len()));
+    }
+    if bytes.is_empty() {
+        return Err(PluginError::InvalidManifest("Empty plugin WASM".into()));
+    }
+    if expected_hash.is_some_and(|hash| compute_sha256(bytes) != hash) {
+        return Err(PluginError::ChecksumMismatch);
+    }
+    Ok(())
+}
+
 pub fn compute_sha256(bytes: &[u8]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(bytes);
@@ -252,3 +620,7 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+#[path = "store/rf214_tests.rs"]
+mod rf214_tests;

@@ -25,17 +25,41 @@
 
 ## 2.2 生命周期
 
-### 安装（`PluginManager::install_from_registry`）
+### 安装与更新（RF-214）
 
-1. 已安装且哈希匹配 → 幂等返回。
-2. 版本兼容性检查（`version.rs`）。
-3. 下载 `manifest.json`（`download_url` → `raw_url` → bundled 兜底）。
-4. 下载 `plugin.wasm`，计算 SHA-256 与注册表记录比对，不一致拒绝安装。
-5. 写入 `{data_dir}/plugins/{plugin_id}/`（`store.rs::save_plugin`）。
+`PluginManager` 将安装分为准备与同步发布，公开接口如下：
 
-### 更新
+| API | 契约 |
+|-----|------|
+| `prepare_install_from_registry_with_progress(id, version, callback)` | 准备注册表指定版本，返回 `PreparedPluginInstall`，不改变当前安装 |
+| `prepare_update_with_progress(id, callback)` | 从共享注册表选择最新版本后准备；CLI 安装与更新都使用此入口 |
+| `PreparedPluginInstall::manifest()` | 只读访问实际准备版本的完整清单，包含可能采用的 bundled 版本；准备对象字段私有且不可 Clone |
+| `publish_install(prepared)` | 消费准备对象，返回实际 `PluginInstallResult`；不下载或重新哈希大文件 |
 
-`PluginManager::update`：校验注册表新版本 → 同上安装流程覆盖旧版。同一 `plugin_id` 仅保留最新版本，旧版本 Session 在卸载/更新后失效。
+既有 `install_from_registry(_with_progress)` / `update(_with_progress)` 签名保留，以准备 → 发布包装；带进度接口只在发布成功后发送 Completed。CLI 则在原 `VaultSession` 的 `TaskContext::commit` 内调用 `publish_install`，终态来自真实任务 join。
+
+准备阶段核对版本兼容性、manifest 的插件 ID/版本及 WASM 的注册表 SHA-256，并完成暂存。manifest 最多 1 MiB，WASM 必须非空且最多 10 MiB；远程读取既检查声明长度，也限制实际累积字节，每段最多处理 64 KiB 并让出执行权，bundled 文件同样有界。远程 manifest 身份不符、WASM 摘要不符或超限直接失败；bundled 回退版本须在当前注册表中存在并通过相同兼容性和摘要校验。不改变 registry 的 minisign 策略。
+
+准备期间只报告真实阶段和字节进度，不写成功审计、不发送 Completed。原安装版本与注册表 SHA 均相同且完整时可免下载复用；准备时成对读取并校验，发布时复核版本选择和文件元数据，若已被移除或替换则失败，不能误报仍已安装。复用成功沿用原行为，不重复写 PluginInstalled 审计。
+
+本地发布布局：
+
+```text
+{data_dir}/plugins/{plugin_id}/
+  current.json
+  versions/v-<本次随机标识>/manifest.json
+  versions/v-<本次随机标识>/plugin.wasm
+  manifest.json     # 存量旧布局，仅在没有 current.json 时读取
+  plugin.wasm
+```
+
+`current.json` 记录布局版本、版本目录标识、manifest/WASM 摘要及 WASM 字节数。暂存对象唯一拥有本次目录和临时指针；准备中完成写入、flush/sync 及句柄关闭，取消导致 Future/准备对象析构时清理本次文件。同步发布原子替换 `current.json` 后即保留完整新目录，不先删除旧指针或逐个覆盖原文件。同一进程内的配对读取、发布与卸载共用一把锁，网络等待和暂存正文写入不持锁。Windows 目标占用等发布失败保留旧选择。未引用目录不登记为已安装；本项不自动清扫旧版本或进程异常退出留下的目录。
+
+没有指针时兼容旧双文件布局；有指针但损坏、路径无效或目标不完整时拒绝读取，不回退旧版。列表仅有界读取清单并检查指针、普通文件、WASM 非空及尺寸，不能据列表出现就断言 WASM 内容摘要有效。运行入口用 `load_plugin` 在同一次版本选择下取得 manifest/WASM：新布局强制验证指针中的摘要，旧布局保留有清单摘要才验证的兼容规则。运行时不混用后台更新前后两版的代码与权限。
+
+发布后安装审计保持 best effort，其写入失败不改变发布结果。新版本目录和旧布局文件均可继续留存，因此旧客户端既可能无法识别新安装，也可能只读到遗留旧版；降级不构成可靠回退。本项不保证断电后的目录项耐久，也不提供跨进程或同用户外部改写的并发协调。
+
+GUI 的取消资源、安装串行锁及后处理顺序保持不变：Host 把 Manager 的 Completed 映射为 98% Finalizing，触发两路同步通知；安装命令还尝试种子模板绑定迁移，然后才发送最终 Completed。迁移失败仅告警，更新命令不新增该迁移。CLI 的取消与提交争取同一原子许可：取消先发生不发布，提交先发生则等待真实结果；事件按 TaskId、账户与会话代次接纳，旧结果不能回填新会话或清掉新任务。插件运行本身的 worker 生命周期尚未由 RF-214 迁移。
 
 ### 卸载
 

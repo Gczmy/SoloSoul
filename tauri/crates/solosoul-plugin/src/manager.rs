@@ -10,11 +10,12 @@ use super::{
 };
 use crate::event::PluginEventSink;
 use crate::install_progress::{InstallProgressReporter, PluginInstallPhase, PluginInstallProgress};
-use crate::store::validate_plugin_id;
+use crate::store::{validate_plugin_id, PreparedStoredPlugin, MAX_WASM_SIZE};
 use serde::Deserialize;
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::io::Read;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 /// 随机私有工作区；Unix 创建时即收紧为 0700，Windows 使用用户临时目录 ACL。
@@ -94,6 +95,21 @@ struct MarketManifestRaw {
     pub i18n: Option<HashMap<String, HashMap<String, String>>>,
 }
 
+/// 已验证、已暂存但尚未发布的安装。不可 Clone；丢弃即释放其临时文件。
+/// 必须交回准备它的 PluginStore 发布，不能绕过发布时的原安装版本复核。
+pub struct PreparedPluginInstall {
+    stored: PreparedStoredPlugin,
+    completion: PluginInstallProgress,
+    audit_install: bool,
+}
+
+impl PreparedPluginInstall {
+    /// 实际准备版本的只读元数据，包含 bundled 回退后的版本。
+    pub fn manifest(&self) -> &PluginManifest {
+        self.stored.manifest()
+    }
+}
+
 /// 插件管理器
 pub struct PluginManager {
     store: PluginStore,
@@ -104,6 +120,8 @@ pub struct PluginManager {
     rate_limiter: Arc<RateLimiter>,
     consent_manager: Arc<ConsentManager>,
     sandbox: WasmSandbox,
+    #[cfg(test)]
+    install_client: Option<reqwest::Client>,
 }
 
 /// P025: 共享插件市场 HTTP 客户端——连接复用，避免每次下载重建 TLS 握手。
@@ -118,21 +136,91 @@ fn http_client() -> &'static reqwest::Client {
     })
 }
 
-/// 分块读取响应，下载进度来自实际接收字节，不按时间推算。
+const MAX_MANIFEST_SIZE: usize = 1024 * 1024;
+const INSTALL_READ_CHUNK: usize = 64 * 1024;
+
+fn wasm_size_error(size: u64) -> PluginError {
+    PluginError::WasmTooLarge(usize::try_from(size).unwrap_or(usize::MAX))
+}
+
+/// bundled 文件同样有界；先查长度，再限制实际读取，防止读取中增长突破上限。
+fn read_bundled_file(path: &Path, wasm: bool) -> Result<Vec<u8>, PluginError> {
+    let limit = if wasm {
+        MAX_WASM_SIZE
+    } else {
+        MAX_MANIFEST_SIZE
+    };
+    let too_large = |size: u64| {
+        if wasm {
+            wasm_size_error(size)
+        } else {
+            PluginError::InvalidManifest("manifest 超过 1 MiB 限制".to_string())
+        }
+    };
+    let file = std::fs::File::open(path)?;
+    let size = file.metadata()?.len();
+    if size > limit as u64 {
+        return Err(too_large(size));
+    }
+    let mut bytes = Vec::new();
+    file.take(limit as u64 + 1).read_to_end(&mut bytes)?;
+    if bytes.len() > limit {
+        return Err(too_large(bytes.len() as u64));
+    }
+    Ok(bytes)
+}
+
+async fn read_manifest_response(mut response: reqwest::Response) -> Result<Vec<u8>, PluginError> {
+    let oversized = || PluginError::InvalidManifest("manifest 超过 1 MiB 限制".to_string());
+    if response
+        .content_length()
+        .is_some_and(|size| size > MAX_MANIFEST_SIZE as u64)
+    {
+        return Err(oversized());
+    }
+    let mut bytes = Vec::new();
+    while let Some(chunk) = response
+        .chunk()
+        .await
+        .map_err(|_| PluginError::NetworkError("读取 manifest 响应失败".to_string()))?
+    {
+        for part in chunk.chunks(INSTALL_READ_CHUNK) {
+            if part.len() > MAX_MANIFEST_SIZE - bytes.len() {
+                return Err(oversized());
+            }
+            bytes.extend_from_slice(part);
+            tokio::task::yield_now().await;
+        }
+    }
+    Ok(bytes)
+}
+
+/// 分块读取响应，限制先于 Vec 增长；进度来自实际字节，循环主动让出执行权。
 async fn read_wasm_response(
     mut response: reqwest::Response,
     progress: &mut InstallProgressReporter<'_>,
 ) -> Result<Vec<u8>, PluginError> {
     let total = response.content_length();
+    if let Some(size) = total.filter(|size| *size > MAX_WASM_SIZE as u64) {
+        return Err(wasm_size_error(size));
+    }
     progress.download(0, total);
     let mut bytes = Vec::new();
     while let Some(chunk) = response
         .chunk()
         .await
-        .map_err(|e| PluginError::NetworkError(format!("读取下载响应失败: {}", e)))?
+        .map_err(|_| PluginError::NetworkError("读取下载响应失败".to_string()))?
     {
-        bytes.extend_from_slice(&chunk);
-        progress.download(bytes.len() as u64, total);
+        for part in chunk.chunks(INSTALL_READ_CHUNK) {
+            if part.len() > MAX_WASM_SIZE - bytes.len() {
+                return Err(PluginError::WasmTooLarge(
+                    bytes.len().saturating_add(part.len()),
+                ));
+            }
+            bytes.extend_from_slice(part);
+            progress.download(bytes.len() as u64, total);
+            tokio::task::yield_now().await;
+        }
     }
     Ok(bytes)
 }
@@ -162,9 +250,19 @@ impl PluginManager {
             rate_limiter: Arc::new(RateLimiter::new(60)),
             consent_manager: Arc::new(ConsentManager::new()),
             sandbox: WasmSandbox::new(),
+            #[cfg(test)]
+            install_client: None,
         })
     }
 
+    fn install_http_client(&self) -> &reqwest::Client {
+        // 回环回归显式注入无代理客户端，不修改共享环境或生产客户端策略。
+        #[cfg(test)]
+        if let Some(client) = &self.install_client {
+            return client;
+        }
+        http_client()
+    }
     /// 列出市场中所有插件，可按 tier 过滤
     pub fn list_all(
         &self,
@@ -183,49 +281,18 @@ impl PluginManager {
         self.store.installed_manifests()
     }
 
-    /// 从市场注册表安装指定版本插件
-    ///
-    /// 分离原则：已安装插件的 manifest/WASM 只从应用数据目录（`PluginStore`）读写；
-    /// `market_dir`（bundled 资源目录）仅在远程不可达时作为离线回退。
-    ///
-    /// 流程：
-    /// 1. 读取注册表获取目标版本元数据
-    /// 2. 检查应用数据目录中是否已安装该版本且 SHA-256 匹配 → 直接返回
-    /// 3. 未安装或 hash 不匹配 → 优先从远程下载 manifest.json + plugin.wasm
-    /// 4. 远程失败 → 回退到 bundled `market_dir`
-    /// 5. 校验通过后保存到 PluginStore
-    ///
-    /// 应用数据目录中是否已安装目标版本且 WASM hash 匹配。
-    /// 返回 true 表示可直接复用（免下载、免校验）。
-    fn is_installed_ok(&self, plugin_id: &str, version: &str, expected_hash: &str) -> bool {
-        let installed = match self.store.load_manifest(plugin_id) {
-            Ok(m) => m,
-            Err(_) => return false,
-        };
-        if installed.version != version {
-            tracing::info!(
-                "Installed plugin {} version {} does not match target {}, will re-install",
-                plugin_id,
-                installed.version,
-                version
-            );
-            return false;
-        }
-        let wasm = match self.store.load_wasm(plugin_id) {
-            Ok(b) => b,
-            Err(_) => return false,
-        };
-        let actual_hash = compute_sha256(&wasm);
-        if actual_hash != expected_hash {
-            tracing::warn!(
-                "Installed plugin {} hash mismatch (expected {}, got {}), will re-download",
-                plugin_id,
-                expected_hash,
-                actual_hash
-            );
-            return false;
-        }
-        true
+    /// 快速复用须由 Store 在同一次成对读取中验证版本与 SHA，并绑定原 selector。
+    /// 无法读取/校验时仍按旧行为走完整准备，修复损坏或缺失的安装。
+    fn prepare_installed_reuse(
+        &self,
+        plugin_id: &str,
+        version: &str,
+        expected_hash: &str,
+    ) -> Option<PreparedStoredPlugin> {
+        self.store
+            .prepare_reuse(plugin_id, version, expected_hash)
+            .ok()
+            .flatten()
     }
 
     /// 从 `MarketManifestRaw` 构造 `PluginManifest`（远程与 bundled 两路径共用；
@@ -269,80 +336,207 @@ impl PluginManager {
         }
     }
 
-    /// bundled 资源回退安装：读取本地 manifest/wasm，hash 校验后安装。
-    ///
-    /// 处理 bundled 版本与目标版本不一致的情况：尝试按 bundled 版本安装
-    /// （从注册表查该版本 hash 并校验 WASM），保证离线可用。
-    fn install_bundled_fallback(
-        &self,
+    fn validate_manifest_identity(
+        manifest: &MarketManifestRaw,
         plugin_id: &str,
-        target_version: &str,
-        entry: &crate::RegistryEntry,
-        progress: &mut InstallProgressReporter<'_>,
-    ) -> Result<Option<PluginInstallResult>, PluginError> {
-        let bundled_dir = self.market_dir.join("plugins").join(plugin_id);
-        let bundled_manifest = bundled_dir.join("manifest.json");
-        let text = std::fs::read_to_string(&bundled_manifest).map_err(|_| {
-            PluginError::NetworkError(format!(
-                "无法下载 manifest 且 bundled 资源不存在: {}",
-                target_version
-            ))
-        })?;
-        let local: MarketManifestRaw = serde_json::from_str(&text).map_err(|e| {
-            PluginError::InvalidManifest(format!("bundled manifest 解析失败: {}", e))
-        })?;
-
-        if local.version == target_version {
-            return Ok(None); // 调用方继续按目标版本路径处理
+        version: &str,
+    ) -> Result<(), PluginError> {
+        if manifest.plugin_id != plugin_id || manifest.version != version {
+            return Err(PluginError::InvalidManifest(
+                "manifest 的插件 ID 或版本与安装目标不一致".to_string(),
+            ));
         }
-
-        // Bundled version mismatches the target — try installing the bundled version
-        // by looking it up in the registry. This handles the common case where
-        // the registry has been updated but the bundled WASM is still the old version.
-        tracing::warn!(
-            "Bundled version {} != target {}, attempting fallback install of bundled version",
-            local.version,
-            target_version
-        );
-        let bundled_version = local.version.clone();
-        let bundled_version_info = entry.versions.get(&bundled_version).ok_or_else(|| {
-            PluginError::NetworkError(format!(
-                "远程 manifest 下载失败且 bundled 版本 {} 在注册表中不存在，无法降级安装",
-                bundled_version
-            ))
-        })?;
-        let bundled_wasm = bundled_dir.join("plugin.wasm");
-        let wasm_bytes = std::fs::read(&bundled_wasm).map_err(|_| {
-            PluginError::NetworkError("无法下载 WASM 且 bundled 资源不存在".to_string())
-        })?;
-        progress.download(wasm_bytes.len() as u64, Some(wasm_bytes.len() as u64));
-        progress.phase(PluginInstallPhase::Verifying);
-        let actual_hash = compute_sha256(&wasm_bytes);
-        if actual_hash != bundled_version_info.sha256 {
-            return Err(PluginError::ChecksumMismatch);
-        }
-        let manifest = Self::manifest_from_raw(
-            local,
-            bundled_version.clone(),
-            Some(bundled_version_info.sha256.clone()),
-        );
-        progress.phase(PluginInstallPhase::Installing);
-        self.store.save_plugin(&manifest, &wasm_bytes)?;
-        self.audit.log(
-            plugin_id,
-            None::<String>,
-            PluginAuditAction::PluginInstalled {
-                version: bundled_version.clone(),
-            },
-        );
-        progress.phase(PluginInstallPhase::Completed);
-        Ok(Some(PluginInstallResult {
-            plugin_id: plugin_id.to_string(),
-            version: bundled_version,
-            installed_at: chrono::Utc::now().timestamp_millis(),
-        }))
+        Ok(())
     }
 
+    fn check_compatible(version: &str, info: &crate::RegistryVersion) -> Result<(), PluginError> {
+        if !crate::version::is_version_compatible(info, &crate::version::current_app_version()?) {
+            return Err(PluginError::IncompatibleVersion(version.to_string()));
+        }
+        Ok(())
+    }
+
+    fn bundled_manifest(&self, plugin_id: &str) -> Result<MarketManifestRaw, PluginError> {
+        let path = self
+            .market_dir
+            .join("plugins")
+            .join(plugin_id)
+            .join("manifest.json");
+        let bytes = read_bundled_file(&path, false)?;
+        serde_json::from_slice(&bytes)
+            .map_err(|_| PluginError::InvalidManifest("bundled manifest 解析失败".to_string()))
+    }
+
+    fn bundled_wasm(&self, plugin_id: &str) -> Result<Vec<u8>, PluginError> {
+        let path = self
+            .market_dir
+            .join("plugins")
+            .join(plugin_id)
+            .join("plugin.wasm");
+        read_bundled_file(&path, true)
+    }
+
+    fn prepare_verified(
+        &self,
+        raw: MarketManifestRaw,
+        plugin_id: &str,
+        version: &str,
+        info: &crate::RegistryVersion,
+        wasm: Vec<u8>,
+        progress: &mut InstallProgressReporter<'_>,
+    ) -> Result<PreparedPluginInstall, PluginError> {
+        Self::validate_manifest_identity(&raw, plugin_id, version)?;
+        Self::check_compatible(version, info)?;
+        if wasm.len() > MAX_WASM_SIZE {
+            return Err(PluginError::WasmTooLarge(wasm.len()));
+        }
+        let bytes = wasm.len() as u64;
+        progress.download(bytes, Some(bytes));
+        progress.phase(PluginInstallPhase::Verifying);
+        // 注册表摘要始终必验；空摘要不会降低为跳过校验。
+        if compute_sha256(&wasm) != info.sha256 {
+            return Err(PluginError::ChecksumMismatch);
+        }
+        let manifest = Self::manifest_from_raw(raw, version.to_string(), Some(info.sha256.clone()));
+        progress.phase(PluginInstallPhase::Installing);
+        let stored = self.store.prepare_plugin(&manifest, &wasm)?;
+        progress.phase(PluginInstallPhase::Finalizing);
+        Ok(PreparedPluginInstall {
+            stored,
+            completion: PluginInstallProgress {
+                percent: 100,
+                phase: PluginInstallPhase::Completed,
+                downloaded_bytes: bytes,
+                total_bytes: Some(bytes),
+            },
+            audit_install: true,
+        })
+    }
+
+    /// 只准备，不改变当前安装。HTTP、本地回退、校验和暂存均由调用 Future 拥有。
+    pub async fn prepare_install_from_registry_with_progress(
+        &self,
+        plugin_id: &str,
+        version: &str,
+        on_progress: &(dyn Fn(PluginInstallProgress) + Send + Sync),
+    ) -> Result<PreparedPluginInstall, PluginError> {
+        validate_plugin_id(plugin_id)?;
+        let mut progress = InstallProgressReporter::new(on_progress);
+        let entry = self.registry.get_entry(plugin_id)?;
+        let info = entry
+            .versions
+            .get(version)
+            .ok_or_else(|| PluginError::NotFound(format!("版本 {} 不存在", version)))?;
+        Self::check_compatible(version, info)?;
+
+        if let Some(stored) = self.prepare_installed_reuse(plugin_id, version, &info.sha256) {
+            progress.phase(PluginInstallPhase::Finalizing);
+            return Ok(PreparedPluginInstall {
+                stored,
+                completion: PluginInstallProgress::completed(),
+                // 保留原免下载路径：复用成功不重复写 PluginInstalled 审计。
+                audit_install: false,
+            });
+        }
+
+        let raw = match self.fetch_manifest(info).await {
+            Ok(raw) => {
+                Self::validate_manifest_identity(&raw, plugin_id, version)?;
+                raw
+            }
+            Err(_) => {
+                let local = self.bundled_manifest(plugin_id)?;
+                // 离线回退可以使用注册表已知的 bundled 版本，但不能替换插件身份。
+                if local.plugin_id != plugin_id {
+                    return Err(PluginError::InvalidManifest(
+                        "bundled 插件 ID 与安装目标不一致".into(),
+                    ));
+                }
+                if local.version != version {
+                    let bundled_version = local.version.clone();
+                    let bundled_info = entry.versions.get(&bundled_version).ok_or_else(|| {
+                        PluginError::NetworkError("bundled 版本不在注册表中，不能回退安装".into())
+                    })?;
+                    Self::check_compatible(&bundled_version, bundled_info)?;
+                    progress.phase(PluginInstallPhase::Downloading);
+                    let wasm = self.bundled_wasm(plugin_id)?;
+                    tokio::task::yield_now().await;
+                    return self.prepare_verified(
+                        local,
+                        plugin_id,
+                        &bundled_version,
+                        bundled_info,
+                        wasm,
+                        &mut progress,
+                    );
+                }
+                local
+            }
+        };
+
+        progress.phase(PluginInstallPhase::Downloading);
+        let wasm = match self.fetch_wasm(info, &mut progress).await {
+            Ok(wasm) => wasm,
+            Err(PluginError::WasmTooLarge(size)) => return Err(PluginError::WasmTooLarge(size)),
+            Err(_) => self.bundled_wasm(plugin_id)?,
+        };
+        tokio::task::yield_now().await;
+        self.prepare_verified(raw, plugin_id, version, info, wasm, &mut progress)
+    }
+
+    /// 准备注册表最新版本；CLI install latest 与 update 共享同一流程。
+    pub async fn prepare_update_with_progress(
+        &self,
+        plugin_id: &str,
+        on_progress: &(dyn Fn(PluginInstallProgress) + Send + Sync),
+    ) -> Result<PreparedPluginInstall, PluginError> {
+        validate_plugin_id(plugin_id)?;
+        let latest = self
+            .registry
+            .get_entry(plugin_id)?
+            .latest_version
+            .ok_or_else(|| PluginError::RegistryError("缺少最新版本信息".to_string()))?;
+        self.prepare_install_from_registry_with_progress(plugin_id, &latest, on_progress)
+            .await
+    }
+
+    /// 同步短提交：Store 复核原选择并切换完整版本，成功后才写成功审计。
+    /// CLI 在 TaskContext::commit 的原会话门闩内调用；这里不下载、不再校验大文件。
+    pub fn publish_install(
+        &self,
+        prepared: PreparedPluginInstall,
+    ) -> Result<PluginInstallResult, PluginError> {
+        let plugin_id = prepared.manifest().id.clone();
+        let version = prepared.manifest().version.clone();
+        self.store.publish_prepared(prepared.stored)?;
+        if prepared.audit_install {
+            self.audit.log(
+                &plugin_id,
+                None::<String>,
+                PluginAuditAction::PluginInstalled {
+                    version: version.clone(),
+                },
+            );
+        }
+        Ok(PluginInstallResult {
+            plugin_id,
+            version,
+            installed_at: chrono::Utc::now().timestamp_millis(),
+        })
+    }
+
+    fn publish_with_progress(
+        &self,
+        prepared: PreparedPluginInstall,
+        on_progress: &(dyn Fn(PluginInstallProgress) + Send + Sync),
+    ) -> Result<PluginInstallResult, PluginError> {
+        let completion = prepared.completion.clone();
+        let result = self.publish_install(prepared)?;
+        on_progress(completion);
+        Ok(result)
+    }
+
+    /// 原 GUI/库 API 保持签名，完成通知只在真实发布成功后发送。
     pub async fn install_from_registry(
         &self,
         plugin_id: &str,
@@ -358,117 +552,12 @@ impl PluginManager {
         version: &str,
         on_progress: &(dyn Fn(PluginInstallProgress) + Send + Sync),
     ) -> Result<PluginInstallResult, PluginError> {
-        let mut progress = InstallProgressReporter::new(on_progress);
-        let entry = self.registry.get_entry(plugin_id)?;
-        let version_info = entry
-            .versions
-            .get(version)
-            .ok_or_else(|| PluginError::NotFound(format!("版本 {} 不存在", version)))?;
-
-        if !crate::version::is_version_compatible(
-            version_info,
-            &crate::version::current_app_version()?,
-        ) {
-            return Err(PluginError::IncompatibleVersion(version.to_string()));
-        }
-
-        validate_plugin_id(plugin_id)?;
-
-        // ── 2. 检查应用数据目录中是否已安装且版本/hash 完全匹配 ──
-        if self.is_installed_ok(plugin_id, version, &version_info.sha256) {
-            tracing::info!(
-                "Plugin {} {} already installed and hash matches",
-                plugin_id,
-                version
-            );
-            progress.phase(PluginInstallPhase::Completed);
-            return Ok(PluginInstallResult {
-                plugin_id: plugin_id.to_string(),
-                version: version.to_string(),
-                installed_at: chrono::Utc::now().timestamp_millis(),
-            });
-        }
-
-        // ── 3. 优先从远程下载 manifest，失败回退 bundled ──
-        let manifest_raw = match self.fetch_manifest(version_info).await {
-            Ok(m) => m,
-            Err(remote_err) => {
-                tracing::warn!(
-                    "Remote manifest download failed: {}, falling back to bundled market_dir",
-                    remote_err
-                );
-                if let Some(result) =
-                    self.install_bundled_fallback(plugin_id, version, &entry, &mut progress)?
-                {
-                    return Ok(result);
-                }
-                // bundled 版本与目标一致：读回 bundled manifest 继续按目标版本安装
-                let bundled_dir = self.market_dir.join("plugins").join(plugin_id);
-                let bundled_manifest = bundled_dir.join("manifest.json");
-                let text = std::fs::read_to_string(&bundled_manifest).map_err(|_| {
-                    PluginError::NetworkError(format!(
-                        "无法下载 manifest 且 bundled 资源不存在: {}",
-                        remote_err
-                    ))
-                })?;
-                serde_json::from_str(&text).map_err(|e| {
-                    PluginError::InvalidManifest(format!("bundled manifest 解析失败: {}", e))
-                })?
-            }
-        };
-
-        // ── 4. 优先从远程下载 WASM，失败回退 bundled ──
-        progress.phase(PluginInstallPhase::Downloading);
-        let wasm_bytes = match self.fetch_wasm(version_info, &mut progress).await {
-            Ok(bytes) => bytes,
-            Err(remote_err) => {
-                tracing::warn!(
-                    "Remote WASM download failed: {}, falling back to bundled market_dir",
-                    remote_err
-                );
-                let bundled_dir = self.market_dir.join("plugins").join(plugin_id);
-                let bundled_wasm = bundled_dir.join("plugin.wasm");
-                std::fs::read(&bundled_wasm).map_err(|_| {
-                    PluginError::NetworkError(format!(
-                        "无法下载 WASM 且 bundled 资源不存在: {}",
-                        remote_err
-                    ))
-                })?
-            }
-        };
-
-        // ── 5. 校验 ──
-        progress.download(wasm_bytes.len() as u64, Some(wasm_bytes.len() as u64));
-        progress.phase(PluginInstallPhase::Verifying);
-        let actual_hash = compute_sha256(&wasm_bytes);
-        if actual_hash != version_info.sha256 {
-            return Err(PluginError::ChecksumMismatch);
-        }
-
-        let manifest = Self::manifest_from_raw(
-            manifest_raw,
-            version.to_string(),
-            Some(version_info.sha256.clone()),
-        );
-        progress.phase(PluginInstallPhase::Installing);
-        self.store.save_plugin(&manifest, &wasm_bytes)?;
-        self.audit.log(
-            plugin_id,
-            None::<String>,
-            PluginAuditAction::PluginInstalled {
-                version: version.to_string(),
-            },
-        );
-
-        progress.phase(PluginInstallPhase::Completed);
-        Ok(PluginInstallResult {
-            plugin_id: plugin_id.to_string(),
-            version: version.to_string(),
-            installed_at: chrono::Utc::now().timestamp_millis(),
-        })
+        let prepared = self
+            .prepare_install_from_registry_with_progress(plugin_id, version, on_progress)
+            .await?;
+        self.publish_with_progress(prepared, on_progress)
     }
 
-    /// 更新插件到注册表最新版本
     pub async fn update(&self, plugin_id: &str) -> Result<PluginInstallResult, PluginError> {
         self.update_with_progress(plugin_id, &|_| {}).await
     }
@@ -478,79 +567,61 @@ impl PluginManager {
         plugin_id: &str,
         on_progress: &(dyn Fn(PluginInstallProgress) + Send + Sync),
     ) -> Result<PluginInstallResult, PluginError> {
-        let entry = self.registry.get_entry(plugin_id)?;
-        let latest = entry
-            .latest_version
-            .ok_or_else(|| PluginError::RegistryError("缺少最新版本信息".to_string()))?;
-        self.install_from_registry_with_progress(plugin_id, &latest, on_progress)
-            .await
+        let prepared = self
+            .prepare_update_with_progress(plugin_id, on_progress)
+            .await?;
+        self.publish_with_progress(prepared, on_progress)
     }
 
-    /// 从远程 URL 下载插件 manifest
     async fn fetch_manifest(
         &self,
-        version_info: &crate::RegistryVersion,
+        info: &crate::RegistryVersion,
     ) -> Result<MarketManifestRaw, PluginError> {
-        let url = version_info
+        let url = info
             .raw_url
             .as_ref()
-            .or(version_info.download_url.as_ref())
+            .or(info.download_url.as_ref())
             .ok_or_else(|| {
                 PluginError::NetworkError("注册表中缺少 download_url / raw_url".to_string())
             })?;
-
-        let manifest_url = if url.ends_with("plugin.wasm") {
-            let base = &url[..url.len() - "plugin.wasm".len()];
-            format!("{}manifest.json", base)
-        } else {
-            return Err(PluginError::NetworkError(
-                "无法从 download_url 推导 manifest URL".to_string(),
-            ));
-        };
-
-        let client = http_client();
-
-        let text = client
-            .get(&manifest_url)
+        let base = url.strip_suffix("plugin.wasm").ok_or_else(|| {
+            PluginError::NetworkError("无法从 download_url 推导 manifest URL".to_string())
+        })?;
+        let response = self
+            .install_http_client()
+            .get(format!("{}manifest.json", base))
             .timeout(std::time::Duration::from_secs(30))
             .send()
             .await
-            .map_err(|e| PluginError::NetworkError(format!("下载 manifest 失败: {}", e)))?
-            .text()
-            .await
-            .map_err(|e| PluginError::NetworkError(format!("读取 manifest 响应失败: {}", e)))?;
-
-        let manifest: MarketManifestRaw = serde_json::from_str(&text)
-            .map_err(|e| PluginError::InvalidManifest(format!("manifest JSON 解析失败: {}", e)))?;
-
-        Ok(manifest)
+            .map_err(|_| PluginError::NetworkError("下载 manifest 失败".to_string()))?
+            .error_for_status()
+            .map_err(|_| PluginError::NetworkError("下载 manifest 失败".to_string()))?;
+        let bytes = read_manifest_response(response).await?;
+        serde_json::from_slice(&bytes)
+            .map_err(|_| PluginError::InvalidManifest("manifest JSON 解析失败".to_string()))
     }
 
-    /// 从远程 URL 下载插件 WASM 二进制
     async fn fetch_wasm(
         &self,
-        version_info: &crate::RegistryVersion,
+        info: &crate::RegistryVersion,
         progress: &mut InstallProgressReporter<'_>,
     ) -> Result<Vec<u8>, PluginError> {
-        let url = version_info
+        let url = info
             .download_url
             .as_ref()
-            .or(version_info.raw_url.as_ref())
+            .or(info.raw_url.as_ref())
             .ok_or_else(|| {
                 PluginError::NetworkError("注册表中缺少 download_url / raw_url".to_string())
             })?;
-
-        let client = http_client();
-
-        let response = client
+        let response = self
+            .install_http_client()
             .get(url)
             .timeout(std::time::Duration::from_secs(60))
             .send()
             .await
-            .map_err(|e| PluginError::NetworkError(format!("下载插件失败: {}", e)))?
+            .map_err(|_| PluginError::NetworkError("下载插件失败".to_string()))?
             .error_for_status()
-            .map_err(|e| PluginError::NetworkError(format!("下载插件失败: {}", e)))?;
-
+            .map_err(|_| PluginError::NetworkError("下载插件失败".to_string()))?;
         read_wasm_response(response, progress).await
     }
 
@@ -576,8 +647,7 @@ impl PluginManager {
         account_id: Option<String>,
         attachment_key: Option<[u8; 32]>,
     ) -> Result<PluginResult, PluginError> {
-        let wasm_bytes = self.store.load_wasm(plugin_id)?;
-        let manifest = self.store.load_manifest(plugin_id)?;
+        let (manifest, wasm_bytes) = self.store.load_plugin(plugin_id)?;
         let session = self
             .session_manager
             .create(plugin_id, manifest.data_ttl_seconds);
@@ -887,3 +957,7 @@ mod install_progress_tests {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "manager/rf214_tests.rs"]
+mod rf214_tests;

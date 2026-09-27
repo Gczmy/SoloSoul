@@ -27,7 +27,7 @@ pub use event::PluginEventSink;
 pub use field::FieldResolver;
 pub use host::{register_host_functions, SoloHostFunctions, SoloHostState};
 pub use install_progress::{PluginInstallPhase, PluginInstallProgress};
-pub use manager::PluginManager;
+pub use manager::{PluginManager, PreparedPluginInstall};
 pub use manifest::{
     MarketPluginInfo, PluginAuditAction, PluginAuditEntry, PluginInstallResult, PluginLogLine,
     PluginManifest, PluginNetworkPolicy, PluginResult, PluginResultPayload, PluginTier,

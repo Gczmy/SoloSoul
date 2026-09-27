@@ -199,6 +199,7 @@ pub enum AppPhase {
         plugins: Vec<PluginSummary>,
         selected: usize,
         filter: String,
+        installed_only: bool,
     },
     /// 插件详情页
     PluginDetail {
@@ -382,6 +383,9 @@ pub struct App {
     pub(crate) tasks: Tasks,
     pub(crate) task_progress: HashMap<TaskId, (u64, Option<u64>)>,
     pub(crate) embed_downloads: HashMap<String, commands::embed_model::EmbedDownload>,
+    pub(crate) plugin_installs: HashMap<String, commands::plugin::PluginInstallTask>,
+    #[cfg(test)]
+    pub(crate) plugin_test_dirs: Option<(std::path::PathBuf, std::path::PathBuf)>,
     pub process_lock: Option<ProcessLock>,
     pub command_input: CommandInput,
     pub password_input: PasswordInput,
@@ -459,6 +463,9 @@ impl App {
             tasks: Tasks::new(Arc::clone(&vault_service)),
             task_progress: HashMap::new(),
             embed_downloads: HashMap::new(),
+            plugin_installs: HashMap::new(),
+            #[cfg(test)]
+            plugin_test_dirs: None,
             vault_service,
             process_lock,
             command_input: CommandInput::new(),
@@ -816,6 +823,7 @@ impl App {
         self.tasks.cancel_all();
         self.task_progress.clear();
         self.embed_downloads.clear();
+        self.plugin_installs.clear();
     }
 
     /// 每轮有界消费，进度/完成不算用户活动；会话变化先释放旧进度。
@@ -823,6 +831,7 @@ impl App {
         for id in self.tasks.cancel_stale() {
             self.task_progress.remove(&id);
             self.embed_downloads.retain(|_, task| task.task_id != id);
+            self.plugin_installs.retain(|_, task| task.task_id != id);
         }
         for event in self.tasks.poll_events(limit) {
             self.handle_event(crate::events::Event::Task(event))?;
@@ -832,15 +841,34 @@ impl App {
 
     fn apply_task_event(&mut self, event: TaskEvent) {
         let id = event.identity.task_id;
+        // 完整详情来自该任务准备时的 DTO。解析在会话门闩外，接纳仍由 apply_event
+        // 的真实 TaskId/原会话校验决定；回填阶段不重新读取可能已换代的插件文件。
+        let installed_manifest = match &event.kind {
+            TaskEventKind::Completed(TaskOutput::PluginInstalled {
+                plugin_id,
+                version,
+                manifest_json,
+                ..
+            }) => serde_json::from_str::<solosoul_plugin::PluginManifest>(manifest_json)
+                .ok()
+                .filter(|manifest| &manifest.id == plugin_id && &manifest.version == version),
+            _ => None,
+        };
         // 仅由精确 TaskId 查找当前下载，旧任务不能移除同模型的新占位。
         let model = self
             .embed_downloads
             .iter()
             .find(|(_, download)| download.task_id == id)
             .map(|(model, _)| model.clone());
+        let plugin = self
+            .plugin_installs
+            .iter()
+            .find(|(_, install)| install.task_id == id)
+            .map(|(plugin, install)| (plugin.clone(), install.updated));
         let Self {
             tasks,
             task_progress,
+            plugin_installs,
             embed_downloads,
             info_message,
             error_message,
@@ -853,6 +881,54 @@ impl App {
         let applied = tasks.apply_event(event, |kind| match kind {
             TaskEventKind::Progress { current, total } => {
                 task_progress.insert(id, (current, total));
+            }
+            TaskEventKind::PluginProgress(progress) => {
+                if let Some((plugin, _)) = plugin.as_ref() {
+                    if let Some(task) = plugin_installs.get_mut(plugin) {
+                        task.progress = progress;
+                    }
+                }
+            }
+            TaskEventKind::Completed(TaskOutput::PluginInstalled {
+                plugin_id,
+                version,
+                name,
+                description,
+                tier,
+                manifest_json: _,
+                updated,
+            }) => {
+                if plugin
+                    .as_ref()
+                    .is_some_and(|(expected, kind)| expected == &plugin_id && *kind == updated)
+                {
+                    plugin_installs.remove(&plugin_id);
+                    *success_message = Some((
+                        i18n.t_args(
+                            if updated {
+                                "cmd-plugin-updated"
+                            } else {
+                                "cmd-plugin-installed"
+                            },
+                            &[("id", &plugin_id), ("ver", &version)],
+                        ),
+                        Instant::now(),
+                    ));
+                    let summary = PluginSummary {
+                        id: plugin_id,
+                        name,
+                        description,
+                        tier,
+                        installed_version: Some(version.clone()),
+                        version,
+                    };
+                    for page in std::iter::once(phase).chain(previous_phase.iter_mut()) {
+                        commands::plugin::install::refresh_list(page, &summary);
+                        if let Some(manifest) = &installed_manifest {
+                            commands::plugin::install::refresh_detail(page, manifest);
+                        }
+                    }
+                }
             }
             TaskEventKind::Completed(TaskOutput::Message(message)) => {
                 task_progress.remove(&id);
@@ -886,6 +962,16 @@ impl App {
                 if let Some(model) = model.as_deref() {
                     embed_downloads.remove(model);
                     *error_message = Some(t!(i18n, "cmd-embed-install-failed", err = error));
+                } else if let Some((plugin, updated)) = plugin.as_ref() {
+                    plugin_installs.remove(plugin);
+                    *error_message = Some(i18n.t_args(
+                        if *updated {
+                            "cmd-plugin-update-failed"
+                        } else {
+                            "cmd-plugin-install-failed"
+                        },
+                        &[("id", plugin), ("err", &error)],
+                    ));
                 } else {
                     *error_message = Some(error);
                 }
@@ -895,12 +981,16 @@ impl App {
                 if let Some(model) = model.as_deref() {
                     embed_downloads.remove(model);
                     *info_message = Some(t!(i18n, "cmd-embed-cancelled", model = model));
+                } else if let Some((plugin, _)) = plugin.as_ref() {
+                    plugin_installs.remove(plugin);
+                    *info_message = Some(t!(i18n, "cmd-plugin-task-cancelled", id = plugin));
                 }
             }
         });
         if !applied && !tasks.is_current(id) {
             task_progress.remove(&id);
             embed_downloads.retain(|_, task| task.task_id != id);
+            plugin_installs.retain(|_, task| task.task_id != id);
         }
     }
 
@@ -909,6 +999,7 @@ impl App {
         self.tasks.cancel_all();
         self.task_progress.clear();
         self.embed_downloads.clear();
+        self.plugin_installs.clear();
         self.plugin_run_pending = None;
         let report = crate::util::shared_runtime()?.block_on(self.tasks.shutdown());
         if report.panicked > 0 {
@@ -1879,6 +1970,7 @@ impl App {
             }
             "/plugin_install" => commands::plugin::install_plugin(self, parts.get(1).copied())?,
             "/plugin_update" => commands::plugin::update_plugin(self, parts.get(1).copied())?,
+            "/plugin_cancel" => commands::plugin::cancel_plugin(self, parts.get(1).copied())?,
             "/plugin_uninstall" => commands::plugin::uninstall_plugin(self, parts.get(1).copied())?,
             "/plugin_sessions" => commands::plugin::list_sessions(self)?,
             "/plugin_list_installed" => commands::plugin::list_installed_plugins(self)?,
@@ -2433,10 +2525,19 @@ impl App {
 
     /// 插件列表页的键盘处理。
     fn handle_plugin_list_key(&mut self, key: KeyEvent) -> Result<bool> {
+        // RF214：插件页面也必须能实际输入 /plugin_cancel，不能把斜杠当列表过滤文本。
+        if key.code == KeyCode::Char('/')
+            || !self.command_input.is_empty()
+            || self.command_palette.should_render(&self.command_input)
+        {
+            return self.handle_command_key(key);
+        }
+
         if let AppPhase::PluginList {
             plugins,
             selected,
             filter,
+            installed_only,
         } = &self.phase
         {
             let mut sel = *selected;
@@ -2474,7 +2575,8 @@ impl App {
                             KeyCode::Down if sel + 1 < filtered_len => sel += 1,
                             KeyCode::Enter if sel < filtered_len => {
                                 let plugin_id = filtered[sel].id.clone();
-                                if let Some(manifest) = commands::plugin::load_manifest(&plugin_id)
+                                if let Some(manifest) =
+                                    commands::plugin::load_manifest_for_app(self, &plugin_id)
                                 {
                                     self.phase = AppPhase::PluginDetail { manifest };
                                 }
@@ -2508,6 +2610,7 @@ impl App {
                     plugins: plugins.clone(),
                     selected: sel,
                     filter,
+                    installed_only: *installed_only,
                 };
                 return Ok(false);
             }
@@ -2522,7 +2625,9 @@ impl App {
                 KeyCode::Down if sel + 1 < plugins.len() => sel += 1,
                 KeyCode::Enter if sel < plugins.len() => {
                     let plugin_id = plugins[sel].id.clone();
-                    if let Some(manifest) = commands::plugin::load_manifest(&plugin_id) {
+                    if let Some(manifest) =
+                        commands::plugin::load_manifest_for_app(self, &plugin_id)
+                    {
                         self.phase = AppPhase::PluginDetail { manifest };
                     }
                     return Ok(false);
@@ -2557,6 +2662,7 @@ impl App {
                 plugins: plugins.clone(),
                 selected: sel,
                 filter,
+                installed_only: *installed_only,
             };
         }
         Ok(false)
@@ -2564,6 +2670,14 @@ impl App {
 
     /// 插件详情页的键盘处理。
     fn handle_plugin_detail_key(&mut self, key: KeyEvent) -> Result<bool> {
+        // RF214：插件页面也必须能实际输入 /plugin_cancel，不能把斜杠当列表过滤文本。
+        if key.code == KeyCode::Char('/')
+            || !self.command_input.is_empty()
+            || self.command_palette.should_render(&self.command_input)
+        {
+            return self.handle_command_key(key);
+        }
+
         if matches!(key.code, KeyCode::Esc | KeyCode::Char('q')) {
             commands::core::back(self);
         }
@@ -3184,12 +3298,20 @@ impl App {
 
             AppPhase::PluginList {
                 plugins,
-
                 selected,
-
                 filter,
+                installed_only,
             } => crate::screens::plugin_list::render(
-                frame, area, plugins, *selected, filter, &self.i18n,
+                frame,
+                area,
+                plugins,
+                *selected,
+                filter,
+                crate::screens::plugin_list::PluginInstallView {
+                    installed_only: *installed_only,
+                    progress: &commands::plugin::install::progress_lines(self),
+                },
+                &self.i18n,
             ),
 
             AppPhase::PluginDetail { manifest } => {
@@ -3395,6 +3517,7 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/plugin_run",
             "/plugin_install",
             "/plugin_update",
+            "/plugin_cancel",
             "/plugin_uninstall",
             "/plugin_sessions",
             "/plugin_list_installed",
@@ -3404,6 +3527,17 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/sync",
             "/ocr",
             "/embed_model",
+        ],
+        AppPhase::PluginList { .. } | AppPhase::PluginDetail { .. } => &[
+            "/back",
+            "/exit",
+            "/lock",
+            "/plugin",
+            "/plugin_install",
+            "/plugin_update",
+            "/plugin_cancel",
+            "/plugin_list_installed",
+            "/help",
         ],
         AppPhase::UnlockWizard { .. } => &["/back"],
         AppPhase::SettingsMenu { .. }

@@ -670,3 +670,19 @@ embed-model-cancelling = Cancelling
 embed-model-local = Local
 embed-model-cancel-hint = Cancel a download: /embed_model cancel <id>
 status-embed-downloads = Downloads: {$count}
+
+# RF214: managed plugin installation
+cmd-plugin-usage-cancel = Usage: /plugin_cancel <plugin_id>
+cmd-plugin-task-active = Plugin {$id} has an active installation. Cancel it and wait before retrying.
+cmd-plugin-run-active = Wait for the running plugin before installing or updating.
+cmd-plugin-task-started = Installing {$id} in the background. /plugin_cancel {$id} cancels it.
+cmd-plugin-no-task = No active installation for {$id}.
+cmd-plugin-task-finishing = Plugin {$id} is committing; waiting for its actual result.
+cmd-plugin-task-cancelled = Installation cancelled: {$id}.
+plugin-task-cancelling = Cancelling
+plugin-task-preparing = Preparing
+plugin-task-downloading = Downloading
+plugin-task-verifying = Verifying
+plugin-task-installing = Installing
+plugin-installed-version = Installed: {$ver}
+status-plugin-installs = Plugin tasks ({$count})

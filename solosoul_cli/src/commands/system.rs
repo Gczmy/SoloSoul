@@ -197,6 +197,31 @@ pub const HELP_GROUPS: &[(&str, &[HelpEntry])] = &[
         ],
     ),
     (
+        "插件安装",
+        &[
+            HelpEntry {
+                command: "/plugin",
+                description: "查看插件市场与安装进度",
+            },
+            HelpEntry {
+                command: "/plugin_install <id>",
+                description: "后台安装插件",
+            },
+            HelpEntry {
+                command: "/plugin_update <id>",
+                description: "后台更新插件",
+            },
+            HelpEntry {
+                command: "/plugin_cancel <id>",
+                description: "取消尚未提交的插件安装",
+            },
+            HelpEntry {
+                command: "/plugin_list_installed",
+                description: "查看完整安装的插件",
+            },
+        ],
+    ),
+    (
         "设置与安全",
         &[
             HelpEntry {
@@ -335,6 +360,23 @@ static USAGE_MAP: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(
         "/about (或 /version)\n  显示应用版本、系统与数据目录信息。"
     );
     usage!("help", "/help [命令]\n  显示命令分组列表或指定命令的用法。");
+    usage!(
+        "plugin",
+        "/plugin\n  查看插件市场、当前版本与后台安装进度。"
+    );
+    usage!(
+        "plugin_install",
+        "/plugin_install <id>\n  登录后后台下载、校验并安装，期间可继续输入或锁定。"
+    );
+    usage!(
+        "plugin_update",
+        "/plugin_update <id>\n  后台准备新版，成功发布后才替换当前版本。"
+    );
+    usage!("plugin_cancel", "/plugin_cancel <id>\n  请求取消未提交的安装；等待实际回收后可重试。正在提交时保留真实结果。");
+    usage!(
+        "plugin_list_installed",
+        "/plugin_list_installed\n  仅列出完整安装；后台完成后自动刷新列表。"
+    );
     // 别名映射
     for (alias, primary) in &[
         ("login", "unlock"),

@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**97**（P1：35；P2：61；P3：1）。
-- 已关闭：**43 / 97**；实际修复（已关闭）：43；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无；RF-212已完成CLI模型下载后台化、进度、取消及原会话发布，21项定向与234项CLI全量测试通过，提交见本项执行记录。下一候选RF-214（CLI插件安装任务化），RF-213等待RF-905的真实Sync任务回收及会话提交能力。前置RF-211已于 `efd35e75` 独立提交。RF-113已于 `20892751` 独立提交。RF-114等仍待原前置，RF-121仍需跨平台原生材质验收。RF-109已于 `04bfcc9e` 完成独立提交。RF-029已于 `36dee674` 独立提交。RF-906恢复草案及红测证据保留在恢复目录供追溯。RF-905 的同步生命周期及 Host Vault 切换/附件 worker 接入被自动审批拒绝；46 份未集成源码已 SHA-256 校验归档至恢复目录 `rf905-proposal/`，44 份 tracked 源码恢复 HEAD、2 份本次新增草案移出工作树，未编译/测试，待具体授权。RF-021 Host 接入被自动审批拒绝，14份已批准草案已校验归档至恢复目录 `rf021-proposal/`，相关源码和规范已恢复 HEAD；未编译或运行草案测试，待明确授权。RF-016 Core 写入被自动审批拒绝，获批的11份源码/测试已校验归档至恢复目录 `rf016-proposal/` 并从当前源码恢复，未留下未集成 Rust 依赖；待明确授权后恢复该项。RF-014、RF-104 同样仍等待明确授权。RF-903 保持待执行，依赖 RF-905。
+- 已关闭：**44 / 97**；实际修复（已关闭）：44；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无；RF-214已完成本地修复与验收，提交见本项执行记录。下一候选RF-215（可取消CLI OCR），前置RF-211/RF-029已完成，只读预检已归档，尚未实施。RF-213仍依赖RF-905的真实Sync生命周期；RF-903仍待RF-905。RF-104、RF-014、RF-016、RF-021、RF-905保持既有具体授权阻塞，已归档草案不恢复。Android任务缺少本机C盘可用JDK/SDK/NDK及Rust Android targets，不以浏览器或其他平台替代原生验收。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -194,7 +194,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 66 | [RF-211](#rf-211) | P2 | 为 CLI 建立任务事件与会话失效基础 | [RF-001](#rf-001) | [x] 完成 |
 | 67 | [RF-212](#rf-212) | P2 | 将 CLI 模型下载迁移到任务事件 | [RF-211](#rf-211) | [x] 完成 |
 | 68 | [RF-213](#rf-213) | P2 | 将 CLI 同步迁移到任务事件 | [RF-211](#rf-211)、[RF-905](#rf-905) | [ ] 待执行 |
-| 69 | [RF-214](#rf-214) | P2 | 将 CLI 插件安装迁移到任务事件 | [RF-211](#rf-211) | [ ] 待执行 |
+| 69 | [RF-214](#rf-214) | P2 | 将 CLI 插件安装迁移到任务事件 | [RF-211](#rf-211) | [x] 完成 |
 | 70 | [RF-215](#rf-215) | P2 | 将 CLI OCR 迁移到可取消后台任务 | [RF-211](#rf-211)、[RF-029](#rf-029) | [ ] 待执行 |
 | 71 | [RF-301](#rf-301) | P2 | 建立 Rust 到 TypeScript 的增量 IPC 契约生成 | 无 | [ ] 待执行 |
 | 72 | [RF-302](#rf-302) | P2 | 迁移对象和回滚 IPC 契约 | [RF-301](#rf-301)、[RF-008](#rf-008)、[RF-010](#rf-010) | [ ] 待执行 |
@@ -1023,10 +1023,10 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 **将 CLI 插件安装迁移到任务事件** · P2 · 来源：R15
 
 - **前置：**[RF-211](#rf-211)。
-- **入口：**`solosoul_cli/src/commands/plugin.rs`；`solosoul_cli/src/app.rs`。
+- **入口：**`solosoul_cli/src/commands/plugin.rs`；`solosoul_cli/src/app.rs`；`tauri/crates/solosoul-plugin/src/{manager,store}.rs`。
 - **执行：**将插件安装网络等待移入任务，复用既有签名/校验/取消能力；仅成功完成后更新已安装列表，保留授权与沙箱规则。
 - **验收：**安装时 CLI 不冻结；取消和失败不留下成功状态；锁定期间无旧账户 UI 回填；不降低签名检查。
-- **验证配置：**`CLI`。**定向验证：**假安装源/校验失败/取消/迟到事件测试。
+- **验证配置：**`CLI` + `R` + 插件crate定向回归（2026-09-27确认真实安装发布需修改共享层）。**定向验证：**假安装源/校验失败/取消/迟到事件测试。
 - **建议提交：**`refactor(cli): run plugin installation as a task [RF-214]`。
 
 ### RF-215
@@ -2124,4 +2124,47 @@ git commit -m "<任务卡的提交标题>"
 
 - 验证运行于本机Windows，Cargo串行、jobs=1，使用已有sqlite3工具目录和PDFium DLL，无新增RUSTFLAGS。定向21项包括10项真实loopback HTTP/App用例、5项任务提交竞争/会话/退出屏障用例、6项路径与文件系统用例；Unix专属符号链接用例未在Windows编译执行，不计入通过数。全量包含既有RF-211任务公平性/生命周期回归；未访问真实模型服务、未下载大模型，也未宣称已完成交互终端或GUI模型安装验收。
 - canonical更新：项目结构规范§13/13.1记录取消与提交许可、格式和生命周期边界；CLI用户指南§4.13记录下载/取消/进度/失败清理。CLI仍保持既有registry/model.bin格式，与GUI的注册表、目录及ONNX资源契约不同。本项没有Core/Host共享Rust改动，按CLI配置完成；tempfile沿用原锁定版本3.27.0，仅从dev依赖提升为正常依赖。
-- 收尾范围为15文件（12源码/manifest/locale、3规范/报告）。已核对最终源码SHA与实际通过版本一致，3张原用户NSIS图片SHA保持；Cargo自动刷新5个本地path包版本的lock差异单独归档并恢复原基线，不混入提交。日志、退出码JSON及SHA位于恢复证据目录。最终提交：**本提交，使用RF-212检索**；未推送。当前 **43/97已关闭**，原5项具体授权阻塞保持；RF-213继续等待真实前置，下一候选RF-214需按共享插件改动范围补充R验证。
+- 收尾范围为15文件（12源码/manifest/locale、3规范/报告）。已核对最终源码SHA与实际通过版本一致，3张原用户NSIS图片SHA保持；Cargo自动刷新5个本地path包版本的lock差异单独归档并恢复原基线，不混入提交。日志、退出码JSON及SHA位于恢复证据目录。最终提交：`156d556d`（RF-212）；未推送。当前 **43/97已关闭**，原5项具体授权阻塞保持；RF-213继续等待真实前置，下一候选RF-214需按共享插件改动范围补充R验证。
+
+### RF-214 执行记录（2026-09-27，完成）
+
+- 上一目标轮完成RF-212提交，属于实际进展。本项开始HEAD `156d556d`，暂存区/未跟踪为空，实际差异仅3张原用户NSIS图片；图片及两个Cargo.lock原始SHA已留存。本项前置RF-211满足；RF-213按真实Sync生命周期依赖继续等待RF-905，不恢复任何已归档阻塞草案。
+- 只读预检确认安装/更新链没有脱离管理的worker，可以直接由Tasks持有Future。CLI仍使用数组注册表并回退字符串latest，实际共享schema为映射；已解析的market路径又传给会追加目录的resource入口。共享Store先覆盖manifest再写WASM，写入失败破坏旧版，后台更新还可能让运行链分次读取两版数据。先补实际入口及真实文件失败回归，再拆分准备/发布并保持成对读取。
+- 拟采用完整暂存、不可变安装版本目录与单current指针发布；保留旧布局读取，准备/取消不得发布成功，失败保留旧版本，坏指针不静默回退。旧客户端不识别新增布局，文档须明确；不宣称两次目录rename原子更新或断电耐久。原GUI安装API保留，签名/摘要/兼容/授权/沙箱保持；CLI继续使用既有全局插件数据根。共享crate变更按实际范围追加R检查，所有Cargo串行。
+
+- CLI首轮红测编译成功、exit101（128.79s），但实际失败在夹具tier写成community，未到目标断言，**不计作产品红测证据**。已按真实enum修为p3，保留原断言，待共享代码完整可编译后仅运行该原registry用例；旧load_registry_entries解析暂保留以核实map/Vec差异。共享Store两项原实现红测已启动，单包feature组合触发依赖重编译，仍持有原进程等待，无中断/重复Cargo。
+- 编译期间并行实现CLI任务和UI：捕获原会话、在worker构造Manager、实际字节/阶段进度、/plugin_cancel、保留取消占位至join、精确TaskId清理；成功刷新当前及返回列表。复审发现插件页吞掉斜杠输入，已接入命令处理器并安排真实逐键回归；直接Vault锁定后被拒绝终态也清理旧占位。11项CLI回归仅使用合成Vault/market/data与loopback屏障，尚未运行。
+- 为保持运行中的原Store红测不受影响，共享Store/Manager生产草案先准备在恢复目录rf214-store-draft及rf214-manager-draft，源文件SHA核验后再集成。Store增加指针与成对加载、失败保护；列表只做有界manifest与文件元数据检查，避免每次打开市场读取所有大WASM，运行仍全量验摘要。Manager保留原GUI接口/取消/完成语义；新增回环测试client仅cfg(test)禁用代理，不改变生产HTTP或签名规则。现未通过定向/CLI/R全部检查，不关闭也不提交本项。
+
+- Store原实现红测已完成：2/2 failed，Cargo exit101（1496.35s，含单包依赖重编译）；实际断言证明失败新装仍列出不完整包，以及Windows占用旧WASM时旧manifest被覆盖。没有启动错误弹窗。源/草案SHA全部校验后集成Store与Manager共5文件，并完成定向格式化；原两项红测断言保留，开始运行扩展回归。
+- 独立复审补两处真实UI一致性缺口：过滤后列表按可见数裁剪selected；完成事件携带准备时完整manifest DTO，在原TaskId/原会话核验后同步当前和返回缓存详情，版本及权限不留旧值。DTO解析在会话门闩外，无门闩内Store读取。真实HTTP更新与导航回归正在补充，当前仍未完成必需检查。
+
+- 共享插件定向绿测21/21 passed、0 ignored，Cargo exit0（143.23s），包括两项原红测、Windows current指针占用失败、复用变更、成对读取、真实HTTP超限/摘要/身份/bundled/GUI完成顺序。Unix专属权限用例未在本机Windows执行，不计入通过数。
+- CLI registry第二次尝试暴露本次实现4处t!宏仅接受literal而传入动态key的编译错误（72.91s，exit101），已改为现有I18n方法；第三次真实执行原目标测试，1/1 failed（71.98s，exit101），明确报invalid type: map, expected a sequence，构成有效产品红测。之后改为共享PluginRegistry解析与展示投影，去掉latest回退，修正解析市场目录误传resource构造器；旧运行worker本身仍不迁移。
+- CLI回归扩为14项，追加过滤后卸载/HTTP更新的真实选中与Enter、当前与/help返回详情完整manifest核验。独立复审未发现假覆盖或会话保护回退，现定向检查进行中。
+
+- 首轮CLI定向14/14 passed（112.14s），fmt exit0（0.73s）、Clippy all-targets零警告exit0（25.14s）、全量246单元+2集成passed且1原有doctest ignored（283.64s）。随后最终复审发现旧运行入口的registry helper只读market而Manager读真实缓存，可能选择bundled旧版；已将helper与Manager统一传入同一market/data目录对，并新增缓存2.0与bundled1.0、移除合成缓存后回落的第15项回归。该补充在首轮CLI检查全部退出后集成，共享R源码未改；最终CLI验证需重跑，不能用首轮结果代替。
+
+- 首轮R fmt exit0（5.29s）、Clippy零警告exit0（130.46s）。全量Rust首次Cargo exit101（1166.31s，含Host重编译）：596项GUI单元及地址插件集成通过，但既有plugin_install集成测试仍硬编码旧manifest/WASM根路径，触发断言失败。已保留安装/列表/卸载/临时目录断言，改为验证current指针及目标两文件，并经真实Store.load_plugin校验成对内容、实际版本/字节和完整manifest；需要重跑该集成及完整R测试，未忽略或删除用例。
+
+- 调整后的Host安装集成1/1 passed（152.60s），完整R fmt复核exit0（2.51s），第二轮完整R **1,279 passed、0 failed、3原有ignored**，Cargo exit0（213.23s）。其中GUI 596单元及三项原安装资源取消回归均通过；共享生产源码相对已通过Clippy版本未再改变。本机既有solo_soul.pdb输出名称冲突警告保留，不降检查级别。最终CLI缓存优先回归及CLI全部必需检查仍在执行，暂不关闭。
+
+- 最终行为：显式插件安装/更新移入受管任务；真实字节/阶段进度、取消后等待join、原会话发布许可及精确TaskId隔离均接入。成功同步当前和返回缓存的列表/完整详情，过滤后选择仍可操作；CLI共享registry schema及缓存优先级，使用实际版本与显式market/data目录，保留全局插件根。
+- 共享准备完成校验、写入与关闭后才允许原子切换current指针；取消或失败清理本次暂存，旧版本保持完整。无指针兼容旧布局，坏指针拒绝读取；运行成对读取清单与WASM并验摘要，列表仅有界读清单/元数据。原GUI API、签名策略、授权、沙箱和后处理保持；未迁移旧插件运行worker或注册表刷新。
+
+| RF-214 最终验证 | 真实结果 | 耗时/证据 |
+| --- | --- | --- |
+| 共享插件定向 | 21 passed，0 failed/ignored，exit0 | 143.23s，`rf214-plugin-green-1` |
+| Host安装集成 | 1 passed，0 failed/ignored，exit0 | 152.60s，`rf214-integration-green-1` |
+| Workspace fmt | exit0 | 2.51s，`rf214-workspace-fmt-2` |
+| Workspace Clippy | exit0、零警告 | 130.46s，`rf214-workspace-clippy-1` |
+| 完整Rust workspace | 1,279 passed，0 failed，3原有ignored，exit0 | 213.23s，`rf214-workspace-full-2` |
+| CLI定向 | 15 passed，0 failed/ignored，exit0 | 151.33s，`rf214-cli-green-2` |
+| CLI fmt | exit0 | 0.86s，`rf214-cli-fmt-2` |
+| CLI Clippy all-targets | exit0、零警告 | 18.14s，`rf214-cli-clippy-2` |
+| 完整CLI | 247单元+2集成=249 passed，0 failed，1原有doctest ignored，exit0 | 228.25s，`rf214-cli-full-2` |
+
+- 全部在本机Windows运行，Cargo串行、jobs=1，沿用sqlite3/PDFium环境，无新增RUSTFLAGS。新增回归仅使用临时Vault/market/data及loopback HTTP屏障；既有Host安装集成沿用仓库市场资源并将所有安装/审计写入临时根。GUI三项既有取消资源回归全部通过。Rust原有忽略项为两项legacy field测试及P025数据收集工具，CLI为原i18n宏文档示例；未新增ignore或降低断言。
+- 验证边界：未在Unix执行其专属权限/符号链接用例，未宣称交互终端或macOS/移动端实机验收。新版本布局不保证旧客户端降级读取，也不宣称跨进程改写协调、断电耐久或旧版本自动GC。canonical已同步CLI指南、项目结构§13.2及插件概览/运行时规范。
+- 收尾核对16个源码/locale/测试与5份文档，共21文件。最终源码SHA、日志SHA、退出码与数量保存在恢复目录 `rf214-final-verification.json`；共享Clippy通过后只调整旧集成测试断言，生产实现保持不变。Cargo自动刷新五个本地path包版本的差异已归档并恢复两个lock的原始字节，三张原用户NSIS图片SHA保持且不纳入提交。
+- 最终结论：本项 **完成**；提交：本提交，使用 `git log --grep=RF-214` 检索，未推送。报告累计 **44/97已关闭**，原5项具体授权阻塞保持；下一候选RF-215只读预检保存在恢复目录 `rf215-readonly-preplan.md`，未混入本提交。

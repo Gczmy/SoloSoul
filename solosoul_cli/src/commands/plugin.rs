@@ -12,6 +12,9 @@ use crate::t;
 
 use solosoul_plugin::{PluginEvent, PluginEventSink};
 
+pub(crate) mod install;
+pub(crate) use install::PluginInstallTask;
+
 /// P035：插件 ID 白名单字符校验。
 /// 插件 ID 会直接拼接入本地路径（market_dir/plugins/<id>），必须拒绝路径分隔符与
 /// `.`/`..`，杜绝 `../`、绝对路径等路径逃逸。允许 `[a-zA-Z0-9_.-]`。
@@ -53,41 +56,53 @@ pub struct PluginSummary {
     pub version: String,
     pub description: String,
     pub tier: String,
+    pub installed_version: Option<String>,
 }
 
 /// /plugin 或 /plugin_list — 列出所有可用插件。
 pub fn list_plugins(app: &mut App) -> Result<()> {
-    let market_dir = resolve_plugin_market_dir();
-
-    match load_registry_entries(&market_dir) {
-        Ok(entries) => {
-            let plugins: Vec<PluginSummary> = entries
-                .into_iter()
-                .map(|e| PluginSummary {
-                    id: e.id,
-                    name: e.name,
-                    version: e.version,
-                    description: e.description.unwrap_or_default(),
-                    tier: e.tier.unwrap_or_else(|| "community".to_string()),
-                })
-                .collect();
-
-            if plugins.is_empty() {
-                // R2-X2: 空态为信息语义，走中性 info overlay
-                app.info_message = Some(t!(app.i18n, "cmd-plugin-market-empty"));
-            } else {
-                app.phase = AppPhase::PluginList {
-                    plugins,
-                    selected: 0,
-                    filter: String::new(),
-                };
-            }
-        }
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-plugin-search-failed", err = e));
-        }
+    if let Some(plugins) = market_summaries(app) {
+        app.phase = AppPhase::PluginList {
+            plugins,
+            selected: 0,
+            filter: String::new(),
+            installed_only: false,
+        };
     }
     Ok(())
+}
+
+fn market_summaries(app: &mut App) -> Option<Vec<PluginSummary>> {
+    let manager = create_manager(app)?;
+    match manager.list_all(None) {
+        Ok(entries) => {
+            let mut plugins: Vec<_> = entries
+                .into_iter()
+                .map(|entry| {
+                    let installed_version = entry.installed_version.clone();
+                    let entry = RegistryEntry::from(entry);
+                    PluginSummary {
+                        id: entry.id,
+                        name: entry.name,
+                        version: entry.version,
+                        description: entry.description.unwrap_or_default(),
+                        tier: entry.tier.unwrap_or_default(),
+                        installed_version,
+                    }
+                })
+                .collect();
+            plugins.sort_by(|a, b| a.id.cmp(&b.id));
+            Some(plugins)
+        }
+        Err(error) => {
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-plugin-list-installed-failed",
+                err = error
+            ));
+            None
+        }
+    }
 }
 
 /// /plugin_run <plugin_id> [key=value ...] — 运行指定插件（后台异步执行）。
@@ -103,6 +118,11 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
         }
     };
     if reject_invalid_plugin_id(app, &plugin_id) {
+        return Ok(());
+    }
+    app.drain_task_events(32)?;
+    if app.plugin_installs.contains_key(&plugin_id) {
+        app.info_message = Some(t!(app.i18n, "cmd-plugin-task-active", id = &plugin_id));
         return Ok(());
     }
 
@@ -128,7 +148,13 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
         .ok()
         .and_then(|k| k.as_slice().try_into().ok());
 
-    let market_dir = resolve_plugin_market_dir();
+    let (market_dir, data_dir) = match manager_dirs(app) {
+        Ok(dirs) => dirs,
+        Err(error) => {
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-init-failed", err = error));
+            return Ok(());
+        }
+    };
     let plugin_dir = market_dir.join("plugins").join(&plugin_id);
     if !plugin_dir.exists() {
         app.error_message = Some(t!(app.i18n, "cmd-plugin-not-found", id = plugin_id));
@@ -136,13 +162,24 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
     }
 
     // 查找插件版本
-    let version = match load_registry_entries(&market_dir) {
-        Ok(entries) => entries
-            .iter()
-            .find(|e| e.id == plugin_id)
-            .map(|e| e.version.clone())
-            .unwrap_or_else(|| "latest".to_string()),
-        Err(_) => "latest".to_string(),
+    let version = match load_registry_entries(&market_dir, &data_dir).and_then(|entries| {
+        entries
+            .into_iter()
+            .find(|entry| entry.id == plugin_id)
+            .map(|entry| entry.version)
+            .filter(|version| !version.is_empty())
+            .ok_or_else(|| "插件注册表缺少具体版本".to_string())
+    }) {
+        Ok(version) => version,
+        Err(error) => {
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-plugin-run-failed",
+                id = plugin_id,
+                err = error
+            ));
+            return Ok(());
+        }
     };
 
     // 解析 key=value 运行时参数
@@ -186,7 +223,7 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
 
         let outcome = rt.block_on(async {
             let manager =
-                match solosoul_plugin::PluginManager::new_with_resource_dir(&market_dir_clone) {
+                match solosoul_plugin::PluginManager::new_with_dirs(market_dir_clone, data_dir) {
                     Ok(m) => m,
                     Err(e) => return (true, format!("初始化插件管理器失败: {}", e)),
                 };
@@ -236,97 +273,17 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
 
 /// /plugin_install <plugin_id> — 从插件市场安装插件。
 pub fn install_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
-    let plugin_id = match plugin_id {
-        Some(id) => id.to_string(),
-        None => {
-            app.error_message = Some(t!(app.i18n, "cmd-plugin-usage-install"));
-            return Ok(());
-        }
-    };
-    if reject_invalid_plugin_id(app, &plugin_id) {
-        return Ok(());
-    }
-
-    let Some(manager) = create_manager(app) else {
-        return Ok(());
-    };
-
-    let version = match load_registry_entries(&resolve_plugin_market_dir()) {
-        Ok(entries) => entries
-            .iter()
-            .find(|e| e.id == plugin_id)
-            .map(|e| e.version.clone())
-            .unwrap_or_else(|| "latest".to_string()),
-        Err(_) => "latest".to_string(),
-    };
-
-    let rt = crate::util::shared_runtime()?;
-
-    match rt.block_on(manager.install_from_registry(&plugin_id, &version)) {
-        Ok(result) => {
-            app.success_message = Some((
-                t!(
-                    app.i18n,
-                    "cmd-plugin-installed",
-                    id = result.plugin_id,
-                    ver = result.version
-                ),
-                std::time::Instant::now(),
-            ));
-        }
-        Err(e) => {
-            app.error_message = Some(t!(
-                app.i18n,
-                "cmd-plugin-install-failed",
-                id = plugin_id,
-                err = e
-            ));
-        }
-    }
-    Ok(())
+    install::start(app, plugin_id, false)
 }
 
-/// /plugin_update <plugin_id> — 更新已安装插件。
+/// /plugin_update <plugin_id> — 在原会话后台更新插件。
 pub fn update_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
-    let plugin_id = match plugin_id {
-        Some(id) => id.to_string(),
-        None => {
-            app.error_message = Some(t!(app.i18n, "cmd-plugin-usage-update"));
-            return Ok(());
-        }
-    };
-    if reject_invalid_plugin_id(app, &plugin_id) {
-        return Ok(());
-    }
+    install::start(app, plugin_id, true)
+}
 
-    let Some(manager) = create_manager(app) else {
-        return Ok(());
-    };
-
-    let rt = crate::util::shared_runtime()?;
-
-    match rt.block_on(manager.update(&plugin_id)) {
-        Ok(result) => {
-            app.success_message = Some((
-                t!(
-                    app.i18n,
-                    "cmd-plugin-updated",
-                    id = result.plugin_id,
-                    ver = result.version
-                ),
-                std::time::Instant::now(),
-            ));
-        }
-        Err(e) => {
-            app.error_message = Some(t!(
-                app.i18n,
-                "cmd-plugin-update-failed",
-                id = plugin_id,
-                err = e
-            ));
-        }
-    }
-    Ok(())
+/// /plugin_cancel <plugin_id> — 请求取消，实际回收前保留任务占位。
+pub fn cancel_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
+    install::cancel(app, plugin_id)
 }
 
 /// /plugin_uninstall <plugin_id> — 卸载插件。
@@ -342,12 +299,21 @@ pub fn uninstall_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
         return Ok(());
     }
 
+    app.drain_task_events(32)?;
+    if app.plugin_installs.contains_key(&plugin_id) {
+        app.info_message = Some(t!(app.i18n, "cmd-plugin-task-active", id = &plugin_id));
+        return Ok(());
+    }
     let Some(manager) = create_manager(app) else {
         return Ok(());
     };
 
     match manager.uninstall(&plugin_id) {
         Ok(()) => {
+            install::remove_from_list(&mut app.phase, &plugin_id);
+            if let Some(page) = app.previous_phase.as_mut() {
+                install::remove_from_list(page, &plugin_id);
+            }
             app.success_message = Some((
                 t!(app.i18n, "cmd-plugin-uninstalled", id = plugin_id),
                 Instant::now(),
@@ -407,28 +373,29 @@ pub fn list_installed_plugins(app: &mut App) -> Result<()> {
     let Some(manager) = create_manager(app) else {
         return Ok(());
     };
-
     match manager.list_installed() {
         Ok(installed) => {
-            if installed.is_empty() {
-                app.info_message = Some(t!(app.i18n, "cmd-plugin-none-installed"));
-            } else {
-                let lines: Vec<String> = installed
-                    .iter()
-                    .map(|p| format!("- {} v{} ({})", p.name, p.version, p.description))
-                    .collect();
-                app.info_message = Some(
-                    t!(
-                        app.i18n,
-                        "cmd-plugin-installed-header",
-                        count = installed.len().to_string()
-                    ) + "\n"
-                        + &lines.join("\n"),
-                );
-            }
+            let mut plugins: Vec<_> = installed
+                .into_iter()
+                .map(|p| PluginSummary {
+                    id: p.id,
+                    name: p.name,
+                    installed_version: Some(p.version.clone()),
+                    version: p.version,
+                    description: p.description,
+                    tier: format!("{:?}", p.tier).to_lowercase(),
+                })
+                .collect();
+            plugins.sort_by(|a, b| a.id.cmp(&b.id));
+            app.phase = AppPhase::PluginList {
+                plugins,
+                selected: 0,
+                filter: String::new(),
+                installed_only: true,
+            };
         }
         Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-plugin-list-installed-failed", err = e));
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-list-installed-failed", err = e))
         }
     }
     Ok(())
@@ -501,7 +468,6 @@ pub fn load_manifest(plugin_id: &str) -> Option<solosoul_plugin::PluginManifest>
     serde_json::from_str::<solosoul_plugin::PluginManifest>(&content).ok()
 }
 
-/// 创建 PluginManager 实例（提取公共代码）。/// 创建 PluginManager 实例（提取公共代码）。
 /// /plugin_registry_update — 异步刷新远程插件注册表。
 pub fn update_registry(app: &mut App) -> Result<()> {
     let Some(manager) = create_manager(app) else {
@@ -539,68 +505,73 @@ pub fn update_registry(app: &mut App) -> Result<()> {
 
 /// /plugin_search <keyword> — 在插件市场中按关键词搜索。
 pub fn search_plugins(app: &mut App, keyword: Option<&str>) -> Result<()> {
-    let keyword = match keyword {
-        Some(k) => k.to_lowercase(),
-        None => {
-            app.error_message = Some(t!(app.i18n, "cmd-plugin-usage-search"));
-            return Ok(());
-        }
+    let Some(keyword) = keyword else {
+        app.error_message = Some(t!(app.i18n, "cmd-plugin-usage-search"));
+        return Ok(());
     };
-
-    let market_dir = resolve_plugin_market_dir();
-
-    match load_registry_entries(&market_dir) {
-        Ok(entries) => {
-            let matched: Vec<PluginSummary> = entries
-                .into_iter()
-                .filter(|e| {
-                    e.name.to_lowercase().contains(&keyword)
-                        || e.description
-                            .as_deref()
-                            .unwrap_or("")
-                            .to_lowercase()
-                            .contains(&keyword)
-                })
-                .map(|e| PluginSummary {
-                    id: e.id,
-                    name: e.name,
-                    version: e.version,
-                    description: e.description.unwrap_or_default(),
-                    tier: e.tier.unwrap_or_else(|| "community".to_string()),
-                })
-                .collect();
-
-            if matched.is_empty() {
-                app.error_message = Some(t!(
-                    app.i18n,
-                    "cmd-plugin-search-no-match",
-                    keyword = keyword
-                ));
-            } else {
-                app.phase = AppPhase::PluginList {
-                    plugins: matched,
-                    selected: 0,
-                    filter: String::new(),
-                };
-            }
-        }
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-plugin-search-failed", err = e));
+    let keyword = keyword.to_lowercase();
+    if let Some(entries) = market_summaries(app) {
+        let plugins: Vec<_> = entries
+            .into_iter()
+            .filter(|p| {
+                p.name.to_lowercase().contains(&keyword)
+                    || p.description.to_lowercase().contains(&keyword)
+            })
+            .collect();
+        if plugins.is_empty() {
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-plugin-search-no-match",
+                keyword = keyword
+            ));
+        } else {
+            app.phase = AppPhase::PluginList {
+                plugins,
+                selected: 0,
+                filter: String::new(),
+                installed_only: false,
+            };
         }
     }
     Ok(())
 }
 
 /// 创建 PluginManager 实例（提取公共代码）。
+fn manager_dirs(_app: &App) -> Result<(PathBuf, PathBuf), solosoul_plugin::PluginError> {
+    #[cfg(test)]
+    if let Some(dirs) = &_app.plugin_test_dirs {
+        return Ok(dirs.clone());
+    }
+    // 插件仍使用既有全局目录，不能悄悄改为账户 --data-dir。
+    Ok((
+        resolve_plugin_market_dir(),
+        solosoul_plugin::PluginStore::data_dir()?,
+    ))
+}
+
 fn create_manager(app: &mut App) -> Option<solosoul_plugin::PluginManager> {
-    let market_dir = resolve_plugin_market_dir();
-    match solosoul_plugin::PluginManager::new_with_resource_dir(&market_dir) {
+    match manager_dirs(app)
+        .and_then(|(market, data)| solosoul_plugin::PluginManager::new_with_dirs(market, data))
+    {
         Ok(m) => Some(m),
         Err(e) => {
             app.error_message = Some(t!(app.i18n, "cmd-plugin-init-failed", err = e));
             None
         }
     }
+}
+
+/// 已安装详情从实际存储读，市场清单仍保留既有备用入口。
+pub(crate) fn load_manifest_for_app(
+    app: &App,
+    id: &str,
+) -> Option<solosoul_plugin::PluginManifest> {
+    let (_, data) = manager_dirs(app).ok()?;
+    solosoul_plugin::PluginStore::new_with_data_dir(data)
+        .ok()?
+        .load_manifest(id)
+        .ok()
+        .or_else(|| load_manifest(id))
 }
 
 /// 解析插件市场目录路径。
@@ -621,36 +592,34 @@ fn resolve_plugin_market_dir() -> PathBuf {
     PathBuf::from("./SoloSoul_plugin_market")
 }
 
-/// 克 registry.json 加载插件注册表条目。
-fn load_registry_entries(market_dir: &Path) -> Result<Vec<RegistryEntry>, String> {
-    let registry_path = market_dir.join("registry.json");
-    if !registry_path.exists() {
-        return Err(format!("未找到 registry.json: {}", registry_path.display()));
-    }
-
-    let content = std::fs::read_to_string(&registry_path)
-        .map_err(|e| format!("读取 registry.json 失败: {}", e))?;
-
-    #[derive(serde::Deserialize)]
-    struct RegistryFile {
-        plugins: Vec<RegistryEntry>,
-    }
-
-    let registry: RegistryFile =
-        serde_json::from_str(&content).map_err(|e| format!("解析 registry.json 失败: {}", e))?;
-
-    Ok(registry.plugins)
+/// 复用共享映射式注册表，不维护 CLI 私有 JSON schema。
+fn load_registry_entries(market_dir: &Path, data_dir: &Path) -> Result<Vec<RegistryEntry>, String> {
+    solosoul_plugin::PluginRegistry::new_with_dirs(market_dir.to_owned(), data_dir.to_owned())
+        .load(&[])
+        .map(|entries| entries.into_iter().map(RegistryEntry::from).collect())
+        .map_err(|error| error.to_string())
 }
 
-#[derive(serde::Deserialize, Debug, Clone)]
+/// 仅为 CLI 展示的投影；反序列化由共享 PluginRegistry 完成。
+#[derive(Debug, Clone)]
 struct RegistryEntry {
     id: String,
     name: String,
     version: String,
-    #[serde(default)]
     description: Option<String>,
-    #[serde(default)]
     tier: Option<String>,
+}
+
+impl From<solosoul_plugin::MarketPluginInfo> for RegistryEntry {
+    fn from(info: solosoul_plugin::MarketPluginInfo) -> Self {
+        Self {
+            id: info.plugin_id,
+            name: info.registry_entry.name,
+            version: info.registry_entry.latest_version.unwrap_or_default(),
+            description: Some(info.registry_entry.description),
+            tier: Some(format!("{:?}", info.tier).to_lowercase()),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -696,3 +665,7 @@ mod tests {
         assert!(load_manifest("..").is_none());
     }
 }
+
+#[cfg(test)]
+#[path = "plugin/rf214_tests.rs"]
+mod rf214_tests;

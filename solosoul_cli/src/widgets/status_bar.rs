@@ -101,6 +101,23 @@ pub fn render(app: &App) -> Paragraph<'_> {
         ));
     }
 
+    if let Some((id, task)) = app.plugin_installs.iter().min_by(|a, b| a.0.cmp(b.0)) {
+        spans.push(Span::styled(" | ", theme.style_muted()));
+        spans.push(Span::styled(
+            format!(
+                "{}: {} {}",
+                t!(
+                    app.i18n,
+                    "status-plugin-installs",
+                    count = &app.plugin_installs.len().to_string()
+                ),
+                id,
+                crate::commands::plugin::install::progress_label(task, &app.i18n)
+            ),
+            theme.style_cream(),
+        ));
+    }
+
     // 已登录时显示剩余锁定时间（<60 秒时橘红色强调提醒）
     if app.vault_service.is_unlocked() {
         let idle = Instant::now().duration_since(app.last_activity);

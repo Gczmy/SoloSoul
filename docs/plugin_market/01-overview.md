@@ -56,18 +56,20 @@ SoloSoul 插件系统为个人数字孪生引擎提供可扩展能力，核心�
 ## 1.4 客户端消费链路
 
 1. **市场目录定位**（`paths.rs`）：Release 构建时插件市场作为 Tauri 资源打包（`资源目录/SoloSoul_plugin_market/`）；开发模式（`debug_assertions`）回退到源码相对路径。
-2. **注册表**：启动时从 `https://plugins.solosoul.app/registry.json` 拉取（可用 `SOLOSOUL_REGISTRY_URL` 覆盖），用 `SOLOSOUL_REGISTRY_PUBKEY` 对应私钥的 **minisign 签名**校验完整性；未配置公钥或拉取失败时，回落使用随应用打包的 bundled 注册表（`registry.rs::update_from_remote`）。
-3. **插件二进制**：按注册表条目的 `download_url`（jsDelivr CDN）下载，失败回退 `raw_url`（GitHub Raw）；再失败则尝试 `install_bundled_fallback`（随应用分发的本地副本）。
-4. **安装校验**：下载完成后计算 SHA-256 并与注册表记录的 `sha256` 强制比对，不一致即拒绝安装（`manager.rs::install_from_registry`）。
+2. **注册表**：读取时优先使用本地缓存，其次使用 bundled 注册表。`registry.rs::update_from_remote` 刷新时验证 minisign 签名，通过后才更新缓存；未配置公钥则跳过刷新，拉取或验签失败不替换原本地注册表。Release 使用固定 URL `https://plugins.solosoul.app/registry.json` 和编译期公钥，仅 debug 构建允许 `SOLOSOUL_REGISTRY_URL` / `SOLOSOUL_REGISTRY_PUBKEY` 覆盖。
+3. **准备安装**：`prepare_install_from_registry_with_progress` 准备指定版本，`prepare_update_with_progress` 选择注册表的最新版本。manifest URL 优先从 `raw_url` 推导，字段缺失才使用 `download_url`；WASM URL 优先使用 `download_url`，缺失才使用 `raw_url`。选定 URL 请求失败后尝试 bundled 副本，不执行两个远程 URL 之间的重试。bundled 回退若使用其他版本，必须在当前注册表中存在并通过兼容性与摘要校验，结果返回实际版本。
+4. **校验与发布**：准备时核对 manifest 的插件 ID 与目标版本，WASM 的 SHA-256 必须匹配注册表记录；身份或摘要不匹配直接失败。`publish_install` 消费准备对象并发布完整版本，成功后才记安装审计；原安装/更新 API 保留为准备与发布的包装。
 5. **兼容性检查**：`min_app_version ≤ 当前版本 ≤ max_app_version`（`version.rs::is_version_compatible`）。
 6. **运行**：Wasmtime 沙盒执行——WASI Preview1、单次运行 100 亿燃料上限、stdio 静默丢弃；桌面端 Cranelift JIT，Android/iOS 自动切换 Pulley 解释器；同一 wasm 编译产物以 SHA-256 为键进程级缓存。
 
 ## 1.5 数据目录
 
+下表的 `{data_dir}` 是 `PluginManager::new_with_dirs` 接收的插件数据根。桌面默认值为 `~/.solosoul`；CLI 沿用这个全局目录，不随账户或 `--data-dir` 改变。
+
 | 路径 | 说明 |
 |------|------|
-| `{data_dir}/plugins/{plugin_id}/` | 已安装插件（`manifest.json` + `plugin.wasm`），由 `PluginStore` 管理 |
-| `{data_dir}/plugins/registry.json` | 远程注册表缓存（可写，替换 bundled 只读副本） |
-| `{data_dir}/plugin_audit.log` | 插件审计日志（`audit.rs`） |
+| `{data_dir}/plugins/{plugin_id}/` | `current.json` 指向完整的不可变版本目录；无指针时兼容旧 manifest/WASM 双文件布局，由 `PluginStore` 管理 |
+| `{data_dir}/registry.json` | 远程注册表缓存（可写，替换 bundled 只读副本） |
+| `{data_dir}/plugin_audit.jsonl` | 插件审计日志（`audit.rs`） |
 
-> 无 `installed.json` 索引文件——已安装插件列表通过扫描 `plugins/` 目录实时获取（`store.rs::installed_manifests`）。
+> 无全局 `installed.json` 索引文件——列表扫描 `plugins/` 下完整安装；仅存在暂存目录不代表已安装。每个插件的 `current.json` 是版本发布点，损坏指针不静默回退。读取及更新契约见[运行时§2.2](02-runtime.md#22-生命周期)。

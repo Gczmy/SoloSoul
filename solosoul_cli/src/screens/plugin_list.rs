@@ -10,6 +10,11 @@ use crate::commands::plugin::PluginSummary;
 use crate::i18n::I18n;
 use crate::t;
 
+pub struct PluginInstallView<'a> {
+    pub installed_only: bool,
+    pub progress: &'a [String],
+}
+
 /// 渲染插件列表页。
 pub fn render(
     frame: &mut Frame,
@@ -17,11 +22,20 @@ pub fn render(
     plugins: &[PluginSummary],
     selected: usize,
     filter: &str,
+    installation: PluginInstallView<'_>,
     i18n: &I18n,
 ) {
+    let PluginInstallView {
+        installed_only,
+        progress: installs,
+    } = installation;
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Min(0), Constraint::Length(1)])
+        .constraints([
+            Constraint::Min(0),
+            Constraint::Length((installs.len() as u16).min(area.height / 3)),
+            Constraint::Length(1),
+        ])
         .split(area);
 
     let filtered: Vec<&PluginSummary> = plugins
@@ -35,7 +49,13 @@ pub fn render(
         })
         .collect();
 
-    let title = if filter.is_empty() {
+    let title = if installed_only {
+        t!(
+            i18n,
+            "cmd-plugin-installed-header",
+            count = &plugins.len().to_string()
+        )
+    } else if filter.is_empty() {
         format!(
             "{} ({})",
             t!(
@@ -79,7 +99,17 @@ pub fn render(
                 };
 
                 ListItem::new(Line::from(vec![Span::styled(
-                    format!("{}{} v{}  [{}]", prefix, p.name, p.version, p.tier),
+                    format!(
+                        "{}{} v{}  [{}]  {}",
+                        prefix,
+                        p.name,
+                        p.version,
+                        p.tier,
+                        p.installed_version
+                            .as_ref()
+                            .map(|version| t!(i18n, "plugin-installed-version", ver = version))
+                            .unwrap_or_default()
+                    ),
                     style,
                 )]))
             })
@@ -103,5 +133,6 @@ pub fn render(
         Style::default().fg(Color::DarkGray),
     )]));
 
-    frame.render_widget(help, chunks[1]);
+    frame.render_widget(Paragraph::new(installs.join("\n")), chunks[1]);
+    frame.render_widget(help, chunks[2]);
 }

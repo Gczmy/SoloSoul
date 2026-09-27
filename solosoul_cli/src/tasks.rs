@@ -37,7 +37,20 @@ pub struct TaskIdentity {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TaskOutput {
     Message(String),
-    EmbedModelInstalled { model_id: String, bytes: u64 },
+    EmbedModelInstalled {
+        model_id: String,
+        bytes: u64,
+    },
+    PluginInstalled {
+        plugin_id: String,
+        version: String,
+        name: String,
+        description: String,
+        tier: String,
+        // prepare 阶段已校验的完整快照；用于刷新详情，不在会话门闩内重新读文件。
+        manifest_json: String,
+        updated: bool,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -49,6 +62,7 @@ pub enum TaskFailure {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TaskEventKind {
     Progress { current: u64, total: Option<u64> },
+    PluginProgress(solosoul_plugin::PluginInstallProgress),
     Completed(TaskOutput),
     Failed(String),
     Cancelled,
@@ -56,7 +70,7 @@ pub enum TaskEventKind {
 
 impl TaskEventKind {
     fn is_terminal(&self) -> bool {
-        !matches!(self, Self::Progress { .. })
+        !matches!(self, Self::Progress { .. } | Self::PluginProgress(_))
     }
 }
 
@@ -115,6 +129,19 @@ impl TaskContext {
                 Ok(publish().map_err(TaskFailure::Failed))
             })
             .map_err(|_| TaskFailure::Cancelled)?
+    }
+
+    /// RF214：沿用有界队列与原任务身份，不允许进度回调直接修改 App。
+    pub fn report_plugin_progress(&self, progress: solosoul_plugin::PluginInstallProgress) -> bool {
+        if self.is_cancel_requested() {
+            return false;
+        }
+        self.progress
+            .try_send(TaskEvent {
+                identity: self.identity.clone(),
+                kind: TaskEventKind::PluginProgress(progress),
+            })
+            .is_ok()
     }
 
     /// 中间进度允许丢弃；终态由 JoinSet 的真实完成结果单独产生。
