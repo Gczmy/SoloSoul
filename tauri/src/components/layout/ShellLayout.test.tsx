@@ -19,7 +19,12 @@ vi.mock('@/components/ui/ContentLoadingSkeleton', () => ({
 
 describe('ShellLayout（B1 常驻壳布局）', () => {
   beforeEach(() => {
-    useShellConfigStore.setState({ title: '', actions: undefined, onBack: undefined });
+    useShellConfigStore.setState({
+      title: '',
+      actions: undefined,
+      primaryActions: undefined,
+      onBack: undefined,
+    });
   });
 
   it('渲染常驻壳，并展示当前页面注册的标题', () => {
