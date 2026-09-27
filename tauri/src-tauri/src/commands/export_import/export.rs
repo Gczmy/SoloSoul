@@ -1,4 +1,6 @@
 use super::*;
+use solosoul_core::{VaultService, VaultSession};
+use std::sync::{Arc, RwLock};
 
 // ── Export commands ────────────────────────────────────────────
 
@@ -528,13 +530,61 @@ pub async fn export_execute(
     account_id: String,
     req: ExportRequest,
 ) -> Result<String, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let zip_path = resolve_zip_path(&app, &req.save_path)?;
-    execute_export_core(&svc, &account_id, &req, &zip_path)?;
-    Ok(zip_path)
+    let job = ExportJob::prepare(Arc::clone(&state.vault_service), &account_id, req, |path| {
+        resolve_zip_path(&app, path)
+    })?;
+    run_export_job(move || job.run()).await
+}
+
+/// RF-025：排队前固定原会话与授权路径，只将 owned 数据送入阻塞线程。
+/// 路径解析器在 prepare 内同步执行；桌面白名单与移动端 staging 仍由命令负责。
+pub(super) struct ExportJob {
+    vault_service: Arc<RwLock<VaultService>>,
+    session: VaultSession,
+    req: ExportRequest,
+    zip_path: String,
+}
+
+impl ExportJob {
+    pub(super) fn prepare(
+        vault_service: Arc<RwLock<VaultService>>,
+        account_id: &str,
+        req: ExportRequest,
+        resolve_path: impl FnOnce(&str) -> Result<String, String>,
+    ) -> Result<Self, String> {
+        let (zip_path, session) = {
+            let svc = vault_service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            let zip_path = resolve_path(&req.save_path)?;
+            (zip_path, svc.capture_session(account_id)?)
+        };
+        Ok(Self {
+            vault_service,
+            session,
+            req,
+            zip_path,
+        })
+    }
+
+    pub(super) fn run(self) -> Result<String, String> {
+        // 只在阻塞线程内持服务读锁；不可重新捕获排队后的当前会话。
+        let svc = self
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        execute_export_for_session(&svc, &self.session, &self.req, &self.zip_path)?;
+        Ok(self.zip_path)
+    }
+}
+
+pub(super) async fn run_export_job(
+    job: impl FnOnce() -> Result<String, String> + Send + 'static,
+) -> Result<String, String> {
+    tokio::task::spawn_blocking(job)
+        .await
+        // JoinError 可能携带 panic 内容，不能将其拼入面向用户的错误。
+        .map_err(|_| "导出任务执行失败".to_string())?
 }
 
 /// 导出核心逻辑（与 `export_execute` 共享，供云同步快照、跨设备恢复复用）。

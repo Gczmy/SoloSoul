@@ -52,6 +52,8 @@
 | 导入导出 (Export/Import) | 9 | `export_get_scope_tree`、`export_estimate_size`、`export_execute`、`export_get_attachments`、`import_parse_package`、`import_get_password_hint`、`import_decrypt_preview`、`import_execute`、`import_execute_advanced` |
 | 备份 (Backup) | 5 | `backup_list`、`backup_create`、`backup_restore`、`backup_delete`、`inspect_backup` |
 
+**GUI 导出调度契约（RF-025）**：`export_execute` 在路径授权与原会话捕获后，将 owned 请求移入 `spawn_blocking`。KDF、读取解密、ZIP 与文件 IO 在阻塞池运行，同步服务锁不跨 await；worker 使用捕获的原会话，排队时的锁定/账户切换/重解锁仍拒绝旧任务发布。业务错误原样传播，Join 失败仅返回固定“导出任务执行失败”。当前无导出进度事件或运行中取消接口；具体边界见[GUI 导出调度](16_导入导出功能设计.md#1076-gui-导出调度rf-025)。
+
 **Profile 备份创建契约（RF-012）**：`backup_create(name)` 保持 2.0 JSON 清单和 `data_b64` 编码，仅备份当前 Vault 的 Profile 条目。枚举后必须完整读取全部条目；读取错误与条目消失分别返回失败，不能静默跳过。全部条目收集、序列化成功后才写出备份；收集失败不修改已有同名文件、不返回成功数量，也不触发自动同步或设备同步。成功返回的 `BackupInfo.object_count` 沿用历史字段名，值与 `manifest.profile_count` 一致，均为完整 Profile 集合的长度；该文件不是包含对象和附件的完整 Vault 导出包。
 
 **Profile 备份共享编码与恢复契约（RF-013）**：GUI/CLI 均调用 `solosoul_core::backup`，GUI 创建仍输出 2.0/`data_b64`，CLI 创建仍输出 2.0/`data` 数组。恢复要求完整的 `version`、`created_at`、`profile_count` 和 `profiles` 清单；仅接受字符串版本 `1.0`/`2.0` 的已知条目结构，声明数量必须等于实际条目数。未知版本、缺少 header、数量不符和任意条目解码失败均在首次 Profile 保存前拒绝。版本/数量检查是本次新增的明确约束，仓库内两端历史 writer 的完整 2.0 输出保持兼容。
@@ -569,7 +571,7 @@ pub const EVENT_BIOMETRIC_CREDENTIAL_EXPIRED: &str = "biometric-credential-expir
 |--------|---------|------|
 | `llm-stream-chunk` | `{ conversationId, chunk, isDone, error? }` | LLM 流式对话逐字推送 |
 | `ocr-install-progress` | `{ tier, progress (0–100), done, error? }` | OCR 模型下载进度 |
-| `export-progress` | `{ percent, message }` | 导入导出进度 |
+| `export-progress` | — | 未实现；GUI 导出当前仅返回 IPC 完成结果 |
 | `import-progress` | `{ percent, message }` | 导入进度 |
 | `sync-progress` | `{ deviceId, percent, message }` | 设备同步进度 |
 

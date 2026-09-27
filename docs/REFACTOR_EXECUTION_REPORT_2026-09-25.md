@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**95**（P1：34；P2：60；P3：1）。
-- 已关闭：**32 / 95**；实际修复（已关闭）：32；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无（RF-013 已完成；下一项 RF-025：GUI 导出移出异步运行时工作线程）。RF-905 的同步生命周期及 Host Vault 切换/附件 worker 接入被自动审批拒绝；46 份未集成源码已 SHA-256 校验归档至恢复目录 `rf905-proposal/`，44 份 tracked 源码恢复 HEAD、2 份本次新增草案移出工作树，未编译/测试，待具体授权。RF-021 Host 接入被自动审批拒绝，14份已批准草案已校验归档至恢复目录 `rf021-proposal/`，相关源码和规范已恢复 HEAD；未编译或运行草案测试，待明确授权。RF-016 Core 写入被自动审批拒绝，获批的11份源码/测试已校验归档至恢复目录 `rf016-proposal/` 并从当前源码恢复，未留下未集成 Rust 依赖；待明确授权后恢复该项。RF-014、RF-104 同样仍等待明确授权。RF-903 保持待执行，依赖 RF-905。
+- 已关闭：**33 / 95**；实际修复（已关闭）：33；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无（RF-025 已完成；下一项 RF-026：解密导入预览移出异步运行时工作线程）。RF-905 的同步生命周期及 Host Vault 切换/附件 worker 接入被自动审批拒绝；46 份未集成源码已 SHA-256 校验归档至恢复目录 `rf905-proposal/`，44 份 tracked 源码恢复 HEAD、2 份本次新增草案移出工作树，未编译/测试，待具体授权。RF-021 Host 接入被自动审批拒绝，14份已批准草案已校验归档至恢复目录 `rf021-proposal/`，相关源码和规范已恢复 HEAD；未编译或运行草案测试，待明确授权。RF-016 Core 写入被自动审批拒绝，获批的11份源码/测试已校验归档至恢复目录 `rf016-proposal/` 并从当前源码恢复，未留下未集成 Rust 依赖；待明确授权后恢复该项。RF-014、RF-104 同样仍等待明确授权。RF-903 保持待执行，依赖 RF-905。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -167,7 +167,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 39 | [RF-015](#rf-015) | P2 | 显式表示附件导出范围 | [RF-014](#rf-014) | [ ] 待执行 |
 | 40 | [RF-023](#rf-023) | P2 | 加密包导出用例下沉 core | [RF-015](#rf-015)、[RF-017](#rf-017) | [ ] 待执行 |
 | 41 | [RF-024](#rf-024) | P2 | 加密包导入用例下沉 core | [RF-018](#rf-018)、[RF-020](#rf-020)、[RF-021](#rf-021)、[RF-022](#rf-022) | [ ] 待执行 |
-| 42 | [RF-025](#rf-025) | P2 | GUI 导出移出异步运行时工作线程 | 无 | [ ] 待执行 |
+| 42 | [RF-025](#rf-025) | P2 | GUI 导出移出异步运行时工作线程 | 无 | [x] 完成 |
 | 43 | [RF-026](#rf-026) | P2 | 解密导入预览移出异步运行时工作线程 | 无 | [ ] 待执行 |
 | 44 | [RF-027](#rf-027) | P2 | 高级导入移出异步运行时工作线程 | 无 | [ ] 待执行 |
 | 45 | [RF-028](#rf-028) | P2 | PDF OCR 临时页面由 RAII 清理 | 无 | [ ] 待执行 |
@@ -1852,4 +1852,18 @@ git commit -m "<任务卡的提交标题>"
 - 定向验证：Core rf013_ **10/10**（146.64s）；GUI 真实 writer **1/1**（445.64s）；CLI 全备份模块 **15/15**（154.00s）；GUI 全备份模块 **17/17**（32.00s）。均 exit 0，无新增忽略。实际 GUI 输出与 CLI 输入 SHA-256 为 `1d9893a386714689e1d37cb81c0035e4b7c57fe6b702db6e893f9fedef02ad74`，实际 CLI 输出与 GUI 输入为 `ef2caaeb676aa5b1a7159a5094fd8627201205005dd6f03c7cfc178a1f8324f1`，逐阶段归档副本已重新核验。
 - 必需检查：workspace fmt（1.70s）、CLI fmt（0.53s）、workspace Clippy `-D warnings`（45.28s）、CLI all-targets Clippy（55.27s）均 exit 0。R 完整 `cargo test --verbose` exit 0（877.36s），**1,207 passed / 0 failed / 3 原有 ignored**（Host566、Core273）；CLI 完整 `cargo test --verbose --no-fail-fast` exit 0（137.39s），**187 passed / 0 failed / 1 原有 ignored**（185 单元+2向导集成）。原有忽略项未改变；本项无前端源码修改。
 - 收尾：验证后的11份源码/fixture及3张用户图片与冻结 SHA-256 一致；10条检查均成功，产物交换 TempDir 已自动清理。仅恢复 CLI Cargo.lock 自动刷新的5个本地 path crate 版本，经断言与 HEAD 完全一致，无依赖升级。规范链接、95项索引/任务卡及改动范围复核通过；日志/结果保留于恢复目录 `rf013-*.log`、`rf013-validation.json`，合成交换证据保留于 `rf013-exchange-artifacts/`。
-- 最终结论：本项 **完成**。提交：本提交（按 RF-013 检索），未推送；仅纳入本项15个文件，保留3张用户NSIS图片。当前32/95已关闭、5项待具体授权阻塞；下一项 RF-025 只读方案已保存，尚未实施。
+- 最终结论：本项 **完成**。提交：`2f692aaf`（RF-013），未推送；仅纳入本项15个文件，保留3张用户NSIS图片。当前32/95已关闭、5项待具体授权阻塞；下一项 RF-025 只读方案已保存，尚未实施。
+
+### RF-025 执行记录（2026-09-27，完成）
+
+- 基线 HEAD `2f692aaf`，有效工作区 C 盘恢复副本，语义差异仅3张原NSIS图片。导出入口虽然 async，原实现无 await，KDF、读取/解密、ZIP和文件IO直接占用异步工作线程；RF-017已完成，现有路径授权与会话发布保护继续保留。
+- 实施范围：命令短作用域内解析/授权路径并捕获原会话；owned ExportJob 携带请求、路径、服务Arc及原VaultSession进入spawn_blocking，worker内获取服务读锁并调用execute_export_for_session，await不持同步锁；Join失败返回固定错误、导出业务错误原样传播。仍保留worker全程服务读锁，本项不解决目录热切换等待，不扩展进度/运行中取消协议或云附件选择。
+- 验证计划：真实current_thread runtime中以entered/progressed/release屏障证明独立异步任务推进，成功包真实导入；排队期间锁定/换账户/同账户重解锁拒绝旧任务并保留目标和审计；业务失败和真实JoinError不误报成功。复跑RF-017、ZIP收尾故障与R完整检查后独立提交。
+
+- 实施冻结：仅增加 Host ExportJob 准备/运行与实际调度入口，未改既有导出核心、RF-017 finalize/输出helper、旧回归或云入口；源码逐段与HEAD核对一致。新增5项真实回归，覆盖单线程runtime推进后实际导入、三种旧会话失效、三种业务错误、真实JoinError及路径resolver拒绝。根与独立Agent只读复审均无阻断；路径测试使用本夹具resolver，不声称AppHandle路径授权端到端覆盖。工作区fmt已通过（1.86s），随后定向检查、Clippy及R完整检查均通过，结果见下。
+
+- 定向结果：`cargo test -p solo_soul --lib rf025_` exit 0，**5 passed / 0 failed / 0 ignored**（251.26s，测试2.54s）；`cargo test -p solo_soul --lib rf017_` exit 0，**10 passed / 0 failed / 0 ignored**（4.62s），涵盖真实写入/entry close/finish write+seek/flush+sync/persist失败、Windows目标占用、会话失效与成功导入。Workspace Clippy `-D warnings` exit 0（34.00s）；随后R完整检查通过，见收尾记录。
+
+- 完整验证：R `cargo test --verbose` exit 0（568.49s），**1,212 passed / 0 failed / 3 原有 ignored**，含Host571、Core273；5项新增及10项RF-017全部通过，两个既有legacy field与P025手动性能工具的忽略状态保持。本项无Core/CLI/前端改动，不重复其独立检查。
+- 收尾：三个修改/新增Rust文件与三张用户图片SHA-256和冻结记录一致；现有同步导出核心、RF-017发布helper/回归及云入口逐段核对未变。生产和测试均经独立只读复审，无阻断findings；规范07/16、95项索引/任务卡及diff whitespace检查通过。验证日志与结果保存于恢复目录 `rf025-*.log`、`rf025-validation.json`。
+- 最终结论：本项 **完成**。提交：本提交（按 RF-025 检索），未推送；仅纳入本项6个文件，保留3张原NSIS图片。当前33/95已关闭，5项待具体授权阻塞；下一项RF-026仍待执行，只读方案位于恢复目录 `rf026-readonly-preplan.md`。
