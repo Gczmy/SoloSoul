@@ -96,6 +96,7 @@ search-no-results = No matching results.
 ### History
 history-title = History snapshots for {$id}
 history-empty = No history snapshots.
+history-summary-rollback = Restored previous version
 
 ### Trash
 trash-title = Trash
@@ -463,6 +464,9 @@ cmd-history-usage = Please provide an object ID, e.g. /history obj_xxx
 cmd-rollback-usage = Please provide an object ID and snapshot ID, e.g. /rollback obj_xxx snap_xxx
 cmd-rollback-confirm = Confirm rollback of '{$obj}' to snapshot '{$snap}'? Unsaved changes will be lost.
 cmd-rollback-complete = Object '{$name}' rolled back to snapshot '{$snap}'
+cmd-rollback-partial = Object restored, but follow-up operations failed: {$details}
+cmd-rollback-snapshot-failed = Failed to save rollback history: {$err}
+cmd-rollback-audit-failed = Failed to record audit log: {$err}
 
 ### Search
 cmd-search-need-keyword = Please provide a search keyword, e.g. /search passport

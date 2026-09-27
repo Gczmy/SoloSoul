@@ -54,76 +54,28 @@ pub async fn snapshot_rollback(
     Ok(())
 }
 
-/// RF-006：回滚只接受数据库记录的同对象快照，全部校验必须先于任何写入。
+/// RF-008：Core 返回已提交对象及后续步骤结果；GUI 保留 best-effort 日志和同步通知。
 pub(super) fn rollback_snapshot_in_vault(
     vault: &solosoul_vault::VaultStore,
     snapshot_id: &str,
     object_id: &str,
 ) -> Result<(), String> {
-    let owner = vault
-        .get_snapshot_owner(snapshot_id)?
-        .ok_or("Snapshot not found")?;
-    if owner.is_empty() || owner != object_id {
-        return Err("Snapshot does not belong to object".to_string());
+    let outcome = solosoul_core::objects::rollback_object(vault, object_id, snapshot_id)
+        .map_err(|error| error.to_string())?;
+    if let Some(error) = outcome.snapshot_error {
+        tracing::warn!(
+            "Snapshot save failed (object_id={}, triggered_by=rollback): {}",
+            object_id,
+            error
+        );
     }
-
-    // Get snapshot data
-    let data = vault
-        .get_snapshot(snapshot_id)?
-        .ok_or("Snapshot not found")?;
-    let snapshot: serde_json::Value =
-        serde_json::from_slice(&data).map_err(|e| format!("Parse: {}", e))?;
-
-    // Load current object and restore from snapshot
-    let mut record = vault.load_object(object_id)?.ok_or("Object not found")?;
-    if let Some(name) = snapshot["name"].as_str() {
-        record.name = name.to_string();
+    if let Some(error) = outcome.audit_error {
+        tracing::warn!(
+            "Audit log write failed (action=object_rollback, entity_type=object, entity_id={:?}): {}",
+            Some(object_id),
+            error
+        );
     }
-    if let Some(tags) = snapshot["tags"].as_array() {
-        record.tags_json = tags
-            .iter()
-            .filter_map(|v| v.as_str().map(|s| s.to_string()))
-            .collect();
-    }
-    if !snapshot["properties"].is_null() {
-        record.properties = snapshot["properties"].clone();
-    }
-    if !snapshot["propertyLabels"].is_null() {
-        record.property_labels = Some(snapshot["propertyLabels"].clone());
-    } else if let Some(labels) = snapshot.get("property_labels") {
-        record.property_labels = Some(labels.clone());
-    }
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
-
-    // Save rollback snapshot
-    let rollback_data = serde_json::to_vec(&serde_json::json!({
-        "name": record.name,
-        "tags": record.tags_json,
-        "properties": record.properties,
-        "propertyLabels": record.property_labels,
-    }))
-    .unwrap_or_default();
-    crate::commands::save_snapshot_best_effort(
-        vault,
-        object_id,
-        "rollback",
-        &rollback_data,
-        "diff_rollback",
-    );
-    crate::commands::log_audit_best_effort(
-        vault,
-        "object_rollback",
-        "object",
-        Some(object_id),
-        Some(&record.name),
-        "user",
-        Some(&format!(
-            "section={} snapshot={}",
-            record.section_type, snapshot_id
-        )),
-    );
     Ok(())
 }
 

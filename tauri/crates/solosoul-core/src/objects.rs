@@ -16,6 +16,9 @@ use solosoul_vault::{ObjectRecord, PropertyType, TrashItem, VaultStore};
 /// 导出附件元数据，与 GUI/CLI 共享。
 pub use crate::export_import::AttachmentMeta;
 
+mod rollback;
+pub use rollback::{rollback_object, RollbackError, RollbackErrorStage, RollbackOutcome};
+
 const MAX_ACTIVE_ATTACHMENTS: usize = 200;
 
 // ── Object helpers ─────────────────────────────────────────

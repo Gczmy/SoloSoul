@@ -67,3 +67,5 @@ unic-langid = "0.9"
 
 [dev-dependencies]
 tempfile = "3.14.0"
+# RF008: 仅合成 Vault 回归通过真实 SQLite 触发器注入失败。
+rusqlite = "0.32.1"

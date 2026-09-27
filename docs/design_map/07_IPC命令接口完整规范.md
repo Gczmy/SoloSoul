@@ -362,7 +362,9 @@ pub async fn snapshot_count_batch(object_ids: Vec<String>) -> Result<Vec<Snapsho
 // 批量查询多个对象的快照数量
 ```
 
-`snapshot_rollback` 的 `object_id` 是请求目标；应用快照前必须读取数据库记录的归属，拒绝快照不存在、归属为空、归属不符及目标不存在。快照 JSON 内的 `objectId` / `object_id` 不作为归属依据。上述拒绝均发生在对象、版本、回滚快照及审计写入之前，也不触发自动同步（RF-006）。正常同对象回滚仍恢复名称、标签、属性和兼容字段标签，增加对象版本；按原有 best-effort 策略生成回滚历史和审计，成功后触发自动同步。
+`snapshot_rollback` 的 `object_id` 是请求目标；应用快照前必须读取数据库记录的归属，拒绝快照不存在、归属为空、归属不符及目标不存在。快照 JSON 内的 `objectId` / `object_id` 不作为归属依据。上述拒绝均发生在对象、版本、回滚快照及审计写入之前，也不触发自动同步（RF-006）。正常同对象回滚经 `solosoul_core::objects::rollback_object` 恢复名称、标签、属性和兼容字段标签，增加对象版本；GUI 与 CLI 共用同一实现（RF-008）。字段标签优先读取 `propertyLabels`，兼容 `property_labels`：缺失保留当前值，显式 `null` 清除，`{}` 为空表，其余结构在首写前拒绝。版本溢出、序列化和前置校验失败均不写入。
+
+Core 的 `RollbackError` 标明首写前失败阶段；返回 `RollbackOutcome` 表示对象已保存，并分别携带快照、审计写入错误。新历史保存恢复后的四字段（名称、标签、属性、字段标签），摘要统一为 `diff_rollback`，不额外生成恢复前快照。两个后续步骤独立尝试，快照失败仍尝试审计，不承诺三个写入处于同一事务。GUI 保留原 `Result<(), String>` IPC：对象未提交时返回错误；对象已提交后历史或审计失败则记录警告，仍触发自动同步。CLI 同样取得明确部分结果，但以“对象已恢复”及失败步骤提示用户，不误报整体成功。
 
 ---
 

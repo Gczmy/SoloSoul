@@ -96,6 +96,7 @@ search-no-results = 未找到匹配结果。
 ### History
 history-title = 对象 {$id} 的历史快照
 history-empty = 暂无历史快照。
+history-summary-rollback = 已回滚到历史版本
 
 ### Trash
 trash-title = 回收站
@@ -463,6 +464,9 @@ cmd-history-usage = 请提供对象 ID，例如 /history obj_xxx
 cmd-rollback-usage = 请提供对象 ID 与快照 ID，例如 /rollback obj_xxx snap_xxx
 cmd-rollback-confirm = 确认将对象「{$obj}」回滚到快照「{$snap}」？当前未保存的更改将丢失。
 cmd-rollback-complete = 对象「{$name}」已回滚到快照「{$snap}」
+cmd-rollback-partial = 对象已恢复，但部分后续操作失败：{$details}
+cmd-rollback-snapshot-failed = 保存回滚历史失败：{$err}
+cmd-rollback-audit-failed = 记录操作审计失败：{$err}
 
 ### Search
 cmd-search-need-keyword = 请提供搜索关键词，例如 /search 护照

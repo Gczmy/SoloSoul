@@ -6496,6 +6496,7 @@ dependencies = [
  "pdfium-render",
  "reqwest 0.12.28",
  "roxmltree 0.20.0",
+ "rusqlite",
  "security-framework",
  "security-framework-sys",
  "serde",

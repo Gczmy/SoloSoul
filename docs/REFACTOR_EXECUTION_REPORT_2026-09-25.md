@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**95**（P1：34；P2：60；P3：1）。
-- 已关闭：**29 / 95**；实际修复（已关闭）：29；排除：0；待验证/阻塞：4。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：RF-202 已完成，下一项按依赖与平台条件选择 RF-905。RF-021 Host 接入被自动审批拒绝，14份已批准草案已校验归档至恢复目录 `rf021-proposal/`，相关源码和规范已恢复 HEAD；未编译或运行草案测试，待明确授权。RF-016 Core 写入被自动审批拒绝，获批的11份源码/测试已校验归档至恢复目录 `rf016-proposal/` 并从当前源码恢复，未留下未集成 Rust 依赖；待明确授权后恢复该项。RF-014、RF-104 同样仍等待明确授权。RF-903 保持待执行，依赖 RF-905。
+- 已关闭：**30 / 95**；实际修复（已关闭）：30；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无；RF-008 已完成，下一可执行项为 RF-010（共享模板初始化），只读预研已保存。RF-905 的同步生命周期及 Host Vault 切换/附件 worker 接入被自动审批拒绝；46 份未集成源码已 SHA-256 校验归档至恢复目录 `rf905-proposal/`，44 份 tracked 源码恢复 HEAD、2 份本次新增草案移出工作树，未编译/测试，待具体授权。RF-021 Host 接入被自动审批拒绝，14份已批准草案已校验归档至恢复目录 `rf021-proposal/`，相关源码和规范已恢复 HEAD；未编译或运行草案测试，待明确授权。RF-016 Core 写入被自动审批拒绝，获批的11份源码/测试已校验归档至恢复目录 `rf016-proposal/` 并从当前源码恢复，未留下未集成 Rust 依赖；待明确授权后恢复该项。RF-014、RF-104 同样仍等待明确授权。RF-903 保持待执行，依赖 RF-905。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -161,7 +161,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 33 | [RF-202](#rf-202) | P1 | 将 APK 更新入口限定为 Android | 无 | [x] 完成 |
 | 34 | [RF-203](#rf-203) | P1 | 明确 iOS OCR 不支持时的前后端行为 | [RF-208](#rf-208) | [ ] 待执行 |
 | 35 | [RF-204](#rf-204) | P1 | 核实并修正 iOS Keychain 成功状态符号 | 无 | [ ] 待执行 |
-| 36 | [RF-008](#rf-008) | P2 | GUI 与 CLI 迁移到同一回滚用例 | [RF-006](#rf-006)、[RF-007](#rf-007) | [ ] 待执行 |
+| 36 | [RF-008](#rf-008) | P2 | GUI 与 CLI 迁移到同一回滚用例 | [RF-006](#rf-006)、[RF-007](#rf-007) | [x] 完成 |
 | 37 | [RF-010](#rf-010) | P2 | 共享对象创建的模板初始化规则 | [RF-009](#rf-009) | [ ] 待执行 |
 | 38 | [RF-013](#rf-013) | P2 | 共享 Profile 备份清单与兼容解码 | [RF-011](#rf-011)、[RF-012](#rf-012) | [ ] 待执行 |
 | 39 | [RF-015](#rf-015) | P2 | 显式表示附件导出范围 | [RF-014](#rf-014) | [ ] 待执行 |
@@ -219,7 +219,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 91 | [RF-900](#rf-900) | P2 | CLI 中文断言测试显式隔离系统语言 | 无（Rust 任务验收前优先处理） | [x] 完成 |
 | 92 | [RF-901](#rf-901) | P2 | Windows GUI Rust 测试嵌入 Common Controls 清单 | 无（R 配置恢复前优先处理） | [x] 完成 |
 | 93 | [RF-902](#rf-902) | P2 | 生产启动冒烟使用当前桌面更新契约 | 无（生产包检查恢复前优先处理） | [x] 完成 |
-| 94 | [RF-905](#rf-905) | P1 | GUI 与 CLI 遵守同一数据目录互斥与维护窗口 | 无（RF-903 必需前置） | [ ] 待执行 |
+| 94 | [RF-905](#rf-905) | P1 | GUI 与 CLI 遵守同一数据目录互斥与维护窗口 | 无（RF-903 必需前置） | [!] 阻塞：待明确授权 |
 | 95 | [RF-903](#rf-903) | P1 | 孤儿附件清理保护账户归属与完整恢复引用 | [RF-905](#rf-905) | [ ] 待执行 |
 
 ## 5. 原报告到执行任务的映射
@@ -1792,3 +1792,35 @@ git commit -m "<任务卡的提交标题>"
 - 生产 WEB：Chrome 153.0.8010.53、原4 worker，**16/16 passed**、exit 0（19.0s测试、22.01s命令）。保留构建既有 chunk 大小与静态/动态混用提示，未调整阈值。没有实际网络下载、APK安装或桌面重启；本项前端平台路由证据不替代 iOS 原生验证。
 - 证据：恢复目录 rf202-ios-store-red.log、rf202-store-updater-targeted1.log、rf202-store-updater-targeted2.log、rf202-ui-targeted.log、rf202-tsc-full.log、rf202-lint-full.log、rf202-vitest-full.log、rf202-web-production.log。修改 TS/TSX 的 Prettier、双语 JSON、文档相对链接和 diff check 通过。
 - 最终结论：F、68项相关定向回归、生产 WEB 与独立复审满足本项；canonical 自动更新 §5 与移动端入口文档同步。95项索引/任务卡一致，29已关闭、4待授权阻塞。仅提交本项14个文件，原有3张NSIS图片保留；本项 **完成**，提交：本提交（按 RF-202 检索），未推送。
+
+
+### RF-905 执行记录（2026-09-27，进行中）
+
+- 基线 HEAD `e627d160`。RF-202 已完成；RF-208/201/203 所需 Android 工具链和 RF-204 所需 macOS/iOS 编译环境仍不可用，RF-112 依赖 RF-201；继续无前置的 P1 目录互斥任务。有效工作区仅 C 盘恢复副本。
+- 三方只读核查确认：CLI 构造失锁继续且构造前已写日志，GUI 不持同一根锁；Store/Session/FS 克隆和裸路径 blocking worker 可以活过 Service。同步 outbound 活动登记晚于派发、入站登记无共同准入门闩、mDNS 启动失败可能遗漏 accept worker，stop 的 abort 不证明退出。仅增加 Service 字段不能满足互斥生命周期。
+- 实施边界：Core 严格 Result 构造、Arc 目录 owner；VaultStore 在打开/迁移前持 opaque lifetime pin，FS 克隆与真正 worker 也保活；活动登记和维护准入共用短门闩，待执行/在途发布未退出时明确拒绝维护。GUI 初始化/切换失败保留合法旧状态，CLI 移除二次锁并在成功拿锁后初始化日志；同步加入真实可等待收尾与启动失败回收。保留移动端 no-op，不宣称锁远端 SAF；不改 RF-903 的扫描/删除算法。
+- 验证计划：Windows 真实独立子进程竞争、存活 DB/Session/FS/worker 持锁、失败零业务写入、不同根失败与同根显式复用、同步/导入发布屏障和维护拒绝；完成 R/CORE/CLI，必要 Host 启动验收。当前仅设计与预研，未宣称已修复或验证。
+
+
+### RF-905 执行记录（2026-09-27，阻塞）
+
+- 基线 HEAD `e627d160`。Core、GUI、CLI、Sync 的获批草案共46份源码，未格式化、未编译、未运行回归；Sync生产接入和Host Vault切换/迁移/附件worker写入在CreateProcess前被自动审批拒绝，理由是关键数据及生命周期风险、现有继续指令不足以涵盖具体修改。未重试或绕过被拒动作。
+- 全部写入者冻结后，以SHA-256清单、原路径、tracked.patch及缺失API说明归档至恢复目录 `rf905-proposal/`；44份tracked源码恢复HEAD，2份自有新文件验证后移出。其余报告和3张用户NSIS图片保留，源码没有残留未集成依赖。已发出具体授权请求，本项保持阻塞，RF-903仍依赖本项；继续首个无阻塞任务RF-008。
+
+### RF-008 执行记录（2026-09-27，完成）
+
+- 基线 HEAD `e627d160`。GUI与CLI重复归属校验、字段恢复、版本/快照/审计；GUI对于标签null与非法值的处理仍不同于RF-007。拟共享Core回滚用例，统一字段语义并返回对象提交后快照/审计的分别结果；GUI保留可观测best-effort和同步触发，CLI部分成功明确已提交状态且不显示整体成功。仅使用合成TempDir，完成R/CORE/CLI再独立提交。
+
+- 实施冻结：新增Core共享回滚及typed阶段/部分结果，GUI与CLI各为薄适配；GUI标签契约收敛至RF-007，版本溢出和序列化均在首写前退出。CLI后续历史失败仍尝试审计，并以双语提示已恢复的事实；历史列表将共享摘要 `diff_rollback` 映射为可读本地化文本。独立复审发现并修正内部摘要键直接展示问题，其余无阻断。
+- 新增14项真实回归（Core8、GUI2、CLI命令3、CLI渲染1），覆盖对象/HLC事务失败零写、历史/审计独立失败、归属与标签、两端和Core完整数据等价、确认/取消与中英文通知。仅测试dev依赖新增已锁定rusqlite；源码冻结后启动顺序验证，workspace fmt exit0（2.66s）、CLI fmt exit0（0.56s）。此时其余检查尚未完成，不计入已关闭。
+
+- 首轮Core定向编译通过，运行 **0 passed / 8 failed**、exit101（238.20s）；均在测试夹具初始化被SQLite template_type CHECK拒绝，尚未调用回滚。将夹具的非法custom改为合法user，保留所有断言和首轮日志 `rf008-core-targeted.log`，随后重新运行。
+
+- 第二轮Core定向 **8 passed / 0 failed / 0 ignored**、exit0（46.04s，实际测试0.55s）；GUI完整快照模块 **11 passed / 0 failed / 0 ignored**、exit0（363.63s，测试0.89s），包含RF-006旧归属/数据保持回归以及新增GUI标签/真实写入失败警告用例。CLI及全量队列继续，尚未关闭。
+
+- CLI回滚命令 **11 passed / 0 failed / 0 ignored**、exit0（187.83s，测试4.92s），含原RF-007与新增确认/取消、真实历史/审计失败及Core等价用例；双语历史渲染 **1 passed / 0 failed / 0 ignored**、exit0（3.10s，测试0.02s）。14项新增及原定向全部通过，继续Clippy与R/CLI完整检查。
+
+- Workspace Clippy exit0（84.68s）。R完整 `cargo test --verbose` exit0（906.97s），19组结果合计 **1,180 passed / 0 failed / 3 ignored**，包含GUI554、Core258、Vault190；仅沿用原有两项legacy field及P025手动性能工具跳过。CLI全目标Clippy和完整测试继续；不提前处理运行中的Cargo锁文件。
+
+- CLI全目标Clippy exit0（64.62s），完整 `cargo test --verbose --no-fail-fast` exit0（141.51s），**182 passed / 0 failed / 1 ignored**（180单元+2集成，既有i18n文档示例跳过）。全部Cargo退出后，仅恢复CLI锁文件自动刷新的5个本地crate版本，保留本项两个lockfile的测试依赖引用；无依赖包升级。
+- 最终结论：R/CORE/CLI、14项新增回归、原RF-006/007、独立代码复审与三份canonical规范均满足。本项 **完成**，提交：本提交（按RF-008检索），未推送。95项索引/任务卡一致，30已关闭、5待具体授权阻塞；仅暂存本项18个文件，保留3张用户NSIS图片。验证日志为恢复目录 `rf008-r2-*.log`，首轮失败日志保留；下一RF-010只读方案在 `rf010-readonly-preplan.md`。

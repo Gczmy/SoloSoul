@@ -91,86 +91,26 @@ fn do_rollback(app: &mut App, object_id: &str, snapshot_id: &str) -> Result<()> 
         .get_vault_store()
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
-    // P031：校验快照归属——快照必须属于目标对象，防止把别的对象数据套到本对象
-    let owner = vault
-        .get_snapshot_owner(snapshot_id)
-        .map_err(|e| color_eyre::eyre::eyre!(e))?;
-    if owner.as_deref() != Some(object_id) {
-        return Err(color_eyre::eyre::eyre!("快照不属于该对象"));
+    // 回滚业务仅在 Core 执行一次；CLI 只适配错误与完成提示。
+    app.success_message = None;
+    let outcome = solosoul_core::objects::rollback_object(&vault, object_id, snapshot_id)
+        .map_err(|error| color_eyre::eyre::eyre!(rollback_error_message(error)))?;
+    let mut warnings = Vec::new();
+    if let Some(error) = outcome.snapshot_error {
+        warnings.push(t!(app.i18n, "cmd-rollback-snapshot-failed", err = error));
     }
-
-    let data = vault
-        .get_snapshot(snapshot_id)
-        .map_err(|e| color_eyre::eyre::eyre!(e))?
-        .ok_or_else(|| color_eyre::eyre::eyre!("快照不存在"))?;
-    let snapshot: serde_json::Value = serde_json::from_slice(&data)
-        .map_err(|e| color_eyre::eyre::eyre!("解析快照失败: {}", e))?;
-
-    let mut record = vault
-        .load_object(object_id)
-        .map_err(|e| color_eyre::eyre::eyre!(e))?
-        .ok_or_else(|| color_eyre::eyre::eyre!("对象不存在"))?;
-
-    if let Some(name) = snapshot["name"].as_str() {
-        record.name = name.to_string();
+    if let Some(error) = outcome.audit_error {
+        warnings.push(t!(app.i18n, "cmd-rollback-audit-failed", err = error));
     }
-    if let Some(tags) = snapshot["tags"].as_array() {
-        record.tags_json = tags
-            .iter()
-            .filter_map(|v| v.as_str().map(|s| s.to_string()))
-            .collect();
+    if !warnings.is_empty() {
+        // 对象已经持久化，不能报成未恢复，也不能显示完整成功。
+        return Err(color_eyre::eyre::eyre!(t!(
+            app.i18n,
+            "cmd-rollback-partial",
+            details = warnings.join("; ")
+        )));
     }
-    if !snapshot["properties"].is_null() {
-        record.properties = snapshot["properties"].clone();
-    }
-    // RF-007：camelCase 优先，兼容旧 snake_case。缺字段保留当前标签，
-    // 显式 null 清除标签；非法结构在任何持久化之前拒绝，不能当成空标签。
-    if let Some(labels) = snapshot
-        .get("propertyLabels")
-        .or_else(|| snapshot.get("property_labels"))
-    {
-        record.property_labels = match labels {
-            serde_json::Value::Null => None,
-            serde_json::Value::Object(_) => Some(labels.clone()),
-            _ => return Err(color_eyre::eyre::eyre!("快照字段标签必须是对象或 null")),
-        };
-    }
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-
-    vault
-        .save_object(&record)
-        .map_err(|e| color_eyre::eyre::eyre!(e))?;
-
-    // 保存回滚快照（P031：序列化/保存失败不得静默留下空快照）
-    let rollback_data = serde_json::to_vec(&serde_json::json!({
-        "name": record.name,
-        "tags": record.tags_json,
-        "properties": record.properties,
-        "propertyLabels": record.property_labels,
-    }))
-    .map_err(|e| color_eyre::eyre::eyre!("序列化回滚快照失败: {}", e))?;
-    vault
-        .save_snapshot(
-            object_id,
-            "rollback",
-            &rollback_data,
-            "Rolled back to previous version",
-        )
-        .map_err(|e| color_eyre::eyre::eyre!("保存回滚快照失败: {}", e))?;
-    vault
-        .log_structured(
-            "object_rollback",
-            "object",
-            Some(object_id),
-            Some(&record.name),
-            "user",
-            Some(&format!(
-                "section={} snapshot={}",
-                record.section_type, snapshot_id
-            )),
-        )
-        .map_err(|e| color_eyre::eyre::eyre!("记录操作日志失败: {}", e))?;
+    let record = outcome.record;
 
     app.success_message = Some((
         t!(
@@ -183,6 +123,29 @@ fn do_rollback(app: &mut App, object_id: &str, snapshot_id: &str) -> Result<()> 
     ));
     Ok(())
 }
+
+fn rollback_error_message(error: solosoul_core::objects::RollbackError) -> String {
+    use solosoul_core::objects::RollbackErrorStage;
+    match error.stage {
+        RollbackErrorStage::SnapshotNotFound => "快照不存在".to_string(),
+        RollbackErrorStage::Ownership => "快照不属于该对象".to_string(),
+        RollbackErrorStage::ObjectNotFound => "对象不存在".to_string(),
+        RollbackErrorStage::SnapshotParse => format!(
+            "解析快照失败: {}",
+            error
+                .message
+                .strip_prefix("Parse: ")
+                .unwrap_or(&error.message)
+        ),
+        RollbackErrorStage::Labels => "快照字段标签必须是对象或 null".to_string(),
+        RollbackErrorStage::Serialize => format!("序列化回滚快照失败: {}", error.message),
+        _ => error.message,
+    }
+}
+
+#[cfg(test)]
+#[path = "history/tests.rs"]
+mod rf008_tests;
 
 #[cfg(test)]
 mod tests {
@@ -272,7 +235,7 @@ mod tests {
         assert!(app.error_message.is_some());
     }
 
-    fn make_obj(account_id: String, id: &str, name: &str) -> ObjectRecord {
+    pub(super) fn make_obj(account_id: String, id: &str, name: &str) -> ObjectRecord {
         ObjectRecord {
             id: id.to_string(),
             account_id,

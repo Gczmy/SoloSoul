@@ -630,3 +630,129 @@ fn test_dynamic_group_sensitivity_preserved_in_snapshots_after_template_sync() {
         latest["propertyLabels"]
     );
 }
+
+#[test]
+fn rf008_gui_uses_core_label_rules_before_any_write() {
+    for payload in [
+        serde_json::json!({"propertyLabels": null, "property_labels": {"content": "public"}}),
+        serde_json::json!({"property_labels": null}),
+        serde_json::json!({"propertyLabels": {}}),
+        serde_json::json!({"name": "legacy"}),
+    ] {
+        let (vault, _dir) = rf006_vault();
+        let (core_vault, _core_dir) = rf006_vault();
+        let source = rf006_save_snapshot(&vault, "rf006-a", &payload);
+        let core_source = rf006_save_snapshot(&core_vault, "rf006-a", &payload);
+        let expected =
+            solosoul_core::objects::rollback_object(&core_vault, "rf006-a", &core_source).unwrap();
+        assert!(expected.snapshot_error.is_none() && expected.audit_error.is_none());
+        super::super::snapshot::rollback_snapshot_in_vault(&vault, &source, "rf006-a").unwrap();
+        let mut actual = vault.load_object("rf006-a").unwrap().unwrap();
+        actual.updated_at = expected.record.updated_at.clone();
+        assert_eq!(
+            serde_json::to_value(actual).unwrap(),
+            serde_json::to_value(expected.record).unwrap()
+        );
+        let snapshot_data = |store: &solosoul_vault::VaultStore| {
+            let history = store.list_snapshots("rf006-a").unwrap();
+            let item = history
+                .iter()
+                .find(|item| item["triggeredBy"] == "rollback")
+                .unwrap();
+            assert_eq!(item["diffSummary"], "diff_rollback");
+            store
+                .get_snapshot(item["id"].as_str().unwrap())
+                .unwrap()
+                .unwrap()
+        };
+        assert_eq!(snapshot_data(&vault), snapshot_data(&core_vault));
+    }
+    for bad in [
+        serde_json::json!([]),
+        serde_json::json!("invalid"),
+        serde_json::json!(false),
+    ] {
+        let (vault, _dir) = rf006_vault();
+        let source = rf006_save_snapshot(
+            &vault,
+            "rf006-a",
+            &serde_json::json!({
+                "name": "must not write", "propertyLabels": bad,
+                "property_labels": {"content": "public"}
+            }),
+        );
+        let before = rf006_vault_state(&vault);
+        assert!(
+            super::super::snapshot::rollback_snapshot_in_vault(&vault, &source, "rf006-a").is_err()
+        );
+        assert_eq!(rf006_vault_state(&vault), before);
+    }
+}
+
+#[derive(Clone)]
+struct Rf008LogWriter(std::sync::Arc<std::sync::Mutex<Vec<u8>>>);
+impl std::io::Write for Rf008LogWriter {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        self.0.lock().unwrap().extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for Rf008LogWriter {
+    type Writer = Self;
+    fn make_writer(&'a self) -> Self::Writer {
+        self.clone()
+    }
+}
+
+#[test]
+fn rf008_gui_partial_writes_remain_successful_and_observable() {
+    for (reject_snapshot, reject_audit) in [(true, false), (false, true), (true, true)] {
+        let (vault, dir) = rf006_vault();
+        let source =
+            rf006_save_snapshot(&vault, "rf006-a", &serde_json::json!({"name": "restored"}));
+        let db = rusqlite::Connection::open(dir.path().join("vault.db")).unwrap();
+        for (table, reject) in [
+            ("object_snapshots", reject_snapshot),
+            ("audit_log", reject_audit),
+        ] {
+            if reject {
+                db.execute_batch(&format!("CREATE TRIGGER rf008_{table} BEFORE INSERT ON {table} BEGIN SELECT RAISE(ABORT, 'rf008 synthetic write failure'); END;")).unwrap();
+            }
+        }
+        let logs = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+        let subscriber = tracing_subscriber::fmt()
+            .without_time()
+            .with_ansi(false)
+            .with_max_level(tracing::Level::WARN)
+            .with_writer(Rf008LogWriter(logs.clone()))
+            .finish();
+        tracing::subscriber::with_default(subscriber, || {
+            super::super::snapshot::rollback_snapshot_in_vault(&vault, &source, "rf006-a").unwrap();
+        });
+        let logs = String::from_utf8(logs.lock().unwrap().clone()).unwrap();
+        assert_eq!(
+            logs.contains("Snapshot save failed"),
+            reject_snapshot,
+            "{logs}"
+        );
+        assert_eq!(
+            logs.contains("Audit log write failed"),
+            reject_audit,
+            "{logs}"
+        );
+        let restored = vault.load_object("rf006-a").unwrap().unwrap();
+        assert_eq!(restored.name, "restored");
+        assert_eq!(restored.version, 8);
+        assert_eq!(
+            vault.list_snapshots("rf006-a").unwrap().len(),
+            if reject_snapshot { 1 } else { 2 }
+        );
+        assert_eq!(
+            vault.list_audit_log(100).unwrap().len(),
+            if reject_audit { 1 } else { 2 }
+        );
+    }
+}
