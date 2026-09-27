@@ -1,5 +1,7 @@
 use solosoul_core::export_import::ImportTarget;
-use std::sync::Arc;
+use solosoul_core::{VaultService, VaultSession};
+use std::path::PathBuf;
+use std::sync::{Arc, RwLock};
 
 use super::helpers::ManifestData;
 use super::*;
@@ -45,19 +47,26 @@ pub(crate) fn cleanup_orphan_import_temps(data_dir: &std::path::Path) -> Result<
 /// P013: 桌面端导入文件路径白名单校验（Desktop/Documents/Downloads + SOLOSOUL_FS_BASE），
 /// 拒绝越界路径；移动端文件来自 SAF 选择/应用内路径，不做此校验。
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub(super) fn resolve_import_path<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    file_path: &str,
+) -> Result<PathBuf, String> {
+    crate::commands::fs::resolve_allowed_path(app, file_path)
+}
+
+#[cfg(any(target_os = "android", target_os = "ios"))]
+pub(super) fn resolve_import_path<R: tauri::Runtime>(
+    _app: &tauri::AppHandle<R>,
+    file_path: &str,
+) -> Result<PathBuf, String> {
+    Ok(PathBuf::from(file_path))
+}
+
 fn validate_import_path<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     file_path: &str,
 ) -> Result<(), String> {
-    crate::commands::fs::resolve_allowed_path(app, file_path).map(|_| ())
-}
-
-#[cfg(any(target_os = "android", target_os = "ios"))]
-fn validate_import_path<R: tauri::Runtime>(
-    _app: &tauri::AppHandle<R>,
-    _file_path: &str,
-) -> Result<(), String> {
-    Ok(())
+    resolve_import_path(app, file_path).map(|_| ())
 }
 
 #[tauri::command]
@@ -121,76 +130,147 @@ pub async fn import_decrypt_preview<R: tauri::Runtime>(
     file_path: String,
     password: String,
 ) -> Result<DecryptedImportPreview, String> {
-    validate_import_path(&app, &file_path)?;
-    let vault = vault_handle(&state)?;
-
-    // P015：预览路径复用主路径的 decrypt_package（流式解密至 0700 数据目录内
-    // 临时文件 + from_reader 解析），替代「整包读内存 + from_bytes + from_slice」
-    // 的 ~3× payload 峰值。decrypt_zip_entry_streaming 内部已将解密失败映射为
-    // import_err("DECRYPT_FAILED")，前端 i18n 行为与原实现一致，错误直接透传。
     let password = Zeroizing::new(password);
-    let (manifest, payload, _key) = decrypt_package(&file_path, &password, vault.base_path())?;
+    let job = PreviewJob::prepare(
+        Arc::clone(&state.vault_service),
+        file_path,
+        password,
+        |path| resolve_import_path(&app, path),
+    )?;
+    run_preview_job(job, PreviewJob::run).await
+}
 
-    // P019：对象映射拆至 build_preview_object_summaries。
-    let objects = build_preview_object_summaries(&payload);
+/// RF-026：密码、已授权路径和原会话一起移入 worker，不持同步锁等待解密。
+pub(super) struct PreviewJob {
+    vault_service: Arc<RwLock<VaultService>>,
+    session: VaultSession,
+    file_path: String,
+    password: Zeroizing<String>,
+}
 
-    // P043: 批量加载本地对象一次（IN 查询），替代逐条 load_object——
-    // 大导入包下将 N 次锁竞争 + N 次查询降为 1 次（非热路径但廉价且语义等价）。
-    let ids: Vec<String> = objects.iter().map(|o| o.id.clone()).collect();
-    let existing_map = vault.load_objects_batch(&ids).unwrap_or_default();
-
-    let mut conflicts = Vec::new();
-    for obj in &objects {
-        if let Some(existing) = existing_map.get(&obj.id) {
-            // Soft-deleted objects are in trash and should not be treated as conflicts.
-            if !existing.is_deleted {
-                // 比较名称判断冲突类型：名称相同为 Identical，否则为 RenamedLocal
-                //（只能区分名称是否相同，无法判断是本地改名还是导入包名称被修改）
-                let kind = if obj.name == existing.name {
-                    ConflictKind::Identical
-                } else {
-                    ConflictKind::RenamedLocal
-                };
-                conflicts.push(ConflictInfo {
-                    object_id: obj.id.clone(),
-                    imported_name: obj.name.clone(),
-                    existing_name: existing.name.clone(),
-                    kind,
-                });
-            }
-        }
+impl PreviewJob {
+    pub(super) fn prepare(
+        vault_service: Arc<RwLock<VaultService>>,
+        file_path: String,
+        password: Zeroizing<String>,
+        resolve_path: impl FnOnce(&str) -> Result<PathBuf, String>,
+    ) -> Result<Self, String> {
+        // 使用授权返回的规范路径；不能排队后重新解析用户提供的符号链接。
+        let file_path = resolve_path(&file_path)?
+            .into_os_string()
+            .into_string()
+            .map_err(|_| "Invalid import path encoding".to_string())?;
+        let session = {
+            let svc = vault_service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            let account = svc
+                .get_current_account()
+                .ok_or_else(|| "Vault not unlocked".to_string())?;
+            svc.capture_session(&account)?
+        };
+        Ok(Self {
+            vault_service,
+            session,
+            file_path,
+            password,
+        })
     }
 
-    let has_preferences = manifest
-        .extra_files
-        .contains(&"preferences.enc".to_string());
+    fn ensure_current_session(&self) -> Result<(), String> {
+        let svc = self
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        svc.with_session(&self.session, |_| Ok(()))
+    }
 
-    // Build attachment preview list from payload
-    let mut attachments = Vec::new();
-    if manifest.has_attachments {
+    pub(super) fn run(self) -> Result<DecryptedImportPreview, String> {
+        self.ensure_current_session()?;
+        let vault = self.session.vault();
+        // P015：沿用流式解密及账户目录内的临时文件；明文和密钥由 worker 清理。
+        // DECRYPT_FAILED 等业务错误直接透传，不改前端的 i18n 错误前缀。
+        let (manifest, payload, _key) =
+            decrypt_package(&self.file_path, &self.password, vault.base_path())?;
+        self.ensure_current_session()?;
+
+        // P019：对象映射拆至 build_preview_object_summaries。
+        let objects = build_preview_object_summaries(&payload);
+
+        // P043: 批量加载本地对象一次（IN 查询），替代逐条 load_object——
+        // 大导入包下将 N 次锁竞争 + N 次查询降为 1 次（非热路径但廉价且语义等价）。
+        let ids: Vec<String> = objects.iter().map(|o| o.id.clone()).collect();
+        let existing_map = vault.load_objects_batch(&ids).unwrap_or_default();
+
+        let mut conflicts = Vec::new();
         for obj in &objects {
-            let atts = load_attachments(&obj.properties);
-            for att in &atts {
-                if att.deleted_at.is_some() {
-                    continue;
+            if let Some(existing) = existing_map.get(&obj.id) {
+                // Soft-deleted objects are in trash and should not be treated as conflicts.
+                if !existing.is_deleted {
+                    // 比较名称判断冲突类型：名称相同为 Identical，否则为 RenamedLocal
+                    //（只能区分名称是否相同，无法判断是本地改名还是导入包名称被修改）
+                    let kind = if obj.name == existing.name {
+                        ConflictKind::Identical
+                    } else {
+                        ConflictKind::RenamedLocal
+                    };
+                    conflicts.push(ConflictInfo {
+                        object_id: obj.id.clone(),
+                        imported_name: obj.name.clone(),
+                        existing_name: existing.name.clone(),
+                        kind,
+                    });
                 }
-                attachments.push(AttachmentImportInfo {
-                    id: att.id.clone(),
-                    object_id: obj.id.clone(),
-                    file_name: att.file_name.clone(),
-                    size_bytes: att.size_bytes,
-                });
             }
         }
-    }
 
-    Ok(DecryptedImportPreview {
-        objects,
-        conflicts,
-        has_preferences,
-        has_audit_log: false,
-        attachments,
-    })
+        let has_preferences = manifest
+            .extra_files
+            .contains(&"preferences.enc".to_string());
+
+        // Build attachment preview list from payload
+        let mut attachments = Vec::new();
+        if manifest.has_attachments {
+            for obj in &objects {
+                let atts = load_attachments(&obj.properties);
+                for att in &atts {
+                    if att.deleted_at.is_some() {
+                        continue;
+                    }
+                    attachments.push(AttachmentImportInfo {
+                        id: att.id.clone(),
+                        object_id: obj.id.clone(),
+                        file_name: att.file_name.clone(),
+                        size_bytes: att.size_bytes,
+                    });
+                }
+            }
+        }
+
+        Ok(DecryptedImportPreview {
+            objects,
+            conflicts,
+            has_preferences,
+            has_audit_log: false,
+            attachments,
+        })
+    }
+}
+
+pub(super) async fn run_preview_job(
+    job: PreviewJob,
+    execute: impl FnOnce(PreviewJob) -> Result<DecryptedImportPreview, String> + Send + 'static,
+) -> Result<DecryptedImportPreview, String> {
+    // 调度器保留同一个原会话，防止 worker 完成后、返回 DTO 前发生账户切换。
+    let vault_service = Arc::clone(&job.vault_service);
+    let session = job.session.clone();
+    let preview = tokio::task::spawn_blocking(move || execute(job))
+        .await
+        .map_err(|_| "导入预览任务执行失败".to_string())??;
+    let svc = vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    svc.with_session(&session, |_| Ok(preview))
 }
 
 /// P2: Advanced import with object selection and strategy
