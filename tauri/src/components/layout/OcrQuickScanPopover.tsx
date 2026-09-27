@@ -1,3 +1,4 @@
+import { createSessionRequests } from '@/lib/sessionRequests';
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { openWithPause } from '@/lib/dialog';
@@ -32,6 +33,7 @@ export function OcrQuickScanPopover({
   // P215: 字段级选择器订阅数据（扫描进度/历史/错误），动作走 getState()——
   // 避免整店订阅让本浮层在 store 任意字段变化时都重渲染。
   const scanMode = useOcrScanStore((s) => s.scanMode);
+  const scanState = useOcrScanStore((s) => s.scanState);
   const currentScanId = useOcrScanStore((s) => s.currentScanId);
   const isScanning = useOcrScanStore((s) => s.isScanning);
   const activeTier = useOcrScanStore((s) => s.activeTier);
@@ -45,6 +47,11 @@ export function OcrQuickScanPopover({
   const historyRef = useRef<HTMLDivElement>(null);
   const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const restoredCurrentScanRef = useRef(false);
+  const pickerRequests = useRef(createSessionRequests());
+  useEffect(() => {
+    const requests = pickerRequests.current;
+    return () => requests.invalidate();
+  }, []);
 
   // Prefetch Runtime: 模型状态走共享缓存（与 OCR 扫描页/设置页同一份数据），
   // 预热完成后打开弹层直接渲染，不再每次挂载重新 IPC + 骨架期。
@@ -116,6 +123,7 @@ export function OcrQuickScanPopover({
   const isMobilePlatform = isMobilePlatformSync();
 
   const handleSelectFile = async () => {
+    const ticket = pickerRequests.current.begin('picker');
     try {
       const filters =
         scanMode === 'mrz' || isMobilePlatform
@@ -131,11 +139,11 @@ export function OcrQuickScanPopover({
         multiple: false,
         title: scanMode === 'mrz' ? t('ocr:select_image_title') : t('ocr:select_file_title'),
       });
-      if (path && typeof path === 'string') {
+      if (ticket.isCurrent() && path && typeof path === 'string') {
         await useOcrScanStore.getState().performScan(path);
       }
     } catch (e) {
-      onError(e, t('ocr:select_image_failed'));
+      if (ticket.isCurrent()) onError(e, t('ocr:select_image_failed'));
     }
   };
 
@@ -212,6 +220,8 @@ export function OcrQuickScanPopover({
           statusMap={statusMap}
           onTierChange={handleTierChange}
           onScanModeChange={(mode) => useOcrScanStore.getState().setScanMode(mode)}
+          scanState={scanState}
+          onCancel={() => useOcrScanStore.getState().cancelScan()}
           onSelectFile={handleSelectFile}
           isMobile={isMobilePlatform}
         />

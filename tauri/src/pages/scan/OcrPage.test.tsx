@@ -158,7 +158,13 @@ describe('OcrPage', () => {
     fireEvent.click(screen.getByText('ocr:select_image_or_pdf'));
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('ocr_scan_image', { filePath: '/test/image.png' });
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'ocr_scan_image',
+        expect.objectContaining({
+          filePath: '/test/image.png',
+          taskId: expect.stringMatching(/^[0-9a-f-]{36}$/i),
+        }),
+      );
     });
 
     const results = await screen.findAllByText('Hello World');

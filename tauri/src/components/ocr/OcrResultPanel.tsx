@@ -1,3 +1,4 @@
+import { translateOcrError } from '@/lib/ocrScanMessages';
 import { useTranslation } from 'react-i18next';
 import { FileText, AlertCircle, Scan } from 'lucide-react';
 import type { OcrScanEntry } from '@/stores/ocrScanStore';
@@ -14,6 +15,15 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
   const { t } = useTranslation(['ocr', 'common']);
 
   if (isScanning) return null;
+  // 取消或失效没有识别正文，不能误展示“未检测到 MRZ”。
+  if (
+    currentEntry &&
+    !currentEntry.result &&
+    !currentEntry.mrzResult &&
+    !currentEntry.error &&
+    !lastScanError
+  )
+    return null;
 
   if (!currentEntry) {
     return (
@@ -78,7 +88,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
           }}
         >
           <AlertCircle size={ICON_SIZE.md} />
-          {lastScanError}
+          {translateOcrError(lastScanError, t)}
         </div>
       )}
 
@@ -98,7 +108,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
           }}
         >
           <AlertCircle size={ICON_SIZE.md} />
-          {currentEntry.error}
+          {translateOcrError(currentEntry.error, t)}
         </div>
       )}
 

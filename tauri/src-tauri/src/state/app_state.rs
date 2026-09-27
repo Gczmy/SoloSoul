@@ -18,6 +18,8 @@ use tauri::{Emitter, Manager};
 pub struct AppState {
     pub handle: tauri::AppHandle,
     pub vault_service: Arc<RwLock<VaultService>>,
+    /// OCR 任务共用有限准入与单一执行位，实际 worker 结束后回收。
+    pub ocr_jobs: Arc<crate::services::ocr_jobs::OcrJobs>,
     pub sync_service: Arc<SyncService>,
     pub plugin_manager: Arc<PluginManager>,
     pub auto_sync: AutoSyncManager,
@@ -191,6 +193,7 @@ impl AppState {
         let app_state = Self {
             handle: handle.clone(),
             vault_service,
+            ocr_jobs: Arc::new(crate::services::ocr_jobs::OcrJobs::new()),
             sync_service,
             plugin_manager,
             auto_sync,

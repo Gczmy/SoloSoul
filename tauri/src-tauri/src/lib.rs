@@ -253,6 +253,7 @@ fn register_ocr_commands() -> impl Fn(tauri::ipc::Invoke<tauri::Wry>) -> bool + 
         mobile_ocr_plugin::mobile_ocr_take_photo,
         commands::ocr::ocr_scan_image,
         commands::ocr::ocr_scan_mrz,
+        commands::ocr::ocr_cancel_scan,
         commands::ocr::ocr_list_available_tiers,
         commands::ocr::ocr_get_active_tier,
         commands::ocr::ocr_set_active_tier,

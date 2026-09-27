@@ -4,6 +4,7 @@
 
 //! types 和 model 子模块总是可用（移动端需要类型定义和文件操作）。
 //! engine 及其依赖的 ONNX/mrz/pdf/图像处理仅在桌面端编译。
+pub mod control;
 pub mod model;
 pub mod types;
 

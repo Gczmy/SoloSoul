@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
+import {
+  createOcrScanOperation,
+  type OcrJobState,
+  type OcrScanOperation,
+} from '@/lib/ocrScanOperation';
+import { useAuthStore } from '@/stores/authStore';
 import { isMacOSSync } from '@/lib/platform';
 import type { OcrResult, MrzResult } from '@/lib/ipc';
 
@@ -17,7 +23,17 @@ export interface OcrScanEntry {
   error?: string;
 }
 
+export interface OcrScanCompletion {
+  operationId: string;
+  status: 'completed' | 'cancelled' | 'failed';
+  error: string | null;
+}
+
 interface OcrScanState {
+  scanState: OcrJobState | null;
+  lastCompletion: OcrScanCompletion | null;
+  cancelScan: () => void;
+  claimCompletion: (operationId: string) => OcrScanCompletion | null;
   isCardOpen: boolean;
   scanMode: 'general' | 'mrz';
   scanHistory: OcrScanEntry[];
@@ -41,10 +57,30 @@ interface OcrScanState {
 }
 
 const HISTORY_LIMIT = 50;
+const scanRequests = createSessionRequests();
+let activeOperation: OcrScanOperation | null = null;
+let completionClaim: { operationId: string; isCurrent: () => boolean; claimed: boolean } | null =
+  null;
 
 export const useOcrScanStore = create<OcrScanState>()(
   persist(
     (set, get) => ({
+      scanState: null,
+      lastCompletion: null,
+      cancelScan: () => activeOperation?.cancel(),
+      claimCompletion: (operationId) => {
+        const completion = get().lastCompletion;
+        if (
+          !completion ||
+          completion.operationId !== operationId ||
+          completionClaim?.operationId !== operationId ||
+          completionClaim.claimed ||
+          !completionClaim.isCurrent()
+        )
+          return null;
+        completionClaim.claimed = true;
+        return completion;
+      },
       isCardOpen: false,
       scanMode: 'general',
       scanHistory: [],
@@ -59,9 +95,12 @@ export const useOcrScanStore = create<OcrScanState>()(
       setActiveTier: (tier) => set({ activeTier: tier }),
 
       performScan: async (filePath: string) => {
+        activeOperation?.dispose();
+        const accountId = useAuthStore.getState().currentAccount?.id;
+        const ticket = scanRequests.begin('scan', accountId);
         const state = get();
         const fileName = filePath.split(/[/\\]/).pop() || 'unknown';
-        const id = `scan_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const id = crypto.randomUUID();
         const entry: OcrScanEntry = {
           id,
           timestamp: Date.now(),
@@ -72,52 +111,49 @@ export const useOcrScanStore = create<OcrScanState>()(
           mrzResult: null,
           isDeleted: false,
         };
-
+        completionClaim = null;
         set({
           isScanning: true,
+          scanState: 'queued',
+          lastCompletion: null,
           currentScanId: id,
           lastScanError: null,
           scanHistory: [entry, ...state.scanHistory].slice(0, HISTORY_LIMIT),
         });
-
-        try {
-          if (state.scanMode === 'mrz') {
-            const res = await invoke<MrzResult | null>('ocr_scan_mrz', { filePath: filePath });
-            if (res) {
-              set((s) => ({
-                isScanning: false,
-                scanHistory: s.scanHistory.map((h) => (h.id === id ? { ...h, mrzResult: res } : h)),
-                lastScanError: null,
-              }));
-            } else {
-              // 未检测到 MRZ 时自动 fallback 到通用 OCR
-              const fallback = await invoke<OcrResult>('ocr_scan_image', { filePath: filePath });
-              set((s) => ({
-                isScanning: false,
-                scanHistory: s.scanHistory.map((h) =>
-                  h.id === id ? { ...h, result: fallback } : h,
-                ),
-                lastScanError: null,
-              }));
-            }
-          } else {
-            const res = await invoke<OcrResult>('ocr_scan_image', { filePath: filePath });
-            set((s) => ({
-              isScanning: false,
-              scanHistory: s.scanHistory.map((h) => (h.id === id ? { ...h, result: res } : h)),
-              lastScanError: null,
-            }));
-          }
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          set((s) => ({
-            isScanning: false,
-            lastScanError: msg,
-            scanHistory: s.scanHistory.map((h) => (h.id === id ? { ...h, error: msg } : h)),
-          }));
-        }
+        const operation = createOcrScanOperation({
+          accountId,
+          isCurrent: ticket.isCurrent,
+          onState: (scanState) => {
+            if (ticket.isCurrent()) set({ scanState });
+          },
+        });
+        activeOperation = operation;
+        const outcome = await operation.run(filePath, state.scanMode);
+        if (!ticket.isCurrent() || !operation.isCurrent() || activeOperation !== operation) return;
+        activeOperation = null;
+        const error = outcome.status === 'failed' ? outcome.error : null;
+        const lastCompletion =
+          outcome.status === 'stale' ? null : { operationId: id, status: outcome.status, error };
+        completionClaim = lastCompletion
+          ? { operationId: id, isCurrent: ticket.isCurrent, claimed: false }
+          : null;
+        set((s) => ({
+          isScanning: false,
+          scanState: outcome.status,
+          lastScanError: error,
+          lastCompletion,
+          scanHistory: s.scanHistory.map((item) =>
+            item.id !== id
+              ? item
+              : {
+                  ...item,
+                  result: outcome.status === 'completed' ? outcome.result : null,
+                  mrzResult: outcome.status === 'completed' ? outcome.mrzResult : null,
+                  ...(error ? { error } : {}),
+                },
+          ),
+        }));
       },
-
       softDeleteEntry: (id) =>
         set((s) => ({
           scanHistory: s.scanHistory.map((h) =>
@@ -144,14 +180,21 @@ export const useOcrScanStore = create<OcrScanState>()(
 
       // P230: 锁定/退出后清空含解密明文的内存态（result/mrzResult/filePath 均含敏感内容）。
       // 只读 UI 偏好（activeTier/scanMode）不受影响；persist partialize 本就不持久化结果。
-      clearOnVaultLock: () =>
+      clearOnVaultLock: () => {
+        activeOperation?.dispose();
+        activeOperation = null;
+        scanRequests.invalidate();
+        completionClaim = null;
         set({
           scanHistory: [],
           currentScanId: null,
           lastScanError: null,
+          lastCompletion: null,
+          scanState: null,
           isScanning: false,
           isCardOpen: false,
-        }),
+        });
+      },
     }),
     {
       name: 'solosoul-ocr-scan-history',
@@ -164,3 +207,6 @@ export const useOcrScanStore = create<OcrScanState>()(
     },
   ),
 );
+
+// 即使页面未挂载，认证状态变化也使悬停 OCR 操作失效。
+onRequestSessionChange(() => useOcrScanStore.getState().clearOnVaultLock());

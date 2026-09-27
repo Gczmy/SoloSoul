@@ -1,3 +1,5 @@
+import { OcrScanStatus } from '@/components/ocr/OcrScanStatus';
+import type { OcrJobState } from '@/lib/ocrScanOperation';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +13,8 @@ interface ScanDropZoneProps {
   scanMode: ScanMode;
   onScanModeChange: (mode: ScanMode) => void;
   isScanning: boolean;
+  scanState?: OcrJobState | null;
+  onCancel?: () => void;
   isMobilePlatform: boolean;
   activeTier: string;
   onSelectFile: () => void;
@@ -25,6 +29,8 @@ export function ScanDropZone({
   scanMode,
   onScanModeChange,
   isScanning,
+  scanState,
+  onCancel,
   isMobilePlatform,
   activeTier,
   onSelectFile,
@@ -64,6 +70,7 @@ export function ScanDropZone({
           }}
         >
           <button
+            disabled={isScanning}
             onClick={() => onScanModeChange('general')}
             style={{
               padding: '6px 14px',
@@ -85,6 +92,7 @@ export function ScanDropZone({
             {t('ocr:scan_mode_general')}
           </button>
           <button
+            disabled={isScanning}
             onClick={() => onScanModeChange('mrz')}
             style={{
               padding: '6px 14px',
@@ -121,6 +129,7 @@ export function ScanDropZone({
             </Button>
           )}
         </div>
+        <OcrScanStatus state={scanState} onCancel={onCancel} />
       </div>
     </Card>
   );

@@ -447,6 +447,10 @@ async fn llm_send_message_stream(
 
 ## 12. OCR 模块
 
+**OCR 任务契约（RF-029）**：每个应用状态最多接纳5个未结束任务，最多1个任务准备模型或执行识别；满载立即返回 `__OCR_QUEUE_FULL__`。通用图像/PDF、MRZ、macOS Vision和移动OCR桥接共享此准入。调用方可提供UUID `taskId`（省略时由Host生成），在原Vault会话下登记；正在使用或最近256个已结束任务的重复ID返回 `__OCR_DUPLICATE_TASK__`，非法ID返回 `__OCR_INVALID_TASK_ID__`。排队任务取消后不进入模型准备/推理；运行中取消只设置意图，在当前不可中断原生调用结束后的安全边界停止。PDF文本提取、栅格化及识别页间，以及ONNX检测/识别、MRZ分段之间检查纯取消token。实际worker退出并完成临时页面析构后才释放执行位，调用方丢弃等待也不提前释放。
+
+取消命令仅接受同一原会话的任务；`true`表示已接纳或已有取消意图，`false`表示任务尚未登记或已结束，均不能代替运行中任务的终态。后台以50ms间隔检查会话失效并触发取消，此为检查间隔而非停止时限；最终结果与审计仍在原 `with_session` 内校验。失效结果返回 `__OCR_SESSION_STALE__`，取消返回 `__OCR_CANCELLED__`。完成与取消由同一会话/任务临界区决定，终态恰为 `completed/cancelled/failed/stale` 之一。状态事件只包含身份、序号与状态；识别正文仅由invoke返回。前端以本地会话票据、任务ID及递增sequence过滤，先监听后派发，并在首次queued/running确认登记时补发提前到达的取消意图。MRZ返回None与通用回退属于一次用户操作，只在完整操作结束时通知；锁定清空及迟到事件不触发成功通知。完整扫描页卸载时请求取消其操作并停止接纳结果；快捷卡关闭只废弃未完成选图，已开始的扫描继续由全局Store持有，最终通知只消费一次。
+
 **桌面 PDF 临时页面生命周期（RF-028）**：有意义的文本层直接返回，不创建临时目录。需要栅格化时，由同步扫描作用域持有独立 `TempDir`，渲染器仅借用其路径；正常完成、部分渲染或页面识别返回错误，以及识别阶段 unwind 时，所有者清理本次目录内的页面和未列入返回路径的临时文件。输入 PDF、临时根目录及其中其他文件不属于清理范围。原生文档、页面、位图与 PDFium guard 在渲染函数返回前释放，识别函数的局部文件句柄先于目录所有者析构。保留缺失临时根目录在渲染分支自动补建的行为，以及文本优先、150 DPI、50页上限和结果聚合规则。此项不改变任务取消机制；异步调用方停止等待不等于同步扫描已结束，强制终止进程也不执行 Rust 析构。
 
 **桌面 PDF 页序契约（RF-906）**：通用扫描沿用有意义文本层优先；需要栅格化时，从原文档第一页开始按顺序处理，最多渲染前50页。PDFium 内部索引从0开始，用户页码及 `page_0001.png` 等输出文件名仍从1开始；单页和第50页均须可正常读取，第51页不进入本次栅格化。保留调用方指定的DPI（当前桌面扫描为150），不改变文本层分支、识别结果结构或原有页数上限。
@@ -455,11 +459,14 @@ async fn llm_send_message_stream(
 
 ```rust
 #[tauri::command]
-pub async fn ocr_scan_image(file_path: String) -> Result<OcrResult, String>;
+pub async fn ocr_scan_image(file_path: String, _language: Option<String>, task_id: Option<String>) -> Result<OcrResult, String>;
 
 #[tauri::command]
-pub async fn ocr_scan_mrz(file_path: String) -> Result<MrzResult, String>;
-// 身份证/MRTD 机读区识别，未检测到 MRZ 时自动 fallback 到通用 OCR
+pub async fn ocr_scan_mrz(file_path: String, task_id: Option<String>) -> Result<Option<MrzResult>, String>;
+// 未检测到 MRZ 返回 None，由前端同一操作在会话有效且未取消时启动通用回退。
+
+#[tauri::command]
+pub async fn ocr_cancel_scan(task_id: String) -> Result<bool, String>;
 
 #[tauri::command]
 pub async fn ocr_get_supported_languages() -> Result<Vec<String>, String>;
@@ -580,6 +587,7 @@ pub const EVENT_BIOMETRIC_CREDENTIAL_EXPIRED: &str = "biometric-credential-expir
 | 事件名 | Payload | 说明 |
 |--------|---------|------|
 | `llm-stream-chunk` | `{ conversationId, chunk, isDone, error? }` | LLM 流式对话逐字推送 |
+| `ocr-job-state` | `{ taskId, accountId, sessionGeneration, state, sequence }` | RF-029 OCR任务身份状态；state为queued/running/cancelRequested/completed/cancelled/failed/stale，不包含正文或文件路径 |
 | `ocr-install-progress` | `{ tier, progress (0–100), done, error? }` | OCR 模型下载进度 |
 | `export-progress` | — | 未实现；GUI 导出当前仅返回 IPC 完成结果 |
 | `import-progress` | `{ percent, message }` | 导入进度 |

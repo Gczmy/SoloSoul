@@ -3,8 +3,10 @@
 //! 基于 `solosoul-core::ocr` 的本地 PP-OCRv6 引擎。
 //! 模型文件存放在应用数据目录的 `models/` 下，支持从打包资源复制或运行时下载。
 
+use crate::services::ocr_jobs::{capture_ocr_session, EventSink, OcrJobContext};
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
+use solosoul_core::vault_service::VaultSession;
 
 #[cfg(mobile)]
 use crate::commands::mobile_not_supported;
@@ -23,9 +25,9 @@ use sha2::Digest;
 use solosoul_core::ocr::model::{is_model_installed, resolve_model_bundle};
 use solosoul_core::ocr::types::{MrzResult, OcrModelTier, OcrResult};
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 #[cfg(desktop)]
-use std::sync::{Arc, Mutex};
-#[cfg(desktop)]
+use std::sync::Mutex;
 use tauri::Emitter;
 use tauri::Manager;
 
@@ -286,134 +288,116 @@ pub(crate) fn ensure_pdfium_library_path(app: &tauri::AppHandle) {
 // Commands
 // =============================================================================
 
-/// 扫描图片或 PDF 并返回识别到的文本。
-///
-/// 要求 Vault 已解锁；使用当前激活的模型档位。
-/// PDF 文件优先提取文本层，若无文本则逐页渲染为图片后 OCR。
+/// 统一准入；调用方必须在命令入口捕获 session，不能等待后重新选择当前账户。
+async fn run_ocr_job<T, F, Fut, P>(
+    state: &AppState,
+    session: VaultSession,
+    task_id: Option<String>,
+    work: F,
+    publish: P,
+) -> Result<T, String>
+where
+    T: Send + 'static,
+    F: FnOnce(OcrJobContext) -> Fut + Send + 'static,
+    Fut: std::future::Future<Output = Result<T, String>> + Send + 'static,
+    P: FnOnce(&solosoul_vault::VaultStore, &T) -> Result<(), String> + Send + 'static,
+{
+    let app = state.handle.clone();
+    let emit: EventSink = Arc::new(move |event| {
+        if app.emit("ocr-job-state", event).is_err() {
+            tracing::warn!("Unable to emit OCR job state");
+        }
+    });
+    state
+        .ocr_jobs
+        .run(
+            task_id,
+            state.vault_service.clone(),
+            session,
+            emit,
+            work,
+            publish,
+        )
+        .await
+}
+
+#[cfg(desktop)]
+fn validate_scan_path(path: &Path) -> Result<(), String> {
+    if !path.exists() {
+        return Err(format!("文件不存在: {}", path.display()));
+    }
+    if !is_path_in_allowed_dir(path) {
+        return Err("文件路径不在允许的目录中（Desktop/Documents/Downloads）".to_string());
+    }
+    Ok(())
+}
+
+/// 扫描图片/PDF；旧调用可省略 task_id，新 UI 使用 UUID 关联状态和取消。
 #[cfg(desktop)]
 #[tauri::command]
 pub async fn ocr_scan_image(
     state: tauri::State<'_, AppState>,
     file_path: String,
     _language: Option<String>,
+    task_id: Option<String>,
 ) -> Result<OcrResult, String> {
-    // Vault 解锁检查。
-    let vault = vault_handle(&state)?;
-    let account_id = current_account(&state)?;
-
-    let app = &state.handle;
-    let tier = active_tier(app);
-
-    let path = PathBuf::from(&file_path);
-    if !path.exists() {
-        return Err(format!("文件不存在: {}", path.display()));
-    }
-
-    // 验证文件路径在允许的目录内（防御性安全校验）
-    if !is_path_in_allowed_dir(&path) {
-        return Err("文件路径不在允许的目录中（Desktop/Documents/Downloads）".to_string());
-    }
-
-    let ext = path
+    let session = capture_ocr_session(&state.vault_service)?;
+    let account_id = session.account_id().to_owned();
+    let app = state.handle.clone();
+    let tier = active_tier(&app);
+    let path = PathBuf::from(file_path);
+    let file_name = path
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned());
+    let file_type = path
         .extension()
-        .and_then(|e| e.to_str())
-        .map(|e| e.to_lowercase());
-    let file_type = ext;
+        .and_then(|ext| ext.to_str())
+        .map(str::to_lowercase);
     let is_pdf = file_type.as_deref() == Some("pdf");
-
-    // P133: macOS 系统内置 Vision 引擎分支——免模型文件，仅支持图片。
-    // 扫描同样移入 spawn_blocking（swift CLI 编译/推理为秒级操作）。
-    // 注意：macos_vision 模块为 #[cfg(target_os = "macos")] 门控，
-    // 非 macOS 编译必须使用 cfg 属性剪裁，不能依赖运行时 cfg!。
-    #[cfg(target_os = "macos")]
-    if tier == OcrModelTier::Vision {
-        if is_pdf {
-            return Err(
-                "macOS Vision 引擎不支持 PDF 扫描，请切换到 PP-OCRv6 档位（Small/Medium）"
-                    .to_string(),
-            );
-        }
-        let scan_path = path.clone();
-        let result = tokio::task::spawn_blocking(move || -> Result<OcrResult, String> {
-            let (text, confidence) = solosoul_core::ocr::macos_vision::scan_image(&scan_path)?;
-            Ok(OcrResult {
-                text,
-                confidence,
-                boxes: Vec::new(),
-            })
-        })
-        .await
-        .map_err(|e| format!("OCR Vision task join error: {e}"))??;
-
-        let file_name = path.file_name().map(|n| n.to_string_lossy().to_string());
+    run_ocr_job(&state, session, task_id, move |context| async move {
+        tokio::task::spawn_blocking(move || {
+            context.checkpoint()?;
+            validate_scan_path(&path)?;
+            #[cfg(target_os = "macos")]
+            if tier == OcrModelTier::Vision {
+                if is_pdf {
+                    return Err("macOS Vision 引擎不支持 PDF 扫描，请切换到 PP-OCRv6 档位（Small/Medium）".to_string());
+                }
+                context.checkpoint()?;
+                let (text, confidence) = solosoul_core::ocr::macos_vision::scan_image(&path)?;
+                context.checkpoint()?;
+                return Ok(OcrResult { text, confidence, boxes: Vec::new() });
+            }
+            #[cfg(not(target_os = "macos"))]
+            if tier == OcrModelTier::Vision {
+                return Err("Vision OCR 引擎仅支持 macOS".to_string());
+            }
+            if is_pdf { ensure_pdfium_library_path(&app); }
+            // 模型复制/加载也在取得执行许可后的 blocking worker 中，取消排队任务不会触发。
+            context.checkpoint()?;
+            let model_dir = ensure_model_available(&app, tier)?;
+            context.checkpoint()?;
+            let engine = get_ocr_engine(&model_dir, tier)?;
+            context.checkpoint()?;
+            let mut engine = engine.lock().map_err(|e| format!("OCR engine lock poisoned: {e}"))?;
+            context.checkpoint()?;
+            let cancellation = context.cancellation();
+            if is_pdf {
+                engine.scan_pdf_cancellable(&path, &cancellation)
+            } else {
+                engine.scan_image_cancellable(&path, &cancellation)
+            }
+        }).await.map_err(|e| format!("OCR task join error: {e}"))?
+    }, move |vault, result| {
         let details = json!({
             "fileType": file_type.as_deref().unwrap_or("unknown"),
-            "tier": tier.to_string(),
-            "boxCount": 0,
-            "textLength": result.text.len(),
-            "confidence": result.confidence,
-        })
-        .to_string();
-        crate::commands::log_audit_best_effort(
-            &vault,
-            "ocr_scan",
-            "file",
-            None,
-            file_name.as_deref(),
-            &account_id,
-            Some(&details),
-        );
-
-        return Ok(result);
-    }
-
-    // P133: 防御性拒绝——非 macOS 平台不应出现 Vision 档位（list_tiers 不返回）。
-    #[cfg(not(target_os = "macos"))]
-    if tier == OcrModelTier::Vision {
-        return Err("Vision OCR 引擎仅支持 macOS".to_string());
-    }
-
-    if is_pdf {
-        ensure_pdfium_library_path(app);
-    }
-    let models_dir = ensure_model_available(app, tier)?;
-
-    // P113: 秒级 ONNX 推理（含首次引擎加载）放到 spawn_blocking，避免阻塞 tokio worker。
-    let scan_path = path.clone();
-    let result = tokio::task::spawn_blocking(move || {
-        let engine_arc = get_ocr_engine(&models_dir, tier)?;
-        let mut engine = engine_arc
-            .lock()
-            .map_err(|e| format!("OCR engine lock poisoned: {e}"))?;
-        if is_pdf {
-            engine.scan_pdf(&scan_path)
-        } else {
-            engine.scan_image(&scan_path)
-        }
-    })
-    .await
-    .map_err(|e| format!("OCR task join error: {e}"))??;
-
-    let file_name = path.file_name().map(|n| n.to_string_lossy().to_string());
-    let details = json!({
-        "fileType": file_type.as_deref().unwrap_or("unknown"),
-        "tier": tier.to_string(),
-        "boxCount": result.boxes.len(),
-        "textLength": result.text.len(),
-        "confidence": result.confidence,
-    })
-    .to_string();
-    crate::commands::log_audit_best_effort(
-        &vault,
-        "ocr_scan",
-        "file",
-        None,
-        file_name.as_deref(),
-        &account_id,
-        Some(&details),
-    );
-
-    Ok(result)
+            "tier": tier.to_string(), "boxCount": result.boxes.len(),
+            "textLength": result.text.len(), "confidence": result.confidence,
+        }).to_string();
+        crate::commands::log_audit_best_effort(vault, "ocr_scan", "file", None,
+            file_name.as_deref(), &account_id, Some(&details));
+        Ok(())
+    }).await
 }
 
 #[cfg(mobile)]
@@ -423,112 +407,135 @@ pub async fn ocr_scan_image(
     state: tauri::State<'_, AppState>,
     file_path: String,
     _language: Option<String>,
+    task_id: Option<String>,
 ) -> Result<OcrResult, String> {
-    // 移动端同样需要 Vault 已解锁，并记录审计日志
-    let vault = vault_handle(&state)?;
-    let account_id = current_account(&state)?;
-
-    let result = crate::mobile_ocr_plugin::mobile_ocr_scan_image(app, file_path.clone()).await?;
-
+    let session = capture_ocr_session(&state.vault_service)?;
+    let account_id = session.account_id().to_owned();
     let file_name = PathBuf::from(&file_path)
         .file_name()
-        .map(|n| n.to_string_lossy().to_string());
-    let details = serde_json::json!({
-        "fileType": "image",
-        "boxCount": result.boxes.len(),
-        "textLength": result.text.len(),
-        "confidence": result.confidence,
-    })
-    .to_string();
-    crate::commands::log_audit_best_effort(
-        &vault,
-        "ocr_scan",
-        "file",
-        None,
-        file_name.as_deref(),
-        &account_id,
-        Some(&details),
-    );
-
-    Ok(result)
+        .map(|name| name.to_string_lossy().into_owned());
+    run_ocr_job(
+        &state,
+        session,
+        task_id,
+        move |context| async move {
+            context.checkpoint()?;
+            // ML Kit 当前调用不可硬中断；coordinator 持续等待桥接实际返回才释放执行位。
+            let result = crate::mobile_ocr_plugin::mobile_ocr_scan_image(app, file_path).await?;
+            context.checkpoint()?;
+            Ok(result)
+        },
+        move |vault, result| {
+            let details = json!({"fileType": "image", "boxCount": result.boxes.len(),
+            "textLength": result.text.len(), "confidence": result.confidence})
+            .to_string();
+            crate::commands::log_audit_best_effort(
+                vault,
+                "ocr_scan",
+                "file",
+                None,
+                file_name.as_deref(),
+                &account_id,
+                Some(&details),
+            );
+            Ok(())
+        },
+    )
+    .await
 }
 
-/// 扫描图片中的 MRZ（机读区）并返回解析结果。
-///
-/// 若未检测到 MRZ 区域，返回 `null`。
+/// MRZ 与通用扫描使用同一执行位；None 仍由前端在同一用户操作中受控回退。
 #[cfg(desktop)]
 #[tauri::command]
 pub async fn ocr_scan_mrz(
     state: tauri::State<'_, AppState>,
     file_path: String,
+    task_id: Option<String>,
 ) -> Result<Option<MrzResult>, String> {
-    let vault = vault_handle(&state)?;
-    let account_id = current_account(&state)?;
-
-    let app = &state.handle;
-    let tier = active_tier(app);
-    // P133: Vision 引擎不产出 MRZ 所需的 PP-OCRv6 框线——MRZ 始终走 PP-OCRv6 引擎；
-    // 当前激活为 Vision（macOS 默认）时回退 small 档，保证 MRZ 功能在默认档位下可用。
+    let session = capture_ocr_session(&state.vault_service)?;
+    let account_id = session.account_id().to_owned();
+    let app = state.handle.clone();
+    let tier = active_tier(&app);
     let engine_tier = if tier == OcrModelTier::Vision {
         OcrModelTier::Small
     } else {
         tier
     };
-    let models_dir = ensure_model_available(app, engine_tier)?;
-
-    let path = PathBuf::from(&file_path);
-    if !path.exists() {
-        return Err(format!("文件不存在: {}", path.display()));
-    }
-
-    // 验证文件路径在允许的目录内（防御性安全校验）
-    if !is_path_in_allowed_dir(&path) {
-        return Err("文件路径不在允许的目录中（Desktop/Documents/Downloads）".to_string());
-    }
-
-    // N-6: 秒级 ONNX 推理（含首次引擎加载）放到 spawn_blocking，避免阻塞 tokio worker。
-    // 与 P113 的 ocr_scan_image 同一模式。
-    let scan_path = path.clone();
-    let result = tokio::task::spawn_blocking(move || {
-        let engine_arc = get_ocr_engine(&models_dir, engine_tier)?;
-        let mut engine = engine_arc
-            .lock()
-            .map_err(|e| format!("OCR engine lock poisoned: {e}"))?;
-        engine.scan_mrz(&scan_path)
-    })
+    let path = PathBuf::from(file_path);
+    let file_name = path
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned());
+    run_ocr_job(
+        &state,
+        session,
+        task_id,
+        move |context| async move {
+            tokio::task::spawn_blocking(move || {
+                context.checkpoint()?;
+                validate_scan_path(&path)?;
+                let model_dir = ensure_model_available(&app, engine_tier)?;
+                context.checkpoint()?;
+                let engine = get_ocr_engine(&model_dir, engine_tier)?;
+                context.checkpoint()?;
+                let mut engine = engine
+                    .lock()
+                    .map_err(|e| format!("OCR engine lock poisoned: {e}"))?;
+                context.checkpoint()?;
+                engine.scan_mrz_cancellable(&path, &context.cancellation())
+            })
+            .await
+            .map_err(|e| format!("OCR MRZ task join error: {e}"))?
+        },
+        move |vault, result| {
+            let details =
+                json!({"tier": engine_tier.to_string(), "hasMrz": result.is_some()}).to_string();
+            crate::commands::log_audit_best_effort(
+                vault,
+                "ocr_scan_mrz",
+                "file",
+                None,
+                file_name.as_deref(),
+                &account_id,
+                Some(&details),
+            );
+            Ok(())
+        },
+    )
     .await
-    .map_err(|e| format!("OCR MRZ task join error: {e}"))??;
-
-    let file_name = path.file_name().map(|n| n.to_string_lossy().to_string());
-    let has_mrz = result.is_some();
-    let details = json!({
-        "tier": engine_tier.to_string(),
-        "hasMrz": has_mrz,
-    })
-    .to_string();
-    crate::commands::log_audit_best_effort(
-        &vault,
-        "ocr_scan_mrz",
-        "file",
-        None,
-        file_name.as_deref(),
-        &account_id,
-        Some(&details),
-    );
-
-    Ok(result)
 }
 
 #[cfg(mobile)]
 #[tauri::command]
-#[allow(unused_variables)]
 pub async fn ocr_scan_mrz(
-    app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
     file_path: String,
+    task_id: Option<String>,
 ) -> Result<Option<MrzResult>, String> {
-    // 移动端 MRZ 识别暂由通用 OCR 流程兜底，此处返回 null 让前端走 ocr_scan_image 分支。
-    Ok(None)
+    let session = capture_ocr_session(&state.vault_service)?;
+    run_ocr_job(
+        &state,
+        session,
+        task_id,
+        move |context| async move {
+            drop(file_path);
+            context.checkpoint()?;
+            // 移动端保留 None 触发通用 OCR 的既有契约，但不能绕过会话和任务身份。
+            Ok(None)
+        },
+        |_, _| Ok(()),
+    )
+    .await
+}
+
+#[tauri::command]
+pub async fn ocr_cancel_scan(
+    state: tauri::State<'_, AppState>,
+    task_id: String,
+) -> Result<bool, String> {
+    let caller = capture_ocr_session(&state.vault_service)?;
+    state
+        .ocr_jobs
+        .cancel(&task_id, &state.vault_service, &caller)
 }
 
 /// 返回所有可用的模型档位信息。

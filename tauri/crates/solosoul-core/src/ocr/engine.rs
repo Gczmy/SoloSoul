@@ -1,5 +1,6 @@
 //! OCR 引擎：加载检测/识别模型并执行端到端扫描。
 
+use super::control::{OcrCancellation, OCR_CANCELLED};
 use super::model::{
     load_det_postprocess_config, load_recognition_dict, resolve_model_bundle, DetPostProcessConfig,
 };
@@ -49,14 +50,28 @@ impl OcrEngine {
 
     /// 扫描单张图片并返回所有识别到的文本块。
     pub fn scan_image(&mut self, image_path: &Path) -> Result<OcrResult, String> {
-        let img = load_rgb_image(image_path)?;
-        self.scan_rgb(&img)
+        self.scan_image_cancellable(image_path, &OcrCancellation::default())
+    }
+
+    pub fn scan_image_cancellable(
+        &mut self,
+        image_path: &Path,
+        cancellation: &OcrCancellation,
+    ) -> Result<OcrResult, String> {
+        cancellation.check()?;
+        let img = load_rgb_image(image_path);
+        cancellation.check()?;
+        self.scan_rgb(&img?, cancellation)
     }
 
     /// 对已加载的 RGB 图像执行 OCR（使用增强型 CTC 解码：置信度过滤 + OCR-B 校正）。
     /// 默认置信度阈值 0.5。
-    fn scan_rgb(&mut self, img: &image::RgbImage) -> Result<OcrResult, String> {
-        self.scan_rgb_with_threshold(img, 0.5)
+    fn scan_rgb(
+        &mut self,
+        img: &image::RgbImage,
+        cancellation: &OcrCancellation,
+    ) -> Result<OcrResult, String> {
+        self.scan_rgb_with_threshold(img, 0.5, cancellation)
     }
 
     /// 对已加载的 RGB 图像执行 OCR，使用指定的置信度阈值。
@@ -64,17 +79,19 @@ impl OcrEngine {
         &mut self,
         img: &image::RgbImage,
         confidence_threshold: f64,
+        cancellation: &OcrCancellation,
     ) -> Result<OcrResult, String> {
+        cancellation.check()?;
         // P026: 引擎加载时已解析缓存，不再每次扫描重读配置文件。
         let det_cfg = &self.det_cfg;
 
         // 1. 检测
         let det_input = preprocess_for_detection(img);
         let det_tensor = ndarray_to_ort_tensor(&det_input.tensor.view())?;
-        let det_outputs = self
-            .det_session
-            .run(ort::inputs!("x" => det_tensor))
-            .map_err(|e| format!("det inference: {e}"))?;
+        cancellation.check()?;
+        let det_outputs = self.det_session.run(ort::inputs!("x" => det_tensor));
+        cancellation.check()?;
+        let det_outputs = det_outputs.map_err(|e| format!("det inference: {e}"))?;
         let (det_shape, det_data) = det_outputs[0]
             .try_extract_tensor::<f32>()
             .map_err(|e| format!("extract det tensor: {e}"))?;
@@ -90,6 +107,7 @@ impl OcrEngine {
         let boxes =
             extract_text_boxes(&det_view, det_input.scale, det_input.original_size, det_cfg);
 
+        cancellation.check()?;
         if boxes.is_empty() {
             return Ok(OcrResult {
                 text: String::new(),
@@ -102,13 +120,14 @@ impl OcrEngine {
         let mut texts = Vec::with_capacity(boxes.len());
         let mut confidences = Vec::with_capacity(boxes.len());
         for pts in &boxes {
+            cancellation.check()?;
             let crop = perspective_crop(img, pts);
             let rec_input = preprocess_for_recognition(&crop);
             let rec_tensor = ndarray_to_ort_tensor(&rec_input.tensor.view())?;
-            let rec_outputs = self
-                .rec_session
-                .run(ort::inputs!("x" => rec_tensor))
-                .map_err(|e| format!("rec inference: {e}"))?;
+            cancellation.check()?;
+            let rec_outputs = self.rec_session.run(ort::inputs!("x" => rec_tensor));
+            cancellation.check()?;
+            let rec_outputs = rec_outputs.map_err(|e| format!("rec inference: {e}"))?;
             let (rec_shape, rec_data) = rec_outputs[0]
                 .try_extract_tensor::<f32>()
                 .map_err(|e| format!("extract rec tensor: {e}"))?;
@@ -126,20 +145,27 @@ impl OcrEngine {
                 ctc_decode_enhanced(&rec_2d.view(), &self.char_list, confidence_threshold);
             texts.push(text);
             confidences.push(conf);
+            cancellation.check()?;
         }
 
+        cancellation.check()?;
         Ok(build_ocr_result(boxes, texts, confidences))
     }
 
     /// 对单行文字图直接运行 rec 模型（跳过 det 模型）。
     /// 输入应为包含单行文字的 RGB 图像（如 MRZ 行切分后的图像）。
-    fn recognize_line_rgb(&mut self, line_img: &image::RgbImage) -> Result<(String, f64), String> {
+    fn recognize_line_rgb(
+        &mut self,
+        line_img: &image::RgbImage,
+        cancellation: &OcrCancellation,
+    ) -> Result<(String, f64), String> {
+        cancellation.check()?;
         let rec_input = preprocess_for_recognition(line_img);
         let rec_tensor = ndarray_to_ort_tensor(&rec_input.tensor.view())?;
-        let rec_outputs = self
-            .rec_session
-            .run(ort::inputs!("x" => rec_tensor))
-            .map_err(|e| format!("rec inference: {e}"))?;
+        cancellation.check()?;
+        let rec_outputs = self.rec_session.run(ort::inputs!("x" => rec_tensor));
+        cancellation.check()?;
+        let rec_outputs = rec_outputs.map_err(|e| format!("rec inference: {e}"))?;
         let (rec_shape, rec_data) = rec_outputs[0]
             .try_extract_tensor::<f32>()
             .map_err(|e| format!("extract rec tensor: {e}"))?;
@@ -152,17 +178,29 @@ impl OcrEngine {
             .map_err(|e| format!("rec output is not 3D: {e}"))?
             .remove_axis(ndarray::Axis(0));
         let (text, conf) = ctc_decode_enhanced(&rec_2d.view(), &self.char_list, 0.1);
+        cancellation.check()?;
         Ok((text, conf))
     }
 
     /// 扫描 PDF 文件。
     /// 优先提取文本层；无文本时渲染为图片再 OCR。
     pub fn scan_pdf(&mut self, pdf_path: &Path) -> Result<OcrResult, String> {
-        scan_pdf_with(
+        self.scan_pdf_cancellable(pdf_path, &OcrCancellation::default())
+    }
+
+    pub fn scan_pdf_cancellable(
+        &mut self,
+        pdf_path: &Path,
+        cancellation: &OcrCancellation,
+    ) -> Result<OcrResult, String> {
+        scan_pdf_with_control(
             pdf_path,
             &std::env::temp_dir(),
-            super::pdf::render_pdf_pages,
-            |path| self.scan_image(path),
+            cancellation,
+            |path, dpi, output| {
+                super::pdf::render_pdf_pages_cancellable(path, dpi, output, cancellation)
+            },
+            |path| self.scan_image_cancellable(path, cancellation),
         )
     }
 
@@ -179,15 +217,29 @@ impl OcrEngine {
     /// 注意：旧策略（A/B/C 多级裁剪+PP-OCR/模板匹配）已在此分支禁用，
     /// 代码保留在 main 分支历史中。
     pub fn scan_mrz(&mut self, image_path: &Path) -> Result<Option<MrzResult>, String> {
+        self.scan_mrz_cancellable(image_path, &OcrCancellation::default())
+    }
+
+    pub fn scan_mrz_cancellable(
+        &mut self,
+        image_path: &Path,
+        cancellation: &OcrCancellation,
+    ) -> Result<Option<MrzResult>, String> {
         use super::mrz::{locate_mrz_region, preprocess_for_mrz, split_text_lines};
 
-        let img = load_rgb_image(image_path)?;
+        cancellation.check()?;
+        let img = load_rgb_image(image_path);
+        cancellation.check()?;
+        let img = img?;
 
         // ── 1. 预处理：缩放 + 灰度 + 高斯模糊 ──
         let gray = preprocess_for_mrz(&img);
+        cancellation.check()?;
 
         // ── 2. 定位（直接在灰度图上，不用 Sauvola）──
-        let region = match locate_mrz_region(&gray, &img) {
+        let region = locate_mrz_region(&gray, &img);
+        cancellation.check()?;
+        let region = match region {
             Some(r) => r,
             None => {
                 tracing::warn!("[MRZ] ❌ 四遍定位均失败");
@@ -197,6 +249,7 @@ impl OcrEngine {
 
         // ── 4. 行切分（在灰度图上做投影，比二值化图更稳定）──
         let line_imgs = split_text_lines(&gray, &region);
+        cancellation.check()?;
 
         if line_imgs.len() < 2 {
             tracing::warn!("[MRZ] 行数不足 2, 跳过");
@@ -213,7 +266,8 @@ impl OcrEngine {
         };
 
         // 逐行识别（内部拆段 rec）抽为 recognize_mrz_lines（P044-4）
-        let (raw_texts, total_conf) = self.recognize_mrz_lines(&lines_to_process);
+        let (raw_texts, total_conf) = self.recognize_mrz_lines(&lines_to_process, cancellation)?;
+        cancellation.check()?;
 
         if raw_texts.is_empty() {
             tracing::warn!("[MRZ] ❌ 所有行识别均失败");
@@ -234,6 +288,7 @@ impl OcrEngine {
             .into_iter()
             .filter(|t| is_plausible_mrz(t))
             .collect();
+        cancellation.check()?;
 
         if valid_texts.len() < 2 {
             tracing::warn!("[MRZ] ❌ 有效 MRZ 行不足 2 (仅 {} 行)", valid_texts.len());
@@ -242,7 +297,10 @@ impl OcrEngine {
 
         // ── 7. 尝试解析（parse_mrz 内部会 padding + checksum 校验）──
         // 底部 2 行 → 底部 3 行 → 贪心合并 2 行 → 贪心合并 3 行 依次尝试（P044-4 抽取）
-        match try_parse_mrz_combos(&valid_texts, avg_conf) {
+        cancellation.check()?;
+        let parsed = try_parse_mrz_combos(&valid_texts, avg_conf);
+        cancellation.check()?;
+        match parsed {
             Ok(mrz) => Ok(Some(mrz)),
             Err(_) => {
                 tracing::warn!("[MRZ] ❌ 所有解析尝试均失败");
@@ -255,72 +313,92 @@ impl OcrEngine {
     fn recognize_mrz_lines(
         &mut self,
         lines_to_process: &[&image::GrayImage],
-    ) -> (Vec<String>, f64) {
-        use super::mrz::icao_normalize;
+        cancellation: &OcrCancellation,
+    ) -> Result<(Vec<String>, f64), String> {
+        recognize_mrz_lines_with(lines_to_process, cancellation, |line| {
+            self.recognize_line_rgb(line, cancellation)
+        })
+    }
+}
 
-        let mut raw_texts = Vec::new();
-        let mut total_conf = 0.0f64;
+// 普通识别错误仍按原规则跳过；取消必须在每一段返回后立即传播。
+fn recognize_mrz_lines_with(
+    lines_to_process: &[&image::GrayImage],
+    cancellation: &OcrCancellation,
+    mut recognize_line: impl FnMut(&image::RgbImage) -> Result<(String, f64), String>,
+) -> Result<(Vec<String>, f64), String> {
+    use super::mrz::icao_normalize;
 
-        for (i, &line_gray) in lines_to_process.iter().enumerate() {
-            // ── 将 MRZ 行一分为二分别 rec，再拼接结果 ──
-            // 行图像约 852×30px，若直接压缩到 320px 则每字符仅 7px 宽，无法识别。
-            // 拆为 2 段（各 ~426px），每段压缩到 320px（1.33x），字符 ~14px 宽，可识别。
-            let line_w = line_gray.width();
-            let line_h = line_gray.height();
-            let half_w = line_w / 2;
+    let mut raw_texts = Vec::new();
+    let mut total_conf = 0.0f64;
 
-            let mut recognized = String::new();
-            let mut seg_sum_conf = 0.0f64;
-            let mut seg_count = 0u32;
+    cancellation.check()?;
+    for (i, &line_gray) in lines_to_process.iter().enumerate() {
+        cancellation.check()?;
+        // ── 将 MRZ 行一分为二分别 rec，再拼接结果 ──
+        // 行图像约 852×30px，若直接压缩到 320px 则每字符仅 7px 宽，无法识别。
+        // 拆为 2 段（各 ~426px），每段压缩到 320px（1.33x），字符 ~14px 宽，可识别。
+        let line_w = line_gray.width();
+        let line_h = line_gray.height();
+        let half_w = line_w / 2;
 
-            for seg_idx in 0..2 {
-                let seg_x = seg_idx * half_w;
-                let seg_w = if seg_idx == 0 {
-                    half_w
-                } else {
-                    line_w - half_w
-                };
-                if seg_w < 10 {
-                    continue;
-                }
+        let mut recognized = String::new();
+        let mut seg_sum_conf = 0.0f64;
+        let mut seg_count = 0u32;
 
-                let seg = image::imageops::crop_imm(line_gray, seg_x, 0, seg_w, line_h).to_image();
-                let resized =
-                    image::imageops::resize(&seg, 320, 48, image::imageops::FilterType::Triangle);
-                let seg_rgb = image::RgbImage::from_fn(320, 48, |x, y| {
-                    let val = resized.get_pixel(x, y).0[0];
-                    image::Rgb([val, val, val])
-                });
-
-                match self.recognize_line_rgb(&seg_rgb) {
-                    Ok((text, conf)) => {
-                        recognized.push_str(&text);
-                        seg_sum_conf += conf;
-                        seg_count += 1;
-                    }
-                    Err(e) => {
-                        tracing::warn!("[MRZ]   行[{}] 段[{}] 识别失败: {}", i, seg_idx, e);
-                    }
-                }
-            }
-
-            let avg_conf = if seg_count > 0 {
-                seg_sum_conf / seg_count as f64
+        for seg_idx in 0..2 {
+            cancellation.check()?;
+            let seg_x = seg_idx * half_w;
+            let seg_w = if seg_idx == 0 {
+                half_w
             } else {
-                0.0
+                line_w - half_w
             };
-
-            if avg_conf < 0.05 || recognized.trim().len() < 5 {
+            if seg_w < 10 {
                 continue;
             }
 
-            let normalized = icao_normalize(&recognized);
-            raw_texts.push(normalized);
-            total_conf += avg_conf;
+            let seg = image::imageops::crop_imm(line_gray, seg_x, 0, seg_w, line_h).to_image();
+            let resized =
+                image::imageops::resize(&seg, 320, 48, image::imageops::FilterType::Triangle);
+            let seg_rgb = image::RgbImage::from_fn(320, 48, |x, y| {
+                let val = resized.get_pixel(x, y).0[0];
+                image::Rgb([val, val, val])
+            });
+
+            cancellation.check()?;
+            let recognized_segment = recognize_line(&seg_rgb);
+            cancellation.check()?;
+            match recognized_segment {
+                Ok((text, conf)) => {
+                    recognized.push_str(&text);
+                    seg_sum_conf += conf;
+                    seg_count += 1;
+                }
+                Err(e) if e == OCR_CANCELLED => return Err(e),
+                Err(e) => {
+                    tracing::warn!("[MRZ]   行[{}] 段[{}] 识别失败: {}", i, seg_idx, e);
+                }
+            }
         }
 
-        (raw_texts, total_conf)
+        let avg_conf = if seg_count > 0 {
+            seg_sum_conf / seg_count as f64
+        } else {
+            0.0
+        };
+
+        if avg_conf < 0.05 || recognized.trim().len() < 5 {
+            continue;
+        }
+
+        let normalized = icao_normalize(&recognized);
+        raw_texts.push(normalized);
+        total_conf += avg_conf;
     }
+
+    cancellation.check()?;
+    Ok((raw_texts, total_conf))
 }
 
 // ─── MRZ 行重建辅助函数 ────────────────────────────────────────
@@ -412,23 +490,44 @@ fn greedy_merge_lines(lines: &[String], target_count: usize) -> Vec<String> {
     result
 }
 
-/// PDF 扫描的同步编排；生产和回归共用目录、错误传播及结果聚合逻辑。
+// RF028 保持原 seam；仍委托生产受控编排，不复制临时目录或聚合算法。
+#[cfg(test)]
 fn scan_pdf_with(
     pdf_path: &Path,
     temp_root: &Path,
     render_pages: impl FnOnce(&Path, u32, &Path) -> Result<Vec<PathBuf>, String>,
+    recognize_page: impl FnMut(&Path) -> Result<OcrResult, String>,
+) -> Result<OcrResult, String> {
+    scan_pdf_with_control(
+        pdf_path,
+        temp_root,
+        &OcrCancellation::default(),
+        render_pages,
+        recognize_page,
+    )
+}
+
+/// PDF 扫描的同步编排；生产和回归共用取消、目录、错误传播及结果聚合逻辑。
+fn scan_pdf_with_control(
+    pdf_path: &Path,
+    temp_root: &Path,
+    cancellation: &OcrCancellation,
+    render_pages: impl FnOnce(&Path, u32, &Path) -> Result<Vec<PathBuf>, String>,
     mut recognize_page: impl FnMut(&Path) -> Result<OcrResult, String>,
 ) -> Result<OcrResult, String> {
-    use super::pdf::{extract_pdf_text, has_meaningful_text};
+    use super::pdf::{extract_pdf_text_cancellable, has_meaningful_text};
 
     // 1. 提取文本层
-    let pages = extract_pdf_text(pdf_path)?;
+    cancellation.check()?;
+    let pages = extract_pdf_text_cancellable(pdf_path, cancellation)?;
+    cancellation.check()?;
 
     // 2. 若文本有意义，直接返回
     if has_meaningful_text(&pages, 20) {
         let mut all_text = String::new();
         let mut all_boxes = Vec::new();
         for (i, page_text) in pages.iter().enumerate() {
+            cancellation.check()?;
             if i > 0 {
                 all_text.push_str(&format!("\n--- Page {} ---\n", i + 1));
                 all_boxes.push(super::types::OcrBox {
@@ -444,6 +543,7 @@ fn scan_pdf_with(
                 points: [(0.0, 1.0), (0.0, 1.0), (1.0, 1.0), (1.0, 1.0)],
             });
         }
+        cancellation.check()?;
         return Ok(OcrResult {
             text: all_text,
             confidence: 1.0,
@@ -454,6 +554,7 @@ fn scan_pdf_with(
     // 3. 渲染为图片并 OCR
     // 目录 owner 留在同步扫描作用域内，覆盖部分渲染、识别错误与 unwind。
     // 保留自定义临时根目录不存在时自动补建的行为；文本层短路不创建目录。
+    cancellation.check()?;
     std::fs::create_dir_all(temp_root).map_err(|e| format!("创建临时目录失败: {e}"))?;
     let temp_dir = tempfile::Builder::new()
         .prefix("solosoul-pdf-")
@@ -461,13 +562,19 @@ fn scan_pdf_with(
         .tempdir_in(temp_root)
         .map_err(|e| format!("创建临时目录失败: {e}"))?;
 
-    let image_paths = render_pages(pdf_path, 150, temp_dir.path())?;
+    cancellation.check()?;
+    let image_paths = render_pages(pdf_path, 150, temp_dir.path());
+    cancellation.check()?;
+    let image_paths = image_paths?;
 
     let mut all_text_parts = Vec::new();
     let mut all_boxes = Vec::new();
 
     for (i, path) in image_paths.iter().enumerate() {
-        let page_result = recognize_page(path)?;
+        cancellation.check()?;
+        let page_result = recognize_page(path);
+        cancellation.check()?;
+        let page_result = page_result?;
         if i > 0 {
             all_text_parts.push(format!("\n--- Page {} ---\n", i + 1));
             all_boxes.push(super::types::OcrBox {
@@ -487,6 +594,7 @@ fn scan_pdf_with(
         0.0
     };
 
+    cancellation.check()?;
     Ok(OcrResult {
         text,
         confidence,
@@ -566,3 +674,6 @@ mod tests {
 
 #[cfg(test)]
 mod rf028_tests;
+
+#[cfg(test)]
+mod rf029_tests;

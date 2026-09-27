@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**97**（P1：35；P2：61；P3：1）。
-- 已关闭：**38 / 97**；实际修复（已关闭）：38；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无（RF-028已完成，下一项RF-029前置满足；只读预检已保存，尚未修改其源码）。RF-906恢复草案及红测证据保留在恢复目录供追溯。RF-905 的同步生命周期及 Host Vault 切换/附件 worker 接入被自动审批拒绝；46 份未集成源码已 SHA-256 校验归档至恢复目录 `rf905-proposal/`，44 份 tracked 源码恢复 HEAD、2 份本次新增草案移出工作树，未编译/测试，待具体授权。RF-021 Host 接入被自动审批拒绝，14份已批准草案已校验归档至恢复目录 `rf021-proposal/`，相关源码和规范已恢复 HEAD；未编译或运行草案测试，待明确授权。RF-016 Core 写入被自动审批拒绝，获批的11份源码/测试已校验归档至恢复目录 `rf016-proposal/` 并从当前源码恢复，未留下未集成 Rust 依赖；待明确授权后恢复该项。RF-014、RF-104 同样仍等待明确授权。RF-903 保持待执行，依赖 RF-905。
+- 已关闭：**39 / 97**；实际修复（已关闭）：39；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无；RF-029已完成，下一项为RF-109（回收站保护层复用共享字段策略，前置RF-106已完成）。RF-906恢复草案及红测证据保留在恢复目录供追溯。RF-905 的同步生命周期及 Host Vault 切换/附件 worker 接入被自动审批拒绝；46 份未集成源码已 SHA-256 校验归档至恢复目录 `rf905-proposal/`，44 份 tracked 源码恢复 HEAD、2 份本次新增草案移出工作树，未编译/测试，待具体授权。RF-021 Host 接入被自动审批拒绝，14份已批准草案已校验归档至恢复目录 `rf021-proposal/`，相关源码和规范已恢复 HEAD；未编译或运行草案测试，待明确授权。RF-016 Core 写入被自动审批拒绝，获批的11份源码/测试已校验归档至恢复目录 `rf016-proposal/` 并从当前源码恢复，未留下未集成 Rust 依赖；待明确授权后恢复该项。RF-014、RF-104 同样仍等待明确授权。RF-903 保持待执行，依赖 RF-905。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -171,7 +171,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 43 | [RF-026](#rf-026) | P2 | 解密导入预览移出异步运行时工作线程 | 无 | [x] 完成 |
 | 44 | [RF-027](#rf-027) | P2 | 高级导入移出异步运行时工作线程 | 无 | [x] 完成 |
 | 45 | [RF-028](#rf-028) | P2 | PDF OCR 临时页面由 RAII 清理 | [RF-906](#rf-906) | [x] 完成 |
-| 46 | [RF-029](#rf-029) | P2 | OCR 增加受控排队与分页取消 | [RF-001](#rf-001)、[RF-028](#rf-028) | [ ] 待执行 |
+| 46 | [RF-029](#rf-029) | P2 | OCR 增加受控排队与分页取消 | [RF-001](#rf-001)、[RF-028](#rf-028) | [x] 完成 |
 | 47 | [RF-109](#rf-109) | P2 | 回收站保护层复用共享字段策略 | [RF-106](#rf-106) | [ ] 待执行 |
 | 48 | [RF-113](#rf-113) | P2 | 常驻壳配置注册和注销具有页面所有者 | 无 | [ ] 待执行 |
 | 49 | [RF-114](#rf-114) | P2 | AppRoutes 生命周期编排按职责收敛 | [RF-112](#rf-112)、[RF-113](#rf-113) | [ ] 待执行 |
@@ -577,7 +577,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 **OCR 增加受控排队与分页取消** · P2 · 来源：R15
 
 - **前置：**[RF-001](#rf-001)、[RF-028](#rf-028)。
-- **入口：**`tauri/src-tauri/src/commands/ocr.rs`；`tauri/src-tauri/src/services/ocr_jobs.rs（拟新增）`；`tauri/src-tauri/src/services/mod.rs`；`tauri/crates/solosoul-core/src/ocr/engine.rs`；`tauri/src/pages/scan/OcrPage.tsx`；`tauri/src-tauri/src/lib.rs`。
+- **入口：**`tauri/src-tauri/src/commands/ocr.rs`；`tauri/src-tauri/src/services/ocr_jobs.rs`；`tauri/src-tauri/src/services/mod.rs`；`tauri/crates/solosoul-core/src/ocr/engine.rs`；`tauri/src/pages/scan/OcrPage.tsx`；`tauri/src-tauri/src/lib.rs`。
 - **执行：**仅为 OCR 建立有限队列、任务 ID、会话归属与取消令牌；获取推理资源前和 PDF 各页之间检查取消；事件包含任务身份，锁定后丢弃失效结果；UI 区分请求取消与实际结束。单次不可中断 ONNX 推理允许结束后停止，不承诺立即终止；同步登记必要 IPC/ACL。
 - **验收：**取消排队任务不进入推理；分页取消后不启动下一页；当前推理结束后清理页面；A 锁定/切 B 后旧结果不进入新会话；取消与完成竞争只有一个终态。
 - **验证配置：**`R` + `CORE` + `F` + `CONTRACT` + `CLI`。**定向验证：**Host/core 新增 rf029_* 引擎屏障测试；cargo test -p solo_soul --lib rf029_；cargo test -p solosoul-core --lib rf029_；OCR 实际调用入口补 Vitest，不使用真实敏感文件。
@@ -1983,4 +1983,35 @@ git commit -m "<任务卡的提交标题>"
 - 必需验证全部exit 0（本机Windows x64、真实PDFium DLL、默认测试并行）：工作区fmt 5.51s、CLI fmt 6.64s；RF-028定向5/5通过（127.24s）；Core全模块286/286通过（17.82s，包含既有OCR fixture、RF-906页序及RF-907互斥回归）；工作区Clippy 63.91s；工作区全量1,240通过、0失败、3项原有忽略（620.89s，Host 586、Core 286、Vault 190）。原忽略仍为两项legacy field契约及P025手动性能采集，本项无新增ignore。
 - CLI：Clippy all-targets通过（66.92s）；全量187通过、0失败、1项原有文档示例忽略（185.25s，185项库测试+2项集成测试）。证据为恢复目录 `rf028-*.log`、`rf028-validation.json`、`rf028-validation-source-sha256.json`；受测源码、RF-906/907对照源码、两份工作流及3张原用户图片在检查后SHA-256全部一致。本机验证不代表远端CI或其他平台已运行。
 - 收尾：CLI检查只自动刷新5个本地path crate的Cargo.lock版本记录（2.13.1→2.13.2），已与检查前及HEAD逐字核对，保存差异后仅恢复该工具副产物并删除临时基线副本，未改依赖或受测源码。
-- 最终结论：本项 **完成**。提交：本提交，使用 `RF-028` 检索，未推送。提交范围为扫描编排、旧清理helper移除、5项真实PDF回归、IPC规范、OCR扩展计划及执行报告6个文件；3张原用户NSIS图片保持不变。当前38/97已关闭，5项具体授权阻塞不变。RF-029前置已满足，只读预检在恢复目录 `rf029-readonly-preplan.md`，后续从快速扫描跨会话迟到回退的真实入口回归开始。
+- 最终结论：本项 **完成**。提交：`15ee873b`（RF-028），未推送。提交范围为扫描编排、旧清理helper移除、5项真实PDF回归、IPC规范、OCR扩展计划及执行报告6个文件；3张原用户NSIS图片保持不变。当前38/97已关闭，5项具体授权阻塞不变。RF-029前置已满足，只读预检在恢复目录 `rf029-readonly-preplan.md`，后续从快速扫描跨会话迟到回退的真实入口回归开始。
+
+### RF-029 执行记录（2026-09-27，完成）
+
+- 基线HEAD `15ee873b`，上一轮RF-028已完成独立提交，为有效进展。续跑核对工作树仅3张原用户NSIS图片有语义差异，暂存区/未跟踪为空；按无阻塞依赖任务继续本项，其他5项具体审批阻塞保持。
+- 已查明真实入口：Host image/MRZ、macOS Vision和移动桥接均缺少统一准入与原会话收尾；前端OcrPage、ocrScanStore的MRZ→general回退都需要身份检查。通知监听不能继续把isScanning true→false当作完成，否则锁定清空误报成功。Core取消需覆盖PDF文本提取/栅格化页边界，以及图像/MRZ各次ONNX之间；复用RF-028真实worker所有权清理。
+- 先新增真实Store deferred回归，仅替身原生IPC，以A悬停→锁定/切B→A迟到None、错误、成功证明旧回退及状态覆盖。暂不修改生产前端；测试完成后再接入统一任务票据和终态。
+
+- Store红测实际3/3失败（exit 1，28.42s）：A MRZ None后多发一次旧general fallback；旧成功将B的isScanning提前置false；旧失败把B错误覆成A错误。输入均为合成路径/正文，真实Store和AuthStore，仅替身IPC。`rf029-store-red.log`、`rf029-store-red-result.json`、源码SHA保存在恢复目录。
+- 实施契约：每个AppState最多5个未结束OCR任务、最多1个执行，原会话令牌贯穿登记/等待/工作/最终审计；独立coordinator保留实际worker及执行位，取消/调用方停止等待不提前释放。50ms会话轮询只触发取消意图，不承诺停止时限；最终发布仍在with_session内判定。PDFium持锁段仅读纯AtomicBool token，不取Host会话锁。image/MRZ/Vision/mobile共享队列，模型准备进入取得执行位后的blocking worker。
+- 前后端身份：可选UUID taskId保持旧命令返回结构，新增ocr_cancel_scan及带taskId/accountId/sessionGeneration/state/sequence的无正文事件。前端在发扫描前安装监听，保留先于登记到达的取消意图并在queued/running补发；通知按完整用户操作终态，MRZ→general只完成一次。队列位置固定等待future，不因轮询重新排队；stale拒绝进入提交闭包也有独立回收。
+
+- 第一轮定向：Core `rf029_` **8/8 passed**（130.01s）；Host `rf029_` **9/9 passed**（436.27s）。前端初轮43项有2项失败，原因是测试把快捷卡坐标设为null，生产按预期隐藏尚未定位的卡片；仅修复夹具为真实已定位值并断言可见，增加2项关闭卡片通知交互后，6文件 **45/45 passed**（34.97s）。未降低查询可见性要求。
+- 独立复审未发现新增阻断；另补第10项Host回归，用current_thread实际worker返回的同一次Future poll同步锁定/切B/重解锁后直接Ready，证明最后轮询尚未触发时，最终会话提交门仍拒绝旧结果。断言没有CancelRequested中间事件、只有一个Stale、A/B对象和审计不变。
+- 首轮全量前端 **159文件、1,356/1,356 passed**（155.72s）；TypeScript exit0，ACL 220命令、偏好22 key、Markdown13依赖均exit0。Lint exit0但有1处新增effect清理ref警告，随后固定捕获本次effect的请求对象，重新验证最终源码；最终Rust/CLI及生产包结果见下。
+
+- 最终验证环境：Windows 11 x64（10.0.26100）、Rust 1.96.0、Node 24.16.0、npm 11.13.0；沿用已登记的Common-Controls测试manifest、真实PDFium及SQLite工具路径，Cargo单任务串行。所有18项最终检查exit0，源码SHA核对一致，完整结果保存在恢复目录 `rf029-final-verification.json`。
+
+| 验证 | 最终结果 |
+| --- | --- |
+| 定向 Core / Host | `rf029_` 8/8（130.01s）及10/10（335.06s），0忽略；Host包含队列上限、取消竞争、调用方abort、native/future panic、原Vault身份及最终提交竞态 |
+| Core 全包 | 单元294/294，加9项集成测试入口，合计303 passed / 0 failed / 0 ignored（138.73s）；不将条件化外部服务测试解释为真实WebDAV服务验收 |
+| R | fmt 3.94s、Clippy `-D warnings` 48.75s；完整 `cargo test --verbose` **1,258 passed / 0 failed / 3既有ignored**（858.53s），含Host596/Core294/Vault190项单元 |
+| CLI | fmt 1.69s、Clippy all-targets 49.57s；完整测试 **187 passed / 0 failed / 1既有ignored**（207.48s） |
+| F | 最终TypeScript 16.03s、Lint 9.30s（0警告）、17文件Prettier 0.90s；全量 **159文件、1,356 passed / 0 failed**（158.96s）。沿用 `--pool=threads --maxWorkers=2`，未声称RF-316默认进程池已修好 |
+| CONTRACT | ACL 220命令（0.76s）、偏好22 key（0.76s）、Markdown13依赖（7.60s）全部一致 |
+| 生产WEB | 原生产配置、已安装Chrome、4 workers，真实Vite production build：**16 passed / 0 failed / 0 skipped**（命令32.68s，Playwright28.8s） |
+
+- 原有忽略项：Rust的2项已移除legacy field_parse测试及1项P025手动基线工具，CLI的1项i18n文档测试；本项没有新增ignore或放宽断言。26项新增前端回归覆盖真实Store/页面/快捷卡/通知和共享操作，IPC/原生事件为替身；Host使用真实Vault和Windows文件句柄，Core使用真实PDFium、可控识别屏障。未执行macOS Vision、Android ML Kit或iOS实机扫描，不将上述验证解释为识别准确率或原生硬中断保证。
+- 收尾：CLI检查只自动刷新5个本地path crate版本（2.13.1→2.13.2），与HEAD及检查前基线逐字验证后保存差异并恢复；临时基线副本已删除。RF-028/RF-906既有回归、PDFium互斥与CI配置未变；原用户3张NSIS图片SHA保持，未纳入本项。
+- 复审附记：完整页同路由清空filePath后可能保留忙态的既有疑点，已保存到恢复目录 `rf029-followup-route-preplan.md`，未运行红测、未纳入本项完成结论。下一项RF-109的具体只读执行预检在 `rf109-readonly-preplan.md`，尚未修改生产源码或运行其验证。
+- 最终结论：本项 **完成**。提交：本提交，使用 `RF-029` 检索；未推送。范围为有界OCR调度、原会话收尾与审计、Core安全边界取消、前端单操作终态及IPC/ACL/规范，共32文件；报告当前 **39/97已关闭**，5项具体授权阻塞保持，继续选择无阻塞依赖任务。

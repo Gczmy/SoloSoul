@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { FileText, Loader2 } from 'lucide-react';
+import { FileText } from 'lucide-react';
+import { OcrScanStatus } from './OcrScanStatus';
+import type { OcrJobState } from '@/lib/ocrScanOperation';
 import { type OcrTierInfo, type OcrModelStatus } from '@/lib/ipc';
 import { getTierLabel } from '@/lib/utils';
 import { ICON_SIZE } from '@/lib/constants';
@@ -8,6 +10,8 @@ interface OcrScanControlsProps {
   activeTier: string;
   scanMode: 'general' | 'mrz';
   isScanning: boolean;
+  scanState?: OcrJobState | null;
+  onCancel?: () => void;
   loadingStatus: boolean;
   tiers: OcrTierInfo[];
   statusMap: Record<string, OcrModelStatus>;
@@ -21,6 +25,8 @@ export function OcrScanControls({
   activeTier,
   scanMode,
   isScanning,
+  scanState,
+  onCancel,
   loadingStatus,
   tiers,
   statusMap,
@@ -142,24 +148,7 @@ export function OcrScanControls({
         </button>
       </div>
 
-      {/* Scanning state */}
-      {isScanning && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 10,
-            padding: 16,
-            color: 'var(--text-secondary)',
-            background: 'var(--bg-toolbar)',
-            borderRadius: 10,
-          }}
-        >
-          <Loader2 size={ICON_SIZE.lg} className="spin" />
-          <span style={{ fontSize: 'var(--text-body-sm)' }}>{t('ocr:scanning')}</span>
-        </div>
-      )}
+      <OcrScanStatus state={scanState} onCancel={onCancel} />
     </>
   );
 }

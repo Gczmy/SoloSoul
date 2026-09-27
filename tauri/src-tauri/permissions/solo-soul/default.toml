@@ -150,6 +150,7 @@ commands.allow = [
   "ocr_list_available_tiers",
   "ocr_scan_image",
   "ocr_scan_mrz",
+  "ocr_cancel_scan",
   "ocr_set_active_tier",
   "page_delete",
   "pin_check_availability",

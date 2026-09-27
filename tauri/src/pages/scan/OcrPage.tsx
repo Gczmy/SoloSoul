@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useEntryBack } from '@/hooks/useEntryBack';
 import { useTranslation } from 'react-i18next';
@@ -10,9 +10,14 @@ import { useToastError } from '@/hooks/useToastError';
 import { useOcrModelManager } from '@/hooks/useOcrModelManager';
 import { isMobilePlatformSync } from '@/lib/platform';
 
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
+import {
+  createOcrScanOperation,
+  type OcrJobState,
+  type OcrScanOperation,
+} from '@/lib/ocrScanOperation';
+import { translateOcrError } from '@/lib/ocrScanMessages';
 import type { MrzResult, OcrResult } from '@/lib/ipc';
-import { OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constants';
 import { Info, Import, Layers, Scan } from 'lucide-react';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { OcrResultList } from './OcrResultList';
@@ -38,6 +43,9 @@ export function OcrPage() {
   const [result, setResult] = useState<OcrResult | null>(null);
   const [mrzResult, setMrzResult] = useState<MrzResult | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [scanState, setScanState] = useState<OcrJobState | null>(null);
+  const requests = useRef(createSessionRequests());
+  const operationRef = useRef<OcrScanOperation | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
   const [importNameDefault, setImportNameDefault] = useState('');
@@ -46,17 +54,9 @@ export function OcrPage() {
 
   const isMobilePlatform = isMobilePlatformSync();
 
-  /** 处理扫描错误：将后端返回的「模型未安装」前缀解析为国际化提示。 */
-  const handleScanError = (err: unknown) => {
-    const message = err instanceof Error ? err.message : String(err);
-    if (message.startsWith(`${OCR_MODEL_NOT_INSTALLED_PREFIX}:`)) {
-      const tier = message.slice(OCR_MODEL_NOT_INSTALLED_PREFIX.length + 1) || activeTier;
-      onError(new Error(t('ocr:scan_model_not_installed', { tier })), t('ocr:scan_failed'));
-      return;
-    }
-    onError(err, t('ocr:scan_failed'));
+  const handleScanError = (error: unknown) => {
+    onError(new Error(translateOcrError(error, t)), t('ocr:scan_failed'));
   };
-
   /** 如果已知当前档位模型未安装，直接显示国际化提示。 */
   const guardActiveModelInstalled = (): boolean => {
     const status = statusMap[activeTier];
@@ -100,74 +100,75 @@ export function OcrPage() {
     ];
   };
 
+  useEffect(() => {
+    const invalidate = () => {
+      operationRef.current?.dispose();
+      operationRef.current = null;
+      requests.current.invalidate();
+    };
+    const unsubscribe = onRequestSessionChange(() => {
+      invalidate();
+      setResult(null);
+      setMrzResult(null);
+      setIsScanning(false);
+      setScanState(null);
+      setIsImporting(false);
+      setIsNameDialogOpen(false);
+      setPendingImportSource(null);
+    });
+    return () => {
+      invalidate();
+      unsubscribe();
+    };
+  }, []);
+
   const performScan = async (path: string) => {
     if (!guardActiveModelInstalled()) return;
+    operationRef.current?.dispose();
+    const ticket = requests.current.begin('scan', accountId);
     setIsScanning(true);
+    setScanState('queued');
     setResult(null);
     setMrzResult(null);
-    try {
-      if (scanMode === 'mrz') {
-        const res = await invoke<MrzResult | null>('ocr_scan_mrz', { filePath: path });
-        if (res) {
-          setMrzResult(res);
-        } else {
-          // MRZ not detected: fall back to general OCR
-          const ocrRes = await invoke<OcrResult>('ocr_scan_image', { filePath: path });
-          setResult(ocrRes);
-          onSuccess(t('ocr:mrz_no_detected'));
-        }
-      } else {
-        const res = await invoke<OcrResult>('ocr_scan_image', { filePath: path });
-        setResult(res);
-      }
-    } catch (e) {
-      handleScanError(e);
-    } finally {
-      setIsScanning(false);
+    const operation = createOcrScanOperation({
+      accountId,
+      isCurrent: ticket.isCurrent,
+      onState: setScanState,
+    });
+    operationRef.current = operation;
+    const outcome = await operation.run(path, scanMode);
+    if (!ticket.isCurrent() || !operation.isCurrent() || operationRef.current !== operation) return;
+    operationRef.current = null;
+    setIsScanning(false);
+    setScanState(outcome.status);
+    if (outcome.status === 'completed') {
+      setResult(outcome.result);
+      setMrzResult(outcome.mrzResult);
+      if (outcome.usedFallback) onSuccess(t('ocr:mrz_no_detected'));
+    } else if (outcome.status === 'failed') {
+      handleScanError(outcome.error);
     }
   };
 
-  // 如果通过附件菜单传入文件路径，自动开始扫描。
+  // 附件自动扫描与手动入口使用同一操作；路径变更或卸载使旧操作失效。
   useEffect(() => {
     if (!initialFilePath) return;
-    let cancelled = false;
-    async function scan() {
-      if (!guardActiveModelInstalled()) return;
-      setIsScanning(true);
-      setResult(null);
-      setMrzResult(null);
-      try {
-        if (scanMode === 'mrz') {
-          const res = await invoke<MrzResult | null>('ocr_scan_mrz', { filePath: initialFilePath });
-          if (cancelled) return;
-          if (res) {
-            setMrzResult(res);
-          } else {
-            const ocrRes = await invoke<OcrResult>('ocr_scan_image', { filePath: initialFilePath });
-            if (!cancelled) setResult(ocrRes);
-          }
-        } else {
-          const res = await invoke<OcrResult>('ocr_scan_image', { filePath: initialFilePath });
-          if (!cancelled) setResult(res);
-        }
-      } catch (e) {
-        if (!cancelled) handleScanError(e);
-      } finally {
-        if (!cancelled) setIsScanning(false);
-      }
-    }
-    scan();
+    const scanRequests = requests.current;
+    void performScan(initialFilePath);
     return () => {
-      cancelled = true;
+      operationRef.current?.dispose();
+      operationRef.current = null;
+      scanRequests.invalidate('scan');
     };
-    // P212: guardActiveModelInstalled/handleScanError/scanMode omitted intentionally —
-    // they are stable functions; adding them would cause re-scan on every render.
+    // 只对传入路径启动一次，不因模型状态或渲染重新发起。
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialFilePath]);
 
   const handleSelectFile = async () => {
+    const ticket = requests.current.begin('picker', accountId);
     try {
       const { openWithPause } = await import('@/lib/dialog');
+      if (!ticket.isCurrent()) return;
       const path = await openWithPause({
         filters: getFileFilters(),
         multiple: false,
@@ -176,44 +177,41 @@ export function OcrPage() {
             ? t('ocr:select_image_title')
             : t('ocr:select_file_title'),
       });
-      if (path && typeof path === 'string') {
-        await performScan(path);
-      }
-    } catch (e) {
-      onError(e, t('ocr:select_image_failed'));
+      if (ticket.isCurrent() && path && typeof path === 'string') await performScan(path);
+    } catch (error) {
+      if (ticket.isCurrent()) onError(error, t('ocr:select_image_failed'));
     }
   };
 
   const handleTakePhoto = async () => {
-    // 启动相机前立即清空上次结果并显示加载状态，避免从相机返回后闪烁旧结果
+    const ticket = requests.current.begin('picker', accountId);
     setResult(null);
     setMrzResult(null);
     setIsScanning(true);
+    setScanState(null);
     try {
       const { useAutoLockPauseStore } = await import('@/stores/autoLockPauseStore');
+      if (!ticket.isCurrent()) return;
       const { pause, resume } = useAutoLockPauseStore.getState();
       pause();
       try {
-        const path = await invoke<string | null>('mobile_ocr_take_photo');
-        if (path) {
-          await performScan(path);
-        } else {
-          // 相机取消或未返回路径，恢复空闲状态
+        const path = await ticket.invoke<string | null>('mobile_ocr_take_photo');
+        if (!ticket.isCurrent()) return;
+        if (path) await performScan(path);
+        else {
           setIsScanning(false);
           onError(t('ocr:take_photo_no_image'), t('ocr:take_photo_failed'));
         }
-      } catch (e) {
-        setIsScanning(false);
-        onError(e, t('ocr:take_photo_failed'));
       } finally {
         resume();
       }
-    } catch (e) {
-      setIsScanning(false);
-      onError(e, t('ocr:take_photo_failed'));
+    } catch (error) {
+      if (ticket.isCurrent()) {
+        setIsScanning(false);
+        onError(error, t('ocr:take_photo_failed'));
+      }
     }
   };
-
   /** 生成 OCR 导入对象的默认名称：前缀 + 当前日期时间（YYYYMMDDHHMMSS） */
   const generateDefaultImportName = () => {
     const now = new Date();
@@ -267,6 +265,7 @@ export function OcrPage() {
 
   const handleConfirmImport = async (name: string) => {
     if (!accountId || !pendingImportSource) return;
+    const ticket = requests.current.begin('import', accountId);
     setIsNameDialogOpen(false);
     setIsImporting(true);
     try {
@@ -276,12 +275,14 @@ export function OcrPage() {
         typeId: 'document',
         properties: buildImportProperties(),
       });
-      onSuccess(t('ocr:import_success'));
+      if (ticket.isCurrent()) onSuccess(t('ocr:import_success'));
     } catch (e) {
-      onError(e, t('ocr:import_failed'));
+      if (ticket.isCurrent()) onError(e, t('ocr:import_failed'));
     } finally {
-      setIsImporting(false);
-      setPendingImportSource(null);
+      if (ticket.isCurrent()) {
+        setIsImporting(false);
+        setPendingImportSource(null);
+      }
     }
   };
 
@@ -364,6 +365,8 @@ export function OcrPage() {
           isScanning={isScanning}
           isMobilePlatform={isMobilePlatform}
           activeTier={activeTier}
+          scanState={scanState}
+          onCancel={() => operationRef.current?.cancel()}
           onSelectFile={handleSelectFile}
           onTakePhoto={handleTakePhoto}
         />
