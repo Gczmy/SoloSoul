@@ -12,7 +12,9 @@ import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { ICON_SIZE } from '@/lib/constants';
-import { ProtectedTrashValue, trashSensitivity } from './ProtectedTrashValue';
+import { ProtectedTrashValue } from './ProtectedTrashValue';
+import { asFieldRecord } from '@/lib/fieldSensitivity';
+import { dynamicFieldSensitivity, fieldPresentationPolicy } from '@/lib/fieldPresentationPolicy';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import type { SnapshotEntry } from './types';
 
@@ -200,16 +202,8 @@ export function SnapshotDataView({
 
   // 字段级敏感度的真实来源是快照自身的 propertyLabels；对象当前标签（currentPropertyLabels）
   // 只用于主内容预览，不能混入历史快照，否则旧版本会显示成对象被删除时的最新敏感度。
-  const sensitivityMap = useMemo(() => {
-    const map = new Map<string, SensitivityLevel>();
-    const labels = data.propertyLabels as Record<string, SensitivityLevel> | undefined;
-    if (labels && typeof labels === 'object') {
-      for (const [id, level] of Object.entries(labels)) {
-        if (level) map.set(id, level);
-      }
-    }
-    return map;
-  }, [data.propertyLabels]);
+  // 保留原始标签的键存在性，明确的非法标签由公共策略收敛为 internal。
+  const propertyLabels = asFieldRecord(data.propertyLabels);
 
   // 优先使用对象自带的 __fields 字段定义获取名称/类型；模板存在时用于排序和补充。
   const fieldDefs = useMemo(() => {
@@ -242,7 +236,7 @@ export function SnapshotDataView({
       key: string;
       value: string;
       type?: PropertyType;
-      sensitivityLevel?: SensitivityLevel;
+      sensitivityLevel: SensitivityLevel;
     };
     type FieldEntry =
       | {
@@ -250,13 +244,13 @@ export function SnapshotDataView({
           key: string;
           value: string;
           type?: PropertyType;
-          sensitivityLevel?: SensitivityLevel;
+          sensitivityLevel: SensitivityLevel;
         }
       | {
           kind: 'dynamicGroup';
           key: string;
           type?: PropertyType;
-          sensitivityLevel?: SensitivityLevel;
+          sensitivityLevel: SensitivityLevel;
           children: FieldChild[];
         };
 
@@ -278,18 +272,19 @@ export function SnapshotDataView({
           seen.add(p.id);
           const def = fieldDefs.get(p.id);
           // 快照敏感度优先顺序：快照 propertyLabels -> 快照 __fields -> 当前模板 -> internal
-          const snapshotLevel = rawFields?.[p.id]?.sensitivityLevel;
-          const sensitivityLevel =
-            sensitivityMap.get(p.id) ||
-            snapshotLevel ||
-            ((p.sensitivityLevel || 'internal') as SensitivityLevel);
+          const sensitivityLevel = fieldPresentationPolicy({
+            fieldId: p.id,
+            propertyLabels,
+            definition: asFieldRecord(rawFields?.[p.id]),
+            template: p,
+          }).sensitivity;
           if ((def?.type || p.type) === 'dynamic_group') {
             result.push({
               kind: 'dynamicGroup',
               key: def?.name || p.name,
               type: 'dynamic_group',
               sensitivityLevel,
-              children: parseDynamicGroupValue(v),
+              children: parseDynamicGroupValue(v, sensitivityLevel),
             });
           } else {
             result.push({
@@ -312,15 +307,18 @@ export function SnapshotDataView({
         if (v === null || v === undefined || v === '') continue;
         seen.add(id);
         const def = fieldDefs.get(id);
-        const snapshotLevel = rawFields[id]?.sensitivityLevel;
-        const sensitivityLevel = sensitivityMap.get(id) || snapshotLevel;
+        const sensitivityLevel = fieldPresentationPolicy({
+          fieldId: id,
+          propertyLabels,
+          definition: asFieldRecord(rawFields[id]),
+        }).sensitivity;
         if ((def?.type || rawFields[id]?.type) === 'dynamic_group') {
           result.push({
             kind: 'dynamicGroup',
             key: def?.name || id,
             type: 'dynamic_group',
             sensitivityLevel,
-            children: parseDynamicGroupValue(v),
+            children: parseDynamicGroupValue(v, sensitivityLevel),
           });
         } else {
           result.push({
@@ -341,13 +339,13 @@ export function SnapshotDataView({
           kind: 'field',
           key: k,
           value: typeof v === 'string' ? v : JSON.stringify(v),
-          sensitivityLevel: sensitivityMap.get(k),
+          sensitivityLevel: fieldPresentationPolicy({ fieldId: k, propertyLabels }).sensitivity,
         });
       }
     }
 
     return result;
-  }, [rawProps, detailTemplate, fieldDefs, sensitivityMap]);
+  }, [rawProps, detailTemplate, fieldDefs, propertyLabels]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -397,13 +395,13 @@ export function SnapshotDataView({
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {f.type && <FieldTypeIcon type={f.type} size={ICON_SIZE.sm} />}
               <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{displayKey}</span>
-              <SensitivityBadge level={trashSensitivity(f.sensitivityLevel)} />
+              <SensitivityBadge level={f.sensitivityLevel} />
             </div>
             <ProtectedTrashValue
               identity={f.key}
               label={displayKey}
               value={f.value}
-              sensitivity={schemaOnly ? 'public' : trashSensitivity(f.sensitivityLevel)}
+              sensitivity={schemaOnly ? 'public' : f.sensitivityLevel}
             />
           </div>
         );
@@ -430,11 +428,14 @@ export function SnapshotDataView({
     </div>
   );
 }
-function parseDynamicGroupValue(v: unknown): {
+function parseDynamicGroupValue(
+  v: unknown,
+  parent: SensitivityLevel,
+): {
   key: string;
   value: string;
   type?: PropertyType;
-  sensitivityLevel?: SensitivityLevel;
+  sensitivityLevel: SensitivityLevel;
 }[] {
   let arr: unknown[] | undefined;
   if (Array.isArray(v)) {
@@ -451,6 +452,8 @@ function parseDynamicGroupValue(v: unknown): {
   return arr
     .filter((item): item is Record<string, unknown> => item !== null && typeof item === 'object')
     .map((item) => ({
+      // 必须在格式化原始子组前计算后代保护等级，不能影响其他公开兄弟。
+      sensitivityLevel: dynamicFieldSensitivity(item, parent),
       key: typeof item.name === 'string' ? item.name : String(item.id || ''),
       value:
         typeof item.value === 'string'
@@ -459,7 +462,6 @@ function parseDynamicGroupValue(v: unknown): {
             ? JSON.stringify(item.value)
             : '',
       type: typeof item.type === 'string' ? (item.type as PropertyType) : undefined,
-      sensitivityLevel: item.sensitivityLevel as SensitivityLevel | undefined,
     }));
 }
 function DynamicGroupSnapshotRow({
@@ -470,12 +472,12 @@ function DynamicGroupSnapshotRow({
 }: {
   schemaOnly?: boolean;
   groupKey: string;
-  sensitivityLevel?: SensitivityLevel;
+  sensitivityLevel: SensitivityLevel;
   children: {
     key: string;
     value: string;
     type?: PropertyType;
-    sensitivityLevel?: SensitivityLevel;
+    sensitivityLevel: SensitivityLevel;
   }[];
 }) {
   const { t } = useTranslation(['editor', 'common']);
@@ -500,7 +502,7 @@ function DynamicGroupSnapshotRow({
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <FieldTypeIcon type="dynamic_group" size={ICON_SIZE.sm} />
           <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{displayKey}</span>
-          <SensitivityBadge level={trashSensitivity(sensitivityLevel)} />
+          <SensitivityBadge level={sensitivityLevel} />
         </div>
       </div>
       {children.map((child) => (
@@ -518,22 +520,15 @@ function DynamicGroupSnapshotRow({
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {child.type && <FieldTypeIcon type={child.type} size={ICON_SIZE.sm} />}
             <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{child.key}</span>
-            {trashSensitivity(child.sensitivityLevel, trashSensitivity(sensitivityLevel)) !==
-              trashSensitivity(sensitivityLevel) && (
-              <SensitivityBadge
-                level={trashSensitivity(child.sensitivityLevel, trashSensitivity(sensitivityLevel))}
-              />
+            {child.sensitivityLevel !== sensitivityLevel && (
+              <SensitivityBadge level={child.sensitivityLevel} />
             )}
           </div>
           <ProtectedTrashValue
             identity={`${groupKey}:${child.key}`}
             label={child.key}
             value={child.value}
-            sensitivity={
-              schemaOnly
-                ? 'public'
-                : trashSensitivity(child.sensitivityLevel, trashSensitivity(sensitivityLevel))
-            }
+            sensitivity={schemaOnly ? 'public' : child.sensitivityLevel}
           />
         </div>
       ))}

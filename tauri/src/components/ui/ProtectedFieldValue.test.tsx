@@ -35,6 +35,7 @@ function Harness({
           <span>{control.displayValue}</span>
           <button onClick={() => void control.reveal()}>Reveal</button>
           <button onClick={() => void control.copy()}>Copy</button>
+          <button onClick={() => control.hide()}>Hide</button>
         </>
       )}
     </ProtectedFieldValue>
@@ -80,6 +81,46 @@ describe('protected field identity and access', () => {
       expect(copy).not.toHaveBeenCalled();
       expect(document.body.innerHTML).not.toContain('secret');
       expect(document.body.innerHTML).not.toContain('changed');
+    },
+  );
+  it('hide immediately conceals the value and requires fresh critical authorization', async () => {
+    const authorize = vi.fn().mockResolvedValue(true);
+    const copy = vi.fn();
+    render(<Harness authorize={authorize} copy={copy} />);
+    await act(async () => fireEvent.click(screen.getByText('Reveal')));
+    expect(screen.getByText('secret')).toBeVisible();
+    expect(authorize).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByText('Hide'));
+    expect(document.body.innerHTML).not.toContain('secret');
+    await act(async () => fireEvent.click(screen.getByText('Reveal')));
+    expect(screen.getByText('secret')).toBeVisible();
+    expect(authorize).toHaveBeenCalledTimes(2);
+    expect(copy).not.toHaveBeenCalled();
+  });
+  it.each(['Reveal', 'Copy'] as const)(
+    'hide invalidates a pending %s authorization before it can reveal or copy',
+    async (operation) => {
+      let finish!: (ok: boolean) => void;
+      const pending = new Promise<boolean>((resolve) => {
+        finish = resolve;
+      });
+      const authorize = vi.fn().mockReturnValueOnce(pending).mockResolvedValue(true);
+      const copy = vi.fn();
+      render(<Harness authorize={authorize} copy={copy} />);
+      try {
+        fireEvent.click(screen.getByText(operation));
+        expect(authorize).toHaveBeenCalledTimes(1);
+        fireEvent.click(screen.getByText('Hide'));
+        await act(async () => finish(true));
+        expect(document.body.innerHTML).not.toContain('secret');
+        expect(copy).not.toHaveBeenCalled();
+        await act(async () => fireEvent.click(screen.getByText('Reveal')));
+        expect(screen.getByText('secret')).toBeVisible();
+        expect(authorize).toHaveBeenCalledTimes(2);
+        expect(copy).not.toHaveBeenCalled();
+      } finally {
+        await act(async () => finish(false));
+      }
     },
   );
   it('copy/reveal share authorization, cancellation and TTL; returning to an old value does not restore access', async () => {

@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/Button';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
-import { ProtectedTrashValue, trashSensitivity } from './ProtectedTrashValue';
+import { ProtectedTrashValue } from './ProtectedTrashValue';
+import { dynamicFieldSensitivity, fieldPresentationPolicy } from '@/lib/fieldPresentationPolicy';
 import { ICON_SIZE } from '@/lib/constants';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { AttachmentFileNameBlock } from '@/components/attachment/AttachmentFileNameBlock';
@@ -20,7 +21,7 @@ import {
   AttachmentExtBadge,
 } from '@/components/attachment/AttachmentFormatBadge';
 import type { CustomPage } from '@/stores/settingsStore';
-import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
+import type { PropertyType, UserTemplate } from '@/types/template';
 import type { TrashDetail, TrashAttachment } from './types';
 import { SnapshotContent } from './TrashSnapshotView';
 
@@ -182,12 +183,16 @@ export function TrashFieldList({ item }: { item: TrashDetail }) {
           {item.previewProperties.map((p, i) => {
             const isTemplate = item.itemType === 'template';
             const propType = (p as Record<string, unknown>).type as PropertyType | undefined;
-            const explicitSensitivity = (p as Record<string, unknown>).sensitivityLevel as
-              | SensitivityLevel
-              | undefined;
             const fieldId = (p as Record<string, unknown>).fieldId as string | undefined;
-            const fallbackSensitivity = fieldId ? item.propertyLabels?.[fieldId] : undefined;
-            const sensitivity = trashSensitivity(explicitSensitivity || fallbackSensitivity);
+            // 预览 DTO 的显式等级优先；存在但非法的值不能回退到后备 public。
+            const sensitivity = fieldPresentationPolicy({
+              fieldId: fieldId ?? '',
+              propertyLabels: Object.hasOwn(p, 'sensitivityLevel')
+                ? { [fieldId ?? '']: p.sensitivityLevel }
+                : fieldId
+                  ? item.propertyLabels
+                  : undefined,
+            }).sensitivity;
             const displayKey =
               p.key === '__dynamic_group__'
                 ? t('editor:field_types.dynamic_group', p.key)
@@ -218,6 +223,8 @@ export function TrashFieldList({ item }: { item: TrashDetail }) {
                       child !== null && typeof child === 'object',
                   )
                   .map((child) => ({
+                    // 仅保护当前序列化子项，公开兄弟不继承其后代的最高等级。
+                    sensitivity: dynamicFieldSensitivity(child, sensitivity),
                     name: typeof child.name === 'string' ? child.name : String(child.id || ''),
                     value:
                       typeof child.value === 'string'
@@ -226,7 +233,6 @@ export function TrashFieldList({ item }: { item: TrashDetail }) {
                           ? JSON.stringify(child.value)
                           : '',
                     type: typeof child.type === 'string' ? (child.type as PropertyType) : undefined,
-                    sensitivity: trashSensitivity(child.sensitivityLevel, sensitivity),
                   })) ?? [];
 
               return (

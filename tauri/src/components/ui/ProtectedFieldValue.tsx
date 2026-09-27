@@ -12,6 +12,7 @@ export interface ProtectedFieldControl {
   revealed: boolean;
   remainingMs: number;
   reveal: () => Promise<boolean>;
+  hide: () => void;
   copy: (value?: string, key?: string) => Promise<void>;
 }
 interface Props {
@@ -82,6 +83,11 @@ function ProtectedFieldSession({
     revealed,
     remainingMs: state.revealRemainingMs('value'),
     reveal: async () => !!(await access()),
+    hide: () => {
+      // 明确隐藏也撤销悬停授权，防止迟到验证再次揭示或复制。
+      requests.invalidate('access');
+      state.hide('value');
+    },
     copy: async (copyValue = value, key = fieldId) => {
       const request = await access();
       if (request?.isCurrent()) await onCopy?.(copyValue, key);
