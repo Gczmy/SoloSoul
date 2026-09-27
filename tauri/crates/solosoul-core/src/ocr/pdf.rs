@@ -99,13 +99,6 @@ pub(crate) fn render_pdf_pages(
     Ok(paths)
 }
 
-/// 清理渲染产生的临时图片。
-pub(crate) fn cleanup_rendered_pages(paths: &[PathBuf]) {
-    for path in paths {
-        let _ = std::fs::remove_file(path);
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

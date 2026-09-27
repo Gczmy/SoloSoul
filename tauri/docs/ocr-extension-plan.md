@@ -121,22 +121,19 @@ pub fn extract_pdf_text(path: &Path) -> Result<Vec<String>, String>;
 pub fn has_meaningful_text(pages: &[String], min_chars_per_page: usize) -> bool;
 
 /// 将 PDF 每页渲染为临时 PNG 图片。
-/// 返回按页排序的图片路径列表。调用方负责删除临时文件。
+/// 返回按页排序的图片路径列表。调用方持有 TempDir，渲染器仅借用目录路径。
 pub fn render_pdf_pages(
     path: &Path,
     dpi: u32,
     temp_dir: &Path,
 ) -> Result<Vec<PathBuf>, String>;
-
-/// 清理渲染产生的临时图片。
-pub fn cleanup_rendered_pages(paths: &[PathBuf]);
 ```
 
 实现要点：
 
 - `extract_pdf_text` 使用 `pdf_extract::extract_text` 提取整份文本，再按 `\x0c`（换页符）拆分为每页。
 - `render_pdf_pages` 使用 `pdfium-render` 的 `PdfRenderConfig`，默认 `dpi=150`，输出宽度约 `8.5 * dpi`。
-- 临时目录命名：`solosoul-pdf-{uuid}-pages`，渲染完成后清理。
+- 临时目录命名：`solosoul-pdf-{random}-pages`。RF-028 已改为同步扫描作用域持有 `TempDir`，在全部页面识别与结果聚合完成、返回错误或 unwind 时清理；文本层直接返回不创建目录。以[当前 IPC 规范](../../docs/design_map/07_IPC命令接口完整规范.md)中的临时页面生命周期契约为准。
 
 ### 3.3 修改 `crates/solosoul-core/src/ocr/engine.rs`
 

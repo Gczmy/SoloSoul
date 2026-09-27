@@ -9,7 +9,7 @@ use super::preprocess::{
 };
 use super::types::{MrzResult, OcrModelTier, OcrResult};
 use ort::session::Session;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// 本地 OCR 引擎。
 pub struct OcrEngine {
@@ -158,79 +158,12 @@ impl OcrEngine {
     /// 扫描 PDF 文件。
     /// 优先提取文本层；无文本时渲染为图片再 OCR。
     pub fn scan_pdf(&mut self, pdf_path: &Path) -> Result<OcrResult, String> {
-        use super::pdf::{
-            cleanup_rendered_pages, extract_pdf_text, has_meaningful_text, render_pdf_pages,
-        };
-
-        // 1. 提取文本层
-        let pages = extract_pdf_text(pdf_path)?;
-
-        // 2. 若文本有意义，直接返回
-        if has_meaningful_text(&pages, 20) {
-            let mut all_text = String::new();
-            let mut all_boxes = Vec::new();
-            for (i, page_text) in pages.iter().enumerate() {
-                if i > 0 {
-                    all_text.push_str(&format!("\n--- Page {} ---\n", i + 1));
-                    all_boxes.push(super::types::OcrBox {
-                        text: format!("--- Page {} ---", i + 1),
-                        confidence: 1.0,
-                        points: [(0.0, 1.0), (0.0, 1.0), (1.0, 1.0), (1.0, 1.0)],
-                    });
-                }
-                all_text.push_str(page_text);
-                all_boxes.push(super::types::OcrBox {
-                    text: page_text.clone(),
-                    confidence: 1.0,
-                    points: [(0.0, 1.0), (0.0, 1.0), (1.0, 1.0), (1.0, 1.0)],
-                });
-            }
-            return Ok(OcrResult {
-                text: all_text,
-                confidence: 1.0,
-                boxes: all_boxes,
-            });
-        }
-
-        // 3. 渲染为图片并 OCR
-        let temp_dir =
-            std::env::temp_dir().join(format!("solosoul-pdf-{}-pages", uuid::Uuid::new_v4()));
-        std::fs::create_dir_all(&temp_dir).map_err(|e| format!("创建临时目录失败: {e}"))?;
-
-        let image_paths = render_pdf_pages(pdf_path, 150, &temp_dir)?;
-
-        let mut all_text_parts = Vec::new();
-        let mut all_boxes = Vec::new();
-
-        for (i, path) in image_paths.iter().enumerate() {
-            let page_result = self.scan_image(path)?;
-            if i > 0 {
-                all_text_parts.push(format!("\n--- Page {} ---\n", i + 1));
-                all_boxes.push(super::types::OcrBox {
-                    text: format!("--- Page {} ---", i + 1),
-                    confidence: 1.0,
-                    points: [(0.0, 1.0), (0.0, 1.0), (1.0, 1.0), (1.0, 1.0)],
-                });
-            }
-            all_text_parts.push(page_result.text.clone());
-            all_boxes.extend(page_result.boxes);
-        }
-
-        cleanup_rendered_pages(&image_paths);
-        let _ = std::fs::remove_dir(&temp_dir);
-
-        let text = all_text_parts.join("");
-        let confidence = if !all_boxes.is_empty() {
-            all_boxes.iter().map(|b| b.confidence).sum::<f64>() / all_boxes.len() as f64
-        } else {
-            0.0
-        };
-
-        Ok(OcrResult {
-            text,
-            confidence,
-            boxes: all_boxes,
-        })
+        scan_pdf_with(
+            pdf_path,
+            &std::env::temp_dir(),
+            super::pdf::render_pdf_pages,
+            |path| self.scan_image(path),
+        )
     }
 
     /// 扫描图片中的 MRZ 区域并解析。
@@ -479,6 +412,88 @@ fn greedy_merge_lines(lines: &[String], target_count: usize) -> Vec<String> {
     result
 }
 
+/// PDF 扫描的同步编排；生产和回归共用目录、错误传播及结果聚合逻辑。
+fn scan_pdf_with(
+    pdf_path: &Path,
+    temp_root: &Path,
+    render_pages: impl FnOnce(&Path, u32, &Path) -> Result<Vec<PathBuf>, String>,
+    mut recognize_page: impl FnMut(&Path) -> Result<OcrResult, String>,
+) -> Result<OcrResult, String> {
+    use super::pdf::{extract_pdf_text, has_meaningful_text};
+
+    // 1. 提取文本层
+    let pages = extract_pdf_text(pdf_path)?;
+
+    // 2. 若文本有意义，直接返回
+    if has_meaningful_text(&pages, 20) {
+        let mut all_text = String::new();
+        let mut all_boxes = Vec::new();
+        for (i, page_text) in pages.iter().enumerate() {
+            if i > 0 {
+                all_text.push_str(&format!("\n--- Page {} ---\n", i + 1));
+                all_boxes.push(super::types::OcrBox {
+                    text: format!("--- Page {} ---", i + 1),
+                    confidence: 1.0,
+                    points: [(0.0, 1.0), (0.0, 1.0), (1.0, 1.0), (1.0, 1.0)],
+                });
+            }
+            all_text.push_str(page_text);
+            all_boxes.push(super::types::OcrBox {
+                text: page_text.clone(),
+                confidence: 1.0,
+                points: [(0.0, 1.0), (0.0, 1.0), (1.0, 1.0), (1.0, 1.0)],
+            });
+        }
+        return Ok(OcrResult {
+            text: all_text,
+            confidence: 1.0,
+            boxes: all_boxes,
+        });
+    }
+
+    // 3. 渲染为图片并 OCR
+    // 目录 owner 留在同步扫描作用域内，覆盖部分渲染、识别错误与 unwind。
+    // 保留自定义临时根目录不存在时自动补建的行为；文本层短路不创建目录。
+    std::fs::create_dir_all(temp_root).map_err(|e| format!("创建临时目录失败: {e}"))?;
+    let temp_dir = tempfile::Builder::new()
+        .prefix("solosoul-pdf-")
+        .suffix("-pages")
+        .tempdir_in(temp_root)
+        .map_err(|e| format!("创建临时目录失败: {e}"))?;
+
+    let image_paths = render_pages(pdf_path, 150, temp_dir.path())?;
+
+    let mut all_text_parts = Vec::new();
+    let mut all_boxes = Vec::new();
+
+    for (i, path) in image_paths.iter().enumerate() {
+        let page_result = recognize_page(path)?;
+        if i > 0 {
+            all_text_parts.push(format!("\n--- Page {} ---\n", i + 1));
+            all_boxes.push(super::types::OcrBox {
+                text: format!("--- Page {} ---", i + 1),
+                confidence: 1.0,
+                points: [(0.0, 1.0), (0.0, 1.0), (1.0, 1.0), (1.0, 1.0)],
+            });
+        }
+        all_text_parts.push(page_result.text.clone());
+        all_boxes.extend(page_result.boxes);
+    }
+
+    let text = all_text_parts.join("");
+    let confidence = if !all_boxes.is_empty() {
+        all_boxes.iter().map(|b| b.confidence).sum::<f64>() / all_boxes.len() as f64
+    } else {
+        0.0
+    };
+
+    Ok(OcrResult {
+        text,
+        confidence,
+        boxes: all_boxes,
+    })
+}
+
 /// 将 ndarray 转换为 ort 输入张量。
 fn ndarray_to_ort_tensor(
     arr: &ndarray::ArrayView<f32, ndarray::Ix4>,
@@ -548,3 +563,6 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod rf028_tests;
