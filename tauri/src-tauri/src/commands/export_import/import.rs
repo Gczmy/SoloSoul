@@ -281,26 +281,122 @@ pub async fn import_execute_advanced<R: tauri::Runtime>(
     account_id: String,
     req: AdvancedImportRequest,
 ) -> Result<ImportResult, String> {
-    validate_import_path(&app, &req.source_path)?;
-    let result = import_execute_internal(
-        state
+    let job = ImportJob::prepare(
+        Arc::clone(&state.vault_service),
+        &account_id,
+        req,
+        None,
+        |path| resolve_import_path(&app, path),
+    )?;
+    let auto_sync = state.auto_sync.clone();
+    run_import_job(job, ImportJob::run, move || auto_sync.trigger_debounce()).await
+}
+
+/// RF-027：调度前固定原会话与授权路径，所有同步导入工作由 worker 持有。
+pub(super) struct ImportJob {
+    vault_service: Arc<RwLock<VaultService>>,
+    session: VaultSession,
+    source_path: String,
+    password: Zeroizing<String>,
+    strategy: ImportStrategy,
+    selections: Option<Vec<ImportSelection>>,
+    selected_attachment_ids: Option<Vec<String>>,
+    object_strategies: HashMap<String, ImportStrategy>,
+    locale: String,
+    progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
+}
+
+impl ImportJob {
+    pub(super) fn prepare(
+        vault_service: Arc<RwLock<VaultService>>,
+        account_id: &str,
+        req: AdvancedImportRequest,
+        progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
+        resolve_path: impl FnOnce(&str) -> Result<PathBuf, String>,
+    ) -> Result<Self, String> {
+        let AdvancedImportRequest {
+            selections,
+            strategy,
+            source_path,
+            password,
+            selected_attachment_ids,
+            object_strategies,
+            locale,
+        } = req;
+        let password = Zeroizing::new(password);
+        let source_path = resolve_path(&source_path)?
+            .into_os_string()
+            .into_string()
+            .map_err(|_| "Invalid import path encoding".to_string())?;
+        let session = {
+            let svc = vault_service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            svc.capture_session(account_id)?
+        };
+        Ok(Self {
+            vault_service,
+            session,
+            source_path,
+            password,
+            strategy,
+            selections,
+            selected_attachment_ids,
+            object_strategies,
+            locale,
+            progress,
+        })
+    }
+
+    pub(super) fn run(self) -> Result<ImportResult, String> {
+        let svc = self
             .vault_service
             .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?,
-        account_id,
-        req.source_path,
-        // P015: IPC 边界立即 Zeroizing 包装
-        zeroize::Zeroizing::new(req.password),
-        req.strategy,
-        req.selections,
-        req.selected_attachment_ids,
-        req.object_strategies,
-        &req.locale,
-        None,
-    )?;
-    // 导入触发本地数据变更自动同步（原核心内部行为：仅成功后触发，N-102）
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        // 不能经 internal 重新 capture_session，否则排队中的旧请求会借用新会话。
+        import_execute_for_session(
+            &svc,
+            &self.session,
+            self.source_path,
+            self.password,
+            self.strategy,
+            self.selections,
+            self.selected_attachment_ids,
+            self.object_strategies,
+            &self.locale,
+            self.progress,
+        )
+    }
+}
+
+pub(super) async fn run_import_job(
+    job: ImportJob,
+    execute: impl FnOnce(ImportJob) -> Result<ImportResult, String> + Send + 'static,
+    on_complete: impl FnOnce() + Send,
+) -> Result<ImportResult, String> {
+    let vault_service = Arc::clone(&job.vault_service);
+    let session = job.session.clone();
+    // worker panic 时提交状态未知，不能构造 NotCommitted 或空成功结果。
+    let result = tokio::task::spawn_blocking(move || execute(job))
+        .await
+        .map_err(|_| "导入任务执行失败".to_string())??;
     if result.is_complete() {
-        state.auto_sync.trigger_debounce();
+        // 回调仅作快速通知，不得等待或重入 Vault；生产回调为 try_send。
+        // 会话失效或读锁损坏只抑制后续通知，不能抹掉已完成的导入结果。
+        match vault_service.read() {
+            Ok(svc) => {
+                if svc
+                    .with_session(&session, |_| {
+                        on_complete();
+                        Ok(())
+                    })
+                    .is_err()
+                {
+                    tracing::debug!("[import] 原会话已失效，跳过完成同步通知");
+                }
+            }
+            Err(_) => tracing::warn!("[import] 服务锁损坏，跳过完成同步通知"),
+        }
     }
     Ok(result)
 }
