@@ -210,6 +210,8 @@ pub enum AppPhase {
         peers: Vec<solosoul_sync::types::SyncPeerInfo>,
         info: String,
     },
+    /// 受管 OCR 后台任务：排队、运行、请求取消。
+    OcrTasks,
     /// OCR 扫描结果页（`/ocr scan <path>` 或 `/ocr tiers` / `/ocr status`）。
     OcrResult {
         result: solosoul_core::ocr::types::OcrResult,
@@ -384,6 +386,9 @@ pub struct App {
     pub(crate) task_progress: HashMap<TaskId, (u64, Option<u64>)>,
     pub(crate) embed_downloads: HashMap<String, commands::embed_model::EmbedDownload>,
     pub(crate) plugin_installs: HashMap<String, commands::plugin::PluginInstallTask>,
+    pub(crate) ocr_tasks: HashMap<TaskId, commands::ocr::OcrTask>,
+    pub(crate) last_ocr_result: Option<AppPhase>,
+    pub(crate) ocr_session: Option<solosoul_core::VaultSession>,
     #[cfg(test)]
     pub(crate) plugin_test_dirs: Option<(std::path::PathBuf, std::path::PathBuf)>,
     pub process_lock: Option<ProcessLock>,
@@ -464,6 +469,9 @@ impl App {
             task_progress: HashMap::new(),
             embed_downloads: HashMap::new(),
             plugin_installs: HashMap::new(),
+            ocr_tasks: HashMap::new(),
+            last_ocr_result: None,
+            ocr_session: None,
             #[cfg(test)]
             plugin_test_dirs: None,
             vault_service,
@@ -824,14 +832,19 @@ impl App {
         self.task_progress.clear();
         self.embed_downloads.clear();
         self.plugin_installs.clear();
+        self.ocr_tasks.clear();
+        self.last_ocr_result = None;
+        self.ocr_session = None;
     }
 
     /// 每轮有界消费，进度/完成不算用户活动；会话变化先释放旧进度。
     pub(crate) fn drain_task_events(&mut self, limit: usize) -> Result<()> {
+        commands::ocr::clear_stale(self);
         for id in self.tasks.cancel_stale() {
             self.task_progress.remove(&id);
             self.embed_downloads.retain(|_, task| task.task_id != id);
             self.plugin_installs.retain(|_, task| task.task_id != id);
+            self.ocr_tasks.remove(&id);
         }
         for event in self.tasks.poll_events(limit) {
             self.handle_event(crate::events::Event::Task(event))?;
@@ -865,7 +878,17 @@ impl App {
             .iter()
             .find(|(_, install)| install.task_id == id)
             .map(|(plugin, install)| (plugin.clone(), install.updated));
+        let ocr_result = match &event.kind {
+            TaskEventKind::Completed(TaskOutput::OcrCompleted {
+                result_json,
+                source_path,
+                mrz_json,
+            }) => commands::ocr::decode_result(result_json, source_path, mrz_json.as_deref()),
+            _ => None,
+        };
         let Self {
+            ocr_tasks,
+            last_ocr_result,
             tasks,
             task_progress,
             plugin_installs,
@@ -879,6 +902,25 @@ impl App {
             ..
         } = self;
         let applied = tasks.apply_event(event, |kind| match kind {
+            TaskEventKind::BlockingState(status) => {
+                if let Some(task) = ocr_tasks.get_mut(&id) {
+                    task.status = status;
+                }
+            }
+            TaskEventKind::Completed(TaskOutput::OcrCompleted { .. }) => {
+                if ocr_tasks.remove(&id).is_some() {
+                    if let Some(result) = ocr_result {
+                        *last_ocr_result = Some(result.clone());
+                        if matches!(phase, AppPhase::OcrTasks) {
+                            *previous_phase = Some(AppPhase::OcrTasks);
+                            *phase = result;
+                        }
+                        *success_message = Some((t!(i18n, "ocr-completed"), Instant::now()));
+                    } else {
+                        *error_message = Some(t!(i18n, "ocr-invalid-result"));
+                    }
+                }
+            }
             TaskEventKind::Progress { current, total } => {
                 task_progress.insert(id, (current, total));
             }
@@ -959,6 +1001,7 @@ impl App {
             }
             TaskEventKind::Failed(error) => {
                 task_progress.remove(&id);
+                ocr_tasks.remove(&id);
                 if let Some(model) = model.as_deref() {
                     embed_downloads.remove(model);
                     *error_message = Some(t!(i18n, "cmd-embed-install-failed", err = error));
@@ -978,6 +1021,9 @@ impl App {
             }
             TaskEventKind::Cancelled => {
                 task_progress.remove(&id);
+                if ocr_tasks.remove(&id).is_some() {
+                    *info_message = Some(t!(i18n, "ocr-cancelled"));
+                }
                 if let Some(model) = model.as_deref() {
                     embed_downloads.remove(model);
                     *info_message = Some(t!(i18n, "cmd-embed-cancelled", model = model));
@@ -991,6 +1037,7 @@ impl App {
             task_progress.remove(&id);
             embed_downloads.retain(|_, task| task.task_id != id);
             plugin_installs.retain(|_, task| task.task_id != id);
+            ocr_tasks.remove(&id);
         }
     }
 
@@ -1000,6 +1047,9 @@ impl App {
         self.task_progress.clear();
         self.embed_downloads.clear();
         self.plugin_installs.clear();
+        self.ocr_tasks.clear();
+        self.last_ocr_result = None;
+        self.ocr_session = None;
         self.plugin_run_pending = None;
         let report = crate::util::shared_runtime()?.block_on(self.tasks.shutdown());
         if report.panicked > 0 {
@@ -1123,6 +1173,14 @@ impl App {
             AppPhase::LlmStats { .. } => self.handle_llm_stats_key(key),
             AppPhase::ConversationList { .. } => self.handle_conversation_list_key(key),
             AppPhase::LlmChat => self.handle_llm_chat_key(key),
+            AppPhase::OcrTasks
+                if key.code == KeyCode::Esc
+                    && self.command_input.is_empty()
+                    && !self.ocr_tasks.is_empty() =>
+            {
+                commands::ocr::cancel(self, &[]);
+                Ok(false)
+            }
             AppPhase::PluginList { .. } => self.handle_plugin_list_key(key),
             AppPhase::PluginDetail { .. } => self.handle_plugin_detail_key(key),
             AppPhase::SettingsMenu { .. } => self.handle_settings_menu_key(key),
@@ -3032,6 +3090,7 @@ impl App {
             | AppPhase::PluginList { .. }
             | AppPhase::PluginDetail { .. }
             | AppPhase::SyncStatus { .. }
+            | AppPhase::OcrTasks
             | AppPhase::OcrResult { .. }
             | AppPhase::EmbedModelList { .. } => RenderGroup::G2,
             AppPhase::SettingsMenu { .. }
@@ -3322,6 +3381,9 @@ impl App {
                 crate::screens::sync_status::render(frame, area, peers, info, &self.i18n)
             }
 
+            AppPhase::OcrTasks => {
+                crate::screens::ocr_result::render_tasks(frame, area, &self.ocr_tasks, &self.i18n)
+            }
             AppPhase::OcrResult {
                 result,
 

@@ -373,9 +373,9 @@ cmd-sync-forget-operation-failed = /sync forget operation failed: {$err}
 cmd-sync-info = Persisted peers from historical sync sessions
 
 ### OCR commands
-cmd-ocr-usage = Usage: /ocr scan [--mrz] <image-path>
-cmd-ocr-unknown-flag = /ocr scan: unknown flag {$flag}. Usage: /ocr scan [--mrz] <image-path>
-cmd-ocr-extra-arg = /ocr scan: rejecting extra argument {$arg}. Usage: /ocr scan [--mrz] <image-path>
+cmd-ocr-usage = Usage: /ocr scan [--mrz] <path>
+cmd-ocr-unknown-flag = /ocr scan: unknown flag {$flag}. Usage: /ocr scan [--mrz] <path>
+cmd-ocr-extra-arg = /ocr scan: rejecting extra argument {$arg}. Usage: /ocr scan [--mrz] <path>
 cmd-ocr-image-not-found = Image not found: {$path}
 cmd-ocr-env-parse-failed = SOLOSOUL_OCR_TIER parse failed: {$err}
 cmd-ocr-tier-not-installed = {$tier} tier model not installed. Please install via GUI or place at {$path}.
@@ -686,3 +686,19 @@ plugin-task-verifying = Verifying
 plugin-task-installing = Installing
 plugin-installed-version = Installed: {$ver}
 status-plugin-installs = Plugin tasks ({$count})
+
+# RF215: bounded background OCR
+ocr-queue-full = OCR queue is full: one running task and four waiting tasks are allowed.
+ocr-no-result = No OCR result in this session yet.
+ocr-task-not-found = OCR task not found. Use /ocr jobs to view full task IDs.
+ocr-cancel-usage = Usage: /ocr cancel [task-id]; omit the ID to cancel all OCR tasks.
+ocr-completed = OCR completed. Use /ocr result to view the latest result in this session.
+ocr-invalid-result = OCR returned an invalid result.
+ocr-cancelled = OCR cancelled; task resources have been reclaimed.
+ocr-tasks-limit = One task runs while up to four wait. Cancellation waits for the current model loading or inference stage; PDF scanning stops at page boundaries.
+ocr-tasks-empty = No OCR tasks are active.
+ocr-task-queued = Queued
+ocr-task-running = Running
+ocr-task-cancelling = Cancellation requested; waiting for the current stage
+ocr-tasks-hint = Esc cancels all OCR · /ocr cancel <task-id> cancels one task · /back returns · /ocr result opens the latest result
+ocr-tasks-title = Background OCR tasks

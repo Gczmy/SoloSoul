@@ -373,9 +373,9 @@ cmd-sync-forget-operation-failed = /sync forget 操作失败：{$err}
 cmd-sync-info = vault 中已持久化的 peer（来自历史同步会话；不包含当前 mDNS 实时发现）
 
 ### OCR commands
-cmd-ocr-usage = 用法：/ocr scan [--mrz] <image-path>
-cmd-ocr-unknown-flag = /ocr scan：未知 flag {$flag}。用法：/ocr scan [--mrz] <image-path>
-cmd-ocr-extra-arg = /ocr scan：拒绝多余参数 {$arg}。用法：/ocr scan [--mrz] <image-path>
+cmd-ocr-usage = 用法：/ocr scan [--mrz] <path>
+cmd-ocr-unknown-flag = /ocr scan：未知 flag {$flag}。用法：/ocr scan [--mrz] <path>
+cmd-ocr-extra-arg = /ocr scan：拒绝多余参数 {$arg}。用法：/ocr scan [--mrz] <path>
 cmd-ocr-image-not-found = 图片不存在：{$path}
 cmd-ocr-env-parse-failed = SOLOSOUL_OCR_TIER 解析失败：{$err}
 cmd-ocr-tier-not-installed = {$tier} 档位模型未安装。请先通过 GUI 安装或手动放置到 {$path}。
@@ -686,3 +686,19 @@ plugin-task-verifying = 正在校验
 plugin-task-installing = 正在安装
 plugin-installed-version = 已安装：{$ver}
 status-plugin-installs = 插件任务（{$count}）
+
+# RF215: bounded background OCR
+ocr-queue-full = OCR 队列已满：最多一个运行任务和四个排队任务。
+ocr-no-result = 本会话尚无识别结果。
+ocr-task-not-found = 未找到该 OCR 任务，请用 /ocr jobs 查看完整任务 ID。
+ocr-cancel-usage = 用法：/ocr cancel [task-id]；省略 ID 取消全部 OCR 任务。
+ocr-completed = OCR 已完成；/ocr result 可查看本会话最近的结果。
+ocr-invalid-result = OCR 返回了无效结果。
+ocr-cancelled = OCR 已取消，任务资源已回收。
+ocr-tasks-limit = 最多一个任务运行、四个任务排队。取消等待当前模型加载或推理阶段结束，PDF 在页边界停止。
+ocr-tasks-empty = 当前没有 OCR 任务。
+ocr-task-queued = 排队中
+ocr-task-running = 识别中
+ocr-task-cancelling = 已请求取消，等待当前阶段结束
+ocr-tasks-hint = Esc 请求取消全部 OCR · /ocr cancel <task-id> 取消指定任务 · /back 返回 · /ocr result 查看最近结果
+ocr-tasks-title = OCR 后台任务

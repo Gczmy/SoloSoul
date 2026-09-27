@@ -1,6 +1,6 @@
 # SoloSoul 重构修复执行报告
 
-> 最后更新：2026-09-27（继续逐项修复）
+> 最后更新：2026-09-28（继续逐项修复）
 > 当前分支：`main`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
 > 修复轮次：第 1 轮，执行中。Cua 接入继续暂缓。
 
@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**97**（P1：35；P2：61；P3：1）。
-- 已关闭：**44 / 97**；实际修复（已关闭）：44；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无；RF-214已完成本地修复与验收，提交见本项执行记录。下一候选RF-215（可取消CLI OCR），前置RF-211/RF-029已完成，只读预检已归档，尚未实施。RF-213仍依赖RF-905的真实Sync生命周期；RF-903仍待RF-905。RF-104、RF-014、RF-016、RF-021、RF-905保持既有具体授权阻塞，已归档草案不恢复。Android任务缺少本机C盘可用JDK/SDK/NDK及Rust Android targets，不以浏览器或其他平台替代原生验收。
+- 已关闭：**45 / 97**；实际修复（已关闭）：45；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无；RF-215已完成修复与全部必需验证，提交见本项执行记录。下一候选RF-301（增量IPC契约生成），无任务前置；只读预案已保存，尚未实施。RF-213仍依赖RF-905的真实Sync生命周期；RF-903仍待RF-905。RF-104、RF-014、RF-016、RF-021、RF-905保持既有具体授权阻塞，已归档草案不恢复。Android任务缺少本机C盘可用JDK/SDK/NDK及Rust Android targets，不以浏览器或其他平台替代原生验收。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -195,7 +195,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 67 | [RF-212](#rf-212) | P2 | 将 CLI 模型下载迁移到任务事件 | [RF-211](#rf-211) | [x] 完成 |
 | 68 | [RF-213](#rf-213) | P2 | 将 CLI 同步迁移到任务事件 | [RF-211](#rf-211)、[RF-905](#rf-905) | [ ] 待执行 |
 | 69 | [RF-214](#rf-214) | P2 | 将 CLI 插件安装迁移到任务事件 | [RF-211](#rf-211) | [x] 完成 |
-| 70 | [RF-215](#rf-215) | P2 | 将 CLI OCR 迁移到可取消后台任务 | [RF-211](#rf-211)、[RF-029](#rf-029) | [ ] 待执行 |
+| 70 | [RF-215](#rf-215) | P2 | 将 CLI OCR 迁移到可取消后台任务 | [RF-211](#rf-211)、[RF-029](#rf-029) | [x] 完成 |
 | 71 | [RF-301](#rf-301) | P2 | 建立 Rust 到 TypeScript 的增量 IPC 契约生成 | 无 | [ ] 待执行 |
 | 72 | [RF-302](#rf-302) | P2 | 迁移对象和回滚 IPC 契约 | [RF-301](#rf-301)、[RF-008](#rf-008)、[RF-010](#rf-010) | [ ] 待执行 |
 | 73 | [RF-303](#rf-303) | P2 | 迁移 LLM 会话与流事件契约 | [RF-301](#rf-301)、[RF-002](#rf-002)、[RF-004](#rf-004)、[RF-005](#rf-005)、[RF-104](#rf-104) | [ ] 待执行 |
@@ -2167,4 +2167,36 @@ git commit -m "<任务卡的提交标题>"
 - 全部在本机Windows运行，Cargo串行、jobs=1，沿用sqlite3/PDFium环境，无新增RUSTFLAGS。新增回归仅使用临时Vault/market/data及loopback HTTP屏障；既有Host安装集成沿用仓库市场资源并将所有安装/审计写入临时根。GUI三项既有取消资源回归全部通过。Rust原有忽略项为两项legacy field测试及P025数据收集工具，CLI为原i18n宏文档示例；未新增ignore或降低断言。
 - 验证边界：未在Unix执行其专属权限/符号链接用例，未宣称交互终端或macOS/移动端实机验收。新版本布局不保证旧客户端降级读取，也不宣称跨进程改写协调、断电耐久或旧版本自动GC。canonical已同步CLI指南、项目结构§13.2及插件概览/运行时规范。
 - 收尾核对16个源码/locale/测试与5份文档，共21文件。最终源码SHA、日志SHA、退出码与数量保存在恢复目录 `rf214-final-verification.json`；共享Clippy通过后只调整旧集成测试断言，生产实现保持不变。Cargo自动刷新五个本地path包版本的差异已归档并恢复两个lock的原始字节，三张原用户NSIS图片SHA保持且不纳入提交。
-- 最终结论：本项 **完成**；提交：本提交，使用 `git log --grep=RF-214` 检索，未推送。报告累计 **44/97已关闭**，原5项具体授权阻塞保持；下一候选RF-215只读预检保存在恢复目录 `rf215-readonly-preplan.md`，未混入本提交。
+- 最终结论：本项 **完成**；提交：`326f3c25`（RF-214），未推送。报告累计 **44/97已关闭**，原5项具体授权阻塞保持；下一候选RF-215只读预检保存在恢复目录 `rf215-readonly-preplan.md`，未混入本提交。
+
+### RF-215 执行记录（2026-09-27—28，完成）
+
+- 基线 `326f3c25`，`main`；实际差异仅三张原用户 NSIS 位图，SHA 与 lockfile 原始字节保存于恢复目录 `rf215-baseline.json`。没有残留 SoloSoul/Cargo 进程；继续使用 C 盘恢复仓库，不访问 D 盘。
+- 确认 CLI 在输入线程同步加载模型、识别图片/MRZ，普通扫描尚未分流 PDF。当前 Tasks 只管理异步 Future，直接包一层 spawn_blocking 会在取消外层后丢失真实工作所有权，不能满足本项。
+- 实施独立阻塞入口：JoinSet 直接持有实际阻塞闭包，一个执行位及四个有限待派发闭包；取消排队项不加载引擎，取消运行项只设置共享 token，真实 join 后才释放执行位。状态、终态按 TaskId 与原会话进入主循环。使用现成共享 OCR 取消点，并将 PDF 委托入口暴露为可复用识别回调，以真实 PDFium 管线验证临时页生命期。
+- CLI 增加任务页、jobs/cancel/result 子命令和 Esc 取消；加载/原生推理无法立即终止，界面明确区分请求取消与资源已回收。完成不抢走其他页面，最近结果及当前/返回页绑定原会话，锁定/重登/切账户时清理。
+- 回归采用实际 App/Tasks/Vault、可释放屏障、合成图片/MRZ DTO 和真实两页 PDF；不下载模型、不读取用户文件。Core 全包检查已开始，其余定向/CLI/R 必需检查待运行。当前不计关闭、不提交。
+
+- Core 完整验证已通过：294 单元+9集成=303 passed，0 ignored，exit0（153.53s）。首轮 CLI 定向在编译阶段失败（exit101，61.02s）：旧 Tasks 测试的五处 AbortHandle 访问需适配排队任务无句柄的 Option 类型，状态栏漏列新 OcrTasks 分支；未进入回归断言。已保留原真实结束断言并显式要求异步任务持有句柄，补齐状态栏分支，待重跑。
+
+- 编译遗漏补齐后定向回归 **22/22 passed**，exit0（98.20s）；包含实际两页 PDFium 渲染、Windows 拒绝删除的页面句柄、取消后真实 join 回收，未用假 TempDir 代替 PDF 路径。独立集成复审无阻断发现。
+- CLI fmt exit0（1.82s），Clippy all-targets 零警告 exit0（60.07s），完整 CLI **269单元+2集成=271 passed**、0 failed、1原有doctest ignored，exit0（288.90s）。Workspace fmt exit0（4.53s）；R Clippy/全量仍在进行，本项暂不关闭。
+
+- 最终实现保持真实阻塞任务所有权：排队闭包由 Tasks 有界持有，运行闭包由 JoinSet 直接持有；取消不 abort 原生工作，运行位及资源在实际 join 后释放，退出显式等待。阻塞任务的状态/终态独立于可丢弃进度队列，旧 TaskId、原账户和会话代次均核验后才能写 UI。
+- CLI 模型加载与图片/PDF/MRZ 识别全部位于 worker。原生加载/推理的取消边界明确；普通 PDF 扫描委托共享生产管线，临时目录在回调/文件句柄结束后回收。当前页、返回页及最近结果均覆盖锁定、同账户重登、换账户及直接 Vault 失效；其他页面不会被完成事件抢走。
+
+| RF-215 最终验证 | 真实结果 | 耗时/证据 |
+| --- | --- | --- |
+| Core完整 | 303 passed，0 ignored | 153.53s，`rf215-core-full-1` |
+| CLI定向 | 22 passed，0 ignored | 98.20s，`rf215-cli-directed-2` |
+| CLI fmt | exit0 | 1.82s，`rf215-cli-fmt-1` |
+| CLI Clippy all-targets | exit0、零警告 | 60.07s，`rf215-cli-clippy-1` |
+| CLI完整 | 269单元+2集成=271 passed，1原有doctest ignored | 288.90s，`rf215-cli-full-1` |
+| Workspace fmt | exit0 | 4.53s，`rf215-workspace-fmt-1` |
+| Workspace Clippy | exit0、零警告 | 98.51s，`rf215-workspace-clippy-1` |
+| Rust workspace完整 | 1,279 passed，3原有ignored | 701.81s，`rf215-workspace-full-1` |
+
+- 所有检查真实 exit0，源码与冻结 SHA 一致，详见恢复目录 `rf215-final-verification.json`；Cargo 串行、jobs=1，使用既有 sqlite3/PDFium 测试环境，无新增 RUSTFLAGS 或依赖升级。新增22项回归在完整CLI中再次通过；原有任务测试只适配实际异步句柄的 Option 类型，保留结束/顺序断言。Rust原有忽略项为两项legacy field测试及P025数据收集工具，CLI为原i18n宏文档示例，没有新增忽略项。
+- Workspace全量耗时包含8m12s重新编译/链接；既有solo_soul.pdb名称冲突警告保留，未降低检查级别。测试使用临时Vault、合成结果和真实PDFium多页管线；ONNX识别回调被可控替身替换，不宣称验证真实模型识别质量或macOS/移动端实机。没有将浏览器结果当作原生验证。
+- canonical 已更新CLI用户指南。收尾范围为12个源码/locale/测试与2份文档；Cargo自动刷新五个本地path包版本已归档并恢复原lock字节，三张用户NSIS位图SHA保持，不纳入本项。
+- 最终结论：本项 **完成**；提交：本提交，使用 `git log --grep=RF-215` 检索，未推送。累计 **45/97已关闭**，原5项具体授权阻塞保持；下一项RF-301只读预案为恢复目录 `rf301-readonly-preplan.md`，尚未实施。

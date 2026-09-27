@@ -240,3 +240,44 @@ fn render_mrz(frame: &mut Frame, area: Rect, m: &MrzResult, source: &str, i18n: 
     ]));
     frame.render_widget(hint, chunks[2]);
 }
+
+/// 状态只反映 Tasks 发出的事件；“请求取消”仍表示推理拥有资源。
+pub(crate) fn render_tasks(
+    frame: &mut Frame,
+    area: Rect,
+    tasks: &std::collections::HashMap<crate::tasks::TaskId, crate::commands::ocr::OcrTask>,
+    i18n: &I18n,
+) {
+    use crate::tasks::BlockingTaskState;
+    let mut entries: Vec<_> = tasks.iter().collect();
+    entries.sort_by_key(|(id, _)| id.0);
+    let mut lines = vec![Line::from(t!(i18n, "ocr-tasks-limit")), Line::default()];
+    if entries.is_empty() {
+        lines.push(Line::from(t!(i18n, "ocr-tasks-empty")));
+    }
+    for (id, task) in entries {
+        let key = match task.status {
+            BlockingTaskState::Queued => "ocr-task-queued",
+            BlockingTaskState::Running => "ocr-task-running",
+            BlockingTaskState::CancelRequested => "ocr-task-cancelling",
+        };
+        lines.push(Line::from(vec![
+            Span::styled(i18n.t(key), Style::default().fg(Color::Cyan)),
+            Span::raw(format!("  {}", task.source_path)),
+        ]));
+        lines.push(Line::from(Span::styled(
+            id.0.to_string(),
+            Style::default().fg(Color::DarkGray),
+        )));
+    }
+    lines.push(Line::default());
+    lines.push(Line::from(t!(i18n, "ocr-tasks-hint")));
+    frame.render_widget(
+        Paragraph::new(lines).wrap(Wrap { trim: false }).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(t!(i18n, "ocr-tasks-title")),
+        ),
+        area,
+    );
+}

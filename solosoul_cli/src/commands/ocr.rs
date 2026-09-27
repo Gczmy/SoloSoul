@@ -1,7 +1,7 @@
-//! /ocr 本地图片 OCR 命令。
+//! /ocr 本地图片/PDF OCR 命令。
 //!
-//! 一次性调用 `OcrEngine::scan_image` —— 不预热 ort Session，避免 CLI
-//! 启动开销。用户可通过环境变量 `SOLOSOUL_OCR_TIER` 切换 tiny/small/medium 档位。
+//! 模型加载及识别由 Tasks 直接拥有的受限阻塞任务执行；取消在加载/推理阶段与页边界
+//! 生效，主循环持续处理输入、Tick 和锁定。原会话结果只经任务事件接纳。
 //!
 //! 子命令：
 //! - `/ocr tiers` —— 列出档位（含本地安装状态）
@@ -9,12 +9,14 @@
 //! - `/ocr status` —— 显示模型目录与已安装档位
 //! - `/ocr help` —— 帮助
 
-use crate::app::App;
+use crate::app::{App, AppPhase};
 use crate::t;
+use crate::tasks::{BlockingTaskState, TaskFailure, TaskId, TaskOutput, BLOCKING_QUEUE_FULL};
 use color_eyre::Result;
+use solosoul_core::ocr::control::{OcrCancellation, OCR_CANCELLED};
 use solosoul_core::ocr::engine::OcrEngine;
 use solosoul_core::ocr::model as ocr_model;
-use solosoul_core::ocr::types::{OcrModelTier, OcrResult};
+use solosoul_core::ocr::types::{MrzResult, OcrModelTier, OcrResult};
 use std::path::{Path, PathBuf};
 
 #[cfg(test)]
@@ -36,8 +38,20 @@ pub fn handle(app: &mut App, argv: &[&str]) -> Result<()> {
             status(app);
             Ok(())
         }
+        "jobs" => {
+            show_jobs(app);
+            Ok(())
+        }
+        "result" => {
+            show_result(app);
+            Ok(())
+        }
+        "cancel" => {
+            cancel(app, &argv[1..]);
+            Ok(())
+        }
         "help" | "--help" | "-h" => {
-            print_help();
+            app.info_message = Some(help_text().join("\n"));
             Ok(())
         }
         other => {
@@ -52,16 +66,13 @@ pub fn help_text() -> Vec<&'static str> {
     vec![
         "用法: /ocr <subcommand> [args]",
         "  tiers                       列出可用模型档位 (tiny/small/medium) 及本地安装状态",
-        "  scan [--mrz] <image-path>   对指定本地图片执行 OCR;--mrz 触发护照 MRZ 结构化识别",
+        "  scan [--mrz] <path>          对本地图片/PDF 执行 OCR；--mrz 识别护照图片",
+        "  jobs                        显示后台任务；Esc 请求取消",
+        "  cancel [task-id]             取消指定任务；省略 ID 取消全部 OCR",
+        "  result                      查看本会话最近的识别结果",
         "  status                      显示当前模型目录与已安装档位",
         "  help                        显示本帮助",
     ]
-}
-
-fn print_help() {
-    for line in help_text() {
-        println!("{line}");
-    }
 }
 
 /// 计算 CLI 使用的 model 目录：`{base_path}/models`。
@@ -206,59 +217,234 @@ fn scan(app: &mut App, args: &[&str]) {
         return;
     }
 
-    let mut engine = match OcrEngine::load(&base, tier) {
-        Ok(e) => e,
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-ocr-engine-failed", err = e));
-            return;
-        }
+    let request = OcrRequest {
+        path: path.to_path_buf(),
+        models_dir: base,
+        tier,
+        mrz: mrz_mode,
     };
+    if let Err(error) = start_scan_with(app, request, OcrEngine::load) {
+        app.error_message = Some(if error == BLOCKING_QUEUE_FULL {
+            t!(app.i18n, "ocr-queue-full")
+        } else {
+            error
+        });
+    }
+}
 
-    if mrz_mode {
-        let mrz_result = match engine.scan_mrz(path) {
-            Ok(Some(m)) => m,
-            Ok(None) => {
-                app.error_message = Some(t!(app.i18n, "cmd-ocr-mrz-not-found"));
-                return;
-            }
-            Err(e) => {
-                app.error_message = Some(t!(app.i18n, "cmd-ocr-mrz-failed", err = e));
-                return;
+pub(crate) struct OcrTask {
+    pub source_path: String,
+    pub status: BlockingTaskState,
+}
+
+struct OcrRequest {
+    path: PathBuf,
+    models_dir: PathBuf,
+    tier: OcrModelTier,
+    mrz: bool,
+}
+
+// 只替换推理边界的测试接缝；生产路径始终调用共享引擎及其原生取消点。
+trait ScanEngine {
+    fn image(&mut self, path: &Path, cancel: &OcrCancellation) -> Result<OcrResult, String>;
+    fn pdf(&mut self, path: &Path, cancel: &OcrCancellation) -> Result<OcrResult, String>;
+    fn mrz(&mut self, path: &Path, cancel: &OcrCancellation) -> Result<Option<MrzResult>, String>;
+}
+
+impl ScanEngine for OcrEngine {
+    fn image(&mut self, path: &Path, cancel: &OcrCancellation) -> Result<OcrResult, String> {
+        self.scan_image_cancellable(path, cancel)
+    }
+    fn pdf(&mut self, path: &Path, cancel: &OcrCancellation) -> Result<OcrResult, String> {
+        self.scan_pdf_cancellable(path, cancel)
+    }
+    fn mrz(&mut self, path: &Path, cancel: &OcrCancellation) -> Result<Option<MrzResult>, String> {
+        self.scan_mrz_cancellable(path, cancel)
+    }
+}
+
+fn start_scan_with<E: ScanEngine + 'static>(
+    app: &mut App,
+    request: OcrRequest,
+    load: impl FnOnce(&Path, OcrModelTier) -> Result<E, String> + Send + 'static,
+) -> Result<TaskId, String> {
+    clear_stale(app);
+    let account = super::require_unlocked(app).map_err(|e| e.to_string())?;
+    let session = app
+        .vault_service
+        .capture_session(&account)
+        .map_err(|e| e.to_string())?;
+    let owner = session.clone();
+    let source_path = if request.mrz {
+        format!("{} (MRZ)", request.path.display())
+    } else {
+        request.path.display().to_string()
+    };
+    let worker_path = source_path.clone();
+    let locale = app.i18n.locale.clone();
+    let id = app.tasks.spawn_blocking(session, move |context, cancel| {
+        let i18n = crate::i18n::I18n::new(&locale);
+        let check = || cancel.check().map_err(|_| TaskFailure::Cancelled);
+        let fail = |key: &str, error: String| {
+            if cancel.is_cancelled() || error == OCR_CANCELLED {
+                TaskFailure::Cancelled
+            } else {
+                TaskFailure::Failed(i18n.t_args(key, &[("err", &error)]))
             }
         };
-
-        app.previous_phase = Some(app.phase.clone());
-        app.phase = crate::app::AppPhase::OcrResult {
-            result: OcrResult {
-                // MRZ 模式下 text 仅作为占位回退（render_mrz 专用分支配主导展示）。
-                text: String::new(),
-                confidence: mrz_result.confidence,
-                boxes: Vec::new(),
-            },
-            source_path: format!("{} (MRZ)", image_path),
-            tiers: None,
-            mrz: Some(mrz_result),
+        check()?;
+        let loaded = load(&request.models_dir, request.tier);
+        // 模型加载不可被强杀；返回后先检查取消，再解析结果或进入推理。
+        check()?;
+        let mut engine = loaded.map_err(|e| fail("cmd-ocr-engine-failed", e))?;
+        let (result, mrz) = if request.mrz {
+            let mrz = engine
+                .mrz(&request.path, &cancel)
+                .map_err(|e| fail("cmd-ocr-mrz-failed", e))?;
+            check()?;
+            let mrz = mrz.ok_or_else(|| TaskFailure::Failed(i18n.t("cmd-ocr-mrz-not-found")))?;
+            (
+                OcrResult {
+                    text: String::new(),
+                    confidence: mrz.confidence,
+                    boxes: Vec::new(),
+                },
+                Some(mrz),
+            )
+        } else {
+            let is_pdf = request
+                .path
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("pdf"));
+            let result = if is_pdf {
+                engine.pdf(&request.path, &cancel)
+            } else {
+                engine.image(&request.path, &cancel)
+            };
+            (result.map_err(|e| fail("cmd-ocr-scan-failed", e))?, None)
         };
+        drop(engine);
+        check()?;
+        // JSON 只用于线程间拥有完整 DTO；原会话门闩内仅提交已完成的值。
+        let result_json =
+            serde_json::to_string(&result).map_err(|e| TaskFailure::Failed(e.to_string()))?;
+        let mrz_json = mrz
+            .map(|m| serde_json::to_string(&m))
+            .transpose()
+            .map_err(|e| TaskFailure::Failed(e.to_string()))?;
+        check()?;
+        context.commit(|| {
+            Ok(TaskOutput::OcrCompleted {
+                result_json,
+                source_path: worker_path,
+                mrz_json,
+            })
+        })
+    })?;
+    app.ocr_session = Some(owner);
+    app.ocr_tasks.insert(
+        id,
+        OcrTask {
+            source_path,
+            status: BlockingTaskState::Queued,
+        },
+    );
+    show_jobs(app);
+    Ok(id)
+}
+
+pub(crate) fn decode_result(
+    result_json: &str,
+    source_path: &str,
+    mrz_json: Option<&str>,
+) -> Option<AppPhase> {
+    let result: OcrResult = serde_json::from_str(result_json).ok()?;
+    let mrz: Option<MrzResult> = mrz_json.map(serde_json::from_str).transpose().ok()?;
+    Some(AppPhase::OcrResult {
+        result,
+        source_path: source_path.to_string(),
+        tiers: None,
+        mrz,
+    })
+}
+
+pub(crate) fn clear_stale(app: &mut App) {
+    if app
+        .ocr_session
+        .as_ref()
+        .is_some_and(|session| app.vault_service.with_session(session, |_| Ok(())).is_err())
+    {
+        app.ocr_tasks.clear();
+        app.last_ocr_result = None;
+        app.ocr_session = None;
+        if matches!(app.phase, AppPhase::OcrResult { .. } | AppPhase::OcrTasks) {
+            app.phase = AppPhase::Locked;
+        }
+        if matches!(
+            app.previous_phase,
+            Some(AppPhase::OcrResult { .. } | AppPhase::OcrTasks)
+        ) {
+            app.previous_phase = None;
+        }
+    }
+}
+
+fn show_jobs(app: &mut App) {
+    clear_stale(app);
+    if super::require_unlocked(app).is_err() {
         return;
     }
+    if !matches!(app.phase, AppPhase::OcrTasks) {
+        app.previous_phase = Some(app.phase.clone());
+        app.phase = AppPhase::OcrTasks;
+    }
+}
 
-    let result = match engine.scan_image(path) {
-        Ok(r) => r,
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-ocr-scan-failed", err = e));
+fn show_result(app: &mut App) {
+    clear_stale(app);
+    if super::require_unlocked(app).is_err() {
+        return;
+    }
+    if let Some(result) = app.last_ocr_result.clone() {
+        if !matches!(app.phase, AppPhase::OcrResult { .. }) {
+            app.previous_phase = Some(app.phase.clone());
+        }
+        app.phase = result;
+    } else {
+        app.info_message = Some(t!(app.i18n, "ocr-no-result"));
+    }
+}
+
+pub(crate) fn cancel(app: &mut App, args: &[&str]) {
+    clear_stale(app);
+    let ids: Vec<TaskId> = match args {
+        [] => app.ocr_tasks.keys().copied().collect(),
+        [id] => match uuid::Uuid::parse_str(id)
+            .ok()
+            .map(TaskId)
+            .filter(|id| app.ocr_tasks.contains_key(id))
+        {
+            Some(id) => vec![id],
+            None => {
+                app.error_message = Some(t!(app.i18n, "ocr-task-not-found"));
+                return;
+            }
+        },
+        _ => {
+            app.error_message = Some(t!(app.i18n, "ocr-cancel-usage"));
             return;
         }
     };
-
-    let source_path = image_path.to_string();
-    app.previous_phase = Some(app.phase.clone());
-    app.phase = crate::app::AppPhase::OcrResult {
-        result,
-        source_path,
-        tiers: None,
-        mrz: None,
-    };
+    for id in ids {
+        app.tasks.request_cancel(id);
+    }
+    // 状态由 poll_events 的真实 BlockingState/终态发布，取消请求不提前删除任务。
 }
+
+#[cfg(test)]
+mod rf215_pdf_tests;
+#[cfg(test)]
+mod rf215_tests;
 
 #[cfg(test)]
 mod tests {

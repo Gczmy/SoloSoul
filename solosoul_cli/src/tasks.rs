@@ -1,23 +1,26 @@
 //! CLI 自有异步任务及原会话内的结果接纳。
 //!
-//! 工作 Future 只能返回数据或报告进度，不能持有 App 的可变引用。这里仅管理
-//! 直接注册的异步 Future：禁止在其中分离子任务或隐藏 spawn_blocking/thread::spawn。
-//! 后续阻塞任务必须有独立的受管入口；abort 不能终止已经运行的阻塞闭包。
+//! 工作任务只能返回数据或报告进度，不能持有 App 的可变引用。异步入口禁止
+//! 分离子任务或隐藏 spawn_blocking/thread::spawn；阻塞入口直接拥有实际闭包，
+//! 以协作取消和真实 join 管理执行位，不能用 abort 冒充原生推理已停止。
 //! 正常退出须显式 shutdown 并等待所有任务回收，Drop 仅负责请求取消。
 
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::future::Future;
 #[cfg(test)]
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
 
+use solosoul_core::ocr::control::OcrCancellation;
 use solosoul_core::{VaultService, VaultSession};
 use tokio::sync::mpsc;
 use tokio::task::{AbortHandle, Id, JoinError, JoinSet};
 use uuid::Uuid;
 
 const PROGRESS_CAPACITY: usize = 64;
+const BLOCKING_CAPACITY: usize = 5;
+pub const BLOCKING_QUEUE_FULL: &str = "__BLOCKING_QUEUE_FULL__";
 const TASK_ACTIVE: u8 = 0;
 const TASK_CANCEL_REQUESTED: u8 = 1;
 const TASK_COMMIT_CLAIMED: u8 = 2;
@@ -37,6 +40,11 @@ pub struct TaskIdentity {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TaskOutput {
     Message(String),
+    OcrCompleted {
+        result_json: String,
+        source_path: String,
+        mrz_json: Option<String>,
+    },
     EmbedModelInstalled {
         model_id: String,
         bytes: u64,
@@ -59,8 +67,16 @@ pub enum TaskFailure {
     Failed(String),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BlockingTaskState {
+    Queued,
+    Running,
+    CancelRequested,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TaskEventKind {
+    BlockingState(BlockingTaskState),
     Progress { current: u64, total: Option<u64> },
     PluginProgress(solosoul_plugin::PluginInstallProgress),
     Completed(TaskOutput),
@@ -70,7 +86,10 @@ pub enum TaskEventKind {
 
 impl TaskEventKind {
     fn is_terminal(&self) -> bool {
-        !matches!(self, Self::Progress { .. } | Self::PluginProgress(_))
+        !matches!(
+            self,
+            Self::Progress { .. } | Self::PluginProgress(_) | Self::BlockingState(_)
+        )
     }
 }
 
@@ -162,10 +181,22 @@ struct TaskRecord {
     identity: TaskIdentity,
     session: VaultSession,
     task_state: Arc<AtomicU8>,
-    abort: AbortHandle,
-    // Some 表示已真实 join，但事件尚待主循环接纳；禁止再发布进度。
+    abort: Option<AbortHandle>,
+    blocking: Option<BlockingRecord>,
+    // Some 表示已真实 join 或排队闭包已析构，终态尚待主循环接纳。
     terminal: Option<TaskEventKind>,
     stale: bool,
+}
+
+struct BlockingRecord {
+    cancellation: OcrCancellation,
+    state: BlockingTaskState,
+}
+
+struct PendingBlocking {
+    task_id: TaskId,
+    work: Box<dyn FnOnce() -> Result<TaskOutput, TaskFailure> + Send>,
+    runtime: tokio::runtime::Handle,
 }
 
 /// 仅统计本次 shutdown 实际 join 的任务；未接纳的 UI 事件直接清除。
@@ -185,6 +216,11 @@ pub struct Tasks {
     progress_tx: mpsc::Sender<TaskEvent>,
     progress_rx: mpsc::Receiver<TaskEvent>,
     shutting_down: bool,
+    blocking_queue: VecDeque<PendingBlocking>,
+    blocking_active: Option<TaskId>,
+    // 独立于可丢弃进度的控制事件；最多五条阻塞记录，各状态最多入队一次。
+    blocking_states: VecDeque<TaskEvent>,
+    blocking_terminals: VecDeque<TaskEvent>,
 }
 
 impl Tasks {
@@ -198,6 +234,10 @@ impl Tasks {
             progress_tx,
             progress_rx,
             shutting_down: false,
+            blocking_queue: VecDeque::new(),
+            blocking_active: None,
+            blocking_states: VecDeque::new(),
+            blocking_terminals: VecDeque::new(),
         }
     }
 
@@ -247,7 +287,8 @@ impl Tasks {
                 identity,
                 session,
                 task_state,
-                abort,
+                abort: Some(abort),
+                blocking: None,
                 terminal: None,
                 stale: false,
             },
@@ -255,23 +296,148 @@ impl Tasks {
         Ok(task_id)
     }
 
+    /// 最多一个实际阻塞闭包和四个待派发闭包；未消费的终态仍计入准入上限。
+    /// work 不得再派生隐藏任务。取消只设置 token，执行位直到真实 join 才释放。
+    pub fn spawn_blocking<F>(&mut self, session: VaultSession, work: F) -> Result<TaskId, String>
+    where
+        F: FnOnce(TaskContext, OcrCancellation) -> Result<TaskOutput, TaskFailure> + Send + 'static,
+    {
+        if self.shutting_down {
+            return Err("任务管理器正在退出".to_string());
+        }
+        self.service.with_session(&session, |_| Ok(()))?;
+        if self
+            .records
+            .values()
+            .filter(|record| record.blocking.is_some())
+            .count()
+            >= BLOCKING_CAPACITY
+        {
+            return Err(BLOCKING_QUEUE_FULL.to_string());
+        }
+        let runtime = crate::util::shared_runtime().map_err(|error| error.to_string())?;
+        let task_id = TaskId(Uuid::new_v4());
+        let identity = TaskIdentity {
+            task_id,
+            account_id: session.account_id().to_string(),
+            session_generation: session.generation(),
+        };
+        let task_state = Arc::new(AtomicU8::new(TASK_ACTIVE));
+        let cancellation = OcrCancellation::default();
+        let context = TaskContext {
+            identity: identity.clone(),
+            session: session.clone(),
+            task_state: Arc::clone(&task_state),
+            progress: self.progress_tx.clone(),
+            service: Arc::clone(&self.service),
+        };
+        let service = Arc::clone(&self.service);
+        let worker_cancellation = cancellation.clone();
+        self.records.insert(
+            task_id,
+            TaskRecord {
+                identity: identity.clone(),
+                session,
+                task_state,
+                abort: None,
+                blocking: Some(BlockingRecord {
+                    cancellation,
+                    state: BlockingTaskState::Queued,
+                }),
+                terminal: None,
+                stale: false,
+            },
+        );
+        self.blocking_states.push_back(TaskEvent {
+            identity,
+            kind: TaskEventKind::BlockingState(BlockingTaskState::Queued),
+        });
+        self.blocking_queue.push_back(PendingBlocking {
+            task_id,
+            runtime: runtime.handle().clone(),
+            work: Box::new(move || {
+                // 工作尚未开始时，锁定、同账户重登、排队取消都不能加载模型。
+                if context.is_cancel_requested()
+                    || service.with_session(context.session(), |_| Ok(())).is_err()
+                {
+                    return Err(TaskFailure::Cancelled);
+                }
+                work(context, worker_cancellation)
+            }),
+        });
+        self.dispatch_next_blocking();
+        Ok(task_id)
+    }
+
+    fn dispatch_next_blocking(&mut self) {
+        if self.shutting_down || self.blocking_active.is_some() {
+            return;
+        }
+        let Some(pending) = self.blocking_queue.pop_front() else {
+            return;
+        };
+        let record = self
+            .records
+            .get_mut(&pending.task_id)
+            .expect("queued task owns its record");
+        record
+            .blocking
+            .as_mut()
+            .expect("queued blocking task")
+            .state = BlockingTaskState::Running;
+        self.blocking_states
+            .retain(|event| event.identity.task_id != pending.task_id);
+        self.blocking_states.push_back(TaskEvent {
+            identity: record.identity.clone(),
+            kind: TaskEventKind::BlockingState(BlockingTaskState::Running),
+        });
+        // JoinSet 直接持有原生闭包，不持有可先被 abort 的异步等待包装。
+        let abort = self.jobs.spawn_blocking_on(pending.work, &pending.runtime);
+        self.runtime_ids.insert(abort.id(), pending.task_id);
+        record.abort = Some(abort);
+        self.blocking_active = Some(pending.task_id);
+    }
+
     /// true 仅表示仍受管的任务已收到取消请求，不代表已结束。
     /// 已取得最终提交许可或已 join 时返回 false，不再 abort。
     pub fn request_cancel(&mut self, task_id: TaskId) -> bool {
-        let Some(record) = self.records.get(&task_id) else {
+        let Some(record) = self.records.get_mut(&task_id) else {
             return false;
         };
-        if record.terminal.is_some() {
+        if record.terminal.is_some() || !Self::cancel_record(record) {
             return false;
         }
-        Self::cancel_record(record)
+        if let Some(blocking) = &mut record.blocking {
+            if blocking.state != BlockingTaskState::CancelRequested {
+                blocking.state = BlockingTaskState::CancelRequested;
+                self.blocking_states
+                    .retain(|event| event.identity.task_id != task_id);
+                self.blocking_states.push_back(TaskEvent {
+                    identity: record.identity.clone(),
+                    kind: TaskEventKind::BlockingState(BlockingTaskState::CancelRequested),
+                });
+            }
+            if let Some(index) = self
+                .blocking_queue
+                .iter()
+                .position(|pending| pending.task_id == task_id)
+            {
+                // 先析构所有捕获资源，再产生无需 native join 的排队取消终态。
+                drop(self.blocking_queue.remove(index));
+                record.terminal = Some(TaskEventKind::Cancelled);
+                self.blocking_terminals.push_back(TaskEvent {
+                    identity: record.identity.clone(),
+                    kind: TaskEventKind::Cancelled,
+                });
+            }
+        }
+        true
     }
 
     pub fn cancel_all(&mut self) {
-        for record in self.records.values() {
-            if record.terminal.is_none() {
-                Self::cancel_record(record);
-            }
+        let ids: Vec<_> = self.records.keys().copied().collect();
+        for task_id in ids {
+            self.request_cancel(task_id);
         }
     }
 
@@ -288,10 +454,10 @@ impl Tasks {
             {
                 record.stale = true;
                 stale.push(*task_id);
-                if record.terminal.is_none() {
-                    Self::cancel_record(record);
-                }
             }
+        }
+        for task_id in &stale {
+            self.request_cancel(*task_id);
         }
         stale
     }
@@ -304,7 +470,11 @@ impl Tasks {
             Ordering::Acquire,
         ) {
             Ok(_) | Err(TASK_CANCEL_REQUESTED) => {
-                record.abort.abort();
+                if let Some(blocking) = &record.blocking {
+                    blocking.cancellation.cancel();
+                } else if let Some(abort) = &record.abort {
+                    abort.abort();
+                }
                 true
             }
             // 最终发布已取得许可：等待真实 join，不能把已提交工作改报取消。
@@ -330,8 +500,18 @@ impl Tasks {
             let Some(task_id) = self.runtime_ids.remove(&runtime_id) else {
                 continue;
             };
+            if self.blocking_active == Some(task_id) {
+                self.blocking_active = None;
+            }
             let Some(record) = self.records.get_mut(&task_id) else {
                 continue;
+            };
+            let kind = if record.blocking.is_some()
+                && record.task_state.load(Ordering::Acquire) == TASK_CANCEL_REQUESTED
+            {
+                TaskEventKind::Cancelled
+            } else {
+                kind
             };
             record.terminal = Some(kind.clone());
             events.push(TaskEvent {
@@ -339,24 +519,51 @@ impl Tasks {
                 kind,
             });
         }
+        self.dispatch_next_blocking();
+        while events.len() < limit {
+            let Some(event) = self.blocking_terminals.pop_front() else {
+                break;
+            };
+            events.push(event);
+        }
+        // 状态独立于高频进度，取消请求不会因通道满而丢失；旧状态计入扫描预算。
+        let mut scanned = events.len();
+        while scanned < limit {
+            let Some(event) = self.blocking_states.pop_front() else {
+                break;
+            };
+            scanned += 1;
+            if self.accepts_nonterminal(&event) {
+                events.push(event);
+            }
+        }
         // 被丢弃的旧进度也计入扫描预算，不能因无效消息无限占用 UI 线程。
-        for _ in events.len()..limit {
+        for _ in scanned..limit {
             let Ok(event) = self.progress_rx.try_recv() else {
                 break;
             };
-            if self
-                .records
-                .get(&event.identity.task_id)
-                .is_some_and(|record| {
-                    record.identity == event.identity
-                        && record.terminal.is_none()
-                        && record.task_state.load(Ordering::Acquire) != TASK_CANCEL_REQUESTED
-                })
-            {
+            if self.accepts_nonterminal(&event) {
                 events.push(event);
             }
         }
         events
+    }
+
+    fn accepts_nonterminal(&self, event: &TaskEvent) -> bool {
+        self.records
+            .get(&event.identity.task_id)
+            .is_some_and(|record| {
+                if record.identity != event.identity || record.terminal.is_some() {
+                    return false;
+                }
+                if let TaskEventKind::BlockingState(state) = &event.kind {
+                    return record
+                        .blocking
+                        .as_ref()
+                        .is_some_and(|blocking| blocking.state == *state);
+                }
+                record.task_state.load(Ordering::Acquire) != TASK_CANCEL_REQUESTED
+            })
     }
 
     /// 核验与 UI 发布处于同一个原会话短门闩内，避免检查后再写的窗口。
@@ -371,13 +578,11 @@ impl Tasks {
         }
         let terminal = event.kind.is_terminal();
         if terminal {
-            // 仅真实 join 后发出的终态可接纳，伪造的提前完成不能清除活跃任务。
+            // 仅实际工作已结束（或排队闭包已析构）的终态可接纳，不能伪造提前完成。
             if record.terminal.as_ref() != Some(&event.kind) {
                 return false;
             }
-        } else if record.terminal.is_some()
-            || record.task_state.load(Ordering::Acquire) == TASK_CANCEL_REQUESTED
-        {
+        } else if !self.accepts_nonterminal(&event) {
             return false;
         }
         let accepted = self
@@ -388,8 +593,12 @@ impl Tasks {
             })
             .is_ok();
         if terminal {
-            // 无论是否仍属当前会话，已 join 的任务都不再保留正文和旧 Vault 句柄。
+            // 无论是否仍属当前会话，已结束任务都不再保留正文和旧 Vault 句柄。
             self.records.remove(&task_id);
+            self.blocking_states
+                .retain(|pending| pending.identity.task_id != task_id);
+            self.blocking_terminals
+                .retain(|pending| pending.identity.task_id != task_id);
         } else if !accepted {
             self.request_cancel(task_id);
         }
@@ -410,7 +619,7 @@ impl Tasks {
 
     /// 活跃任务和已 join、尚未消费的终态都算受管记录。
     pub fn is_empty(&self) -> bool {
-        self.jobs.is_empty() && self.records.is_empty()
+        self.jobs.is_empty() && self.records.is_empty() && self.blocking_queue.is_empty()
     }
 
     /// 退出主循环后在 shared_runtime 上等待；不会新建或关闭共享 runtime。
@@ -432,6 +641,10 @@ impl Tasks {
         }
         self.runtime_ids.clear();
         self.records.clear();
+        self.blocking_active = None;
+        self.blocking_queue.clear();
+        self.blocking_states.clear();
+        self.blocking_terminals.clear();
         while self.progress_rx.try_recv().is_ok() {}
         report
     }
@@ -467,3 +680,6 @@ mod tests;
 
 #[cfg(test)]
 mod rf212_tests;
+
+#[cfg(test)]
+mod rf215_tests;

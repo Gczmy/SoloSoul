@@ -193,13 +193,10 @@ impl OcrEngine {
         pdf_path: &Path,
         cancellation: &OcrCancellation,
     ) -> Result<OcrResult, String> {
-        scan_pdf_with_control(
+        scan_pdf_cancellable_with_recognizer(
             pdf_path,
             &std::env::temp_dir(),
             cancellation,
-            |path, dpi, output| {
-                super::pdf::render_pdf_pages_cancellable(path, dpi, output, cancellation)
-            },
             |path| self.scan_image_cancellable(path, cancellation),
         )
     }
@@ -503,6 +500,26 @@ fn scan_pdf_with(
         temp_root,
         &OcrCancellation::default(),
         render_pages,
+        recognize_page,
+    )
+}
+
+/// 复用真实 PDF 文本提取、页面渲染与临时目录所有权，仅由调用方提供逐页识别。
+/// 识别回调在 PDFium 原生句柄释放后执行；取消须等当前回调返回，才回收临时页。
+/// 引擎与宿主回归共用此入口，避免替身复制 PDF 取消及清理流程。
+pub fn scan_pdf_cancellable_with_recognizer(
+    pdf_path: &Path,
+    temp_root: &Path,
+    cancellation: &OcrCancellation,
+    recognize_page: impl FnMut(&Path) -> Result<OcrResult, String>,
+) -> Result<OcrResult, String> {
+    scan_pdf_with_control(
+        pdf_path,
+        temp_root,
+        cancellation,
+        |path, dpi, output| {
+            super::pdf::render_pdf_pages_cancellable(path, dpi, output, cancellation)
+        },
         recognize_page,
     )
 }

@@ -276,7 +276,13 @@ fn rf211_cancellation_after_worker_completion_preserves_its_real_success() {
             Ok(TaskOutput::Message("already completed".into()))
         })
         .unwrap();
-    wait_until(|| tasks.records[&task_id].abort.is_finished());
+    wait_until(|| {
+        tasks.records[&task_id]
+            .abort
+            .as_ref()
+            .expect("async task owns an abort handle")
+            .is_finished()
+    });
     assert!(tasks.request_cancel(task_id));
     let event = next_event(&mut tasks);
     assert_eq!(
@@ -450,7 +456,13 @@ fn rf211_progress_is_bounded_and_terminal_bypasses_a_full_progress_queue() {
             Ok(TaskOutput::Message("unrelated terminal".into()))
         })
         .unwrap();
-    wait_until(|| tasks.records[&terminal_id].abort.is_finished());
+    wait_until(|| {
+        tasks.records[&terminal_id]
+            .abort
+            .as_ref()
+            .expect("async task owns an abort handle")
+            .is_finished()
+    });
     let mut events = tasks.poll_events(1);
     assert_eq!(events.len(), 1);
     let terminal = events.pop().unwrap();
@@ -465,7 +477,13 @@ fn rf211_progress_is_bounded_and_terminal_bypasses_a_full_progress_queue() {
         assert!(tasks.apply_event(event, |_| {}));
     }
     gate.release();
-    wait_until(|| tasks.records[&flood_id].abort.is_finished());
+    wait_until(|| {
+        tasks.records[&flood_id]
+            .abort
+            .as_ref()
+            .expect("async task owns an abort handle")
+            .is_finished()
+    });
     let terminal = next_event(&mut tasks);
     assert!(matches!(terminal.kind, TaskEventKind::Completed(_)));
     assert!(tasks.apply_event(terminal, |_| {}));
@@ -497,7 +515,16 @@ fn rf211_shutdown_joins_all_suspended_tasks_and_closes_admission() {
         })
         .unwrap();
     wait_until(|| {
-        tasks.records[&failed].abort.is_finished() && tasks.records[&panicked].abort.is_finished()
+        tasks.records[&failed]
+            .abort
+            .as_ref()
+            .expect("async task owns an abort handle")
+            .is_finished()
+            && tasks.records[&panicked]
+                .abort
+                .as_ref()
+                .expect("async task owns an abort handle")
+                .is_finished()
     });
     let report = crate::util::shared_runtime()
         .unwrap()

@@ -55,7 +55,7 @@ pub fn render(app: &App) -> Paragraph<'_> {
         AppPhase::PluginList { .. } => t!(app.i18n, "status-plugin-list"),
         AppPhase::PluginDetail { .. } => t!(app.i18n, "status-plugin-detail"),
         AppPhase::SyncStatus { .. } => t!(app.i18n, "status-sync"),
-        AppPhase::OcrResult { .. } => t!(app.i18n, "status-ocr"),
+        AppPhase::OcrTasks | AppPhase::OcrResult { .. } => t!(app.i18n, "status-ocr"),
         AppPhase::EmbedModelList { .. } => t!(app.i18n, "status-embed"),
         AppPhase::SettingsMenu {
             current_language,
