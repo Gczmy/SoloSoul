@@ -16,6 +16,12 @@ use solosoul_vault::{ObjectRecord, PropertyType, TrashItem, VaultStore};
 /// 导出附件元数据，与 GUI/CLI 共享。
 pub use crate::export_import::AttachmentMeta;
 
+mod create;
+pub use create::{
+    build_create_record, inherit_contract_type_id, inherit_property_fields,
+    inherit_property_labels, inject_property_fields, inject_template_meta, CreateRecordInput,
+};
+
 mod rollback;
 pub use rollback::{rollback_object, RollbackError, RollbackErrorStage, RollbackOutcome};
 
@@ -102,91 +108,22 @@ pub fn create_object(
     let type_id = template_id.unwrap_or("note").to_string();
     let icon = icon_name.unwrap_or("document").to_string();
 
-    // RF-009：一次读取模板，保留与 GUI 创建入口相同的字段语义副本。
-    // 缺失模板沿用旧行为；读取失败不能降级为缺少敏感度标签的成功对象。
-    let template = template_id
-        .map(|tid| vault.load_user_template(tid))
-        .transpose()?
-        .flatten();
-    let mut properties = properties;
-    let mut property_labels = None;
-    let contract_type_id = template
-        .as_ref()
-        .and_then(|tpl| tpl.contract_type_id.clone());
-    let template_hash = template.as_ref().map(template_fingerprint);
-    if let Some(tpl) = template.as_ref() {
-        let mut labels = serde_json::Map::new();
-        let mut fields = serde_json::Map::new();
-        for prop in &tpl.properties {
-            if let Some(level) = &prop.sensitivity_level {
-                labels.insert(prop.id.clone(), serde_json::json!(level));
-            }
-            let mut field = serde_json::Map::new();
-            field.insert("name".into(), serde_json::json!(prop.name));
-            field.insert("type".into(), serde_json::json!(prop.prop_type.as_str()));
-            if let Some(options) = &prop.options {
-                field.insert("options".into(), serde_json::json!(options));
-            }
-            if let Some(deprecated_at) = &prop.deprecated_at {
-                field.insert("deprecatedAt".into(), serde_json::json!(deprecated_at));
-            }
-            if let Some(contract_field) = prop.contract_field {
-                field.insert("contractField".into(), serde_json::json!(contract_field));
-            }
-            if prop.prop_type == PropertyType::DynamicGroup {
-                if let Some(allowed_types) = &prop.allowed_types {
-                    field.insert(
-                        "allowedTypes".into(),
-                        serde_json::json!(allowed_types
-                            .iter()
-                            .map(PropertyType::as_str)
-                            .collect::<Vec<_>>()),
-                    );
-                }
-                if let Some(max_items) = prop.max_items {
-                    field.insert("maxItems".into(), serde_json::json!(max_items));
-                }
-            }
-            fields.insert(prop.id.clone(), serde_json::Value::Object(field));
-        }
-        if !labels.is_empty() {
-            property_labels = Some(serde_json::Value::Object(labels));
-        }
-        if let Some(values) = properties.as_object_mut() {
-            if !fields.is_empty() {
-                values.insert("__fields".into(), serde_json::Value::Object(fields));
-            }
-            values.insert("__templateName".into(), serde_json::json!(tpl.name));
-            values.insert("__templateHash".into(), serde_json::json!(template_hash));
-        }
-        // 新继承的动态组约束必须在首次写入前校验；无/缺失模板保持旧路径。
-        validate_dynamic_groups(&properties)?;
-    }
-
-    let record = ObjectRecord {
-        id: id.clone(),
-        account_id: account_id.to_string(),
-        type_id,
-        section_type: "identity".to_string(),
-        name: name.clone(),
-        icon_name: icon,
-        parent_id: Some(page_id.to_string()),
-        children_ids: vec![],
-        properties,
-        property_labels,
-        sensitivity_level: "internal".to_string(),
-        is_deleted: false,
-        deleted_at: None,
-        tags_json: vec![],
-        template_id: template_id.map(|s| s.to_string()),
-        contract_type_id,
-        template_type: template_id.map(|_| "user".to_string()),
-        template_hash,
-        ignored_template_hash: None,
-        created_at: now.clone(),
-        updated_at: now,
-        version: 1,
-    };
+    let record = build_create_record(
+        vault,
+        account_id,
+        CreateRecordInput {
+            id: id.clone(),
+            type_id,
+            section_type: "identity".to_string(),
+            name: name.clone(),
+            icon_name: icon,
+            parent_id: Some(page_id.to_string()),
+            properties,
+            template_id: template_id.map(str::to_string),
+            template_type: template_id.map(|_| "user".to_string()),
+        },
+        &now,
+    )?;
 
     vault.save_object(&record)?;
 
@@ -520,16 +457,6 @@ fn recovered_page_name(lang: &str) -> &'static str {
         "zh-CN" => "已恢复的页面",
         _ => "Recovered Page",
     }
-}
-
-fn inherit_contract_type_id(vault: &VaultStore, template_id: Option<&str>) -> Option<String> {
-    template_id.and_then(|tid| {
-        vault
-            .load_user_template(tid)
-            .ok()
-            .flatten()
-            .and_then(|t| t.contract_type_id)
-    })
 }
 
 fn find_page_in_trash(vault: &VaultStore, page_id: &str) -> Result<Option<TrashItem>, String> {

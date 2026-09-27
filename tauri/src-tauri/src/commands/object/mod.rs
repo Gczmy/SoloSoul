@@ -7,8 +7,14 @@
 use crate::commands::{current_account, current_account_optional, vault_handle};
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
-pub use solosoul_core::objects::{template_fingerprint, validate_dynamic_groups};
-use solosoul_vault::{ObjectRecord, PropertyType};
+pub use solosoul_core::objects::{
+    inherit_contract_type_id, inherit_property_labels, template_fingerprint,
+    validate_dynamic_groups,
+};
+pub(crate) use solosoul_core::objects::{
+    inherit_property_fields, inject_property_fields, inject_template_meta,
+};
+use solosoul_vault::ObjectRecord;
 use tauri::State;
 use uuid::Uuid;
 
@@ -183,162 +189,6 @@ pub struct DeprecatedField {
     pub value: serde_json::Value,
     pub deprecated_at: String,
     pub reason: String,
-}
-
-/// 从模板继承 contract_type_id。
-/// 若创建对象时指定了模板 ID，且对应模板存在 `contract_type_id`，则自动复制到对象上。
-pub fn inherit_contract_type_id(
-    vault: &solosoul_vault::VaultStore,
-    template_id: Option<&str>,
-) -> Option<String> {
-    template_id.and_then(|tid| {
-        vault
-            .load_user_template(tid)
-            .ok()
-            .flatten()
-            .and_then(|t| t.contract_type_id)
-    })
-}
-
-/// 从模板继承字段级敏感度映射。
-/// 返回 `{ "fieldId": "sensitive|critical|internal|public" }` 的 JSON 对象。
-/// 此映射保存在对象的 `property_labels` 中，即使模板被删除，对象仍保留自己的敏感度副本。
-pub fn inherit_property_labels(
-    vault: &solosoul_vault::VaultStore,
-    template_id: Option<&str>,
-) -> Option<serde_json::Value> {
-    // 复用 inherit_template_properties 避免重复加载模板
-    let (labels, _) = inherit_template_properties(vault, template_id);
-    labels
-}
-
-/// 内部合并函数：一次加载模板，同时返回 property_labels 和 __fields。
-fn inherit_template_properties(
-    vault: &solosoul_vault::VaultStore,
-    template_id: Option<&str>,
-) -> (Option<serde_json::Value>, serde_json::Value) {
-    let Some(tid) = template_id else {
-        return (None, serde_json::Value::Null);
-    };
-    let tpl = match vault.load_user_template(tid).ok().flatten() {
-        Some(t) => t,
-        None => return (None, serde_json::Value::Null),
-    };
-
-    let mut labels_map = serde_json::Map::new();
-    let mut fields_map = serde_json::Map::new();
-
-    for prop in &tpl.properties {
-        // property_labels
-        if let Some(ref sl) = prop.sensitivity_level {
-            labels_map.insert(prop.id.clone(), serde_json::Value::String(sl.clone()));
-        }
-
-        // __fields
-        let mut field_def = serde_json::Map::new();
-        field_def.insert(
-            "name".to_string(),
-            serde_json::Value::String(prop.name.clone()),
-        );
-        field_def.insert(
-            "type".to_string(),
-            serde_json::Value::String(prop.prop_type.as_str().to_string()),
-        );
-        if let Some(ref opts) = prop.options {
-            field_def.insert(
-                "options".to_string(),
-                serde_json::Value::Array(
-                    opts.iter()
-                        .map(|o| serde_json::Value::String(o.clone()))
-                        .collect(),
-                ),
-            );
-        }
-        if let Some(ref da) = prop.deprecated_at {
-            field_def.insert(
-                "deprecatedAt".to_string(),
-                serde_json::Value::String(da.clone()),
-            );
-        }
-        if let Some(ref cf) = prop.contract_field {
-            field_def.insert("contractField".to_string(), serde_json::Value::Bool(*cf));
-        }
-        if let PropertyType::DynamicGroup = prop.prop_type {
-            if let Some(ref allowed) = prop.allowed_types {
-                field_def.insert(
-                    "allowedTypes".to_string(),
-                    serde_json::Value::Array(
-                        allowed
-                            .iter()
-                            .map(|t| serde_json::Value::String(t.as_str().to_string()))
-                            .collect(),
-                    ),
-                );
-            }
-            if let Some(max) = prop.max_items {
-                field_def.insert(
-                    "maxItems".to_string(),
-                    serde_json::Value::Number(max.into()),
-                );
-            }
-        }
-        fields_map.insert(prop.id.clone(), serde_json::Value::Object(field_def));
-    }
-
-    let labels = if labels_map.is_empty() {
-        None
-    } else {
-        Some(serde_json::Value::Object(labels_map))
-    };
-    let fields = if fields_map.is_empty() {
-        serde_json::Value::Null
-    } else {
-        serde_json::Value::Object(fields_map)
-    };
-    (labels, fields)
-}
-
-/// 从模板继承字段定义（字段名 + 类型等），嵌入到 `properties` 的 `__fields` 键中。
-/// 即使模板被删除，对象仍保留字段定义副本。
-pub(crate) fn inherit_property_fields(
-    vault: &solosoul_vault::VaultStore,
-    template_id: Option<&str>,
-) -> serde_json::Value {
-    // 复用 inherit_template_properties 避免重复加载模板
-    let (_, fields) = inherit_template_properties(vault, template_id);
-    fields
-}
-
-/// 将 `__fields` 注入到 properties JSON 对象中。
-pub(crate) fn inject_property_fields(
-    properties: &mut serde_json::Value,
-    fields: &serde_json::Value,
-) {
-    if fields.is_null() {
-        return;
-    }
-    if let Some(obj) = properties.as_object_mut() {
-        obj.insert("__fields".to_string(), fields.clone());
-    }
-}
-
-/// 将模板元信息（名称、图标等）注入到 properties JSON 对象中，
-/// 即使模板被删除，对象仍能显示模板名称。
-pub(crate) fn inject_template_meta(
-    vault: &solosoul_vault::VaultStore,
-    template_id: Option<&str>,
-    properties: &mut serde_json::Value,
-) {
-    let Some(tid) = template_id else { return };
-    let Some(tpl) = vault.load_user_template(tid).ok().flatten() else {
-        return;
-    };
-    if let Some(obj) = properties.as_object_mut() {
-        obj.insert(
-            "__templateName".to_string(),
-            serde_json::Value::String(tpl.name),
-        );
-    }
 }
 
 pub fn record_to_data(record: &ObjectRecord) -> ObjectData {
@@ -657,17 +507,7 @@ pub async fn object_create(
     let data = tokio::task::spawn_blocking(move || -> Result<ObjectData, String> {
         let now = chrono::Utc::now().to_rfc3339();
 
-        // R025 检查 + 模板继承 + record 构建（P044-9 拆分）
-        let record = build_create_record(&vault, &input, &account_id, &now)?;
-
-        // If parent specified, update parent's children_ids
-        attach_object_to_parent(&vault, &record.id, input.parent_id.as_deref())?;
-
-        vault.save_object(&record)?;
-        // §25.5 — Initial snapshot on create + 审计日志
-        create_object_snapshot_and_audit(&vault, &record, &input)?;
-
-        Ok(record_to_data(&record))
+        create_object_in_vault(&vault, &input, &account_id, &now)
     })
     .await
     .map_err(|e| format!("object_create task failed: {e}"))??;
@@ -677,7 +517,21 @@ pub async fn object_create(
     Ok(data)
 }
 
-/// 构建对象记录：ID 冲突检查（R025）+ 模板继承（contract_type_id/敏感度/字段定义/模板名/指纹）+ dynamic_group 校验。
+/// RF-010：保留 GUI 原有持久化顺序；模板构建错误发生在父页面和对象写入之前。
+fn create_object_in_vault(
+    vault: &solosoul_vault::VaultStore,
+    input: &CreateObjectInput,
+    account_id: &str,
+    now: &str,
+) -> Result<ObjectData, String> {
+    let record = build_create_record(vault, input, account_id, now)?;
+    attach_object_to_parent(vault, &record.id, input.parent_id.as_deref())?;
+    vault.save_object(&record)?;
+    create_object_snapshot_and_audit(vault, &record, input)?;
+    Ok(record_to_data(&record))
+}
+
+/// GUI 输入适配：保留乐观 ID 冲突检查与无模板动态组校验，共用 Core 初始化规则。
 fn build_create_record(
     vault: &solosoul_vault::VaultStore,
     input: &CreateObjectInput,
@@ -698,60 +552,28 @@ fn build_create_record(
         }
     }
 
-    // §13.10.3: 从模板继承 contract_type_id
-    let contract_type_id = inherit_contract_type_id(vault, input.template_id.as_deref());
-    // §Bugfix: 从模板继承字段级敏感度，确保模板删除后对象仍保留敏感度信息
-    let property_labels = inherit_property_labels(vault, input.template_id.as_deref());
-    // §Bugfix: 从模板继承字段定义（名称+类型），确保模板删除后对象仍保留字段名和类型
-    let property_fields = inherit_property_fields(vault, input.template_id.as_deref());
-    let mut properties = input.properties.clone();
-    inject_property_fields(&mut properties, &property_fields);
-    // §Bugfix: 保存模板名称，模板删除后仍可显示
-    inject_template_meta(vault, input.template_id.as_deref(), &mut properties);
-    // 计算并保存模板指纹，用于后续检测模板是否更新
-    let template_hash = input
-        .template_id
-        .as_deref()
-        .and_then(|tid| vault.load_user_template(tid).ok().flatten())
-        .map(|tpl| template_fingerprint(&tpl));
-    if let Some(ref hash) = template_hash {
-        if let Some(obj) = properties.as_object_mut() {
-            obj.insert(
-                "__templateHash".to_string(),
-                serde_json::Value::String(hash.clone()),
-            );
-        }
-    }
-    // 校验 dynamic_group 字段
-    validate_dynamic_groups(&properties)?;
-
-    Ok(ObjectRecord {
-        contract_type_id,
-        id,
-        account_id: account_id.to_string(),
-        type_id: input.collection_type.clone(),
-        section_type: input.collection_type.clone(), // §25.1.3: page affiliation (currently mirrors type_id)
-        name: input.name.clone(),
-        icon_name: input
-            .icon_name
-            .clone()
-            .unwrap_or_else(|| "document".to_string()),
-        parent_id: input.parent_id.clone(),
-        children_ids: vec![],
-        properties,
-        property_labels,
-        sensitivity_level: "internal".to_string(),
-        is_deleted: false,
-        deleted_at: None,
-        tags_json: vec![],
-        template_id: input.template_id.clone(),
-        template_type: input.template_type.clone(),
-        template_hash,
-        ignored_template_hash: None,
-        created_at: now.to_string(),
-        updated_at: now.to_string(),
-        version: 1,
-    })
+    let record = solosoul_core::objects::build_create_record(
+        vault,
+        account_id,
+        solosoul_core::objects::CreateRecordInput {
+            id,
+            type_id: input.collection_type.clone(),
+            section_type: input.collection_type.clone(),
+            name: input.name.clone(),
+            icon_name: input
+                .icon_name
+                .clone()
+                .unwrap_or_else(|| "document".to_string()),
+            parent_id: input.parent_id.clone(),
+            properties: input.properties.clone(),
+            template_id: input.template_id.clone(),
+            template_type: input.template_type.clone(),
+        },
+        now,
+    )?;
+    // GUI 既有约定：无/缺失模板时也校验客户端字段定义；Core/CLI 旧兼容边界不变。
+    validate_dynamic_groups(&record.properties)?;
+    Ok(record)
 }
 
 /// If parent specified, update parent's children_ids
