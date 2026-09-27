@@ -48,7 +48,7 @@ pub(crate) fn has_meaningful_text(pages: &[String], min_chars_per_page: usize) -
     avg >= min_chars_per_page
 }
 
-/// 将 PDF 每页渲染为临时 PNG 图片。
+/// 将 PDF 最多前 50 页按原顺序渲染为临时 PNG 图片。
 /// 返回按页排序的图片路径列表。调用方负责删除临时文件。
 pub(crate) fn render_pdf_pages(
     path: &Path,
@@ -66,11 +66,12 @@ pub(crate) fn render_pdf_pages(
 
     let mut paths = Vec::with_capacity(render_count);
 
-    for page_index in 1..=render_count {
+    for page_index in 0..render_count {
+        let page_number = page_index + 1;
         let page = document
             .pages()
             .get(page_index as i32)
-            .map_err(|e| format!("无法获取第 {} 页: {e}", page_index))?;
+            .map_err(|e| format!("无法获取第 {} 页: {e}", page_number))?;
 
         let scale = dpi as f32 / 72.0;
         let width_px = (page.width().value * scale) as u32;
@@ -82,15 +83,15 @@ pub(crate) fn render_pdf_pages(
 
         let bitmap = page
             .render_with_config(&config)
-            .map_err(|e| format!("无法渲染第 {} 页: {e}", page_index))?;
+            .map_err(|e| format!("无法渲染第 {} 页: {e}", page_number))?;
 
         let img = bitmap
             .as_image()
-            .map_err(|e| format!("无法转换第 {} 页位图: {e}", page_index))?;
+            .map_err(|e| format!("无法转换第 {} 页位图: {e}", page_number))?;
 
-        let out_path = temp_dir.join(format!("page_{:04}.png", page_index));
+        let out_path = temp_dir.join(format!("page_{:04}.png", page_number));
         img.save(&out_path)
-            .map_err(|e| format!("无法保存第 {} 页图片: {e}", page_index))?;
+            .map_err(|e| format!("无法保存第 {} 页图片: {e}", page_number))?;
 
         paths.push(out_path);
     }
@@ -170,3 +171,6 @@ mod tests {
         assert!(!has_meaningful_text(&pages, 20));
     }
 }
+
+#[cfg(test)]
+mod rf906_tests;
