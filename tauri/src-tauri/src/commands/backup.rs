@@ -1,6 +1,9 @@
 //! Backup commands — create, list, restore, delete vault backups
 
 use serde::{Deserialize, Serialize};
+use solosoul_core::backup::{
+    decode_profile_backup, encode_profile_backup, ProfileBackupError, ProfilePayloadEncoding,
+};
 use std::fs;
 use std::path::PathBuf;
 use tauri::State;
@@ -413,24 +416,6 @@ fn create_profile_backup(
     let backup_dir = backups_dir(base_path);
     let backup_path = backup_dir.join(format!("{}_{}.solosoul_backup", safe_name, timestamp));
 
-    #[derive(Serialize)]
-    struct BackupManifest {
-        version: String,
-        created_at: String,
-        profile_count: usize,
-        profiles: Vec<ProfileBackupEntry>,
-    }
-    #[derive(Serialize)]
-    struct ProfileBackupEntry {
-        id: String,
-        name: String,
-        /// Base64-encoded profile data (避免 JSON 序列化为大型数字数组)
-        data_b64: String,
-        created_at: String,
-        updated_at: String,
-        version: u32,
-    }
-
     let mut backup_profiles = Vec::with_capacity(profiles.len());
     for summary in profiles {
         let profile = vault
@@ -447,30 +432,14 @@ fn create_profile_backup(
                     summary.id
                 )
             })?;
-        backup_profiles.push(ProfileBackupEntry {
-            id: profile.id,
-            name: profile.name,
-            data_b64: base64::Engine::encode(
-                &base64::engine::general_purpose::STANDARD,
-                &profile.data,
-            ),
-            created_at: profile.created_at.to_rfc3339(),
-            updated_at: profile.updated_at.to_rfc3339(),
-            version: profile.version,
-        });
+        backup_profiles.push(profile);
     }
 
     let object_count = backup_profiles.len();
-    let manifest = BackupManifest {
-        version: "2.0".to_string(),
-        created_at: now.to_rfc3339(),
-        profile_count: object_count,
-        profiles: backup_profiles,
-    };
-
-    let json = serde_json::to_string_pretty(&manifest).map_err(|e| e.to_string())?;
+    let bytes = encode_profile_backup(&backup_profiles, now, ProfilePayloadEncoding::Base64)
+        .map_err(|error| error.to_string())?;
     fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
-    fs::write(&backup_path, json).map_err(|e| e.to_string())?;
+    fs::write(&backup_path, bytes).map_err(|e| e.to_string())?;
     let metadata = fs::metadata(&backup_path).map_err(|e| e.to_string())?;
 
     Ok(BackupInfo {
@@ -513,56 +482,41 @@ pub async fn backup_restore(
     }
 
     let backup_path = found_path.ok_or_else(|| format!("Backup '{}' not found", backup_id))?;
-    let content = fs::read_to_string(&backup_path).map_err(|e| e.to_string())?;
-
-    #[derive(Deserialize)]
-    struct RestoreManifest {
-        profiles: Vec<RestoreProfileEntry>,
-    }
-    #[derive(Deserialize)]
-    struct RestoreProfileEntry {
-        id: String,
-        name: String,
-        #[serde(default)]
-        data_b64: String,
-        #[serde(default)]
-        data: Vec<u8>,
-        created_at: String,
-        updated_at: String,
-        version: u32,
-    }
-
-    let manifest: RestoreManifest = serde_json::from_str(&content).map_err(|e| e.to_string())?;
-    let mut restored = 0usize;
-
-    for entry in &manifest.profiles {
-        // 兼容新旧两种格式：优先 data_b64，回退旧版 data (Vec<u8>)
-        let data = if !entry.data_b64.is_empty() {
-            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &entry.data_b64)
-                .map_err(|e| format!("Base64 decode profile data: {}", e))?
-        } else {
-            entry.data.clone()
-        };
-        let profile = solosoul_vault::Profile {
-            id: entry.id.clone(),
-            name: entry.name.clone(),
-            data,
-            created_at: chrono::DateTime::parse_from_rfc3339(&entry.created_at)
-                .map(|dt| dt.with_timezone(&chrono::Utc))
-                .unwrap_or_else(|_| chrono::Utc::now()),
-            updated_at: chrono::DateTime::parse_from_rfc3339(&entry.updated_at)
-                .map(|dt| dt.with_timezone(&chrono::Utc))
-                .unwrap_or_else(|_| chrono::Utc::now()),
-            version: entry.version,
-        };
-        vault.save_profile(&profile)?;
-        restored += 1;
-    }
+    let content = fs::read(&backup_path).map_err(|e| e.to_string())?;
+    let restored = restore_profile_backup(vault, &content, chrono::Utc::now())?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
 
     Ok(restored)
 }
+
+/// RF-013：共享解码完成后才按原顺序保存，格式错误不会造成前缀覆盖。
+/// 每条保存仍沿用 VaultStore 的既有事务；不宣称数据库故障时整批原子恢复。
+fn restore_profile_backup(
+    vault: &solosoul_vault::VaultStore,
+    content: &[u8],
+    now: chrono::DateTime<chrono::Utc>,
+) -> Result<usize, String> {
+    let decoded = decode_profile_backup(content, now).map_err(|error| match error {
+        ProfileBackupError::InvalidBase64 { index, reason } => {
+            format!(
+                "Base64 decode profile data: entry {}: {}",
+                index + 1,
+                reason
+            )
+        }
+        other => other.to_string(),
+    })?;
+    let restored = decoded.profiles.len();
+    for profile in decoded.profiles {
+        vault.save_profile(&profile)?;
+    }
+    Ok(restored)
+}
+
+#[cfg(test)]
+#[path = "backup/rf013_tests.rs"]
+mod rf013_tests;
 
 #[tauri::command]
 pub async fn backup_delete(state: State<'_, AppState>, backup_id: String) -> Result<(), String> {

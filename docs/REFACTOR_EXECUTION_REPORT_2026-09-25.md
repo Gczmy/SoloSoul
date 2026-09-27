@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**95**（P1：34；P2：60；P3：1）。
-- 已关闭：**31 / 95**；实际修复（已关闭）：31；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无（RF-010 已完成；下一项 RF-013：共享 Profile 备份清单与兼容解码）。RF-905 的同步生命周期及 Host Vault 切换/附件 worker 接入被自动审批拒绝；46 份未集成源码已 SHA-256 校验归档至恢复目录 `rf905-proposal/`，44 份 tracked 源码恢复 HEAD、2 份本次新增草案移出工作树，未编译/测试，待具体授权。RF-021 Host 接入被自动审批拒绝，14份已批准草案已校验归档至恢复目录 `rf021-proposal/`，相关源码和规范已恢复 HEAD；未编译或运行草案测试，待明确授权。RF-016 Core 写入被自动审批拒绝，获批的11份源码/测试已校验归档至恢复目录 `rf016-proposal/` 并从当前源码恢复，未留下未集成 Rust 依赖；待明确授权后恢复该项。RF-014、RF-104 同样仍等待明确授权。RF-903 保持待执行，依赖 RF-905。
+- 已关闭：**32 / 95**；实际修复（已关闭）：32；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无（RF-013 已完成；下一项 RF-025：GUI 导出移出异步运行时工作线程）。RF-905 的同步生命周期及 Host Vault 切换/附件 worker 接入被自动审批拒绝；46 份未集成源码已 SHA-256 校验归档至恢复目录 `rf905-proposal/`，44 份 tracked 源码恢复 HEAD、2 份本次新增草案移出工作树，未编译/测试，待具体授权。RF-021 Host 接入被自动审批拒绝，14份已批准草案已校验归档至恢复目录 `rf021-proposal/`，相关源码和规范已恢复 HEAD；未编译或运行草案测试，待明确授权。RF-016 Core 写入被自动审批拒绝，获批的11份源码/测试已校验归档至恢复目录 `rf016-proposal/` 并从当前源码恢复，未留下未集成 Rust 依赖；待明确授权后恢复该项。RF-014、RF-104 同样仍等待明确授权。RF-903 保持待执行，依赖 RF-905。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -163,7 +163,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 35 | [RF-204](#rf-204) | P1 | 核实并修正 iOS Keychain 成功状态符号 | 无 | [ ] 待执行 |
 | 36 | [RF-008](#rf-008) | P2 | GUI 与 CLI 迁移到同一回滚用例 | [RF-006](#rf-006)、[RF-007](#rf-007) | [x] 完成 |
 | 37 | [RF-010](#rf-010) | P2 | 共享对象创建的模板初始化规则 | [RF-009](#rf-009) | [x] 已修复 |
-| 38 | [RF-013](#rf-013) | P2 | 共享 Profile 备份清单与兼容解码 | [RF-011](#rf-011)、[RF-012](#rf-012) | [ ] 待执行 |
+| 38 | [RF-013](#rf-013) | P2 | 共享 Profile 备份清单与兼容解码 | [RF-011](#rf-011)、[RF-012](#rf-012) | [x] 完成 |
 | 39 | [RF-015](#rf-015) | P2 | 显式表示附件导出范围 | [RF-014](#rf-014) | [ ] 待执行 |
 | 40 | [RF-023](#rf-023) | P2 | 加密包导出用例下沉 core | [RF-015](#rf-015)、[RF-017](#rf-017) | [ ] 待执行 |
 | 41 | [RF-024](#rf-024) | P2 | 加密包导入用例下沉 core | [RF-018](#rf-018)、[RF-020](#rf-020)、[RF-021](#rf-021)、[RF-022](#rf-022) | [ ] 待执行 |
@@ -1837,4 +1837,19 @@ git commit -m "<任务卡的提交标题>"
 - 定向验证：`cargo test -p solosoul-core --lib rf010_` 5/5（133.53s）；原 `rf009_` 6/6（1.04s）；Host `commands::object::tests` 60/60（339.46s，含6项新增）、`commands::export_import::tests` 56/56（7.21s）；CLI `commands::vault_write::` 6/6（113.72s）。均 exit 0，无新增忽略项。真实 SQL 读取、认证解密和 JSON 解析失败都在创建首写前拒绝，完整记录/父子关系/快照/审计及兼容路径通过。
 - 必需检查：workspace fmt 2.61s、CLI fmt 1.43s、workspace Clippy `-D warnings` 85.75s，均 exit 0；R 完整 `cargo test --verbose` exit 0，1,191 passed/0 failed/3原有 ignored，19组结果、740.11s（Host560/Core263/Vault190）；CLI all-targets Clippy exit 0（57.84s），CLI 完整 `cargo test --verbose --no-fail-fast` exit 0，182 passed/0 failed/1原有 ignored（180单元+2向导集成，152.54s）。本项无前端源码修改，未重复前端检查。
 - 文档与范围：同步对象创建规范、服务层规范、CLI 用户指南；独立复审无 findings，95项索引/任务卡保持一致，31已关闭、5待具体授权阻塞。所有检查后源码和3张原图片 SHA-256 与冻结记录一致；Cargo 自动刷新的5个 CLI 本地 path 包版本经精确差异核对后恢复 HEAD，未混入依赖/版本升级。无 RF-013 源码或其他任务改动。
-- 最终结论：本项 **完成**。提交：本提交（按 RF-010 检索），未推送；仅纳入本项10个文件，保留3张用户NSIS图片。验证日志及结果位于恢复目录 `rf010-*.log`、`rf010-validation.json`；下一项只读预研已保存为 `rf013-readonly-preplan.md`，尚未实施。
+- 最终结论：本项 **完成**。提交：`9247ef8d`（RF-010），未推送；仅纳入本项10个文件，保留3张用户NSIS图片。验证日志及结果位于恢复目录 `rf010-*.log`、`rf010-validation.json`；下一项只读预研已保存为 `rf013-readonly-preplan.md`，尚未实施。
+
+### RF-013 执行记录（2026-09-27，完成）
+
+- 基线 HEAD `9247ef8d`（RF-010），实际工作树仅3张原NSIS图片；前置RF-011/RF-012均已提交验证。有效工作区仅C盘恢复副本。
+- 范围：Core纯codec统一manifest/entry、版本/数量检查、Base64/数组兼容和完整清单解码；GUI仍输出2.0/data_b64，CLI仍输出2.0/data数组。文件路径、确认默认No、列表最佳努力摘要、CLI私有文件权限、既有逐条save_profile与GUI同步触发保留；不扩为整库备份或批量恢复事务。
+- 明确新增边界：恢复header必填，仅接受1.0/2.0已知entry schema，profile_count必须与条目数一致；原版本/数量未检查、GUI缺header可恢复并非已证实的历史writer格式。两个现有writer均2.0，本次补充两种1.0合成兼容fixture，不把旧数组等同1.0。非空Base64优先且损坏不回退，显式空载荷合法、两种均缺失/null拒绝，Profile日期无效使用同一fallback时间；保留header时间原字符串、重复ID顺序及未出现记录。
+- GUI改为完整清单解码成功后才落库，后续解码失败不能覆盖前面的Profile。主Profile原ID、已有created_at及存储层更新updated_at的语义不改。验证将覆盖共享四fixture、真实临时Vault零写故障及两端实际writer交换产物后走对端生产恢复路径，并顺序完成R/CORE/CLI。
+- 历史格式复核：GUI首版 `ca118394`、CLI首版 `7b3517ae` 均2.0/data数组，GUI `30bf7da2` 仅切换data_b64；两端从引入起均写完整header且count=实际len。历史Flutter numeric version=1为附件sidecar、正文为加密.backup，不属于本codec。新增1.0规则仅指同schema兼容，规范已明确；CLI列表仍读取原2字段展示DTO，不改用严格恢复decoder。
+- 实现与复审：Core新增纯codec/10项测试及4份共享fixture；Host删除重复清单/解码并增加真实restore worker和6项回归；CLI删除重复writer/decoder并增加5项回归。原RF-011/RF-012测试正文核对保持（CLI仅将2个fixture helper改为父模块可见供新测试复用）。Core与两端适配器经交叉只读复审无findings；规范07/16和CLI指南已同步。
+- 初步验证：两端格式检查通过，Core rf013_ 10/10通过。随后按GUI生产writer→CLI全备份模块（读取GUI产物并生成CLI产物）→GUI全备份模块（读取CLI产物）顺序运行；产物交换目录由本次runner创建并在退出时清理，逐阶段将合成文件及SHA-256归档于恢复目录rf013-exchange-artifacts，避免仅凭手写fixture声称互通。该阶段仅记录定向结果；完整检查随后通过，见以下收尾记录。
+
+- 定向验证：Core rf013_ **10/10**（146.64s）；GUI 真实 writer **1/1**（445.64s）；CLI 全备份模块 **15/15**（154.00s）；GUI 全备份模块 **17/17**（32.00s）。均 exit 0，无新增忽略。实际 GUI 输出与 CLI 输入 SHA-256 为 `1d9893a386714689e1d37cb81c0035e4b7c57fe6b702db6e893f9fedef02ad74`，实际 CLI 输出与 GUI 输入为 `ef2caaeb676aa5b1a7159a5094fd8627201205005dd6f03c7cfc178a1f8324f1`，逐阶段归档副本已重新核验。
+- 必需检查：workspace fmt（1.70s）、CLI fmt（0.53s）、workspace Clippy `-D warnings`（45.28s）、CLI all-targets Clippy（55.27s）均 exit 0。R 完整 `cargo test --verbose` exit 0（877.36s），**1,207 passed / 0 failed / 3 原有 ignored**（Host566、Core273）；CLI 完整 `cargo test --verbose --no-fail-fast` exit 0（137.39s），**187 passed / 0 failed / 1 原有 ignored**（185 单元+2向导集成）。原有忽略项未改变；本项无前端源码修改。
+- 收尾：验证后的11份源码/fixture及3张用户图片与冻结 SHA-256 一致；10条检查均成功，产物交换 TempDir 已自动清理。仅恢复 CLI Cargo.lock 自动刷新的5个本地 path crate 版本，经断言与 HEAD 完全一致，无依赖升级。规范链接、95项索引/任务卡及改动范围复核通过；日志/结果保留于恢复目录 `rf013-*.log`、`rf013-validation.json`，合成交换证据保留于 `rf013-exchange-artifacts/`。
+- 最终结论：本项 **完成**。提交：本提交（按 RF-013 检索），未推送；仅纳入本项15个文件，保留3张用户NSIS图片。当前32/95已关闭、5项待具体授权阻塞；下一项 RF-025 只读方案已保存，尚未实施。

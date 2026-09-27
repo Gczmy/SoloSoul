@@ -1,0 +1,61 @@
+{
+  "version": "1.0",
+  "created_at": "2026-09-27T12:34:56Z",
+  "profile_count": 3,
+  "profiles": [
+    {
+      "id": "synthetic-unicode",
+      "name": "合成档案🌟",
+      "data": [
+        228,
+        189,
+        160,
+        229,
+        165,
+        189,
+        32,
+        47,
+        32,
+        99,
+        97,
+        102,
+        195,
+        169,
+        32,
+        47,
+        32,
+        240,
+        159,
+        140,
+        141
+      ],
+      "created_at": "2025-01-02T03:04:05Z",
+      "updated_at": "2026-02-03T04:05:06Z",
+      "version": 3
+    },
+    {
+      "id": "synthetic-binary",
+      "name": "合成二进制",
+      "data": [
+        0,
+        255,
+        128,
+        1,
+        10,
+        13,
+        0
+      ],
+      "created_at": "2025-01-02T03:04:05Z",
+      "updated_at": "2026-02-03T04:05:06Z",
+      "version": 4
+    },
+    {
+      "id": "synthetic-empty",
+      "name": "合成空内容",
+      "data": [],
+      "created_at": "2025-01-02T03:04:05Z",
+      "updated_at": "2026-02-03T04:05:06Z",
+      "version": 5
+    }
+  ]
+}

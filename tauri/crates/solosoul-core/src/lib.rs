@@ -11,6 +11,7 @@
 
 pub mod attachment_crypto;
 pub mod auth;
+pub mod backup;
 pub mod biometric;
 pub mod export_import;
 pub mod llm;

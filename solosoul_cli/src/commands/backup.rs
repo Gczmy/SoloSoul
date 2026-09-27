@@ -5,6 +5,9 @@ use std::path::{Path, PathBuf};
 
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
+use solosoul_core::backup::{
+    decode_profile_backup, encode_profile_backup, ProfileBackupError, ProfilePayloadEncoding,
+};
 use std::time::Instant;
 
 use crate::app::{App, AppPhase};
@@ -21,49 +24,6 @@ pub struct BackupInfo {
     pub created_at: String,
     pub size_bytes: u64,
     pub object_count: usize,
-}
-
-/// 备份清单结构。
-#[derive(Serialize)]
-struct BackupManifest {
-    version: String,
-    created_at: String,
-    profile_count: usize,
-    profiles: Vec<BackupProfileEntry>,
-}
-
-#[derive(Serialize)]
-struct BackupProfileEntry {
-    id: String,
-    name: String,
-    data: Vec<u8>,
-    created_at: String,
-    updated_at: String,
-    version: u32,
-}
-
-/// 恢复时读取的清单结构。
-/// `_version` / `_created_at` / `_profile_count` 保留以维持旧版备份 JSON 反序列化兼容性。
-#[derive(Deserialize)]
-struct RestoreManifest {
-    #[serde(rename = "version")]
-    _version: String,
-    #[serde(rename = "created_at")]
-    _created_at: String,
-    #[serde(rename = "profile_count")]
-    _profile_count: usize,
-    profiles: Vec<RestoreProfileEntry>,
-}
-
-#[derive(Deserialize)]
-struct RestoreProfileEntry {
-    id: String,
-    name: String,
-    data_b64: Option<String>,
-    data: Option<Vec<u8>>,
-    created_at: String,
-    updated_at: String,
-    version: u32,
 }
 
 /// 备份清单摘要，仅用于列表展示。
@@ -233,31 +193,22 @@ fn backup_create(app: &mut App, name: &str) -> Result<()> {
                     Some(t!(app.i18n, "cmd-operation-failed", err = "Profile 不存在"));
                 color_eyre::eyre::eyre!("备份中止：Profile {} 不存在", summary.id)
             })?;
-        backup_profiles.push(BackupProfileEntry {
-            id: profile.id,
-            name: profile.name,
-            data: profile.data,
-            created_at: profile.created_at.to_rfc3339(),
-            updated_at: profile.updated_at.to_rfc3339(),
-            version: profile.version,
-        });
+        backup_profiles.push(profile);
     }
 
-    let manifest = BackupManifest {
-        version: "2.0".to_string(),
-        created_at: chrono::Utc::now().to_rfc3339(),
-        profile_count: backup_profiles.len(),
-        profiles: backup_profiles,
-    };
-
-    let json = serde_json::to_string_pretty(&manifest).map_err(|e| {
+    let json = encode_profile_backup(
+        &backup_profiles,
+        chrono::Utc::now(),
+        ProfilePayloadEncoding::ByteArray,
+    )
+    .map_err(|e| {
         app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
 
     // P007 复核：备份内容为解密后明文（profile.data 未加密），统一走共享
     // write_private_file——创建时即定 0600 权限，无先写后 chmod 的明文窗口期。
-    crate::util::write_private_file(&backup_path, json.as_bytes()).map_err(|e| {
+    crate::util::write_private_file(&backup_path, &json).map_err(|e| {
         app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
@@ -331,43 +282,20 @@ fn do_restore(app: &mut App, backup_id: &str) -> Result<()> {
         color_eyre::eyre::eyre!(e)
     })?;
 
-    let manifest: RestoreManifest = serde_json::from_str(&content).map_err(|e| {
-        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
-        color_eyre::eyre::eyre!(e)
-    })?;
-
-    use solosoul_core::Profile;
-    // RF-011：先解码整个清单，后续条目损坏时不能先覆盖前面的 Profile。
-    let profiles = manifest
-        .profiles
-        .into_iter()
-        .map(|entry| {
-            // 与 GUI 一致：非空 Base64 优先；空字符串回退旧数组。
-            // 显式空内容合法，但缺失两种数据不能伪造成空 Profile。
-            let data = match (entry.data_b64, entry.data) {
-                (Some(encoded), _) if !encoded.is_empty() => {
-                    base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &encoded)
-                        .map_err(|e| color_eyre::eyre::eyre!("Profile 数据 Base64 无效: {}", e))?
+    // RF-013：共用 RF-011 的完整解码规则，任何坏条目都在首次保存前拒绝。
+    let decoded =
+        decode_profile_backup(content.as_bytes(), chrono::Utc::now()).map_err(|error| {
+            let message = match error {
+                ProfileBackupError::InvalidBase64 { reason, .. } => {
+                    format!("Profile 数据 Base64 无效: {}", reason)
                 }
-                (_, Some(data)) => data,
-                (Some(_), None) => Vec::new(),
-                (None, None) => return Err(color_eyre::eyre::eyre!("Profile 缺少备份数据")),
+                ProfileBackupError::MissingData { .. } => "Profile 缺少备份数据".to_string(),
+                other => other.to_string(),
             };
-            Ok(Profile {
-                id: entry.id,
-                name: entry.name,
-                data,
-                created_at: chrono::DateTime::parse_from_rfc3339(&entry.created_at)
-                    .map(|dt| dt.with_timezone(&chrono::Utc))
-                    .unwrap_or_else(|_| chrono::Utc::now()),
-                updated_at: chrono::DateTime::parse_from_rfc3339(&entry.updated_at)
-                    .map(|dt| dt.with_timezone(&chrono::Utc))
-                    .unwrap_or_else(|_| chrono::Utc::now()),
-                version: entry.version,
-            })
-        })
-        .collect::<Result<Vec<_>>>()?;
-    for profile in profiles {
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = &message));
+            color_eyre::eyre::eyre!(message)
+        })?;
+    for profile in decoded.profiles {
         vault
             .save_profile(&profile)
             .map_err(|e| color_eyre::eyre::eyre!(e))?;
@@ -443,7 +371,7 @@ mod tests {
     use solosoul_core::{Profile, VaultService};
     use std::sync::Arc;
 
-    fn unlocked_app() -> (App, String, tempfile::TempDir) {
+    pub(super) fn unlocked_app() -> (App, String, tempfile::TempDir) {
         let _guard = crate::VAULT_TEST_LOCK
             .lock()
             .unwrap_or_else(|e| e.into_inner());
@@ -477,7 +405,7 @@ mod tests {
         }
     }
 
-    fn confirm_prompt(app: &mut App) {
+    pub(super) fn confirm_prompt(app: &mut App) {
         // 默认选中“否”，需要先切换到“是”再确认。
         crate::widgets::prompt::handle_key(app, KeyEvent::from(KeyCode::Left));
         crate::widgets::prompt::handle_key(app, KeyEvent::from(KeyCode::Enter));
@@ -840,3 +768,6 @@ mod tests {
         assert!(vault.list_profiles().unwrap().is_empty());
     }
 }
+
+#[cfg(test)]
+mod rf013_tests;
