@@ -196,25 +196,25 @@ loadCustomPages: async (accountId) => {
 }
 ```
 
-**更新逻辑**：
+### 5.3 设置保存结果与确认基线（RF-111）
+
+`updateSetting(accountId, key, value)` 仍立即更新乐观 UI，但返回明确的 `SettingWriteResult`：
 
 ```typescript
-// updateSetting 方法 — 乐观更新 + 回滚
-updateSetting: async (accountId, key, value) => {
-  const oldValue = get().settings[key];
-  set((s) => ({ settings: { ...s.settings, [key]: value } }));  // 乐观更新
-  try {
-    if (key === 'windowSize') {
-      localStorage.setItem('solosoul_window_size', JSON.stringify(value));
-      await invoke('ui_update_preference', { key: 'windowSize', value: JSON.stringify(value) });
-    } else {
-      await invoke('user_data_update_preference', { payload: { accountId, preferences: { [key]: value } } });
-    }
-  } catch {
-    set((s) => ({ settings: { ...s.settings, [key]: oldValue } }));  // 回滚
-  }
-}
+type SettingWriteResult =
+  | { status: 'saved' | 'failed'; isCurrent: () => boolean }
+  | { status: 'stale' };
 ```
+
+- `saved` 表示 Vault 偏好写入成功；`failed` 表示当前请求保存失败，Store 已回滚该键；`stale` 表示会话或同键请求已失效，调用方静默结束。`saved` / `failed` 的守卫也可能随后失效，异步成功动作须在每个等待点后检查 `isCurrent()`。
+- 同键真实 IPC 按序执行，每键维护最后确认保存的值。初值 A、连续输入 B/C：两次失败回 A；B 成功 C 失败回 B。过时失败不撤销新值；仍属原会话的过时成功可以更新确认基线和持久化副本，不执行过时 UI 成功动作。
+- `getConfirmedSettings()` 返回排除待保存乐观值的同步快照，供成功后的外观应用读取。缓存也只写确认快照，因此保存一个键不会把另一键未保存的新值夹带到 `solosoul_ui_prefs`。
+- 明文 UI 副本仍尽力同步，失败记日志，不将已成功的 Vault 写入改判为失败。加载与保存的同键明文镜像共用有序队列，派发前再次检查会话及该键编辑代次，避免旧加载镜像迟到覆盖新保存值。语言应用失败同样不回滚已落库的语言设置。
+- `loadSettings` / `loadUiPreferences` 保护请求开始时正在保存、或读取期间编辑过的键；其他键照常加载。锁定清理使用确认快照保留既有 UI 偏好，清除待写队列的会话归属；旧任务结束时不能清理新会话的队列。
+
+React 调用者使用 `src/hooks/useSettingAction.ts` 统一显示一次当前保存失败提示。外观页面只对有效的已保存结果应用确认配置；选择配色和切换模式是两次独立保存，第一步成功、第二步失败时保留真实部分成功，不应用未保存模式。Android 现有乐观预览随 Store 回滚恢复；跨入口的全局主题协调由 RF-112 负责。
+
+生物识别凭证操作与偏好镜像仍是独立阶段：凭证成功变化后立即失效登录能力缓存，随后偏好失败不能误报整体成功或关闭验证框，也不能宣称已撤销真实凭证变化。后台备份提醒已发出而时间保存失败时只记录该保存失败，Store 恢复旧时间，不重复报告通知发送失败。
 
 **自定义页面 CRUD**（独立于设置本身）：
 
@@ -222,6 +222,7 @@ updateSetting: async (accountId, key, value) => {
 |------|------|
 | `addCustomPage(accountId, name, iconId)` | 乐观 UI 更新 → `invoke('object_create', { ...collectionType: 'page' })` → 失败回滚 |
 | `removeCustomPage(accountId, pageId)` | 标记 `deletedAt`（保留在数组内供模板引用）→ `invoke('page_delete')` → 失败回滚 |
+| `CustomPageEditPopover` 编辑 | `object_update` 成功后更新当前会话的页面列表投影，不再将同一投影二次写入 preferences；对象失败或会话失效时保留当前界面/新账户数据 |
 
 **`clearOnVaultLock`**：保留 UI 偏好（language/theme/accent），重置加密偏好到 `DEFAULT_SETTINGS`。
 

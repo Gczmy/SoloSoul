@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useShallow } from 'zustand/react/shallow';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingAction } from '@/hooks/useSettingAction';
 import { useAuthStore } from '@/stores/authStore';
 import { applyTheme, getSystemTheme } from '@/lib/theme';
-import { applyScheme, getSchemeById } from '@/lib/themeSchemes';
-import { refreshNativeAppearance } from '@/lib/nativeWindow';
+import { getSchemeById } from '@/lib/themeSchemes';
 import { useTranslation } from 'react-i18next';
 import { ThemeSchemePanel } from '@/components/settings/ThemeSchemePanel';
 import type { AccentPreset } from '@/types';
@@ -17,7 +16,7 @@ import { isMobilePlatformSync, isAndroidSync } from '@/lib/platform';
 import { AndroidAppearance } from '@/components/android/AndroidAppearance';
 import { Palette, PanelTop, PanelBottom, PanelLeft, PanelRight } from 'lucide-react';
 import type { ThemeScheme } from '@/lib/themeSchemes';
-import type { AppSettings } from '@/stores/settingsStore';
+import type { AppSettings, SettingWriteResult } from '@/stores/settingsStore';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { ICON_SIZE } from '@/lib/constants';
 import styles from './AppearanceSettingsPage.module.css';
@@ -49,10 +48,9 @@ const SIDEBAR_OPTIONS: {
 export function AppearanceSettingsPage() {
   const navigate = useNavigate();
   const currentAccount = useAuthStore((s) => s.currentAccount);
-  // P022: useShallow 字段级选择——避免 store 无关字段翻转时整页重渲染
-  const { settings, updateSetting } = useSettingsStore(
-    useShallow((s) => ({ settings: s.settings, updateSetting: s.updateSetting })),
-  );
+  // 字段级选择避免 store 无关状态变化触发整页重渲染。
+  const settings = useSettingsStore((s) => s.settings);
+  const updateSetting = useSettingAction();
   const accountId = currentAccount?.id || '';
   const isMobilePlatform = isMobilePlatformSync();
   const { t } = useTranslation(['settings', 'common']);
@@ -67,66 +65,62 @@ export function AppearanceSettingsPage() {
 
   // P128: ②③ 副本写入统一由 settingsStore.updateSetting（P129 集中化 helper）负责，
   // 本页不再直接写 localStorage / ui_update_preference，杜绝第 5 个漂移写入点。
-  const handlePresetChange = async (preset: 'light' | 'dark' | 'system') => {
-    updateSetting(accountId, 'theme', preset);
-    const resolvedSystemTheme = preset === 'system' ? await getSystemTheme() : undefined;
+  const applySavedSettings = async (
+    result: SettingWriteResult,
+    additionalIsCurrent: () => boolean = () => true,
+  ) => {
+    if (result.status !== 'saved' || !result.isCurrent() || !additionalIsCurrent()) return;
+    const theme = useSettingsStore.getState().getConfirmedSettings().theme;
+    const resolvedSystemTheme = theme === 'system' ? await getSystemTheme() : undefined;
+    if (!result.isCurrent() || !additionalIsCurrent()) return;
+    // 解析期间其他键可能已保存；取最新已确认快照，排除尚未落库的乐观值。
+    const current = useSettingsStore.getState().getConfirmedSettings();
     await applyTheme({
       preset:
-        preset === 'dark' ? 'warm-stone-dark' : preset === 'light' ? 'warm-stone-light' : 'system',
-      accentColor: settings.accentColor as AccentPreset,
-      customAccentHex: settings.customAccentHex,
+        current.theme === 'dark'
+          ? 'warm-stone-dark'
+          : current.theme === 'light'
+            ? 'warm-stone-light'
+            : 'system',
+      accentColor: current.accentColor,
+      customAccentHex: current.customAccentHex,
       backgroundType: 'solid',
       backgroundValue: '',
-      defaultLightTheme: settings.defaultLightTheme,
-      defaultDarkTheme: settings.defaultDarkTheme,
-      resolvedSystemTheme,
+      defaultLightTheme: current.defaultLightTheme,
+      defaultDarkTheme: current.defaultDarkTheme,
+      resolvedSystemTheme: current.theme === 'system' ? resolvedSystemTheme : undefined,
     });
+  };
+
+  const handlePresetChange = async (preset: 'light' | 'dark' | 'system') => {
+    await applySavedSettings(await updateSetting(accountId, 'theme', preset));
   };
 
   const handleAccentChange = async (accent: AccentPreset) => {
-    updateSetting(accountId, 'accentColor', accent);
-    const resolvedSystemTheme = settings.theme === 'system' ? await getSystemTheme() : undefined;
-    await applyTheme({
-      preset:
-        settings.theme === 'dark'
-          ? 'warm-stone-dark'
-          : settings.theme === 'light'
-            ? 'warm-stone-light'
-            : 'system',
-      accentColor: accent,
-      customAccentHex: settings.customAccentHex,
-      backgroundType: 'solid',
-      backgroundValue: '',
-      defaultLightTheme: settings.defaultLightTheme,
-      defaultDarkTheme: settings.defaultDarkTheme,
-      resolvedSystemTheme,
-    });
+    await applySavedSettings(await updateSetting(accountId, 'accentColor', accent));
   };
 
   const handleSelectScheme = async (scheme: ThemeScheme) => {
-    const currentMode = settings.theme === 'system' ? await getSystemTheme() : settings.theme;
-    // If the selected scheme's mode differs from the current theme setting,
-    // automatically switch to match so the UI state reflects the selected theme.
-    if (scheme.mode !== currentMode) {
-      const newTheme = scheme.mode;
-      updateSetting(accountId, 'theme', newTheme);
-      await applyTheme({
-        preset: newTheme === 'dark' ? 'warm-stone-dark' : 'warm-stone-light',
-        accentColor: settings.accentColor as AccentPreset,
-        customAccentHex: settings.customAccentHex,
-        backgroundType: 'solid',
-        backgroundValue: '',
-        defaultLightTheme: scheme.mode === 'light' ? scheme.id : settings.defaultLightTheme,
-        defaultDarkTheme: scheme.mode === 'dark' ? scheme.id : settings.defaultDarkTheme,
-      });
-    } else {
-      // Apply scheme immediately (mode matches current theme)
-      applyScheme(scheme.id);
-      await refreshNativeAppearance();
-    }
-    // Persist as default for the scheme's mode
+    // 两个独立设置先保存色板；失败时绝不先应用尚未落库的颜色。
     const key = scheme.mode === 'light' ? 'defaultLightTheme' : 'defaultDarkTheme';
-    updateSetting(accountId, key, scheme.id);
+    const schemeResult = await updateSetting(accountId, key, scheme.id);
+    if (schemeResult.status !== 'saved' || !schemeResult.isCurrent()) return;
+    const theme = useSettingsStore.getState().getConfirmedSettings().theme;
+    const resolvedMode = theme === 'system' ? await getSystemTheme() : theme;
+    if (!schemeResult.isCurrent()) return;
+    const currentTheme = useSettingsStore.getState().getConfirmedSettings().theme;
+    const currentMode = currentTheme === 'system' ? resolvedMode : currentTheme;
+    if (scheme.mode !== currentMode) {
+      const themeResult = await updateSetting(accountId, 'theme', scheme.mode);
+      if (themeResult.status === 'stale' || !themeResult.isCurrent() || !schemeResult.isCurrent())
+        return;
+      if (themeResult.status === 'saved') {
+        await applySavedSettings(themeResult, schemeResult.isCurrent);
+        return;
+      }
+      // 模式保存失败时，色板已落库；仅应用回滚后的当前配置，保留这部分成功。
+    }
+    await applySavedSettings(schemeResult);
   };
 
   if (isAndroidSync()) return <AndroidAppearance />;

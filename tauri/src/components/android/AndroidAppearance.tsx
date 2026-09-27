@@ -6,6 +6,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { PageShell } from '@/components/layout/PageShell';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingAction } from '@/hooks/useSettingAction';
 import { useAuthStore } from '@/stores/authStore';
 import { applyTheme, getSystemTheme } from '@/lib/theme';
 import { ANDROID_PALETTES, androidMaterialTokens } from '@/lib/androidMaterial';
@@ -24,7 +25,7 @@ export function AndroidAppearance() {
       language: s.settings.language,
     })),
   );
-  const update = useSettingsStore((s) => s.updateSetting);
+  const update = useSettingAction();
   useEffect(() => {
     let active = true;
     void (async () => {

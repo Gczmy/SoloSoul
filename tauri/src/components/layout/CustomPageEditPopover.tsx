@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { createSessionRequests } from '@/lib/sessionRequests';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
@@ -17,6 +17,8 @@ import styles from './SideNavigation.module.css';
 // =============================================================================
 // CustomPageEditPopover — reusable editor for a custom page's icon/name/description
 // =============================================================================
+
+const pageEditRequests = createSessionRequests();
 
 export interface CustomPageEditPopoverProps {
   page: CustomPage;
@@ -109,9 +111,11 @@ export function CustomPageEditPopover({
       }
     }
 
-    // Update the object in the objects table
+    if (!accountId) return;
+    const request = pageEditRequests.begin(undefined, accountId);
+    // 页面元数据的权威来源是 objects；成功后只更新当前会话的列表投影。
     try {
-      await invoke('object_update', {
+      await request.invoke('object_update', {
         objectId: page.id,
         input: {
           name: trimmed,
@@ -119,22 +123,23 @@ export function CustomPageEditPopover({
           iconName: selectedIconId,
         },
       });
+      request.assertCurrent();
     } catch {
-      setRenameError(true);
+      if (request.isCurrent()) setRenameError(true);
       return;
     }
 
-    // Update Zustand state so sidebar and home cards reflect the change
-    const store = useSettingsStore.getState();
-    store.updateSetting(
-      accountId || '',
-      'customPages',
-      store.settings.customPages.map((p) =>
-        p.id === page.id
-          ? { ...p, name: trimmed, iconId: selectedIconId, description: trimmedDesc || undefined }
-          : p,
-      ),
-    );
+    // 不再把已保存的对象投影作为第二次 preferences 写入，避免部分成功被误报。
+    useSettingsStore.setState((state) => ({
+      settings: {
+        ...state.settings,
+        customPages: state.settings.customPages.map((p) =>
+          p.id === page.id
+            ? { ...p, name: trimmed, iconId: selectedIconId, description: trimmedDesc || undefined }
+            : p,
+        ),
+      },
+    }));
     onClose();
   };
 

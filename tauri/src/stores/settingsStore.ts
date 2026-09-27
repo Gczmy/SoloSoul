@@ -57,6 +57,10 @@ export interface AppSettings {
   trashRetention: TrashRetentionPeriod;
 }
 
+export type SettingWriteResult =
+  | { status: 'saved' | 'failed'; isCurrent: () => boolean }
+  | { status: 'stale' };
+
 interface SettingsState {
   /** 仅来自旧 preferences，独立于已落库的页面列表，供部分迁移重试。 */
   legacyCustomPages: CustomPage[];
@@ -67,12 +71,14 @@ interface SettingsState {
    *  Can be called before Vault unlock — fixes login page theme bug. */
   loadUiPreferences: () => Promise<void>;
   loadSettings: (accountId: string) => Promise<void>;
+  /** 成功后的外观等副作用只能读取确认快照，不能应用其他键的乐观值。 */
+  getConfirmedSettings: () => AppSettings;
   loadCustomPages: (accountId: string) => Promise<void>;
   updateSetting: <K extends keyof AppSettings>(
     accountId: string,
     key: K,
     value: AppSettings[K],
-  ) => Promise<void>;
+  ) => Promise<SettingWriteResult>;
   clearOnVaultLock: () => void;
   addCustomPage: (
     accountId: string,
@@ -271,15 +277,73 @@ export async function syncPlaintextPref(
 }
 const requests = createSessionRequests();
 
+type SettingKey = keyof AppSettings;
+interface SettingWriteLane {
+  confirmed: AppSettings[SettingKey];
+  pending: number;
+  tail: Promise<void> | null;
+}
+
+// 同键 IPC 串行，但乐观值立即更新；确认基线不能取另一笔尚未保存的乐观值。
+const settingWrites = new Map<SettingKey, SettingWriteLane>();
+const settingEdits = new Map<SettingKey, number>();
+
+// 加载与保存共享明文镜像顺序；跨会话保留已发写入的 tail，避免旧写最后落地。
+const plaintextWrites = new Map<string, Promise<void>>();
+async function syncSettingPlaintextPref(
+  key: string,
+  value: unknown,
+  isCurrent: () => boolean,
+): Promise<void> {
+  const previous = plaintextWrites.get(key) ?? Promise.resolve();
+  const writing = previous.then(async () => {
+    if (isCurrent()) await syncPlaintextPref(key, value, isCurrent);
+  });
+  plaintextWrites.set(key, writing);
+  try {
+    await writing;
+  } finally {
+    if (plaintextWrites.get(key) === writing) plaintextWrites.delete(key);
+  }
+}
+
+function confirmedSettings(settings: AppSettings): AppSettings {
+  let confirmed = { ...settings };
+  for (const [key, lane] of settingWrites) {
+    confirmed = { ...confirmed, [key]: lane.confirmed };
+  }
+  return confirmed;
+}
+
+/** 读请求不能覆盖开始时尚在保存、或读取期间被编辑的字段。 */
+function captureSettingRead() {
+  const edits = new Map(settingEdits);
+  const pending = new Set(settingWrites.keys());
+  const canApply = (key: SettingKey) =>
+    !pending.has(key) && !settingWrites.has(key) && edits.get(key) === settingEdits.get(key);
+  return {
+    canApply,
+    merge(incoming: AppSettings, current: AppSettings): AppSettings {
+      let merged = { ...incoming };
+      for (const key of Object.keys(incoming) as SettingKey[]) {
+        if (!canApply(key)) merged = { ...merged, [key]: current[key] };
+      }
+      return merged;
+    },
+  };
+}
+
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   legacyCustomPages: [],
   settings: DEFAULT_SETTINGS,
   isLoading: false,
+  getConfirmedSettings: () => confirmedSettings(get().settings),
 
   /** Load UI-only prefs: read localStorage cache sync first (instant),
    *  then refresh from IPC asynchronously. */
   loadUiPreferences: async () => {
     const request = requests.begin('ui');
+    const read = captureSettingRead();
     const setCurrent = request.guardSet<SettingsState>(set);
     // Step 1: apply cached prefs instantly from localStorage
     try {
@@ -288,7 +352,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         const parsed = uiPrefsSchema.safeParse(JSON.parse(raw));
         if (parsed.success) {
           const cached = parsed.data;
-          const p = { ...get().settings };
+          let p = { ...get().settings };
           if (typeof cached.reduceMotion === 'boolean') p.reduceMotion = cached.reduceMotion;
           if (isAndroidGlassMode(cached.androidGlass)) p.androidGlass = cached.androidGlass;
           if (cached.theme) p.theme = cached.theme;
@@ -297,6 +361,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
             p.customAccentHex = cached.customAccentHex;
           if (cached.defaultLightTheme) p.defaultLightTheme = cached.defaultLightTheme;
           if (cached.defaultDarkTheme) p.defaultDarkTheme = cached.defaultDarkTheme;
+          p = read.merge(p, get().settings);
           request.assertCurrent();
           await applyTheme({
             preset:
@@ -313,7 +378,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
             defaultDarkTheme: p.defaultDarkTheme,
           });
           request.assertCurrent();
-          setCurrent({ settings: p });
+          setCurrent({ settings: read.merge(p, get().settings) });
         }
       }
     } catch (e) {
@@ -338,7 +403,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         1200,
       );
       request.assertCurrent();
-      const parsed = { ...get().settings };
+      let parsed = { ...get().settings };
       if (typeof prefs.reduceMotion === 'boolean') parsed.reduceMotion = prefs.reduceMotion;
       if (isAndroidGlassMode(prefs.androidGlass)) parsed.androidGlass = prefs.androidGlass;
       if (prefs.theme) parsed.theme = prefs.theme as AppSettings['theme'];
@@ -347,6 +412,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (prefs.language) parsed.language = prefs.language;
       if (prefs.defaultLightTheme) parsed.defaultLightTheme = prefs.defaultLightTheme;
       if (prefs.defaultDarkTheme) parsed.defaultDarkTheme = prefs.defaultDarkTheme;
+      parsed = read.merge(parsed, get().settings);
       request.assertCurrent();
       await applyTheme({
         preset:
@@ -363,9 +429,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         defaultDarkTheme: parsed.defaultDarkTheme,
       });
       request.assertCurrent();
+      parsed = read.merge(parsed, get().settings);
       setCurrent({ settings: parsed });
-      // P129: ② 副本写入收敛到 writeUiPrefsCache（唯一写入点）
-      writeUiPrefsCache(parsed);
+      // 缓存只镜像已确认值，不携带其他字段正在保存的乐观值。
+      writeUiPrefsCache(confirmedSettings(parsed));
       // Language is set by initI18n() via Rust IPC (confirmed working = zh-CN).
       // User changes via settings are applied in updateSetting() — skip here to avoid
       // overwriting correct IPC detection with stale/stored values from vault.
@@ -378,6 +445,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   loadSettings: async (accountId) => {
     const request = requests.begin('settings', accountId);
+    const read = captureSettingRead();
     const setCurrent = request.guardSet<SettingsState>(set);
     setCurrent({ isLoading: true });
     try {
@@ -436,17 +504,24 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // Once loaded, also try the new objects-table source via loadCustomPages().
       if (prefs.customPages) parsed.customPages = prefs.customPages;
       setCurrent({
-        settings: parsed,
-        legacyCustomPages: prefs.customPages ?? [],
+        settings: read.merge(parsed, get().settings),
+        legacyCustomPages: read.canApply('customPages')
+          ? (prefs.customPages ?? [])
+          : get().legacyCustomPages,
         isLoading: false,
       });
       // Sync UI prefs to plaintext file so next startup shows correct theme.
       // P129: ③ 副本写入收敛到 syncPlaintextPref（唯一写入点），原 5 段顺序 if 收敛为循环。
       for (const key of PLAINTEXT_PREF_KEYS) {
-        const v = parsed[key as keyof AppSettings];
-        if (v !== undefined && v !== '') {
+        const settingKey = key as SettingKey;
+        const v = parsed[settingKey];
+        if (read.canApply(settingKey) && v !== undefined && v !== '') {
           request.assertCurrent();
-          await syncPlaintextPref(key, v, request.isCurrent);
+          await syncSettingPlaintextPref(
+            key,
+            v,
+            () => request.isCurrent() && read.canApply(settingKey),
+          );
           request.assertCurrent();
         }
       }
@@ -552,40 +627,74 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 
-  updateSetting: async (accountId, key, value) => {
+  updateSetting: async (accountId, key, value): Promise<SettingWriteResult> => {
+    // 无 key 的 ticket 只约束原会话，允许旧同键写的成功推进确认基线。
+    const session = requests.begin(undefined, accountId);
+    if (!session.isCurrent()) return { status: 'stale' };
     const request = requests.begin(`setting:${key}`, accountId);
     const setCurrent = request.guardSet<SettingsState>(set);
-    const oldValue = get().settings[key];
-    setCurrent((s) => ({ settings: { ...s.settings, [key]: value } }));
+    requests.invalidate('ui');
+    settingEdits.set(key, (settingEdits.get(key) ?? 0) + 1);
+    const lane = settingWrites.get(key) ?? {
+      confirmed: get().settings[key],
+      pending: 0,
+      tail: null,
+    };
+    settingWrites.set(key, lane);
+    const previous = lane.tail;
+    let release!: () => void;
+    lane.tail = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    lane.pending += 1;
     try {
-      await request.invoke('user_data_update_preference', {
-        payload: { accountId, preferences: { [key]: value } },
-      });
-      request.assertCurrent();
-      // P129: UI 键变更时同步 ②③ 副本（唯一写入点，页面不再各自写）。
-      // ④ vault 写入成功后才触发，失败回滚时不会产生副本漂移。
-      if (PLAINTEXT_PREF_KEYS.has(key)) {
-        void syncPlaintextPref(key, value, request.isCurrent);
-        if (CACHE_PREF_KEYS.has(key)) {
-          writeUiPrefsCache(get().settings);
-        }
+      setCurrent((s) => ({ settings: { ...s.settings, [key]: value } }));
+      if (previous) await previous;
+      if (!session.isCurrent()) return { status: 'stale' };
+      try {
+        await session.invoke('user_data_update_preference', {
+          payload: { accountId, preferences: { [key]: value } },
+        });
+      } catch (e) {
+        if (!request.isCurrent()) return { status: 'stale' };
+        logger.warn('[settingsStore] Failed to update setting:', key, e);
+        setCurrent((s) => ({ settings: { ...s.settings, [key]: lane.confirmed } }));
+        return { status: 'failed', isCurrent: request.isCurrent };
       }
+      if (!session.isCurrent()) return { status: 'stale' };
+      lane.confirmed = value;
+      // 真实提交的旧写也要镜像；同键镜像在队列内有序执行，不能夹带新乐观值。
+      if (CACHE_PREF_KEYS.has(key)) {
+        writeUiPrefsCache(confirmedSettings(get().settings));
+      }
+      if (PLAINTEXT_PREF_KEYS.has(key)) {
+        await syncSettingPlaintextPref(key, value, session.isCurrent);
+      }
+      if (!session.isCurrent()) return { status: 'stale' };
       if (key === 'language' && typeof value === 'string') {
-        request.assertCurrent();
-        await i18next.changeLanguage(value);
-        request.assertCurrent();
-        // ③ 已由上方 PLAINTEXT_PREF_KEYS 分支同步；此处仅补 ② i18nextLng 冷启动缓存。
+        // 应用语言失败不改变数据库已保存的事实，也不能回滚确认基线。
+        try {
+          await i18next.changeLanguage(value);
+        } catch (e) {
+          if (session.isCurrent()) {
+            logger.warn('[settingsStore] Failed to apply saved language:', e);
+          }
+        }
+        if (!session.isCurrent()) return { status: 'stale' };
         try {
           localStorage.setItem('i18nextLng', value);
         } catch (e) {
-          if (!request.isCurrent()) return;
           logger.warn('[settingsStore] Failed to cache language:', e);
         }
       }
-    } catch (e) {
-      if (!request.isCurrent()) return;
-      logger.warn('[settingsStore] Failed to update setting:', key, e);
-      setCurrent((s) => ({ settings: { ...s.settings, [key]: oldValue } }));
+      return request.isCurrent()
+        ? { status: 'saved', isCurrent: request.isCurrent }
+        : { status: 'stale' };
+    } finally {
+      lane.pending -= 1;
+      // 锁定后同键可能已有新会话的队列，旧任务只能清理自己的 lane。
+      if (lane.pending === 0 && settingWrites.get(key) === lane) settingWrites.delete(key);
+      release();
     }
   },
 
@@ -657,33 +766,36 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   },
 
   clearOnVaultLock: () => {
+    const confirmed = confirmedSettings(get().settings);
     requests.invalidate();
-    return set((state) => ({
+    settingWrites.clear();
+    settingEdits.clear();
+    return set({
       legacyCustomPages: [],
       // Keep UI-only preferences so lock screen retains user's language/theme/accent
       settings: {
         ...DEFAULT_SETTINGS,
-        theme: state.settings.theme,
-        accentColor: state.settings.accentColor,
-        customAccentHex: state.settings.customAccentHex,
-        reduceMotion: state.settings.reduceMotion,
-        androidGlass: state.settings.androidGlass,
-        backgroundType: state.settings.backgroundType,
-        backgroundValue: state.settings.backgroundValue,
-        language: state.settings.language,
-        locale: state.settings.locale,
-        autoLockTimeoutMinutes: state.settings.autoLockTimeoutMinutes,
-        autoLockNotificationEnabled: state.settings.autoLockNotificationEnabled,
-        autoLockOnBackground: state.settings.autoLockOnBackground,
-        backupReminderDays: state.settings.backupReminderDays,
-        lastBackupReminderAt: state.settings.lastBackupReminderAt,
-        defaultLightTheme: state.settings.defaultLightTheme,
-        defaultDarkTheme: state.settings.defaultDarkTheme,
-        sidebarPosition: state.settings.sidebarPosition,
-        sidebarButtonModes: state.settings.sidebarButtonModes,
+        theme: confirmed.theme,
+        accentColor: confirmed.accentColor,
+        customAccentHex: confirmed.customAccentHex,
+        reduceMotion: confirmed.reduceMotion,
+        androidGlass: confirmed.androidGlass,
+        backgroundType: confirmed.backgroundType,
+        backgroundValue: confirmed.backgroundValue,
+        language: confirmed.language,
+        locale: confirmed.locale,
+        autoLockTimeoutMinutes: confirmed.autoLockTimeoutMinutes,
+        autoLockNotificationEnabled: confirmed.autoLockNotificationEnabled,
+        autoLockOnBackground: confirmed.autoLockOnBackground,
+        backupReminderDays: confirmed.backupReminderDays,
+        lastBackupReminderAt: confirmed.lastBackupReminderAt,
+        defaultLightTheme: confirmed.defaultLightTheme,
+        defaultDarkTheme: confirmed.defaultDarkTheme,
+        sidebarPosition: confirmed.sidebarPosition,
+        sidebarButtonModes: confirmed.sidebarButtonModes,
       },
       isLoading: false,
-    }));
+    });
   },
 }));
 

@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useShallow } from 'zustand/react/shallow';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingAction } from '@/hooks/useSettingAction';
 import { BiometricSection } from '@/components/settings/BiometricSection';
 import { PinSection } from '@/components/settings/PinSection';
 import { PasswordChangeForm } from '@/components/settings/PasswordChangeForm';
@@ -18,9 +18,8 @@ export function SecuritySettingsPage() {
   const { t } = useTranslation(['settings', 'common']);
 
   // P022: useShallow 字段级选择——避免 store 无关字段（isLoading/customPages 等）翻转时整页重渲染
-  const { settings, updateSetting } = useSettingsStore(
-    useShallow((s) => ({ settings: s.settings, updateSetting: s.updateSetting })),
-  );
+  const settings = useSettingsStore((s) => s.settings);
+  const updateSetting = useSettingAction();
 
   return (
     <PageShell title={t('settings:items.security_settings')} onBack={() => navigate('/settings')}>

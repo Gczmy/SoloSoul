@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useShallow } from 'zustand/react/shallow';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -18,6 +17,7 @@ import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ICON_SIZE } from '@/lib/constants';
 import { formatBytes } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingAction } from '@/hooks/useSettingAction';
 import { useAuthStore } from '@/stores/authStore';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 
@@ -34,9 +34,8 @@ export function BackupConfigPage() {
 
   const currentAccount = useAuthStore((s) => s.currentAccount);
   // P022: useShallow 字段级选择——避免 store 无关字段翻转时整页重渲染
-  const { settings, updateSetting } = useSettingsStore(
-    useShallow((s) => ({ settings: s.settings, updateSetting: s.updateSetting })),
-  );
+  const settings = useSettingsStore((s) => s.settings);
+  const updateSetting = useSettingAction();
 
   const backupGuidePages = useMemo(
     () => [
@@ -47,27 +46,34 @@ export function BackupConfigPage() {
           {
             icon: HardDrive,
             title: t('common:guide_backup_step1_title', { defaultValue: 'Create Backup' }),
-            description:
-              t('common:guide_backup_step1_desc', { defaultValue: 'Create a local backup of your current profile. Backups are stored on this device.' }),
+            description: t('common:guide_backup_step1_desc', {
+              defaultValue:
+                'Create a local backup of your current profile. Backups are stored on this device.',
+            }),
           },
           {
             icon: RotateCcw,
             title: t('common:guide_backup_step2_title', { defaultValue: 'Restore Backup' }),
-            description:
-              t('common:guide_backup_step2_desc', { defaultValue: 'Select a backup and restore it. Restoring may overwrite existing data in the current profile.' }),
+            description: t('common:guide_backup_step2_desc', {
+              defaultValue:
+                'Select a backup and restore it. Restoring may overwrite existing data in the current profile.',
+            }),
           },
           {
             icon: Bell,
             title: t('common:guide_backup_step3_title', { defaultValue: 'Manage Backups' }),
-            description:
-              t('common:guide_backup_step3_desc', { defaultValue: 'View backup details, delete old backups, or recover from a previous state.' }),
+            description: t('common:guide_backup_step3_desc', {
+              defaultValue:
+                'View backup details, delete old backups, or recover from a previous state.',
+            }),
           },
         ],
         helpLinks: [
           {
             title: t('common:guide_help_backup_restore', { defaultValue: 'Backup & Restore' }),
-            description:
-              t('common:guide_help_backup_restore_desc', { defaultValue: 'Create and restore local profile backups' }),
+            description: t('common:guide_help_backup_restore_desc', {
+              defaultValue: 'Create and restore local profile backups',
+            }),
             href: '/help?id=backup_restore',
           },
         ],
@@ -84,7 +90,9 @@ export function BackupConfigPage() {
     setIsCreating(true);
     try {
       const result = await invoke<BackupInfo>('backup_create', { name: backupName.trim() });
-      onSuccess(t('settings:backup_created', { name: result.name, size: formatBytes(result.size_bytes) }));
+      onSuccess(
+        t('settings:backup_created', { name: result.name, size: formatBytes(result.size_bytes) }),
+      );
       setBackupName('');
       reload();
     } catch (e) {

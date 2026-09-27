@@ -35,6 +35,7 @@ describe('settingsStore', () => {
   let localStorageData: Record<string, string> = {};
 
   beforeEach(() => {
+    useSettingsStore.getState().clearOnVaultLock();
     // Reset store to default state
     useSettingsStore.setState({
       settings: {
@@ -248,7 +249,8 @@ describe('settingsStore', () => {
 
     it('should update setting optimistically and persist', async () => {
       vi.mocked(invoke).mockResolvedValue(undefined);
-      await useSettingsStore.getState().updateSetting('acc-1', 'theme', 'dark');
+      const result = await useSettingsStore.getState().updateSetting('acc-1', 'theme', 'dark');
+      expect(result).toMatchObject({ status: 'saved', isCurrent: expect.any(Function) });
       expect(useSettingsStore.getState().settings.theme).toBe('dark');
       expect(invoke).toHaveBeenCalledWith('user_data_update_preference', {
         payload: { accountId: 'acc-1', preferences: { theme: 'dark' } },
@@ -260,7 +262,8 @@ describe('settingsStore', () => {
         settings: { ...useSettingsStore.getState().settings, theme: 'light' },
       });
       vi.mocked(invoke).mockRejectedValue(new Error('disk full'));
-      await useSettingsStore.getState().updateSetting('acc-1', 'theme', 'dark');
+      const result = await useSettingsStore.getState().updateSetting('acc-1', 'theme', 'dark');
+      expect(result).toMatchObject({ status: 'failed', isCurrent: expect.any(Function) });
       expect(useSettingsStore.getState().settings.theme).toBe('light');
     });
 

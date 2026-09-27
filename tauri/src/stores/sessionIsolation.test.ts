@@ -152,12 +152,17 @@ describe('P039 会话隔离', () => {
     });
     vi.mocked(invoke).mockReturnValueOnce(old.promise);
     const saving = useSettingsStore.getState().updateSetting('acc-a', 'confirmDelete', false);
+    await vi.waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith('user_data_update_preference', {
+        payload: { accountId: 'acc-a', preferences: { confirmDelete: false } },
+      }),
+    );
     login('acc-b');
     useSettingsStore.setState({
       settings: { ...useSettingsStore.getState().settings, confirmDelete: false },
     });
     old.reject(new Error('old save failed'));
-    await saving;
+    expect(await saving).toEqual({ status: 'stale' });
     expect(useSettingsStore.getState().settings.confirmDelete).toBe(false);
   });
   it('旧账户的新调用被拒绝，也不能取消 B 正在读取的列表', async () => {

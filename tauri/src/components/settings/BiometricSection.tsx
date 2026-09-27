@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingAction } from '@/hooks/useSettingAction';
 import { useToastError } from '@/hooks/useToastError';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
@@ -43,7 +43,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
   const { t } = useTranslation(['settings', 'common']);
   const { onError, onSuccess } = useToastError();
 
-  const updateSetting = useSettingsStore((s) => s.updateSetting);
+  const updateSetting = useSettingAction();
 
   const [bioAvailable, setBioAvailable] = useState<BioAvailability | null>(null);
   const [showBioPwDialog, setShowBioPwDialog] = useState(false);
@@ -60,7 +60,9 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
 
   const refreshAvailability = useCallback(async (): Promise<BioAvailability | null> => {
     try {
-      const r = await invoke<BioAvailability>('biometric_check_availability', { accountId: accountId });
+      const r = await invoke<BioAvailability>('biometric_check_availability', {
+        accountId: accountId,
+      });
       setBioAvailable(r);
       return r;
     } catch {
@@ -111,11 +113,19 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
           biometryType: rawType,
           authenticator: bioMode,
         });
-        const r = await refreshAvailability();
-        // 遗留标志保持同步：任一槽有凭证即为 true
-        await updateSetting(accountId, 'biometricEnabled', !!(r?.strongConfigured || r?.weakConfigured));
-        // 登录方式已变更：失效预探测缓存，锁定后登录页立即显示生物识别
+        // 凭证已保存，即使后续偏好失败，也必须刷新实际登录能力。
         invalidateLoginAvailabilityPreflight(accountId);
+        const r = await refreshAvailability();
+        const result = await updateSetting(
+          accountId,
+          'biometricEnabled',
+          !!(r?.strongConfigured || r?.weakConfigured),
+        );
+        if (result.status === 'stale' || !result.isCurrent()) return false;
+        if (result.status === 'failed') {
+          setErrorMessage(t('common:save_failed'));
+          return false;
+        }
         onSuccess(t('settings:biometric_enabled_toast', { type: modeType }));
       } else {
         await invoke('biometric_delete_credential', {
@@ -126,11 +136,20 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
           biometryType: rawType,
           authenticator: bioMode,
         });
-        const r = await refreshAvailability();
-        await updateSetting(accountId, 'biometricEnabled', !!(r?.strongConfigured || r?.weakConfigured));
-        // 登录方式已变更：失效预探测缓存 + 清理缓存的生物识别方式，锁定后登录页立即生效
+        // 凭证已删除；缓存失效反映这一事实，不依赖偏好镜像是否保存成功。
         invalidateLoginAvailabilityPreflight(accountId);
         clearCachedLoginMethod(accountId, rawType as 'touchId' | 'faceId' | 'windowsHello');
+        const r = await refreshAvailability();
+        const result = await updateSetting(
+          accountId,
+          'biometricEnabled',
+          !!(r?.strongConfigured || r?.weakConfigured),
+        );
+        if (result.status === 'stale' || !result.isCurrent()) return false;
+        if (result.status === 'failed') {
+          setErrorMessage(t('common:save_failed'));
+          return false;
+        }
         onSuccess(t('settings:biometric_disabled_toast', { type: modeType }));
       }
       return true;
@@ -208,7 +227,10 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                   defaultValue:
                     '生物识别因失败次数过多被系统锁定，请稍后再试；若长时间不可用，请前往系统设置重新录入。',
                 })
-              : t('settings:biometric_unavailable_desc', { defaultValue: '当前设备未设置或不支持生物识别（Touch ID / Face ID）。请先在系统设置中添加指纹或面容，然后重新打开此页面。' })}
+              : t('settings:biometric_unavailable_desc', {
+                  defaultValue:
+                    '当前设备未设置或不支持生物识别（Touch ID / Face ID）。请先在系统设置中添加指纹或面容，然后重新打开此页面。',
+                })}
           </div>
         ) : (
           <>
@@ -241,9 +263,14 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                     overflow: 'hidden',
                   }}
                 >
-                  <Fingerprint size={ICON_SIZE.md} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+                  <Fingerprint
+                    size={ICON_SIZE.md}
+                    style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+                  />
                   {(!isMobile || !bioAvailable.strongConfigured) && (
-                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span
+                      style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                    >
                       {t('settings:biometric_toggle_label', { type: strongType })}
                     </span>
                   )}
@@ -283,9 +310,18 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                       overflow: 'hidden',
                     }}
                   >
-                    <ScanFace size={ICON_SIZE.md} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+                    <ScanFace
+                      size={ICON_SIZE.md}
+                      style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+                    />
                     {(!isMobile || !bioAvailable.weakConfigured) && (
-                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span
+                        style={{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
                         {t('settings:biometric_toggle_label', { type: weakType })}
                       </span>
                     )}
@@ -320,7 +356,6 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
             )}
           </>
         )}
-
       </Card>
 
       {/* Biometric password verification dialog（P012：统一走共享 PasswordVerificationDialog） */}

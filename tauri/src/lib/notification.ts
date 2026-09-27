@@ -233,17 +233,13 @@ export async function checkBackupReminder(accountId: string | undefined): Promis
 
       // 记录本次提醒时间并持久化到后端，避免下次解锁重复提醒
       const now = Date.now();
-      useSettingsStore.setState((s) => ({
-        settings: { ...s.settings, lastBackupReminderAt: now },
-      }));
-      // 异步持久化到后端，重启应用后仍可记忆最后提醒时间
-      if (accountId) {
-        useSettingsStore
-          .getState()
-          .updateSetting(accountId, 'lastBackupReminderAt', now)
-          .catch((err) =>
-            logger.warn('[notification] Failed to persist backup reminder time:', err),
-          );
+      // 由 Store 持有乐观值与回滚基线；先 setState 会把失败基线也改成新时间。
+      const result = await useSettingsStore
+        .getState()
+        .updateSetting(accountId, 'lastBackupReminderAt', now);
+      if (result.status === 'failed' && result.isCurrent()) {
+        // 提醒已发出，仅记录时间保存失败；不将已完成的通知误报为发送失败。
+        logger.warn('[notification] Failed to persist backup reminder time');
       }
     }
   } catch (err) {
