@@ -114,7 +114,7 @@ export function UpdateInfoCard({
                   >
                     {t('settings:update_check_failed')}
                   </span>
-                ) : versionInfo ? (
+                ) : versionInfo?.state === 'up-to-date' ? (
                   <span
                     style={{
                       fontSize: 'var(--text-badge)',
@@ -130,6 +130,21 @@ export function UpdateInfoCard({
                 ) : null}
               </div>
             </div>
+
+            {versionInfo?.state === 'unsupported' && (
+              <p
+                role="status"
+                style={{
+                  margin: 0,
+                  padding: '0 0 14px',
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.5,
+                }}
+              >
+                {t('settings:update_in_app_unsupported')}
+              </p>
+            )}
 
             {/* 检查失败 — 显示错误详情与重试入口 */}
             {versionInfo?.state === 'error' && (

@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import type { ApkDownloadProgress, UpdateProgress } from '@/lib/updater';
 
 const mocks = vi.hoisted(() => ({
-  mobile: true,
+  platform: 'android' as 'android' | 'windows',
   androidCheck: vi.fn(),
   desktopCheck: vi.fn(),
   androidDownload: vi.fn(),
@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
   androidInstall: vi.fn(),
   relaunch: vi.fn(),
 }));
-vi.mock('@/lib/platform', () => ({ isMobilePlatformSync: () => mocks.mobile }));
+vi.mock('@/lib/platform', () => ({ getPlatform: async () => mocks.platform }));
 vi.mock('@tauri-apps/plugin-process', () => ({ relaunch: mocks.relaunch }));
 vi.mock('@/lib/updater', () => ({
   androidCheckForUpdate: mocks.androidCheck,
@@ -48,7 +48,7 @@ const androidInfo = {
   apkSize: 100,
 };
 function available(mobile = true, mandatory = false) {
-  mocks.mobile = mobile;
+  mocks.platform = mobile ? 'android' : 'windows';
   const update = { rid: 12, close: vi.fn().mockResolvedValue(undefined) };
   mocks.androidCheck.mockResolvedValue({ kind: 'available', info: { ...androidInfo, mandatory } });
   mocks.desktopCheck.mockResolvedValue({
@@ -62,7 +62,7 @@ function available(mobile = true, mandatory = false) {
 beforeEach(() => {
   vi.resetAllMocks();
   useUpdateStore.setState(useUpdateStore.getInitialState(), true);
-  mocks.mobile = true;
+  mocks.platform = 'android';
   localStorage.clear();
   useAuthStore.setState({ isAuthenticated: false });
   mocks.androidCheck.mockResolvedValue({ kind: 'up-to-date' });
@@ -172,8 +172,8 @@ describe('useAppUpdate', () => {
     act(() => {
       task = result.current.startDownload();
     });
-    expect(result.current.updateState).toMatchObject({ transfer: { phase: 'probing' } });
     await waitFor(() => expect(mocks.desktopDownload).toHaveBeenCalledOnce());
+    expect(result.current.updateState).toMatchObject({ transfer: { phase: 'probing' } });
     const progress = mocks.desktopDownload.mock.calls[0][1] as (p: UpdateProgress) => void;
     act(() => {
       progress({ event: 'Started', data: { contentLength: 100 } });
@@ -315,6 +315,7 @@ describe('useAppUpdate', () => {
       task = result.current.installUpdate();
       void result.current.installUpdate();
     });
+    await waitFor(() => expect(downloaded.install).toHaveBeenCalledOnce());
     expect(result.current.updateState.kind).toBe('installing');
     act(() => {
       result.current.cancelDownload();
@@ -345,6 +346,7 @@ describe('useAppUpdate', () => {
     act(() => {
       task = result.current.startDownload();
     });
+    await waitFor(() => expect(mocks.androidDownload).toHaveBeenCalledOnce());
     await act(async () => {
       check.resolve({ kind: 'available', info: { ...androidInfo, latestVersion: '9.0.0' } });
     });

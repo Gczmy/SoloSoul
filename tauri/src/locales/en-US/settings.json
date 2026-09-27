@@ -276,6 +276,7 @@
   "could_not_load": "Could not load app info",
   "latest_version": "Latest",
   "update_check_failed": "Update check failed",
+  "update_in_app_unsupported": "In-app updates are not supported on iOS. Get new versions from the channel you used to install this app.",
   "update_check_retry": "Check Again",
   "update_checking": "Checking...",
   "update_available": "Update: {{version}}",

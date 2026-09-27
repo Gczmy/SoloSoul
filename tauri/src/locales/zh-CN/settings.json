@@ -276,6 +276,7 @@
   "could_not_load": "无法加载应用信息",
   "latest_version": "最新版本",
   "update_check_failed": "检查更新失败",
+  "update_in_app_unsupported": "iOS 不支持应用内更新，请通过安装此应用的分发渠道获取新版本。",
   "update_check_retry": "重新检查",
   "update_checking": "正在检查…",
   "update_available": "可更新: {{version}}",

@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**95**（P1：34；P2：60；P3：1）。
-- 已关闭：**28 / 95**；实际修复（已关闭）：28；排除：0；待验证/阻塞：4。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：RF-111 已完成，下一项按依赖与平台条件选择 RF-202。RF-021 Host 接入被自动审批拒绝，14份已批准草案已校验归档至恢复目录 `rf021-proposal/`，相关源码和规范已恢复 HEAD；未编译或运行草案测试，待明确授权。RF-016 Core 写入被自动审批拒绝，获批的11份源码/测试已校验归档至恢复目录 `rf016-proposal/` 并从当前源码恢复，未留下未集成 Rust 依赖；待明确授权后恢复该项。RF-014、RF-104 同样仍等待明确授权。RF-903 保持待执行，依赖 RF-905。
+- 已关闭：**29 / 95**；实际修复（已关闭）：29；排除：0；待验证/阻塞：4。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：RF-202 已完成，下一项按依赖与平台条件选择 RF-905。RF-021 Host 接入被自动审批拒绝，14份已批准草案已校验归档至恢复目录 `rf021-proposal/`，相关源码和规范已恢复 HEAD；未编译或运行草案测试，待明确授权。RF-016 Core 写入被自动审批拒绝，获批的11份源码/测试已校验归档至恢复目录 `rf016-proposal/` 并从当前源码恢复，未留下未集成 Rust 依赖；待明确授权后恢复该项。RF-014、RF-104 同样仍等待明确授权。RF-903 保持待执行，依赖 RF-905。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -158,7 +158,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 30 | [RF-110](#rf-110) | P1 | 同次主题应用只解析一次系统模式 | 无 | [x] 完成 |
 | 31 | [RF-111](#rf-111) | P1 | 设置保存失败返回明确结果并反馈用户 | 无 | [x] 完成 |
 | 32 | [RF-112](#rf-112) | P1 | ThemeController 成为唯一主题应用协调器 | [RF-110](#rf-110)、[RF-111](#rf-111)、[RF-201](#rf-201) | [ ] 待执行 |
-| 33 | [RF-202](#rf-202) | P1 | 将 APK 更新入口限定为 Android | 无 | [ ] 待执行 |
+| 33 | [RF-202](#rf-202) | P1 | 将 APK 更新入口限定为 Android | 无 | [x] 完成 |
 | 34 | [RF-203](#rf-203) | P1 | 明确 iOS OCR 不支持时的前后端行为 | [RF-208](#rf-208) | [ ] 待执行 |
 | 35 | [RF-204](#rf-204) | P1 | 核实并修正 iOS Keychain 成功状态符号 | 无 | [ ] 待执行 |
 | 36 | [RF-008](#rf-008) | P2 | GUI 与 CLI 迁移到同一回滚用例 | [RF-006](#rf-006)、[RF-007](#rf-007) | [ ] 待执行 |
@@ -1778,3 +1778,17 @@ git commit -m "<任务卡的提交标题>"
 - F：TypeScript exit 0（15.23s），ESLint exit 0（10.16s），默认 npm run test **155文件 / 1,302 passed / 0 failed**、exit 0（77.98s）。生产 WEB 使用 Chrome 153.0.8010.53、原4 worker，**16/16 passed**、exit 0（27.1s测试，30.24s命令）。本项没有 Rust 改动；浏览器模拟 IPC 不充当 RF-112/201 的移动实机验证。
 - 证据：恢复目录 rf111-settings-red-minimal.log、rf111-settings-targeted1.log、rf111-ancillary-tests.log、rf111-bio-targeted-r2.log、rf111-tsc-full.log、rf111-lint-full.log、rf111-vitest-full.log、rf111-web-production.log。独立只读复审未发现阻断问题，状态规范 §5.3 已同步确认基线、返回契约与部分成功边界；全局主题协调仍由 RF-112 处理。
 - 最终结论：F、定向回归、生产 WEB 与独立复审满足本项；95项索引/任务卡一致，28已关闭、4待授权阻塞。仅提交本项19个文件，3张用户 NSIS 图片保留；本项 **完成**，提交：本提交（按 RF-111 检索），未推送。
+
+
+### RF-202 执行记录（2026-09-27，完成）
+
+- 基线 HEAD `3d877494`。四处 isMobilePlatformSync 将 iOS 错送 APK 缓存/检查/下载/安装；仅改 isAndroidSync 又会把 iOS 送入桌面管线。选用已存在的异步 getPlatform，四阶段在更新副作用前解析平台；iOS 明确 unsupported、横幅隐藏、关于页显示安装渠道说明。公开 APK helper 另设平台守卫，防止绕过 Store；保留下载取消和单任务语义，不改 Rust、分发源或签名。
+- 验证计划：四平台 Store 矩阵、iOS 注入可下载/已下载状态、APK helper 直接调用、异步平台解析期间重复操作与取消；Android/桌面旧流程及关于页不误报最新版/网络失败；完成 F。按本项卡片不要求实机，不将模拟 IPC 测试写作 iOS 原生更新已支持。
+
+- 实施：Store 在等待平台前登记唯一任务，解析后重查 token/controller/安装状态身份；iOS 用 unsupportedReason='ios' 区分能力不支持，清空旧错误及无效待安装引用，保持横幅隐藏和原成功检查时间。APK helper 使用固定 UnsupportedApkUpdateError/code，版本检查返回 unsupported；取消在平台解析前后均阻止更新副作用。关于页增加独立说明与双语文案，旧 available/error/up-to-date 分支分别保留。
+- 修复前最小 iOS 检查回归 **1 failed / 2 skipped**、exit 1（1.66s）：确实调用 APK 缓存；skipped 为同文件仅筛选红灯时未执行的旧用例，未新增永久 skip。UI三文件先完成 **24/24 passed**、exit 0（3.82s）。Store/helper 首轮 **38 passed / 6 failed**、exit 1：一项暴露 unsupported 尚保留注入的待安装资源引用，已补清空；其余五项为新增测试漏导入及异步平台续点前读取旧计数，修正测试装配与等待实际 dispatch，保留行为断言和首轮日志。完整验证尚未完成。
+
+- 修正后 Store/helper 两文件 **44/44 passed**、exit 0（21.69s）；三文件 UI 24项保持通过，独立只读复审无阻断问题。F：TypeScript exit 0（27.45s）、ESLint exit 0（9.05s）、默认 npm run test **155文件 / 1,330 passed / 0 failed**、exit 0（90.90s）。新增28项覆盖四平台、失效待安装状态、平台解析期间去重/取消和 iOS 界面结果。
+- 生产 WEB：Chrome 153.0.8010.53、原4 worker，**16/16 passed**、exit 0（19.0s测试、22.01s命令）。保留构建既有 chunk 大小与静态/动态混用提示，未调整阈值。没有实际网络下载、APK安装或桌面重启；本项前端平台路由证据不替代 iOS 原生验证。
+- 证据：恢复目录 rf202-ios-store-red.log、rf202-store-updater-targeted1.log、rf202-store-updater-targeted2.log、rf202-ui-targeted.log、rf202-tsc-full.log、rf202-lint-full.log、rf202-vitest-full.log、rf202-web-production.log。修改 TS/TSX 的 Prettier、双语 JSON、文档相对链接和 diff check 通过。
+- 最终结论：F、68项相关定向回归、生产 WEB 与独立复审满足本项；canonical 自动更新 §5 与移动端入口文档同步。95项索引/任务卡一致，29已关闭、4待授权阻塞。仅提交本项14个文件，原有3张NSIS图片保留；本项 **完成**，提交：本提交（按 RF-202 检索），未推送。

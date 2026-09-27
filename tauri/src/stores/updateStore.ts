@@ -13,7 +13,7 @@ import {
   type AndroidUpdateInfo,
   type UpdateTransferInfo,
 } from '@/lib/updater';
-import { isMobilePlatformSync } from '@/lib/platform';
+import { getPlatform } from '@/lib/platform';
 import { ST_SKIPPED_VERSION } from '@/lib/constants';
 import i18n from '@/lib/i18n';
 import { logger } from '@/lib/logger';
@@ -41,6 +41,7 @@ interface UpdateStore {
   updateState: AppUpdateState;
   checking: boolean;
   checkError?: string;
+  unsupportedReason: 'ios' | null;
   lastChecked: number;
   checkToken: object | null;
   checkPromise: Promise<void> | null;
@@ -53,10 +54,23 @@ interface UpdateStore {
   dismissUpdate: () => void;
 }
 
+const IOS_UNSUPPORTED_STATE = {
+  unsupportedReason: 'ios',
+  checkError: undefined,
+  checking: false,
+  downloaded: null,
+  updateState: { kind: 'hidden' },
+} satisfies Partial<UpdateStore>;
+
+function isUnsupportedApkUpdateError(error: unknown): boolean {
+  return error instanceof Error && 'code' in error && error.code === 'APK_UPDATE_UNSUPPORTED';
+}
+
 /** 全应用唯一任务，独立于 Vault 会话及页面生命周期；离开页面不取消网络请求。 */
 export const useUpdateStore = create<UpdateStore>((set, get) => ({
   updateState: { kind: 'hidden' },
   checking: false,
+  unsupportedReason: null,
   lastChecked: 0,
   checkToken: null,
   checkPromise: null,
@@ -70,8 +84,14 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
     const token = {};
     set({ checking: true, checkError: undefined, checkToken: token });
     const task = (async () => {
-      const mobile = isMobilePlatformSync();
-      if (mobile && get().updateState.kind === 'hidden') {
+      const platform = await getPlatform();
+      if (get().checkToken !== token || get().controller) return;
+      if (platform === 'ios') {
+        set(IOS_UNSUPPORTED_STATE);
+        return;
+      }
+      set({ unsupportedReason: null });
+      if (platform === 'android' && get().updateState.kind === 'hidden') {
         try {
           const cached = await androidCachedUpdate();
           if (
@@ -97,12 +117,23 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
             });
           }
         } catch (error) {
+          if (get().checkToken !== token || get().controller) return;
+          if (isUnsupportedApkUpdateError(error)) {
+            set(IOS_UNSUPPORTED_STATE);
+            return;
+          }
           logger.warn('[updater] cached metadata:', error);
         }
       }
-      const result = mobile ? await androidCheckForUpdate() : await checkForUpdate();
+      if (get().checkToken !== token || get().controller) return;
+      const result =
+        platform === 'android' ? await androidCheckForUpdate() : await checkForUpdate();
       if (get().checkToken !== token || get().controller) {
         if ('update' in result) await result.update.close();
+        return;
+      }
+      if (result.kind === 'unsupported') {
+        set(IOS_UNSUPPORTED_STATE);
         return;
       }
       if (result.kind === 'error') {
@@ -149,7 +180,12 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
         void prev.update.close().catch((error) => logger.warn('[updater] replace check:', error));
     })()
       .catch((error) => {
-        if (get().checkToken === token) set({ checkError: String(error) });
+        if (get().checkToken === token)
+          set(
+            isUnsupportedApkUpdateError(error)
+              ? IOS_UNSUPPORTED_STATE
+              : { checkError: String(error) },
+          );
       })
       .finally(() => {
         if (get().checkToken === token) set({ checking: false, checkPromise: null });
@@ -193,7 +229,15 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
       });
     };
     try {
-      if (isMobilePlatformSync()) {
+      const platform = await getPlatform();
+      if (!current()) return;
+      if (controller.signal.aborted) throw new DOMException('Cancelled', 'AbortError');
+      if (platform === 'ios') {
+        set(IOS_UNSUPPORTED_STATE);
+        return;
+      }
+      set({ unsupportedReason: null });
+      if (platform === 'android') {
         if (!state.androidInfo?.downloadUrl) throw new Error('No download URL available');
         await ensureApkDownloaded(
           state.version,
@@ -240,6 +284,10 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
         });
     } catch (error) {
       if (!current()) return;
+      if (!controller.signal.aborted && isUnsupportedApkUpdateError(error)) {
+        set(IOS_UNSUPPORTED_STATE);
+        return;
+      }
       const prev = get().updateState;
       if (prev.kind === 'hidden') return;
       const cancelled = controller.signal.aborted || isUpdateDownloadCancelled(error);
@@ -264,22 +312,39 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
   installUpdate: async () => {
     const state = get().updateState;
     if (state.kind !== 'downloaded') return;
-    set({ updateState: { ...state, kind: 'installing' } });
+    // 平台解析前同步占位；对象身份保护等待期间被替换的安装任务。
+    const installing = { ...state, kind: 'installing' as const };
+    set({ updateState: installing });
+    const current = () => get().updateState === installing;
     try {
-      if (isMobilePlatformSync()) {
+      const platform = await getPlatform();
+      if (!current()) return;
+      if (platform === 'ios') {
+        set(IOS_UNSUPPORTED_STATE);
+        return;
+      }
+      set({ unsupportedReason: null });
+      if (platform === 'android') {
         await androidInstallApk(state.version);
-        set({ updateState: state });
+        if (current()) set({ updateState: state });
       } else {
         const downloaded = get().downloaded;
         if (!downloaded) throw new Error('No downloaded update available');
         await downloaded.install();
-        await relaunch();
+        if (current()) await relaunch();
       }
     } catch (error) {
+      if (!current()) return;
+      if (isUnsupportedApkUpdateError(error)) {
+        set(IOS_UNSUPPORTED_STATE);
+        return;
+      }
       // 已验证安装包保留；权限引导或安装器失败后可以重试安装。
-      set({ updateState: { ...state, error: String(error) } });
+      const failed = { ...state, error: String(error) };
+      set({ updateState: failed });
       logger.warn('[updater] install:', error);
       const { useUiStore } = await import('@/stores/uiStore');
+      if (get().updateState !== failed) return;
       useUiStore.getState().showToast({
         type: 'error',
         message: String(error).includes('NEED_INSTALL_UNKNOWN_APPS_PERMISSION')
@@ -288,6 +353,7 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
       });
     }
   },
+
   dismissUpdate: () => {
     const { updateState, controller } = get();
     if (controller || updateState.kind === 'installing') return;

@@ -12,7 +12,8 @@ export interface AppInfo {
 export interface VersionInfo {
   currentVersion: string;
   latestVersion: string | null;
-  state: 'up-to-date' | 'available' | 'error';
+  state: 'up-to-date' | 'available' | 'error' | 'unsupported';
+  unsupportedReason?: 'ios';
   body?: string;
   error?: string;
   downloadUrl?: string | null;
@@ -57,24 +58,31 @@ export function useUpdateChecker() {
         await after.installUpdate();
     }
   }, []);
-  const versionInfo: VersionInfo | null = visible
+  const versionInfo: VersionInfo | null = store.unsupportedReason
     ? {
         currentVersion: info?.version ?? '',
-        latestVersion: visible.version,
-        state: 'available',
-        body: visible.releaseNotes ?? undefined,
-        downloadUrl: visible.androidInfo?.downloadUrl,
-        checksumWarning: visible.checksumWarning ?? undefined,
-        mandatory: visible.mandatory,
+        latestVersion: null,
+        state: 'unsupported',
+        unsupportedReason: store.unsupportedReason,
       }
-    : store.lastChecked || store.checkError
+    : visible
       ? {
           currentVersion: info?.version ?? '',
-          latestVersion: null,
-          state: store.checkError ? 'error' : 'up-to-date',
-          error: store.checkError,
+          latestVersion: visible.version,
+          state: 'available',
+          body: visible.releaseNotes ?? undefined,
+          downloadUrl: visible.androidInfo?.downloadUrl,
+          checksumWarning: visible.checksumWarning ?? undefined,
+          mandatory: visible.mandatory,
         }
-      : null;
+      : store.lastChecked || store.checkError
+        ? {
+            currentVersion: info?.version ?? '',
+            latestVersion: null,
+            state: store.checkError ? 'error' : 'up-to-date',
+            error: store.checkError,
+          }
+        : null;
   return {
     info,
     versionInfo,

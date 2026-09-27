@@ -1,15 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Update } from '@tauri-apps/plugin-updater';
+import type { Platform } from '@tauri-apps/plugin-os';
 
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn(),
   prepare: vi.fn(),
+  getPlatform: vi.fn(),
+  requestNotificationPermissionOnce: vi.fn(),
   relaunch: vi.fn(),
   close: vi.fn(),
   channels: [] as Array<{ onmessage: (message: unknown) => void }>,
 }));
 
 vi.mock('@/lib/ipcClient', () => ({ invokeCommand: mocks.invoke }));
+vi.mock('@/lib/platform', () => ({ getPlatform: mocks.getPlatform }));
 vi.mock('@tauri-apps/plugin-updater', () => ({
   Update: class {
     constructor(metadata: object) {
@@ -35,10 +39,14 @@ vi.mock('@tauri-apps/api/core', () => ({
 vi.mock('@/lib/logger', () => ({ logger: { warn: vi.fn(), error: vi.fn() } }));
 // 下载状态机测试不加载真实通知权限模块及其 store/系统 API 依赖。
 vi.mock('@/lib/notification', () => ({
-  requestNotificationPermissionOnce: async () => true,
+  requestNotificationPermissionOnce: mocks.requestNotificationPermissionOnce,
 }));
 
 import {
+  androidCachedUpdate,
+  androidCheckForUpdate,
+  androidInstallApk,
+  UnsupportedApkUpdateError,
   checkForUpdate,
   downloadAndInstallUpdate,
   downloadDesktopUpdate,
@@ -71,6 +79,8 @@ let native: {
 
 beforeEach(() => {
   vi.resetAllMocks();
+  mocks.getPlatform.mockResolvedValue('android');
+  mocks.requestNotificationPermissionOnce.mockResolvedValue(true);
   mocks.channels.length = 0;
   mocks.close.mockResolvedValue(undefined);
   mocks.relaunch.mockResolvedValue(undefined);
@@ -84,6 +94,13 @@ beforeEach(() => {
   };
   mocks.invoke.mockImplementation((command: string) => {
     switch (command) {
+      case 'android_cached_update':
+      case 'android_check_update':
+        return Promise.resolve(androidInfo);
+      case 'android_get_apk_path':
+        return Promise.resolve('/cache/update-2.13.0.apk');
+      case 'android_install_apk':
+        return native.install();
       case 'desktop_prepare_update':
         return mocks.prepare();
       case 'android_is_apk_downloaded':
@@ -153,6 +170,9 @@ describe('ensureApkDownloaded', () => {
     const controller = new AbortController();
     const result = ensureApkDownloaded('2.13.0', undefined, controller.signal);
     const cancelled = expect(result).rejects.toMatchObject({ name: 'AbortError' });
+    await vi.waitFor(() =>
+      expect(mocks.invoke).toHaveBeenCalledWith('android_is_apk_downloaded', { version: '2.13.0' }),
+    );
     controller.abort();
     cache.resolve(false);
     await cancelled;
@@ -427,6 +447,110 @@ describe('desktop update resources and cancellation', () => {
     await expect(downloadAndInstallUpdate()).rejects.toThrow('installer failed');
     expect(mocks.close.mock.calls).toEqual([[41], [91]]);
     expect(update.close).toHaveBeenCalledOnce();
+    expect(mocks.relaunch).not.toHaveBeenCalled();
+  });
+});
+
+const androidInfo = {
+  currentVersion: '2.12.3',
+  latestVersion: '2.13.0',
+  downloadUrl: 'https://example.com/app.apk',
+  checksum: 'test-checksum',
+  checksumWarning: null,
+  mandatory: false,
+  releaseNotes: 'Release notes',
+  publishedAt: null,
+  apkSize: 10,
+  cachedDownload: { downloaded: 5, total: 10, done: false },
+};
+
+describe('RF202 APK helper platform boundary', () => {
+  it.each(['ios', 'macos', 'windows'] as const)(
+    'rf202_%s_rejects_all_apk_work_without_ipc_channels_or_notification_permission',
+    async (platform) => {
+      mocks.getPlatform.mockResolvedValue(platform);
+      await expect(androidCheckForUpdate()).resolves.toEqual({ kind: 'unsupported' });
+      for (const operation of [
+        () => androidCachedUpdate(),
+        () => ensureApkDownloaded('2.13.0'),
+        () => androidInstallApk('2.13.0'),
+      ]) {
+        const result = operation();
+        await expect(result).rejects.toBeInstanceOf(UnsupportedApkUpdateError);
+        await expect(result).rejects.toMatchObject({
+          name: 'UnsupportedApkUpdateError',
+          code: 'APK_UPDATE_UNSUPPORTED',
+        });
+      }
+      expect(mocks.getPlatform).toHaveBeenCalledTimes(4);
+      expect(mocks.invoke).not.toHaveBeenCalled();
+      expect(mocks.channels).toHaveLength(0);
+      expect(mocks.requestNotificationPermissionOnce).not.toHaveBeenCalled();
+      expect(mocks.close).not.toHaveBeenCalled();
+      expect(mocks.relaunch).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['android', 'ios', 'macos', 'windows'] as const)(
+    'rf202_%s_preaborted_download_keeps_abort_priority_without_even_platform_lookup',
+    async (platform) => {
+      mocks.getPlatform.mockResolvedValue(platform);
+      const controller = new AbortController();
+      controller.abort();
+      await expect(ensureApkDownloaded('2.13.0', vi.fn(), controller.signal)).rejects.toMatchObject(
+        { name: 'AbortError' },
+      );
+      expect(mocks.getPlatform).not.toHaveBeenCalled();
+      expect(mocks.invoke).not.toHaveBeenCalled();
+      expect(mocks.channels).toHaveLength(0);
+      expect(mocks.requestNotificationPermissionOnce).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['android', 'ios'] as const)(
+    'rf202_%s_cancel_during_platform_lookup_takes_priority_and_never_queries_cache',
+    async (platform) => {
+      const detection = deferred<Platform>();
+      mocks.getPlatform.mockReturnValue(detection.promise);
+      const controller = new AbortController();
+      const task = ensureApkDownloaded('2.13.0', vi.fn(), controller.signal);
+      const cancelled = expect(task).rejects.toMatchObject({ name: 'AbortError' });
+      expect(mocks.getPlatform).toHaveBeenCalledOnce();
+      expect(mocks.invoke).not.toHaveBeenCalled();
+      controller.abort();
+      detection.resolve(platform);
+      await cancelled;
+      expect(mocks.invoke).not.toHaveBeenCalled();
+      expect(mocks.channels).toHaveLength(0);
+      expect(mocks.requestNotificationPermissionOnce).not.toHaveBeenCalled();
+      expect(mocks.close).not.toHaveBeenCalled();
+    },
+  );
+
+  it('rf202_android_retains_cache_check_download_and_system_installer_flow', async () => {
+    await expect(androidCachedUpdate()).resolves.toEqual(androidInfo);
+    await expect(androidCheckForUpdate()).resolves.toEqual({
+      kind: 'available',
+      info: androidInfo,
+    });
+    await expect(ensureApkDownloaded('2.13.0')).resolves.toBe(true);
+    await expect(androidInstallApk('2.13.0')).resolves.toBeUndefined();
+    expect(mocks.getPlatform).toHaveBeenCalledTimes(4);
+    expect(mocks.invoke.mock.calls.map(([command]) => command)).toEqual([
+      'android_cached_update',
+      'android_check_update',
+      'android_is_apk_downloaded',
+      'create_update_download',
+      'android_download_apk',
+      'android_get_apk_path',
+      'android_install_apk',
+    ]);
+    expect(mocks.invoke).toHaveBeenCalledWith('android_get_apk_path', { version: '2.13.0' });
+    expect(mocks.invoke).toHaveBeenCalledWith('android_install_apk', {
+      filePath: '/cache/update-2.13.0.apk',
+    });
+    expect(mocks.requestNotificationPermissionOnce).toHaveBeenCalledOnce();
+    expect(mocks.close).toHaveBeenCalledExactlyOnceWith(41);
     expect(mocks.relaunch).not.toHaveBeenCalled();
   });
 });

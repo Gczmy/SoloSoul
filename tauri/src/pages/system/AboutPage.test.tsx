@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { useUpdateStore } from '@/stores/updateStore';
 import { AboutPage } from './AboutPage';
 import { invoke } from '@tauri-apps/api/core';
+import { getPlatform } from '@/lib/platform';
 
 vi.mock('@/components/layout/PageShell', () => ({
   PageShell: ({ children, title }: { children: React.ReactNode; title: string }) => (
@@ -17,17 +18,67 @@ vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
 }));
 
-const mockDesktopCheckForUpdate = vi.fn();
+const adapters = vi.hoisted(() => ({
+  desktopCheck: vi.fn(),
+  androidCheck: vi.fn(),
+  androidCached: vi.fn(),
+  desktopDownload: vi.fn(),
+  androidDownload: vi.fn(),
+  androidInstall: vi.fn(),
+}));
+const mockDesktopCheckForUpdate = adapters.desktopCheck;
 vi.mock('@/lib/updater', () => ({
-  checkForUpdate: () => mockDesktopCheckForUpdate(),
-  downloadAndInstallUpdate: vi.fn(),
+  checkForUpdate: adapters.desktopCheck,
+  androidCheckForUpdate: adapters.androidCheck,
+  androidCachedUpdate: adapters.androidCached,
+  downloadDesktopUpdate: adapters.desktopDownload,
+  ensureApkDownloaded: adapters.androidDownload,
+  androidInstallApk: adapters.androidInstall,
+}));
+vi.mock('@/lib/platform', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/platform')>()),
+  getPlatform: vi.fn(async () => 'windows'),
 }));
 
 describe('AboutPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getPlatform).mockResolvedValue('windows');
     useUpdateStore.setState(useUpdateStore.getInitialState(), true);
     localStorage.clear();
+  });
+
+  it('iOS 关于页保留安装版本并说明分发渠道，不显示更新状态或操作', async () => {
+    vi.mocked(getPlatform).mockResolvedValue('ios');
+    vi.mocked(invoke).mockResolvedValue({
+      appName: 'SoloSoul',
+      version: '2.13.1',
+      os: 'ios',
+      arch: 'aarch64',
+    });
+    // 这些模拟适配器一旦误被调用就会产生网络错误；unsupported 必须在调用前决定。
+    for (const adapter of Object.values(adapters)) {
+      adapter.mockRejectedValue(new Error('unexpected update adapter'));
+    }
+    render(
+      <MemoryRouter>
+        <AboutPage />
+      </MemoryRouter>,
+    );
+    await waitFor(() =>
+      expect(screen.getByText('settings:update_in_app_unsupported')).toBeVisible(),
+    );
+    expect(screen.getByText('v2.13.1')).toBeVisible();
+    expect(screen.queryByText('settings:update_check_failed')).not.toBeInTheDocument();
+    expect(screen.queryByText('settings:latest_version')).not.toBeInTheDocument();
+    expect(screen.queryByText(/settings:update_available/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(useUpdateStore.getState()).toMatchObject({
+      unsupportedReason: 'ios',
+      updateState: { kind: 'hidden' },
+      checking: false,
+    });
+    for (const adapter of Object.values(adapters)) expect(adapter).not.toHaveBeenCalled();
   });
 
   it('renders loading placeholder initially', () => {
