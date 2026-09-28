@@ -8,10 +8,24 @@ type CommandCall = {
     : [command: C, args: IpcCommands[C]['args'], options?: InvokeOptions];
 }[keyof IpcCommands];
 
-/** 命令和参数共享判别元组；联合命令必须先缩窄，不能接受另一命令的参数。 */
-export function invokeTypedCommand<Call extends CommandCall>(
-  ...[command, args, options]: Call
-): Promise<IpcCommands[Call[0]]['result']> {
-  // 守卫、过期请求检查、单参原生调用与原始错误都继续由同一传输层处理。
-  return invokeCommand<IpcCommands[Call[0]]['result']>(command, args, options);
+// 泛型推断会接受结构子类型；单独拒绝多余参数键，防止误传另一个命令的参数。
+type ExactArguments<Call extends CommandCall> = Call extends CommandCall
+  ? Exclude<
+      keyof NonNullable<Call[1]>,
+      keyof NonNullable<IpcCommands[Call[0]]['args']>
+    > extends never
+    ? unknown
+    : never
+  : never;
+
+/** 命令和参数共享判别元组；会话入口复用同一签名和既有传输守卫。 */
+export function createTypedInvoker(transport: typeof invokeCommand) {
+  return function invokeTyped<Call extends CommandCall>(
+    ...call: Call & ExactArguments<NoInfer<Call>>
+  ): Promise<IpcCommands[Call[0]]['result']> {
+    const [command, args, options] = call;
+    return transport<IpcCommands[Call[0]]['result']>(command, args, options);
+  };
 }
+
+export const invokeTypedCommand = createTypedInvoker(invokeCommand);

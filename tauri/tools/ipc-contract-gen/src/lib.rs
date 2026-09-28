@@ -2,8 +2,10 @@
 //!
 //! 不链接 Host/Vault、不执行 Rust 函数或 serde 默认值。支持普通命名 struct、
 //! unit/external/adjacent enum，以及只有 unit/named variants 的 internal enum；
-//! String/bool/普通 JSON 数值、Option、Vec、显式嵌套 DTO。输入和输出独立投影：
-//! 输入 Option/default 可缺键；输出普通 Option 必需且 nullable，skip_none 才可缺键。
+//! String/bool/普通 JSON 数值、Option、Vec、字符串键 HashMap、serde_json::Value、
+//! 显式嵌套 DTO，以及经 workspace/Host path 依赖核验的库源码。输入和输出独立投影：
+//! 输入 Option/default 可缺键；输出普通 Option 必需且 nullable；
+//! Option::is_none / Vec::is_empty 仅控制输出省略，不能暗含输入 default。
 //! 不支持宏生成 DTO、条件字段、泛型、type alias、flatten/untagged、自定义 serde、
 //! 分向 rename、默认值函数及未知注解。此类输入必须报错，不能生成 any/未知占位。
 //! 数值保持现有 JSON number 协议；浮点输出另含非有限值的 null，不声称 TS
@@ -26,6 +28,8 @@ struct Selection {
     commands: Vec<SelectedCommand>,
     types: Vec<String>,
     events: Vec<SelectedEvent>,
+    #[serde(default)]
+    crates: Vec<String>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -49,7 +53,9 @@ pub struct Generated {
 
 pub fn generate(root: &Path) -> Result<Generated, String> {
     let mut sources = source::Sources::new(root)?;
-    let handlers = source::registrations(&sources.rust(source::LIB)?)?;
+    let library = sources.rust(source::LIB)?;
+    sources.reject_namespace_shadowing(&library, source::LIB)?;
+    let handlers = source::registrations(&library)?;
     let allowed = source::acl_commands(&sources.read(source::ACL)?)?;
     for name in handlers.keys() {
         if !allowed.contains(name) {
@@ -58,6 +64,7 @@ pub fn generate(root: &Path) -> Result<Generated, String> {
     }
     let selection: Selection = serde_json::from_str(&sources.read(source::SELECTION)?)
         .map_err(|error| format!("selection: {error}"))?;
+    sources.register_crates(&selection.crates)?;
     let mut catalog = Catalog::default();
     let mut selected = BTreeMap::new();
     for command in selection.commands {

@@ -1,4 +1,5 @@
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
+import { toJsonObject, toObjectSummaryView } from '@/lib/objectViewModel';
 import { withTimeout } from '@/lib/withTimeout';
 import { getSchemeById } from '@/lib/themeSchemes';
 import { create } from 'zustand';
@@ -537,24 +538,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const request = requests.begin('pages', accountId);
     const setCurrent = request.guardSet<SettingsState>(set);
     try {
-      const objects = await request.invoke<
-        Array<{
-          id: string;
-          name: string;
-          typeId: string;
-          iconName?: string;
-          createdAt: string;
-          updatedAt: string;
-          isDeleted?: boolean;
-          // P053: object_list 的 ObjectSummary 已含完整解密 properties，
-          // 直接读取 description，消除对每个页面单独 object_get 的 N+1 IPC。
-          properties?: Record<string, unknown>;
-        }>
-      >('object_list', {
+      // ObjectSummary 已含解密 properties，页面元信息直接来自列表，无需逐项 object_get。
+      const wireObjects = await request.invokeTyped('object_list', {
         accountId: accountId,
         filter: { typeId: 'page', includeDeleted: true },
       });
       request.assertCurrent();
+      const objects = wireObjects.map(toObjectSummaryView);
       const oldPages = get().legacyCustomPages;
       const pages: CustomPage[] = objects.map((o, i) => {
         const metadata = o.properties;
@@ -574,18 +564,18 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       request.assertCurrent();
       const results = await Promise.allSettled(
         missing.map((p) =>
-          request.invoke('object_create', {
+          request.invokeTyped('object_create', {
             input: {
               id: p.id,
               accountId,
               name: p.name,
               typeId: 'page',
               iconName: p.iconId || DEFAULT_CUSTOM_ICON,
-              properties: {
+              properties: toJsonObject({
                 description: p.description,
                 legacyCreatedAt: p.createdAt,
                 sortOrder: p.sortOrder,
-              },
+              }),
             },
           }),
         ),
@@ -716,13 +706,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     try {
       // P0-1: Store in objects table (not preferences JSON)
       // Pass the client-generated id so frontend state stays in sync with the database record.
-      await request.invoke('object_create', {
+      await request.invokeTyped('object_create', {
         input: {
           accountId,
           name,
           typeId: 'page',
           iconName: iconId ?? DEFAULT_CUSTOM_ICON,
-          properties: description ? { description } : {},
+          properties: toJsonObject(description ? { description } : {}),
           id,
         },
       });

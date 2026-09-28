@@ -1,13 +1,16 @@
 use crate::commands::vault_handle;
 use crate::state::AppState;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 use tauri::State;
 
 // ── Snapshot count badge ────────────────────────────────────
 
-use super::*;
+use super::{
+    DEFAULT_RETENTION, MS_PER_DAY, RETENTION_60D, RETENTION_HALF_YEAR, RETENTION_NEVER,
+    RETENTION_ONE_YEAR,
+};
 #[tauri::command]
 pub async fn snapshot_count_batch(
     state: State<'_, AppState>,
@@ -33,13 +36,35 @@ pub async fn snapshot_get_data(
     }
 }
 
+/// 对象历史列表的稳定 wire 元数据；快照正文仍由 snapshot_get_data 原样返回。
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SnapshotEntry {
+    pub id: String,
+    pub timestamp: i64,
+    pub triggered_by: String,
+    pub diff_summary: String,
+}
+
 #[tauri::command]
 pub async fn snapshot_list(
     state: State<'_, AppState>,
     object_id: String,
-) -> Result<Vec<serde_json::Value>, String> {
+) -> Result<Vec<SnapshotEntry>, String> {
     let vault = vault_handle(&state)?;
-    vault.list_snapshots(&object_id)
+    list_snapshots_in_vault(&vault, &object_id)
+}
+
+/// 只投影 Vault 已有四字段结果；查询顺序、50 条上限及读取错误由原 API 保持。
+pub(super) fn list_snapshots_in_vault(
+    vault: &solosoul_vault::VaultStore,
+    object_id: &str,
+) -> Result<Vec<SnapshotEntry>, String> {
+    vault
+        .list_snapshots(object_id)?
+        .into_iter()
+        .map(|value| serde_json::from_value(value).map_err(|error| error.to_string()))
+        .collect()
 }
 
 #[tauri::command]

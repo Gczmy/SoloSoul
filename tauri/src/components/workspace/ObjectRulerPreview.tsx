@@ -4,6 +4,7 @@ import { ArrowDownToLine, Paperclip } from 'lucide-react';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { useRevealState } from '@/hooks/useRevealState';
 import { flattenPropertyEntries } from '@/lib/propertyFlatten';
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import type { ObjectSummary } from '@/stores/objectStore';
 import type { SensitivityLevel, UserTemplate } from '@/types/template';
 import styles from './WorkspaceObjectRuler.module.css';
@@ -68,9 +69,11 @@ export function ObjectRulerPreview({
         <dl className={styles.fields}>
           {fields.map((field, i) => {
             const property = template?.properties.find((p) => p.id === field.key);
-            const level = sensitivity(
-              object.propertyLabels?.[field.key] ?? property?.sensitivityLevel,
-            );
+            const level = resolveFieldSensitivity({
+              fieldId: field.key,
+              propertyLabels: object.propertyLabels,
+              template: property,
+            });
             return (
               <div key={field.fieldId || `${field.key}-${i}`} className={styles.field}>
                 <dt>

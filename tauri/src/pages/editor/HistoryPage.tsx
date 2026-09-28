@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -40,7 +40,7 @@ export function HistoryPage() {
     if (objectId) {
       // P039(评审反馈): 切换对象时重置分页游标，避免继承上一个对象的展开深度
       resetVisibleLimit();
-      invoke<SnapshotEntry[]>('snapshot_list', { objectId: objectId })
+      invokeTypedCommand('snapshot_list', { objectId: objectId })
         .then(setSnapshots)
         .catch((err) => {
           // P059: 补齐 .catch，失败时给出提示而非 unhandled rejection
@@ -65,7 +65,10 @@ export function HistoryPage() {
       async () => {
         setRestoring(snapshot.id);
         try {
-          await invoke('snapshot_rollback', { snapshotId: snapshot.id, objectId: objectId });
+          await invokeTypedCommand('snapshot_rollback', {
+            snapshotId: snapshot.id,
+            objectId: objectId,
+          });
           navigate(-1);
         } catch (e) {
           showToast({ type: 'error', message: `${t('common:rollback_failed')}: ${e}` });

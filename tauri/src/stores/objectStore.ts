@@ -1,5 +1,17 @@
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { create } from 'zustand';
+import type { IpcCommands } from '@/lib/generated/ipcContracts';
+import {
+  toJsonObject,
+  toObjectDataView,
+  toObjectSummaryView,
+  type ObjectDataView as ObjectData,
+  type ObjectSummaryView as ObjectSummary,
+} from '@/lib/objectViewModel';
+export type {
+  ObjectDataView as ObjectData,
+  ObjectSummaryView as ObjectSummary,
+} from '@/lib/objectViewModel';
 import { searchCache } from '@/lib/searchCache';
 import { useAuthStore } from '@/stores/authStore';
 // P228: 从 types/ 导入共享类型，断开 objectStore ↔ templateSync 循环依赖
@@ -14,51 +26,12 @@ function invalidateSearchCache() {
   }
 }
 
-export interface ObjectSummary {
-  id: string;
-  name: string;
-  typeId: string;
-  sectionType?: string; // §25.1.3 — page affiliation
-  sensitivityLevel: string;
-  createdAt: string;
-  updatedAt: string;
-  isDeleted?: boolean;
-  properties?: Record<string, unknown>;
-  tags?: string[];
-  templateId?: string;
-  templateType?: 'system' | 'user';
-  /** 创建对象时模板的指纹；用于检测模板后续是否发生变更。 */
-  templateHash?: string;
-  /** 用户选择忽略同步时记录的模板指纹；持久化到后端。 */
-  ignoredTemplateHash?: string;
-  /** 插件合约类型 ID — 继承自模板的插件绑定标识。 */
-  contractTypeId?: string;
-  /** 字段级敏感度覆盖：fieldName -> sensitivityLevel。即使模板被删除，对象仍保留自己的敏感度副本。 */
-  propertyLabels?: Record<string, string>;
-}
-
-export interface ObjectData {
-  id: string;
-  accountId: string;
-  name: string;
-  typeId: string;
+type CreateObjectValues = Omit<IpcCommands['object_create']['args']['input'], 'properties'> & {
   properties: Record<string, unknown>;
-  sensitivityLevel: string;
-  templateId?: string;
-  templateType?: 'system' | 'user';
-  /** 创建对象时模板的指纹；用于检测模板后续是否发生变更。 */
-  templateHash?: string;
-  /** 用户选择忽略同步时记录的模板指纹；持久化到后端。 */
-  ignoredTemplateHash?: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt?: string;
-  tags?: string[];
-  /** 插件合约类型 ID — 继承自模板的插件绑定标识。 */
-  contractTypeId?: string;
-  /** 字段级敏感度覆盖：fieldName -> sensitivityLevel。即使模板被删除，对象仍保留自己的敏感度副本。 */
-  propertyLabels?: Record<string, string>;
-}
+};
+type UpdateObjectValues = Omit<IpcCommands['object_update']['args']['input'], 'properties'> & {
+  properties: Record<string, unknown>;
+};
 
 interface ObjectState {
   objects: ObjectSummary[];
@@ -69,23 +42,11 @@ interface ObjectState {
 
   loadObjects: (
     accountId: string,
-    filter?: { typeId?: string; parentId?: string },
+    filter?: NonNullable<IpcCommands['object_list']['args']['filter']>,
   ) => Promise<void>;
   getObject: (accountId: string, objectId: string) => Promise<void>;
-  createObject: (input: {
-    accountId: string;
-    name: string;
-    typeId: string;
-    properties: Record<string, unknown>;
-    parentId?: string;
-    iconName?: string;
-    templateId?: string;
-    templateType?: 'system' | 'user';
-  }) => Promise<ObjectData>;
-  updateObject: (
-    objectId: string,
-    input: { name: string; properties: Record<string, unknown> },
-  ) => Promise<void>;
+  createObject: (input: CreateObjectValues) => Promise<ObjectData>;
+  updateObject: (objectId: string, input: UpdateObjectValues) => Promise<void>;
   deleteObject: (objectId: string) => Promise<void>;
   /** 预览对象按当前模板同步后的变更（dryRun=true）。 */
   previewSyncTemplate: (accountId: string, objectId: string) => Promise<TemplateSyncResult>;
@@ -112,12 +73,12 @@ export const useObjectStore = create<ObjectState>((set) => ({
     // 立即清空之前页面的陈旧对象，避免页面切换时闪烁旧卡片
     setCurrent({ objects: [], isLoading: true, error: null });
     try {
-      const objects = await request.invoke<ObjectSummary[]>('object_list', {
+      const objects = await request.invokeTyped('object_list', {
         accountId: accountId,
         filter: filter || null,
       });
       request.assertCurrent();
-      setCurrent({ objects, isLoading: false });
+      setCurrent({ objects: objects.map(toObjectSummaryView), isLoading: false });
     } catch (err) {
       if (!request.isCurrent()) return;
       setCurrent({ error: String(err), isLoading: false });
@@ -129,11 +90,12 @@ export const useObjectStore = create<ObjectState>((set) => ({
     const setCurrent = request.guardSet<ObjectState>(set);
     setCurrent({ isLoading: true, error: null });
     try {
-      const obj = await request.invoke<ObjectData | null>('object_get', {
+      const wire = await request.invokeTyped('object_get', {
         accountId: accountId,
         objectId: objectId,
       });
       request.assertCurrent();
+      const obj = wire === null ? null : toObjectDataView(wire);
       setCurrent((s) => ({
         currentObjectCache: obj
           ? { ...s.currentObjectCache, [objectId]: obj }
@@ -151,7 +113,11 @@ export const useObjectStore = create<ObjectState>((set) => ({
     const setCurrent = request.guardSet<ObjectState>(set);
     setCurrent({ isLoading: true, error: null });
     try {
-      const obj = await request.invoke<ObjectData>('object_create', { input });
+      const obj = toObjectDataView(
+        await request.invokeTyped('object_create', {
+          input: { ...input, properties: toJsonObject(input.properties) },
+        }),
+      );
       request.assertCurrent();
       setCurrent((s) => ({
         objects: [
@@ -186,7 +152,12 @@ export const useObjectStore = create<ObjectState>((set) => ({
     const setCurrent = request.guardSet<ObjectState>(set);
     setCurrent({ isLoading: true, error: null });
     try {
-      const obj = await request.invoke<ObjectData>('object_update', { objectId: objectId, input });
+      const obj = toObjectDataView(
+        await request.invokeTyped('object_update', {
+          objectId: objectId,
+          input: { ...input, properties: toJsonObject(input.properties) },
+        }),
+      );
       request.assertCurrent();
       setCurrent((s) => ({
         currentObjectCache: { ...s.currentObjectCache, [objectId]: obj },
@@ -226,7 +197,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
     const setCurrent = request.guardSet<ObjectState>(set);
     setCurrent({ isLoading: true, error: null });
     try {
-      await request.invoke('object_delete', { objectId: objectId });
+      await request.invokeTyped('object_delete', { objectId: objectId });
       request.assertCurrent();
       setCurrent((s) => {
         // P043: 删除对象时同步清理详情缓存，避免残留旧数据被误读
@@ -248,8 +219,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
 
   previewSyncTemplate: async (accountId, objectId) => {
     const request = requests.begin(undefined, accountId);
-    return request.invoke<TemplateSyncResult>('object_sync_with_template', {
-      accountId,
+    return request.invokeTyped('object_sync_with_template', {
       objectId: objectId,
       dryRun: true,
     });
@@ -257,8 +227,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
 
   applySyncTemplate: async (accountId, objectId) => {
     const request = requests.begin(undefined, accountId);
-    const result = await request.invoke<TemplateSyncResult>('object_sync_with_template', {
-      accountId,
+    const result = await request.invokeTyped('object_sync_with_template', {
       objectId: objectId,
       dryRun: false,
     });
@@ -274,14 +243,13 @@ export const useObjectStore = create<ObjectState>((set) => ({
 
   ignoreTemplateSync: async (objectId: string, hash: string) => {
     const request = requests.begin();
-    await request.invoke('object_ignore_template_sync', { objectId: objectId, hash });
+    await request.invokeTyped('object_ignore_template_sync', { objectId: objectId, hash });
     request.assertCurrent();
   },
 
   loadDeprecatedFields: async (accountId, objectId) => {
     const request = requests.begin(undefined, accountId);
-    return request.invoke<DeprecatedField[]>('object_list_deprecated_fields', {
-      accountId,
+    return request.invokeTyped('object_list_deprecated_fields', {
       objectId: objectId,
     });
   },

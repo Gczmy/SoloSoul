@@ -3,8 +3,69 @@
     {
       "name": "get_app_info",
       "source": "src-tauri/src/commands/system.rs"
+    },
+    {
+      "name": "object_list",
+      "source": "src-tauri/src/commands/object/mod.rs"
+    },
+    {
+      "name": "object_get",
+      "source": "src-tauri/src/commands/object/mod.rs"
+    },
+    {
+      "name": "object_field_suggestions",
+      "source": "src-tauri/src/commands/object/mod.rs"
+    },
+    {
+      "name": "object_create",
+      "source": "src-tauri/src/commands/object/mod.rs"
+    },
+    {
+      "name": "object_update",
+      "source": "src-tauri/src/commands/object/mod.rs"
+    },
+    {
+      "name": "object_delete",
+      "source": "src-tauri/src/commands/object/mod.rs"
+    },
+    {
+      "name": "object_sync_with_template",
+      "source": "src-tauri/src/commands/object/mod.rs"
+    },
+    {
+      "name": "object_ignore_template_sync",
+      "source": "src-tauri/src/commands/object/mod.rs"
+    },
+    {
+      "name": "object_list_deprecated_fields",
+      "source": "src-tauri/src/commands/object/mod.rs"
+    },
+    {
+      "name": "object_trash_list",
+      "source": "src-tauri/src/commands/object/trash.rs"
+    },
+    {
+      "name": "snapshot_count_batch",
+      "source": "src-tauri/src/commands/object/snapshot.rs"
+    },
+    {
+      "name": "snapshot_get_data",
+      "source": "src-tauri/src/commands/object/snapshot.rs"
+    },
+    {
+      "name": "snapshot_list",
+      "source": "src-tauri/src/commands/object/snapshot.rs"
+    },
+    {
+      "name": "snapshot_rollback",
+      "source": "src-tauri/src/commands/object/snapshot.rs"
     }
   ],
-  "types": [],
-  "events": []
+  "types": [
+    "crates/solosoul-vault/src/lib.rs"
+  ],
+  "events": [],
+  "crates": [
+    "crates/solosoul-vault/Cargo.toml"
+  ]
 }

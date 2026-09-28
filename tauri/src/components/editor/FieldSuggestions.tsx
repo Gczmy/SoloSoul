@@ -7,15 +7,9 @@ import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificat
 import { useAuthStore } from '@/stores/authStore';
 import { useSuggestionReveal, suggestionItemId } from './useSuggestionReveal';
 
-/** 字段推荐条目（对应后端 object_field_suggestions 返回，camelCase）。 */
-export interface FieldSuggestion {
-  objectId: string;
-  objectName: string;
-  fieldKey: string;
-  fieldName: string;
-  sensitivityLevel: string;
-  value: string;
-}
+/** 字段推荐条目复用 object_field_suggestions 的实际生成 DTO。 */
+import type { FieldSuggestion } from '@/lib/generated/ipcContracts';
+export type { FieldSuggestion } from '@/lib/generated/ipcContracts';
 
 interface FieldSuggestionsProps {
   /** 当前字段的显示名（与其它对象 `__fields` 中的字段名匹配）。 */

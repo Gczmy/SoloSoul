@@ -25,6 +25,7 @@ struct Decl {
 pub(crate) struct Catalog {
     declarations: BTreeMap<String, Decl>,
     imports: BTreeMap<String, BTreeMap<String, String>>,
+    crate_roots: BTreeMap<String, String>,
 }
 impl Catalog {
     pub fn add(
@@ -37,7 +38,10 @@ impl Catalog {
         if self.imports.contains_key(&module) {
             return Ok(());
         }
+        self.crate_roots
+            .insert(module.clone(), sources.crate_namespace(source).to_string());
         let file = sources.rust(source)?;
+        sources.reject_namespace_shadowing(&file, source)?;
         if file.attrs.iter().any(|attribute| {
             !attribute.path().is_ident("doc") && !attribute.path().is_ident("allow")
         }) {
@@ -46,7 +50,11 @@ impl Catalog {
         let mut imports = BTreeMap::new();
         for item in &file.items {
             if let Item::Use(item) = item {
-                if !item.attrs.is_empty() {
+                if item
+                    .attrs
+                    .iter()
+                    .any(|attribute| !attribute.path().is_ident("doc"))
+                {
                     return Err(format!(
                         "{source}: conditional/attributed use is unsupported"
                     ));
@@ -125,7 +133,15 @@ impl Catalog {
             raw
         };
         if let Some(rest) = base.strip_prefix("crate::") {
-            return Ok(rest.to_string());
+            let root = self.crate_roots.get(module).map_or("", String::as_str);
+            if root.is_empty()
+                && self.crate_roots.values().any(|external| {
+                    !external.is_empty() && rest.split("::").next() == Some(external.as_str())
+                })
+            {
+                return Err("crate:: cannot refer to an external dependency".into());
+            }
+            return Ok(qualify(root, rest));
         }
         if let Some(rest) = base.strip_prefix("self::") {
             return Ok(qualify(module, rest));
@@ -134,9 +150,15 @@ impl Catalog {
             let mut parent: Vec<_> = module.split("::").filter(|part| !part.is_empty()).collect();
             let mut rest = base.as_str();
             while let Some(next) = rest.strip_prefix("super::") {
-                if parent.pop().is_none() {
+                let minimum = usize::from(
+                    self.crate_roots
+                        .get(module)
+                        .is_some_and(|root| !root.is_empty()),
+                );
+                if parent.len() <= minimum {
                     return Err("super path escapes crate".into());
                 }
+                parent.pop();
                 rest = next;
             }
             return Ok(qualify(&parent.join("::"), rest));
@@ -275,6 +297,30 @@ impl<'a> Renderer<'a> {
                 self.render(one_argument(path)?, module, direction)?
             ));
         }
+        if name == "std::collections::HashMap" {
+            let arguments = type_arguments(path, 2)?;
+            let Type::Path(key) = arguments[0] else {
+                return Err("HashMap keys must be String".into());
+            };
+            let key_name = self.path(module, &key.path)?;
+            if key.qself.is_some()
+                || key
+                    .path
+                    .segments
+                    .iter()
+                    .any(|segment| !matches!(segment.arguments, PathArguments::None))
+                || !matches!(
+                    key_name.as_str(),
+                    "String" | "std::string::String" | "alloc::string::String"
+                )
+            {
+                return Err("HashMap keys must be String".into());
+            }
+            return Ok(format!(
+                "Record<string, {}>",
+                self.render(arguments[1], module, direction)?
+            ));
+        }
         if path
             .path
             .segments
@@ -282,6 +328,14 @@ impl<'a> Renderer<'a> {
             .any(|segment| !matches!(segment.arguments, PathArguments::None))
         {
             return Err(format!("unsupported generic type: {name}"));
+        }
+        if name == "serde_json::Value" {
+            self.definitions.insert(
+                "JsonObject".into(),
+                "export type JsonObject = { [key: string]: JsonValue };".into(),
+            );
+            self.definitions.insert("JsonValue".into(), "export type JsonValue = null | boolean | number | string | Array<JsonValue> | JsonObject;".into());
+            return Ok("JsonValue".into());
         }
         match name.as_str() {
             "String" | "std::string::String" | "alloc::string::String" | "char" => {
@@ -329,6 +383,8 @@ impl<'a> Renderer<'a> {
                     | "IpcEvents"
                     | "Array"
                     | "Record"
+                    | "JsonValue"
+                    | "JsonObject"
                     | "type"
                     | "interface"
                     | "class"
@@ -533,9 +589,23 @@ impl<'a> Renderer<'a> {
             if metadata.skip_none && option.is_none() {
                 return Err("skip_serializing_if Option::is_none requires Option<T>".into());
             }
+            if metadata.skip_empty_vec {
+                let Type::Path(path) = &field.ty else {
+                    return Err("skip_serializing_if Vec::is_empty requires Vec<T>".into());
+                };
+                if path.qself.is_some()
+                    || !matches!(
+                        self.path(module, &path.path)?.as_str(),
+                        "Vec" | "std::vec::Vec" | "alloc::vec::Vec"
+                    )
+                {
+                    return Err("skip_serializing_if Vec::is_empty requires Vec<T>".into());
+                }
+                one_argument(path)?;
+            }
             let optional = match direction {
                 Direction::Input => option.is_some() || metadata.default || container_default,
-                Direction::Output => metadata.skip_none,
+                Direction::Output => metadata.skip_none || metadata.skip_empty_vec,
             };
             let ty = if direction == Direction::Output && metadata.skip_none {
                 option.ok_or("missing Option payload")?
@@ -588,4 +658,37 @@ fn one_argument(path: &syn::TypePath) -> Result<&Type, String> {
         Some(GenericArgument::Type(ty)) => Ok(ty),
         _ => Err("only concrete type arguments are supported".into()),
     }
+}
+
+fn type_arguments(path: &syn::TypePath, count: usize) -> Result<Vec<&Type>, String> {
+    if path.qself.is_some()
+        || path
+            .path
+            .segments
+            .iter()
+            .take(path.path.segments.len().saturating_sub(1))
+            .any(|segment| !matches!(segment.arguments, PathArguments::None))
+    {
+        return Err("qualified/generic module paths are unsupported".into());
+    }
+    let PathArguments::AngleBracketed(arguments) = &path
+        .path
+        .segments
+        .last()
+        .ok_or("empty type path")?
+        .arguments
+    else {
+        return Err("expected concrete type arguments".into());
+    };
+    if arguments.args.len() != count {
+        return Err(format!("expected exactly {count} type arguments"));
+    }
+    arguments
+        .args
+        .iter()
+        .map(|argument| match argument {
+            GenericArgument::Type(ty) => Ok(ty),
+            _ => Err("only concrete type arguments are supported".into()),
+        })
+        .collect()
 }

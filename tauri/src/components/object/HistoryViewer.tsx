@@ -14,6 +14,7 @@ import {
   strongestSensitivity,
 } from '@/lib/fieldPresentationPolicy';
 import { asFieldRecord } from '@/lib/fieldSensitivity';
+import { snapshotFieldRecord } from '@/lib/objectViewModel';
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { useAuthStore } from '@/stores/authStore';
 import { resolveCollectionLabel } from '@/lib/utils';
@@ -267,9 +268,9 @@ function SnapshotCard({
   useEffect(() => {
     const request = requests.begin('data', accountId);
     request
-      .invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshotId: snap.id })
+      .invokeTyped('snapshot_get_data', { snapshotId: snap.id })
       .then((data) => {
-        if (request.isCurrent()) setSnapData(data);
+        if (request.isCurrent()) setSnapData(snapshotFieldRecord(data));
       })
       .catch((err) => {
         if (request.isCurrent()) logger.warn('[HistoryViewer] snapshot_get_data failed:', err);
@@ -528,7 +529,7 @@ function HistoryViewerSession({
   useEffect(() => {
     const request = requests.begin('list', accountId);
     request
-      .invoke<SnapshotEntry[]>('snapshot_list', { objectId: objectId })
+      .invokeTyped('snapshot_list', { objectId: objectId })
       .then((data) => {
         if (request.isCurrent()) setSnapshots(data);
       })

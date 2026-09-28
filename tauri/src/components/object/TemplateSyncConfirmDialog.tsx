@@ -51,21 +51,21 @@ function formatChangeItem(
 ): string {
   switch (item.kind) {
     case 'type': {
-      const p = item.payload as { oldType: string; newType: string };
+      const p = item.payload;
       return t('editor:template_sync_change_type', {
         old: getFieldTypeLabel(p.oldType),
         new: getFieldTypeLabel(p.newType),
       });
     }
     case 'name': {
-      const p = item.payload as { oldName: string; newName: string };
+      const p = item.payload;
       return t('editor:template_sync_change_name', {
         old: getFieldNameLabel(p.oldName),
         new: getFieldNameLabel(p.newName),
       });
     }
     case 'sensitivity': {
-      const p = item.payload as { oldLevel: string; newLevel: string };
+      const p = item.payload;
       return t('editor:template_sync_change_sensitivity', {
         old: getSensitivityLabel(p.oldLevel),
         new: getSensitivityLabel(p.newLevel),
@@ -74,9 +74,9 @@ function formatChangeItem(
     case 'options':
       return t('editor:template_sync_change_options');
     case 'metadata': {
-      const p = item.payload as { metadataKeys: string[] } | undefined;
+      const p = item.payload;
       return t('editor:template_sync_change_metadata', {
-        keys: p?.metadataKeys?.join(', ') ?? '',
+        keys: p.metadataKeys.join(', '),
       });
     }
     default:

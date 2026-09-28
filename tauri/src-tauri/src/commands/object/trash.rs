@@ -1,11 +1,11 @@
 use crate::commands::settings::resolve_ui_prefs_path;
-use crate::commands::vault_handle;
+use crate::commands::{current_account, vault_handle};
 use crate::state::AppState;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use tauri::State;
 
-use super::*;
+use super::snapshot::{load_trash_retention, retention_ms};
 
 /// Result returned by object_restore / trash_restore describing what happened.
 #[derive(Debug, Clone, serde::Serialize)]

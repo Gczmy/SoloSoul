@@ -8,6 +8,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
+import { snapshotFieldRecord } from '@/lib/objectViewModel';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { motion } from 'framer-motion';
 import { FolderOpen } from 'lucide-react';
@@ -71,10 +73,10 @@ function ObjectDetailContent({
   const loadSnapshotData = useCallback(async (detailId: string, snapshotId: string) => {
     setHistorySnapLoading((prev) => ({ ...prev, [detailId]: true }));
     try {
-      const data = await invoke<Record<string, unknown> | null>('snapshot_get_data', {
+      const data = await invokeTypedCommand('snapshot_get_data', {
         snapshotId: snapshotId,
       });
-      setHistorySnapData((prev) => ({ ...prev, [detailId]: data }));
+      setHistorySnapData((prev) => ({ ...prev, [detailId]: snapshotFieldRecord(data) }));
     } catch {
       setHistorySnapData((prev) => ({ ...prev, [detailId]: null }));
     } finally {

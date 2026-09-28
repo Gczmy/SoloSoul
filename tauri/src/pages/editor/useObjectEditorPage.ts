@@ -9,7 +9,7 @@ import { useTemplateStore } from '@/stores/templateStore';
 import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
 import type { PropertyType, UserTemplate } from '@/types/template';
 import type { FieldSuggestion } from '@/components/editor/FieldSuggestions';
-import { invokeCommand } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import { resolveCanonicalFieldName } from '@/lib/fieldNameAliases';
 import { logger } from '@/lib/logger';
 import { FIELD_TYPE_VALIDATORS } from '@/lib/fieldValidators';
@@ -217,7 +217,7 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
     if (!accountId) return;
     let cancelled = false;
     setFieldSuggestions({});
-    invokeCommand<FieldSuggestion[]>('object_field_suggestions', {
+    invokeTypedCommand('object_field_suggestions', {
       accountId,
       excludeObjectId: objectId ?? null,
     })

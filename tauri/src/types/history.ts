@@ -1,10 +1,2 @@
-/**
- * 对象历史快照条目（P037 收敛单一来源）。
- * 此前在 trash/types.ts、HistoryViewer.tsx、HistoryPage.tsx 各定义一份。
- */
-export interface SnapshotEntry {
-  id: string;
-  timestamp: number;
-  triggeredBy: string;
-  diffSummary: string;
-}
+/** 历史列表 wire 类型由实际 Rust SnapshotEntry 生成；展示分页信息不进入 DTO。 */
+export type { SnapshotEntry } from '@/lib/generated/ipcContracts';

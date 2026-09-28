@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
+import { toObjectDataView } from '@/lib/objectViewModel';
 import {
   objectNeedsSync,
   resolveSemanticNeedsSync,
@@ -18,7 +20,10 @@ export interface UseWorkspaceTemplateSyncOptions {
   setDetailObj: (obj: (ObjectSummary | ObjectData) | null) => void;
   /** 模板列表（指纹映射仅在模板变化时重算）。 */
   userTemplates: UserTemplate[];
-  loadObjects: (accountId: string, opts?: { parentId?: string; typeId?: string }) => Promise<unknown>;
+  loadObjects: (
+    accountId: string,
+    opts?: { parentId?: string; typeId?: string },
+  ) => Promise<unknown>;
   previewSyncTemplate: (accountId: string, objectId: string) => Promise<TemplateSyncResult>;
   applySyncTemplate: (accountId: string, objectId: string) => Promise<unknown>;
   ignoreTemplateSync: (objectId: string, latestHash: string) => Promise<unknown>;
@@ -64,11 +69,11 @@ export function useWorkspaceTemplateSync({
     async (objectId: string) => {
       if (!accountId || detailObj?.id !== objectId) return;
       try {
-        const obj = await invoke<ObjectData | null>('object_get', {
+        const obj = await invokeTypedCommand('object_get', {
           accountId: accountId,
           objectId: objectId,
         });
-        if (obj) setDetailObj(obj);
+        if (obj) setDetailObj(toObjectDataView(obj));
       } catch (err) {
         logger.warn('[Workspace] Refresh detail object after sync failed:', err);
       }
@@ -125,7 +130,9 @@ export function useWorkspaceTemplateSync({
   const refreshTemplateHashMap = useCallback(async () => {
     if (!accountId) return;
     try {
-      const map = await invoke<Record<string, string>>('template_hash_map', { accountId: accountId });
+      const map = await invoke<Record<string, string>>('template_hash_map', {
+        accountId: accountId,
+      });
       setTemplateHashMap(new Map(Object.entries(map)));
     } catch (err) {
       logger.warn('[Workspace] Refresh template hash map failed:', err);
@@ -147,10 +154,7 @@ export function useWorkspaceTemplateSync({
           if (pageId) {
             await loadObjects(accountId, { parentId: pageId });
           } else {
-            await loadObjects(
-              accountId,
-              sectionFilter ? { typeId: sectionFilter } : undefined,
-            );
+            await loadObjects(accountId, sectionFilter ? { typeId: sectionFilter } : undefined);
           }
           await refreshDetailObjAfterSync(objectId);
           await refreshTemplateHashMap();
@@ -215,10 +219,7 @@ export function useWorkspaceTemplateSync({
           if (pageId) {
             await loadObjects(accountId, { parentId: pageId });
           } else {
-            await loadObjects(
-              accountId,
-              sectionFilter ? { typeId: sectionFilter } : undefined,
-            );
+            await loadObjects(accountId, sectionFilter ? { typeId: sectionFilter } : undefined);
           }
           await refreshTemplateHashMap();
         }

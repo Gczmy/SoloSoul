@@ -6,9 +6,9 @@ import type { ObjectData } from '@/stores/objectStore';
 
 // ── 依赖 mock ────────────────────────────────────────────────────────────
 // P020 二次复核：modal 不再经全局 getObject action（会置 isLoading 闪列表），
-// 改为直接 invoke('object_get')；默认 mock 返回 undefined → fetchedObj=null → 回退传入 object。
+// 改为直接 invoke('object_get')；默认 mock 返回 null → fetchedObj=null → 回退传入 object。
 vi.mock('@/lib/ipcClient', () => ({
-  invokeCommand: vi.fn().mockResolvedValue(undefined),
+  invokeCommand: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock('@/lib/platform', () => ({
@@ -43,7 +43,7 @@ vi.mock('@/stores/objectStore', () => ({
       currentObjectCache: {},
     }),
     // P020 二次复核：直接 invoke 成功后写缓存（不置 isLoading）；测试中 invoke 返回
-    // undefined 不触发，此处仅保证 API 存在。
+    // null 不触发，此处仅保证 API 存在。
     setState: vi.fn(),
   },
 }));
@@ -67,7 +67,7 @@ const sampleObj = {
   tags: ['旅行', '重要'],
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-02T00:00:00Z',
-} as unknown as ObjectData;
+} satisfies ObjectData;
 
 describe('ObjectDetailModal', () => {
   beforeEach(() => {
@@ -128,7 +128,7 @@ describe('ObjectDetailModal', () => {
 
   it('P020 二次复核：传入完整 ObjectData（含 accountId）时不再重复拉取 object_get', async () => {
     const { invokeCommand } = await import('@/lib/ipcClient');
-    const invokeMock = invokeCommand as unknown as ReturnType<typeof vi.fn>;
+    const invokeMock = vi.mocked(invokeCommand);
     invokeMock.mockClear();
     render(
       <BrowserRouter>
@@ -136,15 +136,12 @@ describe('ObjectDetailModal', () => {
       </BrowserRouter>,
     );
     // 完整数据直接可用：不触发 object_get
-    expect(invokeMock).not.toHaveBeenCalledWith(
-      'object_get',
-      expect.objectContaining({ objectId: 'obj-1' }),
-    );
+    expect(invokeMock.mock.calls.filter(([command]) => command === 'object_get')).toEqual([]);
   });
 
   it('P020 二次复核：传入摘要（无 accountId）时直接 invoke object_get 拉取完整对象（不经全局 action）', async () => {
     const { invokeCommand } = await import('@/lib/ipcClient');
-    const invokeMock = invokeCommand as unknown as ReturnType<typeof vi.fn>;
+    const invokeMock = vi.mocked(invokeCommand);
     invokeMock.mockClear();
     const summary = {
       id: 'obj-1',
@@ -163,8 +160,9 @@ describe('ObjectDetailModal', () => {
     expect(invokeMock).toHaveBeenCalledWith(
       'object_get',
       expect.objectContaining({ accountId: 'acc-1', objectId: 'obj-1' }),
+      undefined,
     );
-    // 拉取返回 undefined → 回退摘要展示，不崩溃
+    // object_get 返回 Rust Option 的 null → 回退摘要展示，不崩溃
     expect(screen.getByTestId('object-detail-modal')).toBeInTheDocument();
   });
 });

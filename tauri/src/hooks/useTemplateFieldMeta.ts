@@ -1,11 +1,14 @@
 import { useCallback, useMemo } from 'react';
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import type { TemplateProperty } from '@/types/template';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 
 /**
  * P013/5: 模板字段元数据 O(1) 查找（F011 缓存 + 敏感度/废弃/显示名解析）。
  */
-export function useTemplateFieldMeta(userTemplates: Array<{ id: string; properties: TemplateProperty[] }>) {
+export function useTemplateFieldMeta(
+  userTemplates: Array<{ id: string; properties: TemplateProperty[] }>,
+) {
   // F011: cache template field metadata so lookups are O(1) instead of O(n²).
   const templateFieldMap = useMemo(() => {
     const map = new Map<string, Map<string, TemplateProperty>>();
@@ -26,16 +29,13 @@ export function useTemplateFieldMeta(userTemplates: Array<{ id: string; properti
     (
       templateId: string | undefined,
       fieldKey: string,
-      propertyLabels?: Record<string, string>,
+      propertyLabels?: Record<string, unknown>,
     ): SensitivityLevel => {
-      // 1. 对象自有 propertyLabels（即使模板被删除也保留敏感度）
-      if (propertyLabels?.[fieldKey]) {
-        return propertyLabels[fieldKey] as SensitivityLevel;
-      }
-      // 2. 回退到模板定义
-      return (
-        (getFieldProperty(templateId, fieldKey)?.sensitivityLevel as SensitivityLevel) || 'public'
-      );
+      return resolveFieldSensitivity({
+        fieldId: fieldKey,
+        propertyLabels,
+        template: getFieldProperty(templateId, fieldKey),
+      });
     },
     [getFieldProperty],
   );

@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
+import { toObjectDataView } from '@/lib/objectViewModel';
+import { createSessionRequests } from '@/lib/sessionRequests';
 import { useIncrementalWindow } from '@/hooks/useIncrementalWindow';
 import { useObjectStore, type ObjectSummary, type ObjectData } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -46,7 +49,18 @@ export function useObjectWorkspaceData({
   const [snapshotCounts, setSnapshotCounts] = useState<Record<string, number>>({});
   const [attachmentObjId, setAttachmentObjId] = useState<string | null>(null);
   const [attachmentCounts, setAttachmentCounts] = useState<Record<string, number>>({});
-  const [detailObj, setDetailObj] = useState<(ObjectSummary | ObjectData) | null>(null);
+  const [detailObj, setDetailObjState] = useState<(ObjectSummary | ObjectData) | null>(null);
+  const detailRequests = useMemo(() => createSessionRequests(), []);
+  const deepLinkDetailRef = useRef<(ObjectSummary | ObjectData) | null>(null);
+  // 关闭详情或手选卡片后，正在读取的深链不能再覆盖用户的新选择。
+  const setDetailObj = useCallback(
+    (obj: (ObjectSummary | ObjectData) | null) => {
+      detailRequests.invalidate('detail');
+      deepLinkDetailRef.current = null;
+      setDetailObjState(obj);
+    },
+    [detailRequests],
+  );
 
   // 历史字段查看器状态
   const [deprecatedViewer, setDeprecatedViewer] = useState<{
@@ -98,11 +112,27 @@ export function useObjectWorkspaceData({
 
   // Open object detail modal directly when navigated with ?objectId=... (e.g. from search)
   useEffect(() => {
+    // 只清理旧深链写入的对象；无 objectId 的页面仍允许手选卡片打开详情。
+    const previousDeepLink = deepLinkDetailRef.current;
+    deepLinkDetailRef.current = null;
+    if (previousDeepLink) {
+      setDetailObjState((current) => (current === previousDeepLink ? null : current));
+    }
     if (!detailObjectId || !accountId) return;
-    invoke('object_get', { objectId: detailObjectId })
-      .then((obj) => setDetailObj(obj as (typeof visibleObjects)[number]))
-      .catch((err) => logger.warn('[Workspace] Fetch object detail failed:', err));
-  }, [detailObjectId, accountId]);
+    const request = detailRequests.begin('detail', accountId);
+    request
+      .invokeTyped('object_get', { accountId, objectId: detailObjectId })
+      .then((obj) => {
+        if (!request.isCurrent()) return;
+        const detail = obj === null ? null : toObjectDataView(obj);
+        deepLinkDetailRef.current = detail;
+        setDetailObjState(detail);
+      })
+      .catch((err) => {
+        if (request.isCurrent()) logger.warn('[Workspace] Fetch object detail failed:', err);
+      });
+    return () => detailRequests.invalidate('detail');
+  }, [detailObjectId, accountId, detailRequests]);
 
   const customPage = pageId ? customPages.find((p) => p.id === pageId) : null;
 
@@ -134,9 +164,8 @@ export function useObjectWorkspaceData({
   } = useWorkspacePasswordGuard(accountId);
 
   // P013/5: 模板字段元数据查找（敏感度/废弃/显示名）
-  const { getFieldSensitivity, isFieldDeprecated, getFieldName } = useTemplateFieldMeta(
-    userTemplates,
-  );
+  const { getFieldSensitivity, isFieldDeprecated, getFieldName } =
+    useTemplateFieldMeta(userTemplates);
 
   useEffect(() => {
     if (accountId) {
@@ -173,7 +202,7 @@ export function useObjectWorkspaceData({
     if (ids.length === 0) return;
     const reqId = ++snapshotReqRef.current;
     let mounted = true;
-    invoke<Record<string, number>>('snapshot_count_batch', { objectIds: ids })
+    invokeTypedCommand('snapshot_count_batch', { objectIds: ids })
       .then((counts) => {
         if (!mounted || snapshotReqRef.current !== reqId) return; // stale response, discard
         // Ensure every visible object has a snapshot count (default 0)

@@ -8,6 +8,7 @@ pub(crate) struct SerdeAttrs {
     pub rename_all: Option<String>,
     pub default: bool,
     pub skip_none: bool,
+    pub skip_empty_vec: bool,
     pub tag: Option<String>,
     pub content: Option<String>,
     pub derives: BTreeSet<String>,
@@ -110,10 +111,14 @@ pub(crate) fn read(attrs: &[Attribute], location: Location) -> Result<SerdeAttrs
                     }
                     "skip_serializing_if" if location == Location::Field => {
                         let predicate = meta.value()?.parse::<syn::LitStr>()?.value();
-                        if predicate != "Option::is_none" {
-                            return Err(meta.error("only Option::is_none is supported"));
+                        match predicate.as_str() {
+                            "Option::is_none" => result.skip_none = true,
+                            "Vec::is_empty" => result.skip_empty_vec = true,
+                            _ => {
+                                return Err(meta
+                                    .error("only Option::is_none and Vec::is_empty are supported"))
+                            }
                         }
-                        result.skip_none = true;
                     }
                     "tag" if location == Location::Enum => {
                         result.tag = Some(meta.value()?.parse::<syn::LitStr>()?.value())

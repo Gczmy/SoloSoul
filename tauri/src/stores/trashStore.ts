@@ -1,5 +1,7 @@
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { create } from 'zustand';
+import { toTrashItemView, type TrashItemView as TrashItemSummary } from '@/lib/objectViewModel';
+export type { TrashItemView as TrashItemSummary } from '@/lib/objectViewModel';
 import i18next from '@/lib/i18n';
 
 export type TrashRetentionPeriod = '30d' | '60d' | 'half_year' | 'one_year' | 'never';
@@ -18,20 +20,6 @@ export function retentionPeriodDays(period: TrashRetentionPeriod): number {
     default:
       return 30;
   }
-}
-
-// §23.9 — TrashItemSummary from backend
-export interface TrashItemSummary {
-  id: string;
-  itemType: string;
-  originalId: string;
-  name: string;
-  iconId?: string;
-  deletedAt: number;
-  expiresAt?: number;
-  originalParentId?: string;
-  originalSectionType?: string;
-  contractTypeId?: string;
 }
 
 export type TrashTimeFilter = 'all' | '1d' | '3d' | '7d' | '30d' | 'half_year';
@@ -99,12 +87,12 @@ export const useTrashStore = create<TrashState>((set, get) => ({
       // （≈1.78e12）都恒 ≥ 它，筛选等于不过滤（修复：回收站时间筛选失效）。
       const offset = TIME_SINCE[get().timeFilter];
       const since = offset === null ? undefined : Date.now() - offset;
-      const items = await request.invoke<TrashItemSummary[]>('object_trash_list', {
+      const items = await request.invokeTyped('object_trash_list', {
         accountId: _accountId,
         ...(since !== undefined && { since }),
       });
       request.assertCurrent();
-      setCurrent({ items, isLoading: false, selectedIds: new Set() });
+      setCurrent({ items: items.map(toTrashItemView), isLoading: false, selectedIds: new Set() });
     } catch (err) {
       if (!request.isCurrent()) return;
       setCurrent({ error: String(err), isLoading: false });

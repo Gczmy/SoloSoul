@@ -13,6 +13,7 @@ fn setup_vault() -> (VaultStore, TempDir) {
 mod crud;
 mod misc;
 mod rf010;
+mod rf302;
 mod snapshot;
 mod template_sync;
 mod trash;

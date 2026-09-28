@@ -208,7 +208,7 @@ fn test_trash_permanent_delete_batch_helper() {
 
     // 模拟 trash_permanent_delete_batch 的服务端循环
     for i in 0..3 {
-        super::trash::permanent_delete_one(&vault, &format!("trash_batch_{i}")).unwrap();
+        super::super::trash::permanent_delete_one(&vault, &format!("trash_batch_{i}")).unwrap();
     }
 
     for i in 0..3 {

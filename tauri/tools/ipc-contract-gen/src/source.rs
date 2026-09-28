@@ -8,10 +8,18 @@ pub(crate) const LIB: &str = "src-tauri/src/lib.rs";
 pub(crate) const ACL: &str = "src-tauri/permissions/solo-soul/default.toml";
 pub(crate) const SELECTION: &str = "src-tauri/ipc-contracts.json";
 
+#[derive(Clone)]
+struct CrateSource {
+    namespace: String,
+    library: String,
+    directory: String,
+}
+
 pub(crate) struct Sources {
     root: PathBuf,
     pub used: BTreeSet<String>,
     files: BTreeMap<String, syn::File>,
+    crates: Vec<CrateSource>,
 }
 impl Sources {
     pub fn new(root: &Path) -> Result<Self, String> {
@@ -25,6 +33,7 @@ impl Sources {
             root,
             used: BTreeSet::new(),
             files: BTreeMap::new(),
+            crates: Vec::new(),
         })
     }
     fn checked(&self, relative: &str) -> Result<PathBuf, String> {
@@ -65,12 +74,45 @@ impl Sources {
         self.files.insert(relative.to_string(), file.clone());
         Ok(file)
     }
+    // 不模拟 Rust 的完整局部名称解析；已知外库/内置名字被模块或 extern crate
+    // 重新绑定时明确拒绝，不能把本地类型静默当作真实依赖的 DTO。
+    pub fn reject_namespace_shadowing(&self, file: &syn::File, source: &str) -> Result<(), String> {
+        for item in &file.items {
+            let name = match item {
+                Item::Mod(item) => super::attrs::ident(&item.ident),
+                Item::ExternCrate(item) => {
+                    super::attrs::ident(item.rename.as_ref().map_or(&item.ident, |(_, name)| name))
+                }
+                _ => continue,
+            };
+            if matches!(
+                name.as_str(),
+                "std" | "core" | "alloc" | "serde" | "serde_json" | "tauri"
+            ) || self.crates.iter().any(|owner| owner.namespace == name)
+            {
+                return Err(format!(
+                    "{source}: local binding {name} shadows known contract namespace"
+                ));
+            }
+        }
+        Ok(())
+    }
+
     // 解析真实 mod 声明而非仅拼目录，避免登记一个同名但未被 Host 使用的函数。
     pub fn resolve_module(&mut self, module: &[String]) -> Result<String, String> {
-        let mut source = LIB.to_string();
-        let mut directory = "src-tauri/src".to_string();
+        self.resolve_module_from(LIB, "src-tauri/src", module)
+    }
+    fn resolve_module_from(
+        &mut self,
+        library: &str,
+        directory: &str,
+        module: &[String],
+    ) -> Result<String, String> {
+        let mut source = library.to_string();
+        let mut directory = directory.to_string();
         for name in module {
             let file = self.rust(&source)?;
+            self.reject_namespace_shadowing(&file, &source)?;
             let matches: Vec<_> = file
                 .items
                 .iter()
@@ -109,29 +151,219 @@ impl Sources {
     }
     pub fn module_for_source(&mut self, source: &str) -> Result<Vec<String>, String> {
         self.checked(source)?;
+        let owner = self
+            .crates
+            .iter()
+            .find(|owner| {
+                source == owner.library || source.starts_with(&format!("{}/", owner.directory))
+            })
+            .cloned();
+        let (library, directory, namespace) = match owner {
+            Some(owner) => (owner.library, owner.directory, owner.namespace),
+            None => (LIB.to_string(), "src-tauri/src".to_string(), String::new()),
+        };
         let suffix = source
-            .strip_prefix("src-tauri/src/")
+            .strip_prefix(&format!("{directory}/"))
             .and_then(|value| value.strip_suffix(".rs"))
             .ok_or_else(|| {
-                format!("DTO source must be under src-tauri/src and end in .rs: {source}")
+                format!("DTO source is outside a registered crate source root: {source}")
             })?;
         let mut module: Vec<String> = suffix.split('/').map(str::to_owned).collect();
         if module.last().is_some_and(|name| name == "mod") {
             module.pop();
         }
-        if source == LIB {
+        if source == library {
             module.clear();
         }
         for name in &module {
             syn::parse_str::<syn::Ident>(name)
                 .map_err(|_| format!("invalid module path: {source}"))?;
         }
-        if self.resolve_module(&module)? != source {
+        if self.resolve_module_from(&library, &directory, &module)? != source {
             return Err(format!(
                 "source does not match the actual Rust module: {source}"
             ));
         }
+        if !namespace.is_empty() {
+            module.insert(0, namespace);
+        }
         Ok(module)
+    }
+    pub fn crate_namespace(&self, source: &str) -> &str {
+        self.crates
+            .iter()
+            .find(|owner| {
+                source == owner.library || source.starts_with(&format!("{}/", owner.directory))
+            })
+            .map_or("", |owner| owner.namespace.as_str())
+    }
+    // 外部 DTO 只来自显式 workspace 成员及 Host 实际普通 path 依赖，不执行 cargo metadata/build.rs。
+    pub fn register_crates(&mut self, manifests: &[String]) -> Result<(), String> {
+        if manifests.is_empty() {
+            return Ok(());
+        }
+        let workspace: toml::Value = toml::from_str(&self.read("Cargo.toml")?)
+            .map_err(|error| format!("workspace: {error}"))?;
+        let host: toml::Value = toml::from_str(&self.read("src-tauri/Cargo.toml")?)
+            .map_err(|error| format!("Host manifest: {error}"))?;
+        let members = workspace
+            .get("workspace")
+            .and_then(|value| value.get("members"))
+            .and_then(toml::Value::as_array)
+            .ok_or("workspace members are required for external DTOs")?;
+        let dependencies = host
+            .get("dependencies")
+            .and_then(toml::Value::as_table)
+            .ok_or("Host dependencies are required for external DTOs")?;
+        let mut seen = BTreeSet::new();
+        for manifest in manifests {
+            if !seen.insert(manifest) {
+                return Err(format!("duplicate crate manifest: {manifest}"));
+            }
+            let directory = manifest
+                .strip_suffix("/Cargo.toml")
+                .ok_or("crate source must name a Cargo.toml")?;
+            if directory == "src-tauri"
+                || !members
+                    .iter()
+                    .any(|member| member.as_str() == Some(directory))
+            {
+                return Err(format!(
+                    "crate is not an explicit external workspace member: {manifest}"
+                ));
+            }
+            if workspace
+                .get("workspace")
+                .and_then(|value| value.get("exclude"))
+                .and_then(toml::Value::as_array)
+                .is_some_and(|excluded| {
+                    excluded
+                        .iter()
+                        .any(|value| value.as_str() == Some(directory))
+                })
+            {
+                return Err(format!("crate is excluded from workspace: {manifest}"));
+            }
+            let canonical_manifest = self.checked(manifest)?;
+            let document: toml::Value = toml::from_str(&self.read(manifest)?)
+                .map_err(|error| format!("{manifest}: {error}"))?;
+            let package = document
+                .get("package")
+                .and_then(|value| value.get("name"))
+                .and_then(toml::Value::as_str)
+                .ok_or("external package.name must be explicit")?;
+            let dependency = dependencies
+                .get(package)
+                .and_then(toml::Value::as_table)
+                .ok_or_else(|| {
+                    format!("external crate is not an unrenamed Host path dependency: {package}")
+                })?;
+            if dependency.contains_key("package")
+                || dependency.contains_key("workspace")
+                || dependency.contains_key("git")
+                || dependency
+                    .get("optional")
+                    .is_some_and(|value| value != &toml::Value::Boolean(false))
+            {
+                return Err(format!(
+                    "unsupported external dependency identity: {package}"
+                ));
+            }
+            let dependency_path = dependency
+                .get("path")
+                .and_then(toml::Value::as_str)
+                .ok_or("external dependency must have a path")?;
+            let dependency_manifest = self
+                .root
+                .join("src-tauri")
+                .join(dependency_path)
+                .join("Cargo.toml")
+                .canonicalize()
+                .map_err(|error| format!("external dependency path: {error}"))?;
+            if dependency_manifest != canonical_manifest
+                || !dependency_manifest.starts_with(&self.root)
+            {
+                return Err(format!(
+                    "external manifest does not match Host dependency: {manifest}"
+                ));
+            }
+            if document
+                .get("package")
+                .and_then(|value| value.get("autolib"))
+                .and_then(toml::Value::as_bool)
+                == Some(false)
+                && document.get("lib").is_none()
+            {
+                return Err("external package disables its implicit library".into());
+            }
+            if document
+                .get("lib")
+                .and_then(|value| value.get("proc-macro"))
+                .and_then(toml::Value::as_bool)
+                == Some(true)
+            {
+                return Err("proc-macro crates cannot be DTO sources".into());
+            }
+            let default_name = package.replace('-', "_");
+            let namespace = document
+                .get("lib")
+                .and_then(|value| value.get("name"))
+                .map(|value| value.as_str().ok_or("lib.name must be a string"))
+                .transpose()?
+                .unwrap_or(&default_name)
+                .to_string();
+            if namespace != default_name
+                || syn::parse_str::<syn::Ident>(&namespace).is_err()
+                || matches!(
+                    namespace.as_str(),
+                    "std" | "core" | "alloc" | "serde" | "serde_json" | "tauri"
+                )
+            {
+                return Err(format!("unsupported external library name: {namespace}"));
+            }
+            if self.crates.iter().any(|owner| owner.namespace == namespace) {
+                return Err(format!("duplicate external namespace: {namespace}"));
+            }
+            if self
+                .rust(LIB)?
+                .items
+                .iter()
+                .any(|item| matches!(item, Item::Mod(item) if item.ident == namespace))
+            {
+                return Err(format!(
+                    "external namespace collides with Host module: {namespace}"
+                ));
+            }
+            let library_path = document
+                .get("lib")
+                .and_then(|value| value.get("path"))
+                .map(|value| value.as_str().ok_or("lib.path must be a string"))
+                .transpose()?
+                .unwrap_or("src/lib.rs");
+            let library = format!("{directory}/{library_path}");
+            self.checked(&library)?;
+            if !library.ends_with(".rs") {
+                return Err("external lib.path must be Rust source".into());
+            }
+            let source_directory = library
+                .rsplit_once('/')
+                .ok_or("invalid library source path")?
+                .0
+                .to_string();
+            if self.crates.iter().any(|owner| {
+                source_directory.starts_with(&format!("{}/", owner.directory))
+                    || owner.directory.starts_with(&format!("{source_directory}/"))
+                    || owner.directory == source_directory
+            }) {
+                return Err("overlapping external source roots are unsupported".into());
+            }
+            self.crates.push(CrateSource {
+                namespace,
+                library,
+                directory: source_directory,
+            });
+        }
+        Ok(())
     }
 }
 

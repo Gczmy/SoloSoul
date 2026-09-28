@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { createSessionRequests } from '@/lib/sessionRequests';
+import { toJsonObject } from '@/lib/objectViewModel';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
@@ -115,11 +116,11 @@ export function CustomPageEditPopover({
     const request = pageEditRequests.begin(undefined, accountId);
     // 页面元数据的权威来源是 objects；成功后只更新当前会话的列表投影。
     try {
-      await request.invoke('object_update', {
+      await request.invokeTyped('object_update', {
         objectId: page.id,
         input: {
           name: trimmed,
-          properties: descChanged ? { description: trimmedDesc || undefined } : {},
+          properties: toJsonObject(descChanged ? { description: trimmedDesc || undefined } : {}),
           iconName: selectedIconId,
         },
       });

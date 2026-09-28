@@ -1,4 +1,5 @@
 import { invokeCommand } from '@/lib/ipcClient';
+import { createTypedInvoker } from '@/lib/typedIpc';
 
 let sessionGeneration = 0;
 let activeAccountId: string | null = null;
@@ -66,6 +67,7 @@ export function createSessionRequests() {
         isCurrent,
         assertCurrent,
         invoke,
+        invokeTyped: createTypedInvoker(invoke),
         guardSet<T>(set: Setter<T>): Setter<T> {
           return (partial) => {
             if (isCurrent()) set(partial);

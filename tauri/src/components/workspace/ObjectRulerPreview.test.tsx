@@ -39,4 +39,33 @@ describe('对象尺标简介', () => {
     fireEvent.click(screen.getByRole('button', { name: 'object_ruler_jump' }));
     expect(onNavigate).toHaveBeenCalledOnce();
   });
+  it.each([null, 'invalid', { nested: 'public' }])(
+    '非法显式标签不得回退到模板公开字段：%s',
+    (label) => {
+      render(
+        <ObjectRulerPreview
+          object={{
+            ...object,
+            properties: { secret: 'RF302-PRIVATE' },
+            propertyLabels: { secret: label },
+          }}
+          template={{
+            id: 'template',
+            accountId: 'account',
+            name: 'Template',
+            createdAt: '',
+            properties: [
+              { id: 'secret', name: 'Secret', type: 'text', sensitivityLevel: 'public' },
+            ],
+          }}
+          collectionLabel="合成"
+          index={0}
+          total={1}
+          onNavigate={() => {}}
+        />,
+      );
+      expect(screen.getByText('••••••••')).toBeInTheDocument();
+      expect(document.body.innerHTML).not.toContain('RF302-PRIVATE');
+    },
+  );
 });

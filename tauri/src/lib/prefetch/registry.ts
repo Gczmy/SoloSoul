@@ -7,6 +7,7 @@
  */
 import { createPrefetchStore } from './createPrefetchStore';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import { isMobilePlatformSync, isAndroidSync } from '@/lib/platform';
 import type { ObjectSummary } from '@/stores/objectStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -46,7 +47,7 @@ export const prefetchRegistry = {
     loader: async () => {
       const accountId = useAuthStore.getState().currentAccount?.id;
       if (!accountId || !useAuthStore.getState().isAuthenticated) throw new Error('Vault locked');
-      const objects = await invoke<ObjectSummary[]>('object_list', { accountId });
+      const objects = await invokeTypedCommand('object_list', { accountId });
       const visible = objects.filter(
         (obj) => !obj.isDeleted && obj.typeId !== 'page' && obj.typeId !== 'unknown',
       );

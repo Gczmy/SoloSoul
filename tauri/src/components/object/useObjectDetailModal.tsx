@@ -2,6 +2,8 @@ import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
+import { toObjectDataView } from '@/lib/objectViewModel';
 import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { logger } from '@/lib/logger';
@@ -116,8 +118,8 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
       return;
     }
     // 完整数据直接可用：升级 fetchedObj 并结束 loading（无 fetchId 竞争）。
-    if (isCompleteObject) {
-      setFetchedObj(object as ObjectData);
+    if (isCompleteObject && object && 'accountId' in object) {
+      setFetchedObj(object);
       setLoading(false);
       return;
     }
@@ -127,11 +129,12 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
     // P020 二次复核：绕开全局 store action（getObject 会置全局 isLoading →
     // 打开弹窗瞬间背后工作区列表被骨架屏替换再换回），直接 invoke object_get；
     // 结果同时写入 currentObjectCache 供其他消费方读取（不置 isLoading）。
-    invoke<ObjectData | null>('object_get', { accountId: accountId, objectId: objId })
-      .then((obj) => {
+    invokeTypedCommand('object_get', { accountId: accountId, objectId: objId })
+      .then((wire) => {
         // Discard stale responses: if a newer fetch started while this one
         // was in-flight, don't overwrite fetchedObj with potentially stale data.
         if (fetchIdRef.current !== id) return;
+        const obj = wire === null ? null : toObjectDataView(wire);
         if (obj) {
           useObjectStore.setState((s) => ({
             currentObjectCache: { ...s.currentObjectCache, [objId]: obj },

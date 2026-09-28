@@ -1538,6 +1538,21 @@ pub mod snapshot;
 mod tests;
 pub mod trash;
 
-// Re-export all command functions so that `commands::object::xxx` paths remain valid.
-pub use snapshot::*;
-pub use trash::*;
+// 显式保留原父模块入口；Tauri handler 宏还需要两类命令宏重导出。
+pub use self::snapshot::{
+    __cmd__snapshot_count_batch, __cmd__snapshot_get_data, __cmd__snapshot_list,
+    __cmd__snapshot_rollback, __cmd__trash_get_detail, __tauri_command_name_snapshot_count_batch,
+    __tauri_command_name_snapshot_get_data, __tauri_command_name_snapshot_list,
+    __tauri_command_name_snapshot_rollback, __tauri_command_name_trash_get_detail,
+    load_trash_retention, retention_ms, snapshot_count_batch, snapshot_get_data, snapshot_list,
+    snapshot_rollback, trash_get_detail, SnapshotEntry, TrashAttachmentInfo, TrashChildSummary,
+    TrashDetail,
+};
+pub use self::trash::{
+    __cmd__object_trash_list, __cmd__page_delete, __cmd__trash_permanent_delete_batch,
+    __cmd__trash_restore, __cmd__trash_restore_batch, __tauri_command_name_object_trash_list,
+    __tauri_command_name_page_delete, __tauri_command_name_trash_permanent_delete_batch,
+    __tauri_command_name_trash_restore, __tauri_command_name_trash_restore_batch, object_restore,
+    object_trash_list, page_delete, run_expired_trash_cleanup, trash_permanent_delete_batch,
+    trash_restore, trash_restore_batch, RestoreOutcome,
+};

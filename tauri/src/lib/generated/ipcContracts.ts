@@ -3,8 +3,178 @@
 
 export type AppInfo = { appName: string; version: string; os: string; arch: string };
 
+export type CreateObjectInputInput = {
+  accountId: string;
+  name: string;
+  typeId: string;
+  properties: JsonValue;
+  parentId?: string | null;
+  iconName?: string | null;
+  templateId?: string | null;
+  templateType?: string | null;
+  id?: string | null;
+};
+
+export type DeprecatedField = {
+  id: string;
+  name: string;
+  fieldType: string;
+  value: JsonValue;
+  deprecatedAt: string;
+  reason: string;
+};
+
+export type FieldSuggestion = {
+  objectId: string;
+  objectName: string;
+  fieldKey: string;
+  fieldName: string;
+  sensitivityLevel: string;
+  value: string;
+};
+
+export type JsonObject = { [key: string]: JsonValue };
+
+export type JsonValue = null | boolean | number | string | Array<JsonValue> | JsonObject;
+
+export type ObjectData = {
+  id: string;
+  accountId: string;
+  name: string;
+  typeId: string;
+  properties: JsonValue;
+  sensitivityLevel: string;
+  templateId: string | null;
+  templateType: string | null;
+  propertyLabels: JsonValue | null;
+  tags?: Array<string>;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  contractTypeId: string | null;
+  templateHash: string | null;
+  ignoredTemplateHash: string | null;
+};
+
+export type ObjectFilterInput = {
+  typeId?: string | null;
+  sensitivityLevel?: string | null;
+  keyword?: string | null;
+  parentId?: string | null;
+  includeDeleted?: boolean | null;
+};
+
+export type ObjectSummary = {
+  id: string;
+  name: string;
+  typeId: string;
+  sectionType: string;
+  sensitivityLevel: string;
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  templateId: string | null;
+  templateType: string | null;
+  contractTypeId?: string;
+  templateHash?: string;
+  ignoredTemplateHash?: string;
+  iconName: string;
+  parentId?: string;
+  properties: JsonValue;
+  propertyLabels?: JsonValue;
+  tags: Array<string>;
+  hasAttachments: boolean;
+  sensitivityLevels?: Array<string>;
+};
+
+export type SnapshotEntry = {
+  id: string;
+  timestamp: number;
+  triggeredBy: string;
+  diffSummary: string;
+};
+
+export type SyncFieldChange = {
+  id: string;
+  name: string;
+  fieldType: string;
+  changes: Array<SyncFieldChangeItem>;
+};
+
+export type SyncFieldChangeItem =
+  | { kind: 'type'; payload: { oldType: string; newType: string } }
+  | { kind: 'name'; payload: { oldName: string; newName: string } }
+  | { kind: 'sensitivity'; payload: { oldLevel: string; newLevel: string } }
+  | { kind: 'options' }
+  | { kind: 'metadata'; payload: { metadataKeys: Array<string> } };
+
+export type SyncFieldIncompatible = {
+  id: string;
+  name: string;
+  oldType: string;
+  newType: string;
+  oldValuePreview: string;
+};
+
+export type SyncFieldInfo = { id: string; name: string; fieldType: string };
+
+export type TemplateSyncResult = {
+  hasChanges: boolean;
+  templateHash: string;
+  fieldsAdded: Array<SyncFieldInfo>;
+  fieldsDeprecated: Array<SyncFieldInfo>;
+  fieldsUpdated: Array<SyncFieldChange>;
+  fieldsIncompatible: Array<SyncFieldIncompatible>;
+};
+
+export type TrashItemSummary = {
+  id: string;
+  itemType: string;
+  originalId: string;
+  name: string;
+  iconId: string | null;
+  deletedAt: number;
+  expiresAt: number | null;
+  originalParentId: string | null;
+  originalSectionType: string | null;
+  contractTypeId: string | null;
+};
+
+export type UpdateObjectInputInput = {
+  name: string;
+  properties: JsonValue;
+  sensitivityLevel?: string | null;
+  iconName?: string | null;
+};
+
 export type IpcCommands = {
   get_app_info: { args: undefined; result: AppInfo };
+  object_create: { args: { input: CreateObjectInputInput }; result: ObjectData };
+  object_delete: { args: { objectId: string }; result: null };
+  object_field_suggestions: {
+    args: { accountId: string; excludeObjectId?: string | null };
+    result: Array<FieldSuggestion>;
+  };
+  object_get: { args: { accountId: string; objectId: string }; result: ObjectData | null };
+  object_ignore_template_sync: { args: { objectId: string; hash: string }; result: null };
+  object_list: {
+    args: { accountId: string; filter?: ObjectFilterInput | null };
+    result: Array<ObjectSummary>;
+  };
+  object_list_deprecated_fields: { args: { objectId: string }; result: Array<DeprecatedField> };
+  object_sync_with_template: {
+    args: { objectId: string; dryRun: boolean };
+    result: TemplateSyncResult;
+  };
+  object_trash_list: {
+    args: { accountId: string; since?: number | null };
+    result: Array<TrashItemSummary>;
+  };
+  object_update: { args: { objectId: string; input: UpdateObjectInputInput }; result: ObjectData };
+  snapshot_count_batch: { args: { objectIds: Array<string> }; result: Record<string, number> };
+  snapshot_get_data: { args: { snapshotId: string }; result: JsonValue | null };
+  snapshot_list: { args: { objectId: string }; result: Array<SnapshotEntry> };
+  snapshot_rollback: { args: { snapshotId: string; objectId: string }; result: null };
 };
 
 export type IpcEvents = Record<never, never>;
