@@ -198,23 +198,23 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
   };
 
   /** 附件属性（名称/描述/标签）保存成功：就地更新列表与预览中的附件元数据。 */
-  const handleMetaSaved = (updated: AttachmentMetaEditResult) => {
-    const patch = (list: AttachmentItem[]) =>
-      list.map((i) =>
-        i.id === metaEditItem?.id
-          ? {
-              ...i,
-              ...(updated.fileName !== undefined ? { fileName: updated.fileName } : {}),
-              description: updated.description,
-              tags: updated.tags,
-            }
-          : i,
-      );
-    setItems((prev) => patch(prev));
-    setTrashItems((prev) => patch(prev));
-    setPreviewItem((prev) =>
-      prev && prev.id === metaEditItem?.id ? { ...prev, ...updated } : prev,
-    );
+  const handleMetaSaved = (
+    attachment: Pick<AttachmentItem, 'objectId' | 'id'>,
+    updated: AttachmentMetaEditResult,
+  ) => {
+    // 行编辑、预览和照片集显式传入同一附件身份，不依赖某个编辑入口的局部状态。
+    const patch = {
+      ...(updated.fileName !== undefined ? { fileName: updated.fileName } : {}),
+      ...(updated.description !== undefined ? { description: updated.description } : {}),
+      ...(updated.tags !== undefined ? { tags: updated.tags } : {}),
+    };
+    const patchItem = (item: AttachmentItem) =>
+      item.objectId === attachment.objectId && item.id === attachment.id
+        ? { ...item, ...patch }
+        : item;
+    setItems((prev) => prev.map(patchItem));
+    setTrashItems((prev) => prev.map(patchItem));
+    setPreviewItem((prev) => (prev ? patchItem(prev) : prev));
   };
 
   const handleDelete = (item: AttachmentItem) => {

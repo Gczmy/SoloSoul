@@ -243,14 +243,14 @@ export function AttachmentViewer(props: AttachmentViewerProps) {
         item={previewItem}
         onClose={() => setPreviewItem(null)}
         onOpenExternal={openAttachmentExternal}
-        onItemUpdated={handleMetaSaved}
+        onItemUpdated={(updated) => handleMetaSaved(updated, updated)}
       />
       {/* 附件描述/标签编辑对话框 */}
       {metaEditItem && (
         <AttachmentMetaEditDialog
           item={metaEditItem}
           onClose={() => setMetaEditItem(null)}
-          onSaved={handleMetaSaved}
+          onSaved={(updated) => handleMetaSaved(metaEditItem, updated)}
         />
       )}
       {/* Photo album overlay（对象级照片集） */}
@@ -259,7 +259,7 @@ export function AttachmentViewer(props: AttachmentViewerProps) {
           items={displayPhotoItems}
           onClose={() => setPhotoAlbumOpen(false)}
           onOpenExternal={openAttachmentExternal}
-          onItemMetaUpdated={handleMetaSaved}
+          onItemMetaUpdated={(updated) => handleMetaSaved(updated, updated)}
           // 相对查看器层级 +1：详情模态下查看器为 5100，固定 2100 会被其背景遮住
           zIndex={zIndex + 1}
         />
