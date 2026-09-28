@@ -119,9 +119,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**103**（P1：36；P2：66；P3：1）。
-- 已关闭：**55 / 103**；实际修复（已关闭）：55；排除：0；待验证/阻塞：10（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208缺macOS实测，RF-309缺远端Windows CI证据）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无。RF-208与RF-309的实现已分别提交，均保留所缺平台/CI验收；继续其他无依赖任务。
+- 任务总数：**104**（P1：36；P2：67；P3：1）。
+- 已关闭：**56 / 104**；实际修复（已关闭）：56；排除：0；待验证/阻塞：10（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208缺macOS实测，RF-309缺远端Windows CI证据）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无。RF-914已修正覆盖率模式下的懒加载测试超时；RF-308仍需补实际覆盖和远端CI日志，其余待验证项保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -230,6 +230,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 101 | [RF-911](#rf-911) | P2 | 修复预览和照片集元数据回写目标 | 无 | [x] 完成 |
 | 102 | [RF-912](#rf-912) | P2 | 附件清空描述发送正确IPC值 | 无 | [x] 完成 |
 | 103 | [RF-913](#rf-913) | P1 | Android AppLevelNames 生成先于 Kotlin 编译 | 无（RF-208构建验证前置） | [x] 完成 |
+| 104 | [RF-914](#rf-914) | P2 | 懒加载照片查看器测试的外层超时小于内部等待 | 无（RF-308测量前置） | [x] 完成 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -257,7 +258,7 @@ R 编号只用于追溯，不作为混合提交单位。每个 RF ID 才是本�
 | R18 | IPC 类型与结构化错误 | [RF-205](#rf-205)、[RF-301](#rf-301)、[RF-302](#rf-302)、[RF-303](#rf-303)、[RF-304](#rf-304)、[RF-305](#rf-305)、[RF-306](#rf-306)、[RF-307](#rf-307)、[RF-317](#rf-317)、[RF-318](#rf-318)、[RF-319](#rf-319)、[RF-320](#rf-320) |
 | R19 | Android 资源准备 | [RF-206](#rf-206)、[RF-207](#rf-207)、[RF-208](#rf-208) |
 | R20 | 性能测量 | [RF-312](#rf-312) |
-| R21 | 验证设施与 CI | [RF-208](#rf-208)、[RF-913](#rf-913)、[RF-308](#rf-308)、[RF-309](#rf-309)、[RF-310](#rf-310)、[RF-311](#rf-311)、[RF-314](#rf-314)、[RF-316](#rf-316) |
+| R21 | 验证设施与 CI | [RF-208](#rf-208)、[RF-913](#rf-913)、[RF-914](#rf-914)、[RF-308](#rf-308)、[RF-309](#rf-309)、[RF-310](#rf-310)、[RF-311](#rf-311)、[RF-314](#rf-314)、[RF-316](#rf-316) |
 | R22 | 架构与隐私文档 | [RF-313](#rf-313)、[RF-314](#rf-314)、[RF-315](#rf-315) |
 
 R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插件领域。其余命令保留兼容入口，并在 RF-301 的登记清单中逐项标明“未迁移”；不能把试点或这些领域的完成宣称为全部注册命令已迁移（当前数量以生成清单为准）。扩展到其余命令时按领域新增 RF-900 系列任务。
@@ -1435,6 +1436,18 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**`ANDROID_BUILD` 定向 Kotlin 编译和 Debug APK；无本项 Kotlin 单测源码，不能把 `NO-SOURCE` 写成测试通过。
 - **建议提交：**`fix(android): wire generated app names into Kotlin compilation [RF-913]`。
 
+### RF-914
+
+**懒加载照片查看器测试的外层超时小于内部等待** · P2 · 来源：RF-308 覆盖率全量实测
+
+- **前置：**无；修复后 RF-308 才能得到完整的覆盖率测量。
+- **现状线索：**`LazyPhotoViewerOverlay.test.tsx` 对动态导入使用 8 秒 `waitFor`，但 `it` 仍受 Vitest 默认 5 秒限制；覆盖率全量并发时，该测试以 5 秒外层超时失败，1,520 项其他测试通过。相册中同类懒加载测试已使用 12 秒外层上限。
+- **入口：**`tauri/src/components/attachment/LazyPhotoViewerOverlay.test.tsx`。
+- **执行：**仅对该测试设置与同类测试一致的 12 秒外层上限；保留真实懒加载命名导出断言及 8 秒内部等待，不提高全局超时、不屏蔽测试。
+- **验收：**定向及完整前端测试通过；覆盖率模式下该测试不再因外层 5 秒提前终止，仍如实报告 RF-308 的全局覆盖率阈值。
+- **验证配置：**`F`；另运行全量 `COVERAGE` 以确认所有测试完成。覆盖率阈值不足属于 RF-308，不作为放宽本项测试断言的理由。
+- **建议提交：**`test(attachments): align lazy viewer outer timeout [RF-914]`。
+
 ---
 
 ## 7. 每项执行记录模板
@@ -2601,3 +2614,10 @@ git commit -m "<任务卡的提交标题>"
 - 本机 Windows 直接运行：PDFium PE 校验 exit 0（7,213,568 bytes）；Vault/core 6 组共 493 passed、0 failed、1 ignored，Host 7 组共 620 passed、0 failed、0 ignored，未重现 `TaskDialogIndirect` 启动弹窗。`cargo fmt --check`、`cargo clippy -- -D warnings` exit 0；工作流经 Prettier YAML 解析通过，`stage-desktop-resources.cjs` exit 0。证据：`rf309-core-tests.log`、`rf309-host-tests.log`、`rf309-local-results.json`、`rf309-clippy.log`。
 - 完整 workspace 首轮 `cargo test --verbose --no-fail-fast` exit 101：25 组共 1,359 passed、1 failed、3 ignored，唯一失败为 RF-214 插件并发发布测试的 Windows `Access is denied`。相同用例单独重跑通过，插件整组 95 passed、2 ignored；原命令复跑 exit 0，25 组 1,360 passed、0 failed、3 ignored。保留首轮失败与复跑日志，不把一次文件替换异常隐去，也不在 RF-309 中改动插件发布逻辑。证据：`rf309-workspace-tests.log`、`rf309-workspace-tests-retry.log`、`rf309-workspace-results.json`。
 - 当前还没有远端 `windows-latest` job 的执行结果及失败日志上传实证，不能把本机 Windows 结果当作 CI 验收；因此状态保留 `[!]`。此项仅提交工作流和本报告，用户 NSIS 图片未暂存，未推送。
+
+### RF-914 执行记录（2026-09-28，完成）
+
+- 基线 `b23a850b`。RF-308 在完整覆盖率运行中，172 文件的 1,521 项里 1,520 passed、1 failed；唯一失败为 `LazyPhotoViewerOverlay` 外层默认 5 秒超时，尽管其内部 `waitFor` 允许 8 秒，日志 `rf308-coverage-after-rf912.log`。同类 `PhotoAlbumOverlay` 测试已有 12 秒外层上限。
+- 只给该懒加载命名导出回归设置 12 秒外层上限，继续真实加载 `PhotoViewerOverlay`，保持内部 8 秒失败边界，不修改全局配置、产品代码或覆盖率阈值。
+- 定向 Vitest 1/1、`npx tsc --noEmit`、`npm run lint`、修改文件的 Prettier 检查均 exit 0；完整 `npm run test` exit 0，172 文件/1,521 项全通过，日志 `rf914-front-tests.log`。重新运行覆盖率模式，172 文件/1,521 项全通过，无超时；命令仍因 RF-308 原有门槛 exit 1。实测 statements 13,257/17,629（75.19%）、branches 6,070/9,981（60.81%）、functions 2,190/3,460（63.29%）、lines 12,396/16,100（76.99%），完整 HTML 与日志保存在 `rf308-coverage-after-rf914` 和 `rf308-coverage-after-rf914.log`。
+- RF-914 测试稳定性问题已修复并单独提交；RF-308 的四项覆盖率缺口及远端 CI 证据仍待处理，不以全测试通过冒充覆盖率达标。仅暂存该测试与报告，用户 NSIS 图片不变且不暂存，未推送。

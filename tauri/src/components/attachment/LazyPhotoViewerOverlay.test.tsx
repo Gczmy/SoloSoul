@@ -36,12 +36,12 @@ describe('LazyPhotoViewerOverlay', () => {
 
     // 若 PhotoViewerOverlay 命名导出被重命名，lazy 工厂的 m.PhotoViewerOverlay
     // 解析为 undefined → React 抛 "Element type is invalid" → 本测试失败（漂移保护）。
-    // 冷启动动态 import（含 framer-motion 手势引擎）较慢，放宽 waitFor 超时防抖动。
+    // 冷启动动态 import（含 framer-motion 手势引擎）较慢；外层测试超时需长于 waitFor。
     await waitFor(
       () => {
         expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
       },
       { timeout: 8000 },
     );
-  });
+  }, 12000);
 });
