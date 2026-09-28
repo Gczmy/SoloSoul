@@ -10,6 +10,49 @@ env:
   NODE_VERSION: '22'
 
 jobs:
+  # 增量 IPC 契约独立检查：只编译纯 Rust 生成工具，不编译 Tauri Host。
+  contract-check:
+    name: Incremental IPC Contract Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tauri
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: tauri/package-lock.json
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install contract formatting dependencies
+        run: npm ci --ignore-scripts
+
+      # 顺序执行：生成器回归与漂移检查都使用同一个纯 Rust 工具。
+      - name: Test contract generator
+        run: npm run test:contracts
+
+      - name: Check generated IPC contracts
+        run: npm run check:contracts
+
+      - name: Check ACL and incremental command coverage
+        run: python3 scripts/check_acl_consistency.py
+
+      - name: Test ACL contract comparison
+        run: python3 -m unittest discover -s scripts -p test_check_acl_consistency.py
+
   frontend-check:
     name: Frontend TypeScript & Lint
     runs-on: ubuntu-latest

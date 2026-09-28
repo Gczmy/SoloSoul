@@ -1,0 +1,10 @@
+{
+  "commands": [
+    {
+      "name": "get_app_info",
+      "source": "src-tauri/src/commands/system.rs"
+    }
+  ],
+  "types": [],
+  "events": []
+}

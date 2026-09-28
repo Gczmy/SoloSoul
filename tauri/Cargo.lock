@@ -6531,6 +6531,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "solosoul-ipc-contract-gen"
+version = "0.1.0"
+dependencies = [
+ "heck 0.5.0",
+ "serde",
+ "serde_json",
+ "syn 2.0.117",
+ "tempfile",
+ "toml 0.9.12+spec-1.1.0",
+]
+
+[[package]]
 name = "solosoul-plugin"
 version = "2.13.2"
 dependencies = [

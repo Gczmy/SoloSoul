@@ -1,6 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useUpdateChecker } from './useUpdateChecker';
+import { useUpdateChecker, type AppInfo } from './useUpdateChecker';
+import { invoke } from '@tauri-apps/api/core';
+import { logger } from '@/lib/logger';
 import {
   androidCheckForUpdate,
   androidCachedUpdate,
@@ -14,14 +16,17 @@ import { useAppUpdate } from './useAppUpdate';
 import { getPlatform } from '@/lib/platform';
 
 vi.mock('@tauri-apps/plugin-process', () => ({ relaunch: vi.fn() }));
-vi.mock('@/lib/ipcClient', () => ({
-  invokeCommand: vi.fn(async () => ({
-    appName: 'SoloSoul',
-    version: '2.13.0',
-    os: 'android',
-    arch: 'aarch64',
-  })),
+// 保留真实 typedIpc → ipcClient，只替换原生边界。
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn(),
+  addPluginListener: vi.fn(() => Promise.resolve({ unregister: vi.fn() })),
 }));
+const appInfo = {
+  appName: 'SoloSoul',
+  version: '2.13.0',
+  os: 'android',
+  arch: 'aarch64',
+} satisfies AppInfo;
 vi.mock('@/lib/platform', () => ({ getPlatform: vi.fn(async () => 'android') }));
 vi.mock('@/lib/updater', () => ({
   androidCheckForUpdate: vi.fn(),
@@ -54,6 +59,7 @@ async function ready() {
 describe('useUpdateChecker cancellation', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(invoke).mockResolvedValue(appInfo);
     useUpdateStore.setState(useUpdateStore.getInitialState(), true);
     localStorage.clear();
     vi.mocked(getPlatform).mockResolvedValue('android');
@@ -77,6 +83,59 @@ describe('useUpdateChecker cancellation', () => {
       info: { version: '2.13.1', body: 'notes' },
     });
     vi.mocked(androidInstallApk).mockResolvedValue(undefined);
+  });
+
+  it('loads the generated AppInfo through the real typed IPC chain', async () => {
+    const { result } = await ready();
+    expect(invoke).toHaveBeenCalledWith('get_app_info');
+    expect(vi.mocked(invoke).mock.calls.filter(([command]) => command === 'get_app_info')).toEqual([
+      ['get_app_info'],
+    ]);
+    expect(result.current.info).toEqual(appInfo);
+    expect(result.current.versionInfo?.currentVersion).toBe(appInfo.version);
+    expect(androidCheckForUpdate).toHaveBeenCalledOnce();
+  });
+
+  it('finishes app-info loading after rejection without preventing the shared update check', async () => {
+    const failure = new Error('synthetic app-info failure');
+    vi.mocked(invoke).mockRejectedValue(failure);
+    const warning = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    try {
+      const { result } = await ready();
+      expect(result.current.info).toBeNull();
+      expect(result.current.loading).toBe(false);
+      expect(result.current.versionInfo?.state).toBe('available');
+      expect(warning).toHaveBeenCalledWith('[updater] app info:', failure);
+      expect(androidCheckForUpdate).toHaveBeenCalledOnce();
+    } finally {
+      warning.mockRestore();
+    }
+  });
+
+  it('does not apply a late app-info response after its hook was unmounted', async () => {
+    const oldResponse = deferred<AppInfo>();
+    vi.mocked(invoke).mockReturnValueOnce(oldResponse.promise);
+    const oldHook = renderHook(useUpdateChecker);
+    expect(oldHook.result.current.info).toBeNull();
+    expect(oldHook.result.current.loading).toBe(true);
+    oldHook.unmount();
+    const newInfo = { ...appInfo, version: '2.13.2' } satisfies AppInfo;
+    vi.mocked(invoke).mockResolvedValue(newInfo);
+    const currentHook = renderHook(useUpdateChecker);
+    try {
+      await waitFor(() => expect(currentHook.result.current.info).toEqual(newInfo));
+      await act(async () => {
+        oldResponse.resolve(appInfo);
+        await oldResponse.promise;
+      });
+      expect(currentHook.result.current.info).toEqual(newInfo);
+      expect(currentHook.result.current.loading).toBe(false);
+      expect(oldHook.result.current.info).toBeNull();
+      expect(oldHook.result.current.loading).toBe(true);
+    } finally {
+      oldResponse.resolve(appInfo);
+      currentHook.unmount();
+    }
   });
 
   it('iOS 的真实共享 Store 投影为 unsupported，横幅隐藏且不调用任一更新适配器', async () => {

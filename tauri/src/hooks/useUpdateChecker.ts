@@ -1,13 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
+import type { AppInfo } from '@/lib/generated/ipcContracts';
 import { useUpdateStore } from '@/stores/updateStore';
 import { logger } from '@/lib/logger';
-export interface AppInfo {
-  appName: string;
-  version: string;
-  os: string;
-  arch: string;
-}
+export type { AppInfo } from '@/lib/generated/ipcContracts';
 
 export interface VersionInfo {
   currentVersion: string;
@@ -30,7 +26,7 @@ export function useUpdateChecker() {
   const store = useUpdateStore();
   useEffect(() => {
     let alive = true;
-    invoke<AppInfo>('get_app_info')
+    invokeTypedCommand('get_app_info')
       .then((app) => {
         if (alive) setInfo(app);
       })

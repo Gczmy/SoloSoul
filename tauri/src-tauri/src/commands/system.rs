@@ -1,12 +1,22 @@
+/// 应用基础信息的 IPC 响应；字段名保持既有 wire 格式。
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppInfo {
+    pub app_name: String,
+    pub version: String,
+    pub os: String,
+    pub arch: String,
+}
+
 /// 获取应用基础信息（名称、版本、操作系统、架构）。
 #[tauri::command]
-pub async fn get_app_info() -> Result<serde_json::Value, String> {
-    Ok(serde_json::json!({
-        "appName": "SoloSoul",
-        "version": env!("CARGO_PKG_VERSION"),
-        "os": std::env::consts::OS,
-        "arch": std::env::consts::ARCH,
-    }))
+pub async fn get_app_info() -> Result<AppInfo, String> {
+    Ok(AppInfo {
+        app_name: "SoloSoul".to_string(),
+        version: env!("CARGO_PKG_VERSION").to_string(),
+        os: std::env::consts::OS.to_string(),
+        arch: std::env::consts::ARCH.to_string(),
+    })
 }
 
 /// 获取系统 UI 显示语言（例如 "zh-CN"、"en-US"）。
@@ -65,7 +75,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_app_info_contains_expected_fields() {
-        let info = get_app_info().await.unwrap();
+        let info = serde_json::to_value(get_app_info().await.unwrap()).unwrap();
+        assert_eq!(info.as_object().unwrap().len(), 4);
         assert_eq!(info["appName"], "SoloSoul");
         assert!(info.get("version").and_then(|v| v.as_str()).is_some());
         assert!(info.get("os").and_then(|v| v.as_str()).is_some());
@@ -75,7 +86,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_app_info_version_is_semver() {
         let info = get_app_info().await.unwrap();
-        let version = info["version"].as_str().unwrap();
+        let version = &info.version;
         assert!(
             version.contains('.'),
             "version should be semver: {}",
@@ -86,14 +97,14 @@ mod tests {
     #[tokio::test]
     async fn test_get_app_info_os_is_non_empty() {
         let info = get_app_info().await.unwrap();
-        let os = info["os"].as_str().unwrap();
+        let os = &info.os;
         assert!(!os.is_empty(), "OS should not be empty");
     }
 
     #[tokio::test]
     async fn test_get_app_info_arch_is_non_empty() {
         let info = get_app_info().await.unwrap();
-        let arch = info["arch"].as_str().unwrap();
+        let arch = &info.arch;
         assert!(!arch.is_empty(), "Arch should not be empty");
     }
 

@@ -3,3 +3,7 @@
 
 # 签名绑定原始字节，Windows 检出时也必须保留已签名 JSON 的 LF。
 tauri/src-tauri/resources/models/registry.json text eol=lf
+
+# IPC 生成检查逐字节比较，Windows 检出也保持确定性的 LF。
+tauri/src/lib/generated/ipcContracts.ts text eol=lf
+tauri/src/lib/generated/ipcContractManifest.json text eol=lf

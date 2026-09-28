@@ -6,6 +6,7 @@ members = [
     "crates/solosoul-sync",
     "crates/solosoul-core",
     "crates/solosoul-plugin",
+    "tools/ipc-contract-gen",
 ]
 resolver = "2"
 

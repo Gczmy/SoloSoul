@@ -60,7 +60,7 @@
 | R | `tauri/` | `cargo fmt --all -- --check`；`cargo clippy -- -D warnings`；`cargo test --verbose`。修改前使用定向包/用例定位，完成时检查受影响 workspace。 |
 | CORE | `tauri/` | 对实际受影响包执行 `cargo test -p solosoul-core`、`cargo test -p solosoul-vault` 等定向检查；仍须满足 R。GUI 包名是 `solo_soul`。 |
 | CLI | `solosoul_cli/` | `cargo fmt --check`；`cargo clippy --all-targets -- -D warnings`；`cargo test --verbose --no-fail-fast`。共享 Rust 变化同时检查 R。 |
-| CONTRACT | `tauri/` | `npm run check:acl`；`npm run check:pref-keys`；`node scripts/check-markdown-chunk-boundary.mjs`；RF-301 完成后再加其实际生成检查命令。 |
+| CONTRACT | `tauri/` | `npm run check:acl`；`npm run check:pref-keys`；`node scripts/check-markdown-chunk-boundary.mjs`；`npm run check:contracts`；`npm run test:contracts`；`python -m unittest discover -s scripts -p test_check_acl_consistency.py`。 |
 | WEB | `tauri/` | 卡片列出的 Playwright 用例，分别按适用的 `--project=chromium`/`--project=mobile` 运行；启动/路由/IPC/主题变化另跑 `npm run test:e2e:production`。 |
 | COVERAGE | `tauri/` | `npm run test -- --coverage`，保存覆盖率报告和阈值结果；不得将未运行的阈值配置视为已达标。 |
 | IOS | macOS 上的 `tauri/` | 安装需要的 Rust targets 后 `cargo check --target aarch64-apple-ios --target aarch64-apple-ios-sim`；原生桥接改动另执行 `npm run tauri:ios:build:sim` 和相关运行验收。 |
@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**97**（P1：35；P2：61；P3：1）。
-- 已关闭：**45 / 97**；实际修复（已关闭）：45；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无；RF-215已完成修复与全部必需验证，提交见本项执行记录。下一候选RF-301（增量IPC契约生成），无任务前置；只读预案已保存，尚未实施。RF-213仍依赖RF-905的真实Sync生命周期；RF-903仍待RF-905。RF-104、RF-014、RF-016、RF-021、RF-905保持既有具体授权阻塞，已归档草案不恢复。Android任务缺少本机C盘可用JDK/SDK/NDK及Rust Android targets，不以浏览器或其他平台替代原生验收。
+- 已关闭：**46 / 97**；实际修复（已关闭）：46；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无；RF-301已完成独立提交（本提交，按ID检索）。下一候选RF-302的只读预案已保存，尚未实施。RF-213仍依赖RF-905的真实Sync生命周期；RF-903仍待RF-905。RF-104、RF-014、RF-016、RF-021、RF-905保持既有具体授权阻塞，已归档草案不恢复。Android任务仍缺本机C盘可用原生工具链，不以其他平台代替。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -196,7 +196,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 68 | [RF-213](#rf-213) | P2 | 将 CLI 同步迁移到任务事件 | [RF-211](#rf-211)、[RF-905](#rf-905) | [ ] 待执行 |
 | 69 | [RF-214](#rf-214) | P2 | 将 CLI 插件安装迁移到任务事件 | [RF-211](#rf-211) | [x] 完成 |
 | 70 | [RF-215](#rf-215) | P2 | 将 CLI OCR 迁移到可取消后台任务 | [RF-211](#rf-211)、[RF-029](#rf-029) | [x] 完成 |
-| 71 | [RF-301](#rf-301) | P2 | 建立 Rust 到 TypeScript 的增量 IPC 契约生成 | 无 | [ ] 待执行 |
+| 71 | [RF-301](#rf-301) | P2 | 建立 Rust 到 TypeScript 的增量 IPC 契约生成 | 无 | [x] 完成 |
 | 72 | [RF-302](#rf-302) | P2 | 迁移对象和回滚 IPC 契约 | [RF-301](#rf-301)、[RF-008](#rf-008)、[RF-010](#rf-010) | [ ] 待执行 |
 | 73 | [RF-303](#rf-303) | P2 | 迁移 LLM 会话与流事件契约 | [RF-301](#rf-301)、[RF-002](#rf-002)、[RF-004](#rf-004)、[RF-005](#rf-005)、[RF-104](#rf-104) | [ ] 待执行 |
 | 74 | [RF-304](#rf-304) | P2 | 迁移备份与导入导出 IPC 契约 | [RF-301](#rf-301)、[RF-013](#rf-013)、[RF-015](#rf-015)、[RF-024](#rf-024) | [ ] 待执行 |
@@ -253,7 +253,7 @@ R 编号只用于追溯，不作为混合提交单位。每个 RF ID 才是本�
 | R21 | 验证设施与 CI | [RF-208](#rf-208)、[RF-308](#rf-308)、[RF-309](#rf-309)、[RF-310](#rf-310)、[RF-311](#rf-311)、[RF-314](#rf-314)、[RF-316](#rf-316) |
 | R22 | 架构与隐私文档 | [RF-313](#rf-313)、[RF-314](#rf-314)、[RF-315](#rf-315) |
 
-R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插件领域。其余命令保留兼容入口，并在 RF-301 的登记清单中逐项标明“未迁移”；不能把试点或这些领域的完成宣称为全部 219 个命令已迁移。扩展到其余命令时按领域新增 RF-900 系列任务。
+R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插件领域。其余命令保留兼容入口，并在 RF-301 的登记清单中逐项标明“未迁移”；不能把试点或这些领域的完成宣称为全部注册命令已迁移（当前数量以生成清单为准）。扩展到其余命令时按领域新增 RF-900 系列任务。
 
 ## 6. 可执行任务卡
 
@@ -2199,4 +2199,34 @@ git commit -m "<任务卡的提交标题>"
 - 所有检查真实 exit0，源码与冻结 SHA 一致，详见恢复目录 `rf215-final-verification.json`；Cargo 串行、jobs=1，使用既有 sqlite3/PDFium 测试环境，无新增 RUSTFLAGS 或依赖升级。新增22项回归在完整CLI中再次通过；原有任务测试只适配实际异步句柄的 Option 类型，保留结束/顺序断言。Rust原有忽略项为两项legacy field测试及P025数据收集工具，CLI为原i18n宏文档示例，没有新增忽略项。
 - Workspace全量耗时包含8m12s重新编译/链接；既有solo_soul.pdb名称冲突警告保留，未降低检查级别。测试使用临时Vault、合成结果和真实PDFium多页管线；ONNX识别回调被可控替身替换，不宣称验证真实模型识别质量或macOS/移动端实机。没有将浏览器结果当作原生验证。
 - canonical 已更新CLI用户指南。收尾范围为12个源码/locale/测试与2份文档；Cargo自动刷新五个本地path包版本已归档并恢复原lock字节，三张用户NSIS位图SHA保持，不纳入本项。
-- 最终结论：本项 **完成**；提交：本提交，使用 `git log --grep=RF-215` 检索，未推送。累计 **45/97已关闭**，原5项具体授权阻塞保持；下一项RF-301只读预案为恢复目录 `rf301-readonly-preplan.md`，尚未实施。
+- 最终结论：本项 **完成**；提交：`c80d2851`（RF-215），未推送。累计 **45/97已关闭**，原5项具体授权阻塞保持；下一项RF-301只读预案为恢复目录 `rf301-readonly-preplan.md`，尚未实施。
+
+### RF-301 执行记录（2026-09-28，完成）
+
+- 基线 `c80d2851`，`main`；继续在 C 盘恢复仓库实施，不访问 D 盘。开始时只有三张用户 NSIS 位图存在真实差异，其 SHA 保存在恢复目录 `rf301-baseline.json`。本项未推送。
+- 新增纯源码工具 `solosoul-ipc-contract-gen 0.1.0`：使用已锁 `syn 2.0.117`、`heck 0.5.0`、`toml 0.9.12+spec-1.1.0`，解析实际 Rust 签名、serde DTO、mod 链、所有 handler 簇及 ACL；选择配置只登记命令/源码和事件 payload，不复制参数或响应类型。工具不链接 Host/Vault、不运行业务或默认值函数，不读取用户密钥。未知或不支持语法报错，不退化为 any。
+- 试点 `get_app_info` 改为明确 AppInfo DTO，保持 appName/version/os/arch 四个必需字符串与原 wire 值。生成参数、响应、事件类型及清单；实际220命令划分为1已迁移、219未迁移，当前生产事件选择为空，非空事件由共源serde夹具验证。前端严格入口使用判别tuple维持命令与参数关联，复用原ipcClient鉴权/请求失效/原错误链；useUpdateChecker迁入，原AppInfo类型导入保持兼容。没有运行时schema验证，也未全局禁止旧入口。
+- 提供 `generate:contracts`、只读 `check:contracts` 和独立 Node `test:contracts`；格式遵从锁定Prettier，生成文件由Git属性固定LF。ACL额外验证已迁移/未迁移分区完整、无遗漏/重叠/重复。两份CI独立检查契约，发布构建通过needs依赖该检查；工具纳入workspace测试，Node测试加入check-all，ACL回归在CI执行，检查失败会阻止发布构建。
+- 定向覆盖同源serde输入/输出差异、Option/default/skip_none、嵌套DTO、枚举、浮点非有限值及空对象、注册/ACL/路径/不支持写法；真实源码副本两次生成逐字节一致，改变实际Rust参数会让check失败并触发TS2741；实际typed wrapper双命令fixture验证相关tuple与12个编译负例。项目另有14个@ts-expect-error，由正常tsc验证全部消费。
+- 两次测试设施失败均保留证据：首轮Node临时编译错误依赖未安装的@types/node，退出1、2/4通过；修为独立tsconfig的types:[]并使用--project，未降低目标错误断言。首次全量Vitest误收集Node runner的.test.mjs，1398业务测试通过但1个suite失败；将新文件命名为.node.mjs，由强制的独立Node命令/CI继续执行全部4例，重跑全量通过。既有RF-316的默认Vitest worker问题未在本项改动，沿用已登记threads/maxWorkers=2，不宣称默认worker配置已修复。
+
+| RF-301 最终验证 | 真实结果 | 耗时/证据 |
+| --- | --- | --- |
+| Rust工具定向 | 17 passed，0 ignored，exit0 | 36.44s，`rf301-generator-test-2` |
+| Rust工具Clippy all-targets | 零警告，exit0 | 56.26s，`rf301-generator-clippy-1` |
+| 实际Rust/TS契约Node回归 | 4 passed，0 skipped，exit0 | 19.03s，`rf301-node-contract-fixtures-3` |
+| ACL清单Python回归 | 12 passed，exit0 | 0.63s，`rf301-acl-fixtures-1` |
+| 项目TypeScript/编译负例 | exit0 | 18.51s，`rf301-tsc-1` |
+| ESLint | 零警告，exit0 | 29.22s，`rf301-lint-1` |
+| 前端定向实际IPC链 | 17 passed，exit0 | 30.67s，`rf301-targeted-front-1` |
+| 完整前端 | 162文件、1398 passed，0 skipped，exit0 | 154.91s，`rf301-full-front-2` |
+| Workspace fmt | exit0 | 3.44s，`rf301-workspace-fmt-1` |
+| Workspace Clippy | 零警告，exit0 | 141.71s，`rf301-workspace-clippy-1` |
+| 完整Rust workspace | 1296 passed，0 failed，3原有ignored，exit0 | 857.60s，`rf301-workspace-tests-1` |
+| 生成漂移检查 | 1已迁移/219兼容/0生产事件，exit0 | 1.23s，`rf301-contract-check-2` |
+| 既有CONTRACT检查 | ACL220命令、preferences22keys、markdown13依赖，均exit0 | `rf301-acl-1`、`rf301-pref-keys-1`、`rf301-markdown-boundary-1` |
+| 修改文件Prettier | exit0 | `rf301-prettier-check-1`、`rf301-prettier-check-2` |
+
+- 本机Windows、Node24.16.0、Rust/Cargo1.96.0；CI仍为Node22，未在本机冒称CI平台运行结果。Cargo串行、jobs=1，沿用既有sqlite3/PDFium环境；全Rust含12m39s编译/链接，原solo_soul.pdb名称冲突警告保留。三项Rust旧忽略为两项legacy field测试和P025数据收集工具，无新增ignore；未进行macOS/移动端实机或云端CI运行，也未宣称这些验收。
+- 锁文件逐包核对：仅新增本地生成器package，已有所有包/版本/依赖及前端lock均未改变。canonical前端架构已同步，详细操作、工具版本及严格支持边界见 [增量IPC契约生成](ipc-contract-generation.md)。证据、源码SHA、日志及真实退出码汇总于恢复目录 `rf301-final-verification.json`；三张用户位图保持原SHA且不暂存。
+- 最终结论：本项 **完成**；提交：本提交（使用RF-301检索），未推送。累计 **46/97已关闭**，原5项具体授权阻塞保持。下一候选RF-302只读预案为恢复目录 `rf302-readonly-preplan.md`，尚未实施，不混入本提交。
