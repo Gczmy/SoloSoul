@@ -31,7 +31,13 @@ export function androidDestination(path: string) {
 
 export function androidNewObjectUrl(path: string, search: string) {
   const page = path.match(/^\/workspace\/custom\/([^/]+)$/)?.[1];
-  if (page) return `/editor?parentId=${encodeURIComponent(decodeURIComponent(page))}`;
+  if (page) {
+    try {
+      return `/editor?parentId=${encodeURIComponent(decodeURIComponent(page))}`;
+    } catch {
+      return '/editor';
+    }
+  }
   const section = new URLSearchParams(search).get('section');
   return path === '/workspace' && section
     ? `/editor?section=${encodeURIComponent(section)}`
