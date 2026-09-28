@@ -10,6 +10,7 @@ export function ImportManifestInfoSection({
   importPreview,
   importPw,
   isDecrypting,
+  isImporting,
   decryptedPreview,
   onSetImportPw,
   onDecrypt,
@@ -18,6 +19,7 @@ export function ImportManifestInfoSection({
   importPreview: ImportPreview;
   importPw: string;
   isDecrypting: boolean;
+  isImporting: boolean;
   decryptedPreview: DecryptedImportPreview | null;
   onSetImportPw: (v: string) => void;
   onDecrypt: () => void;
@@ -45,9 +47,7 @@ export function ImportManifestInfoSection({
         )}
         {importPreview.extraFiles.length > 0 &&
           importPreview.extraFiles.includes('preferences.enc') && (
-            <p style={{ color: 'var(--accent-primary)' }}>
-              {t('settings:includes_preferences')}
-            </p>
+            <p style={{ color: 'var(--accent-primary)' }}>{t('settings:includes_preferences')}</p>
           )}
       </div>
 
@@ -69,6 +69,7 @@ export function ImportManifestInfoSection({
       <div style={{ marginTop: 12 }}>
         <SecurePasswordInput
           value={importPw}
+          disabled={isImporting}
           onChange={(v) => onSetImportPw(v)}
           placeholder={t('common:password_placeholder')}
           showHintButton={false}

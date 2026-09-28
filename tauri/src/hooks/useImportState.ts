@@ -52,11 +52,35 @@ export function useImportState({
     Map<string, ImportStrategy>
   >(new Map());
   const sourceVersion = useRef(0);
+  const passwordVersion = useRef(0);
   useEffect(
     () => () => {
       sourceVersion.current += 1;
     },
     [],
+  );
+
+  const clearDecryptedState = useCallback(() => {
+    setDecryptedPreview(null);
+    setImportSelections(new Map());
+    setImportSelectedPageIds(new Set());
+    setImportSelectedAttachmentIds(new Set());
+    setImportExpandedPages(new Set());
+    setImportExpandedObjects(new Set());
+    setObjectConflictStrategies(new Map());
+    setShowStrategySelector(false);
+    setIsDecrypting(false);
+  }, []);
+
+  const handleSetImportPw = useCallback(
+    (password: string) => {
+      // 导入执行中保持后端正在使用的密码；修改密码会使既有解密预览失效。
+      if (isImporting) return;
+      passwordVersion.current += 1;
+      setImportPw(password);
+      clearDecryptedState();
+    },
+    [clearDecryptedState, isImporting],
   );
 
   const handlePreviewImport = async () => {
@@ -84,15 +108,18 @@ export function useImportState({
   const handleDecryptPreview = async () => {
     if (!importPath || !importPw || isDecrypting) return;
     const version = sourceVersion.current;
+    const credentialVersion = passwordVersion.current;
+    const isCurrent = () =>
+      version === sourceVersion.current && credentialVersion === passwordVersion.current;
     setIsDecrypting(true);
     try {
       const sourcePath = await resolveImportSource(version);
-      if (!sourcePath) return;
+      if (!sourcePath || !isCurrent()) return;
       const preview = await invoke<DecryptedImportPreview>('import_decrypt_preview', {
         filePath: sourcePath,
         password: importPw,
       });
-      if (version !== sourceVersion.current) return;
+      if (!isCurrent()) return;
       setDecryptedPreview(preview);
 
       // 全选所有对象
@@ -116,11 +143,11 @@ export function useImportState({
       setObjectConflictStrategies(new Map());
       setImportSelectedPageIds(pageIds);
     } catch (e) {
-      if (version === sourceVersion.current) {
+      if (isCurrent()) {
         onError(new Error(resolveBackendErrorMessage(e)), t('common:decrypt_failed'));
       }
     } finally {
-      if (version === sourceVersion.current) setIsDecrypting(false);
+      if (isCurrent()) setIsDecrypting(false);
     }
   };
 
@@ -348,25 +375,18 @@ export function useImportState({
       // 导入执行中必须保留原包及其暂存文件，直到后端完成。
       if (isImporting) return;
       sourceVersion.current += 1;
+      passwordVersion.current += 1;
       setImportPath(path);
       setImportPreview(null);
-      setDecryptedPreview(null);
       setImportPw('');
-      setImportSelections(new Map());
-      setImportSelectedPageIds(new Set());
-      setImportSelectedAttachmentIds(new Set());
-      setImportExpandedPages(new Set());
-      setImportExpandedObjects(new Set());
-      setObjectConflictStrategies(new Map());
-      setShowStrategySelector(false);
+      clearDecryptedState();
       setIsPreviewing(false);
-      setIsDecrypting(false);
       if (stagedImportPath) {
         void cleanupStagedFile(stagedImportPath);
         setStagedImportPath(null);
       }
     },
-    [isImporting, stagedImportPath],
+    [clearDecryptedState, isImporting, stagedImportPath],
   );
 
   return {
@@ -386,7 +406,7 @@ export function useImportState({
     importExpandedObjects,
     objectConflictStrategies,
     importTotalSelected,
-    setImportPw,
+    setImportPw: handleSetImportPw,
     setShowStrategySelector,
     setImportStrategy,
     onPreview: handlePreviewImport,

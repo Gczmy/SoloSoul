@@ -110,6 +110,7 @@ export function ImportSection({
             importPreview={importPreview}
             importPw={importPw}
             isDecrypting={isDecrypting}
+            isImporting={isImporting}
             decryptedPreview={decryptedPreview}
             onSetImportPw={onSetImportPw}
             onDecrypt={onDecrypt}

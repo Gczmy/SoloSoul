@@ -409,6 +409,135 @@ describe('RF-919 import preview source ownership', () => {
   });
 });
 
+describe('RF-920 import password ownership', () => {
+  const decrypted = (id: string): DecryptedImportPreview => ({
+    objects: [
+      {
+        id,
+        name: id,
+        typeId: 'note',
+        sectionType: 'notes',
+        sensitivityLevel: 'public',
+        createdAt: '2026-09-28T00:00:00Z',
+        updatedAt: '2026-09-28T00:00:00Z',
+        tags: [],
+      },
+    ],
+    conflicts: [],
+    hasPreferences: false,
+    hasAuditLog: false,
+    attachments: [],
+  });
+  const pending = <T>() => {
+    let resolve!: (value: T) => void;
+    const promise = new Promise<T>((yes) => {
+      resolve = yes;
+    });
+    return { promise, resolve };
+  };
+  const renderImport = () =>
+    renderHook(() =>
+      useImportState({
+        accountId: 'account',
+        onError: mocks.onError,
+        onSuccess: mocks.onSuccess,
+        t: i18n.t.bind(i18n),
+        i18n,
+        reloadScope: vi.fn(),
+      }),
+    );
+
+  it('ignores an old password decrypt after a new password preview completes', async () => {
+    const oldDecrypt = pending<DecryptedImportPreview>();
+    mocks.invoke.mockImplementation((command: string, args: { password: string }) => {
+      if (command !== 'import_decrypt_preview') throw new Error('Unexpected IPC: ' + command);
+      return args.password === 'old-password'
+        ? oldDecrypt.promise
+        : Promise.resolve(decrypted('new-object'));
+    });
+    const { result } = renderImport();
+    act(() => {
+      result.current.onSetImportPath('C:/fixture.solosoul');
+      result.current.setImportPw('old-password');
+    });
+    let oldRequest!: Promise<void>;
+    act(() => {
+      oldRequest = result.current.onDecrypt();
+    });
+    await waitFor(() =>
+      expect(mocks.invoke).toHaveBeenCalledWith('import_decrypt_preview', {
+        filePath: 'C:/fixture.solosoul',
+        password: 'old-password',
+      }),
+    );
+    act(() => result.current.setImportPw('new-password'));
+    expect(result.current.isDecrypting).toBe(false);
+    await act(async () => {
+      await result.current.onDecrypt();
+    });
+    expect(result.current.decryptedPreview).toEqual(decrypted('new-object'));
+    await act(async () => {
+      oldDecrypt.resolve(decrypted('old-object'));
+      await oldRequest;
+    });
+    expect(result.current.decryptedPreview).toEqual(decrypted('new-object'));
+    expect(result.current.importSelections).toEqual(new Map([['new-object', true]]));
+    expect(mocks.onError).not.toHaveBeenCalled();
+  });
+
+  it('invalidates a completed decrypted tree when the password changes', async () => {
+    mocks.invoke.mockImplementation((command: string) => {
+      if (command === 'import_decrypt_preview') return Promise.resolve(decrypted('old-object'));
+      throw new Error('Unexpected IPC: ' + command);
+    });
+    const { result } = renderImport();
+    act(() => {
+      result.current.onSetImportPath('C:/fixture.solosoul');
+      result.current.setImportPw('old-password');
+    });
+    await act(async () => {
+      await result.current.onDecrypt();
+    });
+    expect(result.current.importTotalSelected).toBe(1);
+    act(() => result.current.setImportPw('new-password'));
+    expect(result.current.decryptedPreview).toBeNull();
+    expect(result.current.importSelections).toEqual(new Map());
+    expect(result.current.importTotalSelected).toBe(0);
+    await act(async () => {
+      await result.current.onImport();
+    });
+    expect(mocks.invoke).not.toHaveBeenCalledWith('import_execute_advanced', expect.anything());
+  });
+
+  it('retains the password used by an import until that import settles', async () => {
+    const importing = pending<ImportResult>();
+    mocks.invoke.mockImplementation((command: string) => {
+      if (command === 'import_execute_advanced') return importing.promise;
+      throw new Error('Unexpected IPC: ' + command);
+    });
+    const { result } = renderImport();
+    act(() => {
+      result.current.onSetImportPath('C:/fixture.solosoul');
+      result.current.setImportPw('old-password');
+      result.current.onToggleSelection('object-1');
+    });
+    let request!: Promise<void>;
+    act(() => {
+      request = result.current.onImport();
+    });
+    await waitFor(() => expect(result.current.isImporting).toBe(true));
+    act(() => result.current.setImportPw('new-password'));
+    expect(result.current.importPw).toBe('old-password');
+    await act(async () => {
+      importing.resolve(complete);
+      await request;
+    });
+    expect(result.current.isImporting).toBe(false);
+    act(() => result.current.setImportPw('new-password'));
+    expect(result.current.importPw).toBe('new-password');
+  });
+});
+
 describe('RF-020 cloud incoming outcomes', () => {
   it.each([partial, uncommitted, complete])(
     'advances the waterline only for complete imports ($status)',
