@@ -116,8 +116,7 @@ export function useImportState({
         objectId,
         selected,
       }));
-      const selAttIds =
-        importSelectedAttachmentIds.size > 0 ? Array.from(importSelectedAttachmentIds) : [];
+      const selAttIds = Array.from(importSelectedAttachmentIds);
 
       // 构建 per-object 策略（仅对有显式覆盖设置的冲突对象）
       const objectStrategies: Record<string, ImportStrategy> = {};
@@ -137,7 +136,8 @@ export function useImportState({
           strategy: showStrategySelector ? importStrategy : 'skipExisting',
           sourcePath,
           password: importPw,
-          selectedAttachmentIds: selAttIds.length > 0 ? selAttIds : null,
+          // Host 将 null 解释为导入全部附件；空数组才表示用户取消全部附件。
+          selectedAttachmentIds: selAttIds,
           objectStrategies,
           locale: i18n.language,
         },

@@ -2,7 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '@/lib/i18n';
 import { setRequestSession } from '@/lib/sessionRequests';
-import type { ImportResult } from '@/types/exportImport';
+import type { DecryptedImportPreview, ImportResult } from '@/types/exportImport';
 import { useImportState } from './useImportState';
 import { useCloudSyncPage } from '@/pages/settings/cloudSync/useCloudSyncPage';
 
@@ -120,6 +120,84 @@ describe('RF-020 ordinary import outcomes', () => {
         expect(mocks.onError.mock.calls[0][0].message).not.toContain('settings:');
       }
       expect(reload).toHaveBeenCalledTimes(outcome.status === 'notCommitted' ? 0 : 1);
+    },
+  );
+});
+
+describe('RF-918 ordinary import attachment selection', () => {
+  const decrypted: DecryptedImportPreview = {
+    objects: [
+      {
+        id: 'object-1',
+        name: 'Fixture',
+        typeId: 'note',
+        sectionType: 'notes',
+        sensitivityLevel: 'public',
+        createdAt: '2026-09-28T00:00:00Z',
+        updatedAt: '2026-09-28T00:00:00Z',
+        tags: [],
+      },
+    ],
+    conflicts: [],
+    hasPreferences: false,
+    hasAuditLog: false,
+    attachments: [
+      { id: 'attachment-1', objectId: 'object-1', fileName: 'one.txt', sizeBytes: 1 },
+      { id: 'attachment-2', objectId: 'object-1', fileName: 'two.txt', sizeBytes: 2 },
+    ],
+  };
+
+  it.each([
+    { deselected: ['attachment-1', 'attachment-2'], expected: [] },
+    { deselected: ['attachment-2'], expected: ['attachment-1'] },
+  ])(
+    'sends exactly the selected attachment IDs after deselecting $deselected',
+    async ({ deselected, expected }) => {
+      mocks.invoke.mockImplementation(async (command: string) => {
+        if (command === 'import_decrypt_preview') return decrypted;
+        if (command === 'import_execute_advanced') return complete;
+        throw new Error('Unexpected IPC: ' + command);
+      });
+      const { result } = renderHook(() =>
+        useImportState({
+          accountId: 'account',
+          onError: mocks.onError,
+          onSuccess: mocks.onSuccess,
+          t: i18n.t.bind(i18n),
+          i18n,
+          reloadScope: vi.fn(),
+        }),
+      );
+      act(() => {
+        result.current.onSetImportPath('C:/fixture.solosoul');
+        result.current.setImportPw('export-password');
+      });
+      await act(async () => {
+        await result.current.onDecrypt();
+      });
+      expect(result.current.importTotalSelected).toBe(1);
+      expect(result.current.importSelectedAttachmentIds).toEqual(
+        new Set(['attachment-1', 'attachment-2']),
+      );
+      act(() => {
+        for (const id of deselected) result.current.onToggleImportAttachment(id);
+      });
+      expect(result.current.importSelectedAttachmentIds).toEqual(new Set(expected));
+      await act(async () => {
+        await result.current.onImport();
+      });
+      expect(mocks.invoke).toHaveBeenCalledWith(
+        'import_execute_advanced',
+        expect.objectContaining({
+          accountId: 'account',
+          req: expect.objectContaining({
+            selections: [{ objectId: 'object-1', selected: true }],
+            selectedAttachmentIds: expected,
+          }),
+        }),
+      );
+      expect(mocks.onSuccess).toHaveBeenCalledOnce();
+      expect(mocks.onError).not.toHaveBeenCalled();
     },
   );
 });
