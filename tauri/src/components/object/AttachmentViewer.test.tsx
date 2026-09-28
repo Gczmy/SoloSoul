@@ -233,7 +233,7 @@ describe('RF-911 attachment metadata save wiring', () => {
     expect(mockInvoke).toHaveBeenCalledWith('attachment_update_meta', {
       objectId,
       attachmentId: original.id,
-      description: null,
+      description: '',
       tags: [],
     });
     expect(within(panel).getByRole('checkbox', { name: original.fileName })).toBeInTheDocument();
@@ -242,7 +242,7 @@ describe('RF-911 attachment metadata save wiring', () => {
     expectUntouchedAttachment(panel);
     openRowEditor(panel);
     expectEditorMetadata(original.fileName, '', []);
-    // 仅验证本地投影；IPC mock 不模拟 Rust Option/null 的持久化清空语义。
+    // 验证空串传参与本地空值回写；IPC mock 不代替真实 Vault 持久化验证。
     expectNoListReload();
   });
 

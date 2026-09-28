@@ -131,7 +131,8 @@ export function AttachmentMetaEditDialog({
       await invoke('attachment_update_meta', {
         objectId: item.objectId,
         attachmentId: item.id,
-        description: updated.description,
+        // Host 将 null/None 视为不修改，清除必须传空字符串；本地回调仍使用 null。
+        description: trimmedDesc,
         tags: updated.tags,
       });
       onSaved(updated);

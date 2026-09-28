@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { invoke } from '@tauri-apps/api/core';
+import { useUiStore } from '@/stores/uiStore';
 import { AttachmentMetaEditDialog } from './AttachmentMetaEditDialog';
 
 const mockInvoke = vi.mocked(invoke);
@@ -17,6 +18,11 @@ describe('AttachmentMetaEditDialog', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
     mockInvoke.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    cleanup();
+    for (const toast of useUiStore.getState().toasts) useUiStore.getState().dismissToast(toast.id);
   });
 
   it('预填描述与标签，添加标签后保存调用 attachment_update_meta', async () => {
@@ -48,11 +54,14 @@ describe('AttachmentMetaEditDialog', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('空描述保存为 null（清除），重复标签去重', async () => {
+  it.each([
+    { label: '空串', description: '' },
+    { label: '纯空白', description: '   \n\t ' },
+  ])('$label 描述通过空字符串 IPC 清除，回调仍为 null，重复标签去重', async ({ description }) => {
     const onSaved = vi.fn();
     render(<AttachmentMetaEditDialog item={baseItem} onSaved={onSaved} onClose={vi.fn()} />);
 
-    fireEvent.change(screen.getByDisplayValue('现有描述'), { target: { value: '   ' } });
+    fireEvent.change(screen.getByDisplayValue('现有描述'), { target: { value: description } });
     const tagInput = screen.getByPlaceholderText(/Type a tag/i);
     // 重复标签 + 空白输入均不新增
     fireEvent.change(tagInput, { target: { value: '旅行' } });
@@ -64,6 +73,12 @@ describe('AttachmentMetaEditDialog', () => {
 
     await waitFor(() => {
       expect(onSaved).toHaveBeenCalledWith({ description: null, tags: ['旅行'] });
+    });
+    expect(mockInvoke).toHaveBeenCalledWith('attachment_update_meta', {
+      objectId: 'obj-1',
+      attachmentId: 'att-1',
+      description: '',
+      tags: ['旅行'],
     });
   });
 
@@ -151,19 +166,25 @@ describe('AttachmentMetaEditDialog', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('名称未改动时不触发 attachment_rename（onSaved 不带 fileName）', async () => {
+  it('名称未改动时不重命名，非空描述在 IPC 与回调中均 trim', async () => {
     const onSaved = vi.fn();
     render(<AttachmentMetaEditDialog item={baseItem} onSaved={onSaved} onClose={vi.fn()} />);
 
     // 名称保持原值，仅改描述
     fireEvent.change(screen.getByDisplayValue('现有描述'), {
-      target: { value: '新描述' },
+      target: { value: '  新描述 \n\t ' },
     });
     fireEvent.click(screen.getByRole('button', { name: /common:save/i }));
 
     await waitFor(() => {
       expect(mockInvoke).not.toHaveBeenCalledWith('attachment_rename', expect.anything());
       expect(onSaved).toHaveBeenCalledWith({ description: '新描述', tags: ['旅行'] });
+    });
+    expect(mockInvoke).toHaveBeenCalledWith('attachment_update_meta', {
+      objectId: 'obj-1',
+      attachmentId: 'att-1',
+      description: '新描述',
+      tags: ['旅行'],
     });
   });
 
@@ -187,17 +208,41 @@ describe('AttachmentMetaEditDialog', () => {
     expect(screen.queryByText('旅行')).not.toBeInTheDocument();
   });
 
-  it('保存失败时不关闭对话框', async () => {
-    mockInvoke.mockRejectedValue(new Error('boom'));
+  it('保存失败结算后不回调或关闭，保留草稿并可重试', async () => {
+    mockInvoke.mockRejectedValueOnce(new Error('boom'));
+    const onSaved = vi.fn();
     const onClose = vi.fn();
-    render(<AttachmentMetaEditDialog item={baseItem} onSaved={vi.fn()} onClose={onClose} />);
+    render(<AttachmentMetaEditDialog item={baseItem} onSaved={onSaved} onClose={onClose} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /common:save/i }));
-
-    // 等待 IPC 调用结算（错误 toast 由全局 ToastContainer 渲染，单测中不挂载）
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalled();
+    fireEvent.change(screen.getByDisplayValue('现有描述'), {
+      target: { value: '  重试描述  ' },
     });
+    const save = screen.getByRole('button', { name: /common:save/i });
+    fireEvent.click(save);
+
+    // 错误 toast 证明 catch 已执行，按钮恢复证明 finally 已结束。
+    await waitFor(() => {
+      expect(useUiStore.getState().toasts.map((toast) => toast.type)).toEqual(['error']);
+      expect(save).toBeEnabled();
+    });
+    expect(onSaved).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Add a description…')).toHaveValue('  重试描述  ');
+
+    fireEvent.click(save);
+    await waitFor(() => {
+      expect(onSaved).toHaveBeenCalledExactlyOnceWith({ description: '重试描述', tags: ['旅行'] });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+    expect(mockInvoke).toHaveBeenCalledTimes(2);
+    for (const attempt of [1, 2]) {
+      expect(mockInvoke).toHaveBeenNthCalledWith(attempt, 'attachment_update_meta', {
+        objectId: 'obj-1',
+        attachmentId: 'att-1',
+        description: '重试描述',
+        tags: ['旅行'],
+      });
+    }
   });
 });
