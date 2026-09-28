@@ -1,10 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
-import type {
-  ImportStrategy,
-  ImportPreview,
-  DecryptedImportPreview,
-} from '@/types/exportImport';
+import type { ImportStrategy, ImportPreview, DecryptedImportPreview } from '@/types/exportImport';
 
 import { ImportFileSelectorCard } from './ImportFileSelectorCard';
 import { ImportManifestInfoSection } from './ImportManifestInfoSection';
@@ -28,8 +24,6 @@ interface ImportSectionProps {
   importExpandedObjects: Set<string>;
   importTotalSelected: number;
   onSetImportPath: (v: string) => void;
-  onSetImportPreview: (v: ImportPreview | null) => void;
-  onSetDecryptedPreview: (v: DecryptedImportPreview | null) => void;
   onSetImportPw: (v: string) => void;
   onSetShowStrategySelector: (v: boolean) => void;
   onPreview: () => void;
@@ -70,8 +64,6 @@ export function ImportSection({
   importExpandedObjects,
   importTotalSelected,
   onSetImportPath,
-  onSetImportPreview,
-  onSetDecryptedPreview,
   onSetImportPw,
   onSetShowStrategySelector,
   onPreview,
@@ -100,11 +92,8 @@ export function ImportSection({
         importPath={importPath}
         importPreview={importPreview}
         isPreviewing={isPreviewing}
+        isImporting={isImporting}
         onSetImportPath={onSetImportPath}
-        onSetImportPreview={onSetImportPreview}
-        onSetDecryptedPreview={onSetDecryptedPreview}
-        onSetImportPw={onSetImportPw}
-        onSetShowStrategySelector={onSetShowStrategySelector}
         onPreview={onPreview}
         t={t}
       />

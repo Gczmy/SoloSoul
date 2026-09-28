@@ -1,7 +1,7 @@
 import type { TFunction } from 'i18next';
 import { Card } from '@/components/ui/Card';
 import { TransferButton } from '@/components/transfer/TransferButton';
-import type { DecryptedImportPreview, ImportPreview } from '@/types/exportImport';
+import type { ImportPreview } from '@/types/exportImport';
 
 /**
  * ImportSection 的「选择文件」卡片（P046 拆分：展示子组件）。
@@ -10,22 +10,16 @@ export function ImportFileSelectorCard({
   importPath,
   importPreview,
   isPreviewing,
+  isImporting,
   onSetImportPath,
-  onSetImportPreview,
-  onSetDecryptedPreview,
-  onSetImportPw,
-  onSetShowStrategySelector,
   onPreview,
   t,
 }: {
   importPath: string;
   importPreview: ImportPreview | null;
   isPreviewing: boolean;
+  isImporting: boolean;
   onSetImportPath: (v: string) => void;
-  onSetImportPreview: (v: ImportPreview | null) => void;
-  onSetDecryptedPreview: (v: DecryptedImportPreview | null) => void;
-  onSetImportPw: (v: string) => void;
-  onSetShowStrategySelector: (v: boolean) => void;
   onPreview: () => void;
   t: TFunction;
 }) {
@@ -46,6 +40,7 @@ export function ImportFileSelectorCard({
         {importPath || t('settings:no_file_selected')}
       </div>
       <TransferButton
+        disabled={isImporting}
         onClick={async () => {
           const { openWithPause } = await import('@/lib/dialog');
           const selected = await openWithPause({
@@ -54,10 +49,6 @@ export function ImportFileSelectorCard({
           });
           if (selected) {
             onSetImportPath(selected as string);
-            onSetImportPreview(null);
-            onSetDecryptedPreview(null);
-            onSetImportPw('');
-            onSetShowStrategySelector(false);
           }
         }}
       >

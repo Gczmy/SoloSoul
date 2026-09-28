@@ -94,8 +94,6 @@ export function ExportImportPage() {
     objectConflictStrategies,
     importTotalSelected,
     handleSetImportPath,
-    setImportPreview,
-    setDecryptedPreview,
     setImportPw,
     setShowStrategySelector,
     setImportStrategy,
@@ -249,8 +247,6 @@ export function ExportImportPage() {
             importExpandedObjects={importExpandedObjects}
             importTotalSelected={importTotalSelected}
             onSetImportPath={handleSetImportPath}
-            onSetImportPreview={setImportPreview}
-            onSetDecryptedPreview={setDecryptedPreview}
             onSetImportPw={setImportPw}
             onSetShowStrategySelector={setShowStrategySelector}
             onPreview={handlePreviewImport}

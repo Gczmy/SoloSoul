@@ -50,10 +50,7 @@ export function useExportImportPage() {
     };
   }, []);
 
-  const exportImportGuidePages = useMemo(
-    () => buildExportImportGuidePages(t),
-    [t],
-  );
+  const exportImportGuidePages = useMemo(() => buildExportImportGuidePages(t), [t]);
 
   // Export state
   const [includeAttachments, setIncludeAttachments] = useState(false);
@@ -119,8 +116,6 @@ export function useExportImportPage() {
     importExpandedObjects,
     objectConflictStrategies,
     importTotalSelected,
-    setImportPreview,
-    setDecryptedPreview,
     setImportPw,
     setShowStrategySelector,
     setImportStrategy,
@@ -319,8 +314,6 @@ export function useExportImportPage() {
     objectConflictStrategies,
     importTotalSelected,
     handleSetImportPath,
-    setImportPreview,
-    setDecryptedPreview,
     setImportPw,
     setShowStrategySelector,
     setImportStrategy,

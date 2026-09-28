@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { TFunction, i18n as I18n } from 'i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { cleanupStagedFile, isUriPath, stageImportPackage } from '@/lib/mobileFileTransfer';
@@ -51,33 +51,48 @@ export function useImportState({
   const [objectConflictStrategies, setObjectConflictStrategies] = useState<
     Map<string, ImportStrategy>
   >(new Map());
+  const sourceVersion = useRef(0);
+  useEffect(
+    () => () => {
+      sourceVersion.current += 1;
+    },
+    [],
+  );
 
   const handlePreviewImport = async () => {
     if (!importPath || isPreviewing) return;
+    const version = sourceVersion.current;
     setIsPreviewing(true);
     try {
-      const sourcePath = await resolveImportSource();
+      const sourcePath = await resolveImportSource(version);
+      if (!sourcePath) return;
       const preview = await invoke<ImportPreview>('import_parse_package', {
         filePath: sourcePath,
       });
+      if (version !== sourceVersion.current) return;
       setImportPreview(preview);
       setDecryptedPreview(null);
     } catch (e) {
-      onError(new Error(resolveBackendErrorMessage(e)), t('common:preview_failed'));
+      if (version === sourceVersion.current) {
+        onError(new Error(resolveBackendErrorMessage(e)), t('common:preview_failed'));
+      }
     } finally {
-      setIsPreviewing(false);
+      if (version === sourceVersion.current) setIsPreviewing(false);
     }
   };
 
   const handleDecryptPreview = async () => {
     if (!importPath || !importPw || isDecrypting) return;
+    const version = sourceVersion.current;
     setIsDecrypting(true);
     try {
-      const sourcePath = await resolveImportSource();
+      const sourcePath = await resolveImportSource(version);
+      if (!sourcePath) return;
       const preview = await invoke<DecryptedImportPreview>('import_decrypt_preview', {
         filePath: sourcePath,
         password: importPw,
       });
+      if (version !== sourceVersion.current) return;
       setDecryptedPreview(preview);
 
       // 全选所有对象
@@ -101,9 +116,11 @@ export function useImportState({
       setObjectConflictStrategies(new Map());
       setImportSelectedPageIds(pageIds);
     } catch (e) {
-      onError(new Error(resolveBackendErrorMessage(e)), t('common:decrypt_failed'));
+      if (version === sourceVersion.current) {
+        onError(new Error(resolveBackendErrorMessage(e)), t('common:decrypt_failed'));
+      }
     } finally {
-      setIsDecrypting(false);
+      if (version === sourceVersion.current) setIsDecrypting(false);
     }
   };
 
@@ -111,7 +128,8 @@ export function useImportState({
     if (!importPath || !importPw || importTotalSelected === 0) return;
     setIsImporting(true);
     try {
-      const sourcePath = await resolveImportSource();
+      const sourcePath = await resolveImportSource(sourceVersion.current);
+      if (!sourcePath) return;
       const selections = Array.from(importSelections.entries()).map(([objectId, selected]) => ({
         objectId,
         selected,
@@ -307,25 +325,48 @@ export function useImportState({
    * 获取导入命令实际使用的本地路径。
    * Android 返回 content:// URI 时，先通过 plugin-fs 复制到应用缓存。
    */
-  const resolveImportSource = useCallback(async () => {
-    if (stagedImportPath) return stagedImportPath;
-    if (isUriPath(importPath)) {
-      const local = await stageImportPackage(importPath);
-      setStagedImportPath(local);
-      return local;
-    }
-    return importPath;
-  }, [importPath, stagedImportPath]);
+  const resolveImportSource = useCallback(
+    async (version: number): Promise<string | null> => {
+      if (version !== sourceVersion.current) return null;
+      if (stagedImportPath) return stagedImportPath;
+      if (isUriPath(importPath)) {
+        const local = await stageImportPackage(importPath);
+        if (version !== sourceVersion.current) {
+          void cleanupStagedFile(local);
+          return null;
+        }
+        setStagedImportPath(local);
+        return local;
+      }
+      return importPath;
+    },
+    [importPath, stagedImportPath],
+  );
 
   const handleSetImportPath = useCallback(
     (path: string) => {
+      // 导入执行中必须保留原包及其暂存文件，直到后端完成。
+      if (isImporting) return;
+      sourceVersion.current += 1;
       setImportPath(path);
+      setImportPreview(null);
+      setDecryptedPreview(null);
+      setImportPw('');
+      setImportSelections(new Map());
+      setImportSelectedPageIds(new Set());
+      setImportSelectedAttachmentIds(new Set());
+      setImportExpandedPages(new Set());
+      setImportExpandedObjects(new Set());
+      setObjectConflictStrategies(new Map());
+      setShowStrategySelector(false);
+      setIsPreviewing(false);
+      setIsDecrypting(false);
       if (stagedImportPath) {
-        cleanupStagedFile(stagedImportPath);
+        void cleanupStagedFile(stagedImportPath);
         setStagedImportPath(null);
       }
     },
-    [stagedImportPath],
+    [isImporting, stagedImportPath],
   );
 
   return {
@@ -345,8 +386,6 @@ export function useImportState({
     importExpandedObjects,
     objectConflictStrategies,
     importTotalSelected,
-    setImportPreview,
-    setDecryptedPreview,
     setImportPw,
     setShowStrategySelector,
     setImportStrategy,

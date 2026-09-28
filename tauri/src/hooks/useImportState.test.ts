@@ -2,7 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '@/lib/i18n';
 import { setRequestSession } from '@/lib/sessionRequests';
-import type { DecryptedImportPreview, ImportResult } from '@/types/exportImport';
+import type { DecryptedImportPreview, ImportPreview, ImportResult } from '@/types/exportImport';
 import { useImportState } from './useImportState';
 import { useCloudSyncPage } from '@/pages/settings/cloudSync/useCloudSyncPage';
 
@@ -200,6 +200,213 @@ describe('RF-918 ordinary import attachment selection', () => {
       expect(mocks.onError).not.toHaveBeenCalled();
     },
   );
+});
+
+describe('RF-919 import preview source ownership', () => {
+  const manifest = (filePath: string): ImportPreview => ({
+    filePath,
+    version: '1',
+    objectCount: 1,
+    hasAttachments: false,
+    extraFiles: [],
+    exportTime: null,
+    passwordHint: null,
+  });
+  const decrypted = (id: string): DecryptedImportPreview => ({
+    objects: [
+      {
+        id,
+        name: id,
+        typeId: 'note',
+        sectionType: 'notes',
+        sensitivityLevel: 'public',
+        createdAt: '2026-09-28T00:00:00Z',
+        updatedAt: '2026-09-28T00:00:00Z',
+        tags: [],
+      },
+    ],
+    conflicts: [],
+    hasPreferences: false,
+    hasAuditLog: false,
+    attachments: [],
+  });
+  const pending = <T>() => {
+    let resolve!: (value: T) => void;
+    let reject!: (reason: Error) => void;
+    const promise = new Promise<T>((yes, no) => {
+      resolve = yes;
+      reject = no;
+    });
+    return { promise, resolve, reject };
+  };
+  const renderImport = () =>
+    renderHook(() =>
+      useImportState({
+        accountId: 'account',
+        onError: mocks.onError,
+        onSuccess: mocks.onSuccess,
+        t: i18n.t.bind(i18n),
+        i18n,
+        reloadScope: vi.fn(),
+      }),
+    );
+
+  it('keeps the new package manifest when an earlier parse finishes late', async () => {
+    const oldParse = pending<ImportPreview>();
+    mocks.invoke.mockImplementation((command: string, args: { filePath: string }) => {
+      if (command !== 'import_parse_package') throw new Error('Unexpected IPC: ' + command);
+      return args.filePath === 'C:/old.solosoul'
+        ? oldParse.promise
+        : Promise.resolve(manifest('C:/new.solosoul'));
+    });
+    const { result } = renderImport();
+    act(() => result.current.onSetImportPath('C:/old.solosoul'));
+    let oldRequest!: Promise<void>;
+    act(() => {
+      oldRequest = result.current.onPreview();
+    });
+    await waitFor(() =>
+      expect(mocks.invoke).toHaveBeenCalledWith('import_parse_package', {
+        filePath: 'C:/old.solosoul',
+      }),
+    );
+    act(() => result.current.onSetImportPath('C:/new.solosoul'));
+    await act(async () => {
+      await result.current.onPreview();
+    });
+    expect(result.current.importPreview).toEqual(manifest('C:/new.solosoul'));
+    await act(async () => {
+      oldParse.resolve(manifest('C:/old.solosoul'));
+      await oldRequest;
+    });
+    expect(result.current.importPreview).toEqual(manifest('C:/new.solosoul'));
+    expect(mocks.onError).not.toHaveBeenCalled();
+  });
+
+  it('keeps the new decrypted tree and selections when the old decrypt finishes late', async () => {
+    const oldDecrypt = pending<DecryptedImportPreview>();
+    mocks.invoke.mockImplementation((command: string, args: { filePath: string }) => {
+      if (command !== 'import_decrypt_preview') throw new Error('Unexpected IPC: ' + command);
+      return args.filePath === 'C:/old.solosoul'
+        ? oldDecrypt.promise
+        : Promise.resolve(decrypted('new-object'));
+    });
+    const { result } = renderImport();
+    act(() => {
+      result.current.onSetImportPath('C:/old.solosoul');
+      result.current.setImportPw('old-password');
+    });
+    let oldRequest!: Promise<void>;
+    act(() => {
+      oldRequest = result.current.onDecrypt();
+    });
+    await waitFor(() =>
+      expect(mocks.invoke).toHaveBeenCalledWith('import_decrypt_preview', {
+        filePath: 'C:/old.solosoul',
+        password: 'old-password',
+      }),
+    );
+    act(() => {
+      result.current.onSetImportPath('C:/new.solosoul');
+      result.current.setImportPw('new-password');
+    });
+    await act(async () => {
+      await result.current.onDecrypt();
+    });
+    expect(result.current.decryptedPreview).toEqual(decrypted('new-object'));
+    await act(async () => {
+      oldDecrypt.resolve(decrypted('old-object'));
+      await oldRequest;
+    });
+    expect(result.current.decryptedPreview).toEqual(decrypted('new-object'));
+    expect(result.current.importSelections).toEqual(new Map([['new-object', true]]));
+    expect(mocks.onError).not.toHaveBeenCalled();
+  });
+
+  it('does not reuse a staged Android URI after its source is replaced', async () => {
+    const oldStage = pending<string>();
+    mocks.stage.mockImplementation((uri: string) =>
+      uri === 'content://old' ? oldStage.promise : Promise.resolve('cached-new.solosoul'),
+    );
+    mocks.invoke.mockImplementation((command: string, args: { filePath: string }) => {
+      if (command !== 'import_parse_package') throw new Error('Unexpected IPC: ' + command);
+      return Promise.resolve(manifest(args.filePath));
+    });
+    const { result } = renderImport();
+    act(() => result.current.onSetImportPath('content://old'));
+    let oldRequest!: Promise<void>;
+    act(() => {
+      oldRequest = result.current.onPreview();
+    });
+    await waitFor(() => expect(mocks.stage).toHaveBeenCalledWith('content://old'));
+    act(() => result.current.onSetImportPath('content://new'));
+    await act(async () => {
+      await result.current.onPreview();
+    });
+    expect(result.current.importPreview).toEqual(manifest('cached-new.solosoul'));
+    await act(async () => {
+      oldStage.resolve('cached-old.solosoul');
+      await oldRequest;
+    });
+    expect(mocks.cleanup).toHaveBeenCalledWith('cached-old.solosoul');
+    expect(mocks.invoke).not.toHaveBeenCalledWith('import_parse_package', {
+      filePath: 'cached-old.solosoul',
+    });
+    expect(result.current.importPreview).toEqual(manifest('cached-new.solosoul'));
+  });
+
+  it('does not replace the source while its import is still executing', async () => {
+    const oldImport = pending<ImportResult>();
+    mocks.invoke.mockImplementation((command: string) => {
+      if (command === 'import_execute_advanced') return oldImport.promise;
+      throw new Error('Unexpected IPC: ' + command);
+    });
+    const { result } = renderImport();
+    act(() => {
+      result.current.onSetImportPath('C:/old.solosoul');
+      result.current.setImportPw('export-password');
+      result.current.onToggleSelection('object-1');
+    });
+    let importRequest!: Promise<void>;
+    act(() => {
+      importRequest = result.current.onImport();
+    });
+    await waitFor(() => expect(result.current.isImporting).toBe(true));
+    act(() => result.current.onSetImportPath('C:/new.solosoul'));
+    expect(result.current.importPath).toBe('C:/old.solosoul');
+    await act(async () => {
+      oldImport.resolve(complete);
+      await importRequest;
+    });
+    expect(result.current.isImporting).toBe(false);
+    act(() => result.current.onSetImportPath('C:/new.solosoul'));
+    expect(result.current.importPath).toBe('C:/new.solosoul');
+  });
+
+  it('does not surface an old parse error after the import page unmounts', async () => {
+    const oldParse = pending<ImportPreview>();
+    mocks.invoke.mockImplementation((command: string) => {
+      if (command === 'import_parse_package') return oldParse.promise;
+      throw new Error('Unexpected IPC: ' + command);
+    });
+    const { result, unmount } = renderImport();
+    act(() => result.current.onSetImportPath('C:/old.solosoul'));
+    let oldRequest!: Promise<void>;
+    act(() => {
+      oldRequest = result.current.onPreview();
+    });
+    await waitFor(() =>
+      expect(mocks.invoke).toHaveBeenCalledWith('import_parse_package', {
+        filePath: 'C:/old.solosoul',
+      }),
+    );
+    unmount();
+    await act(async () => {
+      oldParse.reject(new Error('old package failed'));
+      await oldRequest;
+    });
+    expect(mocks.onError).not.toHaveBeenCalled();
+  });
 });
 
 describe('RF-020 cloud incoming outcomes', () => {
