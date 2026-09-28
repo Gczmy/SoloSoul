@@ -44,7 +44,7 @@ function getFileName(filePath: string): string {
     // 忽略 URI 解析异常，继续兜底
   }
 
-  return filePath.split('/').pop() || filePath.split('\\').pop() || 'file';
+  return filePath.replace(/\\/g, '/').split('/').pop() || 'file';
 }
 
 /** 从文件名获取 MIME type */
