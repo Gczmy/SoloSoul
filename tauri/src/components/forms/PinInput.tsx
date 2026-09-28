@@ -40,6 +40,8 @@ export const PinInput = forwardRef<PinInputHandle, PinInputProps>(function PinIn
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (disabled || verifying) return;
     const digits = e.target.value.replace(/\D/g, '').slice(0, length);
+    if (digits === valueRef.current) return;
+    valueRef.current = digits;
     setValue(digits);
     if (digits.length === length) {
       onComplete(digits);
@@ -64,13 +66,17 @@ export const PinInput = forwardRef<PinInputHandle, PinInputProps>(function PinIn
       if (e.key >= '0' && e.key <= '9') {
         e.preventDefault();
         const next = (valueRef.current + e.key).slice(0, length);
+        if (next === valueRef.current) return;
+        valueRef.current = next;
         setValue(next);
         if (next.length === length) {
           onComplete(next);
         }
       } else if (e.key === 'Backspace') {
         e.preventDefault();
-        setValue(valueRef.current.slice(0, -1));
+        const next = valueRef.current.slice(0, -1);
+        valueRef.current = next;
+        setValue(next);
       } else if (e.key === 'Enter' && valueRef.current.length > 0) {
         e.preventDefault();
         onComplete(valueRef.current);
