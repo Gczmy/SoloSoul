@@ -22,6 +22,11 @@ export type { AttachmentItem } from '@/lib/attachmentUtils';
  * 本组件仅负责 JSX 组合与子组件装配。
  */
 export function AttachmentViewer(props: AttachmentViewerProps) {
+  // 同一浮层切换对象时重建所有附件状态，隔离迟到的列表结果、选择和确认框。
+  return <AttachmentViewerForObject key={props.objectId} {...props} />;
+}
+
+function AttachmentViewerForObject(props: AttachmentViewerProps) {
   const {
     zIndex,
     objectId,
