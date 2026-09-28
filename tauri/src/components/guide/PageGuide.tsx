@@ -368,6 +368,7 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
                 </div>
                 <button
                   onClick={handleClose}
+                  aria-label={t('close', { defaultValue: '关闭' })}
                   className="interactive-accent"
                   style={{
                     padding: 6,

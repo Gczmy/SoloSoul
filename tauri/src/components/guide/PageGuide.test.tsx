@@ -37,3 +37,19 @@ describe('PageGuide 触摸中断', () => {
     expect(screen.getByRole('dialog', { name: '第二页' })).toBeInTheDocument();
   });
 });
+
+describe('PageGuide 关闭操作', () => {
+  it('图标关闭按钮有可访问名称，关闭后焦点回到触发器', () => {
+    render(
+      <MemoryRouter>
+        <PageGuide pages={pages} label="打开指南" />
+      </MemoryRouter>,
+    );
+    const trigger = screen.getByRole('button', { name: '打开指南' });
+    fireEvent.click(trigger);
+
+    fireEvent.click(screen.getByRole('button', { name: '关闭' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+});
