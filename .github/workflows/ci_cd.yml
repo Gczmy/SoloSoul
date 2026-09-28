@@ -137,6 +137,66 @@ jobs:
           cd tauri
           cargo test --verbose
 
+  # Windows Host 测试必须实际启动测试程序，不能由 Linux 测试或 Windows 打包代替。
+  windows-rust-test:
+    name: Windows Rust Regression Tests
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: tauri
+    env:
+      CARGO_BUILD_JOBS: '2'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tauri
+
+      - name: Stage desktop plugin resources
+        run: node scripts/stage-desktop-resources.cjs
+
+      - name: Prepare Windows PDFium
+        shell: bash
+        run: |
+          bash scripts/download-pdfium.sh
+          node ../scripts/verify-windows-pdfium.mjs src-tauri/resources/pdfium/pdfium.dll
+
+      - name: Run Windows Vault, core and Host tests
+        shell: bash
+        timeout-minutes: 90
+        run: |
+          mkdir -p ../rf309-logs
+          export PDFIUM_LIBRARY_PATH="$(cygpath -w "$PWD/src-tauri/resources/pdfium/pdfium.dll")"
+          set +e
+          cargo test -p solosoul-vault -p solosoul-core --no-fail-fast 2>&1 | tee ../rf309-logs/core.log
+          core_exit=${PIPESTATUS[0]}
+          cargo test -p solo_soul --no-fail-fast 2>&1 | tee ../rf309-logs/host.log
+          host_exit=${PIPESTATUS[0]}
+          echo "Vault/core exit: $core_exit; Host exit: $host_exit"
+          test "$core_exit" -eq 0 && test "$host_exit" -eq 0
+
+      - name: Upload Windows Rust failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-rust-test-logs
+          path: rf309-logs/*.log
+          if-no-files-found: warn
+
   # ============================================================
   # Job 2b: Plugin Market Registry Check
   # ============================================================
@@ -382,7 +442,7 @@ jobs:
     name: Create Release Draft
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    needs: [build-macos, build-windows]
+    needs: [build-macos, build-windows, windows-rust-test]
     steps:
       - uses: actions/checkout@v4
 

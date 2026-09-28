@@ -120,8 +120,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**103**（P1：36；P2：66；P3：1）。
-- 已关闭：**55 / 103**；实际修复（已关闭）：55；排除：0；待验证/阻塞：9（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208缺macOS实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无。RF-208已移除机器专属JDK路径，并完成Windows/Linux目标构建；macOS实测待可用构建机，其他无依赖任务继续执行。
+- 已关闭：**55 / 103**；实际修复（已关闭）：55；排除：0；待验证/阻塞：10（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208缺macOS实测，RF-309缺远端Windows CI证据）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无。RF-208与RF-309的实现已分别提交，均保留所缺平台/CI验收；继续其他无依赖任务。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -204,7 +204,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 75 | [RF-305](#rf-305) | P2 | 迁移同步 IPC 与事件契约 | [RF-301](#rf-301)、[RF-003](#rf-003) | [!] 阻塞：待明确授权 |
 | 76 | [RF-306](#rf-306) | P2 | 迁移插件 IPC 与资源事件契约 | [RF-301](#rf-301) | [x] 完成 |
 | 77 | [RF-307](#rf-307) | P2 | 建立结构化后端错误并迁移对象用例 | [RF-301](#rf-301)、[RF-302](#rf-302) | [!] 阻塞：待明确授权 |
-| 78 | [RF-309](#rf-309) | P2 | 建立 Windows Rust 关键用例执行门禁 | 无 | [ ] 待执行 |
+| 78 | [RF-309](#rf-309) | P2 | 建立 Windows Rust 关键用例执行门禁 | 无 | [!] 待验证 Windows CI |
 | 79 | [RF-310](#rf-310) | P2 | 把 Android 原生回归接入明确的设备任务 | [RF-201](#rf-201)、[RF-208](#rf-208) | [ ] 待执行 |
 | 80 | [RF-313](#rf-313) | P2 | 修正 canonical 架构与安全事实文档 | 无 | [x] 完成 |
 | 81 | [RF-314](#rf-314) | P2 | 建立平台能力与验收证据矩阵 | [RF-205](#rf-205) | [ ] 待执行 |
@@ -2593,3 +2593,11 @@ git commit -m "<任务卡的提交标题>"
 - Linux：同一 C 盘检出经 Ubuntu 22.04 WSL2，`./gradlew --version --no-daemon` exit 0，Gradle 8.14.3 的 Launcher/Daemon 均为 JDK 21.0.12.1；`cargo ndk -t aarch64-linux-android check` exit 0。标准 `npx tauri android build --debug --target aarch64 --split-per-abi --apk --ci` exit 0，历时 1817 秒；APK 125,239,253 bytes、SHA-256 `4bd477749f0f79871eb0f70dd42bad6a5cbc4f17e7e92fee7ec4194a8eddbdac`，ZIP CRC 全通过，仅含 `arm64-v8a` 原生库；内置 `libsolo_soul.so` 的 SHA-256 `5f0fe7f3ac8c5ed6a81a43dc7e7fa78cf5c319201142b8a52695722cf04e931f` 与本次 Rust 产物一致。证据：`rf208-linux-gradle-version.log`、`rf208-linux-target-check.log`、`rf208-linux-debug-apk.log`、`rf208-linux-apk-proof.json`。
 - 构建期临时转换的 `gradlew` 字节已从备份恢复；生成的 `tauri.properties` 和插件注册表恢复至原仓库内容，Windows `npm ci` 已恢复本机前端依赖。用户 NSIS 图片 SHA-256 与基线一致且不暂存；本项不引入机器私有路径或签名材料。
 - macOS 构建机尚未提供，未运行该平台 `gradlew --version` 与 Debug APK；因此保留 `[!]`，不把 Windows/Linux 结果推断为 macOS 通过。已向用户询问可用 macOS 构建环境，等待实际证据期间继续无依赖任务。本项代码与文档按一项一提交独立落地，未推送。
+
+### RF-309 执行记录（2026-09-28，待远端 Windows CI 验证）
+
+- 基线 `14eea7fa`。既有 PR 工作流只在 macOS 执行 Rust 测试，主 CI 只在 Linux 执行 Rust 测试；Windows 作业只构建发布包，不能证明关键测试程序实际启动。
+- 在同时覆盖 PR 和 main push 的 `ci_cd.yml` 增加 `windows-latest` 测试 job：递归检出插件子模块，准备 Node/Rust、桌面插件资源与经过 PE 校验的 Windows PDFium；以真实 `PDFIUM_LIBRARY_PATH` 运行 Vault/core 和 `solo_soul` Host 两组 `cargo test --no-fail-fast`。两组均运行并各自保存日志，任一失败使 job 失败并上传日志；发布草稿依赖该 job。保留已有 macOS/Linux 检查及发布安全配置，未重复加到 `pr_check.yml`。
+- 本机 Windows 直接运行：PDFium PE 校验 exit 0（7,213,568 bytes）；Vault/core 6 组共 493 passed、0 failed、1 ignored，Host 7 组共 620 passed、0 failed、0 ignored，未重现 `TaskDialogIndirect` 启动弹窗。`cargo fmt --check`、`cargo clippy -- -D warnings` exit 0；工作流经 Prettier YAML 解析通过，`stage-desktop-resources.cjs` exit 0。证据：`rf309-core-tests.log`、`rf309-host-tests.log`、`rf309-local-results.json`、`rf309-clippy.log`。
+- 完整 workspace 首轮 `cargo test --verbose --no-fail-fast` exit 101：25 组共 1,359 passed、1 failed、3 ignored，唯一失败为 RF-214 插件并发发布测试的 Windows `Access is denied`。相同用例单独重跑通过，插件整组 95 passed、2 ignored；原命令复跑 exit 0，25 组 1,360 passed、0 failed、3 ignored。保留首轮失败与复跑日志，不把一次文件替换异常隐去，也不在 RF-309 中改动插件发布逻辑。证据：`rf309-workspace-tests.log`、`rf309-workspace-tests-retry.log`、`rf309-workspace-results.json`。
+- 当前还没有远端 `windows-latest` job 的执行结果及失败日志上传实证，不能把本机 Windows 结果当作 CI 验收；因此状态保留 `[!]`。此项仅提交工作流和本报告，用户 NSIS 图片未暂存，未推送。
