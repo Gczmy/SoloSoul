@@ -19,6 +19,7 @@ vi.mock('@tauri-apps/api/event', () => ({
 
 import { useSyncStore, __resetSyncCompletedMergeForTest } from './syncStore';
 import { useUiStore } from '@/stores/uiStore';
+import type { SyncConflictDetail, SyncConflictSummary } from '@/lib/ipc';
 
 describe('syncStore pairing_pending detection', () => {
   beforeEach(() => {
@@ -632,6 +633,102 @@ describe('syncStore loadConflicts 异常数据归一化（防整页白屏）', (
     await useSyncStore.getState().loadConflicts();
     expect(useSyncStore.getState().conflicts).toEqual(list);
     expect(useSyncStore.getState().error).toBeNull();
+  });
+});
+
+describe('syncStore conflict detail and resolution lifecycle', () => {
+  const summary: SyncConflictSummary = {
+    id: 'conflict-1',
+    table: 'objects',
+    record_id: 'obj-1',
+    local_hlc: { wall_time_ms: 1, counter: 0, node_id: 'local' },
+    remote_hlc: { wall_time_ms: 2, counter: 0, node_id: 'remote' },
+    winner: 'remote',
+    created_at: '2026-01-01T00:00:00Z',
+  };
+  const detail: SyncConflictDetail = {
+    ...summary,
+    local_data: { name: 'local' },
+    remote_data: { name: 'remote' },
+    remote_deleted: false,
+  };
+
+  beforeEach(() => {
+    mockInvoke.mockReset();
+    useSyncStore.setState({
+      conflicts: [summary],
+      selectedConflict: detail,
+      isLoading: false,
+      error: null,
+    });
+  });
+
+  it('loads the selected detail using its conflict ID', async () => {
+    useSyncStore.setState({ selectedConflict: null });
+    mockInvoke.mockResolvedValueOnce(detail);
+
+    await useSyncStore.getState().loadConflictDetail('conflict-1');
+
+    expect(mockInvoke).toHaveBeenCalledWith('sync_get_conflict_detail', {
+      conflictId: 'conflict-1',
+    });
+    expect(useSyncStore.getState().selectedConflict).toEqual(detail);
+  });
+
+  it('treats keep_local returning false as a successful resolution and reloads conflicts', async () => {
+    // Host 的 false 表示没有应用远端值，仍是成功的 keep_local 结果。
+    mockInvoke.mockResolvedValueOnce(false).mockResolvedValueOnce([]);
+
+    await useSyncStore.getState().resolveConflict('conflict-1', 'keep_local');
+
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'sync_resolve_conflict', {
+      conflictId: 'conflict-1',
+      strategy: 'keep_local',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'sync_list_conflicts');
+    expect(useSyncStore.getState()).toMatchObject({
+      conflicts: [],
+      selectedConflict: null,
+      isLoading: false,
+      error: null,
+    });
+  });
+
+  it('keeps the detail available when the Host rejects resolution', async () => {
+    mockInvoke.mockRejectedValueOnce(new Error('permission denied'));
+
+    await useSyncStore.getState().resolveConflict('conflict-1', 'keep_remote');
+
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    expect(useSyncStore.getState()).toMatchObject({
+      conflicts: [summary],
+      selectedConflict: detail,
+      isLoading: false,
+      error: 'Error: permission denied',
+    });
+  });
+
+  it('does not reload conflicts or restore a late result after vault lock', async () => {
+    let finish!: (appliedRemote: boolean) => void;
+    mockInvoke.mockImplementationOnce(
+      () =>
+        new Promise<boolean>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const resolving = useSyncStore.getState().resolveConflict('conflict-1', 'keep_local');
+
+    useSyncStore.getState().clearOnVaultLock();
+    finish(false);
+    await resolving;
+
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    expect(useSyncStore.getState()).toMatchObject({
+      conflicts: [],
+      selectedConflict: null,
+      isLoading: false,
+      error: null,
+    });
   });
 });
 
