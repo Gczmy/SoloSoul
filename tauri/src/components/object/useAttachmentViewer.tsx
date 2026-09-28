@@ -89,22 +89,30 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
     setPreviewItem(item);
   };
 
-  const loadAttachments = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [active, deleted] = await Promise.all([
-        invoke<AttachmentItem[]>('attachment_list', { objectId: objectId, showDeleted: false }),
-        invoke<AttachmentItem[]>('attachment_list', { objectId: objectId, showDeleted: true }),
-      ]);
-      setItems(active);
-      setTrashItems(deleted);
-    } catch (e) {
-      logger.warn('[AttachmentViewer] Failed to load attachments:', e);
-      // 保留旧列表，避免加载失败时界面被清空
-    } finally {
-      setLoading(false);
-    }
-  }, [objectId]);
+  const loadAttachments = useCallback(
+    async (options?: { reportErrors?: boolean }) => {
+      setLoading(true);
+      try {
+        const lists = Promise.all([
+          invoke<AttachmentItem[]>('attachment_list', { objectId: objectId, showDeleted: false }),
+          invoke<AttachmentItem[]>('attachment_list', { objectId: objectId, showDeleted: true }),
+        ]);
+        // 上传后刷新需在实际等待处超时，及时复位 loading，且不接收这次请求的迟到结果。
+        const [active, deleted] = await (options?.reportErrors
+          ? withTimeout(lists, REFRESH_TIMEOUT_MS, 'refresh')
+          : lists);
+        setItems(active);
+        setTrashItems(deleted);
+      } catch (e) {
+        logger.warn('[AttachmentViewer] Failed to load attachments:', e);
+        // 保留旧列表；仅向上传链路传播错误，其余调用维持静默降级。
+        if (options?.reportErrors) throw e;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [objectId],
+  );
 
   useEffect(() => {
     loadAttachments();
@@ -124,8 +132,7 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
       });
       // 刷新失败不影响上传结果本身，单独捕获并明确提示
       try {
-        await withTimeout(loadAttachments(), REFRESH_TIMEOUT_MS, 'refresh');
-        onCountChange?.();
+        await loadAttachments({ reportErrors: true });
       } catch (refreshErr) {
         logger.warn('[AttachmentViewer] refresh after upload failed:', refreshErr);
         showToast({
@@ -134,6 +141,9 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
             defaultValue: 'Uploaded, but the list failed to refresh. Please reopen.',
           }),
         });
+      } finally {
+        // 上传已成功，外部计数刷新不依赖查看器列表能否刷新。
+        onCountChange?.();
       }
     } catch (e) {
       showToast({
