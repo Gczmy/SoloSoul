@@ -118,9 +118,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**102**（P1：35；P2：66；P3：1）。
-- 已关闭：**54 / 102**；实际修复（已关闭）：54；排除：0；待验证/阻塞：8（7项授权阻塞，RF-308覆盖率及CI证据不足）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无。RF-912已完成真实传参红绿回归和完整F，独立提交；下一步补齐C盘Android工具链，推进RF-208的Windows验证。跨平台缺失证据、覆盖率门槛和既有阻塞保持。
+- 任务总数：**103**（P1：36；P2：66；P3：1）。
+- 已关闭：**55 / 103**；实际修复（已关闭）：55；排除：0；待验证/阻塞：8（7项授权阻塞，RF-308覆盖率及CI证据不足）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无。RF-913已修复 Android 生成任务依赖并独立提交；RF-208 的平台 Debug 验证继续，其他待验证/授权阻塞保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -228,6 +228,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 100 | [RF-910](#rf-910) | P2 | 上传成功后的附件刷新失败给予正确反馈 | 无 | [x] 完成 |
 | 101 | [RF-911](#rf-911) | P2 | 修复预览和照片集元数据回写目标 | 无 | [x] 完成 |
 | 102 | [RF-912](#rf-912) | P2 | 附件清空描述发送正确IPC值 | 无 | [x] 完成 |
+| 103 | [RF-913](#rf-913) | P1 | Android AppLevelNames 生成先于 Kotlin 编译 | 无（RF-208构建验证前置） | [x] 完成 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -255,7 +256,7 @@ R 编号只用于追溯，不作为混合提交单位。每个 RF ID 才是本�
 | R18 | IPC 类型与结构化错误 | [RF-205](#rf-205)、[RF-301](#rf-301)、[RF-302](#rf-302)、[RF-303](#rf-303)、[RF-304](#rf-304)、[RF-305](#rf-305)、[RF-306](#rf-306)、[RF-307](#rf-307)、[RF-317](#rf-317)、[RF-318](#rf-318)、[RF-319](#rf-319)、[RF-320](#rf-320) |
 | R19 | Android 资源准备 | [RF-206](#rf-206)、[RF-207](#rf-207)、[RF-208](#rf-208) |
 | R20 | 性能测量 | [RF-312](#rf-312) |
-| R21 | 验证设施与 CI | [RF-208](#rf-208)、[RF-308](#rf-308)、[RF-309](#rf-309)、[RF-310](#rf-310)、[RF-311](#rf-311)、[RF-314](#rf-314)、[RF-316](#rf-316) |
+| R21 | 验证设施与 CI | [RF-208](#rf-208)、[RF-913](#rf-913)、[RF-308](#rf-308)、[RF-309](#rf-309)、[RF-310](#rf-310)、[RF-311](#rf-311)、[RF-314](#rf-314)、[RF-316](#rf-316) |
 | R22 | 架构与隐私文档 | [RF-313](#rf-313)、[RF-314](#rf-314)、[RF-315](#rf-315) |
 
 R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插件领域。其余命令保留兼容入口，并在 RF-301 的登记清单中逐项标明“未迁移”；不能把试点或这些领域的完成宣称为全部注册命令已迁移（当前数量以生成清单为准）。扩展到其余命令时按领域新增 RF-900 系列任务。
@@ -1421,6 +1422,18 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**`F`及真实编辑器/IPC封装定向红绿回归；不修改Rust实现，结论限定为调用契约修正，现有Host空字符串分支源码作为契约依据。
 - **建议提交：**`fix(attachments): send empty text when clearing descriptions [RF-912]`。
 
+### RF-913
+
+**Android 生成的 AppLevelNames 必须先于 Kotlin 编译** · P1 · 来源：RF-208 Windows Debug 构建实测
+
+- **前置：**无；RF-208 验证需本项先修复生成任务依赖。
+- **现状线索：**正常 `assembleArm64Debug` 的 `compileArm64DebugKotlin` 报 `SafSyncHelper.kt` 中 `AppLevelNames` 未解析，`generateAppLevelNames` 未进入任务图。显式同时调用生成任务与 Kotlin 编译时，Gradle 报后者消费前者输出但没有依赖。
+- **入口：**`tauri/src-tauri/gen/android/app/build.gradle.kts` 的 `GenerateAppLevelNames`、`sourceSets` 与 Kotlin 编译任务。
+- **执行：**所有 Kotlin 编译任务显式依赖现有 `generateAppLevelNames`，保留单一 `app_level_names.json` 来源和已注册的生成目录。
+- **验收：**不手动运行生成任务时，ARM64 Debug Kotlin 编译按依赖生成源文件；同一当前 Rust ELF 的 ARM64 Debug APK 可打包、ZIP 完整且仅含 ARM64 原生库。Windows Tauri CLI 的符号链接权限问题单列 RF-208 环境证据，不算本项 Kotlin 修复成功。
+- **验证配置：**`ANDROID_BUILD` 定向 Kotlin 编译和 Debug APK；无本项 Kotlin 单测源码，不能把 `NO-SOURCE` 写成测试通过。
+- **建议提交：**`fix(android): wire generated app names into Kotlin compilation [RF-913]`。
+
 ---
 
 ## 7. 每项执行记录模板
@@ -2568,3 +2581,10 @@ git commit -m "<任务卡的提交标题>"
 
 - C盘可用253,384,663,040 bytes（235.98GiB）；明确的环境变量、PATH及常见C盘入口无JDK/Android SDK/NDK，未泛扫用户目录或访问D盘。项目Gradle wrapper及npm Tauri CLI存在，Rust缺Android目标。
 - 缺工具链可通过C盘官方ZIP/SDK包补齐；Windows Debug构建不要求实体设备。RF-208仍需Windows/Linux/macOS各环境实际Gradle/JVM及Debug构建，不能用本机结果代替另外两平台。已向用户询问可用macOS构建机，同时继续可独立推进的本机准备；本条不代表已经下载、安装或构建成功。
+
+### RF-913 执行记录（2026-09-28，完成）
+
+- 基线 `aa5fc1c0`。Windows JDK21、API36、NDK27 就绪后，首次 Gradle `:app:assembleArm64Debug -x :app:rustBuildArm64Debug` 退出1（335.93s）：`SafSyncHelper.kt:178,322` 的 `AppLevelNames` 未解析，生成任务缺席，日志 `rf208-gradle-debug-kotlin-red.log/json`。显式同时调用 `:app:generateAppLevelNames :app:compileArm64DebugKotlin` 仍退出1（63.81s）：Gradle 明确报消费者没有声明输出任务依赖，日志 `rf208-kotlin-red-validate.log/json`；不是 JDK 路径造成。
+- 在 `app/build.gradle.kts` 对全部 `KotlinCompile` 任务使用 `dependsOn(generateAppLevelNames)`，不复制生成内容或改变 SAF 逻辑。原命令只指定 `:app:compileArm64DebugKotlin` 及跳过已完成 Rust 任务后，日志同时出现 `:app:generateAppLevelNames` 与 `:app:compileArm64DebugKotlin`，exit0，153.1s；`rf208-kotlin-green.log/json`。
+- 相同已编译 AArch64 Rust ELF（86,715,592 bytes，SHA-256 `5d341ac61dc538cff871233ea628a0f4b3622a1c108cd7ed23fdaaec2fbd5132`）复制到生成工程后，完整 `:app:assembleArm64Debug -x :app:rustBuildArm64Debug` exit0，53.06s；产物 `app-arm64-debug.apk` 120,989,335 bytes，SHA-256 `de715cca824c2ec04e5f493bfe6fc99b7b669eedf17c95d48e09321bb01b0e26`，ZIP CRC 全部通过，包内 `libsolo_soul.so` SHA 与 Rust 产物相同且原生库均仅在 `arm64-v8a`；证据 `rf208-gradle-debug.log/json`、`rf913-windows-apk-proof.json`。
+- 验证边界：Windows Tauri 标准命令因当前账户缺少符号链接权限仍 exit1；该Host限制记录于 RF-208，不把手工等价Gradle打包写成 Tauri 命令通过。RF-208 的 Linux/macOS 平台 Debug 构建另行验收。本项仅修复 Gradle 生成任务依赖，独立提交，未推送。

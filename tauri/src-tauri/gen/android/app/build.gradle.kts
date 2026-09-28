@@ -167,6 +167,11 @@ android {
     }
 }
 
+// Kotlin 编译会读取生成目录，显式依赖生成任务以确保首次构建和增量构建都有源文件。
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    dependsOn(generateAppLevelNames)
+}
+
 // 安卓端不使用 ONNX 模型（OCR 走 ML Kit，本地 Embedding 移动端不支持，
 // ocr_install_bundled_model 移动端返回不支持），但 Tauri 会把 src-tauri/resources
 // 全量复制进 assets（含 ~55MB models）。packagingOptions 的 excludes 对 assets
