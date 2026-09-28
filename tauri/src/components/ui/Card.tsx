@@ -38,8 +38,7 @@ export const Card = memo(
     return (
       <div
         ref={ref}
-        data-ui-card
-        data-macos-glass={surface === 'floating' ? 'panel' : undefined}
+        data-ui-card={surface}
         className={`${styles.card} ${interactive ? styles.interactive : ''} ${className || ''}`}
         onClick={onClick}
         onDoubleClick={onDoubleClick}

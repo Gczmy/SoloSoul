@@ -101,6 +101,9 @@
   box-shadow: none;
   backdrop-filter: none;
 }
+[data-platform='android'] [data-ui-card='floating'] {
+  background: var(--md-surface-high, var(--bg-inset));
+}
 [data-platform='android'] [data-ui-card]:hover {
   transform: none;
   box-shadow: none;

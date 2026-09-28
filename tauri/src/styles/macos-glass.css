@@ -1,5 +1,5 @@
 /* macOS 应用内材质只负责表面，不参与定位、尺寸或窗口恢复。
-   保留 data-macos-glass 作为兼容入口，按用途选材质：
+   保留 data-macos-glass 作为非 Card 组件的兼容入口，按用途选材质：
    panel 是实色内容表面；popover 才是轻材质操作层。
    原生侧栏、窗口顶栏仍由 NSGlassEffectView / NSVisualEffectView 管理。
    !important 仅用于收敛遗留 inline 材质，不覆盖几何与业务状态。 */
@@ -11,6 +11,7 @@ html[data-desktop-platform='macos'] {
   /* 内容、提示、通知默认清晰实色；菜单无滤镜支持时也使用这个基底。
      圆角由组件自身决定，避免材质规则改变卡片和弹出菜单的形状。 */
   [data-macos-glass='panel'],
+  [data-ui-card='floating'],
   [data-macos-glass='popover'],
   [data-macos-glass='sidebar-menu'],
   [data-macos-glass='tooltip'],
@@ -22,6 +23,7 @@ html[data-desktop-platform='macos'] {
   }
 
   [data-macos-glass='panel'],
+  [data-ui-card='floating'],
   [data-macos-glass='popover'],
   [data-macos-glass='sidebar-menu'],
   [data-macos-glass='tooltip'] {
@@ -85,13 +87,13 @@ html[data-desktop-platform='macos']:is(
     [data-native-material='solid'],
     [data-high-contrast='true']
   ) {
-  [data-macos-glass] {
+  :is([data-macos-glass], [data-ui-card='floating']) {
     background: var(--bg-elevated) !important;
     color: var(--text-primary) !important;
     border-color: var(--border-default) !important;
     box-shadow: none !important;
   }
-  [data-macos-glass],
+  :is([data-macos-glass], [data-ui-card='floating']),
   [data-macos-glass-backdrop] {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
@@ -100,7 +102,7 @@ html[data-desktop-platform='macos']:is(
 
 /* 浏览器辅助功能偏好同样采用清晰实色。 */
 @media (forced-colors: active), (prefers-reduced-transparency: reduce) {
-  html[data-desktop-platform='macos'] [data-macos-glass] {
+  html[data-desktop-platform='macos'] :is([data-macos-glass], [data-ui-card='floating']) {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
     background: var(--bg-elevated) !important;

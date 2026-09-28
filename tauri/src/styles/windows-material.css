@@ -1,5 +1,5 @@
 /* Windows 层级：DWM Mica 底层 → 实色正文 → 明度区分的卡片 → 局部 Acrylic 式浮层。
-   复用既有 data-macos-glass 语义入口，避免两套浮层标记；不更改定位或交互。
+   非 Card 浮层暂沿用 data-macos-glass；普通 Card 由平台无关标记选择表面。
    系统标题栏、窗口边框与失焦时的 Mica 回退继续交给 DWM。 */
 html[data-desktop-platform='windows'] {
   --navigation-divider: transparent;
@@ -16,7 +16,7 @@ html[data-desktop-platform='windows'] {
   }
 
   /* 正文面板和通知保持实色，只有紧凑菜单启用局部模糊。 */
-  [data-macos-glass] {
+  :is([data-macos-glass], [data-ui-card='floating']) {
     background: var(--bg-elevated) !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
@@ -24,6 +24,7 @@ html[data-desktop-platform='windows'] {
   }
   :is(
     [data-macos-glass='panel'],
+    [data-ui-card='floating'],
     [data-macos-glass='popover'],
     [data-macos-glass='sidebar-menu'],
     [data-macos-glass='tooltip']
@@ -56,7 +57,7 @@ html[data-desktop-platform='windows'] {
 
 html[data-desktop-platform='windows'][data-high-contrast='true'] {
   --navigation-divider: var(--text-primary);
-  [data-macos-glass] {
+  :is([data-macos-glass], [data-ui-card='floating']) {
     border-color: var(--text-primary) !important;
     box-shadow: none !important;
   }
@@ -64,11 +65,12 @@ html[data-desktop-platform='windows'][data-high-contrast='true'] {
 
 @media (prefers-reduced-transparency: reduce), (forced-colors: active) {
   html[data-desktop-platform='windows'][data-native-material]
-    :is([data-macos-glass], [data-macos-glass-backdrop]) {
+    :is([data-macos-glass], [data-ui-card='floating'], [data-macos-glass-backdrop]) {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
-  html[data-desktop-platform='windows'][data-native-material] [data-macos-glass] {
+  html[data-desktop-platform='windows'][data-native-material]
+    :is([data-macos-glass], [data-ui-card='floating']) {
     background: var(--bg-elevated) !important;
   }
 }
@@ -76,7 +78,7 @@ html[data-desktop-platform='windows'][data-high-contrast='true'] {
   html[data-desktop-platform='windows'] {
     --navigation-divider: CanvasText;
     --windows-navigation-surface: Canvas;
-    [data-macos-glass] {
+    :is([data-macos-glass], [data-ui-card='floating']) {
       border-color: CanvasText !important;
       box-shadow: none !important;
     }
