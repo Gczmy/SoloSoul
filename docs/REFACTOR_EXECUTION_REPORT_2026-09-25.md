@@ -89,22 +89,23 @@ npm run test -- --pool=threads --maxWorkers=2
 在 `tauri/`：
 
 ```text
+node scripts/stage-mobile-resources.cjs
 cargo ndk -t aarch64-linux-android check
 npx tauri android build --debug --target aarch64 --split-per-abi --apk --ci
 ```
 
-需要有效 Android SDK、NDK、JDK 和 Rust Android target；当前 CI 配置 JDK 21、NDK 27.0.12077973。项目 `gen/android/gradle.properties` 固定了 macOS JBR 路径，因此按上面的 RF-208 前置先消除该依赖。Debug 验证不读取 Release 签名密钥。
+需要有效 Android SDK、NDK、JDK 和 Rust Android target；当前 CI 配置 JDK 21、NDK 27.0.12077973。RF-208 已移除 `gen/android/gradle.properties` 中的 macOS JBR 固定路径；跨平台实测仍按任务卡验收。Debug 验证不读取 Release 签名密钥。
 
 在 `tauri/src-tauri/gen/android/`，Windows 的已存在文档路线如下；须先确认 `JAVA_HOME` 指向可用 JDK：
 
 ```powershell
-.\gradlew.bat "-Dorg.gradle.java.home=$env:JAVA_HOME" :app:assembleArm64DebugAndroidTest -x :app:rustBuildArm64Debug
+.\gradlew.bat :app:assembleArm64DebugAndroidTest -x :app:rustBuildArm64Debug
 adb install -r app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
 adb install -r app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk
 adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTest com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-只有**刚完成对应本次源码的 Rust/APK 构建**才可使用上述 `-x`；不能跳过待验证的 Rust 改动。macOS 用 `./gradlew`。可用连接设备任务应按 flavor 核对为 `:app:connectedArm64DebugAndroidTest`，先用 `tasks --all` 确认实际任务；本轮仅核对配置，未运行 Gradle。
+只有**刚完成对应本次源码的 Rust/APK 构建**才可使用上述 `-x`；不能跳过待验证的 Rust 改动。macOS 用 `./gradlew`。可用连接设备任务应按 flavor 核对为 `:app:connectedArm64DebugAndroidTest`，先用 `tasks --all` 确认实际任务；该连接设备任务尚未运行。
 
 上述路线需要 ARM64 设备/模拟器。现有 universal APK 仅包含 ARM ABI，不能拿普通 x86_64 模拟器安装失败来判断功能失败。玻璃测试要求 API ≥31 且系统允许窗口模糊；assumption 跳过只能登记覆盖不足。运行前使用专用测试账户/设备，安装覆盖不会用于用户生产数据。
 
@@ -119,8 +120,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**103**（P1：36；P2：66；P3：1）。
-- 已关闭：**55 / 103**；实际修复（已关闭）：55；排除：0；待验证/阻塞：8（7项授权阻塞，RF-308覆盖率及CI证据不足）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无。RF-913已修复 Android 生成任务依赖并独立提交；RF-208 的平台 Debug 验证继续，其他待验证/授权阻塞保持。
+- 已关闭：**55 / 103**；实际修复（已关闭）：55；排除：0；待验证/阻塞：9（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208缺macOS实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无。RF-208已移除机器专属JDK路径，并完成Windows/Linux目标构建；macOS实测待可用构建机，其他无依赖任务继续执行。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -153,7 +154,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 25 | [RF-020](#rf-020) | P1 | 导入失败返回真实部分提交状态 | [RF-018](#rf-018) | [x] 完成 |
 | 26 | [RF-021](#rf-021) | P1 | 对象模板与历史按导入批次事务提交 | [RF-018](#rf-018)、[RF-019](#rf-019)、[RF-020](#rf-020) | [!] 阻塞：待明确授权 |
 | 27 | [RF-022](#rf-022) | P1 | 附件导入可恢复且同一任务重试幂等 | [RF-020](#rf-020)、[RF-021](#rf-021) | [ ] 待执行 |
-| 28 | [RF-208](#rf-208) | P2 | 移除 Android 构建的本机 JDK 路径依赖 | 无 | [ ] 待执行 |
+| 28 | [RF-208](#rf-208) | P2 | 移除 Android 构建的本机 JDK 路径依赖 | 无 | [!] 待验证 macOS |
 | 29 | [RF-201](#rf-201) | P1 | 修正移动端跟随系统的主题来源 | [RF-208](#rf-208) | [ ] 待执行 |
 | 30 | [RF-110](#rf-110) | P1 | 同次主题应用只解析一次系统模式 | 无 | [x] 完成 |
 | 31 | [RF-111](#rf-111) | P1 | 设置保存失败返回明确结果并反馈用户 | 无 | [x] 完成 |
@@ -2577,14 +2578,18 @@ git commit -m "<任务卡的提交标题>"
 - 本机Windows/Node24.16.0，真实编辑器、父接线、IPC封装和Toast Store参与测试，仅替换外层Tauri调用；没有真实账户或文件操作。结论是前端调用契约已修正，不把mock写入称为真实Vault清空后重读，也不宣称设备验收通过。RF-308全局覆盖率与CI未重测、不关闭。
 - 最终结论：RF-912 **完成**；提交：本提交（按RF-912检索），未推送。累计 **54/102已关闭**。提交仅含一个生产文件、两份既有回归和本报告；3张用户NSIS图片SHA不变且不暂存，其他源码、package/锁文件/workflow不变。
 
-### RF-208 环境前置复核（2026-09-28，只读，尚未实施）
-
-- C盘可用253,384,663,040 bytes（235.98GiB）；明确的环境变量、PATH及常见C盘入口无JDK/Android SDK/NDK，未泛扫用户目录或访问D盘。项目Gradle wrapper及npm Tauri CLI存在，Rust缺Android目标。
-- 缺工具链可通过C盘官方ZIP/SDK包补齐；Windows Debug构建不要求实体设备。RF-208仍需Windows/Linux/macOS各环境实际Gradle/JVM及Debug构建，不能用本机结果代替另外两平台。已向用户询问可用macOS构建机，同时继续可独立推进的本机准备；本条不代表已经下载、安装或构建成功。
-
 ### RF-913 执行记录（2026-09-28，完成）
 
 - 基线 `aa5fc1c0`。Windows JDK21、API36、NDK27 就绪后，首次 Gradle `:app:assembleArm64Debug -x :app:rustBuildArm64Debug` 退出1（335.93s）：`SafSyncHelper.kt:178,322` 的 `AppLevelNames` 未解析，生成任务缺席，日志 `rf208-gradle-debug-kotlin-red.log/json`。显式同时调用 `:app:generateAppLevelNames :app:compileArm64DebugKotlin` 仍退出1（63.81s）：Gradle 明确报消费者没有声明输出任务依赖，日志 `rf208-kotlin-red-validate.log/json`；不是 JDK 路径造成。
 - 在 `app/build.gradle.kts` 对全部 `KotlinCompile` 任务使用 `dependsOn(generateAppLevelNames)`，不复制生成内容或改变 SAF 逻辑。原命令只指定 `:app:compileArm64DebugKotlin` 及跳过已完成 Rust 任务后，日志同时出现 `:app:generateAppLevelNames` 与 `:app:compileArm64DebugKotlin`，exit0，153.1s；`rf208-kotlin-green.log/json`。
 - 相同已编译 AArch64 Rust ELF（86,715,592 bytes，SHA-256 `5d341ac61dc538cff871233ea628a0f4b3622a1c108cd7ed23fdaaec2fbd5132`）复制到生成工程后，完整 `:app:assembleArm64Debug -x :app:rustBuildArm64Debug` exit0，53.06s；产物 `app-arm64-debug.apk` 120,989,335 bytes，SHA-256 `de715cca824c2ec04e5f493bfe6fc99b7b669eedf17c95d48e09321bb01b0e26`，ZIP CRC 全部通过，包内 `libsolo_soul.so` SHA 与 Rust 产物相同且原生库均仅在 `arm64-v8a`；证据 `rf208-gradle-debug.log/json`、`rf913-windows-apk-proof.json`。
 - 验证边界：Windows Tauri 标准命令因当前账户缺少符号链接权限仍 exit1；该Host限制记录于 RF-208，不把手工等价Gradle打包写成 Tauri 命令通过。RF-208 的 Linux/macOS 平台 Debug 构建另行验收。本项仅修复 Gradle 生成任务依赖，独立提交，未推送。
+
+### RF-208 执行记录（2026-09-28，待 macOS 验证）
+
+- 基线 `aa5fc1c0`，先保存计划文件和用户的 3 张 NSIS 图片校验值；工具链只安装在本机用户目录，并通过进程环境选择 JDK 21、Android API 36、Build Tools 35.0.0、NDK 27.0.12077973 和 Rust ARM64 target。
+- 移除项目 `gradle.properties` 中固定的 macOS JBR 路径；CI 的 Debug/Release 作业均检查 Gradle 实际 JVM。首次 Android target check 发现移动端资源未生成，CI 在检查前执行既有 `stage-mobile-resources.cjs`；本机按相同步骤复测通过。同步更正两份移动端环境/构建文档。证据：`rf208-target-check-red.log/json`、`rf208-target-check.log/json`、`rf208-linux-target-check.log`。
+- Windows：`gradlew.bat --version --no-daemon` exit 0，Gradle 8.14.3 的 Launcher/Daemon 均为 Temurin 21.0.12.1。标准 Tauri Debug 命令完成前端与 Rust ARM64 ELF 编译，但因当前账户缺少 `SeCreateSymbolicLinkPrivilege` 在链接 `jniLibs` 时 exit 1；将同 SHA 的本次 ELF 复制到生成工程后，`assembleArm64Debug -x rustBuildArm64Debug` exit 0。所得 ARM64 APK 120,989,335 bytes、SHA-256 `de715cca824c2ec04e5f493bfe6fc99b7b669eedf17c95d48e09321bb01b0e26`，ZIP CRC 和内置 ELF SHA 均通过；这证明 Windows 目标打包有效，不代表标准 Tauri 命令通过。证据：`rf208-gradle-version.log/json`、`rf208-debug-apk.log/json`、`rf208-gradle-debug.log/json`、`rf913-windows-apk-proof.json`。期间发现的 Kotlin 生成任务缺依赖已在 RF-913 单独修复并提交。
+- Linux：同一 C 盘检出经 Ubuntu 22.04 WSL2，`./gradlew --version --no-daemon` exit 0，Gradle 8.14.3 的 Launcher/Daemon 均为 JDK 21.0.12.1；`cargo ndk -t aarch64-linux-android check` exit 0。标准 `npx tauri android build --debug --target aarch64 --split-per-abi --apk --ci` exit 0，历时 1817 秒；APK 125,239,253 bytes、SHA-256 `4bd477749f0f79871eb0f70dd42bad6a5cbc4f17e7e92fee7ec4194a8eddbdac`，ZIP CRC 全通过，仅含 `arm64-v8a` 原生库；内置 `libsolo_soul.so` 的 SHA-256 `5f0fe7f3ac8c5ed6a81a43dc7e7fa78cf5c319201142b8a52695722cf04e931f` 与本次 Rust 产物一致。证据：`rf208-linux-gradle-version.log`、`rf208-linux-target-check.log`、`rf208-linux-debug-apk.log`、`rf208-linux-apk-proof.json`。
+- 构建期临时转换的 `gradlew` 字节已从备份恢复；生成的 `tauri.properties` 和插件注册表恢复至原仓库内容，Windows `npm ci` 已恢复本机前端依赖。用户 NSIS 图片 SHA-256 与基线一致且不暂存；本项不引入机器私有路径或签名材料。
+- macOS 构建机尚未提供，未运行该平台 `gradlew --version` 与 Debug APK；因此保留 `[!]`，不把 Windows/Linux 结果推断为 macOS 通过。已向用户询问可用 macOS 构建环境，等待实际证据期间继续无依赖任务。本项代码与文档按一项一提交独立落地，未推送。

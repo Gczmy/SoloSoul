@@ -52,27 +52,28 @@ rustup target list --installed
 
 1. 下载并安装 [Android Studio](https://developer.android.com/studio)
 2. 打开 Android Studio → SDK Manager：
-   - **SDK Platforms**：勾选 Android 14 (API 34) 或 Android 13 (API 33)
+   - **SDK Platforms**：安装 Android API 36（当前项目 `compileSdk`/`targetSdk`）
    - **SDK Tools**：
-     - Android SDK Build-Tools
+     - Android SDK Build-Tools 35.0.0
      - Android SDK Platform-Tools
      - Android SDK Command-line Tools
-     - NDK (Side by side) — 建议 r26b+（当前项目使用 30.0.14904198）
+     - NDK (Side by side) 27.0.12077973（与 Android CI 一致）
      - Android Emulator（如使用模拟器）
 3. 记录 NDK 实际路径，例如：
    ```
-   /Users/zzc/Library/Android/sdk/ndk/30.0.14904198
+   $HOME/Library/Android/sdk/ndk/27.0.12077973
    ```
 
 ---
 
 ## 4. 配置环境变量
 
-在 `~/.zshrc` 或 `~/.bash_profile` 中添加：
+安装 JDK 21；用 `JAVA_HOME` 指向本机 JDK。项目不在 `gradle.properties` 中保存机器专属 JDK 路径。可在 `~/.zshrc` 或 `~/.bash_profile` 中按本机路径配置：
 
 ```bash
+export JAVA_HOME="<本机 JDK 21 路径>"
 export ANDROID_HOME="$HOME/Library/Android/sdk"
-export NDK_HOME="$ANDROID_HOME/ndk/30.0.14904198"  # 替换为你的 NDK 版本目录
+export NDK_HOME="$ANDROID_HOME/ndk/27.0.12077973"
 export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 ```
 
@@ -88,14 +89,18 @@ source ~/.zshrc
 echo $ANDROID_HOME
 echo $NDK_HOME
 adb --version
+cd /path/to/SoloSoul/tauri/src-tauri/gen/android
+./gradlew --version  # 检查实际 Launcher/Daemon JVM 均为 JDK 21
 ```
+
+Windows 在 PowerShell 中用 `$env:JAVA_HOME` 和 `$env:ANDROID_HOME` 设置本机路径，并运行 `.\gradlew.bat --version`；不要用 `-Dorg.gradle.java.home` 掩盖项目配置。
 
 ---
 
 ## 5. 安装项目依赖
 
 ```bash
-cd /Users/zzc/PycharmProjects/SoloSoul/tauri
+cd /path/to/SoloSoul/tauri
 
 # 前端依赖
 npm install
@@ -108,10 +113,10 @@ cargo check --package solo_soul
 
 ## 6. 初始化 Tauri Android 工程
 
-首次运行 Android 开发服务器时，Tauri CLI 会自动初始化 Android 工程：
+首次运行 Android 开发服务器时，Tauri CLI 会自动初始化 Android 工程；本仓库已包含 `tauri/src-tauri/gen/android/`，无需重新初始化：
 
 ```bash
-cd /Users/zzc/PycharmProjects/SoloSoul/tauri
+cd /path/to/SoloSoul/tauri
 npm run tauri:android:dev
 ```
 
@@ -159,7 +164,7 @@ emulator -avd Pixel_7_API_34
 ### 7.2 开发模式
 
 ```bash
-cd /Users/zzc/PycharmProjects/SoloSoul/tauri
+cd /path/to/SoloSoul/tauri
 npm run tauri:android:dev
 ```
 
@@ -169,8 +174,8 @@ npm run tauri:android:dev
 
 ```bash
 # 调试 APK
-cd /Users/zzc/PycharmProjects/SoloSoul/tauri
-npx tauri android build --apk
+cd /path/to/SoloSoul/tauri
+npx tauri android build --debug --target aarch64 --split-per-abi --apk --ci
 
 # Release AAB
 npx tauri android build --aab

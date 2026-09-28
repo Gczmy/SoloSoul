@@ -41,6 +41,10 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      - name: Verify Gradle JVM
+        run: ./gradlew --version
+        working-directory: tauri/src-tauri/gen/android
+
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
@@ -51,6 +55,9 @@ jobs:
 
       - name: Install cargo-ndk
         run: cargo install cargo-ndk --locked
+
+      - name: Stage mobile resources
+        run: node scripts/stage-mobile-resources.cjs
 
       - name: Cargo check (Android target)
         run: cargo ndk -t aarch64-linux-android check
@@ -103,6 +110,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+
+      - name: Verify Gradle JVM
+        run: ./gradlew --version
+        working-directory: tauri/src-tauri/gen/android
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3

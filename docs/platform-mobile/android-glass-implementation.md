@@ -90,10 +90,10 @@ TAURI_CONFIG='{"app":{"macOSPrivateApi":false}}' cargo clippy -p solo_soul --lib
 cargo fmt --check
 ```
 
-配置项目规定的 Android SDK/NDK 与 rustup PATH 后：
+配置 Android SDK（API 36、Build Tools 35.0.0）、NDK 27.0.12077973 和 Rust ARM64 target，并通过 `JAVA_HOME` 选择 JDK 21。项目 `gradle.properties` 不指定机器上的 JDK；IDE 或个人 Gradle 设置可在本机覆盖。先在 `tauri/src-tauri/gen/android` 运行 `./gradlew --version`（Windows 为 `.\gradlew.bat --version`），确认 Launcher/Daemon JVM 为 JDK 21，不加 `-Dorg.gradle.java.home`。在 `tauri/` 运行 Debug 构建：
 
 ```bash
-cargo tauri android build --debug --target aarch64 --split-per-abi --apk --ci
+npx tauri android build --debug --target aarch64 --split-per-abi --apk --ci
 cd src-tauri/gen/android
 ./gradlew :app:assembleArm64DebugAndroidTest -x :app:rustBuildArm64Debug
 adb install -r app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
