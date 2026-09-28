@@ -17,7 +17,9 @@ use core_foundation::string::CFString;
 use core_foundation_sys::base::{CFTypeRef, OSStatus};
 use security_framework::access_control::{ProtectionMode, SecAccessControl};
 use security_framework::base::Error as SecError;
-use security_framework_sys::base::{errSecAuthFailed, errSecDuplicateItem, errSecItemNotFound};
+use security_framework_sys::base::{
+    errSecAuthFailed, errSecDuplicateItem, errSecItemNotFound, errSecSuccess,
+};
 use security_framework_sys::item::{
     kSecAttrAccessControl, kSecAttrAccount, kSecAttrService, kSecClass, kSecClassGenericPassword,
     kSecMatchLimit, kSecReturnAttributes, kSecReturnData, kSecValueData,

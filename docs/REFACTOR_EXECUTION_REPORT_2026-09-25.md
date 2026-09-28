@@ -120,8 +120,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**112**（P1：36；P2：75；P3：1）。
-- 已关闭：**64 / 112**；实际修复（已关闭）：64；排除：0；待验证/阻塞：11（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208缺macOS实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无。RF-922已隔离模板同步迟到应用的界面副作用；RF-121待原生材质验收，RF-308仍需补实际覆盖和远端CI日志，其余待验证项保持。
+- 已关闭：**64 / 112**；实际修复（已关闭）：64；排除：0；待验证/阻塞：12（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无。RF-204已补齐 Keychain 状态常量导入，待 iOS 双目标编译；RF-121待原生材质验收，RF-308仍需补实际覆盖和远端CI日志，其余待验证项保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -161,7 +161,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 32 | [RF-112](#rf-112) | P1 | ThemeController 成为唯一主题应用协调器 | [RF-110](#rf-110)、[RF-111](#rf-111)、[RF-201](#rf-201) | [ ] 待执行 |
 | 33 | [RF-202](#rf-202) | P1 | 将 APK 更新入口限定为 Android | 无 | [x] 完成 |
 | 34 | [RF-203](#rf-203) | P1 | 明确 iOS OCR 不支持时的前后端行为 | [RF-208](#rf-208) | [ ] 待执行 |
-| 35 | [RF-204](#rf-204) | P1 | 核实并修正 iOS Keychain 成功状态符号 | 无 | [ ] 待执行 |
+| 35 | [RF-204](#rf-204) | P1 | 核实并修正 iOS Keychain 成功状态符号 | 无 | [!] 待验证 iOS 双目标 |
 | 36 | [RF-008](#rf-008) | P2 | GUI 与 CLI 迁移到同一回滚用例 | [RF-006](#rf-006)、[RF-007](#rf-007) | [x] 完成 |
 | 37 | [RF-010](#rf-010) | P2 | 共享对象创建的模板初始化规则 | [RF-009](#rf-009) | [x] 已修复 |
 | 38 | [RF-013](#rf-013) | P2 | 共享 Profile 备份清单与兼容解码 | [RF-011](#rf-011)、[RF-012](#rf-012) | [x] 完成 |
@@ -2787,3 +2787,9 @@ git commit -m "<任务卡的提交标题>"
 - 确认应用和无变化自动应用复用请求代次，在 Host 应用、对象列表与详情刷新的异步边界检查当前归属；失效操作只结束自身 Promise，不更改新弹窗或继续发出旧视图刷新。已提交给 Host 的应用本身不撤销。
 - 定向 Vitest 1 文件/7 项、`npx tsc --noEmit`、`npm run lint`、修改文件 Prettier 检查均 exit 0；完整 `npm run test` 175 文件/1,550 项全通过，日志 `rf922-front-tests.log`。覆盖率模式同为 1,550 项全通过，因 RF-308 既有四项全局门槛未达而 exit 1；statements 75.88%（13,442/17,713）、branches 61.57%（6,172/10,023）、functions 64%（2,219/3,467）、lines 77.69%（12,559/16,165）。证据 `rf308-coverage-after-rf922.log` 及同名 HTML 报告。
 - 本项独立提交且不推送；RF-308 保持 `[!]`，用户 NSIS 图片不暂存。
+
+### RF-204 执行记录（2026-09-28，待 iOS 双目标验证）
+
+- 基线 `411521cf`。`ios.rs` 的 `check_status`、`read` 和 `exists` 使用 `errSecSuccess`，但原导入列表缺此符号。锁文件固定 `security-framework-sys` 2.17.0；其[官方 crate 文档](https://docs.rs/security-framework-sys/2.17.0/security_framework_sys/base/index.html)列出 `base::errSecSuccess`。仅补齐命名常量导入，保留原状态比较、错误码映射与认证行为。
+- `.github/workflows/pr_check.yml` 已配置 macOS runner 对 `aarch64-apple-ios` 与 `aarch64-apple-ios-sim` 执行 `cargo check`，此次不重复改动工作流。本机 `cargo fmt --check`、Windows 目标 `cargo check -p solosoul-core` 均 exit 0；Windows 编译不包含 `ios.rs`，不能作为 iOS 编译证据。
+- 当前无可用 macOS 构建机，尚未取得两个 iOS target 的真实编译结果，本项保持 `[!]`，不计入已关闭数。修复与本记录独立提交，不推送；用户 NSIS 图片不暂存。
