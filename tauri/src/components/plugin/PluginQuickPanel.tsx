@@ -251,6 +251,8 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
         ) : (
           displayedPlugins.map((info) => {
             const installed = !!info.installedVersion;
+            const latestVersion = info.registryEntry.latestVersion;
+            const hasLatestVersion = !!latestVersion?.trim();
             const installing = installingPlugins[info.pluginId];
             const running = runningPlugins[info.pluginId];
             const isRunning = running && !running.completed;
@@ -261,7 +263,10 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
                   <div className={styles.pluginInfo}>
                     <span className={styles.pluginName}>{displayName}</span>
                     <span className={styles.pluginMeta}>
-                      {info.registryEntry.author} · v{info.registryEntry.latestVersion}
+                      {info.registryEntry.author?.trim() && `${info.registryEntry.author} · `}
+                      {hasLatestVersion
+                        ? `v${latestVersion}`
+                        : t('plugin:version_unavailable', { defaultValue: 'Version unavailable' })}
                     </span>
                   </div>
                   <div className={styles.pluginActions}>
@@ -296,9 +301,11 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
                     {!installing && !installed && info.isCompatible && (
                       <button
                         className={styles.installBtn}
-                        onClick={() =>
-                          installPlugin(info.pluginId, info.registryEntry.latestVersion)
-                        }
+                        disabled={!hasLatestVersion}
+                        onClick={() => {
+                          if (!latestVersion || !latestVersion.trim()) return;
+                          installPlugin(info.pluginId, latestVersion);
+                        }}
                       >
                         <Download size={ICON_SIZE.xs} />
                         {t('plugin:install', { defaultValue: 'Install' })}

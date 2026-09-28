@@ -59,13 +59,75 @@
     {
       "name": "snapshot_rollback",
       "source": "src-tauri/src/commands/object/snapshot.rs"
+    },
+    {
+      "name": "plugin_list_all",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "plugin_list_installed",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "plugin_list_attachments",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "create_plugin_install",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "plugin_install",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "plugin_update",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "plugin_uninstall",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "plugin_run",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "plugin_consent_response",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "plugin_dialog_response",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "plugin_list_sessions",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "plugin_audit_log",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "plugin_update_registry",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "plugin_open_output_file",
+      "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "plugin_copy_output_file",
+      "source": "src-tauri/src/commands/plugin.rs"
     }
   ],
   "types": [
-    "crates/solosoul-vault/src/lib.rs"
+    "crates/solosoul-vault/src/lib.rs",
+    "crates/solosoul-plugin/src/manifest.rs",
+    "crates/solosoul-plugin/src/event.rs",
+    "crates/solosoul-plugin/src/install_progress.rs",
+    "crates/solosoul-plugin/src/session.rs"
   ],
   "events": [],
-  "crates": [
-    "crates/solosoul-vault/Cargo.toml"
-  ]
+  "crates": ["crates/solosoul-vault/Cargo.toml", "crates/solosoul-plugin/Cargo.toml"]
 }

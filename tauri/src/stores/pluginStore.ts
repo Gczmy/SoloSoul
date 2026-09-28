@@ -1,26 +1,36 @@
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { create } from 'zustand';
 import {
-  ConsentRequestEvent,
-  DialogRequestEvent,
   MarketPluginInfo,
   PluginManifest,
   PluginInstallProgress,
-  PluginResultPayload,
   PluginTier,
   pluginCommands,
 } from '@/lib/plugin';
+import type { PluginEvent } from '@/lib/generated/ipcContracts';
+import {
+  isConsentRequestEvent,
+  isDialogRequestEvent,
+  isPluginCompletedEvent,
+  isPluginDisplayResult,
+  isPluginLogLine,
+  type ConsentRequestEvent,
+  type DialogRequestEvent,
+  type PluginDisplayResult,
+  type PluginLogView,
+} from '@/lib/pluginViewModel';
+export {
+  isConsentRequestEvent,
+  isDialogRequestEvent,
+  isPluginCompletedEvent,
+  isPluginLogLine,
+  isPluginDisplayResult as isPluginResultPayload,
+} from '@/lib/pluginViewModel';
+export type { PluginLogView as PluginLogLine } from '@/lib/pluginViewModel';
 import { useUiStore } from '@/stores/uiStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { logger } from '@/lib/logger';
 import i18next from '@/lib/i18n';
-
-export interface PluginLogLine {
-  id: string;
-  level: 'debug' | 'info' | 'warn' | 'error';
-  message: string;
-  timestamp: number;
-}
 
 /** P215: 单插件运行日志上限——环形截断，避免不可变累积 `[...logs, x]` 的 O(n²) 拷贝与内存膨胀。 */
 export const MAX_PLUGIN_LOGS = 200;
@@ -28,64 +38,13 @@ export const MAX_PLUGIN_LOGS = 200;
 /** P215: 单插件结果上限。 */
 export const MAX_PLUGIN_RESULTS = 50;
 
-export function isPluginLogLine(value: unknown): value is PluginLogLine {
-  if (typeof value !== 'object' || value === null) return false;
-  const v = value as Record<string, unknown>;
-  return (
-    typeof v.id === 'string' &&
-    typeof v.message === 'string' &&
-    typeof v.timestamp === 'number' &&
-    ['debug', 'info', 'warn', 'error'].includes(v.level as string)
-  );
-}
-
-export function isPluginResultPayload(value: unknown): value is PluginResultPayload {
-  if (typeof value !== 'object' || value === null) return false;
-  const v = value as Record<string, unknown>;
-  switch (v.type) {
-    case 'text':
-    case 'markdown':
-      return typeof v.content === 'string';
-    case 'key_value':
-      return typeof v.title === 'string' && Array.isArray(v.pairs);
-    case 'table':
-      return Array.isArray(v.headers) && Array.isArray(v.rows);
-    case 'watermark_result':
-      return typeof v.outputDir === 'string' && Array.isArray(v.items);
-    case 'expiry_guardian':
-      return typeof v.title === 'string' && Array.isArray(v.items);
-    default:
-      return false;
-  }
-}
-
-export function isConsentRequestEvent(event: unknown): event is ConsentRequestEvent {
-  const e = event as Record<string, unknown>;
-  return (
-    e?.eventType === 'consent_request' && typeof (event as ConsentRequestEvent).fieldId === 'string'
-  );
-}
-
-export function isDialogRequestEvent(event: unknown): event is DialogRequestEvent {
-  const e = event as Record<string, unknown>;
-  return (
-    e?.eventType === 'dialog_request' && typeof (event as DialogRequestEvent).requestId === 'string'
-  );
-}
-
-export function isPluginCompletedEvent(value: unknown): value is { exitCode: number } {
-  if (typeof value !== 'object' || value === null) return false;
-  const v = value as Record<string, unknown>;
-  return typeof v.exitCode === 'number';
-}
-
 export interface RunningPlugin {
   runId?: string;
   pluginId: string;
   pluginName: string;
   startTime: number;
-  logs: PluginLogLine[];
-  results: PluginResultPayload[];
+  logs: PluginLogView[];
+  results: PluginDisplayResult[];
   consentRequests: ConsentRequestEvent[];
   dialogRequests: DialogRequestEvent[];
   completed: boolean;
@@ -99,8 +58,8 @@ export interface RunningPlugin {
  * P021：插件运行事件 → 运行态对象的纯函数应用（自 runPlugin 的巨型 switch 拆出）。
  * 就地修改传入的 draft 并返回；log/result 按 P215 环形上限截断。
  */
-/** 插件运行事件的最小形状（lib/plugin 的 PluginEvent 为内部类型，此处按需声明）。 */
-type RunPluginEvent = { eventType: string; jsonData: string };
+/** Channel 事件只依赖 wire 的公共分发字段，授权分支再验证所用字段。 */
+type RunPluginEvent = Pick<PluginEvent, 'eventType' | 'jsonData'>;
 
 function applyPluginRunEvent(next: RunningPlugin, event: RunPluginEvent): RunningPlugin {
   switch (event.eventType) {
@@ -118,7 +77,7 @@ function applyPluginRunEvent(next: RunningPlugin, event: RunPluginEvent): Runnin
     case 'result':
       try {
         const parsed = JSON.parse(event.jsonData);
-        if (isPluginResultPayload(parsed)) {
+        if (isPluginDisplayResult(parsed)) {
           next.results = [...next.results, parsed].slice(-MAX_PLUGIN_RESULTS);
         }
       } catch {

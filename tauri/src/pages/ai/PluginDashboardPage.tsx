@@ -382,10 +382,15 @@ export function PluginDashboardPage() {
                       showResults={
                         isWatermark ? false : activeTab === 'installed' || activeTab === 'running'
                       }
-                      onInstall={() =>
-                        installPlugin(info.pluginId, info.registryEntry.latestVersion)
-                      }
-                      onUpdate={() => updatePlugin(info.pluginId)}
+                      onInstall={() => {
+                        const latestVersion = info.registryEntry.latestVersion;
+                        if (!latestVersion || !latestVersion.trim()) return;
+                        installPlugin(info.pluginId, latestVersion);
+                      }}
+                      onUpdate={() => {
+                        if (!info.registryEntry.latestVersion?.trim()) return;
+                        updatePlugin(info.pluginId);
+                      }}
                       onUninstall={() => uninstallPlugin(info.pluginId)}
                       onRun={() => handleRun(info.pluginId)}
                       onStop={() => stopPlugin(info.pluginId)}

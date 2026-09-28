@@ -247,3 +247,96 @@ describe('isDialogRequestEvent', () => {
     expect(isDialogRequestEvent({ eventType: 'dialog_request', requestId: true })).toBe(false);
   });
 });
+
+describe('RF306 nullable event and nested JSON boundaries', () => {
+  it('rejects missing/null authorization identity without losing valid nullable wire extras', async () => {
+    const { isConsentRequestEvent, isDialogRequestEvent } = await import('./pluginStore');
+    const { pluginEvent } = await import('@/test/pluginFixtures');
+    const consent = pluginEvent({
+      eventType: 'consent_request',
+      requestId: 'request',
+      pluginId: 'plugin',
+      pluginName: 'Plugin',
+      fieldId: 'field',
+      fieldLabel: 'Field',
+      sensitivityLevel: 'critical',
+    });
+    const dialog = pluginEvent({
+      eventType: 'dialog_request',
+      requestId: 'request',
+      pluginId: 'plugin',
+      pluginName: 'Plugin',
+    });
+    expect(isConsentRequestEvent(consent)).toBe(true);
+    expect(isDialogRequestEvent(dialog)).toBe(true);
+    for (const key of [
+      'requestId',
+      'pluginId',
+      'pluginName',
+      'fieldId',
+      'fieldLabel',
+      'sensitivityLevel',
+    ]) {
+      expect(isConsentRequestEvent({ ...consent, [key]: null })).toBe(false);
+    }
+    for (const key of ['requestId', 'pluginId', 'pluginName', 'jsonData']) {
+      expect(isDialogRequestEvent({ ...dialog, [key]: null })).toBe(false);
+    }
+    for (const requestId of ['', '  ', null]) {
+      expect(isConsentRequestEvent({ ...consent, requestId })).toBe(false);
+      expect(isDialogRequestEvent({ ...dialog, requestId })).toBe(false);
+    }
+  });
+
+  it('accepts complete built-in views and rejects malformed nested result values', async () => {
+    const { isPluginResultPayload } = await import('./pluginStore');
+    const watermark = {
+      type: 'watermark_result',
+      outputDir: 'synthetic',
+      items: [
+        {
+          objectId: 'object',
+          attachmentId: 'attachment',
+          fileName: 'result.png',
+          mimeType: 'image/png',
+          outputPath: 'synthetic/result.png',
+        },
+      ],
+    };
+    const expiry = {
+      type: 'expiry_guardian',
+      title: 'Expiry',
+      locale: 'en',
+      items: [
+        {
+          objectId: 'object',
+          objectName: 'Object',
+          kind: 'passport',
+          expiryDate: '2026-09-28',
+          daysRemaining: 0,
+          urgency: 'critical',
+        },
+      ],
+      summary: { total: 1, expired: 0, critical: 1, warning: 0, notice: 0, safe: 0 },
+    };
+    expect(isPluginResultPayload(watermark)).toBe(true);
+    expect(isPluginResultPayload(expiry)).toBe(true);
+    for (const value of [
+      null,
+      0,
+      true,
+      'json',
+      [],
+      { type: 'future' },
+      { type: 'key_value', title: 'Title', pairs: [null] },
+      { type: 'key_value', title: 'Title', pairs: [{ key: 'k', value: 'v', tagCode: null }] },
+      { type: 'table', headers: [null], rows: [] },
+      { type: 'table', headers: ['h'], rows: [[1]] },
+      { ...watermark, items: [{ ...watermark.items[0], outputPath: null }] },
+      { ...expiry, locale: null },
+      { ...expiry, summary: null },
+      { ...expiry, items: [{ ...expiry.items[0], urgency: 'future' }] },
+    ])
+      expect(isPluginResultPayload(value)).toBe(false);
+  });
+});

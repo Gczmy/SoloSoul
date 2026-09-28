@@ -46,6 +46,7 @@ export function PluginCard({
   const locale = i18n.language?.startsWith('zh') ? 'zh' : 'en';
   const installed = !!info.installedVersion;
   const latestVersion = info.registryEntry.latestVersion;
+  const hasLatestVersion = !!latestVersion?.trim();
 
   const statuses = useMemo(() => {
     const result: Array<{ label: string; className: string }> = [];
@@ -68,7 +69,7 @@ export function PluginCard({
         className: styles.statusRunning,
       });
     }
-    if (installed && info.hasUpdate) {
+    if (installed && info.hasUpdate && hasLatestVersion) {
       result.push({
         label: t('status_update', {
           defaultValue: `Update: ${info.installedVersion} → ${latestVersion}`,
@@ -83,7 +84,7 @@ export function PluginCard({
       });
     }
     return result;
-  }, [info, isRunning, installed, latestVersion, t]);
+  }, [info, isRunning, installed, latestVersion, hasLatestVersion, t]);
 
   const displayName = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
   const displayDesc =
@@ -105,10 +106,13 @@ export function PluginCard({
         <p className={styles.description}>{displayDesc}</p>
         <div className={styles.meta}>
           <span className={styles.version}>
-            {t('version_label', { defaultValue: 'v' })}
-            {latestVersion}
+            {hasLatestVersion
+              ? `${t('version_label', { defaultValue: 'v' })}${latestVersion}`
+              : t('version_unavailable', { defaultValue: 'Version unavailable' })}
           </span>
-          <span className={styles.author}>{info.registryEntry.author}</span>
+          {info.registryEntry.author?.trim() && (
+            <span className={styles.author}>{info.registryEntry.author}</span>
+          )}
           <span className={styles.badge}>{info.tier.toUpperCase()}</span>
           <span className={styles.badge}>{info.category}</span>
         </div>
@@ -141,13 +145,27 @@ export function PluginCard({
             />
           )}
           {!installing && !installed && info.isCompatible && (
-            <button className={styles.installBtn} onClick={onInstall}>
+            <button
+              className={styles.installBtn}
+              disabled={!hasLatestVersion}
+              onClick={() => {
+                if (!latestVersion || !latestVersion.trim()) return;
+                onInstall();
+              }}
+            >
               <Download size={ICON_SIZE.sm} />
               {t('install', { defaultValue: 'Install' })}
             </button>
           )}
           {!installing && installed && info.hasUpdate && info.isCompatible && (
-            <button className={styles.updateBtn} onClick={onUpdate}>
+            <button
+              className={styles.updateBtn}
+              disabled={!hasLatestVersion}
+              onClick={() => {
+                if (!latestVersion || !latestVersion.trim()) return;
+                onUpdate();
+              }}
+            >
               <RefreshCw size={ICON_SIZE.sm} />
               {t('update', { defaultValue: 'Update' })}
             </button>

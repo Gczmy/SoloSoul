@@ -7,6 +7,7 @@
   "tab_logs": "Logs",
   "empty_list": "No plugins found",
   "version_label": "v",
+  "version_unavailable": "Version unavailable",
   "status_installed": "Installed",
   "status_not_installed": "Not Installed",
   "status_update": "Update Available",

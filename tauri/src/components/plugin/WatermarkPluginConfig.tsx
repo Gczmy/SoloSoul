@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { downloadDir } from '@tauri-apps/api/path';
 import { openWithPause } from '@/lib/dialog';
 import { FolderOpen } from 'lucide-react';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import { ExpandableSection } from './shared/ExpandableSection';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
@@ -78,7 +78,7 @@ export function WatermarkPluginConfig({ onParamsChange }: WatermarkPluginConfigP
   const loadAttachments = useCallback(async () => {
     setLoadingAttachments(true);
     try {
-      const json = await invoke<string>('plugin_list_attachments');
+      const json = await invokeTypedCommand('plugin_list_attachments');
       const tree = JSON.parse(json) as {
         pages: Array<{
           pageId?: string;

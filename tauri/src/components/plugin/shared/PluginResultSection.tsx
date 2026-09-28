@@ -3,10 +3,10 @@ import { FileJson, FileText } from 'lucide-react';
 import { ExpandableSection } from './ExpandableSection';
 import { CopyButton } from './CopyButton';
 import { PluginResultPanel } from '../PluginResultPanel';
-import type { PluginResultPayload } from '@/lib/plugin';
+import type { PluginDisplayResult } from '@/lib/pluginViewModel';
 
 interface PluginResultSectionProps {
-  results: PluginResultPayload[];
+  results: PluginDisplayResult[];
   defaultExpanded?: boolean;
   /** Show JSON + Markdown copy buttons (page variant only) */
   showCopyButtons?: boolean;

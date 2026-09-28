@@ -11,6 +11,7 @@ import { useSyncStore } from './syncStore';
 import { useLlmStatsStore } from './llmStatsStore';
 import { usePluginStore } from './pluginStore';
 import { pluginCommands } from '@/lib/plugin';
+import { pluginEvent } from '@/test/pluginFixtures';
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -202,7 +203,7 @@ describe('P039 会话隔离', () => {
         return next.promise;
       });
     const first = usePluginStore.getState().runPlugin('plugin', 'First');
-    oldEvent({ eventType: 'log', jsonData: 'secret-a' });
+    oldEvent(pluginEvent({ eventType: 'log', jsonData: 'secret-a' }));
     if (change === 'account') {
       const market = usePluginStore.getState().marketPlugins;
       const installed = usePluginStore.getState().installedPlugins;
@@ -212,11 +213,18 @@ describe('P039 会话隔离', () => {
       expect(usePluginStore.getState().installedPlugins).toBe(installed);
     }
     const second = usePluginStore.getState().runPlugin('plugin', 'Second');
-    oldEvent({
-      eventType: 'result',
-      jsonData: JSON.stringify({ type: 'text', content: 'secret-a' }),
-    });
-    newEvent({ eventType: 'result', jsonData: JSON.stringify({ type: 'text', content: 'B' }) });
+    oldEvent(
+      pluginEvent({
+        eventType: 'result',
+        jsonData: JSON.stringify({ type: 'text', content: 'secret-a' }),
+      }),
+    );
+    newEvent(
+      pluginEvent({
+        eventType: 'result',
+        jsonData: JSON.stringify({ type: 'text', content: 'B' }),
+      }),
+    );
     old.resolve({ exitCode: 0, fuelConsumed: 0, logs: [], results: [] });
     await first;
     expect(usePluginStore.getState().runningPlugins.plugin.completed).toBe(false);

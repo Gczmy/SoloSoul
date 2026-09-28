@@ -1,28 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import type { MarketPluginInfo } from './plugin';
 import { sortPluginsByName } from './pluginOrdering';
+import { marketPlugin, registryEntry } from '@/test/pluginFixtures';
 
 function plugin(pluginId: string, name: string, zhName?: string): MarketPluginInfo {
-  return {
+  return marketPlugin({
     pluginId,
-    hasUpdate: false,
-    isCompatible: true,
     tier: 'p1',
     category: 'productivity',
-    registryEntry: {
-      id: pluginId,
+    registryEntry: registryEntry({
       name,
       author: 'SoloSoul',
       description: '',
-      latestVersion: '1.0.0',
-      minCoreVersion: '1.0.0',
-      wasmHashSha256: '',
-      permissions: [],
-      categories: [],
-      params: [],
       ...(zhName ? { i18n: { zh: { name: zhName, description: '' } } } : {}),
-    },
-  };
+    }),
+  });
 }
 
 describe('插件名称排序', () => {

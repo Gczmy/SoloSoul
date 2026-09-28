@@ -231,6 +231,7 @@ pub(crate) struct Renderer<'a> {
     catalog: &'a Catalog,
     definitions: BTreeMap<String, String>,
     owners: BTreeMap<String, (String, Direction)>,
+    uses_channel: bool,
 }
 impl<'a> Renderer<'a> {
     pub fn new(catalog: &'a Catalog) -> Self {
@@ -238,7 +239,26 @@ impl<'a> Renderer<'a> {
             catalog,
             definitions: BTreeMap::new(),
             owners: BTreeMap::new(),
+            uses_channel: false,
         }
+    }
+    pub fn imports(&self) -> &'static str {
+        if self.uses_channel {
+            "import type { Channel as TauriChannel } from '@tauri-apps/api/core';\n\n"
+        } else {
+            ""
+        }
+    }
+    // Channel 是 SDK 传输对象，仅命令参数根层可使用；其 T 是 Rust 向前端发送的 DTO。
+    pub fn render_argument(&mut self, ty: &Type, module: &str) -> Result<String, String> {
+        if let Type::Path(path) = ty {
+            if path.qself.is_none() && self.path(module, &path.path)? == "tauri::ipc::Channel" {
+                let payload = self.render(one_argument(path)?, module, Direction::Output)?;
+                self.uses_channel = true;
+                return Ok(format!("TauriChannel<{payload}>"));
+            }
+        }
+        self.render(ty, module, Direction::Input)
     }
     pub fn definitions(&self) -> String {
         self.definitions
@@ -329,6 +349,13 @@ impl<'a> Renderer<'a> {
         {
             return Err(format!("unsupported generic type: {name}"));
         }
+        if name == "tauri::ResourceId" {
+            self.definitions.insert(
+                "ResourceId".into(),
+                "export type ResourceId = number;".into(),
+            );
+            return Ok("ResourceId".into());
+        }
         if name == "serde_json::Value" {
             self.definitions.insert(
                 "JsonObject".into(),
@@ -385,6 +412,8 @@ impl<'a> Renderer<'a> {
                     | "Record"
                     | "JsonValue"
                     | "JsonObject"
+                    | "ResourceId"
+                    | "TauriChannel"
                     | "type"
                     | "interface"
                     | "class"
@@ -416,10 +445,30 @@ impl<'a> Renderer<'a> {
         let body = match declaration.definition {
             Definition::Struct(item) => {
                 no_generics(&item.generics)?;
-                let metadata = attrs::read(&item.attrs, Location::Struct)?;
+                let metadata = attrs::read(&item.attrs, Location::Struct, direction)?;
                 self.derive(&metadata, direction, &declaration.module, name)?;
                 match item.fields {
-                    syn::Fields::Named(fields) => self.fields(
+                    syn::Fields::Unnamed(fields)
+                        if metadata.transparent && fields.unnamed.len() == 1 =>
+                    {
+                        if metadata.rename_all.is_some() || metadata.default {
+                            return Err(
+                                "transparent newtype container options are unsupported".into()
+                            );
+                        }
+                        let field = fields.unnamed.first().ok_or("missing transparent field")?;
+                        if field
+                            .attrs
+                            .iter()
+                            .any(|attribute| !attribute.path().is_ident("doc"))
+                        {
+                            return Err(
+                                "transparent newtype field attributes are unsupported".into()
+                            );
+                        }
+                        self.render(&field.ty, &declaration.module, direction)?
+                    }
+                    syn::Fields::Named(fields) if !metadata.transparent => self.fields(
                         &fields,
                         &declaration.module,
                         direction,
@@ -429,20 +478,37 @@ impl<'a> Renderer<'a> {
                             ..FieldOptions::default()
                         },
                     )?,
-                    _ => return Err(format!("{name}: tuple/unit structs are unsupported")),
+                    _ => {
+                        return Err(format!(
+                            "{name}: only single-field transparent tuple structs are supported"
+                        ))
+                    }
                 }
             }
             Definition::Enum(item) => {
                 no_generics(&item.generics)?;
-                let metadata = attrs::read(&item.attrs, Location::Enum)?;
+                let metadata = attrs::read(&item.attrs, Location::Enum, direction)?;
                 self.derive(&metadata, direction, &declaration.module, name)?;
                 let mut variants = Vec::new();
                 let mut names = BTreeSet::new();
+                let mut has_default_variant = false;
                 for variant in item.variants {
                     if variant.discriminant.is_some() {
                         return Err("enum discriminants are unsupported".into());
                     }
-                    let variant_meta = attrs::read(&variant.attrs, Location::Variant)?;
+                    let variant_meta = attrs::read(&variant.attrs, Location::Variant, direction)?;
+                    if variant_meta.default_variant {
+                        if has_default_variant
+                            || !metadata.derives.contains("Default")
+                            || !matches!(variant.fields, syn::Fields::Unit)
+                        {
+                            return Err(
+                                "default variant requires one unit variant and Default derive"
+                                    .into(),
+                            );
+                        }
+                        has_default_variant = true;
+                    }
                     let variant_name = variant_meta.rename.clone().unwrap_or(attrs::rename(
                         &attrs::ident(&variant.ident),
                         metadata.rename_all.as_deref(),
@@ -576,7 +642,7 @@ impl<'a> Renderer<'a> {
         let mut output = Vec::new();
         let mut names = BTreeSet::new();
         for field in &fields.named {
-            let metadata = attrs::read(&field.attrs, Location::Field)?;
+            let metadata = attrs::read(&field.attrs, Location::Field, direction)?;
             let name = metadata.rename.clone().unwrap_or(attrs::rename(
                 &attrs::ident(field.ident.as_ref().ok_or("expected named field")?),
                 rename_all,

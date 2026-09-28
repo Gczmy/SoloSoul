@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { PluginInstallProgress } from '@/lib/plugin';
+import type { PluginInstallProgress, PluginInstallResult } from '@/lib/plugin';
 
 vi.mock('@/stores/templateStore', () => ({
   useTemplateStore: { getState: () => ({ loadTemplates: vi.fn().mockResolvedValue(undefined) }) },
@@ -250,8 +250,8 @@ describe('pluginStore installation task', () => {
       const { pluginCommands } = await import('@/lib/plugin');
       const { usePluginStore } = await import('./pluginStore');
       usePluginStore.getState().clearOnVaultLock();
-      let finish!: (value: { pluginId: string; version: string }) => void;
-      const pending = new Promise<{ pluginId: string; version: string }>((resolve) => {
+      let finish!: (value: PluginInstallResult) => void;
+      const pending = new Promise<PluginInstallResult>((resolve) => {
         finish = resolve;
       });
       vi.mocked(pluginCommands[operation]).mockReturnValue(pending);
@@ -273,7 +273,7 @@ describe('pluginStore installation task', () => {
       expect(usePluginStore.getState().installingPlugins.example.progress.percent).toBe(50);
       report({ ...progress, percent: 98, phase: 'finalizing' });
       expect(usePluginStore.getState().installingPlugins.example.progress.percent).toBe(98);
-      finish({ pluginId: 'example', version: '1.0.0' });
+      finish({ pluginId: 'example', version: '1.0.0', installedAt: 1 });
       await vi.waitFor(() =>
         expect(usePluginStore.getState().installingPlugins.example.progress.percent).toBe(100),
       );

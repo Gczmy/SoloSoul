@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { TemplateEditor } from './TemplateEditor';
 import type { TemplateProperty, PropertyType, SensitivityLevel } from '@/types/template';
 import type { PluginManifest } from '@/lib/plugin';
+import { pluginManifest } from '@/test/pluginFixtures';
 
 // ── Mock deriveContractBindings ──────────────────────────────────────────
 
@@ -34,7 +35,7 @@ vi.mock('@/stores/pluginStore', () => ({
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 function createMockPlugin(overrides: Partial<PluginManifest> = {}): PluginManifest {
-  return {
+  return pluginManifest({
     id: 'com.solosoul.test',
     name: 'Test Plugin',
     version: '1.0.0',
@@ -49,7 +50,7 @@ function createMockPlugin(overrides: Partial<PluginManifest> = {}): PluginManife
     params: [],
     contracts: [],
     ...overrides,
-  };
+  });
 }
 
 const FIELD_STREET: TemplateProperty = {
@@ -125,8 +126,8 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
             strictContractGate: false,
             typeIdAliases: [],
             roles: [
-              { roleId: 'street', label: '街道', defaultPropertyId: 'street' },
-              { roleId: 'city', label: '城市', defaultPropertyId: 'city' },
+              { roleId: 'street', required: false, label: '街道', defaultPropertyId: 'street' },
+              { roleId: 'city', required: false, label: '城市', defaultPropertyId: 'city' },
             ],
           },
         ],
@@ -166,7 +167,9 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
             displayName: 'Test Contract',
             strictContractGate: false,
             typeIdAliases: [],
-            roles: [{ roleId: 'street', label: '街道', defaultPropertyId: 'street' }],
+            roles: [
+              { roleId: 'street', required: false, label: '街道', defaultPropertyId: 'street' },
+            ],
           },
         ],
       }),
@@ -196,7 +199,9 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
             displayName: 'Test Contract',
             strictContractGate: false,
             typeIdAliases: [],
-            roles: [{ roleId: 'email', label: 'Email', defaultPropertyId: 'email' }],
+            roles: [
+              { roleId: 'email', required: false, label: 'Email', defaultPropertyId: 'email' },
+            ],
           },
         ],
       }),
@@ -245,7 +250,7 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
             displayName: 'Test Contract',
             strictContractGate: false,
             typeIdAliases: [],
-            roles: [{ roleId: 'street', defaultPropertyId: 'street' }],
+            roles: [{ roleId: 'street', required: false, defaultPropertyId: 'street' }],
           },
         ],
       }),
@@ -277,7 +282,9 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
             displayName: 'Address',
             strictContractGate: false,
             typeIdAliases: [],
-            roles: [{ roleId: 'street', label: 'Street', defaultPropertyId: 'street' }],
+            roles: [
+              { roleId: 'street', required: false, label: 'Street', defaultPropertyId: 'street' },
+            ],
           },
         ],
       }),
@@ -314,7 +321,9 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
             displayName: 'Address',
             strictContractGate: false,
             typeIdAliases: [],
-            roles: [{ roleId: 'street', label: 'Street', defaultPropertyId: 'street' }],
+            roles: [
+              { roleId: 'street', required: false, label: 'Street', defaultPropertyId: 'street' },
+            ],
           },
         ],
       }),

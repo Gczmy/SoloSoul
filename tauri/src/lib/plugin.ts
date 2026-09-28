@@ -1,236 +1,42 @@
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import { Channel, Resource } from '@tauri-apps/api/core';
 import type { ContractRoleBinding } from '@/types/template';
+import type {
+  MarketPluginInfo,
+  PluginManifest,
+  PluginEvent,
+  PluginResult,
+  PluginSession,
+  PluginAuditEntry,
+  PluginInstallResult,
+  PluginInstallProgress,
+  PluginTier,
+} from '@/lib/generated/ipcContracts';
 
-interface RegistryEntry {
-  id: string;
-  name: string;
-  author: string;
-  description: string;
-  latestVersion: string;
-  minCoreVersion: string;
-  wasmHashSha256: string;
-  permissions: string[];
-  categories: string[];
-  params: PluginParam[];
-  i18n?: Record<string, { name: string; description: string }>;
-  customUi?: string;
-}
-
-export type PluginTier = 'p0' | 'p1' | 'p2' | 'p3' | 'p4';
-
-type PluginParamType = 'string' | 'number' | 'boolean' | 'select';
-
-interface PluginParamOption {
-  value: string;
-  label: string;
-}
-
-export interface PluginParam {
-  id: string;
-  label: string;
-  type: PluginParamType;
-  required: boolean;
-  description?: string;
-  defaultValue?: string;
-  options?: PluginParamOption[];
-}
-
-export interface MarketPluginInfo {
-  pluginId: string;
-  installedVersion?: string;
-  hasUpdate: boolean;
-  isCompatible: boolean;
-  tier: PluginTier;
-  category: string;
-  registryEntry: RegistryEntry;
-}
-
-export interface PluginContractRole {
-  roleId: string;
-  label?: string;
-  required?: boolean;
-  defaultPropertyId?: string;
-}
-
-export interface PluginContractBinding {
-  typeId: string;
-  version: number;
-  displayName?: string;
-  strictContractGate: boolean;
-  typeIdAliases: string[];
-  roles: PluginContractRole[];
-}
-
-export interface PluginManifest {
-  id: string;
-  name: string;
-  version: string;
-  description: string;
-  author: string;
-  homepage?: string;
-  permissions: string[];
-  requiredCoreVersion: string;
-  wasmHashSha256: string;
-  dataTtlSeconds: number;
-  tier: PluginTier;
-  category: string;
-  params: PluginParam[];
-  /** 插件声明的合约列表（V2 新增字段，可为空/缺省） */
-  contracts?: PluginContractBinding[];
-  /** 插件国际化文本。key 为 locale，value 为 { name, description, ... } */
-  i18n?: Record<string, Record<string, string>>;
-  customUi?: string;
-}
-
-interface PluginLogLine {
-  id: string;
-  level: 'debug' | 'info' | 'warn' | 'error';
-  message: string;
-  timestamp: number;
-}
-
-export interface WatermarkResultItem {
-  objectId: string;
-  attachmentId: string;
-  fileName: string;
-  mimeType: string;
-  outputPath: string;
-}
-
-interface WatermarkResultPayload {
-  type: 'watermark_result';
-  outputDir: string;
-  items: WatermarkResultItem[];
-}
-
-interface ExpiryGuardianItem {
-  objectId: string;
-  objectName: string;
-  kind: string;
-  expiryDate: string;
-  daysRemaining: number;
-  urgency: 'expired' | 'critical' | 'warning' | 'notice' | 'safe';
-}
-
-interface ExpiryGuardianSummary {
-  total: number;
-  expired: number;
-  critical: number;
-  warning: number;
-  notice: number;
-  safe: number;
-}
-
-interface ExpiryGuardianPayload {
-  type: 'expiry_guardian';
-  title: string;
-  locale: string;
-  items: ExpiryGuardianItem[];
-  summary: ExpiryGuardianSummary;
-}
-
-export type PluginResultPayload =
-  | { type: 'text'; content: string }
-  | {
-      type: 'key_value';
-      title: string;
-      pairs: Array<{ key: string; value: string; tag?: string; tagCode?: string }>;
-    }
-  | { type: 'table'; headers: string[]; rows: string[][] }
-  | { type: 'markdown'; content: string }
-  | WatermarkResultPayload
-  | ExpiryGuardianPayload;
-
-interface PluginResult {
-  exitCode: number;
-  logs: PluginLogLine[];
-  results: PluginResultPayload[];
-  fuelConsumed: number;
-}
-
-type DialogType = 'alert' | 'confirm' | 'radio_list' | 'checkbox_list' | 'input';
-
-export interface DialogConfig {
-  type: DialogType;
-  title?: string;
-  message?: string;
-  items?: Array<{ id: string; label: string }>;
-  defaultValue?: string;
-  placeholder?: string;
-}
-
-export interface DialogRequestEvent {
-  eventType: 'dialog_request';
-  requestId: string;
-  pluginId: string;
-  pluginName: string;
-  jsonData: string;
-}
-
-export interface ConsentRequestEvent {
-  eventType: 'consent_request';
-  requestId: string;
-  pluginId: string;
-  pluginName: string;
-  fieldId: string;
-  fieldLabel: string;
-  sensitivityLevel: string;
-}
-
-interface PluginEvent {
-  eventType:
-    | 'log'
-    | 'result'
-    | 'consent_request'
-    | 'dialog_request'
-    | 'completed'
-    | 'error'
-    | 'custom_event';
-  jsonData: string;
-  customType?: string;
-  requestId?: string;
-  pluginId?: string;
-  pluginName?: string;
-  fieldId?: string;
-  fieldLabel?: string;
-  sensitivityLevel?: string;
-}
-
-interface PluginSessionInfo {
-  id: string;
-  pluginId: string;
-  createdAt: string;
-  expiresAt: string;
-}
-
-interface PluginAuditEntry {
-  timestamp: string;
-  pluginId: string;
-  sessionId?: string;
-  action: PluginAuditAction;
-}
-
-type PluginAuditAction =
-  | { action: 'plugin_installed'; version: string }
-  | { action: 'plugin_uninstalled' }
-  | { action: 'plugin_run_started' }
-  | { action: 'plugin_run_completed'; exitCode: number }
-  | { action: 'plugin_run_failed'; reason: string }
-  | { action: 'consent_approved'; fieldId: string }
-  | { action: 'consent_denied'; fieldId: string };
-
-interface PluginInstallResult {
-  pluginId: string;
-  version: string;
-}
-
-export interface PluginInstallProgress {
-  percent: number;
-  phase: 'preparing' | 'downloading' | 'verifying' | 'installing' | 'finalizing' | 'completed';
-  downloadedBytes: number;
-  totalBytes: number | null;
-}
+export type {
+  MarketPluginInfo,
+  RegistryEntry,
+  RegistryVersion,
+  PluginManifest,
+  PluginParam,
+  PluginParamOption,
+  PluginParamType,
+  PluginContractRole,
+  PluginContractBinding,
+  PluginFieldBinding,
+  PluginNetworkPolicy,
+  PluginEvent,
+  PluginLogLine,
+  PluginResult,
+  PluginResultPayload,
+  PluginSession,
+  PluginAuditEntry,
+  PluginAuditAction,
+  PluginInstallResult,
+  PluginInstallProgress,
+  PluginInstallPhase,
+  PluginTier,
+} from '@/lib/generated/ipcContracts';
 
 /**
  * 运行时推导插件契约角色绑定。
@@ -294,14 +100,17 @@ export function resolvePluginName(
   return plugin.name;
 }
 
+type InstallRequest =
+  | { command: 'plugin_install'; pluginId: string; version: string }
+  | { command: 'plugin_update'; pluginId: string };
+
 async function installWithCancellation(
-  command: string,
-  args: Record<string, unknown>,
+  request: InstallRequest,
   signal?: AbortSignal,
   onProgress?: (progress: PluginInstallProgress) => void,
 ): Promise<PluginInstallResult> {
   if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
-  const operation = new Resource(await invoke<number>('create_plugin_install'));
+  const operation = new Resource(await invokeTypedCommand('create_plugin_install'));
   const progress = new Channel<PluginInstallProgress>();
   let active = true;
   progress.onmessage = (event) => {
@@ -314,7 +123,19 @@ async function installWithCancellation(
   signal?.addEventListener('abort', cancel, { once: true });
   try {
     if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
-    return await invoke(command, { ...args, operationId: operation.rid, onProgress: progress });
+    if (request.command === 'plugin_install') {
+      return await invokeTypedCommand('plugin_install', {
+        pluginId: request.pluginId,
+        version: request.version,
+        operationId: operation.rid,
+        onProgress: progress,
+      });
+    }
+    return await invokeTypedCommand('plugin_update', {
+      pluginId: request.pluginId,
+      operationId: operation.rid,
+      onProgress: progress,
+    });
   } finally {
     active = false;
     signal?.removeEventListener('abort', cancel);
@@ -324,11 +145,11 @@ async function installWithCancellation(
 
 export const pluginCommands = {
   async listAll(tier?: PluginTier): Promise<MarketPluginInfo[]> {
-    return invoke('plugin_list_all', { tier });
+    return invokeTypedCommand('plugin_list_all', { tier });
   },
 
   async listInstalled(): Promise<PluginManifest[]> {
-    return invoke('plugin_list_installed');
+    return invokeTypedCommand('plugin_list_installed');
   },
 
   async install(
@@ -337,7 +158,11 @@ export const pluginCommands = {
     signal?: AbortSignal,
     onProgress?: (progress: PluginInstallProgress) => void,
   ): Promise<PluginInstallResult> {
-    return installWithCancellation('plugin_install', { pluginId, version }, signal, onProgress);
+    return installWithCancellation(
+      { command: 'plugin_install', pluginId, version },
+      signal,
+      onProgress,
+    );
   },
 
   async update(
@@ -345,11 +170,11 @@ export const pluginCommands = {
     signal?: AbortSignal,
     onProgress?: (progress: PluginInstallProgress) => void,
   ): Promise<PluginInstallResult> {
-    return installWithCancellation('plugin_update', { pluginId }, signal, onProgress);
+    return installWithCancellation({ command: 'plugin_update', pluginId }, signal, onProgress);
   },
 
   async uninstall(pluginId: string): Promise<void> {
-    return invoke('plugin_uninstall', { pluginId });
+    await invokeTypedCommand('plugin_uninstall', { pluginId });
   },
 
   async run(
@@ -362,26 +187,26 @@ export const pluginCommands = {
     channel.onmessage = (event) => {
       if (!requestIsCurrent || requestIsCurrent()) onEvent(event);
     };
-    return invoke('plugin_run', { pluginId, params, channel }, { requestIsCurrent });
+    return invokeTypedCommand('plugin_run', { pluginId, params, channel }, { requestIsCurrent });
   },
 
   async consentResponse(requestId: string, approved: boolean, value?: string): Promise<void> {
-    return invoke('plugin_consent_response', { requestId, approved, value });
+    await invokeTypedCommand('plugin_consent_response', { requestId, approved, value });
   },
 
   async dialogResponse(requestId: string, value?: string): Promise<void> {
-    return invoke('plugin_dialog_response', { requestId, value });
+    await invokeTypedCommand('plugin_dialog_response', { requestId, value });
   },
 
-  async listSessions(): Promise<PluginSessionInfo[]> {
-    return invoke('plugin_list_sessions');
+  async listSessions(): Promise<PluginSession[]> {
+    return invokeTypedCommand('plugin_list_sessions');
   },
 
   async auditLog(limit?: number): Promise<PluginAuditEntry[]> {
-    return invoke('plugin_audit_log', { limit });
+    return invokeTypedCommand('plugin_audit_log', { limit });
   },
 
   async updateRegistry(): Promise<void> {
-    return invoke('plugin_update_registry');
+    await invokeTypedCommand('plugin_update_registry');
   },
 };

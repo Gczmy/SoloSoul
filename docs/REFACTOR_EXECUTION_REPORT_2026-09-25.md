@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**97**（P1：35；P2：61；P3：1）。
-- 已关闭：**47 / 97**；实际修复（已关闭）：47；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无（RF-302已完成，下一候选RF-306插件IPC/Channel契约，前置RF-301已完成；只读预案已核对）。RF-303与RF-304前置未满足，RF-305只读预案记录失效事件验收缺口，本轮未实施。RF-213仍依赖RF-905的真实Sync生命周期；RF-903仍待RF-905。RF-104、RF-014、RF-016、RF-021、RF-905保持既有具体授权阻塞，已归档草案不恢复。Android任务仍缺本机C盘可用原生工具链，不以其他平台代替。
+- 已关闭：**48 / 97**；实际修复（已关闭）：48；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：RF-306 已完成，当前无进行中项；下一候选 RF-307（前置 RF-301/RF-302 已完成）。RF-303/RF-304 前置未满足，RF-305 的失效事件验收缺口仍待处理。RF-213/RF-903 仍依赖 RF-905；RF-104、RF-014、RF-016、RF-021、RF-905 保持既有授权阻塞，归档草案不恢复。Android 仍缺本机 C 盘可用原生工具链。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -201,7 +201,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 73 | [RF-303](#rf-303) | P2 | 迁移 LLM 会话与流事件契约 | [RF-301](#rf-301)、[RF-002](#rf-002)、[RF-004](#rf-004)、[RF-005](#rf-005)、[RF-104](#rf-104) | [ ] 待执行 |
 | 74 | [RF-304](#rf-304) | P2 | 迁移备份与导入导出 IPC 契约 | [RF-301](#rf-301)、[RF-013](#rf-013)、[RF-015](#rf-015)、[RF-024](#rf-024) | [ ] 待执行 |
 | 75 | [RF-305](#rf-305) | P2 | 迁移同步 IPC 与事件契约 | [RF-301](#rf-301)、[RF-003](#rf-003) | [ ] 待执行 |
-| 76 | [RF-306](#rf-306) | P2 | 迁移插件 IPC 与资源事件契约 | [RF-301](#rf-301) | [ ] 待执行 |
+| 76 | [RF-306](#rf-306) | P2 | 迁移插件 IPC 与资源事件契约 | [RF-301](#rf-301) | [x] 完成 |
 | 77 | [RF-307](#rf-307) | P2 | 建立结构化后端错误并迁移对象用例 | [RF-301](#rf-301)、[RF-302](#rf-302) | [ ] 待执行 |
 | 78 | [RF-309](#rf-309) | P2 | 建立 Windows Rust 关键用例执行门禁 | 无 | [ ] 待执行 |
 | 79 | [RF-310](#rf-310) | P2 | 把 Android 原生回归接入明确的设备任务 | [RF-201](#rf-201)、[RF-208](#rf-208) | [ ] 待执行 |
@@ -2250,4 +2250,49 @@ git commit -m "<任务卡的提交标题>"
 
 - 本机 Windows、Node24.16.0、Rust/Cargo1.96.0，CI仍为Node22；全部Cargo含Node fixture串行、jobs=1，沿用既有sqlite3/PDFium环境。完整Rust仍有既有solo_soul.pdb输出名称冲突提示；3项旧忽略不变，未新增skip/ignore。没有把本机单元/编译结果表述为macOS/移动端原生实机或云端CI验证。
 - 最终19项检查均有真实exit0及日志SHA；47个源文件冻结摘要一致，Cargo.lock逐字节未变；本项提交范围精确50文件。三张用户NSIS位图SHA与基线相同且不暂存。canonical前端架构及IPC生成规范同步，完整证据位于恢复目录 `rf302-final-verification.json`，各步骤日志前缀为 `rf302-`。
-- 最终结论：本项 **完成**；提交为本提交（按 `[RF-302]` 检索），未推送。累计 **47/97已关闭**，原5项具体授权阻塞保持。下轮候选RF-306只读预案为恢复目录 `rf306-readonly-preplan.md`（SHA256 `BE860D53132E11497A0296C2696193F9ABDBDF6AF45BB59F50AB34A0BB6A6A7D`），尚未实施；RF303/RF304前置与RF305事件缺口仅作依赖核对，不混入本提交。
+- 最终结论：本项 **完成**；提交为 `6152e57f`（按 `[RF-302]` 检索），未推送。累计 **47/97已关闭**，原5项具体授权阻塞保持。下轮候选RF-306只读预案为恢复目录 `rf306-readonly-preplan.md`（SHA256 `BE860D53132E11497A0296C2696193F9ABDBDF6AF45BB59F50AB34A0BB6A6A7D`），尚未实施；RF303/RF304前置与RF305事件缺口仅作依赖核对，不混入本提交。
+
+
+### RF-306 执行记录（2026-09-28，完成）
+
+- 基线 `6152e57f`，唯一进行中任务，前置 RF-301 已完成。仅使用 C 盘恢复仓库；三张用户 NSIS 位图保持且不暂存。只做本地提交，未推送。RF303/RF304/RF305 与五项既有授权阻塞不混入本项。
+- 注册表/ACL 核对本组为 15 个真实命令；取消使用 SDK Resource.close，实际没有 plugin_cancel。安装进度及运行事件通过 Channel，不虚构全局事件名。Host 仅明确宏/DTO导入来源与增加测试，不改安装算法、权限/文件检查、插件沙箱或市场子模块。
+- 生成器按精确 Tauri 类型识别 Webview 注入、数字 ResourceId 与命令参数根层 Channel，payload 按 Output 生成；serde transparent 单字段 newtype 保留任意 JSON。反序列化别名/default函数/deserialize_with 仅 Output 支持，未知或不能准确表达的输入继续拒绝。
+- 前端 wire 直接重导出生成类型，内建展示形状移到 pluginViewModel 并做 runtime guard；安装取消、会话票据、上限及结果/通知去重保留。市场版本缺失不再向安装入口传 null，真实 serde 下的 sessionId/数值时间/installedAt/nullable字段与审计 snake_case 字段以生成源为准。
+- 验证进行中：完整 F + R + CONTRACT 通过后才关闭和单独提交。证据日志前缀 `rf306-`，目录沿用本机恢复证据目录。
+
+- 生成器首轮 61 项通过后，独立复审发现 use 别名遮蔽：`use crate::fake as tauri` 可使伪 Webview 被忽略、String 形式的伪 ResourceId 被误生成为 number。已用修复前真实编译二进制与合成源复现并保存 `rf306-shadow-before.json`；新增最终绑定/祖先 self 与 glob 拒绝规则及四项聚焦回归，待复验。正常 SDK 分组和叶子别名保留。
+- 前端定向 10 文件、105 passed（37.40s）；偏好键22、Markdown13依赖、ACL脚本12项均 exit0。其余完整检查进行中，暂不关闭。
+
+- 生成器最终 **65 passed**（RF30117 + RF30212 + RF30619 + 共源17）、all-targets Clippy 零警告；同一伪造源由修复前错误接受变为修复后明确拒绝，证据为 `rf306-shadow-before/after.json`。真实生产来源 Node 契约 **6 passed**，新增28条编译负例；ACL220/迁移30/未迁移190/全局事件0。AST 扫描确认本组15命令在3文件中的16次调用全部typed且无响应泛型。
+- Host插件定向 **13 passed**（含10个新增与3个原取消回归），875.74s主要为14m14s编译链接；旧PDB命名冲突提示保留。原生测试可执行文件实际运行，没有将编译成功或0命中当作本组通过。
+- 首次全前端为169文件1462项全通过；随后生成契约的TypeScript检查揭示参数对话框把nullable defaultValue当字符串，另有3处旧事件fixture缺nullable键。已按实际wire修正：null回到原boolean false/其它空字符串默认值、保留显式字符串；3个新UI回归加原会话隔离共 **27 passed**，TypeScript最终exit0（16.98s）。完整F最终复验进行中。
+
+- 最终 F + R + CONTRACT 全部通过。生成源严格区分 Channel 载荷、ResourceId 和普通 JSON；真实 SDK Channel/Resource 用例验证原生消息传递与资源关闭，任意插件 JSON 结果只在展示边界缩窄。安装取消保留后台取消与 Resource.close 回收；运行面板的 stopPlugin 仍只停止前端接收，不宣称能终止实际 Wasm worker。
+- 最后一次完整前端包含新增 nullable 默认值回归；原失败日志保留。完整 Rust 已连同文档测试正常结束，3 项旧忽略仍为两项 legacy field 兼容测试与 P025 手动数据收集工具，本项没有新增 skip/ignore。
+
+| RF-306 最终验证 | 真实结果 | 耗时/证据 |
+| --- | --- | --- |
+| 工具定向 | 65 passed，0 ignored，exit0 | 49.60s，`rf306-tool-tests-final` |
+| 工具 Clippy all-targets | 零警告，exit0 | 44.95s，`rf306-tool-clippy` |
+| Host 插件定向 | 13 passed，0 ignored，exit0 | 875.74s，`rf306-host-plugin-tests` |
+| TypeScript | 通过，exit0 | 16.98s，`rf306-typescript-final` |
+| 前端定向 | 10 文件、105 passed，exit0 | 37.40s，`rf306-frontend-targeted` |
+| null 参数与会话隔离 | 2 文件、27 passed，exit0 | 28.26s，`rf306-null-params-session-tests` |
+| 完整前端 | 170 文件、1465 passed，0 failed，0 skipped，exit0 | 166.53s，`rf306-frontend-full-final` |
+| ESLint | 零警告，exit0 | 32.32s，`rf306-frontend-lint-final` |
+| 修改文件 Prettier | 30 文件通过，exit0 | 1.26s，`rf306-front-format-check-final` |
+| Workspace fmt | 通过，exit0 | 4.60s，`rf306-workspace-fmt` |
+| Workspace Clippy | 零警告，exit0 | 133.41s，`rf306-workspace-clippy` |
+| 完整 Rust workspace | 1360 passed，0 failed，3 原有 ignored，exit0 | 442.52s，`rf306-workspace-tests` |
+| 实际 Rust/TS 契约 Node 回归 | 6 passed，0 skipped；28 条新增编译负例，exit0 | 10.41s，`rf306-node-contract-tests` |
+| 生成漂移检查 | 30 已迁移 / 190 未迁移 / 0 全局事件，exit0 | 11.96s，`rf306-contract-check` |
+| ACL | 220 命令，exit0 | 0.19s，`rf306-acl` |
+| 偏好键 | 22 keys，exit0 | 0.20s，`rf306-pref-keys` |
+| Markdown 边界 | 13 依赖，exit0 | 8.91s，`rf306-markdown-boundary` |
+| ACL Python 回归 | 12 passed，exit0 | 0.86s，`rf306-acl-python-tests` |
+
+- 本机为 Windows、Node24.16.0、Rust/Cargo1.96.0；CI仍为Node22。前端沿用已登记的 `--pool=threads --maxWorkers=2`，RF-316 默认进程池问题不在本项宣称修复。所有 Cargo（含 Node fixture）串行、jobs=1，沿用既有 sqlite3/PDFium 测试环境；完整 Rust 的既有 solo_soul.pdb 名称冲突提示保留，未降低 Clippy 检查级别。
+- 测试覆盖真实 Rust serde、Tauri Channel 与 ResourceTable，以及前端实际 SDK 的受控原生边界；没有进行线上插件安装、真实 Wasm 强制取消、macOS/移动端实机或云端 CI 验证，也未以浏览器模拟替代这些原生结果。
+- 最终范围为38个实现/生成/测试/locale文件与3份文档，共41文件；实现文件冻结SHA一致，Cargo.lock逐字节未变。三张用户NSIS位图SHA保持且不暂存；无依赖升级、市场子模块或共享插件业务算法改动。canonical IPC生成规范和前端架构已同步；18项检查、日志摘要、提交范围与源文件SHA见恢复目录 `rf306-final-verification.json`，提交前后校验另行归档。
+- 最终结论：本项 **完成**；提交：本提交（使用 `[RF-306]` 检索），未推送。累计 **48/97已关闭**，原5项具体授权阻塞保持。下一候选 RF-307 只读预案为恢复目录 `rf307-readonly-preplan.md`（SHA256 `b9dde2f4594923d6c9a392942ca652527c58d447a82bc012fb1a087214939f49`），尚未实施，不混入本提交。

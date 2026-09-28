@@ -287,7 +287,7 @@ fn rf301_unsupported_rust_and_serde_never_degrade_to_any() {
         "#[derive(serde::Serialize)] pub struct AppInfo { #[serde(with=\"custom\")] pub value: String }",
         "#[derive(serde::Serialize)] pub struct AppInfo { #[serde(rename(serialize=\"a\",deserialize=\"b\"))] pub value: String }",
         "#[derive(serde::Serialize)] pub struct AppInfo { #[cfg(windows)] pub value: String }",
-        "#[derive(serde::Serialize)] pub struct AppInfo { #[serde(default=\"load_secret\")] pub value: String }",
+        "#[derive(serde::Serialize)] pub struct AppInfo { #[serde(serialize_with=\"load_secret\")] pub value: String }",
         "#[derive(serde::Serialize)] pub struct AppInfo { #[serde(skip_serializing_if=\"custom::is_empty\")] pub value: Vec<String> }",
         "#[derive(serde::Serialize)] pub struct AppInfo { #[serde(skip_serializing_if=\"Option::is_none\")] pub value: String }",
         "#[derive(serde::Serialize)] #[serde(untagged)] pub enum AppInfo { Text(String) }",

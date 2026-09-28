@@ -25,12 +25,16 @@ it('cancels the native resource while keeping the task pending until native clea
   const controller = new AbortController();
   const task = pluginCommands.install('plugin', '1.0.0', controller.signal);
   await vi.waitFor(() =>
-    expect(invokeCommand).toHaveBeenCalledWith('plugin_install', {
-      pluginId: 'plugin',
-      version: '1.0.0',
-      operationId: 42,
-      onProgress: expect.anything(),
-    }),
+    expect(invokeCommand).toHaveBeenCalledWith(
+      'plugin_install',
+      {
+        pluginId: 'plugin',
+        version: '1.0.0',
+        operationId: 42,
+        onProgress: expect.anything(),
+      },
+      undefined,
+    ),
   );
   controller.abort();
   expect(mocks.close).toHaveBeenCalledOnce();

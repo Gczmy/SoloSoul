@@ -61,7 +61,13 @@ async function compileProbe(root, probe) {
         module: 'ESNext',
         moduleResolution: 'bundler',
         types: [],
-        paths: { '@/*': ['./src/*'] },
+        paths: {
+          '@/*': ['./src/*'],
+          // 使用实际 SDK 声明，保留 Channel 的私有成员与序列化能力。
+          '@tauri-apps/api/core': [
+            path.join(workspaceRoot, 'node_modules/@tauri-apps/api/core.d.ts'),
+          ],
+        },
       },
       files: [probe],
     }),
@@ -468,6 +474,136 @@ export async function checkObjectSnapshotCalls() {
     const result = await compileProbe(root, probe);
     assert.ifError(result.error);
     // 每个负例都必须实际触发错误；无关编译错误或未消费的指令均失败。
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.equal(result.stdout, '');
+    assert.equal(result.stderr, '');
+  });
+});
+
+test('RF306 actual plugin contracts preserve SDK channels, resource handles and nullable wire payloads', async () => {
+  await withProductionFixture(async (root) => {
+    await copyTypedSources(root, { session: true });
+    const probe = path.join(root, 'plugin-contract-probe.ts');
+    await writeFile(
+      probe,
+      `
+import { Channel, Resource } from '@tauri-apps/api/core';
+import { createTypedInvoker, invokeTypedCommand } from './src/lib/typedIpc';
+import { invokeCommand } from './src/lib/ipcClient';
+import { createSessionRequests } from './src/lib/sessionRequests';
+import type {
+  ResourceId, PluginInstallProgress, PluginInstallResult, PluginEvent, PluginManifest,
+  PluginResult, PluginResultPayload, PluginSession, PluginAuditEntry, PluginAuditAction, MarketPluginInfo,
+} from './src/lib/generated/ipcContracts';
+export async function checkPluginCalls() {
+  const pluginId = 'synthetic-plugin', version = '1.0.0';
+  const market: MarketPluginInfo[] = await invokeTypedCommand('plugin_list_all', {});
+  await invokeTypedCommand('plugin_list_all', { tier: null });
+  const installed: PluginManifest[] = await invokeTypedCommand('plugin_list_installed');
+  const attachmentJson: string = await invokeTypedCommand('plugin_list_attachments');
+  const operationId: ResourceId = await invokeTypedCommand('create_plugin_install');
+  const resource = new Resource(operationId);
+  const onProgress = new Channel<PluginInstallProgress>();
+  onProgress.onmessage = (progress) => {
+    const bytes: number | null = progress.totalBytes;
+    // @ts-expect-error totalBytes 是 nullable。
+    const guaranteed: number = progress.totalBytes;
+    void bytes; void guaranteed;
+  };
+  const install: PluginInstallResult = await invokeTypedCommand('plugin_install', { pluginId, version, operationId: resource.rid, onProgress });
+  const update: PluginInstallResult = await invokeTypedCommand('plugin_update', { pluginId, operationId: null, onProgress });
+  await invokeTypedCommand('plugin_update', { pluginId, onProgress });
+  const uninstalled: null = await invokeTypedCommand('plugin_uninstall', { pluginId });
+  const channel = new Channel<PluginEvent>();
+  channel.onmessage = (event) => {
+    const requestId: string | null = event.requestId;
+    const kind: string = event.eventType;
+    // @ts-expect-error requestId 必须先缩窄。
+    const guaranteed: string = event.requestId;
+    void requestId; void kind; void guaranteed;
+  };
+  const result: PluginResult = await invokeTypedCommand('plugin_run', { pluginId, params: { name: 'synthetic' }, channel });
+  const consent: null = await invokeTypedCommand('plugin_consent_response', { requestId: 'synthetic-request', approved: true, value: null });
+  const dialog: null = await invokeTypedCommand('plugin_dialog_response', { requestId: 'synthetic-request' });
+  const sessions: PluginSession[] = await invokeTypedCommand('plugin_list_sessions');
+  const sessionId: string = sessions[0].sessionId, createdAt: number = sessions[0].createdAt;
+  const audit: PluginAuditEntry[] = await invokeTypedCommand('plugin_audit_log', { limit: 50 });
+  const refreshed: null = await invokeTypedCommand('plugin_update_registry');
+  const opened: null = await invokeTypedCommand('plugin_open_output_file', { outputDir: 'synthetic-output', path: 'file.pdf' });
+  const copied: null = await invokeTypedCommand('plugin_copy_output_file', { outputDir: 'synthetic-output', path: 'file.pdf', destDir: 'synthetic-dest', fileName: 'copy.pdf' });
+  const installedAt: number = install.installedAt;
+  const nullableVersion: string | null = market[0].registryEntry.latestVersion;
+  const nullableAuthor: string | null = installed[0].author;
+  const jsonResults: PluginResultPayload[] = [null, 'text', false, 1, ['nested'], { arbitrary: [true, null] }];
+  const completed: PluginAuditAction = { action: 'plugin_run_completed', exit_code: 0 };
+  const approved: PluginAuditAction = { action: 'consent_approved', field_id: 'synthetic-field' };
+  const factory = createTypedInvoker(invokeCommand);
+  const viaFactory: PluginResult = await factory('plugin_run', { pluginId, params: {}, channel });
+  const ticket = createSessionRequests().begin('plugin', 'synthetic-account');
+  const viaSession: PluginResult = await ticket.invokeTyped('plugin_run', { pluginId, params: {}, channel });
+  // @ts-expect-error 安装版本必填。
+  void invokeTypedCommand('plugin_install', { pluginId, onProgress });
+  // @ts-expect-error 市场版本必须缩窄。
+  void invokeTypedCommand('plugin_install', { pluginId, version: nullableVersion, onProgress });
+  // @ts-expect-error 句柄不是 Resource 对象。
+  void invokeTypedCommand('plugin_install', { pluginId, version, operationId: resource, onProgress });
+  // @ts-expect-error 数字不能替代 Channel。
+  void invokeTypedCommand('plugin_install', { pluginId, version, onProgress: operationId });
+  // @ts-expect-error JSON 对象缺少 SDK Channel 私有成员及序列化能力。
+  void invokeTypedCommand('plugin_install', { pluginId, version, onProgress: { id: 1, onmessage: () => {} } });
+  // @ts-expect-error JSON 字符串不是 Channel。
+  void invokeTypedCommand('plugin_install', { pluginId, version, onProgress: '__CHANNEL__:1' });
+  // @ts-expect-error 安装 Channel 不能接运行事件。
+  void invokeTypedCommand('plugin_install', { pluginId, version, onProgress: channel });
+  // @ts-expect-error 运行 Channel 不能接安装进度。
+  void invokeTypedCommand('plugin_run', { pluginId, params: {}, channel: onProgress });
+  // @ts-expect-error params 只接受字符串。
+  void invokeTypedCommand('plugin_run', { pluginId, params: { enabled: true }, channel });
+  // @ts-expect-error update 没有 version 参数。
+  void invokeTypedCommand('plugin_update', { pluginId, version, onProgress });
+  // @ts-expect-error 工厂同样要求 SDK Channel。
+  void factory('plugin_run', { pluginId, params: {}, channel: {} });
+  // @ts-expect-error session 同样要求 params。
+  void ticket.invokeTyped('plugin_run', { pluginId, channel });
+  // @ts-expect-error consent 必须指定 approved。
+  void invokeTypedCommand('plugin_consent_response', { requestId: 'synthetic-request' });
+  // @ts-expect-error dialog value 为 string/null。
+  void invokeTypedCommand('plugin_dialog_response', { requestId: 'synthetic-request', value: 1 });
+  // @ts-expect-error Host 没有虚构的 plugin_cancel。
+  void invokeTypedCommand('plugin_cancel', { operationId });
+  // @ts-expect-error Webview 是原生注入参数。
+  void invokeTypedCommand('create_plugin_install', { webview: 'main' });
+  // @ts-expect-error attachments 仍是 JSON 字符串。
+  const wrongAttachments: unknown[] = await invokeTypedCommand('plugin_list_attachments');
+  // @ts-expect-error session.id 不存在。
+  const wrongId: string = sessions[0].id;
+  // @ts-expect-error 会话时间是数字。
+  const wrongTime: string = sessions[0].createdAt;
+  // @ts-expect-error 审计变体仍为 snake_case 字段。
+  const wrongExit: PluginAuditAction = { action: 'plugin_run_completed', exitCode: 0 };
+  // @ts-expect-error 审计字段为 field_id。
+  const wrongField: PluginAuditAction = { action: 'consent_approved', fieldId: 'f' };
+  // @ts-expect-error nullable 输出字段仍必须出现。
+  const partialEvent: PluginEvent = { eventType: 'log', jsonData: '{}' };
+  // @ts-expect-error ResourceId 是数字。
+  const wrongResource: ResourceId = '42';
+  // @ts-expect-error JSON 不包括函数。
+  const nonJson: PluginResultPayload = () => {};
+  // @ts-expect-error 注册表版本信息在 versions map 中。
+  const legacyVersion: string = market[0].registryEntry.minCoreVersion;
+  const extraArgs = { pluginId, version, onProgress, extra: true };
+  // @ts-expect-error 命名变量同样禁止多余参数。
+  void invokeTypedCommand('plugin_install', extraArgs);
+  void wrongAttachments; void wrongId; void wrongTime; void wrongExit; void wrongField;
+  void partialEvent; void wrongResource; void nonJson; void legacyVersion;
+  return { market, installed, attachmentJson, install, update, uninstalled, result, consent, dialog,
+    sessions, sessionId, createdAt, audit, refreshed, opened, copied, installedAt, nullableVersion,
+    nullableAuthor, jsonResults, completed, approved, viaFactory, viaSession };
+}
+`,
+    );
+    const result = await compileProbe(root, probe);
+    assert.ifError(result.error);
     assert.equal(result.status, 0, result.stdout + result.stderr);
     assert.equal(result.stdout, '');
     assert.equal(result.stderr, '');

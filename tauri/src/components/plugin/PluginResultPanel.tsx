@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy, Check, Eye, Download } from 'lucide-react';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { saveWithPause, openWithPause } from '@/lib/dialog';
 import { dirname, basename } from '@tauri-apps/api/path';
@@ -9,7 +9,12 @@ import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { Button } from '@/components/ui/Button';
 import styles from './PluginResultPanel.module.css';
-import type { PluginResultPayload, WatermarkResultItem } from '@/lib/plugin';
+import type { PluginResultPayload } from '@/lib/plugin';
+import {
+  isPluginDisplayResult,
+  type PluginDisplayResult,
+  type WatermarkResultItem,
+} from '@/lib/pluginViewModel';
 import { ExpiryGuardianView } from '@/components/plugin-views/ExpiryGuardianView';
 import { useUiStore } from '@/stores/uiStore';
 import { ICON_SIZE } from '@/lib/constants';
@@ -171,8 +176,9 @@ interface PluginResultPanelProps {
 
 export function PluginResultPanel({ results }: PluginResultPanelProps) {
   const { t } = useTranslation('plugin');
+  const displayResults = results.filter(isPluginDisplayResult);
 
-  if (results.length === 0) {
+  if (displayResults.length === 0) {
     return (
       <div className={styles.empty}>{t('result_empty', { defaultValue: 'No result yet' })}</div>
     );
@@ -180,7 +186,7 @@ export function PluginResultPanel({ results }: PluginResultPanelProps) {
 
   return (
     <div className={styles.container}>
-      {results.map((result, index) => (
+      {displayResults.map((result, index) => (
         <div key={index} className={styles.resultCard}>
           <ResultContent payload={result} />
         </div>
@@ -232,7 +238,7 @@ function PerPairCopyRow({
   );
 }
 
-function ResultContent({ payload }: { payload: PluginResultPayload }) {
+function ResultContent({ payload }: { payload: PluginDisplayResult }) {
   const { t } = useTranslation('plugin');
 
   switch (payload.type) {
@@ -293,7 +299,7 @@ function ResultContent({ payload }: { payload: PluginResultPayload }) {
 function WatermarkResultContent({
   payload,
 }: {
-  payload: PluginResultPayload & { type: 'watermark_result' };
+  payload: PluginDisplayResult & { type: 'watermark_result' };
 }) {
   const { t } = useTranslation('plugin');
   const items = payload.items;
@@ -330,7 +336,7 @@ function WatermarkResultContent({
     // 本地文件）。改由 Rust 命令 `plugin_open_output_file` 做 canonical 路径包含
     // 校验（须位于 payload.outputDir 之内）后才用系统默认应用打开。
     try {
-      await invoke('plugin_open_output_file', {
+      await invokeTypedCommand('plugin_open_output_file', {
         outputDir: payload.outputDir,
         path,
       });
@@ -347,7 +353,7 @@ function WatermarkResultContent({
       if (dest) {
         // P060: 复制下沉到 Rust 命令（源路径 canonical 包含校验 + 文件名净化），
         // 替代此前前端直接 plugin-fs copyFile 且静默吞错。
-        await invoke('plugin_copy_output_file', {
+        await invokeTypedCommand('plugin_copy_output_file', {
           outputDir: payload.outputDir,
           path: item.outputPath,
           destDir: await dirname(dest),
@@ -374,7 +380,7 @@ function WatermarkResultContent({
       const selected = items.filter((item) => selectedIds.has(resultItemId(item)));
       await Promise.all(
         selected.map(async (item) => {
-          await invoke('plugin_copy_output_file', {
+          await invokeTypedCommand('plugin_copy_output_file', {
             outputDir: payload.outputDir,
             path: item.outputPath,
             destDir: dir,

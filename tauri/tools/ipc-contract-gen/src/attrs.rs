@@ -1,3 +1,4 @@
+use super::types::Direction;
 use std::collections::BTreeSet;
 use syn::parse::Parser;
 use syn::{Attribute, Token};
@@ -12,6 +13,8 @@ pub(crate) struct SerdeAttrs {
     pub tag: Option<String>,
     pub content: Option<String>,
     pub derives: BTreeSet<String>,
+    pub transparent: bool,
+    pub default_variant: bool,
 }
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Location {
@@ -21,7 +24,11 @@ pub(crate) enum Location {
     Field,
 }
 
-pub(crate) fn read(attrs: &[Attribute], location: Location) -> Result<SerdeAttrs, String> {
+pub(crate) fn read(
+    attrs: &[Attribute],
+    location: Location,
+    direction: Direction,
+) -> Result<SerdeAttrs, String> {
     let mut result = SerdeAttrs::default();
     let mut seen = BTreeSet::new();
     for attribute in attrs {
@@ -68,6 +75,13 @@ pub(crate) fn read(attrs: &[Attribute], location: Location) -> Result<SerdeAttrs
             }
             continue;
         }
+        if attribute.path().is_ident("default") && location == Location::Variant {
+            if result.default_variant || !matches!(attribute.meta, syn::Meta::Path(_)) {
+                return Err("duplicate or malformed default variant attribute".into());
+            }
+            result.default_variant = true;
+            continue;
+        }
         if !attribute.path().is_ident("serde") {
             return Err(format!(
                 "unsupported DTO attribute: {}",
@@ -81,7 +95,8 @@ pub(crate) fn read(attrs: &[Attribute], location: Location) -> Result<SerdeAttrs
                     .get_ident()
                     .ok_or_else(|| meta.error("serde key must be an identifier"))?
                     .to_string();
-                if !seen.insert(key.clone()) {
+                // serde 允许同一字段/变体有多个反序列化别名。
+                if key != "alias" && !seen.insert(key.clone()) {
                     return Err(meta.error(format!("duplicate serde attribute: {key}")));
                 }
                 match key.as_str() {
@@ -104,10 +119,30 @@ pub(crate) fn read(attrs: &[Attribute], location: Location) -> Result<SerdeAttrs
                         result.rename_all = Some(rule);
                     }
                     "default" if matches!(location, Location::Struct | Location::Field) => {
-                        if meta.input.peek(Token![=]) || meta.input.peek(syn::token::Paren) {
-                            return Err(meta.error("default functions are unsupported"));
+                        if meta.input.peek(Token![=]) {
+                            let value = meta.value()?.parse::<syn::LitStr>()?;
+                            output_function(&value, direction)
+                                .map_err(|error| meta.error(error))?;
+                        } else if meta.input.peek(syn::token::Paren) {
+                            return Err(meta.error("malformed serde default"));
                         }
                         result.default = true;
+                    }
+                    "alias" if matches!(location, Location::Field | Location::Variant) => {
+                        let _alias = meta.value()?.parse::<syn::LitStr>()?;
+                        if direction != Direction::Output {
+                            return Err(meta.error("serde alias is supported only for output DTOs"));
+                        }
+                    }
+                    "deserialize_with" if location == Location::Field => {
+                        let value = meta.value()?.parse::<syn::LitStr>()?;
+                        output_function(&value, direction).map_err(|error| meta.error(error))?;
+                    }
+                    "transparent" if location == Location::Struct => {
+                        if meta.input.peek(Token![=]) || meta.input.peek(syn::token::Paren) {
+                            return Err(meta.error("malformed serde transparent"));
+                        }
+                        result.transparent = true;
                     }
                     "skip_serializing_if" if location == Location::Field => {
                         let predicate = meta.value()?.parse::<syn::LitStr>()?.value();
@@ -139,6 +174,24 @@ pub(crate) fn read(attrs: &[Attribute], location: Location) -> Result<SerdeAttrs
         return Err("serde tag and content must differ".into());
     }
     Ok(result)
+}
+
+// 只检查函数路径语法，不解析/执行默认值或自定义反序列化函数。
+// 这些属性不改变序列化结果；输入契约无法准确表达其接受集合，必须拒绝。
+fn output_function(value: &syn::LitStr, direction: Direction) -> Result<(), String> {
+    if direction != Direction::Output {
+        return Err("serde deserialization functions are supported only for output DTOs".into());
+    }
+    let path: syn::Path = syn::parse_str(&value.value())
+        .map_err(|_| "unsupported serde function path".to_string())?;
+    if path
+        .segments
+        .iter()
+        .any(|segment| !matches!(segment.arguments, syn::PathArguments::None))
+    {
+        return Err("generic serde function paths are unsupported".into());
+    }
+    Ok(())
 }
 
 // 依据已锁 serde_derive_internals 0.29.1 的 field/variant 命名规则实现。

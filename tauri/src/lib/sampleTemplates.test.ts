@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { deriveSampleTemplateBindings, SAMPLE_TEMPLATES_ZH } from './sampleTemplates';
-import type { PluginManifest } from './plugin';
+import { pluginManifest } from '@/test/pluginFixtures';
 
-const mockAddressFmtPlugin: PluginManifest = {
+const mockAddressFmtPlugin = pluginManifest({
   id: 'com.solosoul.official.address-fmt',
   name: 'Address Formatter',
   version: '1.0.0',
@@ -23,18 +23,18 @@ const mockAddressFmtPlugin: PluginManifest = {
       strictContractGate: false,
       typeIdAliases: [],
       roles: [
-        { roleId: 'street', label: '街道', defaultPropertyId: 'street' },
-        { roleId: 'district', label: '区/县', defaultPropertyId: 'district' },
-        { roleId: 'city', label: '城市', defaultPropertyId: 'city' },
-        { roleId: 'state', label: '省份', defaultPropertyId: 'state' },
-        { roleId: 'country', label: '国家', defaultPropertyId: 'country' },
-        { roleId: 'postalCode', label: '邮编', defaultPropertyId: 'postalCode' },
+        { roleId: 'street', required: false, label: '街道', defaultPropertyId: 'street' },
+        { roleId: 'district', required: false, label: '区/县', defaultPropertyId: 'district' },
+        { roleId: 'city', required: false, label: '城市', defaultPropertyId: 'city' },
+        { roleId: 'state', required: false, label: '省份', defaultPropertyId: 'state' },
+        { roleId: 'country', required: false, label: '国家', defaultPropertyId: 'country' },
+        { roleId: 'postalCode', required: false, label: '邮编', defaultPropertyId: 'postalCode' },
       ],
     },
   ],
-};
+});
 
-const mockUnrelatedPlugin: PluginManifest = {
+const mockUnrelatedPlugin = pluginManifest({
   id: 'com.solosoul.other',
   name: 'Other Plugin',
   version: '1.0.0',
@@ -54,10 +54,10 @@ const mockUnrelatedPlugin: PluginManifest = {
       displayName: '其他契约',
       strictContractGate: false,
       typeIdAliases: [],
-      roles: [{ roleId: 'name', label: '名称', defaultPropertyId: 'fullName' }],
+      roles: [{ roleId: 'name', required: false, label: '名称', defaultPropertyId: 'fullName' }],
     },
   ],
-};
+});
 
 describe('deriveSampleTemplateBindings', () => {
   const addressTemplate = SAMPLE_TEMPLATES_ZH.find((t) => t.key === 'zh_address')!;

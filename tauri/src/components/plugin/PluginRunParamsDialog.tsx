@@ -16,7 +16,7 @@ interface PluginRunParamsDialogProps {
 function initialValues(params: PluginParam[]): Record<string, string> {
   const values: Record<string, string> = {};
   for (const p of params) {
-    if (p.defaultValue !== undefined) {
+    if (typeof p.defaultValue === 'string') {
       values[p.id] = p.defaultValue;
     } else if (p.type === 'boolean') {
       values[p.id] = 'false';

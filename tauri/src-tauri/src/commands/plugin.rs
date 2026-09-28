@@ -1,18 +1,20 @@
 //! 插件系统 Tauri Commands
 
 use crate::commands::{current_account_optional, vault_handle};
-use crate::plugin::{
-    MarketPluginInfo, PluginAuditEntry, PluginEvent, PluginInstallResult, PluginManifest,
-    PluginResult, PluginSession, PluginTier,
-};
 use crate::state::AppState;
-use solosoul_plugin::{PluginInstallPhase, PluginInstallProgress};
+use solosoul_plugin::event::PluginEvent;
+use solosoul_plugin::install_progress::{PluginInstallPhase, PluginInstallProgress};
+use solosoul_plugin::manifest::{
+    MarketPluginInfo, PluginAuditEntry, PluginInstallResult, PluginManifest, PluginResult,
+    PluginTier,
+};
+use solosoul_plugin::session::PluginSession;
 use std::collections::HashMap;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
 };
-use tauri::{command, ipc::Channel, Manager, Resource, ResourceId, State, Webview};
+use tauri::{ipc::Channel, Manager, Resource, ResourceId, State, Webview};
 
 /// 取消即丢弃下载 future；同步校验/落盘开始后完成提交，不谎报“取消但已安装”。
 struct PluginInstallOperation {
@@ -62,12 +64,12 @@ fn emit_install_progress(
     }
     let _ = channel.send(progress);
 }
-#[command]
+#[tauri::command]
 pub fn create_plugin_install(webview: Webview) -> ResourceId {
     webview.resources_table().add(PluginInstallOperation::new())
 }
 
-#[command]
+#[tauri::command]
 pub async fn plugin_list_all(
     state: State<'_, AppState>,
     tier: Option<String>,
@@ -82,7 +84,7 @@ pub async fn plugin_list_all(
         .map_err(|e| e.to_string())
 }
 
-#[command]
+#[tauri::command]
 pub async fn plugin_list_installed(
     state: State<'_, AppState>,
 ) -> Result<Vec<PluginManifest>, String> {
@@ -92,7 +94,7 @@ pub async fn plugin_list_installed(
         .map_err(|e| e.to_string())
 }
 
-#[command]
+#[tauri::command]
 pub async fn plugin_list_attachments(state: State<'_, AppState>) -> Result<String, String> {
     let vault_store = vault_handle(&state)?;
     let account_id = current_account_optional(&state).ok_or("未选择账户")?;
@@ -159,7 +161,7 @@ fn migrate_seed_bindings(state: &AppState, plugin_id: &str) {
     }
 }
 
-#[command]
+#[tauri::command]
 pub async fn plugin_install(
     state: State<'_, AppState>,
     webview: Webview,
@@ -194,7 +196,7 @@ pub async fn plugin_install(
     Ok(result)
 }
 
-#[command]
+#[tauri::command]
 pub async fn plugin_update(
     state: State<'_, AppState>,
     webview: Webview,
@@ -227,7 +229,7 @@ pub async fn plugin_update(
     Ok(result)
 }
 
-#[command]
+#[tauri::command]
 pub async fn plugin_uninstall(state: State<'_, AppState>, plugin_id: String) -> Result<(), String> {
     let _guard = PLUGIN_INSTALL_LOCK.lock().await;
     state
@@ -239,7 +241,7 @@ pub async fn plugin_uninstall(state: State<'_, AppState>, plugin_id: String) -> 
     Ok(())
 }
 
-#[command]
+#[tauri::command]
 pub async fn plugin_run(
     state: State<'_, AppState>,
     plugin_id: String,
@@ -274,7 +276,7 @@ pub async fn plugin_run(
         .map_err(|e| e.to_string())
 }
 
-#[command]
+#[tauri::command]
 pub async fn plugin_consent_response(
     state: State<'_, AppState>,
     request_id: String,
@@ -288,7 +290,7 @@ pub async fn plugin_consent_response(
         .map_err(|e| e.to_string())
 }
 
-#[command]
+#[tauri::command]
 pub async fn plugin_dialog_response(
     state: State<'_, AppState>,
     request_id: String,
@@ -301,7 +303,7 @@ pub async fn plugin_dialog_response(
         .map_err(|e| e.to_string())
 }
 
-#[command]
+#[tauri::command]
 pub async fn plugin_list_sessions(
     state: State<'_, AppState>,
 ) -> Result<Vec<PluginSession>, String> {
@@ -311,7 +313,7 @@ pub async fn plugin_list_sessions(
         .map_err(|e| e.to_string())
 }
 
-#[command]
+#[tauri::command]
 pub async fn plugin_audit_log(
     state: State<'_, AppState>,
     limit: Option<usize>,
@@ -322,7 +324,7 @@ pub async fn plugin_audit_log(
         .map_err(|e| e.to_string())
 }
 
-#[command]
+#[tauri::command]
 pub async fn plugin_update_registry(state: State<'_, AppState>) -> Result<(), String> {
     state
         .plugin_manager
@@ -369,7 +371,7 @@ fn resolve_output_file(output_dir: &str, path: &str) -> Result<std::path::PathBu
 ///
 /// 同时 `tauri.conf.json` 的 shell.open 正则已移除 `file://` 与绝对路径项（P032），
 /// 即使绕过本命令也无法再经 plugin-shell 打开本地文件。
-#[command]
+#[tauri::command]
 pub fn plugin_open_output_file(output_dir: String, path: String) -> Result<(), String> {
     let canon = resolve_output_file(&output_dir, &path)?;
 
@@ -394,7 +396,7 @@ pub fn plugin_open_output_file(output_dir: String, path: String) -> Result<(), S
 /// 2. `file_name` 必须是单一文件名（不含路径分隔符、非 `.`/`..`、非空），
 ///    防止插件返回的 `fileName` 携带路径遍历写穿用户所选目录；
 /// 3. `dest_dir` 必须是真实存在的目录（用户经保存/目录选择对话框提供）。
-#[command]
+#[tauri::command]
 pub fn plugin_copy_output_file(
     output_dir: String,
     path: String,
@@ -476,3 +478,7 @@ mod install_operation_tests {
         assert_eq!(result.unwrap(), "installed");
     }
 }
+
+#[cfg(test)]
+#[path = "plugin/rf306_tests.rs"]
+mod rf306_tests;

@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Component, Path, PathBuf};
 use syn::parse::{Parse, ParseStream};
 use syn::visit::Visit;
-use syn::{Attribute, Item, Token};
+use syn::{Attribute, Item, Token, UseTree};
 
 pub(crate) const LIB: &str = "src-tauri/src/lib.rs";
 pub(crate) const ACL: &str = "src-tauri/permissions/solo-soul/default.toml";
@@ -74,8 +74,8 @@ impl Sources {
         self.files.insert(relative.to_string(), file.clone());
         Ok(file)
     }
-    // 不模拟 Rust 的完整局部名称解析；已知外库/内置名字被模块或 extern crate
-    // 重新绑定时明确拒绝，不能把本地类型静默当作真实依赖的 DTO。
+    // 不模拟 Rust 的完整局部名称解析；模块、extern crate 或 use 重新绑定已知
+    // 外库/内置命名空间时明确拒绝，不能把本地类型静默当作真实依赖的 DTO。
     pub fn reject_namespace_shadowing(&self, file: &syn::File, source: &str) -> Result<(), String> {
         for item in &file.items {
             let name = match item {
@@ -83,19 +83,58 @@ impl Sources {
                 Item::ExternCrate(item) => {
                     super::attrs::ident(item.rename.as_ref().map_or(&item.ident, |(_, name)| name))
                 }
+                Item::Use(item) => {
+                    self.reject_use_namespace_shadowing(&item.tree, source)?;
+                    continue;
+                }
                 _ => continue,
             };
-            if matches!(
-                name.as_str(),
-                "std" | "core" | "alloc" | "serde" | "serde_json" | "tauri"
-            ) || self.crates.iter().any(|owner| owner.namespace == name)
-            {
-                return Err(format!(
-                    "{source}: local binding {name} shadows known contract namespace"
-                ));
-            }
+            self.reject_namespace_binding(&name, source)?;
         }
         Ok(())
+    }
+
+    fn reject_namespace_binding(&self, name: &str, source: &str) -> Result<(), String> {
+        if matches!(
+            name,
+            "std" | "core" | "alloc" | "serde" | "serde_json" | "tauri"
+        ) || self.crates.iter().any(|owner| owner.namespace == name)
+        {
+            return Err(format!(
+                "{source}: local binding {name} shadows known contract namespace"
+            ));
+        }
+        Ok(())
+    }
+
+    fn reject_use_namespace_shadowing(&self, tree: &UseTree, source: &str) -> Result<(), String> {
+        match tree {
+            // 路径段本身不是本地绑定；只检查最终 Name/Rename。
+            UseTree::Path(item) => self.reject_use_namespace_shadowing(&item.tree, source),
+            UseTree::Name(item) => {
+                let name = super::attrs::ident(&item.ident);
+                if name == "self" {
+                    // self 会绑定父路径末段。与 Catalog 的受限 import 解析一致，明确拒绝，
+                    // 包括只负责 module 路由、没有加入 Catalog 的祖先入口。
+                    return Err(format!(
+                        "{source}: use self imports are unsupported in contract sources"
+                    ));
+                }
+                self.reject_namespace_binding(&name, source)
+            }
+            UseTree::Rename(item) => {
+                self.reject_namespace_binding(&super::attrs::ident(&item.rename), source)
+            }
+            UseTree::Group(item) => {
+                for child in &item.items {
+                    self.reject_use_namespace_shadowing(child, source)?;
+                }
+                Ok(())
+            }
+            UseTree::Glob(_) => Err(format!(
+                "{source}: glob imports are unsupported in contract sources"
+            )),
+        }
     }
 
     // 解析真实 mod 声明而非仅拼目录，避免登记一个同名但未被 Host 使用的函数。
