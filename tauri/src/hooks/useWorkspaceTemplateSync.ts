@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { invokeTypedCommand } from '@/lib/typedIpc';
 import { toObjectDataView } from '@/lib/objectViewModel';
@@ -56,6 +56,7 @@ export function useWorkspaceTemplateSync({
     result: TemplateSyncResult | null;
     loading: boolean;
   } | null>(null);
+  const syncPreviewVersion = useRef(0);
 
   // 忽略模板更新二次确认弹窗状态
   const [dismissConfirm, setDismissConfirm] = useState<{
@@ -83,6 +84,20 @@ export function useWorkspaceTemplateSync({
 
   // 模板同步确认弹窗打开期间，对应对象的提示条应临时隐藏，避免被弹窗遮罩盖住。
   const [syncDialogOpenForObjectId, setSyncDialogOpenForObjectId] = useState<string | null>(null);
+  useEffect(() => {
+    setSyncDialog(null);
+    setSyncDialogOpenForObjectId(null);
+    setDismissConfirm(null);
+    return () => {
+      syncPreviewVersion.current += 1;
+    };
+  }, [accountId]);
+
+  const handleCancelSync = useCallback(() => {
+    syncPreviewVersion.current += 1;
+    setSyncDialog(null);
+    setSyncDialogOpenForObjectId(null);
+  }, []);
 
   // 详情面板模板同步：hash 初判 + 语义复核
   const detailHashNeedsSync =
@@ -142,10 +157,12 @@ export function useWorkspaceTemplateSync({
   const handleStartSync = useCallback(
     async (objectId: string, objectName: string) => {
       if (!accountId) return;
+      const version = ++syncPreviewVersion.current;
       setSyncDialogOpenForObjectId(objectId);
       setSyncDialog({ objectId, objectName, result: null, loading: true });
       try {
         const result = await previewSyncTemplate(accountId, objectId);
+        if (version !== syncPreviewVersion.current) return;
         if (!result.hasChanges) {
           // 无实际字段差异时直接应用同步（仅刷新 template_hash），避免提示条反复出现。
           setSyncDialog(null);
@@ -160,8 +177,11 @@ export function useWorkspaceTemplateSync({
           await refreshTemplateHashMap();
           return;
         }
-        setSyncDialog((prev) => (prev ? { ...prev, result, loading: false } : null));
+        setSyncDialog((prev) =>
+          prev?.objectId === objectId ? { ...prev, result, loading: false } : prev,
+        );
       } catch (err) {
+        if (version !== syncPreviewVersion.current) return;
         logger.warn('[Workspace] Preview sync failed:', err);
         setSyncDialog(null);
         setSyncDialogOpenForObjectId(null);
@@ -250,13 +270,13 @@ export function useWorkspaceTemplateSync({
     templateHashMap,
     syncDialogOpenForObjectId,
     syncDialog,
-    setSyncDialog,
     setSyncDialogOpenForObjectId,
     dismissConfirm,
     setDismissConfirm,
     detailHashNeedsSync,
     detailSemanticNeedsSync,
     handleStartSync,
+    handleCancelSync,
     handleConfirmSync,
     handleRequestDismissSync,
     handleConfirmDismissSync,

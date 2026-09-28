@@ -396,10 +396,7 @@ export function ObjectWorkspacePage() {
           result={ws.syncDialog.result}
           loading={ws.syncDialog.loading}
           onConfirm={ws.handleConfirmSync}
-          onCancel={() => {
-            ws.setSyncDialog(null);
-            ws.setSyncDialogOpenForObjectId(null);
-          }}
+          onCancel={ws.handleCancelSync}
         />
       )}
 
