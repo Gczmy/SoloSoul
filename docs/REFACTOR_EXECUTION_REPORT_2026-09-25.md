@@ -120,8 +120,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**122**（P1：36；P2：85；P3：1）。
-- 已关闭：**74 / 122**；实际修复（已关闭）：74；排除：0；待验证/阻塞：13（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：RF-114。RF-312已取得可复跑的 Windows 原生 Vault 后端子基线，待多端应用性能实测；RF-204待 iOS 双目标编译，RF-121待原生材质验收，RF-308仍需补实际覆盖和远端CI日志，其余待验证项保持。
+- 已关闭：**75 / 122**；实际修复（已关闭）：75；排除：0；待验证/阻塞：13（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无。RF-312已取得可复跑的 Windows 原生 Vault 后端子基线，待多端应用性能实测；RF-204待 iOS 双目标编译，RF-121待原生材质验收，RF-308仍需补实际覆盖和远端CI日志，其余待验证项保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -175,7 +175,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 46 | [RF-029](#rf-029) | P2 | OCR 增加受控排队与分页取消 | [RF-001](#rf-001)、[RF-028](#rf-028) | [x] 完成 |
 | 47 | [RF-109](#rf-109) | P2 | 回收站保护层复用共享字段策略 | [RF-106](#rf-106) | [x] 完成 |
 | 48 | [RF-113](#rf-113) | P2 | 常驻壳配置注册和注销具有页面所有者 | 无 | [x] 完成 |
-| 49 | [RF-114](#rf-114) | P2 | AppRoutes 生命周期编排按职责收敛 | [RF-112](#rf-112)、[RF-113](#rf-113) | [ ] 待执行 |
+| 49 | [RF-114](#rf-114) | P2 | AppRoutes 生命周期编排按职责收敛 | [RF-112](#rf-112)、[RF-113](#rf-113) | [x] 完成 |
 | 50 | [RF-115](#rf-115) | P2 | 普通操作按钮族迁入语义样式入口 | [RF-112](#rf-112) | [ ] 待执行 |
 | 51 | [RF-116](#rf-116) | P2 | 图标按钮族统一结构和平台尺寸 | [RF-115](#rf-115) | [ ] 待执行 |
 | 52 | [RF-117](#rf-117) | P2 | 互斥选项与下拉选择族统一状态语义 | [RF-115](#rf-115) | [ ] 待执行 |
@@ -2992,3 +2992,10 @@ git commit -m "<任务卡的提交标题>"
 - 基线 `45f2984b`。RF-114 的 WEB 验收首次因 Playwright 自带 Chromium 未安装而在浏览器启动前失败；改用本机已安装 Chrome 后，首帧用例真实运行并失败：现有页面引用的 `128x128@2x.png` 自然宽度 256px，旧断言要求 1024px。该不一致在本项修改前已存在，与 RF-114 源码抽取无关。
 - 只将图标断言改为自然宽度至少 160px，即 80px 显示宽度的 2 倍；首帧可见、品牌文本及 React 未加载断言保留。Chrome 桌面与移动视口分别 1/1 通过；修改文件 Prettier 与 `git diff --check` 通过。没有将 256px 资产误称为 1024px，也未改变产品图片。
 - RF-114 仍进行中，后续 WEB 测试继续使用现有 Chrome 通道；本项单独提交且不推送，用户 NSIS 图片不暂存。
+
+### RF-114 执行记录（2026-09-29，完成）
+
+- 基线 `b7e8a686`。`AppRoutes` 保留认证路由、静态页面与常驻壳树；会话启动、设置链、锁定清理迁入 `useSessionLifecycle`，窗口/系统主题/SAF/快捷方式事件迁入 `useNativeAppEvents`，更新/OCR/SAF 横幅与通知 Provider 迁入 `AppNotifications`。对象、模板、设置、回收站等 Store 沿各自 `onRequestSessionChange` 清理，不再于锁定回调重复维护全量名单；单次 `vault-locked` 由认证状态变更触发一次会话清理并导航。
+- StrictMode 反序注册红测复现 SAF 旧 Promise 覆盖新退订句柄；修复为按当前 Promise 身份接收注册，旧注册在完成时自行退订且只退订一次。SAF 授权撤销事件仍按会话去重提示，卸载后的回调不写状态。LLM 完成通知改由认证 Effect 持有退订句柄，延迟注册也在卸载后释放；待通知会话 ID 随会话切换清空。
+- 定向 Vitest `appLifecycle.test.tsx` 与 `sessionIsolation.test.ts` 为 2 文件/29 项通过；`npx tsc --noEmit`、`npm run lint`、修改文件 Prettier 均 exit 0；最终完整 `npm run test` 为 184 文件/1,575 项全通过。使用本机 Chrome 按适用项目运行 WEB：桌面启动/导航/壳 23/23、移动启动/导航 17/17；最终 `npm run test:e2e:production` 生产包 16/16。证据 `rf114-browser-desktop-final.log`、`rf114-browser-mobile-final.log`、`rf114-production-e2e-final.log`。
+- 首次使用缺少本地 Playwright Chromium 的入口在浏览器启动前失败；本机 Chrome 可运行。最初把桌面侧栏专用用例错误投入 390px mobile project 导致 4 项平台假设失败，按本卡的适用项目复跑已全绿；首帧图片过时尺寸断言已由独立 RF-932 修复。浏览器模拟不替代 Android/macOS 原生窗口验收；本项独立提交且不推送，用户 NSIS 图片不暂存。

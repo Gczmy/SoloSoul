@@ -12,6 +12,7 @@ import { invokeCommand as invoke } from '@/lib/ipcClient';
 import i18next from '@/lib/i18n';
 import { navigateTo } from '@/lib/navigation';
 import { logger } from '@/lib/logger';
+import { onRequestSessionChange } from '@/lib/sessionRequests';
 import type { BackupInfo } from '@/types/backup';
 
 /**
@@ -65,7 +66,7 @@ interface LlmStreamPayload {
  * are shown.
  */
 const pendingConversations = new Set<string>();
-let unlisten: UnlistenFn | null = null;
+onRequestSessionChange(() => pendingConversations.clear());
 
 // F029: avoid querying the global DOM to determine the current page; callers
 // update these flags instead.
@@ -81,16 +82,13 @@ export function setQuickChatOpen(open: boolean): void {
 }
 
 /**
- * Initialize the global LLM stream listener for notification purposes.
- * Should be called once at app startup.
+ * 注册当前会话的 LLM 流完成通知。调用方持有并释放返回的监听器。
  *
  * 注意：不在启动时申请通知权限，权限延迟到首次真正发送通知时由
  * sendSystemNotificationWithFallback 按需申请，避免启动即弹窗。
  */
-export async function initLlmNotificationListener(): Promise<void> {
-  if (unlisten) return;
-
-  unlisten = await listen<LlmStreamPayload>('llm-stream-chunk', (event) => {
+export function initLlmNotificationListener(): Promise<UnlistenFn> {
+  return listen<LlmStreamPayload>('llm-stream-chunk', (event) => {
     const payload = event.payload;
 
     // Error or not done → don't notify yet (but still clear error ones)

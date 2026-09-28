@@ -4,7 +4,14 @@ import { logger } from '@/lib/logger';
 
 /** 同步进度事件 payload（与 Rust 侧 `emit("sync-progress", ...)` 一致）。 */
 export interface SyncProgressPayload {
-  phase: 'sync_start' | 'sync_complete' | 'error' | 'sync_to_remote' | 'sync_from_remote' | 'migrate' | 'auto_sync';
+  phase:
+    | 'sync_start'
+    | 'sync_complete'
+    | 'error'
+    | 'sync_to_remote'
+    | 'sync_from_remote'
+    | 'migrate'
+    | 'auto_sync';
   current?: number;
   total?: number;
   message?: string;
@@ -124,23 +131,31 @@ export const useSafSyncStore = create<SafSyncState>((set, get) => ({
     set({ _unlistenPromise: pending });
     pending
       .then((unlistenFn) => {
+        // StrictMode 或退出登录可先停止再重新注册；旧 Promise 不能覆盖新句柄。
+        if (get()._unlistenPromise !== pending) {
+          unlistenFn();
+          return;
+        }
         set({ _unlisten: unlistenFn, _unlistenPromise: null });
       })
       .catch((err) => {
         logger.error('[safSyncStore] Failed to register sync-progress listener:', err);
-        set({ _unlistenPromise: null });
+        if (get()._unlistenPromise === pending) set({ _unlistenPromise: null });
       });
   },
 
   stopListening: () => {
     const state = get();
     state._unlisten?.();
-    if (state._unlistenPromise) {
-      state._unlistenPromise
-        .then((fn) => fn())
-        .catch((err) => logger.warn('[safSyncStore] Failed to clean up listener:', err));
-    }
-    set({ _unlisten: null, _unlistenPromise: null, status: 'idle', phase: null, progress: null, error: null });
+    // 清空句柄使待完成的注册在上方 then 中自行释放，避免重复退订。
+    set({
+      _unlisten: null,
+      _unlistenPromise: null,
+      status: 'idle',
+      phase: null,
+      progress: null,
+      error: null,
+    });
   },
 
   reset: () => {
