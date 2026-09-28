@@ -159,6 +159,16 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
       }
     };
 
+    const snapBack = () => {
+      isDraggingRef.current = false;
+      dragOffsetRef.current = 0;
+      axisRef.current = 'none';
+      if (stripRef.current) {
+        stripRef.current.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        stripRef.current.style.transform = `translateX(-${pageIndexRef.current * (100 / pagesLenRef.current)}%)`;
+      }
+    };
+
     const onTouchEnd = (e: TouchEvent) => {
       isDraggingRef.current = false;
       // 竖向滚动手势未移动 strip，无需回弹/翻页判定
@@ -181,21 +191,19 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
         }
       }
       // 未触发翻页：回弹到当前页
-      dragOffsetRef.current = 0;
-      if (stripRef.current) {
-        stripRef.current.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-        stripRef.current.style.transform = `translateX(-${pageIndexRef.current * (100 / pagesLenRef.current)}%)`;
-      }
+      snapBack();
     };
 
     container.addEventListener('touchstart', onTouchStart, { passive: true });
     container.addEventListener('touchmove', onTouchMove, { passive: true });
     container.addEventListener('touchend', onTouchEnd, { passive: true });
+    container.addEventListener('touchcancel', snapBack, { passive: true });
 
     return () => {
       container.removeEventListener('touchstart', onTouchStart);
       container.removeEventListener('touchmove', onTouchMove);
       container.removeEventListener('touchend', onTouchEnd);
+      container.removeEventListener('touchcancel', snapBack);
     };
   }, [open, pageIndex, pages.length]);
 
