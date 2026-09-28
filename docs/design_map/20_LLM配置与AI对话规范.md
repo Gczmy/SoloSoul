@@ -3,6 +3,7 @@
 > **前置阅读**：`13_用户数据边界与加密存储.md`、`24_矛盾冲突与决策记录.md`、`10_跨平台视觉规范与主题系统.md`（侧边栏规范）
 > **Manifesto 对齐**：用户主权 | 隐私优先 | 安全默认
 >
+> **数据流说明更新：2026-09-28（RF-315）**。本文区分聊天自动上下文、手工消息和独立的 Embedding 请求；界面线框与未勾选完成标准是设计目标。
 > **[状态] 当前实现校正（2026-09-26，RF-004/RF-005）**：普通聊天以第 5–7 节的 `llm_send_message_stream` 和 Rust 受控自动上下文为准。下方 2026-08 记录仅保留历史方案，不作为当前调用图或缓存已实现的证据。
 > **文档定位**：定义 SoloSoul LLM（大语言模型）集成的全部规范，包括 Provider 管理、API 配置、模型选择，AI 对话页面的功能规格与 UI 设计，以及系统提示词、上下文注入、帮助文档嵌入等 AI 智能能力。AI 功能是软件的附加扩展，不影响核心离线本地功能。
 
@@ -14,11 +15,11 @@
 |------|------|
 | **用户主权** | 用户选择用什么模型、哪家服务商、甚至自建 API |
 | **默认禁用** | AI 功能默认全部关闭，首次开启需风险告知确认 |
-| **不绑定厂商** | 不限制任何特定厂商，支持所有 OpenAI 兼容 API |
-| **密钥安全** | API 密钥 `critical` 级别加密存储，使用后内存擦除 |
-| **透明可控** | 每次 AI 调用前用户确认发送内容，审计日志记录调用元数据 |
-| **隐私优先** | 系统提示词仅包含用户主动公开的信息，绝不暴露敏感数据 |
-| **本地优先** | 帮助文档检索、上下文构建均在本地完成，不上传用户数据到外部服务 |
+| **不绑定厂商** | 可配置 OpenAI 兼容 API 或现有 Anthropic 适配器，实际兼容性以服务接口为准 |
+| **密钥安全** | API 密钥随本地账户 Profile 加密保存，需要认证时随请求交给所选服务；普通聊天由 Rust 解析凭证 |
+| **透明可控** | 首次开启聊天需风险确认；消息由用户触发发送，已启用的上下文自动附加，没有逐消息二次确认 |
+| **字段保护** | 自动对象上下文只取允许的 public 对象及 public 叶字段；手工输入与历史正文不会按该规则脱敏 |
+| **本地优先** | Vault 投影在本机完成；聊天和 Embedding 的目的地由配置决定，远程服务仍会收到相应请求内容 |
 
 ---
 
@@ -48,7 +49,7 @@ interface LlmProvider {
 |--------------|-----------------|-------------|------|
 | OpenAI | `https://api.openai.com/v1` | `gpt-4o` | 需用户填写 API Key |
 | Anthropic | `https://api.anthropic.com/v1` | `claude-3-sonnet-20241022` | 需用户填写 API Key |
-| Ollama（本地） | `http://localhost:11434/v1` | `llama3.1` | 本地运行，无外传风险 |
+| Ollama（默认回环地址） | `http://localhost:11434/v1` | `llama3.1` | 请求先到本机服务；更改地址或服务自身转发可能改变数据去向 |
 | DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` | 需用户填写 API Key |
 | 阿里云百炼 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-max` | 需用户填写 API Key |
 
@@ -97,71 +98,17 @@ interface LlmProvider {
 
 ## 3. 配置存储
 
-### 3.1 存储分层
+### 3.1 当前存储位置
 
-| 数据 | 存储位置 | 理由 |
-|------|---------|------|
-| Provider 列表（不含 apiKey） | `preferences.enc`（Vault 加密） | 含 baseUrl/model，可推断用户行为偏好 |
-| API 密钥 | 独立加密存储 + 内存安全 | `critical` 级别，等同密码 |
-| 当前活跃 Provider ID | `preferences.enc`（Vault 加密） | 用户偏好的一部分 |
-| AI 功能开关状态 | `preferences.enc`（Vault 加密） | 用户偏好的一部分 |
-| 自动系统提示词 | 请求内存，不持久化 | 每次从绑定会话重新投影；不恢复旧提示词缓存 |
-| 使用统计 | Vault 加密（按账户隔离） | 跨会话持久化 |
+[commands/llm/mod.rs](../../tauri/src-tauri/src/commands/llm/mod.rs) 将配置保存到当前账户 Profile 的 `preferences.llmConfig`，API 密钥映射保存到同一 Profile 的 `preferences.llmApiKeys`，随 Profile 加密。这里不是独立 `preferences.enc` 文件或单独密钥仓库，也没有已实现的 API-key 专用子密钥存储层。
 
-### 3.2 API 密钥安全存储
+配置包含 provider 列表、活跃 ID、功能开关、`includeSystemPrompt` 及本地 Embedding 偏好等；实际 DTO 以 [llm/config.rs](../../tauri/crates/solosoul-core/src/llm/config.rs) 为准，不复制一份与源码漂移的存储接口。自动 system 只存在于请求中，不写入聊天历史。
 
-```rust
-// Rust 侧：API 密钥单独加密存储
-struct LlmApiKeyStorage {
-    // 使用 Vault 主密钥派生的独立子密钥加密
-    // 密钥不与其他偏好数据混存，降低泄露面
-}
+### 3.2 凭证在请求中的边界
 
-// 读取流程
-async fn get_api_key(provider_id: &str, vault: &Vault) -> Result<SecureString, Error> {
-    let encrypted = api_key_repo.get(provider_id).await?;
-    let decrypted = vault.decrypt_api_key(&encrypted)?;
-    // 返回后由调用方负责在使用后擦除内存
-    Ok(decrypted)
-}
-```
+普通聊天传 `providerId`，由 Rust 在原会话内从同一 Profile 快照解析地址、模型、协议和密钥，见 §5.1。OpenAI 兼容认证使用 `Authorization: Bearer ...`，Anthropic 使用 `x-api-key`；凭证会交给所选服务，不能说“API key 永不离开设备”。无认证的本机服务可使用空 key。
 
-**安全约束**：
-- API 密钥仅在内存中存在，使用 `zeroize` crate 确保使用后擦除
-- 密钥绝不写入日志、审计记录或任何持久化存储
-- 前端代码**绝不接触**原始 API 密钥——所有 API 调用由 Rust 后端代理
-
-**返回掩码规范**：
-- `llm_get_providers` 返回 Provider 列表时，必须将所有非空 `apiKey` 替换为掩码字符串 `••••••••`
-- 保存 Provider 时，如果 `apiKey == "••••••••"`，表示用户未修改密钥，跳过保存避免用掩码覆盖真实密钥
-- 此机制确保前端开发者即使在控制台打印返回值，也不会意外泄露原始 API Key
-
-### 3.3 Provider 列表数据结构
-
-```typescript
-// 存储于 preferences.enc 中的 LLM 配置
-interface LlmConfig {
-  providers: ProviderConfig[];     // Provider 列表（不含 apiKey）
-  activeProviderId: string | null; // 当前使用的 Provider
-  aiFeaturesEnabled: {             // AI 功能开关（默认全部 false）
-    chat: boolean;
-    smartFill: boolean;
-    commandGen: boolean;
-    naturalLanguageSearch: boolean;
-  };
-  includeSystemPrompt: boolean;    // 默认 true；RF-004 Host 硬约束，false 优先于客户端选择
-}
-
-// Provider 配置（存储版本，不含密钥）
-interface ProviderConfig {
-  id: string;
-  name: string;
-  baseUrl: string;
-  model: string;
-  isEnabled: boolean;
-  isBuiltIn: boolean;
-}
-```
+Provider 列表返回非空 key 的掩码，保存时保留既有掩码兼容规则；这不代表渲染器永远接触不到原始 key。配置编辑、显式查看/测试和部分在线检查仍有既有凭证入口，例如 [useLlmProviders.ts](../../tauri/src/hooks/useLlmProviders.ts) 调用 `llm_get_api_key`。当前实现还存在普通 Rust/JavaScript 字符串副本，不能承诺所有副本均立即安全清零。日志不得记录凭证是开发约束，不是已经证明全部错误路径都脱敏的结论。
 
 ---
 
@@ -212,36 +159,15 @@ interface ProviderConfig {
 | 名称 | 用户自定义名称（或预置名称），`--text-primary`，Body（14px） |
 | 模型 | 当前配置的模型名称，`--text-secondary`，Caption（12px） |
 | 编辑按钮 | 右侧 `Settings` 图标，点击打开 Provider 配置面板 |
-| 禁用状态 | Provider 未填写 API Key 时，名称灰色显示，hover 提示"请配置 API 密钥" |
+| 凭证 | 远程服务按其认证要求配置 API key；本机无认证服务允许空 key，不能仅因空 key 推断禁用 |
 
-### 4.3 风险告知对话框
+### 4.3 当前风险确认与设置文案
 
-用户首次开启任何 AI 功能时，强制展示风险告知：
+[RiskAcceptanceDialog](../../tauri/src/components/llm-config/RiskAcceptanceDialog.tsx) 通过现有中英 `settings` 词条说明以下范围：请求的服务地址、输入和历史、启用后自动附加的公开上下文，以及独立的 Embedding 请求。用户勾选后确认开启聊天；界面不对每条消息再次展示出站全文确认。
 
-```
-┌──────────────────────────────────────────┐
-│  [IconWarning] 启用 AI 功能前请确认                    │
-│ ──────────────────────────────────────  │
-│                                          │
-│  您即将启用 AI 对话功能。根据您选择的 AI   │
-│  服务商，您的输入内容将被发送到外部服务器   │
-│  进行处理。                                │
-│                                          │
-│  SoloSoul 承诺：                          │
-│  • 不会自动发送任何数据                    │
-│  • 每次发送前会请您确认内容                │
-│  • API 密钥仅存储在您的本地设备            │
-│  • 可随时关闭此功能                        │
-│  • 系统提示词仅包含您主动公开的信息        │
-│                                          │
-│  [IconCheck] 我已了解风险并同意开启               │
-│                                          │
-│  [  确认开启  ]  [  取消  ]               │
-└──────────────────────────────────────────┘
-```
+[useLlmChatFeatureSettings](../../tauri/src/hooks/useLlmChatFeatureSettings.ts) 按账户保存聊天风险接受状态。另有 [useLlmProviders](../../tauri/src/hooks/useLlmProviders.ts) 的首次非本地 provider 激活提示，以设备级 localStorage 标记记忆；它不是逐 provider、逐消息或每次网络请求的重新授权。保存新的外部地址还有既有登记确认，两者都不能代替正确的数据流说明。
 
-- 必须勾选"我已了解风险"才能点击"确认开启"
-- 确认后写入审计日志，记录时间戳和开启的功能类型
+关闭自动上下文会停止本次聊天自动附加，不会清除手工输入或历史中的内容，也不会撤回已发送数据。本地 Embedding 优先项只控制向量计算来源，不改变聊天 provider 地址；完整回退边界见 §7.1。
 
 ---
 
@@ -390,14 +316,14 @@ for (i, g) in graphemes.iter().enumerate() {
 
 系统提示词（System Prompt）是 AI 对话的"底层指令"，定义了 AI 助手的身份、能力边界和行为规范。SoloSoul 的系统提示词设计遵循以下原则：
 
-1. **隐私优先**：仅包含用户主动公开的信息，绝不暴露敏感数据
+1. **自动字段过滤**：只附加允许的公开对象信息与 public 叶字段；不承诺过滤用户输入、历史正文或独立 Embedding 查询
 2. **动态注入**：每次发送消息前重新构建，确保数据始终最新
 3. **长度可控**：七段提示上限 1500 字符，与指南合并后单条 system 上限 3000 字符
 4. **会话绑定**：每次从原 Vault 读取受控数据，不恢复旧提示词缓存
 
 ### 6.2 系统提示词结构
 
-系统提示词由 **7 个 Section** 组成，按以下顺序拼接：
+系统提示词由 **7 个 Section** 组成，按以下顺序拼接。下列给模型的行为指令不是网络数据保护机制，也不保证模型遵守；真正的自动字段边界由 §6.4 的 Rust 投影实现：
 
 ```
 【Section 1: AI 身份定义】
@@ -441,9 +367,9 @@ for (i, g) in graphemes.iter().enumerate() {
 |---------|---------|-------------|------|
 | 1. AI 身份 | 硬编码 | — | 固定文本，不可修改 |
 | 2. 软件信息 | Host 版本/平台与本次界面语言 | — | 语言有界，不读取前端 Vault 内容 |
-| 3. 用户公开对象数据 | 绑定会话的原 Vault | **对象及叶字段均 public** | 候选最多三个，不遍历全库 |
+| 3. 用户公开对象数据 | 绑定会话的原 Vault | **对象及叶字段均 public** | 候选最多三个，含对象名称/类型与允许叶字段；没有公开叶字段时也可能含公开对象名称/类型，不遍历全库 |
 | 4. 偏好设置 | 原 Profile 的 preferences 白名单 | 有界值 | 仅 theme、language、accentColor、autoLockTimeoutMinutes；不整体序列化 |
-| 5. 已安装插件 | Plugin 服务 | — | 插件名称列表（**当前留空预留，TODO：等插件系统上线后接入**） |
+| 5. 已安装插件 | 占位文本 | — | 当前没有向本提示注入真实插件列表，不能据此推断插件系统尚未实现 |
 | 6. 使用统计 | 既有占位文本 | — | 本项不新增统计注入 |
 | 7. 行为规范 | 硬编码 | — | 固定文本，不可修改 |
 
@@ -480,13 +406,13 @@ for (i, g) in graphemes.iter().enumerate() {
 
 | 敏感度级别 | 是否进入系统提示词 | 说明 |
 |-----------|------------------|------|
-| `public` | ✅ 是 | 用户主动公开的信息 |
-| `internal` | ❌ 否 | 内部使用数据，不暴露给 AI |
-| `sensitive` | ❌ 否 | 敏感数据，需重新验证密码 |
-| `critical` | ❌ 否 | 关键数据，需重新验证密码 |
+| `public` | ✅ 是 | 已标为 public 的候选对象及其 public 叶字段；不是每次发送时另行授权 |
+| `internal` | ❌ 否 | 内部使用数据，不自动附加 |
+| `sensitive` | ❌ 否 | 不自动附加，验证字段不会改变此排除规则 |
+| `critical` | ❌ 否 | 不自动附加，验证字段不会改变此排除规则 |
 | 缺失/未知/非法 | ❌ 否 | 自动上下文按 internal 处理 |
 
-**AI 行为约束**（硬编码在系统提示词 Section 7）：
+**给模型的行为指令**（硬编码在系统提示词 Section 7；不能作为实际权限或第三方保留政策的保证）：
 1. **语言匹配**：使用与用户提问相同的语言回答
 2. **概念区分**：区分"插件"（功能扩展）和"对象"（用户数据）
 3. **敏感数据拒绝**：当被问及敏感/受限/关键数据时，告知用户需要重新验证密码
@@ -513,14 +439,22 @@ for (i, g) in graphemes.iter().enumerate() {
 
 ## 7. 帮助文档检索与嵌入
 
-### 7.1 设计目标
+### 7.1 当前检索数据流（RF-315 核对）
 
-当用户询问软件功能使用方法时，AI 助手应能参考官方帮助文档给出准确回答。设计遵循以下原则：
+[Rust RAG 入口](../../tauri/src-tauri/src/commands/llm/rag.rs) 支持向量检索和关键词回退；索引内容来自内置软件帮助指南，不是自动遍历全部 Vault 对象。当前出站边界如下。
 
-1. **本地优先**：所有检索在本地完成，不上传用户查询到外部服务
-2. **轻量高效**：关键词匹配方案，无需向量数据库或外部 embedding 服务
-3. **多语言支持**：自动匹配用户当前语言，支持回退
-4. **按需注入**：仅在用户问题与帮助文档相关时才注入，避免污染上下文
+| 操作 | 可能交给所配置服务的内容 |
+|------|------------------------|
+| 查询向量 | 查询原文，不经过聊天自动对象字段的 public 投影 |
+| 重建帮助索引 | 内置帮助文档片段的批量文本 |
+| Embedding 支持检查 | 固定测试文本 `test`；不是用户对象数据 |
+| 返回聊天的检索片段 | 开启自动上下文时，最多三片由 Host 限量并合入 system，再发送给聊天 provider |
+
+`useLocalEmbedding` 是优先项：启用、指定模型且模型已安装时才选择应用内 ONNX。未满足这些条件会尝试当前启用且支持 Embedding 的 provider，该地址可能是回环、自托管或远程服务。已选中本地模型后加载/推理失败，搜索会退回关键词，不是在这个阶段再转远程；没有可用来源或已有索引为空时也退回关键词。远程请求失败后退回关键词，不代表失败请求未到达服务端。
+
+选择本地 Embedding 不会将远程聊天变成本地聊天；本机 HTTP 聊天服务和应用内 ONNX 向量模型也不是同一个组件。不能将这些开关写成“所有 AI 数据严格不离机”。
+
+**当前调用缺口**：[guideService.ts](../../tauri/src/lib/llm/guideService.ts) 调用 `llm_search_guide_chunks` 未传 Rust 必需的 `accountId`，错误又被转换为空结果；因此不能将上述 Rust 能力写成当前聊天界面已端到端验收。该独立契约问题登记 [RF-908](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-908)，本项只修正文案。聊天出站 fixture 不替代 Embedding 或指南检索的运行验证。
 
 ### 7.2 文档结构
 
@@ -559,7 +493,7 @@ resources/
 }
 ```
 
-### 7.3 检索算法
+### 7.3 关键词回退算法（早期设计示例）
 
 ```rust
 async fn find_relevant_guides(query: &str, language: &str) -> Vec<GuideContent> {
@@ -643,12 +577,9 @@ OpenAI 发送上述 messages；Anthropic 适配器将唯一 system 提取到顶�
 
 Host 最多接受前三个片段参与包装，每个标题最多 120、正文最多 1500 个 Unicode 字符；相关度限制到 0–100%。合并 system 总长最多 3000 字符，接近边界时按换行截断并追加提示。不宣称截断结果始终保持完整 Markdown 结构；原用户输入和历史正文不受此自动上下文长度限制。
 
-### 7.7 未来扩展（P2）
+### 7.7 实现与验证范围
 
-| 阶段 | 方案 | 说明 |
-|------|------|------|
-| **阶段一（当前）** | 关键词匹配 | 轻量、无外部依赖、保护隐私 |
-| **阶段二（未来）** | 本地向量检索 | 使用本地 embedding 模型（如 `all-MiniLM-L6-v2`），向量数据库存储于本地 Vault 目录 |
+本地 ONNX 向量、Provider Embedding 与关键词回退均已有 Rust 实现；实际启用取决于配置和模型/索引状态。具体源码与缺口见 §7.1，不能继续标记成“当前仅关键词、向量检索尚待实现”。跨设备表现与性能仍需对应原生和测量任务提供证据。
 
 ---
 
@@ -939,24 +870,25 @@ AI 对话拥有独立的回收站系统，专用于对话的软删除和永久�
 | 场景 | 行为 |
 |------|------|
 | **无网络环境（云端 Provider）** | 显示提示"当前模型需要网络连接，请切换到本地模型或检查网络"；核心功能不受影响 |
-| **Ollama 本地模型** | 完全离线可用，与核心功能一致 |
+| **本机 HTTP 模型** | 已安装模型且服务自身不依赖外部请求时可在本机处理；以实际地址和服务行为为准 |
 | **AI 功能未开启** | 页面显示"AI 功能未开启，请前往设置开启"（指向 LLM 配置页）；核心功能一切正常 |
 | **LLM 未配置** | 显示"请先配置 LLM 服务商"并提供"前往配置"按钮 |
 | **API 调用失败** | 消息中显示错误提示，不阻塞页面其他操作 |
 | **用户关闭 AI 功能** | 对话页面不可访问（路由跳转到设置页）；已有对话数据保留不变，再次开启后可继续使用 |
 
-### 9.5 授权与数据边界
+### 9.5 当前请求的数据边界
 
-| 数据类别 | 授权要求 | 敏感级别 | 说明 |
-|---------|---------|---------|------|
-| **对话内容** | 始终由用户触发发送，不自动发送任何数据 | — | 每条消息由用户手动输入/确认后发送 |
-| **Token 用量/对话统计** | 默认可直接查询 | — | 无用户敏感信息，通过系统提示词 Section 6 注入 |
-| **软件信息** | 默认可直接查询 | — | 版本、平台等，通过系统提示词 Section 2 注入 |
-| **用户公开对象数据** | 默认可直接查询 | `public` | 遍历所有对象提取 `public` 级别属性，通过系统提示词 Section 3 注入 |
-| **偏好设置** | 默认可直接查询 | `public` | 主题、默认对象类型等，通过系统提示词 Section 4 注入 |
-| **对象数据（用户存储的信息）** | 需用户显式授权 | `internal`+ | AI 只能查询用户明确授权的对象范围；授权在对话页内以对话框形式确认；授权记录写入审计日志 |
-| **用户身份信息** | 不允许 | `private`+ | AI 默认不知道用户是谁，也不主动询问 |
-| **敏感/受限/关键数据** | 不允许 | `sensitive`+ | 系统提示词绝不包含此类数据；AI 被明确告知无法直接访问 |
+| 数据类别 | 当前行为 |
+|----------|----------|
+| 用户输入和 user/assistant 历史 | 用户触发发送；正文不进行字段敏感度过滤，没有逐消息二次确认。过去手工粘贴的敏感文本可能随历史再次发送 |
+| 公开对象 | 自动上下文开启时，最多三个原账户未删除 public 候选的名称、类型及允许的 public 叶字段；不扫描全库 |
+| 偏好与软件信息 | 自动附加白名单 theme/language/accentColor/autoLockTimeoutMinutes，以及版本、平台和界面语言 |
+| 插件与用量 | 提示目前使用占位文本，不注入真实插件清单或完整使用统计 |
+| internal/sensitive/critical/未知字段 | Rust 自动对象投影排除；当前没有通过聊天授权对话框扩大这些字段出站范围的实现 |
+| 帮助检索 | 单独的 Embedding 来源与请求，边界及当前前端参数缺口见 §7.1 |
+| 凭证与服务方处理 | 普通聊天由 Rust 解析并向所选服务发送认证信息；本地加密不限制服务方对已收到内容的保存和使用 |
+
+以上是当前发送链路的行为，不是对第三方模型回复、日志、保留期限或删除能力的承诺。中英文用户说明见[隐私政策](../legal/隐私政策.md) / [Privacy Policy](../legal/Privacy%20Policy.md)。
 
 ### 9.6 设置页入口
 

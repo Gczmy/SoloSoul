@@ -1,6 +1,6 @@
 # Terms of Service
 
-**Last updated: 2026-06-01**
+**Last updated: 2026-09-28 (AI data-flow description)**
 
 ## Acceptance
 
@@ -24,6 +24,8 @@ You are solely responsible for:
 - Creating and safeguarding your master password
 - Maintaining backups of your local vault data
 - Any data you choose to share via configured third-party services
+
+AI requests may include your messages, conversation history and enabled automatic context; help retrieval may also use the configured Embedding service. See the [Privacy Policy](Privacy%20Policy.md) for content, credential transmission and service-provider processing boundaries.
 
 ## Changes
 
