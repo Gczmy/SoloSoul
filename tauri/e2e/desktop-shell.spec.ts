@@ -1,9 +1,21 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { login } from './fixtures/auth';
 
+async function expectMobileNavigation(page: Page) {
+  await expect(page.locator('#desktop-navigation')).toHaveCount(0);
+  const bottomNav = page.getByTestId('mobile-bottom-nav');
+  await expect(bottomNav).toBeVisible();
+  await expect(bottomNav).toHaveCSS('position', 'fixed');
+  await expect(bottomNav.locator('button[aria-current="page"]')).toHaveCount(1);
+  const bounds = await bottomNav.boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(bounds!.x).toBe(0);
+  expect(bounds!.width).toBe(page.viewportSize()!.width);
+}
+
 for (const position of ['left', 'right'] as const) {
-  test(`${position} 侧栏展开、折叠、切页及快捷卡片位置`, async ({ page }) => {
+  test(`${position} 侧栏展开、折叠、切页及快捷卡片位置`, async ({ page }, testInfo) => {
     await page.addInitScript({
       content:
         readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
@@ -25,6 +37,19 @@ for (const position of ['left', 'right'] as const) {
     });
     await login(page);
     const sidebar = page.locator('#desktop-navigation');
+    if (testInfo.project.name === 'mobile') {
+      await expectMobileNavigation(page);
+      const bottomNav = page.getByTestId('mobile-bottom-nav');
+      const toggle = bottomNav.locator('button[aria-expanded]');
+      await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      await toggle.click();
+      await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+      await toggle.click();
+      await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      await bottomNav.getByRole('button', { name: 'Settings', exact: true }).click();
+      await expect(page).toHaveURL(/\/settings$/);
+      return;
+    }
     await expect(sidebar).toHaveAttribute('data-expanded', 'true');
     await expect(sidebar).toHaveCSS('width', '232px');
     await expect(
@@ -83,7 +108,7 @@ test('窄视口继续使用底部导航，桌面展开状态不挤占内容', as
 });
 
 for (const position of ['top', 'bottom'] as const) {
-  test(`${position} 导航保持横向布局`, async ({ page }) => {
+  test(`${position} 导航保持横向布局`, async ({ page }, testInfo) => {
     await page.addInitScript({
       content:
         readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
@@ -102,6 +127,11 @@ for (const position of ['top', 'bottom'] as const) {
     `,
     });
     await login(page);
+    if (testInfo.project.name === 'mobile') {
+      await expectMobileNavigation(page);
+      await expect(page.locator('header')).toHaveCount(1);
+      return;
+    }
     await expect(page.locator('#desktop-navigation')).toHaveCount(0);
     await expect(page.locator('header')).toHaveCount(2);
     const rectangles = await page.locator('header').evaluateAll((elements) =>
