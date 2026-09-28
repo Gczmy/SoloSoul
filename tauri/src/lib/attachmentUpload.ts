@@ -170,15 +170,15 @@ export async function uploadSingleAttachment(filePath: string, objectId: string)
 
     // 复制到 Vault 失败即整体报错（不再静默回退为引用原路径）：附件必须加密
     // 落库，原文件删除/移动后附件才不失效；失败由调用方 try/catch 提示上传失败。
-    vaultPath = await invoke<string>('attachment_copy_to_vault', {
-      srcPath: uploadPath,
-      objectId: objectId,
-      attachmentId: id,
-      fileName: fileName,
-    });
-
-    if (stagedPath) {
-      await cleanupStagedFile(stagedPath);
+    try {
+      vaultPath = await invoke<string>('attachment_copy_to_vault', {
+        srcPath: uploadPath,
+        objectId: objectId,
+        attachmentId: id,
+        fileName: fileName,
+      });
+    } finally {
+      if (stagedPath) await cleanupStagedFile(stagedPath);
     }
   }
 
