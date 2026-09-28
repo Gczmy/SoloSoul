@@ -1,61 +1,55 @@
 # 附件存储安全规范（Attachment Storage Spec）
 
-> 最后更新：2026-08-16
-> 关联修复：P021（附件明文落盘——威胁模型例外文档化登记）
+> 当前事实核对：2026-09-28（RF-313）；代码基线 `105798cd`。
+> 历史来源：2026-08-16 P021 的明文落盘例外登记。该日期保留为历史，不能用其旧结论代替当前实现。
 
-## 1. 设计目标
+## 1. 当前实现与边界
 
-附件（图片/PDF/文档等）为对象提供富媒体载体，需支持**系统级打开与分享**（在系统相册、PDF 阅读器、文档应用中直接查看）。本规范记录附件存储的威胁模型与设计权衡，明确「附件明文落盘」是有意设计而非疏漏，与 P004（Windows 生物识别平台限制）同属「文档化威胁模型例外」处理模式。
+附件支持预览、系统打开和分享。当前带附件密钥的正常导入已加密落盘；历史明文兼容、Android 导入中间文件及系统打开/分享的临时明文仍需分别看待。不能概括为“附件全部明文”，也不能保证“磁盘上从无附件明文”。
 
-## 2. 存储形态
+## 2. 写入、存储与传输
 
-| 项 | 说明 |
-|----|------|
-| 物理文件 | `{vault}/attachments/{object_id}/{attachment_id}/`，明文落盘，文件名经 R007 净化（仅保留末段组件，防路径遍历） |
-| 目录权限 | vault 根目录 Unix `0700` / 文件 `0600`（`vault_service.rs:50`），是明文附件的核心纵深防线 |
-| 附件 ID | 字符集白名单校验（`crud.rs` `validate_attachment_id`，仅 `[A-Za-z0-9_-]`） |
-| 元数据 | 附件名称/描述/标签/大小/MIME 等存于对象 `properties.__attachments`（vault.db 内 AES-256-GCM 加密存储），**元数据永远加密** |
-| 导出 | `.solosoul` 导出包内附件走 `encrypt_chunked_stream` 加密，导出密码采集且不允许与主密码相同 |
-| 同步 | 附件经 sync 引擎传输（本地噪声协议），落盘后与其他端一致明文 |
+| 路径 | 当前行为与源码 |
+|------|----------------|
+| 加密格式 | [attachment_crypto.rs](../tauri/crates/solosoul-core/src/attachment_crypto.rs) 从会话密钥经 HKDF 派生 32 字节附件密钥，使用独立 info `solosoul:attachments:at-rest:v1`；`encrypt_chunked_stream` 写入带 `SOLC` 头的分块密文，与导出包附件密钥域分离 |
+| 桌面 GUI 导入 | [attachment_copy_file](../tauri/src-tauri/src/commands/attachment/crud.rs) 获取附件密钥后加密写入 Vault 的 `attachments/{object_id}/{attachment_id}/` 路径，文件名经净化 |
+| Core / CLI | [add_attachments](../tauri/crates/solosoul-core/src/objects.rs) 有密钥时加密，`None` 分支仍明文复制；[CLI 附件入口](../solosoul_cli/src/commands/attachment.rs) 将获取密钥错误转为 `None`。这是现存 API 边界，普通已解锁路径是否能触发尚未复现，不能直接登记为已证实漏洞 |
+| Android 导入 | [Kotlin 插件](../tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/AttachmentImportPlugin.kt) 先将 content URI 明文复制到应用管理的 Vault 路径，[Rust 插件](../tauri/src-tauri/src/attachment_import_plugin.rs) 再写加密临时文件并替换；不是从源到目标全程无明文中间文件 |
+| 元数据 | 名称、描述、标签、大小等位于对象 `properties.__attachments`。正常写入随属性加密，但 [存储加密层](../tauri/crates/solosoul-vault/src/encryption.rs) 保留历史明文读取/迁移兼容，不宜写“所有历史元数据永远都是密文” |
+| 局域网同步 | [sync/attachments.rs](../tauri/crates/solosoul-sync/src/attachments.rs) 经同步通道传递源文件实际字节，接收临时文件后替换；不会将所有旧明文统一改成密文 |
+| 导出包 | `.solosoul` 附件使用导出包的加密路径，不能与 Vault 静态附件密钥混用；附件范围与 GUI/CLI 共享用例仍有待办，见 §5 |
 
-## 3. 威胁模型（P021 登记）
+附件密钥入口实际位于 [vault_service/unlock.rs](../tauri/crates/solosoul-core/src/vault_service/unlock.rs) 的 `attachment_encryption_key`，需要当前会话密钥。不能按旧文档查找已拆分的 `vault_service.rs`。
 
-### 3.1 已防御
+## 3. 旧数据兼容与迁移范围
 
-- vault 目录 `0700`：其他系统用户无法进入 vault 目录读取附件。
-- 元数据加密：即使附件文件泄露，文件与对象/敏感字段的关联信息（名称、描述、标签、所属对象内容）仍在加密 vault.db 内不可读。
-- 读取路径鉴权：`resolve_verified_attachment_path`（`attachment_open`/`attachment_share` 共享路径）校验对象/附件存在 + 路径落于 vault 内 + canonical 归一，未解锁状态无法经命令层拿到明文路径。
-- 预览路径：`fs_read_file_as_data_url` 走命令层鉴权；`solosoul-pdf://` 协议有白名单 + 256 MiB 上限。
-- 移动端：Android 应用私有数据目录（`dataDir`）由系统级 FBE（File-Based Encryption）加密兜底，进程沙箱隔离，威胁面远小于桌面端。
+`copy_decrypt_file` 和 `read_file_decrypted` 检查 `SOLC` 文件头：密文解密，旧明文按原字节读取/复制。读取成功不改写原文件，因此“新版本能打开旧附件”不代表旧附件已加密迁移。
 
-### 3.2 残余缺口
+改密/KDF 升级使用的 `reencrypt_attachments` 会将其扫描范围内的旧明文转为新密文，但当前只扫描 `account_dir/attachments`。根级 `attachments/`、其他目录布局及同步收到的旧文件，不能据此认定已经全量升级。此项文档修正没有执行用户数据迁移，也没有改变兼容格式。
 
-- **同用户/同权限进程可读**：与 P004 Windows Hello 同类——vault 目录 `0700` 仅防「其他系统用户」，无法防「同用户身份运行的任意进程」（恶意软件、其他 App）直接读取附件明文文件。此为桌面端明文附件的核心残余风险。
-- **vault 目录整体拷贝泄露**：用户手动备份/上传 vault 目录（如同步整个 `~/.solosoul/`）时，附件明文随之泄露；但 vault.db 加密，对象内容/元数据不泄露。
+## 4. 明文生命周期与权限
 
-### 3.3 影响评估
+系统打开/分享先通过 [附件命令模块](../tauri/src-tauri/src/commands/attachment/mod.rs) 的 `resolve_verified_attachment_path` 校验对象、附件与 Vault 内路径，再由 `decrypt_to_temp_dir` 生成 UUID 子目录中的明文副本。Unix 私有副本从创建时采用 `0600`，目录尝试设为 `0700`。
 
-附件明文与 vault.db 加密的对象数据构成**分层保护**：核心身份数据（字段值、模板、会话）全量加密；附件作为富媒体载体接受「同用户进程可读」风险，换取系统级打开/分享能力。实际风险等级**中**（需同用户代码执行或主动外拷 vault 目录），低于对象数据泄露风险。
+调用路径安排 30 分钟后的尽力清理，外部阅读器可在此期间读取。清理由进程内后台线程执行：进程提前结束、系统占用文件或删除失败，都不保证副本消失；不能承诺“退出即清理”或把 30 分钟当作绝对最长保留时间。
 
-### 3.4 设计权衡（为何不加密落盘）
+Android 导入有 Kotlin 明文复制到 Rust 加密替换之间的窗口；复制、加密或 rename 失败时，当前分支没有覆盖所有残留文件的清理。正常成功路径最终为密文；该中间阶段不能作为“所有新附件长期明文”的依据。应用私有目录与系统加密提供额外隔离，但不替代应用自身对临时文件的管理。
 
-1. **系统级打开/分享硬需求**：附件在系统应用（相册、PDF 阅读器、文档编辑器）中打开需要真实文件路径。加密落盘后 `attachment_open`/`attachment_share` 必须改为「解密到受控临时文件再打开」，引入新的明文临时文件面且生命周期难控（系统应用可能持有句柄）。
-2. **性能**：大附件（视频/高清图/PDF）按需流式读取，加密后每次预览全量解密，移动端尤甚。
-3. **复杂度**：加密落盘需改造写入（import/copy/sync receive）、读取（data URL/PDF 协议）、打开/分享、导出、回收站预览全部路径，回归面大。
+[Vault 权限辅助函数](../tauri/crates/solosoul-core/src/vault_service/mod.rs) 在 Unix 设置受管路径权限，在 Windows 使用 `icacls` 移除继承并授予当前用户权限；不能把 `0700/0600` 等同于 Windows ACL，也不能由这些函数推断全部既存显式授权均被移除。同用户进程可读的旧明文、临时副本以及用户外拷目录仍是需保留的边界。
 
-### 3.5 中期强化路线（backlog，未排期）
+## 5. 尚未完成的相关任务
 
-- 可选「敏感附件加密」开关：对用户标记为敏感度 `sensitive`/`critical` 的附件启用 `encrypt_chunked_stream` 加密，读取时解密到受控临时目录（`0o700`，进程退出/超时自动清理），预览走内存通道。
-- 桌面端目录级加密（macOS FileVault 依赖用户开启、Windows EFS/DPAPI 单文件加密）作为部署建议写入用户文档，不作为应用内强制。
+- [RF-014](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-014)、[RF-015](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-015)：全量云快照附件覆盖和显式导出范围；不能宣称任意全量备份已包含所有有效附件。
+- [RF-021](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-021)、[RF-022](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-022)：导入批次事务及附件恢复/重试幂等；不要把计划中的失败恢复写成当前保证。
+- [RF-023](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-023)、[RF-024](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-024)：GUI/CLI 加密包共享用例；当前不能由一端修复推断另一端同样完成。
 
-## 4. 测试与验证
+## 6. 核验入口
 
-- 路径净化回归：附件导入文件名恶意变体（`..`/绝对路径/盘符）拒绝（`attachment/tests.rs` `test_resolve_verified_attachment_path_*`）。
-- 元数据加密回归：`properties.__attachments` 随对象属性整体加密，无明文落盘断言。
-- 打开/分享鉴权回归：未解锁 / 对象缺失 / 路径越界均拒绝。
+[attachment_crypto.rs](../tauri/crates/solosoul-core/src/attachment_crypto.rs) 中已有密文往返、旧明文兼容、错误密钥和私有副本权限回归；[附件命令测试](../tauri/src-tauri/src/commands/attachment/tests.rs) 覆盖路径与鉴权边界。RF-313 仅逐条核对当前源码、文档链接和路径，没有重跑业务测试、Android 原生流程或用户旧附件迁移，不能把这些核对写成完整端到端验证。
 
-## 5. 变更登记
+## 7. 变更登记
 
 | 日期 | 变更 | 关联 |
 |------|------|------|
-| 2026-08-16 | 首次登记：附件明文落盘威胁模型例外文档化 | P021 |
+| 2026-08-16 | 首次登记当时的附件明文落盘例外 | P021（历史） |
+| 2026-09-28 | 按当前源码区分新密文、旧明文兼容、有限迁移与临时明文，撤回全部明文/全部自动升级的概括 | RF-313 |

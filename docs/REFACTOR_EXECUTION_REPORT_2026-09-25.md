@@ -119,8 +119,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**97**（P1：35；P2：61；P3：1）。
-- 已关闭：**48 / 97**；实际修复（已关闭）：48；排除：0；待验证/阻塞：5。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：RF-306 已完成，当前无进行中项；下一候选 RF-307（前置 RF-301/RF-302 已完成）。RF-303/RF-304 前置未满足，RF-305 的失效事件验收缺口仍待处理。RF-213/RF-903 仍依赖 RF-905；RF-104、RF-014、RF-016、RF-021、RF-905 保持既有授权阻塞，归档草案不恢复。Android 仍缺本机 C 盘可用原生工具链。
+- 已关闭：**49 / 97**；实际修复（已关闭）：49；排除：0；待验证/阻塞：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无；RF-313 在本提交完成。RF-305/RF-307及原5项仍待明确授权，草案已归档；RF-309须真实Windows CI证据；Android仍缺本机C盘原生工具链。下一步核对RF-315或RF-308的独立验收条件，不恢复被拒草案。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -200,12 +200,12 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 72 | [RF-302](#rf-302) | P2 | 迁移对象和回滚 IPC 契约 | [RF-301](#rf-301)、[RF-008](#rf-008)、[RF-010](#rf-010) | [x] 已完成 |
 | 73 | [RF-303](#rf-303) | P2 | 迁移 LLM 会话与流事件契约 | [RF-301](#rf-301)、[RF-002](#rf-002)、[RF-004](#rf-004)、[RF-005](#rf-005)、[RF-104](#rf-104) | [ ] 待执行 |
 | 74 | [RF-304](#rf-304) | P2 | 迁移备份与导入导出 IPC 契约 | [RF-301](#rf-301)、[RF-013](#rf-013)、[RF-015](#rf-015)、[RF-024](#rf-024) | [ ] 待执行 |
-| 75 | [RF-305](#rf-305) | P2 | 迁移同步 IPC 与事件契约 | [RF-301](#rf-301)、[RF-003](#rf-003) | [ ] 待执行 |
+| 75 | [RF-305](#rf-305) | P2 | 迁移同步 IPC 与事件契约 | [RF-301](#rf-301)、[RF-003](#rf-003) | [!] 阻塞：待明确授权 |
 | 76 | [RF-306](#rf-306) | P2 | 迁移插件 IPC 与资源事件契约 | [RF-301](#rf-301) | [x] 完成 |
-| 77 | [RF-307](#rf-307) | P2 | 建立结构化后端错误并迁移对象用例 | [RF-301](#rf-301)、[RF-302](#rf-302) | [ ] 待执行 |
+| 77 | [RF-307](#rf-307) | P2 | 建立结构化后端错误并迁移对象用例 | [RF-301](#rf-301)、[RF-302](#rf-302) | [!] 阻塞：待明确授权 |
 | 78 | [RF-309](#rf-309) | P2 | 建立 Windows Rust 关键用例执行门禁 | 无 | [ ] 待执行 |
 | 79 | [RF-310](#rf-310) | P2 | 把 Android 原生回归接入明确的设备任务 | [RF-201](#rf-201)、[RF-208](#rf-208) | [ ] 待执行 |
-| 80 | [RF-313](#rf-313) | P2 | 修正 canonical 架构与安全事实文档 | 无 | [ ] 待执行 |
+| 80 | [RF-313](#rf-313) | P2 | 修正 canonical 架构与安全事实文档 | 无 | [x] 完成 |
 | 81 | [RF-314](#rf-314) | P2 | 建立平台能力与验收证据矩阵 | [RF-205](#rf-205) | [ ] 待执行 |
 | 82 | [RF-315](#rf-315) | P2 | 对齐 LLM 数据流与隐私说明 | [RF-100](#rf-100)、[RF-004](#rf-004)、[RF-005](#rf-005) | [ ] 待执行 |
 | 83 | [RF-316](#rf-316) | P2 | 诊断并稳定默认前端测试运行入口 | 无 | [x] 完成 |
@@ -2295,4 +2295,48 @@ git commit -m "<任务卡的提交标题>"
 - 本机为 Windows、Node24.16.0、Rust/Cargo1.96.0；CI仍为Node22。前端沿用已登记的 `--pool=threads --maxWorkers=2`，RF-316 默认进程池问题不在本项宣称修复。所有 Cargo（含 Node fixture）串行、jobs=1，沿用既有 sqlite3/PDFium 测试环境；完整 Rust 的既有 solo_soul.pdb 名称冲突提示保留，未降低 Clippy 检查级别。
 - 测试覆盖真实 Rust serde、Tauri Channel 与 ResourceTable，以及前端实际 SDK 的受控原生边界；没有进行线上插件安装、真实 Wasm 强制取消、macOS/移动端实机或云端 CI 验证，也未以浏览器模拟替代这些原生结果。
 - 最终范围为38个实现/生成/测试/locale文件与3份文档，共41文件；实现文件冻结SHA一致，Cargo.lock逐字节未变。三张用户NSIS位图SHA保持且不暂存；无依赖升级、市场子模块或共享插件业务算法改动。canonical IPC生成规范和前端架构已同步；18项检查、日志摘要、提交范围与源文件SHA见恢复目录 `rf306-final-verification.json`，提交前后校验另行归档。
-- 最终结论：本项 **完成**；提交：本提交（使用 `[RF-306]` 检索），未推送。累计 **48/97已关闭**，原5项具体授权阻塞保持。下一候选 RF-307 只读预案为恢复目录 `rf307-readonly-preplan.md`（SHA256 `b9dde2f4594923d6c9a392942ca652527c58d447a82bc012fb1a087214939f49`），尚未实施，不混入本提交。
+- 最终结论：本项 **完成**；提交：`105798cd`（RF-306），未推送。累计 **48/97已关闭**，原5项具体授权阻塞保持。下一候选 RF-307 只读预案为恢复目录 `rf307-readonly-preplan.md`（SHA256 `b9dde2f4594923d6c9a392942ca652527c58d447a82bc012fb1a087214939f49`），尚未实施，不混入本提交。
+
+
+### RF-307 执行记录（2026-09-28）
+
+- 基线 `105798cd`、main；上项RF-306已独立提交并复核。本项前置RF-301/RF-302均已关闭；当前只有三张用户NSIS位图存在真实差异，SHA与Cargo.lock原始字节已保存于恢复目录 `rf307-baseline.json` 及对应备份。继续只使用C盘恢复仓库，不访问D盘。
+- 精确范围为RF-302的14个已注册对象/快照命令。新增固定 `code/safeDetails/retryable` 包，从现有业务判断与RollbackErrorStage构造，原cause不进入传输；成功null、写入顺序与回滚后best-effort成功语义保留。其它错误域由后续任务迁移，未注册object_restore与另组trash_restore不扩为本项命令。
+- 生成器将从实际Result错误类型生成Output契约；前端在传输边界保留白名单机器信息、在展示层翻译，真实Store/历史/详情消费者同步收敛。F+R+CONTRACT及完整源文件/提交范围核验完成前不计关闭、不提交。
+
+- Host首次写入由自动审批拒绝：认为仅“继续”不足以授权具体源码，并指出新增文件可能覆盖。只读确认error.rs与object/errors.rs均不存在、mod.rs无原有差异后，改为独占创建与原SHA守卫，沿同一审批入口重试；仍被拒，理由为未认可助手转述的目标授权。两次均在CreateProcess前拒绝，Host没有写入。完整理由存于恢复目录 `rf307-approval-block.json`；已向用户请求明确授权，未收到前不再重试。
+- 独立生成器已完成Result错误Output分支的草案及9项新回归；`cargo fmt -p solosoul-ipc-contract-gen` exit0（0.36s），`cargo test --locked -p solosoul-ipc-contract-gen` **74 passed / 0 failed / 0 ignored**，exit0（298.73s，含4m29s编译）。仅该工具得到验证，不代表Host、前端或完整F/R/CONTRACT通过。
+- 11份前端和4份工具草案与当前报告共16文件已保存到恢复目录 `rf307-blocked-draft.zip` 并逐文件核对SHA；15份源码已恢复到基线，仅保留报告状态。3份新源文件只在确认ZIP可读且内容SHA一致后移出编译路径。三张原用户位图与Cargo.lock保持，索引为空；细节见 `rf307-archive-verification.json`。本项未关闭、实现未提交、未推送，后续必须获得明确授权并重新整合全部检查。
+- 调度事实核对：RF-316已由`e6743095`完成，历史记录含默认`npm run test`无额外参数的140文件/1148项通过（71.20s）及threads对照；后续任务使用threads不撤销该完成结论。RF-309需要windows-latest实际日志，当前本机Windows Rust通过不能替代。RF-305仅被记为事件验收缺口，需重新核实是否存在真正外部阻塞，不能把待实现测试当作阻塞依据。
+
+
+### RF-305 执行记录（2026-09-28）
+
+- 基线 `105798cd`、main；RF-307因自动审批阻塞已校验归档并撤出编译路径，报告状态记录保留。RF-301/RF-003均已完成，本项无已证实外部环境或新增依赖阻塞。重新审查旧只读预案后明确：LAN事件原会话来源及失效接纳正是本卡验收工作，不能将未定稿方案视作等待RF-905的理由。
+- 冻结范围：16个LAN同步命令、7个cloud_sync命令、mdns_discover、3个SAF同步命令，共27个真实注册入口；9类实际全局事件。Recovery、目录迁移和未注册sync_discover不因目录相邻自动迁入。保持Noise/云包协议、旧SAS错误串、会话请求守卫、启停FIFO、5秒结果聚合与同步历史兼容。
+- 将在manager/操作创建时捕获来源并在发布时核验原会话；前端从权威状态取得后台身份，不能把本地请求计数当作Rust会话代次。关闭服务仍仅表示已请求停机，真正worker退出/目录维护排他保持RF-905范围，不恢复其归档实现。
+- 实施、真实会话/监听器回归及F+R+CONTRACT待完成；若触及共享Sync消费者，追加完整CLI验证。当前不计关闭、不提交；证据前缀为rf305，恢复目录沿用本机既有目录。
+
+- 本项首次Host写入（独占新建sync/events.rs）被自动审批拒绝，认为从RF313只读核查转实施未获明确授权。CreateProcess未执行，Host/共享Sync零修改；未再次重试或更换工具。已向用户明确请求RF305/RF307源码、测试、文档与独立本地提交授权，未收到前保持阻塞。
+- 获准创建的3份前端与1份工具测试草案尚依赖未生成的Host DTO，没有运行编译/测试。4份新源文件及当前报告已完整归档到 `rf305-blocked-draft.zip`、逐文件SHA验证后撤出编译路径；原有源码、lockfiles及用户位图未改变，详见恢复目录 `rf305-archive-verification.json`。本项未完成、实现未提交、未推送；不将技术上可执行误写为已通过。
+
+### RF-313 执行记录（2026-09-28）
+
+- 基线 `105798cd`、main；按无阻塞依赖继续本项DOC任务，RF305/RF307草案均已归档。仅修正AGENTS及附件存储、视觉主题、CLI指南的当前事实和引用，保留历史日期记录，不更改业务算法、不恢复被拒源码。
+- 已完成独立只读代码核查，证据预案为恢复目录 `rf313-readonly-preplan.md`。重点包括真实workspace路径、Rust验证/会话机制、带密钥附件加密与旧明文兼容边界、临时明文/失败残留、实际材质和主题来源、GUI/CLI能力差异。实施及DOC验收待完成，当前不计关闭。
+
+- 逐条按当前源码完成四份入口文档核对：附件规范区分 SOLC 新写、旧明文兼容、账户目录内重加密、Android 中间明文及打开/分享副本；视觉规范更新20个方案、macOS26+/Mica/Android能力、加密偏好优先级和占位符保护；CLI指南撤回1:1与GUI强制锁声明，修正共享runtime、同步阻塞及真实停止边界。2026-08附件登记和原视觉设计日期保留为历史，设计清单不冒充原生验收。
+- 本机 `AGENTS.md` 已被 `.gitignore` 明确设为 local-only，且从未受Git跟踪；本项保持该约定，不强制把整个本机指令文件入库。它已同步修正，本地完整前后文件及补丁保存在恢复目录 `rf313-before.zip`、`rf313-AGENTS.after.md`、`rf313-agents-local.patch`；修改后SHA256为 `e8c792ec2ab9baa34f15ce614889decd5d453501d91f49edcdec498a5f182886`。以下事实与源码入口随本报告入库，供其他工作目录同步本机指南：
+
+| 本机指南修正 | 当前证据 |
+|---|---|
+| crates与src-tauri同层，workspace共7成员；默认target在tauri下，可被构建配置覆盖 | [Cargo.toml](../tauri/Cargo.toml)；另含tools/ipc-contract-gen；法律文件位于docs/legal |
+| 应用根组件已拆为目录，安全解锁已拆为子模块；旧OCR指南路径不存在 | [App/index.tsx](../tauri/src/App/index.tsx)、[unlock.rs](../tauri/crates/solosoul-core/src/vault_service/unlock.rs)、[OcrPage.tsx](../tauri/src/pages/scan/OcrPage.tsx) |
+| debug默认8MiB/2/4，release默认或SOLOSOUL_SECURE=1选择64MiB/3/4；旧账户缺字段兼容16MiB/3/4 | [kdf.rs](../tauri/crates/solosoul-crypto/src/kdf.rs)、[AccountConfig](../tauri/crates/solosoul-core/src/vault_service/mod.rs)；release主密码解锁有升级路径，不宣称debug设环境变量会自动升级旧账户 |
+| V3配置为salt、verify_hash、版本和KDF字段；HKDF验证值，Rust会话绑定账户/代次/原Vault | [account.rs](../tauri/crates/solosoul-core/src/vault_service/account.rs)、[session.rs](../tauri/crates/solosoul-core/src/vault_service/session.rs)；删除Go API、时间戳随机Token和24小时固定过期描述 |
+| 关键密钥缓冲区有Zeroizing；Unix权限与Windows icacls分开说明，不保证所有副本/既存ACL均已消除 | [Vault服务](../tauri/crates/solosoul-core/src/vault_service/mod.rs)；PIN新写生产档，但旧凭证保留兼容回退，见[pin.rs](../tauri/crates/solosoul-core/src/pin.rs) |
+| 外部服务边界不能概括为全部数据绝不离机 | [LLM发送](../tauri/src-tauri/src/commands/llm/stream.rs)、[云同步](../tauri/src-tauri/src/sync/cloud_auto_sync.rs)；产品/法律文案另由RF-315处理 |
+
+- DOC验收通过：四份入口文档82个本地Markdown链接及全部显式锚点存在；20个方案ID与源码逐项一致；源码入口逐条核对，生成产物路径明确为输出位置而非现存源码。安全/附件、视觉/CLI两路独立只读复审通过，发现的2个错误路径均已修正。`git diff --check` exit0；纯文档变更未重跑业务或原生测试。完整结果见恢复目录 `rf313-doc-verification.json`。
+- 提交范围为4份已跟踪文档（附件、视觉、CLI、执行报告），另同步1份本机AGENTS。执行报告包含RF-305/RF-307的阻塞与归档记录，未混入其业务实现；全部业务源码及lockfile保持，用户3张NSIS图片SHA不变且不暂存。提交前后另存范围核验，未推送。
+- 最终结论：RF-313 **完成**；提交：本提交（使用RF-313检索）。累计 **49/97已关闭**，7项授权阻塞保持。
