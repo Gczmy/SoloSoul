@@ -7,7 +7,10 @@ test('应用模块尚未加载时已有品牌首帧', async ({ page }) => {
   const startup = page.locator('#startup-screen');
   await expect(startup).toBeVisible();
   await expect(startup.locator('.startup-name')).toHaveText('SoloSoul');
-  await expect(startup.locator('img')).toHaveJSProperty('naturalWidth', 1024);
+  // 首帧显示宽度 80px；至少使用 2x 图像即可保持高 DPI 清晰度。
+  await expect
+    .poll(() => startup.locator('img').evaluate((img: HTMLImageElement) => img.naturalWidth))
+    .toBeGreaterThanOrEqual(160);
   await expect(page.locator('#root')).toBeEmpty();
 });
 
