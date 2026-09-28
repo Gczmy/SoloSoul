@@ -1,0 +1,211 @@
+{
+  "accountCatalogLoad": {
+    "failureCount": 0,
+    "maxMs": 0.24580000000000002,
+    "medianMs": 0.18955,
+    "minMs": 0.1854,
+    "p95Ms": 0.24580000000000002,
+    "samples": [
+      {
+        "ms": 0.24580000000000002,
+        "resultCount": 1
+      },
+      {
+        "ms": 0.2378,
+        "resultCount": 1
+      },
+      {
+        "ms": 0.19010000000000002,
+        "resultCount": 1
+      },
+      {
+        "ms": 0.19440000000000002,
+        "resultCount": 1
+      },
+      {
+        "ms": 0.18589999999999998,
+        "resultCount": 1
+      },
+      {
+        "ms": 0.189,
+        "resultCount": 1
+      },
+      {
+        "ms": 0.1854,
+        "resultCount": 1
+      },
+      {
+        "ms": 0.1888,
+        "resultCount": 1
+      },
+      {
+        "ms": 0.1917,
+        "resultCount": 1
+      },
+      {
+        "ms": 0.18689999999999998,
+        "resultCount": 1
+      }
+    ]
+  },
+  "arch": "x86_64",
+  "buildProfile": "release",
+  "fixture": "deterministic-20th-object-property-match",
+  "kdf": {
+    "iterations": 3,
+    "memoryKiB": 65536,
+    "parallelism": 4
+  },
+  "listMetadata": {
+    "failureCount": 0,
+    "maxMs": 18.0317,
+    "medianMs": 14.549499999999998,
+    "minMs": 13.464500000000001,
+    "p95Ms": 18.0317,
+    "samples": [
+      {
+        "ms": 15.5752,
+        "resultCount": 5000
+      },
+      {
+        "ms": 18.0317,
+        "resultCount": 5000
+      },
+      {
+        "ms": 14.5298,
+        "resultCount": 5000
+      },
+      {
+        "ms": 15.5413,
+        "resultCount": 5000
+      },
+      {
+        "ms": 15.0782,
+        "resultCount": 5000
+      },
+      {
+        "ms": 13.5635,
+        "resultCount": 5000
+      },
+      {
+        "ms": 14.569199999999999,
+        "resultCount": 5000
+      },
+      {
+        "ms": 14.319,
+        "resultCount": 5000
+      },
+      {
+        "ms": 14.2335,
+        "resultCount": 5000
+      },
+      {
+        "ms": 13.464500000000001,
+        "resultCount": 5000
+      }
+    ]
+  },
+  "objectCount": 5000,
+  "platform": "windows",
+  "sampleCount": 10,
+  "schemaVersion": 1,
+  "scope": "native-vault-backend-only",
+  "searchDecrypted": {
+    "failureCount": 0,
+    "maxMs": 46.9066,
+    "medianMs": 44.70255,
+    "minMs": 40.3841,
+    "p95Ms": 46.9066,
+    "samples": [
+      {
+        "ms": 46.9066,
+        "resultCount": 250
+      },
+      {
+        "ms": 44.4158,
+        "resultCount": 250
+      },
+      {
+        "ms": 46.032999999999994,
+        "resultCount": 250
+      },
+      {
+        "ms": 46.496,
+        "resultCount": 250
+      },
+      {
+        "ms": 44.9893,
+        "resultCount": 250
+      },
+      {
+        "ms": 45.0634,
+        "resultCount": 250
+      },
+      {
+        "ms": 43.11,
+        "resultCount": 250
+      },
+      {
+        "ms": 41.611599999999996,
+        "resultCount": 250
+      },
+      {
+        "ms": 40.3841,
+        "resultCount": 250
+      },
+      {
+        "ms": 42.077999999999996,
+        "resultCount": 250
+      }
+    ]
+  },
+  "unlock": {
+    "failureCount": 0,
+    "maxMs": 315.1069,
+    "medianMs": 171.9651,
+    "minMs": 161.1533,
+    "p95Ms": 315.1069,
+    "samples": [
+      {
+        "ms": 162.3193,
+        "resultCount": 1
+      },
+      {
+        "ms": 173.8562,
+        "resultCount": 1
+      },
+      {
+        "ms": 163.2963,
+        "resultCount": 1
+      },
+      {
+        "ms": 173.13029999999998,
+        "resultCount": 1
+      },
+      {
+        "ms": 165.9675,
+        "resultCount": 1
+      },
+      {
+        "ms": 170.7999,
+        "resultCount": 1
+      },
+      {
+        "ms": 173.8942,
+        "resultCount": 1
+      },
+      {
+        "ms": 161.1533,
+        "resultCount": 1
+      },
+      {
+        "ms": 315.1069,
+        "resultCount": 1
+      },
+      {
+        "ms": 245.0122,
+        "resultCount": 1
+      }
+    ]
+  }
+}

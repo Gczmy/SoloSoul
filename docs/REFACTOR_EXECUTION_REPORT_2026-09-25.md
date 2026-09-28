@@ -120,8 +120,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**112**（P1：36；P2：75；P3：1）。
-- 已关闭：**64 / 112**；实际修复（已关闭）：64；排除：0；待验证/阻塞：12（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无。RF-204已补齐 Keychain 状态常量导入，待 iOS 双目标编译；RF-121待原生材质验收，RF-308仍需补实际覆盖和远端CI日志，其余待验证项保持。
+- 已关闭：**64 / 112**；实际修复（已关闭）：64；排除：0；待验证/阻塞：13（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无。RF-312已取得可复跑的 Windows 原生 Vault 后端子基线，待多端应用性能实测；RF-204待 iOS 双目标编译，RF-121待原生材质验收，RF-308仍需补实际覆盖和远端CI日志，其余待验证项保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -216,7 +216,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 87 | [RF-318](#rf-318) | P2 | 迁移备份与导入导出结构化错误 | [RF-304](#rf-304)、[RF-307](#rf-307) | [ ] 待执行 |
 | 88 | [RF-319](#rf-319) | P2 | 迁移同步结构化错误 | [RF-305](#rf-305)、[RF-307](#rf-307) | [ ] 待执行 |
 | 89 | [RF-320](#rf-320) | P2 | 迁移插件结构化错误 | [RF-306](#rf-306)、[RF-307](#rf-307) | [ ] 待执行 |
-| 90 | [RF-312](#rf-312) | P3 | 建立可重跑的性能基线与下一步决策 | 无 | [ ] 待执行 |
+| 90 | [RF-312](#rf-312) | P3 | 建立可重跑的性能基线与下一步决策 | 无 | [!] 待验证多端应用性能 |
 | 91 | [RF-900](#rf-900) | P2 | CLI 中文断言测试显式隔离系统语言 | 无（Rust 任务验收前优先处理） | [x] 完成 |
 | 92 | [RF-901](#rf-901) | P2 | Windows GUI Rust 测试嵌入 Common Controls 清单 | 无（R 配置恢复前优先处理） | [x] 完成 |
 | 93 | [RF-902](#rf-902) | P2 | 生产启动冒烟使用当前桌面更新契约 | 无（生产包检查恢复前优先处理） | [x] 完成 |
@@ -2793,3 +2793,9 @@ git commit -m "<任务卡的提交标题>"
 - 基线 `411521cf`。`ios.rs` 的 `check_status`、`read` 和 `exists` 使用 `errSecSuccess`，但原导入列表缺此符号。锁文件固定 `security-framework-sys` 2.17.0；其[官方 crate 文档](https://docs.rs/security-framework-sys/2.17.0/security_framework_sys/base/index.html)列出 `base::errSecSuccess`。仅补齐命名常量导入，保留原状态比较、错误码映射与认证行为。
 - `.github/workflows/pr_check.yml` 已配置 macOS runner 对 `aarch64-apple-ios` 与 `aarch64-apple-ios-sim` 执行 `cargo check`，此次不重复改动工作流。本机 `cargo fmt --check`、Windows 目标 `cargo check -p solosoul-core` 均 exit 0；Windows 编译不包含 `ios.rs`，不能作为 iOS 编译证据。
 - 当前无可用 macOS 构建机，尚未取得两个 iOS target 的真实编译结果，本项保持 `[!]`，不计入已关闭数。修复与本记录独立提交，不推送；用户 NSIS 图片不暂存。
+
+### RF-312 执行记录（2026-09-28，待多端应用性能验证）
+
+- 基线 `519bad7b`。新增 `solosoul-core/examples/perf_baseline.rs`，以自动清理的临时 Vault、固定序号对象和 5% 属性命中率测原生后端的账户目录载入、主密码解锁、元数据列表、解密搜索；保留每次耗时、结果条数及失败样本。样本规模 100/5,000，各 10 次；构建为 Windows x86-64 Release、关闭媒体 feature，实际 KDF 为 64 MiB/3次/并行4。
+- 本机 Windows 11 Enterprise LTSC build 26100、i7-9700 8核、约15.8 GiB内存、Rust 1.96.0。两档所有样本成功；5,000对象时元数据列表中位/P95为14.549/18.032 ms、解密搜索44.703/46.907 ms、解锁171.965/315.107 ms。完整口径、原始 JSON 与下一步决策边界见 `docs/performance/RF-312-native-vault-baseline.md`。`cargo fmt --check`、`cargo check -p solosoul-core --no-default-features --example perf_baseline`、针对示例的 Clippy `-D warnings`、两档 Release 运行均通过。
+- 这只是 Windows 原生 Rust 后端子集，没有 Tauri/WebView 启动、OCR/预览、锁定恢复、内存、IPC 次数和 macOS/Android 原生数据；不能据此关闭 RF-312 或决定全路由懒加载/分页。当前无 macOS/Android设备证据，本项保留 `[!]`。代码、原始结果与报告按本项独立提交，不推送；用户 NSIS 图片不暂存。
