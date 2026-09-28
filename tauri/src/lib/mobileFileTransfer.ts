@@ -53,18 +53,23 @@ export async function stageFileForUpload(
   const stageDir = await ensureStageDir();
   const name = `${generateId()}_${getFileName(sourcePath)}`;
   const localPath = await join(stageDir, name);
-  // plugin-fs 的 copyFile 无法读取 content:// URI（报 "URL is not a valid path"），
-  // 改走原生 ContentResolver 通道（与 stageImportPackage 一致）
-  if (sourcePath.startsWith('content://')) {
-    await invoke('copy_content_uri_to_path', {
-      contentUri: sourcePath,
-      destPath: localPath,
-    });
-  } else {
-    await copyFile(sourcePath, localPath);
+  try {
+    // plugin-fs 的 copyFile 无法读取 content:// URI（报 "URL is not a valid path"），
+    // 改走原生 ContentResolver 通道（与 stageImportPackage 一致）
+    if (sourcePath.startsWith('content://')) {
+      await invoke('copy_content_uri_to_path', {
+        contentUri: sourcePath,
+        destPath: localPath,
+      });
+    } else {
+      await copyFile(sourcePath, localPath);
+    }
+    const info = await stat(localPath);
+    return { localPath, size: info.size };
+  } catch (error) {
+    await cleanupStagedFile(localPath);
+    throw error;
   }
-  const info = await stat(localPath);
-  return { localPath, size: info.size };
 }
 
 /**
@@ -147,17 +152,22 @@ export async function stageImportPackage(sourcePath: string): Promise<string> {
   const stageDir = await ensureStageDir();
   const name = `${generateId()}_import.solosoul`;
   const localPath = await join(stageDir, name);
-  // plugin-fs 的 copyFile 无法读取 content:// URI（报 "URL is not a valid path"），
-  // 改走原生 ContentResolver 通道（与导出侧一致）
-  if (sourcePath.startsWith('content://')) {
-    await invoke('copy_content_uri_to_path', {
-      contentUri: sourcePath,
-      destPath: localPath,
-    });
+  try {
+    // plugin-fs 的 copyFile 无法读取 content:// URI（报 "URL is not a valid path"），
+    // 改走原生 ContentResolver 通道（与导出侧一致）
+    if (sourcePath.startsWith('content://')) {
+      await invoke('copy_content_uri_to_path', {
+        contentUri: sourcePath,
+        destPath: localPath,
+      });
+    } else {
+      await copyFile(sourcePath, localPath);
+    }
     return localPath;
+  } catch (error) {
+    await cleanupStagedFile(localPath);
+    throw error;
   }
-  await copyFile(sourcePath, localPath);
-  return localPath;
 }
 
 /**
