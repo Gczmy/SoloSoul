@@ -168,12 +168,15 @@ export function useWorkspaceTemplateSync({
           setSyncDialog(null);
           setSyncDialogOpenForObjectId(null);
           await applySyncTemplate(accountId, objectId);
+          if (version !== syncPreviewVersion.current) return;
           if (pageId) {
             await loadObjects(accountId, { parentId: pageId });
           } else {
             await loadObjects(accountId, sectionFilter ? { typeId: sectionFilter } : undefined);
           }
+          if (version !== syncPreviewVersion.current) return;
           await refreshDetailObjAfterSync(objectId);
+          if (version !== syncPreviewVersion.current) return;
           await refreshTemplateHashMap();
           return;
         }
@@ -201,9 +204,12 @@ export function useWorkspaceTemplateSync({
 
   const handleConfirmSync = useCallback(async () => {
     if (!syncDialog || !accountId) return;
-    setSyncDialog((prev) => (prev ? { ...prev, loading: true } : null));
+    const { objectId } = syncDialog;
+    const version = syncPreviewVersion.current;
+    setSyncDialog((prev) => (prev?.objectId === objectId ? { ...prev, loading: true } : prev));
     try {
-      await applySyncTemplate(accountId, syncDialog.objectId);
+      await applySyncTemplate(accountId, objectId);
+      if (version !== syncPreviewVersion.current) return;
       setSyncDialog(null);
       setSyncDialogOpenForObjectId(null);
       // 同步成功后对象 fingerprint 已更新；刷新对象列表。
@@ -212,11 +218,14 @@ export function useWorkspaceTemplateSync({
       } else {
         await loadObjects(accountId, sectionFilter ? { typeId: sectionFilter } : undefined);
       }
-      await refreshDetailObjAfterSync(syncDialog.objectId);
+      if (version !== syncPreviewVersion.current) return;
+      await refreshDetailObjAfterSync(objectId);
+      if (version !== syncPreviewVersion.current) return;
       await refreshTemplateHashMap();
     } catch (err) {
+      if (version !== syncPreviewVersion.current) return;
       logger.warn('[Workspace] Apply sync failed:', err);
-      setSyncDialog((prev) => (prev ? { ...prev, loading: false } : null));
+      setSyncDialog((prev) => (prev?.objectId === objectId ? { ...prev, loading: false } : prev));
     }
   }, [
     syncDialog,

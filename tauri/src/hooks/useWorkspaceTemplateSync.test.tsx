@@ -26,8 +26,9 @@ function deferred<T>() {
 
 function setup(
   previewSyncTemplate: (accountId: string, objectId: string) => Promise<TemplateSyncResult>,
+  apply: (accountId: string, objectId: string) => Promise<void> = async () => undefined,
 ) {
-  const applySyncTemplate = vi.fn().mockResolvedValue(undefined);
+  const applySyncTemplate = vi.fn(apply);
   const loadObjects = vi.fn().mockResolvedValue(undefined);
   const options = {
     accountId: 'account',
@@ -161,5 +162,91 @@ describe('RF-921 template sync preview ownership', () => {
     expect(result.current.syncDialog).toBeNull();
     expect(applySyncTemplate).not.toHaveBeenCalled();
     expect(options.loadObjects).not.toHaveBeenCalled();
+  });
+});
+
+describe('RF-922 template sync apply ownership', () => {
+  it('keeps a newer dialog after an earlier confirmed apply succeeds', async () => {
+    const oldApply = deferred<void>();
+    const { result, applySyncTemplate, loadObjects } = setup(
+      async (_accountId, objectId) => preview(`hash-${objectId}`, true),
+      () => oldApply.promise,
+    );
+    await act(async () => {
+      await result.current.handleStartSync('object-a', 'A');
+    });
+    let applyRequest!: Promise<void>;
+    act(() => {
+      applyRequest = result.current.handleConfirmSync();
+    });
+    await act(async () => {
+      await result.current.handleStartSync('object-b', 'B');
+    });
+    await act(async () => {
+      oldApply.resolve();
+      await applyRequest;
+    });
+    expect(applySyncTemplate).toHaveBeenCalledWith('account', 'object-a');
+    expect(result.current.syncDialog).toMatchObject({
+      objectId: 'object-b',
+      result: preview('hash-object-b', true),
+      loading: false,
+    });
+    expect(loadObjects).not.toHaveBeenCalled();
+  });
+
+  it('does not change the newer dialog loading state when an old apply fails', async () => {
+    const oldApply = deferred<void>();
+    const newerPreview = deferred<TemplateSyncResult>();
+    const { result } = setup(
+      (_accountId, objectId) =>
+        objectId === 'object-a' ? Promise.resolve(preview('hash-a', true)) : newerPreview.promise,
+      () => oldApply.promise,
+    );
+    await act(async () => {
+      await result.current.handleStartSync('object-a', 'A');
+    });
+    let applyRequest!: Promise<void>;
+    act(() => {
+      applyRequest = result.current.handleConfirmSync();
+    });
+    let newerRequest!: Promise<void>;
+    act(() => {
+      newerRequest = result.current.handleStartSync('object-b', 'B');
+    });
+    await act(async () => {
+      oldApply.reject(new Error('old apply failed'));
+      await applyRequest;
+    });
+    expect(result.current.syncDialog).toMatchObject({ objectId: 'object-b', loading: true });
+    await act(async () => {
+      newerPreview.resolve(preview('hash-b', true));
+      await newerRequest;
+    });
+  });
+
+  it('does not refresh the old object after a no-change apply loses ownership', async () => {
+    const oldApply = deferred<void>();
+    const { result, applySyncTemplate, loadObjects } = setup(
+      async (_accountId, objectId) => preview(`hash-${objectId}`, objectId !== 'object-a'),
+      () => oldApply.promise,
+    );
+    let oldRequest!: Promise<void>;
+    act(() => {
+      oldRequest = result.current.handleStartSync('object-a', 'A');
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(applySyncTemplate).toHaveBeenCalledWith('account', 'object-a');
+    await act(async () => {
+      await result.current.handleStartSync('object-b', 'B');
+    });
+    await act(async () => {
+      oldApply.resolve();
+      await oldRequest;
+    });
+    expect(result.current.syncDialog?.objectId).toBe('object-b');
+    expect(loadObjects).not.toHaveBeenCalled();
   });
 });
