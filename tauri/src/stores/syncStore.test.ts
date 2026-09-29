@@ -438,9 +438,10 @@ describe('syncStore initNsdFailedListener', () => {
 
     handler!({ payload: { error: 'register failed' } });
 
-    // 等待 loadStatus 重读完成并设置错误提示
+    // 错误立即可见；等待 loadStatus 重读后端状态完成
     await vi.waitFor(() => {
       expect(useSyncStore.getState().error).toBe('__SYNC_ERR__:nsd_failed');
+      expect(useSyncStore.getState().syncEnabled).toBe(false);
     });
     expect(mockInvoke).toHaveBeenCalledWith('sync_get_status');
 
@@ -449,6 +450,54 @@ describe('syncStore initNsdFailedListener', () => {
     // 重读后端状态后，开关 UI 纠正为禁用，消除状态漂移
     expect(s.syncEnabled).toBe(false);
     expect(unlisten).toBe(mockUnlisten);
+  });
+
+  it('does not restore an obsolete NSD error after a newer status refresh', async () => {
+    let resolveOldStatus!: (status: {
+      isDiscovering: boolean;
+      syncEnabled: boolean;
+      autoSyncEnabled: boolean;
+      localFingerprint: string;
+      connectedPeers: never[];
+    }) => void;
+    const oldStatus = new Promise<Parameters<typeof resolveOldStatus>[0]>((resolve) => {
+      resolveOldStatus = resolve;
+    });
+    mockInvoke.mockReturnValueOnce(oldStatus).mockResolvedValueOnce({
+      isDiscovering: false,
+      syncEnabled: true,
+      autoSyncEnabled: false,
+      localFingerprint: 'current',
+      connectedPeers: [],
+    });
+
+    await useSyncStore.getState().initNsdFailedListener();
+    handlers.get('sync-nsd-failed')!({ payload: { error: 'old registration failure' } });
+    await useSyncStore.getState().loadStatus();
+    expect(useSyncStore.getState().error).toBeNull();
+
+    resolveOldStatus({
+      isDiscovering: false,
+      syncEnabled: false,
+      autoSyncEnabled: false,
+      localFingerprint: '',
+      connectedPeers: [],
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(useSyncStore.getState().syncEnabled).toBe(true);
+    expect(useSyncStore.getState().error).toBeNull();
+  });
+
+  it('keeps the NSD failure reason when the status refresh also fails', async () => {
+    mockInvoke.mockRejectedValue(new Error('status unavailable'));
+
+    await useSyncStore.getState().initNsdFailedListener();
+    handlers.get('sync-nsd-failed')!({ payload: { error: 'register failed' } });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(mockInvoke).toHaveBeenCalledWith('sync_get_status');
+    expect(useSyncStore.getState().error).toBe('__SYNC_ERR__:nsd_failed');
   });
 });
 

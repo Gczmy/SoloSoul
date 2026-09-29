@@ -252,7 +252,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         }));
       } catch (err) {
         if (!request.isCurrent()) return;
-        setCurrent({ error: String(err) });
+        setCurrent((state) => ({ error: options?.preserveError ? state.error : String(err) }));
       }
     },
 
@@ -822,13 +822,12 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       return listen<{ error?: string }>('sync-nsd-failed', (event) => {
         if (!request.isCurrent()) return;
         logger.warn('[syncStore] NSD registration failed:', event.payload?.error);
-        setCurrent({ isLoading: false });
-        // 先重读后端状态（后端已回滚为禁用），完成后再设置错误提示，
-        // 避免 loadStatus 成功路径的 error: null 把提示清掉。
+        setCurrent({ isLoading: false, error: '__SYNC_ERR__:nsd_failed' });
+        // 立即显示失败原因，并在状态核对期间保留当前错误。若后续操作已清除
+        // 错误，迟到的状态核对不能重新写入旧 NSD 错误。
         get()
-          .loadStatus()
-          .catch((err) => logger.warn('[syncStore] status resync after nsd failure:', err))
-          .finally(() => setCurrent({ error: '__SYNC_ERR__:nsd_failed' }));
+          .loadStatus({ preserveError: true })
+          .catch((err) => logger.warn('[syncStore] status resync after nsd failure:', err));
       }).then((unlisten) => {
         if (!request.isCurrent()) unlisten();
         return unlisten;
