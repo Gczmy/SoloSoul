@@ -172,3 +172,57 @@ it('does not apply a conflict check from a previous dialog opening', async () =>
   expect(result.current.step).toBe('collect');
   expect(result.current.pending).toBeNull();
 });
+
+it('keeps recovery open until an in-progress import finishes', async () => {
+  let finishRestore!: (summary: RecoveryResultSummary) => void;
+  mocks.invoke.mockImplementation((command: string) => {
+    if (command !== 'recovery_restore_from_host') throw new Error(`Unexpected command: ${command}`);
+    return new Promise((resolve) => {
+      finishRestore = resolve;
+    });
+  });
+  const onClose = vi.fn();
+  const wrapper = ({ children }: PropsWithChildren) => <MemoryRouter>{children}</MemoryRouter>;
+  const { result } = renderHook(() => useRecoveryReceive({ isOpen: true, onClose }), { wrapper });
+  act(() => {
+    result.current.setHostAddr('127.0.0.1:12545');
+    result.current.setPin('123456');
+  });
+  act(() => result.current.handleManualNext());
+  act(() => {
+    result.current.handleMasterPasswordChange('password123');
+    result.current.handleConfirmPasswordChange('password123');
+  });
+
+  let recovery!: Promise<void>;
+  act(() => {
+    recovery = result.current.handleStartRecovery();
+  });
+  expect(result.current.loading).toBe(true);
+  act(() => result.current.handleClose());
+  expect(onClose).not.toHaveBeenCalled();
+  expect(result.current.step).toBe('account');
+
+  await act(async () => {
+    finishRestore({
+      sessionGeneration: 7,
+      status: 'complete',
+      accountId: 'restored-account',
+      accountName: 'Synthetic',
+      objectCount: 1,
+      attachmentCount: 0,
+      templateCount: 0,
+      snapshotCount: 0,
+      preferencesImported: false,
+      attachmentFilesWritten: 0,
+      failureStage: null,
+      errorCode: null,
+    });
+    await recovery;
+  });
+  expect(result.current.step).toBe('success');
+  expect(result.current.successConfirmOpen).toBe(true);
+  expect(onClose).not.toHaveBeenCalled();
+  act(() => result.current.handleClose());
+  expect(onClose).toHaveBeenCalledOnce();
+});

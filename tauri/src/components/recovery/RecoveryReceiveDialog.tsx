@@ -59,13 +59,14 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
         <button
           type="button"
           onClick={rcv.handleClose}
+          disabled={rcv.loading}
           style={{
             position: 'absolute',
             top: 12,
             right: 12,
             background: 'none',
             border: 'none',
-            cursor: 'pointer',
+            cursor: rcv.loading ? 'not-allowed' : 'pointer',
             color: 'var(--text-tertiary)',
             display: 'flex',
             alignItems: 'center',

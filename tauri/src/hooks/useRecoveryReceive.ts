@@ -28,6 +28,8 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
   const { t } = useTranslation(['common', 'settings']);
   const navigate = useNavigate();
   const mountedRef = useRef(true);
+  // 后端恢复没有取消入口；关闭弹窗不能把仍在执行的导入隐藏起来。
+  const recoveryInFlightRef = useRef(false);
   // 扫码预检可能跨越多次扫描或一次对话框关闭；旧结果不得重写当前选择。
   const scanGenerationRef = useRef(0);
   // 设备摄像头能力（启动时预加载，模块级缓存）。
@@ -121,6 +123,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
   };
 
   const handleClose = () => {
+    if (recoveryInFlightRef.current) return;
     if (success) {
       if (onSuccess) {
         onSuccess();
@@ -202,6 +205,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     // 校验（优先级与创建账户页一致）；失败时对应输入框已置 error，直接返回
     if (credentials.getValidationError()) return;
 
+    recoveryInFlightRef.current = true;
     setLoading(true);
     setProgress(null);
     setStatusText(t('common:recovery_connecting', { defaultValue: 'Connecting to host…' }));
@@ -250,6 +254,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
       if (unlistenPromise) {
         void unlistenPromise.then((un) => un?.());
       }
+      recoveryInFlightRef.current = false;
       setLoading(false);
       setStatusText(null);
     }
