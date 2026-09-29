@@ -391,11 +391,13 @@ const LEGACY_ICON_ALIASES: Record<string, string> = {
 };
 
 export function resolveCustomIcon(iconId: string): LucideIcon {
-  if (iconId in CUSTOM_ICON_MAP) {
+  if (Object.hasOwn(CUSTOM_ICON_MAP, iconId)) {
     return CUSTOM_ICON_MAP[iconId as CustomIconId];
   }
-  const alias = LEGACY_ICON_ALIASES[iconId];
-  if (alias && alias in CUSTOM_ICON_MAP) {
+  const alias = Object.hasOwn(LEGACY_ICON_ALIASES, iconId)
+    ? LEGACY_ICON_ALIASES[iconId]
+    : undefined;
+  if (alias && Object.hasOwn(CUSTOM_ICON_MAP, alias)) {
     return CUSTOM_ICON_MAP[alias as CustomIconId];
   }
   return CUSTOM_ICON_MAP[DEFAULT_CUSTOM_ICON];

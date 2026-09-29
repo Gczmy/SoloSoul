@@ -127,6 +127,18 @@ describe('searchShared helpers', () => {
     expect(fallbackIcon).toBe(PAGE_ICON_MAP.identity);
   });
 
+  it('resolveResultIcon：原型链名称不被当作系统页面图标', () => {
+    expect(
+      resolveResultIcon(
+        { itemType: 'page', typeId: 'constructor', objectId: 'constructor' },
+        customPages,
+      ),
+    ).toBe(PAGE_ICON_MAP.custom);
+    expect(
+      resolveResultIcon({ itemType: 'object', typeId: 'toString', objectId: 'o1' }, customPages),
+    ).toBe(PAGE_ICON_MAP.custom);
+  });
+
   it('sortSensitivityLevels：按 public→critical 升序', () => {
     expect(sortSensitivityLevels(['critical', 'public', 'sensitive', 'internal'])).toEqual([
       'public',

@@ -130,7 +130,7 @@ export function resolveResultIcon(
   customPages: CustomPage[],
 ): LucideIcon {
   if (item.itemType === 'page') {
-    if (item.objectId in PAGE_ICON_MAP) {
+    if (Object.hasOwn(PAGE_ICON_MAP, item.objectId)) {
       return PAGE_ICON_MAP[item.objectId as keyof typeof PAGE_ICON_MAP];
     }
     const cp = customPages.find((p) => p.id === item.objectId);
@@ -143,7 +143,7 @@ export function resolveResultIcon(
   if (item.templateIconId) {
     return resolveCustomIcon(item.templateIconId);
   }
-  if (item.typeId in PAGE_ICON_MAP) {
+  if (Object.hasOwn(PAGE_ICON_MAP, item.typeId)) {
     return PAGE_ICON_MAP[item.typeId as keyof typeof PAGE_ICON_MAP];
   }
   const cp = customPages.find((p) => p.id === item.typeId);

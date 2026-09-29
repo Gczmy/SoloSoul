@@ -34,7 +34,7 @@ const CATEGORY_ORDER = [
 export function IconPicker({ value, onChange }: IconPickerProps) {
   const { t } = useTranslation('navigation');
   const currentId = (
-    value && value in CUSTOM_ICON_MAP ? value : DEFAULT_CUSTOM_ICON
+    value && Object.hasOwn(CUSTOM_ICON_MAP, value) ? value : DEFAULT_CUSTOM_ICON
   ) as CustomIconId;
   const [categoryFilter, setCategoryFilter] = useState('all');
 

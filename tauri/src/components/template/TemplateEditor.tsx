@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { CUSTOM_ICON_MAP, resolveCustomIcon, type CustomIconId } from '@/lib/pageIcons';
+import { resolveCustomIcon } from '@/lib/pageIcons';
 import type {
   UserTemplate,
   TemplateProperty,
@@ -210,12 +210,10 @@ export function TemplateEditor({
           >
             <ChevronRight size={ICON_SIZE.sm} />
           </span>
-          {React.createElement(
-            editIconId && editIconId in CUSTOM_ICON_MAP
-              ? CUSTOM_ICON_MAP[editIconId as CustomIconId]
-              : resolveCustomIcon(editIconId),
-            { size: ICON_SIZE.lg, style: { color: 'var(--accent-primary)', flexShrink: 0 } },
-          )}
+          {React.createElement(resolveCustomIcon(editIconId), {
+            size: ICON_SIZE.lg,
+            style: { color: 'var(--accent-primary)', flexShrink: 0 },
+          })}
           <span style={{ flex: 1 }}>
             {t('settings:template_icon', { defaultValue: '模板图标' })}
           </span>

@@ -17,8 +17,8 @@ import type {
 /** Resolve icon from either PAGE_ICON_MAP (built-in) or CUSTOM_ICON_MAP (user-selectable). */
 function resolvePageIcon(iconKey?: string | null): LucideIcon {
   const id = iconKey || DEFAULT_CUSTOM_ICON;
-  if (id in PAGE_ICON_MAP) return PAGE_ICON_MAP[id as PageIconKey];
-  if (id in CUSTOM_ICON_MAP) return CUSTOM_ICON_MAP[id as CustomIconId];
+  if (Object.hasOwn(PAGE_ICON_MAP, id)) return PAGE_ICON_MAP[id as PageIconKey];
+  if (Object.hasOwn(CUSTOM_ICON_MAP, id)) return CUSTOM_ICON_MAP[id as CustomIconId];
   return CUSTOM_ICON_MAP[DEFAULT_CUSTOM_ICON];
 }
 

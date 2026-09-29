@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { isMobilePlatformSync } from '@/lib/platform';
 import { AttachmentPageCard } from './AttachmentPageCard';
 import type { AttachmentMeta, AttachmentTreePage } from './attachmentManagerTypes';
 
@@ -24,6 +25,33 @@ const page: AttachmentTreePage = {
 };
 
 describe('AttachmentPageCard', () => {
+  it('页面图标 ID 是原型链名称时回退到默认文档图标', () => {
+    vi.mocked(isMobilePlatformSync).mockReturnValueOnce(true);
+    render(
+      <AttachmentPageCard
+        page={{ ...page, pageIcon: 'toString' }}
+        pageKey="page1"
+        isExpanded={false}
+        showTrash={false}
+        selectedIds={new Set()}
+        expandedObjects={new Set()}
+        onToggle={vi.fn()}
+        onToggleObject={vi.fn()}
+        onUpload={vi.fn()}
+        loadData={vi.fn()}
+        onToggleSelect={vi.fn()}
+        onPreview={vi.fn()}
+        onDownload={vi.fn()}
+        onShare={vi.fn()}
+        onSoftDelete={vi.fn()}
+        onRestore={vi.fn()}
+        onPermanentDelete={vi.fn()}
+      />,
+    );
+
+    expect(document.querySelector('.lucide-file-text')).not.toBeNull();
+  });
+
   it('passes updated callbacks through the expanded page and object to its attachment', () => {
     const oldRestore = vi.fn();
     const newRestore = vi.fn();
