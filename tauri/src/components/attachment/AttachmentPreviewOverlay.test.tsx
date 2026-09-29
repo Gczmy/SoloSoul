@@ -62,6 +62,55 @@ describe('AttachmentPreviewOverlay', () => {
     });
   });
 
+  it('图片按视口适配，按钮与 Ctrl 滚轮缩放，窗口变化后重新适配', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(<AttachmentPreviewOverlay item={makeItem()} onClose={vi.fn()} />);
+    const image = await screen.findByRole('img', { name: 'test.png' });
+    const area = screen.getByTestId('attachment-preview-content');
+    Object.defineProperties(area, {
+      clientWidth: { configurable: true, value: 400 },
+      clientHeight: { configurable: true, value: 300 },
+    });
+    Object.defineProperties(image, {
+      naturalWidth: { configurable: true, value: 800 },
+      naturalHeight: { configurable: true, value: 600 },
+    });
+    fireEvent.load(image);
+    await waitFor(() => expect(screen.getByText('50%')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByTitle('common:attachment_zoom_in'));
+    expect(screen.getByText('60%')).toBeInTheDocument();
+    fireEvent.click(screen.getByTitle('common:attachment_zoom_out'));
+    expect(screen.getByText('50%')).toBeInTheDocument();
+    fireEvent.wheel(area, { ctrlKey: true, deltaY: -100 });
+    expect(screen.getByText('60%')).toBeInTheDocument();
+    fireEvent.wheel(area, { deltaY: -100 });
+    expect(screen.getByText('60%')).toBeInTheDocument();
+    fireEvent.click(screen.getByTitle('common:attachment_zoom_fit'));
+    expect(screen.getByText('50%')).toBeInTheDocument();
+
+    Object.defineProperty(area, 'clientWidth', { configurable: true, value: 600 });
+    Object.defineProperty(area, 'clientHeight', { configurable: true, value: 500 });
+    fireEvent.resize(window);
+    expect(screen.getByText('75%')).toBeInTheDocument();
+  });
+
+  it.each([
+    ['image', { fileName: 'bad.png', mimeType: 'image/png' }, 'fs_read_file_as_data_url'],
+    ['PDF', { fileName: 'bad.pdf', mimeType: 'application/pdf' }, 'fs_read_file_as_data_url'],
+    ['text', { fileName: 'bad.txt', mimeType: 'text/plain' }, 'fs_read_file_as_text'],
+  ])('%s 读取失败显示预览错误并停止加载', async (_kind, overrides, command) => {
+    mockInvoke.mockImplementation((cmd) =>
+      cmd === command ? Promise.reject(new Error('Read failed')) : Promise.resolve(),
+    );
+    render(<AttachmentPreviewOverlay item={makeItem(overrides)} onClose={vi.fn()} />);
+    expect(await screen.findByText(/common:attachment_preview_failed/i)).toBeInTheDocument();
+    expect(mockInvoke).toHaveBeenCalledWith(command, {
+      path: '/vault/attachments/obj-1/att-1/test.png',
+    });
+    expect(screen.queryByTitle('common:attachment_zoom_in')).not.toBeInTheDocument();
+  });
+
   it('切换附件后忽略旧图片读取的迟到结果', async () => {
     const oldRead = deferred<string>();
     const newRead = deferred<string>();
