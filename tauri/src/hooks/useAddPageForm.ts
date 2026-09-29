@@ -1,7 +1,7 @@
 /**
  * AddPageButton 的「新建页面」表单域：名称/描述/图标状态、重名校验、创建提交。
  */
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { TFunction } from 'i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -24,15 +24,20 @@ export function useAddPageForm({ onCreate, t, onError }: UseAddPageFormOptions) 
   const [description, setDescription] = useState('');
   const [nameError, setNameError] = useState<'empty' | 'duplicate' | null>(null);
   const [selectedIconId, setSelectedIconId] = useState<CustomIconId>(DEFAULT_CUSTOM_ICON);
-  const submitting = useRef(false);
+  const activeSubmit = useRef<object | null>(null);
 
   /** 重置表单字段（不关闭弹层——由父组件负责）。 */
   const handleCancel = useCallback(() => {
+    activeSubmit.current = null;
     setName('');
     setDescription('');
     setNameError(null);
     setSelectedIconId(DEFAULT_CUSTOM_ICON);
   }, []);
+
+  useEffect(() => {
+    handleCancel();
+  }, [currentAccount?.id, handleCancel]);
 
   /**
    * 确认创建。返回是否已开始提交或隐式取消；校验失败与重复提交返回 false。
@@ -40,7 +45,7 @@ export function useAddPageForm({ onCreate, t, onError }: UseAddPageFormOptions) 
    */
   const handleConfirm = useCallback(
     (isExplicit = false): boolean => {
-      if (submitting.current) return false;
+      if (activeSubmit.current) return false;
       const trimmed = name.trim();
       if (!trimmed || !currentAccount) {
         if (isExplicit) {
@@ -61,18 +66,25 @@ export function useAddPageForm({ onCreate, t, onError }: UseAddPageFormOptions) 
         return false;
       }
       const trimmedDesc = description.trim();
-      submitting.current = true;
+      const request = {};
+      activeSubmit.current = request;
+      const isCurrent = () =>
+        activeSubmit.current === request &&
+        useAuthStore.getState().isAuthenticated &&
+        useAuthStore.getState().currentAccount?.id === currentAccount.id;
       void addCustomPage(currentAccount.id, trimmed, selectedIconId, trimmedDesc || undefined)
         .then((page) => {
+          if (!isCurrent()) return;
           handleCancel();
           onCreate(page);
         })
         // P003: 创建失败（store 已回滚并抛错）——提示错误，不导航到不存在的页面。
         .catch((err) => {
-          onError(err, t('navigation:add_page_failed', { defaultValue: '创建页面失败' }));
+          if (isCurrent())
+            onError(err, t('navigation:add_page_failed', { defaultValue: '创建页面失败' }));
         })
         .finally(() => {
-          submitting.current = false;
+          if (activeSubmit.current === request) activeSubmit.current = null;
         });
       return true;
     },

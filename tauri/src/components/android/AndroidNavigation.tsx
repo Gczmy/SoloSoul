@@ -69,6 +69,7 @@ function CreateSheet({
     };
   }, []);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
+  useEffect(() => setSubmitting(false), [accountId]);
   const { onError } = useToastError();
   const form = useAddPageForm({
     t,

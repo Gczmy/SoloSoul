@@ -93,4 +93,37 @@ describe('desktop add-page submission', () => {
     await waitFor(() => expect(mocks.onCreate).toHaveBeenCalledExactlyOnceWith(page));
     expect(screen.queryByRole('textbox', { name: 'add_page_placeholder' })).not.toBeInTheDocument();
   });
+
+  it('ignores account A completion after switching to account B', async () => {
+    const oldSave = deferred<CustomPage>();
+    const newSave = deferred<CustomPage>();
+    mocks.addCustomPage.mockReturnValueOnce(oldSave.promise).mockReturnValueOnce(newSave.promise);
+    openAndFill();
+    fireEvent.click(screen.getByRole('button', { name: 'common:confirm' }));
+
+    act(() => {
+      useAuthStore.setState({ currentAccount: { id: 'account-b', name: 'Bob' } });
+    });
+    const input = screen.getByRole('textbox', { name: 'add_page_placeholder' });
+    expect(input).toHaveValue('');
+    fireEvent.change(input, { target: { value: 'Bob page' } });
+    fireEvent.click(screen.getByRole('button', { name: 'common:confirm' }));
+    expect(mocks.addCustomPage).toHaveBeenCalledTimes(2);
+    expect(mocks.addCustomPage).toHaveBeenLastCalledWith(
+      'account-b',
+      'Bob page',
+      DEFAULT_CUSTOM_ICON,
+      undefined,
+    );
+
+    await act(async () => oldSave.resolve(page));
+    expect(mocks.onCreate).not.toHaveBeenCalled();
+    expect(screen.getByRole('textbox', { name: 'add_page_placeholder' })).toHaveValue('Bob page');
+    fireEvent.click(screen.getByRole('button', { name: 'common:confirm' }));
+    expect(mocks.addCustomPage).toHaveBeenCalledTimes(2);
+
+    const bobPage = { ...page, id: 'page-b', name: 'Bob page' };
+    await act(async () => newSave.resolve(bobPage));
+    expect(mocks.onCreate).toHaveBeenCalledExactlyOnceWith(bobPage);
+  });
 });
