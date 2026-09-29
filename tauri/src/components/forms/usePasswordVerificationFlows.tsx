@@ -66,6 +66,7 @@ export function usePasswordVerificationFlows({
 
   // 对话框打开时重置状态、检查可用性
   useEffect(() => {
+    let active = true;
     if (!open) {
       setPinChecked(false);
       setPinAvailable(false);
@@ -86,12 +87,21 @@ export function usePasswordVerificationFlows({
       invoke<{ configured: boolean; locked: boolean }>('pin_check_availability', {
         accountId: pinAccountId,
       })
-        .then((r) => setPinAvailable(r.configured && !r.locked))
-        .catch(() => setPinAvailable(false))
-        .finally(() => setPinChecked(true));
+        .then((r) => {
+          if (active) setPinAvailable(r.configured && !r.locked);
+        })
+        .catch(() => {
+          if (active) setPinAvailable(false);
+        })
+        .finally(() => {
+          if (active) setPinChecked(true);
+        });
     } else {
       setPinChecked(true);
     }
+    return () => {
+      active = false;
+    };
   }, [open, pinAccountId, setLoginMethod]);
 
   const handlePinComplete = useCallback(
