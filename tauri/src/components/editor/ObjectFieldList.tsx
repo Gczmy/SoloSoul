@@ -7,6 +7,7 @@ import { TemplateFieldInput } from '@/components/TemplateFieldInput';
 import { DynamicGroupEditor } from '@/components/editor/DynamicGroupEditor';
 import { FieldSuggestions, type FieldSuggestion } from '@/components/editor/FieldSuggestions';
 import { resolveCanonicalFieldName } from '@/lib/fieldNameAliases';
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import type { PropertyType } from '@/types/template';
 import type { ObjectData } from '@/stores/objectStore';
@@ -155,11 +156,10 @@ export function ObjectFieldList({
                 const fieldName = fieldDef?.name || key;
                 const propType: PropertyType = (fieldDef?.type as PropertyType) || 'text';
                 const isDeprecated = !!fieldDef?.deprecatedAt;
-                const objLabels = currentObject?.propertyLabels as
-                  | Record<string, string>
-                  | undefined;
-                const sensitivity: SensitivityLevel =
-                  (objLabels?.[key] as SensitivityLevel) || 'internal';
+                const sensitivity = resolveFieldSensitivity({
+                  fieldId: key,
+                  propertyLabels: currentObject?.propertyLabels,
+                });
                 const isContractField = fieldDef?.contractField === true;
                 const objContractTypeId = currentObject?.contractTypeId;
 
