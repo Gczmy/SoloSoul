@@ -7,7 +7,13 @@ import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUiStore } from '@/stores/uiStore';
+import { isAndroidSync } from '@/lib/platform';
 import type { UserTemplate } from '@/types/template';
+
+vi.mock('@/lib/platform', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/platform')>()),
+  isAndroidSync: vi.fn().mockReturnValue(false),
+}));
 
 vi.mock('@/components/layout/PageShell', () => ({
   PageShell: ({
@@ -112,6 +118,7 @@ describe('ObjectWorkspacePage card field display', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(isAndroidSync).mockReturnValue(false);
     vi.mocked(useNavigate).mockReturnValue(navigate);
     vi.mocked(useParams).mockReturnValue({});
     vi.mocked(useSearchParams).mockReturnValue([new URLSearchParams('section=identity'), vi.fn()]);
@@ -162,6 +169,80 @@ describe('ObjectWorkspacePage card field display', () => {
       if (cmd === 'vault_list_accounts') return [];
       return undefined;
     });
+  });
+
+  async function mockObjects(names: string[]) {
+    const originalInvoke = vi.mocked(invoke).getMockImplementation()!;
+    const [base] = (await originalInvoke('object_list', {})) as Array<{
+      properties: Record<string, unknown>;
+      [key: string]: unknown;
+    }>;
+    vi.mocked(invoke).mockImplementation((command, args) =>
+      command === 'object_list'
+        ? Promise.resolve(
+            names.map((name, index) => ({
+              ...base,
+              id: `obj-${index}`,
+              name,
+              updatedAt: new Date(Date.UTC(2026, 0, names.length - index)).toISOString(),
+              properties: { ...base.properties, fullName: name },
+            })),
+          )
+        : originalInvoke(command, args),
+    );
+  }
+
+  it('Android list switches between recent and name order and filters searched objects', async () => {
+    vi.mocked(isAndroidSync).mockReturnValue(true);
+    await mockObjects(['Zulu', 'Alpha', 'Mike']);
+    render(
+      <MemoryRouter>
+        <ObjectWorkspacePage />
+      </MemoryRouter>,
+    );
+
+    const cardNames = () =>
+      screen
+        .getAllByTestId('workspace-object-card')
+        .map(
+          (card) =>
+            ['Zulu', 'Alpha', 'Mike'].find(
+              (name) => within(card).queryAllByText(name).length > 0,
+            ) ?? '',
+        );
+    await waitFor(() => expect(cardNames()).toEqual(['Zulu', 'Alpha', 'Mike']));
+    fireEvent.change(screen.getByRole('combobox', { name: 'material.sort' }), {
+      target: { value: 'name' },
+    });
+    expect(cardNames()).toEqual(['Alpha', 'Mike', 'Zulu']);
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'search_objects_placeholder' }), {
+      target: { value: 'Mike' },
+    });
+    await waitFor(() => expect(cardNames()).toEqual(['Mike']));
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    await waitFor(() => expect(cardNames()).toEqual(['Alpha', 'Mike', 'Zulu']));
+  });
+
+  it('loads the next workspace page and resets the limit after a search', async () => {
+    vi.mocked(isAndroidSync).mockReturnValue(true);
+    await mockObjects(Array.from({ length: 51 }, (_, index) => `Item ${index + 1}`));
+    render(
+      <MemoryRouter>
+        <ObjectWorkspacePage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(screen.getAllByTestId('workspace-object-card')).toHaveLength(50));
+    fireEvent.click(screen.getByRole('button', { name: '加载更多' }));
+    expect(screen.getAllByTestId('workspace-object-card')).toHaveLength(51);
+    fireEvent.change(screen.getByRole('textbox', { name: 'search_objects_placeholder' }), {
+      target: { value: 'Item 51' },
+    });
+    await waitFor(() => expect(screen.getAllByTestId('workspace-object-card')).toHaveLength(1));
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    await waitFor(() => expect(screen.getAllByTestId('workspace-object-card')).toHaveLength(50));
+    expect(screen.getByRole('button', { name: '加载更多' })).toBeInTheDocument();
   });
 
   it('shows the date field chip on the card; internal sensitivity value is masked', async () => {
