@@ -75,3 +75,100 @@ it.each(['complete', 'partial', 'notCommitted'] as const)(
     }
   },
 );
+
+it('keeps the latest scanned recovery account when an earlier conflict check finishes later', async () => {
+  const checks = new Map<string, (accounts: Array<{ id: string }>) => void>();
+  mocks.invoke.mockImplementation((command: string) => {
+    if (command !== 'vault_list_accounts') throw new Error(`Unexpected command: ${command}`);
+    return new Promise((resolve) => {
+      checks.set(String(checks.size), resolve);
+    });
+  });
+  const wrapper = ({ children }: PropsWithChildren) => <MemoryRouter>{children}</MemoryRouter>;
+  const { result } = renderHook(() => useRecoveryReceive({ isOpen: true, onClose: vi.fn() }), {
+    wrapper,
+  });
+
+  let first!: Promise<void>;
+  let second!: Promise<void>;
+  act(() => {
+    first = result.current.handleScan(
+      JSON.stringify({ t: 'rec', a: 'host-a', p: '123456', u: 'a' }),
+    );
+    second = result.current.handleScan(
+      JSON.stringify({ t: 'rec', a: 'host-b', p: '654321', u: 'b' }),
+    );
+  });
+  await act(async () => {
+    checks.get('1')?.([{ id: 'b' }]);
+    await second;
+  });
+  expect(result.current.pending?.accountId).toBe('b');
+  expect(result.current.idConflict).toBe(true);
+
+  await act(async () => {
+    checks.get('0')?.([]);
+    await first;
+  });
+  expect(result.current.pending?.accountId).toBe('b');
+  expect(result.current.idConflict).toBe(true);
+});
+
+it('ignores a scanned account after leaving the scan flow', async () => {
+  let finishCheck!: (accounts: Array<{ id: string }>) => void;
+  mocks.invoke.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finishCheck = resolve;
+      }),
+  );
+  const wrapper = ({ children }: PropsWithChildren) => <MemoryRouter>{children}</MemoryRouter>;
+  const { result } = renderHook(() => useRecoveryReceive({ isOpen: true, onClose: vi.fn() }), {
+    wrapper,
+  });
+
+  let scan!: Promise<void>;
+  act(() => {
+    scan = result.current.handleScan(
+      JSON.stringify({ t: 'rec', a: 'old-host', p: '123456', u: 'old-account' }),
+    );
+    result.current.switchTab('manual');
+  });
+  await act(async () => {
+    finishCheck([]);
+    await scan;
+  });
+  expect(result.current.tab).toBe('manual');
+  expect(result.current.step).toBe('collect');
+  expect(result.current.pending).toBeNull();
+});
+
+it('does not apply a conflict check from a previous dialog opening', async () => {
+  let finishCheck!: (accounts: Array<{ id: string }>) => void;
+  mocks.invoke.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finishCheck = resolve;
+      }),
+  );
+  const wrapper = ({ children }: PropsWithChildren) => <MemoryRouter>{children}</MemoryRouter>;
+  const { result, rerender } = renderHook(
+    ({ isOpen }) => useRecoveryReceive({ isOpen, onClose: vi.fn() }),
+    { wrapper, initialProps: { isOpen: true } },
+  );
+
+  let scan!: Promise<void>;
+  act(() => {
+    scan = result.current.handleScan(
+      JSON.stringify({ t: 'rec', a: 'old-host', p: '123456', u: 'old-account' }),
+    );
+  });
+  rerender({ isOpen: false });
+  rerender({ isOpen: true });
+  await act(async () => {
+    finishCheck([]);
+    await scan;
+  });
+  expect(result.current.step).toBe('collect');
+  expect(result.current.pending).toBeNull();
+});

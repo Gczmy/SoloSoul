@@ -28,6 +28,8 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
   const { t } = useTranslation(['common', 'settings']);
   const navigate = useNavigate();
   const mountedRef = useRef(true);
+  // 扫码预检可能跨越多次扫描或一次对话框关闭；旧结果不得重写当前选择。
+  const scanGenerationRef = useRef(0);
   // 设备摄像头能力（启动时预加载，模块级缓存）。
   // 支持 → 默认「扫描二维码」；不支持 → 默认「手动输入」。
   const cameraCapability = useCameraCapability();
@@ -93,8 +95,13 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     };
   }, []);
 
+  useEffect(() => {
+    if (!isOpen) scanGenerationRef.current += 1;
+  }, [isOpen]);
+
   // ── 重置所有状态 ──
   const resetState = () => {
+    scanGenerationRef.current += 1;
     setStep('collect');
     setTab(getDefaultTab());
     userSwitchedTabRef.current = false;
@@ -128,6 +135,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
   // ── Tab 切换 ──
   const switchTab = (newTab: TabMode) => {
     if (loading) return; // 传输中禁止切换
+    scanGenerationRef.current += 1;
     userSwitchedTabRef.current = true;
     setError(null);
     setScannerError(null);
@@ -136,6 +144,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
 
   // ── 扫码：解析 t:"rec" 二维码 → 预检账户 ID 冲突 → 进入账户卡 ──
   const handleScan = async (text: string) => {
+    const scanGeneration = ++scanGenerationRef.current;
     try {
       const parsed = JSON.parse(text);
       if (parsed.t !== 'rec') {
@@ -154,7 +163,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
       setError(null);
       // 扫描完成后立即预检账户 ID 冲突（在进入密码输入之前提示覆盖选项）
       const conflict = await checkRecoveryIdConflict(parsed.u);
-      if (!mountedRef.current) return;
+      if (!mountedRef.current || scanGeneration !== scanGenerationRef.current) return;
       setIdConflict(conflict);
       setOverwriteApproved(false);
       setPending({
@@ -173,6 +182,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
 
   // ── 手动输入完成：校验后进入账户卡 ──
   const handleManualNext = () => {
+    scanGenerationRef.current += 1;
     setError(null);
     const result = manualForm.getPendingInfo();
     if ('error' in result) {
@@ -270,6 +280,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
   // ── 账户卡：返回重新获取连接信息 ──
   const handleBackToCollect = () => {
     if (loading) return;
+    scanGenerationRef.current += 1;
     setPending(null);
     setIdConflict(false);
     setOverwriteApproved(false);
