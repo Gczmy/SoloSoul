@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Navigate, useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { HomePage } from './HomePage';
+import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
 
 vi.mock('@/components/layout/PageShell', () => ({
   PageShell: ({ children, title }: { children: React.ReactNode; title: string }) => (
@@ -36,11 +37,23 @@ vi.mock('@/components/attachment/PhotoAlbumOverlay', () => ({
   ),
 }));
 
+vi.mock('@/components/layout/CustomPageEditPopover', () => ({
+  CustomPageEditPopover: ({ page, onClose }: { page: CustomPage; onClose: () => void }) => (
+    <div role="dialog" aria-label="edit custom page">
+      <span>{page.name}</span>
+      <button onClick={onClose}>Close edit</button>
+    </div>
+  ),
+}));
+
 describe('HomePage', () => {
   const navigate = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useSettingsStore.setState((state) => ({
+      settings: { ...state.settings, customPages: [] },
+    }));
     vi.mocked(useNavigate).mockReturnValue(navigate);
     // 默认无账户：与既有欢迎卡片断言（common:welcome_back）保持一致
     mockUseAuthStore.mockImplementation((selector: (s: { currentAccount: null }) => unknown) =>
@@ -83,6 +96,55 @@ describe('HomePage', () => {
       .closest('[role="button"]') as HTMLElement;
     fireEvent.click(travelCard);
     expect(navigate).toHaveBeenCalledWith('/workspace?section=travel');
+  });
+
+  it('自定义页面短按进入工作区，长按只打开该页编辑且关闭后仍可进入', () => {
+    const customPage: CustomPage = {
+      id: 'custom-1',
+      name: 'Personal Notes',
+      iconId: 'star',
+      createdAt: '2026-01-01',
+      sortOrder: 0,
+    };
+    useSettingsStore.setState((state) => ({
+      settings: {
+        ...state.settings,
+        customPages: [
+          customPage,
+          { ...customPage, id: 'deleted', name: 'Deleted', deletedAt: '2026-01-02' },
+        ],
+      },
+    }));
+    render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+    const card = screen.getByText('Personal Notes').closest('[role="button"]') as HTMLElement;
+    fireEvent.click(card);
+    expect(navigate).toHaveBeenCalledWith('/workspace/custom/custom-1');
+    navigate.mockClear();
+
+    vi.useFakeTimers();
+    try {
+      fireEvent.mouseDown(card);
+      act(() => vi.advanceTimersByTime(500));
+      fireEvent.mouseUp(card);
+      fireEvent.click(card);
+      expect(screen.getByRole('dialog', { name: 'edit custom page' })).toHaveTextContent(
+        'Personal Notes',
+      );
+      expect(navigate).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Close edit' }));
+      expect(screen.queryByRole('dialog', { name: 'edit custom page' })).not.toBeInTheDocument();
+      fireEvent.click(card);
+      expect(navigate).toHaveBeenCalledWith('/workspace/custom/custom-1');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('navigates to help on help card click', () => {
