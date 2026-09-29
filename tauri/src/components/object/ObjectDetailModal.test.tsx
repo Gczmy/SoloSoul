@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router-dom';
 import { ObjectDetailModal } from './ObjectDetailModal';
 import type { ObjectData } from '@/stores/objectStore';
 
+const authMock = vi.hoisted(() => ({ accountId: 'acc-1' }));
+
 // ── 依赖 mock ────────────────────────────────────────────────────────────
 // P020 二次复核：modal 不再经全局 getObject action（会置 isLoading 闪列表），
 // 改为直接 invoke('object_get')；默认 mock 返回 null → fetchedObj=null → 回退传入 object。
@@ -22,7 +24,7 @@ vi.mock('@/lib/logger', () => ({
 
 vi.mock('@/stores/authStore', () => ({
   useAuthStore: (selector: (s: { currentAccount: { id: string } | null }) => unknown) =>
-    selector({ currentAccount: { id: 'acc-1' } }),
+    selector({ currentAccount: { id: authMock.accountId } }),
 }));
 
 vi.mock('@/stores/templateStore', () => ({
@@ -72,6 +74,24 @@ const sampleObj = {
 describe('ObjectDetailModal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authMock.accountId = 'acc-1';
+  });
+
+  it('RF-1019 切换账户后不继续显示前一账户传入的完整对象', () => {
+    const view = render(
+      <BrowserRouter>
+        <ObjectDetailModal object={sampleObj} onClose={vi.fn()} />
+      </BrowserRouter>,
+    );
+    expect(screen.getByRole('dialog', { name: sampleObj.name })).toBeInTheDocument();
+
+    authMock.accountId = 'acc-2';
+    view.rerender(
+      <BrowserRouter>
+        <ObjectDetailModal object={sampleObj} onClose={vi.fn()} />
+      </BrowserRouter>,
+    );
+    expect(screen.queryByRole('dialog', { name: sampleObj.name })).not.toBeInTheDocument();
   });
 
   it('渲染头部（对象名/关闭按钮）、标签与底部操作栏', () => {
