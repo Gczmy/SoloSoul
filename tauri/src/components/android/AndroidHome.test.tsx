@@ -106,6 +106,9 @@ describe('RF-925 Android home overview', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^Private Page/ }));
     expect(screen.getByTestId('current-location')).toHaveTextContent('/workspace/custom/page-a');
+
+    fireEvent.click(screen.getByRole('button', { name: 'View all' }));
+    expect(screen.getByTestId('current-location')).toHaveTextContent('/workspace');
   });
 
   it('offers a retry after overview loading fails', async () => {

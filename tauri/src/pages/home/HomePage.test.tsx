@@ -6,6 +6,18 @@ import { HomePage } from './HomePage';
 import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
 import { useUiStore } from '@/stores/uiStore';
 import type { AttachmentMeta } from '@/components/attachment/attachmentManagerTypes';
+import { isAndroidSync } from '@/lib/platform';
+
+vi.mock('@/lib/platform', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/platform')>()),
+  isAndroidSync: vi.fn(() => false),
+}));
+
+vi.mock('@/components/android/AndroidHome', () => ({
+  AndroidHome: ({ onPhotos }: { onPhotos: () => void }) => (
+    <button onClick={onPhotos}>Android photos</button>
+  ),
+}));
 
 vi.mock('@/components/layout/PageShell', () => ({
   PageShell: ({ children, title }: { children: React.ReactNode; title: string }) => (
@@ -75,6 +87,7 @@ describe('HomePage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(isAndroidSync).mockReturnValue(false);
     useSettingsStore.setState((state) => ({
       settings: { ...state.settings, customPages: [] },
     }));
@@ -289,6 +302,52 @@ describe('HomePage', () => {
       expect(screen.queryByTestId('home-album-overlay')).not.toBeInTheDocument();
     });
     expect(screen.getByText('Photo Album')).toBeInTheDocument();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('Android 首页照片入口按当前账户加载并打开相册，不跳转路由', async () => {
+    vi.mocked(isAndroidSync).mockReturnValue(true);
+    mockUseAuthStore.mockImplementation(
+      (selector: (s: { currentAccount: { id: string; name: string } | null }) => unknown) =>
+        selector({ currentAccount: { id: 'acc-android', name: 'Mobile' } }),
+    );
+    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+      if (cmd === 'attachment_count_stats') return { attachmentCount: 1, photoCount: 1 };
+      if (cmd === 'attachment_list_all')
+        return {
+          pages: [
+            {
+              pageName: 'Page',
+              objects: [
+                {
+                  attachments: [
+                    {
+                      id: 'photo-android',
+                      objectId: 'object-android',
+                      fileName: 'mobile.png',
+                      mimeType: 'image/png',
+                      sizeBytes: 1,
+                      createdAt: '2026-01-01',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          trashPages: [],
+        };
+      return undefined;
+    });
+
+    render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Android photos' }));
+    expect(await screen.findByText('mobile.png:')).toBeInTheDocument();
+    expect(invoke).toHaveBeenCalledWith('attachment_list_all', { accountId: 'acc-android' });
+    expect(screen.getByTestId('home-album-overlay')).toHaveAttribute('data-count', '1');
     expect(navigate).not.toHaveBeenCalled();
   });
 
