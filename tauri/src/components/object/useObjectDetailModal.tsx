@@ -56,6 +56,15 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   const { object, objectId, onClose, onDelete, onAttachmentsChange } = props;
 
   const accountId = useAuthStore((s) => s.currentAccount?.id);
+  // 摘要不含 accountId：同一 prop 跨账户继续存在时，不再把它当作新账户的数据。
+  const objectSourceRef = useRef({ object, accountId });
+  useEffect(() => {
+    if (objectSourceRef.current.object !== object) {
+      objectSourceRef.current = { object, accountId };
+    }
+  }, [object, accountId]);
+  const sourceMatchesAccount =
+    objectSourceRef.current.object !== object || objectSourceRef.current.accountId === accountId;
   const { t } = useTranslation(['common', 'navigation', 'editor']);
   // P055: 分字段 selector，避免 store 任何变化触发整页重渲染（函数引用稳定）
   const templates = useTemplateStore((s) => s.templates);
@@ -70,7 +79,9 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   // 详情弹窗必须始终拉取完整对象，避免丢字段/值被静默截断。
   // 完整对象带账户归属；账户切换后即使调用方尚未卸载弹窗，也不能沿用旧账户数据。
   const suppliedObject =
+    accountId &&
     object &&
+    sourceMatchesAccount &&
     (!('accountId' in object) || object.accountId === accountId) &&
     (!objectId || object.id === objectId)
       ? object

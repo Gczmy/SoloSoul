@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ObjectDetailModal } from './ObjectDetailModal';
 import type { ObjectData } from '@/stores/objectStore';
 
-const authMock = vi.hoisted(() => ({ accountId: 'acc-1' }));
+const authMock = vi.hoisted(() => ({ accountId: 'acc-1' as string | null }));
 
 // ── 依赖 mock ────────────────────────────────────────────────────────────
 // P020 二次复核：modal 不再经全局 getObject action（会置 isLoading 闪列表），
@@ -24,7 +24,9 @@ vi.mock('@/lib/logger', () => ({
 
 vi.mock('@/stores/authStore', () => ({
   useAuthStore: (selector: (s: { currentAccount: { id: string } | null }) => unknown) =>
-    selector({ currentAccount: { id: authMock.accountId } }),
+    selector({
+      currentAccount: authMock.accountId ? { id: authMock.accountId } : null,
+    }),
 }));
 
 vi.mock('@/stores/templateStore', () => ({
@@ -92,6 +94,73 @@ describe('ObjectDetailModal', () => {
       </BrowserRouter>,
     );
     expect(screen.queryByRole('dialog', { name: sampleObj.name })).not.toBeInTheDocument();
+  });
+
+  it('RF-1020 切换账户后不继续显示前一账户传入的摘要', async () => {
+    const summary = {
+      id: 'obj-summary',
+      name: 'A 账户摘要',
+      typeId: 'travel',
+      sensitivityLevel: 'internal' as const,
+      createdAt: sampleObj.createdAt,
+      updatedAt: sampleObj.updatedAt,
+      properties: { full_name: '旧账户预览' },
+    };
+    const view = render(
+      <BrowserRouter>
+        <ObjectDetailModal object={summary} onClose={vi.fn()} />
+      </BrowserRouter>,
+    );
+    expect(screen.getByRole('dialog', { name: summary.name })).toBeInTheDocument();
+
+    await act(async () => {
+      authMock.accountId = null;
+      view.rerender(
+        <BrowserRouter>
+          <ObjectDetailModal object={summary} onClose={vi.fn()} />
+        </BrowserRouter>,
+      );
+    });
+    expect(screen.queryByRole('dialog', { name: summary.name })).not.toBeInTheDocument();
+
+    await act(async () => {
+      authMock.accountId = 'acc-2';
+      view.rerender(
+        <BrowserRouter>
+          <ObjectDetailModal object={summary} onClose={vi.fn()} />
+        </BrowserRouter>,
+      );
+    });
+    expect(screen.queryByRole('dialog', { name: summary.name })).not.toBeInTheDocument();
+
+    const nextSummary = { ...summary, id: 'obj-next', name: 'B 账户摘要' };
+    await act(async () => {
+      view.rerender(
+        <BrowserRouter>
+          <ObjectDetailModal object={nextSummary} onClose={vi.fn()} />
+        </BrowserRouter>,
+      );
+    });
+    expect(screen.getByRole('dialog', { name: nextSummary.name })).toBeInTheDocument();
+  });
+
+  it('RF-1020 未登录时不展示传入的旧摘要', () => {
+    authMock.accountId = null;
+    const summary = {
+      id: 'obj-summary',
+      name: '旧账户摘要',
+      typeId: 'travel',
+      sensitivityLevel: 'internal' as const,
+      createdAt: sampleObj.createdAt,
+      updatedAt: sampleObj.updatedAt,
+      properties: { full_name: '旧账户预览' },
+    };
+    render(
+      <BrowserRouter>
+        <ObjectDetailModal object={summary} onClose={vi.fn()} />
+      </BrowserRouter>,
+    );
+    expect(screen.queryByRole('dialog', { name: summary.name })).not.toBeInTheDocument();
   });
 
   it('渲染头部（对象名/关闭按钮）、标签与底部操作栏', () => {
