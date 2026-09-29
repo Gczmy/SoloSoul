@@ -23,6 +23,8 @@ export interface UseBatchSelectReturn {
   handleSelectAll: (allVisibleKeys: string[]) => void;
   /** Clear all selections. */
   clearSelection: () => void;
+  /** 仅移除已完成的项目，保留失败项目供重试。 */
+  removeSelections: (compositeKeys: string[]) => void;
 
   setBatchDeleteConfirm: (v: boolean) => void;
   setBatchRestoreConfirm: (v: boolean) => void;
@@ -77,6 +79,15 @@ export function useBatchSelect(
     setSelectedIds(new Set());
   }, []);
 
+  const removeSelections = useCallback((compositeKeys: string[]) => {
+    if (compositeKeys.length === 0) return;
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      for (const key of compositeKeys) next.delete(key);
+      return next;
+    });
+  }, []);
+
   return {
     selectedIds,
     batchDeleteConfirm,
@@ -87,6 +98,7 @@ export function useBatchSelect(
     toggleSelect,
     handleSelectAll,
     clearSelection,
+    removeSelections,
 
     setBatchDeleteConfirm,
     setBatchRestoreConfirm,
