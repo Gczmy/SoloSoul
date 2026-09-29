@@ -58,10 +58,13 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
     }
 
     const TIMEOUT_MS = 10_000;
+    let active = true;
     setLoading(true);
 
     // 超时保护：如果后端 10 秒无响应，自动取消 loading 并显示错误
     const timeoutId = setTimeout(() => {
+      if (!active) return;
+      active = false;
       setError(
         t('common:sync_qr_timeout', {
           defaultValue: 'QR generation timed out. Please try again.',
@@ -73,6 +76,7 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
     invoke<string>('sync_generate_qr_payload')
       .then((payload) => {
         clearTimeout(timeoutId);
+        if (!active) return;
         try {
           const parsed = JSON.parse(payload);
           setInfo({
@@ -87,13 +91,19 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
       })
       .catch((err) => {
         clearTimeout(timeoutId);
+        if (!active) return;
         // 后端错误码（如 __SYNC_ERR__:not_enabled）经 resolveBackendErrorMessage 国际化
         setError(resolveBackendErrorMessage(err));
       })
       .finally(() => {
         clearTimeout(timeoutId);
-        setLoading(false);
+        if (active) setLoading(false);
       });
+
+    return () => {
+      active = false;
+      clearTimeout(timeoutId);
+    };
   }, [isOpen, t]);
 
   // 页面卸载时兜底取消恢复会话，避免导航离开同步页后会话悬挂至过期

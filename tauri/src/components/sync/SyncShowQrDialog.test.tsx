@@ -134,4 +134,32 @@ describe('SyncShowQrDialog', () => {
     expect(screen.getByText('2222')).toBeInTheDocument();
     expect(screen.queryByText('1111')).not.toBeInTheDocument();
   });
+
+  it('ignores an old sync QR payload after the dialog closes and reopens', async () => {
+    let resolveOld!: (value: string) => void;
+    let resolveNew!: (value: string) => void;
+    const oldRequest = new Promise<string>((resolve) => {
+      resolveOld = resolve;
+    });
+    const newRequest = new Promise<string>((resolve) => {
+      resolveNew = resolve;
+    });
+    let requests = 0;
+    mockInvoke.mockImplementation((cmd: string) => {
+      if (cmd === 'sync_generate_qr_payload') return ++requests === 1 ? oldRequest : newRequest;
+      return Promise.resolve(undefined);
+    });
+
+    const { rerender } = render(<SyncShowQrDialog isOpen onClose={vi.fn()} />);
+    await waitFor(() => expect(requests).toBe(1));
+    rerender(<SyncShowQrDialog isOpen={false} onClose={vi.fn()} />);
+    rerender(<SyncShowQrDialog isOpen onClose={vi.fn()} />);
+    await waitFor(() => expect(requests).toBe(2));
+
+    await act(async () => resolveNew(JSON.stringify({ a: '10.0.0.2', n: 'New device' })));
+    expect(screen.getByText('New device')).toBeInTheDocument();
+    await act(async () => resolveOld(JSON.stringify({ a: '10.0.0.1', n: 'Old device' })));
+    expect(screen.getByText('New device')).toBeInTheDocument();
+    expect(screen.queryByText('Old device')).not.toBeInTheDocument();
+  });
 });
