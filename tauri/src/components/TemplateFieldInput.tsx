@@ -44,6 +44,7 @@ export function TemplateFieldInput({
     phone: 'tel',
     file: 'text', // file references stored as text (attachment id or path)
   };
+  const uniqueOptions = [...new Set(options ?? [])];
 
   switch (type) {
     case 'date':
@@ -119,7 +120,7 @@ export function TemplateFieldInput({
             disabled={disabled}
           >
             <option value="">-- 请选择 --</option>
-            {(options || []).map((opt) => (
+            {uniqueOptions.map((opt) => (
               <option key={opt} value={opt}>
                 {opt}
               </option>
@@ -131,18 +132,18 @@ export function TemplateFieldInput({
     case 'multiselect': {
       const rawSelected = Array.isArray(value) ? value : [];
       // Always display in template-defined order, regardless of selection order
-      const selected = (options || []).filter((o) => rawSelected.includes(o));
+      const selected = uniqueOptions.filter((o) => rawSelected.includes(o));
       return (
         <div className={styles.field}>
           <label className={styles.label}>{labelRow}</label>
           <div className={styles.multiSelect}>
-            {(options || []).map((opt) => (
+            {uniqueOptions.map((opt) => (
               <label key={opt} className={styles.checkboxLabel}>
                 <SelectCheckbox
                   checked={selected.includes(opt)}
                   onChange={(v) => {
                     const next = v
-                      ? (options || []).filter((o) => selected.includes(o) || o === opt)
+                      ? uniqueOptions.filter((o) => selected.includes(o) || o === opt)
                       : selected.filter((v) => v !== opt);
                     onChange(next);
                   }}

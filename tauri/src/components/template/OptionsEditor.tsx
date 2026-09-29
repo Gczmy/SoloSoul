@@ -129,10 +129,14 @@ export function OptionsEditor({ options, onChange, fieldName, fieldType }: Optio
               <button
                 type="button"
                 onClick={() => {
-                  const opts = editing
-                    .split('\n')
-                    .map((s: string) => s.trim())
-                    .filter(Boolean);
+                  const opts = [
+                    ...new Set(
+                      editing
+                        .split('\n')
+                        .map((s: string) => s.trim())
+                        .filter(Boolean),
+                    ),
+                  ];
                   onChange(opts);
                   setOpen(false);
                 }}
