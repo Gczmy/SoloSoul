@@ -165,7 +165,7 @@ interface SyncStoreState extends SyncStatus {
   /** 入站配对请求（B 侧响应方）：AppShell 全局监听后弹出确认对话框。 */
   incomingPairingRequest: SyncPeer | null;
 
-  loadStatus: () => Promise<void>;
+  loadStatus: (options?: { preserveError?: boolean }) => Promise<void>;
   loadListenAddr: () => Promise<void>;
   enable: (enabled: boolean) => Promise<void>;
   discoverDevices: (timeoutMs?: number) => Promise<void>;
@@ -237,19 +237,19 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     pairingPendingSasCode: null,
     incomingPairingRequest: null,
 
-    loadStatus: async () => {
+    loadStatus: async (options) => {
       const request = requests.begin('status');
       const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
         const status = await request.invoke<SyncStatus>('sync_get_status');
         request.assertCurrent();
-        setCurrent({
+        setCurrent((state) => ({
           ...status,
           ...(status.syncEnabled
             ? {}
             : { discoveredDevices: [], isDiscoveringDevices: false, listenAddr: '' }),
-          error: null,
-        });
+          error: options?.preserveError ? state.error : null,
+        }));
       } catch (err) {
         if (!request.isCurrent()) return;
         setCurrent({ error: String(err) });
@@ -313,7 +313,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           // 或命令排队导致超时，但服务端最终可能已切换成功。重读可让开关 UI 与
           // 实际状态保持一致，避免“禁用失败但实际已禁用”的假卡死。
           void get()
-            .loadStatus()
+            .loadStatus({ preserveError: true })
             .catch((e2) => logger.warn('[syncStore] status resync after enable error:', e2));
         }
       });

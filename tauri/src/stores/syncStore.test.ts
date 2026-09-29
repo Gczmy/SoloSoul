@@ -995,3 +995,47 @@ describe('syncStore enable response follows backend status', () => {
     expect(useSyncStore.getState().listenAddr).toBe('192.0.2.1:42069');
   });
 });
+
+describe('syncStore enable failure feedback', () => {
+  beforeEach(() => {
+    mockInvoke.mockReset();
+    useSyncStore.setState({ syncEnabled: true, isLoading: false, error: null });
+  });
+
+  it('keeps the enable error visible after refreshing the actual backend status', async () => {
+    mockInvoke.mockImplementation((command: string) => {
+      if (command === 'sync_enable') return Promise.reject(new Error('NSD permission denied'));
+      if (command === 'sync_get_status') {
+        return Promise.resolve({
+          isDiscovering: false,
+          syncEnabled: false,
+          autoSyncEnabled: false,
+          localFingerprint: '',
+          connectedPeers: [],
+        });
+      }
+      throw new Error(`Unexpected command: ${command}`);
+    });
+
+    await useSyncStore.getState().enable(true);
+    await vi.waitFor(() => expect(useSyncStore.getState().syncEnabled).toBe(false));
+
+    expect(useSyncStore.getState().isLoading).toBe(false);
+    expect(useSyncStore.getState().error).toContain('NSD permission denied');
+  });
+
+  it('clears an older error during an ordinary successful status refresh', async () => {
+    useSyncStore.setState({ error: 'previous failure' });
+    mockInvoke.mockResolvedValueOnce({
+      isDiscovering: false,
+      syncEnabled: true,
+      autoSyncEnabled: false,
+      localFingerprint: '',
+      connectedPeers: [],
+    });
+
+    await useSyncStore.getState().loadStatus();
+
+    expect(useSyncStore.getState().error).toBeNull();
+  });
+});
