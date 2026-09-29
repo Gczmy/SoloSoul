@@ -46,9 +46,7 @@ describe('DynamicGroupEditor', () => {
         onChange={onChange}
       />,
     );
-    const buttons = screen.getAllByRole('button');
-    const deleteBtn = buttons.find((b) => b.className.includes('danger'))!;
-    fireEvent.click(deleteBtn);
+    fireEvent.click(screen.getByRole('button', { name: 'common:delete' }));
     expect(onChange).toHaveBeenCalledWith([]);
   });
 

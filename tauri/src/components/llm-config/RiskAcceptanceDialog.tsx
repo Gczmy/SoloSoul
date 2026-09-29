@@ -34,7 +34,7 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
         style={{
           background: 'var(--bg-elevated)',
           borderRadius: 16,
-          padding: '28px 32px',
+          padding: '28px clamp(16px, 5vw, 32px)',
           maxWidth: 400,
           width: '90%',
           boxShadow: 'var(--shadow-lg)',
@@ -91,11 +91,11 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
           <SelectCheckbox checked={riskChecked} onChange={(v) => setRiskChecked(v)} />
           {t('settings:ai_risk_agree')}
         </label>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button variant="secondary" onClick={onClose}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' }}>
+          <Button variant="secondary" onClick={onClose} style={{ flexShrink: 0 }}>
             {t('common:cancel')}
           </Button>
-          <Button onClick={onAccept} disabled={!riskChecked}>
+          <Button onClick={onAccept} disabled={!riskChecked} style={{ flexShrink: 0 }}>
             {t('settings:ai_enable')}
           </Button>
         </div>

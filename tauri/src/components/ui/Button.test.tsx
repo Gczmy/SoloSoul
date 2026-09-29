@@ -7,29 +7,34 @@ describe('Button', () => {
     render(<Button>Click me</Button>);
     const button = screen.getByRole('button', { name: /click me/i });
     expect(button).toBeInTheDocument();
-    // CSS Modules hash class names; check for substring matches
     expect(button.className).toMatch(/button/);
-    expect(button.className).toMatch(/primary/);
-    expect(button.className).toMatch(/md/);
+    expect(button).toHaveAttribute('data-ui-button', 'primary');
+    expect(button).toHaveAttribute('data-ui-intent', 'primary');
+    expect(button).toHaveAttribute('data-ui-size', 'md');
   });
 
   it('renders with different variants', () => {
     const { rerender } = render(<Button variant="secondary">Secondary</Button>);
-    expect(screen.getByRole('button').className).toMatch(/secondary/);
-
-    rerender(<Button variant="danger">Danger</Button>);
-    expect(screen.getByRole('button').className).toMatch(/danger/);
-
-    rerender(<Button variant="glass">Glass</Button>);
-    expect(screen.getByRole('button').className).toMatch(/glass/);
+    for (const [variant, intent] of [
+      ['secondary', 'neutral'],
+      ['tertiary', 'text'],
+      ['glass', 'quiet'],
+      ['danger', 'danger'],
+      ['danger-outline', 'danger-soft'],
+      ['warning', 'warning'],
+    ] as const) {
+      rerender(<Button variant={variant}>{variant}</Button>);
+      expect(screen.getByRole('button')).toHaveAttribute('data-ui-button', variant);
+      expect(screen.getByRole('button')).toHaveAttribute('data-ui-intent', intent);
+    }
   });
 
   it('renders with different sizes', () => {
     const { rerender } = render(<Button size="sm">Small</Button>);
-    expect(screen.getByRole('button').className).toMatch(/sm/);
+    expect(screen.getByRole('button')).toHaveAttribute('data-ui-size', 'sm');
 
     rerender(<Button size="lg">Large</Button>);
-    expect(screen.getByRole('button').className).toMatch(/lg/);
+    expect(screen.getByRole('button')).toHaveAttribute('data-ui-size', 'lg');
   });
 
   it('disables button when loading', () => {

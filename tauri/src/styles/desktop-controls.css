@@ -111,7 +111,7 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
   &[data-ui-choice] {
     --control-ink: var(--text-primary);
   }
-  &:is([data-ui-button='primary'], [data-desktop-control='primary']) {
+  &:is([data-ui-intent='primary'], [data-desktop-control='primary']) {
     --control-fill: color-mix(
       in srgb,
       var(--accent-primary) var(--desktop-control-accent-opacity),
@@ -121,7 +121,7 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     --control-edge: color-mix(in srgb, var(--accent-primary) 75%, var(--desktop-control-edge));
     --control-glint: rgb(255 255 255 / 18%);
   }
-  &:is([data-ui-button='danger'], .interactive-danger-solid) {
+  &:is([data-ui-intent='danger'], .interactive-danger-solid) {
     --control-fill: color-mix(
       in srgb,
       var(--accent-danger) var(--desktop-control-accent-opacity),
@@ -131,13 +131,13 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     --control-edge: var(--accent-danger);
     --control-glint: rgb(255 255 255 / 18%);
   }
-  &[data-ui-button='warning'] {
+  &[data-ui-intent='warning'] {
     --control-fill: color-mix(in srgb, var(--warning) 12%, var(--bg-elevated));
     --control-ink: var(--text-primary);
     --control-edge: var(--warning);
   }
   &:is(
-    [data-ui-button='danger-outline'],
+    [data-ui-intent='danger-soft'],
     [data-ui-icon-button='danger'],
     [data-ui-icon-button='danger-outline'],
     .interactive-danger,
@@ -155,7 +155,7 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     --control-edge: var(--accent-danger);
   }
   /* 文字型次要操作保持轻量，不为链接式按钮增加玻璃底面。 */
-  &[data-ui-button='tertiary'] {
+  &[data-ui-intent='text'] {
     --control-fill: transparent;
     --control-ink: var(--accent-primary);
     background: var(--control-state) !important;
@@ -187,7 +187,7 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
         .interactive-icon-danger,
         .interactive-accent,
         .interactive-guide-trigger
-      ):where(:not([data-ui-button='secondary'], [data-ui-button='glass'])) {
+      ):where(:not([data-ui-intent='neutral'], [data-ui-intent='quiet'])) {
       --control-fill: transparent;
       --control-ink: var(--text-secondary);
       --control-edge: transparent;
@@ -197,21 +197,21 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     &:is([data-appbar] button):where([data-desktop-platform='macos'] button),
     &:is([data-appbar] button):where(
         [data-desktop-platform='windows']
-          button:not([data-ui-button='primary'], [data-desktop-control='primary'])
+          button:not([data-ui-intent='primary'], [data-desktop-control='primary'])
       ) {
       --control-fill: transparent;
       --control-edge: transparent;
       --control-ink: var(--text-secondary);
     }
     &:where([data-desktop-platform='macos'] button):is(
-        [data-appbar] button[data-ui-button='primary'],
+        [data-appbar] button[data-ui-intent='primary'],
         [data-appbar] button[data-desktop-control='primary']
       ) {
       --control-ink: var(--accent-primary);
     }
     &:is(button):is(
-        [data-ui-button='danger'],
-        [data-ui-button='danger-outline'],
+        [data-ui-intent='danger'],
+        [data-ui-intent='danger-soft'],
         [data-ui-icon-button='danger'],
         [data-ui-icon-button='danger-outline'],
         [data-desktop-control='danger-text'],
@@ -241,7 +241,7 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     }
     /* 填色主操作使用成对的 hover 色；任意自定义色不能再混入文字色后沿用旧前景。
        macOS AppBar 主操作是文字按钮，继续使用上面的平面反馈。 */
-    &:is([data-ui-button='primary'], [data-desktop-control='primary']):not(
+    &:is([data-ui-intent='primary'], [data-desktop-control='primary']):not(
         [data-desktop-platform='macos'] [data-appbar] button
       ) {
       @media (forced-colors: none) {

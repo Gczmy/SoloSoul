@@ -154,6 +154,7 @@ export function UpdateBanner({
                 <button
                   type="button"
                   data-ui-button="secondary"
+                  data-ui-intent="neutral"
                   className={`${styles.button} ${isMobile ? styles.iconButton : ''}`}
                   onClick={() => setNotesOpen(true)}
                   aria-label={t('view_release_notes')}
@@ -166,6 +167,7 @@ export function UpdateBanner({
               <button
                 type="button"
                 data-ui-button="primary"
+                data-ui-intent="primary"
                 className={`${styles.button} ${styles.primaryButton} ${isMobile ? styles.iconButton : ''}`}
                 onClick={onUpdate}
                 aria-label={t('update_now')}
@@ -178,6 +180,7 @@ export function UpdateBanner({
                 <button
                   type="button"
                   data-ui-button="secondary"
+                  data-ui-intent="neutral"
                   className={styles.button}
                   onClick={onSkip}
                 >
@@ -191,6 +194,7 @@ export function UpdateBanner({
             <button
               type="button"
               data-ui-button="secondary"
+              data-ui-intent="neutral"
               className={styles.button}
               onClick={onCancel}
               disabled={state === 'cancelling'}
@@ -203,6 +207,7 @@ export function UpdateBanner({
             <button
               type="button"
               data-ui-button="primary"
+              data-ui-intent="primary"
               className={`${styles.button} ${styles.primaryButton}`}
               onClick={onInstall}
             >
@@ -214,6 +219,7 @@ export function UpdateBanner({
             <button
               type="button"
               data-ui-button="primary"
+              data-ui-intent="primary"
               className={`${styles.button} ${styles.primaryButton}`}
               onClick={onUpdate}
             >

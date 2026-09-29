@@ -269,7 +269,16 @@ for (const platform of ['macos', 'windows'] as const) {
       await page.getByRole('button', { name: 'New Template', exact: true }).click();
       const save = page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true });
       await expect(save).toHaveAttribute('data-ui-button', 'primary');
-      await expect(save).toHaveCSS('color', 'rgb(255, 255, 255)');
+      await expect(save).toHaveAttribute('data-ui-intent', 'primary');
+      const accentText = await save.evaluate((button) => {
+        const probe = document.createElement('span');
+        probe.style.color = 'var(--accent-primary-text)';
+        button.appendChild(probe);
+        const color = getComputedStyle(probe).color;
+        probe.remove();
+        return color;
+      });
+      await expect(save).toHaveCSS('color', accentText);
       await expect(save).toHaveCSS('backdrop-filter', 'none');
       await page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
     });

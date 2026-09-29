@@ -1,0 +1,83 @@
+/* Button 的公共语义色与尺寸。组件仅消费这些值；原生平台可覆盖对应 token。 */
+[data-ui-button] {
+  --action-surface: var(--bg-toolbar);
+  --action-ink: var(--text-primary);
+  --action-edge: var(--border-subtle);
+  --action-hover-surface: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-toolbar));
+  --action-hover-ink: var(--action-ink);
+  --action-hover-edge: var(--accent-primary);
+  --action-radius: var(--radius-md);
+  --action-min-height: 40px;
+  --action-padding: 10px 20px;
+  --action-font-size: var(--text-body);
+}
+
+[data-ui-button][data-ui-size='sm'] {
+  --action-min-height: 34px;
+  --action-padding: 6px 12px;
+  --action-font-size: var(--text-body-sm);
+  --action-radius: 6px;
+}
+
+[data-ui-button][data-ui-size='lg'] {
+  --action-min-height: 48px;
+  --action-padding: 14px 28px;
+  --action-font-size: var(--text-section-title);
+}
+
+[data-ui-button][data-ui-intent='primary'] {
+  --action-surface: var(--accent-primary);
+  --action-ink: var(--accent-primary-text);
+  --action-edge: transparent;
+  --action-hover-surface: var(--accent-hover);
+  --action-hover-ink: var(--accent-hover-text);
+  --action-hover-edge: transparent;
+}
+
+[data-ui-button][data-ui-intent='text'] {
+  --action-surface: transparent;
+  --action-ink: var(--accent-primary);
+  --action-edge: transparent;
+  --action-hover-surface: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  --action-hover-ink: var(--accent-primary);
+  --action-hover-edge: transparent;
+}
+
+[data-ui-button][data-ui-intent='quiet'] {
+  --action-surface: var(--bg-toolbar);
+  --action-ink: var(--text-primary);
+  --action-edge: var(--border-subtle);
+}
+
+[data-ui-button][data-ui-intent='danger'] {
+  --action-surface: var(--accent-danger);
+  --action-ink: var(--accent-danger-text);
+  --action-edge: transparent;
+  --action-hover-surface: var(--accent-danger-hover);
+  --action-hover-ink: var(--accent-danger-text);
+  --action-hover-edge: transparent;
+}
+
+[data-ui-button][data-ui-intent='danger-soft'] {
+  --action-surface: color-mix(in srgb, var(--accent-danger) 10%, transparent);
+  --action-ink: var(--accent-danger);
+  --action-edge: transparent;
+  --action-hover-surface: var(--accent-danger);
+  --action-hover-ink: var(--accent-danger-text);
+  --action-hover-edge: transparent;
+}
+
+[data-ui-button][data-ui-intent='warning'] {
+  --action-surface: color-mix(in srgb, var(--warning) 12%, var(--bg-elevated));
+  --action-ink: var(--text-primary);
+  --action-edge: var(--warning);
+  --action-hover-surface: color-mix(in srgb, var(--warning) 20%, var(--bg-elevated));
+  --action-hover-ink: var(--text-primary);
+  --action-hover-edge: var(--warning);
+}
+
+@media (max-width: 767px) {
+  [data-ui-button][data-ui-size='sm'] {
+    --action-padding: 10px 14px;
+  }
+}

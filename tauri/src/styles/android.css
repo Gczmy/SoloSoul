@@ -109,25 +109,25 @@
   box-shadow: none;
 }
 [data-platform='android'] [data-ui-button] {
-  min-height: 48px;
-  max-width: 100%;
+  --action-min-height: 48px;
+  --action-radius: 24px;
+  --action-font-size: var(--text-body-sm);
   white-space: normal;
-  overflow-wrap: anywhere;
-  border-radius: 24px;
+  overflow-wrap: break-word;
   gap: 8px;
-  font-size: 0.875rem;
 }
-[data-platform='android'] [data-ui-button='primary'] {
+[data-platform='android'] [data-ui-intent='primary'] {
+  --action-ink: var(--md-on-primary);
   color: var(--md-on-primary);
 }
 [data-platform='android'] [data-ui-button] > svg {
   flex-shrink: 0;
 }
-[data-platform='android'] [data-ui-button='secondary'],
-[data-platform='android'] [data-ui-button='glass'] {
-  background: var(--md-primary-container);
-  color: var(--md-on-primary-container);
-  border: 0;
+[data-platform='android'] [data-ui-intent='neutral'],
+[data-platform='android'] [data-ui-intent='quiet'] {
+  --action-surface: var(--md-primary-container);
+  --action-ink: var(--md-on-primary-container);
+  --action-edge: transparent;
   backdrop-filter: none;
 }
 [data-platform='android'] button[data-ui-choice] {

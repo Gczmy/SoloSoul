@@ -225,6 +225,38 @@ test('Android login controls do not cover the password text', async ({ page }) =
   await page.screenshot({ path: test.info().outputPath('login-320.png'), animations: 'disabled' });
 });
 
+test('Android risk actions keep complete words and touch targets at 320px', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await navigate(page, '/settings/llm');
+  await page.locator('label').filter({ hasText: 'AI Chat' }).click();
+  const risk = page.locator('[data-macos-glass-backdrop]');
+  await expect(risk).toBeVisible();
+  const panel = risk.locator('[data-macos-glass="panel"]');
+  const panelBox = await panel.boundingBox();
+  expect(panelBox).not.toBeNull();
+  expect(panelBox!.y).toBeGreaterThanOrEqual(0);
+  expect(panelBox!.y + panelBox!.height).toBeLessThanOrEqual(568);
+  const cancel = risk.getByRole('button', { name: 'Cancel', exact: true });
+  const enable = risk.getByRole('button', { name: 'Enable AI Features', exact: true });
+  expect(
+    await cancel.evaluate((element) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      return range.getClientRects().length;
+    }),
+  ).toBe(1);
+  for (const button of [cancel, enable]) {
+    const box = await button.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeGreaterThanOrEqual(48);
+    expect(box!.height).toBeGreaterThanOrEqual(48);
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(320);
+  }
+  expect((await cancel.boundingBox())!.y).toBe((await enable.boundingBox())!.y);
+  await page.screenshot({ path: test.info().outputPath('risk-320.png'), animations: 'disabled' });
+});
+
 test('Android template and data dialogs keep actions reachable on narrow screens', async ({
   page,
 }) => {

@@ -51,6 +51,7 @@ export const DeleteButton = memo(function DeleteButton({
 
   return (
     <Button
+      type="button"
       variant="danger-outline"
       size="sm"
       onClick={onClick}

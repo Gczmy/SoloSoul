@@ -28,4 +28,24 @@ describe('TransferButton', () => {
     );
     expect(screen.getByRole('button', { name: 'Import' })).toBeDisabled();
   });
+
+  it('旧 variant API 映射到统一操作意图', () => {
+    const onClick = vi.fn();
+    const { rerender } = render(<TransferButton onClick={onClick}>Import</TransferButton>);
+    for (const [variant, intent] of [
+      ['plain', 'neutral'],
+      ['accent', 'primary'],
+      ['warning', 'warning'],
+    ] as const) {
+      rerender(
+        <TransferButton variant={variant} onClick={onClick}>
+          Import
+        </TransferButton>,
+      );
+      expect(screen.getByRole('button', { name: 'Import' })).toHaveAttribute(
+        'data-ui-intent',
+        intent,
+      );
+    }
+  });
 });

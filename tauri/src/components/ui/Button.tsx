@@ -14,14 +14,25 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
 }
 
+const variantIntent = {
+  primary: 'primary',
+  secondary: 'neutral',
+  tertiary: 'text',
+  glass: 'quiet',
+  danger: 'danger',
+  'danger-outline': 'danger-soft',
+  warning: 'warning',
+} as const;
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', loading, children, className, disabled, ...props }, ref) => {
-    const variantClass = variant === 'danger-outline' ? styles.dangerOutline : styles[variant];
     return (
       <button
         ref={ref}
         data-ui-button={variant}
-        className={`${styles.button} ${variantClass} ${styles[size]} ${className || ''}`}
+        data-ui-intent={variantIntent[variant]}
+        data-ui-size={size}
+        className={`${styles.button} ${className || ''}`}
         disabled={disabled || loading}
         {...props}
       >

@@ -125,6 +125,7 @@ export function OcrInstallBanner({
             <button
               type="button"
               data-ui-button="primary"
+              data-ui-intent="primary"
               className={`${styles.button} ${styles.primaryButton}`}
               onClick={onRetry}
             >

@@ -3,150 +3,58 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: var(--button-min-height, auto);
+  min-height: var(--button-min-height, var(--action-min-height));
+  max-width: 100%;
+  padding: var(--button-padding, var(--action-padding));
+  font-size: var(--button-font-size, var(--action-font-size));
   line-height: 20px;
-  border: none;
-  border-radius: 8px;
+  border: 1px solid var(--action-edge);
+  border-radius: var(--action-radius);
+  background: var(--action-surface);
+  color: var(--action-ink);
   cursor: pointer;
   font-family: inherit;
   font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
     color 0.2s ease,
     transform 0.2s ease;
-  white-space: nowrap;
 }
+
 .button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Variants */
-.primary {
-  background: var(--accent-primary);
-  color: var(--accent-primary-text);
+.button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px;
 }
-/* 桌面指针设备保留 hover 高亮；触屏设备避免点按后残留高亮 */
+
 @media (hover: hover) and (pointer: fine) {
-  .primary:hover:not(:disabled) {
-    background: var(--accent-hover);
-    color: var(--accent-hover-text);
+  .button:hover:not(:disabled) {
+    background: var(--action-hover-surface);
+    border-color: var(--action-hover-edge);
+    color: var(--action-hover-ink);
   }
 }
-.primary:active:not(:disabled) {
+
+.button:active:not(:disabled) {
   transform: scale(0.97);
 }
 
-.secondary {
-  background: var(--bg-toolbar);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-}
-@media (hover: hover) and (pointer: fine) {
-  .secondary:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-    border-color: var(--accent-primary);
-  }
-}
-
-.tertiary {
-  background: transparent;
-  color: var(--accent-primary);
-}
-@media (hover: hover) and (pointer: fine) {
-  .tertiary:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-  }
-}
-
-.glass {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1));
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: var(--text-primary);
-}
-
-.danger {
-  background: var(--accent-danger);
-  color: var(--accent-danger-text);
-}
-@media (hover: hover) and (pointer: fine) {
-  .danger:hover:not(:disabled) {
-    background: var(--accent-danger-hover);
-  }
-}
-.danger:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.dangerOutline {
-  background: color-mix(in srgb, #ef4444 10%, transparent);
-  color: #ef4444;
-}
-@media (hover: hover) and (pointer: fine) {
-  .dangerOutline:hover:not(:disabled) {
-    background: #ef4444;
-    color: #ffffff;
-  }
-}
-.dangerOutline:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.warning {
-  background: color-mix(in srgb, var(--warning) 12%, var(--bg-elevated));
-  border: 1px solid var(--warning);
-  color: var(--text-primary);
-}
-@media (hover: hover) and (pointer: fine) {
-  .warning:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--warning) 20%, var(--bg-elevated));
-  }
-}
-
-/* Sizes */
-.sm {
-  padding: var(--button-padding, 6px 12px);
-  font-size: var(--button-font-size, var(--text-body-sm));
-  border-radius: 6px;
-}
-.md {
-  padding: var(--button-padding, 10px 20px);
-  font-size: var(--button-font-size, var(--text-body));
-}
-.lg {
-  padding: var(--button-padding, 14px 28px);
-  font-size: var(--button-font-size, var(--text-section-title));
-}
-
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* 响应式：移动端隐藏按钮文字，仅显示图标；同时保证触控目标 ≥44px */
+/* Legacy mobile label helpers remain until their callers move to icon controls. */
 .label {
   display: inline;
 }
 
 @media (max-width: 767px) {
   .button {
-    min-height: 44px;
+    min-height: max(44px, var(--button-min-height, var(--action-min-height)));
     min-width: 44px;
-  }
-
-  .sm {
-    padding: 10px 14px;
   }
 
   .hideLabelOnMobile.button {
@@ -159,7 +67,6 @@
     margin-right: 0 !important;
   }
 
-  /* 与页面右上角指南按钮一致的紧凑图标按钮（移动端 44×44） */
   .compactMobile.button {
     min-height: 44px;
     min-width: 44px;
