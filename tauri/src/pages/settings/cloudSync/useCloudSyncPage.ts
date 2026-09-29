@@ -146,14 +146,16 @@ export function useCloudSyncPage() {
   const doSave = async () => {
     try {
       await invoke('cloud_sync_save_config', {
-        accountId,
-        connectorType,
-        configJson,
-        enabled,
-        intervalSecs,
-        wifiOnly,
-        autoImport,
-        retention,
+        payload: {
+          accountId,
+          connectorType,
+          configJson,
+          enabled,
+          intervalSecs,
+          wifiOnly,
+          autoImport,
+          retention,
+        },
       });
       onSuccess(t('settings:cloud_sync_saved'));
       loadConfig();
@@ -202,14 +204,16 @@ export function useCloudSyncPage() {
     setTestResult(null);
     try {
       await invoke('cloud_sync_test_connection', {
-        accountId,
-        connectorType,
-        configJson,
-        enabled,
-        intervalSecs,
-        wifiOnly,
-        autoImport,
-        retention,
+        payload: {
+          accountId,
+          connectorType,
+          configJson,
+          enabled,
+          intervalSecs,
+          wifiOnly,
+          autoImport,
+          retention,
+        },
       });
       setTestResult({ success: true });
       onSuccess(t('settings:cloud_sync_test_success'));

@@ -139,12 +139,41 @@ describe('CloudSyncPage 渲染冒烟', () => {
     fireEvent.click(screen.getByRole('button', { name: '提交主密码' }));
 
     await waitFor(() =>
-      expect(invoke).toHaveBeenCalledWith('cloud_sync_save_config', expect.anything()),
+      expect(invoke).toHaveBeenCalledWith('cloud_sync_save_config', {
+        payload: expect.objectContaining({
+          accountId: 'account-a',
+          connectorType: 'webdav',
+          configJson: expect.objectContaining({ baseUrl: 'https://dav.example.com/' }),
+        }),
+      }),
     );
     expect(
       vi.mocked(invoke).mock.calls.findIndex(([cmd]) => cmd === 'verify_password'),
     ).toBeLessThan(
       vi.mocked(invoke).mock.calls.findIndex(([cmd]) => cmd === 'cloud_sync_save_config'),
+    );
+  });
+
+  it('连接测试按 Rust 命令签名传入 payload', async () => {
+    render(
+      <MemoryRouter>
+        <CloudSyncPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'settings:cloud_sync_test' })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'settings:cloud_sync_test' }));
+
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith('cloud_sync_test_connection', {
+        payload: expect.objectContaining({
+          accountId: 'account-a',
+          connectorType: 'webdav',
+          configJson: expect.objectContaining({ username: 'u' }),
+        }),
+      }),
     );
   });
 
