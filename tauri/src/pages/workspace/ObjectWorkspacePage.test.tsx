@@ -1,16 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { ObjectWorkspacePage } from './ObjectWorkspacePage';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useUiStore } from '@/stores/uiStore';
 import type { UserTemplate } from '@/types/template';
 
 vi.mock('@/components/layout/PageShell', () => ({
-  PageShell: ({ children, title }: { children: React.ReactNode; title: string }) => (
+  PageShell: ({
+    children,
+    title,
+    actions,
+  }: {
+    children: React.ReactNode;
+    title: string;
+    actions: React.ReactNode;
+  }) => (
     <div data-testid="page-shell" data-title={title}>
+      {actions}
       {children}
     </div>
   ),
@@ -128,5 +138,68 @@ describe('ObjectWorkspacePage card field display', () => {
     expect(screen.getAllByText('••••••••').length).toBeGreaterThan(0);
     // public 字段（姓名）原样显示
     expect(screen.getAllByText('张三').length).toBeGreaterThan(1);
+  });
+
+  it('keeps a custom page open and reports an error when deleting it fails', async () => {
+    let rejectDelete!: (error: Error) => void;
+    const pendingDelete = new Promise<void>((_resolve, reject) => {
+      rejectDelete = reject;
+    });
+    const removeCustomPage = vi
+      .fn()
+      .mockResolvedValue(undefined)
+      .mockReturnValueOnce(pendingDelete);
+    useSettingsStore.setState((s) => ({
+      settings: {
+        ...s.settings,
+        customPages: [
+          {
+            id: 'page-1',
+            name: '测试页面',
+            iconId: 'document',
+            createdAt: '2026-01-01',
+            sortOrder: 0,
+          },
+        ],
+      },
+      removeCustomPage,
+    }));
+    vi.mocked(useParams).mockReturnValue({ pageId: 'page-1' });
+    vi.mocked(useSearchParams).mockReturnValue([new URLSearchParams(), vi.fn()]);
+    render(
+      <MemoryRouter>
+        <ObjectWorkspacePage />
+      </MemoryRouter>,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('page-shell')).toHaveAttribute('data-title', '测试页面'),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'delete' }));
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'delete' }));
+    await waitFor(() => expect(removeCustomPage).toHaveBeenCalledWith('acc1', 'page-1'));
+    expect(within(dialog).getByRole('button', { name: 'delete' })).toBeDisabled();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(removeCustomPage).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      rejectDelete(new Error('db locked'));
+      await pendingDelete.catch(() => undefined);
+    });
+    expect(navigate).not.toHaveBeenCalledWith('/');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        useUiStore
+          .getState()
+          .toasts.some((toast) => toast.type === 'error' && toast.message.includes('db locked')),
+      ).toBe(true),
+    );
+
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'delete' }));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/'));
+    expect(removeCustomPage).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });

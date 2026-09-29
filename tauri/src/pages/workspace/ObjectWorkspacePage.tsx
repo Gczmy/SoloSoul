@@ -26,6 +26,7 @@ import { useWorkspaceGuidePages } from './workspaceGuidePages';
 import { ICON_SIZE } from '@/lib/constants';
 import styles from './ObjectWorkspacePage.module.css';
 import { isAndroidSync } from '@/lib/platform';
+import { useToastError } from '@/hooks/useToastError';
 
 /**
  * 对象工作区页：
@@ -43,6 +44,9 @@ export function ObjectWorkspacePage() {
   const ws = useObjectWorkspaceData({ pageId, sectionFilter, detailObjectId });
   const isAndroid = isAndroidSync();
   const [sort, setSort] = useState('updated');
+  const [isDeletingPage, setIsDeletingPage] = useState(false);
+  const pageDeleteInFlight = useRef(false);
+  const { onError } = useToastError();
   const displayedObjects = useMemo(
     () =>
       !isAndroid
@@ -283,12 +287,23 @@ export function ObjectWorkspacePage() {
             })}
             confirmLabel={t('delete')}
             cancelLabel={t('cancel')}
-            onCancel={() => ws.setConfirmPageDelete(false)}
+            submitting={isDeletingPage}
+            onCancel={() => {
+              if (!pageDeleteInFlight.current) ws.setConfirmPageDelete(false);
+            }}
             onConfirm={async () => {
-              ws.setConfirmPageDelete(false);
-              if (ws.accountId && pageId) {
+              if (pageDeleteInFlight.current || !ws.accountId || !pageId) return;
+              pageDeleteInFlight.current = true;
+              setIsDeletingPage(true);
+              try {
                 await ws.removeCustomPage(ws.accountId, pageId);
+                ws.setConfirmPageDelete(false);
                 navigate('/');
+              } catch (error) {
+                onError(error, t('delete_failed'));
+              } finally {
+                pageDeleteInFlight.current = false;
+                setIsDeletingPage(false);
               }
             }}
           />

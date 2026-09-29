@@ -338,7 +338,9 @@ describe('settingsStore', () => {
         },
       });
       vi.mocked(invoke).mockRejectedValue(new Error('not found'));
-      await useSettingsStore.getState().removeCustomPage('acc-1', 'p1');
+      await expect(useSettingsStore.getState().removeCustomPage('acc-1', 'p1')).rejects.toThrow(
+        'not found',
+      );
       expect(useSettingsStore.getState().settings.customPages).toHaveLength(1);
     });
   });

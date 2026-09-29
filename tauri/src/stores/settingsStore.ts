@@ -749,9 +749,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       });
       request.assertCurrent();
     } catch (e) {
-      if (!request.isCurrent()) return;
-      logger.warn('[settingsStore] Failed to remove custom page:', pageId, e);
-      setCurrent((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
+      if (request.isCurrent()) {
+        logger.warn('[settingsStore] Failed to remove custom page:', pageId, e);
+        setCurrent((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
+      }
+      throw e;
     }
   },
 

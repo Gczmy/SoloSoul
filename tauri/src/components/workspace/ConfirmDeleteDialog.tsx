@@ -12,6 +12,7 @@ interface ConfirmDeleteDialogProps {
   confirmLabel?: string;
   /** Optional override for the cancel button label. */
   cancelLabel?: string;
+  submitting?: boolean;
 }
 
 /** P040: 收敛到 ui/ConfirmDialog 的薄封装——保留 workspace 侧 prop API 与默认文案。 */
@@ -23,6 +24,7 @@ export function ConfirmDeleteDialog({
   onCancel,
   confirmLabel,
   cancelLabel,
+  submitting,
 }: ConfirmDeleteDialogProps) {
   return (
     <ConfirmDialog
@@ -31,6 +33,7 @@ export function ConfirmDeleteDialog({
       message={body}
       confirmLabel={confirmLabel ?? 'Delete'}
       cancelLabel={cancelLabel ?? 'Cancel'}
+      submitting={submitting}
       priority="important"
       onConfirm={onConfirm}
       onCancel={onCancel}
