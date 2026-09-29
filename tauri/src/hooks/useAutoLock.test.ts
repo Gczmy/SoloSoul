@@ -198,6 +198,50 @@ describe('useAutoLock', () => {
     expect(invoke).toHaveBeenCalledWith('lock');
   });
 
+  it('原生待锁标记在两个监听入口同时返回时只锁定一次', async () => {
+    vi.mocked(invoke).mockImplementation(async (command) =>
+      command === 'get_lock_pending' ? true : undefined,
+    );
+    renderHook(() => useAutoLock());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(vi.mocked(invoke).mock.calls.filter(([command]) => command === 'lock')).toHaveLength(1);
+    expect(invoke).toHaveBeenCalledWith('dismiss_lock_mask');
+  });
+
+  it('关闭闲置和后台锁定时仍消费原生待锁标记', async () => {
+    setTimeoutMinutes(0);
+    setAutoLockOnBackground(false);
+    vi.mocked(invoke).mockImplementation(async (command) =>
+      command === 'get_lock_pending' ? true : undefined,
+    );
+    renderHook(() => useAutoLock());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(vi.mocked(invoke).mock.calls.filter(([command]) => command === 'lock')).toHaveLength(1);
+    expect(invoke).toHaveBeenCalledWith('dismiss_lock_mask');
+    expect(invoke).toHaveBeenCalledWith('vault_sync_background');
+  });
+
+  it('密码验证暂停期间切后台不锁定或同步，恢复后执行后台策略', () => {
+    renderHook(() => useAutoLock());
+    vi.mocked(invoke).mockClear();
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    useAutoLockPauseStore.getState().pause();
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+    expect(invoke).not.toHaveBeenCalledWith('lock');
+    expect(invoke).not.toHaveBeenCalledWith('vault_sync_background');
+
+    useAutoLockPauseStore.getState().resume();
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+    expect(invoke).toHaveBeenCalledWith('lock');
+    expect(invoke).toHaveBeenCalledWith('vault_sync_background');
+  });
+
   it('screen-locked 事件不受 autoLockOnBackground 开关影响', async () => {
     setAutoLockOnBackground(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
