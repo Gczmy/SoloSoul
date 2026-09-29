@@ -12,6 +12,7 @@ const GUIDE_SEARCH_CACHE_TTL = 30_000;
 const guideSearchCache = new Map<string, { data: GuideContent[]; timestamp: number }>();
 
 interface GuideSearchProps {
+  language: string;
   onSearch: (query: string) => Promise<GuideContent[]>;
   onSelect: (guideId: string) => void;
 }
@@ -182,7 +183,7 @@ function HighlightText({ text, tokens }: { text: string; tokens: string[] }) {
   );
 }
 
-export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
+export function GuideSearch({ language, onSearch, onSelect }: GuideSearchProps) {
   const { t } = useTranslation('common');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<GuideContent[] | null>(null);
@@ -208,7 +209,7 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
         return;
       }
 
-      const cacheKey = q.trim().toLowerCase();
+      const cacheKey = `${language}:${q.trim().toLowerCase()}`;
       const cached = guideSearchCache.get(cacheKey);
       if (cached && Date.now() - cached.timestamp < GUIDE_SEARCH_CACHE_TTL) {
         setResults(cached.data);
@@ -229,7 +230,7 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
         if (requestVersion === requestVersionRef.current) setLoading(false);
       }
     },
-    [onSearch],
+    [language, onSearch],
   );
 
   const handleChange = (val: string) => {

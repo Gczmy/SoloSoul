@@ -200,7 +200,12 @@ export function HelpPage() {
             transition={{ duration: 0.2 }}
             style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-md)' }}
           >
-            <GuideSearch onSearch={handleSearch} onSelect={handleSelect} />
+            <GuideSearch
+              key={language}
+              language={language}
+              onSearch={handleSearch}
+              onSelect={handleSelect}
+            />
             <GuideIndex
               guides={index.guides}
               categories={index.categories}

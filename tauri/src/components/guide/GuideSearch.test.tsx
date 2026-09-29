@@ -16,7 +16,7 @@ describe('GuideSearch request ownership', () => {
           pending.set(query, resolve);
         }),
     );
-    render(<GuideSearch onSearch={onSearch} onSelect={vi.fn()} />);
+    render(<GuideSearch language="en" onSearch={onSearch} onSelect={vi.fn()} />);
     const input = screen.getByPlaceholderText('search_help_docs');
 
     fireEvent.change(input, { target: { value: 'old-rf935-query' } });
@@ -47,5 +47,30 @@ describe('GuideSearch request ownership', () => {
     });
     expect(screen.queryByRole('button', { name: /Cleared\s*guide/ })).not.toBeInTheDocument();
     expect(screen.queryByText('searching')).not.toBeInTheDocument();
+  });
+
+  it('does not reuse a previous language result for the same query', async () => {
+    vi.useFakeTimers();
+    const enSearch = vi
+      .fn()
+      .mockResolvedValue([{ id: 'guide', title: 'English manual', content: 'English content' }]);
+    const zhSearch = vi
+      .fn()
+      .mockResolvedValue([{ id: 'guide', title: '中文指南', content: '中文内容' }]);
+    const onSelect = vi.fn();
+    const query = 'rf936-language-query';
+    const { rerender } = render(
+      <GuideSearch key="en" language="en" onSearch={enSearch} onSelect={onSelect} />,
+    );
+    fireEvent.change(screen.getByPlaceholderText('search_help_docs'), { target: { value: query } });
+    await act(async () => vi.advanceTimersByTime(DEBOUNCE_DELAY_MS));
+    expect(screen.getByRole('button', { name: /English manual/ })).toBeInTheDocument();
+
+    rerender(<GuideSearch key="zh" language="zh" onSearch={zhSearch} onSelect={onSelect} />);
+    fireEvent.change(screen.getByPlaceholderText('search_help_docs'), { target: { value: query } });
+    await act(async () => vi.advanceTimersByTime(DEBOUNCE_DELAY_MS));
+    expect(zhSearch).toHaveBeenCalledWith(query);
+    expect(screen.getByRole('button', { name: /中文指南/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /English manual/ })).not.toBeInTheDocument();
   });
 });
