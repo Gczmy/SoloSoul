@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -20,6 +20,7 @@ import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { useUnifiedSearch } from '@/hooks/useUnifiedSearch';
+import { onRequestSessionChange } from '@/lib/sessionRequests';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import {
@@ -100,6 +101,15 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const filterBarRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const closeAccountDetail = () => {
+      setDetailObjectId(null);
+      setVerifyingField(false);
+    };
+    closeAccountDetail();
+    return onRequestSessionChange(closeAccountDetail);
+  }, [accountId]);
 
   useEffect(() => {
     inputRef.current?.focus();

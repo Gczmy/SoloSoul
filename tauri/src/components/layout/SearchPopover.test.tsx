@@ -1,11 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { act, render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { SearchPopover } from './SearchPopover';
 
-const { stableT, mockInvoke } = vi.hoisted(() => ({
+const { stableT, mockInvoke, mockAccount } = vi.hoisted(() => ({
   stableT: (key: string, options?: { defaultValue?: string }) => options?.defaultValue ?? key,
   mockInvoke: vi.fn(),
+  mockAccount: { id: 'acc-1' },
 }));
 
 vi.mock('react-i18next', () => ({
@@ -30,7 +31,7 @@ vi.mock('@/lib/ipcClient', () => ({
 
 vi.mock('@/stores/authStore', () => ({
   useAuthStore: (selector: (s: unknown) => unknown) =>
-    selector({ currentAccount: { id: 'acc-1' } }),
+    selector({ currentAccount: { id: mockAccount.id } }),
 }));
 
 vi.mock('@/stores/settingsStore', () => ({
@@ -56,6 +57,7 @@ vi.mock('react-dom', async () => {
 
 import type { SearchItem } from '@/lib/searchShared';
 import { searchCache } from '@/lib/searchCache';
+import { setRequestSession } from '@/lib/sessionRequests';
 
 const objectResult: SearchItem = {
   itemType: 'object',
@@ -79,8 +81,10 @@ const pageResult: SearchItem = {
 describe('SearchPopover (P027 渲染回归)', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
+    mockAccount.id = 'acc-1';
     searchCache.clear();
   });
+  afterEach(() => act(() => setRequestSession(null)));
 
   it('验证弹窗不触发结果打开或搜索外部关闭，取消后保持掩码', async () => {
     mockInvoke.mockImplementation(async (cmd: string) =>
@@ -211,5 +215,47 @@ describe('SearchPopover (P027 渲染回归)', () => {
     fireEvent.mouseDown(screen.getByTestId('object-detail-modal'));
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('切换账户后关闭上一账户从搜索打开的对象详情', async () => {
+    mockInvoke.mockResolvedValue({ items: [objectResult], total: 1, hasMore: false });
+    const onClose = vi.fn();
+    const view = (
+      <MemoryRouter>
+        <SearchPopover onClose={onClose} />
+      </MemoryRouter>
+    );
+    const { rerender } = render(view);
+    fireEvent.change(screen.getByPlaceholderText('common:search_placeholder'), {
+      target: { value: '护照' },
+    });
+    fireEvent.click(await screen.findByText('护照'));
+    expect(screen.getByTestId('object-detail-modal')).toBeInTheDocument();
+
+    mockAccount.id = 'acc-2';
+    rerender(
+      <MemoryRouter>
+        <SearchPopover onClose={onClose} />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByTestId('object-detail-modal')).toBeNull();
+  });
+
+  it('锁定会话后关闭从搜索打开的对象详情', async () => {
+    act(() => setRequestSession('acc-1'));
+    mockInvoke.mockResolvedValue({ items: [objectResult], total: 1, hasMore: false });
+    render(
+      <MemoryRouter>
+        <SearchPopover onClose={vi.fn()} />
+      </MemoryRouter>,
+    );
+    fireEvent.change(screen.getByPlaceholderText('common:search_placeholder'), {
+      target: { value: '护照' },
+    });
+    fireEvent.click(await screen.findByText('护照'));
+    expect(screen.getByTestId('object-detail-modal')).toBeInTheDocument();
+
+    act(() => setRequestSession(null));
+    expect(screen.queryByTestId('object-detail-modal')).toBeNull();
   });
 });
