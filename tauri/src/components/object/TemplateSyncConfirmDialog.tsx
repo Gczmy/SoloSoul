@@ -183,11 +183,14 @@ export function TemplateSyncConfirmDialog({
   };
 
   const noChanges = result ? !result.hasChanges : false;
+  const handleClose = () => {
+    if (!loading) onCancel();
+  };
 
   return (
     <Dialog
       isOpen={isOpen}
-      onClose={onCancel}
+      onClose={handleClose}
       title={t('editor:template_sync_title')}
       dialogStyle={{ maxWidth: 480, width: '90%' }}
     >
@@ -275,7 +278,7 @@ export function TemplateSyncConfirmDialog({
       </div>
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>
-        <Button variant="secondary" onClick={onCancel} disabled={loading}>
+        <Button variant="secondary" onClick={handleClose} disabled={loading}>
           {t('common:cancel')}
         </Button>
         <Button
