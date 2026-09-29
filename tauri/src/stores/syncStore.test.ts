@@ -850,3 +850,46 @@ describe('syncStore encrypted device names', () => {
     expect(useSyncStore.getState().connectedPeers).toEqual([]);
   });
 });
+
+describe('syncStore listen address after disabling sync', () => {
+  beforeEach(() => {
+    mockInvoke.mockReset();
+    useSyncStore.setState({
+      syncEnabled: true,
+      listenAddr: '192.0.2.1:42069',
+      isLoading: false,
+      error: null,
+    });
+  });
+
+  it('does not restore a late address read after sync has been disabled', async () => {
+    let resolveAddress!: (value: string) => void;
+    mockInvoke.mockImplementation((command: string) => {
+      if (command === 'sync_listen_addr') {
+        return new Promise<string>((resolve) => {
+          resolveAddress = resolve;
+        });
+      }
+      if (command === 'sync_enable') return Promise.resolve();
+      if (command === 'sync_get_status') {
+        return Promise.resolve({
+          isDiscovering: false,
+          syncEnabled: false,
+          autoSyncEnabled: false,
+          localFingerprint: '',
+          connectedPeers: [],
+        });
+      }
+      throw new Error(`Unexpected command: ${command}`);
+    });
+
+    const loadingAddress = useSyncStore.getState().loadListenAddr();
+    await useSyncStore.getState().enable(false);
+    expect(useSyncStore.getState()).toMatchObject({ syncEnabled: false, listenAddr: '' });
+
+    resolveAddress('192.0.2.1:42069');
+    await loadingAddress;
+
+    expect(useSyncStore.getState()).toMatchObject({ syncEnabled: false, listenAddr: '' });
+  });
+});

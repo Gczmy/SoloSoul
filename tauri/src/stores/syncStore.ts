@@ -256,7 +256,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       try {
         const addr = await request.invoke<string>('sync_listen_addr');
         request.assertCurrent();
-        setCurrent({ listenAddr: addr });
+        // 禁用同步期间的迟到响应不能让已清空的监听地址重新出现。
+        setCurrent({ listenAddr: get().syncEnabled ? addr : '' });
       } catch (err) {
         if (!request.isCurrent()) return;
         setCurrent({ error: String(err) });
