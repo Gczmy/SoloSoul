@@ -48,6 +48,8 @@ export function DynamicGroupConfig({
 
   const toggleType = (type: PropertyType) => {
     if (effectiveAllowed.includes(type)) {
+      // 空列表表示「不限制」，不能让取消最后一种类型意外放开全部类型。
+      if (effectiveAllowed.length === 1) return;
       onAllowedTypesChange(effectiveAllowed.filter((t) => t !== type));
     } else {
       onAllowedTypesChange([...effectiveAllowed, type]);
@@ -95,6 +97,7 @@ export function DynamicGroupConfig({
                 <label key={type} className={styles.typeChip}>
                   <SelectCheckbox
                     checked={effectiveAllowed.includes(type)}
+                    disabled={effectiveAllowed.length === 1 && effectiveAllowed.includes(type)}
                     onChange={() => toggleType(type)}
                   />
                   <span>{t(`editor:field_types.${type}`, type)}</span>
