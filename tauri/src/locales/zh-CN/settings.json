@@ -848,6 +848,7 @@
   "llm_delete_model_failed": "删除模型失败",
   "llm_enable_local_first": "请先下载一个本地模型",
   "llm_enable_local_failed": "无法启用本地 Embedding",
+  "llm_select_local_model_failed": "无法保存本地模型选择",
   "llm_kb_rebuilt": "知识库索引已重建，共 {{count}} 个片段",
   "llm_stats_page_title": "LLM 使用统计",
   "llm_no_data": "暂无使用数据",

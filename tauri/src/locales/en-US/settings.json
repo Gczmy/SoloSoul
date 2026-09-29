@@ -848,6 +848,7 @@
   "llm_delete_model_failed": "Failed to delete model",
   "llm_enable_local_first": "Please download a local model first",
   "llm_enable_local_failed": "Cannot enable local Embedding",
+  "llm_select_local_model_failed": "Failed to save local model selection",
   "llm_kb_rebuilt": "Knowledge base rebuilt with {{count}} segments",
   "llm_stats_page_title": "LLM Usage Statistics",
   "llm_no_data": "No usage data yet",

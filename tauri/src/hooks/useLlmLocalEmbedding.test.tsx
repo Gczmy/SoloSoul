@@ -108,3 +108,74 @@ describe('local embedding download preference', () => {
     expect(mocks.onError).not.toHaveBeenCalled();
   });
 });
+
+describe('local embedding model selection', () => {
+  it('persists an installed model choice while local embedding is disabled', async () => {
+    mocks.invoke.mockImplementation(async (command: string) => {
+      if (command === 'llm_check_embedding_available') return true;
+      if (command === 'llm_get_embed_models') return [{ ...model, installed: true }];
+      return undefined;
+    });
+    const { result } = setup();
+    await waitFor(() => expect(result.current.embedModels).toHaveLength(1));
+
+    await act(async () => {
+      await result.current.handleSelectLocalModel(model.id);
+    });
+
+    expect(mocks.invoke).toHaveBeenCalledWith('llm_set_local_embedding', {
+      accountId: 'account-a',
+      enabled: false,
+      modelId: model.id,
+    });
+    expect(result.current.localModelId).toBe(model.id);
+  });
+
+  it('restores the previous choice if disabled-model selection cannot be saved', async () => {
+    const saveError = new Error('profile save failed');
+    mocks.invoke.mockImplementation(async (command: string) => {
+      if (command === 'llm_check_embedding_available') return true;
+      if (command === 'llm_get_embed_models') return [{ ...model, installed: true }];
+      if (command === 'llm_set_local_embedding') throw saveError;
+      return undefined;
+    });
+    const { result } = setup();
+    await waitFor(() => expect(result.current.embedModels).toHaveLength(1));
+
+    await act(async () => {
+      await result.current.handleSelectLocalModel(model.id);
+    });
+
+    expect(result.current.localModelId).toBeNull();
+    expect(mocks.onError).toHaveBeenCalledWith(saveError, 'settings:llm_select_local_model_failed');
+  });
+
+  it('preserves enabled state and the previous model if switching an active model fails', async () => {
+    const saveError = new Error('profile save failed');
+    mocks.invoke.mockImplementation(async (command: string) => {
+      if (command === 'llm_check_embedding_available') return true;
+      if (command === 'llm_get_embed_models') return [{ ...model, installed: true }];
+      if (command === 'llm_set_local_embedding') throw saveError;
+      return undefined;
+    });
+    const { result } = setup();
+    await waitFor(() => expect(result.current.embedModels).toHaveLength(1));
+    act(() => {
+      result.current.setLocalModelId('old-model');
+      result.current.setUseLocalEmbedding(true);
+    });
+
+    await act(async () => {
+      await result.current.handleSelectLocalModel(model.id);
+    });
+
+    expect(mocks.invoke).toHaveBeenCalledWith('llm_set_local_embedding', {
+      accountId: 'account-a',
+      enabled: true,
+      modelId: model.id,
+    });
+    expect(result.current.localModelId).toBe('old-model');
+    expect(result.current.useLocalEmbedding).toBe(true);
+    expect(mocks.onError).toHaveBeenCalledWith(saveError, 'settings:llm_enable_local_failed');
+  });
+});

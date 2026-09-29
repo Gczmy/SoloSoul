@@ -206,18 +206,23 @@ export function useLlmLocalEmbedding({
     if (!accountId) return;
     const prevModelId = localModelId;
     setLocalModelId(modelId);
-    if (useLocalEmbedding) {
-      // P004: invoke 失败回滚模型选择并提示，避免前后端状态漂移。
-      try {
-        await invoke('llm_set_local_embedding', {
-          accountId: accountId,
-          enabled: true,
-          modelId: modelId,
-        });
-      } catch (e) {
-        setLocalModelId(prevModelId);
-        onError(e, t('settings:llm_enable_local_failed'));
-      }
+    // 即使当前关闭，本次模型选择也是账户偏好；保存失败须回滚 UI。
+    try {
+      await invoke('llm_set_local_embedding', {
+        accountId: accountId,
+        enabled: useLocalEmbedding,
+        modelId: modelId,
+      });
+    } catch (e) {
+      setLocalModelId(prevModelId);
+      onError(
+        e,
+        t(
+          useLocalEmbedding
+            ? 'settings:llm_enable_local_failed'
+            : 'settings:llm_select_local_model_failed',
+        ),
+      );
     }
   };
 
