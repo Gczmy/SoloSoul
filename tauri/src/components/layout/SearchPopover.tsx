@@ -57,7 +57,12 @@ function loadRecent(accountId?: string): string[] {
   const key = recentStorageKey(accountId);
   if (!key) return [];
   try {
-    return JSON.parse(localStorage.getItem(key) || '[]');
+    const value: unknown = JSON.parse(localStorage.getItem(key) || '[]');
+    return Array.isArray(value)
+      ? value
+          .filter((query): query is string => typeof query === 'string' && !!query.trim())
+          .slice(0, 3)
+      : [];
   } catch {
     return [];
   }
@@ -68,7 +73,11 @@ function saveRecent(query: string, accountId?: string) {
   if (!key) return;
   const prev = loadRecent(accountId);
   const next = [query, ...prev.filter((q) => q !== query)].slice(0, 3);
-  localStorage.setItem(key, JSON.stringify(next));
+  try {
+    localStorage.setItem(key, JSON.stringify(next));
+  } catch {
+    // 最近搜索记录不可写时仍允许提交搜索和打开结果。
+  }
 }
 
 export function SearchPopover({ onClose }: SearchPopoverProps) {

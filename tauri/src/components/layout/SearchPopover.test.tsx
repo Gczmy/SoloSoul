@@ -83,8 +83,60 @@ describe('SearchPopover (P027 渲染回归)', () => {
     mockInvoke.mockReset();
     mockAccount.id = 'acc-1';
     searchCache.clear();
+    localStorage.removeItem('solosoul_recent_searches:acc-1');
   });
-  afterEach(() => act(() => setRequestSession(null)));
+  afterEach(() => {
+    act(() => setRequestSession(null));
+    vi.restoreAllMocks();
+    localStorage.removeItem('solosoul_recent_searches:acc-1');
+  });
+
+  it('malformed recent-search storage cannot break submitting a new query', () => {
+    localStorage.setItem('solosoul_recent_searches:acc-1', '{"unexpected":"object"}');
+    render(
+      <MemoryRouter>
+        <SearchPopover onClose={vi.fn()} />
+      </MemoryRouter>,
+    );
+
+    const input = screen.getByPlaceholderText('common:search_placeholder');
+    fireEvent.change(input, { target: { value: 'safe query' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(localStorage.getItem('solosoul_recent_searches:acc-1')).toBe('["safe query"]');
+  });
+
+  it('rejects non-string recent entries before rendering them', () => {
+    localStorage.setItem('solosoul_recent_searches:acc-1', '[{"secret":"value"},null,"valid"]');
+    render(
+      <MemoryRouter>
+        <SearchPopover onClose={vi.fn()} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('valid')).toBeInTheDocument();
+    expect(screen.queryByText('value')).not.toBeInTheDocument();
+  });
+
+  it('opens a search result even when recent-search storage rejects writes', async () => {
+    mockInvoke.mockResolvedValue({ items: [objectResult], total: 1, hasMore: false });
+    render(
+      <MemoryRouter>
+        <SearchPopover onClose={vi.fn()} />
+      </MemoryRouter>,
+    );
+    fireEvent.change(screen.getByPlaceholderText('common:search_placeholder'), {
+      target: { value: '护照' },
+    });
+    const result = await screen.findByText('护照');
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('storage unavailable');
+    });
+
+    fireEvent.click(result);
+
+    expect(screen.getByTestId('object-detail-modal')).toBeInTheDocument();
+  });
 
   it('验证弹窗不触发结果打开或搜索外部关闭，取消后保持掩码', async () => {
     mockInvoke.mockImplementation(async (cmd: string) =>
