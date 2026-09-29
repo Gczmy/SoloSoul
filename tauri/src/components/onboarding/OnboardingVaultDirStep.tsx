@@ -5,7 +5,11 @@ import { IndeterminateProgressBar } from '@/components/ui/IndeterminateProgressB
 import type { AccountInfo } from '@/lib/ipc';
 import type { SyncPhase } from '@/hooks/useOnboarding';
 import type { OnboardingStepDef } from '@/hooks/useOnboarding';
-import { OnboardingFrame, OnboardingBackButton, OnboardingNextButton } from '@/components/onboarding/OnboardingFrame';
+import {
+  OnboardingFrame,
+  OnboardingBackButton,
+  OnboardingNextButton,
+} from '@/components/onboarding/OnboardingFrame';
 
 interface OnboardingVaultDirStepProps {
   steps: readonly OnboardingStepDef[];
@@ -296,14 +300,16 @@ export function OnboardingVaultDirStep({
             <button
               type="button"
               onClick={onPickLocal}
+              disabled={vaultDirActing}
               style={{
                 padding: '14px 16px',
                 borderRadius: 12,
                 borderWidth: 1,
                 borderStyle: 'solid',
-                cursor: 'pointer',
+                cursor: vaultDirActing ? 'wait' : 'pointer',
                 textAlign: 'left',
                 fontFamily: 'inherit',
+                opacity: vaultDirActing ? 0.6 : 1,
               }}
               className="interactive-toolbar"
             >

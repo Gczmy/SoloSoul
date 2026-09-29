@@ -210,6 +210,61 @@ describe('OnboardingDialog vault directory step (Android)', () => {
     localStorage.removeItem(ST_ONBOARDING_SAF_URI);
   });
 
+  it('initializes the local vault directory only once while its first request is pending', async () => {
+    vi.mocked(getPlatform).mockResolvedValue('android');
+    let finishInit!: (value: { success: boolean; needsRestart: boolean; message: string }) => void;
+    vi.mocked(vaultDirectory.initVaultDirectory).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finishInit = resolve;
+        }),
+    );
+    renderWithRouter(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText(/onboarding_welcome_title/i)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
+    await waitFor(() =>
+      expect(screen.getByText(/onboarding_vault_dir_title/i)).toBeInTheDocument(),
+    );
+
+    const localButton = screen.getByRole('button', { name: /onboarding_vault_dir_local_title/i });
+    fireEvent.click(localButton);
+    fireEvent.click(localButton);
+    await waitFor(() => expect(vaultDirectory.initVaultDirectory).toHaveBeenCalledOnce());
+    expect(localButton).toBeDisabled();
+    const safButton = screen.getByRole('button', { name: /common:loading/i });
+    expect(safButton).toBeDisabled();
+    fireEvent.click(safButton);
+    expect(vaultDirectory.pickVaultDirectory).not.toHaveBeenCalled();
+
+    finishInit({ success: true, needsRestart: false, message: '' });
+    await waitFor(() =>
+      expect(screen.getByText(/onboarding_create_object_title/i)).toBeInTheDocument(),
+    );
+  });
+
+  it('allows retrying local directory initialization after a failed result', async () => {
+    vi.mocked(getPlatform).mockResolvedValue('android');
+    vi.mocked(vaultDirectory.initVaultDirectory)
+      .mockResolvedValueOnce({ success: false, needsRestart: false, message: 'temporary failure' })
+      .mockResolvedValueOnce({ success: true, needsRestart: false, message: '' });
+    renderWithRouter(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText(/onboarding_welcome_title/i)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
+    await waitFor(() =>
+      expect(screen.getByText(/onboarding_vault_dir_title/i)).toBeInTheDocument(),
+    );
+
+    const localButton = screen.getByRole('button', { name: /onboarding_vault_dir_local_title/i });
+    fireEvent.click(localButton);
+    await waitFor(() => expect(screen.getByText('temporary failure')).toBeInTheDocument());
+    expect(localButton).toBeEnabled();
+    fireEvent.click(localButton);
+    await waitFor(() =>
+      expect(screen.getByText(/onboarding_create_object_title/i)).toBeInTheDocument(),
+    );
+    expect(vaultDirectory.initVaultDirectory).toHaveBeenCalledTimes(2);
+  });
+
   it('shows selected external path and next button after picking SAF directory', async () => {
     vi.mocked(getPlatform).mockResolvedValue('android');
     vi.mocked(vaultDirectory.pickVaultDirectory).mockResolvedValue(
@@ -235,13 +290,14 @@ describe('OnboardingDialog vault directory step (Android)', () => {
 
     fireEvent.click(screen.getByText(/onboarding_vault_dir_saf_title/i));
 
-    await waitFor(() => {
-      expect(screen.getByText(/onboarding_vault_dir_selected_label/i)).toBeInTheDocument();
-    }, { timeout: 4000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText(/onboarding_vault_dir_selected_label/i)).toBeInTheDocument();
+      },
+      { timeout: 4000 },
+    );
     expect(
-      screen.getByText(
-        /content:\/\/com.android.documents\/tree\/primary%3ADocuments%2FSoloSoul/i,
-      ),
+      screen.getByText(/content:\/\/com.android.documents\/tree\/primary%3ADocuments%2FSoloSoul/i),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /onboarding_next/i })).toBeInTheDocument();
 
@@ -275,9 +331,12 @@ describe('OnboardingDialog vault directory step (Android)', () => {
     });
     fireEvent.click(screen.getByText(/onboarding_vault_dir_saf_title/i));
 
-    await waitFor(() => {
-      expect(screen.getByText(/onboarding_vault_dir_selected_label/i)).toBeInTheDocument();
-    }, { timeout: 4000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText(/onboarding_vault_dir_selected_label/i)).toBeInTheDocument();
+      },
+      { timeout: 4000 },
+    );
 
     // Advance to next step, then go back
     fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
@@ -319,9 +378,12 @@ describe('OnboardingDialog vault directory step (Android)', () => {
     });
     fireEvent.click(screen.getByText(/onboarding_vault_dir_saf_title/i));
 
-    await waitFor(() => {
-      expect(screen.getByText(/onboarding_vault_dir_selected_label/i)).toBeInTheDocument();
-    }, { timeout: 4000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText(/onboarding_vault_dir_selected_label/i)).toBeInTheDocument();
+      },
+      { timeout: 4000 },
+    );
 
     // Go back to welcome, then forward to vault directory again
     fireEvent.click(screen.getByRole('button', { name: /onboarding_back/i }));
@@ -354,7 +416,9 @@ describe('OnboardingDialog vault directory step (Android)', () => {
       'content://com.android.documents/tree/primary%3ADocuments%2FSoloSoul',
     );
 
-    const { unmount } = renderWithRouter(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
+    const { unmount } = renderWithRouter(
+      <OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/onboarding_welcome_title/i)).toBeInTheDocument();

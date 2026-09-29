@@ -56,6 +56,7 @@ export function useOnboarding({ onComplete, onSkip: _onSkip }: OnboardingDialogP
   const [step, setStep] = useState(0);
   const [platformName, setPlatformName] = useState<string>('');
   const [vaultDirActing, setVaultDirActing] = useState(false);
+  const vaultDirRequestRef = useRef(false);
   const [vaultDirError, setVaultDirError] = useState<string | null>(null);
   // 外部目录（SAF）选择后先显示路径，等用户手动点击"下一步"再前进。
   // 从 localStorage 恢复可解决 Android 因系统 SAF 选择器导致 Activity 重建后状态丢失的问题。
@@ -143,12 +144,16 @@ export function useOnboarding({ onComplete, onSkip: _onSkip }: OnboardingDialogP
 
   const handleVaultDirPick = useCallback(async () => {
     // 注意：本回调不直接调用 onComplete，决策卡片由用户选择后再决定
-    const { pause, resume } = await import('@/stores/autoLockPauseStore').then((m) =>
-      m.useAutoLockPauseStore.getState(),
-    );
-    pause();
+    if (vaultDirRequestRef.current) return;
+    vaultDirRequestRef.current = true;
+    setVaultDirActing(true);
+    let resume: (() => void) | undefined;
     try {
-      setVaultDirActing(true);
+      const pauseStore = await import('@/stores/autoLockPauseStore').then((m) =>
+        m.useAutoLockPauseStore.getState(),
+      );
+      pauseStore.pause();
+      resume = pauseStore.resume;
       setVaultDirError(null);
       setShowAccountDecision(false);
       setFoundAccounts([]);
@@ -210,19 +215,24 @@ export function useOnboarding({ onComplete, onSkip: _onSkip }: OnboardingDialogP
         unlistenSync.current.unregister();
         unlistenSync.current = null;
       }
-      resume();
+      vaultDirRequestRef.current = false;
       setVaultDirActing(false);
+      resume?.();
     }
   }, [t]);
 
   /** 选择"使用本地目录"：初始化成功后前进到下一步。 */
   const handleLocalDirPick = useCallback(async () => {
-    const { pause, resume } = await import('@/stores/autoLockPauseStore').then((m) =>
-      m.useAutoLockPauseStore.getState(),
-    );
-    pause();
+    if (vaultDirRequestRef.current) return;
+    vaultDirRequestRef.current = true;
+    setVaultDirActing(true);
+    let resume: (() => void) | undefined;
     try {
-      setVaultDirActing(true);
+      const pauseStore = await import('@/stores/autoLockPauseStore').then((m) =>
+        m.useAutoLockPauseStore.getState(),
+      );
+      pauseStore.pause();
+      resume = pauseStore.resume;
       const result = await initVaultDirectory(null);
       if (result.success) {
         setStep((s) => s + 1);
@@ -232,8 +242,9 @@ export function useOnboarding({ onComplete, onSkip: _onSkip }: OnboardingDialogP
     } catch (e) {
       setVaultDirError(String(e));
     } finally {
-      resume();
+      vaultDirRequestRef.current = false;
       setVaultDirActing(false);
+      resume?.();
     }
   }, [t]);
 
