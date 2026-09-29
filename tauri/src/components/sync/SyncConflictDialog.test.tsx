@@ -65,6 +65,15 @@ const detailB: SyncConflictDetail = {
   remote_data: { name: '赵六' },
 };
 
+function sensitiveDetail(base: SyncConflictDetail, localValue: string, remoteValue: string) {
+  const fields = { secret: { sensitivityLevel: 'sensitive' } };
+  return {
+    ...base,
+    local_data: { __fields: fields, secret: localValue },
+    remote_data: { __fields: fields, secret: remoteValue },
+  };
+}
+
 describe('SyncConflictDialog (P027 渲染回归)', () => {
   const onClose = vi.fn();
   const onResolve = vi.fn();
@@ -185,5 +194,52 @@ describe('SyncConflictDialog (P027 渲染回归)', () => {
     await waitFor(() => expect(mockLoadConflictDetail).toHaveBeenLastCalledWith('conf-1'));
     expect(screen.queryByText('王五')).toBeNull();
     expect(screen.queryByText('Keep Local')).toBeNull();
+  });
+
+  it('切换到同名敏感字段的另一条冲突后重新掩码', async () => {
+    const props = {
+      isOpen: true,
+      conflicts: [conflict, conflictB],
+      isLoading: false,
+      onClose,
+      onResolve,
+    };
+    const { rerender } = render(
+      <SyncConflictDialog
+        {...props}
+        detail={sensitiveDetail(detail, 'ALPHA_SECRET', 'BETA_SECRET')}
+      />,
+    );
+    fireEvent.click((await screen.findAllByText('••••••••'))[0]);
+    expect(screen.getByText('ALPHA_SECRET')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('obj-2').closest('button')!);
+    rerender(
+      <SyncConflictDialog
+        {...props}
+        detail={sensitiveDetail(detailB, 'GAMMA_SECRET', 'DELTA_SECRET')}
+      />,
+    );
+    expect(screen.queryByText('GAMMA_SECRET')).toBeNull();
+    expect(screen.queryByText('DELTA_SECRET')).toBeNull();
+    expect(screen.getAllByText('••••••••')).toHaveLength(2);
+  });
+
+  it('关闭再打开同一冲突时重新掩码敏感值', async () => {
+    const props = {
+      conflicts: [conflict],
+      detail: sensitiveDetail(detail, 'ALPHA_SECRET', 'BETA_SECRET'),
+      isLoading: false,
+      onClose,
+      onResolve,
+    };
+    const { rerender } = render(<SyncConflictDialog {...props} isOpen />);
+    fireEvent.click((await screen.findAllByText('••••••••'))[0]);
+    expect(screen.getByText('ALPHA_SECRET')).toBeInTheDocument();
+
+    rerender(<SyncConflictDialog {...props} isOpen={false} />);
+    rerender(<SyncConflictDialog {...props} isOpen />);
+    expect(screen.queryByText('ALPHA_SECRET')).toBeNull();
+    expect(screen.getAllByText('••••••••')).toHaveLength(2);
   });
 });

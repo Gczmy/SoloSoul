@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import { MASK_PLACEHOLDER, shouldMaskSensitivity } from '@/lib/masking';
 import { useRevealState } from '@/hooks/useRevealState';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
@@ -138,12 +138,17 @@ export function SyncConflictDialog({
   const { t } = useTranslation(['settings', 'common']);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [onlyDifferences, setOnlyDifferences] = useState(false);
-  // P028：受保护字段（sensitive/critical）揭示交互——冲突解决需看清差异，
+  // P028：受保护字段（internal/sensitive/critical）揭示交互——冲突解决需看清差异，
   // 但默认仍按掩码约定遮蔽，点击临时揭示（1 分钟 TTL 自动重掩）。
-  const revealState = useRevealState();
+  const { clear: clearReveals, shouldMask, reveal } = useRevealState();
   const selectedConflict = conflicts.find((c) => c.id === selectedId);
   const selectedConflictExists = !!selectedConflict;
   const detail = selectedConflict?.id === suppliedDetail?.id ? suppliedDetail : null;
+
+  useLayoutEffect(() => {
+    clearReveals();
+  }, [isOpen, selectedId, clearReveals]);
+
   const fieldLevels = detail
     ? (() => {
         const l = extractFieldLevels(detail.local_data);
@@ -193,6 +198,7 @@ export function SyncConflictDialog({
     remote: unknown;
     changed: boolean;
   }) => {
+    const detailId = detail!.id;
     const level = fieldLevels.get(row.key);
     const protectedField = !!level && shouldMaskSensitivity(level);
     return (
@@ -203,8 +209,8 @@ export function SyncConflictDialog({
         onlyDifferences={onlyDifferences}
         t={t}
         protectedField={protectedField}
-        isRevealed={(k: string) => !revealState.shouldMask(k, level ?? 'public')}
-        onReveal={(k: string) => revealState.reveal(k)}
+        isRevealed={(k: string) => !shouldMask(`${detailId}:${k}`, level ?? 'public')}
+        onReveal={(k: string) => reveal(`${detailId}:${k}`)}
       />
     );
   };
