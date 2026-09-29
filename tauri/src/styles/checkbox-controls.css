@@ -1,0 +1,25 @@
+/* 选择框的命中区与视觉标记分离；外部行布局仍使用兼容的目标尺寸 token。 */
+:root {
+  --select-checkbox-target-size: 14px;
+}
+
+:root[data-platform='ios'] {
+  --select-checkbox-target-size: 44px;
+}
+
+[data-ui-checkbox] {
+  --checkbox-target-size: var(--select-checkbox-target-size);
+  --checkbox-mark-size: var(--checkbox-size);
+  --checkbox-mark-radius: var(--checkbox-radius);
+  --checkbox-mark-border-width: 1.5px;
+  --checkbox-mark-edge: var(--text-secondary);
+  --checkbox-mark-surface: transparent;
+  --checkbox-mark-selected-edge: var(--accent-primary);
+  --checkbox-mark-selected-surface: var(--accent-primary);
+  --checkbox-mark-ink: var(--accent-primary-text, #fff);
+}
+
+[data-platform='ios'] [data-ui-checkbox] {
+  --checkbox-mark-size: 20px;
+  --checkbox-mark-radius: 5px;
+}

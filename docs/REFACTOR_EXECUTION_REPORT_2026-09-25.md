@@ -120,7 +120,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**123**（P1：36；P2：86；P3：1）。
-- 已关闭：**80 / 123**；实际修复（已关闭）：80；排除：0；待验证/阻塞：13（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 已关闭：**81 / 123**；实际修复（已关闭）：81；排除：0；待验证/阻塞：13（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
 - 当前处理：无。RF-312已取得可复跑的 Windows 原生 Vault 后端子基线，待多端应用性能实测；RF-204待 iOS 双目标编译，RF-121待原生材质验收，RF-308仍需补实际覆盖和远端CI日志，其余待验证项保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
@@ -180,7 +180,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 51 | [RF-116](#rf-116) | P2 | 图标按钮族统一结构和平台尺寸 | [RF-115](#rf-115) | [x] 完成 |
 | 52 | [RF-117](#rf-117) | P2 | 互斥选项与下拉选择族统一状态语义 | [RF-115](#rf-115) | [x] 已完成 |
 | 53 | [RF-118](#rf-118) | P2 | 开关控件族统一尺寸与状态 token | [RF-115](#rf-115) | [x] 已完成 |
-| 54 | [RF-119](#rf-119) | P2 | Checkbox 控件族样式归属收敛 | [RF-115](#rf-115) | [ ] 待执行 |
+| 54 | [RF-119](#rf-119) | P2 | Checkbox 控件族样式归属收敛 | [RF-115](#rf-115) | [x] 已完成 |
 | 55 | [RF-120](#rf-120) | P2 | 字段值与操作按钮采用统一行布局 | [RF-107](#rf-107)、[RF-109](#rf-109)、[RF-116](#rf-116) | [ ] 待执行 |
 | 56 | [RF-121](#rf-121) | P2 | 普通卡片表面使用平台无关语义 | [RF-110](#rf-110) | [!] 待验证原生材质 |
 | 57 | [RF-122](#rf-122) | P2 | 模态对话框表面迁入统一语义 | [RF-121](#rf-121)、[RF-115](#rf-115)、[RF-116](#rf-116) | [ ] 待执行 |
@@ -3041,3 +3041,9 @@ git commit -m "<任务卡的提交标题>"
 - 基线 `d87bc768`。ToggleSwitch 将 44×24px 轨道与桌面 44×32px、Android 48×48px 命中区分开，checked/disabled/focus 样式归组件 CSS Module，公共及 Android 层仅提供 token；输入保留原生 checkbox 交互并明确 `role=switch`。回调传入新的 boolean 值，原有忽略参数的调用继续有效。安全设置两处手写开关迁入共享组件，仍由原 `useSettingAction` 保存；生物识别、自动同步和冲突筛选开关补可访问名称。外观页无 ToggleSwitch；Android 外观的 SelectCheckbox 属 RF-119，不混入本项。
 - 定向 Vitest 3 文件/10 项验证点击、label、禁用及既有生物识别/同步冲突业务行为；完整 `npm run test` 187 文件/1,581 项、`npx tsc --noEmit`、`npm run lint` 均 exit 0。报告指定 `appearance-layout.spec.ts` 与 `android-touch-targets.spec.ts` 使用本机 Chrome 的 chromium 项目 **39/39** 通过，新增真实设置页面的 Space/label 单次切换和 Android 48px、桌面 44×32px 几何断言。
 - 原同步冲突文件有不符合当前 Prettier 的旧排版，避免整文件无关格式改动，仅保留开关名称三行；其余修改文件 Prettier 检查和本项差异空白检查通过。浏览器平台 mock 不替代 Android/macOS 原生设备材质验收；仅暂存本项文件，三张用户 NSIS 图片保留且不推送。
+
+### RF-119 执行记录（2026-09-29，完成）
+
+- 基线 `7afcffb8`。`SelectCheckbox` 保留原生三态、boolean/onClick 回调及行事件隔离；组件 CSS Module 只消费命中区、视觉尺寸、圆角、边界和选中色 token。新增 `checkbox-controls.css` 作为语义默认入口，Android 层仅覆盖 48px 命中区与 20px/4px 标记变量，iOS 仅覆盖 44px 与 20px/5px；原 `--select-checkbox-target-size` 继续供附件行、导出选项等外部布局使用。对象选择树与回收站卡片的业务逻辑未改。
+- `SelectCheckbox`、`ObjectSelectionTree`、`TrashItemCard` 和 `AttachmentRow` 定向 Vitest **4 文件/23 项**通过；`npx tsc --noEmit`、`npm run lint` 通过。指定 `checkbox-platform.spec.ts` 与 `trash-selection-layout.spec.ts` 使用本机 Chrome 的 chromium 项目 **12/12** 通过，覆盖四平台浅深主题、标记对比度、键盘选择、边缘点按、不误打开详情及回收站图标对齐；抽查 Android/Windows 深色截图。改动限 CSS 与导入，不新增复述样式的单测。
+- 组件模块中的平台根级覆盖已移除；浏览器平台 mock 不替代原生设备材质验收。修改文件 Prettier 和差异空白检查通过；仅暂存本项文件，三张用户 NSIS 图片保留且不推送。

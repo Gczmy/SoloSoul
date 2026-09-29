@@ -1,5 +1,6 @@
 /* Material 3 Expressive：仅真实 Android WebView 使用，桌面缩窄窗口不受影响。 */
 :root[data-platform='android'] {
+  --select-checkbox-target-size: 48px;
   --radius-md: 12px;
   --radius-lg: 20px;
   --radius-xl: 24px;
@@ -70,6 +71,10 @@
 [data-platform='android'] [data-ui-switch] {
   --switch-hit-width: 48px;
   --switch-hit-height: 48px;
+}
+[data-platform='android'] [data-ui-checkbox] {
+  --checkbox-mark-size: 20px;
+  --checkbox-mark-radius: 4px;
 }
 [data-platform='android'] .interactive-password-field {
   min-height: 56px;

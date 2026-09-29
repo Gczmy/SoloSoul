@@ -1,23 +1,11 @@
 /* 描述行使用同一列宽；视觉标记与触控目标分开，避免放大后挤进固定行高。 */
-:global(:root) {
-  --select-checkbox-target-size: 14px;
-}
-
-:global(:root[data-platform='android']) {
-  --select-checkbox-target-size: 48px;
-}
-
-:global(:root[data-platform='ios']) {
-  --select-checkbox-target-size: 44px;
-}
-
 .control {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: max(var(--checkbox-size), var(--select-checkbox-target-size));
-  height: max(var(--checkbox-size), var(--select-checkbox-target-size));
+  width: max(var(--checkbox-size), var(--checkbox-target-size));
+  height: max(var(--checkbox-size), var(--checkbox-target-size));
   flex-shrink: 0;
   vertical-align: middle;
   cursor: pointer;
@@ -39,12 +27,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--checkbox-platform-size, var(--checkbox-size));
-  height: var(--checkbox-platform-size, var(--checkbox-size));
-  border: 1.5px solid var(--text-secondary);
-  border-radius: var(--checkbox-platform-radius, var(--checkbox-radius));
-  background: transparent;
-  color: var(--accent-primary-text, #fff);
+  width: var(--checkbox-mark-size);
+  height: var(--checkbox-mark-size);
+  border: var(--checkbox-mark-border-width) solid var(--checkbox-mark-edge);
+  border-radius: var(--checkbox-mark-radius);
+  background: var(--checkbox-mark-surface);
+  color: var(--checkbox-mark-ink);
   pointer-events: none;
   transition:
     border-color 120ms ease,
@@ -60,8 +48,8 @@
 
 .input:checked + .visual,
 .input:indeterminate + .visual {
-  border-color: var(--accent-primary);
-  background: var(--accent-primary);
+  border-color: var(--checkbox-mark-selected-edge);
+  background: var(--checkbox-mark-selected-surface);
 }
 
 .input:checked + .visual svg,
@@ -80,16 +68,6 @@
 
 .input:disabled + .visual {
   opacity: 0.45;
-}
-
-:global(:root[data-platform='android']) .control {
-  --checkbox-platform-size: 20px;
-  --checkbox-platform-radius: 4px;
-}
-
-:global(:root[data-platform='ios']) .control {
-  --checkbox-platform-size: 20px;
-  --checkbox-platform-radius: 5px;
 }
 
 :global(html:is([data-user-reduce-motion='true'], [data-reduce-motion='true'])) .visual {
