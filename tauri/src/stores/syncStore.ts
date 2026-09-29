@@ -16,14 +16,22 @@ import { useTrashStore } from '@/stores/trashStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { logger } from '@/lib/logger';
 
-// P0#5: 同步历史持久化——recentResults 原为纯内存（slice(0,10)，重启即丢）。
-// 落 localStorage（仅含表名/计数/HLC，无解密内容），重启后同步活动面板保留历史。
-const SYNC_HISTORY_KEY = 'solosoul.syncHistory.v1';
+// 同步历史按账户保存。旧 v1 全局键无法辨认各条记录归属，不再加载或迁移，
+// 避免把其他账户的设备名称及失败摘要显示给当前账户；旧值保留在本机。
+const SYNC_HISTORY_KEY_PREFIX = 'solosoul.syncHistory.v2.';
 const SYNC_HISTORY_MAX = 10;
 
+function currentSyncHistoryKey(): string | null {
+  const auth = useAuthStore.getState();
+  const accountId = auth.isAuthenticated ? auth.currentAccount?.id : null;
+  return accountId ? `${SYNC_HISTORY_KEY_PREFIX}${accountId}` : null;
+}
+
 function loadSyncHistory(): SyncResult[] {
+  const key = currentSyncHistoryKey();
+  if (!key) return [];
   try {
-    const raw = localStorage.getItem(SYNC_HISTORY_KEY);
+    const raw = localStorage.getItem(key);
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -33,7 +41,7 @@ function loadSyncHistory(): SyncResult[] {
     const trimmed = parsed.slice(0, SYNC_HISTORY_MAX) as SyncResult[];
     if (trimmed.length !== parsed.length) {
       try {
-        localStorage.setItem(SYNC_HISTORY_KEY, JSON.stringify(trimmed));
+        localStorage.setItem(key, JSON.stringify(trimmed));
       } catch {
         // 存储不可用（隐私模式/配额）时忽略
       }
@@ -73,8 +81,10 @@ function refreshDataStores(accountId: string): void {
 /** 写入最新同步历史并返回截断后的数组（持久化失败静默降级为纯内存）。 */
 function pushSyncHistory(results: SyncResult[]): SyncResult[] {
   const next = results.slice(0, SYNC_HISTORY_MAX);
+  const key = currentSyncHistoryKey();
+  if (!key) return next;
   try {
-    localStorage.setItem(SYNC_HISTORY_KEY, JSON.stringify(next));
+    localStorage.setItem(key, JSON.stringify(next));
   } catch {
     // 存储不可用（隐私模式/配额）时忽略
   }
@@ -876,4 +886,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
   };
 });
 
-onRequestSessionChange(() => useSyncStore.getState().clearOnVaultLock());
+onRequestSessionChange(() => {
+  useSyncStore.getState().clearOnVaultLock();
+  useSyncStore.setState({ recentResults: loadSyncHistory() });
+});

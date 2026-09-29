@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // 注意：以下 mock 必须在使用 useSyncStore 之前声明（hoisted）。
 
@@ -18,6 +18,7 @@ vi.mock('@tauri-apps/api/event', () => ({
 }));
 
 import { useSyncStore, __resetSyncCompletedMergeForTest } from './syncStore';
+import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
 import type { SyncConflictDetail, SyncConflictSummary } from '@/lib/ipc';
 
@@ -637,6 +638,8 @@ describe('syncStore activity stamping (timestamp + peer info + failure record)',
 });
 
 describe('syncStore history self-healing truncation (P028)', () => {
+  const accountHistoryKey = 'solosoul.syncHistory.v2.account-a';
+
   beforeEach(() => {
     localStorage.clear();
     mockInvoke.mockReset();
@@ -658,18 +661,21 @@ describe('syncStore history self-healing truncation (P028)', () => {
       per_table: [],
       at: 1_700_000_000_000 + (14 - i),
     }));
-    localStorage.setItem('solosoul.syncHistory.v1', JSON.stringify(oversized));
+    localStorage.setItem(accountHistoryKey, JSON.stringify(oversized));
 
-    // 重新加载模块触发 store 创建（recentResults 初始值来自 loadSyncHistory）
+    // 重新加载模块，并在已解锁账户下触发 store 创建。
     vi.resetModules();
+    const { useAuthStore: reloadedAuthStore } = await import('./authStore');
+    reloadedAuthStore.setState({
+      isAuthenticated: true,
+      currentAccount: { id: 'account-a', name: 'A' },
+    });
     const { useSyncStore: reloadedStore } = await import('./syncStore');
 
     // 内存态截断为上限
     expect(reloadedStore.getState().recentResults).toHaveLength(10);
     // 写回后 localStorage 同步截断（不再残留超限数据）
-    const persisted: unknown = JSON.parse(
-      localStorage.getItem('solosoul.syncHistory.v1') ?? 'null',
-    );
+    const persisted: unknown = JSON.parse(localStorage.getItem(accountHistoryKey) ?? 'null');
     expect(Array.isArray(persisted)).toBe(true);
     expect((persisted as unknown[]).length).toBe(10);
     // 保留最新前 10 条（数组头部为最新）
@@ -687,16 +693,19 @@ describe('syncStore history self-healing truncation (P028)', () => {
       per_table: [],
       at: 1_700_000_000_000 + i,
     }));
-    localStorage.setItem('solosoul.syncHistory.v1', JSON.stringify(within));
+    localStorage.setItem(accountHistoryKey, JSON.stringify(within));
 
     vi.resetModules();
+    const { useAuthStore: reloadedAuthStore } = await import('./authStore');
+    reloadedAuthStore.setState({
+      isAuthenticated: true,
+      currentAccount: { id: 'account-a', name: 'A' },
+    });
     const { useSyncStore: reloadedStore } = await import('./syncStore');
 
     expect(reloadedStore.getState().recentResults).toHaveLength(3);
     // 未超限不触发写回（值与原写入一致，仅需无超限残留）
-    const persisted: unknown = JSON.parse(
-      localStorage.getItem('solosoul.syncHistory.v1') ?? 'null',
-    );
+    const persisted: unknown = JSON.parse(localStorage.getItem(accountHistoryKey) ?? 'null');
     expect((persisted as unknown[]).length).toBe(3);
   });
 });
@@ -1127,5 +1136,86 @@ describe('syncStore enable failure feedback', () => {
     await useSyncStore.getState().loadStatus();
 
     expect(useSyncStore.getState().error).toBeNull();
+  });
+});
+
+describe('RF-1028 sync history account isolation', () => {
+  const entry = (summary: string) => ({
+    summary,
+    examined: 1,
+    applied: 1,
+    skipped: 0,
+    conflicts: [],
+    per_table: [],
+    at: 1_700_000_000_000,
+  });
+
+  beforeEach(() => {
+    useAuthStore.setState({ isAuthenticated: false, currentAccount: null });
+    useSyncStore.getState().clearOnVaultLock();
+    localStorage.clear();
+    mockInvoke.mockReset();
+  });
+
+  afterEach(() => {
+    useAuthStore.setState({ isAuthenticated: false, currentAccount: null });
+    localStorage.clear();
+  });
+
+  it('restores only the unlocked account history and never displays the ambiguous legacy history', () => {
+    localStorage.setItem('solosoul.syncHistory.v1', JSON.stringify([entry('legacy account')]));
+    localStorage.setItem('solosoul.syncHistory.v2.account-a', JSON.stringify([entry('Alice')]));
+    localStorage.setItem('solosoul.syncHistory.v2.account-b', JSON.stringify([entry('Bob')]));
+
+    useAuthStore.setState({
+      isAuthenticated: true,
+      currentAccount: { id: 'account-a', name: 'A' },
+    });
+    expect(useSyncStore.getState().recentResults.map((result) => result.summary)).toEqual([
+      'Alice',
+    ]);
+
+    useAuthStore.setState({ currentAccount: { id: 'account-b', name: 'B' } });
+    expect(useSyncStore.getState().recentResults.map((result) => result.summary)).toEqual(['Bob']);
+
+    useAuthStore.setState({ currentAccount: { id: 'account-c', name: 'C' } });
+    expect(useSyncStore.getState().recentResults).toEqual([]);
+    expect(localStorage.getItem('solosoul.syncHistory.v1')).not.toBeNull();
+  });
+
+  it('persists a completed sync under its account and restores it after locking', async () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      currentAccount: { id: 'account-a', name: 'A' },
+    });
+    mockInvoke.mockImplementation((command: string) => {
+      if (command === 'sync_with_device') return Promise.resolve(entry('Synced with B'));
+      if (command === 'sync_get_status') {
+        return Promise.resolve({
+          isDiscovering: false,
+          syncEnabled: true,
+          autoSyncEnabled: false,
+          localFingerprint: 'fingerprint-a',
+          connectedPeers: [],
+        });
+      }
+      if (command === 'sync_list_conflicts') return Promise.resolve([]);
+      throw new Error(`Unexpected command: ${command}`);
+    });
+
+    await useSyncStore.getState().syncWithDevice('node-b');
+    const persisted = JSON.parse(
+      localStorage.getItem('solosoul.syncHistory.v2.account-a') ?? 'null',
+    ) as Array<{ summary: string }> | null;
+    expect(persisted?.[0].summary).toBe('Synced with B');
+    expect(localStorage.getItem('solosoul.syncHistory.v1')).toBeNull();
+
+    useAuthStore.setState({ isAuthenticated: false, currentAccount: null });
+    expect(useSyncStore.getState().recentResults).toEqual([]);
+    useAuthStore.setState({
+      isAuthenticated: true,
+      currentAccount: { id: 'account-a', name: 'A' },
+    });
+    expect(useSyncStore.getState().recentResults[0].summary).toBe('Synced with B');
   });
 });
