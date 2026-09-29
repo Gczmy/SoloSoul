@@ -26,6 +26,50 @@ vi.mock('@/components/layout/PageShell', () => ({
   ),
 }));
 
+vi.mock('@/components/object/ObjectDetailModal', () => ({
+  ObjectDetailModal: ({
+    object,
+    onClose,
+    onEdit,
+  }: {
+    object: { id: string; name: string };
+    onClose: () => void;
+    onEdit: () => void;
+  }) => (
+    <div role="dialog" aria-label="object detail" data-object-id={object.id}>
+      <span>{object.name}</span>
+      <button onClick={onEdit}>Edit detail</button>
+      <button onClick={onClose}>Close detail</button>
+    </div>
+  ),
+}));
+vi.mock('@/components/object/HistoryViewer', () => ({
+  HistoryViewer: ({
+    objectId,
+    getFieldSensitivity,
+    getFieldName,
+    onClose,
+  }: {
+    objectId: string;
+    getFieldSensitivity: (key: string) => string;
+    getFieldName: (key: string) => string;
+    onClose: () => void;
+  }) => (
+    <div role="dialog" aria-label="object history" data-object-id={objectId}>
+      <span>{getFieldName('dateOfBirth')}</span>
+      <span>{getFieldSensitivity('dateOfBirth')}</span>
+      <button onClick={onClose}>Close history</button>
+    </div>
+  ),
+}));
+vi.mock('@/components/object/AttachmentViewer', () => ({
+  AttachmentViewer: ({ objectId, onClose }: { objectId: string; onClose: () => void }) => (
+    <div role="dialog" aria-label="object attachments" data-object-id={objectId}>
+      <button onClick={onClose}>Close attachments</button>
+    </div>
+  ),
+}));
+
 // 稳定 t（setup.ts 的 mock 每次渲染返回新函数，会让依赖 t 的 effect 无限重跑）
 const { stableT } = vi.hoisted(() => ({
   stableT: (key: string, options?: { defaultValue?: string }) => options?.defaultValue ?? key,
@@ -138,6 +182,45 @@ describe('ObjectWorkspacePage card field display', () => {
     expect(screen.getAllByText('••••••••').length).toBeGreaterThan(0);
     // public 字段（姓名）原样显示
     expect(screen.getAllByText('张三').length).toBeGreaterThan(1);
+  });
+
+  it('routes card and action clicks to the matching object without opening unrelated panels', async () => {
+    render(
+      <MemoryRouter>
+        <ObjectWorkspacePage />
+      </MemoryRouter>,
+    );
+    const card = await screen.findByTestId('workspace-object-card');
+
+    fireEvent.click(within(card).getAllByTitle('History')[0]);
+    const history = screen.getByRole('dialog', { name: 'object history' });
+    expect(history).toHaveAttribute('data-object-id', 'obj1');
+    expect(within(history).getByText('internal')).toBeInTheDocument();
+    expect(within(history).getByText('出生日期')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'object detail' })).toBeNull();
+    fireEvent.click(within(history).getByRole('button', { name: 'Close history' }));
+
+    fireEvent.click(within(card).getAllByTitle('Attachments')[0]);
+    const attachments = screen.getByRole('dialog', { name: 'object attachments' });
+    expect(attachments).toHaveAttribute('data-object-id', 'obj1');
+    fireEvent.click(within(attachments).getByRole('button', { name: 'Close attachments' }));
+
+    fireEvent.click(within(card).getAllByTitle('Edit')[0]);
+    expect(navigate).toHaveBeenCalledWith('/editor/obj1');
+    expect(screen.queryByRole('dialog', { name: 'object detail' })).toBeNull();
+
+    fireEvent.click(within(card).getAllByTitle('Move to trash')[0]);
+    const confirm = screen.getByRole('dialog');
+    expect(within(confirm).getByRole('button', { name: 'delete' })).toBeInTheDocument();
+    fireEvent.click(within(confirm).getByRole('button', { name: 'cancel' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+
+    fireEvent.click(within(card).getAllByText('张三')[0]);
+    const detail = screen.getByRole('dialog', { name: 'object detail' });
+    expect(detail).toHaveAttribute('data-object-id', 'obj1');
+    fireEvent.click(within(detail).getByRole('button', { name: 'Edit detail' }));
+    expect(navigate).toHaveBeenLastCalledWith('/editor/obj1');
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('keeps a custom page open and reports an error when deleting it fails', async () => {
