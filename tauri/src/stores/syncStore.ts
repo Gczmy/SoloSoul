@@ -297,6 +297,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           ]);
           request.assertCurrent();
           clearTimeout(timeoutHandle);
+          // 开关命令后的状态比在途旧读取更新；旧 loadStatus 不得回写覆盖。
+          requests.invalidate('status');
           setCurrent({ ...result.status, isLoading: false, error: null });
           // 后续设备发现与清理以实际状态为准，避免请求值和后端状态不一致时误操作。
           if (result.status.syncEnabled) {

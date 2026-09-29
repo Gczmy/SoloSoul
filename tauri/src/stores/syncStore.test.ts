@@ -1045,6 +1045,47 @@ describe('syncStore enable response follows backend status', () => {
   });
 });
 
+describe('syncStore status refresh during enable', () => {
+  beforeEach(() => {
+    mockInvoke.mockReset();
+    useSyncStore.setState({ syncEnabled: true, isLoading: false, error: null });
+  });
+
+  it('does not let an older status read undo a successful disable', async () => {
+    const enabledStatus = {
+      isDiscovering: false,
+      syncEnabled: true,
+      autoSyncEnabled: false,
+      localFingerprint: '',
+      connectedPeers: [],
+    };
+    let resolveOldStatus!: (status: typeof enabledStatus) => void;
+    const oldStatus = new Promise<typeof enabledStatus>((resolve) => {
+      resolveOldStatus = resolve;
+    });
+    let statusReads = 0;
+    mockInvoke.mockImplementation((command: string) => {
+      if (command === 'sync_enable') return Promise.resolve();
+      if (command === 'sync_get_status') {
+        statusReads += 1;
+        return statusReads === 1
+          ? oldStatus
+          : Promise.resolve({ ...enabledStatus, syncEnabled: false });
+      }
+      throw new Error(`Unexpected command: ${command}`);
+    });
+
+    const firstRefresh = useSyncStore.getState().loadStatus();
+    await useSyncStore.getState().enable(false);
+    expect(useSyncStore.getState().syncEnabled).toBe(false);
+
+    resolveOldStatus(enabledStatus);
+    await firstRefresh;
+
+    expect(useSyncStore.getState().syncEnabled).toBe(false);
+  });
+});
+
 describe('syncStore enable failure feedback', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
