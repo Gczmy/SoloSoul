@@ -49,10 +49,12 @@ interface DragDropPayload {
 }
 
 /** P023: drop 处理所需的可变状态依赖（refs/setter，由调用方注入）。 */
+type PendingUploadBatch = { paths: string[]; objectId: string };
+
 type DragDropDeps = {
   setDragState: Dispatch<SetStateAction<DragUploadState>>;
   isUploadingRef: MutableRefObject<boolean>;
-  pendingQueueRef: MutableRefObject<string[][]>;
+  pendingQueueRef: MutableRefObject<PendingUploadBatch[]>;
   processBatchRef: MutableRefObject<(paths: string[], objId: string) => Promise<void>>;
 };
 
@@ -82,8 +84,11 @@ async function handleDropFiles(
 
   if (deps.isUploadingRef.current) {
     // ── 正在上传中，将文件批次加入队列 ──
-    deps.pendingQueueRef.current.push(files);
-    const totalPending = deps.pendingQueueRef.current.reduce((sum, batch) => sum + batch.length, 0);
+    deps.pendingQueueRef.current.push({ paths: files, objectId: objId });
+    const totalPending = deps.pendingQueueRef.current.reduce(
+      (sum, batch) => sum + batch.paths.length,
+      0,
+    );
     deps.setDragState((prev) => ({ ...prev, pendingFiles: totalPending }));
     return;
   }
@@ -145,8 +150,8 @@ export function useDragToAttach(objectId: string | null, options?: UseDragToAtta
 
   const [dragState, setDragState] = useState<DragUploadState>(initialState);
   const isUploadingRef = useRef(false);
-  /** 排队等待上传的批次队列，每个元素是一组文件路径 */
-  const pendingQueueRef = useRef<string[][]>([]);
+  /** 排队等待上传的批次及接收拖放时的目标对象 */
+  const pendingQueueRef = useRef<PendingUploadBatch[]>([]);
   /**
    * 用于去重的最近 drop 签名（路径列表的 JSON 字符串）。
    * Tauri v2 的 onDragDropEvent 在某些场景下会触发重复 drop 事件。
@@ -157,8 +162,8 @@ export function useDragToAttach(objectId: string | null, options?: UseDragToAtta
   );
 
   /** 检查并记录 drop 签名，重复时返回 true */
-  const isDuplicateDrop = useRef((paths: string[]): boolean => {
-    const sig = JSON.stringify([...paths].sort());
+  const isDuplicateDrop = useRef((paths: string[], objectId: string): boolean => {
+    const sig = JSON.stringify([objectId, [...paths].sort()]);
     if (recentDropSignaturesRef.current.some((entry) => entry.sig === sig)) {
       return true;
     }
@@ -173,9 +178,8 @@ export function useDragToAttach(objectId: string | null, options?: UseDragToAtta
 
   /** 处理一个批次的上传（包含队列调度） */
   const processBatch = useRef(async (paths: string[], objId: string) => {
-    const runningObjId = objId;
     try {
-      await uploadAttachmentsSequentially(paths, runningObjId, (i, total, fileName) => {
+      await uploadAttachmentsSequentially(paths, objId, (i, total, fileName) => {
         if (mountedRef.current) {
           setDragState((prev) => ({
             ...prev,
@@ -196,16 +200,20 @@ export function useDragToAttach(objectId: string | null, options?: UseDragToAtta
       const nextBatch = pendingQueueRef.current.shift();
       if (nextBatch && mountedRef.current) {
         // 更新 pendingFiles 计数
-        const remaining = pendingQueueRef.current.reduce((sum, batch) => sum + batch.length, 0);
+        const remaining = pendingQueueRef.current.reduce(
+          (sum, batch) => sum + batch.paths.length,
+          0,
+        );
         setDragState({
           isDraggingOver: false,
           isUploading: true,
           currentIndex: 0,
-          totalFiles: nextBatch.length,
-          currentFileName: nextBatch[0]?.split('/').pop() || nextBatch[0]?.split('\\').pop() || '',
+          totalFiles: nextBatch.paths.length,
+          currentFileName:
+            nextBatch.paths[0]?.split('/').pop() || nextBatch.paths[0]?.split('\\').pop() || '',
           pendingFiles: remaining,
         });
-        await processBatchRef.current(nextBatch, runningObjId);
+        await processBatchRef.current(nextBatch.paths, nextBatch.objectId);
       } else {
         isUploadingRef.current = false;
         if (mountedRef.current) {
@@ -266,7 +274,7 @@ export function useDragToAttach(objectId: string | null, options?: UseDragToAtta
             if (!rawPaths || rawPaths.length === 0) break;
             if (!isOverBounds) break;
             // 去重：Tauri v2 onDragDropEvent 可能触发重复 drop 事件
-            if (isDuplicateDrop(rawPaths)) break;
+            if (isDuplicateDrop(rawPaths, currentObjectId)) break;
 
             void handleDropFiles(rawPaths, currentObjectId, {
               setDragState,
