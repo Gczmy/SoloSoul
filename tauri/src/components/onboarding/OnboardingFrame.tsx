@@ -125,21 +125,29 @@ export function OnboardingFrame({
 }
 
 /** 底部「返回」按钮。 */
-export function OnboardingBackButton({ onClick }: { onClick: () => void }) {
+export function OnboardingBackButton({
+  onClick,
+  disabled = false,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+}) {
   const { t } = useTranslation('common');
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       style={{
         fontSize: 'var(--text-caption)',
         padding: '6px 12px',
         borderRadius: 6,
         borderWidth: 1,
         borderStyle: 'solid',
-        cursor: 'pointer',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         fontFamily: 'inherit',
         fontWeight: 500,
+        opacity: disabled ? 0.6 : 1,
       }}
       className="interactive-toolbar"
     >

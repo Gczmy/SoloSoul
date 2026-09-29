@@ -89,13 +89,14 @@ export function OnboardingVaultDirStep({
         <>
           {step > 0 && (
             <OnboardingBackButton
+              disabled={vaultDirActing}
               onClick={() => {
                 onSetVaultDirError(null);
                 onBack();
               }}
             />
           )}
-          {selectedSafUri && !showAccountDecision && (
+          {selectedSafUri && !showAccountDecision && !vaultDirActing && syncPhase === 'idle' && (
             <OnboardingNextButton label={t('onboarding_next')} onClick={onNext} />
           )}
         </>
