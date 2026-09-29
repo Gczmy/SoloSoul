@@ -1,0 +1,28 @@
+.container {
+  display: flex;
+  flex: 1 1 0%;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  text-align: right;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.container[data-value-layout='full'],
+.container[data-value-layout='full-wrapped'] {
+  flex: 0 0 100%;
+}
+
+.container[data-value-layout='full-wrapped'] {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.text {
+  min-width: 0;
+  max-width: 100%;
+}

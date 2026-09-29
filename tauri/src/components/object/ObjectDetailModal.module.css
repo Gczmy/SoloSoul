@@ -61,7 +61,9 @@
 .fieldRowTop {
   display: flex;
 
-  align-items: flex-start;
+  align-items: center;
+
+  flex-wrap: wrap;
 
   justify-content: space-between;
 
@@ -75,11 +77,13 @@
 
   gap: 6px;
 
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 
 .fieldActions {
   display: flex;
+
+  align-items: center;
 
   gap: 4px;
 
@@ -217,7 +221,7 @@
   .fieldRowTop {
     display: flex;
 
-    align-items: flex-start;
+    align-items: center;
 
     justify-content: space-between;
 

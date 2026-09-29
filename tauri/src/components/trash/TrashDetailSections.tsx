@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
+import rowStyles from '@/components/ui/FieldRowLayout.module.css';
 import { ProtectedTrashValue } from './ProtectedTrashValue';
 import { dynamicFieldSensitivity, fieldPresentationPolicy } from '@/lib/fieldPresentationPolicy';
 import { ICON_SIZE } from '@/lib/constants';
@@ -249,24 +250,15 @@ export function TrashFieldList({ item }: { item: TrashDetail }) {
                     return (
                       <div
                         key={child.name}
+                        data-field-presentation-row
+                        className={rowStyles.row}
                         style={{
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          alignItems: 'flex-start',
-                          gap: 8,
                           marginLeft: 16,
                           fontSize: 'var(--text-caption)',
                           color: 'var(--text-secondary)',
                         }}
                       >
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            flex: '0 0 auto',
-                          }}
-                        >
+                        <div data-field-label-slot className={rowStyles.label}>
                           {child.type && <FieldTypeIcon type={child.type} size={ICON_SIZE.sm} />}
                           <span style={{ fontWeight: 500, flexShrink: 0 }}>{child.name}</span>
                         </div>
@@ -294,16 +286,8 @@ export function TrashFieldList({ item }: { item: TrashDetail }) {
                   ? JSON.stringify(p.value)
                   : '';
             return (
-              <div
-                key={i}
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'flex-start',
-                  gap: 8,
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '0 0 auto' }}>
+              <div key={i} data-field-presentation-row className={rowStyles.row}>
+                <div data-field-label-slot className={rowStyles.label}>
                   {propType && <FieldTypeIcon type={propType} size={ICON_SIZE.sm} />}
                   <span style={{ fontWeight: 500, flexShrink: 0 }}>{displayKey}</span>
                   {sensitivity && <SensitivityBadge level={sensitivity} />}

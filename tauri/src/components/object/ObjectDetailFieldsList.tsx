@@ -16,6 +16,7 @@ import {
 import type { ObjectDetailFieldEntry } from './objectDetailUtils';
 import type { PropertyType, TemplateProperty } from '@/types/template';
 import { ICON_SIZE } from '@/lib/constants';
+import rowStyles from '@/components/ui/FieldRowLayout.module.css';
 import styles from './ObjectDetailModal.module.css';
 
 export interface FlattenedField {
@@ -160,8 +161,14 @@ export function ObjectDetailFieldsList(props: Props) {
             {(control) => (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <div className={styles.fieldRow} style={{ opacity: deprecated ? 0.7 : 1 }}>
-                  <div className={styles.fieldRowTop}>
-                    <div className={styles.fieldLabel}>
+                  <div
+                    data-field-presentation-row
+                    className={`${styles.fieldRowTop} ${rowStyles.row}`}
+                  >
+                    <div
+                      data-field-label-slot
+                      className={`${styles.fieldLabel} ${rowStyles.label}`}
+                    >
                       <FieldTypeIcon type={type} />
                       <span
                         style={{
@@ -179,7 +186,10 @@ export function ObjectDetailFieldsList(props: Props) {
                       )}
                       {deprecated && <DeprecatedBadge />}
                     </div>
-                    <div className={styles.fieldActions}>
+                    <div
+                      data-field-actions-slot
+                      className={`${styles.fieldActions} ${rowStyles.actions}`}
+                    >
                       {revealControl(control, sens)}
                       {copyButton(control, value, copyKey)}
                     </div>
@@ -204,8 +214,14 @@ export function ObjectDetailFieldsList(props: Props) {
                     className={styles.fieldRow}
                     style={{ marginLeft: 16, opacity: deprecated ? 0.7 : 1 }}
                   >
-                    <div className={styles.fieldRowTop}>
-                      <div className={styles.fieldLabel}>
+                    <div
+                      data-field-presentation-row
+                      className={`${styles.fieldRowTop} ${rowStyles.row}`}
+                    >
+                      <div
+                        data-field-label-slot
+                        className={`${styles.fieldLabel} ${rowStyles.label}`}
+                      >
                         <FieldTypeIcon type={(child.type || 'text') as PropertyType} />
                         <span
                           style={{
@@ -217,7 +233,10 @@ export function ObjectDetailFieldsList(props: Props) {
                           {child.label}
                         </span>
                       </div>
-                      <div className={styles.fieldActions}>
+                      <div
+                        data-field-actions-slot
+                        className={`${styles.fieldActions} ${rowStyles.actions}`}
+                      >
                         {copyButton(control, child.value, `${fieldId}.${index}`)}
                       </div>
                     </div>

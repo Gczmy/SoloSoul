@@ -1,38 +1,76 @@
-import { useState, useRef, useLayoutEffect } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import styles from './ValueContainer.module.css';
 
 type WrapState = 'inline' | 'full' | 'full-wrapped';
 
+/** 只计文本基线，避免把 Android 48px 按钮高度误认为正文换行。 */
+function textWraps(element: HTMLElement): boolean {
+  const walker = element.ownerDocument.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+  const range = element.ownerDocument.createRange();
+  // jsdom 没有 Range 几何实现；该环境无真实换行可测，交给浏览器布局回归验证。
+  if (typeof range.getClientRects !== 'function') return false;
+  const lineHeight =
+    parseFloat(getComputedStyle(element).lineHeight) ||
+    parseFloat(getComputedStyle(element).fontSize) * 1.2;
+  let firstTop = Number.POSITIVE_INFINITY;
+  let lastTop = Number.NEGATIVE_INFINITY;
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (!node.textContent?.trim()) continue;
+    range.selectNodeContents(node);
+    for (const rect of range.getClientRects()) {
+      if (rect.width <= 0) continue;
+      firstTop = Math.min(firstTop, rect.top);
+      lastTop = Math.max(lastTop, rect.top);
+    }
+  }
+  return lastTop - firstTop > lineHeight / 2;
+}
+
 function useFieldWrapState(value: string) {
-  const ref = useRef<HTMLDivElement>(null);
-  const stateRef = useRef<WrapState>('inline');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<WrapState>('inline');
 
   useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const measure = () => {
-      const rect = el.getBoundingClientRect();
-      const computed = window.getComputedStyle(el);
-      const lineHeight = parseFloat(computed.lineHeight) || parseFloat(computed.fontSize) * 1.2;
-      const current = stateRef.current;
-      const wrapped = rect.height > lineHeight * 1.5;
-      let next = current;
-      if (current === 'inline' && wrapped) {
-        next = 'full';
-      } else if (current === 'full' && wrapped) {
-        next = 'full-wrapped';
-      }
-      if (next !== current) {
-        stateRef.current = next;
-        setState(next);
-      }
-    };
-    measure();
-    window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
-  }, [value, state]);
+    const container = containerRef.current;
+    const text = textRef.current;
+    const parent = container?.parentElement;
+    if (!container || !text || !parent) return;
 
-  return { ref, state };
+    const measure = () => {
+      const previousFlex = container.style.flex;
+      let next: WrapState = 'inline';
+      try {
+        // 比较同一帧中的两种可用宽度，不依赖上一次的布局状态。
+        container.style.flex = '1 1 0%';
+        if (textWraps(text)) {
+          container.style.flex = '0 0 100%';
+          next = textWraps(text) ? 'full-wrapped' : 'full';
+        }
+      } finally {
+        container.style.flex = previousFlex;
+      }
+      setState((current) => (current === next ? current : next));
+    };
+
+    measure();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    observer?.observe(parent);
+    observer?.observe(text);
+    for (const sibling of parent.children) {
+      if (sibling !== container) observer?.observe(sibling);
+    }
+    window.addEventListener('resize', measure);
+    document.fonts?.addEventListener('loadingdone', measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', measure);
+      document.fonts?.removeEventListener('loadingdone', measure);
+    };
+  }, [value]);
+
+  return { containerRef, textRef, state };
 }
 
 export function ValueContainer({
@@ -41,30 +79,13 @@ export function ValueContainer({
   action,
 }: {
   value: string;
-  children: React.ReactNode;
-  action?: React.ReactNode;
+  children: ReactNode;
+  action?: ReactNode;
 }) {
-  const { ref, state } = useFieldWrapState(value);
-  const isFull = state === 'full' || state === 'full-wrapped';
+  const { containerRef, textRef, state } = useFieldWrapState(value);
   return (
-    <div
-      data-field-value
-      style={{
-        flex: isFull ? '0 0 100%' : '1 1 0%',
-        minWidth: 0,
-        maxWidth: '100%',
-        textAlign: state === 'full-wrapped' ? 'left' : 'right',
-        whiteSpace: 'normal',
-        wordBreak: 'break-word',
-        overflowWrap: 'break-word',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: state === 'full-wrapped' ? 'flex-start' : 'flex-end',
-        gap: 6,
-      }}
-    >
-      {/* 只测量文本是否换行，避免把移动端按钮的 48px 触控区误判为多行。 */}
-      <div ref={ref} data-field-value-text style={{ minWidth: 0, maxWidth: '100%' }}>
+    <div ref={containerRef} data-field-value data-value-layout={state} className={styles.container}>
+      <div ref={textRef} data-field-value-text className={styles.text}>
         {children}
       </div>
       {action}

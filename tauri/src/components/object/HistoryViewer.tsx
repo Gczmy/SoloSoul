@@ -23,6 +23,7 @@ import { useUiStore } from '@/stores/uiStore';
 import { logger } from '@/lib/logger';
 import { ICON_SIZE } from '@/lib/constants';
 import { ValueContainer } from '@/components/ui/ValueContainer';
+import rowStyles from '@/components/ui/FieldRowLayout.module.css';
 import { flattenPropertyEntries, type DynamicChildItem } from '@/lib/propertyFlatten';
 
 import type { SnapshotEntry } from '@/types/history';
@@ -157,11 +158,9 @@ function HistoryField({
         const revealLabel = t('common:click_to_reveal', { defaultValue: 'Click to reveal' });
         return (
           <div
+            data-field-presentation-row
+            className={rowStyles.row}
             style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'flex-start',
-              gap: 8,
               marginLeft: child ? 16 : undefined,
               fontSize: 'var(--text-caption)',
               padding: '6px 8px',
@@ -172,12 +171,10 @@ function HistoryField({
             }}
           >
             <div
+              data-field-label-slot
+              className={rowStyles.label}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
                 minWidth: child ? 74 : 90,
-                flex: '0 0 auto',
               }}
             >
               <FieldTypeIcon type={type || 'text'} />

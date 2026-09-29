@@ -76,6 +76,44 @@ test('尺标预览、跨加载批次定位及搜索结果同步', async ({ page 
   await expect(ruler).toHaveCount(0);
 });
 
+test('对象详情字段标签、徽章和操作按钮在窄屏与放大字体下保持对齐', async ({ page }) => {
+  await page.getByTestId('workspace-object-card').first().locator('[data-ui-card]').click();
+  const detail = page.getByTestId('object-detail-modal');
+  await expect(detail).toBeVisible();
+  const rows = detail.locator('[data-field-presentation-row]');
+  await expect(rows.first()).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = '22px';
+  });
+  const fieldName = rows.first().locator('[data-field-label-slot] > span').first();
+  const originalName = await fieldName.textContent();
+  await fieldName.evaluate((element) => {
+    element.textContent = 'Extraordinarily long localized field label 测试一个很长的字段名称';
+  });
+  const labelOverflow = await rows.first().evaluate((row) => {
+    const label = row.querySelector('[data-field-label-slot]')!;
+    return label.scrollWidth - label.clientWidth;
+  });
+  expect(labelOverflow).toBeLessThanOrEqual(1);
+  await fieldName.evaluate((element, name) => {
+    element.textContent = name;
+  }, originalName);
+  const layout = await rows.first().evaluate((row) => {
+    const label = row.querySelector('[data-field-label-slot]')!.getBoundingClientRect();
+    const actions = row.querySelector('[data-field-actions-slot]')!.getBoundingClientRect();
+    const bounds = row.getBoundingClientRect();
+    return {
+      centerOffset: Math.abs(label.y + label.height / 2 - actions.y - actions.height / 2),
+      rightOverflow: Math.max(label.right, actions.right) - bounds.right,
+      rowOverflow: row.scrollWidth - row.clientWidth,
+    };
+  });
+  expect(layout.centerOffset).toBeLessThan(1);
+  expect(layout.rightOverflow).toBeLessThanOrEqual(1);
+  expect(layout.rowOverflow).toBeLessThanOrEqual(1);
+});
+
 test('右侧导航和窄视口保持正确位置，减少动态效果时立即定位', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const ruler = page.getByRole('navigation', { name: 'Object ruler' });

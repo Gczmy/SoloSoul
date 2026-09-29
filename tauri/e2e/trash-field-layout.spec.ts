@@ -4,6 +4,7 @@ import { setupTauriMock, login } from './fixtures/auth';
 const longSensitiveValue =
   'RF109 synthetic sensitive value / 合成敏感值🌟 / '.repeat(6) +
   'synthetic-unbroken-value-'.repeat(5);
+const responsiveValue = 'Responsive value fits wide';
 
 for (const platform of ['android', 'ios', 'macos', 'windows']) {
   test(`${platform}: protected trash values align with reveal controls`, async ({
@@ -59,6 +60,12 @@ for (const platform of ['android', 'ios', 'macos', 'windows']) {
                   value: longSensitiveValue,
                   type: 'text',
                   sensitivityLevel: 'sensitive',
+                },
+                {
+                  key: 'responsive',
+                  value: 'Responsive value fits wide',
+                  type: 'text',
+                  sensitivityLevel: 'public',
                 },
               ],
               attachments: [],
@@ -161,11 +168,26 @@ for (const platform of ['android', 'ios', 'macos', 'windows']) {
     if (platform === 'android') expect(longGeometry.height).toBeGreaterThanOrEqual(48);
     await page.screenshot({ path: test.info().outputPath(`${platform}-trash-long-value.png`) });
 
-    // ValueContainer 隐藏后仍可保留整行布局；只要求真实隐藏正文并恢复揭示按钮。
+    // 长值重新掩码后必须回到紧凑行，不能永久停留在扩展布局。
     await activate(longButton);
     await expect(longText).toHaveText('••••••••');
+    await expect(longContainer).toHaveAttribute('data-value-layout', 'inline');
     await expect(longButton).toHaveAttribute('aria-label', revealLabel!);
     expect(await longContainer.innerHTML()).not.toContain('RF109 synthetic sensitive value');
+
+    const responsiveText = page
+      .locator('[data-field-value-text]')
+      .filter({ hasText: responsiveValue });
+    const responsiveContainer = responsiveText.locator('..');
+    const responsiveRow = responsiveContainer.locator('..');
+    await responsiveRow.evaluate((row) => {
+      (row as HTMLElement).style.width = '260px';
+    });
+    await expect(responsiveContainer).not.toHaveAttribute('data-value-layout', 'inline');
+    await responsiveRow.evaluate((row) => {
+      (row as HTMLElement).style.removeProperty('width');
+    });
+    await expect(responsiveContainer).toHaveAttribute('data-value-layout', 'inline');
     await page.screenshot({ path: test.info().outputPath(`${platform}-trash-values.png`) });
   });
 }
