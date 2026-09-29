@@ -60,6 +60,12 @@ export function useAndroidCreateMenu(
     active.current = token;
     setBusy(true);
     let listener: PluginListener | undefined;
+    let listenerUnregistered = false;
+    const unregisterListener = (value: PluginListener) => {
+      if (listenerUnregistered) return;
+      listenerUnregistered = true;
+      void value.unregister().catch(() => {});
+    };
     const current = () =>
       !token.cancelled &&
       active.current === token &&
@@ -88,7 +94,7 @@ export function useAndroidCreateMenu(
       // 挂载中途取消也必须注销迟到的监听器。
       registration
         .then((value) => {
-          if (!current()) void value.unregister().catch(() => {});
+          if (!current()) unregisterListener(value);
         })
         .catch(() => {});
       listener = await withTimeout(registration, 1000);
@@ -127,7 +133,7 @@ export function useAndroidCreateMenu(
       if (token.cancel) await withTimeout(token.cancel(), 1000).catch(() => {});
       if (current()) callback.current('unavailable');
     } finally {
-      void listener?.unregister().catch(() => {});
+      if (listener) unregisterListener(listener);
       if (active.current === token) {
         active.current = null;
         setBusy(false);
