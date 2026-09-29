@@ -171,6 +171,8 @@ Provider 列表返回非空 key 的掩码，保存时保留既有掩码兼容规
 
 [useLlmChatFeatureSettings](../../tauri/src/hooks/useLlmChatFeatureSettings.ts) 按账户保存聊天风险接受状态。另有 [useLlmProviders](../../tauri/src/hooks/useLlmProviders.ts) 的首次非本地 provider 激活提示，以设备级 localStorage 标记记忆；它不是逐 provider、逐消息或每次网络请求的重新授权。保存新的外部地址还有既有登记确认，两者都不能代替正确的数据流说明。
 
+本地服务判定只接受有效 HTTP(S) URL 且主机名精确为 `localhost`、`127.0.0.1` 或 IPv6 回环 `::1`；路径、userinfo 或子域名里出现这些字样不构成本地地址。无效 URL 也不跳过云端提示。此判定同时用于配置页隐私提示和聊天页本地状态标识。
+
 关闭自动上下文会停止本次聊天自动附加，不会清除手工输入或历史中的内容，也不会撤回已发送数据。本地 Embedding 优先项只控制向量计算来源，不改变聊天 provider 地址；完整回退边界见 §7.1。
 
 ---

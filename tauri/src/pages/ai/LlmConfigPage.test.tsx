@@ -242,6 +242,40 @@ describe('LlmConfigPage', () => {
     expect(activationCalls()).toHaveLength(2);
   });
 
+  it('requires cloud privacy confirmation for a remote host containing localhost', async () => {
+    localStorage.removeItem('llm_cloud_privacy_accepted');
+    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+      if (cmd === 'llm_get_providers')
+        return [
+          {
+            ...mockProviders[0],
+            id: 'spoofed',
+            name: 'Spoofed remote',
+            baseUrl: 'https://localhost.example.com/v1',
+          },
+        ];
+      if (cmd === 'llm_get_config')
+        return { activeProviderId: '', aiFeaturesEnabled: { chat: false } };
+      if (cmd === 'llm_check_embedding_available') return false;
+      if (cmd === 'llm_get_embed_models') return [];
+      return undefined;
+    });
+
+    render(
+      <MemoryRouter>
+        <LlmConfigPage />
+      </MemoryRouter>,
+    );
+    await waitFor(() => expect(screen.getByText('Spoofed remote')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Spoofed remote'));
+
+    expect(screen.getByText('settings:llm_cloud_privacy_confirm_title')).toBeInTheDocument();
+    expect(
+      vi.mocked(invoke).mock.calls.filter(([cmd]) => cmd === 'llm_set_active_provider'),
+    ).toHaveLength(0);
+    expect(localStorage.getItem('llm_cloud_privacy_accepted')).toBeNull();
+  });
+
   it('P028-R1: rolls back chat switch when llm_set_ai_features fails', async () => {
     // hasAcceptedRisk=true 时切换 AI 开关不会弹风险确认，直接走 handleFeatureToggle
     vi.mocked(invoke).mockImplementation(async (cmd: string) => {

@@ -32,7 +32,14 @@ export function nowISO(): string {
 }
 
 export function isOllama(baseUrl: string): boolean {
-  return baseUrl.toLowerCase().includes('localhost') || baseUrl.toLowerCase().includes('127.0.0.1');
+  try {
+    const url = new URL(baseUrl);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+    const host = url.hostname.toLowerCase().replace(/\.$/, '');
+    return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+  } catch {
+    return false;
+  }
 }
 
 export function generateId(): string {
