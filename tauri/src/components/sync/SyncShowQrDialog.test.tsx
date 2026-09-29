@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SyncShowQrDialog } from './SyncShowQrDialog';
 
 const { stableT, mockInvoke } = vi.hoisted(() => ({
@@ -98,5 +98,40 @@ describe('SyncShowQrDialog', () => {
     render(<SyncShowQrDialog isOpen onClose={onClose} />);
     fireEvent.click(screen.getByLabelText('common:close'));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores an old recovery host response after the dialog closes and reopens', async () => {
+    let resolveOld!: (value: typeof RECOVERY_INFO) => void;
+    let resolveNew!: (value: typeof RECOVERY_INFO) => void;
+    const oldRequest = new Promise<typeof RECOVERY_INFO>((resolve) => {
+      resolveOld = resolve;
+    });
+    const newRequest = new Promise<typeof RECOVERY_INFO>((resolve) => {
+      resolveNew = resolve;
+    });
+    let starts = 0;
+    mockInvoke.mockImplementation((cmd: string) => {
+      if (cmd === 'sync_generate_qr_payload') return Promise.resolve(SYNC_PAYLOAD);
+      if (cmd === 'recovery_host_start') return ++starts === 1 ? oldRequest : newRequest;
+      return Promise.resolve(undefined);
+    });
+
+    const { rerender } = render(<SyncShowQrDialog isOpen onClose={vi.fn()} />);
+    await screen.findByText('MacBook');
+    fireEvent.click(screen.getByText('Recovery QR'));
+    await waitFor(() => expect(starts).toBe(1));
+
+    rerender(<SyncShowQrDialog isOpen={false} onClose={vi.fn()} />);
+    await waitFor(() => expect(mockInvoke).toHaveBeenCalledWith('recovery_host_cancel'));
+    rerender(<SyncShowQrDialog isOpen onClose={vi.fn()} />);
+    await screen.findByText('MacBook');
+    fireEvent.click(screen.getByText('Recovery QR'));
+    await waitFor(() => expect(starts).toBe(2));
+
+    await act(async () => resolveNew({ ...RECOVERY_INFO, pin: '2222' }));
+    expect(screen.getByText('2222')).toBeInTheDocument();
+    await act(async () => resolveOld({ ...RECOVERY_INFO, pin: '1111' }));
+    expect(screen.getByText('2222')).toBeInTheDocument();
+    expect(screen.queryByText('1111')).not.toBeInTheDocument();
   });
 });

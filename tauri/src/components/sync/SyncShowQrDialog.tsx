@@ -36,10 +36,13 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
   const copiedPin = isCopied('pin');
   // 防止重复启动 / 重复取消恢复会话（state 异步更新，用 ref 保证生命周期正确）
   const recoveryStartedRef = useRef(false);
+  // 关闭或重新启动后，旧请求的结果不能覆盖当前恢复会话。
+  const recoveryRequestIdRef = useRef(0);
 
   // 打开对话框：重置状态并加载同步二维码
   useEffect(() => {
     if (!isOpen) {
+      recoveryRequestIdRef.current += 1;
       // 关闭/重置：若恢复会话仍存活则取消（幂等，正常关闭路径 handleClose 已处理）
       if (recoveryStartedRef.current) {
         invoke('recovery_host_cancel').catch(() => {});
@@ -96,6 +99,7 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
   // 页面卸载时兜底取消恢复会话，避免导航离开同步页后会话悬挂至过期
   useEffect(() => {
     return () => {
+      recoveryRequestIdRef.current += 1;
       if (recoveryStartedRef.current) {
         invoke('recovery_host_cancel').catch(() => {});
         recoveryStartedRef.current = false;
@@ -105,6 +109,7 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
 
   // 关闭对话框：若恢复会话已启动则先取消
   const handleClose = () => {
+    recoveryRequestIdRef.current += 1;
     if (recoveryStartedRef.current) {
       invoke('recovery_host_cancel').catch(() => {});
       recoveryStartedRef.current = false;
@@ -115,13 +120,15 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
   // 启动恢复主机会话（首次切换到「恢复二维码」时自动调用）
   const startRecoveryHost = async () => {
     if (recoveryStartedRef.current) return;
+    const requestId = ++recoveryRequestIdRef.current;
     setRecoveryLoading(true);
     setRecoveryError(null);
     recoveryStartedRef.current = true;
     try {
       const result = await invoke<RecoveryHostInfo>('recovery_host_start');
-      setRecoveryInfo(result);
+      if (requestId === recoveryRequestIdRef.current) setRecoveryInfo(result);
     } catch (err) {
+      if (requestId !== recoveryRequestIdRef.current) return;
       // 后端错误码（如 __SYNC_ERR__:not_enabled）经 resolveBackendErrorMessage 国际化；
       // 静态 Rust 错误串（如 No account is currently unlocked）经 translateRustError 映射兜底。
       const raw = String(err);
@@ -129,17 +136,19 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
       setRecoveryError(translated ? t(translated) : resolveBackendErrorMessage(raw));
       recoveryStartedRef.current = false;
     } finally {
-      setRecoveryLoading(false);
+      if (requestId === recoveryRequestIdRef.current) setRecoveryLoading(false);
     }
   };
 
   // 取消恢复主机会话（切回「同步二维码」时调用）
   const cancelRecoveryHost = () => {
     if (!recoveryStartedRef.current) return;
+    recoveryRequestIdRef.current += 1;
     recoveryStartedRef.current = false;
     invoke('recovery_host_cancel').catch(() => {});
     setRecoveryInfo(null);
     setRecoveryError(null);
+    setRecoveryLoading(false);
     setManualOpen(false);
   };
 
@@ -162,35 +171,29 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
   return (
     <QrModalShell onClose={handleClose} scrollable>
       {/* 二维码类型切换 */}
-          <SyncQrTabSwitcher t={t} isRecovery={isRecovery} onSelect={switchMode} />
+      <SyncQrTabSwitcher t={t} isRecovery={isRecovery} onSelect={switchMode} />
 
-          {isRecovery ? (
-            <RecoveryQrContent
-              t={t}
-              loading={recoveryLoading}
-              error={recoveryError}
-              info={recoveryInfo}
-              manualOpen={manualOpen}
-              copiedAddr={copiedAddr}
-              copiedPin={copiedPin}
-              onToggleManual={() => setManualOpen(!manualOpen)}
-              onCopyAddr={() => {
-                if (recoveryInfo) copyText(recoveryInfo.displayAddr, 'addr');
-              }}
-              onCopyPin={() => {
-                if (recoveryInfo) copyText(recoveryInfo.pin, 'pin');
-              }}
-              onCancel={() => switchMode('sync')}
-            />
-          ) : (
-            <SyncQrContent
-              t={t}
-              loading={loading}
-              error={error}
-              info={info}
-              onClose={handleClose}
-            />
-          )}
+      {isRecovery ? (
+        <RecoveryQrContent
+          t={t}
+          loading={recoveryLoading}
+          error={recoveryError}
+          info={recoveryInfo}
+          manualOpen={manualOpen}
+          copiedAddr={copiedAddr}
+          copiedPin={copiedPin}
+          onToggleManual={() => setManualOpen(!manualOpen)}
+          onCopyAddr={() => {
+            if (recoveryInfo) copyText(recoveryInfo.displayAddr, 'addr');
+          }}
+          onCopyPin={() => {
+            if (recoveryInfo) copyText(recoveryInfo.pin, 'pin');
+          }}
+          onCancel={() => switchMode('sync')}
+        />
+      ) : (
+        <SyncQrContent t={t} loading={loading} error={error} info={info} onClose={handleClose} />
+      )}
     </QrModalShell>
   );
 }
