@@ -53,11 +53,24 @@ export function ObjectWorkspacePage() {
   );
   const pageDeletesInFlight = useRef(new Set<string>());
   const isDeletingPage = deletingPageContexts.has(pageContextKey);
-  const { setConfirmPageDelete } = ws;
+  const objectDeleteContextKey = JSON.stringify([
+    ws.accountId ?? null,
+    pageId ?? null,
+    ws.confirmDelete?.id ?? null,
+  ]);
+  const currentObjectDeleteContextRef = useRef(objectDeleteContextKey);
+  currentObjectDeleteContextRef.current = objectDeleteContextKey;
+  const [deletingObjectContexts, setDeletingObjectContexts] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const objectDeletesInFlight = useRef(new Set<string>());
+  const isDeletingObject = deletingObjectContexts.has(objectDeleteContextKey);
+  const { setConfirmPageDelete, setConfirmDelete: resetObjectDelete } = ws;
   useEffect(() => {
     setConfirmPageDelete(false);
     setConfirmPageDeleteContext(null);
-  }, [pageContextKey, setConfirmPageDelete]);
+    resetObjectDelete(null);
+  }, [pageContextKey, setConfirmPageDelete, resetObjectDelete]);
   const { onError } = useToastError();
   const displayedObjects = useMemo(
     () =>
@@ -379,9 +392,36 @@ export function ObjectWorkspacePage() {
             })}
             confirmLabel={t('delete')}
             cancelLabel={t('cancel')}
-            onCancel={() => ws.setConfirmDelete(null)}
-            onConfirm={() => {
-              if (ws.confirmDelete) ws.handleDelete(ws.confirmDelete.id);
+            submitting={isDeletingObject}
+            onCancel={() => {
+              if (objectDeletesInFlight.current.has(objectDeleteContextKey)) return;
+              ws.setConfirmDelete(null);
+            }}
+            onConfirm={async () => {
+              const selected = ws.confirmDelete;
+              if (
+                !selected ||
+                !ws.accountId ||
+                objectDeletesInFlight.current.has(objectDeleteContextKey)
+              )
+                return;
+              objectDeletesInFlight.current.add(objectDeleteContextKey);
+              setDeletingObjectContexts((current) => new Set(current).add(objectDeleteContextKey));
+              try {
+                await ws.handleDelete(selected.id);
+                if (currentObjectDeleteContextRef.current === objectDeleteContextKey)
+                  ws.setConfirmDelete(null);
+              } catch (error) {
+                if (currentObjectDeleteContextRef.current === objectDeleteContextKey)
+                  onError(error, t('delete_failed'));
+              } finally {
+                objectDeletesInFlight.current.delete(objectDeleteContextKey);
+                setDeletingObjectContexts((current) => {
+                  const next = new Set(current);
+                  next.delete(objectDeleteContextKey);
+                  return next;
+                });
+              }
             }}
           />
         </div>

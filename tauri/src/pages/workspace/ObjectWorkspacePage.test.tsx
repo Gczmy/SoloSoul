@@ -223,6 +223,54 @@ describe('ObjectWorkspacePage card field display', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
+  it('对象删除失败时保留确认框并允许重试', async () => {
+    let rejectDelete!: (error: Error) => void;
+    const pendingDelete = new Promise<void>((_resolve, reject) => {
+      rejectDelete = reject;
+    });
+    const defaultInvoke = vi.mocked(invoke).getMockImplementation()!;
+    let attempts = 0;
+    vi.mocked(invoke).mockImplementation((command, args) =>
+      command === 'object_delete'
+        ? attempts++ === 0
+          ? pendingDelete
+          : Promise.resolve()
+        : defaultInvoke(command, args),
+    );
+    render(
+      <MemoryRouter>
+        <ObjectWorkspacePage />
+      </MemoryRouter>,
+    );
+
+    const card = await screen.findByTestId('workspace-object-card');
+    fireEvent.click(within(card).getAllByTitle('Move to trash')[0]);
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'delete' }));
+    expect(attempts).toBe(1);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'delete' }),
+    ).toBeDisabled();
+
+    await act(async () => {
+      rejectDelete(new Error('delete denied'));
+      await pendingDelete.catch(() => undefined);
+    });
+    await waitFor(() =>
+      expect(
+        useUiStore
+          .getState()
+          .toasts.some(
+            (toast) => toast.type === 'error' && toast.message.includes('delete denied'),
+          ),
+      ).toBe(true),
+    );
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'delete' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(attempts).toBe(2);
+  });
+
   it('keeps a custom page open and reports an error when deleting it fails', async () => {
     let rejectDelete!: (error: Error) => void;
     const pendingDelete = new Promise<void>((_resolve, reject) => {

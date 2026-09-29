@@ -3,6 +3,7 @@ import { act, render, screen, fireEvent, waitFor, within } from '@testing-librar
 import { BrowserRouter } from 'react-router-dom';
 import { ObjectDetailModal } from './ObjectDetailModal';
 import type { ObjectData } from '@/stores/objectStore';
+import { useUiStore } from '@/stores/uiStore';
 
 const authMock = vi.hoisted(() => ({ accountId: 'acc-1' as string | null }));
 const objectStoreMock = vi.hoisted(() => ({ deleteObject: vi.fn() }));
@@ -117,6 +118,31 @@ describe('ObjectDetailModal', () => {
       await pendingDelete;
     });
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('对象删除失败后保留确认框并显示错误', async () => {
+    objectStoreMock.deleteObject.mockRejectedValueOnce(new Error('delete denied'));
+    const onClose = vi.fn();
+    render(
+      <BrowserRouter>
+        <ObjectDetailModal object={sampleObj} onClose={onClose} />
+      </BrowserRouter>,
+    );
+
+    fireEvent.click(screen.getByText('common:delete'));
+    const dialog = screen
+      .getByText('common:object_delete_confirm_title')
+      .closest('[role="dialog"]') as HTMLElement;
+    fireEvent.click(within(dialog).getByRole('button', { name: 'common:delete' }));
+
+    await waitFor(() =>
+      expect(
+        useUiStore.getState().toasts.some((toast) => toast.message.includes('delete denied')),
+      ).toBe(true),
+    );
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByText('common:object_delete_confirm_title')).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'common:delete' })).toBeEnabled();
   });
 
   it('RF-1019 切换账户后不继续显示前一账户传入的完整对象', () => {

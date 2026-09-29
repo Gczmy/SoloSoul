@@ -214,6 +214,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
     } catch (err) {
       if (!request.isCurrent()) return;
       setCurrent({ error: String(err), isLoading: false });
+      throw err;
     }
   },
 

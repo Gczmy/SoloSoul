@@ -37,7 +37,6 @@ export function useObjectWorkspaceData({
 
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-  const [, setDeletingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [confirmPageDelete, setConfirmPageDelete] = useState(false);
   const [historyObj, setHistoryObj] = useState<{
@@ -251,15 +250,7 @@ export function useObjectWorkspaceData({
     ? `/editor?parentId=${pageId}`
     : `/editor${sectionFilter ? `?section=${sectionFilter}` : ''}`;
 
-  const handleDelete = async (objectId: string) => {
-    setConfirmDelete(null);
-    setDeletingId(objectId);
-    try {
-      await deleteObject(objectId);
-    } finally {
-      setDeletingId(null);
-    }
-  };
+  const handleDelete = (objectId: string) => deleteObject(objectId);
 
   // 模板同步流程域（useWorkspaceTemplateSync 收敛：syncDialog/dismissConfirm/
   // 指纹映射/语义复核 + 五个同步 handler）

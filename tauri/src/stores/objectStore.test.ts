@@ -227,6 +227,28 @@ describe('objectStore', () => {
   });
 
   describe('deleteObject', () => {
+    it('删除失败时保留对象并向调用方传播错误', async () => {
+      const failure = new Error('delete denied');
+      mockInvoke.mockRejectedValue(failure);
+      const { useObjectStore } = await import('./objectStore');
+      useObjectStore.setState({
+        objects: [
+          {
+            id: '1',
+            name: 'Obj1',
+            typeId: 'x',
+            sensitivityLevel: 'public',
+            createdAt: '',
+            updatedAt: '',
+          },
+        ],
+      });
+
+      await expect(useObjectStore.getState().deleteObject('1')).rejects.toBe(failure);
+      expect(useObjectStore.getState().objects.map((obj) => obj.id)).toContain('1');
+      expect(useObjectStore.getState().error).toContain('delete denied');
+    });
+
     it('删除对象成功并从列表移除', async () => {
       mockInvoke.mockResolvedValue(undefined);
 
