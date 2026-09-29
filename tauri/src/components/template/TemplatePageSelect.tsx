@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/stores/settingsStore';
 
@@ -17,15 +17,20 @@ export const TemplatePageSelect = memo(function TemplatePageSelect({
 }: TemplatePageSelectProps) {
   const { t } = useTranslation(['settings', 'navigation']);
   const customPages = useSettingsStore((s) => s.settings.customPages) || [];
+  const selectId = useId();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {label && (
-        <label style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)' }}>
+        <label
+          htmlFor={selectId}
+          style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)' }}
+        >
           {label}
         </label>
       )}
       <select
+        id={selectId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="interactive-field"
@@ -59,7 +64,9 @@ export const TemplatePageSelect = memo(function TemplatePageSelect({
           </optgroup>
         )}
         {customPages.filter((p) => p.deletedAt).length > 0 && (
-          <optgroup label={t('settings:custom_pages_trash', { defaultValue: '自定义页面（回收站）' })}>
+          <optgroup
+            label={t('settings:custom_pages_trash', { defaultValue: '自定义页面（回收站）' })}
+          >
             {customPages
               .filter((p) => p.deletedAt)
               .map((page) => (
