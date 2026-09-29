@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
@@ -51,6 +51,7 @@ export function useLoginPage() {
   const [bioAvailable, setBioAvailable] = useState(false);
   const [biometryTypeRaw, setBiometryTypeRaw] = useState('touchId');
   const [bioChecked, setBioChecked] = useState(false);
+  const [checkedAccountId, setCheckedAccountId] = useState<string | null>(null);
   // 系统生物识别因失败次数过多被临时锁定（Android）：指纹项仍显示，但点击时提示警告
   const [bioLockout, setBioLockout] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -139,30 +140,40 @@ export function useLoginPage() {
   // Priority: FaceID > Touch ID > Windows Hello > PIN > Password
   // 方案 A：从 localStorage 按账户同步恢复上次登录方式——冷启动首帧即正确方法，
   // 消灭「先显示主密码再跳指纹」闪屏；可用性探测完成后仍会校正过期缓存。
-  const [loginMethod, setLoginMethod] = useState<LoginMethod | null>(() => {
+  const [loginMethodSelection, setLoginMethodSelection] = useState<{
+    accountId: string;
+    method: LoginMethod | null;
+  }>(() => {
     let lastId = '';
     try {
       lastId = localStorage.getItem(LAST_ACCOUNT_KEY) || '';
     } catch {
       // localStorage 不可用时保持空串（无缓存 → 探测中占位）
     }
-    return readCachedLoginMethod(lastId);
+    return { accountId: lastId, method: readCachedLoginMethod(lastId) };
   });
+  // 切换账户的首帧只显示目标账户自己的缓存；旧账户方法不能冒充新账户选择。
+  const loginMethod =
+    selectedAccountId && loginMethodSelection.accountId !== selectedAccountId
+      ? readCachedLoginMethod(selectedAccountId)
+      : loginMethodSelection.method;
+  const setLoginMethod = useCallback(
+    (method: LoginMethod) => {
+      setLoginMethodSelection({ accountId: selectedAccountId, method });
+    },
+    [selectedAccountId],
+  );
 
-  // 跨卸载持久化（localStorage，按账户隔离）——锁定再登录后直接显示最后使用的方法
+  // 仅持久化当前账户确认过的方法；账户切换渲染时不把旧方法写入目标账户缓存。
   useEffect(() => {
-    if (!loginMethod) return;
-    const accountId =
-      selectedAccountId ||
-      (() => {
-        try {
-          return localStorage.getItem(LAST_ACCOUNT_KEY) || '';
-        } catch {
-          return '';
-        }
-      })();
-    if (accountId) writeCachedLoginMethod(accountId, loginMethod);
-  }, [loginMethod, selectedAccountId]);
+    if (
+      loginMethodSelection.method &&
+      selectedAccountId &&
+      loginMethodSelection.accountId === selectedAccountId
+    ) {
+      writeCachedLoginMethod(selectedAccountId, loginMethodSelection.method);
+    }
+  }, [loginMethodSelection, selectedAccountId]);
 
   // 三种解锁流程（PIN / 生物识别 / 主密码）+ 各自状态
   // 置于可用性 effect 之前：复位块需经组合层转调其 setter（setter 身份稳定）
@@ -191,6 +202,7 @@ export function useLoginPage() {
 
     // 从 SAF 已有账户登录时，旧安装的生物识别/PIN 凭证已失效，强制仅显示主密码
     if (fromExisting) {
+      setCheckedAccountId(selectedAccountId);
       setBioChecked(true);
       setPinChecked(true);
       setBioAvailable(false);
@@ -201,7 +213,8 @@ export function useLoginPage() {
       return () => controller.abort();
     }
 
-    // Reset state when account changes — 不重置 loginMethod，保留缓存值避免闪烁
+    // 账户切换时，旧账户的探测结果不能决定新账户的登录方式。
+    setCheckedAccountId(null);
     setBioChecked(false);
     setPinChecked(false);
     setBioAvailable(false);
@@ -230,17 +243,18 @@ export function useLoginPage() {
       })
       .finally(() => {
         if (!controller.signal.aborted) {
+          setCheckedAccountId(selectedAccountId);
           setBioChecked(true);
           setPinChecked(true);
         }
       });
 
     return () => controller.abort();
-  }, [selectedAccountId, fromExisting, setBioError, setPinError, setSubmitError]);
+  }, [selectedAccountId, fromExisting, setBioError, setPinError, setSubmitError, setLoginMethod]);
 
   // Set login method by priority after both checks complete
   useEffect(() => {
-    if (!bioChecked || !pinChecked) return;
+    if (checkedAccountId !== selectedAccountId || !bioChecked || !pinChecked) return;
 
     // Priority: FaceID > Touch ID > Windows Hello > PIN > Password
     if (bioAvailable) {
@@ -254,7 +268,16 @@ export function useLoginPage() {
     } else {
       setLoginMethod('password');
     }
-  }, [bioChecked, pinChecked, bioAvailable, pinAvailable, biometryTypeRaw]);
+  }, [
+    checkedAccountId,
+    selectedAccountId,
+    bioChecked,
+    pinChecked,
+    bioAvailable,
+    pinAvailable,
+    biometryTypeRaw,
+    setLoginMethod,
+  ]);
 
   // 图标栏：可用解锁方式列表 + 两阶段悬停状态
   // 选择方式时清对应错误（bio 方法清 bioError、PIN 清 pinError，与原内联行为一致）
