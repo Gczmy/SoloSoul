@@ -383,12 +383,11 @@ describe('ObjectEditorPage datetime save validation', () => {
     });
     await waitFor(() => {
       expect(screen.getAllByLabelText('年份输入').length).toBeGreaterThanOrEqual(2);
+      // 字段先挂载，再由异步对象读取回填值；等待实际回显而非只等输入框出现。
+      expect((screen.getAllByLabelText('年份输入')[0] as HTMLInputElement).value).toBe('2024');
+      expect((screen.getAllByLabelText('月份输入')[0] as HTMLInputElement).value).toBe('12');
+      expect((screen.getAllByLabelText('日期输入')[0] as HTMLInputElement).value).toBe('31');
     });
-
-    // 存量正常日期值必须回显在分段中（用户场景：创建后再次编辑不应看到空字段）
-    expect((screen.getAllByLabelText('年份输入')[0] as HTMLInputElement).value).toBe('2024');
-    expect((screen.getAllByLabelText('月份输入')[0] as HTMLInputElement).value).toBe('12');
-    expect((screen.getAllByLabelText('日期输入')[0] as HTMLInputElement).value).toBe('31');
   });
 
   it('shows a stored unparseable datetime value visibly, and clearing it allows saving', async () => {
