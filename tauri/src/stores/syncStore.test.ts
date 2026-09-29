@@ -926,3 +926,72 @@ describe('syncStore backend-disabled status', () => {
     });
   });
 });
+
+describe('syncStore enable response follows backend status', () => {
+  const nearbyDevice = { name: 'Nearby Mac', host: 'mac.local', port: 42069, addresses: [] };
+
+  beforeEach(() => {
+    mockInvoke.mockReset();
+    useSyncStore.setState({
+      syncEnabled: true,
+      discoveredDevices: [nearbyDevice],
+      listenAddr: '192.0.2.1:42069',
+      isDiscoveringDevices: false,
+      isLoading: false,
+      error: null,
+    });
+  });
+
+  it('does not discover devices when an enable request leaves the backend disabled', async () => {
+    mockInvoke.mockImplementation((command: string) => {
+      if (command === 'sync_enable') return Promise.resolve();
+      if (command === 'sync_get_status') {
+        return Promise.resolve({
+          isDiscovering: false,
+          syncEnabled: false,
+          autoSyncEnabled: false,
+          localFingerprint: '',
+          connectedPeers: [],
+        });
+      }
+      if (command === 'mdns_discover') return Promise.resolve([]);
+      if (command === 'sync_listen_addr') return Promise.resolve('192.0.2.1:42069');
+      throw new Error(`Unexpected command: ${command}`);
+    });
+
+    await useSyncStore.getState().enable(true);
+
+    expect(useSyncStore.getState()).toMatchObject({
+      syncEnabled: false,
+      discoveredDevices: [],
+      listenAddr: '',
+      isDiscoveringDevices: false,
+    });
+    expect(mockInvoke).not.toHaveBeenCalledWith('mdns_discover', expect.anything());
+    expect(mockInvoke).not.toHaveBeenCalledWith('sync_listen_addr');
+  });
+
+  it('retains discovery data when a disable request leaves the backend enabled', async () => {
+    mockInvoke.mockImplementation((command: string) => {
+      if (command === 'sync_enable') return Promise.resolve();
+      if (command === 'sync_get_status') {
+        return Promise.resolve({
+          isDiscovering: false,
+          syncEnabled: true,
+          autoSyncEnabled: false,
+          localFingerprint: '',
+          connectedPeers: [],
+        });
+      }
+      if (command === 'mdns_discover') return Promise.resolve([nearbyDevice]);
+      if (command === 'sync_listen_addr') return Promise.resolve('192.0.2.1:42069');
+      throw new Error(`Unexpected command: ${command}`);
+    });
+
+    await useSyncStore.getState().enable(false);
+
+    expect(useSyncStore.getState().syncEnabled).toBe(true);
+    expect(useSyncStore.getState().discoveredDevices).toEqual([nearbyDevice]);
+    expect(useSyncStore.getState().listenAddr).toBe('192.0.2.1:42069');
+  });
+});

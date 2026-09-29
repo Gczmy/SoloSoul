@@ -298,8 +298,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           request.assertCurrent();
           clearTimeout(timeoutHandle);
           setCurrent({ ...result.status, isLoading: false, error: null });
-          // 启用后自动发现附近设备，同时刷新监听地址用于手动 fallback
-          if (enabled) {
+          // 后续设备发现与清理以实际状态为准，避免请求值和后端状态不一致时误操作。
+          if (result.status.syncEnabled) {
             void get().discoverDevices(5000);
             void get().loadListenAddr();
           } else {
