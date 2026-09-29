@@ -182,10 +182,12 @@ export function useCloudSyncPage() {
   };
 
   const handleTestConnection = async () => {
+    const request = requests.begin('connection-test', accountId);
+    if (!accountId || !request.isCurrent()) return;
     setIsTesting(true);
     setTestResult(null);
     try {
-      await invoke('cloud_sync_test_connection', {
+      await request.invoke('cloud_sync_test_connection', {
         payload: {
           accountId,
           connectorType,
@@ -197,13 +199,16 @@ export function useCloudSyncPage() {
           retention,
         },
       });
+      if (!request.isCurrent()) return;
       setTestResult({ success: true });
       onSuccess(t('settings:cloud_sync_test_success'));
     } catch (e) {
-      setTestResult({ success: false, error: String(e) });
-      onError(new Error(String(e)), t('settings:cloud_sync_test_failed'));
+      if (request.isCurrent()) {
+        setTestResult({ success: false, error: String(e) });
+        onError(new Error(String(e)), t('settings:cloud_sync_test_failed'));
+      }
     } finally {
-      setIsTesting(false);
+      if (request.isCurrent()) setIsTesting(false);
     }
   };
 

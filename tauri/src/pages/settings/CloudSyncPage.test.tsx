@@ -178,6 +178,66 @@ describe('CloudSyncPage 渲染冒烟', () => {
     );
   });
 
+  it('旧账户连接测试完成后不覆盖新账户的结果', async () => {
+    let resolveConnection!: () => void;
+    const originalInvoke = vi.mocked(invoke).getMockImplementation()!;
+    vi.mocked(invoke).mockImplementation((cmd: string, args) => {
+      if (cmd === 'cloud_sync_test_connection')
+        return new Promise<void>((resolve) => {
+          resolveConnection = resolve;
+        });
+      return originalInvoke(cmd, args);
+    });
+    render(
+      <MemoryRouter>
+        <CloudSyncPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'settings:cloud_sync_test' })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'settings:cloud_sync_test' }));
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith('cloud_sync_test_connection', expect.anything()),
+    );
+    act(() => useAuthStore.setState({ currentAccount: { id: 'account-b', name: 'Bob' } }));
+    resolveConnection();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(screen.queryByText('settings:cloud_sync_test_success')).not.toBeInTheDocument();
+  });
+
+  it('旧账户连接测试失败后不覆盖新账户的错误状态', async () => {
+    let rejectConnection!: (error: Error) => void;
+    const originalInvoke = vi.mocked(invoke).getMockImplementation()!;
+    vi.mocked(invoke).mockImplementation((cmd: string, args) => {
+      if (cmd === 'cloud_sync_test_connection')
+        return new Promise<void>((_, reject) => {
+          rejectConnection = reject;
+        });
+      return originalInvoke(cmd, args);
+    });
+    render(
+      <MemoryRouter>
+        <CloudSyncPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'settings:cloud_sync_test' })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'settings:cloud_sync_test' }));
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith('cloud_sync_test_connection', expect.anything()),
+    );
+    act(() => useAuthStore.setState({ currentAccount: { id: 'account-b', name: 'Bob' } }));
+    rejectConnection(new Error('old-account-offline'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(screen.queryByText(/old-account-offline/)).not.toBeInTheDocument();
+  });
+
   it('旧账户迟到的密码验证不能授权新账户保存', async () => {
     let resolveVerification!: (ok: boolean) => void;
     const originalInvoke = vi.mocked(invoke).getMockImplementation()!;
