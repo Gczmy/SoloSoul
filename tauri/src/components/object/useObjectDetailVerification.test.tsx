@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { invokeCommand } from '@/lib/ipcClient';
 import { useObjectDetailVerification } from './useObjectDetailVerification';
@@ -147,3 +147,59 @@ it.each(['content', 'object', 'account', 'lock'] as const)(
     );
   },
 );
+
+it('does not let a previous account restore its biometric choice or password hint', async () => {
+  let resolveOldBio!: (value: {
+    available: boolean;
+    configured: boolean;
+    biometryType: string;
+  }) => void;
+  let resolveOldAccounts!: (value: { id: string; passwordHint: string }[]) => void;
+  const oldBio = new Promise<{ available: boolean; configured: boolean; biometryType: string }>(
+    (resolve) => {
+      resolveOldBio = resolve;
+    },
+  );
+  const oldAccounts = new Promise<{ id: string; passwordHint: string }[]>((resolve) => {
+    resolveOldAccounts = resolve;
+  });
+  let accountListCalls = 0;
+  vi.mocked(invokeCommand).mockImplementation((cmd, args) => {
+    if (cmd === 'biometric_check_availability') {
+      return (
+        (args as { accountId: string }).accountId === 'a'
+          ? oldBio
+          : Promise.resolve({ available: false, configured: false })
+      ) as never;
+    }
+    if (cmd === 'vault_list_accounts') {
+      return (
+        accountListCalls++ === 0
+          ? oldAccounts
+          : Promise.resolve([{ id: 'b', passwordHint: 'B hint' }])
+      ) as never;
+    }
+    return Promise.resolve(undefined) as never;
+  });
+  const { result, rerender } = renderHook(
+    ({ accountId }) => useObjectDetailVerification({ ...options, accountId }),
+    { initialProps: { accountId: 'a' as string | undefined } },
+  );
+  await waitFor(() => expect(accountListCalls).toBe(1));
+
+  rerender({ accountId: 'b' });
+  await waitFor(() => expect(result.current.passwordHint).toBe('B hint'));
+  expect(result.current.bioAvailable.available).toBe(false);
+
+  await act(async () => {
+    resolveOldBio({ available: true, configured: true, biometryType: 'touchId' });
+    resolveOldAccounts([{ id: 'a', passwordHint: 'A hint' }]);
+    await Promise.all([oldBio, oldAccounts]);
+  });
+  expect(result.current.bioAvailable.available).toBe(false);
+  expect(result.current.passwordHint).toBe('B hint');
+
+  rerender({ accountId: undefined });
+  expect(result.current.bioAvailable.available).toBe(false);
+  expect(result.current.passwordHint).toBeNull();
+});

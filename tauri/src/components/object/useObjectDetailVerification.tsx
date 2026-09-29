@@ -62,6 +62,9 @@ export function useObjectDetailVerification({
   const [passwordHint, setPasswordHint] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
+    setBioAvailable({ available: false });
+    setPasswordHint(null);
     if (!accountId) return;
     invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
       'biometric_check_availability',
@@ -69,16 +72,21 @@ export function useObjectDetailVerification({
         accountId: accountId,
       },
     )
-      .then((r) =>
-        setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
-      )
+      .then((r) => {
+        if (active)
+          setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType });
+      })
       .catch((err) => logger.warn('[ObjectDetail] Biometric availability check failed:', err));
     invoke<Array<{ id: string; passwordHint?: string }>>('vault_list_accounts')
       .then((accounts) => {
+        if (!active) return;
         const acc = accounts.find((a) => a.id === accountId);
         setPasswordHint(acc?.passwordHint || null);
       })
       .catch((err) => logger.warn('[ObjectDetail] Load password hint failed:', err));
+    return () => {
+      active = false;
+    };
   }, [accountId]);
 
   const unlockVaultWithPassword = useCallback(
