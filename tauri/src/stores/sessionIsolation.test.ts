@@ -61,7 +61,7 @@ const cases = [
     clear: () => useProfileStore.getState().clear(),
     read: () => useProfileStore.getState().sections,
     value: {
-      accountId: 'acc-a',
+      id: 'acc-a',
       data: Array.from(
         new TextEncoder().encode(JSON.stringify({ sections: [{ type: 'secret-a', fields: [] }] })),
       ),

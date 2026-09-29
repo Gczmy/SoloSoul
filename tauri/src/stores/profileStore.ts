@@ -44,14 +44,12 @@ export const useProfileStore = create<ProfileState>((set) => ({
     const setCurrent = request.guardSet<ProfileState>(set);
     setCurrent({ isLoading: true, error: null });
     try {
-      const profile = await request.invoke<{ accountId: string; data: number[] } | null>(
-        'profile_load',
-        {
-          accountId: accountId,
-        },
-      );
+      const profile = await request.invoke<{ id: string; data: number[] } | null>('profile_load', {
+        accountId: accountId,
+      });
       request.assertCurrent();
       if (profile?.data) {
+        if (profile.id !== accountId) throw new Error('Profile account mismatch');
         const json = JSON.parse(new TextDecoder().decode(new Uint8Array(profile.data)));
         const loadedSections: ProfileSectionData[] = (json.sections || []).map(
           (sec: RawProfileSection) => ({
@@ -64,7 +62,7 @@ export const useProfileStore = create<ProfileState>((set) => ({
             })),
           }),
         );
-        setCurrent({ accountId: profile.accountId, sections: loadedSections, isLoading: false });
+        setCurrent({ accountId: profile.id, sections: loadedSections, isLoading: false });
       } else {
         setCurrent({ accountId, sections: [], isLoading: false });
       }
