@@ -224,6 +224,62 @@ describe('syncStore uiPrefsSync toggle', () => {
   });
 });
 
+describe('syncStore auto-sync toggle state', () => {
+  beforeEach(() => {
+    mockInvoke.mockReset();
+    useSyncStore.setState({ autoSyncEnabled: false, isLoading: false, error: null });
+  });
+
+  it('启用成功后忽略开关前开始的迟到状态读取', async () => {
+    let finishRead!: (enabled: boolean) => void;
+    mockInvoke.mockImplementation((command: string) => {
+      if (command === 'sync_get_auto_status') {
+        return new Promise<boolean>((resolve) => {
+          finishRead = resolve;
+        });
+      }
+      if (command === 'sync_set_auto_enabled') return Promise.resolve(true);
+      throw new Error(`Unexpected command: ${command}`);
+    });
+
+    const oldRead = useSyncStore.getState().loadAutoSyncStatus();
+    await useSyncStore.getState().setAutoSyncEnabled(true);
+    finishRead(false);
+    await oldRead;
+
+    expect(useSyncStore.getState().autoSyncEnabled).toBe(true);
+    expect(useSyncStore.getState().error).toBeNull();
+  });
+
+  it('启用处理中开始的迟到状态读取也不能覆盖成功结果', async () => {
+    let finishRead!: (enabled: boolean) => void;
+    let finishToggle!: (enabled: boolean) => void;
+    mockInvoke.mockImplementation((command: string) => {
+      if (command === 'sync_get_auto_status') {
+        return new Promise<boolean>((resolve) => {
+          finishRead = resolve;
+        });
+      }
+      if (command === 'sync_set_auto_enabled') {
+        return new Promise<boolean>((resolve) => {
+          finishToggle = resolve;
+        });
+      }
+      throw new Error(`Unexpected command: ${command}`);
+    });
+
+    const toggle = useSyncStore.getState().setAutoSyncEnabled(true);
+    const oldRead = useSyncStore.getState().loadAutoSyncStatus();
+    finishToggle(true);
+    await toggle;
+    finishRead(false);
+    await oldRead;
+
+    expect(useSyncStore.getState().autoSyncEnabled).toBe(true);
+    expect(useSyncStore.getState().error).toBeNull();
+  });
+});
+
 describe('syncStore initSyncCompletedListener', () => {
   beforeEach(() => {
     handlers.clear();

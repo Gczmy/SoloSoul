@@ -510,10 +510,14 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     setAutoSyncEnabled: async (enabled) => {
       const request = requests.begin();
       const setCurrent = request.guardSet<SyncStoreState>(set);
+      // 写入开始前的读取不再有权覆盖用户本次操作。
+      requests.invalidate('auto');
       setCurrent({ isLoading: true, error: null });
       try {
         const result = await request.invoke<boolean>('sync_set_auto_enabled', { enabled });
         request.assertCurrent();
+        // 写入期间新发起的读取也可能返回旧状态，成功后再次使其失效。
+        requests.invalidate('auto');
         setCurrent({ autoSyncEnabled: result, isLoading: false });
       } catch (err) {
         if (!request.isCurrent()) return;
