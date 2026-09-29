@@ -43,6 +43,12 @@ describe('useLoginPage account-scoped method selection', () => {
       if (command === 'biometric_check_availability') return { available: false };
       return undefined;
     });
+    vi.mocked(preflightLoginAvailability).mockResolvedValue({
+      bioAvailable: false,
+      bioLockout: false,
+      biometryTypeRaw: 'touchId',
+      pinAvailable: false,
+    });
   });
 
   it('does not display or persist account A’s PIN while B is being probed', async () => {
@@ -86,5 +92,18 @@ describe('useLoginPage account-scoped method selection', () => {
     });
     await waitFor(() => expect(result.current.loginMethod).toBe('password'));
     expect(readCachedLoginMethod('acc-b')).toBe('password');
+  });
+
+  it('selects an existing account when a refreshed list removes the current selection', async () => {
+    const { result } = renderHook(() => useLoginPage(), { wrapper: MemoryRouter });
+    await waitFor(() => expect(result.current.selectedAccountId).toBe('acc-a'));
+
+    act(() => useAuthStore.setState({ accounts: [accounts[1]] }));
+
+    await waitFor(() => expect(result.current.selectedAccountId).toBe('acc-b'));
+    expect(result.current.selectedAccount?.id).toBe('acc-b');
+
+    act(() => useAuthStore.setState({ accounts: [] }));
+    await waitFor(() => expect(result.current.selectedAccountId).toBe(''));
   });
 });

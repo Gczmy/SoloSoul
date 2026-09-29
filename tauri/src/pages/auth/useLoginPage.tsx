@@ -122,18 +122,21 @@ export function useLoginPage() {
     if (isAuthenticated) navigate('/');
   }, [hasAccount, isAuthenticated, navigate]);
 
-  // Auto-select last logged-in account (fall back to first account)
+  // 账户列表可能在恢复或外部目录刷新后变化，选中项必须仍存在于当前列表。
   useEffect(() => {
-    if (accounts.length > 0 && !selectedAccountId) {
-      let lastId = '';
-      try {
-        lastId = localStorage.getItem(LAST_ACCOUNT_KEY) || '';
-      } catch {
-        lastId = '';
-      }
-      const target = accounts.find((a) => a.id === lastId) || accounts[0];
-      setSelectedAccountId(target.id);
+    if (accounts.length === 0) {
+      if (selectedAccountId) setSelectedAccountId('');
+      return;
     }
+    if (accounts.some((account) => account.id === selectedAccountId)) return;
+    let lastId = '';
+    try {
+      lastId = localStorage.getItem(LAST_ACCOUNT_KEY) || '';
+    } catch {
+      lastId = '';
+    }
+    const target = accounts.find((account) => account.id === lastId) || accounts[0];
+    setSelectedAccountId(target.id);
   }, [accounts, selectedAccountId]);
 
   // Priority-based login method selection
