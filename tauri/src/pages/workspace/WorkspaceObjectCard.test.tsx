@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { isAndroidSync } from '@/lib/platform';
 vi.mock('@/lib/platform', async (original) => ({
   ...(await original<typeof import('@/lib/platform')>()),
@@ -8,6 +8,13 @@ vi.mock('@/lib/platform', async (original) => ({
 import { WorkspaceObjectCard } from './WorkspaceObjectCard';
 import type { ObjectSummary } from '@/stores/objectStore';
 import type { UserTemplate } from '@/types/template';
+import { useAuthStore } from '@/stores/authStore';
+import { resolveSemanticNeedsSync } from '@/lib/templateSync';
+
+vi.mock('@/lib/templateSync', async (original) => ({
+  ...(await original<typeof import('@/lib/templateSync')>()),
+  resolveSemanticNeedsSync: vi.fn().mockResolvedValue(true),
+}));
 
 const baseObj: ObjectSummary = {
   id: 'obj-1',
@@ -247,4 +254,74 @@ it('模板字段非法敏感度在 Android 汇总为 internal', () => {
 
   expect(screen.getByTitle('sensitivity_label: internal')).toBeInTheDocument();
   vi.mocked(isAndroidSync).mockReturnValue(false);
+});
+
+it('desktop template update actions target the card object without opening its detail', async () => {
+  vi.mocked(isAndroidSync).mockReturnValue(false);
+  vi.mocked(resolveSemanticNeedsSync).mockResolvedValue(true);
+  useAuthStore.setState({ currentAccount: { id: 'acc-1', name: 'A' } });
+  const onClick = vi.fn();
+  const onSync = vi.fn();
+  const onDismissSync = vi.fn();
+  render(
+    <WorkspaceObjectCard
+      obj={baseObj}
+      collectionLabel="Identity"
+      userTemplates={userTemplates}
+      templateHashMap={new Map([['tpl-1', 'new-hash']])}
+      onClick={onClick}
+      onHistory={vi.fn()}
+      onAttachments={vi.fn()}
+      onEdit={vi.fn()}
+      onDelete={vi.fn()}
+      onSync={onSync}
+      onDismissSync={onDismissSync}
+    />,
+  );
+
+  const hint = await screen.findByText('editor:template_updated_hint');
+  const banner = hint.parentElement as HTMLElement;
+  fireEvent.click(within(banner).getByRole('button', { name: 'common:yes' }));
+  fireEvent.click(within(banner).getByRole('button', { name: 'common:no' }));
+  expect(onSync).toHaveBeenCalledExactlyOnceWith(baseObj);
+  expect(onDismissSync).toHaveBeenCalledExactlyOnceWith(baseObj);
+  expect(onClick).not.toHaveBeenCalled();
+  expect(resolveSemanticNeedsSync).toHaveBeenCalledWith('acc-1', 'obj-1');
+});
+
+it('Android template update actions route through the object menu without opening its detail', async () => {
+  vi.mocked(isAndroidSync).mockReturnValue(true);
+  vi.mocked(resolveSemanticNeedsSync).mockResolvedValue(true);
+  useAuthStore.setState({ currentAccount: { id: 'acc-1', name: 'A' } });
+  const onClick = vi.fn();
+  const onSync = vi.fn();
+  const onDismissSync = vi.fn();
+  render(
+    <WorkspaceObjectCard
+      obj={baseObj}
+      collectionLabel="Identity"
+      userTemplates={userTemplates}
+      templateHashMap={new Map([['tpl-1', 'new-hash']])}
+      onClick={onClick}
+      onHistory={vi.fn()}
+      onAttachments={vi.fn()}
+      onEdit={vi.fn()}
+      onDelete={vi.fn()}
+      onSync={onSync}
+      onDismissSync={onDismissSync}
+    />,
+  );
+
+  await waitFor(() =>
+    expect(screen.getByLabelText('editor:template_updated_hint')).toBeInTheDocument(),
+  );
+  const openActions = () =>
+    fireEvent.click(screen.getByRole('button', { name: 'material.object_actions' }));
+  openActions();
+  fireEvent.click(screen.getByRole('button', { name: 'editor:template_updated_hint' }));
+  openActions();
+  fireEvent.click(screen.getByRole('button', { name: 'material.skip_sync' }));
+  expect(onSync).toHaveBeenCalledExactlyOnceWith(baseObj);
+  expect(onDismissSync).toHaveBeenCalledExactlyOnceWith(baseObj);
+  expect(onClick).not.toHaveBeenCalled();
 });
