@@ -4,6 +4,8 @@ import { MemoryRouter, Navigate, useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { HomePage } from './HomePage';
 import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
+import { useUiStore } from '@/stores/uiStore';
+import type { AttachmentMeta } from '@/components/attachment/attachmentManagerTypes';
 
 vi.mock('@/components/layout/PageShell', () => ({
   PageShell: ({ children, title }: { children: React.ReactNode; title: string }) => (
@@ -26,12 +28,34 @@ vi.mock('@/stores/authStore', () => ({
   useAuthStore: (selector: unknown) => mockUseAuthStore(selector),
 }));
 
-// 隔离 HomePage 的相册打开/关闭状态（PhotoAlbumOverlay 的分层返回守卫另有独立测试）
+// 隔离相册视图边界；首页负责加载、就地更新和系统打开，分层返回守卫另有独立测试。
 vi.mock('@/components/attachment/PhotoAlbumOverlay', () => ({
-  PhotoAlbumOverlay: ({ items, onClose }: { items: unknown[]; onClose: () => void }) => (
+  PhotoAlbumOverlay: ({
+    items,
+    onClose,
+    onOpenExternal,
+    onItemMetaUpdated,
+  }: {
+    items: AttachmentMeta[];
+    onClose: () => void;
+    onOpenExternal: (item: AttachmentMeta) => void;
+    onItemMetaUpdated: (item: AttachmentMeta) => void;
+  }) => (
     <div data-testid="home-album-overlay" data-count={items.length}>
+      {items.map((item) => (
+        <span key={item.id}>{`${item.fileName}:${item.description ?? ''}`}</span>
+      ))}
       <button data-testid="home-album-close" onClick={onClose}>
         close
+      </button>
+      <button
+        data-testid="home-album-update-first"
+        onClick={() => onItemMetaUpdated({ ...items[0], description: 'Updated' })}
+      >
+        update first
+      </button>
+      <button data-testid="home-album-open-second" onClick={() => onOpenExternal(items[1])}>
+        open second
       </button>
     </div>
   ),
@@ -266,5 +290,80 @@ describe('HomePage', () => {
     });
     expect(screen.getByText('Photo Album')).toBeInTheDocument();
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('照片集就地更新指定附件元数据，系统打开传递所选对象与附件', async () => {
+    mockUseAuthStore.mockImplementation(
+      (selector: (s: { currentAccount: { id: string; name: string } | null }) => unknown) =>
+        selector({ currentAccount: { id: 'acc-1', name: 'Gczmy' } }),
+    );
+    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+      if (cmd === 'attachment_count_stats') return { attachmentCount: 2, photoCount: 2 };
+      if (cmd === 'attachment_list_all')
+        return {
+          pages: [
+            {
+              pageId: 'page-1',
+              pageName: 'Page',
+              objects: [
+                {
+                  objectId: 'object-1',
+                  objectName: 'Object',
+                  attachments: [
+                    {
+                      id: 'photo-1',
+                      objectId: 'object-1',
+                      fileName: 'first.png',
+                      mimeType: 'image/png',
+                      sizeBytes: 1,
+                      createdAt: '2026-01-01',
+                    },
+                    {
+                      id: 'photo-2',
+                      objectId: 'object-2',
+                      fileName: 'second.png',
+                      mimeType: 'image/png',
+                      sizeBytes: 1,
+                      createdAt: '2026-01-02',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          trashPages: [],
+        };
+      return undefined;
+    });
+
+    render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByText('Photo Album').closest('[role="button"]') as HTMLElement);
+    expect(await screen.findByText('first.png:')).toBeInTheDocument();
+    expect(screen.getByText('second.png:')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('home-album-update-first'));
+    expect(screen.getByText('first.png:Updated')).toBeInTheDocument();
+    expect(screen.getByText('second.png:')).toBeInTheDocument();
+    expect(screen.getByTestId('home-album-overlay')).toHaveAttribute('data-count', '2');
+
+    fireEvent.click(screen.getByTestId('home-album-open-second'));
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith('attachment_open', {
+        objectId: 'object-2',
+        attachmentId: 'photo-2',
+      }),
+    );
+    expect(navigate).not.toHaveBeenCalled();
+
+    vi.mocked(invoke).mockRejectedValueOnce(new Error('Open failed'));
+    fireEvent.click(screen.getByTestId('home-album-open-second'));
+    await waitFor(() =>
+      expect(useUiStore.getState().toasts.some((toast) => toast.type === 'error')).toBe(true),
+    );
+    for (const toast of useUiStore.getState().toasts) useUiStore.getState().dismissToast(toast.id);
   });
 });
