@@ -765,7 +765,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           // 合并分支刷新（loadStatus/loadConflicts/数据 Store）统一走共享尾，
           // P021 核验补修：删除此处遗留的独立 loadStatus()——refreshAfterInbound
           // 内部已包含，重复调用会多发一次 IPC。
-          refreshAfterInbound(p.conflicts ?? 0, merged.applied, 'merged inbound sync');
+          // 只针对本次事件的写入刷新；累计值包含前一次已刷新的记录。
+          refreshAfterInbound(p.conflicts ?? 0, p.applied, 'merged inbound sync');
           return;
         }
         // 构造与本地同步同形的结果（inbound 标记让同步页通用 toast 跳过，避免双弹）

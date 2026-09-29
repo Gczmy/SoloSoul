@@ -20,6 +20,10 @@ vi.mock('@tauri-apps/api/event', () => ({
 import { useSyncStore, __resetSyncCompletedMergeForTest } from './syncStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
+import { useObjectStore } from '@/stores/objectStore';
+import { useTemplateStore } from '@/stores/templateStore';
+import { useTrashStore } from '@/stores/trashStore';
+import { useProfileStore } from '@/stores/profileStore';
 import type { SyncConflictDetail, SyncConflictSummary } from '@/lib/ipc';
 
 describe('syncStore pairing_pending detection', () => {
@@ -326,6 +330,88 @@ describe('syncStore initSyncCompletedListener', () => {
 
     toastSpy.mockRestore();
     expect(unlisten).toBe(mockUnlisten);
+  });
+
+  it('合并事件只有新增写入时才刷新账户数据 Store', async () => {
+    const originalLoadObjects = useObjectStore.getState().loadObjects;
+    const originalLoadTemplates = useTemplateStore.getState().loadTemplates;
+    const originalLoadItems = useTrashStore.getState().loadItems;
+    const originalLoadProfile = useProfileStore.getState().loadProfile;
+    const loadObjects = vi.fn().mockResolvedValue(undefined);
+    const loadTemplates = vi.fn().mockResolvedValue(undefined);
+    const loadItems = vi.fn().mockResolvedValue(undefined);
+    const loadProfile = vi.fn().mockResolvedValue(undefined);
+    const toastSpy = vi.spyOn(useUiStore.getState(), 'showToast').mockImplementation(() => {});
+    useObjectStore.setState({ loadObjects });
+    useTemplateStore.setState({ loadTemplates });
+    useTrashStore.setState({ loadItems });
+    useProfileStore.setState({ loadProfile });
+    useAuthStore.setState({
+      isAuthenticated: true,
+      currentAccount: { id: 'account-a', name: 'A' },
+    });
+    mockInvoke.mockResolvedValue({
+      isDiscovering: false,
+      syncEnabled: true,
+      autoSyncEnabled: false,
+      localFingerprint: '',
+      connectedPeers: [],
+    });
+
+    try {
+      await useSyncStore.getState().initSyncCompletedListener();
+      const handler = handlers.get('sync-completed')!;
+      handler({
+        payload: {
+          peerNodeId: 'node-A',
+          examined: 2,
+          applied: 2,
+          skipped: 0,
+          conflicts: 0,
+          outboundRecords: 0,
+        },
+      });
+      handler({
+        payload: {
+          peerNodeId: 'node-A',
+          examined: 0,
+          applied: 0,
+          skipped: 0,
+          conflicts: 0,
+          outboundRecords: 1,
+        },
+      });
+
+      expect(loadObjects).toHaveBeenCalledTimes(1);
+      expect(loadObjects).toHaveBeenCalledWith('account-a', undefined);
+      expect(loadTemplates).toHaveBeenCalledTimes(1);
+      expect(loadItems).toHaveBeenCalledTimes(1);
+      expect(loadItems).toHaveBeenCalledWith('account-a');
+      expect(loadProfile).toHaveBeenCalledTimes(1);
+      expect(loadProfile).toHaveBeenCalledWith('account-a');
+
+      handler({
+        payload: {
+          peerNodeId: 'node-A',
+          examined: 1,
+          applied: 1,
+          skipped: 0,
+          conflicts: 0,
+          outboundRecords: 0,
+        },
+      });
+      expect(loadObjects).toHaveBeenCalledTimes(2);
+      expect(loadTemplates).toHaveBeenCalledTimes(2);
+      expect(loadItems).toHaveBeenCalledTimes(2);
+      expect(loadProfile).toHaveBeenCalledTimes(2);
+    } finally {
+      useAuthStore.setState({ isAuthenticated: false, currentAccount: null });
+      useObjectStore.setState({ loadObjects: originalLoadObjects });
+      useTemplateStore.setState({ loadTemplates: originalLoadTemplates });
+      useTrashStore.setState({ loadItems: originalLoadItems });
+      useProfileStore.setState({ loadProfile: originalLoadProfile });
+      toastSpy.mockRestore();
+    }
   });
 
   it('skips toast and history for all-zero exchange (C)', async () => {
