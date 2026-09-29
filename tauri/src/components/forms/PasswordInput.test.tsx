@@ -114,4 +114,53 @@ describe('SecurePasswordInput', () => {
     expect(id2).toBeTruthy();
     expect(id1).not.toBe(id2);
   });
+
+  it('输入获得焦点后可用 Enter 提交，失焦重新隐藏密码', () => {
+    const onFocus = vi.fn();
+    const onEnter = vi.fn();
+    render(
+      <SecurePasswordInput value="secret" onChange={vi.fn()} onFocus={onFocus} onEnter={onEnter} />,
+    );
+    const input = screen.getByPlaceholderText('common:password_placeholder');
+
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onFocus).toHaveBeenCalledOnce();
+    expect(onEnter).toHaveBeenCalledOnce();
+
+    fireEvent.click(screen.getByRole('button', { name: 'common:show_password' }));
+    expect(getTextSecurity(input)).toBe('');
+    fireEvent.blur(input);
+    expect(getTextSecurity(input)).toBe('disc');
+  });
+
+  it('鼠标离开或在提示按钮外按下时关闭提示卡片', async () => {
+    render(<SecurePasswordInput value="" onChange={vi.fn()} hint="My hint" />);
+    const hintButton = screen.getByRole('button', { name: 'common:password_hint_tooltip' });
+
+    fireEvent.mouseEnter(hintButton);
+    expect(screen.getByTestId('password-hint-tooltip')).toHaveTextContent('My hint');
+    fireEvent.mouseLeave(hintButton);
+    expect(screen.queryByTestId('password-hint-tooltip')).not.toBeInTheDocument();
+
+    fireEvent.mouseEnter(hintButton);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fireEvent.mouseDown(hintButton);
+    expect(screen.getByTestId('password-hint-tooltip')).toBeInTheDocument();
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByTestId('password-hint-tooltip')).not.toBeInTheDocument();
+  });
+
+  it('触摸可切换提示卡片，随后的合成鼠标悬停不会重新打开', () => {
+    render(<SecurePasswordInput value="" onChange={vi.fn()} hint="Touch hint" />);
+    const hintButton = screen.getByRole('button', { name: 'common:password_hint_tooltip' });
+
+    fireEvent.touchStart(hintButton);
+    expect(screen.getByTestId('password-hint-tooltip')).toHaveTextContent('Touch hint');
+    fireEvent.touchStart(hintButton);
+    expect(screen.queryByTestId('password-hint-tooltip')).not.toBeInTheDocument();
+
+    fireEvent.mouseEnter(hintButton);
+    expect(screen.queryByTestId('password-hint-tooltip')).not.toBeInTheDocument();
+  });
 });
