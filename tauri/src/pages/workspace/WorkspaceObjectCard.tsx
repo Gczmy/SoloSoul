@@ -5,6 +5,7 @@ import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { Clock, Paperclip, Pencil, Trash2 } from 'lucide-react';
 import { getSensitivityStyle, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { MASK_PLACEHOLDER, shouldMaskSensitivity } from '@/lib/masking';
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import type { ObjectSummary, ObjectData } from '@/stores/objectStore';
 import type { UserTemplate } from '@/types/template';
@@ -121,12 +122,11 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
     | Record<string, { name: string; type: string; options?: string[]; contractField?: boolean }>
     | undefined;
   const getFieldSensitivity = (fieldKey: string): SensitivityLevel => {
-    // 1. 对象自有 propertyLabels（即使模板被删除也保留敏感度）
-    if (objLabels?.[fieldKey]) {
-      return objLabels[fieldKey] as SensitivityLevel;
-    }
-    // 2. 回退到模板定义
-    return (getFieldProperty(fieldKey)?.sensitivityLevel as SensitivityLevel) || 'internal';
+    return resolveFieldSensitivity({
+      fieldId: fieldKey,
+      propertyLabels: objLabels,
+      template: getFieldProperty(fieldKey),
+    });
   };
   const isFieldDeprecated = (fieldKey: string): boolean =>
     !!getFieldProperty(fieldKey)?.deprecatedAt;

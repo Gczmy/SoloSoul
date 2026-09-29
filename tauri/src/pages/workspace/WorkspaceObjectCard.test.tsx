@@ -198,3 +198,53 @@ it('Android footer shows template and all icon-only field levels, including summ
   }
   vi.mocked(isAndroidSync).mockReturnValue(false);
 });
+
+it('对象字段非法敏感度在 Android 汇总为 internal，合法 critical 不降级', () => {
+  vi.mocked(isAndroidSync).mockReturnValue(true);
+  const { container } = render(
+    <WorkspaceObjectCard
+      obj={{
+        ...baseObj,
+        properties: { username: 'alice', secret: '123' },
+        propertyLabels: { username: 'unknown', secret: 'critical' },
+      }}
+      collectionLabel="Identity"
+      userTemplates={userTemplates}
+      onClick={vi.fn()}
+      onHistory={vi.fn()}
+      onAttachments={vi.fn()}
+      onEdit={vi.fn()}
+      onDelete={vi.fn()}
+    />,
+  );
+
+  const badges = container.querySelectorAll('.android-row-meta [title]');
+  expect(badges).toHaveLength(2);
+  expect(screen.getByTitle('sensitivity_label: internal')).toBeInTheDocument();
+  expect(screen.getByTitle('sensitivity_label: critical')).toBeInTheDocument();
+  expect(screen.queryByTitle('sensitivity_label: unknown')).not.toBeInTheDocument();
+  vi.mocked(isAndroidSync).mockReturnValue(false);
+});
+
+it('模板字段非法敏感度在 Android 汇总为 internal', () => {
+  vi.mocked(isAndroidSync).mockReturnValue(true);
+  const storedTemplate = {
+    ...userTemplates[0],
+    properties: [{ id: 'username', name: 'Username', type: 'text', sensitivityLevel: 'unknown' }],
+  } as unknown as UserTemplate;
+  render(
+    <WorkspaceObjectCard
+      obj={baseObj}
+      collectionLabel="Identity"
+      userTemplates={[storedTemplate]}
+      onClick={vi.fn()}
+      onHistory={vi.fn()}
+      onAttachments={vi.fn()}
+      onEdit={vi.fn()}
+      onDelete={vi.fn()}
+    />,
+  );
+
+  expect(screen.getByTitle('sensitivity_label: internal')).toBeInTheDocument();
+  vi.mocked(isAndroidSync).mockReturnValue(false);
+});
