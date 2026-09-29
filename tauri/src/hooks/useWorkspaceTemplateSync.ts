@@ -48,6 +48,7 @@ export function useWorkspaceTemplateSync({
 }: UseWorkspaceTemplateSyncOptions) {
   // 模板指纹映射：仅在模板列表变化时异步计算一次，避免切换页面时批量重算导致闪烁。
   const [templateHashMap, setTemplateHashMap] = useState<Map<string, string>>(new Map());
+  const templateHashVersion = useRef(0);
 
   // 模板同步确认弹窗状态
   const [syncDialog, setSyncDialog] = useState<{
@@ -122,6 +123,7 @@ export function useWorkspaceTemplateSync({
 
   // 仅在模板列表变化时计算指纹映射，页面切换时复用，避免同步提示条闪烁。
   useEffect(() => {
+    const version = ++templateHashVersion.current;
     if (!accountId || userTemplates.length === 0) {
       setTemplateHashMap(new Map());
       return;
@@ -129,28 +131,34 @@ export function useWorkspaceTemplateSync({
     let cancelled = false;
     invoke<Record<string, string>>('template_hash_map', { accountId: accountId })
       .then((map) => {
-        if (cancelled) return;
+        if (cancelled || version !== templateHashVersion.current) return;
         setTemplateHashMap(new Map(Object.entries(map)));
       })
       .catch((err) => {
+        if (cancelled || version !== templateHashVersion.current) return;
         logger.warn('[Workspace] Load template hash map failed:', err);
-        if (!cancelled) setTemplateHashMap(new Map());
+        setTemplateHashMap(new Map());
       });
     return () => {
       cancelled = true;
+      templateHashVersion.current += 1;
     };
   }, [accountId, userTemplates]);
 
   // 同步/忽略模板后主动刷新指纹映射，防止模板列表 state 未变化导致提示条继续显示。
   const refreshTemplateHashMap = useCallback(async () => {
     if (!accountId) return;
+    const version = ++templateHashVersion.current;
     try {
       const map = await invoke<Record<string, string>>('template_hash_map', {
         accountId: accountId,
       });
+      if (version !== templateHashVersion.current) return;
       setTemplateHashMap(new Map(Object.entries(map)));
     } catch (err) {
-      logger.warn('[Workspace] Refresh template hash map failed:', err);
+      if (version === templateHashVersion.current) {
+        logger.warn('[Workspace] Refresh template hash map failed:', err);
+      }
     }
   }, [accountId]);
 

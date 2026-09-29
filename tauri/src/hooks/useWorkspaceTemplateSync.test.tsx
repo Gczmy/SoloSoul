@@ -1,7 +1,15 @@
-import { act, renderHook } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { TemplateSyncResult } from '@/lib/templateSync';
+import type { UserTemplate } from '@/types/template';
 import { useWorkspaceTemplateSync } from './useWorkspaceTemplateSync';
+
+const mocks = vi.hoisted(() => ({ invoke: vi.fn() }));
+vi.mock('@/lib/ipcClient', () => ({ invokeCommand: mocks.invoke }));
+
+beforeEach(() => {
+  mocks.invoke.mockReset().mockResolvedValue({});
+});
 
 function preview(templateHash: string, hasChanges: boolean): TemplateSyncResult {
   return {
@@ -249,4 +257,41 @@ describe('RF-922 template sync apply ownership', () => {
     expect(result.current.syncDialog?.objectId).toBe('object-b');
     expect(loadObjects).not.toHaveBeenCalled();
   });
+});
+
+it('keeps a refreshed template hash map when the initial load finishes later', async () => {
+  const initial = deferred<Record<string, string>>();
+  const refreshed = deferred<Record<string, string>>();
+  mocks.invoke.mockReturnValueOnce(initial.promise).mockReturnValueOnce(refreshed.promise);
+  const options = {
+    accountId: 'account',
+    pageId: undefined,
+    sectionFilter: '',
+    detailObj: null,
+    setDetailObj: vi.fn(),
+    userTemplates: [{ id: 'template-a' } as UserTemplate],
+    loadObjects: vi.fn().mockResolvedValue(undefined),
+    previewSyncTemplate: vi.fn().mockResolvedValue(preview('hash-new', false)),
+    applySyncTemplate: vi.fn().mockResolvedValue(undefined),
+    ignoreTemplateSync: vi.fn().mockResolvedValue(undefined),
+  };
+  const { result } = renderHook(() => useWorkspaceTemplateSync(options));
+  await waitFor(() => expect(mocks.invoke).toHaveBeenCalledTimes(1));
+
+  let sync!: Promise<void>;
+  act(() => {
+    sync = result.current.handleStartSync('object-a', 'A');
+  });
+  await waitFor(() => expect(mocks.invoke).toHaveBeenCalledTimes(2));
+  await act(async () => {
+    refreshed.resolve({ 'template-a': 'hash-new' });
+    await sync;
+  });
+  expect(result.current.templateHashMap.get('template-a')).toBe('hash-new');
+
+  await act(async () => {
+    initial.resolve({ 'template-a': 'hash-old' });
+    await initial.promise;
+  });
+  expect(result.current.templateHashMap.get('template-a')).toBe('hash-new');
 });
