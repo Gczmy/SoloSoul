@@ -186,23 +186,5 @@ function AttachmentPageCardBase({
   );
 }
 
-/**
- * P217：memo 化——比较器只比较数据 props（page/pageKey/isExpanded/showTrash/selectedIds/
- * expandedObjects），忽略全部回调身份。对象展开/选中态作为数据集合透传，变化时
- * 精确触发对应层级重渲染；回调持旧引用无害（显式参数 + 函数式 setState）。
- */
-function attachmentPageCardPropsEqual(
-  prev: AttachmentPageCardProps,
-  next: AttachmentPageCardProps,
-): boolean {
-  return (
-    prev.page === next.page &&
-    prev.pageKey === next.pageKey &&
-    prev.isExpanded === next.isExpanded &&
-    prev.showTrash === next.showTrash &&
-    prev.selectedIds === next.selectedIds &&
-    prev.expandedObjects === next.expandedObjects
-  );
-}
-
-export const AttachmentPageCard = memo(AttachmentPageCardBase, attachmentPageCardPropsEqual);
+/** 默认浅比较同时追踪回调，避免页面卡片阻断新的对象和附件操作。 */
+export const AttachmentPageCard = memo(AttachmentPageCardBase);

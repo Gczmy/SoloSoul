@@ -221,24 +221,5 @@ function AttachmentObjectGroupBase({
   );
 }
 
-/**
- * P217：memo 化——比较器只比较数据 props（obj/isExpanded/showTrash/selectedIds），
- * 忽略全部回调身份。selectedIds 作为数据透传，选中态变化精确触发对应层级重渲染；
- * 回调持旧引用无害（显式参数 + 函数式 setState）。
- */
-function attachmentObjectGroupPropsEqual(
-  prev: AttachmentObjectGroupProps,
-  next: AttachmentObjectGroupProps,
-): boolean {
-  return (
-    prev.obj === next.obj &&
-    prev.isExpanded === next.isExpanded &&
-    prev.showTrash === next.showTrash &&
-    prev.selectedIds === next.selectedIds
-  );
-}
-
-export const AttachmentObjectGroup = memo(
-  AttachmentObjectGroupBase,
-  attachmentObjectGroupPropsEqual,
-);
+/** 默认浅比较同时追踪回调，确保展开分组向附件行传递最新操作。 */
+export const AttachmentObjectGroup = memo(AttachmentObjectGroupBase);
