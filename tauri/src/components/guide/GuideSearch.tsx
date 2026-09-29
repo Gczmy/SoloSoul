@@ -188,9 +188,11 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
   const [results, setResults] = useState<GuideContent[] | null>(null);
   const [loading, setLoading] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const requestVersionRef = useRef(0);
 
   useEffect(() => {
     return () => {
+      requestVersionRef.current += 1;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
@@ -199,8 +201,10 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
 
   const doSearch = useCallback(
     async (q: string) => {
+      const requestVersion = ++requestVersionRef.current;
       if (!q.trim()) {
         setResults(null);
+        setLoading(false);
         return;
       }
 
@@ -208,28 +212,33 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
       const cached = guideSearchCache.get(cacheKey);
       if (cached && Date.now() - cached.timestamp < GUIDE_SEARCH_CACHE_TTL) {
         setResults(cached.data);
+        setLoading(false);
         return;
       }
 
       setLoading(true);
       try {
         const res = await onSearch(q.trim());
-        guideSearchCache.set(cacheKey, { data: res, timestamp: Date.now() });
-        setResults(res);
+        if (requestVersion === requestVersionRef.current) {
+          guideSearchCache.set(cacheKey, { data: res, timestamp: Date.now() });
+          setResults(res);
+        }
       } catch {
-        setResults([]);
+        if (requestVersion === requestVersionRef.current) setResults([]);
       } finally {
-        setLoading(false);
+        if (requestVersion === requestVersionRef.current) setLoading(false);
       }
     },
     [onSearch],
   );
 
   const handleChange = (val: string) => {
+    requestVersionRef.current += 1;
     setQuery(val);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setResults(null);
+    setLoading(false);
     if (!val.trim()) {
-      setResults(null);
       return;
     }
     timeoutRef.current = setTimeout(() => doSearch(val), DEBOUNCE_DELAY_MS);
@@ -242,8 +251,11 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
         value={query}
         onChange={(e) => handleChange(e.target.value)}
         onClear={() => {
+          requestVersionRef.current += 1;
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
           setQuery('');
           setResults(null);
+          setLoading(false);
         }}
         prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
       />
