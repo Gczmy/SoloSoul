@@ -202,6 +202,101 @@ describe('RF-918 ordinary import attachment selection', () => {
   );
 });
 
+describe('导入树的对象、页面与附件选择联动', () => {
+  it('取消单个对象后页面变为部分选择且排除其附件，再点击页面可重新全选', async () => {
+    const preview: DecryptedImportPreview = {
+      objects: [
+        {
+          id: 'object-1',
+          name: 'First',
+          typeId: 'note',
+          sectionType: 'notes',
+          sensitivityLevel: 'public',
+          createdAt: '2026-09-28T00:00:00Z',
+          updatedAt: '2026-09-28T00:00:00Z',
+          tags: [],
+        },
+        {
+          id: 'object-2',
+          name: 'Second',
+          typeId: 'note',
+          sectionType: 'notes',
+          sensitivityLevel: 'public',
+          createdAt: '2026-09-28T00:00:00Z',
+          updatedAt: '2026-09-28T00:00:00Z',
+          tags: [],
+        },
+      ],
+      conflicts: [],
+      hasPreferences: false,
+      hasAuditLog: false,
+      attachments: [
+        { id: 'attachment-1', objectId: 'object-1', fileName: 'one.txt', sizeBytes: 1 },
+        { id: 'attachment-2', objectId: 'object-2', fileName: 'two.txt', sizeBytes: 2 },
+      ],
+    };
+    mocks.invoke.mockImplementation(async (command: string) => {
+      if (command === 'import_decrypt_preview') return preview;
+      throw new Error('Unexpected IPC: ' + command);
+    });
+    const { result } = renderHook(() =>
+      useImportState({
+        accountId: 'account',
+        onError: mocks.onError,
+        onSuccess: mocks.onSuccess,
+        t: i18n.t.bind(i18n),
+        i18n,
+        reloadScope: vi.fn(),
+      }),
+    );
+    act(() => {
+      result.current.onSetImportPath('C:/fixture.solosoul');
+      result.current.setImportPw('export-password');
+    });
+    await act(async () => {
+      await result.current.onDecrypt();
+    });
+    expect(result.current.importSelectedPageIds).toEqual(new Set(['notes']));
+    expect(result.current.importSelectedAttachmentIds).toEqual(
+      new Set(['attachment-1', 'attachment-2']),
+    );
+
+    act(() => result.current.onToggleSelection('object-1'));
+    expect(result.current.importSelections).toEqual(
+      new Map([
+        ['object-1', false],
+        ['object-2', true],
+      ]),
+    );
+    expect(result.current.importSelectedPageIds).toEqual(new Set());
+    expect(result.current.importSelectedAttachmentIds).toEqual(new Set(['attachment-2']));
+
+    act(() => result.current.onToggleImportPage('notes', ['object-1', 'object-2']));
+    expect(result.current.importSelections).toEqual(
+      new Map([
+        ['object-1', true],
+        ['object-2', true],
+      ]),
+    );
+    expect(result.current.importSelectedPageIds).toEqual(new Set(['notes']));
+    expect(result.current.importSelectedAttachmentIds).toEqual(
+      new Set(['attachment-1', 'attachment-2']),
+    );
+
+    act(() => result.current.onSelectAllImport(false));
+    expect(result.current.importTotalSelected).toBe(0);
+    expect(result.current.importSelectedPageIds).toEqual(new Set());
+    expect(result.current.importSelectedAttachmentIds).toEqual(new Set());
+
+    act(() => result.current.onSelectAllImport(true));
+    expect(result.current.importTotalSelected).toBe(2);
+    expect(result.current.importSelectedPageIds).toEqual(new Set(['notes']));
+    expect(result.current.importSelectedAttachmentIds).toEqual(
+      new Set(['attachment-1', 'attachment-2']),
+    );
+  });
+});
+
 describe('RF-919 import preview source ownership', () => {
   const manifest = (filePath: string): ImportPreview => ({
     filePath,

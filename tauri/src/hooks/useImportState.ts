@@ -42,10 +42,23 @@ export function useImportState({
   const [importStrategy, setImportStrategy] = useState<ImportStrategy>('skipExisting');
   const [importSelections, setImportSelections] = useState<Map<string, boolean>>(new Map());
   const [showStrategySelector, setShowStrategySelector] = useState(false);
-  const [importSelectedPageIds, setImportSelectedPageIds] = useState<Set<string>>(new Set());
   const [importSelectedAttachmentIds, setImportSelectedAttachmentIds] = useState<Set<string>>(
     new Set(),
   );
+  const importSelectedPageIds = useMemo(() => {
+    const groupedIds = new Map<string, string[]>();
+    for (const obj of decryptedPreview?.objects ?? []) {
+      const sectionType = obj.sectionType || 'uncategorized';
+      const ids = groupedIds.get(sectionType) ?? [];
+      ids.push(obj.id);
+      groupedIds.set(sectionType, ids);
+    }
+    const selected = new Set<string>();
+    for (const [sectionType, ids] of groupedIds) {
+      if (ids.every((id) => importSelections.get(id) === true)) selected.add(sectionType);
+    }
+    return selected;
+  }, [decryptedPreview, importSelections]);
   const [importExpandedPages, setImportExpandedPages] = useState<Set<string>>(new Set());
   const [importExpandedObjects, setImportExpandedObjects] = useState<Set<string>>(new Set());
   const [objectConflictStrategies, setObjectConflictStrategies] = useState<
@@ -64,7 +77,6 @@ export function useImportState({
   const clearDecryptedState = useCallback(() => {
     setDecryptedPreview(null);
     setImportSelections(new Map());
-    setImportSelectedPageIds(new Set());
     setImportSelectedAttachmentIds(new Set());
     setImportExpandedPages(new Set());
     setImportExpandedObjects(new Set());
@@ -134,15 +146,8 @@ export function useImportState({
       const attIds = new Set(preview.attachments.map((a) => a.id));
       setImportSelectedAttachmentIds(attIds);
 
-      // 按 section_type 构建页面全选集合
-      const pageIds = new Set<string>();
-      for (const obj of preview.objects) {
-        const st = obj.sectionType || 'uncategorized';
-        pageIds.add(st);
-      }
       // 重置冲突策略
       setObjectConflictStrategies(new Map());
-      setImportSelectedPageIds(pageIds);
     } catch (e) {
       if (isCurrent()) {
         onError(new Error(resolveBackendErrorMessage(e)), t('common:decrypt_failed'));
@@ -228,25 +233,28 @@ export function useImportState({
       const next = new Map(prev);
       const newVal = !next.get(id);
       next.set(id, newVal);
+      if (decryptedPreview) {
+        const attachmentIds = decryptedPreview.attachments
+          .filter((attachment) => attachment.objectId === id)
+          .map((attachment) => attachment.id);
+        setImportSelectedAttachmentIds((selected) => {
+          const updated = new Set(selected);
+          for (const attachmentId of attachmentIds) {
+            if (newVal) updated.add(attachmentId);
+            else updated.delete(attachmentId);
+          }
+          return updated;
+        });
+      }
       return next;
     });
   };
 
   const toggleImportPage = (sectionType: string, objectIds: string[]) => {
-    setImportSelectedPageIds((prev) => {
-      const next = new Set(prev);
-      const currentlyChecked = next.has(sectionType);
-      if (currentlyChecked) {
-        next.delete(sectionType);
-      } else {
-        next.add(sectionType);
-      }
-      return next;
-    });
+    const currentlyChecked = importSelectedPageIds.has(sectionType);
     // 同步切换该页面下所有对象的选择状态
     setImportSelections((prev) => {
       const next = new Map(prev);
-      const currentlyChecked = importSelectedPageIds.has(sectionType);
       for (const id of objectIds) {
         next.set(id, !currentlyChecked);
       }
@@ -259,7 +267,6 @@ export function useImportState({
         .map((a) => a.id);
       setImportSelectedAttachmentIds((prev) => {
         const next = new Set(prev);
-        const currentlyChecked = importSelectedPageIds.has(sectionType);
         for (const attId of pageAttIds) {
           if (currentlyChecked) {
             next.delete(attId);
@@ -329,14 +336,8 @@ export function useImportState({
       if (selectAll) {
         const attIds = new Set(decryptedPreview.attachments.map((a) => a.id));
         setImportSelectedAttachmentIds(attIds);
-        const pageIds = new Set<string>();
-        for (const obj of decryptedPreview.objects) {
-          pageIds.add(obj.sectionType || 'uncategorized');
-        }
-        setImportSelectedPageIds(pageIds);
       } else {
         setImportSelectedAttachmentIds(new Set());
-        setImportSelectedPageIds(new Set());
       }
     },
     [decryptedPreview],
