@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { isSafeExternalUrl, resolveGuideIdFromHref, GuideRenderer } from './GuideRenderer';
 
 describe('resolveGuideIdFromHref', () => {
@@ -71,5 +71,66 @@ describe('isSafeExternalUrl (P229)', () => {
   it('拒绝空串与空白串', () => {
     expect(isSafeExternalUrl('')).toBe(false);
     expect(isSafeExternalUrl('   ')).toBe(false);
+  });
+});
+
+describe('RF-1025 guide document interactions', () => {
+  it('renders custom guide sections and ignores malformed card rows', () => {
+    const onLinkClick = vi.fn();
+    render(
+      <GuideRenderer
+        onLinkClick={onLinkClick}
+        content={[
+          'Before the steps.',
+          '<!--stepper Setup-->**First step**<!--/stepper-->',
+          '<!--tip-->Tip content<!--/tip-->',
+          '<!--info-->Info content<!--/info-->',
+          '<!--warning-->Warning content<!--/warning-->',
+          '<!--cards-->',
+          'This row is not a card',
+          '- [Backup](backup.md) — Save a copy',
+          '- [Broken](broken.md)',
+          '- [Restore](restore.md): Recover a copy',
+          '<!--/cards-->',
+          'After the cards.',
+        ].join('\n\n')}
+      />,
+    );
+
+    expect(screen.getByText('Before the steps.')).toBeInTheDocument();
+    expect(screen.getByText('Setup')).toBeInTheDocument();
+    expect(screen.getByText('First step')).toBeInTheDocument();
+    expect(screen.getByText('Tip content')).toBeInTheDocument();
+    expect(screen.getByText('Info content')).toBeInTheDocument();
+    expect(screen.getByText('Warning content')).toBeInTheDocument();
+    expect(screen.getByText('After the cards.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Broken/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Backup/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Restore/ }));
+    expect(onLinkClick.mock.calls).toEqual([['backup.md'], ['restore.md']]);
+  });
+
+  it('routes Markdown guide links inside the app and keeps unsafe links non-clickable', () => {
+    const onLinkClick = vi.fn();
+    render(
+      <GuideRenderer
+        onLinkClick={onLinkClick}
+        content={[
+          '[Local guide](guides/privacy.md)',
+          '[Website](https://example.com/help)',
+          '[Unsafe](javascript:alert(1))',
+          '| Item | Value |\n| --- | --- |\n| Account | Local |',
+        ].join('\n\n')}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Local guide' }));
+    expect(onLinkClick).toHaveBeenCalledWith('guides/privacy.md');
+    expect(screen.getByRole('link', { name: 'Website' })).toHaveAttribute(
+      'href',
+      'https://example.com/help',
+    );
+    expect(screen.queryByRole('link', { name: 'Unsafe' })).not.toBeInTheDocument();
+    expect(screen.getByRole('table')).toHaveTextContent('Account');
   });
 });
