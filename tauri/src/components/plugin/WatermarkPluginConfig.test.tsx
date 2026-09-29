@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useAuthStore } from '@/stores/authStore';
 import { WatermarkPluginConfig } from './WatermarkPluginConfig';
 
+const dialogMocks = vi.hoisted(() => ({ openWithPause: vi.fn() }));
+
 vi.mock('@tauri-apps/api/path', () => ({ downloadDir: async () => 'test-output' }));
+vi.mock('@/lib/dialog', () => ({ openWithPause: dialogMocks.openWithPause }));
 vi.mock('@/lib/ipcClient', () => ({
   invokeCommand: async () =>
     JSON.stringify({
@@ -33,6 +36,8 @@ vi.mock('@/hooks/useAttachmentPageSort', () => ({
 }));
 
 beforeEach(() => {
+  vi.clearAllMocks();
+  dialogMocks.openWithPause.mockResolvedValue(null);
   useAuthStore.setState({
     isAuthenticated: true,
     currentAccount: { id: 'account-a', name: 'Alice' },
@@ -74,5 +79,51 @@ describe('WatermarkPluginConfig 原生 label', () => {
     expect(checkbox).not.toBeChecked();
     expect(onParamsChange).toHaveBeenCalledTimes(2);
     expect(JSON.parse(onParamsChange.mock.lastCall![0].selectedAttachments)).toEqual([]);
+  });
+});
+
+describe('RF-1024 watermark run parameters', () => {
+  it('sends edited watermark options and chosen output directory to the plugin runner', async () => {
+    const onParamsChange = await setup();
+    dialogMocks.openWithPause.mockResolvedValueOnce('C:/Exports');
+
+    fireEvent.change(screen.getByLabelText('水印文本'), { target: { value: 'Confidential' } });
+    fireEvent.change(screen.getByLabelText('字号'), { target: { value: '96' } });
+    const opacityInput = screen.getByText('透明度').closest('label')?.querySelector('input');
+    expect(opacityInput).not.toBeNull();
+    fireEvent.change(opacityInput as HTMLInputElement, { target: { value: '0.65' } });
+    fireEvent.change(screen.getByLabelText('旋转角度'), { target: { value: '30' } });
+    const colorInputs = screen
+      .getByText('颜色 (R,G,B)')
+      .closest('label')
+      ?.querySelectorAll('input');
+    expect(colorInputs).toHaveLength(3);
+    fireEvent.change(colorInputs![0], { target: { value: '12' } });
+    fireEvent.change(colorInputs![1], { target: { value: '34' } });
+    fireEvent.change(colorInputs![2], { target: { value: '56' } });
+    fireEvent.change(screen.getByLabelText('位置'), { target: { value: 'bottomRight' } });
+    fireEvent.click(screen.getByLabelText('平铺水印'));
+    fireEvent.click(screen.getByTitle('更改输出目录'));
+
+    await waitFor(() => expect(onParamsChange.mock.lastCall?.[0].outputDir).toBe('C:/Exports'));
+    expect(dialogMocks.openWithPause).toHaveBeenCalledWith({ directory: true });
+    expect(JSON.parse(onParamsChange.mock.lastCall![0].watermarkConfig)).toMatchObject({
+      text: 'Confidential',
+      fontSize: 96,
+      color: [12, 34, 56],
+      opacity: 0.65,
+      angle: 30,
+      position: 'bottomRight',
+      tile: true,
+    });
+    expect(onParamsChange.mock.lastCall![0].selectedAttachments).toBe('[]');
+  });
+
+  it('keeps the current output directory when the picker is cancelled', async () => {
+    const onParamsChange = await setup();
+    fireEvent.click(screen.getByTitle('更改输出目录'));
+    await waitFor(() => expect(dialogMocks.openWithPause).toHaveBeenCalledOnce());
+    expect(onParamsChange).not.toHaveBeenCalled();
+    expect(screen.getByText('test-output')).toBeInTheDocument();
   });
 });
