@@ -177,18 +177,5 @@ function AttachmentRowBase({
   );
 }
 
-/**
- * P217：memo 化——比较器只比较数据 props（item/objectId/showTrash/isChecked），
- * 忽略全部回调身份。安全性依据：回调要么接收显式参数（item/objectId），
- * 要么使用函数式 setState，持旧引用无害。
- */
-function attachmentRowPropsEqual(prev: AttachmentRowProps, next: AttachmentRowProps): boolean {
-  return (
-    prev.item === next.item &&
-    prev.objectId === next.objectId &&
-    prev.showTrash === next.showTrash &&
-    prev.isChecked === next.isChecked
-  );
-}
-
-export const AttachmentRow = memo(AttachmentRowBase, attachmentRowPropsEqual);
+/** 保留 memo；默认浅比较同时追踪操作回调，避免复用旧闭包。 */
+export const AttachmentRow = memo(AttachmentRowBase);

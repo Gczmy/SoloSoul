@@ -59,6 +59,41 @@ function setupRow(props: Partial<Parameters<typeof AttachmentRow>[0]> = {}) {
 }
 
 describe('AttachmentRow', () => {
+  it('uses the latest action callback when only the callback changes', () => {
+    const oldPreview = vi.fn();
+    const newPreview = vi.fn();
+    const handlers = {
+      onToggleSelect: vi.fn(),
+      onDownload: vi.fn(),
+      onShare: vi.fn(),
+      onSoftDelete: vi.fn(),
+      onRestore: vi.fn(),
+      onPermanentDelete: vi.fn(),
+    };
+    const renderRow = (onPreview: typeof oldPreview, onEditMeta?: () => void) => (
+      <AttachmentRow
+        item={item}
+        objectId="obj_1"
+        showTrash={false}
+        isChecked={false}
+        {...handlers}
+        onPreview={onPreview}
+        onEditMeta={onEditMeta}
+      />
+    );
+
+    const { rerender } = render(renderRow(oldPreview));
+    rerender(renderRow(newPreview));
+    fireEvent.click(screen.getByTitle('common:preview'));
+    expect(newPreview).toHaveBeenCalledWith(item);
+    expect(oldPreview).not.toHaveBeenCalled();
+
+    const onEditMeta = vi.fn();
+    rerender(renderRow(newPreview, onEditMeta));
+    fireEvent.click(screen.getByTitle('Edit Attachment Attributes'));
+    expect(onEditMeta).toHaveBeenCalledWith(item, 'obj_1');
+  });
+
   it('renders file name and meta info', () => {
     setupRow();
     expect(screen.getByText('report.pdf')).toBeInTheDocument();
