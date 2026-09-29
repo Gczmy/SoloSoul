@@ -1,6 +1,6 @@
 # PIN 解锁安全规范（PIN Security Spec）
 
-> 最后更新：2026-08-16
+> 最后更新：2026-09-29
 > 关联修复：P022（PIN 凭证离线爆破强度——设计权衡登记 + 最小位数加固）
 
 ## 1. 设计目标
@@ -16,6 +16,8 @@ PIN 提供**便捷解锁**：用户输入 4-8 位数字即可解锁 Vault，无�
 | 加密 | AES-256-GCM，KEK = KDF(PIN, salt)，密文为 32 字节会话密钥副本 |
 | 位数 | 6~8 位纯数字（P022 加固：最小 4→6；前端 `PinSection.PIN_LENGTH` 固定 6 位） |
 | 在线锁定 | 连续 5 次错误 → 锁定 30s；10 次 → 5 分钟；之后每次 +5 分钟；强因子（主密码/生物识别）解锁成功可 `reset_attempts` |
+
+从已有外部目录登录时，旧安装留下的 PIN/生物识别启用标志与实际凭证可能不一致。`reset_security_flags` 会关闭标志并删除 `pin_credential` 等凭证文件，因此仅在主密码成功解锁该账户后调用；Core 再以当前已解锁账户的会话门闩校验并执行。密码失败、Vault 锁定或请求其他账户时不得改写配置或删除凭证。
 
 ## 3. 强度模型（P022 登记）
 
@@ -59,9 +61,11 @@ PIN 提供**便捷解锁**：用户输入 4-8 位数字即可解锁 Vault，无�
 - `test_validate_pin_min_length_six`：4/5 位拒绝，6/8 位通过（P022）。
 - `test_validate_pin_too_short` / `too_long` / `non_digit` / `ok`：边界全覆盖。
 - `test_pin_setup_and_unlock` / `wrong_pin_increments_attempts` / `lockout` / `disable` / `not_configured` / `compute_lockout_seconds`：功能与锁定逻辑回归。
+- `reset_security_flags_requires_current_unlocked_account`：锁定态和错账户调用保持配置/凭证原样，当前账户解锁后可重置（RF-959）。
 
 ## 6. 变更登记
 
 | 日期 | 变更 | 关联 |
 |------|------|------|
 | 2026-08-16 | 首次登记：PIN 强度模型 + 最小位数 4→6 加固 | P022 |
+| 2026-09-29 | 旧目录凭证清理要求主密码成功且当前账户会话有效 | RF-959 |

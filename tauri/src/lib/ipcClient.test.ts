@@ -61,6 +61,24 @@ describe('invokeCommand（统一 IPC 调用层）', () => {
     }
   });
 
+  it('RF-959 安全凭证重置不在预登录豁免名单中', async () => {
+    vi.stubEnv('MODE', 'development');
+    try {
+      await expect(
+        invokeCommand<void>('reset_security_flags', { accountId: 'acc-a' }),
+      ).rejects.toThrow('No account is currently unlocked');
+      expect(invoke).not.toHaveBeenCalled();
+
+      vi.mocked(useAuthStore).getState.mockReturnValue({ isAuthenticated: true } as never);
+      await expect(
+        invokeCommand<void>('reset_security_flags', { accountId: 'acc-a' }),
+      ).resolves.toBeUndefined();
+      expect(invoke).toHaveBeenCalledWith('reset_security_flags', { accountId: 'acc-a' });
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('P027 默认守卫：已解锁时放行非豁免命令', async () => {
     vi.stubEnv('MODE', 'development');
     vi.mocked(useAuthStore).getState.mockReturnValue({ isAuthenticated: true } as never);

@@ -269,6 +269,43 @@ fn rf001_panicking_commit_fails_closed_until_explicit_lock() {
 }
 
 #[test]
+fn reset_security_flags_requires_current_unlocked_account() {
+    let (svc, _dir) = setup_service();
+    svc.create_account_with_id("acc-a", "A", "password123", None)
+        .unwrap();
+    let mut config = svc.read_account_config("acc-a").unwrap();
+    config.biometric_enabled = true;
+    config.pin_enabled = true;
+    config.pin_length = 6;
+    svc.write_config_atomic("acc-a", &serde_json::to_vec_pretty(&config).unwrap())
+        .unwrap();
+    let config_path = svc.base_path().join("acc-a").join("config.json");
+    let credential_path = svc.base_path().join("acc-a").join("pin_credential");
+    fs::write(&credential_path, b"saved credential").unwrap();
+    let before = fs::read(&config_path).unwrap();
+
+    svc.lock();
+    assert!(svc.reset_security_flags("acc-a").is_err());
+    assert_eq!(fs::read(&config_path).unwrap(), before);
+    assert_eq!(fs::read(&credential_path).unwrap(), b"saved credential");
+
+    svc.create_account_with_id("acc-b", "B", "password123", None)
+        .unwrap();
+    assert!(svc.reset_security_flags("acc-a").is_err());
+    assert_eq!(fs::read(&config_path).unwrap(), before);
+    assert_eq!(fs::read(&credential_path).unwrap(), b"saved credential");
+
+    svc.lock();
+    svc.unlock("acc-a", "password123").unwrap();
+    svc.reset_security_flags("acc-a").unwrap();
+    let reset = svc.read_account_config("acc-a").unwrap();
+    assert!(!reset.biometric_enabled);
+    assert!(!reset.pin_enabled);
+    assert_eq!(reset.pin_length, 0);
+    assert!(!credential_path.exists());
+}
+
+#[test]
 fn invalid_account_ids_have_no_filesystem_or_session_side_effects() {
     let (svc, _dir) = setup_service();
     let id = "acc-1";

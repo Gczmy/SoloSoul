@@ -353,6 +353,15 @@ impl super::VaultService {
     }
 
     pub fn reset_security_flags(&self, account_id: &str) -> Result<(), String> {
+        // 该操作会删除 PIN/生物识别凭证；只允许当前已解锁账户执行，
+        // 并在同一会话门闩内完成配置与文件修改，避免锁定或切换账户后继续清理。
+        let session = self.capture_session(account_id)?;
+        self.with_session(&session, |_| {
+            self.reset_security_flags_for_session(account_id)
+        })
+    }
+
+    fn reset_security_flags_for_session(&self, account_id: &str) -> Result<(), String> {
         let config_rel = self.config_path_rel(account_id)?;
         let content = self
             .fs

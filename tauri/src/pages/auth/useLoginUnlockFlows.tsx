@@ -223,7 +223,12 @@ export function useLoginUnlockFlows({
     // 从已有外部目录登录后，config.json 中可能残留旧的安全标志（biometric/pin enabled），
     // 但实际 KeyStore 凭证和 PIN 文件已被卸载清除。立即复位这些标志，
     // 避免用户在安全设置中看到「已启用」但实际无法使用的状态。
-    if (fromExisting) {
+    if (
+      fromExisting &&
+      !state.error &&
+      state.isAuthenticated &&
+      state.currentAccount?.id === selectedAccountId
+    ) {
       try {
         await invoke('reset_security_flags', { accountId: selectedAccountId });
         // 刷新账户列表，让 currentAccount 反映新的 hasBiometricHistory/hasPinHistory 标志，

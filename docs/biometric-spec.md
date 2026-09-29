@@ -1,6 +1,6 @@
 # 生物识别安全规范（Biometric Security Spec）
 
-> 最后更新：2026-08-16
+> 最后更新：2026-09-29
 > 关联修复：P004（Windows Hello 仅应用层门禁——平台限制登记）
 
 ## 1. 设计目标
@@ -14,6 +14,8 @@
 | macOS | **当前：本地文件**（`legacy.rs`，因无 Apple Developer 会员无 keychain entitlement）；未来：Keychain（`macos_keychain.rs` 已备） | Touch ID / Face ID / 设备密码（系统弹窗先于文件读取） | ⚠️ **仅应用层门禁**：文件加密密钥由**公开的 account_id** 经 SHA-256+HKDF 派生（无秘密输入）；同用户进程可直接重算并解密，不触发生物识别弹窗。**运行时**同设备攻击受系统弹窗拦截（与 Keychain 等价），**数据副本**离线攻击可还原主密钥 | 中（见 §5 限制） |
 | Windows | DPAPI 本地文件（`CryptProtectData`） | Windows Hello（`UserConsentVerifier`） | ⚠️ **仅应用层门禁**：DPAPI 密钥绑定当前 Windows 用户登录凭据，**同用户身份运行的任意进程可直接 `CryptUnprotectData` 解密，不触发 Hello 弹窗** | 中（见 §3 限制） |
 | 移动端 | 系统 Keystore/Keychain（经 `keystore_plugin`） | 指纹/面部/设备 PIN | ✅ 硬件绑定 | 高 |
+
+从已有外部目录登录时，对残留生物识别标志和凭证的清理只允许在该账户主密码成功解锁后执行。后端 `reset_security_flags` 在当前账户会话门闩内修改配置和凭证；失败密码、锁定态及错账户请求不得触发清理（RF-959；与 [PIN 安全规范](pin-spec.md) 共用这一入口）。
 
 ## 3. Windows 平台限制（P004 登记）
 
@@ -86,3 +88,4 @@
 
 - 2026-08-16（P004）：本文档创建，明示 Windows「仅应用层门禁」平台限制与中期强化路线。
 - 2026-08-20（P035）：事实澄清——macOS 当前为本地文件方案（非 Keychain），登记数据副本离线攻击威胁模型与强化路线；撤销此前误加的设置页警告条（运行时门禁为系统级，警告条暗示「生物识别降低安全」不成立，且「重新设置」无法改变存储后端）。
+- 2026-09-29（RF-959）：残留凭证清理绑定成功的主密码解锁及当前账户会话。

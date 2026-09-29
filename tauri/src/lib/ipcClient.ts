@@ -72,7 +72,6 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   // 在同步设置页 post-auth 可达，保持守卫
   'recovery_discover_hosts',
   'recovery_restore_from_host',
-  'reset_security_flags',
   'dismiss_lock_mask',
   'get_lock_pending',
   'is_screen_locked',
