@@ -3,9 +3,10 @@ import { act, render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom';
 import { SearchPopover } from './SearchPopover';
 
-const { stableT, mockInvoke, mockAccount } = vi.hoisted(() => ({
+const { stableT, mockInvoke, mockNavigate, mockAccount } = vi.hoisted(() => ({
   stableT: (key: string, options?: { defaultValue?: string }) => options?.defaultValue ?? key,
   mockInvoke: vi.fn(),
+  mockNavigate: vi.fn(),
   mockAccount: { id: 'acc-1' },
 }));
 
@@ -21,7 +22,7 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    useNavigate: () => vi.fn(),
+    useNavigate: () => mockNavigate,
   };
 });
 
@@ -81,6 +82,7 @@ const pageResult: SearchItem = {
 describe('SearchPopover (P027 渲染回归)', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
+    mockNavigate.mockReset();
     mockAccount.id = 'acc-1';
     searchCache.clear();
     localStorage.removeItem('solosoul_recent_searches:acc-1');
@@ -309,5 +311,114 @@ describe('SearchPopover (P027 渲染回归)', () => {
 
     act(() => setRequestSession(null));
     expect(screen.queryByTestId('object-detail-modal')).toBeNull();
+  });
+
+  it('页面筛选可直接搜索，再次点击恢复默认视图', async () => {
+    mockInvoke.mockResolvedValue({ items: [objectResult], total: 1, hasMore: false });
+    render(
+      <MemoryRouter>
+        <SearchPopover onClose={vi.fn()} />
+      </MemoryRouter>,
+    );
+
+    const identityFilter = screen.getByRole('button', { name: 'navigation:identity' });
+    fireEvent.click(identityFilter);
+
+    await waitFor(() =>
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'search_unified',
+        expect.objectContaining({ accountId: 'acc-1', query: '', typeId: 'identity' }),
+        expect.any(Object),
+      ),
+    );
+    expect(await screen.findByText('护照')).toBeInTheDocument();
+
+    fireEvent.click(identityFilter);
+    expect(screen.queryByText('护照')).toBeNull();
+    expect(screen.queryByText('common:no_results')).toBeNull();
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+  });
+
+  it('键盘打开系统页面结果并关闭搜索浮层', async () => {
+    mockInvoke.mockResolvedValue({ items: [pageResult], total: 1, hasMore: false });
+    const onClose = vi.fn();
+    render(
+      <MemoryRouter>
+        <SearchPopover onClose={onClose} />
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('common:search_placeholder'), {
+      target: { value: 'page' },
+    });
+    const pageRow = (await screen.findByText('settings:search_type_page')).closest(
+      '[role="button"]',
+    );
+    expect(pageRow).not.toBeNull();
+    fireEvent.keyDown(pageRow!, { key: 'Enter' });
+
+    expect(mockNavigate).toHaveBeenCalledWith('/workspace?section=identity');
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('打开模板结果进入模板设置页并关闭搜索浮层', async () => {
+    mockInvoke.mockResolvedValue({
+      items: [
+        {
+          itemType: 'template',
+          objectId: 'template-1',
+          name: 'Travel template',
+          typeId: 'travel',
+          matchType: 'name',
+          relevance: 1,
+        } satisfies SearchItem,
+      ],
+      total: 1,
+      hasMore: false,
+    });
+    const onClose = vi.fn();
+    render(
+      <MemoryRouter>
+        <SearchPopover onClose={onClose} />
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('common:search_placeholder'), {
+      target: { value: 'Travel' },
+    });
+    const templateRow = (await screen.findByText('settings:search_type_template')).closest(
+      '[role="button"]',
+    );
+    expect(templateRow).not.toBeNull();
+    fireEvent.click(templateRow!);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/settings/templates');
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('点击最近搜索词立即重搜，并可从底部进入设置', async () => {
+    localStorage.setItem('solosoul_recent_searches:acc-1', '["passport"]');
+    mockInvoke.mockResolvedValue({ items: [objectResult], total: 1, hasMore: false });
+    const onClose = vi.fn();
+    render(
+      <MemoryRouter>
+        <SearchPopover onClose={onClose} />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'passport' }));
+    await waitFor(() =>
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'search_unified',
+        expect.objectContaining({ accountId: 'acc-1', query: 'passport' }),
+        expect.any(Object),
+      ),
+    );
+    expect(screen.getByPlaceholderText('common:search_placeholder')).toHaveValue('passport');
+    expect(await screen.findByText('护照')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'navigation:settings' }));
+    expect(mockNavigate).toHaveBeenCalledWith('/settings');
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
