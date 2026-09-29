@@ -265,6 +265,29 @@ describe('OnboardingDialog vault directory step (Android)', () => {
     expect(vaultDirectory.initVaultDirectory).toHaveBeenCalledTimes(2);
   });
 
+  it('shows SAF sync completion before returning to the selected directory', async () => {
+    vi.mocked(getPlatform).mockResolvedValue('android');
+    vi.mocked(vaultDirectory.pickVaultDirectory).mockResolvedValue('content://test-vault');
+    vi.mocked(vaultDirectory.initVaultDirectory).mockResolvedValue({
+      success: true,
+      needsRestart: false,
+      message: '',
+      accountCount: 0,
+    });
+    renderWithRouter(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText(/onboarding_welcome_title/i)).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
+    await waitFor(() =>
+      expect(screen.getByText(/onboarding_vault_dir_title/i)).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_vault_dir_saf_title/i }));
+    await waitFor(() =>
+      expect(screen.getByText(/onboarding_vault_dir_sync_done/i)).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/onboarding_vault_dir_syncing/i)).not.toBeInTheDocument();
+  });
+
   it('shows selected external path and next button after picking SAF directory', async () => {
     vi.mocked(getPlatform).mockResolvedValue('android');
     vi.mocked(vaultDirectory.pickVaultDirectory).mockResolvedValue(

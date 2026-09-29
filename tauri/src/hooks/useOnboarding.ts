@@ -197,6 +197,7 @@ export function useOnboarding({ onComplete, onSkip: _onSkip }: OnboardingDialogP
           return;
         }
         // 显示 "SAF 同步完成" 3 秒后自动切换到路径显示
+        setSyncPhase('done');
         syncDoneTimer.current = setTimeout(() => {
           setSyncPhase('idle');
         }, 3000);
