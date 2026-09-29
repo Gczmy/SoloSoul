@@ -238,6 +238,46 @@ describe('CloudSyncPage 渲染冒烟', () => {
     expect(screen.queryByText(/old-account-offline/)).not.toBeInTheDocument();
   });
 
+  it('旧账户删除完成后不清空新账户的配置表单', async () => {
+    let resolveDelete!: () => void;
+    const originalInvoke = vi.mocked(invoke).getMockImplementation()!;
+    vi.mocked(invoke).mockImplementation((cmd: string, args) => {
+      if (cmd === 'cloud_sync_delete_config')
+        return new Promise<void>((resolve) => {
+          resolveDelete = resolve;
+        });
+      return originalInvoke(cmd, args);
+    });
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    try {
+      render(
+        <MemoryRouter>
+          <CloudSyncPage />
+        </MemoryRouter>,
+      );
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: 'settings:cloud_sync_delete' })).toBeEnabled(),
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'settings:cloud_sync_delete' }));
+      await waitFor(() =>
+        expect(invoke).toHaveBeenCalledWith('cloud_sync_delete_config', {
+          accountId: 'account-a',
+        }),
+      );
+
+      act(() => useAuthStore.setState({ currentAccount: { id: 'account-b', name: 'Bob' } }));
+      await waitFor(() =>
+        expect(screen.getByDisplayValue('https://dav.example.com/')).toBeInTheDocument(),
+      );
+      resolveDelete();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(screen.getByDisplayValue('https://dav.example.com/')).toBeInTheDocument();
+    } finally {
+      confirmSpy.mockRestore();
+    }
+  });
+
   it('旧账户迟到的密码验证不能授权新账户保存', async () => {
     let resolveVerification!: (ok: boolean) => void;
     const originalInvoke = vi.mocked(invoke).getMockImplementation()!;

@@ -7,7 +7,6 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { listen } from '@tauri-apps/api/event';
 import { useToastError } from '@/hooks/useToastError';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore } from '@/stores/authStore';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { importOutcomeError } from '@/lib/importOutcome';
@@ -166,8 +165,11 @@ export function useCloudSyncPage() {
 
   const handleDelete = async () => {
     if (!window.confirm(t('settings:cloud_sync_delete_confirm'))) return;
+    const request = requests.begin('delete', accountId);
+    if (!accountId || !request.isCurrent()) return;
     try {
-      await invoke('cloud_sync_delete_config', { accountId });
+      await request.invoke('cloud_sync_delete_config', { accountId });
+      if (!request.isCurrent()) return;
       onSuccess(t('settings:cloud_sync_deleted'));
       setSavedConfig(null);
       setConnectorType('webdav');
@@ -177,7 +179,8 @@ export function useCloudSyncPage() {
       setWifiOnly(true);
       setRetention(DEFAULT_RETENTION);
     } catch (e) {
-      onError(new Error(String(e)), t('settings:cloud_sync_delete_failed'));
+      if (request.isCurrent())
+        onError(new Error(String(e)), t('settings:cloud_sync_delete_failed'));
     }
   };
 

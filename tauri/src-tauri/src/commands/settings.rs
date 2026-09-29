@@ -442,9 +442,23 @@ pub async fn cloud_sync_delete_config(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<(), String> {
-    let vault = vault_handle(&state)?;
-    vault.delete_cloud_sync_config(&account_id)?;
-    Ok(())
+    let service = state.vault_service.clone();
+    tokio::task::spawn_blocking(move || {
+        let service = service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        delete_cloud_sync_config_for_service(&service, &account_id)
+    })
+    .await
+    .map_err(|e| format!("cloud sync delete task failed: {e}"))?
+}
+
+fn delete_cloud_sync_config_for_service(
+    service: &solosoul_core::VaultService,
+    account_id: &str,
+) -> Result<(), String> {
+    let session = service.capture_session(account_id)?;
+    service.with_session(&session, |vault| vault.delete_cloud_sync_config(account_id))
 }
 
 #[tauri::command]
@@ -625,6 +639,41 @@ mod tests {
             config,
         )
         .is_err());
+    }
+
+    #[test]
+    fn rf1004_cloud_config_delete_requires_current_session() {
+        let dir = TempDir::new().unwrap();
+        let service = solosoul_core::VaultService::with_base_path(dir.path().join("vault"));
+        service
+            .create_account_with_id("acc_rf1004_a", "A", "password123", None)
+            .unwrap();
+        let vault = service.get_vault_store().unwrap();
+        vault
+            .set_cloud_sync_config(
+                "acc_rf1004_a",
+                solosoul_vault::CloudSyncConfig {
+                    connector_type: "webdav".to_string(),
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+        assert!(vault
+            .get_cloud_sync_config("acc_rf1004_a")
+            .unwrap()
+            .is_some());
+        delete_cloud_sync_config_for_service(&service, "acc_rf1004_a").unwrap();
+        assert!(vault
+            .get_cloud_sync_config("acc_rf1004_a")
+            .unwrap()
+            .is_none());
+
+        service
+            .create_account_with_id("acc_rf1004_b", "B", "password456", None)
+            .unwrap();
+        assert!(delete_cloud_sync_config_for_service(&service, "acc_rf1004_a").is_err());
+        service.lock();
+        assert!(delete_cloud_sync_config_for_service(&service, "acc_rf1004_b").is_err());
     }
 
     #[test]
