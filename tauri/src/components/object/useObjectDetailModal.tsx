@@ -61,7 +61,11 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   const templates = useTemplateStore((s) => s.templates);
   const loadTemplates = useTemplateStore((s) => s.loadTemplates);
   const customPages = useSettingsStore((s) => s.settings.customPages);
-  const [fetchedObj, setFetchedObj] = useState<ObjectData | null>(null);
+  const [fetchedObj, setFetchedObj] = useState<{
+    accountId: string;
+    objectId: string;
+    data: ObjectData;
+  } | null>(null);
   // P020 复核：object 可能是截断预览摘要（object_list 仅保留前 8 字段/200 字符），
   // 详情弹窗必须始终拉取完整对象，避免丢字段/值被静默截断。
   const objId = objectId ?? object?.id;
@@ -103,7 +107,13 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
 
   // P020 复核：拉取结果优先于传入摘要——传入 object 仅作过渡展示，
   // 完整数据（fetchedObj）到达后立即升级，保证详情弹窗渲染完整 properties。
-  const obj = useMemo(() => fetchedObj ?? object, [object, fetchedObj]);
+  const obj = useMemo(() => {
+    if (isCompleteObject) return object;
+    if (fetchedObj && fetchedObj.accountId === accountId && fetchedObj.objectId === objId) {
+      return fetchedObj.data;
+    }
+    return object;
+  }, [accountId, fetchedObj, isCompleteObject, objId, object]);
   const { ref: detailDragRef, dragState: detailDragState } = useDragToAttach(obj?.id || null, {
     onComplete: handleAttachmentsChange,
   });
@@ -113,41 +123,44 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   }, [loadTemplates]);
 
   useEffect(() => {
+    const id = ++fetchIdRef.current;
     if (!objId || !accountId) {
-      if (!objId) setLoading(false);
-      return;
-    }
-    // 完整数据直接可用：升级 fetchedObj 并结束 loading（无 fetchId 竞争）。
-    if (isCompleteObject && object && 'accountId' in object) {
-      setFetchedObj(object);
       setLoading(false);
       return;
     }
-    const id = ++fetchIdRef.current;
+    // 完整数据直接使用当前 prop；前一个摘要请求已由请求代次失效。
+    if (isCompleteObject && object && 'accountId' in object) {
+      setLoading(false);
+      return;
+    }
     // 有 object（摘要）时仍保持当前展示，拉取完成后再升级，避免闪屏。
     if (!object) setLoading(true);
     // P020 二次复核：绕开全局 store action（getObject 会置全局 isLoading →
     // 打开弹窗瞬间背后工作区列表被骨架屏替换再换回），直接 invoke object_get；
     // 结果同时写入 currentObjectCache 供其他消费方读取（不置 isLoading）。
+    let active = true;
     invokeTypedCommand('object_get', { accountId: accountId, objectId: objId })
       .then((wire) => {
         // Discard stale responses: if a newer fetch started while this one
         // was in-flight, don't overwrite fetchedObj with potentially stale data.
-        if (fetchIdRef.current !== id) return;
+        if (!active || fetchIdRef.current !== id) return;
         const obj = wire === null ? null : toObjectDataView(wire);
         if (obj) {
           useObjectStore.setState((s) => ({
             currentObjectCache: { ...s.currentObjectCache, [objId]: obj },
           }));
         }
-        setFetchedObj(obj ?? null);
+        setFetchedObj(obj ? { accountId, objectId: objId, data: obj } : null);
       })
       .catch(() => {
-        if (fetchIdRef.current === id) setFetchedObj(null);
+        if (active && fetchIdRef.current === id) setFetchedObj(null);
       })
       .finally(() => {
-        if (fetchIdRef.current === id) setLoading(false);
+        if (active && fetchIdRef.current === id) setLoading(false);
       });
+    return () => {
+      active = false;
+    };
   }, [object, isCompleteObject, objId, accountId]);
 
   const resolveCollectionLabelLocal = useCallback(

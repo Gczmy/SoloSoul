@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { ObjectDetailModal } from './ObjectDetailModal';
 import type { ObjectData } from '@/stores/objectStore';
@@ -164,5 +164,90 @@ describe('ObjectDetailModal', () => {
     );
     // object_get 返回 Rust Option 的 null → 回退摘要展示，不崩溃
     expect(screen.getByTestId('object-detail-modal')).toBeInTheDocument();
+  });
+
+  it('keeps a complete replacement object when the previous summary fetch resolves late', async () => {
+    const { invokeCommand } = await import('@/lib/ipcClient');
+    const invokeMock = vi.mocked(invokeCommand);
+    let resolveOld!: (value: ObjectData) => void;
+    const oldRequest = new Promise<ObjectData>((resolve) => {
+      resolveOld = resolve;
+    });
+    invokeMock.mockImplementation((command) => {
+      if (command === 'object_get') return oldRequest;
+      return Promise.resolve(null);
+    });
+    const oldSummary = {
+      id: 'obj-a',
+      name: '摘要 A',
+      typeId: 'travel',
+      sensitivityLevel: 'internal' as const,
+      createdAt: sampleObj.createdAt,
+      updatedAt: sampleObj.updatedAt,
+    };
+    const replacement = { ...sampleObj, id: 'obj-b', name: '完整 B' };
+    const view = render(
+      <BrowserRouter>
+        <ObjectDetailModal object={oldSummary} onClose={vi.fn()} />
+      </BrowserRouter>,
+    );
+    await waitFor(() =>
+      expect(invokeMock).toHaveBeenCalledWith('object_get', expect.anything(), undefined),
+    );
+
+    view.rerender(
+      <BrowserRouter>
+        <ObjectDetailModal object={replacement} onClose={vi.fn()} />
+      </BrowserRouter>,
+    );
+    expect(screen.getByRole('dialog', { name: '完整 B' })).toBeInTheDocument();
+
+    await act(async () => {
+      resolveOld({ ...sampleObj, id: 'obj-a', name: '完整 A' });
+      await oldRequest;
+    });
+    expect(screen.getByRole('dialog', { name: '完整 B' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: '完整 A' })).not.toBeInTheDocument();
+  });
+
+  it('shows the new summary while its fetch waits instead of the previous full object', async () => {
+    const { invokeCommand } = await import('@/lib/ipcClient');
+    const invokeMock = vi.mocked(invokeCommand);
+    let resolveNext!: (value: ObjectData) => void;
+    const nextRequest = new Promise<ObjectData>((resolve) => {
+      resolveNext = resolve;
+    });
+    invokeMock.mockImplementation((command, args) => {
+      if (command === 'object_get' && (args as { objectId: string }).objectId === 'obj-b') {
+        return nextRequest;
+      }
+      return Promise.resolve(null);
+    });
+    const view = render(
+      <BrowserRouter>
+        <ObjectDetailModal object={sampleObj} onClose={vi.fn()} />
+      </BrowserRouter>,
+    );
+    const nextSummary = {
+      id: 'obj-b',
+      name: '摘要 B',
+      typeId: 'travel',
+      sensitivityLevel: 'internal' as const,
+      createdAt: sampleObj.createdAt,
+      updatedAt: sampleObj.updatedAt,
+    };
+    view.rerender(
+      <BrowserRouter>
+        <ObjectDetailModal object={nextSummary} onClose={vi.fn()} />
+      </BrowserRouter>,
+    );
+    expect(screen.getByRole('dialog', { name: '摘要 B' })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: sampleObj.name })).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveNext({ ...sampleObj, id: 'obj-b', name: '完整 B' });
+      await nextRequest;
+    });
+    expect(screen.getByRole('dialog', { name: '完整 B' })).toBeInTheDocument();
   });
 });
