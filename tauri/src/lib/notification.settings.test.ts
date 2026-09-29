@@ -1,6 +1,6 @@
 import { beforeEach, expect, it, vi } from 'vitest';
 import { invoke } from '@tauri-apps/api/core';
-import { sendNotification } from '@tauri-apps/plugin-notification';
+import { isPermissionGranted, sendNotification } from '@tauri-apps/plugin-notification';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUiStore } from '@/stores/uiStore';
@@ -42,5 +42,35 @@ it('RF111 备份提醒已经发出，但时间保存失败时恢复旧时间且�
   expect(logger.warn).not.toHaveBeenCalledWith(
     '[notification] Backup reminder check failed:',
     expect.anything(),
+  );
+});
+
+it('系统通知权限检查失败时仍显示可点击的应用内备份提醒', async () => {
+  vi.mocked(isPermissionGranted).mockRejectedValueOnce(new Error('permission unavailable'));
+
+  await checkBackupReminder('acc-a');
+
+  expect(sendNotification).not.toHaveBeenCalled();
+  expect(useUiStore.getState().toasts).toHaveLength(1);
+  expect(useUiStore.getState().toasts[0].type).toBe('warning');
+  expect(useUiStore.getState().toasts[0].action?.onClick).toBeTypeOf('function');
+  expect(vi.mocked(invoke).mock.calls.map(([command]) => command)).toContain(
+    'user_data_update_preference',
+  );
+});
+
+it('系统通知发送失败时仍显示可点击的应用内备份提醒', async () => {
+  vi.mocked(sendNotification).mockImplementationOnce(() => {
+    throw new Error('notification unavailable');
+  });
+
+  await checkBackupReminder('acc-a');
+
+  expect(sendNotification).toHaveBeenCalledTimes(1);
+  expect(useUiStore.getState().toasts).toHaveLength(1);
+  expect(useUiStore.getState().toasts[0].type).toBe('warning');
+  expect(useUiStore.getState().toasts[0].action?.onClick).toBeTypeOf('function');
+  expect(vi.mocked(invoke).mock.calls.map(([command]) => command)).toContain(
+    'user_data_update_preference',
   );
 });

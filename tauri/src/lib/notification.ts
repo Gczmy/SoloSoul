@@ -211,9 +211,12 @@ export async function checkBackupReminder(accountId: string | undefined): Promis
       );
 
       // 发送系统通知（不包含 fallback toast，因为下方已有可点击 toast）
-      const hasPermission = await requestNotificationPermissionOnce();
-      if (hasPermission) {
-        sendNotification({ title, body });
+      try {
+        const hasPermission = await requestNotificationPermissionOnce();
+        if (hasPermission) sendNotification({ title, body });
+      } catch (err) {
+        // 系统通知不可用时仍保留带「去备份」操作的应用内提醒。
+        logger.warn('[notification] System backup notification unavailable:', err);
       }
 
       // 应用内可点击 toast，带「去备份」按钮
