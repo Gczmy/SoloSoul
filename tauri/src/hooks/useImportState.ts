@@ -53,6 +53,7 @@ export function useImportState({
   >(new Map());
   const sourceVersion = useRef(0);
   const passwordVersion = useRef(0);
+  const importInFlight = useRef(false);
   useEffect(
     () => () => {
       sourceVersion.current += 1;
@@ -75,12 +76,12 @@ export function useImportState({
   const handleSetImportPw = useCallback(
     (password: string) => {
       // 导入执行中保持后端正在使用的密码；修改密码会使既有解密预览失效。
-      if (isImporting) return;
+      if (importInFlight.current) return;
       passwordVersion.current += 1;
       setImportPw(password);
       clearDecryptedState();
     },
-    [clearDecryptedState, isImporting],
+    [clearDecryptedState],
   );
 
   const handlePreviewImport = async () => {
@@ -152,7 +153,8 @@ export function useImportState({
   };
 
   const handleImport = async () => {
-    if (!importPath || !importPw || importTotalSelected === 0) return;
+    if (importInFlight.current || !importPath || !importPw || importTotalSelected === 0) return;
+    importInFlight.current = true;
     setIsImporting(true);
     try {
       const sourcePath = await resolveImportSource(sourceVersion.current);
@@ -214,6 +216,7 @@ export function useImportState({
     } catch (e) {
       onError(new Error(resolveBackendErrorMessage(e)), t('common:import_failed'));
     } finally {
+      importInFlight.current = false;
       setIsImporting(false);
     }
   };
@@ -373,7 +376,7 @@ export function useImportState({
   const handleSetImportPath = useCallback(
     (path: string) => {
       // 导入执行中必须保留原包及其暂存文件，直到后端完成。
-      if (isImporting) return;
+      if (importInFlight.current) return;
       sourceVersion.current += 1;
       passwordVersion.current += 1;
       setImportPath(path);
@@ -386,7 +389,7 @@ export function useImportState({
         setStagedImportPath(null);
       }
     },
-    [clearDecryptedState, isImporting, stagedImportPath],
+    [clearDecryptedState, stagedImportPath],
   );
 
   return {

@@ -538,6 +538,54 @@ describe('RF-920 import password ownership', () => {
   });
 });
 
+describe('RF-1011 ordinary import execution', () => {
+  it('starts only one import when the action fires twice before React rerenders', async () => {
+    let resolveImport!: (result: ImportResult) => void;
+    const pendingImport = new Promise<ImportResult>((resolve) => {
+      resolveImport = resolve;
+    });
+    mocks.invoke.mockImplementation((command: string) => {
+      if (command === 'import_execute_advanced') return pendingImport;
+      throw new Error('Unexpected IPC: ' + command);
+    });
+    const { result } = renderHook(() =>
+      useImportState({
+        accountId: 'account',
+        onError: mocks.onError,
+        onSuccess: mocks.onSuccess,
+        t: i18n.t.bind(i18n),
+        i18n,
+        reloadScope: vi.fn(),
+      }),
+    );
+    act(() => {
+      result.current.onSetImportPath('C:/fixture.solosoul');
+      result.current.setImportPw('export-password');
+      result.current.onToggleSelection('object-1');
+    });
+    let first!: Promise<void>;
+    let second!: Promise<void>;
+    act(() => {
+      first = result.current.onImport();
+      second = result.current.onImport();
+      result.current.onSetImportPath('C:/other.solosoul');
+      result.current.setImportPw('other-password');
+    });
+    expect(result.current.importPath).toBe('C:/fixture.solosoul');
+    expect(result.current.importPw).toBe('export-password');
+    await waitFor(() =>
+      expect(
+        mocks.invoke.mock.calls.filter(([command]) => command === 'import_execute_advanced'),
+      ).toHaveLength(1),
+    );
+    await act(async () => {
+      resolveImport(complete);
+      await Promise.all([first, second]);
+    });
+    expect(mocks.onSuccess).toHaveBeenCalledOnce();
+  });
+});
+
 describe('RF-020 cloud incoming outcomes', () => {
   it.each([partial, uncommitted, complete])(
     'advances the waterline only for complete imports ($status)',
