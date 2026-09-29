@@ -402,13 +402,11 @@ describe('ObjectEditorPage datetime save validation', () => {
     await waitFor(() => {
       expect(screen.getByDisplayValue('已有对象')).toBeInTheDocument();
     });
-    await waitFor(() => {
-      expect(screen.getAllByLabelText('年份输入').length).toBeGreaterThanOrEqual(2);
-    });
-
     // 存量不可能日期不再「看似为空」：字段显示原始值，用户可看到并修正/清空
-    expect((screen.getAllByLabelText('年份输入')[1] as HTMLInputElement).value).toBe('2024');
-    expect((screen.getAllByLabelText('日期输入')[1] as HTMLInputElement).value).toBe('30');
+    await waitFor(() => {
+      expect((screen.getAllByLabelText('年份输入')[1] as HTMLInputElement).value).toBe('2024');
+      expect((screen.getAllByLabelText('日期输入')[1] as HTMLInputElement).value).toBe('30');
+    });
 
     // 清空日期时间字段（删掉年份段 → 撤销存量脏数据）
     fireEvent.change(screen.getAllByLabelText('年份输入')[1], { target: { value: '' } });
