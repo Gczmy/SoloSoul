@@ -202,4 +202,107 @@ describe('ObjectWorkspacePage card field display', () => {
     expect(removeCustomPage).toHaveBeenCalledTimes(2);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+
+  it.each(['succeeds', 'fails'] as const)(
+    'switching accounts isolates an in-flight page deletion that %s from the new page',
+    async (outcome) => {
+      let resolveA!: () => void;
+      let rejectA!: (error: Error) => void;
+      let resolveB!: () => void;
+      const pendingA = new Promise<void>((resolve, reject) => {
+        resolveA = resolve;
+        rejectA = reject;
+      });
+      const pendingB = new Promise<void>((resolve) => {
+        resolveB = resolve;
+      });
+      const removeCustomPage = vi.fn((accountId: string) =>
+        accountId === 'acc1' ? pendingA : pendingB,
+      );
+      useSettingsStore.setState((s) => ({
+        settings: {
+          ...s.settings,
+          customPages: [
+            {
+              id: 'page-a',
+              name: 'Page A',
+              iconId: 'document',
+              createdAt: '2026-01-01',
+              sortOrder: 0,
+            },
+            {
+              id: 'page-b',
+              name: 'Page B',
+              iconId: 'document',
+              createdAt: '2026-01-01',
+              sortOrder: 1,
+            },
+          ],
+        },
+        removeCustomPage,
+      }));
+      vi.mocked(useParams).mockReturnValue({ pageId: 'page-a' });
+      vi.mocked(useSearchParams).mockReturnValue([new URLSearchParams(), vi.fn()]);
+      const view = render(
+        <MemoryRouter>
+          <ObjectWorkspacePage />
+        </MemoryRouter>,
+      );
+      await waitFor(() =>
+        expect(screen.getByTestId('page-shell')).toHaveAttribute('data-title', 'Page A'),
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'delete' }));
+      fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'delete' }));
+      await waitFor(() => expect(removeCustomPage).toHaveBeenCalledWith('acc1', 'page-a'));
+
+      vi.mocked(useParams).mockReturnValue({ pageId: 'page-b' });
+      act(() => useAuthStore.setState({ currentAccount: { id: 'acc2', name: 'B' } }));
+      // 账户切换会清空 A 的设置；模拟 B 的自定义页完成加载。
+      act(() =>
+        useSettingsStore.setState((s) => ({
+          settings: {
+            ...s.settings,
+            customPages: [
+              {
+                id: 'page-b',
+                name: 'Page B',
+                iconId: 'document',
+                createdAt: '2026-01-01',
+                sortOrder: 1,
+              },
+            ],
+          },
+        })),
+      );
+      view.rerender(
+        <MemoryRouter>
+          <ObjectWorkspacePage />
+        </MemoryRouter>,
+      );
+      await waitFor(() =>
+        expect(screen.getByTestId('page-shell')).toHaveAttribute('data-title', 'Page B'),
+      );
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'delete' }));
+      fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'delete' }));
+      await waitFor(() => expect(removeCustomPage).toHaveBeenCalledWith('acc2', 'page-b'));
+      await act(async () => {
+        if (outcome === 'succeeds') resolveA();
+        else rejectA(new Error('A page failed'));
+        await pendingA.catch(() => undefined);
+      });
+      expect(navigate).not.toHaveBeenCalledWith('/');
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(
+        useUiStore.getState().toasts.some((toast) => toast.message.includes('A page failed')),
+      ).toBe(false);
+
+      await act(async () => {
+        resolveB();
+        await pendingB;
+      });
+      expect(navigate).toHaveBeenCalledWith('/');
+    },
+  );
 });

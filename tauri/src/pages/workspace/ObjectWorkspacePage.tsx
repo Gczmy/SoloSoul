@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -44,8 +44,20 @@ export function ObjectWorkspacePage() {
   const ws = useObjectWorkspaceData({ pageId, sectionFilter, detailObjectId });
   const isAndroid = isAndroidSync();
   const [sort, setSort] = useState('updated');
-  const [isDeletingPage, setIsDeletingPage] = useState(false);
-  const pageDeleteInFlight = useRef(false);
+  const pageContextKey = JSON.stringify([ws.accountId ?? null, pageId ?? null]);
+  const currentPageContextRef = useRef(pageContextKey);
+  currentPageContextRef.current = pageContextKey;
+  const [confirmPageDeleteContext, setConfirmPageDeleteContext] = useState<string | null>(null);
+  const [deletingPageContexts, setDeletingPageContexts] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const pageDeletesInFlight = useRef(new Set<string>());
+  const isDeletingPage = deletingPageContexts.has(pageContextKey);
+  const { setConfirmPageDelete } = ws;
+  useEffect(() => {
+    setConfirmPageDelete(false);
+    setConfirmPageDeleteContext(null);
+  }, [pageContextKey, setConfirmPageDelete]);
   const { onError } = useToastError();
   const displayedObjects = useMemo(
     () =>
@@ -156,7 +168,10 @@ export function ObjectWorkspacePage() {
               variant="danger-outline"
               size="sm"
               className={`${buttonStyles.hideLabelOnMobile} ${buttonStyles.compactMobile}`}
-              onClick={() => ws.setConfirmPageDelete(true)}
+              onClick={() => {
+                setConfirmPageDeleteContext(pageContextKey);
+                setConfirmPageDelete(true);
+              }}
               title={t('delete')}
             >
               <Trash size={ICON_SIZE.sm} />{' '}
@@ -277,7 +292,12 @@ export function ObjectWorkspacePage() {
 
           {/* Page delete confirmation dialog */}
           <ConfirmDeleteDialog
-            isOpen={ws.confirmPageDelete && !!pageId && !!ws.customPage}
+            isOpen={
+              ws.confirmPageDelete &&
+              confirmPageDeleteContext === pageContextKey &&
+              !!pageId &&
+              !!ws.customPage
+            }
             title={t('object_delete_confirm_title')}
             body={t('object_delete_confirm_body', {
               name:
@@ -289,21 +309,32 @@ export function ObjectWorkspacePage() {
             cancelLabel={t('cancel')}
             submitting={isDeletingPage}
             onCancel={() => {
-              if (!pageDeleteInFlight.current) ws.setConfirmPageDelete(false);
+              if (pageDeletesInFlight.current.has(pageContextKey)) return;
+              setConfirmPageDelete(false);
+              setConfirmPageDeleteContext(null);
             }}
             onConfirm={async () => {
-              if (pageDeleteInFlight.current || !ws.accountId || !pageId) return;
-              pageDeleteInFlight.current = true;
-              setIsDeletingPage(true);
+              if (!ws.accountId || !pageId || pageDeletesInFlight.current.has(pageContextKey))
+                return;
+              pageDeletesInFlight.current.add(pageContextKey);
+              setDeletingPageContexts((current) => new Set(current).add(pageContextKey));
               try {
                 await ws.removeCustomPage(ws.accountId, pageId);
-                ws.setConfirmPageDelete(false);
+                if (currentPageContextRef.current !== pageContextKey) return;
+                setConfirmPageDelete(false);
+                setConfirmPageDeleteContext(null);
                 navigate('/');
               } catch (error) {
-                onError(error, t('delete_failed'));
+                if (currentPageContextRef.current === pageContextKey) {
+                  onError(error, t('delete_failed'));
+                }
               } finally {
-                pageDeleteInFlight.current = false;
-                setIsDeletingPage(false);
+                pageDeletesInFlight.current.delete(pageContextKey);
+                setDeletingPageContexts((current) => {
+                  const next = new Set(current);
+                  next.delete(pageContextKey);
+                  return next;
+                });
               }
             }}
           />
