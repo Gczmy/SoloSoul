@@ -354,6 +354,63 @@ describe('syncStore initSyncCompletedListener', () => {
     toastSpy.mockRestore();
     expect(unlisten).toBe(mockUnlisten);
   });
+
+  it('records a nonzero completion after an all-zero event from the same peer', async () => {
+    mockInvoke.mockResolvedValue({});
+    const toastSpy = vi.spyOn(useUiStore.getState(), 'showToast').mockImplementation(() => {});
+    await useSyncStore.getState().initSyncCompletedListener();
+    const handler = handlers.get('sync-completed')!;
+
+    handler({
+      payload: {
+        peerNodeId: 'node-A',
+        examined: 0,
+        applied: 0,
+        skipped: 0,
+        conflicts: 0,
+        outboundRecords: 0,
+      },
+    });
+    handler({
+      payload: {
+        peerNodeId: 'node-A',
+        examined: 2,
+        applied: 1,
+        skipped: 1,
+        conflicts: 0,
+        outboundRecords: 0,
+      },
+    });
+
+    expect(useSyncStore.getState().lastResult?.applied).toBe(1);
+    expect(useSyncStore.getState().recentResults).toHaveLength(1);
+    expect(toastSpy).toHaveBeenCalledTimes(1);
+    toastSpy.mockRestore();
+  });
+
+  it('does not suppress a completion that only reports conflicts', async () => {
+    mockInvoke.mockResolvedValue({});
+    const toastSpy = vi.spyOn(useUiStore.getState(), 'showToast').mockImplementation(() => {});
+    await useSyncStore.getState().initSyncCompletedListener();
+    const handler = handlers.get('sync-completed')!;
+
+    handler({
+      payload: {
+        peerNodeId: 'node-conflict',
+        examined: 0,
+        applied: 0,
+        skipped: 0,
+        conflicts: 1,
+        outboundRecords: 0,
+      },
+    });
+
+    expect(useSyncStore.getState().lastResult?.conflictCount).toBe(1);
+    expect(useSyncStore.getState().recentResults).toHaveLength(1);
+    expect(toastSpy).toHaveBeenCalledTimes(1);
+    expect(mockInvoke).toHaveBeenCalledWith('sync_list_conflicts');
+    toastSpy.mockRestore();
+  });
 });
 
 describe('syncStore initNsdFailedListener', () => {

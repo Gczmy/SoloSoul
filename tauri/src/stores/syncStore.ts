@@ -767,14 +767,20 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           peerClientType: peer.clientType,
           peerNodeId: p.peerNodeId,
         };
-        syncCompletedMergeCache.set(p.peerNodeId, { lastAt: now, merged: result });
-        // C：全 0 交换（检查/应用/跳过/发回均为 0）不弹 toast、不写历史——
+        // C：全 0 交换（检查/应用/跳过/冲突/发回均为 0）不弹 toast、不写历史——
         // 无实际数据交换的会话不值得打扰用户（也不产生可读的结果行）。
         const allZero =
-          result.examined === 0 && result.applied === 0 && result.skipped === 0 && outbound === 0;
+          result.examined === 0 &&
+          result.applied === 0 &&
+          result.skipped === 0 &&
+          result.conflictCount === 0 &&
+          outbound === 0;
         if (allZero) {
           return;
         }
+        // 全零事件不进入合并缓存，否则同 peer 后续首次有效结果会被误当作
+        // 已通知的重复事件，丢失历史和 toast。
+        syncCompletedMergeCache.set(p.peerNodeId, { lastAt: now, merged: result });
         setCurrent((state) => ({
           lastResult: result,
           recentResults: pushSyncHistory([result, ...state.recentResults]),
