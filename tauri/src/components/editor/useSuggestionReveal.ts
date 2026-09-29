@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { logger } from '@/lib/logger';
 import { useRevealState } from '@/hooks/useRevealState';
-import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import type { FieldSuggestion } from './FieldSuggestions';
 
 /** 推荐条目稳定 ID（useRevealState 的 fieldId 键；跨对象+字段唯一）。 */
@@ -26,8 +26,8 @@ export interface UseSuggestionRevealResult {
   revealRemainingMs: (itemId: string) => number;
   /**
    * 点击推荐条目：
-   * - public / internal：无操作（本就明文展示）；
-   * - sensitive：切换揭示/隐藏；
+   * - public：无操作（本就明文展示）；
+   * - internal / sensitive：切换揭示/隐藏；
    * - critical：弹出主密码验证框，验证成功（密码/PIN/生物识别）后揭示并写访问日志；
    *   解锁后宽限期（1 分钟）内再次查看同一条目直接揭示，无需重复验证。
    */
@@ -52,9 +52,9 @@ export interface UseSuggestionRevealResult {
 
 /**
  * 字段推荐的揭示域：与对象详情（useObjectDetailVerification）同款语义——
- * sensitive 点击直接揭示（1 分钟 TTL），critical 先弹主密码验证框（支持
+ * internal / sensitive 点击直接揭示（1 分钟 TTL），critical 先弹主密码验证框（支持
  * 密码/PIN/生物识别），验证成功揭示并写 critical_field_* 访问日志（best
- * effort）。public / internal 明文展示，点击无操作。
+ * effort）。仅 public 明文展示，点击无操作。
  *
  * critical 额外带解锁宽限期：验证成功后 1 分钟内（CRITICAL_AUTH_GRACE_MS，
  * 与 §7 揭示 TTL 一致）再次查看/填入同一条目直接揭示或回填，不重复弹框；
@@ -146,8 +146,11 @@ export function useSuggestionReveal(accountId?: string): UseSuggestionRevealResu
   const handleItemClick = useCallback(
     (item: FieldSuggestion) => {
       const id = suggestionItemId(item);
-      const level = (item.sensitivityLevel as SensitivityLevel) || 'internal';
-      if (level === 'public' || level === 'internal') return;
+      const level = resolveFieldSensitivity({
+        fieldId: item.fieldKey,
+        template: { sensitivityLevel: item.sensitivityLevel },
+      });
+      if (level === 'public') return;
       if (isRevealed(id)) {
         hide(id);
         return;
@@ -177,7 +180,10 @@ export function useSuggestionReveal(accountId?: string): UseSuggestionRevealResu
   const handleFillClick = useCallback(
     (item: FieldSuggestion, onPick: (value: string) => void) => {
       const id = suggestionItemId(item);
-      const level = (item.sensitivityLevel as SensitivityLevel) || 'internal';
+      const level = resolveFieldSensitivity({
+        fieldId: item.fieldKey,
+        template: { sensitivityLevel: item.sensitivityLevel },
+      });
       // 公开/内部或已揭示（明文）：直接填入，无需验证
       if (level === 'public' || level === 'internal' || isRevealed(id)) {
         onPick(item.value);

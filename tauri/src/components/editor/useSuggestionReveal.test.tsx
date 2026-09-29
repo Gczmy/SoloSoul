@@ -60,17 +60,46 @@ describe('useSuggestionReveal', () => {
     expect(result.current.isRevealed(id)).toBe(false);
   });
 
-  it('public / internal 点击无操作（不揭示、不弹验证框）', async () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each(['internal', 'unknown'])('%s 推荐值点击揭示、再次点击隐藏', async (sensitivityLevel) => {
     const { result } = renderHook(() => useSuggestionReveal('acc-1'));
     await waitFor(() => expect(result.current.passwordHint).toBe('hint'));
-    for (const sensitivityLevel of ['public', 'internal'] as const) {
-      const item = { ...baseItem, sensitivityLevel };
-      const id = suggestionItemId(item);
+    const item = { ...baseItem, sensitivityLevel };
+    const id = suggestionItemId(item);
 
-      act(() => result.current.handleItemClick(item));
-      expect(result.current.isRevealed(id)).toBe(false);
-      expect(result.current.showPwDialog).toBe(false);
-    }
+    act(() => result.current.handleItemClick(item));
+    expect(result.current.isRevealed(id)).toBe(true);
+    expect(result.current.showPwDialog).toBe(false);
+
+    act(() => result.current.handleItemClick(item));
+    expect(result.current.isRevealed(id)).toBe(false);
+  });
+
+  it('internal 推荐值揭示一分钟后自动重新隐藏', async () => {
+    const { result } = renderHook(() => useSuggestionReveal('acc-1'));
+    await waitFor(() => expect(result.current.passwordHint).toBe('hint'));
+    const item = { ...baseItem, sensitivityLevel: 'internal' };
+    const id = suggestionItemId(item);
+    vi.useFakeTimers();
+
+    act(() => result.current.handleItemClick(item));
+    expect(result.current.isRevealed(id)).toBe(true);
+    act(() => vi.advanceTimersByTime(60_001));
+    expect(result.current.isRevealed(id)).toBe(false);
+  });
+
+  it('public 点击无操作（不揭示、不弹验证框）', async () => {
+    const { result } = renderHook(() => useSuggestionReveal('acc-1'));
+    await waitFor(() => expect(result.current.passwordHint).toBe('hint'));
+    const item = { ...baseItem, sensitivityLevel: 'public' };
+    const id = suggestionItemId(item);
+
+    act(() => result.current.handleItemClick(item));
+    expect(result.current.isRevealed(id)).toBe(false);
+    expect(result.current.showPwDialog).toBe(false);
   });
 
   it('critical 点击弹出验证框；密码错误不揭示，密码正确揭示并写登录日志', async () => {
@@ -260,14 +289,8 @@ describe('useSuggestionReveal', () => {
   });
 
   describe('critical 解锁宽限期（1 分钟）', () => {
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
     /** 解锁一次并复位弹框状态（密码验证成功后对话框 UI 自关闭，hook 侧补 close）。 */
-    async function unlockOnce(result: {
-      current: ReturnType<typeof useSuggestionReveal>;
-    }) {
+    async function unlockOnce(result: { current: ReturnType<typeof useSuggestionReveal> }) {
       const item = { ...baseItem, sensitivityLevel: 'critical' };
       const id = suggestionItemId(item);
       act(() => result.current.handleItemClick(item));

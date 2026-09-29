@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowDownLeft, ChevronDown, ChevronUp, Eye, EyeOff, Sparkles } from 'lucide-react';
-import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { maskValue } from '@/lib/masking';
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 import { useAuthStore } from '@/stores/authStore';
 import { useSuggestionReveal, suggestionItemId } from './useSuggestionReveal';
@@ -38,8 +39,8 @@ function truncateForDisplay(value: string): string {
  * （复用 lib/masking 的统一 8 圆点占位符；仅 public 明文展示并截断）。
  *
  * 按敏感度分级展示/揭示：
- * - public / internal：始终明文展示（内部级在推荐场景与公开同权）；
- * - sensitive：掩码，点击条目切换揭示/隐藏（1 分钟 TTL 自动重掩）；
+ * - public：始终明文展示；
+ * - internal / sensitive：掩码，点击条目切换揭示/隐藏（1 分钟 TTL 自动重掩）；
  * - critical：掩码，点击弹出主密码验证框（支持密码/PIN/生物识别），验证成功后才揭示；
  *   解锁后 1 分钟宽限期内再次查看/填入同一条目无需重复验证。
  *
@@ -78,8 +79,11 @@ export function FieldSuggestions({
   // 揭示中的条目展示自动隐藏倒计时（每秒跳动，驱动重渲染；具体秒数渲染时实时计算）
   const [, setTick] = useState(0);
   const anyRevealed = suggestions.some((s) => {
-    const level = (s.sensitivityLevel as SensitivityLevel) || 'internal';
-    return (level === 'sensitive' || level === 'critical') && isRevealed(suggestionItemId(s));
+    const level = resolveFieldSensitivity({
+      fieldId: s.fieldKey,
+      template: { sensitivityLevel: s.sensitivityLevel },
+    });
+    return level !== 'public' && isRevealed(suggestionItemId(s));
   });
   useEffect(() => {
     if (!anyRevealed) return;
@@ -116,9 +120,12 @@ export function FieldSuggestions({
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {shown.map((s) => {
-            const level = (s.sensitivityLevel as SensitivityLevel) || 'internal';
-            // 公开/内部直接明文；敏感/关键掩码（按需揭示）
-            const needsReveal = level === 'sensitive' || level === 'critical';
+            const level = resolveFieldSensitivity({
+              fieldId: s.fieldKey,
+              template: { sensitivityLevel: s.sensitivityLevel },
+            });
+            // 仅公开字段直接明文；其余等级掩码并按需揭示。
+            const needsReveal = level !== 'public';
             const itemId = suggestionItemId(s);
             const revealed = isRevealed(itemId);
             const displayValue =

@@ -106,22 +106,33 @@ describe('FieldSuggestions', () => {
     expect(screen.getByTitle(/sensitive/)).toBeInTheDocument();
   });
 
-  it('public 与 internal 字段直接明文展示（截断超长值）', () => {
+  it.each(['internal', 'unknown'])(
+    '%s 推荐值默认掩码，显示 internal 徽章并允许点击揭示',
+    (sensitivityLevel) => {
+      const suggestion = makeSuggestion({ sensitivityLevel, value: '内部资料' });
+      render(<FieldSuggestions fieldName="备注" suggestions={[suggestion]} onPick={vi.fn()} />);
+
+      expect(screen.getByText(MASK_PLACEHOLDER)).toBeInTheDocument();
+      expect(screen.queryByText('内部资料')).not.toBeInTheDocument();
+      expect(screen.getByTitle('sensitivity_label: internal')).toBeInTheDocument();
+      const row = screen.getByTestId('field-suggestion-item');
+      expect(row).toBeEnabled();
+      fireEvent.click(row);
+      expect(handleItemClickMock).toHaveBeenCalledWith(suggestion);
+    },
+  );
+
+  it('public 字段直接明文展示（截断超长值）', () => {
     render(
       <FieldSuggestions
         fieldName="备注"
-        suggestions={[
-          makeSuggestion({ sensitivityLevel: 'public', value: 'x'.repeat(200) }),
-          makeSuggestion({ objectId: 'obj-2', sensitivityLevel: 'internal', value: '内务备注' }),
-        ]}
+        suggestions={[makeSuggestion({ sensitivityLevel: 'public', value: 'x'.repeat(200) })]}
         onPick={vi.fn()}
       />,
     );
     // public：截断到 80 字符 + 省略号
     expect(screen.getByText(`${'x'.repeat(80)}…`)).toBeInTheDocument();
     expect(screen.queryByText('x'.repeat(200))).not.toBeInTheDocument();
-    // internal：直接明文，不掩码
-    expect(screen.getByText('内务备注')).toBeInTheDocument();
     expect(screen.queryByText(MASK_PLACEHOLDER)).not.toBeInTheDocument();
   });
 
@@ -160,13 +171,7 @@ describe('FieldSuggestions', () => {
   it('点击「填入」按钮走 handleFillClick（解锁/回填决策由 hook 负责）', () => {
     const onPick = vi.fn();
     const suggestion = makeSuggestion({ value: '110101199001011234' });
-    render(
-      <FieldSuggestions
-        fieldName="身份证号码"
-        suggestions={[suggestion]}
-        onPick={onPick}
-      />,
-    );
+    render(<FieldSuggestions fieldName="身份证号码" suggestions={[suggestion]} onPick={onPick} />);
     fireEvent.click(screen.getByTestId('field-suggestion-fill'));
     expect(handleFillClickMock).toHaveBeenCalledWith(suggestion, onPick);
     // 填入按钮不直接回填、不触发条目揭示
@@ -178,9 +183,7 @@ describe('FieldSuggestions', () => {
     const many = Array.from({ length: 7 }, (_, i) =>
       makeSuggestion({ objectId: `obj-${i}`, objectName: `对象${i}` }),
     );
-    render(
-      <FieldSuggestions fieldName="身份证号码" suggestions={many} onPick={vi.fn()} />,
-    );
+    render(<FieldSuggestions fieldName="身份证号码" suggestions={many} onPick={vi.fn()} />);
     // 默认 limit=3：折叠态只显示 3 条
     expect(screen.getAllByTestId('field-suggestion-item')).toHaveLength(3);
     const toggle = screen.getByTestId('field-suggestions-toggle');
@@ -218,11 +221,11 @@ describe('FieldSuggestions', () => {
     expect(screen.queryByText('a@b.com')).not.toBeInTheDocument();
   });
 
-  it('internal 条目无揭示交互（行按钮禁用、无眼睛图标）', () => {
+  it('public 条目无揭示交互（行按钮禁用、无眼睛图标）', () => {
     render(
       <FieldSuggestions
         fieldName="备注"
-        suggestions={[makeSuggestion({ sensitivityLevel: 'internal', value: '内务备注' })]}
+        suggestions={[makeSuggestion({ sensitivityLevel: 'public', value: '公开备注' })]}
         onPick={vi.fn()}
       />,
     );
@@ -244,7 +247,9 @@ describe('FieldSuggestions', () => {
     const id = 'obj-1::citizen_no';
     revealedIds.add(id);
     revealTimes[id] = Date.now();
-    rerender(<FieldSuggestions fieldName="身份证号码" suggestions={[suggestion]} onPick={vi.fn()} />);
+    rerender(
+      <FieldSuggestions fieldName="身份证号码" suggestions={[suggestion]} onPick={vi.fn()} />,
+    );
     expect(screen.getByTestId('field-suggestion-countdown')).toHaveTextContent('60s');
 
     // 1 秒后跳动为 59s
