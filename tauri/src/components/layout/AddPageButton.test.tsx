@@ -126,4 +126,35 @@ describe('desktop add-page submission', () => {
     await act(async () => newSave.resolve(bobPage));
     expect(mocks.onCreate).toHaveBeenCalledExactlyOnceWith(bobPage);
   });
+
+  it('ignores a save from the previous unlock of the same account', async () => {
+    const oldSave = deferred<CustomPage>();
+    const newSave = deferred<CustomPage>();
+    mocks.addCustomPage.mockReturnValueOnce(oldSave.promise).mockReturnValueOnce(newSave.promise);
+    openAndFill();
+    fireEvent.click(screen.getByRole('button', { name: 'common:confirm' }));
+
+    act(() => {
+      useAuthStore.setState({ isAuthenticated: false, currentAccount: null });
+      useAuthStore.setState({
+        isAuthenticated: true,
+        currentAccount: { id: 'account-a', name: 'Alice' },
+      });
+    });
+    const input = screen.getByRole('textbox', { name: 'add_page_placeholder' });
+    expect(input).toHaveValue('');
+    fireEvent.change(input, { target: { value: 'New session page' } });
+    fireEvent.click(screen.getByRole('button', { name: 'common:confirm' }));
+    expect(mocks.addCustomPage).toHaveBeenCalledTimes(2);
+
+    await act(async () => oldSave.resolve(page));
+    expect(mocks.onCreate).not.toHaveBeenCalled();
+    expect(screen.getByRole('textbox', { name: 'add_page_placeholder' })).toHaveValue(
+      'New session page',
+    );
+
+    const newPage = { ...page, id: 'page-new', name: 'New session page' };
+    await act(async () => newSave.resolve(newPage));
+    expect(mocks.onCreate).toHaveBeenCalledExactlyOnceWith(newPage);
+  });
 });

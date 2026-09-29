@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { CustomPage } from '@/stores/settingsStore';
 import { DEFAULT_CUSTOM_ICON, type CustomIconId } from '@/lib/pageIcons';
+import { onRequestSessionChange } from '@/lib/sessionRequests';
 import { SYSTEM_PAGE_KEYS } from '@/components/layout/useNavigationItems';
 
 export interface UseAddPageFormOptions {
@@ -37,6 +38,7 @@ export function useAddPageForm({ onCreate, t, onError }: UseAddPageFormOptions) 
 
   useEffect(() => {
     handleCancel();
+    return onRequestSessionChange(handleCancel);
   }, [currentAccount?.id, handleCancel]);
 
   /**
