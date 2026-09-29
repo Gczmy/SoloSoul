@@ -31,7 +31,15 @@ export function HelpPage() {
   const abortContentRef = useRef<AbortController | null>(null);
 
   const [index, setIndex] = useState<GuideIndexType | null>(null);
-  const [content, setContent] = useState<GuideContent | null>(null);
+  const [loadedContent, setLoadedContent] = useState<{
+    guideId: string;
+    language: string;
+    data: GuideContent;
+  } | null>(null);
+  const content =
+    loadedContent?.guideId === guideId && loadedContent.language === language
+      ? loadedContent.data
+      : null;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<{ title: string; message: string; isTimeout: boolean } | null>(
     null,
@@ -83,15 +91,15 @@ export function HelpPage() {
       abortContentRef.current?.abort();
       const controller = new AbortController();
       abortContentRef.current = controller;
+      setLoadedContent(null);
       if (!id) {
-        if (!controller.signal.aborted) setContent(null);
         return;
       }
       setLoading(true);
       loadGuideContent(id, language)
         .then((c) => {
           if (!controller.signal.aborted) {
-            setContent(c);
+            setLoadedContent({ guideId: id, language, data: c });
             setError(null);
           }
         })
