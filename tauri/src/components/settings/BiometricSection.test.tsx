@@ -75,7 +75,7 @@ describe('RF111 生物识别凭证已改变但设置保存失败', () => {
       status === 'stale' ? { status } : { status, isCurrent: () => true },
     );
     render(<BiometricSection accountId="acc-a" />);
-    fireEvent.click(await screen.findByRole('checkbox'));
+    fireEvent.click(await screen.findByRole('switch'));
     fireEvent.click(screen.getByRole('button', { name: 'Verify test credential' }));
     await waitFor(() => expect(mocks.verified).toHaveBeenCalledWith(false));
     expect(mocks.update).toHaveBeenCalledWith('acc-a', 'biometricEnabled', action === 'enable');
@@ -92,7 +92,7 @@ describe('RF111 生物识别凭证已改变但设置保存失败', () => {
   it('当前设置写入已保存时保留成功反馈与关闭行为', async () => {
     mocks.update.mockResolvedValue({ status: 'saved', isCurrent: () => true });
     render(<BiometricSection accountId="acc-a" />);
-    fireEvent.click(await screen.findByRole('checkbox'));
+    fireEvent.click(await screen.findByRole('switch'));
     fireEvent.click(screen.getByRole('button', { name: 'Verify test credential' }));
     await waitFor(() => expect(mocks.verified).toHaveBeenCalledWith(true));
     expect(mocks.success).toHaveBeenCalledTimes(1);

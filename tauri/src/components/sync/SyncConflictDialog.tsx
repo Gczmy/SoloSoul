@@ -332,6 +332,9 @@ export function SyncConflictDialog({
                     <span className={styles.onlyDiffToggle}>
                       <ToggleSwitch
                         checked={onlyDifferences}
+                        ariaLabel={t('settings:sync_conflict_only_diff', {
+                          defaultValue: 'Only show differences',
+                        })}
                         onChange={() => setOnlyDifferences(!onlyDifferences)}
                       />
                       <span>

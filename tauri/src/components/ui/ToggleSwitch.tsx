@@ -1,75 +1,30 @@
-/**
- * ToggleSwitch — 共享开关滑块组件（44×24，checkbox + 两个 span，0.2s 过渡）。
- *
- * 从 BiometricSection 抽取为共享组件，避免多份拷贝；
- * 设备同步自动同步开关（SyncStatusCard）与生物识别开关共用。
- */
+import styles from './ToggleSwitch.module.css';
+
+/** 轨道与命中区分离；平台仅提供尺寸和颜色 token。 */
 export function ToggleSwitch({
   checked,
   onChange,
   disabled = false,
+  ariaLabel,
 }: {
   checked: boolean;
-  onChange: () => void;
+  onChange: (checked: boolean) => void;
   disabled?: boolean;
+  ariaLabel?: string;
 }) {
   return (
-    <label
-      data-ui-switch
-      style={{
-        position: 'relative',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 44,
-        height: 24,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        flexShrink: 0,
-        opacity: 1,
-      }}
-    >
+    <label data-ui-switch data-disabled={disabled} className={styles.root}>
       <input
+        className={styles.input}
         type="checkbox"
+        role="switch"
+        aria-label={ariaLabel}
         checked={checked}
         disabled={disabled}
-        onChange={disabled ? () => {} : onChange}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          opacity: 0,
-          width: '100%',
-          height: '100%',
-          margin: 0,
-          cursor: 'inherit',
-        }}
+        onChange={(event) => onChange(event.target.checked)}
       />
-      <span
-        aria-hidden="true"
-        data-switch-track
-        style={{
-          position: 'relative',
-          width: 44,
-          height: 24,
-          flexShrink: 0,
-          pointerEvents: 'none',
-          background: checked ? 'var(--accent-primary)' : 'var(--border-subtle)',
-          borderRadius: 12,
-          transition: '0.2s',
-        }}
-      >
-        <span
-          style={{
-            position: 'absolute',
-            top: 2,
-            left: checked ? 22 : 2,
-            width: 20,
-            height: 20,
-            borderRadius: '50%',
-            background: 'white',
-            transition: '0.2s',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-          }}
-        />
+      <span aria-hidden="true" data-switch-track className={styles.track}>
+        <span className={styles.thumb} />
       </span>
     </label>
   );

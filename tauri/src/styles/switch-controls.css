@@ -1,0 +1,12 @@
+[data-ui-switch] {
+  --switch-hit-width: 44px;
+  --switch-hit-height: 32px;
+  --switch-track-width: 44px;
+  --switch-track-height: 24px;
+  --switch-track-off: color-mix(in srgb, var(--text-primary) 30%, var(--bg-elevated));
+  --switch-track-on: var(--accent-primary);
+  --switch-track-edge: var(--border-default);
+  --switch-thumb-size: 20px;
+  --switch-thumb-travel: 20px;
+  --switch-thumb-fill: #fff;
+}

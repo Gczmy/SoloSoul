@@ -113,7 +113,7 @@ describe('SyncConflictDialog (P027 渲染回归)', () => {
       expect(screen.getByText('Name')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('switch'));
     // age 未变化 → 被过滤（标题化后为 Age）
     expect(screen.queryByText('Age')).not.toBeInTheDocument();
     // name 有差异 → 仍显示

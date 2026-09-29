@@ -285,6 +285,7 @@ function SyncStatusCard({
         </div>
         <ToggleSwitch
           checked={store.autoSyncEnabled}
+          ariaLabel={t('settings:sync_auto', { defaultValue: 'Automatic Sync' })}
           onChange={onToggleAutoSync}
           disabled={!store.syncEnabled || store.isLoading}
         />

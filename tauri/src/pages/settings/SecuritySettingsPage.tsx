@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSettingAction } from '@/hooks/useSettingAction';
@@ -122,52 +123,15 @@ export function SecuritySettingsPage() {
                 {t('settings:auto_lock_on_background_desc')}
               </span>
             </div>
-            <label
-              style={{
-                position: 'relative',
-                display: 'inline-flex',
-                alignItems: 'center',
-                cursor: 'pointer',
+            <ToggleSwitch
+              checked={settings.autoLockOnBackground}
+              ariaLabel={t('settings:auto_lock_on_background')}
+              onChange={(value) => {
+                if (currentAccount?.id) {
+                  updateSetting(currentAccount.id, 'autoLockOnBackground', value);
+                }
               }}
-            >
-              <input
-                type="checkbox"
-                checked={settings.autoLockOnBackground}
-                onChange={(e) => {
-                  const value = e.target.checked;
-                  if (currentAccount?.id) {
-                    updateSetting(currentAccount.id, 'autoLockOnBackground', value);
-                  }
-                }}
-                style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
-              />
-              <span
-                style={{
-                  width: 40,
-                  height: 22,
-                  borderRadius: 11,
-                  background: settings.autoLockOnBackground
-                    ? 'var(--accent-primary)'
-                    : 'var(--border-subtle)',
-                  transition: 'background 0.2s ease',
-                  position: 'relative',
-                }}
-              >
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: 2,
-                    left: settings.autoLockOnBackground ? 20 : 2,
-                    width: 18,
-                    height: 18,
-                    borderRadius: '50%',
-                    background: '#fff',
-                    transition: 'left 0.2s ease',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                  }}
-                />
-              </span>
-            </label>
+            />
           </div>
 
           {/* 自动锁定通知开关 */}
@@ -196,52 +160,15 @@ export function SecuritySettingsPage() {
                 {t('settings:auto_lock_notification_desc')}
               </span>
             </div>
-            <label
-              style={{
-                position: 'relative',
-                display: 'inline-flex',
-                alignItems: 'center',
-                cursor: 'pointer',
+            <ToggleSwitch
+              checked={settings.autoLockNotificationEnabled}
+              ariaLabel={t('settings:auto_lock_notification')}
+              onChange={(value) => {
+                if (currentAccount?.id) {
+                  updateSetting(currentAccount.id, 'autoLockNotificationEnabled', value);
+                }
               }}
-            >
-              <input
-                type="checkbox"
-                checked={settings.autoLockNotificationEnabled}
-                onChange={(e) => {
-                  const value = e.target.checked;
-                  if (currentAccount?.id) {
-                    updateSetting(currentAccount.id, 'autoLockNotificationEnabled', value);
-                  }
-                }}
-                style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
-              />
-              <span
-                style={{
-                  width: 40,
-                  height: 22,
-                  borderRadius: 11,
-                  background: settings.autoLockNotificationEnabled
-                    ? 'var(--accent-primary)'
-                    : 'var(--border-subtle)',
-                  transition: 'background 0.2s ease',
-                  position: 'relative',
-                }}
-              >
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: 2,
-                    left: settings.autoLockNotificationEnabled ? 20 : 2,
-                    width: 18,
-                    height: 18,
-                    borderRadius: '50%',
-                    background: '#fff',
-                    transition: 'left 0.2s ease',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                  }}
-                />
-              </span>
-            </label>
+            />
           </div>
         </Card>
 

@@ -7,6 +7,7 @@ import './styles/themes.css';
 import './styles/action-buttons.css';
 import './styles/icon-buttons.css';
 import './styles/choice-controls.css';
+import './styles/switch-controls.css';
 import './styles/animations.css';
 import './styles/android.css';
 import './styles/macos-glass.css';

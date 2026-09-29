@@ -284,6 +284,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                   )}
                   <ToggleSwitch
                     checked={!!bioAvailable.strongConfigured}
+                    ariaLabel={t('settings:biometric_toggle_label', { type: strongType })}
                     onChange={() => handleBioToggle('strong')}
                   />
                 </div>
@@ -329,6 +330,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                   <div style={{ opacity: 0.45 }}>
                     <ToggleSwitch
                       checked={!!bioAvailable.weakConfigured}
+                      ariaLabel={t('settings:biometric_toggle_label', { type: weakType })}
                       onChange={() => handleBioToggle('weak')}
                       disabled={!bioAvailable.weakConfigured}
                     />

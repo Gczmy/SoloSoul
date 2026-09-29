@@ -68,12 +68,8 @@
   min-height: 48px;
 }
 [data-platform='android'] [data-ui-switch] {
-  min-width: 48px;
-  min-height: 48px;
-}
-[data-ui-switch] input:focus-visible + [data-switch-track] {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 3px;
+  --switch-hit-width: 48px;
+  --switch-hit-height: 48px;
 }
 [data-platform='android'] .interactive-password-field {
   min-height: 56px;

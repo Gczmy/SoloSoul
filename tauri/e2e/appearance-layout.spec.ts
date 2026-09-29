@@ -34,6 +34,21 @@ for (const platform of ['windows', 'macos']) {
       await panel.getByRole('button', { name: 'Close' }).click();
       await expect(panel).toHaveCount(0);
       await expect(more).toBeInViewport();
+
+      await page.evaluate(() => {
+        history.pushState(
+          { ...history.state, idx: (history.state?.idx ?? 0) + 1 },
+          '',
+          '/settings/security',
+        );
+        dispatchEvent(new PopStateEvent('popstate', { state: history.state }));
+      });
+      const switchTarget = page.locator('[data-ui-switch]').first();
+      await expect(switchTarget).toBeVisible();
+      const switchBounds = await switchTarget.boundingBox();
+      expect(switchBounds).not.toBeNull();
+      expect(switchBounds!.width).toBe(44);
+      expect(switchBounds!.height).toBe(32);
     });
   }
 }

@@ -197,6 +197,25 @@ for (const path of paths)
     }
   });
 
+test('Android security switch label and Space each toggle once with a 48px target', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await navigate(page, '/settings/security');
+  const input = page.getByRole('switch', { name: 'Lock on Background' });
+  const label = page.locator('[data-ui-switch]').filter({ has: input });
+  const bounds = await label.boundingBox();
+  expect(bounds).not.toBeNull();
+  expect(bounds!.width).toBeGreaterThanOrEqual(48);
+  expect(bounds!.height).toBeGreaterThanOrEqual(48);
+  const initial = await input.isChecked();
+  await label.click();
+  await expect.poll(() => input.isChecked()).toBe(!initial);
+  await input.focus();
+  await page.keyboard.press('Space');
+  await expect.poll(() => input.isChecked()).toBe(initial);
+});
+
 test('Android login controls do not cover the password text', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 844 });
   await page.goto('/login');
