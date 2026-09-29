@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { SyncConflictDialog } from './SyncConflictDialog';
 
-const { stableT } = vi.hoisted(() => ({
+const { stableT, mockLoadConflictDetail } = vi.hoisted(() => ({
   stableT: (key: string, options?: { defaultValue?: string }) => options?.defaultValue ?? key,
+  mockLoadConflictDetail: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock('react-i18next', () => ({
@@ -21,7 +22,7 @@ vi.mock('@/lib/ipcClient', () => ({
 vi.mock('@/stores/syncStore', () => ({
   useSyncStore: {
     getState: () => ({
-      loadConflictDetail: vi.fn(() => Promise.resolve(undefined)),
+      loadConflictDetail: mockLoadConflictDetail,
     }),
   },
 }));
@@ -51,6 +52,19 @@ const detail: SyncConflictDetail = {
   created_at: '2026-01-01T00:00:00Z',
 };
 
+const conflictB: SyncConflictSummary = {
+  ...conflict,
+  id: 'conf-2',
+  record_id: 'obj-2',
+};
+const detailB: SyncConflictDetail = {
+  ...detail,
+  id: 'conf-2',
+  record_id: 'obj-2',
+  local_data: { name: '王五' },
+  remote_data: { name: '赵六' },
+};
+
 describe('SyncConflictDialog (P027 渲染回归)', () => {
   const onClose = vi.fn();
   const onResolve = vi.fn();
@@ -58,6 +72,7 @@ describe('SyncConflictDialog (P027 渲染回归)', () => {
   beforeEach(() => {
     onClose.mockClear();
     onResolve.mockClear();
+    mockLoadConflictDetail.mockClear();
   });
 
   it('isOpen=false 时不渲染内容', () => {
@@ -136,5 +151,39 @@ describe('SyncConflictDialog (P027 渲染回归)', () => {
     });
     fireEvent.click(screen.getByText('Keep Local'));
     expect(onResolve).toHaveBeenCalledWith('conf-1', 'keep_local' satisfies SyncConflictStrategy);
+  });
+
+  it('切换冲突时旧详情和处理按钮不再显示，新详情到达后只处理新冲突', async () => {
+    const props = {
+      isOpen: true,
+      conflicts: [conflict, conflictB],
+      isLoading: false,
+      onClose,
+      onResolve,
+    };
+    const { rerender } = render(<SyncConflictDialog {...props} detail={detail} />);
+    await waitFor(() => expect(screen.getByText('张三')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('obj-2').closest('button')!);
+    expect(screen.queryByText('张三')).toBeNull();
+    expect(screen.queryByText('Keep Local')).toBeNull();
+    expect(onResolve).not.toHaveBeenCalled();
+
+    rerender(<SyncConflictDialog {...props} detail={detailB} />);
+    expect(screen.getByText('王五')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Keep Local'));
+    expect(onResolve).toHaveBeenCalledWith('conf-2', 'keep_local');
+  });
+
+  it('已选冲突从列表移除时自动选择仍存在的冲突', async () => {
+    const props = { isOpen: true, isLoading: false, onClose, onResolve };
+    const { rerender } = render(
+      <SyncConflictDialog {...props} conflicts={[conflict, conflictB]} detail={detail} />,
+    );
+    fireEvent.click(screen.getByText('obj-2').closest('button')!);
+    rerender(<SyncConflictDialog {...props} conflicts={[conflict]} detail={detailB} />);
+    await waitFor(() => expect(mockLoadConflictDetail).toHaveBeenLastCalledWith('conf-1'));
+    expect(screen.queryByText('王五')).toBeNull();
+    expect(screen.queryByText('Keep Local')).toBeNull();
   });
 });

@@ -60,12 +60,7 @@ function extractFieldLevels(data: unknown): Map<string, SensitivityLevel> {
   for (const [key, def] of Object.entries(fields as Record<string, unknown>)) {
     if (!def || typeof def !== 'object') continue;
     const lvl = (def as Record<string, unknown>).sensitivityLevel;
-    if (
-      lvl === 'public' ||
-      lvl === 'internal' ||
-      lvl === 'sensitive' ||
-      lvl === 'critical'
-    ) {
+    if (lvl === 'public' || lvl === 'internal' || lvl === 'sensitive' || lvl === 'critical') {
       // 同一字段本地/远程定义可能不一致时取更严格者
       const prev = map.get(key);
       const rank: Record<SensitivityLevel, number> = {
@@ -135,7 +130,7 @@ function buildFieldRows(
 export function SyncConflictDialog({
   isOpen,
   conflicts,
-  detail,
+  detail: suppliedDetail,
   isLoading,
   onClose,
   onResolve,
@@ -146,6 +141,9 @@ export function SyncConflictDialog({
   // P028：受保护字段（sensitive/critical）揭示交互——冲突解决需看清差异，
   // 但默认仍按掩码约定遮蔽，点击临时揭示（1 分钟 TTL 自动重掩）。
   const revealState = useRevealState();
+  const selectedConflict = conflicts.find((c) => c.id === selectedId);
+  const selectedConflictExists = !!selectedConflict;
+  const detail = selectedConflict?.id === suppliedDetail?.id ? suppliedDetail : null;
   const fieldLevels = detail
     ? (() => {
         const l = extractFieldLevels(detail.local_data);
@@ -160,23 +158,21 @@ export function SyncConflictDialog({
     : new Map<string, SensitivityLevel>();
 
   useEffect(() => {
-    if (isOpen && conflicts.length > 0 && !selectedId) {
-      setSelectedId(conflicts[0].id);
-      void useSyncStore.getState().loadConflictDetail(conflicts[0].id);
-    }
-  }, [isOpen, conflicts, selectedId]);
+    if (!isOpen) return;
+    if (conflicts.length === 0 && selectedId) setSelectedId(null);
+    else if (conflicts.length > 0 && !selectedConflict) setSelectedId(conflicts[0].id);
+  }, [isOpen, conflicts, selectedId, selectedConflict]);
 
   useEffect(() => {
-    if (selectedId) {
+    if (isOpen && selectedId && selectedConflictExists) {
       void useSyncStore.getState().loadConflictDetail(selectedId);
     }
-  }, [selectedId]);
+  }, [isOpen, selectedId, selectedConflictExists]);
 
   const handleSelect = (id: string) => {
     setSelectedId(id);
   };
 
-  const selectedConflict = conflicts.find((c) => c.id === selectedId);
   const selectedIndex = selectedConflict ? conflicts.findIndex((c) => c.id === selectedId) : -1;
 
   const fieldRows =
@@ -191,7 +187,12 @@ export function SyncConflictDialog({
 
   // P027: 字段行抽为子组件（降低 JSX 嵌套深度）；diff 行渲染与计数逻辑保持一致。
   // detail 仅在下方 `detail && selectedConflict` 分支内调用，非空断言安全。
-  const renderFieldRow = (row: { key: string; local: unknown; remote: unknown; changed: boolean }) => {
+  const renderFieldRow = (row: {
+    key: string;
+    local: unknown;
+    remote: unknown;
+    changed: boolean;
+  }) => {
     const level = fieldLevels.get(row.key);
     const protectedField = !!level && shouldMaskSensitivity(level);
     return (
@@ -214,8 +215,8 @@ export function SyncConflictDialog({
         ? detail?.remote_deleted
           ? 1 // remote 整行删除：整行为一处差异
           : // 对象字段统计展开后的差异叶子数；标量行 buildDiffEntries 为 null，按 1 处计
-            (buildDiffEntries(row.key, row.local, row.remote, t)?.filter((e) => e.changed)
-              .length ?? 1)
+            (buildDiffEntries(row.key, row.local, row.remote, t)?.filter((e) => e.changed).length ??
+            1)
         : 0),
     0,
   );
@@ -246,8 +247,9 @@ export function SyncConflictDialog({
                   type="button"
                   className={`${styles.item} ${selectedId === c.id ? styles.selected : ''}`}
                   onClick={() => handleSelect(c.id)}
-                >                    <div className={styles.itemTable}>{conflictTableLabel(c.table, t)}</div>
-                    <div className={styles.itemRecord}>{c.record_id}</div>
+                >
+                  <div className={styles.itemTable}>{conflictTableLabel(c.table, t)}</div>
+                  <div className={styles.itemRecord}>{c.record_id}</div>
                   <div className={styles.itemWinner}>
                     {t('settings:sync_conflict_winner', { defaultValue: 'Winner' })}:{' '}
                     {c.winner === 'local'
@@ -264,7 +266,9 @@ export function SyncConflictDialog({
                   <div className={styles.conflictNav}>
                     <Button
                       variant="tertiary"
-                      onClick={() => selectedIndex > 0 && handleSelect(conflicts[selectedIndex - 1].id)}
+                      onClick={() =>
+                        selectedIndex > 0 && handleSelect(conflicts[selectedIndex - 1].id)
+                      }
                       disabled={selectedIndex <= 0}
                     >
                       {t('settings:sync_conflict_prev', { defaultValue: '‹ Previous' })}
@@ -288,7 +292,9 @@ export function SyncConflictDialog({
                     </Button>
                   </div>
                   <div>
-                    <strong>{t('settings:sync_conflict_record', { defaultValue: 'Record' })}:</strong>{' '}
+                    <strong>
+                      {t('settings:sync_conflict_record', { defaultValue: 'Record' })}:
+                    </strong>{' '}
                     {detail.record_id}
                   </div>
                   <div>
@@ -296,7 +302,9 @@ export function SyncConflictDialog({
                     {conflictTableLabel(detail.table, t)}
                   </div>
                   <div className={styles.winnerRow}>
-                    <strong>{t('settings:sync_conflict_winner', { defaultValue: 'Winner' })}:</strong>{' '}
+                    <strong>
+                      {t('settings:sync_conflict_winner', { defaultValue: 'Winner' })}:
+                    </strong>{' '}
                     <span
                       className={`${styles.winnerBadge} ${
                         detail.winner === 'local' ? styles.winnerLocal : styles.winnerRemote
