@@ -217,6 +217,27 @@ fn test_apply_sync_changes_archives_incompatible_field() {
     };
 
     let result = compute_sync_changes(&record, &tpl);
+    // 类型不兼容的旧值可能是敏感数据：仅双端显式 public 才允许预览。
+    assert_eq!(result.fields_incompatible[0].old_value_preview, "");
+    let mut public_record = record.clone();
+    public_record.property_labels = Some(serde_json::json!({ "numberField": "public" }));
+    let mut public_tpl = tpl.clone();
+    public_tpl.properties[0].sensitivity_level = Some("public".to_string());
+    let public_result = compute_sync_changes(&public_record, &public_tpl);
+    assert_eq!(public_result.fields_incompatible[0].old_value_preview, "42");
+    public_tpl.properties[0].sensitivity_level = Some("sensitive".to_string());
+    let tightened_result = compute_sync_changes(&public_record, &public_tpl);
+    assert_eq!(
+        tightened_result.fields_incompatible[0].old_value_preview,
+        ""
+    );
+    public_tpl.properties[0].sensitivity_level = Some("public".to_string());
+    public_record.property_labels = Some(serde_json::json!({ "numberField": "invalid" }));
+    let invalid_label_result = compute_sync_changes(&public_record, &public_tpl);
+    assert_eq!(
+        invalid_label_result.fields_incompatible[0].old_value_preview,
+        ""
+    );
     apply_sync_changes(&mut record, &tpl, &result, false);
 
     // 原字段应被重置为空字符串（date 默认值）

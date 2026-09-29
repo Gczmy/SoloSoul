@@ -979,11 +979,22 @@ fn collect_updated_fields(
                     }],
                 });
             } else {
-                let preview = match props_obj.get(&prop.id).unwrap_or(&serde_json::Value::Null) {
-                    serde_json::Value::String(s) => s.chars().take(40).collect(),
-                    serde_json::Value::Number(n) => n.to_string(),
-                    serde_json::Value::Bool(b) => b.to_string(),
-                    _ => "(complex value)".to_string(),
+                // 预览会直接显示在确认弹窗；仅旧字段与新模板均显式 public 时才传值。
+                // 标签存在但无效时不能回退到字段定义的 public，避免敏感度降级。
+                let old_level = labels_map
+                    .get(&prop.id)
+                    .or_else(|| old_def.get("sensitivityLevel"));
+                let both_public = old_level.and_then(serde_json::Value::as_str) == Some("public")
+                    && prop.sensitivity_level.as_deref() == Some("public");
+                let preview = if both_public {
+                    match props_obj.get(&prop.id).unwrap_or(&serde_json::Value::Null) {
+                        serde_json::Value::String(s) => s.chars().take(40).collect(),
+                        serde_json::Value::Number(n) => n.to_string(),
+                        serde_json::Value::Bool(b) => b.to_string(),
+                        _ => "(complex value)".to_string(),
+                    }
+                } else {
+                    String::new()
                 };
                 fields_incompatible.push(SyncFieldIncompatible {
                     id: prop.id.clone(),
