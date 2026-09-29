@@ -222,6 +222,55 @@ describe('syncStore uiPrefsSync toggle', () => {
     expect(useSyncStore.getState().uiPrefsSyncEnabled).toBe(false);
     expect(useSyncStore.getState().isLoading).toBe(false);
   });
+
+  it('关闭成功后忽略开关前开始的迟到外观偏好状态读取', async () => {
+    let finishRead!: (enabled: boolean) => void;
+    mockInvoke.mockImplementation((command: string) => {
+      if (command === 'sync_get_ui_prefs_sync') {
+        return new Promise<boolean>((resolve) => {
+          finishRead = resolve;
+        });
+      }
+      if (command === 'sync_set_ui_prefs_sync') return Promise.resolve(false);
+      throw new Error(`Unexpected command: ${command}`);
+    });
+
+    const oldRead = useSyncStore.getState().loadUiPrefsSync();
+    await useSyncStore.getState().setUiPrefsSyncEnabled(false);
+    finishRead(true);
+    await oldRead;
+
+    expect(useSyncStore.getState().uiPrefsSyncEnabled).toBe(false);
+    expect(useSyncStore.getState().error).toBeNull();
+  });
+
+  it('关闭处理中开始的迟到外观偏好状态读取也不能覆盖成功结果', async () => {
+    let finishRead!: (enabled: boolean) => void;
+    let finishToggle!: (enabled: boolean) => void;
+    mockInvoke.mockImplementation((command: string) => {
+      if (command === 'sync_get_ui_prefs_sync') {
+        return new Promise<boolean>((resolve) => {
+          finishRead = resolve;
+        });
+      }
+      if (command === 'sync_set_ui_prefs_sync') {
+        return new Promise<boolean>((resolve) => {
+          finishToggle = resolve;
+        });
+      }
+      throw new Error(`Unexpected command: ${command}`);
+    });
+
+    const toggle = useSyncStore.getState().setUiPrefsSyncEnabled(false);
+    const oldRead = useSyncStore.getState().loadUiPrefsSync();
+    finishToggle(false);
+    await toggle;
+    finishRead(true);
+    await oldRead;
+
+    expect(useSyncStore.getState().uiPrefsSyncEnabled).toBe(false);
+    expect(useSyncStore.getState().error).toBeNull();
+  });
 });
 
 describe('syncStore auto-sync toggle state', () => {

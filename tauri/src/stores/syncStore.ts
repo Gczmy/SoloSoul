@@ -541,10 +541,14 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     setUiPrefsSyncEnabled: async (enabled) => {
       const request = requests.begin();
       const setCurrent = request.guardSet<SyncStoreState>(set);
+      // 外观偏好写入前的旧读取不能覆盖本次用户操作。
+      requests.invalidate('uiPrefs');
       setCurrent({ isLoading: true, error: null });
       try {
         const result = await request.invoke<boolean>('sync_set_ui_prefs_sync', { enabled });
         request.assertCurrent();
+        // 写入期间发起的读取也可能返回旧状态。
+        requests.invalidate('uiPrefs');
         setCurrent({ uiPrefsSyncEnabled: result, isLoading: false });
       } catch (err) {
         if (!request.isCurrent()) return;
