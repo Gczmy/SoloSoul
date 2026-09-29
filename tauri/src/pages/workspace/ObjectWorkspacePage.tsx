@@ -444,24 +444,14 @@ export function ObjectWorkspacePage() {
       {/* Unified password verification dialog (detail panel + history cards) */}
       <PasswordVerificationDialog
         open={ws.showPwDialog}
-        onClose={() => {
-          ws.setShowPwDialog(false);
-          ws.pwResolveRef.current?.({ ok: false, method: 'password' });
-        }}
-        onVerify={async (password) => {
-          const ok = await ws.verifyVaultPassword(password);
-          if (ok) ws.pwResolveRef.current?.({ ok: true, method: 'password' });
-          return ok;
-        }}
+        onClose={ws.handlePwDialogClose}
+        onVerify={ws.handlePwDialogVerify}
         title={t('common:critical_access_title')}
         description={t('common:critical_access_desc')}
         confirmLabel={t('common:unlock')}
         hint={ws.passwordHint}
         pinAccountId={ws.accountId}
-        onPinSuccess={() => {
-          ws.pwResolveRef.current?.({ ok: true, method: 'password' });
-          ws.setShowPwDialog(false);
-        }}
+        onPinSuccess={ws.handlePwDialogPinSuccess}
         biometricType={ws.bioAvailable.available ? ws.bioAvailable.biometryType : undefined}
         onBiometric={ws.bioAvailable.available ? ws.handleBiometricUnlock : undefined}
       />

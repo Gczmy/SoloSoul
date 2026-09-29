@@ -161,12 +161,12 @@ export function useObjectWorkspaceData({
   // P013/5: 密码守卫（详情面板/历史查看器共用）
   const {
     showPwDialog,
-    setShowPwDialog,
-    pwResolveRef,
     bioAvailable,
     passwordHint,
     passwordVerify,
-    verifyVaultPassword,
+    handlePwDialogClose,
+    handlePwDialogVerify,
+    handlePwDialogPinSuccess,
     handleBiometricUnlock,
   } = useWorkspacePasswordGuard(accountId);
 
@@ -331,12 +331,12 @@ export function useObjectWorkspaceData({
     closeDeprecatedViewer,
     deprecatedFields,
     showPwDialog,
-    setShowPwDialog,
-    pwResolveRef,
     bioAvailable,
     passwordHint,
     passwordVerify,
-    verifyVaultPassword,
+    handlePwDialogClose,
+    handlePwDialogVerify,
+    handlePwDialogPinSuccess,
     handleBiometricUnlock,
     getFieldSensitivity,
     isFieldDeprecated,

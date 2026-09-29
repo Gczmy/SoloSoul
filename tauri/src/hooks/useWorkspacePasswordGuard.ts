@@ -1,41 +1,67 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { onRequestSessionChange } from '@/lib/sessionRequests';
 import { logger } from '@/lib/logger';
 
 /**
  * P013/5: 工作区敏感操作密码/生物识别守卫。
  * 详情面板与历史查看器共用——通过 passwordVerify() 打开验证对话框，
- * 结果经 pwResolveRef 回传，UI 侧用 showPwDialog / setShowPwDialog 控制。
+ * 验证结果在 Hook 内按请求代次回传；账户/会话切换时取消待决验证。
  */
 export function useWorkspacePasswordGuard(accountId: string | undefined) {
   const [showPwDialog, setShowPwDialog] = useState(false);
   const pwResolveRef = useRef<
     ((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' }) => void) | null
   >(null);
+  const verificationSequence = useRef(0);
+  const [verificationId, setVerificationId] = useState(0);
   const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
     available: false,
   });
   const [passwordHint, setPasswordHint] = useState<string | null>(null);
 
+  const handlePwDialogClose = useCallback(() => {
+    verificationSequence.current += 1;
+    pwResolveRef.current?.({ ok: false, method: 'password' });
+    pwResolveRef.current = null;
+    setShowPwDialog(false);
+  }, []);
+
+  useLayoutEffect(() => {
+    handlePwDialogClose();
+    const unsubscribe = onRequestSessionChange(handlePwDialogClose);
+    return () => {
+      unsubscribe();
+      handlePwDialogClose();
+    };
+  }, [accountId, handlePwDialogClose]);
+
   useEffect(() => {
+    let active = true;
+    setBioAvailable({ available: false });
+    setPasswordHint(null);
+    if (!accountId) return;
     invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
       'biometric_check_availability',
-      { accountId: accountId || '' },
+      { accountId },
     )
-      .then((r) =>
-        setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
-      )
+      .then((r) => {
+        if (active)
+          setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType });
+      })
       .catch((err) => logger.warn('[Workspace] Biometric check failed:', err));
-    if (accountId) {
-      invoke<Array<{ id: string; passwordHint?: string }>>('vault_list_accounts')
-        .then((accounts) => {
-          const acc = accounts.find((a) => a.id === accountId);
-          setPasswordHint(acc?.passwordHint || null);
-        })
-        .catch(() => {
-          /* ignore */
-        });
-    }
+    invoke<Array<{ id: string; passwordHint?: string }>>('vault_list_accounts')
+      .then((accounts) => {
+        if (!active) return;
+        const acc = accounts.find((a) => a.id === accountId);
+        setPasswordHint(acc?.passwordHint || null);
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => {
+      active = false;
+    };
   }, [accountId]);
 
   const passwordVerify = useCallback(async (): Promise<{
@@ -43,7 +69,9 @@ export function useWorkspacePasswordGuard(accountId: string | undefined) {
     method: 'password' | 'touchId' | 'faceId';
   }> => {
     return new Promise((resolve) => {
+      pwResolveRef.current?.({ ok: false, method: 'password' });
       pwResolveRef.current = resolve;
+      setVerificationId(++verificationSequence.current);
       setShowPwDialog(true);
     });
   }, []);
@@ -71,7 +99,9 @@ export function useWorkspacePasswordGuard(accountId: string | undefined) {
   );
 
   const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
-    if (!accountId) return false;
+    const resolve = pwResolveRef.current;
+    const id = verificationSequence.current;
+    if (!accountId || !resolve) return false;
     try {
       await invoke('biometric_unlock', {
         accountId: accountId,
@@ -80,7 +110,9 @@ export function useWorkspacePasswordGuard(accountId: string | undefined) {
         biometryType: bioAvailable.biometryType,
       });
       const method = (bioAvailable.biometryType as 'touchId' | 'faceId') || 'touchId';
-      pwResolveRef.current?.({ ok: true, method });
+      if (pwResolveRef.current !== resolve || verificationSequence.current !== id) return false;
+      resolve({ ok: true, method });
+      pwResolveRef.current = null;
       return true;
     } catch (err) {
       // P124: 记录失败细节（用户取消 vs 后端异常在 UI 上保持静默停留，但日志不再丢失）
@@ -89,14 +121,43 @@ export function useWorkspacePasswordGuard(accountId: string | undefined) {
     }
   }, [accountId, bioAvailable.biometryType]);
 
+  const handlePwDialogVerify = useCallback(
+    async (password: string): Promise<boolean> => {
+      const resolve = pwResolveRef.current;
+      const id = verificationSequence.current;
+      if (!resolve) return false;
+      let ok: boolean;
+      try {
+        ok = await verifyVaultPassword(password);
+      } catch (error) {
+        if (pwResolveRef.current !== resolve || verificationSequence.current !== id) return false;
+        throw error;
+      }
+      if (pwResolveRef.current !== resolve || verificationSequence.current !== id) return false;
+      if (ok) {
+        resolve({ ok: true, method: 'password' });
+        pwResolveRef.current = null;
+      }
+      return ok;
+    },
+    [verifyVaultPassword],
+  );
+
+  const handlePwDialogPinSuccess = useCallback(() => {
+    if (verificationId !== verificationSequence.current) return;
+    pwResolveRef.current?.({ ok: true, method: 'password' });
+    pwResolveRef.current = null;
+    setShowPwDialog(false);
+  }, [verificationId]);
+
   return {
     showPwDialog,
-    setShowPwDialog,
-    pwResolveRef,
     bioAvailable,
     passwordHint,
     passwordVerify,
-    verifyVaultPassword,
+    handlePwDialogClose,
+    handlePwDialogVerify,
+    handlePwDialogPinSuccess,
     handleBiometricUnlock,
   };
 }
