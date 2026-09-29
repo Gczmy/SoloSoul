@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router-dom';
 import { ObjectDetailModal } from './ObjectDetailModal';
 import type { ObjectData } from '@/stores/objectStore';
 import { useUiStore } from '@/stores/uiStore';
+import { isAndroidSync } from '@/lib/platform';
+import { invokeCommand } from '@/lib/ipcClient';
 
 const authMock = vi.hoisted(() => ({ accountId: 'acc-1' as string | null }));
 const objectStoreMock = vi.hoisted(() => ({ deleteObject: vi.fn() }));
@@ -58,6 +60,21 @@ vi.mock('@/hooks/useDragToAttach', () => ({
   useDragToAttach: () => ({ ref: { current: null }, dragState: 'idle' }),
 }));
 
+vi.mock('@/components/object/AttachmentViewer', () => ({
+  AttachmentViewer: ({
+    onClose,
+    onCountChange,
+  }: {
+    onClose: () => void;
+    onCountChange: () => void;
+  }) => (
+    <div role="dialog" aria-label="attachment viewer">
+      <button onClick={onCountChange}>Attachment changed</button>
+      <button onClick={onClose}>Close attachments</button>
+    </div>
+  ),
+}));
+
 // ── 样例对象（提供 object prop，跳过拉取）─────────────────────────────────
 const sampleObj = {
   id: 'obj-1',
@@ -80,6 +97,76 @@ describe('ObjectDetailModal', () => {
     vi.clearAllMocks();
     authMock.accountId = 'acc-1';
     objectStoreMock.deleteObject.mockResolvedValue(undefined);
+    vi.mocked(isAndroidSync).mockReturnValue(false);
+    vi.mocked(invokeCommand).mockResolvedValue(null);
+  });
+
+  it('Android attachment badge refreshes after the viewer changes attachments', async () => {
+    vi.mocked(isAndroidSync).mockReturnValue(true);
+    let count = 2;
+    vi.mocked(invokeCommand).mockImplementation(async (command) =>
+      command === 'attachment_count_batch' ? { 'obj-1': count } : null,
+    );
+    const onAttachmentsChange = vi.fn();
+    render(
+      <BrowserRouter>
+        <ObjectDetailModal
+          object={sampleObj}
+          onClose={vi.fn()}
+          onAttachmentsChange={onAttachmentsChange}
+        />
+      </BrowserRouter>,
+    );
+
+    await waitFor(() =>
+      expect(document.querySelector('.android-object-attachment-count')).toHaveTextContent('2'),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'material.attachments_with_count' }));
+    count = 3;
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'attachment viewer' })).getByRole('button', {
+        name: 'Attachment changed',
+      }),
+    );
+    await waitFor(() =>
+      expect(document.querySelector('.android-object-attachment-count')).toHaveTextContent('3'),
+    );
+    expect(onAttachmentsChange).toHaveBeenCalledOnce();
+  });
+
+  it('Android attachment badge ignores an old object count that arrives after switching objects', async () => {
+    vi.mocked(isAndroidSync).mockReturnValue(true);
+    let resolveOld!: (counts: Record<string, number>) => void;
+    const oldCount = new Promise<Record<string, number>>((resolve) => {
+      resolveOld = resolve;
+    });
+    vi.mocked(invokeCommand).mockImplementation((command, args) => {
+      if (command !== 'attachment_count_batch') return Promise.resolve(null);
+      return (args as { objectIds: string[] }).objectIds[0] === 'obj-1'
+        ? oldCount
+        : Promise.resolve({ 'obj-2': 4 });
+    });
+    const view = render(
+      <BrowserRouter>
+        <ObjectDetailModal object={sampleObj} onClose={vi.fn()} />
+      </BrowserRouter>,
+    );
+    view.rerender(
+      <BrowserRouter>
+        <ObjectDetailModal
+          object={{ ...sampleObj, id: 'obj-2', name: '身份证' }}
+          onClose={vi.fn()}
+        />
+      </BrowserRouter>,
+    );
+    await waitFor(() =>
+      expect(document.querySelector('.android-object-attachment-count')).toHaveTextContent('4'),
+    );
+    await act(async () => {
+      resolveOld({ 'obj-1': 99 });
+      await oldCount;
+    });
+    expect(document.querySelector('.android-object-attachment-count')).toHaveTextContent('4');
   });
 
   it('RF-1021 删除提交期间 Escape 和遮罩不关闭确认框', async () => {
