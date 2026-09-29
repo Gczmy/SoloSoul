@@ -50,10 +50,7 @@ export function CloudSyncPage() {
             onAutoImportChange={s.setAutoImport}
           />
 
-          <CloudSyncRetentionSection
-            retention={s.retention}
-            onRetentionChange={s.setRetention}
-          />
+          <CloudSyncRetentionSection retention={s.retention} onRetentionChange={s.setRetention} />
 
           <CloudSyncActionsSection
             hasSavedConfig={!!s.savedConfig}
@@ -83,12 +80,7 @@ export function CloudSyncPage() {
           <PasswordVerificationDialog
             open={s.showPasswordDialog}
             onClose={s.handlePasswordCancelled}
-            onVerify={async (_password: string) => {
-              s.passwordVerifiedRef.current = true;
-              s.setShowPasswordDialog(false);
-              await s.doSave();
-              return true;
-            }}
+            onVerify={s.handleVerifyAndSave}
             title={t('settings:cloud_sync_password_dialog_title')}
             description={t('settings:cloud_sync_password_dialog_desc')}
           />

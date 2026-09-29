@@ -162,6 +162,24 @@ export function useCloudSyncPage() {
     }
   };
 
+  const handleVerifyAndSave = async (password: string): Promise<boolean> => {
+    const request = requests.begin('save-verify', accountId);
+    if (!accountId || !request.isCurrent()) return false;
+    let verified: boolean;
+    try {
+      verified = await request.invoke<boolean>('verify_password', { accountId, password });
+    } catch (error) {
+      // 锁定或切换账户期间迟到的验证结果不能授权新会话保存。
+      if (!request.isCurrent()) return false;
+      throw error;
+    }
+    if (!verified || !request.isCurrent()) return false;
+    passwordVerifiedRef.current = true;
+    setShowPasswordDialog(false);
+    await doSave();
+    return true;
+  };
+
   const handleDelete = async () => {
     if (!window.confirm(t('settings:cloud_sync_delete_confirm'))) return;
     try {
@@ -302,13 +320,12 @@ export function useCloudSyncPage() {
     setShowPasswordDialog,
     // handlers
     handleSave,
-    doSave,
+    handleVerifyAndSave,
     handleDelete,
     handleTestConnection,
     handleSyncNow,
     handleImportIncoming,
     handlePasswordCancelled,
-    passwordVerifiedRef,
     isFormValid,
   };
 }
