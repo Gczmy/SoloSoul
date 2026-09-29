@@ -242,12 +242,10 @@ describe('AttachmentPreviewOverlay', () => {
       />,
     );
 
-    await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('fs_read_file_as_data_url', {
-        path: '/vault/attachments/obj-1/att-1/test.png',
-      });
+    const embed = await screen.findByTitle('doc.pdf');
+    expect(mockInvoke).toHaveBeenCalledWith('fs_read_file_as_data_url', {
+      path: '/vault/attachments/obj-1/att-1/test.png',
     });
-    const embed = screen.getByTitle('doc.pdf');
     expect(embed.getAttribute('src')).toBe('data:application/pdf;base64,abc');
   });
 

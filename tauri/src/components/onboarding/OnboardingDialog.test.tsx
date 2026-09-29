@@ -281,7 +281,7 @@ describe('OnboardingDialog vault directory step (Android)', () => {
       expect(screen.getByText(/onboarding_vault_dir_title/i)).toBeInTheDocument(),
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /onboarding_vault_dir_saf_title/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /onboarding_vault_dir_saf_title/i }));
     await waitFor(() =>
       expect(screen.getByText(/onboarding_vault_dir_sync_done/i)).toBeInTheDocument(),
     );
@@ -305,7 +305,7 @@ describe('OnboardingDialog vault directory step (Android)', () => {
       expect(screen.getByText(/onboarding_vault_dir_title/i)).toBeInTheDocument(),
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /onboarding_vault_dir_saf_title/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /onboarding_vault_dir_saf_title/i }));
     await waitFor(() => expect(vaultDirectory.initVaultDirectory).toHaveBeenCalledOnce());
     expect(screen.queryByRole('button', { name: /onboarding_next/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /onboarding_back/i })).toBeDisabled();
