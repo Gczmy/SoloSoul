@@ -3,6 +3,8 @@ import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { onRequestSessionChange } from '@/lib/sessionRequests';
 import { logger } from '@/lib/logger';
 
+type VerificationMethod = 'password' | 'pin' | 'touchId' | 'faceId' | 'windowsHello';
+
 /**
  * P013/5: 工作区敏感操作密码/生物识别守卫。
  * 详情面板与历史查看器共用——通过 passwordVerify() 打开验证对话框，
@@ -11,7 +13,7 @@ import { logger } from '@/lib/logger';
 export function useWorkspacePasswordGuard(accountId: string | undefined) {
   const [showPwDialog, setShowPwDialog] = useState(false);
   const pwResolveRef = useRef<
-    ((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' }) => void) | null
+    ((result: { ok: boolean; method: VerificationMethod }) => void) | null
   >(null);
   const verificationSequence = useRef(0);
   const [verificationId, setVerificationId] = useState(0);
@@ -66,7 +68,7 @@ export function useWorkspacePasswordGuard(accountId: string | undefined) {
 
   const passwordVerify = useCallback(async (): Promise<{
     ok: boolean;
-    method: 'password' | 'touchId' | 'faceId';
+    method: VerificationMethod;
   }> => {
     return new Promise((resolve) => {
       pwResolveRef.current?.({ ok: false, method: 'password' });
@@ -109,7 +111,10 @@ export function useWorkspacePasswordGuard(accountId: string | undefined) {
         action: 'unlock',
         biometryType: bioAvailable.biometryType,
       });
-      const method = (bioAvailable.biometryType as 'touchId' | 'faceId') || 'touchId';
+      const method: VerificationMethod =
+        bioAvailable.biometryType === 'faceId' || bioAvailable.biometryType === 'windowsHello'
+          ? bioAvailable.biometryType
+          : 'touchId';
       if (pwResolveRef.current !== resolve || verificationSequence.current !== id) return false;
       resolve({ ok: true, method });
       pwResolveRef.current = null;
@@ -145,7 +150,7 @@ export function useWorkspacePasswordGuard(accountId: string | undefined) {
 
   const handlePwDialogPinSuccess = useCallback(() => {
     if (verificationId !== verificationSequence.current) return;
-    pwResolveRef.current?.({ ok: true, method: 'password' });
+    pwResolveRef.current?.({ ok: true, method: 'pin' });
     pwResolveRef.current = null;
     setShowPwDialog(false);
   }, [verificationId]);

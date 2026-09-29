@@ -167,3 +167,34 @@ it('rejects a PIN callback retained from a previous verification', async () => {
   act(() => result.current.handlePwDialogClose());
   expect(await nextVerification).toMatchObject({ ok: false });
 });
+
+it('reports PIN as the verification method for a current request', async () => {
+  setRequestSession('a');
+  const { result } = renderHook(() => useWorkspacePasswordGuard('a'));
+  let verification!: ReturnType<typeof result.current.passwordVerify>;
+  act(() => {
+    verification = result.current.passwordVerify();
+  });
+  act(() => result.current.handlePwDialogPinSuccess());
+  expect(await verification).toEqual({ ok: true, method: 'pin' });
+});
+
+it('reports Windows Hello as the verification method for a current request', async () => {
+  vi.mocked(invokeCommand).mockImplementation(async (command) => {
+    if (command === 'biometric_check_availability')
+      return { available: true, configured: true, biometryType: 'windowsHello' } as never;
+    if (command === 'vault_list_accounts') return [] as never;
+    return undefined as never;
+  });
+  setRequestSession('a');
+  const { result } = renderHook(() => useWorkspacePasswordGuard('a'));
+  await waitFor(() => expect(result.current.bioAvailable.biometryType).toBe('windowsHello'));
+  let verification!: ReturnType<typeof result.current.passwordVerify>;
+  act(() => {
+    verification = result.current.passwordVerify();
+  });
+  await act(async () => {
+    expect(await result.current.handleBiometricUnlock()).toBe(true);
+  });
+  expect(await verification).toEqual({ ok: true, method: 'windowsHello' });
+});
