@@ -8,7 +8,7 @@ import { PluginBadge } from './PluginBadge';
 import { TemplateFieldRowItem } from './TemplateFieldRowItem';
 import type { SampleTemplate } from '@/lib/sampleTemplates';
 import { deriveSampleTemplateBindings } from '@/lib/sampleTemplates';
-import type { SensitivityLevel } from '@/types/template';
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import { ICON_SIZE } from '@/lib/constants';
 import { usePluginStore } from '@/stores/pluginStore';
 import type { PluginManifest } from '@/lib/plugin';
@@ -150,7 +150,9 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
                   <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                     {t(`editor:field_types.${prop.type}`, prop.type)}
                   </span>
-                  <SensitivityBadge level={prop.sensitivityLevel as SensitivityLevel} />
+                  <SensitivityBadge
+                    level={resolveFieldSensitivity({ fieldId: prop.id, template: prop })}
+                  />
                 </>
               }
             />

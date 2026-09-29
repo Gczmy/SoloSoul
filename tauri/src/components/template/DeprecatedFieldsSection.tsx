@@ -4,7 +4,8 @@ import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SensitivityBadge as UiSensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { ICON_SIZE } from '@/lib/constants';
-import type { SensitivityLevel, TemplateProperty } from '@/types/template';
+import type { TemplateProperty } from '@/types/template';
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 
 export interface FieldUsage {
   active: number;
@@ -113,7 +114,7 @@ export function DeprecatedFieldsSection({
                     {prop.name}
                   </span>
                   <UiSensitivityBadge
-                    level={(prop.sensitivityLevel || 'internal') as SensitivityLevel}
+                    level={resolveFieldSensitivity({ fieldId: prop.id, template: prop })}
                   />
                   <DeprecatedBadge />
                   <Button variant="tertiary" size="sm" onClick={() => onRestoreProperty(idx)}>

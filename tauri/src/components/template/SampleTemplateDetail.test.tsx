@@ -23,6 +23,17 @@ describe('SampleTemplateDetail', () => {
     });
   });
 
+  it('示例模板属性含非法敏感度时显示 internal 徽章', () => {
+    const malformedTemplate = {
+      ...template,
+      properties: [{ ...template.properties[0], sensitivityLevel: 'unknown' }],
+    } as unknown as typeof template;
+    render(<SampleTemplateDetail template={malformedTemplate} onBack={vi.fn()} onUse={vi.fn()} />);
+
+    expect(screen.getByTitle('sensitivity_label: internal')).toBeInTheDocument();
+    expect(screen.queryByTitle('sensitivity_label: unknown')).not.toBeInTheDocument();
+  });
+
   it('calls onUse when clicking use template button', () => {
     const onUse = vi.fn();
     render(<SampleTemplateDetail template={template} onBack={vi.fn()} onUse={onUse} />);

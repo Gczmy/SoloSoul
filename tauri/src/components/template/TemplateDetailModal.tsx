@@ -9,8 +9,9 @@ import { SensitivityBadges } from './SensitivityBadges';
 import { PluginBadge } from './PluginBadge';
 import { TemplateFieldRowItem } from './TemplateFieldRowItem';
 import { resolveCustomIcon } from '@/lib/pageIcons';
-import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
+import type { PropertyType, UserTemplate } from '@/types/template';
 import { ICON_SIZE } from '@/lib/constants';
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import { usePluginStore } from '@/stores/pluginStore';
 import type { ListTemplate } from '@/pages/settings/TemplateListSection';
 import { logger } from '@/lib/logger';
@@ -186,7 +187,7 @@ export function TemplateDetailModal({
                 right={
                   <>
                     <SensitivityBadge
-                      level={(prop.sensitivityLevel || 'internal') as SensitivityLevel}
+                      level={resolveFieldSensitivity({ fieldId: prop.id, template: prop })}
                     />
                     {prop.deprecatedAt && <DeprecatedBadge />}
                   </>
