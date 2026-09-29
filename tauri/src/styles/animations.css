@@ -857,17 +857,6 @@
   transition: background var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
 
-/* ── PageGuide trigger（透明 → accent 6% 淡染）──────────── */
-.interactive-guide-trigger {
-  background: transparent;
-  border-color: var(--border-subtle);
-  color: var(--text-tertiary);
-  transition:
-    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
-    border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
-    color var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-
 /* ── Hover 状态守卫：仅真正支持悬停的精确指针设备生效 ──
    Android/iOS WebView 触屏会合成 hover 事件且不自动移除，
    点击后悬停样式会"粘住"，误以为按钮处于选中态。
@@ -1052,12 +1041,6 @@
 
   .interactive-link-row:hover {
     background: rgba(128, 128, 128, 0.06);
-  }
-
-  .interactive-guide-trigger:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
   }
 }
 

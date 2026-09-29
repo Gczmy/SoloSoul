@@ -7,6 +7,7 @@ import { ICON_SIZE } from '@/lib/constants';
 import type { LucideIcon } from 'lucide-react';
 import { GuidePageContent } from './GuidePageContent';
 import { GuidePageFooter } from './GuidePageFooter';
+import triggerStyles from './PageGuideButton.module.css';
 
 export interface GuideStep {
   icon: LucideIcon;
@@ -263,26 +264,16 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
       {/* 触发器按钮 */}
       <button
         ref={triggerRef}
+        type="button"
+        data-ui-icon-button="neutral"
+        data-ui-icon-intent="neutral"
+        data-ui-icon-kind="guide"
+        data-compact={compact ? 'true' : 'false'}
         onClick={() => setOpen((prev) => !prev)}
         aria-label={compact ? displayLabel : undefined}
+        aria-expanded={open}
         title={displayLabel}
-        className="interactive-guide-trigger"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: compact ? 0 : 6,
-          padding: compact ? 6 : '6px 10px',
-          borderRadius: 8,
-          borderStyle: 'solid',
-          borderWidth: 1,
-          cursor: 'pointer',
-          fontSize: 'var(--button-font-size, var(--text-badge))',
-          fontWeight: 500,
-          transition: 'background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease',
-          minWidth: 'var(--guide-target-size, 32px)',
-          minHeight: 'var(--guide-target-size, var(--button-min-height, 32px))',
-        }}
+        className={triggerStyles.trigger}
       >
         <CircleHelp size={ICON_SIZE.sm} />
         {!compact && <span>{displayLabel}</span>}

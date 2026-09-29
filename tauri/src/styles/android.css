@@ -1,6 +1,5 @@
 /* Material 3 Expressive：仅真实 Android WebView 使用，桌面缩窄窗口不受影响。 */
 :root[data-platform='android'] {
-  --guide-target-size: 48px;
   --radius-md: 12px;
   --radius-lg: 20px;
   --radius-xl: 24px;
@@ -33,19 +32,13 @@
 }
 /* 旧工具栏按钮沿用统一的安卓圆角、字号与按压反馈，保留其选中/危险语义。 */
 [data-platform='android']
-  button:is(
-    .interactive-toolbar,
-    .interactive-toolbar-selected,
-    .interactive-toolbar-warm,
-    .interactive-guide-trigger
-  ) {
+  button:is(.interactive-toolbar, .interactive-toolbar-selected, .interactive-toolbar-warm) {
   border-radius: 24px !important;
   font-size: var(--text-body-sm) !important;
   line-height: 1.4;
   padding: 10px 16px !important;
 }
-[data-platform='android']
-  button:is(.interactive-toolbar, .interactive-guide-trigger):active:not(:disabled) {
+[data-platform='android'] button.interactive-toolbar:active:not(:disabled) {
   background: var(--bg-active);
 }
 [data-platform='android']
@@ -53,16 +46,19 @@
   border-radius: 24px !important;
 }
 [data-platform='android'] [data-ui-icon-button] {
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
+  --icon-hit-size: 48px;
+  --icon-symbol-size: 20px;
+  --icon-radius: 24px;
+  width: var(--icon-hit-size);
+  height: var(--icon-hit-size);
+  border-radius: var(--icon-radius);
 }
 [data-platform='android'] [data-ui-icon-button] > svg {
   width: 20px;
   height: 20px;
 }
 [data-platform='android'] [data-ui-icon-button]:active:not(:disabled) {
-  background: var(--bg-active);
+  background: var(--icon-pressed-surface);
 }
 [data-platform='android'] .android-action-group {
   flex-wrap: wrap;

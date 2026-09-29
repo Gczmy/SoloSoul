@@ -231,6 +231,7 @@ export function UpdateBanner({
             <button
               type="button"
               data-ui-icon-button="neutral"
+              data-ui-icon-intent="neutral"
               className={`${styles.button} ${styles.iconButton} ${styles.closeButton}`}
               onClick={onClose}
               aria-label={t('close')}

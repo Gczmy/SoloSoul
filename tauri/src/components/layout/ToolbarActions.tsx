@@ -65,10 +65,14 @@ export function ToolbarActions({
           {compact && (
             <button
               ref={toggle}
+              data-ui-icon-button="neutral"
+              data-ui-icon-intent="neutral"
+              data-ui-icon-kind="toolbar"
               data-desktop-control="icon"
               type="button"
               className={styles.toggle}
               aria-label={t('more_actions')}
+              title={t('more_actions')}
               aria-expanded={open}
               aria-controls="toolbar-secondary-actions"
               onClick={() => setOpen((value) => !value)}

@@ -120,7 +120,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**123**（P1：36；P2：86；P3：1）。
-- 已关闭：**77 / 123**；实际修复（已关闭）：77；排除：0；待验证/阻塞：13（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 已关闭：**78 / 123**；实际修复（已关闭）：78；排除：0；待验证/阻塞：13（7项授权阻塞，RF-308覆盖率及CI证据不足，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
 - 当前处理：无。RF-312已取得可复跑的 Windows 原生 Vault 后端子基线，待多端应用性能实测；RF-204待 iOS 双目标编译，RF-121待原生材质验收，RF-308仍需补实际覆盖和远端CI日志，其余待验证项保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
@@ -177,7 +177,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 48 | [RF-113](#rf-113) | P2 | 常驻壳配置注册和注销具有页面所有者 | 无 | [x] 完成 |
 | 49 | [RF-114](#rf-114) | P2 | AppRoutes 生命周期编排按职责收敛 | [RF-112](#rf-112)、[RF-113](#rf-113) | [x] 完成 |
 | 50 | [RF-115](#rf-115) | P2 | 普通操作按钮族迁入语义样式入口 | [RF-112](#rf-112) | [x] 完成 |
-| 51 | [RF-116](#rf-116) | P2 | 图标按钮族统一结构和平台尺寸 | [RF-115](#rf-115) | [ ] 待执行 |
+| 51 | [RF-116](#rf-116) | P2 | 图标按钮族统一结构和平台尺寸 | [RF-115](#rf-115) | [x] 完成 |
 | 52 | [RF-117](#rf-117) | P2 | 互斥选项与下拉选择族统一状态语义 | [RF-115](#rf-115) | [ ] 待执行 |
 | 53 | [RF-118](#rf-118) | P2 | 开关控件族统一尺寸与状态 token | [RF-115](#rf-115) | [ ] 待执行 |
 | 54 | [RF-119](#rf-119) | P2 | Checkbox 控件族样式归属收敛 | [RF-115](#rf-115) | [ ] 待执行 |
@@ -3024,3 +3024,8 @@ git commit -m "<任务卡的提交标题>"
 - 基线 `da081cbf`。Button 保留全部旧 variant，统一映射 `data-ui-intent` / `data-ui-size`；公共操作色和尺寸迁入 `action-buttons.css`，CSS Module 只保留结构与交互状态，桌面和 Android 层按 intent 覆盖材质、颜色与触控尺寸。DeleteButton 与 TransferButton 沿用 Button 契约；更新和 OCR 横幅中手工标记的普通按钮补齐 intent，避免落回中性色。图标、选项和 Checkbox 控件未混入本项。
 - Android 英文 320×568 风险弹窗将操作区设为可换行并按视口缩放卡片水平内边距；Chrome 实测两个按钮并排、完整单词、至少 48px 高，卡片完整位于视口内。旧编辑器单测改用可访问名称定位删除操作；桌面对话框断言改为主题成对的强调色文字，不再固定白色。
 - 定向 Vitest 3 文件/18 项、完整 `npm run test` 184 文件/1,576 项、`npx tsc --noEmit`、`npm run lint`、修改文件 Prettier 均 exit 0。报告指定的四份 Playwright 用例使用本机 Chrome 的 chromium 项目 **126/126** 通过，涵盖 macOS/Windows 浅深色、Android 触控、更新横幅自定义强调色与通知布局。`git diff --check` 通过；浏览器平台 mock 不是原生设备材质验收。仅暂存本项文件，三张用户 NSIS 图片保留且不推送。
+
+### RF-116 执行记录（2026-09-29，完成）
+
+- 基线 `164016b6`。BadgeIconButton 保留原 `danger`、`dangerOutline`、`iconSize`、`count` API，增加可选 `pressed`，统一 `data-ui-icon-intent`、无障碍名称、tooltip 与状态；图标大小和命中区分别由 `icon-buttons.css` 与平台 token 控制。ToolbarActions 的更多操作按钮、PageGuide 触发器及横幅关闭按钮接入同一 intent；指南触发器补 `type=button`、`aria-expanded`，保留原键盘和 Portal 行为。移除不再有调用者的 `interactive-guide-trigger` 规则，其他遗留 icon 类及导航卡片保持原样。
+- 定向 Vitest 2 文件/11 项、完整 `npm run test` 185 文件/1,577 项、`npx tsc --noEmit`、`npm run lint`、修改文件 Prettier 均 exit 0。报告指定的三份 Playwright 用例使用本机 Chrome 的 chromium 项目 **100/100** 通过；新增工具栏场景验证 32/44px 命中区、图标比例、tooltip、键盘和展开状态，Android 全页面触控审计与桌面浅深主题回归仍通过。`git diff --check` 通过；浏览器平台 mock 不替代原生设备材质验收。仅暂存本项文件，三张用户 NSIS 图片保留且不推送。

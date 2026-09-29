@@ -1,0 +1,52 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: var(--icon-hit-size);
+  min-height: var(--icon-hit-size);
+  padding: 6px 10px;
+  border: 1px solid var(--icon-edge);
+  border-radius: var(--icon-radius);
+  background: var(--icon-surface);
+  color: var(--icon-ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--button-font-size, var(--text-badge));
+  font-weight: 500;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.trigger > svg {
+  width: var(--icon-symbol-size);
+  height: var(--icon-symbol-size);
+  flex-shrink: 0;
+}
+
+.trigger[data-compact='true'] {
+  width: var(--icon-hit-size);
+  height: var(--icon-hit-size);
+  padding: 0;
+  gap: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .trigger:hover:not(:disabled) {
+    background: var(--icon-hover-surface);
+    color: var(--icon-hover-ink);
+    border-color: var(--icon-hover-edge);
+  }
+}
+
+.trigger[aria-expanded='true'] {
+  background: var(--icon-pressed-surface);
+  color: var(--icon-pressed-ink);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px;
+}

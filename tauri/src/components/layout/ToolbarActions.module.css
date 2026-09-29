@@ -16,19 +16,29 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 0;
-  border-radius: 8px;
+  width: var(--icon-hit-size);
+  height: var(--icon-hit-size);
+  border: 1px solid var(--icon-edge);
+  border-radius: var(--icon-radius);
   padding: 0;
-  background: transparent;
-  color: var(--text-secondary);
+  background: var(--icon-surface);
+  color: var(--icon-ink);
   cursor: pointer;
 }
-.toggle:hover,
+.toggle > svg {
+  width: var(--icon-symbol-size);
+  height: var(--icon-symbol-size);
+  flex-shrink: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  .toggle:hover:not(:disabled) {
+    background: var(--icon-hover-surface);
+    color: var(--icon-hover-ink);
+  }
+}
 .toggle[aria-expanded='true'] {
-  background: var(--state-hover);
-  color: var(--text-primary);
+  background: var(--icon-pressed-surface);
+  color: var(--icon-pressed-ink);
 }
 .toggle:focus-visible {
   outline: 2px solid var(--accent-primary);
@@ -72,7 +82,7 @@
     --button-padding: 8px 12px;
   }
   .toggle {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--icon-hit-size);
+    min-height: var(--icon-hit-size);
   }
 }

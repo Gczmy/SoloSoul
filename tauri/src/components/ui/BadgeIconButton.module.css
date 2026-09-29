@@ -7,25 +7,31 @@
 }
 
 .button {
-  width: 28px;
-  height: 28px;
+  width: var(--icon-hit-size);
+  height: var(--icon-hit-size);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text-secondary);
+  padding: 0;
+  border: 1px solid var(--icon-edge);
+  border-radius: var(--icon-radius);
+  background: var(--icon-surface);
+  color: var(--icon-ink);
   cursor: pointer;
   transition:
     background var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
+.button > svg {
+  width: var(--icon-symbol-size);
+  height: var(--icon-symbol-size);
+  flex-shrink: 0;
+}
 
 @media (max-width: 767px) {
   .button {
-    width: 44px;
-    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 
@@ -34,32 +40,22 @@
   cursor: not-allowed;
 }
 
-/* Accent variant — default blue/slate hover */
 @media (hover: hover) and (pointer: fine) {
-  .accent:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-    color: var(--accent-primary);
+  .button:hover:not(:disabled) {
+    background: var(--icon-hover-surface);
+    color: var(--icon-hover-ink);
+    border-color: var(--icon-hover-edge);
   }
 }
 
-/* Danger variant — red hover */
-@media (hover: hover) and (pointer: fine) {
-  .danger:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--accent-danger) 12%, transparent);
-    color: var(--accent-danger);
-  }
+.button:is(:active:not(:disabled), [aria-pressed='true']) {
+  background: var(--icon-pressed-surface);
+  color: var(--icon-pressed-ink);
 }
 
-/* Danger-outline variant — matches Button danger-outline */
-.dangerOutline {
-  background: color-mix(in srgb, #ef4444 10%, transparent);
-  color: #ef4444;
-}
-@media (hover: hover) and (pointer: fine) {
-  .dangerOutline:hover:not(:disabled) {
-    background: #ef4444;
-    color: #ffffff;
-  }
+.button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px;
 }
 
 /* ── Badge ─────────────────────────────────────────────── */

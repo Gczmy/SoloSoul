@@ -135,6 +135,7 @@ export function OcrInstallBanner({
           <button
             type="button"
             data-ui-icon-button="neutral"
+            data-ui-icon-intent="neutral"
             className={`${styles.button} ${styles.iconButton} ${styles.closeButton}`}
             aria-label={t('close', { ns: 'common' })}
             title={t('close', { ns: 'common' })}

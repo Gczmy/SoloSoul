@@ -46,7 +46,6 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     [data-appbar] button,
     .interactive-toolbar,
     .interactive-toolbar-selected,
-    .interactive-guide-trigger,
     .interactive-icon,
     .interactive-icon-danger,
     .interactive-accent,
@@ -138,8 +137,8 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
   }
   &:is(
     [data-ui-intent='danger-soft'],
-    [data-ui-icon-button='danger'],
-    [data-ui-icon-button='danger-outline'],
+    [data-ui-icon-intent='danger'],
+    [data-ui-icon-intent='danger-soft'],
     .interactive-danger,
     .interactive-danger-soft,
     .interactive-icon-danger,
@@ -185,8 +184,7 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
         [data-appbar] button,
         .interactive-icon,
         .interactive-icon-danger,
-        .interactive-accent,
-        .interactive-guide-trigger
+        .interactive-accent
       ):where(:not([data-ui-intent='neutral'], [data-ui-intent='quiet'])) {
       --control-fill: transparent;
       --control-ink: var(--text-secondary);
@@ -212,8 +210,8 @@ html:is([data-desktop-platform='macos'], [data-desktop-platform='windows'])
     &:is(button):is(
         [data-ui-intent='danger'],
         [data-ui-intent='danger-soft'],
-        [data-ui-icon-button='danger'],
-        [data-ui-icon-button='danger-outline'],
+        [data-ui-icon-intent='danger'],
+        [data-ui-icon-intent='danger-soft'],
         [data-desktop-control='danger-text'],
         .interactive-danger-solid,
         .interactive-danger,

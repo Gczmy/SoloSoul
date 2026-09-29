@@ -1,0 +1,57 @@
+/* 图标操作只共享语义状态与命中区；各组件仍负责自己的结构。 */
+[data-ui-icon-button] {
+  --icon-hit-size: 28px;
+  --icon-symbol-size: 14px;
+  --icon-radius: 6px;
+  --icon-surface: transparent;
+  --icon-ink: var(--text-secondary);
+  --icon-edge: transparent;
+  --icon-hover-surface: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  --icon-hover-ink: var(--accent-primary);
+  --icon-hover-edge: transparent;
+  --icon-pressed-surface: color-mix(in srgb, var(--accent-primary) 18%, transparent);
+  --icon-pressed-ink: var(--accent-primary);
+}
+
+[data-ui-icon-button][data-ui-icon-intent='danger'] {
+  --icon-hover-surface: color-mix(in srgb, var(--accent-danger) 12%, transparent);
+  --icon-hover-ink: var(--accent-danger);
+  --icon-pressed-surface: color-mix(in srgb, var(--accent-danger) 20%, transparent);
+  --icon-pressed-ink: var(--accent-danger);
+}
+
+[data-ui-icon-button][data-ui-icon-intent='danger-soft'] {
+  --icon-surface: color-mix(in srgb, var(--accent-danger) 10%, transparent);
+  --icon-ink: var(--accent-danger);
+  --icon-hover-surface: var(--accent-danger);
+  --icon-hover-ink: var(--accent-danger-text);
+  --icon-pressed-surface: color-mix(in srgb, var(--accent-danger) 25%, transparent);
+  --icon-pressed-ink: var(--accent-danger);
+}
+
+[data-ui-icon-button][data-ui-icon-kind='toolbar'] {
+  --icon-hit-size: 32px;
+  --icon-symbol-size: 20px;
+  --icon-radius: 8px;
+  --icon-hover-surface: var(--state-hover);
+  --icon-hover-ink: var(--text-primary);
+  --icon-pressed-surface: var(--state-hover);
+  --icon-pressed-ink: var(--text-primary);
+}
+
+[data-ui-icon-button][data-ui-icon-kind='guide'] {
+  --icon-hit-size: 32px;
+  --icon-symbol-size: 14px;
+  --icon-radius: 8px;
+  --icon-ink: var(--text-tertiary);
+  --icon-edge: var(--border-subtle);
+  --icon-hover-surface: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+  --icon-hover-ink: var(--accent-primary);
+  --icon-hover-edge: var(--accent-primary);
+}
+
+@media (max-width: 767px), (pointer: coarse) {
+  [data-ui-icon-button] {
+    --icon-hit-size: 44px;
+  }
+}
