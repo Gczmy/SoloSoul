@@ -5,7 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import { useLoginUnlockFlows } from './useLoginUnlockFlows';
 
-describe('existing-directory password unlock', () => {
+describe('login unlock flows', () => {
   const listAccounts = vi.fn().mockResolvedValue([]);
 
   beforeEach(() => {
@@ -20,7 +20,7 @@ describe('existing-directory password unlock', () => {
     });
   });
 
-  function renderFlow() {
+  function renderFlow(setLoginMethod = vi.fn()) {
     return renderHook(
       () =>
         useLoginUnlockFlows({
@@ -28,7 +28,7 @@ describe('existing-directory password unlock', () => {
           fromExisting: true,
           bioLockout: false,
           biometryTypeRaw: 'touchId',
-          setLoginMethod: vi.fn(),
+          setLoginMethod,
           setBioLockout: vi.fn(),
           setPinAvailable: vi.fn(),
         }),
@@ -70,5 +70,42 @@ describe('existing-directory password unlock', () => {
       accountId: 'acc-a',
     });
     expect(listAccounts).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps biometric unlock successful when account-list refresh fails', async () => {
+    const account = { id: 'acc-a', name: 'Account A' };
+    const setLoginMethod = vi.fn();
+    useAuthStore.setState({ accounts: [account] });
+    vi.mocked(invoke).mockImplementation(async (command) => {
+      if (command === 'vault_list_accounts') throw new Error('refresh unavailable');
+      return undefined;
+    });
+    const { result } = renderFlow(setLoginMethod);
+
+    await act(async () => result.current.handleBiometricUnlock());
+
+    expect(invoke).toHaveBeenCalledWith('biometric_unlock', {
+      accountId: 'acc-a',
+      location: 'login_page',
+      action: 'unlock',
+      biometryType: 'touchId',
+    });
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
+    expect(useAuthStore.getState().currentAccount).toEqual(account);
+    expect(result.current.bioError).toBeNull();
+    expect(setLoginMethod).not.toHaveBeenCalledWith('password');
+  });
+
+  it('does not authenticate when native biometric unlock itself fails', async () => {
+    vi.mocked(invoke).mockRejectedValueOnce(new Error('__BIO_ERR__:invalid_password'));
+    const setLoginMethod = vi.fn();
+    const { result } = renderFlow(setLoginMethod);
+
+    await act(async () => result.current.handleBiometricUnlock());
+
+    expect(invoke).toHaveBeenCalledTimes(1);
+    expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    expect(result.current.bioError).not.toBeNull();
+    expect(setLoginMethod).toHaveBeenCalledWith('password');
   });
 });

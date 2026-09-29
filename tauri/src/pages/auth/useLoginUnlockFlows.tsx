@@ -134,8 +134,15 @@ export function useLoginUnlockFlows({
         biometryType: biometryTypeRaw,
       });
       // Vault already unlocked — set auth state directly
-      const accs = (await invoke<AccountInfo[]>('vault_list_accounts')) || [];
-      const acc = accs.find((a) => a.id === selectedAccountId) || {
+      // 原生解锁已成功；账户列表刷新失败不能再把已打开的 Vault 当作登录失败。
+      let accs: AccountInfo[] | undefined;
+      try {
+        accs = (await invoke<AccountInfo[]>('vault_list_accounts')) || [];
+      } catch (err) {
+        logger.warn('[LoginPage] account list refresh after biometric unlock failed:', err);
+      }
+      const knownAccounts = accs ?? useAuthStore.getState().accounts;
+      const acc = knownAccounts.find((a) => a.id === selectedAccountId) || {
         id: selectedAccountId,
         name: selectedAccountId,
       };
