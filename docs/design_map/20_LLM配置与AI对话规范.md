@@ -163,6 +163,8 @@ Provider 列表返回非空 key 的掩码，保存时保留既有掩码兼容规
 | 编辑按钮 | 右侧 `Settings` 图标，点击打开 Provider 配置面板 |
 | 凭证 | 远程服务按其认证要求配置 API key；本机无认证服务允许空 key，不能仅因空 key 推断禁用 |
 
+点击单选按钮或其所在列表行都只发起一次 Provider 激活；单选按钮的点击事件不能冒泡到列表行后再次激活或重复触发云端隐私确认。
+
 ### 4.3 当前风险确认与设置文案
 
 [RiskAcceptanceDialog](../../tauri/src/components/llm-config/RiskAcceptanceDialog.tsx) 通过现有中英 `settings` 词条说明以下范围：请求的服务地址、输入和历史、启用后自动附加的公开上下文，以及独立的 Embedding 请求。用户勾选后确认开启聊天；界面不对每条消息再次展示出站全文确认。

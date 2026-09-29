@@ -119,6 +119,7 @@ export function ProviderManagerPanel({
                   type="radio"
                   checked={activeId === p.id}
                   onChange={() => onSetActive(p.id)}
+                  onClick={(e) => e.stopPropagation()}
                   style={{ accentColor: 'var(--accent-primary)' }}
                 />
                 <div style={{ flex: 1 }}>

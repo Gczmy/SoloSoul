@@ -222,6 +222,26 @@ describe('LlmConfigPage', () => {
     });
   });
 
+  it('activates a provider only once per radio or row click', async () => {
+    render(
+      <MemoryRouter>
+        <LlmConfigPage />
+      </MemoryRouter>,
+    );
+    const providerCard = screen
+      .getByText('settings:ai_service_providers')
+      .closest<HTMLElement>('[data-ui-card]')!;
+    await waitFor(() => expect(within(providerCard).getAllByRole('radio')).toHaveLength(2));
+    const activationCalls = () =>
+      vi.mocked(invoke).mock.calls.filter(([command]) => command === 'llm_set_active_provider');
+
+    fireEvent.click(within(providerCard).getAllByRole('radio')[1]);
+    expect(activationCalls()).toHaveLength(1);
+
+    fireEvent.click(screen.getByText('Ollama'));
+    expect(activationCalls()).toHaveLength(2);
+  });
+
   it('P028-R1: rolls back chat switch when llm_set_ai_features fails', async () => {
     // hasAcceptedRisk=true 时切换 AI 开关不会弹风险确认，直接走 handleFeatureToggle
     vi.mocked(invoke).mockImplementation(async (cmd: string) => {
