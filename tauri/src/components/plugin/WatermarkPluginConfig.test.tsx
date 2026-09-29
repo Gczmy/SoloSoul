@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useAuthStore } from '@/stores/authStore';
 import { WatermarkPluginConfig } from './WatermarkPluginConfig';
 
 vi.mock('@tauri-apps/api/path', () => ({ downloadDir: async () => 'test-output' }));
@@ -30,6 +31,13 @@ vi.mock('@/lib/ipcClient', () => ({
 vi.mock('@/hooks/useAttachmentPageSort', () => ({
   useAttachmentPageSort: (pages: unknown[]) => pages,
 }));
+
+beforeEach(() => {
+  useAuthStore.setState({
+    isAuthenticated: true,
+    currentAccount: { id: 'account-a', name: 'Alice' },
+  });
+});
 
 async function setup() {
   const onParamsChange = vi.fn();

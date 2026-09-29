@@ -8,6 +8,8 @@ import { ExpandableSection } from './shared/ExpandableSection';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { useAttachmentPageSort } from '@/hooks/useAttachmentPageSort';
+import { useAuthStore } from '@/stores/authStore';
+import { onRequestSessionChange } from '@/lib/sessionRequests';
 import styles from './WatermarkPluginConfig.module.css';
 
 interface WatermarkConfig {
@@ -67,15 +69,18 @@ interface WatermarkPluginConfigProps {
 
 export function WatermarkPluginConfig({ onParamsChange }: WatermarkPluginConfigProps) {
   const { t } = useTranslation(['plugin', 'common', 'navigation']);
+  const accountId = useAuthStore((s) => (s.isAuthenticated ? s.currentAccount?.id : null));
 
   const [config, setConfig] = useState<WatermarkConfig>(DEFAULT_CONFIG);
   const [attachments, setAttachments] = useState<AttachmentNode[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [outputDir, setOutputDir] = useState('');
+  const [sessionVersion, setSessionVersion] = useState(0);
+  const loadVersion = useRef(0);
 
   // ─── Load attachments ──────────────────────────────────────────────
-  const loadAttachments = useCallback(async () => {
+  const loadAttachments = useCallback(async (version: number, ownerId: string) => {
     setLoadingAttachments(true);
     try {
       const json = await invokeTypedCommand('plugin_list_attachments');
@@ -113,20 +118,46 @@ export function WatermarkPluginConfig({ onParamsChange }: WatermarkPluginConfigP
           }
         }
       }
-      setAttachments(nodes);
+      if (
+        loadVersion.current === version &&
+        useAuthStore.getState().isAuthenticated &&
+        useAuthStore.getState().currentAccount?.id === ownerId
+      ) {
+        setAttachments(nodes);
+      }
     } catch {
       // silent in sidebar
     } finally {
-      setLoadingAttachments(false);
+      if (loadVersion.current === version) setLoadingAttachments(false);
     }
   }, []);
 
   useEffect(() => {
-    loadAttachments();
+    return onRequestSessionChange(() => {
+      loadVersion.current += 1;
+      setAttachments([]);
+      setSelectedIds(new Set());
+      setLoadingAttachments(false);
+      setSessionVersion((version) => version + 1);
+    });
+  }, []);
+
+  useEffect(() => {
+    const version = ++loadVersion.current;
+    setAttachments([]);
+    setSelectedIds(new Set());
+    if (accountId) void loadAttachments(version, accountId);
+    else setLoadingAttachments(false);
+    return () => {
+      loadVersion.current += 1;
+    };
+  }, [accountId, sessionVersion, loadAttachments]);
+
+  useEffect(() => {
     downloadDir()
       .then(setOutputDir)
       .catch(() => setOutputDir(''));
-  }, [loadAttachments]);
+  }, []);
 
   // ─── Compute run params whenever config or selection changes ───────
   const selectedAttachments = useMemo(
