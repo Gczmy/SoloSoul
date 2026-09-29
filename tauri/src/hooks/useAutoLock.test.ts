@@ -20,6 +20,14 @@ import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 
 const MIN = 60_000;
 
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+}
+
 function setTimeoutMinutes(minutes: number) {
   useSettingsStore.setState({
     settings: { ...useSettingsStore.getState().settings, autoLockTimeoutMinutes: minutes },
@@ -213,5 +221,48 @@ describe('useAutoLock', () => {
 
     // 锁屏事件必须始终锁定，不受开关控制
     expect(invoke).toHaveBeenCalledWith('lock');
+  });
+
+  it('账户切换后旧待锁定结果和旧原生事件不能锁定新账户', async () => {
+    const oldPending = deferred<boolean>();
+    let pendingCalls = 0;
+    const callbacks: Array<() => void> = [];
+    vi.mocked(invoke).mockImplementation((command) => {
+      if (command === 'get_lock_pending')
+        return (pendingCalls++ < 3 ? oldPending.promise : Promise.resolve(false)) as never;
+      return Promise.resolve(undefined) as never;
+    });
+    vi.mocked(addPluginListener).mockImplementation((_plugin, _event, callback) => {
+      callbacks.push(() => callback({ locked: true } as never));
+      return Promise.resolve({ unregister: vi.fn() } as never);
+    });
+    act(() => useAuthStore.setState({ currentAccount: { id: 'acc-a', name: 'A' } }));
+    renderHook(() => useAutoLock());
+    Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+    expect(pendingCalls).toBe(3);
+    expect(callbacks).toHaveLength(1);
+
+    act(() => useAuthStore.setState({ currentAccount: { id: 'acc-b', name: 'B' } }));
+    await act(async () => {
+      oldPending.resolve(true);
+      await oldPending.promise;
+    });
+    callbacks[0]();
+    expect(invoke).not.toHaveBeenCalledWith('lock');
+  });
+
+  it('卸载后才完成的原生监听器注册立即注销', async () => {
+    const registration = deferred<{ unregister: ReturnType<typeof vi.fn> }>();
+    const unregister = vi.fn(() => Promise.resolve());
+    vi.mocked(addPluginListener).mockReturnValueOnce(registration.promise as never);
+    const { unmount } = renderHook(() => useAutoLock());
+    unmount();
+
+    await act(async () => {
+      registration.resolve({ unregister });
+      await registration.promise;
+    });
+    expect(unregister).toHaveBeenCalledTimes(1);
   });
 });

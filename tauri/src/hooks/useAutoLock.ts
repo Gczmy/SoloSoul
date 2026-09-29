@@ -26,6 +26,7 @@ const ACTIVITY_THROTTLE_MS = 1_000;
  */
 export function useAutoLock(): void {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const accountId = useAuthStore((s) => s.currentAccount?.id);
   const timeoutMinutes = useSettingsStore((s) => s.settings.autoLockTimeoutMinutes);
   const autoLockNotificationEnabled = useSettingsStore(
     (s) => s.settings.autoLockNotificationEnabled,
@@ -35,6 +36,7 @@ export function useAutoLock(): void {
   useEffect(() => {
     if (!isAuthenticated || timeoutMinutes <= 0) return;
 
+    let active = true;
     const timeoutMs = timeoutMinutes * 60_000;
     let lastActivity = Date.now();
     let lastWrite = 0;
@@ -105,12 +107,14 @@ export function useAutoLock(): void {
     const pullLockPending = () => {
       invoke<boolean>('get_lock_pending')
         .then((pending) => {
+          if (!active) return;
           if (pending) {
             if (lockInitiated) return;
             lockInitiated = true;
-            useAuthStore.getState().lock().catch((err) =>
-              logger.error('[useAutoLock] lock failed:', err),
-            );
+            useAuthStore
+              .getState()
+              .lock()
+              .catch((err) => logger.error('[useAutoLock] lock failed:', err));
             invoke('dismiss_lock_mask').catch((err) =>
               logger.warn('[useAutoLock] dismiss_lock_mask failed:', err),
             );
@@ -122,7 +126,7 @@ export function useAutoLock(): void {
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         checkIdle();
-        // 兜底：第二个 useEffect 的 pullLockPending 依赖 [isAuthenticated]，
+        // 兜底：第二个 useEffect 的 pullLockPending 依赖认证态和账户，
         // 但 lock() 导致 isAuthenticated 变化后该 effect 会被清理。
         // 此处不依赖 isAuthenticated，始终在回前台时检查原生锁屏标记。
         pullLockPending();
@@ -150,13 +154,20 @@ export function useAutoLock(): void {
     const interval = setInterval(checkIdle, CHECK_INTERVAL_MS);
 
     return () => {
+      active = false;
       for (const e of ACTIVITY_EVENTS) {
         window.removeEventListener(e, recordActivity);
       }
       document.removeEventListener('visibilitychange', onVisibilityChange);
       clearInterval(interval);
     };
-  }, [isAuthenticated, timeoutMinutes, autoLockNotificationEnabled, autoLockOnBackground]);
+  }, [
+    isAuthenticated,
+    accountId,
+    timeoutMinutes,
+    autoLockNotificationEnabled,
+    autoLockOnBackground,
+  ]);
 
   // 锁屏锁定（Android）：与闲置超时设置无关，已认证即生效。
   // 原生侧标记只在 JS 确认（dismiss_lock_mask）后清除：
@@ -166,7 +177,9 @@ export function useAutoLock(): void {
   useEffect(() => {
     if (!isAuthenticated) return;
 
+    let active = true;
     const handleScreenLocked = () => {
+      if (!active) return;
       useAuthStore
         .getState()
         .lock()
@@ -187,6 +200,7 @@ export function useAutoLock(): void {
     const pullLockPending = () => {
       invoke<boolean>('get_lock_pending')
         .then((pending) => {
+          if (!active) return;
           if (pending) handleScreenLocked();
         })
         .catch(() => {});
@@ -198,6 +212,10 @@ export function useAutoLock(): void {
     let screenLockedListener: PluginListener | null = null;
     addPluginListener<{ locked: boolean }>('lock-state', 'screen-locked', handleScreenLocked)
       .then((l) => {
+        if (!active) {
+          void l.unregister().catch(() => {});
+          return;
+        }
         screenLockedListener = l;
       })
       .catch((err) => logger.error('[useAutoLock] listen screen-locked failed:', err));
@@ -207,8 +225,9 @@ export function useAutoLock(): void {
     document.addEventListener('visibilitychange', onForeground);
 
     return () => {
+      active = false;
       screenLockedListener?.unregister()?.catch(() => {});
       document.removeEventListener('visibilitychange', onForeground);
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, accountId]);
 }
