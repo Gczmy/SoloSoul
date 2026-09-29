@@ -105,15 +105,18 @@ export function useLlmLocalEmbedding({
       await invoke('llm_download_embed_model', { modelId: modelId });
       onSuccess(t('settings:llm_model_downloaded'));
       await loadEmbedModels();
-      if (!localModelId) {
-        setLocalModelId(modelId);
-        if (accountId) {
+      if (!localModelId && accountId) {
+        try {
           await invoke('llm_set_local_embedding', {
             accountId: accountId,
             enabled: true,
             modelId: modelId,
           });
+          setLocalModelId(modelId);
           setUseLocalEmbedding(true);
+        } catch (e) {
+          // 模型已下载成功；仅自动启用失败，不能误报下载失败或显示未保存的选择。
+          onError(e, t('settings:llm_enable_local_failed'));
         }
       }
     } catch (e) {

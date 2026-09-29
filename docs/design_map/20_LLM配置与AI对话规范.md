@@ -458,6 +458,8 @@ for (i, g) in graphemes.iter().enumerate() {
 
 `useLocalEmbedding` 是优先项：启用、指定模型且模型已安装时才选择应用内 ONNX。未满足这些条件会尝试当前启用且支持 Embedding 的 provider，该地址可能是回环、自托管或远程服务。已选中本地模型后加载/推理失败，搜索会退回关键词，不是在这个阶段再转远程；没有可用来源或已有索引为空时也退回关键词。远程请求失败后退回关键词，不代表失败请求未到达服务端。
 
+模型下载成功后若首次自动启用的账户配置保存失败，模型文件仍已下载，但界面不提前提交本地模型选择或启用状态；分别提示下载成功和启用失败，避免把偏好保存失败误报为下载失败。
+
 选择本地 Embedding 不会将远程聊天变成本地聊天；本机 HTTP 聊天服务和应用内 ONNX 向量模型也不是同一个组件。不能将这些开关写成“所有 AI 数据严格不离机”。
 
 **当前调用缺口**：[guideService.ts](../../tauri/src/lib/llm/guideService.ts) 调用 `llm_search_guide_chunks` 未传 Rust 必需的 `accountId`，错误又被转换为空结果；因此不能将上述 Rust 能力写成当前聊天界面已端到端验收。该独立契约问题登记 [RF-908](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-908)，本项只修正文案。聊天出站 fixture 不替代 Embedding 或指南检索的运行验证。
