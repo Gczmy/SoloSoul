@@ -123,7 +123,7 @@ function expectNoListReload() {
   );
 }
 
-describe('RF-911 attachment metadata save wiring', () => {
+describe('AttachmentViewer integrated flows', () => {
   beforeEach(() => {
     rejectMetadataSave = false;
     mockInvoke.mockReset();
@@ -332,5 +332,52 @@ describe('RF-911 attachment metadata save wiring', () => {
     expect(result.current.previewItem).toEqual(trashExpected);
     expect(result.current.items).toEqual([activeExpected, untouched]);
     expectNoListReload();
+  });
+
+  it('switches active and trash selections without carrying batch actions across views', async () => {
+    const deleted: AttachmentItem = {
+      ...original,
+      id: 'deleted-photo',
+      fileName: 'deleted.png',
+      deletedAt: '2026-09-28T01:00:00Z',
+    };
+    const defaultInvoke = mockInvoke.getMockImplementation()!;
+    mockInvoke.mockImplementation((command, args) => {
+      if (command === 'attachment_list') {
+        return Promise.resolve(
+          (args as { showDeleted: boolean }).showDeleted ? [deleted] : [original, untouched],
+        );
+      }
+      return defaultInvoke(command, args);
+    });
+    const { panel, onClose } = await renderLoadedViewer();
+    const list = within(panel);
+
+    fireEvent.click(list.getByRole('checkbox', { name: 'select_all' }));
+    expect(list.getByRole('checkbox', { name: 'deselect_all' })).toBeChecked();
+    fireEvent.click(list.getByRole('button', { name: 'delete' }));
+    expect(screen.getByText('batch_delete_title')).toBeInTheDocument();
+    fireEvent.click(panel.parentElement as HTMLElement);
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'cancel' }));
+    expect(list.getByRole('checkbox', { name: 'deselect_all' })).toBeChecked();
+
+    fireEvent.click(list.getByRole('button', { name: 'common:attachments_trash' }));
+    expect(list.getByRole('checkbox', { name: deleted.fileName })).toBeInTheDocument();
+    expect(list.getByRole('checkbox', { name: 'select_all' })).not.toBeChecked();
+    fireEvent.click(list.getByRole('checkbox', { name: 'select_all' }));
+    fireEvent.click(list.getByRole('button', { name: 'restore' }));
+    expect(screen.getByText('batch_restore_title')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'cancel' }));
+    expect(list.getByRole('checkbox', { name: 'deselect_all' })).toBeChecked();
+
+    fireEvent.click(list.getByRole('button', { name: 'delete_permanently' }));
+    expect(screen.getByText('batch_perm_delete_title')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'cancel' }));
+    fireEvent.click(list.getByRole('button', { name: 'common:attachments_active' }));
+    expect(list.getByRole('checkbox', { name: original.fileName })).toBeInTheDocument();
+    expect(list.getByRole('checkbox', { name: 'select_all' })).not.toBeChecked();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(mockInvoke.mock.calls.some(([command]) => command === 'attachment_delete')).toBe(false);
   });
 });
