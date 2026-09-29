@@ -51,4 +51,20 @@ describe('DynamicGroupConfig', () => {
     expect(emailType).toBeChecked();
     expect(textType).not.toBeDisabled();
   });
+
+  it('shows a valid sensitivity summary and choice for a legacy invalid level', () => {
+    render(
+      <DynamicGroupConfig
+        sensitivity={'unknown' as 'internal'}
+        onAllowedTypesChange={() => {}}
+        onMaxItemsChange={() => {}}
+        onSensitivityChange={() => {}}
+      />,
+    );
+
+    const trigger = screen.getByRole('button', { name: /editor:dynamic_group_allowed_types/ });
+    expect(trigger).toHaveTextContent('editor:sensitivity_levels.internal');
+    fireEvent.click(trigger);
+    expect(screen.getByRole('combobox')).toHaveValue('internal');
+  });
 });

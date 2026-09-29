@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import type { PropertyType, SensitivityLevel } from '@/types/template';
 import { ICON_SIZE } from '@/lib/constants';
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import styles from './DynamicGroupConfig.module.css';
 
 const ALL_PROPERTY_TYPES: PropertyType[] = [
@@ -64,7 +65,10 @@ export function DynamicGroupConfig({
     ? t('editor:dynamic_group_no_limit')
     : `${effectiveAllowed.length}/${ALL_PROPERTY_TYPES.length}`;
   const maxSummary = maxItems === undefined ? t('editor:dynamic_group_no_limit') : `${maxItems}`;
-  const sensitivitySummary = sensitivity ?? 'internal';
+  const sensitivitySummary = resolveFieldSensitivity({
+    fieldId: 'dynamic_group',
+    template: { sensitivityLevel: sensitivity },
+  });
 
   return (
     <div className={styles.wrapper}>
@@ -123,7 +127,7 @@ export function DynamicGroupConfig({
               {t('editor:dynamic_group_sensitivity')}
             </span>
             <select
-              value={sensitivity ?? 'internal'}
+              value={sensitivitySummary}
               onChange={(e) => onSensitivityChange(e.target.value as SensitivityLevel)}
               style={{
                 height: 34,

@@ -11,6 +11,7 @@ import type {
   TemplateProperty,
 } from '@/types/template';
 import type { PluginManifest } from '@/lib/plugin';
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 
 export type { FlattenedContract } from './TemplateFieldBindingSection';
 
@@ -142,10 +143,8 @@ export function TemplateFieldRow({
           />
         )}
         <select
-          value={prop.sensitivityLevel || 'internal'}
-          onChange={(e) =>
-            onUpdatePropertySensitivity(idx, e.target.value as SensitivityLevel)
-          }
+          value={resolveFieldSensitivity({ fieldId: prop.id, template: prop })}
+          onChange={(e) => onUpdatePropertySensitivity(idx, e.target.value as SensitivityLevel)}
           style={{
             height: 36,
             padding: '0 10px',

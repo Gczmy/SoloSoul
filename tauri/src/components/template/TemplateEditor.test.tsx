@@ -113,6 +113,20 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
     mockInstalledPlugins = [];
   });
 
+  it('shows a valid sensitivity choice for a legacy field with an invalid level', () => {
+    const props = createMockProps({
+      editProperties: [{ ...FIELD_EMAIL, sensitivityLevel: 'unknown' }],
+    });
+    render(<TemplateEditor {...props} />);
+
+    const sensitivitySelect = screen
+      .getByRole('option', { name: 'editor:sensitivity_levels.internal' })
+      .closest('select');
+    expect(sensitivitySelect).toHaveValue('internal');
+    fireEvent.change(sensitivitySelect!, { target: { value: 'critical' } });
+    expect(props.onUpdatePropertySensitivity).toHaveBeenCalledWith(0, 'critical');
+  });
+
   it('auto-derives bindings on expand for contractField field without bindings', () => {
     mockInstalledPlugins = [
       createMockPlugin({
