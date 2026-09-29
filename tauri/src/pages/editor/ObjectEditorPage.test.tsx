@@ -86,6 +86,29 @@ describe('ObjectEditorPage datetime save validation', () => {
     });
   });
 
+  it('非法模板敏感度在编辑器中回退为 internal，合法 critical 保持不变', async () => {
+    // 模拟旧版或受损的持久化模板；运行时数据不受 TypeScript 联合类型约束。
+    const storedTemplate = {
+      ...template,
+      properties: [
+        { id: 'secret', name: '密钥', type: 'text', sensitivityLevel: 'unknown' },
+        { id: 'critical', name: '关键字段', type: 'text', sensitivityLevel: 'critical' },
+      ],
+    } as unknown as UserTemplate;
+    useTemplateStore.setState({ templates: [storedTemplate] });
+
+    render(
+      <MemoryRouter>
+        <ObjectEditorPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('密钥')).toBeInTheDocument();
+    expect(screen.getByTitle('sensitivity_label: internal')).toBeInTheDocument();
+    expect(screen.getByTitle('sensitivity_label: critical')).toBeInTheDocument();
+    expect(screen.queryByTitle('sensitivity_label: unknown')).not.toBeInTheDocument();
+  });
+
   it.each(['', 'parentId=reading-page'])(
     '自定义页面模板保存同时写入分类与父页面，入口参数：%s',
     async (query) => {

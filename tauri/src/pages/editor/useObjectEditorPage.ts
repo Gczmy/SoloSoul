@@ -11,6 +11,7 @@ import type { PropertyType, UserTemplate } from '@/types/template';
 import type { FieldSuggestion } from '@/components/editor/FieldSuggestions';
 import { invokeTypedCommand } from '@/lib/typedIpc';
 import { resolveCanonicalFieldName } from '@/lib/fieldNameAliases';
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import { logger } from '@/lib/logger';
 import { FIELD_TYPE_VALIDATORS } from '@/lib/fieldValidators';
 import { SYSTEM_PAGE_KEYS } from '@/components/layout/useNavigationItems';
@@ -148,8 +149,11 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
   /** Resolve sensitivity level for a property field.
    *  Template default is the single source of truth.
    */
-  const getSensitivity = (_fieldKey: string, templateDefault?: string): SensitivityLevel => {
-    return (templateDefault as SensitivityLevel) || 'internal';
+  const getSensitivity = (fieldKey: string, templateDefault?: string): SensitivityLevel => {
+    return resolveFieldSensitivity({
+      fieldId: fieldKey,
+      template: { sensitivityLevel: templateDefault },
+    });
   };
 
   // Filter templates to only show those belonging to the current section/page
