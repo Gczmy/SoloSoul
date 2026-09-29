@@ -72,7 +72,6 @@ function CreateSheet({
   const { onError } = useToastError();
   const form = useAddPageForm({
     t,
-    keepValuesOnSubmit: true,
     onError: (error, context) => {
       if (mounted.current) setSubmitting(false);
       onError(error, context);

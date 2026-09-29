@@ -111,7 +111,14 @@ export function AddPageButton({
 
   const { t } = useTranslation(['navigation', 'common']);
   const { onError } = useToastError();
-  const form = useAddPageForm({ onCreate, t, onError });
+  const form = useAddPageForm({
+    onCreate: (page) => {
+      setIsCreating(false);
+      onCreate(page);
+    },
+    t,
+    onError,
+  });
   // 解构出子 hook 的稳定函数，供本组件 useCallback 依赖使用（避免每次渲染新建对象）
   const { handleCancel: resetForm, handleConfirm: confirmForm } = form;
 
@@ -121,12 +128,12 @@ export function AddPageButton({
     resetForm();
   }, [resetForm]);
 
-  // 确认创建：错误路径（显式空名称/重名）留在弹层，其余关闭
+  // 提交后保留弹层与草稿，只有创建成功或隐式空名称取消才关闭。
   const handleConfirm = useCallback(
     (isExplicit = false) => {
-      if (confirmForm(isExplicit)) setIsCreating(false);
+      if (confirmForm(isExplicit) && !form.name.trim()) setIsCreating(false);
     },
-    [confirmForm],
+    [confirmForm, form.name],
   );
 
   // Close popover on outside click

@@ -1,7 +1,7 @@
 /**
  * AddPageButton 的「新建页面」表单域：名称/描述/图标状态、重名校验、创建提交。
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { TFunction } from 'i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -14,16 +14,9 @@ export interface UseAddPageFormOptions {
   onCreate: (page: CustomPage) => void;
   t: TFunction;
   onError: (err: unknown, context: string) => void;
-  /** 提交后仍展示表单的弹层保留草稿，失败可直接重试。 */
-  keepValuesOnSubmit?: boolean;
 }
 
-export function useAddPageForm({
-  onCreate,
-  t,
-  onError,
-  keepValuesOnSubmit = false,
-}: UseAddPageFormOptions) {
+export function useAddPageForm({ onCreate, t, onError }: UseAddPageFormOptions) {
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const addCustomPage = useSettingsStore((s) => s.addCustomPage);
 
@@ -31,6 +24,7 @@ export function useAddPageForm({
   const [description, setDescription] = useState('');
   const [nameError, setNameError] = useState<'empty' | 'duplicate' | null>(null);
   const [selectedIconId, setSelectedIconId] = useState<CustomIconId>(DEFAULT_CUSTOM_ICON);
+  const submitting = useRef(false);
 
   /** 重置表单字段（不关闭弹层——由父组件负责）。 */
   const handleCancel = useCallback(() => {
@@ -41,11 +35,12 @@ export function useAddPageForm({
   }, []);
 
   /**
-   * 确认创建。返回是否应关闭弹层：错误路径（显式空名称/重名）返回 false 留在弹层
-   * 展示错误；成功或隐式空名称取消返回 true（父组件据此收起弹层）。
+   * 确认创建。返回是否已开始提交或隐式取消；校验失败与重复提交返回 false。
+   * 提交结果由回调处理，父组件只能在创建成功后收起弹层。
    */
   const handleConfirm = useCallback(
     (isExplicit = false): boolean => {
+      if (submitting.current) return false;
       const trimmed = name.trim();
       if (!trimmed || !currentAccount) {
         if (isExplicit) {
@@ -66,15 +61,19 @@ export function useAddPageForm({
         return false;
       }
       const trimmedDesc = description.trim();
-      addCustomPage(currentAccount.id, trimmed, selectedIconId, trimmedDesc || undefined)
+      submitting.current = true;
+      void addCustomPage(currentAccount.id, trimmed, selectedIconId, trimmedDesc || undefined)
         .then((page) => {
+          handleCancel();
           onCreate(page);
         })
         // P003: 创建失败（store 已回滚并抛错）——提示错误，不导航到不存在的页面。
         .catch((err) => {
           onError(err, t('navigation:add_page_failed', { defaultValue: '创建页面失败' }));
+        })
+        .finally(() => {
+          submitting.current = false;
         });
-      if (!keepValuesOnSubmit) handleCancel();
       return true;
     },
     [
@@ -87,7 +86,6 @@ export function useAddPageForm({
       onError,
       t,
       handleCancel,
-      keepValuesOnSubmit,
     ],
   );
 
