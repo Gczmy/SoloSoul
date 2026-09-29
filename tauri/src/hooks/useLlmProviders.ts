@@ -76,8 +76,8 @@ export function useLlmProviders({
     void applyActiveProvider(id);
   };
 
-  const handleSaveProvider = async (provider: ProviderConfig) => {
-    if (!accountId) return;
+  const handleSaveProvider = async (provider: ProviderConfig): Promise<boolean> => {
+    if (!accountId) return false;
     try {
       await invoke('llm_save_provider', { accountId: accountId, provider });
     } catch (err) {
@@ -89,7 +89,7 @@ export function useLlmProviders({
       if (!msg.includes('已取消')) {
         onError(err, t('settings:llm_save_provider_failed'));
       }
-      return;
+      return false;
     }
     setProviders((prev) => {
       const idx = prev.findIndex((p) => p.id === provider.id);
@@ -104,6 +104,7 @@ export function useLlmProviders({
     // Prefetch Runtime: provider 变更 → 刷新 LLM 配置缓存（AI 对话弹层/聊天页即时生效）
     void prefetchRegistry.llmConfig.invalidate();
     onSuccess(t('common:success'));
+    return true;
   };
 
   const handleDeleteProvider = (id: string) => {

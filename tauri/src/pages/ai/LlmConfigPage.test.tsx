@@ -168,6 +168,60 @@ describe('LlmConfigPage', () => {
     expect(screen.getByText('settings:llm_add_custom')).toBeInTheDocument();
   });
 
+  it('keeps provider edits when saving fails, then closes only after a successful retry', async () => {
+    let failSave = true;
+    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+      if (cmd === 'llm_get_providers') return mockProviders;
+      if (cmd === 'llm_get_config')
+        return { activeProviderId: '', aiFeaturesEnabled: { chat: false } };
+      if (cmd === 'llm_check_embedding_available') return false;
+      if (cmd === 'llm_get_embed_models') return [];
+      if (cmd === 'llm_save_provider' && failSave) throw new Error('backend unavailable');
+      return undefined;
+    });
+
+    render(
+      <MemoryRouter>
+        <LlmConfigPage />
+      </MemoryRouter>,
+    );
+    await waitFor(() => expect(screen.getByText('settings:llm_add_custom')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('settings:llm_add_custom'));
+    const providerNameInput = () =>
+      screen
+        .getByText('settings:llm_provider_name')
+        .closest('label')!
+        .parentElement!.querySelector('input')!;
+    fireEvent.change(providerNameInput(), {
+      target: { value: 'My provider' },
+    });
+    fireEvent.change(
+      screen
+        .getByText('settings:llm_base_url')
+        .closest('label')!
+        .parentElement!.querySelector('input')!,
+      {
+        target: { value: 'http://localhost:11434' },
+      },
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'common:save' }));
+
+    await waitFor(() => {
+      expect(vi.mocked(invoke)).toHaveBeenCalledWith(
+        'llm_save_provider',
+        expect.objectContaining({ provider: expect.objectContaining({ name: 'My provider' }) }),
+      );
+      expect(providerNameInput()).toHaveValue('My provider');
+    });
+
+    failSave = false;
+    fireEvent.click(screen.getByRole('button', { name: 'common:save' }));
+    await waitFor(() => {
+      expect(screen.queryByText('settings:llm_provider_name')).not.toBeInTheDocument();
+      expect(screen.getByText('My provider')).toBeInTheDocument();
+    });
+  });
+
   it('P028-R1: rolls back chat switch when llm_set_ai_features fails', async () => {
     // hasAcceptedRisk=true 时切换 AI 开关不会弹风险确认，直接走 handleFeatureToggle
     vi.mocked(invoke).mockImplementation(async (cmd: string) => {

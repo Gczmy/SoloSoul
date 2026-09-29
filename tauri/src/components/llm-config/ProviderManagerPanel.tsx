@@ -17,7 +17,7 @@ interface ProviderManagerPanelProps {
   loading: boolean;
   accountId: string | undefined;
   onSetActive: (id: string) => void;
-  onSaveProvider: (provider: ProviderConfig) => Promise<void>;
+  onSaveProvider: (provider: ProviderConfig) => Promise<boolean>;
   onDeleteProvider: (id: string) => void;
   onTestConnection: (provider: ProviderConfig, accountId: string) => Promise<string>;
 }
@@ -63,7 +63,7 @@ export function ProviderManagerPanel({
     if (!editingProvider) return;
     setSavingProvider(true);
     try {
-      await onSaveProvider(editingProvider);
+      if (!(await onSaveProvider(editingProvider))) return;
       setEditingProvider(null);
       setTestResult(null);
     } catch {
