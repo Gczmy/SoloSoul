@@ -51,7 +51,10 @@ export function useAttachmentBatchOps({
     const keys = Array.from(selectedIds);
     const attachmentIds = keys.map((k) => k.split('::')[1]);
     try {
-      await invoke('attachment_batch_soft_delete', { objectId: objectId, attachmentIds: attachmentIds });
+      await invoke('attachment_batch_soft_delete', {
+        objectId: objectId,
+        attachmentIds: attachmentIds,
+      });
       showToast({
         type: 'success',
         message: t('common:batch_delete_result', { success: keys.length, total: keys.length }),
@@ -62,6 +65,7 @@ export function useAttachmentBatchOps({
         type: 'warning',
         message: t('common:batch_delete_result', { success: 0, total: keys.length }),
       });
+      return;
     }
     clearSelection();
     await loadAttachments();
@@ -73,7 +77,10 @@ export function useAttachmentBatchOps({
     const keys = Array.from(selectedIds);
     const attachmentIds = keys.map((k) => k.split('::')[1]);
     try {
-      await invoke('attachment_batch_restore', { objectId: objectId, attachmentIds: attachmentIds });
+      await invoke('attachment_batch_restore', {
+        objectId: objectId,
+        attachmentIds: attachmentIds,
+      });
       showToast({
         type: 'success',
         message: t('common:batch_restore_result', { success: keys.length, total: keys.length }),
@@ -84,6 +91,7 @@ export function useAttachmentBatchOps({
         type: 'warning',
         message: t('common:batch_restore_result', { success: 0, total: keys.length }),
       });
+      return;
     }
     clearSelection();
     await loadAttachments();
@@ -99,8 +107,8 @@ export function useAttachmentBatchOps({
     let dirPath: string | null;
     if (isMobilePlatformSync()) {
       // 移动端：使用自定义 SAF 目录选择器（plugin-dialog 的 directory 模式在 Android 不支持）
-      const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
-        (m) => m.useAutoLockPauseStore.getState(),
+      const { pause, resume } = await import('@/stores/autoLockPauseStore').then((m) =>
+        m.useAutoLockPauseStore.getState(),
       );
       pause();
       try {
@@ -176,6 +184,7 @@ export function useAttachmentBatchOps({
         type: 'warning',
         message: t('common:batch_perm_delete_result', { success: 0, total: keys.length }),
       });
+      return;
     }
     clearSelection();
     await loadAttachments();
