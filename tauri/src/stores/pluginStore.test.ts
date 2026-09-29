@@ -338,3 +338,44 @@ describe('pluginStore installation task', () => {
     expect(usePluginStore.getState().error).toBeNull();
   });
 });
+
+describe('pluginStore dialog response lifecycle', () => {
+  it('keeps a dialog request after response failure so the user can retry', async () => {
+    const { pluginCommands } = await import('@/lib/plugin');
+    const { usePluginStore } = await import('./pluginStore');
+    usePluginStore.getState().clearOnVaultLock();
+    const request = {
+      eventType: 'dialog_request' as const,
+      jsonData: '{}',
+      requestId: 'request-1',
+      pluginId: 'example',
+      pluginName: 'Example',
+    };
+    usePluginStore.setState({
+      runningPlugins: {
+        example: {
+          runId: 'run-1',
+          pluginId: 'example',
+          pluginName: 'Example',
+          startTime: Date.now(),
+          logs: [],
+          results: [],
+          consentRequests: [],
+          dialogRequests: [request],
+          completed: false,
+        },
+      },
+    });
+    vi.mocked(pluginCommands.dialogResponse)
+      .mockRejectedValueOnce(new Error('dialog delivery failed'))
+      .mockResolvedValueOnce(undefined);
+
+    await usePluginStore.getState().resolveDialog('example', 'request-1', 'answer');
+    expect(usePluginStore.getState().error).toContain('dialog delivery failed');
+    expect(usePluginStore.getState().runningPlugins.example.dialogRequests).toEqual([request]);
+
+    await usePluginStore.getState().resolveDialog('example', 'request-1', 'answer');
+    expect(pluginCommands.dialogResponse).toHaveBeenCalledTimes(2);
+    expect(usePluginStore.getState().runningPlugins.example.dialogRequests).toEqual([]);
+  });
+});

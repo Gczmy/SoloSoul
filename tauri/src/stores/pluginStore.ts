@@ -477,6 +477,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
     } catch (err) {
       if (!request.isCurrent()) return;
       setCurrent({ error: String(err) });
+      return;
     }
     setCurrent((state) => {
       const current = state.runningPlugins[pluginId];
