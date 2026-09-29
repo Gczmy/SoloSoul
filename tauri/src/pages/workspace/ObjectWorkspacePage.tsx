@@ -422,10 +422,7 @@ export function ObjectWorkspacePage() {
           isOpen={true}
           objectName={ws.deprecatedViewer.objectName}
           fields={ws.deprecatedFields}
-          onClose={() => {
-            ws.setDeprecatedViewer(null);
-            ws.setDeprecatedFields([]);
-          }}
+          onClose={ws.closeDeprecatedViewer}
         />
       )}
 

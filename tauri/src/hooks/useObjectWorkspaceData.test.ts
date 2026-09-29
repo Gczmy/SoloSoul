@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IpcCommands } from '@/lib/generated/ipcContracts';
 import { logger } from '@/lib/logger';
 import { toObjectDataView } from '@/lib/objectViewModel';
+import type { DeprecatedField } from '@/lib/generated/ipcContracts';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -15,6 +16,7 @@ import {
 
 type WireObject = NonNullable<IpcCommands['object_get']['result']>;
 const details = new Map<string, Promise<WireObject | null>>();
+const deprecatedFieldsRequests = new Map<string, Promise<DeprecatedField[]>>();
 
 function object(id: string): WireObject {
   return {
@@ -46,6 +48,25 @@ function deferredDetail() {
   return { promise, resolve, reject };
 }
 
+function deferredFields() {
+  let resolve!: (value: DeprecatedField[]) => void;
+  const promise = new Promise<DeprecatedField[]>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+}
+
+function deprecatedField(id: string): DeprecatedField {
+  return {
+    id,
+    name: `旧字段 ${id}`,
+    fieldType: 'text',
+    value: id,
+    deprecatedAt: '2026-09-28T10:00:00Z',
+    reason: 'synthetic test',
+  };
+}
+
 async function release(...pending: ReturnType<typeof deferredDetail>[]) {
   await act(async () => {
     for (const item of pending) item.resolve(null);
@@ -60,6 +81,7 @@ function options(detailObjectId: string | null): UseObjectWorkspaceDataOptions {
 beforeEach(() => {
   vi.restoreAllMocks();
   details.clear();
+  deprecatedFieldsRequests.clear();
   vi.mocked(invoke)
     .mockReset()
     .mockImplementation(async (command, args) => {
@@ -67,6 +89,13 @@ beforeEach(() => {
         const objectId = args && 'objectId' in args ? args.objectId : undefined;
         const response = typeof objectId === 'string' ? details.get(objectId) : undefined;
         if (!response) throw new Error('Unexpected synthetic object_get');
+        return response;
+      }
+      if (command === 'object_list_deprecated_fields') {
+        const objectId = args && 'objectId' in args ? args.objectId : undefined;
+        const response =
+          typeof objectId === 'string' ? deprecatedFieldsRequests.get(objectId) : undefined;
+        if (!response) throw new Error('Unexpected synthetic object_list_deprecated_fields');
         return response;
       }
       if (command === 'template_list' || command === 'object_list') return [];
@@ -81,6 +110,92 @@ beforeEach(() => {
   useSettingsStore.getState().clearOnVaultLock();
   useTemplateStore.getState().clearOnVaultLock();
   useAuthStore.getState().completeUnlock({ id: 'account', name: '合成账户' });
+});
+
+describe('工作区废弃字段查看器读取归属', () => {
+  it('B 已打开后 A 的迟到字段不能覆盖 B', async () => {
+    const a = deferredFields();
+    const b = deferredFields();
+    deprecatedFieldsRequests.set('A', a.promise);
+    deprecatedFieldsRequests.set('B', b.promise);
+    const { result, unmount } = renderHook(useObjectWorkspaceData, {
+      initialProps: options(null),
+    });
+    try {
+      let aRead!: Promise<void>;
+      let bRead!: Promise<void>;
+      act(() => {
+        aRead = result.current.handleViewDeprecatedFields('A', '对象 A');
+        bRead = result.current.handleViewDeprecatedFields('B', '对象 B');
+      });
+      await act(async () => {
+        b.resolve([deprecatedField('B')]);
+        await bRead;
+      });
+      expect(result.current.deprecatedViewer?.objectId).toBe('B');
+      expect(result.current.deprecatedFields.map((field) => field.id)).toEqual(['B']);
+      await act(async () => {
+        a.resolve([deprecatedField('A')]);
+        await aRead;
+      });
+      expect(result.current.deprecatedViewer?.objectId).toBe('B');
+      expect(result.current.deprecatedFields.map((field) => field.id)).toEqual(['B']);
+    } finally {
+      unmount();
+      a.resolve([]);
+      b.resolve([]);
+    }
+  });
+
+  it('关闭查看器后迟到字段不重新填充列表', async () => {
+    const a = deferredFields();
+    deprecatedFieldsRequests.set('A', a.promise);
+    const { result, unmount } = renderHook(useObjectWorkspaceData, {
+      initialProps: options(null),
+    });
+    try {
+      let read!: Promise<void>;
+      act(() => {
+        read = result.current.handleViewDeprecatedFields('A', '对象 A');
+      });
+      act(() => {
+        result.current.closeDeprecatedViewer();
+      });
+      await act(async () => {
+        a.resolve([deprecatedField('A')]);
+        await read;
+      });
+      expect(result.current.deprecatedViewer).toBeNull();
+      expect(result.current.deprecatedFields).toEqual([]);
+    } finally {
+      unmount();
+      a.resolve([]);
+    }
+  });
+
+  it('锁定后同账户重新解锁不接纳旧会话字段', async () => {
+    const a = deferredFields();
+    deprecatedFieldsRequests.set('A', a.promise);
+    const { result, unmount } = renderHook(useObjectWorkspaceData, {
+      initialProps: options(null),
+    });
+    try {
+      let read!: Promise<void>;
+      act(() => {
+        read = result.current.handleViewDeprecatedFields('A', '对象 A');
+      });
+      act(() => useAuthStore.setState({ isAuthenticated: false }));
+      act(() => useAuthStore.getState().completeUnlock({ id: 'account', name: '合成账户' }));
+      await act(async () => {
+        a.resolve([deprecatedField('A')]);
+        await read;
+      });
+      expect(result.current.deprecatedFields).toEqual([]);
+    } finally {
+      unmount();
+      a.resolve([]);
+    }
+  });
 });
 
 afterEach(() => {

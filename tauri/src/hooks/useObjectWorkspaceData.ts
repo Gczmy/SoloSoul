@@ -68,6 +68,13 @@ export function useObjectWorkspaceData({
     objectName: string;
   } | null>(null);
   const [deprecatedFields, setDeprecatedFields] = useState<DeprecatedField[]>([]);
+  const deprecatedRequests = useMemo(() => createSessionRequests(), []);
+  const closeDeprecatedViewer = useCallback(() => {
+    deprecatedRequests.invalidate('deprecated');
+    setDeprecatedViewer(null);
+    setDeprecatedFields([]);
+  }, [deprecatedRequests]);
+  useEffect(() => () => deprecatedRequests.invalidate('deprecated'), [deprecatedRequests]);
 
   // P010: 字段级 selector 订阅，避免整店订阅导致任何 store 变化都触发整页重渲染。
   const objects = useObjectStore((s) => s.objects);
@@ -272,16 +279,20 @@ export function useObjectWorkspaceData({
   const handleViewDeprecatedFields = useCallback(
     async (objectId: string, objectName: string) => {
       if (!accountId) return;
+      const request = deprecatedRequests.begin('deprecated', accountId);
       setDeprecatedViewer({ objectId, objectName });
+      setDeprecatedFields([]);
       try {
         const fields = await loadDeprecatedFields(accountId, objectId);
-        setDeprecatedFields(fields);
+        if (request.isCurrent()) setDeprecatedFields(fields);
       } catch (err) {
-        logger.warn('[Workspace] Load deprecated fields failed:', err);
-        setDeprecatedFields([]);
+        if (request.isCurrent()) {
+          logger.warn('[Workspace] Load deprecated fields failed:', err);
+          setDeprecatedFields([]);
+        }
       }
     },
-    [accountId, loadDeprecatedFields],
+    [accountId, deprecatedRequests, loadDeprecatedFields],
   );
 
   return {
@@ -317,9 +328,8 @@ export function useObjectWorkspaceData({
     detailObj,
     setDetailObj,
     deprecatedViewer,
-    setDeprecatedViewer,
+    closeDeprecatedViewer,
     deprecatedFields,
-    setDeprecatedFields,
     showPwDialog,
     setShowPwDialog,
     pwResolveRef,
