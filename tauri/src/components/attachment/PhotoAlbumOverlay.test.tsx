@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { invoke } from '@tauri-apps/api/core';
 import { PhotoAlbumOverlay } from './PhotoAlbumOverlay';
+import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 // 本组验证真实查看器的打开/返回交互，预载依赖以隔离 Vite/framer-motion 冷编译耗时。
 // LazyPhotoViewerOverlay 仍走真实命名导出映射，不替换查看器实现。
@@ -244,6 +245,30 @@ describe('PhotoAlbumOverlay', () => {
       expect(screen.getByText('2026')).toBeInTheDocument();
       expect(screen.getByText('2022')).toBeInTheDocument();
     });
+  });
+
+  it('keeps dropdown selection working inside the macOS preview Portal', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    const previousWindowState = useNativeWindowStore.getState();
+    useNativeWindowStore.setState({ isMacOS: true });
+    const view = render(<PhotoAlbumOverlay items={[makeItem('a')]} onClose={vi.fn()} />);
+    try {
+      const overlay = await screen.findByTestId('photo-album-overlay');
+      expect(overlay.parentElement).toBe(document.body);
+      const trigger = within(overlay).getByRole('button', { name: /Group by|album_group_mode/i });
+      fireEvent.click(trigger);
+      const option = within(overlay).getByRole('button', { name: /By year|group_by_year/i });
+      expect(option).toHaveAttribute('aria-pressed', 'false');
+      fireEvent.click(option);
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      fireEvent.click(trigger);
+      expect(
+        within(overlay).getByRole('button', { name: /By year|group_by_year/i }),
+      ).toHaveAttribute('aria-pressed', 'true');
+    } finally {
+      view.unmount();
+      useNativeWindowStore.setState(previousWindowState);
+    }
   });
 
   it('标签筛选区：隐藏滚动条但保留横向滚动（对齐 SearchPopover.filterBar）', async () => {

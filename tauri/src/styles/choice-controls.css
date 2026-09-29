@@ -1,0 +1,43 @@
+/* 互斥选项的公共语义表面；组件负责状态，平台覆盖这些 token。 */
+[data-ui-choice] {
+  --choice-surface: var(--bg-toolbar);
+  --choice-ink: var(--text-primary);
+  --choice-edge: var(--border-subtle);
+  --choice-selected-surface: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-elevated));
+  --choice-selected-ink: var(--text-primary);
+  --choice-selected-edge: var(--accent-primary);
+  --choice-hover-surface: color-mix(in srgb, var(--accent-primary) 6%, var(--bg-toolbar));
+  --choice-hover-ink: var(--text-primary);
+  --choice-radius: 6px;
+  --choice-min-height: 32px;
+}
+
+[data-ui-choice='tab'] {
+  --choice-surface: transparent;
+  --choice-ink: var(--text-tertiary);
+  --choice-edge: transparent;
+  --choice-selected-surface: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  --choice-selected-edge: transparent;
+  --choice-radius: 10px;
+  --choice-min-height: 36px;
+}
+
+[data-ui-choice='trigger'] {
+  --choice-min-height: 30px;
+}
+
+[data-ui-choice='option'] {
+  --choice-surface: transparent;
+  --choice-edge: transparent;
+  --choice-selected-surface: var(--accent-primary);
+  --choice-selected-ink: var(--accent-primary-text);
+  --choice-selected-edge: transparent;
+  --choice-hover-surface: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  --choice-hover-ink: var(--text-primary);
+}
+
+@media (max-width: 767px), (pointer: coarse) {
+  [data-ui-choice] {
+    --choice-min-height: 44px;
+  }
+}

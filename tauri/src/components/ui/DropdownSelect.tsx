@@ -6,6 +6,7 @@ import { ICON_SIZE } from '@/lib/constants';
 export interface DropdownSelectOption {
   value: string | number;
   label: string;
+  disabled?: boolean;
 }
 
 interface DropdownSelectProps {
@@ -21,6 +22,7 @@ interface DropdownSelectProps {
   ariaLabel?: string;
   /** Width of the popover in px (default 90) */
   width?: number;
+  disabled?: boolean;
 }
 
 export function DropdownSelect({
@@ -30,8 +32,10 @@ export function DropdownSelect({
   triggerLabel,
   ariaLabel,
   width = 90,
+  disabled = false,
 }: DropdownSelectProps) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const areaId = useId();
 
@@ -72,14 +76,26 @@ export function DropdownSelect({
   );
 
   return (
-    <div data-dropdown-area={areaId} style={{ position: 'relative' }}>
+    <div
+      data-dropdown-area={areaId}
+      style={{ position: 'relative' }}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && open) {
+          event.stopPropagation();
+          setOpen(false);
+          triggerRef.current?.focus();
+        }
+      }}
+    >
       <button
-        data-desktop-control
+        ref={triggerRef}
+        data-ui-choice="trigger"
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={styles.trigger}
         aria-label={ariaLabel}
         aria-expanded={open}
+        disabled={disabled}
       >
         {triggerLabel}
         <ChevronDown size={ICON_SIZE.xs} className={styles.chevron} />
@@ -92,8 +108,11 @@ export function DropdownSelect({
               <button
                 key={opt.value}
                 type="button"
+                data-ui-choice="option"
                 data-dd-value={opt.value}
-                className={`${styles.item} ${isActive ? styles.itemActive : ''}`}
+                aria-pressed={isActive}
+                disabled={opt.disabled}
+                className={styles.item}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleSelect(opt.value);

@@ -38,14 +38,12 @@ export function ExportImportTabBar({ tab, onChange }: ExportImportTabBarProps) {
           <button
             key={tabKey}
             type="button"
+            data-ui-choice="tab"
             aria-pressed={isActive}
             onClick={() => onChange(tabKey)}
-            className={`${styles.tab} ${isActive ? styles.tabActive : ''}`}
+            className={styles.tab}
           >
-            <Icon
-              size={ICON_SIZE.md}
-              className={`${styles.tabIcon} ${isActive ? styles.tabIconActive : ''}`}
-            />
+            <Icon size={ICON_SIZE.md} className={styles.tabIcon} />
             {t(PANEL_CONFIG[tabKey].labelKey)}
           </button>
         );

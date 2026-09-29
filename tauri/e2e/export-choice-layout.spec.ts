@@ -17,7 +17,8 @@ for (const platform of ['android', 'ios', 'macos', 'windows']) {
           const prefs = {
             theme,
             language: 'en-US',
-            accentColor: 'ocean',
+            accentColor: platform === 'windows' && theme === 'dark' ? 'custom' : 'ocean',
+            customAccentHex: '#9A77CA',
             hasSeenOnboarding: true,
             reduceMotion: true,
             autoLockTimeoutMinutes: 0,
@@ -39,6 +40,9 @@ for (const platform of ['android', 'ios', 'macos', 'windows']) {
         { platform, theme },
       );
       await login(page);
+      if (platform === 'windows' && theme === 'dark') {
+        await expect(page.locator('html')).toHaveAttribute('data-accent', 'custom');
+      }
       await page.evaluate(() => {
         history.pushState(
           { ...history.state, idx: (history.state?.idx ?? 0) + 1 },
@@ -48,7 +52,7 @@ for (const platform of ['android', 'ios', 'macos', 'windows']) {
         dispatchEvent(new PopStateEvent('popstate', { state: history.state }));
       });
       await page.getByRole('button', { name: 'Export as Document', exact: true }).click();
-      const choices = page.locator('[data-ui-choice]');
+      const choices = page.locator('[data-ui-choice="chip"]');
       await expect(choices).toHaveCount(5);
       await expect(page.getByRole('button', { name: 'Word (.docx)', exact: true })).toHaveAttribute(
         'aria-pressed',
@@ -64,7 +68,7 @@ for (const platform of ['android', 'ios', 'macos', 'windows']) {
         const choice = page.getByRole('button', { name: label, exact: true });
         await choice.click();
         await expect(choice).toHaveAttribute('aria-pressed', 'true');
-        await expect(page.locator('[data-ui-choice][aria-pressed="true"]')).toHaveCount(1);
+        await expect(page.locator('[data-ui-choice="chip"][aria-pressed="true"]')).toHaveCount(1);
         await page.mouse.move(0, 0);
         await expect
           .poll(
@@ -72,6 +76,12 @@ for (const platform of ['android', 'ios', 'macos', 'windows']) {
           )
           .toBeGreaterThanOrEqual(4.5);
       }
+      // 用超长译文验证 Chip 在窄屏与桌面布局中都不会撑出视口。
+      const longChoice = page.locator('[data-ui-choice="chip"][aria-pressed="true"]');
+      await longChoice.evaluate((button) => {
+        button.textContent = 'Word document with a very long localized format description';
+      });
+      await expect(longChoice).toHaveAttribute('aria-pressed', 'true');
       const geometry = await choices.evaluateAll((buttons) =>
         buttons.map((button) => {
           const rect = button.getBoundingClientRect();
@@ -82,12 +92,15 @@ for (const platform of ['android', 'ios', 'macos', 'windows']) {
             radius: parseFloat(style.borderRadius),
             right: rect.right,
             left: rect.left,
+            scrollWidth: button.scrollWidth,
+            clientWidth: button.clientWidth,
           };
         }),
       );
       for (const button of geometry) {
         expect(button.left).toBeGreaterThanOrEqual(0);
         expect(button.right).toBeLessThanOrEqual(page.viewportSize()!.width);
+        expect(button.scrollWidth).toBeLessThanOrEqual(button.clientWidth + 1);
         if (platform === 'android') {
           expect(button.height).toBeGreaterThanOrEqual(48);
           expect(button.radius).toBe(24);

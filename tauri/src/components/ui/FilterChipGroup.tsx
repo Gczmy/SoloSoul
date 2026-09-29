@@ -13,27 +13,10 @@ export function FilterChip({
     <button
       {...props}
       type="button"
-      data-ui-choice
+      data-ui-choice="chip"
       aria-pressed={selected}
-      className={`interactive-toolbar ${styles.choice} ${className}`}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        maxWidth: '100%',
-        padding: '5px 12px',
-        borderRadius: 6,
-        borderWidth: 1,
-        borderStyle: 'solid',
-        fontSize: 'var(--text-body-sm)',
-        fontWeight: 500,
-        fontFamily: 'inherit',
-        whiteSpace: 'normal',
-        overflowWrap: 'anywhere',
-        cursor: 'pointer',
-        ...style,
-      }}
+      className={`${styles.choice} ${className}`}
+      style={style}
     >
       {children}
     </button>
@@ -97,11 +80,13 @@ export function FilterChipGroup<T extends string = string>({
                 onChange(opt.id);
               }
             }}
-            style={{
-              borderRadius: radius,
-              fontSize: size === 'caption' ? 'var(--text-caption)' : 'var(--text-sm)',
-              fontWeight,
-            }}
+            style={
+              {
+                '--choice-instance-radius': `${radius}px`,
+                fontSize: size === 'caption' ? 'var(--text-caption)' : 'var(--text-sm)',
+                fontWeight,
+              } as CSSProperties
+            }
           >
             {opt.label}
           </FilterChip>

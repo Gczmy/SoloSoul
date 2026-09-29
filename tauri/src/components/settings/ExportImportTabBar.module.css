@@ -13,36 +13,51 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-width: 0;
+  min-height: var(--choice-min-height);
   padding: 8px 12px;
-  border: none;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--text-tertiary);
+  border: 1px solid var(--choice-edge);
+  border-radius: var(--choice-radius);
+  background: var(--choice-surface);
+  color: var(--choice-ink);
   font-size: var(--text-body-sm);
   font-weight: 500;
   font-family: inherit;
+  text-align: center;
+  overflow-wrap: break-word;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .tab:hover {
-    background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
-    color: var(--text-primary);
+  .tab:hover:not(:disabled, [aria-pressed='true']) {
+    background: var(--choice-hover-surface);
+    color: var(--choice-hover-ink);
   }
 }
 
-.tabActive {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  color: var(--accent-primary);
+.tab[aria-pressed='true'] {
+  background: var(--choice-selected-surface);
+  border-color: var(--choice-selected-edge);
+  color: var(--choice-selected-ink);
   font-weight: 600;
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px;
+}
+
+.tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .tabIcon {
   transition: transform 0.15s ease;
 }
 
-.tabIconActive {
+.tab[aria-pressed='true'] .tabIcon {
   transform: scale(1.05);
 }
 
@@ -54,13 +69,5 @@
 }
 
 :global([data-platform='android']) .tab {
-  min-width: 0;
-  border-radius: 24px;
   white-space: normal;
-  color: var(--text-secondary);
-}
-
-:global([data-platform='android']) .tabActive {
-  background: var(--md-primary-container);
-  color: var(--md-on-primary-container);
 }

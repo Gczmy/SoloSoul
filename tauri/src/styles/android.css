@@ -127,15 +127,21 @@
   backdrop-filter: none;
 }
 [data-platform='android'] button[data-ui-choice] {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  border-color: var(--border-default);
+  --choice-min-height: 48px;
+  --choice-platform-radius: 24px;
   box-shadow: none;
 }
+[data-platform='android'] button[data-ui-choice='chip'] {
+  --choice-surface: var(--bg-elevated);
+  --choice-edge: var(--border-default);
+}
+[data-platform='android'] button[data-ui-choice='tab'] {
+  --choice-ink: var(--text-secondary);
+}
 [data-platform='android'] button[data-ui-choice][aria-pressed='true'] {
-  background: var(--md-primary-container);
-  color: var(--md-on-primary-container) !important;
-  border-color: var(--accent-primary);
+  --choice-selected-surface: var(--md-primary-container);
+  --choice-selected-ink: var(--md-on-primary-container);
+  --choice-selected-edge: var(--accent-primary);
 }
 [data-platform='android'] [data-ui-input] {
   min-height: 52px;
