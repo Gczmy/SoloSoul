@@ -28,7 +28,7 @@ export function CloudSyncIncomingSection({
       <p className={styles.hint}>{t('settings:cloud_sync_incoming_hint')}</p>
       <div className={styles.incomingList}>
         {incomingFiles.map((file) => {
-          const nameParts = file.split('/');
+          const nameParts = file.split(/[\\/]/);
           const fileName = nameParts[nameParts.length - 1] || file;
           return (
             <div key={file} className={styles.incomingItem}>
