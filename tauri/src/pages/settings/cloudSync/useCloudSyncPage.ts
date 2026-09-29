@@ -44,7 +44,6 @@ export function useCloudSyncPage() {
   const [incomingFiles, setIncomingFiles] = useState<string[]>([]);
   const [isSyncingNow, setIsSyncingNow] = useState(false);
   const [importingFile, setImportingFile] = useState<string | null>(null);
-  const passwordVerifiedRef = useRef(false);
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -52,7 +51,6 @@ export function useCloudSyncPage() {
       requests.invalidate();
       if (refreshTimer.current !== null) clearTimeout(refreshTimer.current);
       refreshTimer.current = null;
-      passwordVerifiedRef.current = false;
       setSavedConfig(null);
       setConnectorType('webdav');
       setConfigJson(DEFAULT_WEBDAV_CONFIG);
@@ -135,17 +133,14 @@ export function useCloudSyncPage() {
     loadConfig();
   }, [loadConfig]);
 
-  const handleSave = async () => {
-    if (!passwordVerifiedRef.current) {
-      setShowPasswordDialog(true);
-      return;
-    }
-    await doSave();
-  };
+  const handleSave = () => setShowPasswordDialog(true);
 
-  const doSave = async () => {
+  const handleVerifyAndSave = async (password: string): Promise<boolean> => {
+    const request = requests.begin('save', accountId);
+    if (!accountId || !request.isCurrent()) return false;
+    let saved: boolean;
     try {
-      await invoke('cloud_sync_save_config', {
+      saved = await request.invoke<boolean>('cloud_sync_save_config', {
         payload: {
           accountId,
           connectorType,
@@ -156,29 +151,16 @@ export function useCloudSyncPage() {
           autoImport,
           retention,
         },
+        password,
       });
-      onSuccess(t('settings:cloud_sync_saved'));
-      loadConfig();
-    } catch (e) {
-      onError(new Error(String(e)), t('settings:cloud_sync_save_failed'));
-    }
-  };
-
-  const handleVerifyAndSave = async (password: string): Promise<boolean> => {
-    const request = requests.begin('save-verify', accountId);
-    if (!accountId || !request.isCurrent()) return false;
-    let verified: boolean;
-    try {
-      verified = await request.invoke<boolean>('verify_password', { accountId, password });
     } catch (error) {
-      // 锁定或切换账户期间迟到的验证结果不能授权新会话保存。
       if (!request.isCurrent()) return false;
       throw error;
     }
-    if (!verified || !request.isCurrent()) return false;
-    passwordVerifiedRef.current = true;
+    if (!saved || !request.isCurrent()) return false;
     setShowPasswordDialog(false);
-    await doSave();
+    onSuccess(t('settings:cloud_sync_saved'));
+    void loadConfig();
     return true;
   };
 

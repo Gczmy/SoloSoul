@@ -8,6 +8,7 @@ use std::path::PathBuf;
 #[cfg(target_os = "android")]
 use tauri::Manager;
 use tauri::State;
+use zeroize::Zeroizing;
 
 pub(crate) static UI_PREFS_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
@@ -392,8 +393,8 @@ pub async fn cloud_sync_get_config(
 pub async fn cloud_sync_save_config(
     state: State<'_, AppState>,
     payload: CloudSyncConfigPayload,
-) -> Result<(), String> {
-    let vault = vault_handle(&state)?;
+    password: String,
+) -> Result<bool, String> {
     let config = solosoul_vault::CloudSyncConfig {
         connector_type: payload.connector_type,
         config_json: payload.config_json,
@@ -406,8 +407,34 @@ pub async fn cloud_sync_save_config(
         auto_import: payload.auto_import,
         last_sync_at: None,
     };
-    vault.set_cloud_sync_config(&payload.account_id, config)?;
-    Ok(())
+    let account_id = payload.account_id;
+    let password = Zeroizing::new(password);
+    let service = state.vault_service.clone();
+    tokio::task::spawn_blocking(move || {
+        let service = service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        save_cloud_sync_config_for_service(&service, &account_id, &password, config)
+    })
+    .await
+    .map_err(|e| format!("cloud sync save task failed: {e}"))?
+}
+
+fn save_cloud_sync_config_for_service(
+    service: &solosoul_core::VaultService,
+    account_id: &str,
+    password: &str,
+    config: solosoul_vault::CloudSyncConfig,
+) -> Result<bool, String> {
+    // KDF 前先确认目标为当前解锁账户，写入时再以同一会话提交。
+    let session = service.capture_session(account_id)?;
+    if !service.verify_password_with_lockout(account_id, password)? {
+        return Ok(false);
+    }
+    service.with_session(&session, |vault| {
+        vault.set_cloud_sync_config(account_id, config)?;
+        Ok(true)
+    })
 }
 
 #[tauri::command]
@@ -537,6 +564,68 @@ mod tests {
     use super::*;
     use solosoul_vault::{Profile, VaultConfig, VaultStore};
     use tempfile::TempDir;
+
+    #[test]
+    fn rf1002_cloud_config_save_requires_current_account_password() {
+        let dir = TempDir::new().unwrap();
+        let service = solosoul_core::VaultService::with_base_path(dir.path().join("vault"));
+        service
+            .create_account_with_id("acc_rf1002_a", "A", "password123", None)
+            .unwrap();
+        let config = solosoul_vault::CloudSyncConfig {
+            connector_type: "webdav".to_string(),
+            config_json: serde_json::json!({ "baseUrl": "https://example.test/dav" }),
+            ..Default::default()
+        };
+        let vault = service.get_vault_store().unwrap();
+
+        assert!(!save_cloud_sync_config_for_service(
+            &service,
+            "acc_rf1002_a",
+            "wrong-password",
+            config.clone(),
+        )
+        .unwrap());
+        assert!(vault
+            .get_cloud_sync_config("acc_rf1002_a")
+            .unwrap()
+            .is_none());
+
+        assert!(save_cloud_sync_config_for_service(
+            &service,
+            "acc_rf1002_a",
+            "password123",
+            config.clone(),
+        )
+        .unwrap());
+        assert_eq!(
+            vault
+                .get_cloud_sync_config("acc_rf1002_a")
+                .unwrap()
+                .unwrap()
+                .connector_type,
+            "webdav"
+        );
+
+        service
+            .create_account_with_id("acc_rf1002_b", "B", "password456", None)
+            .unwrap();
+        assert!(save_cloud_sync_config_for_service(
+            &service,
+            "acc_rf1002_a",
+            "password123",
+            config.clone(),
+        )
+        .is_err());
+        service.lock();
+        assert!(save_cloud_sync_config_for_service(
+            &service,
+            "acc_rf1002_b",
+            "password456",
+            config,
+        )
+        .is_err());
+    }
 
     #[test]
     fn rf003_incoming_list_never_claims_other_account_or_legacy_files() {

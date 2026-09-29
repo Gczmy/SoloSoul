@@ -93,10 +93,10 @@ describe('CloudSyncPage 渲染冒烟', () => {
     expect(screen.getByRole('option', { name: /WebDAV \(坚果云/ })).toBeInTheDocument();
   });
 
-  it('错误主密码不得保存云同步配置', async () => {
+  it('保存命令拒绝错误主密码时保持验证对话框', async () => {
     const originalInvoke = vi.mocked(invoke).getMockImplementation()!;
     vi.mocked(invoke).mockImplementation((cmd: string, args) => {
-      if (cmd === 'verify_password') return Promise.resolve(false);
+      if (cmd === 'cloud_sync_save_config') return Promise.resolve(false);
       return originalInvoke(cmd, args);
     });
     render(
@@ -112,18 +112,18 @@ describe('CloudSyncPage 渲染冒烟', () => {
     fireEvent.click(screen.getByRole('button', { name: '提交主密码' }));
 
     await waitFor(() =>
-      expect(invoke).toHaveBeenCalledWith('verify_password', {
-        accountId: 'account-a',
+      expect(invoke).toHaveBeenCalledWith('cloud_sync_save_config', {
+        payload: expect.objectContaining({ accountId: 'account-a' }),
         password: 'entered-master-password',
       }),
     );
-    expect(invoke).not.toHaveBeenCalledWith('cloud_sync_save_config', expect.anything());
+    expect(screen.getByRole('button', { name: '提交主密码' })).toBeInTheDocument();
   });
 
-  it('正确主密码验证完成后才保存配置', async () => {
+  it('保存命令接受正确主密码后关闭验证对话框', async () => {
     const originalInvoke = vi.mocked(invoke).getMockImplementation()!;
     vi.mocked(invoke).mockImplementation((cmd: string, args) => {
-      if (cmd === 'verify_password') return Promise.resolve(true);
+      if (cmd === 'cloud_sync_save_config') return Promise.resolve(true);
       return originalInvoke(cmd, args);
     });
     render(
@@ -145,13 +145,14 @@ describe('CloudSyncPage 渲染冒烟', () => {
           connectorType: 'webdav',
           configJson: expect.objectContaining({ baseUrl: 'https://dav.example.com/' }),
         }),
+        password: 'entered-master-password',
       }),
     );
-    expect(
-      vi.mocked(invoke).mock.calls.findIndex(([cmd]) => cmd === 'verify_password'),
-    ).toBeLessThan(
-      vi.mocked(invoke).mock.calls.findIndex(([cmd]) => cmd === 'cloud_sync_save_config'),
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: '提交主密码' })).not.toBeInTheDocument(),
     );
+    fireEvent.click(screen.getByRole('button', { name: 'settings:cloud_sync_update' }));
+    expect(screen.getByRole('button', { name: '提交主密码' })).toBeInTheDocument();
   });
 
   it('连接测试按 Rust 命令签名传入 payload', async () => {
@@ -181,7 +182,7 @@ describe('CloudSyncPage 渲染冒烟', () => {
     let resolveVerification!: (ok: boolean) => void;
     const originalInvoke = vi.mocked(invoke).getMockImplementation()!;
     vi.mocked(invoke).mockImplementation((cmd: string, args) => {
-      if (cmd === 'verify_password')
+      if (cmd === 'cloud_sync_save_config')
         return new Promise<boolean>((resolve) => {
           resolveVerification = resolve;
         });
@@ -198,11 +199,16 @@ describe('CloudSyncPage 渲染冒烟', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'settings:cloud_sync_update' }));
     fireEvent.click(screen.getByRole('button', { name: '提交主密码' }));
-    await waitFor(() => expect(invoke).toHaveBeenCalledWith('verify_password', expect.anything()));
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith('cloud_sync_save_config', expect.anything()),
+    );
     act(() => useAuthStore.setState({ currentAccount: { id: 'account-b', name: 'Bob' } }));
     resolveVerification(true);
     await Promise.resolve();
 
-    expect(invoke).not.toHaveBeenCalledWith('cloud_sync_save_config', expect.anything());
+    expect(screen.queryByRole('button', { name: '提交主密码' })).not.toBeInTheDocument();
+    expect(
+      vi.mocked(invoke).mock.calls.filter(([cmd]) => cmd === 'cloud_sync_save_config'),
+    ).toHaveLength(1);
   });
 });
