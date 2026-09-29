@@ -1,8 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { ObjectSelectionTree } from './ObjectSelectionTree';
+import { ObjectSelectionTree, type SelectionTreeObject } from './ObjectSelectionTree';
 
-function setup() {
+function setup(
+  object: SelectionTreeObject = {
+    id: 'obj-1',
+    name: 'Passport',
+    sectionType: 'identity',
+    sensitivityLevel: 'public',
+  },
+) {
   const callbacks = {
     onTogglePage: vi.fn(),
     onToggleObject: vi.fn(),
@@ -16,9 +23,7 @@ function setup() {
       pageGroups={[
         {
           sectionType: 'identity',
-          objects: [
-            { id: 'obj-1', name: 'Passport', sectionType: 'identity', sensitivityLevel: 'public' },
-          ],
+          objects: [object],
         },
       ]}
       selectedPageIds={new Set()}
@@ -62,4 +67,33 @@ describe('ObjectSelectionTree 选择交互', () => {
       'obj-1',
     ]);
   });
+
+  it.each([
+    { sensitivityLevel: 'unknown', sensitivityLevels: undefined, expected: ['internal'] },
+    {
+      sensitivityLevel: 'public',
+      sensitivityLevels: ['unknown', 'critical'],
+      expected: ['internal', 'critical'],
+    },
+    {
+      sensitivityLevel: 'public',
+      sensitivityLevels: ['critical', 'unknown', 'internal'],
+      expected: ['internal', 'critical'],
+    },
+  ])(
+    '非法等级在导入导出选择树中显示合法徽章：%j',
+    ({ sensitivityLevel, sensitivityLevels, expected }) => {
+      setup({
+        id: 'obj-1',
+        name: 'Passport',
+        sectionType: 'identity',
+        sensitivityLevel,
+        sensitivityLevels,
+      });
+      expect(screen.getAllByTitle(/^sensitivity_label:/).map((badge) => badge.title)).toEqual(
+        expected.map((level) => `sensitivity_label: ${level}`),
+      );
+      expect(screen.queryByTitle('sensitivity_label: unknown')).not.toBeInTheDocument();
+    },
+  );
 });

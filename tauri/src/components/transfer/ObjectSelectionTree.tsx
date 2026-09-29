@@ -7,6 +7,7 @@ import { formatBytes } from '@/lib/utils';
 import { ICON_SIZE } from '@/lib/constants';
 import { isMobilePlatformSync } from '@/lib/platform';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 
 export interface SelectionTreeObject {
   id: string;
@@ -34,6 +35,26 @@ export interface SelectionTreePageGroup {
   /** 可选：页面对象计数（导出侧显式提供；导入侧未提供时回退 objects.length） */
   objectCount?: number;
   objects: SelectionTreeObject[];
+}
+
+const SENSITIVITY_LEVELS: readonly SensitivityLevel[] = [
+  'public',
+  'internal',
+  'sensitive',
+  'critical',
+];
+
+function displaySensitivityLevels(obj: SelectionTreeObject): SensitivityLevel[] {
+  const rawLevels = obj.sensitivityLevels?.length ? obj.sensitivityLevels : [obj.sensitivityLevel];
+  const levels = new Set(
+    rawLevels.map((level) =>
+      resolveFieldSensitivity({
+        fieldId: obj.id,
+        template: { sensitivityLevel: level },
+      }),
+    ),
+  );
+  return SENSITIVITY_LEVELS.filter((level) => levels.has(level));
 }
 
 interface ObjectSelectionTreeProps {
@@ -261,14 +282,11 @@ export function ObjectSelectionTree({
                       >
                         {obj.name}
                       </span>
-                      {/* 字段敏感度徽章：sensitivityLevels 有值时逐档展示（升序已由后端排序），否则回退记录级单徽章。
+                      {/* 字段敏感度徽章：sensitivityLevels 有值时逐档展示并校验去重，否则回退记录级单徽章。
                           移动端仅图标（防多徽章挤没对象名/徽章文本换行），flexShrink:0 防被压缩 */}
-                      {(obj.sensitivityLevels && obj.sensitivityLevels.length > 0
-                        ? obj.sensitivityLevels
-                        : [obj.sensitivityLevel]
-                      ).map((lvl) => (
+                      {displaySensitivityLevels(obj).map((lvl) => (
                         <span key={lvl} style={{ flexShrink: 0, display: 'inline-flex' }}>
-                          <SensitivityBadge level={lvl as SensitivityLevel} showText={!isMobile} />
+                          <SensitivityBadge level={lvl} showText={!isMobile} />
                         </span>
                       ))}
                       {renderConflictBadge?.(obj)}
