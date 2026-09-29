@@ -54,6 +54,7 @@ export function CustomPageEditPopover({
   const inputRef = useRef<HTMLInputElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveInFlightRef = useRef(false);
 
   // Reset state whenever the popover opens
   useEffect(() => {
@@ -82,6 +83,7 @@ export function CustomPageEditPopover({
   }, [triggerRect, isHorizontal, isBottom]);
 
   const handleConfirm = async () => {
+    if (saveInFlightRef.current) return;
     const trimmed = name.trim();
     if (!trimmed) {
       onClose();
@@ -114,34 +116,44 @@ export function CustomPageEditPopover({
 
     if (!accountId) return;
     const request = pageEditRequests.begin(undefined, accountId);
+    saveInFlightRef.current = true;
     // 页面元数据的权威来源是 objects；成功后只更新当前会话的列表投影。
     try {
-      await request.invokeTyped('object_update', {
-        objectId: page.id,
-        input: {
-          name: trimmed,
-          properties: toJsonObject(descChanged ? { description: trimmedDesc || undefined } : {}),
-          iconName: selectedIconId,
-        },
-      });
-      request.assertCurrent();
-    } catch {
-      if (request.isCurrent()) setRenameError(true);
-      return;
-    }
+      try {
+        await request.invokeTyped('object_update', {
+          objectId: page.id,
+          input: {
+            name: trimmed,
+            properties: toJsonObject(descChanged ? { description: trimmedDesc || undefined } : {}),
+            iconName: selectedIconId,
+          },
+        });
+        request.assertCurrent();
+      } catch {
+        if (request.isCurrent()) setRenameError(true);
+        return;
+      }
 
-    // 不再把已保存的对象投影作为第二次 preferences 写入，避免部分成功被误报。
-    useSettingsStore.setState((state) => ({
-      settings: {
-        ...state.settings,
-        customPages: state.settings.customPages.map((p) =>
-          p.id === page.id
-            ? { ...p, name: trimmed, iconId: selectedIconId, description: trimmedDesc || undefined }
-            : p,
-        ),
-      },
-    }));
-    onClose();
+      // 不再把已保存的对象投影作为第二次 preferences 写入，避免部分成功被误报。
+      useSettingsStore.setState((state) => ({
+        settings: {
+          ...state.settings,
+          customPages: state.settings.customPages.map((p) =>
+            p.id === page.id
+              ? {
+                  ...p,
+                  name: trimmed,
+                  iconId: selectedIconId,
+                  description: trimmedDesc || undefined,
+                }
+              : p,
+          ),
+        },
+      }));
+      onClose();
+    } finally {
+      saveInFlightRef.current = false;
+    }
   };
 
   const handleCancel = () => {

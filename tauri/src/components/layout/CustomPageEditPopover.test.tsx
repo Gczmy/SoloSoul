@@ -83,3 +83,42 @@ describe('RF111 自定义页面只确认权威对象写入', () => {
     expect(close).not.toHaveBeenCalled();
   });
 });
+
+describe('RF-1014 自定义页面编辑提交互斥', () => {
+  it('保存未完成时重复按 Enter 只写入一次对象', async () => {
+    const write = pending();
+    vi.mocked(invoke).mockImplementation((command) =>
+      command === 'object_update' ? write.promise : Promise.resolve(undefined),
+    );
+    const close = vi.fn();
+    edit(close);
+    fireEvent.keyDown(screen.getByDisplayValue('After'), { key: 'Enter' });
+    await waitFor(() =>
+      expect(
+        vi.mocked(invoke).mock.calls.filter(([command]) => command === 'object_update'),
+      ).toHaveLength(1),
+    );
+    await act(async () => {
+      write.resolve();
+      await write.promise;
+    });
+    expect(close).toHaveBeenCalledOnce();
+    expect(useSettingsStore.getState().settings.customPages[0].name).toBe('After');
+  });
+
+  it('保存失败后允许用户重试', async () => {
+    vi.mocked(invoke)
+      .mockRejectedValueOnce(new Error('Synthetic write failure'))
+      .mockResolvedValue(undefined);
+    const close = vi.fn();
+    edit(close);
+    await waitFor(() =>
+      expect(screen.getByDisplayValue('After')).toHaveAttribute('data-error', 'true'),
+    );
+    fireEvent.keyDown(screen.getByDisplayValue('After'), { key: 'Enter' });
+    await waitFor(() => expect(close).toHaveBeenCalledOnce());
+    expect(
+      vi.mocked(invoke).mock.calls.filter(([command]) => command === 'object_update'),
+    ).toHaveLength(2);
+  });
+});
