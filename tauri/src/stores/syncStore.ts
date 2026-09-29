@@ -243,7 +243,13 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       try {
         const status = await request.invoke<SyncStatus>('sync_get_status');
         request.assertCurrent();
-        setCurrent({ ...status, error: null });
+        setCurrent({
+          ...status,
+          ...(status.syncEnabled
+            ? {}
+            : { discoveredDevices: [], isDiscoveringDevices: false, listenAddr: '' }),
+          error: null,
+        });
       } catch (err) {
         if (!request.isCurrent()) return;
         setCurrent({ error: String(err) });

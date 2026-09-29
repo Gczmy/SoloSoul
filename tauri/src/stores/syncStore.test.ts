@@ -893,3 +893,36 @@ describe('syncStore listen address after disabling sync', () => {
     expect(useSyncStore.getState()).toMatchObject({ syncEnabled: false, listenAddr: '' });
   });
 });
+
+describe('syncStore backend-disabled status', () => {
+  beforeEach(() => {
+    mockInvoke.mockReset();
+    useSyncStore.setState({
+      syncEnabled: true,
+      listenAddr: '192.0.2.1:42069',
+      discoveredDevices: [{ name: 'Nearby Mac', host: 'mac.local', port: 42069, addresses: [] }],
+      isDiscoveringDevices: true,
+      error: null,
+    });
+  });
+
+  it('removes stale discovery data when a status refresh reports sync disabled', async () => {
+    mockInvoke.mockResolvedValueOnce({
+      isDiscovering: false,
+      syncEnabled: false,
+      autoSyncEnabled: false,
+      localFingerprint: '',
+      connectedPeers: [],
+    });
+
+    await useSyncStore.getState().loadStatus();
+
+    expect(mockInvoke).toHaveBeenCalledWith('sync_get_status');
+    expect(useSyncStore.getState()).toMatchObject({
+      syncEnabled: false,
+      listenAddr: '',
+      discoveredDevices: [],
+      isDiscoveringDevices: false,
+    });
+  });
+});
