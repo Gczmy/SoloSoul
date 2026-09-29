@@ -123,6 +123,7 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const deleteInFlightRef = useRef(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
 
@@ -243,11 +244,13 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   };
 
   const handleDelete = async () => {
+    if (deleteInFlightRef.current) return;
     if (onDelete) {
       onDelete();
       return;
     }
     if (!obj) return;
+    deleteInFlightRef.current = true;
     setDeleting(true);
     try {
       await useObjectStore.getState().deleteObject(obj.id);
@@ -265,8 +268,13 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
       });
       logger.warn('[ObjectDetail] Delete object failed:', err);
     } finally {
+      deleteInFlightRef.current = false;
       setDeleting(false);
     }
+  };
+
+  const cancelDelete = () => {
+    if (!deleteInFlightRef.current) setConfirmDelete(false);
   };
 
   const detailTpl = obj?.templateId ? templates.find((t) => t.id === obj.templateId) : undefined;
@@ -325,6 +333,7 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
     setConfirmDelete,
     deleting,
     handleDelete,
+    cancelDelete,
     // 历史/附件开关
     showHistory,
     setShowHistory,

@@ -67,6 +67,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
     setConfirmDelete,
     deleting,
     handleDelete,
+    cancelDelete,
     // 历史/附件开关
     showHistory,
     setShowHistory,
@@ -92,7 +93,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
     innerOpen: showHistory || showAttachments || confirmDelete || showPwDialog,
     onCloseInner: () => {
       if (showPwDialog) handlePwDialogClose();
-      else if (confirmDelete) setConfirmDelete(false);
+      else if (confirmDelete) cancelDelete();
       else if (showAttachments) setShowAttachments(false);
       else setShowHistory(false);
     },
@@ -209,7 +210,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
         objectName={obj?.name ?? ''}
         deleting={deleting}
         t={t}
-        onCancel={() => setConfirmDelete(false)}
+        onCancel={cancelDelete}
         onConfirm={handleDelete}
       />
 

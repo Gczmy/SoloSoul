@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { ObjectDetailModal } from './ObjectDetailModal';
 import type { ObjectData } from '@/stores/objectStore';
 
 const authMock = vi.hoisted(() => ({ accountId: 'acc-1' as string | null }));
+const objectStoreMock = vi.hoisted(() => ({ deleteObject: vi.fn() }));
 
 // ── 依赖 mock ────────────────────────────────────────────────────────────
 // P020 二次复核：modal 不再经全局 getObject action（会置 isLoading 闪列表），
@@ -43,7 +44,7 @@ vi.mock('@/stores/settingsStore', () => ({
 vi.mock('@/stores/objectStore', () => ({
   useObjectStore: {
     getState: () => ({
-      deleteObject: vi.fn().mockResolvedValue(undefined),
+      deleteObject: objectStoreMock.deleteObject,
       currentObjectCache: {},
     }),
     // P020 二次复核：直接 invoke 成功后写缓存（不置 isLoading）；测试中 invoke 返回
@@ -77,6 +78,45 @@ describe('ObjectDetailModal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     authMock.accountId = 'acc-1';
+    objectStoreMock.deleteObject.mockResolvedValue(undefined);
+  });
+
+  it('RF-1021 删除提交期间 Escape 和遮罩不关闭确认框', async () => {
+    let finishDelete!: () => void;
+    const pendingDelete = new Promise<void>((resolve) => {
+      finishDelete = resolve;
+    });
+    objectStoreMock.deleteObject.mockReturnValue(pendingDelete);
+    const onClose = vi.fn();
+    render(
+      <BrowserRouter>
+        <ObjectDetailModal object={sampleObj} onClose={onClose} />
+      </BrowserRouter>,
+    );
+
+    fireEvent.click(screen.getByText('common:delete'));
+    const confirmDialog = screen
+      .getByText('common:object_delete_confirm_title')
+      .closest('[role="dialog"]');
+    expect(confirmDialog).not.toBeNull();
+    fireEvent.click(
+      within(confirmDialog as HTMLElement).getByRole('button', { name: 'common:delete' }),
+    );
+    expect(objectStoreMock.deleteObject).toHaveBeenCalledOnce();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.getByText('common:object_delete_confirm_title')).toBeInTheDocument();
+    const backdrop = confirmDialog?.parentElement?.querySelector('[data-macos-glass-backdrop]');
+    expect(backdrop).not.toBeNull();
+    fireEvent.click(backdrop as Element);
+    expect(screen.getByText('common:object_delete_confirm_title')).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+
+    await act(async () => {
+      finishDelete();
+      await pendingDelete;
+    });
+    expect(onClose).toHaveBeenCalledOnce();
   });
 
   it('RF-1019 切换账户后不继续显示前一账户传入的完整对象', () => {
