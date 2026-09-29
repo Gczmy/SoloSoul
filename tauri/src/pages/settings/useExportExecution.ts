@@ -48,6 +48,7 @@ export function useExportExecution({
   const [exportHint, setExportHint] = useState('');
   const [savePath, setSavePath] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const exportInFlight = useRef(false);
   const [showHintWarning, setShowHintWarning] = useState(false);
   const skipHintCheckRef = useRef(false);
   const [showWeakPasswordWarning, setShowWeakPasswordWarning] = useState(false);
@@ -64,7 +65,7 @@ export function useExportExecution({
 
   // Export handler
   const handleExport = async () => {
-    if (totalSelected === 0 || !exportPassword || !savePath) return;
+    if (exportInFlight.current || totalSelected === 0 || !exportPassword || !savePath) return;
 
     if (exportPassword !== exportPasswordConfirm) {
       onError(new Error(t('settings:password_mismatch')), '');
@@ -94,6 +95,7 @@ export function useExportExecution({
       return;
     }
 
+    exportInFlight.current = true;
     setIsExporting(true);
     let stagedExportPath: string | null = null;
     try {
@@ -133,9 +135,7 @@ export function useExportExecution({
       setExportPassword('');
       setExportPasswordConfirm('');
       // B-04：导出目标位于云盘同步目录时，提示等待云盘客户端完成上传
-      const cloudTargetName = cloudTargets.find((ct) =>
-        targetSavePath.startsWith(ct.path),
-      )?.name;
+      const cloudTargetName = cloudTargets.find((ct) => targetSavePath.startsWith(ct.path))?.name;
       onSuccess(
         cloudTargetName
           ? t('settings:export_success_cloud', { cloud: cloudTargetName })
@@ -147,6 +147,7 @@ export function useExportExecution({
       if (stagedExportPath) {
         await cleanupStagedFile(stagedExportPath);
       }
+      exportInFlight.current = false;
       setIsExporting(false);
     }
   };
