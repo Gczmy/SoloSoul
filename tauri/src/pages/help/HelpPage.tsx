@@ -41,9 +41,12 @@ export function HelpPage() {
       ? loadedContent.data
       : null;
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<{ title: string; message: string; isTimeout: boolean } | null>(
-    null,
-  );
+  const [error, setError] = useState<{
+    source: 'index' | 'content';
+    title: string;
+    message: string;
+    isTimeout: boolean;
+  } | null>(null);
 
   const formatIndexError = (e: unknown) => {
     const msg = e instanceof Error ? e.message : String(e);
@@ -53,6 +56,7 @@ export function HelpPage() {
 
     if (isTimeout || isNoCommand) {
       return {
+        source: 'index' as const,
         title: 'Tauri 后端未响应',
         message:
           '帮助文档需要本地 Tauri 后端支持。可能的解决方式：\n' +
@@ -66,6 +70,7 @@ export function HelpPage() {
     }
 
     return {
+      source: 'index' as const,
       title: '无法加载帮助索引',
       message: msg,
       isTimeout: false,
@@ -92,6 +97,7 @@ export function HelpPage() {
       const controller = new AbortController();
       abortContentRef.current = controller;
       setLoadedContent(null);
+      setError(null);
       if (!id) {
         return;
       }
@@ -106,7 +112,12 @@ export function HelpPage() {
         .catch((e) => {
           if (!controller.signal.aborted) {
             const msg = e instanceof Error ? e.message : String(e);
-            setError({ title: '无法加载文档内容', message: msg, isTimeout: false });
+            setError({
+              source: 'content',
+              title: '无法加载文档内容',
+              message: msg,
+              isTimeout: false,
+            });
           }
         })
         .finally(() => {
@@ -172,7 +183,7 @@ export function HelpPage() {
             <div style={{ fontWeight: 600, marginBottom: 8 }}>{error.title}</div>
             <div style={{ whiteSpace: 'pre-line', lineHeight: 1.6 }}>{error.message}</div>
             <button
-              onClick={loadIndex}
+              onClick={() => (error.source === 'content' ? loadContent(guideId) : loadIndex())}
               style={{
                 marginTop: 12,
                 display: 'inline-flex',
