@@ -90,14 +90,21 @@ export function useAttachmentPreview({ item }: UseAttachmentPreviewParams) {
       return;
     }
 
+    // IPC 不能取消；附件切换或卸载后，旧读取结果不得写入当前预览。
+    let active = true;
     if (kind === 'image') {
       invoke<string>('fs_read_file_as_data_url', { path: filePath })
         .then((url) => {
+          if (!active) return;
           // P017：图片走 data URL（img-src data: 放行），保留代码层守卫
           setPreviewUrl(url);
         })
-        .catch(() => setError(true))
-        .finally(() => setLoading(false));
+        .catch(() => {
+          if (active) setError(true);
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
     } else if (kind === 'pdf') {
       if (isWindowsSync()) {
         // Windows（WebView2/PDFium）：无法渲染 data:/blob: URL 的 embed，且 10 MiB
@@ -110,6 +117,7 @@ export function useAttachmentPreview({ item }: UseAttachmentPreviewParams) {
         //（自定义协议形态在 WebKit 的渲染支持不确定，不做回归风险）。
         invoke<string>('fs_read_file_as_data_url', { path: filePath })
           .then((url) => {
+            if (!active) return;
             // P017 守卫——仅 application/pdf data URL 允许进入 <embed>
             if (!url.startsWith('data:application/pdf')) {
               setError(true);
@@ -117,18 +125,31 @@ export function useAttachmentPreview({ item }: UseAttachmentPreviewParams) {
             }
             setPreviewUrl(url);
           })
-          .catch(() => setError(true))
-          .finally(() => setLoading(false));
+          .catch(() => {
+            if (active) setError(true);
+          })
+          .finally(() => {
+            if (active) setLoading(false);
+          });
       }
     } else if (kind === 'text') {
       invoke<string>('fs_read_file_as_text', { path: filePath })
-        .then(setTextContent)
-        .catch(() => setError(true))
-        .finally(() => setLoading(false));
+        .then((content) => {
+          if (active) setTextContent(content);
+        })
+        .catch(() => {
+          if (active) setError(true);
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
     } else {
       // 'other' files are not loaded automatically.
       setLoading(false);
     }
+    return () => {
+      active = false;
+    };
   }, [item]);
 
   // Calculate an initial scale that fits the image inside the viewport.

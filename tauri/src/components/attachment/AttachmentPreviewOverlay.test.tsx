@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { invoke } from '@tauri-apps/api/core';
 import { AttachmentPreviewOverlay } from './AttachmentPreviewOverlay';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
@@ -28,6 +28,16 @@ function makeItem(overrides: Partial<AttachmentItem> = {}): AttachmentItem {
   };
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason: Error) => void;
+  const promise = new Promise<T>((yes, no) => {
+    resolve = yes;
+    reject = no;
+  });
+  return { promise, resolve, reject };
+}
+
 describe('AttachmentPreviewOverlay', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
@@ -50,6 +60,147 @@ describe('AttachmentPreviewOverlay', () => {
         path: '/vault/attachments/obj-1/att-1/test.png',
       });
     });
+  });
+
+  it('切换附件后忽略旧图片读取的迟到结果', async () => {
+    const oldRead = deferred<string>();
+    const newRead = deferred<string>();
+    mockInvoke.mockImplementation((command, args) => {
+      if (command === 'set_status_bar_style') return Promise.resolve();
+      if (command !== 'fs_read_file_as_data_url') throw new Error('Unexpected IPC: ' + command);
+      return (args as { path: string }).path.includes('/att-1/')
+        ? oldRead.promise
+        : newRead.promise;
+    });
+    const newer = makeItem({
+      id: 'att-2',
+      fileName: 'new.png',
+      vaultPath: '/vault/attachments/obj-1/att-2/new.png',
+    });
+    const onClose = vi.fn();
+    const { rerender } = render(<AttachmentPreviewOverlay item={makeItem()} onClose={onClose} />);
+    rerender(<AttachmentPreviewOverlay item={newer} onClose={onClose} />);
+
+    await act(async () => {
+      newRead.resolve('data:image/png;base64,new');
+      await newRead.promise;
+    });
+    expect(screen.getByRole('img', { name: 'new.png' })).toHaveAttribute(
+      'src',
+      'data:image/png;base64,new',
+    );
+
+    await act(async () => {
+      oldRead.resolve('data:image/png;base64,old');
+      await oldRead.promise;
+    });
+    expect(screen.getByRole('img', { name: 'new.png' })).toHaveAttribute(
+      'src',
+      'data:image/png;base64,new',
+    );
+  });
+
+  it('旧附件读取失败不覆盖新附件的加载状态', async () => {
+    const oldRead = deferred<string>();
+    const newRead = deferred<string>();
+    mockInvoke.mockImplementation((command, args) => {
+      if (command === 'set_status_bar_style') return Promise.resolve();
+      if (command !== 'fs_read_file_as_data_url') throw new Error('Unexpected IPC: ' + command);
+      return (args as { path: string }).path.includes('/att-1/')
+        ? oldRead.promise
+        : newRead.promise;
+    });
+    const newer = makeItem({
+      id: 'att-2',
+      fileName: 'new.png',
+      vaultPath: '/vault/attachments/obj-1/att-2/new.png',
+    });
+    const onClose = vi.fn();
+    const { rerender } = render(<AttachmentPreviewOverlay item={makeItem()} onClose={onClose} />);
+    rerender(<AttachmentPreviewOverlay item={newer} onClose={onClose} />);
+
+    await act(async () => {
+      oldRead.reject(new Error('old file failed'));
+      await oldRead.promise.catch(() => undefined);
+    });
+    expect(screen.queryByText(/common:attachment_preview_failed/i)).not.toBeInTheDocument();
+
+    await act(async () => {
+      newRead.resolve('data:image/png;base64,new');
+      await newRead.promise;
+    });
+    expect(screen.getByRole('img', { name: 'new.png' })).toHaveAttribute(
+      'src',
+      'data:image/png;base64,new',
+    );
+  });
+
+  it('切换文本附件后忽略旧文本内容', async () => {
+    const oldRead = deferred<string>();
+    const newRead = deferred<string>();
+    mockInvoke.mockImplementation((command, args) => {
+      if (command === 'set_status_bar_style') return Promise.resolve();
+      if (command !== 'fs_read_file_as_text') throw new Error('Unexpected IPC: ' + command);
+      return (args as { path: string }).path.includes('/att-1/')
+        ? oldRead.promise
+        : newRead.promise;
+    });
+    const first = makeItem({ fileName: 'old.txt', mimeType: 'text/plain' });
+    const newer = makeItem({
+      id: 'att-2',
+      fileName: 'new.txt',
+      mimeType: 'text/plain',
+      vaultPath: '/vault/attachments/obj-1/att-2/new.txt',
+    });
+    const onClose = vi.fn();
+    const { rerender } = render(<AttachmentPreviewOverlay item={first} onClose={onClose} />);
+    rerender(<AttachmentPreviewOverlay item={newer} onClose={onClose} />);
+
+    await act(async () => {
+      newRead.resolve('new content');
+      await newRead.promise;
+    });
+    expect(screen.getByText('new content')).toBeInTheDocument();
+    await act(async () => {
+      oldRead.resolve('old content');
+      await oldRead.promise;
+    });
+    expect(screen.getByText('new content')).toBeInTheDocument();
+    expect(screen.queryByText('old content')).not.toBeInTheDocument();
+  });
+
+  it('旧 PDF 的无效读取结果不遮盖新 PDF', async () => {
+    const oldRead = deferred<string>();
+    const newRead = deferred<string>();
+    mockInvoke.mockImplementation((command, args) => {
+      if (command === 'set_status_bar_style') return Promise.resolve();
+      if (command !== 'fs_read_file_as_data_url') throw new Error('Unexpected IPC: ' + command);
+      return (args as { path: string }).path.includes('/att-1/')
+        ? oldRead.promise
+        : newRead.promise;
+    });
+    const first = makeItem({ fileName: 'old.pdf', mimeType: 'application/pdf' });
+    const newer = makeItem({
+      id: 'att-2',
+      fileName: 'new.pdf',
+      mimeType: 'application/pdf',
+      vaultPath: '/vault/attachments/obj-1/att-2/new.pdf',
+    });
+    const onClose = vi.fn();
+    const { rerender } = render(<AttachmentPreviewOverlay item={first} onClose={onClose} />);
+    rerender(<AttachmentPreviewOverlay item={newer} onClose={onClose} />);
+
+    await act(async () => {
+      newRead.resolve('data:application/pdf;base64,new');
+      await newRead.promise;
+    });
+    expect(screen.getByTitle('new.pdf')).toHaveAttribute('src', 'data:application/pdf;base64,new');
+    await act(async () => {
+      oldRead.resolve('data:text/html;base64,old');
+      await oldRead.promise;
+    });
+    expect(screen.getByTitle('new.pdf')).toHaveAttribute('src', 'data:application/pdf;base64,new');
+    expect(screen.queryByText(/common:attachment_preview_failed/i)).not.toBeInTheDocument();
   });
 
   // W-PDF：Windows（WebView2/PDFium）无法渲染 data:/blob: URL 的 embed，且
