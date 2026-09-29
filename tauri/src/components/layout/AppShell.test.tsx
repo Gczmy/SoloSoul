@@ -1,9 +1,19 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, fireEvent, act, screen } from '@testing-library/react';
+import { render, fireEvent, act, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route, Link } from 'react-router-dom';
 import { AppShell } from './AppShell';
 import { ShellNotificationsProvider } from './ShellNotifications';
 import { resizeObserverInstances } from '@/test/setup';
+import { useUiStore } from '@/stores/uiStore';
+
+const syncStub = vi.hoisted(() => ({
+  incomingPairingRequest: null as { id: string; fingerprint: string } | null,
+  initPairingRequestListener: async () => () => {},
+  initSyncCompletedListener: async () => () => {},
+  trustPeer: vi.fn(),
+  loadStatus: vi.fn(),
+  clearIncomingPairingRequest: vi.fn(),
+}));
 
 vi.mock('@/hooks/useIsNarrowViewport', () => ({
   useIsNarrowViewport: () => false,
@@ -15,15 +25,10 @@ vi.mock('@/stores/settingsStore', () => ({
 }));
 
 vi.mock('@/stores/syncStore', () => {
-  const stubState = {
-    incomingPairingRequest: null,
-    initPairingRequestListener: async () => () => {},
-    initSyncCompletedListener: async () => () => {},
-  };
-  const hook = (selector: (s: unknown) => unknown) => selector(stubState);
+  const hook = (selector: (s: unknown) => unknown) => selector(syncStub);
   return {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    useSyncStore: Object.assign(hook, { getState: () => stubState }) as any,
+    useSyncStore: Object.assign(hook, { getState: () => syncStub }) as any,
   };
 });
 
@@ -40,7 +45,8 @@ vi.mock('./AppBar', () => ({
   AppBar: () => <div data-testid="app-bar" />,
 }));
 vi.mock('@/components/sync/PairingDialog', () => ({
-  PairingDialog: () => null,
+  PairingDialog: ({ isOpen, onTrust }: { isOpen: boolean; onTrust: () => void }) =>
+    isOpen ? <button onClick={onTrust}>Trust incoming peer</button> : null,
 }));
 
 // 页面 A 渲染一个可滚动容器，模拟「在页面中部」的场景
@@ -54,7 +60,33 @@ function TallPageA() {
 }
 
 describe('AppShell 路由导航后内容区滚动重置', () => {
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    syncStub.incomingPairingRequest = null;
+    syncStub.trustPeer.mockReset();
+    syncStub.loadStatus.mockReset();
+    syncStub.clearIncomingPairingRequest.mockReset();
+    useUiStore.setState({ toasts: [] });
+  });
+
+  it('入站配对信任失败时保留对话框并提示错误', async () => {
+    syncStub.incomingPairingRequest = { id: 'peer-1', fingerprint: 'aabbccdd' };
+    syncStub.trustPeer.mockRejectedValueOnce(new Error('trust denied'));
+    render(
+      <MemoryRouter>
+        <AppShell title="首页">内容</AppShell>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Trust incoming peer' }));
+    await waitFor(() =>
+      expect(
+        useUiStore.getState().toasts.some((toast) => toast.message.includes('trust denied')),
+      ).toBe(true),
+    );
+    expect(syncStub.clearIncomingPairingRequest).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Trust incoming peer' })).toBeInTheDocument();
+  });
 
   it('通知按正常顺序插入，不重建正文或重置输入、焦点和滚动位置', () => {
     const layout = (notifications: React.ReactNode) => (
@@ -97,9 +129,9 @@ describe('AppShell 路由导航后内容区滚动重置', () => {
       </MemoryRouter>,
     );
     const content = document.querySelector('[data-shell-content]');
-    const observer = [...resizeObserverInstances].reverse().find((instance) =>
-      instance.observe.mock.calls.some(([node]) => node === content),
-    )!;
+    const observer = [...resizeObserverInstances]
+      .reverse()
+      .find((instance) => instance.observe.mock.calls.some(([node]) => node === content))!;
     const root = document.documentElement;
     expect(root.style.getPropertyValue('--shell-content-top')).toBe('48px');
     const chrome = root.style.getPropertyValue('--shell-chrome-bottom');

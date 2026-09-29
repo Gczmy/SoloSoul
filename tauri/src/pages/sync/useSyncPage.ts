@@ -222,8 +222,12 @@ export function useSyncPage() {
     const peer = pairTarget || pendingPeer;
     if (!peer) return;
     // P103: 配对确认时绑定握手认证指纹（peer.fingerprint 来自握手认证值）
-    await store.trustPeer(peer.id, true, peer.fingerprint || undefined);
-    setPairTarget(null);
+    try {
+      await store.trustPeer(peer.id, true, peer.fingerprint || undefined);
+      setPairTarget(null);
+    } catch {
+      // Store 已显示错误；保留确认目标，供用户重试。
+    }
   };
 
   const handleIgnorePending = () => {
@@ -244,7 +248,12 @@ export function useSyncPage() {
       return;
     }
     // P103: A 侧配对确认时绑定握手认证指纹（pairingPendingPeer 来自连接记录/握手认证值）
-    await s.trustPeer(s.pairingPendingPeerId, true, pairingPendingPeer?.fingerprint || undefined);
+    try {
+      await s.trustPeer(s.pairingPendingPeerId, true, pairingPendingPeer?.fingerprint || undefined);
+    } catch {
+      // 信任未完成时不能进入等待对端的重试循环。
+      return;
+    }
     setPairWaitState('waiting');
 
     const addr = s.pairingPendingAddr || pairingPendingPeer?.addr || '';
@@ -310,8 +319,12 @@ export function useSyncPage() {
 
   const handleForgetConfirm = async () => {
     if (!forgetTarget) return;
-    await store.forgetPeer(forgetTarget.id);
-    setForgetTarget(null);
+    try {
+      await store.forgetPeer(forgetTarget.id);
+      setForgetTarget(null);
+    } catch {
+      // Store 已显示错误；保留二次确认目标，供用户重试。
+    }
   };
 
   const handleForgetCancel = () => {

@@ -1,5 +1,6 @@
 import { useAndroidGlassSurface } from '@/hooks/useAndroidGlass';
 import { useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import { trackAsyncListener } from '@/lib/asyncListener';
 import { useLocation } from 'react-router-dom';
 import styles from './AppShell.module.css';
@@ -14,6 +15,7 @@ import { useSyncStore } from '@/stores/syncStore';
 import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 import { useNativeWindowStore } from '@/stores/nativeWindowStore';
 import { isAndroidSync } from '@/lib/platform';
+import { useToastError } from '@/hooks/useToastError';
 import { AndroidNavigation } from '@/components/android/AndroidNavigation';
 import { ShellNotificationSlot } from './ShellNotifications';
 
@@ -28,6 +30,8 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, title, actions, primaryActions, onBack }: AppShellProps) {
+  const { t } = useTranslation('settings');
+  const { onError } = useToastError();
   const isAndroid = isAndroidSync();
   const isNarrowViewport = useIsNarrowViewport();
   const titlebarHeight = useNativeWindowStore((s) => s.titlebarHeight);
@@ -168,15 +172,17 @@ export function AppShell({ children, title, actions, primaryActions, onBack }: A
 
   const handleIncomingTrust = async () => {
     const s = useSyncStore.getState();
-    if (!s.incomingPairingRequest) return;
+    const peer = s.incomingPairingRequest;
+    if (!peer) return;
     // P103: 入站配对确认时绑定握手认证指纹（B 侧配对请求来自握手认证值）
-    await s.trustPeer(
-      s.incomingPairingRequest.id,
-      true,
-      s.incomingPairingRequest.fingerprint || undefined,
-    );
-    await s.loadStatus();
-    s.clearIncomingPairingRequest();
+    try {
+      await s.trustPeer(peer.id, true, peer.fingerprint || undefined);
+      await s.loadStatus();
+      s.clearIncomingPairingRequest();
+    } catch (error) {
+      if (useSyncStore.getState().incomingPairingRequest?.id === peer.id)
+        onError(error, t('sync_pairing_title'));
+    }
   };
 
   const handleIncomingIgnore = () => {

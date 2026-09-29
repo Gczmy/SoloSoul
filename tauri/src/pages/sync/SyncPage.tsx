@@ -162,7 +162,11 @@ export function SyncPage() {
           onManualAddrChange={setManualAddr}
           onDiscover={handleDiscover}
           onSyncWithDevice={handleSyncWithDevice}
-          onTrustPeer={(id) => store.trustPeer(id, false)}
+          onTrustPeer={(id) => {
+            void store.trustPeer(id, false).catch(() => {
+              // Store 错误横幅反馈失败；事件回调不能留下未处理的 Promise。
+            });
+          }}
           onOpenPairTarget={handleOpenPairTarget}
           onForgetRequest={handleForgetRequest}
           onForgetConfirm={handleForgetConfirm}

@@ -909,6 +909,110 @@ describe('syncStore encrypted device names', () => {
   });
 });
 
+describe('syncStore peer mutation feedback', () => {
+  beforeEach(() => {
+    mockInvoke.mockReset();
+    useSyncStore.setState({
+      isLoading: false,
+      error: null,
+      connectedPeers: [
+        {
+          id: 'peer-1',
+          name: 'Old Mac',
+          addr: '192.0.2.1:42069',
+          fingerprint: 'aabbccdd',
+          trusted: false,
+          lastSeen: '',
+        },
+      ],
+    });
+  });
+
+  it('信任失败向调用方传播错误并保留设备', async () => {
+    const failure = new Error('trust denied');
+    mockInvoke.mockRejectedValueOnce(failure);
+
+    await expect(useSyncStore.getState().trustPeer('peer-1', true, 'aabbccdd')).rejects.toBe(
+      failure,
+    );
+    expect(mockInvoke).toHaveBeenCalledWith('sync_trust_peer', {
+      peerNodeId: 'peer-1',
+      trusted: true,
+      fingerprint: 'aabbccdd',
+    });
+    expect(useSyncStore.getState().connectedPeers[0].trusted).toBe(false);
+    expect(useSyncStore.getState().error).toContain('trust denied');
+    expect(useSyncStore.getState().isLoading).toBe(false);
+  });
+
+  it('信任成功后按后端状态刷新受信任设备', async () => {
+    const trustedPeer = { ...useSyncStore.getState().connectedPeers[0], trusted: true };
+    mockInvoke.mockResolvedValueOnce(undefined).mockResolvedValueOnce({
+      isDiscovering: false,
+      syncEnabled: true,
+      autoSyncEnabled: false,
+      localFingerprint: '',
+      connectedPeers: [trustedPeer],
+    });
+
+    await useSyncStore.getState().trustPeer('peer-1', true, 'aabbccdd');
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'sync_trust_peer', {
+      peerNodeId: 'peer-1',
+      trusted: true,
+      fingerprint: 'aabbccdd',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'sync_get_status');
+    expect(useSyncStore.getState().connectedPeers[0].trusted).toBe(true);
+    expect(useSyncStore.getState().isLoading).toBe(false);
+  });
+
+  it('忘记失败向调用方传播错误并保留设备', async () => {
+    const failure = new Error('forget denied');
+    mockInvoke.mockRejectedValueOnce(failure);
+
+    await expect(useSyncStore.getState().forgetPeer('peer-1')).rejects.toBe(failure);
+    expect(mockInvoke).toHaveBeenCalledWith('sync_forget_peer', { peerNodeId: 'peer-1' });
+    expect(useSyncStore.getState().connectedPeers[0].id).toBe('peer-1');
+    expect(useSyncStore.getState().error).toContain('forget denied');
+    expect(useSyncStore.getState().isLoading).toBe(false);
+  });
+
+  it('忘记成功后按后端状态移除设备', async () => {
+    mockInvoke.mockResolvedValueOnce(undefined).mockResolvedValueOnce({
+      isDiscovering: false,
+      syncEnabled: true,
+      autoSyncEnabled: false,
+      localFingerprint: '',
+      connectedPeers: [],
+    });
+
+    await useSyncStore.getState().forgetPeer('peer-1');
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'sync_forget_peer', {
+      peerNodeId: 'peer-1',
+    });
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'sync_get_status');
+    expect(useSyncStore.getState().connectedPeers).toEqual([]);
+    expect(useSyncStore.getState().isLoading).toBe(false);
+  });
+
+  it('锁定后迟到的信任结果不能被当作成功', async () => {
+    let finishTrust!: () => void;
+    mockInvoke.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishTrust = resolve;
+        }),
+    );
+    const pending = useSyncStore.getState().trustPeer('peer-1', true, 'aabbccdd');
+    const rejection = expect(pending).rejects.toThrow('expired session');
+    useSyncStore.getState().clearOnVaultLock();
+    finishTrust();
+    await rejection;
+    expect(useSyncStore.getState().connectedPeers).toEqual([]);
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('syncStore listen address after disabling sync', () => {
   beforeEach(() => {
     mockInvoke.mockReset();

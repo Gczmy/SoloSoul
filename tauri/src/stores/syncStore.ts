@@ -457,8 +457,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         request.assertCurrent();
         setCurrent({ isLoading: false });
       } catch (err) {
-        if (!request.isCurrent()) return;
-        setCurrent({ isLoading: false, error: String(err) });
+        if (request.isCurrent()) setCurrent({ isLoading: false, error: String(err) });
+        throw err;
       }
     },
 
@@ -473,8 +473,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         request.assertCurrent();
         setCurrent({ isLoading: false });
       } catch (err) {
-        if (!request.isCurrent()) return;
-        setCurrent({ isLoading: false, error: String(err) });
+        if (request.isCurrent()) setCurrent({ isLoading: false, error: String(err) });
+        throw err;
       }
     },
 
