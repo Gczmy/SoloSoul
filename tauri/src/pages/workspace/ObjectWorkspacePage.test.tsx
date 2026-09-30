@@ -37,15 +37,27 @@ vi.mock('@/components/object/ObjectDetailModal', () => ({
     object,
     onClose,
     onEdit,
+    onDelete,
+    onSyncTemplate,
+    onDismissSync,
+    onViewDeprecatedFields,
   }: {
     object: { id: string; name: string };
     onClose: () => void;
     onEdit: () => void;
+    onDelete: () => void;
+    onSyncTemplate: () => void;
+    onDismissSync: () => void;
+    onViewDeprecatedFields: () => void;
   }) => (
     <div role="dialog" aria-label="object detail" data-object-id={object.id}>
       <span>{object.name}</span>
       <button onClick={onEdit}>Edit detail</button>
       <button onClick={onClose}>Close detail</button>
+      <button onClick={onDelete}>Delete detail</button>
+      <button onClick={onSyncTemplate}>Sync detail template</button>
+      <button onClick={onDismissSync}>Dismiss detail sync</button>
+      <button onClick={onViewDeprecatedFields}>View deprecated fields</button>
     </div>
   ),
 }));
@@ -302,6 +314,80 @@ describe('ObjectWorkspacePage card field display', () => {
     fireEvent.click(within(detail).getByRole('button', { name: 'Edit detail' }));
     expect(navigate).toHaveBeenLastCalledWith('/editor/obj1');
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('详情关闭与移入回收站针对当前对象，取消不删除且确认后仅删除当前对象', async () => {
+    render(
+      <MemoryRouter>
+        <ObjectWorkspacePage />
+      </MemoryRouter>,
+    );
+    const card = await screen.findByTestId('workspace-object-card');
+    fireEvent.click(within(card).getAllByText('张三')[0]);
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'object detail' })).getByText('Close detail'),
+    );
+    expect(screen.queryByRole('dialog', { name: 'object detail' })).not.toBeInTheDocument();
+
+    fireEvent.click(within(card).getAllByText('张三')[0]);
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'object detail' })).getByText('Delete detail'),
+    );
+    expect(screen.queryByRole('dialog', { name: 'object detail' })).not.toBeInTheDocument();
+    const confirmation = screen.getByRole('dialog');
+    expect(within(confirmation).getByRole('button', { name: 'delete' })).toBeInTheDocument();
+    fireEvent.click(within(confirmation).getByRole('button', { name: 'cancel' }));
+    expect(invoke).not.toHaveBeenCalledWith('object_delete', expect.anything());
+
+    fireEvent.click(within(card).getAllByText('张三')[0]);
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'object detail' })).getByText('Delete detail'),
+    );
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'delete' }));
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith('object_delete', { objectId: 'obj1' }));
+  });
+
+  it('详情模板同步、暂不应用和废弃字段操作使用当前对象', async () => {
+    const defaultInvoke = vi.mocked(invoke).getMockImplementation()!;
+    vi.mocked(invoke).mockImplementation((command, args) => {
+      if (command === 'object_sync_with_template')
+        return Promise.resolve({
+          hasChanges: true,
+          templateHash: 'abc123',
+          fieldsAdded: [],
+          fieldsDeprecated: [],
+          fieldsUpdated: [],
+          fieldsIncompatible: [],
+        });
+      if (command === 'object_list_deprecated_fields') return Promise.resolve([]);
+      return defaultInvoke(command, args);
+    });
+    render(
+      <MemoryRouter>
+        <ObjectWorkspacePage />
+      </MemoryRouter>,
+    );
+    const card = await screen.findByTestId('workspace-object-card');
+    fireEvent.click(within(card).getAllByText('张三')[0]);
+    const detail = screen.getByRole('dialog', { name: 'object detail' });
+
+    fireEvent.click(within(detail).getByText('Sync detail template'));
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith('object_sync_with_template', {
+        objectId: 'obj1',
+        dryRun: true,
+      }),
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'common:cancel' }));
+
+    fireEvent.click(within(detail).getByText('Dismiss detail sync'));
+    expect(screen.getByText('editor:template_sync_dismiss_title')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'common:cancel' }));
+
+    fireEvent.click(within(detail).getByText('View deprecated fields'));
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith('object_list_deprecated_fields', { objectId: 'obj1' }),
+    );
   });
 
   it('对象删除失败时保留确认框并允许重试', async () => {
