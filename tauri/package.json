@@ -17,6 +17,7 @@
     "tauri:ios:build:sim": "tauri ios build --target aarch64-apple-ios-sim",
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage --maxWorkers 2 --testTimeout 15000",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:production": "playwright test --config playwright.production.config.ts",
