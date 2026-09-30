@@ -1,0 +1,192 @@
+{
+  "task": "RF-1064",
+  "date": "2026-09-30",
+  "before": {
+    "task": "RF-1064",
+    "baseline": "58d7bd1a1170458b35b19bee8011f1f56e4232b8",
+    "proposal": {
+      "task": "CLI backup unreadable-profile regression removes external sqlite3 executable dependency",
+      "status": "TEMP-only proposed; not applied, compiled, formatted or run",
+      "repository": "C:\\Users\\40299571\\SoloSoul",
+      "baselineHead": "46a58de2d7e5eaa481f24bf58a32c37b1f69ad88",
+      "scope": [
+        "solosoul_cli/src/commands/backup.rs"
+      ],
+      "productionChanges": [],
+      "dependencyChanges": [],
+      "originals": [
+        {
+          "path": "solosoul_cli/src/commands/backup.rs",
+          "bytes": 27743,
+          "sha256": "DC3AE36B533FB09A72C8CC75D5F5D26F3A3D08FACFAC0B32A695552B5BC37CAF"
+        },
+        {
+          "path": "solosoul_cli/Cargo.toml",
+          "bytes": 2216,
+          "sha256": "BD732F6B7F039EFC1F4F2FC58AC4B63DBF5E103B5DC5B1E9770C36008CA35A96"
+        },
+        {
+          "path": "solosoul_cli/Cargo.lock",
+          "bytes": 168477,
+          "sha256": "22471A02BC24517DBF100732902287E5908A520C5C0E747B62F83D10CB30B71D"
+        },
+        {
+          "path": "tauri/crates/solosoul-vault/src/encryption.rs",
+          "bytes": 6236,
+          "sha256": "4E211757E61ED13E2434B5970E8C996C90FB2A3CF4AEDCC30BE798A0777C8314"
+        },
+        {
+          "path": "tauri/crates/solosoul-vault/src/storage/profile.rs",
+          "bytes": 13811,
+          "sha256": "45093E2D629A4F12004C1A0F920D60919181592A01F60A32E612FC8431097A89"
+        }
+      ],
+      "candidate": {
+        "path": "solosoul_cli/src/commands/backup.rs",
+        "bytes": 27749,
+        "sha256": "A9BF33C9F2A3B1087CEA804C0275AC2052195A634169843C2D0F081D52C6B373"
+      },
+      "patch": {
+        "path": "cli-backup-rusqlite-proposed.patch",
+        "bytes": 1449,
+        "sha256": "BCC04A7FC596BD8082C04C4C2EF067A625284C7946EB0CC7A769ECA0F04F73B4"
+      },
+      "existingDependency": {
+        "kind": "dev-dependency",
+        "name": "rusqlite",
+        "manifestVersion": "0.32.1",
+        "lockedVersion": "0.32.1",
+        "lockWorkingTreeAlreadyModified": true
+      },
+      "test": "commands::backup::tests::test_backup_create_aborts_on_unreadable_profile",
+      "corruptBytesHex": "534F4C4FDEADBEEF",
+      "equivalence": [
+        "Real account-specific vault.db after VaultService.lock closes its connection",
+        "Same SQL UPDATE and exact BLOB bytes; profile id is bound rather than SQL interpolated",
+        "SQLite UPDATE committed in autocommit; separate connection drops before unlock_secure",
+        "Original real unlock, backup command error and no-output-file assertions unchanged"
+      ],
+      "extraAssertion": "UPDATE changes exactly one row to prove the corruption reached the intended profile",
+      "checks": {
+        "cargo": false,
+        "format": false,
+        "build": false,
+        "tests": false,
+        "repositoryWrites": false,
+        "rf1063Touched": false
+      }
+    },
+    "initialFailureLog": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\cli-full-eighth.log",
+    "appliedRawSha256": "124a78d819ccb011e02ec9521a52af4432f47826333f6d0e49e4d0abed5e81c3",
+    "appliedNormalizedSha256": "a9bf33c9f2a3b1087cea804c0275ac2052195a634169843c2d0f081d52c6b373",
+    "patchApplicationNote": "git apply 按 autocrlf 写入，候选与应用后的归一化字节一致。"
+  },
+  "sourceSha256": "124a78d819ccb011e02ec9521a52af4432f47826333f6d0e49e4d0abed5e81c3",
+  "checks": [
+    {
+      "check": "cli-fmt",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "fmt",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.84,
+      "results": [],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1064-20260930\\cli-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "check": "cli-clippy",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "clippy",
+        "-j",
+        "1",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 41.96,
+      "results": [],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1064-20260930\\cli-clippy.log",
+      "sha256": "6d65c413df1bb4c233d19c6941bbb5453f8084e257eeee7a901c62562c2af879"
+    },
+    {
+      "check": "backup-target",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "test",
+        "--lib",
+        "commands::backup::tests::test_backup_create_aborts_on_unreadable_profile",
+        "--",
+        "--exact",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 62.38,
+      "results": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 276 filtered out; finished in 0.74s"
+      ],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1064-20260930\\backup-target.log",
+      "sha256": "bc0a8430dedc59d18014153411e2d7297bb60691c7d960f0a0fcb49af8fc9ce8"
+    },
+    {
+      "check": "cli-full",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "-j",
+        "1",
+        "--no-fail-fast"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 292.8,
+      "results": [
+        "test result: ok. 277 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 213.67s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.36s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1064-20260930\\cli-full.log",
+      "sha256": "dc8a7c9943ae8fe038dd6b07521c95ee67555254e1da6cb243744de5cc37bd0c"
+    }
+  ],
+  "finalCLI": {
+    "libraryPassed": 277,
+    "integrationPassed": 2,
+    "failed": 0,
+    "existingIgnoredDocTests": 1,
+    "positiveCase": [
+      "test commands::backup::tests::test_backup_create_aborts_on_unreadable_profile ... ok"
+    ]
+  },
+  "context": "检查在含待提交RF016和五个path版本锁文件的工作树执行；本项只变更既有测试fixture，不归属其他测试。",
+  "unchangedAssertions": [
+    "同一534F4C4FDEADBEEF损坏BLOB",
+    "真实unlock_secure",
+    "备份返回备份中止",
+    "没有生成不完整备份文件"
+  ],
+  "noProductionOrDependencyChange": true
+}

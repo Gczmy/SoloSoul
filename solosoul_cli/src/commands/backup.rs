@@ -502,21 +502,17 @@ mod tests {
             .join("vault.db");
         // 保留 SOLO blob magic（SOLO = 534F4C4F）的垃圾密文才能触发真实解密失败
         // （decrypt_field 对无 magic 的短数据按旧版明文直接放行）。
-        let out = std::process::Command::new("sqlite3")
-            .args([
-                db_path.to_str().unwrap(),
-                &format!(
-                    "UPDATE profiles SET data = X'534F4C4FDEADBEEF' WHERE id = '{}';",
-                    profile_id
-                ),
-            ])
-            .output()
-            .expect("sqlite3 CLI 应可用");
-        assert!(
-            out.status.success(),
-            "sqlite3 更新失败: {}",
-            String::from_utf8_lossy(&out.stderr)
-        );
+        {
+            // 复用现有测试依赖；作用域结束关闭连接后才重新解锁 Vault。
+            let db = rusqlite::Connection::open(&db_path).expect("打开测试数据库");
+            let changed = db
+                .execute(
+                    "UPDATE profiles SET data = X'534F4C4FDEADBEEF' WHERE id = ?1",
+                    [&profile_id],
+                )
+                .expect("破坏测试 profile 密文");
+            assert_eq!(changed, 1, "应只破坏目标 profile");
+        }
 
         app.vault_service
             .unlock_secure(
