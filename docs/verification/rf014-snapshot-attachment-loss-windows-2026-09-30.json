@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "taskId": "RF-014",
+  "date": "2026-09-30",
+  "baselineCommit": "bbdb24c474f110cb8bec5e2e794471ca6bc6aa98",
+  "scope": "local-synthetic-snapshot-defect-reproduction",
+  "status": "confirmed-defect-production-fix-awaiting-authorization",
+  "boundaries": {
+    "productionBehaviorChanged": false,
+    "cloudConnectorCreated": false,
+    "remoteUpload": false,
+    "cloudConfigurationPersisted": false,
+    "defaultUserVaultUsed": false,
+    "syntheticSourceAndTargetVaults": true,
+    "syntheticPasswordsOnly": true,
+    "regressionArchivedOutsideCargoModules": true,
+    "taskClosed": false
+  },
+  "environment": {
+    "platform": "Windows x86_64",
+    "rustc": "1.96.0 (ac68faa20 2026-05-25)",
+    "cargo": "1.96.0 (30a34c682 2026-05-25)",
+    "buildProfile": "test [optimized + debuginfo]",
+    "powershell": "7.6.5"
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "command": "cargo test --locked -p solo_soul --lib rf014_ -- --test-threads=1",
+      "exitCode": 101,
+      "testsExecuted": 0,
+      "outcome": "regression implementation compile error E0603: private Core KDF function; corrected to public solosoul_crypto KDF without production edits",
+      "elapsedSeconds": null,
+      "capturedOutput": "   Compiling solo_soul v2.13.2 (C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri)\r\nerror[E0603]: function `derive_export_key_cfg` is private\r\n   --> src-tauri\\src\\sync\\cloud_auto_sync\\tests\\rf014.rs:140:45\r\n    |\r\n140 |     let key = solosoul_core::export_import::derive_export_key_cfg(\r\n    |                                             ^^^^^^^^^^^^^^^^^^^^^ private function\r\n    |\r\nnote: the function `derive_export_key_cfg` is defined here\r\n   --> crates\\solosoul-core\\src\\export_import.rs:685:1\r\n    |\r\n685 | / fn derive_export_key_cfg(\r\n686 | |     password: &str,\r\n687 | |     salt: &[u8],\r\n688 | |     config: &KdfConfig,\r\n689 | | ) -> Result<Zeroizing<[u8; 32]>, ExportError> {\r\n    | |_____________________________________________^\r\n\r\nFor more information about this error, try `rustc --explain E0603`.\r\nerror: could not compile `solo_soul` (lib test) due to 1 previous error\r\n"
+    },
+    {
+      "attempt": 2,
+      "command": "cargo test --locked -p solo_soul --lib rf014_ -- --test-threads=1",
+      "workdir": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startUtc": "2026-09-30T01:26:16.7821951Z",
+      "endUtc": "2026-09-30T01:27:37.909046Z",
+      "elapsedSeconds": 81.1195574,
+      "exitCode": 101,
+      "passed": 2,
+      "failed": 2,
+      "ignored": 0,
+      "filteredOut": 614,
+      "testExecutionSeconds": 1.77,
+      "capturedOutput": "   Compiling solo_soul v2.13.2 (C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri)\r\n    Finished `test` profile [optimized + debuginfo] target(s) in 1m 09s\r\n     Running unittests src\\lib.rs (target\\debug\\deps\\solo_soul-0525d65c3b5b2deb.exe)\r\n\r\nrunning 4 tests\r\ntest sync::cloud_auto_sync::tests::rf014::rf014_cloud_snapshot_contains_plaintext_attachment ... processed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUJYpYy\\vault\\acc_148fc43a400e49e0a7ba6f4a8236ec4a\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUJYpYy\\vault\\acc_148fc43a400e49e0a7ba6f4a8236ec4a/config.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUJYpYy\\vault\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUJYpYy\\vault\\accounts.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUJYpYy\\vault\\acc_148fc43a400e49e0a7ba6f4a8236ec4a/config.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUJYpYy\\vault\\acc_148fc43a400e49e0a7ba6f4a8236ec4a/config.bak\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nFAILED\r\ntest sync::cloud_auto_sync::tests::rf014::rf014_cloud_snapshot_contains_solc_attachment ... processed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp5IMOOY\\vault\\acc_b6547dc16b584fa3ada0ad3618cbf45a\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp5IMOOY\\vault\\acc_b6547dc16b584fa3ada0ad3618cbf45a/config.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp5IMOOY\\vault\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp5IMOOY\\vault\\accounts.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp5IMOOY\\vault\\acc_b6547dc16b584fa3ada0ad3618cbf45a/config.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp5IMOOY\\vault\\acc_b6547dc16b584fa3ada0ad3618cbf45a/config.bak\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nFAILED\r\ntest sync::cloud_auto_sync::tests::rf014::rf014_selected_plaintext_attachment_roundtrips ... processed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUsL4kD\\vault\\acc_1fcb4cd2c16b4f4f8089cfff659bfde8\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUsL4kD\\vault\\acc_1fcb4cd2c16b4f4f8089cfff659bfde8/config.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUsL4kD\\vault\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUsL4kD\\vault\\accounts.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUsL4kD\\vault\\acc_1fcb4cd2c16b4f4f8089cfff659bfde8/config.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUsL4kD\\vault\\acc_1fcb4cd2c16b4f4f8089cfff659bfde8/config.bak\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpF0We3N\\vault\\acc_01d90c3cfcb246e8bbfb5e803d9ada85\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpF0We3N\\vault\\acc_01d90c3cfcb246e8bbfb5e803d9ada85/config.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpF0We3N\\vault\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpF0We3N\\vault\\accounts.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nok\r\ntest sync::cloud_auto_sync::tests::rf014::rf014_selected_solc_attachment_roundtrips ... processed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp2ZoRwV\\vault\\acc_872247d749314114b60b3db5f687443a\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp2ZoRwV\\vault\\acc_872247d749314114b60b3db5f687443a/config.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp2ZoRwV\\vault\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp2ZoRwV\\vault\\accounts.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp2ZoRwV\\vault\\acc_872247d749314114b60b3db5f687443a/config.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp2ZoRwV\\vault\\acc_872247d749314114b60b3db5f687443a/config.bak\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpiJGgFo\\vault\\acc_239f7f1633c94ef7af86b53a1034f7f6\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpiJGgFo\\vault\\acc_239f7f1633c94ef7af86b53a1034f7f6/config.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpiJGgFo\\vault\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpiJGgFo\\vault\\accounts.json\r\nSuccessfully processed 1 files; Failed processing 0 files\r\nok\r\n\r\nfailures:\r\n\r\n---- sync::cloud_auto_sync::tests::rf014::rf014_cloud_snapshot_contains_plaintext_attachment stdout ----\r\nRF014 mode=legacy-plaintext object_count=1 has_attachments=false attachment_entries=[]\r\n\r\nthread 'sync::cloud_auto_sync::tests::rf014::rf014_cloud_snapshot_contains_plaintext_attachment' (20304) panicked at src-tauri\\src\\sync\\cloud_auto_sync\\tests\\rf014.rs:143:5:\r\nassertion `left == right` failed: full cloud snapshot must contain the valid attachment bytes\r\n  left: []\r\n right: [\"attachments/rf014-synthetic-object/rf014-legacy.enc\"]\r\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\r\n\r\n---- sync::cloud_auto_sync::tests::rf014::rf014_cloud_snapshot_contains_solc_attachment stdout ----\r\nRF014 mode=SOLC object_count=1 has_attachments=false attachment_entries=[]\r\n\r\nthread 'sync::cloud_auto_sync::tests::rf014::rf014_cloud_snapshot_contains_solc_attachment' (15744) panicked at src-tauri\\src\\sync\\cloud_auto_sync\\tests\\rf014.rs:143:5:\r\nassertion `left == right` failed: full cloud snapshot must contain the valid attachment bytes\r\n  left: []\r\n right: [\"attachments/rf014-synthetic-object/rf014-solc.enc\"]\r\n\r\n\r\nfailures:\r\n    sync::cloud_auto_sync::tests::rf014::rf014_cloud_snapshot_contains_plaintext_attachment\r\n    sync::cloud_auto_sync::tests::rf014::rf014_cloud_snapshot_contains_solc_attachment\r\n\r\ntest result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 614 filtered out; finished in 1.77s\r\n\r\nerror: test failed, to rerun pass `-p solo_soul --lib`\r\n",
+      "rawLogSha256": "9780e15ea4f7c98dc1c06d03eee46045bc6a9ed754a328fcb2372b342bfb7945"
+    }
+  ],
+  "cases": [
+    {
+      "name": "rf014_selected_plaintext_attachment_roundtrips",
+      "outcome": "passed",
+      "verifies": "explicit selection export, package decryption, independent Vault import, exact recovered plaintext bytes"
+    },
+    {
+      "name": "rf014_selected_solc_attachment_roundtrips",
+      "outcome": "passed",
+      "verifies": "SOLC source decryption, explicit selection export, package decryption, independent Vault import, exact recovered plaintext bytes"
+    },
+    {
+      "name": "rf014_cloud_snapshot_contains_plaintext_attachment",
+      "outcome": "failed-as-defect-reproduction",
+      "objectCount": 1,
+      "hasAttachments": false,
+      "actualAttachmentEntries": [],
+      "expectedAttachmentEntries": [
+        "attachments/rf014-synthetic-object/rf014-legacy.enc"
+      ]
+    },
+    {
+      "name": "rf014_cloud_snapshot_contains_solc_attachment",
+      "outcome": "failed-as-defect-reproduction",
+      "objectCount": 1,
+      "hasAttachments": false,
+      "actualAttachmentEntries": [],
+      "expectedAttachmentEntries": [
+        "attachments/rf014-synthetic-object/rf014-solc.enc"
+      ]
+    }
+  ],
+  "sourceFingerprints": [
+    {
+      "path": "tauri/src-tauri/src/sync/cloud_auto_sync.rs",
+      "baselineAndRestoredSha256": "211ddf99e8601adc98673388e94b50f308d2009c7a886f69a6f8b07d74781ac3",
+      "withTemporaryTestRegistrationSha256": "b47d2e20fe94278f5bc82a7fd7cc2b5e0a1cdefafd1f9eab5d5fd54e590e94b9"
+    },
+    {
+      "path": "docs/verification/rf014-snapshot-attachment-regression.rs",
+      "sha256": "0595d96e5b1c0ff5615b731b73b9c27ff95c2ba24182c5577bdbe8e61266d620",
+      "originalModulePath": "tauri/src-tauri/src/sync/cloud_auto_sync/tests/rf014.rs"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/export_import/export.rs",
+      "sha256": "91ad789e838e7548de7e7d79b19fc9376e92c08c2371312966be88a85f714a56"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/export_import/import.rs",
+      "sha256": "7102dd1abf7736db59905503996897c6dd0d4862f6608aaa6d88981935077d7c"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/export_import/tests/rf020.rs",
+      "sha256": "237d826f34a2ff35c5d007fccdd6cc0de4bd464bc843ec16e6f0c4d0550c2f48"
+    }
+  ],
+  "rerun": {
+    "source": "docs/verification/rf014-snapshot-attachment-regression.rs",
+    "copyTo": "tauri/src-tauri/src/sync/cloud_auto_sync/tests/rf014.rs",
+    "registration": "Add mod rf014; only inside the existing cfg(test) tests module of cloud_auto_sync.rs.",
+    "command": "cargo test --locked -p solo_soul --lib rf014_ -- --test-threads=1",
+    "expectedOnThisBaseline": "exit 101, 2 passed / 2 failed; after the authorized fix all four scenarios must pass",
+    "note": "This is an archived temporary diagnostic, not a registered or ignored Cargo test. No passing full-suite claim is made by archiving it."
+  },
+  "cleanup": {
+    "syntheticVaultRoots": [
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp2ZoRwV",
+        "existsAfterRun": false
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmp5IMOOY",
+        "existsAfterRun": false
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpF0We3N",
+        "existsAfterRun": false
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpiJGgFo",
+        "existsAfterRun": false
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUJYpYy",
+        "existsAfterRun": false
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpUsL4kD",
+        "existsAfterRun": false
+      }
+    ],
+    "allSixVaultDirectoriesRemovedByTempDir": true,
+    "temporaryRegistrationRestoredToOriginalBytes": true,
+    "unrelatedWorkingTreeEditsStaged": false
+  }
+}
