@@ -75,3 +75,22 @@ output 末级目录必须不存在，最少三次，建议五次。每次有独�
 本机为Dell OptiPlex7070、i7-9700（8核/8线程）、约16GiB内存、Windows11 Enterprise LTSC 26100、Balanced电源方案、Node24.16.0/Rust1.96.0。第二轮浏览器进程实际为WebView2 154.0.4258.37，已观察到正确remote-debugging-port/address参数而无监听。微软上游[WebView2Feedback #5718](https://github.com/MicrosoftEdge/WebView2Feedback/issues/5718)报告153运行时有相近连接拒绝症状；它与本机版本和宿主不同，只作候选线索，不能据此确认154回归。需要先在可连通的受控Runtime/宿主环境证明CDP前置，再运行两档真实UI流程；不修改本机Registry或默认Runtime来凑数。
 
 本轮完成的是隔离入口、采样脚本、失败回归与收尾验证。登录、工作区、搜索等实际DOM选择器尚未在连通CDP后走通；不能称该脚本已完成六阶段端到端验收。OCR图片/扫描流程、附件预览、系统睡眠恢复、同profile热启动、macOS/Android同口径数据及内存峰值尚缺，RF-312继续保持[!]。
+
+## CDP 单轮现场诊断与 TEMP 修正（2026-09-30）
+
+`native-perf-diagnose.mjs` 复用上述隔离入口和严格进程清理，只启动一次公开合成 GUI，在启动后计划 5/15/30 秒作三次现场查询；实际查询耗时和时刻另存 JSON。它不输入密码或操作 UI，不产出性能指标。输出目录必须新建，使用同一已构建的 native-perf EXE 与 fixture：
+
+```powershell
+node scripts/native-perf-diagnose.mjs --exe (Join-Path $sampleParent 'bin/solo_soul.exe') --fixture (Join-Path $fixtureParent 'vault100') --output (Join-Path $sampleParent 'cdp-diagnostics')
+node --test scripts/native-perf-diagnose.test.mjs
+```
+
+每次先核验 consumed 的 runId/PID/端口、活着的原根进程、精确 browser 目录及 PID/创建时间/父 PID/EXE。PowerShell helper 再通过 fresh CIM、StartTime 和有限查询句柄复核同一身份，之后只读取这两个进程的 Token 权限、AppContainer、包身份、文件版本与三个限定 browser 参数；不保存完整命令行。监听查询只针对已核验 root/browser；查询失败单列 unknown。只有自有 browser 在预期端口监听、参数仍匹配且原身份再次通过，才允许请求 loopback `/json/version`，并禁止 HTTP 重定向。
+
+首轮三次 helper 均在 C# 编译阶段失败，runner exit1；隔离 GUI 的准备与清理完成，公开源 Vault 未变。离线对照使用同一 helper、合成输入及同一 temp 目录，仅改变 TEMP/TMP 表示：普通路径编译 exit0，Rust canonical 的 `\\?\` 扩展路径编译 exit1；最小 Add-Type 同样抛出 `System.NotSupportedException`、HRESULT `0x80131515`。两组都没有实际 PID 查询。wrapper 修正为先确认该 owned temp 是正常目录且 realpath 等价，再仅为 helper 子进程使用普通路径；不改变全局 TEMP、原生隔离 manifest 或 helper 的身份规则。这个修正解释诊断编译失败，不解释此前 CDP 无监听。
+
+第二轮 runner exit0、三次现场记录完整：宿主 2.13.2 与实际 WebView2 154.0.4258.37 均为 Medium（RID8192）、`isAppContainer=false`、unpackaged；browser 参数为端口62537、地址127.0.0.1及本轮精确 EBWebView。三次监听查询均成功但返回空，故没有发送 HTTP/CDP 请求；没有密码输入或 GUI 行程，performanceMetrics 为 null。该轮排除了提升权限、AppContainer 与包身份这三种本轮解释，不能据此确认 Runtime 回归或认定已有性能基线。
+
+两次隔离运行均清理9条已记录进程身份，收尾18条 PID/创建时间核验均已不存在；每次100对象源的7个文件 SHA 前后相同，3张既有 NSIS 图片 SHA 保持。[完整现场与离线因果证据](rf312-windows-cdp-diagnostics-2026-09-30.json)保留首次失败、第二次成功诊断及脚本 SHA。新增11项 Node 边界测试与既有runner24项、observer9项通过；PS5.1 helper 编译及16项合成断言通过，空身份拒绝 exit1且未进入 live 查询。
+
+诊断 exit0 只表示记录完整、源未变和清理完成。仍需受控 Runtime 对照或原生 Chromium 日志定位无监听，再取得成功 CDP/真实 UI 行程；不修改本机默认 Runtime 或 Registry。RF-312保持待验证，其他缺失范围沿用上节。

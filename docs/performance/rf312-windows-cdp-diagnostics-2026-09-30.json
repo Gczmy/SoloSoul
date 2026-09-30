@@ -1,0 +1,1824 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "windows-native-cdp-diagnostics-evidence",
+  "baseline": "e77f0a2cf09c8d961f8f63113197140b4f01b8a9",
+  "generatedAt": "2026-09-30T05:27:14.2225839Z",
+  "sourceHashes": [
+    {
+      "path": "tauri/scripts/native-perf-run.mjs",
+      "sha256": "34588DCCEF4ED01C0B6196658661D28AE4007436FAEAC94B5D3BC0CA6F7A0183",
+      "bytes": 54093
+    },
+    {
+      "path": "tauri/scripts/native-perf-diagnose.mjs",
+      "sha256": "8995DEDC9D1F91A0058DB95614F330247AD5E8F13B0C1B4F730DC3A260632550",
+      "bytes": 17137
+    },
+    {
+      "path": "tauri/scripts/native-perf-diagnose.test.mjs",
+      "sha256": "BEA9B97C18910D9E61C917873308E47830BF3A57A34C9C550879C6C4125BA4F2",
+      "bytes": 9373
+    },
+    {
+      "path": "tauri/scripts/native-perf-process-diagnostics.ps1",
+      "sha256": "0738A362D26E40A51D0C69F92160C988515A98333984024B7036416E90098B5C",
+      "bytes": 22353
+    }
+  ],
+  "checks": {
+    "nodeCombined": {
+      "passed": 44,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 5181.4279,
+      "exitCode": 0,
+      "sourceState": "final frozen code after equivalent ordinary-TEMP fix",
+      "logSha256": "213AE232928AEF509B02D92FF27CAC2D0BFA6131273D2BC1116C626876533598"
+    },
+    "diagnosticAfterTempFix": {
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 241.605,
+      "exitCode": 0
+    },
+    "helperOffline": {
+      "helperSha256": "C1C92D8875A384E3B99F19597D4BE3A257EDC92DB644BC641E734B1AB1BCD7B5",
+      "tests": [
+        {
+          "result": {
+            "mode": "self-test",
+            "clrVersion": "4.0.30319.42000",
+            "processes": [],
+            "listeners": [],
+            "compiled": true,
+            "success": true,
+            "scope": "windows-native-perf-process-diagnostics",
+            "liveQueriesPerformed": false,
+            "powerShellVersion": "5.1.26100.8875",
+            "reason": null,
+            "schemaVersion": 1,
+            "assertionsPassed": 16
+          },
+          "mode": "self-test",
+          "evidence": "self-test-frozen.json",
+          "exitCode": 0
+        },
+        {
+          "result": {
+            "mode": "parse-only",
+            "clrVersion": "4.0.30319.42000",
+            "listeners": [],
+            "compiled": true,
+            "inputCount": 2,
+            "success": true,
+            "scope": "windows-native-perf-process-diagnostics",
+            "liveQueriesPerformed": false,
+            "powerShellVersion": "5.1.26100.8875",
+            "reason": null,
+            "schemaVersion": 1,
+            "processes": []
+          },
+          "mode": "parse-only",
+          "evidence": "parse-only-frozen.json",
+          "exitCode": 0
+        },
+        {
+          "result": {
+            "processes": [],
+            "liveQueriesPerformed": false,
+            "reason": "Diagnostics failed during input validation",
+            "success": false,
+            "scope": "windows-native-perf-process-diagnostics",
+            "mode": "live",
+            "schemaVersion": 1,
+            "listeners": []
+          },
+          "mode": "live",
+          "evidence": "live-invalid-input-final.json",
+          "exitCode": 1
+        }
+      ],
+      "proofRoot": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-diagnostics-offline-bf84b86ca2964f3789045500833dc9db"
+    }
+  },
+  "tempPathCausalComparison": {
+    "proofRoot": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-temp-prefix-repro-d95e7162a78c4064b34c8949dc49aaf1",
+    "helperSha256": "C1C92D8875A384E3B99F19597D4BE3A257EDC92DB644BC641E734B1AB1BCD7B5",
+    "inputSynthetic": true,
+    "tests": [
+      {
+        "result": {
+          "mode": "parse-only",
+          "clrVersion": "4.0.30319.42000",
+          "listeners": [],
+          "compiled": true,
+          "inputCount": 2,
+          "success": true,
+          "scope": "windows-native-perf-process-diagnostics",
+          "liveQueriesPerformed": false,
+          "powerShellVersion": "5.1.26100.8875",
+          "reason": null,
+          "schemaVersion": 1,
+          "processes": []
+        },
+        "exitCode": 0,
+        "temp": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\temp",
+        "pathKind": "ordinary"
+      },
+      {
+        "result": {
+          "processes": [],
+          "liveQueriesPerformed": false,
+          "reason": "Diagnostics failed during C# compilation",
+          "success": false,
+          "scope": "windows-native-perf-process-diagnostics",
+          "mode": "parse-only",
+          "schemaVersion": 1,
+          "listeners": []
+        },
+        "exitCode": 1,
+        "temp": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\temp",
+        "pathKind": "extended"
+      }
+    ]
+  },
+  "minimalCompilerCausalComparison": [
+    {
+      "exitCode": 0,
+      "result": {
+        "powerShellVersion": "5.1.26100.8875",
+        "exceptions": [],
+        "liveQueriesPerformed": false,
+        "compiled": true,
+        "success": true
+      },
+      "pathKind": "ordinary"
+    },
+    {
+      "exitCode": 1,
+      "result": {
+        "errorId": "System.NotSupportedException,Microsoft.PowerShell.Commands.AddTypeCommand",
+        "exceptions": [
+          {
+            "messageCategory": "invalid-path",
+            "hresult": "80131515",
+            "type": "System.NotSupportedException"
+          }
+        ],
+        "success": false,
+        "liveQueriesPerformed": false,
+        "compiled": false,
+        "errorCategory": "NotSpecified",
+        "powerShellVersion": "5.1.26100.8875"
+      },
+      "pathKind": "extended"
+    }
+  ],
+  "first": {
+    "runnerExit": 1,
+    "rawSha256": "AF2E8FA6665C1062CC098AB75D45D3D5CA64A0090BCB60E5C8293789FE452230",
+    "report": {
+      "schemaVersion": 1,
+      "task": "RF-312",
+      "scope": "windows-native-cdp-diagnostics",
+      "startedAt": "2026-09-30T05:14:43.833Z",
+      "platform": "win32",
+      "osRelease": "10.0.26100",
+      "nodeVersion": "v24.16.0",
+      "hashes": {
+        "exe": "617b621be270fa284b8010974009431500daa81ab5792b52dacf58f8968ecc7f",
+        "helper": "c1c92d8875a384e3b99f19597d4be3a257edc92db644bc641e734b1ab1bcd7b5",
+        "diagnostic": "f118a8c865d3d143dc38fd54c3986fb92f5219db992b96f32ccdc86a20203bae",
+        "runner": "34588dccef4ed01c0b6196658661d28ae4007436faeac94b5d3bc0ca6f7a0183"
+      },
+      "binaryPreflight": {
+        "method": "streaming-ascii-marker-check",
+        "matchedMarkers": [
+          "windows-native-perf-owned",
+          "windows-native-perf-ready",
+          "windows-native-perf-consumed",
+          "--native-perf-prepare"
+        ],
+        "bytesScanned": 71761920,
+        "guarantee": "Excludes accidental default builds; not a binary signature or trust guarantee"
+      },
+      "fixture": {
+        "accountId": "acc_rf312_100",
+        "accountName": "Performance Fixture",
+        "buildProfile": "release",
+        "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+        "expectedSearchMatches": 5,
+        "fixture": "deterministic-20th-object-property-match",
+        "generator": "solosoul-core/examples/perf_baseline",
+        "includesAttachments": false,
+        "includesOcrFixture": false,
+        "includesProfile": true,
+        "includesUiPreferences": true,
+        "kdf": {
+          "iterations": 3,
+          "memoryKiB": 65536,
+          "parallelism": 4
+        },
+        "objectCount": 100,
+        "schemaVersion": 1,
+        "scope": "synthetic-native-vault-fixture",
+        "searchQuery": "needle"
+      },
+      "observations": [
+        {
+          "targetOffsetMs": 5000,
+          "observedAt": "2026-09-30T05:14:53.033Z",
+          "consumed": {
+            "pid": 15344,
+            "port": 65154,
+            "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001",
+            "runId": "c272c4e59f3044749662a8fb65ab464a",
+            "schemaVersion": 1,
+            "scope": "windows-native-perf-consumed"
+          },
+          "ownedSnapshot": {
+            "observedAt": "2026-09-30T05:14:54.169Z",
+            "collectionMs": 1134.0529999999999,
+            "workingSetBytes": 636530688,
+            "reason": null,
+            "userDataDirectoryMatches": true,
+            "browserDataChecks": [
+              {
+                "pid": 39900,
+                "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\webview",
+                "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\webview\\EBWebView",
+                "matchesExpected": true,
+                "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\webview\\EBWebView",
+                "reason": null
+              }
+            ],
+            "browserDataFilesystem": {
+              "valid": true,
+              "reason": null
+            },
+            "processCount": 9,
+            "processes": [
+              {
+                "pid": 15344,
+                "parentPid": 15464,
+                "creationMs": 1790745288040,
+                "executableName": "solo_soul.exe",
+                "workingSetBytes": 111005696,
+                "privateBytes": 51535872,
+                "cpuMs": 546.875,
+                "reason": null
+              },
+              {
+                "pid": 39900,
+                "parentPid": 15344,
+                "creationMs": 1790745288160,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 174563328,
+                "privateBytes": 74342400,
+                "cpuMs": 1328.125,
+                "reason": null
+              },
+              {
+                "pid": 764,
+                "parentPid": 39900,
+                "creationMs": 1790745288532,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 20516864,
+                "privateBytes": 7868416,
+                "cpuMs": 46.875,
+                "reason": null
+              },
+              {
+                "pid": 24816,
+                "parentPid": 39900,
+                "creationMs": 1790745288482,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 106094592,
+                "privateBytes": 75276288,
+                "cpuMs": 593.75,
+                "reason": null
+              },
+              {
+                "pid": 14172,
+                "parentPid": 39900,
+                "creationMs": 1790745288492,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 43159552,
+                "privateBytes": 12906496,
+                "cpuMs": 234.375,
+                "reason": null
+              },
+              {
+                "pid": 41860,
+                "parentPid": 39900,
+                "creationMs": 1790745288621,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 96321536,
+                "privateBytes": 52101120,
+                "cpuMs": 593.75,
+                "reason": null
+              },
+              {
+                "pid": 36708,
+                "parentPid": 39900,
+                "creationMs": 1790745289267,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 25219072,
+                "privateBytes": 8196096,
+                "cpuMs": 15.625,
+                "reason": null
+              },
+              {
+                "pid": 12676,
+                "parentPid": 39900,
+                "creationMs": 1790745289268,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 48676864,
+                "privateBytes": 17825792,
+                "cpuMs": 203.125,
+                "reason": null
+              },
+              {
+                "pid": 26640,
+                "parentPid": 39900,
+                "creationMs": 1790745288209,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 10973184,
+                "privateBytes": 2543616,
+                "cpuMs": 31.25,
+                "reason": null
+              }
+            ]
+          },
+          "success": false,
+          "reason": "Owned process diagnostics refused at unspecified: Diagnostics failed during C# compilation",
+          "finishedAt": "2026-09-30T05:14:54.688Z"
+        },
+        {
+          "targetOffsetMs": 15000,
+          "observedAt": "2026-09-30T05:15:03.036Z",
+          "consumed": {
+            "pid": 15344,
+            "port": 65154,
+            "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001",
+            "runId": "c272c4e59f3044749662a8fb65ab464a",
+            "schemaVersion": 1,
+            "scope": "windows-native-perf-consumed"
+          },
+          "ownedSnapshot": {
+            "observedAt": "2026-09-30T05:15:04.051Z",
+            "collectionMs": 1013.8941999999988,
+            "workingSetBytes": 557330432,
+            "reason": null,
+            "userDataDirectoryMatches": true,
+            "browserDataChecks": [
+              {
+                "pid": 39900,
+                "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\webview",
+                "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\webview\\EBWebView",
+                "matchesExpected": true,
+                "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\webview\\EBWebView",
+                "reason": null
+              }
+            ],
+            "browserDataFilesystem": {
+              "valid": true,
+              "reason": null
+            },
+            "processCount": 8,
+            "processes": [
+              {
+                "pid": 15344,
+                "parentPid": 15464,
+                "creationMs": 1790745288040,
+                "executableName": "solo_soul.exe",
+                "workingSetBytes": 110964736,
+                "privateBytes": 51380224,
+                "cpuMs": 578.125,
+                "reason": null
+              },
+              {
+                "pid": 39900,
+                "parentPid": 15344,
+                "creationMs": 1790745288160,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 174567424,
+                "privateBytes": 74354688,
+                "cpuMs": 1375,
+                "reason": null
+              },
+              {
+                "pid": 764,
+                "parentPid": 39900,
+                "creationMs": 1790745288532,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 20602880,
+                "privateBytes": 7872512,
+                "cpuMs": 46.875,
+                "reason": null
+              },
+              {
+                "pid": 24816,
+                "parentPid": 39900,
+                "creationMs": 1790745288482,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 80572416,
+                "privateBytes": 49487872,
+                "cpuMs": 593.75,
+                "reason": null
+              },
+              {
+                "pid": 14172,
+                "parentPid": 39900,
+                "creationMs": 1790745288492,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 43229184,
+                "privateBytes": 12947456,
+                "cpuMs": 234.375,
+                "reason": null
+              },
+              {
+                "pid": 41860,
+                "parentPid": 39900,
+                "creationMs": 1790745288621,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 91172864,
+                "privateBytes": 46866432,
+                "cpuMs": 609.375,
+                "reason": null
+              },
+              {
+                "pid": 36708,
+                "parentPid": 39900,
+                "creationMs": 1790745289267,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 25219072,
+                "privateBytes": 8196096,
+                "cpuMs": 15.625,
+                "reason": null
+              },
+              {
+                "pid": 26640,
+                "parentPid": 39900,
+                "creationMs": 1790745288209,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 11001856,
+                "privateBytes": 2588672,
+                "cpuMs": 31.25,
+                "reason": null
+              }
+            ]
+          },
+          "success": false,
+          "reason": "Owned process diagnostics refused at unspecified: Diagnostics failed during C# compilation",
+          "finishedAt": "2026-09-30T05:15:04.518Z"
+        },
+        {
+          "targetOffsetMs": 30000,
+          "observedAt": "2026-09-30T05:15:18.033Z",
+          "consumed": {
+            "pid": 15344,
+            "port": 65154,
+            "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001",
+            "runId": "c272c4e59f3044749662a8fb65ab464a",
+            "schemaVersion": 1,
+            "scope": "windows-native-perf-consumed"
+          },
+          "ownedSnapshot": {
+            "observedAt": "2026-09-30T05:15:19.054Z",
+            "collectionMs": 1019.8275999999969,
+            "workingSetBytes": 567525376,
+            "reason": null,
+            "userDataDirectoryMatches": true,
+            "browserDataChecks": [
+              {
+                "pid": 39900,
+                "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\webview",
+                "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\webview\\EBWebView",
+                "matchesExpected": true,
+                "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\webview\\EBWebView",
+                "reason": null
+              }
+            ],
+            "browserDataFilesystem": {
+              "valid": true,
+              "reason": null
+            },
+            "processCount": 8,
+            "processes": [
+              {
+                "pid": 15344,
+                "parentPid": 15464,
+                "creationMs": 1790745288040,
+                "executableName": "solo_soul.exe",
+                "workingSetBytes": 110968832,
+                "privateBytes": 51380224,
+                "cpuMs": 578.125,
+                "reason": null
+              },
+              {
+                "pid": 39900,
+                "parentPid": 15344,
+                "creationMs": 1790745288160,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 175353856,
+                "privateBytes": 74514432,
+                "cpuMs": 1406.25,
+                "reason": null
+              },
+              {
+                "pid": 764,
+                "parentPid": 39900,
+                "creationMs": 1790745288532,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 20602880,
+                "privateBytes": 7872512,
+                "cpuMs": 46.875,
+                "reason": null
+              },
+              {
+                "pid": 24816,
+                "parentPid": 39900,
+                "creationMs": 1790745288482,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 80637952,
+                "privateBytes": 49537024,
+                "cpuMs": 593.75,
+                "reason": null
+              },
+              {
+                "pid": 14172,
+                "parentPid": 39900,
+                "creationMs": 1790745288492,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 43196416,
+                "privateBytes": 12914688,
+                "cpuMs": 234.375,
+                "reason": null
+              },
+              {
+                "pid": 41860,
+                "parentPid": 39900,
+                "creationMs": 1790745288621,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 91172864,
+                "privateBytes": 46866432,
+                "cpuMs": 609.375,
+                "reason": null
+              },
+              {
+                "pid": 36708,
+                "parentPid": 39900,
+                "creationMs": 1790745289267,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 25219072,
+                "privateBytes": 8196096,
+                "cpuMs": 15.625,
+                "reason": null
+              },
+              {
+                "pid": 26640,
+                "parentPid": 39900,
+                "creationMs": 1790745288209,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 20373504,
+                "privateBytes": 3432448,
+                "cpuMs": 46.875,
+                "reason": null
+              }
+            ]
+          },
+          "success": false,
+          "reason": "Owned process diagnostics refused at unspecified: Diagnostics failed during C# compilation",
+          "finishedAt": "2026-09-30T05:15:19.525Z"
+        }
+      ],
+      "captureComplete": false,
+      "performanceMetrics": null,
+      "limitation": "One diagnostic run; no password input, UI action, or performance sample",
+      "sourceBefore": [
+        {
+          "path": "acc_rf312_100/config.json",
+          "bytes": 669,
+          "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+        },
+        {
+          "path": "acc_rf312_100/vault.db",
+          "bytes": 266240,
+          "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+        },
+        {
+          "path": "acc_rf312_100/vault.db.pre_enc.bak",
+          "bytes": 4096,
+          "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+        },
+        {
+          "path": "accounts.bak",
+          "bytes": 189,
+          "sha256": "1e86e48cf79510489a907415a8147ec92c4692b0a621cf6178487ccbc3f1aa02"
+        },
+        {
+          "path": "accounts.json",
+          "bytes": 189,
+          "sha256": "625ecbe50d1d2455df06b9050ad465e504b477c389de2aeeb2c4eafbc38482fa"
+        },
+        {
+          "path": "rf312-fixture.json",
+          "bytes": 667,
+          "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+        },
+        {
+          "path": "ui_preferences.json",
+          "bytes": 221,
+          "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+        }
+      ],
+      "prepare": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null
+      },
+      "owned": {
+        "appVersion": "2.13.2",
+        "fixture": {
+          "accountId": "acc_rf312_100",
+          "files": [
+            {
+              "relativePath": "acc_rf312_100\\config.json",
+              "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+            },
+            {
+              "relativePath": "acc_rf312_100\\vault.db",
+              "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+            },
+            {
+              "relativePath": "accounts.json",
+              "sha256": "b16a9af297ab46d957ba8b84021e217c8bc0220df9e432d7999e17d9673a8836"
+            },
+            {
+              "relativePath": "rf312-fixture.json",
+              "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+            },
+            {
+              "relativePath": "ui_preferences.json",
+              "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+            }
+          ],
+          "marker": {
+            "accountId": "acc_rf312_100",
+            "accountName": "Performance Fixture",
+            "buildProfile": "release",
+            "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+            "expectedSearchMatches": 5,
+            "fixture": "deterministic-20th-object-property-match",
+            "generator": "solosoul-core/examples/perf_baseline",
+            "includesAttachments": false,
+            "includesOcrFixture": false,
+            "includesProfile": true,
+            "includesUiPreferences": true,
+            "kdf": {
+              "iterations": 3,
+              "memoryKiB": 65536,
+              "parallelism": 4
+            },
+            "objectCount": 100,
+            "schemaVersion": 1,
+            "scope": "synthetic-native-vault-fixture",
+            "searchQuery": "needle"
+          },
+          "objectCount": 100,
+          "searchMatches": 5
+        },
+        "fixtureSource": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100",
+        "identifier": "com.solosoul.rf312perf.c272c4e59f3044749662a8fb65ab464a",
+        "local": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.c272c4e59f3044749662a8fb65ab464a",
+        "nativePerfFeature": true,
+        "ownedPaths": [
+          "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001",
+          "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.c272c4e59f3044749662a8fb65ab464a",
+          "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.c272c4e59f3044749662a8fb65ab464a"
+        ],
+        "preparationStatus": "ready",
+        "profile": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\profile",
+        "roaming": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.c272c4e59f3044749662a8fb65ab464a",
+        "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001",
+        "runId": "c272c4e59f3044749662a8fb65ab464a",
+        "schemaVersion": 1,
+        "scope": "windows-native-perf-owned",
+        "vault": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\vault",
+        "webview": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930\\sample-001\\webview"
+      },
+      "port": 65154,
+      "processId": 15344,
+      "cleanup": {
+        "cleanup": [
+          {
+            "status": "already-exited",
+            "pid": 12676
+          },
+          {
+            "status": "terminated",
+            "pid": 36708
+          },
+          {
+            "status": "terminated",
+            "pid": 41860
+          },
+          {
+            "status": "terminated",
+            "pid": 764
+          },
+          {
+            "status": "terminated",
+            "pid": 14172
+          },
+          {
+            "status": "terminated",
+            "pid": 24816
+          },
+          {
+            "status": "terminated",
+            "pid": 26640
+          },
+          {
+            "status": "terminated",
+            "pid": 39900
+          },
+          {
+            "status": "terminated",
+            "pid": 15344
+          }
+        ],
+        "unverifiedDescendants": false
+      },
+      "ownedProcessExit": {
+        "exitCode": 4294967295,
+        "signal": null,
+        "error": null
+      },
+      "cleanupIntegrity": {
+        "complete": true,
+        "reason": null
+      },
+      "sourceAfter": [
+        {
+          "path": "acc_rf312_100/config.json",
+          "bytes": 669,
+          "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+        },
+        {
+          "path": "acc_rf312_100/vault.db",
+          "bytes": 266240,
+          "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+        },
+        {
+          "path": "acc_rf312_100/vault.db.pre_enc.bak",
+          "bytes": 4096,
+          "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+        },
+        {
+          "path": "accounts.bak",
+          "bytes": 189,
+          "sha256": "1e86e48cf79510489a907415a8147ec92c4692b0a621cf6178487ccbc3f1aa02"
+        },
+        {
+          "path": "accounts.json",
+          "bytes": 189,
+          "sha256": "625ecbe50d1d2455df06b9050ad465e504b477c389de2aeeb2c4eafbc38482fa"
+        },
+        {
+          "path": "rf312-fixture.json",
+          "bytes": 667,
+          "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+        },
+        {
+          "path": "ui_preferences.json",
+          "bytes": 221,
+          "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+        }
+      ],
+      "sourceUnchanged": true,
+      "interrupted": false,
+      "finishedAt": "2026-09-30T05:15:21.365Z",
+      "success": false
+    }
+  },
+  "second": {
+    "runnerExit": 0,
+    "rawSha256": "A9713B77E94E2ACB8944CBDE36DA3D8367DFAD76210212FDC90E1566437C6D3A",
+    "report": {
+      "schemaVersion": 1,
+      "task": "RF-312",
+      "scope": "windows-native-cdp-diagnostics",
+      "startedAt": "2026-09-30T05:19:05.727Z",
+      "platform": "win32",
+      "osRelease": "10.0.26100",
+      "nodeVersion": "v24.16.0",
+      "hashes": {
+        "exe": "617b621be270fa284b8010974009431500daa81ab5792b52dacf58f8968ecc7f",
+        "helper": "c1c92d8875a384e3b99f19597d4be3a257edc92db644bc641e734b1ab1bcd7b5",
+        "diagnostic": "8995dedc9d1f91a0058db95614f330247ad5e8f13b0c1b4f730dc3a260632550",
+        "runner": "34588dccef4ed01c0b6196658661d28ae4007436faeac94b5d3bc0ca6f7a0183"
+      },
+      "binaryPreflight": {
+        "method": "streaming-ascii-marker-check",
+        "matchedMarkers": [
+          "windows-native-perf-owned",
+          "windows-native-perf-ready",
+          "windows-native-perf-consumed",
+          "--native-perf-prepare"
+        ],
+        "bytesScanned": 71761920,
+        "guarantee": "Excludes accidental default builds; not a binary signature or trust guarantee"
+      },
+      "fixture": {
+        "accountId": "acc_rf312_100",
+        "accountName": "Performance Fixture",
+        "buildProfile": "release",
+        "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+        "expectedSearchMatches": 5,
+        "fixture": "deterministic-20th-object-property-match",
+        "generator": "solosoul-core/examples/perf_baseline",
+        "includesAttachments": false,
+        "includesOcrFixture": false,
+        "includesProfile": true,
+        "includesUiPreferences": true,
+        "kdf": {
+          "iterations": 3,
+          "memoryKiB": 65536,
+          "parallelism": 4
+        },
+        "objectCount": 100,
+        "schemaVersion": 1,
+        "scope": "synthetic-native-vault-fixture",
+        "searchQuery": "needle"
+      },
+      "observations": [
+        {
+          "targetOffsetMs": 5000,
+          "observedAt": "2026-09-30T05:19:20.916Z",
+          "consumed": {
+            "pid": 14676,
+            "port": 62537,
+            "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001",
+            "runId": "e856c8da72ff428781ef315865c894ee",
+            "schemaVersion": 1,
+            "scope": "windows-native-perf-consumed"
+          },
+          "ownedSnapshot": {
+            "observedAt": "2026-09-30T05:19:22.038Z",
+            "collectionMs": 1120.5805,
+            "workingSetBytes": 621002752,
+            "reason": null,
+            "userDataDirectoryMatches": true,
+            "browserDataChecks": [
+              {
+                "pid": 11288,
+                "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\webview",
+                "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\webview\\EBWebView",
+                "matchesExpected": true,
+                "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\webview\\EBWebView",
+                "reason": null
+              }
+            ],
+            "browserDataFilesystem": {
+              "valid": true,
+              "reason": null
+            },
+            "processCount": 9,
+            "processes": [
+              {
+                "pid": 14676,
+                "parentPid": 26964,
+                "creationMs": 1790745555918,
+                "executableName": "solo_soul.exe",
+                "workingSetBytes": 96088064,
+                "privateBytes": 51949568,
+                "cpuMs": 562.5,
+                "reason": null
+              },
+              {
+                "pid": 11288,
+                "parentPid": 14676,
+                "creationMs": 1790745557204,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 174133248,
+                "privateBytes": 74649600,
+                "cpuMs": 1515.625,
+                "reason": null
+              },
+              {
+                "pid": 25244,
+                "parentPid": 11288,
+                "creationMs": 1790745557563,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 20492288,
+                "privateBytes": 7839744,
+                "cpuMs": 46.875,
+                "reason": null
+              },
+              {
+                "pid": 34420,
+                "parentPid": 11288,
+                "creationMs": 1790745557250,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 10964992,
+                "privateBytes": 2539520,
+                "cpuMs": 15.625,
+                "reason": null
+              },
+              {
+                "pid": 42256,
+                "parentPid": 11288,
+                "creationMs": 1790745558402,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 48562176,
+                "privateBytes": 17723392,
+                "cpuMs": 234.375,
+                "reason": null
+              },
+              {
+                "pid": 40788,
+                "parentPid": 11288,
+                "creationMs": 1790745557523,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 102330368,
+                "privateBytes": 71557120,
+                "cpuMs": 515.625,
+                "reason": null
+              },
+              {
+                "pid": 17756,
+                "parentPid": 11288,
+                "creationMs": 1790745557527,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 44699648,
+                "privateBytes": 13033472,
+                "cpuMs": 156.25,
+                "reason": null
+              },
+              {
+                "pid": 26352,
+                "parentPid": 11288,
+                "creationMs": 1790745558401,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 25214976,
+                "privateBytes": 8204288,
+                "cpuMs": 62.5,
+                "reason": null
+              },
+              {
+                "pid": 22592,
+                "parentPid": 11288,
+                "creationMs": 1790745557667,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 98516992,
+                "privateBytes": 54276096,
+                "cpuMs": 468.75,
+                "reason": null
+              }
+            ]
+          },
+          "processDiagnostics": {
+            "mode": "live",
+            "listeners": [],
+            "liveQueriesPerformed": true,
+            "success": true,
+            "scope": "windows-native-perf-process-diagnostics",
+            "identityVerified": true,
+            "listenersReason": null,
+            "reason": null,
+            "schemaVersion": 1,
+            "processes": [
+              {
+                "parentPid": 26964,
+                "token": {
+                  "integrityRid": 8192,
+                  "integrityLabel": "Medium",
+                  "isAppContainer": false,
+                  "reason": null
+                },
+                "executablePath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\bin-v3\\solo_soul.exe",
+                "packageFamilyName": {
+                  "value": null,
+                  "status": "unpackaged",
+                  "reason": null
+                },
+                "role": "root",
+                "version": {
+                  "fileVersion": "2.13.2",
+                  "productVersion": "2.13.2",
+                  "reason": null
+                },
+                "browserFlags": {
+                  "port": null,
+                  "userDataDirectoryMatched": null,
+                  "observedDirectory": null,
+                  "reason": "Not applicable to the host root process",
+                  "address": null
+                },
+                "pid": 14676,
+                "creationMs": 1790745555918,
+                "identityMatched": true
+              },
+              {
+                "parentPid": 14676,
+                "token": {
+                  "integrityRid": 8192,
+                  "integrityLabel": "Medium",
+                  "isAppContainer": false,
+                  "reason": null
+                },
+                "executablePath": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.37\\msedgewebview2.exe",
+                "packageFamilyName": {
+                  "value": null,
+                  "status": "unpackaged",
+                  "reason": null
+                },
+                "role": "browser",
+                "version": {
+                  "fileVersion": "154.0.4258.37",
+                  "productVersion": "154.0.4258.37",
+                  "reason": null
+                },
+                "browserFlags": {
+                  "port": 62537,
+                  "userDataDirectoryMatched": true,
+                  "observedDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\webview\\EBWebView",
+                  "reason": null,
+                  "address": "127.0.0.1"
+                },
+                "pid": 11288,
+                "creationMs": 1790745557204,
+                "identityMatched": true
+              }
+            ]
+          },
+          "cdp": {
+            "status": "no-owned-listener",
+            "attempted": false,
+            "expectedPort": 62537
+          },
+          "success": true,
+          "finishedAt": "2026-09-30T05:19:26.348Z"
+        },
+        {
+          "targetOffsetMs": 15000,
+          "observedAt": "2026-09-30T05:19:30.922Z",
+          "consumed": {
+            "pid": 14676,
+            "port": 62537,
+            "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001",
+            "runId": "e856c8da72ff428781ef315865c894ee",
+            "schemaVersion": 1,
+            "scope": "windows-native-perf-consumed"
+          },
+          "ownedSnapshot": {
+            "observedAt": "2026-09-30T05:19:31.929Z",
+            "collectionMs": 1006.5467999999964,
+            "workingSetBytes": 560656384,
+            "reason": null,
+            "userDataDirectoryMatches": true,
+            "browserDataChecks": [
+              {
+                "pid": 11288,
+                "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\webview",
+                "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\webview\\EBWebView",
+                "matchesExpected": true,
+                "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\webview\\EBWebView",
+                "reason": null
+              }
+            ],
+            "browserDataFilesystem": {
+              "valid": true,
+              "reason": null
+            },
+            "processCount": 8,
+            "processes": [
+              {
+                "pid": 14676,
+                "parentPid": 26964,
+                "creationMs": 1790745555918,
+                "executableName": "solo_soul.exe",
+                "workingSetBytes": 111316992,
+                "privateBytes": 51744768,
+                "cpuMs": 593.75,
+                "reason": null
+              },
+              {
+                "pid": 11288,
+                "parentPid": 14676,
+                "creationMs": 1790745557204,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 174133248,
+                "privateBytes": 74657792,
+                "cpuMs": 1531.25,
+                "reason": null
+              },
+              {
+                "pid": 25244,
+                "parentPid": 11288,
+                "creationMs": 1790745557563,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 20578304,
+                "privateBytes": 7843840,
+                "cpuMs": 46.875,
+                "reason": null
+              },
+              {
+                "pid": 34420,
+                "parentPid": 11288,
+                "creationMs": 1790745557250,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 10989568,
+                "privateBytes": 2580480,
+                "cpuMs": 15.625,
+                "reason": null
+              },
+              {
+                "pid": 40788,
+                "parentPid": 11288,
+                "creationMs": 1790745557523,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 80203776,
+                "privateBytes": 49242112,
+                "cpuMs": 515.625,
+                "reason": null
+              },
+              {
+                "pid": 17756,
+                "parentPid": 11288,
+                "creationMs": 1790745557527,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 44732416,
+                "privateBytes": 13033472,
+                "cpuMs": 171.875,
+                "reason": null
+              },
+              {
+                "pid": 26352,
+                "parentPid": 11288,
+                "creationMs": 1790745558401,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 25214976,
+                "privateBytes": 8204288,
+                "cpuMs": 62.5,
+                "reason": null
+              },
+              {
+                "pid": 22592,
+                "parentPid": 11288,
+                "creationMs": 1790745557667,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 93487104,
+                "privateBytes": 49111040,
+                "cpuMs": 468.75,
+                "reason": null
+              }
+            ]
+          },
+          "processDiagnostics": {
+            "mode": "live",
+            "listeners": [],
+            "liveQueriesPerformed": true,
+            "success": true,
+            "scope": "windows-native-perf-process-diagnostics",
+            "identityVerified": true,
+            "listenersReason": null,
+            "reason": null,
+            "schemaVersion": 1,
+            "processes": [
+              {
+                "parentPid": 26964,
+                "token": {
+                  "integrityRid": 8192,
+                  "integrityLabel": "Medium",
+                  "isAppContainer": false,
+                  "reason": null
+                },
+                "executablePath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\bin-v3\\solo_soul.exe",
+                "packageFamilyName": {
+                  "value": null,
+                  "status": "unpackaged",
+                  "reason": null
+                },
+                "role": "root",
+                "version": {
+                  "fileVersion": "2.13.2",
+                  "productVersion": "2.13.2",
+                  "reason": null
+                },
+                "browserFlags": {
+                  "port": null,
+                  "userDataDirectoryMatched": null,
+                  "observedDirectory": null,
+                  "reason": "Not applicable to the host root process",
+                  "address": null
+                },
+                "pid": 14676,
+                "creationMs": 1790745555918,
+                "identityMatched": true
+              },
+              {
+                "parentPid": 14676,
+                "token": {
+                  "integrityRid": 8192,
+                  "integrityLabel": "Medium",
+                  "isAppContainer": false,
+                  "reason": null
+                },
+                "executablePath": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.37\\msedgewebview2.exe",
+                "packageFamilyName": {
+                  "value": null,
+                  "status": "unpackaged",
+                  "reason": null
+                },
+                "role": "browser",
+                "version": {
+                  "fileVersion": "154.0.4258.37",
+                  "productVersion": "154.0.4258.37",
+                  "reason": null
+                },
+                "browserFlags": {
+                  "port": 62537,
+                  "userDataDirectoryMatched": true,
+                  "observedDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\webview\\EBWebView",
+                  "reason": null,
+                  "address": "127.0.0.1"
+                },
+                "pid": 11288,
+                "creationMs": 1790745557204,
+                "identityMatched": true
+              }
+            ]
+          },
+          "cdp": {
+            "status": "no-owned-listener",
+            "attempted": false,
+            "expectedPort": 62537
+          },
+          "success": true,
+          "finishedAt": "2026-09-30T05:19:35.057Z"
+        },
+        {
+          "targetOffsetMs": 30000,
+          "observedAt": "2026-09-30T05:19:45.916Z",
+          "consumed": {
+            "pid": 14676,
+            "port": 62537,
+            "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001",
+            "runId": "e856c8da72ff428781ef315865c894ee",
+            "schemaVersion": 1,
+            "scope": "windows-native-perf-consumed"
+          },
+          "ownedSnapshot": {
+            "observedAt": "2026-09-30T05:19:46.935Z",
+            "collectionMs": 1017.0867999999973,
+            "workingSetBytes": 561127424,
+            "reason": null,
+            "userDataDirectoryMatches": true,
+            "browserDataChecks": [
+              {
+                "pid": 11288,
+                "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\webview",
+                "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\webview\\EBWebView",
+                "matchesExpected": true,
+                "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\webview\\EBWebView",
+                "reason": null
+              }
+            ],
+            "browserDataFilesystem": {
+              "valid": true,
+              "reason": null
+            },
+            "processCount": 8,
+            "processes": [
+              {
+                "pid": 14676,
+                "parentPid": 26964,
+                "creationMs": 1790745555918,
+                "executableName": "solo_soul.exe",
+                "workingSetBytes": 111316992,
+                "privateBytes": 51744768,
+                "cpuMs": 625,
+                "reason": null
+              },
+              {
+                "pid": 11288,
+                "parentPid": 14676,
+                "creationMs": 1790745557204,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 174604288,
+                "privateBytes": 74678272,
+                "cpuMs": 1562.5,
+                "reason": null
+              },
+              {
+                "pid": 25244,
+                "parentPid": 11288,
+                "creationMs": 1790745557563,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 20578304,
+                "privateBytes": 7843840,
+                "cpuMs": 46.875,
+                "reason": null
+              },
+              {
+                "pid": 34420,
+                "parentPid": 11288,
+                "creationMs": 1790745557250,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 10989568,
+                "privateBytes": 2580480,
+                "cpuMs": 15.625,
+                "reason": null
+              },
+              {
+                "pid": 40788,
+                "parentPid": 11288,
+                "creationMs": 1790745557523,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 80203776,
+                "privateBytes": 49242112,
+                "cpuMs": 515.625,
+                "reason": null
+              },
+              {
+                "pid": 17756,
+                "parentPid": 11288,
+                "creationMs": 1790745557527,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 44732416,
+                "privateBytes": 13033472,
+                "cpuMs": 171.875,
+                "reason": null
+              },
+              {
+                "pid": 26352,
+                "parentPid": 11288,
+                "creationMs": 1790745558401,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 25214976,
+                "privateBytes": 8204288,
+                "cpuMs": 62.5,
+                "reason": null
+              },
+              {
+                "pid": 22592,
+                "parentPid": 11288,
+                "creationMs": 1790745557667,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 93487104,
+                "privateBytes": 49111040,
+                "cpuMs": 468.75,
+                "reason": null
+              }
+            ]
+          },
+          "processDiagnostics": {
+            "mode": "live",
+            "listeners": [],
+            "liveQueriesPerformed": true,
+            "success": true,
+            "scope": "windows-native-perf-process-diagnostics",
+            "identityVerified": true,
+            "listenersReason": null,
+            "reason": null,
+            "schemaVersion": 1,
+            "processes": [
+              {
+                "parentPid": 26964,
+                "token": {
+                  "integrityRid": 8192,
+                  "integrityLabel": "Medium",
+                  "isAppContainer": false,
+                  "reason": null
+                },
+                "executablePath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\bin-v3\\solo_soul.exe",
+                "packageFamilyName": {
+                  "value": null,
+                  "status": "unpackaged",
+                  "reason": null
+                },
+                "role": "root",
+                "version": {
+                  "fileVersion": "2.13.2",
+                  "productVersion": "2.13.2",
+                  "reason": null
+                },
+                "browserFlags": {
+                  "port": null,
+                  "userDataDirectoryMatched": null,
+                  "observedDirectory": null,
+                  "reason": "Not applicable to the host root process",
+                  "address": null
+                },
+                "pid": 14676,
+                "creationMs": 1790745555918,
+                "identityMatched": true
+              },
+              {
+                "parentPid": 14676,
+                "token": {
+                  "integrityRid": 8192,
+                  "integrityLabel": "Medium",
+                  "isAppContainer": false,
+                  "reason": null
+                },
+                "executablePath": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.37\\msedgewebview2.exe",
+                "packageFamilyName": {
+                  "value": null,
+                  "status": "unpackaged",
+                  "reason": null
+                },
+                "role": "browser",
+                "version": {
+                  "fileVersion": "154.0.4258.37",
+                  "productVersion": "154.0.4258.37",
+                  "reason": null
+                },
+                "browserFlags": {
+                  "port": 62537,
+                  "userDataDirectoryMatched": true,
+                  "observedDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\webview\\EBWebView",
+                  "reason": null,
+                  "address": "127.0.0.1"
+                },
+                "pid": 11288,
+                "creationMs": 1790745557204,
+                "identityMatched": true
+              }
+            ]
+          },
+          "cdp": {
+            "status": "no-owned-listener",
+            "attempted": false,
+            "expectedPort": 62537
+          },
+          "success": true,
+          "finishedAt": "2026-09-30T05:19:50.172Z"
+        }
+      ],
+      "captureComplete": true,
+      "performanceMetrics": null,
+      "limitation": "One diagnostic run; no password input, UI action, or performance sample",
+      "sourceBefore": [
+        {
+          "path": "acc_rf312_100/config.json",
+          "bytes": 669,
+          "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+        },
+        {
+          "path": "acc_rf312_100/vault.db",
+          "bytes": 266240,
+          "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+        },
+        {
+          "path": "acc_rf312_100/vault.db.pre_enc.bak",
+          "bytes": 4096,
+          "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+        },
+        {
+          "path": "accounts.bak",
+          "bytes": 189,
+          "sha256": "1e86e48cf79510489a907415a8147ec92c4692b0a621cf6178487ccbc3f1aa02"
+        },
+        {
+          "path": "accounts.json",
+          "bytes": 189,
+          "sha256": "625ecbe50d1d2455df06b9050ad465e504b477c389de2aeeb2c4eafbc38482fa"
+        },
+        {
+          "path": "rf312-fixture.json",
+          "bytes": 667,
+          "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+        },
+        {
+          "path": "ui_preferences.json",
+          "bytes": 221,
+          "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+        }
+      ],
+      "prepare": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null
+      },
+      "owned": {
+        "appVersion": "2.13.2",
+        "fixture": {
+          "accountId": "acc_rf312_100",
+          "files": [
+            {
+              "relativePath": "acc_rf312_100\\config.json",
+              "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+            },
+            {
+              "relativePath": "acc_rf312_100\\vault.db",
+              "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+            },
+            {
+              "relativePath": "accounts.json",
+              "sha256": "cce006d9d63c0d487d226717313b6381711dbf8e3f04f9d2e443557d1cb6d4ac"
+            },
+            {
+              "relativePath": "rf312-fixture.json",
+              "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+            },
+            {
+              "relativePath": "ui_preferences.json",
+              "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+            }
+          ],
+          "marker": {
+            "accountId": "acc_rf312_100",
+            "accountName": "Performance Fixture",
+            "buildProfile": "release",
+            "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+            "expectedSearchMatches": 5,
+            "fixture": "deterministic-20th-object-property-match",
+            "generator": "solosoul-core/examples/perf_baseline",
+            "includesAttachments": false,
+            "includesOcrFixture": false,
+            "includesProfile": true,
+            "includesUiPreferences": true,
+            "kdf": {
+              "iterations": 3,
+              "memoryKiB": 65536,
+              "parallelism": 4
+            },
+            "objectCount": 100,
+            "schemaVersion": 1,
+            "scope": "synthetic-native-vault-fixture",
+            "searchQuery": "needle"
+          },
+          "objectCount": 100,
+          "searchMatches": 5
+        },
+        "fixtureSource": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100",
+        "identifier": "com.solosoul.rf312perf.e856c8da72ff428781ef315865c894ee",
+        "local": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.e856c8da72ff428781ef315865c894ee",
+        "nativePerfFeature": true,
+        "ownedPaths": [
+          "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001",
+          "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.e856c8da72ff428781ef315865c894ee",
+          "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.e856c8da72ff428781ef315865c894ee"
+        ],
+        "preparationStatus": "ready",
+        "profile": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\profile",
+        "roaming": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.e856c8da72ff428781ef315865c894ee",
+        "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001",
+        "runId": "e856c8da72ff428781ef315865c894ee",
+        "schemaVersion": 1,
+        "scope": "windows-native-perf-owned",
+        "vault": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\vault",
+        "webview": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-diagnostics-20260930-v2\\sample-001\\webview"
+      },
+      "port": 62537,
+      "processId": 14676,
+      "cleanup": {
+        "cleanup": [
+          {
+            "status": "already-exited",
+            "pid": 42256
+          },
+          {
+            "status": "terminated",
+            "pid": 26352
+          },
+          {
+            "status": "terminated",
+            "pid": 22592
+          },
+          {
+            "status": "terminated",
+            "pid": 25244
+          },
+          {
+            "status": "terminated",
+            "pid": 17756
+          },
+          {
+            "status": "terminated",
+            "pid": 40788
+          },
+          {
+            "status": "terminated",
+            "pid": 34420
+          },
+          {
+            "status": "terminated",
+            "pid": 11288
+          },
+          {
+            "status": "terminated",
+            "pid": 14676
+          }
+        ],
+        "unverifiedDescendants": false
+      },
+      "ownedProcessExit": {
+        "exitCode": 4294967295,
+        "signal": null,
+        "error": null
+      },
+      "cleanupIntegrity": {
+        "complete": true,
+        "reason": null
+      },
+      "sourceAfter": [
+        {
+          "path": "acc_rf312_100/config.json",
+          "bytes": 669,
+          "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+        },
+        {
+          "path": "acc_rf312_100/vault.db",
+          "bytes": 266240,
+          "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+        },
+        {
+          "path": "acc_rf312_100/vault.db.pre_enc.bak",
+          "bytes": 4096,
+          "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+        },
+        {
+          "path": "accounts.bak",
+          "bytes": 189,
+          "sha256": "1e86e48cf79510489a907415a8147ec92c4692b0a621cf6178487ccbc3f1aa02"
+        },
+        {
+          "path": "accounts.json",
+          "bytes": 189,
+          "sha256": "625ecbe50d1d2455df06b9050ad465e504b477c389de2aeeb2c4eafbc38482fa"
+        },
+        {
+          "path": "rf312-fixture.json",
+          "bytes": 667,
+          "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+        },
+        {
+          "path": "ui_preferences.json",
+          "bytes": 221,
+          "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+        }
+      ],
+      "sourceUnchanged": true,
+      "interrupted": false,
+      "finishedAt": "2026-09-30T05:19:51.964Z",
+      "success": true
+    }
+  },
+  "postExitProof": {
+    "queriedAt": "2026-09-30T05:23:27.4044806Z",
+    "scope": "Only previously recorded owned PID identities; no process termination",
+    "entries": [
+      {
+        "pid": 12676,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 36708,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 41860,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 764,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 14172,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 24816,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 26640,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 39900,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 15344,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 42256,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 26352,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 22592,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 25244,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 17756,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 40788,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 34420,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 11288,
+        "creationMs": null,
+        "status": "absent"
+      },
+      {
+        "pid": 14676,
+        "creationMs": null,
+        "status": "absent"
+      }
+    ]
+  },
+  "userBitmaps": [
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/header-install.bmp",
+      "sha256": "EBAFC6856B2BBD91902ED18E5D07564BE87C2F0127EB2E3C744200485C70BB22",
+      "unchanged": true
+    },
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp",
+      "sha256": "61AA19110AD51B20807F21B0BC8C77ED01033D89EC68089ACFE15978FA2C46CC",
+      "unchanged": true
+    },
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp",
+      "sha256": "D5582B57B0E0FB1B075104F6FB194B0902F576F9A05CFC998FC67D0372183F9C",
+      "unchanged": true
+    }
+  ],
+  "conclusions": [
+    "TEMP extended prefix causally reproduced C# compile failure; equivalent owned ordinary path fixed the helper only",
+    "Three complete live observations: root/browser Medium RID8192, not AppContainer, unpackaged, actual WebView2 version154.0.4258.37",
+    "Browser remote-debugging port62537 and address127.0.0.1 present; exact owned EBWebView matched; successful listener queries returned none",
+    "No CDP endpoint request attempted without a verified listener; zero GUI actions or password input",
+    "Diagnostic exit0 means capture/source-integrity/cleanup complete, not successful performance or CDP/UI acceptance"
+  ],
+  "limitations": [
+    "Installed Runtime regression remains a candidate, not proven by this run",
+    "No Chromium debug log, controlled alternate Runtime comparison, or successful CDP attach",
+    "No GUI metrics, 5000-object GUI workflow, OCR/preview, system sleep, warm-profile comparison, macOS/Android or memory peak",
+    "RF-312 remains pending validation; report closed count remains207/248"
+  ],
+  "postRunFormatting": {
+    "path": "tauri/scripts/native-perf-process-diagnostics.ps1",
+    "beforeSha256": "C1C92D8875A384E3B99F19597D4BE3A257EDC92DB644BC641E734B1AB1BCD7B5",
+    "afterSha256": "0738A362D26E40A51D0C69F92160C988515A98333984024B7036416E90098B5C",
+    "method": "Remove new blank line at EOF only; ReadAllText.TrimEnd exact content equality verified",
+    "finalOfflineSelfTest": {
+      "sha256": "0738A362D26E40A51D0C69F92160C988515A98333984024B7036416E90098B5C",
+      "exitCode": 0,
+      "result": {
+        "mode": "self-test",
+        "clrVersion": "4.0.30319.42000",
+        "processes": [],
+        "listeners": [],
+        "compiled": true,
+        "success": true,
+        "scope": "windows-native-perf-process-diagnostics",
+        "liveQueriesPerformed": false,
+        "powerShellVersion": "5.1.26100.8875",
+        "reason": null,
+        "schemaVersion": 1,
+        "assertionsPassed": 16
+      }
+    }
+  }
+}

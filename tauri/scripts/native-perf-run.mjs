@@ -528,7 +528,7 @@ async function processQuery(expected, action = 'sample', known = []) {
   }
 }
 
-class OwnedProcess {
+export class OwnedProcess {
   constructor(child, exe, startedAt, webview) {
     this.child = child;
     this.expected = { pid: child.pid, exe, startedAt, webview };
@@ -648,7 +648,7 @@ export function cleanupOutcome(cleanup, exit) {
   };
 }
 
-function startChild(exe, args, env) {
+export function startChild(exe, args, env) {
   // stdio 不捕获：产品日志可能包含内容；退出码和失败阶段另存 JSON。
   const child = spawn(exe, args, { windowsHide: true, shell: false, stdio: 'ignore', env });
   const completion = new Promise((resolve) => {
@@ -660,7 +660,7 @@ function startChild(exe, args, env) {
   return { child, completion };
 }
 
-function deadline(promise, ms, description) {
+export function deadline(promise, ms, description) {
   let timer;
   return Promise.race([
     promise,
@@ -673,7 +673,7 @@ function deadline(promise, ms, description) {
   ]).finally(() => clearTimeout(timer));
 }
 
-async function unusedPort() {
+export async function unusedPort() {
   const server = net.createServer();
   await new Promise((resolve, reject) => {
     server.once('error', reject);
@@ -686,13 +686,13 @@ async function unusedPort() {
   return port;
 }
 
-async function sha256(file) {
+export async function sha256(file) {
   const hash = createHash('sha256');
   for await (const chunk of createReadStream(file)) hash.update(chunk);
   return hash.digest('hex');
 }
 
-async function newJson(file, value) {
+export async function newJson(file, value) {
   await writeFile(file, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
 }
 
