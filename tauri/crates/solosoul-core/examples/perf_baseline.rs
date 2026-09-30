@@ -1,5 +1,9 @@
 //! RF-312: 隔离临时 Vault 的原生后端基线；不访问用户数据目录。
 //! cargo run -p solosoul-core --release --example perf_baseline -- --objects 100 --samples 10
+//! --fixture-output <绝对新目录> 只准备持久化数据；--verify-fixture <目录> 独立重开验证。
+
+#[path = "perf_baseline/fixture.rs"]
+mod fixture;
 
 use solosoul_core::VaultService;
 use solosoul_vault::ObjectRecord;
@@ -111,6 +115,9 @@ where
 }
 
 fn run() -> Result<serde_json::Value, String> {
+    if let Some(result) = fixture::run_if_requested() {
+        return result;
+    }
     let object_count = arg_usize("--objects", 100)?;
     let sample_count = arg_usize("--samples", 10)?;
     let kdf = solosoul_crypto::KdfConfig::from_env();
@@ -205,14 +212,15 @@ fn main() {
     match run() {
         Ok(result) => {
             println!("{result}");
-            if [
-                "accountCatalogLoad",
-                "unlock",
-                "listMetadata",
-                "searchDecrypted",
-            ]
-            .iter()
-            .any(|key| result[key]["failureCount"].as_u64().unwrap_or(1) > 0)
+            if result["scope"] == "native-vault-backend-only"
+                && [
+                    "accountCatalogLoad",
+                    "unlock",
+                    "listMetadata",
+                    "searchDecrypted",
+                ]
+                .iter()
+                .any(|key| result[key]["failureCount"].as_u64().unwrap_or(1) > 0)
             {
                 std::process::exit(1);
             }

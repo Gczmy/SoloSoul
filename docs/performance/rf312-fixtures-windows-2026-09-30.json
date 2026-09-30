@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "phase": "persistent synthetic fixture preparation",
+  "date": "2026-09-30",
+  "gitBase": "fae229ae",
+  "platform": "Windows x86_64",
+  "rustVersion": "1.96.0",
+  "buildProfile": "release",
+  "defaultFeatures": false,
+  "executableSha256": "3535760ed5127800fe095da42157e1a7e58911b2cfe909a030ecbfe0203262a8",
+  "sourceHashes": [
+    {
+      "path": "tauri/crates/solosoul-core/examples/perf_baseline.rs",
+      "sha256": "026850e40f5aede091ef581470bbe822dec3c54716ac267e96627e6bca3995d3"
+    },
+    {
+      "path": "tauri/crates/solosoul-core/examples/perf_baseline/fixture.rs",
+      "sha256": "1ddcc8ba765ae8a40954d0596b788629f1160d9ee3428cf3bf8e598316b3108d"
+    }
+  ],
+  "fixtures": [
+    {
+      "objectCount": 100,
+      "generationExit": 0,
+      "verificationExit": 0,
+      "generationManifest": {
+        "accountId": "acc_rf312_100",
+        "accountName": "Performance Fixture",
+        "buildProfile": "release",
+        "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+        "expectedSearchMatches": 5,
+        "fixture": "deterministic-20th-object-property-match",
+        "generator": "solosoul-core/examples/perf_baseline",
+        "includesAttachments": false,
+        "includesOcrFixture": false,
+        "includesProfile": true,
+        "includesUiPreferences": true,
+        "kdf": {
+          "iterations": 3,
+          "memoryKiB": 65536,
+          "parallelism": 4
+        },
+        "objectCount": 100,
+        "schemaVersion": 1,
+        "scope": "synthetic-native-vault-fixture",
+        "searchQuery": "needle"
+      },
+      "generationChecks": {
+        "accountCount": 1,
+        "accountId": "acc_rf312_100",
+        "objectCount": 100,
+        "objectIdsVerified": true,
+        "profileVerified": true,
+        "scope": "synthetic-fixture-reopen-verification",
+        "searchMatches": 5,
+        "searchResultIdsVerified": true,
+        "success": true,
+        "uiPreferencesVerified": true
+      },
+      "independentReopenChecks": {
+        "accountCount": 1,
+        "accountId": "acc_rf312_100",
+        "objectCount": 100,
+        "objectIdsVerified": true,
+        "profileVerified": true,
+        "scope": "synthetic-fixture-reopen-verification",
+        "searchMatches": 5,
+        "searchResultIdsVerified": true,
+        "success": true,
+        "uiPreferencesVerified": true
+      },
+      "configSha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f",
+      "vaultDbSha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+    },
+    {
+      "objectCount": 5000,
+      "generationExit": 0,
+      "verificationExit": 0,
+      "generationManifest": {
+        "accountId": "acc_rf312_5000",
+        "accountName": "Performance Fixture",
+        "buildProfile": "release",
+        "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+        "expectedSearchMatches": 250,
+        "fixture": "deterministic-20th-object-property-match",
+        "generator": "solosoul-core/examples/perf_baseline",
+        "includesAttachments": false,
+        "includesOcrFixture": false,
+        "includesProfile": true,
+        "includesUiPreferences": true,
+        "kdf": {
+          "iterations": 3,
+          "memoryKiB": 65536,
+          "parallelism": 4
+        },
+        "objectCount": 5000,
+        "schemaVersion": 1,
+        "scope": "synthetic-native-vault-fixture",
+        "searchQuery": "needle"
+      },
+      "generationChecks": {
+        "accountCount": 1,
+        "accountId": "acc_rf312_5000",
+        "objectCount": 5000,
+        "objectIdsVerified": true,
+        "profileVerified": true,
+        "scope": "synthetic-fixture-reopen-verification",
+        "searchMatches": 250,
+        "searchResultIdsVerified": true,
+        "success": true,
+        "uiPreferencesVerified": true
+      },
+      "independentReopenChecks": {
+        "accountCount": 1,
+        "accountId": "acc_rf312_5000",
+        "objectCount": 5000,
+        "objectIdsVerified": true,
+        "profileVerified": true,
+        "scope": "synthetic-fixture-reopen-verification",
+        "searchMatches": 250,
+        "searchResultIdsVerified": true,
+        "success": true,
+        "uiPreferencesVerified": true
+      },
+      "configSha256": "38e6cc3ee6e51f967f35fc722625adca73d109a201ae29203e6e7a950943a580",
+      "vaultDbSha256": "7316e2db11bc7ef3087668a64ca4a4faac28f5e754ff556d2769381c0bf7ad85"
+    }
+  ],
+  "negativeCases": [
+    {
+      "case": "existing-directory",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "message": "perf baseline failed: cannot create new fixture directory: Cannot create a file when that file already exists. (os error 183)"
+    },
+    {
+      "case": "existing-file",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "message": "perf baseline failed: cannot create new fixture directory: Cannot create a file when that file already exists. (os error 183)"
+    },
+    {
+      "case": "relative-output",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "message": "perf baseline failed: --fixture-output requires an absolute new directory"
+    },
+    {
+      "case": "invalid-count",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "message": "perf baseline failed: fixture --objects must be 100 or 5000"
+    },
+    {
+      "case": "conflicting-modes",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "message": "perf baseline failed: use --fixture-output [--objects 100|5000] or --verify-fixture alone"
+    },
+    {
+      "case": "missing-database",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "message": "perf baseline failed: missing fixture path \\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\missing-database\\acc_rf312_100\\vault.db: The system cannot find the file specified. (os error 2)"
+    },
+    {
+      "case": "junction-verification",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "message": "perf baseline failed: fixture path is not a regular directory: C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\fixture-junction"
+    },
+    {
+      "case": "junction-generation",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "message": "perf baseline failed: cannot create new fixture directory: Cannot create a file when that file already exists. (os error 183)"
+    }
+  ],
+  "validFixtureHashesUnchangedDuringNegativeCases": true,
+  "existingGuardFileHashUnchanged": true,
+  "missingDatabaseNotRecreated": true,
+  "temporaryMode": {
+    "exit": 0,
+    "result": {
+      "accountCatalogLoad": {
+        "failureCount": 0,
+        "maxMs": 0.2096,
+        "medianMs": 0.1867,
+        "minMs": 0.1638,
+        "p95Ms": 0.2096,
+        "samples": [
+          {
+            "ms": 0.2096,
+            "resultCount": 1
+          },
+          {
+            "ms": 0.1638,
+            "resultCount": 1
+          }
+        ]
+      },
+      "arch": "x86_64",
+      "buildProfile": "release",
+      "fixture": "deterministic-20th-object-property-match",
+      "kdf": {
+        "iterations": 3,
+        "memoryKiB": 65536,
+        "parallelism": 4
+      },
+      "listMetadata": {
+        "failureCount": 0,
+        "maxMs": 0.20320000000000002,
+        "medianMs": 0.20290000000000002,
+        "minMs": 0.2026,
+        "p95Ms": 0.20320000000000002,
+        "samples": [
+          {
+            "ms": 0.2026,
+            "resultCount": 100
+          },
+          {
+            "ms": 0.20320000000000002,
+            "resultCount": 100
+          }
+        ]
+      },
+      "objectCount": 100,
+      "platform": "windows",
+      "sampleCount": 2,
+      "schemaVersion": 1,
+      "scope": "native-vault-backend-only",
+      "searchDecrypted": {
+        "failureCount": 0,
+        "maxMs": 0.7136,
+        "medianMs": 0.7116,
+        "minMs": 0.7096,
+        "p95Ms": 0.7136,
+        "samples": [
+          {
+            "ms": 0.7136,
+            "resultCount": 5
+          },
+          {
+            "ms": 0.7096,
+            "resultCount": 5
+          }
+        ]
+      },
+      "unlock": {
+        "failureCount": 0,
+        "maxMs": 152.4315,
+        "medianMs": 151.7443,
+        "minMs": 151.0571,
+        "p95Ms": 152.4315,
+        "samples": [
+          {
+            "ms": 151.0571,
+            "resultCount": 1
+          },
+          {
+            "ms": 152.4315,
+            "resultCount": 1
+          }
+        ]
+      }
+    },
+    "temporaryDirectoryRemoved": true
+  },
+  "checks": {
+    "exampleCargoCheckExit": 0,
+    "exampleClippyExit": 0,
+    "workspaceRustfmtExit": 0
+  },
+  "limitations": [
+    "Data preparation and real Rust backend verification only; no native GUI performance samples",
+    "No OCR or attachment fixture",
+    "Unrelated pre-existing working-tree changes preserved",
+    "GUI logging/import cleanup and plugin storage still require separate native test isolation"
+  ]
+}
