@@ -22,6 +22,7 @@ const READY_FILE: &str = "native-perf-ready.json";
 const CONSUMED_FILE: &str = "native-perf-consumed.json";
 const CHROMIUM_LOG_MARKER: &str = "native-perf-chromium-log.json";
 const CHROMIUM_LOG_NAME: &str = "chromium-diagnostics.log";
+const ORDINARY_TMP_MARKER: &str = "native-perf-ordinary-tmp.json";
 const IDENTIFIER_PREFIX: &str = "com.solosoul.rf312perf.";
 const CHILD_DIRS: &[&str] = &[
     "app-data",
@@ -67,6 +68,60 @@ impl RuntimeConfig {
         format!(
             "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection {}",
             self.remote_arguments()
+        )
+    }
+
+    fn ordinary_owned_temp(&self) -> Result<PathBuf, String> {
+        let expected = self.root.join("temp");
+        let actual = checked_dir(&expected)?;
+        if actual != expected {
+            return Err("ordinary TMP requires the exact owned canonical TEMP directory".into());
+        }
+        let text = actual.to_str().ok_or("ordinary TMP requires Unicode")?;
+        let ordinary = PathBuf::from(text.strip_prefix(r"\\?\").unwrap_or(text));
+        if !ordinary.is_absolute()
+            || !matches!(ordinary.components().next(), Some(std::path::Component::Prefix(prefix)) if matches!(prefix.kind(), std::path::Prefix::Disk(_)))
+            || checked_dir(&ordinary)? != actual
+        {
+            return Err("ordinary TMP requires an equivalent ordinary local drive path".into());
+        }
+        Ok(ordinary)
+    }
+
+    fn record_ordinary_tmp(
+        &self,
+        temp: &std::ffi::OsStr,
+        tmp: &std::ffi::OsStr,
+        profile: &std::ffi::OsStr,
+        webview: &std::ffi::OsStr,
+    ) -> Result<(), String> {
+        if self.chromium_log.is_none() {
+            return Err("ordinary TMP is diagnostic only and requires Chromium logging".into());
+        }
+        let expected_temp = self.root.join("temp");
+        let expected_tmp = self.ordinary_owned_temp()?;
+        let expected_profile = self.root.join("profile");
+        if temp != expected_temp.as_os_str()
+            || tmp != expected_tmp.as_os_str()
+            || profile != expected_profile.as_os_str()
+            || webview != self.webview.as_os_str()
+            || checked_dir(&expected_profile)? != expected_profile
+            || checked_dir(&self.webview)? != self.webview
+        {
+            return Err(
+                "ordinary TMP diagnostic must preserve exact TEMP/profile/WebView values".into(),
+            );
+        }
+        // 只记录这个新进程实际设置后的值，不能将申请值当作环境证据。
+        write_new_json(
+            &self.root.join(ORDINARY_TMP_MARKER),
+            &json!({
+                "schemaVersion": 1, "scope": "windows-native-perf-ordinary-tmp",
+                "mode": "ordinary-tmp", "performanceSample": false,
+                "root": self.root, "runId": self.run_id, "pid": std::process::id(),
+                "port": self.port, "temp": Path::new(temp), "tmp": Path::new(tmp),
+                "userProfile": Path::new(profile), "webview": Path::new(webview),
+            }),
         )
     }
 
@@ -140,6 +195,7 @@ enum Mode {
         root: PathBuf,
         port: u16,
         chromium_log: bool,
+        ordinary_tmp: bool,
     },
 }
 
@@ -198,6 +254,7 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
         root,
         port,
         chromium_log,
+        ordinary_tmp,
     } = mode
     else {
         return Err("prepare mode must exit before configuring a GUI runtime".into());
@@ -207,6 +264,9 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
     if chromium_log {
         config.enable_chromium_diagnostics()?;
     }
+    let ordinary_tmp = ordinary_tmp
+        .then(|| config.ordinary_owned_temp())
+        .transpose()?;
     // 仅修改此新进程的环境，不修改系统环境或 Registry。路径均已完成预检。
     std::env::set_var("SOLOSOUL_DATA_DIR", &config.vault);
     std::env::set_var("USERPROFILE", config.root.join("profile"));
@@ -218,7 +278,21 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
         config.remote_arguments(),
     );
     std::env::set_var("TEMP", config.root.join("temp"));
-    std::env::set_var("TMP", config.root.join("temp"));
+    std::env::set_var(
+        "TMP",
+        ordinary_tmp
+            .clone()
+            .unwrap_or_else(|| config.root.join("temp")),
+    );
+    if ordinary_tmp.is_some() {
+        config.record_ordinary_tmp(
+            &std::env::var_os("TEMP").ok_or("native TEMP is missing")?,
+            &std::env::var_os("TMP").ok_or("native TMP is missing")?,
+            &std::env::var_os("USERPROFILE").ok_or("native USERPROFILE is missing")?,
+            &std::env::var_os("WEBVIEW2_USER_DATA_FOLDER")
+                .ok_or("native WebView directory is missing")?,
+        )?;
+    }
     std::env::remove_var("SOLOSOUL_REGISTRY_PUBKEY");
     RUNTIME
         .set(config.clone())
@@ -257,6 +331,7 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
     let mut input_fixture = None;
     let mut port = None;
     let mut chromium_log = false;
+    let mut ordinary_tmp = false;
     let mut index = 0;
     while index < args.len() {
         let flag = args[index]
@@ -283,16 +358,20 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
                         .ok_or("native-perf port must be an integer between 1024 and 65535")?,
                 );
             }
-            "--native-perf-diagnostics" if !chromium_log && value == "chromium-log" => {
+            "--native-perf-diagnostics"
+                if !chromium_log
+                    && (value == "chromium-log" || value == "chromium-log-ordinary-tmp") =>
+            {
                 chromium_log = true;
+                ordinary_tmp = value == "chromium-log-ordinary-tmp";
             }
             _ => return Err(format!("unknown or duplicate native-perf option: {flag}")),
         }
         index += 2;
     }
-    match (prepare_root, input_fixture, run_root, port, chromium_log) {
-        (Some(root), Some(fixture), None, None, false) => Ok(Mode::Prepare { root, fixture }),
-        (None, None, Some(root), Some(port), chromium_log) => Ok(Mode::Run { root, port, chromium_log }),
+    match (prepare_root, input_fixture, run_root, port, chromium_log, ordinary_tmp) {
+        (Some(root), Some(fixture), None, None, false, false) => Ok(Mode::Prepare { root, fixture }),
+        (None, None, Some(root), Some(port), chromium_log, ordinary_tmp) => Ok(Mode::Run { root, port, chromium_log, ordinary_tmp }),
         _ => Err("use --native-perf-prepare <new-root> --fixture <fixture> or --native-perf-root <prepared-root> --native-perf-port <port>; no defaults".into()),
     }
 }

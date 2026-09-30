@@ -121,7 +121,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 - 任务总数：**249**（P1：49；P2：199；P3：1）。
 - 已关闭：**208 / 249**；实际修复（已关闭）：208；排除：0；待验证/阻塞：13（7项授权阻塞，RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无；RF-1059完成，RF-312仍缺CDP监听与多端实测。其他依赖/授权阻塞保持。
+- 当前处理：无；RF-312单变量TMP诊断完成，两轮均无CDP监听，仍待成功UI/多端性能验收。其他依赖/授权阻塞保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -5480,3 +5480,11 @@ git commit -m "<任务卡的提交标题>"
 - 100对象新标识/profile单轮原生日志诊断exit0、3/3完整；1,370字节日志不再包含此前三条CSP拒绝/fetch失败/fallback，但CDP仍无owned监听，没有HTTP/CDP、密码或UI行程，性能指标为null。10个记录PID收尾只读CIM全已不存在；公开源7文件与用户3张NSIS图片SHA保持。首次EXE复制预检因UTC/本地DateTime比较误拒，修正为UtcDateTime后SHA确认新程序；初次ENOENT没有启动GUI，证据保留。
 - [完整验证与原生前后记录](verification/rf1059-windows-local-ipc-csp-2026-09-30.json)和[性能记录中的本项复验](performance/RF-312-windows-native-app-baseline.md)说明口径与限制。独立复审通过；各平台继承检查不替代macOS/Android/iOS原生IPC、nonce/hash产物验收，不恢复未经observer核验的IPC次数。
 - 本项完成并独立提交（本提交，以RF-1059检索），不推送，不暂存用户改动；当前208/249已关闭，13待验证/阻塞，28待执行。RF-312继续[!]，CSP修复未解释CDP无监听；七项生产授权与平台/远端CI缺口保持。
+
+### RF-312 阶段执行记录（2026-09-30，原生TMP路径表示对照完成）
+
+- 基线`064e0ee3`。新增显式`--ordinary-native-tmp`且必须同时启用Chromium日志；严格原生run mode、旧EXE streaming预检、每次观察前实际环境marker核验保持。仅将owned TMP转换为同目录普通本地绝对路径，TEMP/profile/UDF和browser flags生成规则不变；默认与原日志模式保持，不接纳诊断为性能样本。
+- 首次Rust12项为5 passed/7 failed、exit1：既有准备失败用例提前仅记录2条owned路径，6项随后因锁poison失败，底层早退原因未被旧断言返回且仍未确认。代码与断言未改、范围未减，精确复测1 passed，完整复测12 passed/0 failed、exit0（6.77s）；原失败原文存入证据。Node56 passed/0 failed/0 skipped（23诊断+24 runner+9 observer），syntax/Prettier/fmt/native全target Clippy通过。首次根目录fmt因无Cargo.toml退出1，改至tauri正确目录且仅格式化本项两个Rust文件后通过，不将错误命令记为成功。
+- 专用Release exit0，Rust20m24s、前置TypeScript/Vite通过。新EXE SHA`6E402CD773E4C0845E60DE9D1CAEE373D4309BAA43D84A77D557B9C034035E7F`；95项公开资源SHA与既有清单一致，源码freeze一致。顺序两轮各3次现场记录完整、exit0，实际Runtime均154.0.4258.37；同一EXE/资源/公开100对象，fresh root/profile/runId/port作为必要运行差异，只有受控TMP表示改变。两轮均无owned CDP监听，未发送HTTP/CDP或输入密码/UI，指标null；不把诊断exit0写成连通或性能通过。
+- 新标记证明主进程设置后的TEMP/TMP/USERPROFILE/UDF值，不直接证明browser继承或使用TMP；两轮普通temp根均96字符。本轮TMP表示改变未恢复监听，不能排除直接读取TEMP的组件、其他路径入口、Runtime行为或所有嵌套路径问题。后续受控Runtime选择仍未实施，本轮未下载/复制Runtime或改默认Runtime/Registry。
+- 20条记录PID在收尾fresh CIM均不存在，源两档14文件和用户3张NSIS图片SHA保持。[复跑与结论](performance/RF-312-windows-native-app-baseline.md)及[完整结构化证据](performance/rf312-windows-ordinary-tmp-2026-09-30.json)保存首轮失败、复测、两轮raw记录/日志及全部SHA。本阶段独立提交（本提交，以RF-312检索），不推送、不暂存用户修改；RF-312继续[!]，208/249已关闭、13待验证/阻塞、28待执行保持。

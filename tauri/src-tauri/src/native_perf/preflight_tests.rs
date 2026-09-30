@@ -384,3 +384,168 @@ fn native_perf_chromium_log_rejects_preexisting_file_and_redirected_temp() {
         assert!(!config.root.join(CHROMIUM_LOG_MARKER).exists());
     }
 }
+
+#[test]
+fn native_perf_ordinary_tmp_is_explicit_logging_run_only() {
+    for bad in [
+        args(&[
+            "--native-perf-prepare",
+            "C:/new",
+            "--fixture",
+            "C:/fixture",
+            "--native-perf-diagnostics",
+            "chromium-log-ordinary-tmp",
+        ]),
+        args(&[
+            "--native-perf-root",
+            "C:/new",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-diagnostics",
+            "ordinary-tmp",
+        ]),
+        args(&[
+            "--native-perf-root",
+            "C:/new",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-diagnostics",
+            "chromium-log-ordinary-tmp",
+            "--native-perf-diagnostics",
+            "chromium-log",
+        ]),
+    ] {
+        assert!(parse_args(&bad).is_err());
+    }
+    assert!(matches!(
+        parse_args(&args(&[
+            "--native-perf-root",
+            "C:/new",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-diagnostics",
+            "chromium-log-ordinary-tmp"
+        ])),
+        Ok(Mode::Run {
+            chromium_log: true,
+            ordinary_tmp: true,
+            ..
+        })
+    ));
+    for values in [
+        args(&["--native-perf-root", "C:/new", "--native-perf-port", "9222"]),
+        args(&[
+            "--native-perf-root",
+            "C:/new",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-diagnostics",
+            "chromium-log",
+        ]),
+    ] {
+        assert!(matches!(
+            parse_args(&values),
+            Ok(Mode::Run {
+                ordinary_tmp: false,
+                ..
+            })
+        ));
+    }
+}
+
+#[test]
+fn native_perf_ordinary_tmp_records_exact_paths_and_refuses_reuse_or_aliases() {
+    let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+    let work = tempfile::tempdir().unwrap();
+    let source = source(work.path());
+    let folders = folders(work.path());
+    let output = work.path().join("ordinary-tmp-run");
+    prepare(&output, &source, &folders).unwrap();
+    let mut config = consume(&output, free_port(), &folders).unwrap();
+    let temp = config.root.join("temp");
+    let tmp = config.ordinary_owned_temp().unwrap();
+    let profile = config.root.join("profile");
+    assert_eq!(tmp.canonicalize().unwrap(), temp);
+    assert!(!tmp.to_string_lossy().starts_with(r"\\?\"));
+    assert!(config
+        .record_ordinary_tmp(
+            temp.as_os_str(),
+            tmp.as_os_str(),
+            profile.as_os_str(),
+            config.webview.as_os_str()
+        )
+        .is_err());
+    config.enable_chromium_diagnostics().unwrap();
+    // 等价但不同表示的 TEMP 或 extended TMP 均拒绝，避免同时改变第二个变量。
+    for (actual_temp, actual_tmp, actual_profile, actual_webview) in [
+        (&tmp, &tmp, &profile, &config.webview),
+        (&temp, &temp, &profile, &config.webview),
+        (
+            &temp,
+            &work.path().join("outside"),
+            &profile,
+            &config.webview,
+        ),
+        (&temp, &tmp, &config.root, &config.webview),
+        (&temp, &tmp, &profile, &config.root),
+    ] {
+        assert!(config
+            .record_ordinary_tmp(
+                actual_temp.as_os_str(),
+                actual_tmp.as_os_str(),
+                actual_profile.as_os_str(),
+                actual_webview.as_os_str()
+            )
+            .is_err());
+        assert!(!config.root.join(ORDINARY_TMP_MARKER).exists());
+    }
+    config
+        .record_ordinary_tmp(
+            temp.as_os_str(),
+            tmp.as_os_str(),
+            profile.as_os_str(),
+            config.webview.as_os_str(),
+        )
+        .unwrap();
+    let marker = read_json(&config.root.join(ORDINARY_TMP_MARKER)).unwrap();
+    assert_eq!(marker["scope"], "windows-native-perf-ordinary-tmp");
+    assert_eq!(marker["runId"], config.run_id);
+    assert_eq!(marker["pid"], std::process::id());
+    assert_eq!(marker["port"], config.port);
+    assert_eq!(marker["performanceSample"], false);
+    assert_eq!(marker["temp"], json!(temp));
+    assert_eq!(marker["tmp"], json!(tmp));
+    assert_eq!(marker["userProfile"], json!(profile));
+    assert_eq!(marker["webview"], json!(config.webview));
+    let before = fs::read(config.root.join(ORDINARY_TMP_MARKER)).unwrap();
+    assert!(config
+        .record_ordinary_tmp(
+            temp.as_os_str(),
+            tmp.as_os_str(),
+            profile.as_os_str(),
+            config.webview.as_os_str()
+        )
+        .is_err());
+    assert_eq!(
+        fs::read(config.root.join(ORDINARY_TMP_MARKER)).unwrap(),
+        before
+    );
+}
+
+#[test]
+fn native_perf_ordinary_tmp_rejects_redirected_directory() {
+    let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+    let work = tempfile::tempdir().unwrap();
+    let source = source(work.path());
+    let folders = folders(work.path());
+    let output = work.path().join("ordinary-tmp-junction");
+    prepare(&output, &source, &folders).unwrap();
+    let config = consume(&output, free_port(), &folders).unwrap();
+    let outside = work.path().join("outside-temp");
+    fs::create_dir(&outside).unwrap();
+    fs::remove_dir(config.root.join("temp")).unwrap(); // 只删除本用例新建的空目录。
+    junction(&config.root.join("temp"), &outside);
+    assert!(config.ordinary_owned_temp().is_err());
+    assert!(!config.root.join(ORDINARY_TMP_MARKER).exists());
+    assert_eq!(fs::read_dir(outside).unwrap().count(), 0);
+}

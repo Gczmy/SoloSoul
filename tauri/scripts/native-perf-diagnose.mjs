@@ -27,15 +27,22 @@ import {
 const execFileAsync = promisify(execFile);
 const helper = fileURLToPath(new URL('./native-perf-process-diagnostics.ps1', import.meta.url));
 const HELP =
-  'Usage: node scripts/native-perf-diagnose.mjs --exe ABS --fixture ABS --output NEW_ABS [--chromium-log]\nWindows only; one isolated synthetic run, three live observations. No password/UI actions or performance metrics.';
+  'Usage: node scripts/native-perf-diagnose.mjs --exe ABS --fixture ABS --output NEW_ABS [--chromium-log [--ordinary-native-tmp]]\nWindows only; one isolated synthetic run, three live observations. No password/UI actions or performance metrics.';
 
 export function parseDiagnosticArgs(args) {
   if (args.length === 1 && args[0] === '--help') return { help: true };
   const allowed = new Set(['--exe', '--fixture', '--output']);
   const values = {};
   let logging = false;
+  let ordinaryTmp = false;
   for (let i = 0; i < args.length; ) {
     const key = args[i];
+    if (key === '--ordinary-native-tmp') {
+      if (ordinaryTmp) throw new Error('Duplicate --ordinary-native-tmp');
+      ordinaryTmp = true;
+      i++;
+      continue;
+    }
     if (key === '--chromium-log') {
       if (logging) throw new Error('Duplicate --chromium-log');
       logging = true;
@@ -56,23 +63,41 @@ export function parseDiagnosticArgs(args) {
   if (Object.keys(values).length !== 3) throw new Error('Missing required diagnostic options');
   if (path.parse(values.output).root === values.output)
     throw new Error('--output cannot be a filesystem root');
-  return logging ? { ...values, logging: true } : values;
+  if (ordinaryTmp && !logging)
+    throw new Error('--ordinary-native-tmp requires explicit --chromium-log');
+  return { ...values, ordinaryTmp, ...(logging ? { logging: true } : {}) };
 }
 
-export async function chromiumLogBinaryPreflight(exe) {
-  const marker = Buffer.from('windows-native-perf-chromium-log', 'ascii');
+async function diagnosticFeaturePreflight(exe, markerText, method, message) {
+  const marker = Buffer.from(markerText, 'ascii');
   let overlap = Buffer.alloc(0);
   for await (const chunk of createReadStream(exe, { highWaterMark: 64 * 1024 })) {
     const window = Buffer.concat([overlap, chunk]);
     if (window.includes(marker))
       return {
-        method: 'streaming-logging-feature-marker',
+        method,
         limitation: 'Excludes old native-perf builds; not a signature or trust guarantee',
       };
     overlap = Buffer.from(window.subarray(Math.max(0, window.length - marker.length + 1)));
   }
-  throw new Error(
+  throw new Error(message);
+}
+
+export function chromiumLogBinaryPreflight(exe) {
+  return diagnosticFeaturePreflight(
+    exe,
+    'windows-native-perf-chromium-log',
+    'streaming-logging-feature-marker',
     'Chromium logging requires a rebuilt native-perf EXE with its logging feature marker',
+  );
+}
+
+export function ordinaryTmpBinaryPreflight(exe) {
+  return diagnosticFeaturePreflight(
+    exe,
+    'windows-native-perf-ordinary-tmp',
+    'streaming-ordinary-tmp-feature-marker',
+    'Ordinary native TMP requires a rebuilt native-perf EXE with its ordinary-TMP feature marker',
   );
 }
 
@@ -96,6 +121,71 @@ export function checkLoggingMarker(value, owned, rootPid, port) {
   )
     throw new Error('Chromium log marker does not identify this exact owned diagnostic path/run');
   return value;
+}
+
+function ordinaryLocalDrivePath(value) {
+  return (
+    typeof value === 'string' &&
+    /^[A-Za-z]:\\/.test(value) &&
+    path.win32.isAbsolute(value) &&
+    path.win32.normalize(value) === value
+  );
+}
+
+export function checkOrdinaryTmpMarker(value, owned, rootPid, port) {
+  // TEMP/profile/UDF 必须保留原始 canonical 表示，仅 TMP 去除扩展前缀。
+  if (
+    typeof owned?.root !== 'string' ||
+    !owned.root.startsWith('\\\\?\\') ||
+    !ordinaryLocalDrivePath(owned.root.slice(4))
+  )
+    throw new Error('Ordinary TMP requires the exact owned canonical local-drive root');
+  const expectedTemp = path.win32.join(owned.root, 'temp');
+  const expectedProfile = path.win32.join(owned.root, 'profile');
+  if (
+    value?.schemaVersion !== 1 ||
+    value.scope !== 'windows-native-perf-ordinary-tmp' ||
+    value.mode !== 'ordinary-tmp' ||
+    value.performanceSample !== false ||
+    !/^[a-f0-9]{32}$/.test(owned.runId ?? '') ||
+    value.runId !== owned.runId ||
+    !Number.isInteger(rootPid) ||
+    rootPid < 1 ||
+    value.pid !== rootPid ||
+    !Number.isInteger(port) ||
+    port < 1 ||
+    port > 65535 ||
+    value.port !== port ||
+    value.root !== owned.root ||
+    owned.profile !== expectedProfile ||
+    owned.webview !== path.win32.join(owned.root, 'webview') ||
+    value.temp !== expectedTemp ||
+    value.userProfile !== expectedProfile ||
+    value.webview !== owned.webview ||
+    !ordinaryLocalDrivePath(value.tmp) ||
+    value.tmp !== expectedTemp.slice(4)
+  )
+    throw new Error(
+      'Ordinary TMP marker does not preserve exact owned canonical paths/run/PID/port',
+    );
+  return value;
+}
+
+export function diagnosticLaunchArgs(root, port, options) {
+  if (options.ordinaryTmp && !options.logging)
+    throw new Error('--ordinary-native-tmp requires explicit --chromium-log');
+  return [
+    '--native-perf-root',
+    root,
+    '--native-perf-port',
+    String(port),
+    ...(options.logging
+      ? [
+          '--native-perf-diagnostics',
+          options.ordinaryTmp ? 'chromium-log-ordinary-tmp' : 'chromium-log',
+        ]
+      : []),
+  ];
 }
 
 async function logProof(value) {
@@ -371,6 +461,9 @@ export async function main(args = process.argv.slice(2)) {
   const loggingBinaryPreflight = options.logging
     ? await chromiumLogBinaryPreflight(options.exe)
     : null;
+  const ordinaryTmpBinaryPreflightResult = options.ordinaryTmp
+    ? await ordinaryTmpBinaryPreflight(options.exe)
+    : null;
   const sourceBefore = await fixtureFiles(options.fixture);
   const hashes = {
     exe: await sha256(options.exe),
@@ -391,6 +484,8 @@ export async function main(args = process.argv.slice(2)) {
     binaryPreflight: options.binaryPreflight,
     loggingRequested: options.logging === true,
     loggingBinaryPreflight,
+    ordinaryTmpRequested: options.ordinaryTmp === true,
+    ordinaryTmpBinaryPreflight: ordinaryTmpBinaryPreflightResult,
     fixture: options.manifest,
     observations: [],
     captureComplete: false,
@@ -434,17 +529,7 @@ export async function main(args = process.argv.slice(2)) {
     report.port = port;
     if (interrupted) throw new Error('Interrupted before GUI launch');
     const launchedAt = Date.now();
-    launch = startChild(
-      options.exe,
-      [
-        '--native-perf-root',
-        root,
-        '--native-perf-port',
-        String(port),
-        ...(options.logging ? ['--native-perf-diagnostics', 'chromium-log'] : []),
-      ],
-      childEnv,
-    );
+    launch = startChild(options.exe, diagnosticLaunchArgs(root, port, options), childEnv);
     completion = launch.completion;
     if (!launch.child.pid) throw new Error((await completion).error ?? 'Application did not spawn');
     owner = new OwnedProcess(launch.child, options.exe, launchedAt, owned.webview);
@@ -455,6 +540,15 @@ export async function main(args = process.argv.slice(2)) {
       if (interrupted) throw new Error('Interrupted during diagnostic capture');
       const observation = { targetOffsetMs: offsetMs, observedAt: new Date().toISOString() };
       try {
+        if (options.ordinaryTmp) {
+          report.ordinaryTmp = checkOrdinaryTmpMarker(
+            JSON.parse(await readFile(path.join(root, 'native-perf-ordinary-tmp.json'), 'utf8')),
+            owned,
+            launch.child.pid,
+            port,
+          );
+          observation.ordinaryTmp = report.ordinaryTmp;
+        }
         observation.consumed = checkConsumed(
           JSON.parse(await readFile(path.join(root, 'native-perf-consumed.json'), 'utf8')),
           owned,

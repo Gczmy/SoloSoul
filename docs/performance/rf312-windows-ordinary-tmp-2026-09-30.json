@@ -1,0 +1,2887 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "windows-native-single-variable-tmp-representation-diagnostics",
+  "baseline": "064e0ee303d7bb9d31d039cbaa1626426bd41356",
+  "generatedAt": "2026-09-30T08:12:18.147165+00:00",
+  "sourceHashes": {
+    "frozenAt": "2026-09-30T07:42:56.521961+00:00",
+    "files": [
+      {
+        "path": "tauri/src-tauri/src/native_perf.rs",
+        "bytes": 25831,
+        "sha256": "77073DAB9F02EE869C04814A1641074DD0C3C92899C9F99903E4DC9616428236"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf/preflight_tests.rs",
+        "bytes": 19313,
+        "sha256": "6D31C3B7D0702021E430C9050933D97D69EDFA40071058DDC4BF466710291ED6"
+      },
+      {
+        "path": "tauri/scripts/native-perf-diagnose.mjs",
+        "bytes": 24933,
+        "sha256": "F3ADD0628B79ADA5F94E27B7C44BCF9BE768353679CBA8E45DED7740E7EDD9A1"
+      },
+      {
+        "path": "tauri/scripts/native-perf-diagnose.test.mjs",
+        "bytes": 22397,
+        "sha256": "1141CCFF60DAFD857F6AD96A9DE64259680421987B569F10B358B23B36F89983"
+      },
+      {
+        "path": "tauri/scripts/native-perf-process-diagnostics.ps1",
+        "bytes": 28554,
+        "sha256": "3A677E151DEB5D66CC6CEC7856A6BE2CDE829994F1F8AC734AF66BF6AE2FF68A"
+      },
+      {
+        "path": "tauri/scripts/native-perf-run.mjs",
+        "bytes": 54471,
+        "sha256": "B15DFD1D1AF65FF586FCBA37FB373BA2723DD2A532AC63E7E1CC8EA010CD17BF"
+      },
+      {
+        "path": "tauri/src-tauri/src/lib.rs",
+        "bytes": 24426,
+        "sha256": "15BD68921D0CEBFFE13170AA8B4773FB8551C0F628F5275210361C447291DF6A"
+      },
+      {
+        "path": "tauri/src-tauri/tauri.conf.json",
+        "bytes": 3270,
+        "sha256": "7D7FC8AFCBE54235CA5828E7A8DAD32D5547F15237E1BB5CF29D65752980CA3F"
+      },
+      {
+        "path": "tauri/src-tauri/tauri.native-perf.conf.json",
+        "bytes": 318,
+        "sha256": "D8C99C935B83B62187D61E72258CBC9239AD97A0CF482CDE789444814CFA4810"
+      }
+    ]
+  },
+  "checks": {
+    "fmt": {
+      "command": "cargo fmt --all -- --check",
+      "exitCode": 0,
+      "initialWrongWorkingDirectory": {
+        "exitCode": 1,
+        "reason": "First format command at repository root had no Cargo.toml; corrected workdir and formatted only task files."
+      }
+    },
+    "nativeTests": {
+      "initial": {
+        "command": "cargo test -p solo_soul --features native-perf native_perf::preflight_tests -- --test-threads=1",
+        "exitCode": 1,
+        "passed": 5,
+        "failed": 7,
+        "ignored": 0,
+        "filtered": 614,
+        "compileSeconds": 386,
+        "testSeconds": 2.72,
+        "rawOutput": "warning: output filename collision at C:\\Users\\40299571\\SoloSoul\\tauri\\target\\debug\\deps\\solo_soul.pdb\n  |\n  = note: the bin target `solo_soul` in package `solo_soul v2.13.2 (C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri)` has the same output filename as the lib target `solo_soul` in package `solo_soul v2.13.2 (C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri)`\n  = note: this may become a hard error in the future; see <https://github.com/rust-lang/cargo/issues/6313>\n  = help: consider changing their names to be unique or compiling them separately\n   Compiling solo_soul v2.13.2 (C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri)\n    Finished `test` profile [optimized + debuginfo] target(s) in 6m 26s\n     Running unittests src\\lib.rs (target\\debug\\deps\\solo_soul-f1a5187ec1e51079.exe)\n\nrunning 12 tests\ntest native_perf::preflight_tests::native_perf_args_require_explicit_modes_and_reject_environment_overrides ... ok\ntest native_perf::preflight_tests::native_perf_chromium_log_is_opt_in_owned_new_and_never_reused ... processed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpjVjEQK\\source\\acc_rf312_100\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpjVjEQK\\source\\acc_rf312_100/config.json\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpjVjEQK\\source\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpjVjEQK\\source\\accounts.json\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: \\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpjVjEQK\\diagnostic-run\\vault\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: \\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpjVjEQK\\diagnostic-run\\vault\\accounts.json\nSuccessfully processed 1 files; Failed processing 0 files\nok\ntest native_perf::preflight_tests::native_perf_chromium_log_rejects_preexisting_file_and_redirected_temp ... processed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpK0XVMD\\source\\acc_rf312_100\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpK0XVMD\\source\\acc_rf312_100/config.json\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpK0XVMD\\source\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpK0XVMD\\source\\accounts.json\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: \\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpK0XVMD\\existing-log-run\\vault\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: \\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpK0XVMD\\existing-log-run\\vault\\accounts.json\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: \\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpK0XVMD\\linked-temp-run\\vault\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: \\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpK0XVMD\\linked-temp-run\\vault\\accounts.json\nSuccessfully processed 1 files; Failed processing 0 files\nok\ntest native_perf::preflight_tests::native_perf_chromium_logging_requires_explicit_run_mode ... ok\ntest native_perf::preflight_tests::native_perf_failed_preparation_preserves_owned_paths_without_ready_marker ... processed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpwMCYe4\\source\\acc_rf312_100\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpwMCYe4\\source\\acc_rf312_100/config.json\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpwMCYe4\\source\nSuccessfully processed 1 files; Failed processing 0 files\nprocessed file: C:\\Users\\40299571\\AppData\\Local\\Temp\\.tmpwMCYe4\\source\\accounts.json\nSuccessfully processed 1 files; Failed processing 0 files\nFAILED\ntest native_perf::preflight_tests::native_perf_ordinary_tmp_is_explicit_logging_run_only ... ok\ntest native_perf::preflight_tests::native_perf_ordinary_tmp_records_exact_paths_and_refuses_reuse_or_aliases ... FAILED\ntest native_perf::preflight_tests::native_perf_ordinary_tmp_rejects_redirected_directory ... FAILED\ntest native_perf::preflight_tests::native_perf_prepares_real_encrypted_fixture_and_consumes_it_only_once ... FAILED\ntest native_perf::preflight_tests::native_perf_records_canonical_claims_for_logical_known_folder_paths ... FAILED\ntest native_perf::preflight_tests::native_perf_rejects_existing_relative_linked_and_source_nested_roots ... FAILED\ntest native_perf::preflight_tests::native_perf_rejects_wrong_kdf_occupied_port_and_tampered_prepared_fixture ... FAILED\n\nfailures:\n\n---- native_perf::preflight_tests::native_perf_failed_preparation_preserves_owned_paths_without_ready_marker stdout ----\n\nthread 'native_perf::preflight_tests::native_perf_failed_preparation_preserves_owned_paths_without_ready_marker' (13088) panicked at src-tauri\\src\\native_perf\\preflight_tests.rs:207:5:\nassertion `left == right` failed\n  left: 2\n right: 3\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- native_perf::preflight_tests::native_perf_ordinary_tmp_records_exact_paths_and_refuses_reuse_or_aliases stdout ----\n\nthread 'native_perf::preflight_tests::native_perf_ordinary_tmp_records_exact_paths_and_refuses_reuse_or_aliases' (11392) panicked at src-tauri\\src\\native_perf\\preflight_tests.rs:458:48:\ncalled `Result::unwrap()` on an `Err` value: PoisonError { .. }\n\n---- native_perf::preflight_tests::native_perf_ordinary_tmp_rejects_redirected_directory stdout ----\n\nthread 'native_perf::preflight_tests::native_perf_ordinary_tmp_rejects_redirected_directory' (22784) panicked at src-tauri\\src\\native_perf\\preflight_tests.rs:537:48:\ncalled `Result::unwrap()` on an `Err` value: PoisonError { .. }\n\n---- native_perf::preflight_tests::native_perf_prepares_real_encrypted_fixture_and_consumes_it_only_once stdout ----\n\nthread 'native_perf::preflight_tests::native_perf_prepares_real_encrypted_fixture_and_consumes_it_only_once' (43440) panicked at src-tauri\\src\\native_perf\\preflight_tests.rs:97:48:\ncalled `Result::unwrap()` on an `Err` value: PoisonError { .. }\n\n---- native_perf::preflight_tests::native_perf_records_canonical_claims_for_logical_known_folder_paths stdout ----\n\nthread 'native_perf::preflight_tests::native_perf_records_canonical_claims_for_logical_known_folder_paths' (18576) panicked at src-tauri\\src\\native_perf\\preflight_tests.rs:214:48:\ncalled `Result::unwrap()` on an `Err` value: PoisonError { .. }\n\n---- native_perf::preflight_tests::native_perf_rejects_existing_relative_linked_and_source_nested_roots stdout ----\n\nthread 'native_perf::preflight_tests::native_perf_rejects_existing_relative_linked_and_source_nested_roots' (41188) panicked at src-tauri\\src\\native_perf\\preflight_tests.rs:130:48:\ncalled `Result::unwrap()` on an `Err` value: PoisonError { .. }\n\n---- native_perf::preflight_tests::native_perf_rejects_wrong_kdf_occupied_port_and_tampered_prepared_fixture stdout ----\n\nthread 'native_perf::preflight_tests::native_perf_rejects_wrong_kdf_occupied_port_and_tampered_prepared_fixture' (17208) panicked at src-tauri\\src\\native_perf\\preflight_tests.rs:163:48:\ncalled `Result::unwrap()` on an `Err` value: PoisonError { .. }\n\n\nfailures:\n    native_perf::preflight_tests::native_perf_failed_preparation_preserves_owned_paths_without_ready_marker\n    native_perf::preflight_tests::native_perf_ordinary_tmp_records_exact_paths_and_refuses_reuse_or_aliases\n    native_perf::preflight_tests::native_perf_ordinary_tmp_rejects_redirected_directory\n    native_perf::preflight_tests::native_perf_prepares_real_encrypted_fixture_and_consumes_it_only_once\n    native_perf::preflight_tests::native_perf_records_canonical_claims_for_logical_known_folder_paths\n    native_perf::preflight_tests::native_perf_rejects_existing_relative_linked_and_source_nested_roots\n    native_perf::preflight_tests::native_perf_rejects_wrong_kdf_occupied_port_and_tampered_prepared_fixture\n\ntest result: FAILED. 5 passed; 7 failed; 0 ignored; 0 measured; 614 filtered out; finished in 2.72s\n\nerror: test failed, to rerun pass `-p solo_soul --lib`\n",
+        "limitation": "Existing failed-preparation test observed 2 owned paths instead of 3; 6 later tests failed from poisoned lock. Underlying early failure was not returned by old assertion and remains unconfirmed. No tests or assertions removed, no source change between retries."
+      },
+      "exactRetry": {
+        "command": "cargo test --locked -p solo_soul --features native-perf --lib native_perf::preflight_tests::native_perf_failed_preparation_preserves_owned_paths_without_ready_marker -- --exact --nocapture --test-threads=1",
+        "exitCode": 0,
+        "passed": 1,
+        "failed": 0,
+        "filtered": 625,
+        "testSeconds": 0.71
+      },
+      "fullRetry": {
+        "command": "cargo test --locked -p solo_soul --features native-perf --lib native_perf::preflight_tests -- --test-threads=1",
+        "exitCode": 0,
+        "passed": 12,
+        "failed": 0,
+        "ignored": 0,
+        "filtered": 614,
+        "testSeconds": 6.77
+      }
+    },
+    "node": {
+      "command": "node --test src-tauri/src/native_perf/observer.node.test.mjs scripts/native-perf-run.test.mjs scripts/native-perf-diagnose.test.mjs",
+      "exitCode": 0,
+      "passed": 56,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 5689.7838,
+      "diagnose": 23,
+      "runner": 24,
+      "observer": 9,
+      "syntaxExitCodes": [
+        0,
+        0
+      ],
+      "prettierExitCode": 0
+    },
+    "clippy": {
+      "command": "cargo clippy --locked -p solo_soul --features native-perf --all-targets -- -D warnings",
+      "startedAt": "2026-09-30T07:41:56.8138280+00:00",
+      "exitCode": 0,
+      "finishedAt": "2026-09-30T07:42:23.1738485+00:00"
+    },
+    "release": {
+      "exitCode": 0,
+      "command": "npx tauri build --config src-tauri/tauri.native-perf.conf.json --features native-perf --no-bundle --ci",
+      "startedAt": "2026-09-30T07:43:39.6071712+00:00",
+      "cargoBuildJobs": 1,
+      "finishedAt": "2026-09-30T08:04:36.8457938+00:00",
+      "seconds": 1257.2403337
+    },
+    "baselineLive": {
+      "finishedAt": "2026-09-30T08:07:05.9389804+00:00",
+      "exitCode": 0,
+      "startedAt": "2026-09-30T08:06:13.0324329+00:00",
+      "command": "native-perf-diagnose --chromium-log (canonical TMP control)"
+    },
+    "ordinaryLive": {
+      "finishedAt": "2026-09-30T08:08:45.4962417+00:00",
+      "startedAt": "2026-09-30T08:08:04.1143402+00:00",
+      "command": "native-perf-diagnose --chromium-log --ordinary-native-tmp",
+      "exitCode": 0
+    },
+    "rawLogHashes": [
+      {
+        "name": "rf312-ordinary-tmp-node-20260930.log",
+        "bytes": 5819,
+        "sha256": "50BF196F94C4FD958835549E5845708DB03479E3005F336460E7201CABF20272"
+      },
+      {
+        "name": "rf312-ordinary-tmp-rust-initial-20260930.log",
+        "bytes": 8308,
+        "sha256": "5F4C01C10ED488D78BD070264CC20797C18EA2055FBFED27C55FC85D7B080B4A"
+      },
+      {
+        "name": "rf312-ordinary-tmp-rust-full-20260930.log",
+        "bytes": 9606,
+        "sha256": "B8CE6695B464DB903AA72653BE1D97F9F688820F29CB8CC8C416BCBBDBB4A16E"
+      },
+      {
+        "name": "rf312-ordinary-tmp-clippy-20260930.log",
+        "bytes": 149,
+        "sha256": "E81A295B9A4F43223F078D922E39FF60D734E842CCB3110A8FB6010D582C8ECB"
+      },
+      {
+        "name": "rf312-ordinary-tmp-release-20260930.log",
+        "bytes": 6125,
+        "sha256": "53C19D0E685B567DA386DE5FCC558A6B9905BCE15E8D8ADF9C946C8C320A6567"
+      },
+      {
+        "name": "rf312-tmp-baseline-live-20260930.log",
+        "bytes": 301,
+        "sha256": "6447721A1F1F16AC9D62CAC756E99CF30EE08272BA05916392591CFEF355D88F"
+      },
+      {
+        "name": "rf312-tmp-ordinary-live-20260930.log",
+        "bytes": 301,
+        "sha256": "EB9E4572EE38B52F19BE6BB3C774D2A3474507C3EF0290A2E6B33DA6F17DF869"
+      }
+    ]
+  },
+  "binaryAndResources": {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\target\\release\\solo_soul.exe",
+    "copiedTo": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\bin-ordinary-tmp\\solo_soul.exe",
+    "bytes": 99549184,
+    "sha256": "6E402CD773E4C0845E60DE9D1CAEE373D4309BAA43D84A77D557B9C034035E7F",
+    "lastWriteUtc": "2026-09-30T08:04:26.697179+00:00",
+    "guardUtcBound": "2026-09-30T07:43:39.607171+00:00",
+    "frozenSourcesMatched": true,
+    "resourceCount": 95,
+    "resourcesMatched": true,
+    "resources": [
+      {
+        "relative": "DirectML.dll",
+        "bytes": 18527776,
+        "sha256": "9C9E6D822561C6C41B90E6994B3E8857CF1D66DBFB1E0C4C799C7C89B4E92DA1"
+      },
+      {
+        "relative": "docs\\guides\\index.json",
+        "bytes": 7474,
+        "sha256": "1BF5E302EA76C7ED8A315CB1B4A1F31E292F44CAA219A7AE02752C143E3CC98F"
+      },
+      {
+        "relative": "docs\\guides\\search-index.json",
+        "bytes": 252821,
+        "sha256": "CD4BEAF09AEDA37039A6523E6B86D01374DCCED507278A1E76D41BD473B4E8FB"
+      },
+      {
+        "relative": "docs\\guides\\en\\ai_chat.md",
+        "bytes": 2272,
+        "sha256": "759A4D1ACECB958CA6F85A9FED7038F9211CB1DF99B59128634BB1D5892B334D"
+      },
+      {
+        "relative": "docs\\guides\\en\\appearance.md",
+        "bytes": 2439,
+        "sha256": "36CBF213C9E571A948E9EAA3F40853DEFB7C4B9FBA383AEFFE230077D65BFC0C"
+      },
+      {
+        "relative": "docs\\guides\\en\\attachments.md",
+        "bytes": 1483,
+        "sha256": "B213F76A1E53E4FC3226160C5F5F0AFC78614285AAC99940600BC467463D5EBF"
+      },
+      {
+        "relative": "docs\\guides\\en\\audit_log.md",
+        "bytes": 1503,
+        "sha256": "DCEBB62E1BADAD6597DE43A35C0283861479CE604C3987DF7A4F6EAFB9B59ECE"
+      },
+      {
+        "relative": "docs\\guides\\en\\backup_restore.md",
+        "bytes": 1547,
+        "sha256": "B66FB9C2560F123A347AB731299F4028E38E86F0C80B9ECBED2BA9F75C3D7D9C"
+      },
+      {
+        "relative": "docs\\guides\\en\\biometric.md",
+        "bytes": 2173,
+        "sha256": "6F7BC0C5678B944773B445F679D76AE6D06DF1C30149A228E4DA6BB15810EBB5"
+      },
+      {
+        "relative": "docs\\guides\\en\\collections.md",
+        "bytes": 1555,
+        "sha256": "644483684412849EB6A253A66215299F6A76A240AF4D593A1CF9F797D12D2D47"
+      },
+      {
+        "relative": "docs\\guides\\en\\device_sync.md",
+        "bytes": 9641,
+        "sha256": "E94308E6828F65077D3CE363D136245B18BE76D164F77406058D71C88D4EE91C"
+      },
+      {
+        "relative": "docs\\guides\\en\\export_import.md",
+        "bytes": 2063,
+        "sha256": "4CD9932A57890D592A51F2635C27012A47458F5E3B8EB1C7A65E44995DCB1573"
+      },
+      {
+        "relative": "docs\\guides\\en\\getting_started.md",
+        "bytes": 2197,
+        "sha256": "C6B1BC57D17D82AF8EF646D33A45DE79F52971310E177A5437E0A01A879F836C"
+      },
+      {
+        "relative": "docs\\guides\\en\\llm_config.md",
+        "bytes": 2179,
+        "sha256": "1F3323A10327D781FCB686E96894050F30406335A1D0DA5CD429475F0C7D71BA"
+      },
+      {
+        "relative": "docs\\guides\\en\\objects.md",
+        "bytes": 1674,
+        "sha256": "0BA34CC1B895208F4C4C4FAFD011981BFBF7E79B337B430A4DAF206A6FD3C658"
+      },
+      {
+        "relative": "docs\\guides\\en\\ocr_scan.md",
+        "bytes": 2871,
+        "sha256": "D76DDD54B6AA702E0FC990418D554658AF5894B2E4FA35D9F37AA1E0FFA17104"
+      },
+      {
+        "relative": "docs\\guides\\en\\plugins.md",
+        "bytes": 1925,
+        "sha256": "F3617A845ECD1BBAF414A071BD74C812A26F8FB1814C4506DEFE90BA42623BC4"
+      },
+      {
+        "relative": "docs\\guides\\en\\search.md",
+        "bytes": 1147,
+        "sha256": "51182A06744AEDD57CE8757DBBB2F848F669509772B7FFE377F4131B1C8584AA"
+      },
+      {
+        "relative": "docs\\guides\\en\\security.md",
+        "bytes": 2600,
+        "sha256": "18988107D850DF08E1B8CCBDFB6103C5CB31CEE4DC1F6523C10BB262D991AC29"
+      },
+      {
+        "relative": "docs\\guides\\en\\sensitivity.md",
+        "bytes": 2071,
+        "sha256": "511B8108EDC7D68709254D6DCACC9208A49305F82BAED23B1AC0AF02CD2DDC5B"
+      },
+      {
+        "relative": "docs\\guides\\en\\snapshots.md",
+        "bytes": 1741,
+        "sha256": "2E961D6FD9FF3EA34AB331DCC83FA846E4557A375144F0A2086A1EC75AE3CCC0"
+      },
+      {
+        "relative": "docs\\guides\\en\\templates.md",
+        "bytes": 2863,
+        "sha256": "003433811D6BCFC2401BD17B4E49B6F648CD6D752E52A9CE5A43A29119CF9623"
+      },
+      {
+        "relative": "docs\\guides\\en\\trash.md",
+        "bytes": 1532,
+        "sha256": "D7E632A87AAEDF91D4BE5F4AEFF8126A0BAD5B3E551410E257CF5E06BDE991BC"
+      },
+      {
+        "relative": "docs\\guides\\en\\workspace.md",
+        "bytes": 1723,
+        "sha256": "150C78C4606D5A5C97AAEEC953F4E1C8984E19CA7B6555F525676AC110CCA132"
+      },
+      {
+        "relative": "docs\\guides\\zh\\ai_chat.md",
+        "bytes": 2166,
+        "sha256": "6E24099D3CB055476D6C895CEA3846206CD1D1F684A3107BC3AB6E905619560C"
+      },
+      {
+        "relative": "docs\\guides\\zh\\appearance.md",
+        "bytes": 2361,
+        "sha256": "7826865B0904FA2936D265B99F31CAB750940C8D535825EFE825E5CCE8EA5F62"
+      },
+      {
+        "relative": "docs\\guides\\zh\\attachments.md",
+        "bytes": 1294,
+        "sha256": "2D6A5C831C9A8D2AC5604BF09C2A9960995F7530B42629C97A250AC27B858A40"
+      },
+      {
+        "relative": "docs\\guides\\zh\\audit_log.md",
+        "bytes": 1406,
+        "sha256": "A8C3E9FFFB6571468BD2E3D06E4D1D71D7F9E3741426A05363ECFD241F8E14B2"
+      },
+      {
+        "relative": "docs\\guides\\zh\\backup_restore.md",
+        "bytes": 1395,
+        "sha256": "9F710390EBCA4D4E99354C7894E7D34D78A2F9B302E7B23806664237D76E9D3D"
+      },
+      {
+        "relative": "docs\\guides\\zh\\biometric.md",
+        "bytes": 1915,
+        "sha256": "750A8B1B68A9ACDAC5BD534FBBD423A15BD4C1C3AF967AE672E7DF4A1EC02C6C"
+      },
+      {
+        "relative": "docs\\guides\\zh\\collections.md",
+        "bytes": 1477,
+        "sha256": "0F95169CBCF9C851F61DF3A622D799273A4ECF277F1D3DF12E9F56ACDA52F775"
+      },
+      {
+        "relative": "docs\\guides\\zh\\device_sync.md",
+        "bytes": 9462,
+        "sha256": "6F9FABF8EC89B3E1B8E62E194AA5605A78C51A44324BD945D9F7C6B1AAF474DD"
+      },
+      {
+        "relative": "docs\\guides\\zh\\export_import.md",
+        "bytes": 1851,
+        "sha256": "8E518E3F2E18460DC2D74AA8EDDA698F1FD98362B7044798242F9F623A860188"
+      },
+      {
+        "relative": "docs\\guides\\zh\\getting_started.md",
+        "bytes": 2079,
+        "sha256": "FE4A4562689778641BC7520EC9AB5283F1EFCCABAB2DDBC1A198A40307CDD963"
+      },
+      {
+        "relative": "docs\\guides\\zh\\llm_config.md",
+        "bytes": 2063,
+        "sha256": "C12AE9CBF56F47B4AAE2779CB13EB47D110815703D01702ABE2057DC0E36629D"
+      },
+      {
+        "relative": "docs\\guides\\zh\\objects.md",
+        "bytes": 1551,
+        "sha256": "58BBCC1A88E32C4A8932D39329375E26D8DCF69B118A289DD0AA9C7EDAB7DA0C"
+      },
+      {
+        "relative": "docs\\guides\\zh\\ocr_scan.md",
+        "bytes": 2655,
+        "sha256": "840ED199537D3E16A211DCF3F862487334DF8212DF0F52324AAA7186526E1565"
+      },
+      {
+        "relative": "docs\\guides\\zh\\plugins.md",
+        "bytes": 1643,
+        "sha256": "F616F6465A23C6CC51B86E356BFB376E387611795516165224E86C8BA909EA88"
+      },
+      {
+        "relative": "docs\\guides\\zh\\search.md",
+        "bytes": 1057,
+        "sha256": "D6C34E2DEE985A433B922C5C2559C2F4EFFBE0325506629BA345DA25C4E7962A"
+      },
+      {
+        "relative": "docs\\guides\\zh\\security.md",
+        "bytes": 2337,
+        "sha256": "400A2E6CDA0FBCCA57293C04EEDC76D0C51406B99FEC819996BBEE5E129FE6D6"
+      },
+      {
+        "relative": "docs\\guides\\zh\\sensitivity.md",
+        "bytes": 1901,
+        "sha256": "65EFF8D74B1330934131D1F3E00F6D7C9BADAE3E62E241C84B4A6BACCAEC2707"
+      },
+      {
+        "relative": "docs\\guides\\zh\\snapshots.md",
+        "bytes": 1718,
+        "sha256": "23F5E9EA50018043A83C56072EBDA07D47C29FB692C84FCF3E5E1C708A8625E0"
+      },
+      {
+        "relative": "docs\\guides\\zh\\templates.md",
+        "bytes": 2635,
+        "sha256": "C8AAC2698D85BECF8DEC9B82D0CF3F0B7FD382488466527D42900700339D9B35"
+      },
+      {
+        "relative": "docs\\guides\\zh\\trash.md",
+        "bytes": 1446,
+        "sha256": "5382891E30E13AD4C99FEFCD9C30711DFE93FB4253CC939BAA65470321DDA7E1"
+      },
+      {
+        "relative": "docs\\guides\\zh\\workspace.md",
+        "bytes": 1584,
+        "sha256": "D1E262CB06ACD4B66919E5577726ABB938492D01BC04C96F45F9E5DCFE8E68F2"
+      },
+      {
+        "relative": "models\\pp-ocr-v6-small\\det\\inference.onnx",
+        "bytes": 9880512,
+        "sha256": "D73E0058B7A8086BBD57F3D10B8BCD4FF95363F67E06E2762B5E814FE9C9410E"
+      },
+      {
+        "relative": "models\\pp-ocr-v6-small\\det\\inference.yml",
+        "bytes": 885,
+        "sha256": "193F435274BF9F0B5F71A929BBFBCF148282DF7E633B34E7C373E8F44741B516"
+      },
+      {
+        "relative": "models\\pp-ocr-v6-small\\rec\\inference.onnx",
+        "bytes": 21159378,
+        "sha256": "5435FD747C9E0EFE15A96D0B378D5BD157E9492ED8FD80EDF08F30D02FA24634"
+      },
+      {
+        "relative": "models\\pp-ocr-v6-small\\rec\\inference.yml",
+        "bytes": 150579,
+        "sha256": "AB078671BB49F06228EADCCD34F1BB501E157F7A047095FFB943BA81512C77D1"
+      },
+      {
+        "relative": "pdfium\\pdfium.dll",
+        "bytes": 7213568,
+        "sha256": "E66BD5AEFC2829F12EF41227F83A6EC6D60673EC77EF64153A05E7FFBAE9072E"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\registry.json",
+        "bytes": 64649,
+        "sha256": "2CDF029C336621B5DDEF50C0EB5315C3D9F7282780A30CE7353CCCCFC06B6D42"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.address-fmt\\manifest.json",
+        "bytes": 2986,
+        "sha256": "0F909E7CCF07AB984D0696CD31E3B3A7D64B9E33B953C533F537109917B2CCA6"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.address-fmt\\plugin.wasm",
+        "bytes": 196536,
+        "sha256": "B2F110DFEBC3C52EC4C96FBEA74DEDBFE8CBDB4DA5BDC46A1E1258DC9B6DC3E9"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.calendar-events\\manifest.json",
+        "bytes": 1160,
+        "sha256": "41F60A89F635B61AF476DE98FCAEDE8EE815FE82AD4C06209B3B76EA182CA2F6"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.calendar-events\\plugin.wasm",
+        "bytes": 77124,
+        "sha256": "02DCF893500F1600FC810E86C22A017AF04EA906CDADA96359FE4CB56B18B990"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.cloud-packager\\manifest.json",
+        "bytes": 1402,
+        "sha256": "98F2AC21B26C4C6B3332FDA8D088892976CDD4BE9D90C7CA19FF1BF6C50D3E2F"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.cloud-packager\\plugin.wasm",
+        "bytes": 40384,
+        "sha256": "E535BBA7C7504835A5521B2F09B6D295F50646D15CEF83017FD7642427391995"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.contact-exporter\\manifest.json",
+        "bytes": 2380,
+        "sha256": "7FC1CB6DC635B8CF8BE96B97DE9B70DB32ECCA0E320B9FBEC009EEF3EB8E9A30"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.contact-exporter\\plugin.wasm",
+        "bytes": 61415,
+        "sha256": "7CFC149AD364D80AF3B3F7681D8BAC05AC2BA5E03E77E6509E25C79CD0D47093"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.data-completeness\\manifest.json",
+        "bytes": 1632,
+        "sha256": "C646A42714680E60C623226B1780F29AFEE3933642593500FE5C0097D7D8F5F7"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.data-completeness\\plugin.wasm",
+        "bytes": 70238,
+        "sha256": "F57F33553CF2A886591E8948427E1A64D05EDC2EF2746B1F7308A3EC271BFDF3"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.digital-will\\manifest.json",
+        "bytes": 1397,
+        "sha256": "F0719DCA4152C84626DD92A1ABEC320A12A380C8414BE2E2A1618C6C1A41F535"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.digital-will\\plugin.wasm",
+        "bytes": 68837,
+        "sha256": "C888303BED30CCC187E59AD2383A28ED4AAF75438276978AD31421CE2A4558DC"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.doc-checklist\\manifest.json",
+        "bytes": 2409,
+        "sha256": "98A6AAAA947AAB9BC8ED39FEA2B5696F389247D2989F459755EB148996876E95"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.doc-checklist\\plugin.wasm",
+        "bytes": 134994,
+        "sha256": "BAC2DC3491EDFB2955F9FD48D855B518C3C6BE71EBABE80A1727CC074430E376"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.emergency-card\\manifest.json",
+        "bytes": 1318,
+        "sha256": "2ACEE9106A571E7CDF40267D22C7416D3D3EF8BAD209C8C2B919853A1E03C4F7"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.emergency-card\\plugin.wasm",
+        "bytes": 64742,
+        "sha256": "757D9EAF06138C6A25FFE924EED9FEF3CDC0851A5FA8DA92EADC04417341C1D5"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.expiry-guardian\\manifest.json",
+        "bytes": 1855,
+        "sha256": "A16D07294C769BD417FA2991E603C170085993D9146E53D8035C20FB78ABFD59"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.expiry-guardian\\plugin.wasm",
+        "bytes": 187321,
+        "sha256": "25822E1AEAE9D9FE3FB857555B4CA4EB66D8A302AC8B09FB60B79CB601A89AA9"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.form-prefiller\\manifest.json",
+        "bytes": 2885,
+        "sha256": "C2699F69E9C21B540C02C33032D85DEF2942615416E44A86AD636B73249862C1"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.form-prefiller\\plugin.wasm",
+        "bytes": 107209,
+        "sha256": "D20F21114593A9881494DFAB24BDC348FBCF2C9AE443AEF48AD0A37A9E8BDA7F"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.id-validator\\manifest.json",
+        "bytes": 1221,
+        "sha256": "DEDD5D7D5B39E3501E25E8D445C1A8CAFA7AA4F821A7A19CDBD95ED704668713"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.id-validator\\plugin.wasm",
+        "bytes": 69584,
+        "sha256": "837FB20FBF49060C3934F6D19B93899B16FE7373FEEB1148A08591606B3B60DB"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.identity-timeline\\manifest.json",
+        "bytes": 2492,
+        "sha256": "4E4CEFC40B0FE67F7ECC72C0C3148CCCE95922B72A5A65EB90E4D44B6142BB09"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.identity-timeline\\plugin.wasm",
+        "bytes": 81859,
+        "sha256": "64B911ABCB33A4F7D8048ABC13C655EBC0C45D512A0B8BA81C758951B7FBC20F"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.mrz-encoder\\manifest.json",
+        "bytes": 1258,
+        "sha256": "4BB1321B6A4E8ED21AF40CB19E13AC265A324C610433E70CDF366FDC449FC655"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.mrz-encoder\\plugin.wasm",
+        "bytes": 100349,
+        "sha256": "930788CC4FE3118A5ECDC9CB2C4C2D978124FECB69D926291664359E74D26AD7"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.namecard-gen\\manifest.json",
+        "bytes": 1316,
+        "sha256": "3B32116F969039E974866426C10FCEDC06C32048116DF14118B3FB58D5FDCF37"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.namecard-gen\\plugin.wasm",
+        "bytes": 82785,
+        "sha256": "D569178214A9539D62299998EA15E67FEF82A1EC5E1D1DA137D35EC1333A73E3"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.packing-list\\manifest.json",
+        "bytes": 1147,
+        "sha256": "FD724F21514BB5EE2EF2462E7F170B87CB023F8F1E244C0B4E5DBA6F6FDDCA61"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.packing-list\\plugin.wasm",
+        "bytes": 102723,
+        "sha256": "DFE71453F814A9E6E0BF3A64363A75E348774515ACAFF91305911D468E56DF55"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.phone-fmt\\manifest.json",
+        "bytes": 1062,
+        "sha256": "E0FA082FC3D106ADF56BA89737EA329967E31D6201860703EE9B90CE70E437C8"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.phone-fmt\\plugin.wasm",
+        "bytes": 90973,
+        "sha256": "BD31D94AD9C59867262183944EC4E4421395F090E94D3086054D87D5FF0D8876"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.resume-builder\\manifest.json",
+        "bytes": 3306,
+        "sha256": "718FD933131037AFC97172B7B38F362EE1A1E0B84EBF2B7DCE38F0216FF088A7"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.resume-builder\\plugin.wasm",
+        "bytes": 67021,
+        "sha256": "4325DE8B5A5448F67FFAFF9399EB79FAEC2B501C4B0F903A7150D9F030FEC71C"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.tax-profile\\manifest.json",
+        "bytes": 2192,
+        "sha256": "8AD851653C7CA9C6FAB9A679BA784B9D2D55BABD7D81AB4845D63F17564F8835"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.tax-profile\\plugin.wasm",
+        "bytes": 66933,
+        "sha256": "DFD712D102E13DFCCF6BCF9843786A826573DB20EE8014B741D39A688532B359"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.totp-gen\\manifest.json",
+        "bytes": 1527,
+        "sha256": "C920D70201D43B06D94368BEF6BF2855BAF8CA79975423E6CDE1C5AA57CA64AF"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.totp-gen\\plugin.wasm",
+        "bytes": 84324,
+        "sha256": "8A70925AF2A5FD79D356B28C88A0B7BAA9FB31E1EA1EE0D02DF32AA55C9C2AE5"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.travel-footprint\\manifest.json",
+        "bytes": 1469,
+        "sha256": "1B4A5D71A036D9B4D9FBF49DE68D56874D2A1BC3D435A1533E1C081102B4131B"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.travel-footprint\\plugin.wasm",
+        "bytes": 194287,
+        "sha256": "513201F5E807A7FEFB36EF594A6FEDF0E2A83FE4245F0B211387AE7C840C75B3"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.watermark\\manifest.json",
+        "bytes": 1139,
+        "sha256": "C4CEE8CE0BEC056692033F8A845271BE7A481235E5A0799B51BE5CAFD91C2B4A"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.watermark\\plugin.wasm",
+        "bytes": 195620,
+        "sha256": "AD9EF08F4F2F15A41F55B48A7D7B86E2350DB3E908F9E2B3C8231DBCAC0C4465"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\slotgo\\manifest.json",
+        "bytes": 1113,
+        "sha256": "D410E52D59C5546E86EF1EB47859D61C7C607AC736C971720AD4151E1BB841DC"
+      },
+      {
+        "relative": "SoloSoul_plugin_market\\plugins\\slotgo\\plugin.wasm",
+        "bytes": 61332,
+        "sha256": "602AEBE3BA81C142F726DCC4E8ACC818491C905F374E37CD1FBDCC32ECA3CB48"
+      }
+    ]
+  },
+  "experiments": [
+    {
+      "mode": "canonical-tmp",
+      "rawReport": {
+        "schemaVersion": 1,
+        "task": "RF-312",
+        "scope": "windows-native-cdp-diagnostics",
+        "startedAt": "2026-09-30T08:06:13.671Z",
+        "platform": "win32",
+        "osRelease": "10.0.26100",
+        "nodeVersion": "v24.16.0",
+        "hashes": {
+          "exe": "6e402cd773e4c0845e60de9d1caee373d4309baa43d84a77d557b9c034035e7f",
+          "helper": "3a677e151deb5d66cc6cec7856a6be2cde829994f1f8ac734af66bf6ae2ff68a",
+          "diagnostic": "f3add0628b79ada5f94e27b7c44bcf9be768353679cba8e45ded7740e7edd9a1",
+          "runner": "b15dfd1d1af65ff586fcba37fb373ba2723dd2a532ac63e7e1cc8ea010cd17bf"
+        },
+        "binaryPreflight": {
+          "method": "streaming-ascii-marker-check",
+          "matchedMarkers": [
+            "windows-native-perf-owned",
+            "windows-native-perf-ready",
+            "windows-native-perf-consumed",
+            "--native-perf-prepare"
+          ],
+          "bytesScanned": 71761920,
+          "guarantee": "Excludes accidental default builds; not a binary signature or trust guarantee"
+        },
+        "loggingRequested": true,
+        "loggingBinaryPreflight": {
+          "method": "streaming-logging-feature-marker",
+          "limitation": "Excludes old native-perf builds; not a signature or trust guarantee"
+        },
+        "ordinaryTmpRequested": false,
+        "ordinaryTmpBinaryPreflight": null,
+        "fixture": {
+          "accountId": "acc_rf312_100",
+          "accountName": "Performance Fixture",
+          "buildProfile": "release",
+          "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+          "expectedSearchMatches": 5,
+          "fixture": "deterministic-20th-object-property-match",
+          "generator": "solosoul-core/examples/perf_baseline",
+          "includesAttachments": false,
+          "includesOcrFixture": false,
+          "includesProfile": true,
+          "includesUiPreferences": true,
+          "kdf": {
+            "iterations": 3,
+            "memoryKiB": 65536,
+            "parallelism": 4
+          },
+          "objectCount": 100,
+          "schemaVersion": 1,
+          "scope": "synthetic-native-vault-fixture",
+          "searchQuery": "needle"
+        },
+        "observations": [
+          {
+            "targetOffsetMs": 5000,
+            "observedAt": "2026-09-30T08:06:34.317Z",
+            "consumed": {
+              "pid": 2508,
+              "port": 63757,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001",
+              "runId": "16fb9fa9b5ce460ca66d27bf595fdf09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-consumed"
+            },
+            "logging": {
+              "logFile": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\temp\\chromium-diagnostics.log",
+              "mode": "chromium-log",
+              "nativeTempUnchanged": true,
+              "performanceSample": false,
+              "pid": 2508,
+              "port": 63757,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001",
+              "runId": "16fb9fa9b5ce460ca66d27bf595fdf09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-chromium-log"
+            },
+            "ownedSnapshot": {
+              "observedAt": "2026-09-30T08:06:35.471Z",
+              "collectionMs": 1152.1841999999997,
+              "workingSetBytes": 676630528,
+              "reason": null,
+              "userDataDirectoryMatches": true,
+              "browserDataChecks": [
+                {
+                  "pid": 25880,
+                  "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\webview",
+                  "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\webview\\EBWebView",
+                  "matchesExpected": true,
+                  "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\webview\\EBWebView",
+                  "reason": null
+                }
+              ],
+              "browserDataFilesystem": {
+                "valid": true,
+                "reason": null
+              },
+              "processCount": 10,
+              "processes": [
+                {
+                  "pid": 2508,
+                  "parentPid": 26276,
+                  "creationMs": 1790755589399,
+                  "executableName": "solo_soul.exe",
+                  "workingSetBytes": 95547392,
+                  "privateBytes": 52338688,
+                  "cpuMs": 671.875,
+                  "reason": null
+                },
+                {
+                  "pid": 25880,
+                  "parentPid": 2508,
+                  "creationMs": 1790755589601,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 177491968,
+                  "privateBytes": 76374016,
+                  "cpuMs": 1625,
+                  "reason": null
+                },
+                {
+                  "pid": 40040,
+                  "parentPid": 25880,
+                  "creationMs": 1790755590429,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 44810240,
+                  "privateBytes": 13164544,
+                  "cpuMs": 265.625,
+                  "reason": null
+                },
+                {
+                  "pid": 37132,
+                  "parentPid": 25880,
+                  "creationMs": 1790755590428,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 104587264,
+                  "privateBytes": 73875456,
+                  "cpuMs": 546.875,
+                  "reason": null
+                },
+                {
+                  "pid": 28068,
+                  "parentPid": 25880,
+                  "creationMs": 1790755589716,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 10964992,
+                  "privateBytes": 2547712,
+                  "cpuMs": 15.625,
+                  "reason": null
+                },
+                {
+                  "pid": 28832,
+                  "parentPid": 25880,
+                  "creationMs": 1790755589957,
+                  "executableName": "conhost.exe",
+                  "workingSetBytes": 52011008,
+                  "privateBytes": 31289344,
+                  "cpuMs": 250,
+                  "reason": null
+                },
+                {
+                  "pid": 34424,
+                  "parentPid": 25880,
+                  "creationMs": 1790755591267,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 49020928,
+                  "privateBytes": 18079744,
+                  "cpuMs": 187.5,
+                  "reason": null
+                },
+                {
+                  "pid": 42556,
+                  "parentPid": 25880,
+                  "creationMs": 1790755590576,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 96395264,
+                  "privateBytes": 52199424,
+                  "cpuMs": 531.25,
+                  "reason": null
+                },
+                {
+                  "pid": 36324,
+                  "parentPid": 25880,
+                  "creationMs": 1790755590478,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 20643840,
+                  "privateBytes": 7917568,
+                  "cpuMs": 46.875,
+                  "reason": null
+                },
+                {
+                  "pid": 7660,
+                  "parentPid": 25880,
+                  "creationMs": 1790755591266,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 25157632,
+                  "privateBytes": 8216576,
+                  "cpuMs": 46.875,
+                  "reason": null
+                }
+              ]
+            },
+            "processDiagnostics": {
+              "mode": "live",
+              "listeners": [],
+              "liveQueriesPerformed": true,
+              "success": true,
+              "scope": "windows-native-perf-process-diagnostics",
+              "identityVerified": true,
+              "listenersReason": null,
+              "reason": null,
+              "schemaVersion": 1,
+              "processes": [
+                {
+                  "parentPid": 26276,
+                  "token": {
+                    "integrityRid": 8192,
+                    "integrityLabel": "Medium",
+                    "isAppContainer": false,
+                    "reason": null
+                  },
+                  "executablePath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\bin-ordinary-tmp\\solo_soul.exe",
+                  "packageFamilyName": {
+                    "value": null,
+                    "status": "unpackaged",
+                    "reason": null
+                  },
+                  "role": "root",
+                  "version": {
+                    "fileVersion": "2.13.2",
+                    "productVersion": "2.13.2",
+                    "reason": null
+                  },
+                  "browserFlags": {
+                    "port": null,
+                    "logging": {
+                      "reason": "Logging flags do not apply to this host or WebView2 subprocess",
+                      "logFileMatched": null,
+                      "flagsMatched": null,
+                      "requested": true
+                    },
+                    "reason": "Not applicable to the host root process",
+                    "address": null,
+                    "observedDirectory": null,
+                    "userDataDirectoryMatched": null
+                  },
+                  "pid": 2508,
+                  "creationMs": 1790755589399,
+                  "identityMatched": true
+                },
+                {
+                  "parentPid": 2508,
+                  "token": {
+                    "integrityRid": 8192,
+                    "integrityLabel": "Medium",
+                    "isAppContainer": false,
+                    "reason": null
+                  },
+                  "executablePath": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.37\\msedgewebview2.exe",
+                  "packageFamilyName": {
+                    "value": null,
+                    "status": "unpackaged",
+                    "reason": null
+                  },
+                  "role": "browser",
+                  "version": {
+                    "fileVersion": "154.0.4258.37",
+                    "productVersion": "154.0.4258.37",
+                    "reason": null
+                  },
+                  "browserFlags": {
+                    "port": 63757,
+                    "logging": {
+                      "reason": null,
+                      "logFileMatched": true,
+                      "flagsMatched": true,
+                      "requested": true
+                    },
+                    "reason": null,
+                    "address": "127.0.0.1",
+                    "observedDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\webview\\EBWebView",
+                    "userDataDirectoryMatched": true
+                  },
+                  "pid": 25880,
+                  "creationMs": 1790755589601,
+                  "identityMatched": true
+                }
+              ]
+            },
+            "cdp": {
+              "status": "no-owned-listener",
+              "attempted": false,
+              "expectedPort": 63757
+            },
+            "success": true,
+            "finishedAt": "2026-09-30T08:06:40.037Z"
+          },
+          {
+            "targetOffsetMs": 15000,
+            "observedAt": "2026-09-30T08:06:44.324Z",
+            "consumed": {
+              "pid": 2508,
+              "port": 63757,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001",
+              "runId": "16fb9fa9b5ce460ca66d27bf595fdf09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-consumed"
+            },
+            "logging": {
+              "logFile": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\temp\\chromium-diagnostics.log",
+              "mode": "chromium-log",
+              "nativeTempUnchanged": true,
+              "performanceSample": false,
+              "pid": 2508,
+              "port": 63757,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001",
+              "runId": "16fb9fa9b5ce460ca66d27bf595fdf09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-chromium-log"
+            },
+            "ownedSnapshot": {
+              "observedAt": "2026-09-30T08:06:45.386Z",
+              "collectionMs": 1061.0252,
+              "workingSetBytes": 614240256,
+              "reason": null,
+              "userDataDirectoryMatches": true,
+              "browserDataChecks": [
+                {
+                  "pid": 25880,
+                  "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\webview",
+                  "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\webview\\EBWebView",
+                  "matchesExpected": true,
+                  "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\webview\\EBWebView",
+                  "reason": null
+                }
+              ],
+              "browserDataFilesystem": {
+                "valid": true,
+                "reason": null
+              },
+              "processCount": 9,
+              "processes": [
+                {
+                  "pid": 2508,
+                  "parentPid": 26276,
+                  "creationMs": 1790755589399,
+                  "executableName": "solo_soul.exe",
+                  "workingSetBytes": 110833664,
+                  "privateBytes": 52137984,
+                  "cpuMs": 687.5,
+                  "reason": null
+                },
+                {
+                  "pid": 25880,
+                  "parentPid": 2508,
+                  "creationMs": 1790755589601,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 177463296,
+                  "privateBytes": 76353536,
+                  "cpuMs": 1671.875,
+                  "reason": null
+                },
+                {
+                  "pid": 40040,
+                  "parentPid": 25880,
+                  "creationMs": 1790755590429,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 44904448,
+                  "privateBytes": 13230080,
+                  "cpuMs": 265.625,
+                  "reason": null
+                },
+                {
+                  "pid": 37132,
+                  "parentPid": 25880,
+                  "creationMs": 1790755590428,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 80285696,
+                  "privateBytes": 49238016,
+                  "cpuMs": 546.875,
+                  "reason": null
+                },
+                {
+                  "pid": 28068,
+                  "parentPid": 25880,
+                  "creationMs": 1790755589716,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 10985472,
+                  "privateBytes": 2584576,
+                  "cpuMs": 15.625,
+                  "reason": null
+                },
+                {
+                  "pid": 28832,
+                  "parentPid": 25880,
+                  "creationMs": 1790755589957,
+                  "executableName": "conhost.exe",
+                  "workingSetBytes": 52310016,
+                  "privateBytes": 31580160,
+                  "cpuMs": 281.25,
+                  "reason": null
+                },
+                {
+                  "pid": 42556,
+                  "parentPid": 25880,
+                  "creationMs": 1790755590576,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 91566080,
+                  "privateBytes": 47243264,
+                  "cpuMs": 531.25,
+                  "reason": null
+                },
+                {
+                  "pid": 36324,
+                  "parentPid": 25880,
+                  "creationMs": 1790755590478,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 20733952,
+                  "privateBytes": 7929856,
+                  "cpuMs": 46.875,
+                  "reason": null
+                },
+                {
+                  "pid": 7660,
+                  "parentPid": 25880,
+                  "creationMs": 1790755591266,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 25157632,
+                  "privateBytes": 8216576,
+                  "cpuMs": 46.875,
+                  "reason": null
+                }
+              ]
+            },
+            "processDiagnostics": {
+              "mode": "live",
+              "listeners": [],
+              "liveQueriesPerformed": true,
+              "success": true,
+              "scope": "windows-native-perf-process-diagnostics",
+              "identityVerified": true,
+              "listenersReason": null,
+              "reason": null,
+              "schemaVersion": 1,
+              "processes": [
+                {
+                  "parentPid": 26276,
+                  "token": {
+                    "integrityRid": 8192,
+                    "integrityLabel": "Medium",
+                    "isAppContainer": false,
+                    "reason": null
+                  },
+                  "executablePath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\bin-ordinary-tmp\\solo_soul.exe",
+                  "packageFamilyName": {
+                    "value": null,
+                    "status": "unpackaged",
+                    "reason": null
+                  },
+                  "role": "root",
+                  "version": {
+                    "fileVersion": "2.13.2",
+                    "productVersion": "2.13.2",
+                    "reason": null
+                  },
+                  "browserFlags": {
+                    "port": null,
+                    "logging": {
+                      "reason": "Logging flags do not apply to this host or WebView2 subprocess",
+                      "logFileMatched": null,
+                      "flagsMatched": null,
+                      "requested": true
+                    },
+                    "reason": "Not applicable to the host root process",
+                    "address": null,
+                    "observedDirectory": null,
+                    "userDataDirectoryMatched": null
+                  },
+                  "pid": 2508,
+                  "creationMs": 1790755589399,
+                  "identityMatched": true
+                },
+                {
+                  "parentPid": 2508,
+                  "token": {
+                    "integrityRid": 8192,
+                    "integrityLabel": "Medium",
+                    "isAppContainer": false,
+                    "reason": null
+                  },
+                  "executablePath": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.37\\msedgewebview2.exe",
+                  "packageFamilyName": {
+                    "value": null,
+                    "status": "unpackaged",
+                    "reason": null
+                  },
+                  "role": "browser",
+                  "version": {
+                    "fileVersion": "154.0.4258.37",
+                    "productVersion": "154.0.4258.37",
+                    "reason": null
+                  },
+                  "browserFlags": {
+                    "port": 63757,
+                    "logging": {
+                      "reason": null,
+                      "logFileMatched": true,
+                      "flagsMatched": true,
+                      "requested": true
+                    },
+                    "reason": null,
+                    "address": "127.0.0.1",
+                    "observedDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\webview\\EBWebView",
+                    "userDataDirectoryMatched": true
+                  },
+                  "pid": 25880,
+                  "creationMs": 1790755589601,
+                  "identityMatched": true
+                }
+              ]
+            },
+            "cdp": {
+              "status": "no-owned-listener",
+              "attempted": false,
+              "expectedPort": 63757
+            },
+            "success": true,
+            "finishedAt": "2026-09-30T08:06:49.056Z"
+          },
+          {
+            "targetOffsetMs": 30000,
+            "observedAt": "2026-09-30T08:06:59.322Z",
+            "consumed": {
+              "pid": 2508,
+              "port": 63757,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001",
+              "runId": "16fb9fa9b5ce460ca66d27bf595fdf09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-consumed"
+            },
+            "logging": {
+              "logFile": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\temp\\chromium-diagnostics.log",
+              "mode": "chromium-log",
+              "nativeTempUnchanged": true,
+              "performanceSample": false,
+              "pid": 2508,
+              "port": 63757,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001",
+              "runId": "16fb9fa9b5ce460ca66d27bf595fdf09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-chromium-log"
+            },
+            "ownedSnapshot": {
+              "observedAt": "2026-09-30T08:07:00.376Z",
+              "collectionMs": 1053.100400000003,
+              "workingSetBytes": 624185344,
+              "reason": null,
+              "userDataDirectoryMatches": true,
+              "browserDataChecks": [
+                {
+                  "pid": 25880,
+                  "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\webview",
+                  "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\webview\\EBWebView",
+                  "matchesExpected": true,
+                  "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\webview\\EBWebView",
+                  "reason": null
+                }
+              ],
+              "browserDataFilesystem": {
+                "valid": true,
+                "reason": null
+              },
+              "processCount": 9,
+              "processes": [
+                {
+                  "pid": 2508,
+                  "parentPid": 26276,
+                  "creationMs": 1790755589399,
+                  "executableName": "solo_soul.exe",
+                  "workingSetBytes": 110821376,
+                  "privateBytes": 52137984,
+                  "cpuMs": 687.5,
+                  "reason": null
+                },
+                {
+                  "pid": 25880,
+                  "parentPid": 2508,
+                  "creationMs": 1790755589601,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 178020352,
+                  "privateBytes": 76406784,
+                  "cpuMs": 1687.5,
+                  "reason": null
+                },
+                {
+                  "pid": 40040,
+                  "parentPid": 25880,
+                  "creationMs": 1790755590429,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 44904448,
+                  "privateBytes": 13230080,
+                  "cpuMs": 265.625,
+                  "reason": null
+                },
+                {
+                  "pid": 37132,
+                  "parentPid": 25880,
+                  "creationMs": 1790755590428,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 80285696,
+                  "privateBytes": 49238016,
+                  "cpuMs": 546.875,
+                  "reason": null
+                },
+                {
+                  "pid": 28068,
+                  "parentPid": 25880,
+                  "creationMs": 1790755589716,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 20361216,
+                  "privateBytes": 3444736,
+                  "cpuMs": 31.25,
+                  "reason": null
+                },
+                {
+                  "pid": 28832,
+                  "parentPid": 25880,
+                  "creationMs": 1790755589957,
+                  "executableName": "conhost.exe",
+                  "workingSetBytes": 52334592,
+                  "privateBytes": 31612928,
+                  "cpuMs": 328.125,
+                  "reason": null
+                },
+                {
+                  "pid": 42556,
+                  "parentPid": 25880,
+                  "creationMs": 1790755590576,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 91566080,
+                  "privateBytes": 47243264,
+                  "cpuMs": 531.25,
+                  "reason": null
+                },
+                {
+                  "pid": 36324,
+                  "parentPid": 25880,
+                  "creationMs": 1790755590478,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 20733952,
+                  "privateBytes": 7929856,
+                  "cpuMs": 46.875,
+                  "reason": null
+                },
+                {
+                  "pid": 7660,
+                  "parentPid": 25880,
+                  "creationMs": 1790755591266,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 25157632,
+                  "privateBytes": 8216576,
+                  "cpuMs": 46.875,
+                  "reason": null
+                }
+              ]
+            },
+            "processDiagnostics": {
+              "mode": "live",
+              "listeners": [],
+              "liveQueriesPerformed": true,
+              "success": true,
+              "scope": "windows-native-perf-process-diagnostics",
+              "identityVerified": true,
+              "listenersReason": null,
+              "reason": null,
+              "schemaVersion": 1,
+              "processes": [
+                {
+                  "parentPid": 26276,
+                  "token": {
+                    "integrityRid": 8192,
+                    "integrityLabel": "Medium",
+                    "isAppContainer": false,
+                    "reason": null
+                  },
+                  "executablePath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\bin-ordinary-tmp\\solo_soul.exe",
+                  "packageFamilyName": {
+                    "value": null,
+                    "status": "unpackaged",
+                    "reason": null
+                  },
+                  "role": "root",
+                  "version": {
+                    "fileVersion": "2.13.2",
+                    "productVersion": "2.13.2",
+                    "reason": null
+                  },
+                  "browserFlags": {
+                    "port": null,
+                    "logging": {
+                      "reason": "Logging flags do not apply to this host or WebView2 subprocess",
+                      "logFileMatched": null,
+                      "flagsMatched": null,
+                      "requested": true
+                    },
+                    "reason": "Not applicable to the host root process",
+                    "address": null,
+                    "observedDirectory": null,
+                    "userDataDirectoryMatched": null
+                  },
+                  "pid": 2508,
+                  "creationMs": 1790755589399,
+                  "identityMatched": true
+                },
+                {
+                  "parentPid": 2508,
+                  "token": {
+                    "integrityRid": 8192,
+                    "integrityLabel": "Medium",
+                    "isAppContainer": false,
+                    "reason": null
+                  },
+                  "executablePath": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.37\\msedgewebview2.exe",
+                  "packageFamilyName": {
+                    "value": null,
+                    "status": "unpackaged",
+                    "reason": null
+                  },
+                  "role": "browser",
+                  "version": {
+                    "fileVersion": "154.0.4258.37",
+                    "productVersion": "154.0.4258.37",
+                    "reason": null
+                  },
+                  "browserFlags": {
+                    "port": 63757,
+                    "logging": {
+                      "reason": null,
+                      "logFileMatched": true,
+                      "flagsMatched": true,
+                      "requested": true
+                    },
+                    "reason": null,
+                    "address": "127.0.0.1",
+                    "observedDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\webview\\EBWebView",
+                    "userDataDirectoryMatched": true
+                  },
+                  "pid": 25880,
+                  "creationMs": 1790755589601,
+                  "identityMatched": true
+                }
+              ]
+            },
+            "cdp": {
+              "status": "no-owned-listener",
+              "attempted": false,
+              "expectedPort": 63757
+            },
+            "success": true,
+            "finishedAt": "2026-09-30T08:07:03.893Z"
+          }
+        ],
+        "captureComplete": true,
+        "performanceMetrics": null,
+        "limitation": "One diagnostic run; no password input, UI action, or performance sample",
+        "sourceBefore": [
+          {
+            "path": "acc_rf312_100/config.json",
+            "bytes": 669,
+            "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+          },
+          {
+            "path": "acc_rf312_100/vault.db",
+            "bytes": 266240,
+            "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+          },
+          {
+            "path": "acc_rf312_100/vault.db.pre_enc.bak",
+            "bytes": 4096,
+            "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+          },
+          {
+            "path": "accounts.bak",
+            "bytes": 189,
+            "sha256": "1e86e48cf79510489a907415a8147ec92c4692b0a621cf6178487ccbc3f1aa02"
+          },
+          {
+            "path": "accounts.json",
+            "bytes": 189,
+            "sha256": "625ecbe50d1d2455df06b9050ad465e504b477c389de2aeeb2c4eafbc38482fa"
+          },
+          {
+            "path": "rf312-fixture.json",
+            "bytes": 667,
+            "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+          },
+          {
+            "path": "ui_preferences.json",
+            "bytes": 221,
+            "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+          }
+        ],
+        "prepare": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null
+        },
+        "owned": {
+          "appVersion": "2.13.2",
+          "fixture": {
+            "accountId": "acc_rf312_100",
+            "files": [
+              {
+                "relativePath": "acc_rf312_100\\config.json",
+                "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+              },
+              {
+                "relativePath": "acc_rf312_100\\vault.db",
+                "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "15e14ccbb0013a92553b4d7a7dc5e4add06b749813c783b43ca14e1023b29392"
+              },
+              {
+                "relativePath": "rf312-fixture.json",
+                "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "marker": {
+              "accountId": "acc_rf312_100",
+              "accountName": "Performance Fixture",
+              "buildProfile": "release",
+              "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+              "expectedSearchMatches": 5,
+              "fixture": "deterministic-20th-object-property-match",
+              "generator": "solosoul-core/examples/perf_baseline",
+              "includesAttachments": false,
+              "includesOcrFixture": false,
+              "includesProfile": true,
+              "includesUiPreferences": true,
+              "kdf": {
+                "iterations": 3,
+                "memoryKiB": 65536,
+                "parallelism": 4
+              },
+              "objectCount": 100,
+              "schemaVersion": 1,
+              "scope": "synthetic-native-vault-fixture",
+              "searchQuery": "needle"
+            },
+            "objectCount": 100,
+            "searchMatches": 5
+          },
+          "fixtureSource": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100",
+          "identifier": "com.solosoul.rf312perf.16fb9fa9b5ce460ca66d27bf595fdf09",
+          "local": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.16fb9fa9b5ce460ca66d27bf595fdf09",
+          "nativePerfFeature": true,
+          "ownedPaths": [
+            "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001",
+            "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.16fb9fa9b5ce460ca66d27bf595fdf09",
+            "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.16fb9fa9b5ce460ca66d27bf595fdf09"
+          ],
+          "preparationStatus": "ready",
+          "profile": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\profile",
+          "roaming": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.16fb9fa9b5ce460ca66d27bf595fdf09",
+          "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001",
+          "runId": "16fb9fa9b5ce460ca66d27bf595fdf09",
+          "schemaVersion": 1,
+          "scope": "windows-native-perf-owned",
+          "vault": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\vault",
+          "webview": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\webview"
+        },
+        "port": 63757,
+        "processId": 2508,
+        "logging": {
+          "logFile": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\temp\\chromium-diagnostics.log",
+          "mode": "chromium-log",
+          "nativeTempUnchanged": true,
+          "performanceSample": false,
+          "pid": 2508,
+          "port": 63757,
+          "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001",
+          "runId": "16fb9fa9b5ce460ca66d27bf595fdf09",
+          "schemaVersion": 1,
+          "scope": "windows-native-perf-chromium-log"
+        },
+        "cleanup": {
+          "cleanup": [
+            {
+              "status": "already-exited",
+              "pid": 34424
+            },
+            {
+              "status": "terminated",
+              "pid": 7660
+            },
+            {
+              "status": "terminated",
+              "pid": 42556
+            },
+            {
+              "status": "terminated",
+              "pid": 36324
+            },
+            {
+              "status": "terminated",
+              "pid": 40040
+            },
+            {
+              "status": "terminated",
+              "pid": 37132
+            },
+            {
+              "status": "terminated",
+              "pid": 28832
+            },
+            {
+              "status": "terminated",
+              "pid": 28068
+            },
+            {
+              "status": "terminated",
+              "pid": 25880
+            },
+            {
+              "status": "terminated",
+              "pid": 2508
+            }
+          ],
+          "unverifiedDescendants": false
+        },
+        "ownedProcessExit": {
+          "exitCode": 4294967295,
+          "signal": null,
+          "error": null
+        },
+        "cleanupIntegrity": {
+          "complete": true,
+          "reason": null
+        },
+        "sourceAfter": [
+          {
+            "path": "acc_rf312_100/config.json",
+            "bytes": 669,
+            "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+          },
+          {
+            "path": "acc_rf312_100/vault.db",
+            "bytes": 266240,
+            "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+          },
+          {
+            "path": "acc_rf312_100/vault.db.pre_enc.bak",
+            "bytes": 4096,
+            "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+          },
+          {
+            "path": "accounts.bak",
+            "bytes": 189,
+            "sha256": "1e86e48cf79510489a907415a8147ec92c4692b0a621cf6178487ccbc3f1aa02"
+          },
+          {
+            "path": "accounts.json",
+            "bytes": 189,
+            "sha256": "625ecbe50d1d2455df06b9050ad465e504b477c389de2aeeb2c4eafbc38482fa"
+          },
+          {
+            "path": "rf312-fixture.json",
+            "bytes": 667,
+            "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+          },
+          {
+            "path": "ui_preferences.json",
+            "bytes": 221,
+            "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+          }
+        ],
+        "sourceUnchanged": true,
+        "chromiumLog": {
+          "path": "c:\\users\\40299571\\appdata\\local\\temp\\ss-rf312-f3bc259b\\cdp-tmp-baseline-20260930\\sample-001\\temp\\chromium-diagnostics.log",
+          "bytes": 1617,
+          "sha256": "31668e7927c198332d7bae71e85a7962748626b343660eff53d14a04e28e7f4d",
+          "valid": true,
+          "nonEmpty": true,
+          "reason": null
+        },
+        "interrupted": false,
+        "finishedAt": "2026-09-30T08:07:05.900Z",
+        "success": true
+      },
+      "rawReportSha256": "770D2EF7BB1471BEF8DCDA0576F1BD9781CB64591C5620C8364CCFC6546FA1B5",
+      "logText": "[25880:34440:0930/090630.211:ERROR:base\\win\\edge_dpi_util.cc:218] failed to set WebView dpi awareness of 2\n[25880:34440:0930/090630.420:ERROR:components\\optimization_guide\\core\\model_execution\\performance_class.cc:105] Edge LLM: Not supported on WebView2\n[37132:12432:0930/090630.586:ERROR:base\\win\\edge_dpi_util.cc:218] failed to set WebView dpi awareness of 2\n[42556:5520:0930/090630.697:INFO:third_party\\webrtc\\rtc_base\\cpu_info.cc:77] Available number of cores: 8\n[37132:12432:0930/090630.702:VERBOSE1:components\\viz\\service\\main\\viz_main_impl.cc:87] VizNullHypothesis is disabled (not a warning)\n[37132:9116:0930/090630.705:VERBOSE1:base\\allocator\\scheduler_loop_quarantine_config.cc:199] No entry found for gpu-process/viz-compositor.\n[25880:34440:0930/090631.651:WARNING:chrome\\browser\\media\\prefs\\capture_device_ranking.h:256] Can't initialize the value of media.audio_input.user_preference_ranking because media.default_audio_capture_device isn't registered or is empty\n[25880:34440:0930/090631.651:WARNING:chrome\\browser\\media\\prefs\\capture_device_ranking.h:256] Can't initialize the value of media.video_input.user_preference_ranking because media.default_video_capture_Device isn't registered or is empty\n[25880:34440:0930/090705.647:ERROR:content\\browser\\network_service_instance_impl.cc:673] Network service crashed or was terminated, restarting service.\n[25880:34440:0930/090705.687:ERROR:content\\browser\\gpu\\gpu_process_host.cc:1190] GPU process exited unexpectedly: exit_code=-1\n[25880:34440:0930/090705.687:WARNING:content\\browser\\gpu\\gpu_process_host.cc:1658] The GPU process has crashed 1 time(s)\n",
+      "logSha256": "31668E7927C198332D7BAE71E85A7962748626B343660EFF53D14A04E28E7F4D",
+      "tempOrdinaryCharacters": 96,
+      "userProfileOrdinaryCharacters": 99,
+      "webviewOrdinaryCharacters": 99
+    },
+    {
+      "mode": "ordinary-tmp",
+      "rawReport": {
+        "schemaVersion": 1,
+        "task": "RF-312",
+        "scope": "windows-native-cdp-diagnostics",
+        "startedAt": "2026-09-30T08:08:04.856Z",
+        "platform": "win32",
+        "osRelease": "10.0.26100",
+        "nodeVersion": "v24.16.0",
+        "hashes": {
+          "exe": "6e402cd773e4c0845e60de9d1caee373d4309baa43d84a77d557b9c034035e7f",
+          "helper": "3a677e151deb5d66cc6cec7856a6be2cde829994f1f8ac734af66bf6ae2ff68a",
+          "diagnostic": "f3add0628b79ada5f94e27b7c44bcf9be768353679cba8e45ded7740e7edd9a1",
+          "runner": "b15dfd1d1af65ff586fcba37fb373ba2723dd2a532ac63e7e1cc8ea010cd17bf"
+        },
+        "binaryPreflight": {
+          "method": "streaming-ascii-marker-check",
+          "matchedMarkers": [
+            "windows-native-perf-owned",
+            "windows-native-perf-ready",
+            "windows-native-perf-consumed",
+            "--native-perf-prepare"
+          ],
+          "bytesScanned": 71761920,
+          "guarantee": "Excludes accidental default builds; not a binary signature or trust guarantee"
+        },
+        "loggingRequested": true,
+        "loggingBinaryPreflight": {
+          "method": "streaming-logging-feature-marker",
+          "limitation": "Excludes old native-perf builds; not a signature or trust guarantee"
+        },
+        "ordinaryTmpRequested": true,
+        "ordinaryTmpBinaryPreflight": {
+          "method": "streaming-ordinary-tmp-feature-marker",
+          "limitation": "Excludes old native-perf builds; not a signature or trust guarantee"
+        },
+        "fixture": {
+          "accountId": "acc_rf312_100",
+          "accountName": "Performance Fixture",
+          "buildProfile": "release",
+          "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+          "expectedSearchMatches": 5,
+          "fixture": "deterministic-20th-object-property-match",
+          "generator": "solosoul-core/examples/perf_baseline",
+          "includesAttachments": false,
+          "includesOcrFixture": false,
+          "includesProfile": true,
+          "includesUiPreferences": true,
+          "kdf": {
+            "iterations": 3,
+            "memoryKiB": 65536,
+            "parallelism": 4
+          },
+          "objectCount": 100,
+          "schemaVersion": 1,
+          "scope": "synthetic-native-vault-fixture",
+          "searchQuery": "needle"
+        },
+        "observations": [
+          {
+            "targetOffsetMs": 5000,
+            "observedAt": "2026-09-30T08:08:13.889Z",
+            "ordinaryTmp": {
+              "mode": "ordinary-tmp",
+              "performanceSample": false,
+              "pid": 29236,
+              "port": 56984,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001",
+              "runId": "e999d0f6aef240e5aa6eff84d7506f09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-ordinary-tmp",
+              "temp": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\temp",
+              "tmp": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\temp",
+              "userProfile": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\profile",
+              "webview": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview"
+            },
+            "consumed": {
+              "pid": 29236,
+              "port": 56984,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001",
+              "runId": "e999d0f6aef240e5aa6eff84d7506f09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-consumed"
+            },
+            "logging": {
+              "logFile": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\temp\\chromium-diagnostics.log",
+              "mode": "chromium-log",
+              "nativeTempUnchanged": true,
+              "performanceSample": false,
+              "pid": 29236,
+              "port": 56984,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001",
+              "runId": "e999d0f6aef240e5aa6eff84d7506f09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-chromium-log"
+            },
+            "ownedSnapshot": {
+              "observedAt": "2026-09-30T08:08:15.032Z",
+              "collectionMs": 1141.6710000000003,
+              "workingSetBytes": 624410624,
+              "reason": null,
+              "userDataDirectoryMatches": true,
+              "browserDataChecks": [
+                {
+                  "pid": 43356,
+                  "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview",
+                  "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview\\EBWebView",
+                  "matchesExpected": true,
+                  "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview\\EBWebView",
+                  "reason": null
+                }
+              ],
+              "browserDataFilesystem": {
+                "valid": true,
+                "reason": null
+              },
+              "processCount": 10,
+              "processes": [
+                {
+                  "pid": 29236,
+                  "parentPid": 36844,
+                  "creationMs": 1790755688885,
+                  "executableName": "solo_soul.exe",
+                  "workingSetBytes": 51916800,
+                  "privateBytes": 18169856,
+                  "cpuMs": 406.25,
+                  "reason": null
+                },
+                {
+                  "pid": 43356,
+                  "parentPid": 29236,
+                  "creationMs": 1790755689073,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 176693248,
+                  "privateBytes": 76165120,
+                  "cpuMs": 1500,
+                  "reason": null
+                },
+                {
+                  "pid": 30724,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689564,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 99889152,
+                  "privateBytes": 69120000,
+                  "cpuMs": 406.25,
+                  "reason": null
+                },
+                {
+                  "pid": 13840,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689566,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 44920832,
+                  "privateBytes": 13246464,
+                  "cpuMs": 265.625,
+                  "reason": null
+                },
+                {
+                  "pid": 25928,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689172,
+                  "executableName": "conhost.exe",
+                  "workingSetBytes": 49311744,
+                  "privateBytes": 30998528,
+                  "cpuMs": 218.75,
+                  "reason": null
+                },
+                {
+                  "pid": 18940,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689108,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 10969088,
+                  "privateBytes": 2535424,
+                  "cpuMs": 46.875,
+                  "reason": null
+                },
+                {
+                  "pid": 32504,
+                  "parentPid": 43356,
+                  "creationMs": 1790755690114,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 25145344,
+                  "privateBytes": 8216576,
+                  "cpuMs": 78.125,
+                  "reason": null
+                },
+                {
+                  "pid": 9332,
+                  "parentPid": 43356,
+                  "creationMs": 1790755690115,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 48975872,
+                  "privateBytes": 18083840,
+                  "cpuMs": 250,
+                  "reason": null
+                },
+                {
+                  "pid": 29492,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689614,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 20652032,
+                  "privateBytes": 8982528,
+                  "cpuMs": 78.125,
+                  "reason": null
+                },
+                {
+                  "pid": 21484,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689733,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 95936512,
+                  "privateBytes": 52318208,
+                  "cpuMs": 484.375,
+                  "reason": null
+                }
+              ]
+            },
+            "processDiagnostics": {
+              "mode": "live",
+              "listeners": [],
+              "liveQueriesPerformed": true,
+              "success": true,
+              "scope": "windows-native-perf-process-diagnostics",
+              "identityVerified": true,
+              "listenersReason": null,
+              "reason": null,
+              "schemaVersion": 1,
+              "processes": [
+                {
+                  "parentPid": 36844,
+                  "token": {
+                    "integrityRid": 8192,
+                    "integrityLabel": "Medium",
+                    "isAppContainer": false,
+                    "reason": null
+                  },
+                  "executablePath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\bin-ordinary-tmp\\solo_soul.exe",
+                  "packageFamilyName": {
+                    "value": null,
+                    "status": "unpackaged",
+                    "reason": null
+                  },
+                  "role": "root",
+                  "version": {
+                    "fileVersion": "2.13.2",
+                    "productVersion": "2.13.2",
+                    "reason": null
+                  },
+                  "browserFlags": {
+                    "port": null,
+                    "logging": {
+                      "reason": "Logging flags do not apply to this host or WebView2 subprocess",
+                      "logFileMatched": null,
+                      "flagsMatched": null,
+                      "requested": true
+                    },
+                    "reason": "Not applicable to the host root process",
+                    "address": null,
+                    "observedDirectory": null,
+                    "userDataDirectoryMatched": null
+                  },
+                  "pid": 29236,
+                  "creationMs": 1790755688885,
+                  "identityMatched": true
+                },
+                {
+                  "parentPid": 29236,
+                  "token": {
+                    "integrityRid": 8192,
+                    "integrityLabel": "Medium",
+                    "isAppContainer": false,
+                    "reason": null
+                  },
+                  "executablePath": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.37\\msedgewebview2.exe",
+                  "packageFamilyName": {
+                    "value": null,
+                    "status": "unpackaged",
+                    "reason": null
+                  },
+                  "role": "browser",
+                  "version": {
+                    "fileVersion": "154.0.4258.37",
+                    "productVersion": "154.0.4258.37",
+                    "reason": null
+                  },
+                  "browserFlags": {
+                    "port": 56984,
+                    "logging": {
+                      "reason": null,
+                      "logFileMatched": true,
+                      "flagsMatched": true,
+                      "requested": true
+                    },
+                    "reason": null,
+                    "address": "127.0.0.1",
+                    "observedDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview\\EBWebView",
+                    "userDataDirectoryMatched": true
+                  },
+                  "pid": 43356,
+                  "creationMs": 1790755689073,
+                  "identityMatched": true
+                }
+              ]
+            },
+            "cdp": {
+              "status": "no-owned-listener",
+              "attempted": false,
+              "expectedPort": 56984
+            },
+            "success": true,
+            "finishedAt": "2026-09-30T08:08:18.674Z"
+          },
+          {
+            "targetOffsetMs": 15000,
+            "observedAt": "2026-09-30T08:08:23.882Z",
+            "ordinaryTmp": {
+              "mode": "ordinary-tmp",
+              "performanceSample": false,
+              "pid": 29236,
+              "port": 56984,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001",
+              "runId": "e999d0f6aef240e5aa6eff84d7506f09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-ordinary-tmp",
+              "temp": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\temp",
+              "tmp": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\temp",
+              "userProfile": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\profile",
+              "webview": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview"
+            },
+            "consumed": {
+              "pid": 29236,
+              "port": 56984,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001",
+              "runId": "e999d0f6aef240e5aa6eff84d7506f09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-consumed"
+            },
+            "logging": {
+              "logFile": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\temp\\chromium-diagnostics.log",
+              "mode": "chromium-log",
+              "nativeTempUnchanged": true,
+              "performanceSample": false,
+              "pid": 29236,
+              "port": 56984,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001",
+              "runId": "e999d0f6aef240e5aa6eff84d7506f09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-chromium-log"
+            },
+            "ownedSnapshot": {
+              "observedAt": "2026-09-30T08:08:24.930Z",
+              "collectionMs": 1046.0332999999991,
+              "workingSetBytes": 565977088,
+              "reason": null,
+              "userDataDirectoryMatches": true,
+              "browserDataChecks": [
+                {
+                  "pid": 43356,
+                  "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview",
+                  "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview\\EBWebView",
+                  "matchesExpected": true,
+                  "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview\\EBWebView",
+                  "reason": null
+                }
+              ],
+              "browserDataFilesystem": {
+                "valid": true,
+                "reason": null
+              },
+              "processCount": 9,
+              "processes": [
+                {
+                  "pid": 29236,
+                  "parentPid": 36844,
+                  "creationMs": 1790755688885,
+                  "executableName": "solo_soul.exe",
+                  "workingSetBytes": 67170304,
+                  "privateBytes": 18055168,
+                  "cpuMs": 406.25,
+                  "reason": null
+                },
+                {
+                  "pid": 43356,
+                  "parentPid": 29236,
+                  "creationMs": 1790755689073,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 176644096,
+                  "privateBytes": 76136448,
+                  "cpuMs": 1562.5,
+                  "reason": null
+                },
+                {
+                  "pid": 30724,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689564,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 80109568,
+                  "privateBytes": 49070080,
+                  "cpuMs": 421.875,
+                  "reason": null
+                },
+                {
+                  "pid": 13840,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689566,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 44990464,
+                  "privateBytes": 13279232,
+                  "cpuMs": 281.25,
+                  "reason": null
+                },
+                {
+                  "pid": 25928,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689172,
+                  "executableName": "conhost.exe",
+                  "workingSetBytes": 49315840,
+                  "privateBytes": 30965760,
+                  "cpuMs": 218.75,
+                  "reason": null
+                },
+                {
+                  "pid": 18940,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689108,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 10997760,
+                  "privateBytes": 2580480,
+                  "cpuMs": 46.875,
+                  "reason": null
+                },
+                {
+                  "pid": 32504,
+                  "parentPid": 43356,
+                  "creationMs": 1790755690114,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 25145344,
+                  "privateBytes": 8216576,
+                  "cpuMs": 78.125,
+                  "reason": null
+                },
+                {
+                  "pid": 29492,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689614,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 20742144,
+                  "privateBytes": 8990720,
+                  "cpuMs": 78.125,
+                  "reason": null
+                },
+                {
+                  "pid": 21484,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689733,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 90861568,
+                  "privateBytes": 47079424,
+                  "cpuMs": 500,
+                  "reason": null
+                }
+              ]
+            },
+            "processDiagnostics": {
+              "mode": "live",
+              "listeners": [],
+              "liveQueriesPerformed": true,
+              "success": true,
+              "scope": "windows-native-perf-process-diagnostics",
+              "identityVerified": true,
+              "listenersReason": null,
+              "reason": null,
+              "schemaVersion": 1,
+              "processes": [
+                {
+                  "parentPid": 36844,
+                  "token": {
+                    "integrityRid": 8192,
+                    "integrityLabel": "Medium",
+                    "isAppContainer": false,
+                    "reason": null
+                  },
+                  "executablePath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\bin-ordinary-tmp\\solo_soul.exe",
+                  "packageFamilyName": {
+                    "value": null,
+                    "status": "unpackaged",
+                    "reason": null
+                  },
+                  "role": "root",
+                  "version": {
+                    "fileVersion": "2.13.2",
+                    "productVersion": "2.13.2",
+                    "reason": null
+                  },
+                  "browserFlags": {
+                    "port": null,
+                    "logging": {
+                      "reason": "Logging flags do not apply to this host or WebView2 subprocess",
+                      "logFileMatched": null,
+                      "flagsMatched": null,
+                      "requested": true
+                    },
+                    "reason": "Not applicable to the host root process",
+                    "address": null,
+                    "observedDirectory": null,
+                    "userDataDirectoryMatched": null
+                  },
+                  "pid": 29236,
+                  "creationMs": 1790755688885,
+                  "identityMatched": true
+                },
+                {
+                  "parentPid": 29236,
+                  "token": {
+                    "integrityRid": 8192,
+                    "integrityLabel": "Medium",
+                    "isAppContainer": false,
+                    "reason": null
+                  },
+                  "executablePath": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.37\\msedgewebview2.exe",
+                  "packageFamilyName": {
+                    "value": null,
+                    "status": "unpackaged",
+                    "reason": null
+                  },
+                  "role": "browser",
+                  "version": {
+                    "fileVersion": "154.0.4258.37",
+                    "productVersion": "154.0.4258.37",
+                    "reason": null
+                  },
+                  "browserFlags": {
+                    "port": 56984,
+                    "logging": {
+                      "reason": null,
+                      "logFileMatched": true,
+                      "flagsMatched": true,
+                      "requested": true
+                    },
+                    "reason": null,
+                    "address": "127.0.0.1",
+                    "observedDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview\\EBWebView",
+                    "userDataDirectoryMatched": true
+                  },
+                  "pid": 43356,
+                  "creationMs": 1790755689073,
+                  "identityMatched": true
+                }
+              ]
+            },
+            "cdp": {
+              "status": "no-owned-listener",
+              "attempted": false,
+              "expectedPort": 56984
+            },
+            "success": true,
+            "finishedAt": "2026-09-30T08:08:28.240Z"
+          },
+          {
+            "targetOffsetMs": 30000,
+            "observedAt": "2026-09-30T08:08:38.895Z",
+            "ordinaryTmp": {
+              "mode": "ordinary-tmp",
+              "performanceSample": false,
+              "pid": 29236,
+              "port": 56984,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001",
+              "runId": "e999d0f6aef240e5aa6eff84d7506f09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-ordinary-tmp",
+              "temp": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\temp",
+              "tmp": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\temp",
+              "userProfile": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\profile",
+              "webview": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview"
+            },
+            "consumed": {
+              "pid": 29236,
+              "port": 56984,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001",
+              "runId": "e999d0f6aef240e5aa6eff84d7506f09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-consumed"
+            },
+            "logging": {
+              "logFile": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\temp\\chromium-diagnostics.log",
+              "mode": "chromium-log",
+              "nativeTempUnchanged": true,
+              "performanceSample": false,
+              "pid": 29236,
+              "port": 56984,
+              "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001",
+              "runId": "e999d0f6aef240e5aa6eff84d7506f09",
+              "schemaVersion": 1,
+              "scope": "windows-native-perf-chromium-log"
+            },
+            "ownedSnapshot": {
+              "observedAt": "2026-09-30T08:08:39.934Z",
+              "collectionMs": 1037.3634999999995,
+              "workingSetBytes": 576319488,
+              "reason": null,
+              "userDataDirectoryMatches": true,
+              "browserDataChecks": [
+                {
+                  "pid": 43356,
+                  "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview",
+                  "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview\\EBWebView",
+                  "matchesExpected": true,
+                  "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview\\EBWebView",
+                  "reason": null
+                }
+              ],
+              "browserDataFilesystem": {
+                "valid": true,
+                "reason": null
+              },
+              "processCount": 9,
+              "processes": [
+                {
+                  "pid": 29236,
+                  "parentPid": 36844,
+                  "creationMs": 1790755688885,
+                  "executableName": "solo_soul.exe",
+                  "workingSetBytes": 67137536,
+                  "privateBytes": 18022400,
+                  "cpuMs": 421.875,
+                  "reason": null
+                },
+                {
+                  "pid": 43356,
+                  "parentPid": 29236,
+                  "creationMs": 1790755689073,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 177545216,
+                  "privateBytes": 76406784,
+                  "cpuMs": 1578.125,
+                  "reason": null
+                },
+                {
+                  "pid": 30724,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689564,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 80191488,
+                  "privateBytes": 49131520,
+                  "cpuMs": 421.875,
+                  "reason": null
+                },
+                {
+                  "pid": 13840,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689566,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 44961792,
+                  "privateBytes": 13250560,
+                  "cpuMs": 281.25,
+                  "reason": null
+                },
+                {
+                  "pid": 25928,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689172,
+                  "executableName": "conhost.exe",
+                  "workingSetBytes": 49340416,
+                  "privateBytes": 30998528,
+                  "cpuMs": 234.375,
+                  "reason": null
+                },
+                {
+                  "pid": 18940,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689108,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 20393984,
+                  "privateBytes": 3452928,
+                  "cpuMs": 78.125,
+                  "reason": null
+                },
+                {
+                  "pid": 32504,
+                  "parentPid": 43356,
+                  "creationMs": 1790755690114,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 25145344,
+                  "privateBytes": 8216576,
+                  "cpuMs": 78.125,
+                  "reason": null
+                },
+                {
+                  "pid": 29492,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689614,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 20742144,
+                  "privateBytes": 8990720,
+                  "cpuMs": 78.125,
+                  "reason": null
+                },
+                {
+                  "pid": 21484,
+                  "parentPid": 43356,
+                  "creationMs": 1790755689733,
+                  "executableName": "msedgewebview2.exe",
+                  "workingSetBytes": 90861568,
+                  "privateBytes": 47079424,
+                  "cpuMs": 500,
+                  "reason": null
+                }
+              ]
+            },
+            "processDiagnostics": {
+              "mode": "live",
+              "listeners": [],
+              "liveQueriesPerformed": true,
+              "success": true,
+              "scope": "windows-native-perf-process-diagnostics",
+              "identityVerified": true,
+              "listenersReason": null,
+              "reason": null,
+              "schemaVersion": 1,
+              "processes": [
+                {
+                  "parentPid": 36844,
+                  "token": {
+                    "integrityRid": 8192,
+                    "integrityLabel": "Medium",
+                    "isAppContainer": false,
+                    "reason": null
+                  },
+                  "executablePath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\bin-ordinary-tmp\\solo_soul.exe",
+                  "packageFamilyName": {
+                    "value": null,
+                    "status": "unpackaged",
+                    "reason": null
+                  },
+                  "role": "root",
+                  "version": {
+                    "fileVersion": "2.13.2",
+                    "productVersion": "2.13.2",
+                    "reason": null
+                  },
+                  "browserFlags": {
+                    "port": null,
+                    "logging": {
+                      "reason": "Logging flags do not apply to this host or WebView2 subprocess",
+                      "logFileMatched": null,
+                      "flagsMatched": null,
+                      "requested": true
+                    },
+                    "reason": "Not applicable to the host root process",
+                    "address": null,
+                    "observedDirectory": null,
+                    "userDataDirectoryMatched": null
+                  },
+                  "pid": 29236,
+                  "creationMs": 1790755688885,
+                  "identityMatched": true
+                },
+                {
+                  "parentPid": 29236,
+                  "token": {
+                    "integrityRid": 8192,
+                    "integrityLabel": "Medium",
+                    "isAppContainer": false,
+                    "reason": null
+                  },
+                  "executablePath": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.37\\msedgewebview2.exe",
+                  "packageFamilyName": {
+                    "value": null,
+                    "status": "unpackaged",
+                    "reason": null
+                  },
+                  "role": "browser",
+                  "version": {
+                    "fileVersion": "154.0.4258.37",
+                    "productVersion": "154.0.4258.37",
+                    "reason": null
+                  },
+                  "browserFlags": {
+                    "port": 56984,
+                    "logging": {
+                      "reason": null,
+                      "logFileMatched": true,
+                      "flagsMatched": true,
+                      "requested": true
+                    },
+                    "reason": null,
+                    "address": "127.0.0.1",
+                    "observedDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview\\EBWebView",
+                    "userDataDirectoryMatched": true
+                  },
+                  "pid": 43356,
+                  "creationMs": 1790755689073,
+                  "identityMatched": true
+                }
+              ]
+            },
+            "cdp": {
+              "status": "no-owned-listener",
+              "attempted": false,
+              "expectedPort": 56984
+            },
+            "success": true,
+            "finishedAt": "2026-09-30T08:08:43.500Z"
+          }
+        ],
+        "captureComplete": true,
+        "performanceMetrics": null,
+        "limitation": "One diagnostic run; no password input, UI action, or performance sample",
+        "sourceBefore": [
+          {
+            "path": "acc_rf312_100/config.json",
+            "bytes": 669,
+            "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+          },
+          {
+            "path": "acc_rf312_100/vault.db",
+            "bytes": 266240,
+            "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+          },
+          {
+            "path": "acc_rf312_100/vault.db.pre_enc.bak",
+            "bytes": 4096,
+            "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+          },
+          {
+            "path": "accounts.bak",
+            "bytes": 189,
+            "sha256": "1e86e48cf79510489a907415a8147ec92c4692b0a621cf6178487ccbc3f1aa02"
+          },
+          {
+            "path": "accounts.json",
+            "bytes": 189,
+            "sha256": "625ecbe50d1d2455df06b9050ad465e504b477c389de2aeeb2c4eafbc38482fa"
+          },
+          {
+            "path": "rf312-fixture.json",
+            "bytes": 667,
+            "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+          },
+          {
+            "path": "ui_preferences.json",
+            "bytes": 221,
+            "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+          }
+        ],
+        "prepare": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null
+        },
+        "owned": {
+          "appVersion": "2.13.2",
+          "fixture": {
+            "accountId": "acc_rf312_100",
+            "files": [
+              {
+                "relativePath": "acc_rf312_100\\config.json",
+                "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+              },
+              {
+                "relativePath": "acc_rf312_100\\vault.db",
+                "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "7afc557e12e4bc6bcc313c1ff10791afb43de6249e4dea4be13322c24e473cf8"
+              },
+              {
+                "relativePath": "rf312-fixture.json",
+                "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "marker": {
+              "accountId": "acc_rf312_100",
+              "accountName": "Performance Fixture",
+              "buildProfile": "release",
+              "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+              "expectedSearchMatches": 5,
+              "fixture": "deterministic-20th-object-property-match",
+              "generator": "solosoul-core/examples/perf_baseline",
+              "includesAttachments": false,
+              "includesOcrFixture": false,
+              "includesProfile": true,
+              "includesUiPreferences": true,
+              "kdf": {
+                "iterations": 3,
+                "memoryKiB": 65536,
+                "parallelism": 4
+              },
+              "objectCount": 100,
+              "schemaVersion": 1,
+              "scope": "synthetic-native-vault-fixture",
+              "searchQuery": "needle"
+            },
+            "objectCount": 100,
+            "searchMatches": 5
+          },
+          "fixtureSource": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100",
+          "identifier": "com.solosoul.rf312perf.e999d0f6aef240e5aa6eff84d7506f09",
+          "local": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.e999d0f6aef240e5aa6eff84d7506f09",
+          "nativePerfFeature": true,
+          "ownedPaths": [
+            "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001",
+            "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.e999d0f6aef240e5aa6eff84d7506f09",
+            "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.e999d0f6aef240e5aa6eff84d7506f09"
+          ],
+          "preparationStatus": "ready",
+          "profile": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\profile",
+          "roaming": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.e999d0f6aef240e5aa6eff84d7506f09",
+          "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001",
+          "runId": "e999d0f6aef240e5aa6eff84d7506f09",
+          "schemaVersion": 1,
+          "scope": "windows-native-perf-owned",
+          "vault": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\vault",
+          "webview": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview"
+        },
+        "port": 56984,
+        "processId": 29236,
+        "ordinaryTmp": {
+          "mode": "ordinary-tmp",
+          "performanceSample": false,
+          "pid": 29236,
+          "port": 56984,
+          "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001",
+          "runId": "e999d0f6aef240e5aa6eff84d7506f09",
+          "schemaVersion": 1,
+          "scope": "windows-native-perf-ordinary-tmp",
+          "temp": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\temp",
+          "tmp": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\temp",
+          "userProfile": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\profile",
+          "webview": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\webview"
+        },
+        "logging": {
+          "logFile": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\temp\\chromium-diagnostics.log",
+          "mode": "chromium-log",
+          "nativeTempUnchanged": true,
+          "performanceSample": false,
+          "pid": 29236,
+          "port": 56984,
+          "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001",
+          "runId": "e999d0f6aef240e5aa6eff84d7506f09",
+          "schemaVersion": 1,
+          "scope": "windows-native-perf-chromium-log"
+        },
+        "cleanup": {
+          "cleanup": [
+            {
+              "status": "already-exited",
+              "pid": 9332
+            },
+            {
+              "status": "terminated",
+              "pid": 32504
+            },
+            {
+              "status": "terminated",
+              "pid": 21484
+            },
+            {
+              "status": "terminated",
+              "pid": 29492
+            },
+            {
+              "status": "terminated",
+              "pid": 13840
+            },
+            {
+              "status": "terminated",
+              "pid": 30724
+            },
+            {
+              "status": "terminated",
+              "pid": 25928
+            },
+            {
+              "status": "terminated",
+              "pid": 18940
+            },
+            {
+              "status": "terminated",
+              "pid": 43356
+            },
+            {
+              "status": "terminated",
+              "pid": 29236
+            }
+          ],
+          "unverifiedDescendants": false
+        },
+        "ownedProcessExit": {
+          "exitCode": 4294967295,
+          "signal": null,
+          "error": null
+        },
+        "cleanupIntegrity": {
+          "complete": true,
+          "reason": null
+        },
+        "sourceAfter": [
+          {
+            "path": "acc_rf312_100/config.json",
+            "bytes": 669,
+            "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+          },
+          {
+            "path": "acc_rf312_100/vault.db",
+            "bytes": 266240,
+            "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+          },
+          {
+            "path": "acc_rf312_100/vault.db.pre_enc.bak",
+            "bytes": 4096,
+            "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+          },
+          {
+            "path": "accounts.bak",
+            "bytes": 189,
+            "sha256": "1e86e48cf79510489a907415a8147ec92c4692b0a621cf6178487ccbc3f1aa02"
+          },
+          {
+            "path": "accounts.json",
+            "bytes": 189,
+            "sha256": "625ecbe50d1d2455df06b9050ad465e504b477c389de2aeeb2c4eafbc38482fa"
+          },
+          {
+            "path": "rf312-fixture.json",
+            "bytes": 667,
+            "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+          },
+          {
+            "path": "ui_preferences.json",
+            "bytes": 221,
+            "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+          }
+        ],
+        "sourceUnchanged": true,
+        "chromiumLog": {
+          "path": "c:\\users\\40299571\\appdata\\local\\temp\\ss-rf312-f3bc259b\\cdp-tmp-ordinary-20260930\\sample-001\\temp\\chromium-diagnostics.log",
+          "bytes": 1617,
+          "sha256": "4adaa79e23b9b4843f5a07dbc3c0affc3e5acc6055224314668f4bde4b243fec",
+          "valid": true,
+          "nonEmpty": true,
+          "reason": null
+        },
+        "interrupted": false,
+        "finishedAt": "2026-09-30T08:08:45.472Z",
+        "success": true
+      },
+      "rawReportSha256": "7EDCE57617DAA71F67C8A70FD1EF47659A53534B60A4BDFBC5B216EBA947BB93",
+      "logText": "[43356:38784:0930/090809.371:ERROR:base\\win\\edge_dpi_util.cc:218] failed to set WebView dpi awareness of 2\n[43356:38784:0930/090809.565:ERROR:components\\optimization_guide\\core\\model_execution\\performance_class.cc:105] Edge LLM: Not supported on WebView2\n[30724:8132:0930/090809.702:ERROR:base\\win\\edge_dpi_util.cc:218] failed to set WebView dpi awareness of 2\n[30724:8132:0930/090809.803:VERBOSE1:components\\viz\\service\\main\\viz_main_impl.cc:87] VizNullHypothesis is disabled (not a warning)\n[30724:28140:0930/090809.803:VERBOSE1:base\\allocator\\scheduler_loop_quarantine_config.cc:199] No entry found for gpu-process/viz-compositor.\n[21484:26244:0930/090809.827:INFO:third_party\\webrtc\\rtc_base\\cpu_info.cc:77] Available number of cores: 8\n[43356:38784:0930/090810.440:WARNING:chrome\\browser\\media\\prefs\\capture_device_ranking.h:256] Can't initialize the value of media.audio_input.user_preference_ranking because media.default_audio_capture_device isn't registered or is empty\n[43356:38784:0930/090810.440:WARNING:chrome\\browser\\media\\prefs\\capture_device_ranking.h:256] Can't initialize the value of media.video_input.user_preference_ranking because media.default_video_capture_Device isn't registered or is empty\n[43356:38784:0930/090845.272:ERROR:content\\browser\\network_service_instance_impl.cc:673] Network service crashed or was terminated, restarting service.\n[43356:38784:0930/090845.321:ERROR:content\\browser\\gpu\\gpu_process_host.cc:1190] GPU process exited unexpectedly: exit_code=-1\n[43356:38784:0930/090845.321:WARNING:content\\browser\\gpu\\gpu_process_host.cc:1658] The GPU process has crashed 1 time(s)\n",
+      "logSha256": "4ADAA79E23B9B4843F5A07DBC3C0AFFC3E5ACC6055224314668F4BDE4B243FEC",
+      "tempOrdinaryCharacters": 96,
+      "userProfileOrdinaryCharacters": 99,
+      "webviewOrdinaryCharacters": 99
+    }
+  ],
+  "pidAfter": {
+    "recordedIdentities": 20,
+    "existing": [],
+    "noAdditionalTermination": true,
+    "allAbsent": true,
+    "capturedAt": "2026-09-30T08:09:56.7029092+00:00",
+    "uniquePids": [
+      2508,
+      7660,
+      9332,
+      13840,
+      18940,
+      21484,
+      25880,
+      25928,
+      28068,
+      28832,
+      29236,
+      29492,
+      30724,
+      32504,
+      34424,
+      36324,
+      37132,
+      40040,
+      42556,
+      43356
+    ],
+    "querySucceeded": true
+  },
+  "preservation": {
+    "before": {
+      "capturedAt": "2026-09-30T07:48:33.292368+00:00",
+      "fixtures": {
+        "vault100": [
+          {
+            "relative": "acc_rf312_100\\config.json",
+            "bytes": 669,
+            "sha256": "C569F12184166FCCBF0CD9F8F3A0C0385CDF509257E4C2E3F5358FD247213D0F"
+          },
+          {
+            "relative": "acc_rf312_100\\vault.db",
+            "bytes": 266240,
+            "sha256": "E061DF8BC22BA9889FB524B4C86301C88E82C6023A72337F4B39F54048F46239"
+          },
+          {
+            "relative": "acc_rf312_100\\vault.db.pre_enc.bak",
+            "bytes": 4096,
+            "sha256": "1FE8F6113488865C546D2FAA55B21482662CE4BE19D4F505EEEFA09BC3131489"
+          },
+          {
+            "relative": "accounts.bak",
+            "bytes": 189,
+            "sha256": "1E86E48CF79510489A907415A8147EC92C4692B0A621CF6178487CCBC3F1AA02"
+          },
+          {
+            "relative": "accounts.json",
+            "bytes": 189,
+            "sha256": "625ECBE50D1D2455DF06B9050AD465E504B477C389DE2AEEB2C4EAFBC38482FA"
+          },
+          {
+            "relative": "rf312-fixture.json",
+            "bytes": 667,
+            "sha256": "E7216C7BCAB6AFD4EA5E11769F0BDD1F5DC04F0064369E0060FF8F75B3083D38"
+          },
+          {
+            "relative": "ui_preferences.json",
+            "bytes": 221,
+            "sha256": "C9BC519CBD62E58D758F14F3247B222EA676707C59F3044658FC168542B6BB58"
+          }
+        ],
+        "vault5000": [
+          {
+            "relative": "acc_rf312_5000\\config.json",
+            "bytes": 670,
+            "sha256": "38E6CC3EE6E51F967F35FC722625ADCA73D109A201AE29203E6E7A950943A580"
+          },
+          {
+            "relative": "acc_rf312_5000\\vault.db",
+            "bytes": 3559424,
+            "sha256": "7316E2DB11BC7EF3087668A64CA4A4FAAC28F5E754FF556D2769381C0BF7AD85"
+          },
+          {
+            "relative": "acc_rf312_5000\\vault.db.pre_enc.bak",
+            "bytes": 4096,
+            "sha256": "1FE8F6113488865C546D2FAA55B21482662CE4BE19D4F505EEEFA09BC3131489"
+          },
+          {
+            "relative": "accounts.bak",
+            "bytes": 187,
+            "sha256": "21ECDC3B9A747CA19760F79FA01813118B9F3EDA04858F366C78910CBA419F25"
+          },
+          {
+            "relative": "accounts.json",
+            "bytes": 190,
+            "sha256": "7949BA0CEF5D2D1EE627456B58825D7D1B56420A31F6FA5AAA0586F8687B3AD8"
+          },
+          {
+            "relative": "rf312-fixture.json",
+            "bytes": 671,
+            "sha256": "0DD4292F5B5E245EDC8956C0C1A0111115243D68E69F3E5C95B05CE28B6D95E0"
+          },
+          {
+            "relative": "ui_preferences.json",
+            "bytes": 221,
+            "sha256": "C9BC519CBD62E58D758F14F3247B222EA676707C59F3044658FC168542B6BB58"
+          }
+        ]
+      },
+      "userBitmaps": [
+        {
+          "relative": "tauri\\src-tauri\\bundles\\nsis\\assets\\header-install.bmp",
+          "bytes": 25818,
+          "sha256": "EBAFC6856B2BBD91902ED18E5D07564BE87C2F0127EB2E3C744200485C70BB22"
+        },
+        {
+          "relative": "tauri\\src-tauri\\bundles\\nsis\\assets\\header-uninstall.bmp",
+          "bytes": 25818,
+          "sha256": "61AA19110AD51B20807F21B0BC8C77ED01033D89EC68089ACFE15978FA2C46CC"
+        },
+        {
+          "relative": "tauri\\src-tauri\\bundles\\nsis\\assets\\welcome-sidebar.bmp",
+          "bytes": 154542,
+          "sha256": "D5582B57B0E0FB1B075104F6FB194B0902F576F9A05CFC998FC67D0372183F9C"
+        }
+      ]
+    },
+    "all14SourceFilesMatched": true,
+    "all3UserBitmapsMatched": true,
+    "frozenSourceHashesMatched": true
+  },
+  "conclusion": {
+    "result": "Both new canonical control and ordinary TMP diagnostic captured three no-owned-listener observations with identical EXE/resources and Runtime154.0.4258.37. Changing only native root TMP representation did not restore CDP in this experiment.",
+    "intentionalVariable": "Root TMP equivalent ordinary path representation only",
+    "requiredFreshRunDifferences": [
+      "new owned root/profile/log location",
+      "new runId and process identities",
+      "fresh available port",
+      "observation times"
+    ],
+    "environmentEvidenceLimit": "Actual environment marker verifies root process values after setting; not direct evidence of browser inheritance or which API uses TMP.",
+    "notExcluded": [
+      "components reading TEMP directly",
+      "other path entries such as WebView UDF",
+      "Runtime-specific behavior",
+      "all nested path length or access conditions"
+    ],
+    "performanceSample": false,
+    "metrics": null,
+    "taskStatus": "[!] pending successful CDP/UI and multiplatform performance acceptance",
+    "noRegistryOrDefaultRuntimeChanges": true,
+    "noPush": true
+  }
+}

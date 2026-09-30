@@ -118,3 +118,22 @@ RF-1059 将生产 `connect-src` 补为 `'self' ipc: http://ipc.localhost`，其�
 相同公开100对象、原生隔离入口/脚本和95项资源，使用新Release（EXE SHA `0708B2C24B6B36C076E4B83393742635CD5D396B35ED341379D1B868D661FBAC`）与新profile复验：3次查询完整、1,370字节有效日志中先前三条CSP拒绝/fetch失败/postMessage回退均消失，10个记录PID收尾已不存在，源7文件SHA保持。[完整前后对照](../verification/rf1059-windows-local-ipc-csp-2026-09-30.json)保留原始记录和限制。
 
 CDP仍无owned监听，performanceMetrics为null；不能恢复未经observer接纳的完整IPC次数或关闭RF-312。后续只读核对发现，[#5718作者](https://github.com/MicrosoftEdge/WebView2Feedback/issues/5718#issuecomment-5715071958)后来无法在最小项目复现，并[确认应用服务器先就绪时153调试成功](https://github.com/MicrosoftEdge/WebView2Feedback/issues/5718#issuecomment-5801655559)。该条候选不能当作153/154普遍Runtime回归或本机根因证据。下一步可评估[官方Fixed Version Runtime隔离对照](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution#the-fixed-version-runtime-distribution-mode)，但当前工具拒绝继承WEBVIEW2覆盖，尚未实现受控选择入口，也未下载或更换默认Runtime。
+
+## 原生 TMP 单变量诊断（2026-09-30）
+
+新增显式 `--ordinary-native-tmp`，必须同时指定 `--chromium-log`；对应严格原生 run mode `chromium-log-ordinary-tmp`，prepare 不接受。默认入口、原日志模式及性能 runner 的调用保持。只将新测试主进程的 `TMP` 从 `\\?\` canonical 表示改为同一 owned temp 的普通本地绝对路径，`TEMP`、`USERPROFILE`、WebView 数据目录与 browser flags 的生成规则保持。标记 `native-perf-ordinary-tmp.json` 在设置后读取这四项实际环境值，绑定 root/runId/PID/port；Node 每次观察前精确核验，不能仅凭路径归一化接受另一个表示或目录。既有 Chromium 日志标记继续表示 TEMP 保持，并使 benchmark 拒绝该诊断；本模式额外改变 TMP，不将日志标记的 `nativeTempUnchanged` 扩张解释为全部环境均未变。
+
+```powershell
+node scripts/native-perf-diagnose.mjs --exe (Join-Path $sampleParent 'bin/solo_soul.exe') --fixture (Join-Path $fixtureParent 'vault100') --output (Join-Path $sampleParent 'cdp-tmp-baseline') --chromium-log
+node scripts/native-perf-diagnose.mjs --exe (Join-Path $sampleParent 'bin/solo_soul.exe') --fixture (Join-Path $fixtureParent 'vault100') --output (Join-Path $sampleParent 'cdp-tmp-ordinary') --chromium-log --ordinary-native-tmp
+```
+
+选取 TMP 是因为 [Windows GetTempPathW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-gettemppathw) 优先读取 TMP，其后才是 TEMP；[Chromium 公开 GetTempDir 实现](https://github.com/chromium/chromium/blob/main/base/files/file_util_win.cc#L702) 在这个入口没有去掉扩展前缀。这支持对照候选，不能证明 Microsoft WebView2 当前 Runtime 内部实现或无监听根因。当前短根目录没有超过长度限制的证据；也不能由此排除所有嵌套路径问题。[公开 DevTools handler](https://github.com/chromium/chromium/blob/main/content/browser/devtools/devtools_http_handler.cc#L256) 先建立监听再写 DevToolsActivePort，所以不能仅凭该文件缺失归因于路径。
+
+两轮按顺序使用同一新构建 EXE、相同95项资源和100对象公开源；每次使用新 owned root/profile、端口与运行ID，不重用 consumed 目录。两次输出目录名等长，只改变受控参数 TMP 的表示。环境标记证明新主进程设置后的值，不能单独证明 browser 子进程继承或使用了 TMP；实际 browser 身份、flags、监听仍分别查询。两轮均为故障诊断，不输入密码、不执行UI、不产生性能指标。
+
+实际验证：新模式新增3项Rust用例后，首次12项运行为5 passed/7 failed；根失败是既有“准备失败保留owned路径”用例得到2条而非3条路径，随后6项因锁poison连带失败。原断言没有返回实际prepare错误，早退原因未确认；未更改代码、断言或范围，精确重跑该项1 passed，再完整12 passed/0 failed（6.77s）。首次失败原文仍保存，不能将复测写成修复了该偶发现象。Node为56 passed/0 failed/0 skipped（diagnose23、runner24、observer9）；格式、语法、定向Prettier和native all-target Clippy均通过。专用Release构建exit0，Rust20m24s，beforeBuild TypeScript/Vite通过；EXE SHA `6E402CD773E4C0845E60DE9D1CAEE373D4309BAA43D84A77D557B9C034035E7F`，95项资源与旧清单SHA一致。
+
+canonical对照与ordinary TMP实验均exit0、三次现场记录完整；两轮实际Runtime均为154.0.4258.37，browser目录和日志flags匹配，三次TCP查询均无owned监听，未发HTTP/CDP、未执行密码/UI流程，performanceMetrics仍为null。ordinary标记的TEMP/profile/UDF保持canonical表示，TMP为同目录普通表示；两轮普通temp根均96字符。两份日志各1,617字节，SHA分别为 `31668E7927C198332D7BAE71E85A7962748626B343660EFF53D14A04E28E7F4D` 与 `4ADAA79E23B9B4843F5A07DBC3C0AFFC3E5ACC6055224314668F4BDE4B243FEC`。20条记录PID收尾fresh CIM核查全部不存在，两档源14文件与用户3张NSIS图片SHA保持。
+
+[完整对照及检查证据](rf312-windows-ordinary-tmp-2026-09-30.json)保存两轮原始记录、实际主进程环境标记、日志、首轮测试失败、复测、程序/资源/源码SHA与清理。结论仅为本轮主进程TMP表示变化未恢复CDP；不排除直接读取TEMP的组件、UDF等其他路径入口、Runtime行为或所有嵌套路径限制，也不证明browser继承/使用TMP。后续受控Runtime选择仍需独立实施、核验实际browser路径/版本/身份；本轮没有下载/复制Runtime、修改Registry或默认Runtime。RF-312保留[!]，208/249不变。

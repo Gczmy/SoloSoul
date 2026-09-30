@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import path from 'node:path';
-import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile, lstat, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { rejectDiagnosticBenchmark } from './native-perf-run.mjs';
+import { rejectDiagnosticBenchmark, NATIVE_PERF_MARKERS } from './native-perf-run.mjs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
@@ -11,6 +11,9 @@ import {
   helperEnvironment,
   checkLoggingMarker,
   chromiumLogBinaryPreflight,
+  ordinaryTmpBinaryPreflight,
+  checkOrdinaryTmpMarker,
+  diagnosticLaunchArgs,
   diagnosticHelperFailure,
   checkConsumed,
   selectDiagnosticIdentities,
@@ -81,6 +84,7 @@ test('diagnostic CLI accepts exactly three absolute paths and rejects benchmark/
       exe: path.join(base, 'app.exe'),
       fixture: path.join(base, 'fixture'),
       output: path.join(base, 'new'),
+      ordinaryTmp: false,
     },
   );
   for (const args of [
@@ -363,4 +367,233 @@ test('off-mode helper environment deletes inherited logging even with case alias
     1,
   );
   assert.equal(on.SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_LOG_FILE, logging.logFile);
+});
+
+function canonicalTmpFixture() {
+  const owned = {
+    runId: 'a'.repeat(32),
+    root: '\\\\?\\C:\\owned\\sample-001',
+    profile: '\\\\?\\C:\\owned\\sample-001\\profile',
+    webview: '\\\\?\\C:\\owned\\sample-001\\webview',
+  };
+  return {
+    owned,
+    value: {
+      schemaVersion: 1,
+      scope: 'windows-native-perf-ordinary-tmp',
+      mode: 'ordinary-tmp',
+      performanceSample: false,
+      runId: owned.runId,
+      pid: root.pid,
+      port: 44001,
+      root: owned.root,
+      temp: path.win32.join(owned.root, 'temp'),
+      tmp: 'C:\\owned\\sample-001\\temp',
+      userProfile: owned.profile,
+      webview: owned.webview,
+    },
+  };
+}
+
+test('ordinary native TMP requires explicit logging and rejects duplicate/value/unknown flags', () => {
+  const base = path.resolve('owned');
+  const args = [
+    '--exe',
+    path.join(base, 'app.exe'),
+    '--fixture',
+    path.join(base, 'fixture'),
+    '--output',
+    path.join(base, 'new'),
+  ];
+  assert.equal(parseDiagnosticArgs(args).ordinaryTmp, false);
+  assert.equal(parseDiagnosticArgs([...args, '--chromium-log']).ordinaryTmp, false);
+  for (const flags of [
+    ['--ordinary-native-tmp'],
+    ['--chromium-log', '--ordinary-native-tmp', '--ordinary-native-tmp'],
+    ['--chromium-log', '--ordinary-native-tmp', 'C:\\another-temp'],
+    ['--chromium-log', '--ordinary-native-tmp', '--ordinary-native-temp'],
+  ])
+    assert.throws(() => parseDiagnosticArgs([...args, ...flags]));
+  for (const flags of [
+    ['--chromium-log', '--ordinary-native-tmp'],
+    ['--ordinary-native-tmp', '--chromium-log'],
+  ]) {
+    const parsed = parseDiagnosticArgs([...args, ...flags]);
+    assert.equal(parsed.logging, true);
+    assert.equal(parsed.ordinaryTmp, true);
+  }
+});
+
+test('native launch keeps default/logging contracts and selects only the explicit ordinary-TMP mode', () => {
+  const base = ['--native-perf-root', 'C:\\owned', '--native-perf-port', '44001'];
+  assert.deepEqual(diagnosticLaunchArgs('C:\\owned', 44001, { ordinaryTmp: false }), base);
+  assert.deepEqual(
+    diagnosticLaunchArgs('C:\\owned', 44001, { logging: true, ordinaryTmp: false }),
+    [...base, '--native-perf-diagnostics', 'chromium-log'],
+  );
+  assert.deepEqual(diagnosticLaunchArgs('C:\\owned', 44001, { logging: true, ordinaryTmp: true }), [
+    ...base,
+    '--native-perf-diagnostics',
+    'chromium-log-ordinary-tmp',
+  ]);
+  assert.throws(() => diagnosticLaunchArgs('C:\\owned', 44001, { ordinaryTmp: true }));
+});
+
+test('ordinary TMP marker accepts only the same owned directory with all other canonical paths preserved', () => {
+  const { value, owned } = canonicalTmpFixture();
+  const before = JSON.stringify({ value, owned });
+  assert.equal(checkOrdinaryTmpMarker(value, owned, root.pid, 44001), value);
+  assert.equal(JSON.stringify({ value, owned }), before);
+});
+
+test('ordinary TMP marker rejects normalized equivalents for unchanged root/TEMP/profile/UDF', () => {
+  const { value, owned } = canonicalTmpFixture();
+  for (const key of ['root', 'temp', 'userProfile', 'webview']) {
+    assert.throws(() =>
+      checkOrdinaryTmpMarker({ ...value, [key]: value[key].slice(4) }, owned, root.pid, 44001),
+    );
+    assert.throws(() =>
+      checkOrdinaryTmpMarker({ ...value, [key]: value[key].toLowerCase() }, owned, root.pid, 44001),
+    );
+  }
+  for (const change of [
+    { profile: owned.profile.slice(4) },
+    { webview: owned.webview.slice(4) },
+    { root: owned.root.slice(4) },
+    { root: '\\\\?\\UNC\\server\\share' },
+  ])
+    assert.throws(() => checkOrdinaryTmpMarker(value, { ...owned, ...change }, root.pid, 44001));
+});
+
+test('ordinary TMP rejects extended, UNC, relative, external, nested and traversal directory representations', () => {
+  const { value, owned } = canonicalTmpFixture();
+  for (const tmp of [
+    value.temp,
+    '\\\\server\\share\\temp',
+    'temp',
+    'C:temp',
+    '\\owned\\sample-001\\temp',
+    'C:\\outside\\temp',
+    value.tmp + '\\child',
+    'C:\\owned\\sample-001\\webview\\..\\temp',
+    value.tmp + '\\',
+    value.tmp.replaceAll(String.fromCharCode(92), '/'),
+    value.tmp.toLowerCase(),
+    null,
+  ])
+    assert.throws(() => checkOrdinaryTmpMarker({ ...value, tmp }, owned, root.pid, 44001));
+});
+
+test('ordinary TMP marker rejects stale identity, changed diagnostic scope and fabricated performance acceptance', () => {
+  const { value, owned } = canonicalTmpFixture();
+  for (const change of [
+    { schemaVersion: 2 },
+    { scope: 'windows-native-perf-chromium-log' },
+    { mode: 'ordinary-temp' },
+    { runId: 'b'.repeat(32) },
+    { pid: root.pid + 1 },
+    { port: 44002 },
+    { performanceSample: true },
+    { temp: '\\\\?\\C:\\outside\\temp' },
+    { userProfile: '\\\\?\\C:\\outside\\profile' },
+    { webview: '\\\\?\\C:\\outside\\webview' },
+  ])
+    assert.throws(() => checkOrdinaryTmpMarker({ ...value, ...change }, owned, root.pid, 44001));
+  assert.throws(() => checkOrdinaryTmpMarker(null, owned, root.pid, 44001));
+  for (const key of Object.keys(value)) {
+    const missing = { ...value };
+    delete missing[key];
+    assert.throws(() => checkOrdinaryTmpMarker(missing, owned, root.pid, 44001));
+  }
+});
+
+async function withOrdinaryTmpStub(run) {
+  const dir = await mkdtemp(path.join(tmpdir(), 'ss-rf312-ordinary-tmp-'));
+  const resolvedParent = await realpath(tmpdir());
+  try {
+    const exe = path.join(dir, 'stub.exe');
+    const fixture = path.join(dir, 'fixture');
+    await mkdir(path.join(fixture, 'acc_rf312_100'), { recursive: true });
+    const marker = {
+      schemaVersion: 1,
+      scope: 'synthetic-native-vault-fixture',
+      generator: 'solosoul-core/examples/perf_baseline',
+      fixture: 'deterministic-20th-object-property-match',
+      objectCount: 100,
+      accountId: 'acc_rf312_100',
+      accountName: 'Performance Fixture',
+      searchQuery: 'needle',
+      expectedSearchMatches: 5,
+      buildProfile: 'release',
+      kdf: { memoryKiB: 65536, iterations: 3, parallelism: 4 },
+      includesProfile: true,
+      includesUiPreferences: true,
+      includesAttachments: false,
+      includesOcrFixture: false,
+    };
+    await writeFile(path.join(fixture, 'rf312-fixture.json'), JSON.stringify(marker));
+    await writeFile(path.join(fixture, marker.accountId, 'vault.db'), 'synthetic placeholder');
+    await writeFile(path.join(fixture, marker.accountId, 'config.json'), '{}');
+    await writeFile(path.join(fixture, 'ui_preferences.json'), '{}');
+    await run({ dir, exe, fixture, output: path.join(dir, 'new-results') });
+  } finally {
+    const resolvedDir = await realpath(dir);
+    if (
+      path.dirname(resolvedDir).toLowerCase() !== resolvedParent.toLowerCase() ||
+      !path.basename(resolvedDir).startsWith('ss-rf312-ordinary-tmp-') ||
+      (await lstat(dir)).isSymbolicLink()
+    )
+      throw new Error(
+        'Refusing ordinary TMP test cleanup outside its exclusively created directory',
+      );
+    await rm(dir, { recursive: true, force: false });
+  }
+}
+
+test('ordinary-TMP streaming marker rejects older binaries and matches across the 64KiB block boundary', async () => {
+  await withOrdinaryTmpStub(async ({ exe }) => {
+    await writeFile(exe, NATIVE_PERF_MARKERS.join('\0') + '\0windows-native-perf-chromium-log');
+    await assert.rejects(ordinaryTmpBinaryPreflight(exe), /rebuilt.*ordinary-TMP feature marker/);
+    const feature = 'windows-native-perf-ordinary-tmp';
+    await writeFile(
+      exe,
+      Buffer.concat([Buffer.alloc(64 * 1024 - 9, 0x78), Buffer.from(feature), Buffer.from('tail')]),
+    );
+    const result = await ordinaryTmpBinaryPreflight(exe);
+    assert.equal(result.method, 'streaming-ordinary-tmp-feature-marker');
+    assert.match(result.limitation, /not a signature or trust guarantee/);
+  });
+});
+
+test('older logging EXE is rejected before output creation or native preparation/GUI execution', async () => {
+  await withOrdinaryTmpStub(async ({ exe, fixture, output }) => {
+    const contents =
+      'Never execute argument-only stub\0' +
+      NATIVE_PERF_MARKERS.join('\0') +
+      '\0windows-native-perf-chromium-log';
+    await writeFile(exe, contents);
+    const result = spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(new URL('./native-perf-diagnose.mjs', import.meta.url)),
+        '--exe',
+        exe,
+        '--fixture',
+        fixture,
+        '--output',
+        output,
+        '--chromium-log',
+        '--ordinary-native-tmp',
+      ],
+      { encoding: 'utf8', windowsHide: true, timeout: 10000 },
+    );
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.match(
+      result.stderr,
+      /Ordinary native TMP requires a rebuilt.*ordinary-TMP feature marker/,
+    );
+    assert.equal(result.stdout, '');
+    await assert.rejects(lstat(output), { code: 'ENOENT' });
+    assert.equal(await readFile(exe, 'utf8'), contents);
+  });
 });
