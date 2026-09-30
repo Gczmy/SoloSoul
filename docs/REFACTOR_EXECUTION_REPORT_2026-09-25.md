@@ -119,9 +119,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**248**（P1：49；P2：198；P3：1）。
-- 已关闭：**207 / 248**；实际修复（已关闭）：207；排除：0；待验证/阻塞：13（7项授权阻塞，RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：RF-312（显式隔离Chromium日志实验；默认入口与普通benchmark参数保持，原生TEMP不变）。其他任务依赖与授权阻塞保持。
+- 任务总数：**249**（P1：49；P2：199；P3：1）。
+- 已关闭：**208 / 249**；实际修复（已关闭）：208；排除：0；待验证/阻塞：13（7项授权阻塞，RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无；RF-1059完成，RF-312仍缺CDP监听与多端实测。其他依赖/授权阻塞保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -375,6 +375,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 246 | [RF-1056](#rf-1056) | P2 | 补齐附件预览缩放与读取失败回归 | 无（推进 RF-308 覆盖率） | [x] 完成 |
 | 247 | [RF-1057](#rf-1057) | P2 | 补齐 Android 首页快捷入口回归 | 无（推进 RF-308 覆盖率） | [x] 完成 |
 | 248 | [RF-1058](#rf-1058) | P2 | 补齐工作区对象详情操作回归 | 无（巩固 RF-308 覆盖率） | [x] 完成 |
+| 249 | [RF-1059](#rf-1059) | P2 | 生产 CSP 补齐受限本地 IPC 来源 | 无（RF-312日志发现的独立问题） | [x] 完成 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -3323,6 +3324,16 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 
 ---
 
+### RF-1059
+
+- **标题/优先级：**生产 CSP 补齐受限本地 IPC 来源；P2。
+- **现状线索：**RF-312 Windows 真实 Release 日志确认 `connect-src 'self'` 拦截 `http://ipc.localhost/set_titlebar_color`，fetch 失败后 Tauri 全局切换 postMessage；各平台继承相同配置。证据见 `performance/rf312-windows-chromium-log-2026-09-30.json`。
+- **前置：**无；独立于 RF-312 的 CDP 无监听。
+- **执行：**仅在生产 CSP 的 connect-src 补充 Tauri 官方来源 `ipc:` 和 `http://ipc.localhost`；保留其余指令、自动 nonce/hash、ACL、网络出口与后端鉴权。不增加通用网络/localhost/任意端口，不关闭 CSP。
+- **验收：**真实浏览器证明修复后本地 IPC 请求可发送、去除来源时发送前阻断、外部及其他本地端点仍被阻断；各平台无覆盖。Windows 隔离 Release 使用相同公开100对象 fixture，启动日志不再出现 CSP IPC 拦截和 fallback；不要求 CDP 连通、不以此关闭 RF-312。
+- **验证配置：**WEB、NATIVE、DOC；`e2e/csp-ipc.production.spec.ts` 和完整 production Playwright；专用 native-perf Release 及 `--chromium-log` 现场诊断。仅改 JSON/浏览器用例，不重跑无关完整 Rust/Vitest。
+- **建议提交：**`fix(security): allow Tauri local IPC in production CSP [RF-1059]`。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -5460,3 +5471,12 @@ git commit -m "<任务卡的提交标题>"
 - 本轮真实验证：Rust隔离9 passed / 0 failed / 0 ignored；Node observer9 + runner24 + diagnose15，合计48 passed / 0 failed / 0 skipped；PS5.1 helper离线41条断言、默认无日志环境互操作通过；workspace fmt与native all-target Clippy -D warnings通过。专用Release构建exit0（Cargo12m43s，TypeScript/Vite通过，Vite6.84s）。首次错误工作目录的fmt命令失败如实保留，改用workspace命令通过。
 - 100对象真实单轮诊断exit0；3次日志flags匹配并取得2,229字节owned日志，但TCP查询仍无owned CDP监听。未发送HTTP/CDP或执行密码/UI操作，不产出性能数值。10个记录PID收尾只读查询全已不存在；公开源7文件与用户3张NSIS图片SHA保持。[说明](performance/RF-312-windows-native-app-baseline.md)和[结构化证据](performance/rf312-windows-chromium-log-2026-09-30.json)保存完整原始记录、日志、源码/EXE/资源/验证SHA。
 - 日志另确认生产CSP拦截本地 `http://ipc.localhost`，触发Tauri postMessage fallback；需按独立问题修复，不把它认定为CDP无监听原因。末尾Network/GPU终止日志处于主动owned清理阶段，不作启动崩溃结论。本轮诊断改动独立提交（本提交，以RF-312检索），不推送，不暂存用户改动；RF-312继续[!]，统计207/248不变。
+
+### RF-1059 执行记录（2026-09-30，完成）
+
+- 基线 `61c8d8f9`。RF-312真实Release日志确认本地IPC被生产CSP拒绝，随后Tauri全局切换postMessage；本项仅将connect-src补为 `'self' ipc: http://ipc.localhost`，与[Tauri官方来源](https://v2.tauri.app/security/csp/)一致。其余CSP、自动nonce/hash默认配置、ACL、后端鉴权和网络出口保持；同步修正构建规范中的过时localhost模型地址示例。
+- 有效红测使用已安装Edge154.0.4258.37：原配置真实fetch返回ok:false/value:null，1 failed，exit1。先前Chrome154在browser launch阶段TargetClosed、断言未执行，单列环境失败。最终生产浏览器20 passed / 0 failed / 0 skipped，exit0（20.8s）：4项新增CSP用例和原16项；真实connect-src violation事件、来源/端口与零发送请求同时验证旧来源及5项外部/其他本地端点阻断。测试不替换fetch；合成route响应不代表Rust命令执行。
+- 本轮专用native-perf Release构建exit0（Cargo21m11s，TypeScript/Vite通过，Vite1.27s），EXE SHA `0708B2C24B6B36C076E4B83393742635CD5D396B35ED341379D1B868D661FBAC`；95项公开资源SHA保持。生产Playwright仅以临时继承配置省略重复Vite build，使用该已构建dist，避免并行写入；其余生产项目/用例保持，临时配置已删除。新增TS的Prettier通过；JSON格式检查警告经修复前后对照确认为既有，保留原排版与单行生产diff，不隐藏该失败。
+- 100对象新标识/profile单轮原生日志诊断exit0、3/3完整；1,370字节日志不再包含此前三条CSP拒绝/fetch失败/fallback，但CDP仍无owned监听，没有HTTP/CDP、密码或UI行程，性能指标为null。10个记录PID收尾只读CIM全已不存在；公开源7文件与用户3张NSIS图片SHA保持。首次EXE复制预检因UTC/本地DateTime比较误拒，修正为UtcDateTime后SHA确认新程序；初次ENOENT没有启动GUI，证据保留。
+- [完整验证与原生前后记录](verification/rf1059-windows-local-ipc-csp-2026-09-30.json)和[性能记录中的本项复验](performance/RF-312-windows-native-app-baseline.md)说明口径与限制。独立复审通过；各平台继承检查不替代macOS/Android/iOS原生IPC、nonce/hash产物验收，不恢复未经observer核验的IPC次数。
+- 本项完成并独立提交（本提交，以RF-1059检索），不推送，不暂存用户改动；当前208/249已关闭，13待验证/阻塞，28待执行。RF-312继续[!]，CSP修复未解释CDP无监听；七项生产授权与平台/远端CI缺口保持。

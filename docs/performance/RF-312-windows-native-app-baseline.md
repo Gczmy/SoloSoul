@@ -110,3 +110,11 @@ node scripts/native-perf-diagnose.mjs --exe (Join-Path $sampleParent 'bin/solo_s
 100对象单轮实测中3次现场查询均完整，实际 browser 三个日志参数精确匹配；生成2,229字节 owned 普通文件，SHA 为 `6162085e244b8181007b48925da8dd1d6ea9a37709197f3869b580a990ad6a6c`。3次 TCP 查询仍无 owned 监听，没有发送 HTTP/CDP 或密码/UI操作，performanceMetrics 为 null。10个清理记录 PID 收尾只读 CIM 查询均已不存在，公开源7文件和3张用户 NSIS 图片 SHA 保持。[完整日志、原始现场记录与验证证据](rf312-windows-chromium-log-2026-09-30.json)保留失败前置与本轮结果。
 
 日志确认 `connect-src 'self'` 拦截 `http://ipc.localhost/set_titlebar_color`，随后 Tauri 切换 postMessage；这是需要另项修复的生产 CSP 配置问题，也使现有 IPC observer 无法接纳完整次数。它不证明 CDP 无监听的原因。日志末尾 Network/GPU 退出发生在末次观察之后的主动 owned 清理中，不能据此认定产品启动崩溃。RF-312仍缺成功 CDP/六阶段 UI、5000对象 GUI、OCR/预览、系统睡眠/同 profile 热启动、多端与内存峰值证据，保持待验证。
+
+## RF-1059 本地 IPC CSP 修复后复验（2026-09-30）
+
+RF-1059 将生产 `connect-src` 补为 `'self' ipc: http://ipc.localhost`，其余指令与默认 nonce/hash 注入保持。真实浏览器先用旧配置复现本地 fetch 失败，修复后的4项CSP正反例与原16项生产测试全部通过；负例直接断言 connect-src 违规事件与目标来源。浏览器网络响应为合成 fixture，不证明 Rust 命令执行。
+
+相同公开100对象、原生隔离入口/脚本和95项资源，使用新Release（EXE SHA `0708B2C24B6B36C076E4B83393742635CD5D396B35ED341379D1B868D661FBAC`）与新profile复验：3次查询完整、1,370字节有效日志中先前三条CSP拒绝/fetch失败/postMessage回退均消失，10个记录PID收尾已不存在，源7文件SHA保持。[完整前后对照](../verification/rf1059-windows-local-ipc-csp-2026-09-30.json)保留原始记录和限制。
+
+CDP仍无owned监听，performanceMetrics为null；不能恢复未经observer接纳的完整IPC次数或关闭RF-312。后续只读核对发现，[#5718作者](https://github.com/MicrosoftEdge/WebView2Feedback/issues/5718#issuecomment-5715071958)后来无法在最小项目复现，并[确认应用服务器先就绪时153调试成功](https://github.com/MicrosoftEdge/WebView2Feedback/issues/5718#issuecomment-5801655559)。该条候选不能当作153/154普遍Runtime回归或本机根因证据。下一步可评估[官方Fixed Version Runtime隔离对照](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution#the-fixed-version-runtime-distribution-mode)，但当前工具拒绝继承WEBVIEW2覆盖，尚未实现受控选择入口，也未下载或更换默认Runtime。
