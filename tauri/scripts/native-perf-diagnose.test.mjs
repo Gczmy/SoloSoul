@@ -12,6 +12,7 @@ import {
   checkLoggingMarker,
   chromiumLogBinaryPreflight,
   ordinaryTmpBinaryPreflight,
+  selectedRuntimeBinaryPreflight,
   checkOrdinaryTmpMarker,
   diagnosticLaunchArgs,
   diagnosticHelperFailure,
@@ -595,5 +596,129 @@ test('older logging EXE is rejected before output creation or native preparation
     assert.equal(result.stdout, '');
     await assert.rejects(lstat(output), { code: 'ENOENT' });
     assert.equal(await readFile(exe, 'utf8'), contents);
+  });
+});
+
+test('runtime CLI requires source/version, logging and one experimental variable', () => {
+  const base = path.resolve('owned');
+  const required = [
+    '--exe',
+    path.join(base, 'app.exe'),
+    '--fixture',
+    path.join(base, 'fixture'),
+    '--output',
+    path.join(base, 'new'),
+  ];
+  const source = 'C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\153.0.4234.48';
+  const pair = ['--runtime-source', source, '--runtime-version', '153.0.4234.48'];
+  const valid = parseDiagnosticArgs([...required, '--chromium-log', ...pair]);
+  assert.equal(valid.runtimeSource, path.resolve(source));
+  assert.equal(valid.runtimeVersion, '153.0.4234.48');
+  assert.equal(valid.ordinaryTmp, false);
+  for (const extra of [
+    pair,
+    ['--chromium-log', '--runtime-source', source],
+    ['--chromium-log', '--runtime-version', '153.0.4234.48'],
+    ['--chromium-log', ...pair, '--ordinary-native-tmp'],
+    ['--chromium-log', ...pair, '--runtime-source', source],
+    ['--chromium-log', ...pair, '--runtime-version', '153.0.4234.48'],
+    [
+      '--chromium-log',
+      '--runtime-source',
+      '\\\\server\\share',
+      '--runtime-version',
+      '153.0.4234.48',
+    ],
+    ['--chromium-log', '--runtime-source', source, '--runtime-version', '0153.0.4234.48'],
+    ['--chromium-log', '--runtime-source', source, '--runtime-version', '153.0.4234'],
+    ['--chromium-log', '--runtime-source', source, '--runtime-version', '153.0.4234.65536'],
+    ['--chromium-log', '--runtime-source', source, '--runtime-version', '153.0.4234.48 --argument'],
+  ])
+    assert.throws(() => parseDiagnosticArgs([...required, ...extra]));
+});
+
+test('runtime launch changes only explicit owned runtime selection and never permits ordinary TMP mixing', () => {
+  const rootPath = 'C:\\owned\\sample-001';
+  const base = ['--native-perf-root', rootPath, '--native-perf-port', '44001'];
+  assert.deepEqual(diagnosticLaunchArgs(rootPath, 44001, { logging: true }), [
+    ...base,
+    '--native-perf-diagnostics',
+    'chromium-log',
+  ]);
+  assert.deepEqual(
+    diagnosticLaunchArgs(rootPath, 44001, { logging: true, runtimeSource: 'C:\\installed' }),
+    [
+      ...base,
+      '--native-perf-diagnostics',
+      'chromium-log',
+      '--native-perf-runtime',
+      path.win32.join(rootPath, 'runtime'),
+    ],
+  );
+  assert.throws(() => diagnosticLaunchArgs(rootPath, 44001, { runtimeSource: 'C:\\installed' }));
+  assert.throws(() =>
+    diagnosticLaunchArgs(rootPath, 44001, {
+      logging: true,
+      runtimeSource: 'C:\\installed',
+      ordinaryTmp: true,
+    }),
+  );
+});
+
+test('selected Runtime feature preflight rejects old TMP binaries and accepts split marker', async () => {
+  await withOrdinaryTmpStub(async ({ exe }) => {
+    await writeFile(
+      exe,
+      NATIVE_PERF_MARKERS.join('\0') +
+        '\0windows-native-perf-chromium-log\0windows-native-perf-ordinary-tmp',
+    );
+    await assert.rejects(
+      selectedRuntimeBinaryPreflight(exe),
+      /rebuilt.*selected-Runtime feature marker/,
+    );
+    await writeFile(
+      exe,
+      Buffer.concat([
+        Buffer.alloc(64 * 1024 - 7, 0x78),
+        Buffer.from('windows-native-perf-selected-runtime'),
+      ]),
+    );
+    const result = await selectedRuntimeBinaryPreflight(exe);
+    assert.equal(result.method, 'streaming-selected-runtime-feature-marker');
+  });
+});
+
+test('old EXE is rejected before Runtime inspection, copying, output creation or native execution', async () => {
+  await withOrdinaryTmpStub(async ({ exe, fixture, output }) => {
+    await writeFile(
+      exe,
+      NATIVE_PERF_MARKERS.join('\0') +
+        '\0windows-native-perf-chromium-log\0windows-native-perf-ordinary-tmp',
+    );
+    const result = spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(new URL('./native-perf-diagnose.mjs', import.meta.url)),
+        '--exe',
+        exe,
+        '--fixture',
+        fixture,
+        '--output',
+        output,
+        '--chromium-log',
+        '--runtime-source',
+        'C:\\nonexistent-runtime',
+        '--runtime-version',
+        '153.0.4234.48',
+      ],
+      { encoding: 'utf8', windowsHide: true, timeout: 10000 },
+    );
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.match(
+      result.stderr,
+      /Runtime selection requires a rebuilt.*selected-Runtime feature marker/,
+    );
+    assert.equal(result.stdout, '');
+    await assert.rejects(lstat(output), { code: 'ENOENT' });
   });
 });

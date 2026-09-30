@@ -6467,6 +6467,7 @@ dependencies = [
  "url",
  "uuid",
  "wat",
+ "webview2-com",
  "window-vibrancy 0.8.0",
  "windows 0.61.3",
  "windows-collections",

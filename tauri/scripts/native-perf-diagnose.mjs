@@ -7,6 +7,12 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { mkdir, readFile, readdir, lstat, realpath } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
+import {
+  inspectRuntimeSource,
+  stageRuntimeCopy,
+  checkSelectedRuntimeMarker,
+  checkSelectedRuntimeBrowser,
+} from './native-perf-runtime.mjs';
 import { setTimeout as delay } from 'node:timers/promises';
 import {
   validateInputs,
@@ -27,11 +33,17 @@ import {
 const execFileAsync = promisify(execFile);
 const helper = fileURLToPath(new URL('./native-perf-process-diagnostics.ps1', import.meta.url));
 const HELP =
-  'Usage: node scripts/native-perf-diagnose.mjs --exe ABS --fixture ABS --output NEW_ABS [--chromium-log [--ordinary-native-tmp]]\nWindows only; one isolated synthetic run, three live observations. No password/UI actions or performance metrics.';
+  'Usage: node scripts/native-perf-diagnose.mjs --exe ABS --fixture ABS --output NEW_ABS [--chromium-log [--ordinary-native-tmp | --runtime-source ABS --runtime-version VERSION]]\nWindows only; one isolated synthetic run, three live observations. No password/UI actions or performance metrics.';
 
 export function parseDiagnosticArgs(args) {
   if (args.length === 1 && args[0] === '--help') return { help: true };
-  const allowed = new Set(['--exe', '--fixture', '--output']);
+  const allowed = new Set([
+    '--exe',
+    '--fixture',
+    '--output',
+    '--runtime-source',
+    '--runtime-version',
+  ]);
   const values = {};
   let logging = false;
   let ordinaryTmp = false;
@@ -51,16 +63,46 @@ export function parseDiagnosticArgs(args) {
     }
     if (
       !allowed.has(key) ||
-      Object.hasOwn(values, key.slice(2)) ||
+      Object.hasOwn(
+        values,
+        key === '--runtime-source'
+          ? 'runtimeSource'
+          : key === '--runtime-version'
+            ? 'runtimeVersion'
+            : key.slice(2),
+      ) ||
       !args[i + 1] ||
       args[i + 1].startsWith('--')
     )
       throw new Error('Expected --exe, --fixture, --output exactly once; optional --chromium-log');
-    if (!path.isAbsolute(args[i + 1])) throw new Error(key + ' must be absolute');
-    values[key.slice(2)] = path.resolve(args[i + 1]);
+    if (key === '--runtime-version') {
+      const parts = args[i + 1].split('.');
+      if (
+        parts.length !== 4 ||
+        parts.some(
+          (part) => !/^\d+$/.test(part) || String(Number(part)) !== part || Number(part) > 65535,
+        )
+      )
+        throw new Error('--runtime-version must be four canonical unsigned 16-bit integers');
+      values.runtimeVersion = args[i + 1];
+    } else {
+      if (!path.isAbsolute(args[i + 1])) throw new Error(key + ' must be absolute');
+      if (key === '--runtime-source' && !/^[A-Za-z]:[\\/]/.test(args[i + 1]))
+        throw new Error('--runtime-source requires an ordinary absolute local drive path');
+      values[key === '--runtime-source' ? 'runtimeSource' : key.slice(2)] = path.resolve(
+        args[i + 1],
+      );
+    }
     i += 2;
   }
-  if (Object.keys(values).length !== 3) throw new Error('Missing required diagnostic options');
+  if (['exe', 'fixture', 'output'].some((key) => !Object.hasOwn(values, key)))
+    throw new Error('Missing required diagnostic options');
+  if (Object.hasOwn(values, 'runtimeSource') !== Object.hasOwn(values, 'runtimeVersion'))
+    throw new Error('--runtime-source and --runtime-version must be supplied together');
+  if (values.runtimeSource && (!logging || ordinaryTmp))
+    throw new Error(
+      'Runtime selection requires explicit --chromium-log and cannot mix ordinary TMP',
+    );
   if (path.parse(values.output).root === values.output)
     throw new Error('--output cannot be a filesystem root');
   if (ordinaryTmp && !logging)
@@ -98,6 +140,15 @@ export function ordinaryTmpBinaryPreflight(exe) {
     'windows-native-perf-ordinary-tmp',
     'streaming-ordinary-tmp-feature-marker',
     'Ordinary native TMP requires a rebuilt native-perf EXE with its ordinary-TMP feature marker',
+  );
+}
+
+export function selectedRuntimeBinaryPreflight(exe) {
+  return diagnosticFeaturePreflight(
+    exe,
+    'windows-native-perf-selected-runtime',
+    'streaming-selected-runtime-feature-marker',
+    'Runtime selection requires a rebuilt native-perf EXE with its selected-Runtime feature marker',
   );
 }
 
@@ -174,6 +225,8 @@ export function checkOrdinaryTmpMarker(value, owned, rootPid, port) {
 export function diagnosticLaunchArgs(root, port, options) {
   if (options.ordinaryTmp && !options.logging)
     throw new Error('--ordinary-native-tmp requires explicit --chromium-log');
+  if (options.runtimeSource && (!options.logging || options.ordinaryTmp))
+    throw new Error('Runtime selection requires Chromium logging without ordinary TMP');
   return [
     '--native-perf-root',
     root,
@@ -185,6 +238,7 @@ export function diagnosticLaunchArgs(root, port, options) {
           options.ordinaryTmp ? 'chromium-log-ordinary-tmp' : 'chromium-log',
         ]
       : []),
+    ...(options.runtimeSource ? ['--native-perf-runtime', path.win32.join(root, 'runtime')] : []),
   ];
 }
 
@@ -464,12 +518,21 @@ export async function main(args = process.argv.slice(2)) {
   const ordinaryTmpBinaryPreflightResult = options.ordinaryTmp
     ? await ordinaryTmpBinaryPreflight(options.exe)
     : null;
+  const selectedRuntimePreflight = options.runtimeSource
+    ? await selectedRuntimeBinaryPreflight(options.exe)
+    : null;
+  const runtimeSourceProof = options.runtimeSource
+    ? await inspectRuntimeSource(options.runtimeSource, options.runtimeVersion)
+    : null;
   const sourceBefore = await fixtureFiles(options.fixture);
   const hashes = {
     exe: await sha256(options.exe),
     helper: await sha256(helper),
     diagnostic: await sha256(fileURLToPath(import.meta.url)),
     runner: await sha256(fileURLToPath(new URL('./native-perf-run.mjs', import.meta.url))),
+    runtimeHelper: await sha256(
+      fileURLToPath(new URL('./native-perf-runtime.mjs', import.meta.url)),
+    ),
   };
   await mkdir(options.output);
   const report = {
@@ -486,6 +549,9 @@ export async function main(args = process.argv.slice(2)) {
     loggingBinaryPreflight,
     ordinaryTmpRequested: options.ordinaryTmp === true,
     ordinaryTmpBinaryPreflight: ordinaryTmpBinaryPreflightResult,
+    selectedRuntimeRequested: options.runtimeSource !== undefined,
+    selectedRuntimePreflight,
+    runtimeSourceProof,
     fixture: options.manifest,
     observations: [],
     captureComplete: false,
@@ -525,6 +591,10 @@ export async function main(args = process.argv.slice(2)) {
       options.fixture,
     );
     report.owned = owned;
+    if (runtimeSourceProof) {
+      report.runtimeManifest = await stageRuntimeCopy(runtimeSourceProof, owned);
+      report.runtimeManifestSha256 = await sha256(path.join(root, 'native-perf-runtime.json'));
+    }
     const port = await unusedPort();
     report.port = port;
     if (interrupted) throw new Error('Interrupted before GUI launch');
@@ -540,6 +610,23 @@ export async function main(args = process.argv.slice(2)) {
       if (interrupted) throw new Error('Interrupted during diagnostic capture');
       const observation = { targetOffsetMs: offsetMs, observedAt: new Date().toISOString() };
       try {
+        if (report.runtimeManifest) {
+          if (
+            (await sha256(path.join(root, 'native-perf-runtime.json'))) !==
+            report.runtimeManifestSha256
+          )
+            throw new Error('Selected runtime manifest changed before observation');
+          report.selectedRuntime = checkSelectedRuntimeMarker(
+            JSON.parse(
+              await readFile(path.join(root, 'native-perf-selected-runtime.json'), 'utf8'),
+            ),
+            report.runtimeManifest,
+            launch.child.pid,
+            port,
+            report.runtimeManifestSha256,
+          );
+          observation.selectedRuntime = report.selectedRuntime;
+        }
         if (options.ordinaryTmp) {
           report.ordinaryTmp = checkOrdinaryTmpMarker(
             JSON.parse(await readFile(path.join(root, 'native-perf-ordinary-tmp.json'), 'utf8')),
@@ -579,10 +666,22 @@ export async function main(args = process.argv.slice(2)) {
           throw new Error(
             'Owned browser logging arguments did not match the native diagnostic contract',
           );
+        if (report.runtimeManifest)
+          observation.selectedRuntimeBrowser = await checkSelectedRuntimeBrowser(
+            identities[1],
+            observation.processDiagnostics,
+            report.runtimeManifest,
+          );
         // 监听之后再次核验原进程和UDF，再作无密码的loopback版本请求。
         const beforeProbe = selectDiagnosticIdentities(owner, await owner.sample());
         if (JSON.stringify(beforeProbe) !== JSON.stringify(identities))
           throw new Error('Identity changed before loopback probe');
+        if (report.runtimeManifest)
+          observation.selectedRuntimeBrowserBeforeProbe = await checkSelectedRuntimeBrowser(
+            beforeProbe[1],
+            observation.processDiagnostics,
+            report.runtimeManifest,
+          );
         observation.cdp = await cdpProbe(observation.processDiagnostics, identities, port);
         observation.success = true;
       } catch (error) {
@@ -628,6 +727,24 @@ export async function main(args = process.argv.slice(2)) {
       report.sourceUnchanged = false;
       report.sourceProofError = safeError(error);
     }
+    if (runtimeSourceProof) {
+      try {
+        const after = await inspectRuntimeSource(options.runtimeSource, options.runtimeVersion);
+        report.runtimeSourceUnchanged =
+          JSON.stringify(after) === JSON.stringify(runtimeSourceProof);
+        report.runtimeSourceAfter = report.runtimeSourceUnchanged
+          ? {
+              sourceFolder: after.sourceFolder,
+              expectedVersion: after.expectedVersion,
+              fileCount: after.files.length,
+              matchedInitialProof: true,
+            }
+          : after;
+      } catch (error) {
+        report.runtimeSourceUnchanged = false;
+        report.runtimeSourceAfterError = safeError(error);
+      }
+    }
     if (options.logging)
       report.chromiumLog = report.logging
         ? await logProof(report.logging)
@@ -640,6 +757,7 @@ export async function main(args = process.argv.slice(2)) {
       !interrupted &&
       report.captureComplete &&
       report.sourceUnchanged &&
+      (!runtimeSourceProof || report.runtimeSourceUnchanged === true) &&
       report.cleanupIntegrity?.complete === true &&
       (!options.logging ||
         (report.chromiumLog?.valid === true && report.chromiumLog.nonEmpty === true));

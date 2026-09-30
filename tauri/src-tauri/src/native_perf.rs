@@ -5,6 +5,7 @@ compile_error!("native-perf is supported only on Windows");
 mod fixture;
 #[cfg(test)]
 mod preflight_tests;
+mod runtime;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -196,6 +197,7 @@ enum Mode {
         port: u16,
         chromium_log: bool,
         ordinary_tmp: bool,
+        copied_runtime: Option<PathBuf>,
     },
 }
 
@@ -255,6 +257,7 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
         port,
         chromium_log,
         ordinary_tmp,
+        copied_runtime,
     } = mode
     else {
         return Err("prepare mode must exit before configuring a GUI runtime".into());
@@ -264,6 +267,10 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
     if chromium_log {
         config.enable_chromium_diagnostics()?;
     }
+    let selected_runtime = copied_runtime
+        .as_deref()
+        .map(|path| runtime::validate(&config, path))
+        .transpose()?;
     let ordinary_tmp = ordinary_tmp
         .then(|| config.ordinary_owned_temp())
         .transpose()?;
@@ -291,6 +298,20 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
             &std::env::var_os("USERPROFILE").ok_or("native USERPROFILE is missing")?,
             &std::env::var_os("WEBVIEW2_USER_DATA_FOLDER")
                 .ok_or("native WebView directory is missing")?,
+        )?;
+    }
+    if let Some(selection) = selected_runtime {
+        // 先严格拒绝全部继承 WEBVIEW2_*，此处只新增预检后的本进程 owned 值。
+        std::env::set_var(
+            "WEBVIEW2_BROWSER_EXECUTABLE_FOLDER",
+            &selection.browser_executable_folder,
+        );
+        let available = runtime::available_version(&selection.browser_executable_folder)?;
+        selection.record_actual(
+            &config,
+            &std::env::var_os("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER")
+                .ok_or("selected native Runtime folder is missing")?,
+            &available,
         )?;
     }
     std::env::remove_var("SOLOSOUL_REGISTRY_PUBKEY");
@@ -332,6 +353,7 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
     let mut port = None;
     let mut chromium_log = false;
     let mut ordinary_tmp = false;
+    let mut copied_runtime = None;
     let mut index = 0;
     while index < args.len() {
         let flag = args[index]
@@ -349,6 +371,9 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
             }
             "--fixture" if input_fixture.is_none() => input_fixture = Some(PathBuf::from(value)),
             "--native-perf-root" if run_root.is_none() => run_root = Some(PathBuf::from(value)),
+            "--native-perf-runtime" if copied_runtime.is_none() => {
+                copied_runtime = Some(PathBuf::from(value));
+            }
             "--native-perf-port" if port.is_none() => {
                 port = Some(
                     value
@@ -369,9 +394,12 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
         }
         index += 2;
     }
-    match (prepare_root, input_fixture, run_root, port, chromium_log, ordinary_tmp) {
-        (Some(root), Some(fixture), None, None, false, false) => Ok(Mode::Prepare { root, fixture }),
-        (None, None, Some(root), Some(port), chromium_log, ordinary_tmp) => Ok(Mode::Run { root, port, chromium_log, ordinary_tmp }),
+    if copied_runtime.is_some() && (!chromium_log || ordinary_tmp) {
+        return Err("--native-perf-runtime requires chromium-log and forbids ordinary TMP".into());
+    }
+    match (prepare_root, input_fixture, run_root, port, chromium_log, ordinary_tmp, copied_runtime) {
+        (Some(root), Some(fixture), None, None, false, false, None) => Ok(Mode::Prepare { root, fixture }),
+        (None, None, Some(root), Some(port), chromium_log, ordinary_tmp, copied_runtime) => Ok(Mode::Run { root, port, chromium_log, ordinary_tmp, copied_runtime }),
         _ => Err("use --native-perf-prepare <new-root> --fixture <fixture> or --native-perf-root <prepared-root> --native-perf-port <port>; no defaults".into()),
     }
 }

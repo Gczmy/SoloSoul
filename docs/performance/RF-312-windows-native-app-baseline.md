@@ -137,3 +137,36 @@ node scripts/native-perf-diagnose.mjs --exe (Join-Path $sampleParent 'bin/solo_s
 canonical对照与ordinary TMP实验均exit0、三次现场记录完整；两轮实际Runtime均为154.0.4258.37，browser目录和日志flags匹配，三次TCP查询均无owned监听，未发HTTP/CDP、未执行密码/UI流程，performanceMetrics仍为null。ordinary标记的TEMP/profile/UDF保持canonical表示，TMP为同目录普通表示；两轮普通temp根均96字符。两份日志各1,617字节，SHA分别为 `31668E7927C198332D7BAE71E85A7962748626B343660EFF53D14A04E28E7F4D` 与 `4ADAA79E23B9B4843F5A07DBC3C0AFFC3E5ACC6055224314668F4BDE4B243FEC`。20条记录PID收尾fresh CIM核查全部不存在，两档源14文件与用户3张NSIS图片SHA保持。
 
 [完整对照及检查证据](rf312-windows-ordinary-tmp-2026-09-30.json)保存两轮原始记录、实际主进程环境标记、日志、首轮测试失败、复测、程序/资源/源码SHA与清理。结论仅为本轮主进程TMP表示变化未恢复CDP；不排除直接读取TEMP的组件、UDF等其他路径入口、Runtime行为或所有嵌套路径限制，也不证明browser继承/使用TMP。后续受控Runtime选择仍需独立实施、核验实际browser路径/版本/身份；本轮没有下载/复制Runtime、修改Registry或默认Runtime。RF-312保留[!]，208/249不变。
+
+
+## 复制已安装 Evergreen 的受控 Runtime 对照（2026-09-30）
+
+诊断入口新增成对参数 `--runtime-source ABS --runtime-version VERSION`，必须同时指定 `--chromium-log`，与 `--ordinary-native-tmp` 互斥；prepare 和 benchmark 的原有参数保持。源目录限定本机 `ProgramFiles(x86)/Microsoft/EdgeWebView/Application/<version>`。本次认证的是已安装 Evergreen 的本地副本，`sourceKind` 为 `copied-local-evergreen`；[官方 Fixed Version 分发](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution#the-fixed-version-runtime-distribution-mode)要求单独的版本包，本轮未下载该包。
+
+Node 先检查新版 EXE 特征，再认证三个核心文件的真实 Microsoft Authenticode、精确 FileVersion/ProductVersion 和 AMD64 PE，记录全部文件 SHA/字节及完整目录集合（包括空目录）。只向新的 owned `root/runtime` 进行排他复制；前后源/副本全树必须一致，完成清单排他发布，失败保留阶段与部分副本。上限为 3000 文件、3000 目录、1 GiB、4 MiB 清单，各相对路径最多64段。版本为四段 canonical u16，目录与文件不得有大小写冲突、链接或额外/缺失项。
+
+Rust 独立验证 owned 身份、清单、全树与核心 PE，然后仅为该新进程设置 `WEBVIEW2_BROWSER_EXECUTABLE_FOLDER`。显式目录 [SDK 版本查询](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/webview2-idl?view=webview2-1.0.4022.49#GetAvailableCoreWebView2BrowserVersionString)必须匹配，输出由 `CoTaskMemPWSTR` RAII 释放；默认入口不设置该变量或调用此查询。TEMP/TMP/profile/UDF 和 browser flags 生成规则保持。Rust 的签名/文件版本字段属于 Node 来源声明，不能称作 Rust Authenticode 重验。
+
+主进程环境与 SDK 标记尚不足以接纳观察。每次现场诊断还核对实际 browser 的 owned 身份、物理 `root/runtime/msedgewebview2.exe`、文件版本及 SHA；probe 前重查相同 root/browser 身份、UDF 和 EXE SHA。第二次沿用本次 helper 的版本字段，没有再次读取版本/签名，也不证明全部 DLL 已加载。任何默认安装路径回退均拒绝，诊断始终 `performanceMetrics=null`。
+
+```powershell
+$runtimeVersion = '153.0.4234.48'
+$runtimeSource = Join-Path ${env:ProgramFiles(x86)} "Microsoft/EdgeWebView/Application/$runtimeVersion"
+node scripts/native-perf-diagnose.mjs --exe (Join-Path $sampleParent 'bin-runtime/solo_soul.exe') --fixture (Join-Path $fixtureParent 'vault100') --output (Join-Path $sampleParent 'cdp-runtime-default1') --chromium-log
+node scripts/native-perf-diagnose.mjs --exe (Join-Path $sampleParent 'bin-runtime/solo_soul.exe') --fixture (Join-Path $fixtureParent 'vault100') --output (Join-Path $sampleParent 'cdp-runtime-copied01') --chromium-log --runtime-source $runtimeSource --runtime-version $runtimeVersion
+```
+
+先顺序执行默认 Runtime 对照，再执行复制153实验；同一新 EXE、95项同 SHA 公开资源及100对象源，各自 fresh root/profile/runId/端口、等长输出标签。每个输出必须不存在，不能重用 consumed 目录。系统默认 Runtime 与 Registry 保持。
+
+本轮实际结果与收尾：
+
+- 源版本153.0.4234.48：917文件、45目录、902,624,319字节，三个核心文件均Microsoft Authenticode Valid、AMD64、FileVersion/ProductVersion精确匹配。第一次Node→PowerShell5.1源检查在复制/GUI前因隐式Security模块加载失败；改为显式PSHOME系统模块后真实认证通过，没有绕过签名。
+- 默认实际154.0.4258.37为exit0、3/3完整观察；副本153为exit1、2/3。计划5秒时SDK/Runtime标记不存在，ENOENT保留；15/30秒实际browser路径、版本、EXE SHA及probe前身份复核匹配副本，但均无owned监听。默认三次也无监听；五次完整观察均未发送HTTP/CDP、输入密码或执行UI，performanceMetrics=null。没有重试或修改采样时刻消除这次部分失败。
+- Node四文件79项、Rust定向19项全通过，fmt/native all-target Clippy/语法/Prettier通过；Release exit0、Rust23m58s，beforeBuild TypeScript/Vite通过。EXE SHA `646313CDFDB11FFDCAF76EF8A0E049EF7161E794097F26089351A77251C0C6D3`；95项资源及21项冻结源码/配置保持。初次51项Node运行误传缺失observer文件，不计该观察器验收；最终存在性检查后运行四文件79项。
+- 20条进程记录fresh CIM均不存在（19个不同数值，PID跨轮复用一次）。源fixture14文件、系统安装Runtime及用户3张NSIS图片SHA保持。首次临时清理在删除前被reparse保护中止；两条junction确认只指向各自owned profile内缓存后，非递归解除且验证目标仍存在，再删除六个owned临时目录及约861MiB副本。公开fixture、安装源、staged EXE/资源与输出父目录中的原始报告保留。
+
+[完整结构化证据](rf312-windows-copied-runtime-2026-09-30.json)包含原始两轮报告/日志、源清单、五秒失败、各次检查输出、程序/资源/源码SHA、保全与清理。结论仅为本轮153副本的两次完整晚期观察未恢复TCP监听，不确认普遍Runtime回归，也不替代RF-312性能验收。日志末尾Network/GPU退出发生于末次观察后的主动owned清理，不能称启动崩溃。
+
+只读限定策略查询：HKLM/HKCU及32/64位视图的Edge `DeveloperToolsAvailability/RemoteDebuggingAllowed` 没有发现值；WebView2 `AdditionalBrowserArguments` 四个指定键均不存在。未读取无关值或更改Registry。[微软企业策略说明](https://learn.microsoft.com/en-us/deployedge/webview2-enterprise#browser-policies-vs-webview2-policies)说明Edge浏览器策略不应用于WebView2；[WebView2策略列表](https://learn.microsoft.com/en-us/deployedge/microsoft-edge-webview-policies)未列出上述两个浏览器策略。这只是限定候选排查，不能证明不存在其他策略或定位根因。
+
+下一步可独立实施非默认Windows原生SDK诊断：在Tauri `with_webview` 的UI线程取得当前controller/WebView，用异步 [CallDevToolsProtocolMethod](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2?view=webview2-1.0.4022.49#calldevtoolsprotocolmethod)先只读Page.getFrameTree与Runtime.evaluate，绑定actual browser PID、唯一主frame、实际origin/timeOrigin和既有observer runId。导航、文档/frame变化、回调错误或超时即拒绝；COM遵循[UI线程约束](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/threading-model)。当前仅完成锁定源码/文档可行性核对，没有协议调用；完整UI采样还需后续状态机、真实浏览器输入和既有IPC计数验收。RF-312保持[!]，208/249不变。

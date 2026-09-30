@@ -549,3 +549,503 @@ fn native_perf_ordinary_tmp_rejects_redirected_directory() {
     assert!(!config.root.join(ORDINARY_TMP_MARKER).exists());
     assert_eq!(fs::read_dir(outside).unwrap().count(), 0);
 }
+
+// Runtime 组件回归只使用显式 TempDir 和合成 PE 头，不启动 Loader/GUI，
+// 不读取已安装 Runtime、用户 Vault 或更改任何全局环境。
+fn copied_runtime_config(parent: &Path) -> RuntimeConfig {
+    let root = parent.join("run");
+    fs::create_dir(&root).unwrap();
+    let root = root.canonicalize().unwrap();
+    for child in ["temp", "profile", "webview", "runtime"] {
+        fs::create_dir(root.join(child)).unwrap();
+    }
+    RuntimeConfig {
+        vault: root.join("vault"),
+        identifier: format!("{IDENTIFIER_PREFIX}{}", "a".repeat(32)),
+        webview: root.join("webview"),
+        root,
+        port: 44123,
+        run_id: "a".repeat(32),
+        chromium_log: None,
+    }
+}
+
+fn copied_runtime_manifest(config: &RuntimeConfig) -> Value {
+    let folder = config.root.join("runtime");
+    let mut files = Vec::new();
+    let mut cores = Vec::new();
+    for relative in runtime::CORE_FILES {
+        let target = folder.join(relative);
+        fs::create_dir_all(target.parent().unwrap()).unwrap();
+        let mut pe = vec![0_u8; 96];
+        pe[..2].copy_from_slice(b"MZ");
+        pe[60..64].copy_from_slice(&64_u32.to_le_bytes());
+        pe[64..70].copy_from_slice(b"PE\0\0\x64\x86");
+        pe.extend_from_slice(relative.as_bytes());
+        fs::write(&target, pe).unwrap();
+        let sha = sha256_file(&target).unwrap();
+        files.push(json!({
+            "relative": relative, "bytes": fs::metadata(&target).unwrap().len(), "sha256": sha,
+        }));
+        cores.push(json!({
+            "relative": relative, "sha256": sha, "architecture": "AMD64",
+            "fileVersion": "153.0.4234.48", "productVersion": "153.0.4234.48",
+            "signatureStatus": "Valid", "signerSubject": "CN=Microsoft Corporation",
+            "signerThumbprint": "A".repeat(40),
+        }));
+    }
+    let resource = folder.join("Locales/en-US.pak");
+    fs::create_dir(resource.parent().unwrap()).unwrap();
+    fs::write(&resource, b"public synthetic Runtime resource").unwrap();
+    files.push(json!({
+        "relative": "Locales/en-US.pak", "bytes": fs::metadata(&resource).unwrap().len(),
+        "sha256": sha256_file(&resource).unwrap(),
+    }));
+    fs::create_dir(folder.join("EmptyPublicDirectory")).unwrap();
+    files.sort_by(|left, right| {
+        left["relative"]
+            .as_str()
+            .unwrap()
+            .encode_utf16()
+            .cmp(right["relative"].as_str().unwrap().encode_utf16())
+    });
+    json!({
+        "schemaVersion": 1, "scope": "windows-native-perf-copied-runtime",
+        "root": config.root, "runId": config.run_id, "sourceKind": "copied-local-evergreen",
+        "sourceFolder": r"C:\synthetic-installed-runtime\153.0.4234.48",
+        "expectedVersion": "153.0.4234.48", "runtimeFolder": folder,
+        "files": files, "directories": ["EBWebView", "EBWebView/x64", "EmptyPublicDirectory", "Locales"], "coreFiles": cores,
+    })
+}
+
+fn publish_test_runtime(config: &RuntimeConfig, manifest: &Value) {
+    fs::write(
+        config.root.join(runtime::MANIFEST_FILE),
+        serde_json::to_vec_pretty(manifest).unwrap(),
+    )
+    .unwrap();
+}
+
+#[test]
+fn native_perf_copied_runtime_requires_explicit_logging_and_forbids_mode_conflicts() {
+    let run = [
+        "--native-perf-root",
+        "C:/owned",
+        "--native-perf-port",
+        "9222",
+    ];
+    for tail in [
+        vec!["--native-perf-runtime", "C:/owned/runtime"],
+        vec!["--native-perf-runtime"],
+        vec![
+            "--native-perf-diagnostics",
+            "chromium-log-ordinary-tmp",
+            "--native-perf-runtime",
+            "C:/owned/runtime",
+        ],
+        vec![
+            "--native-perf-diagnostics",
+            "chromium-log",
+            "--native-perf-runtime",
+            "C:/owned/runtime",
+            "--native-perf-runtime",
+            "C:/owned/runtime",
+        ],
+    ] {
+        let mut values = args(&run);
+        values.extend(args(&tail));
+        assert!(parse_args(&values).is_err());
+    }
+    assert!(parse_args(&args(&[
+        "--native-perf-prepare",
+        "C:/owned",
+        "--fixture",
+        "C:/fixture",
+        "--native-perf-runtime",
+        "C:/owned/runtime",
+    ]))
+    .is_err());
+    assert!(parse_args(&args(&[
+        "--native-perf-prepare",
+        "C:/owned",
+        "--fixture",
+        "C:/fixture",
+        "--native-perf-diagnostics",
+        "chromium-log",
+        "--native-perf-runtime",
+        "C:/owned/runtime",
+    ]))
+    .is_err());
+    let mut valid = args(&run);
+    valid.extend(args(&[
+        "--native-perf-runtime",
+        "C:/owned/runtime",
+        "--native-perf-diagnostics",
+        "chromium-log",
+    ]));
+    assert!(matches!(
+        parse_args(&valid),
+        Ok(Mode::Run {
+            chromium_log: true,
+            ordinary_tmp: false,
+            copied_runtime: Some(_),
+            ..
+        })
+    ));
+    for tail in [
+        vec![],
+        vec!["--native-perf-diagnostics", "chromium-log"],
+        vec!["--native-perf-diagnostics", "chromium-log-ordinary-tmp"],
+    ] {
+        let mut values = args(&run);
+        values.extend(args(&tail));
+        assert!(matches!(
+            parse_args(&values),
+            Ok(Mode::Run {
+                copied_runtime: None,
+                ..
+            })
+        ));
+    }
+}
+
+#[test]
+fn native_perf_copied_runtime_preserves_flags_and_records_exact_owned_selection_once() {
+    let work = tempfile::tempdir().unwrap();
+    let mut config = copied_runtime_config(work.path());
+    let manifest = copied_runtime_manifest(&config);
+    publish_test_runtime(&config, &manifest);
+    let requested = config.root.join("runtime");
+    assert!(runtime::validate(&config, &requested).is_err());
+    config.enable_chromium_diagnostics().unwrap();
+    let browser_args = config.browser_arguments();
+    let selection = runtime::validate(&config, &requested).unwrap();
+    let ordinary = selection.browser_executable_folder.clone();
+    assert!(!ordinary.to_string_lossy().starts_with(r"\\?\"));
+    assert_eq!(ordinary.canonicalize().unwrap(), requested);
+    // CLI 普通绝对路径可进入，但 manifest/selected 身份仍要求原 canonical 表示。
+    runtime::validate(&config, &ordinary).unwrap();
+    // 仅注入返回字符串验证拒绝分支；不调用真实 SDK 或宣称合成 PE 是 Runtime。
+    for (actual, available) in [
+        (&requested, "153.0.4234.48"),
+        (&ordinary, "154.0.4258.37"),
+        (&ordinary, ""),
+        (&ordinary, "153.0.4234.48 beta"),
+        (&ordinary, "0153.0.4234.48"),
+    ] {
+        assert!(selection
+            .record_actual(&config, actual.as_os_str(), available)
+            .is_err());
+        assert!(!config.root.join(runtime::SELECTED_FILE).exists());
+    }
+    selection
+        .record_actual(&config, ordinary.as_os_str(), "153.0.4234.48")
+        .unwrap();
+    assert_eq!(config.browser_arguments(), browser_args);
+    let marker = read_json(&config.root.join(runtime::SELECTED_FILE)).unwrap();
+    assert_eq!(marker["scope"], "windows-native-perf-selected-runtime");
+    assert_eq!(marker["mode"], "copied-local-evergreen");
+    assert_eq!(marker["performanceSample"], false);
+    assert_eq!(marker["root"], json!(config.root));
+    assert_eq!(marker["runId"], config.run_id);
+    assert_eq!(marker["pid"], std::process::id());
+    assert_eq!(marker["port"], config.port);
+    assert_eq!(marker["runtimeFolder"], json!(requested));
+    assert_eq!(marker["browserExecutableFolder"], json!(ordinary));
+    assert_eq!(marker["expectedVersion"], "153.0.4234.48");
+    assert_eq!(marker["availableVersion"], "153.0.4234.48");
+    assert_eq!(
+        marker["manifestSha256"],
+        sha256_file(&config.root.join(runtime::MANIFEST_FILE)).unwrap()
+    );
+    assert_eq!(
+        marker["executableSha256"],
+        manifest["files"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|proof| proof["relative"] == "msedgewebview2.exe")
+            .unwrap()["sha256"]
+    );
+    assert_eq!(marker["sourceFolder"], manifest["sourceFolder"]);
+    let original = fs::read(config.root.join(runtime::SELECTED_FILE)).unwrap();
+    assert!(selection
+        .record_actual(&config, ordinary.as_os_str(), "153.0.4234.48")
+        .is_err());
+    assert!(runtime::validate(&config, &requested).is_err());
+    assert_eq!(
+        fs::read(config.root.join(runtime::SELECTED_FILE)).unwrap(),
+        original
+    );
+}
+
+#[test]
+fn native_perf_copied_runtime_rejects_identity_metadata_and_noncanonical_manifests() {
+    let work = tempfile::tempdir().unwrap();
+    let mut config = copied_runtime_config(work.path());
+    let manifest = copied_runtime_manifest(&config);
+    config.enable_chromium_diagnostics().unwrap();
+    let requested = config.root.join("runtime");
+    for (key, value) in [
+        ("schemaVersion", json!(2)),
+        ("scope", json!("windows-native-perf-owned")),
+        (
+            "root",
+            json!(config.root.to_str().unwrap().strip_prefix(r"\\?\").unwrap()),
+        ),
+        ("runId", json!("b".repeat(32))),
+        ("sourceKind", json!("fixed-version-package")),
+        ("sourceFolder", json!("relative/runtime")),
+        ("sourceFolder", json!(r"\\server\share\runtime")),
+        ("expectedVersion", json!("153")),
+        ("expectedVersion", json!("0153.0.4234.48")),
+        ("runtimeFolder", json!(work.path())),
+        (
+            "runtimeFolder",
+            json!(requested.to_str().unwrap().strip_prefix(r"\\?\").unwrap()),
+        ),
+        ("unknown", json!(true)),
+    ] {
+        let mut bad = manifest.clone();
+        bad[key] = value;
+        publish_test_runtime(&config, &bad);
+        assert!(
+            runtime::validate(&config, &requested).is_err(),
+            "accepted field {key}"
+        );
+    }
+    for (key, value) in [
+        ("relative", json!("msedge-other.exe")),
+        ("sha256", json!("0".repeat(64))),
+        ("architecture", json!("ARM64")),
+        ("fileVersion", json!("154.0.4258.37")),
+        ("productVersion", json!("154.0.4258.37")),
+        ("signatureStatus", json!("NotSigned")),
+        ("signerSubject", json!("CN=Untrusted Publisher")),
+        ("signerThumbprint", json!("bad")),
+    ] {
+        let mut bad = manifest.clone();
+        bad["coreFiles"][0][key] = value;
+        publish_test_runtime(&config, &bad);
+        assert!(
+            runtime::validate(&config, &requested).is_err(),
+            "accepted core field {key}"
+        );
+    }
+    let mut duplicate = manifest.clone();
+    duplicate["coreFiles"][1] = duplicate["coreFiles"][0].clone();
+    publish_test_runtime(&config, &duplicate);
+    assert!(runtime::validate(&config, &requested).is_err());
+    publish_test_runtime(&config, &manifest);
+    assert!(runtime::validate(&config, work.path()).is_err());
+    assert!(runtime::validate(&config, Path::new("runtime")).is_err());
+    assert!(!config.root.join(runtime::SELECTED_FILE).exists());
+}
+
+#[test]
+fn native_perf_copied_runtime_rejects_unsafe_relative_proofs_and_resource_limits() {
+    let work = tempfile::tempdir().unwrap();
+    let mut config = copied_runtime_config(work.path());
+    let manifest = copied_runtime_manifest(&config);
+    config.enable_chromium_diagnostics().unwrap();
+    let requested = config.root.join("runtime");
+    for relative in [
+        "",
+        ".",
+        "..",
+        "dir/../msedgewebview2.exe",
+        "dir/./file",
+        "/absolute",
+        "C:/absolute",
+        "dir\\file",
+        "dir//file",
+        "dir/file ",
+        "dir/file.",
+        "CON",
+        "aux.dll",
+        "COM1.bin",
+        "LPT².bin",
+    ] {
+        let mut bad = manifest.clone();
+        bad["files"][3]["relative"] = json!(relative);
+        publish_test_runtime(&config, &bad);
+        assert!(
+            runtime::validate(&config, &requested).is_err(),
+            "accepted relative {relative}"
+        );
+    }
+    let mut bad = manifest.clone();
+    bad["files"]
+        .as_array_mut()
+        .unwrap()
+        .push(manifest["files"][0].clone());
+    publish_test_runtime(&config, &bad);
+    assert!(runtime::validate(&config, &requested).is_err());
+    bad = manifest.clone();
+    bad["files"][3]["sha256"] = json!("A".repeat(64));
+    publish_test_runtime(&config, &bad);
+    assert!(runtime::validate(&config, &requested).is_err());
+    bad = manifest.clone();
+    bad["files"][0]["bytes"] = json!(runtime::MAX_TOTAL_BYTES + 1);
+    publish_test_runtime(&config, &bad);
+    assert!(runtime::validate(&config, &requested)
+        .unwrap_err()
+        .contains("1 GiB"));
+    bad["files"] = json!(vec![manifest["files"][0].clone(); runtime::MAX_FILES + 1]);
+    publish_test_runtime(&config, &bad);
+    assert!(runtime::validate(&config, &requested).is_err());
+    fs::write(
+        config.root.join(runtime::MANIFEST_FILE),
+        vec![b' '; runtime::MAX_MANIFEST_BYTES as usize + 1],
+    )
+    .unwrap();
+    assert!(runtime::validate(&config, &requested)
+        .unwrap_err()
+        .contains("4 MiB"));
+    assert!(!config.root.join(runtime::SELECTED_FILE).exists());
+}
+
+#[test]
+fn native_perf_copied_runtime_requires_the_entire_unchanged_regular_tree() {
+    for mutation in [
+        "extra-file",
+        "missing-file",
+        "changed-bytes",
+        "changed-size",
+        "extra-dir",
+        "missing-empty-dir",
+        "wrong-pe",
+    ] {
+        let work = tempfile::tempdir().unwrap();
+        let mut config = copied_runtime_config(work.path());
+        let mut manifest = copied_runtime_manifest(&config);
+        config.enable_chromium_diagnostics().unwrap();
+        let requested = config.root.join("runtime");
+        let resource = requested.join("Locales/en-US.pak");
+        match mutation {
+            "extra-file" => fs::write(requested.join("extra.bin"), b"unlisted").unwrap(),
+            "missing-file" => fs::remove_file(&resource).unwrap(),
+            "changed-bytes" => {
+                let bytes = fs::metadata(&resource).unwrap().len() as usize;
+                fs::write(&resource, vec![b'x'; bytes]).unwrap();
+            }
+            "changed-size" => fs::write(&resource, b"short").unwrap(),
+            "extra-dir" => fs::create_dir(requested.join("extra-empty")).unwrap(),
+            "missing-empty-dir" => fs::remove_dir(requested.join("EmptyPublicDirectory")).unwrap(),
+            "wrong-pe" => {
+                let target = requested.join("msedgewebview2.exe");
+                let mut bytes = fs::read(&target).unwrap();
+                bytes[68..70].copy_from_slice(&0x14c_u16.to_le_bytes());
+                fs::write(&target, bytes).unwrap();
+                let sha = sha256_file(&target).unwrap();
+                let proof = manifest["files"]
+                    .as_array_mut()
+                    .unwrap()
+                    .iter_mut()
+                    .find(|proof| proof["relative"] == "msedgewebview2.exe")
+                    .unwrap();
+                proof["sha256"] = json!(sha);
+                manifest["coreFiles"][0]["sha256"] = json!(sha);
+            }
+            _ => unreachable!(),
+        }
+        publish_test_runtime(&config, &manifest);
+        assert!(
+            runtime::validate(&config, &requested).is_err(),
+            "accepted mutation {mutation}"
+        );
+        assert!(!config.root.join(runtime::SELECTED_FILE).exists());
+    }
+}
+
+#[test]
+fn native_perf_copied_runtime_rejects_reparse_entries_before_external_reads() {
+    let work = tempfile::tempdir().unwrap();
+    let mut config = copied_runtime_config(work.path());
+    let manifest = copied_runtime_manifest(&config);
+    config.enable_chromium_diagnostics().unwrap();
+    let requested = config.root.join("runtime");
+    let outside = work.path().join("outside");
+    fs::create_dir(&outside).unwrap();
+    let sentinel = outside.join("untouched");
+    fs::write(&sentinel, b"owned test sentinel").unwrap();
+    let core = requested.join("EBWebView/x64/EmbeddedBrowserWebView.dll");
+    fs::remove_file(&core).unwrap(); // 只删除此用例新建的合成文件。
+    fs::remove_dir(core.parent().unwrap()).unwrap(); // 只删除此用例新建的空目录。
+    junction(core.parent().unwrap(), &outside);
+    publish_test_runtime(&config, &manifest);
+    assert!(runtime::validate(&config, &requested).is_err());
+    assert_eq!(fs::read(&sentinel).unwrap(), b"owned test sentinel");
+    assert_eq!(fs::read_dir(&outside).unwrap().count(), 1);
+    assert!(!config.root.join(runtime::SELECTED_FILE).exists());
+}
+
+#[test]
+fn native_perf_copied_runtime_requires_complete_ordered_directory_proofs() {
+    let work = tempfile::tempdir().unwrap();
+    let mut config = copied_runtime_config(work.path());
+    let manifest = copied_runtime_manifest(&config);
+    config.enable_chromium_diagnostics().unwrap();
+    let requested = config.root.join("runtime");
+    for directories in [
+        json!(["EBWebView", "EBWebView/x64", "Locales"]),
+        json!([
+            "EBWebView",
+            "EBWebView/x64",
+            "EmptyPublicDirectory",
+            "Locales",
+            "MissingEmpty"
+        ]),
+        json!([
+            "Locales",
+            "EmptyPublicDirectory",
+            "EBWebView/x64",
+            "EBWebView"
+        ]),
+        json!([
+            "EBWebView",
+            "EBWebView",
+            "EBWebView/x64",
+            "EmptyPublicDirectory",
+            "Locales"
+        ]),
+        json!([
+            "EBWebView",
+            "EBWebView/x64",
+            "EmptyPublicDirectory",
+            "Locales",
+            "locales"
+        ]),
+        json!([
+            "EBWebView",
+            "EBWebView/x64",
+            "EmptyPublicDirectory",
+            "Locales",
+            "msedge.dll"
+        ]),
+        json!([
+            "EBWebView",
+            "EBWebView/x64",
+            "EmptyPublicDirectory",
+            "Locales",
+            "outside/../invalid"
+        ]),
+        json!(vec!["synthetic"; runtime::MAX_DIRECTORIES + 1]),
+        json!([vec!["deep"; 65].join("/")]),
+    ] {
+        let mut bad = manifest.clone();
+        bad["directories"] = directories;
+        publish_test_runtime(&config, &bad);
+        assert!(runtime::validate(&config, &requested).is_err());
+    }
+    let mut bad = manifest.clone();
+    bad.as_object_mut().unwrap().remove("directories");
+    publish_test_runtime(&config, &bad);
+    assert!(runtime::validate(&config, &requested).is_err());
+    bad = manifest.clone();
+    bad["files"].as_array_mut().unwrap().reverse();
+    publish_test_runtime(&config, &bad);
+    assert!(runtime::validate(&config, &requested).is_err());
+    publish_test_runtime(&config, &manifest);
+    runtime::validate(&config, &requested).unwrap(); // 明确接纳声明且存在的空目录。
+}
