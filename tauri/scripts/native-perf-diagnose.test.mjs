@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import path from 'node:path';
+import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { rejectDiagnosticBenchmark } from './native-perf-run.mjs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
   parseDiagnosticArgs,
+  helperEnvironment,
+  checkLoggingMarker,
+  chromiumLogBinaryPreflight,
   diagnosticHelperFailure,
   checkConsumed,
   selectDiagnosticIdentities,
@@ -266,4 +272,95 @@ test('listener query failure is unknown, not proof of absence', async () => {
   assert.equal(result.reason, value.listenersReason);
   assert.equal(result.attempted, false);
   assert.equal(called, false);
+});
+
+test('logging is explicit and duplicate CLI paths/flags are refused', () => {
+  const base = path.resolve('owned');
+  const args = [
+    '--exe',
+    path.join(base, 'app.exe'),
+    '--fixture',
+    path.join(base, 'fixture'),
+    '--output',
+    path.join(base, 'new'),
+  ];
+  assert.equal(parseDiagnosticArgs([...args, '--chromium-log']).logging, true);
+  assert.throws(() => parseDiagnosticArgs([...args, '--exe', path.join(base, 'other.exe')]));
+  assert.throws(() => parseDiagnosticArgs([...args, '--chromium-log', '--chromium-log']));
+  assert.throws(() => parseDiagnosticArgs([...args, '--chromium-log', 'arbitrary-log-path']));
+});
+
+test('logging marker rejects another run/port, extended path and non-owned log', () => {
+  const owned = { runId: 'a'.repeat(32), root: 'C:\\owned\\sample-001' };
+  const marker = {
+    schemaVersion: 1,
+    scope: 'windows-native-perf-chromium-log',
+    mode: 'chromium-log',
+    root: owned.root,
+    runId: owned.runId,
+    pid: root.pid,
+    port: 44001,
+    nativeTempUnchanged: true,
+    performanceSample: false,
+    logFile: path.win32.join(owned.root, 'temp', 'chromium-diagnostics.log'),
+  };
+  assert.equal(checkLoggingMarker(marker, owned, root.pid, 44001), marker);
+  for (const change of [
+    { logFile: 'C:\\outside\\chromium-diagnostics.log' },
+    { logFile: '\\\\?\\' + marker.logFile },
+    { runId: 'b'.repeat(32) },
+    { port: 44002 },
+    { pid: 999 },
+    { performanceSample: true },
+    { nativeTempUnchanged: false },
+  ])
+    assert.throws(() => checkLoggingMarker({ ...marker, ...change }, owned, root.pid, 44001));
+});
+
+test('old executable marker is rejected offline; diagnostic marker prevents benchmark acceptance', async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), 'ss-rf312-node-log-'));
+  try {
+    const exe = path.join(dir, 'fixture.exe');
+    await writeFile(exe, 'windows-native-perf-owned old build');
+    await assert.rejects(chromiumLogBinaryPreflight(exe), /rebuilt/);
+    await writeFile(exe, 'prefix windows-native-perf-chromium-log suffix');
+    const accepted = await chromiumLogBinaryPreflight(exe);
+    assert.equal(accepted.method, 'streaming-logging-feature-marker');
+    await rejectDiagnosticBenchmark(dir);
+    await writeFile(path.join(dir, 'native-perf-chromium-log.json'), '{}');
+    await assert.rejects(rejectDiagnosticBenchmark(dir), /cannot be used as a performance sample/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('off-mode helper environment deletes inherited logging even with case aliases', () => {
+  const inherited = {
+    SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_LOG_FILE: 'C:\\outside',
+    solosoul_native_perf_diagnostics_log_file: '',
+    SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_MODE: 'self-test',
+    Temp: 'outside',
+    tMp: 'outside',
+    PATH: 'preserve',
+  };
+  const owned = { webview: 'C:\\owned\\sample-001\\webview' };
+  const env = helperEnvironment(identities, owned, 'C:\\owned\\temp', null, inherited);
+  assert.equal(
+    Object.keys(env).some((k) => k.toUpperCase() === 'SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_LOG_FILE'),
+    false,
+  );
+  assert.equal(env.SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_MODE, 'live');
+  assert.equal(env.TEMP, 'C:\\owned\\temp');
+  assert.equal(env.TMP, env.TEMP);
+  assert.equal(env.PATH, 'preserve');
+  assert.equal(inherited.Temp, 'outside');
+  assert.equal(inherited.SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_MODE, 'self-test');
+  const logging = { logFile: 'C:\\owned\\temp\\chromium-diagnostics.log' };
+  const on = helperEnvironment(identities, owned, env.TEMP, logging, inherited);
+  assert.equal(
+    Object.keys(on).filter((k) => k.toUpperCase() === 'SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_LOG_FILE')
+      .length,
+    1,
+  );
+  assert.equal(on.SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_LOG_FILE, logging.logFile);
 });

@@ -465,7 +465,7 @@ pub fn run() {
             "native-perf requires one main window"
         );
         context.config_mut().app.windows[0].create = false;
-        let browser_args = format!("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --remote-debugging-port={} --remote-debugging-address=127.0.0.1", perf.port);
+        let browser_args = perf.browser_arguments();
         builder
             .append_invoke_initialization_script(
                 native_perf::observer_script().expect("validated native-perf configuration"),

@@ -6,6 +6,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { mkdir, readFile, readdir, lstat, realpath } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
 import { setTimeout as delay } from 'node:timers/promises';
 import {
   validateInputs,
@@ -26,30 +27,105 @@ import {
 const execFileAsync = promisify(execFile);
 const helper = fileURLToPath(new URL('./native-perf-process-diagnostics.ps1', import.meta.url));
 const HELP =
-  'Usage: node scripts/native-perf-diagnose.mjs --exe ABS --fixture ABS --output NEW_ABS\nWindows only; one isolated synthetic run, three live observations. No password/UI actions or performance metrics.';
+  'Usage: node scripts/native-perf-diagnose.mjs --exe ABS --fixture ABS --output NEW_ABS [--chromium-log]\nWindows only; one isolated synthetic run, three live observations. No password/UI actions or performance metrics.';
 
 export function parseDiagnosticArgs(args) {
   if (args.length === 1 && args[0] === '--help') return { help: true };
   const allowed = new Set(['--exe', '--fixture', '--output']);
   const values = {};
-  for (let i = 0; i < args.length; i += 2) {
+  let logging = false;
+  for (let i = 0; i < args.length; ) {
     const key = args[i];
+    if (key === '--chromium-log') {
+      if (logging) throw new Error('Duplicate --chromium-log');
+      logging = true;
+      i++;
+      continue;
+    }
     if (
       !allowed.has(key) ||
-      Object.hasOwn(values, key) ||
+      Object.hasOwn(values, key.slice(2)) ||
       !args[i + 1] ||
       args[i + 1].startsWith('--')
     )
-      throw new Error('Expected --exe, --fixture, --output exactly once');
+      throw new Error('Expected --exe, --fixture, --output exactly once; optional --chromium-log');
     if (!path.isAbsolute(args[i + 1])) throw new Error(key + ' must be absolute');
     values[key.slice(2)] = path.resolve(args[i + 1]);
+    i += 2;
   }
   if (Object.keys(values).length !== 3) throw new Error('Missing required diagnostic options');
   if (path.parse(values.output).root === values.output)
     throw new Error('--output cannot be a filesystem root');
-  return values;
+  return logging ? { ...values, logging: true } : values;
 }
 
+export async function chromiumLogBinaryPreflight(exe) {
+  const marker = Buffer.from('windows-native-perf-chromium-log', 'ascii');
+  let overlap = Buffer.alloc(0);
+  for await (const chunk of createReadStream(exe, { highWaterMark: 64 * 1024 })) {
+    const window = Buffer.concat([overlap, chunk]);
+    if (window.includes(marker))
+      return {
+        method: 'streaming-logging-feature-marker',
+        limitation: 'Excludes old native-perf builds; not a signature or trust guarantee',
+      };
+    overlap = Buffer.from(window.subarray(Math.max(0, window.length - marker.length + 1)));
+  }
+  throw new Error(
+    'Chromium logging requires a rebuilt native-perf EXE with its logging feature marker',
+  );
+}
+
+export function checkLoggingMarker(value, owned, rootPid, port) {
+  const expectedLog = normalizeWindowsPath(
+    path.win32.join(owned.root, 'temp', 'chromium-diagnostics.log'),
+  );
+  if (
+    value?.schemaVersion !== 1 ||
+    value.scope !== 'windows-native-perf-chromium-log' ||
+    value.mode !== 'chromium-log' ||
+    value.runId !== owned.runId ||
+    value.pid !== rootPid ||
+    value.port !== port ||
+    value.performanceSample !== false ||
+    value.nativeTempUnchanged !== true ||
+    normalizeWindowsPath(value.root) !== normalizeWindowsPath(owned.root) ||
+    typeof value.logFile !== 'string' ||
+    value.logFile.startsWith('\\\\?\\') ||
+    normalizeWindowsPath(value.logFile) !== expectedLog
+  )
+    throw new Error('Chromium log marker does not identify this exact owned diagnostic path/run');
+  return value;
+}
+
+async function logProof(value) {
+  try {
+    const file = normalizeWindowsPath(value.logFile);
+    for (const [target, isDir] of [
+      [path.dirname(file), true],
+      [file, false],
+    ]) {
+      const stat = await lstat(target);
+      if (
+        stat.isSymbolicLink() ||
+        (isDir ? !stat.isDirectory() : !stat.isFile()) ||
+        normalizeWindowsPath(await realpath(target)) !== target
+      )
+        throw new Error('Chromium log path is not the exact owned regular path');
+    }
+    const stat = await lstat(file);
+    return {
+      path: file,
+      bytes: stat.size,
+      sha256: await sha256(file),
+      valid: true,
+      nonEmpty: stat.size > 0,
+      reason: stat.size ? null : 'Owned Chromium log remained empty; logger activity is not proven',
+    };
+  } catch (error) {
+    return { valid: false, nonEmpty: false, reason: safeError(error) };
+  }
+}
 export function checkConsumed(value, owned, rootPid, port) {
   if (
     value?.schemaVersion !== 1 ||
@@ -235,7 +311,24 @@ export function diagnosticHelperFailure(error) {
     ? powerShellError(error, 'diagnostics', 30000)
     : safeError(error);
 }
-async function processDiagnostics(identities, owned) {
+export function helperEnvironment(identities, owned, helperTemp, logging, inherited = process.env) {
+  const env = { ...inherited };
+  for (const key of Object.keys(env)) {
+    const upper = key.toUpperCase();
+    if (upper.startsWith('SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_') || ['TEMP', 'TMP'].includes(upper))
+      delete env[key];
+  }
+  Object.assign(env, {
+    TEMP: helperTemp,
+    TMP: helperTemp,
+    SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_MODE: 'live',
+    SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_OWNED: JSON.stringify(identities),
+    SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_BROWSER_DATA_DIRECTORY: path.join(owned.webview, 'EBWebView'),
+  });
+  if (logging) env.SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_LOG_FILE = logging.logFile;
+  return env;
+}
+async function processDiagnostics(identities, owned, logging) {
   try {
     // .NET Framework 的 Add-Type 编译器不接受 Rust canonical 的 \\?\ TEMP。
     // 两种表示必须指向同一个已验证目录；只为本次 helper 子进程转换表示。
@@ -254,17 +347,7 @@ async function processDiagnostics(identities, owned) {
         windowsHide: true,
         timeout: 30000,
         maxBuffer: 1024 * 1024,
-        env: {
-          ...process.env,
-          TEMP: helperTemp,
-          TMP: helperTemp,
-          SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_MODE: 'live',
-          SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_OWNED: JSON.stringify(identities),
-          SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_BROWSER_DATA_DIRECTORY: path.join(
-            owned.webview,
-            'EBWebView',
-          ),
-        },
+        env: helperEnvironment(identities, owned, helperTemp, logging),
       },
     );
     return checkDiagnosticResult(
@@ -285,6 +368,9 @@ export async function main(args = process.argv.slice(2)) {
   }
   if (process.platform !== 'win32') throw new Error('Native diagnostics are Windows only');
   const options = await validateInputs(parsed);
+  const loggingBinaryPreflight = options.logging
+    ? await chromiumLogBinaryPreflight(options.exe)
+    : null;
   const sourceBefore = await fixtureFiles(options.fixture);
   const hashes = {
     exe: await sha256(options.exe),
@@ -303,6 +389,8 @@ export async function main(args = process.argv.slice(2)) {
     nodeVersion: process.version,
     hashes,
     binaryPreflight: options.binaryPreflight,
+    loggingRequested: options.logging === true,
+    loggingBinaryPreflight,
     fixture: options.manifest,
     observations: [],
     captureComplete: false,
@@ -348,7 +436,13 @@ export async function main(args = process.argv.slice(2)) {
     const launchedAt = Date.now();
     launch = startChild(
       options.exe,
-      ['--native-perf-root', root, '--native-perf-port', String(port)],
+      [
+        '--native-perf-root',
+        root,
+        '--native-perf-port',
+        String(port),
+        ...(options.logging ? ['--native-perf-diagnostics', 'chromium-log'] : []),
+      ],
       childEnv,
     );
     completion = launch.completion;
@@ -367,9 +461,30 @@ export async function main(args = process.argv.slice(2)) {
           launch.child.pid,
           port,
         );
+        if (options.logging) {
+          report.logging = checkLoggingMarker(
+            JSON.parse(await readFile(path.join(root, 'native-perf-chromium-log.json'), 'utf8')),
+            owned,
+            launch.child.pid,
+            port,
+          );
+          observation.logging = report.logging;
+        }
         observation.ownedSnapshot = await owner.sample();
         const identities = selectDiagnosticIdentities(owner, observation.ownedSnapshot);
-        observation.processDiagnostics = await processDiagnostics(identities, owned);
+        observation.processDiagnostics = await processDiagnostics(
+          identities,
+          owned,
+          report.logging,
+        );
+        if (
+          options.logging &&
+          observation.processDiagnostics.processes.find((p) => p.pid === identities[1].pid)
+            .browserFlags.logging?.flagsMatched !== true
+        )
+          throw new Error(
+            'Owned browser logging arguments did not match the native diagnostic contract',
+          );
         // 监听之后再次核验原进程和UDF，再作无密码的loopback版本请求。
         const beforeProbe = selectDiagnosticIdentities(owner, await owner.sample());
         if (JSON.stringify(beforeProbe) !== JSON.stringify(identities))
@@ -419,6 +534,10 @@ export async function main(args = process.argv.slice(2)) {
       report.sourceUnchanged = false;
       report.sourceProofError = safeError(error);
     }
+    if (options.logging)
+      report.chromiumLog = report.logging
+        ? await logProof(report.logging)
+        : { valid: false, nonEmpty: false, reason: 'No verified native logging marker' };
     process.off('SIGINT', stop);
     process.off('SIGTERM', stop);
     report.interrupted = interrupted;
@@ -427,7 +546,9 @@ export async function main(args = process.argv.slice(2)) {
       !interrupted &&
       report.captureComplete &&
       report.sourceUnchanged &&
-      report.cleanupIntegrity?.complete === true;
+      report.cleanupIntegrity?.complete === true &&
+      (!options.logging ||
+        (report.chromiumLog?.valid === true && report.chromiumLog.nonEmpty === true));
     await newJson(path.join(options.output, 'native-perf-diagnostics.json'), report);
   }
   process.stdout.write(

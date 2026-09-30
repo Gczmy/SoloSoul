@@ -121,7 +121,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 - 任务总数：**248**（P1：49；P2：198；P3：1）。
 - 已关闭：**207 / 248**；实际修复（已关闭）：207；排除：0；待验证/阻塞：13（7项授权阻塞，RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无（RF-312单轮现场诊断完成并修复TEMP路径问题；真实CDP仍无监听）。关闭207/248、13项待验证/阻塞及28项依赖待执行保持；本轮未发现可独立关闭的无阻塞项。
+- 当前处理：RF-312（显式隔离Chromium日志实验；默认入口与普通benchmark参数保持，原生TEMP不变）。其他任务依赖与授权阻塞保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -5453,3 +5453,10 @@ git commit -m "<任务卡的提交标题>"
 - 11项新增Node边界测试通过，既有runner24项与observer9项合并44/44通过；PS5.1编译及16项合成断言通过，空身份输入拒绝exit1且liveQueriesPerformed=false。修正后定向11/11复核及语法/格式通过；未改Rust/React，没有重复默认完整Rust或前端套件。独立只读复审确认隔离、PID重用、根退出、清理失败与源SHA变化均不能误报成功。
 - 两轮各9条owned身份严格清理，18条PID收尾只读重核全已不存在；公开100对象源7文件和3张用户NSIS图片SHA保持。[复跑与口径](performance/RF-312-windows-native-app-baseline.md)和[现场/因果结构化证据](performance/rf312-windows-cdp-diagnostics-2026-09-30.json)完整保留首次失败、第二轮结果及SHA。本项独立提交（本提交，以RF-312检索），不推送；只暂存本项路径。
 - 全部剩余依赖复核仍是207已关闭、13待验证/阻塞、28待执行；28项均有未关闭根前置，没有已满足前置的独立遗漏。RF-312尚缺受控Runtime对照/Chromium日志定位及成功CDP/UI、多端性能验收；其他7项生产审批、平台SDK/设备和远端CI证据阻塞保持，不因诊断通过关闭任务。
+
+### RF-312 阶段执行记录（2026-09-30，显式 Chromium 日志实验完成）
+
+- 基线 `0a60c06d`。日志为 run-only 明确开关，普通诊断/benchmark 参数与原生 TEMP 表示保持；日志固定在新建 owned temp，标记绑定实际 runId/PID/端口。benchmark 拒绝日志标记；helper 清理继承诊断环境，无日志分支不传空 LOG_FILE。未改变默认生产入口、系统 Registry 或默认 Runtime。
+- 本轮真实验证：Rust隔离9 passed / 0 failed / 0 ignored；Node observer9 + runner24 + diagnose15，合计48 passed / 0 failed / 0 skipped；PS5.1 helper离线41条断言、默认无日志环境互操作通过；workspace fmt与native all-target Clippy -D warnings通过。专用Release构建exit0（Cargo12m43s，TypeScript/Vite通过，Vite6.84s）。首次错误工作目录的fmt命令失败如实保留，改用workspace命令通过。
+- 100对象真实单轮诊断exit0；3次日志flags匹配并取得2,229字节owned日志，但TCP查询仍无owned CDP监听。未发送HTTP/CDP或执行密码/UI操作，不产出性能数值。10个记录PID收尾只读查询全已不存在；公开源7文件与用户3张NSIS图片SHA保持。[说明](performance/RF-312-windows-native-app-baseline.md)和[结构化证据](performance/rf312-windows-chromium-log-2026-09-30.json)保存完整原始记录、日志、源码/EXE/资源/验证SHA。
+- 日志另确认生产CSP拦截本地 `http://ipc.localhost`，触发Tauri postMessage fallback；需按独立问题修复，不把它认定为CDP无监听原因。末尾Network/GPU终止日志处于主动owned清理阶段，不作启动崩溃结论。本轮诊断改动独立提交（本提交，以RF-312检索），不推送，不暂存用户改动；RF-312继续[!]，统计207/248不变。

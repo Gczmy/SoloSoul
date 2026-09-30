@@ -85,7 +85,53 @@ function Read-Flag([string]$command, [string]$name) {
     return $matches[0].Groups['bare'].Value
 }
 
-function Parse-BrowserFlags([string]$command, [string]$expectedData) {
+function Parse-LogFileInput($value) {
+    if ($null -eq $value) { return $null }
+    Assert-True ($value -is [string] -and ![string]::IsNullOrWhiteSpace($value)) 'Diagnostics log file input is invalid'
+    Assert-True ((Is-LocalAbsolutePath $value) -and !$value.StartsWith('\\?\') -and $value -notmatch '["\r\n]') 'Diagnostics log file must use an ordinary local absolute path'
+    Assert-True ([IO.Path]::GetFileName($value) -ceq 'chromium-diagnostics.log') 'Diagnostics log file basename is fixed'
+    return $value
+}
+
+function New-LoggingStatus([string]$expectedLog, [string]$reason) {
+    $requested = ![string]::IsNullOrEmpty($expectedLog)
+    return @{requested=$requested; flagsMatched=$null; logFileMatched=$null; reason=if ($requested) { $reason } else { $null }}
+}
+
+function Read-LoggingValue([string]$command, [string]$name) {
+    $occurrence = '(?:^|\s)--' + [regex]::Escape($name) + '(?=\s|=|$)'
+    Assert-True ([regex]::Matches($command, $occurrence).Count -eq 1) 'Logging value switch is missing or duplicated'
+    $pattern = '(?:^|\s)--' + [regex]::Escape($name) + '=(?:"(?<quoted>[^"]*)"|(?<bare>[^\s]+))(?=\s|$)'
+    $matches = [regex]::Matches($command, $pattern)
+    Assert-True ($matches.Count -eq 1) 'Logging value switch must use equals syntax'
+    if ($matches[0].Groups['quoted'].Success) { return $matches[0].Groups['quoted'].Value }
+    return $matches[0].Groups['bare'].Value
+}
+
+function Parse-LoggingFlags([string]$command, [string]$expectedLog) {
+    $result = New-LoggingStatus $expectedLog $null
+    if (!$result.requested) { return $result }
+    $result.flagsMatched = $false
+    $result.logFileMatched = $false
+    $result.reason = 'Logging flags are missing, ambiguous, or outside the fixed diagnostics contract'
+    try {
+        $actualLog = Read-LoggingValue $command 'log-file'
+        $result.logFileMatched = [string]::Equals($actualLog, $expectedLog, [StringComparison]::OrdinalIgnoreCase)
+        Assert-True $result.logFileMatched 'Log file does not match the verified ordinary owned path'
+        $enablePattern = '(?:^|\s)--enable-logging(?:(?:=)(?:"(?<quoted>[^"]*)"|(?<bare>[^\s]*)))?(?=\s|$)'
+        $enable = [regex]::Matches($command, $enablePattern)
+        Assert-True ($enable.Count -eq 1 -and $enable[0].Groups['quoted'].Value -ceq '' -and $enable[0].Groups['bare'].Value -ceq '') 'Enable logging must be one empty-value switch'
+        $verbosity = Read-LoggingValue $command 'v'
+        Assert-True ($verbosity -ceq '1') 'Logging verbosity is fixed to one'
+        $result.flagsMatched = $true
+        $result.reason = $null
+    } catch {
+        # 不输出完整命令行、未匹配日志路径或异常正文。
+    }
+    return $result
+}
+
+function Parse-BrowserFlags([string]$command, [string]$expectedData, [string]$expectedLog = $null) {
     try {
         $portText = Read-Flag $command 'remote-debugging-port'
         Assert-True ($portText -match '^[1-9][0-9]{0,4}$') 'Browser debugging port is invalid'
@@ -95,10 +141,10 @@ function Parse-BrowserFlags([string]$command, [string]$expectedData) {
         Assert-True ($address -ceq '127.0.0.1') 'Browser debugging address is not controlled loopback'
         $data = Read-Flag $command 'user-data-dir'
         Assert-True ((Normalize-LocalPath $data) -ceq (Normalize-LocalPath $expectedData)) 'Browser UDF does not match the verified owned directory'
-        return @{port=$port; address=$address; userDataDirectoryMatched=$true; observedDirectory=$data; reason=$null}
+        return @{port=$port; address=$address; userDataDirectoryMatched=$true; observedDirectory=$data; reason=$null; logging=(Parse-LoggingFlags $command $expectedLog)}
     } catch {
         # 不输出命令行或不匹配的目录。
-        return @{port=$null; address=$null; userDataDirectoryMatched=$false; observedDirectory=$null; reason='Browser debugging flags are missing, ambiguous, or outside the verified owned contract'}
+        return @{port=$null; address=$null; userDataDirectoryMatched=$false; observedDirectory=$null; reason='Browser debugging flags are missing, ambiguous, or outside the verified owned contract'; logging=(New-LoggingStatus $expectedLog 'Logging flags were not checked because the browser directory contract failed')}
     }
 }
 
@@ -232,6 +278,7 @@ try {
     Assert-True ($diagnosticMode -cin @('live', 'parse-only', 'self-test')) 'Explicit diagnostics mode is required'
     $ownedJson = [Environment]::GetEnvironmentVariable('SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_OWNED')
     $expectedBrowserData = [Environment]::GetEnvironmentVariable('SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_BROWSER_DATA_DIRECTORY')
+    $expectedLog = Parse-LogFileInput ([Environment]::GetEnvironmentVariable('SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_LOG_FILE'))
     if ($diagnosticMode -ceq 'self-test') {
         $ownedJson = '[{"pid":101,"parentPid":1,"creationMs":1790740537053,"executablePath":"C:\\rf312\\solo_soul.exe"},{"pid":102,"parentPid":101,"creationMs":1790740539478,"executablePath":"C:\\rf312\\msedgewebview2.exe"}]'
         $expectedBrowserData = 'C:\rf312\webview\EBWebView'
@@ -241,7 +288,7 @@ try {
     $diagnosticStage = 'C# compilation'
     Add-Type -TypeDefinition $nativeSource -Language CSharp -ErrorAction Stop | Out-Null
     if ($diagnosticMode -ceq 'parse-only') {
-        Write-Result @{schemaVersion=1; scope=$diagnosticScope; mode=$diagnosticMode; success=$true; reason=$null; compiled=$true; powerShellVersion=$PSVersionTable.PSVersion.ToString(); clrVersion=[Environment]::Version.ToString(); inputCount=$owned.Count; processes=@(); listeners=@(); liveQueriesPerformed=$false} 0
+        Write-Result @{schemaVersion=1; scope=$diagnosticScope; mode=$diagnosticMode; success=$true; reason=$null; compiled=$true; powerShellVersion=$PSVersionTable.PSVersion.ToString(); clrVersion=[Environment]::Version.ToString(); inputCount=$owned.Count; loggingRequested=(![string]::IsNullOrEmpty($expectedLog)); processes=@(); listeners=@(); liveQueriesPerformed=$false} 0
     }
     if ($diagnosticMode -ceq 'self-test') {
         $diagnosticStage = 'offline self-test'
@@ -275,6 +322,49 @@ try {
         Assert-True (Match-Identity $actual $owned[0]) 'Matching synthetic identity failed'; $passed++
         $actual.ParentProcessId = 2
         Assert-True (!(Match-Identity $actual $owned[0])) 'Changed synthetic identity was accepted'; $passed++
+        $testLog = 'C:\rf312\temp\chromium-diagnostics.log'
+        $logged = $good + ' --enable-logging --v=1 --log-file="' + $testLog + '"'
+        $legacy = Parse-BrowserFlags $logged $expectedBrowserData
+        Assert-True ($legacy.userDataDirectoryMatched -and !$legacy.logging.requested -and $null -eq $legacy.logging.flagsMatched -and $null -eq $legacy.logging.reason) 'Unrequested logging changed the original flag contract'; $passed++
+        $matched = Parse-BrowserFlags $logged $expectedBrowserData $testLog
+        Assert-True ($matched.userDataDirectoryMatched -and $matched.logging.requested -and $matched.logging.flagsMatched -and $matched.logging.logFileMatched -and $null -eq $matched.logging.reason) 'Controlled logging flags failed'; $passed++
+        $emptyValue = Parse-BrowserFlags ($logged.Replace('--enable-logging ', '--enable-logging= ')) $expectedBrowserData $testLog
+        Assert-True ($emptyValue.logging.flagsMatched) 'Empty enable-logging value failed'; $passed++
+        $logFlagCases = @(
+            ($logged + ' --enable-logging'),
+            ($logged.Replace('--enable-logging ', '')),
+            ($logged.Replace('--enable-logging ', '--enable-logging=file ')),
+            ($logged.Replace('--enable-logging ', '--enable-logging=stderr ')),
+            ($logged + ' --v=1'),
+            ($logged.Replace('--v=1 ', '')),
+            ($logged.Replace('--v=1 ', '--v=2 ')),
+            ($logged.Replace('--v=1 ', '--v 1 ')),
+            ($logged.Replace('--v=1 ', '--v="1"suffix ')),
+            ($logged.Replace('--log-file="' + $testLog + '"', '--log-file="' + $testLog + '"suffix')),
+            ($logged + ' --log-file="' + $testLog + '"'),
+            ($logged.Replace('--log-file="' + $testLog + '"', '')),
+            ($logged.Replace($testLog, 'C:\other\chromium-diagnostics.log')),
+            ($logged.Replace($testLog, '\\?\' + $testLog))
+        )
+        foreach ($badLogFlags in $logFlagCases) {
+            $result = Parse-BrowserFlags $badLogFlags $expectedBrowserData $testLog
+            Assert-True ($result.userDataDirectoryMatched -and $result.logging.requested -and !$result.logging.flagsMatched -and $null -ne $result.logging.reason) 'Unsafe logging flags were accepted or changed the original three flags'; $passed++
+        }
+        $badLogInputs = @(
+            'chromium-diagnostics.log',
+            ('\\?\' + $testLog),
+            'C:\rf312\temp\other.log',
+            '\\server\share\chromium-diagnostics.log',
+            '   ',
+            'C:\rf312\"temp"\chromium-diagnostics.log',
+            ("C:\rf312\temp" + [char]10 + "\chromium-diagnostics.log"),
+            ('C:\rf312\temp\' + [char]0 + 'chromium-diagnostics.log')
+        )
+        foreach ($badLogInput in $badLogInputs) {
+            $rejected = $false
+            try { $null = Parse-LogFileInput $badLogInput } catch { $rejected = $true }
+            Assert-True $rejected 'Unsafe diagnostics log environment input was accepted'; $passed++
+        }
         Write-Result @{schemaVersion=1; scope=$diagnosticScope; mode=$diagnosticMode; success=$true; reason=$null; compiled=$true; powerShellVersion=$PSVersionTable.PSVersion.ToString(); clrVersion=[Environment]::Version.ToString(); assertionsPassed=$passed; processes=@(); listeners=@(); liveQueriesPerformed=$false} 0
     }
 
@@ -316,7 +406,7 @@ try {
             $version.productVersion = $info.ProductVersion
         } catch { $version.reason = 'Owned executable file version unavailable' }
         $role = if ([int]$expected.pid -eq $rootOwnedPid) { 'root' } else { 'webview-child' }
-        $flags = @{port=$null; address=$null; userDataDirectoryMatched=$null; observedDirectory=$null; reason=if ($role -ceq 'root') { 'Not applicable to the host root process' } else { 'Not applicable to a WebView2 subprocess' }}
+        $flags = @{port=$null; address=$null; userDataDirectoryMatched=$null; observedDirectory=$null; reason=if ($role -ceq 'root') { 'Not applicable to the host root process' } else { 'Not applicable to a WebView2 subprocess' }; logging=(New-LoggingStatus $expectedLog 'Logging flags do not apply to this host or WebView2 subprocess')}
         if ([IO.Path]::GetFileName([string]$expected.executablePath) -ieq 'msedgewebview2.exe') {
             $details = Get-CimInstance Win32_Process -Filter ('ProcessId = ' + [int]$expected.pid) -Property ProcessId,ParentProcessId,CreationDate,ExecutablePath,CommandLine -ErrorAction Stop
             Assert-True (Match-Identity $details $expected) 'Owned browser identity changed before flags'
@@ -324,7 +414,7 @@ try {
             if ($command -notmatch '(?:^|\s)--type(?:=|\s|$)') {
                 $role = 'browser'
                 $mainBrowserIds += [int]$expected.pid
-                $flags = Parse-BrowserFlags $command $expectedBrowserData
+                $flags = Parse-BrowserFlags $command $expectedBrowserData $expectedLog
             }
             $command = $null
             $details = $null

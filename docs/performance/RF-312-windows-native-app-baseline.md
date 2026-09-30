@@ -94,3 +94,19 @@ node --test scripts/native-perf-diagnose.test.mjs
 两次隔离运行均清理9条已记录进程身份，收尾18条 PID/创建时间核验均已不存在；每次100对象源的7个文件 SHA 前后相同，3张既有 NSIS 图片 SHA 保持。[完整现场与离线因果证据](rf312-windows-cdp-diagnostics-2026-09-30.json)保留首次失败、第二次成功诊断及脚本 SHA。新增11项 Node 边界测试与既有runner24项、observer9项通过；PS5.1 helper 编译及16项合成断言通过，空身份拒绝 exit1且未进入 live 查询。
 
 诊断 exit0 只表示记录完整、源未变和清理完成。仍需受控 Runtime 对照或原生 Chromium 日志定位无监听，再取得成功 CDP/真实 UI 行程；不修改本机默认 Runtime 或 Registry。RF-312保持待验证，其他缺失范围沿用上节。
+
+## 显式 Chromium 日志实验（2026-09-30）
+
+诊断脚本新增可选 `--chromium-log`，只向原生 run 入口传递严格的 `--native-perf-diagnostics chromium-log`。普通诊断和 benchmark 的原有 browser 参数保持，prepare 不接受该选项；日志仅用新建 owned temp 下固定文件名，保留原生 TEMP/TMP 的 canonical 表示。启用后发布绑定 runId/PID/端口的独立标记，benchmark 遇到标记即拒绝接纳，避免日志开销混入性能样本。
+
+```powershell
+node scripts/native-perf-diagnose.mjs --exe (Join-Path $sampleParent 'bin/solo_soul.exe') --fixture (Join-Path $fixtureParent 'vault100') --output (Join-Path $sampleParent 'cdp-chromium-log') --chromium-log
+```
+
+使用 [Microsoft WebView2 flags](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/webview-features-flags) 和 [Chromium 日志说明](https://www.chromium.org/for-testers/enable-logging/) 所述的 `--enable-logging --v=1 --log-file="<owned absolute path>"`；Release 的空值 enable-logging 选择文件目标，见 [Chromium 实现](https://chromium.googlesource.com/chromium/src/+/lkgr/chrome/common/logging_chrome.cc)。helper 子进程环境先移除继承的诊断变量，未请求日志时完全省略 LOG_FILE，再使用已验证的普通 TEMP 表示，保留 PS5.1/.NET 的无日志兼容路径。
+
+实际 Release 构建通过（Cargo 12m43s，beforeBuild TypeScript/Vite 通过，Vite 6.84s）；新增入口检查后 Rust 9 passed，Node observer/runner/diagnose 合计48 passed，PS5.1 离线41条断言及默认无日志环境互操作通过；fmt 与 native all-target Clippy -D warnings 通过。Release EXE SHA 为 `292B1FF4D932CC0108B849763F605BE911E219DC277BC2B690BE12AEE4AFA2F1`，沿用95项同 SHA 公开资源，不重写用户 NSIS 图片。
+
+100对象单轮实测中3次现场查询均完整，实际 browser 三个日志参数精确匹配；生成2,229字节 owned 普通文件，SHA 为 `6162085e244b8181007b48925da8dd1d6ea9a37709197f3869b580a990ad6a6c`。3次 TCP 查询仍无 owned 监听，没有发送 HTTP/CDP 或密码/UI操作，performanceMetrics 为 null。10个清理记录 PID 收尾只读 CIM 查询均已不存在，公开源7文件和3张用户 NSIS 图片 SHA 保持。[完整日志、原始现场记录与验证证据](rf312-windows-chromium-log-2026-09-30.json)保留失败前置与本轮结果。
+
+日志确认 `connect-src 'self'` 拦截 `http://ipc.localhost/set_titlebar_color`，随后 Tauri 切换 postMessage；这是需要另项修复的生产 CSP 配置问题，也使现有 IPC observer 无法接纳完整次数。它不证明 CDP 无监听的原因。日志末尾 Network/GPU 退出发生在末次观察之后的主动 owned 清理中，不能据此认定产品启动崩溃。RF-312仍缺成功 CDP/六阶段 UI、5000对象 GUI、OCR/预览、系统睡眠/同 profile 热启动、多端与内存峰值证据，保持待验证。

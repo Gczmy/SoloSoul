@@ -20,6 +20,8 @@ pub const OBSERVER_SCRIPT: &str = include_str!("native_perf/observer.js");
 const OWNED_FILE: &str = "native-perf-owned.json";
 const READY_FILE: &str = "native-perf-ready.json";
 const CONSUMED_FILE: &str = "native-perf-consumed.json";
+const CHROMIUM_LOG_MARKER: &str = "native-perf-chromium-log.json";
+const CHROMIUM_LOG_NAME: &str = "chromium-diagnostics.log";
 const IDENTIFIER_PREFIX: &str = "com.solosoul.rf312perf.";
 const CHILD_DIRS: &[&str] = &[
     "app-data",
@@ -43,8 +45,76 @@ pub struct RuntimeConfig {
     pub webview: PathBuf,
     pub port: u16,
     pub run_id: String,
+    pub chromium_log: Option<PathBuf>,
 }
 
+impl RuntimeConfig {
+    fn remote_arguments(&self) -> String {
+        let mut args = format!(
+            "--remote-debugging-port={} --remote-debugging-address=127.0.0.1",
+            self.port
+        );
+        if let Some(log) = &self.chromium_log {
+            args.push_str(&format!(
+                " --enable-logging --v=1 --log-file=\"{}\"",
+                log.display()
+            ));
+        }
+        args
+    }
+
+    pub fn browser_arguments(&self) -> String {
+        format!(
+            "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection {}",
+            self.remote_arguments()
+        )
+    }
+
+    fn enable_chromium_diagnostics(&mut self) -> Result<(), String> {
+        let expected_temp = self.root.join("temp");
+        let actual_temp = checked_dir(&expected_temp)?;
+        if actual_temp != expected_temp {
+            return Err(
+                "Chromium diagnostic TEMP must be the exact owned canonical directory".into(),
+            );
+        }
+        let text = actual_temp
+            .to_str()
+            .ok_or("Chromium diagnostic TEMP requires Unicode")?;
+        // 日志参数使用等价普通本地绝对路径；不更改原生进程 TEMP/TMP。
+        let ordinary_temp = PathBuf::from(text.strip_prefix(r"\\?\").unwrap_or(text));
+        if !matches!(ordinary_temp.components().next(), Some(std::path::Component::Prefix(prefix)) if matches!(prefix.kind(), std::path::Prefix::Disk(_)))
+            || checked_dir(&ordinary_temp)? != actual_temp
+        {
+            return Err(
+                "Chromium diagnostic log requires an equivalent ordinary local drive path".into(),
+            );
+        }
+        let log = ordinary_temp.join(CHROMIUM_LOG_NAME);
+        let file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&log)
+            .map_err(|e| format!("cannot exclusively claim Chromium diagnostic log: {e}"))?;
+        file.sync_all().map_err(|e| e.to_string())?;
+        drop(file);
+        require_regular(&log, false)?;
+        if log.canonicalize().map_err(|e| e.to_string())? != expected_temp.join(CHROMIUM_LOG_NAME) {
+            return Err("Chromium diagnostic log resolved outside the exact owned path".into());
+        }
+        write_new_json(
+            &self.root.join(CHROMIUM_LOG_MARKER),
+            &json!({
+                "schemaVersion": 1, "scope": "windows-native-perf-chromium-log",
+                "root": self.root, "runId": self.run_id, "pid": std::process::id(),
+                "port": self.port, "mode": "chromium-log", "logFile": log,
+                "nativeTempUnchanged": true, "performanceSample": false,
+            }),
+        )?;
+        self.chromium_log = Some(log);
+        Ok(())
+    }
+}
 #[derive(Debug)]
 struct KnownFolders {
     roaming: PathBuf,
@@ -62,8 +132,15 @@ impl KnownFolders {
 
 #[derive(Debug)]
 enum Mode {
-    Prepare { root: PathBuf, fixture: PathBuf },
-    Run { root: PathBuf, port: u16 },
+    Prepare {
+        root: PathBuf,
+        fixture: PathBuf,
+    },
+    Run {
+        root: PathBuf,
+        port: u16,
+        chromium_log: bool,
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -117,11 +194,19 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
         return Err("native-perf refuses inherited PDFIUM_LIBRARY_PATH".into());
     }
     let mode = parse_args(&std::env::args_os().skip(1).collect::<Vec<_>>())?;
-    let Mode::Run { root, port } = mode else {
+    let Mode::Run {
+        root,
+        port,
+        chromium_log,
+    } = mode
+    else {
         return Err("prepare mode must exit before configuring a GUI runtime".into());
     };
     let folders = KnownFolders::resolve()?;
-    let config = consume(&root, port, &folders)?;
+    let mut config = consume(&root, port, &folders)?;
+    if chromium_log {
+        config.enable_chromium_diagnostics()?;
+    }
     // 仅修改此新进程的环境，不修改系统环境或 Registry。路径均已完成预检。
     std::env::set_var("SOLOSOUL_DATA_DIR", &config.vault);
     std::env::set_var("USERPROFILE", config.root.join("profile"));
@@ -130,10 +215,7 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
     std::env::set_var("WEBVIEW2_USER_DATA_FOLDER", &config.webview);
     std::env::set_var(
         "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
-        format!(
-            "--remote-debugging-port={} --remote-debugging-address=127.0.0.1",
-            config.port
-        ),
+        config.remote_arguments(),
     );
     std::env::set_var("TEMP", config.root.join("temp"));
     std::env::set_var("TMP", config.root.join("temp"));
@@ -174,6 +256,7 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
     let mut run_root = None;
     let mut input_fixture = None;
     let mut port = None;
+    let mut chromium_log = false;
     let mut index = 0;
     while index < args.len() {
         let flag = args[index]
@@ -200,13 +283,16 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
                         .ok_or("native-perf port must be an integer between 1024 and 65535")?,
                 );
             }
+            "--native-perf-diagnostics" if !chromium_log && value == "chromium-log" => {
+                chromium_log = true;
+            }
             _ => return Err(format!("unknown or duplicate native-perf option: {flag}")),
         }
         index += 2;
     }
-    match (prepare_root, input_fixture, run_root, port) {
-        (Some(root), Some(fixture), None, None) => Ok(Mode::Prepare { root, fixture }),
-        (None, None, Some(root), Some(port)) => Ok(Mode::Run { root, port }),
+    match (prepare_root, input_fixture, run_root, port, chromium_log) {
+        (Some(root), Some(fixture), None, None, false) => Ok(Mode::Prepare { root, fixture }),
+        (None, None, Some(root), Some(port), chromium_log) => Ok(Mode::Run { root, port, chromium_log }),
         _ => Err("use --native-perf-prepare <new-root> --fixture <fixture> or --native-perf-root <prepared-root> --native-perf-port <port>; no defaults".into()),
     }
 }
@@ -391,6 +477,7 @@ fn consume(root: &Path, port: u16, folders: &KnownFolders) -> Result<RuntimeConf
         webview: manifest.webview,
         port,
         run_id: manifest.run_id,
+        chromium_log: None,
     })
 }
 

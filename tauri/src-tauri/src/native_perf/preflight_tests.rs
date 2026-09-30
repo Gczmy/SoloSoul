@@ -255,3 +255,132 @@ fn native_perf_records_canonical_claims_for_logical_known_folder_paths() {
     )
     .unwrap();
 }
+
+#[test]
+fn native_perf_chromium_logging_requires_explicit_run_mode() {
+    for bad in [
+        args(&[
+            "--native-perf-prepare",
+            "C:/new",
+            "--fixture",
+            "C:/source",
+            "--native-perf-diagnostics",
+            "chromium-log",
+        ]),
+        args(&[
+            "--native-perf-root",
+            "C:/new",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-diagnostics",
+            "arbitrary-args",
+        ]),
+        args(&[
+            "--native-perf-root",
+            "C:/new",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-diagnostics",
+            "chromium-log",
+            "--native-perf-diagnostics",
+            "chromium-log",
+        ]),
+    ] {
+        assert!(parse_args(&bad).is_err());
+    }
+    assert!(matches!(
+        parse_args(&args(&[
+            "--native-perf-root",
+            "C:/new",
+            "--native-perf-port",
+            "9222"
+        ])),
+        Ok(Mode::Run {
+            chromium_log: false,
+            ..
+        })
+    ));
+    assert!(matches!(
+        parse_args(&args(&[
+            "--native-perf-root",
+            "C:/new",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-diagnostics",
+            "chromium-log"
+        ])),
+        Ok(Mode::Run {
+            chromium_log: true,
+            ..
+        })
+    ));
+}
+
+#[test]
+fn native_perf_chromium_log_is_opt_in_owned_new_and_never_reused() {
+    let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+    let work = tempfile::tempdir().unwrap();
+    let source = source(work.path());
+    let folders = folders(work.path());
+    let output = work.path().join("diagnostic-run");
+    prepare(&output, &source, &folders).unwrap();
+    let mut config = consume(&output, free_port(), &folders).unwrap();
+    let expected = format!("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --remote-debugging-port={} --remote-debugging-address=127.0.0.1", config.port);
+    assert_eq!(config.browser_arguments(), expected);
+    assert!(!config.root.join(CHROMIUM_LOG_MARKER).exists());
+    config.enable_chromium_diagnostics().unwrap();
+    let log = config.chromium_log.clone().unwrap();
+    assert!(!log.to_string_lossy().starts_with(r"\\?\"));
+    assert_eq!(
+        log.canonicalize().unwrap(),
+        config.root.join("temp").join(CHROMIUM_LOG_NAME)
+    );
+    assert_eq!(fs::metadata(&log).unwrap().len(), 0);
+    assert_eq!(
+        config.browser_arguments(),
+        format!(
+            "{expected} --enable-logging --v=1 --log-file=\"{}\"",
+            log.display()
+        )
+    );
+    let marker = read_json(&config.root.join(CHROMIUM_LOG_MARKER)).unwrap();
+    assert_eq!(marker["scope"], "windows-native-perf-chromium-log");
+    assert_eq!(marker["runId"], config.run_id);
+    assert_eq!(marker["performanceSample"], false);
+    assert_eq!(marker["nativeTempUnchanged"], true);
+    fs::write(&log, b"preserve diagnostic bytes").unwrap();
+    assert!(config.enable_chromium_diagnostics().is_err());
+    assert_eq!(fs::read(&log).unwrap(), b"preserve diagnostic bytes");
+}
+
+#[test]
+fn native_perf_chromium_log_rejects_preexisting_file_and_redirected_temp() {
+    let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+    let work = tempfile::tempdir().unwrap();
+    let source = source(work.path());
+    let folders = folders(work.path());
+    for linked in [false, true] {
+        let output = work.path().join(if linked {
+            "linked-temp-run"
+        } else {
+            "existing-log-run"
+        });
+        prepare(&output, &source, &folders).unwrap();
+        let mut config = consume(&output, free_port(), &folders).unwrap();
+        if linked {
+            let outside = work.path().join("outside-temp");
+            fs::create_dir(&outside).unwrap();
+            fs::remove_dir(config.root.join("temp")).unwrap(); // 仅空的自有测试目录。
+            junction(&config.root.join("temp"), &outside);
+            assert!(config.enable_chromium_diagnostics().is_err());
+            assert!(!outside.join(CHROMIUM_LOG_NAME).exists());
+        } else {
+            let sentinel = config.root.join("temp").join(CHROMIUM_LOG_NAME);
+            fs::write(&sentinel, b"preserve original log").unwrap();
+            assert!(config.enable_chromium_diagnostics().is_err());
+            assert_eq!(fs::read(sentinel).unwrap(), b"preserve original log");
+        }
+        assert!(config.chromium_log.is_none());
+        assert!(!config.root.join(CHROMIUM_LOG_MARKER).exists());
+    }
+}

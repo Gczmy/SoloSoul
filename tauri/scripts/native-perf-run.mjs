@@ -696,6 +696,17 @@ export async function newJson(file, value) {
   await writeFile(file, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
 }
 
+export async function rejectDiagnosticBenchmark(root) {
+  try {
+    await lstat(path.join(root, 'native-perf-chromium-log.json'));
+  } catch (error) {
+    if (error.code === 'ENOENT') return;
+    throw error;
+  }
+  throw new Error(
+    'Chromium logging run is diagnostic only and cannot be used as a performance sample',
+  );
+}
 export function preparedManifest(value, sampleRoot, fixture, fixtureSource) {
   if (
     value?.scope !== 'windows-native-perf-owned' ||
@@ -970,6 +981,7 @@ async function runSample(options, chromium, index) {
       connectedAfterSpawnMs: performance.now() - spawnAt,
       transport: 'real-WebView2-CDP',
     };
+    await rejectDiagnosticBenchmark(sampleRoot);
     const initialObserver = await getObserver(page, prepared.runId);
     const initialTimeOrigin = await page.evaluate(() => performance.timeOrigin);
     if (!initialObserver.identityMatched || initialObserver.timeOriginMs !== initialTimeOrigin)
