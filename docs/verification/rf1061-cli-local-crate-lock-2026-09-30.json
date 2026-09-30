@@ -1,0 +1,221 @@
+{
+  "task": "RF-1061",
+  "date": "2026-09-30",
+  "baseline": "2c4b3b539406464452541dc5516a6b6e58385a9e",
+  "lockDiff": {
+    "task": "RF-1061",
+    "packageCount": 667,
+    "changes": [
+      {
+        "name": "solosoul-core",
+        "before": "2.13.1",
+        "after": "2.13.2"
+      },
+      {
+        "name": "solosoul-crypto",
+        "before": "2.13.1",
+        "after": "2.13.2"
+      },
+      {
+        "name": "solosoul-plugin",
+        "before": "2.13.1",
+        "after": "2.13.2"
+      },
+      {
+        "name": "solosoul-sync",
+        "before": "2.13.1",
+        "after": "2.13.2"
+      },
+      {
+        "name": "solosoul-vault",
+        "before": "2.13.1",
+        "after": "2.13.2"
+      }
+    ],
+    "originalSha256": "d73da02d658be4e2ad584e01af2b655a3648dfd65bc563492c0e5f126e623692",
+    "currentSha256": "22471a02bc24517dbf100732902287e5908a520c5c0e747b62f83d10cb30b71d",
+    "registryPackagesOrDependencyEdgesChanged": false,
+    "allPlatformMetadataAttempt": {
+      "command": [
+        "cargo",
+        "metadata",
+        "--locked",
+        "--offline",
+        "--format-version",
+        "1"
+      ],
+      "exitCode": 101,
+      "reason": "所有平台metadata需要本机未缓存的addr2line v0.25.1；未下载或升级。",
+      "stderrLog": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1061-20260930\\metadata.stderr.log",
+      "stderrSha256": "f4920c33c00dff5721c364357ba2a782070b57143676db5ce179b762bdb03ed5"
+    },
+    "metadataCheckRecorderCorrections": "最初Windows metadata本身exit0；外围断言误将solosoul-cli也计作共享crate，记录脚本修正明确五个名称后复验。锁文件结构检查读取workspace继承版本以Cargo实际metadata为准。"
+  },
+  "metadata": {
+    "command": [
+      "cargo",
+      "metadata",
+      "--locked",
+      "--offline",
+      "--filter-platform",
+      "x86_64-pc-windows-msvc",
+      "--format-version",
+      "1"
+    ],
+    "exitCode": 0,
+    "elapsedSeconds": 0.95,
+    "lockSha256": "22471a02bc24517dbf100732902287e5908a520c5c0e747b62f83d10cb30b71d",
+    "lockUnchanged": true,
+    "localPackages": [
+      {
+        "name": "solosoul-core",
+        "version": "2.13.2",
+        "source": null,
+        "manifest_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-core\\Cargo.toml"
+      },
+      {
+        "name": "solosoul-crypto",
+        "version": "2.13.2",
+        "source": null,
+        "manifest_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-crypto\\Cargo.toml"
+      },
+      {
+        "name": "solosoul-plugin",
+        "version": "2.13.2",
+        "source": null,
+        "manifest_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-plugin\\Cargo.toml"
+      },
+      {
+        "name": "solosoul-sync",
+        "version": "2.13.2",
+        "source": null,
+        "manifest_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-sync\\Cargo.toml"
+      },
+      {
+        "name": "solosoul-vault",
+        "version": "2.13.2",
+        "source": null,
+        "manifest_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-vault\\Cargo.toml"
+      }
+    ],
+    "metadataSha256": "ce5dc9edc4f48eea90057cbc7e2a8cfa88eb671663cb802b30740363dd8c7037",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "cliChecks": [
+    {
+      "check": "cli-fmt",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "fmt",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.84,
+      "results": [],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1064-20260930\\cli-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "check": "cli-clippy",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "clippy",
+        "-j",
+        "1",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 41.96,
+      "results": [],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1064-20260930\\cli-clippy.log",
+      "sha256": "6d65c413df1bb4c233d19c6941bbb5453f8084e257eeee7a901c62562c2af879"
+    },
+    {
+      "check": "backup-target",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "test",
+        "--lib",
+        "commands::backup::tests::test_backup_create_aborts_on_unreadable_profile",
+        "--",
+        "--exact",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 62.38,
+      "results": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 276 filtered out; finished in 0.74s"
+      ],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1064-20260930\\backup-target.log",
+      "sha256": "bc0a8430dedc59d18014153411e2d7297bb60691c7d960f0a0fcb49af8fc9ce8"
+    },
+    {
+      "check": "cli-full",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "-j",
+        "1",
+        "--no-fail-fast"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 292.8,
+      "results": [
+        "test result: ok. 277 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 213.67s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.36s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1064-20260930\\cli-full.log",
+      "sha256": "dc8a7c9943ae8fe038dd6b07521c95ee67555254e1da6cb243744de5cc37bd0c"
+    }
+  ],
+  "sameSourceManifest": {
+    "solosoul_cli/src/app.rs": "a37fc6e0b52aade8270d1d6aa39d0a69bca944778f22f40f25d89de8539ade7a",
+    "solosoul_cli/src/app/rf016_tests.rs": "d6748925282db5c789113958a0e840a00a04efb1b73864673279d034702a4657",
+    "solosoul_cli/src/commands/attachment.rs": "0c38a0fc260722dd8856c164e6b67213595f51db1be2ff3aa54d4b19f6ed6611",
+    "solosoul_cli/src/commands/attachment/rf016_tests.rs": "aba7782a2bfb63b4618df1aa969c7f8e9f840b4cfd7e973624bf35b5fda5dc47",
+    "tauri/crates/solosoul-core/src/attachment_cleanup.rs": "79aea41b0f5b2b68c2d896e356255cb8486ffd5222671e1585cb07f168d919a5",
+    "tauri/crates/solosoul-core/src/lib.rs": "9f9b9bd41e7ec7099083fa66e9f59514f0024186f1c7217b92bb1d0e0fa26773",
+    "tauri/crates/solosoul-core/src/objects.rs": "ffbd51d08e90af12c5329dc52bb22f6ea18cf1acb65161c4f430a26d130fc133",
+    "tauri/crates/solosoul-vault/src/lib.rs": "03bacf2e93c256ef9d7fb62fb726a8571a9d5c5ebacbf7b08fff891208b25378",
+    "tauri/crates/solosoul-vault/src/migration.rs": "2e047a03b0c9576b43e16d01f224f22e6eab8a5a7a90408c9dd87b0d723dacd8",
+    "tauri/crates/solosoul-vault/src/storage.rs": "b1d7d7e2a65d334daf26f4aee5f6500eb306684cce57543e468bf28ad211fb1c",
+    "tauri/crates/solosoul-vault/src/storage/attachment_cleanup.rs": "ca98a81a36e37787d0a2590e299c9ad5d4683ab71fcdd23169bf5a2d165c877c",
+    "tauri/crates/solosoul-vault/src/storage/attachment_cleanup/tests.rs": "7998a34e821094af724b8f44e54b0827cc2dda6c3c1ea61ada2627cb8afc5034",
+    "tauri/src-tauri/src/commands/attachment/crud.rs": "7161da188a49aec9feddebf9cc1d0a136309d37c4c6b57b54c73b53c5b5b9820",
+    "tauri/src-tauri/src/commands/attachment/tests.rs": "0ee0e86422aa0b0909cc8a96c1360efc25d215c602ca05283854a5c950224e57",
+    "tauri/src-tauri/src/commands/attachment/tests/rf016.rs": "9fbe8d8b034bbc6208f2ac65f1a1267e2338146088a754a3cb713b7ff87d17f3",
+    "tauri/src-tauri/src/commands/object/trash.rs": "7cb8aba00d1683acc490bd97d5613e915dc955e26de93f8820e5f7528794b2dd",
+    "tauri/src-tauri/src/sync/cloud_auto_sync/tests/rf014.rs": "9dd4ed32fe57b273d9749640d10b338e52a8b82b44271a69a75251462dc72d67",
+    "tauri/crates/solosoul-plugin/src/manager.rs": "0f8c52d63ac36e72a021210db977c9e0336374d0790ec7f193bfa2adcece73e5",
+    "solosoul_cli/src/commands/backup.rs": "124a78d819ccb011e02ec9521a52af4432f47826333f6d0e49e4d0abed5e81c3",
+    "solosoul_cli/Cargo.lock": "22471a02bc24517dbf100732902287e5908a520c5c0e747b62f83d10cb30b71d"
+  },
+  "bounds": [
+    "仅五个本地path package版本2.13.1到2.13.2，667包、registry版本、依赖边不变。",
+    "Windows实际目标的locked/offline metadata和真实CLI fmt/all-targets Clippy/full tests通过。所有平台offline metadata失败记录保留；未宣称其他平台构建通过。",
+    "CLI完整277单元+2集成，0失败，1既有ignored文档测试；复用RF1064同源码检查，未改业务或升级依赖。"
+  ]
+}
