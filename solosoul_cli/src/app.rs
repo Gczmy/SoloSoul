@@ -519,6 +519,7 @@ impl App {
     fn enter_home(&mut self, account_id: impl AsRef<str>) {
         let account_id = account_id.as_ref().to_string();
         self.account_name = self.lookup_account_name(&account_id);
+        commands::attachment::retry_pending_cleanup(self, &account_id);
         // 登录前开始的旧插件目录消息也不能覆盖新会话。
         self.plugin_run_pending = None;
         self.selected_shortcut = 0;
@@ -4303,3 +4304,6 @@ mod tests {
 
 #[cfg(test)]
 mod rf211_tests;
+
+#[cfg(test)]
+mod rf016_tests;

@@ -172,6 +172,7 @@ attachment-renamed = Renamed to: {$name}
 attachment-deleted = Attachment deleted: {$id}
 attachment-restored = Attachment restored: {$id}
 attachment-purged = Attachment permanently deleted: {$id}
+attachment-cleanup-pending = Attachment records were deleted; {$count} file cleanups are pending. Unlock again to retry automatically.
 attachment-soft-delete-prompt = Soft delete attachment '{$id}'? It can be restored from trash.
 attachment-purge-prompt = Permanently delete attachment '{$id}'? This cannot be undone.
 

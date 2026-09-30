@@ -12,6 +12,11 @@ vi.mock('@/lib/ipcClient', () => ({ invokeCommand: mocks.invoke }));
 vi.mock('@/lib/platform', () => ({ isMobilePlatformSync: () => false }));
 vi.mock('@/lib/dialog', () => ({ openWithPause: mocks.openWithPause }));
 vi.mock('@/lib/logger', () => ({ logger: { warn: vi.fn() } }));
+vi.mock('@/lib/backendError', () => ({
+  isAttachmentCleanupPending: (error: unknown) =>
+    (error instanceof Error ? error.message : String(error)) === 'attachment_cleanup_pending',
+  resolveBackendErrorMessage: () => 'Attachment records deleted; file cleanup pending',
+}));
 vi.mock('@/stores/uiStore', () => ({
   useUiStore: (selector: (state: { showToast: typeof mocks.showToast }) => unknown) =>
     selector({ showToast: mocks.showToast }),
@@ -52,10 +57,16 @@ describe('RF-1017 attachment batch retry', () => {
       await act(async () => {
         await result.current[handler]();
       });
-      expect(mocks.invoke).toHaveBeenCalledWith(command, {
-        objectId: 'object-a',
-        attachmentIds: ['attachment-1'],
-      });
+      expect(mocks.invoke.mock.calls[0]?.slice(0, 2)).toEqual([
+        command,
+        {
+          objectId: 'object-a',
+          attachmentIds: ['attachment-1'],
+        },
+      ]);
+      if (command === 'attachment_batch_delete') {
+        expect(mocks.invoke.mock.calls[0]?.[2]).toEqual({ requestIsCurrent: expect.any(Function) });
+      }
       expect(result.current.selectedIds).toEqual(new Set([key]));
       expect(loadAttachments).not.toHaveBeenCalled();
       expect(onCountChange).not.toHaveBeenCalled();
@@ -135,5 +146,35 @@ describe('RF-1018 attachment batch download retry', () => {
     });
     expect(result.current.selectedIds).toEqual(new Set());
     expect(mocks.showToast).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'success' }));
+  });
+});
+
+describe('RF-016 accepted batch deletion', () => {
+  it('refreshes removed metadata and warns about pending files without claiming completion', async () => {
+    const loadAttachments = vi.fn().mockResolvedValue(undefined);
+    const onCountChange = vi.fn();
+    const key = 'object-a::attachment-1';
+    const { result } = renderHook(() =>
+      useAttachmentBatchOps({
+        objectId: 'object-a',
+        allVisibleKeys: [key],
+        displayItems: [],
+        loadAttachments,
+        onCountChange,
+      }),
+    );
+    act(() => result.current.toggleSelect(key));
+    mocks.invoke.mockRejectedValueOnce('attachment_cleanup_pending');
+    await act(async () => {
+      await result.current.handleBatchPermanentDelete();
+    });
+    expect(result.current.selectedIds).toEqual(new Set());
+    expect(loadAttachments).toHaveBeenCalledOnce();
+    expect(onCountChange).toHaveBeenCalledOnce();
+    expect(mocks.showToast).toHaveBeenCalledOnce();
+    expect(mocks.showToast).toHaveBeenCalledWith({
+      type: 'warning',
+      message: 'Attachment records deleted; file cleanup pending',
+    });
   });
 });

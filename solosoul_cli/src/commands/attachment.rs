@@ -287,6 +287,15 @@ fn purge(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
         }
     };
 
+    let (account_id, _) = require_unlocked_with_vault(app)?;
+    let session = match app.vault_service.capture_session(&account_id) {
+        Ok(session) => session,
+        Err(error) => {
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error));
+            return Ok(());
+        }
+    };
+
     crate::widgets::prompt::open(
         app,
         crate::widgets::prompt::PromptSpec::Confirm {
@@ -295,28 +304,39 @@ fn purge(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
         },
         Box::new(move |app, result| {
             if let crate::widgets::prompt::PromptResult::Confirm(true) = result {
-                let (_account_id, vault) = match require_unlocked_with_vault(app) {
-                    Ok(v) => v,
-                    Err(_) => return,
-                };
-                let base = app.vault_service.base_path().to_path_buf();
-                // 需要 account_id 但已通过 require_unlocked_with_vault 获取，从 vault service 重取
-                let account_id = match app.vault_service.get_current_account() {
-                    Some(id) => id,
-                    None => return,
-                };
-                match objects::purge_attachment(
-                    &vault,
-                    &account_id,
-                    &object_id,
-                    &attachment_id,
-                    &base,
-                ) {
-                    Ok(()) => {
-                        app.success_message = Some((
-                            t!(app.i18n, "attachment-purged", id = attachment_id),
-                            Instant::now(),
-                        ))
+                // CLI 保留原永久删除拒绝软删 owner 的行为。
+                let active = app.vault_service.with_session(&session, |vault| {
+                    let record = vault.load_object(&object_id)?.ok_or("对象不存在")?;
+                    if record.account_id != session.account_id() || record.is_deleted {
+                        return Err("对象不存在或已被删除".to_string());
+                    }
+                    Ok(())
+                });
+                let deletion = active.and_then(|_| {
+                    solosoul_core::attachment_cleanup::purge_attachments_for_session(
+                        &app.vault_service,
+                        &session,
+                        &object_id,
+                        std::slice::from_ref(&attachment_id),
+                    )
+                });
+                match deletion {
+                    Ok(report) => {
+                        refresh_attachment_view(app, &session, &object_id);
+                        app.success_message = None;
+                        app.error_message = None;
+                        if report.pending > 0 {
+                            app.error_message = Some(t!(
+                                app.i18n,
+                                "attachment-cleanup-pending",
+                                count = report.pending.to_string()
+                            ));
+                        } else {
+                            app.success_message = Some((
+                                t!(app.i18n, "attachment-purged", id = attachment_id),
+                                Instant::now(),
+                            ));
+                        }
                     }
                     Err(e) => {
                         app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e))
@@ -332,7 +352,35 @@ fn cleanup(app: &mut App) -> Result<()> {
     let (account_id, vault) = require_unlocked_with_vault(app)?;
     let base = app.vault_service.base_path().to_path_buf();
 
-    match objects::cleanup_orphan_attachments(&vault, &account_id, &base) {
+    let session = match app.vault_service.capture_session(&account_id) {
+        Ok(session) => session,
+        Err(error) => {
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error));
+            return Ok(());
+        }
+    };
+    match solosoul_core::attachment_cleanup::retry_attachment_cleanup_for_session(
+        &app.vault_service,
+        &session,
+    ) {
+        Ok(report) if report.pending > 0 => {
+            // 未完成意图不得再交给宽松孤儿扫描；保留其引用/路径保护和重试状态。
+            app.error_message = Some(t!(
+                app.i18n,
+                "attachment-cleanup-pending",
+                count = report.pending.to_string()
+            ));
+            return Ok(());
+        }
+        Err(error) => {
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error));
+            return Ok(());
+        }
+        Ok(_) => {}
+    }
+    match app.vault_service.with_session(&session, |_| {
+        objects::cleanup_orphan_attachments(&vault, &account_id, &base)
+    }) {
         Ok((removed, freed)) => {
             app.success_message = Some((
                 t!(
@@ -350,3 +398,61 @@ fn cleanup(app: &mut App) -> Result<()> {
     }
     Ok(())
 }
+
+/// 只更新同一目标的只读缓存；旧确认不能回填新会话或其他详情页。
+fn refresh_attachment_view(app: &mut App, session: &solosoul_core::VaultSession, object_id: &str) {
+    let record = app
+        .vault_service
+        .with_session(session, |vault| vault.load_object(object_id));
+    let Ok(Some(record)) = record else {
+        return;
+    };
+    match &mut app.phase {
+        AppPhase::ObjectDetail { object } if object.id == object_id => {
+            *object = record;
+        }
+        AppPhase::AttachmentList {
+            object_id: current,
+            items,
+            show_deleted,
+            selected,
+        } if current == object_id => {
+            *items = objects::load_attachments(&record.properties)
+                .into_iter()
+                .filter(|attachment| *show_deleted || attachment.deleted_at.is_none())
+                .collect();
+            *selected = (*selected).min(items.len().saturating_sub(1));
+        }
+        _ => {}
+    }
+}
+
+/// 解锁后的维护只重试明确删除意图，不扫描附件根的其他文件。
+pub(crate) fn retry_pending_cleanup(app: &mut App, account_id: &str) {
+    let result = app
+        .vault_service
+        .capture_session(account_id)
+        .and_then(|session| {
+            solosoul_core::attachment_cleanup::retry_attachment_cleanup_for_session(
+                &app.vault_service,
+                &session,
+            )
+        });
+    match result {
+        Ok(report) if report.pending > 0 => {
+            app.error_message = Some(t!(
+                app.i18n,
+                "attachment-cleanup-pending",
+                count = report.pending.to_string()
+            ));
+        }
+        Err(_) => tracing::warn!("attachment cleanup maintenance could not complete"),
+        Ok(report) if report.completed > 0 => {
+            app.error_message = None;
+        }
+        Ok(_) => {}
+    }
+}
+
+#[cfg(test)]
+pub(crate) mod rf016_tests;

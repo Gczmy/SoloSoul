@@ -4,8 +4,10 @@
 use super::{allowed_fs_bases, path_within_base};
 use crate::commands::vault_handle;
 use crate::state::AppState;
+use solosoul_core::vault_service::{VaultService, VaultSession};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, RwLock};
 use tauri::State;
 
 /// 单个对象最多允许的活跃附件数量。
@@ -86,37 +88,70 @@ pub async fn attachment_list(
     }
 }
 
-/// Physical delete (permanent — removes metadata + deletes file from disk)
+/// 捕获后再派发阻塞 worker；旧确认/旧队列不能重新选择当前账户。
+pub(crate) async fn execute_attachment_deletion(
+    service: Arc<RwLock<VaultService>>,
+    session: VaultSession,
+    object_id: String,
+    attachment_ids: Vec<String>,
+) -> Result<solosoul_core::attachment_cleanup::CleanupReport, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let svc = service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        solosoul_core::attachment_cleanup::purge_attachments_for_session(
+            &svc,
+            &session,
+            &object_id,
+            &attachment_ids,
+        )
+    })
+    .await
+    .map_err(|_| "Attachment deletion task failed".to_string())?
+}
+
+/// Ok 表示实体清理已完成；pending 错误明确表示元数据已接受、实体待重试。
+async fn delete_attachments(
+    state: &AppState,
+    object_id: String,
+    attachment_ids: Vec<String>,
+) -> Result<(), String> {
+    let session = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let account = svc.get_current_account().ok_or("Vault not unlocked")?;
+        svc.capture_session(&account)?
+    };
+    let report = execute_attachment_deletion(
+        state.vault_service.clone(),
+        session,
+        object_id,
+        attachment_ids,
+    )
+    .await?;
+    // queue 已提交；实体失败也必须通知同步，不能把已接受的元数据当成回滚。
+    state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
+    if report.pending > 0 {
+        tracing::warn!(
+            pending = report.pending,
+            "attachment cleanup remains pending"
+        );
+        return Err("attachment_cleanup_pending".to_string());
+    }
+    Ok(())
+}
+
+/// 永久删除元数据与意图同事务，实体失败可在解锁维护中恢复。
 #[tauri::command]
 pub async fn attachment_delete(
     state: State<'_, AppState>,
     object_id: String,
     attachment_id: String,
 ) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let vault = svc
-        .get_vault_store()
-        .ok_or_else(|| "Vault not unlocked".to_string())?;
-    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
-    let atts: Vec<AttachmentMeta> = load_attachments(&record.properties)
-        .into_iter()
-        .filter(|a: &AttachmentMeta| a.id != attachment_id)
-        .collect();
-
-    // Also delete the physical file from disk — NotFound 容错（与 batch 版对齐）
-    let attachments_dir = attachment_dir(svc.base_path(), &object_id, &attachment_id)?;
-    let _ = std::fs::remove_dir_all(&attachments_dir);
-
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
-    state.auto_sync.trigger_debounce();
-    state.device_auto_sync.trigger_data_change();
-    Ok(())
+    delete_attachments(&state, object_id, vec![attachment_id]).await
 }
 
 #[tauri::command]
@@ -331,49 +366,14 @@ pub async fn attachment_batch_restore(
     Ok(())
 }
 
-/// Batch permanent-delete multiple attachments on the same object in a single transaction.
-/// Removes metadata entries AND deletes physical files from disk.
+/// 同一对象的批量元数据和意图一次事务接受，不循环单删。
 #[tauri::command]
 pub async fn attachment_batch_delete(
     state: State<'_, AppState>,
     object_id: String,
     attachment_ids: Vec<String>,
 ) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let vault = svc
-        .get_vault_store()
-        .ok_or_else(|| "Vault not unlocked".to_string())?;
-    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
-    let ids_set: std::collections::HashSet<&str> =
-        attachment_ids.iter().map(|s| s.as_str()).collect();
-
-    // Collect physical paths before removing metadata
-    let paths_to_remove: Vec<std::path::PathBuf> = load_attachments(&record.properties)
-        .iter()
-        .filter(|a| ids_set.contains(a.id.as_str()))
-        .filter_map(|a| attachment_dir(svc.base_path(), &object_id, &a.id).ok())
-        .collect();
-
-    let atts: Vec<AttachmentMeta> = load_attachments(&record.properties)
-        .into_iter()
-        .filter(|a| !ids_set.contains(a.id.as_str()))
-        .collect();
-
-    // Delete physical files
-    for dir in &paths_to_remove {
-        let _ = std::fs::remove_dir_all(dir);
-    }
-
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
-    state.auto_sync.trigger_debounce();
-    state.device_auto_sync.trigger_data_change();
-    Ok(())
+    delete_attachments(&state, object_id, attachment_ids).await
 }
 
 #[tauri::command]

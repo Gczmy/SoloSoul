@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useUiStore } from '@/stores/uiStore';
@@ -15,8 +15,9 @@ import {
   type AttachmentItem,
 } from '@/lib/attachmentUtils';
 import type { AttachmentMetaEditResult } from '@/components/attachment/AttachmentMetaEditDialog';
-import { resolveBackendErrorMessage } from '@/lib/backendError';
+import { isAttachmentCleanupPending, resolveBackendErrorMessage } from '@/lib/backendError';
 import { logger } from '@/lib/logger';
+import { createSessionRequests } from '@/lib/sessionRequests';
 
 export interface AttachmentViewerProps {
   objectId: string;
@@ -46,6 +47,21 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
  */
 export function useAttachmentViewer(props: AttachmentViewerProps) {
   const { objectId, onCountChange, zIndex = 2000 } = props;
+
+  const { requests: attachmentRequests } = useMemo(
+    () => ({ objectId, requests: createSessionRequests() }),
+    [objectId],
+  );
+  const mountedRef = useRef(false);
+  const currentObjectIdRef = useRef(objectId);
+  currentObjectIdRef.current = objectId;
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      attachmentRequests.invalidate();
+    };
+  }, [attachmentRequests]);
 
   const [items, setItems] = useState<AttachmentItem[]>([]);
   const [trashItems, setTrashItems] = useState<AttachmentItem[]>([]);
@@ -91,27 +107,40 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
 
   const loadAttachments = useCallback(
     async (options?: { reportErrors?: boolean }) => {
+      // 先拒绝旧对象闭包，避免使当前列表请求失效。
+      if (!mountedRef.current || currentObjectIdRef.current !== objectId) return;
+      const request = attachmentRequests.begin('list');
+      const isCurrent = () =>
+        mountedRef.current && currentObjectIdRef.current === objectId && request.isCurrent();
       setLoading(true);
       try {
         const lists = Promise.all([
-          invoke<AttachmentItem[]>('attachment_list', { objectId: objectId, showDeleted: false }),
-          invoke<AttachmentItem[]>('attachment_list', { objectId: objectId, showDeleted: true }),
+          request.invoke<AttachmentItem[]>('attachment_list', {
+            objectId: objectId,
+            showDeleted: false,
+          }),
+          request.invoke<AttachmentItem[]>('attachment_list', {
+            objectId: objectId,
+            showDeleted: true,
+          }),
         ]);
         // 上传后刷新需在实际等待处超时，及时复位 loading，且不接收这次请求的迟到结果。
         const [active, deleted] = await (options?.reportErrors
           ? withTimeout(lists, REFRESH_TIMEOUT_MS, 'refresh')
           : lists);
+        if (!isCurrent()) return;
         setItems(active);
         setTrashItems(deleted);
       } catch (e) {
+        if (!isCurrent()) return;
         logger.warn('[AttachmentViewer] Failed to load attachments:', e);
         // 保留旧列表；仅向上传链路传播错误，其余调用维持静默降级。
         if (options?.reportErrors) throw e;
       } finally {
-        setLoading(false);
+        if (isCurrent()) setLoading(false);
       }
     },
-    [objectId],
+    [objectId, attachmentRequests],
   );
 
   useEffect(() => {
@@ -255,18 +284,27 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
   };
 
   const handlePermanentDelete = async (item: AttachmentItem) => {
+    if (!mountedRef.current || currentObjectIdRef.current !== objectId) return;
+    const request = attachmentRequests.begin();
+    const isCurrent = () =>
+      mountedRef.current && currentObjectIdRef.current === objectId && request.isCurrent();
     setPermDeleteItem(null);
     try {
-      await invoke('attachment_delete', { objectId: objectId, attachmentId: item.id });
+      await request.invoke('attachment_delete', { objectId: objectId, attachmentId: item.id });
+      if (!isCurrent()) return;
     } catch (err) {
+      if (!isCurrent()) return;
       // P227: 永久删除失败原为未捕获 rejection，补 toast + 留痕。
       logger.warn('[AttachmentViewer] Permanent delete failed:', err);
       showToast({
-        type: 'error',
-        message: `${t('common:perm_delete_failed', { defaultValue: 'Delete failed' })}: ${resolveBackendErrorMessage(err)}`,
+        type: isAttachmentCleanupPending(err) ? 'warning' : 'error',
+        message: isAttachmentCleanupPending(err)
+          ? resolveBackendErrorMessage(err)
+          : `${t('common:perm_delete_failed', { defaultValue: 'Delete failed' })}: ${resolveBackendErrorMessage(err)}`,
       });
     }
     await loadAttachments();
+    if (!isCurrent()) return;
     onCountChange?.();
   };
 

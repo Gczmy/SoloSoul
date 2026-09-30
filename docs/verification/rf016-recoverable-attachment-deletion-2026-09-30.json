@@ -1,0 +1,1698 @@
+{
+  "task": "RF-016",
+  "date": "2026-09-30",
+  "implementationBaseline": "83f00783be42e442d5ce735ece847d4720b91464",
+  "authorization": "用户按计划执行，授权生产代码、故障注入回归、文档和独立本地提交；不推送。",
+  "environment": {
+    "platform": "Windows-11-10.0.26100-SP0",
+    "machine": "AMD64",
+    "python": "3.14.6",
+    "cargo": {
+      "exitCode": 0,
+      "version": "cargo 1.96.0 (30a34c682 2026-05-25)"
+    },
+    "rustc": {
+      "exitCode": 0,
+      "version": "rustc 1.96.0 (ac68faa20 2026-05-25)"
+    },
+    "node": {
+      "exitCode": 0,
+      "version": "v24.16.0"
+    },
+    "npm": {
+      "exitCode": 0,
+      "version": "11.13.0"
+    },
+    "pdfium": {
+      "path": "tauri/src-tauri/resources/pdfium/pdfium.dll",
+      "bytes": 7213568,
+      "sha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+    }
+  },
+  "changes": [
+    "SQLite schema27本地意图；元数据/版本/HLC和所有清理意图同一Immediate事务提交。",
+    "先重载数据库许可并严格检查所有当前/软删引用，再验证标准目录；安全错误保留重试，物理NotFound可确认。",
+    "Core共享报告区分queue前失败与已接受pending；Host/CLI捕获原会话，维护只重试明确意图。",
+    "GUI已接受pending仍同步并刷新元数据，显示本地化待重试提示；CLI刷新原目标并阻止宽松扫描绕过pending。",
+    "GUI永久删除、列表刷新按原会话/mounted/对象代次守卫，Manager保护当前确认目标与最新loader；父callback归属由独立RF1065提交。"
+  ],
+  "targetedWindowsChecks": [
+    {
+      "command": [
+        "cargo",
+        "test",
+        "-j",
+        "1",
+        "-p",
+        "solosoul-vault",
+        "--lib",
+        "rf016_",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 60.88,
+      "results": [
+        "test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 190 filtered out; finished in 0.37s"
+      ],
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\vault-target-second.log",
+      "sha256": "f368631fc53007001b470d497c8c79e1f3d205b6e37541dd339e25f9ca2e62e5"
+    },
+    {
+      "check": "core-target",
+      "cwd": "tauri",
+      "command": [
+        "cargo",
+        "test",
+        "-j",
+        "1",
+        "-p",
+        "solosoul-core",
+        "--lib",
+        "rf016_",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 65.16,
+      "results": [
+        "test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 295 filtered out; finished in 0.57s"
+      ],
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\core-target-second.log",
+      "sha256": "d709177a7fa9af89ff138072cdb17b65a89998a4275177504db1eb88e1f6ec8a"
+    },
+    {
+      "check": "host-target",
+      "cwd": "tauri",
+      "command": [
+        "cargo",
+        "test",
+        "-j",
+        "1",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "rf016_",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 641.87,
+      "results": [
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 622 filtered out; finished in 6.37s"
+      ],
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\host-target-second.log",
+      "sha256": "7de04e6fdc8d703c7ee740c1bb4b654e8117a61d73d051b2c4c74d2cc72238d1"
+    },
+    {
+      "check": "cli-target",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "test",
+        "-j",
+        "1",
+        "--lib",
+        "rf016_",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 287.16,
+      "results": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 269 filtered out; finished in 9.01s"
+      ],
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\cli-target-second.log",
+      "sha256": "ef29a59688530262178418e87505e3448411d368e7d9cf8bfa6f67e49aa1019c"
+    }
+  ],
+  "targetedTotals": {
+    "vault": 18,
+    "core": 11,
+    "host": 6,
+    "cli": 8,
+    "passed": 43,
+    "failed": 0
+  },
+  "workspaceChecks": [
+    {
+      "check": "workspace-fmt",
+      "cwd": "tauri",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.18,
+      "results": [],
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-fmt-sixth.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "check": "workspace-clippy",
+      "cwd": "tauri",
+      "command": [
+        "cargo",
+        "clippy",
+        "-j",
+        "1",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 14.98,
+      "results": [],
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-clippy-sixth.log",
+      "sha256": "728491d811b9a9f1ebbb3857f3dbf6ff404c00365b2726ec8f89a29c02af64cb"
+    },
+    {
+      "check": "workspace-full",
+      "cwd": "tauri",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "-j",
+        "1"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 252.0,
+      "results": [
+        "test result: ok. 628 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.89s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 306 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.31s",
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.11s",
+        "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s",
+        "test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.69s",
+        "test result: ok. 95 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 1.30s",
+        "test result: ok. 64 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.78s",
+        "test result: ok. 208 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.70s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-full-eighth.log",
+      "sha256": "fc52ac79f7ebcfab48182e13ed1b04462fb905c3676a34c59ff1b2841cb1b5bf"
+    }
+  ],
+  "workspaceProof": {
+    "command": {
+      "check": "workspace-full",
+      "cwd": "tauri",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "-j",
+        "1"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 252.0,
+      "results": [
+        "test result: ok. 628 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.89s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 306 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.31s",
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.11s",
+        "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s",
+        "test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.69s",
+        "test result: ok. 95 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 1.30s",
+        "test result: ok. 64 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.78s",
+        "test result: ok. 208 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.70s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-full-eighth.log",
+      "sha256": "fc52ac79f7ebcfab48182e13ed1b04462fb905c3676a34c59ff1b2841cb1b5bf"
+    },
+    "totals": {
+      "groups": 25,
+      "passed": 1406,
+      "failed": 0,
+      "ignored": 3
+    },
+    "rf016FinalCases": [
+      "test commands::attachment::tests::rf016::rf016_gui_batch_worker_accepts_one_batch_and_preserves_unselected_files ... ok",
+      "test commands::attachment::tests::rf016::rf016_gui_windows_occupied_file_is_pending_then_retry_completes ... ok",
+      "test commands::attachment::tests::rf016::rf016_gui_database_failure_keeps_records_and_files ... ok",
+      "test commands::attachment::tests::rf016::rf016_gui_single_worker_deletes_only_the_selected_attachment ... ok",
+      "test commands::attachment::tests::rf016::rf016_gui_fresh_maintenance_waits_for_old_slot_then_runs ... ok",
+      "test commands::attachment::tests::rf016::rf016_gui_stale_worker_cannot_delete_after_lock_switch_or_reunlock ... ok",
+      "test attachment_cleanup::tests::rf016_invalid_path_components_never_escape_the_attachment_root ... ok",
+      "test attachment_cleanup::tests::rf016_failed_path_remains_pending_and_fresh_retry_finishes ... ok",
+      "test attachment_cleanup::tests::rf016_legacy_deleted_owner_rejection_and_report_api_soft_deleted_compatibility ... ok",
+      "test attachment_cleanup::tests::rf016_account_identifier_is_not_a_cleanup_path_component ... ok",
+      "test attachment_cleanup::tests::rf016_missing_directory_completes_and_batch_preserves_unselected_attachment ... ok",
+      "test attachment_cleanup::tests::rf016_soft_deleted_current_reference_blocks_then_releases_cleanup ... ok",
+      "test attachment_cleanup::tests::rf016_storage_owner_difference_and_unregistered_orphans_are_preserved ... ok",
+      "test attachment_cleanup::tests::rf016_lock_before_queue_preserves_metadata_and_files ... ok",
+      "test attachment_cleanup::tests::rf016_session_loss_between_items_reports_completed_and_all_remaining_pending ... ok",
+      "test attachment_cleanup::tests::rf016_lock_after_queue_keeps_intent_for_fresh_session_retry ... ok",
+      "test attachment_cleanup::tests::rf016_windows_junction_ancestors_targets_and_descendants_are_refused ... ok",
+      "test storage::attachment_cleanup::tests::rf016_failed_schema_27_transaction_preserves_schema_26 ... ok",
+      "test storage::attachment_cleanup::tests::rf016_action_error_is_fixed_persisted_and_retry_finishes ... ok",
+      "test storage::attachment_cleanup::tests::rf016_all_reference_rows_are_strict_even_after_a_reference_matches ... ok",
+      "test storage::attachment_cleanup::tests::rf016_case_alias_and_source_path_reference_prevent_file_action ... ok",
+      "test storage::attachment_cleanup::tests::rf016_forged_or_expired_permission_cannot_run_action_and_lock_rejects_retry ... ok",
+      "test storage::attachment_cleanup::tests::rf016_confirmation_sql_failure_leaves_intent_then_not_found_completes ... ok",
+      "test storage::attachment_cleanup::tests::rf016_missing_foreign_or_invalid_requests_do_not_grant_permission ... ok",
+      "test storage::attachment_cleanup::tests::rf016_missing_required_null_and_duplicate_metadata_never_grant_permission ... ok",
+      "test storage::attachment_cleanup::tests::rf016_new_soft_deleted_reference_prevents_file_action ... ok",
+      "test storage::attachment_cleanup::tests::rf016_immediate_transaction_prevents_another_connection_writing_during_action ... ok",
+      "test storage::attachment_cleanup::tests::rf016_pending_permission_survives_owner_disappearance_and_bad_metadata_never_queues ... ok",
+      "test storage::attachment_cleanup::tests::rf016_schema_26_upgrades_idempotently_with_only_local_intent_fields ... ok",
+      "test storage::attachment_cleanup::tests::rf016_queue_sql_failure_preserves_metadata_hlc_and_files ... ok",
+      "test storage::attachment_cleanup::tests::rf016_queue_updates_once_and_repeated_or_unknown_ids_do_not_create_permission ... ok",
+      "test storage::attachment_cleanup::tests::rf016_restore_owner_id_preserves_distinct_storage_id ... ok",
+      "test storage::attachment_cleanup::tests::rf016_reopen_after_metadata_commit_recovers_pending_file_cleanup ... ok",
+      "test storage::attachment_cleanup::tests::rf016_second_intent_insert_failure_rolls_back_entire_batch ... ok",
+      "test storage::attachment_cleanup::tests::rf016_soft_deleted_owner_preserves_gui_permission_and_action_receives_database_intent ... ok"
+    ],
+    "rf014FinalCases": [
+      "test sync::cloud_auto_sync::tests::rf014::rf014_cloud_snapshot_contains_plaintext_attachment ... ok",
+      "test sync::cloud_auto_sync::tests::rf014::rf014_cloud_snapshot_contains_solc_attachment ... ok",
+      "test sync::cloud_auto_sync::tests::rf014::rf014_empty_vault_full_snapshot_is_restorable_without_attachments ... ok",
+      "test sync::cloud_auto_sync::tests::rf014::rf014_cloud_snapshot_excludes_deleted_objects_and_attachments ... ok",
+      "test sync::cloud_auto_sync::tests::rf014::rf014_manual_empty_attachment_selection_still_exports_no_attachment_bytes ... ok",
+      "test sync::cloud_auto_sync::tests::rf014::rf014_selected_plaintext_attachment_roundtrips ... ok",
+      "test sync::cloud_auto_sync::tests::rf014::rf014_selected_solc_attachment_roundtrips ... ok",
+      "test sync::cloud_auto_sync::tests::rf014::rf014_expired_snapshot_preserves_existing_target_after_session_changes ... ok"
+    ],
+    "rf1062Case": [
+      "test manager::install_progress_tests::reports_received_bytes_before_download_finishes ... ok"
+    ],
+    "ignored": [
+      "test field::tests::test_field_metadata ... ignored, legacy field_parse feature removed — requires contracts",
+      "test field::tests::test_resolve_legacy_unchanged ... ignored, legacy field_parse feature removed — requires contracts",
+      "test p025_hold_baseline_large_dataset ... ignored, P025 Phase 3 数据收集工具：--ignored 手动运行（约 2s，大数据集）"
+    ]
+  },
+  "initialFailureLogs": [
+    {
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\vault-target-first.log",
+      "sha256": "2b94b68be04b913ebd5a3c888ca2d6878e0c62a70639de0bc4abddabbfcacc6c"
+    },
+    {
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\core-target-first.log",
+      "sha256": "e9fae6182ab6546d0fe8cd991841295f3eb2d5553b783c954bb13213c1394d80"
+    },
+    {
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\lint-first.log",
+      "sha256": "1d5b5e1a24742575d6addce8f4848eec6c8919f0537f2d3812d341c8f6633031"
+    },
+    {
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-clippy-second.log",
+      "sha256": "36e2da64604192440982a6c38b4d7ec5cc5d14633b42911746b2d084023c925a"
+    },
+    {
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-clippy-third.log",
+      "sha256": "d620d9d83e23193e8de92d76eea730e0f56c97f5015f460105ddb31eaf562e42"
+    },
+    {
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-clippy-fourth.log",
+      "sha256": "4480be5cb380f7ae0f48b4520caf00abf5a49fc1348f0fc7ab245b280d2fee32"
+    },
+    {
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-clippy-fifth.log",
+      "sha256": "cee610b004df43da63a08e8cf76b0c89311d5497f99b6136a514435f00513f47"
+    },
+    {
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\cli-clippy-sixth.log",
+      "sha256": "90b03fbd996b7eff5a74f34b485748569222130c1b4f41b06b1707955e819c42"
+    },
+    {
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-full-seventh.log",
+      "sha256": "c3c474d443371471b28626b0e863442c57edf7c675a65aa653aa471343ec8291"
+    },
+    {
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\cli-full-eighth.log",
+      "sha256": "9d490b8355f694af9668d742a91b507f762514ea90336cd30eeafdfc2dc61ca5"
+    }
+  ],
+  "failureResolutions": [
+    "首次Vault/ Core失败为fixture缺账户目录或非法账户前缀，修正测试初始化，不放宽生产校验；额外覆盖长账户ID。",
+    "误调eslint .扩大到生成目录；改用项目原npm lint入口，不更改配置或src门槛。",
+    "RF016新增代码Clippy风格修正；RF014已在未推送原提交补齐；旧插件fixture由RF1062单独提交。",
+    "workspace第七轮PDF/OCR18失败由误用PDFIUM_DYNAMIC_LIB_PATH导致；正确PDFIUM_LIBRARY_PATH后第八轮全通过，无业务改动。",
+    "CLI第八轮唯一失败为旧备份fixture依赖外部sqlite3；RF1064独立修复，同一真实损坏BLOB及原断言保持。"
+  ],
+  "preservedUserBitmaps": {
+    "header-install.bmp": "EBAFC6856B2BBD91902ED18E5D07564BE87C2F0127EB2E3C744200485C70BB22",
+    "header-uninstall.bmp": "61AA19110AD51B20807F21B0BC8C77ED01033D89EC68089ACFE15978FA2C46CC",
+    "welcome-sidebar.bmp": "D5582B57B0E0FB1B075104F6FB194B0902F576F9A05CFC998FC67D0372183F9C"
+  },
+  "limitations": [
+    "本机Windows实际执行；两个Unix符号链接cfg用例未编译执行，未计为通过或ignored。",
+    "Host运行真实spawn_blocking和SQLite/临时目录，并未启动原生GUI AppState或真实云/设备同步；前端通过真实hooks及受控IPC/事件。",
+    "不承诺安全擦除介质或抵抗同用户外部进程检查后替换路径；永久删除不保留实体供历史恢复。",
+    "跨客户端目录互斥、附件发布空窗和广泛孤儿扫描由RF905/RF903承接。",
+    "CLI锁文件五个path版本变化由RF1061独立提交，不混入本项。"
+  ],
+  "before": {
+    "baseline": "83f00783be42e442d5ce735ece847d4720b91464",
+    "sourceRecords": [
+      {
+        "path": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "sha256": "bca20179e341c0fcc71c41983ce314230ca012be955c7aedfc4e6bfe7f99e020",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "docs/attachment-storage-spec.md",
+        "sha256": "2e3ae17de0bce92ce797e2a5f16b6c04e46de785fe1832305f8fd4632f74b02e",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src-tauri/src/commands/attachment/crud.rs",
+        "sha256": "9d93b0ae593895377bff98f12718d3feebb04ca0664b508ff2f6422bfe01e2a3",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src-tauri/src/commands/attachment/tests.rs",
+        "sha256": "f7f8a6d2f8fff490f6c4593c77928c4dd17a7427cc1698b6d278003f85dd4a98",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src-tauri/src/commands/object/trash.rs",
+        "sha256": "e5c3920ecfbc51367420d174c31453798ed17bc4b7423090901f2f8139e9b0c4",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "solosoul_cli/src/commands/attachment.rs",
+        "sha256": "5d8e6423aa0a67b71fb9f8b05568daa8c0bdbb55d410df58e20dfac730a898d3",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "solosoul_cli/src/app.rs",
+        "sha256": "e502e5adee59fc369b6d1a10602c8703367b060d134c10dcc020c9bb48c13521",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "solosoul_cli/src/i18n/zh-CN.ftl",
+        "sha256": "3e9339d8650fe01ee61cd8adc38f18d749341bfb3d90f79d18e37f4a9a26b00e",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "solosoul_cli/src/i18n/en-US.ftl",
+        "sha256": "7c992d80696cb0e8bb6c7e3f6f52adb9de787bf573ced7b1e185722dad39eb47",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/lib/backendError.ts",
+        "sha256": "57e7f4cc767525e8878393cab3913ca625a34d6751dcf49b22fc86511d351c02",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/lib/backendError.test.ts",
+        "sha256": "98b009325bc9e051d2770e22af289962f7b3c898ff70afb739cde4193b3f3985",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/locales/zh-CN/common.json",
+        "sha256": "7e13a6d141a7735506088d3d01790c07660ce8d651a261430c6b7e94fc9b14c0",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/locales/en-US/common.json",
+        "sha256": "1f8884ca20174e4e6351fe260f646f4a84c71d200ac61d354122c4e17896653f",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/components/object/useAttachmentBatchOps.tsx",
+        "sha256": "ede8300d40dc382c9ef96eb73e39f27e3633d85c2cb59bdca241e43dfff28f61",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/hooks/useAttachmentManagerBatchOps.ts",
+        "sha256": "94a4f8334409b235fb389fdcc16c0d29e701369ec5e4b845bea86e13059cec8f",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/hooks/useAttachmentManagerItemOps.ts",
+        "sha256": "219b4c39cea4e3d95a02967a09737a14405d1b032007d99fddaacddb5411e996",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/components/object/useAttachmentBatchOps.test.tsx",
+        "sha256": "25e0dc020e3c0c564e445f0b81e6596cb84db6258ac56087f01a5e85a1653d30",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/crates/solosoul-vault/src/migration.rs",
+        "sha256": "6c3a366c5242f767918c4a2b0446050b6eb506b5c5f7ee2741118723b0763ba2",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/crates/solosoul-vault/src/storage.rs",
+        "sha256": "9c68e17103644a7c354d31965029dc1dc5eefffe2e90546943c0d7b47f681dfa",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/crates/solosoul-vault/src/lib.rs",
+        "sha256": "361dbfb90e210f419f4eba9043c064007aacef25f0175b38903fb6ca6eab2de5",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/crates/solosoul-vault/src/storage/attachment_cleanup.rs",
+        "previouslyExisted": false
+      },
+      {
+        "path": "tauri/crates/solosoul-vault/src/storage/attachment_cleanup/tests.rs",
+        "previouslyExisted": false
+      },
+      {
+        "path": "tauri/src/components/object/useAttachmentViewer.tsx",
+        "sha256": "104b532045a3131165693cc414bdb1390e754f6f87ee32f3e4d07b8a392c803a",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/crates/solosoul-core/src/lib.rs",
+        "sha256": "24cffbf046c23202ebcf5df47c38da331e3859b544cb6d407bd719a9f603e521",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/crates/solosoul-core/src/objects.rs",
+        "sha256": "e76f9346678c4da8362037efea5b5e68d25c07ae402baf9c0b76bebf2f86bd00",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/crates/solosoul-core/src/attachment_cleanup.rs",
+        "previouslyExisted": false
+      }
+    ],
+    "fullBaselineProofSha256": "d8e4318f5c04376e2dced8207982bfe2ff1c0a73a4fd4026140253f70f67fcb5"
+  },
+  "finalSourceManifest": {
+    "solosoul_cli/src/app.rs": "a37fc6e0b52aade8270d1d6aa39d0a69bca944778f22f40f25d89de8539ade7a",
+    "solosoul_cli/src/app/rf016_tests.rs": "d6748925282db5c789113958a0e840a00a04efb1b73864673279d034702a4657",
+    "solosoul_cli/src/commands/attachment.rs": "0c38a0fc260722dd8856c164e6b67213595f51db1be2ff3aa54d4b19f6ed6611",
+    "solosoul_cli/src/commands/attachment/rf016_tests.rs": "aba7782a2bfb63b4618df1aa969c7f8e9f840b4cfd7e973624bf35b5fda5dc47",
+    "tauri/crates/solosoul-core/src/attachment_cleanup.rs": "79aea41b0f5b2b68c2d896e356255cb8486ffd5222671e1585cb07f168d919a5",
+    "tauri/crates/solosoul-core/src/lib.rs": "9f9b9bd41e7ec7099083fa66e9f59514f0024186f1c7217b92bb1d0e0fa26773",
+    "tauri/crates/solosoul-core/src/objects.rs": "ffbd51d08e90af12c5329dc52bb22f6ea18cf1acb65161c4f430a26d130fc133",
+    "tauri/crates/solosoul-vault/src/lib.rs": "03bacf2e93c256ef9d7fb62fb726a8571a9d5c5ebacbf7b08fff891208b25378",
+    "tauri/crates/solosoul-vault/src/migration.rs": "2e047a03b0c9576b43e16d01f224f22e6eab8a5a7a90408c9dd87b0d723dacd8",
+    "tauri/crates/solosoul-vault/src/storage.rs": "b1d7d7e2a65d334daf26f4aee5f6500eb306684cce57543e468bf28ad211fb1c",
+    "tauri/crates/solosoul-vault/src/storage/attachment_cleanup.rs": "ca98a81a36e37787d0a2590e299c9ad5d4683ab71fcdd23169bf5a2d165c877c",
+    "tauri/crates/solosoul-vault/src/storage/attachment_cleanup/tests.rs": "7998a34e821094af724b8f44e54b0827cc2dda6c3c1ea61ada2627cb8afc5034",
+    "tauri/src-tauri/src/commands/attachment/crud.rs": "7161da188a49aec9feddebf9cc1d0a136309d37c4c6b57b54c73b53c5b5b9820",
+    "tauri/src-tauri/src/commands/attachment/tests.rs": "0ee0e86422aa0b0909cc8a96c1360efc25d215c602ca05283854a5c950224e57",
+    "tauri/src-tauri/src/commands/attachment/tests/rf016.rs": "9fbe8d8b034bbc6208f2ac65f1a1267e2338146088a754a3cb713b7ff87d17f3",
+    "tauri/src-tauri/src/commands/object/trash.rs": "7cb8aba00d1683acc490bd97d5613e915dc955e26de93f8820e5f7528794b2dd",
+    "tauri/src/components/object/useAttachmentBatchOps.test.tsx": "d0881a5ad1727d3b9cf363cf5ab915a268831faee553e32c9640b84a5b1db00b",
+    "tauri/src/components/object/useAttachmentBatchOps.tsx": "c402417a7770fb161d55b08a908a573d2d634089f9a1124f49b6cbdef13c7641",
+    "tauri/src/components/object/useAttachmentViewer.tsx": "ba1a1934da6e613630561ea77c92f35138043080a7dce9594ee755d4445c5297",
+    "tauri/src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx": "9ffa71e5653aa2569cd77c87213dc9e5aa09eedd05243c50afc8d4213026f538",
+    "tauri/src/hooks/useAttachmentManagerBatchOps.ts": "710a860965837f2e49db8b00a3debbb932b09bc0210f591230292071fb728cea",
+    "tauri/src/hooks/useAttachmentManagerItemOps.rf016.test.tsx": "b72c5cd6e9d42493fb0faf68f03f2186e1e6f8cbda02a1ff7b1af57c9ebef847",
+    "tauri/src/hooks/useAttachmentManagerItemOps.ts": "90515a83e5f2b3e0474c8b3c0b8708e48b91bed0cc1e8fb4929d9e8f3f61b756",
+    "tauri/src/lib/backendError.test.ts": "204fe959e3a4a6f265f2f1f2ad48a166395c4447ba1da796f36f0660e0475628",
+    "tauri/src/lib/backendError.ts": "462e303b28f5ae2ccf76c8dd40b9fad777e6cb175f3bd4921ec17ac6938aa71d",
+    "tauri/src/locales/en-US/common.json": "88b03931e1a440ab1660dd75e0817af7291ab892712ebb27467e6e5ff5ca9d3d",
+    "tauri/src/locales/zh-CN/common.json": "e98425a88d25d37495c74669c254eb3937ad0e072f29da3d5c000733b6b983eb",
+    "tauri/src/hooks/useAttachmentManager.ts": "a95e73ff348cc16bbd00f544eb5a03b754fa06a130d599976b191095e89ddb64",
+    "tauri/src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx": "6b42e2cdff102f028fb5a95e9ddbf532b7567a0f95d304848fd7d81521912c31",
+    "tauri/src/hooks/useAttachmentManagerLoad.rf016.test.tsx": "c93d8987b98da03cf20a886b312c7b6c71560c5bf32217c80c9833372deef424",
+    "solosoul_cli/src/i18n/zh-CN.ftl": "67cf1aaa85df1024c2fe9ea30035f7885fd77e180feb94f07668b2f497cb4f0b",
+    "solosoul_cli/src/i18n/en-US.ftl": "223192ebfbab7bde9c64ac36579dcd46b653f7a6e13ca91c12dce9601369a8c6"
+  },
+  "frontend": {
+    "finalChecks": [
+      {
+        "check": "counts-and-guards",
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx",
+          "src/hooks/useObjectWorkspaceData.test.ts",
+          "src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx",
+          "src/hooks/useAttachmentManagerItemOps.rf016.test.tsx",
+          "src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx",
+          "src/hooks/useAttachmentManagerLoad.rf016.test.tsx",
+          "src/components/object/useAttachmentBatchOps.test.tsx",
+          "src/components/object/useAttachmentViewer.test.tsx",
+          "src/components/object/AttachmentViewer.test.tsx",
+          "src/components/object/AttachmentViewer.objectSwitch.test.tsx",
+          "src/lib/backendError.test.ts"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 10.97,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\counts-and-guards-final.log",
+        "sha256": "01edfef1c7efc88fd027f20cb117680fe13ad34de2271a3a3bc371dcf95a246c"
+      },
+      {
+        "check": "tsc",
+        "command": [
+          "node",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 20.45,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\tsc-final.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "check": "lint",
+        "command": [
+          "npm.cmd",
+          "run",
+          "lint",
+          "--",
+          "--max-warnings",
+          "0"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 16.68,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\lint-final.log",
+        "sha256": "1604bc5d5ff04f2bc29b75d109dcb7d3e59fbeb79c0b1d7cd08b90be7efa2ca9"
+      },
+      {
+        "check": "full",
+        "command": [
+          "npm.cmd",
+          "run",
+          "test"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 156.56,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\full-final.log",
+        "sha256": "4b16d744bfeb07785560acbba4b1ab951e506e594c23d49f7b40b970a6aeedb5"
+      },
+      {
+        "check": "format",
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "src/components/object/useAttachmentBatchOps.test.tsx",
+          "src/components/object/useAttachmentBatchOps.tsx",
+          "src/components/object/useAttachmentViewer.tsx",
+          "src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx",
+          "src/hooks/useAttachmentManagerBatchOps.ts",
+          "src/hooks/useAttachmentManagerItemOps.rf016.test.tsx",
+          "src/hooks/useAttachmentManagerItemOps.ts",
+          "src/lib/backendError.test.ts",
+          "src/lib/backendError.ts",
+          "src/locales/en-US/common.json",
+          "src/locales/zh-CN/common.json",
+          "src/hooks/useAttachmentManager.ts",
+          "src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx",
+          "src/hooks/useAttachmentManagerLoad.rf016.test.tsx",
+          "src/hooks/useObjectWorkspaceData.ts",
+          "src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 0.81,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\format-final.log",
+        "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+      }
+    ],
+    "finalSourceManifest": {
+      "tauri/src/components/object/useAttachmentBatchOps.test.tsx": "d0881a5ad1727d3b9cf363cf5ab915a268831faee553e32c9640b84a5b1db00b",
+      "tauri/src/components/object/useAttachmentBatchOps.tsx": "c402417a7770fb161d55b08a908a573d2d634089f9a1124f49b6cbdef13c7641",
+      "tauri/src/components/object/useAttachmentViewer.tsx": "ba1a1934da6e613630561ea77c92f35138043080a7dce9594ee755d4445c5297",
+      "tauri/src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx": "9ffa71e5653aa2569cd77c87213dc9e5aa09eedd05243c50afc8d4213026f538",
+      "tauri/src/hooks/useAttachmentManagerBatchOps.ts": "710a860965837f2e49db8b00a3debbb932b09bc0210f591230292071fb728cea",
+      "tauri/src/hooks/useAttachmentManagerItemOps.rf016.test.tsx": "b72c5cd6e9d42493fb0faf68f03f2186e1e6f8cbda02a1ff7b1af57c9ebef847",
+      "tauri/src/hooks/useAttachmentManagerItemOps.ts": "90515a83e5f2b3e0474c8b3c0b8708e48b91bed0cc1e8fb4929d9e8f3f61b756",
+      "tauri/src/lib/backendError.test.ts": "204fe959e3a4a6f265f2f1f2ad48a166395c4447ba1da796f36f0660e0475628",
+      "tauri/src/lib/backendError.ts": "462e303b28f5ae2ccf76c8dd40b9fad777e6cb175f3bd4921ec17ac6938aa71d",
+      "tauri/src/locales/en-US/common.json": "88b03931e1a440ab1660dd75e0817af7291ab892712ebb27467e6e5ff5ca9d3d",
+      "tauri/src/locales/zh-CN/common.json": "e98425a88d25d37495c74669c254eb3937ad0e072f29da3d5c000733b6b983eb",
+      "tauri/src/hooks/useAttachmentManager.ts": "a95e73ff348cc16bbd00f544eb5a03b754fa06a130d599976b191095e89ddb64",
+      "tauri/src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx": "6b42e2cdff102f028fb5a95e9ddbf532b7567a0f95d304848fd7d81521912c31",
+      "tauri/src/hooks/useAttachmentManagerLoad.rf016.test.tsx": "c93d8987b98da03cf20a886b312c7b6c71560c5bf32217c80c9833372deef424"
+    },
+    "dependencySourceManifest": {
+      "tauri/src/hooks/useObjectWorkspaceData.ts": "0213eaa4706eabbe5249e6d3fb98f35795d87c5cac058bd271e0ff1ee67b0770",
+      "tauri/src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx": "f2b8d8c55fd7295c0455933548256b9793cc3b5306ade151f44090094941671f"
+    },
+    "dependency": "RF-1065，已独立提交",
+    "targetPassed": 98,
+    "vitestFiles": 236,
+    "vitestPassed": 1967,
+    "nodePassed": 112,
+    "failed": 0,
+    "skipped": 0,
+    "guardRedRecords": [
+      {
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx"
+        ],
+        "exitCode": 1,
+        "elapsedSeconds": 32.17,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\frontend-ownership-red.log",
+        "sha256": "864348e0d3b9f518556c68408cbd8f71585666008fe4b4b1cbe36dc51e443a1f",
+        "sourceSha256": "242f99ef9d91defdd7d5f08be42f0a8deb3c85fc883e79d4f13c8c8eba9379e7"
+      },
+      {
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "src/hooks/useAttachmentManagerItemOps.rf016.test.tsx",
+          "src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx"
+        ],
+        "exitCode": 1,
+        "elapsedSeconds": 12.46,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\frontend-manager-ownership-red.log",
+        "sha256": "093f80a0a2e7e0d8780b5788f10fe6eacffedf5a398a0290ad47349cc6857a70"
+      },
+      {
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx"
+        ],
+        "exitCode": 1,
+        "elapsedSeconds": 27.67,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\frontend-manager-ownership-red-corrected.log",
+        "sha256": "64108a4886d766adb61295fcbb490319b8374bd341d95e002230604956e6ffbb",
+        "correction": "原新用例错误要求将现有并发派发串行化，修正为第一dispatch同步使会话失效，保留并发并拒绝后续已失效dispatch。"
+      },
+      {
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "src/hooks/useAttachmentManagerLoad.rf016.test.tsx"
+        ],
+        "exitCode": 1,
+        "elapsedSeconds": 4.58,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\frontend-manager-load-red.log",
+        "sha256": "351430299c35e9ebe640eb57f2fac540bf12c460974a32a13bff43e946ea911b"
+      }
+    ],
+    "managerRedCorrection": "首轮新增一条测试错误假定既有批次是串行；已修正为原会话同步失效后下一dispatch拒绝，corrected红测8失败/5原有通过。生产仍保留Promise.allSettled并行，不撤销已合法派发IPC。",
+    "firstFinalChecks": [
+      {
+        "check": "counts-and-guards",
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx",
+          "src/hooks/useObjectWorkspaceData.test.ts",
+          "src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx",
+          "src/hooks/useAttachmentManagerItemOps.rf016.test.tsx",
+          "src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx",
+          "src/hooks/useAttachmentManagerLoad.rf016.test.tsx",
+          "src/components/object/useAttachmentBatchOps.test.tsx",
+          "src/components/object/useAttachmentViewer.test.tsx",
+          "src/components/object/AttachmentViewer.test.tsx",
+          "src/components/object/AttachmentViewer.objectSwitch.test.tsx",
+          "src/lib/backendError.test.ts"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 34.0,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\counts-and-guards.log",
+        "sha256": "8fd756cc6bcba658ceed67a9a8e655227705e0cbeff814b5ac030c025c3525c7"
+      },
+      {
+        "check": "tsc",
+        "command": [
+          "node",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 18.38,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\tsc.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "check": "lint",
+        "command": [
+          "npm.cmd",
+          "run",
+          "lint"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 35.84,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\lint.log",
+        "sha256": "a6a0c72ec8c2c05abb94df7e63b8f5db1045c9f5437c5c3393cbeea77ab72ab0"
+      },
+      {
+        "check": "full",
+        "command": [
+          "npm.cmd",
+          "run",
+          "test"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 176.92,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\full.log",
+        "sha256": "52162a5ebb10fb8768b2cf2b0a0a3c87e91cf239441eb6372b0bae42b70871a1"
+      },
+      {
+        "check": "format",
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "src/components/object/useAttachmentBatchOps.test.tsx",
+          "src/components/object/useAttachmentBatchOps.tsx",
+          "src/components/object/useAttachmentViewer.tsx",
+          "src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx",
+          "src/hooks/useAttachmentManagerBatchOps.ts",
+          "src/hooks/useAttachmentManagerItemOps.rf016.test.tsx",
+          "src/hooks/useAttachmentManagerItemOps.ts",
+          "src/lib/backendError.test.ts",
+          "src/lib/backendError.ts",
+          "src/locales/en-US/common.json",
+          "src/locales/zh-CN/common.json",
+          "src/hooks/useAttachmentManager.ts",
+          "src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx",
+          "src/hooks/useAttachmentManagerLoad.rf016.test.tsx",
+          "src/hooks/useObjectWorkspaceData.ts",
+          "src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx"
+        ],
+        "exitCode": 0,
+        "elapsedSeconds": 0.78,
+        "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\format.log",
+        "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+      }
+    ],
+    "firstFinalWarningsResolution": "首轮全部测试通过但3项新useMemo依赖警告；显式scope身份字段后最终定向/tsc/lint(max-warnings0)/完整测试/format全部重跑通过。"
+  },
+  "cliChecks": [
+    {
+      "check": "cli-fmt",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "fmt",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.84,
+      "results": [],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1064-20260930\\cli-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "check": "cli-clippy",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "clippy",
+        "-j",
+        "1",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 41.96,
+      "results": [],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1064-20260930\\cli-clippy.log",
+      "sha256": "6d65c413df1bb4c233d19c6941bbb5453f8084e257eeee7a901c62562c2af879"
+    },
+    {
+      "check": "backup-target",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "test",
+        "--lib",
+        "commands::backup::tests::test_backup_create_aborts_on_unreadable_profile",
+        "--",
+        "--exact",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 62.38,
+      "results": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 276 filtered out; finished in 0.74s"
+      ],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1064-20260930\\backup-target.log",
+      "sha256": "bc0a8430dedc59d18014153411e2d7297bb60691c7d960f0a0fcb49af8fc9ce8"
+    },
+    {
+      "check": "cli-full",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "-j",
+        "1",
+        "--no-fail-fast"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 292.8,
+      "results": [
+        "test result: ok. 277 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 213.67s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.36s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1064-20260930\\cli-full.log",
+      "sha256": "dc8a7c9943ae8fe038dd6b07521c95ee67555254e1da6cb243744de5cc37bd0c"
+    }
+  ],
+  "cliTotals": {
+    "libraryPassed": 277,
+    "integrationPassed": 2,
+    "failed": 0,
+    "ignoredDoctest": 1
+  },
+  "finalNativeRegressionCases": {
+    "nativeSourceUnchanged": true,
+    "cliSourceAndLockUnchanged": true,
+    "cliFinalCases": [
+      "test app::rf016_tests::rf016_cli_enter_home_recovers_intents_after_a_new_unlock ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_cancel_does_not_remove_metadata_or_files ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_confirm_uses_the_recoverable_executor ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_confirmation_refreshes_list_cache_and_clamps_selection ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_confirmation_rejects_a_soft_deleted_owner ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_old_confirmation_cannot_delete_after_session_changes ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_pending_is_not_reported_as_physical_completion ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_refresh_preserves_include_deleted_list_semantics ... ok"
+    ],
+    "finalNativeCases": [
+      "test commands::attachment::tests::rf016::rf016_gui_batch_worker_accepts_one_batch_and_preserves_unselected_files ... ok",
+      "test commands::attachment::tests::rf016::rf016_gui_windows_occupied_file_is_pending_then_retry_completes ... ok",
+      "test commands::attachment::tests::rf016::rf016_gui_database_failure_keeps_records_and_files ... ok",
+      "test commands::attachment::tests::rf016::rf016_gui_single_worker_deletes_only_the_selected_attachment ... ok",
+      "test commands::attachment::tests::rf016::rf016_gui_fresh_maintenance_waits_for_old_slot_then_runs ... ok",
+      "test commands::attachment::tests::rf016::rf016_gui_stale_worker_cannot_delete_after_lock_switch_or_reunlock ... ok",
+      "test attachment_cleanup::tests::rf016_invalid_path_components_never_escape_the_attachment_root ... ok",
+      "test attachment_cleanup::tests::rf016_failed_path_remains_pending_and_fresh_retry_finishes ... ok",
+      "test attachment_cleanup::tests::rf016_legacy_deleted_owner_rejection_and_report_api_soft_deleted_compatibility ... ok",
+      "test attachment_cleanup::tests::rf016_account_identifier_is_not_a_cleanup_path_component ... ok",
+      "test attachment_cleanup::tests::rf016_missing_directory_completes_and_batch_preserves_unselected_attachment ... ok",
+      "test attachment_cleanup::tests::rf016_soft_deleted_current_reference_blocks_then_releases_cleanup ... ok",
+      "test attachment_cleanup::tests::rf016_storage_owner_difference_and_unregistered_orphans_are_preserved ... ok",
+      "test attachment_cleanup::tests::rf016_lock_before_queue_preserves_metadata_and_files ... ok",
+      "test attachment_cleanup::tests::rf016_session_loss_between_items_reports_completed_and_all_remaining_pending ... ok",
+      "test attachment_cleanup::tests::rf016_lock_after_queue_keeps_intent_for_fresh_session_retry ... ok",
+      "test attachment_cleanup::tests::rf016_windows_junction_ancestors_targets_and_descendants_are_refused ... ok",
+      "test storage::attachment_cleanup::tests::rf016_failed_schema_27_transaction_preserves_schema_26 ... ok",
+      "test storage::attachment_cleanup::tests::rf016_action_error_is_fixed_persisted_and_retry_finishes ... ok",
+      "test storage::attachment_cleanup::tests::rf016_all_reference_rows_are_strict_even_after_a_reference_matches ... ok",
+      "test storage::attachment_cleanup::tests::rf016_case_alias_and_source_path_reference_prevent_file_action ... ok",
+      "test storage::attachment_cleanup::tests::rf016_forged_or_expired_permission_cannot_run_action_and_lock_rejects_retry ... ok",
+      "test storage::attachment_cleanup::tests::rf016_confirmation_sql_failure_leaves_intent_then_not_found_completes ... ok",
+      "test storage::attachment_cleanup::tests::rf016_missing_foreign_or_invalid_requests_do_not_grant_permission ... ok",
+      "test storage::attachment_cleanup::tests::rf016_missing_required_null_and_duplicate_metadata_never_grant_permission ... ok",
+      "test storage::attachment_cleanup::tests::rf016_new_soft_deleted_reference_prevents_file_action ... ok",
+      "test storage::attachment_cleanup::tests::rf016_immediate_transaction_prevents_another_connection_writing_during_action ... ok",
+      "test storage::attachment_cleanup::tests::rf016_pending_permission_survives_owner_disappearance_and_bad_metadata_never_queues ... ok",
+      "test storage::attachment_cleanup::tests::rf016_schema_26_upgrades_idempotently_with_only_local_intent_fields ... ok",
+      "test storage::attachment_cleanup::tests::rf016_queue_sql_failure_preserves_metadata_hlc_and_files ... ok",
+      "test storage::attachment_cleanup::tests::rf016_queue_updates_once_and_repeated_or_unknown_ids_do_not_create_permission ... ok",
+      "test storage::attachment_cleanup::tests::rf016_restore_owner_id_preserves_distinct_storage_id ... ok",
+      "test storage::attachment_cleanup::tests::rf016_reopen_after_metadata_commit_recovers_pending_file_cleanup ... ok",
+      "test storage::attachment_cleanup::tests::rf016_second_intent_insert_failure_rolls_back_entire_batch ... ok",
+      "test storage::attachment_cleanup::tests::rf016_soft_deleted_owner_preserves_gui_permission_and_action_receives_database_intent ... ok",
+      "test app::rf016_tests::rf016_cli_enter_home_recovers_intents_after_a_new_unlock ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_cancel_does_not_remove_metadata_or_files ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_confirm_uses_the_recoverable_executor ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_confirmation_refreshes_list_cache_and_clamps_selection ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_confirmation_rejects_a_soft_deleted_owner ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_old_confirmation_cannot_delete_after_session_changes ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_pending_is_not_reported_as_physical_completion ... ok",
+      "test commands::attachment::rf016_tests::rf016_cli_refresh_preserves_include_deleted_list_semantics ... ok"
+    ],
+    "total": 43
+  },
+  "independentReview": {
+    "initial": {
+      "task": "RF-016",
+      "type": "independent-read-only-final-review",
+      "source_root": "C:\\Users\\40299571\\SoloSoul",
+      "reviewed_at_utc": "2026-09-30T19:42:13.952275+00:00",
+      "scope": {
+        "native_manifest": "rust-final-source-seventh.json",
+        "native_first_entries": 16,
+        "frontend_manifest": "frontend-final-source.json",
+        "frontend_entries": 11,
+        "also_reviewed": [
+          "CLI zh-CN/en-US FTL",
+          "attachment-storage-spec.md section 8",
+          "实际 GUI 父消费者、IPC 和会话请求守卫"
+        ]
+      },
+      "actions": {
+        "production_files_modified": false,
+        "cargo_run": false,
+        "tests_run": false,
+        "build_run": false,
+        "git_commit_run": false,
+        "RF021_TEMP_touched": false,
+        "TEMP_proposals_written": true
+      },
+      "conclusion": "原生事务/文件动作/过期会话及已接受pending语义未发现新增必修。发现永久删除迟到UI副作用P2，Root已接受为RF016必修；同链路父计数旧列表身份P2独立RF1065候选，不混RF016提交。",
+      "reviewed_snapshot_sha256": [
+        {
+          "group": "native",
+          "path": "solosoul_cli/src/app.rs",
+          "reviewed_sha256": "a37fc6e0b52aade8270d1d6aa39d0a69bca944778f22f40f25d89de8539ade7a",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "a37fc6e0b52aade8270d1d6aa39d0a69bca944778f22f40f25d89de8539ade7a",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "solosoul_cli/src/app/rf016_tests.rs",
+          "reviewed_sha256": "d6748925282db5c789113958a0e840a00a04efb1b73864673279d034702a4657",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "d6748925282db5c789113958a0e840a00a04efb1b73864673279d034702a4657",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "solosoul_cli/src/commands/attachment.rs",
+          "reviewed_sha256": "0c38a0fc260722dd8856c164e6b67213595f51db1be2ff3aa54d4b19f6ed6611",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "0c38a0fc260722dd8856c164e6b67213595f51db1be2ff3aa54d4b19f6ed6611",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "solosoul_cli/src/commands/attachment/rf016_tests.rs",
+          "reviewed_sha256": "aba7782a2bfb63b4618df1aa969c7f8e9f840b4cfd7e973624bf35b5fda5dc47",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "aba7782a2bfb63b4618df1aa969c7f8e9f840b4cfd7e973624bf35b5fda5dc47",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "tauri/crates/solosoul-core/src/attachment_cleanup.rs",
+          "reviewed_sha256": "79aea41b0f5b2b68c2d896e356255cb8486ffd5222671e1585cb07f168d919a5",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "79aea41b0f5b2b68c2d896e356255cb8486ffd5222671e1585cb07f168d919a5",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "tauri/crates/solosoul-core/src/lib.rs",
+          "reviewed_sha256": "9f9b9bd41e7ec7099083fa66e9f59514f0024186f1c7217b92bb1d0e0fa26773",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "9f9b9bd41e7ec7099083fa66e9f59514f0024186f1c7217b92bb1d0e0fa26773",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "tauri/crates/solosoul-core/src/objects.rs",
+          "reviewed_sha256": "ffbd51d08e90af12c5329dc52bb22f6ea18cf1acb65161c4f430a26d130fc133",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "ffbd51d08e90af12c5329dc52bb22f6ea18cf1acb65161c4f430a26d130fc133",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "tauri/crates/solosoul-vault/src/lib.rs",
+          "reviewed_sha256": "03bacf2e93c256ef9d7fb62fb726a8571a9d5c5ebacbf7b08fff891208b25378",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "03bacf2e93c256ef9d7fb62fb726a8571a9d5c5ebacbf7b08fff891208b25378",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "tauri/crates/solosoul-vault/src/migration.rs",
+          "reviewed_sha256": "2e047a03b0c9576b43e16d01f224f22e6eab8a5a7a90408c9dd87b0d723dacd8",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "2e047a03b0c9576b43e16d01f224f22e6eab8a5a7a90408c9dd87b0d723dacd8",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "tauri/crates/solosoul-vault/src/storage.rs",
+          "reviewed_sha256": "b1d7d7e2a65d334daf26f4aee5f6500eb306684cce57543e468bf28ad211fb1c",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "b1d7d7e2a65d334daf26f4aee5f6500eb306684cce57543e468bf28ad211fb1c",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "tauri/crates/solosoul-vault/src/storage/attachment_cleanup.rs",
+          "reviewed_sha256": "ca98a81a36e37787d0a2590e299c9ad5d4683ab71fcdd23169bf5a2d165c877c",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "ca98a81a36e37787d0a2590e299c9ad5d4683ab71fcdd23169bf5a2d165c877c",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "tauri/crates/solosoul-vault/src/storage/attachment_cleanup/tests.rs",
+          "reviewed_sha256": "7998a34e821094af724b8f44e54b0827cc2dda6c3c1ea61ada2627cb8afc5034",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "7998a34e821094af724b8f44e54b0827cc2dda6c3c1ea61ada2627cb8afc5034",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "tauri/src-tauri/src/commands/attachment/crud.rs",
+          "reviewed_sha256": "7161da188a49aec9feddebf9cc1d0a136309d37c4c6b57b54c73b53c5b5b9820",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "7161da188a49aec9feddebf9cc1d0a136309d37c4c6b57b54c73b53c5b5b9820",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "tauri/src-tauri/src/commands/attachment/tests.rs",
+          "reviewed_sha256": "0ee0e86422aa0b0909cc8a96c1360efc25d215c602ca05283854a5c950224e57",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "0ee0e86422aa0b0909cc8a96c1360efc25d215c602ca05283854a5c950224e57",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "tauri/src-tauri/src/commands/attachment/tests/rf016.rs",
+          "reviewed_sha256": "9fbe8d8b034bbc6208f2ac65f1a1267e2338146088a754a3cb713b7ff87d17f3",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "9fbe8d8b034bbc6208f2ac65f1a1267e2338146088a754a3cb713b7ff87d17f3",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "native",
+          "path": "tauri/src-tauri/src/commands/object/trash.rs",
+          "reviewed_sha256": "7cb8aba00d1683acc490bd97d5613e915dc955e26de93f8820e5f7528794b2dd",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "7cb8aba00d1683acc490bd97d5613e915dc955e26de93f8820e5f7528794b2dd",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "frontend",
+          "path": "tauri/src/components/object/useAttachmentBatchOps.test.tsx",
+          "reviewed_sha256": "fb9f14745f6e669cbacec3890e7607378b29a9d99d9ab148666d346633e50f14",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "fb9f14745f6e669cbacec3890e7607378b29a9d99d9ab148666d346633e50f14",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "frontend",
+          "path": "tauri/src/components/object/useAttachmentBatchOps.tsx",
+          "reviewed_sha256": "5b17619e5c80c702fea2f89163093f1a67698c3844c67bc4312b0aa68579f0c8",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "212e9f7a9dec6d5fc56e9c611b6718e841992e7c48e7a9f905168320c3ed04f7",
+          "changed_after_independent_snapshot": true
+        },
+        {
+          "group": "frontend",
+          "path": "tauri/src/components/object/useAttachmentViewer.tsx",
+          "reviewed_sha256": "5c6527814724ad744a84bc8e014526b41df517a9b8f356eacd27a0093a10af41",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "0a3355e534a585be59fc41d74c103b14e37cca8e0b0c507d2113bb86a1925e97",
+          "changed_after_independent_snapshot": true
+        },
+        {
+          "group": "frontend",
+          "path": "tauri/src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx",
+          "reviewed_sha256": "d6441263ff7b674cb4d08887798a35f73e9ac70b86dc5fc8970b998e4f1cdd11",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "29b288fd859ad16a1e6e0bed0f18949de034acee08c28b6014c56ef3d360ad70",
+          "changed_after_independent_snapshot": true
+        },
+        {
+          "group": "frontend",
+          "path": "tauri/src/hooks/useAttachmentManagerBatchOps.ts",
+          "reviewed_sha256": "70612dad5680e25ee7183235964ff02f5ab953c39244fcc3665f0e046bc093fb",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "1dde7a9ee185a53b60a29b303c0502ba7d411edb323b030007e1d7590d690321",
+          "changed_after_independent_snapshot": true
+        },
+        {
+          "group": "frontend",
+          "path": "tauri/src/hooks/useAttachmentManagerItemOps.rf016.test.tsx",
+          "reviewed_sha256": "761741868267a116d6af74362bf6d8c79be4cada83529d9371143f14823ce881",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "eb6305a708d6cc15a593536f728100f4a6ceb48df1ffa3dd7161acfa895e83ba",
+          "changed_after_independent_snapshot": true
+        },
+        {
+          "group": "frontend",
+          "path": "tauri/src/hooks/useAttachmentManagerItemOps.ts",
+          "reviewed_sha256": "5bcc24b320a08539ad37fd4a0142b2e95b68bebb0d8ba2ec20bd4e15e0b368a5",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "78c1b460146b2446f9ad2df917751338a8cb089e0eff7845f33c3abca8d45144",
+          "changed_after_independent_snapshot": true
+        },
+        {
+          "group": "frontend",
+          "path": "tauri/src/lib/backendError.test.ts",
+          "reviewed_sha256": "204fe959e3a4a6f265f2f1f2ad48a166395c4447ba1da796f36f0660e0475628",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "204fe959e3a4a6f265f2f1f2ad48a166395c4447ba1da796f36f0660e0475628",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "frontend",
+          "path": "tauri/src/lib/backendError.ts",
+          "reviewed_sha256": "462e303b28f5ae2ccf76c8dd40b9fad777e6cb175f3bd4921ec17ac6938aa71d",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "462e303b28f5ae2ccf76c8dd40b9fad777e6cb175f3bd4921ec17ac6938aa71d",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "frontend",
+          "path": "tauri/src/locales/en-US/common.json",
+          "reviewed_sha256": "88b03931e1a440ab1660dd75e0817af7291ab892712ebb27467e6e5ff5ca9d3d",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "88b03931e1a440ab1660dd75e0817af7291ab892712ebb27467e6e5ff5ca9d3d",
+          "changed_after_independent_snapshot": false
+        },
+        {
+          "group": "frontend",
+          "path": "tauri/src/locales/zh-CN/common.json",
+          "reviewed_sha256": "e98425a88d25d37495c74669c254eb3937ad0e072f29da3d5c000733b6b983eb",
+          "initial_freeze_match_verified": true,
+          "source_sha256_at_report": "e98425a88d25d37495c74669c254eb3937ad0e072f29da3d5c000733b6b983eb",
+          "changed_after_independent_snapshot": false
+        }
+      ],
+      "additional_reference_sha256_at_report": [
+        {
+          "path": "solosoul_cli/src/i18n/zh-CN.ftl",
+          "sha256_at_report": "67cf1aaa85df1024c2fe9ea30035f7885fd77e180feb94f07668b2f497cb4f0b"
+        },
+        {
+          "path": "solosoul_cli/src/i18n/en-US.ftl",
+          "sha256_at_report": "223192ebfbab7bde9c64ac36579dcd46b653f7a6e13ca91c12dce9601369a8c6"
+        },
+        {
+          "path": "docs/attachment-storage-spec.md",
+          "sha256_at_report": "7195072d9e7d401e1bda0ac9b94c3d74c3018c1d01949472f31a04f60d4e5806"
+        },
+        {
+          "path": "tauri/crates/solosoul-core/src/vault_service/session.rs",
+          "sha256_at_report": "81ee892756f4fc2e95ce45d7054fad6817a95ab3ae166303b966aeed734e85fa"
+        },
+        {
+          "path": "tauri/src/components/object/AttachmentViewer.tsx",
+          "sha256_at_report": "d1e0a570409bf368b32e64050ddec5cd88b99db854f519b846fc603012eafd96"
+        },
+        {
+          "path": "tauri/src/hooks/useAttachmentManager.ts",
+          "sha256_at_report": "251a9903be9ccbe9abe0e59abbdc89db39275eae6e8836796269af4fb6ba7da2"
+        },
+        {
+          "path": "tauri/src/hooks/useObjectWorkspaceData.ts",
+          "sha256_at_report": "c0a53b39839fda043f70a3fcca1af536893c20fc85979c53c619b7cedfdeabf5"
+        },
+        {
+          "path": "tauri/src/pages/workspace/ObjectWorkspacePage.tsx",
+          "sha256_at_report": "ab7095428c3dd32225d18045ce575f0c94124628aaf1aa440b08991ec3c0caf2"
+        },
+        {
+          "path": "tauri/src/App/AppRoutes.tsx",
+          "sha256_at_report": "26905147ded3252ea2ba4783856633a631b1214fd914c8287d4ab692cd58da27"
+        },
+        {
+          "path": "tauri/src/App/routes.tsx",
+          "sha256_at_report": "455110708edf7b60b4f29c0dfe8ccdafaf682b51af0de18e4e7fdc6901871c80"
+        },
+        {
+          "path": "tauri/src/lib/sessionRequests.ts",
+          "sha256_at_report": "6c95c04e1c12481ea47e73b8c6122b3fb71d3a56aed15f3712987fcafd52879b"
+        },
+        {
+          "path": "tauri/src/lib/ipcClient.ts",
+          "sha256_at_report": "3e7ba7712bc17bb08a3dbf02704b957978d17fefd8d48316cca1bac0af61f72e"
+        },
+        {
+          "path": "tauri/src/stores/uiStore.ts",
+          "sha256_at_report": "ed00c49eafa627a6b8b8f0b5bfa5d2be5dc37b435d8b7ba0515aca7b57d0d2c2"
+        }
+      ],
+      "findings": [
+        {
+          "id": "rf016_attachment_completion_ownership",
+          "priority": "P2",
+          "must_fix": true,
+          "status": "Root已接受，TEMP候选已交付，Root生产整合和真实检查待完成",
+          "line_basis": "初次冻结27源快照；Root后续改动的最终行号以最终源码为准",
+          "files": [
+            {
+              "path": "tauri/src/components/object/useAttachmentViewer.tsx",
+              "line": 257,
+              "end": 272
+            },
+            {
+              "path": "tauri/src/components/object/useAttachmentBatchOps.tsx",
+              "line": 176,
+              "end": 203
+            },
+            {
+              "path": "tauri/src/hooks/useAttachmentManagerItemOps.ts",
+              "line": 183,
+              "end": 203
+            },
+            {
+              "path": "tauri/src/hooks/useAttachmentManagerBatchOps.ts",
+              "line": 159,
+              "end": 197
+            },
+            {
+              "path": "tauri/src/hooks/useAttachmentManager.ts",
+              "line": 43,
+              "end": 57
+            }
+          ],
+          "scenario": "原页发起永久删除后关闭Viewer/更换objectId、离开管理页、锁定或换账户；原IPC/列表刷新迟到完成。旧函数继续发uiStore全局toast、启动旧loader/父callback，Manager旧单删还可清空期间另选的确认目标。",
+          "impact": "迟到提示可进入锁屏或新页；Viewer key仅隔离本地state，不能取消旧函数的全局/父副作用。实际认证父树卸载已隔离跨账户本地state，不宣称新账户数据被旧对象覆盖。",
+          "recommendation": "开始捕获真实createSessionRequests令牌并使用request.invoke；卸载invalidate且mounted检查；Viewer检查当前objectId及每次对象代次；所有await后在toast/load/callback前重核。保护实际Viewer/Manager loader latestlist和原会话；Manager只清原确认目标。",
+          "candidate_directory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-frontend-guard-proposal",
+          "candidate_patch_sha256": "9b0e1601231a0eabcee00924fc7000bfa613f99a3d860c19e339bef1699f2a4e",
+          "integration_note": "Root进一步将Viewer/Batch requests的useMemo依赖强化为[objectId]；TEMP patch保持交付字节。"
+        },
+        {
+          "id": "RF1065_workspace_attachment_count_list_identity",
+          "priority": "P2",
+          "must_fix": true,
+          "status": "独立TEMP候选，待RF016提交后实施",
+          "line_basis": "冻结基线useObjectWorkspaceData.ts SHA c0a53b39839fda043f70a3fcca1af536893c20fc85979c53c619b7cedfdeabf5",
+          "files": [
+            {
+              "path": "tauri/src/hooks/useObjectWorkspaceData.ts",
+              "line": 229,
+              "end": 247
+            },
+            {
+              "path": "tauri/src/pages/workspace/ObjectWorkspacePage.tsx",
+              "line": 474
+            },
+            {
+              "path": "tauri/src/components/object/AttachmentViewer.tsx",
+              "line": 24,
+              "end": 26
+            }
+          ],
+          "scenario": "同一Workspace父实例切?section/搜索/可见列表A→B，Viewer可保持同objectId挂载，A永久删除的旧closure仍持有refreshA。B count正在等待时旧refreshA先abort共享abortRef再请求A ids，将A counts发布到同一个B父state。",
+          "impact": "B已有附件badge归零/消失或显示旧列表计数，直到后续刷新；会话仍有效且Viewer未卸载，RF016会话与mounted保护无法代替父列表身份保护。",
+          "recommendation": "用account/page/section/visibleObjects不可复用memo身份，layout发布当前committed身份；刷新在begin/abort前拒绝旧closure，响应/错误重核身份与会话；A→B→A不可复活旧closure，空列表清counts。",
+          "candidate_directory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-attachment-count-proposal",
+          "candidate_patch_sha256": "f74f3a488b956a48c1aec6a6cca20701b9579fc14595269f44809272b18e7e09"
+        }
+      ],
+      "verified_native_contracts": [
+        {
+          "anchor": "tauri/crates/solosoul-vault/src/storage/attachment_cleanup.rs:221",
+          "result": "owner/account严格校验、id去重、全元数据严格解析；附件移除、对象version/HLC、intent同事务提交，失败不会先删文件。GUI软删owner兼容既有可达入口。"
+        },
+        {
+          "anchor": "tauri/crates/solosoul-vault/src/storage/attachment_cleanup.rs:366",
+          "result": "BEGIN IMMEDIATE中重载DB权威intent并核对许可；action收到重载intent，严格全尾检查全部当前引用含软删对象，不因早找到引用跳过坏尾。固定错误码与attempt持久，文件成功但SQL确认/commit失败保留许可可NotFound重试。"
+        },
+        {
+          "anchor": "tauri/crates/solosoul-core/src/attachment_cleanup.rs:227",
+          "result": "仅权威storage/attachment ID构造标准目录，不用vaultPath销毁。逐节点symlink/reparse/junction与规范路径拒绝，检查完整子树并动作前复核；确切NotFound完成，其他文件错误pending。"
+        },
+        {
+          "anchor": "tauri/crates/solosoul-core/src/vault_service/session.rs:63",
+          "result": "原session gate内按generation/account/Arc校验执行动作，不换到当前新账户。"
+        },
+        {
+          "anchor": "tauri/src-tauri/src/commands/attachment/crud.rs:91",
+          "result": "GUI派发worker前捕获原session；metadata accepted即使pending仍触发同步，返回固定pending而不误报物理完成。"
+        },
+        {
+          "anchor": "tauri/src-tauri/src/commands/object/trash.rs:216",
+          "result": "旧维护slot等待中反复检原session；新session等待旧slot释放，过期垃圾与intent重试独立收尾，guard退出释放。"
+        },
+        {
+          "anchor": "solosoul_cli/src/commands/attachment.rs:270",
+          "result": "确认框前捕获原session，active owner前检；pending显示明确警告，原session同目标缓存刷新含show_deleted；pending阻断宽松orphan fallback。"
+        },
+        {
+          "anchor": "tauri/src/lib/backendError.ts:164",
+          "result": "String/Error精确pending分类；Manager混合批次pending视为逻辑已接受、真实失败独立计数，两个CLI/GUI语言提示含义一致。"
+        }
+      ],
+      "verification_boundaries": [
+        "初次27指定源SHA全部一致；Root随后追加真实测试并整合候选，report字段changed_after_independent_snapshot如实列出差异，不声称新字节已被本轮运行验证。",
+        "本Agent仅阅读生产源码、现有测试和真实父调用链，不运行任何测试/build/Cargo或真实GUI复现；Root提供红测记录属于Root执行证据，不冒充本Agent独立运行结果。",
+        "Viewer objectId key完整隔离本地state但不取消全局toast/父callback；同account同列表父树仍mounted场景可复现计数影响；认证/账户父树卸载隔离跨账户本地state。",
+        "Promise.allSettled并发不可撤回已在有效会话派发的组；之后过期的派发和UI回调应拒绝，原生按捕获session继续核验。",
+        "逐节点检查后外部同用户进程替换路径不在承诺内；跨客户端目录互斥、在途发布窗口与广泛孤儿归属扫描由RF905/RF903承接。",
+        "源码查找未发现GUI attachment_cleanup_orphans注册或调用，旧广泛扫描不扩入RF016。",
+        "TEMP候选未运行tsc/format/test/patch apply-check，无执行成功声明；Root负责最终整合与完整检查。"
+      ],
+      "parent_notified": true,
+      "candidate_artifacts": {
+        "RF016": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-frontend-guard-proposal",
+        "RF1065": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-attachment-count-proposal",
+        "RF1065_final_manifest_sha256": "70348d5c7af40c5b6fb24cb47b99f916e77014d96543af642f27e9326b86aba4",
+        "RF016_final_manifest_sha256": "a1d74c65c69cabc06cde303e9b2a6cc869678c4bd0b931f73aa66baf6c719e4a",
+        "finalized_at_utc": "2026-09-30T19:43:49.419135+00:00"
+      }
+    },
+    "finalFrontend": {
+      "review_id": "RF016_RF1065_final_frontend_independent_review",
+      "created_utc": "2026-09-30T20:28:27.871947+00:00",
+      "repository": "C:\\Users\\40299571\\SoloSoul",
+      "source_manifest": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\frontend-final-source.json",
+      "source_manifest_sha256": "44ec7905f505b19f44929a14c6e1a667bda5bfa84f25ab159f159e0df62b37e1",
+      "scope": "最终整合 RF016 永久删除 single/batch、Manager loader/确认目标、RF1065 父 Workspace 附件计数回调；实际路由、Viewer key、pending 分类与文案。",
+      "conclusion": "未发现新增必修缺陷。16 个已复读冻结文件实际 SHA256 全部匹配。",
+      "mandatory_findings": [],
+      "frozen_sources": [
+        {
+          "path": "tauri/src/components/object/useAttachmentBatchOps.test.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\components\\object\\useAttachmentBatchOps.test.tsx",
+          "expected_sha256": "d0881a5ad1727d3b9cf363cf5ab915a268831faee553e32c9640b84a5b1db00b",
+          "actual_sha256": "d0881a5ad1727d3b9cf363cf5ab915a268831faee553e32c9640b84a5b1db00b",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/components/object/useAttachmentBatchOps.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\components\\object\\useAttachmentBatchOps.tsx",
+          "expected_sha256": "c402417a7770fb161d55b08a908a573d2d634089f9a1124f49b6cbdef13c7641",
+          "actual_sha256": "c402417a7770fb161d55b08a908a573d2d634089f9a1124f49b6cbdef13c7641",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/components/object/useAttachmentViewer.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\components\\object\\useAttachmentViewer.tsx",
+          "expected_sha256": "ba1a1934da6e613630561ea77c92f35138043080a7dce9594ee755d4445c5297",
+          "actual_sha256": "ba1a1934da6e613630561ea77c92f35138043080a7dce9594ee755d4445c5297",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\hooks\\useAttachmentManagerBatchOps.rf016.test.tsx",
+          "expected_sha256": "9ffa71e5653aa2569cd77c87213dc9e5aa09eedd05243c50afc8d4213026f538",
+          "actual_sha256": "9ffa71e5653aa2569cd77c87213dc9e5aa09eedd05243c50afc8d4213026f538",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/hooks/useAttachmentManagerBatchOps.ts",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\hooks\\useAttachmentManagerBatchOps.ts",
+          "expected_sha256": "710a860965837f2e49db8b00a3debbb932b09bc0210f591230292071fb728cea",
+          "actual_sha256": "710a860965837f2e49db8b00a3debbb932b09bc0210f591230292071fb728cea",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/hooks/useAttachmentManagerItemOps.rf016.test.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\hooks\\useAttachmentManagerItemOps.rf016.test.tsx",
+          "expected_sha256": "b72c5cd6e9d42493fb0faf68f03f2186e1e6f8cbda02a1ff7b1af57c9ebef847",
+          "actual_sha256": "b72c5cd6e9d42493fb0faf68f03f2186e1e6f8cbda02a1ff7b1af57c9ebef847",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/hooks/useAttachmentManagerItemOps.ts",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\hooks\\useAttachmentManagerItemOps.ts",
+          "expected_sha256": "90515a83e5f2b3e0474c8b3c0b8708e48b91bed0cc1e8fb4929d9e8f3f61b756",
+          "actual_sha256": "90515a83e5f2b3e0474c8b3c0b8708e48b91bed0cc1e8fb4929d9e8f3f61b756",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/lib/backendError.test.ts",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\lib\\backendError.test.ts",
+          "expected_sha256": "204fe959e3a4a6f265f2f1f2ad48a166395c4447ba1da796f36f0660e0475628",
+          "actual_sha256": "204fe959e3a4a6f265f2f1f2ad48a166395c4447ba1da796f36f0660e0475628",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/lib/backendError.ts",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\lib\\backendError.ts",
+          "expected_sha256": "462e303b28f5ae2ccf76c8dd40b9fad777e6cb175f3bd4921ec17ac6938aa71d",
+          "actual_sha256": "462e303b28f5ae2ccf76c8dd40b9fad777e6cb175f3bd4921ec17ac6938aa71d",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/locales/en-US/common.json",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\locales\\en-US\\common.json",
+          "expected_sha256": "88b03931e1a440ab1660dd75e0817af7291ab892712ebb27467e6e5ff5ca9d3d",
+          "actual_sha256": "88b03931e1a440ab1660dd75e0817af7291ab892712ebb27467e6e5ff5ca9d3d",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/locales/zh-CN/common.json",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\locales\\zh-CN\\common.json",
+          "expected_sha256": "e98425a88d25d37495c74669c254eb3937ad0e072f29da3d5c000733b6b983eb",
+          "actual_sha256": "e98425a88d25d37495c74669c254eb3937ad0e072f29da3d5c000733b6b983eb",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/hooks/useAttachmentManager.ts",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\hooks\\useAttachmentManager.ts",
+          "expected_sha256": "a95e73ff348cc16bbd00f544eb5a03b754fa06a130d599976b191095e89ddb64",
+          "actual_sha256": "a95e73ff348cc16bbd00f544eb5a03b754fa06a130d599976b191095e89ddb64",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\components\\object\\useAttachmentDeletionOwnership.rf016.test.tsx",
+          "expected_sha256": "6b42e2cdff102f028fb5a95e9ddbf532b7567a0f95d304848fd7d81521912c31",
+          "actual_sha256": "6b42e2cdff102f028fb5a95e9ddbf532b7567a0f95d304848fd7d81521912c31",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/hooks/useAttachmentManagerLoad.rf016.test.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\hooks\\useAttachmentManagerLoad.rf016.test.tsx",
+          "expected_sha256": "c93d8987b98da03cf20a886b312c7b6c71560c5bf32217c80c9833372deef424",
+          "actual_sha256": "c93d8987b98da03cf20a886b312c7b6c71560c5bf32217c80c9833372deef424",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/hooks/useObjectWorkspaceData.ts",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\hooks\\useObjectWorkspaceData.ts",
+          "expected_sha256": "0213eaa4706eabbe5249e6d3fb98f35795d87c5cac058bd271e0ff1ee67b0770",
+          "actual_sha256": "0213eaa4706eabbe5249e6d3fb98f35795d87c5cac058bd271e0ff1ee67b0770",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        },
+        {
+          "path": "tauri/src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\hooks\\useObjectWorkspaceAttachmentCounts.rf1065.test.tsx",
+          "expected_sha256": "f2b8d8c55fd7295c0455933548256b9793cc3b5306ade151f44090094941671f",
+          "actual_sha256": "f2b8d8c55fd7295c0455933548256b9793cc3b5306ade151f44090094941671f",
+          "matches_frozen_manifest": true,
+          "reviewed": true
+        }
+      ],
+      "additional_read_sources": [
+        {
+          "path": "tauri/src/lib/sessionRequests.ts",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\lib\\sessionRequests.ts",
+          "sha256": "6c95c04e1c12481ea47e73b8c6122b3fb71d3a56aed15f3712987fcafd52879b"
+        },
+        {
+          "path": "tauri/src/lib/ipcClient.ts",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\lib\\ipcClient.ts",
+          "sha256": "3e7ba7712bc17bb08a3dbf02704b957978d17fefd8d48316cca1bac0af61f72e"
+        },
+        {
+          "path": "tauri/src/stores/authStore.ts",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\stores\\authStore.ts",
+          "sha256": "8a3dad04470d12cb35f52094f15e695db8e876250afe97b56cc5340265089898"
+        },
+        {
+          "path": "tauri/src/App/routes.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\App\\routes.tsx",
+          "sha256": "455110708edf7b60b4f29c0dfe8ccdafaf682b51af0de18e4e7fdc6901871c80"
+        },
+        {
+          "path": "tauri/src/App/AppRoutes.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\App\\AppRoutes.tsx",
+          "sha256": "26905147ded3252ea2ba4783856633a631b1214fd914c8287d4ab692cd58da27"
+        },
+        {
+          "path": "tauri/src/components/object/AttachmentViewer.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\components\\object\\AttachmentViewer.tsx",
+          "sha256": "d1e0a570409bf368b32e64050ddec5cd88b99db854f519b846fc603012eafd96"
+        },
+        {
+          "path": "tauri/src/pages/workspace/ObjectWorkspacePage.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\pages\\workspace\\ObjectWorkspacePage.tsx",
+          "sha256": "ab7095428c3dd32225d18045ce575f0c94124628aaf1aa440b08991ec3c0caf2"
+        },
+        {
+          "path": "tauri/src/pages/settings/GlobalAttachmentManager.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\pages\\settings\\GlobalAttachmentManager.tsx",
+          "sha256": "aed1aa8df4fff2f60ed0cf7beb184110583f13e0bfa7036b664f4d19a088ed2a"
+        },
+        {
+          "path": "tauri/src/components/attachment/AttachmentRow.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\components\\attachment\\AttachmentRow.tsx",
+          "sha256": "d2d13802c758cd5be6f6be3786ec73731caf4d5b16be62d71654f4b2278b7cac"
+        },
+        {
+          "path": "tauri/src/components/attachment/ConfirmDialog.tsx",
+          "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src\\components\\attachment\\ConfirmDialog.tsx",
+          "sha256": "2509ce4f4a7a21f616fcd6ad6db6f8dfbedb79ce461f85a0fec7a61dc47a0763"
+        }
+      ],
+      "checks": [
+        {
+          "topic": "会话守卫与 IPC 签名",
+          "anchors": [
+            "tauri/src/lib/sessionRequests.ts:9",
+            "tauri/src/lib/sessionRequests.ts:37",
+            "tauri/src/lib/sessionRequests.ts:62",
+            "tauri/src/lib/ipcClient.ts:175",
+            "tauri/src/stores/authStore.ts:231"
+          ],
+          "result": "认证状态同步订阅推进全局 sessionGeneration；原令牌在派发前、IPC 解锁动态读取后以及 promise 成功/失败后检查。helper 的第三参数为本地 InvokeOptions，原生 command/args 和公开 Hook 返回签名保持。"
+        },
+        {
+          "topic": "Viewer single/batch 和对象 ABA",
+          "anchors": [
+            "tauri/src/components/object/useAttachmentViewer.tsx:51",
+            "tauri/src/components/object/useAttachmentViewer.tsx:108",
+            "tauri/src/components/object/useAttachmentViewer.tsx:286",
+            "tauri/src/components/object/useAttachmentBatchOps.tsx:35",
+            "tauri/src/components/object/useAttachmentBatchOps.tsx:192"
+          ],
+          "result": "每个 objectId 代次创建独立 requests；卸载/代次清理 invalidate，当前 objectId ref 拒绝旧闭包。永久删除原令牌与 mounted 守卫覆盖 invoke 和 list refresh 后收尾；pending/普通失败均不能在失效后发布 toast/load/count callback。真实 Viewer 对 objectId 使用 key 重建局部状态；相同 Viewer 中同对象但父可见列表变化仍需父 scope 守卫。"
+        },
+        {
+          "topic": "Manager latest loader 与新确认目标",
+          "anchors": [
+            "tauri/src/hooks/useAttachmentManager.ts:30",
+            "tauri/src/hooks/useAttachmentManager.ts:54",
+            "tauri/src/hooks/useAttachmentManagerItemOps.ts:189",
+            "tauri/src/hooks/useAttachmentManagerItemOps.ts:193",
+            "tauri/src/hooks/useAttachmentManagerItemOps.ts:220",
+            "tauri/src/pages/settings/GlobalAttachmentManager.tsx:324"
+          ],
+          "result": "loader 在 begin 前拒绝卸载/旧账户闭包，使用 keyed list token 确保最新同会话请求获胜，postawait 与 catch/finally 拒绝旧请求。永久删除 capture 原令牌，refresh 后仍核对。每次重新选择都 spread 新确认目标；current===capturedItem 的 functional updater 保留等待期间新选择（包括同一附件关闭后再打开）。"
+        },
+        {
+          "topic": "Manager 并行分组",
+          "anchors": [
+            "tauri/src/hooks/useAttachmentManagerBatchOps.ts:143",
+            "tauri/src/hooks/useAttachmentManagerBatchOps.ts:159",
+            "tauri/src/hooks/useAttachmentManagerBatchOps.ts:174",
+            "tauri/src/hooks/useAttachmentManagerBatchOps.ts:194"
+          ],
+          "result": "保留 Promise.allSettled/map 并行派发。永久删除每组共用原会话 token；后续尚未派发组在失效时拒绝。全部结果和 loadData 之后再核对 mounted/session，旧会话不能清选择/提示/reload。当前 pending 按已接受逻辑删除统计并保留待文件清理警告。"
+        },
+        {
+          "topic": "父 Workspace 旧回调先拒绝",
+          "anchors": [
+            "tauri/src/hooks/useObjectWorkspaceData.ts:228",
+            "tauri/src/hooks/useObjectWorkspaceData.ts:232",
+            "tauri/src/hooks/useObjectWorkspaceData.ts:242",
+            "tauri/src/hooks/useObjectWorkspaceData.ts:264",
+            "tauri/src/hooks/useObjectWorkspaceData.ts:275"
+          ],
+          "result": "scope 绑定 account/auth/page/section/visibleObjects、原 session token 和 session epoch。refresh 在 keyed begin 和 abort 之前拒绝旧 scope/原 session；结果发布核对 scope、mounted、请求与 controller。同步 session listener invalidate/abort/清计数/递增 epoch，使同一 React batch 内 lock→same-account unlock 即使最终账户 selector 不变也不能复活旧回调，并产生新的有效 scope。A→B→A 的实际已提交列表身份同样失效。"
+        },
+        {
+          "topic": "实际入口可达性",
+          "anchors": [
+            "tauri/src/App/routes.tsx:42",
+            "tauri/src/App/routes.tsx:71",
+            "tauri/src/App/routes.tsx:87",
+            "tauri/src/App/AppRoutes.tsx:95",
+            "tauri/src/components/object/AttachmentViewer.tsx:24",
+            "tauri/src/pages/workspace/ObjectWorkspacePage.tsx:39",
+            "tauri/src/pages/workspace/ObjectWorkspacePage.tsx:470"
+          ],
+          "result": "全局附件管理器与 Workspace 注册受保护路由；AuthGuard 退出卸载及 account keyed Shell 换账户重建。Workspace query/filter 可在同页面实例变化，附件 Viewer key 仅 objectId；父 onCountChange 实际接 refreshAttachmentCounts，因此 RF1065 同 workspace 身份守卫为必要覆盖，不能仅据 Viewer key 判定安全。"
+        },
+        {
+          "topic": "pending 分类与文案",
+          "anchors": [
+            "tauri/src/lib/backendError.ts:165",
+            "tauri/src/locales/en-US/common.json",
+            "tauri/src/locales/zh-CN/common.json"
+          ],
+          "result": "String/Error 精确识别 attachment_cleanup_pending；普通错误不会误判。中英文本表达记录删除已提交、文件清理待重试；当前会话允许刷新接受删除后的数据并 warning。"
+        },
+        {
+          "topic": "真实回归源码边界",
+          "anchors": [
+            "tauri/src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx:109",
+            "tauri/src/hooks/useAttachmentManagerItemOps.rf016.test.tsx:153",
+            "tauri/src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx:188",
+            "tauri/src/hooks/useAttachmentManagerLoad.rf016.test.tsx:32",
+            "tauri/src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx:120",
+            "tauri/src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx:229"
+          ],
+          "result": "新增 ownership/loader 回归保留真实 sessionRequests；Workspace 联动使用真实 Store、认证订阅与 ipcClient，只替换底层 Tauri invoke。覆盖卸载、lock/switch/reunlock、object ABA、刷新期间失效、旧目标、新旧列表、父子联动及并行组派发前失效。legacy batch 测试 mock backendError，不能单独证明真实 pending 分类；已同时复读 helper、其他 outcome 测试和双语文案。测试源码复审不等于本轮运行通过。"
+        }
+      ],
+      "verification_boundaries": [
+        "本轮仅只读源码、测试文本、路由调用链和 SHA；未执行 Cargo、构建、格式化、lint、tsc 或任何测试。Root 串行检查结果不计入本独立复审的自执行验证。",
+        "未修改仓库；仅新增本独立审查 JSON。未继续修改 RF021 TEMP 候选。",
+        "失效守卫不撤回会话有效时已派发的并行 IPC；后端原 VaultSession gate 负责实际提交边界。",
+        "Viewer key 保护对象切换局部状态；全局 toast/父 callback 必须依赖原会话守卫，同一对象下父可见列表变化依赖 RF1065 scope。",
+        "本结论仅覆盖 RF016 永久删除及相关读刷新、RF1065 附件计数；未扩为全站其他 upload/soft-delete/restore/download/share 异步处理的完整审查。",
+        "没有重新运行原生文件删除/junction 或端到端 UI；原生证据和完整检查由 Root 另行保存。"
+      ],
+      "production_modified": false,
+      "cargo_run": false,
+      "build_run": false,
+      "tests_run": false,
+      "reviewers": [
+        "/root/rf104_projection_tests",
+        "/root/rf104_projection_tests/rf021_core_import_readonly"
+      ]
+    }
+  },
+  "commit": "本提交，以RF-016检索；未推送。"
+}

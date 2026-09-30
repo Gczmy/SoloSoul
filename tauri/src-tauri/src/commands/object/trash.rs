@@ -205,62 +205,94 @@ pub async fn trash_permanent_delete_batch(
     Ok(trash_ids.len())
 }
 
-/// 在账户登录/解锁完成后，自动清理所有已过期的回收站项目。
-/// 该方法会遍历 `trash_items` 表中 `expires_at` 早于当前时间的项目，
-/// 对非 template 类型项目先物理删除原始对象，再记录审计日志并从回收站移除。
-///
-/// 清理逻辑在 tokio 后台 blocking 任务中执行，不阻塞登录/解锁响应。
-/// 清理失败仅记录日志，不影响登录/解锁结果。
-///
-/// 通过 `AppState.trash_cleanup_running` 保证全局同时只运行一个清理任务。
+/// 已获得的维护执行位，正常结束、错误或 panic 时都会释放。
+pub(crate) struct CleanupGuard(Arc<std::sync::atomic::AtomicBool>);
+impl Drop for CleanupGuard {
+    fn drop(&mut self) {
+        self.0.store(false, Ordering::Release);
+    }
+}
+
+pub(crate) async fn acquire_cleanup_slot(
+    service: &std::sync::RwLock<solosoul_core::VaultService>,
+    session: &solosoul_core::VaultSession,
+    running: Arc<std::sync::atomic::AtomicBool>,
+) -> Result<CleanupGuard, String> {
+    loop {
+        let current = service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?
+            .with_session(session, |_| Ok(()));
+        current?;
+        if running
+            .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
+            .is_ok()
+        {
+            return Ok(CleanupGuard(running));
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    }
+}
+
+/// 解锁后按原会话排队维护；过期回收站与附件意图各自收尾，不阻塞解锁响应。
 pub fn run_expired_trash_cleanup(state: &crate::state::AppState) {
-    // CAS 设置运行标志：如果已有任务在运行，则直接跳过，避免并发重复清理。
-    match state.trash_cleanup_running.compare_exchange(
-        false,
-        true,
-        Ordering::Acquire,
-        Ordering::Relaxed,
-    ) {
-        Ok(_) => {}
-        Err(_) => {
-            tracing::info!("[trash_cleanup] already running, skipping duplicate run");
-            return;
-        }
-    }
-
-    // 使用 Drop guard 确保无论清理成功、失败还是 panic，标志位都会被重置。
-    struct CleanupGuard(Arc<std::sync::atomic::AtomicBool>);
-    impl Drop for CleanupGuard {
-        fn drop(&mut self) {
-            self.0.store(false, Ordering::Release);
-        }
-    }
-
+    let session = match state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned")
+        .and_then(|svc| {
+            let account = svc.get_current_account().ok_or("Vault not unlocked")?;
+            svc.capture_session(&account)
+                .map_err(|_| "Vault session is no longer current")
+        }) {
+        Ok(session) => session,
+        Err(_) => return,
+    };
     let state = state.clone();
-    tokio::task::spawn_blocking(move || {
-        let _guard = CleanupGuard(state.trash_cleanup_running.clone());
-
-        let result = (|| -> Result<usize, String> {
-            let svc = state
-                .vault_service
-                .read()
-                .map_err(|_| "Vault service lock poisoned".to_string())?;
-            let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
-            vault.cleanup_expired_trash()
-        })();
-
-        match result {
-            Ok(0) => {
-                tracing::info!("[trash_cleanup] no expired trash items to clean");
+    tauri::async_runtime::spawn(async move {
+        let guard = match acquire_cleanup_slot(
+            &state.vault_service,
+            &session,
+            state.trash_cleanup_running.clone(),
+        )
+        .await
+        {
+            Ok(guard) => guard,
+            Err(_) => return,
+        };
+        let result = tauri::async_runtime::spawn_blocking(move || {
+            let _guard = guard;
+            let svc = match state.vault_service.read() {
+                Ok(svc) => svc,
+                Err(_) => {
+                    tracing::warn!("unlock maintenance service unavailable");
+                    return;
+                }
+            };
+            // 两个维护动作分别收尾；过期回收站失败不能阻断附件意图恢复。
+            match svc.with_session(&session, |vault| vault.cleanup_expired_trash()) {
+                Ok(count) if count > 0 => {
+                    tracing::info!(count, "expired trash cleanup completed");
+                    state.auto_sync.trigger_debounce();
+                    state.device_auto_sync.trigger_data_change();
+                }
+                Ok(_) => {}
+                Err(_) => tracing::warn!("expired trash cleanup failed"),
             }
-            Ok(count) => {
-                tracing::info!("[trash_cleanup] cleaned {} expired trash item(s)", count);
-                state.auto_sync.trigger_debounce();
-                state.device_auto_sync.trigger_data_change();
+            match solosoul_core::attachment_cleanup::retry_attachment_cleanup_for_session(
+                &svc, &session,
+            ) {
+                Ok(report) if report.pending > 0 => tracing::warn!(
+                    pending = report.pending,
+                    "unlock maintenance left pending attachment cleanup"
+                ),
+                Ok(_) => {}
+                Err(_) => tracing::warn!("attachment intent retry unavailable"),
             }
-            Err(e) => {
-                tracing::error!("[trash_cleanup] failed to clean expired trash: {}", e);
-            }
+        })
+        .await;
+        if result.is_err() {
+            tracing::warn!("unlock maintenance worker failed");
         }
     });
 }

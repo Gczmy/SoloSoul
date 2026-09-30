@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useRef } from 'react';
+import { isAttachmentCleanupPending, resolveBackendErrorMessage } from '@/lib/backendError';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useUiStore } from '@/stores/uiStore';
@@ -5,6 +7,7 @@ import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { isMobilePlatformSync } from '@/lib/platform';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { logger } from '@/lib/logger';
+import { createSessionRequests } from '@/lib/sessionRequests';
 
 export interface UseAttachmentBatchOpsOptions {
   objectId: string;
@@ -29,6 +32,20 @@ export function useAttachmentBatchOps({
   loadAttachments,
   onCountChange,
 }: UseAttachmentBatchOpsOptions) {
+  const { requests: attachmentRequests } = useMemo(
+    () => ({ objectId, requests: createSessionRequests() }),
+    [objectId],
+  );
+  const mountedRef = useRef(false);
+  const currentObjectIdRef = useRef(objectId);
+  currentObjectIdRef.current = objectId;
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      attachmentRequests.invalidate();
+    };
+  }, [attachmentRequests]);
   const { t } = useTranslation(['common', 'editor']);
   const showToast = useUiStore((s) => s.showToast);
 
@@ -173,17 +190,34 @@ export function useAttachmentBatchOps({
   };
 
   const handleBatchPermanentDelete = async () => {
+    if (!mountedRef.current || currentObjectIdRef.current !== objectId) return;
+    const request = attachmentRequests.begin();
+    const isCurrent = () =>
+      mountedRef.current && currentObjectIdRef.current === objectId && request.isCurrent();
     setBatchPermanentDeleteConfirm(false);
     const keys = Array.from(selectedIds);
     const attachmentIds = keys.map((k) => k.split('::')[1]);
     try {
-      await invoke('attachment_batch_delete', { objectId: objectId, attachmentIds: attachmentIds });
+      await request.invoke('attachment_batch_delete', {
+        objectId: objectId,
+        attachmentIds: attachmentIds,
+      });
+      if (!isCurrent()) return;
       showToast({
         type: 'success',
         message: t('common:batch_perm_delete_result', { success: keys.length, total: keys.length }),
       });
     } catch (err) {
+      if (!isCurrent()) return;
       logger.warn('[AttachmentViewer] Batch permanent delete failed:', err);
+      if (isAttachmentCleanupPending(err)) {
+        clearSelection();
+        await loadAttachments();
+        if (!isCurrent()) return;
+        onCountChange?.();
+        showToast({ type: 'warning', message: resolveBackendErrorMessage(err) });
+        return;
+      }
       showToast({
         type: 'warning',
         message: t('common:batch_perm_delete_result', { success: 0, total: keys.length }),
@@ -192,6 +226,7 @@ export function useAttachmentBatchOps({
     }
     clearSelection();
     await loadAttachments();
+    if (!isCurrent()) return;
     onCountChange?.();
   };
 

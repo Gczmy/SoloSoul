@@ -762,3 +762,5 @@ fn test_resolve_verified_attachment_path_missing_file() {
     let err = resolve_verified_attachment_path(&svc, "obj-1", "att-1").unwrap_err();
     assert!(err.contains("Cannot access attachment file"), "{err}");
 }
+
+mod rf016;

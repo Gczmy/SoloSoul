@@ -318,6 +318,7 @@ pub use storage::object_field_sensitivity_levels;
 pub use storage::object_has_attachments;
 pub use storage::probe_data_key;
 pub use storage::sensitivity_rank;
+pub use storage::AttachmentCleanupIntent;
 pub use storage::VaultStore;
 
 // =============================================================================

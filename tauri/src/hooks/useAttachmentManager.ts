@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
+import { createSessionRequests } from '@/lib/sessionRequests';
 import { useAttachmentPageSort } from '@/hooks/useAttachmentPageSort';
 import { collectPhotoItems } from '@/lib/attachmentUtils';
 import { useAttachmentManagerBatchOps } from '@/hooks/useAttachmentManagerBatchOps';
@@ -27,6 +27,17 @@ const getObjKey = (o: AttachmentTreeObject) => o.objectId;
 export function useAttachmentManager() {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
+  const attachmentRequests = useMemo(() => createSessionRequests(), []);
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      attachmentRequests.invalidate();
+    };
+  }, [attachmentRequests]);
+  const currentAccountIdRef = useRef(accountId);
+  currentAccountIdRef.current = accountId;
   const showToast = useUiStore((s) => s.showToast);
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
 
@@ -41,19 +52,24 @@ export function useAttachmentManager() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const loadData = useCallback(async () => {
-    if (!accountId) return;
+    if (!accountId || !mountedRef.current || currentAccountIdRef.current !== accountId) return;
+    const request = attachmentRequests.begin('list', accountId);
+    const isCurrent = () =>
+      mountedRef.current && currentAccountIdRef.current === accountId && request.isCurrent();
+    if (!isCurrent()) return;
     setLoading(true);
     try {
-      const result = await invoke<AttachmentListAllResult>('attachment_list_all', {
+      const result = await request.invoke<AttachmentListAllResult>('attachment_list_all', {
         accountId: accountId,
       });
+      if (!isCurrent()) return;
       setData(result);
     } catch {
-      setData(null);
+      if (isCurrent()) setData(null);
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [accountId]);
+  }, [accountId, attachmentRequests]);
 
   useEffect(() => {
     loadData();

@@ -26,7 +26,11 @@ vi.mock('@/lib/i18n', () => ({
   },
 }));
 
-import { resolveBackendErrorMessage, translateRustError } from './backendError';
+import {
+  resolveBackendErrorMessage,
+  translateRustError,
+  isAttachmentCleanupPending,
+} from './backendError';
 
 describe('translateRustError (P029-R1: password_too_short 映射)', () => {
   it('maps password-length Rust error to existing settings key (not missing common key)', () => {
@@ -73,5 +77,16 @@ describe('resolveBackendErrorMessage handshake detail i18n', () => {
     const raw = '__SYNC_ERR__:connect_failed:Connection refused (os error 61)';
     const msg = resolveBackendErrorMessage(raw);
     expect(msg).toContain('Connection refused');
+  });
+});
+
+describe('RF-016 accepted attachment cleanup', () => {
+  it('recognizes the exact pending code and translates it', () => {
+    expect(isAttachmentCleanupPending(new Error('attachment_cleanup_pending'))).toBe(true);
+    expect(isAttachmentCleanupPending('attachment_cleanup_pending')).toBe(true);
+    expect(isAttachmentCleanupPending('database save failed')).toBe(false);
+    expect(resolveBackendErrorMessage('attachment_cleanup_pending')).toBe(
+      'common:attachment_cleanup_pending',
+    );
   });
 });

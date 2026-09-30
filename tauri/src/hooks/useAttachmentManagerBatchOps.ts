@@ -1,9 +1,11 @@
-import { useCallback } from 'react';
+import { isAttachmentCleanupPending, resolveBackendErrorMessage } from '@/lib/backendError';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { TFunction } from 'i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { isUriPath } from '@/lib/mobileFileTransfer';
 import { logger } from '@/lib/logger';
+import { createSessionRequests } from '@/lib/sessionRequests';
 import type { Toast } from '@/stores/uiStore';
 import type {
   AttachmentMeta,
@@ -33,6 +35,15 @@ export function useAttachmentManagerBatchOps({
   t,
   showToast,
 }: UseAttachmentManagerBatchOpsOptions) {
+  const attachmentRequests = useMemo(() => createSessionRequests(), []);
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      attachmentRequests.invalidate();
+    };
+  }, [attachmentRequests]);
   const {
     selectedIds,
     batchDeleteConfirm,
@@ -120,12 +131,19 @@ export function useAttachmentManagerBatchOps({
    */
   const runBatchOperation = useCallback(
     async (op: {
-      command: 'attachment_batch_soft_delete' | 'attachment_batch_delete' | 'attachment_batch_restore';
+      command:
+        | 'attachment_batch_soft_delete'
+        | 'attachment_batch_delete'
+        | 'attachment_batch_restore';
       closeConfirm: () => void;
       resultKey: 'batch_delete_result' | 'batch_perm_delete_result' | 'batch_restore_result';
       opLabel: string;
       defaultMessage: string;
     }) => {
+      // 只保护本项永久删除，其他批量命令保持原有编排。
+      const request = op.command === 'attachment_batch_delete' ? attachmentRequests.begin() : null;
+      const isCurrent = () => request === null || (mountedRef.current && request.isCurrent());
+      if (!isCurrent()) return;
       op.closeConfirm();
       const entries = [...selectedIds];
       if (entries.length === 0) return;
@@ -141,7 +159,7 @@ export function useAttachmentManagerBatchOps({
       const results = await Promise.allSettled(
         [...byObject.entries()].map(async ([objectId, attachmentIds]) => {
           try {
-            await invoke(op.command, {
+            await (request?.invoke ?? invoke)(op.command, {
               objectId: objectId,
               attachmentIds: attachmentIds,
             });
@@ -153,17 +171,21 @@ export function useAttachmentManagerBatchOps({
           }
         }),
       );
+      if (!isCurrent()) return;
 
       let successCount = 0;
       let failedCount = 0;
+      let pendingCount = 0;
       for (const r of results) {
         // 内层闭包已 try/catch 所有失败，理论上不会 rejected；防御性兜底按失败计数
         if (r.status === 'rejected') {
           failedCount += entries.length;
           continue;
         }
-        if (r.value.error === null) {
+        if (r.value.error === null || isAttachmentCleanupPending(r.value.error)) {
           successCount += r.value.attachmentIds.length;
+          if (isAttachmentCleanupPending(r.value.error))
+            pendingCount += r.value.attachmentIds.length;
         } else {
           failedCount += r.value.attachmentIds.length;
         }
@@ -171,23 +193,27 @@ export function useAttachmentManagerBatchOps({
 
       clearSelection();
       await loadData();
+      if (!isCurrent()) return;
       const base = t(`common:${op.resultKey}`, {
         success: successCount,
         total: entries.length,
         defaultValue: op.defaultMessage,
       });
       showToast({
-        type: failedCount > 0 ? 'warning' : 'info',
+        type: failedCount > 0 || pendingCount > 0 ? 'warning' : 'info',
         message:
-          failedCount > 0
+          (failedCount > 0
             ? `${base}${t('common:batch_op_failed_suffix', {
                 count: failedCount,
                 defaultValue: `（${failedCount} 项失败）`,
               })}`
-            : base,
+            : base) +
+          (pendingCount > 0
+            ? ` · ${resolveBackendErrorMessage('attachment_cleanup_pending')}`
+            : ''),
       });
     },
-    [selectedIds, clearSelection, loadData, t, showToast],
+    [selectedIds, clearSelection, attachmentRequests, loadData, t, showToast],
   );
 
   /** 根据选中的复合键批量软删除附件 */

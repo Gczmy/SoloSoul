@@ -172,6 +172,7 @@ attachment-renamed = 已重命名为：{$name}
 attachment-deleted = 已删除附件：{$id}
 attachment-restored = 已恢复附件：{$id}
 attachment-purged = 已彻底删除附件：{$id}
+attachment-cleanup-pending = 附件记录已删除，{$count} 项文件清理待重试；重新解锁后会自动重试。
 attachment-soft-delete-prompt = 软删除附件「{$id}」？可在回收站恢复。
 attachment-purge-prompt = 彻底删除附件「{$id}」？此操作不可恢复。
 

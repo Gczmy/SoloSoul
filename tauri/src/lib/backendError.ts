@@ -25,6 +25,7 @@ const RUST_ERROR_MAP: Record<string, string> = {
   'Backup name cannot be empty': 'common:backup_name_empty',
 
   // Attachments
+  attachment_cleanup_pending: 'common:attachment_cleanup_pending',
   'No file path available': 'common:no_file_path',
   'Source path must not be inside vault storage': 'common:path_inside_vault',
   "Destination path must not contain '..'": 'common:path_traversal',
@@ -158,4 +159,9 @@ export function resolveBackendErrorMessage(err: unknown): string {
     ns,
     ...(detail ? { detail } : {}),
   });
+}
+
+/** 永久删除已提交，但实体文件仍待重试；不能与提交前失败混为一类。 */
+export function isAttachmentCleanupPending(error: unknown): boolean {
+  return (error instanceof Error ? error.message : String(error)) === 'attachment_cleanup_pending';
 }

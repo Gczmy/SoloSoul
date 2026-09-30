@@ -5,7 +5,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 
 use crate::storage::VaultStore;
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 26;
+pub const CURRENT_SCHEMA_VERSION: u32 = 27;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     // P032: 区分「首次建库无 data_version 行」与「真实读取错误」——
@@ -76,6 +76,7 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
     migrate_v24(conn, current)?;
     migrate_v25(conn, current)?;
     migrate_v26(conn, current)?;
+    migrate_v27(conn, current)?;
 
     Ok(())
 }
@@ -858,6 +859,41 @@ fn migrate_v26(conn: &mut Connection, current: u32) -> Result<(), String> {
             )?;
         }
     }
+    Ok(())
+}
+
+/// RF-016：本机永久删除附件许可，和对象元数据同事务提交；不随同步或导出传播。
+fn migrate_v27(conn: &mut Connection, current: u32) -> Result<(), String> {
+    if current >= 27 {
+        return Ok(());
+    }
+    let tx = conn
+        .transaction()
+        .map_err(|_| "Begin attachment cleanup migration failed")?;
+    tx.execute_batch(
+        "CREATE TABLE IF NOT EXISTS attachment_cleanup_intents (
+            account_id TEXT NOT NULL,
+            object_id TEXT NOT NULL,
+            storage_object_id TEXT NOT NULL,
+            attachment_id TEXT NOT NULL,
+            created_at INTEGER NOT NULL CHECK(created_at >= 0),
+            attempts INTEGER NOT NULL DEFAULT 0 CHECK(attempts BETWEEN 0 AND 4294967295),
+            last_error_code TEXT CHECK(last_error_code IN (
+                'referenced', 'invalid_references', 'file_action_failed'
+            )),
+            PRIMARY KEY(account_id, object_id, attachment_id)
+        );",
+    )
+    .map_err(|_| "Create attachment cleanup intents failed")?;
+    tx.execute(
+        "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description)
+         VALUES (27, ?1, 'Add local attachment cleanup intents')",
+        params![Utc::now().timestamp()],
+    )
+    .map_err(|_| "Record attachment cleanup migration failed")?;
+    set_schema_version(&tx, 27)?;
+    tx.commit()
+        .map_err(|_| "Commit attachment cleanup migration failed")?;
     Ok(())
 }
 

@@ -120,8 +120,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**250**（P1：49；P2：200；P3：1）。
-- 已关闭：**215 / 254**；实际修复（已关闭）：215；排除：0；待验证/阻塞：6（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：RF-016。RF-1065 已完成；最终前端 F 检查通过，正在整理附件删除的全栈证据并独立提交。六项平台/CI条件不变。
+- 已关闭：**216 / 254**；实际修复（已关闭）：216；排除：0；待验证/阻塞：6（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：准备选择下一项。RF-016 与独立前置 RF-1061/1062/1064/1065 已完成，下一步登记 KeepBoth 映射复审缺陷，再继续导入批次事务。六项平台/CI条件不变。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -150,7 +150,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 21 | [RF-017](#rf-017) | P1 | 导出完成后才替换目标包 | 无 | [x] 完成 |
 | 22 | [RF-018](#rf-018) | P1 | 导入模板保存失败必须传播 | 无 | [x] 完成 |
 | 23 | [RF-019](#rf-019) | P2 | 数据库事务失败时自动回滚 | 无 | [x] 完成 |
-| 24 | [RF-016](#rf-016) | P1 | 永久删除附件采用可恢复清理意图 | [RF-019](#rf-019) | [~] 进行中（最终检查通过，整理证据与独立提交） |
+| 24 | [RF-016](#rf-016) | P1 | 永久删除附件采用可恢复清理意图 | [RF-019](#rf-019) | [x] 完成 |
 | 25 | [RF-020](#rf-020) | P1 | 导入失败返回真实部分提交状态 | [RF-018](#rf-018) | [x] 完成 |
 | 26 | [RF-021](#rf-021) | P1 | 对象模板与历史按导入批次事务提交 | [RF-018](#rf-018)、[RF-019](#rf-019)、[RF-020](#rf-020) | [ ] 待执行（已授权） |
 | 27 | [RF-022](#rf-022) | P1 | 附件导入可恢复且同一任务重试幂等 | [RF-020](#rf-020)、[RF-021](#rf-021) | [ ] 待执行 |
@@ -606,7 +606,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **入口：**`tauri/src-tauri/src/commands/attachment/crud.rs`；`tauri/src-tauri/src/commands/attachment/tests.rs`；`tauri/crates/solosoul-core/src/objects.rs`；`tauri/crates/solosoul-vault/src/storage.rs`；`tauri/crates/solosoul-vault/src/storage/attachment_cleanup.rs（拟新增）`。
 - **执行：**在同一数据库事务提交附件元数据删除与清理意图，再删除实体文件；NotFound 可视为完成，其他错误保留重试记录。单删、批删和 core::objects::purge_attachment 复用执行器；在已解锁维护入口恢复未完成清理，保留路径边界校验。
 - **验收：**数据库失败时实体文件仍存在；文件删除失败时意图可追踪可重试；事务提交前后中断均可恢复；GUI 单删/批删和 CLI 使用同一规则。
-- **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**新增 rf016_* 临时目录故障注入；cargo test -p solosoul-vault --lib rf016_；cargo test -p solosoul-core --lib rf016_；cargo test -p solo_soul --lib rf016_；CLI 附件删除回归。
+- **验证配置：**`R` + `CORE` + `CLI` + `F`。**定向验证：**新增 rf016_* 临时目录故障注入；cargo test -p solosoul-vault --lib rf016_；cargo test -p solosoul-core --lib rf016_；cargo test -p solo_soul --lib rf016_；CLI 附件删除回归。
 - **建议提交：**`fix: resolve [RF-016] - make attachment deletion recoverable`。
 
 ### RF-017
@@ -5628,3 +5628,12 @@ git commit -m "<任务卡的提交标题>"
 - 基线 `7839a28e`；原实现真实父 Hook 回归 **8 failed / 1 passed**，包括旧 callback 取消新页面计数与空列表保留旧计数。补齐原会话 ticket、同步会话 epoch、已提交路由/列表身份和 mounted；过期 callback 在 begin/abort 之前返回，正常最新请求和空列表行为保持。
 - 真实 Hook/Store 及 Viewer 组合定向 **11 文件 / 98 passed**；最终 TypeScript、官方 Lint（`--max-warnings 0`）、修改文件 Prettier、完整默认 `npm run test` 全部 exit0：**236 文件 / 1,967 Vitest passed，112 Node passed，0 failed/skip**。首轮三项新依赖警告及修正后的完整重验记录保留。
 - 验证在包含待提交 RF-016 的工作树执行，逐源 SHA 记录明确归属；本项不宣称原生 GUI 或跨平台实测。证据见 [RF-1065 验证记录](verification/rf1065-attachment-count-ownership-2026-09-30.json)。215/254 已关闭，仅父 Hook、回归、报告及证据独立提交，不推送。
+
+### RF-016 执行记录（2026-09-30，完成）
+
+- 用户再次按计划执行后，在恢复有效仓库 `C:\Users\40299571\SoloSoul` 实施；原 `D:\SoloSoul` 索引恢复问题及历史审批记录保留，本轮没有审批拒绝。数据库 schema27 本机清理意图与真实附件元数据、版本/HLC 同事务；严格重载所有当前/软删除引用，再按权威 storage ID/附件 ID 执行标准目录清理。数据库失败文件不动，安全/IO/确认失败保留重试，确切 NotFound 可完成。
+- Core/GUI/CLI 使用共享报告区分未接受与已接受 pending；GUI 原会话 worker 在 pending 时仍同步元数据并显示待重试，解锁维护与 CLI 首页重试明确许可。CLI 确认前捕获会话，按原对象/删除过滤刷新列表并钳制选择，不让宽松孤儿扫描绕过 pending。
+- 独立复审发现 GUI 迟到 toast、loader 与父 callback；真实红测后补齐 mounted、原会话、对象 A→B→A 代次、最新列表与确认目标保护，保留既有批次并行。父计数回调由 RF-1065 单独修复。最终独立前端复审与源 SHA 记录归档。
+- 最终真实原生回归 **43 passed**（Vault18/Core11/Host6/CLI8），完整 workspace **1,406 passed / 0 failed / 3 原有 ignored**，完整 CLI **277 单元+2 集成 passed / 0 failed / 1 原有 ignored 文档测试**；双方 fmt、all-targets Clippy（-D warnings）通过。PDFium 显式使用已核验本机 DLL；旧插件测试、外部 sqlite3 依赖和 CLI 锁版本由 RF-1062/1064/1061 独立处理，初轮失败不隐去。
+- 最终前端 **11 文件/98 定向 passed**，TypeScript、Lint 零警告、Prettier、默认全量 **236 文件/1,967 Vitest passed +112 Node passed**、0失败/跳过。复用 RF-1065 对相同最终32源中的前端 SHA 验收，不重复无变更检查。两个 Unix 专属 cfg 用例未在 Windows 编译运行；未宣称原生 GUI、多端云同步或安全擦除实测。
+- 规范 §8、完整退出码/源与日志 SHA、失败修正和复审见 [RF-016 验证记录](verification/rf016-recoverable-attachment-deletion-2026-09-30.json)。216/254已关闭，本提交仅本项32源/locale/测试及规范、报告、证据共35路径；原用户位图和无关换行改动保留，独立本地提交，不推送。RF-905 目录互斥/附件发布窗口及 RF-903 广泛孤儿扫描边界继续待办。

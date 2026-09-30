@@ -1,11 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { TFunction } from 'i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 import { downloadViaStage } from '@/lib/mobileFileTransfer';
 import { previewItemByMime, truncateFileName, downloadAttachmentFile } from '@/lib/attachmentUtils';
-import { resolveBackendErrorMessage } from '@/lib/backendError';
+import { isAttachmentCleanupPending, resolveBackendErrorMessage } from '@/lib/backendError';
 import { isMobilePlatformSync } from '@/lib/platform';
+import { createSessionRequests } from '@/lib/sessionRequests';
 import type { Toast } from '@/stores/uiStore';
 import type {
   AttachmentMeta,
@@ -38,6 +39,15 @@ export function useAttachmentManagerItemOps({
   t,
   showToast,
 }: UseAttachmentManagerItemOpsOptions) {
+  const attachmentRequests = useMemo(() => createSessionRequests(), []);
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      attachmentRequests.invalidate();
+    };
+  }, [attachmentRequests]);
   const [previewItem, setPreviewItem] = useState<AttachmentMeta | null>(null);
   const [shareItem, setShareItem] = useState<AttachmentMeta | null>(null);
   const [permDeleteItem, setPermDeleteItem] = useState<AttachmentToPurge | null>(null);
@@ -181,21 +191,34 @@ export function useAttachmentManagerItemOps({
   }, []);
 
   const doPermanentDelete = useCallback(async () => {
-    if (!permDeleteItem) return;
+    if (!permDeleteItem || !mountedRef.current) return;
+    const item = permDeleteItem;
+    const request = attachmentRequests.begin();
+    const isCurrent = () => mountedRef.current && request.isCurrent();
     try {
-      await invoke('attachment_delete', {
-        objectId: permDeleteItem._objectId,
-        attachmentId: permDeleteItem.id,
+      await request.invoke('attachment_delete', {
+        objectId: item._objectId,
+        attachmentId: item.id,
       });
+      if (!isCurrent()) return;
       await loadData();
+      if (!isCurrent()) return;
     } catch (e) {
-      showToast({
-        type: 'error',
-        message: `${t('common:perm_delete_failed')}: ${resolveBackendErrorMessage(e)}`,
-      });
+      if (!isCurrent()) return;
+      if (isAttachmentCleanupPending(e)) {
+        await loadData();
+        if (!isCurrent()) return;
+        showToast({ type: 'warning', message: resolveBackendErrorMessage(e) });
+      } else {
+        showToast({
+          type: 'error',
+          message: `${t('common:perm_delete_failed')}: ${resolveBackendErrorMessage(e)}`,
+        });
+      }
     }
-    setPermDeleteItem(null);
-  }, [permDeleteItem, loadData, t, showToast]);
+    // 旧结果不能关闭等待期间另选的确认目标。
+    setPermDeleteItem((current) => (current === item ? null : current));
+  }, [permDeleteItem, attachmentRequests, loadData, t, showToast]);
 
   return {
     previewItem,

@@ -1,4 +1,5 @@
 {
+  "attachment_cleanup_pending": "Attachment records were deleted, but some files are awaiting cleanup. Unlock again to retry automatically.",
   "cancel_download": "Cancel download",
   "update_cancelling": "Cancelling download…",
   "update_installing": "Installing update…",

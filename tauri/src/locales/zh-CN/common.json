@@ -1,4 +1,5 @@
 {
+  "attachment_cleanup_pending": "附件记录已删除，部分文件清理待重试；重新解锁后会自动重试。",
   "cancel_download": "取消下载",
   "update_cancelling": "正在取消下载…",
   "update_installing": "正在安装更新…",

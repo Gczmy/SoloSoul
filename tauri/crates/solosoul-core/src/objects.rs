@@ -16,6 +16,12 @@ use solosoul_vault::{ObjectRecord, PropertyType, TrashItem, VaultStore};
 /// 导出附件元数据，与 GUI/CLI 共享。
 pub use crate::export_import::AttachmentMeta;
 
+/// RF-016：GUI/CLI 共用的可恢复附件清理入口。
+pub use crate::attachment_cleanup::{
+    purge_attachments, purge_attachments_for_session, retry_attachment_cleanup,
+    retry_attachment_cleanup_for_session, CleanupReport,
+};
+
 mod create;
 pub use create::{
     build_create_record, inherit_contract_type_id, inherit_property_fields,
@@ -895,7 +901,8 @@ pub fn restore_attachment(
     Ok(())
 }
 
-/// 彻底删除附件（元数据 + 物理文件）。
+/// 兼容永久删除入口；未完成物理清理时返回固定 pending 错误。
+/// 新 GUI/CLI 使用返回 CleanupReport 的会话入口，以发布已提交的元数据变化。
 pub fn purge_attachment(
     vault: &VaultStore,
     account_id: &str,
@@ -903,41 +910,22 @@ pub fn purge_attachment(
     attachment_id: &str,
     base_path: &Path,
 ) -> Result<(), String> {
-    let mut record = vault
+    let record = vault
         .load_object(object_id)?
         .ok_or_else(|| "对象不存在".to_string())?;
     if record.account_id != account_id || record.is_deleted {
         return Err("对象不存在或已被删除".to_string());
     }
-
-    let atts: Vec<AttachmentMeta> = load_attachments(&record.properties)
-        .into_iter()
-        .filter(|a| a.id != attachment_id)
-        .collect();
-
-    // 删除物理文件
-    let attachments_dir = base_path
-        .join("attachments")
-        .join(object_id)
-        .join(attachment_id);
-    if attachments_dir.exists() {
-        let _ = std::fs::remove_dir_all(&attachments_dir);
+    let report = purge_attachments(
+        vault,
+        account_id,
+        object_id,
+        &[attachment_id.to_string()],
+        base_path,
+    )?;
+    if report.pending != 0 {
+        return Err("attachment_cleanup_pending".to_string());
     }
-
-    save_attachments(&mut record.properties, &atts);
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
-    vault.save_object(&record)?;
-
-    let _ = vault.log_structured(
-        "attachment_purge",
-        "attachment",
-        Some(object_id),
-        Some(attachment_id),
-        "user",
-        None,
-    );
-
     Ok(())
 }
 
