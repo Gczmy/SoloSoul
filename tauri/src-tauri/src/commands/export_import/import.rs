@@ -524,7 +524,8 @@ fn import_execute_steps(
     let now = chrono::Utc::now().to_rfc3339();
 
     // ── 阶段 3：预构建 KeepBoth ID 映射表（解决前向引用问题）──
-    let id_map = build_keepboth_id_map(objects, &object_strategies);
+    let id_map =
+        build_keepboth_id_map(objects, strategy, &object_strategies, selected_ids.as_ref());
 
     // ── 阶段 4：对象导入主循环（策略/模板/KeepBoth/快照已抽至 import_one_object）──
     *stage = ImportStage::Objects;
@@ -757,18 +758,21 @@ fn build_package_snapshots(payload: &serde_json::Value) -> HashMap<String, Vec<s
         .unwrap_or_default()
 }
 
-/// 阶段 3：预构建 KeepBoth ID 映射表（解决前向引用问题）。
+/// 阶段 3：按实际生效策略，为本次选中对象预构建 KeepBoth ID 映射表。
+/// 未选对象保留原 ID 引用；选中对象的前向引用、附件和重复源 ID 共用此表。
 fn build_keepboth_id_map(
     objects: &[serde_json::Value],
+    strategy: ImportStrategy,
     object_strategies: &HashMap<String, ImportStrategy>,
+    selected_ids: Option<&BTreeSet<String>>,
 ) -> HashMap<String, String> {
     let mut id_map: HashMap<String, String> = HashMap::new();
     for obj_val in objects {
         let id = obj_val["id"].as_str().unwrap_or("");
-        if id.is_empty() {
+        if id.is_empty() || selected_ids.is_some_and(|selected| !selected.contains(id)) {
             continue;
         }
-        if object_strategies.get(id).copied() == Some(ImportStrategy::KeepBoth) {
+        if object_strategies.get(id).copied().unwrap_or(strategy) == ImportStrategy::KeepBoth {
             id_map.insert(id.to_string(), generate_id());
         }
     }

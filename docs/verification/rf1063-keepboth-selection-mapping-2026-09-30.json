@@ -1,0 +1,232 @@
+{
+  "task": "RF-1063",
+  "date": "2026-09-30",
+  "repository": "C:\\Users\\40299571\\SoloSoul",
+  "baseline": {
+    "head": "d736f46e1229b9f36e9d69d4827acca160d72609",
+    "source": [
+      {
+        "path": "tauri/src-tauri/src/commands/export_import/import.rs",
+        "kind": "read-only baseline copy",
+        "bytes": 53069,
+        "sha256": "7102DD1ABF7736DB59905503996897C6DD0D4862F6608AAA6D88981935077D7C"
+      },
+      {
+        "path": "tauri/src-tauri/src/commands/export_import/tests.rs",
+        "kind": "read-only baseline copy",
+        "bytes": 55064,
+        "sha256": "F0B5CFCB98D145F510100FF483B7F31F409A72D1511FDC51CAB0289D62DE61C7"
+      }
+    ],
+    "proposalSha256": "80ad4240b22d2f00d9e1de6affff3b4293e9505e34866a3828b5044c10df5c1a",
+    "patchSha256": "f7227f78323a6c0a74fc507d93261aef2abe8ab02b26af0899045d091451e94b"
+  },
+  "sourceManifest": {
+    "tauri/src-tauri/src/commands/export_import/import.rs": "65b9bae1d808a2b618e73b9f17e079ce795fb9e1230ea087eb4e199c80b27296",
+    "tauri/src-tauri/src/commands/export_import/tests.rs": "8e87633df4cf1fd64805bc6c6da076fbd32a080d56db7d23df0e72c9e324ef40",
+    "tauri/src-tauri/src/commands/export_import/tests/rf1063.rs": "69128bdb14d123e24ead50957fb65cdfc3ac4a4e17cfac895b64256a9a01de12"
+  },
+  "problem": "GUI全局KeepBoth通常传空objectStrategies；旧映射只识别显式KeepBoth且包含未选对象，引用/附件未共享新ID或指向未导入新ID。",
+  "changes": [
+    "采用override.unwrap_or(global)，仅为本次选中非空源ID预建映射；原消费者/顺序/名字与重复源ID最终映射保持。",
+    "保留None全量、Some空无选择和未选目标原ID，不修改数据库事务或Core/CLI。"
+  ],
+  "red": {
+    "command": [
+      "cargo",
+      "test",
+      "-j",
+      "1",
+      "-p",
+      "solo_soul",
+      "--lib",
+      "rf1063_",
+      "--",
+      "--nocapture"
+    ],
+    "exitCode": 101,
+    "elapsedSeconds": 369.27,
+    "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1063-20260930\\red.log",
+    "sha256": "3b903fe2d144961d86f45216a3d25abef6d0e2cd40a727ad49893f8b112b322e",
+    "results": [
+      "test result: FAILED. 3 passed; 5 failed; 0 ignored; 0 measured; 628 filtered out; finished in 1.61s"
+    ]
+  },
+  "redTotals": {
+    "passed": 3,
+    "failed": 5,
+    "ignored": 0,
+    "total": 8
+  },
+  "checks": [
+    {
+      "check": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 6.19,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1063-20260930\\fmt-first.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "results": []
+    },
+    {
+      "check": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "-j",
+        "1",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 82.79,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1063-20260930\\clippy-first.log",
+      "sha256": "6afc13d65d468d67039ac915c70bbdf5610e1e4ac164562653532efaf64c345f",
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "results": []
+    },
+    {
+      "check": "target",
+      "command": [
+        "cargo",
+        "test",
+        "-j",
+        "1",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "rf1063_",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 151.73,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1063-20260930\\target-first.log",
+      "sha256": "6974008218a0e7d1af936da0eb0de358a86530f6ec39e3db5c4972e7bbfad791",
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "results": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 628 filtered out; finished in 1.47s"
+      ]
+    },
+    {
+      "check": "import-module",
+      "command": [
+        "cargo",
+        "test",
+        "-j",
+        "1",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "commands::export_import::tests::"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 13.97,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1063-20260930\\import-module-first.log",
+      "sha256": "df03d356002f1946fa75b104f3ac6f6a547c175d2a480fca2c89b008b06508bb",
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "results": [
+        "test result: ok. 84 passed; 0 failed; 0 ignored; 0 measured; 552 filtered out; finished in 11.20s"
+      ]
+    },
+    {
+      "check": "full",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "-j",
+        "1"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 532.88,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1063-20260930\\full-first.log",
+      "sha256": "6191f1c5c3c914405913eb30ca21a7a016df04b3945fdf3a44fb6ce5e653d9b4",
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "results": [
+        "test result: ok. 636 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 31.70s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.55s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 306 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 15.22s",
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.25s",
+        "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s",
+        "test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.71s",
+        "test result: ok. 95 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 1.48s",
+        "test result: ok. 64 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.76s",
+        "test result: ok. 208 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.21s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ]
+    }
+  ],
+  "fullTotals": {
+    "groups": 25,
+    "passed": 1414,
+    "failed": 0,
+    "ignored": 3
+  },
+  "finalCases": [
+    "test commands::export_import::tests::rf1063::rf1063_duplicate_selected_source_ids_share_final_mapping_and_original_name_order ... ok",
+    "test commands::export_import::tests::rf1063::rf1063_empty_selection_does_not_create_copies_or_modify_existing_data ... ok",
+    "test commands::export_import::tests::rf1063::rf1063_explicit_keepboth_unselected_target_keeps_original_reference_and_attachments ... ok",
+    "test commands::export_import::tests::rf1063::rf1063_global_keepboth_empty_overrides_rewrites_graph_and_selected_attachment ... ok",
+    "test commands::export_import::tests::rf1063::rf1063_global_keepboth_unselected_target_keeps_original_reference_and_attachments ... ok",
+    "test commands::export_import::tests::rf1063::rf1063_global_keepboth_keeps_locale_suffix_and_name_increment_rules ... ok",
+    "test commands::export_import::tests::rf1063::rf1063_nonkeepboth_override_of_global_keepboth_retains_original_id ... ok",
+    "test commands::export_import::tests::rf1063::rf1063_per_object_keepboth_with_nonkeepboth_global_still_remaps ... ok"
+  ],
+  "targetTotals": {
+    "passed": 8,
+    "failed": 0,
+    "ignored": 0
+  },
+  "importModuleTotals": {
+    "passed": 84,
+    "failed": 0,
+    "ignored": 0
+  },
+  "review": "Root独立核对最小生产差异、全部实际加密包/owned job/SQLite草稿与真实红绿结果，原GUI只发送差异override路径已核实。",
+  "preservedUserBitmaps": {
+    "header-install.bmp": "EBAFC6856B2BBD91902ED18E5D07564BE87C2F0127EB2E3C744200485C70BB22",
+    "header-uninstall.bmp": "61AA19110AD51B20807F21B0BC8C77ED01033D89EC68089ACFE15978FA2C46CC",
+    "welcome-sidebar.bmp": "D5582B57B0E0FB1B075104F6FB194B0902F576F9A05CFC998FC67D0372183F9C"
+  },
+  "limitations": [
+    "Windows本机真实SQLite/ZIP/SOLC/owned worker；没有启动原生GUI。",
+    "未选目标原本不存在的跨范围引用行为未变；附件重试幂等、数据库批次由后续RF022/RF021处理。",
+    "三个ignored均为既有legacy field两个和手动基准一个，无新增跳过；没有修改前端或共享Core，未重复F/CLI检查。"
+  ],
+  "commit": "本提交，以RF-1063检索；不推送。"
+}

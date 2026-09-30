@@ -15,6 +15,7 @@ pub(crate) mod rf020;
 mod rf025;
 mod rf026;
 mod rf027;
+mod rf1063;
 
 // ── 1. Error formatting functions ───────────────────────────
 
