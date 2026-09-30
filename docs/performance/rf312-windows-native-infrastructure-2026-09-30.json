@@ -1,0 +1,1347 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "date": "2026-09-30",
+  "gitBase": "7fb5cc430df08a8eee5505879b5609aacbda4180",
+  "phase": "Windows isolated native infrastructure; GUI performance blocked at CDP",
+  "taskClosed": false,
+  "closedTasksRemain": 207,
+  "totalTasksRemain": 248,
+  "hardware": {
+    "capturedAt": "2026-09-30T03:52:29.3717384Z",
+    "cpu": [
+      {
+        "Name": "Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz",
+        "NumberOfCores": 8,
+        "NumberOfLogicalProcessors": 8
+      }
+    ],
+    "machine": {
+      "Manufacturer": "Dell Inc.",
+      "Model": "OptiPlex 7070",
+      "TotalPhysicalMemory": 16951218176
+    },
+    "os": {
+      "Caption": "Microsoft Windows 11 Enterprise LTSC",
+      "Version": "10.0.26100",
+      "BuildNumber": "26100",
+      "OSArchitecture": "64-bit"
+    },
+    "activePowerScheme": [
+      "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)"
+    ]
+  },
+  "versions": {
+    "webview2ObservedInSecondAttempt": "154.0.4258.37",
+    "app": "2.13.2",
+    "node": "24.16.0",
+    "rust": "1.96.0"
+  },
+  "build": {
+    "features": [
+      "default custom-protocol",
+      "non-default native-perf",
+      "tauri/devtools through native-perf only"
+    ],
+    "bundling": false,
+    "command": "npx tauri build --config src-tauri/tauri.native-perf.conf.json --features native-perf --no-bundle --ci",
+    "stagedFiles": [
+      {
+        "path": "DirectML.dll",
+        "sha256": "9C9E6D822561C6C41B90E6994B3E8857CF1D66DBFB1E0C4C799C7C89B4E92DA1",
+        "bytes": 18527776
+      },
+      {
+        "path": "docs\\guides\\en\\ai_chat.md",
+        "sha256": "759A4D1ACECB958CA6F85A9FED7038F9211CB1DF99B59128634BB1D5892B334D",
+        "bytes": 2272
+      },
+      {
+        "path": "docs\\guides\\en\\appearance.md",
+        "sha256": "36CBF213C9E571A948E9EAA3F40853DEFB7C4B9FBA383AEFFE230077D65BFC0C",
+        "bytes": 2439
+      },
+      {
+        "path": "docs\\guides\\en\\attachments.md",
+        "sha256": "B213F76A1E53E4FC3226160C5F5F0AFC78614285AAC99940600BC467463D5EBF",
+        "bytes": 1483
+      },
+      {
+        "path": "docs\\guides\\en\\audit_log.md",
+        "sha256": "DCEBB62E1BADAD6597DE43A35C0283861479CE604C3987DF7A4F6EAFB9B59ECE",
+        "bytes": 1503
+      },
+      {
+        "path": "docs\\guides\\en\\backup_restore.md",
+        "sha256": "B66FB9C2560F123A347AB731299F4028E38E86F0C80B9ECBED2BA9F75C3D7D9C",
+        "bytes": 1547
+      },
+      {
+        "path": "docs\\guides\\en\\biometric.md",
+        "sha256": "6F7BC0C5678B944773B445F679D76AE6D06DF1C30149A228E4DA6BB15810EBB5",
+        "bytes": 2173
+      },
+      {
+        "path": "docs\\guides\\en\\collections.md",
+        "sha256": "644483684412849EB6A253A66215299F6A76A240AF4D593A1CF9F797D12D2D47",
+        "bytes": 1555
+      },
+      {
+        "path": "docs\\guides\\en\\device_sync.md",
+        "sha256": "E94308E6828F65077D3CE363D136245B18BE76D164F77406058D71C88D4EE91C",
+        "bytes": 9641
+      },
+      {
+        "path": "docs\\guides\\en\\export_import.md",
+        "sha256": "4CD9932A57890D592A51F2635C27012A47458F5E3B8EB1C7A65E44995DCB1573",
+        "bytes": 2063
+      },
+      {
+        "path": "docs\\guides\\en\\getting_started.md",
+        "sha256": "C6B1BC57D17D82AF8EF646D33A45DE79F52971310E177A5437E0A01A879F836C",
+        "bytes": 2197
+      },
+      {
+        "path": "docs\\guides\\en\\llm_config.md",
+        "sha256": "1F3323A10327D781FCB686E96894050F30406335A1D0DA5CD429475F0C7D71BA",
+        "bytes": 2179
+      },
+      {
+        "path": "docs\\guides\\en\\objects.md",
+        "sha256": "0BA34CC1B895208F4C4C4FAFD011981BFBF7E79B337B430A4DAF206A6FD3C658",
+        "bytes": 1674
+      },
+      {
+        "path": "docs\\guides\\en\\ocr_scan.md",
+        "sha256": "D76DDD54B6AA702E0FC990418D554658AF5894B2E4FA35D9F37AA1E0FFA17104",
+        "bytes": 2871
+      },
+      {
+        "path": "docs\\guides\\en\\plugins.md",
+        "sha256": "F3617A845ECD1BBAF414A071BD74C812A26F8FB1814C4506DEFE90BA42623BC4",
+        "bytes": 1925
+      },
+      {
+        "path": "docs\\guides\\en\\search.md",
+        "sha256": "51182A06744AEDD57CE8757DBBB2F848F669509772B7FFE377F4131B1C8584AA",
+        "bytes": 1147
+      },
+      {
+        "path": "docs\\guides\\en\\security.md",
+        "sha256": "18988107D850DF08E1B8CCBDFB6103C5CB31CEE4DC1F6523C10BB262D991AC29",
+        "bytes": 2600
+      },
+      {
+        "path": "docs\\guides\\en\\sensitivity.md",
+        "sha256": "511B8108EDC7D68709254D6DCACC9208A49305F82BAED23B1AC0AF02CD2DDC5B",
+        "bytes": 2071
+      },
+      {
+        "path": "docs\\guides\\en\\snapshots.md",
+        "sha256": "2E961D6FD9FF3EA34AB331DCC83FA846E4557A375144F0A2086A1EC75AE3CCC0",
+        "bytes": 1741
+      },
+      {
+        "path": "docs\\guides\\en\\templates.md",
+        "sha256": "003433811D6BCFC2401BD17B4E49B6F648CD6D752E52A9CE5A43A29119CF9623",
+        "bytes": 2863
+      },
+      {
+        "path": "docs\\guides\\en\\trash.md",
+        "sha256": "D7E632A87AAEDF91D4BE5F4AEFF8126A0BAD5B3E551410E257CF5E06BDE991BC",
+        "bytes": 1532
+      },
+      {
+        "path": "docs\\guides\\en\\workspace.md",
+        "sha256": "150C78C4606D5A5C97AAEEC953F4E1C8984E19CA7B6555F525676AC110CCA132",
+        "bytes": 1723
+      },
+      {
+        "path": "docs\\guides\\index.json",
+        "sha256": "1BF5E302EA76C7ED8A315CB1B4A1F31E292F44CAA219A7AE02752C143E3CC98F",
+        "bytes": 7474
+      },
+      {
+        "path": "docs\\guides\\search-index.json",
+        "sha256": "CD4BEAF09AEDA37039A6523E6B86D01374DCCED507278A1E76D41BD473B4E8FB",
+        "bytes": 252821
+      },
+      {
+        "path": "docs\\guides\\zh\\ai_chat.md",
+        "sha256": "6E24099D3CB055476D6C895CEA3846206CD1D1F684A3107BC3AB6E905619560C",
+        "bytes": 2166
+      },
+      {
+        "path": "docs\\guides\\zh\\appearance.md",
+        "sha256": "7826865B0904FA2936D265B99F31CAB750940C8D535825EFE825E5CCE8EA5F62",
+        "bytes": 2361
+      },
+      {
+        "path": "docs\\guides\\zh\\attachments.md",
+        "sha256": "2D6A5C831C9A8D2AC5604BF09C2A9960995F7530B42629C97A250AC27B858A40",
+        "bytes": 1294
+      },
+      {
+        "path": "docs\\guides\\zh\\audit_log.md",
+        "sha256": "A8C3E9FFFB6571468BD2E3D06E4D1D71D7F9E3741426A05363ECFD241F8E14B2",
+        "bytes": 1406
+      },
+      {
+        "path": "docs\\guides\\zh\\backup_restore.md",
+        "sha256": "9F710390EBCA4D4E99354C7894E7D34D78A2F9B302E7B23806664237D76E9D3D",
+        "bytes": 1395
+      },
+      {
+        "path": "docs\\guides\\zh\\biometric.md",
+        "sha256": "750A8B1B68A9ACDAC5BD534FBBD423A15BD4C1C3AF967AE672E7DF4A1EC02C6C",
+        "bytes": 1915
+      },
+      {
+        "path": "docs\\guides\\zh\\collections.md",
+        "sha256": "0F95169CBCF9C851F61DF3A622D799273A4ECF277F1D3DF12E9F56ACDA52F775",
+        "bytes": 1477
+      },
+      {
+        "path": "docs\\guides\\zh\\device_sync.md",
+        "sha256": "6F9FABF8EC89B3E1B8E62E194AA5605A78C51A44324BD945D9F7C6B1AAF474DD",
+        "bytes": 9462
+      },
+      {
+        "path": "docs\\guides\\zh\\export_import.md",
+        "sha256": "8E518E3F2E18460DC2D74AA8EDDA698F1FD98362B7044798242F9F623A860188",
+        "bytes": 1851
+      },
+      {
+        "path": "docs\\guides\\zh\\getting_started.md",
+        "sha256": "FE4A4562689778641BC7520EC9AB5283F1EFCCABAB2DDBC1A198A40307CDD963",
+        "bytes": 2079
+      },
+      {
+        "path": "docs\\guides\\zh\\llm_config.md",
+        "sha256": "C12AE9CBF56F47B4AAE2779CB13EB47D110815703D01702ABE2057DC0E36629D",
+        "bytes": 2063
+      },
+      {
+        "path": "docs\\guides\\zh\\objects.md",
+        "sha256": "58BBCC1A88E32C4A8932D39329375E26D8DCF69B118A289DD0AA9C7EDAB7DA0C",
+        "bytes": 1551
+      },
+      {
+        "path": "docs\\guides\\zh\\ocr_scan.md",
+        "sha256": "840ED199537D3E16A211DCF3F862487334DF8212DF0F52324AAA7186526E1565",
+        "bytes": 2655
+      },
+      {
+        "path": "docs\\guides\\zh\\plugins.md",
+        "sha256": "F616F6465A23C6CC51B86E356BFB376E387611795516165224E86C8BA909EA88",
+        "bytes": 1643
+      },
+      {
+        "path": "docs\\guides\\zh\\search.md",
+        "sha256": "D6C34E2DEE985A433B922C5C2559C2F4EFFBE0325506629BA345DA25C4E7962A",
+        "bytes": 1057
+      },
+      {
+        "path": "docs\\guides\\zh\\security.md",
+        "sha256": "400A2E6CDA0FBCCA57293C04EEDC76D0C51406B99FEC819996BBEE5E129FE6D6",
+        "bytes": 2337
+      },
+      {
+        "path": "docs\\guides\\zh\\sensitivity.md",
+        "sha256": "65EFF8D74B1330934131D1F3E00F6D7C9BADAE3E62E241C84B4A6BACCAEC2707",
+        "bytes": 1901
+      },
+      {
+        "path": "docs\\guides\\zh\\snapshots.md",
+        "sha256": "23F5E9EA50018043A83C56072EBDA07D47C29FB692C84FCF3E5E1C708A8625E0",
+        "bytes": 1718
+      },
+      {
+        "path": "docs\\guides\\zh\\templates.md",
+        "sha256": "C8AAC2698D85BECF8DEC9B82D0CF3F0B7FD382488466527D42900700339D9B35",
+        "bytes": 2635
+      },
+      {
+        "path": "docs\\guides\\zh\\trash.md",
+        "sha256": "5382891E30E13AD4C99FEFCD9C30711DFE93FB4253CC939BAA65470321DDA7E1",
+        "bytes": 1446
+      },
+      {
+        "path": "docs\\guides\\zh\\workspace.md",
+        "sha256": "D1E262CB06ACD4B66919E5577726ABB938492D01BC04C96F45F9E5DCFE8E68F2",
+        "bytes": 1584
+      },
+      {
+        "path": "models\\pp-ocr-v6-small\\det\\inference.onnx",
+        "sha256": "D73E0058B7A8086BBD57F3D10B8BCD4FF95363F67E06E2762B5E814FE9C9410E",
+        "bytes": 9880512
+      },
+      {
+        "path": "models\\pp-ocr-v6-small\\det\\inference.yml",
+        "sha256": "193F435274BF9F0B5F71A929BBFBCF148282DF7E633B34E7C373E8F44741B516",
+        "bytes": 885
+      },
+      {
+        "path": "models\\pp-ocr-v6-small\\rec\\inference.onnx",
+        "sha256": "5435FD747C9E0EFE15A96D0B378D5BD157E9492ED8FD80EDF08F30D02FA24634",
+        "bytes": 21159378
+      },
+      {
+        "path": "models\\pp-ocr-v6-small\\rec\\inference.yml",
+        "sha256": "AB078671BB49F06228EADCCD34F1BB501E157F7A047095FFB943BA81512C77D1",
+        "bytes": 150579
+      },
+      {
+        "path": "pdfium\\pdfium.dll",
+        "sha256": "E66BD5AEFC2829F12EF41227F83A6EC6D60673EC77EF64153A05E7FFBAE9072E",
+        "bytes": 7213568
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.address-fmt\\manifest.json",
+        "sha256": "0F909E7CCF07AB984D0696CD31E3B3A7D64B9E33B953C533F537109917B2CCA6",
+        "bytes": 2986
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.address-fmt\\plugin.wasm",
+        "sha256": "B2F110DFEBC3C52EC4C96FBEA74DEDBFE8CBDB4DA5BDC46A1E1258DC9B6DC3E9",
+        "bytes": 196536
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.calendar-events\\manifest.json",
+        "sha256": "41F60A89F635B61AF476DE98FCAEDE8EE815FE82AD4C06209B3B76EA182CA2F6",
+        "bytes": 1160
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.calendar-events\\plugin.wasm",
+        "sha256": "02DCF893500F1600FC810E86C22A017AF04EA906CDADA96359FE4CB56B18B990",
+        "bytes": 77124
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.cloud-packager\\manifest.json",
+        "sha256": "98F2AC21B26C4C6B3332FDA8D088892976CDD4BE9D90C7CA19FF1BF6C50D3E2F",
+        "bytes": 1402
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.cloud-packager\\plugin.wasm",
+        "sha256": "E535BBA7C7504835A5521B2F09B6D295F50646D15CEF83017FD7642427391995",
+        "bytes": 40384
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.contact-exporter\\manifest.json",
+        "sha256": "7FC1CB6DC635B8CF8BE96B97DE9B70DB32ECCA0E320B9FBEC009EEF3EB8E9A30",
+        "bytes": 2380
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.contact-exporter\\plugin.wasm",
+        "sha256": "7CFC149AD364D80AF3B3F7681D8BAC05AC2BA5E03E77E6509E25C79CD0D47093",
+        "bytes": 61415
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.data-completeness\\manifest.json",
+        "sha256": "C646A42714680E60C623226B1780F29AFEE3933642593500FE5C0097D7D8F5F7",
+        "bytes": 1632
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.data-completeness\\plugin.wasm",
+        "sha256": "F57F33553CF2A886591E8948427E1A64D05EDC2EF2746B1F7308A3EC271BFDF3",
+        "bytes": 70238
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.digital-will\\manifest.json",
+        "sha256": "F0719DCA4152C84626DD92A1ABEC320A12A380C8414BE2E2A1618C6C1A41F535",
+        "bytes": 1397
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.digital-will\\plugin.wasm",
+        "sha256": "C888303BED30CCC187E59AD2383A28ED4AAF75438276978AD31421CE2A4558DC",
+        "bytes": 68837
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.doc-checklist\\manifest.json",
+        "sha256": "98A6AAAA947AAB9BC8ED39FEA2B5696F389247D2989F459755EB148996876E95",
+        "bytes": 2409
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.doc-checklist\\plugin.wasm",
+        "sha256": "BAC2DC3491EDFB2955F9FD48D855B518C3C6BE71EBABE80A1727CC074430E376",
+        "bytes": 134994
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.emergency-card\\manifest.json",
+        "sha256": "2ACEE9106A571E7CDF40267D22C7416D3D3EF8BAD209C8C2B919853A1E03C4F7",
+        "bytes": 1318
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.emergency-card\\plugin.wasm",
+        "sha256": "757D9EAF06138C6A25FFE924EED9FEF3CDC0851A5FA8DA92EADC04417341C1D5",
+        "bytes": 64742
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.expiry-guardian\\manifest.json",
+        "sha256": "A16D07294C769BD417FA2991E603C170085993D9146E53D8035C20FB78ABFD59",
+        "bytes": 1855
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.expiry-guardian\\plugin.wasm",
+        "sha256": "25822E1AEAE9D9FE3FB857555B4CA4EB66D8A302AC8B09FB60B79CB601A89AA9",
+        "bytes": 187321
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.form-prefiller\\manifest.json",
+        "sha256": "C2699F69E9C21B540C02C33032D85DEF2942615416E44A86AD636B73249862C1",
+        "bytes": 2885
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.form-prefiller\\plugin.wasm",
+        "sha256": "D20F21114593A9881494DFAB24BDC348FBCF2C9AE443AEF48AD0A37A9E8BDA7F",
+        "bytes": 107209
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.id-validator\\manifest.json",
+        "sha256": "DEDD5D7D5B39E3501E25E8D445C1A8CAFA7AA4F821A7A19CDBD95ED704668713",
+        "bytes": 1221
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.id-validator\\plugin.wasm",
+        "sha256": "837FB20FBF49060C3934F6D19B93899B16FE7373FEEB1148A08591606B3B60DB",
+        "bytes": 69584
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.identity-timeline\\manifest.json",
+        "sha256": "4E4CEFC40B0FE67F7ECC72C0C3148CCCE95922B72A5A65EB90E4D44B6142BB09",
+        "bytes": 2492
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.identity-timeline\\plugin.wasm",
+        "sha256": "64B911ABCB33A4F7D8048ABC13C655EBC0C45D512A0B8BA81C758951B7FBC20F",
+        "bytes": 81859
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.mrz-encoder\\manifest.json",
+        "sha256": "4BB1321B6A4E8ED21AF40CB19E13AC265A324C610433E70CDF366FDC449FC655",
+        "bytes": 1258
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.mrz-encoder\\plugin.wasm",
+        "sha256": "930788CC4FE3118A5ECDC9CB2C4C2D978124FECB69D926291664359E74D26AD7",
+        "bytes": 100349
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.namecard-gen\\manifest.json",
+        "sha256": "3B32116F969039E974866426C10FCEDC06C32048116DF14118B3FB58D5FDCF37",
+        "bytes": 1316
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.namecard-gen\\plugin.wasm",
+        "sha256": "D569178214A9539D62299998EA15E67FEF82A1EC5E1D1DA137D35EC1333A73E3",
+        "bytes": 82785
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.packing-list\\manifest.json",
+        "sha256": "FD724F21514BB5EE2EF2462E7F170B87CB023F8F1E244C0B4E5DBA6F6FDDCA61",
+        "bytes": 1147
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.packing-list\\plugin.wasm",
+        "sha256": "DFE71453F814A9E6E0BF3A64363A75E348774515ACAFF91305911D468E56DF55",
+        "bytes": 102723
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.phone-fmt\\manifest.json",
+        "sha256": "E0FA082FC3D106ADF56BA89737EA329967E31D6201860703EE9B90CE70E437C8",
+        "bytes": 1062
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.phone-fmt\\plugin.wasm",
+        "sha256": "BD31D94AD9C59867262183944EC4E4421395F090E94D3086054D87D5FF0D8876",
+        "bytes": 90973
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.resume-builder\\manifest.json",
+        "sha256": "718FD933131037AFC97172B7B38F362EE1A1E0B84EBF2B7DCE38F0216FF088A7",
+        "bytes": 3306
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.resume-builder\\plugin.wasm",
+        "sha256": "4325DE8B5A5448F67FFAFF9399EB79FAEC2B501C4B0F903A7150D9F030FEC71C",
+        "bytes": 67021
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.tax-profile\\manifest.json",
+        "sha256": "8AD851653C7CA9C6FAB9A679BA784B9D2D55BABD7D81AB4845D63F17564F8835",
+        "bytes": 2192
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.tax-profile\\plugin.wasm",
+        "sha256": "DFD712D102E13DFCCF6BCF9843786A826573DB20EE8014B741D39A688532B359",
+        "bytes": 66933
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.totp-gen\\manifest.json",
+        "sha256": "C920D70201D43B06D94368BEF6BF2855BAF8CA79975423E6CDE1C5AA57CA64AF",
+        "bytes": 1527
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.totp-gen\\plugin.wasm",
+        "sha256": "8A70925AF2A5FD79D356B28C88A0B7BAA9FB31E1EA1EE0D02DF32AA55C9C2AE5",
+        "bytes": 84324
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.travel-footprint\\manifest.json",
+        "sha256": "1B4A5D71A036D9B4D9FBF49DE68D56874D2A1BC3D435A1533E1C081102B4131B",
+        "bytes": 1469
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.travel-footprint\\plugin.wasm",
+        "sha256": "513201F5E807A7FEFB36EF594A6FEDF0E2A83FE4245F0B211387AE7C840C75B3",
+        "bytes": 194287
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.watermark\\manifest.json",
+        "sha256": "C4CEE8CE0BEC056692033F8A845271BE7A481235E5A0799B51BE5CAFD91C2B4A",
+        "bytes": 1139
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\com.solosoul.official.watermark\\plugin.wasm",
+        "sha256": "AD9EF08F4F2F15A41F55B48A7D7B86E2350DB3E908F9E2B3C8231DBCAC0C4465",
+        "bytes": 195620
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\slotgo\\manifest.json",
+        "sha256": "D410E52D59C5546E86EF1EB47859D61C7C607AC736C971720AD4151E1BB841DC",
+        "bytes": 1113
+      },
+      {
+        "path": "SoloSoul_plugin_market\\plugins\\slotgo\\plugin.wasm",
+        "sha256": "602AEBE3BA81C142F726DCC4E8ACC818491C905F374E37CD1FBDCC32ECA3CB48",
+        "bytes": 61332
+      },
+      {
+        "path": "SoloSoul_plugin_market\\registry.json",
+        "sha256": "2CDF029C336621B5DDEF50C0EB5315C3D9F7282780A30CE7353CCCCFC06B6D42",
+        "bytes": 64649
+      },
+      {
+        "path": "solo_soul.exe",
+        "sha256": "617B621BE270FA284B8010974009431500DAA81AB5792B52DACF58F8968ECC7F",
+        "bytes": 99516928
+      }
+    ],
+    "profile": "release",
+    "finalBuildDuration": "12m 32s",
+    "optimization": {
+      "lto": "thin",
+      "codegenUnits": 1,
+      "optLevel": 3
+    },
+    "executables": [
+      {
+        "exit": 0,
+        "sha256": "fa74a7c809573ad13aa9980bcd5d47ecda77051dbd002148def72a8ecf967c4d",
+        "duration": "37m 29s",
+        "attempt": 1
+      },
+      {
+        "exit": 0,
+        "sha256": "a868bff6c4a17e8ae1fc6d6f368f0d925ada1af20bd9ede8c302a63870785d27",
+        "duration": "14m 46s",
+        "attempt": 2
+      },
+      {
+        "exit": 0,
+        "sha256": "617b621be270fa284b8010974009431500daa81ab5792b52dacf58f8968ecc7f",
+        "duration": "12m 32s",
+        "attempt": 3
+      }
+    ],
+    "beforeBuild": "stage-desktop-resources, TypeScript, Vite",
+    "finalExit": 0,
+    "sourceHashes": [
+      {
+        "path": "tauri/src-tauri/Cargo.toml",
+        "sha256": "6217eb9210b37d274358679c56c7f49fc0bb31e5932ca67f3e0866f6368e895d"
+      },
+      {
+        "path": "tauri/src-tauri/tauri.native-perf.conf.json",
+        "sha256": "d8c99c935b83b62187d61e72258cbc9239ad97a0cf482cde789444814cfa4810"
+      },
+      {
+        "path": "tauri/src-tauri/src/lib.rs",
+        "sha256": "84713368c3d0ee3d6d6e0cb3a91714d9e68a1621fca22b77f35806660b8816cf"
+      },
+      {
+        "path": "tauri/src-tauri/src/setup/mod.rs",
+        "sha256": "c0a807234da1e63ac60cd8d5ad4a9f8fc080c52c71d4f6e603c307160d8a5010"
+      },
+      {
+        "path": "tauri/src-tauri/src/plugin/mod.rs",
+        "sha256": "7db77a39b963c769454f88e154371f45f6e17ac8e2c8b49216a83f273610168c"
+      },
+      {
+        "path": "tauri/src-tauri/src/state/app_state.rs",
+        "sha256": "4639563d5096690eb13b7c373ab55014f08662f51056ef8064a9d51d770b9215"
+      },
+      {
+        "path": "tauri/src-tauri/src/commands/ocr.rs",
+        "sha256": "7eee242b88606b9f5500868eb70bc8ee74c34688937b3042a7156d458e7baebb"
+      },
+      {
+        "path": "tauri/src-tauri/src/commands/embed_model.rs",
+        "sha256": "a04edfcd64efe182a52c92af81037ea0ad0d7c2e6d7ff2355c22cea066aa1992"
+      },
+      {
+        "path": "tauri/src-tauri/src/commands/llm/rag.rs",
+        "sha256": "e80def4fa01449dd6243ae6a92eecdd5e5541e187bdd672f70e0548e2e24874b"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf.rs",
+        "sha256": "6f68663e39ddcb45c3c3c63458c01c193a55d4889316cacc7631b9f5c82c8f8e"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf/fixture.rs",
+        "sha256": "e0ae460b4c85b2c31e7b957f07ef5aa42365203b3211acaac6f05b8d2db1d388"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf/preflight_tests.rs",
+        "sha256": "d8ebf7fae9af359e3d7a24085cdbbe90b9fbe281809258bcc0aab55e0ff6bba3"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf/observer.js",
+        "sha256": "d3e0328a134b64ac389236c9dd5bdb4d7cc5e63bdf03e98e4bee7337e8bca337"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf/observer.node.test.mjs",
+        "sha256": "83dd0988c46faa713d45a27ff4d0317fe2fe3190b234d155813fcc0ac64a79e5"
+      },
+      {
+        "path": "tauri/scripts/native-perf-run.mjs",
+        "sha256": "1eec539bd6f040ab8040f35e41b2c9a93126b66adae63ceac3a6a353e650afdc"
+      },
+      {
+        "path": "tauri/scripts/native-perf-run.test.mjs",
+        "sha256": "e85322bb24c88a6981e7c40e0d160f6c147fc7de51a914c303efcb17c5d698a3"
+      }
+    ]
+  },
+  "validation": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "exit": 0
+    },
+    {
+      "exit": 0,
+      "configuration": "default",
+      "command": "cargo clippy --locked -- -D warnings"
+    },
+    {
+      "exit": 0,
+      "configuration": "final DevTools feature",
+      "command": "cargo clippy --locked -p solo_soul --all-targets --features native-perf -- -D warnings"
+    },
+    {
+      "exit": 101,
+      "configuration": "default without PDFIUM_LIBRARY_PATH",
+      "cause": "18 PDFium load tests failed with LoadLibrary126; preserved prior failed log",
+      "command": "cargo test --locked --verbose"
+    },
+    {
+      "groups": 25,
+      "exit": 0,
+      "failed": 0,
+      "configuration": "same complete scope, child-process PDFIUM_LIBRARY_PATH points to repository PDFium DLL and is removed afterwards",
+      "passed": 1363,
+      "command": "cargo test --locked --verbose",
+      "existingIgnored": 3
+    },
+    {
+      "command": "cargo test --locked -p solo_soul --lib --features native-perf native_perf::preflight_tests -- --test-threads=1",
+      "testSeconds": 3.74,
+      "ignored": 0,
+      "passed": 6,
+      "exit": 0,
+      "buildSeconds": 178,
+      "configuration": "final DevTools feature",
+      "failed": 0,
+      "filteredOut": 614
+    },
+    {
+      "notAcceptedEarlierProbe": "Short name with --exact ran zero tests; not counted",
+      "exit": 101,
+      "failed": 1,
+      "beforeFix": true,
+      "passed": 0,
+      "command": "fully qualified canonical-claims regression -- --exact",
+      "filteredOut": 619
+    },
+    {
+      "durationMs": 214.0291,
+      "exit": 0,
+      "failed": 0,
+      "rawOutputProvenance": "tool-session output; not retained as a separate log file",
+      "skipped": 0,
+      "passed": 9,
+      "command": "node --test src-tauri/src/native_perf/observer.node.test.mjs"
+    },
+    {
+      "durationMs": 5395.8366,
+      "exit": 0,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 24,
+      "includes": "PowerShell5.1 offline cleanup branch, no CIM/ProcessAPI/Kill in regression",
+      "command": "node --test scripts/native-perf-run.test.mjs"
+    },
+    {
+      "command": "Prettier --check and node --check final runner and tests",
+      "exit": 0
+    },
+    {
+      "exit": 0,
+      "viteModules": 4174,
+      "command": "npx tsc --noEmit and npx vite build in actual beforeBuild"
+    }
+  ],
+  "nativeAttempts": [
+    {
+      "cause": "canonical Known Folder fields and logical ownedPaths differed; ready not consumed",
+      "objects": 100,
+      "runnerExit": 1,
+      "successfulGuiSamples": 0,
+      "attempt": 1,
+      "regression": "one real failure before fix, six tests passed afterwards",
+      "requestedSamples": 5,
+      "executedSamples": 1,
+      "evidence": "rf312-windows-native-preflight-failure-100.json"
+    },
+    {
+      "manualOwnedCleanup": "rf312-windows-native-cdp-failure-cleanup.json",
+      "cause": "CDP connection refused; PowerShell5.1 nested-array cleanup failed before Kill",
+      "objects": 100,
+      "runnerExit": 1,
+      "successfulGuiSamples": 0,
+      "attempt": 2,
+      "requestedSamples": 5,
+      "executedSamples": 1,
+      "evidence": "rf312-windows-native-cdp-failure-100.json"
+    },
+    {
+      "allCleanupComplete": true,
+      "summary": [
+        {
+          "name": "startup",
+          "successfulSamples": 0,
+          "requestedSamples": 5,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "password-unlock",
+          "successfulSamples": 0,
+          "requestedSamples": 5,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "workspace",
+          "successfulSamples": 0,
+          "requestedSamples": 5,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "search-needle",
+          "successfulSamples": 0,
+          "requestedSamples": 5,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "application-lock",
+          "successfulSamples": 0,
+          "requestedSamples": 5,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "password-reunlock",
+          "successfulSamples": 0,
+          "requestedSamples": 5,
+          "medianMs": null,
+          "p95Ms": null
+        }
+      ],
+      "cause": "DevTools experiment did not resolve ECONNREFUSED",
+      "objects": 100,
+      "allUserDataFoldersVerified": true,
+      "runnerExit": 1,
+      "successfulGuiSamples": 0,
+      "attempt": 3,
+      "allMemorySnapshotsProcessCount": 8,
+      "requestedSamples": 5,
+      "executedSamples": 5,
+      "evidence": "rf312-windows-native-devtools-failure-100.json"
+    },
+    {
+      "objects": 5000,
+      "reason": "Shared CDP prerequisite is not available; no GUI performance values",
+      "executedSamples": 0
+    }
+  ],
+  "integrity": {
+    "ownedProcessExitProof": [
+      {
+        "sample": 1,
+        "pid": 11124,
+        "recordedCreationMs": 1790742145756,
+        "status": "absent"
+      },
+      {
+        "sample": 1,
+        "pid": 25352,
+        "recordedCreationMs": 1790742145973,
+        "status": "absent"
+      },
+      {
+        "sample": 1,
+        "pid": 37224,
+        "recordedCreationMs": 1790742146847,
+        "status": "absent"
+      },
+      {
+        "sample": 1,
+        "pid": 25288,
+        "recordedCreationMs": 1790742147680,
+        "status": "absent"
+      },
+      {
+        "sample": 1,
+        "pid": 20788,
+        "recordedCreationMs": 1790742146720,
+        "status": "absent"
+      },
+      {
+        "sample": 1,
+        "pid": 41060,
+        "recordedCreationMs": 1790742146677,
+        "status": "absent"
+      },
+      {
+        "sample": 1,
+        "pid": 3028,
+        "recordedCreationMs": 1790742146094,
+        "status": "absent"
+      },
+      {
+        "sample": 1,
+        "pid": 13920,
+        "recordedCreationMs": 1790742146674,
+        "status": "absent"
+      },
+      {
+        "sample": 2,
+        "pid": 42768,
+        "recordedCreationMs": 1790742215508,
+        "status": "absent"
+      },
+      {
+        "sample": 2,
+        "pid": 35916,
+        "recordedCreationMs": 1790742216776,
+        "status": "absent"
+      },
+      {
+        "sample": 2,
+        "pid": 33396,
+        "recordedCreationMs": 1790742217242,
+        "status": "absent"
+      },
+      {
+        "sample": 2,
+        "pid": 27768,
+        "recordedCreationMs": 1790742217826,
+        "status": "absent"
+      },
+      {
+        "sample": 2,
+        "pid": 36488,
+        "recordedCreationMs": 1790742216812,
+        "status": "absent"
+      },
+      {
+        "sample": 2,
+        "pid": 13652,
+        "recordedCreationMs": 1790742217101,
+        "status": "absent"
+      },
+      {
+        "sample": 2,
+        "pid": 35528,
+        "recordedCreationMs": 1790742217098,
+        "status": "absent"
+      },
+      {
+        "sample": 2,
+        "pid": 21024,
+        "recordedCreationMs": 1790742217140,
+        "status": "absent"
+      },
+      {
+        "sample": 3,
+        "pid": 16124,
+        "recordedCreationMs": 1790742285811,
+        "status": "absent"
+      },
+      {
+        "sample": 3,
+        "pid": 6304,
+        "recordedCreationMs": 1790742285967,
+        "status": "absent"
+      },
+      {
+        "sample": 3,
+        "pid": 36932,
+        "recordedCreationMs": 1790742286454,
+        "status": "absent"
+      },
+      {
+        "sample": 3,
+        "pid": 15856,
+        "recordedCreationMs": 1790742286300,
+        "status": "absent"
+      },
+      {
+        "sample": 3,
+        "pid": 15900,
+        "recordedCreationMs": 1790742286003,
+        "status": "absent"
+      },
+      {
+        "sample": 3,
+        "pid": 25792,
+        "recordedCreationMs": 1790742286318,
+        "status": "absent"
+      },
+      {
+        "sample": 3,
+        "pid": 32044,
+        "recordedCreationMs": 1790742286845,
+        "status": "absent"
+      },
+      {
+        "sample": 3,
+        "pid": 14464,
+        "recordedCreationMs": 1790742286355,
+        "status": "absent"
+      },
+      {
+        "sample": 4,
+        "pid": 40596,
+        "recordedCreationMs": 1790742352138,
+        "status": "absent"
+      },
+      {
+        "sample": 4,
+        "pid": 18996,
+        "recordedCreationMs": 1790742352413,
+        "status": "absent"
+      },
+      {
+        "sample": 4,
+        "pid": 4764,
+        "recordedCreationMs": 1790742352780,
+        "status": "absent"
+      },
+      {
+        "sample": 4,
+        "pid": 21168,
+        "recordedCreationMs": 1790742353244,
+        "status": "absent"
+      },
+      {
+        "sample": 4,
+        "pid": 13228,
+        "recordedCreationMs": 1790742352447,
+        "status": "absent"
+      },
+      {
+        "sample": 4,
+        "pid": 1988,
+        "recordedCreationMs": 1790742352738,
+        "status": "absent"
+      },
+      {
+        "sample": 4,
+        "pid": 2648,
+        "recordedCreationMs": 1790742352742,
+        "status": "absent"
+      },
+      {
+        "sample": 4,
+        "pid": 40748,
+        "recordedCreationMs": 1790742352866,
+        "status": "absent"
+      },
+      {
+        "sample": 5,
+        "pid": 33548,
+        "recordedCreationMs": 1790742418331,
+        "status": "absent"
+      },
+      {
+        "sample": 5,
+        "pid": 3200,
+        "recordedCreationMs": 1790742418619,
+        "status": "absent"
+      },
+      {
+        "sample": 5,
+        "pid": 36752,
+        "recordedCreationMs": 1790742419082,
+        "status": "absent"
+      },
+      {
+        "sample": 5,
+        "pid": 17208,
+        "recordedCreationMs": 1790742419433,
+        "status": "absent"
+      },
+      {
+        "sample": 5,
+        "pid": 21364,
+        "recordedCreationMs": 1790742418980,
+        "status": "absent"
+      },
+      {
+        "sample": 5,
+        "pid": 41404,
+        "recordedCreationMs": 1790742418939,
+        "status": "absent"
+      },
+      {
+        "sample": 5,
+        "pid": 26884,
+        "recordedCreationMs": 1790742418654,
+        "status": "absent"
+      },
+      {
+        "sample": 5,
+        "pid": 32408,
+        "recordedCreationMs": 1790742418938,
+        "status": "absent"
+      }
+    ],
+    "all40RecordedThirdRunProcessesAbsent": true,
+    "fixtureFilesBefore": [
+      {
+        "bytes": 669,
+        "path": "vault100\\acc_rf312_100\\config.json",
+        "sha256": "C569F12184166FCCBF0CD9F8F3A0C0385CDF509257E4C2E3F5358FD247213D0F"
+      },
+      {
+        "bytes": 266240,
+        "path": "vault100\\acc_rf312_100\\vault.db",
+        "sha256": "E061DF8BC22BA9889FB524B4C86301C88E82C6023A72337F4B39F54048F46239"
+      },
+      {
+        "bytes": 4096,
+        "path": "vault100\\acc_rf312_100\\vault.db.pre_enc.bak",
+        "sha256": "1FE8F6113488865C546D2FAA55B21482662CE4BE19D4F505EEEFA09BC3131489"
+      },
+      {
+        "bytes": 189,
+        "path": "vault100\\accounts.bak",
+        "sha256": "1E86E48CF79510489A907415A8147EC92C4692B0A621CF6178487CCBC3F1AA02"
+      },
+      {
+        "bytes": 189,
+        "path": "vault100\\accounts.json",
+        "sha256": "625ECBE50D1D2455DF06B9050AD465E504B477C389DE2AEEB2C4EAFBC38482FA"
+      },
+      {
+        "bytes": 667,
+        "path": "vault100\\rf312-fixture.json",
+        "sha256": "E7216C7BCAB6AFD4EA5E11769F0BDD1F5DC04F0064369E0060FF8F75B3083D38"
+      },
+      {
+        "bytes": 221,
+        "path": "vault100\\ui_preferences.json",
+        "sha256": "C9BC519CBD62E58D758F14F3247B222EA676707C59F3044658FC168542B6BB58"
+      },
+      {
+        "bytes": 670,
+        "path": "vault5000\\acc_rf312_5000\\config.json",
+        "sha256": "38E6CC3EE6E51F967F35FC722625ADCA73D109A201AE29203E6E7A950943A580"
+      },
+      {
+        "bytes": 3559424,
+        "path": "vault5000\\acc_rf312_5000\\vault.db",
+        "sha256": "7316E2DB11BC7EF3087668A64CA4A4FAAC28F5E754FF556D2769381C0BF7AD85"
+      },
+      {
+        "bytes": 4096,
+        "path": "vault5000\\acc_rf312_5000\\vault.db.pre_enc.bak",
+        "sha256": "1FE8F6113488865C546D2FAA55B21482662CE4BE19D4F505EEEFA09BC3131489"
+      },
+      {
+        "bytes": 187,
+        "path": "vault5000\\accounts.bak",
+        "sha256": "21ECDC3B9A747CA19760F79FA01813118B9F3EDA04858F366C78910CBA419F25"
+      },
+      {
+        "bytes": 190,
+        "path": "vault5000\\accounts.json",
+        "sha256": "7949BA0CEF5D2D1EE627456B58825D7D1B56420A31F6FA5AAA0586F8687B3AD8"
+      },
+      {
+        "bytes": 671,
+        "path": "vault5000\\rf312-fixture.json",
+        "sha256": "0DD4292F5B5E245EDC8956C0C1A0111115243D68E69F3E5C95B05CE28B6D95E0"
+      },
+      {
+        "bytes": 221,
+        "path": "vault5000\\ui_preferences.json",
+        "sha256": "C9BC519CBD62E58D758F14F3247B222EA676707C59F3044658FC168542B6BB58"
+      }
+    ],
+    "preexistingNsisFiles": [
+      {
+        "path": "tauri/src-tauri/bundles/nsis/assets/header-install.bmp",
+        "sha256": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+        "matchesPreexistingProof": true
+      },
+      {
+        "path": "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp",
+        "sha256": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+        "matchesPreexistingProof": true
+      },
+      {
+        "path": "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp",
+        "sha256": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+        "matchesPreexistingProof": true
+      }
+    ],
+    "fixtureFilesAfter": [
+      {
+        "path": "vault100\\acc_rf312_100\\config.json",
+        "sha256": "C569F12184166FCCBF0CD9F8F3A0C0385CDF509257E4C2E3F5358FD247213D0F",
+        "bytes": 669,
+        "unchanged": true
+      },
+      {
+        "path": "vault100\\acc_rf312_100\\vault.db",
+        "sha256": "E061DF8BC22BA9889FB524B4C86301C88E82C6023A72337F4B39F54048F46239",
+        "bytes": 266240,
+        "unchanged": true
+      },
+      {
+        "path": "vault100\\acc_rf312_100\\vault.db.pre_enc.bak",
+        "sha256": "1FE8F6113488865C546D2FAA55B21482662CE4BE19D4F505EEEFA09BC3131489",
+        "bytes": 4096,
+        "unchanged": true
+      },
+      {
+        "path": "vault100\\accounts.bak",
+        "sha256": "1E86E48CF79510489A907415A8147EC92C4692B0A621CF6178487CCBC3F1AA02",
+        "bytes": 189,
+        "unchanged": true
+      },
+      {
+        "path": "vault100\\accounts.json",
+        "sha256": "625ECBE50D1D2455DF06B9050AD465E504B477C389DE2AEEB2C4EAFBC38482FA",
+        "bytes": 189,
+        "unchanged": true
+      },
+      {
+        "path": "vault100\\rf312-fixture.json",
+        "sha256": "E7216C7BCAB6AFD4EA5E11769F0BDD1F5DC04F0064369E0060FF8F75B3083D38",
+        "bytes": 667,
+        "unchanged": true
+      },
+      {
+        "path": "vault100\\ui_preferences.json",
+        "sha256": "C9BC519CBD62E58D758F14F3247B222EA676707C59F3044658FC168542B6BB58",
+        "bytes": 221,
+        "unchanged": true
+      },
+      {
+        "path": "vault5000\\acc_rf312_5000\\config.json",
+        "sha256": "38E6CC3EE6E51F967F35FC722625ADCA73D109A201AE29203E6E7A950943A580",
+        "bytes": 670,
+        "unchanged": true
+      },
+      {
+        "path": "vault5000\\acc_rf312_5000\\vault.db",
+        "sha256": "7316E2DB11BC7EF3087668A64CA4A4FAAC28F5E754FF556D2769381C0BF7AD85",
+        "bytes": 3559424,
+        "unchanged": true
+      },
+      {
+        "path": "vault5000\\acc_rf312_5000\\vault.db.pre_enc.bak",
+        "sha256": "1FE8F6113488865C546D2FAA55B21482662CE4BE19D4F505EEEFA09BC3131489",
+        "bytes": 4096,
+        "unchanged": true
+      },
+      {
+        "path": "vault5000\\accounts.bak",
+        "sha256": "21ECDC3B9A747CA19760F79FA01813118B9F3EDA04858F366C78910CBA419F25",
+        "bytes": 187,
+        "unchanged": true
+      },
+      {
+        "path": "vault5000\\accounts.json",
+        "sha256": "7949BA0CEF5D2D1EE627456B58825D7D1B56420A31F6FA5AAA0586F8687B3AD8",
+        "bytes": 190,
+        "unchanged": true
+      },
+      {
+        "path": "vault5000\\rf312-fixture.json",
+        "sha256": "0DD4292F5B5E245EDC8956C0C1A0111115243D68E69F3E5C95B05CE28B6D95E0",
+        "bytes": 671,
+        "unchanged": true
+      },
+      {
+        "path": "vault5000\\ui_preferences.json",
+        "sha256": "C9BC519CBD62E58D758F14F3247B222EA676707C59F3044658FC168542B6BB58",
+        "bytes": 221,
+        "unchanged": true
+      }
+    ],
+    "all14SourceFilesUnchanged": true
+  },
+  "logDirectory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\checks",
+  "retainedLogHashes": [
+    {
+      "file": "canonical-claims-selected-red.log",
+      "sha256": "abc467f2d2472622af17e060b2a71c57ae3df0bf7d4eedead8578508446e963d",
+      "bytes": 2597
+    },
+    {
+      "file": "native-preflight-green.log",
+      "sha256": "3c6fdf3dc9abc8d74b057abc1c3c060036d9e39bc0e4b58dc26fc1db07ecf14b",
+      "bytes": 5183
+    },
+    {
+      "file": "native-preflight-devtools.log",
+      "sha256": "d394b1ab61cbf541c57fe788e687e4705b1240bd6fc4c2e1091a1b9e655b5c34",
+      "bytes": 5622
+    },
+    {
+      "file": "cargo-clippy-default.log",
+      "sha256": "0b6c71f363470ff39c44f0f6f9f798afc472ec930f369e47d14af2933dd83a9f",
+      "bytes": 164
+    },
+    {
+      "file": "cargo-clippy-native.log",
+      "sha256": "887e70f6a536924feca368b6c969fdd7a6716587e1b81aca484b79fd58b9006c",
+      "bytes": 171
+    },
+    {
+      "file": "cargo-clippy-native-canonical.log",
+      "sha256": "c077cca584af338f0ed666669481427133515e4ef18e2bcbc7ffbee78163acf1",
+      "bytes": 171
+    },
+    {
+      "file": "cargo-clippy-native-devtools.log",
+      "sha256": "5611121ca07fea4a7f3009fd2d153067fb27c45c8aeddffbbcb75633fdfd47a5",
+      "bytes": 613
+    },
+    {
+      "file": "cargo-test-default.log",
+      "sha256": "ae1d1b1c1a983676c3287cc4f9d9aef0176ced6fb7d5554dbf1c043e6f842fcf",
+      "bytes": 464564
+    },
+    {
+      "file": "cargo-test-default-pdfium.log",
+      "sha256": "aec21907228aa460240cffdc701ace9e199618254cfbb4024908b2b756b91669",
+      "bytes": 490853
+    },
+    {
+      "file": "native-release-build.log",
+      "sha256": "eeb93a261a1944cbc58c20b14da6ead01d94e6c059ebe9dd1b8d79d4d7e6f178",
+      "bytes": 28277
+    },
+    {
+      "file": "native-release-canonical-build.log",
+      "sha256": "0c6d77ea00f7ebfcc7e1d6efb32c2dd798c4e54de3eafb356e6b47a98423bb2a",
+      "bytes": 6125
+    },
+    {
+      "file": "native-release-devtools-build.log",
+      "sha256": "d1174d931f84e89bb39a553fc984ff4481ce63b0d3e0fe2feaf99520982d13b1",
+      "bytes": 6589
+    },
+    {
+      "file": "runner-node.log",
+      "sha256": "f461f8eaaf64406bfb78cb6cb316894b3ef8b3b3e34f7efe07bb0498899e2e5b",
+      "bytes": 2216
+    },
+    {
+      "file": "runner-webview-directory.log",
+      "sha256": "894ff8ebc8b8d466fa496fb54bf3e1a06ee893a1b6421aeaf4353523d9ffc57c",
+      "bytes": 2378
+    },
+    {
+      "file": "runner-cleanup.log",
+      "sha256": "ecd7c0c2b0766139f9eed198a8230f62ee000eaf06c97cc67d0f358339094041",
+      "bytes": 2697
+    },
+    {
+      "file": "windows100-runner.log",
+      "sha256": "f07acba6741aaa819a18f8175f564f3682450e3af2dc72a182e4219dd597c3a6",
+      "bytes": 134
+    },
+    {
+      "file": "windows100-v2.log",
+      "sha256": "89249947120f3ecd2e06a92299f0a04cce0694dd6e9b161b79434c2712134d2a",
+      "bytes": 137
+    },
+    {
+      "file": "windows100-v3.log",
+      "sha256": "efa8c33b065259c2aed62035d9d5b1ab5b86a5302a929c9aa73ef23eca1b2c02",
+      "bytes": 241
+    }
+  ],
+  "candidateUpstream": {
+    "url": "https://github.com/MicrosoftEdge/WebView2Feedback/issues/5718",
+    "confirmedRootCause": false,
+    "claim": "153 Runtime in Office host reports similar refused endpoint; not proof of this 154 Runtime or SoloSoul root cause"
+  },
+  "remaining": [
+    "CDP connection prerequisite",
+    "real DOM selectors and six GUI journeys not yet completed",
+    "5000 object GUI baseline",
+    "OCR image and UI journey",
+    "attachment preview",
+    "system sleep/resume",
+    "same-profile warm-start comparison",
+    "macOS and Android equivalent baselines",
+    "memory peak; current numbers are failed-process working-set snapshots only"
+  ],
+  "sourceDefaultsPreserved": true,
+  "productionCloudChanges": false,
+  "systemRegistryChanged": false,
+  "systemRuntimeChanged": false,
+  "pushPerformed": false,
+  "retainedOwnedProfileProof": {
+    "sample": 1,
+    "localStateSha256": "840000f3fbf5f14f01f8b3e58f8c88d513df094eb21f27895779f1f9a38bd2d5",
+    "preferencesSha256": "0238757ea97405797fa45ea1f8bc398ed92471392471484a0c553cc53c9dc510",
+    "devToolsActivePortPresent": false,
+    "chromeDebugLogPresent": false,
+    "absenceLimit": "A fixed nonzero port does not require Chromium DevToolsActivePort; absent files do not identify the refusal cause",
+    "source": "https://github.com/chromium/chromium/blob/main/chrome/browser/devtools/remote_debugging_server.cc",
+    "historicalIntegrityLevelKnown": false,
+    "historicalPackageIdentityKnown": false,
+    "localStateVersionFields": {
+      "/optimization_guide/on_device/last_version": "154.0.4258.37",
+      "/profiles/signin_last_seen_version": "154.0.4258.37",
+      "/variations_seed_client_version_at_store": "154.0.4258.37",
+      "/user_experience_metrics/stability/stats_version": "154.0.4258.37-64"
+    },
+    "preferencesVersionFields": {
+      "/extensions/last_chrome_version": "154.0.4258.37",
+      "/profile/created_by_version": "154.0.4258.37"
+    },
+    "versionLimit": "Stored version fields describe this owned profile; not a live executable version probe for an already exited process"
+  }
+}

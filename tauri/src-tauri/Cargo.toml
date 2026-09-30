@@ -122,6 +122,7 @@ tauri = { version = "2", features = ["test"] }
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
 mobile = []
+native-perf = ["tauri/devtools"]
 
 [lib]
 name = "solo_soul"

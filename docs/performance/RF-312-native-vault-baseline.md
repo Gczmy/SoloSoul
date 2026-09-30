@@ -21,12 +21,12 @@ cargo run -p solosoul-core --no-default-features --release --example perf_baseli
 
 单位为毫秒；各组 10/10 成功。原始样本：[100 个对象](vault-windows-100.json)、[5,000 个对象](vault-windows-5000.json)。
 
-| 操作 | 100 个对象 中位/P95 | 5,000 个对象 中位/P95 |
-|---|---:|---:|
-| 账户目录载入 | 0.183 / 0.287 | 0.190 / 0.246 |
-| 主密码解锁 | 182.576 / 430.911 | 171.965 / 315.107 |
-| 元数据列表 | 0.259 / 0.744 | 14.549 / 18.032 |
-| 解密搜索 | 0.960 / 1.601 | 44.703 / 46.907 |
+| 操作         | 100 个对象 中位/P95 | 5,000 个对象 中位/P95 |
+| ------------ | ------------------: | --------------------: |
+| 账户目录载入 |       0.183 / 0.287 |         0.190 / 0.246 |
+| 主密码解锁   |   182.576 / 430.911 |     171.965 / 315.107 |
+| 元数据列表   |       0.259 / 0.744 |       14.549 / 18.032 |
+| 解密搜索     |       0.960 / 1.601 |       44.703 / 46.907 |
 
 这个样本只说明该 Windows 主机上的后端搜索在 5,000 个对象时中位约 45 ms，中位解锁约 172–183 ms；单轮 P95 波动明显，不能证明实际 GUI 搜索响应、启动体验或低配移动端性能。下一步仍需用相同规模的 Vault 在 Windows/macOS/Android 原生应用中测量启动、解锁到可交互、页面搜索、首次 OCR/附件预览、锁定恢复、内存峰值与 IPC 次数，并保留每次原始样本。未得到这些数据前，不据此决定全路由懒加载或分页改造。
 
@@ -52,3 +52,7 @@ cargo run -p solosoul-core --no-default-features --release --example perf_baseli
 该入口只是原生应用测量的数据前置，不能证明GUI启动、OCR/预览、锁定恢复、内存或IPC指标。后续每次原生样本使用独立数据副本，保留失败样本；先使用独立的Windows测试账户或等价隔离环境。`SOLOSOUL_DATA_DIR`只隔离Vault和UI偏好：桌面[setup](../../tauri/src-tauri/src/setup/mod.rs)的日志/导入暂存清理仍解析固定 `com.solosoul.app` 目录，[插件存储](../../tauri/crates/solosoul-plugin/src/store.rs)仍使用系统用户目录。修改Tauri identifier或子进程的APPDATA/USERPROFILE变量不能视为这些路径已隔离。本阶段不启动GUI，RF-312保持待验证。
 
 本机Release实测：两档生成及第二进程重开全部exit0，对象数100/5000、搜索命中5/250、对象/命中ID、Profile与UI偏好均符合契约；实际KDF为64MiB/3次/并行4。已有目录/文件、相对路径、非法口径、互斥模式、缺失数据库和两类junction负例共8项均exit1，原数据SHA未变、缺失数据库未新建。原临时入口100对象/2样本四项无失败，退出目录已清除；这是兼容性验证，原10样本基线继续保留。源码与Release程序SHA、生成标记和验证原始JSON见[2026-09-30证据](rf312-fixtures-windows-2026-09-30.json)。
+
+## 后续Windows隔离入口（2026-09-30）
+
+上述“本阶段不启动GUI”和独立账户前置描述的是fixture准备阶段。后续已增加非默认native-perf feature，显式隔离Vault、插件、日志、模型、实际Known Folder身份和WebView2目录，并以新副本启动真实Release；无需另建Windows账户的复跑方式见[原生应用采样记录](RF-312-windows-native-app-baseline.md)。当前真实CDP连接仍失败，故这不是GUI性能验收；原后端基线与持久化fixture结果继续保留，RF-312未关闭。

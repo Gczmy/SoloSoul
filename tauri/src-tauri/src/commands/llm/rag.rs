@@ -2,7 +2,9 @@ use crate::commands::vault_handle;
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use solosoul_vault::VaultStore;
-use tauri::{Manager, State};
+#[cfg(not(feature = "native-perf"))]
+use tauri::Manager;
+use tauri::State;
 
 // =============================================================================
 // RAG Embedding API (§RAG-3)
@@ -327,6 +329,9 @@ pub async fn llm_search_guide_chunks(
     let top_k = top_k.unwrap_or(3);
 
     // 1. Load embedding source and existing chunks (sync block)
+    #[cfg(feature = "native-perf")]
+    let models_dir = crate::native_perf::root()?.join("models");
+    #[cfg(not(feature = "native-perf"))]
     let models_dir = state
         .handle
         .path()
@@ -849,6 +854,9 @@ pub async fn llm_rebuild_guide_embeddings(
     account_id: String,
     language: String,
 ) -> Result<usize, String> {
+    #[cfg(feature = "native-perf")]
+    let models_dir = crate::native_perf::root()?.join("models");
+    #[cfg(not(feature = "native-perf"))]
     let models_dir = state
         .handle
         .path()
@@ -918,6 +926,9 @@ pub async fn llm_check_embedding_available(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<bool, String> {
+    #[cfg(feature = "native-perf")]
+    let models_dir = crate::native_perf::root()?.join("models");
+    #[cfg(not(feature = "native-perf"))]
     let models_dir = state
         .handle
         .path()

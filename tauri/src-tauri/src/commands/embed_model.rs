@@ -4,7 +4,9 @@ use serde::{Deserialize, Serialize};
 
 use sha2::Digest;
 use std::path::{Path, PathBuf};
-use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager};
+#[cfg(not(feature = "native-perf"))]
+use tauri::{path::BaseDirectory, Manager};
+use tauri::{AppHandle, Emitter};
 
 // ── Registry ─────────────────────────────────────────────────
 
@@ -113,8 +115,12 @@ fn verify_registry_signature(
 /// Get the base directory where models are stored.
 /// - 桌面端：LocalData/models
 /// - 移动端：Data/models（应用私有目录可写）
-pub fn models_base_dir(app: &AppHandle) -> Result<PathBuf, String> {
-    #[cfg(desktop)]
+pub fn models_base_dir(#[allow(unused_variables)] app: &AppHandle) -> Result<PathBuf, String> {
+    #[cfg(feature = "native-perf")]
+    {
+        Ok(crate::native_perf::root()?.join("models"))
+    }
+    #[cfg(all(desktop, not(feature = "native-perf")))]
     {
         let dir = app
             .path()

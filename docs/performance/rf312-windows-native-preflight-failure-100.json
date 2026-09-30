@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "windows-native-application-performance",
+  "startedAt": "2026-09-30T03:25:18.529Z",
+  "platform": "win32",
+  "osRelease": "10.0.26100",
+  "nodeVersion": "v24.16.0",
+  "samplesRequested": 5,
+  "exeSha256": "fa74a7c809573ad13aa9980bcd5d47ecda77051dbd002148def72a8ecf967c4d",
+  "binaryPreflight": {
+    "method": "streaming-ascii-marker-check",
+    "matchedMarkers": [
+      "windows-native-perf-owned",
+      "windows-native-perf-ready",
+      "windows-native-perf-consumed",
+      "--native-perf-prepare"
+    ],
+    "bytesScanned": 71761920,
+    "guarantee": "Excludes accidental default builds; not a binary signature or trust guarantee"
+  },
+  "fixtureMarkerSha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38",
+  "fixture": {
+    "accountId": "acc_rf312_100",
+    "objectCount": 100,
+    "buildProfile": "release",
+    "kdf": {
+      "iterations": 3,
+      "memoryKiB": 65536,
+      "parallelism": 4
+    }
+  },
+  "environment": {
+    "network": "connected-network-behavior-preserved; normal native update checks are not intercepted",
+    "ipc": "real Tauri invoke attempts including plugin commands; no arguments/results captured",
+    "memory": "sum of verified root and descendant Windows working sets; shared pages may be counted in multiple processes",
+    "observer": "counts become null with reason if identity, validity, prefix or overflow checks fail",
+    "isolation": "native-perf executable must validate and consume its prepared synthetic run exactly once"
+  },
+  "samples": [
+    {
+      "index": 1,
+      "startedAt": "2026-09-30T03:25:18.542Z",
+      "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\windows100\\sample-001",
+      "success": false,
+      "activePhase": "startup",
+      "phases": [
+        {
+          "name": "startup",
+          "success": false,
+          "durationMs": 262.9620999999988,
+          "error": "Native application exited before CDP attachment",
+          "ipc": {
+            "attempts": null,
+            "commands": null,
+            "reason": "Startup did not reach a verified native login document"
+          },
+          "memory": {
+            "observedAt": "2026-09-30T03:25:30.896Z",
+            "collectionMs": 0.021900000001551234,
+            "workingSetBytes": null,
+            "processCount": null,
+            "processes": null,
+            "reason": "Originally spawned root process has exited; no new process identity is accepted"
+          }
+        }
+      ],
+      "unsupported": [
+        {
+          "name": "ocr",
+          "reason": "This stage has not prepared an OCR input and UI sampling journey; no inference metric is fabricated"
+        },
+        {
+          "name": "attachment-preview",
+          "reason": "Verified fixture has no attachment; no preview metric is fabricated"
+        },
+        {
+          "name": "system-sleep-resume",
+          "reason": "This runner measures application lock/reunlock, not Windows system sleep"
+        }
+      ],
+      "prepare": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "durationMs": 12081
+      },
+      "appVersion": "2.13.2",
+      "identifier": "com.solosoul.rf312perf.0369d324474244c78b41b03e349a3891",
+      "runId": "0369d324474244c78b41b03e349a3891",
+      "processId": 33668,
+      "cdp": {
+        "port": 61003,
+        "attachStartedAfterSpawnMs": 45.395300000000134,
+        "attachMs": null,
+        "connectedAfterSpawnMs": null,
+        "transport": "real-WebView2-CDP"
+      },
+      "error": "Native application exited before CDP attachment",
+      "failedPhase": "startup",
+      "cleanup": {
+        "cleanup": [],
+        "reason": "No verifiable owned process; no PID was terminated"
+      },
+      "ownedProcessExit": {
+        "exitCode": 1,
+        "signal": null,
+        "error": null
+      },
+      "applicationExit": {
+        "exitCode": 1,
+        "signal": null,
+        "error": null
+      },
+      "cleanupIntegrity": {
+        "complete": false,
+        "reason": "Owned process cleanup or exit could not be fully verified; further samples were stopped"
+      },
+      "cleanupIncomplete": true,
+      "finishedAt": "2026-09-30T03:25:30.896Z"
+    }
+  ],
+  "stoppedReason": "Owned process cleanup or exit could not be fully verified; further samples were stopped",
+  "interrupted": false,
+  "finishedAt": "2026-09-30T03:25:30.898Z",
+  "summary": [
+    {
+      "name": "startup",
+      "successfulSamples": 0,
+      "requestedSamples": 5,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "password-unlock",
+      "successfulSamples": 0,
+      "requestedSamples": 5,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "workspace",
+      "successfulSamples": 0,
+      "requestedSamples": 5,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "search-needle",
+      "successfulSamples": 0,
+      "requestedSamples": 5,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "application-lock",
+      "successfulSamples": 0,
+      "requestedSamples": 5,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "password-reunlock",
+      "successfulSamples": 0,
+      "requestedSamples": 5,
+      "medianMs": null,
+      "p95Ms": null
+    }
+  ],
+  "success": false
+}

@@ -126,8 +126,12 @@ pub struct OcrModelStatus {
 /// 解析应用数据目录下的 OCR 模型根目录。
 /// - 桌面端：LocalData/models
 /// - 移动端：Data/models（应用私有目录可写）
-pub fn models_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    #[cfg(desktop)]
+pub fn models_dir(#[allow(unused_variables)] app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    #[cfg(feature = "native-perf")]
+    {
+        Ok(crate::native_perf::root()?.join("models"))
+    }
+    #[cfg(all(desktop, not(feature = "native-perf")))]
     {
         app.path()
             .resolve("models", tauri::path::BaseDirectory::LocalData)
@@ -165,6 +169,12 @@ mod desktop_impl {
     }
 
     /// OCR 偏好设置文件路径。
+    #[cfg(feature = "native-perf")]
+    pub fn preferences_path(_app: &tauri::AppHandle) -> Result<PathBuf, String> {
+        Ok(crate::native_perf::root()?.join("ocr_preferences.json"))
+    }
+
+    #[cfg(not(feature = "native-perf"))]
     pub fn preferences_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
         app.path()
             .resolve(

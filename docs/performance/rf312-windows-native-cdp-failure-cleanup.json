@@ -1,0 +1,38 @@
+[
+  {
+    "pid": 39644,
+    "creationMs": 1790740539478,
+    "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.37\\msedgewebview2.exe",
+    "status": "terminated"
+  },
+  {
+    "pid": 25072,
+    "status": "already-exited"
+  },
+  {
+    "pid": 43240,
+    "status": "already-exited"
+  },
+  {
+    "pid": 13880,
+    "status": "already-exited"
+  },
+  {
+    "pid": 31168,
+    "status": "already-exited"
+  },
+  {
+    "pid": 32780,
+    "status": "already-exited"
+  },
+  {
+    "pid": 17700,
+    "status": "already-exited"
+  },
+  {
+    "pid": 31072,
+    "creationMs": 1790740537053,
+    "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\bin-v2\\solo_soul.exe",
+    "status": "terminated"
+  }
+]

@@ -1,0 +1,265 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "windows-native-application-performance",
+  "startedAt": "2026-09-30T03:55:21.837Z",
+  "platform": "win32",
+  "osRelease": "10.0.26100",
+  "nodeVersion": "v24.16.0",
+  "samplesRequested": 5,
+  "exeSha256": "a868bff6c4a17e8ae1fc6d6f368f0d925ada1af20bd9ede8c302a63870785d27",
+  "binaryPreflight": {
+    "method": "streaming-ascii-marker-check",
+    "matchedMarkers": [
+      "windows-native-perf-owned",
+      "windows-native-perf-ready",
+      "windows-native-perf-consumed",
+      "--native-perf-prepare"
+    ],
+    "bytesScanned": 71761920,
+    "guarantee": "Excludes accidental default builds; not a binary signature or trust guarantee"
+  },
+  "fixtureMarkerSha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38",
+  "fixture": {
+    "accountId": "acc_rf312_100",
+    "objectCount": 100,
+    "buildProfile": "release",
+    "kdf": {
+      "iterations": 3,
+      "memoryKiB": 65536,
+      "parallelism": 4
+    }
+  },
+  "environment": {
+    "network": "connected-network-behavior-preserved; normal native update checks are not intercepted",
+    "ipc": "real Tauri invoke attempts including plugin commands; no arguments/results captured",
+    "memory": "sum of verified root and descendant Windows working sets; shared pages may be counted in multiple processes",
+    "observer": "counts become null with reason if identity, validity, prefix or overflow checks fail",
+    "isolation": "native-perf executable must validate and consume its prepared synthetic run exactly once"
+  },
+  "samples": [
+    {
+      "index": 1,
+      "startedAt": "2026-09-30T03:55:21.839Z",
+      "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\windows100-v2\\sample-001",
+      "success": false,
+      "activePhase": "startup",
+      "phases": [
+        {
+          "name": "startup",
+          "success": false,
+          "durationMs": 62066.7013,
+          "error": "CDP attachment failed: browserType.connectOverCDP: connect ECONNREFUSED 127.0.0.1:50376",
+          "ipc": {
+            "attempts": null,
+            "commands": null,
+            "reason": "Startup did not reach a verified native login document"
+          },
+          "memory": {
+            "observedAt": "2026-09-30T03:56:40.297Z",
+            "collectionMs": 1178.7900999999983,
+            "workingSetBytes": 573050880,
+            "reason": null,
+            "userDataDirectoryMatches": true,
+            "browserDataChecks": [
+              {
+                "pid": 39644,
+                "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\windows100-v2\\sample-001\\webview",
+                "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\windows100-v2\\sample-001\\webview\\EBWebView",
+                "matchesExpected": true,
+                "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\windows100-v2\\sample-001\\webview\\EBWebView",
+                "reason": null
+              }
+            ],
+            "browserDataFilesystem": {
+              "valid": true,
+              "reason": null
+            },
+            "processCount": 8,
+            "processes": [
+              {
+                "pid": 31072,
+                "parentPid": 11568,
+                "creationMs": 1790740537053,
+                "executableName": "solo_soul.exe",
+                "workingSetBytes": 113352704,
+                "privateBytes": 52088832,
+                "cpuMs": 750,
+                "reason": null
+              },
+              {
+                "pid": 39644,
+                "parentPid": 31072,
+                "creationMs": 1790740539478,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 178380800,
+                "privateBytes": 74919936,
+                "cpuMs": 1671.875,
+                "reason": null
+              },
+              {
+                "pid": 25072,
+                "parentPid": 39644,
+                "creationMs": 1790740541260,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 25497600,
+                "privateBytes": 8224768,
+                "cpuMs": 78.125,
+                "reason": null
+              },
+              {
+                "pid": 43240,
+                "parentPid": 39644,
+                "creationMs": 1790740540366,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 88276992,
+                "privateBytes": 41791488,
+                "cpuMs": 578.125,
+                "reason": null
+              },
+              {
+                "pid": 13880,
+                "parentPid": 39644,
+                "creationMs": 1790740539572,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 20901888,
+                "privateBytes": 3608576,
+                "cpuMs": 46.875,
+                "reason": null
+              },
+              {
+                "pid": 31168,
+                "parentPid": 39644,
+                "creationMs": 1790740540187,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 80621568,
+                "privateBytes": 49397760,
+                "cpuMs": 578.125,
+                "reason": null
+              },
+              {
+                "pid": 32780,
+                "parentPid": 39644,
+                "creationMs": 1790740540229,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 20885504,
+                "privateBytes": 7929856,
+                "cpuMs": 62.5,
+                "reason": null
+              },
+              {
+                "pid": 17700,
+                "parentPid": 39644,
+                "creationMs": 1790740540188,
+                "executableName": "msedgewebview2.exe",
+                "workingSetBytes": 45133824,
+                "privateBytes": 13062144,
+                "cpuMs": 265.625,
+                "reason": null
+              }
+            ]
+          }
+        }
+      ],
+      "unsupported": [
+        {
+          "name": "ocr",
+          "reason": "This stage has not prepared an OCR input and UI sampling journey; no inference metric is fabricated"
+        },
+        {
+          "name": "attachment-preview",
+          "reason": "Verified fixture has no attachment; no preview metric is fabricated"
+        },
+        {
+          "name": "system-sleep-resume",
+          "reason": "This runner measures application lock/reunlock, not Windows system sleep"
+        }
+      ],
+      "prepare": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "durationMs": 15198
+      },
+      "appVersion": "2.13.2",
+      "identifier": "com.solosoul.rf312perf.bc7e74f2588544be870926a19dcfddd5",
+      "runId": "bc7e74f2588544be870926a19dcfddd5",
+      "processId": 31072,
+      "cdp": {
+        "port": 50376,
+        "attachStartedAfterSpawnMs": 2062.8835,
+        "attachMs": null,
+        "connectedAfterSpawnMs": null,
+        "transport": "real-WebView2-CDP"
+      },
+      "error": "CDP attachment failed: browserType.connectOverCDP: connect ECONNREFUSED 127.0.0.1:50376",
+      "failedPhase": "startup",
+      "cleanup": {
+        "cleanup": [],
+        "reason": "Command failed: powershell.exe -NoLogo -NoProfile -NonInteractive -EncodedCommand CgAkAEUAcgByAG8AcgBBAGMAdABpAG8AbgBQAHIAZQBmAGUAcgBlAG4AYwBlACAAPQAgACcAUwB0AG8AcAAnAAoAJABlAHgAcABlAGMAdABlAGQAUABpAGQAIAA9ACAAWwBpAG4AdABdAFsARQBuAHYAaQByAG8AbgBtAGUAbgB0AF0AOgA6AEcAZQB0AEUAbgB2AGkAcgBvAG4AbQBlAG4AdABWAGEAcgBpAGEAYgBsAGUAKAAnAFMATwBMAE8AUwBPAFUATABfAE4AQQBUAEkAVgBFAF8AUABFAFIARgBfAFAASQBEACcAKQAKACQAZQB4AHAAZQBjAHQAZQBkAEUAeABlACAAPQAgAFsARQBuAHYAaQByAG8AbgBtAGUAbgB0AF0AOgA6AEcAZQB0AEUAbgB2AGkAcgBvAG4AbQBlAG4AdABWAGEAcgBpAGEAYgBsAGUAKAAnAFMATwBMAE8AUwBPAFUATABfAE4AQQBUAEkAVgBFAF8AUABFAFIARgBfAEUAWABFACcAKQAKACQAZQB4AHAAZQBjAHQAZQBkAFMAdABhAHIAdABlAGQAIAA9ACAAWwBsAG8AbgBnAF0AWwBFAG4AdgBpAHIAbwBuAG0AZQBuAHQAXQA6ADoARwBlAHQARQBuAHYAaQByAG8AbgBtAGUAbgB0AFYAYQByAGkAYQBiAGwAZQAoACcAUwBPAEwATwBTAE8AVQBMAF8ATgBBAFQASQBWAEUAXwBQAEUAUgBGAF8AUwBUAEEAUgBUAEUARAAnACkACgAkAGEAYwB0AGkAbwBuACAAPQAgAFsARQBuAHYAaQByAG8AbgBtAGUAbgB0AF0AOgA6AEcAZQB0AEUAbgB2AGkAcgBvAG4AbQBlAG4AdABWAGEAcgBpAGEAYgBsAGUAKAAnAF"
+      },
+      "ownedProcessExit": {
+        "exitCode": null,
+        "reason": "Owned process exit timed out after 6000ms"
+      },
+      "applicationExit": {
+        "exitCode": null,
+        "reason": "Owned process exit timed out after 6000ms"
+      },
+      "cleanupIntegrity": {
+        "complete": false,
+        "reason": "Owned process cleanup or exit could not be fully verified; further samples were stopped"
+      },
+      "cleanupIncomplete": true,
+      "finishedAt": "2026-09-30T03:56:48.055Z"
+    }
+  ],
+  "stoppedReason": "Owned process cleanup or exit could not be fully verified; further samples were stopped",
+  "interrupted": false,
+  "finishedAt": "2026-09-30T03:56:48.059Z",
+  "summary": [
+    {
+      "name": "startup",
+      "successfulSamples": 0,
+      "requestedSamples": 5,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "password-unlock",
+      "successfulSamples": 0,
+      "requestedSamples": 5,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "workspace",
+      "successfulSamples": 0,
+      "requestedSamples": 5,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "search-needle",
+      "successfulSamples": 0,
+      "requestedSamples": 5,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "application-lock",
+      "successfulSamples": 0,
+      "requestedSamples": 5,
+      "medianMs": null,
+      "p95Ms": null
+    },
+    {
+      "name": "password-reunlock",
+      "successfulSamples": 0,
+      "requestedSamples": 5,
+      "medianMs": null,
+      "p95Ms": null
+    }
+  ],
+  "success": false
+}

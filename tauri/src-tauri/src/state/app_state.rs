@@ -123,6 +123,15 @@ impl AppState {
     /// PluginManager 初始化：多级兜底（临时目录 → 当前目录），最终失败才中止启动。
     /// Android Release 构建使用 panic=abort，AppState::new 返回 Err 会导致 setup
     /// 失败直接闪退，故仅当文件系统级异常（所有目录均不可写）才返回 Err。
+    #[cfg(feature = "native-perf")]
+    fn init_plugin_manager(handle: &tauri::AppHandle) -> Result<Arc<PluginManager>, anyhow::Error> {
+        // 隔离测量不允许失败后写入正常用户目录、共享临时目录或工作目录。
+        crate::plugin::new_plugin_manager(handle)
+            .map(Arc::new)
+            .map_err(Into::into)
+    }
+
+    #[cfg(not(feature = "native-perf"))]
     fn init_plugin_manager(handle: &tauri::AppHandle) -> Result<Arc<PluginManager>, anyhow::Error> {
         match crate::plugin::new_plugin_manager(handle) {
             Ok(pm) => return Ok(Arc::new(pm)),
@@ -179,6 +188,19 @@ impl AppState {
     pub fn new(handle: tauri::AppHandle) -> Result<Self, anyhow::Error> {
         // ── 移动端 VaultService 初始化 ──
         let vault_service = Self::init_vault_service(&handle)?;
+        #[cfg(feature = "native-perf")]
+        {
+            let expected = crate::native_perf::root()
+                .map_err(anyhow::Error::msg)?
+                .join("vault");
+            let vault = vault_service
+                .read()
+                .map_err(|_| anyhow::anyhow!("native-perf Vault lock poisoned"))?;
+            anyhow::ensure!(
+                vault.base_path() == &expected,
+                "native-perf Vault directory mismatch"
+            );
+        }
 
         // ── SyncService / 回调 / DeviceAutoSyncManager / 持久化开关恢复 ──
         let (sync_service, device_auto_sync) = Self::init_sync_components(&handle, &vault_service);

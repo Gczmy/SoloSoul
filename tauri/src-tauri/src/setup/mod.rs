@@ -64,7 +64,14 @@ fn resolve_app_data_dir(
             .resolve(".", tauri::path::BaseDirectory::Data)
             .map_err(|e| format!("无法解析应用数据目录: {e}"))
     }
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(feature = "native-perf")]
+    {
+        Ok(crate::native_perf::root()?.join("app-data"))
+    }
+    #[cfg(all(
+        not(feature = "native-perf"),
+        not(any(target_os = "android", target_os = "ios"))
+    ))]
     {
         Ok(dirs::data_dir()
             .unwrap_or_else(std::env::temp_dir)

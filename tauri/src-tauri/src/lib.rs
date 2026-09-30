@@ -6,6 +6,11 @@ pub mod keystore_plugin;
 pub mod local_embed;
 pub mod lock_state_plugin;
 pub mod mobile_ocr_plugin;
+
+#[cfg(all(feature = "native-perf", not(target_os = "windows")))]
+compile_error!("native-perf 目前只支持 Windows 原生隔离验收");
+#[cfg(all(feature = "native-perf", target_os = "windows"))]
+mod native_perf;
 pub mod network_status_plugin;
 pub mod nsd_plugin;
 pub mod plugin;
@@ -369,6 +374,27 @@ fn dispatch_ipc(invoke: tauri::ipc::Invoke<tauri::Wry>) -> bool {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // 测试构建必须在创建任何 Tauri 线程/插件前确认合成数据与独立目录。
+    #[cfg(feature = "native-perf")]
+    let perf = {
+        if let Some(prepared) = native_perf::prepare_from_args() {
+            match prepared {
+                Ok(value) => println!("{}", value),
+                Err(error) => {
+                    eprintln!("native-perf prepare failed: {}", error);
+                    std::process::exit(1);
+                }
+            }
+            return;
+        }
+        match native_perf::configure_runtime() {
+            Ok(config) => config,
+            Err(error) => {
+                eprintln!("native-perf preflight failed: {}", error);
+                std::process::exit(1);
+            }
+        }
+    };
     // ── 第 0 步：注册 panic hook（在一切初始化之前）──
     // 注意：此时可能还没有正确的日志目录（移动端需进入 setup 后才能解析），
     // panic 信息会先写入 stderr；setup 中设置 LOG_DIR 后则可写入文件。
@@ -422,6 +448,41 @@ pub fn run() {
         builder = preview_pdf_protocol::register(builder);
     }
 
+    #[cfg(feature = "native-perf")]
+    let result = {
+        let mut context = tauri::generate_context!();
+        context.config_mut().identifier = perf.identifier.clone();
+        let window_config = context
+            .config()
+            .app
+            .windows
+            .first()
+            .cloned()
+            .expect("native-perf requires the existing main window configuration");
+        assert_eq!(
+            context.config().app.windows.len(),
+            1,
+            "native-perf requires one main window"
+        );
+        context.config_mut().app.windows[0].create = false;
+        let browser_args = format!("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --remote-debugging-port={} --remote-debugging-address=127.0.0.1", perf.port);
+        builder
+            .append_invoke_initialization_script(
+                native_perf::observer_script().expect("validated native-perf configuration"),
+            )
+            .setup(move |app| {
+                tauri::WebviewWindowBuilder::from_config(app, &window_config)?
+                    .data_directory(perf.webview.clone())
+                    .additional_browser_args(&browser_args)
+                    .devtools(true)
+                    .build()?;
+                setup::setup_app(app)
+            })
+            .invoke_handler(dispatch_ipc)
+            .run(context)
+    };
+
+    #[cfg(not(feature = "native-perf"))]
     let result = builder
         .setup(setup::setup_app)
         .invoke_handler(dispatch_ipc)

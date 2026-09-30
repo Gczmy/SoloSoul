@@ -117,7 +117,14 @@ pub fn new_plugin_manager(app_handle: &tauri::AppHandle) -> Result<PluginManager
             .map_err(|e| PluginError::StoreError(format!("无法解析应用数据目录: {}", e)))?
             .join(".solosoul")
     };
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(feature = "native-perf")]
+    let data_dir = crate::native_perf::root()
+        .map_err(PluginError::StoreError)?
+        .join("plugins");
+    #[cfg(all(
+        not(feature = "native-perf"),
+        not(any(target_os = "android", target_os = "ios"))
+    ))]
     let data_dir = PluginStore::data_dir()?;
 
     PluginManager::new_with_dirs(market_dir, data_dir)
