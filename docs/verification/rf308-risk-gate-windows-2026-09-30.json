@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-308",
+  "date": "2026-09-30",
+  "gitHead": "a5c4c129",
+  "platform": "Windows x86_64",
+  "nodeVersion": "v24.16.0",
+  "vitestVersion": "4.1.8",
+  "thresholds": {
+    "branches": 70,
+    "statements": 80,
+    "functions": 80,
+    "lines": 80
+  },
+  "coverageScopeChanged": false,
+  "sourceChanged": false,
+  "sourceHashes": [
+    {
+      "path": "tauri/src/hooks/useAutoLock.ts",
+      "sha256": "6b0e6a4fd288fdf164b26eaa143a9606cd48bc349d0400f161ce792ce42b912c"
+    },
+    {
+      "path": "tauri/src/hooks/useAutoLock.test.ts",
+      "sha256": "092f73d62a2236ed6d196ff5d2ada12e2d76d25764dab24bc8e3ab3ae83ece0b"
+    },
+    {
+      "path": "tauri/vitest.config.ts",
+      "sha256": "256bbd8890f32ff55f5b032f7334673a6ffadd5a6b3918c77a01672035bfbf4b"
+    },
+    {
+      "path": "tauri/package.json",
+      "sha256": "1d20bf1799fda25bb91b95c9d1fe13fd5513ebf348abdd5b1799a0ed65014c57"
+    }
+  ],
+  "riskWithdrawal": {
+    "skippedFiles": 1,
+    "useAutoLock": {
+      "lines": {
+        "total": 108,
+        "covered": 3,
+        "skipped": 0,
+        "pct": 2.77
+      },
+      "functions": {
+        "total": 38,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      },
+      "statements": {
+        "total": 125,
+        "covered": 3,
+        "skipped": 0,
+        "pct": 2.4
+      },
+      "branches": {
+        "total": 46,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 0
+      }
+    },
+    "passedTests": 1832,
+    "durationSeconds": 288.87,
+    "passedFiles": 229,
+    "exitCode": 1,
+    "failedTests": 0,
+    "failure": "Coverage for functions (79.62%) does not meet global threshold (80%)",
+    "total": {
+      "lines": {
+        "total": 17485,
+        "covered": 15170,
+        "skipped": 0,
+        "pct": 86.76
+      },
+      "statements": {
+        "total": 19245,
+        "covered": 16320,
+        "skipped": 0,
+        "pct": 84.8
+      },
+      "functions": {
+        "total": 3774,
+        "covered": 3005,
+        "skipped": 0,
+        "pct": 79.62
+      },
+      "branches": {
+        "total": 10904,
+        "covered": 7799,
+        "skipped": 0,
+        "pct": 71.52
+      },
+      "branchesTrue": {
+        "total": 0,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 100
+      }
+    },
+    "selection": "^(?!useAutoLock\\b)",
+    "skippedTests": 18
+  },
+  "restored": {
+    "failedTests": 0,
+    "useAutoLock": {
+      "lines": {
+        "total": 108,
+        "covered": 88,
+        "skipped": 0,
+        "pct": 81.48
+      },
+      "functions": {
+        "total": 38,
+        "covered": 23,
+        "skipped": 0,
+        "pct": 60.52
+      },
+      "statements": {
+        "total": 125,
+        "covered": 102,
+        "skipped": 0,
+        "pct": 81.6
+      },
+      "branches": {
+        "total": 46,
+        "covered": 36,
+        "skipped": 0,
+        "pct": 78.26
+      }
+    },
+    "passedTests": 1850,
+    "durationSeconds": 297.26,
+    "passedFiles": 230,
+    "exitCode": 0,
+    "total": {
+      "lines": {
+        "total": 17485,
+        "covered": 15255,
+        "skipped": 0,
+        "pct": 87.24
+      },
+      "statements": {
+        "total": 19245,
+        "covered": 16419,
+        "skipped": 0,
+        "pct": 85.31
+      },
+      "functions": {
+        "total": 3774,
+        "covered": 3028,
+        "skipped": 0,
+        "pct": 80.23
+      },
+      "branches": {
+        "total": 10904,
+        "covered": 7835,
+        "skipped": 0,
+        "pct": 71.85
+      },
+      "branchesTrue": {
+        "total": 0,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 100
+      }
+    },
+    "selection": "all",
+    "skippedTests": 0
+  },
+  "limitations": [
+    "Local Windows evidence; no remote CI log",
+    "Existing unrelated working-tree changes preserved",
+    "This demonstrates removal of the auto-lock suite crossing the aggregate gate; it does not prove every individual risk branch is independently gated"
+  ]
+}
