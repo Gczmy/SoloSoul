@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { invokeTypedCommand } from '@/lib/typedIpc';
 import { toObjectDataView } from '@/lib/objectViewModel';
-import { createSessionRequests } from '@/lib/sessionRequests';
+import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { useIncrementalWindow } from '@/hooks/useIncrementalWindow';
 import { useObjectStore, type ObjectSummary, type ObjectData } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -34,6 +33,7 @@ export function useObjectWorkspaceData({
 }: UseObjectWorkspaceDataOptions) {
   const { t } = useTranslation(['common', 'navigation', 'editor']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -225,22 +225,88 @@ export function useObjectWorkspaceData({
     };
   }, [visibleObjects]);
 
-  // Load attachment counts for visible objects
+  // 身份同时包含账户、路由过滤与可见对象，A→B→A 也生成新身份。
+  const attachmentCountRequests = useMemo(() => createSessionRequests(), []);
+  const [attachmentCountSessionEpoch, setAttachmentCountSessionEpoch] = useState(0);
+  // 同一 React 批次中的锁定→重新解锁也必须产生新身份，不能只比较最终账户值。
+  useLayoutEffect(
+    () =>
+      onRequestSessionChange(() => {
+        attachmentCountRequests.invalidate('counts');
+        abortRef.current?.abort();
+        setAttachmentCounts({});
+        setAttachmentCountSessionEpoch((epoch) => epoch + 1);
+      }),
+    [attachmentCountRequests],
+  );
+  const attachmentCountScope = useMemo(
+    () => ({
+      accountId,
+      isAuthenticated,
+      pageId,
+      sectionFilter,
+      visibleObjects,
+      sessionEpoch: attachmentCountSessionEpoch,
+      origin: attachmentCountRequests.begin(undefined, accountId),
+    }),
+    [
+      accountId,
+      isAuthenticated,
+      pageId,
+      sectionFilter,
+      visibleObjects,
+      attachmentCountSessionEpoch,
+      attachmentCountRequests,
+    ],
+  );
+  const currentAttachmentCountScopeRef = useRef(attachmentCountScope);
+  const attachmentCountsMountedRef = useRef(false);
+  useLayoutEffect(() => {
+    attachmentCountsMountedRef.current = true;
+    currentAttachmentCountScopeRef.current = attachmentCountScope;
+    return () => {
+      attachmentCountsMountedRef.current = false;
+      attachmentCountRequests.invalidate('counts');
+      abortRef.current?.abort();
+    };
+  }, [attachmentCountScope, attachmentCountRequests]);
+
+  // 先拒绝旧闭包，旧 Viewer 回调不能 abort 当前列表的请求。
   const refreshAttachmentCounts = useCallback(() => {
+    if (
+      !attachmentCountsMountedRef.current ||
+      currentAttachmentCountScopeRef.current !== attachmentCountScope ||
+      !attachmentCountScope.accountId ||
+      !attachmentCountScope.isAuthenticated ||
+      !attachmentCountScope.origin.isCurrent()
+    ) {
+      return () => {};
+    }
+    const request = attachmentCountRequests.begin('counts', attachmentCountScope.accountId);
+    if (!request.isCurrent()) return () => {};
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
-    const ids = visibleObjects.map((o) => o.id);
+    const isCurrent = () =>
+      attachmentCountsMountedRef.current &&
+      currentAttachmentCountScopeRef.current === attachmentCountScope &&
+      request.isCurrent() &&
+      !controller.signal.aborted;
+    const ids = attachmentCountScope.visibleObjects.map((o) => o.id);
     if (ids.length === 0) {
+      setAttachmentCounts({});
       return () => controller.abort();
     }
-    invoke<Record<string, number>>('attachment_count_batch', { objectIds: ids })
+    request
+      .invoke<Record<string, number>>('attachment_count_batch', { objectIds: ids })
       .then((counts) => {
-        if (!controller.signal.aborted) setAttachmentCounts(counts);
+        if (isCurrent()) setAttachmentCounts(counts);
       })
-      .catch((err) => logger.warn('[Workspace] Attachment count batch failed:', err));
+      .catch((err) => {
+        if (isCurrent()) logger.warn('[Workspace] Attachment count batch failed:', err);
+      });
     return () => controller.abort();
-  }, [visibleObjects]);
+  }, [attachmentCountScope, attachmentCountRequests]);
 
   useEffect(() => {
     return refreshAttachmentCounts();

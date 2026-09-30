@@ -1,0 +1,247 @@
+{
+  "task": "RF-1065",
+  "date": "2026-09-30",
+  "repository": "C:\\Users\\40299571\\SoloSoul",
+  "baseline": {
+    "head": "7839a28ee79e87d910fb647584768ebc19d09d5e",
+    "sourceSha256": "c0a53b39839fda043f70a3fcca1af536893c20fc85979c53c619b7cedfdeabf5",
+    "test": "tauri/src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx"
+  },
+  "changes": [
+    "原会话ticket与同步会话epoch，当前账户/认证、路由及可见列表身份；begin和abort之前拒绝旧闭包。",
+    "当前最新请求才发布计数或错误；空列表清空，卸载失效；没有改动IPC签名、其它计数域或测试/Lint门槛。"
+  ],
+  "sourceManifest": {
+    "tauri/src/hooks/useObjectWorkspaceData.ts": "0213eaa4706eabbe5249e6d3fb98f35795d87c5cac058bd271e0ff1ee67b0770",
+    "tauri/src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx": "f2b8d8c55fd7295c0455933548256b9793cc3b5306ade151f44090094941671f"
+  },
+  "coTestedPendingRF016SourceManifest": {
+    "tauri/src/components/object/useAttachmentBatchOps.test.tsx": "d0881a5ad1727d3b9cf363cf5ab915a268831faee553e32c9640b84a5b1db00b",
+    "tauri/src/components/object/useAttachmentBatchOps.tsx": "c402417a7770fb161d55b08a908a573d2d634089f9a1124f49b6cbdef13c7641",
+    "tauri/src/components/object/useAttachmentViewer.tsx": "ba1a1934da6e613630561ea77c92f35138043080a7dce9594ee755d4445c5297",
+    "tauri/src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx": "9ffa71e5653aa2569cd77c87213dc9e5aa09eedd05243c50afc8d4213026f538",
+    "tauri/src/hooks/useAttachmentManagerBatchOps.ts": "710a860965837f2e49db8b00a3debbb932b09bc0210f591230292071fb728cea",
+    "tauri/src/hooks/useAttachmentManagerItemOps.rf016.test.tsx": "b72c5cd6e9d42493fb0faf68f03f2186e1e6f8cbda02a1ff7b1af57c9ebef847",
+    "tauri/src/hooks/useAttachmentManagerItemOps.ts": "90515a83e5f2b3e0474c8b3c0b8708e48b91bed0cc1e8fb4929d9e8f3f61b756",
+    "tauri/src/lib/backendError.test.ts": "204fe959e3a4a6f265f2f1f2ad48a166395c4447ba1da796f36f0660e0475628",
+    "tauri/src/lib/backendError.ts": "462e303b28f5ae2ccf76c8dd40b9fad777e6cb175f3bd4921ec17ac6938aa71d",
+    "tauri/src/locales/en-US/common.json": "88b03931e1a440ab1660dd75e0817af7291ab892712ebb27467e6e5ff5ca9d3d",
+    "tauri/src/locales/zh-CN/common.json": "e98425a88d25d37495c74669c254eb3937ad0e072f29da3d5c000733b6b983eb",
+    "tauri/src/hooks/useAttachmentManager.ts": "a95e73ff348cc16bbd00f544eb5a03b754fa06a130d599976b191095e89ddb64",
+    "tauri/src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx": "6b42e2cdff102f028fb5a95e9ddbf532b7567a0f95d304848fd7d81521912c31",
+    "tauri/src/hooks/useAttachmentManagerLoad.rf016.test.tsx": "c93d8987b98da03cf20a886b312c7b6c71560c5bf32217c80c9833372deef424"
+  },
+  "red": {
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx"
+    ],
+    "exitCode": 1,
+    "elapsedSeconds": 30.02,
+    "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\counts-red.log",
+    "sha256": "174769b8f6b88d2d42cbd556f971203267990d544821b7a823599839d23355a3"
+  },
+  "redTotals": {
+    "passed": 1,
+    "failed": 8,
+    "total": 9
+  },
+  "finalChecks": [
+    {
+      "check": "counts-and-guards",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx",
+        "src/hooks/useObjectWorkspaceData.test.ts",
+        "src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx",
+        "src/hooks/useAttachmentManagerItemOps.rf016.test.tsx",
+        "src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx",
+        "src/hooks/useAttachmentManagerLoad.rf016.test.tsx",
+        "src/components/object/useAttachmentBatchOps.test.tsx",
+        "src/components/object/useAttachmentViewer.test.tsx",
+        "src/components/object/AttachmentViewer.test.tsx",
+        "src/components/object/AttachmentViewer.objectSwitch.test.tsx",
+        "src/lib/backendError.test.ts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 10.97,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\counts-and-guards-final.log",
+      "sha256": "01edfef1c7efc88fd027f20cb117680fe13ad34de2271a3a3bc371dcf95a246c"
+    },
+    {
+      "check": "tsc",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 20.45,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\tsc-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "check": "lint",
+      "command": [
+        "npm.cmd",
+        "run",
+        "lint",
+        "--",
+        "--max-warnings",
+        "0"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 16.68,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\lint-final.log",
+      "sha256": "1604bc5d5ff04f2bc29b75d109dcb7d3e59fbeb79c0b1d7cd08b90be7efa2ca9"
+    },
+    {
+      "check": "full",
+      "command": [
+        "npm.cmd",
+        "run",
+        "test"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 156.56,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\full-final.log",
+      "sha256": "4b16d744bfeb07785560acbba4b1ab951e506e594c23d49f7b40b970a6aeedb5"
+    },
+    {
+      "check": "format",
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "src/components/object/useAttachmentBatchOps.test.tsx",
+        "src/components/object/useAttachmentBatchOps.tsx",
+        "src/components/object/useAttachmentViewer.tsx",
+        "src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx",
+        "src/hooks/useAttachmentManagerBatchOps.ts",
+        "src/hooks/useAttachmentManagerItemOps.rf016.test.tsx",
+        "src/hooks/useAttachmentManagerItemOps.ts",
+        "src/lib/backendError.test.ts",
+        "src/lib/backendError.ts",
+        "src/locales/en-US/common.json",
+        "src/locales/zh-CN/common.json",
+        "src/hooks/useAttachmentManager.ts",
+        "src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx",
+        "src/hooks/useAttachmentManagerLoad.rf016.test.tsx",
+        "src/hooks/useObjectWorkspaceData.ts",
+        "src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.81,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\format-final.log",
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    }
+  ],
+  "finalTotals": {
+    "targetFiles": 11,
+    "targetPassed": 98,
+    "vitestFiles": 236,
+    "vitestPassed": 1967,
+    "nodePassed": 112,
+    "failed": 0,
+    "skipped": 0
+  },
+  "firstFinalRound": [
+    {
+      "check": "counts-and-guards",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx",
+        "src/hooks/useObjectWorkspaceData.test.ts",
+        "src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx",
+        "src/hooks/useAttachmentManagerItemOps.rf016.test.tsx",
+        "src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx",
+        "src/hooks/useAttachmentManagerLoad.rf016.test.tsx",
+        "src/components/object/useAttachmentBatchOps.test.tsx",
+        "src/components/object/useAttachmentViewer.test.tsx",
+        "src/components/object/AttachmentViewer.test.tsx",
+        "src/components/object/AttachmentViewer.objectSwitch.test.tsx",
+        "src/lib/backendError.test.ts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 34.0,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\counts-and-guards.log",
+      "sha256": "8fd756cc6bcba658ceed67a9a8e655227705e0cbeff814b5ac030c025c3525c7"
+    },
+    {
+      "check": "tsc",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 18.38,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "check": "lint",
+      "command": [
+        "npm.cmd",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 35.84,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\lint.log",
+      "sha256": "a6a0c72ec8c2c05abb94df7e63b8f5db1045c9f5437c5c3393cbeea77ab72ab0"
+    },
+    {
+      "check": "full",
+      "command": [
+        "npm.cmd",
+        "run",
+        "test"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 176.92,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\full.log",
+      "sha256": "52162a5ebb10fb8768b2cf2b0a0a3c87e91cf239441eb6372b0bae42b70871a1"
+    },
+    {
+      "check": "format",
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "src/components/object/useAttachmentBatchOps.test.tsx",
+        "src/components/object/useAttachmentBatchOps.tsx",
+        "src/components/object/useAttachmentViewer.tsx",
+        "src/hooks/useAttachmentManagerBatchOps.rf016.test.tsx",
+        "src/hooks/useAttachmentManagerBatchOps.ts",
+        "src/hooks/useAttachmentManagerItemOps.rf016.test.tsx",
+        "src/hooks/useAttachmentManagerItemOps.ts",
+        "src/lib/backendError.test.ts",
+        "src/lib/backendError.ts",
+        "src/locales/en-US/common.json",
+        "src/locales/zh-CN/common.json",
+        "src/hooks/useAttachmentManager.ts",
+        "src/components/object/useAttachmentDeletionOwnership.rf016.test.tsx",
+        "src/hooks/useAttachmentManagerLoad.rf016.test.tsx",
+        "src/hooks/useObjectWorkspaceData.ts",
+        "src/hooks/useObjectWorkspaceAttachmentCounts.rf1065.test.tsx"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.78,
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1065-20260930\\format.log",
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    }
+  ],
+  "firstRoundNote": "全部测试和官方lint通过，但新scope依赖有3个exhaustive-deps warnings；显式身份字段修正后最终F完整重跑，lint要求max-warnings 0。",
+  "limitations": [
+    "Windows本机真实Hook/Store/会话订阅和受控native IPC；未启动原生GUI或远端同步。",
+    "真实Viewer组合回归在含待提交RF016的工作树运行；不把其后端验收纳入RF1065。"
+  ],
+  "commit": "本提交，以RF-1065检索；不推送。"
+}
