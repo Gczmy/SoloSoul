@@ -868,7 +868,8 @@ mod install_progress_tests {
         let writer = tokio::spawn(async move {
             let (mut stream, _) = server.accept().await.unwrap();
             let mut request = [0; 2048];
-            stream.read(&mut request).await.unwrap();
+            // 此处只等待请求开始；EOF 不能被当作已收到请求。
+            assert_ne!(stream.read(&mut request).await.unwrap(), 0);
             stream
                 .write_all(
                     b"HTTP/1.1 200 OK\r\nContent-Length: 10\r\nConnection: close\r\n\r\n12345",

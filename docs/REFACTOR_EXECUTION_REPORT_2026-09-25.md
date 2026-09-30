@@ -120,8 +120,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**250**（P1：49；P2：200；P3：1）。
-- 已关闭：**211 / 250**；实际修复（已关闭）：211；排除：0；待验证/阻塞：6（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：RF-014 已验证完成，准备独立提交；随后进入 RF-016。生产修复授权已解除，六项平台/CI 条件继续待验证。
+- 已关闭：**212 / 252**；实际修复（已关闭）：212；排除：0；待验证/阻塞：6（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无。RF-016 的完整 workspace 与前端检查通过；CLI 唯一失败为备份 fixture 依赖未安装的 sqlite3，下一项先消除该测试外部依赖。RF-1061 保留独立锁文件版本同步；六项平台/CI 条件继续待验证。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -150,7 +150,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 21 | [RF-017](#rf-017) | P1 | 导出完成后才替换目标包 | 无 | [x] 完成 |
 | 22 | [RF-018](#rf-018) | P1 | 导入模板保存失败必须传播 | 无 | [x] 完成 |
 | 23 | [RF-019](#rf-019) | P2 | 数据库事务失败时自动回滚 | 无 | [x] 完成 |
-| 24 | [RF-016](#rf-016) | P1 | 永久删除附件采用可恢复清理意图 | [RF-019](#rf-019) | [ ] 待执行（已授权） |
+| 24 | [RF-016](#rf-016) | P1 | 永久删除附件采用可恢复清理意图 | [RF-019](#rf-019) | [ ] 已实施，待 CLI 备份 fixture 修复后复审（已授权） |
 | 25 | [RF-020](#rf-020) | P1 | 导入失败返回真实部分提交状态 | [RF-018](#rf-018) | [x] 完成 |
 | 26 | [RF-021](#rf-021) | P1 | 对象模板与历史按导入批次事务提交 | [RF-018](#rf-018)、[RF-019](#rf-019)、[RF-020](#rf-020) | [ ] 待执行（已授权） |
 | 27 | [RF-022](#rf-022) | P1 | 附件导入可恢复且同一任务重试幂等 | [RF-020](#rf-020)、[RF-021](#rf-021) | [ ] 待执行 |
@@ -377,6 +377,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 248 | [RF-1058](#rf-1058) | P2 | 补齐工作区对象详情操作回归 | 无（巩固 RF-308 覆盖率） | [x] 完成 |
 | 249 | [RF-1059](#rf-1059) | P2 | 生产 CSP 补齐受限本地 IPC 来源 | 无（RF-312日志发现的独立问题） | [x] 完成 |
 | 250 | [RF-1060](#rf-1060) | P2 | Node 性能回归使用正确执行器并接入默认检查 | 无（RF-104 全量检查发现） | [x] 完成 |
+| 251 | [RF-1061](#rf-1061) | P2 | 同步 CLI 锁文件的本地 crate 版本 | 无（RF-016 CLI 检查发现） | [ ] 待执行 |
+| 252 | [RF-1062](#rf-1062) | P2 | 插件进度测试确认实际收到请求字节 | 无（RF-016 完整测试目标检查发现） | [x] 完成 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -3347,6 +3349,28 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**WEB、NATIVE、DOC；`e2e/csp-ipc.production.spec.ts` 和完整 production Playwright；专用 native-perf Release 及 `--chromium-log` 现场诊断。仅改 JSON/浏览器用例，不重跑无关完整 Rust/Vitest。
 - **建议提交：**`fix(security): allow Tauri local IPC in production CSP [RF-1059]`。
 
+### RF-1061
+
+**同步 CLI 锁文件的本地 crate 版本** · P2 · 来源：RF-016 CLI 验证
+
+- **前置：**无；当前源码五个共享 crate 已为 2.13.2，CLI Cargo.lock 仍为 2.13.1。
+- **入口：**`solosoul_cli/Cargo.lock`；`tauri/crates/*/Cargo.toml`。
+- **执行：**仅更新五个本地 path package 的版本；保持 registry 包、依赖边和 feature。锁文件变化单独提交。
+- **验收：**锁文件与实际 path manifest 版本一致；`cargo metadata --locked --offline` 接受，实际 CLI 检查通过；未升级其他依赖。
+- **验证配置：**`CLI`；若复用 RF-016 的同源码检查，记录源码/锁文件 SHA 与真实结果。
+- **建议提交：**`chore(deps): align CLI local crate lock versions [RF-1061]`。
+
+### RF-1062
+
+**插件进度测试确认实际收到请求字节** · P2 · 来源：RF-016 完整测试目标检查
+
+- **前置：**无。
+- **入口：**`tauri/crates/solosoul-plugin/src/manager.rs` 的 `reports_received_bytes_before_download_finishes`。
+- **执行：**测试服务器等待请求开始时检查 read 返回字节数，EOF 不能视为有请求；不要求填满 2048 字节，也不改变下载生产逻辑或进度断言。
+- **验收：**原进度回归执行通过，测试目标 Clippy 通过；不添加 allow/忽略，不降低 warnings 门槛。
+- **验证配置：**`R`；完整 workspace `cargo clippy --all-targets -- -D warnings` 与现有进度测试。
+- **建议提交：**`test(plugin): check request bytes before progress response [RF-1062]`。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -5555,3 +5579,9 @@ git commit -m "<任务卡的提交标题>"
 - `cargo fmt --all -- --check`、Clippy `-D warnings` 均 exit 0；完整 `cargo test --verbose -j 1` **25 组、1,371 passed / 0 failed / 3 既有 ignored**，exit 0（122.66s），含 Host 622/Core 295/Vault 190。源码 SHA 在定向和完整检查间保持；没有降低检查、裁剪用例或新增忽略。
 - 两份 canonical 附件/云实施规范已同步；单附件 100 MiB、总量 1 GiB、包格式、密码规则保持。附件纳入后实际包大小/耗时可能增加；本项不保证数据库/文件系统的事务一致快照，不改变缺失文件及宽松解析策略。独立复审无生产必修项，修正两处文档表达/表格问题。证据见 [RF-014 验证记录](verification/rf014-full-snapshot-attachments-2026-09-30.json)。
 - 211/250 已关闭，六项平台/CI 条件继续待验证；本项独立本地提交（本提交，以 RF-014 检索），不推送。用户 NSIS 位图及其他原有改动不暂存。下一项 RF-016。
+
+### RF-1062 执行记录（2026-09-30，完成）
+
+- 初次完整测试目标 Clippy 报 unused_io_amount；只在测试服务器确认 read 实际收到字节，EOF 不再满足请求开始条件，下载生产逻辑与进度断言保持。
+- workspace fmt、all-targets Clippy（-D warnings）与完整测试全部通过；完整测试 1,406 passed / 0 failed / 3 既有 ignored，其中原 reports_received_bytes_before_download_finishes 真实执行通过。本项在含待提交 RF-016 的工作树验收，不把新增测试计入本项。
+- 证据见 [RF-1062 验证记录](verification/rf1062-plugin-request-read-2026-09-30.json)。RF-014 未推送本地提交已补齐测试 lint 为 `46a58de2`；其原检查记录保留。212/252 已关闭，本项只提交测试、报告与证据，不推送。

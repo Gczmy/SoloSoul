@@ -1,0 +1,108 @@
+{
+  "task": "RF-1062",
+  "date": "2026-09-30",
+  "baseline": "83f00783be42e442d5ce735ece847d4720b91464",
+  "commitParent": "46a58de2d7e5eaa481f24bf58a32c37b1f69ad88",
+  "before": {
+    "task": "RF-1062",
+    "baseline": "83f00783be42e442d5ce735ece847d4720b91464",
+    "path": "tauri/crates/solosoul-plugin/src/manager.rs",
+    "originalSha256": "859827f17db5bdab81517aeb07e3185fafa8e94450bfa513ebea1056220864be",
+    "normalizedEqualsHead": true,
+    "finalSha256": "0f8c52d63ac36e72a021210db977c9e0336374d0790ec7f193bfa2adcece73e5",
+    "failedLog": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-clippy-fourth.log"
+  },
+  "change": "测试服务器拒绝将 EOF 视为已收到请求；只检查 read 字节数大于0，不等待缓冲区填满，不改变下载与进度生产逻辑。",
+  "initialFailure": {
+    "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-clippy-fourth.log",
+    "sha256": "4480be5cb380f7ae0f48b4520caf00abf5a49fc1348f0fc7ab245b280d2fee32",
+    "diagnostic": "clippy::unused_io_amount"
+  },
+  "finalSourceSha256": "0f8c52d63ac36e72a021210db977c9e0336374d0790ec7f193bfa2adcece73e5",
+  "checks": [
+    {
+      "check": "workspace-fmt",
+      "cwd": "tauri",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.18,
+      "results": [],
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-fmt-sixth.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "check": "workspace-clippy",
+      "cwd": "tauri",
+      "command": [
+        "cargo",
+        "clippy",
+        "-j",
+        "1",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 14.98,
+      "results": [],
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-clippy-sixth.log",
+      "sha256": "728491d811b9a9f1ebbb3857f3dbf6ff404c00365b2726ec8f89a29c02af64cb"
+    },
+    {
+      "check": "workspace-full",
+      "cwd": "tauri",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "-j",
+        "1"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 252.0,
+      "results": [
+        "test result: ok. 628 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.89s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 306 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.31s",
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.11s",
+        "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s",
+        "test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.69s",
+        "test result: ok. 95 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 1.30s",
+        "test result: ok. 64 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.78s",
+        "test result: ok. 208 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.70s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll"
+      },
+      "logPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf016-20260930\\workspace-full-eighth.log",
+      "sha256": "fc52ac79f7ebcfab48182e13ed1b04462fb905c3676a34c59ff1b2841cb1b5bf"
+    }
+  ],
+  "positiveCases": [
+    "test manager::install_progress_tests::reports_received_bytes_before_download_finishes ... ok"
+  ],
+  "context": "完整 workspace 包含待提交 RF-016；本项只变更原插件进度测试的一处 read 结果断言，无新增忽略或 allow。"
+}
