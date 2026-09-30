@@ -1,4 +1,4 @@
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import type { UnlistenFn } from '@tauri-apps/api/event';
 import {
   isPermissionGranted,
   requestPermission,
@@ -12,6 +12,8 @@ import { invokeCommand as invoke } from '@/lib/ipcClient';
 import i18next from '@/lib/i18n';
 import { navigateTo } from '@/lib/navigation';
 import { logger } from '@/lib/logger';
+import { notifyConversationSaveFailed } from '@/lib/llm/conversationPersistence';
+import { useLlmStore, selectLlmStream, type StreamIdentity } from '@/stores/llmStore';
 import { onRequestSessionChange } from '@/lib/sessionRequests';
 import type { BackupInfo } from '@/types/backup';
 
@@ -52,20 +54,8 @@ export async function requestNotificationPermissionOnce(): Promise<boolean> {
   }
 }
 
-interface LlmStreamPayload {
-  conversationId: string;
-  chunk: string;
-  isDone: boolean;
-  error?: string;
-}
-
-/**
- * Tracks conversation IDs for which the user sent a message and is awaiting
- * an AI response. When the stream completes and the user is no longer viewing
- * the AI chat (full page or quick card), a system notification + in-app toast
- * are shown.
- */
-const pendingConversations = new Set<string>();
+// 只接纳已登记request的Store结算，避免另一raw listener忽略账户/代次。
+const pendingConversations = new Map<string, StreamIdentity>();
 onRequestSessionChange(() => pendingConversations.clear());
 
 // F029: avoid querying the global DOM to determine the current page; callers
@@ -87,39 +77,33 @@ export function setQuickChatOpen(open: boolean): void {
  * 注意：不在启动时申请通知权限，权限延迟到首次真正发送通知时由
  * sendSystemNotificationWithFallback 按需申请，避免启动即弹窗。
  */
-export function initLlmNotificationListener(): Promise<UnlistenFn> {
-  return listen<LlmStreamPayload>('llm-stream-chunk', (event) => {
-    const payload = event.payload;
-
-    // Error or not done → don't notify yet (but still clear error ones)
-    if (payload.error) {
-      pendingConversations.delete(payload.conversationId);
-      return;
-    }
-    if (!payload.isDone) return;
-
-    if (!pendingConversations.has(payload.conversationId)) return;
-    pendingConversations.delete(payload.conversationId);
-
-    if (!isAiPageOpen && !isQuickChatOpen) {
-      // 首次触发时按需申请权限，避免启动即弹窗
-      sendSystemNotificationWithFallback(
+export async function initLlmNotificationListener(): Promise<UnlistenFn> {
+  return useLlmStore.subscribe((state) => {
+    for (const [requestId, identity] of pendingConversations) {
+      const stream = selectLlmStream(state, identity.accountId, identity.conversationId);
+      if (!state.isCurrent(identity)) {
+        pendingConversations.delete(requestId);
+        continue;
+      }
+      if (stream?.persistFailed && useLlmStore.getState().claimPersistFailure(identity))
+        notifyConversationSaveFailed(i18next.t.bind(i18next));
+      if (!stream?.settled) continue;
+      pendingConversations.delete(requestId);
+      if (stream.error || stream.persistFailed || isAiPageOpen || isQuickChatOpen) continue;
+      void sendSystemNotificationWithFallback(
         i18next.t('common:ai_notification_title', 'SoloSoul AI'),
         i18next.t('common:ai_notification_body', 'Click to view the AI response'),
         i18next.t('common:ai_notification_toast', 'AI response ready'),
         'info',
         true,
+        () => useLlmStore.getState().isCurrent(identity),
       );
     }
   });
 }
-
-/**
- * Mark a conversation as pending notification. Call this right before
- * invoking `llm_send_message_stream`.
- */
-export function markConversationPending(convId: string): void {
-  pendingConversations.add(convId);
+export function markConversationPending(identity: StreamIdentity): void {
+  if (useLlmStore.getState().isCurrent(identity))
+    pendingConversations.set(identity.requestId, identity);
 }
 
 /**
@@ -132,9 +116,12 @@ export async function sendSystemNotificationWithFallback(
   toastMessage?: string,
   toastType: 'info' | 'warning' | 'error' | 'success' = 'info',
   showToastAlways = false,
+  requestIsCurrent: () => boolean = () => true,
 ): Promise<void> {
   try {
+    if (!requestIsCurrent()) return;
     const hasPermission = await requestNotificationPermissionOnce();
+    if (!requestIsCurrent()) return;
 
     if (hasPermission) {
       sendNotification({ title, body });
@@ -148,6 +135,7 @@ export async function sendSystemNotificationWithFallback(
       });
     }
   } catch (err) {
+    if (!requestIsCurrent()) return;
     logger.error('[notification] sendSystemNotificationWithFallback failed:', err);
     // 兜底：至少显示应用内 toast
     useUiStore.getState().showToast({

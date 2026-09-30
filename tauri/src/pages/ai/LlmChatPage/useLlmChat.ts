@@ -1,5 +1,5 @@
+import { invokeConversationChange } from '@/stores/llmStore';
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore } from '@/stores/authStore';
 import { useLlmChatCore } from '@/hooks/useLlmChatCore';
 import { useToastError } from '@/hooks/useToastError';
@@ -112,6 +112,7 @@ export function useLlmChat(): UseLlmChatReturn {
 
   const core = useLlmChatCore({ includeSystemPrompt, onConversationSaved: refreshLists });
   refreshCoreList.current = core.loadConversationList;
+  const { isCurrentConversation } = core;
   useEffect(() => {
     if (showTrash) void loadTrashList();
     else {
@@ -151,75 +152,95 @@ export function useLlmChat(): UseLlmChatReturn {
   const handleRename = useCallback(
     async (convId: string, newName: string) => {
       if (!accountId || !newName.trim()) return;
+      const request = readRequests.begin(undefined, accountId);
       try {
-        await invoke('llm_rename_conversation', {
+        await invokeConversationChange('llm_rename_conversation', {
           accountId: accountId,
           conversationId: convId,
           name: newName.trim(),
         });
       } catch (e) {
+        if (!request.isCurrent()) return;
         // P021: 失败不再静默——toast 提示且不执行后续本地更新
         logger.warn('[useLlmChat] Rename conversation failed:', e);
         onError(e, t('common:error'));
         return;
       }
+      if (!request.isCurrent()) return;
       core.loadConversationList();
       if (currentConv?.id === convId)
-        setCurrentConv((prev) => (prev ? { ...prev, name: newName.trim() } : prev));
+        setCurrentConv((prev) => (prev?.id === convId ? { ...prev, name: newName.trim() } : prev));
     },
-    [accountId, currentConv, core, onError, t],
+    [accountId, currentConv, core, onError, t, readRequests],
   );
 
   const handleSoftDelete = useCallback(
     async (convId: string) => {
       if (!accountId) return;
+      const request = readRequests.begin(undefined, accountId);
       try {
-        await invoke('llm_soft_delete_conversation', {
+        await invokeConversationChange('llm_soft_delete_conversation', {
           accountId: accountId,
           conversationId: convId,
         });
       } catch (e) {
+        if (!request.isCurrent()) return;
         logger.warn('[useLlmChat] Soft delete conversation failed:', e);
         onError(e, t('common:error'));
         return;
       }
-      if (core.currentConvId === convId) handleNewConversation();
+      if (!request.isCurrent()) return;
+      if (isCurrentConversation(convId)) handleNewConversation();
       refreshLists();
     },
-    [accountId, core.currentConvId, handleNewConversation, refreshLists, onError, t],
+    [
+      accountId,
+      isCurrentConversation,
+      handleNewConversation,
+      refreshLists,
+      onError,
+      t,
+      readRequests,
+    ],
   );
 
   const handleRestore = useCallback(
     async (convId: string) => {
       if (!accountId) return;
+      const request = readRequests.begin(undefined, accountId);
       try {
-        await invoke('llm_restore_conversation', {
+        await invokeConversationChange('llm_restore_conversation', {
           accountId: accountId,
           conversationId: convId,
         });
       } catch (e) {
+        if (!request.isCurrent()) return;
         logger.warn('[useLlmChat] Restore conversation failed:', e);
         onError(e, t('common:error'));
         return;
       }
+      if (!request.isCurrent()) return;
       refreshLists();
     },
-    [accountId, refreshLists, onError, t],
+    [accountId, refreshLists, onError, t, readRequests],
   );
 
   const handlePermanentDelete = useCallback(
     async (convId: string) => {
       if (!accountId) return;
+      const request = readRequests.begin(undefined, accountId);
       try {
-        await invoke('llm_permanent_delete', {
+        await invokeConversationChange('llm_permanent_delete', {
           accountId: accountId,
           conversationId: convId,
         });
       } catch (e) {
+        if (!request.isCurrent()) return;
         logger.warn('[useLlmChat] Permanent delete conversation failed:', e);
         onError(e, t('common:error'));
         return;
       }
+      if (!request.isCurrent()) return;
       setTrashList((prev) => prev.filter((c) => c.id !== convId));
       setConfirmPermanentDelete(null);
       readRequests.invalidate('trashBody');

@@ -17,18 +17,20 @@ export function notifyConversationSaveFailed(t: TFunction) {
 
 /**
  * 保存会话；失败时留痕并 toast 提示。返回是否成功。
- * 供首次保存 / 流结束保存 / 错误会话保存三处共用（P007 统一处理路径）。
+ * 供明确的发送前历史保存使用；最终 assistant 回复仅由后端写入。
  */
 export async function saveConversationSafely(
   accountId: string | undefined,
   conversation: Conversation,
   t: TFunction,
+  request?: { invoke: typeof invoke; isCurrent: () => boolean },
 ): Promise<boolean> {
   if (!accountId) return false;
   try {
-    await invoke('llm_save_conversation', { accountId, conversation });
+    await (request?.invoke ?? invoke)('llm_save_conversation', { accountId, conversation });
     return true;
   } catch (err) {
+    if (request && !request.isCurrent()) return false;
     logger.warn('[useLlmChatCore] Save conversation failed:', err);
     notifyConversationSaveFailed(t);
     return false;

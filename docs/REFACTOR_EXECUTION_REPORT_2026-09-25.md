@@ -120,8 +120,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**250**（P1：49；P2：200；P3：1）。
-- 已关闭：**209 / 250**；实际修复（已关闭）：209；排除：0；待验证/阻塞：6（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：RF-104。RF-1060 的默认/coverage 执行入口已修复；RF-104 107 项定向与完整 F 检查通过，按纪律将在 RF-1060 后独立提交。七项生产修复授权已解除；RF-014 是下一项，平台/CI 六项证据条件仍未关闭。
+- 已关闭：**210 / 250**；实际修复（已关闭）：210；排除：0；待验证/阻塞：6（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无；RF-1060、RF-104 已完成并分别提交，下一项 RF-014。七项生产修复授权已解除，余六项按依赖顺序继续；六项平台/CI 验证条件仍未关闭。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -136,7 +136,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 7 | [RF-005](#rf-005) | P1 | 普通聊天通过 provider ID 在 Rust 解析凭证 | [RF-001](#rf-001)、[RF-002](#rf-002)、[RF-004](#rf-004) | [x] 完成 |
 | 8 | [RF-102](#rf-102) | P1 | 搜索查询与缓存写入绑定会话和请求代次 | 无 | [x] 完成 |
 | 9 | [RF-103](#rf-103) | P1 | 聊天会话读取只接纳最新选择 | 无 | [x] 完成 |
-| 10 | [RF-104](#rf-104) | P1 | 聊天流归属明确且最终回复只有一个持久化写入者 | [RF-101](#rf-101)、[RF-103](#rf-103)、[RF-002](#rf-002)、[RF-005](#rf-005) | [~] 进行中（已授权，检查通过待提交） |
+| 10 | [RF-104](#rf-104) | P1 | 聊天流归属明确且最终回复只有一个持久化写入者 | [RF-101](#rf-101)、[RF-103](#rf-103)、[RF-002](#rf-002)、[RF-005](#rf-005) | [x] 完成 |
 | 11 | [RF-105](#rf-105) | P1 | 历史未揭示值不再以原文加 blur 渲染 | 无 | [x] 完成 |
 | 12 | [RF-106](#rf-106) | P1 | 对象详情采用共享字段展示策略 | [RF-100](#rf-100) | [x] 完成 |
 | 13 | [RF-107](#rf-107) | P1 | 历史快照迁入共享字段展示策略 | [RF-105](#rf-105)、[RF-106](#rf-106) | [x] 完成 |
@@ -799,10 +799,11 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 **聊天流归属明确且最终回复只有一个持久化写入者** · P1 · 来源：R02
 
 - **前置：**[RF-101](#rf-101)、[RF-103](#rf-103)、[RF-002](#rf-002)、[RF-005](#rf-005)。
-- **入口：**`tauri/src/stores/llmStore.ts`；`tauri/src/stores/llmStore.test.ts`；`tauri/src/hooks/useLlmStreaming.ts`；`tauri/src/hooks/useLlmChatCore.ts`；`tauri/src/lib/llm/conversationPersistence.ts`；`tauri/src/hooks/useLlmStreaming.test.tsx（拟新增）`。
+- **入口：**`tauri/src/stores/llmStore.ts`；`tauri/src/stores/llmStore.test.ts`；`tauri/src/hooks/useLlmStreaming.ts`；`tauri/src/hooks/useLlmChatCore.ts`；`tauri/src/lib/llm/conversationPersistence.ts`；`tauri/src/hooks/useLlmStreaming.test.tsx`。
 - **执行：**按 RF-002 后端事件契约将流与 accountId、conversationId、requestId 绑定；不再将全局 chunk 写入当前列表末尾的 assistant。聊天页与快捷聊天只读对应投影；后端负责最终回复保存，删除前端流结束时整段覆盖保存，保留创建、改名等明确操作及持久化失败提示。
 - **验收：**A 生成时切 B、两个聊天入口同时打开、旧请求事件迟到及锁定换账户都不污染 B；只更新目标 assistant；最终回复只保存一次且目标明确；后端保存失败保留回复并给出一次提示。
 - **验证配置：**`F`。**定向验证：**扩展 llmStore.test.ts，新增 useLlmStreaming.test.tsx；模拟带身份的流事件、两个订阅入口、会话切换、后端持久化成功/失败；统计最终保存调用。
+- **实现规范：**[LLM 流式聊天归属与保存约定](llm-streaming-spec.md)。
 - **建议提交：**`fix: resolve [RF-104] - bind chat streams to their originating conversation`。
 
 ### RF-105
@@ -5537,3 +5538,12 @@ git commit -m "<任务卡的提交标题>"
 - 显式 Node runner 注册原生性能五文件 97 项和更新分发 15 项，默认与 coverage 入口先执行 Node，再执行 Vitest；目标文件参数继续传给 Vitest。只对六份 Node 文件移出 Vitest 收集，不减少业务测试、不降低门槛。Windows 专有的 21 项在非 Windows 分别附具体跳过理由，其余可移植用例保留；临时目录使用 canonical TEMP。Windows CI 现有 `windows-rust-test` 接入同一 Node 入口，尚无远端运行证据。
 - Windows 实测 Node **112 passed/0 failed/0 skipped/0 cancelled**；默认 `npm run test` **112 Node + 231 文件/1,906 Vitest** 全通过，exit0；coverage 入口同样全执行且 exit0。覆盖率 statements **85.62%（16,356/19,103）**、branches **72.06%（7,828/10,862）**、functions **80.86%（3,039/3,758）**、lines **87.55%（15,198/17,358）**，原门槛 80/70/80/80 保持。Node 不计入 Vitest coverage。Unix 的 91 执行/21 跳过是静态分类，未在本机运行，不能写成 Linux/macOS 通过。
 - TypeScript、完整 ESLint（0 警告）、范围内 Prettier 均通过。验证是在含待提交 RF-104 实现的工作树上进行；本项只提交测试设施、CI 和报告/证据，RF-104 单独提交。检查后只更正 Vitest 注释中的入口名称，没有更改运行配置。证据见 [RF-1060 检查记录](verification/rf1060-node-test-entry-2026-09-30.json)。209/250 已关闭，六项平台/CI 条件仍待验证；用户 NSIS 位图哈希保持。本项独立本地提交（本提交，以 RF-1060 检索），不推送。
+
+### RF-104 执行记录（2026-09-30，完成）
+
+- 基线 `934bd133`；用户“按计划执行”已解除本项授权阻塞。事件按 account/conversation/request 和首个绑定的后端 sessionGeneration 接纳，本地票据独立保护锁定/换账户/重解锁；迟到监听注册与旧 callback 不覆盖当前监听。
+- 共享 Store 保留各对话快照，两个入口只读目标 assistant。既有对话每轮读取 Host 规范历史和元数据，预保存一次用户历史；保存失败不发模型、回退当前视图并恢复空输入，既有持久化状态跨前置失败保留，拒绝软删除会话被重试复活。同对话元数据与发送占位互斥，删除/改名完成不污染新选中的视图。
+- 最终回复仅 Host 持久化。done 事件的尾正文仍追加，监听保留到 invoke 完成以接纳后续保存失败；成功后只读规范会话补齐漏发事件，不补写最终回复。保存失败保留正文并共享一次提示；确认读取失败仅表示结果未确认，不能断言 Host 必然保存失败。完成通知等待权限后重验归属。
+- 定向 **7 文件/107 项**、TypeScript、完整 ESLint（0 警告）、范围内 Prettier 全通过。默认完整检查和 coverage 都是 **112 Node + 231 文件/1,906 Vitest**，0失败/0跳过、exit0，四项原门槛均达标；复用 RF-1060 同源码检查证据，RF-104 13 个源/测试文件哈希保持。首次 tsc 接口错误、两条旧断言失败以及生命周期旧监听断言保持原记录；检查入口问题单独以 `4f230f5c`（RF-1060）先提交。
+- 独立复核发现并确认修复了双入口旧历史覆盖、首次保存失败死路、元数据选择竞态和 persisted 继承问题。规范见 [流式聊天约定](llm-streaming-spec.md)，结构化原始记录见 [RF-104 验证证据](verification/rf104-chat-stream-ownership-2026-09-30.json)。验证使用真实 Store/hook/sessionRequests 与受控事件/invoke/权限模拟，不代表真实模型网络、原生通知或跨进程互斥；Rust、依赖和公开 IPC 参数没有变更。
+- 210/250 已关闭，六项平台/CI 条件仍待验证；本项独立本地提交（本提交，以 RF-104 检索），不推送，用户 NSIS 位图及其他原有改动不暂存。下一项按索引执行 RF-014。

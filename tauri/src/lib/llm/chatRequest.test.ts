@@ -1,15 +1,16 @@
-import { act, renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, cleanup, renderHook } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useLlmChatCore } from '@/hooks/useLlmChatCore';
 import { invokeCommand } from '@/lib/ipcClient';
 import type { ChatMsg } from '@/types/llmChat';
+import { useLlmStore } from '@/stores/llmStore';
+import { setRequestSession } from '@/lib/sessionRequests';
 import { buildChatRequest, type ChatRequest } from './chatRequest';
 import { searchGuideChunks, type GuideChunk } from './guideService';
 import { saveConversationSafely } from './conversationPersistence';
 
 const fixtures = vi.hoisted(() => ({
   auth: { currentAccount: { id: 'account' } },
-  stream: { streamBuffer: '', startStream: vi.fn(), onChunk: vi.fn(), reset: vi.fn() },
   provider: { id: 'provider', baseUrl: 'https://example.test', model: 'model', apiType: 'openai' },
   includeSystemPrompt: true,
   t: (key: string) => key,
@@ -27,9 +28,6 @@ vi.mock('@/stores/objectStore', () => ({
 vi.mock('@/stores/authStore', () => ({
   useAuthStore: (select: (state: typeof fixtures.auth) => unknown) => select(fixtures.auth),
 }));
-vi.mock('@/stores/llmStore', () => ({
-  useLlmStore: (select: (state: typeof fixtures.stream) => unknown) => select(fixtures.stream),
-}));
 vi.mock('@/hooks/useLlmProviderConfig', () => ({
   useLlmProviderConfig: () => ({
     activeProvider: fixtures.provider,
@@ -42,12 +40,14 @@ vi.mock('@/hooks/useLlmProviderConfig', () => ({
 vi.mock('@/hooks/useLlmOnlineStatus', () => ({
   useLlmOnlineStatus: () => ({ isOnline: true, checkingOnline: false, checkOnline: vi.fn() }),
 }));
-vi.mock('@/hooks/useLlmStreaming', () => ({ useLlmStreaming: vi.fn() }));
 vi.mock('@/hooks/useCopyToClipboard', () => ({
   useCopyToClipboard: () => ({ copy: vi.fn(), copiedKey: null }),
 }));
 vi.mock('@/lib/notification', () => ({ markConversationPending: vi.fn() }));
-vi.mock('./conversationPersistence', () => ({ saveConversationSafely: vi.fn() }));
+vi.mock('./conversationPersistence', () => ({
+  saveConversationSafely: vi.fn(),
+  notifyConversationSaveFailed: vi.fn(),
+}));
 vi.mock('./guideService', () => ({ searchGuideChunks: vi.fn() }));
 
 const previous: ChatMsg[] = [
@@ -73,6 +73,7 @@ function sentRequest(): ChatRequest {
   expect(payload).toEqual({
     accountId: 'account',
     conversationId: expect.any(String),
+    requestId: expect.any(String),
     providerId: fixtures.provider.id,
     messages: expect.any(Array),
     contextSelection: expect.any(Object),
@@ -85,13 +86,36 @@ function sentRequest(): ChatRequest {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  useLlmStore.getState().reset();
+  setRequestSession('account');
   fixtures.includeSystemPrompt = true;
   vi.mocked(searchGuideChunks).mockResolvedValue(guideChunks);
   vi.mocked(saveConversationSafely).mockResolvedValue(true);
-  vi.mocked(invokeCommand).mockImplementation(async (command) => {
+  vi.mocked(invokeCommand).mockImplementation(async (command, args) => {
     if (command === 'llm_get_api_key') throw new Error('Ordinary chat must not read credentials');
+    if (command === 'llm_get_conversation') {
+      const saved = vi.mocked(saveConversationSafely).mock.calls.at(-1)?.[1];
+      return saved
+        ? {
+            ...saved,
+            messages: [...saved.messages, { role: 'assistant', content: '', createdAt: '' }],
+          }
+        : {
+            id: (args as { conversationId: string }).conversationId,
+            name: 'kept',
+            isTemporary: false,
+            messages: [],
+            updatedAt: '',
+          };
+    }
     return [];
   });
+});
+
+afterEach(() => {
+  cleanup();
+  useLlmStore.getState().reset();
+  setRequestSession(null);
 });
 
 describe('chat request message ownership', () => {
@@ -145,6 +169,10 @@ describe('chat request message ownership', () => {
                 messages: [expect.objectContaining({ role: 'user', content: '本次问题' })],
               }),
               fixtures.t,
+              expect.objectContaining({
+                isCurrent: expect.any(Function),
+                invoke: expect.any(Function),
+              }),
             );
           }
         },

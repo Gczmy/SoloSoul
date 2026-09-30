@@ -10,6 +10,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUiStore } from '@/stores/uiStore';
+import { useLlmStore } from '@/stores/llmStore';
 import { applyTheme } from '@/lib/theme';
 import { useNativeAppEvents } from './useNativeAppEvents';
 import { useSessionLifecycle } from './useSessionLifecycle';
@@ -71,28 +72,48 @@ describe('RF-114 应用生命周期', () => {
       await vi.importActual<typeof import('@/lib/notification')>('@/lib/notification');
     const { trackAsyncListener } = await import('@/lib/asyncListener');
     const registrations: {
-      resolve: (unlisten: () => void) => void;
       unlisten: () => void;
+      onChange: () => void;
     }[] = [];
-    vi.mocked(listen).mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          registrations.push({ resolve, unlisten: vi.fn(() => {}) });
-        }),
-    );
+    const subscribe = useLlmStore.subscribe;
+    vi.spyOn(useLlmStore, 'subscribe').mockImplementation((callback) => {
+      const onChange = vi.fn(() => {});
+      const release = subscribe((...args) => {
+        onChange();
+        callback(...args);
+      });
+      const unlisten = vi.fn(release);
+      registrations.push({ unlisten, onChange });
+      return unlisten;
+    });
 
+    // 实际通知入口同步建立 Store 订阅，异步交付退订句柄。
     const disposeOld = trackAsyncListener(initLlmNotificationListener());
     const disposeCurrent = trackAsyncListener(initLlmNotificationListener());
-    expect(registrations).toHaveLength(2);
-    disposeOld();
-    await act(async () => {
-      registrations[1].resolve(registrations[1].unlisten);
-      registrations[0].resolve(registrations[0].unlisten);
-    });
-    expect(registrations[0].unlisten).toHaveBeenCalledTimes(1);
-    expect(registrations[1].unlisten).not.toHaveBeenCalled();
-    disposeCurrent();
-    expect(registrations[1].unlisten).toHaveBeenCalledTimes(1);
+    try {
+      expect(registrations).toHaveLength(2);
+      disposeOld();
+      expect(registrations[0].unlisten).not.toHaveBeenCalled();
+      await act(async () => {});
+      expect(registrations[0].unlisten).toHaveBeenCalledTimes(1);
+      expect(registrations[1].unlisten).not.toHaveBeenCalled();
+
+      act(() => useLlmStore.setState((state) => ({ streams: { ...state.streams } })));
+      expect(registrations[0].onChange).not.toHaveBeenCalled();
+      expect(registrations[1].onChange).toHaveBeenCalledTimes(1);
+
+      disposeCurrent();
+      expect(registrations[1].unlisten).toHaveBeenCalledTimes(1);
+      act(() => useLlmStore.setState((state) => ({ streams: { ...state.streams } })));
+      expect(registrations[1].onChange).toHaveBeenCalledTimes(1);
+      disposeOld();
+      disposeCurrent();
+      expect(registrations[0].unlisten).toHaveBeenCalledTimes(1);
+      expect(registrations[1].unlisten).toHaveBeenCalledTimes(1);
+    } finally {
+      disposeOld();
+      disposeCurrent();
+    }
   });
 
   it('StrictMode 反序完成的 SAF 注册只保留新监听，卸载后全部释放', async () => {

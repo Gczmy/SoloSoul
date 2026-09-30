@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore } from '@/stores/authStore';
-import { useLlmStore } from '@/stores/llmStore';
+import { useLlmStore, selectLlmStream, isConversationBusy } from '@/stores/llmStore';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { logger } from '@/lib/logger';
@@ -51,6 +50,7 @@ export interface UseLlmChatCoreReturn {
   setInput: (v: string) => void;
   setMessages: React.Dispatch<React.SetStateAction<ChatMsg[]>>;
   setCurrentConvId: (v: string | null) => void;
+  isCurrentConversation: (id: string) => boolean;
   sendMessage: () => Promise<void>;
   loadConversation: (convId: string) => Promise<void>;
   loadConversationList: () => Promise<void>;
@@ -69,20 +69,25 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   // P117: 字段级选择器——避免整店订阅导致每次 token 更新整页重渲染；
   // action（startStream/onChunk/reset）在 store 中定义一次，引用稳定，
   // 使 useCallback 依赖不随 store 更新而漂移。
-  const streamBuffer = useLlmStore((s) => s.streamBuffer);
   const startStream = useLlmStore((s) => s.startStream);
-  const onChunk = useLlmStore((s) => s.onChunk);
-  const reset = useLlmStore((s) => s.reset);
 
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [currentConvId, setCurrentConvIdState] = useState<string | null>(null);
+  const currentConvIdRef = useRef<string | null>(null);
+  const isCurrentConversation = useCallback((id: string) => currentConvIdRef.current === id, []);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
-  const [isSending, setIsSending] = useState(false);
+  const loadedConversation = useRef<Conversation | null>(null);
+  const isSending = useLlmStore((state) => isConversationBusy(state, accountId, currentConvId));
+  const streamBuffer = useLlmStore(
+    (state) => selectLlmStream(state, accountId, currentConvId)?.buffer ?? '',
+  );
   const invalidateReads = useCallback(() => readRequests.invalidate(), [readRequests]);
   const setCurrentConvId = useCallback(
     (id: string | null) => {
       readRequests.invalidate('body');
+      currentConvIdRef.current = id;
+      if (loadedConversation.current?.id !== id) loadedConversation.current = null;
       setCurrentConvIdState(id);
     },
     [readRequests],
@@ -91,10 +96,11 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     const clear = () => {
       invalidateReads();
       setConversations([]);
+      currentConvIdRef.current = null;
       setCurrentConvIdState(null);
       setMessages([]);
       setInput('');
-      setIsSending(false);
+      loadedConversation.current = null;
     };
     clear();
     const unsubscribe = onRequestSessionChange(clear);
@@ -120,11 +126,10 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     accountId,
     abortRef,
   });
-  useLlmStreaming({
+  const visibleMessages = useLlmStreaming({
     messages,
-    setMessages,
     accountId,
-    setIsSending,
+    currentConvId,
     onConversationSaved,
     t,
   });
@@ -159,6 +164,8 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
           conversationId: convId,
         });
         if (!request.isCurrent()) return;
+        loadedConversation.current = conv;
+        currentConvIdRef.current = conv.id;
         setCurrentConvIdState(conv.id);
         setMessages(conv.messages.map((m) => (m.id ? m : { ...m, id: generateId() })));
       } catch (err) {
@@ -169,109 +176,131 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     [accountId, readRequests],
   );
 
-  /* Send message */
+  /* 每轮先保存用户历史，最终回复唯一由后端保存。整个请求与视图选择无关。 */
   const sendMessage = useCallback(async () => {
     const text = input.trim();
-    if (!text || !activeProvider || !accountId) return;
-
-    const ts = nowISO();
-    const userMsg: ChatMsg = { id: generateId(), role: 'user', content: text, createdAt: ts };
-    const updatedMessages = [...messages, userMsg];
-    setMessages(updatedMessages);
-    setInput('');
-    setIsSending(true);
-
+    if (!text || !activeProvider || !accountId || isSending) return;
     const convId = currentConvId || generateId();
-    setCurrentConvId(convId);
-
-    const isFirstMsg = messages.length === 0;
-    const convName = isFirstMsg ? text.slice(0, 30) : '';
-
-    if (isFirstMsg) {
-      const partialConv: Conversation = {
-        id: convId,
-        name: convName,
-        isTemporary: false,
-        messages: updatedMessages,
-        updatedAt: nowISO(),
-      };
-      // P007: 首次保存失败若静默，整段新对话将不会被持久化且无提示。
-      const saved = await saveConversationSafely(accountId, partialConv, t);
-      if (saved) onConversationSaved?.();
-    }
-
-    const assistantMsg: ChatMsg = {
+    const identity = { accountId, conversationId: convId, requestId: crypto.randomUUID() };
+    const userMsg: ChatMsg = { id: generateId(), role: 'user', content: text, createdAt: nowISO() };
+    let userMessages = [...visibleMessages, userMsg];
+    const assistant: ChatMsg = {
       id: generateId(),
       role: 'assistant',
       content: '',
       createdAt: nowISO(),
     };
-    const streamingMessages = [...updatedMessages, assistantMsg];
-    setMessages(streamingMessages);
-    startStream(convId);
-
+    const wasStored =
+      loadedConversation.current?.id === convId ||
+      selectLlmStream(useLlmStore.getState(), accountId, convId)?.persisted === true;
+    const run = startStream({
+      ...identity,
+      assistantMessageId: assistant.id!,
+      messages: [...userMessages, assistant],
+    });
+    if (!run) return; // 两个入口的同一会话只能有一个发送/元数据修改者。
+    if (wasStored) useLlmStore.getState().markConversationPersisted(identity);
+    setCurrentConvId(convId);
+    setMessages(userMessages);
+    setInput('');
     try {
-      const effectiveIncludeSystemPrompt =
-        optIncludeSystemPrompt !== false && savedIncludeSystemPrompt !== false;
+      await run.ready; // 注册完成后才发送，不能漏掉最早的chunk。
+      let conversation: Conversation;
+      let history = visibleMessages;
+      if (wasStored) {
+        const stored = await run.invoke<Conversation>('llm_get_conversation', {
+          accountId,
+          conversationId: convId,
+        });
+        if (!stored || stored.id !== convId || stored.deletedAt)
+          throw new Error('Conversation unavailable');
+        // 另一入口可能已更新历史；发送和预保存必须采用刚读到的规范历史。
+        history = stored.messages.map((message) => ({
+          ...message,
+          id: message.id || generateId(),
+        }));
+        userMessages = [...history, userMsg];
+        conversation = { ...stored, messages: userMessages, updatedAt: nowISO() };
+      } else {
+        conversation = {
+          id: convId,
+          name: text.slice(0, 30),
+          isTemporary: false,
+          messages: userMessages,
+          updatedAt: nowISO(),
+        };
+      }
+      useLlmStore.getState().prepareStream(identity, [...userMessages, assistant]);
       const request = await buildChatRequest({
         text,
-        history: messages,
-        includeSystemPrompt: effectiveIncludeSystemPrompt,
+        history,
+        includeSystemPrompt: optIncludeSystemPrompt !== false && savedIncludeSystemPrompt !== false,
       });
-
-      markConversationPending(convId);
-
-      invoke('llm_send_message_stream', {
-        accountId: accountId,
+      run.assertCurrent();
+      const saved = await saveConversationSafely(accountId, conversation, t, run);
+      if (!run.isCurrent()) return;
+      if (!saved) {
+        useLlmStore.getState().cancelStream(identity, wasStored ? history : undefined);
+        if (isCurrentConversation(convId)) {
+          setMessages(history);
+          setInput((draft) => draft || text);
+        }
+        return;
+      }
+      useLlmStore.getState().markConversationPersisted(identity);
+      markConversationPending(identity);
+      await run.invoke('llm_send_message_stream', {
+        accountId,
         conversationId: convId,
+        requestId: identity.requestId,
         providerId: activeProvider.id,
         messages: request.messages,
         contextSelection: request.contextSelection,
-      }).catch((err) => {
-        onChunk({
-          conversationId: convId,
-          chunk: '',
-          isDone: false,
-          error: String(err),
-        });
       });
-    } catch (e) {
-      const errMsg = typeof e === 'string' ? e : e instanceof Error ? e.message : String(e);
-      const errorAssistantMsg: ChatMsg = {
-        id: generateId(),
-        role: 'assistant',
-        content: `${t('settings:ai_chat_error_prefix')}: ${errMsg}`,
-        createdAt: nowISO(),
-        isError: true,
-      };
-      const errorMessages = [...updatedMessages, errorAssistantMsg];
-      setMessages(errorMessages);
-
-      const errorConv: Conversation = {
-        id: convId,
-        name: convName,
-        isTemporary: false,
-        messages: errorMessages,
-        updatedAt: nowISO(),
-      };
-      // P007: 错误会话的保存失败同样不应静默（saveConversationSafely 内已 toast）。
-      await saveConversationSafely(accountId, errorConv, t);
-      reset();
-      setIsSending(false);
+      run.assertCurrent();
+      const state = useLlmStore.getState();
+      if (!selectLlmStream(state, accountId, convId)?.persistFailed) {
+        try {
+          const stored = await run.invoke<Conversation>('llm_get_conversation', {
+            accountId,
+            conversationId: convId,
+          });
+          // emit是best-effort；用Host已保存的规范正文补齐遗漏事件，不补写最终回复。
+          const valid =
+            stored?.id === convId &&
+            stored.messages.length === userMessages.length + 1 &&
+            userMessages.every(
+              (message, index) =>
+                stored.messages[index].role === message.role &&
+                stored.messages[index].content === message.content,
+            ) &&
+            stored.messages.at(-1)?.role === 'assistant';
+          if (!valid) throw new Error('Conversation completion was not confirmed');
+          useLlmStore.getState().finishStream(identity, undefined, stored.messages.at(-1)!.content);
+        } catch {
+          if (!run.isCurrent()) return;
+          useLlmStore.getState().markPersistFailure(identity);
+          useLlmStore.getState().finishStream(identity);
+        }
+      } else state.finishStream(identity);
+    } catch (error) {
+      if (!run.isCurrent()) return;
+      const message =
+        typeof error === 'string' ? error : error instanceof Error ? error.message : String(error);
+      useLlmStore.getState().finishStream(identity, message);
     }
   }, [
     input,
     activeProvider,
     accountId,
-    messages,
+    isSending,
     currentConvId,
+    visibleMessages,
     optIncludeSystemPrompt,
     savedIncludeSystemPrompt,
     startStream,
-    onChunk,
-    reset,
     setCurrentConvId,
-    onConversationSaved,
+    isCurrentConversation,
     t,
   ]);
 
@@ -295,7 +324,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     loading,
     conversations,
     setConversations,
-    messages,
+    messages: visibleMessages,
     input,
     isSending,
     isOnline,
@@ -307,6 +336,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     setInput,
     setMessages,
     setCurrentConvId,
+    isCurrentConversation,
     sendMessage,
     loadConversation,
     loadConversationList,

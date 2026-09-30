@@ -1,0 +1,235 @@
+{
+  "task": "RF-104",
+  "date": "2026-09-30",
+  "baseline": "934bd133ec23e9fcad569a37fcfae8d43729a2d7",
+  "checkEntryCommit": "4f230f5cf9e7f069929f5029a6d35b2005adca42",
+  "authorization": "用户按计划执行，已解除七项生产修复授权阻塞。",
+  "before": {
+    "scope": "rf104-before",
+    "baseline": "934bd133ec23e9fcad569a37fcfae8d43729a2d7",
+    "authorization": "用户按计划执行，含七项生产修复",
+    "files": [
+      {
+        "path": "tauri/src/stores/llmStore.ts",
+        "bytes": 3470,
+        "sha256": "63DB53628CF66183D95092A14D6BE9E9DD4412D8AA252F207598018F04309F66",
+        "backup": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf104-20260930\\tauri__src__stores__llmStore.ts",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/hooks/useLlmStreaming.ts",
+        "bytes": 4890,
+        "sha256": "F52164394167F077D8C54BD240BDBD3AD8D8ACAC84B993D3A61D0ABA2DF4A169",
+        "backup": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf104-20260930\\tauri__src__hooks__useLlmStreaming.ts",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/hooks/useLlmChatCore.ts",
+        "bytes": 10376,
+        "sha256": "1AFBA534554AFBA28855117C270D52FD8EDD1320AFCA913853660BD7A1C6B355",
+        "backup": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf104-20260930\\tauri__src__hooks__useLlmChatCore.ts",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/lib/llm/conversationPersistence.ts",
+        "bytes": 1229,
+        "sha256": "41E07858F8F251F20BB3C6C27B73646DA659E4527CD5E23D2204424021E826BE",
+        "backup": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf104-20260930\\tauri__src__lib__llm__conversationPersistence.ts",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/lib/notification.ts",
+        "bytes": 9326,
+        "sha256": "E81CEFDC1175B6BEFC4511B57B2F0AD1345631553658C66342A8CDE1803F10D2",
+        "backup": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf104-20260930\\tauri__src__lib__notification.ts",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/stores/llmStore.test.ts",
+        "bytes": 8981,
+        "sha256": "6C1D6C87A07E1B6A466D33A9E52F3D1DCDC3FA35FB3A91983F50BBCD6BF22A1E",
+        "backup": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf104-20260930\\tauri__src__stores__llmStore.test.ts",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/hooks/useLlmChatCore.test.tsx",
+        "bytes": 13757,
+        "sha256": "6483F3E075C173192C9CD1EB7DD3FA06919465A8021583FED13231D7803D741C",
+        "backup": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf104-20260930\\tauri__src__hooks__useLlmChatCore.test.tsx",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/lib/llm/chatRequest.test.ts",
+        "bytes": 7386,
+        "sha256": "3DA93A4AC2C3193279EAD497C88127F2A06B0AEFACF8B581A5B43311E0F99E16",
+        "backup": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf104-20260930\\tauri__src__lib__llm__chatRequest.test.ts",
+        "normalizedEqualsHead": true
+      },
+      {
+        "path": "tauri/src/lib/notification.llm.test.ts",
+        "bytes": 4897,
+        "sha256": "D14E79C1810ED9E8781B71D719E53E6D41552FBC6226F15921E29DC1ED452822",
+        "backup": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf104-20260930\\tauri__src__lib__notification.llm.test.ts",
+        "normalizedEqualsHead": true
+      }
+    ]
+  },
+  "finalSourceManifest": {
+    "head": "934bd133ec23e9fcad569a37fcfae8d43729a2d7",
+    "files": {
+      "tauri/src/stores/llmStore.ts": "c50932c17a806df078d00fd848c462bfb77695d6072a1415c135bcdd5eb364ab",
+      "tauri/src/stores/llmStore.test.ts": "4be2753974d15f3c1e74c328bcaf0a50c3d022b8ffb2adac8aef6a716044d9e9",
+      "tauri/src/hooks/useLlmStreaming.ts": "d3070eb9f69a54d02b5b3142dc7f1690b48649a268c1fe093b27b040d47beba2",
+      "tauri/src/hooks/useLlmStreaming.test.tsx": "9af5f3319afda8f4466b64a74d28665c14fabeccdd38c3f2f4dd1be0be8bca34",
+      "tauri/src/hooks/useLlmChatCore.ts": "f07f3c3365feb1371d787eb537feac1a43b40c354fccfa141626438f361cce46",
+      "tauri/src/hooks/useLlmChatCore.test.tsx": "836b181a99059df12ad5d67f4a972c71a3a821e2bf54208615828b6a89279ddd",
+      "tauri/src/lib/llm/conversationPersistence.ts": "32a5f277554c77ef1de3b0d7fadc8030ac9214de8c79aaa4116e4a46fafed410",
+      "tauri/src/lib/llm/conversationPersistence.test.ts": "fe1bae9a7179b9118651e8dc8d1c37f12468275447533ff5aa218342c4d7edd7",
+      "tauri/src/lib/llm/chatRequest.test.ts": "de3ec58b73313577fdea6083126bcdaa878993b4caeeac0cf206a6c35ee59a4c",
+      "tauri/src/lib/notification.ts": "b6fbd19f10760ac0aa484a8cd51e82119aa5881647f23805adcad842eb6b58a3",
+      "tauri/src/lib/notification.llm.test.ts": "be717380bf867236d9d266a6e263e9a771f6c60f01b4ac8bac5af49e4396abe3",
+      "tauri/src/pages/ai/LlmChatPage/useLlmChat.ts": "3d3f82c2700d678828f0d5d495b9ab53f1b3039666d17812ff13ee11785c1f61",
+      "tauri/src/App/appLifecycle.test.tsx": "bc935d48d4d021c9614b5705b74154b8bda4786b3476a225d8e33ab2edaa8b08"
+    }
+  },
+  "changes": [
+    "流按账户/对话/请求及后端事件代次归属，局部会话票据拒绝旧异步回调。",
+    "两入口只读共享快照，重载不清另一入口结果；下一轮从Host规范历史构造请求及预保存。",
+    "每轮先保存用户历史；失败不发模型、可直接重试，已有持久化事实跨失败保留，拒绝软删除会话复活。",
+    "最终assistant仅Host保存；isDone尾chunk持续累积，invoke完成后只读规范结果补齐遗漏事件。",
+    "前端同会话发送/改名/删除等同步互斥；操作后UI校验当前会话和最新视图。",
+    "后台保存失败共享领取一次提示；成功通知在权限等待后再次校验请求。"
+  ],
+  "targeted": {
+    "files": 7,
+    "tests": 107,
+    "passed": 107,
+    "failed": 0,
+    "skipped": 0
+  },
+  "checks": [
+    {
+      "command": "npx --no-install vitest run <seven RF104 test files>",
+      "exitCode": 0,
+      "logCreated": true,
+      "logSha256": "c1b57c33cd7ca37d4df9c1b6f331bf2f0d85a9d1f6309375757f41ff90dbbde9",
+      "log": "\r\n RUN  v4.1.8 C:/Users/40299571/SoloSoul/tauri\r\n\r\n\r\n Test Files  7 passed (7)\r\n      Tests  107 passed (107)\r\n   Start at  16:31:38\r\n   Duration  5.66s (transform 2.95s, setup 2.49s, import 5.68s, tests 1.52s, environment 13.66s)\r\n\r\n"
+    },
+    {
+      "command": "npx --no-install tsc --noEmit",
+      "exitCode": 0,
+      "logCreated": false,
+      "stdout": "",
+      "completionSource": "exec tool completion"
+    },
+    {
+      "command": "npm run lint",
+      "exitCode": 0,
+      "logCreated": true,
+      "logSha256": "8cdd377107e8a4603eebcffa000ab25cdb91b3ae8c229d024cde8c860c8433da",
+      "log": "\r\n> solosoul@2.13.2 lint\r\n> eslint src --ext .ts,.tsx\r\n\r\n"
+    }
+  ],
+  "commonFullChecks": {
+    "evidence": "rf1060-node-test-entry-2026-09-30.json",
+    "defaultExitCode": 0,
+    "node": {
+      "platform": "win32",
+      "files": 6,
+      "tests": 112,
+      "passed": 112,
+      "failed": 0,
+      "skipped": 0,
+      "nativePerfTests": 97,
+      "distributionTests": 15
+    },
+    "vitest": {
+      "files": 231,
+      "tests": 1906,
+      "passed": 1906,
+      "failed": 0,
+      "skipped": 0
+    },
+    "coverage": {
+      "metrics": {
+        "lines": {
+          "total": 17358,
+          "covered": 15198,
+          "skipped": 0,
+          "pct": 87.55
+        },
+        "statements": {
+          "total": 19103,
+          "covered": 16356,
+          "skipped": 0,
+          "pct": 85.62
+        },
+        "functions": {
+          "total": 3758,
+          "covered": 3039,
+          "skipped": 0,
+          "pct": 80.86
+        },
+        "branches": {
+          "total": 10862,
+          "covered": 7828,
+          "skipped": 0,
+          "pct": 72.06
+        },
+        "branchesTrue": {
+          "total": 0,
+          "covered": 0,
+          "skipped": 0,
+          "pct": 100
+        }
+      },
+      "thresholds": {
+        "statements": 80,
+        "branches": 70,
+        "functions": 80,
+        "lines": 80
+      },
+      "passed": true,
+      "nodeCoverageCombinedWithVitest": false
+    },
+    "sourceUnchangedSinceChecks": true
+  },
+  "originalFailures": [
+    {
+      "command": "npx --no-install tsc --noEmit (first, before test API updates)",
+      "exitCode": 2,
+      "logCreated": true,
+      "logSha256": "80da3b87e3cbc50541e714328b259e01230010f5734715e4b69c10bfc9b7e042",
+      "log": "src/hooks/useLlmStreaming.test.tsx(81,40): error TS2345: Argument of type '(_event: EventName, callback: EventCallback<unknown>) => Promise<Mock<Procedure | Constructable>>' is not assignable to parameter of type '(event: EventName, handler: EventCallback<unknown>, options?: Options | undefined) => Promise<UnlistenFn>'.\r\n  Type 'Promise<Mock<Procedure | Constructable>>' is not assignable to type 'Promise<UnlistenFn>'.\r\n    Type 'Mock<Procedure | Constructable>' is not assignable to type 'UnlistenFn'.\r\n      Type 'MockInstance<Procedure | Constructable> & (new (...args: any[]) => any) & {}' is not assignable to type 'UnlistenFn'.\r\n        Type 'MockInstance<Procedure | Constructable> & (new (...args: any[]) => any) & {}' provides no match for the signature '(): void'.\r\nsrc/lib/notification.llm.test.ts(58,29): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity'.\r\nsrc/lib/notification.llm.test.ts(76,29): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity'.\r\nsrc/lib/notification.llm.test.ts(80,29): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity'.\r\nsrc/lib/notification.llm.test.ts(91,29): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity'.\r\nsrc/stores/llmStore.test.ts(26,42): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity & { assistantMessageId: string; messages: ChatMsg[]; }'.\r\n  Type 'string' is not assignable to type 'StreamIdentity'.\r\nsrc/stores/llmStore.test.ts(30,20): error TS2339: Property 'isStreaming' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(31,20): error TS2339: Property 'streamingConvId' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(32,20): error TS2339: Property 'streamBuffer' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(33,20): error TS2339: Property 'streamError' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(37,39): error TS2339: Property 'unlisten' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(49,30): error TS2353: Object literal may only specify known properties, and 'unlisten' does not exist in type 'LlmState | Partial<LlmState> | ((state: LlmState) => LlmState | Partial<LlmState>)'.\r\nsrc/stores/llmStore.test.ts(52,42): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity & { assistantMessageId: string; messages: ChatMsg[]; }'.\r\n  Type 'string' is not assignable to type 'StreamIdentity'.\r\nsrc/stores/llmStore.test.ts(54,39): error TS2339: Property 'unlisten' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(65,42): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity & { assistantMessageId: string; messages: ChatMsg[]; }'.\r\n  Type 'string' is not assignable to type 'StreamIdentity'.\r\nsrc/stores/llmStore.test.ts(69,22): error TS2339: Property 'isStreaming' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(70,22): error TS2339: Property 'streamError' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(81,42): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity & { assistantMessageId: string; messages: ChatMsg[]; }'.\r\n  Type 'string' is not assignable to type 'StreamIdentity'.\r\nsrc/stores/llmStore.test.ts(83,39): error TS2339: Property 'unlisten' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(87,38): error TS2345: Argument of type '{ conversationId: string; chunk: string; isDone: false; }' is not assignable to parameter of type 'LlmStreamPayload'.\r\n  Type '{ conversationId: string; chunk: string; isDone: false; }' is missing the following properties from type 'LlmStreamPayload': sessionGeneration, accountId, requestId\r\nsrc/stores/llmStore.test.ts(88,37): error TS2339: Property 'streamBuffer' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(90,38): error TS2345: Argument of type '{ conversationId: string; chunk: string; isDone: false; }' is not assignable to parameter of type 'LlmStreamPayload'.\r\n  Type '{ conversationId: string; chunk: string; isDone: false; }' is missing the following properties from type 'LlmStreamPayload': sessionGeneration, accountId, requestId\r\nsrc/stores/llmStore.test.ts(91,37): error TS2339: Property 'streamBuffer' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(99,42): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity & { assistantMessageId: string; messages: ChatMsg[]; }'.\r\n  Type 'string' is not assignable to type 'StreamIdentity'.\r\nsrc/stores/llmStore.test.ts(101,39): error TS2339: Property 'unlisten' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(105,38): error TS2345: Argument of type '{ conversationId: string; chunk: string; isDone: false; }' is not assignable to parameter of type 'LlmStreamPayload'.\r\n  Type '{ conversationId: string; chunk: string; isDone: false; }' is missing the following properties from type 'LlmStreamPayload': sessionGeneration, accountId, requestId\r\nsrc/stores/llmStore.test.ts(107,38): error TS2345: Argument of type '{ conversationId: string; chunk: string; isDone: true; }' is not assignable to parameter of type 'LlmStreamPayload'.\r\n  Type '{ conversationId: string; chunk: string; isDone: true; }' is missing the following properties from type 'LlmStreamPayload': sessionGeneration, accountId, requestId\r\nsrc/stores/llmStore.test.ts(110,20): error TS2339: Property 'isStreaming' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(111,20): error TS2339: Property 'streamBuffer' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(120,42): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity & { assistantMessageId: string; messages: ChatMsg[]; }'.\r\n  Type 'string' is not assignable to type 'StreamIdentity'.\r\nsrc/stores/llmStore.test.ts(122,39): error TS2339: Property 'unlisten' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(126,38): error TS2345: Argument of type '{ conversationId: string; chunk: string; isDone: true; }' is not assignable to parameter of type 'LlmStreamPayload'.\r\n  Type '{ conversationId: string; chunk: string; isDone: true; }' is missing the following properties from type 'LlmStreamPayload': sessionGeneration, accountId, requestId\r\nsrc/stores/llmStore.test.ts(129,20): error TS2339: Property 'isStreaming' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(130,20): error TS2339: Property 'streamBuffer' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(138,42): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity & { assistantMessageId: string; messages: ChatMsg[]; }'.\r\n  Type 'string' is not assignable to type 'StreamIdentity'.\r\nsrc/stores/llmStore.test.ts(140,39): error TS2339: Property 'unlisten' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(145,18): error TS2345: Argument of type '{ conversationId: string; chunk: string; isDone: false; error: string; }' is not assignable to parameter of type 'LlmStreamPayload'.\r\n  Type '{ conversationId: string; chunk: string; isDone: false; error: string; }' is missing the following properties from type 'LlmStreamPayload': sessionGeneration, accountId, requestId\r\nsrc/stores/llmStore.test.ts(148,20): error TS2339: Property 'isStreaming' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(149,20): error TS2339: Property 'streamError' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(158,42): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity & { assistantMessageId: string; messages: ChatMsg[]; }'.\r\n  Type 'string' is not assignable to type 'StreamIdentity'.\r\nsrc/stores/llmStore.test.ts(160,39): error TS2339: Property 'unlisten' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(164,38): error TS2345: Argument of type '{ conversationId: string; chunk: string; isDone: false; }' is not assignable to parameter of type 'LlmStreamPayload'.\r\n  Type '{ conversationId: string; chunk: string; isDone: false; }' is missing the following properties from type 'LlmStreamPayload': sessionGeneration, accountId, requestId\r\nsrc/stores/llmStore.test.ts(166,38): error TS2345: Argument of type '{ conversationId: string; chunk: string; isDone: true; error: string; }' is not assignable to parameter of type 'LlmStreamPayload'.\r\n  Type '{ conversationId: string; chunk: string; isDone: true; error: string; }' is missing the following properties from type 'LlmStreamPayload': sessionGeneration, accountId, requestId\r\nsrc/stores/llmStore.test.ts(174,20): error TS2339: Property 'isStreaming' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(175,20): error TS2339: Property 'persistFailed' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(176,20): error TS2339: Property 'streamBuffer' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(177,20): error TS2339: Property 'streamError' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(186,42): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity & { assistantMessageId: string; messages: ChatMsg[]; }'.\r\n  Type 'string' is not assignable to type 'StreamIdentity'.\r\nsrc/stores/llmStore.test.ts(188,39): error TS2339: Property 'unlisten' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(191,38): error TS2345: Argument of type '{ conversationId: string; chunk: string; isDone: false; error: string; }' is not assignable to parameter of type 'LlmStreamPayload'.\r\n  Type '{ conversationId: string; chunk: string; isDone: false; error: string; }' is missing the following properties from type 'LlmStreamPayload': sessionGeneration, accountId, requestId\r\nsrc/stores/llmStore.test.ts(199,20): error TS2339: Property 'isStreaming' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(200,20): error TS2339: Property 'streamError' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(201,20): error TS2339: Property 'persistFailed' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(209,42): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity & { assistantMessageId: string; messages: ChatMsg[]; }'.\r\n  Type 'string' is not assignable to type 'StreamIdentity'.\r\nsrc/stores/llmStore.test.ts(211,39): error TS2339: Property 'unlisten' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(215,38): error TS2345: Argument of type '{ conversationId: string; chunk: string; isDone: false; }' is not assignable to parameter of type 'LlmStreamPayload'.\r\n  Type '{ conversationId: string; chunk: string; isDone: false; }' is missing the following properties from type 'LlmStreamPayload': sessionGeneration, accountId, requestId\r\nsrc/stores/llmStore.test.ts(217,38): error TS2345: Argument of type '{ conversationId: string; chunk: string; isDone: false; }' is not assignable to parameter of type 'LlmStreamPayload'.\r\n  Type '{ conversationId: string; chunk: string; isDone: false; }' is missing the following properties from type 'LlmStreamPayload': sessionGeneration, accountId, requestId\r\nsrc/stores/llmStore.test.ts(219,37): error TS2339: Property 'streamBuffer' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(229,42): error TS2345: Argument of type 'string' is not assignable to parameter of type 'StreamIdentity & { assistantMessageId: string; messages: ChatMsg[]; }'.\r\n  Type 'string' is not assignable to type 'StreamIdentity'.\r\nsrc/stores/llmStore.test.ts(231,39): error TS2339: Property 'unlisten' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(234,38): error TS2345: Argument of type '{ conversationId: string; chunk: string; isDone: true; }' is not assignable to parameter of type 'LlmStreamPayload'.\r\n  Type '{ conversationId: string; chunk: string; isDone: true; }' is missing the following properties from type 'LlmStreamPayload': sessionGeneration, accountId, requestId\r\nsrc/stores/llmStore.test.ts(239,20): error TS2339: Property 'isStreaming' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(240,20): error TS2339: Property 'streamingConvId' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(241,20): error TS2339: Property 'streamBuffer' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(242,20): error TS2339: Property 'streamError' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(243,20): error TS2339: Property 'persistFailed' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(244,20): error TS2339: Property 'unlisten' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.test.ts(245,20): error TS2339: Property 'unlistenPromise' does not exist on type 'LlmState'.\r\nsrc/stores/llmStore.ts(106,11): error TS2322: Type '<T>(command: string, args: Record<string, unknown> | undefined, options: InvokeOptions | undefined) => Promise<unknown>' is not assignable to type '<T>(cmd: string, args?: Record<string, unknown> | undefined, opts?: InvokeOptions | undefined) => Promise<T>'.\r\n  Type 'Promise<unknown>' is not assignable to type 'Promise<T>'.\r\n    Type 'unknown' is not assignable to type 'T'.\r\n      'T' could be instantiated with an arbitrary type which could be unrelated to 'unknown'.\r\n"
+    },
+    {
+      "command": "npm run test -- <five RF104 files> (first)",
+      "exitCode": 1,
+      "logCreated": true,
+      "logSha256": "9f312e72b383801e0f8b20efea417c1b579fe1f014f5575c01a8ea46baca9caf",
+      "log": "\r\n> solosoul@2.13.2 test\r\n> vitest run src/stores/llmStore.test.ts src/hooks/useLlmStreaming.test.tsx src/hooks/useLlmChatCore.test.tsx src/lib/llm/chatRequest.test.ts src/lib/notification.llm.test.ts\r\n\r\n\r\n RUN  v4.1.8 C:/Users/40299571/SoloSoul/tauri\r\n\r\n ❯ src/lib/llm/chatRequest.test.ts (16 tests | 2 failed) 212ms\r\n     × sends the real hook history without duplicating UI input (system=false, history=0) 55ms\r\n     × sends the real hook history without duplicating UI input (system=true, history=0) 5ms\r\n\r\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯\r\n\r\n FAIL  src/lib/llm/chatRequest.test.ts > chat request message ownership > sends the real hook history without duplicating UI input (system=false, history=0)\r\nAssertionError: expected \"vi.fn()\" to be called with arguments: [ Array(3) ]\r\n\r\nReceived:\r\n\r\n  1st vi.fn() call:\r\n\r\n  [\r\n    \"account\",\r\n-   ObjectContaining {\r\n+   {\r\n+     \"id\": \"conv_59ae60ed-2db2-4666-b316-16921ef93487\",\r\n+     \"isTemporary\": false,\r\n      \"messages\": [\r\n-       ObjectContaining {\r\n+       {\r\n          \"content\": \"本次问题\",\r\n+         \"createdAt\": \"2026-09-30T15:06:22.265Z\",\r\n+         \"id\": \"conv_4064fe2b-546f-434e-9aca-68bf87b35dab\",\r\n          \"role\": \"user\",\r\n        },\r\n      ],\r\n+     \"name\": \"本次问题\",\r\n+     \"updatedAt\": \"2026-09-30T15:06:22.266Z\",\r\n    },\r\n    [Function t],\r\n+   {\r\n+     \"assertCurrent\": [Function assertCurrent],\r\n+     \"invoke\": [Function invoke],\r\n+     \"isCurrent\": [Function isCurrent],\r\n+     \"ready\": Promise {},\r\n+   },\r\n  ]\r\n\r\n\r\nNumber of calls: 1\r\n\r\n ❯ src/lib/llm/chatRequest.test.ts:160:44\r\n    158|           ]);\r\n    159|           if (!history.length) {\r\n    160|             expect(saveConversationSafely).toHaveBeenCalledWith(\r\n       |                                            ^\r\n    161|               'account',\r\n    162|               expect.objectContaining({\r\n\r\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\r\n\r\n FAIL  src/lib/llm/chatRequest.test.ts > chat request message ownership > sends the real hook history without duplicating UI input (system=true, history=0)\r\nAssertionError: expected \"vi.fn()\" to be called with arguments: [ Array(3) ]\r\n\r\nReceived:\r\n\r\n  1st vi.fn() call:\r\n\r\n  [\r\n    \"account\",\r\n-   ObjectContaining {\r\n+   {\r\n+     \"id\": \"conv_46498d4c-c42c-48ea-b95e-def65c3ab8aa\",\r\n+     \"isTemporary\": false,\r\n      \"messages\": [\r\n-       ObjectContaining {\r\n+       {\r\n          \"content\": \"本次问题\",\r\n+         \"createdAt\": \"2026-09-30T15:06:22.353Z\",\r\n+         \"id\": \"conv_f890ae19-d261-464f-959c-065c4f70b0cb\",\r\n          \"role\": \"user\",\r\n        },\r\n      ],\r\n+     \"name\": \"本次问题\",\r\n+     \"updatedAt\": \"2026-09-30T15:06:22.354Z\",\r\n    },\r\n    [Function t],\r\n+   {\r\n+     \"assertCurrent\": [Function assertCurrent],\r\n+     \"invoke\": [Function invoke],\r\n+     \"isCurrent\": [Function isCurrent],\r\n+     \"ready\": Promise {},\r\n+   },\r\n  ]\r\n\r\n\r\nNumber of calls: 1\r\n\r\n ❯ src/lib/llm/chatRequest.test.ts:160:44\r\n    158|           ]);\r\n    159|           if (!history.length) {\r\n    160|             expect(saveConversationSafely).toHaveBeenCalledWith(\r\n       |                                            ^\r\n    161|               'account',\r\n    162|               expect.objectContaining({\r\n\r\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\r\n\r\n\r\n Test Files  1 failed | 4 passed (5)\r\n      Tests  2 failed | 88 passed (90)\r\n   Start at  16:05:51\r\n   Duration  34.46s (transform 3.35s, setup 18.52s, import 17.75s, tests 1.13s, environment 114.76s)\r\n\r\n"
+    }
+  ],
+  "originalFullFailureEvidence": "rf1060-node-test-entry-2026-09-30.json",
+  "independentReview": {
+    "performed": true,
+    "requiredDefectsResolved": [
+      "双入口重载/旧历史覆盖",
+      "预保存失败后无法重试",
+      "元数据操作污染后续选择",
+      "前置失败丢失persisted事实可复活软删除会话"
+    ],
+    "testExecutionByReviewer": false
+  },
+  "preservedBitmaps": {
+    "header-install.bmp": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+    "header-uninstall.bmp": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+    "welcome-sidebar.bmp": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c"
+  },
+  "limitations": [
+    "事件、invoke、Host保存与通知权限均为受控模拟；没有真实模型请求、云上传或原生系统通知验收。",
+    "RF104只建立同一前端Store的互斥；跨进程/数据目录互斥仍由RF905处理。",
+    "规范结果无法确认会标记保存结果未确认并保留已接收正文，不能据此断言后端一定保存失败。",
+    "本项未修改Rust后端、依赖或IPC公开参数契约。"
+  ]
+}
