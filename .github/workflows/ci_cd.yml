@@ -165,6 +165,10 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      # RF-1060：真实 Windows 回归，不能由 Ubuntu 上的专有用例跳过代替。
+      - name: Run Node regression tests (Windows)
+        run: npm run test:node
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:

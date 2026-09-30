@@ -391,7 +391,7 @@ test('summary uses standard odd/even medians and retains requested count after f
 });
 
 async function withFiles(run) {
-  const root = await mkdtemp(path.join(tmpdir(), 'solosoul-rf312-runner-tests-'));
+  const root = await mkdtemp(path.join(await realpath(tmpdir()), 'solosoul-rf312-runner-tests-'));
   const resolvedTemp = await realpath(tmpdir());
   try {
     const exe = path.join(root, 'synthetic.exe');
@@ -503,29 +503,38 @@ test('WebView2 browser data accepts only the exact API UDF/EBWebView directory',
   }
 });
 
-test('WebView2 exact owned directories reject filesystem junction redirection', async () => {
-  await withFiles(async (_options, root) => {
-    const apiRoot = path.join(root, 'owned-webview');
-    const browserRoot = path.join(apiRoot, 'EBWebView');
-    await mkdir(browserRoot, { recursive: true });
-    assert.equal((await browserDataFilesystemCheck(apiRoot)).valid, true);
-    const other = path.join(root, 'different-directory');
-    await mkdir(other);
-    const redirectedChildRoot = path.join(root, 'redirected-browser');
-    await mkdir(redirectedChildRoot);
-    await symlink(
-      other,
-      path.join(redirectedChildRoot, 'EBWebView'),
-      process.platform === 'win32' ? 'junction' : 'dir',
-    );
-    const rejected = await browserDataFilesystemCheck(redirectedChildRoot);
-    assert.equal(rejected.valid, false);
-    assert.match(rejected.reason, /regular directory|link|alternate directory/);
-    const redirectedApiRoot = path.join(root, 'redirected-api');
-    await symlink(other, redirectedApiRoot, process.platform === 'win32' ? 'junction' : 'dir');
-    assert.equal((await browserDataFilesystemCheck(redirectedApiRoot)).valid, false);
-  });
-});
+test(
+  'WebView2 exact owned directories reject filesystem junction redirection',
+  {
+    skip:
+      process.platform === 'win32'
+        ? false
+        : 'Requires Windows WebView2 UDF paths for physical filesystem and junction checks',
+  },
+  async () => {
+    await withFiles(async (_options, root) => {
+      const apiRoot = path.join(root, 'owned-webview');
+      const browserRoot = path.join(apiRoot, 'EBWebView');
+      await mkdir(browserRoot, { recursive: true });
+      assert.equal((await browserDataFilesystemCheck(apiRoot)).valid, true);
+      const other = path.join(root, 'different-directory');
+      await mkdir(other);
+      const redirectedChildRoot = path.join(root, 'redirected-browser');
+      await mkdir(redirectedChildRoot);
+      await symlink(
+        other,
+        path.join(redirectedChildRoot, 'EBWebView'),
+        process.platform === 'win32' ? 'junction' : 'dir',
+      );
+      const rejected = await browserDataFilesystemCheck(redirectedChildRoot);
+      assert.equal(rejected.valid, false);
+      assert.match(rejected.reason, /regular directory|link|alternate directory/);
+      const redirectedApiRoot = path.join(root, 'redirected-api');
+      await symlink(other, redirectedApiRoot, process.platform === 'win32' ? 'junction' : 'dir');
+      assert.equal((await browserDataFilesystemCheck(redirectedApiRoot)).valid, false);
+    });
+  },
+);
 
 test('file validation never creates output and refuses existing output without changing it', async () => {
   await withFiles(async (options) => {
@@ -580,97 +589,106 @@ test('CLI help and invalid sample count exit without loading a GUI executable', 
   assert.match(invalid.stderr, /--samples must be an integer >= 3/);
 });
 
-test('PowerShell 5.1 cleanup consumes a flat JSON identity list and rejects changed identities offline', () => {
-  const created = Date.parse('2026-09-30T08:00:00Z');
-  const exe = String.raw`C:\synthetic\fixture.exe`;
-  let offline = PROCESS_SCRIPT.slice(0, PROCESS_SCRIPT.indexOf('$root = $all'));
-  offline = offline.replace(
-    /^\$all = .*$/m,
-    '$all = @([Environment]::GetEnvironmentVariable("SOLOSOUL_NATIVE_PERF_FAKE_ROWS") | ConvertFrom-Json)\n$all = $all[0]',
-  );
-  offline = offline.replace(
-    '$process = [Diagnostics.Process]::GetProcessById([int]$owned.pid)',
-    '$process = [PSCustomObject]@{StartTime=[DateTimeOffset]::FromUnixTimeMilliseconds([long]$owned.creationMs).UtcDateTime;HasExited=$false}',
-  );
-  offline = offline.replace('$process.Kill()', '$process.HasExited = $true');
-  offline = offline.replace(
-    '$pending.process.WaitForExit($remaining) | Out-Null',
-    '# offline: no waiting',
-  );
-  offline = offline.replace('$pending.process.Dispose()', '[void]0');
-  assert.doesNotMatch(offline, /Get-CimInstance|GetProcessById|\.Kill\(|WaitForExit|\.Dispose\(/);
-  const fakeRows = [
-    {
-      ProcessId: 123,
-      ParentProcessId: 0,
-      CreationDate: '2026-09-30T08:00:00Z',
-      ExecutablePath: exe,
-      Name: 'fixture.exe',
-    },
-    {
-      ProcessId: 456,
-      ParentProcessId: 123,
-      CreationDate: '2026-09-30T08:00:01Z',
-      ExecutablePath: exe,
-      Name: 'fixture.exe',
-    },
-    {
-      ProcessId: 321,
-      ParentProcessId: 123,
-      CreationDate: null,
-      ExecutablePath: exe,
-      Name: 'fixture.exe',
-    },
-  ];
-  // 仅补DateTime类型，与CIM数据形状一致；无实际CIM/Process API操作。
-  offline = offline.replace(
-    '$all = $all[0]',
-    '$all = $all[0]\nforeach($row in $all){if($row.CreationDate){$row.CreationDate=[DateTime]$row.CreationDate}}',
-  );
-  const known = [123, 456, 321, 789].map((pid) => ({
-    pid,
-    creationMs: created,
-    executablePath: exe,
-  }));
-  const result = spawnSync(
-    'powershell.exe',
-    [
-      '-NoLogo',
-      '-NoProfile',
-      '-NonInteractive',
-      '-EncodedCommand',
-      Buffer.from(offline, 'utf16le').toString('base64'),
-    ],
-    {
-      encoding: 'utf8',
-      windowsHide: true,
-      timeout: 10000,
-      env: {
-        ...process.env,
-        SOLOSOUL_NATIVE_PERF_PID: '123',
-        SOLOSOUL_NATIVE_PERF_EXE: exe,
-        SOLOSOUL_NATIVE_PERF_STARTED: String(created),
-        SOLOSOUL_NATIVE_PERF_ACTION: 'cleanup',
-        SOLOSOUL_NATIVE_PERF_KNOWN: JSON.stringify(known),
-        SOLOSOUL_NATIVE_PERF_FAKE_ROWS: JSON.stringify(fakeRows),
+test(
+  'PowerShell 5.1 cleanup consumes a flat JSON identity list and rejects changed identities offline',
+  {
+    skip:
+      process.platform === 'win32'
+        ? false
+        : 'Requires Windows PowerShell 5.1 for the offline cleanup script',
+  },
+  () => {
+    const created = Date.parse('2026-09-30T08:00:00Z');
+    const exe = String.raw`C:\synthetic\fixture.exe`;
+    let offline = PROCESS_SCRIPT.slice(0, PROCESS_SCRIPT.indexOf('$root = $all'));
+    offline = offline.replace(
+      /^\$all = .*$/m,
+      '$all = @([Environment]::GetEnvironmentVariable("SOLOSOUL_NATIVE_PERF_FAKE_ROWS") | ConvertFrom-Json)\n$all = $all[0]',
+    );
+    offline = offline.replace(
+      '$process = [Diagnostics.Process]::GetProcessById([int]$owned.pid)',
+      '$process = [PSCustomObject]@{StartTime=[DateTimeOffset]::FromUnixTimeMilliseconds([long]$owned.creationMs).UtcDateTime;HasExited=$false}',
+    );
+    offline = offline.replace('$process.Kill()', '$process.HasExited = $true');
+    offline = offline.replace(
+      '$pending.process.WaitForExit($remaining) | Out-Null',
+      '# offline: no waiting',
+    );
+    offline = offline.replace('$pending.process.Dispose()', '[void]0');
+    assert.doesNotMatch(offline, /Get-CimInstance|GetProcessById|\.Kill\(|WaitForExit|\.Dispose\(/);
+    const fakeRows = [
+      {
+        ProcessId: 123,
+        ParentProcessId: 0,
+        CreationDate: '2026-09-30T08:00:00Z',
+        ExecutablePath: exe,
+        Name: 'fixture.exe',
       },
-    },
-  );
-  assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.deepEqual(
-    JSON.parse(result.stdout.trim()).cleanup.map(({ pid, status }) => ({ pid, status })),
-    [
-      { pid: 123, status: 'terminated' },
-      { pid: 456, status: 'identity-changed-not-terminated' },
-      { pid: 321, status: 'unverifiable-not-terminated' },
-      { pid: 789, status: 'already-exited' },
-    ],
-  );
-});
+      {
+        ProcessId: 456,
+        ParentProcessId: 123,
+        CreationDate: '2026-09-30T08:00:01Z',
+        ExecutablePath: exe,
+        Name: 'fixture.exe',
+      },
+      {
+        ProcessId: 321,
+        ParentProcessId: 123,
+        CreationDate: null,
+        ExecutablePath: exe,
+        Name: 'fixture.exe',
+      },
+    ];
+    // 仅补DateTime类型，与CIM数据形状一致；无实际CIM/Process API操作。
+    offline = offline.replace(
+      '$all = $all[0]',
+      '$all = $all[0]\nforeach($row in $all){if($row.CreationDate){$row.CreationDate=[DateTime]$row.CreationDate}}',
+    );
+    const known = [123, 456, 321, 789].map((pid) => ({
+      pid,
+      creationMs: created,
+      executablePath: exe,
+    }));
+    const result = spawnSync(
+      'powershell.exe',
+      [
+        '-NoLogo',
+        '-NoProfile',
+        '-NonInteractive',
+        '-EncodedCommand',
+        Buffer.from(offline, 'utf16le').toString('base64'),
+      ],
+      {
+        encoding: 'utf8',
+        windowsHide: true,
+        timeout: 10000,
+        env: {
+          ...process.env,
+          SOLOSOUL_NATIVE_PERF_PID: '123',
+          SOLOSOUL_NATIVE_PERF_EXE: exe,
+          SOLOSOUL_NATIVE_PERF_STARTED: String(created),
+          SOLOSOUL_NATIVE_PERF_ACTION: 'cleanup',
+          SOLOSOUL_NATIVE_PERF_KNOWN: JSON.stringify(known),
+          SOLOSOUL_NATIVE_PERF_FAKE_ROWS: JSON.stringify(fakeRows),
+        },
+      },
+    );
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.deepEqual(
+      JSON.parse(result.stdout.trim()).cleanup.map(({ pid, status }) => ({ pid, status })),
+      [
+        { pid: 123, status: 'terminated' },
+        { pid: 456, status: 'identity-changed-not-terminated' },
+        { pid: 321, status: 'unverifiable-not-terminated' },
+        { pid: 789, status: 'already-exited' },
+      ],
+    );
+  },
+);
 
 test(
   'fixed PowerShell ownership/memory script parses without executing CIM or termination',
-  { skip: process.platform !== 'win32' },
+  { skip: process.platform === 'win32' ? false : 'Requires Windows PowerShell 5.1 parser' },
   () => {
     const parser = `
 $ErrorActionPreference='Stop'
@@ -705,7 +723,7 @@ exit 0
 
 test('SDK requested or proof markers exclude benchmark acceptance even with malformed content or non-file markers', async () => {
   const parent = await realpath(tmpdir());
-  const dir = await mkdtemp(path.join(tmpdir(), 'ss-rf312-sdk-benchmark-'));
+  const dir = await mkdtemp(path.join(await realpath(tmpdir()), 'ss-rf312-sdk-benchmark-'));
   try {
     await rejectDiagnosticBenchmark(dir);
     for (const name of ['native-perf-sdk-cdp-requested.json', 'native-perf-sdk-cdp.json']) {

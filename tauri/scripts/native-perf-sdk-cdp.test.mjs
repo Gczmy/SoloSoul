@@ -102,7 +102,7 @@ function proof() {
 }
 async function withDirectory(run) {
   const parent = await realpath(tmpdir());
-  const dir = await mkdtemp(path.join(tmpdir(), 'ss-rf312-sdk-node-'));
+  const dir = await mkdtemp(path.join(await realpath(tmpdir()), 'ss-rf312-sdk-node-'));
   try {
     await run(dir);
   } finally {
@@ -202,33 +202,42 @@ test('SDK streaming preflight rejects older binaries and accepts cross-block fea
     for (const size of [0, -1, 1.5, 1048577]) await assert.rejects(sdkBinaryPreflight(exe, size));
   });
 });
-test('old native-perf EXE fails before output creation or any EXE execution', async () => {
-  await withDirectory(async (dir) => {
-    const fixture = await stubFixture(dir);
-    const exe = path.join(dir, 'stub.exe');
-    const contents = 'Do not execute this synthetic stub\0' + NATIVE_PERF_MARKERS.join('\0');
-    await writeFile(exe, contents);
-    const output = path.join(dir, 'new-output');
-    const result = spawnSync(
-      process.execPath,
-      [
-        fileURLToPath(new URL('./native-perf-sdk-cdp.mjs', import.meta.url)),
-        '--exe',
-        exe,
-        '--fixture',
-        fixture,
-        '--output',
-        output,
-      ],
-      { encoding: 'utf8', windowsHide: true, timeout: 10000 },
-    );
-    assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.match(result.stderr, /SDK CDP requires a rebuilt.*no EXE was executed/);
-    assert.equal(result.stdout, '');
-    await assert.rejects(lstat(output), { code: 'ENOENT' });
-    assert.equal(await readFile(exe, 'utf8'), contents);
-  });
-});
+test(
+  'old native-perf EXE fails before output creation or any EXE execution',
+  {
+    skip:
+      process.platform === 'win32'
+        ? false
+        : 'Requires the Windows-only SDK diagnostic CLI to reach its offline feature preflight',
+  },
+  async () => {
+    await withDirectory(async (dir) => {
+      const fixture = await stubFixture(dir);
+      const exe = path.join(dir, 'stub.exe');
+      const contents = 'Do not execute this synthetic stub\0' + NATIVE_PERF_MARKERS.join('\0');
+      await writeFile(exe, contents);
+      const output = path.join(dir, 'new-output');
+      const result = spawnSync(
+        process.execPath,
+        [
+          fileURLToPath(new URL('./native-perf-sdk-cdp.mjs', import.meta.url)),
+          '--exe',
+          exe,
+          '--fixture',
+          fixture,
+          '--output',
+          output,
+        ],
+        { encoding: 'utf8', windowsHide: true, timeout: 10000 },
+      );
+      assert.equal(result.status, 1, result.stdout + result.stderr);
+      assert.match(result.stderr, /SDK CDP requires a rebuilt.*no EXE was executed/);
+      assert.equal(result.stdout, '');
+      await assert.rejects(lstat(output), { code: 'ENOENT' });
+      assert.equal(await readFile(exe, 'utf8'), contents);
+    });
+  },
+);
 test('SDK launch selects only the run-only native SDK diagnostics contract', () => {
   assert.deepEqual(sdkLaunchArgs(owned.root, 44001), [
     '--native-perf-root',
