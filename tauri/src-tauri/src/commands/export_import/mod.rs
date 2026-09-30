@@ -319,6 +319,24 @@ pub(crate) fn load_attachments(
         .unwrap_or_default()
 }
 
+/// 全量后台包收集未删除对象的未删除附件 ID；手动空选择仍表示不选附件。
+/// 调用方提供原会话的 Vault，不在枚举过程中重新读取当前账户。
+pub(crate) fn collect_all_attachment_ids(
+    vault: &solosoul_vault::VaultStore,
+    account_id: &str,
+) -> Result<Vec<String>, String> {
+    let objects = vault.list_objects(account_id, None, None, None, false, false)?;
+    let mut ids = Vec::new();
+    for obj in objects {
+        for att in load_attachments(&obj.properties) {
+            if att.deleted_at.is_none() {
+                ids.push(att.id);
+            }
+        }
+    }
+    Ok(ids)
+}
+
 /// Collect all objects matching the given scope.
 ///
 /// P005: `list_objects` 实际逐行解密完整 properties（非轻量摘要）。旧实现先 `list_objects`

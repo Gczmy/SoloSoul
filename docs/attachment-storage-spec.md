@@ -1,6 +1,7 @@
 # 附件存储安全规范（Attachment Storage Spec）
 
 > 当前事实核对：2026-09-28（RF-313）；代码基线 `105798cd`。
+> 云快照附件范围更新：2026-09-30（RF-014）；其余安全事实沿用 RF-313。
 > 历史来源：2026-08-16 P021 的明文落盘例外登记。该日期保留为历史，不能用其旧结论代替当前实现。
 
 ## 1. 当前实现与边界
@@ -17,7 +18,7 @@
 | Android 导入 | [Kotlin 插件](../tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/AttachmentImportPlugin.kt) 先将 content URI 明文复制到应用管理的 Vault 路径，[Rust 插件](../tauri/src-tauri/src/attachment_import_plugin.rs) 再写加密临时文件并替换；不是从源到目标全程无明文中间文件 |
 | 元数据 | 名称、描述、标签、大小等位于对象 `properties.__attachments`。正常写入随属性加密，但 [存储加密层](../tauri/crates/solosoul-vault/src/encryption.rs) 保留历史明文读取/迁移兼容，不宜写“所有历史元数据永远都是密文” |
 | 局域网同步 | [sync/attachments.rs](../tauri/crates/solosoul-sync/src/attachments.rs) 经同步通道传递源文件实际字节，接收临时文件后替换；不会将所有旧明文统一改成密文 |
-| 导出包 | `.solosoul` 附件使用导出包的加密路径，不能与 Vault 静态附件密钥混用；附件范围与 GUI/CLI 共享用例仍有待办，见 §5 |
+| 导出包 | `.solosoul` 附件使用导出包的加密路径，不能与 Vault 静态附件密钥混用；云全量快照枚举未删除对象中的未删除附件 ID；手动导出空 ID 仍表示不选附件，显式范围和 GUI/CLI 共享用例见 §5 |
 
 附件密钥入口实际位于 [vault_service/unlock.rs](../tauri/crates/solosoul-core/src/vault_service/unlock.rs) 的 `attachment_encryption_key`，需要当前会话密钥。不能按旧文档查找已拆分的 `vault_service.rs`。
 
@@ -37,9 +38,10 @@ Android 导入有 Kotlin 明文复制到 Rust 加密替换之间的窗口；复�
 
 [Vault 权限辅助函数](../tauri/crates/solosoul-core/src/vault_service/mod.rs) 在 Unix 设置受管路径权限，在 Windows 使用 `icacls` 移除继承并授予当前用户权限；不能把 `0700/0600` 等同于 Windows ACL，也不能由这些函数推断全部既存显式授权均被移除。同用户进程可读的旧明文、临时副本以及用户外拷目录仍是需保留的边界。
 
-## 5. 尚未完成的相关任务
+## 5. 相关任务与验收边界
 
-- [RF-014](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-014)、[RF-015](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-015)：全量云快照附件覆盖和显式导出范围；不能宣称任意全量备份已包含所有有效附件。
+- [RF-014](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-014)：云全量快照入口收集原会话内未删除对象的未删除附件 ID，复用现有导出包路径。该范围包括旧明文兼容附件与 SOLC 静态密文附件，包内均使用导出包加密。原单附件 100 MiB、总量 1 GiB 限制保持，文件缺失/元数据解析失败的既有行为未在本项改变；不能扩展为任意备份的完整性保证。验证状态见执行报告。
+- [RF-015](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-015)：显式导出范围仍待执行；手动空附件选择继续表示不导出附件文件。
 - [RF-021](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-021)、[RF-022](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-022)：导入批次事务及附件恢复/重试幂等；不要把计划中的失败恢复写成当前保证。
 - [RF-023](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-023)、[RF-024](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-024)：GUI/CLI 加密包共享用例；当前不能由一端修复推断另一端同样完成。
 
@@ -53,3 +55,4 @@ Android 导入有 Kotlin 明文复制到 Rust 加密替换之间的窗口；复�
 |------|------|------|
 | 2026-08-16 | 首次登记当时的附件明文落盘例外 | P021（历史） |
 | 2026-09-28 | 按当前源码区分新密文、旧明文兼容、有限迁移与临时明文，撤回全部明文/全部自动升级的概括 | RF-313 |
+| 2026-09-30 | 云全量快照显式收集未删除附件；保留手动空选择、原加密/大小限制与其他待办边界 | RF-014 |

@@ -142,7 +142,9 @@ fn export_recovery_package(
     account_id: &str,
     recovery_password: &str,
 ) -> Result<tempfile::TempPath, String> {
-    let all_attachment_ids = collect_all_attachment_ids(svc, account_id)?;
+    let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let all_attachment_ids =
+        crate::commands::export_import::collect_all_attachment_ids(&vault, account_id)?;
     // NamedTempFile 原子创建随机文件（Unix 0600）。先关闭文件句柄，兼容 Windows 重开写入。
     let export_file = tempfile::Builder::new()
         .prefix("solosoul-recovery-")
@@ -170,24 +172,6 @@ fn export_recovery_package(
     req.password.zeroize();
     result?;
     Ok(export_file)
-}
-
-/// 收集全部附件 ID（未删除项），保证恢复包包含附件。
-fn collect_all_attachment_ids(svc: &VaultService, account_id: &str) -> Result<Vec<String>, String> {
-    let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let objects = vault
-        .list_objects(account_id, None, None, None, false, false)
-        .map_err(|e| e.to_string())?;
-    let mut ids = Vec::new();
-    for obj in objects {
-        let atts = crate::commands::export_import::load_attachments(&obj.properties);
-        for att in atts {
-            if att.deleted_at.is_none() {
-                ids.push(att.id);
-            }
-        }
-    }
-    Ok(ids)
 }
 
 /// 取消并清理之前可能残留的恢复主机（在锁外 join，避免阻塞）。

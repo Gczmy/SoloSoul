@@ -33,7 +33,9 @@ use tauri::{AppHandle, Emitter};
 use tokio::io::AsyncWriteExt;
 use tokio::sync::mpsc;
 
-use crate::commands::export_import::{default_locale, ExportRequest, ExportScope};
+use crate::commands::export_import::{
+    collect_all_attachment_ids, default_locale, ExportRequest, ExportScope,
+};
 
 /// 快照文件名后缀（与 build_snapshot_remote_path 保持一致）。
 const SNAPSHOT_EXT: &str = ".solosoul";
@@ -475,13 +477,16 @@ async fn export_full_snapshot(pre: &CloudPreContext, dest: &Path) -> Result<(), 
         let svc = vs
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
+        // 只短时校验门闩；全库枚举从原会话读取，不能重新取得当前 Vault。
+        svc.with_session(&session, |_| Ok(()))?;
+        let all_attachment_ids = collect_all_attachment_ids(session.vault(), session.account_id())?;
         let req = ExportRequest {
             scope: ExportScope {
                 selected_page_ids: vec![],
                 selected_object_ids: vec![],
                 selected_tags: vec![],
                 include_attachments: true,
-                selected_attachment_ids: vec![],
+                selected_attachment_ids: all_attachment_ids,
                 include_preferences: true,
                 include_behavioral: false,
                 include_all: true,
@@ -993,6 +998,7 @@ mod tests {
     use std::sync::atomic::AtomicUsize;
 
     mod rf003;
+    mod rf014;
 
     #[tokio::test]
     async fn rf020_cloud_partial_preserves_source_and_waterline() {
