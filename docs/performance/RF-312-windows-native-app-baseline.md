@@ -170,3 +170,29 @@ node scripts/native-perf-diagnose.mjs --exe (Join-Path $sampleParent 'bin-runtim
 只读限定策略查询：HKLM/HKCU及32/64位视图的Edge `DeveloperToolsAvailability/RemoteDebuggingAllowed` 没有发现值；WebView2 `AdditionalBrowserArguments` 四个指定键均不存在。未读取无关值或更改Registry。[微软企业策略说明](https://learn.microsoft.com/en-us/deployedge/webview2-enterprise#browser-policies-vs-webview2-policies)说明Edge浏览器策略不应用于WebView2；[WebView2策略列表](https://learn.microsoft.com/en-us/deployedge/microsoft-edge-webview-policies)未列出上述两个浏览器策略。这只是限定候选排查，不能证明不存在其他策略或定位根因。
 
 下一步可独立实施非默认Windows原生SDK诊断：在Tauri `with_webview` 的UI线程取得当前controller/WebView，用异步 [CallDevToolsProtocolMethod](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2?view=webview2-1.0.4022.49#calldevtoolsprotocolmethod)先只读Page.getFrameTree与Runtime.evaluate，绑定actual browser PID、唯一主frame、实际origin/timeOrigin和既有observer runId。导航、文档/frame变化、回调错误或超时即拒绝；COM遵循[UI线程约束](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/threading-model)。当前仅完成锁定源码/文档可行性核对，没有协议调用；完整UI采样还需后续状态机、真实浏览器输入和既有IPC计数验收。RF-312保持[!]，208/249不变。
+
+## 原生SDK最小只读CDP诊断（2026-09-30）
+
+该独立入口只用于非默认Windows native-perf构建，内部传入 `--native-perf-diagnostics sdk-cdp`，与日志、ordinary TMP、Runtime选择互斥，prepare拒绝该模式。新EXE的SDK特征检查在输出目录/准备/GUI之前执行；系统默认Runtime与既有TEMP/TMP/profile/UDF/browser flags规则保持。GUI前独占发布requested marker，最终proof单独发布；benchmark遇到任一marker即拒绝，不依赖其JSON是否有效。
+
+```powershell
+node scripts/native-perf-sdk-cdp.mjs --exe (Join-Path $sampleParent 'bin-sdk/solo_soul.exe') --fixture (Join-Path $fixtureParent 'vault100') --output (Join-Path $sampleParent 'sdk-cdp-one01')
+```
+
+只在setup成功及真实main文档Finished两个门闩都满足后，从该窗口的UI线程 `with_webview` 取得真实controller/CoreWebView2。先注册导航、Source变化、进程失败、FrameCreated守卫，读取SDK browser PID/Source；异步顺序调用一次Page.getFrameTree与一次Runtime.evaluate。表达式只读origin/href/documentURL、readyState、主frame与frame数、React容器有无内容、timeOrigin和现有observer，不读取账户文本、密码、表单值或IPC body。不通过业务IPC解锁或操作DOM。
+
+成功proof只证明两个回调捕获区间：唯一主frame、预期 `http://tauri.localhost` origin、同一Source/browser PID、守卫无变化、observer runId/valid/timeOrigin一致。`#root`有内容不代表登录或所有前端已就绪。未知Source、JS异常原文和原始CDP响应不写入失败proof。回调有界复制PCWSTR借用数据，Source返回值用RAII释放；COM请求和回调保持UI线程，不同步等待。
+
+原生回调按20秒上限检查迟到结果，Node从GUI spawn起只等45秒；没有回调或加载门闩不满足时由Node判为超时，不能声称原生必定自行发布timeout proof。Node读取proof前后分别复核原owned root/browser的EXE、creationMs、parentPid和UDF，SDK browser PID必须与唯一核验browser相同，不能依据proof里的任意PID查询其他进程。CDP调用不依赖TCP监听，脚本不通过TCP/HTTP连接CDP端点。端口占用预检仍建立loopback socket，正常产品初始化的联网行为保持。
+
+SDK协议请求单列 `sdkProtocolCalls`，不计入Tauri invoke。单次observer snapshot仅描述当时状态，不能称全程IPC总量；elapsed仅诊断边界计时，performanceMetrics保持null。本节描述实施与验收契约；真实回调、fixture保全、进程清理和检查结果将在实际运行后追加。
+
+截至本轮收尾，SDK草稿已实现并通过97项Node回归及Rust源码格式检查；9项新增Rust回归尚未执行。独立预审修正COM getter重入后守卫复查、async lstat完成后的45秒预算重查，并将网络说明限定为CDP端点。自定义有界completion的宏需要直接 `windows-core` crate路径，锁文件已有0.61.2；其Windows optional/native-perf-only声明被自动审批拒绝，Cargo两文件尚未修改，精确补丁已交人类待授权。[本阶段完整预检证据与未应用提案](rf312-windows-sdk-cdp-preflight-2026-09-30.json)保留源码SHA、原始检查输出和边界。原生编译、Rust测试/Clippy、Release及GUI均未执行；没有真实SDK调用，不产出性能数据。
+
+## 授权后原生SDK实测结果（2026-09-30）
+
+用户明确授权最小补丁后，Windows target新增精确版本optional `windows-core =0.61.2`，仅native-perf启用；Cargo.lock只关联已存在的包，无升级。上节及[授权前预检](rf312-windows-sdk-cdp-preflight-2026-09-30.json)保留当时状态。本轮首次E0603改为webview2_com公开导出，首轮Clippy长度比较改为等价的newline预留条件；两次失败保留。最终Rust定向lib28项（全部9新增）通过，Clippy all-target/fmt通过；同SHA Node五文件97项通过，非全库测试。非默认Release锁文件构建exit0，Rust23m12s、TypeScript/Vite通过、Vite7.16s，未打包。新EXE SHA `201BE7FDBF2730EE6BC22D1EBD6D04BA865B31B3C76DE1471508B1603696B097`，28文件freeze与95资源SHA保持。freeze中的测试仍运行字段为填录错误；原记录与时间证据保留，最终测试/fmt实际先于freeze结束。
+
+一次新隔离100对象实测使用默认154.0.4258.37，exit1；两个SDK方法均取得成功HRESULT且可解析的有界JSON回调，Page.getFrameTree校验主frame、loader与Source。Runtime.evaluate在聚合document条件被拒，`stage=evaluation/reason=document-mismatch`、native elapsed8ms，proof在spawn后1704ms被观察；这些时间是诊断边界，不能当启动/就绪/性能时延。失败proof的document/observer/timeOrigin为空，原始被拒值未保存，所以具体不符项和根因未知；Finished门闩不保证异步初始化/React已渲染只是源码事实，不能认定这就是本次原因。observer/timeOrigin和读取后身份校验未完成，runner `sdkProtocolCalls=null`、`performanceMetrics=null`；未重跑或放宽要求。
+
+原runner `cleanupIntegrity=false/unverifiedDescendants=true` 保留。额外fresh CIM确认9个记录PID和本轮owned命令行都不存在，随后仅清理三个精确owned目录；原始四个native标记/proof已存档。首次删除前普通/扩展路径比较误拒保留，确认同一本地绝对路径身份后非递归解除目录内缓存junction，再清理临时目录。源14文件与用户3张NSIS图片SHA保持，EXE/95资源与原始输出/日志保留。[完整本轮证据](rf312-windows-sdk-cdp-2026-09-30.json)包含授权、所有失败/最终检查、source/resource/EXE SHA、原始proof与独立收尾。下一步先为文档聚合拒绝增加固定枚举子原因，不保存拒绝值，再验证新构建；本次失败不可覆盖或改成成功。RF-312仍[!]、208/249不变，尚缺成功文档绑定、完整UI行程及多端性能验收。

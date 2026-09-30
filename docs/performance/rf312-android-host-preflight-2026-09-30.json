@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "android-host-readonly-feasibility",
+  "recordedAt": "2026-09-30T11:42:28.296452+00:00",
+  "baselineHead": "e6cf4c215ab37dd171a487f196efd1e3ddd58b60",
+  "checkout": "C:\\Users\\40299571\\SoloSoul",
+  "summary": {
+    "existingAvdFound": true,
+    "connectedDevicesAtInventory": 0,
+    "whpxProbeSucceeded": true,
+    "newAvdCreated": false,
+    "emulatorBooted": false,
+    "appInstalled": false,
+    "appLaunched": false,
+    "androidBuildExecuted": false,
+    "nativeUiValidated": false,
+    "performanceMetrics": null,
+    "sdkDependencyProposalApplied": false,
+    "rf312Closed": false
+  },
+  "observedToolResults": [
+    {
+      "command": "D:\\andriod_studio_sdk\\platform-tools\\adb.exe devices -l",
+      "exitCode": 0,
+      "output": "List of devices attached\n\n",
+      "note": "Only inventory; no daemon restart or device mutation."
+    },
+    {
+      "command": "D:\\andriod_studio_sdk\\emulator\\emulator.exe -list-avds",
+      "exitCode": 0,
+      "output": "Pixel_6\n"
+    },
+    {
+      "command": "D:\\andriod_studio_sdk\\emulator\\emulator.exe -accel-check",
+      "exitCode": 0,
+      "output": "accel:\n0\nWHPX(10.0.26100) is installed and usable.\naccel\n",
+      "containingReadCommandDurationMs": 204968,
+      "durationSource": "Codex command execution metadata; includes preceding inventory reads, not isolated probe duration",
+      "probeProcess": {
+        "pid": 39028,
+        "parentPid": 43436,
+        "createdAt": "2026-09-30T12:31:51.438563+01:00"
+      },
+      "stopCheckOutput": "Hardware acceleration probe already exited",
+      "processStopped": false
+    }
+  ],
+  "environment": {
+    "emulatorRevision": "37.1.11",
+    "systemImage": {
+      "api": 36,
+      "abi": "x86_64",
+      "tag": "google_apis",
+      "revision": 7
+    },
+    "avd": {
+      "name": "Pixel_6",
+      "ramMiB": 2048,
+      "cpuCores": 4,
+      "resolution": "1080x2400",
+      "densityDpi": 420
+    },
+    "hypervisorPresent": true,
+    "vmCpuFlagsObservedFalse": true,
+    "interpretation": "CPU flags are not used to infer disabled virtualization: the direct emulator WHPX probe succeeded.",
+    "jdk": "Temurin 21.0.12.1+1-LTS",
+    "ndk": "27.0.12077973",
+    "buildTools": "35.0.0",
+    "rustInstalledTargets": [
+      "aarch64-linux-android",
+      "x86_64-apple-darwin",
+      "x86_64-pc-windows-msvc"
+    ]
+  },
+  "files": {
+    "avdIni": {
+      "path": "C:\\Users\\40299571\\.android\\avd\\Pixel_6.ini",
+      "bytes": 114,
+      "sha256": "736E3FD4A5BCCF72F368FA4EEB3CDE6D36A58D3156E331F55799DE5224BE3AAB"
+    },
+    "avdConfig": {
+      "path": "C:\\Users\\40299571\\.android\\avd\\Pixel_6.avd\\config.ini",
+      "bytes": 1237,
+      "sha256": "31CCBD196FE247F9550C6CDE7DDFACEC95ABB964F5DB6D2D77E5688F065E9292"
+    },
+    "emulatorPackage": {
+      "path": "D:\\andriod_studio_sdk\\emulator\\source.properties",
+      "bytes": 103,
+      "sha256": "EE589CA350515C29DC3BAD30DD5EBE8EFB11D1A50C17C8815125D3C4BD12A3A8"
+    },
+    "imagePackage": {
+      "path": "D:\\andriod_studio_sdk\\system-images\\android-36\\google_apis\\x86_64\\source.properties",
+      "bytes": 356,
+      "sha256": "EDFC961BD9128FBFEA84B4C61AAC3A72EA270CA286425E22B3ED01AC759B1FC3"
+    },
+    "ndkPackage": {
+      "path": "C:\\Users\\40299571\\ss-android\\sdk\\ndk\\27.0.12077973\\source.properties",
+      "bytes": 107,
+      "sha256": "1C4A54B31C5ED242A901B4A472D412819B5E08405DF1C58066BD555F9DD52515"
+    },
+    "sdkCargoToml": {
+      "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\Cargo.toml",
+      "bytes": 4731,
+      "sha256": "C5826D385ED3440B6980CF4A193AAF02E4DAC22A8EA525D1B00E917F4D58F6F5"
+    },
+    "sdkCargoLock": {
+      "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\Cargo.lock",
+      "bytes": 244245,
+      "sha256": "FD13DC0CCED90E95067DFBB45460526C5CC6B2A3C8A3A568A088F233715465B3"
+    }
+  },
+  "existingApk": {
+    "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\gen\\android\\app\\build\\outputs\\apk\\arm64\\debug\\app-arm64-debug.apk",
+    "bytes": 125239253,
+    "sha256": "4BD477749F0F79871EB0F70DD42BAD6A5CBC4F17E7E92FEE7EC4194A8EDDBDAC",
+    "nativeEntries": [
+      "lib/arm64-v8a/libmlkit_google_ocr_pipeline.so",
+      "lib/arm64-v8a/libsolo_soul.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "currentCheckoutBuild": false,
+    "provenance": "Prior RF-208 Linux Debug build, report record baseline aa5fc1c0; not a freshly rebuilt current-source APK."
+  },
+  "gates": {
+    "androidBuildRule": "**首次构建前先处理 JDK：**其他需要 Android 构建的任务先完成 RF-208；执行 RF-208 本身时，先移除项目中的机器专属 JDK 配置，再进行其构建验收。确认 `JAVA_HOME` 指向有效 JDK，运行生成 Android 工程的 `gradlew --version` 核对实际 JVM。仅设置 `JAVA_HOME` 不会覆盖仍存在的项目 `org.gradle.java.home`，不要等第一次 Tauri build 失败后才处理。",
+    "rf208State": "Waiting for actual macOS Gradle and Debug APK evidence; no macOS build host supplied.",
+    "rf121Remaining": "Current-source native Card verification on macOS, Windows and Android; browser mocks and the AndroidGlass native menu test do not substitute.",
+    "rf312Remaining": "Current-source release application measurements across platforms, fixed synthetic datasets and repeated latency/memory/IPC evidence.",
+    "windowsSdk": "Optional existing windows-core 0.61.2 declaration remains unapplied, pending explicit human authorization."
+  },
+  "safetyAndLimits": {
+    "existingAvdUserdataRead": false,
+    "existingAvdConfigWritten": false,
+    "wipeDataPerformed": false,
+    "packagesDownloadedOrInstalled": false,
+    "newTargetsInstalled": false,
+    "userAppsOrProcessesStopped": false,
+    "sdkApprovalBypassPerformed": false,
+    "readOnlyInventoryNotNativeValidation": true
+  },
+  "futureIsolationRequirements": [
+    "Use a new owned AVD and userdata derived only from the installed initial system image; preserve Pixel_6 userdata and snapshots.",
+    "Use explicitly verified device serial and current-source matching APK ABI; do not overwrite a real installed SoloSoul instance.",
+    "Do not use an emulator debug observation as a physical-device release performance result."
+  ],
+  "references": [
+    "https://developer.android.com/studio/run/emulator-commandline",
+    "https://developer.android.com/studio/run/emulator-acceleration"
+  ]
+}

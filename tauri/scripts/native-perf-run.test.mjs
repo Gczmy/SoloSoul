@@ -34,6 +34,7 @@ import {
   browserDataFilesystemCheck,
   powerShellError,
   releaseUnfinishedChild,
+  rejectDiagnosticBenchmark,
 } from './native-perf-run.mjs';
 
 const runId = '0123456789abcdef0123456789abcdef';
@@ -701,3 +702,36 @@ exit 0
     assert.equal(result.status, 0, result.stdout + result.stderr);
   },
 );
+
+test('SDK requested or proof markers exclude benchmark acceptance even with malformed content or non-file markers', async () => {
+  const parent = await realpath(tmpdir());
+  const dir = await mkdtemp(path.join(tmpdir(), 'ss-rf312-sdk-benchmark-'));
+  try {
+    await rejectDiagnosticBenchmark(dir);
+    for (const name of ['native-perf-sdk-cdp-requested.json', 'native-perf-sdk-cdp.json']) {
+      const root = path.join(dir, name);
+      await mkdir(root);
+      await writeFile(path.join(root, name), '{invalid diagnostic marker');
+      await assert.rejects(
+        rejectDiagnosticBenchmark(root),
+        /cannot be used as a performance sample/,
+      );
+      const directoryRoot = path.join(dir, name + '-directory');
+      await mkdir(directoryRoot);
+      await mkdir(path.join(directoryRoot, name));
+      await assert.rejects(
+        rejectDiagnosticBenchmark(directoryRoot),
+        /cannot be used as a performance sample/,
+      );
+    }
+  } finally {
+    const actual = await realpath(dir);
+    if (
+      path.dirname(actual).toLowerCase() !== parent.toLowerCase() ||
+      !path.basename(actual).startsWith('ss-rf312-sdk-benchmark-') ||
+      (await lstat(dir)).isSymbolicLink()
+    )
+      throw new Error('Refusing SDK benchmark test cleanup outside the exclusive temporary root');
+    await rm(dir, { recursive: true, force: false });
+  }
+});

@@ -472,7 +472,7 @@ export function helperEnvironment(identities, owned, helperTemp, logging, inheri
   if (logging) env.SOLOSOUL_NATIVE_PERF_DIAGNOSTICS_LOG_FILE = logging.logFile;
   return env;
 }
-async function processDiagnostics(identities, owned, logging) {
+export async function processDiagnostics(identities, owned, logging) {
   try {
     // .NET Framework 的 Add-Type 编译器不接受 Rust canonical 的 \\?\ TEMP。
     // 两种表示必须指向同一个已验证目录；只为本次 helper 子进程转换表示。

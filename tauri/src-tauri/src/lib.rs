@@ -471,12 +471,23 @@ pub fn run() {
                 native_perf::observer_script().expect("validated native-perf configuration"),
             )
             .setup(move |app| {
-                tauri::WebviewWindowBuilder::from_config(app, &window_config)?
-                    .data_directory(perf.webview.clone())
-                    .additional_browser_args(&browser_args)
-                    .devtools(true)
-                    .build()?;
-                setup::setup_app(app)
+                let sdk_diagnostic = native_perf::sdk_cdp::Diagnostic::new(&perf);
+                let mut window_builder =
+                    tauri::WebviewWindowBuilder::from_config(app, &window_config)?
+                        .data_directory(perf.webview.clone())
+                        .additional_browser_args(&browser_args)
+                        .devtools(true);
+                if let Some(diagnostic) = sdk_diagnostic.clone() {
+                    window_builder = window_builder.on_page_load(move |window, payload| {
+                        diagnostic.page_loaded(window, payload);
+                    });
+                }
+                let window = window_builder.build()?;
+                setup::setup_app(app)?;
+                if let Some(diagnostic) = sdk_diagnostic {
+                    diagnostic.setup_completed(window);
+                }
+                Ok(())
             })
             .invoke_handler(dispatch_ipc)
             .run(context)

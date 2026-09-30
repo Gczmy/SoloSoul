@@ -1,0 +1,454 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "windows-sdk-cdp-preflight-pending-dependency-authorization",
+  "recordedAt": "2026-09-30T11:13:47.324846+00:00",
+  "baselineHead": "e6cf4c215ab37dd171a487f196efd1e3ddd58b60",
+  "summary": {
+    "sourceDraftImplemented": true,
+    "nodeTests": {
+      "passed": 97,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "files": 5
+    },
+    "rustfmtExitCode": 0,
+    "nativePureTestsAdded": 9,
+    "nativePureTestsExecuted": false,
+    "cargoProposalApplied": false,
+    "dependencyAlreadyLocked": "windows-core 0.61.2",
+    "dependencyProposal": "Windows optional exact =0.61.2, enabled only by native-perf; no package upgrades",
+    "compilationPerformed": false,
+    "rustTestsClippyReleasePerformed": false,
+    "nativeGuiLaunched": false,
+    "sdkProtocolCallsExecuted": false,
+    "performanceMetrics": null,
+    "originalFixtureFilesPreserved": 14,
+    "userBitmapsPreserved": 3,
+    "unrelatedUserChangesStaged": false,
+    "sdkDraftCommitted": false,
+    "rf312Closed": false
+  },
+  "authorization": {
+    "action": "Cargo.toml/lock direct optional existing-package declaration",
+    "automaticApprovalRejected": true,
+    "reportedReason": "New dependency declaration did not have explicit recognized authorization",
+    "rejectionSource": "native_perf_feasibility actual tool rejection report; batch was not executed",
+    "humanQuestionPending": true,
+    "retryOrBypassPerformed": false,
+    "proposal": {
+      "scope": "rf312-sdk-windows-core-proposal-not-applied",
+      "recordedAt": "2026-09-30T11:02:41.012060+00:00",
+      "reason": "windows implement macro generates ::windows_core for bounded custom COM completion; existing helper copies PCWSTR before user code",
+      "directDependency": "windows-core =0.61.2 optional under Windows target, enabled only by native-perf",
+      "alreadyLocked": true,
+      "packageUpgrade": false,
+      "applied": false,
+      "proposalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\checks\\rf312-sdk-windows-core-proposed.patch",
+      "proposalSha256": "5EBFD9697924CE8E86A9BEB3E04C7E1174911915BA39D4667ABAED8D75B3811B",
+      "files": [
+        {
+          "path": "tauri/src-tauri/Cargo.toml",
+          "beforeSha256": "C5826D385ED3440B6980CF4A193AAF02E4DAC22A8EA525D1B00E917F4D58F6F5",
+          "proposedUtf8LfSha256": "99B9989688588E09304E29CDDB6F295940BA3C98A91A2B32F55C47A5A1BEA35E"
+        },
+        {
+          "path": "tauri/Cargo.lock",
+          "beforeSha256": "FD13DC0CCED90E95067DFBB45460526C5CC6B2A3C8A3A568A088F233715465B3",
+          "proposedUtf8LfSha256": "EAECBDECD19FCBEDDB9D3D9CF5D216F06E6C56FF32CB84AAEABDE21C97D74FD5"
+        }
+      ],
+      "firstProposalAttempt": "No files written; assertion used version-qualified windows-collections instead of its actual unqualified lockfile dependency name. Corrected using read-only block inspection."
+    }
+  },
+  "frozenSource": [
+    {
+      "relative": "tauri/src-tauri/src/native_perf.rs",
+      "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\src\\native_perf.rs",
+      "bytes": 27482,
+      "sha256": "E21598F14CE202B8EE9AAE61DB4AB8CD43502E63FBF90F0D7B26E692273AAB0A"
+    },
+    {
+      "relative": "tauri/src-tauri/src/native_perf/preflight_tests.rs",
+      "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\src\\native_perf\\preflight_tests.rs",
+      "bytes": 39989,
+      "sha256": "8D6D1F18C7AB347FE14F6C897CB7780A534EB4ED051E89D700744ADFD8EA561B"
+    },
+    {
+      "relative": "tauri/src-tauri/src/native_perf/sdk_cdp.rs",
+      "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\src\\native_perf\\sdk_cdp.rs",
+      "bytes": 36939,
+      "sha256": "336A588DDDCBB428F9C143EFE77227C7E523F032C3171CD7D7F6064AD51535A4"
+    },
+    {
+      "relative": "tauri/src-tauri/src/lib.rs",
+      "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\src\\lib.rs",
+      "bytes": 25011,
+      "sha256": "5799158F6C05B2B95B0D4C7DB1F576F102798E772380C023E91A9301758ABC78"
+    },
+    {
+      "relative": "tauri/scripts/native-perf-sdk-cdp.mjs",
+      "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\scripts\\native-perf-sdk-cdp.mjs",
+      "bytes": 21675,
+      "sha256": "53C27904BDDEDC3DF9EED6FE4506B28A0BD7F3AA52A3C19346FBA6C661B21264"
+    },
+    {
+      "relative": "tauri/scripts/native-perf-sdk-cdp.test.mjs",
+      "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\scripts\\native-perf-sdk-cdp.test.mjs",
+      "bytes": 16869,
+      "sha256": "CF68387EEB607AE345FFEE3CB374C4B5D462726647C368DAD92ED3FB3C3E3A9F"
+    },
+    {
+      "relative": "tauri/scripts/native-perf-diagnose.mjs",
+      "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\scripts\\native-perf-diagnose.mjs",
+      "bytes": 29633,
+      "sha256": "785F9384B7A5C7824387DD79501D0E435885BA75820214C9C2691B1EED73BDB0"
+    },
+    {
+      "relative": "tauri/scripts/native-perf-run.mjs",
+      "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\scripts\\native-perf-run.mjs",
+      "bytes": 54618,
+      "sha256": "9C7CBBA52B8D29719F187EE07867991B25DB4A76D350E31DEDA59C6676B53329"
+    },
+    {
+      "relative": "tauri/scripts/native-perf-run.test.mjs",
+      "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\scripts\\native-perf-run.test.mjs",
+      "bytes": 27164,
+      "sha256": "17B549320614E87EFFDB8CADFB96702A9CBDEA5BF32DC74DB8BFEE8213517125"
+    }
+  ],
+  "artifacts": {
+    "rf312-sdk-cdp-node-r1.log": {
+      "file": {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\checks\\rf312-sdk-cdp-node-r1.log",
+        "bytes": 7439,
+        "sha256": "C75D50E5CDD4398D455A1EA11E1F0D4EC01160C4A554F994D3915EFB3DAB1A73"
+      },
+      "text": "✔ diagnostic CLI accepts exactly three absolute paths and rejects benchmark/control overrides (4.6228ms)\n✔ help exits without a preparation or GUI process (136.5241ms)\n✔ consumed marker must match exact run, PID, port and owned root (0.4042ms)\n✔ only root and fresh journal-matched browser may be queried (1.0401ms)\n✔ helper response rejects stale identities, unexpected browser UDF and foreign listeners (0.6747ms)\n✔ no verified owned listener means no HTTP request (0.3339ms)\n✔ mismatched remote flags or non-loopback listener blocks HTTP (0.2412ms)\n✔ version endpoint result never claims CDP attach or GUI/performance success (0.5922ms)\n✔ HTTP failure preserves diagnostic failure without fabricated version (0.4575ms)\n✔ helper rejection preserves only fixed-schema reason, never raw stdout (0.6448ms)\n✔ listener query failure is unknown, not proof of absence (0.2413ms)\n✔ logging is explicit and duplicate CLI paths/flags are refused (0.4488ms)\n✔ logging marker rejects another run/port, extended path and non-owned log (0.5053ms)\n✔ old executable marker is rejected offline; diagnostic marker prevents benchmark acceptance (20.6939ms)\n✔ off-mode helper environment deletes inherited logging even with case aliases (0.4491ms)\n✔ ordinary native TMP requires explicit logging and rejects duplicate/value/unknown flags (0.4249ms)\n✔ native launch keeps default/logging contracts and selects only the explicit ordinary-TMP mode (0.224ms)\n✔ ordinary TMP marker accepts only the same owned directory with all other canonical paths preserved (0.4085ms)\n✔ ordinary TMP marker rejects normalized equivalents for unchanged root/TEMP/profile/UDF (0.6676ms)\n✔ ordinary TMP rejects extended, UNC, relative, external, nested and traversal directory representations (0.831ms)\n✔ ordinary TMP marker rejects stale identity, changed diagnostic scope and fabricated performance acceptance (1.0553ms)\n✔ ordinary-TMP streaming marker rejects older binaries and matches across the 64KiB block boundary (17.396ms)\n✔ older logging EXE is rejected before output creation or native preparation/GUI execution (144.037ms)\n✔ runtime CLI requires source/version, logging and one experimental variable (1.1891ms)\n✔ runtime launch changes only explicit owned runtime selection and never permits ordinary TMP mixing (0.2954ms)\n✔ selected Runtime feature preflight rejects old TMP binaries and accepts split marker (13.2932ms)\n✔ old EXE is rejected before Runtime inspection, copying, output creation or native execution (143.3876ms)\n✔ arguments require absolute explicit paths, unique options and at least three samples (2.8601ms)\n✔ only Release synthetic fixture scope with production KDF and exact public account is accepted (0.4264ms)\n✔ Windows canonical prefixes fold only equivalent drive and UNC paths (0.5443ms)\n✔ prepared native manifest matches nested fixture, unique identifier and exact owned paths (0.6639ms)\n✔ observer counts actual command attempts including plugin calls and removes unexpected payload fields (0.7748ms)\n✔ identity mismatch, fallback, overflow, missing fields and reset produce null counts with reason (0.5107ms)\n✔ single original document permits SPA but extra pages, frames and new documents invalidate observation (0.2572ms)\n✔ owned process selection excludes other SoloSoul instances, orphan WebViews and PID identity changes (0.3861ms)\n✔ errors redact the fixed synthetic password and remove Playwright call logs (0.2887ms)\n✔ incomplete cleanup and unresolved exit stop sampling without terminating unknown identities (0.4642ms)\n✔ PowerShell stderr errors replace encoded command noise and retain timeout context (0.8039ms)\n✔ unfinished owned child reference is released on timeout without claiming termination (0.1972ms)\n✔ failed samples remain represented and do not contribute to success percentiles (0.37ms)\n✔ summary uses standard odd/even medians and retains requested count after failed samples (0.3362ms)\n✔ offline native-perf preflight accepts all feature markers and rejects every missing marker (33.4077ms)\n✔ offline marker scanning matches markers spanning multiple read blocks (10.9456ms)\n✔ default-build stub is rejected offline before CLI output creation or executable launch (148.7025ms)\n✔ WebView2 browser data accepts only the exact API UDF/EBWebView directory (0.4394ms)\n✔ WebView2 exact owned directories reject filesystem junction redirection (13.5041ms)\n✔ file validation never creates output and refuses existing output without changing it (19.2512ms)\n✔ file validation refuses linked fixture and output placed inside source fixture (15.1693ms)\n✔ CLI help and invalid sample count exit without loading a GUI executable (244.5803ms)\n✔ PowerShell 5.1 cleanup consumes a flat JSON identity list and rejects changed identities offline (2773.9971ms)\n✔ fixed PowerShell ownership/memory script parses without executing CIM or termination (2352.4946ms)\n✔ SDK requested or proof markers exclude benchmark acceptance even with malformed content or non-file markers (14.9155ms)\n✔ SDK CLI requires exactly three paths and refuses other experimental/control modes (3.0044ms)\n✔ SDK help starts no native preparation or GUI process (135.9263ms)\n✔ SDK streaming preflight rejects older binaries and accepts cross-block feature markers (419.2781ms)\n✔ old native-perf EXE fails before output creation or any EXE execution (152.2738ms)\n✔ SDK launch selects only the run-only native SDK diagnostics contract (0.4523ms)\n✔ requested marker requires exact canonical root, run, PID, port and main window (0.7187ms)\n✔ successful SDK proof returns only validated metadata and protocol calls, never performance metrics or payloads (0.9474ms)\n✔ SDK proof refuses failed, incomplete, wrong-origin, wrong-browser and non-exact protocol calls (0.9198ms)\n✔ SDK source rejects credentials, ports, other origins, malformed values and raw URL exposure (0.4313ms)\n✔ SDK main frame/loader/document guard rejects navigation, children, missing UI container and loading documents (0.5163ms)\n✔ SDK observer must remain valid in the same run/timeOrigin with exact bounded count metadata (5.1319ms)\n✔ SDK proof accepts the deadline boundary but refuses late, negative and absent arrival measurements (0.5712ms)\n✔ SDK identity comparison rejects PID reuse, changed parents/paths and extra processes (0.6278ms)\n✔ SDK marker reading accepts exact owned regular JSON and refuses traversal names, malformed or oversized files (20.1246ms)\n✔ SDK file/directory junctions and non-file proof markers never traverse another folder (9.5868ms)\n✔ SDK proof wait is bounded without callbacks and refuses late files or root interruption (36.085ms)\nℹ tests 68\nℹ suites 0\nℹ pass 68\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 5795.3026\n{\"scope\":\"rf312-sdk-cdp-offline-node\",\"syntax\":[{\"file\":\"scripts/native-perf-sdk-cdp.mjs\",\"exitCode\":0},{\"file\":\"scripts/native-perf-sdk-cdp.test.mjs\",\"exitCode\":0},{\"file\":\"scripts/native-perf-diagnose.mjs\",\"exitCode\":0},{\"file\":\"scripts/native-perf-run.mjs\",\"exitCode\":0},{\"file\":\"scripts/native-perf-run.test.mjs\",\"exitCode\":0}],\"testExit\":0,\"elapsedSeconds\":6.3778429,\"noGui\":true,\"log\":\"C:\\\\Users\\\\40299571\\\\AppData\\\\Local\\\\Temp\\\\ss-rf312-f3bc259b\\\\checks\\\\rf312-sdk-cdp-node-r1.log\"}\n"
+    },
+    "rf312-sdk-cdp-node-r2.log": {
+      "file": {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\checks\\rf312-sdk-cdp-node-r2.log",
+        "bytes": 2172,
+        "sha256": "353671CD4120B912074A49BE78D4E5E688E931D44F5B31B56D08AD47839AF9E8"
+      },
+      "text": "✔ SDK CLI requires exactly three paths and refuses other experimental/control modes (2.3269ms)\n✔ SDK help starts no native preparation or GUI process (134.0004ms)\n✔ SDK streaming preflight rejects older binaries and accepts cross-block feature markers (455.3447ms)\n✔ old native-perf EXE fails before output creation or any EXE execution (143.9982ms)\n✔ SDK launch selects only the run-only native SDK diagnostics contract (0.3931ms)\n✔ requested marker requires exact canonical root, run, PID, port and main window (0.6291ms)\n✔ successful SDK proof returns only validated metadata and protocol calls, never performance metrics or payloads (0.7319ms)\n✔ SDK proof refuses failed, incomplete, wrong-origin, wrong-browser and non-exact protocol calls (0.8817ms)\n✔ SDK source rejects credentials, ports, other origins, malformed values and raw URL exposure (0.5945ms)\n✔ SDK main frame/loader/document guard rejects navigation, children, missing UI container and loading documents (0.528ms)\n✔ SDK observer must remain valid in the same run/timeOrigin with exact bounded count metadata (5.8929ms)\n✔ SDK proof accepts the deadline boundary but refuses late, negative and absent arrival measurements (0.4675ms)\n✔ SDK identity comparison rejects PID reuse, changed parents/paths and extra processes (0.5784ms)\n✔ SDK marker reading accepts exact owned regular JSON and refuses traversal names, malformed or oversized files (14.6656ms)\n✔ SDK file/directory junctions and non-file proof markers never traverse another folder (8.5516ms)\n✔ SDK proof wait is bounded without callbacks and refuses late files or root interruption (28.0149ms)\n✔ SDK proof lookup must recheck time after the async filesystem query and reject a 45000-to-45001 crossing (6.2353ms)\nℹ tests 17\nℹ suites 0\nℹ pass 17\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 957.7155\n{\"scope\":\"rf312-sdk-cdp-offline-node-deadline-correction\",\"sourceSyntaxExit\":0,\"testSyntaxExit\":0,\"testExit\":0,\"elapsedSeconds\":1.3049175,\"noGui\":true,\"log\":\"C:\\\\Users\\\\40299571\\\\AppData\\\\Local\\\\Temp\\\\ss-rf312-f3bc259b\\\\checks\\\\rf312-sdk-cdp-node-r2.log\"}\n"
+    },
+    "rf312-sdk-node-full-20260930.json": {
+      "file": {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\checks\\rf312-sdk-node-full-20260930.json",
+        "bytes": 652,
+        "sha256": "66F8A191F5552DF6878CD2B6750F255C4C8DFAC1BAD31D5024B4EB8F03CF2EE5"
+      },
+      "value": {
+        "scope": "rf312-sdk-full-node-tests",
+        "startedAt": "2026-09-30T10:51:02.6758193+00:00",
+        "finishedAt": "2026-09-30T10:51:18.5130642+00:00",
+        "command": "node --test scripts/native-perf-sdk-cdp.test.mjs scripts/native-perf-diagnose.test.mjs scripts/native-perf-runtime.test.mjs scripts/native-perf-run.test.mjs src-tauri/src/native_perf/observer.node.test.mjs",
+        "actualFiles": [
+          "scripts/native-perf-sdk-cdp.test.mjs",
+          "scripts/native-perf-diagnose.test.mjs",
+          "scripts/native-perf-runtime.test.mjs",
+          "scripts/native-perf-run.test.mjs",
+          "src-tauri/src/native_perf/observer.node.test.mjs"
+        ],
+        "exitCode": 0
+      }
+    },
+    "rf312-sdk-node-full-20260930.log": {
+      "file": {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\checks\\rf312-sdk-node-full-20260930.log",
+        "bytes": 9801,
+        "sha256": "1FEBA6775E977387F4075EE0D290EC3EE68372B5BF3796111717FF0E570D2031"
+      },
+      "text": "✔ diagnostic CLI accepts exactly three absolute paths and rejects benchmark/control overrides (2.9024ms)\n✔ help exits without a preparation or GUI process (323.6249ms)\n✔ consumed marker must match exact run, PID, port and owned root (0.4146ms)\n✔ only root and fresh journal-matched browser may be queried (0.751ms)\n✔ helper response rejects stale identities, unexpected browser UDF and foreign listeners (0.6767ms)\n✔ no verified owned listener means no HTTP request (0.353ms)\n✔ mismatched remote flags or non-loopback listener blocks HTTP (0.2416ms)\n✔ version endpoint result never claims CDP attach or GUI/performance success (0.6592ms)\n✔ HTTP failure preserves diagnostic failure without fabricated version (0.4344ms)\n✔ helper rejection preserves only fixed-schema reason, never raw stdout (0.57ms)\n✔ listener query failure is unknown, not proof of absence (0.2315ms)\n✔ logging is explicit and duplicate CLI paths/flags are refused (0.5424ms)\n✔ logging marker rejects another run/port, extended path and non-owned log (0.5499ms)\n✔ old executable marker is rejected offline; diagnostic marker prevents benchmark acceptance (34.0335ms)\n✔ off-mode helper environment deletes inherited logging even with case aliases (0.4563ms)\n✔ ordinary native TMP requires explicit logging and rejects duplicate/value/unknown flags (0.4041ms)\n✔ native launch keeps default/logging contracts and selects only the explicit ordinary-TMP mode (0.2265ms)\n✔ ordinary TMP marker accepts only the same owned directory with all other canonical paths preserved (0.4331ms)\n✔ ordinary TMP marker rejects normalized equivalents for unchanged root/TEMP/profile/UDF (0.602ms)\n✔ ordinary TMP rejects extended, UNC, relative, external, nested and traversal directory representations (0.5568ms)\n✔ ordinary TMP marker rejects stale identity, changed diagnostic scope and fabricated performance acceptance (1.0381ms)\n✔ ordinary-TMP streaming marker rejects older binaries and matches across the 64KiB block boundary (33.9105ms)\n✔ older logging EXE is rejected before output creation or native preparation/GUI execution (310.2261ms)\n✔ runtime CLI requires source/version, logging and one experimental variable (1.1377ms)\n✔ runtime launch changes only explicit owned runtime selection and never permits ordinary TMP mixing (0.2703ms)\n✔ selected Runtime feature preflight rejects old TMP binaries and accepts split marker (11.7737ms)\n✔ old EXE is rejected before Runtime inspection, copying, output creation or native execution (360.0073ms)\n✔ arguments require absolute explicit paths, unique options and at least three samples (2.5871ms)\n✔ only Release synthetic fixture scope with production KDF and exact public account is accepted (0.4139ms)\n✔ Windows canonical prefixes fold only equivalent drive and UNC paths (0.3028ms)\n✔ prepared native manifest matches nested fixture, unique identifier and exact owned paths (0.6315ms)\n✔ observer counts actual command attempts including plugin calls and removes unexpected payload fields (0.7663ms)\n✔ identity mismatch, fallback, overflow, missing fields and reset produce null counts with reason (0.4368ms)\n✔ single original document permits SPA but extra pages, frames and new documents invalidate observation (0.2816ms)\n✔ owned process selection excludes other SoloSoul instances, orphan WebViews and PID identity changes (0.4251ms)\n✔ errors redact the fixed synthetic password and remove Playwright call logs (0.2817ms)\n✔ incomplete cleanup and unresolved exit stop sampling without terminating unknown identities (0.3971ms)\n✔ PowerShell stderr errors replace encoded command noise and retain timeout context (0.8943ms)\n✔ unfinished owned child reference is released on timeout without claiming termination (0.21ms)\n✔ failed samples remain represented and do not contribute to success percentiles (0.393ms)\n✔ summary uses standard odd/even medians and retains requested count after failed samples (0.3178ms)\n✔ offline native-perf preflight accepts all feature markers and rejects every missing marker (179.4011ms)\n✔ offline marker scanning matches markers spanning multiple read blocks (63.4853ms)\n✔ default-build stub is rejected offline before CLI output creation or executable launch (461.0808ms)\n✔ WebView2 browser data accepts only the exact API UDF/EBWebView directory (0.4755ms)\n✔ WebView2 exact owned directories reject filesystem junction redirection (16.4106ms)\n✔ file validation never creates output and refuses existing output without changing it (26.6954ms)\n✔ file validation refuses linked fixture and output placed inside source fixture (27.4815ms)\n✔ CLI help and invalid sample count exit without loading a GUI executable (497.7133ms)\n✔ PowerShell 5.1 cleanup consumes a flat JSON identity list and rejects changed identities offline (3595.9361ms)\n✔ fixed PowerShell ownership/memory script parses without executing CIM or termination (2750.8527ms)\n✔ SDK requested or proof markers exclude benchmark acceptance even with malformed content or non-file markers (19.2533ms)\n✔ Windows Runtime relative names reject traversal, namespaces, aliases and device names (7.6516ms)\n✔ Runtime relative paths allow exactly 64 segments and reject a file or directory at segment 65 (0.3688ms)\n✔ PE parser validates actual AMD64 PE32+ structure instead of trusting metadata (1.2471ms)\n✔ core signature/version samples require exact versions and Valid Microsoft organization (0.8655ms)\n✔ real inspection accepts only the explicit installed Evergreen folder and rejects others before signatures (177.2072ms)\n✔ full Runtime tree copies real files and empty directories, with an exclusive bound manifest (2505.0946ms)\n✔ Runtime reuse cannot replace the runtime folder or previously published manifest (4123.5172ms)\n✔ changed source files are rejected before Runtime creation and failures keep evidence (478.4805ms)\n✔ source junctions are rejected without traversing or writing their other directory (396.4428ms)\n✔ ownership mismatches refuse copied Runtime writes and cannot publish evidence into another root (16.3496ms)\n✔ core declarations and physical PE architecture are both checked before copying (478.6921ms)\n✔ bounded and exact Runtime file proof rejects duplicate paths, excess bytes and missing core (26.3352ms)\n✔ preexisting Runtime manifest is never overwritten and failed copy remains reviewable (1409.6275ms)\n✔ selected marker binds exact canonical identity, ordinary folder, source version and real manifest hash (20.6908ms)\n✔ browser proof checks actual physical copied EXE and exact recorded FileVersion/ProductVersion (1273.5863ms)\n✔ modified copied browser bytes cannot be accepted using stale Runtime metadata (1337.9456ms)\n✔ browser directory junction fallback is rejected even if its version and bytes match the source (1288.2731ms)\n✔ explicit directory inventory rejects missing empty dirs, case aliases and file conflicts (443.6046ms)\n✔ source mutation after copy begins rejects the new runtime and preserves partial evidence (1361.1166ms)\n✔ SDK CLI requires exactly three paths and refuses other experimental/control modes (2.4448ms)\n✔ SDK help starts no native preparation or GUI process (311.953ms)\n✔ SDK streaming preflight rejects older binaries and accepts cross-block feature markers (1933.9829ms)\n✔ old native-perf EXE fails before output creation or any EXE execution (171.9939ms)\n✔ SDK launch selects only the run-only native SDK diagnostics contract (0.5141ms)\n✔ requested marker requires exact canonical root, run, PID, port and main window (0.7517ms)\n✔ successful SDK proof returns only validated metadata and protocol calls, never performance metrics or payloads (0.8699ms)\n✔ SDK proof refuses failed, incomplete, wrong-origin, wrong-browser and non-exact protocol calls (1.7641ms)\n✔ SDK source rejects credentials, ports, other origins, malformed values and raw URL exposure (0.629ms)\n✔ SDK main frame/loader/document guard rejects navigation, children, missing UI container and loading documents (0.6755ms)\n✔ SDK observer must remain valid in the same run/timeOrigin with exact bounded count metadata (6.089ms)\n✔ SDK proof accepts the deadline boundary but refuses late, negative and absent arrival measurements (0.4906ms)\n✔ SDK identity comparison rejects PID reuse, changed parents/paths and extra processes (0.5767ms)\n✔ SDK marker reading accepts exact owned regular JSON and refuses traversal names, malformed or oversized files (16.6958ms)\n✔ SDK file/directory junctions and non-file proof markers never traverse another folder (7.5956ms)\n✔ SDK proof wait is bounded without callbacks and refuses late files or root interruption (27.93ms)\n✔ counts application, plugin and channel invokes, excludes ordinary fetch and never reads body (4.572ms)\n✔ forwards fetch errors and return values unchanged (1.5869ms)\n✔ default transport fallback makes the whole total unavailable without suppressing warnings (1.4436ms)\n✔ overflow retains a bounded command list and invalidates the total (102.0709ms)\n✔ fetch and warn replacement are sticky failures even after restoration (0.9007ms)\n✔ invalid origin, missing run identity and duplicate installation fail closed (11.0466ms)\n✔ snapshot exposes copies rather than mutable counter internals (1.0755ms)\n✔ malformed IPC command cannot silently disappear from a supposedly complete count (2.982ms)\n✔ document navigation and additional frames invalidate total without recording navigation paths (16.0406ms)\nℹ tests 96\nℹ suites 0\nℹ pass 96\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 15614.927\n"
+    },
+    "rf312-sdk-node-final-20260930.json": {
+      "file": {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\checks\\rf312-sdk-node-final-20260930.json",
+        "bytes": 788,
+        "sha256": "ACE07E28E69C9EF9BD92961A5BB5C478DFC0E793D91495A46D3A5FFED9C08921"
+      },
+      "value": {
+        "scope": "rf312-sdk-final-node-tests",
+        "startedAt": "2026-09-30T11:03:54.7709474+00:00",
+        "finishedAt": "2026-09-30T11:04:08.9343967+00:00",
+        "command": "node --test scripts/native-perf-sdk-cdp.test.mjs scripts/native-perf-diagnose.test.mjs scripts/native-perf-runtime.test.mjs scripts/native-perf-run.test.mjs src-tauri/src/native_perf/observer.node.test.mjs",
+        "actualFiles": [
+          "scripts/native-perf-sdk-cdp.test.mjs",
+          "scripts/native-perf-diagnose.test.mjs",
+          "scripts/native-perf-runtime.test.mjs",
+          "scripts/native-perf-run.test.mjs",
+          "src-tauri/src/native_perf/observer.node.test.mjs"
+        ],
+        "exitCode": 0,
+        "priorRun": "96 passed before asynchronous deadline review correction, retained separately; current tests include that regression"
+      }
+    },
+    "rf312-sdk-node-final-20260930.log": {
+      "file": {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\checks\\rf312-sdk-node-final-20260930.log",
+        "bytes": 9926,
+        "sha256": "21126B22FCE342D47CAB9ED1B5632C0F9C69FC93EC94023D84DE42E5206E98A6"
+      },
+      "text": "✔ diagnostic CLI accepts exactly three absolute paths and rejects benchmark/control overrides (3.0125ms)\n✔ help exits without a preparation or GUI process (206.5077ms)\n✔ consumed marker must match exact run, PID, port and owned root (0.443ms)\n✔ only root and fresh journal-matched browser may be queried (0.7946ms)\n✔ helper response rejects stale identities, unexpected browser UDF and foreign listeners (0.7277ms)\n✔ no verified owned listener means no HTTP request (0.4844ms)\n✔ mismatched remote flags or non-loopback listener blocks HTTP (0.3749ms)\n✔ version endpoint result never claims CDP attach or GUI/performance success (0.8776ms)\n✔ HTTP failure preserves diagnostic failure without fabricated version (0.5306ms)\n✔ helper rejection preserves only fixed-schema reason, never raw stdout (0.7145ms)\n✔ listener query failure is unknown, not proof of absence (0.2536ms)\n✔ logging is explicit and duplicate CLI paths/flags are refused (0.454ms)\n✔ logging marker rejects another run/port, extended path and non-owned log (0.5433ms)\n✔ old executable marker is rejected offline; diagnostic marker prevents benchmark acceptance (23.5951ms)\n✔ off-mode helper environment deletes inherited logging even with case aliases (0.4697ms)\n✔ ordinary native TMP requires explicit logging and rejects duplicate/value/unknown flags (0.4374ms)\n✔ native launch keeps default/logging contracts and selects only the explicit ordinary-TMP mode (0.2607ms)\n✔ ordinary TMP marker accepts only the same owned directory with all other canonical paths preserved (0.4305ms)\n✔ ordinary TMP marker rejects normalized equivalents for unchanged root/TEMP/profile/UDF (0.7479ms)\n✔ ordinary TMP rejects extended, UNC, relative, external, nested and traversal directory representations (0.6659ms)\n✔ ordinary TMP marker rejects stale identity, changed diagnostic scope and fabricated performance acceptance (1.4236ms)\n✔ ordinary-TMP streaming marker rejects older binaries and matches across the 64KiB block boundary (18.6812ms)\n✔ older logging EXE is rejected before output creation or native preparation/GUI execution (295.0447ms)\n✔ runtime CLI requires source/version, logging and one experimental variable (1.8263ms)\n✔ runtime launch changes only explicit owned runtime selection and never permits ordinary TMP mixing (0.4691ms)\n✔ selected Runtime feature preflight rejects old TMP binaries and accepts split marker (12.1751ms)\n✔ old EXE is rejected before Runtime inspection, copying, output creation or native execution (361.0639ms)\n✔ arguments require absolute explicit paths, unique options and at least three samples (2.5704ms)\n✔ only Release synthetic fixture scope with production KDF and exact public account is accepted (0.4397ms)\n✔ Windows canonical prefixes fold only equivalent drive and UNC paths (0.3603ms)\n✔ prepared native manifest matches nested fixture, unique identifier and exact owned paths (0.6816ms)\n✔ observer counts actual command attempts including plugin calls and removes unexpected payload fields (0.8745ms)\n✔ identity mismatch, fallback, overflow, missing fields and reset produce null counts with reason (0.4484ms)\n✔ single original document permits SPA but extra pages, frames and new documents invalidate observation (0.2653ms)\n✔ owned process selection excludes other SoloSoul instances, orphan WebViews and PID identity changes (0.4149ms)\n✔ errors redact the fixed synthetic password and remove Playwright call logs (0.2937ms)\n✔ incomplete cleanup and unresolved exit stop sampling without terminating unknown identities (0.3795ms)\n✔ PowerShell stderr errors replace encoded command noise and retain timeout context (0.8149ms)\n✔ unfinished owned child reference is released on timeout without claiming termination (0.1947ms)\n✔ failed samples remain represented and do not contribute to success percentiles (0.3813ms)\n✔ summary uses standard odd/even medians and retains requested count after failed samples (0.3144ms)\n✔ offline native-perf preflight accepts all feature markers and rejects every missing marker (206.1571ms)\n✔ offline marker scanning matches markers spanning multiple read blocks (37.0353ms)\n✔ default-build stub is rejected offline before CLI output creation or executable launch (279.2149ms)\n✔ WebView2 browser data accepts only the exact API UDF/EBWebView directory (0.5281ms)\n✔ WebView2 exact owned directories reject filesystem junction redirection (16.4633ms)\n✔ file validation never creates output and refuses existing output without changing it (68.2318ms)\n✔ file validation refuses linked fixture and output placed inside source fixture (18.9006ms)\n✔ CLI help and invalid sample count exit without loading a GUI executable (472.116ms)\n✔ PowerShell 5.1 cleanup consumes a flat JSON identity list and rejects changed identities offline (2850.4277ms)\n✔ fixed PowerShell ownership/memory script parses without executing CIM or termination (2502.1473ms)\n✔ SDK requested or proof markers exclude benchmark acceptance even with malformed content or non-file markers (10.8063ms)\n✔ Windows Runtime relative names reject traversal, namespaces, aliases and device names (2.0773ms)\n✔ Runtime relative paths allow exactly 64 segments and reject a file or directory at segment 65 (0.4663ms)\n✔ PE parser validates actual AMD64 PE32+ structure instead of trusting metadata (0.709ms)\n✔ core signature/version samples require exact versions and Valid Microsoft organization (0.8729ms)\n✔ real inspection accepts only the explicit installed Evergreen folder and rejects others before signatures (111.2195ms)\n✔ full Runtime tree copies real files and empty directories, with an exclusive bound manifest (1911.6288ms)\n✔ Runtime reuse cannot replace the runtime folder or previously published manifest (1777.6292ms)\n✔ changed source files are rejected before Runtime creation and failures keep evidence (726.5983ms)\n✔ source junctions are rejected without traversing or writing their other directory (352.928ms)\n✔ ownership mismatches refuse copied Runtime writes and cannot publish evidence into another root (15.9063ms)\n✔ core declarations and physical PE architecture are both checked before copying (522.5981ms)\n✔ bounded and exact Runtime file proof rejects duplicate paths, excess bytes and missing core (26.4137ms)\n✔ preexisting Runtime manifest is never overwritten and failed copy remains reviewable (1301.5278ms)\n✔ selected marker binds exact canonical identity, ordinary folder, source version and real manifest hash (15.4475ms)\n✔ browser proof checks actual physical copied EXE and exact recorded FileVersion/ProductVersion (1222.8932ms)\n✔ modified copied browser bytes cannot be accepted using stale Runtime metadata (1394.1252ms)\n✔ browser directory junction fallback is rejected even if its version and bytes match the source (2437.9099ms)\n✔ explicit directory inventory rejects missing empty dirs, case aliases and file conflicts (569.9878ms)\n✔ source mutation after copy begins rejects the new runtime and preserves partial evidence (1397.6731ms)\n✔ SDK CLI requires exactly three paths and refuses other experimental/control modes (2.5315ms)\n✔ SDK help starts no native preparation or GUI process (217.8605ms)\n✔ SDK streaming preflight rejects older binaries and accepts cross-block feature markers (1141.9336ms)\n✔ old native-perf EXE fails before output creation or any EXE execution (180.5843ms)\n✔ SDK launch selects only the run-only native SDK diagnostics contract (0.5818ms)\n✔ requested marker requires exact canonical root, run, PID, port and main window (0.8044ms)\n✔ successful SDK proof returns only validated metadata and protocol calls, never performance metrics or payloads (0.9688ms)\n✔ SDK proof refuses failed, incomplete, wrong-origin, wrong-browser and non-exact protocol calls (1.0318ms)\n✔ SDK source rejects credentials, ports, other origins, malformed values and raw URL exposure (0.4986ms)\n✔ SDK main frame/loader/document guard rejects navigation, children, missing UI container and loading documents (0.605ms)\n✔ SDK observer must remain valid in the same run/timeOrigin with exact bounded count metadata (7.6602ms)\n✔ SDK proof accepts the deadline boundary but refuses late, negative and absent arrival measurements (0.5763ms)\n✔ SDK identity comparison rejects PID reuse, changed parents/paths and extra processes (0.6326ms)\n✔ SDK marker reading accepts exact owned regular JSON and refuses traversal names, malformed or oversized files (16.1045ms)\n✔ SDK file/directory junctions and non-file proof markers never traverse another folder (8.295ms)\n✔ SDK proof wait is bounded without callbacks and refuses late files or root interruption (50.0638ms)\n✔ SDK proof lookup must recheck time after the async filesystem query and reject a 45000-to-45001 crossing (3.3717ms)\n✔ counts application, plugin and channel invokes, excludes ordinary fetch and never reads body (4.6519ms)\n✔ forwards fetch errors and return values unchanged (1.3536ms)\n✔ default transport fallback makes the whole total unavailable without suppressing warnings (1.0093ms)\n✔ overflow retains a bounded command list and invalidates the total (86.0132ms)\n✔ fetch and warn replacement are sticky failures even after restoration (1.718ms)\n✔ invalid origin, missing run identity and duplicate installation fail closed (3.1173ms)\n✔ snapshot exposes copies rather than mutable counter internals (1.033ms)\n✔ malformed IPC command cannot silently disappear from a supposedly complete count (0.8661ms)\n✔ document navigation and additional frames invalidate total without recording navigation paths (4.8307ms)\nℹ tests 97\nℹ suites 0\nℹ pass 97\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 14025.0174\n"
+    },
+    "rf312-sdk-rustfmt-final-20260930.json": {
+      "file": {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\checks\\rf312-sdk-rustfmt-final-20260930.json",
+        "bytes": 421,
+        "sha256": "974A9CFF6F1D54865C342C5F98B3C51AE3F7BF340F266268A47DE09D739501F1"
+      },
+      "value": {
+        "scope": "rf312-sdk-final-rustfmt",
+        "startedAt": "2026-09-30T11:09:54.3923253+00:00",
+        "finishedAt": "2026-09-30T11:09:56.9734274+00:00",
+        "command": "rustfmt --edition 2021 --check src-tauri/src/lib.rs src-tauri/src/native_perf.rs src-tauri/src/native_perf/preflight_tests.rs src-tauri/src/native_perf/sdk_cdp.rs",
+        "exitCode": 0,
+        "compilationPerformed": false,
+        "dependencyProposalApplied": false
+      }
+    },
+    "rf312-sdk-preservation-before-20260930.json": {
+      "file": {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\checks\\rf312-sdk-preservation-before-20260930.json",
+        "bytes": 5227,
+        "sha256": "F970216FF2D3810D261B0CFEE9157F0300DE4622372D678157E802D3731E7C26"
+      },
+      "value": {
+        "schemaVersion": 1,
+        "scope": "rf312-sdk-cdp-preservation-before",
+        "recordedAt": "2026-09-30T10:32:48.735298+00:00",
+        "head": "e6cf4c215ab37dd171a487f196efd1e3ddd58b60",
+        "fixtures": {
+          "vault100": [
+            {
+              "relative": "acc_rf312_100\\config.json",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\acc_rf312_100\\config.json",
+              "bytes": 669,
+              "sha256": "C569F12184166FCCBF0CD9F8F3A0C0385CDF509257E4C2E3F5358FD247213D0F"
+            },
+            {
+              "relative": "acc_rf312_100\\vault.db",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\acc_rf312_100\\vault.db",
+              "bytes": 266240,
+              "sha256": "E061DF8BC22BA9889FB524B4C86301C88E82C6023A72337F4B39F54048F46239"
+            },
+            {
+              "relative": "acc_rf312_100\\vault.db.pre_enc.bak",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\acc_rf312_100\\vault.db.pre_enc.bak",
+              "bytes": 4096,
+              "sha256": "1FE8F6113488865C546D2FAA55B21482662CE4BE19D4F505EEEFA09BC3131489"
+            },
+            {
+              "relative": "accounts.bak",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\accounts.bak",
+              "bytes": 189,
+              "sha256": "1E86E48CF79510489A907415A8147EC92C4692B0A621CF6178487CCBC3F1AA02"
+            },
+            {
+              "relative": "accounts.json",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\accounts.json",
+              "bytes": 189,
+              "sha256": "625ECBE50D1D2455DF06B9050AD465E504B477C389DE2AEEB2C4EAFBC38482FA"
+            },
+            {
+              "relative": "rf312-fixture.json",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\rf312-fixture.json",
+              "bytes": 667,
+              "sha256": "E7216C7BCAB6AFD4EA5E11769F0BDD1F5DC04F0064369E0060FF8F75B3083D38"
+            },
+            {
+              "relative": "ui_preferences.json",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\ui_preferences.json",
+              "bytes": 221,
+              "sha256": "C9BC519CBD62E58D758F14F3247B222EA676707C59F3044658FC168542B6BB58"
+            }
+          ],
+          "vault5000": [
+            {
+              "relative": "acc_rf312_5000\\config.json",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault5000\\acc_rf312_5000\\config.json",
+              "bytes": 670,
+              "sha256": "38E6CC3EE6E51F967F35FC722625ADCA73D109A201AE29203E6E7A950943A580"
+            },
+            {
+              "relative": "acc_rf312_5000\\vault.db",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault5000\\acc_rf312_5000\\vault.db",
+              "bytes": 3559424,
+              "sha256": "7316E2DB11BC7EF3087668A64CA4A4FAAC28F5E754FF556D2769381C0BF7AD85"
+            },
+            {
+              "relative": "acc_rf312_5000\\vault.db.pre_enc.bak",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault5000\\acc_rf312_5000\\vault.db.pre_enc.bak",
+              "bytes": 4096,
+              "sha256": "1FE8F6113488865C546D2FAA55B21482662CE4BE19D4F505EEEFA09BC3131489"
+            },
+            {
+              "relative": "accounts.bak",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault5000\\accounts.bak",
+              "bytes": 187,
+              "sha256": "21ECDC3B9A747CA19760F79FA01813118B9F3EDA04858F366C78910CBA419F25"
+            },
+            {
+              "relative": "accounts.json",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault5000\\accounts.json",
+              "bytes": 190,
+              "sha256": "7949BA0CEF5D2D1EE627456B58825D7D1B56420A31F6FA5AAA0586F8687B3AD8"
+            },
+            {
+              "relative": "rf312-fixture.json",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault5000\\rf312-fixture.json",
+              "bytes": 671,
+              "sha256": "0DD4292F5B5E245EDC8956C0C1A0111115243D68E69F3E5C95B05CE28B6D95E0"
+            },
+            {
+              "relative": "ui_preferences.json",
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault5000\\ui_preferences.json",
+              "bytes": 221,
+              "sha256": "C9BC519CBD62E58D758F14F3247B222EA676707C59F3044658FC168542B6BB58"
+            }
+          ]
+        },
+        "userBitmaps": [
+          {
+            "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\bundles\\nsis\\assets\\header-install.bmp",
+            "bytes": 25818,
+            "sha256": "EBAFC6856B2BBD91902ED18E5D07564BE87C2F0127EB2E3C744200485C70BB22"
+          },
+          {
+            "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\bundles\\nsis\\assets\\header-uninstall.bmp",
+            "bytes": 25818,
+            "sha256": "61AA19110AD51B20807F21B0BC8C77ED01033D89EC68089ACFE15978FA2C46CC"
+          },
+          {
+            "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\bundles\\nsis\\assets\\welcome-sidebar.bmp",
+            "bytes": 154542,
+            "sha256": "D5582B57B0E0FB1B075104F6FB194B0902F576F9A05CFC998FC67D0372183F9C"
+          }
+        ]
+      }
+    },
+    "rf312-sdk-windows-core-proposed.json": {
+      "file": {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\checks\\rf312-sdk-windows-core-proposed.json",
+        "bytes": 1352,
+        "sha256": "DD4C9F7D01820550C8F3CDC7BF2B74D2B200073B13323FF9AC2703B7762D42C4"
+      },
+      "value": {
+        "scope": "rf312-sdk-windows-core-proposal-not-applied",
+        "recordedAt": "2026-09-30T11:02:41.012060+00:00",
+        "reason": "windows implement macro generates ::windows_core for bounded custom COM completion; existing helper copies PCWSTR before user code",
+        "directDependency": "windows-core =0.61.2 optional under Windows target, enabled only by native-perf",
+        "alreadyLocked": true,
+        "packageUpgrade": false,
+        "applied": false,
+        "proposalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\checks\\rf312-sdk-windows-core-proposed.patch",
+        "proposalSha256": "5EBFD9697924CE8E86A9BEB3E04C7E1174911915BA39D4667ABAED8D75B3811B",
+        "files": [
+          {
+            "path": "tauri/src-tauri/Cargo.toml",
+            "beforeSha256": "C5826D385ED3440B6980CF4A193AAF02E4DAC22A8EA525D1B00E917F4D58F6F5",
+            "proposedUtf8LfSha256": "99B9989688588E09304E29CDDB6F295940BA3C98A91A2B32F55C47A5A1BEA35E"
+          },
+          {
+            "path": "tauri/Cargo.lock",
+            "beforeSha256": "FD13DC0CCED90E95067DFBB45460526C5CC6B2A3C8A3A568A088F233715465B3",
+            "proposedUtf8LfSha256": "EAECBDECD19FCBEDDB9D3D9CF5D216F06E6C56FF32CB84AAEABDE21C97D74FD5"
+          }
+        ],
+        "firstProposalAttempt": "No files written; assertion used version-qualified windows-collections instead of its actual unqualified lockfile dependency name. Corrected using read-only block inspection."
+      }
+    },
+    "rf312-sdk-windows-core-proposed.patch": {
+      "file": {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-f3bc259b\\checks\\rf312-sdk-windows-core-proposed.patch",
+        "bytes": 1062,
+        "sha256": "5EBFD9697924CE8E86A9BEB3E04C7E1174911915BA39D4667ABAED8D75B3811B"
+      },
+      "text": "--- a/tauri/src-tauri/Cargo.toml\n+++ b/tauri/src-tauri/Cargo.toml\n@@ -107,6 +107,7 @@\n windows = { version = \"0.61.3\", features = [\"Globalization\", \"Win32_Foundation\", \"Win32_Globalization\", \"Win32_Graphics_Dwm\", \"Win32_UI_WindowsAndMessaging\", \"Win32_UI_Shell\", \"Win32_System_WinRT\", \"Win32_System_Registry\", \"Win32_UI_Accessibility\", \"ApplicationModel_DataTransfer\", \"Storage\", \"Storage_Streams\", \"Foundation\"] }\n windows-collections = \"0.2\"\n webview2-com = { version = \"=0.38.2\", optional = true }\n+windows-core = { version = \"=0.61.2\", optional = true }\n \n [dependencies.tempfile]\n version = \"3\"\n@@ -123,7 +124,7 @@\n default = [\"custom-protocol\"]\n custom-protocol = [\"tauri/custom-protocol\"]\n mobile = []\n-native-perf = [\"tauri/devtools\", \"dep:webview2-com\"]\n+native-perf = [\"tauri/devtools\", \"dep:webview2-com\", \"dep:windows-core\"]\n \n [lib]\n name = \"solo_soul\"\n--- a/tauri/Cargo.lock\n+++ b/tauri/Cargo.lock\n@@ -6471,6 +6471,7 @@\n  \"window-vibrancy 0.8.0\",\n  \"windows 0.61.3\",\n  \"windows-collections\",\n+ \"windows-core 0.61.2\",\n  \"zeroize\",\n  \"zip 2.4.2\",\n ]\n"
+    },
+    "native-agent/source-freeze.json": {
+      "file": {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-sdk-rust-freeze-75067713c0574185a6b84d5037a133c5\\source-freeze.json",
+        "bytes": 3028,
+        "sha256": "ACB3390D862AEF0BDACE39F8DD6FBC8D699D96E83C8A0A96F72995D96404EE07"
+      },
+      "value": {
+        "schemaVersion": 1,
+        "scope": "rf312-sdk-cdp-rust-source-freeze",
+        "sourceOnly": true,
+        "compiled": false,
+        "testsExecuted": false,
+        "guiExecuted": false,
+        "dependenciesEdited": false,
+        "formatEvidence": [
+          {
+            "command": "rustfmt --edition 2021 --config skip_children=true C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\src\\native_perf.rs C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\src\\native_perf\\preflight_tests.rs C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\src\\native_perf\\sdk_cdp.rs C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\src\\lib.rs",
+            "toolChunkId": "1fe1e0",
+            "exitCode": 0,
+            "output": "",
+            "wallTimeSeconds": 0.5842307,
+            "kind": "original-tool-result-no-reexecution"
+          },
+          {
+            "command": "Python scoped source correction then rustfmt --edition 2021 --config skip_children=true C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\src\\native_perf\\sdk_cdp.rs",
+            "toolChunkId": "200503",
+            "exitCode": 0,
+            "output": "Bound Source representation, require positive timeOrigin, declare UI-only completion non-Agile.\r\n",
+            "wallTimeSeconds": 0.5734024,
+            "kind": "original-combined-tool-result-no-reexecution"
+          }
+        ],
+        "sourceFiles": [
+          {
+            "path": "tauri/src-tauri/src/native_perf.rs",
+            "sha256": "E21598F14CE202B8EE9AAE61DB4AB8CD43502E63FBF90F0D7B26E692273AAB0A"
+          },
+          {
+            "path": "tauri/src-tauri/src/native_perf/preflight_tests.rs",
+            "sha256": "8D6D1F18C7AB347FE14F6C897CB7780A534EB4ED051E89D700744ADFD8EA561B"
+          },
+          {
+            "path": "tauri/src-tauri/src/native_perf/sdk_cdp.rs",
+            "sha256": "336A588DDDCBB428F9C143EFE77227C7E523F032C3171CD7D7F6064AD51535A4"
+          },
+          {
+            "path": "tauri/src-tauri/src/lib.rs",
+            "sha256": "5799158F6C05B2B95B0D4C7DB1F576F102798E772380C023E91A9301758ABC78"
+          }
+        ],
+        "newTestFunctions": [
+          "native_perf_sdk_cdp_is_exclusive_run_only_and_preserves_browser_flags",
+          "sdk_cdp_gates_require_load_and_setup_and_only_start_once",
+          "sdk_cdp_capture_is_ordered_one_shot_and_invalidated_before_progress",
+          "sdk_cdp_health_rechecks_guard_and_elapsed_after_possible_com_reentry",
+          "sdk_cdp_frame_tree_requires_single_bound_main_document",
+          "sdk_cdp_evaluation_requires_matching_document_and_observer",
+          "sdk_cdp_callback_is_bounded_before_copy_and_strict_utf16_json",
+          "sdk_cdp_proof_is_atomic_exclusive_and_oversize_is_failure",
+          "sdk_cdp_request_and_staging_reject_preexisting_paths"
+        ],
+        "limitations": [
+          "Custom windows::core::implement completion requires direct optional windows-core=0.61.2 dependency; auto-review rejected dependency writes, so Cargo files remain unchanged and compilation is pending human authorization.",
+          "Native callback elapsed guard is 20 seconds; missing callback/load gate has no native timer/proof, Node enforces 45 seconds from spawn.",
+          "uiRootPresent means DOM container content exists, not login readiness; no password/UI actions or performance metric acceptance."
+        ]
+      }
+    }
+  },
+  "review": {
+    "result": "No remaining mandatory source issue; Rust is uncompiled and live behavior unverified",
+    "corrections": [
+      "Recheck guard and elapsed after potentially reentrant COM getters and at final completion",
+      "Recheck arrival after asynchronous lstat; 45000 to 45001 regression added",
+      "No TCP/HTTP refers only to CDP endpoint connection; socket preflight and ordinary application networking remain"
+    ],
+    "limits": [
+      "Only bounded main-target SDK diagnostic, not login/Home readiness or all WebViews",
+      "No callback/Finished gate is handled by Node 45-second failure, not a native autonomous timer",
+      "No live SDK callback, UI/performance or full-session IPC evidence"
+    ]
+  }
+}

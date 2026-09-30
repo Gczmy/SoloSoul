@@ -697,15 +697,21 @@ export async function newJson(file, value) {
 }
 
 export async function rejectDiagnosticBenchmark(root) {
-  try {
-    await lstat(path.join(root, 'native-perf-chromium-log.json'));
-  } catch (error) {
-    if (error.code === 'ENOENT') return;
-    throw error;
+  for (const filename of [
+    'native-perf-chromium-log.json',
+    'native-perf-sdk-cdp-requested.json',
+    'native-perf-sdk-cdp.json',
+  ]) {
+    try {
+      await lstat(path.join(root, filename));
+    } catch (error) {
+      if (error.code === 'ENOENT') continue;
+      throw error;
+    }
+    throw new Error(
+      'Native diagnostic run is diagnostic only and cannot be used as a performance sample',
+    );
   }
-  throw new Error(
-    'Chromium logging run is diagnostic only and cannot be used as a performance sample',
-  );
 }
 export function preparedManifest(value, sampleRoot, fixture, fixtureSource) {
   if (

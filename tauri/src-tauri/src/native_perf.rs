@@ -6,6 +6,7 @@ mod fixture;
 #[cfg(test)]
 mod preflight_tests;
 mod runtime;
+pub mod sdk_cdp;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -48,6 +49,7 @@ pub struct RuntimeConfig {
     pub port: u16,
     pub run_id: String,
     pub chromium_log: Option<PathBuf>,
+    pub sdk_cdp: bool,
 }
 
 impl RuntimeConfig {
@@ -198,6 +200,7 @@ enum Mode {
         chromium_log: bool,
         ordinary_tmp: bool,
         copied_runtime: Option<PathBuf>,
+        sdk_cdp: bool,
     },
 }
 
@@ -258,12 +261,17 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
         chromium_log,
         ordinary_tmp,
         copied_runtime,
+        sdk_cdp,
     } = mode
     else {
         return Err("prepare mode must exit before configuring a GUI runtime".into());
     };
     let folders = KnownFolders::resolve()?;
     let mut config = consume(&root, port, &folders)?;
+    config.sdk_cdp = sdk_cdp;
+    if sdk_cdp {
+        sdk_cdp::claim_request(&config)?;
+    }
     if chromium_log {
         config.enable_chromium_diagnostics()?;
     }
@@ -354,6 +362,7 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
     let mut chromium_log = false;
     let mut ordinary_tmp = false;
     let mut copied_runtime = None;
+    let mut sdk_cdp = false;
     let mut index = 0;
     while index < args.len() {
         let flag = args[index]
@@ -385,9 +394,13 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
             }
             "--native-perf-diagnostics"
                 if !chromium_log
-                    && (value == "chromium-log" || value == "chromium-log-ordinary-tmp") =>
+                    && !sdk_cdp
+                    && (value == "chromium-log"
+                        || value == "chromium-log-ordinary-tmp"
+                        || value == "sdk-cdp") =>
             {
-                chromium_log = true;
+                sdk_cdp = value == "sdk-cdp";
+                chromium_log = !sdk_cdp;
                 ordinary_tmp = value == "chromium-log-ordinary-tmp";
             }
             _ => return Err(format!("unknown or duplicate native-perf option: {flag}")),
@@ -397,9 +410,9 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
     if copied_runtime.is_some() && (!chromium_log || ordinary_tmp) {
         return Err("--native-perf-runtime requires chromium-log and forbids ordinary TMP".into());
     }
-    match (prepare_root, input_fixture, run_root, port, chromium_log, ordinary_tmp, copied_runtime) {
-        (Some(root), Some(fixture), None, None, false, false, None) => Ok(Mode::Prepare { root, fixture }),
-        (None, None, Some(root), Some(port), chromium_log, ordinary_tmp, copied_runtime) => Ok(Mode::Run { root, port, chromium_log, ordinary_tmp, copied_runtime }),
+    match (prepare_root, input_fixture, run_root, port, chromium_log, ordinary_tmp, copied_runtime, sdk_cdp) {
+        (Some(root), Some(fixture), None, None, false, false, None, false) => Ok(Mode::Prepare { root, fixture }),
+        (None, None, Some(root), Some(port), chromium_log, ordinary_tmp, copied_runtime, sdk_cdp) => Ok(Mode::Run { root, port, chromium_log, ordinary_tmp, copied_runtime, sdk_cdp }),
         _ => Err("use --native-perf-prepare <new-root> --fixture <fixture> or --native-perf-root <prepared-root> --native-perf-port <port>; no defaults".into()),
     }
 }
@@ -585,6 +598,7 @@ fn consume(root: &Path, port: u16, folders: &KnownFolders) -> Result<RuntimeConf
         port,
         run_id: manifest.run_id,
         chromium_log: None,
+        sdk_cdp: false,
     })
 }
 

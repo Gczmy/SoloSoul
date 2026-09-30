@@ -121,7 +121,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 - 任务总数：**249**（P1：49；P2：199；P3：1）。
 - 已关闭：**208 / 249**；实际修复（已关闭）：208；排除：0；待验证/阻塞：13（7项授权阻塞，RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：RF-312；复制已安装Evergreen 153的受控对照已完成：默认154为3/3完整观察、153副本为2/3，均未得到CDP监听。工具与证据完成，原生性能验收仍待验证；下一步候选为受控原生SDK CDP诊断。其他依赖/授权阻塞保持。
+- 当前处理：RF-312；用户授权的Windows可选windows-core 0.61.2最小补丁已精确应用，无包升级；28项Rust/97项同SHA Node回归及Clippy/fmt/Release通过。一次实际SDK调用取得两个可解析回调，但document-mismatch被拒，observer/读取后身份验证未完成；原始失败和额外fresh CIM/临时清理证据已保存。RF-312保持[!]，208/249不变；其他依赖/授权阻塞保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -5496,3 +5496,25 @@ git commit -m "<任务卡的提交标题>"
 - 相同新EXE/资源/100对象源、等长输出标签、各自fresh root/profile/runId/端口顺序对照：默认实际154.0.4258.37为 **exit0、3/3完整观察**；153.0.4234.48副本为 **exit1、2/3完整观察**。副本计划5秒时selected marker尚未发布，ENOENT原样保留；15/30秒两次实际browser均位于owned runtime目录，版本/EXE SHA及probe前身份复核匹配，但仍无owned TCP监听。五次完整观察均没有发送HTTP/CDP、输入密码或执行UI，performanceMetrics=null。未重跑/调整时刻将部分诊断改成通过，未据此确认普遍Runtime回归或声称所有DLL已加载。
 - 两轮20条记录PID（19个不同数值，跨轮发生一次PID复用）fresh CIM核验全不存在；两档源fixture14文件、安装Runtime全树及用户3张NSIS图片SHA保持。临时目录首次清理在任何删除前被reparse保护中止；确认两条junction均为各自profile内缓存后，只解除链接且验证目标仍在，再删除6个精确owned目录（含约861MiB副本）。原始fixture、安装源、复跑EXE/95资源、输出父目录和完整记录保留。
 - [复跑与限制](performance/RF-312-windows-native-app-baseline.md)及[完整原始对照/检查/清理证据](performance/rf312-windows-copied-runtime-2026-09-30.json)同步保存。限定策略键只读查询未发现相关值，不能扩张为所有策略均不存在。下一步候选是原生WebView2异步SDK CDP最小诊断，当前仅完成可行性阅读，未实施或调用协议。RF-312仍为[!]、208/249关闭数不变，缺失性能/多端范围沿用既有记录。本项独立本地提交，不推送，用户原有修改不暂存。
+
+### RF-312 阶段执行记录（2026-09-30，SDK只读诊断草稿完成，依赖声明待授权）
+
+- 基线 `e6cf4c21`。独立SDK诊断草稿只在显式非默认Windows sdk-cdp模式使用真实main controller/CoreWebView2，setup/Finished双门闩，UI线程顺序两次只读CDP调用；前后绑定SDK PID/Source、navigation/source/process/frame守卫，借用PCWSTR先有界复制，终态proof完整暂存后排他发布。Node three-path脚本复用原owned进程/UDF与清理，前后fresh CIM验证原root/browser，旧EXE和benchmark排斥均失败关闭。正常产品联网与端口占用预检保持，只是不经TCP/HTTP连接CDP端点。
+- 独立预审修正COM getter重入后的守卫/时限检查、async lstat后45秒预算重查。最终Node五文件 **97 passed/0 failed/0 skipped/0 cancelled、exit0**；先前96项记录与新增45000→45001拒绝回归均保留。四项Rust源码rustfmt check **exit0**，9项新增Rust纯回归尚未执行；独立源码审查通过不等同编译通过。原始14项fixture、3张用户NSIS图片SHA保持，SDK测试临时目录无残留，索引保持空。
+- 自定义有界COM completion宏生成 `::windows_core`，需将锁文件已有0.61.2直接声明为Windows optional，仅native-perf启用；拟议Cargo.lock只在solo_soul依赖数组增加已有包，无升级。自动审批拒绝该批写入，理由是新增依赖授权未被明确识别；Cargo两文件保持原样，未重试或绕过。精确三处改动patch已生成并向人类提出授权问题，等待答复。
+- [源码冻结、实际检查、未应用提案及限制](performance/rf312-windows-sdk-cdp-preflight-2026-09-30.json)完整保留。编译、Rust测试/Clippy、Release与GUI/真实SDK调用均未执行，performanceMetrics=null；本阶段草稿未提交，不以离线绿灯关闭RF-312或改变208/249。获准后先应用精确提案并完成编译/回归，再实际诊断；此前已完成Runtime对照保持独立提交。
+
+### RF-312 环境复查记录（2026-09-30，Android 模拟器条件已确认，未运行应用）
+
+- 本机已有 Android Emulator 37.1.11、Android 36 Google APIs x86_64 revision 7 镜像及 Pixel_6 配置；adb 设备清单为空。包含此前读取的命令总耗时约205秒；硬件加速探针自然退出0，报告 WHPX(10.0.26100) 可用。收尾检查时探针已自然退出，未结束任何进程。已核对此前的 JDK21/NDK27/Build Tools35，未下载软件或安装 Rust target。
+- 现有 APK SHA 与 RF-208 Linux 构建证据一致，仅含 ARM64 原生库，当前 Rust Android target 也只有 ARM64；不能据此认定当前源码已在 x86_64 模拟器运行。按3.2节“其他需要 Android 构建的任务先完成 RF-208”，新的 Android 构建仍待该前置的 macOS 实测。RF-121 的 Card 三端原生验收和 RF-312 的 Release 多端性能口径不变，原生菜单 instrumented 测试不代替两项验收。
+- [只读环境、实际工具结果与APK ABI证据](performance/rf312-android-host-preflight-2026-09-30.json)已保存。未创建/启动虚拟设备、未读写现有AVD用户数据、未安装/启动应用；GUI及性能指标仍为空。Windows SDK依赖提案未应用；208/249计数不变。本轮没有完成新的修复项或产生代码提交。
+
+### RF-312 阶段执行记录（2026-09-30，授权依赖应用与真实SDK诊断完成，文档绑定未通过）
+
+- 用户明确授权后，按提案 SHA `5EBFD9697924CE8E86A9BEB3E04C7E1174911915BA39D4667ABAED8D75B3811B` 精确应用三处：Windows optional `windows-core =0.61.2`、native-perf feature启用、solo_soul锁文件数组关联已有包；无升级，默认custom-protocol保持。此前待授权预检与Android只读记录保留为历史快照，本段替代其“依赖未应用”的当前状态，不扩大到七项生产授权。
+- 首次Rust编译因webview2_com私有callback模块导入E0603失败，修正为公开crate-root导出；首次Clippy因int_plus_one失败，改为等价且仍预留newline的长度比较。原始失败均保留。修正后最终定向lib **28 passed/0 failed/0 ignored、614 filtered**，包含全部9项新增回归；native all-target Clippy -D warnings、cargo fmt --check通过。同SHA五文件Node证据为 **97 passed/0 failed/0 skipped/0 cancelled**，未把零用例target计为测试通过，也未声称全库测试。
+- 专用Release `--features native-perf --no-bundle --ci -- --locked` exit0，Rust23m12s、wrapper1430.72s、前置TypeScript/Vite通过，Vite7.16s。新EXE SHA `201BE7FDBF2730EE6BC22D1EBD6D04BA865B31B3C76DE1471508B1603696B097`（99,744,768字节），28项冻结源码/配置与95项公开资源保持。冻结记录中的nativeTestsFinalStillRunning:true是填录错误，原记录保留并勘误为false：最终测试12:47:10Z、fmt12:47:33Z先于freeze12:47:54Z结束。
+- 100对象合成源、fresh root/profile/runId/端口进行一次实测，实际Runtime154.0.4258.37；exit1、success:false，stage=evaluation、reason=document-mismatch。Page.getFrameTree与Runtime.evaluate均收到成功HRESULT/可解析有界JSON回调，主frame/loader/source校验通过；聚合document条件未通过，拒绝值未保存，不能推断具体条件或认定React容器尚空为根因。observer/timeOrigin、读取后root/browser身份复核未完成，sdkProtocolCalls及performanceMetrics仍null；未调整断言、采样时刻或重跑消除失败。
+- runner的unverifiedDescendants:true和cleanupIntegrity:false原样保留；额外fresh CIM确认9个已记录PID及本轮owned命令行均不存在，不能倒写runner成功。删除前存档四个原生标记/proof，仅清理三个精确owned目录。首次清理在任何删除前因普通/扩展路径字符串差异被拒，核对同一本地绝对路径身份后，非递归解除一条指向本目录内缓存的junction，再递归清理。两档源14文件与用户3张NSIS图片SHA保持；EXE/95资源、原始输出报告和检查日志保留。
+- [本轮完整授权、原始检查/失败、实测与收尾证据](performance/rf312-windows-sdk-cdp-2026-09-30.json)和[复跑说明](performance/RF-312-windows-native-app-baseline.md)同步保存。独立复核未发现可直接确认的SDK实现错误；下一步先增加不泄露拒绝值的固定枚举子原因，再以新构建/隔离目录诊断，保留本次失败。RF-312保持[!]，208/249、13待验证/阻塞、28待执行不变；本项独立本地提交（本提交，以RF-312检索），不推送，不暂存用户原有修改。

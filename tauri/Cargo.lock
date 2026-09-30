@@ -6471,6 +6471,7 @@ dependencies = [
  "window-vibrancy 0.8.0",
  "windows 0.61.3",
  "windows-collections",
+ "windows-core 0.61.2",
  "zeroize",
  "zip 2.4.2",
 ]

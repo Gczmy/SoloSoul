@@ -567,6 +567,7 @@ fn copied_runtime_config(parent: &Path) -> RuntimeConfig {
         port: 44123,
         run_id: "a".repeat(32),
         chromium_log: None,
+        sdk_cdp: false,
     }
 }
 
@@ -1048,4 +1049,60 @@ fn native_perf_copied_runtime_requires_complete_ordered_directory_proofs() {
     assert!(runtime::validate(&config, &requested).is_err());
     publish_test_runtime(&config, &manifest);
     runtime::validate(&config, &requested).unwrap(); // 明确接纳声明且存在的空目录。
+}
+
+#[test]
+fn native_perf_sdk_cdp_is_exclusive_run_only_and_preserves_browser_flags() {
+    let run = [
+        "--native-perf-root",
+        "C:/owned",
+        "--native-perf-port",
+        "9222",
+    ];
+    let mut valid = args(&run);
+    valid.extend(args(&["--native-perf-diagnostics", "sdk-cdp"]));
+    assert!(matches!(
+        parse_args(&valid),
+        Ok(Mode::Run {
+            sdk_cdp: true,
+            chromium_log: false,
+            ordinary_tmp: false,
+            copied_runtime: None,
+            ..
+        })
+    ));
+    for tail in [
+        vec!["--native-perf-diagnostics", "chromium-log"],
+        vec!["--native-perf-diagnostics", "chromium-log-ordinary-tmp"],
+        vec!["--native-perf-diagnostics", "sdk-cdp"],
+        vec!["--native-perf-runtime", "C:/owned/runtime"],
+    ] {
+        let mut bad = valid.clone();
+        bad.extend(args(&tail));
+        assert!(parse_args(&bad).is_err());
+    }
+    assert!(parse_args(&args(&[
+        "--native-perf-prepare",
+        "C:/new",
+        "--fixture",
+        "C:/fixture",
+        "--native-perf-diagnostics",
+        "sdk-cdp"
+    ]))
+    .is_err());
+    let work = tempfile::tempdir().unwrap();
+    let mut config = copied_runtime_config(work.path());
+    let original = config.browser_arguments();
+    config.sdk_cdp = true;
+    sdk_cdp::claim_request(&config).unwrap();
+    assert_eq!(config.browser_arguments(), original);
+    let marker = read_json(&config.root.join(sdk_cdp::REQUESTED_FILE)).unwrap();
+    assert_eq!(marker["scope"], "windows-native-sdk-cdp-requested");
+    assert_eq!(marker["performanceSample"], false);
+    assert_eq!(marker["root"], json!(config.root));
+    assert_eq!(marker["runId"], config.run_id);
+    assert_eq!(marker["pid"], std::process::id());
+    assert_eq!(marker["port"], config.port);
+    assert_eq!(marker["windowLabel"], "main");
+    assert!(sdk_cdp::claim_request(&config).is_err());
 }
