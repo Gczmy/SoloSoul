@@ -88,10 +88,8 @@ fn rf018_template_write_failures_abort_before_objects() {
         // 映射构建必须整体返回错误，不能发布一个实际未保存的模板 ID。
         let error = rebuild_imported_templates(&vault, &account, &json!({"templates": [template]}))
             .unwrap_err();
-        assert!(
-            error.contains("rf018 injected template write failure"),
-            "{error}"
-        );
+        assert_eq!(error, "import_batch_templates_failed");
+        assert!(!error.contains("rf018 injected template write failure"));
 
         // 走真实解密与导入入口，确认失败不会继续写引用该模板的对象。
         let package = dir.path().join("incoming.solosoul");
@@ -121,7 +119,12 @@ fn rf018_template_write_failures_abort_before_objects() {
 
 #[test]
 fn rf018_template_read_failures_are_not_absence() {
-    for conflict in [false, true] {
+    for (conflict, owner) in [
+        (false, "acc_target"),
+        (true, "acc_target"),
+        (false, "acc_other"),
+        (true, "acc_other"),
+    ] {
         let (_dir, vault) = test_vault("acc_target");
         let template = incoming_template();
         let hash = user_template_content_hash(&template);
@@ -134,10 +137,10 @@ fn rf018_template_read_failures_are_not_absence() {
         } else {
             template.id.clone()
         };
-        // 属于另一账户的损坏行不参与本账户的哈希扫描，确保命中原始/派生 ID 查询。
+        // 同账户坏行必须返回读取错误；跨账户同主键必须拒绝覆盖。
         let mut corrupt = template.clone();
         corrupt.id = corrupt_id.clone();
-        corrupt.account_id = "acc_other".into();
+        corrupt.account_id = owner.into();
         vault.save_user_template(&corrupt).unwrap();
         let db = rusqlite::Connection::open(vault.base_path().join("vault.db")).unwrap();
         db.execute(
@@ -148,7 +151,11 @@ fn rf018_template_read_failures_are_not_absence() {
         let error =
             rebuild_imported_templates(&vault, "acc_target", &json!({"templates": [template]}))
                 .unwrap_err();
-        assert!(error.contains("load_user_template"), "{error}");
+        if owner == "acc_target" {
+            assert!(error.contains("list_user_templates row"), "{error}");
+        } else {
+            assert_eq!(error, "import_batch_account_mismatch");
+        }
         let unchanged: Vec<u8> = db
             .query_row(
                 "SELECT properties_json FROM user_templates WHERE id = ?1",

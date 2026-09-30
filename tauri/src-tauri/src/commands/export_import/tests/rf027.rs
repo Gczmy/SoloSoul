@@ -323,9 +323,10 @@ fn rf027_real_progress_barrier_yields_current_thread_and_imports_encrypted_attac
         move || {
             let svc = service.read().unwrap();
             let vault = svc.get_vault_store().unwrap();
-            assert!(vault.load_object(IDS[0]).unwrap().is_some());
+            assert!(vault.load_object(IDS[0]).unwrap().is_none());
             assert!(vault.load_object(IDS[1]).unwrap().is_none());
-            assert_eq!(vault.list_snapshots(IDS[0]).unwrap().len(), 1);
+            assert_eq!(vault.list_snapshots(IDS[0]).unwrap().len(), 0);
+            assert_eq!(vault.list_snapshots(IDS[1]).unwrap().len(), 0);
         },
         calls.clone(),
     )
@@ -458,7 +459,13 @@ fn rf027_async_results_keep_complete_partial_and_not_committed_counts() {
                 0,
                 0,
             ),
-            Some(2) => assert_failed(&result, ImportStatus::Partial, ImportStage::Objects, 1, 1),
+            Some(2) => assert_failed(
+                &result,
+                ImportStatus::NotCommitted,
+                ImportStage::Objects,
+                0,
+                0,
+            ),
             _ => unreachable!(),
         }
         assert_eq!(counts(&f), (result.object_count, result.snapshot_count));
@@ -497,11 +504,16 @@ fn rf027_attachment_snapshot_and_preferences_failures_remain_partial() {
         let (stage, objects, snapshots, linked, files) = match fault {
             "cipher" => (ImportStage::Attachments, 2, 2, 0, 1),
             "metadata" => (ImportStage::Attachments, 2, 2, 1, 2),
-            "snapshot" => (ImportStage::Snapshots, 1, 0, 0, 0),
+            "snapshot" => (ImportStage::Snapshots, 0, 0, 0, 0),
             "preferences" => (ImportStage::Preferences, 2, 2, 0, 0),
             _ => unreachable!(),
         };
-        assert_failed(&result, ImportStatus::Partial, stage, objects, snapshots);
+        let status = if fault == "snapshot" {
+            ImportStatus::NotCommitted
+        } else {
+            ImportStatus::Partial
+        };
+        assert_failed(&result, status, stage, objects, snapshots);
         assert_eq!(counts(&f), (objects, snapshots));
         assert_eq!(result.attachment_count, linked);
         assert_eq!(linked_paths(&f).len(), linked);
@@ -542,7 +554,12 @@ fn rf027_running_import_stops_later_commits_at_object_and_attachment_progress() 
                     // worker 保留服务 read 的既有行为，但进度回调不能占住会话门闩或 DB 锁。
                     let svc = service.read().unwrap();
                     let vault = svc.get_vault_store().unwrap();
-                    assert_eq!(vault.list_snapshots(IDS[0]).unwrap().len(), 1);
+                    // RF021：40 是准备进度，90 才位于数据库提交后的附件阶段。
+                    assert_eq!(
+                        vault.list_snapshots(IDS[0]).unwrap().len(),
+                        usize::from(pause_at == 90)
+                    );
+                    assert_eq!(vault.load_object(IDS[0]).unwrap().is_some(), pause_at == 90);
                     assert_eq!(vault.load_object(IDS[1]).unwrap().is_some(), pause_at == 90);
                     if mode == "lock" {
                         svc.lock();
@@ -553,11 +570,15 @@ fn rf027_running_import_stops_later_commits_at_object_and_attachment_progress() 
                 calls.clone(),
             )
             .unwrap();
-            let count = if pause_at == 40 { 1 } else { 2 };
+            let count = if pause_at == 40 { 0 } else { 2 };
             assert_eq!(result.session_generation, expected_generation);
             assert_failed(
                 &result,
-                ImportStatus::Partial,
+                if pause_at == 40 {
+                    ImportStatus::NotCommitted
+                } else {
+                    ImportStatus::Partial
+                },
                 if pause_at == 40 {
                     ImportStage::Objects
                 } else {
@@ -665,16 +686,17 @@ fn rf027_worker_panic_after_first_commit_returns_join_error_without_zero_commit_
     let source = std::fs::read(&path).unwrap();
     let calls = Arc::new(AtomicUsize::new(0));
     let progress: Progress = Arc::new(|pct| {
-        if pct == 40 {
+        // RF021：准备进度40没有写入；附件进度90发生在完整数据库批次提交后。
+        if pct == 90 {
             panic!("RF027_SYNTHETIC_PRIVATE_PANIC_MARKER");
         }
     });
     let error = run(&f, request(&path), Some(progress), calls.clone()).unwrap_err();
     assert_eq!(error, "导入任务执行失败");
     assert!(!error.contains("RF027_SYNTHETIC_PRIVATE_PANIC_MARKER"));
-    assert_eq!(counts(&f), (1, 1), "JoinError 发生前已提交，不能伪装零写入");
+    assert_eq!(counts(&f), (2, 2), "JoinError 发生前已提交，不能伪装零写入");
     assert!(f.vault.load_object(IDS[0]).unwrap().is_some());
-    assert!(f.vault.load_object(IDS[1]).unwrap().is_none());
+    assert!(f.vault.load_object(IDS[1]).unwrap().is_some());
     assert_eq!(calls.load(Ordering::SeqCst), 0);
     assert!(attachment_files(&root(&f)).is_empty());
     assert_no_staging(&root(&f));

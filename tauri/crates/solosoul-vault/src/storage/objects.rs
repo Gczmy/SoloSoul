@@ -23,7 +23,7 @@ use crate::{ObjectRecord, ObjectSummary};
 ///
 /// 语义与旧实现逐字节一致：account_id 固定 ?1，type_id/parent_id 可选按序占位，
 /// is_deleted 过滤与 ORDER BY 尾缀原样拼接。
-fn build_list_objects_sql(
+pub(super) fn build_list_objects_sql(
     account_id: &str,
     type_id: Option<&str>,
     parent_id: Option<&str>,
@@ -59,6 +59,87 @@ fn build_list_objects_sql(
     (sql, param_values)
 }
 
+/// RF-021：普通 metadata 与 frozen import view 共用原 15 列查询/筛选/排序。
+pub(super) fn build_list_object_metadata_sql(
+    account_id: &str,
+    type_id: Option<&str>,
+    parent_id: Option<&str>,
+    include_deleted: bool,
+    only_deleted: bool,
+    with_tags: bool,
+) -> (String, Vec<Box<dyn rusqlite::types::ToSql>>) {
+    let mut sql = String::from(
+        "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, template_id, template_type, contract_type_id, template_hash, ignored_template_hash, icon_name, parent_id",
+    );
+    if with_tags {
+        sql.push_str(", tags_json");
+    }
+    sql.push_str(" FROM objects WHERE account_id = ?1");
+    let mut param_idx = 2;
+    let mut param_values: Vec<Box<dyn rusqlite::types::ToSql>> =
+        vec![Box::new(account_id.to_string())];
+
+    if only_deleted {
+        sql.push_str(" AND is_deleted = 1");
+    } else if !include_deleted {
+        sql.push_str(" AND is_deleted = 0");
+    }
+
+    if let Some(tid) = type_id {
+        sql.push_str(&format!(" AND type_id = ?{}", param_idx));
+        param_values.push(Box::new(tid.to_string()));
+        param_idx += 1;
+    }
+
+    if let Some(pid) = parent_id {
+        sql.push_str(&format!(" AND parent_id = ?{}", param_idx));
+        param_values.push(Box::new(pid.to_string()));
+    }
+
+    sql.push_str(" ORDER BY created_at ASC, id ASC");
+    (sql, param_values)
+}
+
+/// RF-021：保留原 metadata mapper 的 deleted/tags/字段顺序与宽容 tags 解析。
+/// 不读取 properties、property_labels、children_ids，也不需要数据密钥。
+pub(super) fn map_object_metadata_row(
+    row: &rusqlite::Row<'_>,
+    with_tags: bool,
+) -> rusqlite::Result<ObjectSummary> {
+    let deleted_int: i32 = row.get(7)?;
+    let tags = if with_tags {
+        let tags_str: String = row.get(15).unwrap_or_default();
+        serde_json::from_str(&tags_str).unwrap_or_default()
+    } else {
+        vec![]
+    };
+    Ok(ObjectSummary {
+        id: row.get(0)?,
+        name: row.get(1)?,
+        collection_type: row.get(2)?,
+        section_type: row.get(3)?,
+        sensitivity_level: row.get(4)?,
+        created_at: row.get(5)?,
+        updated_at: row.get(6)?,
+        is_deleted: deleted_int != 0,
+        template_id: row.get(8)?,
+        template_type: row.get(9)?,
+        contract_type_id: row.get(10)?,
+        template_hash: row.get(11)?,
+        ignored_template_hash: row.get(12)?,
+        icon_name: row.get(13)?,
+        parent_id: row.get(14)?,
+        // P111: 不解密负载列，占位值（调用方不得依赖）
+        properties: serde_json::Value::Null,
+        property_labels: None,
+        tags,
+        // metadata-only 路径不解密 properties，附件存在性不可知 → false。
+        has_attachments: false,
+        // metadata-only 路径同理：字段敏感度集合不可知 → 空数组。
+        sensitivity_levels: vec![],
+    })
+}
+
 /// P025 Phase 2: `list_objects` 行的原始列数据（不解密、不解析 JSON），两阶段读的中间形态。
 ///
 /// 列序与 `build_list_objects_sql` 一致（0..17）：id/name/type_id/section_type/
@@ -66,7 +147,8 @@ fn build_list_objects_sql(
 /// template_type/contract_type_id/template_hash/ignored_template_hash/icon_name/
 /// property_labels/parent_id。`from_row` 仅装箱（微秒级），`into_summary` 承载原
 /// `map_object_list_row` 的解密/JSON 解析逻辑（错误列索引与文案逐字保留）。
-struct ObjectListRowRaw {
+#[derive(Clone)]
+pub(super) struct ObjectListRowRaw {
     id: String,
     name: String,
     type_id: String,
@@ -90,7 +172,7 @@ struct ObjectListRowRaw {
 impl ObjectListRowRaw {
     /// 仅按列序装箱（0..17），不触碰加密内容。property_labels 沿用原
     /// `unwrap_or_default()` 宽容语义（列缺失时置空）。
-    fn from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Self> {
+    pub(super) fn from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Self> {
         Ok(Self {
             id: row.get(0)?,
             name: row.get(1)?,
@@ -116,7 +198,10 @@ impl ObjectListRowRaw {
     /// 锁外解密 + JSON 解析为 `ObjectSummary`。
     ///
     /// 原 `map_object_list_row` 逻辑逐字搬入：错误列索引、文案均不变。
-    fn into_summary(self, key: &DataEncryptionKey) -> Result<ObjectSummary, rusqlite::Error> {
+    pub(super) fn into_summary(
+        self,
+        key: &DataEncryptionKey,
+    ) -> Result<ObjectSummary, rusqlite::Error> {
         let decrypted_props = decrypt_text_field(key, &self.properties).map_err(|e| {
             rusqlite::Error::FromSqlConversionFailure(
                 8,
@@ -212,7 +297,8 @@ impl ObjectListRowRaw {
 /// 缩短对全库 `conn` 互斥锁的占用。`from_row` 供 `query_map` 闭包使用，
 /// `into_record` 承载原 `object_row_to_record` 的解密/解析逻辑（错误语义逐字保留：
 /// P225 统一 Object 前缀文案、P005 properties 损坏拒绝静默降级为空对象）。
-struct ObjectRowRaw {
+#[derive(Clone)]
+pub(super) struct ObjectRowRaw {
     id: String,
     account_id: String,
     type_id: String,
@@ -239,7 +325,7 @@ struct ObjectRowRaw {
 
 impl ObjectRowRaw {
     /// 仅按 OBJECT_COLUMNS 列序装箱（0..21），不触碰加密内容。
-    fn from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Self> {
+    pub(super) fn from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Self> {
         Ok(Self {
             id: row.get(0)?,
             account_id: row.get(1)?,
@@ -269,7 +355,7 @@ impl ObjectRowRaw {
     /// 锁外解密 + JSON 解析为 `ObjectRecord`。
     ///
     /// 原 `object_row_to_record` 逻辑逐字搬入：错误列索引、文案、P005 日志均不变。
-    fn into_record(self, key: &DataEncryptionKey) -> rusqlite::Result<ObjectRecord> {
+    pub(super) fn into_record(self, key: &DataEncryptionKey) -> rusqlite::Result<ObjectRecord> {
         let decrypted_props = decrypt_text_field(key, &self.properties).map_err(|e| {
             rusqlite::Error::FromSqlConversionFailure(
                 8,
@@ -934,35 +1020,14 @@ impl VaultStore {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
 
-        let mut sql = String::from(
-            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, template_id, template_type, contract_type_id, template_hash, ignored_template_hash, icon_name, parent_id",
+        let (sql, param_values) = build_list_object_metadata_sql(
+            account_id,
+            type_id,
+            parent_id,
+            include_deleted,
+            only_deleted,
+            with_tags,
         );
-        if with_tags {
-            sql.push_str(", tags_json");
-        }
-        sql.push_str(" FROM objects WHERE account_id = ?1");
-        let mut param_idx = 2;
-        let mut param_values: Vec<Box<dyn rusqlite::types::ToSql>> =
-            vec![Box::new(account_id.to_string())];
-
-        if only_deleted {
-            sql.push_str(" AND is_deleted = 1");
-        } else if !include_deleted {
-            sql.push_str(" AND is_deleted = 0");
-        }
-
-        if let Some(tid) = type_id {
-            sql.push_str(&format!(" AND type_id = ?{}", param_idx));
-            param_values.push(Box::new(tid.to_string()));
-            param_idx += 1;
-        }
-
-        if let Some(pid) = parent_id {
-            sql.push_str(&format!(" AND parent_id = ?{}", param_idx));
-            param_values.push(Box::new(pid.to_string()));
-        }
-
-        sql.push_str(" ORDER BY created_at ASC, id ASC");
 
         // P213: prepare_cached 按 SQL 文本缓存（同过滤器组合命中），避免每次重编译。
         let mut stmt = conn
@@ -974,38 +1039,7 @@ impl VaultStore {
 
         let objects = stmt
             .query_map(params_refs.as_slice(), |row: &rusqlite::Row<'_>| {
-                let deleted_int: i32 = row.get(7)?;
-                let tags = if with_tags {
-                    let tags_str: String = row.get(15).unwrap_or_default();
-                    serde_json::from_str(&tags_str).unwrap_or_default()
-                } else {
-                    vec![]
-                };
-                Ok(ObjectSummary {
-                    id: row.get(0)?,
-                    name: row.get(1)?,
-                    collection_type: row.get(2)?,
-                    section_type: row.get(3)?,
-                    sensitivity_level: row.get(4)?,
-                    created_at: row.get(5)?,
-                    updated_at: row.get(6)?,
-                    is_deleted: deleted_int != 0,
-                    template_id: row.get(8)?,
-                    template_type: row.get(9)?,
-                    contract_type_id: row.get(10)?,
-                    template_hash: row.get(11)?,
-                    ignored_template_hash: row.get(12)?,
-                    icon_name: row.get(13)?,
-                    parent_id: row.get(14)?,
-                    // P111: 不解密负载列，占位值（调用方不得依赖）
-                    properties: serde_json::Value::Null,
-                    property_labels: None,
-                    tags,
-                    // metadata-only 路径不解密 properties，附件存在性不可知 → false。
-                    has_attachments: false,
-                    // metadata-only 路径同理：字段敏感度集合不可知 → 空数组。
-                    sensitivity_levels: vec![],
-                })
+                map_object_metadata_row(row, with_tags)
             })
             .map_err(|e| format!("list_object_metadata query: {}", e))?
             .collect::<Result<Vec<_>, _>>()

@@ -7,13 +7,13 @@
 use crate::commands::{current_account, current_account_optional, vault_handle};
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
+pub(crate) use solosoul_core::objects::inject_property_fields;
 pub use solosoul_core::objects::{
     inherit_contract_type_id, inherit_property_labels, template_fingerprint,
     validate_dynamic_groups,
 };
-pub(crate) use solosoul_core::objects::{
-    inherit_property_fields, inject_property_fields, inject_template_meta,
-};
+#[cfg(test)]
+pub(crate) use solosoul_core::objects::{inherit_property_fields, inject_template_meta};
 use solosoul_vault::ObjectRecord;
 use tauri::State;
 use uuid::Uuid;

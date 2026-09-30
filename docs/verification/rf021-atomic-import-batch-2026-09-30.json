@@ -1,0 +1,2720 @@
+{
+  "task": "RF-021",
+  "date": "2026-09-30",
+  "repository": "C:\\Users\\40299571\\SoloSoul",
+  "baseline": {
+    "head": "c4f9c29704966def904c12c83adedff520e80bd2",
+    "sources": {
+      "tauri/crates/solosoul-vault/src/lib.rs": {
+        "sha256": "03bacf2e93c256ef9d7fb62fb726a8571a9d5c5ebacbf7b08fff891208b25378",
+        "bytes": 27138
+      },
+      "tauri/crates/solosoul-vault/src/storage.rs": {
+        "sha256": "b1d7d7e2a65d334daf26f4aee5f6500eb306684cce57543e468bf28ad211fb1c",
+        "bytes": 51078
+      },
+      "tauri/crates/solosoul-vault/src/storage/import_batch.rs": {
+        "exists": false
+      },
+      "tauri/crates/solosoul-vault/src/storage/import_batch/tests.rs": {
+        "exists": false
+      },
+      "tauri/crates/solosoul-vault/src/storage/objects.rs": {
+        "sha256": "33c408ebb423ae10b22112bd3bc01738bb2c7f86214f04d8eb60c8addae83bfe",
+        "bytes": 52552
+      },
+      "tauri/crates/solosoul-vault/src/storage/snapshots.rs": {
+        "sha256": "de23521afa060c20c3b070baaecc19a5a7efccd837dfc5e4c45ce6e8de980d5f",
+        "bytes": 25305
+      },
+      "tauri/crates/solosoul-core/src/export_import.rs": {
+        "sha256": "c8ebea21e88128dbbe808543433d65247fdccc06c2ff3480cb6272485270137d",
+        "bytes": 95398
+      },
+      "tauri/crates/solosoul-core/src/export_import/rf021_tests.rs": {
+        "exists": false
+      },
+      "solosoul_cli/src/commands/export_import.rs": {
+        "sha256": "29f5146dfed140d1960b2873c72dd3b383127676b6ca9fc5e7c5f4d786d12d03",
+        "bytes": 16813
+      },
+      "solosoul_cli/src/commands/export_import/rf021_tests.rs": {
+        "exists": false
+      },
+      "tauri/src-tauri/src/commands/export_import/helpers.rs": {
+        "sha256": "4e2a62182882cbe99b586470276f49d0686dd34b2cd58519b8baed7479f3248b",
+        "bytes": 22792
+      },
+      "tauri/src-tauri/src/commands/export_import/import/batch.rs": {
+        "exists": false
+      },
+      "tauri/src-tauri/src/commands/export_import/import.rs": {
+        "sha256": "65b9bae1d808a2b618e73b9f17e079ce795fb9e1230ea087eb4e199c80b27296",
+        "bytes": 53383
+      },
+      "tauri/src-tauri/src/commands/export_import/tests/rf020.rs": {
+        "sha256": "237d826f34a2ff35c5d007fccdd6cc0de4bd464bc843ec16e6f0c4d0550c2f48",
+        "bytes": 11082
+      },
+      "tauri/src-tauri/src/commands/export_import/tests/rf021.rs": {
+        "exists": false
+      },
+      "tauri/src-tauri/src/commands/export_import/tests.rs": {
+        "sha256": "8e87633df4cf1fd64805bc6c6da076fbd32a080d56db7d23df0e72c9e324ef40",
+        "bytes": 56625
+      },
+      "tauri/crates/solosoul-core/src/objects/create.rs": {
+        "sha256": "e3c249d24e4322540691f3825455f8e5d95f6a3a2d611be496252d5a638717ff",
+        "bytes": 6846
+      },
+      "tauri/crates/solosoul-core/src/objects.rs": {
+        "sha256": "ffbd51d08e90af12c5329dc52bb22f6ea18cf1acb65161c4f430a26d130fc133",
+        "bytes": 69322
+      },
+      "tauri/src-tauri/src/commands/export_import/tests/rf027.rs": {
+        "sha256": "40105407cd8a93687e03c38a751e6a223ea61952b26aa23cf0bc7f8c70e8a872",
+        "bytes": 33015,
+        "reason": "RF027 progress40 now precedes atomic DB COMMIT; preserve session/barrier/completion checks"
+      },
+      "tauri/src-tauri/src/commands/object/mod.rs": {
+        "sha256": "9760a6d94bc65d05b280aafd06536d21b895ae0bdd4719f85c99c067c541896c",
+        "bytes": 58791,
+        "reason": "RF021 importer now uses frozen shared projection; legacy reexports needed by tests only"
+      },
+      "tauri/src-tauri/src/commands/export_import/tests/rf018.rs": {
+        "sha256": "0fcaad52e9b72662056661ea8aa8ec5e944069ef18667879b3fe9dc605a60a33",
+        "bytes": 6958,
+        "reason": "RF021 atomic boundary: preserve genuine database failure and session-switch checks"
+      },
+      "tauri/src-tauri/src/sync/cloud_auto_sync/tests/rf003.rs": {
+        "sha256": "565a53566e1452f3ddb60388eb296c389070571e84175c1056ce4f7176ffbf99",
+        "bytes": 14182,
+        "reason": "RF021 atomic boundary: preserve genuine database failure and session-switch checks"
+      }
+    },
+    "proposals": {
+      "vault": {
+        "directory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal",
+        "manifestSha256": "20bf830cf0c9a71a64d66b65f9e9ce39bf7868379e4fba838907ff6f9b87427e"
+      },
+      "core": {
+        "directory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal",
+        "manifestSha256": "8dbef401ea92cfcefa61b32746a59163a64c48af8355512bed3e59041bfcf3e7"
+      },
+      "cli": {
+        "directory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-cli-proposal",
+        "manifestSha256": "6411e164d61a25fbb32c7a84bc1edc5419fc342ed9b0631525c227200c3a58c2"
+      },
+      "host": {
+        "directory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-proposal",
+        "manifestSha256": "3fb9cbc1169b26949f590c1c1c4a6a9888fb13a982dd5b6f68fb544ed18c2601"
+      },
+      "host-metadata": {
+        "directory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-metadata-proposal",
+        "manifestSha256": "ccce8c8c3e2d6646c3d2e3c8f05b2c042357abf8ea5a19218d9eff84d07c34dd"
+      }
+    }
+  },
+  "sourceManifest": {
+    "tauri/crates/solosoul-vault/src/lib.rs": "4ed897e6444c8aeecf0e03a0a02455e6970a18c770302a9ea598912c7b03a371",
+    "tauri/crates/solosoul-vault/src/storage.rs": "5d6811b148e00fe2067eb8f92aa91d2f24bdd495d17ef38b6c4c785d7274de2d",
+    "tauri/crates/solosoul-vault/src/storage/import_batch.rs": "cb25c441fa9a52c69774f152096b66763ce651fcc2f6224bb3158f5a527dc1b0",
+    "tauri/crates/solosoul-vault/src/storage/import_batch/tests.rs": "403d5ed26f299a92dd6992d9b37637def326096cdcba42c7b7d6032a41ff3853",
+    "tauri/crates/solosoul-vault/src/storage/objects.rs": "c89fe62d2456af2a3e36cca571dbd5cd272277898462cd296ed0e134fb09e13c",
+    "tauri/crates/solosoul-vault/src/storage/snapshots.rs": "68fc2bfb5c3e1b6700f6ff7dbe80281eb870f5b93b83cb3d696ad938053a992f",
+    "tauri/crates/solosoul-core/src/export_import.rs": "b44b46e1ffd6d283eb14ea8aa27fff9dd90169ae3c2a7426a02ec044191ca36a",
+    "tauri/crates/solosoul-core/src/export_import/rf021_tests.rs": "f0107d53530450851d1048a2253f027cfcd197f31409181542e0fa28c07865d9",
+    "solosoul_cli/src/commands/export_import.rs": "6de914d1dad97596d755d1ddef3997507ceaeb45eeb7442b78220ca33334bb93",
+    "solosoul_cli/src/commands/export_import/rf021_tests.rs": "9b8d7fc4de55b97e9996a0759ad31eb8f2dd94e4e00e011c0f7651a8bb7fec56",
+    "tauri/src-tauri/src/commands/export_import/helpers.rs": "aca9642251ab1219ef4082d0a31d26ab78dc680f9fdba9b492b048ed0117e5fa",
+    "tauri/src-tauri/src/commands/export_import/import/batch.rs": "ffedfcf3f2cca2ec16ac3efbdf6e6280d3bfd02a8444eb06387e591b34d52605",
+    "tauri/src-tauri/src/commands/export_import/import.rs": "6a144dd361610293377aa3e7419d827953f14e0a143b0559be973f2ad0120efe",
+    "tauri/src-tauri/src/commands/export_import/tests/rf020.rs": "4bdd4b06d2a13eb0d3c88ae704c9e401a98b716ac0be31c6c8b2c6d327b2e376",
+    "tauri/src-tauri/src/commands/export_import/tests/rf021.rs": "2dddc4fce0deb65b1168d17796fc68991c9dfc5b5f8ae5aa3334262a65aa70eb",
+    "tauri/src-tauri/src/commands/export_import/tests.rs": "59b2c8859ac7b04ba345778d64f72c563ca7e6a8fcbdf77a2c7d32ac87ddd623",
+    "tauri/src-tauri/src/commands/export_import/tests/rf021_compatibility.rs": "5f7fb95bb5bb02b61fdbbc3e0f41d463e0611b870eb59cb8e197fccbfade685e",
+    "tauri/crates/solosoul-core/src/objects/create.rs": "b930878337a8ddcf48c118618c1968a65faa58731e32cd74523dd0328d63376c",
+    "tauri/crates/solosoul-core/src/objects.rs": "a3297a8bc51cd5a420ae1bf2623ca62e1ac46ebf4d0422f747a3e7817b5f014e",
+    "tauri/src-tauri/src/commands/export_import/tests/rf027.rs": "00305abeaa1233a40c52929bb7247d5ade3740e6b5964cbb38063225f8f6737e",
+    "tauri/src-tauri/src/commands/object/mod.rs": "eebad25ad83af00cfadf8c15e054bef9fb64a5a01bc4e41e2a2dba9dfb628c0d",
+    "tauri/src-tauri/src/commands/export_import/tests/rf018.rs": "296e8307bb433db906bfe900d0ff38f6f588fd25dbd240e0709c2feac8b050c4",
+    "tauri/src-tauri/src/sync/cloud_auto_sync/tests/rf003.rs": "a197f5686c6805118f4f04e1b941615d6d61d7b2bad83c601dd09d3c98d4110d"
+  },
+  "problem": "模板/对象/历史/HLC逐项提交会留下半批数据或先丢旧历史；旧CLI未固定密码提示开始的会话。",
+  "changes": [
+    "冻结私有加密原始视图和原严格metadata错误，不保存密钥；仅实际旧读取边界触发解析。",
+    "原Session门闩内验证Vault实例/账户/total_changes/main.data_version，一个Immediate事务提交新增模板、有序对象、完整历史Append/Replace和HLC；计数仅COMMIT后发布。",
+    "空批仍验证身份/解锁/原会话/修订并COMMIT，不读无关node/HLC；非空损坏HLC严格拒绝。",
+    "保留GUI三策略/逐对象override/RF1063映射/重复源顺序/包历史规则；Core批前Skip、Merge=Overwrite、旧历史Keep与每次写计数保持。",
+    "CLI提示前捕获原Session/Zeroizing附件密钥；旧Direct/usize-Err入口保留。附件/偏好独立部分提交。"
+  ],
+  "red": [
+    {
+      "name": "red",
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "rf021_host_owned_atomic_second_write_matrix_restores_four_tables_and_sixty_history",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "started_at_utc": "2026-09-30T21:10:49.627005+00:00",
+      "seconds": 199.29,
+      "exit_code": 101,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\red-first.log",
+      "log_sha256": "b4114bae409b5b5901854a06641b8dfcada5c95abb9910119cfe11767fb248e7",
+      "results": [
+        "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 644 filtered out; finished in 0.37s"
+      ],
+      "totals": {
+        "groups": 1,
+        "passed": 0,
+        "failed": 1,
+        "ignored": 0
+      },
+      "rf021Cases": [],
+      "ignoredCases": []
+    }
+  ],
+  "redScope": "真实旧Host首个Template写故障即失败，0passed/1failed；没有声称五类旧故障均已执行。",
+  "emptyHlcRegression": {
+    "red": [
+      {
+        "name": "empty-red",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "solosoul-vault",
+          "--lib",
+          "rf021_empty_batch_bad_local_hlc_succeeds_without_changing_four_tables",
+          "--",
+          "--nocapture"
+        ],
+        "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+        "started_at_utc": "2026-09-30T21:37:02.130144+00:00",
+        "seconds": 41.14,
+        "exit_code": 101,
+        "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\empty-red-first.log",
+        "log_sha256": "f0b8f5d5603e81edf612e650aae44e73b6183e19cf53f1b37c1f30687faa3bde",
+        "results": [
+          "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 248 filtered out; finished in 0.13s"
+        ],
+        "totals": {
+          "groups": 1,
+          "passed": 0,
+          "failed": 1,
+          "ignored": 0
+        },
+        "rf021Cases": [],
+        "ignoredCases": []
+      }
+    ],
+    "green": [
+      {
+        "name": "empty-green",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "solosoul-vault",
+          "--lib",
+          "bad_local_hlc",
+          "--",
+          "--nocapture"
+        ],
+        "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+        "started_at_utc": "2026-09-30T21:38:52.505425+00:00",
+        "seconds": 31.92,
+        "exit_code": 0,
+        "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\empty-green-first.log",
+        "log_sha256": "0a6e66026cd0b7daf0655d577e5bf45658705f0f37c23d8d3fdbe77b5532645d",
+        "results": [
+          "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 246 filtered out; finished in 0.37s"
+        ],
+        "totals": {
+          "groups": 1,
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        "rf021Cases": [
+          "test storage::import_batch::tests::rf021_empty_batch_bad_local_hlc_succeeds_without_changing_four_tables ... ok",
+          "test storage::import_batch::tests::rf021_nonempty_batch_bad_local_hlc_still_rejects_without_any_write ... ok",
+          "test storage::import_batch::tests::rf021_empty_batch_bad_local_hlc_retains_revision_account_store_and_lock_guards ... ok"
+        ],
+        "ignoredCases": []
+      }
+    ],
+    "fixture": "真实节点HLC由第二SQLite连接损坏BLOB；空批红测报Hlc，修复后空批无副作用且守卫保持、非空仍拒绝。"
+  },
+  "initialTargetChecks": [
+    {
+      "name": "vault-target",
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "solosoul-vault",
+        "--lib",
+        "rf021_",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "started_at_utc": "2026-09-30T21:16:30.970381+00:00",
+      "seconds": 41.43,
+      "exit_code": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\vault-target-first.log",
+      "log_sha256": "0711f5d17c132de53c97c42cc69f6bbc58c67e9b857a1003e11d90829b65b9fc",
+      "results": [
+        "test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 208 filtered out; finished in 1.93s"
+      ],
+      "totals": {
+        "groups": 1,
+        "passed": 38,
+        "failed": 0,
+        "ignored": 0
+      },
+      "rf021Cases": [
+        "test storage::import_batch::tests::rf021_locking_store_revokes_view_read_and_commit_permission ... ok",
+        "test storage::import_batch::tests::rf021_invalid_empty_snapshot_or_duplicate_snapshot_within_owner_is_zero_commit ... ok",
+        "test storage::import_batch::tests::rf021_bad_template_properties_are_deferred_until_strict_read_and_object_only_commit_succeeds ... ok",
+        "test storage::import_batch::tests::rf021_history_delete_failure_preserves_overwritten_object_and_its_old_history ... ok",
+        "test storage::import_batch::tests::rf021_actual_deferred_foreign_key_commit_failure_rolls_back_and_connection_recovers ... ok",
+        "test storage::import_batch::tests::rf021_active_full_list_defers_bad_name_and_unmatchable_blob_id_without_hiding_error ... ok",
+        "test storage::import_batch::tests::rf021_host_load_and_commit_good_ignore_unused_active_or_deleted_bad_name ... ok",
+        "test storage::import_batch::tests::rf021_metadata_never_reads_properties_labels_children_or_unrequested_tags ... ok",
+        "test storage::import_batch::tests::rf021_metadata_freezes_errors_after_live_repair_and_rejects_stale_commit ... ok",
+        "test storage::import_batch::tests::rf021_metadata_freezes_sort_values_and_active_membership_across_live_changes ... ok",
+        "test storage::import_batch::tests::rf021_metadata_original_active_sql_excludes_deleted_bad_rows_and_bad_is_deleted_type ... ok",
+        "test storage::import_batch::tests::rf021_metadata_view_ignores_bad_properties_but_strict_active_reads_reject_them ... ok",
+        "test storage::import_batch::tests::rf021_new_batch_template_name_matches_prepared_record_and_initial_snapshot ... ok",
+        "test storage::import_batch::tests::rf021_ordered_duplicate_objects_preserve_final_history_identity_encryption_and_hlc ... ok",
+        "test storage::import_batch::tests::rf021_new_template_plan_rejects_existing_or_duplicate_template_ids ... ok",
+        "test storage::import_batch::tests::rf021_metadata_accessor_rejects_other_store_account_locked_empty_and_reopened_view ... ok",
+        "test storage::import_batch::tests::rf021_plan_cannot_overwrite_an_existing_foreign_owner_or_write_foreign_account ... ok",
+        "test storage::import_batch::tests::rf021_overwrite_failure_preserves_all_sixty_old_snapshots_byte_for_byte ... ok",
+        "test storage::import_batch::tests::rf021_referenced_bad_template_name_keeps_old_no_fallback_and_snapshot_input ... ok",
+        "test storage::import_batch::tests::rf021_reopened_same_account_and_key_cannot_reuse_old_store_revision_or_view ... ok",
+        "test storage::import_batch::tests::rf021_other_store_revision_and_wrong_account_cannot_authorize_a_batch ... ok",
+        "test storage::import_batch::tests::rf021_same_connection_dml_invalidates_prepared_view_without_import_writes ... ok",
+        "test storage::import_batch::tests::rf021_second_hlc_insert_failure_rolls_back_template_and_object_writes ... ok",
+        "test storage::import_batch::tests::rf021_second_object_insert_failure_rolls_back_templates_objects_histories_and_hlc ... ok",
+        "test storage::import_batch::tests::rf021_second_connection_dml_invalidates_view_and_retains_concurrent_change ... ok",
+        "test storage::import_batch::tests::rf021_second_snapshot_insert_failure_restores_previous_ciphertexts_and_all_records ... ok",
+        "test storage::import_batch::tests::rf021_second_object_update_failure_rolls_back_both_overwrites_and_history_replacements ... ok",
+        "test storage::import_batch::tests::rf021_shadowed_corrupt_active_object_does_not_block_strict_remaining_list ... ok",
+        "test storage::import_batch::tests::rf021_second_template_insert_failure_rolls_back_entire_database_batch ... ok",
+        "test storage::import_batch::tests::rf021_snapshot_ids_are_unique_across_owners_and_cannot_reuse_existing_history_id ... ok",
+        "test storage::import_batch::tests::rf021_shared_metadata_mapper_preserves_optional_tags_filter_and_deleted_query ... ok",
+        "test storage::import_batch::tests::rf021_template_view_frozen_error_does_not_change_after_live_repair ... ok",
+        "test storage::import_batch::tests::rf021_template_view_freezes_order_values_deletion_and_later_insert ... ok",
+        "test storage::import_batch::tests::rf021_template_raw_mapper_preserves_decryption_priority_and_invalid_utf8 ... ok",
+        "test storage::import_batch::tests::rf021_view_keeps_load_and_list_distinct_children_and_property_label_parsing_boundaries ... ok",
+        "test storage::import_batch::tests::rf021_template_accessors_reject_other_store_account_locked_and_reopened_store ... ok",
+        "test storage::import_batch::tests::rf021_unused_bad_template_columns_including_name_do_not_block_object_only_batch ... ok",
+        "test storage::import_batch::tests::rf021_active_metadata_preserves_all_reachable_typed_column_errors_without_defaulting ... ok"
+      ],
+      "ignoredCases": []
+    },
+    {
+      "name": "core-target",
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "solosoul-core",
+        "--lib",
+        "rf021_",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "started_at_utc": "2026-09-30T21:17:12.413235+00:00",
+      "seconds": 81.96,
+      "exit_code": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\core-target-first.log",
+      "log_sha256": "abae0216ff4bbc456a7c09c4418c87942c678983891bac2d5263d19f75b2684f",
+      "results": [
+        "test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 306 filtered out; finished in 5.94s"
+      ],
+      "totals": {
+        "groups": 1,
+        "passed": 25,
+        "failed": 0,
+        "ignored": 0
+      },
+      "rf021Cases": [
+        "test export_import::rf021_tests::rf021_core_frozen_active_metadata_survives_live_change_but_commit_is_stale ... ok",
+        "test export_import::rf021_tests::rf021_core_database_success_preserves_encryption_and_orders_template_object_hlc ... ok",
+        "test export_import::rf021_tests::rf021_core_attachment_failure_keeps_old_err_contract_after_database_commit ... ok",
+        "test export_import::rf021_tests::rf021_core_metadata_skip_does_not_decode_unused_bad_object_properties_or_labels ... ok",
+        "test export_import::rf021_tests::rf021_core_invalid_templates_warn_skip_without_decoding_unused_bad_local_template ... ok",
+        "test export_import::rf021_tests::rf021_core_expired_session_is_rejected_before_opening_package ... ok",
+        "test export_import::rf021_tests::rf021_core_old_session_cannot_commit_prepared_batch_after_same_account_reunlock ... ok",
+        "test export_import::rf021_tests::rf021_core_preferences_failure_keeps_old_err_contract_after_database_commit ... ok",
+        "test export_import::rf021_tests::rf021_core_second_connection_change_rejects_old_prepared_revision ... ok",
+        "test export_import::rf021_tests::rf021_core_prepare_does_not_write_and_same_connection_change_rejects_commit ... ok",
+        "test export_import::rf021_tests::rf021_core_second_hlc_failure_rolls_back_new_templates_and_objects ... ok",
+        "test export_import::rf021_tests::rf021_core_second_object_insert_failure_rolls_back_templates_and_hlc ... ok",
+        "test export_import::rf021_tests::rf021_core_second_object_update_failure_keeps_all_sixty_old_snapshots ... ok",
+        "test export_import::rf021_tests::rf021_core_overwrite_and_merge_keep_history_and_ignore_package_history ... ok",
+        "test export_import::rf021_tests::rf021_core_second_template_failure_rolls_back_all_tables_and_retries ... ok",
+        "test export_import::rf021_tests::rf021_core_seed_template_content_reuses_original_local_id ... ok",
+        "test export_import::rf021_tests::rf021_core_skip_uses_batch_initial_active_membership_and_counts_duplicate_new_id ... ok",
+        "test export_import::rf021_tests::rf021_core_template_hash_dedupe_and_repeated_original_id_last_mapping ... ok",
+        "test export_import::rf021_tests::rf021_core_template_only_import_commits_template_and_returns_zero_object_writes ... ok",
+        "test export_import::rf021_tests::rf021_core_valid_package_template_propagates_frozen_local_template_read_error ... ok",
+        "test export_import::rf021_tests::rf021_core_wrong_account_prepare_returns_error_without_writes ... ok",
+        "test export_import::rf021_tests::rf021_core_skip_metadata_stays_independent_of_bad_properties_labels_and_children ... ok",
+        "test export_import::rf021_tests::rf021_core_skip_ignores_corrupt_soft_deleted_and_other_excluded_metadata ... ok",
+        "test export_import::rf021_tests::rf021_core_overwrite_and_merge_ignore_unused_typed_metadata_errors ... ok",
+        "test export_import::rf021_tests::rf021_core_skip_strict_active_metadata_keeps_old_error_and_zero_writes ... ok"
+      ],
+      "ignoredCases": []
+    },
+    {
+      "name": "host-target",
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "rf021_",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "started_at_utc": "2026-09-30T21:18:34.382007+00:00",
+      "seconds": 223.89,
+      "exit_code": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\host-target-first.log",
+      "log_sha256": "636d2f70fab37e353560042b933424240bdf6f7e5e8b12b7c8a91e9a11b8382a",
+      "results": [
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 636 filtered out; finished in 9.62s"
+      ],
+      "totals": {
+        "groups": 1,
+        "passed": 17,
+        "failed": 0,
+        "ignored": 0
+      },
+      "rf021Cases": [
+        "test commands::export_import::tests::rf021::rf021_host_shadow_name_excludes_bad_original_raw_without_weakening_strict_list ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_history_sql_failure_preserves_all_sixty_old_rows ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_concurrent_dml_after_plan_rejects_import_and_preserves_writer ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_chinese_owned_package_duplicate_id_keeps_name_history_and_counts ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_duplicate_ids_preserve_sequential_strategy_name_and_write_count ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_template_reads_are_on_demand_and_bad_reference_retains_snapshot_timing ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_database_fault_rolls_back_every_table_and_fresh_retry_succeeds ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_keepboth_active_bad_name_stays_strict_and_zero_write ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_valid_history_replaces_and_missing_empty_bad_history_only_appends ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_history_delete_failure_retains_all_sixty_ciphertexts ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_bad_or_empty_package_history_appends_without_losing_sixty_rows ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_atomic_second_write_matrix_restores_four_tables_and_sixty_history ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_strict_load_and_list_have_existing_error_boundaries ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_only_good_selection_ignores_bad_typed_unselected_target ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_unused_bad_typed_rows_do_not_block_overwrite_or_skip ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_explicit_empty_selection_does_not_parse_bad_typed_rows ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_softdeleted_bad_typed_rows_do_not_enter_keepboth_active_list ... ok"
+      ],
+      "ignoredCases": []
+    },
+    {
+      "name": "cli-target",
+      "command": [
+        "cargo",
+        "test",
+        "--lib",
+        "rf021_",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "started_at_utc": "2026-09-30T21:22:18.290665+00:00",
+      "seconds": 150.02,
+      "exit_code": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\cli-target-first.log",
+      "log_sha256": "6f2bb5a6735f791d7f293d7343d8bb38077c07f0ff88cd1ad5b454fa18d9e062",
+      "results": [
+        "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 277 filtered out; finished in 21.28s"
+      ],
+      "totals": {
+        "groups": 1,
+        "passed": 12,
+        "failed": 0,
+        "ignored": 0
+      },
+      "rf021Cases": [
+        "test commands::export_import::rf021_tests::rf021_cli_cancel_password_prompt_does_not_write_database ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_old_password_prompt_is_rejected_after_account_switch ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_real_password_prompt_imports_objects_templates_and_hlc ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_old_password_prompt_is_rejected_after_same_account_reunlock ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_preview_remains_available_when_locked ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_overwrite_keeps_existing_encrypted_history ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_second_object_hlc_insert_failure_rolls_back_and_recovers ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_old_password_prompt_is_rejected_after_lock ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_second_object_insert_failure_rolls_back_and_recovers ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_second_object_update_failure_rolls_back_and_recovers ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_second_template_insert_failure_rolls_back_and_recovers ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_wrong_import_password_does_not_write_database ... ok"
+      ],
+      "ignoredCases": []
+    }
+  ],
+  "initialTargetScope": "初版92项Vault38/Core25/Host17/CLI12；新增5项空批HLC回归后最终97项均在完整检查真实执行。",
+  "affectedChecks": [
+    {
+      "name": "host-import",
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "commands::export_import::tests",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "started_at_utc": "2026-09-30T22:08:08.767689+00:00",
+      "seconds": 166.67,
+      "exit_code": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\host-import-first.log",
+      "log_sha256": "9cdf6fa4664228d5147db33fbf5a283407d598ce292ce0102cbad545aeb9a0a4",
+      "results": [
+        "test result: ok. 102 passed; 0 failed; 0 ignored; 0 measured; 552 filtered out; finished in 19.36s"
+      ],
+      "totals": {
+        "groups": 1,
+        "passed": 102,
+        "failed": 0,
+        "ignored": 0
+      },
+      "rf021Cases": [
+        "test commands::export_import::tests::rf021::rf021_host_shadow_name_excludes_bad_original_raw_without_weakening_strict_list ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_concurrent_dml_after_plan_rejects_import_and_preserves_writer ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_history_sql_failure_preserves_all_sixty_old_rows ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_chinese_owned_package_duplicate_id_keeps_name_history_and_counts ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_duplicate_ids_preserve_sequential_strategy_name_and_write_count ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_empty_selection_and_all_skip_do_not_read_unrelated_corrupt_hlc ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_keepboth_active_bad_name_stays_strict_and_zero_write ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_template_reads_are_on_demand_and_bad_reference_retains_snapshot_timing ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_database_fault_rolls_back_every_table_and_fresh_retry_succeeds ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_valid_history_replaces_and_missing_empty_bad_history_only_appends ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_history_delete_failure_retains_all_sixty_ciphertexts ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_bad_or_empty_package_history_appends_without_losing_sixty_rows ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_atomic_second_write_matrix_restores_four_tables_and_sixty_history ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_strict_load_and_list_have_existing_error_boundaries ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_only_good_selection_ignores_bad_typed_unselected_target ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_unused_bad_typed_rows_do_not_block_overwrite_or_skip ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_explicit_empty_selection_does_not_parse_bad_typed_rows ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_softdeleted_bad_typed_rows_do_not_enter_keepboth_active_list ... ok"
+      ],
+      "ignoredCases": []
+    },
+    {
+      "name": "cloud-import-regression",
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "sync::cloud_auto_sync::tests::rf003",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "started_at_utc": "2026-09-30T22:10:55.454800+00:00",
+      "seconds": 8.0,
+      "exit_code": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\cloud-import-regression-first.log",
+      "log_sha256": "066f04657585afda0f65754462b908fc86ee7978c85778349d1db6e4b6ff36d3",
+      "results": [
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 648 filtered out; finished in 2.65s"
+      ],
+      "totals": {
+        "groups": 1,
+        "passed": 6,
+        "failed": 0,
+        "ignored": 0
+      },
+      "rf021Cases": [],
+      "ignoredCases": []
+    }
+  ],
+  "checks": [
+    {
+      "name": "workspace-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "started_at_utc": "2026-09-30T22:11:40.884207+00:00",
+      "seconds": 5.37,
+      "exit_code": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\workspace-fmt-fourth.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "results": [],
+      "totals": {
+        "groups": 0,
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0
+      },
+      "rf021Cases": [],
+      "ignoredCases": []
+    },
+    {
+      "name": "workspace-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "started_at_utc": "2026-09-30T22:11:46.257144+00:00",
+      "seconds": 25.73,
+      "exit_code": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\workspace-clippy-fourth.log",
+      "log_sha256": "84c3d51313d5d9565924b261a419226a7e9a419cb2663c4a04dc6208be4ce5dc",
+      "results": [],
+      "totals": {
+        "groups": 0,
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0
+      },
+      "rf021Cases": [],
+      "ignoredCases": []
+    },
+    {
+      "name": "workspace-full",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "started_at_utc": "2026-09-30T22:12:12.040382+00:00",
+      "seconds": 148.28,
+      "exit_code": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\workspace-full-fourth.log",
+      "log_sha256": "74b956117bf17a0b8373f229e020c2e8b79aa23b682233c4bafdc8ffdae49585",
+      "results": [
+        "test result: ok. 654 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 33.87s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 332 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.77s",
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.27s",
+        "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s",
+        "test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.67s",
+        "test result: ok. 95 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 1.31s",
+        "test result: ok. 64 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.62s",
+        "test result: ok. 249 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.49s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "totals": {
+        "groups": 25,
+        "passed": 1499,
+        "failed": 0,
+        "ignored": 3
+      },
+      "rf021Cases": [
+        "test commands::export_import::tests::rf021::rf021_host_shadow_name_excludes_bad_original_raw_without_weakening_strict_list ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_concurrent_dml_after_plan_rejects_import_and_preserves_writer ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_history_sql_failure_preserves_all_sixty_old_rows ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_duplicate_ids_preserve_sequential_strategy_name_and_write_count ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_chinese_owned_package_duplicate_id_keeps_name_history_and_counts ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_empty_selection_and_all_skip_do_not_read_unrelated_corrupt_hlc ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_database_fault_rolls_back_every_table_and_fresh_retry_succeeds ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_template_reads_are_on_demand_and_bad_reference_retains_snapshot_timing ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_keepboth_active_bad_name_stays_strict_and_zero_write ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_valid_history_replaces_and_missing_empty_bad_history_only_appends ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_history_delete_failure_retains_all_sixty_ciphertexts ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_bad_or_empty_package_history_appends_without_losing_sixty_rows ... ok",
+        "test commands::export_import::tests::rf021::rf021_host_strict_load_and_list_have_existing_error_boundaries ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_atomic_second_write_matrix_restores_four_tables_and_sixty_history ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_only_good_selection_ignores_bad_typed_unselected_target ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_unused_bad_typed_rows_do_not_block_overwrite_or_skip ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_explicit_empty_selection_does_not_parse_bad_typed_rows ... ok",
+        "test commands::export_import::tests::rf021_compatibility::rf021_host_softdeleted_bad_typed_rows_do_not_enter_keepboth_active_list ... ok",
+        "test export_import::rf021_tests::rf021_core_all_skip_avoids_unused_corrupt_local_hlc_and_keeps_four_tables ... ok",
+        "test export_import::rf021_tests::rf021_core_attachment_failure_keeps_old_err_contract_after_database_commit ... ok",
+        "test export_import::rf021_tests::rf021_core_database_success_preserves_encryption_and_orders_template_object_hlc ... ok",
+        "test export_import::rf021_tests::rf021_core_frozen_active_metadata_survives_live_change_but_commit_is_stale ... ok",
+        "test export_import::rf021_tests::rf021_core_invalid_templates_warn_skip_without_decoding_unused_bad_local_template ... ok",
+        "test export_import::rf021_tests::rf021_core_expired_session_is_rejected_before_opening_package ... ok",
+        "test export_import::rf021_tests::rf021_core_metadata_skip_does_not_decode_unused_bad_object_properties_or_labels ... ok",
+        "test export_import::rf021_tests::rf021_core_old_session_cannot_commit_prepared_batch_after_same_account_reunlock ... ok",
+        "test export_import::rf021_tests::rf021_core_second_connection_change_rejects_old_prepared_revision ... ok",
+        "test export_import::rf021_tests::rf021_core_prepare_does_not_write_and_same_connection_change_rejects_commit ... ok",
+        "test export_import::rf021_tests::rf021_core_preferences_failure_keeps_old_err_contract_after_database_commit ... ok",
+        "test export_import::rf021_tests::rf021_core_second_object_insert_failure_rolls_back_templates_and_hlc ... ok",
+        "test export_import::rf021_tests::rf021_core_second_hlc_failure_rolls_back_new_templates_and_objects ... ok",
+        "test export_import::rf021_tests::rf021_core_second_object_update_failure_keeps_all_sixty_old_snapshots ... ok",
+        "test export_import::rf021_tests::rf021_core_second_template_failure_rolls_back_all_tables_and_retries ... ok",
+        "test export_import::rf021_tests::rf021_core_seed_template_content_reuses_original_local_id ... ok",
+        "test export_import::rf021_tests::rf021_core_overwrite_and_merge_keep_history_and_ignore_package_history ... ok",
+        "test export_import::rf021_tests::rf021_core_template_only_import_commits_template_and_returns_zero_object_writes ... ok",
+        "test export_import::rf021_tests::rf021_core_skip_uses_batch_initial_active_membership_and_counts_duplicate_new_id ... ok",
+        "test export_import::rf021_tests::rf021_core_template_hash_dedupe_and_repeated_original_id_last_mapping ... ok",
+        "test export_import::rf021_tests::rf021_core_valid_package_template_propagates_frozen_local_template_read_error ... ok",
+        "test export_import::rf021_tests::rf021_core_wrong_account_prepare_returns_error_without_writes ... ok",
+        "test export_import::rf021_tests::rf021_core_skip_metadata_stays_independent_of_bad_properties_labels_and_children ... ok",
+        "test export_import::rf021_tests::rf021_core_skip_ignores_corrupt_soft_deleted_and_other_excluded_metadata ... ok",
+        "test export_import::rf021_tests::rf021_core_overwrite_and_merge_ignore_unused_typed_metadata_errors ... ok",
+        "test export_import::rf021_tests::rf021_core_skip_strict_active_metadata_keeps_old_error_and_zero_writes ... ok",
+        "test storage::import_batch::tests::rf021_actual_deferred_foreign_key_commit_failure_rolls_back_and_connection_recovers ... ok",
+        "test storage::import_batch::tests::rf021_bad_template_properties_are_deferred_until_strict_read_and_object_only_commit_succeeds ... ok",
+        "test storage::import_batch::tests::rf021_empty_batch_bad_local_hlc_succeeds_without_changing_four_tables ... ok",
+        "test storage::import_batch::tests::rf021_history_delete_failure_preserves_overwritten_object_and_its_old_history ... ok",
+        "test storage::import_batch::tests::rf021_active_full_list_defers_bad_name_and_unmatchable_blob_id_without_hiding_error ... ok",
+        "test storage::import_batch::tests::rf021_locking_store_revokes_view_read_and_commit_permission ... ok",
+        "test storage::import_batch::tests::rf021_invalid_empty_snapshot_or_duplicate_snapshot_within_owner_is_zero_commit ... ok",
+        "test storage::import_batch::tests::rf021_metadata_freezes_errors_after_live_repair_and_rejects_stale_commit ... ok",
+        "test storage::import_batch::tests::rf021_host_load_and_commit_good_ignore_unused_active_or_deleted_bad_name ... ok",
+        "test storage::import_batch::tests::rf021_metadata_freezes_sort_values_and_active_membership_across_live_changes ... ok",
+        "test storage::import_batch::tests::rf021_metadata_never_reads_properties_labels_children_or_unrequested_tags ... ok",
+        "test storage::import_batch::tests::rf021_metadata_view_ignores_bad_properties_but_strict_active_reads_reject_them ... ok",
+        "test storage::import_batch::tests::rf021_metadata_original_active_sql_excludes_deleted_bad_rows_and_bad_is_deleted_type ... ok",
+        "test storage::import_batch::tests::rf021_new_batch_template_name_matches_prepared_record_and_initial_snapshot ... ok",
+        "test storage::import_batch::tests::rf021_new_template_plan_rejects_existing_or_duplicate_template_ids ... ok",
+        "test storage::import_batch::tests::rf021_metadata_accessor_rejects_other_store_account_locked_empty_and_reopened_view ... ok",
+        "test storage::import_batch::tests::rf021_nonempty_batch_bad_local_hlc_still_rejects_without_any_write ... ok",
+        "test storage::import_batch::tests::rf021_empty_batch_bad_local_hlc_retains_revision_account_store_and_lock_guards ... ok",
+        "test storage::import_batch::tests::rf021_ordered_duplicate_objects_preserve_final_history_identity_encryption_and_hlc ... ok",
+        "test storage::import_batch::tests::rf021_plan_cannot_overwrite_an_existing_foreign_owner_or_write_foreign_account ... ok",
+        "test storage::import_batch::tests::rf021_referenced_bad_template_name_keeps_old_no_fallback_and_snapshot_input ... ok",
+        "test storage::import_batch::tests::rf021_overwrite_failure_preserves_all_sixty_old_snapshots_byte_for_byte ... ok",
+        "test storage::import_batch::tests::rf021_other_store_revision_and_wrong_account_cannot_authorize_a_batch ... ok",
+        "test storage::import_batch::tests::rf021_reopened_same_account_and_key_cannot_reuse_old_store_revision_or_view ... ok",
+        "test storage::import_batch::tests::rf021_same_connection_dml_invalidates_prepared_view_without_import_writes ... ok",
+        "test storage::import_batch::tests::rf021_second_connection_dml_invalidates_view_and_retains_concurrent_change ... ok",
+        "test storage::import_batch::tests::rf021_second_hlc_insert_failure_rolls_back_template_and_object_writes ... ok",
+        "test storage::import_batch::tests::rf021_second_object_insert_failure_rolls_back_templates_objects_histories_and_hlc ... ok",
+        "test storage::import_batch::tests::rf021_second_object_update_failure_rolls_back_both_overwrites_and_history_replacements ... ok",
+        "test storage::import_batch::tests::rf021_shadowed_corrupt_active_object_does_not_block_strict_remaining_list ... ok",
+        "test storage::import_batch::tests::rf021_shared_metadata_mapper_preserves_optional_tags_filter_and_deleted_query ... ok",
+        "test storage::import_batch::tests::rf021_second_snapshot_insert_failure_restores_previous_ciphertexts_and_all_records ... ok",
+        "test storage::import_batch::tests::rf021_second_template_insert_failure_rolls_back_entire_database_batch ... ok",
+        "test storage::import_batch::tests::rf021_snapshot_ids_are_unique_across_owners_and_cannot_reuse_existing_history_id ... ok",
+        "test storage::import_batch::tests::rf021_view_keeps_load_and_list_distinct_children_and_property_label_parsing_boundaries ... ok",
+        "test storage::import_batch::tests::rf021_template_view_freezes_order_values_deletion_and_later_insert ... ok",
+        "test storage::import_batch::tests::rf021_template_view_frozen_error_does_not_change_after_live_repair ... ok",
+        "test storage::import_batch::tests::rf021_template_raw_mapper_preserves_decryption_priority_and_invalid_utf8 ... ok",
+        "test storage::import_batch::tests::rf021_template_accessors_reject_other_store_account_locked_and_reopened_store ... ok",
+        "test storage::import_batch::tests::rf021_unused_bad_template_columns_including_name_do_not_block_object_only_batch ... ok",
+        "test storage::import_batch::tests::rf021_active_metadata_preserves_all_reachable_typed_column_errors_without_defaulting ... ok"
+      ],
+      "ignoredCases": [
+        "test field::tests::test_field_metadata ... ignored, legacy field_parse feature removed — requires contracts",
+        "test field::tests::test_resolve_legacy_unchanged ... ignored, legacy field_parse feature removed — requires contracts",
+        "test p025_hold_baseline_large_dataset ... ignored, P025 Phase 3 数据收集工具：--ignored 手动运行（约 2s，大数据集）"
+      ]
+    },
+    {
+      "name": "cli-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "started_at_utc": "2026-09-30T22:14:40.336492+00:00",
+      "seconds": 2.77,
+      "exit_code": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\cli-fmt-fourth.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "results": [],
+      "totals": {
+        "groups": 0,
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0
+      },
+      "rf021Cases": [],
+      "ignoredCases": []
+    },
+    {
+      "name": "cli-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "started_at_utc": "2026-09-30T22:14:43.107218+00:00",
+      "seconds": 42.14,
+      "exit_code": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\cli-clippy-fourth.log",
+      "log_sha256": "295cc956ce0bd3a81106063d9ae1020c79a9efcadb3fdbe618703c27fd977f46",
+      "results": [],
+      "totals": {
+        "groups": 0,
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0
+      },
+      "rf021Cases": [],
+      "ignoredCases": []
+    },
+    {
+      "name": "cli-full",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "started_at_utc": "2026-09-30T22:15:25.260949+00:00",
+      "seconds": 358.95,
+      "exit_code": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\cli-full-fourth.log",
+      "log_sha256": "2bc4213624a05ef34659404884a150e9320bf607fc23f05208bb72096b304428",
+      "results": [
+        "test result: ok. 289 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 225.96s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.98s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "totals": {
+        "groups": 4,
+        "passed": 291,
+        "failed": 0,
+        "ignored": 1
+      },
+      "rf021Cases": [
+        "test commands::export_import::rf021_tests::rf021_cli_cancel_password_prompt_does_not_write_database ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_old_password_prompt_is_rejected_after_account_switch ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_old_password_prompt_is_rejected_after_lock ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_old_password_prompt_is_rejected_after_same_account_reunlock ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_overwrite_keeps_existing_encrypted_history ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_preview_remains_available_when_locked ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_real_password_prompt_imports_objects_templates_and_hlc ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_second_object_hlc_insert_failure_rolls_back_and_recovers ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_second_object_insert_failure_rolls_back_and_recovers ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_second_object_update_failure_rolls_back_and_recovers ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_second_template_insert_failure_rolls_back_and_recovers ... ok",
+        "test commands::export_import::rf021_tests::rf021_cli_wrong_import_password_does_not_write_database ... ok"
+      ],
+      "ignoredCases": [
+        "test src\\i18n\\mod.rs - i18n::t (line 160) ... ignored"
+      ]
+    }
+  ],
+  "fullTotals": {
+    "groups": 25,
+    "passed": 1499,
+    "failed": 0,
+    "ignored": 3
+  },
+  "cliTotals": {
+    "groups": 4,
+    "passed": 291,
+    "failed": 0,
+    "ignored": 1
+  },
+  "finalCases": [
+    "test commands::export_import::tests::rf021::rf021_host_shadow_name_excludes_bad_original_raw_without_weakening_strict_list ... ok",
+    "test commands::export_import::tests::rf021::rf021_host_concurrent_dml_after_plan_rejects_import_and_preserves_writer ... ok",
+    "test commands::export_import::tests::rf021::rf021_host_history_sql_failure_preserves_all_sixty_old_rows ... ok",
+    "test commands::export_import::tests::rf021::rf021_host_duplicate_ids_preserve_sequential_strategy_name_and_write_count ... ok",
+    "test commands::export_import::tests::rf021_compatibility::rf021_host_chinese_owned_package_duplicate_id_keeps_name_history_and_counts ... ok",
+    "test commands::export_import::tests::rf021_compatibility::rf021_host_empty_selection_and_all_skip_do_not_read_unrelated_corrupt_hlc ... ok",
+    "test commands::export_import::tests::rf021::rf021_host_database_fault_rolls_back_every_table_and_fresh_retry_succeeds ... ok",
+    "test commands::export_import::tests::rf021::rf021_host_template_reads_are_on_demand_and_bad_reference_retains_snapshot_timing ... ok",
+    "test commands::export_import::tests::rf021_compatibility::rf021_host_keepboth_active_bad_name_stays_strict_and_zero_write ... ok",
+    "test commands::export_import::tests::rf021::rf021_host_valid_history_replaces_and_missing_empty_bad_history_only_appends ... ok",
+    "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_history_delete_failure_retains_all_sixty_ciphertexts ... ok",
+    "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_bad_or_empty_package_history_appends_without_losing_sixty_rows ... ok",
+    "test commands::export_import::tests::rf021::rf021_host_strict_load_and_list_have_existing_error_boundaries ... ok",
+    "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_atomic_second_write_matrix_restores_four_tables_and_sixty_history ... ok",
+    "test commands::export_import::tests::rf021_compatibility::rf021_host_only_good_selection_ignores_bad_typed_unselected_target ... ok",
+    "test commands::export_import::tests::rf021_compatibility::rf021_host_unused_bad_typed_rows_do_not_block_overwrite_or_skip ... ok",
+    "test commands::export_import::tests::rf021_compatibility::rf021_host_explicit_empty_selection_does_not_parse_bad_typed_rows ... ok",
+    "test commands::export_import::tests::rf021_compatibility::rf021_host_softdeleted_bad_typed_rows_do_not_enter_keepboth_active_list ... ok",
+    "test export_import::rf021_tests::rf021_core_all_skip_avoids_unused_corrupt_local_hlc_and_keeps_four_tables ... ok",
+    "test export_import::rf021_tests::rf021_core_attachment_failure_keeps_old_err_contract_after_database_commit ... ok",
+    "test export_import::rf021_tests::rf021_core_database_success_preserves_encryption_and_orders_template_object_hlc ... ok",
+    "test export_import::rf021_tests::rf021_core_frozen_active_metadata_survives_live_change_but_commit_is_stale ... ok",
+    "test export_import::rf021_tests::rf021_core_invalid_templates_warn_skip_without_decoding_unused_bad_local_template ... ok",
+    "test export_import::rf021_tests::rf021_core_expired_session_is_rejected_before_opening_package ... ok",
+    "test export_import::rf021_tests::rf021_core_metadata_skip_does_not_decode_unused_bad_object_properties_or_labels ... ok",
+    "test export_import::rf021_tests::rf021_core_old_session_cannot_commit_prepared_batch_after_same_account_reunlock ... ok",
+    "test export_import::rf021_tests::rf021_core_second_connection_change_rejects_old_prepared_revision ... ok",
+    "test export_import::rf021_tests::rf021_core_prepare_does_not_write_and_same_connection_change_rejects_commit ... ok",
+    "test export_import::rf021_tests::rf021_core_preferences_failure_keeps_old_err_contract_after_database_commit ... ok",
+    "test export_import::rf021_tests::rf021_core_second_object_insert_failure_rolls_back_templates_and_hlc ... ok",
+    "test export_import::rf021_tests::rf021_core_second_hlc_failure_rolls_back_new_templates_and_objects ... ok",
+    "test export_import::rf021_tests::rf021_core_second_object_update_failure_keeps_all_sixty_old_snapshots ... ok",
+    "test export_import::rf021_tests::rf021_core_second_template_failure_rolls_back_all_tables_and_retries ... ok",
+    "test export_import::rf021_tests::rf021_core_seed_template_content_reuses_original_local_id ... ok",
+    "test export_import::rf021_tests::rf021_core_overwrite_and_merge_keep_history_and_ignore_package_history ... ok",
+    "test export_import::rf021_tests::rf021_core_template_only_import_commits_template_and_returns_zero_object_writes ... ok",
+    "test export_import::rf021_tests::rf021_core_skip_uses_batch_initial_active_membership_and_counts_duplicate_new_id ... ok",
+    "test export_import::rf021_tests::rf021_core_template_hash_dedupe_and_repeated_original_id_last_mapping ... ok",
+    "test export_import::rf021_tests::rf021_core_valid_package_template_propagates_frozen_local_template_read_error ... ok",
+    "test export_import::rf021_tests::rf021_core_wrong_account_prepare_returns_error_without_writes ... ok",
+    "test export_import::rf021_tests::rf021_core_skip_metadata_stays_independent_of_bad_properties_labels_and_children ... ok",
+    "test export_import::rf021_tests::rf021_core_skip_ignores_corrupt_soft_deleted_and_other_excluded_metadata ... ok",
+    "test export_import::rf021_tests::rf021_core_overwrite_and_merge_ignore_unused_typed_metadata_errors ... ok",
+    "test export_import::rf021_tests::rf021_core_skip_strict_active_metadata_keeps_old_error_and_zero_writes ... ok",
+    "test storage::import_batch::tests::rf021_actual_deferred_foreign_key_commit_failure_rolls_back_and_connection_recovers ... ok",
+    "test storage::import_batch::tests::rf021_bad_template_properties_are_deferred_until_strict_read_and_object_only_commit_succeeds ... ok",
+    "test storage::import_batch::tests::rf021_empty_batch_bad_local_hlc_succeeds_without_changing_four_tables ... ok",
+    "test storage::import_batch::tests::rf021_history_delete_failure_preserves_overwritten_object_and_its_old_history ... ok",
+    "test storage::import_batch::tests::rf021_active_full_list_defers_bad_name_and_unmatchable_blob_id_without_hiding_error ... ok",
+    "test storage::import_batch::tests::rf021_locking_store_revokes_view_read_and_commit_permission ... ok",
+    "test storage::import_batch::tests::rf021_invalid_empty_snapshot_or_duplicate_snapshot_within_owner_is_zero_commit ... ok",
+    "test storage::import_batch::tests::rf021_metadata_freezes_errors_after_live_repair_and_rejects_stale_commit ... ok",
+    "test storage::import_batch::tests::rf021_host_load_and_commit_good_ignore_unused_active_or_deleted_bad_name ... ok",
+    "test storage::import_batch::tests::rf021_metadata_freezes_sort_values_and_active_membership_across_live_changes ... ok",
+    "test storage::import_batch::tests::rf021_metadata_never_reads_properties_labels_children_or_unrequested_tags ... ok",
+    "test storage::import_batch::tests::rf021_metadata_view_ignores_bad_properties_but_strict_active_reads_reject_them ... ok",
+    "test storage::import_batch::tests::rf021_metadata_original_active_sql_excludes_deleted_bad_rows_and_bad_is_deleted_type ... ok",
+    "test storage::import_batch::tests::rf021_new_batch_template_name_matches_prepared_record_and_initial_snapshot ... ok",
+    "test storage::import_batch::tests::rf021_new_template_plan_rejects_existing_or_duplicate_template_ids ... ok",
+    "test storage::import_batch::tests::rf021_metadata_accessor_rejects_other_store_account_locked_empty_and_reopened_view ... ok",
+    "test storage::import_batch::tests::rf021_nonempty_batch_bad_local_hlc_still_rejects_without_any_write ... ok",
+    "test storage::import_batch::tests::rf021_empty_batch_bad_local_hlc_retains_revision_account_store_and_lock_guards ... ok",
+    "test storage::import_batch::tests::rf021_ordered_duplicate_objects_preserve_final_history_identity_encryption_and_hlc ... ok",
+    "test storage::import_batch::tests::rf021_plan_cannot_overwrite_an_existing_foreign_owner_or_write_foreign_account ... ok",
+    "test storage::import_batch::tests::rf021_referenced_bad_template_name_keeps_old_no_fallback_and_snapshot_input ... ok",
+    "test storage::import_batch::tests::rf021_overwrite_failure_preserves_all_sixty_old_snapshots_byte_for_byte ... ok",
+    "test storage::import_batch::tests::rf021_other_store_revision_and_wrong_account_cannot_authorize_a_batch ... ok",
+    "test storage::import_batch::tests::rf021_reopened_same_account_and_key_cannot_reuse_old_store_revision_or_view ... ok",
+    "test storage::import_batch::tests::rf021_same_connection_dml_invalidates_prepared_view_without_import_writes ... ok",
+    "test storage::import_batch::tests::rf021_second_connection_dml_invalidates_view_and_retains_concurrent_change ... ok",
+    "test storage::import_batch::tests::rf021_second_hlc_insert_failure_rolls_back_template_and_object_writes ... ok",
+    "test storage::import_batch::tests::rf021_second_object_insert_failure_rolls_back_templates_objects_histories_and_hlc ... ok",
+    "test storage::import_batch::tests::rf021_second_object_update_failure_rolls_back_both_overwrites_and_history_replacements ... ok",
+    "test storage::import_batch::tests::rf021_shadowed_corrupt_active_object_does_not_block_strict_remaining_list ... ok",
+    "test storage::import_batch::tests::rf021_shared_metadata_mapper_preserves_optional_tags_filter_and_deleted_query ... ok",
+    "test storage::import_batch::tests::rf021_second_snapshot_insert_failure_restores_previous_ciphertexts_and_all_records ... ok",
+    "test storage::import_batch::tests::rf021_second_template_insert_failure_rolls_back_entire_database_batch ... ok",
+    "test storage::import_batch::tests::rf021_snapshot_ids_are_unique_across_owners_and_cannot_reuse_existing_history_id ... ok",
+    "test storage::import_batch::tests::rf021_view_keeps_load_and_list_distinct_children_and_property_label_parsing_boundaries ... ok",
+    "test storage::import_batch::tests::rf021_template_view_freezes_order_values_deletion_and_later_insert ... ok",
+    "test storage::import_batch::tests::rf021_template_view_frozen_error_does_not_change_after_live_repair ... ok",
+    "test storage::import_batch::tests::rf021_template_raw_mapper_preserves_decryption_priority_and_invalid_utf8 ... ok",
+    "test storage::import_batch::tests::rf021_template_accessors_reject_other_store_account_locked_and_reopened_store ... ok",
+    "test storage::import_batch::tests::rf021_unused_bad_template_columns_including_name_do_not_block_object_only_batch ... ok",
+    "test storage::import_batch::tests::rf021_active_metadata_preserves_all_reachable_typed_column_errors_without_defaulting ... ok",
+    "test commands::export_import::rf021_tests::rf021_cli_cancel_password_prompt_does_not_write_database ... ok",
+    "test commands::export_import::rf021_tests::rf021_cli_old_password_prompt_is_rejected_after_account_switch ... ok",
+    "test commands::export_import::rf021_tests::rf021_cli_old_password_prompt_is_rejected_after_lock ... ok",
+    "test commands::export_import::rf021_tests::rf021_cli_old_password_prompt_is_rejected_after_same_account_reunlock ... ok",
+    "test commands::export_import::rf021_tests::rf021_cli_overwrite_keeps_existing_encrypted_history ... ok",
+    "test commands::export_import::rf021_tests::rf021_cli_preview_remains_available_when_locked ... ok",
+    "test commands::export_import::rf021_tests::rf021_cli_real_password_prompt_imports_objects_templates_and_hlc ... ok",
+    "test commands::export_import::rf021_tests::rf021_cli_second_object_hlc_insert_failure_rolls_back_and_recovers ... ok",
+    "test commands::export_import::rf021_tests::rf021_cli_second_object_insert_failure_rolls_back_and_recovers ... ok",
+    "test commands::export_import::rf021_tests::rf021_cli_second_object_update_failure_rolls_back_and_recovers ... ok",
+    "test commands::export_import::rf021_tests::rf021_cli_second_template_insert_failure_rolls_back_and_recovers ... ok",
+    "test commands::export_import::rf021_tests::rf021_cli_wrong_import_password_does_not_write_database ... ok"
+  ],
+  "priorFailedChecks": [
+    {
+      "run": "full-first.json",
+      "checks": [
+        {
+          "name": "workspace-fmt",
+          "command": [
+            "cargo",
+            "fmt",
+            "--all",
+            "--check"
+          ],
+          "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+          "started_at_utc": "2026-09-30T21:40:40.585394+00:00",
+          "seconds": 5.01,
+          "exit_code": 0,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\workspace-fmt-first.log",
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "results": [],
+          "totals": {
+            "groups": 0,
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0
+          },
+          "rf021Cases": [],
+          "ignoredCases": []
+        },
+        {
+          "name": "workspace-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+          "started_at_utc": "2026-09-30T21:40:45.592830+00:00",
+          "seconds": 53.9,
+          "exit_code": 101,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\workspace-clippy-first.log",
+          "log_sha256": "63a7b0f26cc68b1950c5cd5f9925554734a06d6069e35f11d9806683aa84d3c7",
+          "results": [],
+          "totals": {
+            "groups": 0,
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0
+          },
+          "rf021Cases": [],
+          "ignoredCases": []
+        }
+      ]
+    },
+    {
+      "run": "full-second.json",
+      "checks": [
+        {
+          "name": "workspace-fmt",
+          "command": [
+            "cargo",
+            "fmt",
+            "--all",
+            "--check"
+          ],
+          "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+          "started_at_utc": "2026-09-30T21:44:31.841888+00:00",
+          "seconds": 2.08,
+          "exit_code": 0,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\workspace-fmt-second.log",
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "results": [],
+          "totals": {
+            "groups": 0,
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0
+          },
+          "rf021Cases": [],
+          "ignoredCases": []
+        },
+        {
+          "name": "workspace-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+          "started_at_utc": "2026-09-30T21:44:33.924648+00:00",
+          "seconds": 39.92,
+          "exit_code": 101,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\workspace-clippy-second.log",
+          "log_sha256": "38aba9e18db139a807fff16cfff170ff44a9ac0e3a8a8e9ddfc00d9df635bc26",
+          "results": [],
+          "totals": {
+            "groups": 0,
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0
+          },
+          "rf021Cases": [],
+          "ignoredCases": []
+        }
+      ]
+    },
+    {
+      "run": "full-third.json",
+      "checks": [
+        {
+          "name": "workspace-fmt",
+          "command": [
+            "cargo",
+            "fmt",
+            "--all",
+            "--check"
+          ],
+          "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+          "started_at_utc": "2026-09-30T21:47:20.899403+00:00",
+          "seconds": 2.17,
+          "exit_code": 0,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\workspace-fmt-third.log",
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "results": [],
+          "totals": {
+            "groups": 0,
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0
+          },
+          "rf021Cases": [],
+          "ignoredCases": []
+        },
+        {
+          "name": "workspace-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+          "started_at_utc": "2026-09-30T21:47:23.069841+00:00",
+          "seconds": 30.58,
+          "exit_code": 0,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\workspace-clippy-third.log",
+          "log_sha256": "f03ca2fcd4228ef86ad55feb5dcffea389c2561673a96187e5c5637cd8367eb3",
+          "results": [],
+          "totals": {
+            "groups": 0,
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0
+          },
+          "rf021Cases": [],
+          "ignoredCases": []
+        },
+        {
+          "name": "workspace-full",
+          "command": [
+            "cargo",
+            "test",
+            "--verbose"
+          ],
+          "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+          "started_at_utc": "2026-09-30T21:47:53.656628+00:00",
+          "seconds": 615.38,
+          "exit_code": 101,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\workspace-full-third.log",
+          "log_sha256": "fc729671ac01eb168ef75da24acc6785f0beedf065fc2983f512d61a8f1a5db4",
+          "results": [
+            "test result: FAILED. 649 passed; 5 failed; 0 ignored; 0 measured; 0 filtered out; finished in 31.34s"
+          ],
+          "totals": {
+            "groups": 1,
+            "passed": 649,
+            "failed": 5,
+            "ignored": 0
+          },
+          "rf021Cases": [
+            "test commands::export_import::tests::rf021::rf021_host_shadow_name_excludes_bad_original_raw_without_weakening_strict_list ... ok",
+            "test commands::export_import::tests::rf021::rf021_host_concurrent_dml_after_plan_rejects_import_and_preserves_writer ... ok",
+            "test commands::export_import::tests::rf021::rf021_host_history_sql_failure_preserves_all_sixty_old_rows ... ok",
+            "test commands::export_import::tests::rf021_compatibility::rf021_host_chinese_owned_package_duplicate_id_keeps_name_history_and_counts ... ok",
+            "test commands::export_import::tests::rf021::rf021_host_duplicate_ids_preserve_sequential_strategy_name_and_write_count ... ok",
+            "test commands::export_import::tests::rf021::rf021_host_template_reads_are_on_demand_and_bad_reference_retains_snapshot_timing ... ok",
+            "test commands::export_import::tests::rf021_compatibility::rf021_host_empty_selection_and_all_skip_do_not_read_unrelated_corrupt_hlc ... ok",
+            "test commands::export_import::tests::rf021::rf021_host_database_fault_rolls_back_every_table_and_fresh_retry_succeeds ... ok",
+            "test commands::export_import::tests::rf021_compatibility::rf021_host_keepboth_active_bad_name_stays_strict_and_zero_write ... ok",
+            "test commands::export_import::tests::rf021::rf021_host_valid_history_replaces_and_missing_empty_bad_history_only_appends ... ok",
+            "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_history_delete_failure_retains_all_sixty_ciphertexts ... ok",
+            "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_bad_or_empty_package_history_appends_without_losing_sixty_rows ... ok",
+            "test commands::export_import::tests::rf021::rf021_host_strict_load_and_list_have_existing_error_boundaries ... ok",
+            "test commands::export_import::tests::rf021_compatibility::rf021_host_owned_atomic_second_write_matrix_restores_four_tables_and_sixty_history ... ok",
+            "test commands::export_import::tests::rf021_compatibility::rf021_host_only_good_selection_ignores_bad_typed_unselected_target ... ok",
+            "test commands::export_import::tests::rf021_compatibility::rf021_host_unused_bad_typed_rows_do_not_block_overwrite_or_skip ... ok",
+            "test commands::export_import::tests::rf021_compatibility::rf021_host_explicit_empty_selection_does_not_parse_bad_typed_rows ... ok",
+            "test commands::export_import::tests::rf021_compatibility::rf021_host_softdeleted_bad_typed_rows_do_not_enter_keepboth_active_list ... ok"
+          ],
+          "ignoredCases": []
+        }
+      ]
+    }
+  ],
+  "failureRepairs": [
+    "Clippy测试let_and_return仅删除冗余变量。",
+    "未使用生产reexport改cfg(test)，inject_property_fields生产保持。",
+    "完整Host649passed/5failed旧断言：RF018稳定错误码/同账户与跨账户坏行；RF027提交前可见状态与快照失败全回滚；RF00340/90切换计数。保留真实故障、barrier、文件、脱敏、通知检查。"
+  ],
+  "reviews": [
+    {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-proposal\\independent-core-cli-review.json",
+      "sha256": "13820642383ba975a628a30e1bbe2a973e19b5dfa843798ee906323e6ffc9625",
+      "finding": {
+        "schema": 1,
+        "task": "RF-021",
+        "reviewer": "native_perf_review",
+        "reviewedAtUtc": "2026-09-30T21:09:53.687610+00:00",
+        "mode": "independent read-only source review; only this TEMP review JSON written",
+        "verdict": "no_additional_must_fix_found_in_reviewed_frozen_core_cli_sources",
+        "mustFixFindings": [],
+        "reviewedInputs": [
+          {
+            "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal\\candidate\\tauri\\crates\\solosoul-core\\src\\export_import.rs",
+            "bytes": 97767,
+            "sha256": "B44B46E1FFD6D283EB14EA8AA27FFF9DD90169AE3C2A7426A02EC044191CA36A",
+            "matches_declared_candidate_sha256": true,
+            "repository_relative_path": "tauri/crates/solosoul-core/src/export_import.rs",
+            "read_only_reviewed": true
+          },
+          {
+            "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal\\candidate\\tauri\\crates\\solosoul-core\\src\\export_import\\rf021_tests.rs",
+            "bytes": 32365,
+            "sha256": "6D71A92B6A01A73B5D1C4AAD6799D76FEBBE632FD0C857AC36D92C6145DA38FC",
+            "matches_declared_candidate_sha256": true,
+            "repository_relative_path": "tauri/crates/solosoul-core/src/export_import/rf021_tests.rs",
+            "read_only_reviewed": true
+          },
+          {
+            "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal\\README.md",
+            "bytes": 5679,
+            "sha256": "40FEE7BD5696A91F8F1FBB5540DAF37DC8451A24BFB682FE61B27E74A74CCC59",
+            "artifact_kind": "README"
+          },
+          {
+            "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal\\manifest.json",
+            "bytes": 4196,
+            "sha256": "8DBEF401EA92CFCEFA61B32746A59163A64C48AF8355512BED3E59041BFCF3E7",
+            "artifact_kind": "manifest"
+          },
+          {
+            "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-cli-proposal\\candidate\\solosoul_cli\\src\\commands\\export_import.rs",
+            "bytes": 16884,
+            "sha256": "6DE914D1DAD97596D755D1DDEF3997507CEAEB45EEB7442B78220CA33334BB93",
+            "matches_declared_candidate_sha256": true,
+            "repository_relative_path": "solosoul_cli/src/commands/export_import.rs",
+            "read_only_reviewed": true
+          },
+          {
+            "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-cli-proposal\\candidate\\solosoul_cli\\src\\commands\\export_import\\rf021_tests.rs",
+            "bytes": 17688,
+            "sha256": "9B8D7FC4DE55B97E9996A0759AD31EB8F2DD94E4E00E011C0F7651A8BB7FEC56",
+            "matches_declared_candidate_sha256": true,
+            "repository_relative_path": "solosoul_cli/src/commands/export_import/rf021_tests.rs",
+            "read_only_reviewed": true
+          },
+          {
+            "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-cli-proposal\\README.md",
+            "bytes": 5409,
+            "sha256": "6B0E41D8E0937E8E2CB1F89C85213FD13CC1C76F63D95B53783A49E90A2E8497",
+            "artifact_kind": "README"
+          },
+          {
+            "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-cli-proposal\\manifest.json",
+            "bytes": 2151,
+            "sha256": "6411E164D61A25FBB32C7A84BC1EDC5419FC342ED9B0631525C227200C3A58C2",
+            "artifact_kind": "manifest"
+          }
+        ],
+        "vaultContract": {
+          "manifest": {
+            "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\manifest.json",
+            "bytes": 21144,
+            "sha256": "20BF830CF0C9A71A64D66B65F9E9CE39BF7868379E4FBA838907FF6F9B87427E"
+          },
+          "candidateFiles": [
+            {
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\candidate\\tauri\\crates\\solosoul-vault\\src\\lib.rs",
+              "bytes": 27322,
+              "sha256": "4ED897E6444C8AEECF0E03A0A02455E6970A18C770302A9EA598912C7B03A371",
+              "matches_frozen_manifest": true
+            },
+            {
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\candidate\\tauri\\crates\\solosoul-vault\\src\\storage.rs",
+              "bytes": 53655,
+              "sha256": "5D6811B148E00FE2067EB8F92AA91D2F24BDD495D17EF38B6C4C785D7274DE2D",
+              "matches_frozen_manifest": true
+            },
+            {
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\candidate\\tauri\\crates\\solosoul-vault\\src\\storage\\import_batch.rs",
+              "bytes": 24602,
+              "sha256": "76929BC19E70A856BE2AB895DDDC0E530D64DAE33C76D5756C64CEFDAF6C6E5C",
+              "matches_frozen_manifest": true
+            },
+            {
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\candidate\\tauri\\crates\\solosoul-vault\\src\\storage\\import_batch\\tests.rs",
+              "bytes": 62456,
+              "sha256": "89841AC01226C0CDB4C605EBA4080053EA2736ABEA8717273DE653D9383D5018",
+              "matches_frozen_manifest": true
+            },
+            {
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\candidate\\tauri\\crates\\solosoul-vault\\src\\storage\\objects.rs",
+              "bytes": 53162,
+              "sha256": "C89FE62D2456AF2A3E36CCA571DBD5CD272277898462CD296ED0E134FB09E13C",
+              "matches_frozen_manifest": true
+            },
+            {
+              "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\candidate\\tauri\\crates\\solosoul-vault\\src\\storage\\snapshots.rs",
+              "bytes": 26251,
+              "sha256": "68FC2BFB5C3E1B6700F6FF7DBE80281EB870F5B93B83CB3D696AD938053A992F",
+              "matches_frozen_manifest": true
+            }
+          ],
+          "publicViewFields": [
+            "revision"
+          ],
+          "newMetadataApi": "list_import_view_object_metadata(&ImportReadView) -> Result<Vec<ObjectSummary>, String>",
+          "templateApis": [
+            "list_import_view_user_templates(&ImportReadView) -> Result<Vec<UserTemplate>, String>",
+            "load_import_view_user_template(&ImportReadView, &str) -> Result<Option<UserTemplate>, String>"
+          ],
+          "batchCommit": "commit_import_batch(account_id, &view.revision, &ImportDatabaseBatch) -> Result<ImportDatabaseCommit, ImportBatchError>",
+          "reviewerAuthoredVaultCandidate": true,
+          "independentReviewScope": "Core/CLI four candidate sources and README; Vault API compatibility cross-check, not independent validation of reviewer-authored Vault"
+        },
+        "conclusions": [
+          {
+            "area": "one database batch and original session gate",
+            "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal\\candidate\\tauri\\crates\\solosoul-core\\src\\export_import.rs",
+            "lines": [
+              429,
+              442,
+              448,
+              551,
+              559,
+              1217,
+              1225
+            ],
+            "evidence": "Initial noop target.commit checks the original Session. KDF/ZIP/payload/read view/planning run outside the gate. PreparedCoreImport owns the same view/revision/batch. Exactly one database-phase target.commit calls commit_import_batch on the passed original Vault; no fresh session/view substitution. Direct wrapper remains Direct.",
+            "limitations": "This means one templates/objects/history/HLC database phase; later attachment metadata/profile/audit commits remain independent."
+          },
+          {
+            "area": "Core Skip membership and ordered duplicate count",
+            "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal\\candidate\\tauri\\crates\\solosoul-core\\src\\export_import.rs",
+            "lines": [
+              517,
+              519,
+              527,
+              536,
+              651,
+              715,
+              716
+            ],
+            "evidence": "Only SkipExisting consumes strict frozen original active metadata. The existing ID set is captured before the batch and is never extended during iteration; original active IDs skip, softdeleted IDs may restore, duplicate new source IDs remain ordered writes. Core usize is committed.object_write_count, not unique object_ids.",
+            "testEvidence": "Core tests 290/316 and appended metadata cases 708/790/847/888/912 are real SQLite/package drafts; not executed."
+          },
+          {
+            "area": "template hash/map/invalid templates",
+            "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal\\candidate\\tauri\\crates\\solosoul-core\\src\\export_import.rs",
+            "lines": [
+              572,
+              577,
+              584,
+              590,
+              595,
+              596,
+              604,
+              608,
+              620
+            ],
+            "evidence": "Serde-invalid package templates warn and skip before any strict local template list. First valid template requires strict frozen list; existing/seed/planned content hash is reused, planned duplicate imported IDs are not inserted twice, and mapping.insert on each original ID preserves last mapping. Hash excludes id/account/time and uses original Vault hasher; load/read/save SQL failures now propagate into the required atomic batch instead of being swallowed.",
+            "testEvidence": "Core 339/366/391/409/632 drafts cover content reuse/last map/invalid skip/strict failure/template-only zero-object count; not executed."
+          },
+          {
+            "area": "Keep all original history",
+            "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal\\candidate\\tauri\\crates\\solosoul-core\\src\\export_import.rs",
+            "lines": [
+              536,
+              541
+            ],
+            "evidence": "Every prepared Core object explicitly uses ImportHistoryChange::Keep. Package histories are not parsed/imported by Core, old histories are not deleted or appended. Ordered duplicate writes and Overwrite/Merge both use the same Keep plan.",
+            "testEvidence": "Core draft 316 preserves all sixty raw snapshots; CLI draft471 preserves its actual existing encrypted history. No passing result claimed."
+          },
+          {
+            "area": "post-database attachment/preferences/error contract",
+            "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal\\candidate\\tauri\\crates\\solosoul-core\\src\\export_import.rs",
+            "lines": [
+              453,
+              455,
+              460,
+              475,
+              478,
+              1320,
+              1400,
+              1506,
+              1522,
+              1538,
+              1553
+            ],
+            "evidence": "Existing import_attachments_into logic is reused with the same original target. HKDF/decryption/staging happen outside gates; publication, metadata save and preference save use original session commit. They occur after DB success and can return ExportError while objects/templates are already committed. Audit write error remains best-effort inside target.commit, session invalidation still Err. Old usize/Err contract is retained; no claim that RF020 Partial or file rollback is solved.",
+            "testEvidence": "Core draft581 and603 use actual malformed preferences/attachment ciphertext and assert Err after objects exist; unexecuted."
+          },
+          {
+            "area": "CLI capture before prompt and zeroizing key",
+            "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-cli-proposal\\candidate\\solosoul_cli\\src\\commands\\export_import.rs",
+            "lines": [
+              173,
+              174,
+              182,
+              184,
+              191,
+              199,
+              201,
+              202,
+              211
+            ],
+            "evidence": "require_unlocked fixes account, capture_session and strict attachment_key_for_session occur before opening Text prompt. Captured key is actual Zeroizing<[u8;32]> from current session API; Some(&*key) matches Core argument type. Callback uses the original Session and no direct Vault/fresh recapture/optional plaintext fallback. Prompt Text is Zeroizing<String>, real finish/Cancel drops captured key; preview path remains before require_unlocked."
+          },
+          {
+            "area": "real CLI prompt fixture and scope",
+            "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-cli-proposal\\candidate\\solosoul_cli\\src\\commands\\export_import\\rf021_tests.rs",
+            "lines": [
+              26,
+              63,
+              78,
+              107,
+              119,
+              126,
+              203,
+              291,
+              321,
+              365,
+              402,
+              420,
+              436,
+              441,
+              446,
+              451,
+              456,
+              461,
+              466,
+              471,
+              488,
+              504
+            ],
+            "evidence": "Fixture uses isolated TempDir source/target VaultService, real export_vault package, actual handle and prompt::handle_key Char/Enter/Esc callbacks. All12 functions use VAULT_TEST_LOCK directly or through helper. Second-write trigger faults cover templates/INSERT/UPDATE/HLC and full typed raw SQLite table comparison. Stale prompt lock/switch/reunlock snapshots are taken after legitimate transitions. No mocked Core/database result and no real user Vault used."
+          },
+          {
+            "area": "metadata/fixture fixes and current README",
+            "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal\\candidate\\tauri\\crates\\solosoul-core\\src\\export_import\\rf021_tests.rs",
+            "lines": [
+              659,
+              708,
+              729,
+              737,
+              764,
+              790,
+              847,
+              888,
+              912
+            ],
+            "evidence": "Latest Core has removed unpublished view.objects, matches frozen Vault metadata API/error prefixes, preserves original twenty test-source bytes as an exact prefix and adds five drafts. Its CHECK bypass is only external fixture connection during template_type injection then restored; ValueRef raw-cell helper avoids invalid UTF8 owned String decoding. Current README states TEMP/uncompiled/unexecuted25 and retains old sources in original-proposal, superseding first metadata freeze."
+          }
+        ],
+        "actualRepositorySupportRead": [
+          {
+            "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-core\\src\\vault_service\\session.rs",
+            "functions": [
+              "capture_session",
+              "with_session",
+              "attachment_key_for_session"
+            ],
+            "confirmed": "original generation/account/Arc identity guard; Zeroizing<[u8;32]> attachment key return"
+          },
+          {
+            "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-core\\src\\vault_service\\account.rs",
+            "lines": [
+              176,
+              259,
+              261
+            ],
+            "confirmed": "create_account_common opens/publishes unlocked Vault, so Core Fixture get_vault_store initialization is reachable"
+          },
+          {
+            "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-vault\\src\\template_hash.rs",
+            "lines": [
+              42,
+              44,
+              59
+            ],
+            "confirmed": "original hash canonical content excludes IDs/account/time; imported ID format unchanged"
+          },
+          {
+            "path": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli\\src\\widgets\\prompt.rs",
+            "lines": [
+              46,
+              54,
+              131,
+              154,
+              164,
+              177
+            ],
+            "confirmed": "real Zeroizing Text result/actual key handling/finish/drop lifecycle"
+          }
+        ],
+        "testCandidateCounts": {
+          "coreFinal": 25,
+          "coreOriginalPrefix": 20,
+          "cli": 12,
+          "vaultLatest": 38,
+          "executedByReviewer": false
+        },
+        "reviewLimitations": [
+          "No Cargo/typecheck/test/build/Clippy/format/apply-check/GUI/process or actual SQLite statements were run during this independent Core/CLI review",
+          "Source review does not prove compilation, runtime callback behavior, SQL fault reachability on installed SQLite or exhaustive races",
+          "Root must integrate the latest six-file Vault metadata candidate with Core/CLI and separately verify Host behavior/session/strategy tests",
+          "Core/CLI post-DB stages may return Err after a successful database commit; this is preserved contract, not full import atomicity",
+          "No user Vault, environment mutation, account file or external/cloud service was accessed"
+        ],
+        "writes": {
+          "repository": false,
+          "candidateSource": false,
+          "candidateREADME": false,
+          "gitIndex": false,
+          "onlyReviewJson": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-proposal\\independent-core-cli-review.json"
+        }
+      },
+      "scope": "read-only static review; no independent test execution"
+    },
+    {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-proposal\\independent-cross-api-review.json",
+      "sha256": "4564d81d23040439c9cda9e7b17e5d48f7a5d705c57e5978581024ddf06cea28",
+      "finding": {
+        "schema": 1,
+        "task": "RF-021 independent Host/Core/CLI/Vault cross-API review",
+        "frozen_at_utc": "2026-09-30T21:24:04.361799+00:00",
+        "reviewer": "/root/rf104_projection_tests",
+        "repository": "C:\\Users\\40299571\\SoloSoul",
+        "status": "No additional production must-fix found after the frozen metadata revisions; integration checks remain owned by Root",
+        "conclusion": "新版 Vault 延期按需消费严格解析错误，Host 保持 load/list 差异；Core 仅 SkipExisting 调用旧 active 15 列 metadata accessor。Host/Core 的重复 ID、历史与计数规则不同且已保留。短原会话 gate 内只有一个数据库 batch commit，并复核原 revision。",
+        "artifacts": [
+          {
+            "directory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-proposal",
+            "manifest": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-proposal\\rf021-host-proposal.json",
+            "manifest_sha256": "3fb9cbc1169b26949f590c1c1c4a6a9888fb13a982dd5b6f68fb544ed18c2601",
+            "candidate_files": [
+              {
+                "path": "tauri/src-tauri/src/commands/export_import/helpers.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-proposal\\candidate\\tauri\\src-tauri\\src\\commands\\export_import\\helpers.rs",
+                "sha256": "aca9642251ab1219ef4082d0a31d26ab78dc680f9fdba9b492b048ed0117e5fa",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/src-tauri/src/commands/export_import/import/batch.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-proposal\\candidate\\tauri\\src-tauri\\src\\commands\\export_import\\import\\batch.rs",
+                "sha256": "ffedfcf3f2cca2ec16ac3efbdf6e6280d3bfd02a8444eb06387e591b34d52605",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/src-tauri/src/commands/export_import/import.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-proposal\\candidate\\tauri\\src-tauri\\src\\commands\\export_import\\import.rs",
+                "sha256": "6a144dd361610293377aa3e7419d827953f14e0a143b0559be973f2ad0120efe",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/src-tauri/src/commands/export_import/tests/rf020.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-proposal\\candidate\\tauri\\src-tauri\\src\\commands\\export_import\\tests\\rf020.rs",
+                "sha256": "4bdd4b06d2a13eb0d3c88ae704c9e401a98b716ac0be31c6c8b2c6d327b2e376",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/src-tauri/src/commands/export_import/tests/rf021.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-proposal\\candidate\\tauri\\src-tauri\\src\\commands\\export_import\\tests\\rf021.rs",
+                "sha256": "2dddc4fce0deb65b1168d17796fc68991c9dfc5b5f8ae5aa3334262a65aa70eb",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/src-tauri/src/commands/export_import/tests.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-proposal\\candidate\\tauri\\src-tauri\\src\\commands\\export_import\\tests.rs",
+                "sha256": "f610aca14142145a241c12d20ecf176b28ff8e95099b710d09e79e5540343951",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              }
+            ]
+          },
+          {
+            "directory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-metadata-proposal",
+            "manifest": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-metadata-proposal\\manifest.json",
+            "manifest_sha256": "ccce8c8c3e2d6646c3d2e3c8f05b2c042357abf8ea5a19218d9eff84d07c34dd",
+            "candidate_files": [
+              {
+                "path": "tauri/src-tauri/src/commands/export_import/helpers.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-metadata-proposal\\candidate\\tauri\\src-tauri\\src\\commands\\export_import\\helpers.rs",
+                "sha256": "aca9642251ab1219ef4082d0a31d26ab78dc680f9fdba9b492b048ed0117e5fa",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/src-tauri/src/commands/export_import/import/batch.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-metadata-proposal\\candidate\\tauri\\src-tauri\\src\\commands\\export_import\\import\\batch.rs",
+                "sha256": "ffedfcf3f2cca2ec16ac3efbdf6e6280d3bfd02a8444eb06387e591b34d52605",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/src-tauri/src/commands/export_import/import.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-metadata-proposal\\candidate\\tauri\\src-tauri\\src\\commands\\export_import\\import.rs",
+                "sha256": "6a144dd361610293377aa3e7419d827953f14e0a143b0559be973f2ad0120efe",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/src-tauri/src/commands/export_import/tests/rf020.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-metadata-proposal\\candidate\\tauri\\src-tauri\\src\\commands\\export_import\\tests\\rf020.rs",
+                "sha256": "4bdd4b06d2a13eb0d3c88ae704c9e401a98b716ac0be31c6c8b2c6d327b2e376",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/src-tauri/src/commands/export_import/tests/rf021.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-metadata-proposal\\candidate\\tauri\\src-tauri\\src\\commands\\export_import\\tests\\rf021.rs",
+                "sha256": "2dddc4fce0deb65b1168d17796fc68991c9dfc5b5f8ae5aa3334262a65aa70eb",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/src-tauri/src/commands/export_import/tests/rf021_compatibility.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-metadata-proposal\\candidate\\tauri\\src-tauri\\src\\commands\\export_import\\tests\\rf021_compatibility.rs",
+                "sha256": "798f81f26dbfbdeacd6c7cf73790aab5985d75bdc82151114c026e26b07980cc",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/src-tauri/src/commands/export_import/tests.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-host-metadata-proposal\\candidate\\tauri\\src-tauri\\src\\commands\\export_import\\tests.rs",
+                "sha256": "59b2c8859ac7b04ba345778d64f72c563ca7e6a8fcbdf77a2c7d32ac87ddd623",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              }
+            ]
+          },
+          {
+            "directory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal",
+            "manifest": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal\\manifest.json",
+            "manifest_sha256": "8dbef401ea92cfcefa61b32746a59163a64c48af8355512bed3e59041bfcf3e7",
+            "candidate_files": [
+              {
+                "path": "tauri/crates/solosoul-core/src/export_import/rf021_tests.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal\\candidate\\tauri\\crates\\solosoul-core\\src\\export_import\\rf021_tests.rs",
+                "sha256": "6d71a92b6a01a73b5d1c4aad6799d76febbe632fd0c857ac36d92c6145da38fc",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/crates/solosoul-core/src/export_import.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-core-metadata-proposal\\candidate\\tauri\\crates\\solosoul-core\\src\\export_import.rs",
+                "sha256": "b44b46e1ffd6d283eb14ea8aa27fff9dd90169ae3c2a7426a02ec044191ca36a",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              }
+            ]
+          },
+          {
+            "directory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-cli-proposal",
+            "manifest": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-cli-proposal\\manifest.json",
+            "manifest_sha256": "6411e164d61a25fbb32c7a84bc1edc5419fc342ed9b0631525c227200c3a58c2",
+            "candidate_files": [
+              {
+                "path": "solosoul_cli/src/commands/export_import/rf021_tests.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-cli-proposal\\candidate\\solosoul_cli\\src\\commands\\export_import\\rf021_tests.rs",
+                "sha256": "9b8d7fc4de55b97e9996a0759ad31eb8f2dd94e4e00e011c0f7651a8bb7fec56",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "solosoul_cli/src/commands/export_import.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-cli-proposal\\candidate\\solosoul_cli\\src\\commands\\export_import.rs",
+                "sha256": "6de914d1dad97596d755d1ddef3997507ceaeb45eeb7442b78220ca33334bb93",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              }
+            ]
+          },
+          {
+            "directory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal",
+            "manifest": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\manifest.json",
+            "manifest_sha256": "20bf830cf0c9a71a64d66b65f9e9ce39bf7868379e4fba838907ff6f9b87427e",
+            "candidate_files": [
+              {
+                "path": "tauri/crates/solosoul-vault/src/lib.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\candidate\\tauri\\crates\\solosoul-vault\\src\\lib.rs",
+                "sha256": "4ed897e6444c8aeecf0e03a0a02455e6970a18c770302a9ea598912c7b03a371",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/crates/solosoul-vault/src/storage/import_batch/tests.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\candidate\\tauri\\crates\\solosoul-vault\\src\\storage\\import_batch\\tests.rs",
+                "sha256": "89841ac01226c0cdb4c605eba4080053ea2736abea8717273de653d9383d5018",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/crates/solosoul-vault/src/storage/import_batch.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\candidate\\tauri\\crates\\solosoul-vault\\src\\storage\\import_batch.rs",
+                "sha256": "76929bc19e70a856be2ab895dddc0e530d64dae33c76d5756c64cefdaf6c6e5c",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/crates/solosoul-vault/src/storage/objects.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\candidate\\tauri\\crates\\solosoul-vault\\src\\storage\\objects.rs",
+                "sha256": "c89fe62d2456af2a3e36cca571dbd5cd272277898462cd296ed0e134fb09e13c",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/crates/solosoul-vault/src/storage/snapshots.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\candidate\\tauri\\crates\\solosoul-vault\\src\\storage\\snapshots.rs",
+                "sha256": "68fc2bfb5c3e1b6700f6ff7dbe80281eb870f5b93b83cb3d696ad938053a992f",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              },
+              {
+                "path": "tauri/crates/solosoul-vault/src/storage.rs",
+                "absolute_path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\candidate\\tauri\\crates\\solosoul-vault\\src\\storage.rs",
+                "sha256": "5d6811b148e00fe2067eb8f92aa91d2f24bdd495d17ef38b6c4c785d7274de2d",
+                "read_scope": "production/API and relevant tests reviewed; test source count is not an execution result"
+              }
+            ]
+          }
+        ],
+        "additional_read_source": [
+          {
+            "path": "tauri/crates/solosoul-core/src/objects/create.rs",
+            "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-core\\src\\objects\\create.rs",
+            "sha256": "b930878337a8ddcf48c118618c1968a65faa58731e32cd74523dd0328d63376c"
+          },
+          {
+            "path": "tauri/crates/solosoul-core/src/objects.rs",
+            "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-core\\src\\objects.rs",
+            "sha256": "a3297a8bc51cd5a420ae1bf2623ca62e1ac46ebf4d0422f747a3e7817b5f014e"
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/export_import/mod.rs",
+            "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\src\\commands\\export_import\\mod.rs",
+            "sha256": "5d6e5974c0ddeae7234fee8d411b414f167a44c67f77b65ad7d1adc5e6af28e3"
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/export_import/tests/rf027.rs",
+            "absolute_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\src\\commands\\export_import\\tests\\rf027.rs",
+            "sha256": "6cc7e5ffea888276db140030678bab19bee6b20366b7c013d9659759b161edc9"
+          }
+        ],
+        "api_contracts": [
+          {
+            "api": "read_import_view(&self, account_id: &str) -> Result<ImportReadView, ImportBatchError>",
+            "evidence": "Vault storage/import_batch.rs:294",
+            "contract": "view only exposes revision; private raw object/template rows and frozen metadata Result; original account and store instance are bound"
+          },
+          {
+            "api": "list_import_view_user_templates(&self, &ImportReadView) -> Result<Vec<UserTemplate>, String>",
+            "evidence": "Vault storage/import_batch.rs:418",
+            "contract": "frozen created_at ASC strict template parser, not a live re-read"
+          },
+          {
+            "api": "load_import_view_user_template(&self, &ImportReadView, &str) -> Result<Option<UserTemplate>, String>",
+            "evidence": "Vault storage/import_batch.rs:435",
+            "contract": "strict matched row only; Host inheritance explicitly preserves its prior .ok().flatten() behavior"
+          },
+          {
+            "api": "load_import_view_object(&self, &ImportReadView, &str) -> Result<Option<ObjectRecord>, String>",
+            "evidence": "Vault storage/import_batch.rs:453",
+            "contract": "Host strict full load only for selected/effective target ID; unused bad name/property/label rows do not force this parse"
+          },
+          {
+            "api": "list_import_view_active_objects(&self, &ImportReadView, &BTreeSet<String>) -> Result<Vec<ObjectSummary>, String>",
+            "evidence": "Vault storage/import_batch.rs:474",
+            "contract": "Host KeepBoth name uniqueness retains old strict active full-list errors; planned shadow IDs excluded before parse and shadow records added back"
+          },
+          {
+            "api": "list_import_view_object_metadata(&self, &ImportReadView) -> Result<Vec<ObjectSummary>, String>",
+            "evidence": "Vault storage/import_batch.rs:498; objects.rs:63/105/1011; Core export_import.rs:517",
+            "contract": "Core Skip only; same old active 15-column SQL, strict typed mapper and error prefixes; properties/labels/children not decrypted"
+          },
+          {
+            "api": "commit_import_batch(&self, account_id: &str, &ImportBatchRevision, &ImportDatabaseBatch) -> Result<ImportDatabaseCommit, ImportBatchError>",
+            "evidence": "Vault storage/import_batch.rs:515/532/535",
+            "contract": "opaque revision instance/account/total_changes/main.data_version; BEGIN IMMEDIATE recheck; templates, ordered object writes, histories and HLC in one transaction; no count returned before commit"
+          },
+          {
+            "api": "ImportDatabaseBatch { templates: Vec<UserTemplate>, objects: Vec<ImportObjectWrite> }; ImportObjectWrite { record, history }",
+            "evidence": "Vault storage/import_batch.rs:55/71/77",
+            "contract": "Keep/Append/Replace, object write order preserved; history owner derived from record.id and same snapshot ID across owners rejected"
+          },
+          {
+            "api": "ImportDatabaseCommit { object_write_count, object_ids, template_ids, snapshot_write_count, snapshot_ids }",
+            "evidence": "Vault storage/import_batch.rs:85",
+            "contract": "Host reports unique object/template IDs and executed snapshot insert count; Core reports executed object write count. snapshot_ids is final surviving new set and must not substitute for snapshot_write_count"
+          },
+          {
+            "api": "import_vault_into(&ImportTarget, account_id, path, password, strategy, base_path, Option<&[u8;32]>) -> Result<usize, ExportError>",
+            "evidence": "Core candidate export_import.rs; CLI candidate commands/export_import.rs",
+            "contract": "original import_vault remains Direct wrapper; Session captured before prompt/KDF/ZIP; later attachments/preferences retain old usize/Err contract, not an RF020 CLI contract fix"
+          }
+        ],
+        "strategy_matrix": [
+          {
+            "client": "Host",
+            "strategy": "SkipExisting",
+            "membership": "ordered shadow plus frozen selected target full load",
+            "duplicate_new_id": "first planned write enters shadow, later same source ID skips",
+            "templates": "strict existing list if package template array nonempty; hash dedupe includes preceding plans; original ID reuse branch preserved; last original-ID mapping wins",
+            "history": "Append imported valid history; Overwrite valid history Replace; missing/empty/all-invalid package history Append initial snapshot",
+            "count": "unique committed effective object IDs; inserted snapshots counted even if later Replace removed them"
+          },
+          {
+            "client": "Host",
+            "strategy": "KeepBoth",
+            "membership": "RF1063 effective global/per-item strategy and selected IDs map; duplicate source ID shares final precomputed generated UUID",
+            "duplicate_new_id": "ordered writes to same final UUID and progressing names; prior package planned records participate name uniqueness",
+            "history": "Append each ordered package history; package snapshot bytes not rewritten",
+            "name": "zh/cmn uses fullwidth （导入） then space + index; package real Chinese naming regression added"
+          },
+          {
+            "client": "Core",
+            "strategy": "SkipExisting",
+            "membership": "batch-initial active metadata IDs only; strict old 15 columns",
+            "duplicate_new_id": "both new duplicate IDs write, count twice, later record overwrites",
+            "templates": "invalid templates warn/skip; lazily strict-read existing templates for first valid package template; hash dedupe, derived imported IDs and last mapping retained",
+            "history": "Keep; package history never imported"
+          },
+          {
+            "client": "Core",
+            "strategy": "Overwrite / Merge",
+            "membership": "does not consume frozen existing metadata",
+            "duplicate_new_id": "ordered writes/count each; Merge remains Overwrite",
+            "history": "Keep; no final imported snapshot writes"
+          }
+        ],
+        "resolved_findings": [
+          {
+            "id": "RF021-COMPAT-UNUSED-TYPED",
+            "severity": "must-fix in superseded proposal",
+            "scenario": "Host Overwrite/Skip or Some([]), unused/unselected/softdeleted bad typed name/id/is_deleted row would fail whole read view although old Host did not parse it. Core Overwrite/Merge also newly failed unused metadata; Core Skip old strict active 15-column boundary was replaced with a different four-column global parse.",
+            "resolution": "Latest Vault raw key Option and stored per-row Result defer consumer parsing; frozen original active 15-column metadata Result only strict on accessor; Core metadata candidate invokes it only for SkipExisting.",
+            "evidence": "Vault latest import_batch.rs:27/307/344/453/474/498; shared objects.rs SQL and mapper; Core metadata candidate export_import.rs:517-521",
+            "static_review": "resolved; runtime compatibility must be verified by Root tests"
+          },
+          {
+            "id": "RF021-FIXTURE-CHECK-UTF8",
+            "scenario": "template_type CHECK blocked synthetic metadata Blob setup and owned SQLite text Value conversion may panic for invalid UTF8",
+            "resolution": "TEMP Core/Vault synthetic connection only ignore_check_constraints around injection; new raw byte comparison uses ValueRef, old20 Core draft functions preserved",
+            "static_review": "fixture correction only; no weakened production parser"
+          }
+        ],
+        "integration_state": [
+          {
+            "item": "shared pure project_template_properties",
+            "status": "Root integrated; actual current create.rs:81 public and objects.rs:29 re-export verified",
+            "contract": "reuse existing __fields/sensitivity projection instead of duplicating it"
+          },
+          {
+            "item": "RF1063 KeepBoth global + selected mapping",
+            "status": "already separately committed c4f9c297 before RF021; Host batch candidate retains mapping",
+            "contract": "do not reinterpret Core batch-initial Skip membership as Host ordered shadow membership"
+          },
+          {
+            "item": "RF027 progress40 / progress90 interrupt regression",
+            "status": "Root integrated; actual current rf027.rs:520 function reviewed",
+            "contract": "40 before DB commit yields both object/snapshot counts0 and NotCommitted; 90 after DB batch retains Partial and DB counts2; barriers/original account/notifications/attachments/staging retained"
+          },
+          {
+            "item": "RF027 second object SQL failure result",
+            "status": "Root integrated after Host queue; current rf027.rs Some(2) NotCommitted/Objects/0,0 independently read",
+            "verified_change": "Some(2) becomes NotCommitted, Objects, 0,0; keep notification/session/source/staging assertions"
+          },
+          {
+            "item": "RF027 worker panic after committed DB",
+            "status": "Root integrated after Host queue; current rf027.rs panic pct90/counts2,2 and both objects independently read",
+            "verified_change": "move panic to attachment progress90, expect DB counts2,2 and both objects; preserve JoinError sanitized message, no zero-commit claim, notification/staging/source/file assertions"
+          }
+        ],
+        "test_candidates": {
+          "host_original_functions": 8,
+          "host_compatibility_functions": 9,
+          "core_functions": 25,
+          "core_original_functions_preserved": 20,
+          "cli_functions": 12,
+          "vault_functions": 38,
+          "atomic_old_host_test": "rf021_host_owned_atomic_second_write_matrix_restores_four_tables_and_sixty_history",
+          "host_compatibility_registration": "red-only patch registers only rf021_compatibility on old production; no dependency on new batch module or private planning functions",
+          "atomic_matrix": "actual N2 template/object insert/object update/snapshot/object-kind HLC SQL triggers; all four business tables raw bytes compared; 60 prior history rows restored on failure; fresh retry after dropping trigger. Separate history-delete rollback and empty/all-invalid history preservation cases.",
+          "counts_are_source_inventory_not_pass_results": true
+        },
+        "validation": {
+          "this_review_cargo_tests_build_clippy_sql_executed": false,
+          "this_review_repository_writes": false,
+          "this_review_git_index_writes": false,
+          "temp_only_prior_preparation": "TEMP candidate formatting and manifest/patch generation were authorized earlier; frozen original Host six candidates remained byte-identical",
+          "root_reported_results_not_independently_executed": "Root reports Vault38 and Host17 directed tests passed. Old Host red reached first template fault Partial/templateCount1; first assertion exits before later matrix cases. This reviewer ran no Cargo/test/build/SQL.",
+          "root_integrated_vs_reviewed": "review conclusion is based on exact frozen candidate bytes and explicitly read shared helper/RF027 current source. Root integrated production build/test results belong to Root queue; this is not an independent full postintegration execution claim."
+        },
+        "boundaries": [
+          "Database atomicity covers templates/objects/histories/HLC. Attachments and preferences remain later phases; file publication or preference failure can be Partial for Host and retains legacy Core/CLI Err contract.",
+          "Synchronous frozen read already entered before lock can complete; write must still pass original session gate and exact revision. Already validly dispatched filesystem work is not retroactively cancelled.",
+          "View read/ZIP/KDF/full preparation occurs outside short commit gate; store revision conservatively rejects same-connection or other-connection changes, even unrelated SQL changes.",
+          "Strict templates and Host KeepBoth active full-list errors remain deliberate existing boundaries. Unused raw typed values must not be described as universally ignored.",
+          "Extra full/raw/metadata frozen-memory and scan costs were not measured; no performance execution claim.",
+          "No new production must-fix found in reviewed latest candidates; all three necessary RF027 test contract updates are now integrated by Root and their actual assertions were read."
+        ]
+      },
+      "scope": "read-only static review; no independent test execution"
+    },
+    {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\final-empty-hlc-review.json",
+      "sha256": "caa9c186fd1708932d3c4a690962e0d78d64dd7ba11952cc62ed8670a4c24cfe",
+      "finding": {
+        "schemaVersion": 1,
+        "scope": "RF021-final-lazy-HLC-and-five-regressions-static-review",
+        "createdAtUtc": "2026-09-30T21:42:57.483882+00:00",
+        "repo": "C:\\Users\\40299571\\SoloSoul",
+        "verdict": "no_additional_production_must_fix_found_in_reviewed_lazy_change_and_wiring",
+        "mustFixFindings": [],
+        "sourceFreeze": {
+          "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\final-source-second.json",
+          "sha256": "ddccebf5713a19c1c7e48cc7323d26cbfd2f469e911431e356758cf44bc500df",
+          "rows": 20,
+          "allMatchAtCapture": true,
+          "entries": [
+            {
+              "path": "tauri/crates/solosoul-vault/src/lib.rs",
+              "bytes": 27322,
+              "expectedSha256": "4ed897e6444c8aeecf0e03a0a02455e6970a18c770302a9ea598912c7b03a371",
+              "actualSha256": "4ed897e6444c8aeecf0e03a0a02455e6970a18c770302a9ea598912c7b03a371",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-vault/src/storage.rs",
+              "bytes": 53655,
+              "expectedSha256": "5d6811b148e00fe2067eb8f92aa91d2f24bdd495d17ef38b6c4c785d7274de2d",
+              "actualSha256": "5d6811b148e00fe2067eb8f92aa91d2f24bdd495d17ef38b6c4c785d7274de2d",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-vault/src/storage/import_batch.rs",
+              "bytes": 25025,
+              "expectedSha256": "cb25c441fa9a52c69774f152096b66763ce651fcc2f6224bb3158f5a527dc1b0",
+              "actualSha256": "cb25c441fa9a52c69774f152096b66763ce651fcc2f6224bb3158f5a527dc1b0",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-vault/src/storage/import_batch/tests.rs",
+              "bytes": 66933,
+              "expectedSha256": "403d5ed26f299a92dd6992d9b37637def326096cdcba42c7b7d6032a41ff3853",
+              "actualSha256": "403d5ed26f299a92dd6992d9b37637def326096cdcba42c7b7d6032a41ff3853",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-vault/src/storage/objects.rs",
+              "bytes": 53162,
+              "expectedSha256": "c89fe62d2456af2a3e36cca571dbd5cd272277898462cd296ed0e134fb09e13c",
+              "actualSha256": "c89fe62d2456af2a3e36cca571dbd5cd272277898462cd296ed0e134fb09e13c",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-vault/src/storage/snapshots.rs",
+              "bytes": 26251,
+              "expectedSha256": "68fc2bfb5c3e1b6700f6ff7dbe80281eb870f5b93b83cb3d696ad938053a992f",
+              "actualSha256": "68fc2bfb5c3e1b6700f6ff7dbe80281eb870f5b93b83cb3d696ad938053a992f",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-core/src/export_import.rs",
+              "bytes": 97767,
+              "expectedSha256": "b44b46e1ffd6d283eb14ea8aa27fff9dd90169ae3c2a7426a02ec044191ca36a",
+              "actualSha256": "b44b46e1ffd6d283eb14ea8aa27fff9dd90169ae3c2a7426a02ec044191ca36a",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-core/src/export_import/rf021_tests.rs",
+              "bytes": 34759,
+              "expectedSha256": "b2675b45925073dd05cc76f122f1cf54a0f99826bb51fabf21fb501786510555",
+              "actualSha256": "b2675b45925073dd05cc76f122f1cf54a0f99826bb51fabf21fb501786510555",
+              "matches": true
+            },
+            {
+              "path": "solosoul_cli/src/commands/export_import.rs",
+              "bytes": 16884,
+              "expectedSha256": "6de914d1dad97596d755d1ddef3997507ceaeb45eeb7442b78220ca33334bb93",
+              "actualSha256": "6de914d1dad97596d755d1ddef3997507ceaeb45eeb7442b78220ca33334bb93",
+              "matches": true
+            },
+            {
+              "path": "solosoul_cli/src/commands/export_import/rf021_tests.rs",
+              "bytes": 17688,
+              "expectedSha256": "9b8d7fc4de55b97e9996a0759ad31eb8f2dd94e4e00e011c0f7651a8bb7fec56",
+              "actualSha256": "9b8d7fc4de55b97e9996a0759ad31eb8f2dd94e4e00e011c0f7651a8bb7fec56",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/helpers.rs",
+              "bytes": 22806,
+              "expectedSha256": "aca9642251ab1219ef4082d0a31d26ab78dc680f9fdba9b492b048ed0117e5fa",
+              "actualSha256": "aca9642251ab1219ef4082d0a31d26ab78dc680f9fdba9b492b048ed0117e5fa",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/import/batch.rs",
+              "bytes": 12541,
+              "expectedSha256": "ffedfcf3f2cca2ec16ac3efbdf6e6280d3bfd02a8444eb06387e591b34d52605",
+              "actualSha256": "ffedfcf3f2cca2ec16ac3efbdf6e6280d3bfd02a8444eb06387e591b34d52605",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/import.rs",
+              "bytes": 41731,
+              "expectedSha256": "6a144dd361610293377aa3e7419d827953f14e0a143b0559be973f2ad0120efe",
+              "actualSha256": "6a144dd361610293377aa3e7419d827953f14e0a143b0559be973f2ad0120efe",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/tests/rf020.rs",
+              "bytes": 10966,
+              "expectedSha256": "4bdd4b06d2a13eb0d3c88ae704c9e401a98b716ac0be31c6c8b2c6d327b2e376",
+              "actualSha256": "4bdd4b06d2a13eb0d3c88ae704c9e401a98b716ac0be31c6c8b2c6d327b2e376",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/tests/rf021.rs",
+              "bytes": 19833,
+              "expectedSha256": "2dddc4fce0deb65b1168d17796fc68991c9dfc5b5f8ae5aa3334262a65aa70eb",
+              "actualSha256": "2dddc4fce0deb65b1168d17796fc68991c9dfc5b5f8ae5aa3334262a65aa70eb",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/tests.rs",
+              "bytes": 56663,
+              "expectedSha256": "59b2c8859ac7b04ba345778d64f72c563ca7e6a8fcbdf77a2c7d32ac87ddd623",
+              "actualSha256": "59b2c8859ac7b04ba345778d64f72c563ca7e6a8fcbdf77a2c7d32ac87ddd623",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/tests/rf021_compatibility.rs",
+              "bytes": 23562,
+              "expectedSha256": "5f7fb95bb5bb02b61fdbbc3e0f41d463e0611b870eb59cb8e197fccbfade685e",
+              "actualSha256": "5f7fb95bb5bb02b61fdbbc3e0f41d463e0611b870eb59cb8e197fccbfade685e",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-core/src/objects/create.rs",
+              "bytes": 6850,
+              "expectedSha256": "b930878337a8ddcf48c118618c1968a65faa58731e32cd74523dd0328d63376c",
+              "actualSha256": "b930878337a8ddcf48c118618c1968a65faa58731e32cd74523dd0328d63376c",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-core/src/objects.rs",
+              "bytes": 69355,
+              "expectedSha256": "a3297a8bc51cd5a420ae1bf2623ca62e1ac46ebf4d0422f747a3e7817b5f014e",
+              "actualSha256": "a3297a8bc51cd5a420ae1bf2623ca62e1ac46ebf4d0422f747a3e7817b5f014e",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/tests/rf027.rs",
+              "bytes": 33641,
+              "expectedSha256": "6cc7e5ffea888276db140030678bab19bee6b20366b7c013d9659759b161edc9",
+              "actualSha256": "6cc7e5ffea888276db140030678bab19bee6b20366b7c013d9659759b161edc9",
+              "matches": true
+            }
+          ]
+        },
+        "lazyProduction": {
+          "path": "tauri/crates/solosoul-vault/src/storage/import_batch.rs",
+          "baselinePath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-vault-metadata-proposal\\candidate\\tauri\\crates\\solosoul-vault\\src\\storage\\import_batch.rs",
+          "baselineSha256": "76929bc19e70a856be2ab895dddc0e530d64dae33c76d5756c64cefdaf6c6e5c",
+          "actualSha256": "cb25c441fa9a52c69774f152096b66763ce651fcc2f6224bb3158f5a527dc1b0",
+          "reviewedLines": [
+            521,
+            522,
+            523,
+            525,
+            533,
+            534,
+            542,
+            544,
+            548
+          ],
+          "observations": [
+            "零templates且零objects才产生None node；无get_sync_node_id或BatchHlc::new/MAX读取，key仍可用且原store/account/plan验证保留。",
+            "conn Some与Immediate transaction、事务内revision等于准备view、database owners验证全部位于empty返回之前。",
+            "empty显式tx.commit并传播Commit失败，之后返回default；没有跳过事务或吞掉Locked/StaleView/WrongStore/AccountMismatch。",
+            "非空node getter仍在conn mutex之前以避免重入锁；BatchHlc::new在同一写事务中严格执行，错误早退由RAII回滚。",
+            "相对冻结metadata候选的生产diff仅node按empty延迟读取及事务内empty commit/return；未改变非空对象/模板/历史/HLC/owner写入循环。"
+          ],
+          "unifiedDiff": "--- frozen-metadata-candidate/tauri/crates/solosoul-vault/src/storage/import_batch.rs\n+++ current/tauri/crates/solosoul-vault/src/storage/import_batch.rs\n@@ -522,11 +522,15 @@\n         validate_batch(account_id, batch)?;\n         let key = self.data_key().map_err(|_| ImportBatchError::Locked)?;\n         // 不在持 conn Mutex 时调用 public HLC/metadata getter。\n-        let node_id = self\n-            .get_sync_node_id()\n-            .map_err(|_| ImportBatchError::Hlc)?\n-            .unwrap_or_else(|| \"unknown\".to_string());\n-        let node_id = Self::normalize_sync_node_id(&node_id);\n+        let node_id = if batch.templates.is_empty() && batch.objects.is_empty() {\n+            None\n+        } else {\n+            let node_id = self\n+                .get_sync_node_id()\n+                .map_err(|_| ImportBatchError::Hlc)?\n+                .unwrap_or_else(|| \"unknown\".to_string());\n+            Some(Self::normalize_sync_node_id(&node_id))\n+        };\n         let mut guard = self.conn.lock().map_err(|_| ImportBatchError::Locked)?;\n         let conn = guard.as_mut().ok_or(ImportBatchError::Locked)?;\n         let tx = conn\n@@ -536,6 +540,11 @@\n             return Err(ImportBatchError::StaleView);\n         }\n         validate_database_owners(&tx, account_id, batch)?;\n+        // 空选择/全部跳过保持原无 HLC 读取边界，但仍校验原 Store、会话和 revision。\n+        let Some(node_id) = node_id else {\n+            tx.commit().map_err(|_| ImportBatchError::Commit)?;\n+            return Ok(ImportDatabaseCommit::default());\n+        };\n         let mut hlc = BatchHlc::new(&tx, node_id)?;\n         let mut committed = ImportDatabaseCommit::default();\n         for template in &batch.templates {\n"
+        },
+        "newRegressionFunctions": 5,
+        "regressions": [
+          {
+            "path": "tauri/crates/solosoul-vault/src/storage/import_batch/tests.rs",
+            "sha256": "403d5ed26f299a92dd6992d9b37637def326096cdcba42c7b7d6032a41ff3853",
+            "testFunction": "rf021_empty_batch_bad_local_hlc_succeeds_without_changing_four_tables",
+            "line": 1871,
+            "staticObservation": "真实第二SQLite连接固定合法32hex local node，证明同node MAX<i64>返回InvalidColumnType/Blob；empty batch返回default，四表原值与加密bytes保留。",
+            "executedByThisReview": false
+          },
+          {
+            "path": "tauri/crates/solosoul-vault/src/storage/import_batch/tests.rs",
+            "sha256": "403d5ed26f299a92dd6992d9b37637def326096cdcba42c7b7d6032a41ff3853",
+            "testFunction": "rf021_nonempty_batch_bad_local_hlc_still_rejects_without_any_write",
+            "line": 1885,
+            "staticObservation": "同坏HLC下合法新template/object/Append历史仍返回Hlc，四表零写、连接可复用。",
+            "executedByThisReview": false
+          },
+          {
+            "path": "tauri/crates/solosoul-vault/src/storage/import_batch/tests.rs",
+            "sha256": "403d5ed26f299a92dd6992d9b37637def326096cdcba42c7b7d6032a41ff3853",
+            "testFunction": "rf021_empty_batch_bad_local_hlc_retains_revision_account_store_and_lock_guards",
+            "line": 1902,
+            "staticObservation": "empty下第二连接DML后的StaleView、其他真实Store WrongStore、错误account AccountMismatch、Locked保持拒绝与原始状态。",
+            "executedByThisReview": false
+          },
+          {
+            "path": "tauri/crates/solosoul-core/src/export_import/rf021_tests.rs",
+            "sha256": "b2675b45925073dd05cc76f122f1cf54a0f99826bb51fabf21fb501786510555",
+            "testFunction": "rf021_core_all_skip_avoids_unused_corrupt_local_hlc_and_keeps_four_tables",
+            "line": 958,
+            "staticObservation": "真实加密ZIP经公共import_vault，全Skip无templates/attachments/preferences；helper并未替代被测导入，结果0且四表原值保持。",
+            "executedByThisReview": false
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/export_import/tests/rf021_compatibility.rs",
+            "sha256": "5f7fb95bb5bb02b61fdbbc3e0f41d463e0611b870eb59cb8e197fccbfade685e",
+            "testFunction": "rf021_host_empty_selection_and_all_skip_do_not_read_unrelated_corrupt_hlc",
+            "line": 580,
+            "staticObservation": "两参数场景Some([])+Overwrite与全Skip，真实ImportJob.prepare/run及原会话，真实加密ZIP；Complete/零count/无failure/code及四表原值保持。",
+            "executedByThisReview": false
+          }
+        ],
+        "moduleWiring": [
+          {
+            "path": "tauri/crates/solosoul-vault/src/storage.rs",
+            "line": 20,
+            "registration": "mod import_batch; then import_batch.rs #[cfg(test)] mod tests;"
+          },
+          {
+            "path": "tauri/crates/solosoul-core/src/export_import.rs",
+            "line": 2512,
+            "registration": "#[cfg(test)] mod rf021_tests;"
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/export_import/mod.rs",
+            "line": 448,
+            "registration": "#[cfg(test)] pub mod tests; tests.rs line16 mod rf021_compatibility;"
+          }
+        ],
+        "testMeaningBoundaries": [
+          "四表raw equality比较SQL类型/内容和密文bytes，不声称SQLite整文件/WAL或audit_log零改动。",
+          "本轮5个函数为3Vault+1Core+1Host；Host内部2场景不计成额外测试函数。",
+          "Core新用例经兼容公共Direct API验证全Skip；Host新增用例经owned ImportJob验证Session入口。另有既有CLI/session覆盖，不把新Core用例说成CLI提示测试。",
+          "Root提供修复前0pass/1fail确切Hlc及绿测队列状态；本审查未读取执行日志，也未独立证实任何测试通过。"
+        ],
+        "execution": {
+          "sourceWritten": false,
+          "candidateWritten": false,
+          "cargoRun": false,
+          "testRun": false,
+          "formatRun": false,
+          "buildRun": false,
+          "guiRun": false,
+          "realVaultAccessed": false,
+          "artifactWritten": "final-empty-hlc-review.json"
+        },
+        "rf022": {
+          "designAlreadyAvailable": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf022-recovery-design-proposal\\README.md",
+          "candidateOrProductionImplemented": false,
+          "continuesAsIndependentTaskAfterRf021Commit": true,
+          "ownershipBoundary": "不声称journal排除RF905未解决的root writer/孤儿扫描/维护并发。"
+        }
+      },
+      "scope": "read-only static review; no independent test execution"
+    },
+    {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\final-regression-boundary-review.json",
+      "sha256": "9fb7994f06561b00c014a0adb1000087b2c94ce1b2de2ec62050fa00bd0991d2",
+      "finding": {
+        "task": "RF021 final regression boundary independent review",
+        "created_at_utc": "2026-09-30T22:17:40.798683+00:00",
+        "checkout": "C:\\Users\\40299571\\SoloSoul",
+        "scope": "Only final-source-fifth.json SHA verification and five failed legacy boundary tests; no repeat of full architecture audit.",
+        "input_manifest": {
+          "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\final-source-fifth.json",
+          "sha256": "758ee51ac6786f2e6dedabe01fbdbc39a06f5233e22f5e4aa2923133e6c51ca4"
+        },
+        "source_sha_verification": {
+          "expected_count": 23,
+          "actual_count": 23,
+          "matched_count": 23,
+          "all_matched": true,
+          "files": [
+            {
+              "path": "tauri/crates/solosoul-vault/src/lib.rs",
+              "expected_sha256": "4ed897e6444c8aeecf0e03a0a02455e6970a18c770302a9ea598912c7b03a371",
+              "actual_sha256": "4ed897e6444c8aeecf0e03a0a02455e6970a18c770302a9ea598912c7b03a371",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-vault/src/storage.rs",
+              "expected_sha256": "5d6811b148e00fe2067eb8f92aa91d2f24bdd495d17ef38b6c4c785d7274de2d",
+              "actual_sha256": "5d6811b148e00fe2067eb8f92aa91d2f24bdd495d17ef38b6c4c785d7274de2d",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-vault/src/storage/import_batch.rs",
+              "expected_sha256": "cb25c441fa9a52c69774f152096b66763ce651fcc2f6224bb3158f5a527dc1b0",
+              "actual_sha256": "cb25c441fa9a52c69774f152096b66763ce651fcc2f6224bb3158f5a527dc1b0",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-vault/src/storage/import_batch/tests.rs",
+              "expected_sha256": "403d5ed26f299a92dd6992d9b37637def326096cdcba42c7b7d6032a41ff3853",
+              "actual_sha256": "403d5ed26f299a92dd6992d9b37637def326096cdcba42c7b7d6032a41ff3853",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-vault/src/storage/objects.rs",
+              "expected_sha256": "c89fe62d2456af2a3e36cca571dbd5cd272277898462cd296ed0e134fb09e13c",
+              "actual_sha256": "c89fe62d2456af2a3e36cca571dbd5cd272277898462cd296ed0e134fb09e13c",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-vault/src/storage/snapshots.rs",
+              "expected_sha256": "68fc2bfb5c3e1b6700f6ff7dbe80281eb870f5b93b83cb3d696ad938053a992f",
+              "actual_sha256": "68fc2bfb5c3e1b6700f6ff7dbe80281eb870f5b93b83cb3d696ad938053a992f",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-core/src/export_import.rs",
+              "expected_sha256": "b44b46e1ffd6d283eb14ea8aa27fff9dd90169ae3c2a7426a02ec044191ca36a",
+              "actual_sha256": "b44b46e1ffd6d283eb14ea8aa27fff9dd90169ae3c2a7426a02ec044191ca36a",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-core/src/export_import/rf021_tests.rs",
+              "expected_sha256": "f0107d53530450851d1048a2253f027cfcd197f31409181542e0fa28c07865d9",
+              "actual_sha256": "f0107d53530450851d1048a2253f027cfcd197f31409181542e0fa28c07865d9",
+              "matches": true
+            },
+            {
+              "path": "solosoul_cli/src/commands/export_import.rs",
+              "expected_sha256": "6de914d1dad97596d755d1ddef3997507ceaeb45eeb7442b78220ca33334bb93",
+              "actual_sha256": "6de914d1dad97596d755d1ddef3997507ceaeb45eeb7442b78220ca33334bb93",
+              "matches": true
+            },
+            {
+              "path": "solosoul_cli/src/commands/export_import/rf021_tests.rs",
+              "expected_sha256": "9b8d7fc4de55b97e9996a0759ad31eb8f2dd94e4e00e011c0f7651a8bb7fec56",
+              "actual_sha256": "9b8d7fc4de55b97e9996a0759ad31eb8f2dd94e4e00e011c0f7651a8bb7fec56",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/helpers.rs",
+              "expected_sha256": "aca9642251ab1219ef4082d0a31d26ab78dc680f9fdba9b492b048ed0117e5fa",
+              "actual_sha256": "aca9642251ab1219ef4082d0a31d26ab78dc680f9fdba9b492b048ed0117e5fa",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/import/batch.rs",
+              "expected_sha256": "ffedfcf3f2cca2ec16ac3efbdf6e6280d3bfd02a8444eb06387e591b34d52605",
+              "actual_sha256": "ffedfcf3f2cca2ec16ac3efbdf6e6280d3bfd02a8444eb06387e591b34d52605",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/import.rs",
+              "expected_sha256": "6a144dd361610293377aa3e7419d827953f14e0a143b0559be973f2ad0120efe",
+              "actual_sha256": "6a144dd361610293377aa3e7419d827953f14e0a143b0559be973f2ad0120efe",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/tests/rf020.rs",
+              "expected_sha256": "4bdd4b06d2a13eb0d3c88ae704c9e401a98b716ac0be31c6c8b2c6d327b2e376",
+              "actual_sha256": "4bdd4b06d2a13eb0d3c88ae704c9e401a98b716ac0be31c6c8b2c6d327b2e376",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/tests/rf021.rs",
+              "expected_sha256": "2dddc4fce0deb65b1168d17796fc68991c9dfc5b5f8ae5aa3334262a65aa70eb",
+              "actual_sha256": "2dddc4fce0deb65b1168d17796fc68991c9dfc5b5f8ae5aa3334262a65aa70eb",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/tests.rs",
+              "expected_sha256": "59b2c8859ac7b04ba345778d64f72c563ca7e6a8fcbdf77a2c7d32ac87ddd623",
+              "actual_sha256": "59b2c8859ac7b04ba345778d64f72c563ca7e6a8fcbdf77a2c7d32ac87ddd623",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/tests/rf021_compatibility.rs",
+              "expected_sha256": "5f7fb95bb5bb02b61fdbbc3e0f41d463e0611b870eb59cb8e197fccbfade685e",
+              "actual_sha256": "5f7fb95bb5bb02b61fdbbc3e0f41d463e0611b870eb59cb8e197fccbfade685e",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-core/src/objects/create.rs",
+              "expected_sha256": "b930878337a8ddcf48c118618c1968a65faa58731e32cd74523dd0328d63376c",
+              "actual_sha256": "b930878337a8ddcf48c118618c1968a65faa58731e32cd74523dd0328d63376c",
+              "matches": true
+            },
+            {
+              "path": "tauri/crates/solosoul-core/src/objects.rs",
+              "expected_sha256": "a3297a8bc51cd5a420ae1bf2623ca62e1ac46ebf4d0422f747a3e7817b5f014e",
+              "actual_sha256": "a3297a8bc51cd5a420ae1bf2623ca62e1ac46ebf4d0422f747a3e7817b5f014e",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/tests/rf027.rs",
+              "expected_sha256": "00305abeaa1233a40c52929bb7247d5ade3740e6b5964cbb38063225f8f6737e",
+              "actual_sha256": "00305abeaa1233a40c52929bb7247d5ade3740e6b5964cbb38063225f8f6737e",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/object/mod.rs",
+              "expected_sha256": "eebad25ad83af00cfadf8c15e054bef9fb64a5a01bc4e41e2a2dba9dfb628c0d",
+              "actual_sha256": "eebad25ad83af00cfadf8c15e054bef9fb64a5a01bc4e41e2a2dba9dfb628c0d",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/commands/export_import/tests/rf018.rs",
+              "expected_sha256": "296e8307bb433db906bfe900d0ff38f6f588fd25dbd240e0709c2feac8b050c4",
+              "actual_sha256": "296e8307bb433db906bfe900d0ff38f6f588fd25dbd240e0709c2feac8b050c4",
+              "matches": true
+            },
+            {
+              "path": "tauri/src-tauri/src/sync/cloud_auto_sync/tests/rf003.rs",
+              "expected_sha256": "a197f5686c6805118f4f04e1b941615d6d61d7b2bad83c601dd09d3c98d4110d",
+              "actual_sha256": "a197f5686c6805118f4f04e1b941615d6d61d7b2bad83c601dd09d3c98d4110d",
+              "matches": true
+            }
+          ]
+        },
+        "conclusion": {
+          "must_fix": [],
+          "result": "No new must-fix found within this focused read-only review. The five assertion corrections reflect the single atomic database commit and preserve meaningful fault/session/runtime coverage.",
+          "execution_evidence": false
+        },
+        "production_boundary": [
+          {
+            "file": "tauri/src-tauri/src/commands/export_import/import.rs",
+            "lines": [
+              491,
+              497
+            ],
+            "meaning": "The entry captures and validates the original session and its attachment key before package preparation; it does not capture a later current account."
+          },
+          {
+            "file": "tauri/src-tauri/src/commands/export_import/import/batch.rs",
+            "lines": [
+              252,
+              326
+            ],
+            "meaning": "Object and snapshot plans are prepared in memory; with two selected objects progress 40 occurs after the first prepared record, before any import database write."
+          },
+          {
+            "file": "tauri/src-tauri/src/commands/export_import/import.rs",
+            "lines": [
+              574,
+              585
+            ],
+            "meaning": "A single original-session target.commit runs commit_import_batch; template/object/snapshot counts are published only after successful database commit."
+          },
+          {
+            "file": "tauri/crates/solosoul-vault/src/storage/import_batch.rs",
+            "lines": [
+              535,
+              630
+            ],
+            "meaning": "BEGIN IMMEDIATE rechecks original revision and database ownership, then writes templates, ordered objects, HLC and history in one transaction. Early error/failed commit rolls back the database batch."
+          },
+          {
+            "file": "tauri/src-tauri/src/commands/export_import/import.rs",
+            "lines": [
+              594,
+              611
+            ],
+            "meaning": "Attachments and preferences run after the database batch and retain separate failure semantics."
+          },
+          {
+            "file": "tauri/src-tauri/src/commands/export_import/import.rs",
+            "lines": [
+              762,
+              767
+            ],
+            "meaning": "Attachment ZIP progress is mapped from 0..100 into 80..100."
+          },
+          {
+            "file": "tauri/crates/solosoul-core/src/export_import.rs",
+            "lines": [
+              1333,
+              1404
+            ],
+            "meaning": "ZIP-entry callback occurs before staged decryption and original-session physical publication; progress 90 in this four-entry fixture is after the database batch, before the first attachment publish."
+          },
+          {
+            "file": "tauri/src-tauri/src/commands/export_import/mod.rs",
+            "lines": [
+              261,
+              284
+            ],
+            "meaning": "ImportResult reports NotCommitted when no committed counters/preferences exist, otherwise Partial; non-password failures expose fixed IMPORT_FAILED."
+          }
+        ],
+        "five_failed_tests": [
+          {
+            "function": "rf018_template_write_failures_abort_before_objects",
+            "verdict": "Preserved and stronger sanitized-error assertion",
+            "change": "Raw SQLite injected text expectation -> exact import_batch_templates_failed plus explicit rejection of raw injected text.",
+            "evidence": [
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf018.rs",
+                "lines": [
+                  19,
+                  24
+                ],
+                "meaning": "Real SQLite BEFORE INSERT user_templates RAISE(ABORT) remains unchanged; no mock storage error."
+              },
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf018.rs",
+                "lines": [
+                  64,
+                  92
+                ],
+                "meaning": "Both fresh-template and same-ID/content-conflict paths still execute the production rebuild helper and require failure."
+              },
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf018.rs",
+                "lines": [
+                  94,
+                  116
+                ],
+                "meaning": "Real encrypted package and production import entry must return NotCommitted/Templates; referenced object is absent and previous local template values are unchanged."
+              },
+              {
+                "file": "tauri/crates/solosoul-vault/src/storage/import_batch.rs",
+                "lines": [
+                  111,
+                  123
+                ],
+                "meaning": "ImportBatchError Display provides fixed template/snapshot error codes."
+              },
+              {
+                "file": "tauri/crates/solosoul-vault/src/storage/import_batch.rs",
+                "lines": [
+                  550,
+                  556
+                ],
+                "meaning": "Actual template write failures map to ImportBatchError::Templates within the single transaction."
+              }
+            ],
+            "regressions_still_detected": [
+              "Swallowed template-write failure or absent mapping commit",
+              "Creating an object that references a template which was not committed",
+              "Mutating prior conflicting local template",
+              "Leaking the injected raw database error"
+            ]
+          },
+          {
+            "function": "rf018_template_read_failures_are_not_absence",
+            "verdict": "Coverage expanded from two cross-account cases to four same-account/cross-account cases",
+            "change": "Cross-account corrupt primary key now expects authority rejection import_batch_account_mismatch rather than decoding that foreign row through load_user_template. Same-account corrupt rows explicitly require strict list_user_templates row error.",
+            "evidence": [
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf018.rs",
+                "lines": [
+                  121,
+                  150
+                ],
+                "meaning": "All four combinations retain real saved template rows followed by properties_json=X'00' through a second SQLite connection; conflict uses the derived imported template ID."
+              },
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf018.rs",
+                "lines": [
+                  151,
+                  166
+                ],
+                "meaning": "Production rebuild must fail; same-account strict parser error and cross-account fixed ownership error are distinguished; corrupt row bytes remain exactly [0]."
+              },
+              {
+                "file": "tauri/crates/solosoul-vault/src/storage/import_batch.rs",
+                "lines": [
+                  359,
+                  377
+                ],
+                "meaning": "Frozen template query is account scoped and preserves row/typed errors for the strict consumer."
+              },
+              {
+                "file": "tauri/crates/solosoul-vault/src/storage/import_batch.rs",
+                "lines": [
+                  418,
+                  430
+                ],
+                "meaning": "The strict template list propagates stored row/decrypt/parser errors rather than treating them as absence."
+              },
+              {
+                "file": "tauri/crates/solosoul-vault/src/storage/import_batch.rs",
+                "lines": [
+                  185,
+                  205
+                ],
+                "meaning": "Before any batch write, existing template ID owner is rechecked from the authoritative database; a foreign owner causes AccountMismatch."
+              },
+              {
+                "file": "tauri/crates/solosoul-vault/src/storage/import_batch.rs",
+                "lines": [
+                  535,
+                  542
+                ],
+                "meaning": "The ownership check occurs under the Immediate transaction after revision validation."
+              }
+            ],
+            "regressions_still_detected": [
+              "Same-account corruption silently treated as no template",
+              "Overwriting a foreign-account template at original or derived primary key",
+              "Changing the corrupt foreign/local row while claiming failure"
+            ],
+            "boundary": "The foreign row is intentionally excluded from account-scoped strict template parsing; refusal is now an ownership check. This is not a relaxation into template absence or overwrite."
+          },
+          {
+            "function": "rf027_real_progress_barrier_yields_current_thread_and_imports_encrypted_attachments",
+            "verdict": "Correct atomic preparation boundary; runtime and encrypted data coverage retained",
+            "change": "At progress 40, both objects and both histories must be absent instead of the first record having committed.",
+            "evidence": [
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf027.rs",
+                "lines": [
+                  218,
+                  307
+                ],
+                "meaning": "Real ImportJob/production run_import_job remains in use. Independent task must advance on the current-thread runtime while the worker is paused; worker and runtime thread IDs differ. The action must finish before releasing import. Timeout remains only a deadlock watchdog."
+              },
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf027.rs",
+                "lines": [
+                  312,
+                  329
+                ],
+                "meaning": "Actual production progress-40 barrier reads the real Vault and requires both object loads None and both snapshot lists length 0."
+              },
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf027.rs",
+                "lines": [
+                  334,
+                  364
+                ],
+                "meaning": "After release, Complete2objects/2snapshots/2linked attachments/2files remains required, with real database counts, decrypted attachment bytes, import snapshot identity/account/name, exactly one completion callback, unchanged source bytes and staging cleanup."
+              }
+            ],
+            "regressions_still_detected": [
+              "Blocking async runtime with synchronous import work",
+              "Holding a DB/session lock across the progress callback that prevents its read action from completing",
+              "Writing any object/history before the atomic commit",
+              "Wrong attachment encryption/content or snapshot identity",
+              "Missing/extra completion callback or leaked staging/source mutation"
+            ]
+          },
+          {
+            "function": "rf027_attachment_snapshot_and_preferences_failures_remain_partial",
+            "verdict": "Database snapshot failure made atomic; post-database Partial cases preserved",
+            "change": "Only snapshot fault changes from Partial1object/0snapshot to NotCommitted0/0. Cipher, metadata and preferences faults still require Partial after the successful database batch.",
+            "evidence": [
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf027.rs",
+                "lines": [
+                  484,
+                  503
+                ],
+                "meaning": "Real snapshot INSERT RAISE(ABORT), fourth object-write trigger for attachment metadata, corrupt second encrypted attachment, and missing declared preferences entry remain in place."
+              },
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf020.rs",
+                "lines": [
+                  37,
+                  47
+                ],
+                "meaning": "Nth object failure uses an actual SQLite trigger/counter rather than a stub."
+              },
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf020.rs",
+                "lines": [
+                  140,
+                  161
+                ],
+                "meaning": "Cipher fault uses invalid encrypted bytes for the second attachment; preference fault declares preferences.enc while omitting its entry."
+              },
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf027.rs",
+                "lines": [
+                  504,
+                  527
+                ],
+                "meaning": "Snapshot NotCommitted/Snapshots0/0 is distinguished from cipher Partial Attachments2/2 linked0 files1, metadata Partial Attachments2/2 linked1 files2, preferences Partial Preferences2/2 linked0 files0. Actual DB counts, linked paths and decrypted file bytes remain checked. Every failed case requires notification0, no sensitive fault text, unchanged source and no staging."
+              },
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf027.rs",
+                "lines": [
+                  186,
+                  199
+                ],
+                "meaning": "Shared assertion still enforces status, stage, fixed IMPORT_FAILED, object/snapshot/template counts and preferences not imported."
+              },
+              {
+                "file": "tauri/crates/solosoul-vault/src/storage/import_batch.rs",
+                "lines": [
+                  589,
+                  629
+                ],
+                "meaning": "Object and its snapshot/HLC writes share the same transaction; snapshot failure causes rollback before committed counts return."
+              }
+            ],
+            "regressions_still_detected": [
+              "Snapshot failure leaving an object or snapshot committed",
+              "Falsely reporting Complete after attachment/preferences failure",
+              "Counting unlinked attachment files as successfully associated metadata",
+              "Erasing Partial counts after DB batch commit",
+              "Sending completion notification on failure",
+              "Leaking raw fault data or temporary directories"
+            ],
+            "boundary": "This test uses a first snapshot-write rejection; separate RF021 real Nth-failure/raw-four-table tests cover later-record and >50-history rollback. The retained legacy function name does not change its assertions."
+          },
+          {
+            "function": "rf003_switch_during_import_stops_later_records_and_attachment_publication",
+            "verdict": "Correct original-session switch boundaries; account/source/publication coverage retained",
+            "change": "At progress40 require NotCommitted0objects/0snapshots; at90 require Partial2objects/2snapshots. Attachment counters remain0 in both cases.",
+            "evidence": [
+              {
+                "file": "tauri/src-tauri/src/sync/cloud_auto_sync/tests/rf003.rs",
+                "lines": [
+                  279,
+                  317
+                ],
+                "meaning": "Captured original VaultSession and real encrypted package are passed to production import_execute_for_session. The actual progress callback switches to newly created B at40 or90 once; callback is not mocked away."
+              },
+              {
+                "file": "tauri/src-tauri/src/sync/cloud_auto_sync/tests/rf003.rs",
+                "lines": [
+                  318,
+                  346
+                ],
+                "meaning": "Switch must actually occur. Status and both DB counters are stage-dependent; linked/file attachment counts must remain0, unpublished staging and physical attachments must be absent, source package must exist, and both imported object IDs must be absent in B."
+              },
+              {
+                "file": "tauri/crates/solosoul-core/src/export_import.rs",
+                "lines": [
+                  1225,
+                  1232
+                ],
+                "meaning": "All Session target commits pass the originally captured session to service.with_session; no new-current-account recapture."
+              },
+              {
+                "file": "tauri/crates/solosoul-core/src/export_import.rs",
+                "lines": [
+                  1393,
+                  1404
+                ],
+                "meaning": "Physical publication occurs only through the original-session target.commit after staging; failure does not count a file as published."
+              },
+              {
+                "file": "tauri/src-tauri/src/commands/export_import/tests/rf027.rs",
+                "lines": [
+                  549,
+                  611
+                ],
+                "meaning": "Companion actual-worker test at40/90 for lock and switch additionally compares original DB object/snapshot counts and B empty records/snapshots, then returns to A to check visible count."
+              }
+            ],
+            "regressions_still_detected": [
+              "Continuing after the actual switch with a recaptured B session",
+              "Publishing attachments or leaking unpublished staging under an invalid original session",
+              "Losing correct Partial accounting after the completed database batch",
+              "Deleting the source needed for a failed/incomplete import"
+            ],
+            "boundary": "RF003 alone directly verifies reported A counts and B isolation, not raw A row bytes. Existing RF027 lock/switch tests retain real A/B database checks; the adjustment does not remove them."
+          }
+        ],
+        "related_previously_confirmed_rf027_updates": [
+          {
+            "file": "tauri/src-tauri/src/commands/export_import/tests/rf027.rs",
+            "lines": [
+              436,
+              479
+            ],
+            "meaning": "Reject-first/second-object cases still require NotCommitted0/0 and actual DB count agreement; success retains Complete and one notification."
+          },
+          {
+            "file": "tauri/src-tauri/src/commands/export_import/tests/rf027.rs",
+            "lines": [
+              532,
+              611
+            ],
+            "meaning": "Progress40/90 lock/switch cases retain original-generation result, actual A DB counts, B records/histories empty, zero notifications and publication, unchanged source, and no staging."
+          },
+          {
+            "file": "tauri/src-tauri/src/commands/export_import/tests/rf027.rs",
+            "lines": [
+              683,
+              703
+            ],
+            "meaning": "Post-commit panic remains at attachment progress90, with actual two-object/two-snapshot commits. Fixed JoinError text/private marker suppression, zero completion notification, no attachment publication/staging and unchanged source are retained."
+          }
+        ],
+        "historical_failure_evidence": {
+          "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf021-20260930\\workspace-full-third.log",
+          "sha256": "fc729671ac01eb168ef75da24acc6785f0beedf065fc2983f512d61a8f1a5db4",
+          "lines": [
+            4537,
+            4584
+          ],
+          "meaning": "Parent-run historical third full test log records exactly these five assertion failures (649 passed, 5 failed in the host lib suite). It predates final-source-fifth and is not evidence that the adjusted final source passed execution."
+        },
+        "extra_read_sources": [
+          {
+            "path": "tauri/src-tauri/src/commands/export_import/mod.rs",
+            "sha256": "5d6e5974c0ddeae7234fee8d411b414f167a44c67f77b65ad7d1adc5e6af28e3",
+            "reason": "ImportResult fail classification and sanitization; outside the 23-file frozen-source manifest"
+          }
+        ],
+        "verification_limits": [
+          "All 23 file bytes were independently hashed against the specified final-source-fifth manifest at start and before writing this report.",
+          "Semantic source reads focused on the five failed functions, their real fixtures, the production preparation/commit/progress/ownership/result boundary, and retained companion RF027 assertions; this is not a new whole-repository audit.",
+          "No repository/candidate files changed. No Cargo, build, format, tests, SQL statements, or live Vault operations were run. Only this TEMP JSON report was written.",
+          "No runtime pass claim is made by this reviewer. Parent owns the serial final test/check queue; the historical full-third execution evidence is labeled separately.",
+          "RF021 database atomicity does not claim atomic attachment/preferences publication or solve RF022 stable-operation resume/source-proof semantics."
+        ]
+      },
+      "scope": "read-only static review; no independent test execution"
+    }
+  ],
+  "protectedUserFiles": {
+    "tauri/src-tauri/bundles/nsis/assets/header-install.bmp": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+    "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+    "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+    "solosoul_cli/src/commands/profile.rs": "e08c0a7b8c9d9270f5764945494634c75d6d81bcba02cc189487965c81fc4e41",
+    "solosoul_cli/src/commands/security.rs": "0133f1ca219910c364dba4a2792452cfb88b05a133243f45765703cbbe146104",
+    "solosoul_cli/src/commands/template.rs": "ed2c08ee422ca9365415723875289cdad12ee2b92746a99a8c46eccac0ad7f95",
+    "solosoul_cli/src/commands/vault_write.rs": "48cb640caca661c289897d9d99a6a8cf4b13bb16abe05b5123fbc30b3bc7a16e",
+    "tauri/crates/solosoul-core/src/process_lock.rs": "48ebf0045f85980ebfc6e0a9ee52d72d2bb394e6f8b12d7107a2362f0d637c34",
+    "tauri/crates/solosoul-core/src/vault_service/mod.rs": "8ca707f687bcdf44a31a21f64ba4e151b7f7c86a9f271be740e5b872626f0878",
+    "tauri/crates/solosoul-core/src/vault_service/unlock.rs": "8d7fc8c0a2b87b72fe1c65a2d4979142276c06af8fe7d0ee95cdc896daafec6b",
+    "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": "d1f8f2db3d8aad53e1b955d3fc640374752db1c302d2f2c22d74e9ed356b428f",
+    "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/search-index.json": "cd4beaf09aeda37039a6523e6b86d01374dcced507278a1e76d41bd473b4e8fb",
+    "tauri/src-tauri/gen/android/app/tauri.properties": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+    "tauri/src-tauri/src/commands/llm/stream.rs": "cbfa9585bc9361d15942b33af2ada31945437d5d40876b6b1e82e4b5390acdd3",
+    "tauri/src-tauri/src/state/saf_config.rs": "f6ccbd9df3fb8e504b8081b90728d22e214010cb420356c668c5abb2efcb1b8d",
+    "tauri/src/hooks/useToastError.ts": "f2da44c3ca3fb50e379051ba762b1712ec19dfa21f9321ecaee3f9ef4fa33968",
+    "tauri/tools/ipc-contract-gen/src/lib.rs": "c682c7af5fe3d0432bef16223aa0c1da0370a8e83f5de859d509f6819199ec77",
+    "tauri/tools/ipc-contract-gen/tests/contracts.rs": "9377b9d40c3cd867a70bb0926a617745fca6c037cb9cdbe3a2f6b523c52bd9eb"
+  },
+  "pdfium": {
+    "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+    "sha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+  },
+  "limitations": [
+    "Windows本机真实SQLite/ZIP/SOLC/原会话/owned worker/CLI提示；未运行原生GUI、其他平台或远端云。",
+    "workspace3及CLI文档1个ignored均既有，无新增ignored/allow或裁剪用例。",
+    "仅数据库批次原子；文件系统/偏好仍独立，持久任务恢复留RF022。",
+    "schema27、依赖/锁文件/公开IPC/前端保持；准备视图内存与大账户性能未实测。"
+  ],
+  "commit": "本提交，以RF-021检索；不推送。"
+}

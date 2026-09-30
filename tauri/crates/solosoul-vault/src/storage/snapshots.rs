@@ -222,11 +222,19 @@ impl VaultStore {
     pub fn delete_snapshots(&self, object_id: &str) -> Result<(), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        Self::delete_snapshots_tx(conn, object_id)
+    }
+
+    /// RF-021：在调用方持有的事务内删除完整历史，不使用 UI 的 LIMIT。
+    pub(crate) fn delete_snapshots_tx(
+        conn: &rusqlite::Connection,
+        object_id: &str,
+    ) -> Result<(), String> {
         conn.execute(
             "DELETE FROM object_snapshots WHERE object_id = ?1",
             rusqlite::params![object_id],
         )
-        .map_err(|e| format!("delete_snapshots: {}", e))?;
+        .map_err(|e| format!("delete_snapshots: {e}"))?;
         Ok(())
     }
 
@@ -538,7 +546,31 @@ impl VaultStore {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let id = uuid::Uuid::new_v4().to_string();
-        let encrypted_data = encrypt_field(&key, data)?;
+        Self::save_snapshot_at_tx(
+            conn,
+            &key,
+            &id,
+            object_id,
+            triggered_by,
+            data,
+            diff_summary,
+            timestamp_ms,
+        )
+    }
+
+    /// RF-021：与普通保存共用 SQL/加密，导入 ID 在准备阶段生成，owner 由对象操作提供。
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn save_snapshot_at_tx(
+        conn: &rusqlite::Connection,
+        key: &DataEncryptionKey,
+        id: &str,
+        object_id: &str,
+        triggered_by: &str,
+        data: &[u8],
+        diff_summary: &str,
+        timestamp_ms: i64,
+    ) -> Result<(), String> {
+        let encrypted_data = encrypt_field(key, data)?;
         conn.execute(
             "INSERT INTO object_snapshots (id, object_id, timestamp, triggered_by, data, diff_summary)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
@@ -551,7 +583,7 @@ impl VaultStore {
                 diff_summary
             ],
         )
-        .map_err(|e| format!("save_snapshot: {}", e))?;
+        .map_err(|e| format!("save_snapshot: {e}"))?;
         Ok(())
     }
 

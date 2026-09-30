@@ -174,6 +174,7 @@ const MAX_ZIP_ENTRY_SIZE: u64 = 100 * 1024 * 1024;
 ///
 /// # 性能
 /// 只查询数据库一次，将结果缓存在 HashSet 中做后续判断。
+#[cfg(test)]
 pub(crate) fn unique_object_name(
     vault: &solosoul_vault::VaultStore,
     account_id: &str,

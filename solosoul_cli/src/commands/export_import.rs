@@ -1,7 +1,7 @@
 //! 加密导出/导入命令（CLI 薄封装）。
 //!
 //! 实现 `/export` 与 `/import`。实际编排逻辑已下沉到
-//! `solosoul-core::export_import::{export_vault, import_vault, import_preview}`，
+//! `solosoul-core::export_import::{export_vault, import_vault_into, import_preview}`，
 //! 本文件只负责：
 //! - 参数解析
 //! - 密码模态提示
@@ -15,7 +15,7 @@ use color_eyre::Result;
 use std::time::Instant;
 
 use solosoul_core::export_import::{
-    export_vault, import_preview, import_vault, ExportScope, ImportStrategy,
+    export_vault, import_preview, import_vault_into, ExportScope, ImportStrategy, ImportTarget,
 };
 
 use crate::app::App;
@@ -169,33 +169,25 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
         return Ok(());
     }
 
-    // 非预览模式需要解锁
-    require_unlocked(app)?;
-
-    let vault = match app.vault_service.get_vault_store() {
-        Some(v) => v,
-        None => {
-            app.error_message = Some(t!(app.i18n, "cmd-vault-not-open"));
-            return Ok(());
-        }
-    };
-
-    let account_id = match app.vault_service.get_current_account() {
-        Some(id) => id,
-        None => {
-            app.error_message = Some(t!(app.i18n, "cmd-account-not-found"));
+    // 非预览模式需要解锁；密码提示等待期间仅保留原会话令牌。
+    let account_id = require_unlocked(app)?;
+    let session = match app.vault_service.capture_session(&account_id) {
+        Ok(session) => session,
+        Err(e) => {
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
             return Ok(());
         }
     };
 
     let base = app.vault_service.base_path().to_path_buf();
-    // P001-1：CLI 导入附件不再明文落盘——从已解锁会话派生附件静态加密密钥，
-    // 导入时以该密钥加密写盘（与 GUI 导入路径一致）。
-    let vault_att_key: Option<[u8; 32]> = app
-        .vault_service
-        .attachment_encryption_key()
-        .ok()
-        .and_then(|k| k.as_slice().try_into().ok());
+    // RF021：附件密钥绑定原会话，用 Zeroizing 承载；失败不降级为明文导入。
+    let vault_att_key = match app.vault_service.attachment_key_for_session(&session) {
+        Ok(key) => key,
+        Err(e) => {
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
+            return Ok(());
+        }
+    };
     prompt::open(
         app,
         PromptSpec::Text {
@@ -206,14 +198,17 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
         },
         Box::new(move |app, result| {
             if let PromptResult::Text(password) = result {
-                match import_vault(
-                    &vault,
+                match import_vault_into(
+                    &ImportTarget::Session {
+                        service: &app.vault_service,
+                        session: &session,
+                    },
                     &account_id,
                     &path,
                     &password,
                     strategy,
                     &base,
-                    vault_att_key.as_ref(),
+                    Some(&*vault_att_key),
                 ) {
                     Ok(count) => {
                         app.success_message = Some((
@@ -452,3 +447,6 @@ mod tests {
         assert!(matches!(strategy, ImportStrategy::SkipExisting));
     }
 }
+
+#[cfg(test)]
+mod rf021_tests;

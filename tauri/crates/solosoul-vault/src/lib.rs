@@ -320,6 +320,10 @@ pub use storage::probe_data_key;
 pub use storage::sensitivity_rank;
 pub use storage::AttachmentCleanupIntent;
 pub use storage::VaultStore;
+pub use storage::{
+    ImportBatchError, ImportBatchRevision, ImportDatabaseBatch, ImportDatabaseCommit,
+    ImportHistoryChange, ImportObjectWrite, ImportReadView, ImportSnapshot,
+};
 
 // =============================================================================
 // Object storage layer — unified object model (P0-1)

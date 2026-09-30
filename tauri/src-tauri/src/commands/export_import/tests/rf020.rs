@@ -169,16 +169,11 @@ fn rf020_object_failure_counts_match_database() {
         f.reject_nth_object_write(nth);
         let path = package(f.dir.path(), objects(), false, false, false);
         let outcome = f.run(&path);
-        assert_eq!(outcome.object_count, nth - 1);
+        assert_eq!(outcome.object_count, 0);
+        assert_eq!(outcome.template_count, 0);
+        assert_eq!(outcome.snapshot_count, 0);
         assert_eq!(outcome.object_count, f.object_count());
-        assert_eq!(
-            outcome.status,
-            if nth == 1 {
-                ImportStatus::NotCommitted
-            } else {
-                ImportStatus::Partial
-            }
-        );
+        assert_eq!(outcome.status, ImportStatus::NotCommitted);
         assert_eq!(outcome.failure_stage, Some(ImportStage::Objects));
         assert!(!serde_json::to_string(&outcome)
             .unwrap()
@@ -212,7 +207,7 @@ fn rf020_attachment_failures_count_only_linked_metadata() {
 }
 
 #[test]
-fn rf020_snapshot_and_preferences_failures_are_partial() {
+fn rf020_database_snapshot_failure_is_atomic_and_preferences_remain_partial() {
     for snapshots in [true, false] {
         let f = Fixture::new();
         if snapshots {
@@ -224,7 +219,14 @@ fn rf020_snapshot_and_preferences_failures_are_partial() {
         }
         let path = package(f.dir.path(), objects(), false, false, !snapshots);
         let outcome = f.run(&path);
-        assert_eq!(outcome.status, ImportStatus::Partial);
+        assert_eq!(
+            outcome.status,
+            if snapshots {
+                ImportStatus::NotCommitted
+            } else {
+                ImportStatus::Partial
+            }
+        );
         assert_eq!(
             outcome.failure_stage,
             Some(if snapshots {
@@ -234,7 +236,8 @@ fn rf020_snapshot_and_preferences_failures_are_partial() {
             })
         );
         assert_eq!(outcome.object_count, f.object_count());
-        assert_eq!(outcome.object_count, if snapshots { 1 } else { 2 });
+        assert_eq!(outcome.object_count, if snapshots { 0 } else { 2 });
+        assert_eq!(outcome.snapshot_count, if snapshots { 0 } else { 2 });
         assert!(!outcome.preferences_imported);
     }
 }
@@ -276,7 +279,7 @@ fn rf020_cloud_request_accepts_all_or_explicit_selection() {
 }
 
 #[test]
-fn rf020_template_only_commit_is_partial_and_decryption_is_uncommitted() {
+fn rf020_template_failure_is_atomic_and_decryption_is_uncommitted() {
     let f = Fixture::new();
     let mut payload = objects();
     let template = |id: &str| {
@@ -293,11 +296,11 @@ fn rf020_template_only_commit_is_partial_and_decryption_is_uncommitted() {
     .unwrap();
     let path = package(f.dir.path(), payload, false, false, false);
     let outcome = f.run(&path);
-    assert_eq!(outcome.status, ImportStatus::Partial);
-    assert_eq!(outcome.template_count, 1);
+    assert_eq!(outcome.status, ImportStatus::NotCommitted);
+    assert_eq!(outcome.template_count, 0);
     assert_eq!(outcome.object_count, 0);
     assert_eq!(outcome.failure_stage, Some(ImportStage::Templates));
-    assert!(f.vault.load_user_template("first").unwrap().is_some());
+    assert!(f.vault.load_user_template("first").unwrap().is_none());
     assert!(f.vault.load_user_template("second").unwrap().is_none());
     std::fs::write(&path, b"not a package").unwrap();
     let outcome = f.run(&path);

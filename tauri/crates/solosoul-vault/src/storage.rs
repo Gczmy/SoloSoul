@@ -17,6 +17,11 @@ use crate::{VaultConfig, VaultState, VaultStats};
 // 跨域被根模块调用的私有助手提升为 `pub(crate)`，其余保持私有。
 mod attachment_cleanup;
 pub use attachment_cleanup::AttachmentCleanupIntent;
+mod import_batch;
+pub use import_batch::{
+    ImportBatchError, ImportBatchRevision, ImportDatabaseBatch, ImportDatabaseCommit,
+    ImportHistoryChange, ImportObjectWrite, ImportReadView, ImportSnapshot,
+};
 mod conversations;
 mod device_preferences;
 mod metadata;
@@ -133,36 +138,123 @@ const USER_TEMPLATE_SAVE_SQL: &str = "INSERT INTO user_templates (id, account_id
 const USER_TEMPLATE_LOAD_SQL: &str = "SELECT id, account_id, name, icon_id, properties_json, category, contract_type_id, created_at, updated_at \
      FROM user_templates WHERE id = ?1";
 
-/// P020: `user_templates` 行解密映射（load/list/sync 三处共用，列序需与
-/// USER_TEMPLATE_LOAD_SQL / list_user_templates / sync_changes 的 SELECT 完全一致）。
+/// RF-021：固定九列模板行的 owned SQLite 值；Text 保留字节，不提前 UTF-8 解析。
+/// 原 load/list/sync mapper 和 frozen import view 共用，绝不保存 Row/密钥借用。
+#[derive(Clone)]
+enum UserTemplateValueRaw {
+    Null,
+    Integer(i64),
+    Real(f64),
+    Text(Vec<u8>),
+    Blob(Vec<u8>),
+}
+
+impl UserTemplateValueRaw {
+    fn from_ref(value: rusqlite::types::ValueRef<'_>) -> Self {
+        match value {
+            rusqlite::types::ValueRef::Null => Self::Null,
+            rusqlite::types::ValueRef::Integer(value) => Self::Integer(value),
+            rusqlite::types::ValueRef::Real(value) => Self::Real(value),
+            rusqlite::types::ValueRef::Text(value) => Self::Text(value.to_vec()),
+            rusqlite::types::ValueRef::Blob(value) => Self::Blob(value.to_vec()),
+        }
+    }
+
+    fn as_value_ref(&self) -> rusqlite::types::ValueRef<'_> {
+        match self {
+            Self::Null => rusqlite::types::ValueRef::Null,
+            Self::Integer(value) => rusqlite::types::ValueRef::Integer(*value),
+            Self::Real(value) => rusqlite::types::ValueRef::Real(*value),
+            Self::Text(value) => rusqlite::types::ValueRef::Text(value),
+            Self::Blob(value) => rusqlite::types::ValueRef::Blob(value),
+        }
+    }
+}
+
+/// 列序与 USER_TEMPLATE_LOAD_SQL/list_user_templates/sync_changes 保持一致。
+#[derive(Clone)]
+struct UserTemplateRowRaw {
+    columns: Vec<UserTemplateValueRaw>,
+    column_names: Vec<String>,
+}
+
+impl UserTemplateRowRaw {
+    fn from_row(row: &rusqlite::Row<'_>) -> Result<Self, rusqlite::Error> {
+        let mut columns = Vec::with_capacity(9);
+        let mut column_names = Vec::with_capacity(9);
+        for index in 0..9 {
+            columns.push(UserTemplateValueRaw::from_ref(row.get_ref(index)?));
+            column_names.push(row.as_ref().column_name(index)?.to_string());
+        }
+        Ok(Self {
+            columns,
+            column_names,
+        })
+    }
+
+    /// 与锁定的 rusqlite 0.32.1 Row::get 相同类型转换/错误映射。
+    /// 延后 metadata 的 typed 读取，保留原 properties→解密→JSON→其余列顺序。
+    fn get<T: rusqlite::types::FromSql>(&self, index: usize) -> Result<T, rusqlite::Error> {
+        let value = self
+            .columns
+            .get(index)
+            .ok_or(rusqlite::Error::InvalidColumnIndex(index))?
+            .as_value_ref();
+        T::column_result(value).map_err(|error| match error {
+            rusqlite::types::FromSqlError::InvalidType => rusqlite::Error::InvalidColumnType(
+                index,
+                self.column_names[index].clone(),
+                value.data_type(),
+            ),
+            rusqlite::types::FromSqlError::OutOfRange(value) => {
+                rusqlite::Error::IntegralValueOutOfRange(index, value)
+            }
+            rusqlite::types::FromSqlError::Other(error) => {
+                rusqlite::Error::FromSqlConversionFailure(index, value.data_type(), error)
+            }
+            error => {
+                rusqlite::Error::FromSqlConversionFailure(index, value.data_type(), Box::new(error))
+            }
+        })
+    }
+
+    fn into_template(
+        self,
+        key: &DataEncryptionKey,
+    ) -> Result<crate::UserTemplate, rusqlite::Error> {
+        let props_json: String = self.get(4)?;
+        let decrypted = decrypt_text_field(key, &props_json).map_err(|e| {
+            rusqlite::Error::FromSqlConversionFailure(
+                4,
+                rusqlite::types::Type::Text,
+                Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("Template properties decryption failed: {}", e),
+                )),
+            )
+        })?;
+        let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
+            .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+        Ok(crate::UserTemplate {
+            contract_type_id: self.get(6)?,
+            id: self.get(0)?,
+            account_id: self.get(1)?,
+            name: self.get(2)?,
+            icon_id: self.get(3)?,
+            properties,
+            category: self.get(5)?,
+            created_at: self.get(7)?,
+            updated_at: self.get(8)?,
+        })
+    }
+}
+
+/// P020: load/list/sync 的共享严格 mapper；import view 仅在按需读取时使用相同解析。
 fn map_user_template_row(
     key: &DataEncryptionKey,
     row: &rusqlite::Row<'_>,
 ) -> Result<crate::UserTemplate, rusqlite::Error> {
-    let props_json: String = row.get(4)?;
-    let decrypted = decrypt_text_field(key, &props_json).map_err(|e| {
-        rusqlite::Error::FromSqlConversionFailure(
-            4,
-            rusqlite::types::Type::Text,
-            Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                format!("Template properties decryption failed: {}", e),
-            )),
-        )
-    })?;
-    let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
-        .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
-    Ok(crate::UserTemplate {
-        contract_type_id: row.get(6)?,
-        id: row.get(0)?,
-        account_id: row.get(1)?,
-        name: row.get(2)?,
-        icon_id: row.get(3)?,
-        properties,
-        category: row.get(5)?,
-        created_at: row.get(7)?,
-        updated_at: row.get(8)?,
-    })
+    UserTemplateRowRaw::from_row(row)?.into_template(key)
 }
 
 /// P213: 对象软删常量 SQL（回收站批量入站/单删共用）。
@@ -512,6 +604,8 @@ pub fn probe_data_key(db_path: &std::path::Path, key: &DataEncryptionKey) -> Res
 
 /// Vault store with SQLite backing
 pub struct VaultStore {
+    /// RF-021：连接生命周期唯一身份，拒绝另一实例生成的导入修订。
+    import_instance_id: uuid::Uuid,
     conn: Mutex<Option<Connection>>,
     config: VaultConfig, // reserved for future path-based vault operations
     state: Mutex<VaultState>,
@@ -713,6 +807,7 @@ impl VaultStore {
         run_migrations(&mut conn)?;
 
         let store = Self {
+            import_instance_id: uuid::Uuid::new_v4(),
             conn: Mutex::new(Some(conn)),
             config,
             state: Mutex::new(VaultState::Unlocked),

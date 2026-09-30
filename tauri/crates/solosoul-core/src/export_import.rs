@@ -24,7 +24,10 @@ use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
 
 use solosoul_crypto::kdf::KdfConfig;
-use solosoul_vault::{ObjectRecord, UserTemplate, VaultStore};
+use solosoul_vault::{
+    ImportDatabaseBatch, ImportDatabaseCommit, ImportHistoryChange, ImportObjectWrite,
+    ImportReadView, ObjectRecord, UserTemplate, VaultStore,
+};
 use zeroize::Zeroizing;
 
 // ── Constants ────────────────────────────────────────────
@@ -410,147 +413,214 @@ pub fn import_vault(
     base_path: &Path,
     vault_att_key: Option<&[u8; 32]>,
 ) -> Result<usize, ExportError> {
+    import_vault_into(
+        &ImportTarget::Direct(vault),
+        account_id,
+        path,
+        password,
+        strategy,
+        base_path,
+        vault_att_key,
+    )
+}
+
+/// Core/CLI 导入保留原策略与 usize/Err 契约；所有数据库记录一次准备、一次提交。
+/// KDF、ZIP、解密和只读视图在会话门闩外，最终写入重新核对原会话和 revision。
+pub fn import_vault_into(
+    target: &ImportTarget<'_>,
+    account_id: &str,
+    path: &Path,
+    password: &str,
+    strategy: ImportStrategy,
+    base_path: &Path,
+    vault_att_key: Option<&[u8; 32]>,
+) -> Result<usize, ExportError> {
     if password.is_empty() {
         return Err(ExportError::Msg("导入密码不能为空".to_string()));
     }
-
+    // 拒绝已过期的 prompt/请求；不在此回调内执行 KDF 或读包。
+    target.commit(|_| Ok(()))?;
     let manifest = read_manifest(path)?;
     let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("salt 解码失败: {}", e))?;
-    // P202: 按 manifest 声明参数派生（旧格式包无 kdf 字段回退 balanced 兼容）。
     let key = derive_export_key_cfg(password, &salt, &manifest.kdf_config())?;
-
-    // P026: 流式解密主 payload——payload.enc 经 decrypt_chunked_stream 直接写入
-    // 0700 临时文件，再从文件解析 JSON；峰值内存由「密文+明文+JSON 树」约 3× 降至约 1×。
     let payload: serde_json::Value = decrypt_payload_stream(path, base_path, &key)?;
-    let package_ids = build_package_ids(&payload);
-
-    // ── 模板快照导入（内容哈希隔离） ────────
-    let mut template_id_map: HashMap<String, String> = HashMap::new();
     let now = chrono::Utc::now().to_rfc3339();
-    import_template_snapshots(vault, account_id, &payload, &mut template_id_map, &now)?;
+    let prepared = prepare_import_database(target.vault(), account_id, &payload, strategy, &now)?;
+    let committed = commit_import_database(target, account_id, &prepared)?;
+    // Core 计数为有序写操作数；重复新 ID 两条都计数，区别于 Host 唯一最终 ID。
+    let imported = committed.object_write_count;
 
-    // P212: 存在性预查（仅 SkipExisting 需要）——一次 metadata-only 查询收集
-    // 现存非删除对象 ID，替代逐对象 load_object 的 N 次解密。VaultStore 按账户
-    // 分库，账户内 ID 唯一，集合判定与 load_object+!is_deleted 语义等价。
-    let existing_ids: HashSet<String> = match strategy {
-        ImportStrategy::SkipExisting => vault
-            .list_object_metadata(account_id, None, None, false, false)?
-            .into_iter()
-            .map(|s| s.id)
-            .collect(),
-        _ => HashSet::new(),
-    };
-
-    // P212: 构建待写对象（借用 payload 迭代，避免整数组克隆）。
-    let (records_to_save, imported, imported_object_ids) = build_import_records(
-        account_id,
-        &payload,
-        &template_id_map,
-        &package_ids,
-        &existing_ids,
-        strategy,
-        &now,
-    );
-
-    // P212: 单事务批量写入（替代逐条 save_object 的 N 次 auto-commit）。
-    vault.save_objects_batch(&records_to_save)?;
-
-    // 导入附件（P012：与 GUI 共用唯一实现；CLI 无 KeepBoth/选择性/进度需求，传空值）。
+    // 后续文件/偏好阶段仍独立；失败可返回 Err 而数据库已提交，RF-020 契约不在此更改。
     if manifest.has_attachments {
-        import_attachments(
-            vault,
+        import_attachments_into(
+            target,
             base_path,
             path,
             &key,
             &salt,
-            &imported_object_ids,
+            &prepared.imported_object_ids,
             &payload,
             vault_att_key,
             &HashMap::new(),
             None,
             &now,
             None,
+            &mut AttachmentImportProgress::default(),
         )?;
     }
-
-    // 导入偏好设置。
     if manifest
         .extra_files
         .contains(&"preferences.enc".to_string())
     {
-        import_preferences(vault, account_id, &key, &salt, path)?;
+        import_preferences_into(target, account_id, &key, &salt, path)?;
     }
 
-    let _ = vault.log_structured(
-        "import_execute",
-        "import",
-        None,
-        None,
-        "user",
-        Some(&format!(
-            "imported {} objects from {} (strategy: {:?})",
-            imported,
-            path.display(),
-            strategy
-        )),
-    );
-
+    target.commit(|vault| {
+        // 审计写错维持原 best-effort；会话门闩失效仍传播。
+        let _ = vault.log_structured(
+            "import_execute",
+            "import",
+            None,
+            None,
+            "user",
+            Some(&format!(
+                "imported {} objects from {} (strategy: {:?})",
+                imported,
+                path.display(),
+                strategy
+            )),
+        );
+        Ok(())
+    })?;
     Ok(imported)
 }
 
-/// 导入模板快照（内容哈希隔离 + 内容去重），填充 `template_id_map`。
-///
-/// P018: 从 `import_vault` 拆出——原函数 175 行含三个独立阶段，模板阶段与
-/// 对象阶段互不依赖，仅通过 `template_id_map` 衔接。
-fn import_template_snapshots(
+struct PreparedCoreImport {
+    view: ImportReadView,
+    batch: ImportDatabaseBatch,
+    imported_object_ids: HashSet<String>,
+}
+
+/// 冻结 raw/metadata 视图不解密未使用的对象或模板。Core 只按批前 active ID 跳过。
+fn prepare_import_database(
     vault: &VaultStore,
     account_id: &str,
     payload: &serde_json::Value,
-    template_id_map: &mut HashMap<String, String>,
+    strategy: ImportStrategy,
     now: &str,
-) -> Result<(), ExportError> {
+) -> Result<PreparedCoreImport, ExportError> {
+    let view = vault
+        .read_import_view(account_id)
+        .map_err(|e| ExportError::Msg(e.to_string()))?;
+    let (templates, template_id_map) =
+        prepare_template_snapshots(vault, &view, account_id, payload, now)?;
+    let existing_ids = if matches!(strategy, ImportStrategy::SkipExisting) {
+        vault
+            .list_import_view_object_metadata(&view)?
+            .into_iter()
+            .map(|object| object.id)
+            .collect()
+    } else {
+        HashSet::new()
+    };
+    let package_ids = build_package_ids(payload);
+    let (records, _prepared_count, imported_object_ids) = build_import_records(
+        account_id,
+        payload,
+        &template_id_map,
+        &package_ids,
+        &existing_ids,
+        strategy,
+        now,
+    );
+    let objects = records
+        .into_iter()
+        .map(|record| ImportObjectWrite {
+            record,
+            // Core 原入口不导入包历史，不能新增 Host 的 Replace/Append 行为。
+            history: ImportHistoryChange::Keep,
+        })
+        .collect();
+    Ok(PreparedCoreImport {
+        view,
+        batch: ImportDatabaseBatch { templates, objects },
+        imported_object_ids,
+    })
+}
+
+fn commit_import_database(
+    target: &ImportTarget<'_>,
+    account_id: &str,
+    prepared: &PreparedCoreImport,
+) -> Result<ImportDatabaseCommit, ExportError> {
+    target
+        .commit(|vault| {
+            vault
+                .commit_import_batch(account_id, &prepared.view.revision, &prepared.batch)
+                .map_err(|e| e.to_string())
+        })
+        .map_err(ExportError::from)
+}
+
+/// 内容哈希、原 ID 最后映射与非法包模板 warning/skip 保持原行为；存储错误必须传播。
+fn prepare_template_snapshots(
+    vault: &VaultStore,
+    view: &ImportReadView,
+    account_id: &str,
+    payload: &serde_json::Value,
+    now: &str,
+) -> Result<(Vec<UserTemplate>, HashMap<String, String>), ExportError> {
+    let mut planned = Vec::new();
+    let mut mapping = HashMap::new();
+    // 无模板或全部非法模板时，原入口不读取本地模板；不能新增未使用坏模板失败。
+    let mut local_templates: Option<Vec<UserTemplate>> = None;
     if let Some(templates) = payload["templates"].as_array() {
-        for tpl_val in templates {
-            match serde_json::from_value::<UserTemplate>(tpl_val.clone()) {
-                Ok(mut tpl) => {
-                    let original_id = tpl.id.clone();
-                    let hash = user_template_content_hash(&tpl);
-
-                    // 去重：检查是否有完全一致的已有模板（含系统预置模板）
-                    let local_id = if let Some(existing) =
-                        vault.find_user_template_by_content_hash(account_id, &hash)?
-                    {
-                        existing.id
-                    } else {
-                        let imported_id = imported_template_id(&original_id, &hash);
-                        if vault
-                            .load_user_template(&imported_id)
-                            .ok()
-                            .flatten()
-                            .is_none()
-                        {
-                            tpl.id = imported_id.clone();
-                            tpl.account_id = account_id.to_string();
-                            tpl.created_at = now.to_string();
-                            tpl.updated_at = Some(now.to_string());
-                            let _ = vault.save_user_template(&tpl);
-                        }
-                        imported_id
-                    };
-
-                    template_id_map.insert(original_id, local_id);
-                }
-                Err(e) => {
+        for value in templates {
+            let mut template = match serde_json::from_value::<UserTemplate>(value.clone()) {
+                Ok(template) => template,
+                Err(error) => {
                     tracing::warn!(
                         "[import] 模板反序列化失败，跳过: {}, 错误: {}",
-                        tpl_val["id"].as_str().unwrap_or("<unknown>"),
-                        e
+                        value["id"].as_str().unwrap_or("<unknown>"),
+                        error
                     );
+                    continue;
                 }
+            };
+            if local_templates.is_none() {
+                local_templates = Some(vault.list_import_view_user_templates(view)?);
             }
+            let local = local_templates.as_mut().expect("template list initialized");
+            let original_id = template.id.clone();
+            let hash = user_template_content_hash(&template);
+            let local_id = if let Some(existing) = local
+                .iter()
+                .find(|existing| user_template_content_hash(existing) == hash)
+            {
+                existing.id.clone()
+            } else {
+                let imported_id = imported_template_id(&original_id, &hash);
+                // 前序计划也必须被看见；禁止对重复目标 ID 计划第二次 INSERT。
+                if !planned
+                    .iter()
+                    .any(|item: &UserTemplate| item.id == imported_id)
+                    && vault
+                        .load_import_view_user_template(view, &imported_id)?
+                        .is_none()
+                {
+                    template.id = imported_id.clone();
+                    template.account_id = account_id.to_string();
+                    template.created_at = now.to_string();
+                    template.updated_at = Some(now.to_string());
+                    local.push(template.clone());
+                    planned.push(template);
+                }
+                imported_id
+            };
+            mapping.insert(original_id, local_id);
         }
     }
-    Ok(())
+    Ok((planned, mapping))
 }
 
 /// 从 payload 构建待写入对象记录（含跨范围引用降级与模板 ID 重映射）。
@@ -1134,7 +1204,7 @@ pub struct AttachmentImportProgress {
     pub written_file_count: usize,
 }
 
-/// 导入写入目标。GUI 的后台工作必须携带起始会话；CLI 的同步入口保留直接句柄。
+/// 导入写入目标。GUI/CLI 请求携带起始会话；旧直接 API 保留 Direct 句柄。
 /// 解密、KDF 与压缩不在 commit 回调内运行。
 pub enum ImportTarget<'a> {
     Direct(&'a VaultStore),
@@ -1465,8 +1535,8 @@ fn sanitize_import_file_name(file_name: &str) -> Result<String, ExportError> {
 }
 
 /// 导入偏好设置。
-fn import_preferences(
-    vault: &VaultStore,
+fn import_preferences_into(
+    target: &ImportTarget<'_>,
     account_id: &str,
     key: &[u8; 32],
     salt: &[u8],
@@ -1480,7 +1550,7 @@ fn import_preferences(
         .map_err(|_| "解密偏好设置失败".to_string())?;
     let profile = solosoul_vault::Profile::new_with_id(account_id, account_id, prefs_dec.to_vec());
     // R2-06: 传播保存失败，避免用户看到"导入成功"但 preferences 未落库。
-    vault.save_profile(&profile)?;
+    target.commit(|vault| vault.save_profile(&profile))?;
     Ok(())
 }
 
@@ -2437,3 +2507,6 @@ mod tests {
         out
     }
 }
+
+#[cfg(test)]
+mod rf021_tests;

@@ -25,7 +25,8 @@ pub use crate::attachment_cleanup::{
 mod create;
 pub use create::{
     build_create_record, inherit_contract_type_id, inherit_property_fields,
-    inherit_property_labels, inject_property_fields, inject_template_meta, CreateRecordInput,
+    inherit_property_labels, inject_property_fields, inject_template_meta,
+    project_template_properties, CreateRecordInput,
 };
 
 mod rollback;

@@ -78,7 +78,7 @@ pub fn build_create_record(
 }
 
 /// 字段定义与敏感度副本的唯一投影，严格创建和兼容 getter 共用。
-fn project_template_properties(template: &UserTemplate) -> (Option<Value>, Value) {
+pub fn project_template_properties(template: &UserTemplate) -> (Option<Value>, Value) {
     let mut labels = Map::new();
     let mut fields = Map::new();
     for property in &template.properties {

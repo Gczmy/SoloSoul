@@ -318,9 +318,14 @@ fn rf003_switch_during_import_stops_later_records_and_attachment_publication() {
         assert!(switched.load(Ordering::SeqCst));
         assert_eq!(
             outcome.status,
-            crate::commands::export_import::ImportStatus::Partial
+            if pause_at == 40 {
+                crate::commands::export_import::ImportStatus::NotCommitted
+            } else {
+                crate::commands::export_import::ImportStatus::Partial
+            }
         );
-        assert_eq!(outcome.object_count, if pause_at == 40 { 1 } else { 2 });
+        assert_eq!(outcome.object_count, if pause_at == 40 { 0 } else { 2 });
+        assert_eq!(outcome.snapshot_count, if pause_at == 40 { 0 } else { 2 });
         assert_eq!(outcome.attachment_count, 0);
         assert_eq!(outcome.attachment_files_written, 0);
         let vault_root = f.service.read().unwrap().base_path().to_path_buf();

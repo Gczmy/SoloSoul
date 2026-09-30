@@ -6,6 +6,8 @@ use std::sync::{Arc, RwLock};
 use super::helpers::ManifestData;
 use super::*;
 
+mod batch;
+
 // ── Import commands ────────────────────────────────────────────
 
 /// P013: 导入解密明文临时目录前缀。临时目录建于**数据目录内**（0700，与敏感数据
@@ -433,7 +435,7 @@ pub(crate) fn import_execute_internal(
     )
 }
 
-/// 后台导入使用任务开始时的会话；同步解析不持有会话门闩，每次提交分别验证。
+/// 后台导入绑定起始会话；数据库准备不持门闩，唯一批次及后续附件/偏好提交分别验证。
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn import_execute_for_session(
     svc: &solosoul_core::VaultService,
@@ -516,36 +518,72 @@ fn import_execute_steps(
     // 保证跨设备恢复后历史记录数量与旧设备一致。
     let package_snapshots = build_package_snapshots(&payload);
 
-    // ── 阶段 2：重建包内引用模板（快照隔离，按内容哈希去重）──
+    // ── 阶段 2：一致只读视图与模板计划，准备期间不写入数据库 ──
     *stage = ImportStage::Templates;
-    let template_id_map =
-        rebuild_imported_templates_tracked(&target, account_id, &payload, result)?;
-
+    // 入口已验证原会话；捕获全部 raw 行也在 session gate 外，不阻塞锁定。
+    // 始终读取 session 的原 Vault，Locked/陈旧修订不改取当前新账户。
+    let view = target
+        .vault()
+        .read_import_view(account_id)
+        .map_err(|error| error.to_string())?;
+    // 按旧调用边界：包没有模板/空数组时，不严格扫描无关本地模板。
+    // Vault 的按需模板 accessor 是本候选明确依赖，详见 README。
+    let local_templates = if payload["templates"]
+        .as_array()
+        .is_some_and(|templates| !templates.is_empty())
+    {
+        target.vault().list_import_view_user_templates(&view)?
+    } else {
+        Vec::new()
+    };
     let now = chrono::Utc::now().to_rfc3339();
+    let templates = batch::prepare_templates(local_templates, account_id, &payload, &now)?;
+    let available_templates: HashMap<_, _> = templates
+        .available
+        .iter()
+        .cloned()
+        .map(|template| (template.id.clone(), template))
+        .collect();
 
-    // ── 阶段 3：预构建 KeepBoth ID 映射表（解决前向引用问题）──
+    // ── 阶段 3：沿用 RF1063 的实际选择 + 有效策略 KeepBoth 统一映射 ──
     let id_map =
         build_keepboth_id_map(objects, strategy, &object_strategies, selected_ids.as_ref());
 
-    // ── 阶段 4：对象导入主循环（策略/模板/KeepBoth/快照已抽至 import_one_object）──
+    // ── 阶段 4：有序准备全部对象和历史，再由原会话门闩提交唯一 SQLite 批次 ──
     *stage = ImportStage::Objects;
-    let imported_object_ids = import_objects_loop(
-        &target,
+    let plan = batch::prepare_objects(
+        target.vault(),
+        &view,
         objects,
         account_id,
         strategy,
         &object_strategies,
         selected_ids.as_ref(),
         &package_ids,
-        &template_id_map,
+        &templates.id_map,
+        &available_templates,
         &id_map,
         &package_snapshots,
+        templates.added,
         &now,
         locale,
         progress.as_deref(),
-        result,
         stage,
     )?;
+    *stage = ImportStage::Objects;
+    let committed = target.commit(|vault| {
+        vault
+            .commit_import_batch(account_id, &view.revision, &plan.batch)
+            .map_err(|error| {
+                *stage = batch::commit_failure_stage(error);
+                error.to_string()
+            })
+    })?;
+    // 只能发布真实 COMMIT 成功的结果；数据库失败没有部分计数。
+    result.template_count = committed.template_ids.len();
+    result.object_count = committed.object_ids.len();
+    result.snapshot_count = committed.snapshot_write_count;
+    let imported_object_ids = plan.imported_object_ids;
 
     // 构建选中附件 ID 集合，用于附件过滤
     let sel_att_ids_set: Option<std::collections::HashSet<String>> =
@@ -603,65 +641,6 @@ pub(crate) fn build_selected_ids(
             .map(|s| s.object_id)
             .collect()
     })
-}
-
-/// 阶段 4：对象导入主循环（策略解析/模板继承/KeepBoth 重写/快照恢复已抽至 import_one_object）。
-/// 返回 (imported 计数, 已导入对象 ID 集合)。
-#[allow(clippy::too_many_arguments)]
-fn import_objects_loop(
-    target: &ImportTarget<'_>,
-    objects: &[serde_json::Value],
-    account_id: &str,
-    strategy: ImportStrategy,
-    object_strategies: &HashMap<String, ImportStrategy>,
-    selected_ids: Option<&BTreeSet<String>>,
-    package_ids: &std::collections::HashSet<String>,
-    template_id_map: &std::collections::HashMap<String, String>,
-    id_map: &HashMap<String, String>,
-    package_snapshots: &HashMap<String, Vec<serde_json::Value>>,
-    now: &str,
-    locale: &str,
-    progress: Option<&(dyn Fn(u8) + Send + Sync)>,
-    result: &mut ImportResult,
-    stage: &mut ImportStage,
-) -> Result<std::collections::HashSet<String>, String> {
-    let mut imported_object_ids: std::collections::HashSet<String> =
-        std::collections::HashSet::new();
-    let mut committed_object_ids = std::collections::HashSet::new();
-    let objects_len = objects.len();
-    for (obj_index, obj_val) in objects.iter().enumerate() {
-        *stage = ImportStage::Objects;
-        // 阶段 4 主体抽至 import_one_object：策略解析/模板继承/KeepBoth 重写/快照恢复
-        let outcome = import_one_object(
-            target,
-            obj_val,
-            account_id,
-            strategy,
-            object_strategies,
-            selected_ids,
-            package_ids,
-            template_id_map,
-            id_map,
-            package_snapshots,
-            now,
-            locale,
-            progress,
-            obj_index,
-            objects_len,
-            result,
-            stage,
-            &mut committed_object_ids,
-        )?;
-        let Some((final_id, is_keepboth)) = outcome else {
-            continue;
-        };
-        imported_object_ids.insert(final_id);
-        // 也记录旧 ID 以便附件查找（KeepBoth 场景）
-        if is_keepboth {
-            imported_object_ids.insert(obj_val["id"].as_str().unwrap_or("").to_string());
-        }
-    }
-    Ok(imported_object_ids)
 }
 
 /// 阶段 5+6：导入附件（加密，流式解密）与偏好设置。
@@ -788,233 +767,6 @@ pub(crate) fn wrap_attachment_progress(
     })
 }
 
-/// 阶段 4：导入单个对象（策略解析、模板继承、KeepBoth 重写、快照恢复）。
-/// 返回 `(final_id, imported)`：`imported=false` 表示该对象被过滤/跳过。
-/// 副作用：写对象行、恢复/创建快照、更新进度回调。
-#[allow(clippy::too_many_arguments)]
-fn import_one_object(
-    target: &ImportTarget<'_>,
-    obj_val: &serde_json::Value,
-    account_id: &str,
-    strategy: ImportStrategy,
-    object_strategies: &HashMap<String, ImportStrategy>,
-    selected_ids: Option<&BTreeSet<String>>,
-    package_ids: &std::collections::HashSet<String>,
-    template_id_map: &std::collections::HashMap<String, String>,
-    id_map: &HashMap<String, String>,
-    package_snapshots: &HashMap<String, Vec<serde_json::Value>>,
-    now: &str,
-    locale: &str,
-    progress: Option<&(dyn Fn(u8) + Send + Sync)>,
-    obj_index: usize,
-    objects_len: usize,
-    result: &mut ImportResult,
-    stage: &mut ImportStage,
-    committed_object_ids: &mut std::collections::HashSet<String>,
-) -> Result<Option<(String, bool)>, String> {
-    target.commit(|_| Ok(()))?;
-    let vault = target.vault();
-    let id = obj_val["id"].as_str().unwrap_or("");
-    if id.is_empty() {
-        return Ok(None);
-    }
-
-    // Apply selection filter & conflict check, resolve effective strategy
-    let (should_continue, effective_strategy) =
-        resolve_import_object_flow(vault, id, strategy, object_strategies, selected_ids)?;
-    if !should_continue {
-        return Ok(None);
-    }
-
-    // Resolve cross-scope RelationProperty references
-    let mut properties = obj_val["properties"].clone();
-    resolve_cross_scope_references(&mut properties, package_ids);
-
-    // ── 从模板继承字段敏感度、字段定义和模板名称（resolved_template_id + property_labels）──
-    let (resolved_template_id, property_labels) =
-        inherit_import_template_meta(vault, obj_val, template_id_map, &mut properties);
-
-    // ── 重写 KeepBoth ID 引用（所有对象都需要，不仅仅是 KeepBoth 对象）
-    // 这样如果 Object A（overwrite）引用 Object B（KeepBoth），A 的引用也会被更新
-    if !id_map.is_empty() {
-        rewrite_id_references(&mut properties, id_map);
-    }
-
-    // ── KeepBoth: 使用预先生成的新 ID + 新名称 ────────────────────
-    let (final_id, final_name): (String, String) = if effective_strategy == ImportStrategy::KeepBoth
-    {
-        let new_id = id_map.get(id).cloned().unwrap_or_else(generate_id);
-        let new_name = unique_object_name(
-            vault,
-            account_id,
-            obj_val["name"].as_str().unwrap_or("Imported"),
-            locale,
-        )?;
-        (new_id, new_name)
-    } else {
-        (
-            id.to_string(),
-            obj_val["name"].as_str().unwrap_or("Imported").to_string(),
-        )
-    };
-
-    // ── 阶段 4.1：构建导入对象记录（含 KeepBoth ID 重写）──
-    let record = build_import_record(
-        obj_val,
-        account_id,
-        id_map,
-        resolved_template_id,
-        &final_id,
-        &final_name,
-        properties,
-        property_labels,
-        now,
-    );
-
-    target
-        .commit(|vault| vault.save_object(&record))
-        .map_err(|e| format!("save: {}", e))?;
-    committed_object_ids.insert(final_id.clone());
-    result.object_count = committed_object_ids.len();
-    *stage = ImportStage::Snapshots;
-
-    // 恢复包内历史快照（若有），否则创建 diff_imported 初始快照使历史 badge 正常显示。
-    let snapshot_key = if effective_strategy == ImportStrategy::KeepBoth {
-        &final_id
-    } else {
-        id
-    };
-    restore_import_snapshots(
-        target,
-        snapshot_key,
-        package_snapshots,
-        id,
-        effective_strategy,
-        &record,
-        result,
-    )?;
-
-    if let Some(cb) = progress {
-        let total = objects_len.max(1);
-        // 对象阶段 0-80（按循环下标推进，跳过对象也前进，保证单调到达 80）
-        cb(((obj_index + 1) * 80 / total).min(80) as u8);
-    }
-
-    Ok(Some((
-        final_id,
-        effective_strategy == ImportStrategy::KeepBoth,
-    )))
-}
-
-/// 应用选择过滤 + 冲突检查并解析生效策略。返回 (是否继续处理, 生效策略)。
-fn resolve_import_object_flow(
-    vault: &solosoul_vault::VaultStore,
-    id: &str,
-    strategy: ImportStrategy,
-    object_strategies: &HashMap<String, ImportStrategy>,
-    selected_ids: Option<&BTreeSet<String>>,
-) -> Result<(bool, ImportStrategy), String> {
-    // Apply selection filter
-    if let Some(sel_ids) = selected_ids {
-        if !sel_ids.contains(id) {
-            return Ok((false, strategy));
-        }
-    }
-
-    // Check conflict & apply strategy (per-object override first, then global)
-    let effective_strategy = object_strategies.get(id).copied().unwrap_or(strategy);
-    // KeepBoth 不需要冲突判断（永远继续往下走）；SkipExisting 遇非软删既有对象则跳过
-    if effective_strategy != ImportStrategy::KeepBoth {
-        let existing = vault.load_object(id)?;
-        if effective_strategy == ImportStrategy::SkipExisting
-            && existing.is_some_and(|e| !e.is_deleted)
-        {
-            return Ok((false, effective_strategy));
-        }
-    }
-    Ok((true, effective_strategy))
-}
-
-/// 解析实际模板 ID + 从模板继承字段敏感度、字段定义和模板名称（模板删除后对象仍保留副本）。
-/// 返回 (解析后的模板 ID, 合并后的 property_labels)。
-fn inherit_import_template_meta(
-    vault: &solosoul_vault::VaultStore,
-    obj_val: &serde_json::Value,
-    template_id_map: &std::collections::HashMap<String, String>,
-    properties: &mut serde_json::Value,
-) -> (Option<String>, Option<serde_json::Value>) {
-    // ── 解析实际模板 ID ──
-    let resolved_template_id = obj_val["template_id"].as_str().map(|tid| {
-        template_id_map
-            .get(tid)
-            .cloned()
-            .unwrap_or_else(|| tid.to_string())
-    });
-
-    // ── 从模板继承字段敏感度、字段定义和模板名称 ──
-    // 即使模板后来被删除，对象仍保留自己的副本
-    let mut property_labels = if obj_val["property_labels"].is_null() {
-        None
-    } else {
-        Some(obj_val["property_labels"].clone())
-    };
-    if let Some(ref tid) = resolved_template_id {
-        // 合并 property_labels：payload 原有值优先，模板值作为兜底
-        let tpl_labels = crate::commands::object::inherit_property_labels(vault, Some(tid));
-        match (tpl_labels, &mut property_labels) {
-            (Some(tpl), Some(existing)) => merge_labels_into(&tpl, existing),
-            (Some(tpl), None) => {
-                property_labels = Some(tpl);
-            }
-            _ => {}
-        }
-
-        // 注入 __fields（字段名称 + 类型）
-        let fields = crate::commands::object::inherit_property_fields(vault, Some(tid));
-        crate::commands::object::inject_property_fields(properties, &fields);
-
-        // 注入 __templateName
-        crate::commands::object::inject_template_meta(vault, Some(tid), properties);
-    }
-    (resolved_template_id, property_labels)
-}
-
-/// 恢复包内历史快照（若有），否则创建 diff_imported 初始快照使历史 badge 正常显示。
-/// KeepBoth 场景下对象获得新 ID，快照随之挂到新 ID 上。
-fn restore_import_snapshots(
-    target: &ImportTarget<'_>,
-    snapshot_key: &str,
-    package_snapshots: &HashMap<String, Vec<serde_json::Value>>,
-    id: &str,
-    effective_strategy: ImportStrategy,
-    record: &solosoul_vault::ObjectRecord,
-    result: &mut ImportResult,
-) -> Result<(), String> {
-    // 恢复包内历史快照（若有），否则创建初始 snapshot 使历史 badge 正常显示。
-    // KeepBoth 场景下对象获得新 ID，快照随之挂到新 ID 上。
-    let restored = if let Some(snaps) = package_snapshots.get(id) {
-        // P1: Overwrite 覆盖导入时，仅在包内确实携带【可恢复】的快照时先清空本地旧历史，
-        // 防止包内快照叠加导致历史数量翻倍；损坏包（快照 base64 全部解码失败）保留本地
-        // 历史，避免本地历史被误删后仅剩一条 diff_imported 的数据丢失。
-        // SkipExisting 遇既有对象会跳过；KeepBoth 使用新 ID 天然无旧历史，均不受影响。
-        if effective_strategy == ImportStrategy::Overwrite && snapshots_any_restorable(snaps) {
-            target.commit(|vault| vault.delete_snapshots(snapshot_key))?;
-        }
-        restore_package_snapshots_tracked(target, snapshot_key, snaps, result)?
-    } else {
-        0
-    };
-    if restored == 0 {
-        // 旧包或对象无历史时，保持既有行为：创建 diff_imported 初始快照
-        let snapshot_data =
-            serde_json::to_vec(&record).map_err(|e| format!("snapshot ser: {}", e))?;
-        target.commit(|vault| {
-            vault.save_snapshot(snapshot_key, "import", &snapshot_data, "diff_imported")
-        })?;
-        result.snapshot_count += 1;
-    }
-    Ok(())
-}
 // ── 阶段化辅助函数（P023 拆分）──────────────────────────────────
 
 /// 阶段 1：读取并解密导入包，返回 (manifest, payload, 派生密钥)。
@@ -1053,6 +805,7 @@ fn decrypt_package(
 /// P1 辅助：判断包内快照列表中是否存在至少一条可恢复的快照（base64 可解码且非空）。
 /// 覆盖导入仅在确有可恢复快照时才清空本地旧历史，防止损坏包（快照全部解码失败）
 /// 误删本地历史后仅回退为一条 diff_imported 快照。
+#[cfg(test)]
 pub(crate) fn snapshots_any_restorable(snaps: &[serde_json::Value]) -> bool {
     snaps.iter().any(|snap| match snap["data"].as_str() {
         Some(b64) => base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64)
@@ -1077,6 +830,7 @@ pub(crate) fn restore_package_snapshots(
     .unwrap()
 }
 
+#[cfg(test)]
 fn restore_package_snapshots_tracked(
     target: &ImportTarget<'_>,
     object_id: &str,
@@ -1127,86 +881,42 @@ pub(crate) fn rebuild_imported_templates(
     account_id: &str,
     payload: &serde_json::Value,
 ) -> Result<std::collections::HashMap<String, String>, String> {
-    rebuild_imported_templates_tracked(
-        &ImportTarget::Direct(vault),
-        account_id,
-        payload,
-        &mut ImportResult::default(),
-    )
+    let view = vault
+        .read_import_view(account_id)
+        .map_err(|error| error.to_string())?;
+    let initial = if payload["templates"]
+        .as_array()
+        .is_some_and(|templates| !templates.is_empty())
+    {
+        vault.list_import_view_user_templates(&view)?
+    } else {
+        Vec::new()
+    };
+    let now = chrono::Utc::now().to_rfc3339();
+    let plan = batch::prepare_templates(initial, account_id, payload, &now)?;
+    vault
+        .commit_import_batch(
+            account_id,
+            &view.revision,
+            &solosoul_vault::ImportDatabaseBatch {
+                templates: plan.added,
+                objects: Vec::new(),
+            },
+        )
+        .map_err(|error| error.to_string())?;
+    Ok(plan.id_map)
 }
 
-fn rebuild_imported_templates_tracked(
-    target: &ImportTarget<'_>,
-    account_id: &str,
-    payload: &serde_json::Value,
-    result: &mut ImportResult,
-) -> Result<std::collections::HashMap<String, String>, String> {
-    let mut template_id_map: std::collections::HashMap<String, String> =
-        std::collections::HashMap::new();
-    if let Some(templates) = payload["templates"].as_array() {
-        let now = chrono::Utc::now().to_rfc3339();
-        for tpl_val in templates {
-            match serde_json::from_value::<solosoul_vault::UserTemplate>(tpl_val.clone()) {
-                Ok(mut tpl) => {
-                    let original_id = tpl.id.clone();
-                    let hash = solosoul_core::export_import::user_template_content_hash(&tpl);
-
-                    // P035: 三分支去重逻辑抽纯函数。
-                    let local_id = target.commit(|vault| {
-                        resolve_template_id(vault, account_id, &mut tpl, &hash, &now, result)
-                    })?;
-
-                    template_id_map.insert(original_id, local_id);
-                }
-                Err(_) => return Err("Invalid imported template".into()),
-            }
-        }
-    }
-    Ok(template_id_map)
-}
-
-/// P035: 解析单个模板的本地 ID（去重三分支）：
-/// 1. 内容哈希已存在（含系统预置模板）→ 复用已有模板 ID；
-/// 2. 本地无同 ID 模板 → 保留原始 ID（预置种子模板 key 如 passport 得以保留，
-///    恢复后模板 ID 与旧设备一致）；
-/// 3. 本地已有同 ID 但内容不同 → 派生 ID（快照隔离，避免覆盖本地模板）。
-///
-/// 需要保存新模板时统一改写归属字段并写入。
-fn resolve_template_id(
+/// 仅测试导出：验证真实 frozen view 的 shadow 名称边界，不公开生产 IPC。
+#[cfg(test)]
+pub(crate) fn rf021_unique_shadow_name(
     vault: &solosoul_vault::VaultStore,
-    account_id: &str,
-    tpl: &mut solosoul_vault::UserTemplate,
-    hash: &str,
-    now: &str,
-    result: &mut ImportResult,
+    view: &solosoul_vault::ImportReadView,
+    shadow: &HashMap<String, solosoul_vault::ObjectRecord>,
+    base_name: &str,
+    locale: &str,
 ) -> Result<String, String> {
-    if let Some(existing) = vault.find_user_template_by_content_hash(account_id, hash)? {
-        return Ok(existing.id);
-    }
-
-    let original_id = tpl.id.clone();
-    if vault.load_user_template(&original_id)?.is_none() {
-        // 本地无同 ID 模板 → 保留原始 ID
-        tpl.id = original_id.clone();
-        tpl.account_id = account_id.to_string();
-        tpl.created_at = now.to_string();
-        tpl.updated_at = Some(now.to_string());
-        vault.save_user_template(tpl)?;
-        result.template_count += 1;
-        return Ok(original_id);
-    }
-
-    // 本地已有同 ID 但内容不同 → 派生 ID
-    let imported_id = solosoul_core::export_import::imported_template_id(&original_id, hash);
-    if vault.load_user_template(&imported_id)?.is_none() {
-        tpl.id = imported_id.clone();
-        tpl.account_id = account_id.to_string();
-        tpl.created_at = now.to_string();
-        tpl.updated_at = Some(now.to_string());
-        vault.save_user_template(tpl)?;
-        result.template_count += 1;
-    }
-    Ok(imported_id)
+    batch::unique_shadow_name(vault, view, shadow, base_name, locale)
 }
 
 /// 阶段 4.1：构建导入对象记录（含 KeepBoth ID 引用重写）。
