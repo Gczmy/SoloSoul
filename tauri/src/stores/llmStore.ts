@@ -1,20 +1,12 @@
 import { create } from 'zustand';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
-import { invokeCommand } from '@/lib/ipcClient';
+import { createTypedInvoker } from '@/lib/typedIpc';
+import type { IpcCommands, IpcEvents } from '@/lib/generated/ipcContracts';
 import type { ChatMsg } from '@/types/llmChat';
 
-export interface StreamIdentity {
-  accountId: string;
-  conversationId: string;
-  requestId: string;
-}
-export interface LlmStreamPayload extends StreamIdentity {
-  sessionGeneration: number;
-  chunk: string;
-  isDone: boolean;
-  error?: string | null;
-}
+export type LlmStreamPayload = IpcEvents['llm-stream-chunk'];
+export type StreamIdentity = Pick<LlmStreamPayload, 'accountId' | 'conversationId' | 'requestId'>;
 export interface StreamSnapshot extends StreamIdentity {
   assistantMessageId: string;
   messages: ChatMsg[];
@@ -32,6 +24,7 @@ export interface StreamRun {
   isCurrent: () => boolean;
   assertCurrent: () => void;
   invoke: Ticket['invoke'];
+  invokeTyped: Ticket['invokeTyped'];
 }
 interface LlmState {
   streams: Record<string, StreamSnapshot>;
@@ -153,6 +146,7 @@ export const useLlmStore = create<LlmState>((set, get) => ({
       isCurrent,
       assertCurrent,
       invoke,
+      invokeTyped: createTypedInvoker(invoke),
       ready: ensureListener().then(() => {
         assertCurrent();
       }),
@@ -188,7 +182,7 @@ export const useLlmStore = create<LlmState>((set, get) => ({
       typeof payload.accountId !== 'string' ||
       typeof payload.conversationId !== 'string' ||
       typeof payload.requestId !== 'string' ||
-      (payload.error != null && typeof payload.error !== 'string') ||
+      (payload.error !== null && typeof payload.error !== 'string') ||
       !Number.isSafeInteger(payload.sessionGeneration) ||
       payload.sessionGeneration < 0 ||
       typeof payload.chunk !== 'string' ||
@@ -294,10 +288,20 @@ export const useLlmStore = create<LlmState>((set, get) => ({
 onRequestSessionChange(() => useLlmStore.getState().reset());
 
 /** 与发送同步占位，防止read→save覆盖同时发生的改名/删除；两种启动顺序均互斥。 */
-export async function invokeConversationChange<T>(
-  command: Parameters<typeof invokeCommand>[0],
-  args: { accountId: string; conversationId: string; [key: string]: unknown },
-): Promise<T> {
+type ConversationChangeCommand =
+  | 'llm_rename_conversation'
+  | 'llm_soft_delete_conversation'
+  | 'llm_restore_conversation'
+  | 'llm_permanent_delete';
+type ConversationChangeCall = {
+  [C in ConversationChangeCommand]: [command: C, args: IpcCommands[C]['args']];
+}[ConversationChangeCommand];
+
+export async function invokeConversationChange<Call extends ConversationChangeCall>(
+  ...call: Call &
+    (Exclude<keyof Call[1], keyof IpcCommands[Call[0]]['args']> extends never ? unknown : never)
+): Promise<void> {
+  const [, args] = call;
   const key = keyOf(args),
     state = useLlmStore.getState();
   if (mutations.has(key) || (state.streams[key] && !state.streams[key].settled))
@@ -307,7 +311,7 @@ export async function invokeConversationChange<T>(
   useLlmStore.setState({ mutatingConversations: { ...state.mutatingConversations, [key]: true } });
   const request = requests.begin(undefined, args.accountId);
   try {
-    return await request.invoke<T>(command, args);
+    await request.invokeTyped(...call);
   } finally {
     if (mutations.get(key) === token) {
       mutations.delete(key);

@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import type { ChatMessage } from '@/lib/generated/ipcContracts';
 import { Copy, Check } from 'lucide-react';
 import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
 import rehypeHighlight from 'rehype-highlight';
@@ -16,11 +17,8 @@ function allowedUrl(url: string): string {
   return '';
 }
 
-export interface ChatMsg {
+export interface ChatMsg extends ChatMessage {
   id?: string;
-  role: string;
-  content: string;
-  createdAt: string;
   isError?: boolean;
 }
 

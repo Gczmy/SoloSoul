@@ -73,7 +73,14 @@ function emit(
   callback({
     event: 'llm-stream-chunk',
     id: 1,
-    payload: { ...streamIdentity, sessionGeneration: 7, chunk, isDone: false, ...options },
+    payload: {
+      ...streamIdentity,
+      sessionGeneration: 7,
+      chunk,
+      isDone: false,
+      error: null,
+      ...options,
+    },
   });
 }
 

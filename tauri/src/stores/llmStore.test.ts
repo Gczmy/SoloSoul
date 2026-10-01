@@ -44,6 +44,7 @@ const chunk = (
   sessionGeneration: 730,
   chunk: '',
   isDone: false,
+  error: null,
   ...overrides,
 });
 const messages = (): ChatMsg[] => [
@@ -480,6 +481,29 @@ describe('llmStore request ownership', () => {
     });
   });
 
+  it.each(['accountId', 'conversationId', 'requestId', 'sessionGeneration', 'error'] as const)(
+    'RF-303 rejects a runtime event without the required %s key',
+    async (field) => {
+      const owner = identity();
+      await start(owner).ready;
+      const malformed: Partial<LlmStreamPayload> = chunk(owner, {
+        chunk: 'Must not appear',
+        isDone: true,
+      });
+      delete malformed[field];
+      useLlmStore.getState().onChunk(malformed as LlmStreamPayload);
+      expect(snapshot(owner)).toMatchObject({
+        buffer: '',
+        error: null,
+        persistFailed: false,
+        settled: false,
+        backendGeneration: null,
+      });
+      useLlmStore.getState().onChunk(chunk(owner, { chunk: 'Valid' }));
+      expect(snapshot(owner).buffer).toBe('Valid');
+    },
+  );
+
   it('refuses a new send owned by a different active account', () => {
     const run = useLlmStore.getState().startStream({
       ...identity(),
@@ -492,26 +516,50 @@ describe('llmStore request ownership', () => {
     expect(mockListen).not.toHaveBeenCalled();
   });
 
-  it.each(['llm_rename_conversation', 'llm_soft_delete_conversation'])(
+  it.each(['llm_rename_conversation', 'llm_soft_delete_conversation'] as const)(
     'blocks %s when sending reserved the same conversation first',
     async (command) => {
       const owner = identity();
       await start(owner).ready;
       await expect(
-        invokeConversationChange(command, { ...owner, name: 'Renamed' }),
+        invokeConversationChange(
+          ...(command === 'llm_rename_conversation'
+            ? ([
+                command,
+                {
+                  accountId: owner.accountId,
+                  conversationId: owner.conversationId,
+                  name: 'Renamed',
+                },
+              ] as const)
+            : ([
+                command,
+                { accountId: owner.accountId, conversationId: owner.conversationId },
+              ] as const)),
+        ),
       ).rejects.toThrow('当前对话正在处理');
       expect(invokeCommand).not.toHaveBeenCalled();
       expect(snapshot(owner).settled).toBe(false);
     },
   );
 
-  it.each(['llm_rename_conversation', 'llm_soft_delete_conversation'])(
+  it.each(['llm_rename_conversation', 'llm_soft_delete_conversation'] as const)(
     'blocks a send when %s synchronously reserved the same conversation first',
     async (command) => {
       const operation = deferred<void>();
       vi.mocked(invokeCommand).mockReturnValue(operation.promise);
       const owner = identity();
-      const mutation = invokeConversationChange(command, { ...owner, name: 'Renamed' });
+      const mutation = invokeConversationChange(
+        ...(command === 'llm_rename_conversation'
+          ? ([
+              command,
+              { accountId: owner.accountId, conversationId: owner.conversationId, name: 'Renamed' },
+            ] as const)
+          : ([
+              command,
+              { accountId: owner.accountId, conversationId: owner.conversationId },
+            ] as const)),
+      );
       expect(isConversationBusy(useLlmStore.getState(), accountId, owner.conversationId)).toBe(
         true,
       );

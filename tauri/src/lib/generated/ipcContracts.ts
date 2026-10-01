@@ -5,6 +5,44 @@ import type { Channel as TauriChannel } from '@tauri-apps/api/core';
 
 export type AppInfo = { appName: string; version: string; os: string; arch: string };
 
+export type ChatContextSelectionInput =
+  | { mode: 'none' }
+  | ({ mode: 'publicProfile' } & {
+      objectIds: Array<string>;
+      language: string;
+      guideChunks: Array<GuideChunkInput>;
+    });
+
+export type ChatMessage = { role: string; content: string; createdAt: string };
+
+export type ChatMessageInput = { role: string; content: string; createdAt: string };
+
+export type Conversation = {
+  id: string;
+  name: string;
+  isTemporary: boolean;
+  messages: Array<ChatMessage>;
+  updatedAt: string;
+  deletedAt?: string;
+};
+
+export type ConversationInput = {
+  id: string;
+  name: string;
+  isTemporary: boolean;
+  messages: Array<ChatMessageInput>;
+  updatedAt: string;
+  deletedAt?: string | null;
+};
+
+export type ConversationSummary = {
+  id: string;
+  name: string;
+  updatedAt: string;
+  messageCount: number;
+  deletedAt?: string;
+};
+
 export type CreateObjectInputInput = {
   accountId: string;
   name: string;
@@ -35,9 +73,26 @@ export type FieldSuggestion = {
   value: string;
 };
 
+export type GuideChunkInput = {
+  guideId: string;
+  guideTitle: string;
+  chunkText: string;
+  similarity: number;
+};
+
 export type JsonObject = { [key: string]: JsonValue };
 
 export type JsonValue = null | boolean | number | string | Array<JsonValue> | JsonObject;
+
+export type LlmStreamPayload = {
+  accountId: string;
+  sessionGeneration: number;
+  conversationId: string;
+  requestId: string;
+  chunk: string;
+  isDone: boolean;
+  error: string | null;
+};
 
 export type MarketPluginInfo = {
   pluginId: string;
@@ -317,6 +372,37 @@ export type UpdateObjectInputInput = {
 export type IpcCommands = {
   create_plugin_install: { args: undefined; result: ResourceId };
   get_app_info: { args: undefined; result: AppInfo };
+  llm_get_conversation: {
+    args: { accountId: string; conversationId: string };
+    result: Conversation;
+  };
+  llm_list_conversations: { args: { accountId: string }; result: Array<ConversationSummary> };
+  llm_list_trash: { args: { accountId: string }; result: Array<ConversationSummary> };
+  llm_permanent_delete: { args: { accountId: string; conversationId: string }; result: null };
+  llm_rename_conversation: {
+    args: { accountId: string; conversationId: string; name: string };
+    result: null;
+  };
+  llm_restore_conversation: { args: { accountId: string; conversationId: string }; result: null };
+  llm_save_conversation: {
+    args: { accountId: string; conversation: ConversationInput };
+    result: null;
+  };
+  llm_send_message_stream: {
+    args: {
+      accountId: string;
+      conversationId: string;
+      providerId: string;
+      messages: Array<JsonValue>;
+      requestId?: string | null;
+      contextSelection?: ChatContextSelectionInput | null;
+    };
+    result: null;
+  };
+  llm_soft_delete_conversation: {
+    args: { accountId: string; conversationId: string };
+    result: null;
+  };
   object_create: { args: { input: CreateObjectInputInput }; result: ObjectData };
   object_delete: { args: { objectId: string }; result: null };
   object_field_suggestions: {
@@ -383,4 +469,6 @@ export type IpcCommands = {
   snapshot_rollback: { args: { snapshotId: string; objectId: string }; result: null };
 };
 
-export type IpcEvents = Record<never, never>;
+export type IpcEvents = {
+  'llm-stream-chunk': LlmStreamPayload;
+};

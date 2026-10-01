@@ -57,6 +57,7 @@ const chunk = (
   sessionGeneration: 500,
   chunk: '',
   isDone: false,
+  error: null,
   ...overrides,
 });
 const disposers: Array<() => void> = [];

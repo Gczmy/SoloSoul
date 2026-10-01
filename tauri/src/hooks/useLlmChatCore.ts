@@ -139,7 +139,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     if (!accountId || !isAiEnabled || !isConfigured) return;
     const request = readRequests.begin('list', accountId);
     try {
-      const list = await request.invoke<ConversationSummary[]>('llm_list_conversations', {
+      const list = await request.invokeTyped('llm_list_conversations', {
         accountId: accountId,
       });
       if (request.isCurrent()) setConversations(list);
@@ -159,7 +159,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       if (!accountId) return;
       const request = readRequests.begin('body', accountId);
       try {
-        const conv = await request.invoke<Conversation>('llm_get_conversation', {
+        const conv: Conversation = await request.invokeTyped('llm_get_conversation', {
           accountId: accountId,
           conversationId: convId,
         });
@@ -208,7 +208,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       let conversation: Conversation;
       let history = visibleMessages;
       if (wasStored) {
-        const stored = await run.invoke<Conversation>('llm_get_conversation', {
+        const stored: Conversation = await run.invokeTyped('llm_get_conversation', {
           accountId,
           conversationId: convId,
         });
@@ -249,7 +249,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       }
       useLlmStore.getState().markConversationPersisted(identity);
       markConversationPending(identity);
-      await run.invoke('llm_send_message_stream', {
+      await run.invokeTyped('llm_send_message_stream', {
         accountId,
         conversationId: convId,
         requestId: identity.requestId,
@@ -261,7 +261,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       const state = useLlmStore.getState();
       if (!selectLlmStream(state, accountId, convId)?.persistFailed) {
         try {
-          const stored = await run.invoke<Conversation>('llm_get_conversation', {
+          const stored: Conversation = await run.invokeTyped('llm_get_conversation', {
             accountId,
             conversationId: convId,
           });

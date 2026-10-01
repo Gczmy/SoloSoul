@@ -1,26 +1,10 @@
 //! RF-004：Host 读取绑定会话的数据，Core 负责字段投影，Host 包装提示词。
 use crate::commands::llm::{rag::GuideChunk, LlmConfig};
-use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use solosoul_core::{llm::context::project_context, VaultSession};
 use std::collections::{HashMap, HashSet};
 
-/// 选择标识不携带 Vault 字段值；缺失选择由入口按 None 处理。
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(
-    tag = "mode",
-    rename_all = "camelCase",
-    rename_all_fields = "camelCase"
-)]
-pub enum ChatContextSelection {
-    #[default]
-    None,
-    PublicProfile {
-        object_ids: Vec<String>,
-        language: String,
-        guide_chunks: Vec<GuideChunk>,
-    },
-}
+pub use crate::commands::llm::contracts::ChatContextSelection;
 
 /// 只读取原 Vault。调用者在读取前、对外发送前校验原会话；不持门闩做投影。
 pub(crate) fn build_automatic_system_prompt(

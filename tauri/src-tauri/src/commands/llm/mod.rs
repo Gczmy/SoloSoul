@@ -166,6 +166,7 @@ pub fn save_api_key(
 // ── Sub-modules ─────────────────────────────────────────────
 
 pub mod chat_http;
+pub mod contracts;
 pub mod conversation;
 pub mod guide;
 pub mod provider;
@@ -178,11 +179,89 @@ mod tests;
 pub mod unified_chat;
 
 // Re-export all command functions so that `commands::llm::xxx` paths remain valid.
-pub use chat_http::*;
-pub use conversation::*;
-pub use guide::*;
-pub use provider::*;
-pub use rag::*;
-pub use stats::*;
-pub use stream::*;
-pub use unified_chat::*;
+pub use chat_http::{llm_check_connection, llm_test_provider};
+pub use conversation::{
+    llm_get_conversation, llm_list_conversations, llm_list_trash, llm_permanent_delete,
+    llm_rename_conversation, llm_restore_conversation, llm_save_conversation,
+    llm_soft_delete_conversation,
+};
+#[cfg(test)]
+pub(crate) use conversation::{load_conversations, now_iso, save_conversation};
+pub use guide::{
+    find_relevant_guides_internal, guide_load_content, guide_load_index, guide_search,
+    load_guide_index, load_search_index_impl, resolve_language, resolve_title, resource_path,
+    GuideCategoryMeta, GuideContent, GuideIndex, GuideIndexEntry, GuideTitle, SearchIndex,
+    RESOURCE_DIR,
+};
+pub(crate) use provider::is_anthropic;
+pub use provider::{
+    llm_accept_risk, llm_delete_provider, llm_get_api_key, llm_get_config, llm_get_providers,
+    llm_save_provider, llm_set_active_provider, llm_set_ai_features, llm_set_local_embedding,
+    llm_set_system_prompt_switch,
+};
+pub use rag::{
+    chunk_all_guides, compute_content_hash, guide_title_map, llm_check_embedding_available,
+    llm_rebuild_guide_embeddings, llm_search_guide_chunks, mark_rebuilt, GuideChunk, RawChunk,
+};
+pub use stats::{
+    estimate_tokens, llm_get_stats, llm_reset_stats, load_stats_from_vault, record_usage,
+    record_usage_fallback, save_stats_to_vault, DailyUsage, LlmUsageStats, ModelUsage, TokenUsage,
+    STATS_MAP,
+};
+pub use stream::{llm_send_message_stream, LlmStreamPayload};
+pub(crate) use unified_chat::is_registered_provider_url;
+pub use unified_chat::load_providers_with_keys;
+
+// chat_http 的 Tauri 生成宏与函数一并保留。
+pub use chat_http::{
+    __cmd__llm_check_connection, __cmd__llm_test_provider,
+    __tauri_command_name_llm_check_connection, __tauri_command_name_llm_test_provider,
+};
+
+// conversation 的 Tauri 生成宏与函数一并保留。
+pub use conversation::{
+    __cmd__llm_get_conversation, __cmd__llm_list_conversations, __cmd__llm_list_trash,
+    __cmd__llm_permanent_delete, __cmd__llm_rename_conversation, __cmd__llm_restore_conversation,
+    __cmd__llm_save_conversation, __cmd__llm_soft_delete_conversation,
+    __tauri_command_name_llm_get_conversation, __tauri_command_name_llm_list_conversations,
+    __tauri_command_name_llm_list_trash, __tauri_command_name_llm_permanent_delete,
+    __tauri_command_name_llm_rename_conversation, __tauri_command_name_llm_restore_conversation,
+    __tauri_command_name_llm_save_conversation, __tauri_command_name_llm_soft_delete_conversation,
+};
+
+// guide 的 Tauri 生成宏与函数一并保留。
+pub use guide::{
+    __cmd__guide_load_content, __cmd__guide_load_index, __cmd__guide_search,
+    __tauri_command_name_guide_load_content, __tauri_command_name_guide_load_index,
+    __tauri_command_name_guide_search,
+};
+
+// provider 的 Tauri 生成宏与函数一并保留。
+pub use provider::{
+    __cmd__llm_accept_risk, __cmd__llm_delete_provider, __cmd__llm_get_api_key,
+    __cmd__llm_get_config, __cmd__llm_get_providers, __cmd__llm_save_provider,
+    __cmd__llm_set_active_provider, __cmd__llm_set_ai_features, __cmd__llm_set_local_embedding,
+    __cmd__llm_set_system_prompt_switch, __tauri_command_name_llm_accept_risk,
+    __tauri_command_name_llm_delete_provider, __tauri_command_name_llm_get_api_key,
+    __tauri_command_name_llm_get_config, __tauri_command_name_llm_get_providers,
+    __tauri_command_name_llm_save_provider, __tauri_command_name_llm_set_active_provider,
+    __tauri_command_name_llm_set_ai_features, __tauri_command_name_llm_set_local_embedding,
+    __tauri_command_name_llm_set_system_prompt_switch,
+};
+
+// rag 的 Tauri 生成宏与函数一并保留。
+pub use rag::{
+    __cmd__llm_check_embedding_available, __cmd__llm_rebuild_guide_embeddings,
+    __cmd__llm_search_guide_chunks, __tauri_command_name_llm_check_embedding_available,
+    __tauri_command_name_llm_rebuild_guide_embeddings,
+    __tauri_command_name_llm_search_guide_chunks,
+};
+
+// stats 的 Tauri 生成宏与函数一并保留。
+pub use stats::{
+    __cmd__llm_get_stats, __cmd__llm_reset_stats, __tauri_command_name_llm_get_stats,
+    __tauri_command_name_llm_reset_stats,
+};
+
+// stream 的 Tauri 生成宏与函数一并保留。
+pub use stream::{__cmd__llm_send_message_stream, __tauri_command_name_llm_send_message_stream};

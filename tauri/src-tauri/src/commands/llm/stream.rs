@@ -1,6 +1,9 @@
-use crate::services::llm_context::{build_automatic_system_prompt, ChatContextSelection};
+// 命令参数保持现有 wire 形状；lint 放在模块级，便于只读契约解析。
+#![allow(clippy::too_many_arguments)]
+
+use super::contracts::ChatContextSelection;
+use crate::services::llm_context::build_automatic_system_prompt;
 use crate::state::AppState;
-use serde::Serialize;
 use solosoul_core::{VaultService, VaultSession};
 use solosoul_vault::VaultStore;
 use std::sync::{Arc, RwLock};
@@ -12,20 +15,16 @@ use tauri::State;
 
 use tauri::Emitter;
 
+use super::conversation::{now_iso, save_conversation};
 use super::request;
-use super::*;
+use super::stats::{
+    estimate_tokens, load_stats_from_vault, save_stats_to_vault, LlmUsageStats, TokenUsage,
+    STATS_MAP,
+};
+use super::{is_anthropic, DEFAULT_MAX_TOKENS};
+use solosoul_core::llm::config::{ApiType, ChatMessage, Conversation};
 
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct LlmStreamPayload {
-    pub account_id: String,
-    pub session_generation: u64,
-    pub conversation_id: String,
-    pub request_id: String,
-    pub chunk: String,
-    pub is_done: bool,
-    pub error: Option<String>,
-}
+pub use super::contracts::LlmStreamPayload;
 
 /// RF-002：一次流请求的固定身份。网络等待不持有服务锁或会话门闩。
 struct StreamContext {
@@ -413,7 +412,6 @@ async fn send_chat_stream(
 }
 
 #[tauri::command]
-#[allow(clippy::too_many_arguments)]
 pub async fn llm_send_message_stream(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
@@ -686,6 +684,7 @@ mod tests {
 
     use super::*;
     use crate::commands::llm::stats::TokenUsage;
+    use crate::commands::llm::{AiFeatures, LlmConfig, ProviderConfig};
     use std::sync::Mutex;
     use tempfile::TempDir;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};

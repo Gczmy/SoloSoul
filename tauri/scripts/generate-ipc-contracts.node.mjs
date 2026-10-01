@@ -609,3 +609,98 @@ export async function checkPluginCalls() {
     assert.equal(result.stderr, '');
   });
 });
+
+test('RF303 real serde fixtures compile against generated LLM commands and stream events', async () => {
+  await withProductionFixture(async (root) => {
+    const manifest = await generateContracts({ root });
+    const conversationCommands = [
+      'llm_list_conversations',
+      'llm_list_trash',
+      'llm_get_conversation',
+      'llm_save_conversation',
+      'llm_soft_delete_conversation',
+      'llm_restore_conversation',
+      'llm_permanent_delete',
+      'llm_rename_conversation',
+      'llm_send_message_stream',
+    ];
+    for (const command of conversationCommands) {
+      assert.ok(manifest.commands.includes(command));
+      assert.ok(!manifest.unmigratedCommands.includes(command));
+    }
+    assert.ok(manifest.events.includes('llm-stream-chunk'));
+    const fixture = JSON.parse(
+      await readFile(
+        path.join(workspaceRoot, 'src-tauri/src/commands/llm/contracts/fixtures.json'),
+        'utf8',
+      ),
+    );
+    await copyTypedSources(root);
+    const probe = path.join(root, 'llm-fixture-probe.ts');
+    await writeFile(
+      probe,
+      `import type { IpcEvents, Conversation, ConversationSummary, ChatContextSelectionInput } from './src/lib/generated/ipcContracts';
+import { invokeTypedCommand } from './src/lib/typedIpc';
+const complete = ${JSON.stringify(fixture.complete)} satisfies IpcEvents['llm-stream-chunk'];
+const persistFailed = ${JSON.stringify(fixture.persistFailed)} satisfies IpcEvents['llm-stream-chunk'];
+const upstreamFailed = ${JSON.stringify(fixture.upstreamFailed)} satisfies IpcEvents['llm-stream-chunk'];
+const conversation = ${JSON.stringify(fixture.conversation)} satisfies Conversation;
+const summary = ${JSON.stringify(fixture.summary)} satisfies ConversationSummary;
+const none = ${JSON.stringify(fixture.none)} satisfies ChatContextSelectionInput;
+const selection = ${JSON.stringify(fixture.publicProfile)} satisfies ChatContextSelectionInput;
+const accountId = complete.accountId, conversationId = complete.conversationId;
+export async function check() {
+  const response: Conversation = await invokeTypedCommand('llm_get_conversation', { accountId, conversationId });
+  const saved: null = await invokeTypedCommand('llm_save_conversation', { accountId, conversation });
+  const args = { accountId, conversationId, providerId: 'synthetic-provider', messages: [] };
+  const result: null = await invokeTypedCommand('llm_send_message_stream', { ...args, contextSelection: selection });
+  // @ts-expect-error ordinary send does not accept credentials.
+  void invokeTypedCommand('llm_send_message_stream', { ...args, apiKey: 'synthetic' });
+  const withKey = { ...args, apiKey: 'synthetic' };
+  // @ts-expect-error named variables do not bypass credential rejection.
+  void invokeTypedCommand('llm_send_message_stream', withKey);
+  const { accountId: a, ...noAccount } = complete;
+  const { conversationId: c, ...noConversation } = complete;
+  const { requestId: r, ...noRequest } = complete;
+  const { sessionGeneration: g, ...noGeneration } = complete;
+  const { error: e, ...noError } = complete;
+  // @ts-expect-error account identity is required.
+  const a1: IpcEvents['llm-stream-chunk'] = noAccount;
+  // @ts-expect-error conversation identity is required.
+  const c1: IpcEvents['llm-stream-chunk'] = noConversation;
+  // @ts-expect-error request identity is required.
+  const r1: IpcEvents['llm-stream-chunk'] = noRequest;
+  // @ts-expect-error generation is required.
+  const g1: IpcEvents['llm-stream-chunk'] = noGeneration;
+  // @ts-expect-error nullable error is still required.
+  const e1: IpcEvents['llm-stream-chunk'] = noError;
+  void a; void c; void r; void g; void e; void a1; void c1; void r1; void g1; void e1;
+  return { response, saved, result, complete, persistFailed, upstreamFailed, summary, none };
+}
+`,
+    );
+    const result = await compileProbe(root, probe);
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  });
+});
+
+test('RF303 a real stream identity change fails check without overwriting generated outputs', async () => {
+  await withProductionFixture(async (root) => {
+    const before = await snapshot(root);
+    const source = path.join(root, 'src-tauri/src/commands/llm/contracts.rs');
+    const current = await readFile(source, 'utf8');
+    const changed = current.replace('pub request_id: String,', 'pub correlation_id: String,');
+    assert.notEqual(current, changed);
+    await writeFile(source, changed);
+    await assert.rejects(generateContracts({ root, check: true }), /IPC contract drift/);
+    assert.deepEqual(await snapshot(root), before);
+    await generateContracts({ root });
+    const [typescript] = await snapshot(root);
+    assert.match(typescript, /correlationId: string/);
+    assert.doesNotMatch(
+      typescript.match(/export type LlmStreamPayload = [\s\S]*?};/)[0],
+      /requestId/,
+    );
+  });
+});

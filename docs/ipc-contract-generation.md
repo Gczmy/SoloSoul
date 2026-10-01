@@ -1,6 +1,6 @@
 # 增量 IPC 契约生成
 
-RF301 迁移只读命令 `get_app_info`，RF302 再迁移真实注册的 10 个 `object_*` 和 4 个 `snapshot_*` 命令。RF306 继续迁移插件 15 个命令。当前覆盖 30/220 个命令，190 个命令仍待迁移。Rust 命令签名及其 DTO 是参数及响应形状的来源；前端通过 `invokeTypedCommand` 复用现有 `ipcClient` 的鉴权、过期请求检查和错误处理。旧入口仍服务未迁移命令，不宣称全库调用已经类型化。生成类型只做编译期检查，不做运行时响应校验。
+RF301 迁移只读命令 `get_app_info`，RF302 再迁移真实注册的 10 个 `object_*` 和 4 个 `snapshot_*` 命令。RF306 继续迁移插件 15 个命令，RF303 迁移 8 个会话命令与普通流式发送。当前实际注册清单覆盖 39/225 个命令，186 个命令仍待迁移，并生成 1 个选定全局事件。Rust 命令签名及其 DTO 是参数及响应形状的来源；前端通过 `invokeTypedCommand` 复用现有 `ipcClient` 的鉴权、过期请求检查和错误处理。旧入口仍服务未迁移命令，不宣称全库调用已经类型化。生成类型只做编译期检查，不做运行时响应校验。
 
 ## 生成与检查
 
@@ -18,7 +18,7 @@ python -m unittest discover -s scripts -p test_check_acl_consistency.py
 
 工具只读取显式选定源码、真实 `mod` 链、`generate_handler!` 注册和 ACL。`src-tauri/ipc-contracts.json` 只登记命令名称和源码路径，以及附加 DTO 源文件、外部 crate 的 Cargo manifest、事件名称与 Rust payload 类型；禁止在配置中复制参数或响应定义。源码路径必须位于项目内。
 
-生成文件为 `src/lib/generated/ipcContracts.ts` 和 `ipcContractManifest.json`。Node 包装器使用锁文件中的 Prettier 及项目配置统一格式。输出顺序稳定，不含绝对路径、时间戳或机器信息；Git 属性将这两个生成文件固定为 LF，避免 Windows 检出制造换行漂移；检查逐字节比较结果，漂移必须由开发者重新生成并审查。清单将实际注册集合划分为已迁移和未迁移两组，ACL 检查要求分区无遗漏、重叠和多余项。当前全局事件选择为空；插件安装进度与运行事件通过真实命令参数的 Channel<T> 生成，不伪造全局事件名。全局事件 payload 生成仍由非空测试夹具验证，不表示应用全局事件已迁移。
+生成文件为 `src/lib/generated/ipcContracts.ts` 和 `ipcContractManifest.json`。Node 包装器使用锁文件中的 Prettier 及项目配置统一格式。输出顺序稳定，不含绝对路径、时间戳或机器信息；Git 属性将这两个生成文件固定为 LF，避免 Windows 检出制造换行漂移；检查逐字节比较结果，漂移必须由开发者重新生成并审查。清单将实际注册集合划分为已迁移和未迁移两组，ACL 检查要求分区无遗漏、重叠和多余项。当前选定全局事件为真实 `llm-stream-chunk`；插件安装进度与运行事件通过真实命令参数的 Channel<T> 生成，不伪造全局事件名。其余全局事件尚未迁移。
 
 两份 CI 流程均有独立契约检查，执行真实 Rust 源码副本的参数漂移、TypeScript 编译负例、生成稳定性以及 ACL 集合比较。该任务只编译工具，不需要桌面窗口或用户账户。
 
@@ -53,6 +53,20 @@ Store 使用 `request.invokeTyped`，由 `createTypedInvoker` 包装已有带会
 `plugin.ts` 重导出 wire 类型；`pluginViewModel.ts` 单独派生内建结果、日志和授权/对话框展示形状。未知 JSON 结果在展示边界过滤，授权事件的必需标识先检查非空；不把后端 String 事件种类伪装为封闭枚举。市场缺少有效最新版本时不能派发安装/更新。参数的 null 默认值转换为原有 boolean 的字符串 false 或其它类型的空字符串，保持运行 params 的字符串值契约；显式字符串默认值不变。安装 abort 仍只关闭一次资源，创建期间取消会在句柄返回后回收，调用等待原生结果及清理完成；运行请求继续使用现有会话票据过滤旧事件/迟到响应，200 条日志、50 条结果、终态通知去重保持。
 
 取消安装和停止结果展示是不同的现有能力：Store 的 `stopPlugin` 使当前前端请求失效，不声称中断 Wasm worker。serde/ResourceTable 单元测试和真实 JavaScript SDK 配合原生 IPC 替身覆盖生命周期边界；这些测试不等同各平台 Webview 实机安装或市场联网测试，也不扩大本项沙箱和授权策略范围。
+
+## 会话与聊天流契约（RF303）
+
+本组登记 `llm_list_conversations/list_trash/get_conversation/save_conversation/soft_delete_conversation/restore_conversation/permanent_delete/rename_conversation` 和 `llm_send_message_stream`。注册指向已有公开实现模块；LLM 根模块用显式名称保留函数、类型与 Tauri 生成的命令宏。`commands/llm/contracts.rs` 集中现有 `ChatContextSelection`、`GuideChunk` 和 `LlmStreamPayload`，旧模块继续重导出；两个上下文字段改用显式 serde rename，实际 JSON 仍为 `objectIds/guideChunks`。Core 的会话、消息与摘要 DTO 保持原样。
+
+`IpcEvents['llm-stream-chunk']` 必需的身份为 `accountId/sessionGeneration/conversationId/requestId`，以及 `chunk/isDone/error`；`error` 是必需 nullable 字段。Store 的真实监听器复用该生成类型，并保留既有身份/代次过滤，补充拒绝缺少 error 键的运行时事件。编译负例与运行时不完整事件用例同时覆盖身份字段；生成类型本身仍不验证运行时 JSON。
+
+`isDone` 表示正文流结束，可以带尾正文，不能等同持久化成功。现有 `__LLM_PERSIST_FAILED__` 错误前缀仍单独更新 `persistFailed`，监听器等命令结算后才收尾，规范正文仍从 Host 的已存会话确认。此项不引入新的错误协议；结构化 LLM 错误由 RF317 继续处理。
+
+普通发送按真实签名生成 `accountId/conversationId/providerId/messages`，不接受 API key；旧调用兼容的 `requestId/contextSelection` 仍允许缺省或 null。发送消息的 wire 是现有 `Vec<serde_json::Value>`，前端 builder 继续限制出站 user/assistant 文本，Host 继续运行既有验证。持久化 `ChatMessage.role` 保持 String，旧 system/tool 等角色可回放。会话输出缺省 `deletedAt` 会省略，输入可缺省或 null；不把所有 optional/nullable 混为一种形状。
+
+会话列表、正文、回收站、修改、预保存和发送均使用已有会话或流请求守卫上的类型化入口。`llmChat.ts` 和消息气泡只派生展示模型，消息 `id/isError` 仍是 UI 字段；上下文选择直接来自生成 Input。RAG 查询、Provider 设置与统计命令没有因相邻而迁移；RAG 的账户参数问题由 RF908 承接。原通用传输兼容入口继续保留，不代表整个 LLM 命令组都已迁移。
+
+共享 JSON fixture 由真实 Rust serde 和生成 TypeScript 同时验证，覆盖完整事件、保存失败与上游失败、旧角色/临时会话、摘要和上下文变体。真实源码副本的 request identity 改名会使 `check:contracts` 失败且不改写输出。完整前后端测试包含原有流隔离、双入口互斥、锁定/重解锁与保存失败通知回归。这些本地检查不代替各平台 Webview 或真实 LLM 服务验收。
 
 ## 后续逐项迁移
 

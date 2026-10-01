@@ -6,7 +6,7 @@ use tauri::State;
 
 // ── Conversation storage ──────────────────────────────────
 
-use super::*;
+use solosoul_core::llm::config::{Conversation, ConversationSummary};
 
 /// 单条对话的最大消息数量，超过此限时自动裁剪最早的消息。
 const MAX_CONVERSATION_MESSAGES: usize = 500;

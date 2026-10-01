@@ -1,22 +1,16 @@
+import type { ChatContextSelectionInput } from '@/lib/generated/ipcContracts';
 import i18n from '@/lib/i18n';
 import { useObjectStore } from '@/stores/objectStore';
-import { searchGuideChunks, type GuideChunk } from '@/lib/llm/guideService';
+import { searchGuideChunks } from '@/lib/llm/guideService';
 import type { ChatMsg } from '@/types/llmChat';
 
 /** 仅出站请求限制角色；持久化历史仍允许读取旧版本保存的其他角色。 */
-export interface ChatRequestMessage {
+export type ChatRequestMessage = {
   role: 'user' | 'assistant';
   content: string;
-}
+};
 
-export type ChatContextSelection =
-  | { mode: 'none' }
-  | {
-      mode: 'publicProfile';
-      objectIds: string[];
-      language: string;
-      guideChunks: GuideChunk[];
-    };
+export type ChatContextSelection = ChatContextSelectionInput;
 
 export interface ChatRequest {
   messages: ChatRequestMessage[];

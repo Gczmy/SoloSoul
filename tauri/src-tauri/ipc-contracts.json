@@ -119,6 +119,42 @@
     {
       "name": "plugin_copy_output_file",
       "source": "src-tauri/src/commands/plugin.rs"
+    },
+    {
+      "name": "llm_list_conversations",
+      "source": "src-tauri/src/commands/llm/conversation.rs"
+    },
+    {
+      "name": "llm_list_trash",
+      "source": "src-tauri/src/commands/llm/conversation.rs"
+    },
+    {
+      "name": "llm_get_conversation",
+      "source": "src-tauri/src/commands/llm/conversation.rs"
+    },
+    {
+      "name": "llm_save_conversation",
+      "source": "src-tauri/src/commands/llm/conversation.rs"
+    },
+    {
+      "name": "llm_soft_delete_conversation",
+      "source": "src-tauri/src/commands/llm/conversation.rs"
+    },
+    {
+      "name": "llm_restore_conversation",
+      "source": "src-tauri/src/commands/llm/conversation.rs"
+    },
+    {
+      "name": "llm_permanent_delete",
+      "source": "src-tauri/src/commands/llm/conversation.rs"
+    },
+    {
+      "name": "llm_rename_conversation",
+      "source": "src-tauri/src/commands/llm/conversation.rs"
+    },
+    {
+      "name": "llm_send_message_stream",
+      "source": "src-tauri/src/commands/llm/stream.rs"
     }
   ],
   "types": [
@@ -126,8 +162,20 @@
     "crates/solosoul-plugin/src/manifest.rs",
     "crates/solosoul-plugin/src/event.rs",
     "crates/solosoul-plugin/src/install_progress.rs",
-    "crates/solosoul-plugin/src/session.rs"
+    "crates/solosoul-plugin/src/session.rs",
+    "crates/solosoul-core/src/llm/config.rs",
+    "src-tauri/src/commands/llm/contracts.rs"
   ],
-  "events": [],
-  "crates": ["crates/solosoul-vault/Cargo.toml", "crates/solosoul-plugin/Cargo.toml"]
+  "events": [
+    {
+      "name": "llm-stream-chunk",
+      "source": "src-tauri/src/commands/llm/contracts.rs",
+      "payload": "LlmStreamPayload"
+    }
+  ],
+  "crates": [
+    "crates/solosoul-vault/Cargo.toml",
+    "crates/solosoul-plugin/Cargo.toml",
+    "crates/solosoul-core/Cargo.toml"
+  ]
 }

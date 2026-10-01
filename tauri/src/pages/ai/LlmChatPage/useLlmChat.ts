@@ -99,7 +99,7 @@ export function useLlmChat(): UseLlmChatReturn {
     if (!accountId) return;
     const request = readRequests.begin('trashList', accountId);
     try {
-      const trash = await request.invoke<ConversationSummary[]>('llm_list_trash', { accountId });
+      const trash = await request.invokeTyped('llm_list_trash', { accountId });
       if (request.isCurrent()) setTrashList(trash);
     } catch (err) {
       if (request.isCurrent()) logger.warn('[useLlmChat] Refresh trash list failed:', err);
@@ -259,7 +259,7 @@ export function useLlmChat(): UseLlmChatReturn {
       const request = readRequests.begin('trashBody', accountId);
       setFloatingConvState(null);
       try {
-        const conv = await request.invoke<Conversation>('llm_get_conversation', {
+        const conv: Conversation = await request.invokeTyped('llm_get_conversation', {
           accountId,
           conversationId: convId,
         });

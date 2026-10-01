@@ -1,6 +1,5 @@
 use crate::commands::vault_handle;
 use crate::state::AppState;
-use serde::{Deserialize, Serialize};
 use solosoul_vault::VaultStore;
 #[cfg(not(feature = "native-perf"))]
 use tauri::Manager;
@@ -441,15 +440,7 @@ fn fallback_keyword_search(
 
 // ── Guide chunking (moved from commands/rag.rs) ────────────────
 
-/// A single chunk returned to the frontend for context injection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GuideChunk {
-    pub guide_id: String,
-    pub guide_title: String,
-    pub chunk_text: String,
-    pub similarity: f32,
-}
+pub use super::contracts::GuideChunk;
 
 /// Internal representation of a raw document chunk before embedding.
 #[derive(Debug, Clone)]

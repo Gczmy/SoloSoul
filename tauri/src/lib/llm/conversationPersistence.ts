@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import { logger } from '@/lib/logger';
 import { useUiStore } from '@/stores/uiStore';
 import type { Conversation } from '@/types/llmChat';
@@ -23,11 +23,14 @@ export async function saveConversationSafely(
   accountId: string | undefined,
   conversation: Conversation,
   t: TFunction,
-  request?: { invoke: typeof invoke; isCurrent: () => boolean },
+  request?: { invokeTyped: typeof invokeTypedCommand; isCurrent: () => boolean },
 ): Promise<boolean> {
   if (!accountId) return false;
   try {
-    await (request?.invoke ?? invoke)('llm_save_conversation', { accountId, conversation });
+    await (request?.invokeTyped ?? invokeTypedCommand)('llm_save_conversation', {
+      accountId,
+      conversation,
+    });
     return true;
   } catch (err) {
     if (request && !request.isCurrent()) return false;

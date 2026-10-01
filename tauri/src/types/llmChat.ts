@@ -1,23 +1,11 @@
+import type { Conversation as ConversationWire } from '@/lib/generated/ipcContracts';
 import { type ChatMsg } from '@/pages/ai/ChatMessageBubble';
 
 export type { ChatMsg };
 
-export interface ConversationSummary {
-  id: string;
-  name: string;
-  updatedAt: string;
-  messageCount: number;
-  deletedAt?: string;
-}
-
-export interface Conversation {
-  id: string;
-  name: string;
-  isTemporary: boolean;
-  messages: ChatMsg[];
-  updatedAt: string;
-  deletedAt?: string;
-}
+// wire 由 Rust 生成；消息 id/isError 仅用于展示和乐观请求。
+export type { ConversationSummary } from '@/lib/generated/ipcContracts';
+export type Conversation = Omit<ConversationWire, 'messages'> & { messages: ChatMsg[] };
 
 export interface ActiveProvider {
   id: string;

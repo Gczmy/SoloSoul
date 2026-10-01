@@ -7,12 +7,9 @@
 
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 
-export interface GuideChunk {
-  guideId: string;
-  guideTitle: string;
-  chunkText: string;
-  similarity: number;
-}
+// 发送上下文使用生成的 Input DTO；RAG 查询命令迁移由 RF-908 承接。
+export type { GuideChunkInput as GuideChunk } from '@/lib/generated/ipcContracts';
+import type { GuideChunkInput as GuideChunk } from '@/lib/generated/ipcContracts';
 
 /**
  * 向量检索：获取与用户查询最相关的文档片段（Top-K）。

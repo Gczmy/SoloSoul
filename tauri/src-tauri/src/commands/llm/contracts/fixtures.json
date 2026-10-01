@@ -1,0 +1,69 @@
+{
+  "complete": {
+    "accountId": "synthetic-account",
+    "sessionGeneration": 42,
+    "conversationId": "synthetic-conversation",
+    "requestId": "synthetic-request",
+    "chunk": "最后一段正文",
+    "isDone": true,
+    "error": null
+  },
+  "persistFailed": {
+    "accountId": "synthetic-account",
+    "sessionGeneration": 42,
+    "conversationId": "synthetic-conversation",
+    "requestId": "synthetic-request",
+    "chunk": "",
+    "isDone": true,
+    "error": "__LLM_PERSIST_FAILED__: synthetic storage failure"
+  },
+  "upstreamFailed": {
+    "accountId": "synthetic-account",
+    "sessionGeneration": 42,
+    "conversationId": "synthetic-conversation",
+    "requestId": "synthetic-request",
+    "chunk": "",
+    "isDone": false,
+    "error": "HTTP 500: synthetic"
+  },
+  "conversation": {
+    "id": "synthetic-conversation",
+    "name": "旧历史",
+    "isTemporary": true,
+    "messages": [
+      {
+        "role": "system",
+        "content": "旧系统消息",
+        "createdAt": "2026-09-01T00:00:00Z"
+      },
+      {
+        "role": "legacy-tool-role",
+        "content": "旧角色仍可读取",
+        "createdAt": "2026-09-01T00:00:01Z"
+      }
+    ],
+    "updatedAt": "2026-09-01T00:00:02Z"
+  },
+  "summary": {
+    "id": "synthetic-conversation",
+    "name": "旧历史",
+    "updatedAt": "2026-09-01T00:00:02Z",
+    "messageCount": 2
+  },
+  "none": {
+    "mode": "none"
+  },
+  "publicProfile": {
+    "mode": "publicProfile",
+    "objectIds": ["synthetic-object"],
+    "language": "zh-CN",
+    "guideChunks": [
+      {
+        "guideId": "synthetic-guide",
+        "guideTitle": "指南",
+        "chunkText": "合成指南片段",
+        "similarity": 0.5
+      }
+    ]
+  }
+}

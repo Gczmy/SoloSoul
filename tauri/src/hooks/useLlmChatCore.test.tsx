@@ -456,6 +456,7 @@ describe('RF-104 real send ownership and canonical conversation history', () => 
       conversationId: record.conversationId,
       requestId: record.requestId,
       sessionGeneration: 31,
+      error: null,
       chunk,
       isDone,
     });

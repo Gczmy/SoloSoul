@@ -1,0 +1,411 @@
+{
+  "task": "RF-303",
+  "date": "2026-10-01",
+  "status": "completed",
+  "baseCommit": "c4bee555efde81e9e1de81185efbeae0f4b4c029",
+  "workdir": "C:\\Users\\40299571\\SoloSoul",
+  "scope": {
+    "newCommands": 9,
+    "generatedCommands": 39,
+    "registeredCommands": 225,
+    "unmigratedCommands": 186,
+    "events": [
+      "llm-stream-chunk"
+    ],
+    "sourceFiles": 26,
+    "newRustSerdeTests": 4,
+    "newFrontendMissingFieldCases": 5,
+    "newContractNodeTests": 2
+  },
+  "checks": {
+    "front": {
+      "vitestFiles": 239,
+      "vitestPassed": 2020,
+      "nodePassed": 112,
+      "failed": 0,
+      "skipped": 0
+    },
+    "rust": {
+      "passed": 1780,
+      "failed": 0,
+      "ignoredExisting": 3
+    },
+    "contract": {
+      "nodePassed": 8,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "receipts": {
+    "front": {
+      "phase": "front",
+      "sourceSha256": {
+        "tauri/scripts/generate-ipc-contracts.node.mjs": "c9192d3b30f1648a44ee20a2af6ff62b5cb5ee512925b13ce958aa82d6bdce29",
+        "tauri/src-tauri/ipc-contracts.json": "a8db73babf45ce1cc2310510e801f7d35328fc51da214f852c5f805f1c25a502",
+        "tauri/src-tauri/src/commands/llm/contracts.rs": "04d208e04662ed062d7aee10b19bd85a5505786f9e692aed8125b4a25317bbd2",
+        "tauri/src-tauri/src/commands/llm/contracts/fixtures.json": "32fdacc9f110ec762c6b7377c38e30f2fbd98016adea2ad452a5fc1430afd608",
+        "tauri/src-tauri/src/commands/llm/contracts/tests.rs": "4d427e4df1d1e9c052173831f9230fc5384c00c3cf3d3bd78681c871c30d48e1",
+        "tauri/src-tauri/src/commands/llm/conversation.rs": "a28bcd7597c4f9279a865fc118fafb5e7ccb261d67bac388420f08c851e0d16e",
+        "tauri/src-tauri/src/commands/llm/mod.rs": "75310c0e3ccb0e580e9d55aa606fdce76d7e3ba8fc6b7c607a0da1a0a6b17f70",
+        "tauri/src-tauri/src/commands/llm/rag.rs": "e59e0d6b3a01c71cb3061eef99285b754a28fd46de463a92b97652637aff5358",
+        "tauri/src-tauri/src/commands/llm/stream.rs": "f740138371d118c973929d79d4fa68939400913dc922c7e2a1d0271c777ec0e4",
+        "tauri/src-tauri/src/lib.rs": "a92a595f63fc88e91951b8001397f8ccc28c0669fed9e29b3383c97b4b76caf1",
+        "tauri/src-tauri/src/services/llm_context/automatic.rs": "0124bb4df157e7228415a0fbe4ca804f32794552f637f502614e80d94f31e652",
+        "tauri/src/hooks/useLlmChatCore.test.tsx": "7f6ddadefb023285eb8954a8bc8d05763b634f917145ed06c0c590caa012a075",
+        "tauri/src/hooks/useLlmChatCore.ts": "6294f976c95b1717369b9188dd0e1e5b49ed88adebe4e7222071696ae469565f",
+        "tauri/src/hooks/useLlmStreaming.test.tsx": "af0b3c35eefa81ecb4e7e0f011e9d1ea6eec770ae10e06df8deab9602e42a0ff",
+        "tauri/src/lib/generated/ipcContractManifest.json": "6cace114bd33dc0ff5db351bdfeddb3034a4d4af07dcf87f68b4756527a7388c",
+        "tauri/src/lib/generated/ipcContracts.ts": "c0f35d56d6a98a4e0b57fba6fe6b1fe51b67bb718a306b251bf3814b6d6879a7",
+        "tauri/src/lib/llm/chatRequest.ts": "053bd11c2e262ed1702fbf959aa134edca252001e90ada17ac7c546641fbfb21",
+        "tauri/src/lib/llm/contracts.typecheck.ts": "afa39f6b20431e5f8bd793c5fac2db1a49fc0188464642f40f444805127953af",
+        "tauri/src/lib/llm/conversationPersistence.ts": "1b7e3a7738725a9df8211f8b09dd58d4416f8e7bb8e5971f6f025c5b6714f754",
+        "tauri/src/lib/llm/guideService.ts": "9549a3c13e0019689f9e56ea19d85ca0f6786b8d3a3b9f803172d462ef5aef1e",
+        "tauri/src/lib/notification.llm.test.ts": "70f1a4121da003bb4f6586657ec2333c87e872963543b047382ad16b56084bed",
+        "tauri/src/pages/ai/ChatMessageBubble.tsx": "6ed2977f364666ef0df28246546e124e8a9940b63d22983a57055aa5742e162f",
+        "tauri/src/pages/ai/LlmChatPage/useLlmChat.ts": "8fdea766e9b09253c59968957c2f819c021ffd51e3f7620bb3ddfd2c1f62a75a",
+        "tauri/src/stores/llmStore.test.ts": "63bf8a02725d1b5fa22fbbf11b1228a041a52bd6c952babf292ddd518a73d33f",
+        "tauri/src/stores/llmStore.ts": "7aa64c6fa9d3ef1f24d8eaf8986de4b238334f6fd669e691366378034ccbb176",
+        "tauri/src/types/llmChat.ts": "060b867a4a5baa7b2763099d6736ca78deb42344602b683fda5c0405045a7095"
+      },
+      "commands": [
+        {
+          "command": [
+            "npx.cmd",
+            "tsc",
+            "--noEmit"
+          ],
+          "exitCode": 0,
+          "durationSeconds": 22.07,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf303-20261001\\front-0.log"
+        },
+        {
+          "command": [
+            "npm.cmd",
+            "run",
+            "lint"
+          ],
+          "exitCode": 0,
+          "durationSeconds": 32.26,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf303-20261001\\front-1.log"
+        },
+        {
+          "command": [
+            "npm.cmd",
+            "run",
+            "test"
+          ],
+          "exitCode": 0,
+          "durationSeconds": 294.13,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf303-20261001\\front-2.log"
+        }
+      ],
+      "sourceUnchanged": true
+    },
+    "rust": {
+      "phase": "rust",
+      "sourceSha256": {
+        "tauri/scripts/generate-ipc-contracts.node.mjs": "c9192d3b30f1648a44ee20a2af6ff62b5cb5ee512925b13ce958aa82d6bdce29",
+        "tauri/src-tauri/ipc-contracts.json": "a8db73babf45ce1cc2310510e801f7d35328fc51da214f852c5f805f1c25a502",
+        "tauri/src-tauri/src/commands/llm/contracts.rs": "04d208e04662ed062d7aee10b19bd85a5505786f9e692aed8125b4a25317bbd2",
+        "tauri/src-tauri/src/commands/llm/contracts/fixtures.json": "32fdacc9f110ec762c6b7377c38e30f2fbd98016adea2ad452a5fc1430afd608",
+        "tauri/src-tauri/src/commands/llm/contracts/tests.rs": "4d427e4df1d1e9c052173831f9230fc5384c00c3cf3d3bd78681c871c30d48e1",
+        "tauri/src-tauri/src/commands/llm/conversation.rs": "a28bcd7597c4f9279a865fc118fafb5e7ccb261d67bac388420f08c851e0d16e",
+        "tauri/src-tauri/src/commands/llm/mod.rs": "75310c0e3ccb0e580e9d55aa606fdce76d7e3ba8fc6b7c607a0da1a0a6b17f70",
+        "tauri/src-tauri/src/commands/llm/rag.rs": "e59e0d6b3a01c71cb3061eef99285b754a28fd46de463a92b97652637aff5358",
+        "tauri/src-tauri/src/commands/llm/stream.rs": "f740138371d118c973929d79d4fa68939400913dc922c7e2a1d0271c777ec0e4",
+        "tauri/src-tauri/src/lib.rs": "a92a595f63fc88e91951b8001397f8ccc28c0669fed9e29b3383c97b4b76caf1",
+        "tauri/src-tauri/src/services/llm_context/automatic.rs": "0124bb4df157e7228415a0fbe4ca804f32794552f637f502614e80d94f31e652",
+        "tauri/src/hooks/useLlmChatCore.test.tsx": "7f6ddadefb023285eb8954a8bc8d05763b634f917145ed06c0c590caa012a075",
+        "tauri/src/hooks/useLlmChatCore.ts": "6294f976c95b1717369b9188dd0e1e5b49ed88adebe4e7222071696ae469565f",
+        "tauri/src/hooks/useLlmStreaming.test.tsx": "af0b3c35eefa81ecb4e7e0f011e9d1ea6eec770ae10e06df8deab9602e42a0ff",
+        "tauri/src/lib/generated/ipcContractManifest.json": "6cace114bd33dc0ff5db351bdfeddb3034a4d4af07dcf87f68b4756527a7388c",
+        "tauri/src/lib/generated/ipcContracts.ts": "c0f35d56d6a98a4e0b57fba6fe6b1fe51b67bb718a306b251bf3814b6d6879a7",
+        "tauri/src/lib/llm/chatRequest.ts": "053bd11c2e262ed1702fbf959aa134edca252001e90ada17ac7c546641fbfb21",
+        "tauri/src/lib/llm/contracts.typecheck.ts": "afa39f6b20431e5f8bd793c5fac2db1a49fc0188464642f40f444805127953af",
+        "tauri/src/lib/llm/conversationPersistence.ts": "1b7e3a7738725a9df8211f8b09dd58d4416f8e7bb8e5971f6f025c5b6714f754",
+        "tauri/src/lib/llm/guideService.ts": "9549a3c13e0019689f9e56ea19d85ca0f6786b8d3a3b9f803172d462ef5aef1e",
+        "tauri/src/lib/notification.llm.test.ts": "70f1a4121da003bb4f6586657ec2333c87e872963543b047382ad16b56084bed",
+        "tauri/src/pages/ai/ChatMessageBubble.tsx": "6ed2977f364666ef0df28246546e124e8a9940b63d22983a57055aa5742e162f",
+        "tauri/src/pages/ai/LlmChatPage/useLlmChat.ts": "8fdea766e9b09253c59968957c2f819c021ffd51e3f7620bb3ddfd2c1f62a75a",
+        "tauri/src/stores/llmStore.test.ts": "63bf8a02725d1b5fa22fbbf11b1228a041a52bd6c952babf292ddd518a73d33f",
+        "tauri/src/stores/llmStore.ts": "7aa64c6fa9d3ef1f24d8eaf8986de4b238334f6fd669e691366378034ccbb176",
+        "tauri/src/types/llmChat.ts": "060b867a4a5baa7b2763099d6736ca78deb42344602b683fda5c0405045a7095"
+      },
+      "commands": [
+        {
+          "command": [
+            "cargo",
+            "fmt",
+            "--all",
+            "--",
+            "--check"
+          ],
+          "exitCode": 0,
+          "durationSeconds": 5.02,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf303-20261001\\rust-0.log"
+        },
+        {
+          "command": [
+            "cargo",
+            "clippy",
+            "--locked",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exitCode": 0,
+          "durationSeconds": 67.79,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf303-20261001\\rust-1.log"
+        },
+        {
+          "command": [
+            "cargo",
+            "test",
+            "--locked",
+            "--verbose"
+          ],
+          "exitCode": 0,
+          "durationSeconds": 798.55,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf303-20261001\\rust-2.log"
+        }
+      ],
+      "sourceUnchanged": true
+    },
+    "contract": {
+      "phase": "contract",
+      "sourceSha256": {
+        "tauri/scripts/generate-ipc-contracts.node.mjs": "c9192d3b30f1648a44ee20a2af6ff62b5cb5ee512925b13ce958aa82d6bdce29",
+        "tauri/src-tauri/ipc-contracts.json": "a8db73babf45ce1cc2310510e801f7d35328fc51da214f852c5f805f1c25a502",
+        "tauri/src-tauri/src/commands/llm/contracts.rs": "04d208e04662ed062d7aee10b19bd85a5505786f9e692aed8125b4a25317bbd2",
+        "tauri/src-tauri/src/commands/llm/contracts/fixtures.json": "32fdacc9f110ec762c6b7377c38e30f2fbd98016adea2ad452a5fc1430afd608",
+        "tauri/src-tauri/src/commands/llm/contracts/tests.rs": "4d427e4df1d1e9c052173831f9230fc5384c00c3cf3d3bd78681c871c30d48e1",
+        "tauri/src-tauri/src/commands/llm/conversation.rs": "a28bcd7597c4f9279a865fc118fafb5e7ccb261d67bac388420f08c851e0d16e",
+        "tauri/src-tauri/src/commands/llm/mod.rs": "75310c0e3ccb0e580e9d55aa606fdce76d7e3ba8fc6b7c607a0da1a0a6b17f70",
+        "tauri/src-tauri/src/commands/llm/rag.rs": "e59e0d6b3a01c71cb3061eef99285b754a28fd46de463a92b97652637aff5358",
+        "tauri/src-tauri/src/commands/llm/stream.rs": "f740138371d118c973929d79d4fa68939400913dc922c7e2a1d0271c777ec0e4",
+        "tauri/src-tauri/src/lib.rs": "a92a595f63fc88e91951b8001397f8ccc28c0669fed9e29b3383c97b4b76caf1",
+        "tauri/src-tauri/src/services/llm_context/automatic.rs": "0124bb4df157e7228415a0fbe4ca804f32794552f637f502614e80d94f31e652",
+        "tauri/src/hooks/useLlmChatCore.test.tsx": "7f6ddadefb023285eb8954a8bc8d05763b634f917145ed06c0c590caa012a075",
+        "tauri/src/hooks/useLlmChatCore.ts": "6294f976c95b1717369b9188dd0e1e5b49ed88adebe4e7222071696ae469565f",
+        "tauri/src/hooks/useLlmStreaming.test.tsx": "af0b3c35eefa81ecb4e7e0f011e9d1ea6eec770ae10e06df8deab9602e42a0ff",
+        "tauri/src/lib/generated/ipcContractManifest.json": "6cace114bd33dc0ff5db351bdfeddb3034a4d4af07dcf87f68b4756527a7388c",
+        "tauri/src/lib/generated/ipcContracts.ts": "c0f35d56d6a98a4e0b57fba6fe6b1fe51b67bb718a306b251bf3814b6d6879a7",
+        "tauri/src/lib/llm/chatRequest.ts": "053bd11c2e262ed1702fbf959aa134edca252001e90ada17ac7c546641fbfb21",
+        "tauri/src/lib/llm/contracts.typecheck.ts": "afa39f6b20431e5f8bd793c5fac2db1a49fc0188464642f40f444805127953af",
+        "tauri/src/lib/llm/conversationPersistence.ts": "1b7e3a7738725a9df8211f8b09dd58d4416f8e7bb8e5971f6f025c5b6714f754",
+        "tauri/src/lib/llm/guideService.ts": "9549a3c13e0019689f9e56ea19d85ca0f6786b8d3a3b9f803172d462ef5aef1e",
+        "tauri/src/lib/notification.llm.test.ts": "70f1a4121da003bb4f6586657ec2333c87e872963543b047382ad16b56084bed",
+        "tauri/src/pages/ai/ChatMessageBubble.tsx": "6ed2977f364666ef0df28246546e124e8a9940b63d22983a57055aa5742e162f",
+        "tauri/src/pages/ai/LlmChatPage/useLlmChat.ts": "8fdea766e9b09253c59968957c2f819c021ffd51e3f7620bb3ddfd2c1f62a75a",
+        "tauri/src/stores/llmStore.test.ts": "63bf8a02725d1b5fa22fbbf11b1228a041a52bd6c952babf292ddd518a73d33f",
+        "tauri/src/stores/llmStore.ts": "7aa64c6fa9d3ef1f24d8eaf8986de4b238334f6fd669e691366378034ccbb176",
+        "tauri/src/types/llmChat.ts": "060b867a4a5baa7b2763099d6736ca78deb42344602b683fda5c0405045a7095"
+      },
+      "commands": [
+        {
+          "command": [
+            "npm.cmd",
+            "run",
+            "check:contracts"
+          ],
+          "exitCode": 0,
+          "durationSeconds": 15.86,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf303-20261001\\contract-0.log"
+        },
+        {
+          "command": [
+            "npm.cmd",
+            "run",
+            "test:contracts"
+          ],
+          "exitCode": 0,
+          "durationSeconds": 16.4,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf303-20261001\\contract-1.log"
+        },
+        {
+          "command": [
+            "npm.cmd",
+            "run",
+            "check:acl"
+          ],
+          "exitCode": 0,
+          "durationSeconds": 0.68,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf303-20261001\\contract-2.log"
+        },
+        {
+          "command": [
+            "npm.cmd",
+            "run",
+            "check:pref-keys"
+          ],
+          "exitCode": 0,
+          "durationSeconds": 0.67,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf303-20261001\\contract-3.log"
+        },
+        {
+          "command": [
+            "node",
+            "scripts/check-markdown-chunk-boundary.mjs"
+          ],
+          "exitCode": 0,
+          "durationSeconds": 9.18,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf303-20261001\\contract-4.log"
+        },
+        {
+          "command": [
+            "python",
+            "-X",
+            "utf8",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "scripts",
+            "-p",
+            "test_check_acl_consistency.py"
+          ],
+          "exitCode": 0,
+          "durationSeconds": 0.74,
+          "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf303-20261001\\contract-5.log"
+        }
+      ],
+      "sourceUnchanged": true
+    }
+  },
+  "sourceSha256": {
+    "tauri/scripts/generate-ipc-contracts.node.mjs": "c9192d3b30f1648a44ee20a2af6ff62b5cb5ee512925b13ce958aa82d6bdce29",
+    "tauri/src-tauri/ipc-contracts.json": "a8db73babf45ce1cc2310510e801f7d35328fc51da214f852c5f805f1c25a502",
+    "tauri/src-tauri/src/commands/llm/contracts.rs": "04d208e04662ed062d7aee10b19bd85a5505786f9e692aed8125b4a25317bbd2",
+    "tauri/src-tauri/src/commands/llm/contracts/fixtures.json": "32fdacc9f110ec762c6b7377c38e30f2fbd98016adea2ad452a5fc1430afd608",
+    "tauri/src-tauri/src/commands/llm/contracts/tests.rs": "4d427e4df1d1e9c052173831f9230fc5384c00c3cf3d3bd78681c871c30d48e1",
+    "tauri/src-tauri/src/commands/llm/conversation.rs": "a28bcd7597c4f9279a865fc118fafb5e7ccb261d67bac388420f08c851e0d16e",
+    "tauri/src-tauri/src/commands/llm/mod.rs": "75310c0e3ccb0e580e9d55aa606fdce76d7e3ba8fc6b7c607a0da1a0a6b17f70",
+    "tauri/src-tauri/src/commands/llm/rag.rs": "e59e0d6b3a01c71cb3061eef99285b754a28fd46de463a92b97652637aff5358",
+    "tauri/src-tauri/src/commands/llm/stream.rs": "f740138371d118c973929d79d4fa68939400913dc922c7e2a1d0271c777ec0e4",
+    "tauri/src-tauri/src/lib.rs": "a92a595f63fc88e91951b8001397f8ccc28c0669fed9e29b3383c97b4b76caf1",
+    "tauri/src-tauri/src/services/llm_context/automatic.rs": "0124bb4df157e7228415a0fbe4ca804f32794552f637f502614e80d94f31e652",
+    "tauri/src/hooks/useLlmChatCore.test.tsx": "7f6ddadefb023285eb8954a8bc8d05763b634f917145ed06c0c590caa012a075",
+    "tauri/src/hooks/useLlmChatCore.ts": "6294f976c95b1717369b9188dd0e1e5b49ed88adebe4e7222071696ae469565f",
+    "tauri/src/hooks/useLlmStreaming.test.tsx": "af0b3c35eefa81ecb4e7e0f011e9d1ea6eec770ae10e06df8deab9602e42a0ff",
+    "tauri/src/lib/generated/ipcContractManifest.json": "6cace114bd33dc0ff5db351bdfeddb3034a4d4af07dcf87f68b4756527a7388c",
+    "tauri/src/lib/generated/ipcContracts.ts": "c0f35d56d6a98a4e0b57fba6fe6b1fe51b67bb718a306b251bf3814b6d6879a7",
+    "tauri/src/lib/llm/chatRequest.ts": "053bd11c2e262ed1702fbf959aa134edca252001e90ada17ac7c546641fbfb21",
+    "tauri/src/lib/llm/contracts.typecheck.ts": "afa39f6b20431e5f8bd793c5fac2db1a49fc0188464642f40f444805127953af",
+    "tauri/src/lib/llm/conversationPersistence.ts": "1b7e3a7738725a9df8211f8b09dd58d4416f8e7bb8e5971f6f025c5b6714f754",
+    "tauri/src/lib/llm/guideService.ts": "9549a3c13e0019689f9e56ea19d85ca0f6786b8d3a3b9f803172d462ef5aef1e",
+    "tauri/src/lib/notification.llm.test.ts": "70f1a4121da003bb4f6586657ec2333c87e872963543b047382ad16b56084bed",
+    "tauri/src/pages/ai/ChatMessageBubble.tsx": "6ed2977f364666ef0df28246546e124e8a9940b63d22983a57055aa5742e162f",
+    "tauri/src/pages/ai/LlmChatPage/useLlmChat.ts": "8fdea766e9b09253c59968957c2f819c021ffd51e3f7620bb3ddfd2c1f62a75a",
+    "tauri/src/stores/llmStore.test.ts": "63bf8a02725d1b5fa22fbbf11b1228a041a52bd6c952babf292ddd518a73d33f",
+    "tauri/src/stores/llmStore.ts": "7aa64c6fa9d3ef1f24d8eaf8986de4b238334f6fd669e691366378034ccbb176",
+    "tauri/src/types/llmChat.ts": "060b867a4a5baa7b2763099d6736ca78deb42344602b683fda5c0405045a7095"
+  },
+  "sourceReview": {
+    "reviewer": "primary agent",
+    "independentFinalReview": false,
+    "functionComparisons": [
+      {
+        "path": "tauri/src-tauri/src/commands/llm/mod.rs",
+        "originalFunctions": 6,
+        "functionSignaturesAndBodiesUnchangedIgnoringWhitespace": true
+      },
+      {
+        "path": "tauri/src-tauri/src/commands/llm/stream.rs",
+        "originalFunctions": 19,
+        "functionSignaturesAndBodiesUnchangedIgnoringWhitespace": true
+      },
+      {
+        "path": "tauri/src-tauri/src/commands/llm/conversation.rs",
+        "originalFunctions": 13,
+        "functionSignaturesAndBodiesUnchangedIgnoringWhitespace": true
+      },
+      {
+        "path": "tauri/src-tauri/src/commands/llm/rag.rs",
+        "originalFunctions": 19,
+        "functionSignaturesAndBodiesUnchangedIgnoringWhitespace": true
+      },
+      {
+        "path": "tauri/src-tauri/src/services/llm_context/automatic.rs",
+        "originalFunctions": 5,
+        "functionSignaturesAndBodiesUnchangedIgnoringWhitespace": true
+      }
+    ],
+    "protected14RawUnchanged": true,
+    "dependencyAndCoreDtoRawUnchanged": true,
+    "focus": [
+      "9 commands use existing session/stream guarded typed transport",
+      "listener uses generated output with complete identity and required nullable error",
+      "done event stays subscribed until native invoke settlement; persistence prefix stays separate",
+      "all old public function/type/Tauri generated macro exports retained explicitly",
+      "Core role remains String; UI-only message id/isError are derived display fields",
+      "RAG command/account binding remains RF-908 and provider/stats command groups are unselected"
+    ],
+    "originalFrontendAssertions": [
+      {
+        "path": "tauri/src/stores/llmStore.test.ts",
+        "originalMatcherAssertions": 81,
+        "allOriginalMatchersAndExpectedArgumentsPreserved": true
+      },
+      {
+        "path": "tauri/src/hooks/useLlmChatCore.test.tsx",
+        "originalMatcherAssertions": 89,
+        "allOriginalMatchersAndExpectedArgumentsPreserved": true
+      },
+      {
+        "path": "tauri/src/hooks/useLlmStreaming.test.tsx",
+        "originalMatcherAssertions": 35,
+        "allOriginalMatchersAndExpectedArgumentsPreserved": true
+      },
+      {
+        "path": "tauri/src/lib/notification.llm.test.ts",
+        "originalMatcherAssertions": 61,
+        "allOriginalMatchersAndExpectedArgumentsPreserved": true
+      }
+    ]
+  },
+  "protectedRawSha256": {
+    "solosoul_cli/src/commands/profile.rs": "e08c0a7b8c9d9270f5764945494634c75d6d81bcba02cc189487965c81fc4e41",
+    "solosoul_cli/src/commands/security.rs": "0133f1ca219910c364dba4a2792452cfb88b05a133243f45765703cbbe146104",
+    "solosoul_cli/src/commands/template.rs": "ed2c08ee422ca9365415723875289cdad12ee2b92746a99a8c46eccac0ad7f95",
+    "solosoul_cli/src/commands/vault_write.rs": "48cb640caca661c289897d9d99a6a8cf4b13bb16abe05b5123fbc30b3bc7a16e",
+    "tauri/crates/solosoul-core/src/process_lock.rs": "48ebf0045f85980ebfc6e0a9ee52d72d2bb394e6f8b12d7107a2362f0d637c34",
+    "tauri/src-tauri/bundles/nsis/assets/header-install.bmp": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+    "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+    "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+    "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": "d1f8f2db3d8aad53e1b955d3fc640374752db1c302d2f2c22d74e9ed356b428f",
+    "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/search-index.json": "cd4beaf09aeda37039a6523e6b86d01374dcced507278a1e76d41bd473b4e8fb",
+    "tauri/src-tauri/gen/android/app/tauri.properties": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+    "tauri/src/hooks/useToastError.ts": "f2da44c3ca3fb50e379051ba762b1712ec19dfa21f9321ecaee3f9ef4fa33968",
+    "tauri/tools/ipc-contract-gen/src/lib.rs": "c682c7af5fe3d0432bef16223aa0c1da0370a8e83f5de859d509f6819199ec77",
+    "tauri/tools/ipc-contract-gen/tests/contracts.rs": "9377b9d40c3cd867a70bb0926a617745fca6c037cb9cdbe3a2f6b523c52bd9eb"
+  },
+  "unchangedDependencyAndCoreDtoSha256": {
+    "tauri/Cargo.toml": "2b6bb7efb8c19dcf30d412ace48ab59ff81e3834a023e5fa1e6a366bef4d3430",
+    "tauri/Cargo.lock": "eaecbdecd19fcbeddb9d3d9cf5d216f06e6c56ff32cb84aaeabde21c97d74fd5",
+    "tauri/src-tauri/Cargo.toml": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e",
+    "solosoul_cli/Cargo.toml": "bd732f6b7f039efc1f4f2fc58ac4b63dbf5e103b5dc5b1e9770c36008ca35a96",
+    "solosoul_cli/Cargo.lock": "22471a02bc24517dbf100732902287e5908a520c5c0e747b62f83d10cb30b71d",
+    "tauri/package.json": "800ad93b174215476d738c8d2ca829ad8c08345594d0caf8c73cfe63261cc1f3",
+    "tauri/package-lock.json": "ee6d2e5a81745fcf7f4eeb7318d562a4b3edbe711177f25ec44f457ddf791c90",
+    "tauri/crates/solosoul-core/src/llm/config.rs": "7b470ce0088724ef726db86f7f3f2bbc42df40c15322a3359573efd0aba36566"
+  },
+  "initialFailureEvidence": [
+    "r1-front-0.log",
+    "r1-rust-1.log",
+    "r1-source-freeze.json",
+    "generate-r1.log",
+    "generate-r2.log",
+    "generate-r3.log",
+    "generate-r4.log"
+  ],
+  "evidenceDirectory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf303-20261001",
+  "limitations": [
+    "Runtime JSON is not globally schema-validated; existing LLM listener validates actual identity/payload fields.",
+    "isDone retains the existing text-completion meaning; persistence failure remains the existing error prefix.",
+    "Provider, statistics and RAG query commands are not claimed migrated.",
+    "No native cross-platform GUI or external LLM service validation is claimed.",
+    "Overall refactor goal remains incomplete; external verification and further tasks remain."
+  ],
+  "pushed": false
+}
