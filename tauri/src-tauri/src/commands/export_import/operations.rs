@@ -1,10 +1,15 @@
 //! RF022：只公开当前账户任务摘要与指定任务恢复，不向 IPC 暴露 journal/map/路径写许可。
-use super::*;
+use super::contracts::ImportResult;
+use super::import_err;
+use crate::state::AppState;
+use serde::{Deserialize, Serialize};
 use solosoul_core::export_import::operation::import_credential_requirements;
 use solosoul_core::{VaultService, VaultSession};
 use solosoul_vault::{ImportOperationPhase, ImportOperationRecord, ImportSourceKind};
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
+use tauri::State;
+use zeroize::Zeroizing;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

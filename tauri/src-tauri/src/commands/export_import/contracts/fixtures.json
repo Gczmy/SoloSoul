@@ -1,0 +1,212 @@
+{
+  "backup": {
+    "id": "synthetic-backup",
+    "name": "合成备份",
+    "created_at": "2026-10-01T00:00:00Z",
+    "size_bytes": 12,
+    "object_count": 1
+  },
+  "scope": {
+    "selectedPageIds": [],
+    "selectedObjectIds": [
+      "synthetic-object"
+    ],
+    "selectedTags": [],
+    "includeAttachments": true,
+    "selectedAttachmentIds": [],
+    "includePreferences": false,
+    "includeBehavioral": false,
+    "includeAll": false
+  },
+  "exportRequest": {
+    "scope": {
+      "selectedPageIds": [],
+      "selectedObjectIds": [
+        "synthetic-object"
+      ],
+      "selectedTags": [],
+      "includeAttachments": true,
+      "selectedAttachmentIds": [],
+      "includePreferences": false,
+      "includeBehavioral": false,
+      "includeAll": false
+    },
+    "password": "synthetic-password",
+    "passwordHint": null,
+    "savePath": "synthetic.solosoul"
+  },
+  "estimate": {
+    "objectCount": 1,
+    "attachmentCount": 1,
+    "attachmentSelectedCount": 0,
+    "estimatedBytes": 12,
+    "templateCount": 0,
+    "templateNames": []
+  },
+  "attachment": {
+    "id": "synthetic-attachment",
+    "fileName": "合成.txt",
+    "sizeBytes": 2
+  },
+  "requestAll": {
+    "operationId": null,
+    "selections": null,
+    "strategy": "keepBoth",
+    "sourcePath": "synthetic.solosoul",
+    "password": "synthetic-password",
+    "selectedAttachmentIds": null,
+    "objectStrategies": {},
+    "locale": "en-US"
+  },
+  "requestNone": {
+    "operationId": null,
+    "selections": [],
+    "strategy": "keepBoth",
+    "sourcePath": "synthetic.solosoul",
+    "password": "synthetic-password",
+    "selectedAttachmentIds": [],
+    "objectStrategies": {},
+    "locale": "en-US"
+  },
+  "requestMissing": {
+    "strategy": "skipExisting",
+    "sourcePath": "synthetic.solosoul",
+    "password": "synthetic-password"
+  },
+  "preview": {
+    "filePath": "synthetic.solosoul",
+    "version": "2.0",
+    "objectCount": 1,
+    "hasAttachments": true,
+    "extraFiles": [],
+    "exportTime": null,
+    "passwordHint": null
+  },
+  "pageGroup": {
+    "sectionType": "note",
+    "pageName": "Notes",
+    "objectCount": 1,
+    "objects": [
+      {
+        "id": "synthetic-object",
+        "name": "合成对象",
+        "typeId": "note",
+        "sectionType": "note",
+        "sensitivityLevel": "public",
+        "createdAt": "2026-10-01T00:00:00Z",
+        "updatedAt": "2026-10-01T00:00:00Z",
+        "isDeleted": false,
+        "templateId": null,
+        "templateType": null,
+        "iconName": "FileText",
+        "properties": null,
+        "tags": [],
+        "hasAttachments": true
+      }
+    ]
+  },
+  "decrypted": {
+    "objects": [
+      {
+        "id": "synthetic-object",
+        "name": "合成对象",
+        "typeId": "note",
+        "sectionType": "note",
+        "sensitivityLevel": "public",
+        "createdAt": "2026-10-01T00:00:00Z",
+        "updatedAt": "2026-10-01T00:00:00Z",
+        "isDeleted": false,
+        "templateId": null,
+        "templateType": null,
+        "iconName": "FileText",
+        "properties": null,
+        "tags": [],
+        "hasAttachments": true
+      }
+    ],
+    "conflicts": [
+      {
+        "objectId": "synthetic-object",
+        "importedName": "合成对象",
+        "existingName": "已有对象",
+        "kind": "renamedLocal"
+      }
+    ],
+    "hasPreferences": false,
+    "hasAuditLog": false,
+    "attachments": [
+      {
+        "id": "synthetic-attachment",
+        "objectId": "synthetic-object",
+        "fileName": "合成.txt",
+        "sizeBytes": 2
+      }
+    ]
+  },
+  "complete": {
+    "operationId": "11111111-1111-4111-8111-111111111111",
+    "sessionGeneration": 7,
+    "objectCount": 1,
+    "attachmentCount": 1,
+    "status": "complete",
+    "templateCount": 0,
+    "snapshotCount": 1,
+    "preferencesImported": false,
+    "attachmentFilesWritten": 1,
+    "failureStage": null,
+    "errorCode": null
+  },
+  "partial": {
+    "operationId": "11111111-1111-4111-8111-111111111111",
+    "sessionGeneration": 7,
+    "objectCount": 1,
+    "attachmentCount": 0,
+    "status": "partial",
+    "templateCount": 0,
+    "snapshotCount": 1,
+    "preferencesImported": false,
+    "attachmentFilesWritten": 1,
+    "failureStage": "attachments",
+    "errorCode": "IMPORT_FAILED"
+  },
+  "notCommitted": {
+    "operationId": "11111111-1111-4111-8111-111111111111",
+    "sessionGeneration": 7,
+    "objectCount": 0,
+    "attachmentCount": 0,
+    "status": "notCommitted",
+    "templateCount": 0,
+    "snapshotCount": 0,
+    "preferencesImported": false,
+    "attachmentFilesWritten": 0,
+    "failureStage": "preparation",
+    "errorCode": "BAD_PASSWORD"
+  },
+  "operation": {
+    "operationId": "11111111-1111-4111-8111-111111111111",
+    "phase": "attachments",
+    "sourceKind": "manual",
+    "sourceName": "synthetic.solosoul",
+    "createdAt": "2026-10-01T00:00:00Z",
+    "updatedAt": "2026-10-01T00:00:00Z",
+    "sourceRequired": false,
+    "passwordRequired": false,
+    "outcome": {
+      "operationId": "11111111-1111-4111-8111-111111111111",
+      "sessionGeneration": 7,
+      "objectCount": 1,
+      "attachmentCount": 0,
+      "status": "partial",
+      "templateCount": 0,
+      "snapshotCount": 1,
+      "preferencesImported": false,
+      "attachmentFilesWritten": 1,
+      "failureStage": "attachments",
+      "errorCode": "IMPORT_FAILED"
+    }
+  },
+  "document": {
+    "objectCount": 1,
+    "fileSizeBytes": 12
+  }
+}

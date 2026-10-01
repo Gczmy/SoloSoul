@@ -8,8 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
 import { useConfirm } from '@/hooks/useConfirm';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
-import type { BackupInfo } from '@/types/backup';
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
 import { prefetchRegistry } from '@/lib/prefetch/registry';
 import { HardDrive, RotateCcw, Plus, Bell, Info } from 'lucide-react';
@@ -89,7 +88,7 @@ export function BackupConfigPage() {
     if (!backupName.trim()) return;
     setIsCreating(true);
     try {
-      const result = await invoke<BackupInfo>('backup_create', { name: backupName.trim() });
+      const result = await invokeTypedCommand('backup_create', { name: backupName.trim() });
       onSuccess(
         t('settings:backup_created', { name: result.name, size: formatBytes(result.size_bytes) }),
       );
@@ -109,7 +108,7 @@ export function BackupConfigPage() {
       async () => {
         setRestoringId(id);
         try {
-          const count = await invoke<number>('backup_restore', { backupId: id });
+          const count = await invokeTypedCommand('backup_restore', { backupId: id });
           onSuccess(t('settings:restored_from_backup', { count }));
           reload();
         } catch (e) {
@@ -128,7 +127,7 @@ export function BackupConfigPage() {
       t('settings:backup_delete_confirm_body', { name }),
       async () => {
         try {
-          await invoke('backup_delete', { backupId: id });
+          await invokeTypedCommand('backup_delete', { backupId: id });
           onSuccess(t('common:backup_deleted'));
           reload();
         } catch (e) {

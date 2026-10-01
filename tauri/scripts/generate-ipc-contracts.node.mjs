@@ -704,3 +704,133 @@ test('RF303 a real stream identity change fails check without overwriting genera
     );
   });
 });
+
+test('RF304 real serde transfer fixtures and negative requests compile against generated contracts', async () => {
+  await withProductionFixture(async (root) => {
+    const manifest = await generateContracts({ root });
+    const commands = [
+      'backup_list',
+      'backup_create',
+      'backup_restore',
+      'backup_delete',
+      'export_get_scope_tree',
+      'export_estimate_size',
+      'export_execute',
+      'export_get_attachments_batch',
+      'import_parse_package',
+      'import_decrypt_preview',
+      'import_execute_advanced',
+      'import_operations_list',
+      'import_operation_get',
+      'import_operation_resume',
+      'export_document_preflight',
+      'export_objects_document',
+    ];
+    for (const command of commands) {
+      assert.ok(manifest.commands.includes(command));
+      assert.ok(!manifest.unmigratedCommands.includes(command));
+    }
+    const fixture = JSON.parse(
+      await readFile(
+        path.join(workspaceRoot, 'src-tauri/src/commands/export_import/contracts/fixtures.json'),
+        'utf8',
+      ),
+    );
+    await copyTypedSources(root, { session: true });
+    const probe = path.join(root, 'transfer-fixture-probe.ts');
+    await writeFile(
+      probe,
+      `import type { BackupInfo, ImportResult, ImportOperationSummary, ImportPreview, DecryptedImportPreview, PageGroup, ExportEstimate, AttachmentInfo, ExportDocumentResult, AdvancedImportRequestInput, ExportRequestInput, ExportScopeInput } from './src/lib/generated/ipcContracts';
+import { invokeTypedCommand } from './src/lib/typedIpc';
+import { createSessionRequests } from './src/lib/sessionRequests';
+const backup = ${JSON.stringify(fixture.backup)} satisfies BackupInfo;
+const all = ${JSON.stringify(fixture.requestAll)} satisfies AdvancedImportRequestInput;
+const none = ${JSON.stringify(fixture.requestNone)} satisfies AdvancedImportRequestInput;
+const missing = ${JSON.stringify(fixture.requestMissing)} satisfies AdvancedImportRequestInput;
+const exported = ${JSON.stringify(fixture.exportRequest)} satisfies ExportRequestInput;
+const scope = ${JSON.stringify(fixture.scope)} satisfies ExportScopeInput;
+const complete = ${JSON.stringify(fixture.complete)} satisfies ImportResult;
+const partial = ${JSON.stringify(fixture.partial)} satisfies ImportResult;
+const uncommitted = ${JSON.stringify(fixture.notCommitted)} satisfies ImportResult;
+const operation = ${JSON.stringify(fixture.operation)} satisfies ImportOperationSummary;
+const preview = ${JSON.stringify(fixture.preview)} satisfies ImportPreview;
+const decrypted = ${JSON.stringify(fixture.decrypted)} satisfies DecryptedImportPreview;
+const page = ${JSON.stringify(fixture.pageGroup)} satisfies PageGroup;
+const estimate = ${JSON.stringify(fixture.estimate)} satisfies ExportEstimate;
+const attachment = ${JSON.stringify(fixture.attachment)} satisfies AttachmentInfo;
+const document = ${JSON.stringify(fixture.document)} satisfies ExportDocumentResult;
+export async function check() {
+  const accountId = 'synthetic-account', operationId = complete.operationId;
+  const ticket = createSessionRequests().begin('transfer', accountId);
+  const imported: ImportResult = await ticket.invokeTyped('import_execute_advanced', { accountId, req: missing });
+  const resumed: ImportResult = await ticket.invokeTyped('import_operation_resume', { accountId, operationId, password: null, sourcePath: null });
+  const path: string = await invokeTypedCommand('export_execute', { accountId, req: exported });
+  const created: BackupInfo = await invokeTypedCommand('backup_create', { name: backup.name });
+  const restored: number = await invokeTypedCommand('backup_restore', { backupId: backup.id });
+  const deleted: null = await invokeTypedCommand('backup_delete', { backupId: backup.id });
+  const listed: BackupInfo[] = await invokeTypedCommand('backup_list');
+  const text: ExportDocumentResult = await invokeTypedCommand('export_objects_document', { objectIds: [], savePath: 'synthetic.txt', format: 'txt' });
+  // @ts-expect-error Backup DTO is snake_case.
+  const size = backup.sizeBytes;
+  // @ts-expect-error locale default allows omission, never null.
+  const nullLocale: AdvancedImportRequestInput = { ...all, locale: null };
+  // @ts-expect-error serde enum is camelCase.
+  const invalidStrategy: AdvancedImportRequestInput = { ...all, strategy: 'keep_both' };
+  // @ts-expect-error strategy remains required.
+  const missingStrategy: AdvancedImportRequestInput = { sourcePath: '', password: '' };
+  // @ts-expect-error nullable outcome fields are still required.
+  const badOutcome: ImportResult = { operationId: null, sessionGeneration: 7, status: 'complete', objectCount: 0, attachmentCount: 0, templateCount: 0, snapshotCount: 0, preferencesImported: false, attachmentFilesWritten: 0 };
+  // @ts-expect-error status does not use success as a variant.
+  const badStatus: ImportResult = { ...complete, status: 'success' };
+  // @ts-expect-error selected IDs are arrays, not boolean flags.
+  const invalidSelection: AdvancedImportRequestInput = { ...all, selectedAttachmentIds: false };
+  // @ts-expect-error export attachments require an explicit array.
+  const nullExport: ExportScopeInput = { ...scope, selectedAttachmentIds: null };
+  // @ts-expect-error restore accepts backupId, not backup_id.
+  void invokeTypedCommand('backup_restore', { backup_id: backup.id });
+  // @ts-expect-error resume does not accept a fresh request or selection changes.
+  void ticket.invokeTyped('import_operation_resume', { accountId, operationId, req: all });
+  const freshOnResume = { accountId, operationId, req: all };
+  // @ts-expect-error named variables cannot bypass top-level command arguments.
+  void ticket.invokeTyped('import_operation_resume', freshOnResume);
+  // @ts-expect-error app is a native Runtime injection.
+  void invokeTypedCommand('import_parse_package', { app: 'main', filePath: preview.filePath });
+  void size; void nullLocale; void invalidStrategy; void missingStrategy; void badOutcome; void badStatus; void invalidSelection; void nullExport;
+  return { imported, resumed, path, created, restored, deleted, listed, text, none, partial, uncommitted, operation, decrypted, page, estimate, attachment, document };
+}`,
+    );
+    const result = await compileProbe(root, probe);
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  });
+});
+
+test('RF304 real default and outcome drift fail check without overwriting outputs', async () => {
+  await withProductionFixture(async (root) => {
+    const before = await snapshot(root);
+    const source = path.join(root, 'src-tauri/src/commands/export_import/contracts.rs');
+    const original = await readFile(source, 'utf8');
+    for (const [from, to] of [
+      ['#[serde(default = "default_locale")]', ''],
+      ['pub attachment_files_written: usize,', 'pub files_written: usize,'],
+      ['pub failure_stage: Option<ImportStage>,', 'pub failure_stage: ImportStage,'],
+    ]) {
+      const changed = original.replace(from, to);
+      assert.notEqual(changed, original);
+      await writeFile(source, changed);
+      await assert.rejects(generateContracts({ root, check: true }), /IPC contract drift/);
+      assert.deepEqual(await snapshot(root), before);
+    }
+    await writeFile(source, original);
+    const commandSource = path.join(root, 'src-tauri/src/commands/export_import/import.rs');
+    const command = await readFile(commandSource, 'utf8');
+    const invalid = command.replace(
+      'import_parse_package<R: tauri::Runtime>',
+      'import_parse_package<R: unknown::Runtime>',
+    );
+    assert.notEqual(command, invalid);
+    await writeFile(commandSource, invalid);
+    await assert.rejects(generateContracts({ root, check: true }), /single tauri::Runtime/);
+    assert.deepEqual(await snapshot(root), before);
+  });
+});

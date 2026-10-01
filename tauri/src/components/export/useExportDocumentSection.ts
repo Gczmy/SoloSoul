@@ -4,6 +4,7 @@ import { useToastError } from '@/hooks/useToastError';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { logger } from '@/lib/logger';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import { saveWithPause } from '@/lib/dialog';
 import { swapDocumentExt } from '@/lib/exportFormat';
 import {
@@ -12,7 +13,7 @@ import {
   isUriPath,
   prepareStagedDownloadPath,
 } from '@/lib/mobileFileTransfer';
-import type { DocumentSensitivity, ExportDocumentResult, PageGroup } from '@/types/exportImport';
+import type { PageGroup } from '@/types/exportImport';
 
 /** 导出格式。 */
 export type DocFormat = 'docx' | 'pdf' | 'html' | 'txt' | 'markdown';
@@ -190,7 +191,7 @@ export function useExportDocumentSection(
         stagedPath = await prepareStagedDownloadPath(`SoloSoul_导出.${format}`);
         targetSavePath = stagedPath;
       }
-      const result = await invoke<ExportDocumentResult>('export_objects_document', {
+      const result = await invokeTypedCommand('export_objects_document', {
         objectIds: orderedObjectIds,
         savePath: targetSavePath,
         format,
@@ -221,7 +222,7 @@ export function useExportDocumentSection(
   const handleWarningConfirmed = useCallback(async () => {
     setShowWarning(false);
     try {
-      const maxSensitivity = await invoke<DocumentSensitivity>('export_document_preflight', {
+      const maxSensitivity = await invokeTypedCommand('export_document_preflight', {
         objectIds: orderedObjectIds,
       });
       if (maxSensitivity === 'critical') {

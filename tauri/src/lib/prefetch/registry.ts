@@ -84,7 +84,7 @@ export const prefetchRegistry = {
   /** 备份列表（备份/恢复页）。 */
   backups: createPrefetchStore<BackupInfo[]>({
     key: 'backups',
-    loader: () => invoke<BackupInfo[]>('backup_list'),
+    loader: () => invokeTypedCommand('backup_list'),
     ttlMs: 60_000,
     warmupPolicy: 'afterAuth',
   }),
@@ -101,7 +101,7 @@ export const prefetchRegistry = {
     loader: async () => {
       const accountId = useAuthStore.getState().currentAccount?.id;
       if (!accountId) throw new Error('No account is currently unlocked');
-      return invoke<PageGroup[]>('export_get_scope_tree', { accountId });
+      return invokeTypedCommand('export_get_scope_tree', { accountId });
     },
     ttlMs: 60_000,
     warmupPolicy: 'afterAuth',

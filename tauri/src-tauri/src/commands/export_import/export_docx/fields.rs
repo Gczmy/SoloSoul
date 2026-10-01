@@ -1,6 +1,6 @@
 //! export_docx 子模块 —— fields（P047 拆分）
 
-use super::*;
+use super::super::load_attachments;
 
 pub(crate) fn escape_xml(s: &str) -> String {
     let mut out = String::with_capacity(s.len());

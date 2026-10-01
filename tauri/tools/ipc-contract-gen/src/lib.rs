@@ -6,8 +6,9 @@
 //! 显式嵌套 DTO，以及经 workspace/Host path 依赖核验的库源码。输入和输出独立投影：
 //! 输入 Option/default 可缺键；输出普通 Option 必需且 nullable；
 //! Option::is_none / Vec::is_empty 仅控制输出省略，不能暗含输入 default。
-//! 支持单字段 serde transparent tuple newtype；Output 可忽略合法 alias/default 函数/
-//! deserialize_with，Input 仍拒绝这些不能准确投影的反序列化属性。函数永不执行。
+//! 支持单字段 serde transparent tuple newtype；default 函数只控制输入缺键，永不执行。
+//! Output 可忽略合法 alias/deserialize_with，Input 仍拒绝这些反序列化属性。
+//! 命令仅支持一个 tauri::Runtime 泛型，且必须仅用于根层原生注入，不得进入 wire。
 //! 精确 tauri::ResourceId 映射句柄别名；Channel<T> 仅限命令参数根层，T 按 Output 投影。
 //! 不支持宏生成 DTO、条件字段、泛型、type alias、flatten/untagged、自定义 Serialize、
 //! 分向 rename 及未知注解。此类输入必须报错，不能生成 any/未知占位。
@@ -15,6 +16,7 @@
 //! 能表达整数范围或 u64 精度。空 DTO 用 Record<string, never> 限定对象形状。
 
 mod attrs;
+mod runtime;
 mod source;
 mod types;
 
@@ -199,7 +201,8 @@ fn command_contract(
     module: &str,
     function: &syn::ItemFn,
 ) -> Result<(String, String), String> {
-    types::no_generics(&function.sig.generics)?;
+    let runtime = runtime::parameter(renderer, module, &function.sig.generics)?;
+    let mut runtime_used = false;
     if function.sig.unsafety.is_some()
         || function.sig.abi.is_some()
         || function.sig.variadic.is_some()
@@ -256,6 +259,15 @@ fn command_contract(
         if pattern.by_ref.is_some() || pattern.subpat.is_some() {
             return Err("destructured/ref command arguments are unsupported".into());
         }
+        if let Some(parameter) = runtime.as_deref() {
+            if runtime::contains(&argument.ty, parameter) {
+                if !runtime::injection(renderer, module, &argument.ty, parameter)? {
+                    return Err("Runtime parameter is allowed only in root Tauri injections".into());
+                }
+                runtime_used = true;
+                continue;
+            }
+        }
         if injected(renderer, module, &argument.ty)? {
             continue;
         }
@@ -276,6 +288,9 @@ fn command_contract(
             if optional { "?" } else { "" }
         ));
     }
+    if runtime.is_some() && !runtime_used {
+        return Err("Runtime parameter requires a matching Tauri injection".into());
+    }
     let arguments = if parameters.is_empty() {
         "undefined".into()
     } else {
@@ -284,6 +299,12 @@ fn command_contract(
     let result = match &function.sig.output {
         ReturnType::Default => "null".into(),
         ReturnType::Type(_, ty) => {
+            if runtime
+                .as_deref()
+                .is_some_and(|parameter| runtime::contains(ty, parameter))
+            {
+                return Err("Runtime parameter cannot appear in a command result".into());
+            }
             let wire = success_type(renderer, module, ty)?;
             renderer.render(wire, module, Direction::Output)?
         }

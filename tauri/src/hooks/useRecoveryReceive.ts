@@ -9,7 +9,6 @@ import { useRecoveryCredentials } from '@/hooks/useRecoveryCredentials';
 import { friendlyConnectError, checkRecoveryIdConflict } from '@/lib/recoveryErrors';
 import { importOutcomeError } from '@/lib/importOutcome';
 import { createSessionRequests } from '@/lib/sessionRequests';
-import type { ImportResult } from '@/types/exportImport';
 import type {
   RecoveryResultSummary,
   ScannedRecoveryQr,
@@ -393,7 +392,7 @@ export function useRecoveryReceive({
     setError(null);
     setStatusText(t('common:recovery_progress_import'));
     try {
-      const outcome = await ticket.invoke<ImportResult>('import_operation_resume', {
+      const outcome = await ticket.invokeTyped('import_operation_resume', {
         accountId: acceptedRecovery.accountId,
         operationId: acceptedRecovery.operationId,
         sourcePath: null,

@@ -3,7 +3,15 @@ use solosoul_vault::{ImportOperationRecord, ImportSourceKind};
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
-use super::*;
+use super::contracts::{
+    AdvancedImportRequest, DecryptedImportPreview, ImportPreview, ImportResult, ImportSelection,
+    ImportStrategy,
+};
+use super::{import_err, read_manifest_json};
+use crate::state::AppState;
+use std::collections::HashMap;
+use tauri::State;
+use zeroize::Zeroizing;
 
 // ── Import commands ────────────────────────────────────────────
 
@@ -445,7 +453,7 @@ pub(crate) fn apply_operation_result(
 #[cfg(test)]
 pub(crate) fn build_selected_ids(
     selections: Option<Vec<ImportSelection>>,
-) -> Option<BTreeSet<String>> {
+) -> Option<std::collections::BTreeSet<String>> {
     solosoul_core::export_import::import::build_selected_ids(selections.map(|values| {
         values
             .into_iter()
@@ -458,11 +466,6 @@ pub(crate) fn build_selected_ids(
             .collect()
     }))
 }
-#[cfg(test)]
-pub(crate) use solosoul_core::export_import::import::{
-    rebuild_imported_templates, restore_package_snapshots, snapshots_any_restorable,
-    wrap_attachment_progress,
-};
 #[cfg(test)]
 pub(crate) fn rf021_unique_shadow_name(
     vault: &solosoul_vault::VaultStore,

@@ -3,7 +3,35 @@
 
 import type { Channel as TauriChannel } from '@tauri-apps/api/core';
 
+export type AdvancedImportRequestInput = {
+  operationId?: string | null;
+  selections?: Array<ImportSelectionInput> | null;
+  strategy: ImportStrategyInput;
+  sourcePath: string;
+  password: string;
+  selectedAttachmentIds?: Array<string> | null;
+  objectStrategies?: Record<string, ImportStrategyInput>;
+  locale?: string;
+};
+
 export type AppInfo = { appName: string; version: string; os: string; arch: string };
+
+export type AttachmentImportInfo = {
+  id: string;
+  objectId: string;
+  fileName: string;
+  sizeBytes: number;
+};
+
+export type AttachmentInfo = { id: string; fileName: string; sizeBytes: number };
+
+export type BackupInfo = {
+  id: string;
+  name: string;
+  created_at: string;
+  size_bytes: number;
+  object_count: number;
+};
 
 export type ChatContextSelectionInput =
   | { mode: 'none' }
@@ -16,6 +44,15 @@ export type ChatContextSelectionInput =
 export type ChatMessage = { role: string; content: string; createdAt: string };
 
 export type ChatMessageInput = { role: string; content: string; createdAt: string };
+
+export type ConflictInfo = {
+  objectId: string;
+  importedName: string;
+  existingName: string;
+  kind: ConflictKind;
+};
+
+export type ConflictKind = 'identical' | 'renamedLocal';
 
 export type Conversation = {
   id: string;
@@ -55,6 +92,14 @@ export type CreateObjectInputInput = {
   id?: string | null;
 };
 
+export type DecryptedImportPreview = {
+  objects: Array<ObjectSummary>;
+  conflicts: Array<ConflictInfo>;
+  hasPreferences: boolean;
+  hasAuditLog: boolean;
+  attachments: Array<AttachmentImportInfo>;
+};
+
 export type DeprecatedField = {
   id: string;
   name: string;
@@ -62,6 +107,37 @@ export type DeprecatedField = {
   value: JsonValue;
   deprecatedAt: string;
   reason: string;
+};
+
+export type DocumentSensitivity = 'none' | 'sensitive' | 'critical';
+
+export type ExportDocumentResult = { objectCount: number; fileSizeBytes: number };
+
+export type ExportEstimate = {
+  objectCount: number;
+  attachmentCount: number;
+  attachmentSelectedCount: number;
+  estimatedBytes: number;
+  templateCount: number;
+  templateNames: Array<string>;
+};
+
+export type ExportRequestInput = {
+  scope: ExportScopeInput;
+  password: string;
+  passwordHint?: string | null;
+  savePath: string;
+};
+
+export type ExportScopeInput = {
+  selectedPageIds: Array<string>;
+  selectedObjectIds: Array<string>;
+  selectedTags: Array<string>;
+  includeAttachments: boolean;
+  selectedAttachmentIds: Array<string>;
+  includePreferences: boolean;
+  includeBehavioral: boolean;
+  includeAll?: boolean;
 };
 
 export type FieldSuggestion = {
@@ -79,6 +155,64 @@ export type GuideChunkInput = {
   chunkText: string;
   similarity: number;
 };
+
+export type ImportOperationSummary = {
+  operationId: string;
+  phase: ImportOperationSummaryPhase;
+  sourceKind: ImportOperationSummarySource;
+  sourceName: string;
+  createdAt: string;
+  updatedAt: string;
+  sourceRequired: boolean;
+  passwordRequired: boolean;
+  outcome: ImportResult;
+};
+
+export type ImportOperationSummaryPhase =
+  | 'recordsCommitted'
+  | 'attachments'
+  | 'preferences'
+  | 'complete';
+
+export type ImportOperationSummarySource = 'manual' | 'cloud' | 'recovery' | 'cli';
+
+export type ImportPreview = {
+  filePath: string;
+  version: string;
+  objectCount: number;
+  hasAttachments: boolean;
+  extraFiles: Array<string>;
+  exportTime: string | null;
+  passwordHint: string | null;
+};
+
+export type ImportResult = {
+  operationId: string | null;
+  sessionGeneration: number;
+  objectCount: number;
+  attachmentCount: number;
+  status: ImportStatus;
+  templateCount: number;
+  snapshotCount: number;
+  preferencesImported: boolean;
+  attachmentFilesWritten: number;
+  failureStage: ImportStage | null;
+  errorCode: string | null;
+};
+
+export type ImportSelectionInput = { objectId: string; selected: boolean };
+
+export type ImportStage =
+  | 'preparation'
+  | 'templates'
+  | 'objects'
+  | 'snapshots'
+  | 'attachments'
+  | 'preferences';
+
+export type ImportStatus = 'complete' | 'partial' | 'notCommitted';
+
+export type ImportStrategyInput = 'skipExisting' | 'overwrite' | 'keepBoth';
 
 export type JsonObject = { [key: string]: JsonValue };
 
@@ -152,6 +286,13 @@ export type ObjectSummary = {
   tags: Array<string>;
   hasAttachments: boolean;
   sensitivityLevels?: Array<string>;
+};
+
+export type PageGroup = {
+  sectionType: string;
+  pageName: string;
+  objectCount: number;
+  objects: Array<ObjectSummary>;
 };
 
 export type PluginAuditAction =
@@ -370,8 +511,50 @@ export type UpdateObjectInputInput = {
 };
 
 export type IpcCommands = {
+  backup_create: { args: { name: string }; result: BackupInfo };
+  backup_delete: { args: { backupId: string }; result: null };
+  backup_list: { args: undefined; result: Array<BackupInfo> };
+  backup_restore: { args: { backupId: string }; result: number };
   create_plugin_install: { args: undefined; result: ResourceId };
+  export_document_preflight: { args: { objectIds: Array<string> }; result: DocumentSensitivity };
+  export_estimate_size: {
+    args: { accountId: string; scope: ExportScopeInput };
+    result: ExportEstimate;
+  };
+  export_execute: { args: { accountId: string; req: ExportRequestInput }; result: string };
+  export_get_attachments_batch: {
+    args: { accountId: string; objectIds: Array<string> };
+    result: Record<string, Array<AttachmentInfo>>;
+  };
+  export_get_scope_tree: { args: { accountId: string }; result: Array<PageGroup> };
+  export_objects_document: {
+    args: { objectIds: Array<string>; savePath: string; format: string };
+    result: ExportDocumentResult;
+  };
   get_app_info: { args: undefined; result: AppInfo };
+  import_decrypt_preview: {
+    args: { filePath: string; password: string };
+    result: DecryptedImportPreview;
+  };
+  import_execute_advanced: {
+    args: { accountId: string; req: AdvancedImportRequestInput };
+    result: ImportResult;
+  };
+  import_operation_get: {
+    args: { accountId: string; operationId: string };
+    result: ImportOperationSummary;
+  };
+  import_operation_resume: {
+    args: {
+      accountId: string;
+      operationId: string;
+      password?: string | null;
+      sourcePath?: string | null;
+    };
+    result: ImportResult;
+  };
+  import_operations_list: { args: { accountId: string }; result: Array<ImportOperationSummary> };
+  import_parse_package: { args: { filePath: string }; result: ImportPreview };
   llm_get_conversation: {
     args: { accountId: string; conversationId: string };
     result: Conversation;

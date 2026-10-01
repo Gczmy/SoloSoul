@@ -525,3 +525,102 @@ fn rf301_dto_outputs_cannot_shadow_typescript_helpers() {
             .contains(&format!("unsupported TypeScript export name: {name}")));
     }
 }
+
+#[test]
+fn rf304_runtime_injections_are_excluded_without_executing_business() {
+    for injection in ["AppHandle", "Window", "WebviewWindow", "Webview"] {
+        let source = BASE.replace("get_app_info()", &format!("get_app_info<R: tauri::Runtime>(app: tauri::{injection}<R>, state: tauri::State<'_, AppState>, account_id: String)"));
+        let ts = Fixture::new(&source).generate().typescript;
+        assert!(
+            ts.contains("\"get_app_info\": { args: { \"accountId\": string; }; result: AppInfo; }")
+        );
+        assert!(!ts.contains("\"app\":") && !ts.contains("\"state\":"));
+    }
+    let source = format!(
+        "use tauri::{{Runtime as Engine, AppHandle as Handle}}; {}",
+        BASE.replace("get_app_info()", "get_app_info<R: Engine>(app: Handle<R>)")
+    );
+    assert!(Fixture::new(&source)
+        .generate()
+        .typescript
+        .contains("args: undefined; result: AppInfo;"));
+}
+
+#[test]
+fn rf304_runtime_cannot_leak_into_wire_or_hide_other_generics() {
+    for signature in [
+        "get_app_info<R: foreign::Runtime>(app: tauri::AppHandle<R>)",
+        "get_app_info<R: tauri::Runtime + Send>(app: tauri::AppHandle<R>)",
+        "get_app_info<R: tauri::Runtime, T>(app: tauri::AppHandle<R>)",
+        "get_app_info<'a, R: tauri::Runtime>(app: tauri::AppHandle<R>)",
+        "get_app_info<R: tauri::Runtime>()",
+        "get_app_info<R: tauri::Runtime>(app: tauri::AppHandle)",
+        "get_app_info<R: tauri::Runtime>(app: tauri::AppHandle<Other>)",
+        "get_app_info<R: tauri::Runtime>(app: tauri::AppHandle<R>, payload: Vec<R>)",
+        "get_app_info<R: tauri::Runtime>(app: tauri::AppHandle<R>, state: tauri::State<'_, AppState<R>>)",
+        "get_app_info<R: tauri::Runtime>(app: Option<tauri::AppHandle<R>>)",
+        "get_app_info<R: tauri::Runtime>(app: LookalikeHandle<R>)",
+        "get_app_info<R: tauri::Runtime>(app: tauri::AppHandle<R, String>)",
+        "get_app_info<R: tauri::Runtime>(app: tauri::AppHandle<R>, payload: R::Payload)",
+    ] {
+        let source = BASE.replace("get_app_info()", signature);
+        assert!(generate(Fixture::new(&source).root.path()).is_err(), "accepted {signature}");
+    }
+    let source = BASE
+        .replace(
+            "get_app_info()",
+            "get_app_info<R: tauri::Runtime>(app: tauri::AppHandle<R>)",
+        )
+        .replace("Result<AppInfo, String>", "Result<R, String>");
+    assert!(Fixture::new(&source)
+        .error()
+        .contains("cannot appear in a command result"));
+    let source = BASE
+        .replace(
+            "get_app_info()",
+            "get_app_info<R>(app: tauri::AppHandle<R>)",
+        )
+        .replace(
+            " -> Result<AppInfo, String>",
+            " -> Result<AppInfo, String> where R: tauri::Runtime",
+        );
+    assert!(Fixture::new(&source)
+        .error()
+        .contains("single tauri::Runtime"));
+}
+
+#[path = "fixtures/rf304_defaults.rs"]
+mod rf304_defaults;
+
+#[test]
+fn rf304_default_functions_project_missing_keys_but_never_execute_during_generation() {
+    let declaration = include_str!("fixtures/rf304_defaults.rs").replace(
+        "\"en-US\".into()",
+        "panic!(\"generator must not execute defaults\")",
+    );
+    let source = format!("{declaration} #[tauri::command] pub fn get_app_info(req: Request, container: Container)->Request {{ panic!(\"never call business\") }}");
+    let ts = Fixture::new(&source).generate().typescript;
+    assert!(ts.contains(
+        "export type RequestInput = { \"locale\"?: string; \"nullable\"?: (string) | null; };"
+    ));
+    assert!(ts
+        .contains("export type Request = { \"locale\": string; \"nullable\": (string) | null; };"));
+    assert!(
+        ts.contains("export type ContainerInput = { \"locale\"?: string; \"count\"?: number; };")
+    );
+    let missing: rf304_defaults::Request = serde_json::from_value(json!({})).unwrap();
+    assert_eq!(missing.locale, "en-US");
+    assert!(missing.nullable.is_none());
+    assert_eq!(
+        serde_json::to_value(&missing).unwrap(),
+        json!({"locale":"en-US","nullable":null})
+    );
+    let present: rf304_defaults::Request =
+        serde_json::from_value(json!({"locale":"zh-CN","nullable":"kept"})).unwrap();
+    assert_eq!(present.locale, "zh-CN");
+    assert_eq!(present.nullable.as_deref(), Some("kept"));
+    assert!(serde_json::from_value::<rf304_defaults::Request>(json!({"locale":null})).is_err());
+    let container: rf304_defaults::Container = serde_json::from_value(json!({})).unwrap();
+    assert_eq!(container.locale, "en-US");
+    assert_eq!(container.count, 7);
+}

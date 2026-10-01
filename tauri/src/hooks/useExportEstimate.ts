@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import type { ExportEstimate } from '@/types/exportImport';
 
@@ -53,7 +53,7 @@ export function useExportEstimate(accountId: string, scope: ScopeState, totalSel
 
     const debounce = setTimeout(() => {
       setEstimating(true);
-      invoke<ExportEstimate>('export_estimate_size', {
+      invokeTypedCommand('export_estimate_size', {
         accountId: accountId,
         scope: {
           selectedPageIds: Array.from(scope.selectedPageIds),

@@ -9,13 +9,13 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { syncPlaintextPref } from '@/stores/settingsStore';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import i18next from '@/lib/i18n';
 import { navigateTo } from '@/lib/navigation';
 import { logger } from '@/lib/logger';
 import { notifyConversationSaveFailed } from '@/lib/llm/conversationPersistence';
 import { useLlmStore, selectLlmStream, type StreamIdentity } from '@/stores/llmStore';
 import { onRequestSessionChange } from '@/lib/sessionRequests';
-import type { BackupInfo } from '@/types/backup';
 
 /**
  * 申请系统通知权限（应用级最多弹一次系统对话框）。
@@ -181,7 +181,7 @@ export async function checkBackupReminder(accountId: string | undefined): Promis
       return;
     }
 
-    const backups = await invoke<BackupInfo[]>('backup_list');
+    const backups = await invokeTypedCommand('backup_list');
     let needsBackup = backups.length === 0;
 
     if (!needsBackup) {

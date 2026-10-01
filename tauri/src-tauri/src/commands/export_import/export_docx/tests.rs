@@ -9,6 +9,7 @@ use super::markdown::{
 use super::pdf::build_pdf_document;
 use super::text::build_text_document;
 use super::*;
+use std::io::Read;
 
 /// `fields` 仅供调用方语义表达（字段定义实际经 props.__fields 注入），参数保留签名一致性。
 fn make_record(

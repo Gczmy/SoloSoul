@@ -121,7 +121,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 - 任务总数：**255**（P1：50；P2：204；P3：1）。
 - 已关闭：**226 / 255**；实际修复（已关闭）：226；排除：0；待验证/阻塞：6（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**RF-303 已完成**。8 个会话命令、普通流式发送及 llm-stream-chunk 使用实际 Rust 生成契约；身份、完成/保存失败、旧历史角色与原会话守卫验收通过。226 已关闭、6 待外部验证、23 待执行；下一项 RF-304 前置已满足。不推送。
+- 当前处理：**RF-304 已完成**。备份、加密/文档导出、导入预览/执行与持久任务恢复的 16 个真实命令已生成契约；F/R/CONTRACT 全部通过。本轮 RF-303 与 RF-304 各自单独提交；下一项优先 RF-305，继续不推送。227 已关闭、6 待外部验证、22 待执行。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -200,7 +200,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 71 | [RF-301](#rf-301) | P2 | 建立 Rust 到 TypeScript 的增量 IPC 契约生成 | 无 | [x] 完成 |
 | 72 | [RF-302](#rf-302) | P2 | 迁移对象和回滚 IPC 契约 | [RF-301](#rf-301)、[RF-008](#rf-008)、[RF-010](#rf-010) | [x] 已完成 |
 | 73 | [RF-303](#rf-303) | P2 | 迁移 LLM 会话与流事件契约 | [RF-301](#rf-301)、[RF-002](#rf-002)、[RF-004](#rf-004)、[RF-005](#rf-005)、[RF-104](#rf-104) | [x] 完成 |
-| 74 | [RF-304](#rf-304) | P2 | 迁移备份与导入导出 IPC 契约 | [RF-301](#rf-301)、[RF-013](#rf-013)、[RF-015](#rf-015)、[RF-024](#rf-024) | [ ] 待执行 |
+| 74 | [RF-304](#rf-304) | P2 | 迁移备份与导入导出 IPC 契约 | [RF-301](#rf-301)、[RF-013](#rf-013)、[RF-015](#rf-015)、[RF-024](#rf-024) | [x] 完成 |
 | 75 | [RF-305](#rf-305) | P2 | 迁移同步 IPC 与事件契约 | [RF-301](#rf-301)、[RF-003](#rf-003) | [ ] 待执行（已授权） |
 | 76 | [RF-306](#rf-306) | P2 | 迁移插件 IPC 与资源事件契约 | [RF-301](#rf-301) | [x] 完成 |
 | 77 | [RF-307](#rf-307) | P2 | 建立结构化后端错误并迁移对象用例 | [RF-301](#rf-301)、[RF-302](#rf-302) | [ ] 待执行（已授权） |
@@ -1262,7 +1262,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **2026-10-01 完成记录：**修复前 HEAD `c4bee555`。本项选择 8 个会话 CRUD 命令及 `llm_send_message_stream`，真实注册总集合 225、累计生成 39 命令/1 全局事件、186 未迁移。LLM 注册指向已有实现模块，根模块显式保留公开函数/类型和 Tauri 生成宏；现有 3 个 Host DTO 集中到 contracts.rs 并在旧位置重导出，Core 会话 DTO 不改。普通发送不接受 API key，requestId/contextSelection 的旧调用缺省兼容不变。
 - **契约与行为：**流事件的 accountId/sessionGeneration/conversationId/requestId、chunk/isDone/error 由实际 serde 生成；error 必需 nullable。前端去除会话、上下文和事件 wire 副本，展示模型仅派生 id/isError 等字段；9 命令的生产调用复用原会话/流守卫的类型化入口。isDone 仍可带尾正文且早于保存，持久化失败前缀单独标识，监听等 native invoke 结算；不引入另一套错误协议。旧角色 String、临时历史及 deletedAt 输入缺省/null、输出省略均保留。Provider/统计/RAG 查询尚未迁移；RF-908 的账户参数问题不混入本项。
 - **验证：**F 完整 TypeScript、ESLint、默认 npm test 全部 exit 0（Vitest 239 文件/2,020 通过，Node 112 通过，无失败/跳过）；R workspace fmt、locked all-targets 严格 Clippy 与完整测试 exit 0（1,780 通过、0 失败、原有 3 忽略）。CONTRACT 全部六项 exit 0，契约 Node 8/8、包含新增 2 个真实源码编译/漂移回归。新增 Rust serde 4 个及前端缺字段运行时 5 个回归实际随完整套件执行；编译负例涵盖 4 身份字段、必需 nullable error、API key、参数关联和输入/输出空值。共享 JSON fixture 被真实 serde 与生成 TS 共同校验；改名事件身份的源码副本会触发 drift 且不改写产物。
-- **审查与范围：**同一最终 26 文件 SHA 用于全部验证，62 个原 Rust 函数签名/主体按空白归一逐个相等，4 个既有前端文件的 266 条 matcher/预期参数保留。初次生成的模块路径/通配导入/命令属性拒绝、初轮 Tauri 宏导出与新负例注解失败均保留日志；已修正后完整重检。原 14 路径 RAW SHA 和 Cargo/npm 依赖/锁文件不变。当前 agent 复核不称独立最终复审；不声称多端 Webview/真实 LLM 服务已验收。证据：[RF-303 本地验证](verification/rf303-llm-contracts-2026-10-01.json)。独立提交本提交（按 RF-303 检索），未推送。
+- **审查与范围：**同一最终 26 文件 SHA 用于全部验证，62 个原 Rust 函数签名/主体按空白归一逐个相等，4 个既有前端文件的 266 条 matcher/预期参数保留。初次生成的模块路径/通配导入/命令属性拒绝、初轮 Tauri 宏导出与新负例注解失败均保留日志；已修正后完整重检。原 14 路径 RAW SHA 和 Cargo/npm 依赖/锁文件不变。当前 agent 复核不称独立最终复审；不声称多端 Webview/真实 LLM 服务已验收。证据：[RF-303 本地验证](verification/rf303-llm-contracts-2026-10-01.json)。独立提交 `bef22dbe`，未推送。
 
 ### RF-304
 
@@ -1274,6 +1274,11 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验收：**前后端的枚举/空值/失败结果一致，旧文件仍可读；前端不能将部分失败当全部成功；生成无 diff。
 - **验证配置：**`F` + `R` + `CONTRACT`。**定向验证：**备份/导入导出 fixture 和前端流程测试。
 - **建议提交：**`refactor(ipc): type backup and transfer contracts [RF-304]`。
+
+- **2026-10-01 执行结果：完成。**新增 16 个真实注册命令的生成契约，覆盖备份 4、加密导出/附件查询 4、导入预览/执行 3、任务查询/恢复 3、文档导出 2。累计 55/225，170 未迁移，选定全局事件仍为 1。15 个既有 DTO 集中到 `export_import/contracts.rs`，旧公开符号和 Tauri 宏显式保留；前端 23 处生产调用由命令推导参数/结果，已有请求票据仍生效。
+- **协议与工具：**备份 snake_case、传输 camelCase、旧包/KDF/路径授权与 Core 执行不变；默认缺键、nullable 响应、`null=全量/[]=零选择`、手动附件 `Selected(empty)`、partial/notCommitted 和已写文件/已关联附件计数分别保留。生成器仅放行根层 Tauri Runtime 注入的单一泛型与普通 serde default 函数缺键规则，不执行函数；其它泛型/where/bound 和 Input alias/custom deserialize 继续拒绝。文档 format 仍是 Host String，UI 选项不冒充 wire enum；结构化错误由 RF318 承接。
+- **验证：**新增 5 个实际 Host serde、3 个生成器、3 个实际前端流程用例、2 个契约 Node 用例。F：TypeScript/ESLint 通过，默认入口 Vitest **240 文件/2,023 测试**及 Node **112 测试**全部通过；R：workspace fmt、locked all-targets 严格 Clippy、完整 locked cargo test **1,788 通过/0 失败/3 原有 ignored**；CONTRACT 六项全部通过，其中真实源漂移/编译负例 **10/10**、ACL 单元 **12/12**，225 命令 ACL 与 22 偏好键一致，生成无 diff。
+- **审查与范围：**最终 34 源文件 SHA 冻结；完整前端通过后仅修正 5 个 Rust import/引用文件，17 个前端检查输入 SHA 不变，不重复未受影响检查。422 个原函数中 415 个一致、7 个仅名称空间引用/import 适配，15 个 DTO 定义与 7 个既有前端回归文件不变。两轮 Clippy 的明确 import/测试 helper 失败保留并修正，最终完整重检通过。原 14 脏路径中 12 个 RAW SHA 不变；生成器 lib/tests 两文件核实原差异仅换行，保留原始备份后精确纳入本项。依赖/锁文件及 Core 执行 SHA 不变。当前 agent 复核不称独立最终复审；不声称跨端 Webview/SAF 实机及外部服务验收。证据：[RF-304 本地验证](verification/rf304-backup-transfer-contracts-2026-10-01.json)。独立提交本提交（按 RF-304 检索），未推送。
 
 ### RF-305
 

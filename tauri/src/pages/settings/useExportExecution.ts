@@ -13,7 +13,7 @@ import {
   isUriPath,
   prepareStagedDownloadPath,
 } from '@/lib/mobileFileTransfer';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import type { CloudTargetInfo } from '@/types/exportImport';
 
 /** 导出范围快照（由 useExportScope + 标签/偏好开关组成，调用方保证引用稳定）。 */
@@ -106,7 +106,7 @@ export function useExportExecution({
         targetSavePath = stagedExportPath;
       }
 
-      const exportedPath = await invoke<string>('export_execute', {
+      const exportedPath = await invokeTypedCommand('export_execute', {
         accountId: accountId,
         req: {
           scope: {

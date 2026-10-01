@@ -298,11 +298,7 @@ fn rf306_deserialization_only_output_attributes_do_not_execute_or_change_wire_ty
     rejection(&format!(
         "{declaration} #[tauri::command] pub fn probe(payload:Payload){{unreachable!()}}"
     ));
-    for attribute in [
-        r#"alias="legacy""#,
-        r#"default="default_value""#,
-        r#"deserialize_with="decode_value""#,
-    ] {
+    for attribute in [r#"alias="legacy""#, r#"deserialize_with="decode_value""#] {
         rejection(&format!("#[derive(serde::Serialize,serde::Deserialize)] pub struct Payload{{#[serde({attribute})]pub value:String}} #[tauri::command] pub fn probe(payload:Payload){{unreachable!()}}"));
     }
     let fixture=Fixture::new("use solosoul_plugin::manifest::PluginManifest; #[tauri::command] pub fn probe(value:PluginManifest){unreachable!()}");

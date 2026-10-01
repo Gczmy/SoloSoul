@@ -1,6 +1,13 @@
-use super::*;
+use super::contracts::{ExportEstimate, ExportRequest, ExportScope, PageGroup};
+use super::load_attachments;
+use crate::commands::vault_handle;
+use crate::state::AppState;
+use serde::{Deserialize, Serialize};
 use solosoul_core::{VaultService, VaultSession};
+use solosoul_vault::ObjectSummary;
 use std::sync::{Arc, RwLock};
+use tauri::State;
+use zeroize::Zeroizing;
 
 // ── Export commands ────────────────────────────────────────────
 
@@ -228,7 +235,7 @@ pub async fn export_estimate_size(
 #[cfg(test)]
 pub(super) fn estimate_attachments(
     records: &[solosoul_vault::ObjectRecord],
-    scope: &AttachmentExportScope,
+    scope: &super::AttachmentExportScope,
 ) -> (usize, usize, u64) {
     solosoul_core::export_import::export::estimate_attachments(records, scope)
 }
@@ -245,6 +252,7 @@ fn resolve_zip_path(app: &tauri::AppHandle, save_path: &str) -> Result<String, S
     let resolved = if save_path.starts_with("~/") {
         #[cfg(mobile)]
         {
+            use tauri::Manager;
             app.path()
                 .resolve(&save_path[2..], tauri::path::BaseDirectory::Data)
                 .map_err(|e| format!("无法解析应用数据目录: {e}"))?
@@ -338,7 +346,7 @@ pub(crate) fn validate_export_dest(zip_path: &str) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn export_execute(
-    #[allow(unused_variables)] app: tauri::AppHandle,
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     account_id: String,
     req: ExportRequest,
@@ -452,7 +460,7 @@ pub(crate) fn execute_export_core_with_attachment_scope(
     account_id: &str,
     req: &ExportRequest,
     zip_path: &str,
-    attachment_scope: &AttachmentExportScope,
+    attachment_scope: &super::AttachmentExportScope,
 ) -> Result<(), String> {
     let session = svc.capture_session(account_id)?;
     execute_export_for_session_with_attachment_scope(svc, &session, req, zip_path, attachment_scope)
@@ -477,7 +485,7 @@ pub(crate) fn execute_export_for_session_with_attachment_scope(
     session: &VaultSession,
     req: &ExportRequest,
     zip_path: &str,
-    attachments: &AttachmentExportScope,
+    attachments: &super::AttachmentExportScope,
 ) -> Result<(), String> {
     let scope = req.scope.to_core_scope(attachments.clone());
     let request = solosoul_core::export_import::export::EncryptedExportRequest {
@@ -501,7 +509,7 @@ pub(crate) fn execute_export_for_session_with_attachment_scope(
 pub(super) fn finalize_export_for_session(
     svc: &VaultService,
     session: &VaultSession,
-    zip: ZipWriter<File>,
+    zip: zip::ZipWriter<std::fs::File>,
     output: tempfile::TempPath,
     zip_path: &str,
     object_count: usize,

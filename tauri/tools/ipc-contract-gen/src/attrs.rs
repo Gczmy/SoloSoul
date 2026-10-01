@@ -121,8 +121,7 @@ pub(crate) fn read(
                     "default" if matches!(location, Location::Struct | Location::Field) => {
                         if meta.input.peek(Token![=]) {
                             let value = meta.value()?.parse::<syn::LitStr>()?;
-                            output_function(&value, direction)
-                                .map_err(|error| meta.error(error))?;
+                            function_path(&value).map_err(|error| meta.error(error))?;
                         } else if meta.input.peek(syn::token::Paren) {
                             return Err(meta.error("malformed serde default"));
                         }
@@ -177,11 +176,16 @@ pub(crate) fn read(
 }
 
 // 只检查函数路径语法，不解析/执行默认值或自定义反序列化函数。
-// 这些属性不改变序列化结果；输入契约无法准确表达其接受集合，必须拒绝。
+// default 函数只使缺键采用默认值，不改变已提供字段的类型；输入可准确投影。
+// deserialize_with 的接受集合无法准确表达，输入仍拒绝。
 fn output_function(value: &syn::LitStr, direction: Direction) -> Result<(), String> {
     if direction != Direction::Output {
         return Err("serde deserialization functions are supported only for output DTOs".into());
     }
+    function_path(value)
+}
+
+fn function_path(value: &syn::LitStr) -> Result<(), String> {
     let path: syn::Path = syn::parse_str(&value.value())
         .map_err(|_| "unsupported serde function path".to_string())?;
     if path

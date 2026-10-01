@@ -1,8 +1,13 @@
 //! 对象级文档导出（Word/docx / PDF / HTML / TXT / Markdown）——
 //! 设计文档 docs/next_dev/对象级文档导出功能设计与实现.md（P047 拆分：子模块见 fields/docx/markdown/text/html/pdf）。
 
-use super::*;
+use super::{export_err, export_err_with_detail};
+use crate::commands::vault_handle;
+use crate::state::AppState;
+use serde::{Deserialize, Serialize};
+use std::fs::File;
 use std::io::Write;
+use tauri::State;
 
 pub mod docx;
 pub mod fields;
@@ -224,7 +229,7 @@ fn resolve_document_path(
     };
 
     #[cfg(desktop)]
-    validate_export_dest(&path)?;
+    super::export::validate_export_dest(&path)?;
 
     if let Some(parent) = std::path::Path::new(&path).parent() {
         let _ = std::fs::create_dir_all(parent);
@@ -272,7 +277,7 @@ pub async fn export_document_preflight(
 /// - 审计日志 `export_document` 仅记录格式与对象数，不记录字段内容（脱敏规范）。
 #[tauri::command]
 pub async fn export_objects_document(
-    #[allow(unused_variables)] app: tauri::AppHandle,
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     object_ids: Vec<String>,
     save_path: String,

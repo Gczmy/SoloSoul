@@ -217,7 +217,7 @@ export function useImportState({
     const isCurrent = () => ownsScope() && request.isCurrent();
     setLoadingOperations(true);
     try {
-      const items = await request.invoke<ImportOperationSummary[]>('import_operations_list', {
+      const items = await request.invokeTyped('import_operations_list', {
         accountId,
       });
       if (isCurrent()) setOperations(items);
@@ -260,7 +260,7 @@ export function useImportState({
     try {
       const sourcePath = await resolveImportSource(version, importPath);
       if (!sourcePath || !isCurrent()) return;
-      const preview = await request.invoke<ImportPreview>('import_parse_package', {
+      const preview = await request.invokeTyped('import_parse_package', {
         filePath: sourcePath,
       });
       if (!isCurrent()) return;
@@ -297,7 +297,7 @@ export function useImportState({
     try {
       const sourcePath = await resolveImportSource(version, importPath);
       if (!sourcePath || !isCurrent()) return;
-      const preview = await request.invoke<DecryptedImportPreview>('import_decrypt_preview', {
+      const preview = await request.invokeTyped('import_decrypt_preview', {
         filePath: sourcePath,
         password,
       });
@@ -339,7 +339,7 @@ export function useImportState({
     const isCurrent = () => ownsScope() && request.isCurrent();
     setLoadingDetails(true);
     try {
-      const summary = await request.invoke<ImportOperationSummary>('import_operation_get', {
+      const summary = await request.invokeTyped('import_operation_get', {
         accountId,
         operationId,
       });
@@ -423,7 +423,7 @@ export function useImportState({
     try {
       if (operation.attempted) {
         try {
-          const summary = await request.invoke<ImportOperationSummary>('import_operation_get', {
+          const summary = await request.invokeTyped('import_operation_get', {
             accountId,
             operationId: operation.operationId,
           });
@@ -455,7 +455,7 @@ export function useImportState({
         locale: operation.options.locale,
       };
       operation.attempted = true;
-      const result = await request.invoke<ImportResult>('import_execute_advanced', {
+      const result = await request.invokeTyped('import_execute_advanced', {
         accountId,
         req,
       });
@@ -470,7 +470,7 @@ export function useImportState({
         );
         clearView();
       } else if (operation.accepted) {
-        const summary = await request.invoke<ImportOperationSummary>('import_operation_get', {
+        const summary = await request.invokeTyped('import_operation_get', {
           accountId,
           operationId: operation.operationId,
         });
@@ -545,7 +545,7 @@ export function useImportState({
         sourcePath = staged;
       }
       if (!isCurrent()) return;
-      const result = await request.invoke<ImportResult>('import_operation_resume', {
+      const result = await request.invokeTyped('import_operation_resume', {
         accountId,
         operationId: summary.operationId,
         password,
@@ -560,7 +560,7 @@ export function useImportState({
         setOperations((items) => items.filter((item) => item.operationId !== summary.operationId));
         clearView();
       } else {
-        const updated = await request.invoke<ImportOperationSummary>('import_operation_get', {
+        const updated = await request.invokeTyped('import_operation_get', {
           accountId,
           operationId: summary.operationId,
         });

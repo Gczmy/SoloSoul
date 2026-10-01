@@ -155,6 +155,70 @@
     {
       "name": "llm_send_message_stream",
       "source": "src-tauri/src/commands/llm/stream.rs"
+    },
+    {
+      "name": "backup_list",
+      "source": "src-tauri/src/commands/backup.rs"
+    },
+    {
+      "name": "backup_create",
+      "source": "src-tauri/src/commands/backup.rs"
+    },
+    {
+      "name": "backup_restore",
+      "source": "src-tauri/src/commands/backup.rs"
+    },
+    {
+      "name": "backup_delete",
+      "source": "src-tauri/src/commands/backup.rs"
+    },
+    {
+      "name": "export_get_scope_tree",
+      "source": "src-tauri/src/commands/export_import/export.rs"
+    },
+    {
+      "name": "export_estimate_size",
+      "source": "src-tauri/src/commands/export_import/export.rs"
+    },
+    {
+      "name": "export_execute",
+      "source": "src-tauri/src/commands/export_import/export.rs"
+    },
+    {
+      "name": "export_get_attachments_batch",
+      "source": "src-tauri/src/commands/export_import/export.rs"
+    },
+    {
+      "name": "export_document_preflight",
+      "source": "src-tauri/src/commands/export_import/export_docx/mod.rs"
+    },
+    {
+      "name": "export_objects_document",
+      "source": "src-tauri/src/commands/export_import/export_docx/mod.rs"
+    },
+    {
+      "name": "import_parse_package",
+      "source": "src-tauri/src/commands/export_import/import.rs"
+    },
+    {
+      "name": "import_decrypt_preview",
+      "source": "src-tauri/src/commands/export_import/import.rs"
+    },
+    {
+      "name": "import_execute_advanced",
+      "source": "src-tauri/src/commands/export_import/import.rs"
+    },
+    {
+      "name": "import_operations_list",
+      "source": "src-tauri/src/commands/export_import/operations.rs"
+    },
+    {
+      "name": "import_operation_get",
+      "source": "src-tauri/src/commands/export_import/operations.rs"
+    },
+    {
+      "name": "import_operation_resume",
+      "source": "src-tauri/src/commands/export_import/operations.rs"
     }
   ],
   "types": [
@@ -164,7 +228,8 @@
     "crates/solosoul-plugin/src/install_progress.rs",
     "crates/solosoul-plugin/src/session.rs",
     "crates/solosoul-core/src/llm/config.rs",
-    "src-tauri/src/commands/llm/contracts.rs"
+    "src-tauri/src/commands/llm/contracts.rs",
+    "src-tauri/src/commands/export_import/contracts.rs"
   ],
   "events": [
     {

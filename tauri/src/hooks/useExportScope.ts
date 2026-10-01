@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import type { AttachmentInfo } from '@/types/exportImport';
 import { logger } from '@/lib/logger';
 
@@ -53,7 +53,7 @@ export function useExportScope({
     (objectIds: string[]) => {
       const unloadedIds = objectIds.filter((id) => !objectAttachments.has(id));
       if (unloadedIds.length === 0) return;
-      invoke<Record<string, AttachmentInfo[]>>('export_get_attachments_batch', {
+      invokeTypedCommand('export_get_attachments_batch', {
         accountId,
         objectIds: unloadedIds,
       })
@@ -149,7 +149,7 @@ export function useExportScope({
         });
 
         if (isAdding && includeAttachments && !objectAttachments.has(id)) {
-          invoke<Record<string, AttachmentInfo[]>>('export_get_attachments_batch', {
+          invokeTypedCommand('export_get_attachments_batch', {
             accountId,
             objectIds: [id],
           })
@@ -184,7 +184,7 @@ export function useExportScope({
         }
         next.add(objectId);
         if (!objectAttachments.has(objectId)) {
-          invoke<Record<string, AttachmentInfo[]>>('export_get_attachments_batch', {
+          invokeTypedCommand('export_get_attachments_batch', {
             accountId,
             objectIds: [objectId],
           })

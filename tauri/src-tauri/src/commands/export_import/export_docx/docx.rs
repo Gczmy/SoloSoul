@@ -4,6 +4,8 @@ use super::fields::{
     collect_attachment_entries, escape_xml, flatten_object_fields, sanitize_docx_text,
 };
 use super::*;
+use zip::write::SimpleFileOptions;
+use zip::ZipWriter;
 
 pub(crate) fn text_run(text: &str) -> String {
     // CRLF/CR：XML 解析器会把 \r 规范化为 \n（<w:t> 内不换行），先剔除
