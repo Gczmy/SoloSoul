@@ -1,4 +1,4 @@
-//! RF-021：Host 的数据库计划。包解析/引用/名称/历史准备均不写数据库。
+//! RF-021 / RF-024：Core 的数据库计划。包解析/引用/名称/历史准备均不写数据库。
 //! 依赖 Vault 的冻结 import view，唯一数据库批次由 import_execute_steps 提交。
 
 use serde_json::Value;
@@ -8,8 +8,8 @@ use solosoul_vault::{
 };
 use std::collections::{BTreeSet, HashMap, HashSet};
 
-use super::super::{generate_id, ImportStage, ImportStrategy};
 use super::{build_import_record, merge_labels_into};
+use super::{generate_id, AdvancedImportStrategy, ImportStage};
 
 pub(super) struct TemplatePlan {
     pub id_map: HashMap<String, String>,
@@ -35,15 +35,16 @@ pub(super) fn prepare_templates(
             let mut template: UserTemplate = serde_json::from_value(value.clone())
                 .map_err(|_| "Invalid imported template".to_string())?;
             let original_id = template.id.clone();
-            let hash = solosoul_core::export_import::user_template_content_hash(&template);
-            let matching = plan.available.iter().find(|local| {
-                solosoul_core::export_import::user_template_content_hash(local) == hash
-            });
+            let hash = crate::export_import::user_template_content_hash(&template);
+            let matching = plan
+                .available
+                .iter()
+                .find(|local| crate::export_import::user_template_content_hash(local) == hash);
             let local_id = if let Some(matching) = matching {
                 matching.id.clone()
             } else {
                 let local_id = if plan.available.iter().any(|local| local.id == original_id) {
-                    solosoul_core::export_import::imported_template_id(&original_id, &hash)
+                    crate::export_import::imported_template_id(&original_id, &hash)
                 } else {
                     original_id.clone()
                 };
@@ -142,13 +143,13 @@ fn inherit_template(
                 .flatten()
         });
         if let Some(template) = template {
-            let (defaults, fields) = solosoul_core::objects::project_template_properties(&template);
+            let (defaults, fields) = crate::objects::project_template_properties(&template);
             match (defaults, &mut labels) {
                 (Some(defaults), Some(existing)) => merge_labels_into(&defaults, existing),
                 (Some(defaults), None) => labels = Some(defaults),
                 _ => {}
             }
-            solosoul_core::objects::inject_property_fields(properties, &fields);
+            crate::objects::inject_property_fields(properties, &fields);
             if let Some(values) = properties.as_object_mut() {
                 values.insert("__templateName".into(), Value::String(template.name));
             }
@@ -197,7 +198,7 @@ fn package_history(snaps: &[Value]) -> Vec<ImportSnapshot> {
 fn prepare_history(
     record: &ObjectRecord,
     source_id: &str,
-    strategy: ImportStrategy,
+    strategy: AdvancedImportStrategy,
     package_snapshots: &HashMap<String, Vec<Value>>,
 ) -> Result<ImportHistoryChange, String> {
     let restored = package_snapshots
@@ -205,7 +206,7 @@ fn prepare_history(
         .map(|snaps| package_history(snaps))
         .unwrap_or_default();
     if !restored.is_empty() {
-        return Ok(if strategy == ImportStrategy::Overwrite {
+        return Ok(if strategy == AdvancedImportStrategy::Overwrite {
             ImportHistoryChange::Replace(restored)
         } else {
             ImportHistoryChange::Append(restored)
@@ -227,8 +228,8 @@ pub(super) fn prepare_objects(
     view: &ImportReadView,
     objects: &[Value],
     account_id: &str,
-    strategy: ImportStrategy,
-    overrides: &HashMap<String, ImportStrategy>,
+    strategy: AdvancedImportStrategy,
+    overrides: &HashMap<String, AdvancedImportStrategy>,
     selected_ids: Option<&BTreeSet<String>>,
     package_ids: &HashSet<String>,
     template_id_map: &HashMap<String, String>,
@@ -256,20 +257,20 @@ pub(super) fn prepare_objects(
             continue;
         }
         let effective = overrides.get(id).copied().unwrap_or(strategy);
-        if effective != ImportStrategy::KeepBoth {
+        if effective != AdvancedImportStrategy::KeepBoth {
             let existing = if let Some(record) = shadow.get(id) {
                 Some(record.clone())
             } else {
                 vault.load_import_view_object(view, id)?
             };
-            if effective == ImportStrategy::SkipExisting
+            if effective == AdvancedImportStrategy::SkipExisting
                 && existing.is_some_and(|record| !record.is_deleted)
             {
                 continue;
             }
         }
         let mut properties = value["properties"].clone();
-        super::super::resolve_cross_scope_references(&mut properties, package_ids);
+        super::package::resolve_cross_scope_references(&mut properties, package_ids);
         let (template_id, labels) = inherit_template(
             vault,
             view,
@@ -279,9 +280,9 @@ pub(super) fn prepare_objects(
             &mut properties,
         );
         if !id_map.is_empty() {
-            super::super::rewrite_id_references(&mut properties, id_map);
+            super::package::rewrite_id_references(&mut properties, id_map);
         }
-        let (final_id, name) = if effective == ImportStrategy::KeepBoth {
+        let (final_id, name) = if effective == AdvancedImportStrategy::KeepBoth {
             (
                 id_map.get(id).cloned().unwrap_or_else(generate_id),
                 unique_shadow_name(
@@ -316,7 +317,7 @@ pub(super) fn prepare_objects(
             .objects
             .push(ImportObjectWrite { record, history });
         plan.imported_object_ids.insert(final_id);
-        if effective == ImportStrategy::KeepBoth {
+        if effective == AdvancedImportStrategy::KeepBoth {
             plan.imported_object_ids.insert(id.to_string());
         }
         if let Some(callback) = progress {

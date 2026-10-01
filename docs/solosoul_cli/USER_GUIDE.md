@@ -299,7 +299,7 @@ GUI 与 CLI 复用部分核心 crate 和数据格式，入口参数、错误文�
 | 对象回滚 | 已复用共享用例，见 [RF-008](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-008) |
 | 对象创建 | 已共享模板初始化规则，见 [RF-010](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-010) |
 | Profile 备份 | 已共享兼容解码和清单，见 [RF-013](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-013)；GUI 写 Base64，CLI 写字节数组，不能称为完全相同的编码 |
-| `.solosoul` 导出/导入 | RF-023后完整导出共用Core及原子writer，GUI/云/恢复的Advanced与旧CLI的LegacyDirect包字段差异保持；CLI选择SOLC源仍明确缺密钥错误。生产导入已共享持久任务与后续阶段（RF-022），完整对象准备/策略收敛仍待 [RF-024](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-024) |
+| `.solosoul` 导出/导入 | RF-023后完整导出共用Core及原子writer，GUI/云/恢复的Advanced与旧CLI的LegacyDirect包字段差异保持；CLI选择SOLC源仍明确缺密钥错误。RF-024 后完整导入与 GUI/云/恢复共用 Core 提交和恢复执行；CLI 的默认策略、重复写计数及旧历史保持继续兼容。实际验证见 [RF-024 证据](../verification/rf024-core-encrypted-import-2026-10-01.json) |
 | 设置与进程锁 | CLI `/language` / `/theme` 写 UI 偏好文件；GUI 解锁后另有账户加密偏好优先级。桌面同 root 目录所有权与移动 no-op 边界见 §5 |
 | 同步、OCR、Embedding | GUI 已有设备同步、OCR 页面及本地模型面板；CLI 的同步阻塞见 §4.11，Embedding 格式与安装目录差异见 §4.13 |
 
@@ -322,3 +322,5 @@ xattr -dr com.apple.quarantine "$(which solosoul)"        # 只对单个文件�
 或右键 → 打开 → 确认。正式分发需 codesign + notarize,留待后续 PR。
 
 ⚠️ **Windows CLI 同样未签名**。未签名的 PE 在 Win10/11 上会被 SmartScreen 拦截（“Windows protected your PC”），点 “More info → Run anyway” 可跳过。正式分发需 EV 代码签名证书或加入微软 ISV 认证。
+
+RF-024 将完整导入迁入 Core。CLI 的 `/import` 与 `resume` 仍按原流程采集口令、捕获原会话、显示操作 ID 和部分进度；策略为 `skip` / `overwrite` / `merge`，后两者仍沿用原覆盖含义。CLI 保留每次对象写操作计数与本地旧历史，不因共享服务新增 GUI 的 KeepBoth 或导入包历史行为。对象批次与任务接纳、附件/偏好恢复共用 Core 管线，同 ID 重试和 Complete 读取不重复写计数。

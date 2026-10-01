@@ -174,7 +174,7 @@ impl ResumeJob {
             .service
             .read()
             .map_err(|_| "Vault service lock poisoned")?;
-        super::import::resume_import_for_session(
+        solosoul_core::export_import::import::resume_encrypted_import(
             &svc,
             &self.session,
             &self.operation_id,
@@ -182,6 +182,8 @@ impl ResumeJob {
             self.password,
             None,
         )
+        .map(Into::into)
+        .map_err(crate::services::encrypted_import::map_import_failure)
     }
 }
 

@@ -14,6 +14,7 @@
 
 pub mod export;
 pub mod export_output;
+pub mod import;
 pub mod operation;
 
 use std::collections::{HashMap, HashSet};
@@ -479,19 +480,6 @@ pub struct CoreImportOperationOutcome {
     pub error_code: Option<String>,
 }
 
-fn cli_import_options(path: &Path, strategy: ImportStrategy) -> serde_json::Value {
-    serde_json::json!({
-        "strategy": match strategy {
-            ImportStrategy::SkipExisting => "skip",
-            ImportStrategy::Overwrite => "overwrite",
-            ImportStrategy::Merge => "merge",
-        },
-        "sourceName": path.file_name().unwrap_or_default().to_string_lossy(),
-        "includeAttachments": true,
-        "includePreferences": true,
-    })
-}
-
 pub fn import_operation_object_count(
     operation: &solosoul_vault::ImportOperationRecord,
 ) -> Result<usize, ExportError> {
@@ -525,66 +513,6 @@ fn core_resume_error_code(error: &ExportError) -> String {
     }
 }
 
-#[allow(clippy::too_many_arguments)]
-fn finish_core_import_operation(
-    service: &crate::VaultService,
-    session: &crate::VaultSession,
-    accepted: solosoul_vault::ImportOperationRecord,
-    native_root: &Path,
-    owned: Option<&operation::OwnedImportPackage>,
-    password: Option<&str>,
-    attachment_key: &[u8; 32],
-) -> Result<CoreImportOperationOutcome, ExportError> {
-    let mut committed = AttachmentImportProgress::default();
-    let operation_id = accepted.start.operation_id.clone();
-    let object_write_count = import_operation_object_count(&accepted)?;
-    let (current, error_code) = match operation::resume_import_operation(
-        service,
-        session,
-        &operation_id,
-        native_root,
-        owned,
-        password,
-        attachment_key,
-        None,
-        &mut committed,
-    ) {
-        Ok(current) => (current, None),
-        Err(error) => {
-            // 仅在原 session 仍有效时读取进度，不能转向新解锁账户发布。
-            let current = service
-                .with_session(session, |vault| {
-                    vault.load_import_operation(session.account_id(), &operation_id)
-                })
-                .ok()
-                .flatten()
-                .unwrap_or(accepted);
-            (current, Some(core_resume_error_code(&error)))
-        }
-    };
-    Ok(CoreImportOperationOutcome {
-        operation_id,
-        complete: error_code.is_none()
-            && current.phase == solosoul_vault::ImportOperationPhase::Complete,
-        object_write_count,
-        attachment_count: current.attachment_count.max(committed.committed_count),
-        written_file_count: current
-            .steps
-            .iter()
-            .filter(|step| {
-                matches!(
-                    step.phase,
-                    solosoul_vault::ImportAttachmentPhase::Published
-                        | solosoul_vault::ImportAttachmentPhase::MetadataCommitted
-                )
-            })
-            .count()
-            .max(committed.written_file_count),
-        preferences_imported: current.preferences_imported,
-        error_code,
-    })
-}
-
 /// CLI Fresh：原会话在提示前捕获；整个实际 worker 从密文复制到收尾持活动许可。
 /// 同 ID/proof/options 直接读取并继续原计划，不重建模板、对象、附件映射。
 #[allow(clippy::too_many_arguments)]
@@ -598,99 +526,25 @@ pub fn import_vault_resumable(
     native_root: &Path,
     attachment_key: &[u8; 32],
 ) -> Result<CoreImportOperationOutcome, ExportError> {
-    service.with_session(session, |_| Ok(()))?;
-    uuid::Uuid::parse_str(operation_id).map_err(|_| "import_invalid_operation_id")?;
-    let _activity = crate::import_activity::begin_import_activity(native_root)?;
-    let owned = operation::OwnedImportPackage::capture(path, native_root)?;
-    let options = cli_import_options(path, strategy);
-    let fingerprint = operation::import_request_fingerprint(&options)?;
-    let root_binding = operation::import_root_binding(native_root, session.vault())?;
-    let existing = service.with_session(session, |vault| {
-        vault.load_import_operation(session.account_id(), operation_id)
-    })?;
-    if let Some(existing) = existing {
-        if existing.start.source_kind != solosoul_vault::ImportSourceKind::Cli
-            || existing.start.source != *owned.source_proof()
-            || existing.start.root_binding != root_binding
-            || existing.start.request_fingerprint != fingerprint
-        {
-            return Err("__IMPORT_ERR__:OPERATION_CONFLICT".into());
-        }
-        return finish_core_import_operation(
-            service,
-            session,
-            existing,
-            native_root,
-            Some(&owned),
-            Some(password),
-            attachment_key,
-        );
-    }
-    // 原 Core 纯准备器保留 Skip 批前 membership、重复新 ID 写计数、模板 hash 与 Keep 历史。
-    let opened = owned.decrypt(password, native_root)?;
-    let now = chrono::Utc::now().to_rfc3339();
-    let mut prepared = prepare_import_database(
-        session.vault(),
-        session.account_id(),
-        &opened.payload,
-        strategy,
-        &now,
-    )?;
-    let mut start = operation::prepare_import_operation(
-        operation_id,
-        solosoul_vault::ImportSourceKind::Cli,
-        options,
-        &owned,
-        &opened.payload,
-        &prepared.imported_object_ids,
-        &HashMap::new(),
-        None,
-        &now,
-        native_root,
-        session.vault(),
-        &prepared.view,
-        &mut prepared.batch,
-        opened.has_attachments,
-        opened.has_preferences,
-    )?;
-    // 这是派生写计数，放在加密计划顶层，不污染请求 fingerprint/同 ID 再发的比较。
-    start.plan["cliObjectWriteCount"] = serde_json::json!(prepared.batch.objects.len());
-    let accepted = service.with_session(session, |vault| {
-        vault.commit_import_batch_with_operation(
-            session.account_id(),
-            &prepared.view.revision,
-            &prepared.batch,
-            &start,
-        )
-    })?;
-    let result = finish_core_import_operation(
+    import::legacy::execute(
         service,
         session,
-        accepted.operation,
+        operation_id,
+        path,
+        password,
+        strategy,
         native_root,
-        Some(&owned),
-        Some(password),
         attachment_key,
-    )?;
-    if result.complete && !accepted.already_committed {
-        let _ = service.with_session(session, |vault| {
-            let _ = vault.log_structured(
-                "import_execute",
-                "import",
-                None,
-                None,
-                "user",
-                Some(&format!(
-                    "imported {} objects (operation: {})",
-                    result.object_write_count, operation_id
-                )),
-            );
-            Ok(())
-        });
-    }
-    Ok(result)
+    )
+    .map_err(|error| match error {
+        ExportError::Msg(code)
+            if matches!(code.as_str(), "OPERATION_CONFLICT" | "OPERATION_NOT_FOUND") =>
+        {
+            ExportError::Msg(format!("__IMPORT_ERR__:{code}"))
+        }
+        error => error,
+    })
 }
-
 /// 显式 Resume 仅携带原 ID 与按需的新材料；不接收或重解释策略/选择。
 /// 无未解密材料时无需源文件和密码；Complete 重试读取原结果，不重复计数。
 #[allow(clippy::too_many_arguments)]
@@ -703,34 +557,24 @@ pub fn resume_vault_import(
     native_root: &Path,
     attachment_key: &[u8; 32],
 ) -> Result<CoreImportOperationOutcome, ExportError> {
-    service.with_session(session, |_| Ok(()))?;
-    let _activity = crate::import_activity::begin_import_activity(native_root)?;
-    let accepted = service
-        .with_session(session, |vault| {
-            vault.load_import_operation(session.account_id(), operation_id)
-        })?
-        .ok_or("__IMPORT_ERR__:OPERATION_NOT_FOUND")?;
-    // copy/proof 与恢复 worker 同属实际许可；Native 再核验原 proof/root/epoch。
-    let owned = source_path
-        .map(|path| operation::OwnedImportPackage::capture(path, native_root))
-        .transpose()?;
-    if owned
-        .as_ref()
-        .is_some_and(|source| source.source_proof() != &accepted.start.source)
-    {
-        return Err("import_source_changed".into());
-    }
-    finish_core_import_operation(
+    import::legacy::resume(
         service,
         session,
-        accepted,
-        native_root,
-        owned.as_ref(),
+        operation_id,
+        source_path,
         package_password,
+        native_root,
         attachment_key,
     )
+    .map_err(|error| match error {
+        ExportError::Msg(code)
+            if matches!(code.as_str(), "OPERATION_CONFLICT" | "OPERATION_NOT_FOUND") =>
+        {
+            ExportError::Msg(format!("__IMPORT_ERR__:{code}"))
+        }
+        error => error,
+    })
 }
-
 struct PreparedCoreImport {
     view: ImportReadView,
     batch: ImportDatabaseBatch,

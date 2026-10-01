@@ -4,8 +4,6 @@
 //! 加密通道传送给新设备；新设备创建同名账户后导入数据，从而保证
 //! `account_id` 一致，后续可直接使用 Device Sync。
 
-use crate::commands::export_import::import_execute_resumable_for_session;
-use crate::commands::export_import::{default_locale, ImportStrategy};
 use crate::state::AppState;
 use solosoul_core::export_import::export::{
     execute_encrypted_export, EncryptedExportRequest, EncryptedExportScope,
@@ -13,7 +11,6 @@ use solosoul_core::export_import::export::{
 use solosoul_core::vault_service::{VaultService, VaultSession};
 use solosoul_sync::recovery::{generate_recovery_password, recover_from_host, RecoveryHost};
 use solosoul_vault::ImportSourceKind;
-use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tauri::{Emitter, Manager, State};
@@ -491,20 +488,18 @@ fn import_downloaded_recovery_for_session(
         return Err("RECOVERY_ACCOUNT_MISMATCH".to_string());
     }
     svc.with_session(session, |_| Ok(()))?;
-    import_execute_resumable_for_session(
-        svc,
-        session,
-        downloaded_path.to_string_lossy().into_owned(),
-        recovery_password,
-        ImportStrategy::SkipExisting,
-        None,
-        None,
-        HashMap::new(),
-        &default_locale(),
-        progress,
-        operation_id,
-        ImportSourceKind::Recovery,
-    )
+    let request = solosoul_core::export_import::import::EncryptedImportRequest {
+        source_path: downloaded_path.to_string_lossy().into_owned(),
+        password: recovery_password,
+        options: solosoul_core::export_import::import::ImportOptions {
+            locale: "en-US".into(),
+            ..Default::default()
+        },
+        operation: Some((operation_id.into(), ImportSourceKind::Recovery)),
+    };
+    solosoul_core::export_import::import::execute_encrypted_import(svc, session, request, progress)
+        .map(Into::into)
+        .map_err(crate::services::encrypted_import::map_import_failure)
 }
 
 fn notify_recovery_complete(

@@ -33,7 +33,6 @@ use tauri::{AppHandle, Emitter};
 use tokio::io::AsyncWriteExt;
 use tokio::sync::mpsc;
 
-use crate::commands::export_import::default_locale;
 use solosoul_core::export_import::export::{
     execute_encrypted_export, EncryptedExportRequest, EncryptedExportScope,
 };
@@ -806,7 +805,7 @@ async fn auto_import_one(pre: &CloudPreContext, file: &str) -> Result<bool, Stri
     let session = pre.session.clone();
     let pw = pre.config.snapshot_password.clone();
     let file_owned = file.to_string();
-    let locale = default_locale();
+    let locale = "en-US".to_string();
     let operation_id = uuid::Uuid::new_v4().to_string();
     let activity = solosoul_core::import_activity::begin_import_activity(&pre.base_path)?;
 
@@ -816,20 +815,19 @@ async fn auto_import_one(pre: &CloudPreContext, file: &str) -> Result<bool, Stri
         let svc = vs
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        crate::commands::export_import::import_execute_resumable_for_session(
-            &svc,
-            &session,
-            file_owned,
-            zeroize::Zeroizing::new(pw),
-            crate::commands::export_import::ImportStrategy::SkipExisting,
-            None,               // selections=None = 全量导入
-            None,               // 附件全选
-            Default::default(), // 无逐对象策略覆盖
-            &locale,
-            None, // 无进度回调
-            &operation_id,
-            solosoul_vault::ImportSourceKind::Cloud,
+        let request = solosoul_core::export_import::import::EncryptedImportRequest {
+            source_path: file_owned,
+            password: zeroize::Zeroizing::new(pw),
+            options: solosoul_core::export_import::import::ImportOptions {
+                locale,
+                ..Default::default()
+            },
+            operation: Some((operation_id, solosoul_vault::ImportSourceKind::Cloud)),
+        };
+        solosoul_core::export_import::import::execute_encrypted_import(
+            &svc, &session, request, None,
         )
+        .map_err(crate::services::encrypted_import::map_import_failure)
         .and_then(|r| r.require_complete())
         .and_then(|r| {
             r.operation_id
@@ -864,46 +862,7 @@ fn controlled_cloud_source(
     session: &VaultSession,
     path: &Path,
 ) -> Result<(std::path::PathBuf, String, String), String> {
-    svc.with_session(session, |_| Ok(()))?;
-    let root = svc
-        .base_path()
-        .join(INCOMING_DIR)
-        .join(session.account_id())
-        .canonicalize()
-        .map_err(|_| "Invalid cloud snapshot root")?;
-    let source = path
-        .canonicalize()
-        .map_err(|_| "Invalid cloud snapshot source")?;
-    let relative = source
-        .strip_prefix(&root)
-        .map_err(|_| "Cloud snapshot belongs to another account")?;
-    if relative.components().count() != 2
-        || source.extension().and_then(|s| s.to_str()) != Some("solosoul")
-    {
-        return Err("Invalid cloud snapshot path".into());
-    }
-    let device = relative
-        .parent()
-        .and_then(|p| p.file_name())
-        .and_then(|s| s.to_str())
-        .ok_or("Invalid device ID")?
-        .to_string();
-    let hlc = relative
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .ok_or("Invalid snapshot HLC")?
-        .to_string();
-    validate_cloud_path_component(&device)?;
-    validate_cloud_path_component(&hlc)?;
-    Ok((source, device, hlc))
-}
-
-pub(crate) fn cloud_import_source_identity(
-    svc: &VaultService,
-    session: &VaultSession,
-    path: &Path,
-) -> Result<(String, String), String> {
-    controlled_cloud_source(svc, session, path).map(|(_, device, hlc)| (device, hlc))
+    solosoul_core::export_import::import::source::controlled_cloud_source(svc, session, path)
 }
 
 /// 手动和自动共用：journal Complete + 当前会话 + 实际源密文 proof 全部成立才推进水线。

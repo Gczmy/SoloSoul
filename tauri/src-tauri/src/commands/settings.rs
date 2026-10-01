@@ -564,7 +564,7 @@ pub async fn cloud_sync_import_incoming(
     let (session, source, activity) = {
         let svc = service.read().map_err(|_| "Vault service lock poisoned")?;
         let session = svc.capture_session(&account_id)?;
-        crate::sync::cloud_auto_sync::cloud_import_source_identity(
+        solosoul_core::export_import::import::source::cloud_import_source_identity(
             &svc,
             &session,
             std::path::Path::new(&source_path),
@@ -585,20 +585,20 @@ pub async fn cloud_sync_import_incoming(
     tokio::task::spawn_blocking(move || {
         let _activity = activity;
         let svc = service.read().map_err(|_| "Vault service lock poisoned")?;
-        crate::commands::export_import::import_execute_resumable_for_session(
-            &svc,
-            &session,
-            source,
+        let request = solosoul_core::export_import::import::EncryptedImportRequest {
+            source_path: source,
             password,
-            crate::commands::export_import::ImportStrategy::SkipExisting,
-            None,
-            None,
-            Default::default(),
-            "en-US",
-            None,
-            &operation_id,
-            solosoul_vault::ImportSourceKind::Cloud,
+            options: solosoul_core::export_import::import::ImportOptions {
+                locale: "en-US".into(),
+                ..Default::default()
+            },
+            operation: Some((operation_id, solosoul_vault::ImportSourceKind::Cloud)),
+        };
+        solosoul_core::export_import::import::execute_encrypted_import(
+            &svc, &session, request, None,
         )
+        .map(Into::into)
+        .map_err(crate::services::encrypted_import::map_import_failure)
     })
     .await
     .map_err(|_| "云端导入任务执行失败")?

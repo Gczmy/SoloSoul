@@ -120,8 +120,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**255**（P1：50；P2：204；P3：1）。
-- 已关闭：**223 / 255**；实际修复（已关闭）：223；排除：0；待验证/阻塞：6（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**RF-023 已完成**。完整加密包导出与原子writer迁入Core；原包策略、Session/owner和队列失效兼容通过本机R/CORE/CLI验收。223已关闭、6待外部验证、26待执行；下一项RF-024前置已满足。不推送。
+- 已关闭：**224 / 255**；实际修复（已关闭）：224；排除：0；待验证/阻塞：6（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**RF-024 已完成**。完整导入与预览迁入 Core，GUI/云/恢复/CLI 共用原会话提交和恢复执行，原策略与计数兼容通过 R/CORE/CLI。224 已关闭、6 待外部验证、25 待执行；下一项 RF-213 前置已满足。不推送。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -167,7 +167,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 38 | [RF-013](#rf-013) | P2 | 共享 Profile 备份清单与兼容解码 | [RF-011](#rf-011)、[RF-012](#rf-012) | [x] 完成 |
 | 39 | [RF-015](#rf-015) | P2 | 显式表示附件导出范围 | [RF-014](#rf-014) | [x] 完成 |
 | 40 | [RF-023](#rf-023) | P2 | 加密包导出用例下沉 core | [RF-015](#rf-015)、[RF-017](#rf-017) | [x] 完成 |
-| 41 | [RF-024](#rf-024) | P2 | 加密包导入用例下沉 core | [RF-018](#rf-018)、[RF-020](#rf-020)、[RF-021](#rf-021)、[RF-022](#rf-022) | [ ] 待执行 |
+| 41 | [RF-024](#rf-024) | P2 | 加密包导入用例下沉 core | [RF-018](#rf-018)、[RF-020](#rf-020)、[RF-021](#rf-021)、[RF-022](#rf-022) | [x] 完成 |
 | 42 | [RF-025](#rf-025) | P2 | GUI 导出移出异步运行时工作线程 | 无 | [x] 完成 |
 | 43 | [RF-026](#rf-026) | P2 | 解密导入预览移出异步运行时工作线程 | 无 | [x] 完成 |
 | 44 | [RF-027](#rf-027) | P2 | 高级导入移出异步运行时工作线程 | 无 | [x] 完成 |
@@ -707,6 +707,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验收：**GUI、CLI、云同步和恢复使用同一提交规则；三策略、选择性附件、历史恢复、部分完成及重试 fixture 通过；既有包格式不变。
 - **验证配置：**`R` + `CORE` + `CLI`。**定向验证：**core 新增 rf024_*；cargo test -p solosoul-core --lib rf024_；Host commands::export_import::tests；CLI commands::export_import；复跑 rf020_/rf021_/rf022_。
 - **建议提交：**`refactor: resolve [RF-024] - share encrypted import execution`。
+- **修复与验证（2026-10-01）：**Core 承载完整 Advanced 验证、预览、模板/对象/历史计划、journal 提交与恢复；Host 为路径、调度、wire 和进度适配。CLI 保留旧策略/每次写计数/历史保持，复用同一提交和收尾；手动云 incoming 入口也直接 Core。10 项新增真实回归、RF020/021/022 原断言、各实际入口定向与完整 R/CORE/CLI 通过，见 [完整证据](verification/rf024-core-encrypted-import-2026-10-01.json)。
 
 ### RF-025
 
@@ -5741,3 +5742,13 @@ git commit -m "<任务卡的提交标题>"
 - 首版在派发前登记activity导致RF025切换/重解锁真实失败（156pass/1fail）；改为排队数据持原Session/owner、实际worker起步登记activity，原断言恢复通过。Core新测试先修正旧导入API实参及重解锁后审计读取句柄；Clippy类型复杂度与云导入guard编辑问题均修正，失败日志保留，未通过改断言/加ignore绕过。
 - 完整workspace **1766 passed / 0 failed / 3 原有 ignored**；完整CLI **326 passed / 0 failed / 2 原有 ignored**；两端fmt与all-targets Clippy（-D warnings）通过。13源冻结、14原无关文件RAW不变，Cargo依赖/锁与原回归保持；主Agent源码复核明确标识，既有只读预案不当作最终独立复审。
 - 四规范和[验证证据](verification/rf023-core-encrypted-export-2026-10-01.json)同步。本项19路径独立本地提交（本提交，以RF023检索），不推送；**223/255已关闭、6待外部验证、26待执行**。旧Direct不新增Session最终发布保证，不提供无源key的SOLC成功能力；未验证远端云、可见GUI或其他原生平台。
+
+### RF-024（2026-10-01）：完整加密包导入与预览下沉 Core
+
+- 基线 `3a904971`。Core `export_import::import` 以普通请求/选项/结果和域错误承载完整 Advanced 服务，输入原 `VaultSession` 与存储服务，不要求 Host 锁守卫。旧 Host batch 已迁至 Core，不保留脱离编译的重复业务文件；ZIP 读取上限、流式解密、临时目录清理、引用、模板和历史准备保留。
+- GUI、自动/手动云 incoming、Recovery 与任务 Resume 使用 Core 入口；Host 只授权路径、调度阻塞任务、显式映射原 wire/i18n 错误和通知进度。云水线、网络与恢复传输留原边界；原活动/owner/session 持有与 pre-COMMIT Recovery handoff 保留。11 个 wire 声明原样、原 Host/Core 测试和 RF017 故障断言字节保持，21 个策略函数按保留字符串的 token 比较核对。
+- Advanced 保留 SkipExisting/Overwrite/KeepBoth、逐对象覆盖、选择 null/空数组、包历史/偏好及真实部分结果；CLI 旧公开签名、Skip/Overwrite/Merge、重复每次写计数和旧历史保持继续适配。两者使用同一 Core journal COMMIT 与附件/偏好恢复执行；成功直接使用完成记录，失败才按原会话读取持久进度，不新增成功路径重复读取。旧 Direct/无附件 key API 兼容保持，不因此获得持久恢复保证。
+- 新增 Core8/Host2 真包回归全通过，包含三策略及引用/历史/偏好、对象/附件选择、事务回滚与同 ID 重试、附件发布后元数据失败、关闭旧句柄重开且无需源包/口令的恢复、会话失效、错误口令清理、CLI/Advanced 重复 ID 计数差异、原生 incoming 来源、Host/Core 实际预览及 wire 等价。未把重开服务称为实际进程崩溃测试。
+- 最终定向：Core 8、Host 导入导出 159、云 21、恢复 11、设置 26、CLI 导入导出 37 全通过。完整 workspace **1776 passed / 0 failed / 3 原有 ignored**，完整 CLI **326 passed / 0 failed / 2 原有 ignored**，两端 fmt/all-targets Clippy（-D warnings）通过。
+- 初次 Host 编译揭示设置页手动云导入仍依赖旧 Commands，已迁移该实际入口并补基线；Clippy 可派生 Default 已修正。迁移脚本在旧故障测试 import 处添加的冗余 cfg 也已撤回，原断言不改；失败日志留证，没有加 ignore 绕过。主 Agent 源码复核明确标识，不声称完成独立最终复审。
+- 四规范、执行卡和[验证证据](verification/rf024-core-encrypted-import-2026-10-01.json)同步，本项27路径独立本地提交（本提交，以 RF024 检索），14 原无关文件 RAW 不变、Cargo 依赖/锁及原回归保持，不推送。**224/255已关闭、6待外部验证、25待执行**；未验证其他原生平台、可见 GUI 或远端云。

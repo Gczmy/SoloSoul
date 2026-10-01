@@ -11,23 +11,24 @@ use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 pub(crate) use solosoul_core::export_import::AttachmentExportScope;
 use solosoul_vault::ObjectSummary;
-use std::collections::{BTreeSet, HashMap};
+#[cfg(test)]
+use std::collections::BTreeSet;
+use std::collections::HashMap;
 use std::fs::File;
+#[cfg(test)]
 use std::io::Read;
 #[cfg(test)]
 use std::io::Write;
 #[cfg(mobile)]
 use tauri::Manager;
 use tauri::State;
+#[cfg(test)]
 use uuid::Uuid;
 use zeroize::Zeroizing;
 use zip::write::SimpleFileOptions;
+#[cfg(test)]
 use zip::ZipArchive;
 use zip::ZipWriter;
-
-pub(crate) fn generate_id() -> String {
-    Uuid::new_v4().to_string()
-}
 
 // Prefixes used by the frontend to map backend errors to i18n keys.
 pub(crate) use crate::services::encrypted_export::EXPORT_ERR_PREFIX;
@@ -262,6 +263,7 @@ impl ImportResult {
         self.status == ImportStatus::Complete
     }
 
+    #[cfg(test)]
     pub(crate) fn require_complete(self) -> Result<Self, String> {
         if self.is_complete() {
             Ok(self)
@@ -271,32 +273,6 @@ impl ImportResult {
                 self.failure_stage, self.object_count, self.attachment_count
             ))
         }
-    }
-
-    fn fail(&mut self, stage: ImportStage, error: &str) {
-        self.status = if self.object_count
-            + self.attachment_count
-            + self.template_count
-            + self.snapshot_count
-            + self.attachment_files_written
-            > 0
-            || self.preferences_imported
-        {
-            ImportStatus::Partial
-        } else {
-            ImportStatus::NotCommitted
-        };
-        self.failure_stage = Some(stage);
-        // 只允许无明细的已知密码码保留；原始错误可能含敏感 JSON/路径。
-        self.error_code = Some(
-            match error {
-                "__IMPORT_ERR__:PASSWORD_REQUIRED" => "PASSWORD_REQUIRED",
-                "__IMPORT_ERR__:BAD_PASSWORD" => "BAD_PASSWORD",
-                "__IMPORT_ERR__:DECRYPT_FAILED" => "DECRYPT_FAILED",
-                _ => "IMPORT_FAILED",
-            }
-            .to_string(),
-        );
     }
 }
 
@@ -315,6 +291,7 @@ pub(crate) fn derive_export_key(
 /// 导出端默认走 `from_env()`——release 为 production/OWASP，debug 为 development）。
 /// P024: 薄包装 `solosoul-crypto::kdf::derive_export_key` 单一实现，仅映射错误类型。
 /// P018: 返回 `Zeroizing<[u8;32]>`，导出密钥不再以裸数组残留在内存。
+#[cfg(test)]
 pub(crate) fn derive_export_key_cfg(
     password: &str,
     salt: &[u8],
