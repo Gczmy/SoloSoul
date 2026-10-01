@@ -719,3 +719,16 @@ cmd-import-phase-attachments = 附件处理中
 cmd-import-phase-preferences = 偏好处理中
 cmd-import-phase-complete = 已完成
 cmd-import-phase-abandoned = 已结束
+
+cmd-sync-in-progress = 同步任务尚未结束；使用 /sync jobs 查看或 /sync cancel 取消。
+cmd-sync-started = 已启动同步任务：{$id}。使用 /sync jobs 查看进度。
+cmd-sync-cancel-usage = 用法：/sync cancel [task-id]（须为当前任务 ID）
+cmd-sync-no-task = 没有正在运行的同步任务。
+cmd-sync-cancelling = 已请求取消，正在停止同步。
+cmd-sync-cancelled = 同步已取消。
+cmd-sync-stage-starting = 正在启动
+cmd-sync-stage-running = 正在同步
+cmd-sync-stage-stopping = 正在收尾
+cmd-sync-jobs-title = 同步任务
+cmd-sync-with-success = 与 {$peer} 同步完成：{$summary}
+cmd-sync-with-failure = 与 {$peer} 同步失败：{$err}

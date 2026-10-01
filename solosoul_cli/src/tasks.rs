@@ -1,7 +1,8 @@
 //! CLI 自有异步任务及原会话内的结果接纳。
 //!
 //! 工作任务只能返回数据或报告进度，不能持有 App 的可变引用。异步入口禁止
-//! 分离子任务或隐藏 spawn_blocking/thread::spawn；阻塞入口直接拥有实际闭包，
+//! 分离子任务或隐藏 spawn_blocking/thread::spawn；协作异步入口必须等待底层受管 registry
+//! 完整收尾。阻塞入口直接拥有实际闭包，
 //! 以协作取消和真实 join 管理执行位，不能用 abort 冒充原生推理已停止。
 //! 正常退出须显式 shutdown 并等待所有任务回收，Drop 仅负责请求取消。
 
@@ -15,7 +16,7 @@ use std::sync::Arc;
 use solosoul_core::import_activity::begin_owned_root_activity;
 use solosoul_core::ocr::control::OcrCancellation;
 use solosoul_core::{VaultService, VaultSession};
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, Notify};
 use tokio::task::{AbortHandle, Id, JoinError, JoinSet};
 use uuid::Uuid;
 
@@ -41,6 +42,10 @@ pub struct TaskIdentity {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TaskOutput {
     Message(String),
+    SyncCompleted {
+        peer: String,
+        summary: String,
+    },
     OcrCompleted {
         result_json: String,
         source_path: String,
@@ -75,11 +80,20 @@ pub enum BlockingTaskState {
     CancelRequested,
 }
 
+/// RF213：同步等待的阶段，不用模拟字节百分比。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SyncStage {
+    Starting,
+    Synchronizing,
+    Stopping,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TaskEventKind {
     BlockingState(BlockingTaskState),
     Progress { current: u64, total: Option<u64> },
     PluginProgress(solosoul_plugin::PluginInstallProgress),
+    SyncProgress(SyncStage),
     Completed(TaskOutput),
     Failed(String),
     Cancelled,
@@ -89,7 +103,10 @@ impl TaskEventKind {
     fn is_terminal(&self) -> bool {
         !matches!(
             self,
-            Self::Progress { .. } | Self::PluginProgress(_) | Self::BlockingState(_)
+            Self::Progress { .. }
+                | Self::PluginProgress(_)
+                | Self::BlockingState(_)
+                | Self::SyncProgress(_)
         )
     }
 }
@@ -106,6 +123,7 @@ pub struct TaskContext {
     session: VaultSession,
     task_state: Arc<AtomicU8>,
     progress: mpsc::Sender<TaskEvent>,
+    cancel_notify: Arc<Notify>,
     service: Arc<VaultService>,
 }
 
@@ -121,6 +139,30 @@ impl TaskContext {
 
     pub fn is_cancel_requested(&self) -> bool {
         self.task_state.load(Ordering::Acquire) == TASK_CANCEL_REQUESTED
+    }
+
+    /// 协作任务等待取消后必须完成自己的实际收尾；取消通知不是结束证明。
+    pub async fn cancelled(&self) {
+        loop {
+            let notified = self.cancel_notify.notified();
+            if self.is_cancel_requested() {
+                return;
+            }
+            // 单一 TaskContext；notify_one 在尚未注册等待者时保存许可，避免丢失唤醒。
+            notified.await;
+        }
+    }
+
+    pub fn report_sync_progress(&self, stage: SyncStage) -> bool {
+        if self.is_cancel_requested() {
+            return false;
+        }
+        self.progress
+            .try_send(TaskEvent {
+                identity: self.identity.clone(),
+                kind: TaskEventKind::SyncProgress(stage),
+            })
+            .is_ok()
     }
 
     /// 原会话内的一次性最终提交。取消先取得许可时不执行 publish；提交先取得
@@ -183,6 +225,8 @@ struct TaskRecord {
     session: VaultSession,
     task_state: Arc<AtomicU8>,
     abort: Option<AbortHandle>,
+    cooperative: bool,
+    cancel_notify: Arc<Notify>,
     blocking: Option<BlockingRecord>,
     // Some 表示已真实 join 或排队闭包已析构，终态尚待主循环接纳。
     terminal: Option<TaskEventKind>,
@@ -249,6 +293,33 @@ impl Tasks {
         F: FnOnce(TaskContext) -> Fut + Send + 'static,
         Fut: Future<Output = Result<TaskOutput, TaskFailure>> + Send + 'static,
     {
+        self.spawn_async(session, false, build)
+    }
+
+    /// RF213：底层同步有独立 worker registry，取消只能唤醒，不能 abort 收尾 Future。
+    /// build 必须在所有路径等待真实子 worker 回收后返回；shutdown join 此 Future。
+    pub fn spawn_cooperative<F, Fut>(
+        &mut self,
+        session: VaultSession,
+        build: F,
+    ) -> Result<TaskId, String>
+    where
+        F: FnOnce(TaskContext) -> Fut + Send + 'static,
+        Fut: Future<Output = Result<TaskOutput, TaskFailure>> + Send + 'static,
+    {
+        self.spawn_async(session, true, build)
+    }
+
+    fn spawn_async<F, Fut>(
+        &mut self,
+        session: VaultSession,
+        cooperative: bool,
+        build: F,
+    ) -> Result<TaskId, String>
+    where
+        F: FnOnce(TaskContext) -> Fut + Send + 'static,
+        Fut: Future<Output = Result<TaskOutput, TaskFailure>> + Send + 'static,
+    {
         if self.shutting_down {
             return Err("任务管理器正在退出".to_string());
         }
@@ -263,11 +334,13 @@ impl Tasks {
             session_generation: session.generation(),
         };
         let task_state = Arc::new(AtomicU8::new(TASK_ACTIVE));
+        let cancel_notify = Arc::new(Notify::new());
         let context = TaskContext {
             identity: identity.clone(),
             session: session.clone(),
             task_state: Arc::clone(&task_state),
             progress: self.progress_tx.clone(),
+            cancel_notify: Arc::clone(&cancel_notify),
             service: Arc::clone(&self.service),
         };
         let service = Arc::clone(&self.service);
@@ -292,6 +365,8 @@ impl Tasks {
                 session,
                 task_state,
                 abort: Some(abort),
+                cooperative,
+                cancel_notify,
                 blocking: None,
                 terminal: None,
                 stale: false,
@@ -329,12 +404,14 @@ impl Tasks {
             session_generation: session.generation(),
         };
         let task_state = Arc::new(AtomicU8::new(TASK_ACTIVE));
+        let cancel_notify = Arc::new(Notify::new());
         let cancellation = OcrCancellation::default();
         let context = TaskContext {
             identity: identity.clone(),
             session: session.clone(),
             task_state: Arc::clone(&task_state),
             progress: self.progress_tx.clone(),
+            cancel_notify: Arc::clone(&cancel_notify),
             service: Arc::clone(&self.service),
         };
         let service = Arc::clone(&self.service);
@@ -346,6 +423,8 @@ impl Tasks {
                 session,
                 task_state,
                 abort: None,
+                cooperative: false,
+                cancel_notify,
                 blocking: Some(BlockingRecord {
                     cancellation,
                     state: BlockingTaskState::Queued,
@@ -479,6 +558,8 @@ impl Tasks {
             Ok(_) | Err(TASK_CANCEL_REQUESTED) => {
                 if let Some(blocking) = &record.blocking {
                     blocking.cancellation.cancel();
+                } else if record.cooperative {
+                    record.cancel_notify.notify_one();
                 } else if let Some(abort) = &record.abort {
                     abort.abort();
                 }
@@ -690,3 +771,6 @@ mod rf212_tests;
 
 #[cfg(test)]
 mod rf215_tests;
+
+#[cfg(test)]
+mod rf213_tests;

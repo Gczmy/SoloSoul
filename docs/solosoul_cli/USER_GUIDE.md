@@ -188,15 +188,19 @@ GUI 和 CLI 已共用备份编解码规则（RF-013），CLI 创建仍为 2.0/�
 | 子命令 | 说明 |
 |--------|------|
 | `status` / `list` | 列出当前账户 vault 已持久化的 peers |
-| `with <peer-or-host:port>` | 一次性向指定 peer 发起同步（start→sync→stop_and_wait） |
+| `with <peer-or-host:port>` | 启动后台一次性同步，立即返回输入循环 |
+| `jobs` | 查看同步任务 ID 和启动、同步、收尾阶段 |
+| `cancel [task-id]` | 请求取消指定任务；省略 ID 取消当前同步 |
 | `trust <peer>` | 将 peer 标记为受信任 |
 | `untrust <peer>` | 取消 trust |
 | `forget <peer>` | 从 vault 中移除 peer |
 | `help` | 帮助 |
 
-> **运行时说明（RF-905）**：`/sync with` 复用 [shared_runtime](../../solosoul_cli/src/util.rs)，但 [同步命令](../../solosoul_cli/src/commands/sync.rs) 仍在命令线程调用 `block_on`，同步期间会阻塞 TUI 事件处理。迁入后台任务尚待 [RF-213](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-213)。每次创建同步 manager，执行 start → sync → stop_and_wait；启动失败也等待已派发任务收尾。CLI 不维持常驻同步服务。
->
-> [SyncManager](../../tauri/crates/solosoul-sync/src/manager.rs) 的 `stop()` 只请求停止；`stop_and_wait()` 在宽限期后关闭网络 IO，并等待实际会话、监听和发现 worker 回收，不将 abort 当作数据库/附件写入已经退出。取消等待也由独立收尾保留 join；会话 worker 持有 Store/owner 与 activity，监听/发现 worker 保留 owner，完成前不能释放目录所有权。此等待没有固定的 200ms 完成承诺。
+`/sync with` 使用 [Tasks](../../solosoul_cli/src/tasks.rs) 的协作异步入口，复用 [shared_runtime](../../solosoul_cli/src/util.rs)。[同步命令](../../solosoul_cli/src/commands/sync.rs) 立即返回输入循环，等待期间可输入、重绘与处理 Tick/自动锁定。后台阶段与终态带原 task ID，通过原账户、会话代次和实际任务记录校验接纳；完成不强制切换当前页面。
+
+同一 CLI 会话只接纳一个尚未收尾的同步任务，重复 `/sync with` 提示查看/取消；请求取消后仍保留占位，实际终态接纳后才能重试。`/sync jobs`（或 `/sync status`）显示 ID 与阶段；`/sync cancel [task-id]` 只请求取消，不能据此认为网络/数据库工作已结束。
+
+每次创建独立 SyncManager，原会话内准备 identity，执行 start → sync → stop_and_wait；启动、配对或同步失败及取消均等待真实收尾。取消保留原30秒停机宽限期和系统网络超时，不承诺立即完成。锁定/退出请求取消并清除任务展示，旧会话的完成或进度不能恢复页面；正常退出等待真实 join 后返回。已提交同步记录不因取消回滚，未信任/配对失败仍为失败，不自动信任或报成功。CLI 不维持常驻同步服务，不改协议或 SAS。实现与本机验证见 [RF-213](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-213) 和[验证记录](../verification/rf213-cli-sync-task-2026-10-01.json)。
 
 ### 4.12 本地 OCR  ← *本期新增*
 
@@ -287,7 +291,7 @@ CLI 成功取得 root owner 后才写入 `{DATA_DIR}/logs/cli.log`，**不输出
 | "Vault 未解锁" | 先执行 `/unlock` 或在登录向导中输入密码 |
 | `/ocr scan` 报"模型未安装" | 通过 GUI 安装或放置模型到 `models/pp-ocr-v6-{tier}/` |
 | `/embed_model install` 报"注册表 schema 不匹配" | 假定 schema `{"models":[{id,name,size_mb,sha256,download_url}]}`；现网注册表协议可能不同，见 §4.13 风险说明 |
-| `/sync with` 卡顿 | 当前命令线程等待同步及 `stop_and_wait` 真实回收；TUI 后台化仍待 RF-213，见 §4.11 |
+| `/sync with` 仍在等待 | 输入循环可继续工作；`/sync jobs` 查看阶段、`/sync cancel` 请求停止。收尾等待真实退出，取消不回滚已提交记录，见 §4.11 |
 | 如何释放 CLI 进程锁 | 退出 CLI 并等待实际 worker、日志 writer 和所有 owner 句柄释放；自动锁定和 `/logout` 不释放目录所有权，见 §5 |
 
 ## 9. 命令兼容性
@@ -301,7 +305,7 @@ GUI 与 CLI 复用部分核心 crate 和数据格式，入口参数、错误文�
 | Profile 备份 | 已共享兼容解码和清单，见 [RF-013](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-013)；GUI 写 Base64，CLI 写字节数组，不能称为完全相同的编码 |
 | `.solosoul` 导出/导入 | RF-023后完整导出共用Core及原子writer，GUI/云/恢复的Advanced与旧CLI的LegacyDirect包字段差异保持；CLI选择SOLC源仍明确缺密钥错误。RF-024 后完整导入与 GUI/云/恢复共用 Core 提交和恢复执行；CLI 的默认策略、重复写计数及旧历史保持继续兼容。实际验证见 [RF-024 证据](../verification/rf024-core-encrypted-import-2026-10-01.json) |
 | 设置与进程锁 | CLI `/language` / `/theme` 写 UI 偏好文件；GUI 解锁后另有账户加密偏好优先级。桌面同 root 目录所有权与移动 no-op 边界见 §5 |
-| 同步、OCR、Embedding | GUI 已有设备同步、OCR 页面及本地模型面板；CLI 的同步阻塞见 §4.11，Embedding 格式与安装目录差异见 §4.13 |
+| 同步、OCR、Embedding | GUI 已有设备同步、OCR 页面及本地模型面板；CLI 的后台一次性同步/取消/退出等待见 §4.11，Embedding 格式与安装目录差异见 §4.13 |
 
 GUI 页面入口可从 [routes.tsx](../../tauri/src/App/routes.tsx) 和 [LlmConfigPage.tsx](../../tauri/src/pages/ai/LlmConfigPage.tsx) 核对。后续按领域分别收敛，不将所有命令的路径、参数、错误字符串写成“1:1 对齐”。
 

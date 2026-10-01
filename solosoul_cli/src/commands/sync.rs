@@ -13,9 +13,11 @@
 
 use crate::app::App;
 use crate::t;
+use crate::tasks::{SyncStage, TaskContext, TaskFailure, TaskId, TaskOutput};
 use color_eyre::Result;
 use rand::rngs::OsRng;
 use rand::RngCore;
+use solosoul_core::VaultSession;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -28,12 +30,16 @@ use solosoul_sync::types::SyncPeerInfo;
 pub fn handle(app: &mut App, argv: &[&str]) -> Result<()> {
     let sub = argv.first().copied().unwrap_or("status");
     match sub {
-        "status" | "list" => {
+        "status" | "list" | "jobs" => {
             status(app);
             Ok(())
         }
         "with" => {
             sync_with(app, argv.get(1).copied().unwrap_or(""));
+            Ok(())
+        }
+        "cancel" => {
+            cancel(app, argv.get(1).copied());
             Ok(())
         }
         "trust" => {
@@ -66,6 +72,8 @@ fn print_help() {
     println!("  trust <peer>              将 peer 标记为受信任");
     println!("  untrust <peer>            取消 peer 的受信任状态");
     println!("  forget <peer>             从 vault 中删除 peer 记录");
+    println!("  jobs                      查看同步任务 ID 与阶段");
+    println!("  cancel [task-id]           请求取消同步并等待实际收尾");
     println!("  help                      显示本帮助");
 }
 
@@ -80,96 +88,165 @@ fn status(app: &mut App) {
     };
 }
 
-/// 一次性同步：构造 SyncManager → start → sync_with_peer → stop_and_wait。
+/// 同一 CLI 只保留一项未真实收尾的同步；取消请求不会提前释放占位。
+pub(crate) struct SyncTask {
+    pub peer: String,
+    pub stage: SyncStage,
+    pub cancelling: bool,
+}
+
 fn sync_with(app: &mut App, peer: &str) {
     if peer.is_empty() {
         app.error_message = Some(t!(app.i18n, "cmd-sync-with-usage"));
         return;
     }
-    // R2-V7：运行时初始化失败优雅降级（不再 panic 退出 TUI）
-    let rt = match crate::util::shared_runtime() {
-        Ok(rt) => rt,
-        Err(e) => {
-            app.error_message = Some(format!("初始化共享运行时失败: {e}"));
+    let Ok(account) = super::require_unlocked(app) else {
+        return;
+    };
+    let session = match app.vault_service.capture_session(&account) {
+        Ok(session) => session,
+        Err(_) => {
+            app.error_message = Some(t!(app.i18n, "cmd-need-unlock"));
             return;
         }
     };
-    let result = rt.block_on(run_one_shot_sync(&app.vault_service, peer));
-    match result {
-        Ok(summary) => {
-            tracing::info!("sync with {}: {}", peer, summary);
-            // R2-X2: 同步成功为明确成功语义，走绿色 toast 而非红色 overlay
-            app.success_message = Some((
-                t!(
-                    app.i18n,
-                    "cmd-sync-with-success",
-                    peer = peer,
-                    summary = summary
-                ),
-                Instant::now(),
-            ));
+    if let Err(error) = app.drain_task_events(32) {
+        app.error_message = Some(error.to_string());
+        return;
+    }
+    if !app.sync_tasks.is_empty() {
+        app.info_message = Some(t!(app.i18n, "cmd-sync-in-progress"));
+        return;
+    }
+    // Arc 在原会话门槛内捕获；异步阶段不能重新读取当前 Vault 或当前账户。
+    let service = Arc::clone(&app.vault_service);
+    let vault = match service.with_session(&session, |_| {
+        service
+            .get_vault_store()
+            .ok_or_else(|| "Vault 未解锁".to_string())
+    }) {
+        Ok(vault) => vault,
+        Err(_) => {
+            app.error_message = Some(t!(app.i18n, "cmd-need-unlock"));
+            return;
         }
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-sync-with-failure", peer = peer, err = e));
+    };
+    let target = peer.to_owned();
+    match app.tasks.spawn_cooperative(session, move |context| {
+        run_one_shot_sync(context, service, vault, target)
+    }) {
+        Ok(id) => {
+            app.sync_tasks.insert(
+                id,
+                SyncTask {
+                    peer: peer.to_owned(),
+                    stage: SyncStage::Starting,
+                    cancelling: false,
+                },
+            );
+            app.info_message = Some(t!(app.i18n, "cmd-sync-started", id = id.0.to_string()));
+        }
+        Err(error) => {
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-sync-with-failure",
+                peer = peer,
+                err = error
+            ))
+        }
+    }
+}
+
+fn cancel(app: &mut App, value: Option<&str>) {
+    let ids: Vec<_> = match value {
+        Some(value) => match uuid::Uuid::parse_str(value) {
+            Ok(id) if app.sync_tasks.contains_key(&TaskId(id)) => vec![TaskId(id)],
+            _ => {
+                app.error_message = Some(t!(app.i18n, "cmd-sync-cancel-usage"));
+                return;
+            }
+        },
+        None => app.sync_tasks.keys().copied().collect(),
+    };
+    if ids.is_empty() {
+        app.info_message = Some(t!(app.i18n, "cmd-sync-no-task"));
+        return;
+    }
+    for id in ids {
+        if app.tasks.request_cancel(id) {
+            if let Some(task) = app.sync_tasks.get_mut(&id) {
+                task.cancelling = true;
+            }
+            app.info_message = Some(t!(app.i18n, "cmd-sync-cancelling"));
         }
     }
 }
 
 async fn run_one_shot_sync(
-    vault_service: &Arc<VaultService>,
-    peer: &str,
-) -> Result<String, String> {
-    // 准备 sync identity 也会写 Vault；保护准备至实际 stop_and_wait 完成。
-    let _activity =
-        solosoul_core::import_activity::begin_owned_root_activity(vault_service.root_owner())?;
-    let vault = vault_service
-        .get_vault_store()
-        .ok_or_else(|| "Vault 未解锁，请先 /unlock".to_string())?;
-    let account_id = vault_service
-        .get_current_account()
-        .ok_or_else(|| "无当前账户".to_string())?;
-
-    let (node_id, keys) = sync_identity(&vault);
-
-    let manager = SyncManager::new(
-        node_id.clone(),
-        account_id,
-        keys,
-        vault.clone(),
-        "0.0.0.0:0",
-    );
-
-    if let Err(error) = manager.start().await {
-        // start 失败也回收可能已派发的实际 worker，并保持原错误优先。
-        if manager.stop_and_wait().await.is_err() {
-            tracing::warn!("CLI sync startup cleanup also failed");
-        }
-        return Err(error);
+    context: TaskContext,
+    service: Arc<VaultService>,
+    vault: Arc<solosoul_vault::VaultStore>,
+    peer: String,
+) -> Result<TaskOutput, TaskFailure> {
+    if context.is_cancel_requested() {
+        return Err(TaskFailure::Cancelled);
     }
-    let result = manager.sync_with_peer(peer).await;
+    let manager =
+        prepare_manager(&service, context.session(), vault).map_err(|_| TaskFailure::Cancelled)?;
+    context.report_sync_progress(SyncStage::Starting);
+    let started = tokio::select! {
+        biased;
+        _ = context.cancelled() => Err(TaskFailure::Cancelled),
+        result = manager.start() => result.map_err(TaskFailure::Failed),
+    };
+    let result = match started {
+        Ok(_) => {
+            context.report_sync_progress(SyncStage::Synchronizing);
+            tokio::select! {
+                biased;
+                _ = context.cancelled() => Err(TaskFailure::Cancelled),
+                result = manager.sync_with_peer(&peer) => result.map_err(TaskFailure::Failed),
+            }
+        }
+        Err(error) => Err(error),
+    };
+    // 不论 start 失败、配对失败或取消，终态必须等真实 registry 收尾。
+    context.report_sync_progress(SyncStage::Stopping);
     let shutdown = manager.stop_and_wait().await;
-
     match result {
         Ok(sr) => {
-            shutdown?;
-            Ok(format!(
+            shutdown.map_err(TaskFailure::Failed)?;
+            let summary = format!(
                 "records applied={} skipped={} examined={} attachments sent={} received={} errors={}",
-                sr.data.applied,
-                sr.data.skipped,
-                sr.data.examined,
-                sr.attachments.sent,
-                sr.attachments.received,
-                sr.data.errors.len()
-            ))
+                sr.data.applied, sr.data.skipped, sr.data.examined,
+                sr.attachments.sent, sr.attachments.received, sr.data.errors.len()
+            );
+            context.commit(|| Ok(TaskOutput::SyncCompleted { peer, summary }))
         }
         Err(error) => {
-            // 保留原业务错误；收尾失败不能伪装成同步成功。
             if shutdown.is_err() {
                 tracing::warn!("CLI sync shutdown also failed");
             }
             Err(error)
         }
     }
+}
+
+fn prepare_manager(
+    service: &VaultService,
+    session: &VaultSession,
+    vault: Arc<solosoul_vault::VaultStore>,
+) -> Result<SyncManager, String> {
+    service.with_session(session, |_| {
+        let (node_id, keys) = sync_identity(&vault);
+        Ok(SyncManager::new(
+            node_id,
+            session.account_id().to_owned(),
+            keys,
+            vault,
+            "0.0.0.0:0",
+        ))
+    })
 }
 
 fn trust_peer(app: &mut App, peer_node_id: &str, trusted: bool) {
@@ -299,3 +376,6 @@ fn sync_identity(vault: &Arc<solosoul_vault::VaultStore>) -> (String, NoiseKeys)
 
     (node_id, keys)
 }
+
+#[cfg(test)]
+mod rf213_tests;

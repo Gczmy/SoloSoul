@@ -1,0 +1,696 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-213",
+  "status": "validated-local-Windows-fixtures",
+  "baseCommit": "9372c046cb1eb6191aa70f2b87add6a635615497",
+  "recordedAt": "2026-10-01T17:47:34.852978+00:00",
+  "ownedPaths": [
+    "solosoul_cli/src/tasks.rs",
+    "solosoul_cli/src/commands/sync.rs",
+    "solosoul_cli/src/app.rs",
+    "solosoul_cli/src/screens/sync_status.rs",
+    "solosoul_cli/src/i18n/en-US.ftl",
+    "solosoul_cli/src/i18n/zh-CN.ftl",
+    "solosoul_cli/src/tasks/rf213_tests.rs",
+    "solosoul_cli/src/commands/sync/rf213_tests.rs",
+    "docs/solosoul_cli/USER_GUIDE.md",
+    "docs/design_map/17_设备同步功能设计与实现.md",
+    "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+    "docs/verification/rf213-cli-sync-task-2026-10-01.json"
+  ],
+  "requiredChecks": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T17:38:24.425233+00:00",
+      "finishedAt": "2026-10-01T17:38:25.312970+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf213-20261001\\cli-fmt-r1.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testGroups": [],
+      "sourceSha256": {
+        "solosoul_cli/src/tasks.rs": "b028713e29da527080086f50b9085bafe6cc6531ddc6c8af297a0e897c5b478f",
+        "solosoul_cli/src/commands/sync.rs": "ac13553d379daa0f5f5e8aaff8698a75fed11e2f9e323c0032bd5d9645280d8a",
+        "solosoul_cli/src/app.rs": "51b3ed51894b9df21af87be7d98f9fc20e5f20adaac2d757ac1540f17c7b892f",
+        "solosoul_cli/src/screens/sync_status.rs": "46fd659a4487cc4f7ed08a4b626b5f1f3b05ecea4433a260a688319a4109370a",
+        "solosoul_cli/src/i18n/en-US.ftl": "71dc82ebef520450fe74ebce113b0ff9b97a56f047a6f22dc1b0a3bcd9db45ad",
+        "solosoul_cli/src/i18n/zh-CN.ftl": "ace62d91520da3324212149c5e3bbf6d3a505956e5cef0a900ce231de6fb7767",
+        "solosoul_cli/src/tasks/rf213_tests.rs": "fde3a0b9924c670dfd0aabc18049351c9dff0bdae28e52c5eb3b59262f9e60db",
+        "solosoul_cli/src/commands/sync/rf213_tests.rs": "69268f687facb7686b965b639557ab0389f0c9f1c1d074b2cbb37213ffeddf30"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [],
+      "executedRf213Tests": []
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T17:38:25.406212+00:00",
+      "finishedAt": "2026-10-01T17:38:42.792575+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf213-20261001\\cli-clippy-r1.log",
+      "logSha256": "8f69c3489ff0d2c04fb82c1d4ff63b25be38f7833d05fd0cda20c39cc217dff0",
+      "testGroups": [],
+      "sourceSha256": {
+        "solosoul_cli/src/tasks.rs": "b028713e29da527080086f50b9085bafe6cc6531ddc6c8af297a0e897c5b478f",
+        "solosoul_cli/src/commands/sync.rs": "ac13553d379daa0f5f5e8aaff8698a75fed11e2f9e323c0032bd5d9645280d8a",
+        "solosoul_cli/src/app.rs": "51b3ed51894b9df21af87be7d98f9fc20e5f20adaac2d757ac1540f17c7b892f",
+        "solosoul_cli/src/screens/sync_status.rs": "46fd659a4487cc4f7ed08a4b626b5f1f3b05ecea4433a260a688319a4109370a",
+        "solosoul_cli/src/i18n/en-US.ftl": "71dc82ebef520450fe74ebce113b0ff9b97a56f047a6f22dc1b0a3bcd9db45ad",
+        "solosoul_cli/src/i18n/zh-CN.ftl": "ace62d91520da3324212149c5e3bbf6d3a505956e5cef0a900ce231de6fb7767",
+        "solosoul_cli/src/tasks/rf213_tests.rs": "fde3a0b9924c670dfd0aabc18049351c9dff0bdae28e52c5eb3b59262f9e60db",
+        "solosoul_cli/src/commands/sync/rf213_tests.rs": "69268f687facb7686b965b639557ab0389f0c9f1c1d074b2cbb37213ffeddf30"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [],
+      "executedRf213Tests": []
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T17:40:25.094032+00:00",
+      "finishedAt": "2026-10-01T17:47:05.839371+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf213-20261001\\cli-tests-r1.log",
+      "logSha256": "35ec659aa3afd4c99eace4c2159ad9f94e4c98dc7a45bce7b6baca5f6b557953",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 329,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 5,
+          "failed": 0,
+          "ignored": 1
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1
+        }
+      ],
+      "sourceSha256": {
+        "solosoul_cli/src/tasks.rs": "b028713e29da527080086f50b9085bafe6cc6531ddc6c8af297a0e897c5b478f",
+        "solosoul_cli/src/commands/sync.rs": "ac13553d379daa0f5f5e8aaff8698a75fed11e2f9e323c0032bd5d9645280d8a",
+        "solosoul_cli/src/app.rs": "51b3ed51894b9df21af87be7d98f9fc20e5f20adaac2d757ac1540f17c7b892f",
+        "solosoul_cli/src/screens/sync_status.rs": "46fd659a4487cc4f7ed08a4b626b5f1f3b05ecea4433a260a688319a4109370a",
+        "solosoul_cli/src/i18n/en-US.ftl": "71dc82ebef520450fe74ebce113b0ff9b97a56f047a6f22dc1b0a3bcd9db45ad",
+        "solosoul_cli/src/i18n/zh-CN.ftl": "ace62d91520da3324212149c5e3bbf6d3a505956e5cef0a900ce231de6fb7767",
+        "solosoul_cli/src/tasks/rf213_tests.rs": "fde3a0b9924c670dfd0aabc18049351c9dff0bdae28e52c5eb3b59262f9e60db",
+        "solosoul_cli/src/commands/sync/rf213_tests.rs": "69268f687facb7686b965b639557ab0389f0c9f1c1d074b2cbb37213ffeddf30"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [
+        "test result: ok. 329 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 362.75s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.18s",
+        "test result: ok. 5 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 8.03s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "executedRf213Tests": [
+        "commands::sync::rf213_tests::rf213_actual_noise_pairing_pending_and_followup_cancel_never_report_success",
+        "commands::sync::rf213_tests::rf213_actual_trusted_noise_sync_completes_without_changing_current_page",
+        "commands::sync::rf213_tests::rf213_exit_waits_actual_peer_shutdown_before_releasing_task_activity",
+        "commands::sync::rf213_tests::rf213_lock_cancels_actual_peer_and_old_progress_cannot_restore_decrypted_page",
+        "commands::sync::rf213_tests::rf213_real_completed_result_is_rejected_after_same_account_reunlock",
+        "commands::sync::rf213_tests::rf213_real_peer_handshake_failure_is_failure_after_cleanup_without_success",
+        "commands::sync::rf213_tests::rf213_real_stalled_peer_allows_keys_ticks_progress_and_cancel_waits_actual_socket_cleanup",
+        "tasks::rf213_tests::rf213_cancelled_shutdown_waiter_keeps_cooperative_cleanup_owned_and_joins_later",
+        "tasks::rf213_tests::rf213_cooperative_real_failure_survives_cancel_request_and_forged_progress_is_rejected",
+        "tasks::rf213_tests::rf213_cancel_before_wait_wakes_and_retains_activity_until_real_cleanup"
+      ]
+    }
+  ],
+  "targetedChecks": [
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "tasks::",
+        "--no-fail-fast"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T17:38:42.890162+00:00",
+      "finishedAt": "2026-10-01T17:40:24.955699+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf213-20261001\\tasks-target-r1.log",
+      "logSha256": "d0fbec8e403a3135d50a2faf08a73f470cfc25e5c959b51a2020ee88b2b48f89",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 25,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "sourceSha256": {
+        "solosoul_cli/src/tasks.rs": "b028713e29da527080086f50b9085bafe6cc6531ddc6c8af297a0e897c5b478f",
+        "solosoul_cli/src/commands/sync.rs": "ac13553d379daa0f5f5e8aaff8698a75fed11e2f9e323c0032bd5d9645280d8a",
+        "solosoul_cli/src/app.rs": "51b3ed51894b9df21af87be7d98f9fc20e5f20adaac2d757ac1540f17c7b892f",
+        "solosoul_cli/src/screens/sync_status.rs": "46fd659a4487cc4f7ed08a4b626b5f1f3b05ecea4433a260a688319a4109370a",
+        "solosoul_cli/src/i18n/en-US.ftl": "71dc82ebef520450fe74ebce113b0ff9b97a56f047a6f22dc1b0a3bcd9db45ad",
+        "solosoul_cli/src/i18n/zh-CN.ftl": "ace62d91520da3324212149c5e3bbf6d3a505956e5cef0a900ce231de6fb7767",
+        "solosoul_cli/src/tasks/rf213_tests.rs": "fde3a0b9924c670dfd0aabc18049351c9dff0bdae28e52c5eb3b59262f9e60db",
+        "solosoul_cli/src/commands/sync/rf213_tests.rs": "69268f687facb7686b965b639557ab0389f0c9f1c1d074b2cbb37213ffeddf30"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [
+        "test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 304 filtered out; finished in 14.55s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s"
+      ],
+      "executedRf213Tests": [
+        "tasks::rf213_tests::rf213_cancelled_shutdown_waiter_keeps_cooperative_cleanup_owned_and_joins_later",
+        "tasks::rf213_tests::rf213_cooperative_real_failure_survives_cancel_request_and_forged_progress_is_rejected",
+        "tasks::rf213_tests::rf213_cancel_before_wait_wakes_and_retains_activity_until_real_cleanup"
+      ]
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "rf213_",
+        "--no-fail-fast"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T17:33:30.763215+00:00",
+      "finishedAt": "2026-10-01T17:36:31.844656+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf213-20261001\\cli-target-r3.log",
+      "logSha256": "d974562eec100aea2a2a9f430f9bec95f681ba7679571e11b9a548bbce796c21",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 10,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "sourceSha256": {
+        "solosoul_cli/src/tasks.rs": "b028713e29da527080086f50b9085bafe6cc6531ddc6c8af297a0e897c5b478f",
+        "solosoul_cli/src/commands/sync.rs": "ac13553d379daa0f5f5e8aaff8698a75fed11e2f9e323c0032bd5d9645280d8a",
+        "solosoul_cli/src/app.rs": "51b3ed51894b9df21af87be7d98f9fc20e5f20adaac2d757ac1540f17c7b892f",
+        "solosoul_cli/src/screens/sync_status.rs": "46fd659a4487cc4f7ed08a4b626b5f1f3b05ecea4433a260a688319a4109370a",
+        "solosoul_cli/src/i18n/en-US.ftl": "e4f472ddf5fa16658db5ecad142575e3b37e8837ddfaa900ebe9c489e58129be",
+        "solosoul_cli/src/i18n/zh-CN.ftl": "e4f808481ce080a5d1d72131271115654f7077093820fd7455c9ec3aeb1201cd",
+        "solosoul_cli/src/tasks/rf213_tests.rs": "fde3a0b9924c670dfd0aabc18049351c9dff0bdae28e52c5eb3b59262f9e60db",
+        "solosoul_cli/src/commands/sync/rf213_tests.rs": "69268f687facb7686b965b639557ab0389f0c9f1c1d074b2cbb37213ffeddf30"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 319 filtered out; finished in 95.48s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s"
+      ],
+      "executedRf213Tests": [
+        "commands::sync::rf213_tests::rf213_actual_noise_pairing_pending_and_followup_cancel_never_report_success",
+        "commands::sync::rf213_tests::rf213_actual_trusted_noise_sync_completes_without_changing_current_page",
+        "commands::sync::rf213_tests::rf213_exit_waits_actual_peer_shutdown_before_releasing_task_activity",
+        "commands::sync::rf213_tests::rf213_lock_cancels_actual_peer_and_old_progress_cannot_restore_decrypted_page",
+        "commands::sync::rf213_tests::rf213_real_peer_handshake_failure_is_failure_after_cleanup_without_success",
+        "commands::sync::rf213_tests::rf213_real_completed_result_is_rejected_after_same_account_reunlock",
+        "commands::sync::rf213_tests::rf213_real_stalled_peer_allows_keys_ticks_progress_and_cancel_waits_actual_socket_cleanup",
+        "tasks::rf213_tests::rf213_cancel_before_wait_wakes_and_retains_activity_until_real_cleanup",
+        "tasks::rf213_tests::rf213_cancelled_shutdown_waiter_keeps_cooperative_cleanup_owned_and_joins_later",
+        "tasks::rf213_tests::rf213_cooperative_real_failure_survives_cancel_request_and_forged_progress_is_rejected"
+      ]
+    }
+  ],
+  "newTestFunctions": [
+    "rf213_cancel_before_wait_wakes_and_retains_activity_until_real_cleanup",
+    "rf213_cancelled_shutdown_waiter_keeps_cooperative_cleanup_owned_and_joins_later",
+    "rf213_cooperative_real_failure_survives_cancel_request_and_forged_progress_is_rejected",
+    "rf213_real_stalled_peer_allows_keys_ticks_progress_and_cancel_waits_actual_socket_cleanup",
+    "rf213_lock_cancels_actual_peer_and_old_progress_cannot_restore_decrypted_page",
+    "rf213_real_peer_handshake_failure_is_failure_after_cleanup_without_success",
+    "rf213_actual_noise_pairing_pending_and_followup_cancel_never_report_success",
+    "rf213_actual_trusted_noise_sync_completes_without_changing_current_page",
+    "rf213_real_completed_result_is_rejected_after_same_account_reunlock",
+    "rf213_exit_waits_actual_peer_shutdown_before_releasing_task_activity"
+  ],
+  "newTestsActuallyPassedOnFinalSource": 10,
+  "sourceFreeze": {
+    "solosoul_cli/src/tasks.rs": "b028713e29da527080086f50b9085bafe6cc6531ddc6c8af297a0e897c5b478f",
+    "solosoul_cli/src/commands/sync.rs": "ac13553d379daa0f5f5e8aaff8698a75fed11e2f9e323c0032bd5d9645280d8a",
+    "solosoul_cli/src/app.rs": "51b3ed51894b9df21af87be7d98f9fc20e5f20adaac2d757ac1540f17c7b892f",
+    "solosoul_cli/src/screens/sync_status.rs": "46fd659a4487cc4f7ed08a4b626b5f1f3b05ecea4433a260a688319a4109370a",
+    "solosoul_cli/src/i18n/en-US.ftl": "71dc82ebef520450fe74ebce113b0ff9b97a56f047a6f22dc1b0a3bcd9db45ad",
+    "solosoul_cli/src/i18n/zh-CN.ftl": "ace62d91520da3324212149c5e3bbf6d3a505956e5cef0a900ce231de6fb7767",
+    "solosoul_cli/src/tasks/rf213_tests.rs": "fde3a0b9924c670dfd0aabc18049351c9dff0bdae28e52c5eb3b59262f9e60db",
+    "solosoul_cli/src/commands/sync/rf213_tests.rs": "69268f687facb7686b965b639557ab0389f0c9f1c1d074b2cbb37213ffeddf30"
+  },
+  "primaryAgentSourceReview": {
+    "reviewer": "primary-agent",
+    "notIndependentFinalReview": true,
+    "reviewedSourceSha256": {
+      "solosoul_cli/src/tasks.rs": "b028713e29da527080086f50b9085bafe6cc6531ddc6c8af297a0e897c5b478f",
+      "solosoul_cli/src/commands/sync.rs": "ac13553d379daa0f5f5e8aaff8698a75fed11e2f9e323c0032bd5d9645280d8a",
+      "solosoul_cli/src/app.rs": "51b3ed51894b9df21af87be7d98f9fc20e5f20adaac2d757ac1540f17c7b892f",
+      "solosoul_cli/src/screens/sync_status.rs": "46fd659a4487cc4f7ed08a4b626b5f1f3b05ecea4433a260a688319a4109370a",
+      "solosoul_cli/src/i18n/en-US.ftl": "71dc82ebef520450fe74ebce113b0ff9b97a56f047a6f22dc1b0a3bcd9db45ad",
+      "solosoul_cli/src/i18n/zh-CN.ftl": "ace62d91520da3324212149c5e3bbf6d3a505956e5cef0a900ce231de6fb7767",
+      "solosoul_cli/src/tasks/rf213_tests.rs": "fde3a0b9924c670dfd0aabc18049351c9dff0bdae28e52c5eb3b59262f9e60db",
+      "solosoul_cli/src/commands/sync/rf213_tests.rs": "69268f687facb7686b965b639557ab0389f0c9f1c1d074b2cbb37213ffeddf30"
+    },
+    "unchangedManagementIdentityHelpers": true,
+    "unchangedOriginalRegressionsProtocolAndDependencies": {
+      "solosoul_cli/Cargo.toml": "bd732f6b7f039efc1f4f2fc58ac4b63dbf5e103b5dc5b1e9770c36008ca35a96",
+      "solosoul_cli/Cargo.lock": "22471a02bc24517dbf100732902287e5908a520c5c0e747b62f83d10cb30b71d",
+      "tauri/Cargo.toml": "2b6bb7efb8c19dcf30d412ace48ab59ff81e3834a023e5fa1e6a366bef4d3430",
+      "tauri/Cargo.lock": "eaecbdecd19fcbeddb9d3d9cf5d216f06e6c56ff32cb84aaeabde21c97d74fd5",
+      "tauri/crates/solosoul-sync/Cargo.toml": "62186d84c63e484cf89c9aefbe548b93e5de1c919ac1ec5698960d1e9f4ab1e6",
+      "tauri/crates/solosoul-sync/src/manager.rs": "e7ca17e5bde2899548bdfef1e959423929381603df8ea02e0db88cf51dc36abf",
+      "tauri/crates/solosoul-sync/src/workers.rs": "b5c672ea2b4f79fd5326c6c1b70e97dc2f8ca53e8f104bc6b8c1e2f9e3cc9dec",
+      "tauri/crates/solosoul-sync/src/session.rs": "d1b7deb6676dedb27790d658ef0ca6cfe5d9b96c3814a72fb2f76c4c022c1513",
+      "tauri/crates/solosoul-core/src/vault_service/session.rs": "88b1243f5e694fb6e4b7c839fe11f8fad5838a218a0af65a6839f25d76cfa698",
+      "solosoul_cli/src/tasks/tests.rs": "938cf6fa53f26179f5c16ba0f6418de85a0447108dfd2f990f8d03cc7ba72d69",
+      "solosoul_cli/src/tasks/rf212_tests.rs": "ad61063c0570ad06c06c46d43167451fe6199b12e03a815ba5fb21940f9f3eb4",
+      "solosoul_cli/src/tasks/rf215_tests.rs": "ea67d8d24747bc997b58771a0697ab3750f6d012218c9339cda41e60a44de17f",
+      "solosoul_cli/src/commands/auth.rs": "c4702ddb15e1d419fb3dbd460dab96c4b0b5c2dfdea04450cc8b6422257c57a0",
+      "solosoul_cli/tests/rf905_ownership.rs": "7e55e4388a598c0175225c5b720f8094d46463c1c771672e3ad7b90a2ef61a7c"
+    },
+    "checkedBoundaries": [
+      "spawn_cooperative cancels by flag/Notify; ordinary async abort and native blocking cancellation preserve old behavior",
+      "all real sync start/sync failure/cancel paths stop_and_wait; terminal only after join",
+      "original session captures Store/account before work; identity write short with_session; success commit seals cancel",
+      "only real TaskId and original account/generation accepted, stale events do not change pages",
+      "one active displayed task, cancellation retains placeholder until terminal; no rollback claim",
+      "UI labels describe user-visible sync status without worker implementation details"
+    ],
+    "runEvidence": "cli-target-r3:10 actual tests passed before label-only update; final CLI full suite must run same tests on final source",
+    "reviewPerformedBeforeCanonicalDocsUpdate": true
+  },
+  "historicalFailedChecks": [
+    {
+      "command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--all-targets"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T17:21:33.321088+00:00",
+      "finishedAt": "2026-10-01T17:22:12.767500+00:00",
+      "exitCode": 101,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf213-20261001\\cli-check-r1.log",
+      "logSha256": "c1b76985f084e6ea3a1d3bd46a2c2e85bcb2d4169112f7ddba9c7198224cbfee",
+      "testGroups": [],
+      "sourceSha256": {
+        "solosoul_cli/src/tasks.rs": "b028713e29da527080086f50b9085bafe6cc6531ddc6c8af297a0e897c5b478f",
+        "solosoul_cli/src/commands/sync.rs": "ac13553d379daa0f5f5e8aaff8698a75fed11e2f9e323c0032bd5d9645280d8a",
+        "solosoul_cli/src/app.rs": "51b3ed51894b9df21af87be7d98f9fc20e5f20adaac2d757ac1540f17c7b892f",
+        "solosoul_cli/src/screens/sync_status.rs": "46fd659a4487cc4f7ed08a4b626b5f1f3b05ecea4433a260a688319a4109370a",
+        "solosoul_cli/src/i18n/en-US.ftl": "e4f472ddf5fa16658db5ecad142575e3b37e8837ddfaa900ebe9c489e58129be",
+        "solosoul_cli/src/i18n/zh-CN.ftl": "e4f808481ce080a5d1d72131271115654f7077093820fd7455c9ec3aeb1201cd",
+        "solosoul_cli/src/tasks/rf213_tests.rs": "fde3a0b9924c670dfd0aabc18049351c9dff0bdae28e52c5eb3b59262f9e60db",
+        "solosoul_cli/src/commands/sync/rf213_tests.rs": "47b6a33a429ac2a70f181728cd743c0a9ae1c2bc86378088ff653a435af4668d"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "rf213_",
+        "--no-fail-fast"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T17:23:21.087801+00:00",
+      "finishedAt": "2026-10-01T17:27:15.624400+00:00",
+      "exitCode": 101,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf213-20261001\\cli-target-r1.log",
+      "logSha256": "b9afe944d98ed6ea5d30bc56a70ad6d7932df3b8632cb62f540a90b4fb70c2a7",
+      "testGroups": [
+        {
+          "result": "FAILED",
+          "passed": 5,
+          "failed": 5,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "sourceSha256": {
+        "solosoul_cli/src/tasks.rs": "b028713e29da527080086f50b9085bafe6cc6531ddc6c8af297a0e897c5b478f",
+        "solosoul_cli/src/commands/sync.rs": "ac13553d379daa0f5f5e8aaff8698a75fed11e2f9e323c0032bd5d9645280d8a",
+        "solosoul_cli/src/app.rs": "51b3ed51894b9df21af87be7d98f9fc20e5f20adaac2d757ac1540f17c7b892f",
+        "solosoul_cli/src/screens/sync_status.rs": "46fd659a4487cc4f7ed08a4b626b5f1f3b05ecea4433a260a688319a4109370a",
+        "solosoul_cli/src/i18n/en-US.ftl": "e4f472ddf5fa16658db5ecad142575e3b37e8837ddfaa900ebe9c489e58129be",
+        "solosoul_cli/src/i18n/zh-CN.ftl": "e4f808481ce080a5d1d72131271115654f7077093820fd7455c9ec3aeb1201cd",
+        "solosoul_cli/src/tasks/rf213_tests.rs": "fde3a0b9924c670dfd0aabc18049351c9dff0bdae28e52c5eb3b59262f9e60db",
+        "solosoul_cli/src/commands/sync/rf213_tests.rs": "4861c663b4cb1745c46eb6ee5681a3e816599dcf8f72bb9dc6f780579035fe76"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "rf213_",
+        "--no-fail-fast"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T17:28:40.750275+00:00",
+      "finishedAt": "2026-10-01T17:31:12.713618+00:00",
+      "exitCode": 101,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf213-20261001\\cli-target-r2.log",
+      "logSha256": "57cd8d6f3c856f66b66ed14224c8d5755374e741abefd1bd83fc7c782c4d5fcc",
+      "testGroups": [
+        {
+          "result": "FAILED",
+          "passed": 6,
+          "failed": 4,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "sourceSha256": {
+        "solosoul_cli/src/tasks.rs": "b028713e29da527080086f50b9085bafe6cc6531ddc6c8af297a0e897c5b478f",
+        "solosoul_cli/src/commands/sync.rs": "ac13553d379daa0f5f5e8aaff8698a75fed11e2f9e323c0032bd5d9645280d8a",
+        "solosoul_cli/src/app.rs": "51b3ed51894b9df21af87be7d98f9fc20e5f20adaac2d757ac1540f17c7b892f",
+        "solosoul_cli/src/screens/sync_status.rs": "46fd659a4487cc4f7ed08a4b626b5f1f3b05ecea4433a260a688319a4109370a",
+        "solosoul_cli/src/i18n/en-US.ftl": "e4f472ddf5fa16658db5ecad142575e3b37e8837ddfaa900ebe9c489e58129be",
+        "solosoul_cli/src/i18n/zh-CN.ftl": "e4f808481ce080a5d1d72131271115654f7077093820fd7455c9ec3aeb1201cd",
+        "solosoul_cli/src/tasks/rf213_tests.rs": "fde3a0b9924c670dfd0aabc18049351c9dff0bdae28e52c5eb3b59262f9e60db",
+        "solosoul_cli/src/commands/sync/rf213_tests.rs": "ca7a2653c2815c77ef358b5f61b438ae4e627dc85b0eff908b38d8b012eacea2"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true
+    }
+  ],
+  "protectedExistingUnrelatedFiles": [
+    {
+      "path": "solosoul_cli/src/commands/profile.rs",
+      "sha256": "e08c0a7b8c9d9270f5764945494634c75d6d81bcba02cc189487965c81fc4e41",
+      "bytes": 9438
+    },
+    {
+      "path": "solosoul_cli/src/commands/security.rs",
+      "sha256": "0133f1ca219910c364dba4a2792452cfb88b05a133243f45765703cbbe146104",
+      "bytes": 19017
+    },
+    {
+      "path": "solosoul_cli/src/commands/template.rs",
+      "sha256": "ed2c08ee422ca9365415723875289cdad12ee2b92746a99a8c46eccac0ad7f95",
+      "bytes": 7433
+    },
+    {
+      "path": "solosoul_cli/src/commands/vault_write.rs",
+      "sha256": "48cb640caca661c289897d9d99a6a8cf4b13bb16abe05b5123fbc30b3bc7a16e",
+      "bytes": 35110
+    },
+    {
+      "path": "tauri/crates/solosoul-core/src/process_lock.rs",
+      "sha256": "48ebf0045f85980ebfc6e0a9ee52d72d2bb394e6f8b12d7107a2362f0d637c34",
+      "bytes": 2694
+    },
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/header-install.bmp",
+      "sha256": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+      "bytes": 25818
+    },
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp",
+      "sha256": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+      "bytes": 25818
+    },
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp",
+      "sha256": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+      "bytes": 154542
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json",
+      "sha256": "d1f8f2db3d8aad53e1b955d3fc640374752db1c302d2f2c22d74e9ed356b428f",
+      "bytes": 61768
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/search-index.json",
+      "sha256": "cd4beaf09aeda37039a6523e6b86d01374dcced507278a1e76d41bd473b4e8fb",
+      "bytes": 252821
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/tauri.properties",
+      "sha256": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+      "bytes": 133
+    },
+    {
+      "path": "tauri/src/hooks/useToastError.ts",
+      "sha256": "f2da44c3ca3fb50e379051ba762b1712ec19dfa21f9321ecaee3f9ef4fa33968",
+      "bytes": 1278
+    },
+    {
+      "path": "tauri/tools/ipc-contract-gen/src/lib.rs",
+      "sha256": "c682c7af5fe3d0432bef16223aa0c1da0370a8e83f5de859d509f6819199ec77",
+      "bytes": 15007
+    },
+    {
+      "path": "tauri/tools/ipc-contract-gen/tests/contracts.rs",
+      "sha256": "9377b9d40c3cd867a70bb0926a617745fca6c037cb9cdbe3a2f6b523c52bd9eb",
+      "bytes": 21982
+    }
+  ],
+  "unchangedOriginalSourceAndDependencies": {
+    "solosoul_cli/Cargo.toml": "bd732f6b7f039efc1f4f2fc58ac4b63dbf5e103b5dc5b1e9770c36008ca35a96",
+    "solosoul_cli/Cargo.lock": "22471a02bc24517dbf100732902287e5908a520c5c0e747b62f83d10cb30b71d",
+    "tauri/Cargo.toml": "2b6bb7efb8c19dcf30d412ace48ab59ff81e3834a023e5fa1e6a366bef4d3430",
+    "tauri/Cargo.lock": "eaecbdecd19fcbeddb9d3d9cf5d216f06e6c56ff32cb84aaeabde21c97d74fd5",
+    "tauri/crates/solosoul-sync/Cargo.toml": "62186d84c63e484cf89c9aefbe548b93e5de1c919ac1ec5698960d1e9f4ab1e6",
+    "tauri/crates/solosoul-sync/src/manager.rs": "e7ca17e5bde2899548bdfef1e959423929381603df8ea02e0db88cf51dc36abf",
+    "tauri/crates/solosoul-sync/src/workers.rs": "b5c672ea2b4f79fd5326c6c1b70e97dc2f8ca53e8f104bc6b8c1e2f9e3cc9dec",
+    "tauri/crates/solosoul-sync/src/session.rs": "d1b7deb6676dedb27790d658ef0ca6cfe5d9b96c3814a72fb2f76c4c022c1513",
+    "tauri/crates/solosoul-core/src/vault_service/session.rs": "88b1243f5e694fb6e4b7c839fe11f8fad5838a218a0af65a6839f25d76cfa698",
+    "solosoul_cli/src/tasks/tests.rs": "938cf6fa53f26179f5c16ba0f6418de85a0447108dfd2f990f8d03cc7ba72d69",
+    "solosoul_cli/src/tasks/rf212_tests.rs": "ad61063c0570ad06c06c46d43167451fe6199b12e03a815ba5fb21940f9f3eb4",
+    "solosoul_cli/src/tasks/rf215_tests.rs": "ea67d8d24747bc997b58771a0697ab3750f6d012218c9339cda41e60a44de17f",
+    "solosoul_cli/src/commands/auth.rs": "c4702ddb15e1d419fb3dbd460dab96c4b0b5c2dfdea04450cc8b6422257c57a0",
+    "solosoul_cli/tests/rf905_ownership.rs": "7e55e4388a598c0175225c5b720f8094d46463c1c771672e3ad7b90a2ef61a7c"
+  },
+  "discipline": {
+    "oneTaskOneCommit": true,
+    "push": false
+  },
+  "compatibility": {
+    "protocolAndSas": "unchanged",
+    "originalTaskTests": "unchanged bytes",
+    "normalAsyncAndNativeBlocking": "old cancellation/commit/shutdown semantics retained",
+    "cooperativeSync": "cancel signal only; actual stop_and_wait and join before terminal/activity release",
+    "session": "original Store/account/generation captured; identity writes and final success under original gate; old events cannot restore page",
+    "partialWrites": "cancel does not rollback sync writes; 30-second grace retained",
+    "pairing": "pending is failure; responder does not persist untrusted peer; initiator retains original untrusted record",
+    "tests": "real TCP/Noise peer, task Future barriers and App key/Tick/event paths; TestBackend rendering",
+    "limits": "local Windows synthetic fixture only; no visible TUI/GUI, other OS, real cross-device run or performance claim",
+    "firstFailures": "all new fixture failures retained; original regressions and product sync protocol/stop semantics not modified"
+  },
+  "finalDocumentationAndScopeCheck": {
+    "newLocalLinks": [
+      {
+        "source": "docs/solosoul_cli/USER_GUIDE.md",
+        "target": "../../solosoul_cli/src/tasks.rs",
+        "exists": true
+      },
+      {
+        "source": "docs/solosoul_cli/USER_GUIDE.md",
+        "target": "../../solosoul_cli/src/util.rs",
+        "exists": true
+      },
+      {
+        "source": "docs/solosoul_cli/USER_GUIDE.md",
+        "target": "../../solosoul_cli/src/commands/sync.rs",
+        "exists": true
+      },
+      {
+        "source": "docs/solosoul_cli/USER_GUIDE.md",
+        "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-213",
+        "exists": true
+      },
+      {
+        "source": "docs/solosoul_cli/USER_GUIDE.md",
+        "target": "../verification/rf213-cli-sync-task-2026-10-01.json",
+        "exists": true
+      },
+      {
+        "source": "docs/design_map/17_设备同步功能设计与实现.md",
+        "target": "../../solosoul_cli/src/commands/sync.rs",
+        "exists": true
+      },
+      {
+        "source": "docs/design_map/17_设备同步功能设计与实现.md",
+        "target": "../../solosoul_cli/src/tasks.rs",
+        "exists": true
+      },
+      {
+        "source": "docs/design_map/17_设备同步功能设计与实现.md",
+        "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-213",
+        "exists": true
+      },
+      {
+        "source": "docs/design_map/17_设备同步功能设计与实现.md",
+        "target": "../verification/rf213-cli-sync-task-2026-10-01.json",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "#rf-213",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "#rf-211",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "#rf-905",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "#rf-211",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "#rf-905",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "verification/rf213-cli-sync-task-2026-10-01.json",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "verification/rf213-cli-sync-task-2026-10-01.json",
+        "exists": true
+      }
+    ],
+    "linkCount": 16,
+    "gitDiffCheckExit": 0,
+    "protected14RawUnchanged": true,
+    "source8Unchanged": true,
+    "indexBeforeEmpty": true,
+    "owned12Exist": true
+  },
+  "finalDocumentationHashes": {
+    "docs/solosoul_cli/USER_GUIDE.md": "bd808a1e1b7032995f77d5ca399f627c5a339865add0dbe4f10bf624d6addacb",
+    "docs/design_map/17_设备同步功能设计与实现.md": "b6157ee0c2e0680d4128eb8872e46fb6529333f7a9d0a7d33fed698e4c0e60ea",
+    "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md": "be6172b37b70889a282427dc488037acfbb47afddc6e25fb851b8acba7bec3a4"
+  }
+}

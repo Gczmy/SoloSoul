@@ -10,11 +10,19 @@ use ratatui::Frame;
 
 use solosoul_sync::types::SyncPeerInfo;
 
-pub fn render(frame: &mut Frame, area: Rect, peers: &[SyncPeerInfo], info: &str, i18n: &I18n) {
+pub(crate) fn render(
+    frame: &mut Frame,
+    area: Rect,
+    peers: &[SyncPeerInfo],
+    info: &str,
+    tasks: &std::collections::HashMap<crate::tasks::TaskId, crate::commands::sync::SyncTask>,
+    i18n: &I18n,
+) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Length(3),
+            Constraint::Length(if tasks.is_empty() { 0 } else { 3 }),
             Constraint::Min(0),
             Constraint::Length(2),
         ])
@@ -33,6 +41,31 @@ pub fn render(frame: &mut Frame, area: Rect, peers: &[SyncPeerInfo], info: &str,
     .block(Block::default().borders(Borders::ALL));
     frame.render_widget(header, chunks[0]);
 
+    let mut lines: Vec<_> = tasks
+        .iter()
+        .map(|(id, task)| {
+            let label = if task.cancelling {
+                "cmd-sync-stage-stopping"
+            } else {
+                match task.stage {
+                    crate::tasks::SyncStage::Starting => "cmd-sync-stage-starting",
+                    crate::tasks::SyncStage::Synchronizing => "cmd-sync-stage-running",
+                    crate::tasks::SyncStage::Stopping => "cmd-sync-stage-stopping",
+                }
+            };
+            Line::from(format!("{}  {}  {}", id.0, task.peer, i18n.t(label)))
+        })
+        .collect();
+    lines.sort_by_key(|line| line.to_string());
+    frame.render_widget(
+        Paragraph::new(lines).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(t!(i18n, "cmd-sync-jobs-title")),
+        ),
+        chunks[1],
+    );
+
     if peers.is_empty() {
         let empty = Paragraph::new(Line::from(vec![
             Span::styled(
@@ -48,16 +81,18 @@ pub fn render(frame: &mut Frame, area: Rect, peers: &[SyncPeerInfo], info: &str,
                 .borders(Borders::ALL)
                 .title(t!(i18n, "sync-peers-title")),
         );
-        frame.render_widget(empty, chunks[1]);
+        frame.render_widget(empty, chunks[2]);
         let hint = Paragraph::new(Line::from(vec![
             Span::styled(
                 t!(i18n, "sync-subcommand-prefix"),
                 Style::default().fg(Color::Cyan),
             ),
             Span::raw(": "),
-            Span::raw("/sync status | /sync with <addr> | /sync trust <id> | /sync forget <id>"),
+            Span::raw(
+                "/sync status | /sync with <addr> | /sync cancel [task-id] | /sync trust <id>",
+            ),
         ]));
-        frame.render_widget(hint, chunks[2]);
+        frame.render_widget(hint, chunks[3]);
         return;
     }
 
@@ -86,7 +121,7 @@ pub fn render(frame: &mut Frame, area: Rect, peers: &[SyncPeerInfo], info: &str,
             .borders(Borders::ALL)
             .title(t!(i18n, "sync-peers-title")),
     );
-    frame.render_widget(list, chunks[1]);
+    frame.render_widget(list, chunks[2]);
 
     let hint = Paragraph::new(Line::from(vec![
         Span::styled(
@@ -98,7 +133,7 @@ pub fn render(frame: &mut Frame, area: Rect, peers: &[SyncPeerInfo], info: &str,
         Span::styled("`/sync trust <id>`", Style::default().fg(Color::Yellow)),
         Span::raw(t!(i18n, "sync-peers-hint-p2")),
     ]));
-    frame.render_widget(hint, chunks[2]);
+    frame.render_widget(hint, chunks[3]);
 }
 
 /// 满足 mod.rs 中 crates 需要的占位函数（真实 render 在 render()）。

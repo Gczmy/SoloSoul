@@ -719,3 +719,16 @@ cmd-import-phase-attachments = Processing attachments
 cmd-import-phase-preferences = Processing preferences
 cmd-import-phase-complete = Complete
 cmd-import-phase-abandoned = Ended
+
+cmd-sync-in-progress = Sync already running; use /sync jobs or /sync cancel.
+cmd-sync-started = Sync started: {$id}. Use /sync jobs to view progress.
+cmd-sync-cancel-usage = Usage: /sync cancel [task-id] (use an active task ID)
+cmd-sync-no-task = No active sync task.
+cmd-sync-cancelling = Cancellation requested; stopping sync.
+cmd-sync-cancelled = Sync cancelled.
+cmd-sync-stage-starting = Starting
+cmd-sync-stage-running = Synchronizing
+cmd-sync-stage-stopping = Stopping
+cmd-sync-jobs-title = Sync tasks
+cmd-sync-with-success = Sync with {$peer} completed: {$summary}
+cmd-sync-with-failure = Sync with {$peer} failed: {$err}

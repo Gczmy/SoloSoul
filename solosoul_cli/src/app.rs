@@ -386,6 +386,7 @@ pub struct App {
     pub(crate) embed_downloads: HashMap<String, commands::embed_model::EmbedDownload>,
     pub(crate) plugin_installs: HashMap<String, commands::plugin::PluginInstallTask>,
     pub(crate) ocr_tasks: HashMap<TaskId, commands::ocr::OcrTask>,
+    pub(crate) sync_tasks: HashMap<TaskId, commands::sync::SyncTask>,
     pub(crate) last_ocr_result: Option<AppPhase>,
     pub(crate) ocr_session: Option<solosoul_core::VaultSession>,
     /// 插件既有全局根可不同于 --data-dir；同 App 显式保留并复用其 owner。
@@ -464,6 +465,7 @@ impl App {
             embed_downloads: HashMap::new(),
             plugin_installs: HashMap::new(),
             ocr_tasks: HashMap::new(),
+            sync_tasks: HashMap::new(),
             last_ocr_result: None,
             ocr_session: None,
             plugin_root_owner: std::sync::Mutex::new(None),
@@ -828,6 +830,7 @@ impl App {
         self.embed_downloads.clear();
         self.plugin_installs.clear();
         self.ocr_tasks.clear();
+        self.sync_tasks.clear();
         self.last_ocr_result = None;
         self.ocr_session = None;
     }
@@ -840,6 +843,7 @@ impl App {
             self.embed_downloads.retain(|_, task| task.task_id != id);
             self.plugin_installs.retain(|_, task| task.task_id != id);
             self.ocr_tasks.remove(&id);
+            self.sync_tasks.remove(&id);
         }
         for event in self.tasks.poll_events(limit) {
             self.handle_event(crate::events::Event::Task(event))?;
@@ -873,6 +877,7 @@ impl App {
             .iter()
             .find(|(_, install)| install.task_id == id)
             .map(|(plugin, install)| (plugin.clone(), install.updated));
+        let sync_peer = self.sync_tasks.get(&id).map(|task| task.peer.clone());
         let ocr_result = match &event.kind {
             TaskEventKind::Completed(TaskOutput::OcrCompleted {
                 result_json,
@@ -882,6 +887,7 @@ impl App {
             _ => None,
         };
         let Self {
+            sync_tasks,
             ocr_tasks,
             last_ocr_result,
             tasks,
@@ -914,6 +920,25 @@ impl App {
                     } else {
                         *error_message = Some(t!(i18n, "ocr-invalid-result"));
                     }
+                }
+            }
+            TaskEventKind::SyncProgress(stage) => {
+                if let Some(task) = sync_tasks.get_mut(&id) {
+                    task.stage = stage;
+                }
+            }
+            TaskEventKind::Completed(TaskOutput::SyncCompleted { peer, summary }) => {
+                if sync_peer.as_deref() == Some(peer.as_str()) {
+                    sync_tasks.remove(&id);
+                    *success_message = Some((
+                        t!(
+                            i18n,
+                            "cmd-sync-with-success",
+                            peer = peer,
+                            summary = summary
+                        ),
+                        Instant::now(),
+                    ));
                 }
             }
             TaskEventKind::Progress { current, total } => {
@@ -1010,11 +1035,18 @@ impl App {
                         },
                         &[("id", plugin), ("err", &error)],
                     ));
+                } else if let Some(peer) = sync_peer.as_ref() {
+                    sync_tasks.remove(&id);
+                    *error_message =
+                        Some(t!(i18n, "cmd-sync-with-failure", peer = peer, err = error));
                 } else {
                     *error_message = Some(error);
                 }
             }
             TaskEventKind::Cancelled => {
+                if sync_tasks.remove(&id).is_some() {
+                    *info_message = Some(t!(i18n, "cmd-sync-cancelled"));
+                }
                 task_progress.remove(&id);
                 if ocr_tasks.remove(&id).is_some() {
                     *info_message = Some(t!(i18n, "ocr-cancelled"));
@@ -1033,6 +1065,7 @@ impl App {
             embed_downloads.retain(|_, task| task.task_id != id);
             plugin_installs.retain(|_, task| task.task_id != id);
             ocr_tasks.remove(&id);
+            sync_tasks.remove(&id);
         }
     }
 
@@ -1043,6 +1076,7 @@ impl App {
         self.embed_downloads.clear();
         self.plugin_installs.clear();
         self.ocr_tasks.clear();
+        self.sync_tasks.clear();
         self.last_ocr_result = None;
         self.ocr_session = None;
         self.plugin_run_pending = None;
@@ -3388,9 +3422,14 @@ impl App {
                 crate::screens::plugin_detail::render(frame, area, manifest, &self.i18n)
             }
 
-            AppPhase::SyncStatus { peers, info } => {
-                crate::screens::sync_status::render(frame, area, peers, info, &self.i18n)
-            }
+            AppPhase::SyncStatus { peers, info } => crate::screens::sync_status::render(
+                frame,
+                area,
+                peers,
+                info,
+                &self.sync_tasks,
+                &self.i18n,
+            ),
 
             AppPhase::OcrTasks => {
                 crate::screens::ocr_result::render_tasks(frame, area, &self.ocr_tasks, &self.i18n)
