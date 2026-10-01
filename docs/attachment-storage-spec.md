@@ -57,6 +57,7 @@ Android 导入有 Kotlin 明文复制到 Rust 加密替换之间的窗口；复�
 | 2026-09-28 | 按当前源码区分新密文、旧明文兼容、有限迁移与临时明文，撤回全部明文/全部自动升级的概括 | RF-313 |
 | 2026-09-30 | 云全量快照显式收集未删除附件；保留手动空选择、原加密/大小限制与其他待办边界 | RF-014 |
 | 2026-09-30 | 元数据与本机清理意图原子提交，失败保留明确重试；GUI/CLI 区分接受与物理完成 | RF-016 |
+| 2026-10-01 | 原会话维护窗口、完整恢复引用与非空密文归属认证保护孤儿扫描，按实际unlink计数 | RF-903 |
 
 ## 8. 永久删除的提交与文件清理（RF-016）
 
@@ -66,7 +67,7 @@ GUI 单删、同对象批删和 CLI 永久删除统一使用清理意图执行�
 
 GUI 派发阻塞 worker 前、CLI 打开确认框前捕获会话。元数据提交后文件失败不回滚已接受的删除；GUI 仍触发同步并返回 `attachment_cleanup_pending`，显示“记录已删除，文件清理待重试”，重新加载已变更的元数据。CLI 同样区分完成与 pending，不能显示物理清理已完成。GUI 解锁维护和 CLI 进入解锁首页重试明确许可；CLI 手动清理若仍有 pending，不交给宽松孤儿扫描绕过保护。
 
-显式永久删除不承诺历史快照能恢复已删除的实体，也不等同安全擦除存储介质。逐节点拒绝 symlink/junction/reparse、核对规范目录并在动作前复核；不承诺防住同用户外部进程在检查后替换路径。桌面同 canonical root 的协作式目录排他与在途附件 activity 由 RF-905 接入；RF-903 的旧未标记附件归属扫描仍未实现。所有权和维护范围见 §10。验证状态见 [RF-016](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-016)。
+显式永久删除不承诺历史快照能恢复已删除的实体，也不等同安全擦除存储介质。逐节点拒绝 symlink/junction/reparse、核对规范目录并在动作前复核；不承诺防住同用户外部进程在检查后替换路径。桌面同 canonical root 的协作式目录排他与在途附件 activity 由 RF-905 接入；旧未标记附件的归属扫描由 RF-903 处理，实施边界与当前验收见 §11。所有权和维护范围见 §10。验证状态见 [RF-016](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-016)。
 
 GUI 异步删除及列表刷新还校验原会话、组件生命周期与每次对象切换代次；工作区父计数回调先拒绝旧页面身份，避免取消新列表请求（RF-1065）。本机 Windows 的 43 项原生故障回归、完整 Rust workspace 与 CLI、前端检查均通过；Unix 专属 symlink 场景未在此机运行，未计作通过。原生界面与多端实测没有由 Hook 测试代替。详见 [RF-016 验证记录](verification/rf016-recoverable-attachment-deletion-2026-09-30.json)。
 
@@ -78,7 +79,7 @@ GUI 异步删除及列表刷新还校验原会话、组件生命周期与每次�
 
 同一任务的实际已落盘文件数与已激活附件数分开；发布成功但阶段 SQL 失败可报告文件已写，仍不能宣称元数据关联完成。同一 ID Complete 返回原任务结果，不复活之后删除的附件。Recovery 只有全部 source-dependent 加密材料 ready 才接纳业务提交；准备失败不承诺失去随机口令后还能按原 ID 恢复。
 
-marker/sidecar 目录不进入宽松旧孤儿扫描。受控删除重载 authenticated journal 与全部当前/软删除对象引用；未知、坏标记、foreign root/account 或 pending 操作保全。RF-905 在桌面以同 canonical Native root 的 OS 锁协调独立 GUI/CLI 实例，并以 owner/activity 保留本机实际任务生命周期。存在任何本项 journal 的目录迁移仍拒绝，SAF 失效保留原 cache root；不将目录锁等同于 journal relocation。旧未标记文件归属由 RF-903 后续处理，完整 relocation 另需专门协议。
+marker/sidecar 目录不进入宽松旧孤儿扫描。受控删除重载 authenticated journal 与全部当前/软删除对象引用；未知、坏标记、foreign root/account 或 pending 操作保全。RF-905 在桌面以同 canonical Native root 的 OS 锁协调独立 GUI/CLI 实例，并以 owner/activity 保留本机实际任务生命周期。存在任何本项 journal 的目录迁移仍拒绝，SAF 失效保留原 cache root；不将目录锁等同于 journal relocation。旧未标记文件归属见 §11，完整 relocation 另需专门协议。
 
 本机 SQLite/加密包、实际 child checkpoint 重开和前端模拟证据分别登记。未在 Android 真实设备运行 SAF/目录切换/文件选择器或多端原生界面，不将 Windows Rust 或 Hook 测试写成这些验证通过。六项既有平台/CI条件保持，验证状态见 [RF-022](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-022)。
 
@@ -95,3 +96,19 @@ GUI 附件复制、解密下载、系统打开/分享和清理 worker 在派发�
 改密/KDF 升级、删除账户和目录替换先取得维护 guard，阻止新 activity，并以 `disable_and_wait`/`stop_and_wait` 等待旧同步 worker 真实退出并回收其持有的 Store 句柄；原 guard 借给 Core 维护主体，不能另叠 activity 或在排队后重新选择新服务。仍有在途 activity 时拒绝维护并稍后重试。存在任意 RF-022 journal 的目录迁移仍拒绝，SAF 失效保留原 cache；广泛未标记附件扫描与完整 relocation 未在 RF-905 实现。
 
 Android/iOS 的 OS 文件锁为 no-op；本机 activity/maintenance gate 不代表远端 SAF provider 被排他锁定。实际执行命令、源码 SHA 与本机 Windows 结果以 [RF-905 验证记录](verification/rf905-root-ownership-2026-10-01.json) 为准；未执行平台、Android 真机 SAF、可见 GUI 操作和 release 透明 KDF 升级不从 Windows 原生或模拟测试推断通过。RF-016/RF-022 的六项既有平台/CI 条件和各自验证边界保持，任务状态由执行报告验收。
+
+## 11. 原会话内的孤儿附件清理（RF-903）
+
+调用方先捕获原 `VaultSession`，[Core 清理入口](../tauri/crates/solosoul-core/src/orphan_cleanup.rs) 校验该会话并取得同一 Native root 的排他维护 guard；调用方已持有 guard 时显式借用，不能叠加普通 activity。CLI `/attach cleanup` 先在同一窗口重试 RF-016 的明确删除意图，仍有 pending 就停止，不借孤儿扫描绕过原许可。可信附件写入在派发前持有 activity，所以文件已发布而元数据尚未提交时无法同时进入清理。
+
+[引用视图](../tauri/crates/solosoul-vault/src/storage/attachment_references.rs) 逐行扫描当前账户的全部当前/软删除对象、对象与页面回收站、全部历史、数据库 Profile、可重新应用的未决同步冲突，以及 RF-022 的加密 journal/steps。没有 UI 分页截断；坏密文、非空坏 JSON、重复字段、未知恢复编码或单行超限均拒绝清理，不降级为空引用。真实 writer 的空 property labels、空 Profile 与旧冲突缺失历史哨兵按各自已知格式处理，不扩大为任意坏数据兼容。附件 ID 与 `vaultPath/srcPath` 等字面别名都用于保守保护；引用路径不授权删除位置。此处的 Profile 是数据库内数据。当前 `backups/*.solosoul_backup` 的恢复入口仅解码并保存 Profile，不重建 Object/附件实体；本扫描未把这些备份文件或任意位置的旧 metadata-only 导出包作为可重新应用的对象附件源，不承诺其中旧路径永久可用。
+
+只有当前附件密钥完整认证的非空 SOLC v2 候选可进入删除。认证冻结真实打开句柄、头、分块数及长度，按固定大小分块读取并擦除明文缓冲；历史明文、SOLC v1、零分块、错误密钥、损坏、尾部追加、未知文件和混合目录均保留。未知归属不能由文件名、伪头或空目录推断为当前账户。已知 import marker/sidecar 只认可两个精确位置和已认证终态 journal；其他同名文件仍按附件载荷认证。
+
+最终动作在原会话门闩及 SQLite Immediate 引用 guard 内复核完整数据库视图、引用、root/目录身份及文件身份。真实文件句柄身份用于比较，拒绝 symlink/junction/reparse 和多 hardlink；不以字符串路径或时间戳代替身份。候选变化或占用失败保留未删除部分；会话失效、根目录或数据库视图变化停止整轮，不迁移到新账户继续执行。文件动作之后没有新的可失败 SQL 提交步骤，已发生的删除不会因后续数据库错误丢失计数。
+
+结果的 `removed` 仅计完整移除的附件目录，`files_removed/freed_bytes` 仅计实际成功 unlink 的普通文件，含已验证控制文件；部分删除失败也保留真实已移除数。字节数是逻辑文件长度，不代表磁盘分配量或安全擦除。`preserved/failed` 和整轮停止码区分保留与失败，CLI 有失败时显示未全部完成或已停止。
+
+上述检查与排他协议不能保证任意同用户外部进程在系统调用间恶意改写的原子安全。移动 OS 锁及 SAF 的边界沿用 §10。本项当前验证状态以 [RF-903 执行报告](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-903) 为准，未执行的平台不计作通过。
+
+本机 Windows 正式 R **1738通过/0失败/3原有忽略**、CLI **323通过/0失败/2原有忽略**，fmt与Clippy均通过；完整来源、原Host断言保全、失败修正及精确SHA见 [RF-903验证记录](verification/rf903-owned-recoverable-attachment-cleanup-2026-10-01.json)。新Windows目录替换在后代打开前真实执行；认证后实际重命名被身份pins阻止并保持正常清理。Unix认证后目录替换与symlink测试保留但本机未运行，不计作通过。

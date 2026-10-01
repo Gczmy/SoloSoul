@@ -104,7 +104,9 @@ RF-008：CLI 与 GUI 共用回滚用例。对象保存后分别尝试回滚历�
 - `delete <obj_id> <aid>` —— 软删除
 - `restore <obj_id> <aid>` —— 恢复
 - `purge <obj_id> <aid>`  —— 永久删除
-- `cleanup <obj_id>`      —— 清理已永久删除项
+- `cleanup`               —— 重试当前账户删除意图并清理可证明归属的孤儿附件
+
+`/attach cleanup` 需要解锁，无对象 ID 参数。清理在同一 root 的维护窗口内执行：有附件写入等在途 activity 时拒绝并可稍后重试；明确删除意图仍 pending 时停止。孤儿扫描保护当前/软删除对象、回收站、历史、数据库 Profile、未决同步冲突和导入恢复引用；无法完整认证、归属不明或仍被引用的文件保留。结果显示完整移除目录数、实际移除逻辑字节、保留数和失败数；失败或整轮停止不会显示整体完成。细节与验证状态见 [附件规范 §11](../attachment-storage-spec.md#11-原会话内的孤儿附件清理rf-903)。
 
 ### 4.6 备份
 
@@ -117,6 +119,8 @@ RF-008：CLI 与 GUI 共用回滚用例。对象保存后分别尝试回滚历�
 CLI 可恢复 GUI 2.0 的 `data_b64` 和旧版 `data` 字节数组备份。两者同时存在时优先非空 `data_b64`，空字符串回退到 `data`；显式空字符串或空数组可表示空数据，缺失两种数据则拒绝恢复。全部 Profile 解码成功后才开始写入，非法 Base64 不会回退为旧数组或空内容，也不会因后续条目解码失败而提前覆盖已有 Profile；空 `profiles` 清单仍可恢复（RF-011）。
 
 GUI 和 CLI 已共用备份编解码规则（RF-013），CLI 创建仍为 2.0/字节数组，GUI 创建仍为 2.0/Base64。恢复接受字符串版本 1.0/2.0 的同结构清单；版本、创建时间、声明数量和条目列表必须存在，声明数量必须正确。未知版本、缺少清单头或数量不符会在写入前报错。恢复保留原 Profile ID 和未出现在清单中的记录，不会把其他 Profile 自动切换为当前主 Profile；旧格式的逐条数据库保存方式保持不变。
+
+当前备份恢复仅保存 Profile，不重建对象和附件实体。`/attach cleanup` 保护数据库内的恢复引用，未扫描 `backups/*.solosoul_backup` 文件；metadata-only 包中旧附件路径不保证因保留包文件而永久可用。
 
 ### 4.7 加密导出/导入
 
@@ -257,7 +261,7 @@ GUI 和 CLI 已共用备份编解码规则（RF-013），CLI 创建仍为 2.0/�
 
 状态栏、About 和 `/doctor` 查询当前服务已有的 owner，不再次获取锁。`/logout`、`/lock` 和五分钟自动锁定使会话失效；服务、Store、Session、FS 克隆、真正后台 worker 和实际日志 writer 保留 owner 至各自 Drop。只有最后一个 owner 句柄释放，桌面 OS 锁才关闭；关闭会话或取消任务等待不表示锁已释放。
 
-后台任务派发前取得 activity，真实 worker 完成后才释放。改密、主密码解锁升级、删除账户和目录替换需要同一 root 的维护 guard；已有活动时拒绝并稍后重试。同步维护通过 `stop_and_wait` 等待旧句柄退出，不能仅请求 abort 就继续改密。存在 RF-022 journal 的目录仍拒绝迁移；完整 relocation 和 RF-903 旧未标记附件清理未在本项实现。
+后台任务派发前取得 activity，真实 worker 完成后才释放。改密、主密码解锁升级、删除账户和目录替换需要同一 root 的维护 guard；已有活动时拒绝并稍后重试。同步维护通过 `stop_and_wait` 等待旧句柄退出，不能仅请求 abort 就继续改密。存在 RF-022 journal 的目录仍拒绝迁移；完整 relocation 仍需专门协议；RF-903 旧未标记附件清理见第4.5节和附件规范 §11。
 
 上述 OS 排他锁适用于遵守协议且声明同一 canonical root 的桌面实例。Android/iOS 的文件锁为 no-op，本机准入 gate 不能锁住远端 SAF provider。实际命令、源码 SHA 与本机 Windows 结果以 [RF-905 验证记录](../verification/rf905-root-ownership-2026-10-01.json) 为准；不据此宣称其他平台、可见 GUI 流程或 release 透明 KDF 升级已实测。
 

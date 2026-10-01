@@ -323,6 +323,9 @@ pub use storage::sensitivity_rank;
 pub use storage::AttachmentCleanupIntent;
 pub use storage::VaultStore;
 pub use storage::{
+    AttachmentReferenceCandidate, AttachmentReferenceStats, AttachmentReferenceView,
+};
+pub use storage::{
     ImportAttachmentOwnerPlan, ImportAttachmentPhase, ImportAttachmentStep,
     ImportAttachmentStepPlan, ImportBatchError, ImportBatchRevision, ImportCiphertextProof,
     ImportDatabaseBatch, ImportDatabaseCommit, ImportHistoryChange, ImportObjectWrite,

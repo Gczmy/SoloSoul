@@ -18,6 +18,7 @@ pub mod export_import;
 pub mod import_activity;
 pub mod llm;
 pub mod objects;
+pub mod orphan_cleanup;
 pub mod path_util;
 pub mod pin;
 pub mod process_lock;

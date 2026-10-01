@@ -930,123 +930,7 @@ pub fn purge_attachment(
     Ok(())
 }
 
-/// 清理孤立附件文件（无元数据引用的附件）。
-pub fn cleanup_orphan_attachments(
-    vault: &VaultStore,
-    account_id: &str,
-    base_path: &Path,
-) -> Result<(usize, u64), String> {
-    let active_ids = load_all_referenced_attachment_ids(vault, account_id)?;
-    let base_dir = base_path.join("attachments");
-
-    if !base_dir.exists() {
-        return Ok((0, 0));
-    }
-
-    let mut removed = 0usize;
-    let mut total_freed = 0u64;
-
-    if let Ok(object_entries) = std::fs::read_dir(&base_dir) {
-        for obj_entry in object_entries.flatten() {
-            let obj_path = obj_entry.path();
-            if !obj_path.is_dir() {
-                continue;
-            }
-            if let Ok(att_entries) = std::fs::read_dir(&obj_path) {
-                for att_entry in att_entries.flatten() {
-                    let att_path = att_entry.path();
-                    let att_id = att_entry.file_name().to_string_lossy().to_string();
-                    // Sidecars are files, and symlink directories never authorize recursive deletion.
-                    if !att_entry.file_type().is_ok_and(|kind| kind.is_dir()) {
-                        continue;
-                    }
-                    let marker_path =
-                        att_path.join(crate::export_import::operation::IMPORT_OWNER_MARKER);
-                    let sidecar = obj_path.join(format!("{att_id}.import-owner"));
-                    if marker_path.exists() || sidecar.exists() {
-                        let marker = if marker_path.exists() {
-                            crate::export_import::operation::import_owner_marker_identity(&att_path)
-                        } else {
-                            let meta = std::fs::symlink_metadata(&sidecar).ok();
-                            if meta.is_some_and(|meta| {
-                                meta.is_file()
-                                    && !meta.file_type().is_symlink()
-                                    && meta.len() <= 4096
-                            }) {
-                                std::fs::File::open(&sidecar).ok().and_then(|file| {
-                                    serde_json::from_reader::<
-                                        _,
-                                        solosoul_vault::ImportOwnedAttachmentMarker,
-                                    >(file)
-                                    .ok()
-                                })
-                            } else {
-                                None
-                            }
-                        };
-                        // Unknown/malformed/foreign markers are preserved instead of entering legacy cleanup.
-                        let Some(marker) = marker else {
-                            continue;
-                        };
-                        if marker.owner_id != obj_entry.file_name().to_string_lossy()
-                            || marker.attachment_id != att_id
-                        {
-                            continue;
-                        }
-                        let bytes = att_path.metadata().map(|meta| meta.len()).unwrap_or(0);
-                        if vault
-                            .with_import_orphan_delete_guard(account_id, &marker, || {
-                                let root = base_dir
-                                    .canonicalize()
-                                    .map_err(|_| "attachment_cleanup_path_changed")?;
-                                let path = att_path
-                                    .canonicalize()
-                                    .map_err(|_| "attachment_cleanup_path_changed")?;
-                                if !path.starts_with(&root)
-                                    || std::fs::symlink_metadata(&att_path)
-                                        .map_err(|_| "attachment_cleanup_path_changed")?
-                                        .file_type()
-                                        .is_symlink()
-                                {
-                                    return Err("attachment_cleanup_path_changed".into());
-                                }
-                                std::fs::remove_dir_all(&att_path)
-                                    .map_err(|_| "attachment_cleanup_failed".to_string())
-                            })?
-                            .is_some()
-                        {
-                            total_freed += bytes;
-                            removed += 1;
-                        }
-                        continue;
-                    }
-                    if !active_ids.contains(&att_id) {
-                        if let Ok(meta) = att_path.metadata() {
-                            total_freed += meta.len();
-                        }
-                        let _ = std::fs::remove_dir_all(&att_path);
-                        removed += 1;
-                    }
-                }
-            }
-            // 删除空对象目录
-            if std::fs::read_dir(&obj_path).is_ok_and(|mut d| d.next().is_none()) {
-                let _ = std::fs::remove_dir(&obj_path);
-            }
-        }
-    }
-
-    let _ = vault.log_structured(
-        "attachment_cleanup",
-        "attachment",
-        None,
-        None,
-        "system",
-        Some(&format!("removed={} freed={}", removed, total_freed)),
-    );
-
-    Ok((removed, total_freed))
-}
+// 广泛孤儿清理由 orphan_cleanup 模块统一提供原会话与排他维护入口。
 
 // ── Internal helpers ───────────────────────────────────────
 
@@ -1144,7 +1028,7 @@ fn infer_mime_type(file_name: &str) -> String {
 }
 
 /// P017：跨 crate 共享——收集全部对象 `__attachments` 引用的附件 ID 集合。
-/// GUI 附件孤儿清理（attachment_cleanup_orphans）与 CLI 清理共用此实现，
+/// 只读取当前存活对象的引用，用于显示/只读查询，不能作为孤儿删除授权；
 /// 消除 solo_soul 侧的 test-only 重复版。
 pub fn load_all_referenced_attachment_ids(
     vault: &VaultStore,

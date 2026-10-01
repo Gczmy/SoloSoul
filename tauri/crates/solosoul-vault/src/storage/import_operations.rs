@@ -337,7 +337,7 @@ impl From<&ImportOperationRecord> for OperationProgress {
         }
     }
 }
-fn load_tx(
+pub(super) fn load_tx(
     conn: &Connection,
     key: &DataEncryptionKey,
     account: &str,

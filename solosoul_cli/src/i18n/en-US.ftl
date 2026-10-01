@@ -626,7 +626,9 @@ cmd-provide-file-path = Please provide a file path, e.g. /attach add /path/to/fi
 cmd-provide-attachment-id-example = Please provide an attachment ID, e.g. /attach rename att_xxx new.pdf
 cmd-prompt-soft-delete-attachment = Soft delete attachment '{$id}'? Can be restored from trash.
 cmd-prompt-purge-attachment = Permanently delete attachment '{$id}'? This cannot be undone.
-cmd-cleanup-result = Cleanup complete: removed {$count} orphan attachments, freed {$bytes} bytes
+cmd-cleanup-result = Removed {$count} orphaned attachment directories, freed {$bytes} bytes; preserved {$preserved}, failed {$failed}
+cmd-cleanup-incomplete = Cleanup incomplete: {$result}. Items not cleaned were kept; try again later.
+cmd-cleanup-interrupted = Cleanup stopped: {$result}. Remaining items were kept.
 cmd-prompt-restore-backup =
  Confirm restore backup '{$id}'?
  Created: {$date}

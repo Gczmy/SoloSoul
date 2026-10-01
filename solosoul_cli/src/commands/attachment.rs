@@ -13,6 +13,9 @@ use crate::t;
 
 /// 命令入口。
 pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
+    if args.first() == Some(&"cleanup") {
+        app.success_message = None;
+    }
     let _account_id = require_unlocked_with_vault(app)?;
     match args.first().copied() {
         None | Some("help") => {
@@ -349,9 +352,8 @@ fn purge(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
 }
 
 fn cleanup(app: &mut App) -> Result<()> {
-    let (account_id, vault) = require_unlocked_with_vault(app)?;
-    let base = app.vault_service.base_path().to_path_buf();
-
+    let (account_id, _) = require_unlocked_with_vault(app)?;
+    app.success_message = None;
     let session = match app.vault_service.capture_session(&account_id) {
         Ok(session) => session,
         Err(error) => {
@@ -359,12 +361,21 @@ fn cleanup(app: &mut App) -> Result<()> {
             return Ok(());
         }
     };
+    // 原根在实际同步动作开始前取得维护证；不经普通 activity capsule 再取维护。
+    let maintenance =
+        match solosoul_core::import_activity::begin_owned_root_maintenance(session.root_owner()) {
+            Ok(maintenance) => maintenance,
+            Err(error) => {
+                app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error));
+                return Ok(());
+            }
+        };
     match solosoul_core::attachment_cleanup::retry_attachment_cleanup_for_session(
         &app.vault_service,
         &session,
     ) {
         Ok(report) if report.pending > 0 => {
-            // 未完成意图不得再交给宽松孤儿扫描；保留其引用/路径保护和重试状态。
+            // 未完成意图仍不进入 orphan 扫描；两次动作借同一维护证，不嵌普通 activity。
             app.error_message = Some(t!(
                 app.i18n,
                 "attachment-cleanup-pending",
@@ -378,22 +389,31 @@ fn cleanup(app: &mut App) -> Result<()> {
         }
         Ok(_) => {}
     }
-    match app.vault_service.with_session(&session, |_| {
-        objects::cleanup_orphan_attachments(&vault, &account_id, &base)
-    }) {
-        Ok((removed, freed)) => {
-            app.success_message = Some((
-                t!(
-                    app.i18n,
-                    "cmd-cleanup-result",
-                    count = removed.to_string(),
-                    bytes = freed.to_string()
-                ),
-                Instant::now(),
-            ));
+    match solosoul_core::orphan_cleanup::cleanup_orphan_attachments_with_maintenance(
+        &app.vault_service,
+        &session,
+        &maintenance,
+    ) {
+        Ok(report) => {
+            let result = t!(
+                app.i18n,
+                "cmd-cleanup-result",
+                count = report.removed.to_string(),
+                bytes = report.freed_bytes.to_string(),
+                preserved = report.preserved.to_string(),
+                failed = report.failed.to_string()
+            );
+            if report.failure_code.is_some() {
+                app.error_message = Some(t!(app.i18n, "cmd-cleanup-interrupted", result = result));
+            } else if report.failed > 0 {
+                app.error_message = Some(t!(app.i18n, "cmd-cleanup-incomplete", result = result));
+            } else {
+                app.error_message = None;
+                app.success_message = Some((result, Instant::now()));
+            }
         }
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
+        Err(error) => {
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error));
         }
     }
     Ok(())
@@ -456,3 +476,6 @@ pub(crate) fn retry_pending_cleanup(app: &mut App, account_id: &str) {
 
 #[cfg(test)]
 pub(crate) mod rf016_tests;
+
+#[cfg(test)]
+mod rf903_tests;

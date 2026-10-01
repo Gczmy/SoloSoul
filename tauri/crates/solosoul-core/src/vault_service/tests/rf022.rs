@@ -294,13 +294,12 @@ fn rf022_completed_global_import_rekeys_real_ciphertext_and_encrypted_journal_pr
     assert_eq!(record.phase, solosoul_vault::ImportOperationPhase::Complete);
     assert_eq!(record.attachment_count, 1);
     assert_eq!(
-        crate::objects::cleanup_orphan_attachments(
-            &fresh.get_vault_store().unwrap(),
-            &account,
-            fresh.base_path()
+        crate::orphan_cleanup::cleanup_orphan_attachments_for_session(
+            &fresh,
+            &fresh.capture_session(&account).unwrap()
         )
         .unwrap()
-        .0,
+        .removed,
         0
     );
     assert!(published.file.exists());
@@ -321,18 +320,24 @@ fn rf022_orphan_scanner_preserves_pending_and_bad_markers_and_deletes_only_aband
     )
     .unwrap();
     assert_eq!(
-        crate::objects::cleanup_orphan_attachments(&vault, &account, svc.base_path())
-            .unwrap()
-            .0,
+        crate::orphan_cleanup::cleanup_orphan_attachments_for_session(
+            &svc,
+            &svc.capture_session(&account).unwrap()
+        )
+        .unwrap()
+        .removed,
         0
     );
     assert!(published.file.exists());
     assert!(bad.exists());
     vault.abandon_import_operation(&published.lease).unwrap();
     assert_eq!(
-        crate::objects::cleanup_orphan_attachments(&vault, &account, svc.base_path())
-            .unwrap()
-            .0,
+        crate::orphan_cleanup::cleanup_orphan_attachments_for_session(
+            &svc,
+            &svc.capture_session(&account).unwrap()
+        )
+        .unwrap()
+        .removed,
         1
     );
     assert!(!published.directory.exists());

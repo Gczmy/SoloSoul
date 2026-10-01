@@ -15,6 +15,10 @@ use crate::{VaultConfig, VaultState, VaultStats};
 // 后续 sync_changes / sync_apply / metadata / templates 等域按此模式拆分：
 // 方法体逐行搬运到 src/storage/<domain>.rs 的 `impl VaultStore { .. }`，
 // 跨域被根模块调用的私有助手提升为 `pub(crate)`，其余保持私有。
+mod attachment_references;
+pub use attachment_references::{
+    AttachmentReferenceCandidate, AttachmentReferenceStats, AttachmentReferenceView,
+};
 mod attachment_cleanup;
 pub use attachment_cleanup::AttachmentCleanupIntent;
 mod import_operations;

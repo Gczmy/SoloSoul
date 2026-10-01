@@ -5,6 +5,12 @@ use aes_gcm::{
 use std::io::{Read, Write};
 use zeroize::Zeroizing;
 
+mod ownership;
+pub use ownership::{
+    authenticate_nonempty_chunked_v2_stream, AuthenticatedChunkedV2, ChunkedOwnership,
+    ChunkedOwnershipRetention,
+};
+
 /// 加密后的数据格式：nonce (12 bytes) || ciphertext || tag (16 bytes)
 pub struct EncryptedData {
     pub nonce: [u8; 12],

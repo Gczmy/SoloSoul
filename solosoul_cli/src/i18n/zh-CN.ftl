@@ -626,7 +626,9 @@ cmd-provide-file-path = 请提供文件路径，例如 /attach add /path/to/file
 cmd-provide-attachment-id-example = 请提供附件 ID，例如 /attach rename att_xxx new.pdf
 cmd-prompt-soft-delete-attachment = 软删除附件 '{$id}'？可在回收站恢复。
 cmd-prompt-purge-attachment = 彻底删除附件 '{$id}'？此操作不可恢复。
-cmd-cleanup-result = 清理完成：移除 {$count} 个孤立附件，释放 {$bytes} 字节
+cmd-cleanup-result = 移除 {$count} 个孤立附件目录，释放 {$bytes} 字节；保留 {$preserved} 个，失败 {$failed} 个
+cmd-cleanup-incomplete = 清理未全部完成：{$result}。未清理的项目已保留，可稍后重试。
+cmd-cleanup-interrupted = 清理已停止：{$result}。剩余项目已保留。
 cmd-prompt-restore-backup =
  确认恢复备份 '{$id}'？
  创建时间: {$date}
