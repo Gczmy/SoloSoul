@@ -208,109 +208,32 @@ pub async fn export_estimate_size(
     scope: ExportScope,
 ) -> Result<ExportEstimate, String> {
     let vault = vault_handle(&state)?;
-
-    let records = collect_scope_objects(&vault, &account_id, &scope)?;
-    let count = records.len();
-
-    // 与导出执行（export_execute）共用同一收集逻辑，
-    // 保证「导出前展示的模板清单」与最终包内 templates 一致
-    let templates = collect_export_templates(&vault, &account_id, &scope, &records)?;
-    let template_count = templates.len();
-    let template_names: Vec<String> = templates.iter().map(|t| t.name.clone()).collect();
-    // P003: 对象 payload 体积用纯 SQL SUM(LENGTH(properties)) 估算（不解密、不重新序列化）；
-    // 密文长度略大于明文（AES-GCM tag/nonce），加上 name 长度与固定开销更贴近导出包实际体积。
-    let ids: Vec<String> = records.iter().map(|r| r.id.clone()).collect();
-    let props_bytes = vault.objects_size_batch(&ids).unwrap_or(0);
-    let name_bytes: u64 = records.iter().map(|r| r.name.len() as u64).sum();
-    let mut estimated_bytes: u64 = props_bytes + name_bytes + (records.len() as u64 * 256);
-
-    // RF-015：入口仅适配一次；可用附件与实际选中附件保持独立统计。
-    let attachment_scope = scope.attachment_export_scope();
-    let (attachment_count, attachment_selected_count, attachment_bytes) =
-        estimate_attachments(&records, &attachment_scope);
-    estimated_bytes += attachment_bytes;
-
-    // Estimate snapshots payload（历史记录，恢复包保证历史数量一致）
-    // 按实际加密后字节数估算（snapshots_size_batch 为 LENGTH(data) 之和），
-    // base64 编码后再膨胀约 1/3，此处按 1.4x 折算。
-    if !records.is_empty() {
-        let ids: Vec<String> = records.iter().map(|r| r.id.clone()).collect();
-        if let Ok(bytes) = vault.snapshots_size_batch(&ids) {
-            estimated_bytes += (bytes as f64 * 1.4) as u64;
-        }
-    }
-
-    // Estimate preferences payload
-    if scope.include_preferences {
-        estimated_bytes += 4096; // rough guess
-    }
-
-    // Estimate behavioral data (audit log)
-    if scope.include_behavioral {
-        if let Ok(logs) = vault.list_audit_log(MAX_AUDIT_LOG_EXPORT) {
-            let log_json = serde_json::to_vec(&logs).unwrap_or_default();
-            estimated_bytes += log_json.len() as u64;
-        }
-    }
-
+    let e = solosoul_core::export_import::export::estimate_encrypted_export(
+        &vault,
+        &account_id,
+        &scope.to_core_scope(scope.attachment_export_scope()),
+    )?;
     Ok(ExportEstimate {
-        object_count: count,
-        attachment_count,
-        attachment_selected_count,
-        estimated_bytes,
-        template_count,
-        template_names,
+        object_count: e.object_count,
+        attachment_count: e.attachment_count,
+        attachment_selected_count: e.attachment_selected_count,
+        estimated_bytes: e.estimated_bytes,
+        template_count: e.template_count,
+        template_names: e.template_names,
     })
 }
 
 /// 估算范围内的未删除附件：(可用数量, 选中数量, 选中元数据声明字节数)。
 /// None 不读取附件元数据；Selected(empty) 仍报告可用数量，选中与字节数为零。
+#[cfg(test)]
 pub(super) fn estimate_attachments(
     records: &[solosoul_vault::ObjectRecord],
     scope: &AttachmentExportScope,
 ) -> (usize, usize, u64) {
-    if matches!(scope, AttachmentExportScope::None) {
-        return (0, 0, 0);
-    }
-    let mut available = 0usize;
-    let mut selected = 0usize;
-    let mut bytes = 0u64;
-    for record in records {
-        for attachment in load_attachments(&record.properties) {
-            if attachment.deleted_at.is_some() {
-                continue;
-            }
-            available += 1;
-            if scope.includes(&attachment.id) {
-                selected += 1;
-                bytes += attachment.size_bytes;
-            }
-        }
-    }
-    (available, selected, bytes)
+    solosoul_core::export_import::export::estimate_attachments(records, scope)
 }
 
 // ── Export execution helpers ─────────────────────────────────
-
-/// 校验导出密码：非空且与主密码不同。
-fn validate_export_password(
-    svc: &solosoul_core::vault_service::VaultService,
-    account_id: &str,
-    password: &str,
-) -> Result<(), String> {
-    // ── Validate password (any non-empty password is accepted, P0-008) ──
-    if password.is_empty() {
-        return Err(export_err("PASSWORD_EMPTY"));
-    }
-
-    // ── Verify export password is NOT the master password ──────
-    // P012：走阶梯锁定路径（失败计数/锁定与解锁一致，消除无限速布尔 oracle）
-    match svc.verify_password_with_lockout(account_id, password) {
-        Ok(true) => Err(export_err("SAME_AS_MASTER_PASSWORD")),
-        Ok(false) => Ok(()), // export password is different from master password — OK
-        Err(e) => Err(export_err_with_detail("MASTER_VERIFY_FAILED", &e)),
-    }
-}
 
 /// 解析保存路径（支持 ~/ 前缀）并追加 .solosoul 后缀，确保父目录存在。
 ///
@@ -413,129 +336,6 @@ pub(crate) fn validate_export_dest(zip_path: &str) -> Result<(), String> {
     Ok(())
 }
 
-const MAX_ATTACHMENT_BYTES: u64 = 100 * 1024 * 1024; // 100 MB
-const MAX_EXPORT_TOTAL_BYTES: u64 = 1024 * 1024 * 1024; // 1 GB
-
-/// 收集类型明确的附件范围：过滤后校验大小上限与路径，返回 (条目列表, 总字节数)。
-fn collect_attachment_entries(
-    svc: &solosoul_core::vault_service::VaultService,
-    records: &[solosoul_vault::ObjectRecord],
-    scope: &AttachmentExportScope,
-) -> Result<
-    (
-        Vec<solosoul_core::export_import::ExportAttachmentEntry>,
-        u64,
-    ),
-    String,
-> {
-    if matches!(scope, AttachmentExportScope::None) {
-        return Ok((Vec::new(), 0));
-    }
-    let mut entries: Vec<solosoul_core::export_import::ExportAttachmentEntry> = Vec::new();
-    let mut total_bytes: u64 = 0;
-
-    for rec in records {
-        let atts = load_attachments(&rec.properties);
-        if atts.is_empty() {
-            continue;
-        }
-        let base_dir = svc.base_path().join("attachments").join(&rec.id);
-        for att in &atts {
-            if att.deleted_at.is_some() {
-                continue;
-            }
-            // 先过滤范围，未选中的超大或非法路径附件不能阻断有效选择。
-            if !scope.includes(&att.id) {
-                continue;
-            }
-            // Single attachment size limit
-            if att.size_bytes > MAX_ATTACHMENT_BYTES {
-                return Err(export_err_with_detail(
-                    "ATTACHMENT_TOO_LARGE",
-                    &att.file_name,
-                ));
-            }
-
-            let src = solosoul_core::export_import::resolve_attachment_src(
-                &base_dir,
-                att.vault_path.as_deref(),
-                att.src_path.as_deref(),
-                &att.id,
-                &att.file_name,
-            );
-
-            if let Some(src) = src {
-                validate_attachment_path(svc.base_path().join("attachments").as_path(), &src)?;
-                total_bytes += att.size_bytes;
-                entries.push(solosoul_core::export_import::ExportAttachmentEntry {
-                    obj_id: rec.id.clone(),
-                    att_id: att.id.clone(),
-                    src,
-                });
-            }
-        }
-    }
-    Ok((entries, total_bytes))
-}
-
-/// 写入一个加密的附加文件（preferences.enc / behavioral.enc），返回写入的 ZIP 条目名。
-fn write_encrypted_extra(
-    zip: &mut ZipWriter<File>,
-    options: SimpleFileOptions,
-    key: &[u8; 32],
-    salt: &[u8],
-    label: &[u8],
-    file_name: &str,
-    content: &[u8],
-) -> Result<String, String> {
-    let extra_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, label)
-        .map_err(|e| format!("derive {file_name} key: {e}"))?;
-    let enc = solosoul_crypto::cipher::encrypt_to_bytes(&extra_key, content, None)
-        .map_err(|e| format!("encrypt {file_name}: {e}"))?;
-    zip.start_file(file_name, options)
-        .map_err(|e| e.to_string())?;
-    zip.write_all(&enc).map_err(|e| e.to_string())?;
-    Ok(file_name.to_string())
-}
-
-/// 构建明文 manifest.json（export_scope 由选中 ID 是否为空推导）。
-#[allow(clippy::too_many_arguments)]
-fn build_manifest_json(
-    scope: &ExportScope,
-    object_count: usize,
-    has_attachments: bool,
-    has_preferences: bool,
-    has_behavioral: bool,
-    has_templates: bool,
-    extra_files: &[String],
-    password_hint: &Option<String>,
-    salt: &[u8],
-) -> serde_json::Value {
-    serde_json::json!({
-        "version": "2.0",
-        "export_scope": if scope.selected_page_ids.is_empty() && scope.selected_object_ids.is_empty() { "full" } else { "partial" },
-        "selected_pages": scope.selected_page_ids,
-        "selected_objects": scope.selected_object_ids,
-        "selected_tags": scope.selected_tags,
-        "object_count": object_count,
-        "export_time": chrono::Utc::now().to_rfc3339(),
-        "export_platform": std::env::consts::OS,
-        "export_app_version": env!("CARGO_PKG_VERSION"),
-        "has_attachments": has_attachments,
-        "has_preferences": has_preferences,
-        "has_behavioral": has_behavioral,
-        "has_templates": has_templates,
-        "extra_files": extra_files,
-        "password_hint": password_hint.clone().unwrap_or_default(),
-        "salt_hex": hex::encode(salt),
-        // P202: 导出包携带实际 KDF 参数，导入端按声明派生（旧包无此字段回退 balanced）。
-        // from_env()：release 为 production（OWASP 推荐 64MiB/3iter），debug 为 development。
-        "kdf": solosoul_core::export_import::kdf_to_manifest_value(
-            &solosoul_crypto::kdf::KdfConfig::from_env(),
-        ),
-    })
-}
-
 #[tauri::command]
 pub async fn export_execute(
     #[allow(unused_variables)] app: tauri::AppHandle,
@@ -554,7 +354,9 @@ pub async fn export_execute(
 pub(super) struct ExportJob {
     vault_service: Arc<RwLock<VaultService>>,
     session: VaultSession,
-    req: ExportRequest,
+    scope: ExportScope,
+    password: Zeroizing<String>,
+    password_hint: Option<String>,
     zip_path: String,
 }
 
@@ -575,18 +377,43 @@ impl ExportJob {
         Ok(Self {
             vault_service,
             session,
-            req,
+            scope: req.scope,
+            password: Zeroizing::new(req.password),
+            password_hint: req.password_hint,
             zip_path,
         })
     }
 
     pub(super) fn run(self) -> Result<String, String> {
+        self.run_with_activity(|| {})
+    }
+
+    /// 在真实 worker 起步后登记 activity；排队期间仍允许旧会话正常失效。
+    pub(super) fn run_with_activity(self, started: impl FnOnce()) -> Result<String, String> {
         // 只在阻塞线程内持服务读锁；不可重新捕获排队后的当前会话。
         let svc = self
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        execute_export_for_session(&svc, &self.session, &self.req, &self.zip_path)?;
+        let _activity =
+            solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
+        started();
+        let scope = self
+            .scope
+            .to_core_scope(self.scope.attachment_export_scope());
+        let request = solosoul_core::export_import::export::EncryptedExportRequest {
+            scope: &scope,
+            password: &self.password,
+            password_hint: &self.password_hint,
+            app_version: env!("CARGO_PKG_VERSION"),
+        };
+        solosoul_core::export_import::export::execute_encrypted_export(
+            &svc,
+            &self.session,
+            &request,
+            std::path::Path::new(&self.zip_path),
+        )
+        .map_err(crate::services::encrypted_export::map_export_failure)?;
         Ok(self.zip_path)
     }
 }
@@ -619,6 +446,7 @@ pub(crate) fn execute_export_core(
 }
 
 /// 后台调用方显式提供附件范围；此入口只捕获一次会话，供恢复主机使用。
+#[cfg(test)]
 pub(crate) fn execute_export_core_with_attachment_scope(
     svc: &solosoul_core::VaultService,
     account_id: &str,
@@ -631,6 +459,7 @@ pub(crate) fn execute_export_core_with_attachment_scope(
 }
 
 /// 手动导出的兼容适配入口；既有请求字段与空选择含义保持不变。
+#[cfg(test)]
 pub(crate) fn execute_export_for_session(
     svc: &solosoul_core::VaultService,
     session: &solosoul_core::VaultSession,
@@ -642,274 +471,49 @@ pub(crate) fn execute_export_for_session(
 }
 
 /// 云同步固定起始会话；业务层只解释明确类型，不能在 KDF 后换读当前 Vault。
+#[cfg(test)]
 pub(crate) fn execute_export_for_session_with_attachment_scope(
-    svc: &solosoul_core::VaultService,
-    session: &solosoul_core::VaultSession,
+    svc: &VaultService,
+    session: &VaultSession,
     req: &ExportRequest,
     zip_path: &str,
-    attachment_scope: &AttachmentExportScope,
+    attachments: &AttachmentExportScope,
 ) -> Result<(), String> {
-    let vault = session.vault();
-    let account_id = session.account_id();
-    let vault_att_key = svc.attachment_key_for_session(session)?;
-
-    // ── 密码校验（非空 + 不得等于主密码）────────────────────
-    validate_export_password(svc, account_id, &req.password)?;
-    svc.with_session(session, |_| Ok(()))?;
-
-    // ── Collect objects ────────────────────────────────────────
-    let records = collect_scope_objects(vault, account_id, &req.scope)?;
-    // 全量导出（如恢复主机）时允许空对象列表，普通导出仍要求至少选择一个对象。
-    if records.is_empty() && !req.scope.include_all {
-        return Err(export_err("NO_OBJECTS_SELECTED"));
-    }
-
-    // ── Collect templates ───────────────────────────────────────
-    // 全量导出（include_all，如恢复主机）打包账户全部模板（含预置种子模板）；
-    // 部分导出仅打包被对象引用的模板（快照隔离）。
-    let templates: Vec<serde_json::Value> =
-        collect_export_templates(vault, account_id, &req.scope, &records)?
-            .iter()
-            .filter_map(|tpl| serde_json::to_value(tpl).ok())
-            .collect();
-
-    // ── Collect object snapshots（历史记录）──────────────────────
-    // 携带每个对象的全部历史快照（含原时间戳），恢复后历史数量与旧设备一致。
-    let snapshots = collect_object_snapshots(vault, &records)?;
-
-    // ── Serialise payload ──────────────────────────────────────
-    let payload_value = serialize_export_payload(&records, &templates, &snapshots)?;
-    // P026: 序列化流式写入临时文件（vault 数据目录内，0700 同姿态），随后从文件
-    // 流式加密进包——避免「JSON 树 + 完整字节」双份驻留内存（大库导出移动端 OOM 风险）。
-    let (payload_tmp, payload_size) =
-        solosoul_core::export_import::write_payload_to_temp(svc.base_path(), &payload_value)
-            .map_err(|e| e.to_string())?;
-
-    // ── Derive key & encrypt ──────────────────────────────────
-    let salt = solosoul_crypto::kdf::generate_salt();
-    let key = derive_export_key(&req.password, &salt)?;
-
-    // ── P1: Attachments ────────────────────────────────────────
-    let (attachment_entries, total_attachment_bytes) =
-        collect_attachment_entries(svc, &records, attachment_scope)?;
-
-    // Total export size limit (payload + attachments + ~28 bytes overhead per attachment for nonce/chunk_count)
-    let payload_estimate = payload_size;
-    let total_export_estimate =
-        payload_estimate + total_attachment_bytes + (attachment_entries.len() as u64 * 28);
-    if total_export_estimate > MAX_EXPORT_TOTAL_BYTES {
-        return Err(export_err("TOTAL_SIZE_EXCEEDED"));
-    }
-
-    // ── Build ZIP ──────────────────────────────────────────────
-    let (file, output) = create_export_output(std::path::Path::new(zip_path))?;
-    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
-    let zip = write_export_output(file, |zip| {
-        // P001: 导出附件需 vault 附件密钥（源文件可能加密落盘，先解密再加密进包）。
-        // P012: 附件加密进包统一走 core 唯一实现（含 vault 密文先解密再加密）。
-        let has_attachments = solosoul_core::export_import::write_attachment_entries(
-            zip,
-            options,
-            &key,
-            &salt,
-            &attachment_entries,
-            Some(&vault_att_key),
-        )
-        .map_err(|e| e.to_string())?;
-
-        // ── P2: Preferences + Behavioral data（audit log）──
-        let (extra_files, preferences_encrypted, behavioral_encrypted) =
-            write_scope_extra_files(vault, zip, options, &key, &salt, account_id, &req.scope)?;
-
-        // ── manifest.json (plaintext) ─────────────────────────────
-        let has_templates = !templates.is_empty();
-        let manifest = build_manifest_json(
-            &req.scope,
-            records.len(),
-            has_attachments,
-            preferences_encrypted,
-            behavioral_encrypted,
-            has_templates,
-            &extra_files,
-            &req.password_hint,
-            &salt,
-        );
-        write_manifest_and_payload(
-            zip,
-            options,
-            &manifest,
-            payload_tmp.path(),
-            payload_size,
-            &key,
-        )?;
-        Ok(())
-    })?;
-
-    finalize_export_for_session(svc, session, zip, output, zip_path, records.len())
+    let scope = req.scope.to_core_scope(attachments.clone());
+    let request = solosoul_core::export_import::export::EncryptedExportRequest {
+        scope: &scope,
+        password: &req.password,
+        password_hint: &req.password_hint,
+        app_version: env!("CARGO_PKG_VERSION"),
+    };
+    solosoul_core::export_import::export::execute_encrypted_export(
+        svc,
+        session,
+        &request,
+        std::path::Path::new(zip_path),
+    )
+    .map(|_| ())
+    .map_err(crate::services::encrypted_export::map_export_failure)
 }
 
 /// RF-017：收尾 IO 不持会话门闩，只有最终替换与成功审计在原会话内发布。
+#[cfg(test)]
 pub(super) fn finalize_export_for_session(
-    svc: &solosoul_core::VaultService,
-    session: &solosoul_core::VaultSession,
+    svc: &VaultService,
+    session: &VaultSession,
     zip: ZipWriter<File>,
     output: tempfile::TempPath,
     zip_path: &str,
     object_count: usize,
 ) -> Result<(), String> {
-    finish_export_output(zip, output, File::sync_all, |output| {
-        svc.with_session(session, |vault| {
-            // persist 在同卷替换目标，失败保留原目标并由错误中的 TempPath 清理源文件。
-            output
-                .persist(zip_path)
-                .map_err(|e| format!("Publish ZIP: {}", e.error))?;
-            crate::commands::log_audit_best_effort(
-                vault,
-                "export_execute",
-                "export",
-                None,
-                None,
-                "user",
-                Some(&format!(
-                    "exported {} objects to {}",
-                    object_count, zip_path
-                )),
-            );
-            Ok(())
-        })
-    })
-}
-
-/// 写入 P2 可选数据（preferences / behavioral audit log）。返回 (extra_files, preferences_encrypted, behavioral_encrypted)。
-fn write_scope_extra_files(
-    vault: &solosoul_vault::VaultStore,
-    zip: &mut ZipWriter<File>,
-    options: SimpleFileOptions,
-    key: &[u8; 32],
-    salt: &[u8],
-    account_id: &str,
-    scope: &ExportScope,
-) -> Result<(Vec<String>, bool, bool), String> {
-    // ── P2: Preferences ────────────────────────────────────────
-    let mut extra_files: Vec<String> = Vec::new();
-    let mut preferences_encrypted = false;
-    if scope.include_preferences {
-        if let Ok(Some(profile)) = vault.load_profile(account_id) {
-            extra_files.push(write_encrypted_extra(
-                zip,
-                options,
-                key,
-                salt,
-                b"solosoul:preferences:v1",
-                "preferences.enc",
-                &profile.data,
-            )?);
-            preferences_encrypted = true;
-        }
-    }
-
-    // ── P2: Behavioral data (audit log) ────────────────────────
-    let mut behavioral_encrypted = false;
-    if scope.include_behavioral {
-        if let Ok(logs) = vault.list_audit_log(MAX_AUDIT_LOG_EXPORT) {
-            let logs_json = serde_json::to_vec(&logs).unwrap_or_default();
-            if !logs_json.is_empty() {
-                extra_files.push(write_encrypted_extra(
-                    zip,
-                    options,
-                    key,
-                    salt,
-                    b"solosoul:behavioral:v1",
-                    "behavioral.enc",
-                    &logs_json,
-                )?);
-                behavioral_encrypted = true;
-            }
-        }
-    }
-    Ok((extra_files, preferences_encrypted, behavioral_encrypted))
-}
-
-/// 写明文 manifest.json + 加密 payload.enc（流式分块加密，P1-023 / P026 源为临时文件）。
-fn write_manifest_and_payload(
-    zip: &mut ZipWriter<File>,
-    options: SimpleFileOptions,
-    manifest: &serde_json::Value,
-    payload_path: &std::path::Path,
-    payload_size: u64,
-    key: &[u8; 32],
-) -> Result<(), String> {
-    let manifest_bytes = serde_json::to_vec_pretty(&manifest).map_err(|e| e.to_string())?;
-    zip.start_file("manifest.json", options)
-        .map_err(|e| e.to_string())?;
-    zip.write_all(&manifest_bytes).map_err(|e| e.to_string())?;
-
-    // ── payload.enc (encrypted via streaming chunked cipher — P1-023) ──
-    zip.start_file("payload.enc", options)
-        .map_err(|e| e.to_string())?;
-    {
-        let mut reader = std::io::BufReader::new(
-            std::fs::File::open(payload_path).map_err(|e| format!("open payload tmp: {e}"))?,
-        );
-        solosoul_crypto::cipher::encrypt_chunked_stream(key, payload_size, &mut reader, zip)
-            .map_err(|e| format!("encrypt payload stream: {e}"))?;
-    }
-    Ok(())
-}
-/// 收集各对象的全部历史快照（含原时间戳），恢复后历史数量与旧设备一致。
-/// P013: 一次批量查询（list_snapshots_with_data_batch）替代逐对象 list_snapshots + 逐快照
-/// get_snapshot 的 N+M 次查询；单对象 LIMIT 50 语义由 SQL 窗口函数保留。
-fn collect_object_snapshots(
-    vault: &solosoul_vault::VaultStore,
-    records: &[solosoul_vault::ObjectRecord],
-) -> Result<Vec<serde_json::Value>, String> {
-    let object_ids: Vec<String> = records.iter().map(|r| r.id.clone()).collect();
-    let mut snapshots: Vec<serde_json::Value> = Vec::new();
-    for (object_id, meta, data) in vault.list_snapshots_with_data_batch(&object_ids)? {
-        snapshots.push(serde_json::json!({
-            "object_id": object_id,
-            "timestamp": meta["timestamp"],
-            "triggered_by": meta["triggeredBy"],
-            "diff_summary": meta["diffSummary"],
-            "data": base64::Engine::encode(
-                &base64::engine::general_purpose::STANDARD,
-                &data
-            ),
-        }));
-    }
-    Ok(snapshots)
-}
-
-/// 构建导出 payload（对象 + 模板 + 快照）。P026: 返回 JSON 树，由调用方
-/// 流式序列化到临时文件（不再产生整块字节驻留内存）。
-fn serialize_export_payload(
-    records: &[solosoul_vault::ObjectRecord],
-    templates: &[serde_json::Value],
-    snapshots: &[serde_json::Value],
-) -> Result<serde_json::Value, String> {
-    Ok(serde_json::json!({
-        "objects": records.iter().map(|r| serde_json::json!({
-            "id": r.id,
-            "account_id": r.account_id,
-            "type_id": r.type_id,
-            "section_type": r.section_type,
-            "name": r.name,
-            "icon_name": r.icon_name,
-            "parent_id": r.parent_id,
-            "children_ids": r.children_ids,
-            "properties": r.properties,
-            "property_labels": r.property_labels,
-            "sensitivity_level": r.sensitivity_level,
-            "contract_type_id": r.contract_type_id,
-            "tags": r.tags_json,
-            "created_at": r.created_at,
-            "updated_at": r.updated_at,
-            "version": r.version,
-            "template_id": r.template_id,
-            "template_type": r.template_type,
-        })).collect::<Vec<_>>(),        "templates": templates,
-        "snapshots": snapshots,
-    }))
+    solosoul_core::export_import::export::finalize_export_for_session(
+        svc,
+        session,
+        zip,
+        output,
+        std::path::Path::new(zip_path),
+        object_count,
+    )
 }
 
 // ── Attachment info for export UI ──────────────────────────────

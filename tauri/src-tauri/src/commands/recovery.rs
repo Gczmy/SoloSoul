@@ -4,11 +4,12 @@
 //! 加密通道传送给新设备；新设备创建同名账户后导入数据，从而保证
 //! `account_id` 一致，后续可直接使用 Device Sync。
 
-use crate::commands::export_import::export::execute_export_core_with_attachment_scope;
 use crate::commands::export_import::import_execute_resumable_for_session;
-use crate::commands::export_import::{default_locale, ExportRequest, ExportScope, ImportStrategy};
+use crate::commands::export_import::{default_locale, ImportStrategy};
 use crate::state::AppState;
-use solosoul_core::export_import::AttachmentExportScope;
+use solosoul_core::export_import::export::{
+    execute_encrypted_export, EncryptedExportRequest, EncryptedExportScope,
+};
 use solosoul_core::vault_service::{VaultService, VaultSession};
 use solosoul_sync::recovery::{generate_recovery_password, recover_from_host, RecoveryHost};
 use solosoul_vault::ImportSourceKind;
@@ -16,7 +17,6 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tauri::{Emitter, Manager, State};
-use zeroize::Zeroize;
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -153,31 +153,17 @@ fn export_recovery_package(
         .tempfile()
         .map_err(|e| format!("Create recovery package: {e}"))?
         .into_temp_path();
-    let export_path = export_file.to_string_lossy().to_string();
-    let mut req = ExportRequest {
-        scope: ExportScope {
-            selected_page_ids: Vec::new(),
-            selected_object_ids: Vec::new(),
-            selected_tags: Vec::new(),
-            include_attachments: true,
-            selected_attachment_ids: Vec::new(),
-            include_preferences: true,
-            include_behavioral: false,
-            include_all: true,
-        },
-        password: recovery_password.to_string(),
-        password_hint: Some("Recovery transfer".to_string()),
-        save_path: export_path.clone(),
+    let session = svc.capture_session(account_id)?;
+    let scope = EncryptedExportScope::full_snapshot();
+    let hint = Some("Recovery transfer".to_string());
+    let req = EncryptedExportRequest {
+        scope: &scope,
+        password: recovery_password,
+        password_hint: &hint,
+        app_version: env!("CARGO_PKG_VERSION"),
     };
-    let result = execute_export_core_with_attachment_scope(
-        svc,
-        account_id,
-        &req,
-        &export_path,
-        &AttachmentExportScope::All,
-    );
-    req.password.zeroize();
-    result?;
+    execute_encrypted_export(svc, &session, &req, &export_file)
+        .map_err(crate::services::encrypted_export::map_export_failure)?;
     Ok(export_file)
 }
 

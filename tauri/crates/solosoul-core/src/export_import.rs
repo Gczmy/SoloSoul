@@ -9,10 +9,11 @@
 //!
 //! ## Architecture
 //!
-//! The CLI uses the Core high-level APIs. GUI and Core share the explicit
-//! attachment scope and attachment-writing primitives; GUI currently retains
-//! its own object policy and full orchestration (consolidation belongs to RF-023).
+//! GUI/Cloud/Recovery 与旧 CLI/Core 兼容 API 均使用 Core 的完整导出执行器。
+//! Advanced 与 LegacyDirect 的历史包策略显式保留；导入继续独立迁移。
 
+pub mod export;
+pub mod export_output;
 pub mod operation;
 
 use std::collections::{HashMap, HashSet};
@@ -353,107 +354,15 @@ pub fn export_vault_with_attachment_scope(
     base_path: &Path,
     attachment_scope: &AttachmentExportScope,
 ) -> Result<usize, ExportError> {
-    let records = collect_scope_objects(vault, account_id, scope)?;
-    if records.is_empty() {
-        return Err(ExportError::Msg("没有选中任何对象".to_string()));
-    }
-
-    let payload = build_payload(vault, &records);
-    // P026: 序列化流式写入临时文件（避免 JSON 树 + 完整字节双份驻留内存），
-    // 随后从文件流式加密进包。
-    let (payload_tmp, payload_size) = write_payload_to_temp(base_path, &payload)?;
-
-    let salt = solosoul_crypto::kdf::generate_salt();
-    let key = derive_export_key(password, &salt)?;
-
-    // 收集附件源文件。
-    let attachment_entries = collect_attachment_entries(base_path, &records, attachment_scope)?;
-
-    let payload_estimate = payload_size;
-    let total_attachment_bytes: u64 = attachment_entries
-        .iter()
-        .map(|(_, _, _, src)| std::fs::metadata(src).map(|m| m.len()).unwrap_or(0))
-        .sum();
-    let total_export_estimate =
-        payload_estimate + total_attachment_bytes + (attachment_entries.len() as u64 * 28);
-    if total_export_estimate > MAX_EXPORT_TOTAL_BYTES {
-        return Err(ExportError::Msg("导出包总大小超过限制".to_string()));
-    }
-
-    let att_key = if !attachment_entries.is_empty() {
-        Some(
-            solosoul_crypto::hkdf_ext::derive_hkdf_key(&key, &salt, b"solosoul:attachments:v1")
-                .map_err(|e| format!("派生附件密钥失败: {}", e))?,
-        )
-    } else {
-        None
-    };
-
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    let file = File::create(path)?;
-    let mut zip = ZipWriter::new(file);
-    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
-
-    // 写入附件（流式加密避免完整明文和密文同时驻留内存）。
-    // P012: 与 GUI 共用唯一实现——CLI 无附件密钥（未解锁会话）传 None，
-    // 检测到 SOLC 密文时由共享实现明确报错而非双重加密。
-    if att_key.is_some() {
-        let shared_entries: Vec<ExportAttachmentEntry> = attachment_entries
-            .iter()
-            .map(|(obj_id, att_id, _file_name, src)| ExportAttachmentEntry {
-                obj_id: obj_id.clone(),
-                att_id: att_id.clone(),
-                src: src.clone(),
-            })
-            .collect();
-        write_attachment_entries(&mut zip, options, &key, &salt, &shared_entries, None)?;
-    }
-
-    // manifest.json
-    let has_templates = payload["templates"]
-        .as_array()
-        .is_some_and(|a| !a.is_empty());
-    let manifest = build_manifest(scope, &records, att_key.is_some(), has_templates, &salt);
-    let manifest_bytes = serde_json::to_vec_pretty(&manifest)?;
-    zip.start_file("manifest.json", options)
-        .map_err(|e| format!("写入 manifest 条目失败: {}", e))?;
-    zip.write_all(&manifest_bytes)
-        .map_err(|e| format!("写入 manifest 数据失败: {}", e))?;
-
-    // payload.enc（流式加密，源为临时文件）
-    zip.start_file("payload.enc", options)
-        .map_err(|e| format!("写入 payload 条目失败: {}", e))?;
-    {
-        let mut payload_reader =
-            std::io::BufReader::new(std::fs::File::open(payload_tmp.file.path())?);
-        solosoul_crypto::cipher::encrypt_chunked_stream(
-            &key,
-            payload_size,
-            &mut payload_reader,
-            &mut zip,
-        )
-        .map_err(|e| format!("加密 payload 流失败: {}", e))?;
-    }
-
-    zip.finish()?;
-
-    // 审计日志
-    let _ = vault.log_structured(
-        "export_execute",
-        "export",
-        None,
-        None,
-        "user",
-        Some(&format!(
-            "exported {} objects to {}",
-            records.len(),
-            path.display()
-        )),
-    );
-
-    Ok(records.len())
+    export::execute_legacy_export(
+        vault,
+        account_id,
+        password,
+        path,
+        scope,
+        base_path,
+        attachment_scope,
+    )
 }
 
 /// 执行导入操作。

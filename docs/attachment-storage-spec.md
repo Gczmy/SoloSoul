@@ -43,7 +43,7 @@ Android 导入有 Kotlin 明文复制到 Rust 加密替换之间的窗口；复�
 - [RF-014](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-014)：云全量快照纳入原会话内未删除对象的未删除附件，复用现有导出包路径（原 ID 枚举接线已由 RF-015 的 All 替换）。该范围包括旧明文兼容附件与 SOLC 静态密文附件，包内均使用导出包加密。原单附件 100 MiB、总量 1 GiB 限制保持，文件缺失/元数据解析失败的既有行为未在本项改变；不能扩展为任意备份的完整性保证。验证状态见执行报告。
 - [RF-015](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-015)：共享 Core 枚举 `None / All / Selected(ids)` 已接入收集和估算。GUI 关闭总开关为 None、开启为 Selected，空数组仍为零选中；Core/CLI 的既有总开关开启为所选对象内 All，云/恢复直接选择 All。范围不包含删除的对象/附件，不改变格式、密钥域、单附件/总量限制或现有缺失文件处理；GUI/CLI完整共享用例仍待后续任务。本机验证见 [证据](verification/rf015-explicit-attachment-export-scope-2026-10-01.json)。
 - [RF-021](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-021) 的业务数据库批次与 [RF-022](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-022) 的账户加密 journal/稳定附件阶段分开验收。正常 Session+key 生产路径可恢复冻结任务；Direct/无 key 一次性兼容 API 不因此获得该保证。实际检查结果以执行报告和验证证据为准。
-- [RF-023](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-023)、[RF-024](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-024)：GUI/CLI 加密包共享用例；当前不能由一端修复推断另一端同样完成。
+- [RF-023](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-023)：GUI/Cloud/Recovery 与旧 CLI/Core 兼容入口共用完整加密包导出执行器和原子 writer；Advanced/LegacyDirect 的包差异保留，旧 CLI 仍不提供 SOLC 源附件解密密钥。导入完整用例继续由 [RF-024](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-024) 承接。
 
 ## 6. 核验入口
 
@@ -113,3 +113,9 @@ Android/iOS 的 OS 文件锁为 no-op；本机 activity/maintenance gate 不代�
 上述检查与排他协议不能保证任意同用户外部进程在系统调用间恶意改写的原子安全。移动 OS 锁及 SAF 的边界沿用 §10。本项当前验证状态以 [RF-903 执行报告](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-903) 为准，未执行的平台不计作通过。
 
 本机 Windows 正式 R **1738通过/0失败/3原有忽略**、CLI **323通过/0失败/2原有忽略**，fmt与Clippy均通过；完整来源、原Host断言保全、失败修正及精确SHA见 [RF-903验证记录](verification/rf903-owned-recoverable-attachment-cleanup-2026-10-01.json)。新Windows目录替换在后代打开前真实执行；认证后实际重命名被身份pins阻止并保持正常清理。Unix认证后目录替换与symlink测试保留但本机未运行，不计作通过。
+
+## 12. 完整导出用例的共享边界（RF-023）
+
+Core `export_import::export` 持有对象/模板/历史准备、密码校验、payload/manifest、HKDF附加条目、附件范围/大小校验与ZIP执行；`export_output` 持有同目录临时输出、finish/flush/sync/关闭与发布。GUI/Cloud/Recovery由原会话派生附件密钥并在原会话门闩内发布；实际worker持有owner/activity直到结束。LegacyDirect保留原公开签名、包字段、usize与无key SOLC错误，只加强输出原子性，不获得Session最终发布校验。
+
+Advanced 全量含账户全部模板、每对象最新50历史及可选偏好/审计；Legacy只含引用模板，不追加历史、偏好、审计或contract_type_id。两种范围均不裁剪对象properties.__attachments。验证见 [RF-023证据](verification/rf023-core-encrypted-export-2026-10-01.json)。

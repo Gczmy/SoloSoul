@@ -1,0 +1,1196 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-023",
+  "status": "validated-local-Windows",
+  "baseCommit": "4cb07e5eb59967d1b969e3f271aad5bcacc358ea",
+  "recordedAt": "2026-10-01T15:57:57.477725+00:00",
+  "ownedPaths": [
+    "tauri/crates/solosoul-core/src/export_import.rs",
+    "tauri/crates/solosoul-core/src/export_import/export.rs",
+    "tauri/crates/solosoul-core/src/export_import/export_output.rs",
+    "tauri/src-tauri/src/commands/export_import/mod.rs",
+    "tauri/src-tauri/src/commands/export_import/export.rs",
+    "tauri/src-tauri/src/commands/export_import/helpers.rs",
+    "tauri/src-tauri/src/services/mod.rs",
+    "tauri/src-tauri/src/services/encrypted_export.rs",
+    "tauri/src-tauri/src/sync/cloud_auto_sync.rs",
+    "tauri/src-tauri/src/commands/recovery.rs",
+    "tauri/crates/solosoul-core/src/export_import/export/rf023.rs",
+    "tauri/src-tauri/src/commands/export_import/tests/rf023.rs",
+    "tauri/src-tauri/src/commands/export_import/tests.rs",
+    "docs/attachment-storage-spec.md",
+    "docs/design_map/16_导入导出功能设计.md",
+    "docs/design_map/18_云打包与云同步功能实施记录.md",
+    "docs/solosoul_cli/USER_GUIDE.md",
+    "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+    "docs/verification/rf023-core-encrypted-export-2026-10-01.json"
+  ],
+  "requiredChecks": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T15:39:58.553091+00:00",
+      "finishedAt": "2026-10-01T15:40:02.594174+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\r-fmt-r1.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testGroups": [],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "af720fc0fcfaf9f08963f29b3cfb6290dc1484892bb0d275cd0157a642b49cb1",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "9ec2b4b0c23b0dc4f34084f318808324d2c356bd1df2135e061ee11cf86cfe9b",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "ba5fd35604194f786320bcbbf48f99db6517cbe930cf9d31a79e814e19a94c50",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [],
+      "executedRf023Tests": []
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T15:30:32.329852+00:00",
+      "finishedAt": "2026-10-01T15:31:47.184848+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\r-clippy-r4.log",
+      "logSha256": "a51bf420d6897ddefc18215ec28f3815eb66ba1e6b2a67d47f782814be069f8c",
+      "testGroups": [],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "af720fc0fcfaf9f08963f29b3cfb6290dc1484892bb0d275cd0157a642b49cb1",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "9ec2b4b0c23b0dc4f34084f318808324d2c356bd1df2135e061ee11cf86cfe9b",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "ba5fd35604194f786320bcbbf48f99db6517cbe930cf9d31a79e814e19a94c50",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [],
+      "executedRf023Tests": []
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T15:40:03.662741+00:00",
+      "finishedAt": "2026-10-01T15:51:14.274560+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\r-tests-r1.log",
+      "logSha256": "e29c074fc50e7a49a82027e3076a99e007410b0d1fe5fb9c4e1fd97eed29f401",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 713,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 434,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 41,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 17,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 12,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 36,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 100,
+          "failed": 0,
+          "ignored": 2
+        },
+        {
+          "result": "ok",
+          "passed": 85,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 311,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "af720fc0fcfaf9f08963f29b3cfb6290dc1484892bb0d275cd0157a642b49cb1",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "9ec2b4b0c23b0dc4f34084f318808324d2c356bd1df2135e061ee11cf86cfe9b",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "ba5fd35604194f786320bcbbf48f99db6517cbe930cf9d31a79e814e19a94c50",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [
+        "test result: ok. 713 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 44.65s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.54s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 434 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 30.23s",
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 41 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.31s",
+        "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s",
+        "test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.72s",
+        "test result: ok. 100 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 1.45s",
+        "test result: ok. 85 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.68s",
+        "test result: ok. 311 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.67s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "executedRf023Tests": [
+        "commands::export_import::tests::rf023::rf023_cancelled_gui_awaiter_keeps_actual_worker_activity_until_job_finishes",
+        "commands::export_import::tests::rf023::rf023_gui_job_cannot_enter_pending_maintenance",
+        "commands::export_import::tests::rf023::rf023_host_compatibility_facade_and_core_produce_semantically_equal_real_packages",
+        "export_import::export::rf023::rf023_advanced_real_package_preserves_templates_latest_fifty_history_hkdf_extras_and_metadata",
+        "export_import::export::rf023::rf023_legacy_solc_writer_failure_preserves_old_backup_audit_sources_and_output_directory",
+        "export_import::export::rf023::rf023_empty_advanced_full_exports_templates_but_legacy_and_partial_reject_empty",
+        "export_import::export::rf023::rf023_legacy_public_bool_and_explicit_api_make_equivalent_packages_with_original_profile",
+        "export_import::export::rf023::rf023_optional_read_and_success_audit_failures_remain_best_effort",
+        "export_import::export::rf023::rf023_password_domain_errors_and_real_publish_failure_do_not_replace_target",
+        "export_import::export::rf023::rf023_advanced_union_any_tags_and_unselected_corruption_keep_existing_read_boundaries",
+        "export_import::export::rf023::rf023_prepared_original_session_cannot_publish_after_same_account_reunlock"
+      ]
+    },
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T15:40:02.704460+00:00",
+      "finishedAt": "2026-10-01T15:40:03.549717+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\cli-fmt-r1.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testGroups": [],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "af720fc0fcfaf9f08963f29b3cfb6290dc1484892bb0d275cd0157a642b49cb1",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "9ec2b4b0c23b0dc4f34084f318808324d2c356bd1df2135e061ee11cf86cfe9b",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "ba5fd35604194f786320bcbbf48f99db6517cbe930cf9d31a79e814e19a94c50",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [],
+      "executedRf023Tests": []
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T15:51:14.517289+00:00",
+      "finishedAt": "2026-10-01T15:52:07.788422+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\cli-clippy-r1.log",
+      "logSha256": "2c1575702b4bfd052715923bbea0875ac056e47c39bf6e1f2b164d9d89c1bb45",
+      "testGroups": [],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "af720fc0fcfaf9f08963f29b3cfb6290dc1484892bb0d275cd0157a642b49cb1",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "9ec2b4b0c23b0dc4f34084f318808324d2c356bd1df2135e061ee11cf86cfe9b",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "ba5fd35604194f786320bcbbf48f99db6517cbe930cf9d31a79e814e19a94c50",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [],
+      "executedRf023Tests": []
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T15:52:07.915960+00:00",
+      "finishedAt": "2026-10-01T15:57:39.136879+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\cli-tests-r1.log",
+      "logSha256": "dce16c3c2fd2f981178c67028a362b0afa592692f98e0d9f906f04cc098005c2",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 319,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 5,
+          "failed": 0,
+          "ignored": 1
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1
+        }
+      ],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "af720fc0fcfaf9f08963f29b3cfb6290dc1484892bb0d275cd0157a642b49cb1",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "9ec2b4b0c23b0dc4f34084f318808324d2c356bd1df2135e061ee11cf86cfe9b",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "ba5fd35604194f786320bcbbf48f99db6517cbe930cf9d31a79e814e19a94c50",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [
+        "test result: ok. 319 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 279.45s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.35s",
+        "test result: ok. 5 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 12.19s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "executedRf023Tests": []
+    }
+  ],
+  "targetedChecks": [
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--lib",
+        "rf023_"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T15:19:20.950421+00:00",
+      "finishedAt": "2026-10-01T15:20:05.182226+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\core-target-r3.log",
+      "logSha256": "f55f0b4e46597ab9412a0993bff0b6ef94faa5e50e81b871c8368b3231438c23",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 8,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "5357b05f7da9e7390ef980bdded49f6fbae87d9c98af06cc725c24bb145a649b",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "8fec3b440d9941b1c7069f5b71f6719caf9b201eba2b0b888b81b11c702e7568",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "82892b3d0dd3aff68666ba1a624befcc1e6f16bf9119a934969b193cc7f8e56c",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 426 filtered out; finished in 1.30s"
+      ],
+      "executedRf023Tests": [
+        "export_import::export::rf023::rf023_legacy_solc_writer_failure_preserves_old_backup_audit_sources_and_output_directory",
+        "export_import::export::rf023::rf023_optional_read_and_success_audit_failures_remain_best_effort",
+        "export_import::export::rf023::rf023_advanced_real_package_preserves_templates_latest_fifty_history_hkdf_extras_and_metadata",
+        "export_import::export::rf023::rf023_empty_advanced_full_exports_templates_but_legacy_and_partial_reject_empty",
+        "export_import::export::rf023::rf023_legacy_public_bool_and_explicit_api_make_equivalent_packages_with_original_profile",
+        "export_import::export::rf023::rf023_password_domain_errors_and_real_publish_failure_do_not_replace_target",
+        "export_import::export::rf023::rf023_prepared_original_session_cannot_publish_after_same_account_reunlock",
+        "export_import::export::rf023::rf023_advanced_union_any_tags_and_unselected_corruption_keep_existing_read_boundaries"
+      ]
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "commands::export_import::"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T15:31:47.301895+00:00",
+      "finishedAt": "2026-10-01T15:34:36.590445+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\host-target-r2.log",
+      "logSha256": "b4e9d0dd6dca2945994361c05fdf21d0fae335cab8cab78d948c03c3484cbf5e",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 157,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "af720fc0fcfaf9f08963f29b3cfb6290dc1484892bb0d275cd0157a642b49cb1",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "9ec2b4b0c23b0dc4f34084f318808324d2c356bd1df2135e061ee11cf86cfe9b",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "ba5fd35604194f786320bcbbf48f99db6517cbe930cf9d31a79e814e19a94c50",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [
+        "test result: ok. 157 passed; 0 failed; 0 ignored; 0 measured; 556 filtered out; finished in 26.05s"
+      ],
+      "executedRf023Tests": [
+        "commands::export_import::tests::rf023::rf023_cancelled_gui_awaiter_keeps_actual_worker_activity_until_job_finishes",
+        "commands::export_import::tests::rf023::rf023_gui_job_cannot_enter_pending_maintenance",
+        "commands::export_import::tests::rf023::rf023_host_compatibility_facade_and_core_produce_semantically_equal_real_packages"
+      ]
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "sync::cloud_auto_sync::tests"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T15:35:44.837344+00:00",
+      "finishedAt": "2026-10-01T15:35:53.811795+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\cloud-target-r1.log",
+      "logSha256": "40dd276e0bb7558039fa69e8dc8124873ab2da69d20f4c07baf274d04e330b66",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 21,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "af720fc0fcfaf9f08963f29b3cfb6290dc1484892bb0d275cd0157a642b49cb1",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "9ec2b4b0c23b0dc4f34084f318808324d2c356bd1df2135e061ee11cf86cfe9b",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "ba5fd35604194f786320bcbbf48f99db6517cbe930cf9d31a79e814e19a94c50",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [
+        "test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 692 filtered out; finished in 3.24s"
+      ],
+      "executedRf023Tests": []
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "commands::recovery::"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T15:35:53.926222+00:00",
+      "finishedAt": "2026-10-01T15:36:02.057016+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\recovery-target-r1.log",
+      "logSha256": "24016578375104a1c3777bb78fceb3cc1bcdd26b31bac092a4288b3b3ee557de",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 11,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "af720fc0fcfaf9f08963f29b3cfb6290dc1484892bb0d275cd0157a642b49cb1",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "9ec2b4b0c23b0dc4f34084f318808324d2c356bd1df2135e061ee11cf86cfe9b",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "ba5fd35604194f786320bcbbf48f99db6517cbe930cf9d31a79e814e19a94c50",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [
+        "test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 702 filtered out; finished in 5.37s"
+      ],
+      "executedRf023Tests": []
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "commands::export_import::"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T15:36:02.173285+00:00",
+      "finishedAt": "2026-10-01T15:39:58.424861+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\cli-target-r1.log",
+      "logSha256": "1edfd2718614f8cfe8b8f9dbe016d94e0375767a81f9e70694dcf47658a4e828",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 37,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "af720fc0fcfaf9f08963f29b3cfb6290dc1484892bb0d275cd0157a642b49cb1",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "9ec2b4b0c23b0dc4f34084f318808324d2c356bd1df2135e061ee11cf86cfe9b",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "ba5fd35604194f786320bcbbf48f99db6517cbe930cf9d31a79e814e19a94c50",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true,
+      "testSummaryLines": [
+        "test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 282 filtered out; finished in 64.54s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s"
+      ],
+      "executedRf023Tests": []
+    }
+  ],
+  "newTestFunctions": [
+    "rf023_advanced_real_package_preserves_templates_latest_fifty_history_hkdf_extras_and_metadata",
+    "rf023_legacy_public_bool_and_explicit_api_make_equivalent_packages_with_original_profile",
+    "rf023_advanced_union_any_tags_and_unselected_corruption_keep_existing_read_boundaries",
+    "rf023_empty_advanced_full_exports_templates_but_legacy_and_partial_reject_empty",
+    "rf023_legacy_solc_writer_failure_preserves_old_backup_audit_sources_and_output_directory",
+    "rf023_prepared_original_session_cannot_publish_after_same_account_reunlock",
+    "rf023_optional_read_and_success_audit_failures_remain_best_effort",
+    "rf023_password_domain_errors_and_real_publish_failure_do_not_replace_target",
+    "rf023_host_compatibility_facade_and_core_produce_semantically_equal_real_packages",
+    "rf023_gui_job_cannot_enter_pending_maintenance",
+    "rf023_cancelled_gui_awaiter_keeps_actual_worker_activity_until_job_finishes"
+  ],
+  "newTestsActuallyPassed": 11,
+  "sourceFreeze": {
+    "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+    "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+    "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+    "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+    "tauri/src-tauri/src/commands/export_import/export.rs": "af720fc0fcfaf9f08963f29b3cfb6290dc1484892bb0d275cd0157a642b49cb1",
+    "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+    "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+    "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+    "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "9ec2b4b0c23b0dc4f34084f318808324d2c356bd1df2135e061ee11cf86cfe9b",
+    "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+    "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+    "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "ba5fd35604194f786320bcbbf48f99db6517cbe930cf9d31a79e814e19a94c50",
+    "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+  },
+  "primaryAgentSourceReview": {
+    "wireDtos": {
+      "ExportScope": "unchanged",
+      "ExportRequest": "unchanged",
+      "ExportEstimate": "unchanged"
+    },
+    "legacyRules": {
+      "collect_scope_objects": "unchanged legacy rule",
+      "build_payload": "unchanged legacy rule",
+      "collect_attachment_entries": "unchanged legacy rule",
+      "build_manifest": "unchanged legacy rule",
+      "derive_export_key": "unchanged legacy rule",
+      "derive_export_key_cfg": "unchanged legacy rule"
+    },
+    "originalCoreTestsUnchanged": true,
+    "originalOutputFaultAssertionsUnchanged": true,
+    "originalHostTestsOnlyNewModuleRegistration": true,
+    "cloudRecoveryProductionDirectCoreNoCommandsExporterOrDto": true,
+    "coreNoTauriAppStateOrFrontendPrefix": true,
+    "protected14RawUnchanged": true,
+    "reviewedSourceSha256": {
+      "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+      "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+      "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+      "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+      "tauri/src-tauri/src/commands/export_import/export.rs": "af720fc0fcfaf9f08963f29b3cfb6290dc1484892bb0d275cd0157a642b49cb1",
+      "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+      "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+      "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+      "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "9ec2b4b0c23b0dc4f34084f318808324d2c356bd1df2135e061ee11cf86cfe9b",
+      "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+      "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+      "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "ba5fd35604194f786320bcbbf48f99db6517cbe930cf9d31a79e814e19a94c50",
+      "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+    },
+    "kind": "primary-agent-source-review",
+    "notIndependentFinalReview": true,
+    "cloudAutoImportBodyAndActivityUnchanged": true,
+    "workerLifecycle": "Queued jobs retain original session/store/root owner; activity is acquired at actual worker start, not while queued. Original RF025 switch/reunlock assertions retained."
+  },
+  "historicalFailedChecks": [
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--lib",
+        "rf023_"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T15:13:31.184488+00:00",
+      "finishedAt": "2026-10-01T15:13:50.573132+00:00",
+      "exitCode": 101,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\core-target-r1.log",
+      "logSha256": "33f5b064350972db8ce40733f1974875f9a08b66f31f61641d2232397323690e",
+      "testGroups": [],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "0a1ad5f3806f8f2ad12c94e0613411baee09078c4586a96cf52637b1295d9a1c",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "5357b05f7da9e7390ef980bdded49f6fbae87d9c98af06cc725c24bb145a649b",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "8fec3b440d9941b1c7069f5b71f6719caf9b201eba2b0b888b81b11c702e7568",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "3bc7448e4058c6e258f203eadc1790cc4603cf5e9de61ea4a5dd519375c73a55",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "82892b3d0dd3aff68666ba1a624befcc1e6f16bf9119a934969b193cc7f8e56c",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--lib",
+        "rf023_"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T15:14:59.544654+00:00",
+      "finishedAt": "2026-10-01T15:16:28.560973+00:00",
+      "exitCode": 101,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\core-target-r2.log",
+      "logSha256": "b4696a2e78fbf240c1f5714d9c7666d2f20fc4175851e155d28ab6e14540ef5b",
+      "testGroups": [
+        {
+          "result": "FAILED",
+          "passed": 7,
+          "failed": 1,
+          "ignored": 0
+        }
+      ],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "0a1ad5f3806f8f2ad12c94e0613411baee09078c4586a96cf52637b1295d9a1c",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "5357b05f7da9e7390ef980bdded49f6fbae87d9c98af06cc725c24bb145a649b",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "8fec3b440d9941b1c7069f5b71f6719caf9b201eba2b0b888b81b11c702e7568",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "664c3708a620be6343c077f7ce9224d0ef15151dc778f4bf1f558fbf93204a85",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "82892b3d0dd3aff68666ba1a624befcc1e6f16bf9119a934969b193cc7f8e56c",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "commands::export_import::"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T15:20:05.303095+00:00",
+      "finishedAt": "2026-10-01T15:24:28.309451+00:00",
+      "exitCode": 101,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\host-target-r1.log",
+      "logSha256": "ec446363bbc4a3370c8d9497399a7f98c3c47657bf782deda67818c92ac3438e",
+      "testGroups": [
+        {
+          "result": "FAILED",
+          "passed": 156,
+          "failed": 1,
+          "ignored": 0
+        }
+      ],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "5357b05f7da9e7390ef980bdded49f6fbae87d9c98af06cc725c24bb145a649b",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "8fec3b440d9941b1c7069f5b71f6719caf9b201eba2b0b888b81b11c702e7568",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "82892b3d0dd3aff68666ba1a624befcc1e6f16bf9119a934969b193cc7f8e56c",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T15:17:10.037933+00:00",
+      "finishedAt": "2026-10-01T15:17:53.070112+00:00",
+      "exitCode": 101,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\r-clippy-r1.log",
+      "logSha256": "d7f80bcdff5505bb1806e50ec2cd1222cec6312e455ae6a167978137b204f9f1",
+      "testGroups": [],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "0a1ad5f3806f8f2ad12c94e0613411baee09078c4586a96cf52637b1295d9a1c",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "5357b05f7da9e7390ef980bdded49f6fbae87d9c98af06cc725c24bb145a649b",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "8fec3b440d9941b1c7069f5b71f6719caf9b201eba2b0b888b81b11c702e7568",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "82892b3d0dd3aff68666ba1a624befcc1e6f16bf9119a934969b193cc7f8e56c",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T15:27:40.444918+00:00",
+      "finishedAt": "2026-10-01T15:28:10.157185+00:00",
+      "exitCode": 101,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\r-clippy-r3.log",
+      "logSha256": "c3716a2569398bf1785b0ee82f17c8248a38ccdc23d9b0689c0851740f17cd96",
+      "testGroups": [],
+      "sourceSha256": {
+        "tauri/crates/solosoul-core/src/export_import.rs": "ad89fb059d9cbad418d05e20f842a24e457ea355b55ae95127560381e2057c01",
+        "tauri/crates/solosoul-core/src/export_import/export.rs": "569deb7ed919fb4db3ad7905e296172b91390de9b232179b9ccd58a5df9995b1",
+        "tauri/crates/solosoul-core/src/export_import/export_output.rs": "f97e3193acd03cca38a69a7dd1778b8ab06ca30d30a6a13de96a49f3f0c19ba8",
+        "tauri/src-tauri/src/commands/export_import/mod.rs": "5b4616d5848dd53521a891e1a5823dd6b5b53afb14a1ea57025873700789a55a",
+        "tauri/src-tauri/src/commands/export_import/export.rs": "af720fc0fcfaf9f08963f29b3cfb6290dc1484892bb0d275cd0157a642b49cb1",
+        "tauri/src-tauri/src/commands/export_import/helpers.rs": "ac3bb12340a713ca7a228d548ede9a456ad2eaa48af7532d4bc872c150432c2f",
+        "tauri/src-tauri/src/services/mod.rs": "cbcbd89d213e848abc750218488c71b426a9ffcbf6f52d3f54bf63dd60de4c0f",
+        "tauri/src-tauri/src/services/encrypted_export.rs": "6977d40175ba34a73a756ec7c0d16c0c566f2e89f24d24caf7fff8dd70146245",
+        "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "8a6a95c9084630df321af54aa0efa5f025d5a06cb7c604e7b1359a19b55e15fc",
+        "tauri/src-tauri/src/commands/recovery.rs": "05f67825c78680c592715e4fc9c4e29e00bc95b31ec6642fa1fdfa2299982306",
+        "tauri/crates/solosoul-core/src/export_import/export/rf023.rs": "92bbb287e4bff59f0f5642f722a96caa847078f0f3215d6644ebe63af6e4820d",
+        "tauri/src-tauri/src/commands/export_import/tests/rf023.rs": "ba5fd35604194f786320bcbbf48f99db6517cbe930cf9d31a79e814e19a94c50",
+        "tauri/src-tauri/src/commands/export_import/tests.rs": "741b6c8bad6a701cc91b7c4edfde94f4dbade38a8cd31f2d8407fbee7bb2e0d7"
+      },
+      "protected14RawUnchanged": true,
+      "originalRegressionsAndDependenciesUnchanged": true
+    }
+  ],
+  "preflightChecks": [
+    {
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\preflight-check-r1.log",
+      "sha256": "a11c4ec355f4fb91b2ad0f9b000c2d4531389ebb0bfd8549c7aa7bb85b5d11d7",
+      "rawOutput": "    Checking solosoul-crypto v2.13.2 (C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-crypto)\n    Checking solosoul-vault v2.13.2 (C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-vault)\n    Checking solosoul-core v2.13.2 (C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-core)\n    Checking solosoul-plugin v2.13.2 (C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-plugin)\n    Checking solosoul-sync v2.13.2 (C:\\Users\\40299571\\SoloSoul\\tauri\\crates\\solosoul-sync)\n    Checking solo_soul v2.13.2 (C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri)\nerror[E0425]: cannot find type `BTreeSet` in this scope\n   --> src-tauri\\src\\commands\\export_import\\import.rs:577:50\n    |\n577 |         .map(|ids| ids.iter().cloned().collect::<BTreeSet<_>>());\n    |                                                  ^^^^^^^^ not found in this scope\n    |\nhelp: consider importing this struct\n    |\n  1 + use std::collections::BTreeSet;\n    |\n\nerror[E0425]: cannot find type `BTreeSet` in this scope\n    --> src-tauri\\src\\commands\\export_import\\import.rs:1084:13\n     |\n1084 | ) -> Option<BTreeSet<String>> {\n     |             ^^^^^^^^ not found in this scope\n     |\nhelp: consider importing this struct\n     |\n   1 + use std::collections::BTreeSet;\n     |\n\nerror[E0425]: cannot find type `BTreeSet` in this scope\n    --> src-tauri\\src\\commands\\export_import\\import.rs:1193:27\n     |\n1193 |     selected_ids: Option<&BTreeSet<String>>,\n     |                           ^^^^^^^^ not found in this scope\n     |\nhelp: consider importing this struct\n     |\n   1 + use std::collections::BTreeSet;\n     |\n\nwarning: unused import: `Write`\n  --> src-tauri\\src\\commands\\export_import\\mod.rs:16:21\n   |\n16 | use std::io::{Read, Write};\n   |                     ^^^^^\n   |\n   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused imports: `AttachmentExportScope`, `ExportRequest`, and `ExportScope`\n  --> src-tauri\\src\\sync\\cloud_auto_sync.rs:38:38\n   |\n38 | use crate::commands::export_import::{AttachmentExportScope, ExportRequest, ExportScope};\n   |                                      ^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^^^^^^^\n   |\n   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\nFor more information about this error, try `rustc --explain E0425`.\nwarning: `solo_soul` (lib) generated 1 warning\nerror: could not compile `solo_soul` (lib) due to 3 previous errors; 1 warning emitted\nwarning: build failed, waiting for other jobs to finish...\nwarning: `solo_soul` (lib test) generated 1 warning\nerror: could not compile `solo_soul` (lib test) due to 3 previous errors; 1 warning emitted\n"
+    },
+    {
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\preflight-check-r2.log",
+      "sha256": "a8be419e7b93c0d27a610ff19fe42abbdf15aba20cd159ced1dfb3864047c0f6",
+      "rawOutput": "    Checking solo_soul v2.13.2 (C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri)\nerror[E0433]: cannot find type `ZipWriter` in this scope\n   --> src-tauri\\src\\commands\\export_import\\export_docx\\docx.rs:174:23\n    |\n174 |         let mut zip = ZipWriter::new(&mut buf);\n    |                       ^^^^^^^^^ use of undeclared type `ZipWriter`\n\nFor more information about this error, try `rustc --explain E0433`.\nerror: could not compile `solo_soul` (lib) due to 1 previous error\nwarning: build failed, waiting for other jobs to finish...\n"
+    },
+    {
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf023-20261001\\preflight-check-r3.log",
+      "sha256": "50cf39afb1a44c75e2c60481658483b02e5509c934ac7bbaf94495543c43c720",
+      "rawOutput": "    Checking solo_soul v2.13.2 (C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri)\nwarning: function `derive_export_key` is never used\n   --> src-tauri\\src\\commands\\export_import\\mod.rs:305:15\n    |\n305 | pub(crate) fn derive_export_key(\n    |               ^^^^^^^^^^^^^^^^^\n    |\n    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: function `collect_scope_objects` is never used\n   --> src-tauri\\src\\commands\\export_import\\mod.rs:363:15\n    |\n363 | pub(crate) fn collect_scope_objects(\n    |               ^^^^^^^^^^^^^^^^^^^^^\n\nwarning: `solo_soul` (lib) generated 2 warnings\n    Finished `dev` profile [optimized + debuginfo] target(s) in 28.12s\n"
+    }
+  ],
+  "protectedExistingUnrelatedFiles": [
+    {
+      "path": "solosoul_cli/src/commands/profile.rs",
+      "sha256": "e08c0a7b8c9d9270f5764945494634c75d6d81bcba02cc189487965c81fc4e41",
+      "bytes": 9438
+    },
+    {
+      "path": "solosoul_cli/src/commands/security.rs",
+      "sha256": "0133f1ca219910c364dba4a2792452cfb88b05a133243f45765703cbbe146104",
+      "bytes": 19017
+    },
+    {
+      "path": "solosoul_cli/src/commands/template.rs",
+      "sha256": "ed2c08ee422ca9365415723875289cdad12ee2b92746a99a8c46eccac0ad7f95",
+      "bytes": 7433
+    },
+    {
+      "path": "solosoul_cli/src/commands/vault_write.rs",
+      "sha256": "48cb640caca661c289897d9d99a6a8cf4b13bb16abe05b5123fbc30b3bc7a16e",
+      "bytes": 35110
+    },
+    {
+      "path": "tauri/crates/solosoul-core/src/process_lock.rs",
+      "sha256": "48ebf0045f85980ebfc6e0a9ee52d72d2bb394e6f8b12d7107a2362f0d637c34",
+      "bytes": 2694
+    },
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/header-install.bmp",
+      "sha256": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+      "bytes": 25818
+    },
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp",
+      "sha256": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+      "bytes": 25818
+    },
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp",
+      "sha256": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+      "bytes": 154542
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json",
+      "sha256": "d1f8f2db3d8aad53e1b955d3fc640374752db1c302d2f2c22d74e9ed356b428f",
+      "bytes": 61768
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/search-index.json",
+      "sha256": "cd4beaf09aeda37039a6523e6b86d01374dcced507278a1e76d41bd473b4e8fb",
+      "bytes": 252821
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/tauri.properties",
+      "sha256": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+      "bytes": 133
+    },
+    {
+      "path": "tauri/src/hooks/useToastError.ts",
+      "sha256": "f2da44c3ca3fb50e379051ba762b1712ec19dfa21f9321ecaee3f9ef4fa33968",
+      "bytes": 1278
+    },
+    {
+      "path": "tauri/tools/ipc-contract-gen/src/lib.rs",
+      "sha256": "c682c7af5fe3d0432bef16223aa0c1da0370a8e83f5de859d509f6819199ec77",
+      "bytes": 15007
+    },
+    {
+      "path": "tauri/tools/ipc-contract-gen/tests/contracts.rs",
+      "sha256": "9377b9d40c3cd867a70bb0926a617745fca6c037cb9cdbe3a2f6b523c52bd9eb",
+      "bytes": 21982
+    }
+  ],
+  "unchangedOriginalSourceAndDependencies": {
+    "tauri/src-tauri/src/commands/vault.rs": "8ae31f256ea77f4d68ef4e92869028db90266f9c65f72012d9661b6224ceb513",
+    "tauri/crates/solosoul-core/src/export_import/rf015.rs": "a3eda94cfc476d477ddeb8cbac4da748df98456687e57471e91702004c5518cb",
+    "tauri/src-tauri/src/commands/recovery/rf015_tests.rs": "d309871bb8cd05b0d2615dfd674bdc97f91fc1d43caae256b5900bd130c398c0",
+    "solosoul_cli/Cargo.toml": "bd732f6b7f039efc1f4f2fc58ac4b63dbf5e103b5dc5b1e9770c36008ca35a96",
+    "tauri/crates/solosoul-core/Cargo.toml": "37e2d4c6a8257dd420ab39ac57d04e6a4f1c52f46230a779b5db199c13c31949",
+    "tauri/crates/solosoul-core/src/import_activity.rs": "47925e3baf6c69f021e51b41226527ccc9d7a3c80fd65daf34e16a6e37e8c87e",
+    "tauri/crates/solosoul-core/src/attachment_crypto.rs": "494b99eb1d4f58c0707ddb9bd20af59940846557c2d42e61a961f37df4f4cc51",
+    "solosoul_cli/src/commands/export_import.rs": "e3004292e9278e550db12bff4af2d6db4eee97b912eee8f8e7d1bb10ad7c2a60",
+    "tauri/src-tauri/src/commands/export_import/tests/rf017.rs": "b5a99c2667d432e60047fade17825c0cdf47c518272b5fa3e2ed6f4a12ac32e0",
+    "solosoul_cli/Cargo.lock": "22471a02bc24517dbf100732902287e5908a520c5c0e747b62f83d10cb30b71d",
+    "tauri/src-tauri/src/commands/export_import/tests/rf015.rs": "7072a64484e3e0f50ca3e7ff188d14a962a916f5cf704ddc52d0838316a882d4",
+    "tauri/src/types/exportImport.ts": "90762371bf58f98447a6961b0c65073d51986b6f27fedb08443801a902a88621",
+    "tauri/src-tauri/src/sync/cloud_auto_sync/tests/rf014.rs": "9dd4ed32fe57b273d9749640d10b338e52a8b82b44271a69a75251462dc72d67",
+    "tauri/crates/solosoul-vault/src/storage/objects.rs": "c89fe62d2456af2a3e36cca571dbd5cd272277898462cd296ed0e134fb09e13c",
+    "tauri/src-tauri/src/commands/export_import/export_docx/mod.rs": "a78292d4a284a429386a9dcee713fb581c7739cce6289c01e1941b84aff0efea",
+    "tauri/crates/solosoul-core/src/vault_service/unlock.rs": "1c11dd9c691ab192f35a99badc56713c0181f6d3cda880c2608bdb782729b0e9",
+    "tauri/src-tauri/src/commands/auth.rs": "38c8877e80c784182998158c07f9d3d40af54a499b6855c4e0001fce46961d1e",
+    "tauri/crates/solosoul-core/src/vault_service/session.rs": "88b1243f5e694fb6e4b7c839fe11f8fad5838a218a0af65a6839f25d76cfa698",
+    "tauri/src-tauri/src/lib.rs": "86bce22c8c504de4b9a1bbea2a64d468855b6365f57a5211430ef9bde8de879d",
+    "solosoul_cli/src/commands/export_import/rf015.rs": "c5da0c70f61389f8f2222a3e5b30d793cb3b7e7511e9e8bf775c1db6e760bba8",
+    "tauri/crates/solosoul-vault/src/storage/snapshots.rs": "68fc2bfb5c3e1b6700f6ff7dbe80281eb870f5b93b83cb3d696ad938053a992f",
+    "tauri/src-tauri/src/commands/export_import/tests/rf025.rs": "fb435fb2aa9849c21ca162a3136cc1f8071e641b9bfa1cb7eb5c8794ba25d010",
+    "tauri/Cargo.lock": "eaecbdecd19fcbeddb9d3d9cf5d216f06e6c56ff32cb84aaeabde21c97d74fd5"
+  },
+  "discipline": {
+    "oneTaskOneCommit": true,
+    "push": false
+  },
+  "compatibility": {
+    "advanced": "full all templates; latest 50 histories/object; original contract_type_id, optional preferences and audit HKDF; empty full allowed",
+    "legacy": "original template/fields/counts/signatures/no source SOLC key; shared atomic output now",
+    "wire": "three exact DTO bodies unchanged; command names/types retained",
+    "cloudRecovery": "direct Core business DTO/executor, import/default_locale remain RF024",
+    "queueLifecycle": "queued original Session/root owner retained; activity acquired by actual worker, original RF025 switch/reunlock assertions remain",
+    "output": "finish/flush/sync/close then publish; Session only for Advanced publication; LegacyDirect remains direct",
+    "metadata": "full properties.__attachments unchanged for None and Selected scopes",
+    "size": "Advanced metadata-declared attachment bytes; Legacy actual file lengths; original single/total caps",
+    "platform": "Windows local real SQLite/packages/workers only; no remote cloud or visible UI/other native platform claims"
+  },
+  "finalDocumentationAndScopeCheck": {
+    "newLocalLinks": [
+      {
+        "source": "docs/attachment-storage-spec.md",
+        "target": "REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-023",
+        "exists": true
+      },
+      {
+        "source": "docs/attachment-storage-spec.md",
+        "target": "REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-024",
+        "exists": true
+      },
+      {
+        "source": "docs/attachment-storage-spec.md",
+        "target": "verification/rf023-core-encrypted-export-2026-10-01.json",
+        "exists": true
+      },
+      {
+        "source": "docs/design_map/16_导入导出功能设计.md",
+        "target": "../verification/rf015-explicit-attachment-export-scope-2026-10-01.json",
+        "exists": true
+      },
+      {
+        "source": "docs/design_map/16_导入导出功能设计.md",
+        "target": "../verification/rf023-core-encrypted-export-2026-10-01.json",
+        "exists": true
+      },
+      {
+        "source": "docs/design_map/18_云打包与云同步功能实施记录.md",
+        "target": "../verification/rf023-core-encrypted-export-2026-10-01.json",
+        "exists": true
+      },
+      {
+        "source": "docs/solosoul_cli/USER_GUIDE.md",
+        "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-024",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "#rf-023",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "#rf-015",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "#rf-017",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "verification/rf023-core-encrypted-export-2026-10-01.json",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "verification/rf023-core-encrypted-export-2026-10-01.json",
+        "exists": true
+      }
+    ],
+    "linkCount": 12,
+    "gitDiffCheckExit": 0,
+    "protected14RawUnchanged": true,
+    "source13Unchanged": true,
+    "indexBeforeEmpty": true,
+    "owned19Exist": true
+  },
+  "finalDocumentationHashes": {
+    "docs/attachment-storage-spec.md": "7ed1f544d113ee8f4522559f5f3509315c8275a7e25a2f1945c62b20ee9ce292",
+    "docs/design_map/16_导入导出功能设计.md": "d5a0f557f8085127aacceb54308845e876911294789e9069650a42a8f0d248fc",
+    "docs/design_map/18_云打包与云同步功能实施记录.md": "f452561b87d4c0c3c2214e3c40875b4bbeb7de79f6ee7a0f7a296b6d9fe5e049",
+    "docs/solosoul_cli/USER_GUIDE.md": "c38c0177fdedcbc78d403407dc58ccac22a9728a87bf5c7f9d2c04f15e7d102e",
+    "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md": "4f378818e103a118da24b79b7d7093c0825eeeeb735e6441f04457b93446df27"
+  }
+}

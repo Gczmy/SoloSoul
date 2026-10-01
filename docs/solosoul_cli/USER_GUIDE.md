@@ -133,7 +133,7 @@ GUI 和 CLI 已共用备份编解码规则（RF-013），CLI 创建仍为 2.0/�
 
 导出密码通过模态提示采集，**不允许与主密码**相同。
 
-默认不导出附件文件；`--include-attachments` 表示导出所选对象中的全部未删除附件，未选对象的附件不会进入包。范围在共享 Core 入口映射为 `AttachmentExportScope::None/All`，与 GUI 手动空数组的零选择契约分别适配（RF-015）。当前 CLI 导出兼容入口未传入 Vault 附件密钥，选择 SOLC 静态密文会明确报错；完整导出用例和会话密钥接入仍由 [RF-023](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-023) 承接。
+默认不导出附件文件；`--include-attachments` 表示导出所选对象中的全部未删除附件，未选对象的附件不会进入包。范围在共享 Core 入口映射为 `AttachmentExportScope::None/All`，与 GUI 手动空数组的零选择契约分别适配（RF-015）。当前 CLI 导出兼容入口未传入 Vault 附件密钥，选择 SOLC 静态密文会明确报错；RF-023已将完整导出用例与原子writer收敛至Core，失败不会覆盖既有备份；LegacyDirect兼容包与无源密钥行为保持。
 
 导入中断后，对象记录可能已提交，附件或偏好仍待处理。重新解锁原账户，使用 `/import --pending` 查看任务，再按原 ID 继续。续接按需索取同一包及包密码，并核对包内容；已保存就绪材料或已完成的任务无需源包和密码。续接不能更改策略或选择。续接时若路径包含空格，可省略路径参数，在提示框输入。已写文件数与可用附件数分别统计；文件发布后，附件元数据仍可能待提交。
 
@@ -299,7 +299,7 @@ GUI 与 CLI 复用部分核心 crate 和数据格式，入口参数、错误文�
 | 对象回滚 | 已复用共享用例，见 [RF-008](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-008) |
 | 对象创建 | 已共享模板初始化规则，见 [RF-010](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-010) |
 | Profile 备份 | 已共享兼容解码和清单，见 [RF-013](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-013)；GUI 写 Base64，CLI 写字节数组，不能称为完全相同的编码 |
-| `.solosoul` 导出/导入 | 生产导入已共享持久任务及附件、偏好续接（RF-022）；对象准备、计数与导出仍有独立边界，完整共享用例待 [RF-023](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-023)、[RF-024](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-024)。GUI 的原子导出修复不能直接视为 CLI 也已完成 |
+| `.solosoul` 导出/导入 | RF-023后完整导出共用Core及原子writer，GUI/云/恢复的Advanced与旧CLI的LegacyDirect包字段差异保持；CLI选择SOLC源仍明确缺密钥错误。生产导入已共享持久任务与后续阶段（RF-022），完整对象准备/策略收敛仍待 [RF-024](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-024) |
 | 设置与进程锁 | CLI `/language` / `/theme` 写 UI 偏好文件；GUI 解锁后另有账户加密偏好优先级。桌面同 root 目录所有权与移动 no-op 边界见 §5 |
 | 同步、OCR、Embedding | GUI 已有设备同步、OCR 页面及本地模型面板；CLI 的同步阻塞见 §4.11，Embedding 格式与安装目录差异见 §4.13 |
 

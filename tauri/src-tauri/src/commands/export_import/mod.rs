@@ -13,7 +13,9 @@ pub(crate) use solosoul_core::export_import::AttachmentExportScope;
 use solosoul_vault::ObjectSummary;
 use std::collections::{BTreeSet, HashMap};
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::Read;
+#[cfg(test)]
+use std::io::Write;
 #[cfg(mobile)]
 use tauri::Manager;
 use tauri::State;
@@ -28,33 +30,15 @@ pub(crate) fn generate_id() -> String {
 }
 
 // Prefixes used by the frontend to map backend errors to i18n keys.
-pub(crate) const EXPORT_ERR_PREFIX: &str = "__EXPORT_ERR__:";
+pub(crate) use crate::services::encrypted_export::EXPORT_ERR_PREFIX;
 pub(crate) const IMPORT_ERR_PREFIX: &str = "__IMPORT_ERR__:";
 
-/// 导出审计日志时最多读取的条数。
-pub(crate) const MAX_AUDIT_LOG_EXPORT: usize = 100_000;
 pub(crate) fn export_err(code: &str) -> String {
     format!("{}{}", EXPORT_ERR_PREFIX, code)
 }
 
 pub(crate) fn import_err(code: &str) -> String {
     format!("{}{}", IMPORT_ERR_PREFIX, code)
-}
-
-/// 校验附件物理路径位于 Vault 的 attachments 目录内，防止导出时通过恶意 src_path 读取任意文件。
-pub(crate) fn validate_attachment_path(
-    base: &std::path::Path,
-    path: &std::path::Path,
-) -> Result<(), String> {
-    let base_abs = std::path::absolute(base).map_err(|e| e.to_string())?;
-    let path_abs = std::path::absolute(path).map_err(|e| e.to_string())?;
-    if !path_abs.starts_with(&base_abs) {
-        return Err(format!(
-            "Attachment path escapes vault attachments directory: {}",
-            path.display()
-        ));
-    }
-    Ok(())
 }
 
 pub(crate) fn export_err_with_detail(code: &str, detail: &str) -> String {
@@ -93,6 +77,21 @@ pub struct ExportScope {
 }
 
 impl ExportScope {
+    pub(crate) fn to_core_scope(
+        &self,
+        attachments: AttachmentExportScope,
+    ) -> solosoul_core::export_import::export::EncryptedExportScope {
+        solosoul_core::export_import::export::EncryptedExportScope {
+            selected_page_ids: self.selected_page_ids.clone(),
+            selected_object_ids: self.selected_object_ids.clone(),
+            selected_tags: self.selected_tags.clone(),
+            include_all: self.include_all,
+            attachments,
+            include_preferences: self.include_preferences,
+            include_behavioral: self.include_behavioral,
+        }
+    }
+
     /// 只适配既有手动 IPC 字段；启用附件但空 ID 数组仍明确表示零选中。
     pub(crate) fn attachment_export_scope(&self) -> AttachmentExportScope {
         AttachmentExportScope::from_manual_selection(
@@ -303,6 +302,7 @@ impl ImportResult {
 
 // ── Helpers ────────────────────────────────────────────────────
 
+#[cfg(test)]
 pub(crate) fn derive_export_key(
     password: &str,
     salt: &[u8],
@@ -361,77 +361,17 @@ pub(crate) fn collect_all_attachment_ids(
 /// 现改为：include_all 分支直接 `list_object_records`（一次解密完整记录）按页面/标签过滤；
 /// selected 分支用 `list_object_metadata_with_tags`（纯 SQL 元数据，不解密 properties）
 /// 筛出命中 id，再一次 `load_objects_batch` 批量解密加载（N010-⑥：注释与 P003 实现对齐）。
+#[cfg(test)]
 pub(crate) fn collect_scope_objects(
     vault: &solosoul_vault::VaultStore,
     account_id: &str,
     scope: &ExportScope,
 ) -> Result<Vec<solosoul_vault::ObjectRecord>, String> {
-    // P005 复核：include_all 分支此前 list_objects（全量解密）取 id + load_objects_batch
-    // （再解密）双重解密。全量导出直接一次 list_object_records（已解密完整记录）
-    // 按页面/标签过滤即可，避免对同一批数据解密两遍。
-    if scope.include_all {
-        let mut records = vault.list_object_records(account_id)?;
-        records.retain(|r| {
-            let page_ok = scope.selected_page_ids.is_empty()
-                || scope.selected_page_ids.contains(&r.section_type);
-            let tag_ok = scope.selected_tags.is_empty()
-                || r.tags_json.iter().any(|t| scope.selected_tags.contains(t));
-            page_ok && tag_ok
-        });
-        records.sort_by(|a, b| a.id.cmp(&b.id));
-        return Ok(records);
-    }
-
-    // P003: selected 分支此前用 list_objects（全库解密 properties 仅为筛 id），随后
-    // load_objects_batch 再解密一次——双重解密。现改用 metadata-only + 明文 tags_json
-    // 的 list_object_metadata_with_tags（纯 SQL，不解密 properties），命中对象才解密。
-    let all = vault.list_object_metadata_with_tags(account_id, None, None, false, false)?;
-    let mut selected_ids: BTreeSet<String> = scope.selected_object_ids.iter().cloned().collect();
-
-    // Add all IDs belonging to selected pages
-    for summary in &all {
-        if !scope.selected_page_ids.is_empty()
-            && scope.selected_page_ids.contains(&summary.section_type)
-        {
-            selected_ids.insert(summary.id.clone());
-        }
-    }
-
-    // Filter by tags (P2): if selected_tags is non-empty, keep only objects with ANY matching tag
-    if !scope.selected_tags.is_empty() {
-        selected_ids.retain(|id| {
-            all.iter()
-                .any(|s| s.id == *id && s.tags.iter().any(|t| scope.selected_tags.contains(t)))
-        });
-    }
-
-    if selected_ids.is_empty() {
-        return Ok(Vec::new());
-    }
-
-    let id_list: Vec<String> = selected_ids.into_iter().collect();
-    let by_id = vault.load_objects_batch(&id_list)?;
-    let mut records: Vec<solosoul_vault::ObjectRecord> = by_id.into_values().collect();
-    // 保持确定顺序：按 id 升序（与旧实现遍历 BTreeSet 的返回顺序一致）。
-    records.sort_by(|a, b| a.id.cmp(&b.id));
-    Ok(records)
-}
-
-/// Collect user templates referenced by the given records (id-sorted, deduped).
-/// 加载失败的模板静默跳过。体积估算与导出执行共用此逻辑，保证
-/// 「导出前展示的模板清单」与「最终包内 templates」口径一致。
-pub(crate) fn collect_referenced_templates(
-    vault: &solosoul_vault::VaultStore,
-    records: &[solosoul_vault::ObjectRecord],
-) -> Vec<solosoul_vault::UserTemplate> {
-    let template_ids: BTreeSet<String> = records
-        .iter()
-        .filter_map(|r| r.template_id.clone())
-        .collect();
-    template_ids
-        .iter()
-        .filter_map(|tid| vault.load_user_template(tid).ok().flatten())
-        .collect()
+    solosoul_core::export_import::export::collect_advanced_objects(
+        vault,
+        account_id,
+        &scope.to_core_scope(scope.attachment_export_scope()),
+    )
 }
 
 /// Collect the user templates to be packaged in the export.
@@ -441,19 +381,19 @@ pub(crate) fn collect_referenced_templates(
 /// - 部分导出：仅打包被导出对象引用的模板（快照隔离，保持既有语义）。
 ///
 /// 体积估算与导出执行共用此逻辑，保证「导出前展示的模板清单」与最终包内 templates 口径一致。
+#[cfg(test)]
 pub(crate) fn collect_export_templates(
     vault: &solosoul_vault::VaultStore,
     account_id: &str,
     scope: &ExportScope,
     records: &[solosoul_vault::ObjectRecord],
 ) -> Result<Vec<solosoul_vault::UserTemplate>, String> {
-    if scope.include_all {
-        let mut all = vault.list_user_templates(account_id)?;
-        all.sort_by(|a, b| a.id.cmp(&b.id));
-        Ok(all)
-    } else {
-        Ok(collect_referenced_templates(vault, records))
-    }
+    solosoul_core::export_import::export::collect_advanced_templates(
+        vault,
+        account_id,
+        &scope.to_core_scope(scope.attachment_export_scope()),
+        records,
+    )
 }
 
 // ── Sub-modules ─────────────────────────────────────────────

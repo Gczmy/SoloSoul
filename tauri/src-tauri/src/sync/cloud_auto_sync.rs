@@ -33,8 +33,9 @@ use tauri::{AppHandle, Emitter};
 use tokio::io::AsyncWriteExt;
 use tokio::sync::mpsc;
 
-use crate::commands::export_import::{
-    default_locale, AttachmentExportScope, ExportRequest, ExportScope,
+use crate::commands::export_import::default_locale;
+use solosoul_core::export_import::export::{
+    execute_encrypted_export, EncryptedExportRequest, EncryptedExportScope,
 };
 
 /// 快照文件名后缀（与 build_snapshot_remote_path 保持一致）。
@@ -470,37 +471,23 @@ async fn run_sync_inner(
 async fn export_full_snapshot(pre: &CloudPreContext, dest: &Path) -> Result<(), String> {
     let vs = pre.service.clone();
     let session = pre.session.clone();
-    let pw = pre.config.snapshot_password.clone();
-    let dest_str = dest.to_string_lossy().to_string();
-
+    let password = zeroize::Zeroizing::new(pre.config.snapshot_password.clone());
+    let dest = dest.to_path_buf();
     tauri::async_runtime::spawn_blocking(move || {
         let svc = vs
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        // 只短时校验门闩；附件 All 与对象从原会话一起收集，不重新取得当前 Vault。
         svc.with_session(&session, |_| Ok(()))?;
-        let req = ExportRequest {
-            scope: ExportScope {
-                selected_page_ids: vec![],
-                selected_object_ids: vec![],
-                selected_tags: vec![],
-                include_attachments: true,
-                selected_attachment_ids: vec![],
-                include_preferences: true,
-                include_behavioral: false,
-                include_all: true,
-            },
-            password: pw,
-            password_hint: None,
-            save_path: dest_str.clone(),
+        let scope = EncryptedExportScope::full_snapshot();
+        let req = EncryptedExportRequest {
+            scope: &scope,
+            password: &password,
+            password_hint: &None,
+            app_version: env!("CARGO_PKG_VERSION"),
         };
-        crate::commands::export_import::execute_export_for_session_with_attachment_scope(
-            &svc,
-            &session,
-            &req,
-            &dest_str,
-            &AttachmentExportScope::All,
-        )
+        execute_encrypted_export(&svc, &session, &req, &dest)
+            .map(|_| ())
+            .map_err(crate::services::encrypted_export::map_export_failure)
     })
     .await
     .map_err(|e| format!("导出任务 join 失败: {e}"))?
