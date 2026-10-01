@@ -9,6 +9,7 @@ import { useTemplateStore } from '@/stores/templateStore';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Info, Trash2, RotateCcw, FileX } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { resolveBackendErrorMessage } from '@/lib/backendError';
 import type { UserTemplate } from '@/types/template';
 import type { TrashDetail, TrashConfirmAction } from '@/components/trash/types';
 
@@ -52,7 +53,8 @@ export function useTrashPage() {
   const restoreBatch = useTrashStore((s) => s.restoreBatch);
   const permanentDelete = useTrashStore((s) => s.permanentDelete);
   const isLoading = useTrashStore((s) => s.isLoading);
-  const error = useTrashStore((s) => s.error);
+  const backendError = useTrashStore((s) => s.error);
+  const error = backendError ? resolveBackendErrorMessage(backendError) : null;
   const selectedIds = useTrashStore((s) => s.selectedIds);
   const toggleSelection = useTrashStore((s) => s.toggleSelection);
   const selectAll = useTrashStore((s) => s.selectAll);

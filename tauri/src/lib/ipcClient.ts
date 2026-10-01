@@ -11,7 +11,7 @@
  *    消灭「静默失败 / unhandled rejection」类问题（配合各组件 onError toast）。
  * 2. **默认解锁守卫（P027）** —— Vault 未解锁（`isAuthenticated === false`）时，
  *    除 `UNLOCKED_EXEMPT_COMMANDS` 豁免名单（认证/解锁流程、启动期系统命令）外
- *    的所有命令一律在发起 IPC 前抛 `No account is currently unlocked`
+ *    的命令在发起 IPC 前拒绝：对象域使用 `VAULT_LOCKED`，旧域保留原字符串。
  *    （与后端错误语义一致），动态 import authStore 避免循环依赖。
  *    `opts.requireUnlocked` 可显式覆盖：`true` 强制启用（豁免名单也拦截）、
  *    `false` 显式豁免（仅用于极少数确定无需解锁的命令）。
@@ -23,6 +23,14 @@
  * i18n 依赖构成循环）——失败日志内联 dev 守卫，仅依赖 core。
  */
 import { invoke } from '@tauri-apps/api/core';
+import {
+  BackendCommandError,
+  backendErrorLogDetails,
+  isObjectErrorCommand,
+  makeBackendError,
+  normalizeObjectError,
+  readBackendError,
+} from './backendErrorWire';
 
 export interface InvokeOptions {
   /**
@@ -167,13 +175,17 @@ export async function invokeCommand<T>(
       isAuthenticated = true;
     }
     if (!isAuthenticated) {
-      const err = new Error('No account is currently unlocked');
+      const err = isObjectErrorCommand(cmd)
+        ? new BackendCommandError(makeBackendError('VAULT_LOCKED'))
+        : new Error('No account is currently unlocked');
       devWarn(`[ipc] '${cmd}' blocked: vault not unlocked`);
       throw err;
     }
   }
   if (opts?.requestIsCurrent && !opts.requestIsCurrent()) {
-    throw new Error('Request belongs to an expired session');
+    throw isObjectErrorCommand(cmd)
+      ? new BackendCommandError(makeBackendError('SESSION_EXPIRED'))
+      : new Error('Request belongs to an expired session');
   }
   try {
     // args 缺省时不再传第二参：既有测试断言 `toHaveBeenCalledWith('cmd')`
@@ -183,8 +195,9 @@ export async function invokeCommand<T>(
     }
     return await invoke<T>(cmd, args);
   } catch (err) {
-    const raw = err instanceof Error ? err.message : String(err);
-    devWarn(`[ipc] command '${cmd}' failed:`, raw);
+    devWarn(`[ipc] command '${cmd}' failed:`, backendErrorLogDetails(err));
+    if (readBackendError(err) || isObjectErrorCommand(cmd))
+      throw new BackendCommandError(normalizeObjectError(err));
     throw err;
   }
 }

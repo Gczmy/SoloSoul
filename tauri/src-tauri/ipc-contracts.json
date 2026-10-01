@@ -362,7 +362,8 @@
     "crates/solosoul-core/src/llm/config.rs",
     "src-tauri/src/commands/llm/contracts.rs",
     "src-tauri/src/commands/export_import/contracts.rs",
-    "src-tauri/src/sync/contracts.rs"
+    "src-tauri/src/sync/contracts.rs",
+    "src-tauri/src/commands/error.rs"
   ],
   "events": [
     {

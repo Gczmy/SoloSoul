@@ -1,0 +1,84 @@
+{
+  "emptyName": {
+    "code": "OBJECT_NAME_REQUIRED",
+    "safeDetails": {
+      "stage": "validate"
+    },
+    "retryable": false
+  },
+  "longName": {
+    "code": "OBJECT_NAME_TOO_LONG",
+    "safeDetails": {
+      "stage": "validate",
+      "limit": 200
+    },
+    "retryable": false
+  },
+  "largePayload": {
+    "code": "OBJECT_PAYLOAD_TOO_LARGE",
+    "safeDetails": {
+      "stage": "validate",
+      "limit": 10485760
+    },
+    "retryable": false
+  },
+  "duplicateId": {
+    "code": "OBJECT_ID_EXISTS",
+    "safeDetails": null,
+    "retryable": false
+  },
+  "invalidGroup": {
+    "code": "OBJECT_VALIDATION_FAILED",
+    "safeDetails": {
+      "stage": "validate"
+    },
+    "retryable": false
+  },
+  "locked": {
+    "code": "VAULT_LOCKED",
+    "safeDetails": null,
+    "retryable": true
+  },
+  "rollbackMismatch": {
+    "code": "SNAPSHOT_OWNERSHIP_MISMATCH",
+    "safeDetails": {
+      "stage": "snapshotOwner"
+    },
+    "retryable": false
+  },
+  "rollbackMissing": {
+    "code": "SNAPSHOT_NOT_FOUND",
+    "safeDetails": {
+      "stage": "snapshotRead"
+    },
+    "retryable": false
+  },
+  "rollbackInvalid": {
+    "code": "SNAPSHOT_INVALID",
+    "safeDetails": {
+      "stage": "snapshotParse"
+    },
+    "retryable": false
+  },
+  "rollbackLabels": {
+    "code": "SNAPSHOT_INVALID",
+    "safeDetails": {
+      "stage": "labels"
+    },
+    "retryable": false
+  },
+  "writeFailed": {
+    "code": "OBJECT_WRITE_FAILED",
+    "safeDetails": {
+      "stage": "write"
+    },
+    "retryable": false
+  },
+  "templateReadFailed": {
+    "code": "OBJECT_TEMPLATE_READ_FAILED",
+    "safeDetails": {
+      "stage": "template"
+    },
+    "retryable": true
+  }
+}

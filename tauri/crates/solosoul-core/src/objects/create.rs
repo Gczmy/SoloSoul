@@ -21,17 +21,41 @@ pub struct CreateRecordInput {
 
 /// 一次读取模板后构建完整记录，不保存对象或修改父页面。
 /// 真正缺失模板保持兼容，读取失败原样返回，不能丢失字段语义后继续创建。
+/// 保持旧 String API，GUI 的新入口直接使用阶段；CLI 无需改变显示或错误约定。
 pub fn build_create_record(
     vault: &VaultStore,
     account_id: &str,
     input: CreateRecordInput,
     now: &str,
 ) -> Result<ObjectRecord, String> {
+    build_create_record_typed(vault, account_id, input, now).map_err(|error| error.message)
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CreateRecordErrorStage {
+    TemplateRead,
+    Validation,
+}
+#[derive(Debug, thiserror::Error)]
+#[error("{message}")]
+pub struct CreateRecordError {
+    pub stage: CreateRecordErrorStage,
+    pub message: String,
+}
+pub fn build_create_record_typed(
+    vault: &VaultStore,
+    account_id: &str,
+    input: CreateRecordInput,
+    now: &str,
+) -> Result<ObjectRecord, CreateRecordError> {
     let template = input
         .template_id
         .as_deref()
         .map(|id| vault.load_user_template(id))
-        .transpose()?
+        .transpose()
+        .map_err(|message| CreateRecordError {
+            stage: CreateRecordErrorStage::TemplateRead,
+            message,
+        })?
         .flatten();
     let mut properties = input.properties;
     let mut property_labels = None;
@@ -49,7 +73,10 @@ pub fn build_create_record(
         }
         template_hash = Some(hash);
         // 仅真实模板分支校验新继承的约束；无/缺模板不收紧已有自定义 properties。
-        validate_dynamic_groups(&properties)?;
+        validate_dynamic_groups(&properties).map_err(|message| CreateRecordError {
+            stage: CreateRecordErrorStage::Validation,
+            message,
+        })?;
     }
     Ok(ObjectRecord {
         id: input.id,

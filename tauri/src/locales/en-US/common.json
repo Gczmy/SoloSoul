@@ -794,5 +794,20 @@
   "recovery_ready_resume_note": "The recovery operation retains complete account-encrypted materials. Unlock the same account to continue without downloading again or entering a transfer password. Pending operations are also available on the import page.",
   "recovery_resume_ready": "Continue the accepted recovery operation",
   "recovery_existing_complete_desc": "Recovery completed: {{objects}} objects and {{attachments}} attachments. Close this dialog to continue using the current account.",
-  "recovery_existing_receive_open": "Receive recovery data into the current account"
+  "recovery_existing_receive_open": "Receive recovery data into the current account",
+  "backend_vault_busy": "The vault is under maintenance. Try again later.",
+  "backend_session_expired": "The session has expired. Unlock again before retrying.",
+  "backend_operation_failed": "The operation did not complete. Unlock again and check your data.",
+  "backend_object_name_required": "An object name is required.",
+  "backend_object_name_too_long": "The object name must not exceed 200 characters.",
+  "backend_object_payload_too_large": "Object properties must not exceed 10 MiB.",
+  "backend_object_not_found": "The object does not exist or is unavailable.",
+  "backend_object_id_exists": "The object ID already exists. Create the object again.",
+  "backend_object_validation_failed": "Object fields or dynamic group constraints are invalid. Check your input.",
+  "backend_object_template_missing": "The object has no associated template.",
+  "backend_object_template_not_found": "The associated template does not exist or is unavailable.",
+  "backend_object_template_read_failed": "The associated template could not be read. Creation did not complete.",
+  "backend_snapshot_not_found": "The history version does not exist or is unavailable.",
+  "backend_snapshot_invalid": "The history version contains invalid data and cannot be restored.",
+  "backend_snapshot_ownership_mismatch": "This history version belongs to another object and cannot be restored."
 }

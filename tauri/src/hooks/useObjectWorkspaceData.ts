@@ -11,6 +11,8 @@ import { useAuthStore } from '@/stores/authStore';
 import type { DeprecatedField } from '@/lib/templateSync';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { logger } from '@/lib/logger';
+import { backendErrorLogDetails } from '@/lib/backendErrorWire';
+import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { useWorkspacePasswordGuard } from './useWorkspacePasswordGuard';
 import { useTemplateFieldMeta } from './useTemplateFieldMeta';
 import { useWorkspaceTemplateSync } from './useWorkspaceTemplateSync';
@@ -78,7 +80,8 @@ export function useObjectWorkspaceData({
   // P010: 字段级 selector 订阅，避免整店订阅导致任何 store 变化都触发整页重渲染。
   const objects = useObjectStore((s) => s.objects);
   const isLoading = useObjectStore((s) => s.isLoading);
-  const error = useObjectStore((s) => s.error);
+  const backendError = useObjectStore((s) => s.error);
+  const error = backendError ? resolveBackendErrorMessage(backendError) : null;
   const loadObjects = useObjectStore((s) => s.loadObjects);
   const deleteObject = useObjectStore((s) => s.deleteObject);
   const previewSyncTemplate = useObjectStore((s) => s.previewSyncTemplate);
@@ -135,7 +138,8 @@ export function useObjectWorkspaceData({
         setDetailObjState(detail);
       })
       .catch((err) => {
-        if (request.isCurrent()) logger.warn('[Workspace] Fetch object detail failed:', err);
+        if (request.isCurrent())
+          logger.warn('[Workspace] Fetch object detail failed:', backendErrorLogDetails(err));
       });
     return () => detailRequests.invalidate('detail');
   }, [detailObjectId, accountId, detailRequests]);
@@ -218,7 +222,7 @@ export function useObjectWorkspaceData({
       })
       .catch((err) => {
         if (!mounted || snapshotReqRef.current !== reqId) return; // stale error, discard
-        logger.warn('[Workspace] Snapshot count batch failed:', err);
+        logger.warn('[Workspace] Snapshot count batch failed:', backendErrorLogDetails(err));
       });
     return () => {
       mounted = false;

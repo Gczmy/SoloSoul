@@ -49,12 +49,12 @@ describe('invokeCommand（统一 IPC 调用层）', () => {
 
   // ── P027 守卫（MODE=development 模拟生产环境，测试环境默认放行）──
 
-  it('P027 默认守卫：非豁免敏感命令未解锁时直接抛 No account is currently unlocked', async () => {
+  it('P027 默认守卫：对象命令未解锁时抛可本地化的 VAULT_LOCKED', async () => {
     vi.stubEnv('MODE', 'development');
     try {
-      await expect(invokeCommand<void>('object_list', {})).rejects.toThrow(
-        'No account is currently unlocked',
-      );
+      await expect(invokeCommand<void>('object_list', {})).rejects.toMatchObject({
+        backend: { code: 'VAULT_LOCKED', retryable: true },
+      });
       expect(invoke).not.toHaveBeenCalled();
     } finally {
       vi.unstubAllEnvs();
@@ -221,7 +221,7 @@ describe('invokeCommand（统一 IPC 调用层）', () => {
     try {
       await expect(
         invokeCommand('object_list', {}, { requestIsCurrent: () => current }),
-      ).rejects.toThrow('expired session');
+      ).rejects.toMatchObject({ backend: { code: 'SESSION_EXPIRED', retryable: false } });
       expect(invoke).not.toHaveBeenCalled();
     } finally {
       vi.unstubAllEnvs();

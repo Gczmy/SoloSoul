@@ -144,13 +144,19 @@ pub fn generate(root: &Path) -> Result<Generated, String> {
     }
     let mut renderer = Renderer::new(&catalog);
     let mut command_members = Vec::new();
+    let mut error_members = Vec::new();
+    let mut structured_error_commands = Vec::new();
     for (name, (module, function)) in &selected {
-        let (arguments, result) = command_contract(&mut renderer, module, function)
+        let (arguments, result, error) = command_contract(&mut renderer, module, function)
             .map_err(|error| format!("command {name}: {error}"))?;
         command_members.push(format!(
             "  {}: {{ args: {arguments}; result: {result}; }};",
             attrs::quote(name)
         ));
+        error_members.push(format!("  {}: {error};", attrs::quote(name)));
+        if error != "string" && error != "never" {
+            structured_error_commands.push(name.clone());
+        }
     }
     let mut event_members = Vec::new();
     for (name, (module, payload)) in &events {
@@ -168,6 +174,8 @@ pub fn generate(root: &Path) -> Result<Generated, String> {
     }
     typescript.push_str(&map_type("IpcCommands", &command_members));
     typescript.push_str("\n\n");
+    typescript.push_str(&map_type("IpcCommandErrors", &error_members));
+    typescript.push_str("\n\n");
     typescript.push_str(&map_type("IpcEvents", &event_members));
     typescript.push('\n');
     let command_names: Vec<_> = selected.keys().cloned().collect();
@@ -182,6 +190,7 @@ pub fn generate(root: &Path) -> Result<Generated, String> {
         "generator": { "name": env!("CARGO_PKG_NAME"), "version": env!("CARGO_PKG_VERSION") },
         "commands": command_names,
         "events": event_names,
+        "structuredErrorCommands": structured_error_commands,
         "unmigratedCommands": unmigrated,
         "sources": sources.used.into_iter().collect::<Vec<_>>(),
     });
@@ -201,7 +210,7 @@ fn command_contract(
     renderer: &mut Renderer<'_>,
     module: &str,
     function: &syn::ItemFn,
-) -> Result<(String, String), String> {
+) -> Result<(String, String, String), String> {
     let runtime = runtime::parameter(renderer, module, &function.sig.generics)?;
     let mut runtime_used = false;
     if function.sig.unsafety.is_some()
@@ -306,8 +315,8 @@ fn command_contract(
     } else {
         format!("{{ {} }}", parameters.join(" "))
     };
-    let result = match &function.sig.output {
-        ReturnType::Default => "null".into(),
+    let (result, error) = match &function.sig.output {
+        ReturnType::Default => ("null".into(), "never".into()),
         ReturnType::Type(_, ty) => {
             if runtime
                 .as_deref()
@@ -315,26 +324,32 @@ fn command_contract(
             {
                 return Err("Runtime parameter cannot appear in a command result".into());
             }
-            let wire = success_type(renderer, module, ty)?;
-            renderer.render(wire, module, Direction::Output)?
+            let (success, error) = result_types(renderer, module, ty)?;
+            let result = renderer.render(success, module, Direction::Output)?;
+            let error = error
+                .map(|ty| renderer.render(ty, module, Direction::Output))
+                .transpose()?
+                .unwrap_or_else(|| "never".into());
+            (result, error)
         }
     };
-    Ok((arguments, result))
+    Ok((arguments, result, error))
 }
-fn success_type<'a>(
+/// 实际 Result 的成功和拒绝载荷分别生成；只支持能按 Output serde 明确展开的类型。
+fn result_types<'a>(
     renderer: &Renderer<'_>,
     module: &str,
     ty: &'a Type,
-) -> Result<&'a Type, String> {
+) -> Result<(&'a Type, Option<&'a Type>), String> {
     let Type::Path(path) = ty else {
-        return Ok(ty);
+        return Ok((ty, None));
     };
     let name = renderer.path(module, &path.path)?;
     if !matches!(
         name.as_str(),
         "Result" | "std::result::Result" | "core::result::Result"
     ) {
-        return Ok(ty);
+        return Ok((ty, None));
     }
     let PathArguments::AngleBracketed(arguments) = &path
         .path
@@ -352,24 +367,10 @@ fn success_type<'a>(
     let Some(GenericArgument::Type(success)) = args.next() else {
         return Err("unsupported Result success type".into());
     };
-    let Some(GenericArgument::Type(Type::Path(error))) = args.next() else {
+    let Some(GenericArgument::Type(error)) = args.next() else {
         return Err("unsupported Result error type".into());
     };
-    let error_name = renderer.path(module, &error.path)?;
-    if !matches!(
-        error_name.as_str(),
-        "String" | "std::string::String" | "alloc::string::String"
-    ) || error
-        .path
-        .segments
-        .iter()
-        .any(|segment| !matches!(segment.arguments, PathArguments::None))
-    {
-        return Err(
-            "only String command errors are supported until structured-error migration".into(),
-        );
-    }
-    Ok(success)
+    Ok((success, Some(error)))
 }
 fn injected(renderer: &Renderer<'_>, module: &str, ty: &Type) -> Result<bool, String> {
     let Type::Path(path) = ty else {

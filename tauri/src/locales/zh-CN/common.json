@@ -791,5 +791,20 @@
   "recovery_ready_resume_note": "恢复任务已保留完整的账户加密材料。解锁同一账户后可继续，无需重新下载或输入传输密码；也可在导入页面查看待完成任务。",
   "recovery_resume_ready": "继续已接纳的恢复任务",
   "recovery_existing_complete_desc": "恢复已完成：{{objects}} 个对象，{{attachments}} 个附件。关闭后继续使用当前账户。",
-  "recovery_existing_receive_open": "从原设备接收恢复数据到当前账户"
+  "recovery_existing_receive_open": "从原设备接收恢复数据到当前账户",
+  "backend_vault_busy": "保险库正在维护，请稍后重试。",
+  "backend_session_expired": "会话已失效，请重新解锁后重试。",
+  "backend_operation_failed": "操作未完成，请重新解锁后检查数据。",
+  "backend_object_name_required": "对象名称不能为空。",
+  "backend_object_name_too_long": "对象名称不能超过 200 个字符。",
+  "backend_object_payload_too_large": "对象属性不能超过 10 MiB。",
+  "backend_object_not_found": "对象不存在或已不可用。",
+  "backend_object_id_exists": "对象 ID 已存在，请重新创建对象。",
+  "backend_object_validation_failed": "对象字段格式或动态字段组约束不符合要求，请检查输入。",
+  "backend_object_template_missing": "对象没有关联模板。",
+  "backend_object_template_not_found": "关联模板不存在或已不可用。",
+  "backend_object_template_read_failed": "无法读取关联模板，本次创建未完成。",
+  "backend_snapshot_not_found": "历史版本不存在或已不可用。",
+  "backend_snapshot_invalid": "历史版本数据无效，无法恢复。",
+  "backend_snapshot_ownership_mismatch": "此历史版本不属于当前对象，无法恢复。"
 }

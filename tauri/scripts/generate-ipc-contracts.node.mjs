@@ -950,3 +950,71 @@ test('RF305 actual SAS, flattened recovery and platform-command drift cannot ove
       assert.deepEqual(await snapshot(root), before);
     });
 });
+
+test('RF307 Host error fixtures compile against actual rejection contracts and unsafe wire shapes fail', async () => {
+  await withProductionFixture(async (root) => {
+    const manifest = JSON.parse(await readFile(path.join(root, outputFiles[1]), 'utf8'));
+    assert.deepEqual(manifest.structuredErrorCommands, [...objectSnapshotCommands].sort());
+    await copyTypedSources(root);
+    const fixtures = JSON.parse(
+      await readFile(
+        path.join(workspaceRoot, 'src-tauri/src/commands/object/tests/rf307-fixtures.json'),
+        'utf8',
+      ),
+    );
+    const declarations = Object.entries(fixtures).map(
+      ([key, value]) => `const ${key}=${JSON.stringify(value)} satisfies BackendError;`,
+    );
+    const probe = path.join(root, 'error-fixture-probe.ts');
+    await writeFile(
+      probe,
+      `import type {BackendError,IpcCommandErrors} from './src/lib/generated/ipcContracts';
+${declarations.join('\n')}
+const actual:IpcCommandErrors['object_create']=longName;
+const rollback:IpcCommandErrors['snapshot_rollback']=rollbackMismatch;
+const legacy:IpcCommandErrors['llm_get_conversation']='old string';
+// @ts-expect-error migrated error is an object, not an English sentence.
+const old:IpcCommandErrors['object_create']='Object not found';
+// @ts-expect-error safeDetails is nullable but required.
+const noDetails:BackendError={code:'OBJECT_NOT_FOUND',retryable:false};
+// @ts-expect-error retryable is required.
+const noRetry:BackendError={code:'OBJECT_NOT_FOUND',safeDetails:null};
+// @ts-expect-error unknown error codes are not silently typed as any.
+const unknown:BackendError={code:'FAKE_ERROR',safeDetails:null,retryable:true};
+// @ts-expect-error safeDetails cannot carry arbitrary field values.
+const unsafe:BackendError={code:'OBJECT_NAME_TOO_LONG',safeDetails:{stage:'validate',field:'secret'},retryable:false};
+// @ts-expect-error stage is a real serialized enum.
+const invalidStage:BackendError={code:'SNAPSHOT_INVALID',safeDetails:{stage:'snapshot_parse'},retryable:false};
+// @ts-expect-error retryable is boolean.
+const invalidRetry:BackendError={code:'OBJECT_READ_FAILED',safeDetails:null,retryable:'true'};
+`,
+    );
+    const result = await compileProbe(root, probe);
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  });
+});
+
+test('RF307 actual error serde and Result signature drift fail check without replacing generated files', async () => {
+  await withProductionFixture(async (root) => {
+    const before = await snapshot(root);
+    for (const [file, oldText, newText] of [
+      ['src-tauri/src/commands/error.rs', 'SCREAMING_SNAKE_CASE', 'camelCase'],
+      ['src-tauri/src/commands/error.rs', 'pub retryable: bool', 'pub retryable: String'],
+      [
+        'src-tauri/src/commands/object/mod.rs',
+        'Result<ObjectData, BackendError>',
+        'Result<ObjectData, String>',
+      ],
+    ]) {
+      const target = path.join(root, file);
+      const original = await readFile(target, 'utf8');
+      assert.ok(original.includes(oldText));
+      await writeFile(target, original.replace(oldText, newText));
+      await assert.rejects(generateContracts({ root, check: true }), /IPC contract drift/);
+      assert.deepEqual(await snapshot(root), before);
+      await writeFile(target, original);
+    }
+    await generateContracts({ root, check: true });
+  });
+});

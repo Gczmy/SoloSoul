@@ -1,3 +1,5 @@
+import { resolveBackendErrorMessage } from '@/lib/backendError';
+import { backendErrorLogDetails } from '@/lib/backendErrorWire';
 import { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
@@ -270,7 +272,8 @@ function SnapshotCard({
         if (request.isCurrent()) setSnapData(snapshotFieldRecord(data));
       })
       .catch((err) => {
-        if (request.isCurrent()) logger.warn('[HistoryViewer] snapshot_get_data failed:', err);
+        if (request.isCurrent())
+          logger.warn('[HistoryViewer] snapshot_get_data failed:', backendErrorLogDetails(err));
       });
     return () => requests.invalidate('data');
   }, [requests, accountId, snap.id]);
@@ -535,7 +538,7 @@ function HistoryViewerSession({
         // P059: 补齐 .catch，失败时给出提示而非 unhandled rejection
         showToast({
           type: 'error',
-          message: `${t('common:history_load_failed', 'Failed to load history')}: ${err}`,
+          message: `${t('common:history_load_failed', 'Failed to load history')}: ${resolveBackendErrorMessage(err)}`,
         });
       })
       .finally(() => {

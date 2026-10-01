@@ -1,3 +1,4 @@
+import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -46,7 +47,7 @@ export function HistoryPage() {
           // P059: 补齐 .catch，失败时给出提示而非 unhandled rejection
           showToast({
             type: 'error',
-            message: `${t('common:history_load_failed', 'Failed to load history')}: ${err}`,
+            message: `${t('common:history_load_failed', 'Failed to load history')}: ${resolveBackendErrorMessage(err)}`,
           });
         })
         .finally(() => setLoading(false));
@@ -71,7 +72,10 @@ export function HistoryPage() {
           });
           navigate(-1);
         } catch (e) {
-          showToast({ type: 'error', message: `${t('common:rollback_failed')}: ${e}` });
+          showToast({
+            type: 'error',
+            message: `${t('common:rollback_failed')}: ${resolveBackendErrorMessage(e)}`,
+          });
         } finally {
           setRestoring(null);
         }

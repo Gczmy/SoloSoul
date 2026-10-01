@@ -248,7 +248,10 @@ fn rf006_rejects_cross_object_snapshot_even_with_forged_json_owner() {
     let before = rf006_vault_state(&vault);
     let error = super::super::snapshot::rollback_snapshot_in_vault(&vault, &snapshot, "rf006-b")
         .unwrap_err();
-    assert_eq!(error, "Snapshot does not belong to object");
+    assert_eq!(
+        error.code,
+        crate::commands::error::BackendErrorCode::SnapshotOwnershipMismatch
+    );
     assert_eq!(rf006_vault_state(&vault), before);
 }
 
@@ -267,7 +270,10 @@ fn rf006_rejects_missing_snapshot_without_mutation() {
         "rf006-a",
     )
     .unwrap_err();
-    assert_eq!(error, "Snapshot not found");
+    assert_eq!(
+        error.code,
+        crate::commands::error::BackendErrorCode::SnapshotNotFound
+    );
     assert_eq!(rf006_vault_state(&vault), before);
 }
 
@@ -293,7 +299,10 @@ fn rf006_rejects_empty_owner_even_when_target_id_is_empty() {
     for target in ["rf006-a", ""] {
         let error = super::super::snapshot::rollback_snapshot_in_vault(&vault, &snapshot, target)
             .unwrap_err();
-        assert_eq!(error, "Snapshot does not belong to object");
+        assert_eq!(
+            error.code,
+            crate::commands::error::BackendErrorCode::SnapshotOwnershipMismatch
+        );
         assert_eq!(rf006_vault_state(&vault), before);
     }
 }
@@ -313,7 +322,10 @@ fn rf006_rejects_missing_target_without_mutation() {
     let before = rf006_vault_state(&vault);
     let error =
         super::super::snapshot::rollback_snapshot_in_vault(&vault, &snapshot, target).unwrap_err();
-    assert_eq!(error, "Object not found");
+    assert_eq!(
+        error.code,
+        crate::commands::error::BackendErrorCode::ObjectNotFound
+    );
     assert_eq!(rf006_vault_state(&vault), before);
     assert!(vault.load_object(target).unwrap().is_none());
 }

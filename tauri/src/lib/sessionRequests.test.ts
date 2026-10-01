@@ -39,7 +39,7 @@ describe('RF302 typed session calls preserve the existing transport guards', () 
     auth.getState.mockReturnValue({ isAuthenticated: false });
     const request = createSessionRequests().begin();
     await expect(request.invokeTyped('object_delete', { objectId: 'object' })).rejects.toThrow(
-      'No account is currently unlocked',
+      'VAULT_LOCKED',
     );
     expect(invoke).not.toHaveBeenCalled();
   });
@@ -102,13 +102,15 @@ describe('RF302 typed session calls preserve the existing transport guards', () 
   );
 
   it.each([new Error('original'), 'native rejection'])(
-    'preserves current-session errors: %s',
+    'preserves current-session failure with safe machine code: %s',
     async (failure) => {
       vi.mocked(invoke).mockRejectedValueOnce(failure);
       const request = createSessionRequests().begin();
-      await expect(request.invokeTyped('object_list', { accountId: 'session-a' })).rejects.toBe(
-        failure,
-      );
+      await expect(
+        request.invokeTyped('object_list', { accountId: 'session-a' }),
+      ).rejects.toMatchObject({
+        backend: { code: 'INTERNAL_ERROR', safeDetails: null, retryable: false },
+      });
     },
   );
 });

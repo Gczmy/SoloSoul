@@ -428,7 +428,10 @@ describe('ObjectWorkspacePage card field display', () => {
         useUiStore
           .getState()
           .toasts.some(
-            (toast) => toast.type === 'error' && toast.message.includes('delete denied'),
+            (toast) =>
+              toast.type === 'error' &&
+              toast.message.includes('backend_operation_failed') &&
+              !toast.message.includes('delete denied'),
           ),
       ).toBe(true),
     );

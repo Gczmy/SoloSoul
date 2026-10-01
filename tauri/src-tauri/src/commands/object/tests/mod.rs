@@ -17,3 +17,5 @@ mod rf302;
 mod snapshot;
 mod template_sync;
 mod trash;
+
+mod rf307;

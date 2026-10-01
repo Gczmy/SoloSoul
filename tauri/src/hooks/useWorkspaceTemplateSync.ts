@@ -8,6 +8,7 @@ import {
   type TemplateSyncResult,
 } from '@/lib/templateSync';
 import { logger } from '@/lib/logger';
+import { backendErrorLogDetails } from '@/lib/backendErrorWire';
 import type { ObjectData, ObjectSummary } from '@/stores/objectStore';
 import type { UserTemplate } from '@/types/template';
 
@@ -77,7 +78,10 @@ export function useWorkspaceTemplateSync({
         });
         if (obj) setDetailObj(toObjectDataView(obj));
       } catch (err) {
-        logger.warn('[Workspace] Refresh detail object after sync failed:', err);
+        logger.warn(
+          '[Workspace] Refresh detail object after sync failed:',
+          backendErrorLogDetails(err),
+        );
       }
     },
     [accountId, detailObj?.id, setDetailObj],
@@ -193,7 +197,7 @@ export function useWorkspaceTemplateSync({
         );
       } catch (err) {
         if (version !== syncPreviewVersion.current) return;
-        logger.warn('[Workspace] Preview sync failed:', err);
+        logger.warn('[Workspace] Preview sync failed:', backendErrorLogDetails(err));
         setSyncDialog(null);
         setSyncDialogOpenForObjectId(null);
       }
@@ -232,7 +236,7 @@ export function useWorkspaceTemplateSync({
       await refreshTemplateHashMap();
     } catch (err) {
       if (version !== syncPreviewVersion.current) return;
-      logger.warn('[Workspace] Apply sync failed:', err);
+      logger.warn('[Workspace] Apply sync failed:', backendErrorLogDetails(err));
       setSyncDialog((prev) => (prev?.objectId === objectId ? { ...prev, loading: false } : prev));
     }
   }, [
@@ -261,7 +265,7 @@ export function useWorkspaceTemplateSync({
           await refreshTemplateHashMap();
         }
       } catch (err) {
-        logger.warn('[Workspace] Ignore template sync failed:', err);
+        logger.warn('[Workspace] Ignore template sync failed:', backendErrorLogDetails(err));
       }
     },
     [ignoreTemplateSync, loadObjects, accountId, pageId, sectionFilter, refreshTemplateHashMap],

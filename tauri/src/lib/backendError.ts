@@ -1,10 +1,35 @@
 import i18n from './i18n';
+import { readBackendError, readLegacyObjectError } from './backendErrorWire';
+import type { BackendErrorCode } from './backendErrorWire';
 import { resolveI18nPrefix } from './utils';
 
 // ─── P029: 两套后端错误库合并——Rust 静态错误映射（原 rustErrors.ts）与
 // 前缀 token 解析（原 backendError.ts）统一在本模块。单一入口：
 // ① resolveBackendErrorMessage：先查前缀 token，未命中回退 Rust 精确/前缀映射；
 // ② translateRustError：直接返回 i18n key（供需 key 判断的调用方，如 BootstrapPage）。
+
+const BACKEND_ERROR_KEYS = {
+  VAULT_LOCKED: 'common:vault_locked',
+  VAULT_BUSY: 'common:backend_vault_busy',
+  SESSION_EXPIRED: 'common:backend_session_expired',
+  INTERNAL_ERROR: 'common:backend_operation_failed',
+  OBJECT_NAME_REQUIRED: 'common:backend_object_name_required',
+  OBJECT_NAME_TOO_LONG: 'common:backend_object_name_too_long',
+  OBJECT_PAYLOAD_TOO_LARGE: 'common:backend_object_payload_too_large',
+  OBJECT_NOT_FOUND: 'common:backend_object_not_found',
+  OBJECT_ID_EXISTS: 'common:backend_object_id_exists',
+  OBJECT_VALIDATION_FAILED: 'common:backend_object_validation_failed',
+  OBJECT_READ_FAILED: 'common:object_load_failed',
+  OBJECT_WRITE_FAILED: 'common:object_save_failed',
+  OBJECT_TEMPLATE_MISSING: 'common:backend_object_template_missing',
+  OBJECT_TEMPLATE_NOT_FOUND: 'common:backend_object_template_not_found',
+  OBJECT_TEMPLATE_READ_FAILED: 'common:backend_object_template_read_failed',
+  SNAPSHOT_READ_FAILED: 'common:history_load_failed',
+  SNAPSHOT_NOT_FOUND: 'common:backend_snapshot_not_found',
+  SNAPSHOT_INVALID: 'common:backend_snapshot_invalid',
+  SNAPSHOT_OWNERSHIP_MISMATCH: 'common:backend_snapshot_ownership_mismatch',
+  SNAPSHOT_ROLLBACK_FAILED: 'common:rollback_failed',
+} satisfies Record<BackendErrorCode, string>;
 
 /** Rust 静态错误串 → i18n key 精确映射表。 */
 const RUST_ERROR_MAP: Record<string, string> = {
@@ -75,7 +100,13 @@ const RUST_PREFIX_MAP: Record<string, string> = {
  * Returns `null` when no mapping exists (caller should use the raw message).
  */
 export function translateRustError(msg: string): string | null {
-  const key = RUST_ERROR_MAP[msg];
+  const machineKey = Object.hasOwn(BACKEND_ERROR_KEYS, msg)
+    ? BACKEND_ERROR_KEYS[msg as BackendErrorCode]
+    : null;
+  if (machineKey) return machineKey;
+  const legacy = readLegacyObjectError(msg);
+  if (legacy) return BACKEND_ERROR_KEYS[legacy.code];
+  const key = Object.hasOwn(RUST_ERROR_MAP, msg) ? RUST_ERROR_MAP[msg] : null;
   if (key) return key;
   for (const [prefix, mappedKey] of Object.entries(RUST_PREFIX_MAP)) {
     if (msg.startsWith(prefix)) return mappedKey;
@@ -129,6 +160,10 @@ function translateSyncHandshakeDetail(detail: string): string | null {
  * so the frontend can translate them without embedding English in Rust.
  */
 export function resolveBackendErrorMessage(err: unknown): string {
+  const structured = readBackendError(err);
+  if (structured) return i18n.t(BACKEND_ERROR_KEYS[structured.code]);
+  if (typeof err === 'object' && err !== null && 'code' in err)
+    return i18n.t('common:backend_operation_failed');
   const raw = err instanceof Error ? err.message : String(err);
   const parsed = resolveI18nPrefix(raw);
   if (!parsed) {

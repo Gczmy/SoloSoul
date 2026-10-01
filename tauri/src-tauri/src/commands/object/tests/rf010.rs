@@ -212,7 +212,7 @@ fn rf010_active_client_id_conflict_performs_no_writes() {
     input.name = "Must not overwrite".into();
     input.properties = json!({"replacement": true});
     let error = create_object_in_vault(&fixture.vault, &input, ACCOUNT, NOW).unwrap_err();
-    assert!(error.contains("already exists"), "{error}");
+    assert_eq!(error.code, Code::ObjectIdExists);
     assert_eq!(fixture.state(), before);
 }
 
@@ -320,7 +320,7 @@ fn rf010_gui_without_template_still_validates_dynamic_groups_while_core_keeps_le
         input.properties = json!({"__fields": {"group": {"type": "dynamic_group", "maxItems": 1}}, "group": "legacy non-array"});
         let before = fixture.state();
         let error = create_object_in_vault(&fixture.vault, &input, ACCOUNT, NOW).unwrap_err();
-        assert!(error.contains("必须是数组"), "{error}");
+        assert_eq!(error.code, Code::ObjectValidationFailed);
         assert_eq!(fixture.state(), before);
         let core = objects::create_object(
             &fixture.vault,

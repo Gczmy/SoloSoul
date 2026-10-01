@@ -13,6 +13,7 @@ import { invokeTypedCommand } from '@/lib/typedIpc';
 import { resolveCanonicalFieldName } from '@/lib/fieldNameAliases';
 import { resolveFieldSensitivity } from '@/lib/fieldSensitivity';
 import { logger } from '@/lib/logger';
+import { backendErrorLogDetails } from '@/lib/backendErrorWire';
 import { FIELD_TYPE_VALIDATORS } from '@/lib/fieldValidators';
 import { SYSTEM_PAGE_KEYS } from '@/components/layout/useNavigationItems';
 
@@ -236,7 +237,9 @@ export function useObjectEditorPage(): UseObjectEditorPageResult {
         }
         setFieldSuggestions(grouped);
       })
-      .catch((err) => logger.warn('[ObjectEditor] Load field suggestions failed:', err));
+      .catch((err) =>
+        logger.warn('[ObjectEditor] Load field suggestions failed:', backendErrorLogDetails(err)),
+      );
     return () => {
       cancelled = true;
     };

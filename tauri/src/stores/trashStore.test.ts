@@ -253,7 +253,7 @@ describe('RF-909 trash recovery and session boundaries', () => {
       items: previousRows,
       selectedIds: new Set(['visible']),
       isLoading: false,
-      error: 'Error: list unavailable',
+      error: { code: 'INTERNAL_ERROR', safeDetails: null, retryable: false },
     });
     const retry = deferred<TrashItemSummary[]>();
     mockInvoke.mockReturnValueOnce(retry.promise);

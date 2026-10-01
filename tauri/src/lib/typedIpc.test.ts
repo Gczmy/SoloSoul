@@ -98,15 +98,14 @@ describe('invokeTypedCommand delegates to the existing IPC transport', () => {
   });
 
   it.each([new Error('synthetic IPC failure'), 'synthetic native rejection'])(
-    'preserves the original native rejection and command log: %s',
+    'preserves unmigrated native rejection identity with redacted command log: %s',
     async (failure) => {
       vi.mocked(invoke).mockRejectedValue(failure);
       await expect(invokeTypedCommand('get_app_info')).rejects.toBe(failure);
       expect(invoke).toHaveBeenCalledExactlyOnceWith('get_app_info');
-      expect(console.warn).toHaveBeenCalledExactlyOnceWith(
-        "[ipc] command 'get_app_info' failed:",
-        failure instanceof Error ? failure.message : failure,
-      );
+      expect(console.warn).toHaveBeenCalledExactlyOnceWith("[ipc] command 'get_app_info' failed:", {
+        code: 'LEGACY_ERROR',
+      });
     },
   );
 });

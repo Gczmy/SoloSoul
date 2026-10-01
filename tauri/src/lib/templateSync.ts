@@ -21,6 +21,7 @@ import type { SyncableObject } from '@/types/templateSync';
 
 import { useObjectStore } from '@/stores/objectStore';
 import { logger } from '@/lib/logger';
+import { backendErrorLogDetails } from '@/lib/backendErrorWire';
 
 // 语义复核结果缓存，避免同一对象在短时间内触发多次 preview/apply IPC。
 const semanticCheckCache = new Map<string, Promise<boolean>>();
@@ -61,7 +62,7 @@ export async function resolveSemanticNeedsSync(
       }
       return false;
     } catch (err) {
-      logger.warn('[templateSync] semantic sync check failed:', err);
+      logger.warn('[templateSync] semantic sync check failed:', backendErrorLogDetails(err));
       return true;
     }
   })();

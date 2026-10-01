@@ -37,13 +37,17 @@ pub async fn object_trash_list(
     state: State<'_, AppState>,
     account_id: String,
     since: Option<i64>,
-) -> Result<Vec<solosoul_vault::TrashItemSummary>, String> {
+) -> Result<Vec<solosoul_vault::TrashItemSummary>, crate::commands::error::BackendError> {
     let _ = account_id;
-    let vault = vault_handle(&state)?;
+    let vault = super::errors::vault_handle(&state)?;
     // P114: 回收站全量解密移入 spawn_blocking，避免阻塞 tokio worker。
-    tokio::task::spawn_blocking(move || vault.list_trash_items(None, since))
-        .await
-        .map_err(|e| format!("object_trash_list task failed: {e}"))?
+    tokio::task::spawn_blocking(move || {
+        vault
+            .list_trash_items(None, since)
+            .map_err(super::errors::read)
+    })
+    .await
+    .map_err(super::errors::task)?
 }
 
 /// Read the user's language setting from plaintext UI preferences.

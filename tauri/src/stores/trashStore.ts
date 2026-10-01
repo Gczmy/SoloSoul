@@ -3,6 +3,8 @@ import { create } from 'zustand';
 import { toTrashItemView, type TrashItemView as TrashItemSummary } from '@/lib/objectViewModel';
 export type { TrashItemView as TrashItemSummary } from '@/lib/objectViewModel';
 import i18next from '@/lib/i18n';
+import { normalizeObjectError } from '@/lib/backendErrorWire';
+import type { BackendError } from '@/lib/generated/ipcContracts';
 
 export type TrashRetentionPeriod = '30d' | '60d' | 'half_year' | 'one_year' | 'never';
 
@@ -40,7 +42,7 @@ interface TrashState {
   typeFilter: TrashTypeFilter;
   searchQuery: string;
   isLoading: boolean;
-  error: string | null;
+  error: BackendError | null;
   selectedIds: Set<string>;
 
   loadItems: (accountId: string) => Promise<void>;
@@ -95,7 +97,7 @@ export const useTrashStore = create<TrashState>((set, get) => ({
       setCurrent({ items: items.map(toTrashItemView), isLoading: false, selectedIds: new Set() });
     } catch (err) {
       if (!request.isCurrent()) return;
-      setCurrent({ error: String(err), isLoading: false });
+      setCurrent({ error: normalizeObjectError(err), isLoading: false });
     }
   },
 

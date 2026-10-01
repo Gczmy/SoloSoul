@@ -4,8 +4,11 @@
 //! Supports: type schemas, parent/child hierarchies, property storage,
 //! soft-delete trash, and account-scoped queries.
 
-use crate::commands::{current_account, current_account_optional, vault_handle};
+use crate::commands::current_account_optional;
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
+mod errors;
 use crate::state::AppState;
+use errors::{current_account, vault_handle};
 use serde::{Deserialize, Serialize};
 pub(crate) use solosoul_core::objects::inject_property_fields;
 pub use solosoul_core::objects::{
@@ -283,7 +286,7 @@ pub async fn object_list(
     state: State<'_, AppState>,
     account_id: String,
     filter: Option<ObjectFilter>,
-) -> Result<Vec<solosoul_vault::ObjectSummary>, String> {
+) -> Result<Vec<solosoul_vault::ObjectSummary>, BackendError> {
     let vault = vault_handle(&state)?;
 
     let type_id = filter.as_ref().and_then(|f| f.collection_type.clone());
@@ -297,14 +300,16 @@ pub async fn object_list(
     // P114: 全表 AES 解密 + JSON 解析移入 spawn_blocking，避免阻塞 tokio worker。
     tokio::task::spawn_blocking(move || {
         // Keyword search is done at SQL level — no N+1 queries
-        let mut summaries = vault.list_objects(
-            &account_id,
-            type_id.as_deref(),
-            parent_id.as_deref(),
-            keyword.as_deref(),
-            include_deleted,
-            false,
-        )?;
+        let mut summaries = vault
+            .list_objects(
+                &account_id,
+                type_id.as_deref(),
+                parent_id.as_deref(),
+                keyword.as_deref(),
+                include_deleted,
+                false,
+            )
+            .map_err(errors::read)?;
         // P020 二次复核：批量加载模板一次，构建 template_id → fieldOrder 映射，
         // 截断按模板字段顺序优先选取——卡片预览与模板 fieldOrder 一致。
         let templates = vault.list_user_templates(&account_id).unwrap_or_default();
@@ -328,7 +333,7 @@ pub async fn object_list(
         Ok(summaries)
     })
     .await
-    .map_err(|e| format!("object_list task failed: {e}"))?
+    .map_err(errors::task)?
 }
 
 /// 字段推荐：收集其他对象中「同名字段」的标量值，供对象编辑页按字段名匹配展示。
@@ -439,14 +444,15 @@ pub async fn object_field_suggestions(
     state: State<'_, AppState>,
     account_id: String,
     exclude_object_id: Option<String>,
-) -> Result<Vec<FieldSuggestion>, String> {
+) -> Result<Vec<FieldSuggestion>, BackendError> {
     let vault = vault_handle(&state)?;
     // 全表 AES 解密 + JSON 解析移入 spawn_blocking，避免阻塞 tokio worker（P114 约定）。
     tokio::task::spawn_blocking(move || {
         collect_field_suggestions(&vault, &account_id, exclude_object_id.as_deref())
+            .map_err(errors::read)
     })
     .await
-    .map_err(|e| format!("object_field_suggestions task failed: {e}"))?
+    .map_err(errors::task)?
 }
 
 #[tauri::command]
@@ -454,36 +460,43 @@ pub async fn object_get(
     state: State<'_, AppState>,
     account_id: String,
     object_id: String,
-) -> Result<Option<ObjectData>, String> {
+) -> Result<Option<ObjectData>, BackendError> {
     let vault = vault_handle(&state)?;
 
     // P114: load_object（AES-GCM 解密）移入 spawn_blocking。
-    tokio::task::spawn_blocking(move || match vault.load_object(&object_id)? {
-        Some(rec) => {
-            if rec.account_id != account_id || rec.is_deleted {
-                Ok(None)
-            } else {
-                Ok(Some(record_to_data(&rec)))
+    tokio::task::spawn_blocking(move || {
+        match vault.load_object(&object_id).map_err(errors::read)? {
+            Some(rec) => {
+                if rec.account_id != account_id || rec.is_deleted {
+                    Ok(None)
+                } else {
+                    Ok(Some(record_to_data(&rec)))
+                }
             }
+            None => Ok(None),
         }
-        None => Ok(None),
     })
     .await
-    .map_err(|e| format!("object_get task failed: {e}"))?
+    .map_err(errors::task)?
 }
 
 /// P026: 对象名称长度与 properties 载荷边界校验（object_create/object_update 共用）。
 /// 非命令（N009：误挂 #[tauri::command] 未注册，生成无用包装代码）。
-fn validate_object_input(name: &str, properties: &serde_json::Value) -> Result<(), String> {
+fn validate_object_input(name: &str, properties: &serde_json::Value) -> Result<(), BackendError> {
     if name.trim().is_empty() {
-        return Err("对象名称不能为空".to_string());
+        return Err(BackendError::new(Code::ObjectNameRequired).at(Stage::Validate));
     }
     if name.chars().count() > 200 {
-        return Err("对象名称不能超过 200 字符".to_string());
+        return Err(BackendError::new(Code::ObjectNameTooLong)
+            .at(Stage::Validate)
+            .limit(200));
     }
-    let size = serde_json::to_vec(properties).map_err(|e| e.to_string())?;
+    let size = serde_json::to_vec(properties)
+        .map_err(|e| BackendError::caused_by(Code::ObjectValidationFailed, Stage::Serialize, e))?;
     if size.len() > 10 * 1024 * 1024 {
-        return Err("对象属性载荷过大（超过 10 MiB）".to_string());
+        return Err(BackendError::new(Code::ObjectPayloadTooLarge)
+            .at(Stage::Validate)
+            .limit(10 * 1024 * 1024));
     }
     Ok(())
 }
@@ -492,7 +505,7 @@ fn validate_object_input(name: &str, properties: &serde_json::Value) -> Result<(
 pub async fn object_create(
     state: State<'_, AppState>,
     input: CreateObjectInput,
-) -> Result<ObjectData, String> {
+) -> Result<ObjectData, BackendError> {
     // P020: 服务端派生当前账户，忽略客户端 account_id——陈旧 accountId 会把对象
     // 写进错误账户（template/ocr 已统一此约定）。
     let account_id = current_account(&state)?;
@@ -502,13 +515,13 @@ pub async fn object_create(
     validate_object_input(&input.name, &input.properties)?;
 
     // P114: 模板继承查询 + save_object 写入（AES 加密）移入 spawn_blocking。
-    let data = tokio::task::spawn_blocking(move || -> Result<ObjectData, String> {
+    let data = tokio::task::spawn_blocking(move || -> Result<ObjectData, BackendError> {
         let now = chrono::Utc::now().to_rfc3339();
 
         create_object_in_vault(&vault, &input, &account_id, &now)
     })
     .await
-    .map_err(|e| format!("object_create task failed: {e}"))??;
+    .map_err(errors::task)??;
 
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
@@ -521,10 +534,10 @@ fn create_object_in_vault(
     input: &CreateObjectInput,
     account_id: &str,
     now: &str,
-) -> Result<ObjectData, String> {
+) -> Result<ObjectData, BackendError> {
     let record = build_create_record(vault, input, account_id, now)?;
     attach_object_to_parent(vault, &record.id, input.parent_id.as_deref())?;
-    vault.save_object(&record)?;
+    vault.save_object(&record).map_err(errors::write)?;
     create_object_snapshot_and_audit(vault, &record, input)?;
     Ok(record_to_data(&record))
 }
@@ -535,7 +548,7 @@ fn build_create_record(
     input: &CreateObjectInput,
     account_id: &str,
     now: &str,
-) -> Result<ObjectRecord, String> {
+) -> Result<ObjectRecord, BackendError> {
     let id = input
         .id
         .clone()
@@ -545,12 +558,12 @@ fn build_create_record(
     if input.id.is_some() {
         if let Ok(Some(existing)) = vault.load_object(&id) {
             if !existing.is_deleted {
-                return Err(format!("Object with ID '{}' already exists", id));
+                return Err(BackendError::new(Code::ObjectIdExists));
             }
         }
     }
 
-    let record = solosoul_core::objects::build_create_record(
+    let record = solosoul_core::objects::build_create_record_typed(
         vault,
         account_id,
         solosoul_core::objects::CreateRecordInput {
@@ -568,9 +581,10 @@ fn build_create_record(
             template_type: input.template_type.clone(),
         },
         now,
-    )?;
+    )
+    .map_err(errors::create)?;
     // GUI 既有约定：无/缺失模板时也校验客户端字段定义；Core/CLI 旧兼容边界不变。
-    validate_dynamic_groups(&record.properties)?;
+    validate_dynamic_groups(&record.properties).map_err(errors::validate)?;
     Ok(record)
 }
 
@@ -579,14 +593,14 @@ fn attach_object_to_parent(
     vault: &solosoul_vault::VaultStore,
     child_id: &str,
     parent_id: Option<&str>,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     if let Some(pid) = parent_id {
         if let Ok(Some(mut parent)) = vault.load_object(pid) {
             if !parent.children_ids.contains(&child_id.to_string()) {
                 parent.children_ids.push(child_id.to_string());
                 parent.updated_at = chrono::Utc::now().to_rfc3339();
                 parent.version += 1;
-                vault.save_object(&parent)?;
+                vault.save_object(&parent).map_err(errors::write)?;
             }
         }
     }
@@ -598,7 +612,7 @@ fn create_object_snapshot_and_audit(
     vault: &solosoul_vault::VaultStore,
     record: &ObjectRecord,
     input: &CreateObjectInput,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let snapshot_data = serde_json::to_vec(&serde_json::json!({
         "name": record.name,
         "tags": record.tags_json,
@@ -606,7 +620,7 @@ fn create_object_snapshot_and_audit(
         "propertyLabels": record.property_labels,
     }))
     .unwrap_or_default();
-    crate::commands::save_snapshot_best_effort(
+    errors::save_snapshot_best_effort(
         vault,
         &record.id,
         "user_edit",
@@ -614,7 +628,7 @@ fn create_object_snapshot_and_audit(
         "diff_created",
     );
     let is_page = input.collection_type == "page";
-    crate::commands::log_audit_best_effort(
+    errors::log_audit_best_effort(
         vault,
         if is_page {
             "page_create"
@@ -635,17 +649,18 @@ pub async fn object_update(
     state: State<'_, AppState>,
     object_id: String,
     input: UpdateObjectInput,
-) -> Result<ObjectData, String> {
+) -> Result<ObjectData, BackendError> {
     let vault = vault_handle(&state)?;
 
     // P026: 名称长度与 properties 载荷边界校验。
     validate_object_input(&input.name, &input.properties)?;
 
     // P114: load_object 解密 + save_object 加密写入 + 快照/日志移入 spawn_blocking。
-    let data = tokio::task::spawn_blocking(move || -> Result<ObjectData, String> {
+    let data = tokio::task::spawn_blocking(move || -> Result<ObjectData, BackendError> {
         let mut record = vault
-            .load_object(&object_id)?
-            .ok_or("Object not found".to_string())?;
+            .load_object(&object_id)
+            .map_err(errors::read)?
+            .ok_or_else(|| BackendError::new(Code::ObjectNotFound))?;
 
         let old_sensitivity = record.sensitivity_level.clone();
         // Preserve old __fields and __templateName before overwriting properties (前端不发送这两项)
@@ -674,11 +689,11 @@ pub async fn object_update(
             }
         }
         // 校验 dynamic_group 字段
-        validate_dynamic_groups(&record.properties)?;
+        validate_dynamic_groups(&record.properties).map_err(errors::validate)?;
         record.updated_at = chrono::Utc::now().to_rfc3339();
         record.version += 1;
 
-        vault.save_object(&record)?;
+        vault.save_object(&record).map_err(errors::write)?;
 
         // §28: bump public_data_version when sensitivity changes to/from public
         let new_sensitivity = &record.sensitivity_level;
@@ -697,7 +712,7 @@ pub async fn object_update(
             "propertyLabels": record.property_labels,
         }))
         .unwrap_or_default();
-        crate::commands::save_snapshot_best_effort(
+        errors::save_snapshot_best_effort(
             &vault,
             &object_id,
             "user_edit",
@@ -705,7 +720,7 @@ pub async fn object_update(
             "diff_updated",
         );
 
-        crate::commands::log_audit_best_effort(
+        errors::log_audit_best_effort(
             &vault,
             "object_update",
             "object",
@@ -717,7 +732,7 @@ pub async fn object_update(
         Ok(record_to_data(&record))
     })
     .await
-    .map_err(|e| format!("object_update task failed: {e}"))??;
+    .map_err(errors::task)??;
 
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
@@ -1318,22 +1333,23 @@ pub async fn object_sync_with_template(
     state: State<'_, AppState>,
     object_id: String,
     dry_run: bool,
-) -> Result<TemplateSyncResult, String> {
+) -> Result<TemplateSyncResult, BackendError> {
     let vault = vault_handle(&state)?;
     let mut record = vault
-        .load_object(&object_id)?
-        .ok_or("Object not found".to_string())?;
+        .load_object(&object_id)
+        .map_err(errors::read)?
+        .ok_or_else(|| BackendError::new(Code::ObjectNotFound))?;
 
     let template_id = record
         .template_id
         .as_deref()
-        .ok_or("Object has no associated template".to_string())?
+        .ok_or_else(|| BackendError::new(Code::ObjectTemplateMissing))?
         .to_string();
     let tpl = vault
         .load_user_template(&template_id)
         .ok()
         .flatten()
-        .ok_or("Template not found".to_string())?;
+        .ok_or_else(|| BackendError::new(Code::ObjectTemplateNotFound))?;
 
     let result = compute_sync_changes(&record, &tpl);
 
@@ -1344,13 +1360,13 @@ pub async fn object_sync_with_template(
     apply_sync_changes(&mut record, &tpl, &result, false);
 
     // 校验 dynamic_group 字段
-    validate_dynamic_groups(&record.properties)?;
+    validate_dynamic_groups(&record.properties).map_err(errors::validate)?;
 
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
     // 应用同步后清除已忽略指纹，避免旧忽略状态干扰未来检测。
     record.ignored_template_hash = None;
-    vault.save_object(&record)?;
+    vault.save_object(&record).map_err(errors::write)?;
 
     // 只有真正发生字段变更时才记录快照与审计日志
     if result.has_changes {
@@ -1362,7 +1378,7 @@ pub async fn object_sync_with_template(
             "propertyLabels": record.property_labels,
         }))
         .unwrap_or_default();
-        crate::commands::save_snapshot_best_effort(
+        errors::save_snapshot_best_effort(
             &vault,
             &object_id,
             "template_sync",
@@ -1370,7 +1386,7 @@ pub async fn object_sync_with_template(
             "diff_template_sync",
         );
 
-        crate::commands::log_audit_best_effort(
+        errors::log_audit_best_effort(
             &vault,
             "object_sync_template",
             "object",
@@ -1396,15 +1412,16 @@ pub async fn object_ignore_template_sync(
     state: State<'_, AppState>,
     object_id: String,
     hash: String,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
     let mut record = vault
-        .load_object(&object_id)?
-        .ok_or("Object not found".to_string())?;
+        .load_object(&object_id)
+        .map_err(errors::read)?
+        .ok_or_else(|| BackendError::new(Code::ObjectNotFound))?;
     record.ignored_template_hash = Some(hash);
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
-    vault.save_object(&record)?;
+    vault.save_object(&record).map_err(errors::write)?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(())
@@ -1414,11 +1431,12 @@ pub async fn object_ignore_template_sync(
 pub async fn object_list_deprecated_fields(
     state: State<'_, AppState>,
     object_id: String,
-) -> Result<Vec<DeprecatedField>, String> {
+) -> Result<Vec<DeprecatedField>, BackendError> {
     let vault = vault_handle(&state)?;
     let record = vault
-        .load_object(&object_id)?
-        .ok_or("Object not found".to_string())?;
+        .load_object(&object_id)
+        .map_err(errors::read)?
+        .ok_or_else(|| BackendError::new(Code::ObjectNotFound))?;
 
     let deprecated = record
         .properties
@@ -1465,7 +1483,10 @@ pub async fn object_list_deprecated_fields(
 }
 
 #[tauri::command]
-pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Result<(), String> {
+pub async fn object_delete(
+    state: State<'_, AppState>,
+    object_id: String,
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
 
     // Load retention period from preferences
@@ -1474,7 +1495,7 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
     let retention_ms = retention_ms(&period);
 
     // P114: load_object 解密 + 回收站写入 + 删除移入 spawn_blocking。
-    tokio::task::spawn_blocking(move || -> Result<(), String> {
+    tokio::task::spawn_blocking(move || -> Result<(), BackendError> {
         match vault.load_object(&object_id) {
             Ok(Some(rec)) => {
                 let now_ms = chrono::Utc::now().timestamp_millis();
@@ -1509,8 +1530,8 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
                 // P005: 复用 P211 单事务「入回收站 + 软删」——save_trash_item 的
                 // 错误不再被 `let _ =` 吞掉：快照写失败则整体回滚、中止删除，
                 // 杜绝「对象已软删但回收站无条目」的不可恢复状态。
-                vault.trash_and_soft_delete_batch(std::slice::from_ref(&trash), std::slice::from_ref(&object_id))?;
-                crate::commands::log_audit_best_effort(&vault,
+                vault.trash_and_soft_delete_batch(std::slice::from_ref(&trash), std::slice::from_ref(&object_id)).map_err(errors::write)?;
+                errors::log_audit_best_effort(&vault,
                     "object_delete",
                     "object",
                     Some(&object_id),
@@ -1520,20 +1541,12 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
                 );
                 Ok(())
             }
-            Ok(None) => Err("Object not found".to_string()),
-            Err(e) => {
-                // load_object 返回错误通常意味着解密失败（如密码修改后 vault.db 未同步）。
-                // 返回更明确的错误信息，帮助用户诊断问题。
-                tracing::error!("object_delete: load_object failed for {}: {}", object_id, e);
-                Err(format!(
-                    "Failed to load object for deletion: {}. This may indicate a data synchronization issue after password change. Please try restarting the app or syncing manually.",
-                    e
-                ))
-            }
+            Ok(None) => Err(BackendError::new(Code::ObjectNotFound)),
+            Err(e) => Err(errors::read(e)),
         }
     })
     .await
-    .map_err(|e| format!("object_delete task failed: {e}"))??;
+    .map_err(errors::task)??;
 
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();

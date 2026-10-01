@@ -4,6 +4,7 @@ import { withTimeout } from '@/lib/withTimeout';
 import { getSchemeById } from '@/lib/themeSchemes';
 import { create } from 'zustand';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { backendErrorLogDetails } from '@/lib/backendErrorWire';
 import { z } from 'zod';
 import i18next, { detectSystemLanguage } from '@/lib/i18n';
 import type { TrashRetentionPeriod } from '@/stores/trashStore';
@@ -586,7 +587,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           pages.push(missing[i]);
           present.add(missing[i].id);
         } else {
-          logger.warn('[settingsStore] Failed to migrate custom page:', missing[i].id, r.reason);
+          logger.warn(
+            '[settingsStore] Failed to migrate custom page:',
+            backendErrorLogDetails(r.reason),
+          );
         }
       });
       // 未落库的旧删除页仅作为引用标签保留，绝不新建成活跃页面。
@@ -613,7 +617,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       }
     } catch (e) {
       if (!request.isCurrent()) return;
-      logger.warn('[settingsStore] Failed to load custom pages:', e);
+      logger.warn('[settingsStore] Failed to load custom pages:', backendErrorLogDetails(e));
     }
   },
 
@@ -719,7 +723,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       request.assertCurrent();
     } catch (e) {
       request.assertCurrent();
-      logger.warn('[settingsStore] Failed to add custom page:', name, e);
+      logger.warn('[settingsStore] Failed to add custom page:', backendErrorLogDetails(e));
       // Rollback
       setCurrent((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
       // P003: 失败必须向上抛——调用方（AddPageButton）依赖异常进入 catch 提示错误；

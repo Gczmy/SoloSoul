@@ -354,7 +354,7 @@ impl ObjectRowRaw {
 
     /// 锁外解密 + JSON 解析为 `ObjectRecord`。
     ///
-    /// 原 `object_row_to_record` 逻辑逐字搬入：错误列索引、文案、P005 日志均不变。
+    /// 保留原错误列索引与文案；损坏日志只记录错误类别，不记录对象内容。
     pub(super) fn into_record(self, key: &DataEncryptionKey) -> rusqlite::Result<ObjectRecord> {
         let decrypted_props = decrypt_text_field(key, &self.properties).map_err(|e| {
             rusqlite::Error::FromSqlConversionFailure(
@@ -401,9 +401,7 @@ impl ObjectRowRaw {
             })?,
             properties: serde_json::from_str(&decrypted_props).map_err(|e| {
                 tracing::error!(
-                    id = %self.id,
-                    name = %self.name,
-                    error = %e,
+                    error_category = ?e.classify(),
                     "P005: 对象 properties JSON 反序列化失败，拒绝静默降级为空对象"
                 );
                 rusqlite::Error::FromSqlConversionFailure(

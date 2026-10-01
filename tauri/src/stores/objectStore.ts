@@ -1,5 +1,6 @@
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { create } from 'zustand';
+import { normalizeObjectError, type BackendError } from '@/lib/backendErrorWire';
 import type { IpcCommands } from '@/lib/generated/ipcContracts';
 import {
   toJsonObject,
@@ -38,7 +39,7 @@ interface ObjectState {
   /** 对象缓存，以 objectId 为键。每个组件读取自己的缓存槽，避免全局 currentObject 竞态。 */
   currentObjectCache: Record<string, ObjectData>;
   isLoading: boolean;
-  error: string | null;
+  error: BackendError | null;
 
   loadObjects: (
     accountId: string,
@@ -81,7 +82,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
       setCurrent({ objects: objects.map(toObjectSummaryView), isLoading: false });
     } catch (err) {
       if (!request.isCurrent()) return;
-      setCurrent({ error: String(err), isLoading: false });
+      setCurrent({ error: normalizeObjectError(err), isLoading: false });
     }
   },
 
@@ -104,7 +105,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
       }));
     } catch (err) {
       if (!request.isCurrent()) return;
-      setCurrent({ error: String(err), isLoading: false });
+      setCurrent({ error: normalizeObjectError(err), isLoading: false });
     }
   },
 
@@ -142,7 +143,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
       return obj;
     } catch (err) {
       request.assertCurrent();
-      setCurrent({ error: String(err), isLoading: false });
+      setCurrent({ error: normalizeObjectError(err), isLoading: false });
       throw err;
     }
   },
@@ -184,7 +185,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
       invalidateSearchCache();
     } catch (err) {
       if (!request.isCurrent()) return;
-      setCurrent({ error: String(err), isLoading: false });
+      setCurrent({ error: normalizeObjectError(err), isLoading: false });
       // P002: 与 createObject 对齐——失败必须向上抛，调用方（useObjectEditorPage
       // handleSave）依赖异常进入 onError 分支；吞错会导致「保存失败被误报成功并
       // 退出页面」，编辑内容静默丢失。
@@ -213,7 +214,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
       invalidateSearchCache();
     } catch (err) {
       if (!request.isCurrent()) return;
-      setCurrent({ error: String(err), isLoading: false });
+      setCurrent({ error: normalizeObjectError(err), isLoading: false });
       throw err;
     }
   },

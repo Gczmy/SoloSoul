@@ -5,6 +5,7 @@ pub mod biometric;
 pub mod cloud_targets;
 pub mod discovery;
 pub mod embed_model;
+pub mod error;
 pub mod export_import;
 pub mod fs;
 pub mod llm;

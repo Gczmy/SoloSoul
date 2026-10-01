@@ -122,6 +122,7 @@
     "src-tauri/ipc-contracts.json",
     "src-tauri/permissions/solo-soul/default.toml",
     "src-tauri/src/commands/backup.rs",
+    "src-tauri/src/commands/error.rs",
     "src-tauri/src/commands/export_import/contracts.rs",
     "src-tauri/src/commands/export_import/export.rs",
     "src-tauri/src/commands/export_import/export_docx/mod.rs",
@@ -145,6 +146,22 @@
     "src-tauri/src/sync/contracts.rs",
     "src-tauri/src/sync/ipc.rs",
     "src-tauri/src/sync/mod.rs"
+  ],
+  "structuredErrorCommands": [
+    "object_create",
+    "object_delete",
+    "object_field_suggestions",
+    "object_get",
+    "object_ignore_template_sync",
+    "object_list",
+    "object_list_deprecated_fields",
+    "object_sync_with_template",
+    "object_trash_list",
+    "object_update",
+    "snapshot_count_batch",
+    "snapshot_get_data",
+    "snapshot_list",
+    "snapshot_rollback"
   ],
   "unmigratedCommands": [
     "android_cached_update",

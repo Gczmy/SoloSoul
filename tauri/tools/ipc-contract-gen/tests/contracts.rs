@@ -667,3 +667,84 @@ fn rf305_flatten_rejects_collisions_maps_optional_enums_recursion_and_input() {
     );
     assert!(Fixture::new(&source).error().contains("lint"));
 }
+
+#[test]
+fn rf307_error_contract_comes_from_actual_result_output_without_changing_success_map() {
+    let fixture =
+        Fixture::new(&BASE.replace("Result<AppInfo, String>", "Result<AppInfo, Failure>"));
+    fixture.write(SYSTEM,&format!("{}\n#[derive(serde::Serialize)] #[serde(rename_all=\"camelCase\")] pub struct Failure {{ pub code: Code, pub safe_details: Option<Details>, pub retryable: bool }}\n#[derive(serde::Serialize)] #[serde(rename_all=\"SCREAMING_SNAKE_CASE\")] pub enum Code {{ InvalidInput, WriteFailed }}\n#[derive(serde::Serialize)] pub struct Details {{ pub stage: String }}",BASE.replace("Result<AppInfo, String>","Result<AppInfo, Failure>")));
+    let generated = fixture.generate();
+    assert!(generated
+        .typescript
+        .contains("\"get_app_info\": { args: undefined; result: AppInfo; }"));
+    assert!(generated
+        .typescript
+        .contains("export type IpcCommandErrors ="));
+    assert!(generated.typescript.contains("\"get_app_info\": Failure;"));
+    assert!(generated
+        .typescript
+        .contains("\"safeDetails\": (Details) | null;"));
+    assert!(generated.typescript.contains("\"INVALID_INPUT\""));
+    assert_eq!(
+        generated.manifest["structuredErrorCommands"],
+        json!(["get_app_info"])
+    );
+    fixture.write(SYSTEM, BASE);
+    let legacy = fixture.generate();
+    assert!(legacy.typescript.contains("\"get_app_info\": string;"));
+    assert_eq!(legacy.manifest["structuredErrorCommands"], json!([]));
+    fixture.write(
+        SYSTEM,
+        &BASE.replace("-> Result<AppInfo, String>", "-> AppInfo"),
+    );
+    assert!(fixture
+        .generate()
+        .typescript
+        .contains("\"get_app_info\": never;"));
+}
+#[test]
+fn rf307_result_error_type_must_be_real_supported_output_serde() {
+    for definition in [
+        "#[derive(serde::Deserialize)] pub struct Failure {pub code:String}",
+        "pub struct Failure {pub code:String} impl serde::Serialize for Failure {}",
+        "#[derive(serde::Serialize)] pub struct Failure<T> {pub code:T}",
+        "#[derive(serde::Serialize)] #[serde(untagged)] pub enum Failure {Known{code:String},Other(String)}",
+        "pub type Failure = String;",
+    ] {
+        let fixture=Fixture::new(&format!("{}\n{definition}",BASE.replace("Result<AppInfo, String>","Result<AppInfo, Failure>")));
+        assert!(generate(fixture.root.path()).is_err(),"unsafe or opaque error must fail: {definition}");
+    }
+    let fixture =
+        Fixture::new(&BASE.replace("Result<AppInfo, String>", "Result<AppInfo, UnknownError>"));
+    assert!(fixture
+        .error()
+        .contains("unknown or unregistered wire type"));
+}
+#[test]
+fn rf307_result_arity_namespaces_and_error_serde_drift_remain_strict() {
+    for result in [
+        "Result<AppInfo>",
+        "Result<AppInfo, String, u32>",
+        "Result<AppInfo, 'static>",
+        "std::result::Result<AppInfo, UnknownError>",
+    ] {
+        let fixture = Fixture::new(&BASE.replace("Result<AppInfo, String>", result));
+        assert!(generate(fixture.root.path()).is_err(), "{result}");
+    }
+    let fixture = Fixture::new(&BASE.replace(
+        "Result<AppInfo, String>",
+        "std::result::Result<AppInfo, String>",
+    ));
+    assert!(fixture
+        .generate()
+        .typescript
+        .contains("\"get_app_info\": string;"));
+    let source=format!("{}\n#[derive(serde::Serialize)] pub struct Failure {{ #[serde(rename=\"code\")] pub value:String }}",BASE.replace("Result<AppInfo, String>","Result<AppInfo, Failure>"));
+    fixture.write(SYSTEM, &source);
+    let before = fixture.generate();
+    fixture.write(
+        SYSTEM,
+        &source.replace("rename=\"code\"", "rename=\"status\""),
+    );
+    assert_ne!(before.typescript, fixture.generate().typescript);
+}

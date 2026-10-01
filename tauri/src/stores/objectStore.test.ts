@@ -55,7 +55,11 @@ describe('objectStore', () => {
       const { useObjectStore } = await import('./objectStore');
       await useObjectStore.getState().loadObjects('acc-1');
 
-      expect(useObjectStore.getState().error).toBe('Error: DB error');
+      expect(useObjectStore.getState().error).toEqual({
+        code: 'INTERNAL_ERROR',
+        safeDetails: null,
+        retryable: false,
+      });
       expect(useObjectStore.getState().isLoading).toBe(false);
     });
 
@@ -96,7 +100,11 @@ describe('objectStore', () => {
       const { useObjectStore } = await import('./objectStore');
       await useObjectStore.getState().getObject('acc-1', '999');
 
-      expect(useObjectStore.getState().error).toBe('Error: Not found');
+      expect(useObjectStore.getState().error).toEqual({
+        code: 'INTERNAL_ERROR',
+        safeDetails: null,
+        retryable: false,
+      });
       expect(useObjectStore.getState().currentObjectCache['999']).toBeUndefined();
     });
   });
@@ -150,9 +158,13 @@ describe('objectStore', () => {
           typeId: 'address',
           properties: {},
         }),
-      ).rejects.toThrow('Name required');
+      ).rejects.toMatchObject({ backend: { code: 'INTERNAL_ERROR' } });
 
-      expect(useObjectStore.getState().error).toBe('Error: Name required');
+      expect(useObjectStore.getState().error).toEqual({
+        code: 'INTERNAL_ERROR',
+        safeDetails: null,
+        retryable: false,
+      });
     });
   });
 
@@ -220,9 +232,13 @@ describe('objectStore', () => {
           name: 'Updated',
           properties: {},
         }),
-      ).rejects.toThrow('Update failed');
+      ).rejects.toMatchObject({ backend: { code: 'INTERNAL_ERROR' } });
 
-      expect(useObjectStore.getState().error).toBe('Error: Update failed');
+      expect(useObjectStore.getState().error).toEqual({
+        code: 'INTERNAL_ERROR',
+        safeDetails: null,
+        retryable: false,
+      });
     });
   });
 
@@ -244,9 +260,15 @@ describe('objectStore', () => {
         ],
       });
 
-      await expect(useObjectStore.getState().deleteObject('1')).rejects.toBe(failure);
+      await expect(useObjectStore.getState().deleteObject('1')).rejects.toMatchObject({
+        backend: { code: 'INTERNAL_ERROR', safeDetails: null, retryable: false },
+      });
       expect(useObjectStore.getState().objects.map((obj) => obj.id)).toContain('1');
-      expect(useObjectStore.getState().error).toContain('delete denied');
+      expect(useObjectStore.getState().error).toEqual({
+        code: 'INTERNAL_ERROR',
+        safeDetails: null,
+        retryable: false,
+      });
     });
 
     it('删除对象成功并从列表移除', async () => {
@@ -308,7 +330,7 @@ describe('objectStore', () => {
             updatedAt: '',
           },
         },
-        error: 'some error',
+        error: { code: 'OBJECT_NOT_FOUND', safeDetails: null, retryable: false },
       });
 
       useObjectStore.getState().clearOnVaultLock();

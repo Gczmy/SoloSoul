@@ -1,6 +1,6 @@
 # 增量 IPC 契约生成
 
-RF301 迁移只读命令 `get_app_info`，RF302 再迁移真实注册的 10 个 `object_*` 和 4 个 `snapshot_*` 命令。RF306 继续迁移插件 15 个命令，RF303 迁移 8 个会话命令与普通流式发送。RF304 再迁移备份、导入导出和任务恢复的 16 个命令，RF305 迁移设备/云/SAF 同步与账户恢复的 33 个命令。当前实际注册清单覆盖 88/225 个命令，137 个命令仍待迁移，并生成 11 个选定全局事件。Rust 命令签名及其 DTO 是参数及响应形状的来源；前端通过 `invokeTypedCommand` 复用现有 `ipcClient` 的鉴权、过期请求检查和错误处理。旧入口仍服务未迁移命令，不宣称全库调用已经类型化。生成类型只做编译期检查，不做运行时响应校验。
+RF301 迁移只读命令 `get_app_info`，RF302 再迁移真实注册的 10 个 `object_*` 和 4 个 `snapshot_*` 命令。RF306 继续迁移插件 15 个命令，RF303 迁移 8 个会话命令与普通流式发送。RF304 再迁移备份、导入导出和任务恢复的 16 个命令，RF305 迁移设备/云/SAF 同步与账户恢复的 33 个命令。当前实际注册清单覆盖 88/225 个命令，137 个命令仍待迁移，并生成 11 个选定全局事件。Rust 命令签名及其 DTO 是参数及响应形状的来源；前端通过 `invokeTypedCommand` 复用现有 `ipcClient` 的鉴权、过期请求检查和错误处理。旧入口仍服务未迁移命令，不宣称全库调用已经类型化。生成类型只做编译期检查，不做运行时响应校验。RF307 的错误包另有运行时白名单投影，范围见后文。
 
 ## 生成与检查
 
@@ -102,3 +102,16 @@ Store 使用 `request.invokeTyped`，由 `createTypedInvoker` 包装已有带会
 4. 运行生成检查、ACL、TypeScript 和相应前后端测试，再按对应任务单独提交。
 
 旧 `invokeCommand` 仍接受字符串，生成器不会阻止调用者继续使用旧入口。严格性只适用于迁移后的类型化入口；事件选择同样需要后续逐个接入实际订阅点。
+
+
+## 对象结构化错误（RF307）
+
+已迁移的 14 个对象/快照命令在 Rust 返回 `BackendError`，其 `code` 是稳定 enum，`safeDetails` 是必需 nullable，`retryable` 是必需 boolean。公开细节只包含 enum 阶段和名称/载荷两项固定上限，不包含对象/字段 ID、名称、值、密钥、路径、SQL 或自由文本 cause。对象保存失败与回滚失败不建议自动重试；锁定、维护或读取失败仍需由用户恢复条件后判断是否重试。成功返回及提交顺序不变，回滚保存后的历史/审计失败继续 best-effort 成功。
+
+生成器从实际 `Result<T, E>` 同时投影成功 `T` 和拒绝 `E`，额外生成 `IpcCommandErrors` 及清单 `structuredErrorCommands`；不在配置中维护第二份错误类型。非 Result 命令的拒绝契约为 `never`（只表示业务签名，无此包）；其余 Result<T, String> 错误继续生成 `string`。错误类型仍须满足既有 Output serde 子集，自定义 Serialize、未知类型或泛型等照常拒绝。TypeScript Promise 的 catch 参数仍是 unknown，这份映射不声称语言可静态保证原生框架或传输失败也遵守业务错误包。
+
+`backendErrorWire.ts` 只导入生成类型，不依赖 i18n、logger 或 Store。它在 IPC 边界复制白名单机器字段，去掉额外 message/cause 和不安全 details；14 个命令的未知/损坏或旧未识别错误统一回退 `INTERNAL_ERROR`。`BackendCommandError.message` 只保留 code，原始 cause 不随 Error 保存；原生框架的参数解码失败也经此安全回退。旧对象的已知 String、重名 ID 和动态字段组消息有独立兼容适配，新 Host 业务直接按失败阶段编码，不依赖英文正文。
+
+`resolveBackendErrorMessage` 与已有 `translateRustError` 在展示层翻译 code；对象 Store 保存机器错误，语言切换后重新翻译。历史页面、快照预览与对象读取的错误提示/日志使用安全投影。IPC 日志对仍未迁移的错误只保留 `LEGACY_ERROR` 类别，但这些域的原拒绝值、旧前缀解析与展示行为继续保留，LLM/传输/同步/插件分别由 RF317～RF320 迁移。Host 诊断仅记录 code、阶段和静态 cause 类型，不保存自由文本 cause；Vault JSON 损坏日志也不记录对象名称。
+
+Core 增加对象创建的阶段错误入口，保留原 `build_create_record` String API；CLI 调用仍取得原错误文本，记录构建与写入逻辑没有复制。合成 JSON fixture 同时经真实 Host serde、生成 TS 编译负例、运行时白名单投影与真实双语 i18next 校验；Vault 写入失败、归属错误与损坏快照仍在实际数据库上验证。

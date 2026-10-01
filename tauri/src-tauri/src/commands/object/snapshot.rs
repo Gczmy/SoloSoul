@@ -1,4 +1,6 @@
-use crate::commands::vault_handle;
+use super::errors;
+use super::errors::vault_handle;
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -15,9 +17,11 @@ use super::{
 pub async fn snapshot_count_batch(
     state: State<'_, AppState>,
     object_ids: Vec<String>,
-) -> Result<std::collections::HashMap<String, usize>, String> {
+) -> Result<std::collections::HashMap<String, usize>, BackendError> {
     let vault = vault_handle(&state)?;
-    vault.count_snapshots_batch(&object_ids)
+    vault.count_snapshots_batch(&object_ids).map_err(|cause| {
+        BackendError::caused_by(Code::SnapshotReadFailed, Stage::SnapshotRead, cause)
+    })
 }
 
 // ── Snapshot / History commands (§25.5) ─────────────────────
@@ -26,12 +30,14 @@ pub async fn snapshot_count_batch(
 pub async fn snapshot_get_data(
     state: State<'_, AppState>,
     snapshot_id: String,
-) -> Result<Option<serde_json::Value>, String> {
+) -> Result<Option<serde_json::Value>, BackendError> {
     let vault = vault_handle(&state)?;
-    match vault.get_snapshot(&snapshot_id)? {
-        Some(data) => serde_json::from_slice(&data)
-            .map(Some)
-            .map_err(|e| e.to_string()),
+    match vault.get_snapshot(&snapshot_id).map_err(|cause| {
+        BackendError::caused_by(Code::SnapshotReadFailed, Stage::SnapshotRead, cause)
+    })? {
+        Some(data) => serde_json::from_slice(&data).map(Some).map_err(|cause| {
+            BackendError::caused_by(Code::SnapshotInvalid, Stage::SnapshotParse, cause)
+        }),
         None => Ok(None),
     }
 }
@@ -50,9 +56,11 @@ pub struct SnapshotEntry {
 pub async fn snapshot_list(
     state: State<'_, AppState>,
     object_id: String,
-) -> Result<Vec<SnapshotEntry>, String> {
+) -> Result<Vec<SnapshotEntry>, BackendError> {
     let vault = vault_handle(&state)?;
-    list_snapshots_in_vault(&vault, &object_id)
+    list_snapshots_in_vault(&vault, &object_id).map_err(|cause| {
+        BackendError::caused_by(Code::SnapshotReadFailed, Stage::SnapshotRead, cause)
+    })
 }
 
 /// 只投影 Vault 已有四字段结果；查询顺序、50 条上限及读取错误由原 API 保持。
@@ -72,7 +80,7 @@ pub async fn snapshot_rollback(
     state: State<'_, AppState>,
     snapshot_id: String,
     object_id: String,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
     rollback_snapshot_in_vault(&vault, &snapshot_id, &object_id)?;
     state.auto_sync.trigger_debounce();
@@ -84,22 +92,14 @@ pub(super) fn rollback_snapshot_in_vault(
     vault: &solosoul_vault::VaultStore,
     snapshot_id: &str,
     object_id: &str,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let outcome = solosoul_core::objects::rollback_object(vault, object_id, snapshot_id)
-        .map_err(|error| error.to_string())?;
+        .map_err(errors::rollback)?;
     if let Some(error) = outcome.snapshot_error {
-        tracing::warn!(
-            "Snapshot save failed (object_id={}, triggered_by=rollback): {}",
-            object_id,
-            error
-        );
+        errors::warn_followup(Stage::SnapshotSave, error);
     }
     if let Some(error) = outcome.audit_error {
-        tracing::warn!(
-            "Audit log write failed (action=object_rollback, entity_type=object, entity_id={:?}): {}",
-            Some(object_id),
-            error
-        );
+        errors::warn_followup(Stage::Audit, error);
     }
     Ok(())
 }
@@ -502,7 +502,7 @@ pub async fn trash_get_detail(
     state: State<'_, AppState>,
     trash_id: String,
 ) -> Result<TrashDetail, String> {
-    let vault = vault_handle(&state)?;
+    let vault = crate::commands::vault_handle(&state)?;
     let trash = vault
         .get_trash_item(&trash_id)?
         .ok_or("Trash item not found")?;

@@ -25,6 +25,51 @@ export type AttachmentImportInfo = {
 
 export type AttachmentInfo = { id: string; fileName: string; sizeBytes: number };
 
+export type BackendError = {
+  code: BackendErrorCode;
+  safeDetails: SafeErrorDetails | null;
+  retryable: boolean;
+};
+
+export type BackendErrorCode =
+  | 'VAULT_LOCKED'
+  | 'VAULT_BUSY'
+  | 'SESSION_EXPIRED'
+  | 'INTERNAL_ERROR'
+  | 'OBJECT_NAME_REQUIRED'
+  | 'OBJECT_NAME_TOO_LONG'
+  | 'OBJECT_PAYLOAD_TOO_LARGE'
+  | 'OBJECT_NOT_FOUND'
+  | 'OBJECT_ID_EXISTS'
+  | 'OBJECT_VALIDATION_FAILED'
+  | 'OBJECT_READ_FAILED'
+  | 'OBJECT_WRITE_FAILED'
+  | 'OBJECT_TEMPLATE_MISSING'
+  | 'OBJECT_TEMPLATE_NOT_FOUND'
+  | 'OBJECT_TEMPLATE_READ_FAILED'
+  | 'SNAPSHOT_READ_FAILED'
+  | 'SNAPSHOT_NOT_FOUND'
+  | 'SNAPSHOT_INVALID'
+  | 'SNAPSHOT_OWNERSHIP_MISMATCH'
+  | 'SNAPSHOT_ROLLBACK_FAILED';
+
+export type BackendErrorStage =
+  | 'validate'
+  | 'read'
+  | 'write'
+  | 'task'
+  | 'template'
+  | 'snapshotOwner'
+  | 'snapshotRead'
+  | 'snapshotParse'
+  | 'objectRead'
+  | 'labels'
+  | 'version'
+  | 'serialize'
+  | 'objectSave'
+  | 'snapshotSave'
+  | 'audit';
+
 export type BackupInfo = {
   id: string;
   name: string;
@@ -545,6 +590,8 @@ export type RegistryVersion = {
 
 export type ResourceId = number;
 
+export type SafeErrorDetails = { stage: BackendErrorStage; limit?: number };
+
 export type SnapshotEntry = {
   id: string;
   timestamp: number;
@@ -880,6 +927,97 @@ export type IpcCommands = {
   vault_sync_background: { args: undefined; result: null };
   vault_sync_from_remote: { args: undefined; result: null };
   vault_sync_to_remote: { args: undefined; result: null };
+};
+
+export type IpcCommandErrors = {
+  backup_create: string;
+  backup_delete: string;
+  backup_list: string;
+  backup_restore: string;
+  cloud_sync_delete_config: string;
+  cloud_sync_get_config: string;
+  cloud_sync_import_incoming: string;
+  cloud_sync_list_incoming: string;
+  cloud_sync_mark_applied: string;
+  cloud_sync_now: string;
+  cloud_sync_save_config: string;
+  cloud_sync_test_connection: string;
+  create_plugin_install: never;
+  export_document_preflight: string;
+  export_estimate_size: string;
+  export_execute: string;
+  export_get_attachments_batch: string;
+  export_get_scope_tree: string;
+  export_objects_document: string;
+  get_app_info: string;
+  import_decrypt_preview: string;
+  import_execute_advanced: string;
+  import_operation_get: string;
+  import_operation_resume: string;
+  import_operations_list: string;
+  import_parse_package: string;
+  llm_get_conversation: string;
+  llm_list_conversations: string;
+  llm_list_trash: string;
+  llm_permanent_delete: string;
+  llm_rename_conversation: string;
+  llm_restore_conversation: string;
+  llm_save_conversation: string;
+  llm_send_message_stream: string;
+  llm_soft_delete_conversation: string;
+  mdns_discover: string;
+  object_create: BackendError;
+  object_delete: BackendError;
+  object_field_suggestions: BackendError;
+  object_get: BackendError;
+  object_ignore_template_sync: BackendError;
+  object_list: BackendError;
+  object_list_deprecated_fields: BackendError;
+  object_sync_with_template: BackendError;
+  object_trash_list: BackendError;
+  object_update: BackendError;
+  plugin_audit_log: string;
+  plugin_consent_response: string;
+  plugin_copy_output_file: string;
+  plugin_dialog_response: string;
+  plugin_install: string;
+  plugin_list_all: string;
+  plugin_list_attachments: string;
+  plugin_list_installed: string;
+  plugin_list_sessions: string;
+  plugin_open_output_file: string;
+  plugin_run: string;
+  plugin_uninstall: string;
+  plugin_update: string;
+  plugin_update_registry: string;
+  recovery_discover_hosts: string;
+  recovery_host_cancel: string;
+  recovery_host_start: string;
+  recovery_restore_existing_from_host: string;
+  recovery_restore_from_host: string;
+  snapshot_count_batch: BackendError;
+  snapshot_get_data: BackendError;
+  snapshot_list: BackendError;
+  snapshot_rollback: BackendError;
+  sync_enable: string;
+  sync_forget_peer: string;
+  sync_generate_qr_payload: string;
+  sync_get_auto_status: string;
+  sync_get_conflict_detail: string;
+  sync_get_status: string;
+  sync_get_ui_prefs_sync: string;
+  sync_list_conflicts: string;
+  sync_listen_addr: string;
+  sync_rename_peer: string;
+  sync_resolve_conflict: string;
+  sync_set_auto_enabled: string;
+  sync_set_ui_prefs_sync: string;
+  sync_trigger_foreground: string;
+  sync_trust_peer: string;
+  sync_with_device: string;
+  vault_sync_background: string;
+  vault_sync_from_remote: string;
+  vault_sync_to_remote: string;
 };
 
 export type IpcEvents = {

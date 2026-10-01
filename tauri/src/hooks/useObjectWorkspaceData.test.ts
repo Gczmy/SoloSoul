@@ -338,10 +338,11 @@ describe('RF302 工作区深链详情请求', () => {
         await active.promise.catch(() => null);
       });
       await waitFor(() =>
-        expect(warning).toHaveBeenCalledWith(
-          '[Workspace] Fetch object detail failed:',
-          activeError,
-        ),
+        expect(warning).toHaveBeenCalledWith('[Workspace] Fetch object detail failed:', {
+          code: 'INTERNAL_ERROR',
+          safeDetails: null,
+          retryable: false,
+        }),
       );
       warning.mockClear();
       rerender(options('B'));
