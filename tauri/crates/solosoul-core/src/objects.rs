@@ -956,6 +956,70 @@ pub fn cleanup_orphan_attachments(
                 for att_entry in att_entries.flatten() {
                     let att_path = att_entry.path();
                     let att_id = att_entry.file_name().to_string_lossy().to_string();
+                    // Sidecars are files, and symlink directories never authorize recursive deletion.
+                    if !att_entry.file_type().is_ok_and(|kind| kind.is_dir()) {
+                        continue;
+                    }
+                    let marker_path =
+                        att_path.join(crate::export_import::operation::IMPORT_OWNER_MARKER);
+                    let sidecar = obj_path.join(format!("{att_id}.import-owner"));
+                    if marker_path.exists() || sidecar.exists() {
+                        let marker = if marker_path.exists() {
+                            crate::export_import::operation::import_owner_marker_identity(&att_path)
+                        } else {
+                            let meta = std::fs::symlink_metadata(&sidecar).ok();
+                            if meta.is_some_and(|meta| {
+                                meta.is_file()
+                                    && !meta.file_type().is_symlink()
+                                    && meta.len() <= 4096
+                            }) {
+                                std::fs::File::open(&sidecar).ok().and_then(|file| {
+                                    serde_json::from_reader::<
+                                        _,
+                                        solosoul_vault::ImportOwnedAttachmentMarker,
+                                    >(file)
+                                    .ok()
+                                })
+                            } else {
+                                None
+                            }
+                        };
+                        // Unknown/malformed/foreign markers are preserved instead of entering legacy cleanup.
+                        let Some(marker) = marker else {
+                            continue;
+                        };
+                        if marker.owner_id != obj_entry.file_name().to_string_lossy()
+                            || marker.attachment_id != att_id
+                        {
+                            continue;
+                        }
+                        let bytes = att_path.metadata().map(|meta| meta.len()).unwrap_or(0);
+                        if vault
+                            .with_import_orphan_delete_guard(account_id, &marker, || {
+                                let root = base_dir
+                                    .canonicalize()
+                                    .map_err(|_| "attachment_cleanup_path_changed")?;
+                                let path = att_path
+                                    .canonicalize()
+                                    .map_err(|_| "attachment_cleanup_path_changed")?;
+                                if !path.starts_with(&root)
+                                    || std::fs::symlink_metadata(&att_path)
+                                        .map_err(|_| "attachment_cleanup_path_changed")?
+                                        .file_type()
+                                        .is_symlink()
+                                {
+                                    return Err("attachment_cleanup_path_changed".into());
+                                }
+                                std::fs::remove_dir_all(&att_path)
+                                    .map_err(|_| "attachment_cleanup_failed".to_string())
+                            })?
+                            .is_some()
+                        {
+                            total_freed += bytes;
+                            removed += 1;
+                        }
+                        continue;
+                    }
                     if !active_ids.contains(&att_id) {
                         if let Ok(meta) = att_path.metadata() {
                             total_freed += meta.len();

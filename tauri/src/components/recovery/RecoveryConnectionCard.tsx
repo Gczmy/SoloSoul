@@ -4,6 +4,7 @@ import type { ScannedRecoveryQr } from '@/components/recovery/recoveryReceiveTyp
 
 interface RecoveryConnectionCardProps {
   pending: ScannedRecoveryQr;
+  existingMode?: boolean;
   loading: boolean;
   statusText: string | null;
   /** 恢复执行进度（recovery-progress 事件）：phase=download/overwrite/create/import/done，percent=0-100 */
@@ -16,6 +17,7 @@ interface RecoveryConnectionCardProps {
  */
 export function RecoveryConnectionCard({
   pending,
+  existingMode = false,
   loading,
   statusText,
   progress,
@@ -57,15 +59,17 @@ export function RecoveryConnectionCard({
           lineHeight: 1.5,
         }}
       >
-        {pending.accountName
-          ? t('common:recovery_account_card_desc_scan', {
-              defaultValue:
-                'Account detected. Set a new master password for this device, then start recovery.',
-            })
-          : t('common:recovery_account_card_desc_manual', {
-              defaultValue:
-                'Connection details ready. Set a new master password for this device, then start recovery.',
-            })}
+        {existingMode
+          ? t('common:recovery_existing_connection_note')
+          : pending.accountName
+            ? t('common:recovery_account_card_desc_scan', {
+                defaultValue:
+                  'Account detected. Set a new master password for this device, then start recovery.',
+              })
+            : t('common:recovery_account_card_desc_manual', {
+                defaultValue:
+                  'Connection details ready. Set a new master password for this device, then start recovery.',
+              })}
       </p>
 
       <div

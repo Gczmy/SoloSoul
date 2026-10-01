@@ -313,6 +313,7 @@ pub struct GuideEmbeddingChunk {
 }
 
 pub use encryption::DataEncryptionKey;
+pub use storage::inspect_import_journal_at;
 pub use storage::object_field_sensitivity_levels;
 /// R-4① 方案 2：只读数据密钥探测（独立只读连接，无 open 副作用）。
 pub use storage::object_has_attachments;
@@ -321,8 +322,12 @@ pub use storage::sensitivity_rank;
 pub use storage::AttachmentCleanupIntent;
 pub use storage::VaultStore;
 pub use storage::{
-    ImportBatchError, ImportBatchRevision, ImportDatabaseBatch, ImportDatabaseCommit,
-    ImportHistoryChange, ImportObjectWrite, ImportReadView, ImportSnapshot,
+    ImportAttachmentOwnerPlan, ImportAttachmentPhase, ImportAttachmentStep,
+    ImportAttachmentStepPlan, ImportBatchError, ImportBatchRevision, ImportCiphertextProof,
+    ImportDatabaseBatch, ImportDatabaseCommit, ImportHistoryChange, ImportObjectWrite,
+    ImportOperationCommit, ImportOperationLease, ImportOperationPhase, ImportOperationRecord,
+    ImportOperationStart, ImportOwnedAttachmentMarker, ImportReadView, ImportSnapshot,
+    ImportSourceKind, ImportSourceProof,
 };
 
 // =============================================================================

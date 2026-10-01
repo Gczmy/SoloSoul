@@ -3,13 +3,14 @@
 use super::super::import::{run_import_job, ImportJob};
 use super::rf020::{objects, package, Fixture};
 use super::*;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 const IDS: [&str; 2] = ["rf020-0", "rf020-1"];
 
 fn request(path: &Path, strategy: ImportStrategy) -> AdvancedImportRequest {
     AdvancedImportRequest {
+        operation_id: None,
         selections: None,
         strategy,
         source_path: path.to_str().unwrap().into(),
@@ -119,6 +120,16 @@ fn physical_files(f: &Fixture) -> BTreeMap<PathBuf, Vec<u8>> {
     files
 }
 
+fn expected_attachment_publication_files(file: &Path) -> std::collections::BTreeSet<PathBuf> {
+    let directory = file.parent().unwrap();
+    let attachment_id = directory.file_name().unwrap().to_string_lossy();
+    std::collections::BTreeSet::from([
+        file.to_path_buf(),
+        directory.join(solosoul_core::export_import::operation::IMPORT_OWNER_MARKER),
+        directory.with_file_name(format!("{attachment_id}.import-owner")),
+    ])
+}
+
 fn seed_graph(f: &Fixture, path: &Path) {
     let mut req = request(path, ImportStrategy::Overwrite);
     req.selected_attachment_ids = None;
@@ -163,7 +174,12 @@ fn rf1063_global_keepboth_empty_overrides_rewrites_graph_and_selected_attachment
         b"fixture"
     );
     drop(service);
-    assert_eq!(physical_files(&f).len(), 1);
+    let files = physical_files(&f);
+    assert_eq!(files.len(), 3);
+    assert_eq!(
+        files.keys().cloned().collect::<BTreeSet<_>>(),
+        expected_attachment_publication_files(&file)
+    );
 }
 
 #[test]
@@ -286,7 +302,18 @@ fn assert_unselected_target_is_unchanged(global_keepboth: bool) {
         before_child_snapshots
     );
     let after_files = physical_files(&f);
-    assert_eq!(after_files.len(), before_files.len() + 1);
+    assert_eq!(after_files.len(), before_files.len() + 3);
+    let file = PathBuf::from(
+        copy.properties["__attachments"][0]["vaultPath"]
+            .as_str()
+            .unwrap(),
+    );
+    let added_files: BTreeSet<_> = after_files
+        .keys()
+        .filter(|path| !before_files.contains_key(*path))
+        .cloned()
+        .collect();
+    assert_eq!(added_files, expected_attachment_publication_files(&file));
     for (path, bytes) in before_files {
         assert_eq!(after_files.get(&path), Some(&bytes));
     }

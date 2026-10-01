@@ -189,6 +189,9 @@ pub(crate) fn default_locale() -> String {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AdvancedImportRequest {
+    /// Fresh 的幂等标识；旧客户端省略时由 Native 生成。
+    #[serde(default)]
+    pub operation_id: Option<String>,
     /// None = 全量；Some([]) = 不选对象。普通界面继续发送显式选择数组。
     pub selections: Option<Vec<ImportSelection>>,
     pub strategy: ImportStrategy,
@@ -228,6 +231,8 @@ pub enum ImportStage {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ImportResult {
+    /// 同一导入恢复固定使用此 ID；旧的一次性内部 API 不产生 journal。
+    pub operation_id: Option<String>,
     pub session_generation: u64,
     pub object_count: usize,
     pub attachment_count: usize,
@@ -445,6 +450,7 @@ pub mod export;
 pub mod export_docx;
 pub mod helpers;
 pub mod import;
+mod operations;
 #[cfg(test)]
 pub mod tests;
 
@@ -452,3 +458,4 @@ pub use export::*;
 pub use export_docx::*;
 pub(crate) use helpers::*;
 pub use import::*;
+pub use operations::*;

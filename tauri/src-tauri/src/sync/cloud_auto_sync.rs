@@ -789,7 +789,7 @@ async fn detect_and_fetch_incoming(
 
 /// B-06：静默导入单个云端快照。成功返回 true（并记录已应用水线）。
 ///
-/// 复用 `import_execute_for_session`（skipExisting + 全量选择），读锁在 spawn_blocking
+/// 复用 `import_execute_resumable_for_session`（skipExisting + 全量选择），读锁在 spawn_blocking
 /// 内获取；仅原会话完整导入后提交水线与清理源包。
 async fn auto_import_one(pre: &CloudPreContext, file: &str) -> Result<bool, String> {
     pre.check()?;
@@ -815,13 +815,16 @@ async fn auto_import_one(pre: &CloudPreContext, file: &str) -> Result<bool, Stri
     let pw = pre.config.snapshot_password.clone();
     let file_owned = file.to_string();
     let locale = default_locale();
+    let operation_id = uuid::Uuid::new_v4().to_string();
+    let activity = solosoul_core::import_activity::begin_import_activity(&pre.base_path)?;
 
     // 导入为同步密集操作且需持锁：spawn_blocking 内获取读锁
     let result = tauri::async_runtime::spawn_blocking(move || {
+        let _activity = activity;
         let svc = vs
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        crate::commands::export_import::import_execute_for_session(
+        crate::commands::export_import::import_execute_resumable_for_session(
             &svc,
             &session,
             file_owned,
@@ -832,14 +835,20 @@ async fn auto_import_one(pre: &CloudPreContext, file: &str) -> Result<bool, Stri
             Default::default(), // 无逐对象策略覆盖
             &locale,
             None, // 无进度回调
+            &operation_id,
+            solosoul_vault::ImportSourceKind::Cloud,
         )
         .and_then(|r| r.require_complete())
-        .map(|r| (r.object_count, r.attachment_count))
+        .and_then(|r| {
+            r.operation_id
+                .map(|id| (r.object_count, r.attachment_count, id))
+                .ok_or_else(|| "Missing import operation".into())
+        })
     })
     .await
     .map_err(|e| format!("导入任务 join 失败: {e}"))?;
 
-    let (objects, attachments) = result.map_err(|e| format!("自动导入失败: {e}"))?;
+    let (objects, attachments, operation_id) = result.map_err(|e| format!("自动导入失败: {e}"))?;
     #[cfg(test)]
     pre.checkpoint(CloudTestStage::BeforeWaterline).await;
     tracing::info!(
@@ -853,22 +862,26 @@ async fn auto_import_one(pre: &CloudPreContext, file: &str) -> Result<bool, Stri
         .service
         .read()
         .map_err(|_| "Vault service lock poisoned")?;
-    finalize_cloud_import(&svc, &pre.session, path)?;
+    finalize_cloud_import(&svc, &pre.session, path, &operation_id)?;
     Ok(true)
 }
 
-/// 自动/手动导入共用提交；源包必须属于该账户的受控 incoming 目录。
-pub(crate) fn finalize_cloud_import(
+/// Native 的固定来源定位，不接受前端 device/HLC 代替实际 incoming 路径。
+fn controlled_cloud_source(
     svc: &VaultService,
     session: &VaultSession,
     path: &Path,
-) -> Result<(), String> {
+) -> Result<(std::path::PathBuf, String, String), String> {
+    svc.with_session(session, |_| Ok(()))?;
     let root = svc
         .base_path()
         .join(INCOMING_DIR)
-        .join(session.account_id());
-    let root = root.canonicalize().map_err(|e| e.to_string())?;
-    let source = path.canonicalize().map_err(|e| e.to_string())?;
+        .join(session.account_id())
+        .canonicalize()
+        .map_err(|_| "Invalid cloud snapshot root")?;
+    let source = path
+        .canonicalize()
+        .map_err(|_| "Invalid cloud snapshot source")?;
     let relative = source
         .strip_prefix(&root)
         .map_err(|_| "Cloud snapshot belongs to another account")?;
@@ -877,21 +890,68 @@ pub(crate) fn finalize_cloud_import(
     {
         return Err("Invalid cloud snapshot path".into());
     }
-    let device_id = relative
+    let device = relative
         .parent()
         .and_then(|p| p.file_name())
         .and_then(|s| s.to_str())
-        .ok_or("Invalid device ID")?;
+        .ok_or("Invalid device ID")?
+        .to_string();
     let hlc = relative
         .file_stem()
         .and_then(|s| s.to_str())
-        .ok_or("Invalid snapshot HLC")?;
-    validate_cloud_path_component(device_id)?;
-    validate_cloud_path_component(hlc)?;
-    let applied_key = format!("{APPLIED_KEY_PREFIX}{device_id}");
+        .ok_or("Invalid snapshot HLC")?
+        .to_string();
+    validate_cloud_path_component(&device)?;
+    validate_cloud_path_component(&hlc)?;
+    Ok((source, device, hlc))
+}
+
+pub(crate) fn cloud_import_source_identity(
+    svc: &VaultService,
+    session: &VaultSession,
+    path: &Path,
+) -> Result<(String, String), String> {
+    controlled_cloud_source(svc, session, path).map(|(_, device, hlc)| (device, hlc))
+}
+
+/// 手动和自动共用：journal Complete + 当前会话 + 实际源密文 proof 全部成立才推进水线。
+/// 大包 hash 在会话门闩外；提交时重载 journal，并检查 Native 源未被替换。
+pub(crate) fn finalize_cloud_import(
+    svc: &VaultService,
+    session: &VaultSession,
+    path: &Path,
+    operation_id: &str,
+) -> Result<(), String> {
+    use solosoul_core::export_import::operation::{import_request_fingerprint, OwnedImportPackage};
+    use solosoul_vault::{ImportOperationPhase, ImportSourceKind};
+    let _activity = solosoul_core::import_activity::begin_import_activity(svc.base_path())?;
+    let (source, device, hlc) = controlled_cloud_source(svc, session, path)?;
+    let original = std::fs::metadata(&source).map_err(|_| "Cloud snapshot source unavailable")?;
+    let owned = OwnedImportPackage::capture(&source, svc.base_path())
+        .map_err(|_| "Cloud snapshot source verification failed")?;
+    let options = serde_json::json!({"strategy":"skipExisting","selectedObjectIds":null,"selectedAttachmentIds":null,
+        "objectStrategies":{},"locale":"en-US","deviceId":device,"hlc":hlc});
+    let fingerprint = import_request_fingerprint(&options)
+        .map_err(|_| "Cloud snapshot source verification failed")?;
+    let key = format!("{APPLIED_KEY_PREFIX}{device}");
     svc.with_session(session, |vault| {
-        vault.set_sys_config(&applied_key, hlc)?;
-        // 删除与水线在同一会话提交区内，不留 await 后切换账户的窗口。
+        let operation = vault
+            .load_import_operation(session.account_id(), operation_id)?
+            .ok_or("Cloud import operation missing")?;
+        if operation.phase != ImportOperationPhase::Complete
+            || operation.start.source_kind != ImportSourceKind::Cloud
+            || operation.start.source != *owned.source_proof()
+            || operation.start.request_fingerprint != fingerprint
+            || operation.start.root_binding != vault.import_root_binding()?
+        {
+            return Err("Cloud import operation is incomplete or source changed".into());
+        }
+        let current =
+            std::fs::metadata(&source).map_err(|_| "Cloud snapshot source unavailable")?;
+        if original.len() != current.len() || original.modified().ok() != current.modified().ok() {
+            return Err("Cloud snapshot source changed".into());
+        }
+        vault.set_sys_config(&key, &hlc)?;
         if let Err(error) = std::fs::remove_file(&source) {
             tracing::warn!("[CloudSync] imported source cleanup failed: {error}");
         }

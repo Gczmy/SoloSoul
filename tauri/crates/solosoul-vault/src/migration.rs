@@ -5,7 +5,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 
 use crate::storage::VaultStore;
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 27;
+pub const CURRENT_SCHEMA_VERSION: u32 = 28;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     // P032: 区分「首次建库无 data_version 行」与「真实读取错误」——
@@ -77,6 +77,7 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
     migrate_v25(conn, current)?;
     migrate_v26(conn, current)?;
     migrate_v27(conn, current)?;
+    migrate_v28(conn, current)?;
 
     Ok(())
 }
@@ -894,6 +895,38 @@ fn migrate_v27(conn: &mut Connection, current: u32) -> Result<(), String> {
     set_schema_version(&tx, 27)?;
     tx.commit()
         .map_err(|_| "Commit attachment cleanup migration failed")?;
+    Ok(())
+}
+
+/// RF022：本机可恢复导入 journal，不进入同步表集合或导出包。
+fn migrate_v28(conn: &mut Connection, current: u32) -> Result<(), String> {
+    if current >= 28 {
+        return Ok(());
+    }
+    let tx = conn
+        .transaction()
+        .map_err(|_| "import_operation_migration_begin")?;
+    tx.execute_batch("
+        CREATE TABLE IF NOT EXISTS import_operations (
+            operation_id TEXT PRIMARY KEY NOT NULL, account_id TEXT NOT NULL,
+            phase TEXT NOT NULL CHECK(phase IN ('recordsCommitted','attachments','preferences','complete','abandoned')),
+            epoch INTEGER NOT NULL CHECK(epoch >= 0),
+            created_at_ms INTEGER NOT NULL CHECK(created_at_ms >= 0),
+            updated_at_ms INTEGER NOT NULL CHECK(updated_at_ms >= 0),
+            plan_enc TEXT NOT NULL, result_enc TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS import_operations_account ON import_operations(account_id, created_at_ms, operation_id);
+        CREATE TABLE IF NOT EXISTS import_attachment_steps (
+            operation_id TEXT NOT NULL, entry_ordinal INTEGER NOT NULL CHECK(entry_ordinal BETWEEN 0 AND 4294967295),
+            phase TEXT NOT NULL CHECK(phase IN ('planned','staged','published','metadataCommitted')),
+            step_enc TEXT NOT NULL, PRIMARY KEY(operation_id, entry_ordinal)
+        );
+    ").map_err(|_| "import_operation_migration_tables")?;
+    tx.execute("INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (28, ?1, 'Add local resumable import operations')", params![Utc::now().timestamp()])
+        .map_err(|_| "import_operation_migration_record")?;
+    set_schema_version(&tx, 28)?;
+    tx.commit()
+        .map_err(|_| "import_operation_migration_commit")?;
     Ok(())
 }
 

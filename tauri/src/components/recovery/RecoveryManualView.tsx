@@ -187,9 +187,7 @@ export function RecoveryManualView({
           <div
             style={{
               fontSize: 'var(--text-caption)',
-              color: scanDone && discoveredHosts.length === 0
-                ? 'var(--text-tertiary)'
-                : '#e74c3c',
+              color: scanDone && discoveredHosts.length === 0 ? 'var(--text-tertiary)' : '#e74c3c',
               padding: '2px 0',
             }}
           >
@@ -200,6 +198,7 @@ export function RecoveryManualView({
 
       <Input
         label={t('common:recovery_receive_addr_label')}
+        aria-label={t('common:recovery_receive_addr_label')}
         type="text"
         value={hostAddr}
         onChange={(e) => onHostAddrChange(e.target.value)}
@@ -209,6 +208,7 @@ export function RecoveryManualView({
 
       <Input
         label={t('common:recovery_receive_pin_label')}
+        aria-label={t('common:recovery_receive_pin_label')}
         type="text"
         value={pin}
         onChange={(e) => onPinChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -245,22 +245,18 @@ export function RecoveryManualView({
           type="text"
           value={fingerprint}
           onChange={(e) => onFingerprintChange(e.target.value)}
-          placeholder={t('common:recovery_fingerprint_placeholder', { defaultValue: 'e.g. abc123…' })}
+          placeholder={t('common:recovery_fingerprint_placeholder', {
+            defaultValue: 'e.g. abc123…',
+          })}
           disabled={loading}
         />
       )}
 
-      <Button
-        onClick={onNext}
-        disabled={loading}
-        style={{ width: '100%', marginTop: 4 }}
-      >
+      <Button onClick={onNext} disabled={loading} style={{ width: '100%', marginTop: 4 }}>
         {t('common:next')}
       </Button>
 
-      {error && (
-        <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>{error}</div>
-      )}
+      {error && <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>{error}</div>}
     </div>
   );
 }

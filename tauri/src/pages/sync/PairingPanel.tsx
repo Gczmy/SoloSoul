@@ -1,3 +1,7 @@
+import { Suspense, useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { LazyRecoveryReceiveDialog } from '@/components/recovery/LazyRecoveryReceiveDialog';
+import { RecoveryDialogSkeleton } from '@/components/recovery/RecoveryDialogSkeleton';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { QrCode, ScanLine } from 'lucide-react';
@@ -44,7 +48,8 @@ export function PairingPanel({
   onIgnore,
   onCancelWaiting,
 }: PairingPanelProps) {
-  const { t } = useTranslation(['settings']);
+  const { t } = useTranslation(['settings', 'common']);
+  const [recoveryReceiveOpen, setRecoveryReceiveOpen] = useState(false);
   return (
     <>
       {/* QR pairing */}
@@ -112,7 +117,26 @@ export function PairingPanel({
             </button>
           </div>
         </div>
+        <Button
+          variant="secondary"
+          disabled={isLoading}
+          onClick={() => setRecoveryReceiveOpen(true)}
+          style={{ width: '100%', marginTop: 12 }}
+        >
+          {t('common:recovery_existing_receive_open')}
+        </Button>
       </Card>
+
+      {recoveryReceiveOpen && (
+        <Suspense fallback={<RecoveryDialogSkeleton />}>
+          <LazyRecoveryReceiveDialog
+            isOpen
+            existingAccountOnly
+            onClose={() => setRecoveryReceiveOpen(false)}
+            onSuccess={() => setRecoveryReceiveOpen(false)}
+          />
+        </Suspense>
+      )}
 
       <PairingDialog
         isOpen={!!pairPeer}

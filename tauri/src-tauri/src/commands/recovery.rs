@@ -5,11 +5,12 @@
 //! `account_id` 一致，后续可直接使用 Device Sync。
 
 use crate::commands::export_import::export::execute_export_core;
-use crate::commands::export_import::import::import_execute_internal;
+use crate::commands::export_import::import_execute_resumable_for_session;
 use crate::commands::export_import::{default_locale, ExportRequest, ExportScope, ImportStrategy};
 use crate::state::AppState;
-use solosoul_core::vault_service::VaultService;
+use solosoul_core::vault_service::{VaultService, VaultSession};
 use solosoul_sync::recovery::{generate_recovery_password, recover_from_host, RecoveryHost};
+use solosoul_vault::ImportSourceKind;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -276,16 +277,9 @@ pub async fn recovery_host_cancel(state: State<'_, AppState>) -> Result<(), Stri
     Ok(())
 }
 
-/// 从恢复主机下载加密恢复包，创建与主机相同 account_id 的账户，并导入数据。
-///
-/// 当本机已存在相同 `account_id` 的账户时：
-/// - `overwrite == true`：先删除本机该账户，再用旧设备数据覆盖（覆盖恢复，可用于重设本端密码）。
-/// - `overwrite` 为 false/None：由 `create_account_with_id` 返回 "Account ID already exists"，前端据此提示冲突。
-///
-/// 覆盖仅发生在恢复包下载成功之后，网络/握手失败不会损毁本地数据。
-///
-/// 执行期间向 `recovery-progress` 事件发射分阶段进度：
-/// `download`(0-40) → `overwrite`(45，仅覆盖模式) → `create`(50) → `import`(50-95) → `done`(100)。
+/// 创建同身份账户并导入恢复包；旧覆盖参数保留。
+/// 业务提交前先准备完整账户密文 handoff；导入失败绝不自动删除账户。
+/// 未接纳任务时需重新开启恢复主机，以新的认证包向已解锁原账户 Fresh 重试。
 #[allow(clippy::too_many_arguments)]
 #[tauri::command]
 pub async fn recovery_restore_from_host(
@@ -299,168 +293,274 @@ pub async fn recovery_restore_from_host(
     password_hint: Option<String>,
     overwrite: Option<bool>,
 ) -> Result<ImportResultSummary, String> {
+    let master_password = zeroize::Zeroizing::new(master_password);
     if master_password.len() < 8 {
         return Err("Password must be at least 8 characters".to_string());
     }
+    validate_recovery_connection(&host_addr, &pin)?;
+    let download = download_recovery_package(
+        &app,
+        &host_addr,
+        &pin,
+        fingerprint.as_deref(),
+        nonce.as_deref(),
+    )
+    .await?;
+    let operation_id = uuid::Uuid::new_v4().to_string();
+    let account_id = download.account_id.clone();
+    let account_name = download.account_name.clone();
+    let downloaded_path = download.downloaded_path.clone();
+    let service = state.vault_service.clone();
+    let app_for_worker = app.clone();
+    let operation_for_worker = operation_id.clone();
+    let worker = tokio::task::spawn_blocking(move || {
+        let svc = service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        create_recovery_account(
+            &svc,
+            &download.account_id,
+            &download.account_name,
+            &master_password,
+            password_hint.as_deref(),
+            overwrite,
+            &|phase, percent| emit_recovery_progress(&app_for_worker, phase, percent),
+        )?;
+        // 创建已建立解锁会话；后续准备/提交始终绑定此令牌，不重新捕获当前账户。
+        let session = svc.capture_session(&download.account_id)?;
+        let outcome = import_downloaded_recovery_for_session(
+            &svc,
+            &session,
+            &download.account_id,
+            download.downloaded_path,
+            download.recovery_password,
+            &operation_for_worker,
+            Some(recovery_import_progress(
+                app_for_worker,
+                operation_for_worker.clone(),
+            )),
+        )?;
+        Ok::<_, String>((session, outcome))
+    })
+    .await
+    .map_err(|_| "Recovery task failed".to_string())?;
+    // worker panic/Err 提交状态未知；也不能回滚删除已创建的账户。
+    let (session, outcome) = worker?;
+    if let Ok(svc) = state.vault_service.read() {
+        notify_recovery_complete(&svc, &session, &outcome, || {
+            state.auto_sync.trigger_debounce()
+        });
+    }
+    finish_recovery_download(&app, &outcome, &downloaded_path);
+    Ok(ImportResultSummary {
+        outcome,
+        account_id,
+        account_name,
+    })
+}
+
+/// 从新的已认证恢复主机会话 Fresh 导入到原账户；无创建、覆盖或重设密码分支。
+/// 下载前固定原 Session；传输身份不同、期间锁定/换账户/换目录均拒绝业务写入。
+#[tauri::command]
+pub async fn recovery_restore_existing_from_host(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    account_id: String,
+    host_addr: String,
+    pin: String,
+    fingerprint: Option<String>,
+    nonce: Option<String>,
+) -> Result<ImportResultSummary, String> {
+    validate_recovery_connection(&host_addr, &pin)?;
+    let session = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        svc.capture_session(&account_id)?
+    };
+    let download = download_recovery_package(
+        &app,
+        &host_addr,
+        &pin,
+        fingerprint.as_deref(),
+        nonce.as_deref(),
+    )
+    .await?;
+    let account_name = download.account_name.clone();
+    let downloaded_path = download.downloaded_path.clone();
+    let original_session = session.clone();
+    let service = state.vault_service.clone();
+    let operation_id = uuid::Uuid::new_v4().to_string();
+    let app_for_worker = app.clone();
+    let outcome = tokio::task::spawn_blocking(move || {
+        let svc = service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        import_downloaded_recovery_for_session(
+            &svc,
+            &original_session,
+            &download.account_id,
+            download.downloaded_path,
+            download.recovery_password,
+            &operation_id,
+            Some(recovery_import_progress(
+                app_for_worker,
+                operation_id.clone(),
+            )),
+        )
+    })
+    .await
+    .map_err(|_| "Recovery task failed".to_string())??;
+    if let Ok(svc) = state.vault_service.read() {
+        notify_recovery_complete(&svc, &session, &outcome, || {
+            state.auto_sync.trigger_debounce()
+        });
+    }
+    finish_recovery_download(&app, &outcome, &downloaded_path);
+    Ok(ImportResultSummary {
+        outcome,
+        account_id,
+        account_name,
+    })
+}
+
+fn validate_recovery_connection(host_addr: &str, pin: &str) -> Result<(), String> {
     if host_addr.trim().is_empty() {
         return Err("Host address is required".to_string());
     }
     if pin.len() != 6 || !pin.chars().all(|c| c.is_ascii_digit()) {
         return Err("PIN must be a 6-digit code".to_string());
     }
+    Ok(())
+}
 
-    // 进度事件发射器（phase + 0-100 全局百分比）。
-    let emit_progress = |phase: &'static str, percent: u8| {
+fn emit_recovery_progress(app: &tauri::AppHandle, phase: &'static str, percent: u8) {
+    let _ = app.emit(
+        "recovery-progress",
+        serde_json::json!({ "phase": phase, "percent": percent }),
+    );
+}
+
+fn recovery_import_progress(
+    app: tauri::AppHandle,
+    operation_id: String,
+) -> Arc<dyn Fn(u8) + Send + Sync> {
+    Arc::new(move |pct| {
         let _ = app.emit(
             "recovery-progress",
-            serde_json::json!({ "phase": phase, "percent": percent }),
+            serde_json::json!({
+                "phase":"import", "percent":(50 + u16::from(pct) * 45 / 100) as u8,
+                "operationId":operation_id,
+            }),
         );
-    };
+    })
+}
 
-    let dest_dir = std::env::temp_dir().join("solosoul_recovery_downloads");
-    std::fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
-
-    // 阶段 1：从主机下载恢复包（0-40，下载进度按字节数换算）。
-    let (account_id, account_name, downloaded_path, recovery_password) = download_recovery_package(
-        &app,
-        &host_addr,
-        &pin,
-        &dest_dir,
-        fingerprint.as_deref(),
-        nonce.as_deref(),
-    )
-    .await?;
-    let file_path = downloaded_path.to_string_lossy().to_string();
-
-    // 阶段 2：使用主机的 account_id 和 account_name 创建本地账户。
-    // 恢复场景允许同名账户共存（身份是 account_id）；
-    // 覆盖模式下若本机已存在相同 account_id，先删除再创建（不可逆，前端已二次确认）。
-    {
-        let svc = state
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        create_recovery_account(
-            &svc,
-            &account_id,
-            &account_name,
-            &master_password,
-            password_hint.as_deref(),
-            overwrite,
-            &emit_progress,
-        )?;
+/// 两个 IPC 与回归共用真实导入入口；不允许通过重新 capture_session 借用新会话。
+#[allow(clippy::too_many_arguments)]
+fn import_downloaded_recovery_for_session(
+    svc: &VaultService,
+    session: &VaultSession,
+    downloaded_account: &str,
+    downloaded_path: std::path::PathBuf,
+    recovery_password: zeroize::Zeroizing<String>,
+    operation_id: &str,
+    progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
+) -> Result<crate::commands::export_import::ImportResult, String> {
+    if downloaded_account != session.account_id() {
+        return Err("RECOVERY_ACCOUNT_MISMATCH".to_string());
     }
-
-    // 阶段 3：导入恢复包（50-95，导入进度按对象/附件条目数换算）。
-    // P015: 恢复密码在导入链路同样 Zeroizing 管理。
-    let app_for_import = app.clone();
-    let import_result = import_execute_internal(
-        state
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?,
-        account_id.clone(),
-        file_path.clone(),
-        zeroize::Zeroizing::new(recovery_password),
+    svc.with_session(session, |_| Ok(()))?;
+    import_execute_resumable_for_session(
+        svc,
+        session,
+        downloaded_path.to_string_lossy().into_owned(),
+        recovery_password,
         ImportStrategy::SkipExisting,
         None,
         None,
         HashMap::new(),
         &default_locale(),
-        Some(Arc::new(move |pct: u8| {
-            let _ = app_for_import.emit(
-                "recovery-progress",
-                serde_json::json!({
-                    "phase": "import",
-                    "percent": (50 + u16::from(pct) * 45 / 100) as u8,
-                }),
-            );
-        }) as Arc<dyn Fn(u8) + Send + Sync>),
-    );
-
-    // N-101：恢复导入成功后触发 SAF 自动同步（原 import 内部行为，重构后由调用方负责）
-    if import_result.as_ref().is_ok_and(|r| r.is_complete()) {
-        state.auto_sync.trigger_debounce();
-    }
-
-    // 只有完整导入后才清理源包；部分提交保留恢复证据。
-    if import_result.as_ref().is_ok_and(|r| r.is_complete()) {
-        let _ = std::fs::remove_file(&file_path);
-    }
-
-    let import_result = match import_result {
-        Ok(r) => r,
-        Err(e) => {
-            // 导入失败时回滚已创建的账户，避免留下空账户
-            if let Err(del_err) = state
-                .vault_service
-                .read()
-                .map_err(|_| "Vault service lock poisoned".to_string())
-                .and_then(|svc| svc.delete_account(&account_id))
-            {
-                tracing::warn!(
-                    "Failed to roll back partially created account during recovery: {}",
-                    del_err
-                );
-            }
-            return Err(e);
-        }
-    };
-
-    if import_result.is_complete() {
-        emit_progress("done", 100);
-    } else {
-        // 保留部分导入的账户，避免误删已写入的数据；前端展示实际结果。
-        emit_progress("incomplete", 95);
-    }
-    Ok(ImportResultSummary {
-        outcome: import_result,
-        account_id,
-        account_name,
-    })
+        progress,
+        operation_id,
+        ImportSourceKind::Recovery,
+    )
 }
-/// 阶段 1：从主机下载恢复包（0-40 进度按字节数换算）。
+
+fn notify_recovery_complete(
+    svc: &VaultService,
+    session: &VaultSession,
+    outcome: &crate::commands::export_import::ImportResult,
+    notify: impl FnOnce(),
+) {
+    if outcome.is_complete() {
+        let _ = svc.with_session(session, |_| {
+            notify();
+            Ok(())
+        });
+    }
+}
+
+fn finish_recovery_download(
+    app: &tauri::AppHandle,
+    outcome: &crate::commands::export_import::ImportResult,
+    path: &std::path::Path,
+) {
+    if outcome.is_complete() {
+        let _ = std::fs::remove_file(path);
+        emit_recovery_progress(app, "done", 100);
+    } else {
+        emit_recovery_progress(app, "incomplete", 95);
+    }
+}
+
+struct RecoveryDownload {
+    account_id: String,
+    account_name: String,
+    downloaded_path: std::path::PathBuf,
+    recovery_password: zeroize::Zeroizing<String>,
+}
+
 async fn download_recovery_package(
     app: &tauri::AppHandle,
     host_addr: &str,
     pin: &str,
-    dest_dir: &std::path::Path,
     fingerprint: Option<&str>,
     nonce: Option<&str>,
-) -> Result<(String, String, std::path::PathBuf, String), String> {
+) -> Result<RecoveryDownload, String> {
+    let dest_dir = std::env::temp_dir().join("solosoul_recovery_downloads");
+    std::fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
     let app_for_download = app.clone();
-    let host_addr = host_addr.to_string();
-    let pin = pin.to_string();
-    let dest_dir = dest_dir.to_path_buf();
-    let fingerprint = fingerprint.map(|s| s.to_string());
-    let nonce = nonce.map(|s| s.to_string());
-    let result = tokio::task::spawn_blocking(move || {
-        recover_from_host(
+    let host_addr = host_addr.to_owned();
+    let pin = pin.to_owned();
+    let fingerprint = fingerprint.map(str::to_owned);
+    let nonce = nonce.map(str::to_owned);
+    tokio::task::spawn_blocking(move || {
+        let result = recover_from_host(
             &host_addr,
             &pin,
             &dest_dir,
             fingerprint.as_deref(),
             nonce.as_deref(),
-            Some(Box::new(move |pct: u8| {
-                let _ = app_for_download.emit(
-                    "recovery-progress",
-                    serde_json::json!({
-                        "phase": "download",
-                        "percent": (u16::from(pct) * 40 / 100) as u8,
-                    }),
-                );
+            Some(Box::new(move |pct| {
+                emit_recovery_progress(
+                    &app_for_download,
+                    "download",
+                    (u16::from(pct) * 40 / 100) as u8,
+                )
             })),
-        )
+        )?;
+        // 传输层返回后立刻包装，随机内部包口令不进入 DTO、日志或持久计划。
+        Ok::<_, String>(RecoveryDownload {
+            account_id: result.account_id,
+            account_name: result.account_name,
+            downloaded_path: result.downloaded_path,
+            recovery_password: zeroize::Zeroizing::new(result.recovery_password),
+        })
     })
     .await
-    .map_err(|e| format!("Recovery task failed: {}", e))?;
-    let result = result?;
-    Ok((
-        result.account_id,
-        result.account_name,
-        result.downloaded_path,
-        result.recovery_password,
-    ))
+    .map_err(|_| "Recovery task failed".to_string())?
 }
 
 /// 阶段 2：使用主机的 account_id/account_name 创建本地账户。
@@ -566,3 +666,7 @@ mod tests {
         assert_eq!(err, "Vault not unlocked");
     }
 }
+
+#[cfg(test)]
+#[path = "recovery/rf022_tests.rs"]
+mod rf022_tests;

@@ -3,12 +3,15 @@ import { MemoryRouter } from 'react-router-dom';
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { useRecoveryReceive } from './useRecoveryReceive';
+import { setRequestSession } from '@/lib/sessionRequests';
 import type { RecoveryResultSummary } from '@/components/recovery/recoveryReceiveTypes';
 
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn(),
   checkHasAccount: vi.fn().mockResolvedValue(undefined),
+  listAccounts: vi.fn().mockResolvedValue(undefined),
   saveLast: vi.fn(),
+  auth: { isAuthenticated: false, currentAccount: null as { id: string } | null },
 }));
 vi.mock('@/lib/ipcClient', () => ({ invokeCommand: mocks.invoke }));
 vi.mock('react-i18next', async (importOriginal) => {
@@ -20,17 +23,32 @@ vi.mock('react-i18next', async (importOriginal) => {
 vi.mock('@/hooks/useCameraCapability', () => ({ useCameraCapability: () => 'unsupported' }));
 vi.mock('@/stores/authStore', () => ({
   saveLastAccountId: mocks.saveLast,
-  useAuthStore: { getState: () => ({ checkHasAccount: mocks.checkHasAccount }) },
+  useAuthStore: Object.assign(
+    (selector: (state: typeof mocks.auth) => unknown) => selector(mocks.auth),
+    {
+      getState: () => ({
+        ...mocks.auth,
+        checkHasAccount: mocks.checkHasAccount,
+        listAccounts: mocks.listAccounts,
+      }),
+    },
+  ),
 }));
 vi.mock('@tauri-apps/api/event', () => ({ listen: vi.fn().mockResolvedValue(() => {}) }));
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.auth.isAuthenticated = false;
+  mocks.auth.currentAccount = null;
+  setRequestSession(null);
+});
 
 it.each(['complete', 'partial', 'notCommitted'] as const)(
   'RF-020 recovery shows success only for complete imports (%s)',
   async (status) => {
     const summary: RecoveryResultSummary = {
       sessionGeneration: 7,
+      operationId: null,
       status,
       accountId: 'account',
       accountName: 'Synthetic',
@@ -61,7 +79,11 @@ it.each(['complete', 'partial', 'notCommitted'] as const)(
     await act(async () => {
       await result.current.handleStartRecovery();
     });
-    expect(mocks.invoke).toHaveBeenCalledWith('recovery_restore_from_host', expect.any(Object));
+    expect(mocks.invoke).toHaveBeenCalledWith(
+      'recovery_restore_from_host',
+      expect.any(Object),
+      expect.any(Object),
+    );
     expect(mocks.checkHasAccount).toHaveBeenCalledOnce();
     expect(result.current.successConfirmOpen).toBe(status === 'complete');
     if (status === 'complete') {
@@ -206,6 +228,7 @@ it('keeps recovery open until an in-progress import finishes', async () => {
   await act(async () => {
     finishRestore({
       sessionGeneration: 7,
+      operationId: null,
       status: 'complete',
       accountId: 'restored-account',
       accountName: 'Synthetic',
@@ -225,4 +248,287 @@ it('keeps recovery open until an in-progress import finishes', async () => {
   expect(onClose).not.toHaveBeenCalled();
   act(() => result.current.handleClose());
   expect(onClose).toHaveBeenCalledOnce();
+});
+
+const wrapper = ({ children }: PropsWithChildren) => <MemoryRouter>{children}</MemoryRouter>;
+const recoverySummary = (
+  status: RecoveryResultSummary['status'],
+  operationId: string | null,
+): RecoveryResultSummary => ({
+  sessionGeneration: 8,
+  operationId,
+  status,
+  accountId: 'account',
+  accountName: 'Synthetic',
+  objectCount: status === 'notCommitted' ? 0 : 1,
+  attachmentCount: 0,
+  templateCount: 0,
+  snapshotCount: 0,
+  preferencesImported: false,
+  attachmentFilesWritten: 0,
+  failureStage: status === 'complete' ? null : 'attachments',
+  errorCode: status === 'complete' ? null : 'IMPORT_FAILED',
+});
+function unlockMatchingAccount(id = 'account') {
+  mocks.auth.isAuthenticated = true;
+  mocks.auth.currentAccount = { id };
+  setRequestSession(id);
+}
+function collectManual(result: { current: ReturnType<typeof useRecoveryReceive> }) {
+  act(() => {
+    result.current.setHostAddr('127.0.0.1:12545');
+    result.current.setPin('123456');
+  });
+  act(() => result.current.handleManualNext());
+}
+function fillPassword(result: { current: ReturnType<typeof useRecoveryReceive> }) {
+  act(() => {
+    result.current.handleMasterPasswordChange('password123');
+    result.current.handleConfirmPasswordChange('password123');
+  });
+}
+
+it('RF022 uses the existing-account thin command without master password or overwrite', async () => {
+  unlockMatchingAccount();
+  mocks.invoke.mockResolvedValue(recoverySummary('complete', 'new-operation'));
+  const { result } = renderHook(() => useRecoveryReceive({ isOpen: true, onClose: vi.fn() }), {
+    wrapper,
+  });
+  collectManual(result);
+  act(() => result.current.handleUseExistingAccount());
+  expect(result.current.masterPassword).toBe('');
+  await act(async () => {
+    await result.current.handleStartRecovery();
+  });
+  const call = mocks.invoke.mock.calls.find(
+    ([command]) => command === 'recovery_restore_existing_from_host',
+  );
+  expect(call?.[1]).toEqual({
+    accountId: 'account',
+    hostAddr: '127.0.0.1:12545',
+    pin: '123456',
+    fingerprint: null,
+    nonce: null,
+  });
+  expect(
+    mocks.invoke.mock.calls.some(([command]) => command === 'recovery_restore_from_host'),
+  ).toBe(false);
+  expect(result.current.successConfirmOpen).toBe(true);
+  expect(result.current.completionUsesExistingAccount).toBe(true);
+});
+
+it('RF022 notCommitted requires new connection and preserves target while forbidding overwrite', async () => {
+  mocks.invoke.mockResolvedValue(recoverySummary('notCommitted', 'unaccepted-operation'));
+  const { result, rerender } = renderHook(
+    () => useRecoveryReceive({ isOpen: true, onClose: vi.fn() }),
+    { wrapper },
+  );
+  collectManual(result);
+  fillPassword(result);
+  await act(async () => {
+    await result.current.handleStartRecovery();
+  });
+  expect(result.current.retryTargetAccountId).toBe('account');
+  expect(result.current.acceptedRecovery).toBeNull();
+  act(() => result.current.handleOverwriteRecovery());
+  expect(result.current.overwriteApproved).toBe(false);
+  await act(async () => {
+    await result.current.handleStartRecovery();
+  });
+  expect(mocks.invoke).toHaveBeenCalledTimes(1);
+  act(() => result.current.handleBackToCollect());
+  expect(result.current.hostAddr).toBe('');
+  expect(result.current.pin).toBe('');
+  expect(result.current.retryTargetAccountId).toBe('account');
+  unlockMatchingAccount();
+  rerender();
+  collectManual(result);
+  act(() => result.current.handleUseExistingAccount());
+  mocks.invoke.mockResolvedValue(recoverySummary('complete', 'new-authenticated-operation'));
+  await act(async () => {
+    await result.current.handleStartRecovery();
+  });
+  expect(mocks.invoke.mock.calls[1][0]).toBe('recovery_restore_existing_from_host');
+  expect(mocks.invoke.mock.calls.some(([command]) => command === 'import_operation_resume')).toBe(
+    false,
+  );
+});
+
+it('RF022 accepted Recovery resumes same ID with no source or package password', async () => {
+  unlockMatchingAccount();
+  mocks.invoke.mockResolvedValueOnce(recoverySummary('partial', 'accepted-operation'));
+  const { result } = renderHook(() => useRecoveryReceive({ isOpen: true, onClose: vi.fn() }), {
+    wrapper,
+  });
+  collectManual(result);
+  act(() => result.current.handleUseExistingAccount());
+  await act(async () => {
+    await result.current.handleStartRecovery();
+  });
+  expect(result.current.acceptedRecovery?.operationId).toBe('accepted-operation');
+  act(() => {
+    result.current.handleBackToCollect();
+    result.current.handleOverwriteRecovery();
+  });
+  expect(result.current.step).toBe('account');
+  expect(result.current.overwriteApproved).toBe(false);
+  const outcome = recoverySummary('complete', 'accepted-operation');
+  mocks.invoke.mockResolvedValueOnce(outcome);
+  await act(async () => {
+    await result.current.handleResumeRecovery();
+  });
+  expect(mocks.invoke).toHaveBeenLastCalledWith(
+    'import_operation_resume',
+    {
+      accountId: 'account',
+      operationId: 'accepted-operation',
+      sourcePath: null,
+      password: null,
+    },
+    expect.any(Object),
+  );
+  expect(result.current.step).toBe('success');
+  expect(result.current.successConfirmOpen).toBe(true);
+});
+
+it('RF022 rejects changed account between explicit existing selection and execution', async () => {
+  unlockMatchingAccount();
+  const { result, rerender } = renderHook(
+    () => useRecoveryReceive({ isOpen: true, onClose: vi.fn() }),
+    { wrapper },
+  );
+  collectManual(result);
+  act(() => result.current.handleUseExistingAccount());
+  unlockMatchingAccount('other');
+  rerender();
+  await act(async () => {
+    await result.current.handleStartRecovery();
+  });
+  expect(mocks.invoke).not.toHaveBeenCalled();
+  expect(result.current.error).toBeTruthy();
+});
+
+it('RF022 ignores completed existing Recovery after its session changes', async () => {
+  unlockMatchingAccount();
+  let finish!: (value: RecoveryResultSummary) => void;
+  mocks.invoke.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const { result, rerender } = renderHook(
+    () => useRecoveryReceive({ isOpen: true, onClose: vi.fn() }),
+    { wrapper },
+  );
+  collectManual(result);
+  act(() => result.current.handleUseExistingAccount());
+  let request!: Promise<void>;
+  act(() => {
+    request = result.current.handleStartRecovery();
+  });
+  unlockMatchingAccount('other');
+  rerender();
+  await act(async () => {
+    finish(recoverySummary('complete', 'operation'));
+    await request;
+  });
+  expect(result.current.success).toBeNull();
+  expect(result.current.successConfirmOpen).toBe(false);
+  expect(mocks.saveLast).not.toHaveBeenCalled();
+  expect(mocks.checkHasAccount).not.toHaveBeenCalled();
+});
+
+it('RF022 synchronous double activation starts only one recovery command', async () => {
+  unlockMatchingAccount();
+  let finish!: (value: RecoveryResultSummary) => void;
+  mocks.invoke.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const { result } = renderHook(() => useRecoveryReceive({ isOpen: true, onClose: vi.fn() }), {
+    wrapper,
+  });
+  collectManual(result);
+  act(() => result.current.handleUseExistingAccount());
+  let one!: Promise<void>;
+  let two!: Promise<void>;
+  act(() => {
+    one = result.current.handleStartRecovery();
+    two = result.current.handleStartRecovery();
+  });
+  expect(mocks.invoke).toHaveBeenCalledTimes(1);
+  await act(async () => {
+    finish(recoverySummary('complete', 'operation'));
+    await Promise.all([one, two]);
+  });
+});
+
+it('RF022 raw unknown worker failure never shows success or clears account state', async () => {
+  mocks.invoke.mockRejectedValue(new Error('Recovery task failed'));
+  const { result } = renderHook(() => useRecoveryReceive({ isOpen: true, onClose: vi.fn() }), {
+    wrapper,
+  });
+  collectManual(result);
+  fillPassword(result);
+  await act(async () => {
+    await result.current.handleStartRecovery();
+  });
+  expect(result.current.success).toBeNull();
+  expect(result.current.connectionConsumed).toBe(true);
+  expect(result.current.error).toBeTruthy();
+  expect(mocks.saveLast).not.toHaveBeenCalled();
+  expect(mocks.invoke.mock.calls.some(([command]) => command === 'delete_account')).toBe(false);
+  expect(mocks.checkHasAccount).toHaveBeenCalledOnce();
+  expect(mocks.listAccounts).toHaveBeenCalledOnce();
+});
+
+it('RF022 existing-only entry cannot execute account creation or overwrite even when actions are called', async () => {
+  unlockMatchingAccount();
+  mocks.invoke.mockResolvedValue(recoverySummary('complete', 'fresh-operation'));
+  const { result } = renderHook(
+    () => useRecoveryReceive({ isOpen: true, onClose: vi.fn(), existingAccountOnly: true }),
+    { wrapper },
+  );
+  collectManual(result);
+  expect(result.current.existingAccountId).toBe('account');
+  act(() => {
+    result.current.handleRequestOverwrite();
+    result.current.handleOverwriteRecovery();
+  });
+  expect(result.current.overwriteApproved).toBe(false);
+  expect(result.current.confirmingOverwrite).toBe(false);
+  await act(async () => {
+    await result.current.handleStartRecovery();
+  });
+  expect(mocks.invoke.mock.calls.map(([cmd]) => cmd)).toEqual([
+    'recovery_restore_existing_from_host',
+  ]);
+  expect(mocks.invoke.mock.calls[0][1]).not.toHaveProperty('masterPassword');
+  expect(mocks.invoke.mock.calls[0][1]).not.toHaveProperty('overwrite');
+});
+
+it('RF022 existing-only entry rejects locked account and QR for a different account', async () => {
+  const { result, rerender } = renderHook(
+    () => useRecoveryReceive({ isOpen: true, onClose: vi.fn(), existingAccountOnly: true }),
+    { wrapper },
+  );
+  collectManual(result);
+  fillPassword(result);
+  await act(async () => {
+    await result.current.handleStartRecovery();
+  });
+  expect(mocks.invoke).not.toHaveBeenCalled();
+  unlockMatchingAccount();
+  rerender();
+  mocks.invoke.mockResolvedValue([{ id: 'foreign-account' }]);
+  await act(async () => {
+    await result.current.handleScan(
+      JSON.stringify({ t: 'rec', a: 'host', p: '123456', u: 'foreign-account' }),
+    );
+  });
+  expect(result.current.pending?.accountId).not.toBe('foreign-account');
+  expect(mocks.invoke.mock.calls.map(([cmd]) => cmd)).toEqual(['vault_list_accounts']);
 });

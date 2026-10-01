@@ -20,7 +20,7 @@ import {
 } from './cloudSyncShared';
 
 export function useCloudSyncPage() {
-  const { t, i18n } = useTranslation(['settings', 'common']);
+  const { t } = useTranslation(['settings', 'common']);
   const { onError, onSuccess } = useToastError();
   const accountId = useAuthStore((s) => s.currentAccount?.id ?? '');
   const requests = useMemo(createSessionRequests, []);
@@ -247,27 +247,22 @@ export function useCloudSyncPage() {
     }
     setImportingFile(file);
     try {
-      const result = await request.invoke<ImportResult>('import_execute_advanced', {
+      const result = await request.invoke<ImportResult>('cloud_sync_import_incoming', {
         accountId,
-        req: {
-          selections: null,
-          strategy: 'skipExisting',
-          sourcePath: file,
-          password: snapshotPw,
-          selectedAttachmentIds: null,
-          objectStrategies: {},
-          locale: i18n.language || 'zh-CN',
-        },
+        sourcePath: file,
+        password: snapshotPw,
       });
       const incomplete = importOutcomeError(result, t);
       if (incomplete) {
         onError(new Error(incomplete), t('settings:cloud_sync_import_failed'));
         return;
       }
+      if (!result.operationId) throw new Error('missing import operation');
       await request.invoke('cloud_sync_mark_applied', {
         accountId,
         sessionGeneration: result.sessionGeneration,
         sourcePath: file,
+        operationId: result.operationId,
       });
       onSuccess(t('settings:cloud_sync_import_success'));
       setIncomingFiles((prev) => prev.filter((f) => f !== file));

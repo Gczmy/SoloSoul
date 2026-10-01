@@ -17,6 +17,13 @@ use crate::{VaultConfig, VaultState, VaultStats};
 // 跨域被根模块调用的私有助手提升为 `pub(crate)`，其余保持私有。
 mod attachment_cleanup;
 pub use attachment_cleanup::AttachmentCleanupIntent;
+mod import_operations;
+pub use import_operations::{
+    ImportAttachmentOwnerPlan, ImportAttachmentPhase, ImportAttachmentStep,
+    ImportAttachmentStepPlan, ImportCiphertextProof, ImportOperationCommit, ImportOperationLease,
+    ImportOperationPhase, ImportOperationRecord, ImportOperationStart, ImportOwnedAttachmentMarker,
+    ImportSourceKind, ImportSourceProof,
+};
 mod import_batch;
 pub use import_batch::{
     ImportBatchError, ImportBatchRevision, ImportDatabaseBatch, ImportDatabaseCommit,
@@ -563,6 +570,9 @@ pub fn probe_data_key(db_path: &std::path::Path, key: &DataEncryptionKey) -> Res
         ("llm_conversations", "data", true),
         ("sync_conflicts", "local_data", false),
         ("sync_conflicts", "remote_data", false),
+        ("import_operations", "plan_enc", false),
+        ("import_operations", "result_enc", false),
+        ("import_attachment_steps", "step_enc", false),
     ] {
         let exists: bool = conn
             .query_row(
@@ -600,6 +610,46 @@ pub fn probe_data_key(db_path: &std::path::Path, key: &DataEncryptionKey) -> Res
         }
     }
     Ok(true)
+}
+
+/// 只读未解密的任务存在/阶段信息，供 Core 目录维护准入使用；不提供排他。
+pub fn inspect_import_journal_at(
+    root: &std::path::Path,
+    account_dir: &std::path::Path,
+    pending_only: bool,
+) -> Result<bool, String> {
+    let database = account_dir.join("vault.db");
+    let meta = match std::fs::symlink_metadata(&database) {
+        Ok(meta) => meta,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(_) => return Err("IMPORT_DIRECTORY_CHECK_FAILED".into()),
+    };
+    if !meta.is_file() || meta.file_type().is_symlink() {
+        return Err("IMPORT_DIRECTORY_CHECK_FAILED".into());
+    }
+    let canonical = database
+        .canonicalize()
+        .map_err(|_| "IMPORT_DIRECTORY_CHECK_FAILED")?;
+    if !canonical.starts_with(root) {
+        return Err("IMPORT_DIRECTORY_CHECK_FAILED".into());
+    }
+    let conn = rusqlite::Connection::open_with_flags(
+        canonical,
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+    )
+    .map_err(|_| "IMPORT_DIRECTORY_CHECK_FAILED")?;
+    let exists: bool = conn.query_row("SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='import_operations')", [], |row| row.get(0))
+        .map_err(|_| "IMPORT_DIRECTORY_CHECK_FAILED")?;
+    if !exists {
+        return Ok(false);
+    } // 旧 schema 的确没有本项操作记录。
+    let query = if pending_only {
+        "SELECT EXISTS(SELECT 1 FROM import_operations WHERE phase NOT IN ('complete', 'abandoned') OR phase IS NULL)"
+    } else {
+        "SELECT EXISTS(SELECT 1 FROM import_operations)"
+    };
+    conn.query_row(query, [], |row| row.get(0))
+        .map_err(|_| "IMPORT_DIRECTORY_CHECK_FAILED".into())
 }
 
 /// Vault store with SQLite backing

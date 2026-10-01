@@ -318,6 +318,14 @@ impl AppState {
                 .map_err(|e| format!("无法解析应用数据目录: {e}"))?,
         );
 
+        // 首次入口不能绕过已有导入的目录准入。真实占位目录的排他准入覆盖初始化过程。
+        let _initial_guard = {
+            let svc = self
+                .vault_service
+                .read()
+                .map_err(|_| "Vault service lock poisoned")?;
+            solosoul_core::import_activity::begin_initial_import_setup(svc.base_path(), &data_dir)?
+        };
         let handle = self.handle.clone();
         let new_svc = if let Some(ref uri) = saf_uri {
             Self::try_init_saf_vault(&handle, &data_dir, uri)
@@ -327,6 +335,10 @@ impl AppState {
                 .map_err(|e| format!("初始化本地 Vault 失败: {e}"))?
         };
 
+        // 首次同步期间新 root 同样不接受 RF022 导入。
+        let target_import_guard = Arc::new(
+            solosoul_core::import_activity::begin_import_maintenance(new_svc.base_path())?,
+        );
         // 热替换 VaultService 后重应用「同步设置偏好」开关（成功路径）
         self.replace_vault_service(new_svc)?;
 
@@ -362,7 +374,10 @@ impl AppState {
             );
 
             // 首次同步：失败回退本地（P044-6 抽取），成功走收尾（进度完成/重载缓存/写配置/调度兜底）
-            if let Err(e) = self.init_saf_sync().await {
+            if let Err(e) = self
+                .init_saf_sync_with_import_guard(Some(Arc::clone(&target_import_guard)))
+                .await
+            {
                 return self.rollback_after_saf_sync_failure(&data_dir, &e);
             }
             self.after_saf_sync_success(&data_dir, saf_uri.as_deref())?;
@@ -461,8 +476,9 @@ impl AppState {
         tracing::warn!("[initialize_vault] SAF initial sync failed, rolling back to local: {err}");
         // 清除本次提前写入的 URI，保持「失败不保存」的既有语义。
         let _ = Self::save_saf_uri(data_dir, None);
-        let local_svc = Self::try_init_local_vault(data_dir)
-            .map_err(|e| format!("回退到本地 Vault 失败: {e}"))?;
+        // 首次失败恢复占位状态，使原入口可再次选择；保留 SAF cache，不搬走任务文件。
+        let local_svc =
+            Self::placeholder_vault(data_dir).map_err(|e| format!("回退到占位 Vault 失败: {e}"))?;
         self.replace_vault_service(local_svc)?;
         // 取消 WorkManager 兜底同步：首次同步失败说明 SAF 不可用，
         // 避免旧配置持续触发无效同步。
@@ -535,6 +551,13 @@ impl AppState {
     }
 
     pub async fn init_saf_sync(&self) -> Result<(), String> {
+        self.init_saf_sync_with_import_guard(None).await
+    }
+
+    async fn init_saf_sync_with_import_guard(
+        &self,
+        import_guard: Option<Arc<solosoul_core::import_activity::ImportMaintenanceGuard>>,
+    ) -> Result<(), String> {
         let svc = self.vault_service.clone();
         let app_handle = self.handle.clone();
 
@@ -560,24 +583,166 @@ impl AppState {
             }
         }
 
-        tokio::task::spawn_blocking(move || -> Result<(), String> {
-            // P027: 只短暂持读锁取文件系统句柄（Arc 克隆）后立即释放——
-            // sync_from_remote 含网络 I/O，原先全程持锁会阻塞 replace_vault_service
-            // 的写锁（std RwLock 有写者饥饿风险）。
-            let fs = {
-                let read_guard = svc
-                    .read()
-                    .map_err(|_| "Vault service lock poisoned".to_string())?;
-                read_guard.file_system()
-            };
-            // 始终执行首次同步：
-            // 1. 防止本地 temp 中仅有 accounts.json 而账户目录未同步的半拉状态；
-            // 2. sync_from_remote 内部按 mtime/size 跳过已一致文件，不会重复大下载。
-            fs.sync_from_remote()?;
-            tracing::info!("[AppState] SAF initial sync completed");
+        // 在派发 worker 前冻结文件系统句柄，guard 与实际同步的 root 保持一致。
+        let fs = {
+            let read_guard = svc
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            read_guard.file_system()
+        };
+        sync_import_root_from_remote(fs, import_guard).await
+    }
+}
+
+pub(crate) async fn sync_import_root_from_remote(
+    fs: Arc<dyn solosoul_core::VaultFileSystem>,
+    import_guard: Option<Arc<solosoul_core::import_activity::ImportMaintenanceGuard>>,
+) -> Result<(), String> {
+    tokio::task::spawn_blocking(move || -> Result<(), String> {
+        // 取消等待后仍由实际 worker 保持目录维护准入。
+        let _import_guard = import_guard;
+        fs.sync_from_remote()?;
+        tracing::info!("[AppState] SAF initial sync completed");
+        Ok(())
+    })
+    .await
+    .map_err(|e| format!("SAF sync task panicked: {e}"))?
+}
+
+#[cfg(test)]
+mod rf022_saf_guard_tests {
+    use super::sync_import_root_from_remote;
+    use solosoul_core::import_activity::{begin_import_activity, begin_import_maintenance};
+    use solosoul_core::{SafSyncDriver, SafVaultFileSystem, VaultFileSystem};
+    use std::path::Path;
+    use std::sync::{mpsc, Arc, Mutex};
+    use std::time::Duration;
+    use tokio::sync::oneshot;
+
+    const WAIT_LIMIT: Duration = Duration::from_secs(10);
+
+    // 任何提前断言/超时退出都会唤醒实际 blocking worker，避免测试永久挂起。
+    struct ReleaseOnDrop(Option<mpsc::Sender<()>>);
+    impl ReleaseOnDrop {
+        fn release(&mut self) {
+            if let Some(tx) = self.0.take() {
+                let _ = tx.send(());
+            }
+        }
+    }
+    impl Drop for ReleaseOnDrop {
+        fn drop(&mut self) {
+            self.release();
+        }
+    }
+
+    // 提示 driver 的同步方法已结束；随后还要观察 worker 的 guard 实际销毁。
+    struct NotifyDriverEnd(Option<oneshot::Sender<()>>);
+    impl Drop for NotifyDriverEnd {
+        fn drop(&mut self) {
+            if let Some(tx) = self.0.take() {
+                let _ = tx.send(());
+            }
+        }
+    }
+
+    struct BlockingSafSyncDriver {
+        entered: Mutex<Option<oneshot::Sender<()>>>,
+        release: Mutex<mpsc::Receiver<()>>,
+        finished: Mutex<Option<oneshot::Sender<()>>>,
+    }
+    impl SafSyncDriver for BlockingSafSyncDriver {
+        fn sync_to_remote(&self, _local_dir: &Path, _tree_uri: &str) -> Result<(), String> {
+            Err("unexpected upload".to_string())
+        }
+
+        fn sync_from_remote(&self, local_dir: &Path, tree_uri: &str) -> Result<(), String> {
+            let _finish = NotifyDriverEnd(
+                self.finished
+                    .lock()
+                    .map_err(|_| "finished lock poisoned")?
+                    .take(),
+            );
+            if tree_uri != "content://rf022-controlled-saf" {
+                return Err("unexpected SAF root".to_string());
+            }
+            if let Some(tx) = self
+                .entered
+                .lock()
+                .map_err(|_| "entered lock poisoned")?
+                .take()
+            {
+                let _ = tx.send(());
+            }
+            self.release
+                .lock()
+                .map_err(|_| "release lock poisoned")?
+                .recv_timeout(WAIT_LIMIT)
+                .map_err(|_| "controlled SAF release timed out")?;
+            // awaiter 取消后真实 worker 仍会完成写入。
+            std::fs::write(local_dir.join("saf-worker-completed"), b"worker finished")
+                .map_err(|e| e.to_string())?;
             Ok(())
+        }
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn rf022_saf_worker_keeps_maintenance_after_awaiter_cancellation() {
+        let root = tempfile::tempdir().unwrap();
+        let (entered_tx, entered_rx) = oneshot::channel();
+        let (finished_tx, finished_rx) = oneshot::channel();
+        let (release_tx, release_rx) = mpsc::channel();
+        let mut release = ReleaseOnDrop(Some(release_tx));
+        let driver = Arc::new(BlockingSafSyncDriver {
+            entered: Mutex::new(Some(entered_tx)),
+            release: Mutex::new(release_rx),
+            finished: Mutex::new(Some(finished_tx)),
+        });
+        let fs: Arc<dyn VaultFileSystem> = Arc::new(SafVaultFileSystem::new(
+            "content://rf022-controlled-saf".to_string(),
+            root.path().to_path_buf(),
+            driver,
+        ));
+        let outer_guard = Arc::new(begin_import_maintenance(root.path()).unwrap());
+        let worker_guard = Arc::downgrade(&outer_guard);
+        let awaiter = tokio::spawn(sync_import_root_from_remote(
+            fs,
+            Some(Arc::clone(&outer_guard)),
+        ));
+        tokio::time::timeout(WAIT_LIMIT, entered_rx)
+            .await
+            .expect("SAF worker never entered")
+            .expect("SAF worker lost entered notification");
+        awaiter.abort();
+        let cancellation = awaiter.await;
+        drop(outer_guard);
+
+        // 先采集观察值，释放/等待实际 worker 后再断言；失败不留下堵塞 worker。
+        let denial_while_worker_runs = begin_import_activity(root.path()).err();
+        let still_owned_by_worker = worker_guard.upgrade().is_some();
+        let wrote_before_release = root.path().join("saf-worker-completed").exists();
+        release.release();
+        let driver_finished = tokio::time::timeout(WAIT_LIMIT, finished_rx).await;
+        let worker_ended = tokio::time::timeout(WAIT_LIMIT, async {
+            while worker_guard.upgrade().is_some() {
+                tokio::task::yield_now().await;
+            }
         })
-        .await
-        .map_err(|e| format!("SAF sync task panicked: {e}"))?
+        .await;
+
+        assert!(cancellation.err().is_some_and(|err| err.is_cancelled()));
+        assert!(driver_finished.is_ok_and(|result| result.is_ok()));
+        assert!(worker_ended.is_ok(), "actual worker retained the guard");
+        assert_eq!(
+            std::fs::read(root.path().join("saf-worker-completed")).unwrap(),
+            b"worker finished"
+        );
+        assert_eq!(
+            denial_while_worker_runs.as_deref(),
+            Some("IMPORT_DIRECTORY_BUSY")
+        );
+        assert!(still_owned_by_worker);
+        assert!(!wrote_before_release);
+        assert!(begin_import_activity(root.path()).is_ok());
     }
 }

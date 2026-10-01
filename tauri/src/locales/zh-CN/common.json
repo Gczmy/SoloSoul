@@ -778,5 +778,18 @@
     "create_description": "选择你想记录的方式。",
     "vault_title": "我的资料库"
   },
-  "release_notes_table": "更新说明表格"
+  "release_notes_table": "更新说明表格",
+  "recovery_existing_fresh_select": "导入到已解锁的同一账户",
+  "recovery_existing_fresh_start": "重新接收并导入",
+  "recovery_existing_fresh_note": "本次仅向已解锁的同一账户导入，不创建、删除或覆盖账户。已存在对象保持不变。",
+  "recovery_existing_connection_note": "确认主机身份和账户；恢复数据将导入已解锁的同一账户。",
+  "recovery_existing_unlock_required": "请先解锁与恢复主机相同 ID 的本地账户，再继续。",
+  "recovery_existing_account_mismatch": "恢复主机的账户与当前恢复目标不一致。请重新选择原账户的恢复主机。",
+  "recovery_fresh_retry_note": "本次业务与任务均未提交，本地账户仍保留。请解锁该账户，在原设备重新开启恢复主机并获取新的二维码或 PIN，然后选择向同一账户重新接收。不要再次覆盖账户。",
+  "recovery_new_host_required": "恢复主机提供一次性传输。再次接收前，请在原设备重新开启恢复主机并获取新的二维码或 PIN。",
+  "recovery_new_connection": "获取新的恢复连接",
+  "recovery_ready_resume_note": "恢复任务已保留完整的账户加密材料。解锁同一账户后可继续，无需重新下载或输入传输密码；也可在导入页面查看待完成任务。",
+  "recovery_resume_ready": "继续已接纳的恢复任务",
+  "recovery_existing_complete_desc": "恢复已完成：{{objects}} 个对象，{{attachments}} 个附件。关闭后继续使用当前账户。",
+  "recovery_existing_receive_open": "从原设备接收恢复数据到当前账户"
 }

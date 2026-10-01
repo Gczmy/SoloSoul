@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { listen } from '@tauri-apps/api/event';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore, saveLastAccountId } from '@/stores/authStore';
 import { useCameraCapability } from '@/hooks/useCameraCapability';
@@ -9,6 +8,8 @@ import { useRecoveryManualForm } from '@/hooks/useRecoveryManualForm';
 import { useRecoveryCredentials } from '@/hooks/useRecoveryCredentials';
 import { friendlyConnectError, checkRecoveryIdConflict } from '@/lib/recoveryErrors';
 import { importOutcomeError } from '@/lib/importOutcome';
+import { createSessionRequests } from '@/lib/sessionRequests';
+import type { ImportResult } from '@/types/exportImport';
 import type {
   RecoveryResultSummary,
   ScannedRecoveryQr,
@@ -21,10 +22,17 @@ export interface UseRecoveryReceiveOptions {
   onClose: () => void;
   /** 恢复成功后调用；若提供则替代默认的首页导航 */
   onSuccess?: () => void;
+  /** 已解锁同步页薄入口：此模式没有创建或覆盖账户分支。 */
+  existingAccountOnly?: boolean;
 }
 
 /** RecoveryReceiveDialog 的完整状态机与业务逻辑。 */
-export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryReceiveOptions) {
+export function useRecoveryReceive({
+  isOpen,
+  onClose,
+  onSuccess,
+  existingAccountOnly = false,
+}: UseRecoveryReceiveOptions) {
   const { t } = useTranslation(['common', 'settings']);
   const navigate = useNavigate();
   const mountedRef = useRef(true);
@@ -32,6 +40,11 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
   const recoveryInFlightRef = useRef(false);
   // 扫码预检可能跨越多次扫描或一次对话框关闭；旧结果不得重写当前选择。
   const scanGenerationRef = useRef(0);
+  const requestRef = useRef(createSessionRequests());
+  const activeRunRef = useRef(0);
+  const unlockedAccountId = useAuthStore((state) =>
+    state.isAuthenticated ? (state.currentAccount?.id ?? null) : null,
+  );
   // 设备摄像头能力（启动时预加载，模块级缓存）。
   // 支持 → 默认「扫描二维码」；不支持 → 默认「手动输入」。
   const cameraCapability = useCameraCapability();
@@ -77,6 +90,22 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
   const [confirmingOverwrite, setConfirmingOverwrite] = useState(false);
   // 连接/传输中的状态文案（账户卡展示）
   const [statusText, setStatusText] = useState<string | null>(null);
+  // Fresh 入口由用户显式选择；已接纳任务与尚未提交的重接收绝不混用。
+  const [existingAccountId, setExistingAccountId] = useState<string | null>(null);
+  const [retryTargetAccountId, setRetryTargetAccountId] = useState<string | null>(null);
+  const [acceptedRecovery, setAcceptedRecovery] = useState<RecoveryResultSummary | null>(null);
+  const [connectionConsumed, setConnectionConsumed] = useState(false);
+  const [completionUsesExistingAccount, setCompletionUsesExistingAccount] = useState(false);
+  const canImportExisting = Boolean(
+    unlockedAccountId &&
+    (!pending?.accountId || pending.accountId === unlockedAccountId) &&
+    (!retryTargetAccountId || retryTargetAccountId === unlockedAccountId),
+  );
+  const existingAccountUnlocked =
+    existingAccountId !== null && existingAccountId === unlockedAccountId;
+  const canResumeRecovery = Boolean(
+    acceptedRecovery?.operationId && acceptedRecovery.accountId === unlockedAccountId,
+  );
 
   // 子 hook：手动连接表单 + 局域网发现（collect 阶段 manual tab）
   const manualForm = useRecoveryManualForm({ mountedRef });
@@ -91,19 +120,33 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
   });
 
   useEffect(() => {
+    const requests = requestRef.current;
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      requests.invalidate();
+      activeRunRef.current += 1;
     };
   }, []);
 
   useEffect(() => {
-    if (!isOpen) scanGenerationRef.current += 1;
+    if (!isOpen) {
+      scanGenerationRef.current += 1;
+      requestRef.current.invalidate();
+      activeRunRef.current += 1;
+    }
   }, [isOpen]);
 
   // ── 重置所有状态 ──
   const resetState = () => {
     scanGenerationRef.current += 1;
+    requestRef.current.invalidate();
+    activeRunRef.current += 1;
+    setExistingAccountId(null);
+    setRetryTargetAccountId(null);
+    setAcceptedRecovery(null);
+    setConnectionConsumed(false);
+    setCompletionUsesExistingAccount(false);
     setStep('collect');
     setTab(getDefaultTab());
     userSwitchedTabRef.current = false;
@@ -147,6 +190,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
 
   // ── 扫码：解析 t:"rec" 二维码 → 预检账户 ID 冲突 → 进入账户卡 ──
   const handleScan = async (text: string) => {
+    if (recoveryInFlightRef.current || acceptedRecovery) return;
     const scanGeneration = ++scanGenerationRef.current;
     try {
       const parsed = JSON.parse(text);
@@ -167,7 +211,16 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
       // 扫描完成后立即预检账户 ID 冲突（在进入密码输入之前提示覆盖选项）
       const conflict = await checkRecoveryIdConflict(parsed.u);
       if (!mountedRef.current || scanGeneration !== scanGenerationRef.current) return;
-      setIdConflict(conflict);
+      if (
+        (retryTargetAccountId && parsed.u && parsed.u !== retryTargetAccountId) ||
+        (existingAccountOnly && parsed.u && parsed.u !== unlockedAccountId)
+      ) {
+        setError(t('common:recovery_existing_account_mismatch'));
+        return;
+      }
+      setIdConflict(conflict || Boolean(retryTargetAccountId));
+      setConnectionConsumed(false);
+      setExistingAccountId(existingAccountOnly ? unlockedAccountId : null);
       setOverwriteApproved(false);
       setPending({
         addr: parsed.a,
@@ -192,77 +245,183 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
       setError(result.error);
       return;
     }
+    if (recoveryInFlightRef.current || acceptedRecovery) return;
     setPending(result.value);
+    setConnectionConsumed(false);
+    setExistingAccountId(existingAccountOnly ? unlockedAccountId : null);
+    setIdConflict(Boolean(retryTargetAccountId));
     setStep('account');
   };
 
-  // ── 账户卡：设置主密码后开始恢复（与扫码路径走同一命令） ──
+  const handleUseExistingAccount = () => {
+    if (recoveryInFlightRef.current || acceptedRecovery || !canImportExisting || !unlockedAccountId)
+      return;
+    setExistingAccountId(unlockedAccountId);
+    setOverwriteApproved(false);
+    setConfirmingOverwrite(false);
+    credentials.reset();
+    setError(null);
+  };
+
+  const applyRecoveryResult = async (result: RecoveryResultSummary, isCurrent: () => boolean) => {
+    if (!mountedRef.current || !isCurrent()) return;
+    setPending((previous) =>
+      previous
+        ? { ...previous, accountId: result.accountId, accountName: result.accountName }
+        : previous,
+    );
+    const incomplete = importOutcomeError(result, t);
+    if (incomplete) {
+      if (result.status === 'partial' && result.operationId) {
+        setAcceptedRecovery(result);
+        setError(`${incomplete} ${t('common:recovery_ready_resume_note')}`);
+      } else if (result.status === 'notCommitted') {
+        // 包已被一次性传输消费；口令不保存，也不能把新包用作旧 ID 的 Resume。
+        setRetryTargetAccountId(result.accountId);
+        setError(`${incomplete} ${t('common:recovery_fresh_retry_note')}`);
+      } else {
+        setError(incomplete);
+      }
+      await useAuthStore.getState().checkHasAccount();
+      await useAuthStore.getState().listAccounts();
+      return;
+    }
+    await useAuthStore.getState().checkHasAccount();
+    await useAuthStore.getState().listAccounts();
+    if (!mountedRef.current || !isCurrent()) return;
+    setAcceptedRecovery(null);
+    setSuccess(result);
+    setStep('success');
+    saveLastAccountId(result.accountId);
+    setSuccessConfirmOpen(true);
+  };
+
+  // 新账户模式保留原密码/覆盖契约；existing 模式只连接已解锁同账户。
   const handleStartRecovery = async () => {
-    if (!pending) return;
+    if (!pending || recoveryInFlightRef.current || acceptedRecovery) return;
+    if (connectionConsumed) {
+      setError(t('common:recovery_new_host_required'));
+      return;
+    }
+    if (existingAccountId) {
+      if (!existingAccountUnlocked) {
+        setError(t('common:recovery_existing_unlock_required'));
+        return;
+      }
+    } else {
+      // 未提交后保留下来的账户只能走显式 Fresh，不再次创建/覆盖。
+      if (retryTargetAccountId || existingAccountOnly) {
+        setError(t('common:recovery_existing_unlock_required'));
+        return;
+      }
+      if (credentials.getValidationError()) return;
+    }
     setError(null);
     setSuccess(null);
-
-    // 校验（优先级与创建账户页一致）；失败时对应输入框已置 error，直接返回
-    if (credentials.getValidationError()) return;
-
     recoveryInFlightRef.current = true;
+    setCompletionUsesExistingAccount(Boolean(existingAccountId));
+    const run = ++activeRunRef.current;
+    const ticket = requestRef.current.begin('recovery', existingAccountId ?? undefined);
+    const isCurrent = () => ticket.isCurrent() && run === activeRunRef.current;
     setLoading(true);
     setProgress(null);
     setStatusText(t('common:recovery_connecting', { defaultValue: 'Connecting to host…' }));
-
-    // 订阅恢复进度事件（recovery-progress：download/overwrite/create/import/done 分阶段百分比）
+    // 进度只影响本次可见请求；退订前排队的旧回调也必须经过 run/session 校验。
     const unlistenPromise = listen<{ phase: string; percent: number }>('recovery-progress', (e) => {
-      if (mountedRef.current) setProgress(e.payload);
+      if (mountedRef.current && recoveryInFlightRef.current && isCurrent()) setProgress(e.payload);
     }).catch(() => null);
-
     try {
-      const result = await invoke<RecoveryResultSummary>('recovery_restore_from_host', {
+      setConnectionConsumed(true);
+      const connection = {
         hostAddr: pending.addr,
         pin: pending.pin,
-        masterPassword: credentials.masterPassword,
-        passwordHint: credentials.passwordHint.trim() || null,
         fingerprint: pending.fingerprint || null,
         nonce: pending.nonce,
-        overwrite: overwriteApproved,
-      });
-      if (!mountedRef.current) return;
-      const incomplete = importOutcomeError(result, t);
-      if (incomplete) {
-        setError(incomplete);
-        await useAuthStore.getState().checkHasAccount();
-        return;
-      }
-      setSuccess(result);
-      setStep('success');
-      // 记住最近恢复的账户：返回登录页后自动选中它，方便用新密码解锁
-      saveLastAccountId(result.accountId);
-      await useAuthStore.getState().checkHasAccount();
-      // 自动弹出「恢复完成」确认框，用户确认后返回登录页
-      if (mountedRef.current) setSuccessConfirmOpen(true);
+      };
+      const result = existingAccountId
+        ? await ticket.invoke<RecoveryResultSummary>('recovery_restore_existing_from_host', {
+            accountId: existingAccountId,
+            ...connection,
+          })
+        : await ticket.invoke<RecoveryResultSummary>('recovery_restore_from_host', {
+            ...connection,
+            masterPassword: credentials.masterPassword,
+            passwordHint: credentials.passwordHint.trim() || null,
+            overwrite: overwriteApproved,
+          });
+      await applyRecoveryResult(result, isCurrent);
     } catch (err) {
-      if (!mountedRef.current) return;
+      if (!mountedRef.current || !isCurrent()) return;
+      // Native 异常也可能发生于创建账户之后；刷新目录保全登录入口，结果仍保持未知。
+      await Promise.allSettled([
+        useAuthStore.getState().checkHasAccount(),
+        useAuthStore.getState().listAccounts(),
+      ]);
+      if (!mountedRef.current || !isCurrent()) return;
       const raw = String(err);
-      if (raw.includes('Account ID already exists')) {
-        // 兜底（手动输入等无 accountId 预检的路径）：进入冲突状态，展示覆盖恢复选项（不显示普通错误）
+      if (raw.includes('Account ID already exists') && !existingAccountId) {
         setIdConflict(true);
         setOverwriteApproved(false);
+      } else if (raw.includes('RECOVERY_ACCOUNT_MISMATCH')) {
+        setError(t('common:recovery_existing_account_mismatch'));
       } else {
-        setError(friendlyConnectError(raw, t));
+        setError(`${friendlyConnectError(raw, t)} ${t('common:recovery_new_host_required')}`);
       }
     } finally {
-      // 无论成败都退订进度事件，避免泄漏监听器
-      if (unlistenPromise) {
-        void unlistenPromise.then((un) => un?.());
-      }
+      void unlistenPromise.then((un) => un?.());
       recoveryInFlightRef.current = false;
-      setLoading(false);
-      setStatusText(null);
+      if (mountedRef.current) {
+        setLoading(false);
+        setStatusText(null);
+      }
+    }
+  };
+
+  // 已接纳 Recovery 的所有材料已由账户密钥保护；不再下载或询问内部随机包口令。
+  const handleResumeRecovery = async () => {
+    if (!acceptedRecovery?.operationId || recoveryInFlightRef.current) return;
+    if (!canResumeRecovery) {
+      setError(t('common:recovery_existing_unlock_required'));
+      return;
+    }
+    recoveryInFlightRef.current = true;
+    setCompletionUsesExistingAccount(true);
+    const run = ++activeRunRef.current;
+    const ticket = requestRef.current.begin('recovery', acceptedRecovery.accountId);
+    const isCurrent = () => ticket.isCurrent() && run === activeRunRef.current;
+    setLoading(true);
+    setError(null);
+    setStatusText(t('common:recovery_progress_import'));
+    try {
+      const outcome = await ticket.invoke<ImportResult>('import_operation_resume', {
+        accountId: acceptedRecovery.accountId,
+        operationId: acceptedRecovery.operationId,
+        sourcePath: null,
+        password: null,
+      });
+      await applyRecoveryResult({ ...acceptedRecovery, ...outcome }, isCurrent);
+    } catch (err) {
+      if (mountedRef.current && isCurrent()) setError(friendlyConnectError(String(err), t));
+    } finally {
+      recoveryInFlightRef.current = false;
+      if (mountedRef.current) {
+        setLoading(false);
+        setStatusText(null);
+      }
     }
   };
 
   // ── 冲突处理：打开/关闭覆盖二次确认 ──
   const handleRequestOverwrite = () => {
-    if (loading) return;
+    if (
+      recoveryInFlightRef.current ||
+      existingAccountOnly ||
+      retryTargetAccountId ||
+      acceptedRecovery ||
+      existingAccountId ||
+      connectionConsumed
+    )
+      return;
     setConfirmingOverwrite(true);
   };
 
@@ -272,7 +431,15 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
 
   // 覆盖二次确认通过：进入覆盖模式 → 展示密码输入，由 handleStartRecovery 携带 overwrite=true 发起
   const handleOverwriteRecovery = () => {
-    if (loading) return;
+    if (
+      recoveryInFlightRef.current ||
+      existingAccountOnly ||
+      retryTargetAccountId ||
+      acceptedRecovery ||
+      existingAccountId ||
+      connectionConsumed
+    )
+      return;
     setConfirmingOverwrite(false);
     setOverwriteApproved(true);
   };
@@ -284,8 +451,11 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
 
   // ── 账户卡：返回重新获取连接信息 ──
   const handleBackToCollect = () => {
-    if (loading) return;
+    if (recoveryInFlightRef.current || acceptedRecovery) return;
     scanGenerationRef.current += 1;
+    setExistingAccountId(null);
+    setConnectionConsumed(false);
+    manualForm.reset();
     setPending(null);
     setIdConflict(false);
     setOverwriteApproved(false);
@@ -337,6 +507,16 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     handleManualNext,
     handleStartRecovery,
     handleBackToCollect,
+    completionUsesExistingAccount,
+    existingAccountId,
+    existingAccountUnlocked,
+    canImportExisting,
+    retryTargetAccountId,
+    acceptedRecovery,
+    canResumeRecovery,
+    connectionConsumed,
+    handleUseExistingAccount,
+    handleResumeRecovery,
     idConflict,
     overwriteApproved,
     confirmingOverwrite,

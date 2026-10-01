@@ -15,6 +15,7 @@ pub mod auth;
 pub mod backup;
 pub mod biometric;
 pub mod export_import;
+pub mod import_activity;
 pub mod llm;
 pub mod objects;
 pub mod path_util;

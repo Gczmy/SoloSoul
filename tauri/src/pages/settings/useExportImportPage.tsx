@@ -100,6 +100,7 @@ export function useExportImportPage() {
 
   // Import state — 全部迁移至 useImportState hook（P013/3）
   const {
+    importOperations,
     importPath,
     importPreview,
     importPw,
@@ -297,6 +298,7 @@ export function useExportImportPage() {
     allTags,
     handleExport,
     // import (useImportState)
+    importOperations,
     importPath,
     importPreview,
     importPw,

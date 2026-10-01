@@ -81,6 +81,8 @@ export interface ConflictInfo {
 export type ImportStrategy = 'skipExisting' | 'overwrite' | 'keepBoth';
 
 export interface ImportResult {
+  /** 持久任务 ID；老兼容调用可能为 null。 */
+  operationId: string | null;
   /** 后端导入所绑定的会话代次；后续云水线提交必须回传。 */
   sessionGeneration: number;
   objectCount: number;
@@ -115,4 +117,49 @@ export interface CloudTargetInfo {
   id: string;
   name: string;
   path: string;
+}
+
+/** 与 Native 普通导入 IPC 保持 camelCase；Resume 不接受这份选择/策略。 */
+export interface AdvancedImportRequest {
+  operationId: string | null;
+  selections: { objectId: string; selected: boolean }[] | null;
+  strategy: ImportStrategy;
+  sourcePath: string;
+  password: string;
+  selectedAttachmentIds: string[] | null;
+  objectStrategies: Record<string, ImportStrategy>;
+  locale: string;
+}
+
+export interface ImportOperationSummary {
+  operationId: string;
+  phase: 'recordsCommitted' | 'attachments' | 'preferences' | 'complete';
+  sourceKind: 'manual' | 'cloud' | 'recovery' | 'cli';
+  sourceName: string;
+  createdAt: string;
+  updatedAt: string;
+  sourceRequired: boolean;
+  passwordRequired: boolean;
+  outcome: ImportResult;
+}
+
+/** 仅 UI 状态与动作；不是 IPC DTO，不保存密码到持久 Store。 */
+export interface ImportOperationsUi {
+  items: ImportOperationSummary[];
+  selected: ImportOperationSummary | null;
+  currentId: string | null;
+  loading: boolean;
+  loadingDetails: boolean;
+  busy: boolean;
+  password: string;
+  replacementSource: string;
+  canResume: boolean;
+  onRefresh: () => Promise<void>;
+  onSelect: (id: string) => Promise<void>;
+  onRetry: () => Promise<void>;
+  onResume: () => Promise<void>;
+  onSetPassword: (value: string) => void;
+  onPickSource: () => Promise<void>;
+  onContinueLater: () => void;
+  onNewImport: () => void;
 }

@@ -2,6 +2,7 @@
 
 use super::super::*;
 use super::setup_vault;
+use solosoul_core::objects::inherit_property_fields;
 use solosoul_vault::{ObjectRecord, PropertyType, TemplateProperty, TrashItem, UserTemplate};
 
 #[test]

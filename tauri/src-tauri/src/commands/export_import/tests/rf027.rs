@@ -19,6 +19,7 @@ fn runtime() -> tokio::runtime::Runtime {
 
 fn request(path: &Path) -> AdvancedImportRequest {
     AdvancedImportRequest {
+        operation_id: None,
         selections: None,
         strategy: ImportStrategy::Overwrite,
         source_path: path.to_str().unwrap().into(),
@@ -109,6 +110,55 @@ fn linked_paths(f: &Fixture) -> Vec<PathBuf> {
         .collect()
 }
 
+// 仅识别 Native 已发布的 ownership 文件；其余文件继续参与数量与 AEAD 断言。
+// 此 helper 只读取文件系统，服务 RwLock poison 后仍可使用。
+fn is_import_ownership_file(path: &Path) -> bool {
+    const MARKER: &str = solosoul_core::export_import::operation::IMPORT_OWNER_MARKER;
+    let name = path.file_name().unwrap().to_str().unwrap();
+    let directory = if name == MARKER {
+        path.parent().unwrap().to_path_buf()
+    } else if let Some(attachment_id) = name.strip_suffix(".import-owner") {
+        // 普通附件即使有相同后缀，也不能在未匹配 Native UUID 时被跳过。
+        if Uuid::parse_str(attachment_id).is_err() {
+            return false;
+        }
+        path.parent().unwrap().join(attachment_id)
+    } else {
+        return false;
+    };
+    let attachment_id = directory.file_name().unwrap().to_str().unwrap();
+    assert!(Uuid::parse_str(attachment_id).is_ok());
+    let directory_meta = std::fs::symlink_metadata(&directory).unwrap();
+    assert!(directory_meta.is_dir() && !directory_meta.file_type().is_symlink());
+    let marker_path = directory.join(MARKER);
+    let sidecar_path = directory.with_file_name(format!("{attachment_id}.import-owner"));
+    let read_marker = |candidate: &Path| {
+        let meta = std::fs::symlink_metadata(candidate).unwrap();
+        assert!(meta.is_file() && !meta.file_type().is_symlink());
+        assert!(meta.len() <= 4096);
+        serde_json::from_slice::<solosoul_vault::ImportOwnedAttachmentMarker>(
+            &std::fs::read(candidate).unwrap(),
+        )
+        .unwrap()
+    };
+    let marker = read_marker(&marker_path);
+    let sidecar = read_marker(&sidecar_path);
+    assert_eq!(marker, sidecar);
+    assert_eq!(marker.attachment_id, attachment_id);
+    assert_eq!(
+        marker.owner_id,
+        directory
+            .parent()
+            .unwrap()
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+    );
+    assert!(Uuid::parse_str(&marker.operation_id).is_ok());
+    true
+}
+
 fn attachment_files(base: &Path) -> Vec<PathBuf> {
     fn collect(path: &Path, files: &mut Vec<PathBuf>) {
         if !path.exists() {
@@ -118,7 +168,7 @@ fn attachment_files(base: &Path) -> Vec<PathBuf> {
             let path = entry.unwrap().path();
             if path.is_dir() {
                 collect(&path, files);
-            } else {
+            } else if !is_import_ownership_file(&path) {
                 files.push(path);
             }
         }
@@ -485,7 +535,13 @@ fn rf027_attachment_snapshot_and_preferences_failures_remain_partial() {
     for fault in ["cipher", "metadata", "snapshot", "preferences"] {
         let f = Fixture::new();
         if fault == "metadata" {
-            f.reject_nth_object_write(4);
+            // RF022 只 UPDATE __attachments；第二 owner 的激活必须真实失败。
+            f.db.execute_batch(
+                "CREATE TRIGGER rf027_metadata BEFORE UPDATE ON objects
+                 WHEN NEW.id='rf020-1'
+                 BEGIN SELECT RAISE(ABORT, 'synthetic private metadata fault'); END;",
+            )
+            .unwrap();
         }
         if fault == "snapshot" {
             f.db.execute_batch("CREATE TRIGGER rf027_snapshot BEFORE INSERT ON object_snapshots BEGIN SELECT RAISE(ABORT, 'synthetic private snapshot fault'); END;").unwrap();
@@ -631,9 +687,12 @@ fn rf027_completed_stale_import_keeps_result_but_suppresses_completion_callback(
         let account = f.account.clone();
         let second = other.clone();
         let calls = Arc::new(AtomicUsize::new(0));
+        let operation_id = Uuid::new_v4().to_string();
+        let mut req = request(&path);
+        req.operation_id = Some(operation_id.clone());
         let result = run_paused(
             &f,
-            request(&path),
+            req,
             PauseAt::Complete,
             move || {
                 let svc = service.try_write().expect("完成后等待期间不得持服务读锁");
@@ -656,7 +715,7 @@ fn rf027_completed_stale_import_keeps_result_but_suppresses_completion_callback(
                 "sessionGeneration":expected_generation, "objectCount":2, "attachmentCount":2,
                 "status":"complete", "templateCount":0, "snapshotCount":2,
                 "preferencesImported":false, "attachmentFilesWritten":2,
-                "failureStage":null, "errorCode":null
+                "failureStage":null, "errorCode":null, "operationId":operation_id
             })
         );
         assert_eq!(calls.load(Ordering::SeqCst), 0);

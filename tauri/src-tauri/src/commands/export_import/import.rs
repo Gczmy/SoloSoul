@@ -1,5 +1,12 @@
+use solosoul_core::export_import::operation::{
+    import_request_fingerprint, prepare_import_operation, prepare_recovery_handoff,
+    resume_import_operation, OwnedImportPackage,
+};
 use solosoul_core::export_import::ImportTarget;
 use solosoul_core::{VaultService, VaultSession};
+use solosoul_vault::{
+    ImportAttachmentPhase, ImportOperationPhase, ImportOperationRecord, ImportSourceKind,
+};
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 
@@ -18,7 +25,7 @@ const IMPORT_TMP_PREFIX: &str = "solosoul-import-tmp-";
 /// P013: 清扫数据目录内崩溃残留的导入明文孤儿临时目录（SIGKILL/断电时
 /// `TempDir` 无法 Drop 递归删除）。前缀匹配 + `remove_dir_all` 整目录清除；
 /// 单个条目失败仅 warn 不阻断（下次启动/导入仍会重试）。
-/// 启动时（lib.rs setup）与每次导入前均调用，保证明文不无限期滞留。
+/// 启动时（lib.rs setup）清扫；旧一次性导入保留原前置调用，可恢复 worker 不扫描并行任务。
 pub(crate) fn cleanup_orphan_import_temps(data_dir: &std::path::Path) -> Result<(), String> {
     let Ok(entries) = std::fs::read_dir(data_dir) else {
         return Ok(());
@@ -306,6 +313,8 @@ pub(super) struct ImportJob {
     object_strategies: HashMap<String, ImportStrategy>,
     locale: String,
     progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
+    operation_id: String,
+    _activity: solosoul_core::import_activity::ImportActivityGuard,
 }
 
 impl ImportJob {
@@ -324,18 +333,23 @@ impl ImportJob {
             selected_attachment_ids,
             object_strategies,
             locale,
+            operation_id,
         } = req;
         let password = Zeroizing::new(password);
         let source_path = resolve_path(&source_path)?
             .into_os_string()
             .into_string()
             .map_err(|_| "Invalid import path encoding".to_string())?;
-        let session = {
+        let (session, activity) = {
             let svc = vault_service
                 .read()
                 .map_err(|_| "Vault service lock poisoned".to_string())?;
-            svc.capture_session(account_id)?
+            let session = svc.capture_session(account_id)?;
+            let activity = solosoul_core::import_activity::begin_import_activity(svc.base_path())?;
+            (session, activity)
         };
+        let operation_id = operation_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        uuid::Uuid::parse_str(&operation_id).map_err(|_| import_err("INVALID_OPERATION_ID"))?;
         Ok(Self {
             vault_service,
             session,
@@ -347,6 +361,8 @@ impl ImportJob {
             object_strategies,
             locale,
             progress,
+            operation_id,
+            _activity: activity,
         })
     }
 
@@ -356,7 +372,7 @@ impl ImportJob {
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
         // 不能经 internal 重新 capture_session，否则排队中的旧请求会借用新会话。
-        import_execute_for_session(
+        import_execute_resumable_for_session(
             &svc,
             &self.session,
             self.source_path,
@@ -367,6 +383,8 @@ impl ImportJob {
             self.object_strategies,
             &self.locale,
             self.progress,
+            &self.operation_id,
+            ImportSourceKind::Manual,
         )
     }
 }
@@ -407,6 +425,7 @@ pub(super) async fn run_import_job(
 /// 进度语义：对象阶段按循环下标报告 0-80（跳过对象也推进，保证阶段可到达 80），
 /// 附件阶段续接报告 80-100（`import_attachments` 内部换算），整体单调不回落。
 #[allow(clippy::too_many_arguments)]
+#[cfg(test)]
 pub(crate) fn import_execute_internal(
     // B-06 重构：改收读锁 guard（函数体内无 await 点，同步形式避免守卫跨 await 的 !Send），使云同步自动导入等非命令上下文可复用。
     svc: std::sync::RwLockReadGuard<'_, solosoul_core::vault_service::VaultService>,
@@ -437,6 +456,7 @@ pub(crate) fn import_execute_internal(
 
 /// 后台导入绑定起始会话；数据库准备不持门闩，唯一批次及后续附件/偏好提交分别验证。
 #[allow(clippy::too_many_arguments)]
+#[cfg(test)]
 pub(crate) fn import_execute_for_session(
     svc: &solosoul_core::VaultService,
     session: &solosoul_core::VaultSession,
@@ -467,8 +487,274 @@ pub(crate) fn import_execute_for_session(
         progress,
         &mut result,
         &mut stage,
+        None,
     ) {
         result.fail(stage, &error);
+    }
+    Ok(result)
+}
+
+struct ResumableImportContext {
+    operation_id: String,
+    source_kind: ImportSourceKind,
+    accepted: bool,
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn import_execute_resumable_for_session(
+    svc: &VaultService,
+    session: &VaultSession,
+    file_path: String,
+    password: Zeroizing<String>,
+    strategy: ImportStrategy,
+    selections: Option<Vec<ImportSelection>>,
+    selected_attachment_ids: Option<Vec<String>>,
+    object_strategies: HashMap<String, ImportStrategy>,
+    locale: &str,
+    progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
+    operation_id: &str,
+    source_kind: ImportSourceKind,
+) -> Result<ImportResult, String> {
+    let _activity = solosoul_core::import_activity::begin_import_activity(svc.base_path())?;
+    uuid::Uuid::parse_str(operation_id).map_err(|_| import_err("INVALID_OPERATION_ID"))?;
+    let mut result = ImportResult {
+        operation_id: Some(operation_id.into()),
+        session_generation: session.generation(),
+        ..Default::default()
+    };
+    let mut stage = ImportStage::Preparation;
+    let mut context = ResumableImportContext {
+        operation_id: operation_id.into(),
+        source_kind,
+        accepted: false,
+    };
+    if let Err(error) = import_execute_steps(
+        svc,
+        session,
+        file_path,
+        password,
+        strategy,
+        selections,
+        selected_attachment_ids,
+        object_strategies,
+        locale,
+        progress,
+        &mut result,
+        &mut stage,
+        Some(&mut context),
+    ) {
+        result.fail(stage, &error);
+        if context.accepted {
+            result.status = ImportStatus::Partial;
+        }
+    }
+    Ok(result)
+}
+
+fn operation_commit_failure_stage(error: &str) -> ImportStage {
+    match error {
+        "import_batch_templates_failed" => ImportStage::Templates,
+        "import_batch_snapshots_failed" => ImportStage::Snapshots,
+        _ => ImportStage::Objects,
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn normalized_import_options(
+    svc: &VaultService,
+    session: &VaultSession,
+    kind: ImportSourceKind,
+    path: &str,
+    strategy: ImportStrategy,
+    selections: &Option<Vec<ImportSelection>>,
+    attachments: &Option<Vec<String>>,
+    overrides: &HashMap<String, ImportStrategy>,
+    locale: &str,
+) -> Result<serde_json::Value, String> {
+    let selected = build_selected_ids(selections.clone());
+    let attachment_ids = attachments
+        .as_ref()
+        .map(|ids| ids.iter().cloned().collect::<BTreeSet<_>>());
+    let mut options = serde_json::json!({"strategy":strategy,"selectedObjectIds":selected,"selectedAttachmentIds":attachment_ids,
+        "objectStrategies":overrides,"locale":locale});
+    if kind == ImportSourceKind::Cloud {
+        if strategy != ImportStrategy::SkipExisting
+            || selections.is_some()
+            || attachments.is_some()
+            || !overrides.is_empty()
+            || locale != "en-US"
+        {
+            return Err(import_err("INVALID_CLOUD_IMPORT_OPTIONS"));
+        }
+        let (device, hlc) = crate::sync::cloud_auto_sync::cloud_import_source_identity(
+            svc,
+            session,
+            std::path::Path::new(path),
+        )?;
+        options = serde_json::json!({"strategy":"skipExisting","selectedObjectIds":null,"selectedAttachmentIds":null,
+            "objectStrategies":{},"locale":"en-US","deviceId":device,"hlc":hlc});
+    }
+    Ok(options)
+}
+
+pub(crate) fn apply_operation_result(
+    record: &ImportOperationRecord,
+    generation: u64,
+    result: &mut ImportResult,
+) {
+    result.operation_id = Some(record.start.operation_id.clone());
+    result.session_generation = generation;
+    result.object_count = record.database_commit.object_ids.len();
+    result.template_count = record.database_commit.template_ids.len();
+    result.snapshot_count = record.database_commit.snapshot_write_count;
+    result.attachment_count = record.attachment_count;
+    result.attachment_files_written = record
+        .steps
+        .iter()
+        .filter(|step| {
+            matches!(
+                step.phase,
+                ImportAttachmentPhase::Published | ImportAttachmentPhase::MetadataCommitted
+            )
+        })
+        .count();
+    result.preferences_imported = record.preferences_imported;
+    result.status = if record.phase == ImportOperationPhase::Complete {
+        ImportStatus::Complete
+    } else {
+        ImportStatus::Partial
+    };
+}
+
+#[allow(clippy::too_many_arguments)]
+fn run_existing_operation(
+    svc: &VaultService,
+    session: &VaultSession,
+    record: &ImportOperationRecord,
+    owned: Option<&OwnedImportPackage>,
+    password: Option<&str>,
+    progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
+    result: &mut ImportResult,
+    stage: &mut ImportStage,
+) -> Result<(), String> {
+    *stage = ImportStage::Attachments;
+    let key = svc.attachment_key_for_session(session)?;
+    let callback = progress.map(wrap_attachment_progress);
+    let mut committed = solosoul_core::export_import::AttachmentImportProgress::default();
+    let execution = resume_import_operation(
+        svc,
+        session,
+        &record.start.operation_id,
+        svc.base_path(),
+        owned,
+        password,
+        &key,
+        callback.as_deref(),
+        &mut committed,
+    );
+    let persisted = session
+        .vault()
+        .load_import_operation(session.account_id(), &record.start.operation_id)
+        .ok()
+        .flatten();
+    if let Some(latest) = persisted.as_ref() {
+        apply_operation_result(latest, session.generation(), result);
+    }
+    result.attachment_count = result.attachment_count.max(committed.committed_count);
+    result.attachment_files_written = result
+        .attachment_files_written
+        .max(committed.written_file_count);
+    if record.start.preferences_required && result.attachment_count == record.steps.len() {
+        *stage = ImportStage::Preferences;
+    }
+    match execution {
+        Ok(complete) => {
+            apply_operation_result(&complete, session.generation(), result);
+            result.failure_stage = None;
+            result.error_code = None;
+            // 原审计仍为 best-effort；已完成任务的重复 Resume 不重复添加，审计失效不改写 journal 完成事实。
+            if record.phase != ImportOperationPhase::Complete {
+                let strategy = serde_json::from_value::<ImportStrategy>(
+                    record.start.plan["requestOptions"]["strategy"].clone(),
+                )
+                .unwrap_or(ImportStrategy::SkipExisting);
+                let name = record
+                    .start
+                    .plan
+                    .get("sourceName")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("Imported package");
+                let details = build_import_details(
+                    result.object_count,
+                    result.attachment_count,
+                    name,
+                    strategy,
+                );
+                let _ = svc.with_session(session, |vault| {
+                    crate::commands::log_audit_best_effort(
+                        vault,
+                        "import_execute",
+                        "import",
+                        None,
+                        None,
+                        "user",
+                        Some(&details.to_string()),
+                    );
+                    Ok(())
+                });
+            }
+            Ok(())
+        }
+        Err(error) => Err(if error.to_string() == "解密失败：密码错误或文件已损坏" {
+            import_err("DECRYPT_FAILED")
+        } else {
+            error.to_string()
+        }),
+    }
+}
+
+pub(crate) fn resume_import_for_session(
+    svc: &VaultService,
+    session: &VaultSession,
+    operation_id: &str,
+    source_path: Option<String>,
+    password: Option<Zeroizing<String>>,
+    progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
+) -> Result<ImportResult, String> {
+    let _activity = solosoul_core::import_activity::begin_import_activity(svc.base_path())?;
+    let record = svc
+        .with_session(session, |vault| {
+            vault.load_import_operation(session.account_id(), operation_id)
+        })?
+        .ok_or_else(|| import_err("OPERATION_NOT_FOUND"))?;
+    if record.phase == ImportOperationPhase::Abandoned {
+        return Err(import_err("OPERATION_ABANDONED"));
+    }
+    let mut result = ImportResult::default();
+    apply_operation_result(&record, session.generation(), &mut result);
+    let mut stage = ImportStage::Preparation;
+    let execution = (|| {
+        let owned = source_path
+            .as_ref()
+            .map(|path| {
+                OwnedImportPackage::capture(std::path::Path::new(path), svc.base_path())
+                    .map_err(|error| error.to_string())
+            })
+            .transpose()?;
+        run_existing_operation(
+            svc,
+            session,
+            &record,
+            owned.as_ref(),
+            password.as_deref().map(|password| password.as_str()),
+            progress,
+            &mut result,
+            &mut stage,
+        )
+    })();
+    if let Err(error) = execution {
+        result.fail(stage, &error);
+        result.status = ImportStatus::Partial;
     }
     Ok(result)
 }
@@ -487,6 +773,7 @@ fn import_execute_steps(
     progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
     result: &mut ImportResult,
     stage: &mut ImportStage,
+    mut resumable: Option<&mut ResumableImportContext>,
 ) -> Result<(), String> {
     let target = ImportTarget::Session {
         service: svc,
@@ -496,14 +783,89 @@ fn import_execute_steps(
     let account_id = session.account_id();
     let vault_att_key = svc.attachment_key_for_session(session)?;
 
+    let owned = if resumable.is_some() {
+        Some(
+            OwnedImportPackage::capture(std::path::Path::new(&file_path), svc.base_path())
+                .map_err(|e| e.to_string())?,
+        )
+    } else {
+        None
+    };
+    let frozen_options = resumable
+        .as_ref()
+        .map(|context| {
+            normalized_import_options(
+                svc,
+                session,
+                context.source_kind,
+                &file_path,
+                strategy,
+                &selections,
+                &selected_attachment_ids,
+                &object_strategies,
+                locale,
+            )
+        })
+        .transpose()?;
+    if let (Some(context), Some(owned), Some(options)) = (
+        resumable.as_deref_mut(),
+        owned.as_ref(),
+        frozen_options.as_ref(),
+    ) {
+        let fingerprint = import_request_fingerprint(options).map_err(|e| e.to_string())?;
+        let binding = session.vault().import_root_binding()?;
+        let mut existing = target
+            .commit(|vault| vault.load_import_operation(account_id, &context.operation_id))?;
+        if existing.is_none() && context.source_kind == ImportSourceKind::Cloud {
+            existing = target.commit(|vault| {
+                vault.find_cloud_import_operation(
+                    account_id,
+                    owned.source_proof(),
+                    &fingerprint,
+                    &binding,
+                )
+            })?;
+        }
+        if let Some(record) = existing {
+            context.accepted = true;
+            apply_operation_result(&record, session.generation(), result);
+            if record.start.source_kind != context.source_kind
+                || record.start.source != *owned.source_proof()
+                || record.start.request_fingerprint != fingerprint
+                || record.start.root_binding != binding
+            {
+                return Err(import_err("OPERATION_MISMATCH"));
+            }
+            return run_existing_operation(
+                svc,
+                session,
+                &record,
+                Some(owned),
+                Some(password.as_str()),
+                progress,
+                result,
+                stage,
+            );
+        }
+    }
     if password.is_empty() {
         return Err(import_err("PASSWORD_REQUIRED"));
     }
 
     // ── 阶段 1：解密包读取（password 为 Zeroizing，自动 Deref 为 &str）──
     // P013: 导入前清扫上次崩溃残留的明文孤儿临时目录（数据目录内）。
-    let _ = cleanup_orphan_import_temps(svc.base_path());
-    let (manifest, payload, key) = decrypt_package(&file_path, &password, svc.base_path())?;
+    if resumable.is_none() {
+        let _ = cleanup_orphan_import_temps(svc.base_path());
+    }
+    let parse_path = owned
+        .as_ref()
+        .map(|package| package.path())
+        .unwrap_or_else(|| std::path::Path::new(&file_path));
+    let (manifest, payload, key) = decrypt_package(
+        parse_path.to_str().ok_or("Invalid import path encoding")?,
+        &password,
+        svc.base_path(),
+    )?;
 
     // Build selection set if provided
     let selected_ids = build_selected_ids(selections);
@@ -551,7 +913,7 @@ fn import_execute_steps(
 
     // ── 阶段 4：有序准备全部对象和历史，再由原会话门闩提交唯一 SQLite 批次 ──
     *stage = ImportStage::Objects;
-    let plan = batch::prepare_objects(
+    let mut plan = batch::prepare_objects(
         target.vault(),
         &view,
         objects,
@@ -571,6 +933,91 @@ fn import_execute_steps(
         stage,
     )?;
     *stage = ImportStage::Objects;
+    if let (Some(context), Some(owned), Some(options)) = (resumable, owned.as_ref(), frozen_options)
+    {
+        let selected: Option<std::collections::HashSet<String>> = selected_attachment_ids
+            .as_ref()
+            .map(|ids| ids.iter().cloned().collect());
+        let include_preferences = manifest
+            .extra_files
+            .iter()
+            .any(|name| name == "preferences.enc");
+        let mut start = prepare_import_operation(
+            &context.operation_id,
+            context.source_kind,
+            options,
+            owned,
+            &payload,
+            &plan.imported_object_ids,
+            &id_map,
+            selected.as_ref(),
+            &now,
+            svc.base_path(),
+            target.vault(),
+            &view,
+            &mut plan.batch,
+            manifest.has_attachments,
+            include_preferences,
+        )
+        .map_err(|e| e.to_string())?;
+        start.plan["sourceName"] = serde_json::json!(std::path::Path::new(&file_path)
+            .file_name()
+            .map(|name| name.to_string_lossy().into_owned())
+            .unwrap_or_default());
+        let handoff = if context.source_kind == ImportSourceKind::Recovery {
+            *stage = ImportStage::Preparation;
+            let opened = owned
+                .decrypt(&password, svc.base_path())
+                .map_err(|e| e.to_string())?;
+            Some(
+                prepare_recovery_handoff(
+                    svc,
+                    session,
+                    svc.base_path(),
+                    owned,
+                    &opened,
+                    &mut start,
+                    &vault_att_key,
+                )
+                .map_err(|e| e.to_string())?,
+            )
+        } else {
+            None
+        };
+        // Recovery handoff 重编码 typed plan；展示名称在其完成后补回，不参与请求 fingerprint。
+        start.plan["sourceName"] = serde_json::json!(std::path::Path::new(&file_path)
+            .file_name()
+            .map(|name| name.to_string_lossy().into_owned())
+            .unwrap_or_default());
+        *stage = ImportStage::Objects;
+        let committed = target
+            .commit(|vault| {
+                vault.commit_import_batch_with_operation(
+                    account_id,
+                    &view.revision,
+                    &plan.batch,
+                    &start,
+                )
+            })
+            .inspect_err(|error| {
+                *stage = operation_commit_failure_stage(error);
+            })?;
+        context.accepted = true;
+        if let Some(handoff) = handoff {
+            handoff.accept();
+        }
+        apply_operation_result(&committed.operation, session.generation(), result);
+        return run_existing_operation(
+            svc,
+            session,
+            &committed.operation,
+            Some(owned),
+            Some(password.as_str()),
+            progress,
+            result,
+            stage,
+        );
+    }
     let committed = target.commit(|vault| {
         vault
             .commit_import_batch(account_id, &view.revision, &plan.batch)

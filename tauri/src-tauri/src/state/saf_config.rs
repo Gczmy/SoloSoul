@@ -189,7 +189,9 @@ impl AppState {
 
     /// 创建一个占位用的 VaultService（首次启动尚未选择目录时使用）。
     /// 占位目录使用应用私有目录下的 `.uninitialized_vault`。
-    fn placeholder_vault(data_dir: &std::path::Path) -> Result<VaultService, anyhow::Error> {
+    pub(super) fn placeholder_vault(
+        data_dir: &std::path::Path,
+    ) -> Result<VaultService, anyhow::Error> {
         let placeholder_dir = data_dir.join(".uninitialized_vault");
         std::fs::create_dir_all(&placeholder_dir)?;
         let svc = VaultService::with_base_path(placeholder_dir);
@@ -258,6 +260,25 @@ impl AppState {
             // / models 等应用级目录——用户数据被毁、插件市场目录被删，
             // 首次启动直接闪退（插件管理器初始化失败导致 AppState::new 报错）。
             let temp_cache = data_dir.join("saf_vault_temp");
+            let preserve_import_cache = if temp_cache.exists() {
+                match solosoul_core::import_activity::has_bound_imports(&temp_cache) {
+                    Ok(pending) => pending,
+                    Err(_) => {
+                        tracing::warn!("[AppState] cannot verify import journal; preserving the original SAF cache");
+                        true
+                    }
+                }
+            } else {
+                false
+            };
+            // 保持 Native root 与操作计划一致；URI 失效不能把 stage/journal 拆开或删除。
+            if preserve_import_cache {
+                tracing::info!(
+                    "[AppState] bound import keeps SAF cache as the local recovery root"
+                );
+                return Self::try_init_local_vault(&temp_cache)
+                    .map(|svc| Arc::new(RwLock::new(svc)));
+            }
             if temp_cache.exists() {
                 tracing::info!("[AppState] migrating SAF temp cache to local vault");
                 match crate::commands::vault_directory::migrate_vault_data(

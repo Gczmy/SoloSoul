@@ -34,6 +34,7 @@ impl VaultStore {
             reencrypt_audit_log(&tx, old_key, new_key)?;
             reencrypt_sync_conflicts(&tx, old_key, new_key)?;
             reencrypt_blob_table(&tx, "llm_conversations", old_key, new_key)?;
+            super::import_operations::reencrypt_import_operations(&tx, old_key, new_key)?;
             Ok(())
         })();
 

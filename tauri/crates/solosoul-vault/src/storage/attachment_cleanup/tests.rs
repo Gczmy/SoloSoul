@@ -487,7 +487,10 @@ fn rf016_schema_26_upgrades_idempotently_with_only_local_intent_fields() {
     VaultStore::init_schema(&conn).unwrap();
     crate::migration::set_schema_version(&conn, 26).unwrap();
     crate::migration::run_migrations(&mut conn).unwrap();
-    assert_eq!(crate::migration::get_schema_version(&conn).unwrap(), 27);
+    assert_eq!(
+        crate::migration::get_schema_version(&conn).unwrap(),
+        crate::migration::CURRENT_SCHEMA_VERSION
+    );
     crate::migration::run_migrations(&mut conn).unwrap();
     assert_eq!(
         conn.query_row(
@@ -548,7 +551,10 @@ fn rf016_failed_schema_27_transaction_preserves_schema_26() {
     conn.execute_batch("DROP TRIGGER rf016_reject_migration")
         .unwrap();
     crate::migration::run_migrations(&mut conn).unwrap();
-    assert_eq!(crate::migration::get_schema_version(&conn).unwrap(), 27);
+    assert_eq!(
+        crate::migration::get_schema_version(&conn).unwrap(),
+        crate::migration::CURRENT_SCHEMA_VERSION
+    );
 }
 
 #[test]

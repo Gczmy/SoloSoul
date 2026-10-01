@@ -3,11 +3,24 @@ import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Input } from '@/components/ui/Input';
-import type { ScannedRecoveryQr } from '@/components/recovery/recoveryReceiveTypes';
+import type {
+  RecoveryResultSummary,
+  ScannedRecoveryQr,
+} from '@/components/recovery/recoveryReceiveTypes';
 import { RecoveryConnectionCard } from './RecoveryConnectionCard';
 
 interface RecoveryAccountViewProps {
   pending: ScannedRecoveryQr;
+  existingAccountOnly: boolean;
+  existingAccountId: string | null;
+  existingAccountUnlocked: boolean;
+  canImportExisting: boolean;
+  retryTargetAccountId: string | null;
+  acceptedRecovery: RecoveryResultSummary | null;
+  canResumeRecovery: boolean;
+  connectionConsumed: boolean;
+  onUseExistingAccount: () => void;
+  onResumeRecovery: () => void;
   loading: boolean;
   statusText: string | null;
   /** 恢复执行进度（recovery-progress 事件）：phase=download/overwrite/create/import/done，percent=0-100 */
@@ -38,6 +51,16 @@ interface RecoveryAccountViewProps {
 /** 账户卡：确认账户/连接信息 + 设置主密码（连接前）。 */
 export function RecoveryAccountView({
   pending,
+  existingAccountOnly,
+  existingAccountId,
+  existingAccountUnlocked,
+  canImportExisting,
+  retryTargetAccountId,
+  acceptedRecovery,
+  canResumeRecovery,
+  connectionConsumed,
+  onUseExistingAccount,
+  onResumeRecovery,
   loading,
   statusText,
   progress,
@@ -66,13 +89,50 @@ export function RecoveryAccountView({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <RecoveryConnectionCard
         pending={pending}
+        existingMode={Boolean(existingAccountId || acceptedRecovery)}
         loading={loading}
         statusText={statusText}
         progress={progress}
       />
 
-      {idConflict && !overwriteApproved ? (
+      {acceptedRecovery ? (
         <>
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}>
+            {t('common:recovery_ready_resume_note')}
+          </p>
+          <Button
+            onClick={onResumeRecovery}
+            disabled={loading || !canResumeRecovery}
+            loading={loading}
+          >
+            {t('common:recovery_resume_ready')}
+          </Button>
+          {!canResumeRecovery && <p>{t('common:recovery_existing_unlock_required')}</p>}
+        </>
+      ) : existingAccountId ? (
+        <>
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}>
+            {t('common:recovery_existing_fresh_note')}
+          </p>
+          <Button
+            onClick={onStartRecovery}
+            disabled={loading || !existingAccountUnlocked || connectionConsumed}
+            loading={loading}
+          >
+            {t('common:recovery_existing_fresh_start')}
+          </Button>
+          {!existingAccountUnlocked && <p>{t('common:recovery_existing_unlock_required')}</p>}
+        </>
+      ) : existingAccountOnly ? (
+        <p>{t('common:recovery_existing_unlock_required')}</p>
+      ) : (idConflict && !overwriteApproved) || retryTargetAccountId ? (
+        <>
+          {canImportExisting && !connectionConsumed && (
+            <Button onClick={onUseExistingAccount} disabled={loading}>
+              {t('common:recovery_existing_fresh_select')}
+            </Button>
+          )}
+          {retryTargetAccountId && <p>{t('common:recovery_fresh_retry_note')}</p>}
           {/* 账户 ID 冲突警示框（密码输入之前）：本设备已有相同 account_id */}
           <div
             style={{
@@ -114,7 +174,7 @@ export function RecoveryAccountView({
               <Button
                 variant="danger"
                 onClick={onRequestOverwrite}
-                disabled={loading}
+                disabled={loading || Boolean(retryTargetAccountId) || connectionConsumed}
                 style={{ flex: 1 }}
               >
                 {t('common:recovery_overwrite_confirm')}
@@ -132,6 +192,11 @@ export function RecoveryAccountView({
         </>
       ) : (
         <>
+          {canImportExisting && !connectionConsumed && (
+            <Button variant="secondary" onClick={onUseExistingAccount} disabled={loading}>
+              {t('common:recovery_existing_fresh_select')}
+            </Button>
+          )}
           {/* 覆盖模式提示：已确认覆盖，将用旧设备数据替换本端账户 */}
           {idConflict && (
             <div
@@ -186,7 +251,7 @@ export function RecoveryAccountView({
 
           <Button
             onClick={onStartRecovery}
-            disabled={loading}
+            disabled={loading || connectionConsumed}
             loading={loading}
             style={{ width: '100%', marginTop: 4 }}
           >
@@ -200,20 +265,18 @@ export function RecoveryAccountView({
       )}
 
       {/* 冲突未确认（警示框阶段）由警示框内「取消」返回扫码页；覆盖模式与普通模式展示「返回」 */}
-      {(!idConflict || overwriteApproved) && (
+      {!acceptedRecovery && (
         <Button
           variant="secondary"
           onClick={onBackToCollect}
           disabled={loading}
           style={{ width: '100%' }}
         >
-          {t('common:back')}
+          {connectionConsumed ? t('common:recovery_new_connection') : t('common:back')}
         </Button>
       )}
 
-      {error && !idConflict && (
-        <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>{error}</div>
-      )}
+      {error && <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>{error}</div>}
 
       {/* 二次确认覆盖弹窗：确认后进入覆盖模式密码输入 */}
       <ConfirmDialog

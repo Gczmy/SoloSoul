@@ -98,6 +98,7 @@ fn clean_objects() -> serde_json::Value {
 
 fn request(path: &Path, strategy: ImportStrategy) -> AdvancedImportRequest {
     AdvancedImportRequest {
+        operation_id: None,
         selections: None,
         strategy,
         source_path: path.to_str().unwrap().into(),

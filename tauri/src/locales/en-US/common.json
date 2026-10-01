@@ -781,5 +781,18 @@
     "create_description": "Choose how you want to record it.",
     "vault_title": "My vault"
   },
-  "release_notes_table": "Release notes table"
+  "release_notes_table": "Release notes table",
+  "recovery_existing_fresh_select": "Import into the matching unlocked account",
+  "recovery_existing_fresh_start": "Receive and import a fresh package",
+  "recovery_existing_fresh_note": "This imports into the matching unlocked account without creating, deleting, or replacing it. Existing objects are kept.",
+  "recovery_existing_connection_note": "Verify the host identity and account. Recovery data is imported into the matching unlocked account.",
+  "recovery_existing_unlock_required": "Unlock the local account with the same ID as the recovery host before continuing.",
+  "recovery_existing_account_mismatch": "The recovery host account does not match this recovery target. Select the original account’s recovery host.",
+  "recovery_fresh_retry_note": "No business records or operation were committed. The local account is kept. Unlock it, restart the recovery host on the original device, obtain a new QR code or PIN, then receive into the same account. Do not overwrite the account again.",
+  "recovery_new_host_required": "Recovery transfer is single use. Restart the recovery host on the original device and obtain a new QR code or PIN before receiving again.",
+  "recovery_new_connection": "Get a new recovery connection",
+  "recovery_ready_resume_note": "The recovery operation retains complete account-encrypted materials. Unlock the same account to continue without downloading again or entering a transfer password. Pending operations are also available on the import page.",
+  "recovery_resume_ready": "Continue the accepted recovery operation",
+  "recovery_existing_complete_desc": "Recovery completed: {{objects}} objects and {{attachments}} attachments. Close this dialog to continue using the current account.",
+  "recovery_existing_receive_open": "Receive recovery data into the current account"
 }

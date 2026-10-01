@@ -12,8 +12,6 @@ pub use solosoul_core::objects::{
     inherit_contract_type_id, inherit_property_labels, template_fingerprint,
     validate_dynamic_groups,
 };
-#[cfg(test)]
-pub(crate) use solosoul_core::objects::{inherit_property_fields, inject_template_meta};
 use solosoul_vault::ObjectRecord;
 use tauri::State;
 use uuid::Uuid;

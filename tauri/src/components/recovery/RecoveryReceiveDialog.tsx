@@ -14,6 +14,8 @@ interface RecoveryReceiveDialogProps {
   onClose: () => void;
   /** 恢复成功后调用；若提供则替代默认的首页导航 */
   onSuccess?: () => void;
+  /** 同步页向已解锁同账户 Fresh 接收；禁用创建/覆盖。 */
+  existingAccountOnly?: boolean;
 }
 
 /**
@@ -23,9 +25,14 @@ interface RecoveryReceiveDialogProps {
  * - success 阶段：显示导入统计
  * 状态机与业务逻辑全部收敛在 useRecoveryReceive hook，本组件仅编排视图。
  */
-export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryReceiveDialogProps) {
+export function RecoveryReceiveDialog({
+  isOpen,
+  onClose,
+  onSuccess,
+  existingAccountOnly = false,
+}: RecoveryReceiveDialogProps) {
   const { t } = useTranslation(['common']);
-  const rcv = useRecoveryReceive({ isOpen, onClose, onSuccess });
+  const rcv = useRecoveryReceive({ isOpen, onClose, onSuccess, existingAccountOnly });
 
   if (!isOpen) return null;
 
@@ -104,12 +111,17 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
             <ConfirmDialog
               isOpen={rcv.successConfirmOpen}
               title={t('common:recovery_complete_title', { defaultValue: 'Recovery complete' })}
-              message={t('common:recovery_complete_desc', {
-                objects: rcv.success.objectCount,
-                attachments: rcv.success.attachmentCount,
-                defaultValue:
-                  'Recovery completed. Return to the login page and unlock with your new password.',
-              })}
+              message={t(
+                rcv.completionUsesExistingAccount
+                  ? 'common:recovery_existing_complete_desc'
+                  : 'common:recovery_complete_desc',
+                {
+                  objects: rcv.success.objectCount,
+                  attachments: rcv.success.attachmentCount,
+                  defaultValue:
+                    'Recovery completed. Return to the login page and unlock with your new password.',
+                },
+              )}
               confirmLabel={t('common:confirm')}
               cancelLabel={t('common:cancel')}
               confirmVariant="primary"
@@ -120,6 +132,16 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
         ) : rcv.step === 'account' && rcv.pending ? (
           <RecoveryAccountView
             pending={rcv.pending}
+            existingAccountOnly={existingAccountOnly}
+            existingAccountId={rcv.existingAccountId}
+            existingAccountUnlocked={rcv.existingAccountUnlocked}
+            canImportExisting={rcv.canImportExisting}
+            retryTargetAccountId={rcv.retryTargetAccountId}
+            acceptedRecovery={rcv.acceptedRecovery}
+            canResumeRecovery={rcv.canResumeRecovery}
+            connectionConsumed={rcv.connectionConsumed}
+            onUseExistingAccount={rcv.handleUseExistingAccount}
+            onResumeRecovery={rcv.handleResumeRecovery}
             loading={rcv.loading}
             statusText={rcv.statusText}
             progress={rcv.progress}

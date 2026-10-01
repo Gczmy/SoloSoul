@@ -32,7 +32,7 @@ export function ImportActionSection({
       {/* Action buttons */}
       {!showStrategySelector ? (
         <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-          <TransferButton onClick={() => onSetShowStrategySelector(true)}>
+          <TransferButton disabled={isImporting} onClick={() => onSetShowStrategySelector(true)}>
             {t('settings:advanced_import')}
           </TransferButton>
           <TransferButton
@@ -72,6 +72,7 @@ export function ImportActionSection({
             >
               <input
                 type="radio"
+                disabled={isImporting}
                 checked={importStrategy === s}
                 onChange={() => onSetStrategy(s)}
                 style={{ accentColor: 'var(--accent-primary)' }}
@@ -91,7 +92,7 @@ export function ImportActionSection({
             </label>
           ))}
           <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-            <TransferButton onClick={() => onSetShowStrategySelector(false)}>
+            <TransferButton disabled={isImporting} onClick={() => onSetShowStrategySelector(false)}>
               {t('common:cancel')}
             </TransferButton>
             <TransferButton

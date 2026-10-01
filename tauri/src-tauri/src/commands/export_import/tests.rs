@@ -1,8 +1,7 @@
 use super::*;
-use crate::commands::object::{
-    inherit_property_fields, inherit_property_labels, inject_property_fields, inject_template_meta,
-};
+use crate::commands::object::{inherit_property_labels, inject_property_fields};
 use serde_json::json;
+use solosoul_core::objects::{inherit_property_fields, inject_template_meta};
 use solosoul_vault::{
     ObjectRecord, PropertyType, TemplateProperty, UserTemplate, VaultConfig, VaultStore,
 };
@@ -1551,3 +1550,5 @@ fn test_build_selected_ids_filters_selected() {
 fn test_build_selected_ids_none_input() {
     assert_eq!(build_selected_ids(None), None);
 }
+
+mod rf022;

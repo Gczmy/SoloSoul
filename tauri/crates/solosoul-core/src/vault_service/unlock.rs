@@ -301,6 +301,15 @@ impl super::VaultService {
     }
 
     pub fn unlock(&self, account_id: &str, password: &str) -> Result<(), String> {
+        self.unlock_impl(account_id, password, true)
+    }
+
+    fn unlock_impl(
+        &self,
+        account_id: &str,
+        password: &str,
+        allow_kdf_upgrade: bool,
+    ) -> Result<(), String> {
         Self::validate_account_id(account_id)?;
         let session_generation = self.session_generation()?;
         // R-4① 方案 2：解锁入口先恢复未完成的 reencrypt→config 交换。
@@ -345,13 +354,29 @@ impl super::VaultService {
         // P003: 已有账户若使用低于生产档的 KDF 参数（开发档 8MiB/2iter 或平衡档
         // 16MiB/3iter），在 release 构建下解锁成功后透明升级到生产参数并重加密
         // 整个 Vault。debug 构建保持开发档以加速本地开发/测试。
-        if !cfg!(debug_assertions) && config.kdf_config() != KdfConfig::production() {
-            return self.unlock_with_kdf_upgrade(
+        if allow_kdf_upgrade
+            && !cfg!(debug_assertions)
+            && config.kdf_config() != KdfConfig::production()
+        {
+            match self.unlock_with_kdf_upgrade(
                 account_id,
                 password,
                 &master_key,
                 session_generation,
-            );
+            ) {
+                // 保留旧钥解锁以完成导入；不能把强制换钥变成无法恢复任务的登录障碍。
+                Err(error)
+                    if matches!(
+                        error.as_str(),
+                        "IMPORT_OPERATIONS_PENDING"
+                            | "IMPORT_OPERATIONS_ACTIVE"
+                            | "IMPORT_DIRECTORY_BUSY"
+                    ) =>
+                {
+                    tracing::info!("[unlock] deferred KDF upgrade while an import is unfinished");
+                }
+                result => return result,
+            }
         }
 
         // Store session key
@@ -428,6 +453,8 @@ impl super::VaultService {
         session_generation: u64,
     ) -> Result<(), String> {
         Self::validate_account_id(account_id)?;
+        let _maintenance = crate::import_activity::begin_import_maintenance(self.base_path())?;
+        crate::import_activity::ensure_imports_idle(self.base_path(), Some(account_id))?;
         // 旧密钥（已验证通过）。
         let old_key_arr: [u8; 32] = old_master_key
             .as_slice()
@@ -459,9 +486,6 @@ impl super::VaultService {
         let config_json =
             build_upgraded_config(&old_config_content, &salt, &new_key_arr, &new_kdf_config)?;
 
-        // R-4① 方案 2：reencrypt 前先把新 config 原子写入 pending 载体。
-        self.write_config_pending(account_id, config_json.as_bytes())?;
-
         // 用旧密钥打开 Vault 并重加密全部数据。
         // N-2：reencrypt_all 事务内全有或全无（任一行失败整体回滚，数据保持旧密钥）。
         let account_dir_path = self
@@ -472,6 +496,10 @@ impl super::VaultService {
             VaultConfig::new(account_id, account_dir_path).with_data_key(old_key_arr);
         let vault = VaultStore::open(vault_config)
             .map_err(|e| format!("Failed to open vault for KDF upgrade: {}", e))?;
+        let imported_attachment_files =
+            self.completed_import_files_for_rekey(account_id, &vault)?;
+        // 归属和待处理导入检查通过后，才建立换钥恢复记录。
+        self.write_config_pending(account_id, config_json.as_bytes())?;
         if let Err(e) = vault.reencrypt_all(&old_key, &new_key_enc) {
             // reencrypt 失败（事务回滚，数据仍为旧钥）：pending 无意义，清除后上抛。
             self.remove_config_pending(account_id);
@@ -515,7 +543,12 @@ impl super::VaultService {
         // 旧钥，附件仍为旧钥 → 账户一致可用（P001 复核打回项）。
         let old_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&old_key_arr)?;
         let new_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&new_key_arr)?;
-        if let Err(e) = self.reencrypt_attachments(account_id, &old_att_key, &new_att_key) {
+        if let Err(e) = self.reencrypt_attachments(
+            account_id,
+            &old_att_key,
+            &new_att_key,
+            &imported_attachment_files,
+        ) {
             let rollback_note = match self.rollback_reencrypt_and_config(
                 account_id,
                 &vault,
@@ -748,9 +781,15 @@ impl super::VaultService {
         old_password: &str,
         new_password: &str,
     ) -> Result<(), String> {
-        // Verify old password first; this opens the vault with the old data key.
-        self.unlock(account_id, old_password)?;
-        let session_generation = self.capture_session(account_id)?.generation();
+        Self::validate_account_id(account_id)?;
+        let _maintenance = crate::import_activity::begin_import_maintenance(self.base_path())?;
+        crate::import_activity::ensure_imports_idle(self.base_path(), Some(account_id))?;
+        // 本次已经持有维护许可；验证旧密码时不再嵌套透明 KDF 升级。
+        self.unlock_impl(account_id, old_password, false)?;
+        let session = self.capture_session(account_id)?;
+        let session_generation = session.generation();
+        let imported_attachment_files =
+            self.completed_import_files_for_rekey(account_id, session.vault())?;
 
         // Capture old data key.
         let old_key_arr = self
@@ -848,7 +887,12 @@ impl super::VaultService {
         // 永久不可读数据丢失路径）。
         let old_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&old_key_arr)?;
         let new_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&new_key_arr)?;
-        if let Err(e) = self.reencrypt_attachments(account_id, &old_att_key, &new_att_key) {
+        if let Err(e) = self.reencrypt_attachments(
+            account_id,
+            &old_att_key,
+            &new_att_key,
+            &imported_attachment_files,
+        ) {
             let rollback_note = self.attempt_rekey_rollback(
                 account_id,
                 &old_config_content,
@@ -948,19 +992,22 @@ impl super::VaultService {
         account_id: &str,
         old_att_key: &[u8; 32],
         new_att_key: &[u8; 32],
+        imported_attachment_files: &[std::path::PathBuf],
     ) -> Result<(), String> {
         let account_dir = self
             .fs
             .local_path(&self.account_dir_rel(account_id)?)
             .ok_or("无法解析账户本地目录")?;
         let attachments_root = account_dir.join("attachments");
-        if !attachments_root.exists() {
-            return Ok(()); // 无附件，无操作
-        }
+        // 完成导入的有标记附件位于 Native 全局附件树；与原账户树共同准备/回滚。
         // 递归遍历附件目录（结构固定：attachments/{object_id}/{attachment_id}/{file}，
         // 手写 read_dir 递归避免为一次性遍历引入 walkdir 依赖）。
-        let mut files: Vec<std::path::PathBuf> = Vec::new();
-        Self::collect_attachment_files(&attachments_root, &mut files)?;
+        let mut files: Vec<std::path::PathBuf> = imported_attachment_files.to_vec();
+        if attachments_root.exists() {
+            Self::collect_attachment_files(&attachments_root, &mut files)?;
+        }
+        files.sort();
+        files.dedup();
         // 清理崩溃残留的临时文件（准备阶段产物），避免被当作附件处理。
         let mut cleaned_tmp_files = Vec::new();
         files.retain(|p| {
@@ -1068,6 +1115,104 @@ impl super::VaultService {
         )
     }
 
+    /// 只处理 journal 已确认属于此账户/此 Native root 的完成导入目录。
+    /// 旧全局未标记附件的归属问题由 RF905 单独处理。
+    fn completed_import_files_for_rekey(
+        &self,
+        account_id: &str,
+        vault: &VaultStore,
+    ) -> Result<Vec<std::path::PathBuf>, String> {
+        use crate::export_import::operation::{import_owner_marker_identity, IMPORT_OWNER_MARKER};
+        use solosoul_vault::{ImportAttachmentPhase, ImportOperationPhase};
+        let root = self
+            .base_path()
+            .canonicalize()
+            .map_err(|_| "IMPORT_DIRECTORY_CHECK_FAILED")?;
+        let base = root.join("attachments");
+        if !base.exists() {
+            return Ok(Vec::new());
+        }
+        let binding = vault.import_root_binding()?;
+        let mut files = Vec::new();
+        for owner in std::fs::read_dir(&base).map_err(|_| "IMPORT_DIRECTORY_CHECK_FAILED")? {
+            let owner = owner.map_err(|_| "IMPORT_DIRECTORY_CHECK_FAILED")?;
+            if !owner
+                .file_type()
+                .map_err(|_| "IMPORT_DIRECTORY_CHECK_FAILED")?
+                .is_dir()
+            {
+                continue;
+            }
+            for attachment in
+                std::fs::read_dir(owner.path()).map_err(|_| "IMPORT_DIRECTORY_CHECK_FAILED")?
+            {
+                let attachment = attachment.map_err(|_| "IMPORT_DIRECTORY_CHECK_FAILED")?;
+                if !attachment
+                    .file_type()
+                    .map_err(|_| "IMPORT_DIRECTORY_CHECK_FAILED")?
+                    .is_dir()
+                {
+                    continue;
+                }
+                let directory = attachment.path();
+                if !directory.join(IMPORT_OWNER_MARKER).exists() {
+                    continue;
+                }
+                let Some(marker) = import_owner_marker_identity(&directory) else {
+                    continue;
+                };
+                if marker.account_id != account_id {
+                    continue;
+                }
+                if marker.root_binding != binding {
+                    return Err("IMPORT_DIRECTORY_CHECK_FAILED".into());
+                }
+                if owner.file_name().to_str() != Some(marker.owner_id.as_str())
+                    || attachment.file_name().to_str() != Some(marker.attachment_id.as_str())
+                {
+                    return Err("IMPORT_DIRECTORY_CHECK_FAILED".into());
+                }
+                let op = vault
+                    .load_import_operation(account_id, &marker.operation_id)?
+                    .ok_or("IMPORT_DIRECTORY_CHECK_FAILED")?;
+                if !matches!(
+                    op.phase,
+                    ImportOperationPhase::Complete | ImportOperationPhase::Abandoned
+                ) {
+                    continue;
+                }
+                if op.start.plan["nativeRoot"].as_str() != root.to_str() {
+                    return Err("IMPORT_DIRECTORY_CHECK_FAILED".into());
+                }
+                let activated = op.steps.iter().find(|step| {
+                    step.plan.entry_ordinal == marker.entry_ordinal
+                        && step.plan.owner_id == marker.owner_id
+                        && step.plan.attachment_id == marker.attachment_id
+                        && step.phase == ImportAttachmentPhase::MetadataCommitted
+                });
+                let step = match activated {
+                    Some(step) => step,
+                    None if op.phase == ImportOperationPhase::Abandoned => continue,
+                    None => return Err("IMPORT_DIRECTORY_CHECK_FAILED".into()),
+                };
+                let file = directory.join(&step.plan.safe_file_name);
+                let metadata = std::fs::symlink_metadata(&file)
+                    .map_err(|_| "IMPORT_DIRECTORY_CHECK_FAILED")?;
+                if !metadata.is_file()
+                    || metadata.file_type().is_symlink()
+                    || !file
+                        .canonicalize()
+                        .map_err(|_| "IMPORT_DIRECTORY_CHECK_FAILED")?
+                        .starts_with(&root)
+                {
+                    return Err("IMPORT_DIRECTORY_CHECK_FAILED".into());
+                }
+                files.push(file);
+            }
+        }
+        Ok(files)
+    }
+
     /// P029: 单个附件的重加密准备——为 `path` 生成新钥密文到 `tmp_new`。
     /// 返回 Ok(true)=已准备新密文；Ok(false)=已是新钥（上次运行残留，跳过）。
     /// 明文临时文件（`.rekey.tmp`）在函数内无论成败都立即清理，不残留明文。
@@ -1128,7 +1273,14 @@ impl super::VaultService {
             if ft.is_dir() {
                 Self::collect_attachment_files(&path, out)?;
             } else if ft.is_file() {
-                out.push(path);
+                let name = entry.file_name();
+                let name = name.to_string_lossy();
+                // 归属标记不是用户附件，不随主密码重加密。
+                if name != crate::export_import::operation::IMPORT_OWNER_MARKER
+                    && !name.ends_with(".import-owner")
+                {
+                    out.push(path);
+                }
             }
         }
         Ok(())

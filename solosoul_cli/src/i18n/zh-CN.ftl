@@ -301,7 +301,7 @@ cmd-preference-updated = 偏好已更新：{$key}
 cmd-setting-usage = 用法：/setting <key> <value>
 cmd-provide-backup-id = 请提供备份 ID，例如 /backup {$cmd} weekly_20260101_120000
 cmd-backup-usage = 用法：/backup list | create <name> | restore <id> | delete <id>
-cmd-export-import-usage = 用法：/export [选项] | /import <路径> [选项]
+cmd-export-import-usage = 用法：/export [选项] | /import <路径> [选项] | /import --pending | /import --resume <ID> [source-path]
 cmd-provide-import-path = 请提供要导入的文件路径
 cmd-import-success = 成功导入 {$count} 个对象
 cmd-password-min-length = 主密码至少需要 8 位
@@ -703,3 +703,17 @@ ocr-task-running = 识别中
 ocr-task-cancelling = 已请求取消，等待当前阶段结束
 ocr-tasks-hint = Esc 请求取消全部 OCR · /ocr cancel <task-id> 取消指定任务 · /back 返回 · /ocr result 查看最近结果
 ocr-tasks-title = OCR 后台任务
+
+### RF022 持久导入任务
+cmd-import-pending-empty = 当前账户没有未完成的导入任务。
+cmd-import-pending-entry = {$id} · {$name} · {$phase} · 对象 {$count} · 可用附件 {$attachments} · 需要源文件：{$source} · 需要包密码：{$password}；继续：/import --resume {$id}
+cmd-import-complete-operation = 任务 {$id} 已完成，可用附件 {$attachments}。
+cmd-import-partial-operation = 任务 {$id} 尚未完成；已提交 {$count} 个对象，可用附件 {$attachments}，已写文件 {$files}。{$err}；继续：/import --resume {$id} [同一导入包路径]。
+cmd-import-recovery-unavailable = 此恢复任务尚未保存可用材料，无法继续；请重新建立经过认证的恢复连接。
+prompt-import-resume-source = 同一导入包的路径（将核对原文件内容）
+cmd-import-resume-usage = 用法：/import --pending | /import --resume <任务 ID> [同一导入包路径]；继续时不允许更改策略或选择。
+cmd-import-phase-records = 记录已提交
+cmd-import-phase-attachments = 附件处理中
+cmd-import-phase-preferences = 偏好处理中
+cmd-import-phase-complete = 已完成
+cmd-import-phase-abandoned = 已结束

@@ -301,7 +301,7 @@ cmd-preference-updated = Preference updated: {$key}
 cmd-setting-usage = Usage: /setting <key> <value>
 cmd-provide-backup-id = Please provide a backup ID, e.g. /backup {$cmd} weekly_20260101_120000
 cmd-backup-usage = Usage: /backup list | create <name> | restore <id> | delete <id>
-cmd-export-import-usage = Usage: /export [options] | /import <path> [options]
+cmd-export-import-usage = Usage: /export [options] | /import <path> [options] | /import --pending | /import --resume <ID> [source-path]
 cmd-provide-import-path = Please provide the file path to import.
 cmd-import-success = Successfully imported {$count} objects.
 cmd-password-min-length = Master password must be at least 8 characters.
@@ -703,3 +703,17 @@ ocr-task-running = Running
 ocr-task-cancelling = Cancellation requested; waiting for the current stage
 ocr-tasks-hint = Esc cancels all OCR · /ocr cancel <task-id> cancels one task · /back returns · /ocr result opens the latest result
 ocr-tasks-title = Background OCR tasks
+
+### RF022 persistent import operations
+cmd-import-pending-empty = No unfinished import operations for the current account.
+cmd-import-pending-entry = {$id} · {$name} · {$phase} · objects {$count} · usable attachments {$attachments} · source required: {$source} · package password required: {$password}; resume: /import --resume {$id}
+cmd-import-complete-operation = Operation {$id} completed; usable attachments: {$attachments}.
+cmd-import-partial-operation = Operation {$id} is unfinished; {$count} objects committed, {$attachments} usable attachments, {$files} files written. {$err}; resume: /import --resume {$id} [same-package-path].
+cmd-import-recovery-unavailable = This recovery operation has no usable saved material; establish a new authenticated recovery connection.
+prompt-import-resume-source = Path to the same package (its original contents will be verified)
+cmd-import-resume-usage = Usage: /import --pending | /import --resume <operation-id> [same-package-path]; resume does not accept strategy or selection changes.
+cmd-import-phase-records = Records committed
+cmd-import-phase-attachments = Processing attachments
+cmd-import-phase-preferences = Processing preferences
+cmd-import-phase-complete = Complete
+cmd-import-phase-abandoned = Ended

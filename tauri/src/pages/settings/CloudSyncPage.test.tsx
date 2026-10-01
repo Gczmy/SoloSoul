@@ -8,6 +8,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { CloudSyncPage } from './CloudSyncPage';
+import type { ImportResult } from '@/types/exportImport';
 
 // PageShell/PageContainer 简化为透传
 vi.mock('@/components/layout/PageShell', () => ({
@@ -40,6 +41,12 @@ const listen = vi.fn().mockResolvedValue(() => {});
 vi.mock('@tauri-apps/api/event', () => ({
   listen: (...args: unknown[]) => listen(...(args as [])),
 }));
+
+// 保持 setup 的键/defaultValue 语义，稳定 t 避免配置 effect 在异步 act 内反复读取。
+vi.mock('react-i18next', () => {
+  const t = (key: string, options?: { defaultValue?: string }) => options?.defaultValue ?? key;
+  return { useTranslation: () => ({ t, i18n: { language: 'en', changeLanguage: vi.fn() } }) };
+});
 
 import { invoke } from '@tauri-apps/api/core';
 
@@ -310,5 +317,109 @@ describe('CloudSyncPage 渲染冒烟', () => {
     expect(
       vi.mocked(invoke).mock.calls.filter(([cmd]) => cmd === 'cloud_sync_save_config'),
     ).toHaveLength(1);
+  });
+
+  const incomingPath = 'C:\\vault\\cloud_sync\\incoming\\account-a\\remote-device\\123-0.solosoul';
+  const completedImport: ImportResult = {
+    operationId: 'ec2a2e28-583c-4721-9f64-602e3e8c77e0',
+    sessionGeneration: 17,
+    objectCount: 2,
+    attachmentCount: 2,
+    status: 'complete',
+    templateCount: 0,
+    snapshotCount: 2,
+    preferencesImported: false,
+    attachmentFilesWritten: 2,
+    failureStage: null,
+    errorCode: null,
+  };
+
+  function mockIncomingImport(outcome: ImportResult | Promise<ImportResult>) {
+    const originalInvoke = vi.mocked(invoke).getMockImplementation()!;
+    vi.mocked(invoke).mockImplementation((cmd: string, args) => {
+      if (cmd === 'cloud_sync_list_incoming') return Promise.resolve([incomingPath]);
+      if (cmd === 'cloud_sync_import_incoming') return Promise.resolve(outcome);
+      return originalInvoke(cmd, args);
+    });
+  }
+
+  async function startIncomingImport() {
+    render(
+      <MemoryRouter>
+        <CloudSyncPage />
+      </MemoryRouter>,
+    );
+    await waitFor(() => expect(screen.getByDisplayValue('p')).toBeInTheDocument());
+    fireEvent.click(await screen.findByRole('button', { name: 'settings:cloud_sync_import' }));
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith('cloud_sync_import_incoming', {
+        accountId: 'account-a',
+        sourcePath: incomingPath,
+        password: 'p',
+      }),
+    );
+  }
+
+  it('RF022 云导入使用 Native 固定策略薄入口并回传持久任务 ID 后移除快照', async () => {
+    mockIncomingImport(completedImport);
+    await startIncomingImport();
+    await waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith('cloud_sync_mark_applied', {
+        accountId: 'account-a',
+        sessionGeneration: 17,
+        sourcePath: incomingPath,
+        operationId: completedImport.operationId,
+      }),
+    );
+    await waitFor(() => expect(screen.queryByText('123-0.solosoul')).not.toBeInTheDocument());
+    expect(vi.mocked(invoke).mock.calls.some(([cmd]) => cmd === 'import_execute')).toBe(false);
+  });
+
+  it('RF022 部分导入保留快照，不提交云水线', async () => {
+    mockIncomingImport({
+      ...completedImport,
+      status: 'partial',
+      attachmentCount: 0,
+      failureStage: 'attachments',
+      errorCode: 'IMPORT_FAILED',
+    });
+    await startIncomingImport();
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'settings:cloud_sync_import' })).toBeEnabled(),
+    );
+    expect(screen.getByText('123-0.solosoul')).toBeInTheDocument();
+    expect(vi.mocked(invoke).mock.calls.some(([cmd]) => cmd === 'cloud_sync_mark_applied')).toBe(
+      false,
+    );
+  });
+
+  it('RF022 没有任务 ID 的完成结果不提交云水线', async () => {
+    mockIncomingImport({ ...completedImport, operationId: null });
+    await startIncomingImport();
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'settings:cloud_sync_import' })).toBeEnabled(),
+    );
+    expect(screen.getByText('123-0.solosoul')).toBeInTheDocument();
+    expect(vi.mocked(invoke).mock.calls.some(([cmd]) => cmd === 'cloud_sync_mark_applied')).toBe(
+      false,
+    );
+  });
+
+  it('RF022 旧账户迟到的完成结果不能提交新会话云水线', async () => {
+    let resolveImport!: (value: ImportResult) => void;
+    mockIncomingImport(
+      new Promise<ImportResult>((resolve) => {
+        resolveImport = resolve;
+      }),
+    );
+    await startIncomingImport();
+    act(() => useAuthStore.setState({ currentAccount: { id: 'account-b', name: 'Bob' } }));
+    await act(async () => {
+      resolveImport(completedImport);
+      await Promise.resolve();
+    });
+    expect(vi.mocked(invoke).mock.calls.some(([cmd]) => cmd === 'cloud_sync_mark_applied')).toBe(
+      false,
+    );
   });
 });

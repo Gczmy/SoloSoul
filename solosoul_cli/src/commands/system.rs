@@ -192,7 +192,7 @@ pub const HELP_GROUPS: &[(&str, &[HelpEntry])] = &[
             },
             HelpEntry {
                 command: "/import [文件] [选项]",
-                description: "从 .solosoul 包导入",
+                description: "导入 .solosoul 包、查看并继续未完成任务",
             },
         ],
     ),
@@ -328,7 +328,7 @@ static USAGE_MAP: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(
     usage!("export", "/export [文件] --full|--pages|--objects [--include-attachments]\n  加密导出为 .solosoul 包。");
     usage!(
         "import",
-        "/import [文件] --preview|--strategy skip|overwrite|merge\n  从 .solosoul 包导入对象。"
+        "/import <文件> [--preview] [--strategy skip|overwrite|merge]\n/import --pending\n/import --resume <任务ID> [同一导入包路径]\n  从 .solosoul 包导入对象；继续原任务不允许更改策略/选择，仅按需索取包密码。"
     );
     usage!(
         "language",

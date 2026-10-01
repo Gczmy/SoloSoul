@@ -1658,3 +1658,5 @@ fn device_sync_preferences_restore_for_password_session_key_and_account_switch()
             .auto_sync_enabled
     );
 }
+
+mod rf022;

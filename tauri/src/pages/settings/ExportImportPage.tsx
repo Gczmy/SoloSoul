@@ -77,6 +77,7 @@ export function ExportImportPage() {
     allTags,
     handleExport,
     // import (useImportState)
+    importOperations,
     importPath,
     importPreview,
     importPw,
@@ -231,6 +232,7 @@ export function ExportImportPage() {
           </motion.div>
         ) : tab === 'import' ? (
           <ImportSection
+            importOperations={importOperations}
             importPath={importPath}
             importPreview={importPreview}
             importPw={importPw}

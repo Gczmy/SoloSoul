@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::Arc;
 #[cfg(target_os = "android")]
 use tauri::Manager;
 use tauri::State;
@@ -502,26 +503,100 @@ pub async fn cloud_sync_now(state: State<'_, AppState>) -> Result<(), String> {
     Ok(())
 }
 
-/// 记录某设备快照已成功导入的 HLC 水线（下行导入完成后由前端调用）。
+/// 手动云端导入保持自动流程的固定策略/来源 fingerprint，不从前端接收策略。
+#[tauri::command]
+pub async fn cloud_sync_import_incoming(
+    state: State<'_, AppState>,
+    account_id: String,
+    source_path: String,
+    password: String,
+) -> Result<crate::commands::export_import::ImportResult, String> {
+    let service = Arc::clone(&state.vault_service);
+    let (session, source, activity) = {
+        let svc = service.read().map_err(|_| "Vault service lock poisoned")?;
+        let session = svc.capture_session(&account_id)?;
+        crate::sync::cloud_auto_sync::cloud_import_source_identity(
+            &svc,
+            &session,
+            std::path::Path::new(&source_path),
+        )?;
+        let source = std::path::Path::new(&source_path)
+            .canonicalize()
+            .map_err(|_| "Invalid cloud snapshot source")?
+            .to_string_lossy()
+            .into_owned();
+        (
+            session,
+            source,
+            solosoul_core::import_activity::begin_import_activity(svc.base_path())?,
+        )
+    };
+    let password = zeroize::Zeroizing::new(password);
+    let operation_id = uuid::Uuid::new_v4().to_string();
+    tokio::task::spawn_blocking(move || {
+        let _activity = activity;
+        let svc = service.read().map_err(|_| "Vault service lock poisoned")?;
+        crate::commands::export_import::import_execute_resumable_for_session(
+            &svc,
+            &session,
+            source,
+            password,
+            crate::commands::export_import::ImportStrategy::SkipExisting,
+            None,
+            None,
+            Default::default(),
+            "en-US",
+            None,
+            &operation_id,
+            solosoul_vault::ImportSourceKind::Cloud,
+        )
+    })
+    .await
+    .map_err(|_| "云端导入任务执行失败")?
+}
+
+/// journal、当前会话与实际源 proof 验证后记录水线；客户端结果不是完成授权。
 #[tauri::command]
 pub async fn cloud_sync_mark_applied(
     state: State<'_, AppState>,
     account_id: String,
     session_generation: u64,
     source_path: String,
+    operation_id: String,
 ) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned")?;
-    mark_applied_for_import(&svc, &account_id, session_generation, &source_path)
+    let service = Arc::clone(&state.vault_service);
+    let (session, activity) = {
+        let svc = service.read().map_err(|_| "Vault service lock poisoned")?;
+        let session = svc.capture_session(&account_id)?;
+        if session.generation() != session_generation {
+            return Err("Vault session is no longer current".into());
+        }
+        (
+            session,
+            solosoul_core::import_activity::begin_import_activity(svc.base_path())?,
+        )
+    };
+    tokio::task::spawn_blocking(move || {
+        let _activity = activity;
+        let svc = service.read().map_err(|_| "Vault service lock poisoned")?;
+        crate::sync::cloud_auto_sync::finalize_cloud_import(
+            &svc,
+            &session,
+            std::path::Path::new(&source_path),
+            &operation_id,
+        )
+    })
+    .await
+    .map_err(|_| "云端导入确认任务执行失败")?
 }
 
+#[cfg(test)]
 fn mark_applied_for_import(
     svc: &solosoul_core::VaultService,
     account_id: &str,
     session_generation: u64,
     source_path: &str,
+    operation_id: &str,
 ) -> Result<(), String> {
     let session = svc.capture_session(account_id)?;
     if session.generation() != session_generation {
@@ -531,6 +606,7 @@ fn mark_applied_for_import(
         svc,
         &session,
         std::path::Path::new(source_path),
+        operation_id,
     )
 }
 
@@ -741,17 +817,50 @@ mod tests {
             .join("device")
             .join("123-0.solosoul");
         std::fs::create_dir_all(source.parent().unwrap()).unwrap();
-        std::fs::write(&source, b"synthetic completed import source").unwrap();
+        let package = crate::commands::export_import::tests::rf020::package(
+            f.dir.path(),
+            crate::commands::export_import::tests::rf020::objects(),
+            false,
+            false,
+            false,
+        );
+        std::fs::copy(package, &source).unwrap();
+        let operation_id = uuid::Uuid::new_v4().to_string();
+        crate::commands::export_import::import_execute_resumable_for_session(
+            &svc,
+            &session,
+            source.to_string_lossy().into_owned(),
+            zeroize::Zeroizing::new("export-password".into()),
+            crate::commands::export_import::ImportStrategy::SkipExisting,
+            None,
+            None,
+            Default::default(),
+            "en-US",
+            None,
+            &operation_id,
+            solosoul_vault::ImportSourceKind::Cloud,
+        )
+        .unwrap()
+        .require_complete()
+        .unwrap();
         svc.create_account_with_id("acc_rf003_b", "B", "password456", None)
             .unwrap();
-        assert!(
-            mark_applied_for_import(&svc, &f.account, generation, source.to_str().unwrap())
-                .is_err()
-        );
-        assert!(
-            mark_applied_for_import(&svc, "acc_rf003_b", generation, source.to_str().unwrap())
-                .is_err()
-        );
+        assert!(mark_applied_for_import(
+            &svc,
+            &f.account,
+            generation,
+            source.to_str().unwrap(),
+            &operation_id
+        )
+        .is_err());
+        assert!(mark_applied_for_import(
+            &svc,
+            "acc_rf003_b",
+            generation,
+            source.to_str().unwrap(),
+            &operation_id
+        )
+        .is_err());
         let b_session = svc.capture_session("acc_rf003_b").unwrap();
         // B 目录真实存在时仍拒绝 A 的源包，避免只因根目录缺失而假通过。
         let b_source = svc
@@ -766,7 +875,8 @@ mod tests {
             &svc,
             "acc_rf003_b",
             b_session.generation(),
-            source.to_str().unwrap()
+            source.to_str().unwrap(),
+            &operation_id,
         )
         .is_err());
         assert!(b_session
@@ -777,10 +887,14 @@ mod tests {
         assert!(source.exists());
         assert_eq!(std::fs::read(&b_source).unwrap(), b"B pending source");
         svc.unlock(&f.account, "password123").unwrap();
-        assert!(
-            mark_applied_for_import(&svc, &f.account, generation, source.to_str().unwrap())
-                .is_err()
-        );
+        assert!(mark_applied_for_import(
+            &svc,
+            &f.account,
+            generation,
+            source.to_str().unwrap(),
+            &operation_id
+        )
+        .is_err());
         assert!(source.exists());
         let fresh = svc.capture_session(&f.account).unwrap();
         mark_applied_for_import(
@@ -788,6 +902,7 @@ mod tests {
             &f.account,
             fresh.generation(),
             source.to_str().unwrap(),
+            &operation_id,
         )
         .unwrap();
         assert!(!source.exists());

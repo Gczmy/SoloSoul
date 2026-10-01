@@ -1,6 +1,6 @@
 # SoloSoul 重构修复执行报告
 
-> 最后更新：2026-09-30（继续逐项修复）
+> 最后更新：2026-10-01（继续逐项修复）
 > 当前分支：`main`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
 > 修复轮次：第 1 轮，执行中。Cua 接入继续暂缓。
 
@@ -120,8 +120,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**255**（P1：50；P2：204；P3：1）。
-- 已关闭：**218 / 255**；实际修复（已关闭）：218；排除：0；待验证/阻塞：6（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 下一项：RF-022。RF-021 已完成数据库批次及 GUI/CLI 原会话验证；附件持久任务、稳定映射和云 SkipExisting 恢复方案已只读核对，尚未实施/验收。六项平台/CI条件不变。
+- 已关闭：**219 / 255**；实际修复（已关闭）：219；排除：0；待验证/阻塞：6（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无。RF-022 已完成本地验收，本提交使用 ID 检索；下一项为已授权、无前置的 P1 RF-905（GUI/CLI 目录互斥与维护窗口）。本轮不推送；六项既有平台/CI条件不变。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -153,7 +153,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 24 | [RF-016](#rf-016) | P1 | 永久删除附件采用可恢复清理意图 | [RF-019](#rf-019) | [x] 完成 |
 | 25 | [RF-020](#rf-020) | P1 | 导入失败返回真实部分提交状态 | [RF-018](#rf-018) | [x] 完成 |
 | 26 | [RF-021](#rf-021) | P1 | 对象模板与历史按导入批次事务提交 | [RF-018](#rf-018)、[RF-019](#rf-019)、[RF-020](#rf-020)、[RF-1063](#rf-1063) | [x] 完成 |
-| 27 | [RF-022](#rf-022) | P1 | 附件导入可恢复且同一任务重试幂等 | [RF-020](#rf-020)、[RF-021](#rf-021) | [ ] 待执行 |
+| 27 | [RF-022](#rf-022) | P1 | 附件导入可恢复且同一任务重试幂等 | [RF-020](#rf-020)、[RF-021](#rf-021) | [x] 完成 |
 | 28 | [RF-208](#rf-208) | P2 | 移除 Android 构建的本机 JDK 路径依赖 | 无 | [!] 待验证 macOS |
 | 29 | [RF-201](#rf-201) | P1 | 修正移动端跟随系统的主题来源 | [RF-208](#rf-208) | [ ] 待执行 |
 | 30 | [RF-110](#rf-110) | P1 | 同次主题应用只解析一次系统模式 | 无 | [x] 完成 |
@@ -672,11 +672,17 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 **附件导入可恢复且同一任务重试幂等** · P1 · 来源：R11
 
 - **前置：**[RF-020](#rf-020)、[RF-021](#rf-021)。
-- **入口：**`tauri/crates/solosoul-core/src/export_import.rs`；`tauri/src-tauri/src/commands/export_import/import.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`；`tauri/crates/solosoul-vault/src/storage.rs`；`tauri/crates/solosoul-vault/src/storage/import_operations.rs（拟新增）`。
+- **入口：**`tauri/crates/solosoul-core/src/export_import.rs`；`tauri/src-tauri/src/commands/export_import/import.rs`；`tauri/src-tauri/src/commands/export_import/tests.rs`；`tauri/crates/solosoul-vault/src/storage.rs`；`tauri/crates/solosoul-vault/src/storage/import_operations.rs`；共享附件执行器 `tauri/crates/solosoul-core/src/export_import/operation.rs`；Native 准入 `tauri/crates/solosoul-core/src/import_activity.rs`；任务 IPC `tauri/src-tauri/src/commands/export_import/operations.rs`；CLI `solosoul_cli/src/commands/export_import.rs`。
 - **执行：**为一次导入记录稳定操作 ID、源包标识及 KeepBoth ID 映射；附件先写加密 staging，再按可恢复阶段发布并提交元数据；同一任务重试复用记录，不持久化密码或会话密钥。独立新导入仍允许 KeepBoth 生成副本。
 - **验收：**附件写入、发布及元数据提交间中断均能恢复；同一操作重试不重复创建对象/附件；失败不不可恢复地覆盖已有附件；重新解锁后需要时重新索取包密码。云端 skipExisting 重试已部分写入的对象时，必须继续补全缺失附件，不能因对象已存在而跳过后误报完整成功、推进水线或清理源包（RF-020 复核补充）。
 - **验证配置：**`R` + `CORE` + `F` + `CONTRACT` + `CLI`。**定向验证：**core/Host 新增 rf022_* 稳定操作 ID 与阶段注入测试；cargo test -p solosoul-core --lib rf022_；cargo test -p solo_soul --lib rf022_；按实际重试交互补 useImportState 定向测试。
 - **建议提交：**`fix: resolve [RF-022] - resume attachment imports without duplicate records`。
+
+- **实现边界：**标准 Fresh 在原 Session 内原子提交业务数据库批次和账户加密 journal，随后按冻结 ZIP ordinal 发布附件，再按 owner 激活元数据。恢复不再执行对象策略；一致请求的同一操作 ID 返回原结果，独立新 ID 的 KeepBoth 仍创建副本。普通/云/CLI 缺少源或口令时重新索取同 proof 的包；Recovery 的随机包口令由提交前完整加密 handoff 消除依赖，ready 前失败无业务提交，不能把重新认证下载的新包冒充旧 ID Resume。
+- **维护与目录边界：**已接入的本进程 RF022 worker 持 activity 至实际 Drop。未完成任务阻止改密、KDF 升级、删除账户；存在任何本项 journal 的 Native root 拒绝目录迁移，SAF URI 失效保留原 cache root。首启初始化仅允许真实 placeholder；首同步失败应恢复可重试首启状态。Complete 和 Abandoned 的已激活附件随换钥，Abandoned 未激活文件不作为可用附件处理。本项未实现 root relocation、RF905 跨进程互斥或旧未标记附件全面归属。
+- **最终收口条件：**Root 汇总本次最终源码对应的 R/CORE/F/CONTRACT/CLI 实际命令、退出码、case 数及源/日志 SHA，并保存验证证据后，才将本卡和总台账改为完成。独立 child checkpoint 实际退出/重开、普通 SQL Err、同进程线程 guard 和组件模拟分别登记；后者不能代替进程崩溃、Android SAF 或多端设备实测。六项既有平台/CI条件保持。
+
+- **完成记录：**2026-10-01，本提交按 RF-022 检索。R 1,582 passed / 0 failed / 3 既有 ignored；CLI 307 passed / 0 failed / 1 既有 ignored；F 为 239 Vitest 文件、2,015 passed 及 112 Node passed，TypeScript/Lint、CORE 定向和 CONTRACT 全部通过。99 项带 RF022 标识的 Rust/CLI 用例含真实子进程退出/重开两场景。命令、退出码、最终源/日志 SHA、失败修正与验证边界见 [RF-022 验证证据](verification/rf022-resumable-import-2026-10-01.json)。
 
 ### RF-023
 
@@ -5668,3 +5674,15 @@ git commit -m "<任务卡的提交标题>"
 - 初两轮Clippy仅修复测试冗余变量与test-only reexport；第三轮Host649passed/5failed为事务边界变化影响的旧断言。保留真实故障注入、进度barrier、源文件/脱敏/通知检查，模板坏行扩展同账户读取错误和跨账户拒绝。旧失败日志完整保留，无新增ignore/allow或减少用例。
 - GUI策略/逐对象覆盖、重复源顺序、KeepBoth命名/引用与包历史保持；Core/CLI批前Skip、Merge=Overwrite、旧历史Keep及usize/Err保留。CLI提示前捕获原Session/Zeroizing附件密钥。schema27、依赖和公开IPC未改；准备视图内存/大账户性能未实测，不声称整包或文件系统事务。
 - canonical设计、静态复审、源与日志SHA/退出码/计数和原用户文件保护见 [RF-021验证证据](verification/rf021-atomic-import-batch-2026-09-30.json)。218/255已关闭，本项23源/测试与3文档共26路径独立本地提交，不推送。下一项RF-022持久附件恢复；六项平台/CI缺口不变。
+
+
+### RF-022 执行记录（2026-10-01，完成）
+
+- 基线 HEAD `55bff414`。普通、云、CLI 和恢复入口记录稳定 UUID、同字节源包 proof、冻结选项、KeepBoth 映射与 ZIP ordinal；业务批次与加密 journal 原子提交，随后加密 staging、发布文件、按 owner 激活元数据和偏好。同一 ID Resume 不重放对象写入，独立 Fresh 的 KeepBoth 保留副本语义；不持久化密码或派生密钥。
+- Recovery 随机包口令不可重新索取，因此完整加密 handoff 在业务接受前完成；偏好解密失败拒绝接受并清理本次 staging，接受后可无源包/口令恢复。重新认证下载的新包采用新 ID，仅导入已解锁的匹配账户，不覆盖账户或重设主密码。云端复核真实 Complete journal、源包 proof 和原会话后才推进水线/删除源包；取消视图不会取消已接收的 Native 任务。
+- 三项真实红/绿定位：恢复包损坏偏好先暴露错误接受（exit101），修复后1项通过；重建旧 guard 生命周期后 SAF 实际 blocking worker 的取消场景失败（exit101），转移 guard 至 worker 后1项通过；Native NotCommitted 返回非空任务 ID 时前端误认为已接受，2项回归失败（exit1），改按 partial/complete 判断后全部通过。SAF 使用受控 driver 与真实 SafVaultFileSystem，仅证明本机 worker 生命周期，不视为 Android provider/设备验收。
+- 两项独立子进程在真实 DB COMMIT 后、首个文件发布后退出码73，父进程重新打开数据库、解锁、续接并核对对象/附件计数与重复恢复；与 SQL 故障、线程屏障和 React IPC mock 分别登记。最终 R 25组 **1,582 passed / 0 failed / 3既有 ignored**；CLI 4组 **307 passed / 0 failed / 1既有 ignored**，其中 RF022 标识用例83+16=99。CORE 定向65项通过后的最终补充由全量R覆盖。
+- 最终 F 的 TypeScript、Lint exit0；完整入口 `npm run test -- --maxWorkers 2` 为 **239 Vitest文件 / 2,015 passed**，另 **112 Node passed**，0失败/跳过。首轮全量失败涉及旧RF020 mock 未区分任务查询、冷启动 lazy模块尚未settled；分别按真实IPC契约及既有 dynamicImportSettled 流程修正，保留原断言、未提高全局超时。CONTRACT ACL/偏好/Markdown/真实生成一致性/6项Node契约/Python ACL均exit0。
+- 首轮完整R出现10项旧测试失败：RF027/RF1063将新journal所有权marker计作业务文件，完成JSON缺稳定operationId，元数据故障注入仍用INSERT而生产变为UPDATE；RF016固定schema27期望过时。适配精确marker/sidecar与新契约，保留污染文件、跨会话、文件字节、部分成功、rollback26等原语义断言。最终全部通过，未增加ignore或关闭检查。
+- schema28；新增5项命令保留legacy契约（生成目录30 migrated /195 legacy），无生产依赖变动。工作树剩余16份用户文件逐字节保留且不暂存，含3张NSIS图片；2份纯CRLF文件在原始备份及归一化HEAD等价核验后纳入本项必要修改。共73份原拥有路径及1份验证证据，单独本地提交，不推送。
+- canonical附件、导入、云同步与CLI规范已更新；最终源/日志SHA和完整用例清单见 [验证证据](verification/rf022-resumable-import-2026-10-01.json)。**219/255已关闭**；六项外部条件不变。存在任何本项journal时暂拒绝Native root迁移，RF905接续目录所有权/维护窗口；RF024完整导入用例收敛、跨进程互斥和旧未标记孤儿附件扫描未在本项完成。

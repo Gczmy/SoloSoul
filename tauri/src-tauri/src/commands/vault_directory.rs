@@ -150,6 +150,17 @@ pub async fn vault_set_directory(
             .map_err(|e| format!("无法解析应用数据目录: {e}"))?,
     );
 
+    // 准入必须早于锁定和目录复制，且 worker 真正结束前保持有效。
+    let import_maintenance = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned")?;
+        let guard = solosoul_core::import_activity::begin_import_maintenance(svc.base_path())?;
+        solosoul_core::import_activity::ensure_import_root_movable(svc.base_path())?;
+        Arc::new(guard)
+    };
+
     // 锁定 Vault 以避免迁移过程中数据变更。
     //
     // 安全说明：`svc.lock()` 内部获取 `vault_store.write()`，而我们在此处
@@ -211,7 +222,9 @@ pub async fn vault_set_directory(
         // 在 spawn_blocking 中执行迁移与同步，避免阻塞 tokio worker
         let uri_owned = uri.clone();
         let handle = state.handle.clone();
+        let worker_maintenance = Arc::clone(&import_maintenance);
         tokio::task::spawn_blocking(move || -> Result<(), String> {
+            let _maintenance = worker_maintenance;
             // ① 先拉取远端（目标 SAF 目录）已有数据到 temp——
             // 防止本地（可能只有新账户）清单覆盖远端 accounts.json 导致旧账户丢失。
             // 远端为空目录时 no-op。

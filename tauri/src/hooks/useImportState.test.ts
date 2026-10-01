@@ -20,7 +20,10 @@ const mocks = vi.hoisted(() => ({
   onError: vi.fn(),
   onSuccess: vi.fn(),
 }));
-vi.mock('@/lib/ipcClient', () => ({ invokeCommand: mocks.invoke }));
+vi.mock('@/lib/ipcClient', () => ({
+  invokeCommand: (command: string, ...args: unknown[]) =>
+    command === 'import_operations_list' ? Promise.resolve([]) : mocks.invoke(command, ...args),
+}));
 vi.mock('react-i18next', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-i18next')>();
   const { default: engine } = await import('i18next');
@@ -42,6 +45,7 @@ vi.mock('@/stores/authStore', () => ({
 vi.mock('@tauri-apps/api/event', () => ({ listen: mocks.listen }));
 
 const complete: ImportResult = {
+  operationId: null,
   sessionGeneration: 7,
   status: 'complete',
   objectCount: 2,
@@ -87,7 +91,29 @@ describe('RF-020 ordinary import outcomes', () => {
   it.each([partial, uncommitted, complete])(
     'handles $status without discarding an incomplete source',
     async (outcome) => {
-      mocks.invoke.mockResolvedValue(outcome);
+      mocks.invoke.mockImplementation(
+        async (
+          command: string,
+          args?: { operationId?: string; req?: { operationId?: string } },
+        ) => {
+          if (command === 'import_operations_list') return [];
+          const operationId = args?.req?.operationId ?? args?.operationId;
+          if (command === 'import_execute_advanced') return { ...outcome, operationId };
+          if (command === 'import_operation_get')
+            return {
+              operationId,
+              phase: 'attachments',
+              sourceKind: 'manual',
+              sourceName: 'fixture.solosoul',
+              createdAt: '2026-09-30T00:00:00Z',
+              updatedAt: '2026-09-30T00:00:00Z',
+              sourceRequired: true,
+              passwordRequired: true,
+              outcome: { ...outcome, operationId },
+            };
+          throw new Error(`Unexpected IPC: ${command}`);
+        },
+      );
       const reload = vi.fn();
       const { result } = renderHook(() =>
         useImportState({
@@ -195,6 +221,7 @@ describe('RF-918 ordinary import attachment selection', () => {
             selectedAttachmentIds: expected,
           }),
         }),
+        expect.objectContaining({ requestIsCurrent: expect.any(Function) }),
       );
       expect(mocks.onSuccess).toHaveBeenCalledOnce();
       expect(mocks.onError).not.toHaveBeenCalled();
@@ -361,9 +388,13 @@ describe('RF-919 import preview source ownership', () => {
       oldRequest = result.current.onPreview();
     });
     await waitFor(() =>
-      expect(mocks.invoke).toHaveBeenCalledWith('import_parse_package', {
-        filePath: 'C:/old.solosoul',
-      }),
+      expect(mocks.invoke).toHaveBeenCalledWith(
+        'import_parse_package',
+        {
+          filePath: 'C:/old.solosoul',
+        },
+        expect.objectContaining({ requestIsCurrent: expect.any(Function) }),
+      ),
     );
     act(() => result.current.onSetImportPath('C:/new.solosoul'));
     await act(async () => {
@@ -396,10 +427,14 @@ describe('RF-919 import preview source ownership', () => {
       oldRequest = result.current.onDecrypt();
     });
     await waitFor(() =>
-      expect(mocks.invoke).toHaveBeenCalledWith('import_decrypt_preview', {
-        filePath: 'C:/old.solosoul',
-        password: 'old-password',
-      }),
+      expect(mocks.invoke).toHaveBeenCalledWith(
+        'import_decrypt_preview',
+        {
+          filePath: 'C:/old.solosoul',
+          password: 'old-password',
+        },
+        expect.objectContaining({ requestIsCurrent: expect.any(Function) }),
+      ),
     );
     act(() => {
       result.current.onSetImportPath('C:/new.solosoul');
@@ -444,9 +479,13 @@ describe('RF-919 import preview source ownership', () => {
       await oldRequest;
     });
     expect(mocks.cleanup).toHaveBeenCalledWith('cached-old.solosoul');
-    expect(mocks.invoke).not.toHaveBeenCalledWith('import_parse_package', {
-      filePath: 'cached-old.solosoul',
-    });
+    expect(mocks.invoke).not.toHaveBeenCalledWith(
+      'import_parse_package',
+      {
+        filePath: 'cached-old.solosoul',
+      },
+      expect.objectContaining({ requestIsCurrent: expect.any(Function) }),
+    );
     expect(result.current.importPreview).toEqual(manifest('cached-new.solosoul'));
   });
 
@@ -491,9 +530,13 @@ describe('RF-919 import preview source ownership', () => {
       oldRequest = result.current.onPreview();
     });
     await waitFor(() =>
-      expect(mocks.invoke).toHaveBeenCalledWith('import_parse_package', {
-        filePath: 'C:/old.solosoul',
-      }),
+      expect(mocks.invoke).toHaveBeenCalledWith(
+        'import_parse_package',
+        {
+          filePath: 'C:/old.solosoul',
+        },
+        expect.objectContaining({ requestIsCurrent: expect.any(Function) }),
+      ),
     );
     unmount();
     await act(async () => {
@@ -560,10 +603,14 @@ describe('RF-920 import password ownership', () => {
       oldRequest = result.current.onDecrypt();
     });
     await waitFor(() =>
-      expect(mocks.invoke).toHaveBeenCalledWith('import_decrypt_preview', {
-        filePath: 'C:/fixture.solosoul',
-        password: 'old-password',
-      }),
+      expect(mocks.invoke).toHaveBeenCalledWith(
+        'import_decrypt_preview',
+        {
+          filePath: 'C:/fixture.solosoul',
+          password: 'old-password',
+        },
+        expect.objectContaining({ requestIsCurrent: expect.any(Function) }),
+      ),
     );
     act(() => result.current.setImportPw('new-password'));
     expect(result.current.isDecrypting).toBe(false);
@@ -601,7 +648,11 @@ describe('RF-920 import password ownership', () => {
     await act(async () => {
       await result.current.onImport();
     });
-    expect(mocks.invoke).not.toHaveBeenCalledWith('import_execute_advanced', expect.anything());
+    expect(mocks.invoke).not.toHaveBeenCalledWith(
+      'import_execute_advanced',
+      expect.anything(),
+      expect.objectContaining({ requestIsCurrent: expect.any(Function) }),
+    );
   });
 
   it('retains the password used by an import until that import settles', async () => {
@@ -689,7 +740,8 @@ describe('RF-020 cloud incoming outcomes', () => {
       mocks.invoke.mockImplementation(async (cmd: string) => {
         if (cmd === 'cloud_sync_list_incoming') return [source];
         if (cmd === 'cloud_sync_get_config') return null;
-        if (cmd === 'import_execute_advanced') return outcome;
+        if (cmd === 'cloud_sync_import_incoming')
+          return { ...outcome, operationId: 'ec2a2e28-583c-4721-9f64-602e3e8c77e0' };
         return null;
       });
       const { result } = renderHook(() => useCloudSyncPage());
@@ -699,20 +751,19 @@ describe('RF-020 cloud incoming outcomes', () => {
         await result.current.handleImportIncoming(source);
       });
       expect(mocks.invoke).toHaveBeenCalledWith(
-        'import_execute_advanced',
-        expect.objectContaining({
-          req: expect.objectContaining({
-            selections: null,
-            objectStrategies: {},
-            sourcePath: source,
-          }),
-        }),
+        'cloud_sync_import_incoming',
+        { accountId: 'account', sourcePath: source, password: 'export-password' },
         expect.objectContaining({ requestIsCurrent: expect.any(Function) }),
       );
       if (outcome.status === 'complete') {
         expect(mocks.invoke).toHaveBeenCalledWith(
           'cloud_sync_mark_applied',
-          { accountId: 'account', sessionGeneration: 7, sourcePath: source },
+          {
+            accountId: 'account',
+            sessionGeneration: 7,
+            sourcePath: source,
+            operationId: 'ec2a2e28-583c-4721-9f64-602e3e8c77e0',
+          },
           expect.objectContaining({ requestIsCurrent: expect.any(Function) }),
         );
         expect(result.current.incomingFiles).toEqual([]);
@@ -741,7 +792,7 @@ describe('RF-003 cloud incoming session isolation', () => {
       if (cmd === 'cloud_sync_list_incoming') {
         return [mocks.accountId === 'account' ? sourceA : sourceB];
       }
-      if (cmd === 'import_execute_advanced') return deferredImport;
+      if (cmd === 'cloud_sync_import_incoming') return deferredImport;
       return null;
     });
     const { result, rerender } = renderHook(() => useCloudSyncPage());

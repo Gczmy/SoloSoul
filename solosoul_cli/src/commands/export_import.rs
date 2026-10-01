@@ -15,8 +15,16 @@ use color_eyre::Result;
 use std::time::Instant;
 
 use solosoul_core::export_import::{
-    export_vault, import_preview, import_vault_into, ExportScope, ImportStrategy, ImportTarget,
+    export_vault, import_preview, import_vault_resumable, resume_vault_import,
+    CoreImportOperationOutcome, ExportScope, ImportStrategy,
 };
+
+use solosoul_core::export_import::operation::{
+    import_credential_requirements, ImportCredentialState,
+};
+use solosoul_core::VaultSession;
+use solosoul_vault::ImportOperationRecord;
+use zeroize::Zeroizing;
 
 use crate::app::App;
 use crate::commands::require_unlocked;
@@ -127,10 +135,27 @@ fn handle_export(app: &mut App, args: &[&str]) -> Result<()> {
 // ── 导入 ──────────────────────────────────────────────────
 
 fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
-    let (file_arg, preview, strategy) = match parse_import_args(args) {
-        Ok(v) => v,
+    let (file_arg, preview, strategy) = match parse_import_command(args) {
+        Ok(ImportCommand::Fresh {
+            file_arg,
+            preview,
+            strategy,
+        }) => (file_arg, preview, strategy),
+        Ok(ImportCommand::Pending) => return handle_pending_imports(app),
+        Ok(ImportCommand::Resume {
+            operation_id,
+            source_path,
+        }) => {
+            return handle_resume_import(app, operation_id, source_path.map(PathBuf::from));
+        }
         Err(e) => {
-            app.error_message = Some(e);
+            app.error_message = Some(
+                if args.contains(&"--resume") || args.contains(&"--pending") {
+                    t!(app.i18n, "cmd-import-resume-usage")
+                } else {
+                    e
+                },
+            );
             return Ok(());
         }
     };
@@ -188,6 +213,8 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
             return Ok(());
         }
     };
+    // Fresh 的身份在首个用户动作同步确定，密码仅在 Zeroizing prompt 回调内存中存在。
+    let operation_id = uuid::Uuid::new_v4().to_string();
     prompt::open(
         app,
         PromptSpec::Text {
@@ -198,33 +225,318 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
         },
         Box::new(move |app, result| {
             if let PromptResult::Text(password) = result {
-                match import_vault_into(
-                    &ImportTarget::Session {
-                        service: &app.vault_service,
-                        session: &session,
-                    },
-                    &account_id,
+                let result = import_vault_resumable(
+                    &app.vault_service,
+                    &session,
+                    &operation_id,
                     &path,
                     &password,
                     strategy,
                     &base,
-                    Some(&*vault_att_key),
-                ) {
-                    Ok(count) => {
-                        app.success_message = Some((
-                            t!(app.i18n, "cmd-import-success", count = count.to_string()),
-                            Instant::now(),
-                        ));
-                    }
-                    Err(e) => {
-                        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
-                    }
-                }
+                    &vault_att_key,
+                );
+                publish_import_outcome(app, result);
             }
         }),
     );
 
     Ok(())
+}
+
+/// Resume/Pending 不经过 Fresh 的文件/preview/strategy gating。
+enum ImportCommand<'a> {
+    Fresh {
+        file_arg: Option<&'a str>,
+        preview: bool,
+        strategy: ImportStrategy,
+    },
+    Pending,
+    Resume {
+        operation_id: &'a str,
+        source_path: Option<&'a str>,
+    },
+}
+
+fn parse_import_command<'a>(args: &[&'a str]) -> std::result::Result<ImportCommand<'a>, String> {
+    if args.contains(&"--pending") {
+        return if args == ["--pending"] {
+            Ok(ImportCommand::Pending)
+        } else {
+            Err("Usage: /import --pending".into())
+        };
+    }
+    if args.contains(&"--resume") {
+        return match args {
+            ["--resume", operation_id] | ["--resume", operation_id, _]
+                if uuid::Uuid::parse_str(operation_id).is_ok()
+                    && args.get(2).is_none_or(|path| !path.starts_with("--")) => {
+                Ok(ImportCommand::Resume { operation_id, source_path: args.get(2).copied() })
+            }
+            _ => Err("Usage: /import --resume <operation-id> [source-path]; no strategy or selection options".into()),
+        };
+    }
+    let (file_arg, preview, strategy) = parse_import_args(args)?;
+    Ok(ImportCommand::Fresh {
+        file_arg,
+        preview,
+        strategy,
+    })
+}
+
+fn handle_pending_imports(app: &mut App) -> Result<()> {
+    let account_id = require_unlocked(app)?;
+    let result = app
+        .vault_service
+        .capture_session(&account_id)
+        .and_then(|session| {
+            app.vault_service
+                .with_session(&session, |vault| vault.list_import_operations(&account_id))
+        });
+    match result {
+        Ok(operations) if operations.is_empty() => {
+            app.info_message = Some(t!(app.i18n, "cmd-import-pending-empty"));
+        }
+        Ok(operations) => {
+            let mut rows = Vec::new();
+            for operation in operations {
+                let requirements = match import_credential_requirements(&operation) {
+                    Ok(value) => value,
+                    Err(error) => {
+                        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error));
+                        return Ok(());
+                    }
+                };
+                let count =
+                    match solosoul_core::export_import::import_operation_object_count(&operation) {
+                        Ok(value) => value.to_string(),
+                        Err(error) => {
+                            app.error_message =
+                                Some(t!(app.i18n, "cmd-operation-failed", err = error));
+                            return Ok(());
+                        }
+                    };
+                let source_name = operation
+                    .start
+                    .plan
+                    .get("sourceName")
+                    .unwrap_or(&operation.start.plan["requestOptions"]["sourceName"])
+                    .as_str()
+                    .unwrap_or("");
+                rows.push(t!(
+                    app.i18n,
+                    "cmd-import-pending-entry",
+                    id = operation.start.operation_id,
+                    name = source_name,
+                    phase = match operation.phase {
+                        solosoul_vault::ImportOperationPhase::RecordsCommitted =>
+                            t!(app.i18n, "cmd-import-phase-records"),
+                        solosoul_vault::ImportOperationPhase::Attachments =>
+                            t!(app.i18n, "cmd-import-phase-attachments"),
+                        solosoul_vault::ImportOperationPhase::Preferences =>
+                            t!(app.i18n, "cmd-import-phase-preferences"),
+                        solosoul_vault::ImportOperationPhase::Complete =>
+                            t!(app.i18n, "cmd-import-phase-complete"),
+                        solosoul_vault::ImportOperationPhase::Abandoned =>
+                            t!(app.i18n, "cmd-import-phase-abandoned"),
+                    },
+                    count = count,
+                    attachments = operation.attachment_count.to_string(),
+                    source = if requirements.source_required {
+                        t!(app.i18n, "generic-yes")
+                    } else {
+                        t!(app.i18n, "generic-no")
+                    },
+                    password = if requirements.password_required {
+                        t!(app.i18n, "generic-yes")
+                    } else {
+                        t!(app.i18n, "generic-no")
+                    }
+                ));
+            }
+            app.info_message = Some(rows.join("\n"));
+        }
+        Err(error) => app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error)),
+    }
+    Ok(())
+}
+
+fn handle_resume_import(
+    app: &mut App,
+    operation_id: &str,
+    source_path: Option<PathBuf>,
+) -> Result<()> {
+    let account_id = require_unlocked(app)?;
+    // 在源路径和密码两个提示之前捕获身份，不根据回调时的新账户重新取 Session。
+    let session = match app.vault_service.capture_session(&account_id) {
+        Ok(value) => value,
+        Err(error) => {
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error));
+            return Ok(());
+        }
+    };
+    let operation = match app.vault_service.with_session(&session, |vault| {
+        vault
+            .load_import_operation(&account_id, operation_id)?
+            .ok_or_else(|| "__IMPORT_ERR__:OPERATION_NOT_FOUND".into())
+    }) {
+        Ok(value) => value,
+        Err(error) => {
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error));
+            return Ok(());
+        }
+    };
+    let attachment_key = match app.vault_service.attachment_key_for_session(&session) {
+        Ok(value) => value,
+        Err(error) => {
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error));
+            return Ok(());
+        }
+    };
+    let requirements = match import_credential_requirements(&operation) {
+        Ok(value) => value,
+        Err(error) => {
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error));
+            return Ok(());
+        }
+    };
+    if requirements.state == ImportCredentialState::RecoveryUnavailable {
+        app.error_message = Some(t!(app.i18n, "cmd-import-recovery-unavailable"));
+        return Ok(());
+    }
+    if requirements.source_required && source_path.is_none() {
+        prompt::open(
+            app,
+            PromptSpec::Text {
+                label: t!(app.i18n, "prompt-import-resume-source"),
+                initial: String::new(),
+                mask: false,
+                allow_toggle_mask: false,
+            },
+            Box::new(move |app, result| {
+                if let PromptResult::Text(path) = result {
+                    let path = path.trim();
+                    if path.is_empty() {
+                        app.error_message = Some(t!(app.i18n, "cmd-provide-import-path"));
+                        return;
+                    }
+                    continue_resume_import(
+                        app,
+                        session,
+                        operation,
+                        Some(PathBuf::from(path)),
+                        attachment_key,
+                    );
+                }
+            }),
+        );
+    } else {
+        continue_resume_import(app, session, operation, source_path, attachment_key);
+    }
+    Ok(())
+}
+
+fn continue_resume_import(
+    app: &mut App,
+    session: VaultSession,
+    operation: ImportOperationRecord,
+    source_path: Option<PathBuf>,
+    attachment_key: Zeroizing<[u8; 32]>,
+) {
+    if let Err(error) = app.vault_service.with_session(&session, |_| Ok(())) {
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error));
+        return;
+    }
+    let requirements = match import_credential_requirements(&operation) {
+        Ok(value) => value,
+        Err(error) => {
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error));
+            return;
+        }
+    };
+    let base = app.vault_service.base_path().to_path_buf();
+    if requirements.password_required {
+        prompt::open(
+            app,
+            PromptSpec::Text {
+                label: t!(app.i18n, "prompt-import-password"),
+                initial: String::new(),
+                mask: true,
+                allow_toggle_mask: true,
+            },
+            Box::new(move |app, result| {
+                if let PromptResult::Text(password) = result {
+                    let result = resume_vault_import(
+                        &app.vault_service,
+                        &session,
+                        &operation.start.operation_id,
+                        source_path.as_deref(),
+                        Some(&password),
+                        &base,
+                        &attachment_key,
+                    );
+                    publish_import_outcome(app, result);
+                }
+            }),
+        );
+    } else {
+        // ready staging / Complete 可在原源文件已删除时继续，不再打开密码提示。
+        let result = resume_vault_import(
+            &app.vault_service,
+            &session,
+            &operation.start.operation_id,
+            source_path.as_deref(),
+            None,
+            &base,
+            &attachment_key,
+        );
+        publish_import_outcome(app, result);
+    }
+}
+
+fn publish_import_outcome(
+    app: &mut App,
+    result: std::result::Result<
+        CoreImportOperationOutcome,
+        solosoul_core::export_import::ExportError,
+    >,
+) {
+    match result {
+        Ok(outcome) if outcome.complete => {
+            app.error_message = None;
+            app.success_message = Some((
+                format!(
+                    "{} {}",
+                    t!(
+                        app.i18n,
+                        "cmd-import-success",
+                        count = outcome.object_write_count.to_string()
+                    ),
+                    t!(
+                        app.i18n,
+                        "cmd-import-complete-operation",
+                        id = outcome.operation_id,
+                        attachments = outcome.attachment_count.to_string()
+                    )
+                ),
+                Instant::now(),
+            ));
+        }
+        Ok(outcome) => {
+            app.success_message = None;
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-import-partial-operation",
+                id = outcome.operation_id,
+                count = outcome.object_write_count.to_string(),
+                attachments = outcome.attachment_count.to_string(),
+                files = outcome.written_file_count.to_string(),
+                err = outcome
+                    .error_code
+                    .unwrap_or_else(|| "import_operation_incomplete".into())
+            ));
+        }
+        Err(error) => app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = error)),
+    }
 }
 
 // ── 参数解析 ──────────────────────────────────────────────
@@ -450,3 +762,6 @@ mod tests {
 
 #[cfg(test)]
 mod rf021_tests;
+
+#[cfg(test)]
+mod rf022_tests;

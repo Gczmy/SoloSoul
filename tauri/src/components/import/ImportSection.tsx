@@ -1,13 +1,20 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
-import type { ImportStrategy, ImportPreview, DecryptedImportPreview } from '@/types/exportImport';
+import type {
+  ImportStrategy,
+  ImportPreview,
+  DecryptedImportPreview,
+  ImportOperationsUi,
+} from '@/types/exportImport';
 
 import { ImportFileSelectorCard } from './ImportFileSelectorCard';
 import { ImportManifestInfoSection } from './ImportManifestInfoSection';
 import { ImportDecryptedSection } from './ImportDecryptedSection';
 import { ImportActionSection } from './ImportActionSection';
+import { ImportPendingOperationsSection } from './ImportPendingOperationsSection';
 
 interface ImportSectionProps {
+  importOperations?: ImportOperationsUi;
   importPath: string;
   importPreview: ImportPreview | null;
   importPw: string;
@@ -48,6 +55,7 @@ interface ImportSectionProps {
  * 均为独立展示子组件；本组件保留卡片外壳与条件渲染编排。
  */
 export function ImportSection({
+  importOperations,
   importPath,
   importPreview,
   importPw,
@@ -87,86 +95,104 @@ export function ImportSection({
         {t('settings:import_desc')}
       </p>
 
-      {/* File selector（P046 拆分：ImportFileSelectorCard） */}
-      <ImportFileSelectorCard
-        importPath={importPath}
-        importPreview={importPreview}
-        isPreviewing={isPreviewing}
-        isImporting={isImporting}
-        onSetImportPath={onSetImportPath}
-        onPreview={onPreview}
-        t={t}
-      />
-
-      {/* Parsed manifest preview */}
-      {importPreview && (
-        <Card>
-          <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
-            {t('settings:import_preview')}
-          </h3>
-
-          {/* 清单信息 + 密码解密（P046 拆分：ImportManifestInfoSection） */}
-          <ImportManifestInfoSection
+      {importOperations && <ImportPendingOperationsSection state={importOperations} />}
+      {!importOperations?.selected && (
+        <>
+          {/* File selector（P046 拆分：ImportFileSelectorCard） */}
+          <ImportFileSelectorCard
+            importPath={importPath}
             importPreview={importPreview}
-            importPw={importPw}
-            isDecrypting={isDecrypting}
+            isPreviewing={isPreviewing}
             isImporting={isImporting}
-            decryptedPreview={decryptedPreview}
-            onSetImportPw={onSetImportPw}
-            onDecrypt={onDecrypt}
+            onSetImportPath={onSetImportPath}
+            onPreview={onPreview}
             t={t}
           />
 
-          {/* Decrypted preview — Page → Object → Attachment tree */}
-          {decryptedPreview && (
-            <>
-              {' '}
-              {/* 解密预览树 + 冲突（P046 拆分：ImportDecryptedSection） */}
-              <ImportDecryptedSection
-                decryptedPreview={decryptedPreview}
-                importSelections={importSelections}
-                importSelectedPageIds={importSelectedPageIds}
-                importSelectedAttachmentIds={importSelectedAttachmentIds}
-                importExpandedPages={importExpandedPages}
-                importExpandedObjects={importExpandedObjects}
-                importTotalSelected={importTotalSelected}
-                importStrategy={importStrategy}
-                objectConflictStrategies={objectConflictStrategies}
-                onToggleSelection={onToggleSelection}
-                onToggleImportPage={onToggleImportPage}
-                onToggleImportAttachment={onToggleImportAttachment}
-                onToggleExpandedImportPage={onToggleExpandedImportPage}
-                onToggleImportObjectExpanded={onToggleImportObjectExpanded}
-                onSelectAllImport={onSelectAllImport}
-                onSetObjectConflictStrategy={onSetObjectConflictStrategy}
-                t={t}
-              />
-              {/* 操作区（P046 拆分：ImportActionSection） */}
-              <ImportActionSection
-                showStrategySelector={showStrategySelector}
-                importStrategy={importStrategy}
-                isImporting={isImporting}
+          {/* Parsed manifest preview */}
+          {importPreview && (
+            <Card>
+              <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
+                {t('settings:import_preview')}
+              </h3>
+
+              {/* 清单信息 + 密码解密（P046 拆分：ImportManifestInfoSection） */}
+              <ImportManifestInfoSection
+                importPreview={importPreview}
                 importPw={importPw}
-                importTotalSelected={importTotalSelected}
-                onSetShowStrategySelector={onSetShowStrategySelector}
-                onSetStrategy={onSetStrategy}
-                onImport={onImport}
+                isDecrypting={isDecrypting}
+                isImporting={isImporting}
+                decryptedPreview={decryptedPreview}
+                onSetImportPw={onSetImportPw}
+                onDecrypt={onDecrypt}
                 t={t}
               />
-            </>
+
+              {/* Decrypted preview — Page → Object → Attachment tree */}
+              {decryptedPreview && (
+                <>
+                  {' '}
+                  {/* 解密预览树 + 冲突（P046 拆分：ImportDecryptedSection） */}
+                  <fieldset
+                    disabled={isImporting}
+                    aria-busy={isImporting}
+                    style={{
+                      border: 0,
+                      padding: 0,
+                      margin: 0,
+                      minInlineSize: 0,
+                      pointerEvents: isImporting ? 'none' : undefined,
+                      opacity: isImporting ? 0.7 : 1,
+                    }}
+                  >
+                    <ImportDecryptedSection
+                      decryptedPreview={decryptedPreview}
+                      importSelections={importSelections}
+                      importSelectedPageIds={importSelectedPageIds}
+                      importSelectedAttachmentIds={importSelectedAttachmentIds}
+                      importExpandedPages={importExpandedPages}
+                      importExpandedObjects={importExpandedObjects}
+                      importTotalSelected={importTotalSelected}
+                      importStrategy={importStrategy}
+                      objectConflictStrategies={objectConflictStrategies}
+                      onToggleSelection={onToggleSelection}
+                      onToggleImportPage={onToggleImportPage}
+                      onToggleImportAttachment={onToggleImportAttachment}
+                      onToggleExpandedImportPage={onToggleExpandedImportPage}
+                      onToggleImportObjectExpanded={onToggleImportObjectExpanded}
+                      onSelectAllImport={onSelectAllImport}
+                      onSetObjectConflictStrategy={onSetObjectConflictStrategy}
+                      t={t}
+                    />
+                  </fieldset>
+                  {/* 操作区（P046 拆分：ImportActionSection） */}
+                  <ImportActionSection
+                    showStrategySelector={showStrategySelector}
+                    importStrategy={importStrategy}
+                    isImporting={isImporting}
+                    importPw={importPw}
+                    importTotalSelected={importTotalSelected}
+                    onSetShowStrategySelector={onSetShowStrategySelector}
+                    onSetStrategy={onSetStrategy}
+                    onImport={onImport}
+                    t={t}
+                  />
+                </>
+              )}
+            </Card>
           )}
-        </Card>
-      )}
-      {importPreview && !decryptedPreview && (
-        <p
-          style={{
-            fontSize: 'var(--text-caption)',
-            color: 'var(--text-tertiary)',
-            textAlign: 'center',
-          }}
-        >
-          {t('settings:password_required_for_decrypt')}
-        </p>
+          {importPreview && !decryptedPreview && (
+            <p
+              style={{
+                fontSize: 'var(--text-caption)',
+                color: 'var(--text-tertiary)',
+                textAlign: 'center',
+              }}
+            >
+              {t('settings:password_required_for_decrypt')}
+            </p>
+          )}
+        </>
       )}
     </>
   );

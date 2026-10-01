@@ -81,7 +81,7 @@ pub struct ImportDatabaseBatch {
     pub objects: Vec<ImportObjectWrite>,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ImportDatabaseCommit {
     pub object_write_count: usize,
     pub object_ids: BTreeSet<String>,
@@ -129,7 +129,7 @@ impl fmt::Display for ImportBatchError {
 
 impl std::error::Error for ImportBatchError {}
 
-fn connection_revision(
+pub(super) fn connection_revision(
     conn: &Connection,
     instance_id: uuid::Uuid,
     account_id: &str,
@@ -145,7 +145,10 @@ fn connection_revision(
     })
 }
 
-fn validate_batch(account_id: &str, batch: &ImportDatabaseBatch) -> Result<(), ImportBatchError> {
+pub(super) fn validate_batch(
+    account_id: &str,
+    batch: &ImportDatabaseBatch,
+) -> Result<(), ImportBatchError> {
     let mut template_ids = BTreeSet::new();
     let mut snapshot_ids = BTreeSet::new();
     for template in &batch.templates {
@@ -182,7 +185,7 @@ fn validate_batch(account_id: &str, batch: &ImportDatabaseBatch) -> Result<(), I
 }
 
 /// 已有同主键不同账户不得由 UPSERT 覆盖；模板计划只能新增。
-fn validate_database_owners(
+pub(super) fn validate_database_owners(
     conn: &Connection,
     account_id: &str,
     batch: &ImportDatabaseBatch,
@@ -233,14 +236,14 @@ fn validate_database_owners(
     Ok(())
 }
 
-struct BatchHlc {
+pub(super) struct BatchHlc {
     node_id: String,
     last_wall_ms: u64,
     now_ms: u64,
 }
 
 impl BatchHlc {
-    fn new(conn: &Connection, node_id: String) -> Result<Self, ImportBatchError> {
+    pub(super) fn new(conn: &Connection, node_id: String) -> Result<Self, ImportBatchError> {
         let max: i64 = conn
             .query_row(
                 "SELECT COALESCE(MAX(wall_time_ms), 0) FROM sync_hlc WHERE node_id = ?1",
@@ -258,7 +261,7 @@ impl BatchHlc {
         })
     }
 
-    fn next(&mut self) -> Result<RecordHlc, ImportBatchError> {
+    pub(super) fn next(&mut self) -> Result<RecordHlc, ImportBatchError> {
         let wall_time_ms = self
             .last_wall_ms
             .checked_add(1)
@@ -277,7 +280,7 @@ impl BatchHlc {
 }
 
 impl VaultStore {
-    fn validate_import_identity(
+    pub(super) fn validate_import_identity(
         &self,
         account_id: &str,
         revision: &ImportBatchRevision,
@@ -539,96 +542,104 @@ impl VaultStore {
         if connection_revision(&tx, self.import_instance_id, account_id)? != *revision {
             return Err(ImportBatchError::StaleView);
         }
-        validate_database_owners(&tx, account_id, batch)?;
-        // 空选择/全部跳过保持原无 HLC 读取边界，但仍校验原 Store、会话和 revision。
-        let Some(node_id) = node_id else {
-            tx.commit().map_err(|_| ImportBatchError::Commit)?;
-            return Ok(ImportDatabaseCommit::default());
-        };
-        let mut hlc = BatchHlc::new(&tx, node_id)?;
-        let mut committed = ImportDatabaseCommit::default();
-        for template in &batch.templates {
-            Self::save_user_template_tx(&tx, &key, template)
-                .map_err(|_| ImportBatchError::Templates)?;
-            Self::set_record_hlc_tx(&tx, "user_templates", &template.id, &hlc.next()?)
-                .map_err(|_| ImportBatchError::Hlc)?;
-            committed.template_ids.insert(template.id.clone());
-        }
-        // 只读取本批对象实际引用的模板；无引用的坏 name 不得新增导入失败。
-        // SQL 本身失败明确回滚，单行 name 类型/UTF-8 错沿用旧 save_object_tx 的无 fallback。
-        let template_names = {
-            let referenced: BTreeSet<String> = batch
-                .objects
-                .iter()
-                .filter_map(|write| write.record.template_id.clone())
-                .collect();
-            let mut names = HashMap::new();
-            if !referenced.is_empty() {
-                let mut statement = tx
-                    .prepare_cached(
-                        "SELECT name FROM user_templates WHERE account_id = ?1 AND id = ?2",
-                    )
-                    .map_err(|_| ImportBatchError::Templates)?;
-                for id in referenced {
-                    let name =
-                        statement.query_row(params![account_id, id], |row| row.get::<_, String>(0));
-                    match name {
-                        Ok(name) => {
-                            names.insert(id, name);
-                        }
-                        Err(rusqlite::Error::QueryReturnedNoRows)
-                        | Err(rusqlite::Error::InvalidColumnType(_, _, _))
-                        | Err(rusqlite::Error::FromSqlConversionFailure(_, _, _)) => {}
-                        Err(_) => return Err(ImportBatchError::Templates),
-                    }
-                }
-            }
-            names
-        };
-        let mut created_snapshot_ids = BTreeSet::new();
-        for write in &batch.objects {
-            Self::save_object_tx(&tx, &key, &write.record, Some(&template_names))
-                .map_err(|_| ImportBatchError::Objects)?;
-            Self::set_record_hlc_tx(&tx, "objects", &write.record.id, &hlc.next()?)
-                .map_err(|_| ImportBatchError::Hlc)?;
-            if matches!(write.history, ImportHistoryChange::Replace(_)) {
-                Self::delete_snapshots_tx(&tx, &write.record.id)
-                    .map_err(|_| ImportBatchError::Snapshots)?;
-            }
-            for snapshot in write.history.snapshots() {
-                Self::save_snapshot_at_tx(
-                    &tx,
-                    &key,
-                    &snapshot.id,
-                    &write.record.id,
-                    &snapshot.triggered_by,
-                    &snapshot.data,
-                    &snapshot.diff_summary,
-                    snapshot.timestamp_ms,
-                )
-                .map_err(|_| ImportBatchError::Snapshots)?;
-                created_snapshot_ids.insert(snapshot.id.clone());
-                committed.snapshot_write_count += 1;
-            }
-            committed.object_write_count += 1;
-            committed.object_ids.insert(write.record.id.clone());
-        }
-        for id in created_snapshot_ids {
-            let exists: bool = tx
-                .query_row(
-                    "SELECT EXISTS(SELECT 1 FROM object_snapshots WHERE id = ?1)",
-                    params![id],
-                    |row| row.get(0),
-                )
-                .map_err(|_| ImportBatchError::Snapshots)?;
-            if exists {
-                committed.snapshot_ids.insert(id);
-            }
-        }
+        let committed = execute_import_batch_tx(&tx, &key, account_id, batch, node_id)?;
         // Transaction::commit 失败或任何早退由 Drop 回滚整个批次。
         tx.commit().map_err(|_| ImportBatchError::Commit)?;
         Ok(committed)
     }
+}
+
+/// RF022 与旧入口共用同一 SQL 写入体；不自行持锁或开启/提交事务。
+pub(super) fn execute_import_batch_tx(
+    conn: &Connection,
+    key: &crate::encryption::DataEncryptionKey,
+    account_id: &str,
+    batch: &ImportDatabaseBatch,
+    node_id: Option<String>,
+) -> Result<ImportDatabaseCommit, ImportBatchError> {
+    validate_database_owners(conn, account_id, batch)?;
+    let Some(node_id) = node_id else {
+        return Ok(ImportDatabaseCommit::default());
+    };
+    let mut hlc = BatchHlc::new(conn, node_id)?;
+    let mut committed = ImportDatabaseCommit::default();
+    for template in &batch.templates {
+        VaultStore::save_user_template_tx(conn, key, template)
+            .map_err(|_| ImportBatchError::Templates)?;
+        VaultStore::set_record_hlc_tx(conn, "user_templates", &template.id, &hlc.next()?)
+            .map_err(|_| ImportBatchError::Hlc)?;
+        committed.template_ids.insert(template.id.clone());
+    }
+    // 只读取本批对象实际引用的模板；无引用的坏 name 不得新增导入失败。
+    // SQL 本身失败明确回滚，单行 name 类型/UTF-8 错沿用旧 save_object_tx 的无 fallback。
+    let template_names = {
+        let referenced: BTreeSet<String> = batch
+            .objects
+            .iter()
+            .filter_map(|write| write.record.template_id.clone())
+            .collect();
+        let mut names = HashMap::new();
+        if !referenced.is_empty() {
+            let mut statement = conn
+                .prepare_cached("SELECT name FROM user_templates WHERE account_id = ?1 AND id = ?2")
+                .map_err(|_| ImportBatchError::Templates)?;
+            for id in referenced {
+                let name =
+                    statement.query_row(params![account_id, id], |row| row.get::<_, String>(0));
+                match name {
+                    Ok(name) => {
+                        names.insert(id, name);
+                    }
+                    Err(rusqlite::Error::QueryReturnedNoRows)
+                    | Err(rusqlite::Error::InvalidColumnType(_, _, _))
+                    | Err(rusqlite::Error::FromSqlConversionFailure(_, _, _)) => {}
+                    Err(_) => return Err(ImportBatchError::Templates),
+                }
+            }
+        }
+        names
+    };
+    let mut created_snapshot_ids = BTreeSet::new();
+    for write in &batch.objects {
+        VaultStore::save_object_tx(conn, key, &write.record, Some(&template_names))
+            .map_err(|_| ImportBatchError::Objects)?;
+        VaultStore::set_record_hlc_tx(conn, "objects", &write.record.id, &hlc.next()?)
+            .map_err(|_| ImportBatchError::Hlc)?;
+        if matches!(write.history, ImportHistoryChange::Replace(_)) {
+            VaultStore::delete_snapshots_tx(conn, &write.record.id)
+                .map_err(|_| ImportBatchError::Snapshots)?;
+        }
+        for snapshot in write.history.snapshots() {
+            VaultStore::save_snapshot_at_tx(
+                conn,
+                key,
+                &snapshot.id,
+                &write.record.id,
+                &snapshot.triggered_by,
+                &snapshot.data,
+                &snapshot.diff_summary,
+                snapshot.timestamp_ms,
+            )
+            .map_err(|_| ImportBatchError::Snapshots)?;
+            created_snapshot_ids.insert(snapshot.id.clone());
+            committed.snapshot_write_count += 1;
+        }
+        committed.object_write_count += 1;
+        committed.object_ids.insert(write.record.id.clone());
+    }
+    for id in created_snapshot_ids {
+        let exists: bool = conn
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM object_snapshots WHERE id = ?1)",
+                params![id],
+                |row| row.get(0),
+            )
+            .map_err(|_| ImportBatchError::Snapshots)?;
+        if exists {
+            committed.snapshot_ids.insert(id);
+        }
+    }
+    Ok(committed)
 }
 
 #[cfg(test)]

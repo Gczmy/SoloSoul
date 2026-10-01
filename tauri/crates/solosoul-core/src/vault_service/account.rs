@@ -340,6 +340,9 @@ impl super::VaultService {
     /// P225: 加载账户配置并派生主密钥（unlock / verify_password 共享前缀收敛）。
     /// 返回 (config, salt_arr, mk, master_key)。
     pub fn delete_account(&self, account_id: &str) -> Result<(), String> {
+        Self::validate_account_id(account_id)?;
+        let _maintenance = crate::import_activity::begin_import_maintenance(self.base_path())?;
+        crate::import_activity::ensure_imports_idle(self.base_path(), Some(account_id))?;
         let dir_rel = self.account_dir_rel(account_id)?;
         self.lock();
         if let Ok(mut cache) = self.accounts_cache.write() {
