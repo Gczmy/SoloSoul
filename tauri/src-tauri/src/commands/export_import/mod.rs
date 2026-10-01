@@ -9,6 +9,7 @@
 use crate::commands::vault_handle;
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
+pub(crate) use solosoul_core::export_import::AttachmentExportScope;
 use solosoul_vault::ObjectSummary;
 use std::collections::{BTreeSet, HashMap};
 use std::fs::File;
@@ -89,6 +90,16 @@ pub struct ExportScope {
     /// 导出全部对象（用于恢复主机等后端流程，前端普通导出保持 false）。
     #[serde(default)]
     pub include_all: bool,
+}
+
+impl ExportScope {
+    /// 只适配既有手动 IPC 字段；启用附件但空 ID 数组仍明确表示零选中。
+    pub(crate) fn attachment_export_scope(&self) -> AttachmentExportScope {
+        AttachmentExportScope::from_manual_selection(
+            self.include_attachments,
+            &self.selected_attachment_ids,
+        )
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -324,8 +335,9 @@ pub(crate) fn load_attachments(
         .unwrap_or_default()
 }
 
-/// 全量后台包收集未删除对象的未删除附件 ID；手动空选择仍表示不选附件。
+/// 仅保留 RF-014 原枚举回归；生产全量后台导出显式使用 AttachmentExportScope::All。
 /// 调用方提供原会话的 Vault，不在枚举过程中重新读取当前账户。
+#[cfg(test)]
 pub(crate) fn collect_all_attachment_ids(
     vault: &solosoul_vault::VaultStore,
     account_id: &str,

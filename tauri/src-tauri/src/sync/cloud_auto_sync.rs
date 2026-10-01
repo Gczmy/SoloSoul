@@ -34,7 +34,7 @@ use tokio::io::AsyncWriteExt;
 use tokio::sync::mpsc;
 
 use crate::commands::export_import::{
-    collect_all_attachment_ids, default_locale, ExportRequest, ExportScope,
+    default_locale, AttachmentExportScope, ExportRequest, ExportScope,
 };
 
 /// 快照文件名后缀（与 build_snapshot_remote_path 保持一致）。
@@ -477,16 +477,15 @@ async fn export_full_snapshot(pre: &CloudPreContext, dest: &Path) -> Result<(), 
         let svc = vs
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        // 只短时校验门闩；全库枚举从原会话读取，不能重新取得当前 Vault。
+        // 只短时校验门闩；附件 All 与对象从原会话一起收集，不重新取得当前 Vault。
         svc.with_session(&session, |_| Ok(()))?;
-        let all_attachment_ids = collect_all_attachment_ids(session.vault(), session.account_id())?;
         let req = ExportRequest {
             scope: ExportScope {
                 selected_page_ids: vec![],
                 selected_object_ids: vec![],
                 selected_tags: vec![],
                 include_attachments: true,
-                selected_attachment_ids: all_attachment_ids,
+                selected_attachment_ids: vec![],
                 include_preferences: true,
                 include_behavioral: false,
                 include_all: true,
@@ -495,7 +494,13 @@ async fn export_full_snapshot(pre: &CloudPreContext, dest: &Path) -> Result<(), 
             password_hint: None,
             save_path: dest_str.clone(),
         };
-        crate::commands::export_import::execute_export_for_session(&svc, &session, &req, &dest_str)
+        crate::commands::export_import::execute_export_for_session_with_attachment_scope(
+            &svc,
+            &session,
+            &req,
+            &dest_str,
+            &AttachmentExportScope::All,
+        )
     })
     .await
     .map_err(|e| format!("导出任务 join 失败: {e}"))?
@@ -1055,10 +1060,48 @@ async fn sweep_stale_temp_snapshots(temp_dir: &Path) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::commands::export_import::collect_all_attachment_ids;
     use std::sync::atomic::AtomicUsize;
 
     mod rf003;
     mod rf014;
+
+    #[tokio::test]
+    async fn rf015_cloud_explicit_all_exports_plain_and_solc_without_manual_ids() {
+        use crate::commands::export_import::tests::rf015::{
+            assert_package, paired_fixture, EXPORT_PASSWORD, OBJECT_ID, PLAIN_BYTES, PLAIN_ID,
+            SOLC_BYTES, SOLC_ID,
+        };
+        let f = paired_fixture();
+        let pre = {
+            let svc = f.service.read().unwrap();
+            CloudPreContext {
+                service: f.service.clone(),
+                session: svc.capture_session(&f.account).unwrap(),
+                account_id: f.account.clone(),
+                config: solosoul_vault::CloudSyncConfig {
+                    snapshot_password: EXPORT_PASSWORD.into(),
+                    ..Default::default()
+                },
+                base_path: svc.base_path().to_path_buf(),
+                device_id: "rf015-cloud-device".into(),
+                emit_event: Arc::new(|_, _| {
+                    panic!("local RF015 export must not contact cloud transport")
+                }),
+                barrier: None,
+            }
+        };
+        let path = f.dir.path().join("cloud-all.solosoul");
+        export_full_snapshot(&pre, &path).await.unwrap();
+        assert_package(
+            &path,
+            &[OBJECT_ID],
+            &[
+                (OBJECT_ID, PLAIN_ID, PLAIN_BYTES),
+                (OBJECT_ID, SOLC_ID, SOLC_BYTES),
+            ],
+        );
+    }
 
     #[tokio::test]
     async fn rf020_cloud_partial_preserves_source_and_waterline() {

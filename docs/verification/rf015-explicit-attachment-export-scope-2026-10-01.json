@@ -1,0 +1,1351 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-015",
+  "status": "validated-local-Windows",
+  "date": "2026-10-01",
+  "baseCommit": "fbdafcf557e887281d8189fc064af7b205246f4b",
+  "repository": "C:\\Users\\40299571\\SoloSoul",
+  "discipline": {
+    "oneTaskOneFixOneVerificationOneCommit": true,
+    "push": false,
+    "otherExistingChangesNotStaged": true
+  },
+  "recordedAt": "2026-10-01T14:51:20.818341+00:00",
+  "requiredChecks": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T14:13:45.636544+00:00",
+      "finishedAt": "2026-10-01T14:13:52.681567+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\r-fmt-r1.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testGroups": [],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [],
+      "executedRf015Tests": [],
+      "rawCheckOutput": null
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T14:13:55.082132+00:00",
+      "finishedAt": "2026-10-01T14:15:44.221063+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\r-clippy-r1.log",
+      "logSha256": "e2315a7dac7880556d8ab5a3832d51cb6a25005cc42601a147293f44e2fb6be9",
+      "testGroups": [],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [],
+      "executedRf015Tests": [],
+      "rawCheckOutput": null
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T14:17:04.921732+00:00",
+      "finishedAt": "2026-10-01T14:30:25.878437+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\r-tests-r1.log",
+      "logSha256": "80e987245707ab22be02344ccc75010f3fc7c56f595382b087016f35a704b4a3",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 710,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 426,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 41,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 17,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 12,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 36,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 100,
+          "failed": 0,
+          "ignored": 2
+        },
+        {
+          "result": "ok",
+          "passed": 85,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 311,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [
+        "test result: ok. 710 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 50.21s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.37s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 426 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 33.97s",
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 41 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s",
+        "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s",
+        "test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.88s",
+        "test result: ok. 100 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 1.68s",
+        "test result: ok. 85 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 121.85s",
+        "test result: ok. 311 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.11s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "executedRf015Tests": [
+        "commands::export_import::tests::rf015::rf015_estimator_preserves_available_selected_and_declared_byte_boundaries",
+        "commands::export_import::tests::rf015::rf015_explicit_all_exports_plain_and_solc_only_inside_selected_objects",
+        "commands::export_import::tests::rf015::rf015_explicit_none_ignores_wire_ids_and_invalid_attachment_metadata",
+        "commands::export_import::tests::rf015::rf015_legacy_wire_payload_stays_readable_with_manual_empty_selection",
+        "commands::export_import::tests::rf015::rf015_manual_disabled_with_ids_and_enabled_empty_both_export_zero_attachments",
+        "commands::export_import::tests::rf015::rf015_typed_core_all_captures_original_session_and_exports_actual_package",
+        "commands::export_import::tests::rf015::rf015_manual_partial_filters_unknown_deleted_and_duplicate_selection_ids",
+        "commands::export_import::tests::rf015::rf015_unselected_oversized_and_outside_paths_do_not_block_valid_selected_attachment",
+        "commands::recovery::rf015_tests::rf015_recovery_empty_all_exports_empty_payload_without_attachment_entries",
+        "commands::recovery::rf015_tests::rf015_recovery_explicit_all_exports_active_plaintext_and_solc_and_preserves_sources",
+        "sync::cloud_auto_sync::tests::rf015_cloud_explicit_all_exports_plain_and_solc_without_manual_ids",
+        "export_import::rf015::rf015_all_and_selected_preserve_full_page_and_object_ranges",
+        "export_import::rf015::rf015_encrypted_source_still_requires_key_only_when_selected",
+        "export_import::rf015::rf015_explicit_scope_preserves_empty_object_selection_error",
+        "export_import::rf015::rf015_explicit_scope_parameterization_decrypts_real_packages",
+        "export_import::rf015::rf015_legacy_bool_api_preserves_none_and_all_real_packages",
+        "export_import::rf015::rf015_unselected_oversize_and_invalid_sources_do_not_affect_selected_bytes"
+      ],
+      "rawCheckOutput": null
+    },
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T14:13:52.809640+00:00",
+      "finishedAt": "2026-10-01T14:13:54.950342+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\cli-fmt-r1.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "testGroups": [],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [],
+      "executedRf015Tests": [],
+      "rawCheckOutput": null
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T14:30:26.104286+00:00",
+      "finishedAt": "2026-10-01T14:31:22.503097+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\cli-clippy-r1.log",
+      "logSha256": "7b5a6d0dc50b146b1158515367fd05df471ad517737de976eb75d46169cf437b",
+      "testGroups": [],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [],
+      "executedRf015Tests": [],
+      "rawCheckOutput": null
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T14:31:22.636740+00:00",
+      "finishedAt": "2026-10-01T14:37:09.328041+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\cli-tests-r1.log",
+      "logSha256": "abc730fbdd918a93d937d4ef51f500e7cc2f770fd292b0f0a9d954d5d638d7d2",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 319,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 5,
+          "failed": 0,
+          "ignored": 1
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1
+        }
+      ],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [
+        "test result: ok. 319 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 301.07s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.38s",
+        "test result: ok. 5 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 12.05s",
+        "test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ],
+      "executedRf015Tests": [
+        "commands::export_import::rf015::rf015_cli_default_attachment_flag_exports_no_files_and_decrypts_records",
+        "commands::export_import::rf015::rf015_cli_include_attachments_exports_all_live_files_of_selected_objects_only",
+        "commands::export_import::rf015::rf015_cli_legacy_include_flag_retains_solc_without_key_error"
+      ],
+      "rawCheckOutput": null
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "run",
+        "check:acl"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T14:32:06.598202+00:00",
+      "finishedAt": "2026-10-01T14:32:13.749065+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\contract-acl-r1.log",
+      "logSha256": "2070a5ec37106dbfb531725114095188d7462c0aae9558eeacd87a9c0b89be8e",
+      "testGroups": [],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [],
+      "executedRf015Tests": [],
+      "rawCheckOutput": "\n> solosoul@2.13.2 check:acl\n> node scripts/run-python-check.cjs scripts/check_acl_consistency.py\n\nOK: 225 个命令均已登记到 ACL 白名单。\nOK: 增量 IPC 契约已迁移 30 个命令，未迁移 195 个命令，登记事件 0 个；不表示全量命令/事件已迁移。\n"
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "run",
+        "check:pref-keys"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T14:32:13.899456+00:00",
+      "finishedAt": "2026-10-01T14:32:14.760431+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\contract-pref-r1.log",
+      "logSha256": "108a5a292db9f29147ac67a2fe97eebedfddaa179e8d2fdfdb2477b8759dd796",
+      "testGroups": [],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [],
+      "executedRf015Tests": [],
+      "rawCheckOutput": "\n> solosoul@2.13.2 check:pref-keys\n> node scripts/run-python-check.cjs scripts/check_pref_keys_sync.py\n\nOK: 白名单与前端 AppSettings 完全一致（22 个 key）\n"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T14:32:14.882091+00:00",
+      "finishedAt": "2026-10-01T14:32:31.541740+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\contract-chunk-r1.log",
+      "logSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc",
+      "testGroups": [],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [],
+      "executedRf015Tests": [],
+      "rawCheckOutput": "[check-markdown-chunk-boundary] OK: 13 个解析/渲染依赖与核心同处 markdown-vendor\n"
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "run",
+        "check:contracts"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T14:50:02.938291+00:00",
+      "finishedAt": "2026-10-01T14:50:19.417176+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\contract-check-r1.log",
+      "logSha256": "f465e67c8b4f5f0aa961e4e523ad5d07010566a890ce6a5048533f2e715bbd71",
+      "testGroups": [],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [],
+      "executedRf015Tests": [],
+      "rawCheckOutput": "\n> solosoul@2.13.2 check:contracts\n> node scripts/generate-ipc-contracts.mjs --check\n\nIPC contracts verified: 30 migrated commands, 195 legacy commands, 0 selected events.\n"
+    },
+    {
+      "command": [
+        "npm.cmd",
+        "run",
+        "test:contracts"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T14:50:19.547042+00:00",
+      "finishedAt": "2026-10-01T14:50:35.316134+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\contract-tests-r1.log",
+      "logSha256": "25b84322542e0766aa82e375b8988cc1844a61a859bddf2fbd47af00aa6b4ca9",
+      "testGroups": [],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [],
+      "executedRf015Tests": [],
+      "rawCheckOutput": "\n> solosoul@2.13.2 test:contracts\n> node --test scripts/generate-ipc-contracts.node.mjs\n\n✔ two real-source generations are byte-identical; check leaves outputs unchanged (3214.1845ms)\n✔ an actual Rust command argument change fails check, and generated arguments reject the old TS call (2933.8829ms)\n✔ missing output fails check without writing files; Rust parsing errors also fail generation (1704.8161ms)\n✔ the actual typed wrapper preserves command and argument correlation across generated commands (1293.5598ms)\n✔ RF302 real object and snapshot contracts reject invalid wire calls through direct and session invokers (2568.4795ms)\n✔ RF306 actual plugin contracts preserve SDK channels, resource handles and nullable wire payloads (2628.0264ms)\nℹ tests 6\nℹ suites 0\nℹ pass 6\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 15112.747\n"
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_check_acl_consistency.py"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T14:50:35.542958+00:00",
+      "finishedAt": "2026-10-01T14:50:36.163775+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\contract-python-r1.log",
+      "logSha256": "bb6b15d38fa839bfd99bd66930f2ce49943a12932a53599c8623f3510d5911e3",
+      "testGroups": [],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [
+        "Ran 12 tests in 0.369s"
+      ],
+      "executedRf015Tests": [],
+      "rawCheckOutput": "............\n----------------------------------------------------------------------\nRan 12 tests in 0.369s\n\nOK\n"
+    }
+  ],
+  "targetedChecks": [
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--lib",
+        "rf015_"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T13:55:59.293112+00:00",
+      "finishedAt": "2026-10-01T13:57:45.673785+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\core-target-r1.log",
+      "logSha256": "c22aa8c4293cabf446def39f67ec361988773a2050609ae34769c78fcecc1d1e",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 6,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "protected14RawUnchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 420 filtered out; finished in 1.82s"
+      ],
+      "executedRf015Tests": [
+        "export_import::rf015::rf015_all_and_selected_preserve_full_page_and_object_ranges",
+        "export_import::rf015::rf015_encrypted_source_still_requires_key_only_when_selected",
+        "export_import::rf015::rf015_explicit_scope_preserves_empty_object_selection_error",
+        "export_import::rf015::rf015_legacy_bool_api_preserves_none_and_all_real_packages",
+        "export_import::rf015::rf015_unselected_oversize_and_invalid_sources_do_not_affect_selected_bytes",
+        "export_import::rf015::rf015_explicit_scope_parameterization_decrypts_real_packages"
+      ],
+      "rawCheckOutput": null
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "rf015_"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T14:05:13.072763+00:00",
+      "finishedAt": "2026-10-01T14:09:49.011668+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\host-target-r1.log",
+      "logSha256": "c45103f8eba320ab0fa105cd57771227e491af136cb6134b6149fe4bfd4b786f",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 11,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "protected14RawUnchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [
+        "test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 699 filtered out; finished in 1.79s"
+      ],
+      "executedRf015Tests": [
+        "commands::export_import::tests::rf015::rf015_estimator_preserves_available_selected_and_declared_byte_boundaries",
+        "commands::export_import::tests::rf015::rf015_typed_core_all_captures_original_session_and_exports_actual_package",
+        "commands::export_import::tests::rf015::rf015_explicit_all_exports_plain_and_solc_only_inside_selected_objects",
+        "commands::export_import::tests::rf015::rf015_manual_partial_filters_unknown_deleted_and_duplicate_selection_ids",
+        "commands::export_import::tests::rf015::rf015_explicit_none_ignores_wire_ids_and_invalid_attachment_metadata",
+        "commands::export_import::tests::rf015::rf015_legacy_wire_payload_stays_readable_with_manual_empty_selection",
+        "commands::export_import::tests::rf015::rf015_manual_disabled_with_ids_and_enabled_empty_both_export_zero_attachments",
+        "commands::recovery::rf015_tests::rf015_recovery_empty_all_exports_empty_payload_without_attachment_entries",
+        "sync::cloud_auto_sync::tests::rf015_cloud_explicit_all_exports_plain_and_solc_without_manual_ids",
+        "commands::export_import::tests::rf015::rf015_unselected_oversized_and_outside_paths_do_not_block_valid_selected_attachment",
+        "commands::recovery::rf015_tests::rf015_recovery_explicit_all_exports_active_plaintext_and_solc_and_preserves_sources"
+      ],
+      "rawCheckOutput": null
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "rf014_"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+      "startedAt": "2026-10-01T14:10:38.998598+00:00",
+      "finishedAt": "2026-10-01T14:10:46.850317+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\rf014-target-r1.log",
+      "logSha256": "194897d4273a91310656858956349e215699a6dd8e034b0578510bf81afc4807",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 8,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 702 filtered out; finished in 2.36s"
+      ],
+      "executedRf015Tests": [],
+      "rawCheckOutput": null
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "rf015_"
+      ],
+      "cwd": "C:\\Users\\40299571\\SoloSoul\\solosoul_cli",
+      "startedAt": "2026-10-01T14:10:46.991607+00:00",
+      "finishedAt": "2026-10-01T14:13:45.386786+00:00",
+      "exitCode": 0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-20261001\\cli-target-r1.log",
+      "logSha256": "98211a949e637fd8f9bf9059b538847650b3b2419e10c984d966ea67483a6cf5",
+      "testGroups": [
+        {
+          "result": "ok",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "result": "ok",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ],
+      "protected14RawUnchanged": true,
+      "sourceFreeze11Unchanged": true,
+      "testEnvironment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "pdfiumSha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+      },
+      "testSummaryLines": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 316 filtered out; finished in 6.59s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s"
+      ],
+      "executedRf015Tests": [
+        "commands::export_import::rf015::rf015_cli_default_attachment_flag_exports_no_files_and_decrypts_records",
+        "commands::export_import::rf015::rf015_cli_include_attachments_exports_all_live_files_of_selected_objects_only",
+        "commands::export_import::rf015::rf015_cli_legacy_include_flag_retains_solc_without_key_error"
+      ],
+      "rawCheckOutput": null
+    }
+  ],
+  "finalSourceFreeze": [
+    {
+      "path": "tauri/crates/solosoul-core/src/export_import.rs",
+      "sha256": "79bdbaff5a9c3c47095b55d5c4b770ed6295a740f8b7a6e75dd4336c9d179489",
+      "baseSha256": "8d826a4d79b13bb1e9be8eba87532ef565c0f3957d8f6080ae537c98b04f4991"
+    },
+    {
+      "path": "tauri/crates/solosoul-core/src/export_import/rf015.rs",
+      "sha256": "a3eda94cfc476d477ddeb8cbac4da748df98456687e57471e91702004c5518cb",
+      "baseSha256": null
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/export_import/mod.rs",
+      "sha256": "cc35cda46604710eceb530d77c05f633d5493dfa2688d6b18bb9aa835ef2ee08",
+      "baseSha256": "585393c98ebc0d399d5d724cede478dd122ce25a93476121045826557d5cc160"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/export_import/export.rs",
+      "sha256": "81a5d23968ec74014780ea5ff158bf825a4642dfd7987b4f3e3f3175890df3b7",
+      "baseSha256": "91ad789e838e7548de7e7d79b19fc9376e92c08c2371312966be88a85f714a56"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/export_import/tests.rs",
+      "sha256": "0945d349f0392d29d5e87da822d8f8fab9e6fafec74b6520d6224309a9bd9763",
+      "baseSha256": "bc47525fda2d6e9b24df3c982c05cf3cd530516b3db9ae4eba65613be816cb4e"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/export_import/tests/rf015.rs",
+      "sha256": "7072a64484e3e0f50ca3e7ff188d14a962a916f5cf704ddc52d0838316a882d4",
+      "baseSha256": null
+    },
+    {
+      "path": "tauri/src-tauri/src/sync/cloud_auto_sync.rs",
+      "sha256": "16c953776f2523e4f230ced04784fe25c7007b48c7ece67e22dfb87a639a9b57",
+      "baseSha256": "b391b7a516dd991b6863dd4bf6fc7f801c47460d57e61802cf9e7243989d946f"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/recovery.rs",
+      "sha256": "75e856504901b3e80b10a0f235ad2916e5acbec86fac0056593a02a06b035ca8",
+      "baseSha256": "3fe862b2344b18e1faefb564794b2a20cba63aa77f5ccbba2c6b0180dec02776"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/recovery/rf015_tests.rs",
+      "sha256": "d309871bb8cd05b0d2615dfd674bdc97f91fc1d43caae256b5900bd130c398c0",
+      "baseSha256": null
+    },
+    {
+      "path": "solosoul_cli/src/commands/export_import.rs",
+      "sha256": "e3004292e9278e550db12bff4af2d6db4eee97b912eee8f8e7d1bb10ad7c2a60",
+      "baseSha256": "7cfbfda84de742dde8fa642ce8f9a073a76884df79f0096d89421a43345c0e64"
+    },
+    {
+      "path": "solosoul_cli/src/commands/export_import/rf015.rs",
+      "sha256": "c5da0c70f61389f8f2222a3e5b30d793cb3b7e7511e9e8bf775c1db6e760bba8",
+      "baseSha256": null
+    }
+  ],
+  "newTestFunctions": [
+    "rf015_explicit_scope_parameterization_decrypts_real_packages",
+    "rf015_all_and_selected_preserve_full_page_and_object_ranges",
+    "rf015_legacy_bool_api_preserves_none_and_all_real_packages",
+    "rf015_unselected_oversize_and_invalid_sources_do_not_affect_selected_bytes",
+    "rf015_encrypted_source_still_requires_key_only_when_selected",
+    "rf015_explicit_scope_preserves_empty_object_selection_error",
+    "rf015_legacy_wire_payload_stays_readable_with_manual_empty_selection",
+    "rf015_manual_disabled_with_ids_and_enabled_empty_both_export_zero_attachments",
+    "rf015_manual_partial_filters_unknown_deleted_and_duplicate_selection_ids",
+    "rf015_explicit_all_exports_plain_and_solc_only_inside_selected_objects",
+    "rf015_explicit_none_ignores_wire_ids_and_invalid_attachment_metadata",
+    "rf015_unselected_oversized_and_outside_paths_do_not_block_valid_selected_attachment",
+    "rf015_estimator_preserves_available_selected_and_declared_byte_boundaries",
+    "rf015_typed_core_all_captures_original_session_and_exports_actual_package",
+    "rf015_cloud_explicit_all_exports_plain_and_solc_without_manual_ids",
+    "rf015_recovery_explicit_all_exports_active_plaintext_and_solc_and_preserves_sources",
+    "rf015_recovery_empty_all_exports_empty_payload_without_attachment_entries",
+    "rf015_cli_default_attachment_flag_exports_no_files_and_decrypts_records",
+    "rf015_cli_include_attachments_exports_all_live_files_of_selected_objects_only",
+    "rf015_cli_legacy_include_flag_retains_solc_without_key_error"
+  ],
+  "newTestsActuallyPassed": 20,
+  "rf014OriginalTestsActuallyPassed": 8,
+  "unchangedExistingRegressions": [
+    {
+      "path": "tauri/src-tauri/src/sync/cloud_auto_sync/tests/rf014.rs",
+      "sha256": "9dd4ed32fe57b273d9749640d10b338e52a8b82b44271a69a75251462dc72d67"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/export_import/tests/rf017.rs",
+      "sha256": "b5a99c2667d432e60047fade17825c0cdf47c518272b5fa3e2ed6f4a12ac32e0"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/export_import/tests/rf025.rs",
+      "sha256": "fb435fb2aa9849c21ca162a3136cc1f8071e641b9bfa1cb7eb5c8794ba25d010"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/export_import/tests/rf022.rs",
+      "sha256": "3f276cdedde0cead57bfa38f0ed1b0030b17f2c3fcb8dadbb27b23e77e38d049"
+    }
+  ],
+  "unchangedContractsAndDependencies": {
+    "tauri/src/lib/generated/ipcContracts.ts": "12538fb034de396c0c8456d9acd7c34c8f5ff45e58f52e44a8e6a96ed20bd05b",
+    "tauri/src/lib/generated/ipcContractManifest.json": "1a8d9a263ae5831a7cf95e6e1ab1be605b2c1cd13eccf9d65a3987a920df1d8e",
+    "tauri/src-tauri/Cargo.toml": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e",
+    "tauri/Cargo.toml": "2b6bb7efb8c19dcf30d412ace48ab59ff81e3834a023e5fa1e6a366bef4d3430",
+    "solosoul_cli/Cargo.toml": "bd732f6b7f039efc1f4f2fc58ac4b63dbf5e103b5dc5b1e9770c36008ca35a96",
+    "tauri/Cargo.lock": "eaecbdecd19fcbeddb9d3d9cf5d216f06e6c56ff32cb84aaeabde21c97d74fd5",
+    "solosoul_cli/Cargo.lock": "22471a02bc24517dbf100732902287e5908a520c5c0e747b62f83d10cb30b71d"
+  },
+  "protectedExistingUnrelatedFiles": [
+    {
+      "path": "solosoul_cli/src/commands/profile.rs",
+      "sha256": "e08c0a7b8c9d9270f5764945494634c75d6d81bcba02cc189487965c81fc4e41",
+      "bytes": 9438
+    },
+    {
+      "path": "solosoul_cli/src/commands/security.rs",
+      "sha256": "0133f1ca219910c364dba4a2792452cfb88b05a133243f45765703cbbe146104",
+      "bytes": 19017
+    },
+    {
+      "path": "solosoul_cli/src/commands/template.rs",
+      "sha256": "ed2c08ee422ca9365415723875289cdad12ee2b92746a99a8c46eccac0ad7f95",
+      "bytes": 7433
+    },
+    {
+      "path": "solosoul_cli/src/commands/vault_write.rs",
+      "sha256": "48cb640caca661c289897d9d99a6a8cf4b13bb16abe05b5123fbc30b3bc7a16e",
+      "bytes": 35110
+    },
+    {
+      "path": "tauri/crates/solosoul-core/src/process_lock.rs",
+      "sha256": "48ebf0045f85980ebfc6e0a9ee52d72d2bb394e6f8b12d7107a2362f0d637c34",
+      "bytes": 2694
+    },
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/header-install.bmp",
+      "sha256": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+      "bytes": 25818
+    },
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp",
+      "sha256": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+      "bytes": 25818
+    },
+    {
+      "path": "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp",
+      "sha256": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+      "bytes": 154542
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json",
+      "sha256": "d1f8f2db3d8aad53e1b955d3fc640374752db1c302d2f2c22d74e9ed356b428f",
+      "bytes": 61768
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/search-index.json",
+      "sha256": "cd4beaf09aeda37039a6523e6b86d01374dcced507278a1e76d41bd473b4e8fb",
+      "bytes": 252821
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/tauri.properties",
+      "sha256": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+      "bytes": 133
+    },
+    {
+      "path": "tauri/src/hooks/useToastError.ts",
+      "sha256": "f2da44c3ca3fb50e379051ba762b1712ec19dfa21f9321ecaee3f9ef4fa33968",
+      "bytes": 1278
+    },
+    {
+      "path": "tauri/tools/ipc-contract-gen/src/lib.rs",
+      "sha256": "c682c7af5fe3d0432bef16223aa0c1da0370a8e83f5de859d509f6819199ec77",
+      "bytes": 15007
+    },
+    {
+      "path": "tauri/tools/ipc-contract-gen/tests/contracts.rs",
+      "sha256": "9377b9d40c3cd867a70bb0926a617745fca6c037cb9cdbe3a2f6b523c52bd9eb",
+      "bytes": 21982
+    }
+  ],
+  "independentReviews": [
+    {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-review-20261001\\host-cloud-independent-review.json",
+      "sha256": "dac951a5e629380ca1fa326860f7d35f36deb05b89602b1aa4a6594a6d94f749",
+      "record": {
+        "task": "RF-015 independent Host / Cloud integration review",
+        "reviewMode": "Read-only static review of current repository bytes and frozen TEMP baseline/candidate bytes.",
+        "repository": "C:\\Users\\40299571\\SoloSoul",
+        "frozenManifest": {
+          "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-host-proposal-20261001\\manifest.json",
+          "sha256": "e291118ec04828926a528eb1759ad7a7bd808b5283e215436bf04d0704936c9a"
+        },
+        "verdict": "No newly introduced must-fix or unexplained drift found in reviewed RF-015 Host/Cloud integration; suitable for Root single-queue verification.",
+        "mustFix": [],
+        "files": [
+          {
+            "path": "tauri/src-tauri/src/commands/export_import/mod.rs",
+            "baselineSha256": "585393c98ebc0d399d5d724cede478dd122ce25a93476121045826557d5cc160",
+            "candidateSha256": "cc35cda46604710eceb530d77c05f633d5493dfa2688d6b18bb9aa835ef2ee08",
+            "currentSha256": "cc35cda46604710eceb530d77c05f633d5493dfa2688d6b18bb9aa835ef2ee08",
+            "differenceFromFrozen": "exact"
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/export_import/export.rs",
+            "baselineSha256": "91ad789e838e7548de7e7d79b19fc9376e92c08c2371312966be88a85f714a56",
+            "candidateSha256": "81a5d23968ec74014780ea5ff158bf825a4642dfd7987b4f3e3f3175890df3b7",
+            "currentSha256": "81a5d23968ec74014780ea5ff158bf825a4642dfd7987b4f3e3f3175890df3b7",
+            "differenceFromFrozen": "exact"
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/export_import/tests.rs",
+            "baselineSha256": "bc47525fda2d6e9b24df3c982c05cf3cd530516b3db9ae4eba65613be816cb4e",
+            "candidateSha256": "0945d349f0392d29d5e87da822d8f8fab9e6fafec74b6520d6224309a9bd9763",
+            "currentSha256": "0945d349f0392d29d5e87da822d8f8fab9e6fafec74b6520d6224309a9bd9763",
+            "differenceFromFrozen": "exact"
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/export_import/tests/rf015.rs",
+            "baselineSha256": null,
+            "candidateSha256": "06136b9acd65db1cc080bd421e6ecc7a173afc67040caeebc95502a7f69351ed",
+            "currentSha256": "7072a64484e3e0f50ca3e7ff188d14a962a916f5cf704ddc52d0838316a882d4",
+            "differenceFromFrozen": "Reviewed rustfmt only: import reorder, line wrapping, optional trailing commas, expression closure brace wrapping; all literals/conditions/assertions retained."
+          },
+          {
+            "path": "tauri/src-tauri/src/sync/cloud_auto_sync.rs",
+            "baselineSha256": "b391b7a516dd991b6863dd4bf6fc7f801c47460d57e61802cf9e7243989d946f",
+            "candidateSha256": "3e04f17453e68fe31a32dcab9da5073f7764b6117367bea999da0cd2fc2375ae",
+            "currentSha256": "16c953776f2523e4f230ced04784fe25c7007b48c7ece67e22dfb87a639a9b57",
+            "differenceFromFrozen": "Reviewed rustfmt only: import reorder, line wrapping, optional trailing commas, expression closure brace wrapping; all literals/conditions/assertions retained."
+          }
+        ],
+        "auxiliarySourceHashes": [
+          {
+            "path": "tauri/src-tauri/src/sync/cloud_auto_sync/tests/rf014.rs",
+            "sha256": "9dd4ed32fe57b273d9749640d10b338e52a8b82b44271a69a75251462dc72d67"
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/export_import/tests/rf017.rs",
+            "sha256": "b5a99c2667d432e60047fade17825c0cdf47c518272b5fa3e2ed6f4a12ac32e0"
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/export_import/tests/rf025.rs",
+            "sha256": "fb435fb2aa9849c21ca162a3136cc1f8071e641b9bfa1cb7eb5c8794ba25d010"
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/export_import/tests/rf020.rs",
+            "sha256": "4bdd4b06d2a13eb0d3c88ae704c9e401a98b716ac0be31c6c8b2c6d327b2e376"
+          },
+          {
+            "path": "tauri/crates/solosoul-vault/src/storage/objects.rs",
+            "sha256": "c89fe62d2456af2a3e36cca571dbd5cd272277898462cd296ed0e134fb09e13c"
+          },
+          {
+            "path": "tauri/crates/solosoul-core/src/export_import.rs",
+            "sha256": "79bdbaff5a9c3c47095b55d5c4b770ed6295a740f8b7a6e75dd4336c9d179489"
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/recovery.rs",
+            "sha256": "75e856504901b3e80b10a0f235ad2916e5acbec86fac0056593a02a06b035ca8"
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/export_import/helpers.rs",
+            "sha256": "aca9642251ab1219ef4082d0a31d26ab78dc680f9fdba9b492b048ed0117e5fa"
+          }
+        ],
+        "wirePreservation": [
+          {
+            "type": "ExportScope",
+            "exactBaselineTextPreserved": true,
+            "textSha256": "524b7b9a1cda6579c13afa4d325ae50be53f40e94a2dac8f2c7bbba882a9fd22"
+          },
+          {
+            "type": "ExportRequest",
+            "exactBaselineTextPreserved": true,
+            "textSha256": "9e70dc81f3727b4d2dcbffe45a142584fa329c0172fda53545514287a99f9ddb"
+          },
+          {
+            "type": "ExportEstimate",
+            "exactBaselineTextPreserved": true,
+            "textSha256": "f7f6945b76ceae982e6b788be66caf28e60ef10736a19db112a5d2e738aca7cc"
+          }
+        ],
+        "unchangedCriticalRegions": [
+          {
+            "region": "validate_export_password",
+            "exactBaselineTextPreserved": true,
+            "textSha256": "ce0224e4c03a14a76bab1bc0e7c59c35d6e20a99afd97d477ba5c98debebd4f8"
+          },
+          {
+            "region": "build_manifest_json",
+            "exactBaselineTextPreserved": true,
+            "textSha256": "b1b4bc97fa1c08cd0ff414516dfdbcab861f0ee047149ede3f128ffa4779609a"
+          },
+          {
+            "region": "ExportJob_and_run_export_job",
+            "exactBaselineTextPreserved": true,
+            "textSha256": "d353224cb812fb291e2f7f940f3895b3a37d3e9e452670ba03a87856a44c726e"
+          },
+          {
+            "region": "finalize_export_for_session",
+            "exactBaselineTextPreserved": true,
+            "textSha256": "e41a63199e8fa82fcf643772e6c9bf8c9e68651484e7726800f7f5970debe822"
+          },
+          {
+            "region": "write_scope_extra_files",
+            "exactBaselineTextPreserved": true,
+            "textSha256": "58901788891621d4feb6a1954dc8c6501a232dfa1ea9e0f5851da24b8186f0f3"
+          },
+          {
+            "region": "payload_history_serialization",
+            "exactBaselineTextPreserved": true,
+            "textSha256": "82fa1687acad39f9b7655a5e73440165e2b6dc552b6fe9de54793c38e1aa4681"
+          }
+        ],
+        "oldTestsPreserved": {
+          "hostTestsRsOnlyNewModuleRegistration": true,
+          "rf014": {
+            "sha256": "9dd4ed32fe57b273d9749640d10b338e52a8b82b44271a69a75251462dc72d67",
+            "frozenManifestHashMatched": true,
+            "originalEightTestsIntact": true
+          },
+          "rf017AndRf025": "Read complete current files; read-only git diff --numstat against HEAD exited 0 with no changes for all three RF014/017/025 paths. Corrupt SOLC, output finish/sync/persist fault, size limit, expired same-account publication, Windows locked target and true blocking queue barriers remain intact.",
+          "rf017Helpers": "Read actual fault-injecting FailingFile tests: Write/next-entry-close/finish Write+Seek/Flush+Sync, real persist failure all preserve exact target and clean temporary output. Read-only git diff --numstat against HEAD exits 0/no changes for helpers.rs."
+        },
+        "findings": [
+          {
+            "scope": "wire/manual",
+            "conclusion": "ExportScope, ExportRequest, ExportEstimate original field/default/serde text is exact. bool false with IDs -> None; bool true with [] -> Selected(empty). Existing JSON with includeAll absent deserializes default false and real encrypted package remains zero attachments."
+          },
+          {
+            "scope": "collector/estimator",
+            "conclusion": "Host entry adapts once; both helpers consume shared AttachmentExportScope. None returns early. Selected filters ID before size/path guard, preserves deletedAt filter and metadata byte estimate. Selected(empty) available count retained while selected/bytes zero. All traverses only supplied records; no additional object lookup or ID enumeration."
+          },
+          {
+            "scope": "session/active records",
+            "conclusion": "Cloud freezes original VaultSession and service into existing blocking closure, passes explicit All and empty wire IDs. Recovery typed API captures once. Both internal full-account callers use include_all and original session.vault(), whose list_object_records query includes account_id and is_deleted=0. Attachment deletedAt remains excluded. Typed All changes attachment scope only; inherited selected-object semantics are unchanged."
+          },
+          {
+            "scope": "publication/security",
+            "conclusion": "Original session attachment key, password validation + post-validation session check, size/path checks, ZIP temporary publication and finalize_export_for_session original session gate are preserved. Finalize/password/extra/payload/history/ExportJob exact-region comparisons passed. Old helper names remain cfg(test), actual Recovery now uses typed entry."
+          },
+          {
+            "scope": "new test evidence",
+            "conclusion": "9 new tests: 8 exercise actual encrypted ZIPs with payload object identity/body, complete attachment-entry set and HKDF attachment plaintext equality; 1 exercises real SQLite records and estimator counts/declared byte matrix. No exporter/SQL mocks. Cloud test calls actual export_full_snapshot without transport. Existing RF014 import roundtrip and deleted/empty/expired cases remain intact."
+          }
+        ],
+        "newTests": [
+          "rf015_legacy_wire_payload_stays_readable_with_manual_empty_selection",
+          "rf015_manual_disabled_with_ids_and_enabled_empty_both_export_zero_attachments",
+          "rf015_manual_partial_filters_unknown_deleted_and_duplicate_selection_ids",
+          "rf015_explicit_all_exports_plain_and_solc_only_inside_selected_objects",
+          "rf015_explicit_none_ignores_wire_ids_and_invalid_attachment_metadata",
+          "rf015_unselected_oversized_and_outside_paths_do_not_block_valid_selected_attachment",
+          "rf015_estimator_preserves_available_selected_and_declared_byte_boundaries",
+          "rf015_typed_core_all_captures_original_session_and_exports_actual_package",
+          "rf015_cloud_explicit_all_exports_plain_and_solc_without_manual_ids"
+        ],
+        "lineReferences": {
+          "tauri/src-tauri/src/commands/export_import/mod.rs": {
+            "impl ExportScope": 95,
+            "if scope.include_all": 372
+          },
+          "tauri/src-tauri/src/commands/export_import/export.rs": {
+            "pub(super) fn estimate_attachments": 268,
+            "fn collect_attachment_entries": 420,
+            "pub(crate) fn execute_export_core_with_attachment_scope": 622,
+            "pub(crate) fn execute_export_for_session_with_attachment_scope": 645,
+            "pub(super) fn finalize_export_for_session": 752
+          },
+          "tauri/src-tauri/src/sync/cloud_auto_sync.rs": {
+            "async fn export_full_snapshot": 470,
+            "async fn rf015_cloud_explicit_all_exports_plain_and_solc_without_manual_ids": 1070
+          },
+          "tauri/crates/solosoul-vault/src/storage/objects.rs": {
+            "pub fn list_object_records": 1181
+          }
+        },
+        "executionBoundary": {
+          "cargoRunByReviewer": false,
+          "testsRunByReviewer": false,
+          "formatterRunByReviewer": false,
+          "repositoryOrCandidatesModified": false,
+          "readonlyGitDiff": "First default-sandbox Git read could not see C repo metadata and returned usage; escalated read-only diff then exited 0 with no changes. No Git writes occurred.",
+          "notClaimed": "Compilation/test success, platform runtime behavior or general export lifecycle audit outside RF-015. Root owns actual check queue; this JSON proves static byte review only."
+        }
+      }
+    },
+    {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf015-independent-core-recovery-cli-review-20261001\\review.json",
+      "sha256": "f4ac3774284b5318165586fffab02b264e7f63c863536b6171f7d2c5fa8b6980",
+      "record": {
+        "task": "RF-015 independent final Core / Recovery / CLI source review",
+        "repository": "C:\\Users\\40299571\\SoloSoul",
+        "declaredBaselineHead": "fbdafcf557e887281d8189fc064af7b205246f4b",
+        "date": "2026-10-01",
+        "reviewer": "/root/native_perf_review",
+        "result": "passed_read_only_source_review",
+        "mustFixFindings": [],
+        "files": [
+          {
+            "path": "tauri/crates/solosoul-core/src/export_import.rs",
+            "bytes": 107010,
+            "sha256": "79BDBAFF5A9C3C47095B55D5C4B770ED6295A740F8B7A6E75DD4336C9D179489"
+          },
+          {
+            "path": "tauri/crates/solosoul-core/src/export_import/rf015.rs",
+            "bytes": 16699,
+            "sha256": "A3EDA94CFC476D477DDEB8CBAC4DA748DF98456687E57471E91702004C5518CB"
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/recovery.rs",
+            "bytes": 26173,
+            "sha256": "75E856504901B3E80B10A0F235AD2916E5ACBEC86FAC0056593A02A06B035CA8"
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/recovery/rf015_tests.rs",
+            "bytes": 9635,
+            "sha256": "D309871BB8CD05B0D2615DFD674BDC97F91FC1D43CAAE256B5900BD130C398C0"
+          },
+          {
+            "path": "solosoul_cli/src/commands/export_import.rs",
+            "bytes": 28184,
+            "sha256": "E3004292E9278E550DB12BFF4AF2D6DB4EEE97B912EEE8F8E7D1BB10AD7C2A60"
+          },
+          {
+            "path": "solosoul_cli/src/commands/export_import/rf015.rs",
+            "bytes": 12424,
+            "sha256": "C5DA0C70F61389F8F2222A3E5B30D793CB3B7E7511E9E8BF775C1DB6E760BBA8"
+          }
+        ],
+        "facts": [
+          {
+            "location": "tauri/crates/solosoul-core/src/export_import.rs:92-124,323-355",
+            "conclusion": "AttachmentExportScope matches the frozen None/All/Selected(HashSet<String>) contract. Disabled manual selection is None; enabled empty selection is Selected(empty). Legacy export_vault maps its bool only through from_all_flag, preserving old None/All semantics; the explicit entry ignores the legacy bool."
+          },
+          {
+            "location": "tauri/crates/solosoul-core/src/export_import.rs:1253-1288",
+            "conclusion": "None returns before attachment metadata consumption. Selected membership and soft-deletion filtering precede size/path/source handling. All remains bounded by records selected by the original full/page/object policy."
+          },
+          {
+            "location": "tauri/src-tauri/src/commands/recovery.rs:142-181",
+            "conclusion": "Recovery removes attachment-ID pre-enumeration and invokes the typed Host entry with All. The original owned root Activity, exact Vault not unlocked precheck, private TempPath and explicit req.password.zeroize before propagating the result remain. Other Recovery receive/session/owner paths are byte-preserved by the baseline diff."
+          },
+          {
+            "location": "tauri/src-tauri/src/commands/export_import/export.rs:622-658",
+            "conclusion": "The related typed helper captures one account-matching VaultSession and delegates to the fixed-session business function. Attachment key extraction and with_session check remain. This read was limited to confirming the Recovery call chain."
+          },
+          {
+            "location": "solosoul_cli/src/commands/export_import.rs:51-130,769-770",
+            "conclusion": "The complete prior CLI source is an exact byte prefix of the final file. Its only change is cfg(test) rf015 registration. The existing real masked password handler still calls legacy export_vault; no CLI parser, production response, session policy or runtime migration was introduced."
+          }
+        ],
+        "assertionPreservation": {
+          "coreExistingTestsExactAfterTwoHelperVisibilityChanges": true,
+          "recoveryExistingTestsAndRf022RegistrationExact": true,
+          "cliExistingWholeSourceExactPrefix": true,
+          "newTestsFinalComparedToFrozenCandidate": "Only formatting, the Core test-module description and Core import ordering differ; token comparison preserves string literals and ignores comments/formatting/trailing delimiter commas.",
+          "newAssertionMacroCounts": {
+            "core": 22,
+            "recovery": 16,
+            "cli": 31
+          },
+          "newTestsContainIgnoreAttributes": false
+        },
+        "meaningfulRegressionCoverage": [
+          {
+            "path": "tauri/crates/solosoul-core/src/export_import/rf015.rs",
+            "testCount": 6,
+            "evidence": "Actual SQLite and encrypted ZIP decryptions cover None/All/Selected(empty/nonempty), unknown/deleted/duplicate/out-of-object requested IDs, full/page/object scope, unchanged legacy bool, audit effects, unselected oversize/invalid source filtering, real SOLC selected versus unselected behavior, and the existing empty-object error."
+          },
+          {
+            "path": "tauri/src-tauri/src/commands/recovery/rf015_tests.rs",
+            "testCount": 2,
+            "evidence": "Actual owned Vault/session attachment key and encrypt_file_stream produce a local SOLC source beside plaintext sources. The recovery package is decrypted using its manifest KDF and attachment HKDF, exact ZIP names and plaintext bytes are checked, deleted object/attachment payloads are excluded, sources remain byte-exact, and TempPath removal/empty-account export are checked. The old exact locked and same-master-password tests are unchanged."
+          },
+          {
+            "path": "solosoul_cli/src/commands/export_import/rf015.rs",
+            "testCount": 3,
+            "evidence": "Actual CLI handle/prompt key events verify masked password input and auto-lock pause/resume. Real output packages are imported into a distinct temporary Vault and their object bodies, selected-object-only active attachment count, SOLC destination bytes and decrypted contents are checked. The existing encrypted-source-without-key error remains explicit; no mock exporter/importer replaces the production path."
+          }
+        ],
+        "limits": [
+          "No Cargo, tests, build, formatter, Git mutation, GUI, network recovery host or real user Vault was executed by this reviewer.",
+          "This is source review, not a claim that Host/Recovery/CLI tests have already passed; final checks belong to the root Agent. Core 6 passing tests were reported by the root Agent, not executed by this reviewer.",
+          "The CLI legacy API still cannot export selected local SOLC attachments without an attachment key. This pre-existing limitation is preserved and covered; it is not presented as fixed by RF-015.",
+          "No native UI, transport interoperability, macOS/Unix/Android/iOS runtime or performance validation is claimed."
+        ]
+      }
+    }
+  ],
+  "ownedPaths": [
+    "tauri/crates/solosoul-core/src/export_import.rs",
+    "tauri/crates/solosoul-core/src/export_import/rf015.rs",
+    "tauri/src-tauri/src/commands/export_import/mod.rs",
+    "tauri/src-tauri/src/commands/export_import/export.rs",
+    "tauri/src-tauri/src/commands/export_import/tests.rs",
+    "tauri/src-tauri/src/commands/export_import/tests/rf015.rs",
+    "tauri/src-tauri/src/sync/cloud_auto_sync.rs",
+    "tauri/src-tauri/src/commands/recovery.rs",
+    "tauri/src-tauri/src/commands/recovery/rf015_tests.rs",
+    "solosoul_cli/src/commands/export_import.rs",
+    "solosoul_cli/src/commands/export_import/rf015.rs",
+    "docs/design_map/16_导入导出功能设计.md",
+    "docs/design_map/18_云打包与云同步功能实施记录.md",
+    "docs/attachment-storage-spec.md",
+    "docs/solosoul_cli/USER_GUIDE.md",
+    "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+    "docs/verification/rf015-explicit-attachment-export-scope-2026-10-01.json"
+  ],
+  "implementation": {
+    "singleScope": "Core AttachmentExportScope::None/All/Selected(HashSet<String>)",
+    "manualAdapter": "false -> None; true -> Selected(ids); true+[] -> Selected(empty)",
+    "legacyCoreCliAdapter": "false -> None; true -> All of already selected active objects",
+    "cloudAndRecovery": "explicit All; no production ID pre-enumeration",
+    "collectorsAndEstimator": "only typed scope; unselected IDs filtered before size/path handling; deleted items excluded",
+    "estimatorEmptySelection": "available active metadata count remains visible, selected count/bytes zero",
+    "ipcWire": "ExportScope/Request/Estimate fields, camelCase, includeAll default unchanged; no generated contract changes",
+    "originalProtections": "format/KDF/key domain/size caps/source paths/original Session/owner/TempPath/atomic Host publication retained"
+  },
+  "boundaries": {
+    "guiCoreFullUseCase": "RF-023 remains pending; this item does not consolidate full orchestration",
+    "legacyCliSolc": "existing explicit missing source key error retained and real handler tested",
+    "legacyCoreOutput": "no new atomicity promise for existing compatibility API",
+    "metadataAndMissingSources": "existing lenient parsing and missing-file behavior retained",
+    "platforms": "Windows local tests; no native macOS/iOS/Android or visible UI checks required/performed for this item",
+    "remoteCloud": "synthetic local Vault + real encrypted packages only, no remote cloud connection"
+  },
+  "toolingCorrection": {
+    "firstCandidateApply": "TEMP helper used unsupported encoding name utf8-sig; failed before any repository write",
+    "correctedEncoding": "utf-8-sig",
+    "notAProductFailure": true
+  },
+  "finalDocumentationAndScopeCheck": {
+    "newLocalLinks": [
+      {
+        "source": "docs/design_map/16_导入导出功能设计.md",
+        "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-023",
+        "exists": true
+      },
+      {
+        "source": "docs/design_map/16_导入导出功能设计.md",
+        "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-015",
+        "exists": true
+      },
+      {
+        "source": "docs/design_map/16_导入导出功能设计.md",
+        "target": "../verification/rf015-explicit-attachment-export-scope-2026-10-01.json",
+        "exists": true
+      },
+      {
+        "source": "docs/design_map/18_云打包与云同步功能实施记录.md",
+        "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-014",
+        "exists": true
+      },
+      {
+        "source": "docs/design_map/18_云打包与云同步功能实施记录.md",
+        "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-015",
+        "exists": true
+      },
+      {
+        "source": "docs/design_map/18_云打包与云同步功能实施记录.md",
+        "target": "../verification/rf015-explicit-attachment-export-scope-2026-10-01.json",
+        "exists": true
+      },
+      {
+        "source": "docs/attachment-storage-spec.md",
+        "target": "REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-014",
+        "exists": true
+      },
+      {
+        "source": "docs/attachment-storage-spec.md",
+        "target": "REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-015",
+        "exists": true
+      },
+      {
+        "source": "docs/attachment-storage-spec.md",
+        "target": "verification/rf015-explicit-attachment-export-scope-2026-10-01.json",
+        "exists": true
+      },
+      {
+        "source": "docs/solosoul_cli/USER_GUIDE.md",
+        "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-023",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "#rf-015",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "#rf-014",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "verification/rf015-explicit-attachment-export-scope-2026-10-01.json",
+        "exists": true
+      },
+      {
+        "source": "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+        "target": "verification/rf015-explicit-attachment-export-scope-2026-10-01.json",
+        "exists": true
+      }
+    ],
+    "linkCount": 14,
+    "gitDiffCheckExit": 0,
+    "protected14RawUnchanged": true,
+    "source11Unchanged": true,
+    "indexBeforeEmpty": true,
+    "owned17Exist": true
+  },
+  "finalDocumentationHashes": {
+    "docs/design_map/16_导入导出功能设计.md": "2e92d2232fe62b968e4601f170a4a8225a9fa53849ef7d26a8c512c8874207c1",
+    "docs/design_map/18_云打包与云同步功能实施记录.md": "dc45aade7d83570c5e6a4cf51839e0f663cf812229702b0cbdd580f8d501211f",
+    "docs/attachment-storage-spec.md": "a1c819f0834f6fd4b8fe99631ba96c728f29035954baa65aaf47fbc131b22bbd",
+    "docs/solosoul_cli/USER_GUIDE.md": "d0018667c12349940c340d9720447703ddeddeb1fe9ec7a5a51aacf5838b81ef",
+    "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md": "110c42368133e05e1867b64bef54df2952d6a0f4be718d6d9e325977ef30499d"
+  }
+}

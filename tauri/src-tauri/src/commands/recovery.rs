@@ -4,10 +4,11 @@
 //! 加密通道传送给新设备；新设备创建同名账户后导入数据，从而保证
 //! `account_id` 一致，后续可直接使用 Device Sync。
 
-use crate::commands::export_import::export::execute_export_core;
+use crate::commands::export_import::export::execute_export_core_with_attachment_scope;
 use crate::commands::export_import::import_execute_resumable_for_session;
 use crate::commands::export_import::{default_locale, ExportRequest, ExportScope, ImportStrategy};
 use crate::state::AppState;
+use solosoul_core::export_import::AttachmentExportScope;
 use solosoul_core::vault_service::{VaultService, VaultSession};
 use solosoul_sync::recovery::{generate_recovery_password, recover_from_host, RecoveryHost};
 use solosoul_vault::ImportSourceKind;
@@ -144,9 +145,7 @@ fn export_recovery_package(
     recovery_password: &str,
 ) -> Result<tempfile::TempPath, String> {
     let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
-    let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let all_attachment_ids =
-        crate::commands::export_import::collect_all_attachment_ids(&vault, account_id)?;
+    svc.get_vault_store().ok_or("Vault not unlocked")?;
     // NamedTempFile 原子创建随机文件（Unix 0600）。先关闭文件句柄，兼容 Windows 重开写入。
     let export_file = tempfile::Builder::new()
         .prefix("solosoul-recovery-")
@@ -161,7 +160,7 @@ fn export_recovery_package(
             selected_object_ids: Vec::new(),
             selected_tags: Vec::new(),
             include_attachments: true,
-            selected_attachment_ids: all_attachment_ids,
+            selected_attachment_ids: Vec::new(),
             include_preferences: true,
             include_behavioral: false,
             include_all: true,
@@ -170,7 +169,13 @@ fn export_recovery_package(
         password_hint: Some("Recovery transfer".to_string()),
         save_path: export_path.clone(),
     };
-    let result = execute_export_core(svc, account_id, &req, &export_path);
+    let result = execute_export_core_with_attachment_scope(
+        svc,
+        account_id,
+        &req,
+        &export_path,
+        &AttachmentExportScope::All,
+    );
     req.password.zeroize();
     result?;
     Ok(export_file)
@@ -728,3 +733,7 @@ mod tests {
 #[cfg(test)]
 #[path = "recovery/rf022_tests.rs"]
 mod rf022_tests;
+
+#[cfg(test)]
+#[path = "recovery/rf015_tests.rs"]
+mod rf015_tests;

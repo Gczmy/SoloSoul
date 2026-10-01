@@ -126,12 +126,14 @@ GUI 和 CLI 已共用备份编解码规则（RF-013），CLI 创建仍为 2.0/�
 
 | 命令 | 说明 |
 |------|------|
-| `/export` | 加密 ZIP 导出（`.solosoul`，包含 `manifest.json`、`payload.enc`、可选 `attachments/`） |
+| `/export [包路径] --full\|--pages <分类列表>\|--objects <对象ID列表> [--include-attachments]` | 加密 ZIP 导出（`.solosoul`，包含 `manifest.json`、`payload.enc`、可选 `attachments/`；列表使用逗号分隔） |
 | `/import <包路径> [--preview] [--strategy skip\|overwrite\|merge]` | 导入或预览 `.solosoul` 包 |
 | `/import --pending` | 查看当前账户未完成的导入任务 |
 | `/import --resume <任务ID> [同一导入包路径]` | 继续原任务的附件及偏好处理 |
 
 导出密码通过模态提示采集，**不允许与主密码**相同。
+
+默认不导出附件文件；`--include-attachments` 表示导出所选对象中的全部未删除附件，未选对象的附件不会进入包。范围在共享 Core 入口映射为 `AttachmentExportScope::None/All`，与 GUI 手动空数组的零选择契约分别适配（RF-015）。当前 CLI 导出兼容入口未传入 Vault 附件密钥，选择 SOLC 静态密文会明确报错；完整导出用例和会话密钥接入仍由 [RF-023](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-023) 承接。
 
 导入中断后，对象记录可能已提交，附件或偏好仍待处理。重新解锁原账户，使用 `/import --pending` 查看任务，再按原 ID 继续。续接按需索取同一包及包密码，并核对包内容；已保存就绪材料或已完成的任务无需源包和密码。续接不能更改策略或选择。续接时若路径包含空格，可省略路径参数，在提示框输入。已写文件数与可用附件数分别统计；文件发布后，附件元数据仍可能待提交。
 

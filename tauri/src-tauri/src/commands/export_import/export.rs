@@ -224,26 +224,11 @@ pub async fn export_estimate_size(
     let name_bytes: u64 = records.iter().map(|r| r.name.len() as u64).sum();
     let mut estimated_bytes: u64 = props_bytes + name_bytes + (records.len() as u64 * 256);
 
-    // Estimate attachments (only explicitly selected attachment IDs are counted)
-    let mut attachment_count = 0usize;
-    let mut attachment_selected_count = 0usize;
-    if scope.include_attachments {
-        let selected: std::collections::HashSet<String> =
-            scope.selected_attachment_ids.iter().cloned().collect();
-        for rec in &records {
-            let atts = load_attachments(&rec.properties);
-            for att in &atts {
-                if att.deleted_at.is_some() {
-                    continue;
-                }
-                attachment_count += 1;
-                if selected.contains(&att.id) {
-                    attachment_selected_count += 1;
-                    estimated_bytes += att.size_bytes;
-                }
-            }
-        }
-    }
+    // RF-015：入口仅适配一次；可用附件与实际选中附件保持独立统计。
+    let attachment_scope = scope.attachment_export_scope();
+    let (attachment_count, attachment_selected_count, attachment_bytes) =
+        estimate_attachments(&records, &attachment_scope);
+    estimated_bytes += attachment_bytes;
 
     // Estimate snapshots payload（历史记录，恢复包保证历史数量一致）
     // 按实际加密后字节数估算（snapshots_size_batch 为 LENGTH(data) 之和），
@@ -276,6 +261,33 @@ pub async fn export_estimate_size(
         template_count,
         template_names,
     })
+}
+
+/// 估算范围内的未删除附件：(可用数量, 选中数量, 选中元数据声明字节数)。
+/// None 不读取附件元数据；Selected(empty) 仍报告可用数量，选中与字节数为零。
+pub(super) fn estimate_attachments(
+    records: &[solosoul_vault::ObjectRecord],
+    scope: &AttachmentExportScope,
+) -> (usize, usize, u64) {
+    if matches!(scope, AttachmentExportScope::None) {
+        return (0, 0, 0);
+    }
+    let mut available = 0usize;
+    let mut selected = 0usize;
+    let mut bytes = 0u64;
+    for record in records {
+        for attachment in load_attachments(&record.properties) {
+            if attachment.deleted_at.is_some() {
+                continue;
+            }
+            available += 1;
+            if scope.includes(&attachment.id) {
+                selected += 1;
+                bytes += attachment.size_bytes;
+            }
+        }
+    }
+    (available, selected, bytes)
 }
 
 // ── Export execution helpers ─────────────────────────────────
@@ -404,11 +416,11 @@ pub(crate) fn validate_export_dest(zip_path: &str) -> Result<(), String> {
 const MAX_ATTACHMENT_BYTES: u64 = 100 * 1024 * 1024; // 100 MB
 const MAX_EXPORT_TOTAL_BYTES: u64 = 1024 * 1024 * 1024; // 1 GB
 
-/// 收集选中附件：校验大小上限与路径合法性，返回 (条目列表, 总字节数)。
+/// 收集类型明确的附件范围：过滤后校验大小上限与路径，返回 (条目列表, 总字节数)。
 fn collect_attachment_entries(
     svc: &solosoul_core::vault_service::VaultService,
     records: &[solosoul_vault::ObjectRecord],
-    scope: &ExportScope,
+    scope: &AttachmentExportScope,
 ) -> Result<
     (
         Vec<solosoul_core::export_import::ExportAttachmentEntry>,
@@ -416,8 +428,9 @@ fn collect_attachment_entries(
     ),
     String,
 > {
-    let selected_attachment_ids: std::collections::HashSet<String> =
-        scope.selected_attachment_ids.iter().cloned().collect();
+    if matches!(scope, AttachmentExportScope::None) {
+        return Ok((Vec::new(), 0));
+    }
     let mut entries: Vec<solosoul_core::export_import::ExportAttachmentEntry> = Vec::new();
     let mut total_bytes: u64 = 0;
 
@@ -431,8 +444,8 @@ fn collect_attachment_entries(
             if att.deleted_at.is_some() {
                 continue;
             }
-            // Fine-grained selection: only export explicitly selected attachments
-            if !selected_attachment_ids.contains(&att.id) {
+            // 先过滤范围，未选中的超大或非法路径附件不能阻断有效选择。
+            if !scope.includes(&att.id) {
                 continue;
             }
             // Single attachment size limit
@@ -594,6 +607,7 @@ pub(super) async fn run_export_job(
 /// - 密码校验同样在此执行（快照口令不得为主密码）。
 ///
 /// 前置条件：`svc` 处于解锁态。
+#[cfg(test)]
 pub(crate) fn execute_export_core(
     svc: &solosoul_core::vault_service::VaultService,
     account_id: &str,
@@ -604,12 +618,36 @@ pub(crate) fn execute_export_core(
     execute_export_for_session(svc, &session, req, zip_path)
 }
 
-/// 云同步固定起始会话；导出算法与前台/恢复共用，不能在 KDF 后换读当前 Vault。
+/// 后台调用方显式提供附件范围；此入口只捕获一次会话，供恢复主机使用。
+pub(crate) fn execute_export_core_with_attachment_scope(
+    svc: &solosoul_core::VaultService,
+    account_id: &str,
+    req: &ExportRequest,
+    zip_path: &str,
+    attachment_scope: &AttachmentExportScope,
+) -> Result<(), String> {
+    let session = svc.capture_session(account_id)?;
+    execute_export_for_session_with_attachment_scope(svc, &session, req, zip_path, attachment_scope)
+}
+
+/// 手动导出的兼容适配入口；既有请求字段与空选择含义保持不变。
 pub(crate) fn execute_export_for_session(
     svc: &solosoul_core::VaultService,
     session: &solosoul_core::VaultSession,
     req: &ExportRequest,
     zip_path: &str,
+) -> Result<(), String> {
+    let attachment_scope = req.scope.attachment_export_scope();
+    execute_export_for_session_with_attachment_scope(svc, session, req, zip_path, &attachment_scope)
+}
+
+/// 云同步固定起始会话；业务层只解释明确类型，不能在 KDF 后换读当前 Vault。
+pub(crate) fn execute_export_for_session_with_attachment_scope(
+    svc: &solosoul_core::VaultService,
+    session: &solosoul_core::VaultSession,
+    req: &ExportRequest,
+    zip_path: &str,
+    attachment_scope: &AttachmentExportScope,
 ) -> Result<(), String> {
     let vault = session.vault();
     let account_id = session.account_id();
@@ -652,11 +690,8 @@ pub(crate) fn execute_export_for_session(
     let key = derive_export_key(&req.password, &salt)?;
 
     // ── P1: Attachments ────────────────────────────────────────
-    let (attachment_entries, total_attachment_bytes) = if req.scope.include_attachments {
-        collect_attachment_entries(svc, &records, &req.scope)?
-    } else {
-        (Vec::new(), 0)
-    };
+    let (attachment_entries, total_attachment_bytes) =
+        collect_attachment_entries(svc, &records, attachment_scope)?;
 
     // Total export size limit (payload + attachments + ~28 bytes overhead per attachment for nonce/chunk_count)
     let payload_estimate = payload_size;

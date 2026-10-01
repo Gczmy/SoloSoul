@@ -1,7 +1,7 @@
 //! Export/Import orchestration — core business logic shared by CLI and GUI.
 //!
-//! Provides high-level `export_vault()` and `import_vault()` functions
-//! that handle the full `.solosoul` package format:
+//! Provides Core high-level `export_vault()` / `import_vault()` functions and
+//! shared attachment-scope / packaging primitives for `.solosoul` packages:
 //! - Password derivation via Argon2id → AES-256-GCM
 //! - ZIP packaging with manifest.json + payload.enc + optional attachments
 //! - Template snapshot management with content-hash dedup
@@ -9,10 +9,9 @@
 //!
 //! ## Architecture
 //!
-//! The CLI `/export` and `/import` commands as well as the Tauri export/import
-//! dialogs share this module's `export_vault()` / `import_vault()` functions.
-//! Each host only needs to handle argument parsing and user-facing prompts;
-//! all encryption, packaging, and storage logic lives here.
+//! The CLI uses the Core high-level APIs. GUI and Core share the explicit
+//! attachment scope and attachment-writing primitives; GUI currently retains
+//! its own object policy and full orchestration (consolidation belongs to RF-023).
 
 pub mod operation;
 
@@ -88,6 +87,42 @@ pub struct AttachmentMeta {
     pub tags: Vec<String>,
 }
 
+/// 显式的附件导出范围；手动零选中与全量导出不能由空集合互相推断。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AttachmentExportScope {
+    None,
+    All,
+    Selected(HashSet<String>),
+}
+
+impl AttachmentExportScope {
+    /// 既有手动 IPC 适配：关闭时 None，开启时始终保留 Selected（包括空集合）。
+    pub fn from_manual_selection(include_attachments: bool, ids: &[String]) -> Self {
+        if include_attachments {
+            Self::Selected(ids.iter().cloned().collect())
+        } else {
+            Self::None
+        }
+    }
+
+    /// 全量用例与旧 Core bool API 适配；不将手动空选择解释为 All。
+    pub fn from_all_flag(include_attachments: bool) -> Self {
+        if include_attachments {
+            Self::All
+        } else {
+            Self::None
+        }
+    }
+
+    pub fn includes(&self, id: &str) -> bool {
+        match self {
+            Self::None => false,
+            Self::All => true,
+            Self::Selected(ids) => ids.contains(id),
+        }
+    }
+}
+
 /// 导出范围。
 #[derive(Debug, Clone, Default)]
 pub struct ExportScope {
@@ -97,7 +132,7 @@ pub struct ExportScope {
     pub selected_page_ids: Vec<String>,
     /// 显式指定的对象 ID 列表。
     pub selected_object_ids: Vec<String>,
-    /// 是否包含附件。
+    /// 旧 `export_vault` 的附件全量 flag；显式入口使用 `AttachmentExportScope`。
     pub include_attachments: bool,
 }
 
@@ -293,6 +328,31 @@ pub fn export_vault(
     scope: &ExportScope,
     base_path: &Path,
 ) -> Result<usize, ExportError> {
+    let attachment_scope = AttachmentExportScope::from_all_flag(scope.include_attachments);
+    export_vault_with_attachment_scope(
+        vault,
+        account_id,
+        password,
+        path,
+        scope,
+        base_path,
+        &attachment_scope,
+    )
+}
+
+/// 使用显式附件范围导出；对象选择仍由 `scope` 决定。
+///
+/// `scope.include_attachments` 仅供旧 `export_vault` 适配，本入口只解释
+/// `attachment_scope`。None / Selected(empty) 均不写附件，All 仍限于已选对象。
+pub fn export_vault_with_attachment_scope(
+    vault: &VaultStore,
+    account_id: &str,
+    password: &str,
+    path: &Path,
+    scope: &ExportScope,
+    base_path: &Path,
+    attachment_scope: &AttachmentExportScope,
+) -> Result<usize, ExportError> {
     let records = collect_scope_objects(vault, account_id, scope)?;
     if records.is_empty() {
         return Err(ExportError::Msg("没有选中任何对象".to_string()));
@@ -307,7 +367,7 @@ pub fn export_vault(
     let key = derive_export_key(password, &salt)?;
 
     // 收集附件源文件。
-    let attachment_entries = collect_attachment_entries(base_path, &records, scope)?;
+    let attachment_entries = collect_attachment_entries(base_path, &records, attachment_scope)?;
 
     let payload_estimate = payload_size;
     let total_attachment_bytes: u64 = attachment_entries
@@ -1188,9 +1248,9 @@ fn build_payload(vault: &VaultStore, records: &[ObjectRecord]) -> serde_json::Va
 fn collect_attachment_entries(
     base: &Path,
     records: &[ObjectRecord],
-    scope: &ExportScope,
+    attachment_scope: &AttachmentExportScope,
 ) -> Result<Vec<(String, String, String, PathBuf)>, ExportError> {
-    if !scope.include_attachments {
+    if matches!(attachment_scope, AttachmentExportScope::None) {
         return Ok(Vec::new());
     }
 
@@ -1202,7 +1262,8 @@ fn collect_attachment_entries(
         }
         let base_dir = base.join("attachments").join(&rec.id);
         for att in &atts {
-            if att.deleted_at.is_some() {
+            // 先过滤显式选择，再处理 active、大小和路径；未选中的坏源不影响导出。
+            if !attachment_scope.includes(&att.id) || att.deleted_at.is_some() {
                 continue;
             }
             if att.size_bytes > MAX_ATTACHMENT_BYTES {
@@ -1836,7 +1897,7 @@ mod tests {
     const TEST_PASSWORD: &str = "password123";
     const TEST_EXPORT_PASSWORD: &str = "ExportPass1";
 
-    fn test_setup() -> (std::sync::Arc<VaultStore>, String, tempfile::TempDir) {
+    pub(super) fn test_setup() -> (std::sync::Arc<VaultStore>, String, tempfile::TempDir) {
         let _guard = CORE_TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         let dir = tempfile::TempDir::new().unwrap();
         let vault = VaultService::with_base_path(dir.path().to_path_buf());
@@ -1846,7 +1907,7 @@ mod tests {
         (vault_store, account_id, dir)
     }
 
-    fn make_test_record(account_id: &str, id: &str, name: &str) -> ObjectRecord {
+    pub(super) fn make_test_record(account_id: &str, id: &str, name: &str) -> ObjectRecord {
         ObjectRecord {
             id: id.to_string(),
             account_id: account_id.to_string(),
@@ -2780,3 +2841,7 @@ mod rf021_tests;
 
 #[cfg(test)]
 mod rf022_resume_tests;
+
+#[cfg(test)]
+#[path = "export_import/rf015.rs"]
+mod rf015;
