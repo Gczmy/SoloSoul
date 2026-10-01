@@ -8,6 +8,7 @@
 //! 调度器保证同一时刻只有一个同步任务在执行；数据变更触发采用防抖策略，
 //! 避免连续写操作产生大量同步请求。
 
+use super::contracts::DeviceSyncAutoStatus;
 use futures::future::BoxFuture;
 use solosoul_core::VaultService;
 use solosoul_sync::SyncService;
@@ -281,11 +282,10 @@ async fn run_device_sync(
     app_handle
         .emit(
             "device-sync-auto-status",
-            serde_json::json!({
-                "phase": "sync_start",
-                "source": source,
-                "peer_count": targets.len(),
-            }),
+            DeviceSyncAutoStatus::Start {
+                source: source.into(),
+                peer_count: targets.len(),
+            },
         )
         .ok();
 
@@ -322,11 +322,16 @@ async fn run_device_sync(
     app_handle
         .emit(
             "device-sync-auto-status",
-            serde_json::json!({
-                "phase": last_error.as_ref().map(|_| "error").unwrap_or("sync_complete"),
-                "source": source,
-                "message": last_error,
-            }),
+            match last_error.as_ref() {
+                Some(message) => DeviceSyncAutoStatus::Error {
+                    source: source.into(),
+                    message: Some(message.clone()),
+                },
+                None => DeviceSyncAutoStatus::Complete {
+                    source: source.into(),
+                    message: None,
+                },
+            },
         )
         .ok();
 

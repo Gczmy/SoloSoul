@@ -45,6 +45,48 @@ export type ChatMessage = { role: string; content: string; createdAt: string };
 
 export type ChatMessageInput = { role: string; content: string; createdAt: string };
 
+export type CloudSyncConfigPayloadInput = {
+  accountId: string;
+  connectorType: string;
+  configJson: JsonValue;
+  enabled: boolean;
+  intervalSecs: number;
+  wifiOnly: boolean;
+  retention: JsonValue;
+  snapshotPassword?: string;
+  autoImport?: boolean;
+};
+
+export type CloudSyncIncoming = {
+  accountId: string;
+  sessionGeneration: number;
+  files: Array<string>;
+  hint: string;
+};
+
+export type CloudSyncStatus = {
+  accountId: string;
+  sessionGeneration: number;
+  phase: string;
+  source: string;
+  message?: string;
+};
+
+export type ConflictDetail = {
+  id: string;
+  table: string;
+  record_id: string;
+  local_hlc: ConflictHlc;
+  remote_hlc: ConflictHlc;
+  local_data: JsonValue;
+  remote_data: JsonValue;
+  remote_deleted: boolean;
+  winner: string;
+  created_at: string;
+};
+
+export type ConflictHlc = { wall_time_ms: number; counter: number; node_id: string };
+
 export type ConflictInfo = {
   objectId: string;
   importedName: string;
@@ -53,6 +95,16 @@ export type ConflictInfo = {
 };
 
 export type ConflictKind = 'identical' | 'renamedLocal';
+
+export type ConflictSummary = {
+  id: string;
+  table: string;
+  record_id: string;
+  local_hlc: ConflictHlc;
+  remote_hlc: ConflictHlc;
+  winner: string;
+  created_at: string;
+};
 
 export type Conversation = {
   id: string;
@@ -107,6 +159,20 @@ export type DeprecatedField = {
   value: JsonValue;
   deprecatedAt: string;
   reason: string;
+};
+
+export type DeviceSyncAutoStatus =
+  | ({ phase: 'sync_start' } & { source: string; peer_count: number })
+  | ({ phase: 'sync_complete' } & { source: string; message: string | null })
+  | ({ phase: 'error' } & { source: string; message: string | null });
+
+export type DiscoveredDevice = {
+  name: string;
+  host: string;
+  port: number;
+  addresses: Array<string>;
+  fingerprint: string;
+  clientType: string;
 };
 
 export type DocumentSensitivity = 'none' | 'sensitive' | 'critical';
@@ -198,6 +264,22 @@ export type ImportResult = {
   attachmentFilesWritten: number;
   failureStage: ImportStage | null;
   errorCode: string | null;
+};
+
+export type ImportResultSummary = {
+  operationId: string | null;
+  sessionGeneration: number;
+  objectCount: number;
+  attachmentCount: number;
+  status: ImportStatus;
+  templateCount: number;
+  snapshotCount: number;
+  preferencesImported: boolean;
+  attachmentFilesWritten: number;
+  failureStage: ImportStage | null;
+  errorCode: string | null;
+  accountId: string;
+  accountName: string;
 };
 
 export type ImportSelectionInput = { objectId: string; selected: boolean };
@@ -421,6 +503,19 @@ export type PluginSession = {
 
 export type PluginTier = 'p0' | 'p1' | 'p2' | 'p3' | 'p4';
 
+export type RecoveryDiscoveredHost = { name: string; addr: string; fingerprint: string };
+
+export type RecoveryHostInfo = {
+  displayAddr: string;
+  bindAddr: string;
+  pin: string;
+  nonce: string;
+  fingerprint: string;
+  qrPayload: string;
+};
+
+export type RecoveryProgress = { phase: string; percent: number; operationId?: string };
+
 export type RegistryEntry = {
   name: string;
   author: string | null;
@@ -457,6 +552,25 @@ export type SnapshotEntry = {
   diffSummary: string;
 };
 
+export type SyncCompleted = {
+  peerNodeId: string;
+  examined: number;
+  applied: number;
+  skipped: number;
+  conflicts: number;
+  outboundRecords: number;
+};
+
+export type SyncConflictDto = {
+  table: string;
+  id: string;
+  local_hlc: ConflictHlc;
+  remote_hlc: ConflictHlc;
+  winner: string;
+};
+
+export type SyncConflictsUpdated = { count: number };
+
 export type SyncFieldChange = {
   id: string;
   name: string;
@@ -480,6 +594,57 @@ export type SyncFieldIncompatible = {
 };
 
 export type SyncFieldInfo = { id: string; name: string; fieldType: string };
+
+export type SyncNsdFailed = { error: string };
+
+export type SyncPairingRequest = {
+  nodeId: string;
+  fingerprint: string;
+  addr: string;
+  deviceName: string;
+  sasCode: string;
+};
+
+export type SyncPeer = {
+  id: string;
+  name: string;
+  customName: string | null;
+  addr: string;
+  fingerprint: string;
+  trusted: boolean;
+  lastSeen: string;
+  lastSeenTs: number | null;
+  trustedAt: number | null;
+  clientType: string;
+};
+
+export type SyncProgress = {
+  phase: string;
+  current?: number;
+  total?: number;
+  message?: string;
+  source?: string;
+  silent?: boolean;
+};
+
+export type SyncResult = {
+  summary: string;
+  examined: number;
+  applied: number;
+  skipped: number;
+  conflicts: Array<SyncConflictDto>;
+  per_table: Array<TableResult>;
+};
+
+export type SyncStatus = {
+  isDiscovering: boolean;
+  syncEnabled: boolean;
+  autoSyncEnabled: boolean;
+  localFingerprint: string;
+  connectedPeers: Array<SyncPeer>;
+};
+
+export type TableResult = { table: string; examined: number; applied: number; skipped: number };
 
 export type TemplateSyncResult = {
   hasChanges: boolean;
@@ -515,6 +680,23 @@ export type IpcCommands = {
   backup_delete: { args: { backupId: string }; result: null };
   backup_list: { args: undefined; result: Array<BackupInfo> };
   backup_restore: { args: { backupId: string }; result: number };
+  cloud_sync_delete_config: { args: { accountId: string }; result: null };
+  cloud_sync_get_config: { args: { accountId: string }; result: JsonValue | null };
+  cloud_sync_import_incoming: {
+    args: { accountId: string; sourcePath: string; password: string };
+    result: ImportResult;
+  };
+  cloud_sync_list_incoming: { args: undefined; result: Array<string> };
+  cloud_sync_mark_applied: {
+    args: { accountId: string; sessionGeneration: number; sourcePath: string; operationId: string };
+    result: null;
+  };
+  cloud_sync_now: { args: undefined; result: null };
+  cloud_sync_save_config: {
+    args: { payload: CloudSyncConfigPayloadInput; password: string };
+    result: boolean;
+  };
+  cloud_sync_test_connection: { args: { payload: CloudSyncConfigPayloadInput }; result: null };
   create_plugin_install: { args: undefined; result: ResourceId };
   export_document_preflight: { args: { objectIds: Array<string> }; result: DocumentSensitivity };
   export_estimate_size: {
@@ -586,6 +768,7 @@ export type IpcCommands = {
     args: { accountId: string; conversationId: string };
     result: null;
   };
+  mdns_discover: { args: { timeoutMs: number }; result: Array<DiscoveredDevice> };
   object_create: { args: { input: CreateObjectInputInput }; result: ObjectData };
   object_delete: { args: { objectId: string }; result: null };
   object_field_suggestions: {
@@ -646,12 +829,69 @@ export type IpcCommands = {
     result: PluginInstallResult;
   };
   plugin_update_registry: { args: undefined; result: null };
+  recovery_discover_hosts: { args: { timeoutMs: number }; result: Array<RecoveryDiscoveredHost> };
+  recovery_host_cancel: { args: undefined; result: null };
+  recovery_host_start: { args: undefined; result: RecoveryHostInfo };
+  recovery_restore_existing_from_host: {
+    args: {
+      accountId: string;
+      hostAddr: string;
+      pin: string;
+      fingerprint?: string | null;
+      nonce?: string | null;
+    };
+    result: ImportResultSummary;
+  };
+  recovery_restore_from_host: {
+    args: {
+      masterPassword: string;
+      hostAddr: string;
+      pin: string;
+      fingerprint?: string | null;
+      nonce?: string | null;
+      passwordHint?: string | null;
+      overwrite?: boolean | null;
+    };
+    result: ImportResultSummary;
+  };
   snapshot_count_batch: { args: { objectIds: Array<string> }; result: Record<string, number> };
   snapshot_get_data: { args: { snapshotId: string }; result: JsonValue | null };
   snapshot_list: { args: { objectId: string }; result: Array<SnapshotEntry> };
   snapshot_rollback: { args: { snapshotId: string; objectId: string }; result: null };
+  sync_enable: { args: { enable: boolean }; result: null };
+  sync_forget_peer: { args: { peerNodeId: string }; result: null };
+  sync_generate_qr_payload: { args: undefined; result: string };
+  sync_get_auto_status: { args: undefined; result: boolean };
+  sync_get_conflict_detail: { args: { conflictId: string }; result: ConflictDetail };
+  sync_get_status: { args: undefined; result: SyncStatus };
+  sync_get_ui_prefs_sync: { args: undefined; result: boolean };
+  sync_list_conflicts: { args: undefined; result: Array<ConflictSummary> };
+  sync_listen_addr: { args: undefined; result: string };
+  sync_rename_peer: { args: { peerNodeId: string; name: string }; result: string | null };
+  sync_resolve_conflict: { args: { conflictId: string; strategy: string }; result: boolean };
+  sync_set_auto_enabled: { args: { enabled: boolean }; result: boolean };
+  sync_set_ui_prefs_sync: { args: { enabled: boolean }; result: boolean };
+  sync_trigger_foreground: { args: undefined; result: null };
+  sync_trust_peer: {
+    args: { peerNodeId: string; trusted: boolean; fingerprint?: string | null };
+    result: null;
+  };
+  sync_with_device: { args: { deviceId: string }; result: SyncResult };
+  vault_sync_background: { args: undefined; result: null };
+  vault_sync_from_remote: { args: undefined; result: null };
+  vault_sync_to_remote: { args: undefined; result: null };
 };
 
 export type IpcEvents = {
+  'cloud-sync-incoming': CloudSyncIncoming;
+  'cloud-sync-status': CloudSyncStatus;
+  'device-sync-auto-status': DeviceSyncAutoStatus;
   'llm-stream-chunk': LlmStreamPayload;
+  'recovery-progress': RecoveryProgress;
+  'saf-auth-revoked': null;
+  'sync-completed': SyncCompleted;
+  'sync-conflicts-updated': SyncConflictsUpdated;
+  'sync-nsd-failed': SyncNsdFailed;
+  'sync-pairing-request': SyncPairingRequest;
+  'sync-progress': SyncProgress;
 };

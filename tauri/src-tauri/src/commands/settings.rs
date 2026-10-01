@@ -1,13 +1,12 @@
 use crate::commands::vault_handle;
 use crate::services::profile_prefs::update_profile_prefs;
 use crate::state::AppState;
+pub use crate::sync::contracts::CloudSyncConfigPayload;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
-#[cfg(target_os = "android")]
-use tauri::Manager;
 use tauri::State;
 use zeroize::Zeroizing;
 
@@ -29,6 +28,7 @@ pub fn resolve_ui_prefs_path<R: tauri::Runtime>(
 ) -> Result<PathBuf, String> {
     #[cfg(target_os = "android")]
     {
+        use tauri::Manager;
         let new_path = app
             .path()
             .app_data_dir()
@@ -359,24 +359,6 @@ pub async fn user_data_update_preference(
 
 // ── Phase 2 云同步配置命令 ─────────────────────────────
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct CloudSyncConfigPayload {
-    pub account_id: String,
-    pub connector_type: String,
-    pub config_json: Value,
-    pub enabled: bool,
-    pub interval_secs: u64,
-    pub wifi_only: bool,
-    pub retention: serde_json::Value,
-    /// 快照包加密口令（与主密码独立；保存时经主密码验证后入 Vault）。
-    #[serde(default)]
-    pub snapshot_password: String,
-    /// 自动导入云端新快照。
-    #[serde(default)]
-    pub auto_import: bool,
-}
-
 #[tauri::command]
 pub async fn cloud_sync_get_config(
     state: State<'_, AppState>,
@@ -559,7 +541,7 @@ pub async fn cloud_sync_import_incoming(
     account_id: String,
     source_path: String,
     password: String,
-) -> Result<crate::commands::export_import::ImportResult, String> {
+) -> Result<crate::commands::export_import::contracts::ImportResult, String> {
     let service = Arc::clone(&state.vault_service);
     let (session, source, activity) = {
         let svc = service.read().map_err(|_| "Vault service lock poisoned")?;

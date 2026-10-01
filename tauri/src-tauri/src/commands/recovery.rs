@@ -5,6 +5,8 @@
 //! `account_id` 一致，后续可直接使用 Device Sync。
 
 use crate::state::AppState;
+use crate::sync::contracts::RecoveryProgress;
+pub use crate::sync::contracts::{ImportResultSummary, RecoveryHostInfo};
 use solosoul_core::export_import::export::{
     execute_encrypted_export, EncryptedExportRequest, EncryptedExportScope,
 };
@@ -14,29 +16,6 @@ use solosoul_vault::ImportSourceKind;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tauri::{Emitter, Manager, State};
-
-#[derive(serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RecoveryHostInfo {
-    pub display_addr: String,
-    pub bind_addr: String,
-    pub pin: String,
-    pub nonce: String,
-    pub fingerprint: String,
-    /// 供前端生成 QR 码的 JSON 字符串。
-    pub qr_payload: String,
-}
-
-#[derive(serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ImportResultSummary {
-    #[serde(flatten)]
-    pub outcome: crate::commands::export_import::ImportResult,
-    /// 恢复包的账户 ID（与旧设备一致，用于在卡片上展示）。
-    pub account_id: String,
-    /// 恢复包的账户名。
-    pub account_name: String,
-}
 
 /// 从 VaultService 读取当前解锁账户的名称。
 fn get_current_account_name(state: &AppState, account_id: &str) -> Result<String, String> {
@@ -454,7 +433,11 @@ fn validate_recovery_connection(host_addr: &str, pin: &str) -> Result<(), String
 fn emit_recovery_progress(app: &tauri::AppHandle, phase: &'static str, percent: u8) {
     let _ = app.emit(
         "recovery-progress",
-        serde_json::json!({ "phase": phase, "percent": percent }),
+        RecoveryProgress {
+            phase: phase.into(),
+            percent,
+            operation_id: None,
+        },
     );
 }
 
@@ -465,10 +448,11 @@ fn recovery_import_progress(
     Arc::new(move |pct| {
         let _ = app.emit(
             "recovery-progress",
-            serde_json::json!({
-                "phase":"import", "percent":(50 + u16::from(pct) * 45 / 100) as u8,
-                "operationId":operation_id,
-            }),
+            RecoveryProgress {
+                phase: "import".into(),
+                percent: (50 + u16::from(pct) * 45 / 100) as u8,
+                operation_id: Some(operation_id.clone()),
+            },
         );
     })
 }

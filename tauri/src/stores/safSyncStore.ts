@@ -1,25 +1,9 @@
+import type { IpcEvents } from '@/lib/generated/ipcContracts';
 import { create } from 'zustand';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { logger } from '@/lib/logger';
 
-/** 同步进度事件 payload（与 Rust 侧 `emit("sync-progress", ...)` 一致）。 */
-export interface SyncProgressPayload {
-  phase:
-    | 'sync_start'
-    | 'sync_complete'
-    | 'error'
-    | 'sync_to_remote'
-    | 'sync_from_remote'
-    | 'migrate'
-    | 'auto_sync';
-  current?: number;
-  total?: number;
-  message?: string;
-  /** 触发来源，如 periodic、debounce、immediate、background。 */
-  source?: string;
-  /** 为 true 时表示这是一次静默同步，前端不应显示提示。 */
-  silent?: boolean;
-}
+export type SyncProgressPayload = IpcEvents['sync-progress'];
 
 /** 简化的同步状态。 */
 export type SyncStatus = 'idle' | 'syncing' | 'completed' | 'error';

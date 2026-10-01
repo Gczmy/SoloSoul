@@ -634,15 +634,99 @@ impl<'a> Renderer<'a> {
         direction: Direction,
         options: FieldOptions<'_>,
     ) -> Result<String, String> {
+        let mut names = BTreeSet::new();
+        let output = self.field_members(
+            fields,
+            module,
+            direction,
+            options,
+            &mut names,
+            &mut BTreeSet::new(),
+        )?;
+        if output.is_empty() {
+            Ok("Record<string, never>".into())
+        } else {
+            Ok(format!("{{ {} }}", output.join(" ")))
+        }
+    }
+
+    fn field_members(
+        &mut self,
+        fields: &syn::FieldsNamed,
+        module: &str,
+        direction: Direction,
+        options: FieldOptions<'_>,
+        names: &mut BTreeSet<String>,
+        flatten_stack: &mut BTreeSet<String>,
+    ) -> Result<Vec<String>, String> {
         let FieldOptions {
             rename_all,
             container_default,
             reserved,
         } = options;
         let mut output = Vec::new();
-        let mut names = BTreeSet::new();
         for field in &fields.named {
             let metadata = attrs::read(&field.attrs, Location::Field, direction)?;
+            if metadata.flatten {
+                if metadata.rename.is_some()
+                    || metadata.default
+                    || metadata.skip_none
+                    || metadata.skip_empty_vec
+                {
+                    return Err("flatten cannot combine with field serde options".into());
+                }
+                let Type::Path(path) = &field.ty else {
+                    return Err("flatten requires a named struct".into());
+                };
+                if path.qself.is_some()
+                    || path
+                        .path
+                        .segments
+                        .iter()
+                        .any(|s| !matches!(s.arguments, PathArguments::None))
+                {
+                    return Err("flatten requires a concrete named struct".into());
+                }
+                let name = self.path(module, &path.path)?;
+                let declaration = self
+                    .catalog
+                    .declarations
+                    .get(&name)
+                    .cloned()
+                    .ok_or("flatten requires a registered named struct")?;
+                if declaration.manual_serde {
+                    return Err("flatten manual serde is unsupported".into());
+                }
+                let Definition::Struct(item) = declaration.definition else {
+                    return Err("flatten requires a named struct".into());
+                };
+                no_generics(&item.generics)?;
+                let meta = attrs::read(&item.attrs, Location::Struct, direction)?;
+                self.derive(&meta, direction, &declaration.module, &name)?;
+                let syn::Fields::Named(nested) = item.fields else {
+                    return Err("flatten requires named fields".into());
+                };
+                if meta.transparent {
+                    return Err("flatten transparent structs are unsupported".into());
+                }
+                if !flatten_stack.insert(name.clone()) {
+                    return Err("recursive flatten is unsupported".into());
+                }
+                output.extend(self.field_members(
+                    &nested,
+                    &declaration.module,
+                    direction,
+                    FieldOptions {
+                        rename_all: meta.rename_all.as_deref(),
+                        container_default: meta.default,
+                        reserved,
+                    },
+                    names,
+                    flatten_stack,
+                )?);
+                flatten_stack.remove(&name);
+                continue;
+            }
             let name = metadata.rename.clone().unwrap_or(attrs::rename(
                 &attrs::ident(field.ident.as_ref().ok_or("expected named field")?),
                 rename_all,
@@ -685,11 +769,7 @@ impl<'a> Renderer<'a> {
                 self.render(ty, module, direction)?
             ));
         }
-        if output.is_empty() {
-            Ok("Record<string, never>".into())
-        } else {
-            Ok(format!("{{ {} }}", output.join(" ")))
-        }
+        Ok(output)
     }
 }
 pub(crate) fn no_generics(generics: &syn::Generics) -> Result<(), String> {

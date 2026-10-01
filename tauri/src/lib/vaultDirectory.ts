@@ -1,3 +1,4 @@
+import { invokeTypedCommand } from '@/lib/typedIpc';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { AccountInfo } from '@/lib/ipc';
 
@@ -112,11 +113,11 @@ export async function pickVaultDirectory(): Promise<string | null> {
 }
 
 export async function syncVaultToRemote(): Promise<void> {
-  return invoke<void>('vault_sync_to_remote');
+  await invokeTypedCommand('vault_sync_to_remote');
 }
 
 export async function syncVaultFromRemote(): Promise<void> {
-  return invoke<void>('vault_sync_from_remote');
+  await invokeTypedCommand('vault_sync_from_remote');
 }
 
 /** 检查 SAF 目录是否仍然可访问（授权未被撤销）。返回 true 表示有效。 */

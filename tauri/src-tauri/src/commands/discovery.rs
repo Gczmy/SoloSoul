@@ -3,9 +3,9 @@
 //! 桌面端使用 `mdns-sd` 实现服务发现与广播；移动端（Android/iOS）暂不提供该功能，
 //! 二期可替换为 Android NSD / iOS Bonjour。
 
+pub use crate::sync::contracts::{DiscoveredDevice, RecoveryDiscoveredHost};
 #[cfg(desktop)]
 use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
-use serde::Serialize;
 use solosoul_sync::sha256_hex_short;
 use std::sync::Arc;
 #[cfg(mobile)]
@@ -71,42 +71,7 @@ impl SharedDaemon {
     }
 }
 
-/// 通过 mDNS 发现的恢复主机信息。
-///
-/// 安全约束：mDNS TXT 广播**不携带** PIN 与 nonce（二者仅经 QR 码/手动输入
-/// 带外传递）。此前将 PIN+nonce 写入明文 TXT，局域网内任意主机浏览
-/// `_solosoul_recovery._tcp.local.` 即可直接通过认证下载恢复包（完整 Vault
-/// 失陷）。发现到主机后，PIN 由用户从主机屏幕/QR 手动输入。
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RecoveryDiscoveredHost {
-    /// 主机显示名称（由主机指纹截取生成）。
-    pub name: String,
-    /// 连接地址（host:port）。
-    pub addr: String,
-    /// 主机公钥指纹（用于 MITM 验证）。
-    pub fingerprint: String,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct DiscoveredDevice {
-    pub name: String,
-    pub host: String,
-    pub port: u16,
-    pub addresses: Vec<String>,
-    /// 对端公钥指纹（mDNS TXT 广播，用于前端「已发现设备」详情与已知设备匹配）。
-    /// 旧版对端/未解析时为空串。
-    #[serde(default)]
-    pub fingerprint: String,
-    /// 对端客户端类型（macos/windows/linux/android/ios/unknown）。
-    /// 优先来自 TXT 广播；旧版对端回退按 node_id 查本机 vault peer 记录；
-    /// 从未同步过的设备为 unknown（前端兜底显示通用图标）。
-    pub client_type: String,
-}
-
 #[cfg(desktop)]
-#[tauri::command]
 pub async fn mdns_discover(
     state: tauri::State<'_, AppState>,
     daemon: tauri::State<'_, SharedDaemon>,
@@ -252,7 +217,6 @@ fn should_show_device(
 }
 
 #[cfg(mobile)]
-#[tauri::command]
 pub async fn mdns_discover(
     app: tauri::AppHandle,
     _daemon: tauri::State<'_, SharedDaemon>,
@@ -421,7 +385,6 @@ pub fn recovery_stop_advertise(daemon: &ServiceDaemon, instance_name: &str) -> R
 /// addr 与 fingerprint（P001：不再广播 PIN/nonce），因此接收端需要
 /// 用户手动输入主机屏幕/QR 上的 6 位 PIN 后才能发起 `recovery_restore_from_host`。
 #[cfg(desktop)]
-#[tauri::command]
 pub async fn recovery_discover_hosts(
     daemon: tauri::State<'_, SharedDaemon>,
     timeout_ms: u64,
@@ -481,7 +444,6 @@ pub async fn recovery_discover_hosts(
 /// 移动端注册恢复 NSD 服务——暂不支持（恢复发现仅限于桌面端作为主机，
 /// 移动端可通过 QR 码或手动输入连接）。
 #[cfg(mobile)]
-#[tauri::command]
 pub async fn recovery_discover_hosts(
     _daemon: tauri::State<'_, SharedDaemon>,
     _timeout_ms: u64,

@@ -10,7 +10,8 @@
 //! Output 可忽略合法 alias/deserialize_with，Input 仍拒绝这些反序列化属性。
 //! 命令仅支持一个 tauri::Runtime 泛型，且必须仅用于根层原生注入，不得进入 wire。
 //! 精确 tauri::ResourceId 映射句柄别名；Channel<T> 仅限命令参数根层，T 按 Output 投影。
-//! 不支持宏生成 DTO、条件字段、泛型、type alias、flatten/untagged、自定义 Serialize、
+//! 仅支持 Output 的具体命名 struct flatten，拒绝碰撞、递归与 Input flatten。
+//! 不支持宏生成 DTO、条件字段、泛型、type alias、其它 flatten/untagged、自定义 Serialize、
 //! 分向 rename 及未知注解。此类输入必须报错，不能生成 any/未知占位。
 //! 数值保持现有 JSON number 协议；浮点输出另含非有限值的 null，不声称 TS
 //! 能表达整数范围或 u64 精度。空 DTO 用 Record<string, never> 限定对象形状。
@@ -214,6 +215,15 @@ fn command_contract(
     let mut snake_case = false;
     for attribute in &function.attrs {
         if attribute.path().is_ident("doc") {
+            continue;
+        }
+        if attribute.path().is_ident("allow") {
+            let lint: syn::Path = attribute
+                .parse_args()
+                .map_err(|_| "unsupported command lint attribute")?;
+            if source::path_text(&lint) != "clippy::too_many_arguments" {
+                return Err("unsupported command lint attribute".into());
+            }
             continue;
         }
         if source::path_text(attribute.path()) != "tauri::command" {

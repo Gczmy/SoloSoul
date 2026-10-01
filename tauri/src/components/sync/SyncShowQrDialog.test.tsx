@@ -53,7 +53,7 @@ describe('SyncShowQrDialog', () => {
     mockSyncInvokes();
     render(<SyncShowQrDialog isOpen onClose={vi.fn()} />);
 
-    expect(mockInvoke).toHaveBeenCalledWith('sync_generate_qr_payload');
+    expect(mockInvoke).toHaveBeenCalledWith('sync_generate_qr_payload', undefined, undefined);
     await waitFor(() => {
       expect(screen.getByText('MacBook')).toBeInTheDocument();
     });
@@ -73,7 +73,7 @@ describe('SyncShowQrDialog', () => {
     await waitFor(() => {
       expect(screen.getByText('1234')).toBeInTheDocument();
     });
-    expect(mockInvoke).toHaveBeenCalledWith('recovery_host_start');
+    expect(mockInvoke).toHaveBeenCalledWith('recovery_host_start', undefined, undefined);
     // 手动输入指引折叠面板默认关闭，可展开
     expect(screen.getByText('No camera? Enter details manually')).toBeInTheDocument();
   });
@@ -122,7 +122,9 @@ describe('SyncShowQrDialog', () => {
     await waitFor(() => expect(starts).toBe(1));
 
     rerender(<SyncShowQrDialog isOpen={false} onClose={vi.fn()} />);
-    await waitFor(() => expect(mockInvoke).toHaveBeenCalledWith('recovery_host_cancel'));
+    await waitFor(() =>
+      expect(mockInvoke).toHaveBeenCalledWith('recovery_host_cancel', undefined, undefined),
+    );
     rerender(<SyncShowQrDialog isOpen onClose={vi.fn()} />);
     await screen.findByText('MacBook');
     fireEvent.click(screen.getByText('Recovery QR'));

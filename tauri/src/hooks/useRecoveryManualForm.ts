@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand as invoke } from '@/lib/typedIpc';
 import type { RecoveryDiscoveredHost } from '@/components/recovery/recoveryReceiveTypes';
 import { MDNS_DISCOVER_TIMEOUT_MS, PIN_REGEX } from '@/components/recovery/recoveryReceiveTypes';
 
@@ -35,7 +35,7 @@ export function useRecoveryManualForm({ mountedRef }: UseRecoveryManualFormOptio
     setScanDone(false);
 
     try {
-      const hosts = await invoke<RecoveryDiscoveredHost[]>('recovery_discover_hosts', {
+      const hosts = await invoke('recovery_discover_hosts', {
         timeoutMs: MDNS_DISCOVER_TIMEOUT_MS,
       });
       if (!mountedRef.current) return;
@@ -43,7 +43,9 @@ export function useRecoveryManualForm({ mountedRef }: UseRecoveryManualFormOptio
       setScanDone(true);
       if (hosts.length === 0) {
         setScanError(
-          t('common:recovery_scan_no_hosts', { defaultValue: 'No recovery hosts found on the network.' })
+          t('common:recovery_scan_no_hosts', {
+            defaultValue: 'No recovery hosts found on the network.',
+          }),
         );
       }
     } catch (err) {
@@ -68,35 +70,32 @@ export function useRecoveryManualForm({ mountedRef }: UseRecoveryManualFormOptio
   /**
    * 手动输入校验；通过则返回连接信息，不通过则返回错误文案（由调用方展示在全局 error 区）。
    */
-  const getPendingInfo = useCallback(
-    ():
-      | { error: string }
-      | { value: { addr: string; pin: string; fingerprint: string; nonce: null } } => {
-      if (!hostAddr.trim()) {
-        return {
-          error: t('common:recovery_receive_addr_required', {
-            defaultValue: 'Host address is required',
-          }),
-        };
-      }
-      if (!PIN_REGEX.test(pin.trim())) {
-        return {
-          error: t('common:recovery_receive_invalid_pin', {
-            defaultValue: 'PIN must be a 6-digit code',
-          }),
-        };
-      }
+  const getPendingInfo = useCallback(():
+    | { error: string }
+    | { value: { addr: string; pin: string; fingerprint: string; nonce: null } } => {
+    if (!hostAddr.trim()) {
       return {
-        value: {
-          addr: hostAddr.trim(),
-          pin: pin.trim(),
-          fingerprint: fingerprint.trim(),
-          nonce: null, // 手动模式不传 nonce，服务端兼容处理
-        },
+        error: t('common:recovery_receive_addr_required', {
+          defaultValue: 'Host address is required',
+        }),
       };
-    },
-    [hostAddr, pin, fingerprint, t],
-  );
+    }
+    if (!PIN_REGEX.test(pin.trim())) {
+      return {
+        error: t('common:recovery_receive_invalid_pin', {
+          defaultValue: 'PIN must be a 6-digit code',
+        }),
+      };
+    }
+    return {
+      value: {
+        addr: hostAddr.trim(),
+        pin: pin.trim(),
+        fingerprint: fingerprint.trim(),
+        nonce: null, // 手动模式不传 nonce，服务端兼容处理
+      },
+    };
+  }, [hostAddr, pin, fingerprint, t]);
 
   const reset = useCallback(() => {
     setHostAddr('');

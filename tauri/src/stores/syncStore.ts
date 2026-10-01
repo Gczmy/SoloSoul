@@ -1,3 +1,5 @@
+import type { SyncPeer, DiscoveredDevice, SyncStatus } from '@/lib/syncViewModel';
+import type { IpcEvents } from '@/lib/generated/ipcContracts';
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { create } from 'zustand';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
@@ -113,44 +115,7 @@ export function __resetSyncCompletedMergeForTest() {
   syncCompletedMergeCache.clear();
 }
 
-export interface SyncPeer {
-  id: string;
-  name: string;
-  /** 账户内加密保存的设备备注；不参与配对身份验证。 */
-  customName?: string | null;
-  addr: string;
-  fingerprint: string;
-  trusted: boolean;
-  lastSeen: string;
-  /** 最近一次同步/在线的原始 unix 秒时间戳（精确展示用）。 */
-  lastSeenTs?: number | null;
-  /** 最近一次信任该设备的时间（unix 秒）。从未信任/已撤销时为 null。 */
-  trustedAt?: number | null;
-  /** 客户端类型：macos / windows / linux / android / ios / unknown。 */
-  clientType?: string;
-  /** 6 位 SAS 配对验证码（仅配对中临时携带，两侧展示同一数字供目视比对）。 */
-  sasCode?: string;
-}
-
-export interface DiscoveredDevice {
-  name: string;
-  host: string;
-  port: number;
-  addresses: string[];
-  /** 对端公钥指纹（mDNS TXT 广播；旧版对端/未解析时为空串）。用于详情展示与已知设备匹配。 */
-  fingerprint?: string;
-  /** 客户端类型：macos/windows/linux/android/ios/unknown（TXT 广播或 peer 记录回退）。 */
-  clientType?: string;
-}
-
-interface SyncStatus {
-  isDiscovering: boolean;
-  syncEnabled: boolean;
-  autoSyncEnabled: boolean;
-  localFingerprint: string;
-  connectedPeers: SyncPeer[];
-}
-
+export type { SyncPeer, DiscoveredDevice } from '@/lib/syncViewModel';
 interface SyncStoreState extends SyncStatus {
   isLoading: boolean;
   error: string | null;
@@ -251,7 +216,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       const request = requests.begin('status');
       const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        const status = await request.invoke<SyncStatus>('sync_get_status');
+        const status = await request.invokeTyped('sync_get_status');
         request.assertCurrent();
         setCurrent((state) => ({
           ...status,
@@ -270,7 +235,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       const request = requests.begin('address');
       const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        const addr = await request.invoke<string>('sync_listen_addr');
+        const addr = await request.invokeTyped('sync_listen_addr');
         request.assertCurrent();
         // 禁用同步期间的迟到响应不能让已清空的监听地址重新出现。
         setCurrent({ listenAddr: get().syncEnabled ? addr : '' });
@@ -293,8 +258,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           request.assertCurrent();
           const result = await Promise.race([
             (async () => {
-              await request.invoke<void>('sync_enable', { enable: enabled });
-              const status = await request.invoke<SyncStatus>('sync_get_status');
+              await request.invokeTyped('sync_enable', { enable: enabled });
+              const status = await request.invokeTyped('sync_get_status');
               request.assertCurrent();
               return { status };
             })(),
@@ -343,7 +308,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       try {
         request.assertCurrent();
         const devices = await Promise.race([
-          request.invoke<DiscoveredDevice[]>('mdns_discover', { timeoutMs: timeoutMs }),
+          request.invokeTyped('mdns_discover', { timeoutMs: timeoutMs }),
           new Promise<never>((_, reject) => {
             // 兜底超时：移动端 request_permissions 弹窗未响应时 mdns_discover 可能挂起
             timeoutHandle = setTimeout(
@@ -372,7 +337,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       const setCurrent = request.guardSet<SyncStoreState>(set);
       setCurrent({ isLoading: true, error: null, lastResult: null });
       try {
-        const result = await request.invoke<SyncResult>('sync_with_device', { deviceId: deviceId });
+        const result = await request.invokeTyped('sync_with_device', { deviceId: deviceId });
         request.assertCurrent();
         await get().loadStatus();
         request.assertCurrent();
@@ -447,7 +412,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       const setCurrent = request.guardSet<SyncStoreState>(set);
       setCurrent({ isLoading: true, error: null });
       try {
-        await request.invoke<void>('sync_trust_peer', {
+        await request.invokeTyped('sync_trust_peer', {
           peerNodeId: peerNodeId,
           trusted,
           fingerprint: fingerprint ?? null,
@@ -467,7 +432,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       const setCurrent = request.guardSet<SyncStoreState>(set);
       setCurrent({ isLoading: true, error: null });
       try {
-        await request.invoke<void>('sync_forget_peer', { peerNodeId: peerNodeId });
+        await request.invokeTyped('sync_forget_peer', { peerNodeId: peerNodeId });
         request.assertCurrent();
         await get().loadStatus();
         request.assertCurrent();
@@ -480,7 +445,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
 
     renamePeer: async (peerNodeId, name) => {
       const request = requests.begin();
-      const customName = await request.invoke<string | null>('sync_rename_peer', {
+      const customName = await request.invokeTyped('sync_rename_peer', {
         peerNodeId,
         name,
       });
@@ -498,7 +463,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       const request = requests.begin('auto');
       const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        const enabled = await request.invoke<boolean>('sync_get_auto_status');
+        const enabled = await request.invokeTyped('sync_get_auto_status');
         request.assertCurrent();
         setCurrent({ autoSyncEnabled: enabled });
       } catch (err) {
@@ -514,7 +479,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       requests.invalidate('auto');
       setCurrent({ isLoading: true, error: null });
       try {
-        const result = await request.invoke<boolean>('sync_set_auto_enabled', { enabled });
+        const result = await request.invokeTyped('sync_set_auto_enabled', { enabled });
         request.assertCurrent();
         // 写入期间新发起的读取也可能返回旧状态，成功后再次使其失效。
         requests.invalidate('auto');
@@ -529,7 +494,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       const request = requests.begin('uiPrefs');
       const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        const enabled = await request.invoke<boolean>('sync_get_ui_prefs_sync');
+        const enabled = await request.invokeTyped('sync_get_ui_prefs_sync');
         request.assertCurrent();
         setCurrent({ uiPrefsSyncEnabled: enabled });
       } catch (err) {
@@ -545,7 +510,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       requests.invalidate('uiPrefs');
       setCurrent({ isLoading: true, error: null });
       try {
-        const result = await request.invoke<boolean>('sync_set_ui_prefs_sync', { enabled });
+        const result = await request.invokeTyped('sync_set_ui_prefs_sync', { enabled });
         request.assertCurrent();
         // 写入期间发起的读取也可能返回旧状态。
         requests.invalidate('uiPrefs');
@@ -560,7 +525,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       const request = requests.begin();
       const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        await request.invoke<void>('sync_trigger_foreground');
+        await request.invokeTyped('sync_trigger_foreground');
         request.assertCurrent();
       } catch (err) {
         if (!request.isCurrent()) return;
@@ -572,7 +537,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       const request = requests.begin('conflicts');
       const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        const conflicts = await request.invoke<SyncConflictSummary[]>('sync_list_conflicts');
+        const conflicts = await request.invokeTyped('sync_list_conflicts');
         request.assertCurrent();
         // 防御：后端异常返回（undefined/null/非数组）时归一化为空数组。
         // 否则 conflicts 被置为非数组后，GlobalSyncIndicator 等消费点 `.length`
@@ -603,7 +568,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     initConflictListener: (): Promise<UnlistenFn> => {
       const request = requests.begin();
       const setCurrent = request.guardSet<SyncStoreState>(set);
-      return listen<{ count: number }>('sync-conflicts-updated', (event) => {
+      return listen<IpcEvents['sync-conflicts-updated']>('sync-conflicts-updated', (event) => {
         if (!request.isCurrent()) return;
         const count = event.payload?.count ?? 0;
         if (count > 0) {
@@ -628,13 +593,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     initPairingRequestListener: (): Promise<UnlistenFn> => {
       const request = requests.begin();
       const setCurrent = request.guardSet<SyncStoreState>(set);
-      return listen<{
-        nodeId: string;
-        fingerprint: string;
-        addr: string;
-        deviceName: string;
-        sasCode?: string;
-      }>('sync-pairing-request', (event) => {
+      return listen<IpcEvents['sync-pairing-request']>('sync-pairing-request', (event) => {
         if (!request.isCurrent()) return;
         const p = event.payload;
         // P103: 未信任 peer 不再落库，同一 peer 重连会重复触发本事件。
@@ -715,14 +674,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     initSyncCompletedListener: (): Promise<UnlistenFn> => {
       const request = requests.begin();
       const setCurrent = request.guardSet<SyncStoreState>(set);
-      return listen<{
-        peerNodeId: string;
-        examined: number;
-        applied: number;
-        skipped: number;
-        conflicts: number;
-        outboundRecords: number;
-      }>('sync-completed', (event) => {
+      return listen<IpcEvents['sync-completed']>('sync-completed', (event) => {
         if (!request.isCurrent()) return;
         const p = event.payload;
         // P021：入站同步后的共同刷新尾——合并分支与新会话分支共用。
@@ -840,7 +792,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     initNsdFailedListener: (): Promise<UnlistenFn> => {
       const request = requests.begin();
       const setCurrent = request.guardSet<SyncStoreState>(set);
-      return listen<{ error?: string }>('sync-nsd-failed', (event) => {
+      return listen<IpcEvents['sync-nsd-failed']>('sync-nsd-failed', (event) => {
         if (!request.isCurrent()) return;
         logger.warn('[syncStore] NSD registration failed:', event.payload?.error);
         setCurrent({ isLoading: false, error: '__SYNC_ERR__:nsd_failed' });
@@ -859,7 +811,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       const request = requests.begin('detail');
       const setCurrent = request.guardSet<SyncStoreState>(set);
       try {
-        const detail = await request.invoke<SyncConflictDetail>('sync_get_conflict_detail', {
+        const detail = await request.invokeTyped('sync_get_conflict_detail', {
           conflictId: conflictId,
         });
         request.assertCurrent();
@@ -875,7 +827,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       const setCurrent = request.guardSet<SyncStoreState>(set);
       setCurrent({ isLoading: true, error: null });
       try {
-        await request.invoke<boolean>('sync_resolve_conflict', {
+        await request.invokeTyped('sync_resolve_conflict', {
           conflictId: conflictId,
           strategy,
         });

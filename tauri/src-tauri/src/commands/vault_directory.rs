@@ -7,6 +7,7 @@ use crate::attachment_import_plugin::AttachmentImportPluginHandle;
 use crate::fs::normalize_path;
 use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use crate::state::{AppState, InitializeVaultResult};
+use crate::sync::contracts::SyncProgress;
 use serde::{Deserialize, Serialize};
 use solosoul_core::vault_file_system::{SafVaultFileSystem, VaultFileSystem};
 use solosoul_core::VaultService as CoreVaultService;
@@ -217,10 +218,9 @@ pub async fn vault_set_directory(
         };
 
         // 迁移/同步进度通知（spawn_blocking 外执行 emit）
-        let _ = state.handle.emit(
-            "sync-progress",
-            serde_json::json!({"phase": "migrate", "current": 0, "total": 3}),
-        );
+        let _ = state
+            .handle
+            .emit("sync-progress", SyncProgress::counters("migrate", 0, 3));
 
         // 克隆 temp_dir 供 spawn_blocking 内部使用，外部保留引用以写入 .solosoul_config
         let temp_dir_inner = temp_dir.clone();
@@ -249,15 +249,9 @@ pub async fn vault_set_directory(
 
             // ② 合并本地数据到 temp（clear_dst=false 不清空，保留刚拉取的远端数据）
             if local_dir != temp_dir_inner {
-                let _ = handle.emit(
-                    "sync-progress",
-                    serde_json::json!({"phase": "migrate", "current": 1, "total": 3}),
-                );
+                let _ = handle.emit("sync-progress", SyncProgress::counters("migrate", 1, 3));
                 migrate_vault_data(&local_dir, &temp_dir_inner, false)?;
-                let _ = handle.emit(
-                    "sync-progress",
-                    serde_json::json!({"phase": "migrate", "current": 2, "total": 3}),
-                );
+                let _ = handle.emit("sync-progress", SyncProgress::counters("migrate", 2, 3));
             }
 
             // ③ 重建账户清单：load_accounts 读合并后 temp 的 accounts.json，
@@ -277,10 +271,7 @@ pub async fn vault_set_directory(
             fs.sync_to_remote()
                 .map_err(|e| format!("首次同步到 SAF 失败: {e}"))?;
 
-            let _ = handle.emit(
-                "sync-progress",
-                serde_json::json!({"phase": "migrate", "current": 3, "total": 3}),
-            );
+            let _ = handle.emit("sync-progress", SyncProgress::counters("migrate", 3, 3));
             Ok(())
         })
         .await
@@ -324,7 +315,6 @@ pub async fn vault_set_directory(
 
 /// 手动将 Vault 数据同步到远端（SAF）。
 /// 同步期间每次文件操作时向前端发送进度事件。
-#[tauri::command]
 pub async fn vault_sync_to_remote(
     app: AppHandle<tauri::Wry>,
     state: State<'_, AppState>,
@@ -332,7 +322,7 @@ pub async fn vault_sync_to_remote(
     // 发送同步开始事件
     let _ = app.emit(
         "sync-progress",
-        serde_json::json!({"phase": "sync_to_remote", "current": 0, "total": 1}),
+        SyncProgress::counters("sync_to_remote", 0, 1),
     );
 
     let result = {
@@ -348,7 +338,7 @@ pub async fn vault_sync_to_remote(
     // 发送同步完成事件
     let _ = app.emit(
         "sync-progress",
-        serde_json::json!({"phase": "sync_to_remote", "current": 1, "total": 1}),
+        SyncProgress::counters("sync_to_remote", 1, 1),
     );
 
     result
@@ -356,7 +346,6 @@ pub async fn vault_sync_to_remote(
 
 /// 手动从远端（SAF）同步 Vault 数据到本地。
 /// 同步期间每次文件操作时向前端发送进度事件。
-#[tauri::command]
 pub async fn vault_sync_from_remote(
     app: AppHandle<tauri::Wry>,
     state: State<'_, AppState>,
@@ -364,7 +353,7 @@ pub async fn vault_sync_from_remote(
     // 发送同步开始事件
     let _ = app.emit(
         "sync-progress",
-        serde_json::json!({"phase": "sync_from_remote", "current": 0, "total": 1}),
+        SyncProgress::counters("sync_from_remote", 0, 1),
     );
 
     let result = {
@@ -380,7 +369,7 @@ pub async fn vault_sync_from_remote(
     // 发送同步完成事件
     let _ = app.emit(
         "sync-progress",
-        serde_json::json!({"phase": "sync_from_remote", "current": 1, "total": 1}),
+        SyncProgress::counters("sync_from_remote", 1, 1),
     );
 
     result
@@ -390,7 +379,6 @@ pub async fn vault_sync_from_remote(
 ///
 /// 应用切到后台时前端调用此命令，通知 `AutoSyncManager` 立即执行一次
 /// `sync_to_remote()`。命令本身不等待同步完成，立即返回。
-#[tauri::command]
 pub async fn vault_sync_background(state: State<'_, AppState>) -> Result<(), String> {
     state.auto_sync.trigger_background();
     Ok(())

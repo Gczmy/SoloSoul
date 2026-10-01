@@ -1,18 +1,8 @@
 /** RecoveryReceiveDialog 的共享类型与常量。 */
-import type { ImportResult } from '@/types/exportImport';
-
-export interface RecoveryResultSummary extends ImportResult {
-  /** 恢复包的账户 ID（与旧设备一致）。 */
-  accountId: string;
-  /** 恢复包的账户名。 */
-  accountName: string;
-}
-
-export interface RecoveryDiscoveredHost {
-  name: string;
-  addr: string;
-  fingerprint: string;
-}
+export type {
+  ImportResultSummary as RecoveryResultSummary,
+  RecoveryDiscoveredHost,
+} from '@/lib/generated/ipcContracts';
 
 /** 从 `t:"rec"` 二维码解析出的恢复连接信息。 */
 export interface ScannedRecoveryQr {

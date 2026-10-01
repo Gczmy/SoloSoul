@@ -219,6 +219,138 @@
     {
       "name": "import_operation_resume",
       "source": "src-tauri/src/commands/export_import/operations.rs"
+    },
+    {
+      "name": "cloud_sync_delete_config",
+      "source": "src-tauri/src/commands/settings.rs"
+    },
+    {
+      "name": "cloud_sync_get_config",
+      "source": "src-tauri/src/commands/settings.rs"
+    },
+    {
+      "name": "cloud_sync_import_incoming",
+      "source": "src-tauri/src/commands/settings.rs"
+    },
+    {
+      "name": "cloud_sync_list_incoming",
+      "source": "src-tauri/src/commands/settings.rs"
+    },
+    {
+      "name": "cloud_sync_mark_applied",
+      "source": "src-tauri/src/commands/settings.rs"
+    },
+    {
+      "name": "cloud_sync_now",
+      "source": "src-tauri/src/commands/settings.rs"
+    },
+    {
+      "name": "cloud_sync_save_config",
+      "source": "src-tauri/src/commands/settings.rs"
+    },
+    {
+      "name": "cloud_sync_test_connection",
+      "source": "src-tauri/src/commands/settings.rs"
+    },
+    {
+      "name": "mdns_discover",
+      "source": "src-tauri/src/sync/ipc.rs"
+    },
+    {
+      "name": "recovery_discover_hosts",
+      "source": "src-tauri/src/sync/ipc.rs"
+    },
+    {
+      "name": "recovery_host_cancel",
+      "source": "src-tauri/src/commands/recovery.rs"
+    },
+    {
+      "name": "recovery_host_start",
+      "source": "src-tauri/src/commands/recovery.rs"
+    },
+    {
+      "name": "recovery_restore_existing_from_host",
+      "source": "src-tauri/src/commands/recovery.rs"
+    },
+    {
+      "name": "recovery_restore_from_host",
+      "source": "src-tauri/src/commands/recovery.rs"
+    },
+    {
+      "name": "sync_enable",
+      "source": "src-tauri/src/sync/ipc.rs"
+    },
+    {
+      "name": "sync_forget_peer",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_generate_qr_payload",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_get_auto_status",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_get_conflict_detail",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_get_status",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_get_ui_prefs_sync",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_list_conflicts",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_listen_addr",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_rename_peer",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_resolve_conflict",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_set_auto_enabled",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_set_ui_prefs_sync",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_trigger_foreground",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_trust_peer",
+      "source": "src-tauri/src/commands/sync.rs"
+    },
+    {
+      "name": "sync_with_device",
+      "source": "src-tauri/src/sync/ipc.rs"
+    },
+    {
+      "name": "vault_sync_background",
+      "source": "src-tauri/src/sync/ipc.rs"
+    },
+    {
+      "name": "vault_sync_from_remote",
+      "source": "src-tauri/src/sync/ipc.rs"
+    },
+    {
+      "name": "vault_sync_to_remote",
+      "source": "src-tauri/src/sync/ipc.rs"
     }
   ],
   "types": [
@@ -229,13 +361,64 @@
     "crates/solosoul-plugin/src/session.rs",
     "crates/solosoul-core/src/llm/config.rs",
     "src-tauri/src/commands/llm/contracts.rs",
-    "src-tauri/src/commands/export_import/contracts.rs"
+    "src-tauri/src/commands/export_import/contracts.rs",
+    "src-tauri/src/sync/contracts.rs"
   ],
   "events": [
     {
       "name": "llm-stream-chunk",
       "source": "src-tauri/src/commands/llm/contracts.rs",
       "payload": "LlmStreamPayload"
+    },
+    {
+      "name": "sync-pairing-request",
+      "source": "src-tauri/src/sync/contracts.rs",
+      "payload": "SyncPairingRequest"
+    },
+    {
+      "name": "sync-completed",
+      "source": "src-tauri/src/sync/contracts.rs",
+      "payload": "SyncCompleted"
+    },
+    {
+      "name": "sync-conflicts-updated",
+      "source": "src-tauri/src/sync/contracts.rs",
+      "payload": "SyncConflictsUpdated"
+    },
+    {
+      "name": "sync-nsd-failed",
+      "source": "src-tauri/src/sync/contracts.rs",
+      "payload": "SyncNsdFailed"
+    },
+    {
+      "name": "sync-progress",
+      "source": "src-tauri/src/sync/contracts.rs",
+      "payload": "SyncProgress"
+    },
+    {
+      "name": "device-sync-auto-status",
+      "source": "src-tauri/src/sync/contracts.rs",
+      "payload": "DeviceSyncAutoStatus"
+    },
+    {
+      "name": "cloud-sync-status",
+      "source": "src-tauri/src/sync/contracts.rs",
+      "payload": "CloudSyncStatus"
+    },
+    {
+      "name": "cloud-sync-incoming",
+      "source": "src-tauri/src/sync/contracts.rs",
+      "payload": "CloudSyncIncoming"
+    },
+    {
+      "name": "recovery-progress",
+      "source": "src-tauri/src/sync/contracts.rs",
+      "payload": "RecoveryProgress"
+    },
+    {
+      "name": "saf-auth-revoked",
+      "source": "src-tauri/src/sync/contracts.rs",
+      "payload": "()"
     }
   ],
   "crates": [

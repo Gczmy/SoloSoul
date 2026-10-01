@@ -1,3 +1,4 @@
+import type { IpcEvents } from '@/lib/generated/ipcContracts';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { listen } from '@tauri-apps/api/event';
@@ -75,7 +76,7 @@ export function useRecoveryReceive({
   const [scannerError, setScannerError] = useState<string | null>(null);
 
   // 恢复执行进度（recovery-progress 事件）：{ phase, percent }，未开始/完成后为 null
-  const [progress, setProgress] = useState<{ phase: string; percent: number } | null>(null);
+  const [progress, setProgress] = useState<IpcEvents['recovery-progress'] | null>(null);
   // 恢复完成后「恢复完成」确认弹窗是否打开
   const [successConfirmOpen, setSuccessConfirmOpen] = useState(false);
 
@@ -326,7 +327,7 @@ export function useRecoveryReceive({
     setProgress(null);
     setStatusText(t('common:recovery_connecting', { defaultValue: 'Connecting to host…' }));
     // 进度只影响本次可见请求；退订前排队的旧回调也必须经过 run/session 校验。
-    const unlistenPromise = listen<{ phase: string; percent: number }>('recovery-progress', (e) => {
+    const unlistenPromise = listen<IpcEvents['recovery-progress']>('recovery-progress', (e) => {
       if (mountedRef.current && recoveryInFlightRef.current && isCurrent()) setProgress(e.payload);
     }).catch(() => null);
     try {
@@ -338,11 +339,11 @@ export function useRecoveryReceive({
         nonce: pending.nonce,
       };
       const result = existingAccountId
-        ? await ticket.invoke<RecoveryResultSummary>('recovery_restore_existing_from_host', {
+        ? await ticket.invokeTyped('recovery_restore_existing_from_host', {
             accountId: existingAccountId,
             ...connection,
           })
-        : await ticket.invoke<RecoveryResultSummary>('recovery_restore_from_host', {
+        : await ticket.invokeTyped('recovery_restore_from_host', {
             ...connection,
             masterPassword: credentials.masterPassword,
             passwordHint: credentials.passwordHint.trim() || null,

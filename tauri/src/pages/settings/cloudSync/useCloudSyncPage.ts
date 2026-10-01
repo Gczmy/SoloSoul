@@ -1,3 +1,5 @@
+import type { IpcEvents } from '@/lib/generated/ipcContracts';
+import { toJsonObject } from '@/lib/objectViewModel';
 /**
  * P007：云同步设置页状态与处理器 hook（自 CloudSyncPage.tsx 拆出）。
  * 承载全部表单状态、配置加载/保存/删除/测试、立即同步与下行导入逻辑；
@@ -10,7 +12,6 @@ import { useToastError } from '@/hooks/useToastError';
 import { useAuthStore } from '@/stores/authStore';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { importOutcomeError } from '@/lib/importOutcome';
-import type { ImportResult } from '@/types/exportImport';
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import {
   DEFAULT_RETENTION,
@@ -77,7 +78,7 @@ export function useCloudSyncPage() {
   const loadIncoming = useCallback(async () => {
     const request = requests.begin('incoming', accountId);
     try {
-      const files = await request.invoke<string[]>('cloud_sync_list_incoming');
+      const files = await request.invokeTyped('cloud_sync_list_incoming');
       setIncomingFiles(files ?? []);
     } catch {
       if (request.isCurrent()) setIncomingFiles([]);
@@ -89,14 +90,11 @@ export function useCloudSyncPage() {
     if (!accountId) return;
     const lifetime = requests.begin(undefined, accountId);
     void loadIncoming();
-    const unlisten = listen<{ accountId: string; sessionGeneration: number }>(
-      'cloud-sync-incoming',
-      (event) => {
-        if (!lifetime.isCurrent() || event.payload.accountId !== accountId) return;
-        // 事件只触发读取，不直接采用可能排队迟到的旧会话文件列表。
-        void loadIncoming();
-      },
-    );
+    const unlisten = listen<IpcEvents['cloud-sync-incoming']>('cloud-sync-incoming', (event) => {
+      if (!lifetime.isCurrent() || event.payload.accountId !== accountId) return;
+      // 事件只触发读取，不直接采用可能排队迟到的旧会话文件列表。
+      void loadIncoming();
+    });
     return () => {
       unlisten.then((fn) => fn());
     };
@@ -106,10 +104,10 @@ export function useCloudSyncPage() {
     const request = requests.begin('config', accountId);
     try {
       setIsLoading(true);
-      const config = await request.invoke<(SavedCloudSyncConfig & { autoImport?: boolean }) | null>(
-        'cloud_sync_get_config',
-        { accountId },
-      );
+      // Host 返回任意 JSON；保留既有表单解释边界，生成类型不伪造该形状。
+      const config = (await request.invokeTyped('cloud_sync_get_config', {
+        accountId,
+      })) as unknown as (SavedCloudSyncConfig & { autoImport?: boolean }) | null;
       if (config) {
         setSavedConfig(config);
         setConnectorType(config.connectorType);
@@ -139,16 +137,16 @@ export function useCloudSyncPage() {
     if (!accountId || !request.isCurrent()) return false;
     let saved: boolean;
     try {
-      saved = await request.invoke<boolean>('cloud_sync_save_config', {
+      saved = await request.invokeTyped('cloud_sync_save_config', {
         payload: {
           accountId,
           connectorType,
-          configJson,
+          configJson: toJsonObject(configJson),
           enabled,
           intervalSecs,
           wifiOnly,
           autoImport,
-          retention,
+          retention: toJsonObject({ ...retention }),
         },
         password,
       });
@@ -168,7 +166,7 @@ export function useCloudSyncPage() {
     const request = requests.begin('delete', accountId);
     if (!accountId || !request.isCurrent()) return;
     try {
-      await request.invoke('cloud_sync_delete_config', { accountId });
+      await request.invokeTyped('cloud_sync_delete_config', { accountId });
       if (!request.isCurrent()) return;
       onSuccess(t('settings:cloud_sync_deleted'));
       setSavedConfig(null);
@@ -190,16 +188,16 @@ export function useCloudSyncPage() {
     setIsTesting(true);
     setTestResult(null);
     try {
-      await request.invoke('cloud_sync_test_connection', {
+      await request.invokeTyped('cloud_sync_test_connection', {
         payload: {
           accountId,
           connectorType,
-          configJson,
+          configJson: toJsonObject(configJson),
           enabled,
           intervalSecs,
           wifiOnly,
           autoImport,
-          retention,
+          retention: toJsonObject({ ...retention }),
         },
       });
       if (!request.isCurrent()) return;
@@ -219,7 +217,7 @@ export function useCloudSyncPage() {
     const request = requests.begin('sync-now', accountId);
     setIsSyncingNow(true);
     try {
-      await request.invoke('cloud_sync_now');
+      await request.invokeTyped('cloud_sync_now');
       // 调度器异步执行；稍后刷新待导入列表
       if (refreshTimer.current !== null) clearTimeout(refreshTimer.current);
       refreshTimer.current = setTimeout(() => {
@@ -247,7 +245,7 @@ export function useCloudSyncPage() {
     }
     setImportingFile(file);
     try {
-      const result = await request.invoke<ImportResult>('cloud_sync_import_incoming', {
+      const result = await request.invokeTyped('cloud_sync_import_incoming', {
         accountId,
         sourcePath: file,
         password: snapshotPw,
@@ -258,7 +256,7 @@ export function useCloudSyncPage() {
         return;
       }
       if (!result.operationId) throw new Error('missing import operation');
-      await request.invoke('cloud_sync_mark_applied', {
+      await request.invokeTyped('cloud_sync_mark_applied', {
         accountId,
         sessionGeneration: result.sessionGeneration,
         sourcePath: file,

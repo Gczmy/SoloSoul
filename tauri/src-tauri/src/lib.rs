@@ -66,9 +66,9 @@ fn register_core_commands(
         commands::vault::lock,
         commands::vault_directory::vault_get_directory,
         commands::vault_directory::vault_set_directory,
-        commands::vault_directory::vault_sync_to_remote,
-        commands::vault_directory::vault_sync_from_remote,
-        commands::vault_directory::vault_sync_background,
+        sync::ipc::vault_sync_to_remote,
+        sync::ipc::vault_sync_from_remote,
+        sync::ipc::vault_sync_background,
         commands::vault_directory::vault_check_directory,
         commands::vault_directory::init_vault_directory,
         // Object commands
@@ -229,10 +229,10 @@ fn register_sync_commands(
     tauri::generate_handler![
         // Sync commands
         commands::sync::sync_get_status,
-        commands::sync::sync_enable,
+        sync::ipc::sync_enable,
         commands::sync::sync_listen_addr,
         commands::sync::sync_generate_qr_payload,
-        commands::sync::sync_with_device,
+        sync::ipc::sync_with_device,
         commands::sync::sync_trust_peer,
         commands::sync::sync_forget_peer,
         commands::sync::sync_rename_peer,
@@ -250,8 +250,8 @@ fn register_sync_commands(
         commands::recovery::recovery_restore_from_host,
         commands::recovery::recovery_restore_existing_from_host,
         // Discovery commands
-        commands::discovery::mdns_discover,
-        commands::discovery::recovery_discover_hosts,
+        sync::ipc::mdns_discover,
+        sync::ipc::recovery_discover_hosts,
     ]
 }
 

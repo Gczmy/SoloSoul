@@ -1,3 +1,4 @@
+import type { IpcEvents } from '@/lib/generated/ipcContracts';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { listen } from '@tauri-apps/api/event';
@@ -86,7 +87,7 @@ export function GlobalSyncIndicator() {
       }
     }).then((unlisten) => unlistens.push(unlisten));
 
-    listen<void>('saf-auth-revoked', () => {
+    listen<IpcEvents['saf-auth-revoked']>('saf-auth-revoked', () => {
       setSafAuthRevoked(true);
       setSafSyncState('error');
       setSafSyncError(t('settings:vault_directory_invalid_toast'));

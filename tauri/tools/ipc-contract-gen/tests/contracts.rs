@@ -624,3 +624,46 @@ fn rf304_default_functions_project_missing_keys_but_never_execute_during_generat
     assert_eq!(container.locale, "en-US");
     assert_eq!(container.count, 7);
 }
+
+#[test]
+fn rf305_named_output_flatten_preserves_nested_serde_names_and_nullability() {
+    let source = r#"
+#[derive(serde::Serialize)] #[serde(rename_all="camelCase")]
+pub struct Inner { pub nullable_value: Option<String>, #[serde(skip_serializing_if="Option::is_none")] pub omitted: Option<String> }
+#[derive(serde::Serialize)] #[serde(rename_all="camelCase")]
+pub struct AppInfo { #[serde(flatten)] pub inner: Inner, pub account_id: String }
+#[allow(clippy::too_many_arguments)] #[tauri::command]
+pub fn get_app_info() -> Result<AppInfo,String> { panic!("never execute") }
+#[tauri::command] pub fn legacy_ping() -> String { panic!("never execute") }
+"#;
+    let generated = Fixture::new(source).generate().typescript;
+    assert!(generated.contains("\"nullableValue\": (string) | null;"));
+    assert!(generated.contains("\"omitted\"?: string;"));
+    assert!(generated.contains("\"accountId\": string;"));
+    assert!(!generated.contains("\"inner\":"));
+}
+#[test]
+fn rf305_flatten_rejects_collisions_maps_optional_enums_recursion_and_input() {
+    let inner = "#[derive(serde::Serialize,serde::Deserialize)] pub struct Inner { pub id:String } #[derive(serde::Serialize,serde::Deserialize)] pub enum Choice { Known { id:String } }";
+    for field in [
+        "#[serde(flatten)] pub inner:String",
+        "#[serde(flatten)] pub inner:Option<Inner>",
+        "#[serde(flatten)] pub inner:Choice",
+        "#[serde(flatten)] pub inner:std::collections::HashMap<String,String>",
+        "#[serde(flatten)] pub inner:Inner, pub id:String",
+        "pub id:String, #[serde(flatten)] pub inner:Inner",
+        "#[serde(flatten,default)] pub inner:Inner",
+        "#[serde(flatten,rename=\"other\")] pub inner:Inner",
+        "#[serde(flatten)] pub inner:AppInfo",
+    ] {
+        let source=format!("{inner} #[derive(serde::Serialize)] pub struct AppInfo {{ {field} }} #[tauri::command] pub fn get_app_info()->AppInfo {{ panic!() }} #[tauri::command] pub fn legacy_ping()->String {{panic!()}}");
+        assert!(!Fixture::new(&source).error().is_empty(), "{field}");
+    }
+    let source=format!("{inner} #[derive(serde::Deserialize)] pub struct AppInfo {{ #[serde(flatten)] pub inner:Inner }} #[tauri::command] pub fn get_app_info(value:AppInfo) {{ panic!() }} #[tauri::command] pub fn legacy_ping()->String {{panic!()}}");
+    assert!(Fixture::new(&source).error().contains("flatten"));
+    let source = BASE.replace(
+        "#[tauri::command]\npub async fn get_app_info",
+        "#[allow(dead_code)] #[tauri::command]\npub async fn get_app_info",
+    );
+    assert!(Fixture::new(&source).error().contains("lint"));
+}

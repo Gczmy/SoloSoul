@@ -4,6 +4,7 @@
 //! 关键里程碑同步、写操作防抖同步和切后台同步排队为单任务执行，
 //! 避免多个 `sync_to_remote()` 并发运行。
 
+use super::contracts::SyncProgress;
 use crate::attachment_import_plugin::AttachmentImportPluginHandle;
 use futures::future::BoxFuture;
 use solosoul_core::VaultService;
@@ -266,14 +267,10 @@ pub async fn run_sync(
         }
     }
 
-    let event = || {
-        serde_json::json!({
-            "phase": "sync_start",
-            "current": 0,
-            "total": 1,
-            "source": source_string(source),
-            "silent": silent,
-        })
+    let event = || SyncProgress {
+        source: Some(source_string(source).into()),
+        silent: Some(silent),
+        ..SyncProgress::counters("sync_start", 0, 1)
     };
 
     if !silent {
@@ -297,13 +294,11 @@ pub async fn run_sync(
                 app_handle
                     .emit(
                         "sync-progress",
-                        serde_json::json!({
-                            "phase": "sync_complete",
-                            "current": 1,
-                            "total": 1,
-                            "source": source_string(source),
-                            "silent": silent,
-                        }),
+                        SyncProgress {
+                            source: Some(source_string(source).into()),
+                            silent: Some(silent),
+                            ..SyncProgress::counters("sync_complete", 1, 1)
+                        },
                     )
                     .ok();
             }
@@ -313,12 +308,13 @@ pub async fn run_sync(
             app_handle
                 .emit(
                     "sync-progress",
-                    serde_json::json!({
-                        "phase": "error",
-                        "message": e.clone(),
-                        "source": source_string(source),
-                        "silent": silent,
-                    }),
+                    SyncProgress {
+                        phase: "error".into(),
+                        message: Some(e.clone()),
+                        source: Some(source_string(source).into()),
+                        silent: Some(silent),
+                        ..Default::default()
+                    },
                 )
                 .ok();
             Err(e)

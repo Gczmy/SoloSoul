@@ -1,5 +1,9 @@
 use crate::state::AppState;
-use serde::Serialize;
+use crate::sync::contracts::SyncConflictsUpdated;
+pub use crate::sync::contracts::{
+    ConflictDetail, ConflictHlc, ConflictSummary, SyncConflictDto, SyncPeer, SyncResult,
+    SyncStatus, TableResult,
+};
 use tauri::{Emitter, Manager, State};
 
 /// 记录同步相关操作日志。Vault 未解锁时静默跳过（同步服务本身不依赖 Vault）。
@@ -26,24 +30,6 @@ fn log_sync_action(
     );
 }
 
-#[cfg(desktop)]
-use solosoul_sync::types::ApplyStats;
-
-/// 同步冲突载荷 DTO：桌面端与移动端**共用**的序列化形状（P001）。
-///
-/// 底层 `Hlc.node_id: [u8; 16]` 在桌面端会被 serde 序列化为 `number[]`，
-/// 而移动端旧实现用本地复刻 `MobileHlc`（`node_id: String`）——同一载荷在
-/// 两个平台形状不同，Android 上前端任何读取 `node_id` 的逻辑都会拿到 string。
-/// 统一经 hex 编码为字符串，并删除移动端复刻结构。
-#[derive(Debug, Clone, Serialize, serde::Deserialize)]
-pub struct SyncConflictDto {
-    pub table: String,
-    pub id: String,
-    pub local_hlc: ConflictHlc,
-    pub remote_hlc: ConflictHlc,
-    pub winner: String,
-}
-
 /// 从底层同步 crate 的 `ConflictRecord`（含原始 `Hlc`）转换为统一 DTO。
 #[cfg(desktop)]
 fn conflict_to_dto(c: &solosoul_sync::types::ConflictRecord) -> SyncConflictDto {
@@ -64,56 +50,9 @@ fn conflict_to_dto(c: &solosoul_sync::types::ConflictRecord) -> SyncConflictDto 
     }
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SyncPeer {
-    pub id: String,
-    pub name: String,
-    pub custom_name: Option<String>,
-    pub addr: String,
-    pub fingerprint: String,
-    pub trusted: bool,
-    pub last_seen: String,
-    /// 最近一次同步/在线的原始 unix 秒时间戳（未格式化的相对串）。
-    /// 前端据此展示精确的「最近同步时间」。
-    pub last_seen_ts: Option<i64>,
-    /// 最近一次信任该设备的时间（unix 秒）。从未信任/已撤销时为 None。
-    pub trusted_at: Option<i64>,
-    /// 客户端类型：macos / windows / linux / android / ios / unknown。
-    pub client_type: String,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SyncStatus {
-    pub is_discovering: bool,
-    pub sync_enabled: bool,
-    pub auto_sync_enabled: bool,
-    pub local_fingerprint: String,
-    pub connected_peers: Vec<SyncPeer>,
-}
-
-#[derive(Serialize)]
-pub struct SyncResult {
-    pub summary: String,
-    pub examined: u64,
-    pub applied: u64,
-    pub skipped: u64,
-    pub conflicts: Vec<SyncConflictDto>,
-    pub per_table: Vec<TableResult>,
-}
-
-#[derive(Serialize)]
-pub struct TableResult {
-    pub table: String,
-    pub examined: u64,
-    pub applied: u64,
-    pub skipped: u64,
-}
-
 #[cfg(desktop)]
-impl From<&ApplyStats> for SyncResult {
-    fn from(stats: &ApplyStats) -> Self {
+impl From<&solosoul_sync::types::ApplyStats> for SyncResult {
+    fn from(stats: &solosoul_sync::types::ApplyStats) -> Self {
         Self {
             summary: format!(
                 "examined={}, applied={}, skipped={}, conflicts={}",
@@ -273,41 +212,6 @@ pub async fn sync_rename_peer(
 #[tauri::command]
 pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, String> {
     sync_discover(state).await
-}
-
-/// 同步冲突摘要，前端列表使用。
-#[derive(Serialize)]
-pub struct ConflictSummary {
-    pub id: String,
-    pub table: String,
-    pub record_id: String,
-    pub local_hlc: ConflictHlc,
-    pub remote_hlc: ConflictHlc,
-    pub winner: String,
-    pub created_at: String,
-}
-
-/// 同步冲突 HLC（统一 DTO，桌面/移动共用）。
-#[derive(Debug, Clone, Serialize, serde::Deserialize)]
-pub struct ConflictHlc {
-    pub wall_time_ms: u64,
-    pub counter: u64,
-    pub node_id: String,
-}
-
-/// 同步冲突详情，前端 Diff 使用。
-#[derive(Serialize)]
-pub struct ConflictDetail {
-    pub id: String,
-    pub table: String,
-    pub record_id: String,
-    pub local_hlc: ConflictHlc,
-    pub remote_hlc: ConflictHlc,
-    pub local_data: serde_json::Value,
-    pub remote_data: serde_json::Value,
-    pub remote_deleted: bool,
-    pub winner: String,
-    pub created_at: String,
 }
 
 fn parse_hlc_json(s: &str) -> Result<ConflictHlc, String> {
@@ -473,7 +377,6 @@ pub async fn sync_resolve_conflict(
 }
 
 #[cfg(desktop)]
-#[tauri::command]
 pub async fn sync_enable(state: State<'_, AppState>, enable: bool) -> Result<(), String> {
     if enable {
         current_sync_preferences(&state)?;
@@ -508,7 +411,6 @@ pub async fn sync_enable(state: State<'_, AppState>, enable: bool) -> Result<(),
 }
 
 #[cfg(mobile)]
-#[tauri::command]
 pub async fn sync_enable(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
@@ -586,9 +488,10 @@ pub async fn sync_enable(
                 tauri::async_runtime::spawn(async move {
                     let state = app3.state::<crate::state::AppState>();
                     let _ = state.sync_service.enable(false).await;
-                    let _ = state
-                        .handle
-                        .emit("sync-nsd-failed", serde_json::json!({ "error": e }));
+                    let _ = state.handle.emit(
+                        "sync-nsd-failed",
+                        crate::sync::contracts::SyncNsdFailed { error: e },
+                    );
                 });
             }
         }));
@@ -643,7 +546,6 @@ pub async fn sync_listen_addr(state: State<'_, AppState>) -> Result<String, Stri
 }
 
 #[cfg(desktop)]
-#[tauri::command]
 pub async fn sync_with_device(
     state: State<'_, AppState>,
     device_id: String,
@@ -671,7 +573,9 @@ pub async fn sync_with_device(
     if !sync_result.conflicts.is_empty() {
         let _ = state.handle.emit(
             "sync-conflicts-updated",
-            serde_json::json!({ "count": sync_result.conflicts.len() }),
+            SyncConflictsUpdated {
+                count: sync_result.conflicts.len() as u64,
+            },
         );
     }
 
@@ -679,12 +583,11 @@ pub async fn sync_with_device(
 }
 
 #[cfg(mobile)]
-#[tauri::command]
 pub async fn sync_with_device(
     state: State<'_, AppState>,
     device_id: String,
 ) -> Result<SyncResult, String> {
-    // 移动端手动构造 SyncResult，因为 From<&ApplyStats> 实现在桌面端。
+    // 移动端手动构造 SyncResult，因为 From<&solosoul_sync::types::ApplyStats> 实现在桌面端。
     let result = state
         .sync_service
         .sync_with_device(device_id.clone())
@@ -753,7 +656,9 @@ pub async fn sync_with_device(
     if !sync_result.conflicts.is_empty() {
         let _ = state.handle.emit(
             "sync-conflicts-updated",
-            serde_json::json!({ "count": sync_result.conflicts.len() }),
+            SyncConflictsUpdated {
+                count: sync_result.conflicts.len() as u64,
+            },
         );
     }
 

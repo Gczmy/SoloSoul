@@ -5,6 +5,9 @@ use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use crate::plugin::PluginManager;
 use crate::sync::auto_sync::AutoSyncManager;
 use crate::sync::cloud_auto_sync::CloudAutoSyncManager;
+use crate::sync::contracts::{
+    SyncCompleted, SyncConflictsUpdated, SyncPairingRequest, SyncProgress,
+};
 use crate::sync::device_auto_sync::DeviceAutoSyncManager;
 use solosoul_core::vault_service::AccountSummary;
 use solosoul_core::VaultService;
@@ -68,14 +71,13 @@ impl AppState {
             sync_service.set_peer_callback(Some(Arc::new(move |info: NewPeerInfo| {
                 let _ = emit_handle.emit(
                     "sync-pairing-request",
-                    serde_json::json!({
-                        "nodeId": info.node_id,
-                        "fingerprint": info.fingerprint,
-                        "addr": info.addr,
-                        "deviceName": info.device_name,
-                        // SAS 配对验证码：两侧展示同一 6 位数字供目视比对。
-                        "sasCode": info.sas_code,
-                    }),
+                    SyncPairingRequest {
+                        node_id: info.node_id,
+                        fingerprint: info.fingerprint,
+                        addr: info.addr,
+                        device_name: info.device_name,
+                        sas_code: info.sas_code,
+                    },
                 );
             })));
         }
@@ -92,21 +94,21 @@ impl AppState {
                 if info.conflicts > 0 {
                     let _ = emit_handle.emit(
                         "sync-conflicts-updated",
-                        serde_json::json!({ "count": info.conflicts }),
+                        SyncConflictsUpdated {
+                            count: info.conflicts,
+                        },
                     );
                 }
                 let _ = emit_handle.emit(
                     "sync-completed",
-                    serde_json::json!({
-                        "peerNodeId": info.peer_node_id,
-                        "examined": info.examined,
-                        "applied": info.applied,
-                        "skipped": info.skipped,
-                        "conflicts": info.conflicts,
-                        // B：响应方发回给发起方的记录条数——前端 toast/结果行据此
-                        // 展示双向完整交换量（旧版只有入站方向，「检查 0 条」误导）。
-                        "outboundRecords": info.outbound_records,
-                    }),
+                    SyncCompleted {
+                        peer_node_id: info.peer_node_id,
+                        examined: info.examined,
+                        applied: info.applied,
+                        skipped: info.skipped,
+                        conflicts: info.conflicts,
+                        outbound_records: info.outbound_records,
+                    },
                 );
             })));
         }
@@ -385,10 +387,9 @@ impl AppState {
             }
 
             // 同步开始：通知前端显示进度条
-            let _ = self.handle.emit(
-                "sync-progress",
-                serde_json::json!({"phase": "sync_start", "current": 0, "total": 1}),
-            );
+            let _ = self
+                .handle
+                .emit("sync-progress", SyncProgress::counters("sync_start", 0, 1));
 
             // 首次同步：失败回退本地（P044-6 抽取），成功走收尾（进度完成/重载缓存/写配置/调度兜底）
             if let Err(e) = self
@@ -443,7 +444,7 @@ impl AppState {
         // 同步成功：通知前端进度完成
         let _ = self.handle.emit(
             "sync-progress",
-            serde_json::json!({"phase": "sync_complete", "current": 1, "total": 1}),
+            SyncProgress::counters("sync_complete", 1, 1),
         );
 
         // 同步后重载账户缓存，使前端能感知已有账户

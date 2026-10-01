@@ -1,3 +1,4 @@
+import type { IpcEvents } from '@/lib/generated/ipcContracts';
 import { useEffect } from 'react';
 import type { NavigateFunction } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -45,7 +46,7 @@ export function useNativeAppEvents({
     if (!isAuthenticated) return;
     let active = true;
     const dispose = trackAsyncListener(
-      listen('saf-auth-revoked', () => {
+      listen<IpcEvents['saf-auth-revoked']>('saf-auth-revoked', () => {
         if (!active) return;
         // auto-sync 周期重试会重复发出此事件；专用标志保证一会话只弹一次。
         logger.warn('[AppRoutes] SAF auth revoked event received');

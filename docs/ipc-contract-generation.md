@@ -1,6 +1,6 @@
 # 增量 IPC 契约生成
 
-RF301 迁移只读命令 `get_app_info`，RF302 再迁移真实注册的 10 个 `object_*` 和 4 个 `snapshot_*` 命令。RF306 继续迁移插件 15 个命令，RF303 迁移 8 个会话命令与普通流式发送。RF304 再迁移备份、导入导出和任务恢复的 16 个命令。当前实际注册清单覆盖 55/225 个命令，170 个命令仍待迁移，并生成 1 个选定全局事件。Rust 命令签名及其 DTO 是参数及响应形状的来源；前端通过 `invokeTypedCommand` 复用现有 `ipcClient` 的鉴权、过期请求检查和错误处理。旧入口仍服务未迁移命令，不宣称全库调用已经类型化。生成类型只做编译期检查，不做运行时响应校验。
+RF301 迁移只读命令 `get_app_info`，RF302 再迁移真实注册的 10 个 `object_*` 和 4 个 `snapshot_*` 命令。RF306 继续迁移插件 15 个命令，RF303 迁移 8 个会话命令与普通流式发送。RF304 再迁移备份、导入导出和任务恢复的 16 个命令，RF305 迁移设备/云/SAF 同步与账户恢复的 33 个命令。当前实际注册清单覆盖 88/225 个命令，137 个命令仍待迁移，并生成 11 个选定全局事件。Rust 命令签名及其 DTO 是参数及响应形状的来源；前端通过 `invokeTypedCommand` 复用现有 `ipcClient` 的鉴权、过期请求检查和错误处理。旧入口仍服务未迁移命令，不宣称全库调用已经类型化。生成类型只做编译期检查，不做运行时响应校验。
 
 ## 生成与检查
 
@@ -18,7 +18,7 @@ python -m unittest discover -s scripts -p test_check_acl_consistency.py
 
 工具只读取显式选定源码、真实 `mod` 链、`generate_handler!` 注册和 ACL。`src-tauri/ipc-contracts.json` 只登记命令名称和源码路径，以及附加 DTO 源文件、外部 crate 的 Cargo manifest、事件名称与 Rust payload 类型；禁止在配置中复制参数或响应定义。源码路径必须位于项目内。
 
-生成文件为 `src/lib/generated/ipcContracts.ts` 和 `ipcContractManifest.json`。Node 包装器使用锁文件中的 Prettier 及项目配置统一格式。输出顺序稳定，不含绝对路径、时间戳或机器信息；Git 属性将这两个生成文件固定为 LF，避免 Windows 检出制造换行漂移；检查逐字节比较结果，漂移必须由开发者重新生成并审查。清单将实际注册集合划分为已迁移和未迁移两组，ACL 检查要求分区无遗漏、重叠和多余项。当前选定全局事件为真实 `llm-stream-chunk`；插件安装进度与运行事件通过真实命令参数的 Channel<T> 生成，不伪造全局事件名。其余全局事件尚未迁移。
+生成文件为 `src/lib/generated/ipcContracts.ts` 和 `ipcContractManifest.json`。Node 包装器使用锁文件中的 Prettier 及项目配置统一格式。输出顺序稳定，不含绝对路径、时间戳或机器信息；Git 属性将这两个生成文件固定为 LF，避免 Windows 检出制造换行漂移；检查逐字节比较结果，漂移必须由开发者重新生成并审查。清单将实际注册集合划分为已迁移和未迁移两组，ACL 检查要求分区无遗漏、重叠和多余项。当前选定全局事件为真实 `llm-stream-chunk` 与 RF305 的 10 个同步/恢复事件；插件安装进度与运行事件通过真实命令参数的 Channel<T> 生成，不伪造全局事件名。其余全局事件尚未迁移。
 
 两份 CI 流程均有独立契约检查，执行真实 Rust 源码副本的参数漂移、TypeScript 编译负例、生成稳定性以及 ACL 集合比较。该任务只编译工具，不需要桌面窗口或用户账户。
 
@@ -28,7 +28,7 @@ python -m unittest discover -s scripts -p test_check_acl_consistency.py
 
 输入和输出分别生成：响应 `Option<T>` 是必需的 `T | null`，`skip_serializing_if = "Option::is_none"` 生成可选响应字段，`Vec::is_empty` 生成可选数组字段；输入 `Option` 和 serde 默认字段可省略，命名 DTO 的输入形式为 `FooInput`。Tauri 参数按其命令命名规则生成，DTO 按 serde 的字段和枚举规则生成。
 
-支持普通命名 struct、受支持的 tagged/external enum、嵌套 DTO、`Option`、`Vec`、字符串键 `HashMap` 和基础 JSON 类型。`serde_json::Value` 生成递归 `JsonValue`/`JsonObject`，保留 scalar、array、object 和 null；不将它伪装成字段对象。精确支持范围及拒绝规则见工具 crate 文档与测试。宏生成 DTO、条件字段、泛型 DTO、别名、`flatten`、`untagged`、自定义序列化、分向 rename、未知注解等必须报错，不能退化成 `any`。TypeScript 的 `number` 不提供整数范围或大整数精度保证；现有 JSON 数字协议不因此改变。
+支持普通命名 struct、受支持的 tagged/external enum、嵌套 DTO、`Option`、`Vec`、字符串键 `HashMap` 和基础 JSON 类型。`serde_json::Value` 生成递归 `JsonValue`/`JsonObject`，保留 scalar、array、object 和 null；不将它伪装成字段对象。精确支持范围及拒绝规则见工具 crate 文档与测试。宏生成 DTO、条件字段、泛型 DTO、别名、Input 或非命名 struct 的 `flatten`、`untagged`、自定义序列化、分向 rename、未知注解等必须报错，不能退化成 `any`。TypeScript 的 `number` 不提供整数范围或大整数精度保证；现有 JSON 数字协议不因此改变。
 
 ## 对象与历史契约（RF302）
 
@@ -81,6 +81,18 @@ Store 使用 `request.invokeTyped`，由 `createTypedInvoker` 包装已有带会
 生成器仅额外接受一个、且只有 `tauri::Runtime` bound 的命令泛型，并要求它用于根层 `AppHandle/Window/WebviewWindow/Webview` 注入；泛型不得进入 JSON 参数、State 内容或返回类型。未使用泛型、额外泛型/bound、where clause 及伪 Runtime/注入类型仍拒绝。serde default 函数只检查普通路径并投影缺键，不执行或猜测返回值；Input alias/custom deserialize 仍拒绝。
 
 `types/exportImport.ts` 的范围树和解密预览仅派生展示摘要；完整生成的 Vault ObjectSummary 仍用于 wire，不因 UI 的局部字段而变可选。云同步和账户恢复其余命令不因使用同一结果类型而纳入本项。本地检查不等同各平台 Webview/SAF 实机或联网服务验收。
+
+## 同步与恢复契约（RF305）
+
+本组包含 16 个 `sync_*`、4 个 `recovery_*`、2 个发现命令、8 个 `cloud_sync_*` 及 3 个 SAF `vault_sync_*`。13 个原有 DTO 集中于 `sync/contracts.rs`，旧模块保留类型重导出。`sync/ipc.rs` 为 4 个跨平台重复函数及 3 个 SAF 命令提供唯一注册入口，转发原实现；旧实现不再重复声明 Tauri 命令属性。发现入口的参数统一为 `timeoutMs`，移动端恢复发现继续返回空列表。网络协议、账户/根目录准入、主机取消、停机等待与持久化导入执行保持原流程。
+
+`SyncResult` 的 wire 只有 summary、计数、冲突和 per_table；`syncViewModel.ts` 从生成类型派生 UI 的时间戳、对端名、入站/失败标记。旧历史缺少展示元数据时继续可读，peer 展示模型中的可选元数据也由 wire 的 Pick/Partial 派生。Host 的 `strategy/clientType/phase` 等开放 String 不改成假设的封闭枚举。云配置读取实际返回 JSON，前端保留已有表单解释边界；保存/测试配置通过共享 `toJsonObject` 进入生成的 JSON 参数，不把 UI 配置接口冒充 wire DTO。
+
+选定全局事件为 `sync-pairing-request/sync-completed/sync-conflicts-updated/sync-nsd-failed/sync-progress/device-sync-auto-status/cloud-sync-status/cloud-sync-incoming/recovery-progress/saf-auth-revoked`。所有实际发送点改用 Rust DTO，已订阅事件复用 `IpcEvents`。配对保留 nodeId、指纹、地址、设备名与 SAS；完成保留 peerNodeId 与双向条数；HLC 的 node_id 保持 hex 字符串。设备自动同步启动保留 snake_case 的 peer_count，终态 message 必需且 nullable。SAF 进度与恢复 operationId 仍按实际发送方省略缺键，不填 null；SAF 授权撤销的 unit payload 为 JSON null。同名原生插件回调不属于这些全局事件。
+
+云事件保留 accountId/sessionGeneration，继续在原会话检查后发送；前端只据入站通知刷新当前列表，不直接采用可能迟到的 payload.files。设备 Store 的会话守卫、SAS 更新、5 秒完成事件合并、账户内历史及 NSD 失败后的开关恢复保持原行为。生成类型没有新增运行时载荷校验，也没有为旧设备事件虚构账户/代次字段。
+
+恢复结果继续将 ImportResult 平铺并增加 accountId/accountName，complete/partial/notCommitted 的 operationId、failureStage、errorCode 及附件写入/关联计数均保留。生成器仅扩展 **Output 的具体命名 struct flatten**；递归、重复/保留键、map、Option、enum、tuple、额外字段选项和 Input flatten 均拒绝。另只忽略真实命令上的 `allow(clippy::too_many_arguments)`。实际 Host serde JSON、生成 TS 编译负例及源码漂移检查覆盖这些边界。本地 Windows 单元验证不替代 macOS/Android/iOS 配对、SAF 或云服务实机验收。
 
 ## 后续逐项迁移
 

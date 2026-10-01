@@ -14,6 +14,7 @@ pub(crate) struct SerdeAttrs {
     pub content: Option<String>,
     pub derives: BTreeSet<String>,
     pub transparent: bool,
+    pub flatten: bool,
     pub default_variant: bool,
 }
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -136,6 +137,12 @@ pub(crate) fn read(
                     "deserialize_with" if location == Location::Field => {
                         let value = meta.value()?.parse::<syn::LitStr>()?;
                         output_function(&value, direction).map_err(|error| meta.error(error))?;
+                    }
+                    "flatten" if location == Location::Field && direction == Direction::Output => {
+                        if meta.input.peek(Token![=]) || meta.input.peek(syn::token::Paren) {
+                            return Err(meta.error("malformed serde flatten"));
+                        }
+                        result.flatten = true;
                     }
                     "transparent" if location == Location::Struct => {
                         if meta.input.peek(Token![=]) || meta.input.peek(syn::token::Paren) {

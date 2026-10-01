@@ -834,3 +834,119 @@ test('RF304 real default and outcome drift fail check without overwriting output
     assert.deepEqual(await snapshot(root), before);
   });
 });
+
+test('RF305 real serde sync fixtures compile and reject missing wire identity, nullability and UI fields', async () => {
+  await withProductionFixture(async (root) => {
+    const manifest = await generateContracts({ root });
+    assert.equal(manifest.commands.length, 88);
+    assert.equal(manifest.events.length, 11);
+    const fixture = JSON.parse(
+      await readFile(
+        path.join(workspaceRoot, 'src-tauri/src/sync/contracts/fixtures.json'),
+        'utf8',
+      ),
+    );
+    await copyTypedSources(root, { session: true });
+    const types = {
+      peer: 'SyncPeer',
+      status: 'SyncStatus',
+      result: 'SyncResult',
+      host: 'RecoveryHostInfo',
+      discovered: 'DiscoveredDevice',
+      recoveryComplete: 'ImportResultSummary',
+      recoveryPartial: 'ImportResultSummary',
+      recoveryNotCommitted: 'ImportResultSummary',
+    };
+    const declarations = Object.entries(types).map(
+      ([key, type]) => `const ${key}=${JSON.stringify(fixture[key])} satisfies ${type};`,
+    );
+    for (const [key, event] of Object.entries({
+      pairing: 'sync-pairing-request',
+      completed: 'sync-completed',
+      conflictsUpdated: 'sync-conflicts-updated',
+      nsdFailed: 'sync-nsd-failed',
+      deviceStart: 'device-sync-auto-status',
+      deviceComplete: 'device-sync-auto-status',
+      deviceError: 'device-sync-auto-status',
+      progressManual: 'sync-progress',
+      progressAutomatic: 'sync-progress',
+      progressError: 'sync-progress',
+      cloudStatus: 'cloud-sync-status',
+      cloudIncoming: 'cloud-sync-incoming',
+      recoveryDownload: 'recovery-progress',
+      recoveryImport: 'recovery-progress',
+      safRevoked: 'saf-auth-revoked',
+    }))
+      declarations.push(
+        `const ${key}=${JSON.stringify(fixture[key])} satisfies IpcEvents['${event}'];`,
+      );
+    const probe = path.join(root, 'sync-fixture-probe.ts');
+    await writeFile(
+      probe,
+      `import type {IpcEvents,SyncPeer,SyncStatus,SyncResult,RecoveryHostInfo,DiscoveredDevice,ImportResultSummary,JsonValue} from './src/lib/generated/ipcContracts';
+import {invokeTypedCommand} from './src/lib/typedIpc';
+import {createSessionRequests} from './src/lib/sessionRequests';
+${declarations.join('\n')}
+export async function check() {
+const ticket=createSessionRequests().begin('sync','synthetic-account');
+const status:SyncStatus=await ticket.invokeTyped('sync_get_status');
+const sync:SyncResult=await ticket.invokeTyped('sync_with_device',{deviceId:'synthetic'});
+const stop:null=await ticket.invokeTyped('sync_enable',{enable:false});
+const host:RecoveryHostInfo=await invokeTypedCommand('recovery_host_start');
+const rename:string|null=await ticket.invokeTyped('sync_rename_peer',{peerNodeId:'synthetic',name:''});
+const discovered:DiscoveredDevice[]=await ticket.invokeTyped('mdns_discover',{timeoutMs:100});
+const recovered:ImportResultSummary=await ticket.invokeTyped('recovery_restore_existing_from_host',{accountId:'synthetic-account',hostAddr:'synthetic',pin:'123456'});
+const config:JsonValue=await ticket.invokeTyped('cloud_sync_get_config',{accountId:'synthetic-account'});
+// @ts-expect-error Nullable customName is required on the wire.
+const missingPeer:SyncPeer={id:'n',name:'n',addr:'a',fingerprint:'f',trusted:false,lastSeen:'',lastSeenTs:null,trustedAt:null,clientType:'unknown'};
+const {sasCode,...noSas}=pairing;
+// @ts-expect-error SAS exists on every actual pairing sender.
+const missingPair:IpcEvents['sync-pairing-request']=noSas;
+const {outboundRecords,...noOutbound}=completed;
+// @ts-expect-error Completion includes both directions.
+const missingCompleted:IpcEvents['sync-completed']=noOutbound;
+const {sessionGeneration,...noGeneration}=cloudIncoming;
+// @ts-expect-error Cloud generation is required.
+const missingCloud:IpcEvents['cloud-sync-incoming']=noGeneration;
+const {message,...noMessage}=deviceComplete;
+// @ts-expect-error Terminal message is nullable but required.
+const missingDevice:IpcEvents['device-sync-auto-status']=noMessage;
+const {failureStage,...noStage}=recoveryComplete;
+// @ts-expect-error Flatten keeps required nullable import fields.
+const missingRecovery:ImportResultSummary=noStage;
+// @ts-expect-error UI stamps never belong to wire SyncResult.
+const stamped:SyncResult={...sync,at:42};
+// @ts-expect-error HLC identity remains a hex string.
+const badHlc:SyncResult={...sync,conflicts:[{...sync.conflicts[0],local_hlc:{wall_time_ms:1,counter:0,node_id:[0,1]}}]};
+// @ts-expect-error Stop switch is boolean.
+void ticket.invokeTyped('sync_enable',{enable:'false'});
+// @ts-expect-error Ordinary sync does not receive a password.
+void ticket.invokeTyped('sync_with_device',{deviceId:'synthetic',password:'synthetic'});
+// @ts-expect-error get_config returns JSON, not an invented closed config DTO.
+const wrongConfig:string=config.connectorType;
+void missingPeer;void sasCode;void missingPair;void outboundRecords;void missingCompleted;void sessionGeneration;void missingCloud;void message;void missingDevice;void failureStage;void missingRecovery;void stamped;void badHlc;void wrongConfig;
+return {status,sync,stop,host,rename,discovered,recovered,config};
+}`,
+    );
+    const result = await compileProbe(root, probe);
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  });
+});
+test('RF305 actual SAS, flattened recovery and platform-command drift cannot overwrite outputs', async () => {
+  for (const [file, from, to] of [
+    ['src-tauri/src/sync/contracts.rs', 'pub sas_code: String,', 'pub verification_code: String,'],
+    ['src-tauri/src/sync/contracts.rs', '#[serde(flatten)]', ''],
+    ['src-tauri/src/sync/ipc.rs', 'timeout_ms: u64,', 'timeout_ms: String,'],
+  ])
+    await withProductionFixture(async (root) => {
+      const before = await snapshot(root),
+        source = path.join(root, file),
+        original = await readFile(source, 'utf8'),
+        changed = original.replace(from, to);
+      assert.notEqual(changed, original);
+      await writeFile(source, changed);
+      await assert.rejects(generateContracts({ root, check: true }), /IPC contract drift/);
+      assert.deepEqual(await snapshot(root), before);
+    });
+});

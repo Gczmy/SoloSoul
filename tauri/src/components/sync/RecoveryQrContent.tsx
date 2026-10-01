@@ -5,13 +5,9 @@ import { Button } from '@/components/ui/Button';
 import { QrStatusBlock } from './QrStatusBlock';
 import { RecoveryManualEntryPanel } from './RecoveryManualEntryPanel';
 
-/** 恢复主机会话数据（recovery_host_start 返回值）。 */
-export interface RecoveryHostInfo {
-  displayAddr: string;
-  bindAddr: string;
-  pin: string;
-  qrPayload: string;
-}
+import type { RecoveryHostInfo as WireHostInfo } from '@/lib/generated/ipcContracts';
+/** 此内容区仅展示返回值中的四个字段，完整 wire 保留 fingerprint 与 nonce。 */
+export type RecoveryHostInfo = Pick<WireHostInfo, 'displayAddr' | 'bindAddr' | 'pin' | 'qrPayload'>;
 
 type T = ReturnType<typeof useTranslation>['t'];
 

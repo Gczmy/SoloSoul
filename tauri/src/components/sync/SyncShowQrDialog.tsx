@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { invokeTypedCommand as invoke } from '@/lib/typedIpc';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { QrModalShell } from '@/components/sync/QrModalShell';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
@@ -73,7 +73,7 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
       setLoading(false);
     }, TIMEOUT_MS);
 
-    invoke<string>('sync_generate_qr_payload')
+    invoke('sync_generate_qr_payload')
       .then((payload) => {
         clearTimeout(timeoutId);
         if (!active) return;
@@ -135,7 +135,7 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
     setRecoveryError(null);
     recoveryStartedRef.current = true;
     try {
-      const result = await invoke<RecoveryHostInfo>('recovery_host_start');
+      const result = await invoke('recovery_host_start');
       if (requestId === recoveryRequestIdRef.current) setRecoveryInfo(result);
     } catch (err) {
       if (requestId !== recoveryRequestIdRef.current) return;

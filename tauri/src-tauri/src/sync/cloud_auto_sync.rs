@@ -19,6 +19,7 @@
 //! 锁纪律：所有跨 await 的阶段均不持有 `vault_service` 读锁——导出走
 //! `spawn_blocking`（锁在阻塞线程内获取/释放），其余仅短暂内联取数。
 
+use super::contracts::{CloudSyncIncoming, CloudSyncStatus};
 use futures::future::BoxFuture;
 use solosoul_core::cloud_sync::{
     build_latest_index_path, build_snapshot_remote_path, CloudConnector,
@@ -290,7 +291,7 @@ async fn run_cloud_sync_round(
 
     pre.emit(
         "cloud-sync-status",
-        serde_json::json!({ "phase": "sync_start", "source": source_str }),
+        pre.status_event("sync_start", source_str, None),
     )?;
 
     let connector = solosoul_core::cloud_sync::create_connector(&to_core_config(&pre.config))
@@ -306,7 +307,7 @@ async fn run_cloud_sync_round(
             tracing::warn!("[CloudSync] round failed ({}): {}", source_str, e);
             let _ = pre.emit(
                 "cloud-sync-status",
-                serde_json::json!({ "phase": "error", "source": source_str, "message": e }),
+                pre.status_event("error", source_str, Some(e.clone())),
             );
         }
     }
@@ -340,7 +341,7 @@ impl CloudPreContext {
         })?;
         self.emit(
             "cloud-sync-status",
-            serde_json::json!({"phase":"sync_complete", "source":source}),
+            self.status_event("sync_complete", source, None),
         )
     }
 
@@ -358,7 +359,18 @@ impl CloudPreContext {
         self.with_vault(|_| Ok(()))
     }
 
-    fn emit(&self, name: &str, mut payload: serde_json::Value) -> Result<(), String> {
+    fn status_event(&self, phase: &str, source: &str, message: Option<String>) -> CloudSyncStatus {
+        CloudSyncStatus {
+            account_id: self.account_id.clone(),
+            session_generation: self.session.generation(),
+            phase: phase.into(),
+            source: source.into(),
+            message,
+        }
+    }
+
+    fn emit(&self, name: &str, payload: impl serde::Serialize) -> Result<(), String> {
+        let mut payload = serde_json::to_value(payload).map_err(|e| e.to_string())?;
         payload["accountId"] = self.account_id.clone().into();
         payload["sessionGeneration"] = self.session.generation().into();
         self.with_vault(|_| {
@@ -769,10 +781,12 @@ async fn detect_and_fetch_incoming(
     if !pending_manual.is_empty() {
         pre.emit(
             "cloud-sync-incoming",
-            serde_json::json!({
-                "files": pending_manual,
-                "hint": "使用导入功能并输入云同步快照口令即可合并其他设备的数据",
-            }),
+            CloudSyncIncoming {
+                account_id: pre.account_id.clone(),
+                session_generation: pre.session.generation(),
+                files: pending_manual,
+                hint: "使用导入功能并输入云同步快照口令即可合并其他设备的数据".into(),
+            },
         )?;
     }
     Ok(())

@@ -1,3 +1,4 @@
+import type { IpcEvents } from '@/lib/generated/ipcContracts';
 /**
  * P010：Vault 目录设置区状态与处理器 hook（自 VaultDirectorySection.tsx 拆出）。
  * 承载目录信息加载、SAF 选择/迁移/回切、双向同步、进度事件监听与重启流程；
@@ -20,11 +21,9 @@ import {
 } from '@/lib/vaultDirectory';
 import { useUiStore } from '@/stores/uiStore';
 
-export interface SyncProgress {
-  phase: 'sync_to_remote' | 'sync_from_remote' | 'migrate' | 'auto_sync';
-  current: number;
-  total: number;
-}
+export type SyncProgress = Required<
+  Pick<IpcEvents['sync-progress'], 'phase' | 'current' | 'total'>
+>;
 
 export function useVaultDirectory() {
   const { t } = useTranslation(['settings', 'common']);
@@ -74,9 +73,9 @@ export function useVaultDirectory() {
     let active = true;
     let clearProgressTimer: ReturnType<typeof setTimeout> | undefined;
     const dispose = trackAsyncListener(
-      listen<SyncProgress>('sync-progress', (event) => {
+      listen<IpcEvents['sync-progress']>('sync-progress', (event) => {
         const { phase, current, total } = event.payload;
-        if (!active || phase === 'auto_sync') return;
+        if (!active || phase === 'auto_sync' || current == null || total == null) return;
         // 新进度到达后取消上一轮的清除计时，避免隐藏正在进行的同步。
         clearTimeout(clearProgressTimer);
         setSyncProgress({ phase, current, total });
