@@ -16,7 +16,7 @@ CLI 默认数据目录：
 
 通过环境变量 `SOLOSOUL_DATA_DIR` 可重定向到任意目录（用于测试或多账户隔离）。
 
-CLI 会尝试取得目录进程锁，但当前尚未建立 GUI/CLI 共同强制互斥；具体限制见 §5。
+桌面 CLI 在启动前取得 Native root 所有权；同一 canonical root 已被 GUI 或另一个 CLI 使用时拒绝启动，具体生命周期与平台边界见 §5。
 
 ## 2. 启动
 
@@ -182,15 +182,15 @@ GUI 和 CLI 已共用备份编解码规则（RF-013），CLI 创建仍为 2.0/�
 | 子命令 | 说明 |
 |--------|------|
 | `status` / `list` | 列出当前账户 vault 已持久化的 peers |
-| `with <peer-or-host:port>` | 一次性向指定 peer 发起同步（start→sync→stop） |
+| `with <peer-or-host:port>` | 一次性向指定 peer 发起同步（start→sync→stop_and_wait） |
 | `trust <peer>` | 将 peer 标记为受信任 |
 | `untrust <peer>` | 取消 trust |
 | `forget <peer>` | 从 vault 中移除 peer |
 | `help` | 帮助 |
 
-> **运行时说明（2026-09-28 核对）**：`/sync with` 复用 [shared_runtime](../../solosoul_cli/src/util.rs)，但 [同步命令](../../solosoul_cli/src/commands/sync.rs) 仍在命令线程调用 `block_on`，同步期间会阻塞 TUI 事件处理。迁入后台任务尚待 [RF-213](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-213)。每次创建同步 manager，执行 start → sync → stop；CLI 不维持常驻同步服务。
+> **运行时说明（RF-905）**：`/sync with` 复用 [shared_runtime](../../solosoul_cli/src/util.rs)，但 [同步命令](../../solosoul_cli/src/commands/sync.rs) 仍在命令线程调用 `block_on`，同步期间会阻塞 TUI 事件处理。迁入后台任务尚待 [RF-213](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-213)。每次创建同步 manager，执行 start → sync → stop_and_wait；启动失败也等待已派发任务收尾。CLI 不维持常驻同步服务。
 >
-> [SyncManager::stop](../../tauri/crates/solosoul-sync/src/manager.rs) 会等待活动会话，宽限期为 30 秒，随后请求 worker abort；当前没有等待所有 worker 实际退出的保证，不能宣称“200ms 内干净退出”。任务回收边界由 [RF-905](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-905) 承接。
+> [SyncManager](../../tauri/crates/solosoul-sync/src/manager.rs) 的 `stop()` 只请求停止；`stop_and_wait()` 在宽限期后关闭网络 IO，并等待实际会话、监听和发现 worker 回收，不将 abort 当作数据库/附件写入已经退出。取消等待也由独立收尾保留 join；会话 worker 持有 Store/owner 与 activity，监听/发现 worker 保留 owner，完成前不能释放目录所有权。此等待没有固定的 200ms 完成承诺。
 
 ### 4.12 本地 OCR  ← *本期新增*
 
@@ -253,9 +253,13 @@ GUI 和 CLI 已共用备份编解码规则（RF-013），CLI 创建仍为 2.0/�
 
 ## 5. 进程锁与并发
 
-CLI 启动时尝试取得 [ProcessLock](../../tauri/crates/solosoul-core/src/process_lock.rs)。当前 [App 初始化](../../solosoul_cli/src/app.rs) 在取锁失败时记录警告并继续启动；GUI 尚未接入同一目录锁，因此不能保证多个 CLI/GUI 实例互斥访问同一数据目录。
+[CLI 启动](../../solosoul_cli/src/main.rs) 使用 `VaultService::try_with_base_path` 取得 [VaultRootOwner](../../tauri/crates/solosoul-vault/src/root_owner.rs)，成功后才创建日志 writer、加载账户和进入 TUI。桌面 GUI 同样必须取得 owner；同一 canonical Native root 的独立实例竞争失败立即返回错误，不能继续打开数据库、迁移或写入业务数据。锁与旧 [ProcessLock](../../tauri/crates/solosoul-core/src/process_lock.rs) 互操作；同应用连接复用必须显式共享已有 owner。
 
-状态栏中的“进程锁已持有 · GUI 不可用”是现有提示文案，不代表 GUI 已实施拒绝访问。取得的锁由 `App` 持有至退出；`/logout`、`/lock` 和五分钟自动锁定只关闭 Vault 会话，不释放该进程锁。统一目录互斥与维护窗口见 [RF-905](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-905)。
+状态栏、About 和 `/doctor` 查询当前服务已有的 owner，不再次获取锁。`/logout`、`/lock` 和五分钟自动锁定使会话失效；服务、Store、Session、FS 克隆、真正后台 worker 和实际日志 writer 保留 owner 至各自 Drop。只有最后一个 owner 句柄释放，桌面 OS 锁才关闭；关闭会话或取消任务等待不表示锁已释放。
+
+后台任务派发前取得 activity，真实 worker 完成后才释放。改密、主密码解锁升级、删除账户和目录替换需要同一 root 的维护 guard；已有活动时拒绝并稍后重试。同步维护通过 `stop_and_wait` 等待旧句柄退出，不能仅请求 abort 就继续改密。存在 RF-022 journal 的目录仍拒绝迁移；完整 relocation 和 RF-903 旧未标记附件清理未在本项实现。
+
+上述 OS 排他锁适用于遵守协议且声明同一 canonical root 的桌面实例。Android/iOS 的文件锁为 no-op，本机准入 gate 不能锁住远端 SAF provider。实际命令、源码 SHA 与本机 Windows 结果以 [RF-905 验证记录](../verification/rf905-root-ownership-2026-10-01.json) 为准；不据此宣称其他平台、可见 GUI 流程或 release 透明 KDF 升级已实测。
 
 ## 6. 自动锁定
 
@@ -266,7 +270,7 @@ CLI 启动时尝试取得 [ProcessLock](../../tauri/crates/solosoul-core/src/pro
 
 ## 7. 日志
 
-CLI 日志写入 `{DATA_DIR}/logs/cli.log`，**不输出主密码或 session key**。
+CLI 成功取得 root owner 后才写入 `{DATA_DIR}/logs/cli.log`，**不输出主密码或 session key**。实际日志 writer 保留同一 owner，直到真正线程退出；不能把 `WorkerGuard` 的等待返回当作日志线程已退出。
 `/doctor` 中列出日志路径，便于排错。
 
 ## 8. 常见问题
@@ -277,8 +281,8 @@ CLI 日志写入 `{DATA_DIR}/logs/cli.log`，**不输出主密码或 session key
 | "Vault 未解锁" | 先执行 `/unlock` 或在登录向导中输入密码 |
 | `/ocr scan` 报"模型未安装" | 通过 GUI 安装或放置模型到 `models/pp-ocr-v6-{tier}/` |
 | `/embed_model install` 报"注册表 schema 不匹配" | 假定 schema `{"models":[{id,name,size_mb,sha256,download_url}]}`；现网注册表协议可能不同，见 §4.13 风险说明 |
-| `/sync with` 卡顿 | 当前命令线程等待同步结束，停止还可能等待活动会话；后台化与真实任务回收待 RF-213/RF-905，见 §4.11 |
-| 如何释放 CLI 进程锁 | 退出 CLI；自动锁定和 `/logout` 不释放进程锁。GUI/CLI 互斥仍有缺口，见 §5 |
+| `/sync with` 卡顿 | 当前命令线程等待同步及 `stop_and_wait` 真实回收；TUI 后台化仍待 RF-213，见 §4.11 |
+| 如何释放 CLI 进程锁 | 退出 CLI 并等待实际 worker、日志 writer 和所有 owner 句柄释放；自动锁定和 `/logout` 不释放目录所有权，见 §5 |
 
 ## 9. 命令兼容性
 
@@ -290,7 +294,7 @@ GUI 与 CLI 复用部分核心 crate 和数据格式，入口参数、错误文�
 | 对象创建 | 已共享模板初始化规则，见 [RF-010](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-010) |
 | Profile 备份 | 已共享兼容解码和清单，见 [RF-013](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-013)；GUI 写 Base64，CLI 写字节数组，不能称为完全相同的编码 |
 | `.solosoul` 导出/导入 | 生产导入已共享持久任务及附件、偏好续接（RF-022）；对象准备、计数与导出仍有独立边界，完整共享用例待 [RF-023](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-023)、[RF-024](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-024)。GUI 的原子导出修复不能直接视为 CLI 也已完成 |
-| 设置与进程锁 | CLI `/language` / `/theme` 写 UI 偏好文件；GUI 解锁后另有账户加密偏好优先级。目录互斥缺口见 §5 |
+| 设置与进程锁 | CLI `/language` / `/theme` 写 UI 偏好文件；GUI 解锁后另有账户加密偏好优先级。桌面同 root 目录所有权与移动 no-op 边界见 §5 |
 | 同步、OCR、Embedding | GUI 已有设备同步、OCR 页面及本地模型面板；CLI 的同步阻塞见 §4.11，Embedding 格式与安装目录差异见 §4.13 |
 
 GUI 页面入口可从 [routes.tsx](../../tauri/src/App/routes.tsx) 和 [LlmConfigPage.tsx](../../tauri/src/pages/ai/LlmConfigPage.tsx) 核对。后续按领域分别收敛，不将所有命令的路径、参数、错误字符串写成“1:1 对齐”。

@@ -128,7 +128,8 @@ fn closed_files(base: &Path, account_id: &str) -> Result<Vec<PathBuf>, String> {
         let name = entry.file_name();
         // unlock 保存账户目录时，原子写会留下 accounts.bak；它不参与
         // 当前合成数据口径，也不进入副本或 proof。其余未知条目继续拒绝。
-        if name == "accounts.bak" {
+        if name == "accounts.bak" || name == ".lock" {
+            // RF905 锁文件只属于当前 root，不能进入副本或数据 proof。
             require_regular(&entry.path(), false)?;
             continue;
         }
@@ -209,7 +210,7 @@ pub(super) fn verify_copy(base: &Path, contract: &Contract) -> Result<Proof, Str
     if copy.marker != contract.marker {
         return Err("synthetic fixture changed during preparation".into());
     }
-    let service = VaultService::with_base_path(base.to_path_buf());
+    let service = VaultService::try_with_base_path(base.to_path_buf())?;
     service.load_accounts();
     let accounts = service.list_accounts();
     if accounts.len() != 1

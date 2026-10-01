@@ -261,7 +261,9 @@ mod tests {
     #[test]
     fn embed_model_dir_is_under_vault_base() {
         let (app, dir) = setup_app();
-        let expected = dir.path().join("embed_models");
+        let expected = std::fs::canonicalize(dir.path())
+            .unwrap()
+            .join("embed_models");
         assert_eq!(install_dir(&app), expected);
     }
 

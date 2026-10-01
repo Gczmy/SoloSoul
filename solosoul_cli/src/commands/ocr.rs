@@ -563,7 +563,7 @@ mod tests {
     #[test]
     fn ocr_models_dir_under_vault_base() {
         let (app, dir) = setup_app();
-        let expected = dir.path().join("models");
+        let expected = std::fs::canonicalize(dir.path()).unwrap().join("models");
         assert_eq!(models_dir(&app), expected);
     }
 }

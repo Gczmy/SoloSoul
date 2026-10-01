@@ -6,12 +6,14 @@
 use super::{PluginError, PluginManifest};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use solosoul_core::import_activity::{begin_owned_root_activity, RootActivityGuard};
+use solosoul_vault::root_owner::VaultRootOwner;
 use std::fs;
 use std::io::{Read, Write};
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::SystemTime;
 use tempfile::{TempDir, TempPath};
 
@@ -130,11 +132,22 @@ enum PreparedKind {
 }
 
 /// 准备结果只能由其所属 Store 发布；Drop 不会触碰已经安装的版本。
-#[derive(Debug)]
 pub(crate) struct PreparedStoredPlugin {
     store_root: PathBuf,
     manifest: PluginManifest,
     kind: PreparedKind,
+    // 按字段声明顺序 Drop：真实 stage/临时指针先清理，再释放根 owner/活动许可。
+    _root_activity: Option<Arc<RootActivityGuard>>,
+}
+
+impl std::fmt::Debug for PreparedStoredPlugin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PreparedStoredPlugin")
+            .field("store_root", &self.store_root)
+            .field("manifest", &self.manifest)
+            .field("kind", &self.kind)
+            .finish_non_exhaustive()
+    }
 }
 
 impl PreparedStoredPlugin {
@@ -145,6 +158,8 @@ impl PreparedStoredPlugin {
 
 pub struct PluginStore {
     base_dir: PathBuf,
+    // raw 构造器保留兼容；Native/CLI 生产入口显式注入真实 data root owner。
+    root_owner: Option<Arc<VaultRootOwner>>,
 }
 
 impl PluginStore {
@@ -158,7 +173,33 @@ impl PluginStore {
         ensure_dir(&base_dir)?;
         Ok(Self {
             base_dir: base_dir.canonicalize()?,
+            root_owner: None,
         })
+    }
+
+    /// data_dir 必须恰好等于 owner 根；不隐式猜测或复用其它路径的 owner。
+    pub fn new_with_data_dir_owned(
+        data_dir: PathBuf,
+        owner: Arc<VaultRootOwner>,
+    ) -> Result<Self, PluginError> {
+        if data_dir.canonicalize()? != owner.root() {
+            return Err(PluginError::StoreError("VAULT_ROOT_MISMATCH".into()));
+        }
+        let _activity =
+            begin_owned_root_activity(owner.clone()).map_err(PluginError::StoreError)?;
+        let mut store = Self::new_with_data_dir(data_dir)?;
+        store.root_owner = Some(owner);
+        Ok(store)
+    }
+
+    pub(crate) fn begin_root_activity(
+        &self,
+    ) -> Result<Option<Arc<RootActivityGuard>>, PluginError> {
+        self.root_owner
+            .as_ref()
+            .map(|owner| begin_owned_root_activity(owner.clone()).map(Arc::new))
+            .transpose()
+            .map_err(PluginError::StoreError)
     }
 
     pub fn data_dir() -> Result<PathBuf, PluginError> {
@@ -187,6 +228,7 @@ impl PluginStore {
         manifest: &PluginManifest,
         wasm_bytes: &[u8],
     ) -> Result<PreparedStoredPlugin, PluginError> {
+        let root_activity = self.begin_root_activity()?;
         validate_plugin_id(&manifest.id)?;
         validate_wasm(wasm_bytes, manifest.wasm_hash_sha256.as_deref())?;
         let manifest_bytes = serde_json::to_vec_pretty(manifest)?;
@@ -249,6 +291,7 @@ impl PluginStore {
                 manifest_stamp,
                 wasm_stamp,
             },
+            _root_activity: root_activity,
         })
     }
 
@@ -259,6 +302,7 @@ impl PluginStore {
         version: &str,
         expected_hash: &str,
     ) -> Result<Option<PreparedStoredPlugin>, PluginError> {
+        let root_activity = self.begin_root_activity()?;
         let _guard = store_lock()?;
         let (manifest, bytes, selection) = self.load_plugin_locked(id)?;
         if manifest.version != version || compute_sha256(&bytes) != expected_hash {
@@ -268,6 +312,7 @@ impl PluginStore {
             store_root: self.base_dir.clone(),
             manifest,
             kind: PreparedKind::Reuse(selection),
+            _root_activity: root_activity,
         }))
     }
 
@@ -275,6 +320,7 @@ impl PluginStore {
         &self,
         prepared: PreparedStoredPlugin,
     ) -> Result<(), PluginError> {
+        let _activity = self.begin_root_activity()?;
         let _guard = store_lock()?;
         if prepared.store_root != self.base_dir {
             return Err(PluginError::StoreError(
@@ -430,6 +476,7 @@ impl PluginStore {
         Ok((manifest, bytes, selection))
     }
     pub fn delete_plugin(&self, id: &str) -> Result<(), PluginError> {
+        let _activity = self.begin_root_activity()?;
         let _guard = store_lock()?;
         let directory = self.plugin_dir(id)?;
         if metadata_if_present(&directory)?.is_some() {

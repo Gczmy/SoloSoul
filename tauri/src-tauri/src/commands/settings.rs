@@ -390,6 +390,50 @@ pub async fn cloud_sync_get_config(
         .map_err(|e| e.to_string())
 }
 
+/// 派发前固定原会话及其实际 Store owner；许可随完整 blocking 写任务保活。
+struct CloudConfigTask {
+    session: solosoul_core::VaultSession,
+    _activity: solosoul_core::import_activity::RootActivityGuard,
+}
+
+impl CloudConfigTask {
+    fn capture(service: &solosoul_core::VaultService, account_id: &str) -> Result<Self, String> {
+        let session = service.capture_session(account_id)?;
+        let activity = solosoul_core::import_activity::begin_owned_root_activity(
+            session.vault().root_owner(),
+        )?;
+        // 若捕获后、准入前维护刚完成，原会话必须仍有效；不能以新会话替换。
+        service.with_session(&session, |_| Ok(()))?;
+        Ok(Self {
+            session,
+            _activity: activity,
+        })
+    }
+
+    fn save(
+        self,
+        service: &solosoul_core::VaultService,
+        password: &str,
+        config: solosoul_vault::CloudSyncConfig,
+    ) -> Result<bool, String> {
+        // worker 排队期间服务或会话可能改变；KDF/config 写入前拒绝旧任务。
+        service.with_session(&self.session, |_| Ok(()))?;
+        if !service.verify_password_with_lockout(self.session.account_id(), password)? {
+            return Ok(false);
+        }
+        service.with_session(&self.session, |vault| {
+            vault.set_cloud_sync_config(self.session.account_id(), config)?;
+            Ok(true)
+        })
+    }
+
+    fn delete(self, service: &solosoul_core::VaultService) -> Result<(), String> {
+        service.with_session(&self.session, |vault| {
+            vault.delete_cloud_sync_config(self.session.account_id())
+        })
+    }
+}
+
 #[tauri::command]
 pub async fn cloud_sync_save_config(
     state: State<'_, AppState>,
@@ -411,31 +455,30 @@ pub async fn cloud_sync_save_config(
     let account_id = payload.account_id;
     let password = Zeroizing::new(password);
     let service = state.vault_service.clone();
+    let task = {
+        let service = service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        CloudConfigTask::capture(&service, &account_id)?
+    };
     tokio::task::spawn_blocking(move || {
         let service = service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        save_cloud_sync_config_for_service(&service, &account_id, &password, config)
+        task.save(&service, &password, config)
     })
     .await
     .map_err(|e| format!("cloud sync save task failed: {e}"))?
 }
 
+#[cfg(test)]
 fn save_cloud_sync_config_for_service(
     service: &solosoul_core::VaultService,
     account_id: &str,
     password: &str,
     config: solosoul_vault::CloudSyncConfig,
 ) -> Result<bool, String> {
-    // KDF 前先确认目标为当前解锁账户，写入时再以同一会话提交。
-    let session = service.capture_session(account_id)?;
-    if !service.verify_password_with_lockout(account_id, password)? {
-        return Ok(false);
-    }
-    service.with_session(&session, |vault| {
-        vault.set_cloud_sync_config(account_id, config)?;
-        Ok(true)
-    })
+    CloudConfigTask::capture(service, account_id)?.save(service, password, config)
 }
 
 #[tauri::command]
@@ -444,22 +487,28 @@ pub async fn cloud_sync_delete_config(
     account_id: String,
 ) -> Result<(), String> {
     let service = state.vault_service.clone();
+    let task = {
+        let service = service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        CloudConfigTask::capture(&service, &account_id)?
+    };
     tokio::task::spawn_blocking(move || {
         let service = service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        delete_cloud_sync_config_for_service(&service, &account_id)
+        task.delete(&service)
     })
     .await
     .map_err(|e| format!("cloud sync delete task failed: {e}"))?
 }
 
+#[cfg(test)]
 fn delete_cloud_sync_config_for_service(
     service: &solosoul_core::VaultService,
     account_id: &str,
 ) -> Result<(), String> {
-    let session = service.capture_session(account_id)?;
-    service.with_session(&session, |vault| vault.delete_cloud_sync_config(account_id))
+    CloudConfigTask::capture(service, account_id)?.delete(service)
 }
 
 #[tauri::command]
@@ -1098,7 +1147,12 @@ mod tests {
         let path = resolve_ui_prefs_path(app.handle(), &svc).unwrap();
 
         // 桌面端应继续使用 Vault base 目录，保证 Vault 目录可移植
-        assert_eq!(path, base.join("ui_preferences.json"));
+        assert_eq!(
+            path,
+            std::fs::canonicalize(base)
+                .unwrap()
+                .join("ui_preferences.json")
+        );
     }
 
     #[test]
@@ -1268,3 +1322,7 @@ mod tests {
         assert!(!new.exists());
     }
 }
+
+#[cfg(test)]
+#[path = "settings/rf905_cloud_config_tests.rs"]
+mod rf905_cloud_config_tests;

@@ -367,6 +367,7 @@ pub async fn biometric_save_credential(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
     let manager = BiometricManager::new(svc.base_path().clone());
 
     // 保存前校验即将写入的密钥与当前 Vault 会话密钥一致，避免钥匙串/文件访问问题导致回读失败。
@@ -421,6 +422,7 @@ pub async fn biometric_save_credential(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
     let manager = BiometricManager::new(svc.base_path().clone());
 
     // 1. 验证主密码（P012：走 VaultService 阶梯锁定——失败计数/锁定与解锁一致，
@@ -543,6 +545,7 @@ pub async fn biometric_unlock(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
     let manager = BiometricManager::new(svc.base_path().clone());
     let used_bio_type = manager
         .unlock(&account_id, &svc, "unlock SoloSoul")
@@ -584,6 +587,7 @@ pub async fn biometric_unlock(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
     // 1. 读取已保存的主密钥（Android 通过生物识别提示保护）
     let key_hex = {
         #[cfg(target_os = "android")]
@@ -696,6 +700,7 @@ pub async fn biometric_delete_credential(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
     let manager = BiometricManager::new(svc.base_path().clone());
     manager
         .delete_credential(&account_id, &password)
@@ -729,6 +734,7 @@ pub async fn biometric_delete_credential(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
     let manager = BiometricManager::new(svc.base_path().clone());
 
     // 1. 验证主密码（P012：走 VaultService 阶梯锁定——失败计数/锁定与解锁一致，

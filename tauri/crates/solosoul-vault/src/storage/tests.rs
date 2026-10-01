@@ -339,8 +339,9 @@ fn conversations_rotate_and_probe_without_other_encrypted_records() {
     assert!(probe_data_key(&path, &new).unwrap());
     assert!(!probe_data_key(&path, &old).unwrap());
     vault.lock();
-    let reopened = VaultStore::open(
+    let reopened = VaultStore::open_owned(
         VaultConfig::new("test_account", dir.path().to_path_buf()).with_data_key(new.0),
+        vault.root_owner(),
     )
     .unwrap();
     assert_eq!(
@@ -487,7 +488,7 @@ fn conflict_migration_covers_v1_databases_and_scrubs_live_pages() {
     );
     vault.lock();
     let config = VaultConfig::new("test_account", dir.path().to_owned()).with_data_key(test_key());
-    let migrated = VaultStore::open(config).unwrap();
+    let migrated = VaultStore::open_owned(config, vault.root_owner()).unwrap();
     let id = migrated.list_sync_conflicts().unwrap()[0].id.clone();
     let detail = migrated.get_sync_conflict(&id).unwrap().unwrap();
     assert_eq!(

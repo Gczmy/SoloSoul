@@ -143,6 +143,7 @@ fn export_recovery_package(
     account_id: &str,
     recovery_password: &str,
 ) -> Result<tempfile::TempPath, String> {
+    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
     let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let all_attachment_ids =
         crate::commands::export_import::collect_all_attachment_ids(&vault, account_id)?;
@@ -311,13 +312,39 @@ pub async fn recovery_restore_from_host(
     let account_name = download.account_name.clone();
     let downloaded_path = download.downloaded_path.clone();
     let service = state.vault_service.clone();
+    let (owner, maintenance) = {
+        let svc = service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let owner = svc.root_owner();
+        // 覆盖参数可能触发删除；即使当前尚无此账户，也先关闭检查后的创建竞态。
+        let maintenance = if overwrite.unwrap_or(false) {
+            let maintenance = solosoul_core::import_activity::begin_owned_root_maintenance(
+                std::sync::Arc::clone(&owner),
+            )?;
+            solosoul_core::import_activity::ensure_imports_idle(
+                owner.root(),
+                Some(&download.account_id),
+            )?;
+            Some(maintenance)
+        } else {
+            None
+        };
+        (owner, maintenance)
+    };
+    if maintenance.is_some() {
+        state.sync_service.disable_and_wait().await?;
+    }
     let app_for_worker = app.clone();
     let operation_for_worker = operation_id.clone();
     let worker = tokio::task::spawn_blocking(move || {
         let svc = service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        create_recovery_account(
+        if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
+            return Err("VAULT_ROOT_MISMATCH".to_string());
+        }
+        create_recovery_account_with_maintenance(
             &svc,
             &download.account_id,
             &download.account_name,
@@ -325,6 +352,7 @@ pub async fn recovery_restore_from_host(
             password_hint.as_deref(),
             overwrite,
             &|phase, percent| emit_recovery_progress(&app_for_worker, phase, percent),
+            maintenance,
         )?;
         // 创建已建立解锁会话；后续准备/提交始终绑定此令牌，不重新捕获当前账户。
         let session = svc.capture_session(&download.account_id)?;
@@ -565,6 +593,7 @@ async fn download_recovery_package(
 
 /// 阶段 2：使用主机的 account_id/account_name 创建本地账户。
 /// 覆盖模式下本机已存在相同 account_id 时先删除再创建（不可逆，前端已二次确认）。
+#[cfg(test)]
 fn create_recovery_account(
     svc: &solosoul_core::vault_service::VaultService,
     account_id: &str,
@@ -574,10 +603,39 @@ fn create_recovery_account(
     overwrite: Option<bool>,
     emit_progress: &dyn Fn(&'static str, u8),
 ) -> Result<(), String> {
+    create_recovery_account_with_maintenance(
+        svc,
+        account_id,
+        account_name,
+        master_password,
+        password_hint,
+        overwrite,
+        emit_progress,
+        None,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn create_recovery_account_with_maintenance(
+    svc: &solosoul_core::vault_service::VaultService,
+    account_id: &str,
+    account_name: &str,
+    master_password: &str,
+    password_hint: Option<&str>,
+    overwrite: Option<bool>,
+    emit_progress: &dyn Fn(&'static str, u8),
+    maintenance: Option<solosoul_core::import_activity::RootMaintenanceGuard>,
+) -> Result<(), String> {
     if overwrite.unwrap_or(false) && svc.has_account(account_id) {
         emit_progress("overwrite", 45);
-        svc.delete_account(account_id)?;
+        if let Some(maintenance) = maintenance.as_ref() {
+            svc.delete_account_with_maintenance(account_id, maintenance)?;
+        } else {
+            svc.delete_account(account_id)?;
+        }
     }
+    // Core 创建入口自行登记普通 Activity；不能与删除阶段的维护许可嵌套。
+    drop(maintenance);
     emit_progress("create", 50);
     svc.create_account_with_id(account_id, account_name, master_password, password_hint)?;
     Ok(())

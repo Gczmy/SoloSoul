@@ -124,16 +124,22 @@ impl AppState {
     /// Android Release 构建使用 panic=abort，AppState::new 返回 Err 会导致 setup
     /// 失败直接闪退，故仅当文件系统级异常（所有目录均不可写）才返回 Err。
     #[cfg(feature = "native-perf")]
-    fn init_plugin_manager(handle: &tauri::AppHandle) -> Result<Arc<PluginManager>, anyhow::Error> {
+    fn init_plugin_manager(
+        handle: &tauri::AppHandle,
+        native_owner: Arc<solosoul_vault::root_owner::VaultRootOwner>,
+    ) -> Result<Arc<PluginManager>, anyhow::Error> {
         // 隔离测量不允许失败后写入正常用户目录、共享临时目录或工作目录。
-        crate::plugin::new_plugin_manager(handle)
+        crate::plugin::new_owned_plugin_manager(handle, native_owner)
             .map(Arc::new)
             .map_err(Into::into)
     }
 
     #[cfg(not(feature = "native-perf"))]
-    fn init_plugin_manager(handle: &tauri::AppHandle) -> Result<Arc<PluginManager>, anyhow::Error> {
-        match crate::plugin::new_plugin_manager(handle) {
+    fn init_plugin_manager(
+        handle: &tauri::AppHandle,
+        native_owner: Arc<solosoul_vault::root_owner::VaultRootOwner>,
+    ) -> Result<Arc<PluginManager>, anyhow::Error> {
+        match crate::plugin::new_owned_plugin_manager(handle, native_owner.clone()) {
             Ok(pm) => return Ok(Arc::new(pm)),
             Err(e) => {
                 tracing::warn!(
@@ -142,20 +148,15 @@ impl AppState {
                 );
             }
         }
-        match PluginManager::new() {
-            Ok(pm) => return Ok(Arc::new(pm)),
-            Err(fallback_err) => {
-                tracing::error!(
-                    "[AppState] PluginManager 回退构造也失败: {:#}（将继续无插件启动）",
-                    fallback_err
-                );
-            }
-        }
         // 最终兜底：使用系统临时目录构造空插件管理器。
         // 固定目录名复用：每次兜底不再新建 <pid> 后缀目录（避免残留堆积）。
         let fallback_dir = std::env::temp_dir().join("solosoul_plugin_fallback");
-        let _ = std::fs::create_dir_all(&fallback_dir);
-        match PluginManager::new_with_dirs(fallback_dir.clone(), fallback_dir.clone()) {
+        // 默认根失败后不再 raw 重试；降级根也须先取得独立 owner。
+        match crate::plugin::new_owned_plugin_manager_with_dirs(
+            fallback_dir.clone(),
+            fallback_dir.clone(),
+            native_owner.clone(),
+        ) {
             Ok(pm) => return Ok(Arc::new(pm)),
             Err(final_err) => {
                 tracing::error!(
@@ -165,9 +166,10 @@ impl AppState {
             }
         }
         // 极端情况（临时目录也不可写）下仍不中止启动，使用当前目录作为最后兜底。
-        match PluginManager::new_with_dirs(
+        match crate::plugin::new_owned_plugin_manager_with_dirs(
             std::env::current_dir().unwrap_or_else(|_| fallback_dir.clone()),
             fallback_dir,
+            native_owner,
         ) {
             Ok(pm) => Ok(Arc::new(pm)),
             Err(last_err) => {
@@ -188,6 +190,13 @@ impl AppState {
     pub fn new(handle: tauri::AppHandle) -> Result<Self, anyhow::Error> {
         // ── 移动端 VaultService 初始化 ──
         let vault_service = Self::init_vault_service(&handle)?;
+        Self::new_with_vault_service(handle, vault_service)
+    }
+
+    pub(crate) fn new_with_vault_service(
+        handle: tauri::AppHandle,
+        vault_service: Arc<RwLock<VaultService>>,
+    ) -> Result<Self, anyhow::Error> {
         #[cfg(feature = "native-perf")]
         {
             let expected = crate::native_perf::root()
@@ -197,7 +206,7 @@ impl AppState {
                 .read()
                 .map_err(|_| anyhow::anyhow!("native-perf Vault lock poisoned"))?;
             anyhow::ensure!(
-                vault.base_path() == &expected,
+                vault.base_path() == &expected.canonicalize()?,
                 "native-perf Vault directory mismatch"
             );
         }
@@ -210,7 +219,11 @@ impl AppState {
         let auto_sync = AutoSyncManager::new_for_vault(vault_service.clone(), handle.clone());
 
         // ── PluginManager（初始化失败不阻止应用启动） ──
-        let plugin_manager = Self::init_plugin_manager(&handle)?;
+        let native_owner = vault_service
+            .read()
+            .map_err(|_| anyhow::anyhow!("Vault service lock poisoned"))?
+            .root_owner();
+        let plugin_manager = Self::init_plugin_manager(&handle, native_owner)?;
 
         let app_state = Self {
             handle: handle.clone(),
@@ -340,12 +353,16 @@ impl AppState {
             solosoul_core::import_activity::begin_import_maintenance(new_svc.base_path())?,
         );
         // 热替换 VaultService 后重应用「同步设置偏好」开关（成功路径）
-        self.replace_vault_service(new_svc)?;
+        self.replace_vault_service(new_svc).await?;
 
         // 清理占位目录，避免残留空数据。
         let placeholder_dir = data_dir.join(".uninitialized_vault");
         if placeholder_dir.exists() {
-            let _ = std::fs::remove_dir_all(&placeholder_dir);
+            // 尚有原句柄时保留；不能删除其他 owner 仍使用的锁文件。
+            if let Ok(owner) = solosoul_vault::root_owner::VaultRootOwner::acquire(&placeholder_dir)
+            {
+                let _ = crate::commands::vault_directory::clear_target_dir(owner.root());
+            }
         }
 
         // 用户明确选择本地目录（saf_uri=None）时，清除可能残留的失效 SAF URI
@@ -378,7 +395,7 @@ impl AppState {
                 .init_saf_sync_with_import_guard(Some(Arc::clone(&target_import_guard)))
                 .await
             {
-                return self.rollback_after_saf_sync_failure(&data_dir, &e);
+                return self.rollback_after_saf_sync_failure(&data_dir, &e).await;
             }
             self.after_saf_sync_success(&data_dir, saf_uri.as_deref())?;
         }
@@ -400,10 +417,12 @@ impl AppState {
     }
     /// 热替换 VaultService 后重应用「同步设置偏好」开关：新实例默认 true，
     /// 若不重应用，用户关闭的偏好同步会在切换目录后静默重置为默认开启。
-    fn replace_vault_service(
+    async fn replace_vault_service(
         &self,
         new_svc: solosoul_core::vault_service::VaultService,
     ) -> Result<(), String> {
+        // listener 的原 root pin 和所有真实 session 完全退出后才替换。
+        self.sync_service.disable_and_wait().await?;
         let mut guard = self
             .vault_service
             .write()
@@ -466,7 +485,7 @@ impl AppState {
 
     /// SAF 首次同步失败：清除提前写入的 URI、回退本地 vault（保留「失败不保存」语义）、
     /// 取消 WorkManager 兜底同步，返回「首次同步失败」错误。
-    fn rollback_after_saf_sync_failure(
+    async fn rollback_after_saf_sync_failure(
         &self,
         data_dir: &std::path::Path,
         err: &str,
@@ -479,7 +498,7 @@ impl AppState {
         // 首次失败恢复占位状态，使原入口可再次选择；保留 SAF cache，不搬走任务文件。
         let local_svc =
             Self::placeholder_vault(data_dir).map_err(|e| format!("回退到占位 Vault 失败: {e}"))?;
-        self.replace_vault_service(local_svc)?;
+        self.replace_vault_service(local_svc).await?;
         // 取消 WorkManager 兜底同步：首次同步失败说明 SAF 不可用，
         // 避免旧配置持续触发无效同步。
         if let Err(e) = self.cancel_saf_fallback_sync() {
@@ -584,23 +603,32 @@ impl AppState {
         }
 
         // 在派发 worker 前冻结文件系统句柄，guard 与实际同步的 root 保持一致。
-        let fs = {
+        let (fs, activity) = {
             let read_guard = svc
                 .read()
                 .map_err(|_| "Vault service lock poisoned".to_string())?;
-            read_guard.file_system()
+            let activity = if import_guard.is_none() {
+                Some(solosoul_core::import_activity::begin_owned_root_activity(
+                    read_guard.root_owner(),
+                )?)
+            } else {
+                None
+            };
+            (read_guard.file_system(), activity)
         };
-        sync_import_root_from_remote(fs, import_guard).await
+        sync_import_root_from_remote(fs, import_guard, activity).await
     }
 }
 
 pub(crate) async fn sync_import_root_from_remote(
     fs: Arc<dyn solosoul_core::VaultFileSystem>,
     import_guard: Option<Arc<solosoul_core::import_activity::ImportMaintenanceGuard>>,
+    activity: Option<solosoul_core::import_activity::RootActivityGuard>,
 ) -> Result<(), String> {
     tokio::task::spawn_blocking(move || -> Result<(), String> {
         // 取消等待后仍由实际 worker 保持目录维护准入。
         let _import_guard = import_guard;
+        let _activity = activity;
         fs.sync_from_remote()?;
         tracing::info!("[AppState] SAF initial sync completed");
         Ok(())
@@ -708,6 +736,7 @@ mod rf022_saf_guard_tests {
         let awaiter = tokio::spawn(sync_import_root_from_remote(
             fs,
             Some(Arc::clone(&outer_guard)),
+            None,
         ));
         tokio::time::timeout(WAIT_LIMIT, entered_rx)
             .await

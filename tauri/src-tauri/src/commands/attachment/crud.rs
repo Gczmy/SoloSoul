@@ -95,7 +95,8 @@ pub(crate) async fn execute_attachment_deletion(
     object_id: String,
     attachment_ids: Vec<String>,
 ) -> Result<solosoul_core::attachment_cleanup::CleanupReport, String> {
-    tauri::async_runtime::spawn_blocking(move || {
+    let owner = session.vault().root_owner();
+    crate::state::root_tasks::spawn_owned_blocking(owner, move || {
         let svc = service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
@@ -105,7 +106,7 @@ pub(crate) async fn execute_attachment_deletion(
             &object_id,
             &attachment_ids,
         )
-    })
+    })?
     .await
     .map_err(|_| "Attachment deletion task failed".to_string())?
 }
@@ -413,11 +414,12 @@ pub async fn attachment_copy_to_vault(
     // P007: 提前在块作用域内取 base + 附件密钥并释放非 Send 的 vault_service guard，
     // 避免后续 spawn_blocking 的 await 跨 guard 存活。
     // P001: 附件以加密形式落盘（at-rest），复制时用附件密钥加密写入。
-    let (base, att_key) = {
+    let (base, att_key, activity) = {
         let svc = state
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
         let key = svc
             .attachment_encryption_key()
             .map_err(|e| format!("无法获取附件密钥: {}", e))?;
@@ -425,7 +427,7 @@ pub async fn attachment_copy_to_vault(
             .as_slice()
             .try_into()
             .map_err(|_| "附件密钥长度错误".to_string())?;
-        (svc.base_path().clone(), key_arr)
+        (svc.base_path().clone(), key_arr, activity)
     };
 
     // Canonicalize src_path to resolve relative path traversal.
@@ -506,6 +508,7 @@ pub async fn attachment_copy_to_vault(
     // P001: 加密写入（encrypt_chunked_stream，SOLC 头）——附件不再明文落盘。
     let (src, dest_path) = (src.clone(), dest_path);
     tauri::async_runtime::spawn_blocking(move || {
+        let _activity = activity;
         solosoul_core::attachment_crypto::encrypt_file_stream(&att_key, &src, &dest_path)
             .map_err(|e| format!("Encrypt copy: {}", e))
     })

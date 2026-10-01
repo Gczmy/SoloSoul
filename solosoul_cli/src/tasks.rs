@@ -12,6 +12,7 @@ use std::sync::atomic::AtomicBool;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
 
+use solosoul_core::import_activity::begin_owned_root_activity;
 use solosoul_core::ocr::control::OcrCancellation;
 use solosoul_core::{VaultService, VaultSession};
 use tokio::sync::mpsc;
@@ -253,6 +254,8 @@ impl Tasks {
         }
         self.service.with_session(&session, |_| Ok(()))?;
         let runtime = crate::util::shared_runtime().map_err(|error| error.to_string())?;
+        // 派发前准入，随实际 Future/阻塞闭包持有至 Drop，不随 UI 取消提前释放。
+        let activity = begin_owned_root_activity(self.service.root_owner())?;
         let task_id = TaskId(Uuid::new_v4());
         let identity = TaskIdentity {
             task_id,
@@ -270,6 +273,7 @@ impl Tasks {
         let service = Arc::clone(&self.service);
         let abort = self.jobs.spawn_on(
             async move {
+                let _activity = activity;
                 // 派发后、首次执行前也可能发生锁定或同账户重登。
                 if context.is_cancel_requested()
                     || service.with_session(context.session(), |_| Ok(())).is_err()
@@ -316,6 +320,8 @@ impl Tasks {
             return Err(BLOCKING_QUEUE_FULL.to_string());
         }
         let runtime = crate::util::shared_runtime().map_err(|error| error.to_string())?;
+        // 派发前准入，随实际 Future/阻塞闭包持有至 Drop，不随 UI 取消提前释放。
+        let activity = begin_owned_root_activity(self.service.root_owner())?;
         let task_id = TaskId(Uuid::new_v4());
         let identity = TaskIdentity {
             task_id,
@@ -356,6 +362,7 @@ impl Tasks {
             task_id,
             runtime: runtime.handle().clone(),
             work: Box::new(move || {
+                let _activity = activity;
                 // 工作尚未开始时，锁定、同账户重登、排队取消都不能加载模型。
                 if context.is_cancel_requested()
                     || service.with_session(context.session(), |_| Ok(())).is_err()

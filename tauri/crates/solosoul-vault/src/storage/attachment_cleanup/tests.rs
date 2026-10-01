@@ -189,8 +189,9 @@ fn rf016_reopen_after_metadata_commit_recovers_pending_file_cleanup() {
     let version = f.vault.load_object(OWNER).unwrap().unwrap().version;
     assert!(f.directory(OWNER, "first").exists());
     f.vault.lock();
-    let reopened = VaultStore::open(
+    let reopened = VaultStore::open_owned(
         VaultConfig::new(ACCOUNT, f.root.path().join(ACCOUNT)).with_data_key([7; 32]),
+        f.vault.root_owner(),
     )
     .unwrap();
     assert_eq!(

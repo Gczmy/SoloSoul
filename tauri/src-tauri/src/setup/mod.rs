@@ -2,14 +2,16 @@
 //! 每步一个独立函数（setup_*），由 setup_app 按序编排。
 
 use std::path::PathBuf;
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 use tauri::Emitter;
 use tauri::Manager;
 
 use crate::commands;
 use crate::state::AppState;
 
-static LOG_DIR: OnceLock<PathBuf> = OnceLock::new();
+mod logging;
+
+static LOG_TARGET: OnceLock<logging::LogTarget> = OnceLock::new();
 
 pub(crate) fn setup_panic_hook() {
     let previous_hook = std::panic::take_hook();
@@ -33,7 +35,9 @@ pub(crate) fn setup_panic_hook() {
         );
 
         // 直接写入文件日志（tracing 基础设施在 panic 时可能已不可用）
-        if let Some(log_dir) = LOG_DIR.get() {
+        if let Some(log_target) = LOG_TARGET.get() {
+            // panic 直接打开文件也必须保活实际日志目标的 owner。
+            let log_dir = log_target.directory();
             let _ = std::fs::create_dir_all(log_dir);
             let log_path = log_dir.join("app.log");
             if let Ok(mut f) = std::fs::OpenOptions::new()
@@ -85,8 +89,10 @@ fn resolve_log_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
 }
 
 /// 初始化 tracing（文件 + stderr）。在移动端于 setup 中调用，以获取正确的应用私有目录。
-fn init_tracing(log_dir: &PathBuf) {
-    let file_appender = tracing_appender::rolling::never(log_dir, "app.log");
+fn init_tracing(log_target: &logging::LogTarget) {
+    let file_appender = tracing_appender::rolling::never(log_target.directory(), "app.log");
+    // WorkerGuard 的有界 Drop 不是实际线程退出；owner 由真实 writer 持有。
+    let file_appender = log_target.pin_writer(file_appender);
     let (file_writer, guard) = tracing_appender::non_blocking(file_appender);
 
     // `ort` crate 2.x 会通过内置 tracing 输出 session 创建 / 算子分配日志，在开发模式下
@@ -128,7 +134,10 @@ fn init_tracing(log_dir: &PathBuf) {
             .init();
     }
 }
-fn setup_logging(app: &tauri::AppHandle) -> Result<(), String> {
+fn setup_logging(
+    app: &tauri::AppHandle,
+    root_owner: Arc<solosoul_vault::root_owner::VaultRootOwner>,
+) -> Result<(), String> {
     let log_dir = match resolve_log_dir(app) {
         Ok(dir) => dir,
         Err(e) => {
@@ -136,9 +145,9 @@ fn setup_logging(app: &tauri::AppHandle) -> Result<(), String> {
             return Err(format!("无法解析日志目录: {e}"));
         }
     };
-    let _ = std::fs::create_dir_all(&log_dir);
-    LOG_DIR.set(log_dir.clone()).ok();
-    init_tracing(&log_dir);
+    let log_target = logging::LogTarget::prepare(&log_dir, root_owner)?;
+    LOG_TARGET.set(log_target.clone()).ok();
+    init_tracing(&log_target);
 
     tracing::info!("[init] SoloSoul v{} 启动", env!("CARGO_PKG_VERSION"));
     tracing::info!("[init] 日志目录: {}", log_dir.display());
@@ -189,9 +198,12 @@ fn setup_check_resource_dirs(app: &mut tauri::App) {
         }
     }
 }
-fn setup_init_state(app: &mut tauri::App) -> Result<(), String> {
+fn setup_init_state(
+    app: &mut tauri::App,
+    vault_service: std::sync::Arc<std::sync::RwLock<solosoul_core::VaultService>>,
+) -> Result<(), String> {
     tracing::debug!("[setup] 正在创建 AppState...");
-    let app_state = match AppState::new(app.handle().clone()) {
+    let app_state = match AppState::new_with_vault_service(app.handle().clone(), vault_service) {
         Ok(state) => state,
         Err(e) => {
             tracing::error!("[setup] ❌ AppState 创建失败: {:#}", e);
@@ -319,8 +331,17 @@ pub(crate) fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::
     // 设 RUST_LOG=solo_soul=debug 可看到完整步骤级日志
     // ════════════════════════════════════════════════════════
 
+    // RF905：先取得真实 Vault 根 owner，失败不能先写日志/清理或初始化其他服务。
+    let vault_service = AppState::init_vault_service(app.handle())?;
+
+    // 只在短读锁内克隆 owner；初始化 logger 不持有 VaultService 的锁。
+    let root_owner = vault_service
+        .read()
+        .map_err(|_| "VaultService lock poisoned".to_string())?
+        .root_owner();
+
     // 0. 解析日志目录并初始化 tracing
-    setup_logging(app.handle())?;
+    setup_logging(app.handle(), root_owner)?;
     commands::window::setup_startup_window(app.handle());
 
     // 1. 检查数据目录是否可写
@@ -337,7 +358,7 @@ pub(crate) fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::
     commands::ocr::ensure_pdfium_library_path(app.handle());
 
     // 4. 初始化 AppState（关键步骤，失败时中止启动）+ SAF 冷启动同步
-    setup_init_state(app)?;
+    setup_init_state(app, vault_service)?;
 
     // 5. 初始化发现服务状态（桌面端 mDNS / 移动端 NSD 共用同一命令签名）
     app.manage(commands::discovery::SharedDaemon::new());

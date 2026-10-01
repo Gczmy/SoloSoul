@@ -12,7 +12,8 @@ use crate::event::PluginEventSink;
 use crate::install_progress::{InstallProgressReporter, PluginInstallPhase, PluginInstallProgress};
 use crate::store::{validate_plugin_id, PreparedStoredPlugin, MAX_WASM_SIZE};
 use serde::Deserialize;
-use solosoul_vault::VaultStore;
+use solosoul_core::import_activity::{begin_owned_root_activity, RootActivityGuard};
+use solosoul_vault::{root_owner::VaultRootOwner, VaultStore};
 use std::collections::HashMap;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -35,9 +36,12 @@ fn create_plugin_workspace() -> Result<tempfile::TempDir, PluginError> {
 /// 清理所有权跟随真正的阻塞 worker；外层异步任务取消不能提前删除正在使用的文件。
 fn spawn_plugin_worker<T: Send + 'static>(
     workspace: tempfile::TempDir,
+    activities: Arc<Vec<Arc<RootActivityGuard>>>,
     execute: impl FnOnce() -> T + Send + 'static,
 ) -> tokio::task::JoinHandle<T> {
     tokio::task::spawn_blocking(move || {
+        // 局部逆序 Drop：workspace 清理后才释放两根许可，取消外层等待无效。
+        let _activities = activities;
         let _workspace = workspace;
         execute()
     })
@@ -240,9 +244,28 @@ impl PluginManager {
 
     /// 显式注入市场目录与数据目录（由调用方负责解析，crate 不反向依赖 tauri）
     pub fn new_with_dirs(market_dir: PathBuf, data_dir: PathBuf) -> Result<Self, PluginError> {
+        let store = PluginStore::new_with_data_dir(data_dir.clone())?;
+        Self::new_with_store(market_dir, data_dir, store)
+    }
+
+    /// 生产 Native 入口显式复用已取得的插件实际 data root owner。
+    pub fn new_with_dirs_owned(
+        market_dir: PathBuf,
+        data_dir: PathBuf,
+        owner: Arc<VaultRootOwner>,
+    ) -> Result<Self, PluginError> {
+        let store = PluginStore::new_with_data_dir_owned(data_dir, owner.clone())?;
+        Self::new_with_store(market_dir, owner.root().to_path_buf(), store)
+    }
+
+    fn new_with_store(
+        market_dir: PathBuf,
+        data_dir: PathBuf,
+        store: PluginStore,
+    ) -> Result<Self, PluginError> {
         let audit_path = data_dir.join("plugin_audit.jsonl");
         Ok(Self {
-            store: PluginStore::new_with_data_dir(data_dir.clone())?,
+            store,
             registry: PluginRegistry::new_with_dirs(market_dir.clone(), data_dir),
             market_dir,
             session_manager: PluginSessionManager::new(),
@@ -420,6 +443,7 @@ impl PluginManager {
         version: &str,
         on_progress: &(dyn Fn(PluginInstallProgress) + Send + Sync),
     ) -> Result<PreparedPluginInstall, PluginError> {
+        let _activity = self.store.begin_root_activity()?;
         validate_plugin_id(plugin_id)?;
         let mut progress = InstallProgressReporter::new(on_progress);
         let entry = self.registry.get_entry(plugin_id)?;
@@ -490,6 +514,7 @@ impl PluginManager {
         plugin_id: &str,
         on_progress: &(dyn Fn(PluginInstallProgress) + Send + Sync),
     ) -> Result<PreparedPluginInstall, PluginError> {
+        let _activity = self.store.begin_root_activity()?;
         validate_plugin_id(plugin_id)?;
         let latest = self
             .registry
@@ -506,6 +531,7 @@ impl PluginManager {
         &self,
         prepared: PreparedPluginInstall,
     ) -> Result<PluginInstallResult, PluginError> {
+        let _activity = self.store.begin_root_activity()?;
         let plugin_id = prepared.manifest().id.clone();
         let version = prepared.manifest().version.clone();
         self.store.publish_prepared(prepared.stored)?;
@@ -627,6 +653,7 @@ impl PluginManager {
 
     /// 卸载插件
     pub fn uninstall(&self, plugin_id: &str) -> Result<(), PluginError> {
+        let _activity = self.store.begin_root_activity()?;
         self.store.delete_plugin(plugin_id)?;
         self.audit.log(
             plugin_id,
@@ -647,6 +674,17 @@ impl PluginManager {
         account_id: Option<String>,
         attachment_key: Option<[u8; 32]>,
     ) -> Result<PluginResult, PluginError> {
+        // 插件审计/安装所属根与原 Native Store 所属根分别准入，不能以不同根冒充。
+        let mut activities = Vec::new();
+        if let Some(activity) = self.store.begin_root_activity()? {
+            activities.push(activity);
+        }
+        if let Some(vault) = vault_store.as_ref() {
+            activities.push(Arc::new(
+                begin_owned_root_activity(vault.root_owner()).map_err(PluginError::StoreError)?,
+            ));
+        }
+        let activities = Arc::new(activities);
         let (manifest, wasm_bytes) = self.store.load_plugin(plugin_id)?;
         let session = self
             .session_manager
@@ -708,7 +746,7 @@ impl PluginManager {
         let sandbox = self.sandbox;
         let consent = self.consent_manager.clone();
         let session_for_spawn = session.clone();
-        let result = spawn_plugin_worker(workspace, move || {
+        let result = spawn_plugin_worker(workspace, activities.clone(), move || {
             let module = sandbox.compile(&wasm_bytes)?;
             sandbox.execute(&module, host, &session_for_spawn, &consent)
         })
@@ -784,6 +822,7 @@ impl PluginManager {
 
     /// 刷新注册表（从远程拉取并验证签名）
     pub async fn update_registry(&self) -> Result<(), PluginError> {
+        let _activity = self.store.begin_root_activity()?;
         self.registry.update_from_remote().await
     }
 }
@@ -798,7 +837,7 @@ mod workspace_tests {
             let workspace = create_plugin_workspace().unwrap();
             let path = workspace.path().to_path_buf();
             let worker_path = path.clone();
-            let result = spawn_plugin_worker(workspace, move || {
+            let result = spawn_plugin_worker(workspace, Arc::new(Vec::new()), move || {
                 std::fs::write(worker_path.join("plaintext"), b"private").unwrap();
                 match outcome {
                     0 => Ok(()),
@@ -823,7 +862,7 @@ mod workspace_tests {
         let (started_tx, started_rx) = tokio::sync::oneshot::channel();
         let (release_tx, release_rx) = std::sync::mpsc::channel();
         let worker_path = path.clone();
-        let worker = spawn_plugin_worker(workspace, move || {
+        let worker = spawn_plugin_worker(workspace, Arc::new(Vec::new()), move || {
             started_tx.send(()).unwrap();
             release_rx.recv().unwrap();
             assert!(worker_path.exists());
@@ -962,3 +1001,7 @@ mod install_progress_tests {
 #[cfg(test)]
 #[path = "manager/rf214_tests.rs"]
 mod rf214_tests;
+
+#[cfg(test)]
+#[path = "manager/rf905_tests.rs"]
+mod rf905_tests;

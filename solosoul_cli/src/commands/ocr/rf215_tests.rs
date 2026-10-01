@@ -13,6 +13,7 @@ use solosoul_core::ocr::control::OcrCancellation;
 use solosoul_core::ocr::types::{MrzResult, OcrBox, OcrModelTier, OcrResult};
 use solosoul_core::VaultService;
 use tempfile::TempDir;
+use zeroize::Zeroizing;
 
 use super::{start_scan_with, OcrRequest, ScanEngine};
 use crate::app::{App, AppPhase, UnlockStep};
@@ -191,6 +192,8 @@ struct Fixture {
     app: App,
     account_a: String,
     account_b: Option<String>,
+    account_a_key: Zeroizing<[u8; 32]>,
+    account_b_key: Option<Zeroizing<[u8; 32]>>,
     gates: Vec<Release>,
     directory: TempDir,
 }
@@ -205,22 +208,31 @@ impl Fixture {
             .as_str()
             .unwrap()
             .to_string();
-        let account_b = second_account.then(|| {
-            service
+        let second = second_account.then(|| {
+            let account = service
                 .create_account("RF215 B", crate::TEST_PASSWORD, None)
                 .unwrap()["id"]
                 .as_str()
                 .unwrap()
-                .to_string()
+                .to_string();
+            (account, service.get_session_key().unwrap())
         });
+        let (account_b, account_b_key) = match second {
+            Some((account, key)) => (Some(account), Some(key)),
+            None => (None, None),
+        };
         service.lock();
         let mut app = App::new(Arc::new(service)).unwrap();
         app.i18n.set_locale("en-US");
         unlock_account(&mut app, &account_a);
+        // key 由真实密码向导成功后采集；不会伪造认证或持久化密钥。
+        let account_a_key = app.vault_service.get_session_key().unwrap();
         Self {
             app,
             account_a,
             account_b,
+            account_a_key,
+            account_b_key,
             gates: Vec::new(),
             directory,
         }
@@ -369,7 +381,7 @@ fn dismiss(app: &mut App) {
     assert!(app.info_message.is_none() && app.error_message.is_none());
 }
 
-fn unlock_account(app: &mut App, account: &str) {
+fn submit_account_password(app: &mut App, account: &str) {
     auth::unlock(app).unwrap();
     if let AppPhase::UnlockWizard {
         step: UnlockStep::SelectAccount { accounts, .. },
@@ -391,6 +403,48 @@ fn unlock_account(app: &mut App, account: &str) {
         assert!(!key(app, KeyCode::Char(character)));
     }
     assert!(!key(app, KeyCode::Enter));
+}
+
+fn unlock_account(app: &mut App, account: &str) {
+    submit_account_password(app, account);
+    assert!(matches!(&app.phase, AppPhase::Home { account_id } if account_id == account));
+    assert!(app.error_message.is_none(), "{:?}", app.error_message);
+}
+
+fn unlock_account_while_worker_active(
+    app: &mut App,
+    account: &str,
+    authenticated_key: &Zeroizing<[u8; 32]>,
+    original_generation: u64,
+) {
+    // 先走真实密码键盘向导；维护准入应拒绝，并保留锁定状态和密码页。
+    submit_account_password(app, account);
+    assert!(app
+        .error_message
+        .as_deref()
+        .unwrap()
+        .contains("IMPORT_OPERATIONS_ACTIVE"));
+    assert!(
+        matches!(&app.phase, AppPhase::UnlockWizard { step: UnlockStep::EnterPassword { account_id, .. } } if account_id == account)
+    );
+    assert!(app.password_input.value().is_empty());
+    assert!(!app.vault_service.is_unlocked());
+    assert!(app.vault_service.get_current_account().is_none());
+    assert!(app.vault_service.get_session_key().is_none());
+    assert!(app.vault_service.get_vault_store().is_none());
+    // PIN/biometric 使用的真实会话密钥入口，然后复用 App 同一生产认证收尾。
+    app.vault_service
+        .unlock_with_session_key(account, authenticated_key)
+        .unwrap();
+    assert_eq!(
+        app.vault_service
+            .capture_session(account)
+            .unwrap()
+            .generation(),
+        original_generation.wrapping_add(2)
+    );
+    app.error_message = None;
+    app.enter_home(account);
     assert!(matches!(&app.phase, AppPhase::Home { account_id } if account_id == account));
     assert!(app.error_message.is_none(), "{:?}", app.error_message);
 }
@@ -687,7 +741,12 @@ enum Transition {
     DirectLock,
 }
 
-fn transition(fixture: &mut Fixture, change: Transition) {
+fn transition(fixture: &mut Fixture, change: Transition, worker_active: bool) {
+    let original = fixture
+        .app
+        .vault_service
+        .capture_session(&fixture.account_a)
+        .unwrap();
     match change {
         Transition::AutoLock => {
             let deadline = fixture.app.last_activity + fixture.app.auto_lock_duration;
@@ -703,8 +762,28 @@ fn transition(fixture: &mut Fixture, change: Transition) {
         } else {
             fixture.account_b.clone().unwrap()
         };
-        unlock_account(&mut fixture.app, &account);
+        if worker_active {
+            let key = if matches!(change, Transition::SameAccount) {
+                &fixture.account_a_key
+            } else {
+                fixture.account_b_key.as_ref().unwrap()
+            };
+            unlock_account_while_worker_active(
+                &mut fixture.app,
+                &account,
+                key,
+                original.generation(),
+            );
+        } else {
+            // 已真实 join 后仍验证生产主密码向导，不把 ready-result 夹具改成旁路。
+            unlock_account(&mut fixture.app, &account);
+        }
     }
+    assert!(fixture
+        .app
+        .vault_service
+        .with_session(&original, |_| Ok(()))
+        .is_err());
     fixture.app.drain_task_events(32).unwrap();
     assert_no_ocr(&fixture.app);
 }
@@ -726,7 +805,7 @@ fn rf215_auth_invalidation_cancels_running_and_queued_scans_without_revealing_ol
         running.loaded();
         let entered = running.entered();
         let queued = fixture.start("png", false, Pause::Scan, Fault::None);
-        transition(&mut fixture, change);
+        transition(&mut fixture, change, true);
         assert!(entered.cancel.is_cancelled(), "{change:?}");
         assert!(running.probe.resource().exists());
         let messages = (
@@ -772,7 +851,7 @@ fn rf215_joined_result_waiting_for_app_is_rejected_after_lock_reunlock_or_switch
         ));
         assert!(fixture.app.last_ocr_result.is_none());
         pending.assert_reclaimed();
-        transition(&mut fixture, change);
+        transition(&mut fixture, change, false);
         let messages = (
             fixture.app.info_message.clone(),
             fixture.app.error_message.clone(),

@@ -29,7 +29,12 @@ pub mod vault_directory;
 pub mod window;
 
 use crate::state::AppState;
-use std::sync::Arc;
+use std::ops::Deref;
+use std::sync::{Arc, RwLock};
+
+use solosoul_core::import_activity::{begin_owned_root_activity, RootActivityGuard};
+use solosoul_core::VaultService;
+use solosoul_vault::VaultStore;
 
 /// P003: 审计日志 best-effort 封装——替代裸 `let _ = vault.log_structured(...)`
 /// 吞错。审计轨迹是零知识应用的核心承诺，写入失败时 `tracing::warn!`（脱敏：
@@ -80,14 +85,57 @@ pub fn save_snapshot_best_effort(
     }
 }
 
-/// 获取当前已解锁 Vault 的句柄，避免在每个命令中重复加锁/解包样板。
-pub fn vault_handle(state: &AppState) -> Result<Arc<solosoul_vault::VaultStore>, String> {
-    let svc = state
-        .vault_service
+/// 普通 Host 数据任务的句柄；Clone 同时保留 Store、真实 root owner 与维护准入。
+/// 字段按声明顺序析构：最后一个句柄先释放 Store，再释放 activity。
+#[derive(Clone)]
+pub struct ActivityVaultHandle {
+    store: Arc<VaultStore>,
+    _activity: Arc<RootActivityGuard>,
+}
+
+impl Deref for ActivityVaultHandle {
+    type Target = VaultStore;
+
+    fn deref(&self) -> &Self::Target {
+        self.store.as_ref()
+    }
+}
+
+impl AsRef<VaultStore> for ActivityVaultHandle {
+    fn as_ref(&self) -> &VaultStore {
+        self.store.as_ref()
+    }
+}
+
+impl ActivityVaultHandle {
+    /// 仅供仍接收 Arc 的同步 resolver / 自行登记真实 worker 的插件边界。
+    /// 调用方必须保留 capsule 到接收方完成，或到接收方获得自己的 worker activity。
+    pub(crate) fn store_arc(&self) -> Arc<VaultStore> {
+        Arc::clone(&self.store)
+    }
+}
+
+/// 在读取 Store 前登记许可，关闭“先捕获旧密钥、维护完成后才登记”的窗口。
+/// 不给普通句柄提供从原始 Arc 包装的构造入口。
+pub(crate) fn vault_handle_for_service(
+    service: &RwLock<VaultService>,
+) -> Result<ActivityVaultHandle, String> {
+    let svc = service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
-    svc.get_vault_store()
-        .ok_or_else(|| "Vault not unlocked".to_string())
+    let activity = begin_owned_root_activity(svc.root_owner())?;
+    let store = svc
+        .get_vault_store()
+        .ok_or_else(|| "Vault not unlocked".to_string())?;
+    Ok(ActivityVaultHandle {
+        store,
+        _activity: Arc::new(activity),
+    })
+}
+
+/// 获取当前已解锁 Vault 的任务句柄，避免每个命令重复准入/加锁样板。
+pub fn vault_handle(state: &AppState) -> Result<ActivityVaultHandle, String> {
+    vault_handle_for_service(state.vault_service.as_ref())
 }
 
 /// 获取当前已解锁账户 ID。
@@ -111,3 +159,6 @@ pub fn current_account_optional(state: &AppState) -> Option<String> {
 pub fn mobile_not_supported() -> Result<(), String> {
     Err("当前平台暂不支持该功能".to_string())
 }
+
+#[cfg(test)]
+mod rf905_capsule_tests;

@@ -51,7 +51,7 @@ pub async fn attachment_list_all(
     // P112: 单次 list_objects 已解密全部 properties 并返回 summary.properties，
     // 下方直接复用，不再 load_objects_batch / 逐页 list_objects 重复解密。
     // P114: 全表 AES 解密 + 附件树构建移入 spawn_blocking，避免阻塞 tokio worker。
-    tokio::task::spawn_blocking(move || {
+    crate::state::root_tasks::spawn_owned_blocking(vault.root_owner(), move || {
         let objects = vault.list_objects(&account_id, None, None, None, false, false)?;
 
         // Separate page objects from other objects
@@ -74,7 +74,7 @@ pub async fn attachment_list_all(
         )?;
 
         Ok(AttachmentListAllResult { pages, trash_pages })
-    })
+    })?
     .await
     .map_err(|e| format!("attachment_list_all task failed: {e}"))?
 }
@@ -234,13 +234,13 @@ pub async fn attachment_count_stats(
     account_id: String,
 ) -> Result<AttachmentCountStats, String> {
     let vault = vault_handle(&state)?;
-    tokio::task::spawn_blocking(move || {
+    crate::state::root_tasks::spawn_owned_blocking(vault.root_owner(), move || {
         let (attachment_count, photo_count) = vault.count_active_attachment_stats(&account_id)?;
         Ok(AttachmentCountStats {
             attachment_count,
             photo_count,
         })
-    })
+    })?
     .await
     .map_err(|e| format!("attachment_count_stats task failed: {e}"))?
 }

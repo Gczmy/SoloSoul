@@ -1,5 +1,5 @@
 //! RF214：插件安装由任务所有者管理，所有可见状态仅由原会话事件回填。
-use super::{manager_dirs, reject_invalid_plugin_id, PluginSummary};
+use super::{manager_dirs, plugin_root_activity, reject_invalid_plugin_id, PluginSummary};
 use crate::app::{App, AppPhase};
 use crate::i18n::I18n;
 use crate::t;
@@ -54,10 +54,23 @@ pub(super) fn start(app: &mut App, id: Option<&str>, updated: bool) -> Result<()
             return Ok(());
         }
     };
+    let (data_dir, global_activity) = match plugin_root_activity(app, &data_dir) {
+        Ok(owned) => owned,
+        Err(error) => {
+            app.error_message = Some(error);
+            return Ok(());
+        }
+    };
     let plugin_id = id.to_owned();
     let task_id = app.tasks.spawn(session, move |context| async move {
+        // Tasks 保护当前 Vault，实际 Future 另保护可能不同的全局插件根。
+        let _global_activity = global_activity;
         // 最新具体版本由共享 registry 决定，禁止将字符串 latest 当版本号。
-        let prepared = match solosoul_plugin::PluginManager::new_with_dirs(market_dir, data_dir) {
+        let prepared = match solosoul_plugin::PluginManager::new_with_dirs_owned(
+            market_dir,
+            data_dir,
+            _global_activity.root_owner(),
+        ) {
             Ok(manager) => match manager
                 .prepare_update_with_progress(&plugin_id, &|progress| {
                     context.report_plugin_progress(progress);

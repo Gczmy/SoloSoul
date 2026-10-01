@@ -11,9 +11,14 @@ pub struct VaultSession {
     account_id: String,
     generation: u64,
     vault: Arc<VaultStore>,
+    root_owner: Arc<solosoul_vault::root_owner::VaultRootOwner>,
 }
 
 impl VaultSession {
+    pub fn root_owner(&self) -> Arc<solosoul_vault::root_owner::VaultRootOwner> {
+        Arc::clone(&self.root_owner)
+    }
+
     pub fn account_id(&self) -> &str {
         &self.account_id
     }
@@ -52,6 +57,7 @@ impl VaultService {
         Ok(VaultSession {
             account_id,
             generation: *generation,
+            root_owner: self.root_owner(),
             vault,
         })
     }

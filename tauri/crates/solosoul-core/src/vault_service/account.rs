@@ -255,8 +255,8 @@ impl super::VaultService {
         let account_dir_path = self.fs.local_path(&dir_rel).ok_or("无法解析账户本地目录")?;
         let vault_config =
             VaultConfig::new(account_id, account_dir_path).with_data_key(master_key_arr);
-        let vault =
-            VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
+        let vault = VaultStore::open_owned(vault_config, self.root_owner())
+            .map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
         self.publish_session(account_id, master_key_arr, vault_arc, session_generation)?;
 
@@ -275,6 +275,8 @@ impl super::VaultService {
         password: &str,
         password_hint: Option<&str>,
     ) -> Result<serde_json::Value, String> {
+        // 派发等待之外，Core 入口也保护未发布 Session 的 KDF/config/SQLite 创建全程。
+        let _activity = crate::import_activity::begin_owned_root_activity(self.root_owner())?;
         if name.trim().is_empty() {
             return Err("Account name is required".to_string());
         }
@@ -313,6 +315,8 @@ impl super::VaultService {
         password: &str,
         password_hint: Option<&str>,
     ) -> Result<serde_json::Value, String> {
+        // 派发等待之外，Core 入口也保护未发布 Session 的 KDF/config/SQLite 创建全程。
+        let _activity = crate::import_activity::begin_owned_root_activity(self.root_owner())?;
         Self::validate_account_id(account_id)?;
         if name.trim().is_empty() {
             return Err("Account name is required".to_string());
@@ -340,8 +344,19 @@ impl super::VaultService {
     /// P225: 加载账户配置并派生主密钥（unlock / verify_password 共享前缀收敛）。
     /// 返回 (config, salt_arr, mk, master_key)。
     pub fn delete_account(&self, account_id: &str) -> Result<(), String> {
+        let maintenance = crate::import_activity::begin_owned_root_maintenance(self.root_owner())?;
+        self.delete_account_with_maintenance(account_id, &maintenance)
+    }
+
+    pub fn delete_account_with_maintenance(
+        &self,
+        account_id: &str,
+        maintenance: &crate::import_activity::RootMaintenanceGuard,
+    ) -> Result<(), String> {
+        if !Arc::ptr_eq(&maintenance.root_owner(), &self.root_owner()) {
+            return Err("VAULT_ROOT_MISMATCH".into());
+        }
         Self::validate_account_id(account_id)?;
-        let _maintenance = crate::import_activity::begin_import_maintenance(self.base_path())?;
         crate::import_activity::ensure_imports_idle(self.base_path(), Some(account_id))?;
         let dir_rel = self.account_dir_rel(account_id)?;
         self.lock();

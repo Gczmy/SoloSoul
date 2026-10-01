@@ -3,10 +3,11 @@
 use crate::identity::sha256_hex_short;
 use crate::noise::NoiseKeys;
 use crate::session::{
-    local_client_type, run_accept_loop, run_initiator_session, wrap_session_error, SessionGuard,
+    local_client_type, run_accept_loop, run_initiator_session, wrap_session_error,
 };
 use crate::transport::SyncTransport;
 use crate::types::{PeerCallback, SessionCompletedCallback, SyncPeerInfo, SyncSessionResult};
+use crate::workers::SyncWorkers;
 use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;
@@ -14,7 +15,7 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, UdpSocket};
 use std::sync::atomic::{AtomicBool, AtomicU16, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
-use tokio::task::{spawn, spawn_blocking, JoinHandle};
+use tokio::sync::Mutex as AsyncMutex;
 
 /// 本机广播/发现的 mDNS 服务类型。
 ///
@@ -25,10 +26,12 @@ const SERVICE_TYPE: &str = "_solosoul._tcp.local.";
 const MDNS_TIMEOUT_MS: u64 = 200;
 const PEER_MAX_AGE_SECS: u64 = 300;
 /// `stop()` 等待正在进行的同步会话完成的最大时长（秒）。
-/// 超时后仍会强制 abort，避免无限等待恶意/僵死的 peer。
+/// 宽限结束关闭网络 IO，然后仍等待 worker 真正退出。
 const STOP_GRACE_PERIOD_SECS: u64 = 30;
-/// `stop()` 轮询 `active_sessions` 的间隔。
-const STOP_POLL_INTERVAL_MS: u64 = 100;
+
+/// 会话结果 receiver 不包含 Manager/Store 强引用。
+pub(crate) type SyncSessionReceiver =
+    tokio::sync::oneshot::Receiver<Result<SyncSessionResult, String>>;
 
 #[derive(Debug, Clone)]
 struct DiscoveredPeer {
@@ -55,8 +58,9 @@ pub struct SyncManager {
     /// true 时 `stop()` 只注销本节点服务注册，不调用 `shutdown()`，避免关掉
     /// 供发现/恢复命令共用的 app 生命周期 daemon（P013：进程内只保留一个）。
     shared_daemon: AtomicBool,
-    worker_handles: Mutex<Vec<JoinHandle<()>>>,
-    /// 正在进行的同步会话数量。`stop()` 会等待此计数归零后再终止 worker，
+    workers: Arc<SyncWorkers>,
+    lifecycle: AsyncMutex<()>,
+    /// 派发前登记的同步会话数量。`stop_and_wait()` 等待真实 worker，
     /// 避免中途 abort 正在写入 Vault 的会话导致数据不一致。
     active_sessions: Arc<AtomicUsize>,
     /// 入站新 peer 回调钩子：响应方落库新的未信任记录时触发。
@@ -86,7 +90,8 @@ impl SyncManager {
             discovered: Arc::new(Mutex::new(HashMap::new())),
             mdns_daemon: Mutex::new(None),
             shared_daemon: AtomicBool::new(false),
-            worker_handles: Mutex::new(Vec::new()),
+            workers: SyncWorkers::new(),
+            lifecycle: AsyncMutex::new(()),
             active_sessions: Arc::new(AtomicUsize::new(0)),
             peer_callback: Arc::new(RwLock::new(None)),
             session_callback: Arc::new(RwLock::new(None)),
@@ -133,23 +138,47 @@ impl SyncManager {
     }
 
     async fn start_inner(&self, mdns_daemon: ServiceDaemon, shared: bool) -> Result<u16, String> {
+        let _lifecycle = self.lifecycle.lock().await;
         if self.running.load(Ordering::SeqCst) {
-            return Ok(self.listen_port.load(Ordering::SeqCst));
+            if !shared {
+                let _ = mdns_daemon.shutdown();
+            }
+            return Ok(self.listen_port());
         }
+        // 上一代真实 join 完成后才能复用 running，防止旧 accept 循环复活。
+        self.workers.wait_stopping().await?;
+        self.workers.wait().await?;
+        self.workers.reopen()?;
         self.running.store(true, Ordering::SeqCst);
         self.shared_daemon.store(shared, Ordering::SeqCst);
+        *self
+            .mdns_daemon
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(mdns_daemon.clone());
+        let result = self.start_workers(mdns_daemon);
+        if let Err(error) = result {
+            self.stop();
+            let cleanup = self.workers.wait().await;
+            self.listen_port.store(0, Ordering::SeqCst);
+            if let Err(cleanup_error) = cleanup {
+                tracing::warn!("Sync startup cleanup: {}", cleanup_error);
+            }
+            return Err(error);
+        }
+        result
+    }
 
+    fn start_workers(&self, mdns_daemon: ServiceDaemon) -> Result<u16, String> {
         let listener =
             TcpListener::bind(&self.listen_addr).map_err(|e| format!("bind failed: {}", e))?;
         listener
-            .set_nonblocking(false)
-            .map_err(|e| format!("set blocking: {}", e))?;
+            .set_nonblocking(true)
+            .map_err(|e| format!("set nonblocking: {}", e))?;
         let port = listener
             .local_addr()
             .map_err(|e| format!("local_addr: {}", e))?
             .port();
         self.listen_port.store(port, Ordering::SeqCst);
-
         let running = self.running.clone();
         let node_id = self.node_id.clone();
         let account_id = self.account_id.clone();
@@ -158,8 +187,8 @@ impl SyncManager {
         let active_sessions = self.active_sessions.clone();
         let peer_callback = self.peer_callback.clone();
         let session_callback = self.session_callback.clone();
-        // P045: accept 循环与会话处理收敛到 session::run_accept_loop（与 mobile.rs 共享）。
-        let accept_handle = spawn_blocking(move || {
+        let workers = self.workers.clone();
+        self.workers.spawn_background(vault.clone(), move || {
             run_accept_loop(
                 listener,
                 running,
@@ -168,91 +197,74 @@ impl SyncManager {
                 keys,
                 vault,
                 active_sessions,
+                workers,
                 peer_callback,
                 session_callback,
             )
-        });
-
-        // mDNS
+        })?;
         self.register_mdns(&mdns_daemon, port)?;
-        *self.mdns_daemon.lock().unwrap_or_else(|e| e.into_inner()) = Some(mdns_daemon.clone());
-
-        let mdns_handle = self.spawn_mdns_discovery(mdns_daemon);
-
-        if let Ok(mut handles) = self.worker_handles.lock() {
-            handles.push(accept_handle);
-            handles.push(mdns_handle);
-        }
-
+        self.spawn_mdns_discovery(mdns_daemon)?;
         Ok(port)
     }
 
-    /// Stop all background workers and mDNS.
-    ///
-    /// 先将 `running` 置为 false 阻止新会话进入，然后等待正在进行的同步会话
-    /// 完成（最多 `STOP_GRACE_PERIOD_SECS` 秒），最后才 abort worker 任务。
-    /// 这避免了在 `apply_sync_records` 写入 Vault 时被 `abort()` 中断而导致
-    /// 数据不一致的风险。
+    /// 只请求停止；返回不证明任务退出。维护和替换必须 await stop_and_wait。
     pub fn stop(&self) {
         self.running.store(false, Ordering::SeqCst);
-
-        // 立即注销/关闭 mDNS daemon：必须在会话优雅等待之前执行。
-        // 共享 daemon 场景下，若等到 30s 优雅期结束才 unregister，快速「禁用→启用」
-        // 时新 manager 会在同一 daemon 上注册同名实例名，触发 duplicate 错误
-        // （P013 审查反馈）。daemon 的 unregister/register 经内部通道串行，先提交
-        // unregister 即可消除竞态窗口。
-        if let Ok(mut daemon) = self.mdns_daemon.lock() {
-            if let Some(d) = daemon.take() {
-                if self.shared_daemon.load(Ordering::SeqCst) {
-                    // 共享 daemon 属于 discovery/恢复层，只注销本节点的同步服务注册，
-                    // 保留 daemon 供 `mdns_discover` 等命令继续使用。
-                    // 实例名与 register_mdns 保持一致（SoloSoul-<fp8>），否则 unregister
-                    // 传错名字会静默失败，禁用后 mDNS 广播残留。
-                    let _ =
-                        d.unregister(&format!("{}.{}", self.mdns_instance_name(), SERVICE_TYPE));
-                } else {
-                    let _ = d.shutdown();
-                }
-            }
-        }
-
-        // Unblock the blocking accept loop by connecting to ourselves.
-        let port = self.listen_port.load(Ordering::SeqCst);
-        if port != 0 {
-            let _ = std::net::TcpStream::connect(format!("127.0.0.1:{}", port));
-        }
-
-        // 等待正在进行的同步会话完成，避免 abort 中断 Vault 写入。
-        let deadline = Instant::now() + Duration::from_secs(STOP_GRACE_PERIOD_SECS);
-        while self.active_sessions.load(Ordering::SeqCst) > 0 {
-            if Instant::now() >= deadline {
-                tracing::warn!(
-                    "SyncManager.stop(): {} session(s) still active after {}s grace period, forcing abort",
-                    self.active_sessions.load(Ordering::SeqCst),
-                    STOP_GRACE_PERIOD_SECS
-                );
-                break;
-            }
-            std::thread::sleep(Duration::from_millis(STOP_POLL_INTERVAL_MS));
-        }
-
-        if let Ok(mut handles) = self.worker_handles.lock() {
-            for h in handles.drain(..) {
-                h.abort();
+        self.workers.close();
+        if let Some(daemon) = self
+            .mdns_daemon
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .take()
+        {
+            if self.shared_daemon.load(Ordering::SeqCst) {
+                let _ =
+                    daemon.unregister(&format!("{}.{}", self.mdns_instance_name(), SERVICE_TYPE));
+            } else {
+                let _ = daemon.shutdown();
             }
         }
     }
 
-    /// 测试专用：模拟存在 N 个活跃同步会话，验证 `stop()` 的等待逻辑。
-    #[cfg(test)]
-    pub(crate) fn set_active_sessions_for_test(&self, n: usize) {
-        self.active_sessions.store(n, Ordering::SeqCst);
+    /// 宽限期后关闭网络 IO，数据库/附件发布完成后再 join。
+    /// future 取消归还未消费句柄；真实 worker 始终持 Store/Activity。
+    pub async fn stop_and_wait(&self) -> Result<(), String> {
+        self.stop_and_wait_with_grace(Duration::from_secs(STOP_GRACE_PERIOD_SECS))
+            .await
     }
 
-    /// 测试专用：返回活跃会话计数器，便于测试在后台 `stop()` 期间复位。
+    async fn stop_and_wait_with_grace(&self, grace: Duration) -> Result<(), String> {
+        self.stop();
+        // 先派发独立收尾，取消等待 lifecycle 也不丢失旧 worker 的 join。
+        self.workers.begin_stop(self.active_sessions.clone(), grace);
+        let _lifecycle = self.lifecycle.lock().await;
+        self.stop();
+        let completion = self.workers.begin_stop(self.active_sessions.clone(), grace);
+        let result = completion.wait().await;
+        self.listen_port.store(0, Ordering::SeqCst);
+        result
+    }
+
     #[cfg(test)]
     pub(crate) fn active_sessions_counter(&self) -> Arc<AtomicUsize> {
         self.active_sessions.clone()
+    }
+
+    /// 使用真实派发/许可/句柄机制，仅用外部屏障替换不可控的 peer 等待。
+    #[cfg(test)]
+    pub(crate) fn spawn_worker_for_test<R, F>(
+        &self,
+        action: F,
+    ) -> Result<tokio::sync::oneshot::Receiver<R>, String>
+    where
+        R: Send + 'static,
+        F: FnOnce() -> R + Send + 'static,
+    {
+        self.workers.spawn_session(
+            self.vault.clone(),
+            self.active_sessions.clone(),
+            move |_| action(),
+        )
     }
 
     fn register_mdns(&self, daemon: &ServiceDaemon, port: u16) -> Result<(), String> {
@@ -318,20 +330,16 @@ impl SyncManager {
         }
     }
 
-    fn spawn_mdns_discovery(&self, daemon: ServiceDaemon) -> JoinHandle<()> {
+    fn spawn_mdns_discovery(&self, daemon: ServiceDaemon) -> Result<(), String> {
         let running = self.running.clone();
         let discovered = self.discovered.clone();
         // 预计算本地 account_id 的哈希，用于与 mDNS TXT 中的 account_hash 比对。
         let local_account_hash = sha256_hex_short(&self.account_id);
 
-        spawn(async move {
-            let receiver = match daemon.browse(SERVICE_TYPE) {
-                Ok(r) => r,
-                Err(e) => {
-                    tracing::error!("mDNS browse failed: {}", e);
-                    return;
-                }
-            };
+        let receiver = daemon
+            .browse(SERVICE_TYPE)
+            .map_err(|e| format!("mDNS browse failed: {}", e))?;
+        self.workers.spawn_background(self.vault.clone(), move || {
             // 记录上次清理过期 peer 的时间，避免每次迭代都扫描整个 map。
             let mut last_cleanup = Instant::now();
             const CLEANUP_INTERVAL_SECS: u64 = 60;
@@ -414,6 +422,17 @@ impl SyncManager {
         &self,
         device_id_or_addr: &str,
     ) -> Result<SyncSessionResult, String> {
+        self.dispatch_sync_with_peer(device_id_or_addr)?
+            .await
+            .map_err(|e| format!("__SYNC_ERR__:session_failed:{}", e))?
+    }
+
+    /// 派发时登记原 Store/Activity，返回的 owned receiver 不持 Manager/Store。
+    /// Service 必须在释放短 manager 锁后再 await，避免迟到 caller 阻止目录切换。
+    pub(crate) fn dispatch_sync_with_peer(
+        &self,
+        device_id_or_addr: &str,
+    ) -> Result<SyncSessionReceiver, String> {
         if !self.running.load(Ordering::SeqCst) {
             // 前端经 resolveBackendErrorMessage 翻译（settings:sync_err_not_running）
             return Err("__SYNC_ERR__:not_running".to_string());
@@ -431,26 +450,32 @@ impl SyncManager {
         let vault = self.vault.clone();
         let active_sessions = self.active_sessions.clone();
 
-        let result = spawn_blocking(move || {
-            let _guard = SessionGuard::new(active_sessions);
-            let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
-                .map_err(|e| format!("__SYNC_ERR__:connect_failed:{}", e))?;
-            let mut transport = SyncTransport::from_stream(stream);
-            run_initiator_session(
-                &mut transport,
-                &node_id,
-                &account_id,
-                &keys,
-                vault,
-                addr.to_string(),
-            )
-            .map_err(wrap_session_error)
-        })
-        .await
-        // spawn_blocking join 失败（任务 panic/abort）：前端经 resolveBackendErrorMessage 翻译
-        .map_err(|e| format!("__SYNC_ERR__:session_failed:{}", e))?;
+        self.workers
+            .spawn_session(vault.clone(), active_sessions, move |permit| {
+                let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
+                    .map_err(|e| format!("__SYNC_ERR__:connect_failed:{}", e))?;
+                permit.track_stream(&stream)?;
+                let mut transport = SyncTransport::from_stream(stream);
+                run_initiator_session(
+                    &mut transport,
+                    &node_id,
+                    &account_id,
+                    &keys,
+                    vault,
+                    addr.to_string(),
+                )
+                .map_err(wrap_session_error)
+            })
+    }
 
-        result
+    /// 仅由 Service 在短 manager 锁验证当前身份后调用，不能写退休或新账户的 Store。
+    pub(crate) fn audit_session_result(&self, device_id_or_addr: &str, summary: &str) {
+        crate::shared::audit_log(
+            &self.vault,
+            "sync_with_device",
+            Some(device_id_or_addr),
+            Some(summary),
+        );
     }
 
     /// Return discovered and persisted peers visible right now.
@@ -585,6 +610,13 @@ impl SyncManager {
         // Always include loopback for local testing.
         ips.push(Ipv4Addr::new(127, 0, 0, 1));
         ips
+    }
+}
+
+impl Drop for SyncManager {
+    fn drop(&mut self) {
+        self.stop();
+        self.workers.interrupt_network();
     }
 }
 
@@ -826,3 +858,7 @@ mod tests {
         assert_eq!(peer.public_key_fingerprint.as_deref(), Some("fp-original"));
     }
 }
+
+#[cfg(test)]
+#[path = "manager_rf905_tests.rs"]
+mod rf905_tests;

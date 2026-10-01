@@ -8,6 +8,7 @@
 
 use crate::noise::NoiseKeys;
 use crate::types::SyncPeerInfo;
+use solosoul_core::import_activity::begin_owned_root_activity;
 use solosoul_vault::VaultStore;
 
 /// P1#7/#8：持久化 peer 凭 `last_addr + last_seen` 判定在线的宽限期（秒），
@@ -27,11 +28,15 @@ pub fn peer_last_addr_online(p: &solosoul_vault::PeerSyncState, now_ts: i64) -> 
 
 /// 记录同步相关操作日志。Vault 未解锁时静默跳过。
 pub fn audit_log(vault: &VaultStore, action: &str, entity_id: Option<&str>, details: Option<&str>) {
+    let Ok(_activity) = begin_owned_root_activity(vault.root_owner()) else {
+        return;
+    };
     let _ = vault.log_structured(action, "sync", entity_id, None, "user", details);
 }
 
 /// 读取或创建同步身份（node_id + Noise 静态密钥），持久化到 vault。
 pub fn get_or_create_sync_identity(vault: &VaultStore) -> Result<(String, NoiseKeys), String> {
+    let _activity = begin_owned_root_activity(vault.root_owner())?;
     let node_id = match vault.get_sync_node_id()? {
         Some(id) => id,
         None => {
@@ -96,6 +101,7 @@ pub fn trust_peer_fallback(
     trusted: bool,
     fingerprint: Option<String>,
 ) -> Result<(), String> {
+    let _activity = begin_owned_root_activity(vault.root_owner())?;
     let now = chrono::Utc::now().to_rfc3339();
     let fp = fingerprint.filter(|f| !f.is_empty());
     let mut peer =
@@ -131,6 +137,7 @@ pub fn trust_peer_fallback(
 
 /// manager 未启动时回退：移除 peer。
 pub fn forget_peer_fallback(vault: &VaultStore, peer_node_id: &str) -> Result<(), String> {
+    let _activity = begin_owned_root_activity(vault.root_owner())?;
     vault.delete_peer(peer_node_id)
 }
 

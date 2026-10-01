@@ -98,7 +98,8 @@ pub async fn plugin_list_installed(
 pub async fn plugin_list_attachments(state: State<'_, AppState>) -> Result<String, String> {
     let vault_store = vault_handle(&state)?;
     let account_id = current_account_optional(&state).ok_or("未选择账户")?;
-    let resolver = solosoul_plugin::FieldResolver::with_vault(vault_store, account_id, vec![]);
+    let resolver =
+        solosoul_plugin::FieldResolver::with_vault(vault_store.store_arc(), account_id, vec![]);
     resolver.list_attachments().map_err(|e| e.to_string())
 }
 
@@ -248,7 +249,14 @@ pub async fn plugin_run(
     params: HashMap<String, String>,
     channel: Channel<PluginEvent>,
 ) -> Result<PluginResult, String> {
-    let vault_store = vault_handle(&state).ok();
+    // 锁定态仍可运行不读取 Vault 的插件；维护拒绝或锁损坏不能降为无 Vault。
+    let vault_activity = match vault_handle(&state) {
+        Ok(handle) => Some(handle),
+        Err(error) if error == "Vault not unlocked" => None,
+        Err(error) => return Err(error),
+    };
+    // capsule 保留到 outer function end，覆盖 capture → Core 派发的间隙。
+    let vault_store = vault_activity.as_ref().map(|handle| handle.store_arc());
     let account_id = current_account_optional(&state);
     // P001: 附件静态加密密钥——插件复制附件到工作区前解密。
     let attachment_key = state

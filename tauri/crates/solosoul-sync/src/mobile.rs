@@ -3,28 +3,24 @@
 //! 移动端不使用桌面端的 mdns-sd，发现层由 Android NSD / iOS Bonjour 插件负责。
 //! 本模块仅负责启动 TCP 监听、接受入站同步连接、以及作为发起方与指定地址同步。
 
-use crate::session::{run_accept_loop, run_initiator_session, wrap_session_error, SessionGuard};
+use crate::session::{run_accept_loop, run_initiator_session, wrap_session_error};
 use crate::shared::{
     audit_log, forget_peer_fallback, get_or_create_sync_identity, known_peers_from_vault,
     local_fingerprint_fallback, trust_peer_fallback,
 };
 use crate::transport::SyncTransport;
-use crate::types::{
-    PeerCallback, SessionCompletedCallback, SessionCompletedInfo, SyncPeerInfo, SyncSessionResult,
-};
+use crate::types::{PeerCallback, SessionCompletedCallback, SyncPeerInfo, SyncSessionResult};
+use crate::workers::{StopCompletion, SyncWorkers};
 use solosoul_core::vault_service::VaultService;
-use solosoul_vault::{PeerSyncState, VaultStore};
+use solosoul_vault::VaultStore;
 use std::net::{SocketAddr, TcpListener};
 use std::sync::atomic::{AtomicBool, AtomicU16, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex as StdMutex, RwLock};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use tokio::sync::Mutex;
-use tokio::task::{spawn_blocking, JoinHandle};
 
 /// `stop()` 等待正在进行的同步会话完成的最大时长（秒）。
 const STOP_GRACE_PERIOD_SECS: u64 = 30;
-/// `stop()` 轮询 `active_sessions` 的间隔。
-const STOP_POLL_INTERVAL_MS: u64 = 100;
 
 /// 长周期 Noise 身份密钥，与桌面端实现一致。
 use crate::noise::NoiseKeys;
@@ -32,7 +28,9 @@ use crate::noise::NoiseKeys;
 /// 同步服务。
 pub struct SyncService {
     vault_service: Arc<std::sync::RwLock<VaultService>>,
-    manager: Mutex<Option<MobileSyncManager>>,
+    manager: Mutex<Option<Arc<MobileSyncManager>>>,
+    lifecycle: Mutex<()>,
+    stopping: StdMutex<Option<Arc<StopCompletion>>>,
     /// 入站新 peer 回调钩子（与桌面端一致，创建 manager 时注入）。
     peer_callback: Arc<RwLock<Option<PeerCallback>>>,
     /// 入站会话完成回调钩子（与桌面端一致，创建 manager 时注入）。
@@ -44,6 +42,8 @@ impl SyncService {
         Self {
             vault_service,
             manager: Mutex::new(None),
+            lifecycle: Mutex::new(()),
+            stopping: StdMutex::new(None),
             peer_callback: Arc::new(RwLock::new(None)),
             session_callback: Arc::new(RwLock::new(None)),
         }
@@ -65,6 +65,8 @@ impl SyncService {
 
     /// 启用或关闭同步监听。
     pub async fn enable(&self, enable: bool) -> Result<(), String> {
+        let _lifecycle = self.lifecycle.lock().await;
+        self.wait_until_stopped().await?;
         let mut guard = self.manager.lock().await;
         if enable {
             if guard.is_some() {
@@ -95,25 +97,59 @@ impl SyncService {
                     port
                 )),
             );
-            *guard = Some(manager);
+            *guard = Some(Arc::new(manager));
             Ok(())
         } else {
             let old_manager = guard.take();
-            // 先释放 manager 锁，再在 blocking 线程执行 stop()：
-            // stop() 可能等待活跃同步会话最多 STOP_GRACE_PERIOD_SECS（30 秒），
-            // 若在此处同步调用会阻塞 async 命令线程，并让 sync_get_status 等
-            // 需要 manager 锁的命令全部排队，前端表现为“禁用失败、所有按钮卡住”。
-            // manager 已从锁中取出，后续 is_enabled()/sync_get_status 立即返回 false。
             drop(guard);
-            if let Some(m) = old_manager {
-                // 显式 drop JoinHandle 以分离任务（detach），命令立即返回
-                std::mem::drop(tokio::task::spawn_blocking(move || m.stop()));
+            if let Some(manager) = old_manager {
+                manager.stop();
+                let completion = StopCompletion::new();
+                *self
+                    .stopping
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(completion.clone());
+                std::mem::drop(tokio::spawn(async move {
+                    let result = manager.stop_and_wait().await;
+                    // completion 的成功不能早于旧 Manager/Store 真正 Drop。
+                    drop(manager);
+                    completion.finish(result);
+                }));
             }
+            self.wait_until_stopped().await?;
             if let Ok(svc) = self.vault_service.try_read() {
                 if let Some(vault) = svc.get_vault_store() {
                     audit_log(&vault, "sync_disabled", None, None);
                 }
             }
+            Ok(())
+        }
+    }
+
+    pub async fn disable_and_wait(&self) -> Result<(), String> {
+        self.enable(false).await
+    }
+
+    pub async fn wait_until_stopped(&self) -> Result<(), String> {
+        let completion = self
+            .stopping
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .clone();
+        if let Some(completion) = completion {
+            let result = completion.wait().await;
+            let mut stopping = self
+                .stopping
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            if stopping
+                .as_ref()
+                .is_some_and(|current| Arc::ptr_eq(current, &completion))
+            {
+                *stopping = None;
+            }
+            result
+        } else {
             Ok(())
         }
     }
@@ -133,7 +169,7 @@ impl SyncService {
         &self,
         device_id_or_addr: String,
     ) -> Result<SyncSessionResult, String> {
-        let (node_id, account_id, keys, vault, active_sessions, running) = {
+        let (node_id, account_id, keys, vault, active_sessions, running, workers) = {
             let guard = self.manager.lock().await;
             // 前端经 resolveBackendErrorMessage 翻译（settings:sync_err_not_enabled）
             let manager = guard.as_ref().ok_or("__SYNC_ERR__:not_enabled")?;
@@ -144,6 +180,7 @@ impl SyncService {
                 manager.vault.clone(),
                 manager.active_sessions.clone(),
                 manager.running.clone(),
+                manager.workers.clone(),
             )
         };
         if !running.load(Ordering::SeqCst) {
@@ -154,24 +191,25 @@ impl SyncService {
             .parse()
             .map_err(|e| format!("__SYNC_ERR__:invalid_address:{}", e))?;
 
-        spawn_blocking(move || {
-            let _guard = SessionGuard::new(active_sessions);
-            let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
-                .map_err(|e| format!("__SYNC_ERR__:connect_failed:{}", e))?;
-            let mut transport = SyncTransport::from_stream(stream);
-            run_initiator_session(
-                &mut transport,
-                &node_id,
-                &account_id,
-                &keys,
-                vault,
-                addr.to_string(),
-            )
-            .map_err(wrap_session_error)
-        })
-        .await
-        // spawn_blocking join 失败（任务 panic/abort）：前端经 resolveBackendErrorMessage 翻译
-        .map_err(|e| format!("__SYNC_ERR__:session_failed:{}", e))?
+        workers
+            .spawn_session(vault.clone(), active_sessions, move |permit| {
+                let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
+                    .map_err(|e| format!("__SYNC_ERR__:connect_failed:{}", e))?;
+                permit.track_stream(&stream)?;
+                let mut transport = SyncTransport::from_stream(stream);
+                run_initiator_session(
+                    &mut transport,
+                    &node_id,
+                    &account_id,
+                    &keys,
+                    vault,
+                    addr.to_string(),
+                )
+                .map_err(wrap_session_error)
+            })?
+            .await
+            // worker panic 时 sender 关闭（任务 panic/abort）：前端经 resolveBackendErrorMessage 翻译
+            .map_err(|e| format!("__SYNC_ERR__:session_failed:{}", e))?
     }
 
     /// 列出已持久化的 peers（移动端发现由上层 NSD 插件维护，这里只返回持久化列表）。
@@ -268,7 +306,7 @@ struct MobileSyncManager {
     vault: Arc<VaultStore>,
     listen_port: AtomicU16,
     running: Arc<AtomicBool>,
-    worker_handles: StdMutex<Vec<JoinHandle<()>>>,
+    workers: Arc<SyncWorkers>,
     /// 正在进行的同步会话数量。`stop()` 会等待此计数归零后再终止 worker，
     /// 避免中途 abort 正在写入 Vault 的会话导致数据不一致。
     active_sessions: Arc<AtomicUsize>,
@@ -292,7 +330,7 @@ impl MobileSyncManager {
             vault,
             listen_port: AtomicU16::new(0),
             running: Arc::new(AtomicBool::new(false)),
-            worker_handles: StdMutex::new(Vec::new()),
+            workers: SyncWorkers::new(),
             active_sessions: Arc::new(AtomicUsize::new(0)),
             peer_callback: Arc::new(RwLock::new(None)),
             session_callback: Arc::new(RwLock::new(None)),
@@ -327,8 +365,8 @@ impl MobileSyncManager {
 
         let listener = TcpListener::bind("0.0.0.0:0").map_err(|e| format!("bind failed: {}", e))?;
         listener
-            .set_nonblocking(false)
-            .map_err(|e| format!("set blocking: {}", e))?;
+            .set_nonblocking(true)
+            .map_err(|e| format!("set nonblocking: {}", e))?;
         let port = listener
             .local_addr()
             .map_err(|e| format!("local_addr: {}", e))?
@@ -345,7 +383,8 @@ impl MobileSyncManager {
         let session_callback = self.session_callback.clone();
 
         // P045: accept 循环与单连接会话处理拆分为独立函数，消除 8 层嵌套。
-        let accept_handle = spawn_blocking(move || {
+        let workers = self.workers.clone();
+        self.workers.spawn_background(vault.clone(), move || {
             run_accept_loop(
                 listener,
                 running,
@@ -354,46 +393,29 @@ impl MobileSyncManager {
                 keys,
                 vault,
                 active_sessions,
+                workers,
                 peer_callback,
                 session_callback,
             )
-        });
-
-        if let Ok(mut handles) = self.worker_handles.lock() {
-            handles.push(accept_handle);
-        }
+        })?;
 
         Ok(port)
     }
 
     fn stop(&self) {
         self.running.store(false, Ordering::SeqCst);
+        self.workers.close();
+    }
 
-        // Unblock the blocking accept loop by connecting to ourselves.
-        let port = self.listen_port.load(Ordering::SeqCst);
-        if port != 0 {
-            let _ = std::net::TcpStream::connect(format!("127.0.0.1:{}", port));
-        }
-
-        // 等待正在进行的同步会话完成，避免 abort 中断 Vault 写入。
-        let deadline = Instant::now() + Duration::from_secs(STOP_GRACE_PERIOD_SECS);
-        while self.active_sessions.load(Ordering::SeqCst) > 0 {
-            if Instant::now() >= deadline {
-                tracing::warn!(
-                    "MobileSyncManager.stop(): {} session(s) still active after {}s grace period, forcing abort",
-                    self.active_sessions.load(Ordering::SeqCst),
-                    STOP_GRACE_PERIOD_SECS
-                );
-                break;
-            }
-            std::thread::sleep(Duration::from_millis(STOP_POLL_INTERVAL_MS));
-        }
-
-        if let Ok(mut handles) = self.worker_handles.lock() {
-            for h in handles.drain(..) {
-                h.abort();
-            }
-        }
+    async fn stop_and_wait(&self) -> Result<(), String> {
+        self.stop();
+        let completion = self.workers.begin_stop(
+            self.active_sessions.clone(),
+            Duration::from_secs(STOP_GRACE_PERIOD_SECS),
+        );
+        let result = completion.wait().await;
+        self.listen_port.store(0, Ordering::SeqCst);
+        result
     }
 
     fn trust_peer(
@@ -402,43 +424,22 @@ impl MobileSyncManager {
         trusted: bool,
         fingerprint: Option<&str>,
     ) -> Result<(), String> {
-        let now = chrono::Utc::now().to_rfc3339();
-        let mut peer = self
-            .vault
-            .load_peer_state(peer_node_id)?
-            .unwrap_or_else(|| PeerSyncState {
-                peer_node_id: peer_node_id.to_string(),
-                peer_name: None,
-                trusted: false,
-                public_key_fingerprint: fingerprint
-                    .filter(|f| !f.is_empty())
-                    .map(|f| f.to_string()),
-                last_seen: None,
-                created_at: now.clone(),
-                updated_at: now.clone(),
-                client_type: None,
-                trusted_at: None,
-                last_addr: None,
-            });
-        // 已有记录但无指纹时补绑（历史记录/握手期未绑定）。
-        // 空串视为无指纹，避免绑定 "" 导致后续握手被 P001 拒绝。
-        if trusted && peer.public_key_fingerprint.is_none() {
-            if let Some(f) = fingerprint.filter(|f| !f.is_empty()) {
-                peer.public_key_fingerprint = Some(f.to_string());
-            }
-        }
-        // 信任/撤销时维护 trusted_at：信任记时间戳，撤销清空。
-        peer.trusted_at = if trusted {
-            Some(chrono::Utc::now().timestamp())
-        } else {
-            None
-        };
-        peer.trusted = trusted;
-        peer.updated_at = now;
-        self.vault.save_peer_state(&peer)
+        trust_peer_fallback(
+            &self.vault,
+            peer_node_id,
+            trusted,
+            fingerprint.map(str::to_string),
+        )
     }
 
     fn forget_peer(&self, peer_node_id: &str) -> Result<(), String> {
-        self.vault.delete_peer(peer_node_id)
+        forget_peer_fallback(&self.vault, peer_node_id)
+    }
+}
+
+impl Drop for MobileSyncManager {
+    fn drop(&mut self) {
+        self.stop();
+        self.workers.interrupt_network();
     }
 }

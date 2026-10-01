@@ -73,7 +73,10 @@ impl Fixture {
     }
     fn reopen(&self) -> crate::VaultService {
         self.service.lock();
-        let service = crate::VaultService::with_base_path(self.dir.path().into());
+        // 同应用重开连接显式复用 owner；独立进程竞争由专门子进程用例验证。
+        let owner = self.service.root_owner();
+        let fs = std::sync::Arc::new(crate::LocalVaultFileSystem::new(owner.root().to_path_buf()));
+        let service = crate::VaultService::try_with_root_owner(owner, fs).unwrap();
         service
             .unlock_secure(&self.account, &Zeroizing::new(PASSWORD.into()))
             .unwrap();

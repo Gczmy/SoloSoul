@@ -19,7 +19,7 @@ use tauri::{
 use tauri::plugin::PluginHandle;
 
 use crate::commands::attachment::{attachment_dir, path_within_base};
-use crate::commands::vault_handle;
+use crate::commands::{vault_handle, ActivityVaultHandle};
 use crate::state::AppState;
 
 /// Android 插件包名。
@@ -460,24 +460,36 @@ pub async fn attachment_import_content_uri<R: Runtime>(
         dest_path: dest_path.to_string_lossy().to_string(),
     };
 
-    // JNI 文件复制会阻塞当前线程，放到 spawn_blocking 避免阻塞 tokio worker。
-    // 注意：在 spawn_blocking 内部重新获取插件句柄，避免引用 `app` 导致生命周期错误。
-    let result = tokio::task::spawn_blocking(move || {
-        let handle = app.state::<AttachmentImportPluginHandle<R>>();
-        handle.import_content_uri(payload)
+    // JNI 复制、加密和替换由同一个实际 worker 持有 capsule；取消 await 不释放许可。
+    tokio::task::spawn_blocking(move || {
+        complete_content_uri_import(_vault, att_key, dest_dir, safe_name, || {
+            let handle = app.state::<AttachmentImportPluginHandle<R>>();
+            handle.import_content_uri(payload)
+        })
     })
     .await
-    .map_err(|e| format!("Import task failed: {}", e))??;
+    .map_err(|e| format!("Import task failed: {}", e))?
+}
 
-    // P001: Kotlin 复制到 dest_path 的是明文——立即就地加密（读明文 → 写密文临时 → 原子替换），
-    // 消除明文落盘窗口。旧数据为密文时跳过（幂等）。
+/// 供 JNI worker 使用的完整落盘阶段；传入复制动作不改变 Android 插件协议。
+/// 许可必须覆盖明文复制、密文生成和最终替换，而非只覆盖等待该 worker 的 future。
+fn complete_content_uri_import(
+    vault: ActivityVaultHandle,
+    att_key: [u8; 32],
+    dest_dir: std::path::PathBuf,
+    safe_name: String,
+    copy: impl FnOnce() -> Result<ImportContentUriResult, String>,
+) -> Result<ImportContentUriResult, String> {
+    let _vault = vault;
+    let result = copy()?;
+    let dest_path = dest_dir.join(&safe_name);
+    // P001: Kotlin 复制的是明文；同 worker 立即就地加密。已为密文时保持幂等。
     if !solosoul_core::attachment_crypto::is_encrypted_file(&dest_path) {
         let tmp_path = dest_dir.join(format!("{}.enc.tmp", safe_name));
         solosoul_core::attachment_crypto::encrypt_file_stream(&att_key, &dest_path, &tmp_path)
             .map_err(|e| format!("附件落盘加密失败: {}", e))?;
         std::fs::rename(&tmp_path, &dest_path).map_err(|e| format!("附件加密替换失败: {}", e))?;
     }
-
     Ok(result)
 }
 
@@ -750,3 +762,7 @@ pub async fn vault_pick_directory<R: Runtime>(
     let handle = app.state::<AttachmentImportPluginHandle<R>>();
     handle.pick_vault_dir()
 }
+
+#[cfg(test)]
+#[path = "attachment_import_plugin/rf905_tests.rs"]
+mod rf905_tests;

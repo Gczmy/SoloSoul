@@ -187,6 +187,8 @@ fn current_sync_preferences(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned")?;
+    // 读取入口首次会迁移偏好并写 Profile/缓存，先准入再读取原 Store。
+    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
     crate::services::device_preferences::load_sync_preferences(&state.handle, &svc)
 }
 
@@ -233,6 +235,7 @@ pub async fn sync_set_ui_prefs_sync(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned")?;
+    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
     let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
     vault.update_device_sync_preferences(|prefs| prefs.ui_prefs_sync_enabled = enabled)?;
     svc.set_ui_prefs_sync_enabled(enabled);

@@ -355,7 +355,7 @@ fn debug_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
         "os": std::env::consts::OS,
         "arch": std::env::consts::ARCH,
         "dataDir": app.vault_service.base_path().display().to_string(),
-        "lockAcquired": app.process_lock.is_some(),
+        "lockAcquired": app.vault_service.root_owner().is_process_locked(),
         "accountId": account_id,
     });
 

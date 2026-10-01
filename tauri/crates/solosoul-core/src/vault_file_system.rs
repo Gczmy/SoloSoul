@@ -94,6 +94,75 @@ pub trait VaultFileSystem: Send + Sync {
     }
 }
 
+/// 服务对外只发布该 wrapper；克隆 FS Arc 不会丢失真实 root 的所有者。
+pub struct OwnedVaultFileSystem {
+    inner: Arc<dyn VaultFileSystem>,
+    owner: Arc<solosoul_vault::root_owner::VaultRootOwner>,
+}
+impl OwnedVaultFileSystem {
+    pub fn new(
+        owner: Arc<solosoul_vault::root_owner::VaultRootOwner>,
+        inner: Arc<dyn VaultFileSystem>,
+    ) -> Result<Self, String> {
+        if let Some(path) = inner.local_path("") {
+            let path = path
+                .canonicalize()
+                .map_err(|_| "VAULT_DIRECTORY_UNAVAILABLE")?;
+            if path != owner.root() {
+                return Err("VAULT_ROOT_MISMATCH".into());
+            }
+        }
+        Ok(Self { inner, owner })
+    }
+    pub fn root_owner(&self) -> Arc<solosoul_vault::root_owner::VaultRootOwner> {
+        Arc::clone(&self.owner)
+    }
+}
+impl VaultFileSystem for OwnedVaultFileSystem {
+    fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
+        self.inner.read_file(path)
+    }
+    fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
+        self.inner.write_file(path, data)
+    }
+    fn write_file_atomic(&self, path: &str, data: &[u8]) -> Result<(), String> {
+        self.inner.write_file_atomic(path, data)
+    }
+    fn remove_file(&self, path: &str) -> Result<(), String> {
+        self.inner.remove_file(path)
+    }
+    fn exists(&self, path: &str) -> Result<bool, String> {
+        self.inner.exists(path)
+    }
+    fn create_dir_all(&self, path: &str) -> Result<(), String> {
+        self.inner.create_dir_all(path)
+    }
+    fn remove_dir_all(&self, path: &str) -> Result<(), String> {
+        self.inner.remove_dir_all(path)
+    }
+    fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
+        self.inner.list_dir(path)
+    }
+    fn local_path(&self, path: &str) -> Option<PathBuf> {
+        self.inner.local_path(path)
+    }
+    fn sync_to_remote(&self) -> Result<(), String> {
+        self.inner.sync_to_remote()
+    }
+    fn sync_from_remote(&self) -> Result<(), String> {
+        self.inner.sync_from_remote()
+    }
+    fn is_remote(&self) -> bool {
+        self.inner.is_remote()
+    }
+    fn sync_if_dirty(&self) -> Result<(), String> {
+        self.inner.sync_if_dirty()
+    }
+    fn is_dirty(&self) -> bool {
+        self.inner.is_dirty()
+    }
+}
+
 /// SAF 同步驱动 trait。
 ///
 /// 由于 `solosoul-core` 不依赖 Tauri/移动端桥接，具体同步逻辑由上层（Tauri app）

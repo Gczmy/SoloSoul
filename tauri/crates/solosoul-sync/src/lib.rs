@@ -18,6 +18,7 @@ pub mod recovery;
 pub mod session;
 pub mod shared;
 pub mod transport;
+mod workers;
 
 // 桌面端使用基于 mdns-sd 的 SyncManager；移动端使用基于 Android NSD / iOS Bonjour 的
 // 发现层，因此 manager/service 按平台拆分。

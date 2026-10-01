@@ -75,7 +75,7 @@ pub fn render(app: &App) -> Paragraph<'_> {
         AppPhase::Quit => t!(app.i18n, "status-quit"),
     };
 
-    let lock_text = if app.process_lock.is_some() {
+    let lock_text = if app.vault_service.root_owner().is_process_locked() {
         t!(app.i18n, "status-lock-held")
     } else {
         t!(app.i18n, "status-lock-not-exclusive")

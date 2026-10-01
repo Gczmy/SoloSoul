@@ -979,8 +979,11 @@ fn rf021_reopened_same_account_and_key_cannot_reuse_old_store_revision_or_view()
         ImportHistoryChange::Keep,
     )]);
     f.vault.lock();
-    let reopened =
-        VaultStore::open(VaultConfig::new(ACCOUNT, base).with_data_key([0x21; 32])).unwrap();
+    let reopened = VaultStore::open_owned(
+        VaultConfig::new(ACCOUNT, base).with_data_key([0x21; 32]),
+        f.vault.root_owner(),
+    )
+    .unwrap();
     let before = f.raw_state();
     expect_error(
         reopened.commit_import_batch(ACCOUNT, &old_view.revision, &plan),
@@ -1289,8 +1292,11 @@ fn rf021_template_accessors_reject_other_store_account_locked_and_reopened_store
             .unwrap_err(),
         ImportBatchError::Locked.to_string()
     );
-    let reopened =
-        VaultStore::open(VaultConfig::new(ACCOUNT, base).with_data_key([0x21; 32])).unwrap();
+    let reopened = VaultStore::open_owned(
+        VaultConfig::new(ACCOUNT, base).with_data_key([0x21; 32]),
+        first.vault.root_owner(),
+    )
+    .unwrap();
     assert_eq!(
         reopened.list_import_view_user_templates(&view).unwrap_err(),
         ImportBatchError::WrongStore.to_string()
@@ -1778,8 +1784,11 @@ fn rf021_metadata_accessor_rejects_other_store_account_locked_empty_and_reopened
             .unwrap_err(),
         ImportBatchError::Locked.to_string()
     );
-    let reopened =
-        VaultStore::open(VaultConfig::new(ACCOUNT, base).with_data_key([0x21; 32])).unwrap();
+    let reopened = VaultStore::open_owned(
+        VaultConfig::new(ACCOUNT, base).with_data_key([0x21; 32]),
+        first.vault.root_owner(),
+    )
+    .unwrap();
     assert_eq!(
         reopened
             .list_import_view_object_metadata(&view)

@@ -20,13 +20,13 @@ use crate::types::{
     ApplyStats, AttachmentSyncStats, InboundSessionOutcome, NewPeerInfo, PeerCallback,
     SessionCompletedCallback, SessionCompletedInfo, SyncSessionResult,
 };
+use crate::workers::SyncWorkers;
 use solosoul_vault::{PeerSyncState, VaultStore};
 use std::net::{SocketAddr, TcpListener};
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
-use tokio::task::spawn_blocking;
 
 const DELTA_PAGE_LIMIT: usize = 100;
 /// 当前实现支持的同步协议版本。
@@ -842,6 +842,7 @@ pub(crate) fn run_accept_loop(
     keys: NoiseKeys,
     vault: Arc<VaultStore>,
     active_sessions: Arc<AtomicUsize>,
+    workers: Arc<SyncWorkers>,
     peer_callback: Arc<RwLock<Option<PeerCallback>>>,
     session_callback: Arc<RwLock<Option<SessionCompletedCallback>>>,
 ) {
@@ -862,9 +863,13 @@ pub(crate) fn run_accept_loop(
                     keys.clone(),
                     vault.clone(),
                     active_sessions.clone(),
+                    workers.clone(),
                     peer_callback.clone(),
                     session_callback.clone(),
                 );
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                std::thread::sleep(Duration::from_millis(20));
             }
             Err(e) => {
                 tracing::warn!("accept error: {}", e);
@@ -885,14 +890,15 @@ pub(crate) fn handle_accepted_connection(
     keys: NoiseKeys,
     vault: Arc<VaultStore>,
     active_sessions: Arc<AtomicUsize>,
+    workers: Arc<SyncWorkers>,
     peer_callback: Arc<RwLock<Option<PeerCallback>>>,
     session_callback: Arc<RwLock<Option<SessionCompletedCallback>>>,
 ) {
-    let guard = SessionGuard::new(active_sessions);
     let cb = peer_callback.read().ok().and_then(|g| g.clone());
     let session_cb = session_callback.read().ok().and_then(|g| g.clone());
-    spawn_blocking(move || {
-        let _guard = guard; // 持有直到会话结束
+    // 不接纳维护期间的新会话；派发失败会立即关闭 stream。
+    let result = workers.spawn_session(vault.clone(), active_sessions, move |permit| {
+        permit.track_stream(&stream)?;
         let mut transport = SyncTransport::from_stream(stream);
         // 响应方会话成功结束：通知 GUI 推送 sync-completed，让两侧同时
         // 展示「同步完成 + 具体条数」（B 侧用户不在同步页也能收到全局 toast）。
@@ -918,7 +924,11 @@ pub(crate) fn handle_accepted_connection(
                 });
             }
         }
+        Ok::<(), String>(())
     });
+    if let Err(error) = result {
+        tracing::debug!("Inbound sync admission rejected: {}", error);
+    }
 }
 
 #[cfg(test)]

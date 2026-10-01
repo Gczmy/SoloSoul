@@ -173,12 +173,34 @@ impl PinManager {
         pin: &str,
         vault_service: &VaultService,
     ) -> Result<(), PinError> {
+        let maintenance =
+            crate::import_activity::begin_owned_root_maintenance(vault_service.root_owner())
+                .map_err(PinError::Internal)?;
+        self.setup_pin_with_maintenance(account_id, password, pin, vault_service, &maintenance)
+    }
+
+    /// 派发前冻结的维护许可覆盖主密码验证、PIN KDF、凭证/config 和审计写入。
+    pub fn setup_pin_with_maintenance(
+        &self,
+        account_id: &str,
+        password: &str,
+        pin: &str,
+        vault_service: &VaultService,
+        maintenance: &crate::import_activity::RootMaintenanceGuard,
+    ) -> Result<(), PinError> {
+        let owner = vault_service.root_owner();
+        if !std::sync::Arc::ptr_eq(&maintenance.root_owner(), &owner)
+            || self.base_path.canonicalize().ok().as_deref() != Some(owner.root())
+        {
+            return Err(PinError::Internal("VAULT_ROOT_MISMATCH".into()));
+        }
         // 校验 PIN 格式
         validate_pin(pin)?;
 
-        // 先解锁以验证主密码并获取会话密钥
+        // 主密码解锁借同一维护许可，不能重入 gate 造成合法 PIN 设置自撞。
+        let password = zeroize::Zeroizing::new(password.to_owned());
         vault_service
-            .unlock(account_id, password)
+            .unlock_secure_with_maintenance(account_id, &password, maintenance)
             .map_err(|_| PinError::InvalidPassword)?;
 
         let session_key = vault_service
@@ -637,6 +659,91 @@ mod tests {
 
         let mgr = PinManager::new(base);
         (dir, svc, account_id, mgr)
+    }
+
+    #[test]
+    fn rf905_borrowed_maintenance_pin_setup_encrypts_real_key_and_unlocks_real_vault_without_self_busy(
+    ) {
+        let (_dir, svc, account_id, mgr) = setup_env();
+        svc.unlock(&account_id, "testpassword123").unwrap();
+        svc.get_vault_store()
+            .unwrap()
+            .save_conversation(
+                &account_id,
+                "pin-proof",
+                "2026-10-01",
+                b"real encrypted PIN fixture",
+            )
+            .unwrap();
+        svc.lock();
+        let maintenance =
+            crate::import_activity::begin_owned_root_maintenance(svc.root_owner()).unwrap();
+        mgr.setup_pin_with_maintenance(
+            &account_id,
+            "testpassword123",
+            "123456",
+            &svc,
+            &maintenance,
+        )
+        .unwrap();
+        let key = svc.get_session_key().unwrap();
+        let credential = std::fs::read_to_string(mgr.pin_credential_path(&account_id)).unwrap();
+        let parsed: PinCredential = serde_json::from_str(&credential).unwrap();
+        assert_eq!(parsed.version, 1);
+        assert!(!credential.contains("testpassword123"));
+        let config = mgr.read_config(&account_id).unwrap();
+        assert!(config.pin_enabled);
+        assert_eq!(config.pin_length, 6);
+        drop(maintenance);
+        svc.lock();
+        mgr.unlock_with_pin(&account_id, "123456", &svc, None, None)
+            .unwrap();
+        assert_eq!(*svc.get_session_key().unwrap(), *key);
+        assert_eq!(
+            svc.get_vault_store()
+                .unwrap()
+                .load_conversation(&account_id, "pin-proof")
+                .unwrap(),
+            Some(b"real encrypted PIN fixture".to_vec())
+        );
+    }
+
+    #[test]
+    fn rf905_pin_setup_activity_busy_and_foreign_guard_refuse_without_config_or_credential_writes()
+    {
+        let (_dir, svc, account_id, mgr) = setup_env();
+        let config_path = svc.base_path().join(&account_id).join("config.json");
+        let before = std::fs::read(&config_path).unwrap();
+        let activity = crate::import_activity::begin_owned_root_activity(svc.root_owner()).unwrap();
+        assert!(
+            matches!(mgr.setup_pin(&account_id, "testpassword123", "123456", &svc),
+            Err(PinError::Internal(message)) if message == "IMPORT_OPERATIONS_ACTIVE")
+        );
+        assert_eq!(std::fs::read(&config_path).unwrap(), before);
+        assert!(!mgr.pin_credential_path(&account_id).exists());
+        assert!(!svc.is_unlocked());
+        drop(activity);
+        let other = TempDir::new().unwrap();
+        let foreign = solosoul_vault::root_owner::VaultRootOwner::acquire(other.path()).unwrap();
+        let maintenance = crate::import_activity::begin_owned_root_maintenance(foreign).unwrap();
+        assert!(
+            matches!(mgr.setup_pin_with_maintenance(&account_id, "testpassword123", "123456", &svc, &maintenance),
+            Err(PinError::Internal(message)) if message == "VAULT_ROOT_MISMATCH")
+        );
+        assert_eq!(std::fs::read(&config_path).unwrap(), before);
+        assert!(!mgr.pin_credential_path(&account_id).exists());
+        assert!(!svc.is_unlocked());
+        drop(maintenance);
+        let maintenance =
+            crate::import_activity::begin_owned_root_maintenance(svc.root_owner()).unwrap();
+        let wrong_manager = PinManager::new(other.path().to_path_buf());
+        assert!(
+            matches!(wrong_manager.setup_pin_with_maintenance(&account_id, "testpassword123", "123456", &svc, &maintenance),
+            Err(PinError::Internal(message)) if message == "VAULT_ROOT_MISMATCH")
+        );
+        assert!(!wrong_manager.pin_credential_path(&account_id).exists());
+        assert_eq!(std::fs::read(&config_path).unwrap(), before);
+        assert!(!svc.is_unlocked());
     }
 
     #[test]

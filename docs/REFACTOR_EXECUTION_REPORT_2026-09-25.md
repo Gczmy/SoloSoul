@@ -120,8 +120,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**255**（P1：50；P2：204；P3：1）。
-- 已关闭：**219 / 255**；实际修复（已关闭）：219；排除：0；待验证/阻塞：6（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：无。RF-022 已完成本地验收，本提交使用 ID 检索；下一项为已授权、无前置的 P1 RF-905（GUI/CLI 目录互斥与维护窗口）。本轮不推送；六项既有平台/CI条件不变。
+- 已关闭：**220 / 255**；实际修复（已关闭）：220；排除：0；待验证/阻塞：6（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-208与RF-204缺iOS/macOS目标实测，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：无。RF-905 已完成本机 Windows 验收并独立提交（本提交，以 RF-905 检索），下一项按依赖顺序为 RF-903；不推送，六项既有平台/CI条件保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -220,7 +220,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 91 | [RF-900](#rf-900) | P2 | CLI 中文断言测试显式隔离系统语言 | 无（Rust 任务验收前优先处理） | [x] 完成 |
 | 92 | [RF-901](#rf-901) | P2 | Windows GUI Rust 测试嵌入 Common Controls 清单 | 无（R 配置恢复前优先处理） | [x] 完成 |
 | 93 | [RF-902](#rf-902) | P2 | 生产启动冒烟使用当前桌面更新契约 | 无（生产包检查恢复前优先处理） | [x] 完成 |
-| 94 | [RF-905](#rf-905) | P1 | GUI 与 CLI 遵守同一数据目录互斥与维护窗口 | 无（RF-903 必需前置） | [ ] 待执行（已授权） |
+| 94 | [RF-905](#rf-905) | P1 | GUI 与 CLI 遵守同一数据目录互斥与维护窗口 | 无（RF-903 必需前置） | [x] 完成 |
 | 95 | [RF-903](#rf-903) | P1 | 孤儿附件清理保护账户归属与完整恢复引用 | [RF-905](#rf-905) | [ ] 待执行 |
 | 96 | [RF-906](#rf-906) | P2 | PDF 栅格化使用零基页索引 | [RF-907](#rf-907) | [x] 完成 |
 | 97 | [RF-907](#rf-907) | P1 | PDFium 原生操作共享进程级互斥 | 无（PDF真实回归必需前置） | [x] 完成 |
@@ -1502,6 +1502,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验收：**独立子进程真实竞争同一目录时只一方可写；GUI与CLI两种启动顺序、失败不写、释放后恢复、目录切换失败保留原状态、同步/导入在途拒绝进入维护均覆盖。不得用同一线程第二次 acquire 代替跨进程证据。
 - **验证配置：**`R` + `CORE` + `CLI`，本机 Windows 子进程与 GUI 状态入口；变更前端错误交互时另加 `F`/生产启动验收。
 - **建议提交：**`fix: resolve [RF-905] - enforce shared vault directory ownership`。
+- **修复与验证（2026-10-01）：**canonical NativeRoot 在 DB/迁移/业务写前取得共享 owner；Store/Session/FS、返回的恢复 handoff 及真实 native/Wasm/log/sync worker 持有至实际 Drop。维护预准入与可等待同步回收、GUI/CLI 严格构造和显式多连接复用已接入。Windows 真实子进程与 GUI 状态工厂、完整 R/CORE/CLI 和 native-perf 兼容检查通过，见 [验证记录](verification/rf905-root-ownership-2026-10-01.json)。移动 OS no-op、远端 SAF、CLI 同步 block_on、journal 存在拒迁移与 RF-903 边界保持。
 
 ### RF-906
 
@@ -5686,3 +5687,18 @@ git commit -m "<任务卡的提交标题>"
 - 首轮完整R出现10项旧测试失败：RF027/RF1063将新journal所有权marker计作业务文件，完成JSON缺稳定operationId，元数据故障注入仍用INSERT而生产变为UPDATE；RF016固定schema27期望过时。适配精确marker/sidecar与新契约，保留污染文件、跨会话、文件字节、部分成功、rollback26等原语义断言。最终全部通过，未增加ignore或关闭检查。
 - schema28；新增5项命令保留legacy契约（生成目录30 migrated /195 legacy），无生产依赖变动。工作树剩余16份用户文件逐字节保留且不暂存，含3张NSIS图片；2份纯CRLF文件在原始备份及归一化HEAD等价核验后纳入本项必要修改。共73份原拥有路径及1份验证证据，单独本地提交，不推送。
 - canonical附件、导入、云同步与CLI规范已更新；最终源/日志SHA和完整用例清单见 [验证证据](verification/rf022-resumable-import-2026-10-01.json)。**219/255已关闭**；六项外部条件不变。存在任何本项journal时暂拒绝Native root迁移，RF905接续目录所有权/维护窗口；RF024完整导入用例收敛、跨进程互斥和旧未标记孤儿附件扫描未在本项完成。
+
+
+### RF-905 续行记录（2026-10-01，进行中）
+
+- 基线 HEAD `f5f25fcc`，RF-022 已独立完成。当前重新按最终代码准备候选，不直接套用旧草案。Root 唯一生产写入者及 Cargo 队列；独立 Core/Vault、同步和 CLI 流程只在 TEMP 产出有基线SHA的候选。
+- 实施边界：实际 Vault 根规范化所有权、严格失败停止写入，句柄/Session/FS与真实worker保活，任务派发前统一准入，同步启动失败回收和stop可等待实际退出。沿用 RF-022 的journal存在即拒绝迁移，保留移动端no-op；不实施root relocation或RF-903广泛孤儿清理。
+- 必须取得Windows独立子进程竞争、GUI状态入口/CLI两种顺序、失败零业务写、释放恢复、切换失败保留原状态及在途维护拒绝，并完成R/CORE/CLI和规范；此时仅开始调查，不宣称检查通过或计入已关闭。
+
+### RF-905 执行记录（2026-10-01，完成）
+
+- 基线 `f5f25fcc`，在有效 C 盘恢复仓库继续既有授权。canonical NativeRoot 在打开数据库、迁移或写业务之前持桌面 OS 排他锁；GUI/CLI 严格 Result 构造失锁即停止，不隐式按路径复用。旧 raw Store 仅在配置确切不存在的 standalone 情形自行持锁，受管/未知配置须显式 owner；旧 fs2 协议互通，移动 no-op 不宣称锁远端 SAF。
+- Store、Session、受管 FS 和所有真实 worker 保留 owner；普通活动和维护在派发前共同准入。短 Vault capsule、JNI 完整复制/加密/替换、云配置原会话、stream 提交、返回的恢复 handoff、插件有 Vault 时双根及实际日志 writer 均覆盖到真正结束。Sync 启动失败和停止等待真实句柄回收，取消 await 不代表任务已退出；改密/主密码升级/PIN 设置/删除/替换借用同一维护证，不叠许可自撞。
+- Windows 独立子进程验证 std/fs2 双顺序竞争、GUI 状态工厂及实际 CLI binary、失败零业务写、释放后恢复、target busy 保留旧状态、真实在途维护拒绝。RED 工厂竞争在旧代码下失败，修后通过；冷重开夹具真正 Drop 所有旧 owner 或显式复用。RF027/RF211/212/214/215 原会话与旧反馈断言保留，活动期精确拒绝 master unlock，再以真实已认证 key 的 Core 入口或真实 worker 退出后的密码 UI 进行新会话夹具；没有给 CLI 新增 PIN 界面。根级空 `.lock` 快照核对真实类型/长度，所有业务字节仍完整比较。
+- 最终 R 格式/Clippy/全量通过：25 组 **1652 passed / 0 failed / 3 既有 ignored**（Host697、Core388、Sync85、Vault277）；CLI 格式/全 targets Clippy/全量 **315 passed / 0 failed / 2 ignored**（含显式由父测试执行的 child-only facility，另有既有文档 ignored）。native-perf 全 targets Clippy 与实际命中 preflight **20 passed / 0 failed**，仅兼容验收，不关闭 RF-312。完整退出码、日志/源码SHA、首轮失败与修正和独立复核见 [证据](verification/rf905-root-ownership-2026-10-01.json)。
+- 本项 91 源路径与 3 跟踪规范、报告、证据共96路径独立本地提交，不推送。14个原无关文件原字节不变且不暂存；ignored AGENTS.md仅保留本地Guide更新。**220/255已关闭，6待外部验证，29待执行**。RF-022任意journal仍拒root迁移，不实施relocation或RF-903孤儿扫描；CLI同步等待仍交RF-213。未跑macOS/Android/iOS原生、可见GUI/真SAF、release透明KDF或多端性能，不由Windows回归推断通过。

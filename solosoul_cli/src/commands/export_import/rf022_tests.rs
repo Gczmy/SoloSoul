@@ -186,7 +186,10 @@ impl Fixture {
     fn reopen(&mut self) {
         let base = self.app.vault_service.base_path().to_path_buf();
         self.app.vault_service.lock();
-        let service = Arc::new(VaultService::with_base_path(base));
+        // 保留旧 App/句柄期间的重开必须显式复用 owner，不隐式再次获取同根。
+        let owner = self.app.vault_service.root_owner();
+        let file_system = Arc::new(solosoul_core::LocalVaultFileSystem::new(base));
+        let service = Arc::new(VaultService::try_with_root_owner(owner, file_system).unwrap());
         service
             .unlock_secure(ACCOUNT, &Zeroizing::new(crate::TEST_PASSWORD.into()))
             .unwrap();

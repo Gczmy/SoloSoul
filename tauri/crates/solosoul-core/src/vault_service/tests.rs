@@ -109,8 +109,9 @@ fn rf001_prepared_unlock_cannot_publish_after_lock_or_replacement() {
     for replace in [false, true] {
         let generation = svc.session_generation().unwrap();
         let prepared = Arc::new(
-            VaultStore::open(
+            VaultStore::open_owned(
                 VaultConfig::new("acc_a", svc.base_path().join("acc_a")).with_data_key(*key),
+                svc.root_owner(),
             )
             .unwrap(),
         );

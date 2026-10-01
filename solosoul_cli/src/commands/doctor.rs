@@ -3,7 +3,6 @@
 use std::fs;
 
 use color_eyre::Result;
-use solosoul_core::process_lock::ProcessLock;
 
 use crate::app::{App, AppPhase};
 
@@ -64,7 +63,7 @@ fn build_report(app: &App) -> Result<DoctorReport> {
         }
     }
 
-    let lock_acquired = ProcessLock::acquire(base_path).is_ok();
+    let lock_acquired = app.vault_service.root_owner().is_process_locked();
 
     Ok(DoctorReport {
         data_dir,

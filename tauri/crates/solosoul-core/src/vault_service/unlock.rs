@@ -1,6 +1,7 @@
 //! VaultService 解锁/会话域（P025 拆分）。
 //! 密钥派生、解锁/锁定、改密/重加密、会话密钥管理。
 use super::*;
+use crate::import_activity::{begin_owned_root_maintenance, RootMaintenanceGuard};
 use crate::pin::PinManager;
 use solosoul_crypto::kdf::{derive_key, generate_salt, KdfConfig};
 use solosoul_crypto::secure::secure_compare;
@@ -297,11 +298,23 @@ impl super::VaultService {
         account_id: &str,
         password: &Zeroizing<String>,
     ) -> Result<(), String> {
-        self.unlock(account_id, password.as_ref())
+        let maintenance = begin_owned_root_maintenance(self.root_owner())?;
+        self.unlock_secure_with_maintenance(account_id, password, &maintenance)
+    }
+
+    /// Host 在派发前取得的许可随真实 worker 保活；这里借同一许可，不重入准入 gate。
+    pub fn unlock_secure_with_maintenance(
+        &self,
+        account_id: &str,
+        password: &Zeroizing<String>,
+        maintenance: &RootMaintenanceGuard,
+    ) -> Result<(), String> {
+        self.unlock_impl(account_id, password.as_ref(), true, maintenance)
     }
 
     pub fn unlock(&self, account_id: &str, password: &str) -> Result<(), String> {
-        self.unlock_impl(account_id, password, true)
+        let maintenance = begin_owned_root_maintenance(self.root_owner())?;
+        self.unlock_impl(account_id, password, true, &maintenance)
     }
 
     fn unlock_impl(
@@ -309,7 +322,11 @@ impl super::VaultService {
         account_id: &str,
         password: &str,
         allow_kdf_upgrade: bool,
+        maintenance: &RootMaintenanceGuard,
     ) -> Result<(), String> {
+        if !Arc::ptr_eq(&maintenance.root_owner(), &self.root_owner()) {
+            return Err("VAULT_ROOT_MISMATCH".into());
+        }
         Self::validate_account_id(account_id)?;
         let session_generation = self.session_generation()?;
         // R-4① 方案 2：解锁入口先恢复未完成的 reencrypt→config 交换。
@@ -358,11 +375,12 @@ impl super::VaultService {
             && !cfg!(debug_assertions)
             && config.kdf_config() != KdfConfig::production()
         {
-            match self.unlock_with_kdf_upgrade(
+            match self.unlock_with_kdf_upgrade_under_maintenance(
                 account_id,
                 password,
                 &master_key,
                 session_generation,
+                maintenance,
             ) {
                 // 保留旧钥解锁以完成导入；不能把强制换钥变成无法恢复任务的登录障碍。
                 Err(error)
@@ -391,8 +409,8 @@ impl super::VaultService {
             .ok_or("无法解析账户本地目录")?;
         let vault_config =
             VaultConfig::new(account_id, account_dir_path).with_data_key(master_key_arr);
-        let vault =
-            VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
+        let vault = VaultStore::open_owned(vault_config, self.root_owner())
+            .map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
         self.publish_session(account_id, master_key_arr, vault_arc, session_generation)?;
 
@@ -445,6 +463,8 @@ impl super::VaultService {
     /// 流程与 `change_password` 一致：用旧密钥打开 Vault → `reencrypt_all` 重加密
     /// 全部数据 → 更新 config（新 salt / 新 verify hash / 生产参数）→ 用新密钥重开
     /// Vault → 同步更新生物识别凭证、清除 PIN 凭证（其保存的旧密钥已失效）。
+    // 原内部直接升级入口仅由既有真实 KDF 回归调用，仍取得真实许可并执行生产主体。
+    #[cfg(test)]
     pub(crate) fn unlock_with_kdf_upgrade(
         &self,
         account_id: &str,
@@ -452,8 +472,28 @@ impl super::VaultService {
         old_master_key: &Zeroizing<Vec<u8>>,
         session_generation: u64,
     ) -> Result<(), String> {
+        let maintenance = begin_owned_root_maintenance(self.root_owner())?;
+        self.unlock_with_kdf_upgrade_under_maintenance(
+            account_id,
+            password,
+            old_master_key,
+            session_generation,
+            &maintenance,
+        )
+    }
+
+    fn unlock_with_kdf_upgrade_under_maintenance(
+        &self,
+        account_id: &str,
+        password: &str,
+        old_master_key: &Zeroizing<Vec<u8>>,
+        session_generation: u64,
+        maintenance: &RootMaintenanceGuard,
+    ) -> Result<(), String> {
+        if !Arc::ptr_eq(&maintenance.root_owner(), &self.root_owner()) {
+            return Err("VAULT_ROOT_MISMATCH".into());
+        }
         Self::validate_account_id(account_id)?;
-        let _maintenance = crate::import_activity::begin_import_maintenance(self.base_path())?;
         crate::import_activity::ensure_imports_idle(self.base_path(), Some(account_id))?;
         // 旧密钥（已验证通过）。
         let old_key_arr: [u8; 32] = old_master_key
@@ -494,7 +534,7 @@ impl super::VaultService {
             .ok_or("无法解析账户本地目录")?;
         let vault_config =
             VaultConfig::new(account_id, account_dir_path).with_data_key(old_key_arr);
-        let vault = VaultStore::open(vault_config)
+        let vault = VaultStore::open_owned(vault_config, self.root_owner())
             .map_err(|e| format!("Failed to open vault for KDF upgrade: {}", e))?;
         let imported_attachment_files =
             self.completed_import_files_for_rekey(account_id, &vault)?;
@@ -667,8 +707,8 @@ impl super::VaultService {
             .ok_or("无法解析账户本地目录")?;
         let vault_config =
             VaultConfig::new(account_id, account_dir_path).with_data_key(*session_key);
-        let vault =
-            VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
+        let vault = VaultStore::open_owned(vault_config, self.root_owner())
+            .map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
         self.publish_session(account_id, *session_key, vault_arc, session_generation)?;
 
@@ -698,7 +738,7 @@ impl super::VaultService {
             .ok_or("无法解析账户本地目录")?;
         let vault_config =
             VaultConfig::new(account_id, account_dir_path).with_data_key(new_key_arr);
-        match VaultStore::open(vault_config) {
+        match VaultStore::open_owned(vault_config, self.root_owner()) {
             Ok(vault) => {
                 let vault_arc = Arc::new(vault);
                 self.publish_session(account_id, new_key_arr, vault_arc, session_generation)?;
@@ -781,11 +821,24 @@ impl super::VaultService {
         old_password: &str,
         new_password: &str,
     ) -> Result<(), String> {
+        let maintenance = begin_owned_root_maintenance(self.root_owner())?;
+        self.change_password_with_maintenance(account_id, old_password, new_password, &maintenance)
+    }
+
+    pub fn change_password_with_maintenance(
+        &self,
+        account_id: &str,
+        old_password: &str,
+        new_password: &str,
+        maintenance: &RootMaintenanceGuard,
+    ) -> Result<(), String> {
+        if !Arc::ptr_eq(&maintenance.root_owner(), &self.root_owner()) {
+            return Err("VAULT_ROOT_MISMATCH".into());
+        }
         Self::validate_account_id(account_id)?;
-        let _maintenance = crate::import_activity::begin_import_maintenance(self.base_path())?;
         crate::import_activity::ensure_imports_idle(self.base_path(), Some(account_id))?;
-        // 本次已经持有维护许可；验证旧密码时不再嵌套透明 KDF 升级。
-        self.unlock_impl(account_id, old_password, false)?;
+        // 本次已经持有维护许可；验证旧密码时借同 guard，不嵌套透明 KDF 升级。
+        self.unlock_impl(account_id, old_password, false, maintenance)?;
         let session = self.capture_session(account_id)?;
         let session_generation = session.generation();
         let imported_attachment_files =
@@ -1346,4 +1399,238 @@ fn build_upgraded_config(
     config.kdf_iterations = Some(kdf.iterations);
     config.kdf_parallelism = Some(kdf.parallelism);
     serde_json::to_string_pretty(&config).map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod rf905_auth_tests {
+    use super::*;
+    use crate::import_activity::begin_owned_root_activity;
+    use solosoul_vault::{
+        ImportDatabaseBatch, ImportOperationStart, ImportSourceKind, ImportSourceProof,
+    };
+    const ACCOUNT: &str = "acc_rf905_auth";
+    const PASSWORD: &str = "rf905-auth-synthetic-password";
+
+    fn fixture() -> (tempfile::TempDir, VaultService) {
+        let dir = tempfile::tempdir().unwrap();
+        let svc = VaultService::try_with_base_path(dir.path().join("root")).unwrap();
+        svc.create_account_with_id(ACCOUNT, "auth", PASSWORD, None)
+            .unwrap();
+        svc.get_vault_store()
+            .unwrap()
+            .save_conversation(
+                ACCOUNT,
+                "auth-proof",
+                "2026-10-01",
+                b"encrypted real conversation",
+            )
+            .unwrap();
+        (dir, svc)
+    }
+    fn files(svc: &VaultService) -> Vec<Option<Vec<u8>>> {
+        [
+            "accounts.json".to_owned(),
+            format!("{ACCOUNT}/config.json"),
+            format!("{ACCOUNT}/vault.db"),
+            format!("{ACCOUNT}/vault.db-wal"),
+            format!("{ACCOUNT}/vault.db-shm"),
+        ]
+        .iter()
+        .map(|path| std::fs::read(svc.base_path().join(path)).ok())
+        .collect()
+    }
+    fn conversation(svc: &VaultService) {
+        assert_eq!(
+            svc.get_vault_store()
+                .unwrap()
+                .load_conversation(ACCOUNT, "auth-proof")
+                .unwrap()
+                .unwrap()
+                .as_slice(),
+            b"encrypted real conversation"
+        );
+    }
+
+    #[test]
+    fn rf905_master_unlock_refuses_actual_activity_without_config_database_or_session_writes() {
+        let (_dir, svc) = fixture();
+        svc.lock();
+        let before = files(&svc);
+        let activity = begin_owned_root_activity(svc.root_owner()).unwrap();
+        assert_eq!(
+            svc.unlock_secure(ACCOUNT, &Zeroizing::new(PASSWORD.to_owned()))
+                .unwrap_err(),
+            "IMPORT_OPERATIONS_ACTIVE"
+        );
+        assert_eq!(
+            svc.unlock(ACCOUNT, "wrong-password").unwrap_err(),
+            "IMPORT_OPERATIONS_ACTIVE"
+        );
+        assert_eq!(files(&svc), before);
+        assert!(!svc.is_unlocked());
+        drop(activity);
+        svc.unlock_secure(ACCOUNT, &Zeroizing::new(PASSWORD.to_owned()))
+            .unwrap();
+        conversation(&svc);
+    }
+
+    #[test]
+    fn rf905_foreign_maintenance_cannot_unlock_rekey_or_delete_account() {
+        let (_dir, svc) = fixture();
+        let original = svc.capture_session(ACCOUNT).unwrap();
+        let foreign = tempfile::tempdir().unwrap();
+        let owner = solosoul_vault::root_owner::VaultRootOwner::acquire(foreign.path()).unwrap();
+        let maintenance = begin_owned_root_maintenance(owner).unwrap();
+        let before = files(&svc);
+        assert_eq!(
+            svc.unlock_secure_with_maintenance(
+                ACCOUNT,
+                &Zeroizing::new(PASSWORD.to_owned()),
+                &maintenance
+            )
+            .unwrap_err(),
+            "VAULT_ROOT_MISMATCH"
+        );
+        assert_eq!(
+            svc.change_password_with_maintenance(
+                ACCOUNT,
+                PASSWORD,
+                "new-synthetic-password",
+                &maintenance
+            )
+            .unwrap_err(),
+            "VAULT_ROOT_MISMATCH"
+        );
+        assert_eq!(
+            svc.delete_account_with_maintenance(ACCOUNT, &maintenance)
+                .unwrap_err(),
+            "VAULT_ROOT_MISMATCH"
+        );
+        assert_eq!(files(&svc), before);
+        svc.with_session(&original, |_| Ok(())).unwrap();
+        conversation(&svc);
+    }
+
+    #[test]
+    fn rf905_borrowed_maintenance_runs_real_kdf_rekey_password_change_and_delete_without_self_busy()
+    {
+        let (_dir, svc) = fixture();
+        svc.lock();
+        let maintenance = begin_owned_root_maintenance(svc.root_owner()).unwrap();
+        let (_, _, old_arr, old_key) = svc
+            .load_config_and_derive_master_key(ACCOUNT, PASSWORD)
+            .unwrap();
+        svc.unlock_with_kdf_upgrade_under_maintenance(
+            ACCOUNT,
+            PASSWORD,
+            &old_key,
+            svc.session_generation().unwrap(),
+            &maintenance,
+        )
+        .unwrap();
+        assert_eq!(
+            svc.read_account_config(ACCOUNT).unwrap().kdf_config(),
+            KdfConfig::production()
+        );
+        assert!(!svc.probe_data_key(ACCOUNT, &old_arr).unwrap());
+        conversation(&svc);
+        svc.change_password_with_maintenance(
+            ACCOUNT,
+            PASSWORD,
+            "new-synthetic-password",
+            &maintenance,
+        )
+        .unwrap();
+        conversation(&svc);
+        svc.delete_account_with_maintenance(ACCOUNT, &maintenance)
+            .unwrap();
+        assert!(!svc.has_account(ACCOUNT));
+        assert!(!svc.is_unlocked());
+        assert!(!svc.base_path().join(ACCOUNT).exists());
+    }
+
+    #[test]
+    fn rf905_pending_real_journal_allows_old_key_login_under_same_maintenance_and_still_blocks_rekey(
+    ) {
+        let (_dir, svc) = fixture();
+        let session = svc.capture_session(ACCOUNT).unwrap();
+        let old_key = svc.get_session_key().unwrap();
+        let view = session.vault().read_import_view(ACCOUNT).unwrap();
+        let id = uuid::Uuid::new_v4().to_string();
+        let start = ImportOperationStart {
+            operation_id: id.clone(),
+            source_kind: ImportSourceKind::Manual,
+            source: ImportSourceProof {
+                sha256: "a".repeat(64),
+                length: 1,
+            },
+            root_binding: session.vault().import_root_binding().unwrap(),
+            request_fingerprint: "b".repeat(64),
+            plan: serde_json::json!({"nativeRoot":svc.base_path().to_str().unwrap()}),
+            owners: vec![],
+            steps: vec![],
+            preferences_required: false,
+            source_ready: None,
+        };
+        svc.with_session(&session, |vault| {
+            vault.commit_import_batch_with_operation(
+                ACCOUNT,
+                &view.revision,
+                &ImportDatabaseBatch::default(),
+                &start,
+            )
+        })
+        .unwrap();
+        drop(session);
+        svc.lock();
+        let maintenance = begin_owned_root_maintenance(svc.root_owner()).unwrap();
+        let old_master = Zeroizing::new(old_key.to_vec());
+        assert_eq!(
+            svc.unlock_with_kdf_upgrade_under_maintenance(
+                ACCOUNT,
+                PASSWORD,
+                &old_master,
+                svc.session_generation().unwrap(),
+                &maintenance
+            )
+            .unwrap_err(),
+            "IMPORT_OPERATIONS_PENDING"
+        );
+        // release运行实际透明升级分支；debug仍验证生产borrowed入口和旧钥登录。
+        svc.unlock_secure_with_maintenance(
+            ACCOUNT,
+            &Zeroizing::new(PASSWORD.to_owned()),
+            &maintenance,
+        )
+        .unwrap();
+        assert_eq!(*svc.get_session_key().unwrap(), *old_key);
+        conversation(&svc);
+        let record = svc
+            .get_vault_store()
+            .unwrap()
+            .load_import_operation(ACCOUNT, &id)
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            record.phase,
+            solosoul_vault::ImportOperationPhase::RecordsCommitted
+        );
+        let current = svc.capture_session(ACCOUNT).unwrap();
+        assert_eq!(
+            svc.change_password_with_maintenance(
+                ACCOUNT,
+                PASSWORD,
+                "new-synthetic-password",
+                &maintenance
+            )
+            .unwrap_err(),
+            "IMPORT_OPERATIONS_PENDING"
+        );
+        assert_eq!(
+            svc.delete_account_with_maintenance(ACCOUNT, &maintenance)
+                .unwrap_err(),
+            "IMPORT_OPERATIONS_PENDING"
+        );
+        svc.with_session(&current, |_| Ok(())).unwrap();
+    }
 }

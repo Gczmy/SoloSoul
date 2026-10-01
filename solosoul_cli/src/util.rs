@@ -58,3 +58,29 @@ pub fn byte_position(s: &str, char_index: usize) -> usize {
         .map(|(idx, _)| idx)
         .unwrap_or(s.len())
 }
+
+/// 实际日志 writer 持目录 owner；WorkerGuard 的有界 Drop 不代表线程已退出。
+/// 字段按顺序析构，先关闭实际 writer，再释放同一根 owner。
+pub struct OwnerPinnedWriter<W> {
+    writer: W,
+    _root_owner: std::sync::Arc<solosoul_vault::root_owner::VaultRootOwner>,
+}
+impl<W> OwnerPinnedWriter<W> {
+    pub fn new(
+        writer: W,
+        root_owner: std::sync::Arc<solosoul_vault::root_owner::VaultRootOwner>,
+    ) -> Self {
+        Self {
+            writer,
+            _root_owner: root_owner,
+        }
+    }
+}
+impl<W: std::io::Write> std::io::Write for OwnerPinnedWriter<W> {
+    fn write(&mut self, buffer: &[u8]) -> std::io::Result<usize> {
+        self.writer.write(buffer)
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.writer.flush()
+    }
+}

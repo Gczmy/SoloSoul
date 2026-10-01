@@ -141,7 +141,10 @@ impl Fixture {
     }
     fn reopen(&self) -> crate::VaultService {
         self.service.lock();
-        let fresh = crate::VaultService::with_base_path(self.dir.path().into());
+        // 同应用重开连接显式复用 owner，不伪装成新进程获取独立锁。
+        let owner = self.service.root_owner();
+        let fs = Arc::new(crate::LocalVaultFileSystem::new(owner.root().to_path_buf()));
+        let fresh = crate::VaultService::try_with_root_owner(owner, fs).unwrap();
         fresh
             .unlock_secure(&self.account, &Zeroizing::new(PASSWORD.to_owned()))
             .unwrap();
@@ -1065,13 +1068,24 @@ fn child_checkpoint(mode: &str) {
     let source = fixture.package(&fixture.payload(false), None);
     let id = op_id();
     fixture.service.lock();
+    let Fixture {
+        dir,
+        service,
+        account,
+        vault,
+        db,
+    } = fixture;
+    // 实际独立进程必须在派发前释放父进程 SQLite / Store / Service 的所有 owner pin。
+    drop(db);
+    drop(vault);
+    drop(service);
     let mut command = Command::new(std::env::current_exe().unwrap());
     command
         .arg("--exact")
         .arg("export_import::operation::tests::rf022_child_process_checkpoint")
         .arg("--nocapture")
-        .env("SOLOSOUL_RF022_CHILD_ROOT", fixture.dir.path())
-        .env("SOLOSOUL_RF022_CHILD_ACCOUNT", &fixture.account)
+        .env("SOLOSOUL_RF022_CHILD_ROOT", dir.path())
+        .env("SOLOSOUL_RF022_CHILD_ACCOUNT", &account)
         .env("SOLOSOUL_RF022_CHILD_OPERATION", &id)
         .env("SOLOSOUL_RF022_CHILD_SOURCE", &source)
         .env("SOLOSOUL_RF022_CHILD_MODE", mode);
@@ -1087,15 +1101,12 @@ fn child_checkpoint(mode: &str) {
         "child must exit at real checkpoint: {}",
         String::from_utf8_lossy(&output.stderr)
     );
-    let service = crate::VaultService::with_base_path(fixture.dir.path().into());
+    let service = crate::VaultService::with_base_path(dir.path().into());
     service
-        .unlock_secure(&fixture.account, &Zeroizing::new(PASSWORD.to_owned()))
+        .unlock_secure(&account, &Zeroizing::new(PASSWORD.to_owned()))
         .unwrap();
     let vault = service.get_vault_store().unwrap();
-    let record = vault
-        .load_import_operation(&fixture.account, &id)
-        .unwrap()
-        .unwrap();
+    let record = vault.load_import_operation(&account, &id).unwrap().unwrap();
     assert_eq!(record.database_commit.object_write_count, 1);
     assert_eq!(record.attachment_count, 0);
     assert!(vault.load_object(OWNER).unwrap().is_some());
@@ -1114,12 +1125,12 @@ fn child_checkpoint(mode: &str) {
             .iter()
             .all(|step| step.phase == ImportAttachmentPhase::Planned));
     }
-    let owned = OwnedImportPackage::capture(&source, fixture.dir.path()).unwrap();
+    let owned = OwnedImportPackage::capture(&source, dir.path()).unwrap();
     let mut counts = AttachmentImportProgress::default();
     resumed(
         &service,
-        &fixture.account,
-        fixture.dir.path(),
+        &account,
+        dir.path(),
         &id,
         Some(&owned),
         &mut counts,
@@ -1128,15 +1139,7 @@ fn child_checkpoint(mode: &str) {
     assert_eq!(counts.written_file_count, 2);
     assert_eq!(counts.committed_count, 2);
     assert_attachments(&service, OWNER, 2);
-    resumed(
-        &service,
-        &fixture.account,
-        fixture.dir.path(),
-        &id,
-        None,
-        &mut counts,
-    )
-    .unwrap();
+    resumed(&service, &account, dir.path(), &id, None, &mut counts).unwrap();
     assert_eq!(counts.committed_count, 2);
 }
 
@@ -1205,4 +1208,126 @@ fn rf022_recovery_corrupt_preferences_rejects_handoff_before_business_commit_and
         .is_none());
     assert!(start.source_ready.is_none());
     assert!(!fixture.dir.path().join(OPERATION_DIR).join(&id).exists());
+}
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[test]
+fn rf905_recovery_handoff_pins_root_until_actual_drop_then_cleanup_allows_child_write() {
+    let fixture = Fixture::new();
+    let root = fixture.service.base_path().clone();
+    let source = fixture.package(&fixture.payload(false), None);
+    let owned = fixture.owned(&source);
+    let id = op_id();
+    let (view, batch, mut start) = fixture.prepare(
+        &owned,
+        &id,
+        ImportSourceKind::Recovery,
+        None,
+        HashMap::new(),
+    );
+    let opened = owned.decrypt(PACKAGE_PASSWORD, &root).unwrap();
+    let session = fixture.session();
+    let key = fixture.key();
+    let handoff = prepare_recovery_handoff(
+        &fixture.service,
+        &session,
+        &root,
+        &owned,
+        &opened,
+        &mut start,
+        &key,
+    )
+    .unwrap();
+    let directory = root.join(OPERATION_DIR).join(&id);
+    assert!(directory.join(".prepared-owner").is_file());
+    assert_eq!(start.steps.len(), 2);
+    assert!(start.steps.iter().all(|step| step
+        .initial_staged_proof
+        .as_ref()
+        .is_some_and(|proof| proof.stage_epoch == 0)));
+    assert!(fixture.vault.load_object(OWNER).unwrap().is_none());
+    assert!(fixture
+        .vault
+        .load_import_operation(&fixture.account, &id)
+        .unwrap()
+        .is_none());
+
+    // 只保留返回的 handoff；包文件、原 Session、DB、Store、FS/Service 全部真实 Drop。
+    drop(key);
+    drop(session);
+    drop(opened);
+    drop(owned);
+    drop(view);
+    drop(batch);
+    drop(start);
+    let Fixture {
+        dir,
+        service,
+        account,
+        vault,
+        db,
+    } = fixture;
+    drop(db);
+    drop(vault);
+    drop(service);
+    drop(account);
+    assert_eq!(
+        crate::root_ownership_tests::probe(&root, "owned_try"),
+        23,
+        "returned handoff alone must keep the OS root lock until its cleanup finishes"
+    );
+    assert!(!root.join("owned.written").exists());
+    assert!(!root.join("acc_child/vault.db").exists());
+    assert!(directory.is_dir());
+    drop(handoff);
+    assert!(
+        !directory.exists(),
+        "unaccepted handoff cleans its exact owned stages"
+    );
+    assert_eq!(crate::root_ownership_tests::probe(&root, "owned_try"), 0);
+    assert!(root.join("owned.written").is_file());
+    assert!(root.join("acc_child/vault.db").is_file());
+    drop(dir);
+}
+
+#[test]
+fn rf905_recovery_handoff_rejects_foreign_native_root_before_staging() {
+    let fixture = Fixture::new();
+    let source = fixture.package(&fixture.payload(false), None);
+    let owned = fixture.owned(&source);
+    let id = op_id();
+    let (_view, _batch, mut start) = fixture.prepare(
+        &owned,
+        &id,
+        ImportSourceKind::Recovery,
+        None,
+        HashMap::new(),
+    );
+    let opened = owned.decrypt(PACKAGE_PASSWORD, fixture.dir.path()).unwrap();
+    let foreign = tempfile::tempdir().unwrap();
+    let error = prepare_recovery_handoff(
+        &fixture.service,
+        &fixture.session(),
+        foreign.path(),
+        &owned,
+        &opened,
+        &mut start,
+        &fixture.key(),
+    )
+    .err()
+    .unwrap();
+    assert_eq!(error.to_string(), "VAULT_ROOT_MISMATCH");
+    assert!(!foreign.path().join(OPERATION_DIR).exists());
+    assert!(!fixture.dir.path().join(OPERATION_DIR).join(&id).exists());
+    assert!(start
+        .steps
+        .iter()
+        .all(|step| step.initial_staged_proof.is_none()));
+    assert!(start.source_ready.is_none());
+    assert!(fixture.vault.load_object(OWNER).unwrap().is_none());
+    assert!(fixture
+        .vault
+        .load_import_operation(&fixture.account, &id)
+        .unwrap()
+        .is_none());
 }

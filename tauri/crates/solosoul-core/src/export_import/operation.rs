@@ -1120,7 +1120,7 @@ pub struct PreparedImportHandoff {
     directory: PathBuf,
     marker: ImportOwnedAttachmentMarker,
     accepted: bool,
-    _activity: crate::import_activity::ImportActivityGuard,
+    _activity: crate::import_activity::RootActivityGuard,
 }
 
 impl PreparedImportHandoff {
@@ -1154,7 +1154,12 @@ pub fn prepare_recovery_handoff(
     start: &mut ImportOperationStart,
     attachment_key: &[u8; 32],
 ) -> Result<PreparedImportHandoff, ExportError> {
-    let activity = crate::import_activity::begin_import_activity(native_root)?;
+    // 返回的 handoff 可能比 Service/Session 活得更久；其 Drop 清理也必须持原 root owner。
+    let owner = service.root_owner();
+    if std::fs::canonicalize(native_root)?.as_path() != owner.root() {
+        return Err("VAULT_ROOT_MISMATCH".into());
+    }
+    let activity = crate::import_activity::begin_owned_root_activity(owner)?;
     service.with_session(session, |_| Ok(()))?;
     if start.source_kind != ImportSourceKind::Recovery
         || start.source != *owned.source_proof()

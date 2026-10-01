@@ -399,17 +399,24 @@ fn rf215_shutdown_awaits_running_blocking_work_and_drops_queued_captures() {
 fn rf215_session_invalidation_cancels_running_and_queued_work_without_releasing_slot() {
     for change in ["lock", "reunlock", "switch"] {
         let fixture = Fixture::new();
-        if change == "switch" {
+        let second_key = if change == "switch" {
             fixture
                 .service
                 .create_account_with_id(ACCOUNT_B, "RF215 synthetic B", crate::TEST_PASSWORD, None)
                 .unwrap();
+            let key = fixture.service.get_session_key().unwrap();
             fixture.service.lock();
             fixture
                 .service
                 .unlock(ACCOUNT_A, crate::TEST_PASSWORD)
                 .unwrap();
-        }
+            Some(key)
+        } else {
+            None
+        };
+        let original = fixture.session();
+        let original_key = fixture.service.get_session_key().unwrap();
+        let generation = original.generation();
         let mut tasks = ManagedTasks::new(&fixture);
         let (mut barrier, worker) = gate();
         let published = Arc::new(AtomicBool::new(false));
@@ -434,18 +441,36 @@ fn rf215_session_invalidation_cancels_running_and_queued_work_without_releasing_
             .unwrap();
         fixture.service.lock();
         if change != "lock" {
+            let account = if change == "switch" {
+                ACCOUNT_B
+            } else {
+                ACCOUNT_A
+            };
+            assert_eq!(
+                fixture
+                    .service
+                    .unlock(account, crate::TEST_PASSWORD)
+                    .unwrap_err(),
+                "IMPORT_OPERATIONS_ACTIVE"
+            );
+            assert!(!fixture.service.is_unlocked());
+            assert!(fixture.service.get_current_account().is_none());
+            assert!(fixture.service.get_session_key().is_none());
+            assert!(fixture.service.get_vault_store().is_none());
+            // A/B key 均来自 job 前的真实认证；使用 PIN/biometric 同一生产入口。
+            let key = if change == "switch" {
+                second_key.as_ref().unwrap()
+            } else {
+                &original_key
+            };
             fixture
                 .service
-                .unlock(
-                    if change == "switch" {
-                        ACCOUNT_B
-                    } else {
-                        ACCOUNT_A
-                    },
-                    crate::TEST_PASSWORD,
-                )
+                .unlock_with_session_key(account, key)
                 .unwrap();
+            assert_eq!(fixture.session().account_id(), account);
+            assert_eq!(fixture.session().generation(), generation.wrapping_add(2));
         }
+        assert!(fixture.service.with_session(&original, |_| Ok(())).is_err());
         let stale = tasks.cancel_stale();
         assert!(stale.contains(&first) && stale.contains(&queued));
         assert!(tasks.cancel_stale().is_empty());
@@ -651,6 +676,9 @@ fn rf215_native_work_keeps_current_thread_heartbeat_and_async_tasks_live() {
 #[test]
 fn rf215_original_session_guards_queued_start_and_finish_without_stale_polling() {
     let fixture = Fixture::new();
+    let original = fixture.session();
+    let original_key = fixture.service.get_session_key().unwrap();
+    let generation = original.generation();
     let mut tasks = ManagedTasks::new(&fixture);
     let (mut barrier, worker) = gate();
     let published = Arc::new(AtomicBool::new(false));
@@ -675,10 +703,24 @@ fn rf215_original_session_guards_queued_start_and_finish_without_stale_polling()
         })
         .unwrap();
     fixture.service.lock();
+    assert_eq!(
+        fixture
+            .service
+            .unlock(ACCOUNT_A, crate::TEST_PASSWORD)
+            .unwrap_err(),
+        "IMPORT_OPERATIONS_ACTIVE"
+    );
+    assert!(!fixture.service.is_unlocked());
+    assert!(fixture.service.get_current_account().is_none());
+    assert!(fixture.service.get_session_key().is_none());
+    assert!(fixture.service.get_vault_store().is_none());
+    // 实际认证的新会话只供 UI/新任务使用，原 worker 的 Session 不得 recapture。
     fixture
         .service
-        .unlock(ACCOUNT_A, crate::TEST_PASSWORD)
+        .unlock_with_session_key(ACCOUNT_A, &original_key)
         .unwrap();
+    assert_eq!(fixture.session().generation(), generation.wrapping_add(2));
+    assert!(fixture.service.with_session(&original, |_| Ok(())).is_err());
     // 不调用 cancel_stale，也不接纳进度（接纳失败会触发取消）；只能由原始
     // 闭包启动检查和最终 commit 阻止旧工作，避免 UI 轮询偶然满足断言。
     barrier.release();

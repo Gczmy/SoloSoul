@@ -224,6 +224,8 @@ pub struct VaultService {
     /// Serializes `create_account` to eliminate the check-then-act race on
     /// account name uniqueness (R024).
     create_lock: std::sync::Mutex<()>,
+    // 所有 FS/Store/Session 另持 Arc；不能因服务热替换提前释放 OS 锁。
+    root_owner: Arc<solosoul_vault::root_owner::VaultRootOwner>,
 }
 
 #[cfg(not(test))]
@@ -243,26 +245,52 @@ fn make_biometric_manager(base_path: PathBuf) -> BiometricManager {
 type DerivedMasterKey = (AccountConfig, [u8; 16], [u8; 32], Zeroizing<Vec<u8>>);
 
 impl VaultService {
+    /// 生产入口必须处理 Result；兼容旧调用的 panic 也不能退回无锁实例。
     pub fn new() -> Self {
-        let base_path = Self::default_base_path();
-        let svc = Self::with_base_path(base_path);
+        Self::try_new().unwrap_or_else(|error| panic!("Vault ownership failed: {error}"))
+    }
+
+    pub fn try_new() -> Result<Self, String> {
+        let svc = Self::try_with_base_path(Self::default_base_path())?;
         svc.load_accounts();
-        svc
+        Ok(svc)
     }
 
-    /// 使用指定的基础路径创建 VaultService（P120: 避免测试中 set_var 污染）。
-    /// 不自动从 env var 读取路径，也不调用 load_accounts（由调用者按需初始化）。
     pub fn with_base_path(base_path: PathBuf) -> Self {
-        let fs: Arc<dyn VaultFileSystem> = Arc::new(LocalVaultFileSystem::new(base_path.clone()));
-        Self::with_file_system(base_path, fs)
+        Self::try_with_base_path(base_path)
+            .unwrap_or_else(|error| panic!("Vault ownership failed: {error}"))
     }
 
-    /// 使用自定义文件系统创建 VaultService。
-    ///
-    /// 调用者应自行调用 `load_accounts()` 初始化账户缓存。
+    pub fn try_with_base_path(base_path: PathBuf) -> Result<Self, String> {
+        let owner = solosoul_vault::root_owner::VaultRootOwner::acquire(&base_path)?;
+        let fs: Arc<dyn VaultFileSystem> =
+            Arc::new(LocalVaultFileSystem::new(owner.root().to_path_buf()));
+        Self::try_with_root_owner(owner, fs)
+    }
+
     pub fn with_file_system(base_path: PathBuf, fs: Arc<dyn VaultFileSystem>) -> Self {
-        Self {
-            base_path,
+        Self::try_with_file_system(base_path, fs)
+            .unwrap_or_else(|error| panic!("Vault ownership failed: {error}"))
+    }
+
+    pub fn try_with_file_system(
+        base_path: PathBuf,
+        fs: Arc<dyn VaultFileSystem>,
+    ) -> Result<Self, String> {
+        let owner = solosoul_vault::root_owner::VaultRootOwner::acquire(&base_path)?;
+        Self::try_with_root_owner(owner, fs)
+    }
+
+    /// 同一实例显式复用已有 owner；不重新加锁，不从全局路径表借用其他实例身份。
+    pub fn try_with_root_owner(
+        root_owner: Arc<solosoul_vault::root_owner::VaultRootOwner>,
+        fs: Arc<dyn VaultFileSystem>,
+    ) -> Result<Self, String> {
+        let fs: Arc<dyn VaultFileSystem> = Arc::new(
+            crate::vault_file_system::OwnedVaultFileSystem::new(Arc::clone(&root_owner), fs)?,
+        );
+        Ok(Self {
+            base_path: root_owner.root().to_path_buf(),
             fs,
             accounts_cache: RwLock::new(HashMap::new()),
             session_key: RwLock::new(None),
@@ -271,7 +299,12 @@ impl VaultService {
             session_gate: Mutex::new(0),
             ui_prefs_sync_enabled: AtomicBool::new(true),
             create_lock: std::sync::Mutex::new(()),
-        }
+            root_owner,
+        })
+    }
+
+    pub fn root_owner(&self) -> Arc<solosoul_vault::root_owner::VaultRootOwner> {
+        Arc::clone(&self.root_owner)
     }
 
     fn default_base_path() -> PathBuf {

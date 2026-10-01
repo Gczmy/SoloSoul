@@ -300,11 +300,21 @@ fn rf022_recovery_accepted_ready_reopens_and_resumes_without_source_or_transport
     f.db.execute_batch("DROP TRIGGER rf022_recovery_metadata_fail;")
         .unwrap();
     f.svc.lock();
-    let reopened = VaultService::with_base_path(f.dir.path().to_path_buf());
+    let base = f.dir.path().to_path_buf();
+    let Fixture {
+        svc,
+        db,
+        account,
+        dir,
+    } = f;
+    // RF905：lock 只撤销会话；真实重启前还须关闭旧数据库和目录 owner。
+    drop(db);
+    drop(svc);
+    let reopened = VaultService::with_base_path(base);
     // 真实 AppState 启动也显式加载账户目录；with_base_path 本身只创建空缓存。
     reopened.load_accounts();
-    reopened.unlock(&f.account, MASTER).unwrap();
-    let session = reopened.capture_session(&f.account).unwrap();
+    reopened.unlock(&account, MASTER).unwrap();
+    let session = reopened.capture_session(&account).unwrap();
     let resumed = crate::commands::export_import::resume_import_for_session(
         &reopened, &session, &id, None, None, None,
     )
@@ -318,6 +328,9 @@ fn rf022_recovery_accepted_ready_reopens_and_resumes_without_source_or_transport
     assert_eq!(again.operation_id, resumed.operation_id);
     assert_eq!(again.attachment_count, resumed.attachment_count);
     assert_eq!(reopened.list_accounts().len(), 1);
+    drop(session);
+    drop(reopened);
+    drop(dir);
 }
 
 #[test]

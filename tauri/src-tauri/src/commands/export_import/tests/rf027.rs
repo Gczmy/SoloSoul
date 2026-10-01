@@ -423,12 +423,21 @@ fn rf027_queued_import_preserves_original_session_for_lock_switch_and_reunlock()
         let other = other_account(&f);
         save_marker(&f, "B unchanged");
         let b_before = serde_json::to_value(current_records(&f)).unwrap();
+        // 只从真实已认证账户采集 Zeroizing key；屏障内用 PIN/biometric 的会话密钥入口。
+        let second_key = f.service.read().unwrap().get_session_key().unwrap();
         f.service
             .read()
             .unwrap()
             .unlock(&f.account, "password123")
             .unwrap();
-        let expected_generation = generation(&f);
+        let (original_session, first_key) = {
+            let svc = f.service.read().unwrap();
+            (
+                svc.capture_session(&f.account).unwrap(),
+                svc.get_session_key().unwrap(),
+            )
+        };
+        let expected_generation = original_session.generation();
         let path = package(f.dir.path(), objects(), true, false, false);
         let source = std::fs::read(&path).unwrap();
         let base = root(&f);
@@ -444,13 +453,47 @@ fn rf027_queued_import_preserves_original_session_for_lock_switch_and_reunlock()
                 let svc = service.try_write().expect("排队时不能持有服务读锁");
                 match mode {
                     "lock" => svc.lock(),
-                    "switch" => svc.unlock(&second, "password456").unwrap(),
+                    "switch" => {
+                        assert_eq!(
+                            svc.unlock_secure(&second, &Zeroizing::new("password456".into()))
+                                .unwrap_err(),
+                            "IMPORT_OPERATIONS_ACTIVE"
+                        );
+                        assert!(svc.is_unlocked());
+                        assert_eq!(svc.get_current_account().as_deref(), Some(account.as_str()));
+                        assert_eq!(
+                            svc.capture_session(&account).unwrap().generation(),
+                            expected_generation
+                        );
+                        svc.with_session(&original_session, |_| Ok(())).unwrap();
+                        svc.unlock_with_session_key(&second, &second_key).unwrap();
+                        // 只观察新会话；ImportJob 仍持准备时的原 Session，不能 recapture。
+                        assert_eq!(
+                            svc.capture_session(&second).unwrap().generation(),
+                            expected_generation.wrapping_add(1)
+                        );
+                    }
                     "reunlock" => {
                         svc.lock();
-                        svc.unlock(&account, "password123").unwrap();
+                        assert_eq!(
+                            svc.unlock_secure(&account, &Zeroizing::new("password123".into()))
+                                .unwrap_err(),
+                            "IMPORT_OPERATIONS_ACTIVE"
+                        );
+                        assert!(!svc.is_unlocked());
+                        assert!(svc.get_current_account().is_none());
+                        assert!(svc.get_session_key().is_none());
+                        assert!(svc.get_vault_store().is_none());
+                        svc.unlock_with_session_key(&account, &first_key).unwrap();
+                        // lock 和新会话各递增一次；被拒绝的主密码解锁不能改变代次。
+                        assert_eq!(
+                            svc.capture_session(&account).unwrap().generation(),
+                            expected_generation.wrapping_add(2)
+                        );
                     }
                     _ => unreachable!(),
                 }
+                assert!(svc.with_session(&original_session, |_| Ok(())).is_err());
             },
             calls.clone(),
         )
@@ -590,12 +633,20 @@ fn rf027_running_import_stops_later_commits_at_object_and_attachment_progress() 
         for mode in ["lock", "switch"] {
             let f = Fixture::new();
             let other = other_account(&f);
+            // 使用已认证 B 账户的真实 Zeroizing key，不在活动屏障内派生或伪造密钥。
+            let second_key = f.service.read().unwrap().get_session_key().unwrap();
             f.service
                 .read()
                 .unwrap()
                 .unlock(&f.account, "password123")
                 .unwrap();
-            let expected_generation = generation(&f);
+            let original_session = f
+                .service
+                .read()
+                .unwrap()
+                .capture_session(&f.account)
+                .unwrap();
+            let expected_generation = original_session.generation();
             let path = package(f.dir.path(), objects(), true, false, false);
             let source = std::fs::read(&path).unwrap();
             let base = root(&f);
@@ -620,8 +671,31 @@ fn rf027_running_import_stops_later_commits_at_object_and_attachment_progress() 
                     if mode == "lock" {
                         svc.lock();
                     } else {
-                        svc.unlock(&second, "password456").unwrap();
+                        assert_eq!(
+                            svc.unlock_secure(&second, &Zeroizing::new("password456".into()))
+                                .unwrap_err(),
+                            "IMPORT_OPERATIONS_ACTIVE"
+                        );
+                        assert!(svc.is_unlocked());
+                        assert_eq!(
+                            svc.get_current_account().as_deref(),
+                            Some(original_session.account_id())
+                        );
+                        assert_eq!(
+                            svc.capture_session(original_session.account_id())
+                                .unwrap()
+                                .generation(),
+                            expected_generation
+                        );
+                        svc.with_session(&original_session, |_| Ok(())).unwrap();
+                        svc.unlock_with_session_key(&second, &second_key).unwrap();
+                        // PIN/biometric 语义的新会话不换钥；原 worker 不得借新会话续写。
+                        assert_eq!(
+                            svc.capture_session(&second).unwrap().generation(),
+                            expected_generation.wrapping_add(1)
+                        );
                     }
+                    assert!(svc.with_session(&original_session, |_| Ok(())).is_err());
                 },
                 calls.clone(),
             )

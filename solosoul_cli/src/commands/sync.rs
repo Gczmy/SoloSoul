@@ -80,7 +80,7 @@ fn status(app: &mut App) {
     };
 }
 
-/// 一次性同步：构造 SyncManager → start → sync_with_peer → stop。
+/// 一次性同步：构造 SyncManager → start → sync_with_peer → stop_and_wait。
 fn sync_with(app: &mut App, peer: &str) {
     if peer.is_empty() {
         app.error_message = Some(t!(app.i18n, "cmd-sync-with-usage"));
@@ -119,6 +119,9 @@ async fn run_one_shot_sync(
     vault_service: &Arc<VaultService>,
     peer: &str,
 ) -> Result<String, String> {
+    // 准备 sync identity 也会写 Vault；保护准备至实际 stop_and_wait 完成。
+    let _activity =
+        solosoul_core::import_activity::begin_owned_root_activity(vault_service.root_owner())?;
     let vault = vault_service
         .get_vault_store()
         .ok_or_else(|| "Vault 未解锁，请先 /unlock".to_string())?;
@@ -136,21 +139,36 @@ async fn run_one_shot_sync(
         "0.0.0.0:0",
     );
 
-    manager.start().await?;
+    if let Err(error) = manager.start().await {
+        // start 失败也回收可能已派发的实际 worker，并保持原错误优先。
+        if manager.stop_and_wait().await.is_err() {
+            tracing::warn!("CLI sync startup cleanup also failed");
+        }
+        return Err(error);
+    }
     let result = manager.sync_with_peer(peer).await;
-    manager.stop();
+    let shutdown = manager.stop_and_wait().await;
 
     match result {
-        Ok(sr) => Ok(format!(
-            "records applied={} skipped={} examined={} attachments sent={} received={} errors={}",
-            sr.data.applied,
-            sr.data.skipped,
-            sr.data.examined,
-            sr.attachments.sent,
-            sr.attachments.received,
-            sr.data.errors.len()
-        )),
-        Err(e) => Err(e),
+        Ok(sr) => {
+            shutdown?;
+            Ok(format!(
+                "records applied={} skipped={} examined={} attachments sent={} received={} errors={}",
+                sr.data.applied,
+                sr.data.skipped,
+                sr.data.examined,
+                sr.attachments.sent,
+                sr.attachments.received,
+                sr.data.errors.len()
+            ))
+        }
+        Err(error) => {
+            // 保留原业务错误；收尾失败不能伪装成同步成功。
+            if shutdown.is_err() {
+                tracing::warn!("CLI sync shutdown also failed");
+            }
+            Err(error)
+        }
     }
 }
 

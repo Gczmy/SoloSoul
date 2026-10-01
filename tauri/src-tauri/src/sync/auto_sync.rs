@@ -280,15 +280,16 @@ pub async fn run_sync(
         app_handle.emit("sync-progress", event()).ok();
     }
 
-    let svc = vault_service.clone();
-    let result = tokio::task::spawn_blocking(move || {
-        let guard = svc
+    let (owner, fs) = {
+        let guard = vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        guard.sync_to_remote()
-    })
-    .await
-    .map_err(|e| format!("同步任务 panic: {e}"))?;
+        (guard.root_owner(), guard.file_system())
+    };
+    let result =
+        crate::state::root_tasks::spawn_owned_blocking(owner, move || fs.sync_to_remote())?
+            .await
+            .map_err(|e| format!("同步任务 panic: {e}"))?;
 
     match result {
         Ok(()) => {

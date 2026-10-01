@@ -649,8 +649,11 @@ fn rf022_close_reopen_requires_new_native_lease_and_retains_confirmed_steps() {
         .unwrap();
     let path = f.vault.base_path().to_path_buf();
     f.vault.lock();
-    let reopened =
-        VaultStore::open(VaultConfig::new(ACCOUNT, path).with_data_key([0x22; 32])).unwrap();
+    let reopened = VaultStore::open_owned(
+        VaultConfig::new(ACCOUNT, path).with_data_key([0x22; 32]),
+        f.vault.root_owner(),
+    )
+    .unwrap();
     assert_eq!(
         reopened
             .publish_import_attachment(&lease, 0, |_| panic!("foreign store callback"))
@@ -931,8 +934,9 @@ fn rf022_journal_only_complete_probe_tracks_reencrypt_key() {
     f.vault.reencrypt_all(&old, &new).unwrap();
     assert!(!crate::probe_data_key(&db_path, &old).unwrap());
     assert!(crate::probe_data_key(&db_path, &new).unwrap());
-    let reopened = VaultStore::open(
+    let reopened = VaultStore::open_owned(
         VaultConfig::new(ACCOUNT, f.vault.base_path().to_path_buf()).with_data_key([0x33; 32]),
+        f.vault.root_owner(),
     )
     .unwrap();
     assert_eq!(

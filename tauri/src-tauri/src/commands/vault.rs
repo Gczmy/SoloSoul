@@ -26,11 +26,38 @@ pub async fn change_password(
     // P016: 命令入口 Zeroizing 包装，避免明文残留堆内存
     let old_password = zeroize::Zeroizing::new(old_password);
     let new_password = zeroize::Zeroizing::new(new_password);
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    svc.change_password(&account_id, &old_password, &new_password)
+    // 在改变同步状态前核验维护准入；原 root 身份随真正 worker 保持。
+    let (owner, maintenance) = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let owner = svc.root_owner();
+        let maintenance = solosoul_core::import_activity::begin_owned_root_maintenance(
+            std::sync::Arc::clone(&owner),
+        )?;
+        solosoul_core::import_activity::ensure_imports_idle(owner.root(), Some(&account_id))?;
+        (owner, maintenance)
+    };
+    // listener 持有旧 Store；真正退出后才允许重加密并发布新 Store。
+    state.sync_service.disable_and_wait().await?;
+    let service = state.vault_service.clone();
+    tokio::task::spawn_blocking(move || {
+        let svc = service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
+            return Err("VAULT_ROOT_MISMATCH".to_string());
+        }
+        svc.change_password_with_maintenance(
+            &account_id,
+            &old_password,
+            &new_password,
+            &maintenance,
+        )
+    })
+    .await
+    .map_err(|_| "Password change task failed".to_string())?
 }
 
 #[tauri::command]

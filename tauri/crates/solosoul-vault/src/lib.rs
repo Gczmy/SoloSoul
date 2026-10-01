@@ -13,6 +13,7 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod encryption;
 pub mod migration;
 pub mod profile;
+pub mod root_owner;
 pub mod safe_storage;
 pub mod storage;
 pub mod template_hash;

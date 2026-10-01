@@ -212,11 +212,12 @@ pub async fn attachment_download(
     // P007: 提前在块作用域内取 vault_base + 附件密钥并释放非 Send 的 vault_service guard，
     // 避免后续 spawn_blocking 的 await 跨 guard 存活。
     // P001: 附件在 vault 内加密存储，下载时解密复制（旧明文自动兼容）。
-    let (vault_base, att_key) = {
+    let (vault_base, att_key, activity) = {
         let svc = state
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
         let key = svc
             .attachment_encryption_key()
             .map_err(|e| format!("无法获取附件密钥: {}", e))?;
@@ -229,6 +230,7 @@ pub async fn attachment_download(
                 .canonicalize()
                 .map_err(|_| "Invalid vault base path".to_string())?,
             key_arr,
+            activity,
         )
     };
 
@@ -242,6 +244,7 @@ pub async fn attachment_download(
     // P001: 解密复制（源为 SOLC 密文则解密，旧明文直接复制）。
     let (src, dest) = (src.clone(), dest.to_path_buf());
     tauri::async_runtime::spawn_blocking(move || {
+        let _activity = activity;
         if let Some(parent) = dest.parent() {
             std::fs::create_dir_all(parent)
                 .map_err(|e| format!("Failed to create destination directory: {}", e))?;
@@ -516,11 +519,12 @@ pub async fn attachment_open<R: Runtime>(
     object_id: String,
     attachment_id: String,
 ) -> Result<(), String> {
-    let (path, _att, att_key) = {
+    let (path, _att, att_key, _activity) = {
         let svc = state
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
         let key = svc
             .attachment_encryption_key()
             .map_err(|e| format!("无法获取附件密钥: {}", e))?;
@@ -529,7 +533,7 @@ pub async fn attachment_open<R: Runtime>(
             .try_into()
             .map_err(|_| "附件密钥长度错误".to_string())?;
         let (p, a) = resolve_verified_attachment_path(&svc, &object_id, &attachment_id)?;
-        (p, a, key_arr)
+        (p, a, key_arr, activity)
     };
 
     // P001-3: 解密到一次性 UUID 子目录（外部应用无法读取 vault 密文），

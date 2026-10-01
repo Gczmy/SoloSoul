@@ -307,6 +307,9 @@ fn rf212_original_session_must_still_own_commit_after_lock_reunlock_or_switch() 
         let mut tasks = ManagedTasks::new(&fixture);
         let original = fixture.session();
         let generation = original.generation();
+        let original_probe = original.clone();
+        // 会话密钥来自创建后真实已解锁的账户，保持 Zeroizing 生命周期。
+        let original_key = fixture.service.get_session_key().unwrap();
         let (stage, stage_path, target) = fixture.staged_model();
         let worker_target = target.clone();
         let (mut barrier, worker_barrier) = gate();
@@ -328,10 +331,22 @@ fn rf212_original_session_must_still_own_commit_after_lock_reunlock_or_switch() 
         fixture.service.lock();
         match transition {
             "reunlock" => {
+                assert_eq!(
+                    fixture
+                        .service
+                        .unlock(ACCOUNT_A, crate::TEST_PASSWORD)
+                        .unwrap_err(),
+                    "IMPORT_OPERATIONS_ACTIVE"
+                );
+                assert!(!fixture.service.is_unlocked());
+                assert!(fixture.service.get_current_account().is_none());
+                assert!(fixture.service.get_session_key().is_none());
+                assert!(fixture.service.get_vault_store().is_none());
                 fixture
                     .service
-                    .unlock(ACCOUNT_A, crate::TEST_PASSWORD)
+                    .unlock_with_session_key(ACCOUNT_A, &original_key)
                     .unwrap();
+                assert_eq!(fixture.session().generation(), generation.wrapping_add(2));
                 assert_ne!(fixture.session().generation(), generation);
             }
             "switch" => {
@@ -349,6 +364,10 @@ fn rf212_original_session_must_still_own_commit_after_lock_reunlock_or_switch() 
             "lock" => {}
             _ => unreachable!(),
         }
+        assert!(fixture
+            .service
+            .with_session(&original_probe, |_| Ok(()))
+            .is_err());
         barrier.release();
         assert_eq!(
             result_rx.recv_timeout(WAIT).unwrap(),

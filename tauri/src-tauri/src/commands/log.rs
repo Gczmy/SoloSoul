@@ -115,12 +115,13 @@ pub async fn log_export(
 ) -> Result<String, String> {
     // P023: 块作用域取出所有权数据，守卫在 await 前释放（RwLockReadGuard 非 Send，
     // 不能跨 await 存活）。
+    let vault = crate::commands::vault_handle(&state)?;
     let (vault, logs_dir) = {
         let svc = state
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
+        // capsule 在真实写盘 worker 中存活；不只保护等待 JoinHandle 的 future。
         // R011: restrict export to the vault's logs directory; user-supplied paths are
         // reduced to a single file name to prevent writing to arbitrary locations.
         let logs_dir = svc.base_path().join("logs");

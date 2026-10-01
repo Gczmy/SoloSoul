@@ -134,6 +134,15 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
         }
     };
 
+    let native_activity = match solosoul_core::import_activity::begin_owned_root_activity(
+        app.vault_service.root_owner(),
+    ) {
+        Ok(activity) => activity,
+        Err(error) => {
+            app.error_message = Some(error);
+            return Ok(());
+        }
+    };
     let vault = match app.vault_service.get_vault_store() {
         Some(v) => v,
         None => {
@@ -152,6 +161,13 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
         Ok(dirs) => dirs,
         Err(error) => {
             app.error_message = Some(t!(app.i18n, "cmd-plugin-init-failed", err = error));
+            return Ok(());
+        }
+    };
+    let (data_dir, global_activity) = match plugin_root_activity(app, &data_dir) {
+        Ok(owned) => owned,
+        Err(error) => {
+            app.error_message = Some(error);
             return Ok(());
         }
     };
@@ -210,6 +226,9 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
     let market_dir_clone = market_dir;
 
     std::thread::spawn(move || {
+        // 两根可能不同；实际线程保留真正 Vault 与插件全局目录的准入。
+        let _native_activity = native_activity;
+        let _global_activity = global_activity;
         // R2-V7：运行时初始化失败优雅降级为错误消息（不再 panic）
         let rt = match crate::util::shared_runtime() {
             Ok(rt) => rt,
@@ -222,11 +241,14 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
         };
 
         let outcome = rt.block_on(async {
-            let manager =
-                match solosoul_plugin::PluginManager::new_with_dirs(market_dir_clone, data_dir) {
-                    Ok(m) => m,
-                    Err(e) => return (true, format!("初始化插件管理器失败: {}", e)),
-                };
+            let manager = match solosoul_plugin::PluginManager::new_with_dirs_owned(
+                market_dir_clone,
+                data_dir,
+                _global_activity.root_owner(),
+            ) {
+                Ok(m) => m,
+                Err(e) => return (true, format!("初始化插件管理器失败: {}", e)),
+            };
 
             // 安装插件到本地
             if let Err(e) = manager
@@ -549,29 +571,90 @@ fn manager_dirs(_app: &App) -> Result<(PathBuf, PathBuf), solosoul_plugin::Plugi
     ))
 }
 
-fn create_manager(app: &mut App) -> Option<solosoul_plugin::PluginManager> {
-    match manager_dirs(app)
-        .and_then(|(market, data)| solosoul_plugin::PluginManager::new_with_dirs(market, data))
-    {
-        Ok(m) => Some(m),
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-plugin-init-failed", err = e));
+/// 构造即写 data/plugins，所有调用者都必须先取得实际全局根所有权。
+struct OwnedPluginManager {
+    manager: solosoul_plugin::PluginManager,
+    _activity: solosoul_core::import_activity::RootActivityGuard,
+}
+impl std::ops::Deref for OwnedPluginManager {
+    type Target = solosoul_plugin::PluginManager;
+    fn deref(&self) -> &Self::Target {
+        &self.manager
+    }
+}
+
+fn plugin_data_owner(
+    app: &App,
+    data: &Path,
+) -> Result<Arc<solosoul_vault::root_owner::VaultRootOwner>, String> {
+    let canonical = std::fs::canonicalize(data).ok();
+    let current = app.vault_service.root_owner();
+    if canonical.as_deref() == Some(current.root()) {
+        return Ok(current);
+    }
+    let mut cached = app
+        .plugin_root_owner
+        .lock()
+        .map_err(|_| "PLUGIN_DATA_OWNER_POISONED".to_string())?;
+    if let Some(owner) = cached.as_ref() {
+        if canonical.as_deref() != Some(owner.root()) {
+            return Err("PLUGIN_DATA_DIRECTORY_CHANGED".to_string());
+        }
+        return Ok(Arc::clone(owner));
+    }
+    // 不同根必须真正 acquire，失败原样返回；不存在默认根写入 fallback。
+    let owner = solosoul_vault::root_owner::VaultRootOwner::acquire(data)?;
+    *cached = Some(Arc::clone(&owner));
+    Ok(owner)
+}
+
+fn plugin_root_activity(
+    app: &App,
+    data: &Path,
+) -> Result<(PathBuf, solosoul_core::import_activity::RootActivityGuard), String> {
+    let owner = plugin_data_owner(app, data)?;
+    let canonical = owner.root().to_path_buf();
+    let activity = solosoul_core::import_activity::begin_owned_root_activity(owner)?;
+    Ok((canonical, activity))
+}
+
+fn create_manager(app: &mut App) -> Option<OwnedPluginManager> {
+    let result = (|| -> Result<OwnedPluginManager, String> {
+        let (market, data) = manager_dirs(app).map_err(|error| error.to_string())?;
+        let (data, activity) = plugin_root_activity(app, &data)?;
+        let manager = solosoul_plugin::PluginManager::new_with_dirs_owned(
+            market,
+            data,
+            activity.root_owner(),
+        )
+        .map_err(|error| error.to_string())?;
+        Ok(OwnedPluginManager {
+            manager,
+            _activity: activity,
+        })
+    })();
+    match result {
+        Ok(manager) => Some(manager),
+        Err(error) => {
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-init-failed", err = error));
             None
         }
     }
 }
 
-/// 已安装详情从实际存储读，市场清单仍保留既有备用入口。
+/// 成功取得实际存储所有权后才可使用原市场备用入口；失锁必须明确报错。
 pub(crate) fn load_manifest_for_app(
     app: &App,
     id: &str,
-) -> Option<solosoul_plugin::PluginManifest> {
-    let (_, data) = manager_dirs(app).ok()?;
-    solosoul_plugin::PluginStore::new_with_data_dir(data)
-        .ok()?
-        .load_manifest(id)
-        .ok()
-        .or_else(|| load_manifest(id))
+) -> Result<Option<solosoul_plugin::PluginManifest>, String> {
+    if !is_valid_plugin_id(id) {
+        return Ok(None);
+    }
+    let (_, data) = manager_dirs(app).map_err(|error| error.to_string())?;
+    let (data, _activity) = plugin_root_activity(app, &data)?;
+    let store = solosoul_plugin::PluginStore::new_with_data_dir_owned(data, _activity.root_owner())
+        .map_err(|error| error.to_string())?;
+    Ok(store.load_manifest(id).ok().or_else(|| load_manifest(id)))
 }
 
 /// 解析插件市场目录路径。
@@ -669,3 +752,7 @@ mod tests {
 #[cfg(test)]
 #[path = "plugin/rf214_tests.rs"]
 mod rf214_tests;
+
+#[cfg(test)]
+#[path = "plugin/rf905_tests.rs"]
+mod rf905_tests;

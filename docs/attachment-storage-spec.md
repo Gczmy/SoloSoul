@@ -66,7 +66,7 @@ GUI 单删、同对象批删和 CLI 永久删除统一使用清理意图执行�
 
 GUI 派发阻塞 worker 前、CLI 打开确认框前捕获会话。元数据提交后文件失败不回滚已接受的删除；GUI 仍触发同步并返回 `attachment_cleanup_pending`，显示“记录已删除，文件清理待重试”，重新加载已变更的元数据。CLI 同样区分完成与 pending，不能显示物理清理已完成。GUI 解锁维护和 CLI 进入解锁首页重试明确许可；CLI 手动清理若仍有 pending，不交给宽松孤儿扫描绕过保护。
 
-显式永久删除不承诺历史快照能恢复已删除的实体，也不等同安全擦除存储介质。逐节点拒绝 symlink/junction/reparse、核对规范目录并在动作前复核；不承诺防住同用户外部进程在检查后替换路径。跨客户端目录互斥、在途附件发布窗口和广泛孤儿归属扫描仍由 RF-905/RF-903 承接。验证状态见 [RF-016](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-016)。
+显式永久删除不承诺历史快照能恢复已删除的实体，也不等同安全擦除存储介质。逐节点拒绝 symlink/junction/reparse、核对规范目录并在动作前复核；不承诺防住同用户外部进程在检查后替换路径。桌面同 canonical root 的协作式目录排他与在途附件 activity 由 RF-905 接入；RF-903 的旧未标记附件归属扫描仍未实现。所有权和维护范围见 §10。验证状态见 [RF-016](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-016)。
 
 GUI 异步删除及列表刷新还校验原会话、组件生命周期与每次对象切换代次；工作区父计数回调先拒绝旧页面身份，避免取消新列表请求（RF-1065）。本机 Windows 的 43 项原生故障回归、完整 Rust workspace 与 CLI、前端检查均通过；Unix 专属 symlink 场景未在此机运行，未计作通过。原生界面与多端实测没有由 Hook 测试代替。详见 [RF-016 验证记录](verification/rf016-recoverable-attachment-deletion-2026-09-30.json)。
 
@@ -78,6 +78,20 @@ GUI 异步删除及列表刷新还校验原会话、组件生命周期与每次�
 
 同一任务的实际已落盘文件数与已激活附件数分开；发布成功但阶段 SQL 失败可报告文件已写，仍不能宣称元数据关联完成。同一 ID Complete 返回原任务结果，不复活之后删除的附件。Recovery 只有全部 source-dependent 加密材料 ready 才接纳业务提交；准备失败不承诺失去随机口令后还能按原 ID 恢复。
 
-marker/sidecar 目录不进入宽松旧孤儿扫描。受控删除重载 authenticated journal 与全部当前/软删除对象引用；未知、坏标记、foreign root/account 或 pending 操作保全。root 维护只覆盖已接入的本进程任务；存在任何本项 journal 的目录迁移拒绝，SAF 失效保留原 cache root。RF-905 的全目录/跨进程互斥仍未完成；旧未标记文件归属由 RF-903 后续处理，完整 relocation 另需专门协议。
+marker/sidecar 目录不进入宽松旧孤儿扫描。受控删除重载 authenticated journal 与全部当前/软删除对象引用；未知、坏标记、foreign root/account 或 pending 操作保全。RF-905 在桌面以同 canonical Native root 的 OS 锁协调独立 GUI/CLI 实例，并以 owner/activity 保留本机实际任务生命周期。存在任何本项 journal 的目录迁移仍拒绝，SAF 失效保留原 cache root；不将目录锁等同于 journal relocation。旧未标记文件归属由 RF-903 后续处理，完整 relocation 另需专门协议。
 
 本机 SQLite/加密包、实际 child checkpoint 重开和前端模拟证据分别登记。未在 Android 真实设备运行 SAF/目录切换/文件选择器或多端原生界面，不将 Windows Rust 或 Hook 测试写成这些验证通过。六项既有平台/CI条件保持，验证状态见 [RF-022](REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-022)。
+
+## 10. 目录所有权与附件工作寿命（RF-905）
+
+[VaultRootOwner](../tauri/crates/solosoul-vault/src/root_owner.rs) 规范化真实 Native root，桌面 GUI/CLI 在数据库打开、迁移和业务写入前取得同协议 OS 排他锁；获取失败返回错误，不以未持锁构造继续写。服务、Store、Session 和受管 FS 克隆显式保留同一 owner；同应用多连接使用 `open_owned`/`try_with_root_owner`，不按路径隐式复用另一实例。该协议不约束任意外部文件程序或用户外拷副本。
+
+兼容 API `VaultStore::open` 只有在账户目录的 `config.json` 确切不存在时才作为 standalone 入口自行取得声明根的 owner；配置存在、不可读或无法判定均返回 `VAULT_ROOT_OWNER_REQUIRED`，不打开受管数据库。Core/GUI/CLI 使用严格 Result 构造与显式 owner。桌面锁采用 `std::fs::File::try_lock`，要求 Rust 1.89 或更新版本，并与既有基于 `fs2` 的 `ProcessLock` 协议互操作。
+
+插件全局 data root 与 Native root 相同时显式复用已有 owner，不同根时独立获取；取得原 VaultStore 的运行，其真实 Wasm worker 同时保留插件根与 Native 根的 activity/owner，直到执行与 workspace 清理结束；无 Vault 的运行仅保留插件根。默认 GUI 的插件降级只使用明确持锁的 TEMP 根，不以未持锁的 busy home 根继续写；native-perf 入口失败即停止。CLI 日志 writer 保留 Native owner；GUI 日志目录实际位于 Native root 内时，其真实 writer 和 panic fallback 也保留该 owner，位于 root 外时不扩大持锁范围。
+
+GUI 附件复制、解密下载、系统打开/分享和清理 worker 在派发前冻结原 owner/所需会话并登记 activity，将 guard 移入真正工作体；取消 await 不提前释放。同步的附件写入也持同一 root activity，维护期间新会话拒绝进入。系统打开/分享完成源文件复制后，外部阅读器与后续临时副本清理仅处理临时目录；其权限和尽力清理边界仍按 §4，不承诺退出时安全擦除。
+
+改密/KDF 升级、删除账户和目录替换先取得维护 guard，阻止新 activity，并以 `disable_and_wait`/`stop_and_wait` 等待旧同步 worker 真实退出并回收其持有的 Store 句柄；原 guard 借给 Core 维护主体，不能另叠 activity 或在排队后重新选择新服务。仍有在途 activity 时拒绝维护并稍后重试。存在任意 RF-022 journal 的目录迁移仍拒绝，SAF 失效保留原 cache；广泛未标记附件扫描与完整 relocation 未在 RF-905 实现。
+
+Android/iOS 的 OS 文件锁为 no-op；本机 activity/maintenance gate 不代表远端 SAF provider 被排他锁定。实际执行命令、源码 SHA 与本机 Windows 结果以 [RF-905 验证记录](verification/rf905-root-ownership-2026-10-01.json) 为准；未执行平台、Android 真机 SAF、可见 GUI 操作和 release 透明 KDF 升级不从 Windows 原生或模拟测试推断通过。RF-016/RF-022 的六项既有平台/CI 条件和各自验证边界保持，任务状态由执行报告验收。

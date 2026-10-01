@@ -281,7 +281,9 @@ fn rf022_completed_global_import_rekeys_real_ciphertext_and_encrypted_journal_pr
     .unwrap();
     assert_eq!(std::fs::read(&output).unwrap(), b"actual bytes");
     svc.lock();
-    let fresh = VaultService::with_base_path(svc.base_path().clone());
+    let owner = svc.root_owner();
+    let fs = Arc::new(crate::LocalVaultFileSystem::new(owner.root().to_path_buf()));
+    let fresh = VaultService::try_with_root_owner(owner, fs).unwrap();
     fresh.unlock(&account, "newpassword123").unwrap();
     let record = fresh
         .get_vault_store()

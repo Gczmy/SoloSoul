@@ -142,6 +142,15 @@ pub async fn vault_set_directory(
     state: State<'_, AppState>,
     payload: SetVaultDirectoryPayload,
 ) -> Result<SetVaultDirectoryResult, String> {
+    // 输入、目标锁与两个根的维护准入都在改变旧服务前核验。
+    if let Some(uri) = &payload.saf_tree_uri {
+        if !cfg!(target_os = "android") {
+            return Err("SAF Vault directory is only supported on Android".to_string());
+        }
+        if uri.is_empty() {
+            return Err("SAF tree URI cannot be empty".to_string());
+        }
+    }
     let data_dir = normalize_path(
         &state
             .handle
@@ -149,17 +158,20 @@ pub async fn vault_set_directory(
             .resolve(".", tauri::path::BaseDirectory::Data)
             .map_err(|e| format!("无法解析应用数据目录: {e}"))?,
     );
-
-    // 准入必须早于锁定和目录复制，且 worker 真正结束前保持有效。
-    let import_maintenance = {
+    let target = if payload.saf_tree_uri.is_some() {
+        data_dir.join("saf_vault_temp")
+    } else {
+        data_dir.clone()
+    };
+    let transition = {
         let svc = state
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned")?;
-        let guard = solosoul_core::import_activity::begin_import_maintenance(svc.base_path())?;
-        solosoul_core::import_activity::ensure_import_root_movable(svc.base_path())?;
-        Arc::new(guard)
+        crate::state::root_tasks::prepare_root_transition(&svc, &target)?
     };
+    // 禁止维护期间继续使用 listener 持有的旧根；等待真实网络 worker 退出。
+    state.sync_service.disable_and_wait().await?;
 
     // 锁定 Vault 以避免迁移过程中数据变更。
     //
@@ -184,14 +196,8 @@ pub async fn vault_set_directory(
     }
 
     if let Some(uri) = &payload.saf_tree_uri {
-        if !cfg!(target_os = "android") {
-            return Err("SAF Vault directory is only supported on Android".to_string());
-        }
-        if uri.is_empty() {
-            return Err("SAF tree URI cannot be empty".to_string());
-        }
-        let temp_dir = data_dir.join("saf_vault_temp");
-        std::fs::create_dir_all(&temp_dir).map_err(|e| format!("创建临时目录失败: {e}"))?;
+        let target_owner = transition.target_owner();
+        let temp_dir = target_owner.root().to_path_buf();
 
         // 迁移：把当前本地 Vault 数据复制到 SAF 临时目录
         //
@@ -222,17 +228,22 @@ pub async fn vault_set_directory(
         // 在 spawn_blocking 中执行迁移与同步，避免阻塞 tokio worker
         let uri_owned = uri.clone();
         let handle = state.handle.clone();
-        let worker_maintenance = Arc::clone(&import_maintenance);
+        let worker_transition = Arc::clone(&transition);
         tokio::task::spawn_blocking(move || -> Result<(), String> {
-            let _maintenance = worker_maintenance;
+            let _transition = worker_transition;
+            let target_owner = _transition.target_owner();
             // ① 先拉取远端（目标 SAF 目录）已有数据到 temp——
             // 防止本地（可能只有新账户）清单覆盖远端 accounts.json 导致旧账户丢失。
             // 远端为空目录时 no-op。
-            let fs: Arc<dyn VaultFileSystem> = Arc::new(SafVaultFileSystem::new(
-                uri_owned,
-                temp_dir_inner.clone(),
-                Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle.clone())),
-            ));
+            let fs: Arc<dyn VaultFileSystem> =
+                Arc::new(solosoul_core::vault_file_system::OwnedVaultFileSystem::new(
+                    Arc::clone(&target_owner),
+                    Arc::new(SafVaultFileSystem::new(
+                        uri_owned,
+                        temp_dir_inner.clone(),
+                        Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle.clone())),
+                    )),
+                )?);
             fs.sync_from_remote()
                 .map_err(|e| format!("从 SAF 拉取已有数据失败: {e}"))?;
 
@@ -253,7 +264,8 @@ pub async fn vault_set_directory(
             // 再扫描 acc_* 目录恢复「清单中缺失但目录还在」的旧账户
             // （① 拉取的远端旧账户目录不被 ② 清空，此处即可找回）。
             {
-                let svc = CoreVaultService::with_file_system(temp_dir_inner.clone(), fs.clone());
+                let svc =
+                    CoreVaultService::try_with_root_owner(Arc::clone(&target_owner), fs.clone())?;
                 svc.load_accounts();
                 let recovered = svc.scan_orphan_accounts()?;
                 if !recovered.is_empty() {
@@ -328,6 +340,8 @@ pub async fn vault_sync_to_remote(
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let _activity =
+            solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
         svc.sync_to_remote()
     };
 
@@ -358,6 +372,8 @@ pub async fn vault_sync_from_remote(
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let _activity =
+            solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
         svc.sync_from_remote()
     };
 
@@ -456,6 +472,10 @@ pub(crate) fn migrate_vault_data(
             let name = entry.file_name();
             let name_str = name.to_string_lossy();
 
+            // OS 锁是所有者身份，不能复制到另一个根或被清空目标删除。
+            if depth == 0 && name_str == ".lock" {
+                continue;
+            }
             // 仅在顶层跳过应用级配置、资源、缓存和 SAF 临时目录
             if depth == 0 && APP_LEVEL_NAMES.contains(&name_str.as_ref()) {
                 continue;
@@ -479,11 +499,14 @@ pub(crate) fn migrate_vault_data(
 
 /// P045: 清空目标目录（仅顶层迁移时调用）——从 migrate_vault_data 内层拆出，
 /// 消除「if depth==0 && clear_dst → for → if is_dir」3 层嵌套。
-fn clear_target_dir(dst: &std::path::Path) -> Result<(), String> {
+pub(crate) fn clear_target_dir(dst: &std::path::Path) -> Result<(), String> {
     if let Ok(entries) = std::fs::read_dir(dst) {
         for entry in entries {
             let entry = entry.map_err(|e| format!("读取目标目录项失败: {e}"))?;
             let path = entry.path();
+            if entry.file_name() == ".lock" {
+                continue;
+            }
             if path.is_dir() {
                 std::fs::remove_dir_all(&path).map_err(|e| format!("删除目标子目录失败: {e}"))?;
             } else {
@@ -497,6 +520,41 @@ fn clear_target_dir(dst: &std::path::Path) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn rf905_migration_preserves_locked_target_identity_and_never_copies_source_lock() {
+        let source = tempfile::tempdir().unwrap();
+        let target = tempfile::tempdir().unwrap();
+        std::fs::write(source.path().join(".lock"), b"source-identity").unwrap();
+        std::fs::write(target.path().join(".lock"), b"target").unwrap();
+        let source_owner =
+            solosoul_vault::root_owner::VaultRootOwner::acquire(source.path()).unwrap();
+        let target_owner =
+            solosoul_vault::root_owner::VaultRootOwner::acquire(target.path()).unwrap();
+        std::fs::write(source.path().join("vault-data"), b"payload").unwrap();
+        std::fs::write(target.path().join("old-data"), b"old").unwrap();
+        migrate_vault_data(source_owner.root(), target_owner.root(), true).unwrap();
+        assert_eq!(
+            std::fs::metadata(target.path().join(".lock"))
+                .unwrap()
+                .len(),
+            6
+        );
+        assert_eq!(
+            std::fs::read(target.path().join("vault-data")).unwrap(),
+            b"payload"
+        );
+        assert!(!target.path().join("old-data").exists());
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        assert_eq!(
+            solosoul_vault::root_owner::VaultRootOwner::acquire(target.path())
+                .err()
+                .unwrap(),
+            "VAULT_DIRECTORY_BUSY"
+        );
+        drop(target_owner);
+        assert!(solosoul_vault::root_owner::VaultRootOwner::acquire(target.path()).is_ok());
+    }
 
     #[test]
     fn test_migrate_vault_data_skips_app_level_entries() {

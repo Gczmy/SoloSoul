@@ -23,7 +23,7 @@ pub fn about(app: &mut App) -> Result<()> {
         os: std::env::consts::OS.to_string(),
         arch: std::env::consts::ARCH.to_string(),
         data_dir: app.vault_service.base_path().display().to_string(),
-        lock_acquired: app.process_lock.is_some(),
+        lock_acquired: app.vault_service.root_owner().is_process_locked(),
     };
     app.previous_phase = Some(app.phase.clone());
     app.phase = AppPhase::About { info };

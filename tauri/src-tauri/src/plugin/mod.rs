@@ -37,7 +37,9 @@ pub use solosoul_plugin::sandbox::WasmSandbox;
 pub use solosoul_plugin::session::{PluginSession, PluginSessionManager};
 pub use solosoul_plugin::store::{compute_sha256, PluginStore};
 
-use std::path::PathBuf;
+use solosoul_vault::root_owner::VaultRootOwner;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use tauri::ipc::Channel;
 use tauri::Manager;
 
@@ -108,15 +110,16 @@ pub fn resolve_market_dir(app_handle: Option<&tauri::AppHandle>) -> Result<PathB
 /// 桌面端使用 `~/.solosoul`（`PluginStore::data_dir`）。
 pub fn new_plugin_manager(app_handle: &tauri::AppHandle) -> Result<PluginManager, PluginError> {
     let market_dir = resolve_market_dir(Some(app_handle))?;
+    PluginManager::new_with_dirs(market_dir, plugin_data_dir(app_handle)?)
+}
 
+fn plugin_data_dir(app_handle: &tauri::AppHandle) -> Result<PathBuf, PluginError> {
     #[cfg(any(target_os = "android", target_os = "ios"))]
-    let data_dir = {
-        app_handle
-            .path()
-            .resolve(".", tauri::path::BaseDirectory::Data)
-            .map_err(|e| PluginError::StoreError(format!("无法解析应用数据目录: {}", e)))?
-            .join(".solosoul")
-    };
+    let data_dir = app_handle
+        .path()
+        .resolve(".", tauri::path::BaseDirectory::Data)
+        .map_err(|e| PluginError::StoreError(format!("无法解析应用数据目录: {}", e)))?
+        .join(".solosoul");
     #[cfg(feature = "native-perf")]
     let data_dir = crate::native_perf::root()
         .map_err(PluginError::StoreError)?
@@ -126,6 +129,106 @@ pub fn new_plugin_manager(app_handle: &tauri::AppHandle) -> Result<PluginManager
         not(any(target_os = "android", target_os = "ios"))
     ))]
     let data_dir = PluginStore::data_dir()?;
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    let _ = app_handle;
+    Ok(data_dir)
+}
 
-    PluginManager::new_with_dirs(market_dir, data_dir)
+/// 同根只复用传入的 Native owner；不同根独立 acquire，失败不写插件业务文件。
+fn plugin_root_owner(
+    data_dir: &Path,
+    native_owner: Arc<VaultRootOwner>,
+) -> Result<Arc<VaultRootOwner>, PluginError> {
+    match data_dir.canonicalize() {
+        Ok(path) if path == native_owner.root() => return Ok(native_owner),
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(_) => {
+            return Err(PluginError::StoreError(
+                "VAULT_DIRECTORY_UNAVAILABLE".into(),
+            ))
+        }
+    }
+    VaultRootOwner::acquire(data_dir).map_err(PluginError::StoreError)
+}
+
+pub fn new_owned_plugin_manager(
+    app_handle: &tauri::AppHandle,
+    native_owner: Arc<VaultRootOwner>,
+) -> Result<PluginManager, PluginError> {
+    let data_dir = plugin_data_dir(app_handle)?;
+    let market_dir = resolve_market_dir(Some(app_handle))?;
+    new_owned_plugin_manager_with_dirs(market_dir, data_dir, native_owner)
+}
+
+pub(crate) fn new_owned_plugin_manager_with_dirs(
+    market_dir: PathBuf,
+    data_dir: PathBuf,
+    native_owner: Arc<VaultRootOwner>,
+) -> Result<PluginManager, PluginError> {
+    let owner = plugin_root_owner(&data_dir, native_owner)?;
+    PluginManager::new_with_dirs_owned(market_dir, owner.root().to_path_buf(), owner)
+}
+
+#[cfg(test)]
+mod rf905_owner_tests {
+    use super::*;
+
+    #[test]
+    fn same_plugin_root_explicitly_reuses_native_owner() {
+        let dir = tempfile::tempdir().unwrap();
+        let owner = VaultRootOwner::acquire(dir.path()).unwrap();
+        let selected = plugin_root_owner(dir.path(), owner.clone()).unwrap();
+        assert!(Arc::ptr_eq(&selected, &owner));
+        let manager = new_owned_plugin_manager_with_dirs(
+            dir.path().join("market"),
+            dir.path().to_path_buf(),
+            owner.clone(),
+        )
+        .unwrap();
+        assert!(dir.path().join("plugins").is_dir());
+        drop(manager);
+        assert_eq!(selected.id(), owner.id());
+    }
+
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[test]
+    fn different_busy_global_root_rejects_before_plugin_business_files() {
+        let dir = tempfile::tempdir().unwrap();
+        let native_owner = VaultRootOwner::acquire(&dir.path().join("native")).unwrap();
+        let global = dir.path().join("global");
+        let competitor = VaultRootOwner::acquire(&global).unwrap();
+        let error = new_owned_plugin_manager_with_dirs(
+            dir.path().join("market"),
+            global.clone(),
+            native_owner,
+        )
+        .err()
+        .unwrap();
+        assert!(error.to_string().contains("VAULT_DIRECTORY_BUSY"));
+        assert!(!global.join("plugins").exists());
+        assert!(!global.join("plugin_audit.jsonl").exists());
+        assert!(!global.join("registry.json").exists());
+        drop(competitor);
+    }
+
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[test]
+    fn different_global_root_is_owned_until_manager_drop() {
+        let dir = tempfile::tempdir().unwrap();
+        let native_owner = VaultRootOwner::acquire(&dir.path().join("native")).unwrap();
+        let global = dir.path().join("global");
+        let manager = new_owned_plugin_manager_with_dirs(
+            dir.path().join("market"),
+            global.clone(),
+            native_owner,
+        )
+        .unwrap();
+        assert_eq!(
+            VaultRootOwner::acquire(&global).err().unwrap(),
+            "VAULT_DIRECTORY_BUSY"
+        );
+        drop(manager);
+        assert!(VaultRootOwner::acquire(&global).is_ok());
+    }
 }

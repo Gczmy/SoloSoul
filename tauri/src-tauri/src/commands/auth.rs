@@ -8,10 +8,18 @@ use zeroize::Zeroizing;
 #[tauri::command]
 pub async fn check_has_account(state: State<'_, AppState>) -> Result<bool, String> {
     let vault_service = state.vault_service.clone();
+    let owner = vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?
+        .root_owner();
     tokio::task::spawn_blocking(move || {
+        let _owner = std::sync::Arc::clone(&owner);
         let svc = vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
+        if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
+            return Err("VAULT_ROOT_MISMATCH".to_string());
+        }
         Ok::<_, String>(svc.has_any_account())
     })
     .await
@@ -32,6 +40,7 @@ pub async fn bootstrap(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
     let result = svc.create_account(&account_name, password.as_ref(), password_hint.as_deref())?;
     let account_id = result["id"].as_str().unwrap_or("").to_string();
 
@@ -74,11 +83,24 @@ pub async fn login(
     // Run the CPU-intensive KDF and synchronous vault IO on the blocking pool
     // so the async runtime worker threads are not starved (R018 follow-up).
     let vault_service = state.vault_service.clone();
+    let owner = vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?
+        .root_owner();
+    // 排队前独占维护准入；旧监听真实退出后，同一许可交给实际密码 worker。
+    let maintenance = solosoul_core::import_activity::begin_owned_root_maintenance(
+        std::sync::Arc::clone(&owner),
+    )?;
+    state.sync_service.disable_and_wait().await?;
     tokio::task::spawn_blocking(move || {
+        let _owner = std::sync::Arc::clone(&owner);
         let svc = vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        svc.unlock_secure(&account_id, &password)?;
+        if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
+            return Err("VAULT_ROOT_MISMATCH".to_string());
+        }
+        svc.unlock_secure_with_maintenance(&account_id, &password, &maintenance)?;
         if let Some(vg) = svc.get_vault_store() {
             let vault = vg.as_ref();
             {
@@ -115,12 +137,19 @@ pub async fn reset_security_flags(
     account_id: String,
 ) -> Result<(), String> {
     let vault_service = state.vault_service.clone();
-    tokio::task::spawn_blocking(move || {
+    let owner = vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?
+        .root_owner();
+    crate::state::root_tasks::spawn_owned_blocking(std::sync::Arc::clone(&owner), move || {
         let svc = vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
+        if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
+            return Err("VAULT_ROOT_MISMATCH".to_string());
+        }
         svc.reset_security_flags(&account_id)
-    })
+    })?
     .await
     .map_err(|e| format!("reset_security_flags task failed: {}", e))?
 }
@@ -137,11 +166,24 @@ pub async fn unlock_with_password(
     // P031: 密码以 Zeroizing<String> 接收，使用完毕后立即安全清零。
     let password = Zeroizing::new(password);
     let vault_service = state.vault_service.clone();
+    let owner = vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?
+        .root_owner();
+    // 排队前独占维护准入；旧监听真实退出后，同一许可交给实际密码 worker。
+    let maintenance = solosoul_core::import_activity::begin_owned_root_maintenance(
+        std::sync::Arc::clone(&owner),
+    )?;
+    state.sync_service.disable_and_wait().await?;
     tokio::task::spawn_blocking(move || {
+        let _owner = std::sync::Arc::clone(&owner);
         let svc = vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        svc.unlock_secure(&account_id, &password)?;
+        if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
+            return Err("VAULT_ROOT_MISMATCH".to_string());
+        }
+        svc.unlock_secure_with_maintenance(&account_id, &password, &maintenance)?;
         Ok::<_, String>(())
     })
     .await
@@ -162,16 +204,24 @@ pub async fn verify_password(
     // P031: 密码以 Zeroizing<String> 接收，使用完毕后立即安全清零。
     let password = Zeroizing::new(password);
     let vault_service = state.vault_service.clone();
+    let owner = vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?
+        .root_owner();
     // P012: 接入与 unlock 同款阶梯锁定（失败计数/锁定预检/成功归零），
     // 消除无限速密码验证 oracle；验证含 Argon2id KDF，spawn_blocking 防阻塞 tokio。
-    let ok = tokio::task::spawn_blocking(move || {
-        let svc = vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        svc.verify_password_with_lockout(&account_id, password.as_ref())
-    })
-    .await
-    .map_err(|e| format!("verify_password task failed: {}", e))??;
+    let ok =
+        crate::state::root_tasks::spawn_owned_blocking(std::sync::Arc::clone(&owner), move || {
+            let svc = vault_service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
+                return Err("VAULT_ROOT_MISMATCH".to_string());
+            }
+            svc.verify_password_with_lockout(&account_id, password.as_ref())
+        })?
+        .await
+        .map_err(|e| format!("verify_password task failed: {}", e))??;
     Ok(ok)
 }
 

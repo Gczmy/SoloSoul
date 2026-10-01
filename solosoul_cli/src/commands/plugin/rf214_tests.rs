@@ -301,6 +301,10 @@ impl Fixture {
         std::fs::create_dir_all(&market).unwrap();
         let mut app = App::new(Arc::new(service)).unwrap();
         app.plugin_test_dirs = Some((market.clone(), data.clone()));
+        // 与生产同一 owner 选择入口；先建立协调锁，业务零写 snapshot 不能把它当安装残留。
+        let owner = super::plugin_data_owner(&app, &data).unwrap();
+        let data = owner.root().to_path_buf();
+        app.plugin_test_dirs = Some((market.clone(), data.clone()));
         let mut fixture = Self {
             app,
             server: None,
@@ -317,11 +321,13 @@ impl Fixture {
     }
 
     fn manager(&self) -> PluginManager {
-        PluginManager::new_with_dirs(self.market.clone(), self.data.clone()).unwrap()
+        let owner = super::plugin_data_owner(&self.app, &self.data).unwrap();
+        PluginManager::new_with_dirs_owned(self.market.clone(), self.data.clone(), owner).unwrap()
     }
 
     fn store(&self) -> PluginStore {
-        PluginStore::new_with_data_dir(self.data.clone()).unwrap()
+        let owner = super::plugin_data_owner(&self.app, &self.data).unwrap();
+        PluginStore::new_with_data_dir_owned(self.data.clone(), owner).unwrap()
     }
 
     fn configure(&mut self, version: &str, bytes: &'static [u8], mode: BodyMode) {
@@ -596,10 +602,24 @@ fn files(root: &Path) -> Vec<(PathBuf, Vec<u8>)> {
             if entry.file_type().unwrap().is_dir() {
                 visit(root, &entry.path(), result);
             } else {
-                result.push((
-                    entry.path().strip_prefix(root).unwrap().to_path_buf(),
-                    std::fs::read(entry.path()).unwrap(),
-                ));
+                let relative = entry.path().strip_prefix(root).unwrap().to_path_buf();
+                let bytes = if relative == Path::new(".lock") {
+                    // Windows LockFileEx 阻止读取被锁区间；只为根级协调锁使用真实元数据。
+                    // 保留存在/普通文件/零长度，所有其它安装、stage、审计字节仍严格比较。
+                    assert!(
+                        entry.file_type().unwrap().is_file(),
+                        "fixture root .lock must be a regular file"
+                    );
+                    assert_eq!(
+                        entry.metadata().unwrap().len(),
+                        0,
+                        "synthetic root lock contains no business bytes"
+                    );
+                    Vec::new()
+                } else {
+                    std::fs::read(entry.path()).unwrap()
+                };
+                result.push((relative, bytes));
             }
         }
     }
@@ -835,6 +855,33 @@ enum Transition {
     DirectVaultLock,
 }
 
+/// 不消费 task/进度事件：真实工作许可退出后才能 master unlock，旧终态仍留给新会话拒绝。
+fn wait_for_native_maintenance(app: &App) {
+    let owner = app.vault_service.root_owner();
+    crate::util::shared_runtime()
+        .unwrap()
+        .block_on(async {
+            tokio::time::timeout(WAIT, async {
+                loop {
+                    match solosoul_core::import_activity::begin_owned_root_maintenance(
+                        owner.clone(),
+                    ) {
+                        Ok(guard) => {
+                            drop(guard);
+                            break;
+                        }
+                        Err(error) if error == "IMPORT_OPERATIONS_ACTIVE" => {
+                            tokio::task::yield_now().await
+                        }
+                        Err(error) => panic!("unexpected maintenance rejection: {error}"),
+                    }
+                }
+            })
+            .await
+        })
+        .expect("actual cancelled native worker must release maintenance admission");
+}
+
 fn transition(fixture: &mut Fixture, change: Transition) {
     if matches!(change, Transition::AutoLocked) {
         let deadline = fixture.app.last_activity + fixture.app.auto_lock_duration;
@@ -846,8 +893,12 @@ fn transition(fixture: &mut Fixture, change: Transition) {
     assert!(matches!(fixture.app.phase, AppPhase::Locked));
     assert!(fixture.app.plugin_installs.is_empty());
     match change {
-        Transition::SameAccount => unlock_account(&mut fixture.app, &fixture.account_a),
+        Transition::SameAccount => {
+            wait_for_native_maintenance(&fixture.app);
+            unlock_account(&mut fixture.app, &fixture.account_a)
+        }
         Transition::OtherAccount => {
+            wait_for_native_maintenance(&fixture.app);
             unlock_account(&mut fixture.app, fixture.account_b.as_deref().unwrap())
         }
         _ => {}
@@ -870,6 +921,36 @@ fn rf214_inflight_lock_reunlock_switch_and_final_commit_guard_prevent_publicatio
         fixture.configure(V1, WASM_V1, BodyMode::Complete);
         let before = files(&fixture.data);
         let (id, progress) = fixture.begin(false, WASM_V1);
+        if matches!(change, Transition::SameAccount | Transition::OtherAccount) {
+            let target = if matches!(change, Transition::OtherAccount) {
+                fixture.account_b.as_deref().unwrap()
+            } else {
+                &fixture.account_a
+            };
+            // 真实 HTTP barrier 未放行，master 解锁必须被维护 gate 精确拒绝而非抢回旧钥。
+            assert_eq!(
+                fixture
+                    .app
+                    .vault_service
+                    .unlock(target, crate::TEST_PASSWORD)
+                    .unwrap_err(),
+                "IMPORT_OPERATIONS_ACTIVE"
+            );
+            assert_eq!(
+                fixture.app.vault_service.get_current_account().as_deref(),
+                Some(fixture.account_a.as_str())
+            );
+            assert_eq!(
+                fixture
+                    .app
+                    .vault_service
+                    .capture_session(&fixture.account_a)
+                    .unwrap()
+                    .generation(),
+                progress.identity.session_generation
+            );
+            assert!(!fixture.server.as_ref().unwrap().released);
+        }
         let terminal = if matches!(change, Transition::DirectVaultLock) {
             // 不调用 App cancel_all，也不 drain.cancel_stale；完整响应后必须由原会话 commit 拒绝。
             fixture.app.vault_service.lock();

@@ -587,3 +587,43 @@ async fn rf005_lock_or_switch_after_resolution_never_reuses_old_or_new_account_k
         );
     }
 }
+
+#[test]
+fn rf905_stream_short_callback_rejects_existing_maintenance_without_updating_original_store() {
+    let fixture = StreamFixture::new();
+    let context = &fixture.context;
+    let account = context.session.account_id();
+    let original = context.session.vault();
+    let before = original.load_profile(account).unwrap().unwrap();
+    let maintenance =
+        solosoul_core::import_activity::begin_owned_root_maintenance(original.root_owner())
+            .unwrap();
+    let called = std::sync::atomic::AtomicBool::new(false);
+    let result = context.with_vault(|vault| {
+        called.store(true, std::sync::atomic::Ordering::SeqCst);
+        vault.update_profile_prefs(account, |prefs| {
+            prefs.insert("rf905-write".into(), json!("must not be written"));
+            Ok(())
+        })
+    });
+    assert_eq!(result.err().as_deref(), Some("IMPORT_DIRECTORY_BUSY"));
+    assert!(!called.load(std::sync::atomic::Ordering::SeqCst));
+    let after = original.load_profile(account).unwrap().unwrap();
+    assert_eq!(after.data, before.data);
+    assert_eq!(after.version, before.version);
+    drop(maintenance);
+    context
+        .with_vault(|vault| {
+            vault.update_profile_prefs(account, |prefs| {
+                prefs.insert("rf905-write".into(), json!("accepted after maintenance"));
+                Ok(())
+            })
+        })
+        .unwrap();
+    let after = original.load_profile(account).unwrap().unwrap();
+    let value: Value = serde_json::from_slice(&after.data).unwrap();
+    assert_eq!(
+        value["preferences"]["rf905-write"],
+        "accepted after maintenance"
+    );
+}

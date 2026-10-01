@@ -1,11 +1,13 @@
 //! SoloSoul 终端 CLI 入口。
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+use std::sync::Arc;
 
 use clap::Parser;
 use color_eyre::Result;
 use solosoul_cli::cli::Cli;
 use solosoul_cli::tui::{install_panic_hook, Tui};
+use solosoul_cli::util::OwnerPinnedWriter;
 use solosoul_core::VaultService;
 use tracing_appender::non_blocking::WorkerGuard;
 
@@ -15,18 +17,23 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
     let data_dir = resolve_data_dir(cli.data_dir);
 
-    // 初始化日志文件输出，避免污染 TUI 界面。
-    let _log_guard = init_logging(&data_dir)?;
-
-    // 根据子命令快速路径执行。
-
-    // 设置数据目录环境变量，供 VaultService 读取。
-    if let Ok(dir) = data_dir.canonicalize() {
-        std::env::set_var("SOLOSOUL_DATA_DIR", dir);
-    } else {
-        std::env::set_var("SOLOSOUL_DATA_DIR", &data_dir);
-    }
-    let vault_service = VaultService::new();
+    // 所有权失败立即返回：账户、日志和终端初始化均不得先写入目标目录。
+    let vault_service = VaultService::try_with_base_path(data_dir)
+        .map_err(|error| {
+            // 失锁时不能先读该目录的语言偏好，固定双语提示保留稳定错误码。
+            let message = if error == "VAULT_DIRECTORY_BUSY" {
+                "Vault 目录正被其他进程使用，请关闭后重试。Another process is using the Vault directory. Close it and try again."
+            } else {
+                "无法取得 Vault 目录所有权，启动已停止。Cannot acquire Vault directory ownership; startup stopped."
+            };
+            color_eyre::eyre::eyre!("{message} ({error})")
+        })?;
+    // 同 Arc 供 main 和实际日志 writer 复用；不把 WorkerGuard Drop 当作已 join。
+    let root_owner = vault_service.root_owner();
+    let _log_guard = init_logging(Arc::clone(&root_owner))?;
+    std::env::set_var("SOLOSOUL_DATA_DIR", root_owner.root());
+    // try_with_base_path 与旧 with_base_path 一样不自动填充账户缓存。
+    vault_service.load_accounts();
 
     // 只有 TUI 线程异常才恢复终端；受管 worker 的异常由任务事件反馈。
     install_panic_hook();
@@ -81,12 +88,16 @@ const LOG_CRATE_ALLOWLIST: &[&str] = &[
 ];
 
 /// 将 tracing 日志写入 `{data_dir}/logs/cli.log`（按日轮转，避免无限增长）。
-fn init_logging(data_dir: &Path) -> Result<WorkerGuard> {
-    let log_dir = data_dir.join("logs");
+fn init_logging(
+    root_owner: Arc<solosoul_vault::root_owner::VaultRootOwner>,
+) -> Result<WorkerGuard> {
+    let log_dir = root_owner.root().join("logs");
     std::fs::create_dir_all(&log_dir)?;
 
     let file_appender = tracing_appender::rolling::daily(&log_dir, "cli.log");
-    let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
+    // non_blocking 的真正线程持 writer；即使 WorkerGuard 等待超时，根锁仍保活。
+    let writer = OwnerPinnedWriter::new(file_appender, root_owner);
+    let (non_blocking, guard) = tracing_appender::non_blocking(writer);
 
     let filter = build_env_filter();
 

@@ -337,6 +337,8 @@ fn rf211_lock_reunlock_and_account_switch_reject_old_progress_and_ready_results(
         let fixture = Fixture::new();
         let original = fixture.session();
         let original_generation = original.generation();
+        // 从真实认证的 A 账户保留 Zeroizing key，活动屏障内使用会话密钥认证入口。
+        let original_key = fixture.service.get_session_key().unwrap();
         let mut tasks = ManagedTasks::new(&fixture);
         let completed_id = tasks
             .spawn(original.clone(), |_| async {
@@ -352,7 +354,26 @@ fn rf211_lock_reunlock_and_account_switch_reject_old_progress_and_ready_results(
             "lock" => fixture.service.lock(),
             "same-account" => {
                 fixture.service.lock();
-                fixture.unlock_a();
+                assert_eq!(
+                    fixture
+                        .service
+                        .unlock(ACCOUNT_A, crate::TEST_PASSWORD)
+                        .unwrap_err(),
+                    "IMPORT_OPERATIONS_ACTIVE"
+                );
+                assert!(!fixture.service.is_unlocked());
+                assert!(fixture.service.get_current_account().is_none());
+                assert!(fixture.service.get_session_key().is_none());
+                assert!(fixture.service.get_vault_store().is_none());
+                fixture
+                    .service
+                    .unlock_with_session_key(ACCOUNT_A, &original_key)
+                    .unwrap();
+                // lock 与真实的新会话各递增一次；被拒绝的主密码解锁不能改变代次。
+                assert_eq!(
+                    fixture.session().generation(),
+                    original_generation.wrapping_add(2)
+                );
                 assert_ne!(fixture.session().generation(), original_generation);
             }
             "other-account" => {

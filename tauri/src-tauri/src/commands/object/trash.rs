@@ -83,6 +83,7 @@ pub async fn object_restore(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     let _trash = vault

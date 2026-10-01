@@ -663,6 +663,8 @@ pub struct VaultStore {
     /// 设备级「同步设置偏好」开关（默认 true=偏好照常同步）。
     /// profiles 同步发送/接收路径实时读取（&self 方法），无需改动 sync crate。
     ui_prefs_sync_enabled: AtomicBool,
+    // 置于连接之后，最后一个 Store/Session Drop 前保持目录所有权。
+    root_owner: std::sync::Arc<crate::root_owner::VaultRootOwner>,
 }
 
 /// P016: 表驱动整表重写公共 helper。
@@ -835,8 +837,32 @@ fn write_encryption_version_marker(tx: &rusqlite::Transaction<'_>) -> Result<(),
 impl VaultStore {
     /// Open or create a vault at the given path
     pub fn open(mut config: VaultConfig) -> Result<Self, String> {
-        // 从配置转移密钥，打开失败也由包装类型清零；长期保存的配置不再携带副本。
+        // 所有新失败路径之前即转移密钥，锁竞争、路径拒绝也由包装类型清零。
         let data_key = config.data_key.take().map(DataEncryptionKey::new);
+        // Core 保留的账户配置即使损坏/未知也不能当独立 root；不猜父目录或隐式借 owner。
+        match std::fs::symlink_metadata(config.path.join("config.json")) {
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            _ => return Err("VAULT_ROOT_OWNER_REQUIRED".to_string()),
+        }
+        // 独立 standalone Store 的根就是其配置目录；Core 多账户必须显式 open_owned。
+        let owner = crate::root_owner::VaultRootOwner::acquire(&config.path)?;
+        Self::open_owned_with_key(config, owner, data_key)
+    }
+
+    pub fn open_owned(
+        mut config: VaultConfig,
+        owner: std::sync::Arc<crate::root_owner::VaultRootOwner>,
+    ) -> Result<Self, String> {
+        let data_key = config.data_key.take().map(DataEncryptionKey::new);
+        Self::open_owned_with_key(config, owner, data_key)
+    }
+
+    fn open_owned_with_key(
+        mut config: VaultConfig,
+        owner: std::sync::Arc<crate::root_owner::VaultRootOwner>,
+        data_key: Option<DataEncryptionKey>,
+    ) -> Result<Self, String> {
+        config.path = owner.vault_path(&config.path)?;
         let path = config.path.join("vault.db");
         let mut conn =
             Connection::open(&path).map_err(|e| format!("Failed to open vault: {}", e))?;
@@ -863,6 +889,7 @@ impl VaultStore {
             state: Mutex::new(VaultState::Unlocked),
             data_key: Mutex::new(data_key),
             ui_prefs_sync_enabled: AtomicBool::new(true),
+            root_owner: owner,
         };
 
         // Migrate plaintext legacy data to encrypted format on first open.
@@ -890,6 +917,10 @@ impl VaultStore {
         }
 
         Ok(store)
+    }
+
+    pub fn root_owner(&self) -> std::sync::Arc<crate::root_owner::VaultRootOwner> {
+        std::sync::Arc::clone(&self.root_owner)
     }
 
     pub fn base_path(&self) -> &std::path::Path {

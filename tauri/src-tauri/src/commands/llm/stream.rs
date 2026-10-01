@@ -65,6 +65,8 @@ impl StreamContext {
         &self,
         commit: impl FnOnce(&VaultStore) -> Result<T, String>,
     ) -> Result<T, String> {
+        let owner = self.session.vault().root_owner();
+        let _activity = solosoul_core::import_activity::begin_owned_root_activity(owner)?;
         self.service
             .read()
             .map_err(|_| "Vault service lock poisoned")?

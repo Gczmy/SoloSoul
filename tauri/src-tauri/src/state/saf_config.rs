@@ -161,7 +161,8 @@ impl AppState {
         ));
 
         tracing::info!("[AppState] SAF init: creating VaultService...");
-        let svc = VaultService::with_file_system(temp_dir, fs);
+        let svc = VaultService::try_with_file_system(temp_dir, fs)
+            .map_err(super::root_tasks::ownership_error)?;
 
         tracing::info!("[AppState] SAF init: loading accounts...");
         svc.load_accounts();
@@ -178,7 +179,8 @@ impl AppState {
             "[AppState] local vault init: data_dir={}",
             data_dir.display()
         );
-        let svc = VaultService::with_base_path(data_dir.to_path_buf());
+        let svc = VaultService::try_with_base_path(data_dir.to_path_buf())
+            .map_err(super::root_tasks::ownership_error)?;
         svc.load_accounts();
         tracing::info!(
             "[AppState] loaded accounts count: {}",
@@ -194,9 +196,59 @@ impl AppState {
     ) -> Result<VaultService, anyhow::Error> {
         let placeholder_dir = data_dir.join(".uninitialized_vault");
         std::fs::create_dir_all(&placeholder_dir)?;
-        let svc = VaultService::with_base_path(placeholder_dir);
+        let svc = VaultService::try_with_base_path(placeholder_dir)
+            .map_err(super::root_tasks::ownership_error)?;
         svc.load_accounts();
         Ok(svc)
+    }
+
+    /// 失效 SAF 的缓存降级先取得真实源、目标 owner，再执行合并。
+    /// 锁文件保持原身份；任何 journal 继续绑定原缓存，不能迁移。
+    pub(crate) fn try_init_fallback_vault(data_dir: &Path) -> Result<VaultService, anyhow::Error> {
+        use solosoul_core::import_activity::{
+            begin_owned_root_maintenance, ensure_import_root_movable, has_bound_imports,
+        };
+        use solosoul_core::vault_file_system::LocalVaultFileSystem;
+        use solosoul_vault::root_owner::VaultRootOwner;
+        let cache = data_dir.join("saf_vault_temp");
+        if !cache.exists() {
+            return Self::try_init_local_vault(data_dir);
+        }
+        let source = Self::try_init_local_vault(&cache)?;
+        let source_owner = source.root_owner();
+        let _source_gate = begin_owned_root_maintenance(Arc::clone(&source_owner))
+            .map_err(super::root_tasks::ownership_error)?;
+        // 无法核对 journal 时保留原根，沿用 RF022 的恢复规则。
+        if has_bound_imports(source_owner.root()).unwrap_or(true) {
+            return Ok(source);
+        }
+        let target =
+            VaultRootOwner::acquire(data_dir).map_err(super::root_tasks::ownership_error)?;
+        let _target_gate = begin_owned_root_maintenance(Arc::clone(&target))
+            .map_err(super::root_tasks::ownership_error)?;
+        ensure_import_root_movable(target.root()).map_err(super::root_tasks::ownership_error)?;
+        match crate::commands::vault_directory::migrate_vault_data(
+            source_owner.root(),
+            target.root(),
+            false,
+        ) {
+            Ok(()) => {
+                // 只清理复制成功的缓存内容，不能删除仍持有的 .lock 文件。
+                if let Err(error) =
+                    crate::commands::vault_directory::clear_target_dir(source_owner.root())
+                {
+                    tracing::warn!("[AppState] failed to clean up SAF temp cache: {error}");
+                }
+            }
+            Err(error) => {
+                tracing::error!("[AppState] temp cache migration failed (non-fatal): {error}")
+            }
+        }
+        let fs = Arc::new(LocalVaultFileSystem::new(target.root().to_path_buf()));
+        let service = VaultService::try_with_root_owner(target, fs)
+            .map_err(super::root_tasks::ownership_error)?;
+        service.load_accounts();
+        Ok(service)
     }
 
     /// 移动端 VaultService 初始化：优先 SAF 目录（失效则降级本地），
@@ -205,7 +257,9 @@ impl AppState {
         handle: &tauri::AppHandle,
     ) -> Result<Arc<RwLock<VaultService>>, anyhow::Error> {
         if !cfg!(mobile) {
-            return Ok(Arc::new(RwLock::new(VaultService::new())));
+            return Ok(Arc::new(RwLock::new(
+                VaultService::try_new().map_err(super::root_tasks::ownership_error)?,
+            )));
         }
 
         let data_dir = normalize_path(
@@ -251,64 +305,7 @@ impl AppState {
             // 用户重新选择目录（vault_set_directory 保存新 URI）或主动切回本地
             // （保存 None）后，此路径自然退出。
 
-            // 迁移 SAF temp cache 到本地目录，保全用户缓存数据。
-            // 迁移失败不阻止降级（仅打日志）。
-            //
-            // 注意：这里必须用合并模式（clear_dst=false）！
-            // src（saf_vault_temp）位于 dst（data_dir）内部，若按默认
-            // 模式先清空 dst，会连带删除源目录本身以及 logs / app_resources
-            // / models 等应用级目录——用户数据被毁、插件市场目录被删，
-            // 首次启动直接闪退（插件管理器初始化失败导致 AppState::new 报错）。
-            let temp_cache = data_dir.join("saf_vault_temp");
-            let preserve_import_cache = if temp_cache.exists() {
-                match solosoul_core::import_activity::has_bound_imports(&temp_cache) {
-                    Ok(pending) => pending,
-                    Err(_) => {
-                        tracing::warn!("[AppState] cannot verify import journal; preserving the original SAF cache");
-                        true
-                    }
-                }
-            } else {
-                false
-            };
-            // 保持 Native root 与操作计划一致；URI 失效不能把 stage/journal 拆开或删除。
-            if preserve_import_cache {
-                tracing::info!(
-                    "[AppState] bound import keeps SAF cache as the local recovery root"
-                );
-                return Self::try_init_local_vault(&temp_cache)
-                    .map(|svc| Arc::new(RwLock::new(svc)));
-            }
-            if temp_cache.exists() {
-                tracing::info!("[AppState] migrating SAF temp cache to local vault");
-                match crate::commands::vault_directory::migrate_vault_data(
-                    &temp_cache,
-                    &data_dir,
-                    false,
-                ) {
-                    Ok(()) => {
-                        // 合并迁移是 copy 而非 move，成功后删除残留副本，
-                        // 避免加密数据双份占用磁盘；失败仅打日志，不影响降级。
-                        if let Err(e) = std::fs::remove_dir_all(&temp_cache) {
-                            tracing::warn!("[AppState] failed to clean up SAF temp cache: {e}");
-                        }
-                    }
-                    Err(e) => {
-                        tracing::error!("[AppState] temp cache migration failed (non-fatal): {e}");
-                    }
-                }
-            }
-            // 降级到本地 vault
-            match Self::try_init_local_vault(&data_dir) {
-                Ok(svc) => {
-                    tracing::info!("[AppState] local vault init after SAF fallback: OK");
-                    Ok(Arc::new(RwLock::new(svc)))
-                }
-                Err(e) => {
-                    tracing::error!("[AppState] local vault init after SAF fallback FAILED: {e}");
-                    Err(e)
-                }
-            }
+            Self::try_init_fallback_vault(&data_dir).map(|svc| Arc::new(RwLock::new(svc)))
         } else {
             match Self::try_init_saf_vault(handle, &data_dir, uri) {
                 Ok(svc) => {
@@ -320,11 +317,13 @@ impl AppState {
                         "[AppState] SAF vault init FAILED (falling back to local): {:#}",
                         e
                     );
-                    Ok(Arc::new(RwLock::new(Self::try_init_local_vault(
-                        &data_dir,
-                    )?)))
+                    // 目录锁/owner 失败必须停止，不能换根继续写入。
+                    Err(e)
                 }
             }
         }
     }
 }
+
+#[cfg(test)]
+mod rf905_tests;

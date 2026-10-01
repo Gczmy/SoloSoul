@@ -65,23 +65,49 @@ pub(super) struct SourcePreferences {
     // 请求开始时绑定账户；网络等待期间切换账户，不能把结果写入新账户。
     account: Option<(Arc<VaultStore>, String)>,
     account_value: Option<serde_json::Value>,
+    // Store / cache 在前，activity 在后；写入本身没有脱离此对象的后台任务。
+    _activity: Option<Arc<solosoul_core::import_activity::RootActivityGuard>>,
 }
 
 impl SourcePreferences {
     pub fn load(app: &tauri::AppHandle) -> Self {
-        let mut result = Self {
+        let Some(state) = app.try_state::<AppState>() else {
+            return Self::empty();
+        };
+        Self::load_for_service(state.vault_service.as_ref(), |svc| {
+            resolve_ui_prefs_path(app, svc)
+        })
+    }
+
+    fn empty() -> Self {
+        Self {
             preferences: Preferences::default(),
             cache: None,
             account: None,
             account_value: None,
-        };
-        let Some(state) = app.try_state::<AppState>() else {
+            _activity: None,
+        }
+    }
+
+    /// 登录前保留本机偏好；维护忙时不给旧 Store 或本机缓存提供无许可写入退路。
+    fn load_for_service(
+        service: &std::sync::RwLock<solosoul_core::VaultService>,
+        resolve_cache: impl FnOnce(&solosoul_core::VaultService) -> Result<PathBuf, String>,
+    ) -> Self {
+        let mut result = Self::empty();
+        let Ok(svc) = service.read() else {
             return result;
         };
-        let Ok(svc) = state.vault_service.read() else {
-            return result;
-        };
-        result.cache = resolve_ui_prefs_path(app, &svc).ok();
+        let activity =
+            match solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner()) {
+                Ok(activity) => activity,
+                Err(error) => {
+                    tracing::warn!("[updater] 更新源偏好暂不写入: {error}");
+                    return result;
+                }
+            };
+        result._activity = Some(Arc::new(activity));
+        result.cache = resolve_cache(&svc).ok();
         result.account = svc.get_vault_store().zip(svc.get_current_account());
         let stored = result.account.as_ref().and_then(|(vault, id)| {
             vault.load_profile(id).ok().flatten().and_then(|profile| {
@@ -358,6 +384,7 @@ mod tests {
             cache: None,
             account: None,
             account_value: None,
+            _activity: None,
         };
         prefs.preferences.remember(
             Channel::Manifest,
@@ -398,6 +425,10 @@ mod tests {
             cache: Some(cache.clone()),
             account: Some((vault.clone(), "account-a".into())),
             account_value: None,
+            _activity: Some(Arc::new(
+                solosoul_core::import_activity::begin_owned_root_activity(vault.root_owner())
+                    .unwrap(),
+            )),
         };
         prefs.remember(
             Channel::Manifest,
@@ -413,6 +444,10 @@ mod tests {
             cache: Some(cache.clone()),
             account: Some((vault.clone(), "account-a".into())),
             account_value: Some(value),
+            _activity: Some(Arc::new(
+                solosoul_core::import_activity::begin_owned_root_activity(vault.root_owner())
+                    .unwrap(),
+            )),
         };
         unchanged.remember(
             Channel::Release,
@@ -442,5 +477,128 @@ mod tests {
             serde_json::from_slice(&std::fs::read(cache).unwrap()).unwrap();
         assert_eq!(cached["theme"], "dark");
         assert!(!cached.to_string().contains("account-a"));
+    }
+
+    #[test]
+    fn rf905_locked_source_preferences_preserve_global_cache_with_owned_admission() {
+        let dir = tempfile::tempdir().unwrap();
+        let service = std::sync::RwLock::new(
+            solosoul_core::VaultService::try_with_base_path(dir.path().join("vault")).unwrap(),
+        );
+        let owner = service.read().unwrap().root_owner();
+        let cache = dir.path().join("ui_preferences.json");
+        std::fs::write(&cache, br#"{"theme":"dark"}"#).unwrap();
+        let prefs = SourcePreferences::load_for_service(&service, |_| Ok(cache.clone()));
+        assert!(prefs.account.is_none());
+        prefs.remember(
+            Channel::Manifest,
+            "https://mirror.example/latest.json",
+            true,
+        );
+        let saved: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(&cache).unwrap()).unwrap();
+        assert_eq!(saved["theme"], "dark");
+        assert_eq!(
+            saved[PREF_KEY]["manifest"]["url"],
+            "https://mirror.example/latest.json"
+        );
+        assert_eq!(
+            solosoul_core::import_activity::begin_owned_root_maintenance(Arc::clone(&owner))
+                .err()
+                .as_deref(),
+            Some("IMPORT_OPERATIONS_ACTIVE")
+        );
+        drop(prefs);
+        let maintenance =
+            solosoul_core::import_activity::begin_owned_root_maintenance(owner).unwrap();
+        drop(maintenance);
+    }
+
+    #[test]
+    fn rf905_busy_preferences_never_fallback_to_unowned_cache_or_old_store() {
+        let dir = tempfile::tempdir().unwrap();
+        let service = std::sync::RwLock::new(
+            solosoul_core::VaultService::try_with_base_path(dir.path().join("vault")).unwrap(),
+        );
+        service
+            .read()
+            .unwrap()
+            .create_account_with_id("acc_rf905_prefs", "Test", "password123", None)
+            .unwrap();
+        let owner = service.read().unwrap().root_owner();
+        let cache = dir.path().join("ui_preferences.json");
+        let before = br#"{"theme":"dark"}"#;
+        std::fs::write(&cache, before).unwrap();
+        let maintenance =
+            solosoul_core::import_activity::begin_owned_root_maintenance(owner).unwrap();
+        let prefs = SourcePreferences::load_for_service(&service, |_| {
+            panic!("must reject before resolving fallback cache")
+        });
+        assert!(prefs.account.is_none());
+        assert!(prefs.cache.is_none());
+        prefs.remember(
+            Channel::Manifest,
+            "https://mirror.example/latest.json",
+            true,
+        );
+        assert_eq!(std::fs::read(cache).unwrap(), before);
+        let vault = service.read().unwrap().get_vault_store().unwrap();
+        assert!(vault
+            .load_profile("acc_rf905_prefs")
+            .unwrap()
+            .and_then(|profile| serde_json::from_slice::<serde_json::Value>(&profile.data).ok())
+            .is_none_or(|value| value["preferences"][PREF_KEY].is_null()));
+        drop(vault);
+        drop(maintenance);
+    }
+
+    #[tokio::test]
+    async fn rf905_network_delayed_preferences_keep_original_store_owned_until_real_write() {
+        let dir = tempfile::tempdir().unwrap();
+        let service = std::sync::RwLock::new(
+            solosoul_core::VaultService::try_with_base_path(dir.path().join("vault")).unwrap(),
+        );
+        service
+            .read()
+            .unwrap()
+            .create_account_with_id("acc_rf905_prefs", "Test", "password123", None)
+            .unwrap();
+        let owner = service.read().unwrap().root_owner();
+        let cache = dir.path().join("ui_preferences.json");
+        let prefs = SourcePreferences::load_for_service(&service, |_| Ok(cache.clone()));
+        let (go_tx, go_rx) = tokio::sync::oneshot::channel();
+        let writer = tokio::spawn(async move {
+            go_rx.await.unwrap();
+            prefs.remember(
+                Channel::Release,
+                "https://mirror.example/release.json",
+                true,
+            );
+        });
+        assert_eq!(
+            solosoul_core::import_activity::begin_owned_root_maintenance(Arc::clone(&owner))
+                .err()
+                .as_deref(),
+            Some("IMPORT_OPERATIONS_ACTIVE")
+        );
+        go_tx.send(()).unwrap();
+        writer.await.unwrap();
+        let maintenance =
+            solosoul_core::import_activity::begin_owned_root_maintenance(owner).unwrap();
+        let vault = service.read().unwrap().get_vault_store().unwrap();
+        let profile = vault.load_profile("acc_rf905_prefs").unwrap().unwrap();
+        let stored: serde_json::Value = serde_json::from_slice(&profile.data).unwrap();
+        assert_eq!(
+            stored["preferences"][PREF_KEY]["release"]["url"],
+            "https://mirror.example/release.json"
+        );
+        let cached: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(cache).unwrap()).unwrap();
+        assert_eq!(
+            cached[PREF_KEY]["release"]["url"],
+            "https://mirror.example/release.json"
+        );
+        drop(vault);
+        drop(maintenance);
     }
 }

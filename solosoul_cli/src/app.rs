@@ -13,7 +13,6 @@ use ratatui::Frame;
 use solosoul_core::llm::config::{ConversationSummary, LlmConfig, LlmUsageStats};
 use solosoul_core::llm::service::LlmService;
 use solosoul_core::objects::AttachmentMeta;
-use solosoul_core::process_lock::ProcessLock;
 use solosoul_core::{AccountSummary, ObjectRecord, ObjectSummary, UserTemplate, VaultService};
 use zeroize::Zeroizing;
 
@@ -389,9 +388,11 @@ pub struct App {
     pub(crate) ocr_tasks: HashMap<TaskId, commands::ocr::OcrTask>,
     pub(crate) last_ocr_result: Option<AppPhase>,
     pub(crate) ocr_session: Option<solosoul_core::VaultSession>,
+    /// 插件既有全局根可不同于 --data-dir；同 App 显式保留并复用其 owner。
+    pub(crate) plugin_root_owner:
+        std::sync::Mutex<Option<Arc<solosoul_vault::root_owner::VaultRootOwner>>>,
     #[cfg(test)]
     pub(crate) plugin_test_dirs: Option<(std::path::PathBuf, std::path::PathBuf)>,
-    pub process_lock: Option<ProcessLock>,
     pub command_input: CommandInput,
     pub password_input: PasswordInput,
     pub command_history: Vec<String>,
@@ -440,15 +441,8 @@ impl App {
     pub fn new(vault_service: Arc<VaultService>) -> Result<Self> {
         let base_path = vault_service.base_path().to_path_buf();
 
-        // 获取进程级排他锁
-        let process_lock = match ProcessLock::acquire(&base_path) {
-            Ok(lock) => Some(lock),
-            Err(e) => {
-                // Phase 1：仅记录警告，不阻塞启动（便于 doctor 展示状态）
-                tracing::warn!("无法获取进程锁: {}", e);
-                None
-            }
-        };
+        // VaultService 已持有真实根的 owner；App、Session、Store 和实际 worker
+        // 复用该句柄，不获取第二把锁，也不存在失锁后继续写入的分支。
 
         let log_path = latest_log_path(&base_path);
 
@@ -472,10 +466,10 @@ impl App {
             ocr_tasks: HashMap::new(),
             last_ocr_result: None,
             ocr_session: None,
+            plugin_root_owner: std::sync::Mutex::new(None),
             #[cfg(test)]
             plugin_test_dirs: None,
             vault_service,
-            process_lock,
             command_input: CommandInput::new(),
             password_input: PasswordInput::new(),
             command_history: Vec::new(),
@@ -516,7 +510,7 @@ impl App {
     }
 
     /// 进入已登录首页，并刷新当前账户显示名称。
-    fn enter_home(&mut self, account_id: impl AsRef<str>) {
+    pub(crate) fn enter_home(&mut self, account_id: impl AsRef<str>) {
         let account_id = account_id.as_ref().to_string();
         self.account_name = self.lookup_account_name(&account_id);
         commands::attachment::retry_pending_cleanup(self, &account_id);
@@ -2634,10 +2628,12 @@ impl App {
                             KeyCode::Down if sel + 1 < filtered_len => sel += 1,
                             KeyCode::Enter if sel < filtered_len => {
                                 let plugin_id = filtered[sel].id.clone();
-                                if let Some(manifest) =
-                                    commands::plugin::load_manifest_for_app(self, &plugin_id)
-                                {
-                                    self.phase = AppPhase::PluginDetail { manifest };
+                                match commands::plugin::load_manifest_for_app(self, &plugin_id) {
+                                    Ok(Some(manifest)) => {
+                                        self.phase = AppPhase::PluginDetail { manifest }
+                                    }
+                                    Ok(None) => {}
+                                    Err(error) => self.error_message = Some(error),
                                 }
                                 return Ok(false);
                             }
@@ -2684,10 +2680,10 @@ impl App {
                 KeyCode::Down if sel + 1 < plugins.len() => sel += 1,
                 KeyCode::Enter if sel < plugins.len() => {
                     let plugin_id = plugins[sel].id.clone();
-                    if let Some(manifest) =
-                        commands::plugin::load_manifest_for_app(self, &plugin_id)
-                    {
-                        self.phase = AppPhase::PluginDetail { manifest };
+                    match commands::plugin::load_manifest_for_app(self, &plugin_id) {
+                        Ok(Some(manifest)) => self.phase = AppPhase::PluginDetail { manifest },
+                        Ok(None) => {}
+                        Err(error) => self.error_message = Some(error),
                     }
                     return Ok(false);
                 }
@@ -2777,7 +2773,21 @@ impl App {
                     let vault = self.vault_service.get_vault_store();
                     let account_id = self.vault_service.get_current_account();
                     if let (Some(vault), Some(account_id)) = (vault, account_id) {
+                        let activity =
+                            match solosoul_core::import_activity::begin_owned_root_activity(
+                                self.vault_service.root_owner(),
+                            ) {
+                                Ok(activity) => activity,
+                                Err(error) => {
+                                    // 保持原流式错误通道；维护拒绝不能让 TUI 退出或卡在 streaming。
+                                    let _ = tx
+                                        .send(crate::screens::llm_chat::StreamChunk::Error(error));
+                                    return Ok(false);
+                                }
+                            };
                         std::thread::spawn(move || {
+                            // 旧 Store 仍 pin owner；实际原生线程结束前还要保持维护准入。
+                            let _activity = activity;
                             let service = LlmService::new();
                             let result = service.send_message_stream(
                                 &vault,

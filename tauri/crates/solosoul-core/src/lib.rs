@@ -62,3 +62,6 @@ pub use search_filter::{
 
 // 路径规范化工具函数
 pub use path_util::{is_path_under_workspace, resolve_path, sanitize_file_name};
+
+#[cfg(all(test, not(any(target_os = "android", target_os = "ios"))))]
+mod root_ownership_tests;

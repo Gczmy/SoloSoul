@@ -1,4 +1,4 @@
-//! RF022 的导入任务与目录维护准入。只协调已接入的本进程任务，不替代 RF905。
+//! RF022/RF905 共用本进程任务与维护准入；目录 OS 锁由 Native owner 负责。
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, OnceLock};
@@ -84,13 +84,52 @@ pub fn begin_import_maintenance(root: &Path) -> Result<ImportMaintenanceGuard, S
     Ok(ImportMaintenanceGuard { root })
 }
 
+/// RF905：派发前获得许可，并把 owner 和许可同时移入实际 worker。
+pub struct RootActivityGuard {
+    _activity: ImportActivityGuard,
+    owner: std::sync::Arc<solosoul_vault::root_owner::VaultRootOwner>,
+}
+impl RootActivityGuard {
+    pub fn root_owner(&self) -> std::sync::Arc<solosoul_vault::root_owner::VaultRootOwner> {
+        std::sync::Arc::clone(&self.owner)
+    }
+}
+pub fn begin_owned_root_activity(
+    owner: std::sync::Arc<solosoul_vault::root_owner::VaultRootOwner>,
+) -> Result<RootActivityGuard, String> {
+    let activity = begin_import_activity(owner.root())?;
+    Ok(RootActivityGuard {
+        _activity: activity,
+        owner,
+    })
+}
+
+pub struct RootMaintenanceGuard {
+    _maintenance: ImportMaintenanceGuard,
+    owner: std::sync::Arc<solosoul_vault::root_owner::VaultRootOwner>,
+}
+impl RootMaintenanceGuard {
+    pub fn root_owner(&self) -> std::sync::Arc<solosoul_vault::root_owner::VaultRootOwner> {
+        std::sync::Arc::clone(&self.owner)
+    }
+}
+pub fn begin_owned_root_maintenance(
+    owner: std::sync::Arc<solosoul_vault::root_owner::VaultRootOwner>,
+) -> Result<RootMaintenanceGuard, String> {
+    let maintenance = begin_import_maintenance(owner.root())?;
+    Ok(RootMaintenanceGuard {
+        _maintenance: maintenance,
+        owner,
+    })
+}
+
 /// 只读本机 journal 的不敏感阶段；无需保存/解密其他账户凭证。
 /// 与 begin_import_maintenance 配对使用；单独调用仅是状态查询，不提供排他。
 pub fn has_pending_imports(root: &Path, account_id: Option<&str>) -> Result<bool, String> {
     has_import_records(root, account_id, true)
 }
 
-/// 已完成记录也绑定 Native root；迁移协议交给 RF905，本项禁止静默搬走已绑定目录。
+/// 已完成记录也绑定 Native root；完整迁移仍需独立协议；本项禁止静默搬走已绑定目录。
 pub fn has_bound_imports(root: &Path) -> Result<bool, String> {
     has_import_records(root, None, false)
 }

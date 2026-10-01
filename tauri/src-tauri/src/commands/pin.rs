@@ -26,13 +26,20 @@ pub async fn pin_check_availability(
     account_id: String,
 ) -> Result<PinStatus, String> {
     let vault_service = state.vault_service.clone();
-    tokio::task::spawn_blocking(move || {
+    let owner = vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?
+        .root_owner();
+    crate::state::root_tasks::spawn_owned_blocking(std::sync::Arc::clone(&owner), move || {
         let svc = vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
+        if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
+            return Err("VAULT_ROOT_MISMATCH".to_string());
+        }
         let manager = PinManager::new(svc.base_path().clone());
         Ok::<_, String>(manager.status(&account_id))
-    })
+    })?
     .await
     .map_err(|e| format!("pin_check_availability task failed: {}", e))?
 }
@@ -49,13 +56,24 @@ pub async fn pin_setup(
     let password = zeroize::Zeroizing::new(password);
     let pin = zeroize::Zeroizing::new(pin);
     let vault_service = state.vault_service.clone();
+    let owner = vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?
+        .root_owner();
+    let maintenance = solosoul_core::import_activity::begin_owned_root_maintenance(
+        std::sync::Arc::clone(&owner),
+    )?;
+    state.sync_service.disable_and_wait().await?;
     tokio::task::spawn_blocking(move || {
         let svc = vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
+        if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
+            return Err("VAULT_ROOT_MISMATCH".to_string());
+        }
         let manager = PinManager::new(svc.base_path().clone());
         manager
-            .setup_pin(&account_id, &password, &pin, &svc)
+            .setup_pin_with_maintenance(&account_id, &password, &pin, &svc, &maintenance)
             .map_err(map_pin_error)
     })
     .await
@@ -74,29 +92,37 @@ pub async fn pin_unlock(
 ) -> Result<AccountSummary, String> {
     let pin = zeroize::Zeroizing::new(pin);
     let vault_service = state.vault_service.clone();
-    let summary = tokio::task::spawn_blocking(move || {
-        let svc = vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        let manager = PinManager::new(svc.base_path().clone());
-        manager
-            .unlock_with_pin(
-                &account_id,
-                &pin,
-                &svc,
-                location.as_deref(),
-                action.as_deref(),
-            )
-            .map_err(map_pin_error)?;
-        // 解锁成功后查找账户名返回
-        let accounts = svc.list_accounts();
-        accounts
-            .into_iter()
-            .find(|a| a.id == account_id)
-            .ok_or_else(|| "Account not found after PIN unlock".to_string())
-    })
-    .await
-    .map_err(|e| format!("pin_unlock task failed: {}", e))??;
+    let owner = vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?
+        .root_owner();
+    let summary =
+        crate::state::root_tasks::spawn_owned_blocking(std::sync::Arc::clone(&owner), move || {
+            let svc = vault_service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
+                return Err("VAULT_ROOT_MISMATCH".to_string());
+            }
+            let manager = PinManager::new(svc.base_path().clone());
+            manager
+                .unlock_with_pin(
+                    &account_id,
+                    &pin,
+                    &svc,
+                    location.as_deref(),
+                    action.as_deref(),
+                )
+                .map_err(map_pin_error)?;
+            // 解锁成功后查找账户名返回
+            let accounts = svc.list_accounts();
+            accounts
+                .into_iter()
+                .find(|a| a.id == account_id)
+                .ok_or_else(|| "Account not found after PIN unlock".to_string())
+        })?
+        .await
+        .map_err(|e| format!("pin_unlock task failed: {}", e))??;
 
     // PIN 解锁成功后自动清理过期回收站项目
     run_expired_trash_cleanup(&state);
@@ -114,15 +140,22 @@ pub async fn pin_disable(
 ) -> Result<(), String> {
     let password = zeroize::Zeroizing::new(password);
     let vault_service = state.vault_service.clone();
-    tokio::task::spawn_blocking(move || {
+    let owner = vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?
+        .root_owner();
+    crate::state::root_tasks::spawn_owned_blocking(std::sync::Arc::clone(&owner), move || {
         let svc = vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
+        if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
+            return Err("VAULT_ROOT_MISMATCH".to_string());
+        }
         let manager = PinManager::new(svc.base_path().clone());
         manager
             .disable_pin(&account_id, &password, &svc)
             .map_err(map_pin_error)
-    })
+    })?
     .await
     .map_err(|e| format!("pin_disable task failed: {}", e))?
 }
