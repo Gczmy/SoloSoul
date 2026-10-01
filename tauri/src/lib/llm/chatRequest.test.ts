@@ -130,6 +130,7 @@ describe('chat request message ownership', () => {
       it('builds the final sequence once (' + scenario + ')', async () => {
         const snapshot = structuredClone(history);
         const request = await buildChatRequest({
+          accountId: 'account',
           text: '本次问题',
           history,
           includeSystemPrompt,
@@ -141,7 +142,15 @@ describe('chat request message ownership', () => {
         expect(history).toEqual(snapshot);
         expect(searchGuideChunks).toHaveBeenCalledTimes(includeSystemPrompt ? 1 : 0);
         if (includeSystemPrompt)
-          expect(searchGuideChunks).toHaveBeenCalledWith('本次问题', 'zh-CN');
+          expect(searchGuideChunks).toHaveBeenCalledWith(
+            'account',
+            '本次问题',
+            'zh-CN',
+            expect.objectContaining({
+              assertCurrent: expect.any(Function),
+              invokeTyped: expect.any(Function),
+            }),
+          );
       });
 
       it(

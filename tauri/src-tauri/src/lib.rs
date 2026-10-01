@@ -305,7 +305,7 @@ fn register_llm_commands() -> impl Fn(tauri::ipc::Invoke<tauri::Wry>) -> bool + 
         commands::llm::guide_load_index,
         commands::llm::guide_load_content,
         commands::llm::guide_search,
-        commands::llm::llm_search_guide_chunks,
+        commands::llm::rag::llm_search_guide_chunks,
         commands::llm::llm_rebuild_guide_embeddings,
         commands::llm::llm_check_embedding_available,
         commands::llm::llm_set_local_embedding,

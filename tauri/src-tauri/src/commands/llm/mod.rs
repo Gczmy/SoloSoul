@@ -176,6 +176,9 @@ pub mod stats;
 pub mod stream;
 #[cfg(test)]
 mod tests;
+
+#[cfg(all(test, target_os = "windows", not(feature = "native-perf")))]
+mod rf908;
 pub mod unified_chat;
 
 // Re-export all command functions so that `commands::llm::xxx` paths remain valid.

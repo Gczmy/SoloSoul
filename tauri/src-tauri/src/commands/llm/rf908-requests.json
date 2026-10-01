@@ -1,0 +1,19 @@
+{
+  "legacy": {
+    "query": "主密码",
+    "language": "zh-CN",
+    "topK": 3
+  },
+  "bound": {
+    "accountId": "acc_rf908",
+    "query": "主密码",
+    "language": "zh-CN",
+    "topK": 3
+  },
+  "empty": {
+    "accountId": "acc_rf908",
+    "query": "主密码",
+    "language": "zh-CN",
+    "topK": 0
+  }
+}

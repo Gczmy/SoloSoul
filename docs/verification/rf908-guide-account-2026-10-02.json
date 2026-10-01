@@ -1,0 +1,543 @@
+{
+  "task": "RF-908",
+  "startedDate": "2026-10-01",
+  "completedDate": "2026-10-02",
+  "baselineCommit": "11f56748b2d2baf7618f1b7368ca97eb305abbc9",
+  "status": "verified",
+  "workspace": "C:\\Users\\40299571\\SoloSoul",
+  "commitPolicy": "one item / one fix / one verified commit; no push",
+  "implementation": [
+    "Use actual rag command signature and generated GuideChunk result; mandatory starting accountId.",
+    "Pass the original StreamRun from ordinary and quick chat through builder/service; assert it before/after guide retrieval.",
+    "Keep disabled context without retrieval and ordinary retrieval failure as empty context; propagate expired tickets.",
+    "Keep original embedding selection/keyword behavior; project nullable serialized score to zero only when forming the chat Input."
+  ],
+  "verification": {
+    "frontend": {
+      "files": 246,
+      "vitestPassed": 2065,
+      "nodePassed": 112,
+      "failed": 0,
+      "defaultWorkersAndTimeouts": true
+    },
+    "rust": {
+      "passed": 1809,
+      "failed": 0,
+      "ignored": 3,
+      "nativeBindingCase": "commands::llm::rf908::rf908_actual_guide_command_binds_account_and_preserves_keyword_empty_and_locked_outcomes",
+      "nativeBindingCasePassedInFinalFullRun": true,
+      "strictClippyAllWorkspaceAllTargets": true
+    },
+    "contracts": {
+      "testsPassed": 15,
+      "migratedCommands": 89,
+      "registeredCommands": 225,
+      "legacyCommands": 136,
+      "events": 11
+    },
+    "nativeBinding": {
+      "handler": "tauri::generate_handler![super::rag::llm_search_guide_chunks]",
+      "usesProductionHandlerAndVault": true,
+      "runtime": "Tauri MockRuntime IPC + separate Wry AppHandle; no visible native window",
+      "legacyRequestCapturedFromProductionService": true,
+      "fixture": "tauri/src-tauri/src/commands/llm/rf908-requests.json",
+      "missingAccountRejected": true,
+      "boundKeywordGuideCount": 3,
+      "topKZeroEmpty": true,
+      "lockedRejected": true,
+      "temporaryVaultReleasedAndDirectoryClosed": true
+    },
+    "postFrontendFormatting": [
+      {
+        "path": "tauri/src/lib/llm/guideChatEntries.rf908.test.tsx",
+        "beforeSha256": "8d65bd7255f9e1859a6e560075759efb5508dc0b767777dd95e5452fbf7d63b5",
+        "afterSha256": "58d88a3d4c7fbf65001dcd7ca29f420e78aa952422918508bd5fa8124a73bd37",
+        "canonicalSha256": "e54a668972c0ccfe4f87b705b89837478e5718e651bd1ec9a13b8f1488703845",
+        "emittedJavaScriptOrJsonValueUnchanged": true
+      },
+      {
+        "path": "tauri/src-tauri/src/commands/llm/rf908-requests.json",
+        "beforeSha256": "f563d6263502e58b48106352e219d3d10eba397b83d09ee8ff435c1ffe748b3a",
+        "afterSha256": "720e4ea307fbcd3200769b4e26812cc56757a2de7867de86a232bc0d1c74a951",
+        "canonicalSha256": "d05f31fb47c2aa2beba2cce05a44c59ca7df982b43f43f0853e63f0ca03a087d",
+        "emittedJavaScriptOrJsonValueUnchanged": true
+      }
+    ]
+  },
+  "rawEvidenceDirectory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001",
+  "checks": [
+    {
+      "name": "front-baseline",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/lib/llm/guideService.rf908.test.ts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 30.31,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\front-baseline.log",
+      "logSha256": "07944bf6e49b0c7a5c95508790764442cc52555edaa875c59310896f26d50a72"
+    },
+    {
+      "name": "host-directed-r4",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "rf908_actual_guide_command",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 128.51,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\host-directed-r4.log",
+      "logSha256": "4292553c19d12095928ad55e0259de63941a33fa3aa0b99ed6aca59179cf6b9c"
+    },
+    {
+      "name": "types-final-r2",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 23.92,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\types-final-r2.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lint-final-r2",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 35.71,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\lint-final-r2.log",
+      "logSha256": "c1f9291f0b7dd79a974f435dfa42be232bb205471ce07b68b10236c8ed19b844"
+    },
+    {
+      "name": "front-full",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "test"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 199.71,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\front-full.log",
+      "logSha256": "dbbae68f828820ebed5c9e9b8b3c72d4ee6c0747f740bde9f7214daaf2bd3478"
+    },
+    {
+      "name": "format-check-r3",
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "src/lib/llm/guideService.ts",
+        "src/lib/llm/chatRequest.ts",
+        "src/lib/llm/chatRequest.test.ts",
+        "src/lib/llm/chatContextSelection.test.ts",
+        "src/lib/llm/guideService.rf908.test.ts",
+        "src/lib/llm/guideChatEntries.rf908.test.tsx",
+        "src/hooks/useLlmChatCore.ts",
+        "scripts/generate-ipc-contracts.node.mjs",
+        "src-tauri/ipc-contracts.json",
+        "src-tauri/src/commands/llm/rf908-requests.json"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.58,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\format-check-r3.log",
+      "logSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "name": "format-semantics-r2",
+      "command": [
+        "node",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\format-semantics.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.5,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\format-semantics-r2.log",
+      "logSha256": "f431c2dc61820666de7b670fd4301ad12277ce06fbfd0ba16cc765935f1453cd"
+    },
+    {
+      "name": "contract-check",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "check:contracts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 10.58,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\contract-check.log",
+      "logSha256": "94371ad9bf9a948837aaef5c2937341222b2d9e429cc720b073a04c7a516b23e"
+    },
+    {
+      "name": "contract-tests",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "test:contracts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 55.83,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\contract-tests.log",
+      "logSha256": "d28d415c3f50ffde33992f9ccf00ee5ad0a02e6998ebc5ca919b4b1cb64fb8be"
+    },
+    {
+      "name": "acl",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "check:acl"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.77,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\acl.log",
+      "logSha256": "4f44a6acef3cd7089f94e8be039306749297b31fa1fbc01f9c121445b6754888"
+    },
+    {
+      "name": "preferences",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "check:pref-keys"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.73,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\preferences.log",
+      "logSha256": "108a5a292db9f29147ac67a2fe97eebedfddaa179e8d2fdfdb2477b8759dd796"
+    },
+    {
+      "name": "markdown",
+      "command": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.25,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\markdown.log",
+      "logSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc"
+    },
+    {
+      "name": "acl-unit",
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_check_acl_consistency.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.7,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\acl-unit.log",
+      "logSha256": "f2f24a2edd74b0fb51d7695cbf6f7d34bb61f3d7574b79c16577420b724518de"
+    },
+    {
+      "name": "rust-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 6.49,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\rust-fmt.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "rust-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 65.36,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\rust-clippy.log",
+      "logSha256": "2db2ef786f6d6a668c7e11d01e0b475ff0c8fa7da29aba96a1af4b2b2f850869"
+    },
+    {
+      "name": "rust-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 395.72,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\rust-tests.log",
+      "logSha256": "cd9750e947ee31daa5085cbf1a54646625b204e950a7b16a93192e29f9fd8ea2"
+    }
+  ],
+  "retainedFailedAttempts": [
+    {
+      "name": "generate-initial",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "generate:contracts"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 17.23,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\generate-initial.log",
+      "logSha256": "5d5dabf867c64dd0df6e14e0c3fb0ec50ddd28a968dcc0e0e6901995e2d54b03"
+    },
+    {
+      "name": "generate-r2",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "generate:contracts"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 1.51,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\generate-r2.log",
+      "logSha256": "02057b71249d8f7c9aa912c04f7f756a9820b4ab71b7b9c8b41389081a559461"
+    },
+    {
+      "name": "generate-r3",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "generate:contracts"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 1.57,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\generate-r3.log",
+      "logSha256": "f1fa4a896044660275b58d3775c75d0fda88e5efaf0cfe5abb2ca600e82884e4"
+    },
+    {
+      "name": "types-initial",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 2,
+      "elapsedSeconds": 22.58,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\types-initial.log",
+      "logSha256": "b4d5b0b330989f2e327c1dc481d16616487afca8016eeba2c83dd8798eb4cc3b"
+    },
+    {
+      "name": "front-directed",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/lib/llm/guideService.rf908.test.ts",
+        "src/lib/llm/guideChatEntries.rf908.test.tsx",
+        "src/lib/llm/chatRequest.test.ts",
+        "src/lib/llm/chatContextSelection.test.ts"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 31.77,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\front-directed.log",
+      "logSha256": "e7352919408230b426f8115278bb4c31b93a282b655ab405b896b3a819c16c0a"
+    },
+    {
+      "name": "host-directed",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "rf908_actual_guide_command",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 101,
+      "elapsedSeconds": 506.01,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\host-directed.log",
+      "logSha256": "74fd2f3d352a28bf039203603bb249895c52df4063e365c653c0beec75dc1308"
+    },
+    {
+      "name": "host-directed-r2",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "rf908_actual_guide_command",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 101,
+      "elapsedSeconds": 127.18,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\host-directed-r2.log",
+      "logSha256": "eb326324d6dffefd719fda257b0004dd2673354d687dcaca2351be7b80fb4cbf"
+    },
+    {
+      "name": "host-directed-r3",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "rf908_actual_guide_command",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 101,
+      "elapsedSeconds": 82.66,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\host-directed-r3.log",
+      "logSha256": "38979394343e76fa68e1013ab380dd555350e00051723e716d4c259450523e66"
+    },
+    {
+      "name": "format-check-r2",
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "src/lib/llm/guideService.ts",
+        "src/lib/llm/chatRequest.ts",
+        "src/lib/llm/chatRequest.test.ts",
+        "src/lib/llm/chatContextSelection.test.ts",
+        "src/lib/llm/guideService.rf908.test.ts",
+        "src/lib/llm/guideChatEntries.rf908.test.tsx",
+        "src/hooks/useLlmChatCore.ts",
+        "scripts/generate-ipc-contracts.node.mjs",
+        "src-tauri/ipc-contracts.json",
+        "src-tauri/src/commands/llm/rf908-requests.json"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 0.72,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\format-check-r2.log",
+      "logSha256": "6464b4251acda6c650340f4b697dc5e5580edb3c4735e0391c51b10f61ffb873"
+    },
+    {
+      "name": "format-semantics",
+      "command": [
+        "node",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\format-semantics.mjs"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 0.41,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf908-20261001\\format-semantics.log",
+      "receiptRecoveredFromOriginalToolOutput": true,
+      "note": "The second comparison reused the JSON name for proof data; original failed output/log is retained.",
+      "logSha256": "f9f47c0679dc9c95714a4b3deca656e99d862e1435b3e46f6c86dc11f0e2f7bf"
+    }
+  ],
+  "failedAttemptNotes": [
+    "Initial generator source registration/import restrictions were resolved without weakening generator checks.",
+    "Initial type check exposed nullable output score vs required numeric Input; explicit projection covered by ordinary/quick entry tests.",
+    "Initial new parameterized tests spread array rows; changed to named array result rows and reran all frontend tests.",
+    "Host harness initially used an invalid account ID, then lacked Tokio runtime, then retained Mock managed state; final harness uses explicit background runtime and removes controlled state only after all IPC has settled. Cleanup assertions remain.",
+    "Pure LF/CRLF formatting was checked against identical TypeScript emitted JavaScript and JSON values; the first printer-based comparison retained JSX newline trivia and was replaced by actual compiler output comparison."
+  ],
+  "sourceSha256": {
+    "tauri/scripts/generate-ipc-contracts.node.mjs": "c573a0c389c5e77c4858514e74cd7f2047cf86948e3ad36a4931941434cf6b2e",
+    "tauri/src-tauri/ipc-contracts.json": "c77741d59f5ef1929e8ec90fb4c88d5f86772a08387f65e5e0c4ebc73173f6fd",
+    "tauri/src-tauri/src/commands/llm/mod.rs": "2bb2b7196621644f79563aecb8a501dda3b7313587e7ebb22001dfe4c9925dbc",
+    "tauri/src-tauri/src/commands/llm/rag.rs": "f09155c92f4a1d25d5be14176a0b88c10257b248b0650c698ab115c72556c665",
+    "tauri/src-tauri/src/commands/llm/rf908.rs": "c9ddc93deaccc0c56262f88d6a3bd13b28ec2eeba68c77d009f212daf7eae00d",
+    "tauri/src-tauri/src/commands/llm/rf908-requests.json": "720e4ea307fbcd3200769b4e26812cc56757a2de7867de86a232bc0d1c74a951",
+    "tauri/src-tauri/src/lib.rs": "556eceaf27c38c51c5c0026689c3a35ed705ece90635b4a444a662287a844d0c",
+    "tauri/src/hooks/useLlmChatCore.ts": "54ec9ea4e992bd64ab89dd45e00d15136a1625ad2e35bdd0f3b4fcf54a2986ad",
+    "tauri/src/lib/generated/ipcContractManifest.json": "b4a801041b2a26e7861aaeefc86ea41bf398f55879cf04d86f8cedb5488b0b2a",
+    "tauri/src/lib/generated/ipcContracts.ts": "69bfcf3c9bc3e6f2b099df2075e46b2d9de3413fea55879d4dad947a613bea58",
+    "tauri/src/lib/llm/chatContextSelection.test.ts": "e90062a94b09919b0aacfd94dcf5aa445e9023c7058eafb00a2e78c5ad49359b",
+    "tauri/src/lib/llm/chatRequest.test.ts": "43efcc8f05ffd64ce7453d14af1cffa23908de91b37559f6ff07cafa5e747b30",
+    "tauri/src/lib/llm/chatRequest.ts": "ee1b2b812d976d20a7bd9ff4e53d2341fd3c90cac826ae242c49b047061bb503",
+    "tauri/src/lib/llm/guideService.ts": "a8cea4916ff73c2df630e443887e919076f81997bbefb9e5a26ab709ee70916d",
+    "tauri/src/lib/llm/guideService.rf908.test.ts": "e3cbea6eed70353e978e5dd8154ef853803bf4d131c30ecf6015f0e1cb668e76",
+    "tauri/src/lib/llm/guideChatEntries.rf908.test.tsx": "58d88a3d4c7fbf65001dcd7ca29f420e78aa952422918508bd5fa8124a73bd37"
+  },
+  "protectedDirtyPathsSha256": {
+    "solosoul_cli/src/commands/profile.rs": "e08c0a7b8c9d9270f5764945494634c75d6d81bcba02cc189487965c81fc4e41",
+    "solosoul_cli/src/commands/security.rs": "0133f1ca219910c364dba4a2792452cfb88b05a133243f45765703cbbe146104",
+    "solosoul_cli/src/commands/template.rs": "ed2c08ee422ca9365415723875289cdad12ee2b92746a99a8c46eccac0ad7f95",
+    "solosoul_cli/src/commands/vault_write.rs": "48cb640caca661c289897d9d99a6a8cf4b13bb16abe05b5123fbc30b3bc7a16e",
+    "tauri/crates/solosoul-core/src/process_lock.rs": "48ebf0045f85980ebfc6e0a9ee52d72d2bb394e6f8b12d7107a2362f0d637c34",
+    "tauri/src-tauri/bundles/nsis/assets/header-install.bmp": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+    "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+    "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+    "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": "d1f8f2db3d8aad53e1b955d3fc640374752db1c302d2f2c22d74e9ed356b428f",
+    "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/search-index.json": "cd4beaf09aeda37039a6523e6b86d01374dcced507278a1e76d41bd473b4e8fb",
+    "tauri/src-tauri/gen/android/app/tauri.properties": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+    "tauri/src/hooks/useToastError.ts": "f2da44c3ca3fb50e379051ba762b1712ec19dfa21f9321ecaee3f9ef4fa33968"
+  },
+  "boundaries": [
+    "Actual Tauri argument parsing and production local keyword fallback are verified; browser invoke mocks alone are not used as binding evidence.",
+    "No visible desktop window, remote provider/embedding, macOS, Android or iOS native behavior is claimed.",
+    "CLI was not rerun: no shared Core production source or CLI code changed."
+  ],
+  "scope": {
+    "ownedPaths": [
+      "tauri/scripts/generate-ipc-contracts.node.mjs",
+      "tauri/src-tauri/ipc-contracts.json",
+      "tauri/src-tauri/src/commands/llm/mod.rs",
+      "tauri/src-tauri/src/commands/llm/rag.rs",
+      "tauri/src-tauri/src/commands/llm/rf908.rs",
+      "tauri/src-tauri/src/commands/llm/rf908-requests.json",
+      "tauri/src-tauri/src/lib.rs",
+      "tauri/src/hooks/useLlmChatCore.ts",
+      "tauri/src/lib/generated/ipcContractManifest.json",
+      "tauri/src/lib/generated/ipcContracts.ts",
+      "tauri/src/lib/llm/chatContextSelection.test.ts",
+      "tauri/src/lib/llm/chatRequest.test.ts",
+      "tauri/src/lib/llm/chatRequest.ts",
+      "tauri/src/lib/llm/guideService.ts",
+      "tauri/src/lib/llm/guideService.rf908.test.ts",
+      "tauri/src/lib/llm/guideChatEntries.rf908.test.tsx",
+      "docs/ipc-contract-generation.md",
+      "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+      "docs/verification/rf908-guide-account-2026-10-02.json"
+    ],
+    "dependencyOrLockfileChanges": false,
+    "userDirtyPathsExcludedFromCommit": 12,
+    "recordedOtherTrackedFilePathsRawSha256UnchangedCount": 1796,
+    "rawBaselineBoundary": "Recorded file baseline did not include Git-quoted non-ASCII paths or gitlinks; the exact Git status/stage scopes and 12 protected paths were checked separately."
+  },
+  "finalReview": "Primary agent scope/source review; not an independent final repository audit."
+}

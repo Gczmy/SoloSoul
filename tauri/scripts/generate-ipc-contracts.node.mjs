@@ -838,7 +838,7 @@ test('RF304 real default and outcome drift fail check without overwriting output
 test('RF305 real serde sync fixtures compile and reject missing wire identity, nullability and UI fields', async () => {
   await withProductionFixture(async (root) => {
     const manifest = await generateContracts({ root });
-    assert.equal(manifest.commands.length, 88);
+    assert.equal(manifest.commands.length, 89);
     assert.equal(manifest.events.length, 11);
     const fixture = JSON.parse(
       await readFile(
@@ -1016,5 +1016,40 @@ test('RF307 actual error serde and Result signature drift fail check without rep
       await writeFile(target, original);
     }
     await generateContracts({ root, check: true });
+  });
+});
+
+test('RF908 guide retrieval requires the starting account at the actual typed IPC boundary', async () => {
+  await withProductionFixture(async (root) => {
+    await copyTypedSources(root, { session: true });
+    const fixture = JSON.parse(
+      await readFile(
+        path.join(workspaceRoot, 'src-tauri/src/commands/llm/rf908-requests.json'),
+        'utf8',
+      ),
+    );
+    const probe = path.join(root, 'guide-account-probe.ts');
+    await writeFile(
+      probe,
+      `import type {IpcCommands,GuideChunk} from './src/lib/generated/ipcContracts';
+import {createSessionRequests} from './src/lib/sessionRequests';
+const bound=${JSON.stringify(fixture.bound)} satisfies IpcCommands['llm_search_guide_chunks']['args'];
+const empty=${JSON.stringify(fixture.empty)} satisfies IpcCommands['llm_search_guide_chunks']['args'];
+const ticket=createSessionRequests().begin(undefined,bound.accountId);
+const result:Promise<GuideChunk[]>=ticket.invokeTyped('llm_search_guide_chunks',bound);
+void ticket.invokeTyped('llm_search_guide_chunks',{accountId:bound.accountId,query:'q',language:'zh-CN'});
+void ticket.invokeTyped('llm_search_guide_chunks',{...bound,topK:null});
+// @ts-expect-error Actual legacy body lacks the mandatory accountId.
+void ticket.invokeTyped('llm_search_guide_chunks',${JSON.stringify(fixture.legacy)});
+// @ts-expect-error topK is the actual integer input, never a string.
+void ticket.invokeTyped('llm_search_guide_chunks',{...bound,topK:'3'});
+// @ts-expect-error Returned GuideChunk fields are required.
+const missing:GuideChunk={guideId:'id',chunkText:'text',similarity:0.8};
+void empty; void result; void missing;
+`,
+    );
+    const result = await compileProbe(root, probe);
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
   });
 });

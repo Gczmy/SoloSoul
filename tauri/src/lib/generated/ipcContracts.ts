@@ -260,6 +260,13 @@ export type FieldSuggestion = {
   value: string;
 };
 
+export type GuideChunk = {
+  guideId: string;
+  guideTitle: string;
+  chunkText: string;
+  similarity: number | null;
+};
+
 export type GuideChunkInput = {
   guideId: string;
   guideTitle: string;
@@ -800,6 +807,10 @@ export type IpcCommands = {
     args: { accountId: string; conversation: ConversationInput };
     result: null;
   };
+  llm_search_guide_chunks: {
+    args: { accountId: string; query: string; language: string; topK?: number | null };
+    result: Array<GuideChunk>;
+  };
   llm_send_message_stream: {
     args: {
       accountId: string;
@@ -963,6 +974,7 @@ export type IpcCommandErrors = {
   llm_rename_conversation: string;
   llm_restore_conversation: string;
   llm_save_conversation: string;
+  llm_search_guide_chunks: string;
   llm_send_message_stream: string;
   llm_soft_delete_conversation: string;
   mdns_discover: string;

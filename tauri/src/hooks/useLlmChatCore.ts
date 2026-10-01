@@ -232,6 +232,8 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       }
       useLlmStore.getState().prepareStream(identity, [...userMessages, assistant]);
       const request = await buildChatRequest({
+        accountId: identity.accountId,
+        request: run,
         text,
         history,
         includeSystemPrompt: optIncludeSystemPrompt !== false && savedIncludeSystemPrompt !== false,

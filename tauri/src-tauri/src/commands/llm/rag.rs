@@ -1,16 +1,19 @@
 use crate::commands::vault_handle;
 use crate::state::AppState;
 use solosoul_vault::VaultStore;
-#[cfg(not(feature = "native-perf"))]
-use tauri::Manager;
 use tauri::State;
 
 // =============================================================================
 // RAG Embedding API (§RAG-3)
 // =============================================================================
 
+use super::{
+    find_relevant_guides_internal, load_api_keys, load_config, load_guide_index,
+    load_providers_with_keys, resolve_language, resolve_title, resource_path, ApiType, LlmConfig,
+    MAX_PREVIEW_CHARS,
+};
+
 /// Normalize a vector to unit length.
-use super::*;
 fn normalize_vector(vec: &mut [f32]) {
     let norm: f32 = vec.iter().map(|v| v * v).sum::<f32>().sqrt();
     if norm > 0.0 {
@@ -331,9 +334,7 @@ pub async fn llm_search_guide_chunks(
     #[cfg(feature = "native-perf")]
     let models_dir = crate::native_perf::root()?.join("models");
     #[cfg(not(feature = "native-perf"))]
-    let models_dir = state
-        .handle
-        .path()
+    let models_dir = tauri::Manager::path(&state.handle)
         .resolve("models", tauri::path::BaseDirectory::LocalData)
         .map_err(|e| format!("Resolve models dir: {}", e))?;
 
@@ -725,6 +726,7 @@ fn get_overlap(text: &str, len: usize) -> String {
 
 #[cfg(test)]
 mod tests {
+    use super::super::{AiFeatures, ProviderConfig};
     use super::*;
 
     fn cfg_with(providers: Vec<ProviderConfig>) -> LlmConfig {
@@ -848,9 +850,7 @@ pub async fn llm_rebuild_guide_embeddings(
     #[cfg(feature = "native-perf")]
     let models_dir = crate::native_perf::root()?.join("models");
     #[cfg(not(feature = "native-perf"))]
-    let models_dir = state
-        .handle
-        .path()
+    let models_dir = tauri::Manager::path(&state.handle)
         .resolve("models", tauri::path::BaseDirectory::LocalData)
         .map_err(|e| format!("Resolve models dir: {}", e))?;
 
@@ -920,9 +920,7 @@ pub async fn llm_check_embedding_available(
     #[cfg(feature = "native-perf")]
     let models_dir = crate::native_perf::root()?.join("models");
     #[cfg(not(feature = "native-perf"))]
-    let models_dir = state
-        .handle
-        .path()
+    let models_dir = tauri::Manager::path(&state.handle)
         .resolve("models", tauri::path::BaseDirectory::LocalData)
         .map_err(|e| format!("Resolve models dir: {}", e))?;
 

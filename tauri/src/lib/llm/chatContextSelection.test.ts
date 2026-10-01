@@ -64,6 +64,7 @@ describe('RF-004 context selection contains references only', () => {
       object('public-4'),
     ];
     const request = await buildChatRequest({
+      accountId: 'account',
       text: '你好',
       history: [],
       includeSystemPrompt: true,
@@ -86,6 +87,7 @@ describe('RF-004 context selection contains references only', () => {
       throw new Error('Disabled context must not read ObjectStore');
     });
     const request = await buildChatRequest({
+      accountId: 'account',
       text: '你好',
       history: [],
       includeSystemPrompt: false,
@@ -102,6 +104,7 @@ describe('RF-004 context selection contains references only', () => {
   it('preserves an empty object selection without widening it to other objects', async () => {
     state.objects = [object('private', 'sensitive'), object('deleted', 'public', true)];
     const request = await buildChatRequest({
+      accountId: 'account',
       text: '你好',
       history: [],
       includeSystemPrompt: true,
@@ -122,6 +125,7 @@ describe('RF-004 context selection contains references only', () => {
     });
     vi.mocked(searchGuideChunks).mockReturnValue(pendingGuides);
     const pendingRequest = buildChatRequest({
+      accountId: 'account',
       text: '如何使用',
       history: [],
       includeSystemPrompt: true,
@@ -132,7 +136,15 @@ describe('RF-004 context selection contains references only', () => {
       { guideId: 'guide', guideTitle: '使用指南', chunkText: '官方帮助正文', similarity: 0.75 },
     ];
     resolveGuides(guideChunks);
-    expect(searchGuideChunks).toHaveBeenCalledWith('如何使用', 'zh-CN');
+    expect(searchGuideChunks).toHaveBeenCalledWith(
+      'account',
+      '如何使用',
+      'zh-CN',
+      expect.objectContaining({
+        assertCurrent: expect.any(Function),
+        invokeTyped: expect.any(Function),
+      }),
+    );
     expect((await pendingRequest).contextSelection).toEqual({
       mode: 'publicProfile',
       objectIds: ['selected'],
@@ -152,7 +164,12 @@ describe('RF-004 context selection contains references only', () => {
         { id: 'unknown', role: 'unknown', content: 'LEGACY_UNKNOWN', createdAt: '' },
       ];
       const snapshot = structuredClone(history);
-      const request = await buildChatRequest({ text: '新问题', history, includeSystemPrompt });
+      const request = await buildChatRequest({
+        accountId: 'account',
+        text: '新问题',
+        history,
+        includeSystemPrompt,
+      });
       expect(request.messages).toEqual([
         { role: 'user', content: '旧问题' },
         { role: 'assistant', content: '旧回答' },

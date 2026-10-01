@@ -351,6 +351,10 @@
     {
       "name": "vault_sync_to_remote",
       "source": "src-tauri/src/sync/ipc.rs"
+    },
+    {
+      "name": "llm_search_guide_chunks",
+      "source": "src-tauri/src/commands/llm/rag.rs"
     }
   ],
   "types": [

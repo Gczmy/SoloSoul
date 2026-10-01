@@ -1,6 +1,6 @@
 # 增量 IPC 契约生成
 
-RF301 迁移只读命令 `get_app_info`，RF302 再迁移真实注册的 10 个 `object_*` 和 4 个 `snapshot_*` 命令。RF306 继续迁移插件 15 个命令，RF303 迁移 8 个会话命令与普通流式发送。RF304 再迁移备份、导入导出和任务恢复的 16 个命令，RF305 迁移设备/云/SAF 同步与账户恢复的 33 个命令。当前实际注册清单覆盖 88/225 个命令，137 个命令仍待迁移，并生成 11 个选定全局事件。Rust 命令签名及其 DTO 是参数及响应形状的来源；前端通过 `invokeTypedCommand` 复用现有 `ipcClient` 的鉴权、过期请求检查和错误处理。旧入口仍服务未迁移命令，不宣称全库调用已经类型化。生成类型只做编译期检查，不做运行时响应校验。RF307 的错误包另有运行时白名单投影，范围见后文。
+RF301 迁移只读命令 `get_app_info`，RF302 再迁移真实注册的 10 个 `object_*` 和 4 个 `snapshot_*` 命令。RF306 继续迁移插件 15 个命令，RF303 迁移 8 个会话命令与普通流式发送。RF304 再迁移备份、导入导出和任务恢复的 16 个命令，RF305 迁移设备/云/SAF 同步与账户恢复的 33 个命令。RF908 加入实际指南检索命令，当前实际注册清单覆盖 89/225 个命令，136 个命令仍待迁移，并生成 11 个选定全局事件。Rust 命令签名及其 DTO 是参数及响应形状的来源；前端通过 `invokeTypedCommand` 复用现有 `ipcClient` 的鉴权、过期请求检查和错误处理。旧入口仍服务未迁移命令，不宣称全库调用已经类型化。生成类型只做编译期检查，不做运行时响应校验。RF307 的错误包另有运行时白名单投影，范围见后文。
 
 ## 生成与检查
 
@@ -115,3 +115,12 @@ Store 使用 `request.invokeTyped`，由 `createTypedInvoker` 包装已有带会
 `resolveBackendErrorMessage` 与已有 `translateRustError` 在展示层翻译 code；对象 Store 保存机器错误，语言切换后重新翻译。历史页面、快照预览与对象读取的错误提示/日志使用安全投影。IPC 日志对仍未迁移的错误只保留 `LEGACY_ERROR` 类别，但这些域的原拒绝值、旧前缀解析与展示行为继续保留，LLM/传输/同步/插件分别由 RF317～RF320 迁移。Host 诊断仅记录 code、阶段和静态 cause 类型，不保存自由文本 cause；Vault JSON 损坏日志也不记录对象名称。
 
 Core 增加对象创建的阶段错误入口，保留原 `build_create_record` String API；CLI 调用仍取得原错误文本，记录构建与写入逻辑没有复制。合成 JSON fixture 同时经真实 Host serde、生成 TS 编译负例、运行时白名单投影与真实双语 i18next 校验；Vault 写入失败、归属错误与损坏快照仍在实际数据库上验证。
+
+
+## 指南检索账户绑定（RF908）
+
+`llm_search_guide_chunks` 的参数由实际 `rag.rs` 命令生成：`accountId/query/language` 必需，`topK` 可以缺省或为 null。查询结果使用实际 GuideChunk 输出；serde 允许非有限浮点值成为 null，builder 在再次作为发送 Input 时仅将该分数转换为 0，保留文本及其他字段。关键词回退、有结果/空结果和 Embedding 选择保持原实现。
+
+普通聊天页面及快捷浮窗通过 core 传递发送开始时的账户和原 StreamRun。服务与 builder 在调用前后检查原票据，锁定、切换账户或请求失效后不会接纳旧片段；关闭自动上下文仍不检索指南。检索的普通失败保留空上下文回退，不将失效会话吞成成功。
+
+回归使用共享合成请求 JSON，同时覆盖真实生产服务的 native invoke 参数、页面/浮窗发送链路及编译负例。Windows Host 测试用实际 `generate_handler!`、Tauri 参数解析和临时 Vault 检查缺参数拒绝、关键词命中、空结果及锁定拒绝。IPC 执行使用 Tauri MockRuntime，独立 Wry App 仅提供 AppHandle 路径 API，没有可见原生窗口或真实 Provider 请求；这不替代多端 Webview/联网 Embedding 验收。
