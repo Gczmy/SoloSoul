@@ -1,0 +1,279 @@
+{
+  "task": "RF-314",
+  "baseline_commit": "0425454b",
+  "scope": "DOC only; six capability chains in existing canonical platform contract, five platform boundaries, implementation/test links and dated evidence; no new competing specification",
+  "checks": {
+    "relative_link_targets": 64,
+    "six_chains_and_five_platforms": true,
+    "markdown_dependency_boundary_exit": 0,
+    "diff_check_exit": 0
+  },
+  "prior_failure": "Boundary command initially run from repository root could not resolve index.html; corrected cwd tauri and exit0. No product changes.",
+  "links": [
+    {
+      "from": "docs/design_map/00_总览与阅读指南.md",
+      "target": "27_平台能力契约.md"
+    },
+    {
+      "from": "docs/design_map/00_总览与阅读指南.md",
+      "target": "28_Android内置资源安装.md"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-205"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src/lib/themeController.ts"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src/lib/theme.ts"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src-tauri/src/commands/system.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src/lib/themeController.test.ts"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src/lib/theme.test.ts"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../verification/rf201-mobile-system-theme-2026-10-02.json"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../verification/rf112-theme-controller-2026-10-02.json"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src/lib/ocrScanOperation.ts"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src-tauri/src/commands/ocr.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/crates/solosoul-core/src/ocr/mod.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src/lib/ocrScanOperation.test.ts"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/crates/solosoul-core/src/ocr/engine/rf029_tests.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../verification/rf203-ios-ocr-unsupported-2026-10-02.json"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../verification/rf205-platform-capabilities-2026-10-02.json"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src/stores/updateStore.ts"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src/stores/updateStore.test.ts"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src/lib/platformCapabilities.test.ts"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-202"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../verification/rf205-platform-capabilities-2026-10-02.json"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/crates/solosoul-core/src/objects/rollback.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src-tauri/src/commands/object/snapshot.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../solosoul_cli/src/commands/history.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/crates/solosoul-core/src/objects/rollback/tests.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-008"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../verification/rf204-ios-status-compile-2026-10-02.json"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/crates/solosoul-core/src/backup.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src-tauri/src/commands/backup.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../solosoul_cli/src/commands/backup.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/crates/solosoul-core/src/backup/tests.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src-tauri/src/commands/backup/rf013_tests.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../solosoul_cli/src/commands/backup/rf013_tests.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-013"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../verification/rf304-backup-transfer-contracts-2026-10-01.json"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src/lib/nativeWindow.ts"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src-tauri/src/commands/window.rs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src/lib/nativeWindow.test.ts"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidGlassInstrumentedTest.kt"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../tauri/scripts/android-native-regression.mjs"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../verification/rf310-android-native-regression-2026-10-02.json"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../.github/workflows/build-android.yml"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../platform-mobile/android-native-regression.md"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../.github/workflows/pr_check.yml"
+    },
+    {
+      "from": "docs/design_map/27_平台能力契约.md",
+      "target": "../../.github/workflows/ci_cd.yml"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../attachment-storage-spec.md#11-原会话内的孤儿附件清理rf-903"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../plugin_market/02-runtime.md"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../../solosoul_cli/src/tasks.rs"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../../solosoul_cli/src/util.rs"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../../solosoul_cli/src/commands/sync.rs"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-213"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../verification/rf213-cli-sync-task-2026-10-01.json"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../../solosoul_cli/src/main.rs"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../../tauri/crates/solosoul-vault/src/root_owner.rs"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../../tauri/crates/solosoul-core/src/process_lock.rs"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../verification/rf905-root-ownership-2026-10-01.json"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../design_map/27_平台能力契约.md#能力链与验收证据矩阵rf-3142026-10-02"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-008"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-010"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-013"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../verification/rf024-core-encrypted-import-2026-10-01.json"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../../tauri/src/App/routes.tsx"
+    },
+    {
+      "from": "docs/solosoul_cli/USER_GUIDE.md",
+      "target": "../../tauri/src/pages/ai/LlmConfigPage.tsx"
+    }
+  ],
+  "source_sha256": {
+    "docs/design_map/00_总览与阅读指南.md": "d7b9a8d294ce94cf4096d902a2321f334d80dab6390def695cd66e5300e8e27a",
+    "docs/design_map/27_平台能力契约.md": "80f14764421eac58360fccc63d92791a74bda4afea5e07bba4bc4cb607a23314",
+    "docs/solosoul_cli/USER_GUIDE.md": "24bd722d45599d606ad0e50cd1f22597fc02a152d125bfb664acc2880b09f4f3"
+  },
+  "limits": [
+    "No product runtime or build rerun for DOC-only changes; existing evidence dates preserved.",
+    "Native material RF-121, macOS RF-112 lock/unlock, iOS RF-1069 typography and remote CI remain explicitly pending."
+  ]
+}
