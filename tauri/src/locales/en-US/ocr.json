@@ -106,5 +106,7 @@
   "scan_complete_notification": "Scan complete",
   "first_install_completed": "OCR model installation complete",
   "auto_close_countdown": "Auto-closing in {{seconds}}s",
-  "close": "Close"
+  "close": "Close",
+  "scan_capability_unavailable": "The scanning service is unavailable. Please try again later.",
+  "scan_platform_unsupported": "Text scanning is not supported on this device."
 }

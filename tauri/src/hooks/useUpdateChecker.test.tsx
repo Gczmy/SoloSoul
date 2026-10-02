@@ -1,3 +1,4 @@
+import { capabilityFixture } from '@/lib/__fixtures__/platformCapabilityFixture';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useUpdateChecker, type AppInfo } from './useUpdateChecker';
@@ -13,7 +14,7 @@ import {
 } from '@/lib/updater';
 import { useUpdateStore } from '@/stores/updateStore';
 import { useAppUpdate } from './useAppUpdate';
-import { getPlatform } from '@/lib/platform';
+import { getPlatformCapabilities } from '@/lib/platformCapabilities';
 
 vi.mock('@tauri-apps/plugin-process', () => ({ relaunch: vi.fn() }));
 // 保留真实 typedIpc → ipcClient，只替换原生边界。
@@ -27,7 +28,7 @@ const appInfo = {
   os: 'android',
   arch: 'aarch64',
 } satisfies AppInfo;
-vi.mock('@/lib/platform', () => ({ getPlatform: vi.fn(async () => 'android') }));
+vi.mock('@/lib/platformCapabilities', () => ({ getPlatformCapabilities: vi.fn() }));
 vi.mock('@/lib/updater', () => ({
   androidCheckForUpdate: vi.fn(),
   androidCachedUpdate: vi.fn().mockResolvedValue(null),
@@ -62,7 +63,7 @@ describe('useUpdateChecker cancellation', () => {
     vi.mocked(invoke).mockResolvedValue(appInfo);
     useUpdateStore.setState(useUpdateStore.getInitialState(), true);
     localStorage.clear();
-    vi.mocked(getPlatform).mockResolvedValue('android');
+    vi.mocked(getPlatformCapabilities).mockResolvedValue(capabilityFixture('android'));
     vi.mocked(androidCheckForUpdate).mockResolvedValue({
       kind: 'available',
       info: {
@@ -139,7 +140,7 @@ describe('useUpdateChecker cancellation', () => {
   });
 
   it('iOS 的真实共享 Store 投影为 unsupported，横幅隐藏且不调用任一更新适配器', async () => {
-    vi.mocked(getPlatform).mockResolvedValue('ios');
+    vi.mocked(getPlatformCapabilities).mockResolvedValue(capabilityFixture('ios'));
     const about = renderHook(useUpdateChecker);
     const banner = renderHook(useAppUpdate);
     await waitFor(() =>
@@ -248,7 +249,7 @@ describe('useUpdateChecker cancellation', () => {
   });
 
   it('keeps cancellation pending until the desktop download rejects and allows retry afterward', async () => {
-    vi.mocked(getPlatform).mockResolvedValue('windows');
+    vi.mocked(getPlatformCapabilities).mockResolvedValue(capabilityFixture('windows'));
     const download = deferred<Awaited<ReturnType<typeof downloadDesktopUpdate>>>();
     vi.mocked(downloadDesktopUpdate).mockReturnValue(download.promise);
     const { result } = await ready();
@@ -293,7 +294,7 @@ describe('useUpdateChecker cancellation', () => {
   });
 
   it('does not cancel desktop installation once file replacement starts', async () => {
-    vi.mocked(getPlatform).mockResolvedValue('windows');
+    vi.mocked(getPlatformCapabilities).mockResolvedValue(capabilityFixture('windows'));
     const install = deferred<void>();
     const installUpdate = vi.fn(() => install.promise);
     vi.mocked(downloadDesktopUpdate).mockResolvedValue({

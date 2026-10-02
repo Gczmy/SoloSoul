@@ -1,3 +1,5 @@
+import { platformCapabilityStore } from '@/lib/platformCapabilities';
+import { capabilityFixture } from '@/lib/__fixtures__/platformCapabilityFixture';
 import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EventCallback } from '@tauri-apps/api/event';
@@ -69,6 +71,7 @@ function event(taskId: string, state: OcrJobEvent['state'], sequence: number) {
   );
 }
 beforeEach(() => {
+  platformCapabilityStore.setState({ capabilities: capabilityFixture('macos'), loaded: true });
   localStorage.clear();
   useAuthStore.setState({ currentAccount: null, isAuthenticated: false });
   useOcrScanStore.getState().clearOnVaultLock();

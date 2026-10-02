@@ -1,3 +1,4 @@
+import { OcrCapabilityNotice } from '@/components/ocr/OcrCapabilityNotice';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageShell } from '@/components/layout/PageShell';
@@ -10,7 +11,7 @@ import { OcrTierStatusRow } from '@/components/ocr/OcrTierStatusRow';
 import { getTierLabel } from '@/lib/utils';
 import { Trash2 } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
-import { supportsOcrScanSync } from '@/lib/ocrCapabilities';
+import { useOcrScanCapability } from '@/lib/ocrCapabilities';
 import { isMobilePlatformSync } from '@/lib/platform';
 
 export function OcrSettingsPage() {
@@ -19,7 +20,8 @@ export function OcrSettingsPage() {
   const { onError, onSuccess } = useToastError();
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
   const isMobilePlatform = isMobilePlatformSync();
-  const scanSupported = supportsOcrScanSync();
+  const scanCapability = useOcrScanCapability();
+  const scanSupported = scanCapability.status === 'supported';
 
   const {
     tiers,
@@ -184,16 +186,29 @@ export function OcrSettingsPage() {
           </Card>
         )}
 
+        {!isMobilePlatform && !scanSupported && <OcrCapabilityNotice />}
         {isMobilePlatform && (
           <Card>
             <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 8 }}>
-              {t(scanSupported ? 'ocr:mobile_ocr_title' : 'ocr:ios_ocr_title')}
+              {t(
+                scanCapability.reason === 'ios_ocr_not_implemented'
+                  ? 'ocr:ios_ocr_title'
+                  : 'ocr:mobile_ocr_title',
+              )}
             </h3>
-            <p
-              style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', margin: 0 }}
-            >
-              {t(scanSupported ? 'ocr:mobile_ocr_description' : 'ocr:ios_ocr_unsupported')}
-            </p>
+            {scanSupported ? (
+              <p
+                style={{
+                  fontSize: 'var(--text-body-sm)',
+                  color: 'var(--text-secondary)',
+                  margin: 0,
+                }}
+              >
+                {t('ocr:mobile_ocr_description')}
+              </p>
+            ) : (
+              <OcrCapabilityNotice />
+            )}
           </Card>
         )}
       </PageContainer>

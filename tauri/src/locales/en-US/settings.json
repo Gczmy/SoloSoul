@@ -1251,5 +1251,7 @@
   "import_err_operation_conflict": "The source or options do not match the original task. Resume that task or start a new import.",
   "import_err_source_mismatch": "The selected file does not match this import.",
   "import_err_source_required": "Select the original package again.",
-  "import_err_operation_busy": "This import is already running."
+  "import_err_operation_busy": "This import is already running.",
+  "update_capability_unavailable": "The device update service is unavailable. Please try again.",
+  "update_platform_unsupported": "In-app updates are not supported on this device. Update through the original installation channel."
 }

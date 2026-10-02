@@ -5,6 +5,10 @@
       "source": "src-tauri/src/commands/system.rs"
     },
     {
+      "name": "get_platform_capabilities",
+      "source": "src-tauri/src/commands/system.rs"
+    },
+    {
       "name": "object_list",
       "source": "src-tauri/src/commands/object/mod.rs"
     },

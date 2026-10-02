@@ -94,6 +94,7 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   'vault_sync_background',
   // ── 启动期系统 / UI 命令（App 初始化、主题、语言、偏好、更新检查）──
   'get_app_info',
+  'get_platform_capabilities',
   'get_system_locale',
   // 应用根挂载即协调主题（ThemeController，默认 theme=
   // 'system' 时 getSystemTheme 与 applyTheme 内部都会调本命令）——未解锁时

@@ -93,6 +93,7 @@
       "export_import",
       "getting_started",
       "llm_config",
+      "ocr_scan",
       "plugins",
       "search",
       "security",
@@ -335,6 +336,7 @@
       "export_import",
       "getting_started",
       "llm_config",
+      "ocr_scan",
       "security"
     ],
     "创建账户": [
@@ -960,6 +962,7 @@
       "export_import",
       "getting_started",
       "objects",
+      "ocr_scan",
       "security",
       "workspace"
     ],
@@ -3640,6 +3643,7 @@
       "collections",
       "device-sync",
       "getting_started",
+      "ocr_scan",
       "security",
       "snapshots",
       "templates"
@@ -3726,6 +3730,7 @@
       "ai_chat",
       "getting_started",
       "objects",
+      "ocr_scan",
       "search",
       "security",
       "sensitivity",
@@ -4507,6 +4512,7 @@
       "device-sync",
       "export_import",
       "objects",
+      "ocr_scan",
       "security",
       "snapshots",
       "trash"
@@ -4626,6 +4632,7 @@
       "device-sync",
       "llm_config",
       "objects",
+      "ocr_scan",
       "search"
     ],
     "过": [
@@ -5288,6 +5295,7 @@
       "collections",
       "device-sync",
       "export_import",
+      "ocr_scan",
       "search",
       "security",
       "snapshots",
@@ -5358,6 +5366,7 @@
       "backup_restore",
       "biometric",
       "device-sync",
+      "ocr_scan",
       "security",
       "sensitivity",
       "snapshots",
@@ -5973,6 +5982,7 @@
       "audit_log",
       "biometric",
       "device-sync",
+      "ocr_scan",
       "plugins",
       "snapshots",
       "templates"
@@ -6867,7 +6877,8 @@
     "actions": [
       "attachments",
       "audit_log",
-      "device-sync"
+      "device-sync",
+      "ocr_scan"
     ],
     "action": [
       "attachments",
@@ -7252,6 +7263,7 @@
     "口": [
       "appearance",
       "device-sync",
+      "ocr_scan",
       "snapshots"
     ],
     "creates": [
@@ -7437,6 +7449,7 @@
       "snapshots"
     ],
     "recover": [
+      "ocr_scan",
       "snapshots"
     ],
     "accidentally": [
@@ -8452,12 +8465,14 @@
     "测": [
       "ai_chat",
       "llm_config",
+      "ocr_scan",
       "security"
     ],
     "试": [
       "ai_chat",
       "device-sync",
       "llm_config",
+      "ocr_scan",
       "security"
     ],
     "启用后": [
@@ -8774,6 +8789,7 @@
       "biometric",
       "device-sync",
       "export_import",
+      "ocr_scan",
       "security",
       "trash"
     ],
@@ -8798,6 +8814,7 @@
       "security"
     ],
     "again": [
+      "ocr_scan",
       "security"
     ],
     "testing": [
@@ -9079,6 +9096,7 @@
     "放": [
       "backup_restore",
       "biometric",
+      "ocr_scan",
       "trash"
     ],
     "传感器上": [
@@ -9232,7 +9250,8 @@
       "ocr_scan"
     ],
     "unavailable": [
-      "biometric"
+      "biometric",
+      "ocr_scan"
     ],
     "enroll": [
       "biometric"
@@ -12212,7 +12231,8 @@
     "panel": [
       "appearance",
       "device-sync",
-      "llm_config"
+      "llm_config",
+      "ocr_scan"
     ],
     "winner": [
       "device-sync"
@@ -12548,6 +12568,37 @@
       "ocr_scan"
     ],
     "已有对象和扫描历史仍可查看": [
+      "ocr_scan"
+    ],
+    "当扫描服务暂不可用时": [
+      "ocr_scan"
+    ],
+    "暂": [
+      "llm_config",
+      "ocr_scan"
+    ],
+    "选图和拍照入口会禁用并显示说明": [
+      "ocr_scan"
+    ],
+    "重试": [
+      "ocr_scan"
+    ],
+    "可重新检测": [
+      "ocr_scan"
+    ],
+    "恢复后扫描页和快捷扫描会同步开放": [
+      "ocr_scan"
+    ],
+    "尚未实现": [
+      "ocr_scan"
+    ],
+    "尚": [
+      "ocr_scan"
+    ],
+    "时仅显示不支持原因": [
+      "ocr_scan"
+    ],
+    "已有历史和模型信息仍可查看": [
       "ocr_scan"
     ],
     "从侧边栏或首页进入": [
@@ -12915,6 +12966,21 @@
       "ocr_scan"
     ],
     "scanning": [
+      "ocr_scan"
+    ],
+    "retry": [
+      "ocr_scan"
+    ],
+    "together": [
+      "ocr_scan"
+    ],
+    "implementation": [
+      "ocr_scan"
+    ],
+    "unsupported": [
+      "ocr_scan"
+    ],
+    "accessible": [
       "ocr_scan"
     ],
     "input": [
@@ -14417,9 +14483,6 @@
       "llm_config"
     ],
     "暂未提供开关": [
-      "llm_config"
-    ],
-    "暂": [
       "llm_config"
     ],
     "本地嵌入": [

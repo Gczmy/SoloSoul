@@ -26,11 +26,6 @@ export function isAndroidSync(): boolean {
   return cachedPlatform === 'android';
 }
 
-/** iOS 目前没有本地 OCR 桥接实现，不能共用 Android 的扫描入口。 */
-export function isIOSSync(): boolean {
-  return cachedPlatform === 'ios';
-}
-
 /**
  * P133: 同步判断是否为 macOS（基于缓存）。
  * 若缓存未命中则返回 false（非 macOS 默认行为），建议在应用初始化时调用一次 getPlatform()。

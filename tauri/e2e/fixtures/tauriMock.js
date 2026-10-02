@@ -138,6 +138,28 @@
         return userMocks()[cmd] ? userMocks()[cmd](args) : {
           platform: window.__MOCK_PLATFORM__ || 'macos', titlebarHeight: 0, trafficLightsRight: 0,
         };
+      case 'get_platform_capabilities': {
+        // 仅浏览器测试替身：模拟后端固定能力，不用于生产端 OS 门控。
+        const os = window.__MOCK_PLATFORM__ || 'macos';
+        const supported = (implementation) => ({ status: 'supported', reason: null, implementation });
+        const unsupported = (reason) => ({ status: 'unsupported', reason, implementation: null });
+        if (os === 'ios') return {
+          os, updateMethod: 'none', update: unsupported('ios_in_app_update_not_implemented'),
+          ocr: unsupported('ios_ocr_not_implemented'), nativeMaterial: unsupported('native_material_not_implemented'),
+          biometric: supported('ios_biometric'), fileOpen: unsupported('ios_file_open_not_implemented'),
+        };
+        if (os === 'android') return {
+          os, updateMethod: 'android_apk', update: supported('android_apk'), ocr: supported('ml_kit'),
+          nativeMaterial: supported('android_window_blur'), biometric: supported('android_keystore'), fileOpen: supported('android_file_provider'),
+        };
+        if (['macos', 'windows', 'linux'].includes(os)) return {
+          os, updateMethod: 'tauri', update: supported('tauri_updater'), ocr: supported('desktop_ocr'),
+          nativeMaterial: os === 'linux' ? unsupported('native_material_not_implemented') : supported(`${os}_material`),
+          biometric: os === 'linux' ? unsupported('biometric_not_implemented') : supported(os === 'macos' ? 'touch_id' : 'windows_hello'),
+          fileOpen: supported('system_opener'),
+        };
+        return { os, updateMethod: 'none', ...Object.fromEntries(['update', 'ocr', 'nativeMaterial', 'biometric', 'fileOpen'].map(key => [key, unsupported('unknown_platform')])) };
+      }
       case 'check_for_update':
         return null;
       case 'user_data_get_preferences':

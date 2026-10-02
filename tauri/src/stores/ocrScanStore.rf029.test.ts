@@ -1,3 +1,4 @@
+import { capabilityFixture } from '@/lib/__fixtures__/platformCapabilityFixture';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MrzResult, OcrResult } from '@/lib/ipc';
 
@@ -110,6 +111,10 @@ function expectBSuccess(currentId: string | null) {
 
 beforeEach(async () => {
   vi.resetModules();
+  (await import('@/lib/platformCapabilities')).platformCapabilityStore.setState({
+    capabilities: capabilityFixture('macos'),
+    loaded: true,
+  });
   ipc.mockReset();
   localStorage.clear();
   releaseReplies = [];

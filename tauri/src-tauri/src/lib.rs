@@ -131,6 +131,7 @@ fn register_core_commands(
         commands::fs::fs_read_file_as_text,
         // System commands
         commands::system::get_app_info,
+        commands::system::get_platform_capabilities,
         commands::system::get_system_theme,
         commands::system::get_system_locale,
         // Log commands
@@ -444,6 +445,9 @@ pub fn run() {
             .plugin(window_state.build())
             .plugin(tauri_plugin_updater::Builder::new().build());
     }
+
+    // 必须在 updater 初始化之后只读探测；移动端不查询桌面 updater 的私有 state。
+    builder = builder.plugin(commands::system::init_platform_capabilities());
 
     // 桌面端：solosoul-pdf:// 自定义协议——PDF 附件内嵌预览（WebView2 无法渲染
     // data:/blob: URL 的 embed，且 fs_read_file_as_data_url 有 10 MiB 上限）。

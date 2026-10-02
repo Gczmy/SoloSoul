@@ -838,7 +838,7 @@ test('RF304 real default and outcome drift fail check without overwriting output
 test('RF305 real serde sync fixtures compile and reject missing wire identity, nullability and UI fields', async () => {
   await withProductionFixture(async (root) => {
     const manifest = await generateContracts({ root });
-    assert.equal(manifest.commands.length, 105);
+    assert.equal(manifest.commands.length, 106); // RF205 新增只读平台能力命令。
     assert.equal(manifest.events.length, 11);
     const fixture = JSON.parse(
       await readFile(

@@ -121,8 +121,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**259**（P1：51；P2：207；P3：1）。
-- 已关闭：**241 / 259**；实际修复（已关闭）：241；排除：0；待验证/阻塞：5（RF-112缺隔离macOS锁定恢复，RF-308本地门槛与CI配置已达但缺远端运行日志，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；待执行：13。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**RF-205（下一项；平台能力契约，RF-202/203/204前置已关闭）**。RF-204、RF-1068 已独立修复验证提交；RF-208/201 前置已满足。新登记 RF-1069 iOS 中文方框定位，独立 CoreText 探针有字形，不直接归因为系统缺字体。剩余 5 个待验证根与 13 个待执行任务；材质多端实测、远端 CI 与隔离性能证据仍缺。远端完整 CI 和 Android 工作流当前为 disabled_manually，不自动启用、推送或发布；保持一项一修复一验证一提交。
+- 已关闭：**242 / 259**；实际修复（已关闭）：242；排除：0；待验证/阻塞：5（RF-112缺隔离macOS锁定恢复，RF-308本地门槛与CI配置已达但缺远端运行日志，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；待执行：12。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**RF-206（下一项；Android 资源安装器，RF-208 前置已关闭）**。RF-205 已完成并独立本地提交（使用 ID 检索），累计 242/259 关闭、5 待验证、12 待执行。RF-1069 iOS 中文方框待定位；材质多端实测、远端 CI 与隔离性能证据仍缺。远端完整 CI 和 Android 工作流当前为 disabled_manually，不自动启用、推送或发布；保持一项一修复一验证一提交。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -190,7 +190,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 60 | [RF-125](#rf-125) | P2 | 迁移对象详情与附件预览浮层表面 | [RF-107](#rf-107)、[RF-109](#rf-109)、[RF-121](#rf-121)、[RF-122](#rf-122) | [ ] 待执行 |
 | 61 | [RF-126](#rf-126) | P2 | 迁移独立业务对话框到中立表面标记 | [RF-122](#rf-122) | [ ] 待执行 |
 | 62 | [RF-127](#rf-127) | P2 | 迁移通知表面并关闭旧材质兼容清单 | [RF-115](#rf-115)、[RF-116](#rf-116)、[RF-117](#rf-117)、[RF-118](#rf-118)、[RF-119](#rf-119)、[RF-120](#rf-120)、[RF-121](#rf-121)、[RF-122](#rf-122)、[RF-123](#rf-123)、[RF-124](#rf-124)、[RF-125](#rf-125)、[RF-126](#rf-126) | [ ] 待执行 |
-| 63 | [RF-205](#rf-205) | P2 | 建立并接入平台能力契约 | [RF-202](#rf-202)、[RF-203](#rf-203)、[RF-204](#rf-204) | [ ] 待执行 |
+| 63 | [RF-205](#rf-205) | P2 | 建立并接入平台能力契约 | [RF-202](#rf-202)、[RF-203](#rf-203)、[RF-204](#rf-204) | [x] 完成 |
 | 64 | [RF-206](#rf-206) | P2 | 提取可恢复且按版本跳过的 Android 资源安装器 | [RF-208](#rf-208) | [ ] 待执行 |
 | 65 | [RF-207](#rf-207) | P2 | 将 Android 资源准备移出主线程并接入就绪屏障 | [RF-206](#rf-206)、[RF-208](#rf-208) | [ ] 待执行 |
 | 66 | [RF-211](#rf-211) | P2 | 为 CLI 建立任务事件与会话失效基础 | [RF-001](#rf-001) | [x] 完成 |
@@ -6018,3 +6018,30 @@ git commit -m "<任务卡的提交标题>"
 
 - 最终源码第二轮原生全部 exit0：macOS Debug `.app`、fmt/严格 all-targets Clippy、25组 R **1851 passed/0 failed/3既有ignored**、iOS device/sim 双目标检查和 npm 无签名模拟器构建、Android NDK check与标准 ARM64 Debug APK。iOS 不再编译本项无用队列 helper；移动警告保留（含 helper 排除后仍有 Emitter 导入警告），不宣称 iOS 零警告。APK ZIP CRC 与打包 JNI/实际 Rust `.so` SHA 一致，已知构建生成文件按原字节恢复。
 - [完整输入 SHA、红绿回归、双 runtime 探针及最终产物](verification/rf203-ios-ocr-unsupported-2026-10-02.json)已记录，软件内中英文 OCR 指南、搜索索引和 Android 管理资源副本同步。iOS 编译验收不冒充真实 OCR/相机运行，未新增 iOS 引擎或扩大权限。任务 RF-203 已关闭并独立本地提交，不推送；累计 **241/259** 关闭、5 待验证、0 暂缓、13 待执行，下一项 RF-205。
+
+### RF-205 执行记录（2026-10-02，进行中）
+
+- 基线 `bc5b4fe9`。RF-202/203/204 已关闭。重新读取系统、更新、OCR、材质和生物识别桥接：前端更新按 OS 字符串分支，OCR 最小门控在平台未初始化时默认允许；非 Android 的移动插件句柄是占位，不代表原生桥接可用。能力读取必须启动期允许、无需账户解锁，且不执行认证、安装、扫描或材质切换。
+- 契约覆盖 OS、更新方式、OCR、原生材质、生物识别和外部文件打开；supported 表示实现及所需桥接可调用，不保证用户授权、账户已配置或当前材质开启。unsupported 表示本构建未提供实现，unavailable 表示有实现但桥接/运行检测不可用，后两者必须有稳定原因。未知平台保守关闭，Linux 明确使用桌面更新/本地 OCR/系统文件打开，原生材质和生物识别不冒充支持。正在建立后端矩阵与定向回归，尚未接入前端或验收。
+
+- 已定义后端三态 DTO、更新方式和平台矩阵，注册启动期只读命令与精确 ACL，类型由既有 Rust 生成器输出。桌面 updater 可用性在其插件初始化后记录；查验本机 Tauri PluginStore 为 Vec 且按注册顺序初始化。Android 原生句柄存在性仅在 Android 编译分支生效，iOS 占位句柄不会提升扫描/更新/文件打开能力；Android 材质查询 windowBlur，Android/iOS 生物识别只读查询可用性，不触发认证。平台能力声明不等于已安装模型、权限已授权、账户已配置或当前材质效果。
+- 后端定向矩阵 **5 passed/0 failed**，覆盖未知 OS、安全禁用、缺桥接、iOS 占位句柄与 Linux 桌面回退；完整测试二进制被过滤的其他组为 0 tests，不计作本项全量验证。初次 CLI feature 参数未满足 build.rs 清单检查（exit101），后按既有流程临时修改清单特性并按原字节恢复；初次生成遗漏精确 ACL（exit1），补齐后生成 **106 migrated/120 legacy/11 events**。原失败日志保留，未降级生成器检查。
+- 共享 Zustand 能力快照已有定向 **4 passed** 和全仓库 TypeScript exit0：并发单次 IPC、成功缓存、失败重新读取、显式刷新与畸形/未知响应安全禁用。尚未接入启动、updater 或 OCR，不能称完成前端迁移。新增命令的 iOS 真机/模拟器检查和 Android NDK check 均 exit0，移动端既有警告保留；这些是编译证据，未执行真实 capability IPC，也不代替任务要求的原生构建。下一步补固定平台 fixtures、迁移启动/更新/OCR 门控，并运行 F/R/CONTRACT/IOS/ANDROID_BUILD 全部验收与规范同步。进展证据见 [RF-205 阶段记录](verification/rf205-platform-capabilities-2026-10-02.json)；保持进行中、未提交、未推送。
+
+- 本轮完成启动、更新 Store/APK helper 和 OCR 页面/操作的门控迁移：更新按 updateMethod 路由，OCR 订阅共享快照，未知/不可用不发业务请求；保留取消优先级、会话代次和后台下载状态。新增三态说明与 OCR 重新探测入口，unsupported 不提供无意义重试，暂不可用恢复后各入口同步更新。移除不再使用的 iOS 扫描 OS helper。固定六种平台 fixture 由 Rust/前端共同校验，新增未解锁 typed IPC 读取与两处 UI 同步恢复测试。
+- 更新与 OCR 红测各 2 failed，证明旧实现仍会在能力未知/不可用时启动操作。迁移后九文件 108 passed；F1 全量 30 failed/2207 passed（五文件旧测试未初始化能力），明确提供 fixture 后 F2 剩八条失败，两文件使用 resetModules 导致旧 Store 与新模块实例不同。改为对当前动态导入实例初始化，16条定向通过，旧断言/并发/超时保留。F3 默认完整检查通过：255文件、2239 Vitest passed/0 failed，Node91 passed/21平台skipped；TypeScript/Lint/格式化通过（保留 syncStore 一条既有 warning）。
+- CONTRACT ACL、偏好键、Markdown 依赖、106 migrated/120 legacy/11 events 一致性通过；首次独立契约测试22 passed/1 failed为旧105清单数量断言，按新增只读命令改106后23 passed/0 failed，ACL单测12 passed。未删负例、不新增文件/网络权限。规范新增[平台能力契约](design_map/27_平台能力契约.md)，更新发布规范和软件内中英文 OCR 指南；生成指南索引和移动副本由本轮构建更新。
+- 官方原生顺序队列 live session `67928`：macOS Debug app、fmt、严格 all-targets Clippy、25组 R **1857 passed/0 failed/3既有ignored**、iOS device/sim checks、无签名模拟器 archive和Android NDK check均exit0；标准Android APK仍运行，不能仅据日志文件存在重启任务。结束后恢复临时清单特性/已知生成文件，并保护原注册表改动。尚未执行真实能力 IPC 的相关移动运行验收或 production WEB；不把编译当运行。
+- 收尾另建真实资源生命周期回归：已下载桌面包后能力读取失败，install被门控但 Update/DownloadedDesktopUpdate 的close未调用，**1 failed**已复现。此用例在F3之后添加；F3证明的是此前快照，不是新用例已通过。当前正在原生构建，不修改其生产输入或中断Cargo；队列结束后补资源释放、完整前端复验并刷新对应应用构建，再进行移动运行、production WEB及提交前复核。RF-205仍进行中、未提交、不推送，不增加关闭数。
+
+- 原生首轮队列现已全部exit0（含标准Android APK），清单、已知Apple生成项、Android properties与原注册表改动恢复完毕。之后补齐禁用状态的资源释放：先切状态，再关闭旧 Update 和 DownloadedDesktopUpdate，保留权限/安装/重启门控。资源红测已转绿，相关两文件31 passed；F4默认全量 **255文件/2240 passed/0 failed**，Node91 passed/21平台skipped，类型/Lint通过；仍保留既有syncStore warning。Rust生产源码未变化，沿用R1857通过与完整CONTRACT证据。
+- 最终前端已冻结于 `rf205-frontend-inputs.json`；仅刷新对应三平台应用的队列 live session `27051` 正在运行，不重新计数R。原live session67928已确认exit0，不应继续等待或重启。下一步等待当前队列、核对最终产物/恢复状态，执行相关移动能力IPC运行与 production WEB，再回填最终证据并独立提交。RF-205仍进行中。
+
+- 最终前端刷新队列 session27051也已确认exit0：macOS app、无签名iOS archive、Android APK全部构建完成。APK CRC通过，打包JNI与本次Rust so SHA一致；清单/Apple已知项/Android properties无跟踪差异。没有仍需等待的构建进程；下一步是真实移动capability IPC运行、production WEB与最终范围/证据审查，不标完成或提交。
+
+### RF-205 最终验收与关闭记录（2026-10-02）
+
+- 资源释放红测修复后 F4 完整通过：255 文件、2240 Vitest passed/0 failed；Node 91 passed/21 平台 skipped。CONTRACT 全部通过（23 生成器测试、12 ACL 单测；106 已迁移命令/120 legacy/11 events），生产 WEB 26 passed。Rust 完整 25 组 1857 passed/0 failed/3 既有 ignored，fmt/严格 all-targets Clippy 通过；最终 Rust 输入未变化，不重复计数。
+- 最终三平台应用刷新构建均 exit0：官方 macOS Debug、iOS 无签名模拟器 archive、Android 标准 ARM64 Debug APK；iOS 真机与模拟器检查及 Android NDK check 均通过。最终 50 项前端输入 SHA 与验收快照一致；APK ZIP CRC、JNI/Rust 库 SHA 及 iOS 已安装 executable SHA 核对通过。
+- 两台专用模拟器实际启动完成能力 IPC，原生日志记录完整 DTO：Android update/OCR/material/fileOpen supported、biometric unavailable；iOS update/OCR/material/fileOpen unsupported、biometric unavailable，均携带稳定原因。仅验证启动查询及桥接探测，不冒充 OCR/相机、认证、安装或材质效果验收。结束专用应用并恢复 iOS 初始关机状态，未安装替换用户 macOS 客户端或访问真实账户。
+- 生物识别/更新/OCR 业务鉴权与系统权限保持；固定六平台 fixtures 和 unknown 保守回退已覆盖。canonical 平台契约、更新规范、软件内中英文 OCR 指南及管理资源同步。完整结果、失败历史、日志及产物 SHA 见 [RF-205 验收记录](verification/rf205-platform-capabilities-2026-10-02.json)。RF-205 `[x]`，本项独立本地提交、不推送；保留既有无关工作区改动。累计 242/259 关闭、5 待验证、12 待执行，下一项 RF-206。

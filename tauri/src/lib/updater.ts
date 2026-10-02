@@ -3,7 +3,7 @@ import { relaunch } from '@tauri-apps/plugin-process';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Channel, Resource } from '@tauri-apps/api/core';
 import { logger } from '@/lib/logger';
-import { getPlatform } from '@/lib/platform';
+import { getPlatformCapabilities } from '@/lib/platformCapabilities';
 
 interface UpdateInfo {
   version: string;
@@ -275,22 +275,25 @@ export class UnsupportedApkUpdateError extends Error {
   }
 }
 
-async function requireAndroidPlatform(signal?: AbortSignal): Promise<void> {
-  const platform = await getPlatform();
+async function requireApkCapability(signal?: AbortSignal): Promise<void> {
+  const capabilities = await getPlatformCapabilities();
   // 解析平台期间取消也不能继续查询 APK 缓存或申请通知权限。
   if (signal?.aborted) throw cancelledDownload();
-  if (platform !== 'android') throw new UnsupportedApkUpdateError();
+  if (capabilities.update.status !== 'supported' || capabilities.updateMethod !== 'android_apk')
+    throw new UnsupportedApkUpdateError();
 }
 
 /** 读取 Android 上次版本信息和实际断点，不进行网络请求。 */
 export async function androidCachedUpdate(): Promise<AndroidUpdateInfo | null> {
-  await requireAndroidPlatform();
+  await requireApkCapability();
   return invoke<AndroidUpdateInfo | null>('android_cached_update');
 }
 
 export async function androidCheckForUpdate(): Promise<AndroidUpdateCheckResult> {
   try {
-    if ((await getPlatform()) !== 'android') return { kind: 'unsupported' };
+    const capabilities = await getPlatformCapabilities();
+    if (capabilities.update.status !== 'supported' || capabilities.updateMethod !== 'android_apk')
+      return { kind: 'unsupported' };
     const info = await invoke<AndroidUpdateInfo>('android_check_update');
     if (info.latestVersion === info.currentVersion) {
       return { kind: 'up-to-date' };
@@ -315,7 +318,7 @@ export async function ensureApkDownloaded(
   signal?: AbortSignal,
 ): Promise<boolean> {
   if (signal?.aborted) throw cancelledDownload();
-  await requireAndroidPlatform(signal);
+  await requireApkCapability(signal);
   if (signal?.aborted) throw cancelledDownload();
   const alreadyDownloaded = await androidIsApkDownloaded(version);
   if (signal?.aborted) throw cancelledDownload();
@@ -340,7 +343,7 @@ export async function ensureApkDownloaded(
  * 安装已下载的 Android APK（调用系统包安装器）。
  */
 export async function androidInstallApk(version: string): Promise<void> {
-  await requireAndroidPlatform();
+  await requireApkCapability();
   const filePath = await invoke<string>('android_get_apk_path', { version });
   await invoke('android_install_apk', { filePath });
 }

@@ -106,5 +106,7 @@
   "scan_complete_notification": "扫描完成",
   "first_install_completed": "OCR 模型安装完成",
   "auto_close_countdown": "{{seconds}} 秒后自动关闭",
-  "close": "关闭"
+  "close": "关闭",
+  "scan_capability_unavailable": "扫描服务暂不可用，请稍后重试。",
+  "scan_platform_unsupported": "此设备暂不支持扫描文字。"
 }

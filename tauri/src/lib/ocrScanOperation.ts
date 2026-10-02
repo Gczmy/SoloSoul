@@ -1,4 +1,4 @@
-import { OCR_UNSUPPORTED_PLATFORM, supportsOcrScanSync } from './ocrCapabilities';
+import { ocrCapabilityError, supportsOcrScanSync } from './ocrCapabilities';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { invokeCommand } from '@/lib/ipcClient';
 import { createSessionRequests } from '@/lib/sessionRequests';
@@ -110,7 +110,7 @@ export function createOcrScanOperation(options: {
     started = true;
     try {
       if (!isCurrent()) return { status: 'stale' };
-      if (!supportsOcrScanSync()) return { status: 'failed', error: OCR_UNSUPPORTED_PLATFORM };
+      if (!supportsOcrScanSync()) return { status: 'failed', error: ocrCapabilityError() };
       // 先安装监听再发送任何扫描，避免丢掉登记事件与取消补发机会。
       unlisten = await listen<OcrJobEvent>('ocr-job-state', ({ payload }) => {
         const task = active;

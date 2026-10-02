@@ -8,7 +8,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { useOcrModelManager } from '@/hooks/useOcrModelManager';
-import { supportsOcrScanSync } from '@/lib/ocrCapabilities';
+import { useOcrScanCapability, ocrCapabilityMessageKey } from '@/lib/ocrCapabilities';
 import { isMobilePlatformSync } from '@/lib/platform';
 
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
@@ -54,7 +54,8 @@ export function OcrPage() {
   const [scanMode, setScanMode] = useState<ScanMode>('general');
 
   const isMobilePlatform = isMobilePlatformSync();
-  const scanSupported = supportsOcrScanSync();
+  const scanCapability = useOcrScanCapability();
+  const scanSupported = scanCapability.status === 'supported';
 
   const handleScanError = (error: unknown) => {
     onError(new Error(translateOcrError(error, t)), t('ocr:scan_failed'));
@@ -367,6 +368,7 @@ export function OcrPage() {
 
         <ScanDropZone
           scanSupported={scanSupported}
+          scanUnavailableMessage={ocrCapabilityMessageKey(scanCapability)}
           scanMode={scanMode}
           onScanModeChange={handleScanModeChange}
           isScanning={isScanning}

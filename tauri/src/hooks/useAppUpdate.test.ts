@@ -1,3 +1,4 @@
+import { capabilityFixture } from '@/lib/__fixtures__/platformCapabilityFixture';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useAppUpdate } from './useAppUpdate';
@@ -14,7 +15,9 @@ const mocks = vi.hoisted(() => ({
   androidInstall: vi.fn(),
   relaunch: vi.fn(),
 }));
-vi.mock('@/lib/platform', () => ({ getPlatform: async () => mocks.platform }));
+vi.mock('@/lib/platformCapabilities', () => ({
+  getPlatformCapabilities: async () => capabilityFixture(mocks.platform),
+}));
 vi.mock('@tauri-apps/plugin-process', () => ({ relaunch: mocks.relaunch }));
 vi.mock('@/lib/updater', () => ({
   androidCheckForUpdate: mocks.androidCheck,

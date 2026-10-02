@@ -214,6 +214,8 @@ export type BackupInfo = {
   object_count: number;
 };
 
+export type CapabilityStatus = 'supported' | 'unsupported' | 'unavailable';
+
 export type ChatContextSelectionInput =
   | { mode: 'none' }
   | ({ mode: 'publicProfile' } & {
@@ -602,6 +604,22 @@ export type PageGroup = {
   objects: Array<ObjectSummary>;
 };
 
+export type PlatformCapabilities = {
+  os: string;
+  updateMethod: UpdateMethod;
+  update: PlatformCapability;
+  ocr: PlatformCapability;
+  nativeMaterial: PlatformCapability;
+  biometric: PlatformCapability;
+  fileOpen: PlatformCapability;
+};
+
+export type PlatformCapability = {
+  status: CapabilityStatus;
+  reason: string | null;
+  implementation: string | null;
+};
+
 export type PluginAuditAction =
   | ({ action: 'plugin_installed' } & { version: string })
   | { action: 'plugin_uninstalled' }
@@ -936,6 +954,8 @@ export type TrashItemSummary = {
   contractTypeId: string | null;
 };
 
+export type UpdateMethod = 'none' | 'tauri' | 'android_apk';
+
 export type UpdateObjectInputInput = {
   name: string;
   properties: JsonValue;
@@ -982,6 +1002,7 @@ export type IpcCommands = {
     result: ExportDocumentResult;
   };
   get_app_info: { args: undefined; result: AppInfo };
+  get_platform_capabilities: { args: undefined; result: PlatformCapabilities };
   import_decrypt_preview: {
     args: { filePath: string; password: string };
     result: DecryptedImportPreview;
@@ -1200,6 +1221,7 @@ export type IpcCommandErrors = {
   export_get_scope_tree: BackendError;
   export_objects_document: BackendError;
   get_app_info: string;
+  get_platform_capabilities: string;
   import_decrypt_preview: BackendError;
   import_execute_advanced: BackendError;
   import_operation_get: BackendError;

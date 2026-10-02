@@ -142,7 +142,11 @@ export function UpdateInfoCard({
                   lineHeight: 1.5,
                 }}
               >
-                {t('settings:update_in_app_unsupported')}
+                {t(
+                  versionInfo.unsupportedReason === 'ios'
+                    ? 'settings:update_in_app_unsupported'
+                    : 'settings:update_platform_unsupported',
+                )}
               </p>
             )}
 

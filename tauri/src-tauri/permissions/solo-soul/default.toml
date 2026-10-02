@@ -84,6 +84,7 @@ commands.allow = [
   "fs_read_file_as_text",
   "fs_scan_directory",
   "get_app_info",
+  "get_platform_capabilities",
   "get_lock_pending",
   "get_system_locale",
   "get_system_theme",

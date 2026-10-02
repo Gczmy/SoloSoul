@@ -1,9 +1,10 @@
+import { getPlatformCapabilities, unavailableCapabilities } from '@/lib/platformCapabilities';
+import { capabilityFixture } from '@/lib/__fixtures__/platformCapabilityFixture';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Platform } from '@tauri-apps/plugin-os';
+import type { PlatformCapabilities } from '@/lib/generated/ipcContracts';
 import type { Update } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { useUpdateStore, type AppUpdateState } from './updateStore';
-import { getPlatform } from '@/lib/platform';
 import {
   androidCachedUpdate,
   androidCheckForUpdate,
@@ -14,7 +15,10 @@ import {
   type DownloadedDesktopUpdate,
 } from '@/lib/updater';
 
-vi.mock('@/lib/platform', () => ({ getPlatform: vi.fn() }));
+vi.mock('@/lib/platformCapabilities', async (original) => ({
+  ...(await original<typeof import('@/lib/platformCapabilities')>()),
+  getPlatformCapabilities: vi.fn(),
+}));
 vi.mock('@tauri-apps/plugin-process', () => ({ relaunch: vi.fn() }));
 vi.mock('@/lib/updater', () => ({
   checkForUpdate: vi.fn(),
@@ -92,7 +96,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   localStorage.clear();
   useUpdateStore.setState(useUpdateStore.getInitialState(), true);
-  vi.mocked(getPlatform).mockResolvedValue('android');
+  vi.mocked(getPlatformCapabilities).mockResolvedValue(capabilityFixture('android'));
   vi.mocked(androidCachedUpdate).mockResolvedValue(info);
   vi.mocked(androidCheckForUpdate).mockResolvedValue({ kind: 'available', info });
   vi.mocked(ensureApkDownloaded).mockResolvedValue(true);
@@ -156,7 +160,7 @@ describe('RF202 platform update boundaries', () => {
   it.each(['cached-check', 'version-check', 'download', 'install'] as const)(
     'rf202_ios_%s_hides_updates_without_apk_or_desktop_work',
     async (stage) => {
-      vi.mocked(getPlatform).mockResolvedValue('ios');
+      vi.mocked(getPlatformCapabilities).mockResolvedValue(capabilityFixture('ios'));
       const resources = desktopResources();
       useUpdateStore.setState({
         lastChecked: 17,
@@ -188,18 +192,18 @@ describe('RF202 platform update boundaries', () => {
   it.each(['android', 'ios', 'macos', 'windows'] as const)(
     'rf202_%s_check_reentry_shares_promise_while_platform_is_pending',
     async (platform) => {
-      const detection = deferred<Platform>();
-      vi.mocked(getPlatform).mockReturnValue(detection.promise);
+      const detection = deferred<PlatformCapabilities>();
+      vi.mocked(getPlatformCapabilities).mockReturnValue(detection.promise);
       vi.mocked(androidCachedUpdate).mockResolvedValue(null);
       vi.mocked(androidCheckForUpdate).mockResolvedValue({ kind: 'up-to-date' });
       vi.mocked(checkForUpdate).mockResolvedValue({ kind: 'up-to-date' });
       const first = useUpdateStore.getState().check();
       const second = useUpdateStore.getState().check(true);
       expect(second).toBe(first);
-      expect(getPlatform).toHaveBeenCalledOnce();
+      expect(getPlatformCapabilities).toHaveBeenCalledOnce();
       expectNoUpdateWork();
       expect(useUpdateStore.getState().checking).toBe(true);
-      detection.resolve(platform);
+      detection.resolve(capabilityFixture(platform));
       await first;
       expect(useUpdateStore.getState()).toMatchObject({ checking: false, checkPromise: null });
       expect(useUpdateStore.getState().checkError).toBeUndefined();
@@ -222,7 +226,7 @@ describe('RF202 platform update boundaries', () => {
   it.each(['android', 'macos', 'windows'] as const)(
     'rf202_%s_download_and_install_preserve_platform_route_and_reserve_before_await',
     async (platform) => {
-      vi.mocked(getPlatform).mockResolvedValue(platform);
+      vi.mocked(getPlatformCapabilities).mockResolvedValue(capabilityFixture(platform));
       const resources = desktopResources();
       vi.mocked(checkForUpdate).mockResolvedValue({
         kind: 'available',
@@ -238,19 +242,19 @@ describe('RF202 platform update boundaries', () => {
       expect(androidCheckForUpdate).toHaveBeenCalledTimes(platform === 'android' ? 1 : 0);
       expect(checkForUpdate).toHaveBeenCalledTimes(platform === 'android' ? 0 : 1);
 
-      const detection = deferred<Platform>();
-      vi.mocked(getPlatform).mockReturnValueOnce(detection.promise);
+      const detection = deferred<PlatformCapabilities>();
+      vi.mocked(getPlatformCapabilities).mockReturnValueOnce(detection.promise);
       const apkDownload = deferred<boolean>();
       const desktopDownload = deferred<DownloadedDesktopUpdate>();
       vi.mocked(ensureApkDownloaded).mockReturnValue(apkDownload.promise);
       vi.mocked(downloadDesktopUpdate).mockReturnValue(desktopDownload.promise);
       const firstDownload = useUpdateStore.getState().startDownload();
       const secondDownload = useUpdateStore.getState().startDownload();
-      expect(getPlatform).toHaveBeenCalledTimes(2);
+      expect(getPlatformCapabilities).toHaveBeenCalledTimes(2);
       expect(useUpdateStore.getState().controller).not.toBeNull();
       expect(ensureApkDownloaded).not.toHaveBeenCalled();
       expect(downloadDesktopUpdate).not.toHaveBeenCalled();
-      detection.resolve(platform);
+      detection.resolve(capabilityFixture(platform));
       const downloadOperation =
         platform === 'android' ? ensureApkDownloaded : downloadDesktopUpdate;
       await vi.waitFor(() => expect(downloadOperation).toHaveBeenCalledOnce());
@@ -279,18 +283,18 @@ describe('RF202 platform update boundaries', () => {
         controller: null,
       });
 
-      const installDetection = deferred<Platform>();
-      vi.mocked(getPlatform).mockReturnValueOnce(installDetection.promise);
+      const installDetection = deferred<PlatformCapabilities>();
+      vi.mocked(getPlatformCapabilities).mockReturnValueOnce(installDetection.promise);
       const installation = deferred<void>();
       vi.mocked(androidInstallApk).mockReturnValue(installation.promise);
       resources.install.mockReturnValue(installation.promise);
       const firstInstall = useUpdateStore.getState().installUpdate();
       const secondInstall = useUpdateStore.getState().installUpdate();
-      expect(getPlatform).toHaveBeenCalledTimes(3);
+      expect(getPlatformCapabilities).toHaveBeenCalledTimes(3);
       expect(useUpdateStore.getState().updateState.kind).toBe('installing');
       expect(androidInstallApk).not.toHaveBeenCalled();
       expect(resources.install).not.toHaveBeenCalled();
-      installDetection.resolve(platform);
+      installDetection.resolve(capabilityFixture(platform));
       const installOperation = platform === 'android' ? androidInstallApk : resources.install;
       await vi.waitFor(() => expect(installOperation).toHaveBeenCalledOnce());
       await useUpdateStore.getState().installUpdate();
@@ -315,13 +319,13 @@ describe('RF202 platform update boundaries', () => {
   it.each(['android', 'macos', 'windows'] as const)(
     'rf202_%s_cancel_during_platform_detection_does_not_start_download',
     async (platform) => {
-      const detection = deferred<Platform>();
-      vi.mocked(getPlatform).mockReturnValue(detection.promise);
+      const detection = deferred<PlatformCapabilities>();
+      vi.mocked(getPlatformCapabilities).mockReturnValue(detection.promise);
       useUpdateStore.setState({ updateState: candidate('available', desktopResources().update) });
       const task = useUpdateStore.getState().startDownload();
       useUpdateStore.getState().cancelDownload();
       expect(useUpdateStore.getState().updateState.kind).toBe('cancelling');
-      detection.resolve(platform);
+      detection.resolve(capabilityFixture(platform));
       await task;
       expectNoUpdateWork();
       expect(useUpdateStore.getState()).toMatchObject({
@@ -334,11 +338,11 @@ describe('RF202 platform update boundaries', () => {
   );
 
   it('rf202_dismiss_during_platform_detection_invalidates_check_without_any_update_work', async () => {
-    const detection = deferred<Platform>();
-    vi.mocked(getPlatform).mockReturnValue(detection.promise);
+    const detection = deferred<PlatformCapabilities>();
+    vi.mocked(getPlatformCapabilities).mockReturnValue(detection.promise);
     const task = useUpdateStore.getState().check();
     useUpdateStore.getState().dismissUpdate();
-    detection.resolve('android');
+    detection.resolve(capabilityFixture('android'));
     await task;
     expectNoUpdateWork();
     expect(useUpdateStore.getState()).toMatchObject({
@@ -347,5 +351,48 @@ describe('RF202 platform update boundaries', () => {
       checkPromise: null,
       checking: false,
     });
+  });
+});
+
+describe('RF205 update capability boundaries', () => {
+  it.each(['unknown', 'bridge-unavailable'] as const)(
+    'RF205_%s_disables_update_work_despite_an_android_layout',
+    async (kind) => {
+      const capabilities =
+        kind === 'unknown'
+          ? unavailableCapabilities('capabilities_read_failed')
+          : {
+              ...capabilityFixture('android'),
+              update: {
+                status: 'unavailable' as const,
+                reason: 'apk_bridge_unavailable',
+                implementation: 'android_apk',
+              },
+            };
+      vi.mocked(getPlatformCapabilities).mockResolvedValue(capabilities);
+      await useUpdateStore.getState().check(true);
+      expectNoUpdateWork();
+      expect(useUpdateStore.getState().checkError).toBeTruthy();
+      expect(useUpdateStore.getState().lastChecked).toBe(0);
+    },
+  );
+});
+
+describe('RF205 unavailable capability resource cleanup', () => {
+  it('RF205_disabling_update_after_a_completed_download_releases_both_native_resources', async () => {
+    const resources = desktopResources();
+    useUpdateStore.setState({
+      updateState: candidate('downloaded', resources.update),
+      downloaded: resources.downloaded,
+    });
+    vi.mocked(getPlatformCapabilities).mockResolvedValue(
+      unavailableCapabilities('capabilities_read_failed'),
+    );
+    await useUpdateStore.getState().installUpdate();
+    expect(resources.install).not.toHaveBeenCalled();
+    expect(relaunch).not.toHaveBeenCalled();
+    expect(resources.update.close).toHaveBeenCalledOnce();
+    expect(resources.close).toHaveBeenCalledOnce();
+    expect(useUpdateStore.getState().downloaded).toBeNull();
   });
 });

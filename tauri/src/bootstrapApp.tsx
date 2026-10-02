@@ -17,6 +17,7 @@ import './styles/desktop-controls.css';
 import './styles/windows-material.css';
 import { initI18n } from './lib/i18n';
 import { initPlatform } from '@/lib/platform';
+import { getPlatformCapabilities } from '@/lib/platformCapabilities';
 import { preloadCameraCapability } from '@/lib/cameraCapability';
 import { logger } from '@/lib/logger';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -33,6 +34,7 @@ export async function mountApplication(): Promise<void> {
     .catch((err) => logger.warn('[main] Login availability preflight failed:', err));
   await initI18n();
   await initPlatform().catch((err) => logger.warn('[main] Platform init failed:', err));
+  await getPlatformCapabilities();
   prepareThemeController();
   await useSettingsStore.getState().loadUiPreferences();
   document.documentElement.dataset.userReduceMotion = String(

@@ -20,6 +20,7 @@
     "export_get_scope_tree",
     "export_objects_document",
     "get_app_info",
+    "get_platform_capabilities",
     "import_decrypt_preview",
     "import_execute_advanced",
     "import_operation_get",

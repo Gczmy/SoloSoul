@@ -5,7 +5,7 @@ import { openWithPause } from '@/lib/dialog';
 import { useOcrScanStore, type OcrScanEntry } from '@/stores/ocrScanStore';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useToastError } from '@/hooks/useToastError';
-import { supportsOcrScanSync } from '@/lib/ocrCapabilities';
+import { supportsOcrScanSync, useOcrScanCapability } from '@/lib/ocrCapabilities';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { prefetchRegistry } from '@/lib/prefetch/registry';
 import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
@@ -29,6 +29,7 @@ export function OcrQuickScanPopover({
   onClose: () => void;
   placement?: 'left' | 'right' | 'bottom' | 'top';
 }) {
+  const scanCapability = useOcrScanCapability();
   const { t } = useTranslation(['ocr', 'common']);
   const { onError } = useToastError();
   // P215: 字段级选择器订阅数据（扫描进度/历史/错误），动作走 getState()——
@@ -60,7 +61,9 @@ export function OcrQuickScanPopover({
     data: ocrModel,
     loading: loadingStatus,
     error: ocrModelError,
-  } = usePrefetchData(prefetchRegistry.ocrModel, { enabled: supportsOcrScanSync() });
+  } = usePrefetchData(prefetchRegistry.ocrModel, {
+    enabled: scanCapability.status === 'supported',
+  });
   const tiers = ocrModel?.tiers ?? [];
   const statusMap = ocrModel?.statusMap ?? {};
   // 加载失败经 store.error 补 toast（原挂载 load 行为保持）。

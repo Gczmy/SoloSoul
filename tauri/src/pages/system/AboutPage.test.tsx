@@ -1,10 +1,11 @@
+import { capabilityFixture } from '@/lib/__fixtures__/platformCapabilityFixture';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { useUpdateStore } from '@/stores/updateStore';
 import { AboutPage } from './AboutPage';
 import { invoke } from '@tauri-apps/api/core';
-import { getPlatform } from '@/lib/platform';
+import { getPlatformCapabilities } from '@/lib/platformCapabilities';
 
 vi.mock('@/components/layout/PageShell', () => ({
   PageShell: ({ children, title }: { children: React.ReactNode; title: string }) => (
@@ -35,21 +36,21 @@ vi.mock('@/lib/updater', () => ({
   ensureApkDownloaded: adapters.androidDownload,
   androidInstallApk: adapters.androidInstall,
 }));
+vi.mock('@/lib/platformCapabilities', () => ({ getPlatformCapabilities: vi.fn() }));
 vi.mock('@/lib/platform', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/platform')>()),
-  getPlatform: vi.fn(async () => 'windows'),
 }));
 
 describe('AboutPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getPlatform).mockResolvedValue('windows');
+    vi.mocked(getPlatformCapabilities).mockResolvedValue(capabilityFixture('windows'));
     useUpdateStore.setState(useUpdateStore.getInitialState(), true);
     localStorage.clear();
   });
 
   it('iOS 关于页保留安装版本并说明分发渠道，不显示更新状态或操作', async () => {
-    vi.mocked(getPlatform).mockResolvedValue('ios');
+    vi.mocked(getPlatformCapabilities).mockResolvedValue(capabilityFixture('ios'));
     vi.mocked(invoke).mockResolvedValue({
       appName: 'SoloSoul',
       version: '2.13.1',

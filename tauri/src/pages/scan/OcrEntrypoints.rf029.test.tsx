@@ -1,3 +1,5 @@
+import { platformCapabilityStore } from '@/lib/platformCapabilities';
+import { capabilityFixture } from '@/lib/__fixtures__/platformCapabilityFixture';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
@@ -101,6 +103,7 @@ function switchAccount() {
   });
 }
 beforeEach(() => {
+  platformCapabilityStore.setState({ capabilities: capabilityFixture('macos'), loaded: true });
   mocks.ipc.mockReset().mockResolvedValue(undefined);
   mocks.open.mockReset();
   mocks.error.mockReset();

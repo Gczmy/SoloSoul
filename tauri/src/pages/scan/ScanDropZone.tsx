@@ -1,3 +1,4 @@
+import { OcrCapabilityNotice } from '@/components/ocr/OcrCapabilityNotice';
 import { OcrScanStatus } from '@/components/ocr/OcrScanStatus';
 import type { OcrJobState } from '@/lib/ocrScanOperation';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +12,7 @@ export type ScanMode = 'general' | 'mrz';
 
 interface ScanDropZoneProps {
   scanSupported?: boolean;
+  scanUnavailableMessage?: string;
   scanMode: ScanMode;
   onScanModeChange: (mode: ScanMode) => void;
   isScanning: boolean;
@@ -28,6 +30,7 @@ interface ScanDropZoneProps {
  */
 export function ScanDropZone({
   scanSupported = true,
+  scanUnavailableMessage = 'ocr:scan_capability_unavailable',
   scanMode,
   onScanModeChange,
   isScanning,
@@ -60,7 +63,7 @@ export function ScanDropZone({
           {t('ocr:description')}
         </p>
 
-        {!scanSupported && <p role="status">{t('ocr:ios_ocr_unsupported')}</p>}
+        {!scanSupported && <OcrCapabilityNotice messageKey={scanUnavailableMessage} />}
         {/* Mode toggle */}
         <div
           style={{

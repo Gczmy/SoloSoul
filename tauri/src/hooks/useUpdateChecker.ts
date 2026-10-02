@@ -9,7 +9,7 @@ export interface VersionInfo {
   currentVersion: string;
   latestVersion: string | null;
   state: 'up-to-date' | 'available' | 'error' | 'unsupported';
-  unsupportedReason?: 'ios';
+  unsupportedReason?: string;
   body?: string;
   error?: string;
   downloadUrl?: string | null;

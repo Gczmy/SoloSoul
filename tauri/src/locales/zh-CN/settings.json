@@ -1251,5 +1251,7 @@
   "import_err_operation_conflict": "原任务的来源或选项不匹配，请使用原任务继续，或新建导入。",
   "import_err_source_mismatch": "所选文件与原任务不一致。",
   "import_err_source_required": "请重新选择原导出包。",
-  "import_err_operation_busy": "该导入任务正在处理中。"
+  "import_err_operation_busy": "该导入任务正在处理中。",
+  "update_capability_unavailable": "设备更新服务暂不可用，请重试。",
+  "update_platform_unsupported": "此设备暂不支持应用内更新，请通过原安装渠道更新。"
 }

@@ -1,4 +1,5 @@
-import { supportsOcrScanSync } from '@/lib/ocrCapabilities';
+import { OcrCapabilityNotice } from '@/components/ocr/OcrCapabilityNotice';
+import { useOcrScanCapability } from '@/lib/ocrCapabilities';
 import { useTranslation } from 'react-i18next';
 import { FileText } from 'lucide-react';
 import { OcrScanStatus } from './OcrScanStatus';
@@ -37,11 +38,12 @@ export function OcrScanControls({
   isMobile = false,
 }: OcrScanControlsProps) {
   const { t } = useTranslation(['ocr', 'common']);
-  const scanSupported = supportsOcrScanSync();
+  const scanCapability = useOcrScanCapability();
+  const scanSupported = scanCapability.status === 'supported';
 
   return (
     <>
-      {!scanSupported && <p role="status">{t('ocr:ios_ocr_unsupported')}</p>}
+      {!scanSupported && <OcrCapabilityNotice />}
       {/* Model selection */}
       <div>
         <select

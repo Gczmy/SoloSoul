@@ -8,6 +8,8 @@ The OCR (Optical Character Recognition) feature lets you extract text from image
 - **Android**: ML Kit recognizes images selected from files or captured with the camera; PP-OCR model tier selection is unnecessary. MRZ mode retains the fallback to general text recognition.
 - **iOS**: no OCR engine is available yet. File selection, camera recognition and scan modes are disabled with an explanation in the scan page and quick scanner. Attachment paths do not start scanning automatically; existing objects and scan history remain available.
 
+When the scanning service is unavailable, image selection and camera actions are disabled with an explanation. Choose “Retry” to check again; the scanning page and quick panel recover together. iOS has no OCR implementation and shows an unsupported explanation; existing history and model information remain accessible.
+
 ## Using OCR
 
 1. Enter **OCR Scan** from the sidebar or home page

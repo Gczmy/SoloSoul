@@ -1,3 +1,5 @@
+import { platformCapabilityStore } from '@/lib/platformCapabilities';
+import { capabilityFixture } from '@/lib/__fixtures__/platformCapabilityFixture';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -89,6 +91,7 @@ import { prefetchRegistry } from '@/lib/prefetch/registry';
 describe('OcrPage', () => {
   beforeEach(() => {
     device.platform = 'macos';
+    platformCapabilityStore.setState({ capabilities: capabilityFixture('macos'), loaded: true });
     device.state = {};
     prefetchRegistry.ocrModel.reset();
     vi.clearAllMocks();
@@ -318,6 +321,7 @@ describe('OcrPage', () => {
   });
   it('RF-203 iOS 禁用选图、拍照和模式切换并说明原因', async () => {
     device.platform = 'ios';
+    platformCapabilityStore.setState({ capabilities: capabilityFixture('ios'), loaded: true });
     render(
       <MemoryRouter>
         <OcrPage />
@@ -338,6 +342,7 @@ describe('OcrPage', () => {
   });
   it('RF-203 iOS 传入附件路径也不自动扫描或进入 loading', async () => {
     device.platform = 'ios';
+    platformCapabilityStore.setState({ capabilities: capabilityFixture('ios'), loaded: true });
     device.state = { filePath: '/test/attachment.png' };
     render(
       <MemoryRouter>
@@ -352,6 +357,7 @@ describe('OcrPage', () => {
   });
   it('RF-203 Android 保留选图与拍照入口', () => {
     device.platform = 'android';
+    platformCapabilityStore.setState({ capabilities: capabilityFixture('android'), loaded: true });
     render(
       <MemoryRouter>
         <OcrPage />

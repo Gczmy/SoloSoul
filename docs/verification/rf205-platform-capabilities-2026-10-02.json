@@ -1,0 +1,1691 @@
+{
+  "task": "RF-205",
+  "status": "complete",
+  "base_commit": "bc5b4fe9",
+  "date": "2026-10-02",
+  "inputs": [
+    {
+      "path": "tauri/src-tauri/src/commands/system.rs",
+      "sha256": "3ace9d7b44f81a65fcb5359cc484873ced176123977b24406681b4dc38517a2f"
+    },
+    {
+      "path": "tauri/src-tauri/src/lib.rs",
+      "sha256": "7279beceb253ca285b73aa34419a04b71ed497c7ac4ddb66ad9b15bf9ae418c1"
+    },
+    {
+      "path": "tauri/src-tauri/ipc-contracts.json",
+      "sha256": "3e0c275a548ab25d78cb462d1ec4551de5d8b2e8c661ca5c5222dfad4f0e3bbd"
+    },
+    {
+      "path": "tauri/src-tauri/permissions/solo-soul/default.toml",
+      "sha256": "9e8adb1bd4f825b626c6abf6681ef0c37fcf6f2d1b9c217f9055b11100e58bad"
+    },
+    {
+      "path": "tauri/src/lib/ipcClient.ts",
+      "sha256": "007f50949bb78f31e9f043883ea4ca301a3242a82357de9c95e6730d91013f81"
+    },
+    {
+      "path": "tauri/src/lib/generated/ipcContracts.ts",
+      "sha256": "ea8b06b0a551fad617374dbbcd632d6239c553c910d18801eec64b25b423dcd2"
+    },
+    {
+      "path": "tauri/src/lib/generated/ipcContractManifest.json",
+      "sha256": "5fd43e3467b9b77d9f8b0e4cc0f31e9d44ed02a7941a68c4a53281e3b322a291"
+    },
+    {
+      "path": "tauri/src/lib/platformCapabilities.ts",
+      "sha256": "8e9d8970b3ec2af386251bbf63d5ee2b5040974b277aa66e26f842d3de296f8a"
+    },
+    {
+      "path": "tauri/src/lib/platformCapabilities.test.ts",
+      "sha256": "baae3a8aca92a920f5220dcd755b5e32e1929ed544180f6d241106de0f142b42"
+    }
+  ],
+  "checks": {
+    "rf205-cache-results.json": [
+      {
+        "name": "format",
+        "command": [
+          "npx",
+          "prettier",
+          "--write",
+          "src/lib/platformCapabilities.ts",
+          "src/lib/platformCapabilities.test.ts",
+          "src/lib/ipcClient.ts"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.6026562498882413
+      },
+      {
+        "name": "test",
+        "command": [
+          "npx",
+          "vitest",
+          "run",
+          "src/lib/platformCapabilities.test.ts"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 2.2748251669108868
+      },
+      {
+        "name": "types",
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 9.99261675029993
+      }
+    ],
+    "rf205-initial-results.json": [
+      {
+        "name": "fmt",
+        "command": [
+          "rustfmt",
+          "--edition",
+          "2021",
+          "src-tauri/src/commands/system.rs"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.1341189998202026
+      },
+      {
+        "name": "matrix",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "solo_soul",
+          "--features",
+          "tauri/macos-private-api",
+          "rf205",
+          "--",
+          "--nocapture"
+        ],
+        "exit_code": 101,
+        "duration_seconds": 1.8435857919976115
+      }
+    ],
+    "rf205-command-results.json": [
+      {
+        "name": "fmt",
+        "command": [
+          "rustfmt",
+          "--edition",
+          "2021",
+          "src-tauri/src/commands/system.rs"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.024299709126353264
+      },
+      {
+        "name": "generate",
+        "command": [
+          "npm",
+          "run",
+          "generate:contracts"
+        ],
+        "exit_code": 1,
+        "duration_seconds": 1.067490375135094
+      }
+    ],
+    "rf205-initial-native-results.json": [
+      {
+        "name": "ios-device",
+        "command": [
+          "cargo",
+          "check",
+          "--target",
+          "aarch64-apple-ios"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 11.17926395824179
+      },
+      {
+        "name": "ios-sim",
+        "command": [
+          "cargo",
+          "check",
+          "--target",
+          "aarch64-apple-ios-sim"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 32.718112875241786
+      },
+      {
+        "name": "android",
+        "command": [
+          "cargo",
+          "ndk",
+          "-t",
+          "aarch64-linux-android",
+          "check"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 10.567084791138768
+      }
+    ],
+    "rf205-matrix-results.json": {
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "solo_soul",
+        "rf205",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 121.20736808283255
+    },
+    "rf205-command2-results.json": [
+      {
+        "name": "generate",
+        "command": [
+          "npm",
+          "run",
+          "generate:contracts"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.7739887498319149
+      },
+      {
+        "name": "matrix",
+        "command": [
+          "cargo",
+          "test",
+          "-p",
+          "solo_soul",
+          "rf205",
+          "--",
+          "--nocapture"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 115.95920470915735
+      }
+    ],
+    "rf205-migrate-results.json": [
+      {
+        "name": "types",
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit_code": 2,
+        "duration_seconds": 9.540156959090382
+      }
+    ],
+    "rf205-migrate2-results.json": [
+      {
+        "name": "types",
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 9.614765833131969
+      },
+      {
+        "name": "targeted",
+        "command": [
+          "npx",
+          "vitest",
+          "run",
+          "src/stores/updateStore.test.ts",
+          "src/lib/updater.test.ts",
+          "src/hooks/useUpdateChecker.test.tsx",
+          "src/pages/system/AboutPage.test.tsx",
+          "src/lib/platformCapabilities.test.ts",
+          "src/lib/ocrScanOperation.test.ts",
+          "src/pages/scan/OcrPage.test.tsx",
+          "src/pages/settings/OcrSettingsPage.test.tsx",
+          "src/components/layout/OcrQuickScanPopover.test.tsx"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 3.285964834038168
+      }
+    ],
+    "rf205-f1-results.json": [
+      {
+        "name": "format-front",
+        "command": [
+          "npx",
+          "prettier",
+          "--write",
+          "src/lib/platformCapabilities.ts",
+          "src/lib/platformCapabilities.test.ts",
+          "src/lib/__fixtures__/platformCapabilityFixture.ts"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.7123484588228166
+      },
+      {
+        "name": "format-rust",
+        "command": [
+          "rustfmt",
+          "--edition",
+          "2021",
+          "--config",
+          "skip_children=true",
+          "src-tauri/src/commands/system.rs",
+          "src-tauri/src/lib.rs"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.12317558424547315
+      },
+      {
+        "name": "generate",
+        "command": [
+          "npm",
+          "run",
+          "generate:contracts"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 1.2891417918726802
+      },
+      {
+        "name": "types",
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 10.44937379239127
+      },
+      {
+        "name": "lint",
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 4.634743874892592
+      },
+      {
+        "name": "tests",
+        "command": [
+          "npm",
+          "run",
+          "test"
+        ],
+        "exit_code": 1,
+        "duration_seconds": 47.71632899995893
+      }
+    ],
+    "rf205-contract-results.json": [
+      {
+        "name": "acl",
+        "command": [
+          "npm",
+          "run",
+          "check:acl"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.177089249715209
+      },
+      {
+        "name": "prefs",
+        "command": [
+          "npm",
+          "run",
+          "check:pref-keys"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.14902583323419094
+      },
+      {
+        "name": "markdown",
+        "command": [
+          "node",
+          "scripts/check-markdown-chunk-boundary.mjs"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.6662142081186175
+      },
+      {
+        "name": "contracts",
+        "command": [
+          "npm",
+          "run",
+          "check:contracts"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 1.1413594582118094
+      },
+      {
+        "name": "contract-tests",
+        "command": [
+          "npm",
+          "run",
+          "test:contracts"
+        ],
+        "exit_code": 1,
+        "duration_seconds": 39.400169250089675
+      }
+    ],
+    "rf205-f3-results.json": [
+      {
+        "name": "format",
+        "command": [
+          "npx",
+          "prettier",
+          "--write",
+          "src/stores/ocrScanStore.test.ts",
+          "src/stores/ocrScanStore.rf029.test.ts",
+          "src/lib/platform.ts"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.44878912530839443
+      },
+      {
+        "name": "types",
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 9.811407083179802
+      },
+      {
+        "name": "lint",
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 4.546490625012666
+      },
+      {
+        "name": "tests",
+        "command": [
+          "npm",
+          "run",
+          "test"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 47.87699424987659
+      }
+    ],
+    "rf205-contract2-results.json": [
+      {
+        "name": "contract-tests",
+        "command": [
+          "npm",
+          "run",
+          "test:contracts"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 277.9517587502487
+      },
+      {
+        "name": "acl-unit",
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "scripts",
+          "-p",
+          "test_check_acl_consistency.py"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.15097070764750242
+      }
+    ],
+    "rf205-f2-results.json": [
+      {
+        "name": "format",
+        "command": [
+          "npx",
+          "prettier",
+          "--write",
+          "src/bootstrapApp.tsx",
+          "src/components/layout/OcrQuickScanPopover.test.tsx",
+          "src/components/layout/OcrQuickScanPopover.tsx",
+          "src/components/layout/OcrScanNotificationListener.rf029.test.tsx",
+          "src/components/ocr/OcrCapabilityNotice.test.tsx",
+          "src/components/ocr/OcrCapabilityNotice.tsx",
+          "src/components/ocr/OcrScanControls.tsx",
+          "src/hooks/useAppUpdate.test.ts",
+          "src/hooks/useUpdateChecker.test.tsx",
+          "src/hooks/useUpdateChecker.ts",
+          "src/lib/__fixtures__/platformCapabilityFixture.ts",
+          "src/lib/generated/ipcContracts.ts",
+          "src/lib/ipcClient.ts",
+          "src/lib/ocrCapabilities.ts",
+          "src/lib/ocrScanMessages.ts",
+          "src/lib/ocrScanOperation.test.ts",
+          "src/lib/ocrScanOperation.ts",
+          "src/lib/platformCapabilities.test.ts",
+          "src/lib/platformCapabilities.ts",
+          "src/lib/typedIpc.test.ts",
+          "src/lib/updater.test.ts",
+          "src/lib/updater.ts",
+          "src/pages/scan/OcrEntrypoints.rf029.test.tsx",
+          "src/pages/scan/OcrPage.test.tsx",
+          "src/pages/scan/OcrPage.tsx",
+          "src/pages/scan/ScanDropZone.tsx",
+          "src/pages/settings/OcrSettingsPage.test.tsx",
+          "src/pages/settings/OcrSettingsPage.tsx",
+          "src/pages/system/AboutPage.test.tsx",
+          "src/pages/system/UpdateInfoCard.tsx",
+          "src/stores/ocrScanStore.rf029.test.ts",
+          "src/stores/ocrScanStore.test.ts",
+          "src/stores/updateStore.test.ts",
+          "src/stores/updateStore.ts"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 1.047718749847263
+      },
+      {
+        "name": "types",
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 10.19008095888421
+      },
+      {
+        "name": "lint",
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 4.606275625061244
+      },
+      {
+        "name": "tests",
+        "command": [
+          "npm",
+          "run",
+          "test"
+        ],
+        "exit_code": 1,
+        "duration_seconds": 46.95974712492898
+      }
+    ],
+    "rf205-final-native-results.json": [
+      {
+        "name": "macos",
+        "command": [
+          "npx",
+          "tauri",
+          "build",
+          "--debug",
+          "--bundles",
+          "app",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 167.59330258425325
+      },
+      {
+        "name": "fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 1.3192608328536153
+      },
+      {
+        "name": "clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 36.17986712511629
+      },
+      {
+        "name": "rust-test",
+        "command": [
+          "cargo",
+          "test",
+          "--verbose",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 171.85049979109317
+      },
+      {
+        "name": "ios-device-check",
+        "command": [
+          "cargo",
+          "check",
+          "--target",
+          "aarch64-apple-ios"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 8.066982083953917
+      },
+      {
+        "name": "ios-sim-check",
+        "command": [
+          "cargo",
+          "check",
+          "--target",
+          "aarch64-apple-ios-sim"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 7.392482207622379
+      },
+      {
+        "name": "ios",
+        "command": [
+          "npm",
+          "run",
+          "tauri:ios:build:sim",
+          "--",
+          "--debug",
+          "--no-sign",
+          "--archive-only",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 184.3689118330367
+      },
+      {
+        "name": "android-stage",
+        "command": [
+          "node",
+          "scripts/stage-mobile-resources.cjs"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.0683140424080193
+      },
+      {
+        "name": "android-check",
+        "command": [
+          "cargo",
+          "ndk",
+          "-t",
+          "aarch64-linux-android",
+          "check"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 8.846073250286281
+      },
+      {
+        "name": "android",
+        "command": [
+          "npx",
+          "tauri",
+          "android",
+          "build",
+          "--debug",
+          "--target",
+          "aarch64",
+          "--split-per-abi",
+          "--apk",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 116.47047666599974
+      }
+    ],
+    "rf205-f4-results.json": [
+      {
+        "name": "format",
+        "command": [
+          "npx",
+          "prettier",
+          "--write",
+          "src/stores/updateStore.ts",
+          "src/stores/updateStore.test.ts"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.4954114584252238
+      },
+      {
+        "name": "target",
+        "command": [
+          "npx",
+          "vitest",
+          "run",
+          "src/stores/updateStore.test.ts",
+          "src/hooks/useAppUpdate.test.ts"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 3.409522207919508
+      },
+      {
+        "name": "types",
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 9.481438792310655
+      },
+      {
+        "name": "lint",
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 4.732608042191714
+      },
+      {
+        "name": "tests",
+        "command": [
+          "npm",
+          "run",
+          "test"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 47.26276258379221
+      }
+    ],
+    "rf205-frontend-native-results.json": [
+      {
+        "name": "macos",
+        "command": [
+          "npx",
+          "tauri",
+          "build",
+          "--debug",
+          "--bundles",
+          "app",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 91.8198702079244
+      },
+      {
+        "name": "ios",
+        "command": [
+          "npm",
+          "run",
+          "tauri:ios:build:sim",
+          "--",
+          "--debug",
+          "--no-sign",
+          "--archive-only",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 37.49164062505588
+      },
+      {
+        "name": "android-stage",
+        "command": [
+          "node",
+          "scripts/stage-mobile-resources.cjs"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.1983211673796177
+      },
+      {
+        "name": "android",
+        "command": [
+          "npx",
+          "tauri",
+          "android",
+          "build",
+          "--debug",
+          "--target",
+          "aarch64",
+          "--split-per-abi",
+          "--apk",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 43.643954624887556
+      }
+    ],
+    "rf205-production-web-results.json": {
+      "command": [
+        "npm",
+        "run",
+        "test:e2e:production"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 8.138202874921262
+    }
+  },
+  "logs": [
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-command-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-initial-matrix.log",
+      "sha256": "a785bc00a7e741a83025af3d74f26e9b82043c37bd54679532b116bfb12b7c43",
+      "tail": "   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)\nerror: failed to run custom build command for `solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)`\n\nCaused by:\n  process didn't exit successfully: `/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/solo_soul-03536fc31d9637eb/build-script-build` (exit status: 101)\n  --- stdout\n  cargo:rerun-if-env-changed=TAURI_CONFIG\n  cargo:rustc-check-cfg=cfg(desktop)\n  cargo:rustc-cfg=desktop\n  cargo:rustc-check-cfg=cfg(mobile)\n  cargo:rerun-if-changed=/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/tauri.conf.json\n  cargo:rerun-if-changed=/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/tauri.macos.conf.json\n  cargo:rustc-env=TAURI_ANDROID_PACKAGE_NAME_APP_NAME=app\n  cargo:rustc-env=TAURI_ANDROID_PACKAGE_NAME_PREFIX=com_solosoul\n  cargo:rustc-check-cfg=cfg(dev)\n\n  --- stderr\n\n  thread 'main' (237320613) panicked at src-tauri/build.rs:27:40:\n  failed to build Tauri application: \n        The `tauri` dependency features on the `Cargo.toml` file does not match the allowlist defined under `tauri.conf.json`.\n        Please run `tauri dev` or `tauri build` or add the `macos-private-api` feature.\n      \n  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-command2-generate.log",
+      "sha256": "59b9ca2dfb1f9e6de7489456bbd23e663ce5c87a980a271829253cc24e45dc55",
+      "tail": "\n> solosoul@2.13.2 generate:contracts\n> node scripts/generate-ipc-contracts.mjs\n\nIPC contracts generated: 106 migrated commands, 120 legacy commands, 11 selected events.\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-initial-native-android.log",
+      "sha256": "594dba6d7f03d07ae3b4de16ddea8b78d359dff54f4965f6122b07e6a3190184",
+      "tail": " and `wait_stopping` are never used\n  --> crates/solosoul-sync/src/workers.rs:42:19\n   |\n26 | impl SyncWorkers {\n   | ---------------- methods in this implementation\n...\n42 |     pub(crate) fn reopen(&self) -> Result<(), String> {\n   |                   ^^^^^^\n...\n97 |     pub(crate) async fn wait_stopping(&self) -> Result<(), String> {\n   |                         ^^^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: method `is_finished` is never used\n   --> crates/solosoul-sync/src/workers.rs:303:8\n    |\n296 | impl StopCompletion {\n    | ------------------- method in this implementation\n...\n303 |     fn is_finished(&self) -> bool {\n    |        ^^^^^^^^^^^\n\nwarning: `solosoul-sync` (lib) generated 2 warnings\nwarning: unused import: `Manager`\n  --> src-tauri/src/commands/recovery.rs:20:22\n   |\n20 | use tauri::{Emitter, Manager, State};\n   |                      ^^^^^^^\n   |\n   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused import: `tauri::Emitter`\n --> src-tauri/src/setup/mod.rs:6:5\n  |\n6 | use tauri::Emitter;\n  |     ^^^^^^^^^^^^^^\n\nwarning: unused variable: `app`\n  --> src-tauri/src/commands/recovery.rs:39:5\n   |\n39 |     app: tauri::AppHandle,\n   |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused variable: `instance_name`\n   --> src-tauri/src/commands/recovery.rs:225:21\n    |\n225 |         if let Some(instance_name) = mdns_name {\n    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instance_name`\n\nwarning: constant `MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:22:7\n   |\n22 | const MDNS_SERVICE_TYPE: &str = \"_solosoul._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:24:7\n   |\n24 | const RECOVERY_MDNS_SERVICE_TYPE: &str = \"_solosoul_recovery._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `advertise_recovery_mdns` is never used\n   --> src-tauri/src/commands/recovery.rs:202:10\n    |\n202 | async fn advertise_recovery_mdns(\n    |          ^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `poll_accessibility` is never used\n   --> src-tauri/src/commands/window.rs:194:15\n    |\n194 | pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {\n    |               ^^^^^^^^^^^^^^^^^^\n\nwarning: function `setup_spawn_registry_refresh` is never used\n   --> src-tauri/src/setup/mod.rs:252:4\n    |\n252 | fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {\n    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: `solo_soul` (lib) generated 9 warnings (run `cargo fix --lib -p solo_soul` to apply 4 suggestions)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 10.49s\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-matrix.log",
+      "sha256": "3ac71a340cee8369fee8e2914039b35bbf1f13af1bdf2365a4467aff301a6246",
+      "tail": "   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)\nwarning: associated functions `unsupported` and `implemented` are never used\n  --> src-tauri/src/commands/system.rs:28:8\n   |\n27 | impl PlatformCapability {\n   | ----------------------- associated functions in this implementation\n28 |     fn unsupported(reason: &str) -> Self {\n   |        ^^^^^^^^^^^\n...\n36 |     fn implemented(available: bool, implementation: &str, reason: &str) -> Self {\n   |        ^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: struct `PlatformProbes` is never constructed\n  --> src-tauri/src/commands/system.rs:64:8\n   |\n64 | struct PlatformProbes {\n   |        ^^^^^^^^^^^^^^\n\nwarning: function `resolve_platform_capabilities` is never used\n  --> src-tauri/src/commands/system.rs:72:4\n   |\n72 | fn resolve_platform_capabilities(os: &str, probes: &PlatformProbes) -> PlatformCapabilities {\n   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: `solo_soul` (lib) generated 3 warnings\n    Finished `test` profile [optimized + debuginfo] target(s) in 1m 56s\n     Running unittests src/lib.rs (target/debug/deps/solo_soul-29d6ff211401e483)\n\nrunning 5 tests\ntest commands::system::tests::rf205_unknown_platform_never_enables_any_action ... ok\ntest commands::system::tests::rf205_missing_bridges_disable_actions_without_erasing_the_install_method ... ok\ntest commands::system::tests::rf205_ios_placeholder_bridges_cannot_enable_android_actions ... ok\ntest commands::system::tests::rf205_linux_retains_desktop_fallback_without_claiming_native_material_or_biometric ... ok\ntest commands::system::tests::rf205_capability_wire_format_has_explicit_status_and_nullable_reason ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 772 filtered out; finished in 0.00s\n\n     Running unittests src/main.rs (target/debug/deps/solo_soul-4cfa9d0c117cc338)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/plugin_address_fmt.rs (target/debug/deps/plugin_address_fmt-0c4ae2b2db36db15)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s\n\n     Running tests/plugin_install.rs (target/debug/deps/plugin_install-631f759c10169cad)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s\n\n     Running tests/plugin_registry_update.rs (target/debug/deps/plugin_registry_update-c931ccf3c8a72e28)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s\n\n     Running tests/plugin_sandbox.rs (target/debug/deps/plugin_sandbox-abc710f90ae2ff4f)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-command2-matrix.log",
+      "sha256": "dc3525934ad4ded0253c2bf5f166c7c8e0d1cf3253ae31f42d3ea5adf580bfcb",
+      "tail": "   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)\n    Finished `test` profile [optimized + debuginfo] target(s) in 1m 50s\n     Running unittests src/lib.rs (target/debug/deps/solo_soul-29d6ff211401e483)\n\nrunning 5 tests\ntest commands::system::tests::rf205_unknown_platform_never_enables_any_action ... ok\ntest commands::system::tests::rf205_ios_placeholder_bridges_cannot_enable_android_actions ... ok\ntest commands::system::tests::rf205_missing_bridges_disable_actions_without_erasing_the_install_method ... ok\ntest commands::system::tests::rf205_capability_wire_format_has_explicit_status_and_nullable_reason ... ok\ntest commands::system::tests::rf205_linux_retains_desktop_fallback_without_claiming_native_material_or_biometric ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 772 filtered out; finished in 0.00s\n\n     Running unittests src/main.rs (target/debug/deps/solo_soul-4cfa9d0c117cc338)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/plugin_address_fmt.rs (target/debug/deps/plugin_address_fmt-0c4ae2b2db36db15)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s\n\n     Running tests/plugin_install.rs (target/debug/deps/plugin_install-631f759c10169cad)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s\n\n     Running tests/plugin_registry_update.rs (target/debug/deps/plugin_registry_update-c931ccf3c8a72e28)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s\n\n     Running tests/plugin_sandbox.rs (target/debug/deps/plugin_sandbox-abc710f90ae2ff4f)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-initial-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-initial-native-ios-device.log",
+      "sha256": "5ac9741649e5969762e03a91ed6011ad49a41356beb789af05c3d25285dcd04e",
+      "tail": "\n    |\n411 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `authenticator`\n   --> src-tauri/src/commands/biometric.rs:419:5\n    |\n419 |     authenticator: Option<String>,\n    |     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_authenticator`\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:579:5\n    |\n579 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:723:5\n    |\n723 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `authenticator`\n   --> src-tauri/src/commands/biometric.rs:731:5\n    |\n731 |     authenticator: Option<String>,\n    |     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_authenticator`\n\nwarning: unused variable: `app`\n  --> src-tauri/src/commands/recovery.rs:39:5\n   |\n39 |     app: tauri::AppHandle,\n   |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `instance_name`\n   --> src-tauri/src/commands/recovery.rs:225:21\n    |\n225 |         if let Some(instance_name) = mdns_name {\n    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instance_name`\n\nwarning: constant `SHARE_TEMP_GRACE` is never used\n --> src-tauri/src/commands/attachment/share.rs:7:7\n  |\n7 | const SHARE_TEMP_GRACE: std::time::Duration = std::time::Duration::from_secs(30 * 60);\n  |       ^^^^^^^^^^^^^^^^\n  |\n  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: constant `MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:22:7\n   |\n22 | const MDNS_SERVICE_TYPE: &str = \"_solosoul._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^\n\nwarning: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:24:7\n   |\n24 | const RECOVERY_MDNS_SERVICE_TYPE: &str = \"_solosoul_recovery._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `advertise_recovery_mdns` is never used\n   --> src-tauri/src/commands/recovery.rs:202:10\n    |\n202 | async fn advertise_recovery_mdns(\n    |          ^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `poll_accessibility` is never used\n   --> src-tauri/src/commands/window.rs:194:15\n    |\n194 | pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {\n    |               ^^^^^^^^^^^^^^^^^^\n\nwarning: function `setup_spawn_registry_refresh` is never used\n   --> src-tauri/src/setup/mod.rs:252:4\n    |\n252 | fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {\n    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: `solo_soul` (lib) generated 17 warnings (run `cargo fix --lib -p solo_soul` to apply 11 suggestions)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 11.14s\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-cache-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-cache-test.log",
+      "sha256": "a01a346bfadfaf46d9c6106bb3bf5d320bd10ed964048f03ddc3b58487ca8d88",
+      "tail": "\n RUN  v4.1.8 /Users/zzc/PycharmProjects/SoloSoul/tauri\n\n\n Test Files  1 passed (1)\n      Tests  4 passed (4)\n   Start at  15:54:38\n   Duration  881ms (transform 71ms, setup 140ms, import 16ms, tests 3ms, environment 636ms)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-command-generate.log",
+      "sha256": "14256a396378024e4399a42d89019e6b1eabf64ce616b3176a2fc891b7150e6e",
+      "tail": "\n> solosoul@2.13.2 generate:contracts\n> node scripts/generate-ipc-contracts.mjs\n\nRust contract generator failed (1):\nipc-contract-gen: registered command missing ACL: get_platform_capabilities\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-cache-format.log",
+      "sha256": "d9424d2ef910dbbb1e8bff02f9bef468f395173c5e72c63711f92b1c590bca9b",
+      "tail": "src/lib/platformCapabilities.ts 42ms (unchanged)\nsrc/lib/platformCapabilities.test.ts 11ms\nsrc/lib/ipcClient.ts 16ms (unchanged)\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-initial-native-ios-sim.log",
+      "sha256": "042ce9bcc9a35f358b58aefd7258f98113d1ce4f0325ad8b74c612e1b214f0ba",
+      "tail": "\n    |\n411 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `authenticator`\n   --> src-tauri/src/commands/biometric.rs:419:5\n    |\n419 |     authenticator: Option<String>,\n    |     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_authenticator`\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:579:5\n    |\n579 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:723:5\n    |\n723 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `authenticator`\n   --> src-tauri/src/commands/biometric.rs:731:5\n    |\n731 |     authenticator: Option<String>,\n    |     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_authenticator`\n\nwarning: unused variable: `app`\n  --> src-tauri/src/commands/recovery.rs:39:5\n   |\n39 |     app: tauri::AppHandle,\n   |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `instance_name`\n   --> src-tauri/src/commands/recovery.rs:225:21\n    |\n225 |         if let Some(instance_name) = mdns_name {\n    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instance_name`\n\nwarning: constant `SHARE_TEMP_GRACE` is never used\n --> src-tauri/src/commands/attachment/share.rs:7:7\n  |\n7 | const SHARE_TEMP_GRACE: std::time::Duration = std::time::Duration::from_secs(30 * 60);\n  |       ^^^^^^^^^^^^^^^^\n  |\n  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: constant `MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:22:7\n   |\n22 | const MDNS_SERVICE_TYPE: &str = \"_solosoul._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^\n\nwarning: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:24:7\n   |\n24 | const RECOVERY_MDNS_SERVICE_TYPE: &str = \"_solosoul_recovery._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `advertise_recovery_mdns` is never used\n   --> src-tauri/src/commands/recovery.rs:202:10\n    |\n202 | async fn advertise_recovery_mdns(\n    |          ^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `poll_accessibility` is never used\n   --> src-tauri/src/commands/window.rs:194:15\n    |\n194 | pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {\n    |               ^^^^^^^^^^^^^^^^^^\n\nwarning: function `setup_spawn_registry_refresh` is never used\n   --> src-tauri/src/setup/mod.rs:252:4\n    |\n252 | fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {\n    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: `solo_soul` (lib) generated 17 warnings (run `cargo fix --lib -p solo_soul` to apply 11 suggestions)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 32.68s\n"
+    }
+  ],
+  "counts": {
+    "rust_matrix": {
+      "passed": 6,
+      "failed": 0
+    },
+    "cache_vitest": {
+      "passed": 4,
+      "failed": 0
+    },
+    "latest_complete_F": {
+      "vitest_files": 255,
+      "passed": 2240,
+      "failed": 0,
+      "node_passed": 91,
+      "node_skipped": 21
+    },
+    "native_R": {
+      "groups": 25,
+      "passed": 1857,
+      "failed": 0,
+      "ignored": 3
+    },
+    "production_WEB": {
+      "passed": 26,
+      "failed": 0
+    }
+  },
+  "remaining": [],
+  "limits": [
+    "Mobile runtime proves startup capability IPC and bridge probes on dedicated simulators; not actual camera/OCR, authentication, install or material rendering.",
+    "macOS current Debug app built only; no user application replacement or account access. Windows/Linux fixed fixtures are not native runtime evidence.",
+    "R and CONTRACT passed on unchanged Rust source; existing warnings, platform skips and ignored tests retained.",
+    "No remote push, publication or CI enablement. Existing unrelated dirty registry/resources and diagnostic files preserved."
+  ],
+  "final_input_freeze": [
+    {
+      "path": "tauri/src-tauri/ipc-contracts.json",
+      "sha256": "3e0c275a548ab25d78cb462d1ec4551de5d8b2e8c661ca5c5222dfad4f0e3bbd"
+    },
+    {
+      "path": "tauri/src-tauri/permissions/solo-soul/default.toml",
+      "sha256": "9e8adb1bd4f825b626c6abf6681ef0c37fcf6f2d1b9c217f9055b11100e58bad"
+    },
+    {
+      "path": "tauri/src-tauri/resources/docs/guides/en/ocr_scan.md",
+      "sha256": "37fddadf276b5ced0df571ff3e8d8452aa2e7f6baec5aa73c3ef865dd2262bd9"
+    },
+    {
+      "path": "tauri/src-tauri/resources/docs/guides/zh/ocr_scan.md",
+      "sha256": "4fb4ea8ef433f84e65179ccc30db7ee0c785e78faa96c9a5d87cc4baa681fd83"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/system.rs",
+      "sha256": "7d6d169dd8ba6fef58240b7400947e59a69f36903dbe11800533f28d06839dc7"
+    },
+    {
+      "path": "tauri/src-tauri/src/lib.rs",
+      "sha256": "7279beceb253ca285b73aa34419a04b71ed497c7ac4ddb66ad9b15bf9ae418c1"
+    },
+    {
+      "path": "tauri/src/bootstrapApp.tsx",
+      "sha256": "19d26493c872a43218af034f54ba5a456e4152196cabfdaec32a150cd12bf75c"
+    },
+    {
+      "path": "tauri/src/components/layout/OcrQuickScanPopover.test.tsx",
+      "sha256": "41b5ba5136a7e2ff4379c9ac75f3b38532e4bcb7aedf0b11a9bf9852c406c90a"
+    },
+    {
+      "path": "tauri/src/components/layout/OcrQuickScanPopover.tsx",
+      "sha256": "66bf45ca8f2ab47f07f478fa0bad66433b560a4ead8780e80dbb7e99801b20e5"
+    },
+    {
+      "path": "tauri/src/components/layout/OcrScanNotificationListener.rf029.test.tsx",
+      "sha256": "1134cdd0e0490f262d8f5a37cb0f80e9e1cbd8e349ba39ef72624acc0e62e81b"
+    },
+    {
+      "path": "tauri/src/components/ocr/OcrCapabilityNotice.test.tsx",
+      "sha256": "a91ce7ff3da2d09bc403ce9f3cfdf9f6c222460f5a6237c18ed759c9b32d4691"
+    },
+    {
+      "path": "tauri/src/components/ocr/OcrCapabilityNotice.tsx",
+      "sha256": "6ea007ecfada47e943017e7a610d06381583832c1763b882f253518d9185e002"
+    },
+    {
+      "path": "tauri/src/components/ocr/OcrScanControls.tsx",
+      "sha256": "d8576c91674c3d8fd0516fb218e57fe386f1a1ae48d29e11ca06e83041d00843"
+    },
+    {
+      "path": "tauri/src/hooks/useAppUpdate.test.ts",
+      "sha256": "121e4d8662a6e643d3eec0f3db85b7563b671a48847694b310cf000c93a7cbb6"
+    },
+    {
+      "path": "tauri/src/hooks/useUpdateChecker.test.tsx",
+      "sha256": "3bb6b65a964ff72723014caf93403ebb4cf31fbaf81fae940e5835e13bced9b6"
+    },
+    {
+      "path": "tauri/src/hooks/useUpdateChecker.ts",
+      "sha256": "385f3bde84a6bcfca125c1546be33f81142ff73e40171aeaf49c0f849d959869"
+    },
+    {
+      "path": "tauri/src/lib/__fixtures__/platformCapabilities.json",
+      "sha256": "501818f04317558462ae7ebdd3c6003c8f7aad939b74b93b6d42bceb2391df59"
+    },
+    {
+      "path": "tauri/src/lib/__fixtures__/platformCapabilityFixture.ts",
+      "sha256": "70c3262e5f1eb50f8dde0e749f4d40bcd43fb10c7fc0e41287b77f0f5338b2b1"
+    },
+    {
+      "path": "tauri/src/lib/generated/ipcContractManifest.json",
+      "sha256": "5fd43e3467b9b77d9f8b0e4cc0f31e9d44ed02a7941a68c4a53281e3b322a291"
+    },
+    {
+      "path": "tauri/src/lib/generated/ipcContracts.ts",
+      "sha256": "ea8b06b0a551fad617374dbbcd632d6239c553c910d18801eec64b25b423dcd2"
+    },
+    {
+      "path": "tauri/src/lib/ipcClient.ts",
+      "sha256": "007f50949bb78f31e9f043883ea4ca301a3242a82357de9c95e6730d91013f81"
+    },
+    {
+      "path": "tauri/src/lib/ocrCapabilities.ts",
+      "sha256": "8f61e749b470da39957a2b47742e725934eb459127efa3abefd192cfd73d10c1"
+    },
+    {
+      "path": "tauri/src/lib/ocrScanMessages.ts",
+      "sha256": "944badb878dfd9fab3d518ac30afa32f8e502b40f3faf8fff638bdc721caab71"
+    },
+    {
+      "path": "tauri/src/lib/ocrScanOperation.test.ts",
+      "sha256": "0f397725fcc993cb397bef1767950af6eb5bac16a0169f4d72b8c79b214ff453"
+    },
+    {
+      "path": "tauri/src/lib/ocrScanOperation.ts",
+      "sha256": "3dc4df94a7548615b691481c2983928ac71f3241f477534409226a794e692d11"
+    },
+    {
+      "path": "tauri/src/lib/platform.ts",
+      "sha256": "8fd10f6f410b069ae4ca6245897cf4efbbe829aa5d08dbc6e11249c1382a18e5"
+    },
+    {
+      "path": "tauri/src/lib/platformCapabilities.test.ts",
+      "sha256": "74b63e248091dbf959cb0ec464b22a3287b785a91dd0d2290af9aae940466f8e"
+    },
+    {
+      "path": "tauri/src/lib/platformCapabilities.ts",
+      "sha256": "8e9d8970b3ec2af386251bbf63d5ee2b5040974b277aa66e26f842d3de296f8a"
+    },
+    {
+      "path": "tauri/src/lib/typedIpc.test.ts",
+      "sha256": "295cad5c5d4d77a9a13f7e3d233fce7b1d4ca7973152a3a7dfa6032a5dc9db69"
+    },
+    {
+      "path": "tauri/src/lib/updater.test.ts",
+      "sha256": "a40f2ff14fa3b20640c72e50ff30213944eb059c4d7170b04795fa5c2556b311"
+    },
+    {
+      "path": "tauri/src/lib/updater.ts",
+      "sha256": "6f18a915499cd4ab0e2efa8aa30dc510d14e52cbbf142eae80972f2e182282d4"
+    },
+    {
+      "path": "tauri/src/locales/en-US/ocr.json",
+      "sha256": "47bb1b6fc923ab5b1c8d9c10a36ce9dd726ef15433f06d4fcc55885710696464"
+    },
+    {
+      "path": "tauri/src/locales/en-US/settings.json",
+      "sha256": "f52cdb10dcc04a84f4c013fc07cc5ed721e98f728fada539ddc281b654a2895c"
+    },
+    {
+      "path": "tauri/src/locales/zh-CN/ocr.json",
+      "sha256": "ffe04556dddf36f736746e2bb34e7633981a9cdf82d6503740127008797d1f96"
+    },
+    {
+      "path": "tauri/src/locales/zh-CN/settings.json",
+      "sha256": "4b011137844a459faebd9d87ac74a6ed9ec1b80ec0f20944f6d8721e9e8f0e48"
+    },
+    {
+      "path": "tauri/src/pages/scan/OcrEntrypoints.rf029.test.tsx",
+      "sha256": "23b80a69a2cd881429e49dc3bc141a61514981a8de36f57444b13b20301dce88"
+    },
+    {
+      "path": "tauri/src/pages/scan/OcrPage.test.tsx",
+      "sha256": "0a9090f29ca097aa193b6dcffffc2dc23aa22637d166379633ec9ce921392cc6"
+    },
+    {
+      "path": "tauri/src/pages/scan/OcrPage.tsx",
+      "sha256": "262fee2dc810bc422a2b9c0efc812df2a33333549d73109bb79d45cd097a37f4"
+    },
+    {
+      "path": "tauri/src/pages/scan/ScanDropZone.tsx",
+      "sha256": "7c2983959eb4dee7ee36c187a44b17cfa09c78bc5c0803a0d5244145b4db1ad0"
+    },
+    {
+      "path": "tauri/src/pages/settings/OcrSettingsPage.test.tsx",
+      "sha256": "9464487c00d5348694ff48cf4c1d31e9afa01574b6d17f5e392221e74e85b256"
+    },
+    {
+      "path": "tauri/src/pages/settings/OcrSettingsPage.tsx",
+      "sha256": "d73366fc250428182288748686155a9c2a833244fd0306614327aab4ea4cba61"
+    },
+    {
+      "path": "tauri/src/pages/system/AboutPage.test.tsx",
+      "sha256": "95eeb1e2f4d8792371cdd871d2d97eaf3281a87e10f52b7360078dc4605f9ad0"
+    },
+    {
+      "path": "tauri/src/pages/system/UpdateInfoCard.tsx",
+      "sha256": "a231a25307ace91675d896a17d4864d25d1b8a731fcea5a9ea08262b662a511f"
+    },
+    {
+      "path": "tauri/src/stores/ocrScanStore.rf029.test.ts",
+      "sha256": "fec4586c7f8846f67a2125aa3f16e805b35ebdb9f0a5fb596f90f0f5cb0a73f4"
+    },
+    {
+      "path": "tauri/src/stores/ocrScanStore.test.ts",
+      "sha256": "6054adc972d35eecc58a5014274cf35430052853e9b3cce533ee679fb1a51fa8"
+    },
+    {
+      "path": "tauri/src/stores/updateStore.test.ts",
+      "sha256": "509f92601731f65161cf04042775699406615b53e3e27d6a95681bc3ae1b2eab"
+    },
+    {
+      "path": "tauri/src/stores/updateStore.ts",
+      "sha256": "519781300cf01f377de0d8028c3fe502748f7b9c450880c8507e561a5b9e4c24"
+    }
+  ],
+  "active_native_session": null,
+  "resource_cleanup_red": {
+    "exit_code": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped_by_filter": 20,
+    "log": "/tmp/solosoul-refactor-macos-20261002/rf205-resource-cleanup-red.log",
+    "sha256": "747e435f94ec5d2488b03522e6f0f059973aceeab786aa144f6a2c4235a6807d",
+    "test_sha256": "ddda6e085c65c8676bf3f18d373d106fbfb347faab0c75a0bb0357b51a1eb42a"
+  },
+  "previous_native_session_completed": 67928,
+  "final_frontend_input_freeze": [
+    {
+      "path": "tauri/e2e/fixtures/tauriMock.js",
+      "sha256": "97228827670b7a43b5c8ff48cfe4f297e6ac00bb5f9832a079bab008c3d9f626"
+    },
+    {
+      "path": "tauri/scripts/generate-ipc-contracts.node.mjs",
+      "sha256": "6b7c3ea783b272ea1988f7279ba2338b5eb635586ac2cadbc4eb38fccf6b4560"
+    },
+    {
+      "path": "tauri/src-tauri/ipc-contracts.json",
+      "sha256": "3e0c275a548ab25d78cb462d1ec4551de5d8b2e8c661ca5c5222dfad4f0e3bbd"
+    },
+    {
+      "path": "tauri/src-tauri/permissions/solo-soul/default.toml",
+      "sha256": "9e8adb1bd4f825b626c6abf6681ef0c37fcf6f2d1b9c217f9055b11100e58bad"
+    },
+    {
+      "path": "tauri/src-tauri/resources/docs/guides/en/ocr_scan.md",
+      "sha256": "37fddadf276b5ced0df571ff3e8d8452aa2e7f6baec5aa73c3ef865dd2262bd9"
+    },
+    {
+      "path": "tauri/src-tauri/resources/docs/guides/search-index.json",
+      "sha256": "a7ae55e10012abcb6a23a0ea9775bbc968346f7e9527e132fb6737ec380f2ae3"
+    },
+    {
+      "path": "tauri/src-tauri/resources/docs/guides/zh/ocr_scan.md",
+      "sha256": "4fb4ea8ef433f84e65179ccc30db7ee0c785e78faa96c9a5d87cc4baa681fd83"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/system.rs",
+      "sha256": "7d6d169dd8ba6fef58240b7400947e59a69f36903dbe11800533f28d06839dc7"
+    },
+    {
+      "path": "tauri/src-tauri/src/lib.rs",
+      "sha256": "7279beceb253ca285b73aa34419a04b71ed497c7ac4ddb66ad9b15bf9ae418c1"
+    },
+    {
+      "path": "tauri/src/bootstrapApp.tsx",
+      "sha256": "19d26493c872a43218af034f54ba5a456e4152196cabfdaec32a150cd12bf75c"
+    },
+    {
+      "path": "tauri/src/components/layout/OcrQuickScanPopover.test.tsx",
+      "sha256": "41b5ba5136a7e2ff4379c9ac75f3b38532e4bcb7aedf0b11a9bf9852c406c90a"
+    },
+    {
+      "path": "tauri/src/components/layout/OcrQuickScanPopover.tsx",
+      "sha256": "66bf45ca8f2ab47f07f478fa0bad66433b560a4ead8780e80dbb7e99801b20e5"
+    },
+    {
+      "path": "tauri/src/components/layout/OcrScanNotificationListener.rf029.test.tsx",
+      "sha256": "1134cdd0e0490f262d8f5a37cb0f80e9e1cbd8e349ba39ef72624acc0e62e81b"
+    },
+    {
+      "path": "tauri/src/components/ocr/OcrCapabilityNotice.test.tsx",
+      "sha256": "a91ce7ff3da2d09bc403ce9f3cfdf9f6c222460f5a6237c18ed759c9b32d4691"
+    },
+    {
+      "path": "tauri/src/components/ocr/OcrCapabilityNotice.tsx",
+      "sha256": "6ea007ecfada47e943017e7a610d06381583832c1763b882f253518d9185e002"
+    },
+    {
+      "path": "tauri/src/components/ocr/OcrScanControls.tsx",
+      "sha256": "d8576c91674c3d8fd0516fb218e57fe386f1a1ae48d29e11ca06e83041d00843"
+    },
+    {
+      "path": "tauri/src/hooks/useAppUpdate.test.ts",
+      "sha256": "121e4d8662a6e643d3eec0f3db85b7563b671a48847694b310cf000c93a7cbb6"
+    },
+    {
+      "path": "tauri/src/hooks/useUpdateChecker.test.tsx",
+      "sha256": "3bb6b65a964ff72723014caf93403ebb4cf31fbaf81fae940e5835e13bced9b6"
+    },
+    {
+      "path": "tauri/src/hooks/useUpdateChecker.ts",
+      "sha256": "385f3bde84a6bcfca125c1546be33f81142ff73e40171aeaf49c0f849d959869"
+    },
+    {
+      "path": "tauri/src/lib/__fixtures__/platformCapabilities.json",
+      "sha256": "501818f04317558462ae7ebdd3c6003c8f7aad939b74b93b6d42bceb2391df59"
+    },
+    {
+      "path": "tauri/src/lib/__fixtures__/platformCapabilityFixture.ts",
+      "sha256": "70c3262e5f1eb50f8dde0e749f4d40bcd43fb10c7fc0e41287b77f0f5338b2b1"
+    },
+    {
+      "path": "tauri/src/lib/generated/ipcContractManifest.json",
+      "sha256": "5fd43e3467b9b77d9f8b0e4cc0f31e9d44ed02a7941a68c4a53281e3b322a291"
+    },
+    {
+      "path": "tauri/src/lib/generated/ipcContracts.ts",
+      "sha256": "ea8b06b0a551fad617374dbbcd632d6239c553c910d18801eec64b25b423dcd2"
+    },
+    {
+      "path": "tauri/src/lib/ipcClient.ts",
+      "sha256": "007f50949bb78f31e9f043883ea4ca301a3242a82357de9c95e6730d91013f81"
+    },
+    {
+      "path": "tauri/src/lib/ocrCapabilities.ts",
+      "sha256": "8f61e749b470da39957a2b47742e725934eb459127efa3abefd192cfd73d10c1"
+    },
+    {
+      "path": "tauri/src/lib/ocrScanMessages.ts",
+      "sha256": "944badb878dfd9fab3d518ac30afa32f8e502b40f3faf8fff638bdc721caab71"
+    },
+    {
+      "path": "tauri/src/lib/ocrScanOperation.test.ts",
+      "sha256": "0f397725fcc993cb397bef1767950af6eb5bac16a0169f4d72b8c79b214ff453"
+    },
+    {
+      "path": "tauri/src/lib/ocrScanOperation.ts",
+      "sha256": "3dc4df94a7548615b691481c2983928ac71f3241f477534409226a794e692d11"
+    },
+    {
+      "path": "tauri/src/lib/platform.ts",
+      "sha256": "8fd10f6f410b069ae4ca6245897cf4efbbe829aa5d08dbc6e11249c1382a18e5"
+    },
+    {
+      "path": "tauri/src/lib/platformCapabilities.test.ts",
+      "sha256": "74b63e248091dbf959cb0ec464b22a3287b785a91dd0d2290af9aae940466f8e"
+    },
+    {
+      "path": "tauri/src/lib/platformCapabilities.ts",
+      "sha256": "8e9d8970b3ec2af386251bbf63d5ee2b5040974b277aa66e26f842d3de296f8a"
+    },
+    {
+      "path": "tauri/src/lib/typedIpc.test.ts",
+      "sha256": "295cad5c5d4d77a9a13f7e3d233fce7b1d4ca7973152a3a7dfa6032a5dc9db69"
+    },
+    {
+      "path": "tauri/src/lib/updater.test.ts",
+      "sha256": "a40f2ff14fa3b20640c72e50ff30213944eb059c4d7170b04795fa5c2556b311"
+    },
+    {
+      "path": "tauri/src/lib/updater.ts",
+      "sha256": "6f18a915499cd4ab0e2efa8aa30dc510d14e52cbbf142eae80972f2e182282d4"
+    },
+    {
+      "path": "tauri/src/locales/en-US/ocr.json",
+      "sha256": "47bb1b6fc923ab5b1c8d9c10a36ce9dd726ef15433f06d4fcc55885710696464"
+    },
+    {
+      "path": "tauri/src/locales/en-US/settings.json",
+      "sha256": "f52cdb10dcc04a84f4c013fc07cc5ed721e98f728fada539ddc281b654a2895c"
+    },
+    {
+      "path": "tauri/src/locales/zh-CN/ocr.json",
+      "sha256": "ffe04556dddf36f736746e2bb34e7633981a9cdf82d6503740127008797d1f96"
+    },
+    {
+      "path": "tauri/src/locales/zh-CN/settings.json",
+      "sha256": "4b011137844a459faebd9d87ac74a6ed9ec1b80ec0f20944f6d8721e9e8f0e48"
+    },
+    {
+      "path": "tauri/src/pages/scan/OcrEntrypoints.rf029.test.tsx",
+      "sha256": "23b80a69a2cd881429e49dc3bc141a61514981a8de36f57444b13b20301dce88"
+    },
+    {
+      "path": "tauri/src/pages/scan/OcrPage.test.tsx",
+      "sha256": "0a9090f29ca097aa193b6dcffffc2dc23aa22637d166379633ec9ce921392cc6"
+    },
+    {
+      "path": "tauri/src/pages/scan/OcrPage.tsx",
+      "sha256": "262fee2dc810bc422a2b9c0efc812df2a33333549d73109bb79d45cd097a37f4"
+    },
+    {
+      "path": "tauri/src/pages/scan/ScanDropZone.tsx",
+      "sha256": "7c2983959eb4dee7ee36c187a44b17cfa09c78bc5c0803a0d5244145b4db1ad0"
+    },
+    {
+      "path": "tauri/src/pages/settings/OcrSettingsPage.test.tsx",
+      "sha256": "9464487c00d5348694ff48cf4c1d31e9afa01574b6d17f5e392221e74e85b256"
+    },
+    {
+      "path": "tauri/src/pages/settings/OcrSettingsPage.tsx",
+      "sha256": "d73366fc250428182288748686155a9c2a833244fd0306614327aab4ea4cba61"
+    },
+    {
+      "path": "tauri/src/pages/system/AboutPage.test.tsx",
+      "sha256": "95eeb1e2f4d8792371cdd871d2d97eaf3281a87e10f52b7360078dc4605f9ad0"
+    },
+    {
+      "path": "tauri/src/pages/system/UpdateInfoCard.tsx",
+      "sha256": "a231a25307ace91675d896a17d4864d25d1b8a731fcea5a9ea08262b662a511f"
+    },
+    {
+      "path": "tauri/src/stores/ocrScanStore.rf029.test.ts",
+      "sha256": "fec4586c7f8846f67a2125aa3f16e805b35ebdb9f0a5fb596f90f0f5cb0a73f4"
+    },
+    {
+      "path": "tauri/src/stores/ocrScanStore.test.ts",
+      "sha256": "6054adc972d35eecc58a5014274cf35430052853e9b3cce533ee679fb1a51fa8"
+    },
+    {
+      "path": "tauri/src/stores/updateStore.test.ts",
+      "sha256": "92729bb2cff06989cb5d667554c85ff588a29be5decebfb7b901c039b4072b56"
+    },
+    {
+      "path": "tauri/src/stores/updateStore.ts",
+      "sha256": "2b7e4e74b1d931c163df5c84ff1a52abedfe258417c57b1c445816d8b5658d2b"
+    }
+  ],
+  "completed_frontend_native_session": 27051,
+  "android_integrity": {
+    "apk": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+    "zip_crc": "passed",
+    "jni_sha256": "281ff4fd02561da47c2ecba93ae4c63a4efc1ea068d8535207ac18ef03f27903",
+    "rust_library": "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so",
+    "matches_rust_library": true
+  },
+  "native_runtime": {
+    "android": {
+      "response": {
+        "os": "android",
+        "updateMethod": "android_apk",
+        "update": {
+          "status": "supported",
+          "reason": null,
+          "implementation": "android_apk"
+        },
+        "ocr": {
+          "status": "supported",
+          "reason": null,
+          "implementation": "ml_kit"
+        },
+        "nativeMaterial": {
+          "status": "supported",
+          "reason": null,
+          "implementation": "android_window_blur"
+        },
+        "biometric": {
+          "status": "unavailable",
+          "reason": "biometric_unavailable",
+          "implementation": "android_keystore"
+        },
+        "fileOpen": {
+          "status": "supported",
+          "reason": null,
+          "implementation": "android_file_provider"
+        }
+      },
+      "source": "actual startup IPC native application log",
+      "device": "SoloSoul_RF201 / emulator-5586"
+    },
+    "ios": {
+      "response": {
+        "os": "ios",
+        "updateMethod": "none",
+        "update": {
+          "status": "unsupported",
+          "reason": "ios_in_app_update_not_implemented",
+          "implementation": null
+        },
+        "ocr": {
+          "status": "unsupported",
+          "reason": "ios_ocr_not_implemented",
+          "implementation": null
+        },
+        "nativeMaterial": {
+          "status": "unsupported",
+          "reason": "native_material_not_implemented",
+          "implementation": null
+        },
+        "biometric": {
+          "status": "unavailable",
+          "reason": "biometric_unavailable",
+          "implementation": "ios_biometric"
+        },
+        "fileOpen": {
+          "status": "unsupported",
+          "reason": "ios_file_open_not_implemented",
+          "implementation": null
+        }
+      },
+      "source": "actual startup IPC native application log",
+      "device": "SoloSoul RF201 / 362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "identity": {
+        "serial": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+        "name": "SoloSoul RF201",
+        "built": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/apple/build/solo_soul_iOS.xcarchive/Products/Applications/SoloSoul.app/SoloSoul",
+        "installed": "/Users/zzc/Library/Developer/CoreSimulator/Devices/362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C/data/Containers/Bundle/Application/AE02744E-7FC6-4C2A-9DFC-65C456B2EC67/SoloSoul.app/SoloSoul",
+        "sha256": "2e424fd40269309a6affe5b0ce8b74992f71ea368b2a3e2503ab3ccfa0b46510"
+      }
+    }
+  },
+  "final_source_hashes_match": true,
+  "final_logs": [
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-android-runtime.log",
+      "sha256": "131f8ebba499c7e78d78b3aebda33bfac4f8900cd4bd13b38f22d269411eae05",
+      "bytes": 164232
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-cache-format.log",
+      "sha256": "d9424d2ef910dbbb1e8bff02f9bef468f395173c5e72c63711f92b1c590bca9b",
+      "bytes": 129
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-cache-test.log",
+      "sha256": "a01a346bfadfaf46d9c6106bb3bf5d320bd10ed964048f03ddc3b58487ca8d88",
+      "bytes": 225
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-cache-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-command-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-command-generate.log",
+      "sha256": "14256a396378024e4399a42d89019e6b1eabf64ce616b3176a2fc891b7150e6e",
+      "bytes": 194
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-command2-generate.log",
+      "sha256": "59b9ca2dfb1f9e6de7489456bbd23e663ce5c87a980a271829253cc24e45dc55",
+      "bytes": 170
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-command2-matrix.log",
+      "sha256": "dc3525934ad4ded0253c2bf5f166c7c8e0d1cf3253ae31f42d3ea5adf580bfcb",
+      "bytes": 1898
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-contract-acl.log",
+      "sha256": "4e091399c13a69dcc982cc53c774acca4be5d454cca9d2805031e241c242115c",
+      "bytes": 285
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-contract-contract-tests.log",
+      "sha256": "110f4995db0e9838299ebcc24126bf50ad377cd7cd8e6baeea2d5c76873f27bf",
+      "bytes": 3676
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-contract-contracts.log",
+      "sha256": "c076d9890c40fccb46683b805d79fa42f80a3695b14f0f5d32b160bda3d87275",
+      "bytes": 174
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-contract-markdown.log",
+      "sha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc",
+      "bytes": 93
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-contract-prefs.log",
+      "sha256": "79b243097bbb2c0227477802b17799a0dac9d8e10c995310aae458bd5b133e3c",
+      "bytes": 168
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-contract2-acl-unit.log",
+      "sha256": "f14fa4d68125be780e9740d44119802d97d828ad67e5d698da64639170ef5df2",
+      "bytes": 111
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-contract2-contract-tests.log",
+      "sha256": "b61e37fb54ab6a76bb1c3df7041047cd29751fed4cee6b9d2c4378789d1cf14a",
+      "bytes": 2731
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f1-format-front.log",
+      "sha256": "869b3cf7a9c0b858609dcd2da761437465a6903fbb4d1ae3d7e79d72b6f7587f",
+      "bytes": 157
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f1-format-rust.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f1-generate.log",
+      "sha256": "59b9ca2dfb1f9e6de7489456bbd23e663ce5c87a980a271829253cc24e45dc55",
+      "bytes": 170
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f1-lint.log",
+      "sha256": "efbf0bb9a7b5429028016ddad5d8ad0a5c9b9e66a04dc3b0808220cbd33a6859",
+      "bytes": 284
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f1-tests.log",
+      "sha256": "5d1c89287095c8c8b78dec26b3b73089b01962667035bb783a1bdb72ab82865b",
+      "bytes": 93851
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f1-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f2-format.log",
+      "sha256": "07b58c691c8ab21a9dbfcdd370d0bd4b2456dbf06a43c31818827c48bdd5af99",
+      "bytes": 1565
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f2-lint.log",
+      "sha256": "efbf0bb9a7b5429028016ddad5d8ad0a5c9b9e66a04dc3b0808220cbd33a6859",
+      "bytes": 284
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f2-tests.log",
+      "sha256": "d0e2e55be70d46a93134b38c291cc725bd28080707f71a1b1fd7bf1db13cf466",
+      "bytes": 18908
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f2-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f3-format.log",
+      "sha256": "85070a39676e825b0068854b7457f957117f89f727654b6cb7e17c612c0f2ce4",
+      "bytes": 116
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f3-lint.log",
+      "sha256": "efbf0bb9a7b5429028016ddad5d8ad0a5c9b9e66a04dc3b0808220cbd33a6859",
+      "bytes": 284
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f3-tests.log",
+      "sha256": "4a2ef751b3546a418b32f4f37f151db79b4d1728757f0e62a4311b0b78030de6",
+      "bytes": 13441
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f3-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f4-format.log",
+      "sha256": "c51840a84a62c67b053e16c8638b304716e3b0fce1acd5807825e898d782a9fa",
+      "bytes": 67
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f4-lint.log",
+      "sha256": "efbf0bb9a7b5429028016ddad5d8ad0a5c9b9e66a04dc3b0808220cbd33a6859",
+      "bytes": 284
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f4-target.log",
+      "sha256": "ce7332f4c0d2a7339a9c7d07492aa04ab6e23c55675740d5acafa87e3f4db33d",
+      "bytes": 231
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f4-tests.log",
+      "sha256": "d4260d8c059af55bb51561ff8d1c9f66d26dd813f3824a932d73c624e0b34218",
+      "bytes": 13442
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-f4-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-final-native-android-check.log",
+      "sha256": "0d9df8bbcb48f1c4dbf07c60bad249fefe523ffb47b1d8b62a1d7725d93c18db",
+      "bytes": 3607
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-final-native-android-stage.log",
+      "sha256": "faf0fc2a86fccd9a4811cd0ef360465bf3789686136e7a13c8f1930c2e0f5d04",
+      "bytes": 155
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-final-native-android.log",
+      "sha256": "7bcfb7d16f7a163ebb6a0d857643d9ecf6a216684d132fafc8e6fc0464006099",
+      "bytes": 20571
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-final-native-clippy.log",
+      "sha256": "f1c12595b9e5297ada4a339dea90479c419abb774e1a5e8163fbf373ad81e546",
+      "bytes": 2430
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-final-native-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-final-native-ios-device-check.log",
+      "sha256": "7039cecc8fe5f9c0dd395e3f826eed053ba8331df40938a40cbc8d528207a2aa",
+      "bytes": 5603
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-final-native-ios-sim-check.log",
+      "sha256": "ec4f960df4b8b03b8ae7170108dd2b6ed8ec7dc518d463b8b37cb615d7bcbef2",
+      "bytes": 5599
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-final-native-ios.log",
+      "sha256": "bf0257bb38d74723c23567bfb2370b71fc6d1669f3e4de08032121cc58741a1d",
+      "bytes": 8478
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-final-native-macos.log",
+      "sha256": "aef6a6a48dd8cb357092f35b14db23ba8eec76d6e233c62f22ef886c5237da36",
+      "bytes": 8844
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-final-native-rust-test.log",
+      "sha256": "7735c0e76ae9b39295afa597e70812edc448d747043f6e66e255fb623740f24a",
+      "bytes": 502854
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-frontend-native-android-stage.log",
+      "sha256": "faf0fc2a86fccd9a4811cd0ef360465bf3789686136e7a13c8f1930c2e0f5d04",
+      "bytes": 155
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-frontend-native-android.log",
+      "sha256": "192ee8cc4c4388345e9cc3f2991e78ca5da1ed28aa20abb3c73195506c203784",
+      "bytes": 20571
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-frontend-native-ios.log",
+      "sha256": "848a02ff685aee5b8e0b771483ab03b635ad305677bd48b3bc1274385c48c052",
+      "bytes": 8478
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-frontend-native-macos.log",
+      "sha256": "06573f203b420ebc61069c28e870e1225bee7d874db14b78c576efbe77177742",
+      "bytes": 8844
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-initial-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-initial-matrix.log",
+      "sha256": "a785bc00a7e741a83025af3d74f26e9b82043c37bd54679532b116bfb12b7c43",
+      "bytes": 1304
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-initial-native-android.log",
+      "sha256": "594dba6d7f03d07ae3b4de16ddea8b78d359dff54f4965f6122b07e6a3190184",
+      "bytes": 3608
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-initial-native-ios-device.log",
+      "sha256": "5ac9741649e5969762e03a91ed6011ad49a41356beb789af05c3d25285dcd04e",
+      "bytes": 5552
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-initial-native-ios-sim.log",
+      "sha256": "042ce9bcc9a35f358b58aefd7258f98113d1ce4f0325ad8b74c612e1b214f0ba",
+      "bytes": 7596
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-ios-runtime.log",
+      "sha256": "5df33319d3772f79d80a8005a3b0d5fe11f9f2deef289706394052bb91ba497b",
+      "bytes": 620
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-matrix.log",
+      "sha256": "3ac71a340cee8369fee8e2914039b35bbf1f13af1bdf2365a4467aff301a6246",
+      "bytes": 2854
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-migrate-types.log",
+      "sha256": "ca417375b4289b1ead99d9ea19b9608a12c4b96e6f69529ae7ab1ab0ab7b2e9d",
+      "bytes": 91
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-migrate2-targeted.log",
+      "sha256": "a9e48ea8186658a01a55219ea23dff11a1e9b4fb3f0917647c98ba5f98d50eca",
+      "bytes": 233
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-migrate2-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-ocr-red.log",
+      "sha256": "205607f115bea22aaca2fd79694063b06aa3955cae82a914da45f5fd1da14d10",
+      "bytes": 1668
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-production-web.log",
+      "sha256": "69192dc34f62b53a60cd692824f23b2032572d482b2c54ed5f0467b77717463c",
+      "bytes": 8055
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-resource-cleanup-red.log",
+      "sha256": "747e435f94ec5d2488b03522e6f0f059973aceeab786aa144f6a2c4235a6807d",
+      "bytes": 1197
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-store-fixture-recheck.log",
+      "sha256": "7771307e94381fb5b15d60c04a73e481e7b4ac03124475c685e7fb7e1054b12e",
+      "bytes": 230
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf205-update-red.log",
+      "sha256": "28894990e17c87d822ba2e325832c7414528d7a7e094291029cde35dd5d16d73",
+      "bytes": 1323
+    }
+  ],
+  "artifacts": {
+    "macos": {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/bundle/macos/SoloSoul.app/Contents/MacOS/solo_soul",
+      "sha256": "1fadbfae110f748bfaf820ce975782c4e15b189c0b492c40746223cd1b8acd11",
+      "bytes": 114829200
+    },
+    "ios": {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/apple/build/solo_soul_iOS.xcarchive/Products/Applications/SoloSoul.app/SoloSoul",
+      "sha256": "2e424fd40269309a6affe5b0ce8b74992f71ea368b2a3e2503ab3ccfa0b46510",
+      "bytes": 170290376
+    },
+    "android": {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "sha256": "495b36f2edf75af74c5a2a9e4a279271db89a90d14c2ebe59c37ae14d48ffe8a",
+      "bytes": 211540831
+    }
+  }
+}

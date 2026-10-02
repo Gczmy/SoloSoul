@@ -1,11 +1,12 @@
+import { capabilityFixture } from '@/lib/__fixtures__/platformCapabilityFixture';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Update } from '@tauri-apps/plugin-updater';
-import type { Platform } from '@tauri-apps/plugin-os';
+import type { PlatformCapabilities } from '@/lib/generated/ipcContracts';
 
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn(),
   prepare: vi.fn(),
-  getPlatform: vi.fn(),
+  getPlatformCapabilities: vi.fn(),
   requestNotificationPermissionOnce: vi.fn(),
   relaunch: vi.fn(),
   close: vi.fn(),
@@ -13,7 +14,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/ipcClient', () => ({ invokeCommand: mocks.invoke }));
-vi.mock('@/lib/platform', () => ({ getPlatform: mocks.getPlatform }));
+vi.mock('@/lib/platformCapabilities', () => ({
+  getPlatformCapabilities: mocks.getPlatformCapabilities,
+}));
 vi.mock('@tauri-apps/plugin-updater', () => ({
   Update: class {
     constructor(metadata: object) {
@@ -79,7 +82,7 @@ let native: {
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.getPlatform.mockResolvedValue('android');
+  mocks.getPlatformCapabilities.mockResolvedValue(capabilityFixture('android'));
   mocks.requestNotificationPermissionOnce.mockResolvedValue(true);
   mocks.channels.length = 0;
   mocks.close.mockResolvedValue(undefined);
@@ -468,7 +471,7 @@ describe('RF202 APK helper platform boundary', () => {
   it.each(['ios', 'macos', 'windows'] as const)(
     'rf202_%s_rejects_all_apk_work_without_ipc_channels_or_notification_permission',
     async (platform) => {
-      mocks.getPlatform.mockResolvedValue(platform);
+      mocks.getPlatformCapabilities.mockResolvedValue(capabilityFixture(platform));
       await expect(androidCheckForUpdate()).resolves.toEqual({ kind: 'unsupported' });
       for (const operation of [
         () => androidCachedUpdate(),
@@ -482,7 +485,7 @@ describe('RF202 APK helper platform boundary', () => {
           code: 'APK_UPDATE_UNSUPPORTED',
         });
       }
-      expect(mocks.getPlatform).toHaveBeenCalledTimes(4);
+      expect(mocks.getPlatformCapabilities).toHaveBeenCalledTimes(4);
       expect(mocks.invoke).not.toHaveBeenCalled();
       expect(mocks.channels).toHaveLength(0);
       expect(mocks.requestNotificationPermissionOnce).not.toHaveBeenCalled();
@@ -494,13 +497,13 @@ describe('RF202 APK helper platform boundary', () => {
   it.each(['android', 'ios', 'macos', 'windows'] as const)(
     'rf202_%s_preaborted_download_keeps_abort_priority_without_even_platform_lookup',
     async (platform) => {
-      mocks.getPlatform.mockResolvedValue(platform);
+      mocks.getPlatformCapabilities.mockResolvedValue(capabilityFixture(platform));
       const controller = new AbortController();
       controller.abort();
       await expect(ensureApkDownloaded('2.13.0', vi.fn(), controller.signal)).rejects.toMatchObject(
         { name: 'AbortError' },
       );
-      expect(mocks.getPlatform).not.toHaveBeenCalled();
+      expect(mocks.getPlatformCapabilities).not.toHaveBeenCalled();
       expect(mocks.invoke).not.toHaveBeenCalled();
       expect(mocks.channels).toHaveLength(0);
       expect(mocks.requestNotificationPermissionOnce).not.toHaveBeenCalled();
@@ -510,15 +513,15 @@ describe('RF202 APK helper platform boundary', () => {
   it.each(['android', 'ios'] as const)(
     'rf202_%s_cancel_during_platform_lookup_takes_priority_and_never_queries_cache',
     async (platform) => {
-      const detection = deferred<Platform>();
-      mocks.getPlatform.mockReturnValue(detection.promise);
+      const detection = deferred<PlatformCapabilities>();
+      mocks.getPlatformCapabilities.mockReturnValue(detection.promise);
       const controller = new AbortController();
       const task = ensureApkDownloaded('2.13.0', vi.fn(), controller.signal);
       const cancelled = expect(task).rejects.toMatchObject({ name: 'AbortError' });
-      expect(mocks.getPlatform).toHaveBeenCalledOnce();
+      expect(mocks.getPlatformCapabilities).toHaveBeenCalledOnce();
       expect(mocks.invoke).not.toHaveBeenCalled();
       controller.abort();
-      detection.resolve(platform);
+      detection.resolve(capabilityFixture(platform));
       await cancelled;
       expect(mocks.invoke).not.toHaveBeenCalled();
       expect(mocks.channels).toHaveLength(0);
@@ -535,7 +538,7 @@ describe('RF202 APK helper platform boundary', () => {
     });
     await expect(ensureApkDownloaded('2.13.0')).resolves.toBe(true);
     await expect(androidInstallApk('2.13.0')).resolves.toBeUndefined();
-    expect(mocks.getPlatform).toHaveBeenCalledTimes(4);
+    expect(mocks.getPlatformCapabilities).toHaveBeenCalledTimes(4);
     expect(mocks.invoke.mock.calls.map(([command]) => command)).toEqual([
       'android_cached_update',
       'android_check_update',

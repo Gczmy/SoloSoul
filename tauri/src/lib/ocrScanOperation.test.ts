@@ -1,3 +1,5 @@
+import { platformCapabilityStore, unavailableCapabilities } from './platformCapabilities';
+import { capabilityFixture } from './__fixtures__/platformCapabilityFixture';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EventCallback } from '@tauri-apps/api/event';
 import { createOcrScanOperation, type OcrJobEvent } from './ocrScanOperation';
@@ -63,6 +65,7 @@ function emit(
 
 beforeEach(() => {
   mocks.ios = false;
+  platformCapabilityStore.setState({ capabilities: capabilityFixture('macos'), loaded: true });
   setRequestSession(null);
   setRequestSession('rf029-a');
   mocks.ipc.mockReset();
@@ -264,6 +267,7 @@ describe('RF029 OCR 用户操作 helper', () => {
 describe('RF-203 iOS 操作前置门控', () => {
   it.each(['general', 'mrz'] as const)('%s 不创建桥接任务和进度订阅', async (mode) => {
     mocks.ios = true;
+    platformCapabilityStore.setState({ capabilities: capabilityFixture('ios'), loaded: true });
     mocks.ipc.mockResolvedValue(RESULT);
     const onState = vi.fn();
     const operation = createOcrScanOperation({ accountId: 'rf029-a', onState });
@@ -275,4 +279,34 @@ describe('RF-203 iOS 操作前置门控', () => {
     expect(mocks.listen).not.toHaveBeenCalled();
     expect(onState).not.toHaveBeenCalled();
   });
+});
+
+describe('RF205 OCR capability boundary', () => {
+  it.each(['unknown', 'bridge-unavailable'] as const)(
+    'RF205_%s_rejects_scan_before_subscribing_or_invoking',
+    async (kind) => {
+      const capabilities =
+        kind === 'unknown'
+          ? unavailableCapabilities('capabilities_read_failed')
+          : {
+              ...capabilityFixture('android'),
+              ocr: {
+                status: 'unavailable' as const,
+                reason: 'ocr_bridge_unavailable',
+                implementation: 'ml_kit',
+              },
+            };
+      platformCapabilityStore.setState({ capabilities, loaded: true });
+      mocks.ipc.mockResolvedValue(RESULT);
+      const onState = vi.fn();
+      const outcome = await createOcrScanOperation({ accountId: 'rf029-a', onState }).run(
+        FILE,
+        'general',
+      );
+      expect(outcome).toEqual({ status: 'failed', error: '__OCR_CAPABILITY_UNAVAILABLE__' });
+      expect(mocks.ipc).not.toHaveBeenCalled();
+      expect(mocks.listen).not.toHaveBeenCalled();
+      expect(onState).not.toHaveBeenCalled();
+    },
+  );
 });

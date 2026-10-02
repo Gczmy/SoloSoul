@@ -1,3 +1,5 @@
+import { platformCapabilityStore } from '@/lib/platformCapabilities';
+import { capabilityFixture } from '@/lib/__fixtures__/platformCapabilityFixture';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -58,6 +60,7 @@ import { prefetchRegistry } from '@/lib/prefetch/registry';
 describe('OcrSettingsPage', () => {
   beforeEach(() => {
     device.ios = false;
+    platformCapabilityStore.setState({ capabilities: capabilityFixture('macos'), loaded: true });
     prefetchRegistry.ocrModel.reset();
     vi.clearAllMocks();
     mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
@@ -151,6 +154,7 @@ describe('OcrSettingsPage', () => {
 
     // 更换 mock 后重置 prefetch 缓存，让第二次渲染重新加载（TTL 缓存会跳过 loader）
     device.ios = false;
+    platformCapabilityStore.setState({ capabilities: capabilityFixture('macos'), loaded: true });
     prefetchRegistry.ocrModel.reset();
     render(
       <MemoryRouter>
@@ -171,6 +175,7 @@ describe('OcrSettingsPage', () => {
   });
   it('RF-203 iOS 设置明确不支持扫描，不误称使用 Android ML Kit', () => {
     device.ios = true;
+    platformCapabilityStore.setState({ capabilities: capabilityFixture('ios'), loaded: true });
     render(
       <MemoryRouter>
         <OcrSettingsPage />

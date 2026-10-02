@@ -13,7 +13,11 @@ import {
   type AndroidUpdateInfo,
   type UpdateTransferInfo,
 } from '@/lib/updater';
-import { getPlatform } from '@/lib/platform';
+import {
+  getPlatformCapabilities,
+  getPlatformCapabilitiesSync,
+  type PlatformCapabilities,
+} from '@/lib/platformCapabilities';
 import { ST_SKIPPED_VERSION } from '@/lib/constants';
 import i18n from '@/lib/i18n';
 import { logger } from '@/lib/logger';
@@ -41,7 +45,7 @@ interface UpdateStore {
   updateState: AppUpdateState;
   checking: boolean;
   checkError?: string;
-  unsupportedReason: 'ios' | null;
+  unsupportedReason: string | null;
   lastChecked: number;
   checkToken: object | null;
   checkPromise: Promise<void> | null;
@@ -54,13 +58,52 @@ interface UpdateStore {
   dismissUpdate: () => void;
 }
 
-const IOS_UNSUPPORTED_STATE = {
-  unsupportedReason: 'ios',
-  checkError: undefined,
-  checking: false,
-  downloaded: null,
-  updateState: { kind: 'hidden' },
-} satisfies Partial<UpdateStore>;
+/** 能力不可用不当作网络成功/最新版本；保留 iOS 原有展示语义。 */
+function blockedUpdateState(capabilities: PlatformCapabilities): Partial<UpdateStore> | null {
+  if (capabilities.update.status === 'supported' && capabilities.updateMethod !== 'none')
+    return null;
+  return {
+    unsupportedReason:
+      capabilities.update.status === 'unsupported'
+        ? capabilities.update.reason === 'ios_in_app_update_not_implemented'
+          ? 'ios'
+          : capabilities.update.reason
+        : null,
+    checkError:
+      capabilities.update.status === 'unavailable'
+        ? i18n.t('settings:update_capability_unavailable')
+        : undefined,
+    checking: false,
+    downloaded: null,
+    updateState: { kind: 'hidden' },
+  };
+}
+
+const routeUnavailableState = () =>
+  blockedUpdateState(getPlatformCapabilitiesSync()) ?? {
+    unsupportedReason: null,
+    checkError: i18n.t('settings:update_capability_unavailable'),
+    checking: false,
+    downloaded: null,
+    updateState: { kind: 'hidden' as const },
+  };
+
+/** 切到禁用状态后释放已持有的原生资源，避免丢弃 JS 引用留下孤立 rid。 */
+function applyBlockedUpdateState(
+  previous: UpdateStore,
+  setState: (patch: Partial<UpdateStore>) => void,
+  blocked: Partial<UpdateStore>,
+): void {
+  setState(blocked);
+  if (previous.updateState.kind !== 'hidden' && previous.updateState.update) {
+    void previous.updateState.update
+      .close()
+      .catch((error) => logger.warn('[updater] blocked update close:', error));
+  }
+  void previous.downloaded
+    ?.close()
+    .catch((error) => logger.warn('[updater] blocked download close:', error));
+}
 
 function isUnsupportedApkUpdateError(error: unknown): boolean {
   return error instanceof Error && 'code' in error && error.code === 'APK_UPDATE_UNSUPPORTED';
@@ -84,14 +127,15 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
     const token = {};
     set({ checking: true, checkError: undefined, checkToken: token });
     const task = (async () => {
-      const platform = await getPlatform();
+      const capabilities = await getPlatformCapabilities(manual);
       if (get().checkToken !== token || get().controller) return;
-      if (platform === 'ios') {
-        set(IOS_UNSUPPORTED_STATE);
+      const blocked = blockedUpdateState(capabilities);
+      if (blocked) {
+        applyBlockedUpdateState(get(), set, blocked);
         return;
       }
       set({ unsupportedReason: null });
-      if (platform === 'android' && get().updateState.kind === 'hidden') {
+      if (capabilities.updateMethod === 'android_apk' && get().updateState.kind === 'hidden') {
         try {
           const cached = await androidCachedUpdate();
           if (
@@ -119,7 +163,7 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
         } catch (error) {
           if (get().checkToken !== token || get().controller) return;
           if (isUnsupportedApkUpdateError(error)) {
-            set(IOS_UNSUPPORTED_STATE);
+            applyBlockedUpdateState(get(), set, routeUnavailableState());
             return;
           }
           logger.warn('[updater] cached metadata:', error);
@@ -127,13 +171,15 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
       }
       if (get().checkToken !== token || get().controller) return;
       const result =
-        platform === 'android' ? await androidCheckForUpdate() : await checkForUpdate();
+        capabilities.updateMethod === 'android_apk'
+          ? await androidCheckForUpdate()
+          : await checkForUpdate();
       if (get().checkToken !== token || get().controller) {
         if ('update' in result) await result.update.close();
         return;
       }
       if (result.kind === 'unsupported') {
-        set(IOS_UNSUPPORTED_STATE);
+        applyBlockedUpdateState(get(), set, routeUnavailableState());
         return;
       }
       if (result.kind === 'error') {
@@ -180,12 +226,11 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
         void prev.update.close().catch((error) => logger.warn('[updater] replace check:', error));
     })()
       .catch((error) => {
-        if (get().checkToken === token)
-          set(
-            isUnsupportedApkUpdateError(error)
-              ? IOS_UNSUPPORTED_STATE
-              : { checkError: String(error) },
-          );
+        if (get().checkToken === token) {
+          if (isUnsupportedApkUpdateError(error))
+            applyBlockedUpdateState(get(), set, routeUnavailableState());
+          else set({ checkError: String(error) });
+        }
       })
       .finally(() => {
         if (get().checkToken === token) set({ checking: false, checkPromise: null });
@@ -229,15 +274,16 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
       });
     };
     try {
-      const platform = await getPlatform();
+      const capabilities = await getPlatformCapabilities();
       if (!current()) return;
       if (controller.signal.aborted) throw new DOMException('Cancelled', 'AbortError');
-      if (platform === 'ios') {
-        set(IOS_UNSUPPORTED_STATE);
+      const blocked = blockedUpdateState(capabilities);
+      if (blocked) {
+        applyBlockedUpdateState(get(), set, blocked);
         return;
       }
       set({ unsupportedReason: null });
-      if (platform === 'android') {
+      if (capabilities.updateMethod === 'android_apk') {
         if (!state.androidInfo?.downloadUrl) throw new Error('No download URL available');
         await ensureApkDownloaded(
           state.version,
@@ -285,7 +331,7 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
     } catch (error) {
       if (!current()) return;
       if (!controller.signal.aborted && isUnsupportedApkUpdateError(error)) {
-        set(IOS_UNSUPPORTED_STATE);
+        applyBlockedUpdateState(get(), set, routeUnavailableState());
         return;
       }
       const prev = get().updateState;
@@ -317,14 +363,15 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
     set({ updateState: installing });
     const current = () => get().updateState === installing;
     try {
-      const platform = await getPlatform();
+      const capabilities = await getPlatformCapabilities();
       if (!current()) return;
-      if (platform === 'ios') {
-        set(IOS_UNSUPPORTED_STATE);
+      const blocked = blockedUpdateState(capabilities);
+      if (blocked) {
+        applyBlockedUpdateState(get(), set, blocked);
         return;
       }
       set({ unsupportedReason: null });
-      if (platform === 'android') {
+      if (capabilities.updateMethod === 'android_apk') {
         await androidInstallApk(state.version);
         if (current()) set({ updateState: state });
       } else {
@@ -336,7 +383,7 @@ export const useUpdateStore = create<UpdateStore>((set, get) => ({
     } catch (error) {
       if (!current()) return;
       if (isUnsupportedApkUpdateError(error)) {
-        set(IOS_UNSUPPORTED_STATE);
+        applyBlockedUpdateState(get(), set, routeUnavailableState());
         return;
       }
       // 已验证安装包保留；权限引导或安装器失败后可以重试安装。

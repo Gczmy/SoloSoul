@@ -1,0 +1,176 @@
+{
+  "macos": {
+    "os": "macos",
+    "updateMethod": "tauri",
+    "update": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "tauri_updater"
+    },
+    "ocr": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "desktop_ocr"
+    },
+    "nativeMaterial": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "macos_material"
+    },
+    "biometric": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "touch_id"
+    },
+    "fileOpen": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "system_opener"
+    }
+  },
+  "windows": {
+    "os": "windows",
+    "updateMethod": "tauri",
+    "update": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "tauri_updater"
+    },
+    "ocr": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "desktop_ocr"
+    },
+    "nativeMaterial": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "windows_material"
+    },
+    "biometric": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "windows_hello"
+    },
+    "fileOpen": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "system_opener"
+    }
+  },
+  "linux": {
+    "os": "linux",
+    "updateMethod": "tauri",
+    "update": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "tauri_updater"
+    },
+    "ocr": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "desktop_ocr"
+    },
+    "nativeMaterial": {
+      "status": "unsupported",
+      "reason": "native_material_not_implemented",
+      "implementation": null
+    },
+    "biometric": {
+      "status": "unsupported",
+      "reason": "biometric_not_implemented",
+      "implementation": null
+    },
+    "fileOpen": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "system_opener"
+    }
+  },
+  "android": {
+    "os": "android",
+    "updateMethod": "android_apk",
+    "update": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "android_apk"
+    },
+    "ocr": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "ml_kit"
+    },
+    "nativeMaterial": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "android_window_blur"
+    },
+    "biometric": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "android_keystore"
+    },
+    "fileOpen": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "android_file_provider"
+    }
+  },
+  "ios": {
+    "os": "ios",
+    "updateMethod": "none",
+    "update": {
+      "status": "unsupported",
+      "reason": "ios_in_app_update_not_implemented",
+      "implementation": null
+    },
+    "ocr": {
+      "status": "unsupported",
+      "reason": "ios_ocr_not_implemented",
+      "implementation": null
+    },
+    "nativeMaterial": {
+      "status": "unsupported",
+      "reason": "native_material_not_implemented",
+      "implementation": null
+    },
+    "biometric": {
+      "status": "supported",
+      "reason": null,
+      "implementation": "ios_biometric"
+    },
+    "fileOpen": {
+      "status": "unsupported",
+      "reason": "ios_file_open_not_implemented",
+      "implementation": null
+    }
+  },
+  "future-os": {
+    "os": "future-os",
+    "updateMethod": "none",
+    "update": {
+      "status": "unsupported",
+      "reason": "unknown_platform",
+      "implementation": null
+    },
+    "ocr": {
+      "status": "unsupported",
+      "reason": "unknown_platform",
+      "implementation": null
+    },
+    "nativeMaterial": {
+      "status": "unsupported",
+      "reason": "unknown_platform",
+      "implementation": null
+    },
+    "biometric": {
+      "status": "unsupported",
+      "reason": "unknown_platform",
+      "implementation": null
+    },
+    "fileOpen": {
+      "status": "unsupported",
+      "reason": "unknown_platform",
+      "implementation": null
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import { capabilityFixture } from './__fixtures__/platformCapabilityFixture';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { invoke } from '@tauri-apps/api/core';
 import type { AppInfo } from './generated/ipcContracts';
@@ -33,6 +34,14 @@ describe('invokeTypedCommand delegates to the existing IPC transport', () => {
   it('keeps get_app_info available before unlock and invokes native IPC with one argument', async () => {
     await expect(invokeTypedCommand('get_app_info')).resolves.toBe(appInfo);
     expect(invoke).toHaveBeenCalledExactlyOnceWith('get_app_info');
+    expect(auth.getState).not.toHaveBeenCalled();
+  });
+
+  it('RF205 平台能力在未解锁启动期可读取，精确调用只读命令', async () => {
+    const capabilities = capabilityFixture('android');
+    vi.mocked(invoke).mockResolvedValue(capabilities);
+    await expect(invokeTypedCommand('get_platform_capabilities')).resolves.toBe(capabilities);
+    expect(invoke).toHaveBeenCalledExactlyOnceWith('get_platform_capabilities');
     expect(auth.getState).not.toHaveBeenCalled();
   });
 

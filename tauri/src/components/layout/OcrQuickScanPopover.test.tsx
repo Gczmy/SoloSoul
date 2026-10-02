@@ -1,3 +1,5 @@
+import { platformCapabilityStore } from '@/lib/platformCapabilities';
+import { capabilityFixture } from '@/lib/__fixtures__/platformCapabilityFixture';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -52,6 +54,7 @@ function showPopover(onClose = vi.fn()) {
 
 beforeEach(() => {
   mocks.ios = false;
+  platformCapabilityStore.setState({ capabilities: capabilityFixture('macos'), loaded: true });
   vi.clearAllMocks();
   mocks.invokeCommand.mockResolvedValue(undefined);
   act(() => {
@@ -162,6 +165,7 @@ describe('RF-1029 OCR quick scan interactions', () => {
 describe('RF-203 iOS 快捷扫描', () => {
   it('禁用扫描和模型切换，保留历史入口并显示原因', () => {
     mocks.ios = true;
+    platformCapabilityStore.setState({ capabilities: capabilityFixture('ios'), loaded: true });
     showPopover();
     expect(screen.getByText('ocr:ios_ocr_unsupported')).toBeVisible();
     expect(screen.getByRole('button', { name: 'ocr:select_image' })).toBeDisabled();

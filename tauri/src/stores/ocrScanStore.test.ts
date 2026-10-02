@@ -1,3 +1,4 @@
+import { capabilityFixture } from '@/lib/__fixtures__/platformCapabilityFixture';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // 模拟 invoke（替代旧的 commands 对象）
@@ -26,7 +27,11 @@ function createLocalStorageMock() {
 describe('ocrScanStore', () => {
   let storage: ReturnType<typeof createLocalStorageMock>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    (await import('@/lib/platformCapabilities')).platformCapabilityStore.setState({
+      capabilities: capabilityFixture('macos'),
+      loaded: true,
+    });
     storage = createLocalStorageMock();
     vi.stubGlobal('localStorage', storage);
     mockInvoke.mockReset();
