@@ -1,0 +1,203 @@
+{
+  "task": "RF-206",
+  "status": "complete",
+  "base_commit": "1da30641",
+  "date": "2026-10-02",
+  "scope": "同步可恢复内置资源安装；未进入 RF-207 异步就绪改造",
+  "checks": [
+    {
+      "name": "node",
+      "command": [
+        "npm",
+        "run",
+        "test:node"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.7113669998943806
+    },
+    {
+      "name": "unit",
+      "command": [
+        "./gradlew",
+        ":app:testArm64DebugUnitTest",
+        "-x",
+        "rustBuildArm64Debug",
+        "--tests",
+        "com.solosoul.app.ResourceInstallerTest"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.0788945420645177
+    },
+    {
+      "name": "ndk",
+      "command": [
+        "cargo",
+        "ndk",
+        "-t",
+        "aarch64-linux-android",
+        "check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 8.66500408295542
+    },
+    {
+      "name": "apk",
+      "command": [
+        "npx",
+        "tauri",
+        "android",
+        "build",
+        "--debug",
+        "--target",
+        "aarch64",
+        "--split-per-abi",
+        "--apk",
+        "--ci"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 35.78516612481326
+    },
+    {
+      "name": "test-apk",
+      "command": [
+        "./gradlew",
+        ":app:assembleArm64DebugAndroidTest",
+        "-x",
+        "rustBuildArm64Debug"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 2.1899775001220405
+    }
+  ],
+  "counts": {
+    "kotlin_unit": 7,
+    "node_passed": 95,
+    "node_skipped": 21,
+    "instrumentation": 1,
+    "packaged_files": 89
+  },
+  "artifact": {
+    "apk": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+    "sha256": "e3d60bed860e1fa9d76f66af70ebdfdcd67e89f770b34fb503a6ae3bcdf72871",
+    "version": "0ea5bd93dd11abafd625e241db82695204a8f502a8cc6f6efe7e8a5a635f3ac1",
+    "files": 89,
+    "manifest_entries_match": true,
+    "zip_crc": true,
+    "jni_sha256": "281ff4fd02561da47c2ecba93ae4c63a4efc1ea068d8535207ac18ef03f27903"
+  },
+  "native_runtime": {
+    "device": "SoloSoul_RF201 / emulator-5586 / API34 ARM64",
+    "instrumentation_result": "OK (1 test)",
+    "first_activity_writes": 89,
+    "second_activity_writes": 0,
+    "activity_launches_ms": [
+      1159,
+      769
+    ],
+    "limits": "单次模拟器观测，不作为设备性能基准；仅访问测试临时目录与专用应用内置资源，无账户操作"
+  },
+  "history": {
+    "red": "安装器尚未实现时新 Kotlin 测试因 unresolved reference 编译失败；不是已运行的行为断言失败。",
+    "format": "首次脚本格式检查未通过；Prettier 整理后检查通过，完整 Node 再验收 95 passed/21 skipped，清单版本未变化。"
+  },
+  "limits": [
+    "只构建 Android Debug，无签名或发布。",
+    "资源内容与原 Kotlin 生产源码未在构建后更改；脚本格式化后的生成版本与 APK 完全一致。",
+    "保留原有脏 registry 字节及诊断文件；生成的 assets 清单显式忽略，不提交不一致的旧资产镜像。",
+    "同步读取校验和 Rust 消费者时序仍由 RF-207 后续优化。"
+  ],
+  "inputs": [
+    {
+      "path": ".gitignore",
+      "sha256": "125f37a133ad75263257995b1a3a9e5ed3adbd2cba66ee5667ad1f29db156cbf"
+    },
+    {
+      "path": "docs/design_map/28_Android内置资源安装.md",
+      "sha256": "c97dd5bd81823364f6f51a7756cefaedd8c58ca75baa3b5402bfd19f80673c27"
+    },
+    {
+      "path": "tauri/scripts/stage-mobile-resources.cjs",
+      "sha256": "16591ae575a04a078bfcd244dad02e196629f01c49f264a2b1502a80d59faa74"
+    },
+    {
+      "path": "tauri/scripts/stage-mobile-resources.test.cjs",
+      "sha256": "6a97dca6fcfec053610fe5bf01b5f598894d3386c962b37709dbb335b6094434"
+    },
+    {
+      "path": "tauri/scripts/run-node-tests.mjs",
+      "sha256": "ddce7b6abd030b74a256f740d8768bf9359e846491be30951eedd3685bb6c3dc"
+    },
+    {
+      "path": "tauri/src-tauri/tauri.android.conf.json",
+      "sha256": "e31f31e4113ae210b18e1ff2a768235572d5cd761af8bfdbc58d5e97439a555f"
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/MainActivity.kt",
+      "sha256": "608fa152c5bd2cd9e16b45655f1574a70958a74f286ad83a7f7d064b45645e0c"
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/ResourceInstaller.kt",
+      "sha256": "e38fd57b9c829549a71d1b09c0c94186c0c888757616326f615a3f9d6aca615d"
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/test/java/com/solosoul/app/ResourceInstallerTest.kt",
+      "sha256": "cef1995c4f5b2b7f759dc4ca48315c7427fae64ad2a4006f8079b7193a5a2ca2"
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/ResourceInstallerInstrumentedTest.kt",
+      "sha256": "4ee83b346b9ada71520c2bd50c75f0245e3fdfe67a5e3fab38cddc36bc401b41"
+    }
+  ],
+  "logs": [
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf206-actual-launch.log",
+      "sha256": "42f1b6234963adadaa1001c891f6ad8934a939c69f214afc865e70c54228db92",
+      "bytes": 9932
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf206-apk.log",
+      "sha256": "4f003ce1563b6e2c72dc0c997a245bb10e9932f19d3786c8ea34337f3049489a",
+      "bytes": 20588
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf206-instrumentation.log",
+      "sha256": "9b1f770698cbf6ddf41eda481ce64fb5e490672c64d300aa35df3e5821fa8d9f",
+      "bytes": 82
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf206-ndk.log",
+      "sha256": "077ca49f542fa3fa00ad7c4c1bfb5b9c48d3bf158a565fdc496770910543dcaf",
+      "bytes": 3607
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf206-node-final.log",
+      "sha256": "b753bfb50fcbcd852af7064515059ae0e9b512cc35a6341fa07f49f2a8a9e6bb",
+      "bytes": 13459
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf206-node.log",
+      "sha256": "7c2f373009ce864edf0cce111513d809458cee47db640ca0292f527b7e81d7a3",
+      "bytes": 13466
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf206-test-apk.log",
+      "sha256": "800483346cfcca63b11648b04f4798d8c3232ea6f63e08f8d440a24b577388b8",
+      "bytes": 14035
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf206-unit-green.log",
+      "sha256": "41d0c1cb5ab2db974a6b964171fa9c508db12b9f19e212e248f72c4e2ef9025a",
+      "bytes": 9672
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf206-unit-red.log",
+      "sha256": "f3b3b4cc09fa8ebc7a9b34ec31aeed5037b150faa643e69e52a93b9b7dbdd692",
+      "bytes": 11463
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf206-unit.log",
+      "sha256": "90d194552b0f09cc5ba793f8387e7f37d5e341cbceb445b1f0c21f17fa80b82c",
+      "bytes": 9192
+    }
+  ]
+}

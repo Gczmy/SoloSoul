@@ -14,6 +14,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const projectRoot = path.resolve(__dirname, '..');
 const srcDir = path.join(projectRoot, '..', 'SoloSoul_plugin_market');
@@ -26,8 +27,7 @@ function copyFile(src, dst) {
 
 function stagePluginMarket() {
   if (!fs.existsSync(srcDir)) {
-    console.warn(`[stage-mobile-resources] 插件市场目录不存在，跳过: ${srcDir}`);
-    return;
+    throw new Error(`[stage-mobile-resources] 插件市场目录不存在: ${srcDir}`);
   }
 
   // 清理旧的移动端资源目录
@@ -61,4 +61,56 @@ function stagePluginMarket() {
   console.log(`[stage-mobile-resources] 已生成移动端插件市场资源: ${destDir}`);
 }
 
-stagePluginMarket();
+/** 清单仅含实际运行资源；内容版本不依赖时间、机器路径或目录枚举顺序。 */
+function createResourceManifest(roots) {
+  const files = [];
+  function visit(source, relative) {
+    const stat = fs.lstatSync(source);
+    if (stat.isSymbolicLink()) throw new Error(`内置资源不允许符号链接: ${relative}`);
+    if (stat.isDirectory()) {
+      for (const name of fs.readdirSync(source).sort())
+        visit(path.join(source, name), `${relative}/${name}`);
+    } else if (stat.isFile()) {
+      if (
+        relative.split('/').some((part) => !part || part === '.' || part === '..') ||
+        /[\\\t\r\n\0]/.test(relative)
+      ) {
+        throw new Error(`非法资源路径: ${relative}`);
+      }
+      const bytes = fs.readFileSync(source);
+      files.push({
+        path: relative,
+        size: bytes.length,
+        sha256: crypto.createHash('sha256').update(bytes).digest('hex'),
+      });
+    } else throw new Error(`非法资源类型: ${relative}`);
+  }
+  for (const [prefix, source] of Object.entries(roots)) visit(source, prefix);
+  files.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+  const content = files.map((file) => `${file.path}\0${file.size}\0${file.sha256}\n`).join('');
+  return { schema: 1, version: crypto.createHash('sha256').update(content).digest('hex'), files };
+}
+
+function stageResourceManifest() {
+  const manifest = createResourceManifest({
+    docs: path.join(projectRoot, 'src-tauri/resources/docs'),
+    SoloSoul_plugin_market: destDir,
+  });
+  for (const required of ['docs/guides/index.json', 'SoloSoul_plugin_market/registry.json']) {
+    if (!manifest.files.some((file) => file.path === required))
+      throw new Error(`缺少关键内置资源: ${required}`);
+  }
+  fs.writeFileSync(
+    path.join(path.dirname(destDir), 'bundled-resource-manifest.json'),
+    JSON.stringify(manifest, null, 2) + '\n',
+  );
+  console.log(
+    `[stage-mobile-resources] 资源版本 ${manifest.version}，${manifest.files.length} 文件`,
+  );
+}
+
+if (require.main === module) {
+  stagePluginMarket();
+  stageResourceManifest();
+}
+module.exports = { createResourceManifest };

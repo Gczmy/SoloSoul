@@ -10,6 +10,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import java.io.File
 import java.io.IOException
+import org.json.JSONObject
 
 class MainActivity : TauriActivity() {
   // 冷启动时 WebView 可能尚未挂树，先把快捷方式 action 暂存到这里，
@@ -187,136 +188,23 @@ class MainActivity : TauriActivity() {
   }
 
   companion object {
-    /**
-     * 把 assets 下指定的资源目录递归复制到 dataDir/app_resources/。
-     * - docs 完整复制（帮助文档）。
-     * - SoloSoul_plugin_market 仅复制 registry.json 与每个插件的 manifest.json、plugin.wasm，
-     *   避免把插件源码 target/ 编译产物打包进 APK / 复制到设备。
-     * Tauri v2 打包后的资源可能位于 assets 根目录或 assets/resources/ 子目录，
-     * 因此根目录找不到时会回退到 resources/ 子目录。
-     */
+    /** 保持同步就绪语义：只在完整清单校验及目录切换完成后返回。 */
     @JvmStatic
     fun extractAssetsToDataDir(assetManager: AssetManager, dataDir: File) {
-      // 资源目录与 Vault 数据目录物理隔离，避免 SAF 同步时误把资源当 Vault 数据。
-      val destRoot = File(dataDir, "app_resources")
-      android.util.Log.i("SoloSoul", "开始复制资源到: ${destRoot.absolutePath}")
-
-      // 1. 复制 docs
-      val docsCopied = tryCopyAssetDir(assetManager, "docs", File(destRoot, "docs"))
-      if (!docsCopied) {
-        val fallbackCopied = tryCopyAssetDir(assetManager, "resources/docs", File(destRoot, "docs"))
-        android.util.Log.i("SoloSoul", "docs 资源回退复制: $fallbackCopied")
-      }
-
-      // 2. 复制 SoloSoul_plugin_market 的精简内容
-      extractPluginMarket(assetManager, destRoot)
-
-      // 关键资源存在性校验，帮助后续排查
-      val guideIndex = File(destRoot, "docs/guides/index.json")
-      if (!guideIndex.exists()) {
-        android.util.Log.e("SoloSoul", "帮助索引未找到: ${guideIndex.absolutePath}")
-      } else {
-        android.util.Log.i("SoloSoul", "帮助索引已就绪: ${guideIndex.absolutePath}")
-      }
-    }
-
-    /**
-     * 仅复制插件市场运行所需的最小文件集合：
-     * - registry.json
-     * - plugins/<id>/manifest.json
-     * - plugins/<id>/plugin.wasm
-     */
-    @JvmStatic
-    private fun extractPluginMarket(assetManager: AssetManager, destRoot: File) {
-      val sourcePrefixes = listOf("SoloSoul_plugin_market", "resources/SoloSoul_plugin_market")
-      var anyCopied = false
-
-      for (prefix in sourcePrefixes) {
-        val registrySrc = "$prefix/registry.json"
-        val registryDest = File(destRoot, "SoloSoul_plugin_market/registry.json")
-        if (assetExists(assetManager, registrySrc)) {
-          try {
-            copyAssetFile(assetManager, registrySrc, registryDest)
-            anyCopied = true
-          } catch (e: IOException) {
-            android.util.Log.w("SoloSoul", "复制注册表失败: ${e.message}")
-          }
-        }
-
-        val pluginsSrc = "$prefix/plugins"
-        val pluginIds = assetManager.list(pluginsSrc) ?: emptyArray()
-        for (pluginId in pluginIds) {
-          val pluginDirSrc = "$pluginsSrc/$pluginId"
-          val pluginDirDest = File(destRoot, "SoloSoul_plugin_market/plugins/$pluginId")
-          listOf("manifest.json", "plugin.wasm").forEach { fileName ->
-            val fileSrc = "$pluginDirSrc/$fileName"
-            if (assetExists(assetManager, fileSrc)) {
-              try {
-                copyAssetFile(assetManager, fileSrc, File(pluginDirDest, fileName))
-              } catch (e: IOException) {
-                android.util.Log.w("SoloSoul", "复制插件文件失败 $fileSrc: ${e.message}")
-              }
-            }
-          }
-        }
-      }
-
-      android.util.Log.i("SoloSoul", "插件市场资源复制完成: $anyCopied")
-    }
-
-    @JvmStatic
-    private fun assetExists(assetManager: AssetManager, path: String): Boolean {
-      return try {
-        assetManager.open(path).close()
-        true
+      fun openAsset(path: String): java.io.InputStream = try {
+        assetManager.open(path)
       } catch (_: IOException) {
-        false
+        assetManager.open("resources/$path")
       }
-    }
-
-    @JvmStatic
-    private fun tryCopyAssetDir(assetManager: AssetManager, assetPath: String, destDir: File): Boolean {
-      return try {
-        copyAssetDir(assetManager, assetPath, destDir)
-        val children = assetManager.list(assetPath) ?: emptyArray()
-        children.isNotEmpty() || destDir.exists()
-      } catch (e: IOException) {
-        android.util.Log.w("SoloSoul", "跳过资源复制 $assetPath: ${e.message}")
-        false
+      val json = openAsset("bundled-resource-manifest.json").bufferedReader().use { JSONObject(it.readText()) }
+      require(json.getInt("schema") == 1) { "不支持的内置资源清单版本" }
+      val entries = json.getJSONArray("files")
+      val files = (0 until entries.length()).map { index ->
+        val entry = entries.getJSONObject(index)
+        ResourceEntry(entry.getString("path"), entry.getLong("size"), entry.getString("sha256"))
       }
-    }
-
-    @JvmStatic
-    @Throws(IOException::class)
-    private fun copyAssetDir(assetManager: AssetManager, assetPath: String, destDir: File) {
-      val children = assetManager.list(assetPath) ?: return
-      if (children.isEmpty()) {
-        // 单个文件
-        copyAssetFile(assetManager, assetPath, destDir)
-        return
-      }
-      destDir.mkdirs()
-      for (child in children) {
-        val src = "$assetPath/$child"
-        val dst = File(destDir, child)
-        val subChildren = assetManager.list(src)
-        if (subChildren.isNullOrEmpty()) {
-          copyAssetFile(assetManager, src, dst)
-        } else {
-          copyAssetDir(assetManager, src, dst)
-        }
-      }
-    }
-
-    @JvmStatic
-    @Throws(IOException::class)
-    private fun copyAssetFile(assetManager: AssetManager, assetPath: String, destFile: File) {
-      destFile.parentFile?.mkdirs()
-      assetManager.open(assetPath).use { input ->
-        destFile.outputStream().use { output ->
-          input.copyTo(output)
-        }
-      }
+      val result = ResourceInstaller(dataDir).install(ResourceManifest(json.getString("version"), files), ::openAsset)
+      android.util.Log.i("SoloSoul", "内置资源就绪 version=${result.version} skipped=${result.skipped} writtenFiles=${result.writtenFiles}")
     }
   }
 }

@@ -10,6 +10,7 @@ const files = [
   'scripts/native-perf-sdk-cdp.test.mjs',
   'src-tauri/src/native_perf/observer.node.test.mjs',
   'scripts/update-distribution.test.js',
+  'scripts/stage-mobile-resources.test.cjs',
 ];
 
 if (process.argv.length !== 2) {
