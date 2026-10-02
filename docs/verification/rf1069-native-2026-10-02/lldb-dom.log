@@ -1,0 +1,32 @@
+(lldb) process attach --pid 91613
+Process 91613 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGSTOP
+    frame #0: 0x000000010f280b70 libsystem_kernel.dylib`mach_msg2_trap + 8
+libsystem_kernel.dylib`mach_msg2_trap:
+->  0x10f280b70 <+8>: ret    
+
+libsystem_kernel.dylib`macx_swapon:
+    0x10f280b74 <+0>: mov    x16, #-0x30               ; =-48 
+    0x10f280b78 <+4>: svc    #0x80
+    0x10f280b7c <+8>: ret    
+Target 0: (SoloSoul) stopped.
+Executable binary set to "/Users/zzc/Library/Developer/CoreSimulator/Devices/362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C/data/Containers/Bundle/Application/A5990DC4-C64D-48C7-9CB4-6A0C3807234E/SoloSoul.app/SoloSoul".
+Architecture set to: arm64-apple-ios-simulator.
+(lldb) command source -s 0 '/tmp/solosoul-refactor-macos-20261002/rf1069-client/lldb-dom.commands'
+Executing commands in '/tmp/solosoul-refactor-macos-20261002/rf1069-client/lldb-dom.commands'.
+(lldb) expression -l objc++ -- @import UIKit;
+(lldb) expression -l objc++ -- @import WebKit;
+(lldb) thread select 1
+(lldb) expression -l objc++ -- (void)(^{ NSMutableArray *pending=[NSMutableArray arrayWithObject:[UIApplication sharedApplication].keyWindow.rootViewController.view]; while(pending.count){ UIView *v=[pending lastObject]; [pending removeLastObject]; if([v isKindOfClass:NSClassFromString(@"WKWebView")]){ (void)[(id)v evaluateJavaScript:@"JSON.stringify({encoding:document.characterSet,platform:document.documentElement.dataset.platform,fontToken:getComputedStyle(document.documentElement).getPropertyValue('--font-sans'),bodyFont:getComputedStyle(document.body).fontFamily,elements:[...document.querySelectorAll('h1,label,input,button')].filter(e=>e.getBoundingClientRect().height>0).map(e=>({tag:e.tagName,text:e.textContent,placeholder:e.getAttribute('placeholder'),font:getComputedStyle(e).fontFamily,weight:getComputedStyle(e).fontWeight}))})" completionHandler:^(NSObject *value, NSError *error){ if([(NSObject *)value isKindOfClass:[NSString class]]){ [(NSString *)value writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Documents/rf1069-dom.json"] atomically:YES encoding:4 error:nil]; } }]; break; } [pending addObjectsFromArray:v.subviews]; } })();
+* thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGSTOP
+    frame #0: 0x000000010f280b70 libsystem_kernel.dylib`mach_msg2_trap + 8
+libsystem_kernel.dylib`mach_msg2_trap:
+->  0x10f280b70 <+8>: ret    
+
+libsystem_kernel.dylib`macx_swapon:
+    0x10f280b74 <+0>: mov    x16, #-0x30               ; =-48 
+    0x10f280b78 <+4>: svc    #0x80
+    0x10f280b7c <+8>: ret    
+(lldb) process detach
+Process 91613 detached
+(lldb) quit

@@ -1,0 +1,124 @@
+[
+  {
+    "name": "identity",
+    "command": [
+      "xcrun",
+      "simctl",
+      "list",
+      "devices",
+      "--json"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "sdk",
+    "command": [
+      "xcrun",
+      "--sdk",
+      "iphonesimulator",
+      "--show-sdk-path"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "compile",
+    "command": [
+      "xcrun",
+      "--sdk",
+      "iphonesimulator",
+      "swiftc",
+      "-parse-as-library",
+      "-target",
+      "arm64-apple-ios17.0-simulator",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk",
+      "/Users/zzc/PycharmProjects/SoloSoul/docs/verification/rf1069-ios-font-probe.swift",
+      "-o",
+      "/tmp/solosoul-refactor-macos-20261002/rf1069-probe/FontProbe.app/FontProbe",
+      "-framework",
+      "UIKit",
+      "-framework",
+      "WebKit"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "sign",
+    "command": [
+      "codesign",
+      "--force",
+      "--sign",
+      "-",
+      "/tmp/solosoul-refactor-macos-20261002/rf1069-probe/FontProbe.app"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "bootstatus",
+    "command": [
+      "xcrun",
+      "simctl",
+      "bootstatus",
+      "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "-b"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "install",
+    "command": [
+      "xcrun",
+      "simctl",
+      "install",
+      "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "/tmp/solosoul-refactor-macos-20261002/rf1069-probe/FontProbe.app"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "launch",
+    "command": [
+      "xcrun",
+      "simctl",
+      "launch",
+      "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "org.solosoul.rf1069.fontprobe"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "container",
+    "command": [
+      "xcrun",
+      "simctl",
+      "get_app_container",
+      "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "org.solosoul.rf1069.fontprobe",
+      "data"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "screenshot",
+    "command": [
+      "xcrun",
+      "simctl",
+      "io",
+      "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "screenshot",
+      "/tmp/solosoul-refactor-macos-20261002/rf1069-probe/native-screen.png"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "terminate",
+    "command": [
+      "xcrun",
+      "simctl",
+      "terminate",
+      "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "org.solosoul.rf1069.fontprobe"
+    ],
+    "exit_code": 0
+  }
+]

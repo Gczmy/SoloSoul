@@ -1,0 +1,12 @@
+{
+  "lastBootedAt": "2026-10-02T19:50:56Z",
+  "dataPath": "/Users/zzc/Library/Developer/CoreSimulator/Devices/362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C/data",
+  "dataPathSize": 1748713472,
+  "logPath": "/Users/zzc/Library/Logs/CoreSimulator/362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+  "udid": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+  "isAvailable": true,
+  "logPathSize": 454656,
+  "deviceTypeIdentifier": "com.apple.CoreSimulator.SimDeviceType.iPhone-17",
+  "state": "Booted",
+  "name": "SoloSoul RF201"
+}

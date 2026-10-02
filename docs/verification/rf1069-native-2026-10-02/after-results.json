@@ -1,0 +1,81 @@
+[
+  {
+    "name": "identity",
+    "command": [
+      "xcrun",
+      "simctl",
+      "list",
+      "devices",
+      "--json"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "terminate",
+    "command": [
+      "xcrun",
+      "simctl",
+      "terminate",
+      "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "com.solosoul.app"
+    ],
+    "exit_code": 3
+  },
+  {
+    "name": "install",
+    "command": [
+      "xcrun",
+      "simctl",
+      "install",
+      "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/apple/build/solo_soul_iOS.xcarchive/Products/Applications/SoloSoul.app"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "container",
+    "command": [
+      "xcrun",
+      "simctl",
+      "get_app_container",
+      "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "com.solosoul.app",
+      "data"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "launch",
+    "command": [
+      "xcrun",
+      "simctl",
+      "launch",
+      "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "com.solosoul.app"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "screenshot",
+    "command": [
+      "xcrun",
+      "simctl",
+      "io",
+      "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "screenshot",
+      "/tmp/solosoul-refactor-macos-20261002/rf1069-client/after.png"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "final-terminate",
+    "command": [
+      "xcrun",
+      "simctl",
+      "terminate",
+      "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "com.solosoul.app"
+    ],
+    "exit_code": 0
+  }
+]

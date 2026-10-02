@@ -240,6 +240,13 @@
   --accent-primary-transparent: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
+/* iOS WKWebView 的系统字体别名在部分运行时无法正确回退中文。
+   原生对照已确认 PingFang 可绘制；让中文字体先匹配，桌面/Android 字体栈不变。 */
+:root[data-platform='ios'] {
+  --font-sans: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: var(--font-sans);
+}
+
 * {
   margin: 0;
   padding: 0;

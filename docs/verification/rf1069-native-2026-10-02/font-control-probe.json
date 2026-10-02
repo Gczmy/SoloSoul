@@ -1,0 +1,16 @@
+{
+  "error" : null,
+  "native" : [
+    {
+      "font" : ".SFUI-Regular",
+      "label" : "UIKit system",
+      "text" : "UIKit system: 欢迎来到 独灵 新建账户"
+    },
+    {
+      "font" : "PingFangSC-Regular",
+      "label" : "UIKit PingFang SC",
+      "text" : "UIKit PingFang SC: 欢迎来到 独灵 新建账户"
+    }
+  ],
+  "web" : "{\"encoding\":\"UTF-8\",\"userAgent\":\"Mozilla\/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit\/605.1.15 (KHTML, like Gecko) Mobile\/15E148\",\"samples\":[{\"text\":\"欢迎来到 独灵 新建账户\",\"codepoints\":[27426,36814,26469,21040,32,29420,28789,32,26032,24314,36134,25143],\"font\":\"-webkit-standard\",\"weight\":\"400\"},{\"text\":\"欢迎来到 独灵 新建账户\",\"codepoints\":[27426,36814,26469,21040,32,29420,28789,32,26032,24314,36134,25143],\"font\":\"-apple-system\",\"weight\":\"400\"},{\"text\":\"欢迎来到 独灵 新建账户\",\"codepoints\":[27426,36814,26469,21040,32,29420,28789,32,26032,24314,36134,25143],\"font\":\"-apple-system, BlinkMacSystemFont, \\\"SF Pro Text\\\", \\\"Segoe UI\\\", \\\"Noto Sans SC\\\", \\\"PingFang SC\\\", \\\"Hiragino Sans GB\\\", \\\"Microsoft YaHei\\\", sans-serif\",\"weight\":\"400\"},{\"text\":\"欢迎来到 独灵 新建账户\",\"codepoints\":[27426,36814,26469,21040,32,29420,28789,32,26032,24314,36134,25143],\"font\":\"\\\"PingFang SC\\\"\",\"weight\":\"400\"},{\"text\":\"欢迎来到 独灵 新建账户\",\"codepoints\":[27426,36814,26469,21040,32,29420,28789,32,26032,24314,36134,25143],\"font\":\"sans-serif\",\"weight\":\"400\"},{\"text\":\"欢迎来到 独灵 新建账户\",\"codepoints\":[27426,36814,26469,21040,32,29420,28789,32,26032,24314,36134,25143],\"font\":\"system-ui\",\"weight\":\"400\"}]}"
+}

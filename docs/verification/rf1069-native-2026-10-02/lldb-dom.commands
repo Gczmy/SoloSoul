@@ -1,0 +1,6 @@
+expression -l objc++ -- @import UIKit;
+expression -l objc++ -- @import WebKit;
+thread select 1
+expression -l objc++ -- (void)(^{ NSMutableArray *pending=[NSMutableArray arrayWithObject:[UIApplication sharedApplication].keyWindow.rootViewController.view]; while(pending.count){ UIView *v=[pending lastObject]; [pending removeLastObject]; if([v isKindOfClass:NSClassFromString(@"WKWebView")]){ (void)[(id)v evaluateJavaScript:@"JSON.stringify({encoding:document.characterSet,platform:document.documentElement.dataset.platform,fontToken:getComputedStyle(document.documentElement).getPropertyValue('--font-sans'),bodyFont:getComputedStyle(document.body).fontFamily,elements:[...document.querySelectorAll('h1,label,input,button')].filter(e=>e.getBoundingClientRect().height>0).map(e=>({tag:e.tagName,text:e.textContent,placeholder:e.getAttribute('placeholder'),font:getComputedStyle(e).fontFamily,weight:getComputedStyle(e).fontWeight}))})" completionHandler:^(NSObject *value, NSError *error){ if([(NSObject *)value isKindOfClass:[NSString class]]){ [(NSString *)value writeToFile:[NSHomeDirectory() stringByAppendingPathComponent:@"Documents/rf1069-dom.json"] atomically:YES encoding:4 error:nil]; } }]; break; } [pending addObjectsFromArray:v.subviews]; } })();
+process detach
+quit

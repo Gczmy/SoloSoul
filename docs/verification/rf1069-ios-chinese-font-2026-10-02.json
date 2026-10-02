@@ -1,0 +1,206 @@
+{
+  "task": "RF-1069",
+  "baseline_commit": "bce556a9",
+  "scope": "iOS-only font token override; no language change, no dependencies or native bridge changes",
+  "native_environment": {
+    "name": "SoloSoul RF201",
+    "serial": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+    "device": "iPhone17",
+    "runtime": "iOS26.3.1",
+    "accounts": 0
+  },
+  "native_control": {
+    "source": "rf1069-ios-font-probe.swift",
+    "result": "UIKit system/PingFang and WK default/PingFang/sans-serif Chinese readable; WK -apple-system, full old SoloSoul stack and system-ui render tofu, same UTF8 text/codepoints",
+    "record": "rf1069-native-2026-10-02/font-control-probe.json",
+    "image": "rf1069-native-2026-10-02/font-control-native-screen.png"
+  },
+  "native_client": {
+    "before": "rf1069-native-2026-10-02/before.png",
+    "after": "rf1069-native-2026-10-02/after.png",
+    "actual_dom": "rf1069-native-2026-10-02/actual-dom.json",
+    "visual_acceptance": "Actual Chinese title, field labels, placeholder, help/warning and create/back buttons readable",
+    "built_installed_binary_sha256": "f5d21800b4f3e206c0dae49a663158eba07afdb372698ffeff5a4d0fbb91fcbc",
+    "preferences_restored": true,
+    "process_terminated": true
+  },
+  "checks": [
+    {
+      "name": "tsc",
+      "command": [
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 11.590875749941915
+    },
+    {
+      "name": "lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 5.631945624947548
+    },
+    {
+      "name": "test",
+      "command": [
+        "npm",
+        "run",
+        "test"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 60.4968020003289
+    },
+    {
+      "name": "web",
+      "command": [
+        "npm",
+        "run",
+        "test:e2e:production"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 31.808954500127584
+    },
+    {
+      "name": "ios-device",
+      "command": [
+        "cargo",
+        "check",
+        "--target",
+        "aarch64-apple-ios"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 14.634990041144192
+    },
+    {
+      "name": "ios-simulator",
+      "command": [
+        "cargo",
+        "check",
+        "--target",
+        "aarch64-apple-ios-sim"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 36.60859287483618
+    },
+    {
+      "name": "ios-build",
+      "command": [
+        "npm",
+        "run",
+        "tauri:ios:build:sim",
+        "--",
+        "--debug",
+        "--no-sign",
+        "--archive-only",
+        "--ci"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 198.02138508390635
+    }
+  ],
+  "front": {
+    "vitest_files": 256,
+    "vitest_passed": 2240,
+    "node_passed": 99,
+    "node_platform_skipped": 21,
+    "failed": 0,
+    "production_web_passed": 26
+  },
+  "format_and_doc": {
+    "css_prettier_exit": 0,
+    "markdown_boundary_exit": 0,
+    "relative_links_and_diff": "checked before commit"
+  },
+  "diagnostic_failures": "Read-only LLDB attempts encountered WKWebView type ambiguity, untyped receiver, inline dispatch_get_main_queue symbol and dispatch_queue_t ambiguity. Final diagnostic executed on explicitly selected main thread, exited0 and produced actual DOM; earlier logs preserved. No production changes for debugger workarounds.",
+  "limits": [
+    "Single dedicated simulator acceptance; no physical device or all iOS-version claim.",
+    "Known mobile target compiler warnings retained; not zero-warning certification.",
+    "No account creation, password entry, real account access, production macOS client installation or remote CI execution."
+  ],
+  "source_sha256": {
+    "tauri/src/styles/global.css": "5aef81bb265218276da67312b62a29f97a7e17be40c2847a81e10bdcafbd2a7d",
+    "docs/verification/rf1069-ios-font-probe.swift": "19d4a852ce632c785e33c76d7d651ea1917b29be7f7792d032b80832ec09cb4d"
+  },
+  "logs": [
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1069-ios-build.log",
+      "sha256": "1def79e8f2d91eb6634c4b8e5f4c0d95cf3b2f6fa01fb3c9c1af1c20ae686b9d",
+      "bytes": 8593
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1069-ios-device.log",
+      "sha256": "a825ecb8a9fb683e9e75bc200a3e80b83f6c18a7cde2f21f7602c579ca116bf9",
+      "bytes": 5552
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1069-ios-simulator.log",
+      "sha256": "a07c224048cd832f4f6a4b0858eb0588b5928fd607f7c7e2b99d1e808c32aaba",
+      "bytes": 7596
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1069-lint.log",
+      "sha256": "efbf0bb9a7b5429028016ddad5d8ad0a5c9b9e66a04dc3b0808220cbd33a6859",
+      "bytes": 284
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1069-test.log",
+      "sha256": "279a63dd550b49770a8c710f729f769b3073c55ab816e70b1adf4ade93d78a85",
+      "bytes": 14830
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1069-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1069-web.log",
+      "sha256": "a15b5c5f598ec52f40dd4c63a31914243dd10b0ff3c6bb62f7641c44422ae316",
+      "bytes": 8039
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1069-client/lldb-dom-first.log",
+      "sha256": "005cf57f6d1751f7fca478cd3d4251cf2de135c9601d092e7e73201be5c5a171",
+      "bytes": 7291
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1069-client/lldb-dom-fourth.log",
+      "sha256": "1766876f5883aa939d2f7fb40fb27b14194fdf6933cdb479d9f415403653bf10",
+      "bytes": 7701
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1069-client/lldb-dom-second.log",
+      "sha256": "6007e7f2f16c7073d88c427a2888aac34fd0eb799b79686e665c7166b5e9dbea",
+      "bytes": 3450
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1069-client/lldb-dom-third.log",
+      "sha256": "813b6ce2cea0da4dc5b7525af88de724da9350a184f8ea983ad6837ed4ed4c28",
+      "bytes": 2875
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1069-client/lldb-dom.log",
+      "sha256": "9ffa05ab315220132dce7c72d0d20c9b94dcdae9b001a82ff05ec98552ed624d",
+      "bytes": 2651
+    }
+  ],
+  "artifact_sha256": {
+    "docs/verification/rf1069-native-2026-10-02/actual-dom.json": "165b97f22c931e263ebd3a784e6ad71d4fbe4c8bf2a46f907ff0f53e3ba8c754",
+    "docs/verification/rf1069-native-2026-10-02/after-binary-sha256.txt": "dc3e7813c13f0634ced4836088a7ddece619afd0f42f32a877133536176b9cdf",
+    "docs/verification/rf1069-native-2026-10-02/after-results.json": "87cfff0b85dccf25df5808168c386c203e5057e1ffe56ae72af030299fa724b6",
+    "docs/verification/rf1069-native-2026-10-02/after.png": "5357669730a199698642bdf2b74476699b1d06b48f69273595e0fffe2e66507e",
+    "docs/verification/rf1069-native-2026-10-02/before-results.json": "9f04a310f93abfd0b27355eb35e797086ebf459ddba3c99aa02b5bbf4be7dd4f",
+    "docs/verification/rf1069-native-2026-10-02/before.png": "921b4dc97b78bd3353ad2e19aed36e3a067280f04b2afe76a1db58821d329e77",
+    "docs/verification/rf1069-native-2026-10-02/font-control-device.json": "57722fa18fc99032d609d286a08bf8f656ac7db5013786eb63f9d4c22291c49a",
+    "docs/verification/rf1069-native-2026-10-02/font-control-native-screen.png": "0f703c175aea85be7f66e35fd751f4ae7e8c90b5bfbba1b6e99b27e04287d659",
+    "docs/verification/rf1069-native-2026-10-02/font-control-probe.json": "772b13b15f6df46658bdbbc17ac1bd6a5975b2dfbb305e566d49da68c5ca5362",
+    "docs/verification/rf1069-native-2026-10-02/font-control-results.json": "b5a8dfb4dc0bde38bf0d89edba19f6e103c6abe13e4149cd4b08bd0955ee7411",
+    "docs/verification/rf1069-native-2026-10-02/font-control-webview.png": "51e069e4664c37965c8d17e9645fcb101b3772b0b4d68743959d19b102934892",
+    "docs/verification/rf1069-native-2026-10-02/lldb-dom.commands": "db928d99412adc18e085d4457c667391683a6e16840c41d217ab88896100e490",
+    "docs/verification/rf1069-native-2026-10-02/lldb-dom.log": "9ffa05ab315220132dce7c72d0d20c9b94dcdae9b001a82ff05ec98552ed624d"
+  }
+}
