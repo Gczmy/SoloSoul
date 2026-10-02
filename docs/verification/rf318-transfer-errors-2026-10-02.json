@@ -1,0 +1,328 @@
+{
+  "task": "RF-318",
+  "startedDate": "2026-10-02",
+  "completedDate": "2026-10-02",
+  "baselineCommit": "d873d1ea57d98f0e0c26965b49e37efb5f8147a1",
+  "status": "verified",
+  "workspace": "C:\\Users\\40299571\\SoloSoul",
+  "commitPolicy": "one item / one fix / one verified commit; no push",
+  "implementation": [
+    "16 registered Backup/export/import/document/operation commands return actual BackendError code/safeDetails/retryable, selected from typed failure kinds and production phases. Legacy free text stays inside TransferFailure and is absent from the Host rejection wire/diagnostic projection.",
+    "Backup restore preserves sequential writes; completedCount reports the actual saved prefix. Failed first write, partial prefix, already written output metadata failure and mutating-task unconfirmed state remain distinct.",
+    "Core ImportOutcome/Host ImportResult continue independently carrying complete/partial/notCommitted, fixed failureStage/errorCode, counts and operation identity. Existing transaction, attachment and recovery semantics remain unchanged.",
+    "Original Core Root activity, VaultSession capture/final gates, zeroized request passwords, authorized paths and complete-only sync notifications remain in production paths. Existing String test adapters share the actual safe worker implementations and preserve their original assertions.",
+    "Frontend typed IPC validates safe packets, adapts old transfer tokens without detail, localizes all 38 new codes and recognizes structured missing-operation errors before replaying the original frozen operation ID/request."
+  ],
+  "validation": {
+    "frontendFiles": 248,
+    "frontendVitestPassed": 2103,
+    "frontendNodePassed": 112,
+    "directedFrontendPassed": 61,
+    "directedRustPassed": 11,
+    "rustPassed": 1830,
+    "rustFailed": 0,
+    "rustExistingIgnored": 3,
+    "contractNodePassed": 19,
+    "migratedCommands": 105,
+    "registeredCommands": 225,
+    "legacyCommands": 120,
+    "structuredErrorCommands": 56,
+    "selectedEvents": 11
+  },
+  "checks": [
+    {
+      "name": "front-types-complete",
+      "command": ["node", "node_modules/typescript/bin/tsc", "--noEmit"],
+      "exitCode": 0,
+      "elapsedSeconds": 25.2,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\front-types-complete.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "front-lint",
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "src",
+        "--ext",
+        ".ts,.tsx"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 31.54,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\front-lint.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "front-format",
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "scripts/generate-ipc-contracts.node.mjs",
+        "src-tauri/src/commands/export_import/contracts/rf318-codes.json",
+        "src-tauri/src/commands/export_import/contracts/rf318-fixtures.json",
+        "src/hooks/useImportState.rf022.test.ts",
+        "src/hooks/useImportState.ts",
+        "src/lib/backendError.ts",
+        "src/lib/backendErrorWire.ts",
+        "src/lib/generated/ipcContractManifest.json",
+        "src/lib/generated/ipcContracts.ts",
+        "src/lib/ipcClient.ts",
+        "src/lib/transferErrors.rf318.test.ts",
+        "src/locales/en-US/common.json",
+        "src/locales/zh-CN/common.json"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 3.64,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\front-format.log",
+      "logSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "name": "front-directed-complete",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/lib/transferErrors.rf318.test.ts",
+        "src/hooks/useImportState.rf022.test.ts",
+        "src/lib/backendError.test.ts",
+        "src/lib/backendError.rf307.test.ts",
+        "--maxWorkers",
+        "2"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 4.65,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\front-directed-complete.log",
+      "logSha256": "69f0bc87c9ccdb9d266d4a18f532c9e987a9aae407135f708187c4971b22cb9c"
+    },
+    {
+      "name": "front-full",
+      "command": ["cmd", "/d", "/c", "npm", "run", "test"],
+      "exitCode": 0,
+      "elapsedSeconds": 163.39,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\front-full.log",
+      "logSha256": "7a068689c81aac08ff2d2c4607e351d1dbdd816f203db36b9f3f970dc1d91107"
+    },
+    {
+      "name": "rust-directed-complete",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--lib",
+        "rf318"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 140.8,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\rust-directed-complete.log",
+      "logSha256": "33805d7bc3dd29020d8b584e2fcc502f48bf748effab558ab6ea6ad4d7dfcb0e"
+    },
+    {
+      "name": "rust-fmt",
+      "command": ["cargo", "fmt", "--all", "--", "--check"],
+      "exitCode": 0,
+      "elapsedSeconds": 6.06,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\rust-fmt.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "rust-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 43.65,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\rust-clippy.log",
+      "logSha256": "9bcc568fbb9d84ad8645a6a4cbba805a1078eae3285ade5469eb0720d62d3d17"
+    },
+    {
+      "name": "rust-full",
+      "command": ["cargo", "test", "--locked", "--verbose"],
+      "exitCode": 0,
+      "elapsedSeconds": 674.02,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\rust-full.log",
+      "logSha256": "dfb3aa580d59608b38fb39b92bc4b4b88f63ab0141f4b9b50f22421f4d9306c2"
+    },
+    {
+      "name": "contracts-directed",
+      "command": ["node", "--test", "scripts/generate-ipc-contracts.node.mjs"],
+      "exitCode": 0,
+      "elapsedSeconds": 80.65,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\contracts-directed.log",
+      "logSha256": "4d7c854b1dcc079ab4223db6a31fa4e55de20b939e55f38495d7e4d4785fb164"
+    },
+    {
+      "name": "contracts-acl",
+      "command": [
+        "node",
+        "scripts/run-python-check.cjs",
+        "scripts/check_acl_consistency.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.23,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\contracts-acl.log",
+      "logSha256": "baba1ce2ca66c142213eab646971933c0d11d7f52d261fd54af6933303268ff0"
+    },
+    {
+      "name": "contracts-pref",
+      "command": [
+        "node",
+        "scripts/run-python-check.cjs",
+        "scripts/check_pref_keys_sync.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.32,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\contracts-pref.log",
+      "logSha256": "b97b695e75f346b7c1eb942a1de01ca0dbac814cd9f637edfc1d59472fced6c3"
+    },
+    {
+      "name": "contracts-check",
+      "command": ["node", "scripts/generate-ipc-contracts.mjs", "--check"],
+      "exitCode": 0,
+      "elapsedSeconds": 2.72,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\contracts-check.log",
+      "logSha256": "d177d398fe62b83268888947fa4c243f685ce74480899ad881474c19963207d5"
+    },
+    {
+      "name": "contracts-markdown",
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "exitCode": 0,
+      "elapsedSeconds": 8.45,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\contracts-markdown.log",
+      "logSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc"
+    },
+    {
+      "name": "contracts-python",
+      "command": [
+        "python",
+        "-X",
+        "utf8",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_check_acl_consistency.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.87,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002\\contracts-python.log",
+      "logSha256": "971f473ac8a99690369b240dfee57b4afaf31c75dcff0379ced397d382f17099"
+    }
+  ],
+  "sourceInputsSha256": {
+    "docs/ipc-contract-generation.md": "1cafb6472a0c2542ca81cb85b01da089dad0d3f4317606b060d5d802067118a0",
+    "tauri/scripts/generate-ipc-contracts.node.mjs": "95e2280db9b631d7de30f3f95748cf945f7c12ad621a2c6ca0c79d4f8ed352a3",
+    "tauri/src-tauri/src/commands/backup.rs": "4102d96dec891e5f50c72063b6ceb6117fee3dfa2afcb17c412d9becd51f8187",
+    "tauri/src-tauri/src/commands/backup/rf318_tests.rs": "f0a1dab9252d2abf48d22fce3853ac32fbf8be897d4af4883d166d982f831113",
+    "tauri/src-tauri/src/commands/error.rs": "e0d0b1133a44a832c7e9f575b4508e6727191bcbd12eaacdf3e54adc068a87ed",
+    "tauri/src-tauri/src/commands/export_import/contracts/rf318-codes.json": "dd7d4a0ed0fad526ecdf78f466c7a9aa1dff133df24bb2ef0d20f6a41d582462",
+    "tauri/src-tauri/src/commands/export_import/contracts/rf318-fixtures.json": "2a884e50a810fc0c9c2bc070987223a51dfae6cbf8f72ec00198e2597d2794cf",
+    "tauri/src-tauri/src/commands/export_import/contracts/tests.rs": "778396469afeb1faa28c909fda57c6397555cf0e020b53f260b7134195f466f2",
+    "tauri/src-tauri/src/commands/export_import/errors.rs": "290f07890eadb7c20c19952ece6aece4c8c0d130cd2b55da597a090735147a00",
+    "tauri/src-tauri/src/commands/export_import/export.rs": "7eb41c918010cf2a87ff117732f7f32e26ed0e0c39fe180f53d59f0271810da7",
+    "tauri/src-tauri/src/commands/export_import/export_docx/mod.rs": "3aac6540e4756dc99dfc5c1859b1d5ea8711b3451da43dcfc44e2db967abdab7",
+    "tauri/src-tauri/src/commands/export_import/export_docx/rf318_tests.rs": "2ad530e4886f5015f7f7ef6b50818b73df75153b6e14765963399906b71e6876",
+    "tauri/src-tauri/src/commands/export_import/helpers.rs": "f3759422b41af597039b441a360654ec01b1ca9419735f129778d6293b9647fa",
+    "tauri/src-tauri/src/commands/export_import/import.rs": "9c745af8c8cd83fb84d3a6ac876c765c1ed014c9aafd7730be6e0f712dd172e2",
+    "tauri/src-tauri/src/commands/export_import/mod.rs": "8f9372a9ae5a2ae83f4aae639d5d30c6b2c7faf34a76452897a9e32d00e74f9f",
+    "tauri/src-tauri/src/commands/export_import/operations.rs": "9b839ca1832c896ab145de08ebf38934557fa6c371f95c219b1751ea3cc2d929",
+    "tauri/src-tauri/src/commands/export_import/tests.rs": "3655d39b9995936df41715ea6189e0e5fdb07bd8c9b0c5900baa673cb3ca7591",
+    "tauri/src-tauri/src/commands/export_import/tests/rf318.rs": "48e49f35277af162787d3459cbb76857643b6381e6e37ee5ca9693e73658d3f8",
+    "tauri/src/hooks/useImportState.rf022.test.ts": "072695616aa6f356145ce579b15a78ab83f94398d5828aeaed61460089412645",
+    "tauri/src/hooks/useImportState.ts": "6676d982ac1e6b1e215ee409a58f15e6174a9338c553bf137824cb6e372f1001",
+    "tauri/src/lib/backendError.ts": "45c7387f30f6f1f5d42ca0b82b78c38d9cd169cb4aa0527abc51d004aba139b0",
+    "tauri/src/lib/backendErrorWire.ts": "d2f0d01af3a82eb1bdef443755360204caa94ab1914000fb421344de61aa4608",
+    "tauri/src/lib/generated/ipcContractManifest.json": "9db43ce066769b358fbff8136d83110df93315180b4026e22e8a45effb4f0368",
+    "tauri/src/lib/generated/ipcContracts.ts": "ca6227348ac2eefd5415f627c17c3b8a4160e7d9292a5e8a759aa2bd9c331e0d",
+    "tauri/src/lib/ipcClient.ts": "923e3b90aecc0bb210094f8cdcfaf7bea2248fa5b2a8c08eb6b6902ffd02e61b",
+    "tauri/src/lib/transferErrors.rf318.test.ts": "8153f27e2eb0a2a14e56c331c1c4c5b11c83e75cd4b9e8b58cd3011bc4298135",
+    "tauri/src/locales/en-US/common.json": "c9c3306f500c6e7c649f719147d889b8330c339b08b68e27a32fb5df78136086",
+    "tauri/src/locales/zh-CN/common.json": "ad566cada3561483a4f1b404e56c95ed76894f68cad2f9de03ac043cd8974129"
+  },
+  "protectedDirtyPathsSha256": {
+    "solosoul_cli/src/commands/profile.rs": "e08c0a7b8c9d9270f5764945494634c75d6d81bcba02cc189487965c81fc4e41",
+    "solosoul_cli/src/commands/security.rs": "0133f1ca219910c364dba4a2792452cfb88b05a133243f45765703cbbe146104",
+    "solosoul_cli/src/commands/template.rs": "ed2c08ee422ca9365415723875289cdad12ee2b92746a99a8c46eccac0ad7f95",
+    "solosoul_cli/src/commands/vault_write.rs": "48cb640caca661c289897d9d99a6a8cf4b13bb16abe05b5123fbc30b3bc7a16e",
+    "tauri/crates/solosoul-core/src/process_lock.rs": "48ebf0045f85980ebfc6e0a9ee52d72d2bb394e6f8b12d7107a2362f0d637c34",
+    "tauri/src-tauri/bundles/nsis/assets/header-install.bmp": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+    "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+    "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+    "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": "d1f8f2db3d8aad53e1b955d3fc640374752db1c302d2f2c22d74e9ed356b428f",
+    "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/search-index.json": "cd4beaf09aeda37039a6523e6b86d01374dcced507278a1e76d41bd473b4e8fb",
+    "tauri/src-tauri/gen/android/app/tauri.properties": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+    "tauri/src/hooks/useToastError.ts": "f2da44c3ca3fb50e379051ba762b1712ec19dfa21f9321ecaee3f9ef4fa33968"
+  },
+  "scopeAudit": {
+    "sourceInputsStable": 28,
+    "protectedOriginalDirtyStable": 12,
+    "otherTrackedRawStable": 1826,
+    "gitlinks": {
+      "SoloSoul_plugin_market": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921"
+    },
+    "baselineFrom": "Fresh NUL-delimited Git listing and complete raw-byte hashes, including non-ASCII tracked files.",
+    "ownedPaths": [
+      "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+      "docs/ipc-contract-generation.md",
+      "tauri/scripts/generate-ipc-contracts.node.mjs",
+      "tauri/src-tauri/src/commands/backup.rs",
+      "tauri/src-tauri/src/commands/backup/rf318_tests.rs",
+      "tauri/src-tauri/src/commands/error.rs",
+      "tauri/src-tauri/src/commands/export_import/contracts/rf318-codes.json",
+      "tauri/src-tauri/src/commands/export_import/contracts/rf318-fixtures.json",
+      "tauri/src-tauri/src/commands/export_import/contracts/tests.rs",
+      "tauri/src-tauri/src/commands/export_import/errors.rs",
+      "tauri/src-tauri/src/commands/export_import/export.rs",
+      "tauri/src-tauri/src/commands/export_import/export_docx/mod.rs",
+      "tauri/src-tauri/src/commands/export_import/export_docx/rf318_tests.rs",
+      "tauri/src-tauri/src/commands/export_import/helpers.rs",
+      "tauri/src-tauri/src/commands/export_import/import.rs",
+      "tauri/src-tauri/src/commands/export_import/mod.rs",
+      "tauri/src-tauri/src/commands/export_import/operations.rs",
+      "tauri/src-tauri/src/commands/export_import/tests.rs",
+      "tauri/src-tauri/src/commands/export_import/tests/rf318.rs",
+      "tauri/src/hooks/useImportState.rf022.test.ts",
+      "tauri/src/hooks/useImportState.ts",
+      "tauri/src/lib/backendError.ts",
+      "tauri/src/lib/backendErrorWire.ts",
+      "tauri/src/lib/generated/ipcContractManifest.json",
+      "tauri/src/lib/generated/ipcContracts.ts",
+      "tauri/src/lib/ipcClient.ts",
+      "tauri/src/lib/transferErrors.rf318.test.ts",
+      "tauri/src/locales/en-US/common.json",
+      "tauri/src/locales/zh-CN/common.json",
+      "docs/verification/rf318-transfer-errors-2026-10-02.json"
+    ]
+  },
+  "failedAttemptsRetained": [
+    "baseline-front: expected private backup identifier exposed before normalization.",
+    "front-types-directed: new test used unsupported skip alias; corrected only the new fixture.",
+    "front-directed/front-directed-final: newly added test changed source/strategy after unknown dispatch, which intentionally discards the draft handle; fixture now follows original recovery semantics and uses structured errors.",
+    "rust-directed: new fixture API calls corrected (borrowed profile ID and BackendError.new(...).at(...)).",
+    "rust-directed-final: new fixtures corrected for complete version header, valid empty all-scope exports, atomic object rollback and actual attachment partial outcome."
+  ],
+  "limits": [
+    "Host/frontend unit and contract checks ran on Windows with actual temporary encrypted packages, SQLite refusal triggers and production helpers/queues; these are not visible GUI or other native-platform evidence.",
+    "Existing RF304 success/outcome/legacy-format fixtures and original RF012/RF013/RF025/RF026/RF027/recovery assertions were retained; no test pool/timeout/ignore relaxation.",
+    "Core production and CLI paths were not changed by this item; no new CLI or remote CI/native-material validation is claimed.",
+    "Main agent reviewed source and scope; no independent sub-agent final review is claimed."
+  ],
+  "rawEvidenceDirectory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf318-20261002",
+  "versions": {
+    "node": "v24.16.0",
+    "cargo": "cargo 1.96.0 (30a34c682 2026-05-25)",
+    "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "python": "Python 3.14.6"
+  }
+}

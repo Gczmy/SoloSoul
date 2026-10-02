@@ -104,3 +104,51 @@ fn rf304_preview_and_scope_tree_use_full_vault_summary_without_changing_nulls() 
     assert!(preview.objects[0].properties.is_null());
     assert_eq!(preview.conflicts[0].kind, ConflictKind::RenamedLocal);
 }
+
+#[test]
+fn rf318_actual_backend_error_serde_preserves_safe_count_and_outcome_is_separate() {
+    use crate::commands::error::{BackendError, BackendErrorCode as C, BackendErrorStage as S};
+    let error_fixtures: serde_json::Value =
+        serde_json::from_str(include_str!("rf318-fixtures.json")).unwrap();
+    for (key, error) in [
+        (
+            "restoreNone",
+            BackendError::new(C::BackupRestoreFailed)
+                .at(S::Write)
+                .completed_count(0),
+        ),
+        (
+            "restorePartial",
+            BackendError::new(C::BackupRestorePartial)
+                .at(S::Write)
+                .completed_count(1),
+        ),
+        (
+            "alreadyWritten",
+            BackendError::new(C::BackupMetadataFailed)
+                .at(S::Read)
+                .completed_count(2),
+        ),
+        (
+            "badPackage",
+            BackendError::new(C::ImportInvalidPackage).at(S::Validate),
+        ),
+        (
+            "password",
+            BackendError::new(C::ImportDecryptFailed).at(S::Read),
+        ),
+        (
+            "unconfirmed",
+            BackendError::new(C::TransferTaskUnconfirmed).at(S::Task),
+        ),
+    ] {
+        assert_eq!(serde_json::to_value(error).unwrap(), error_fixtures[key]);
+    }
+    for key in ["complete", "partial", "notCommitted"] {
+        let outcome: ImportResult = round_trip(key);
+        assert_eq!(
+            serde_json::to_value(outcome).unwrap(),
+            fixture()[key].clone()
+        );
+    }
+}

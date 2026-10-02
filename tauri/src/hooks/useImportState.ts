@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { TFunction, i18n as I18n } from 'i18next';
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { resolveI18nPrefix } from '@/lib/utils';
+import { readBackendError } from '@/lib/backendErrorWire';
 import { cleanupStagedFile, isUriPath, stageImportPackage } from '@/lib/mobileFileTransfer';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { importOutcomeError } from '@/lib/importOutcome';
@@ -33,6 +34,7 @@ type FreshTask = {
 type SourceCache = { version: number; original: string; path: string };
 
 function isOperationMissing(error: unknown) {
+  if (readBackendError(error)?.code === 'IMPORT_OPERATION_NOT_FOUND') return true;
   const raw = error instanceof Error ? error.message : String(error);
   const parsed = resolveI18nPrefix(raw);
   return parsed?.kind === 'import' && parsed.code === 'OPERATION_NOT_FOUND';

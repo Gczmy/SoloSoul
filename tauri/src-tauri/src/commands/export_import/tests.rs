@@ -19,6 +19,7 @@ mod rf025;
 mod rf026;
 mod rf027;
 mod rf1063;
+mod rf318;
 mod rf903;
 
 // ── 1. Error formatting functions ───────────────────────────

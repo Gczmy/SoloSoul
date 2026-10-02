@@ -50,6 +50,44 @@ const CODES = {
   LLM_USAGE_FAILED: true,
   LLM_GUIDE_FAILED: true,
   LLM_EMBEDDING_FAILED: true,
+  BACKUP_INVALID_NAME: true,
+  BACKUP_NOT_FOUND: true,
+  BACKUP_READ_FAILED: true,
+  BACKUP_WRITE_FAILED: true,
+  BACKUP_INVALID_PACKAGE: true,
+  BACKUP_UNSUPPORTED_VERSION: true,
+  BACKUP_RESTORE_FAILED: true,
+  BACKUP_RESTORE_PARTIAL: true,
+  BACKUP_METADATA_FAILED: true,
+  TRANSFER_INVALID_PATH: true,
+  TRANSFER_TASK_UNCONFIRMED: true,
+  EXPORT_PASSWORD_REQUIRED: true,
+  EXPORT_PASSWORD_MATCHES_MASTER: true,
+  EXPORT_PASSWORD_CHECK_FAILED: true,
+  EXPORT_SCOPE_EMPTY: true,
+  EXPORT_OBJECT_NOT_FOUND: true,
+  EXPORT_ATTACHMENT_TOO_LARGE: true,
+  EXPORT_TOO_LARGE: true,
+  EXPORT_FORMAT_UNSUPPORTED: true,
+  EXPORT_READ_FAILED: true,
+  EXPORT_WRITE_FAILED: true,
+  EXPORT_RENDER_FAILED: true,
+  EXPORT_FAILED: true,
+  IMPORT_FILE_MISSING: true,
+  IMPORT_INVALID_PACKAGE: true,
+  IMPORT_MANIFEST_MISSING: true,
+  IMPORT_SALT_MISSING: true,
+  IMPORT_DECRYPT_FAILED: true,
+  IMPORT_PASSWORD_REQUIRED: true,
+  IMPORT_BAD_PASSWORD: true,
+  IMPORT_INVALID_OPERATION: true,
+  IMPORT_INVALID_CLOUD_OPTIONS: true,
+  IMPORT_OPERATION_MISMATCH: true,
+  IMPORT_OPERATION_NOT_FOUND: true,
+  IMPORT_OPERATION_ABANDONED: true,
+  IMPORT_OPERATION_CONFLICT: true,
+  IMPORT_READ_FAILED: true,
+  IMPORT_FAILED: true,
 } satisfies Record<BackendErrorCode, true>;
 const STAGES = {
   validate: true,
@@ -113,6 +151,16 @@ export function readBackendError(value: unknown): BackendError | null {
     if (code === 'OBJECT_NAME_TOO_LONG' && limit === 200) safe.safeDetails.limit = 200;
     if (code === 'OBJECT_PAYLOAD_TOO_LARGE' && limit === 10485760)
       safe.safeDetails.limit = 10485760;
+    const completedCount = own(details, 'completedCount');
+    if (
+      typeof completedCount === 'number' &&
+      Number.isSafeInteger(completedCount) &&
+      completedCount >= 0 &&
+      ((code === 'BACKUP_RESTORE_FAILED' && stage === 'write' && completedCount === 0) ||
+        (code === 'BACKUP_RESTORE_PARTIAL' && stage === 'write' && completedCount > 0) ||
+        (code === 'BACKUP_METADATA_FAILED' && stage === 'read'))
+    )
+      safe.safeDetails.completedCount = completedCount;
   }
   return safe;
 }
@@ -150,7 +198,14 @@ export function makeBackendError(code: BackendErrorCode): BackendError {
       code === 'LLM_PROVIDER_UNAVAILABLE' ||
       code === 'LLM_RATE_LIMITED' ||
       code === 'LLM_PROVIDER_READ_FAILED' ||
-      code === 'LLM_CONVERSATION_READ_FAILED',
+      code === 'LLM_CONVERSATION_READ_FAILED' ||
+      code === 'BACKUP_READ_FAILED' ||
+      code === 'EXPORT_READ_FAILED' ||
+      code === 'IMPORT_READ_FAILED' ||
+      code === 'IMPORT_FILE_MISSING' ||
+      code === 'IMPORT_PASSWORD_REQUIRED' ||
+      code === 'IMPORT_BAD_PASSWORD' ||
+      code === 'IMPORT_DECRYPT_FAILED',
   };
 }
 /** 仅供旧对象 Host 兼容；新 Host 已知失败由业务阶段直接编码。 */
@@ -266,6 +321,78 @@ export function normalizeLlmError(value: unknown): BackendError {
     readBackendError(value) ??
     readLegacyObjectError(value) ??
     readLegacyLlmError(value) ??
+    makeBackendError('INTERNAL_ERROR')
+  );
+}
+
+/** RF318：旧包错误前缀只在兼容读取时识别；detail 永不进入新的 Error/日志。 */
+export const TRANSFER_ERROR_COMMANDS = [
+  'backup_create',
+  'backup_delete',
+  'backup_list',
+  'backup_restore',
+  'export_document_preflight',
+  'export_estimate_size',
+  'export_execute',
+  'export_get_attachments_batch',
+  'export_get_scope_tree',
+  'export_objects_document',
+  'import_decrypt_preview',
+  'import_execute_advanced',
+  'import_operation_get',
+  'import_operation_resume',
+  'import_operations_list',
+  'import_parse_package',
+] as const satisfies ReadonlyArray<keyof IpcCommandErrors>;
+export function isTransferErrorCommand(command: string): boolean {
+  return (TRANSFER_ERROR_COMMANDS as readonly string[]).includes(command);
+}
+const LEGACY_TRANSFER_CODES: Record<string, BackendErrorCode> = {
+  EXPORT_PASSWORD_EMPTY: 'EXPORT_PASSWORD_REQUIRED',
+  EXPORT_SAME_AS_MASTER_PASSWORD: 'EXPORT_PASSWORD_MATCHES_MASTER',
+  EXPORT_MASTER_VERIFY_FAILED: 'EXPORT_PASSWORD_CHECK_FAILED',
+  EXPORT_NO_OBJECTS_SELECTED: 'EXPORT_SCOPE_EMPTY',
+  EXPORT_ATTACHMENT_TOO_LARGE: 'EXPORT_ATTACHMENT_TOO_LARGE',
+  EXPORT_TOTAL_SIZE_EXCEEDED: 'EXPORT_TOO_LARGE',
+  EXPORT_FORMAT_NOT_SUPPORTED: 'EXPORT_FORMAT_UNSUPPORTED',
+  IMPORT_FILE_NOT_FOUND: 'IMPORT_FILE_MISSING',
+  IMPORT_INVALID_PACKAGE: 'IMPORT_INVALID_PACKAGE',
+  IMPORT_MISSING_MANIFEST: 'IMPORT_MANIFEST_MISSING',
+  IMPORT_MISSING_SALT: 'IMPORT_SALT_MISSING',
+  IMPORT_DECRYPT_FAILED: 'IMPORT_DECRYPT_FAILED',
+  IMPORT_PASSWORD_REQUIRED: 'IMPORT_PASSWORD_REQUIRED',
+  IMPORT_BAD_PASSWORD: 'IMPORT_BAD_PASSWORD',
+  IMPORT_INVALID_OPERATION_ID: 'IMPORT_INVALID_OPERATION',
+  IMPORT_INVALID_CLOUD_IMPORT_OPTIONS: 'IMPORT_INVALID_CLOUD_OPTIONS',
+  IMPORT_OPERATION_MISMATCH: 'IMPORT_OPERATION_MISMATCH',
+  IMPORT_OPERATION_NOT_FOUND: 'IMPORT_OPERATION_NOT_FOUND',
+  IMPORT_OPERATION_ABANDONED: 'IMPORT_OPERATION_ABANDONED',
+  IMPORT_OPERATION_CONFLICT: 'IMPORT_OPERATION_CONFLICT',
+};
+export function readLegacyTransferError(value: unknown): BackendError | null {
+  const raw = value instanceof Error ? value.message : typeof value === 'string' ? value : null;
+  if (raw === null) return null;
+  if (Object.hasOwn(CODES, raw)) return makeBackendError(raw as BackendErrorCode);
+  const token = /^__(EXPORT|IMPORT)_ERR__:([A-Z_]+)(?::|$)/.exec(raw);
+  if (token) {
+    const key = token[1] + '_' + token[2];
+    return makeBackendError(
+      Object.hasOwn(LEGACY_TRANSFER_CODES, key)
+        ? LEGACY_TRANSFER_CODES[key]
+        : token[1] === 'IMPORT'
+          ? 'IMPORT_FAILED'
+          : 'EXPORT_FAILED',
+    );
+  }
+  if (/^Backup '[\s\S]*' not found$/.test(raw)) return makeBackendError('BACKUP_NOT_FOUND');
+  if (raw === 'Backup name cannot be empty') return makeBackendError('BACKUP_INVALID_NAME');
+  return null;
+}
+export function normalizeTransferError(value: unknown): BackendError {
+  return (
+    readBackendError(value) ??
+    readLegacyObjectError(value) ??
+    readLegacyTransferError(value) ??
     makeBackendError('INTERNAL_ERROR')
   );
 }

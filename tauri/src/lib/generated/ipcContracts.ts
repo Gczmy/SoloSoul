@@ -91,7 +91,45 @@ export type BackendErrorCode =
   | 'LLM_CONTEXT_READ_FAILED'
   | 'LLM_USAGE_FAILED'
   | 'LLM_GUIDE_FAILED'
-  | 'LLM_EMBEDDING_FAILED';
+  | 'LLM_EMBEDDING_FAILED'
+  | 'BACKUP_INVALID_NAME'
+  | 'BACKUP_NOT_FOUND'
+  | 'BACKUP_READ_FAILED'
+  | 'BACKUP_WRITE_FAILED'
+  | 'BACKUP_INVALID_PACKAGE'
+  | 'BACKUP_UNSUPPORTED_VERSION'
+  | 'BACKUP_RESTORE_FAILED'
+  | 'BACKUP_RESTORE_PARTIAL'
+  | 'BACKUP_METADATA_FAILED'
+  | 'TRANSFER_INVALID_PATH'
+  | 'TRANSFER_TASK_UNCONFIRMED'
+  | 'EXPORT_PASSWORD_REQUIRED'
+  | 'EXPORT_PASSWORD_MATCHES_MASTER'
+  | 'EXPORT_PASSWORD_CHECK_FAILED'
+  | 'EXPORT_SCOPE_EMPTY'
+  | 'EXPORT_OBJECT_NOT_FOUND'
+  | 'EXPORT_ATTACHMENT_TOO_LARGE'
+  | 'EXPORT_TOO_LARGE'
+  | 'EXPORT_FORMAT_UNSUPPORTED'
+  | 'EXPORT_READ_FAILED'
+  | 'EXPORT_WRITE_FAILED'
+  | 'EXPORT_RENDER_FAILED'
+  | 'EXPORT_FAILED'
+  | 'IMPORT_FILE_MISSING'
+  | 'IMPORT_INVALID_PACKAGE'
+  | 'IMPORT_MANIFEST_MISSING'
+  | 'IMPORT_SALT_MISSING'
+  | 'IMPORT_DECRYPT_FAILED'
+  | 'IMPORT_PASSWORD_REQUIRED'
+  | 'IMPORT_BAD_PASSWORD'
+  | 'IMPORT_INVALID_OPERATION'
+  | 'IMPORT_INVALID_CLOUD_OPTIONS'
+  | 'IMPORT_OPERATION_MISMATCH'
+  | 'IMPORT_OPERATION_NOT_FOUND'
+  | 'IMPORT_OPERATION_ABANDONED'
+  | 'IMPORT_OPERATION_CONFLICT'
+  | 'IMPORT_READ_FAILED'
+  | 'IMPORT_FAILED';
 
 export type BackendErrorStage =
   | 'validate'
@@ -709,7 +747,11 @@ export type RegistryVersion = {
 
 export type ResourceId = number;
 
-export type SafeErrorDetails = { stage: BackendErrorStage; limit?: number };
+export type SafeErrorDetails = {
+  stage: BackendErrorStage;
+  limit?: number;
+  completedCount?: number;
+};
 
 export type SnapshotEntry = {
   id: string;
@@ -1078,10 +1120,10 @@ export type IpcCommands = {
 };
 
 export type IpcCommandErrors = {
-  backup_create: string;
-  backup_delete: string;
-  backup_list: string;
-  backup_restore: string;
+  backup_create: BackendError;
+  backup_delete: BackendError;
+  backup_list: BackendError;
+  backup_restore: BackendError;
   cloud_sync_delete_config: string;
   cloud_sync_get_config: string;
   cloud_sync_import_incoming: string;
@@ -1091,19 +1133,19 @@ export type IpcCommandErrors = {
   cloud_sync_save_config: string;
   cloud_sync_test_connection: string;
   create_plugin_install: never;
-  export_document_preflight: string;
-  export_estimate_size: string;
-  export_execute: string;
-  export_get_attachments_batch: string;
-  export_get_scope_tree: string;
-  export_objects_document: string;
+  export_document_preflight: BackendError;
+  export_estimate_size: BackendError;
+  export_execute: BackendError;
+  export_get_attachments_batch: BackendError;
+  export_get_scope_tree: BackendError;
+  export_objects_document: BackendError;
   get_app_info: string;
-  import_decrypt_preview: string;
-  import_execute_advanced: string;
-  import_operation_get: string;
-  import_operation_resume: string;
-  import_operations_list: string;
-  import_parse_package: string;
+  import_decrypt_preview: BackendError;
+  import_execute_advanced: BackendError;
+  import_operation_get: BackendError;
+  import_operation_resume: BackendError;
+  import_operations_list: BackendError;
+  import_parse_package: BackendError;
   llm_accept_risk: BackendError;
   llm_check_connection: BackendError;
   llm_check_embedding_available: BackendError;

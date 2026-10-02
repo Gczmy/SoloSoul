@@ -196,6 +196,7 @@ pub(crate) fn collect_export_templates(
 // ── Sub-modules ─────────────────────────────────────────────
 
 pub mod contracts;
+pub(crate) mod errors;
 pub mod export;
 pub mod export_docx;
 pub mod helpers;
@@ -221,6 +222,7 @@ pub use export_docx::{
     __tauri_command_name_export_document_preflight, __tauri_command_name_export_objects_document,
     export_document_preflight, export_objects_document, DocumentSensitivity, ExportDocumentResult,
 };
+#[cfg(test)]
 pub(crate) use helpers::read_manifest_json;
 #[cfg(test)]
 pub(crate) use helpers::{

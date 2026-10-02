@@ -13,6 +13,13 @@ pub use solosoul_core::export_import::import::package::ManifestData;
 pub use solosoul_core::export_import::{
     build_package_ids, resolve_cross_scope_references, resolve_value_references,
 };
+pub(crate) fn read_manifest_json_safe(
+    path: &str,
+) -> Result<serde_json::Value, super::errors::TransferFailure> {
+    solosoul_core::export_import::import::package::read_manifest_json(path)
+        .map_err(|error| super::errors::import_failure(error.into()))
+}
+#[cfg(test)]
 pub(crate) fn read_manifest_json(path: &str) -> Result<serde_json::Value, String> {
     solosoul_core::export_import::import::package::read_manifest_json(path)
         .map_err(|error| crate::services::encrypted_import::map_import_failure(error.into()))

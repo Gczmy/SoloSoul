@@ -7,7 +7,10 @@ use super::contracts::{
     AdvancedImportRequest, DecryptedImportPreview, ImportPreview, ImportResult, ImportSelection,
     ImportStrategy,
 };
-use super::{import_err, read_manifest_json};
+use super::errors;
+use super::errors::TransferFailure;
+use super::helpers::read_manifest_json_safe;
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
 use crate::state::AppState;
 use std::collections::HashMap;
 use tauri::State;
@@ -51,12 +54,12 @@ fn validate_import_path<R: tauri::Runtime>(
 pub async fn import_parse_package<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     file_path: String,
-) -> Result<ImportPreview, String> {
-    validate_import_path(&app, &file_path)?;
+) -> Result<ImportPreview, BackendError> {
+    validate_import_path(&app, &file_path).map_err(errors::path)?;
     let fp = file_path.clone();
     let result = tokio::task::spawn_blocking(move || {
         // P201: 统一经 read_manifest_json 读取（含 100MB 大小上限，防 ZIP 炸弹 OOM）
-        let v = read_manifest_json(&fp)?;
+        let v = read_manifest_json_safe(&fp)?;
 
         let extra_files: Vec<String> = v
             .get("extra_files")
@@ -68,7 +71,7 @@ pub async fn import_parse_package<R: tauri::Runtime>(
             })
             .unwrap_or_default();
 
-        Ok(ImportPreview {
+        Ok::<ImportPreview, TransferFailure>(ImportPreview {
             file_path: fp,
             version: v
                 .get("version")
@@ -96,8 +99,13 @@ pub async fn import_parse_package<R: tauri::Runtime>(
 
     match result {
         Ok(Ok(preview)) => Ok(preview),
-        Ok(Err(e)) => Err(e),
-        Err(join_err) => Err(format!("Blocking task failed: {}", join_err)),
+        Ok(Err(e)) => Err(e.into()),
+        Err(_) => {
+            Err(
+                TransferFailure::new(Code::ImportReadFailed, Stage::Task, "Blocking task failed")
+                    .into(),
+            )
+        }
     }
 }
 
@@ -107,45 +115,51 @@ pub async fn import_decrypt_preview<R: tauri::Runtime>(
     state: State<'_, AppState>,
     file_path: String,
     password: String,
-) -> Result<DecryptedImportPreview, String> {
+) -> Result<DecryptedImportPreview, BackendError> {
     let password = Zeroizing::new(password);
-    let job = PreviewJob::prepare(
+    let job = PreviewJob::prepare_safe(
         Arc::clone(&state.vault_service),
         file_path,
         password,
         |path| resolve_import_path(&app, path),
     )?;
-    run_preview_job(job, PreviewJob::run).await
+    run_preview_job_safe(job, PreviewJob::run_safe)
+        .await
+        .map_err(Into::into)
 }
-
-/// RF-026：密码、已授权路径和原会话一起移入 worker，不持同步锁等待解密。
 pub(super) struct PreviewJob {
     vault_service: Arc<RwLock<VaultService>>,
     session: VaultSession,
     file_path: String,
     password: Zeroizing<String>,
 }
-
 impl PreviewJob {
+    #[cfg(test)]
     pub(super) fn prepare(
+        service: Arc<RwLock<VaultService>>,
+        path: String,
+        password: Zeroizing<String>,
+        resolve: impl FnOnce(&str) -> Result<PathBuf, String>,
+    ) -> Result<Self, String> {
+        Self::prepare_safe(service, path, password, resolve).map_err(TransferFailure::into_legacy)
+    }
+    pub(super) fn prepare_safe(
         vault_service: Arc<RwLock<VaultService>>,
         file_path: String,
         password: Zeroizing<String>,
-        resolve_path: impl FnOnce(&str) -> Result<PathBuf, String>,
-    ) -> Result<Self, String> {
-        // 使用授权返回的规范路径；不能排队后重新解析用户提供的符号链接。
-        let file_path = resolve_path(&file_path)?
+        resolve: impl FnOnce(&str) -> Result<PathBuf, String>,
+    ) -> Result<Self, TransferFailure> {
+        let file_path = resolve(&file_path)
+            .map_err(errors::path)?
             .into_os_string()
             .into_string()
-            .map_err(|_| "Invalid import path encoding".to_string())?;
+            .map_err(|_| errors::path("Invalid import path encoding".into()))?;
         let session = {
-            let svc = vault_service
-                .read()
-                .map_err(|_| "Vault service lock poisoned".to_string())?;
-            let account = svc
-                .get_current_account()
-                .ok_or_else(|| "Vault not unlocked".to_string())?;
-            svc.capture_session(&account)?
+            let svc = vault_service.read().map_err(|_| errors::internal())?;
+            let account = svc.get_current_account().ok_or_else(|| {
+                TransferFailure::new(Code::VaultLocked, Stage::Read, "Vault not unlocked")
+            })?;
+            errors::capture(&svc, &account)?
         };
         Ok(Self {
             vault_service,
@@ -154,37 +168,51 @@ impl PreviewJob {
             password,
         })
     }
-
+    #[cfg(test)]
     pub(super) fn run(self) -> Result<DecryptedImportPreview, String> {
-        let svc = self
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        solosoul_core::export_import::import::decrypt_import_preview(
+        self.run_safe().map_err(TransferFailure::into_legacy)
+    }
+    pub(super) fn run_safe(self) -> Result<DecryptedImportPreview, TransferFailure> {
+        let svc = self.vault_service.read().map_err(|_| errors::internal())?;
+        let result = solosoul_core::export_import::import::decrypt_import_preview(
             &svc,
             &self.session,
             &self.file_path,
             &self.password,
-        )
-        .map(Into::into)
-        .map_err(crate::services::encrypted_import::map_import_failure)
+        );
+        match result {
+            Ok(preview) => Ok(preview.into()),
+            Err(error) => {
+                errors::session(&svc, &self.session, |_| Ok(()))?;
+                Err(errors::import_failure(error))
+            }
+        }
     }
 }
-
+pub(super) async fn run_preview_job_safe(
+    job: PreviewJob,
+    execute: impl FnOnce(PreviewJob) -> Result<DecryptedImportPreview, TransferFailure> + Send + 'static,
+) -> Result<DecryptedImportPreview, TransferFailure> {
+    let service = job.vault_service.clone();
+    let session = job.session.clone();
+    let preview = tokio::task::spawn_blocking(move || execute(job))
+        .await
+        .map_err(|_| {
+            TransferFailure::new(Code::ImportReadFailed, Stage::Task, "导入预览任务执行失败")
+        })??;
+    let svc = service.read().map_err(|_| errors::internal())?;
+    errors::session(&svc, &session, |_| Ok(preview))
+}
+#[cfg(test)]
 pub(super) async fn run_preview_job(
     job: PreviewJob,
     execute: impl FnOnce(PreviewJob) -> Result<DecryptedImportPreview, String> + Send + 'static,
 ) -> Result<DecryptedImportPreview, String> {
-    // 调度器保留同一个原会话，防止 worker 完成后、返回 DTO 前发生账户切换。
-    let vault_service = Arc::clone(&job.vault_service);
-    let session = job.session.clone();
-    let preview = tokio::task::spawn_blocking(move || execute(job))
-        .await
-        .map_err(|_| "导入预览任务执行失败".to_string())??;
-    let svc = vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    svc.with_session(&session, |_| Ok(preview))
+    run_preview_job_safe(job, move |job| {
+        execute(job).map_err(|e| TransferFailure::new(Code::ImportFailed, Stage::Task, e))
+    })
+    .await
+    .map_err(TransferFailure::into_legacy)
 }
 
 /// P2: Advanced import with object selection and strategy
@@ -194,8 +222,8 @@ pub async fn import_execute_advanced<R: tauri::Runtime>(
     state: State<'_, AppState>,
     account_id: String,
     req: AdvancedImportRequest,
-) -> Result<ImportResult, String> {
-    let job = ImportJob::prepare(
+) -> Result<ImportResult, BackendError> {
+    let job = ImportJob::prepare_safe(
         Arc::clone(&state.vault_service),
         &account_id,
         req,
@@ -203,7 +231,11 @@ pub async fn import_execute_advanced<R: tauri::Runtime>(
         |path| resolve_import_path(&app, path),
     )?;
     let auto_sync = state.auto_sync.clone();
-    run_import_job(job, ImportJob::run, move || auto_sync.trigger_debounce()).await
+    run_import_job_safe(job, ImportJob::run_safe, move || {
+        auto_sync.trigger_debounce()
+    })
+    .await
+    .map_err(Into::into)
 }
 
 /// RF-027：调度前固定原会话与授权路径，所有同步导入工作由 worker 持有。
@@ -223,13 +255,13 @@ pub(super) struct ImportJob {
 }
 
 impl ImportJob {
-    pub(super) fn prepare(
+    pub(super) fn prepare_safe(
         vault_service: Arc<RwLock<VaultService>>,
         account_id: &str,
         req: AdvancedImportRequest,
         progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
         resolve_path: impl FnOnce(&str) -> Result<PathBuf, String>,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, TransferFailure> {
         let AdvancedImportRequest {
             selections,
             strategy,
@@ -241,20 +273,26 @@ impl ImportJob {
             operation_id,
         } = req;
         let password = Zeroizing::new(password);
-        let source_path = resolve_path(&source_path)?
+        let source_path = resolve_path(&source_path)
+            .map_err(errors::path)?
             .into_os_string()
             .into_string()
-            .map_err(|_| "Invalid import path encoding".to_string())?;
+            .map_err(|_| errors::path("Invalid import path encoding".into()))?;
         let (session, activity) = {
-            let svc = vault_service
-                .read()
-                .map_err(|_| "Vault service lock poisoned".to_string())?;
-            let session = svc.capture_session(account_id)?;
-            let activity = solosoul_core::import_activity::begin_import_activity(svc.base_path())?;
+            let svc = vault_service.read().map_err(|_| errors::internal())?;
+            let session = errors::capture(&svc, account_id)?;
+            let activity = solosoul_core::import_activity::begin_import_activity(svc.base_path())
+                .map_err(errors::activity)?;
             (session, activity)
         };
         let operation_id = operation_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        uuid::Uuid::parse_str(&operation_id).map_err(|_| import_err("INVALID_OPERATION_ID"))?;
+        uuid::Uuid::parse_str(&operation_id).map_err(|_| {
+            TransferFailure::new(
+                Code::ImportInvalidOperation,
+                Stage::Validate,
+                "__IMPORT_ERR__:INVALID_OPERATION_ID",
+            )
+        })?;
         Ok(Self {
             vault_service,
             session,
@@ -271,11 +309,23 @@ impl ImportJob {
         })
     }
 
+    #[cfg(test)]
+    pub(super) fn prepare(
+        service: Arc<RwLock<VaultService>>,
+        account: &str,
+        req: AdvancedImportRequest,
+        progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
+        resolve: impl FnOnce(&str) -> Result<PathBuf, String>,
+    ) -> Result<Self, String> {
+        Self::prepare_safe(service, account, req, progress, resolve)
+            .map_err(TransferFailure::into_legacy)
+    }
+    #[cfg(test)]
     pub(super) fn run(self) -> Result<ImportResult, String> {
-        let svc = self
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        self.run_safe().map_err(TransferFailure::into_legacy)
+    }
+    pub(super) fn run_safe(self) -> Result<ImportResult, TransferFailure> {
+        let svc = self.vault_service.read().map_err(|_| errors::internal())?;
         // 不能经 internal 重新 capture_session，否则排队中的旧请求会借用新会话。
         let request = crate::services::encrypted_import::core_request(
             self.source_path,
@@ -287,28 +337,39 @@ impl ImportJob {
             &self.locale,
             Some((self.operation_id, ImportSourceKind::Manual)),
         );
-        solosoul_core::export_import::import::execute_encrypted_import(
+        let result = solosoul_core::export_import::import::execute_encrypted_import(
             &svc,
             &self.session,
             request,
             self.progress,
-        )
-        .map(Into::into)
-        .map_err(crate::services::encrypted_import::map_import_failure)
+        );
+        match result {
+            Ok(outcome) => Ok(outcome.into()),
+            Err(error) => {
+                errors::session(&svc, &self.session, |_| Ok(()))?;
+                Err(errors::import_failure(error))
+            }
+        }
     }
 }
 
-pub(super) async fn run_import_job(
+pub(super) async fn run_import_job_safe(
     job: ImportJob,
-    execute: impl FnOnce(ImportJob) -> Result<ImportResult, String> + Send + 'static,
+    execute: impl FnOnce(ImportJob) -> Result<ImportResult, TransferFailure> + Send + 'static,
     on_complete: impl FnOnce() + Send,
-) -> Result<ImportResult, String> {
+) -> Result<ImportResult, TransferFailure> {
     let vault_service = Arc::clone(&job.vault_service);
     let session = job.session.clone();
     // worker panic 时提交状态未知，不能构造 NotCommitted 或空成功结果。
     let result = tokio::task::spawn_blocking(move || execute(job))
         .await
-        .map_err(|_| "导入任务执行失败".to_string())??;
+        .map_err(|_| {
+            TransferFailure::new(
+                Code::TransferTaskUnconfirmed,
+                Stage::Task,
+                "导入任务执行失败",
+            )
+        })??;
     if result.is_complete() {
         // 回调仅作快速通知，不得等待或重入 Vault；生产回调为 try_send。
         // 会话失效或读锁损坏只抑制后续通知，不能抹掉已完成的导入结果。
@@ -328,6 +389,23 @@ pub(super) async fn run_import_job(
         }
     }
     Ok(result)
+}
+
+#[cfg(test)]
+pub(super) async fn run_import_job(
+    job: ImportJob,
+    execute: impl FnOnce(ImportJob) -> Result<ImportResult, String> + Send + 'static,
+    on_complete: impl FnOnce() + Send,
+) -> Result<ImportResult, String> {
+    run_import_job_safe(
+        job,
+        move |job| {
+            execute(job).map_err(|e| TransferFailure::new(Code::ImportFailed, Stage::Task, e))
+        },
+        on_complete,
+    )
+    .await
+    .map_err(TransferFailure::into_legacy)
 }
 
 #[allow(clippy::too_many_arguments)]

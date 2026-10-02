@@ -1,6 +1,8 @@
 //! RF022：只公开当前账户任务摘要与指定任务恢复，不向 IPC 暴露 journal/map/路径写许可。
 use super::contracts::ImportResult;
-use super::import_err;
+use super::errors;
+use super::errors::TransferFailure;
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use solosoul_core::export_import::operation::import_credential_requirements;
@@ -44,13 +46,19 @@ pub struct ImportOperationSummary {
 fn summary(
     record: &ImportOperationRecord,
     generation: u64,
-) -> Result<ImportOperationSummary, String> {
+) -> Result<ImportOperationSummary, TransferFailure> {
     let phase = match record.phase {
         ImportOperationPhase::RecordsCommitted => ImportOperationSummaryPhase::RecordsCommitted,
         ImportOperationPhase::Attachments => ImportOperationSummaryPhase::Attachments,
         ImportOperationPhase::Preferences => ImportOperationSummaryPhase::Preferences,
         ImportOperationPhase::Complete => ImportOperationSummaryPhase::Complete,
-        ImportOperationPhase::Abandoned => return Err(import_err("OPERATION_ABANDONED")),
+        ImportOperationPhase::Abandoned => {
+            return Err(TransferFailure::new(
+                Code::ImportOperationAbandoned,
+                Stage::Read,
+                "__IMPORT_ERR__:OPERATION_ABANDONED",
+            ))
+        }
     };
     let kind = match record.start.source_kind {
         ImportSourceKind::Manual => ImportOperationSummarySource::Manual,
@@ -58,7 +66,8 @@ fn summary(
         ImportSourceKind::Recovery => ImportOperationSummarySource::Recovery,
         ImportSourceKind::Cli => ImportOperationSummarySource::Cli,
     };
-    let credentials = import_credential_requirements(record).map_err(|error| error.to_string())?;
+    let credentials = import_credential_requirements(record)
+        .map_err(|error| TransferFailure::new(Code::ImportReadFailed, Stage::Read, error))?;
     let mut outcome = ImportResult::default();
     super::import::apply_operation_result(record, generation, &mut outcome);
     let timestamp = |ms: i64| {
@@ -85,16 +94,31 @@ fn summary(
     })
 }
 
+#[cfg(test)]
 pub(crate) fn operation_summary_for_session(
     svc: &VaultService,
     session: &VaultSession,
     id: &str,
 ) -> Result<ImportOperationSummary, String> {
-    let record = svc
-        .with_session(session, |vault| {
-            vault.load_import_operation(session.account_id(), id)
-        })?
-        .ok_or_else(|| import_err("OPERATION_NOT_FOUND"))?;
+    operation_summary_for_session_safe(svc, session, id).map_err(TransferFailure::into_legacy)
+}
+fn operation_summary_for_session_safe(
+    svc: &VaultService,
+    session: &VaultSession,
+    id: &str,
+) -> Result<ImportOperationSummary, TransferFailure> {
+    let record = errors::session(svc, session, |vault| {
+        vault
+            .load_import_operation(session.account_id(), id)
+            .map_err(|e| TransferFailure::new(Code::ImportReadFailed, Stage::Read, e))
+    })?
+    .ok_or_else(|| {
+        TransferFailure::new(
+            Code::ImportOperationNotFound,
+            Stage::Read,
+            "__IMPORT_ERR__:OPERATION_NOT_FOUND",
+        )
+    })?;
     summary(&record, session.generation())
 }
 
@@ -102,31 +126,28 @@ pub(crate) fn operation_summary_for_session(
 pub async fn import_operations_list(
     state: State<'_, AppState>,
     account_id: String,
-) -> Result<Vec<ImportOperationSummary>, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned")?;
-    let session = svc.capture_session(&account_id)?;
-    let records = svc.with_session(&session, |vault| vault.list_import_operations(&account_id))?;
+) -> Result<Vec<ImportOperationSummary>, BackendError> {
+    let svc = state.vault_service.read().map_err(|_| errors::internal())?;
+    let session = errors::capture(&svc, &account_id)?;
+    let records = errors::session(&svc, &session, |vault| {
+        vault
+            .list_import_operations(&account_id)
+            .map_err(|e| TransferFailure::new(Code::ImportReadFailed, Stage::Read, e))
+    })?;
     records
         .iter()
-        .map(|record| summary(record, session.generation()))
+        .map(|record| summary(record, session.generation()).map_err(Into::into))
         .collect()
 }
-
 #[tauri::command]
 pub async fn import_operation_get(
     state: State<'_, AppState>,
     account_id: String,
     operation_id: String,
-) -> Result<ImportOperationSummary, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned")?;
-    let session = svc.capture_session(&account_id)?;
-    operation_summary_for_session(&svc, &session, &operation_id)
+) -> Result<ImportOperationSummary, BackendError> {
+    let svc = state.vault_service.read().map_err(|_| errors::internal())?;
+    let session = errors::capture(&svc, &account_id)?;
+    operation_summary_for_session_safe(&svc, &session, &operation_id).map_err(Into::into)
 }
 
 struct ResumeJob {
@@ -145,24 +166,25 @@ impl ResumeJob {
         password: Option<String>,
         source: Option<String>,
         resolve: impl FnOnce(&str) -> Result<PathBuf, String>,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, TransferFailure> {
         let source_path = source
             .map(|path| {
-                resolve(&path).and_then(|resolved| {
+                resolve(&path).map_err(errors::path).and_then(|resolved| {
                     resolved
                         .into_os_string()
                         .into_string()
-                        .map_err(|_| "Invalid import path encoding".into())
+                        .map_err(|_| errors::path("Invalid import path encoding".into()))
                 })
             })
             .transpose()?;
         let (session, activity) = {
-            let svc = service.read().map_err(|_| "Vault service lock poisoned")?;
-            let session = svc.capture_session(account)?;
-            operation_summary_for_session(&svc, &session, &id)?;
+            let svc = service.read().map_err(|_| errors::internal())?;
+            let session = errors::capture(&svc, account)?;
+            operation_summary_for_session_safe(&svc, &session, &id)?;
             (
                 session,
-                solosoul_core::import_activity::begin_import_activity(svc.base_path())?,
+                solosoul_core::import_activity::begin_import_activity(svc.base_path())
+                    .map_err(errors::activity)?,
             )
         };
         Ok(Self {
@@ -174,21 +196,23 @@ impl ResumeJob {
             _activity: activity,
         })
     }
-    fn run(self) -> Result<ImportResult, String> {
-        let svc = self
-            .service
-            .read()
-            .map_err(|_| "Vault service lock poisoned")?;
-        solosoul_core::export_import::import::resume_encrypted_import(
+    fn run(self) -> Result<ImportResult, TransferFailure> {
+        let svc = self.service.read().map_err(|_| errors::internal())?;
+        let result = solosoul_core::export_import::import::resume_encrypted_import(
             &svc,
             &self.session,
             &self.operation_id,
             self.source_path,
             self.password,
             None,
-        )
-        .map(Into::into)
-        .map_err(crate::services::encrypted_import::map_import_failure)
+        );
+        match result {
+            Ok(outcome) => Ok(outcome.into()),
+            Err(error) => {
+                errors::session(&svc, &self.session, |_| Ok(()))?;
+                Err(errors::import_failure(error))
+            }
+        }
     }
 }
 
@@ -200,7 +224,7 @@ pub async fn import_operation_resume<R: tauri::Runtime>(
     operation_id: String,
     password: Option<String>,
     source_path: Option<String>,
-) -> Result<ImportResult, String> {
+) -> Result<ImportResult, BackendError> {
     let job = ResumeJob::prepare(
         Arc::clone(&state.vault_service),
         &account_id,
@@ -213,7 +237,13 @@ pub async fn import_operation_resume<R: tauri::Runtime>(
     let session = job.session.clone();
     let result = tokio::task::spawn_blocking(move || job.run())
         .await
-        .map_err(|_| "导入恢复任务执行失败")??;
+        .map_err(|_| {
+            TransferFailure::new(
+                Code::TransferTaskUnconfirmed,
+                Stage::Task,
+                "导入恢复任务执行失败",
+            )
+        })??;
     if result.is_complete() {
         if let Ok(svc) = service.read() {
             let _ = svc.with_session(&session, |_| {

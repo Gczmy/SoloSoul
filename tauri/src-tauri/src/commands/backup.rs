@@ -8,6 +8,9 @@ use std::fs;
 use std::path::PathBuf;
 use tauri::State;
 
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
+use crate::commands::export_import::errors;
+use crate::commands::export_import::errors::TransferFailure;
 use crate::state::AppState;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -25,7 +28,11 @@ fn backups_dir(base_path: &std::path::Path) -> PathBuf {
 
 /// R009: restrict backup names to alphanumeric, hyphen and underscore to avoid
 /// path traversal and produce predictable file names.
+#[cfg(test)]
 fn sanitize_backup_name(name: &str) -> Result<String, String> {
+    sanitize_backup_name_safe(name).map_err(TransferFailure::into_legacy)
+}
+fn sanitize_backup_name_safe(name: &str) -> Result<String, TransferFailure> {
     let sanitized: String = name
         .chars()
         .map(|c| {
@@ -37,27 +44,36 @@ fn sanitize_backup_name(name: &str) -> Result<String, String> {
         })
         .collect();
     if sanitized.is_empty() {
-        return Err("Backup name cannot be empty".to_string());
+        return Err(TransferFailure::new(
+            Code::BackupInvalidName,
+            Stage::Validate,
+            "Backup name cannot be empty",
+        ));
     }
     Ok(sanitized)
 }
 
 #[tauri::command]
-pub async fn backup_list(state: State<'_, AppState>) -> Result<Vec<BackupInfo>, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let backup_dir = backups_dir(svc.base_path());
-    if !backup_dir.exists() {
-        return Ok(vec![]);
-    }
-
+pub async fn backup_list(state: State<'_, AppState>) -> Result<Vec<BackupInfo>, BackendError> {
+    let svc = state.vault_service.read().map_err(|_| errors::internal())?;
+    list_backups(&backups_dir(svc.base_path())).map_err(Into::into)
+}
+fn list_backups(backup_dir: &std::path::Path) -> Result<Vec<BackupInfo>, TransferFailure> {
+    let dir = match fs::read_dir(backup_dir) {
+        Ok(dir) => dir,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(vec![]),
+        Err(error) => {
+            return Err(TransferFailure::new(
+                Code::BackupReadFailed,
+                Stage::Read,
+                error,
+            ))
+        }
+    };
     let mut backups = Vec::new();
-    let dir = fs::read_dir(&backup_dir).map_err(|e| e.to_string())?;
-
     for entry in dir {
-        let entry = entry.map_err(|e| e.to_string())?;
+        let entry =
+            entry.map_err(|e| TransferFailure::new(Code::BackupReadFailed, Stage::Read, e))?;
         let path = entry.path();
         if path.is_dir() {
             continue;
@@ -66,24 +82,21 @@ pub async fn backup_list(state: State<'_, AppState>) -> Result<Vec<BackupInfo>, 
         if ext != "solosoul_backup" && ext != "zip" {
             continue;
         }
-
-        let metadata = fs::metadata(&path).map_err(|e| e.to_string())?;
+        let metadata = fs::metadata(&path)
+            .map_err(|e| TransferFailure::new(Code::BackupReadFailed, Stage::Read, e))?;
         let name = path
             .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or("unknown")
             .to_string();
-
         let created_at = metadata
             .created()
             .ok()
             .and_then(|t| {
                 let dur = t.duration_since(std::time::UNIX_EPOCH).ok()?;
-                let secs = dur.as_secs() as i64;
-                chrono::DateTime::from_timestamp(secs, 0).map(|dt| dt.to_rfc3339())
+                chrono::DateTime::from_timestamp(dur.as_secs() as i64, 0).map(|dt| dt.to_rfc3339())
             })
             .unwrap_or_default();
-
         backups.push(BackupInfo {
             id: name.clone(),
             name,
@@ -388,61 +401,87 @@ mod tests {
 }
 
 #[tauri::command]
-pub async fn backup_create(state: State<'_, AppState>, name: String) -> Result<BackupInfo, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+pub async fn backup_create(
+    state: State<'_, AppState>,
+    name: String,
+) -> Result<BackupInfo, BackendError> {
+    let svc = state.vault_service.read().map_err(|_| errors::internal())?;
+    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())
+        .map_err(errors::activity)?;
+    let vault_guard = svc.get_vault_store().ok_or_else(|| {
+        TransferFailure::new(Code::VaultLocked, Stage::Read, "Vault not unlocked")
+    })?;
     let vault = vault_guard.as_ref();
-    let profiles = vault.list_profiles()?;
-    let info = create_profile_backup(vault, svc.base_path(), &name, &profiles, chrono::Utc::now())?;
-
+    let profiles = vault
+        .list_profiles()
+        .map_err(|e| TransferFailure::new(Code::BackupReadFailed, Stage::Read, e))?;
+    let info =
+        create_profile_backup_safe(vault, svc.base_path(), &name, &profiles, chrono::Utc::now())?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(info)
 }
 
-/// RF-012：完整读取枚举结果后才写出文件，读取错误或条目消失均中止备份。
+/// 旧合成 fixture 保留原错误原因；实际 IPC 只调用有类型入口。
+#[cfg(test)]
 fn create_profile_backup(
     vault: &solosoul_vault::VaultStore,
-    base_path: &std::path::Path,
+    base: &std::path::Path,
     name: &str,
     profiles: &[solosoul_vault::ProfileSummary],
     now: chrono::DateTime<chrono::Utc>,
 ) -> Result<BackupInfo, String> {
+    create_profile_backup_safe(vault, base, name, profiles, now)
+        .map_err(TransferFailure::into_legacy)
+}
+/// 完整读取枚举结果后才写出文件；读取失败保持原行为，不写不完整备份。
+fn create_profile_backup_safe(
+    vault: &solosoul_vault::VaultStore,
+    base: &std::path::Path,
+    name: &str,
+    profiles: &[solosoul_vault::ProfileSummary],
+    now: chrono::DateTime<chrono::Utc>,
+) -> Result<BackupInfo, TransferFailure> {
     let timestamp = now.format("%Y%m%d_%H%M%S");
-    let safe_name = sanitize_backup_name(name)?;
-    let backup_dir = backups_dir(base_path);
+    let safe_name = sanitize_backup_name_safe(name)?;
+    let backup_dir = backups_dir(base);
     let backup_path = backup_dir.join(format!("{}_{}.solosoul_backup", safe_name, timestamp));
-
     let mut backup_profiles = Vec::with_capacity(profiles.len());
     for summary in profiles {
         let profile = vault
             .load_profile(&summary.id)
             .map_err(|e| {
-                format!(
-                    "Backup aborted: failed to load profile '{}': {}",
-                    summary.id, e
+                TransferFailure::new(
+                    Code::BackupReadFailed,
+                    Stage::Read,
+                    format!(
+                        "Backup aborted: failed to load profile '{}': {}",
+                        summary.id, e
+                    ),
                 )
             })?
             .ok_or_else(|| {
-                format!(
-                    "Backup aborted: profile '{}' disappeared after enumeration",
-                    summary.id
+                TransferFailure::new(
+                    Code::BackupReadFailed,
+                    Stage::Read,
+                    format!(
+                        "Backup aborted: profile '{}' disappeared after enumeration",
+                        summary.id
+                    ),
                 )
             })?;
         backup_profiles.push(profile);
     }
-
     let object_count = backup_profiles.len();
     let bytes = encode_profile_backup(&backup_profiles, now, ProfilePayloadEncoding::Base64)
-        .map_err(|error| error.to_string())?;
-    fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
-    fs::write(&backup_path, bytes).map_err(|e| e.to_string())?;
-    let metadata = fs::metadata(&backup_path).map_err(|e| e.to_string())?;
-
+        .map_err(|e| TransferFailure::new(Code::BackupWriteFailed, Stage::Serialize, e))?;
+    fs::create_dir_all(&backup_dir)
+        .map_err(|e| TransferFailure::new(Code::BackupWriteFailed, Stage::Write, e))?;
+    fs::write(&backup_path, bytes)
+        .map_err(|e| TransferFailure::new(Code::BackupWriteFailed, Stage::Write, e))?;
+    let metadata = fs::metadata(&backup_path).map_err(|e| {
+        TransferFailure::new(Code::BackupMetadataFailed, Stage::Read, e).completed(object_count)
+    })?;
     Ok(BackupInfo {
         id: format!("{}_{}", safe_name, timestamp),
         name: name.to_string(),
@@ -451,95 +490,109 @@ fn create_profile_backup(
         object_count,
     })
 }
-
+fn find_backup(base: &std::path::Path, id: &str) -> Result<PathBuf, TransferFailure> {
+    let missing = || {
+        TransferFailure::new(
+            Code::BackupNotFound,
+            Stage::Read,
+            format!("Backup '{}' not found", id),
+        )
+    };
+    let entries = match fs::read_dir(backups_dir(base)) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Err(missing()),
+        Err(e) => return Err(TransferFailure::new(Code::BackupReadFailed, Stage::Read, e)),
+    };
+    for entry in entries {
+        let path = entry
+            .map_err(|e| TransferFailure::new(Code::BackupReadFailed, Stage::Read, e))?
+            .path();
+        if path.file_stem().and_then(|s| s.to_str()) == Some(id) {
+            return Ok(path);
+        }
+    }
+    Err(missing())
+}
 #[tauri::command]
 pub async fn backup_restore(
     state: State<'_, AppState>,
     backup_id: String,
-) -> Result<usize, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
-
-    let backup_dir = backups_dir(svc.base_path());
-    let mut found_path: Option<PathBuf> = None;
-
-    if let Ok(dir) = fs::read_dir(&backup_dir) {
-        for entry in dir {
-            let entry = entry.map_err(|e| e.to_string())?;
-            let path = entry.path();
-            if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
-                // R009: use exact match instead of prefix matching to avoid deleting/restoring
-                // the wrong backup when IDs share a prefix.
-                if stem == backup_id.as_str() {
-                    found_path = Some(path);
-                    break;
-                }
-            }
-        }
-    }
-
-    let backup_path = found_path.ok_or_else(|| format!("Backup '{}' not found", backup_id))?;
-    let content = fs::read(&backup_path).map_err(|e| e.to_string())?;
-    let restored = restore_profile_backup(vault, &content, chrono::Utc::now())?;
+) -> Result<usize, BackendError> {
+    let svc = state.vault_service.read().map_err(|_| errors::internal())?;
+    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())
+        .map_err(errors::activity)?;
+    let vault = svc.get_vault_store().ok_or_else(|| {
+        TransferFailure::new(Code::VaultLocked, Stage::Read, "Vault not unlocked")
+    })?;
+    let path = find_backup(svc.base_path(), &backup_id)?;
+    let content = fs::read(&path)
+        .map_err(|e| TransferFailure::new(Code::BackupReadFailed, Stage::Read, e))?;
+    let restored = restore_profile_backup_safe(&vault, &content, chrono::Utc::now())?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
-
     Ok(restored)
 }
-
-/// RF-013：共享解码完成后才按原顺序保存，格式错误不会造成前缀覆盖。
-/// 每条保存仍沿用 VaultStore 的既有事务；不宣称数据库故障时整批原子恢复。
+#[cfg(test)]
 fn restore_profile_backup(
     vault: &solosoul_vault::VaultStore,
     content: &[u8],
     now: chrono::DateTime<chrono::Utc>,
 ) -> Result<usize, String> {
-    let decoded = decode_profile_backup(content, now).map_err(|error| match error {
-        ProfileBackupError::InvalidBase64 { index, reason } => {
-            format!(
+    restore_profile_backup_safe(vault, content, now).map_err(TransferFailure::into_legacy)
+}
+/// 完整解码后按原顺序保存，不新增整批事务；失败准确记录此前已经保存的条目数。
+fn restore_profile_backup_safe(
+    vault: &solosoul_vault::VaultStore,
+    content: &[u8],
+    now: chrono::DateTime<chrono::Utc>,
+) -> Result<usize, TransferFailure> {
+    let decoded = decode_profile_backup(content, now).map_err(|error| {
+        let code = if error == ProfileBackupError::UnsupportedVersion {
+            Code::BackupUnsupportedVersion
+        } else {
+            Code::BackupInvalidPackage
+        };
+        let legacy = match error {
+            ProfileBackupError::InvalidBase64 { index, reason } => format!(
                 "Base64 decode profile data: entry {}: {}",
                 index + 1,
                 reason
-            )
-        }
-        other => other.to_string(),
+            ),
+            other => other.to_string(),
+        };
+        TransferFailure::new(code, Stage::Validate, legacy)
     })?;
     let restored = decoded.profiles.len();
-    for profile in decoded.profiles {
-        vault.save_profile(&profile)?;
+    for (completed, profile) in decoded.profiles.into_iter().enumerate() {
+        vault.save_profile(&profile).map_err(|e| {
+            TransferFailure::new(
+                if completed == 0 {
+                    Code::BackupRestoreFailed
+                } else {
+                    Code::BackupRestorePartial
+                },
+                Stage::Write,
+                e,
+            )
+            .completed(completed)
+        })?;
     }
     Ok(restored)
 }
-
 #[cfg(test)]
 #[path = "backup/rf013_tests.rs"]
 mod rf013_tests;
-
+#[cfg(test)]
+#[path = "backup/rf318_tests.rs"]
+mod rf318_tests;
 #[tauri::command]
-pub async fn backup_delete(state: State<'_, AppState>, backup_id: String) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let backup_dir = backups_dir(svc.base_path());
-
-    if let Ok(dir) = fs::read_dir(&backup_dir) {
-        for entry in dir {
-            let entry = entry.map_err(|e| e.to_string())?;
-            let path = entry.path();
-            if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
-                // R009: exact match only.
-                if stem == backup_id.as_str() {
-                    fs::remove_file(&path).map_err(|e| e.to_string())?;
-                    return Ok(());
-                }
-            }
-        }
-    }
-    Err(format!("Backup '{}' not found", backup_id))
+pub async fn backup_delete(
+    state: State<'_, AppState>,
+    backup_id: String,
+) -> Result<(), BackendError> {
+    let svc = state.vault_service.read().map_err(|_| errors::internal())?;
+    let path = find_backup(svc.base_path(), &backup_id)?;
+    fs::remove_file(&path)
+        .map_err(|e| TransferFailure::new(Code::BackupWriteFailed, Stage::Write, e))?;
+    Ok(())
 }

@@ -955,7 +955,9 @@ test('RF307 Host error fixtures compile against actual rejection contracts and u
   await withProductionFixture(async (root) => {
     const manifest = JSON.parse(await readFile(path.join(root, outputFiles[1]), 'utf8'));
     assert.deepEqual(
-      manifest.structuredErrorCommands.filter((command) => !command.startsWith('llm_')),
+      manifest.structuredErrorCommands.filter((command) =>
+        objectSnapshotCommands.includes(command),
+      ),
       [...objectSnapshotCommands].sort(),
     );
     await copyTypedSources(root);
@@ -975,7 +977,7 @@ test('RF307 Host error fixtures compile against actual rejection contracts and u
 ${declarations.join('\n')}
 const actual:IpcCommandErrors['object_create']=longName;
 const rollback:IpcCommandErrors['snapshot_rollback']=rollbackMismatch;
-const legacy:IpcCommandErrors['backup_create']='old string';
+const legacy:IpcCommandErrors['sync_get_status']='old string';
 // @ts-expect-error migrated error is an object, not an English sentence.
 const old:IpcCommandErrors['object_create']='Object not found';
 // @ts-expect-error safeDetails is nullable but required.
@@ -1068,7 +1070,9 @@ test('RF317 all 26 LLM errors and optional stream failures use the actual Rust c
       .sort();
     assert.equal(selected.length, 26);
     assert.deepEqual(
-      manifest.structuredErrorCommands,
+      manifest.structuredErrorCommands.filter(
+        (command) => objectSnapshotCommands.includes(command) || command.startsWith('llm_'),
+      ),
       [...objectSnapshotCommands, ...selected].sort(),
     );
     await copyTypedSources(root);
@@ -1123,6 +1127,100 @@ test('RF317 actual LLM Result or stream-error serde drift rejects without replac
         changed = original.replace(oldText, newText);
       assert.notEqual(changed, original);
       await writeFile(source, changed);
+      await assert.rejects(generateContracts({ root, check: true }), /IPC contract drift/);
+      assert.deepEqual(await snapshot(root), before);
+    });
+});
+
+const transferCommands = [
+  'backup_create',
+  'backup_delete',
+  'backup_list',
+  'backup_restore',
+  'export_document_preflight',
+  'export_estimate_size',
+  'export_execute',
+  'export_get_attachments_batch',
+  'export_get_scope_tree',
+  'export_objects_document',
+  'import_decrypt_preview',
+  'import_execute_advanced',
+  'import_operation_get',
+  'import_operation_resume',
+  'import_operations_list',
+  'import_parse_package',
+];
+test('RF318 all actual transfer errors compile with safe counts and keep ImportOutcome separate', async () => {
+  await withProductionFixture(async (root) => {
+    const manifest = JSON.parse(await readFile(path.join(root, outputFiles[1]), 'utf8'));
+    const llm = manifest.structuredErrorCommands.filter((c) => c.startsWith('llm_'));
+    assert.deepEqual(
+      manifest.structuredErrorCommands,
+      [...objectSnapshotCommands, ...llm, ...transferCommands].sort(),
+    );
+    assert.equal(manifest.structuredErrorCommands.length, 56);
+    await copyTypedSources(root);
+    const fixture = JSON.parse(
+      await readFile(
+        path.join(
+          workspaceRoot,
+          'src-tauri/src/commands/export_import/contracts/rf318-fixtures.json',
+        ),
+        'utf8',
+      ),
+    );
+    const outcomes = JSON.parse(
+      await readFile(
+        path.join(workspaceRoot, 'src-tauri/src/commands/export_import/contracts/fixtures.json'),
+        'utf8',
+      ),
+    );
+    const lines = [
+      "import type {BackendError,IpcCommandErrors,ImportResult} from './src/lib/generated/ipcContracts';",
+    ];
+    for (const [key, value] of Object.entries(fixture))
+      lines.push('const ' + key + '=' + JSON.stringify(value) + ' satisfies BackendError;');
+    for (const command of transferCommands)
+      lines.push(
+        'const ' + command + ':IpcCommandErrors[' + JSON.stringify(command) + ']=restorePartial;',
+      );
+    for (const key of ['complete', 'partial', 'notCommitted'])
+      lines.push('const ' + key + '=' + JSON.stringify(outcomes[key]) + ' satisfies ImportResult;');
+    lines.push(
+      '// @ts-expect-error imported outcome must not become a rejection packet.',
+      'const collapsed:BackendError=partial;',
+      '// @ts-expect-error migrated command no longer accepts private strings.',
+      "const raw:IpcCommandErrors['import_execute_advanced']='SQL private path';",
+      '// @ts-expect-error a safe count cannot be a private string.',
+      "const leaked:BackendError={...restorePartial,safeDetails:{stage:'write',completedCount:'private'}};",
+    );
+    const probe = path.join(root, 'rf318-error-probe.ts');
+    await writeFile(probe, lines.join('\n'));
+    const result = await compileProbe(root, probe);
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  });
+});
+test('RF318 actual transfer Result or completed-count serde drift fails without replacing output', async () => {
+  for (const [file, from, to] of [
+    ['src-tauri/src/commands/backup.rs', 'Result<usize, BackendError>', 'Result<usize, String>'],
+    [
+      'src-tauri/src/commands/export_import/import.rs',
+      'Result<ImportResult, BackendError>',
+      'Result<ImportResult, String>',
+    ],
+    [
+      'src-tauri/src/commands/error.rs',
+      'pub completed_count: Option<u64>',
+      'pub completed_count: Option<String>',
+    ],
+  ])
+    await withProductionFixture(async (root) => {
+      const before = await snapshot(root),
+        source = path.join(root, file),
+        original = await readFile(source, 'utf8');
+      assert.ok(original.includes(from));
+      await writeFile(source, original.replace(from, to));
       await assert.rejects(generateContracts({ root, check: true }), /IPC contract drift/);
       assert.deepEqual(await snapshot(root), before);
     });

@@ -134,3 +134,11 @@ LlmStreamPayload 保留必需 nullable 的 error 字段，新增可省略的 fai
 保存失败保留已生成回复并提示复制留存；若目录维护挡住终态通知，则同一包通过 invoke 拒绝返回，客户端仍按“回复已生成但未保存”处理。该路径不绕过 Root 所有权或原会话 gate。会话失效始终拒绝旧请求，不发布到新账户。前端无法读取确认正文时单列“尚未确认保存状态”，不会声称写入一定失败；两个聊天入口与后台通知共用一次提示领取。
 
 Core 的新 typed provider resolver 提供固定类别，原 resolve_chat_provider String API 保留原文案给旧调用方/CLI。错误翻译仅发生在显示层，React 聊天投影使用当前 Hook 的翻译器；传输、Store 和生成契约不执行翻译。
+
+## 备份与导入导出结构化错误（RF318）
+
+16 个实际命令返回 BackendError，契约累计包含 56 个结构化错误命令。新 Host 在格式、密码、范围、读取和写入阶段选择固定机器码，内部 cause 不进入错误包、Error.message、日志或提示。导入的 ImportResult 继续独立承载 complete、partial、notCommitted、阶段及数量；旧 RF304 成功/结果 fixture 和旧包格式保持不变。
+
+备份恢复沿用顺序写入，拒写时只报告已经成功保存的 completedCount：首条失败为 BACKUP_RESTORE_FAILED/0，已保存前缀为 BACKUP_RESTORE_PARTIAL；备份文件已写出而元数据读取失败使用 BACKUP_METADATA_FAILED。后台变更任务异常使用 TRANSFER_TASK_UNCONFIRMED，不声称零写入、不建议直接重复变更。导入 UI 保留原操作 ID，查询台账后决定恢复或重放原冻结请求。
+
+新前端从实际 typed IPC 集中投影结构化包；旧 __EXPORT_ERR__/__IMPORT_ERR__ 仅在兼容适配层读固定 token 并丢弃 detail，旧域的独立前缀 fixture 保留。可选 completedCount 只接受备份已知 code/stage 的安全整数，其余任意 details 字段丢弃。翻译仍仅在显示层。

@@ -1,0 +1,47 @@
+{
+  "restoreNone": {
+    "code": "BACKUP_RESTORE_FAILED",
+    "safeDetails": {
+      "stage": "write",
+      "completedCount": 0
+    },
+    "retryable": false
+  },
+  "restorePartial": {
+    "code": "BACKUP_RESTORE_PARTIAL",
+    "safeDetails": {
+      "stage": "write",
+      "completedCount": 1
+    },
+    "retryable": false
+  },
+  "alreadyWritten": {
+    "code": "BACKUP_METADATA_FAILED",
+    "safeDetails": {
+      "stage": "read",
+      "completedCount": 2
+    },
+    "retryable": false
+  },
+  "badPackage": {
+    "code": "IMPORT_INVALID_PACKAGE",
+    "safeDetails": {
+      "stage": "validate"
+    },
+    "retryable": false
+  },
+  "password": {
+    "code": "IMPORT_DECRYPT_FAILED",
+    "safeDetails": {
+      "stage": "read"
+    },
+    "retryable": true
+  },
+  "unconfirmed": {
+    "code": "TRANSFER_TASK_UNCONFIRMED",
+    "safeDetails": {
+      "stage": "task"
+    },
+    "retryable": false
+  }
+}

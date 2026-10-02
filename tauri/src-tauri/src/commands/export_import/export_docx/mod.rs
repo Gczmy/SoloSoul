@@ -1,8 +1,10 @@
 //! 对象级文档导出（Word/docx / PDF / HTML / TXT / Markdown）——
 //! 设计文档 docs/next_dev/对象级文档导出功能设计与实现.md（P047 拆分：子模块见 fields/docx/markdown/text/html/pdf）。
 
+use super::errors;
+use super::errors::{vault_handle, TransferFailure};
 use super::{export_err, export_err_with_detail};
-use crate::commands::vault_handle;
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
@@ -14,6 +16,8 @@ pub mod fields;
 pub mod html;
 pub mod markdown;
 pub mod pdf;
+#[cfg(test)]
+mod rf318_tests;
 #[cfg(test)]
 mod tests;
 pub mod text;
@@ -133,19 +137,38 @@ fn object_max_sensitivity(
 }
 
 /// XML 转义：`& < > " '` 必须转义。
+#[cfg(test)]
 fn load_records_in_order(
     vault: &solosoul_vault::VaultStore,
-    object_ids: &[String],
+    ids: &[String],
 ) -> Result<Vec<solosoul_vault::ObjectRecord>, String> {
+    load_records_in_order_safe(vault, ids).map_err(TransferFailure::into_legacy)
+}
+fn load_records_in_order_safe(
+    vault: &solosoul_vault::VaultStore,
+    object_ids: &[String],
+) -> Result<Vec<solosoul_vault::ObjectRecord>, TransferFailure> {
     if object_ids.is_empty() {
-        return Err(export_err("NO_OBJECTS_SELECTED"));
+        return Err(TransferFailure::new(
+            Code::ExportScopeEmpty,
+            Stage::Validate,
+            export_err("NO_OBJECTS_SELECTED"),
+        ));
     }
-    let by_id = vault.load_objects_batch(object_ids)?;
+    let by_id = vault
+        .load_objects_batch(object_ids)
+        .map_err(|e| TransferFailure::new(Code::ExportReadFailed, Stage::Read, e))?;
     let mut records = Vec::with_capacity(object_ids.len());
     for id in object_ids {
         match by_id.get(id) {
             Some(r) => records.push(r.clone()),
-            None => return Err(format!("Object not found: {}", id)),
+            None => {
+                return Err(TransferFailure::new(
+                    Code::ExportObjectNotFound,
+                    Stage::Read,
+                    format!("Object not found: {}", id),
+                ))
+            }
         }
     }
     Ok(records)
@@ -245,10 +268,10 @@ fn resolve_document_path(
 pub async fn export_document_preflight(
     state: State<'_, AppState>,
     object_ids: Vec<String>,
-) -> Result<DocumentSensitivity, String> {
+) -> Result<DocumentSensitivity, BackendError> {
     let vault = vault_handle(&state)?;
     let result = tokio::task::spawn_blocking(move || {
-        let records = load_records_in_order(&vault, &object_ids)?;
+        let records = load_records_in_order_safe(&vault, &object_ids)?;
         let mut max = DocumentSensitivity::None;
         for rec in &records {
             let tpl = rec
@@ -263,10 +286,12 @@ pub async fn export_document_preflight(
                 max = DocumentSensitivity::Sensitive;
             }
         }
-        Ok::<DocumentSensitivity, String>(max)
+        Ok::<DocumentSensitivity, TransferFailure>(max)
     })
     .await
-    .map_err(|e| format!("preflight task failed: {e}"))??;
+    .map_err(|_| {
+        TransferFailure::new(Code::ExportReadFailed, Stage::Task, "preflight task failed")
+    })??;
     Ok(result)
 }
 
@@ -282,9 +307,14 @@ pub async fn export_objects_document(
     object_ids: Vec<String>,
     save_path: String,
     format: String,
-) -> Result<ExportDocumentResult, String> {
+) -> Result<ExportDocumentResult, BackendError> {
     if format_extension(&format).is_none() {
-        return Err(export_err_with_detail("FORMAT_NOT_SUPPORTED", &format));
+        return Err(TransferFailure::new(
+            Code::ExportFormatUnsupported,
+            Stage::Validate,
+            export_err_with_detail("FORMAT_NOT_SUPPORTED", &format),
+        )
+        .into());
     }
 
     let vault = vault_handle(&state)?;
@@ -292,12 +322,16 @@ pub async fn export_objects_document(
 
     // 封面第二行：导出账户名 + 账户 ID（current_account 取当前解锁账户，list_accounts 反查 name）。
     // 账户名反查失败（缓存为空等）时兜底显示 account_id，避免封面出现空账户名。
-    let account_id = crate::commands::current_account(&state)?;
+    let account_id = state
+        .vault_service
+        .read()
+        .map_err(|_| errors::internal())?
+        .get_current_account()
+        .ok_or_else(|| {
+            TransferFailure::new(Code::VaultLocked, Stage::Read, "Vault not unlocked")
+        })?;
     let account_name = {
-        let svc = state
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let svc = state.vault_service.read().map_err(|_| errors::internal())?;
         svc.list_accounts()
             .into_iter()
             .find(|a| a.id == account_id)
@@ -307,7 +341,7 @@ pub async fn export_objects_document(
     };
 
     // 解析保存路径（白名单校验在 resolve_document_path 内）——提前做，避免把无效路径带进阻塞任务。
-    let document_path = resolve_document_path(&app, &save_path, &format)?;
+    let document_path = resolve_document_path(&app, &save_path, &format).map_err(errors::path)?;
 
     // 对象解密 + 文档生成 + 写盘（临时文件 + rename；Unix chmod 600）整体移入
     // spawn_blocking，避免大对象集全表 AES 解密与文件写入阻塞 tokio worker（P114 同款）。
@@ -317,7 +351,7 @@ pub async fn export_objects_document(
     let account_name_for_task = account_name.clone();
     let account_id_for_task = account_id.clone();
     let (object_count, file_size_bytes) = tokio::task::spawn_blocking(move || {
-        let records = load_records_in_order(&vault_for_task, &object_ids)?;
+        let records = load_records_in_order_safe(&vault_for_task, &object_ids)?;
         let template_names = load_template_names(&vault_for_task, &records);
         let bytes = match format_for_task.as_str() {
             "docx" => build_docx(
@@ -326,7 +360,8 @@ pub async fn export_objects_document(
                 &export_time,
                 &account_name_for_task,
                 &account_id_for_task,
-            )?,
+            )
+            .map_err(|e| TransferFailure::new(Code::ExportRenderFailed, Stage::Serialize, e))?,
             "html" => build_html_document(
                 &records,
                 &template_names,
@@ -341,7 +376,8 @@ pub async fn export_objects_document(
                 &export_time,
                 &account_name_for_task,
                 &account_id_for_task,
-            )?,
+            )
+            .map_err(|e| TransferFailure::new(Code::ExportRenderFailed, Stage::Serialize, e))?,
             "txt" => build_text_document(
                 &records,
                 &template_names,
@@ -358,27 +394,56 @@ pub async fn export_objects_document(
                 &account_id_for_task,
             )
             .into_bytes(),
-            other => return Err(export_err_with_detail("FORMAT_NOT_SUPPORTED", other)),
+            other => {
+                return Err(TransferFailure::new(
+                    Code::ExportFormatUnsupported,
+                    Stage::Validate,
+                    export_err_with_detail("FORMAT_NOT_SUPPORTED", other),
+                ))
+            }
         };
         let count = records.len();
 
         let tmp_path = format!("{}.tmp{}", document_path, std::process::id());
         {
-            let mut f = File::create(&tmp_path).map_err(|e| format!("Create file: {e}"))?;
-            f.write_all(&bytes)
-                .map_err(|e| format!("Write file: {e}"))?;
+            let mut f = File::create(&tmp_path).map_err(|e| {
+                TransferFailure::new(
+                    Code::ExportWriteFailed,
+                    Stage::Write,
+                    format!("Create file: {e}"),
+                )
+            })?;
+            f.write_all(&bytes).map_err(|e| {
+                TransferFailure::new(
+                    Code::ExportWriteFailed,
+                    Stage::Write,
+                    format!("Write file: {e}"),
+                )
+            })?;
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
                 let _ = f.set_permissions(std::fs::Permissions::from_mode(0o600));
             }
         }
-        std::fs::rename(&tmp_path, &document_path).map_err(|e| format!("Finalize file: {e}"))?;
+        std::fs::rename(&tmp_path, &document_path).map_err(|e| {
+            TransferFailure::new(
+                Code::ExportWriteFailed,
+                Stage::Write,
+                format!("Finalize file: {e}"),
+            )
+        })?;
 
-        Ok::<(usize, u64), String>((count, bytes.len() as u64))
+        Ok::<(usize, u64), TransferFailure>((count, bytes.len() as u64))
     })
     .await
-    .map_err(|e| format!("document export task failed: {e}"))??;
+    .map_err(|_| {
+        TransferFailure::new(
+            Code::TransferTaskUnconfirmed,
+            Stage::Task,
+            "document export task failed",
+        )
+    })??;
 
     // 第三重：审计日志（脱敏——不含字段内容与对象名明细）
     crate::commands::log_audit_best_effort(

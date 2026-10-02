@@ -1,6 +1,8 @@
 use super::contracts::{ExportEstimate, ExportRequest, ExportScope, PageGroup};
+use super::errors;
+use super::errors::{vault_handle, TransferFailure};
 use super::load_attachments;
-use crate::commands::vault_handle;
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use solosoul_core::{VaultService, VaultSession};
@@ -26,13 +28,19 @@ const SYSTEM_SECTIONS: &[(&str, &str)] = &[
 pub async fn export_get_scope_tree(
     state: State<'_, AppState>,
     account_id: String,
-) -> Result<Vec<PageGroup>, String> {
+) -> Result<Vec<PageGroup>, BackendError> {
     let vault = vault_handle(&state)?;
 
     // 阶段 1：拉取对象 + 模板映射
     let objects = vault
         .list_objects(&account_id, None, None, None, false, false)
-        .map_err(|e| format!("list_objects: {}", e))?;
+        .map_err(|e| {
+            TransferFailure::new(
+                Code::ExportReadFailed,
+                Stage::Read,
+                format!("list_objects: {}", e),
+            )
+        })?;
     let template_map: std::collections::HashMap<String, solosoul_vault::UserTemplate> = vault
         .list_user_templates(&account_id)
         .unwrap_or_default()
@@ -213,13 +221,14 @@ pub async fn export_estimate_size(
     state: State<'_, AppState>,
     account_id: String,
     scope: ExportScope,
-) -> Result<ExportEstimate, String> {
+) -> Result<ExportEstimate, BackendError> {
     let vault = vault_handle(&state)?;
     let e = solosoul_core::export_import::export::estimate_encrypted_export(
         &vault,
         &account_id,
         &scope.to_core_scope(scope.attachment_export_scope()),
-    )?;
+    )
+    .map_err(|e| TransferFailure::new(Code::ExportReadFailed, Stage::Read, e))?;
     Ok(ExportEstimate {
         object_count: e.object_count,
         attachment_count: e.attachment_count,
@@ -350,15 +359,16 @@ pub async fn export_execute(
     state: State<'_, AppState>,
     account_id: String,
     req: ExportRequest,
-) -> Result<String, String> {
-    let job = ExportJob::prepare(Arc::clone(&state.vault_service), &account_id, req, |path| {
-        resolve_zip_path(&app, path)
-    })?;
-    run_export_job(move || job.run()).await
+) -> Result<String, BackendError> {
+    let job =
+        ExportJob::prepare_safe(Arc::clone(&state.vault_service), &account_id, req, |path| {
+            resolve_zip_path(&app, path)
+        })?;
+    run_export_job_safe(move || job.run_safe())
+        .await
+        .map_err(Into::into)
 }
-
-/// RF-025：排队前固定原会话与授权路径，只将 owned 数据送入阻塞线程。
-/// 路径解析器在 prepare 内同步执行；桌面白名单与移动端 staging 仍由命令负责。
+/// 原会话/受保护密码/授权路径在排队前固定；实际用例与旧 fixture 共用实现。
 pub(super) struct ExportJob {
     vault_service: Arc<RwLock<VaultService>>,
     session: VaultSession,
@@ -367,20 +377,26 @@ pub(super) struct ExportJob {
     password_hint: Option<String>,
     zip_path: String,
 }
-
 impl ExportJob {
+    #[cfg(test)]
     pub(super) fn prepare(
-        vault_service: Arc<RwLock<VaultService>>,
-        account_id: &str,
+        service: Arc<RwLock<VaultService>>,
+        account: &str,
         req: ExportRequest,
-        resolve_path: impl FnOnce(&str) -> Result<String, String>,
+        resolve: impl FnOnce(&str) -> Result<String, String>,
     ) -> Result<Self, String> {
+        Self::prepare_safe(service, account, req, resolve).map_err(TransferFailure::into_legacy)
+    }
+    pub(super) fn prepare_safe(
+        vault_service: Arc<RwLock<VaultService>>,
+        account: &str,
+        req: ExportRequest,
+        resolve: impl FnOnce(&str) -> Result<String, String>,
+    ) -> Result<Self, TransferFailure> {
         let (zip_path, session) = {
-            let svc = vault_service
-                .read()
-                .map_err(|_| "Vault service lock poisoned".to_string())?;
-            let zip_path = resolve_path(&req.save_path)?;
-            (zip_path, svc.capture_session(account_id)?)
+            let svc = vault_service.read().map_err(|_| errors::internal())?;
+            let path = resolve(&req.save_path).map_err(errors::path)?;
+            (path, errors::capture(&svc, account)?)
         };
         Ok(Self {
             vault_service,
@@ -391,20 +407,25 @@ impl ExportJob {
             zip_path,
         })
     }
-
+    #[cfg(test)]
     pub(super) fn run(self) -> Result<String, String> {
-        self.run_with_activity(|| {})
+        self.run_safe().map_err(TransferFailure::into_legacy)
     }
-
-    /// 在真实 worker 起步后登记 activity；排队期间仍允许旧会话正常失效。
+    pub(super) fn run_safe(self) -> Result<String, TransferFailure> {
+        self.run_with_activity_safe(|| {})
+    }
+    #[cfg(test)]
     pub(super) fn run_with_activity(self, started: impl FnOnce()) -> Result<String, String> {
-        // 只在阻塞线程内持服务读锁；不可重新捕获排队后的当前会话。
-        let svc = self
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        let _activity =
-            solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
+        self.run_with_activity_safe(started)
+            .map_err(TransferFailure::into_legacy)
+    }
+    pub(super) fn run_with_activity_safe(
+        self,
+        started: impl FnOnce(),
+    ) -> Result<String, TransferFailure> {
+        let svc = self.vault_service.read().map_err(|_| errors::internal())?;
+        let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())
+            .map_err(errors::activity)?;
         started();
         let scope = self
             .scope
@@ -415,24 +436,40 @@ impl ExportJob {
             password_hint: &self.password_hint,
             app_version: env!("CARGO_PKG_VERSION"),
         };
-        solosoul_core::export_import::export::execute_encrypted_export(
+        // 外层服务读锁保持期间检查原会话；错误类别不依赖 Core 的英文 Display。
+        errors::session(&svc, &self.session, |_| Ok(()))?;
+        if let Err(error) = solosoul_core::export_import::export::execute_encrypted_export(
             &svc,
             &self.session,
             &request,
             std::path::Path::new(&self.zip_path),
-        )
-        .map_err(crate::services::encrypted_export::map_export_failure)?;
+        ) {
+            errors::session(&svc, &self.session, |_| Ok(()))?;
+            return Err(errors::export_failure(error));
+        }
         Ok(self.zip_path)
     }
 }
-
+pub(super) async fn run_export_job_safe(
+    job: impl FnOnce() -> Result<String, TransferFailure> + Send + 'static,
+) -> Result<String, TransferFailure> {
+    tokio::task::spawn_blocking(job).await.map_err(|_| {
+        TransferFailure::new(
+            Code::TransferTaskUnconfirmed,
+            Stage::Task,
+            "导出任务执行失败",
+        )
+    })?
+}
+#[cfg(test)]
 pub(super) async fn run_export_job(
     job: impl FnOnce() -> Result<String, String> + Send + 'static,
 ) -> Result<String, String> {
-    tokio::task::spawn_blocking(job)
-        .await
-        // JoinError 可能携带 panic 内容，不能将其拼入面向用户的错误。
-        .map_err(|_| "导出任务执行失败".to_string())?
+    run_export_job_safe(move || {
+        job().map_err(|e| TransferFailure::new(Code::ExportFailed, Stage::Task, e))
+    })
+    .await
+    .map_err(TransferFailure::into_legacy)
 }
 
 /// 导出核心逻辑（与 `export_execute` 共享，供云同步快照、跨设备恢复复用）。
@@ -541,10 +578,12 @@ pub async fn export_get_attachments_batch(
     state: State<'_, AppState>,
     _account_id: String,
     object_ids: Vec<String>,
-) -> Result<std::collections::HashMap<String, Vec<AttachmentInfo>>, String> {
+) -> Result<std::collections::HashMap<String, Vec<AttachmentInfo>>, BackendError> {
     let vault = vault_handle(&state)?;
 
-    let records = vault.load_objects_batch(&object_ids)?;
+    let records = vault
+        .load_objects_batch(&object_ids)
+        .map_err(|e| TransferFailure::new(Code::ExportReadFailed, Stage::Read, e))?;
     let mut result = std::collections::HashMap::with_capacity(object_ids.len());
     for id in &object_ids {
         let atts = records

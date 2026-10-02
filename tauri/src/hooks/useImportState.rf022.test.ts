@@ -9,6 +9,7 @@ import type {
   ImportResult,
 } from '@/types/exportImport';
 import { useImportState } from './useImportState';
+import { BackendCommandError, makeBackendError } from '@/lib/backendErrorWire';
 
 const io = vi.hoisted(() => ({
   invoke: vi.fn(),
@@ -822,4 +823,40 @@ describe('RF022 original import operation', () => {
     });
     expect(resumeCalls()[0][1].password).toBe('second-password');
   });
+});
+
+it('RF318 structured operation-missing reply replays only the original frozen operation', async () => {
+  let writes = 0;
+  io.invoke.mockImplementation(async (command: string) => {
+    if (command === 'import_operations_list') return [];
+    if (command === 'import_decrypt_preview') return tree;
+    if (command === 'import_operation_get')
+      throw new BackendCommandError(makeBackendError('IMPORT_OPERATION_NOT_FOUND'));
+    if (command === 'import_execute_advanced') {
+      if (++writes === 1)
+        throw new BackendCommandError(makeBackendError('TRANSFER_TASK_UNCONFIRMED'));
+      return complete;
+    }
+    throw new Error(command);
+  });
+  const f = mount();
+  await prepare(f);
+  act(() => {
+    f.result.current.setShowStrategySelector(true);
+    f.result.current.setImportStrategy('keepBoth');
+    f.result.current.onSetObjectConflictStrategy('object-a', 'overwrite');
+  });
+  await act(async () => {
+    await f.result.current.onImport();
+  });
+  expect(f.result.current.importOperations.currentId).toBe(ID);
+  await act(async () => {
+    await i18n.changeLanguage('zh-CN');
+    await f.result.current.importOperations.onRetry();
+  });
+  expect(crypto.randomUUID).toHaveBeenCalledTimes(1);
+  expect(executeCalls()).toHaveLength(2);
+  expect(executeCalls()[1][1].req).toEqual(executeCalls()[0][1].req);
+  expect(executeCalls()[0][1].req.objectStrategies).toEqual({ 'object-a': 'overwrite' });
+  expect(f.onSuccess).toHaveBeenCalledOnce();
 });

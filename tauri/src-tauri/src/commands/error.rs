@@ -46,6 +46,44 @@ pub enum BackendErrorCode {
     LlmUsageFailed,
     LlmGuideFailed,
     LlmEmbeddingFailed,
+    BackupInvalidName,
+    BackupNotFound,
+    BackupReadFailed,
+    BackupWriteFailed,
+    BackupInvalidPackage,
+    BackupUnsupportedVersion,
+    BackupRestoreFailed,
+    BackupRestorePartial,
+    BackupMetadataFailed,
+    TransferInvalidPath,
+    TransferTaskUnconfirmed,
+    ExportPasswordRequired,
+    ExportPasswordMatchesMaster,
+    ExportPasswordCheckFailed,
+    ExportScopeEmpty,
+    ExportObjectNotFound,
+    ExportAttachmentTooLarge,
+    ExportTooLarge,
+    ExportFormatUnsupported,
+    ExportReadFailed,
+    ExportWriteFailed,
+    ExportRenderFailed,
+    ExportFailed,
+    ImportFileMissing,
+    ImportInvalidPackage,
+    ImportManifestMissing,
+    ImportSaltMissing,
+    ImportDecryptFailed,
+    ImportPasswordRequired,
+    ImportBadPassword,
+    ImportInvalidOperation,
+    ImportInvalidCloudOptions,
+    ImportOperationMismatch,
+    ImportOperationNotFound,
+    ImportOperationAbandoned,
+    ImportOperationConflict,
+    ImportReadFailed,
+    ImportFailed,
 }
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -72,6 +110,8 @@ pub struct SafeErrorDetails {
     pub stage: BackendErrorStage,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub completed_count: Option<u64>,
 }
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -99,16 +139,33 @@ impl BackendError {
                     | Code::LlmRateLimited
                     | Code::LlmProviderReadFailed
                     | Code::LlmConversationReadFailed
+                    | Code::BackupReadFailed
+                    | Code::ExportReadFailed
+                    | Code::ImportReadFailed
+                    | Code::ImportFileMissing
+                    | Code::ImportPasswordRequired
+                    | Code::ImportBadPassword
+                    | Code::ImportDecryptFailed
             ),
         }
     }
     pub fn at(mut self, stage: BackendErrorStage) -> Self {
-        self.safe_details = Some(SafeErrorDetails { stage, limit: None });
+        self.safe_details = Some(SafeErrorDetails {
+            stage,
+            limit: None,
+            completed_count: None,
+        });
         self
     }
     pub fn limit(mut self, limit: u64) -> Self {
         if let Some(details) = &mut self.safe_details {
             details.limit = Some(limit);
+        }
+        self
+    }
+    pub fn completed_count(mut self, count: u64) -> Self {
+        if let Some(details) = &mut self.safe_details {
+            details.completed_count = Some(count);
         }
         self
     }
