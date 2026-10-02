@@ -1,0 +1,170 @@
+{
+  "task": "RF-208",
+  "date": "2026-10-02",
+  "source_commit": "a98d027ff62c2b6546eed1dc5ec963049456d163",
+  "platform": "macOS 26.6 ARM64",
+  "jdk": "JetBrains 21.0.10; Launcher and Daemon from JAVA_HOME; no project org.gradle.java.home",
+  "gradle": "8.14.3",
+  "rust": "1.95.0 rustup stable",
+  "android_sdk": "API 36",
+  "ndk": "30.0.14904198",
+  "gradle_version_exit_code": 0,
+  "checks": [
+    {
+      "name": "rf208-stage-resources",
+      "command": [
+        "node",
+        "scripts/stage-mobile-resources.cjs"
+      ],
+      "started_at": "2026-10-02T10:18:51.525633+00:00",
+      "finished_at": "2026-10-02T10:18:51.616036+00:00",
+      "duration_seconds": 0.09042679192498326,
+      "exit_code": 0
+    },
+    {
+      "name": "rf208-target-check",
+      "command": [
+        "cargo",
+        "ndk",
+        "-t",
+        "aarch64-linux-android",
+        "check"
+      ],
+      "started_at": "2026-10-02T10:18:51.616333+00:00",
+      "finished_at": "2026-10-02T10:19:53.262002+00:00",
+      "duration_seconds": 61.64580045780167,
+      "exit_code": 0
+    },
+    {
+      "name": "rf208-debug-apk",
+      "command": [
+        "npx",
+        "tauri",
+        "android",
+        "build",
+        "--debug",
+        "--target",
+        "aarch64",
+        "--split-per-abi",
+        "--apk",
+        "--ci"
+      ],
+      "started_at": "2026-10-02T10:19:53.262822+00:00",
+      "finished_at": "2026-10-02T10:23:38.110576+00:00",
+      "duration_seconds": 224.84818812459707,
+      "exit_code": 0
+    }
+  ],
+  "apk": {
+    "apk": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+    "bytes": 122885293,
+    "sha256": "9b9975a6b07c584cef95209c67461b4abca2ad705a95d383f2d63c63f98a80e8",
+    "version": "2.13.2",
+    "version_code": 2013002,
+    "zip_crc": "passed",
+    "abi": "arm64-v8a",
+    "elf_machine": 183,
+    "native_library_matches_rust_output": true,
+    "native_library_sha256": "497ec2e8dbe6226b840599dd8ffdc2d72a06606a70a08c629128a6d07319955d",
+    "plugin_count": 22,
+    "plugins": [
+      "com.solosoul.official.address-fmt",
+      "com.solosoul.official.calendar-events",
+      "com.solosoul.official.cloud-packager",
+      "com.solosoul.official.contact-exporter",
+      "com.solosoul.official.data-completeness",
+      "com.solosoul.official.digital-will",
+      "com.solosoul.official.doc-checklist",
+      "com.solosoul.official.emergency-card",
+      "com.solosoul.official.expiry-guardian",
+      "com.solosoul.official.form-prefiller",
+      "com.solosoul.official.id-validator",
+      "com.solosoul.official.identity-timeline",
+      "com.solosoul.official.mrz-encoder",
+      "com.solosoul.official.namecard-gen",
+      "com.solosoul.official.packing-list",
+      "com.solosoul.official.phone-fmt",
+      "com.solosoul.official.resume-builder",
+      "com.solosoul.official.tax-profile",
+      "com.solosoul.official.totp-gen",
+      "com.solosoul.official.travel-footprint",
+      "com.solosoul.official.watermark",
+      "slotgo"
+    ],
+    "registry_semantic_match": true,
+    "signature_verified": true,
+    "build_type": "debug",
+    "native_run": "not_performed"
+  },
+  "unrelated_files_raw_unchanged": true,
+  "generated_cargo_manifest_restored": true,
+  "generated_android_properties_restored": true,
+  "runtime_validation": "Not required by RF-208 build-only acceptance; APK not installed/launched",
+  "cross_platform_scope": {
+    "macos": "standard target check and Tauri Debug APK passed",
+    "linux": "existing 2026-09-28 standard Debug build proof retained",
+    "windows": "existing 2026-09-28 Gradle/JVM and packaging proof retained; standard Tauri entry still has documented symlink privilege failure"
+  },
+  "baseline_failures_preserved": [
+    "bare check-all: Tauri generic feature allowlist mismatch; native CLI prepares expected macOS feature",
+    "native-prepared check-all: Core tests need explicit PDFIUM_LIBRARY_PATH",
+    "CLI first full tests: one real PDF test needs explicit PDFIUM_LIBRARY_PATH"
+  ],
+  "shared_baseline_status": "F passed (252 files/2191 Vitest); PDFium Rust/CLI reruns queued/running, not yet claimed passing",
+  "logs": [
+    {
+      "name": "rf208-gradle-version.log",
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf208-gradle-version.log",
+      "bytes": 579,
+      "sha256": "50876a7d489722f98a191dde17ee0f74e59af621ac1b2ab259ad2025788a04e9"
+    },
+    {
+      "name": "rf208-target-check.log",
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf208-target-check.log",
+      "bytes": 19462,
+      "sha256": "6d877e42456a8f02ea8d95f71057f5ff0366142911f6480212a1c029970ecb60"
+    },
+    {
+      "name": "rf208-debug-apk.log",
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf208-debug-apk.log",
+      "bytes": 23494,
+      "sha256": "5ba6d941f386584eda190525cfeae77353adaaa83bc20d4e82506b59321d010f"
+    },
+    {
+      "name": "rf208-apk-badging.log",
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf208-apk-badging.log",
+      "bytes": 6545,
+      "sha256": "d480758e892d2a06881f842f34cd537707b03434f5aeaac58f07572ae2dd93b6"
+    },
+    {
+      "name": "rf208-apk-certificate.log",
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf208-apk-certificate.log",
+      "bytes": 311,
+      "sha256": "1b902b309cee63c5eede4ccc70885ae49a492d175a3c9b6c6c8ac885ef50cea0"
+    },
+    {
+      "name": "front-test-default.log",
+      "path": "/tmp/solosoul-refactor-macos-20261002/front-test-default.log",
+      "bytes": 342954,
+      "sha256": "7eec4a4e2df55725ce5ca5769e7f1a6dc168d7e6a05db6da364651cefbad96d6"
+    },
+    {
+      "name": "check-all.log",
+      "path": "/tmp/solosoul-refactor-macos-20261002/check-all.log",
+      "bytes": 2409,
+      "sha256": "8f3cf2ed948a647a40ed11cc67c5550b0380e2814009b34901c117a5102fbe4e"
+    },
+    {
+      "name": "check-all-native-manifest.log",
+      "path": "/tmp/solosoul-refactor-macos-20261002/check-all-native-manifest.log",
+      "bytes": 158374,
+      "sha256": "c7c0a5f38694cfb9156ec34486c5ef5f9bf65a71ed7d0ea9fb296a646d75d2a1"
+    },
+    {
+      "name": "cli-test.log",
+      "path": "/tmp/solosoul-refactor-macos-20261002/cli-test.log",
+      "bytes": 140066,
+      "sha256": "b648a33d63aebb31e870397bd72a3447e43d630533377257e2d00c76b283260b"
+    }
+  ]
+}
