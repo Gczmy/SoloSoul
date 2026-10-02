@@ -1,0 +1,19 @@
+{
+  "command": [
+    "open",
+    "-n",
+    "-W",
+    "-a",
+    "/tmp/solosoul-refactor-macos-20261002/CardSurfaceRegression.app",
+    "--stdout",
+    "/tmp/solosoul-refactor-macos-20261002/rf121-card-bundle-stdout.log",
+    "--stderr",
+    "/tmp/solosoul-refactor-macos-20261002/rf121-card-bundle-stderr.log",
+    "--args",
+    "--card-fixture",
+    "/tmp/solosoul-refactor-macos-20261002/rf121-card-surfaces-diagnostic.html"
+  ],
+  "launcher_exit_code": 0,
+  "duration_seconds": 9.617024084087461,
+  "note": "open exit code is launch status only; acceptance requires native PASS and no failure in application logs"
+}

@@ -1,0 +1,13 @@
+[appearance] material=liquid-glass; native-only=false; unthrottled=false
+[appearance +43.165583ms] focused=true; native-only=false; unthrottled=false
+[appearance +2.461592833s] focused=false; native-only=false; unthrottled=false
+[appearance +2.461675s] focused=true; native-only=false; unthrottled=false
+[appearance +3.665389583s] focused=false; native-only=false; unthrottled=false
+[appearance +3.665466125s] focused=true; native-only=false; unthrottled=false
+[appearance] fullscreen=true; titlebar-height=52; traffic-lights-right=14
+[appearance] fullscreen=false; titlebar-height=52; traffic-lights-right=79
+PASS: full-window WebView, native button hit testing, stable WebView/material/drag-view/buttons, theme sync, hide/show, resize, fullscreen, titlebar controls and drag boundary
+[card-native] visible=true; occlusion=NSWindowOcclusionState(8194); webview-hidden=false; app-active=true; activation-policy=NSApplicationActivationPolicy(0)
+[card-surface] {"appearance":{"highContrast":false,"material":"liquid-glass","platform":"macos","reduceMotion":false,"titlebarHeight":52,"trafficLightsRight":79},"cards":[{"backdropFilter":"none","background":"rgb(253, 252, 249)","color":"rgb(31, 28, 24)","height":487,"overflow":false,"surface":"default","visible":true,"width":272},{"backdropFilter":"none","background":"rgb(253, 252, 249)","color":"rgb(31, 28, 24)","height":487,"overflow":false,"surface":"floating","visible":true,"width":272}],"expectedBackground":"rgb(253, 252, 249)","pageOverflow":false,"theme":"light","viewport":{"height":800,"width":1200}}
+[card-surface] {"appearance":{"highContrast":false,"material":"liquid-glass","platform":"macos","reduceMotion":false,"titlebarHeight":52,"trafficLightsRight":79},"cards":[{"backdropFilter":"none","background":"rgb(42, 38, 32)","color":"rgb(221, 216, 200)","height":487,"overflow":false,"surface":"default","visible":true,"width":272},{"backdropFilter":"none","background":"rgb(42, 38, 32)","color":"rgb(221, 216, 200)","height":487,"overflow":false,"surface":"floating","visible":true,"width":272}],"expectedBackground":"rgb(42, 38, 32)","pageOverflow":false,"theme":"dark","viewport":{"height":800,"width":1200}}
+PASS: production Card/CardGrid in native WKWebView, light/dark surfaces and long-content geometry; accessibility settings sampled from this host only

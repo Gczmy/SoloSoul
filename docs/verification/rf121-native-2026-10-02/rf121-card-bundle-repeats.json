@@ -1,0 +1,204 @@
+[
+  {
+    "run": 2,
+    "command": [
+      "open",
+      "-n",
+      "-W",
+      "-a",
+      "/tmp/solosoul-refactor-macos-20261002/CardSurfaceRegression.app",
+      "--stdout",
+      "/tmp/solosoul-refactor-macos-20261002/rf121-card-bundle-2-stdout.log",
+      "--stderr",
+      "/tmp/solosoul-refactor-macos-20261002/rf121-card-bundle-2-stderr.log",
+      "--args",
+      "--card-fixture",
+      "/tmp/solosoul-refactor-macos-20261002/rf121-card-surfaces-diagnostic.html"
+    ],
+    "launcher_exit_code": 0,
+    "app_exit_code": "not exposed by LaunchServices",
+    "accepted_by_explicit_application_checks": true,
+    "duration_seconds": 8.851382292341441,
+    "reports": [
+      {
+        "appearance": {
+          "highContrast": false,
+          "material": "liquid-glass",
+          "platform": "macos",
+          "reduceMotion": false,
+          "titlebarHeight": 52,
+          "trafficLightsRight": 79
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "height": 487,
+            "overflow": false,
+            "surface": "default",
+            "visible": true,
+            "width": 272
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "height": 487,
+            "overflow": false,
+            "surface": "floating",
+            "visible": true,
+            "width": 272
+          }
+        ],
+        "expectedBackground": "rgb(253, 252, 249)",
+        "pageOverflow": false,
+        "theme": "light",
+        "viewport": {
+          "height": 800,
+          "width": 1200
+        }
+      },
+      {
+        "appearance": {
+          "highContrast": false,
+          "material": "liquid-glass",
+          "platform": "macos",
+          "reduceMotion": false,
+          "titlebarHeight": 52,
+          "trafficLightsRight": 79
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "height": 487,
+            "overflow": false,
+            "surface": "default",
+            "visible": true,
+            "width": 272
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "height": 487,
+            "overflow": false,
+            "surface": "floating",
+            "visible": true,
+            "width": 272
+          }
+        ],
+        "expectedBackground": "rgb(42, 38, 32)",
+        "pageOverflow": false,
+        "theme": "dark",
+        "viewport": {
+          "height": 800,
+          "width": 1200
+        }
+      }
+    ]
+  },
+  {
+    "run": 3,
+    "command": [
+      "open",
+      "-n",
+      "-W",
+      "-a",
+      "/tmp/solosoul-refactor-macos-20261002/CardSurfaceRegression.app",
+      "--stdout",
+      "/tmp/solosoul-refactor-macos-20261002/rf121-card-bundle-3-stdout.log",
+      "--stderr",
+      "/tmp/solosoul-refactor-macos-20261002/rf121-card-bundle-3-stderr.log",
+      "--args",
+      "--card-fixture",
+      "/tmp/solosoul-refactor-macos-20261002/rf121-card-surfaces-diagnostic.html"
+    ],
+    "launcher_exit_code": 0,
+    "app_exit_code": "not exposed by LaunchServices",
+    "accepted_by_explicit_application_checks": true,
+    "duration_seconds": 8.86157404165715,
+    "reports": [
+      {
+        "appearance": {
+          "highContrast": false,
+          "material": "liquid-glass",
+          "platform": "macos",
+          "reduceMotion": false,
+          "titlebarHeight": 52,
+          "trafficLightsRight": 79
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "height": 487,
+            "overflow": false,
+            "surface": "default",
+            "visible": true,
+            "width": 272
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "height": 487,
+            "overflow": false,
+            "surface": "floating",
+            "visible": true,
+            "width": 272
+          }
+        ],
+        "expectedBackground": "rgb(253, 252, 249)",
+        "pageOverflow": false,
+        "theme": "light",
+        "viewport": {
+          "height": 800,
+          "width": 1200
+        }
+      },
+      {
+        "appearance": {
+          "highContrast": false,
+          "material": "liquid-glass",
+          "platform": "macos",
+          "reduceMotion": false,
+          "titlebarHeight": 52,
+          "trafficLightsRight": 79
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "height": 487,
+            "overflow": false,
+            "surface": "default",
+            "visible": true,
+            "width": 272
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "height": 487,
+            "overflow": false,
+            "surface": "floating",
+            "visible": true,
+            "width": 272
+          }
+        ],
+        "expectedBackground": "rgb(42, 38, 32)",
+        "pageOverflow": false,
+        "theme": "dark",
+        "viewport": {
+          "height": 800,
+          "width": 1200
+        }
+      }
+    ]
+  }
+]

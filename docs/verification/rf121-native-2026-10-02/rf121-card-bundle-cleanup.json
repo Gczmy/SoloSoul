@@ -1,0 +1,10 @@
+{
+  "unregister_command": [
+    "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister",
+    "-u",
+    "/tmp/solosoul-refactor-macos-20261002/CardSurfaceRegression.app"
+  ],
+  "exit_code": 0,
+  "temporary_bundle_removed": true,
+  "production_application_untouched": true
+}

@@ -1,7 +1,7 @@
 {
   "task": "RF-121",
   "baseline_commit": "41936a28",
-  "status": "awaiting native card rendering and full three-platform/accessibility matrix; not closed",
+  "status": "awaiting full three-platform/accessibility/pixel composition matrix; macOS independent .app light/dark real Card frame checks passed",
   "user_isolation_reply": "暂无，继续当前可执行的验证",
   "rf112_status": "awaiting dedicated macOS user/VM lock/unlock; no production client or accounts accessed",
   "environment": {
@@ -49,18 +49,6 @@
     "exit_code": 1,
     "duration_seconds": 13.520314333960414,
     "temporary_macos_private_feature": true
-  },
-  "card_final_result": {
-    "accepted": false,
-    "native_window_visible": true,
-    "webview_hidden": false,
-    "application_active": false,
-    "activation_policy": 0,
-    "document_visibility": "visible",
-    "frame_count": 1,
-    "error": "paint-frame-timeout",
-    "watchdog_ms": 2500,
-    "unthrottled_diagnostic": true
   },
   "checks": [
     {
@@ -160,7 +148,7 @@
     "final": "native visible/document visible, one frame, watchdog failure, proper exit1"
   },
   "limits": [
-    "No stable Card paint acceptance",
+    "macOS independent .app light/dark frames and geometry pass; other platforms and real OS accessibility matrix pending",
     "No screenshot or pixel/no-black-frame acceptance",
     "No real OS high contrast/reduce transparency matrix",
     "No Windows or Android Card acceptance in this run",
@@ -245,11 +233,146 @@
     "rf121-native-2026-10-02/rf121-window-final.log": "43096c658aeb264e067bac0c5c092327c6d6c771b1298924cc92f255aa7fdfaf",
     "rf121-native-2026-10-02/rf121-workflows.json": "a3c806b4d773d7d6848952861a797d1af9dcf3b3a0ccb4010ff97a14aa494ab5",
     "rf121-native-2026-10-02/run-rf121-card-surfaces.py": "459256fb98e8bb5fec8ad420329b6e35c9634f071924711f7bac475b8d5a6c02",
-    "rf121-native-2026-10-02/rf121-macos-window-native.log.gz": "d5ce52fee83e2d7113420950589eb8d8551d9a7414b1175d8e33016845496205"
+    "rf121-native-2026-10-02/rf121-macos-window-native.log.gz": "d5ce52fee83e2d7113420950589eb8d8551d9a7414b1175d8e33016845496205",
+    "rf121-native-2026-10-02/rf121-card-bundle-launch.json": "382c296c98f0a080c17571400c8ab47497291c1dbdc1fe3df380202c5fb636c9",
+    "rf121-native-2026-10-02/rf121-card-bundle-Info.plist": "cc6e095d35de631ce6893cd213c53e8412c7cb342d9ed1ff5060fb79da7220fc",
+    "rf121-native-2026-10-02/rf121-card-bundle-repeats.json": "6a499885ced44eca9497c0ba865e184f94b774b3be87af31d72cf482da6e2e2b",
+    "rf121-native-2026-10-02/rf121-card-bundle-2-stdout.log": "c96064bbd9089b0cbda3098f285549f9063496db67c7eae1f93087c273393afa",
+    "rf121-native-2026-10-02/rf121-card-bundle-stdout.log": "3a894fc9c52b9de81afd790f68fcdde9ebb00f9aba30dc6e103764a7f66b34a6",
+    "rf121-native-2026-10-02/rf121-card-bundle-3-stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rf121-native-2026-10-02/rf121-card-bundle-2-stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rf121-native-2026-10-02/rf121-card-bundle-stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rf121-native-2026-10-02/rf121-card-bundle-3-stdout.log": "e9cfbfd74ed51faed1f408af81122651148a88c94675c79b0e22e9098e962572",
+    "rf121-native-2026-10-02/rf121-card-bundle-cleanup.json": "56a2de0b98a5a4ba55f5dfed59d89b2e245e47b259d79c6721fea3515b52763e"
   },
   "raw_log_archive": {
     "path": "rf121-native-2026-10-02/rf121-macos-window-native.log.gz",
     "uncompressed_sha256": "c684eab09c2e4a3d3522b24c9ced1b778422cd976ae06062e9883808253ca463",
     "reason": "Preserve exact raw compiler whitespace without staged diff whitespace violations"
+  },
+  "card_command_line_result": {
+    "accepted": false,
+    "native_window_visible": true,
+    "webview_hidden": false,
+    "application_active": false,
+    "activation_policy": 0,
+    "document_visibility": "visible",
+    "frame_count": 1,
+    "error": "paint-frame-timeout",
+    "watchdog_ms": 2500,
+    "unthrottled_diagnostic": true
+  },
+  "bundle_followup": {
+    "baseline_commit": "2d871403",
+    "same_example_binary": true,
+    "app_identifier": "com.solosoul.appearance-regression",
+    "app_active": true,
+    "unthrottled": false,
+    "runs_accepted": 3,
+    "samples_accepted": 6,
+    "first_launch": {
+      "command": [
+        "open",
+        "-n",
+        "-W",
+        "-a",
+        "/tmp/solosoul-refactor-macos-20261002/CardSurfaceRegression.app",
+        "--stdout",
+        "/tmp/solosoul-refactor-macos-20261002/rf121-card-bundle-stdout.log",
+        "--stderr",
+        "/tmp/solosoul-refactor-macos-20261002/rf121-card-bundle-stderr.log",
+        "--args",
+        "--card-fixture",
+        "/tmp/solosoul-refactor-macos-20261002/rf121-card-surfaces-diagnostic.html"
+      ],
+      "launcher_exit_code": 0,
+      "duration_seconds": 9.617024084087461,
+      "note": "open exit code is launch status only; acceptance requires native PASS and no failure in application logs"
+    },
+    "app_exit_code": "not exposed by LaunchServices; accepted by explicit in-app PASS/FAIL and two actual reports per run",
+    "first_reports": [
+      {
+        "appearance": {
+          "highContrast": false,
+          "material": "liquid-glass",
+          "platform": "macos",
+          "reduceMotion": false,
+          "titlebarHeight": 52,
+          "trafficLightsRight": 79
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "height": 487,
+            "overflow": false,
+            "surface": "default",
+            "visible": true,
+            "width": 272
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "height": 487,
+            "overflow": false,
+            "surface": "floating",
+            "visible": true,
+            "width": 272
+          }
+        ],
+        "expectedBackground": "rgb(253, 252, 249)",
+        "pageOverflow": false,
+        "theme": "light",
+        "viewport": {
+          "height": 800,
+          "width": 1200
+        }
+      },
+      {
+        "appearance": {
+          "highContrast": false,
+          "material": "liquid-glass",
+          "platform": "macos",
+          "reduceMotion": false,
+          "titlebarHeight": 52,
+          "trafficLightsRight": 79
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "height": 487,
+            "overflow": false,
+            "surface": "default",
+            "visible": true,
+            "width": 272
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "height": 487,
+            "overflow": false,
+            "surface": "floating",
+            "visible": true,
+            "width": 272
+          }
+        ],
+        "expectedBackground": "rgb(42, 38, 32)",
+        "pageOverflow": false,
+        "theme": "dark",
+        "viewport": {
+          "height": 800,
+          "width": 1200
+        }
+      }
+    ],
+    "repeats_record": "rf121-native-2026-10-02/rf121-card-bundle-repeats.json",
+    "inference": "launch through independent app bundle activates own application and permits stable paint-frame checks; command-line-only failure is not evidence of a production client defect",
+    "scope": "macOS26.6 ARM64, actual default accessibility flags, Card/CardGrid DOM geometry and colors; no pixel/no-black-frame acceptance",
+    "cleanup_record": "rf121-native-2026-10-02/rf121-card-bundle-cleanup.json"
   }
 }

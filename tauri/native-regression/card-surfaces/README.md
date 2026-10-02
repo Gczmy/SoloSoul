@@ -14,4 +14,6 @@ node scripts/build-card-surface-fixture.mjs /tmp/card-surfaces.html
 
 例程保持原生窗口、隐藏恢复、缩放和全屏几何检查，再按浅/深主题测量真实 WKWebView 的两个 Card。系统材质和辅助功能属性来自当前宿主的原生命令，不伪造高对比度或减少透明度设置。颜色采样必须等待实际绘制帧及主题过渡；无绘制帧、测量缺失或断言失败均以 exit1 结束。`--unthrottled` 只供已有诊断模式使用，其结果必须标明，不能冒充生产后台节流策略的通过。
 
-本轮独立例程全屏恢复后曾出现 `visibility=hidden`、0 绘制帧；最终诊断为窗口可见、WebView 未隐藏、应用未激活，文档 `visibility=visible` 但仅收到 1 帧，2.5 秒仍未完成主题过渡采样。两者均未通过，尚不能判定正式客户端有相同缺陷。窗口几何通过不等于 Card 绘制通过，更不证明恢复过程中没有黑帧。详见[本轮证据](../../../docs/verification/rf121-macos-native-checkpoint-2026-10-02.json)。RF-121 的三平台、辅助功能及像素合成矩阵继续待验。
+命令行直接启动本轮独立例程时，曾出现 `visibility=hidden`、0 绘制帧；最终诊断为窗口可见、WebView 未隐藏、应用未激活，文档 `visibility=visible` 但仅收到 1 帧，2.5 秒仍未完成主题过渡采样。此路径未通过。随后将同一个二进制置于专用临时 `.app` 包，通过 LaunchServices 前台启动：应用激活，正常节流下浅/深色 Card 的严格绘制帧检查通过。启动方式的对照支持环境原因，不据此前失败判定正式客户端有相同缺陷。窗口几何通过不等于 Card 绘制通过，更不证明恢复过程中没有黑帧。详见[本轮证据](../../../docs/verification/rf121-macos-native-checkpoint-2026-10-02.json)。RF-121 的三平台、辅助功能及像素合成矩阵继续待验。
+
+图形验收应把同一个编译产物放入专用临时应用包（本轮为 `/tmp/.../CardSurfaceRegression.app`），Info.plist 使用 `com.solosoul.appearance-regression`、APPL、NSApplication、专用 executable，并用 `open -n -W -a <包路径> --stdout <日志> --stderr <日志> --args --card-fixture <HTML>` 前台启动。无需安装到 Applications。`open` 的退出码只证明启动状态：必须同时核对应用内最终 PASS、没有 FAIL/panic，以及实际 light/dark 两份报告；不能将 launcher exit0 冒充应用进程退出码。运行后仅清理此专用包。
