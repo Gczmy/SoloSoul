@@ -1,0 +1,581 @@
+{
+  "task": "RF-310",
+  "baseline_commit": "c0353974",
+  "builds": [
+    {
+      "name": "tasks",
+      "command": [
+        "./gradlew",
+        "tasks",
+        "--all"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.5814278749749064
+    },
+    {
+      "name": "ndk",
+      "command": [
+        "cargo",
+        "ndk",
+        "-t",
+        "aarch64-linux-android",
+        "check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 6.179919749964029
+    },
+    {
+      "name": "apk",
+      "command": [
+        "npx",
+        "tauri",
+        "android",
+        "build",
+        "--debug",
+        "--target",
+        "aarch64",
+        "--split-per-abi",
+        "--apk",
+        "--ci"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 37.89541337499395
+    },
+    {
+      "name": "test-apk",
+      "command": [
+        "./gradlew",
+        ":app:assembleArm64DebugAndroidTest",
+        "-x",
+        "rustBuildArm64Debug"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 2.261649082880467
+    }
+  ],
+  "native": {
+    "supported": {
+      "serial": "emulator-5586",
+      "avd": "SoloSoul_RF201",
+      "mode": "supported",
+      "startedAt": "2026-10-02T19:41:42.398Z",
+      "tests": [
+        {
+          "class": "AndroidGlassInstrumentedTest",
+          "method": "verifiesRequestedEnvironment",
+          "passed": true,
+          "seconds": 2.627
+        },
+        {
+          "class": "AndroidGlassInstrumentedTest",
+          "method": "nativeMenuSelectsExactlyOnceAndPauseCancels",
+          "passed": true,
+          "seconds": 5.139
+        },
+        {
+          "class": "AndroidGlassInstrumentedTest",
+          "method": "cancelledRequestCannotReopenAndBackCancelDoesNotNavigate",
+          "passed": true,
+          "seconds": 2.487
+        },
+        {
+          "class": "AndroidGlassInstrumentedTest",
+          "method": "systemDisablingBlurKeepsExistingMenuReadable",
+          "passed": true,
+          "seconds": 3.366
+        },
+        {
+          "class": "AndroidThemeInstrumentedTest",
+          "method": "systemThemeFollowsLightDarkLight",
+          "passed": true,
+          "seconds": 4.46
+        },
+        {
+          "class": "AndroidThemeInstrumentedTest",
+          "method": "explicitLightSurvivesSystemChanges",
+          "passed": true,
+          "seconds": 4.142
+        },
+        {
+          "class": "AndroidThemeInstrumentedTest",
+          "method": "explicitDarkSurvivesSystemChanges",
+          "passed": true,
+          "seconds": 3.741
+        },
+        {
+          "class": "ResourceInstallerInstrumentedTest",
+          "method": "packagedResourcesInstallAndSecondStartWritesNothing",
+          "passed": true,
+          "seconds": 1.106
+        },
+        {
+          "class": "ResourcePreparationInstrumentedTest",
+          "method": "slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt",
+          "passed": true,
+          "seconds": 3.707
+        },
+        {
+          "class": "ResourcePreparationInstrumentedTest",
+          "method": "errorIsVisibleAndRetryUnblocksRealConsumers",
+          "passed": true,
+          "seconds": 3.829
+        }
+      ],
+      "passed": true,
+      "api": 34,
+      "abi": "arm64-v8a",
+      "artifacts": [
+        {
+          "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+          "sha256": "f0a9261eaded991ec52c6d734c6a0557f2de72e932fd3c2e90207be68012f727"
+        },
+        {
+          "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+          "sha256": "73d7245ccd85ece1007198ebdd4617eca11b4e254989890774d57a8b08f54fe8"
+        }
+      ],
+      "count": 10,
+      "successes": 10,
+      "finishedAt": "2026-10-02T19:42:18.319Z"
+    },
+    "fallback": {
+      "serial": "emulator-5586",
+      "avd": "SoloSoul_RF201",
+      "mode": "fallback",
+      "startedAt": "2026-10-02T19:41:12.753Z",
+      "tests": [
+        {
+          "class": "AndroidGlassInstrumentedTest",
+          "method": "verifiesRequestedEnvironment",
+          "passed": true,
+          "seconds": 3.113
+        },
+        {
+          "class": "AndroidGlassInstrumentedTest",
+          "method": "unsupportedBlurReturnsFallbackWithoutOpeningNativeMenu",
+          "passed": true,
+          "seconds": 3.29
+        },
+        {
+          "class": "AndroidThemeInstrumentedTest",
+          "method": "systemThemeFollowsLightDarkLight",
+          "passed": true,
+          "seconds": 4.759
+        },
+        {
+          "class": "AndroidThemeInstrumentedTest",
+          "method": "explicitLightSurvivesSystemChanges",
+          "passed": true,
+          "seconds": 4.48
+        },
+        {
+          "class": "AndroidThemeInstrumentedTest",
+          "method": "explicitDarkSurvivesSystemChanges",
+          "passed": true,
+          "seconds": 3.766
+        },
+        {
+          "class": "ResourceInstallerInstrumentedTest",
+          "method": "packagedResourcesInstallAndSecondStartWritesNothing",
+          "passed": true,
+          "seconds": 1.072
+        },
+        {
+          "class": "ResourcePreparationInstrumentedTest",
+          "method": "slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt",
+          "passed": true,
+          "seconds": 3.773
+        },
+        {
+          "class": "ResourcePreparationInstrumentedTest",
+          "method": "errorIsVisibleAndRetryUnblocksRealConsumers",
+          "passed": true,
+          "seconds": 3.79
+        }
+      ],
+      "passed": true,
+      "api": 34,
+      "abi": "arm64-v8a",
+      "artifacts": [
+        {
+          "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+          "sha256": "f0a9261eaded991ec52c6d734c6a0557f2de72e932fd3c2e90207be68012f727"
+        },
+        {
+          "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+          "sha256": "73d7245ccd85ece1007198ebdd4617eca11b4e254989890774d57a8b08f54fe8"
+        }
+      ],
+      "count": 8,
+      "successes": 8,
+      "finishedAt": "2026-10-02T19:41:42.340Z"
+    }
+  },
+  "node_tests": {
+    "total": 120,
+    "passed": 99,
+    "failed": 0,
+    "platform_skipped": 21,
+    "new_runner_tests": 4,
+    "new_runner_skipped": 0
+  },
+  "kotlin_unit": {
+    "gradle_exit": 0,
+    "task": "testArm64DebugUnitTest",
+    "cached_unchanged_tests": 10,
+    "failures": 0
+  },
+  "workflow_validation": "PyYAML BaseLoader: manual entry, supported/fallback matrix, API34 Google APIs x86_64, animations enabled; Gradle tasks confirms ARM64 and x86_64 test tasks",
+  "limits": [
+    "Actual native acceptance is local API34 ARM64; CI x86_64 lane configured but not remotely executed. Workflows remain disabled_manually.",
+    "Fallback native test verifies unavailable response and no native dialog; does not substitute for browser fallback visual validation.",
+    "One final supported screenshot after disabling blur omitted two rows while previous supported screenshot showed them; functional results do not prove pixel stability. Retained both captures for RF-121 material-device verification.",
+    "Kotlin unit task up-to-date; unchanged 10 cached tests from prior accepted build, no new unit runtime claim.",
+    "Initial default non-raw adb formatting rejected despite one-test stream success; retained failure image/log, corrected -r and reran both final lanes."
+  ],
+  "source_sha256": {
+    ".github/workflows/build-android.yml": "475f366394275be87f332b407b7f528d858d84daa8d5e38b994a7d571b0d30e6",
+    "tauri/scripts/android-native-regression.mjs": "dbccb4f60fae352697b95ed83872ac83efc534a6b758e71e7ef48a35a1ec915c",
+    "tauri/scripts/android-native-regression.test.mjs": "c4cf3dfd0c730498e5df50132fc7e0b1e9e7fe43ee0f01f314e07b4a162ff9e4",
+    "tauri/scripts/run-node-tests.mjs": "71a43bad70b0cd52085c3303ff2bfe0cdda9ace50eb23c04945a2c188bf3eb2e",
+    "tauri/vitest.config.ts": "a2f00758c37d16a3c26579e3223a4b379edf1cce8295e2bafc462b4a781431f3",
+    "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidGlassInstrumentedTest.kt": "fc8fa552e558f0c9c400425af98b26b18d1ef8d534329ca0b49e02158d97b8e6"
+  },
+  "evidence_files": [
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-apk.log",
+      "sha256": "eaefb6d312445db81c214d6fd1933d48b29a1d09dd1d4f431b7fbbde8a8a4bb9",
+      "bytes": 20588
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final-driver.log",
+      "sha256": "6ce8aec30c6d43eb2294a3aef20b1c217d2a85732ed19fe2255639acc8a2ac97",
+      "bytes": 2128
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-ndk.log",
+      "sha256": "2cdf5a7b910a6a042f5a2345057c1ae5fafad5adef8edebc76486110b02da976",
+      "bytes": 3607
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-node-tests-final.log",
+      "sha256": "e6bcfb2b56efd87dbd16404f4d1e03deffcbb3c671fe2c2e0875ded30cee26e8",
+      "bytes": 14161
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-node-tests.log",
+      "sha256": "87c15d0ede70534ddbd89545ffd97a065bd330fdbb6f61aa6d06a429d0971c28",
+      "bytes": 14144
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final-driver.log",
+      "sha256": "1ded9106768126860c4ab07fbf2a5529822a690d8454d439c5d6a04dc2986ecb",
+      "bytes": 2472
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-tasks.log",
+      "sha256": "22887905a409e410b7c329fe532f166b8d83e96457ef2ba6005790c6f65c8876",
+      "bytes": 149433
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-test-apk.log",
+      "sha256": "366d427d767e547eb22d1d3f2ca1f35060cbaa4ba3148de6da08d05a79496fbc",
+      "bytes": 13839
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-unit.log",
+      "sha256": "5b94f8378b549761461543561c26c07e9901e75957e71ab802555e589c59c3d1",
+      "bytes": 9189
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/cancelledRequestCannotReopenAndBackCancelDoesNotNavigate.log",
+      "sha256": "7e65b19706834b6dd2445e02a966c582089eb86ad13b575d603c540bb796df71",
+      "bytes": 813
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/glass-fallback.png",
+      "sha256": "96f34e89d8f765088982308af31ee71efca21595f80d0ddb75bf24be7d5b1e3d",
+      "bytes": 79975
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/glass-native-disabled.png",
+      "sha256": "4ed842d1c24279e1697d7c2a6b566295bdedb1cd84ac964247ea969e45369f37",
+      "bytes": 111440
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/glass-native-enabled.png",
+      "sha256": "7418165ebd53b1295652546f741a3e3c07cf4a79297922421d26c11b2698b084",
+      "bytes": 201627
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/native-environment.json",
+      "sha256": "2f447d1394449d5b21a93a6fa5f8925d4199be322c2d398c76c18fb1527a3e90",
+      "bytes": 67
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf201-dark-dark.png",
+      "sha256": "9452c2a907d6535518fe4d89c2bc423706f8520f2eba18385b5c6d3f1f37f969",
+      "bytes": 151298
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf201-dark-light-again.png",
+      "sha256": "8cb5b8051f9ed2a739469d0d993653a697784447a0bf7277583faa3e4c890422",
+      "bytes": 151309
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf201-dark-light.png",
+      "sha256": "370b46c9a24d9368eb8b27b8d538db4db1adb26fb1f8a0410f4b54c62d5484bc",
+      "bytes": 144502
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf201-dark.json",
+      "sha256": "725cff3c40ea0ae57bffdde190c851b3c9398ad79735e7d95f808a0315890b88",
+      "bytes": 738
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf201-light-dark.png",
+      "sha256": "b2f04d2bef41fe1ec112c999f1bb4fb160c188bef31035739b1dd1831a85b124",
+      "bytes": 153007
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf201-light-light-again.png",
+      "sha256": "a3c3b7f0c558aadf12d747838e9b18ff278589ead0a1167a4d3380cc73fea113",
+      "bytes": 153007
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf201-light-light.png",
+      "sha256": "3c04775f39f88cb49da9b69f1b7068f9222f68799d3077d30e621a9752ea9774",
+      "bytes": 124863
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf201-light.json",
+      "sha256": "67cf5fa8d3c415561df01ed7d318c1e2a63fb44dfd3243ace9d98678f9b81c8c",
+      "bytes": 738
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf201-system-dark.png",
+      "sha256": "9b90a765e2b9a30cc59190ce335145797773c25e2560f70256e3532066b5d434",
+      "bytes": 150727
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf201-system-light-again.png",
+      "sha256": "1462acfc02a9811f1c9820b4c4e9a420122026e671c69fddb49835a2074f97d6",
+      "bytes": 152992
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf201-system-light.png",
+      "sha256": "96d176c9d9de0cd72bb133c10b670387fa035da87ae5d2955fe32a2067c11055",
+      "bytes": 124377
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf201-system.json",
+      "sha256": "cfc5b58f61e636c2b589d2c76686710e971989fdcd3f91f00d66116d0dae2328",
+      "bytes": 742
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf207-error-retry.json",
+      "sha256": "958c98e0de07c38dd933e576b69306f98c19efe695e651355e4962f667f472ae",
+      "bytes": 233
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/device-files/rf207-slow-install.json",
+      "sha256": "71ad35712c151e352afa8328aef099198f0c8ad77f99d60355fa710c0b7ee017",
+      "bytes": 344
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/errorIsVisibleAndRetryUnblocksRealConsumers.log",
+      "sha256": "7f9e776ae2e50227c66709dde5dc2e80f6eeef3a575f266bb323ff95455ba1bf",
+      "bytes": 808
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/explicitDarkSurvivesSystemChanges.log",
+      "sha256": "049f5caa9e13c74d738c4cecd60d1b5d3a56a42c87e32988ed7e096c686382e2",
+      "bytes": 767
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/explicitLightSurvivesSystemChanges.log",
+      "sha256": "6771bfe4e9f10f8341b8904f3bd5551149911616b031e4595ad836f9249fb166",
+      "bytes": 768
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/junit.xml",
+      "sha256": "0592aa71adefa84a0642409a7e7278769765fcd4b4842849f8db16ec53f6fc8f",
+      "bytes": 1357
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/nativeMenuSelectsExactlyOnceAndPauseCancels.log",
+      "sha256": "419b932c8988a282611856e746f77303cf9ce24b383571e7daf66f0b144eb1a0",
+      "bytes": 787
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/packagedResourcesInstallAndSecondStartWritesNothing.log",
+      "sha256": "544184354d21ca4daaafb251bec5fdb08697de7cda07414bb5a141ef97f303e9",
+      "bytes": 818
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/report.json",
+      "sha256": "1ded9106768126860c4ab07fbf2a5529822a690d8454d439c5d6a04dc2986ecb",
+      "bytes": 2472
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt.log",
+      "sha256": "ff68a668c458d2749574c68609fcf63c0519626b480d979f62f2d7843dfe1416",
+      "bytes": 841
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/systemDisablingBlurKeepsExistingMenuReadable.log",
+      "sha256": "97555b487f5d2db7b314364a9f2acce4a3a561171dec8758f892f53c86e3f0cb",
+      "bytes": 789
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/systemThemeFollowsLightDarkLight.log",
+      "sha256": "38bc94b6163607d9640e31d89bcae0c66d453b6108a592c8faea6199ea46b1e1",
+      "bytes": 765
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-supported-final/verifiesRequestedEnvironment.log",
+      "sha256": "2bc6977506dc74052dd81046245fbc6fcb9b45b2532933401a31c7a8601a8dde",
+      "bytes": 757
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/glass-fallback.png",
+      "sha256": "96f34e89d8f765088982308af31ee71efca21595f80d0ddb75bf24be7d5b1e3d",
+      "bytes": 79975
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/glass-native-disabled.png",
+      "sha256": "4c361ab9b8ee18b110b29761dea29081cf8bbc2550fd2a41cfc79829d8f5b0cc",
+      "bytes": 111983
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/glass-native-enabled.png",
+      "sha256": "ac51304f10851e3532122e1d269fb78b85cc83a0633e313e3861a26501d88daf",
+      "bytes": 202011
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/native-environment.json",
+      "sha256": "81bdc5207041a2fd5a05d5094cd8537d0a4e32cf38a2797604c9207badcd2b74",
+      "bytes": 67
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf201-dark-dark.png",
+      "sha256": "9c0aa71e3e04b7ecc09c853f65a15aff9b1d8ae8e4b8a415d35dec60bc1ecf4b",
+      "bytes": 150613
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf201-dark-light-again.png",
+      "sha256": "733f1dc9e2667674babe24f0fddbe5542da1b7ee8d7565161c1eed1752718eaf",
+      "bytes": 150618
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf201-dark-light.png",
+      "sha256": "9bb70599cdfa21d44fd3c905fdf06db381098177f18e60f2481b6e5a43d5177c",
+      "bytes": 40354
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf201-dark.json",
+      "sha256": "725cff3c40ea0ae57bffdde190c851b3c9398ad79735e7d95f808a0315890b88",
+      "bytes": 738
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf201-light-dark.png",
+      "sha256": "08005ba008dd39889661ef2b49489066807abddc5d518d8f818b00503739a9b5",
+      "bytes": 152437
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf201-light-light-again.png",
+      "sha256": "08005ba008dd39889661ef2b49489066807abddc5d518d8f818b00503739a9b5",
+      "bytes": 152437
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf201-light-light.png",
+      "sha256": "88b6420218e25c59966ac8e1070a3c27b7fc7c7d52b2410352ce3c8d95659947",
+      "bytes": 124303
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf201-light.json",
+      "sha256": "67cf5fa8d3c415561df01ed7d318c1e2a63fb44dfd3243ace9d98678f9b81c8c",
+      "bytes": 738
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf201-system-dark.png",
+      "sha256": "fd0fa011139efbc96a79623799161f11d98e8b530f4ed695d44d1fd929b55d14",
+      "bytes": 150604
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf201-system-light-again.png",
+      "sha256": "e333977237a3eb00aa97e71978225c7c40dd0ebf676ff17dbb95fcd331693abb",
+      "bytes": 152420
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf201-system-light.png",
+      "sha256": "845a6fede3a9d53b3adfcbcab294e81d221506c0c8cfd3eb06b96cf2bf2a5954",
+      "bytes": 124281
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf201-system.json",
+      "sha256": "cfc5b58f61e636c2b589d2c76686710e971989fdcd3f91f00d66116d0dae2328",
+      "bytes": 742
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf207-error-retry.json",
+      "sha256": "958c98e0de07c38dd933e576b69306f98c19efe695e651355e4962f667f472ae",
+      "bytes": 233
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/device-files/rf207-slow-install.json",
+      "sha256": "71ad35712c151e352afa8328aef099198f0c8ad77f99d60355fa710c0b7ee017",
+      "bytes": 344
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/errorIsVisibleAndRetryUnblocksRealConsumers.log",
+      "sha256": "75df3f00435230512889bcda4da267010f3f0f62f507b11395933ec63148e6ed",
+      "bytes": 808
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/explicitDarkSurvivesSystemChanges.log",
+      "sha256": "dd4f67c1447612dcd78a2d0440bc192d680b4dd97ddbc9b89d8a6c718639fb66",
+      "bytes": 767
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/explicitLightSurvivesSystemChanges.log",
+      "sha256": "68bb621008c5b8af6ad9cbf61a4df11bd9f7cd34b96428930eae300217128cf6",
+      "bytes": 768
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/junit.xml",
+      "sha256": "56a911e7c08fb7c8c4f24bcc0cf55ddb2028140a1781448ade224f68764ba589",
+      "bytes": 1098
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/packagedResourcesInstallAndSecondStartWritesNothing.log",
+      "sha256": "e9ae002998680ff0771e6df733d5d8dbae5c4c104f250bf8d7bff76774a1a4df",
+      "bytes": 818
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/report.json",
+      "sha256": "6ce8aec30c6d43eb2294a3aef20b1c217d2a85732ed19fe2255639acc8a2ac97",
+      "bytes": 2128
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt.log",
+      "sha256": "062323571b03d555d44778a6dc028ded3196b55806da45eff72f7566de1aa722",
+      "bytes": 842
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/systemThemeFollowsLightDarkLight.log",
+      "sha256": "9624b1a164c555a28f6cdf345b73d848aaedbba1a681d2bbaed25b6be4841045",
+      "bytes": 765
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/unsupportedBlurReturnsFallbackWithoutOpeningNativeMenu.log",
+      "sha256": "31ae9f8b0710709d0f53bd536dc18e65c5d8c74e66e6972bb7776d1e6c3b3e37",
+      "bytes": 809
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf310-fallback-final/verifiesRequestedEnvironment.log",
+      "sha256": "41afb14d02dceabeb1b2afb139ba058a6a5e975b6a207df02ecf1f38e575b861",
+      "bytes": 757
+    }
+  ]
+}

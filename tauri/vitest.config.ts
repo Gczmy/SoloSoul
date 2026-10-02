@@ -15,6 +15,7 @@ export default defineConfig({
       'dist',
       // 这些文件使用 node:test，由独立 Node 入口实际执行；Vitest 不转换它们。
       'scripts/native-perf-*.test.mjs',
+      'scripts/android-native-regression.test.mjs',
       'scripts/update-distribution.test.js',
       'src-tauri/src/native_perf/observer.node.test.mjs',
     ],

@@ -59,6 +59,33 @@ class AndroidGlassInstrumentedTest {
     private fun requireBlur(activity: GlassRegressionActivity) {
         assumeTrue(Build.VERSION.SDK_INT>=31 && activity.getSystemService(WindowManager::class.java).isCrossWindowBlurEnabled)
     }
+    @Test fun verifiesRequestedEnvironment() {
+        val expected = InstrumentationRegistry.getArguments().getString("glassMode")
+        assertTrue("Runner must explicitly select supported or fallback", expected == "supported" || expected == "fallback")
+        ActivityScenario.launch(GlassRegressionActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                val enabled = Build.VERSION.SDK_INT >= 31 && activity.getSystemService(WindowManager::class.java).isCrossWindowBlurEnabled
+                assertEquals("Actual system blur capability must match requested lane", expected == "supported", enabled)
+                File(activity.getExternalFilesDir(null), "native-environment.json").writeText(JSONObject()
+                    .put("api", Build.VERSION.SDK_INT).put("abis", Build.SUPPORTED_ABIS.joinToString(","))
+                    .put("blurEnabled", enabled).put("mode", expected).toString())
+            }
+        }
+    }
+
+    @Test fun unsupportedBlurReturnsFallbackWithoutOpeningNativeMenu() {
+        ActivityScenario.launch(GlassRegressionActivity::class.java).use { scenario ->
+            val result = CopyOnWriteArrayList<JSONObject>()
+            scenario.onActivity { activity ->
+                assertFalse("Fallback lane requires system blur disabled", Build.VERSION.SDK_INT >= 31 && activity.getSystemService(WindowManager::class.java).isCrossWindowBlurEnabled)
+                activity.glass.showMenu(invoke("showMenu", args("fallback"), result))
+                assertNull(dialog(activity.glass))
+                assertEquals("unavailable", result.single().getString("action"))
+                assertFalse(activity.isFinishing)
+            }
+            screenshot("glass-fallback.png")
+        }
+    }
     private fun waitForMenu(scenario: ActivityScenario<GlassRegressionActivity>) {
         val deadline = System.currentTimeMillis() + 3000
         var focused = false

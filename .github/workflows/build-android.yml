@@ -1,17 +1,89 @@
 name: Build Android
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - 'tauri/**'
       - 'docs/platform-mobile/**'
+      - '.github/workflows/build-android.yml'
   pull_request:
     branches: [main]
     paths:
       - 'tauri/**'
+      - '.github/workflows/build-android.yml'
 
 jobs:
+  android-native:
+    name: Native Android API 34 (${{ matrix.glass }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        glass: [supported, fallback]
+    defaults:
+      run:
+        working-directory: tauri
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tauri/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-linux-android
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v3
+      - name: Prepare NDK and result directory
+        run: |
+          mkdir -p native-results
+          sdkmanager --install "ndk;27.0.12077973"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/27.0.12077973" >> "$GITHUB_ENV"
+      - name: Build explicit emulator APK and test APK
+        run: |
+          npm ci
+          node --test scripts/android-native-regression.test.mjs
+          npx tauri android build --debug --target x86_64 --split-per-abi --apk --ci
+          cd src-tauri/gen/android
+          ./gradlew tasks --all > ../../../native-results/gradle-tasks.log
+          ./gradlew :app:assembleX86_64DebugAndroidTest -x rustBuildX86_64Debug > ../../../native-results/test-apk.log 2>&1
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Execute native supported or fallback lane
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          avd-name: SoloSoulNativeRegression
+          emulator-port: 5554
+          disable-animations: false
+          working-directory: tauri
+          script: node scripts/android-native-regression.mjs --adb "$ANDROID_HOME/platform-tools/adb" --serial emulator-5554 --avd SoloSoulNativeRegression --mode ${{ matrix.glass }} --apk src-tauri/gen/android/app/build/outputs/apk/x86_64/debug/app-x86_64-debug.apk --test-apk src-tauri/gen/android/app/build/outputs/apk/androidTest/x86_64/debug/app-x86_64-debug-androidTest.apk --output native-results/${{ matrix.glass }}
+      - name: Summarize actual device results
+        if: always()
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; const p="native-results/${{ matrix.glass }}/report.json"; const r=fs.existsSync(p)?JSON.parse(fs.readFileSync(p)):null; fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, r ? `Device: ${r.serial} / ${r.avd}\n\nAPI: ${r.api} / ABI: ${r.abi} / glass: ${r.mode}\n\nPassed: ${r.successes}/${r.count}; result: ${r.passed ? "PASS" : "FAIL"}\n` : "Native run did not produce a device report; this is not a pass.\n");'
+      - name: Upload device identity, JUnit, logs and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-native-api34-${{ matrix.glass }}
+          path: tauri/native-results/
+          if-no-files-found: error
+
   build-android:
     runs-on: ubuntu-latest
     defaults:
