@@ -1,4 +1,6 @@
-use crate::commands::vault_handle;
+use super::errors;
+use super::errors::vault_handle;
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
 use crate::state::AppState;
 use solosoul_vault::VaultStore;
 use tauri::State;
@@ -327,16 +329,18 @@ pub async fn llm_search_guide_chunks(
     query: String,
     language: String,
     top_k: Option<usize>,
-) -> Result<Vec<GuideChunk>, String> {
+) -> Result<Vec<GuideChunk>, BackendError> {
     let top_k = top_k.unwrap_or(3);
 
     // 1. Load embedding source and existing chunks (sync block)
     #[cfg(feature = "native-perf")]
-    let models_dir = crate::native_perf::root()?.join("models");
+    let models_dir = crate::native_perf::root()
+        .map_err(errors::embedding)?
+        .join("models");
     #[cfg(not(feature = "native-perf"))]
     let models_dir = tauri::Manager::path(&state.handle)
         .resolve("models", tauri::path::BaseDirectory::LocalData)
-        .map_err(|e| format!("Resolve models dir: {}", e))?;
+        .map_err(|cause| BackendError::caused_by(Code::LlmEmbeddingFailed, Stage::Read, cause))?;
 
     let (source, chunks) = {
         let vault = vault_handle(&state)?;
@@ -344,28 +348,22 @@ pub async fn llm_search_guide_chunks(
         let source = match get_embedding_source(&vault, &account_id, &models_dir) {
             Ok(s) => s,
             Err(e) => {
-                tracing::warn!(
-                    "[RAG] Embedding source error: {}, falling back to keyword search",
-                    e
-                );
-                return fallback_keyword_search(&query, &language, top_k);
+                let _ = errors::embedding(e);
+                return fallback_keyword_search(&query, &language, top_k).map_err(errors::guide);
             }
         };
 
         let chunks = match vault.list_guide_embeddings() {
             Ok(c) => c,
             Err(e) => {
-                tracing::warn!(
-                    "[RAG] Load embeddings failed: {}, falling back to keyword search",
-                    e
-                );
-                return fallback_keyword_search(&query, &language, top_k);
+                let _ = errors::embedding(e);
+                return fallback_keyword_search(&query, &language, top_k).map_err(errors::guide);
             }
         };
 
         if chunks.is_empty() {
             tracing::warn!("[RAG] No embeddings found, falling back to keyword search");
-            return fallback_keyword_search(&query, &language, top_k);
+            return fallback_keyword_search(&query, &language, top_k).map_err(errors::guide);
         }
 
         (source, chunks)
@@ -375,11 +373,8 @@ pub async fn llm_search_guide_chunks(
     let mut query_vec = match embed_text(source, models_dir, query.clone()).await {
         Ok(v) => v,
         Err(e) => {
-            tracing::warn!(
-                "[RAG] Embed query failed: {}, falling back to keyword search",
-                e
-            );
-            return fallback_keyword_search(&query, &language, top_k);
+            let _ = errors::embedding(e);
+            return fallback_keyword_search(&query, &language, top_k).map_err(errors::guide);
         }
     };
     normalize_vector(&mut query_vec);
@@ -414,7 +409,7 @@ pub async fn llm_search_guide_chunks(
     }
 
     if results.is_empty() {
-        fallback_keyword_search(&query, &language, top_k)
+        fallback_keyword_search(&query, &language, top_k).map_err(errors::guide)
     } else {
         Ok(results)
     }
@@ -481,7 +476,7 @@ pub fn chunk_all_guides(language: &str) -> Result<Vec<RawChunk>, String> {
         let content = match std::fs::read_to_string(&path) {
             Ok(c) => c,
             Err(e) => {
-                tracing::warn!("[RAG] skip guide {}: {}", entry.id, e);
+                let _ = errors::embedding(e);
                 continue;
             }
         };
@@ -846,26 +841,27 @@ pub async fn llm_rebuild_guide_embeddings(
     state: State<'_, AppState>,
     account_id: String,
     language: String,
-) -> Result<usize, String> {
+) -> Result<usize, BackendError> {
     #[cfg(feature = "native-perf")]
-    let models_dir = crate::native_perf::root()?.join("models");
+    let models_dir = crate::native_perf::root()
+        .map_err(errors::embedding)?
+        .join("models");
     #[cfg(not(feature = "native-perf"))]
     let models_dir = tauri::Manager::path(&state.handle)
         .resolve("models", tauri::path::BaseDirectory::LocalData)
-        .map_err(|e| format!("Resolve models dir: {}", e))?;
+        .map_err(|cause| BackendError::caused_by(Code::LlmEmbeddingFailed, Stage::Read, cause))?;
 
     // 1. Extract embedding source and chunk guides (sync, vault guard released after this block)
     let (source, raw_chunks) = {
         let vault = vault_handle(&state)?;
 
-        let source = get_embedding_source(&vault, &account_id, &models_dir)?;
-        let raw_chunks = chunk_all_guides(&language)?;
+        let source =
+            get_embedding_source(&vault, &account_id, &models_dir).map_err(errors::embedding)?;
+        let raw_chunks = chunk_all_guides(&language).map_err(errors::guide)?;
         if raw_chunks.is_empty() {
             return Ok(0);
         }
-        vault
-            .clear_guide_embeddings()
-            .map_err(|e| format!("Clear embeddings: {}", e))?;
+        vault.clear_guide_embeddings().map_err(errors::embedding)?;
         (source, raw_chunks)
     };
 
@@ -876,7 +872,9 @@ pub async fn llm_rebuild_guide_embeddings(
 
     // 2. Batch embed all chunks (async)
     let texts: Vec<String> = raw_chunks.iter().map(|c| c.text.clone()).collect();
-    let embeddings = embed_texts(source, models_dir, texts).await?;
+    let embeddings = embed_texts(source, models_dir, texts)
+        .await
+        .map_err(errors::embedding)?;
 
     // 3. Store in vault (sync)
     let count = {
@@ -902,10 +900,10 @@ pub async fn llm_rebuild_guide_embeddings(
             .collect();
         vault
             .save_guide_embeddings(&chunks)
-            .map_err(|e| format!("Save embeddings ({} chunks): {}", chunks.len(), e))?;
+            .map_err(errors::embedding)?;
 
-        mark_rebuilt(&vault, &language)?;
-        vault.count_guide_embeddings()?
+        mark_rebuilt(&vault, &language).map_err(errors::embedding)?;
+        vault.count_guide_embeddings().map_err(errors::embedding)?
     };
 
     Ok(count)
@@ -916,13 +914,15 @@ pub async fn llm_rebuild_guide_embeddings(
 pub async fn llm_check_embedding_available(
     state: State<'_, AppState>,
     account_id: String,
-) -> Result<bool, String> {
+) -> Result<bool, BackendError> {
     #[cfg(feature = "native-perf")]
-    let models_dir = crate::native_perf::root()?.join("models");
+    let models_dir = crate::native_perf::root()
+        .map_err(errors::embedding)?
+        .join("models");
     #[cfg(not(feature = "native-perf"))]
     let models_dir = tauri::Manager::path(&state.handle)
         .resolve("models", tauri::path::BaseDirectory::LocalData)
-        .map_err(|e| format!("Resolve models dir: {}", e))?;
+        .map_err(|cause| BackendError::caused_by(Code::LlmEmbeddingFailed, Stage::Read, cause))?;
 
     let source = {
         let vault = vault_handle(&state)?;
@@ -935,7 +935,7 @@ pub async fn llm_check_embedding_available(
             match crate::local_embed::get_embedder_async(models_dir, model_id).await {
                 Ok(_) => Ok(true),
                 Err(e) => {
-                    tracing::warn!("[RAG] Local embedding not available: {}", e);
+                    let _ = errors::embedding(e);
                     Ok(false)
                 }
             }
@@ -959,13 +959,13 @@ pub async fn llm_check_embedding_available(
             {
                 Ok(_) => Ok(true),
                 Err(e) => {
-                    tracing::warn!("[RAG] Embedding availability check failed: {}", e);
+                    let _ = errors::embedding(e);
                     Ok(false)
                 }
             }
         }
         Err(e) => {
-            tracing::warn!("[RAG] No embedding source: {}", e);
+            let _ = errors::embedding(e);
             Ok(false)
         }
     }

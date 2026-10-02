@@ -1,4 +1,6 @@
-use crate::commands::vault_handle;
+use super::errors;
+use super::errors::vault_handle;
+use crate::commands::error::{BackendError, BackendErrorCode as Code};
 use crate::state::AppState;
 use solosoul_core::llm::service::LlmService;
 use solosoul_vault::VaultStore;
@@ -20,17 +22,12 @@ pub(crate) fn load_conversations(
     migrate_legacy_conversations(vault, account_id)?;
     let rows = vault.list_conversations(account_id)?;
     let mut convs = Vec::with_capacity(rows.len());
-    for (id, _updated, data) in rows {
+    for (_id, _updated, data) in rows {
         match serde_json::from_slice::<Conversation>(&data) {
             Ok(c) => convs.push(c),
-            // P023: 损坏会话行不再静默丢弃——记录会话 id 与解析错误，便于诊断
-            // 「会话凭空消失」类问题。
-            Err(e) => {
-                tracing::warn!(
-                    "load_conversations: 跳过解析失败的会话行 (id={}): {}",
-                    id,
-                    e
-                );
+            // 损坏行保留诊断类别，不记录行 ID 或可能携带正文的 serde cause。
+            Err(cause) => {
+                let _ = errors::conversation_read(cause.to_string());
             }
         }
     }
@@ -77,9 +74,9 @@ pub(crate) fn now_iso() -> String {
 pub async fn llm_list_conversations(
     state: State<'_, AppState>,
     account_id: String,
-) -> Result<Vec<ConversationSummary>, String> {
+) -> Result<Vec<ConversationSummary>, BackendError> {
     let vault = vault_handle(&state)?;
-    let convs = load_conversations(&vault, &account_id)?;
+    let convs = load_conversations(&vault, &account_id).map_err(errors::conversation_read)?;
     let mut summaries: Vec<ConversationSummary> = convs
         .into_iter()
         .filter(|c| !c.is_temporary && c.deleted_at.is_none())
@@ -99,9 +96,9 @@ pub async fn llm_list_conversations(
 pub async fn llm_list_trash(
     state: State<'_, AppState>,
     account_id: String,
-) -> Result<Vec<ConversationSummary>, String> {
+) -> Result<Vec<ConversationSummary>, BackendError> {
     let vault = vault_handle(&state)?;
-    let convs = load_conversations(&vault, &account_id)?;
+    let convs = load_conversations(&vault, &account_id).map_err(errors::conversation_read)?;
     let mut summaries: Vec<ConversationSummary> = convs
         .into_iter()
         .filter(|c| c.deleted_at.is_some())
@@ -127,20 +124,23 @@ pub async fn llm_get_conversation(
     state: State<'_, AppState>,
     account_id: String,
     conversation_id: String,
-) -> Result<Conversation, String> {
+) -> Result<Conversation, BackendError> {
     let vault = vault_handle(&state)?;
     // 先尝试行级单行读取（P004：避免整表加载只为取一条）。
-    if let Some(data) = vault.load_conversation(&account_id, &conversation_id)? {
+    if let Some(data) = vault
+        .load_conversation(&account_id, &conversation_id)
+        .map_err(errors::conversation_read)?
+    {
         if let Ok(c) = serde_json::from_slice::<Conversation>(&data) {
             return Ok(c);
         }
     }
     // 兼容旧 blob（迁移前）：回退全量读取查找。
-    let convs = load_conversations(&vault, &account_id)?;
+    let convs = load_conversations(&vault, &account_id).map_err(errors::conversation_read)?;
     convs
         .into_iter()
         .find(|c| c.id == conversation_id)
-        .ok_or_else(|| "Not found".to_string())
+        .ok_or_else(|| BackendError::new(Code::LlmConversationNotFound))
 }
 
 #[tauri::command]
@@ -148,11 +148,11 @@ pub async fn llm_save_conversation(
     state: State<'_, AppState>,
     account_id: String,
     conversation: Conversation,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
     let mut c = conversation;
     c.is_temporary = false;
-    save_conversation(&vault, &account_id, &c)
+    save_conversation(&vault, &account_id, &c).map_err(errors::conversation_write)
 }
 
 #[tauri::command]
@@ -160,13 +160,16 @@ pub async fn llm_soft_delete_conversation(
     state: State<'_, AppState>,
     account_id: String,
     conversation_id: String,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
     // P008：单行读取，不再整表解密只为更新一条记录
-    if let Some(data) = vault.load_conversation(&account_id, &conversation_id)? {
+    if let Some(data) = vault
+        .load_conversation(&account_id, &conversation_id)
+        .map_err(errors::conversation_read)?
+    {
         if let Ok(mut c) = serde_json::from_slice::<Conversation>(&data) {
             c.deleted_at = Some(now_iso());
-            save_conversation(&vault, &account_id, &c)?;
+            save_conversation(&vault, &account_id, &c).map_err(errors::conversation_write)?;
         }
     }
     Ok(())
@@ -177,13 +180,16 @@ pub async fn llm_restore_conversation(
     state: State<'_, AppState>,
     account_id: String,
     conversation_id: String,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
     // P008：单行读取，不再整表解密只为更新一条记录
-    if let Some(data) = vault.load_conversation(&account_id, &conversation_id)? {
+    if let Some(data) = vault
+        .load_conversation(&account_id, &conversation_id)
+        .map_err(errors::conversation_read)?
+    {
         if let Ok(mut c) = serde_json::from_slice::<Conversation>(&data) {
             c.deleted_at = None;
-            save_conversation(&vault, &account_id, &c)?;
+            save_conversation(&vault, &account_id, &c).map_err(errors::conversation_write)?;
         }
     }
     Ok(())
@@ -194,11 +200,13 @@ pub async fn llm_permanent_delete(
     state: State<'_, AppState>,
     account_id: String,
     conversation_id: String,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
     // S001：委托服务层——行级删除 + 同步从本设备 blob 值移除该 id，防止下次
     // 懒迁移把已永久删除的会话从保留的 blob 键重新写回（purge 后复活）。
-    LlmService::new().permanent_delete_conversation(&vault, &account_id, &conversation_id)
+    LlmService::new()
+        .permanent_delete_conversation(&vault, &account_id, &conversation_id)
+        .map_err(errors::conversation_write)
 }
 
 #[tauri::command]
@@ -207,14 +215,17 @@ pub async fn llm_rename_conversation(
     account_id: String,
     conversation_id: String,
     name: String,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
     // P008：单行读取，不再整表解密只为更新一条记录
-    if let Some(data) = vault.load_conversation(&account_id, &conversation_id)? {
+    if let Some(data) = vault
+        .load_conversation(&account_id, &conversation_id)
+        .map_err(errors::conversation_read)?
+    {
         if let Ok(mut c) = serde_json::from_slice::<Conversation>(&data) {
             c.name = name;
             c.updated_at = now_iso();
-            save_conversation(&vault, &account_id, &c)?;
+            save_conversation(&vault, &account_id, &c).map_err(errors::conversation_write)?;
         }
     }
     Ok(())

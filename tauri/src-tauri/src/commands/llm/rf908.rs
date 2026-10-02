@@ -117,7 +117,9 @@ fn rf908_actual_guide_command_binds_account_and_preserves_keyword_empty_and_lock
         .is_empty());
     vault_service.read().unwrap().lock();
     let locked = invoke(&webview, fixture["bound"].clone()).unwrap_err();
-    assert!(locked.as_str().unwrap().contains("unlocked"), "{locked}");
+    assert_eq!(locked["code"], "VAULT_LOCKED");
+    assert_eq!(locked["safeDetails"], Value::Null);
+    assert_eq!(locked["retryable"], true);
     println!("RF908 actual binding: missingAccountRejected=true; boundGuideCount={}; topKZeroEmpty=true; lockedRejected=true", bound.len());
     let service_weak = Arc::downgrade(&vault_service);
     // 所有 IPC 已结算，测试没有持有 State 借用；Mock window 保留 manager，须显式取回装配的状态。

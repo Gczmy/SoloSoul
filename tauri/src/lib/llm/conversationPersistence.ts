@@ -5,12 +5,18 @@ import { useUiStore } from '@/stores/uiStore';
 import type { Conversation } from '@/types/llmChat';
 
 /** 会话保存失败提示（P007：不得静默——提示用户记录可能丢失）。 */
-export function notifyConversationSaveFailed(t: TFunction) {
+export function notifyConversationSaveFailed(t: TFunction, reason?: 'notSaved' | 'unconfirmed') {
   useUiStore.getState().showToast({
     type: 'error',
-    message: t('settings:ai_save_conversation_failed', {
-      defaultValue: '对话保存失败，记录可能丢失，请重试',
-    }),
+    message: reason
+      ? t(
+          reason === 'notSaved'
+            ? 'common:backend_llm_reply_save_failed'
+            : 'common:backend_llm_save_unconfirmed',
+        )
+      : t('settings:ai_save_conversation_failed', {
+          defaultValue: '对话保存失败，记录可能丢失，请重试',
+        }),
     duration: 5000,
   });
 }

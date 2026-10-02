@@ -86,7 +86,10 @@ export async function initLlmNotificationListener(): Promise<UnlistenFn> {
         continue;
       }
       if (stream?.persistFailed && useLlmStore.getState().claimPersistFailure(identity))
-        notifyConversationSaveFailed(i18next.t.bind(i18next));
+        notifyConversationSaveFailed(
+          i18next.t.bind(i18next),
+          stream.persistFailure === 'notSaved' ? 'notSaved' : 'unconfirmed',
+        );
       if (!stream?.settled) continue;
       pendingConversations.delete(requestId);
       if (stream.error || stream.persistFailed || isAiPageOpen || isQuickChatOpen) continue;

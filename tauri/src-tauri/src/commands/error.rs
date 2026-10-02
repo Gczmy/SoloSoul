@@ -24,6 +24,28 @@ pub enum BackendErrorCode {
     SnapshotInvalid,
     SnapshotOwnershipMismatch,
     SnapshotRollbackFailed,
+    LlmInvalidRequest,
+    LlmProviderNotConfigured,
+    LlmProviderDisabled,
+    LlmProviderNotRegistered,
+    LlmConfirmationCancelled,
+    LlmConfirmationTimeout,
+    LlmProviderReadFailed,
+    LlmProviderWriteFailed,
+    LlmNetworkFailed,
+    LlmTimeout,
+    LlmProviderRejected,
+    LlmProviderUnavailable,
+    LlmRateLimited,
+    LlmResponseInvalid,
+    LlmConversationNotFound,
+    LlmConversationReadFailed,
+    LlmConversationWriteFailed,
+    LlmReplySaveFailed,
+    LlmContextReadFailed,
+    LlmUsageFailed,
+    LlmGuideFailed,
+    LlmEmbeddingFailed,
 }
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -71,6 +93,12 @@ impl BackendError {
                     | Code::ObjectReadFailed
                     | Code::ObjectTemplateReadFailed
                     | Code::SnapshotReadFailed
+                    | Code::LlmNetworkFailed
+                    | Code::LlmTimeout
+                    | Code::LlmProviderUnavailable
+                    | Code::LlmRateLimited
+                    | Code::LlmProviderReadFailed
+                    | Code::LlmConversationReadFailed
             ),
         }
     }
@@ -88,7 +116,27 @@ impl BackendError {
     /// 脱敏诊断仅保留失败阶段与 Rust cause 类型；安全信息与返回载荷一致。
     pub fn caused_by<E>(code: BackendErrorCode, stage: BackendErrorStage, _cause: E) -> Self {
         let error = Self::new(code).at(stage);
-        tracing::warn!(code = ?code, stage = ?stage, cause_type = std::any::type_name::<E>(), "Object operation failed");
+        use BackendErrorCode as Code;
+        let message = match code {
+            Code::ObjectNameRequired
+            | Code::ObjectNameTooLong
+            | Code::ObjectPayloadTooLarge
+            | Code::ObjectNotFound
+            | Code::ObjectIdExists
+            | Code::ObjectValidationFailed
+            | Code::ObjectReadFailed
+            | Code::ObjectWriteFailed
+            | Code::ObjectTemplateMissing
+            | Code::ObjectTemplateNotFound
+            | Code::ObjectTemplateReadFailed
+            | Code::SnapshotReadFailed
+            | Code::SnapshotNotFound
+            | Code::SnapshotInvalid
+            | Code::SnapshotOwnershipMismatch
+            | Code::SnapshotRollbackFailed => "Object operation failed",
+            _ => "Backend operation failed",
+        };
+        tracing::warn!(code = ?code, stage = ?stage, cause_type = std::any::type_name::<E>(), message);
         error
     }
 }

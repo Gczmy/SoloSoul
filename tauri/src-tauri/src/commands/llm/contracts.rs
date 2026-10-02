@@ -11,6 +11,9 @@ pub struct LlmStreamPayload {
     pub chunk: String,
     pub is_done: bool,
     pub error: Option<String>,
+    /// 新 Host 的安全错误包；旧 error 字段仅保留机器码/持久化前缀。
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub failure: Option<crate::commands::error::BackendError>,
 }
 
 /// A single chunk returned to the frontend for context injection.

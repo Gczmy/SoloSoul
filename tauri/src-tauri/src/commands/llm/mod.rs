@@ -67,7 +67,8 @@ pub fn load_config(vault: &VaultStore, account_id: &str) -> Result<LlmConfig, St
                 })
             }
         }
-        _ => Ok(LlmConfig {
+        Err(cause) => Err(cause),
+        Ok(None) => Ok(LlmConfig {
             providers: vec![],
             active_provider_id: None,
             ai_features_enabled: AiFeatures::default(),
@@ -139,7 +140,8 @@ pub fn load_api_keys(
                 .and_then(|v| serde_json::from_value(v.clone()).ok())
                 .unwrap_or_default())
         }
-        _ => Ok(HashMap::new()),
+        Err(cause) => Err(cause),
+        Ok(None) => Ok(HashMap::new()),
     }
 }
 
@@ -168,6 +170,7 @@ pub fn save_api_key(
 pub mod chat_http;
 pub mod contracts;
 pub mod conversation;
+mod errors;
 pub mod guide;
 pub mod provider;
 pub mod rag;

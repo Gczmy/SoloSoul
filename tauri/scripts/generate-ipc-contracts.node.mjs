@@ -838,7 +838,7 @@ test('RF304 real default and outcome drift fail check without overwriting output
 test('RF305 real serde sync fixtures compile and reject missing wire identity, nullability and UI fields', async () => {
   await withProductionFixture(async (root) => {
     const manifest = await generateContracts({ root });
-    assert.equal(manifest.commands.length, 89);
+    assert.equal(manifest.commands.length, 105);
     assert.equal(manifest.events.length, 11);
     const fixture = JSON.parse(
       await readFile(
@@ -954,7 +954,10 @@ test('RF305 actual SAS, flattened recovery and platform-command drift cannot ove
 test('RF307 Host error fixtures compile against actual rejection contracts and unsafe wire shapes fail', async () => {
   await withProductionFixture(async (root) => {
     const manifest = JSON.parse(await readFile(path.join(root, outputFiles[1]), 'utf8'));
-    assert.deepEqual(manifest.structuredErrorCommands, [...objectSnapshotCommands].sort());
+    assert.deepEqual(
+      manifest.structuredErrorCommands.filter((command) => !command.startsWith('llm_')),
+      [...objectSnapshotCommands].sort(),
+    );
     await copyTypedSources(root);
     const fixtures = JSON.parse(
       await readFile(
@@ -972,7 +975,7 @@ test('RF307 Host error fixtures compile against actual rejection contracts and u
 ${declarations.join('\n')}
 const actual:IpcCommandErrors['object_create']=longName;
 const rollback:IpcCommandErrors['snapshot_rollback']=rollbackMismatch;
-const legacy:IpcCommandErrors['llm_get_conversation']='old string';
+const legacy:IpcCommandErrors['backup_create']='old string';
 // @ts-expect-error migrated error is an object, not an English sentence.
 const old:IpcCommandErrors['object_create']='Object not found';
 // @ts-expect-error safeDetails is nullable but required.
@@ -1052,4 +1055,75 @@ void empty; void result; void missing;
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stdout + result.stderr);
   });
+});
+
+test('RF317 all 26 LLM errors and optional stream failures use the actual Rust contracts', async () => {
+  await withProductionFixture(async (root) => {
+    const manifest = JSON.parse(await readFile(path.join(root, outputFiles[1]), 'utf8'));
+    const selected = JSON.parse(
+      await readFile(path.join(root, 'src-tauri/ipc-contracts.json'), 'utf8'),
+    )
+      .commands.filter((command) => command.name.startsWith('llm_'))
+      .map((command) => command.name)
+      .sort();
+    assert.equal(selected.length, 26);
+    assert.deepEqual(
+      manifest.structuredErrorCommands,
+      [...objectSnapshotCommands, ...selected].sort(),
+    );
+    await copyTypedSources(root);
+    const fixtures = JSON.parse(
+      await readFile(
+        path.join(workspaceRoot, 'src-tauri/src/commands/llm/contracts/rf317-fixtures.json'),
+        'utf8',
+      ),
+    );
+    const lines = [
+      "import type {BackendError,IpcCommandErrors,IpcEvents} from './src/lib/generated/ipcContracts';",
+    ];
+    for (const [key, value] of Object.entries(fixtures))
+      lines.push('const ' + key + '=' + JSON.stringify(value) + ' satisfies BackendError;');
+    for (const command of selected)
+      lines.push(
+        'const ' + command + ':IpcCommandErrors[' + JSON.stringify(command) + ']=rejected;',
+      );
+    lines.push(
+      "const event:IpcEvents['llm-stream-chunk']={accountId:'a',sessionGeneration:1,conversationId:'c',requestId:'r',chunk:'',isDone:true,error:'__LLM_PERSIST_FAILED__: LLM_REPLY_SAVE_FAILED',failure:replySaveFailed};",
+      '// @ts-expect-error provider errors no longer accept raw English.',
+      "const old:IpcCommandErrors['llm_save_provider']='raw response';",
+      '// @ts-expect-error an event failure is a package, not a string.',
+      "const invalid:IpcEvents['llm-stream-chunk']={...event,failure:'HTTP 401 secret'};",
+      '// @ts-expect-error a structured error cannot carry provider response text.',
+      "const leaked:BackendError={...rejected,message:'private provider response'};",
+    );
+    const probe = path.join(root, 'rf317-error-probe.ts');
+    await writeFile(probe, lines.join('\n'));
+    const result = await compileProbe(root, probe);
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  });
+});
+test('RF317 actual LLM Result or stream-error serde drift rejects without replacing outputs', async () => {
+  for (const [file, oldText, newText] of [
+    [
+      'src-tauri/src/commands/llm/provider.rs',
+      'Result<LlmConfig, BackendError>',
+      'Result<LlmConfig, String>',
+    ],
+    [
+      'src-tauri/src/commands/llm/contracts.rs',
+      'pub failure: Option<crate::commands::error::BackendError>',
+      'pub failure: Option<String>',
+    ],
+  ])
+    await withProductionFixture(async (root) => {
+      const before = await snapshot(root),
+        source = path.join(root, file),
+        original = await readFile(source, 'utf8'),
+        changed = original.replace(oldText, newText);
+      assert.notEqual(changed, original);
+      await writeFile(source, changed);
+      await assert.rejects(generateContracts({ root, check: true }), /IPC contract drift/);
+      assert.deepEqual(await snapshot(root), before);
+    });
 });

@@ -355,6 +355,70 @@
     {
       "name": "llm_search_guide_chunks",
       "source": "src-tauri/src/commands/llm/rag.rs"
+    },
+    {
+      "name": "llm_get_config",
+      "source": "src-tauri/src/commands/llm/provider.rs"
+    },
+    {
+      "name": "llm_get_providers",
+      "source": "src-tauri/src/commands/llm/provider.rs"
+    },
+    {
+      "name": "llm_save_provider",
+      "source": "src-tauri/src/commands/llm/provider.rs"
+    },
+    {
+      "name": "llm_set_active_provider",
+      "source": "src-tauri/src/commands/llm/provider.rs"
+    },
+    {
+      "name": "llm_set_ai_features",
+      "source": "src-tauri/src/commands/llm/provider.rs"
+    },
+    {
+      "name": "llm_set_system_prompt_switch",
+      "source": "src-tauri/src/commands/llm/provider.rs"
+    },
+    {
+      "name": "llm_set_local_embedding",
+      "source": "src-tauri/src/commands/llm/provider.rs"
+    },
+    {
+      "name": "llm_accept_risk",
+      "source": "src-tauri/src/commands/llm/provider.rs"
+    },
+    {
+      "name": "llm_get_api_key",
+      "source": "src-tauri/src/commands/llm/provider.rs"
+    },
+    {
+      "name": "llm_delete_provider",
+      "source": "src-tauri/src/commands/llm/provider.rs"
+    },
+    {
+      "name": "llm_check_connection",
+      "source": "src-tauri/src/commands/llm/chat_http.rs"
+    },
+    {
+      "name": "llm_test_provider",
+      "source": "src-tauri/src/commands/llm/chat_http.rs"
+    },
+    {
+      "name": "llm_get_stats",
+      "source": "src-tauri/src/commands/llm/stats.rs"
+    },
+    {
+      "name": "llm_reset_stats",
+      "source": "src-tauri/src/commands/llm/stats.rs"
+    },
+    {
+      "name": "llm_rebuild_guide_embeddings",
+      "source": "src-tauri/src/commands/llm/rag.rs"
+    },
+    {
+      "name": "llm_check_embedding_available",
+      "source": "src-tauri/src/commands/llm/rag.rs"
     }
   ],
   "types": [

@@ -1,0 +1,72 @@
+{
+  "network": {
+    "code": "LLM_NETWORK_FAILED",
+    "safeDetails": {
+      "stage": "task"
+    },
+    "retryable": true
+  },
+  "timeout": {
+    "code": "LLM_TIMEOUT",
+    "safeDetails": {
+      "stage": "task"
+    },
+    "retryable": true
+  },
+  "rejected": {
+    "code": "LLM_PROVIDER_REJECTED",
+    "safeDetails": {
+      "stage": "read"
+    },
+    "retryable": false
+  },
+  "unavailable": {
+    "code": "LLM_PROVIDER_UNAVAILABLE",
+    "safeDetails": {
+      "stage": "read"
+    },
+    "retryable": true
+  },
+  "rateLimited": {
+    "code": "LLM_RATE_LIMITED",
+    "safeDetails": {
+      "stage": "read"
+    },
+    "retryable": true
+  },
+  "providerMissing": {
+    "code": "LLM_PROVIDER_NOT_CONFIGURED",
+    "safeDetails": {
+      "stage": "read"
+    },
+    "retryable": false
+  },
+  "providerDisabled": {
+    "code": "LLM_PROVIDER_DISABLED",
+    "safeDetails": {
+      "stage": "read"
+    },
+    "retryable": false
+  },
+  "expired": {
+    "code": "SESSION_EXPIRED",
+    "safeDetails": {
+      "stage": "read"
+    },
+    "retryable": false
+  },
+  "replySaveFailed": {
+    "code": "LLM_REPLY_SAVE_FAILED",
+    "safeDetails": {
+      "stage": "write"
+    },
+    "retryable": false
+  },
+  "conversationReadFailed": {
+    "code": "LLM_CONVERSATION_READ_FAILED",
+    "safeDetails": {
+      "stage": "read"
+    },
+    "retryable": true
+  }
+}

@@ -2,6 +2,8 @@
 #![allow(clippy::too_many_arguments)]
 
 use super::contracts::ChatContextSelection;
+use super::errors;
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
 use crate::services::llm_context::build_automatic_system_prompt;
 use crate::state::AppState;
 use solosoul_core::{VaultService, VaultSession};
@@ -44,11 +46,12 @@ impl StreamContext {
         conversation_id: String,
         request_id: Option<String>,
         emit_event: impl Fn(LlmStreamPayload) -> Result<(), String> + Send + Sync + 'static,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, BackendError> {
         let session = service
             .read()
-            .map_err(|_| "Vault service lock poisoned")?
-            .capture_session(account_id)?;
+            .map_err(|_| BackendError::new(Code::InternalError))?
+            .capture_session(account_id)
+            .map_err(|cause| BackendError::caused_by(Code::SessionExpired, Stage::Read, cause))?;
         Ok(Self {
             service: service.clone(),
             session,
@@ -62,17 +65,42 @@ impl StreamContext {
 
     fn with_vault<T>(
         &self,
-        commit: impl FnOnce(&VaultStore) -> Result<T, String>,
-    ) -> Result<T, String> {
+        commit: impl FnOnce(&VaultStore) -> Result<T, BackendError>,
+    ) -> Result<T, BackendError> {
         let owner = self.session.vault().root_owner();
-        let _activity = solosoul_core::import_activity::begin_owned_root_activity(owner)?;
-        self.service
+        let _activity = solosoul_core::import_activity::begin_owned_root_activity(owner)
+            .map_err(errors::activity)?;
+        let svc = self
+            .service
             .read()
-            .map_err(|_| "Vault service lock poisoned")?
-            .with_session(&self.session, commit)
+            .map_err(|_| BackendError::new(Code::InternalError))?;
+        let mut result = None;
+        // Core 旧 API 使用 String；仅会话守卫会返回外层错误，业务包在门闩内保留原类型。
+        svc.with_session(&self.session, |vault| {
+            result = Some(commit(vault));
+            Ok(())
+        })
+        .map_err(|cause| BackendError::caused_by(Code::SessionExpired, Stage::Read, cause))?;
+        result.ok_or_else(|| BackendError::new(Code::InternalError))?
     }
 
-    fn emit(&self, chunk: String, is_done: bool, error: Option<String>) -> Result<(), String> {
+    #[cfg(test)]
+    fn with_fixture_vault<T>(
+        &self,
+        commit: impl FnOnce(&VaultStore) -> Result<T, String>,
+    ) -> Result<T, BackendError> {
+        self.with_vault(|vault| {
+            commit(vault)
+                .map_err(|cause| BackendError::caused_by(Code::InternalError, Stage::Task, cause))
+        })
+    }
+
+    fn emit(
+        &self,
+        chunk: String,
+        is_done: bool,
+        failure: Option<BackendError>,
+    ) -> Result<(), BackendError> {
         // 发布和锁定串行；在前端队列中迟到的事件仍携带完整旧身份供 RF-104 过滤。
         self.with_vault(|_| {
             if let Err(error) = (self.emit_event)(LlmStreamPayload {
@@ -82,10 +110,19 @@ impl StreamContext {
                 request_id: self.request_id.clone(),
                 chunk,
                 is_done,
-                error,
+                error: failure.as_ref().map(|error| {
+                    let code = serde_json::to_value(error.code).expect("fixed enum serialization");
+                    let code = code.as_str().expect("fixed code string");
+                    if error.code == Code::LlmReplySaveFailed {
+                        format!("__LLM_PERSIST_FAILED__: {code}")
+                    } else {
+                        code.to_owned()
+                    }
+                }),
+                failure,
             }) {
                 // 保留原事件发送的 best-effort 行为；交付失败不能丢失后台回复保存。
-                tracing::warn!("Failed to emit LLM stream event: {}", error);
+                let _ = BackendError::caused_by(Code::InternalError, Stage::Task, error);
             }
             Ok(())
         })
@@ -94,7 +131,7 @@ impl StreamContext {
 
 /// 打字机效果：将完整文本逐块推送到前端（降级用）
 /// P111: 改为按 CHUNK_SIZE 个字符批量发送，减少 IPC 事件数量。
-async fn emit_typing_effect(context: &StreamContext, full_text: &str) -> Result<(), String> {
+async fn emit_typing_effect(context: &StreamContext, full_text: &str) -> Result<(), BackendError> {
     const CHUNK_SIZE: usize = 20;
     let chars: Vec<String> = full_text.chars().map(|c| c.to_string()).collect();
     let total = chars.len();
@@ -132,7 +169,7 @@ async fn handle_sse_stream(
     context: &StreamContext,
     resp: reqwest::Response,
     api_type: &ApiType,
-) -> Result<(String, Option<TokenUsage>), String> {
+) -> Result<(String, Option<TokenUsage>), BackendError> {
     use futures::StreamExt;
 
     let mut stream = resp.bytes_stream();
@@ -146,7 +183,7 @@ async fn handle_sse_stream(
     let mut current_event: String = String::new();
 
     while let Some(chunk_result) = stream.next().await {
-        let chunk = chunk_result.map_err(|e| format!("Stream error: {e}"))?;
+        let chunk = chunk_result.map_err(errors::network)?;
         let text = String::from_utf8_lossy(&chunk);
         buffer.push_str(&text);
 
@@ -198,7 +235,7 @@ fn process_sse_line(
     token_usage: &mut TokenUsage,
     anthropic_prompt_tokens: &mut u64,
     anthropic_completion_tokens: &mut u64,
-) -> Result<bool, String> {
+) -> Result<bool, BackendError> {
     context.with_vault(|_| Ok(()))?;
     // 处理 event: 行（Anthropic 使用）
     if let Some(event) = line.strip_prefix("event: ") {
@@ -221,6 +258,10 @@ fn process_sse_line(
     let Ok(json) = serde_json::from_str::<serde_json::Value>(data) else {
         return Ok(false);
     };
+
+    if json.get("error").is_some_and(|error| !error.is_null()) || current_event == "error" {
+        return Err(BackendError::new(Code::LlmProviderRejected).at(Stage::Read));
+    }
 
     // ── 提取 delta content ──
     let delta_text = extract_delta_text(&json, api_type);
@@ -252,7 +293,7 @@ fn process_sse_line(
 }
 
 /// 发送流结束信号（is_done: true）。
-fn emit_stream_done(context: &StreamContext) -> Result<(), String> {
+fn emit_stream_done(context: &StreamContext) -> Result<(), BackendError> {
     context.emit(String::new(), true, None)
 }
 
@@ -271,13 +312,16 @@ fn handle_remaining_data(
     api_type: &ApiType,
     full_text: &mut String,
     token_usage: &mut TokenUsage,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     if data == "[DONE]" {
         return Ok(());
     }
     let Ok(json) = serde_json::from_str::<serde_json::Value>(data) else {
         return Ok(());
     };
+    if json.get("error").is_some_and(|error| !error.is_null()) {
+        return Err(BackendError::new(Code::LlmProviderRejected).at(Stage::Read));
+    }
     if let Some(text) = extract_delta_text(&json, api_type) {
         if !text.is_empty() {
             full_text.push_str(text);
@@ -337,11 +381,12 @@ async fn handle_json_response(
     context: &StreamContext,
     resp: reqwest::Response,
     api_type: &ApiType,
-) -> Result<(String, Option<TokenUsage>), String> {
-    let result: serde_json::Value = resp.json().await.map_err(|e| format!("Parse: {e}"))?;
+) -> Result<(String, Option<TokenUsage>), BackendError> {
+    let result: serde_json::Value = resp.json().await.map_err(errors::response)?;
 
     // 使用共享 helper 提取响应文本
-    let full_text = request::extract_response_text(&result, api_type).unwrap_or_default();
+    let full_text = request::extract_response_text(&result, api_type)
+        .ok_or_else(|| BackendError::new(Code::LlmResponseInvalid).at(Stage::Read))?;
 
     // 提取非 SSE 的真实 usage（仅 OpenAI 有 usage 字段）
     let mut token_usage = TokenUsage::default();
@@ -369,11 +414,11 @@ async fn send_chat_stream(
     model: String,
     api_type: ApiType,
     messages: Vec<serde_json::Value>,
-) -> Result<(String, Option<TokenUsage>), String> {
+) -> Result<(String, Option<TokenUsage>), BackendError> {
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(60))
         .build()
-        .map_err(|e| format!("Client: {e}"))?;
+        .map_err(errors::network)?;
 
     // 使用共享 helper 构建 URL、请求体和认证头
     let url = request::build_api_url(&base_url, &api_type);
@@ -381,20 +426,13 @@ async fn send_chat_stream(
     let req = request::add_auth_headers(client.post(&url).json(&body), &api_key, &api_type);
 
     context.with_vault(|_| Ok(()))?;
-    let resp = req
-        .send()
-        .await
-        .map_err(|e| format!("Request to {url} failed: {e}"))?;
+    let resp = req.send().await.map_err(errors::network)?;
 
     let status = resp.status();
     if !status.is_success() {
-        let err_text = resp.text().await.unwrap_or_default();
-        context.emit(
-            String::new(),
-            false,
-            Some(format!("HTTP {status}: {err_text}")),
-        )?;
-        return Err(format!("HTTP {status}: {err_text}"));
+        let failure = errors::http_status(status);
+        context.emit(String::new(), false, Some(failure.clone()))?;
+        return Err(failure);
     }
 
     // 检查 Content-Type，判断是否为 SSE
@@ -421,7 +459,7 @@ pub async fn llm_send_message_stream(
     messages: Vec<serde_json::Value>,
     request_id: Option<String>,
     context_selection: Option<ChatContextSelection>,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     // 在任何异步等待前捕获；旧调用方可不传 requestId，由后端生成。
     let context = StreamContext::capture(
         &state.vault_service,
@@ -442,17 +480,17 @@ async fn run_chat_stream(
     provider_id: String,
     messages: Vec<serde_json::Value>,
     context_selection: Option<ChatContextSelection>,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let provider = context.with_vault(|vault| {
-        solosoul_core::llm::service::LlmService::new().resolve_chat_provider(
-            vault,
-            context.session.account_id(),
-            &provider_id,
-        )
+        solosoul_core::llm::service::LlmService::new()
+            .resolve_chat_provider_typed(vault, context.session.account_id(), &provider_id)
+            .map_err(errors::provider_resolve)
     })?;
     // 保留 P102/P015/P016：已保存的配置同样必须通过 URL、DNS 与登记校验。
-    request::validate_llm_base_url(&provider.base_url)?;
-    request::ensure_public_llm_host(&provider.base_url).await?;
+    request::validate_llm_base_url(&provider.base_url).map_err(errors::invalid_request)?;
+    request::ensure_public_llm_host(&provider.base_url)
+        .await
+        .map_err(errors::invalid_request)?;
     ensure_registered_provider(context, &provider.base_url)?;
     run_resolved_chat_stream(
         context,
@@ -471,7 +509,7 @@ fn prepare_chat_messages(
     context: &StreamContext,
     selection: &ChatContextSelection,
     messages: Vec<serde_json::Value>,
-) -> Result<Vec<serde_json::Value>, String> {
+) -> Result<Vec<serde_json::Value>, BackendError> {
     context.with_vault(|_| Ok(()))?;
     let mut messages = messages
         .into_iter()
@@ -482,13 +520,13 @@ fn prepare_chat_messages(
                 (Some(role @ ("user" | "assistant")), Some(content)) => {
                     Ok(serde_json::json!({"role": role, "content": content}))
                 }
-                _ => Err(
-                    "Chat messages must contain a user/assistant role and text content".to_string(),
-                ),
+                _ => Err(BackendError::new(Code::LlmInvalidRequest).at(Stage::Validate)),
             }
         })
         .collect::<Result<Vec<_>, _>>()?;
-    if let Some(prompt) = build_automatic_system_prompt(&context.session, selection)? {
+    if let Some(prompt) = build_automatic_system_prompt(&context.session, selection)
+        .map_err(|cause| BackendError::caused_by(Code::LlmContextReadFailed, Stage::Read, cause))?
+    {
         messages.insert(0, serde_json::json!({"role": "system", "content": prompt}));
     }
     context.with_vault(|_| Ok(()))?;
@@ -504,7 +542,7 @@ async fn run_resolved_chat_stream(
     api_type: ApiType,
     messages: Vec<serde_json::Value>,
     context_selection: Option<ChatContextSelection>,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let messages =
         prepare_chat_messages(context, &context_selection.unwrap_or_default(), messages)?;
     #[cfg(test)]
@@ -545,14 +583,12 @@ async fn run_resolved_chat_stream(
     Ok(())
 }
 /// P102/P016：校验 base_url 属于当前账户已登记的 provider（网络出口收窄）。
-fn ensure_registered_provider(context: &StreamContext, base_url: &str) -> Result<(), String> {
+fn ensure_registered_provider(context: &StreamContext, base_url: &str) -> Result<(), BackendError> {
     context.with_vault(|vault| {
-        let config = super::load_config(vault, context.session.account_id())?;
+        let config = super::load_config(vault, context.session.account_id())
+            .map_err(errors::provider_read)?;
         if !super::is_registered_provider_url(&config, base_url) {
-            return Err(format!(
-                "base_url 未在当前账户登记，已拒绝请求: {}",
-                base_url
-            ));
+            return Err(BackendError::new(Code::LlmProviderNotRegistered).at(Stage::Validate));
         }
         Ok(())
     })
@@ -565,14 +601,15 @@ fn persist_conversation_reply(
     context: &StreamContext,
     full_text: &str,
     messages: &[serde_json::Value],
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let account_id = context.session.account_id();
     let conversation_id = &context.conversation_id;
     let save_result = context.with_vault(|vault| {
         // P004: 热路径行级读写——单行加载目标会话、追加助手回复、行级保存，
         // 不再整 blob 解密/深克隆/重写全部会话。
         let mut conv: Option<Conversation> = vault
-            .load_conversation(account_id, conversation_id)?
+            .load_conversation(account_id, conversation_id)
+            .map_err(|cause| BackendError::caused_by(Code::LlmReplySaveFailed, Stage::Read, cause))?
             .and_then(|data| serde_json::from_slice::<Conversation>(&data).ok());
         if let Some(conv_mut) = conv.as_mut() {
             conv_mut.messages.push(ChatMessage {
@@ -608,26 +645,30 @@ fn persist_conversation_reply(
             });
         }
         if let Some(conv) = conv {
-            save_conversation(vault, account_id, &conv)?;
+            save_conversation(vault, account_id, &conv).map_err(|cause| {
+                BackendError::caused_by(Code::LlmReplySaveFailed, Stage::Write, cause)
+            })?;
         }
         Ok(())
     });
-    if let Err(e) = save_result {
-        // P002: 保存失败不再静默吞错——落 warn 日志（不含消息内容）并向前端
-        // emit 持久化失败事件，用户可见可重试，不再无感知丢失整段对话。
-        // （回复已完整流式展示，此处不把整个命令判失败，避免前端误判为
-        // 生成中断。）
-        tracing::warn!(
-            "Failed to persist conversation {} after stream: {}",
-            conversation_id,
-            e
-        );
-        // 重新保护发布；若会话已失效，直接返回失效错误，不向新会话发通知。
-        context.emit(
-            String::new(),
-            true,
-            Some(format!("__LLM_PERSIST_FAILED__: {e}")),
-        )?;
+    if let Err(error) = save_result {
+        // 锁定/切换依旧拒绝原会话；不得向新会话发保存失败通知。
+        if error.code == Code::SessionExpired {
+            return Err(error);
+        }
+        let failure = BackendError::new(Code::LlmReplySaveFailed).at(error
+            .safe_details
+            .map(|details| details.stage)
+            .unwrap_or(Stage::Write));
+        // 事件交付仍经原 gate。目录维护等阻止通知时，由 invoke 的同一错误包告知调用方，
+        // 前端保留已生成正文；绝不绕过 Root/VaultSession 准入发送事件或补写回复。
+        if let Err(delivery) = context.emit(String::new(), true, Some(failure.clone())) {
+            return Err(if delivery.code == Code::SessionExpired {
+                delivery
+            } else {
+                failure
+            });
+        }
     }
     Ok(())
 }
@@ -640,7 +681,7 @@ async fn record_and_persist_usage(
     token_usage: Option<TokenUsage>,
     prompt_text: &str,
     full_text: &str,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let provider_name = format!("{:?}", api_type);
     let usage = token_usage.unwrap_or_else(|| TokenUsage {
         prompt_tokens: estimate_tokens(prompt_text),
@@ -671,7 +712,9 @@ async fn record_and_persist_usage(
             }
             // 保留统计的 best-effort 语义：已完成的回复不能因统计 IO 失败变成生成失败。
             // 会话失效仍由外层 with_vault 拒绝，不能将失效错误一并吞掉。
-            Err(error) => tracing::warn!("Failed to persist LLM usage statistics: {}", error),
+            Err(cause) => {
+                let _ = BackendError::caused_by(Code::LlmUsageFailed, Stage::Write, cause);
+            }
         }
         Ok(())
     })
@@ -681,6 +724,7 @@ async fn record_and_persist_usage(
 mod tests {
     mod rf004;
     mod rf005;
+    mod rf317;
 
     use super::*;
     use crate::commands::llm::stats::TokenUsage;
@@ -721,7 +765,7 @@ mod tests {
             )
             .unwrap();
             context
-                .with_vault(|vault| {
+                .with_fixture_vault(|vault| {
                     save_conversation(
                         vault,
                         &account,
@@ -757,7 +801,7 @@ mod tests {
 
         fn conversation(&self) -> Conversation {
             self.context
-                .with_vault(|vault| {
+                .with_fixture_vault(|vault| {
                     let data = vault
                         .load_conversation(
                             self.context.session.account_id(),
@@ -848,7 +892,7 @@ mod tests {
         assert_eq!(conversation.messages.len(), 2);
         assert_eq!(conversation.messages[1].content, "reply");
         let stats = context
-            .with_vault(|vault| load_stats_from_vault(vault, context.session.account_id()))
+            .with_fixture_vault(|vault| load_stats_from_vault(vault, context.session.account_id()))
             .unwrap();
         assert_eq!(
             (
@@ -996,7 +1040,7 @@ mod tests {
                 b"not-json".to_vec()
             };
             context
-                .with_vault(|vault| {
+                .with_fixture_vault(|vault| {
                     vault.save_profile(&solosoul_vault::Profile::new_with_id(
                         account,
                         account,
@@ -1025,7 +1069,7 @@ mod tests {
             assert_eq!(events.iter().filter(|e| e.is_done).count(), 1);
             assert!(events.iter().all(|e| e.error.is_none()));
             let stored = context
-                .with_vault(|vault| vault.load_profile(account))
+                .with_fixture_vault(|vault| vault.load_profile(account))
                 .unwrap()
                 .unwrap();
             assert_eq!(stored.data, corrupt_data);
@@ -1062,7 +1106,7 @@ mod tests {
         assert_eq!(conversation.messages.len(), 2);
         assert_eq!(conversation.messages[1].content, "reply");
         let stats = context
-            .with_vault(|vault| load_stats_from_vault(vault, context.session.account_id()))
+            .with_fixture_vault(|vault| load_stats_from_vault(vault, context.session.account_id()))
             .unwrap();
         assert_eq!(stats.usage_count, 6);
         STATS_MAP.write().await.remove(context.session.account_id());

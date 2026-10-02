@@ -1,29 +1,33 @@
-use crate::commands::vault_handle;
+use super::errors;
+use super::errors::vault_handle;
+use crate::commands::error::{BackendError, BackendErrorCode as Code};
 use crate::state::AppState;
 use tauri::State;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 
 // ── Commands ───────────────────────────────────────────────
 
-use super::*;
+use super::{load_api_keys, load_config, save_api_key, save_config};
+use solosoul_core::llm::config::{AiFeatures, ApiType, LlmConfig, ProviderConfig, ProviderWithKey};
 #[tauri::command]
 pub async fn llm_get_config(
     state: State<'_, AppState>,
     account_id: String,
-) -> Result<LlmConfig, String> {
+) -> Result<LlmConfig, BackendError> {
     let vault = vault_handle(&state)?;
-    load_config(&vault, &account_id)
+    load_config(&vault, &account_id).map_err(errors::provider_read)
 }
 
 #[tauri::command]
 pub async fn llm_get_providers(
     state: State<'_, AppState>,
     account_id: String,
-) -> Result<Vec<ProviderWithKey>, String> {
+) -> Result<Vec<ProviderWithKey>, BackendError> {
     let vault = vault_handle(&state)?;
     // P019: 合并逻辑收敛到 llm::merge_providers_with_keys（含 embedding_model 同步，
     // 原 if 分支漏同步该字段）；此处仅做密钥掩码展示。
-    let mut defaults = super::merge_providers_with_keys(&vault, &account_id)?;
+    let mut defaults =
+        super::merge_providers_with_keys(&vault, &account_id).map_err(errors::provider_read)?;
     for p in &mut defaults {
         if !p.api_key.is_empty() {
             p.api_key = "••••••••".to_string();
@@ -38,11 +42,11 @@ pub async fn llm_save_provider(
     state: State<'_, AppState>,
     account_id: String,
     provider: ProviderWithKey,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     // P102：保存前校验 base_url 的 scheme/host，拒绝向非法地址登记 provider。
-    super::request::validate_llm_base_url(&provider.base_url)?;
+    super::request::validate_llm_base_url(&provider.base_url).map_err(errors::invalid_request)?;
     let vault = vault_handle(&state)?;
-    let mut config = load_config(&vault, &account_id)?;
+    let mut config = load_config(&vault, &account_id).map_err(errors::provider_read)?;
 
     // N-4：登记门禁闭环——**未登记**的外部 URL（非内置默认 ∪ 非已保存 config）
     // 必须经原生确认对话框（`app.dialog()` 为系统级原生对话框，webview 内 XSS
@@ -64,10 +68,10 @@ pub async fn llm_save_provider(
         // 超时兜底：对话框异常未回调时不得永久挂起命令（等待用户输入通常秒级）。
         let confirmed = tokio::time::timeout(std::time::Duration::from_secs(120), rx)
             .await
-            .map_err(|_| "登记确认等待超时".to_string())?
-            .map_err(|_| "登记确认对话框未响应".to_string())?;
+            .map_err(|_| BackendError::new(Code::LlmConfirmationTimeout))?
+            .map_err(|_| BackendError::new(Code::LlmConfirmationTimeout))?;
         if !confirmed {
-            return Err("已取消 AI Provider 登记".to_string());
+            return Err(BackendError::new(Code::LlmConfirmationCancelled));
         }
     }
     let api_key = if provider.is_built_in && provider.api_key == "••••••••" {
@@ -76,7 +80,8 @@ pub async fn llm_save_provider(
         provider.api_key.clone()
     };
     if !api_key.is_empty() {
-        save_api_key(&vault, &account_id, &provider.id, &api_key)?;
+        save_api_key(&vault, &account_id, &provider.id, &api_key)
+            .map_err(errors::provider_write)?;
     }
     let pc = ProviderConfig {
         id: provider.id.clone(),
@@ -93,7 +98,7 @@ pub async fn llm_save_provider(
     } else {
         config.providers.push(pc);
     }
-    save_config(&vault, &account_id, &config)
+    save_config(&vault, &account_id, &config).map_err(errors::provider_write)
 }
 
 #[tauri::command]
@@ -101,11 +106,11 @@ pub async fn llm_set_active_provider(
     state: State<'_, AppState>,
     account_id: String,
     provider_id: String,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
-    let mut config = load_config(&vault, &account_id)?;
+    let mut config = load_config(&vault, &account_id).map_err(errors::provider_read)?;
     config.active_provider_id = Some(provider_id);
-    save_config(&vault, &account_id, &config)
+    save_config(&vault, &account_id, &config).map_err(errors::provider_write)
 }
 
 #[tauri::command]
@@ -113,11 +118,11 @@ pub async fn llm_set_ai_features(
     state: State<'_, AppState>,
     account_id: String,
     features: AiFeatures,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
-    let mut config = load_config(&vault, &account_id)?;
+    let mut config = load_config(&vault, &account_id).map_err(errors::provider_read)?;
     config.ai_features_enabled = features;
-    save_config(&vault, &account_id, &config)
+    save_config(&vault, &account_id, &config).map_err(errors::provider_write)
 }
 
 #[tauri::command]
@@ -125,11 +130,11 @@ pub async fn llm_set_system_prompt_switch(
     state: State<'_, AppState>,
     account_id: String,
     enabled: bool,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
-    let mut config = load_config(&vault, &account_id)?;
+    let mut config = load_config(&vault, &account_id).map_err(errors::provider_read)?;
     config.include_system_prompt = enabled;
-    save_config(&vault, &account_id, &config)
+    save_config(&vault, &account_id, &config).map_err(errors::provider_write)
 }
 
 /// Toggle local embedding and set the active model ID.
@@ -139,22 +144,25 @@ pub async fn llm_set_local_embedding(
     account_id: String,
     enabled: bool,
     model_id: Option<String>,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
-    let mut config = load_config(&vault, &account_id)?;
+    let mut config = load_config(&vault, &account_id).map_err(errors::provider_read)?;
     config.use_local_embedding = enabled;
     config.local_embed_model_id = model_id;
-    save_config(&vault, &account_id, &config)?;
+    save_config(&vault, &account_id, &config).map_err(errors::provider_write)?;
     crate::local_embed::clear_embedder_cache();
     Ok(())
 }
 
 #[tauri::command]
-pub async fn llm_accept_risk(state: State<'_, AppState>, account_id: String) -> Result<(), String> {
+pub async fn llm_accept_risk(
+    state: State<'_, AppState>,
+    account_id: String,
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
-    let mut config = load_config(&vault, &account_id)?;
+    let mut config = load_config(&vault, &account_id).map_err(errors::provider_read)?;
     config.has_accepted_risk = true;
-    save_config(&vault, &account_id, &config)?;
+    save_config(&vault, &account_id, &config).map_err(errors::provider_write)?;
     crate::commands::log_audit_best_effort(
         &vault,
         "llm_risk_accepted",
@@ -172,9 +180,11 @@ pub async fn llm_get_api_key(
     state: State<'_, AppState>,
     account_id: String,
     provider_id: String,
-) -> Result<String, String> {
+) -> Result<String, BackendError> {
     let vault = vault_handle(&state)?;
-    load_api_keys(&vault, &account_id).map(|k| k.get(&provider_id).cloned().unwrap_or_default())
+    load_api_keys(&vault, &account_id)
+        .map_err(errors::provider_read)
+        .map(|k| k.get(&provider_id).cloned().unwrap_or_default())
 }
 
 #[tauri::command]
@@ -182,14 +192,14 @@ pub async fn llm_delete_provider(
     state: State<'_, AppState>,
     account_id: String,
     provider_id: String,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     let vault = vault_handle(&state)?;
-    let mut config = load_config(&vault, &account_id)?;
+    let mut config = load_config(&vault, &account_id).map_err(errors::provider_read)?;
     config.providers.retain(|p| p.id != provider_id);
     if config.active_provider_id.as_deref() == Some(&provider_id) {
         config.active_provider_id = config.providers.first().map(|p| p.id.clone());
     }
-    save_config(&vault, &account_id, &config)
+    save_config(&vault, &account_id, &config).map_err(errors::provider_write)
 }
 
 pub(crate) fn is_anthropic(api_type: &ApiType) -> bool {

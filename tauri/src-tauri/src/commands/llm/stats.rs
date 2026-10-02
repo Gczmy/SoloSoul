@@ -1,4 +1,5 @@
-use crate::commands::vault_handle;
+use super::errors::vault_handle;
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
 use crate::services::profile_prefs::update_profile_prefs;
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
@@ -189,7 +190,8 @@ pub fn load_stats_from_vault(
                 .and_then(|v| serde_json::from_value(v.clone()).ok())
                 .unwrap_or_default())
         }
-        _ => Ok(LlmUsageStats::default()),
+        Err(cause) => Err(cause),
+        Ok(None) => Ok(LlmUsageStats::default()),
     }
 }
 
@@ -197,7 +199,7 @@ pub fn load_stats_from_vault(
 pub async fn llm_get_stats(
     state: State<'_, AppState>,
     account_id: String,
-) -> Result<LlmUsageStats, String> {
+) -> Result<LlmUsageStats, BackendError> {
     // 1. 尝试从内存读取
     {
         let map: tokio::sync::RwLockReadGuard<'_, HashMap<String, LlmUsageStats>> =
@@ -209,7 +211,8 @@ pub async fn llm_get_stats(
     // 2. 内存未命中，从 Vault 加载（严格限定作用域，确保 RwLockGuard 在 await 前 drop）
     let stats: LlmUsageStats = {
         let vault = vault_handle(&state)?;
-        load_stats_from_vault(&vault, &account_id)?
+        load_stats_from_vault(&vault, &account_id)
+            .map_err(|cause| BackendError::caused_by(Code::LlmUsageFailed, Stage::Read, cause))?
     };
     // 3. 加载到内存
     {
@@ -221,7 +224,10 @@ pub async fn llm_get_stats(
 }
 
 #[tauri::command]
-pub async fn llm_reset_stats(state: State<'_, AppState>, account_id: String) -> Result<(), String> {
+pub async fn llm_reset_stats(
+    state: State<'_, AppState>,
+    account_id: String,
+) -> Result<(), BackendError> {
     {
         let mut map: tokio::sync::RwLockWriteGuard<'_, HashMap<String, LlmUsageStats>> =
             STATS_MAP.write().await;
@@ -229,4 +235,5 @@ pub async fn llm_reset_stats(state: State<'_, AppState>, account_id: String) -> 
     }
     let vault = vault_handle(&state)?;
     save_stats_to_vault(&vault, &account_id, &LlmUsageStats::default())
+        .map_err(|cause| BackendError::caused_by(Code::LlmUsageFailed, Stage::Write, cause))
 }

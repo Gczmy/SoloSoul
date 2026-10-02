@@ -1,0 +1,526 @@
+{
+  "task": "RF-317",
+  "startedDate": "2026-10-02",
+  "completedDate": "2026-10-02",
+  "baselineCommit": "1275f68d2138e911324c3ad2bb856ed328be185b",
+  "status": "verified",
+  "workspace": "C:\\Users\\40299571\\SoloSoul",
+  "commitPolicy": "one item / one fix / one verified commit; no push",
+  "implementation": [
+    "All 26 registered LLM commands use stable BackendError code/safeDetails/retryable from actual failure stages; Core provider resolution adds a typed API and preserves exact legacy String messages.",
+    "Provider/network/timeout/rejection/parse/storage causes do not expose original bodies, URLs, keys, SQL or conversation text in UI/wire/diagnostic logs.",
+    "Keep required legacy error field and persist prefix; optional stream failure package omits normal events. Backend validates session/root gates and numeric HTTP categories.",
+    "Generated replies remain visible for event-based or invoke-only save failure; canonical-read failure reports unconfirmed save status. Single notification ownership and account/run guards remain.",
+    "Preserve offline connection probe bool false, provider test greeting/ok fallback, provider registration confirmation, normal event payloads, RAG fallback, and best-effort usage/event delivery.",
+    "Shared diagnostics retain the existing Object operation failed marker for object/snapshot codes; no old RF307 assertion is weakened."
+  ],
+  "verification": {
+    "frontend": {
+      "files": 247,
+      "vitestPassed": 2093,
+      "nodePassed": 112,
+      "failed": 0,
+      "defaultWorkersAndTimeouts": true
+    },
+    "rust": {
+      "passed": 1819,
+      "failed": 0,
+      "ignored": 3,
+      "strictClippyAllWorkspaceAllTargets": true,
+      "rf317CasesInFinalFullRun": [
+        "test commands::llm::contracts::tests::rf317_typed_failure_fixture_and_optional_event_package_match_actual_serde ... ok",
+        "test commands::llm::stream::tests::rf317::rf317_non_stream_http_boundary_uses_the_same_safe_rejection ... ok",
+        "test commands::llm::stream::tests::rf317::rf317_expired_stream_cannot_emit_or_save_to_a_new_session ... ok",
+        "test commands::llm::stream::tests::rf317::rf317_request_timeout_has_a_safe_retryable_code ... ok",
+        "test commands::llm::stream::tests::rf317::rf317_generated_reply_save_rejection_keeps_root_maintenance_gate_and_reports_invoke_failure ... ok",
+        "test commands::llm::stream::tests::rf317::rf317_generated_reply_survives_real_database_write_failure ... ok",
+        "test commands::llm::stream::tests::rf317::rf317_saved_provider_errors_are_classified_without_parsing_core_messages ... ok",
+        "test commands::llm::stream::tests::rf317::rf317_sse_provider_error_is_failure_and_does_not_save_an_empty_reply ... ok",
+        "test commands::llm::stream::tests::rf317::rf317_http_rejections_use_status_codes_without_response_or_url_in_wire ... ok",
+        "test commands::llm::stream::tests::rf317::rf317_connection_failure_cannot_save_reply_or_leak_request_address ... ok"
+      ]
+    },
+    "cli": {
+      "passed": 336,
+      "failed": 0,
+      "ignored": 2,
+      "strictClippyAllTargets": true
+    },
+    "contracts": {
+      "testsPassed": 17,
+      "migratedCommands": 105,
+      "registeredCommands": 225,
+      "legacyCommands": 120,
+      "events": 11,
+      "structuredErrorCommands": 40
+    },
+    "sourceInputHashesUnchanged": true
+  },
+  "rawEvidenceDirectory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002",
+  "versions": {
+    "node": "v24.16.0",
+    "cargo": "cargo 1.96.0 (30a34c682 2026-05-25)",
+    "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "python": "Python 3.14.6"
+  },
+  "checks": [
+    {
+      "name": "types-final-r2",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 24.43,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\types-final-r2.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lint-final-r2",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 35.82,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\lint-final-r2.log",
+      "logSha256": "c1f9291f0b7dd79a974f435dfa42be232bb205471ce07b68b10236c8ed19b844"
+    },
+    {
+      "name": "front-full-final",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "test"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 179.09,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\front-full-final.log",
+      "logSha256": "1e51f1da26cfd1d0ac75b82323179c5aa3e2a381b0f9f8549e7acf5793847842"
+    },
+    {
+      "name": "rust-fmt-r2",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 7.24,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\rust-fmt-r2.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "rust-clippy-r2",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 71.87,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\rust-clippy-r2.log",
+      "logSha256": "ca2abd8340a3a8e520a56bf661eaf0d808c8c612c2a4e1f21476e08bb28223be"
+    },
+    {
+      "name": "rust-tests-r2",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 626.92,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\rust-tests-r2.log",
+      "logSha256": "c3672c2db9aac0a121070410cb0c0eba409c7264ccb842d79fee98d8c4f80ca8"
+    },
+    {
+      "name": "contract-check",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "check:contracts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 15.85,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\contract-check.log",
+      "logSha256": "608e632220457b2603fca01f9c97b3ca478660c6f87bec8b5abb9e94bd9b11e9"
+    },
+    {
+      "name": "contract-tests",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "test:contracts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 67.85,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\contract-tests.log",
+      "logSha256": "00c174d649ef7301ab384e50fe51dbe5a5f6b3e2821e13b936698ffcfec436e7"
+    },
+    {
+      "name": "acl",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "check:acl"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.84,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\acl.log",
+      "logSha256": "d071eb7e7c337a33d77a467966385a631331d9d67305ab24f7c3ff4fdc82754b"
+    },
+    {
+      "name": "preferences",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "check:pref-keys"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.71,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\preferences.log",
+      "logSha256": "108a5a292db9f29147ac67a2fe97eebedfddaa179e8d2fdfdb2477b8759dd796"
+    },
+    {
+      "name": "markdown",
+      "command": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 8.94,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\markdown.log",
+      "logSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc"
+    },
+    {
+      "name": "acl-unit",
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_check_acl_consistency.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.92,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\acl-unit.log",
+      "logSha256": "beccd8a533a788fc4b0113d0ed5af068e2672b28cda3f0b93718237a9d9fb0d7"
+    },
+    {
+      "name": "cli-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.18,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\cli-fmt.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "cli-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 47.26,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\cli-clippy.log",
+      "logSha256": "8e7380c7706f34588a761cd8223842817c37df99e32526ac38e129ab1c42a4cd"
+    },
+    {
+      "name": "cli-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 535.23,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\cli-tests.log",
+      "logSha256": "1b3413f8ec73d5769c2b684d993e95728b632720795fab168c8f1883961e2486"
+    },
+    {
+      "name": "prettier-final-check",
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "scripts/generate-ipc-contracts.node.mjs",
+        "src-tauri/ipc-contracts.json",
+        "src/hooks/useLlmChatCore.ts",
+        "src/hooks/useLlmStreaming.test.tsx",
+        "src/hooks/useLlmStreaming.ts",
+        "src/lib/backendError.ts",
+        "src/lib/backendErrorWire.ts",
+        "src/lib/generated/ipcContractManifest.json",
+        "src/lib/generated/ipcContracts.ts",
+        "src/lib/ipcClient.ts",
+        "src/lib/llm/conversationPersistence.ts",
+        "src/lib/notification.ts",
+        "src/locales/en-US/common.json",
+        "src/locales/zh-CN/common.json",
+        "src/stores/llmStore.test.ts",
+        "src/stores/llmStore.ts",
+        "src-tauri/src/commands/llm/contracts/rf317-fixtures.json",
+        "src/lib/llm/llmErrors.rf317.test.tsx"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.29,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\prettier-final-check.log",
+      "logSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    }
+  ],
+  "retainedFailedAttempts": [
+    {
+      "name": "baseline-front",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/lib/llm/llmErrors.rf317.test.tsx"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 29.08,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\baseline-front.log",
+      "logSha256": "c198bcee7ef40b145617ae1be0b79e6346dd62e203bb8b7a485029e50cef7e1b"
+    },
+    {
+      "name": "front-directed-first",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/lib/llm/llmErrors.rf317.test.tsx",
+        "src/stores/llmStore.test.ts",
+        "src/hooks/useLlmStreaming.test.tsx",
+        "src/hooks/useLlmChatCore.test.tsx",
+        "src/lib/notification.llm.test.ts",
+        "src/lib/backendError.test.ts",
+        "src/lib/typedIpc.test.ts",
+        "src/lib/ipcClient.test.ts",
+        "src/lib/llm/conversationPersistence.test.ts"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 31.74,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\front-directed-first.log",
+      "logSha256": "e08cb6a0d3f905c066ad1d72437494fa2aeab921c8417c9f7994584d079be817"
+    },
+    {
+      "name": "generate-first",
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "npm",
+        "run",
+        "generate:contracts"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 17.48,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\generate-first.log",
+      "logSha256": "8d269a0071ee517ccc0548badf0367e4ce7b772d0cb67879a9c37605fd088e10"
+    },
+    {
+      "name": "rust-check-first",
+      "command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--workspace",
+        "--all-targets"
+      ],
+      "exitCode": 101,
+      "elapsedSeconds": 86.56,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\rust-check-first.log",
+      "logSha256": "1149ce657c6368254e7828f44c11d0a13b1694ad2b5cb7f733c248523c7c53cf"
+    },
+    {
+      "name": "rust-check-second",
+      "command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--workspace",
+        "--all-targets"
+      ],
+      "exitCode": 101,
+      "elapsedSeconds": 32.34,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\rust-check-second.log",
+      "logSha256": "e6e9173df5e19a8392c2d94005a65226b94425a71fea3806c0f72f44aed90db8"
+    },
+    {
+      "name": "rust-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose"
+      ],
+      "exitCode": 101,
+      "elapsedSeconds": 633.79,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf317-20261002\\rust-tests.log",
+      "logSha256": "f29a709afaa7040b4d978c7a9b18ef59eca6d689cb31ac42faba857afcf7a487"
+    }
+  ],
+  "failedAttemptNotes": [
+    "Original projection displayed a synthetic raw HTTP response body before the fix (baseline-front).",
+    "Generator rejected self-qualified import; actual module imports were used without relaxing the generator.",
+    "First Rust check found required typed adapters and a generic IO adapter; both were fixed.",
+    "Initial frontend directed run found an old i18n stub without global t; projection now uses the existing consumer React t.",
+    "First full Rust run passed all new RF317 cases but failed two old RF307 diagnostic assertions after a shared marker change. Object/snapshot markers were restored; original assertions retained. Final full run supersedes it."
+  ],
+  "sourceSha256": {
+    "tauri/crates/solosoul-core/src/llm/service.rs": "8c1aa201da2556ae8cad8c44cf901af717786bb4b9cb73cad94275e230238c42",
+    "tauri/scripts/generate-ipc-contracts.node.mjs": "03a83fc62801473c4c34c62d578fa771857ebdf281e7b97ad2dac9a2e64da9db",
+    "tauri/src-tauri/ipc-contracts.json": "ee076e15bee69a70cd4de662d8d1169499859fd6d1deb833ed1e906b3d65f738",
+    "tauri/src-tauri/src/commands/error.rs": "9d498cdebde27f5f2e2089031e7448b06769e187e8dc2cf015852197b03bf5ac",
+    "tauri/src-tauri/src/commands/llm/chat_http.rs": "6609b8000e9c5820c28ede31dc473d2fa81fda6999fa20647823a8dd3dd532d4",
+    "tauri/src-tauri/src/commands/llm/contracts.rs": "19f5b654f44c84e56127ad6e7b81976f5bd6cffd697194893f93f5e8cdbf1d1d",
+    "tauri/src-tauri/src/commands/llm/contracts/tests.rs": "f4290cf0552f6b8508dba783809309df67fbe56f49a7ec5e032a11fcf1142db7",
+    "tauri/src-tauri/src/commands/llm/conversation.rs": "e4946c98bd7b9604fa4d083417a0403a8f306e39c0b528f0c717e0f3a70d3839",
+    "tauri/src-tauri/src/commands/llm/mod.rs": "10e6f851df8af6701833d8f343873a21779455093df1ae8afbcff62dbc368e40",
+    "tauri/src-tauri/src/commands/llm/provider.rs": "3c64d9856b5d846879911bbb499092cefb44edb2e1c3785916aa617ea347347c",
+    "tauri/src-tauri/src/commands/llm/rag.rs": "63be61e860315443fe59f262a83f2567710013d0cac5c418244aa9259139dbf3",
+    "tauri/src-tauri/src/commands/llm/request.rs": "f828954906fe49c6390c425e7cc1db5bb966a230f164d55d1cf1b161f630aac1",
+    "tauri/src-tauri/src/commands/llm/rf908.rs": "3f8da80636cc3301edf3ba34e1f12dd1c5d7c20a24f46a85b09595a010f91de8",
+    "tauri/src-tauri/src/commands/llm/stats.rs": "788e7769c0bc610a1e81d22a738ed98edd63960599394316c4acc590bf86708d",
+    "tauri/src-tauri/src/commands/llm/stream.rs": "3c01cf514167959132fea865c09cc33c0f0f872d30bcfd00f599e4d3356ac1f6",
+    "tauri/src-tauri/src/commands/llm/stream/tests/rf004.rs": "6c38ef79bcedc90b951f199f476fe74a6a6733904a40052d4c0f544423c617f7",
+    "tauri/src-tauri/src/commands/llm/stream/tests/rf005.rs": "65cbfb56ee60d42be0a2e6c9a70c180ec7ba6c47fbb6e5cb27b6b33bcb50ce6d",
+    "tauri/src-tauri/src/lib.rs": "6c5e0aa70216f3553e85f37495d7a9e13bc3848271e060e5c6f2b44fe2b50b97",
+    "tauri/src/hooks/useLlmChatCore.ts": "9d6122d1bcc1d0c51afa6265f63dc892899faa1434a0f598f122236eabfbf049",
+    "tauri/src/hooks/useLlmStreaming.test.tsx": "376b81c86a2dbdda570a76a8d4279c6e6715e97310cf85bf430229a61dd40580",
+    "tauri/src/hooks/useLlmStreaming.ts": "dc447afd0f1cdae3f93d0f9b6c2e3c0d05a62fa1ff57ad1a613b4811fb9b0a1d",
+    "tauri/src/lib/backendError.ts": "58744c935c7aaba974a870e276d0e0bc6cedc8f2e39c62a659ca579bc16599e9",
+    "tauri/src/lib/backendErrorWire.ts": "7a63bf16549bd738559ffceee9c6337bace5aa19070cfaa94a24bf4e51601a76",
+    "tauri/src/lib/generated/ipcContractManifest.json": "9a63a66f015e184108591e04aba955f5cade365f988b298bef08a0a7e2bcd91d",
+    "tauri/src/lib/generated/ipcContracts.ts": "f5e97fb1560a9761d5aeb7511f6f8dd2d84b6f0803be23cc2899b0b888acfac5",
+    "tauri/src/lib/ipcClient.ts": "533921927701d3dacb9c74b98839f5137770417f2182af323d058aa6fb2acead",
+    "tauri/src/lib/llm/conversationPersistence.ts": "671de257ba80ee22efff412f79617c42eb3a2199d00d4c5d4896d642e58f18db",
+    "tauri/src/lib/notification.ts": "ddcc468d2db466f1d2681f29bdef9c9d7d0cc83e6ea1d5681e4516ebdd1712ea",
+    "tauri/src/locales/en-US/common.json": "5dee4ddcec2a671f22b6d224c8a92e81fa697a2c3e9b72c373baa25b01751b12",
+    "tauri/src/locales/zh-CN/common.json": "b388e02d034b9210d84f4f5c517ccaec95331d51320bc2bc642d796722a35b86",
+    "tauri/src/stores/llmStore.test.ts": "8e3b6871e789dccc3e69028198d5888972af6af35b26d6bd3fc16347004b276c",
+    "tauri/src/stores/llmStore.ts": "cadcf237ebf3100d7c1f9807f27ba597cb1121e8772ed887199c70c35094d999",
+    "tauri/src-tauri/src/commands/llm/contracts/rf317-fixtures.json": "1990e51891fb1c1f7a2987e4fbcab74e1a6c45e1c5ce1e56443b0f87b526b1cd",
+    "tauri/src-tauri/src/commands/llm/errors.rs": "c997ae3f07dffc22e757189bb034c2343761731c294d9af81d2926dae31c8d0f",
+    "tauri/src-tauri/src/commands/llm/stream/tests/rf317.rs": "0a4a85875f4bd41c3c09b37c2032626bb1daea0ee43472f7dd0a54dd44cae83d",
+    "tauri/src/lib/llm/llmErrors.rf317.test.tsx": "36ac74405fdc3e0876adb1ca0781b0cbfc3938db5882c4de0a5addfc3a1003a0"
+  },
+  "protectedDirtyPathsSha256": {
+    "solosoul_cli/src/commands/profile.rs": "e08c0a7b8c9d9270f5764945494634c75d6d81bcba02cc189487965c81fc4e41",
+    "solosoul_cli/src/commands/security.rs": "0133f1ca219910c364dba4a2792452cfb88b05a133243f45765703cbbe146104",
+    "solosoul_cli/src/commands/template.rs": "ed2c08ee422ca9365415723875289cdad12ee2b92746a99a8c46eccac0ad7f95",
+    "solosoul_cli/src/commands/vault_write.rs": "48cb640caca661c289897d9d99a6a8cf4b13bb16abe05b5123fbc30b3bc7a16e",
+    "tauri/crates/solosoul-core/src/process_lock.rs": "48ebf0045f85980ebfc6e0a9ee52d72d2bb394e6f8b12d7107a2362f0d637c34",
+    "tauri/src-tauri/bundles/nsis/assets/header-install.bmp": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+    "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+    "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+    "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": "d1f8f2db3d8aad53e1b955d3fc640374752db1c302d2f2c22d74e9ed356b428f",
+    "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/search-index.json": "cd4beaf09aeda37039a6523e6b86d01374dcced507278a1e76d41bd473b4e8fb",
+    "tauri/src-tauri/gen/android/app/tauri.properties": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+    "tauri/src/hooks/useToastError.ts": "f2da44c3ca3fb50e379051ba762b1712ec19dfa21f9321ecaee3f9ef4fa33968"
+  },
+  "scope": {
+    "ownedPaths": [
+      "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+      "docs/ipc-contract-generation.md",
+      "tauri/crates/solosoul-core/src/llm/service.rs",
+      "tauri/scripts/generate-ipc-contracts.node.mjs",
+      "tauri/src-tauri/ipc-contracts.json",
+      "tauri/src-tauri/src/commands/error.rs",
+      "tauri/src-tauri/src/commands/llm/chat_http.rs",
+      "tauri/src-tauri/src/commands/llm/contracts.rs",
+      "tauri/src-tauri/src/commands/llm/contracts/tests.rs",
+      "tauri/src-tauri/src/commands/llm/conversation.rs",
+      "tauri/src-tauri/src/commands/llm/mod.rs",
+      "tauri/src-tauri/src/commands/llm/provider.rs",
+      "tauri/src-tauri/src/commands/llm/rag.rs",
+      "tauri/src-tauri/src/commands/llm/request.rs",
+      "tauri/src-tauri/src/commands/llm/rf908.rs",
+      "tauri/src-tauri/src/commands/llm/stats.rs",
+      "tauri/src-tauri/src/commands/llm/stream.rs",
+      "tauri/src-tauri/src/commands/llm/stream/tests/rf004.rs",
+      "tauri/src-tauri/src/commands/llm/stream/tests/rf005.rs",
+      "tauri/src-tauri/src/lib.rs",
+      "tauri/src/hooks/useLlmChatCore.ts",
+      "tauri/src/hooks/useLlmStreaming.test.tsx",
+      "tauri/src/hooks/useLlmStreaming.ts",
+      "tauri/src/lib/backendError.ts",
+      "tauri/src/lib/backendErrorWire.ts",
+      "tauri/src/lib/generated/ipcContractManifest.json",
+      "tauri/src/lib/generated/ipcContracts.ts",
+      "tauri/src/lib/ipcClient.ts",
+      "tauri/src/lib/llm/conversationPersistence.ts",
+      "tauri/src/lib/notification.ts",
+      "tauri/src/locales/en-US/common.json",
+      "tauri/src/locales/zh-CN/common.json",
+      "tauri/src/stores/llmStore.test.ts",
+      "tauri/src/stores/llmStore.ts",
+      "tauri/src-tauri/src/commands/llm/contracts/rf317-fixtures.json",
+      "tauri/src-tauri/src/commands/llm/errors.rs",
+      "tauri/src-tauri/src/commands/llm/stream/tests/rf317.rs",
+      "tauri/src/lib/llm/llmErrors.rf317.test.tsx",
+      "docs/verification/rf317-llm-errors-2026-10-02.json"
+    ],
+    "baselineTrackedRawFiles": 1855,
+    "baselineNonAsciiPaths": 40,
+    "otherTrackedRawSha256Changed": [],
+    "checkedOtherTrackedRawFiles": 1821,
+    "gitlinks": {
+      "SoloSoul_plugin_market": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921"
+    },
+    "baselineDerivedFrom": "RF908 recorded raw precommit audit + exact committed 19-path change; non-ASCII file paths and gitlinks completed with NUL-delimited Git output."
+  },
+  "boundaries": [
+    "Windows unit/native loopback/temporary SQLite/contract tests only; no visible GUI, real provider/account, macOS, Android, iOS or cross-platform perf evidence.",
+    "Other error domains RF318-RF320 and external/dependent tasks remain open.",
+    "Original 12 unrelated dirty paths are byte-for-byte preserved and excluded from staging; dependencies and lockfiles unchanged."
+  ],
+  "finalReview": {
+    "reviewer": "main agent source/scope review",
+    "independentReviewClaimed": false
+  }
+}

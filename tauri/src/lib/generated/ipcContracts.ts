@@ -14,6 +14,24 @@ export type AdvancedImportRequestInput = {
   locale?: string;
 };
 
+export type AiFeatures = {
+  chat: boolean;
+  smartFill: boolean;
+  commandGen: boolean;
+  naturalLanguageSearch: boolean;
+};
+
+export type AiFeaturesInput = {
+  chat: boolean;
+  smartFill: boolean;
+  commandGen: boolean;
+  naturalLanguageSearch: boolean;
+};
+
+export type ApiType = 'openAI' | 'anthropic';
+
+export type ApiTypeInput = 'openAI' | 'anthropic';
+
 export type AppInfo = { appName: string; version: string; os: string; arch: string };
 
 export type AttachmentImportInfo = {
@@ -51,7 +69,29 @@ export type BackendErrorCode =
   | 'SNAPSHOT_NOT_FOUND'
   | 'SNAPSHOT_INVALID'
   | 'SNAPSHOT_OWNERSHIP_MISMATCH'
-  | 'SNAPSHOT_ROLLBACK_FAILED';
+  | 'SNAPSHOT_ROLLBACK_FAILED'
+  | 'LLM_INVALID_REQUEST'
+  | 'LLM_PROVIDER_NOT_CONFIGURED'
+  | 'LLM_PROVIDER_DISABLED'
+  | 'LLM_PROVIDER_NOT_REGISTERED'
+  | 'LLM_CONFIRMATION_CANCELLED'
+  | 'LLM_CONFIRMATION_TIMEOUT'
+  | 'LLM_PROVIDER_READ_FAILED'
+  | 'LLM_PROVIDER_WRITE_FAILED'
+  | 'LLM_NETWORK_FAILED'
+  | 'LLM_TIMEOUT'
+  | 'LLM_PROVIDER_REJECTED'
+  | 'LLM_PROVIDER_UNAVAILABLE'
+  | 'LLM_RATE_LIMITED'
+  | 'LLM_RESPONSE_INVALID'
+  | 'LLM_CONVERSATION_NOT_FOUND'
+  | 'LLM_CONVERSATION_READ_FAILED'
+  | 'LLM_CONVERSATION_WRITE_FAILED'
+  | 'LLM_REPLY_SAVE_FAILED'
+  | 'LLM_CONTEXT_READ_FAILED'
+  | 'LLM_USAGE_FAILED'
+  | 'LLM_GUIDE_FAILED'
+  | 'LLM_EMBEDDING_FAILED';
 
 export type BackendErrorStage =
   | 'validate'
@@ -187,6 +227,13 @@ export type CreateObjectInputInput = {
   templateId?: string | null;
   templateType?: string | null;
   id?: string | null;
+};
+
+export type DailyUsage = {
+  date: string;
+  count: number;
+  tokens: number;
+  perModelTokens: Record<string, number>;
 };
 
 export type DecryptedImportPreview = {
@@ -352,6 +399,16 @@ export type JsonObject = { [key: string]: JsonValue };
 
 export type JsonValue = null | boolean | number | string | Array<JsonValue> | JsonObject;
 
+export type LlmConfig = {
+  providers: Array<ProviderConfig>;
+  activeProviderId: string | null;
+  aiFeaturesEnabled: AiFeatures;
+  hasAcceptedRisk: boolean;
+  includeSystemPrompt: boolean;
+  useLocalEmbedding: boolean;
+  localEmbedModelId: string | null;
+};
+
 export type LlmStreamPayload = {
   accountId: string;
   sessionGeneration: number;
@@ -360,6 +417,16 @@ export type LlmStreamPayload = {
   chunk: string;
   isDone: boolean;
   error: string | null;
+  failure?: BackendError;
+};
+
+export type LlmUsageStats = {
+  usageCount: number;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  perModelStats: Array<ModelUsage>;
+  dailyStats: Array<DailyUsage>;
 };
 
 export type MarketPluginInfo = {
@@ -370,6 +437,16 @@ export type MarketPluginInfo = {
   tier: PluginTier;
   category: string;
   registryEntry: RegistryEntry;
+};
+
+export type ModelUsage = {
+  model: string;
+  provider: string;
+  count: number;
+  tokens: number;
+  promptTokens: number;
+  completionTokens: number;
+  lastUsedTime: string | null;
 };
 
 export type ObjectData = {
@@ -554,6 +631,41 @@ export type PluginSession = {
 };
 
 export type PluginTier = 'p0' | 'p1' | 'p2' | 'p3' | 'p4';
+
+export type ProviderConfig = {
+  id: string;
+  name: string;
+  baseUrl: string;
+  model: string;
+  isEnabled: boolean;
+  isBuiltIn: boolean;
+  apiType: ApiType;
+  embeddingModel: string | null;
+};
+
+export type ProviderWithKey = {
+  id: string;
+  name: string;
+  baseUrl: string;
+  model: string;
+  isEnabled: boolean;
+  isBuiltIn: boolean;
+  apiKey: string;
+  apiType: ApiType;
+  embeddingModel: string | null;
+};
+
+export type ProviderWithKeyInput = {
+  id: string;
+  name: string;
+  baseUrl: string;
+  model: string;
+  isEnabled: boolean;
+  isBuiltIn: boolean;
+  apiKey: string;
+  apiType?: ApiTypeInput;
+  embeddingModel?: string | null;
+};
 
 export type RecoveryDiscoveredHost = { name: string; addr: string; fingerprint: string };
 
@@ -791,22 +903,36 @@ export type IpcCommands = {
   };
   import_operations_list: { args: { accountId: string }; result: Array<ImportOperationSummary> };
   import_parse_package: { args: { filePath: string }; result: ImportPreview };
+  llm_accept_risk: { args: { accountId: string }; result: null };
+  llm_check_connection: {
+    args: { baseUrl: string; apiKey: string; model: string; apiType: ApiTypeInput };
+    result: boolean;
+  };
+  llm_check_embedding_available: { args: { accountId: string }; result: boolean };
+  llm_delete_provider: { args: { accountId: string; providerId: string }; result: null };
+  llm_get_api_key: { args: { accountId: string; providerId: string }; result: string };
+  llm_get_config: { args: { accountId: string }; result: LlmConfig };
   llm_get_conversation: {
     args: { accountId: string; conversationId: string };
     result: Conversation;
   };
+  llm_get_providers: { args: { accountId: string }; result: Array<ProviderWithKey> };
+  llm_get_stats: { args: { accountId: string }; result: LlmUsageStats };
   llm_list_conversations: { args: { accountId: string }; result: Array<ConversationSummary> };
   llm_list_trash: { args: { accountId: string }; result: Array<ConversationSummary> };
   llm_permanent_delete: { args: { accountId: string; conversationId: string }; result: null };
+  llm_rebuild_guide_embeddings: { args: { accountId: string; language: string }; result: number };
   llm_rename_conversation: {
     args: { accountId: string; conversationId: string; name: string };
     result: null;
   };
+  llm_reset_stats: { args: { accountId: string }; result: null };
   llm_restore_conversation: { args: { accountId: string; conversationId: string }; result: null };
   llm_save_conversation: {
     args: { accountId: string; conversation: ConversationInput };
     result: null;
   };
+  llm_save_provider: { args: { accountId: string; provider: ProviderWithKeyInput }; result: null };
   llm_search_guide_chunks: {
     args: { accountId: string; query: string; language: string; topK?: number | null };
     result: Array<GuideChunk>;
@@ -822,9 +948,20 @@ export type IpcCommands = {
     };
     result: null;
   };
+  llm_set_active_provider: { args: { accountId: string; providerId: string }; result: null };
+  llm_set_ai_features: { args: { accountId: string; features: AiFeaturesInput }; result: null };
+  llm_set_local_embedding: {
+    args: { accountId: string; enabled: boolean; modelId?: string | null };
+    result: null;
+  };
+  llm_set_system_prompt_switch: { args: { accountId: string; enabled: boolean }; result: null };
   llm_soft_delete_conversation: {
     args: { accountId: string; conversationId: string };
     result: null;
+  };
+  llm_test_provider: {
+    args: { baseUrl: string; apiKey: string; model: string; apiType: ApiTypeInput };
+    result: string;
   };
   mdns_discover: { args: { timeoutMs: number }; result: Array<DiscoveredDevice> };
   object_create: { args: { input: CreateObjectInputInput }; result: ObjectData };
@@ -967,16 +1104,32 @@ export type IpcCommandErrors = {
   import_operation_resume: string;
   import_operations_list: string;
   import_parse_package: string;
-  llm_get_conversation: string;
-  llm_list_conversations: string;
-  llm_list_trash: string;
-  llm_permanent_delete: string;
-  llm_rename_conversation: string;
-  llm_restore_conversation: string;
-  llm_save_conversation: string;
-  llm_search_guide_chunks: string;
-  llm_send_message_stream: string;
-  llm_soft_delete_conversation: string;
+  llm_accept_risk: BackendError;
+  llm_check_connection: BackendError;
+  llm_check_embedding_available: BackendError;
+  llm_delete_provider: BackendError;
+  llm_get_api_key: BackendError;
+  llm_get_config: BackendError;
+  llm_get_conversation: BackendError;
+  llm_get_providers: BackendError;
+  llm_get_stats: BackendError;
+  llm_list_conversations: BackendError;
+  llm_list_trash: BackendError;
+  llm_permanent_delete: BackendError;
+  llm_rebuild_guide_embeddings: BackendError;
+  llm_rename_conversation: BackendError;
+  llm_reset_stats: BackendError;
+  llm_restore_conversation: BackendError;
+  llm_save_conversation: BackendError;
+  llm_save_provider: BackendError;
+  llm_search_guide_chunks: BackendError;
+  llm_send_message_stream: BackendError;
+  llm_set_active_provider: BackendError;
+  llm_set_ai_features: BackendError;
+  llm_set_local_embedding: BackendError;
+  llm_set_system_prompt_switch: BackendError;
+  llm_soft_delete_conversation: BackendError;
+  llm_test_provider: BackendError;
   mdns_discover: string;
   object_create: BackendError;
   object_delete: BackendError;

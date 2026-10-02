@@ -172,7 +172,7 @@ describe('RF-104 stream projection with real session ownership', () => {
     quick.rerender();
 
     expect(notifyConversationSaveFailed).toHaveBeenCalledTimes(1);
-    expect(notifyConversationSaveFailed).toHaveBeenCalledWith(t);
+    expect(notifyConversationSaveFailed).toHaveBeenCalledWith(t, 'notSaved');
     expect(page.result.current[1].content).toBe('共享的回复');
     expect(quick.result.current[1].content).toBe('共享的回复');
     expect(onPageSaved).not.toHaveBeenCalled();

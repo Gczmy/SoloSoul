@@ -49,7 +49,7 @@ fn config(include_system_prompt: bool) -> LlmConfig {
 fn save_include_system_prompt(fixture: &StreamFixture, enabled: bool) {
     fixture
         .context
-        .with_vault(|vault| {
+        .with_fixture_vault(|vault| {
             crate::commands::llm::save_config(
                 vault,
                 fixture.context.session.account_id(),
@@ -63,7 +63,9 @@ fn save_profile_data(fixture: &StreamFixture, data: Vec<u8>) {
     let account = fixture.context.session.account_id();
     fixture
         .context
-        .with_vault(|vault| vault.save_profile(&Profile::new_with_id(account, account, data)))
+        .with_fixture_vault(|vault| {
+            vault.save_profile(&Profile::new_with_id(account, account, data))
+        })
         .unwrap();
 }
 
@@ -134,7 +136,7 @@ fn seed_public_object(fixture: &StreamFixture) {
     }));
     fixture
         .context
-        .with_vault(|vault| {
+        .with_fixture_vault(|vault| {
             vault.save_user_template(&template)?;
             vault.save_object(&object)
         })
@@ -145,7 +147,7 @@ fn seed_public_object(fixture: &StreamFixture) {
 fn drop_tables(fixture: &StreamFixture, tables: &[&str]) {
     fixture
         .context
-        .with_vault(|vault| {
+        .with_fixture_vault(|vault| {
             let connection = rusqlite::Connection::open(vault.base_path().join("vault.db"))
                 .map_err(|error| error.to_string())?;
             for table in tables {
@@ -252,7 +254,7 @@ async fn send_and_capture(
 /// 发送失败也必须发生在 TCP 建连之前，不能仅靠最终错误掩盖已外发的数据。
 async fn assert_rejected_before_connect(
     listener: &TcpListener,
-    request: impl Future<Output = Result<(), String>>,
+    request: impl Future<Output = Result<(), BackendError>>,
 ) -> String {
     tokio::pin!(request);
     let error = tokio::select! {
@@ -263,6 +265,7 @@ async fn assert_rejected_before_connect(
         },
         _ = tokio::time::sleep(Duration::from_secs(10)) => panic!("Rejection timed out"),
     };
+    let error = serde_json::to_string(&error).unwrap();
     assert!(!error.is_empty());
     assert!(
         tokio::time::timeout(Duration::from_millis(30), listener.accept())
@@ -396,7 +399,7 @@ async fn rf004_foreign_deleted_private_and_unknown_candidates_never_leave_host()
         let account = fixture.context.session.account_id();
         fixture
             .context
-            .with_vault(|vault| {
+            .with_fixture_vault(|vault| {
                 vault.save_object(&synthetic_object(account, PUBLIC_ID, "ALLOW_CANDIDATE"))?;
                 if kind != "unknown-id" {
                     let mut denied =
@@ -777,7 +780,7 @@ async fn rf004_outbound_unicode_prompt_and_guide_bounds_keep_readable_prefixes()
         ];
         fixture
             .context
-            .with_vault(|vault| {
+            .with_fixture_vault(|vault| {
                 for (index, id) in ids.iter().enumerate() {
                     let mut object = synthetic_object(account, id, "公开值");
                     object.name = format!("碑首{index}{}碑尾{index}", "篆".repeat(900));

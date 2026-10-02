@@ -1,5 +1,7 @@
+use super::errors;
 use super::request;
-use super::*;
+use crate::commands::error::BackendError;
+use solosoul_core::llm::config::ApiType;
 
 #[tauri::command]
 pub async fn llm_check_connection(
@@ -7,16 +9,18 @@ pub async fn llm_check_connection(
     api_key: String,
     model: String,
     api_type: ApiType,
-) -> Result<bool, String> {
+) -> Result<bool, BackendError> {
     // P102：网络出口收窄——scheme/host 校验（此命令仅发送固定问候，不携带 Vault 数据，
     // 只需 URL 合法即可，允许测试未保存的新 provider）。
-    request::validate_llm_base_url(&base_url)?;
+    request::validate_llm_base_url(&base_url).map_err(errors::invalid_request)?;
     // P031：SSRF 内网段防护——字面内网 IP 已被 validate 拦截，此处对主机名做解析复核。
-    request::ensure_public_llm_host(&base_url).await?;
+    request::ensure_public_llm_host(&base_url)
+        .await
+        .map_err(errors::invalid_request)?;
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(5))
         .build()
-        .map_err(|_| "Client error")?;
+        .map_err(errors::network)?;
     let url = request::build_api_url(&base_url, &api_type);
     let body = request::build_request_body(
         &model,
@@ -38,15 +42,17 @@ pub async fn llm_test_provider(
     api_key: String,
     model: String,
     api_type: ApiType,
-) -> Result<String, String> {
+) -> Result<String, BackendError> {
     // P102：网络出口收窄——scheme/host 校验（仅发送固定问候，允许测试未保存的新 provider）。
-    request::validate_llm_base_url(&base_url)?;
+    request::validate_llm_base_url(&base_url).map_err(errors::invalid_request)?;
     // P031：SSRF 内网段防护——字面内网 IP 已被 validate 拦截，此处对主机名做解析复核。
-    request::ensure_public_llm_host(&base_url).await?;
+    request::ensure_public_llm_host(&base_url)
+        .await
+        .map_err(errors::invalid_request)?;
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(10))
         .build()
-        .map_err(|e| format!("Client: {}", e))?;
+        .map_err(errors::network)?;
 
     let url = request::build_api_url(&base_url, &api_type);
     let body = request::build_request_body(

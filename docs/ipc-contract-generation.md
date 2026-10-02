@@ -124,3 +124,13 @@ Core 增加对象创建的阶段错误入口，保留原 `build_create_record` S
 普通聊天页面及快捷浮窗通过 core 传递发送开始时的账户和原 StreamRun。服务与 builder 在调用前后检查原票据，锁定、切换账户或请求失效后不会接纳旧片段；关闭自动上下文仍不检索指南。检索的普通失败保留空上下文回退，不将失效会话吞成成功。
 
 回归使用共享合成请求 JSON，同时覆盖真实生产服务的 native invoke 参数、页面/浮窗发送链路及编译负例。Windows Host 测试用实际 `generate_handler!`、Tauri 参数解析和临时 Vault 检查缺参数拒绝、关键词命中、空结果及锁定拒绝。IPC 执行使用 Tauri MockRuntime，独立 Wry App 仅提供 AppHandle 路径 API，没有可见原生窗口或真实 Provider 请求；这不替代多端 Webview/联网 Embedding 验收。
+
+## LLM 结构化错误（RF317）
+
+26 个实际注册的 llm_* 命令返回 BackendError；provider 配置、会话读写、普通/流式发送、用量及 RAG 的类型均来自原 Rust 签名。guide_* 文档命令属于保留的独立旧域。llm_check_connection 的离线探测继续返回 false，关键词回退与用量写入的 best-effort 语义继续保留。读取 Profile 的实际 IO 失败不再被伪装成空配置。
+
+LlmStreamPayload 保留必需 nullable 的 error 字段，新增可省略的 failure 错误包；无错误事件和旧 RF303 fixture 的字段形状保持不变。新 Host 的 error 仅含机器码，回复保存失败仍带 __LLM_PERSIST_FAILED__ 前缀；新客户端优先使用 failure.code，字符串前缀及旧 HTTP 文案只在集中兼容层读取。错误、Error.message、日志均不携带 URL、原始响应正文或数据库 cause，诊断仅保留 code、stage 和 cause 类型。
+
+保存失败保留已生成回复并提示复制留存；若目录维护挡住终态通知，则同一包通过 invoke 拒绝返回，客户端仍按“回复已生成但未保存”处理。该路径不绕过 Root 所有权或原会话 gate。会话失效始终拒绝旧请求，不发布到新账户。前端无法读取确认正文时单列“尚未确认保存状态”，不会声称写入一定失败；两个聊天入口与后台通知共用一次提示领取。
+
+Core 的新 typed provider resolver 提供固定类别，原 resolve_chat_provider String API 保留原文案给旧调用方/CLI。错误翻译仅发生在显示层，React 聊天投影使用当前 Hook 的翻译器；传输、Store 和生成契约不执行翻译。

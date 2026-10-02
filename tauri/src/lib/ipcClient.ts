@@ -27,6 +27,8 @@ import {
   BackendCommandError,
   backendErrorLogDetails,
   isObjectErrorCommand,
+  isLlmErrorCommand,
+  normalizeLlmError,
   makeBackendError,
   normalizeObjectError,
   readBackendError,
@@ -175,15 +177,16 @@ export async function invokeCommand<T>(
       isAuthenticated = true;
     }
     if (!isAuthenticated) {
-      const err = isObjectErrorCommand(cmd)
-        ? new BackendCommandError(makeBackendError('VAULT_LOCKED'))
-        : new Error('No account is currently unlocked');
+      const err =
+        isObjectErrorCommand(cmd) || isLlmErrorCommand(cmd)
+          ? new BackendCommandError(makeBackendError('VAULT_LOCKED'))
+          : new Error('No account is currently unlocked');
       devWarn(`[ipc] '${cmd}' blocked: vault not unlocked`);
       throw err;
     }
   }
   if (opts?.requestIsCurrent && !opts.requestIsCurrent()) {
-    throw isObjectErrorCommand(cmd)
+    throw isObjectErrorCommand(cmd) || isLlmErrorCommand(cmd)
       ? new BackendCommandError(makeBackendError('SESSION_EXPIRED'))
       : new Error('Request belongs to an expired session');
   }
@@ -196,6 +199,7 @@ export async function invokeCommand<T>(
     return await invoke<T>(cmd, args);
   } catch (err) {
     devWarn(`[ipc] command '${cmd}' failed:`, backendErrorLogDetails(err));
+    if (isLlmErrorCommand(cmd)) throw new BackendCommandError(normalizeLlmError(err));
     if (readBackendError(err) || isObjectErrorCommand(cmd))
       throw new BackendCommandError(normalizeObjectError(err));
     throw err;

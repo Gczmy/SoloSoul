@@ -12,6 +12,29 @@ use crate::llm::config::{
 /// Result type for LlmService operations.
 pub type LlmResult<T> = Result<T, String>;
 
+/// 普通聊天解析失败的固定类别；不保存 Profile/凭证或 serde 自由文本。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ChatProviderError {
+    NotSaved,
+    ReadFailed,
+    MissingConfig,
+    InvalidConfig,
+    Disabled,
+    InvalidCredentials,
+}
+impl ChatProviderError {
+    pub fn legacy_message(self) -> &'static str {
+        match self {
+            Self::NotSaved => "Chat provider is not saved",
+            Self::ReadFailed => "Failed to load chat provider configuration",
+            Self::MissingConfig => "Chat provider configuration is missing",
+            Self::InvalidConfig => "Invalid chat provider configuration",
+            Self::Disabled => "Chat provider is disabled",
+            Self::InvalidCredentials => "Invalid chat provider credentials",
+        }
+    }
+}
+
 /// Service for managing LLM configuration, conversations, and usage statistics.
 pub struct LlmService;
 
@@ -136,44 +159,52 @@ impl LlmService {
         account_id: &str,
         provider_id: &str,
     ) -> LlmResult<ProviderWithKey> {
+        self.resolve_chat_provider_typed(vault, account_id, provider_id)
+            .map_err(|error| error.legacy_message().to_owned())
+    }
+
+    /// IPC 按固定类别映射错误，旧调用方仍可使用上面的字符串兼容入口。
+    pub fn resolve_chat_provider_typed(
+        &self,
+        vault: &VaultStore,
+        account_id: &str,
+        provider_id: &str,
+    ) -> Result<ProviderWithKey, ChatProviderError> {
         if account_id.is_empty() || provider_id.is_empty() {
-            return Err("Chat provider is not saved".to_string());
+            return Err(ChatProviderError::NotSaved);
         }
         // 存储/serde 错误可能包含配置值；此授权入口只返回固定文案。
         let profile = vault
             .load_profile(account_id)
-            .map_err(|_| "Failed to load chat provider configuration".to_string())?
-            .ok_or_else(|| "Chat provider configuration is missing".to_string())?;
-        let data: serde_json::Value = serde_json::from_slice(&profile.data)
-            .map_err(|_| "Invalid chat provider configuration".to_string())?;
+            .map_err(|_| ChatProviderError::ReadFailed)?
+            .ok_or(ChatProviderError::MissingConfig)?;
+        let data: serde_json::Value =
+            serde_json::from_slice(&profile.data).map_err(|_| ChatProviderError::InvalidConfig)?;
         let preferences = data
             .as_object()
             .and_then(|root| root.get("preferences"))
             .and_then(serde_json::Value::as_object)
-            .ok_or_else(|| "Invalid chat provider configuration".to_string())?;
+            .ok_or(ChatProviderError::InvalidConfig)?;
         let config: LlmConfig = preferences
             .get("llmConfig")
-            .ok_or_else(|| "Chat provider configuration is missing".to_string())
+            .ok_or(ChatProviderError::MissingConfig)
             .and_then(|value| {
-                serde_json::from_value(value.clone())
-                    .map_err(|_| "Invalid chat provider configuration".to_string())
+                serde_json::from_value(value.clone()).map_err(|_| ChatProviderError::InvalidConfig)
             })?;
         let mut matching = config
             .providers
             .into_iter()
             .filter(|provider| provider.id == provider_id);
-        let provider = matching
-            .next()
-            .ok_or_else(|| "Chat provider is not saved".to_string())?;
+        let provider = matching.next().ok_or(ChatProviderError::NotSaved)?;
         if matching.next().is_some() {
-            return Err("Invalid chat provider configuration".to_string());
+            return Err(ChatProviderError::InvalidConfig);
         }
         if !provider.is_enabled {
-            return Err("Chat provider is disabled".to_string());
+            return Err(ChatProviderError::Disabled);
         }
         let keys: std::collections::HashMap<String, String> = match preferences.get("llmApiKeys") {
             Some(value) => serde_json::from_value(value.clone())
-                .map_err(|_| "Invalid chat provider credentials".to_string())?,
+                .map_err(|_| ChatProviderError::InvalidCredentials)?,
             None => std::collections::HashMap::new(),
         };
         // 未配置密钥仍可使用本地无认证服务，但显式坏类型不得当成空密钥。

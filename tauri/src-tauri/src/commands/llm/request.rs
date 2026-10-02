@@ -3,7 +3,9 @@
 //! 把 `chat_http.rs` 和 `stream.rs` 中重复的 Anthropic / OpenAI 请求构造、
 //! 响应解析、错误转换提取为公共函数。
 
+use super::errors;
 use super::*;
+use crate::commands::error::BackendError;
 
 /// 根据 API 类型构建请求 URL（P026: 转发 core 共享纯函数）。
 pub fn build_api_url(base_url: &str, api_type: &ApiType) -> String {
@@ -78,20 +80,13 @@ pub fn extract_response_text(result: &serde_json::Value, api_type: &ApiType) -> 
     solosoul_core::llm::protocol::extract_response_text(result, api_type)
 }
 
-/// 检查 HTTP 响应状态，失败时返回格式化错误。
-pub async fn check_response(resp: reqwest::Response) -> Result<reqwest::Response, String> {
-    let status = resp.status();
-    if status.is_success() {
-        return Ok(resp);
-    }
-    let url = resp.url().to_string();
-    let body = resp.text().await.unwrap_or_default();
-    let snippet = if body.is_empty() {
-        "(empty body)".to_string()
+/// 失败状态仅按数值类别编码，不读取/输出上游正文或 URL。
+pub async fn check_response(resp: reqwest::Response) -> Result<reqwest::Response, BackendError> {
+    if resp.status().is_success() {
+        Ok(resp)
     } else {
-        body.chars().take(MAX_PREVIEW_CHARS).collect()
-    };
-    Err(format!("HTTP {} {} — {}", status.as_u16(), url, snippet))
+        Err(errors::http_status(resp.status()))
+    }
 }
 
 /// 发送 HTTP POST 请求并检查响应状态。
@@ -101,17 +96,12 @@ pub async fn send_json_request(
     body: &serde_json::Value,
     api_key: &str,
     api_type: &ApiType,
-) -> Result<serde_json::Value, String> {
+) -> Result<serde_json::Value, BackendError> {
     let req = client.post(url).json(body);
     let req = add_auth_headers(req, api_key, api_type);
-    let resp = req
-        .send()
-        .await
-        .map_err(|e| format!("Request to {} failed: {}", url, e))?;
+    let resp = req.send().await.map_err(errors::network)?;
     let resp = check_response(resp).await?;
-    resp.json()
-        .await
-        .map_err(|e| format!("Parse response from {}: {}", url, e))
+    resp.json().await.map_err(errors::response)
 }
 
 /// 从非流式响应中提取 token usage（OpenAI 格式，P026: 转发 core 共享纯函数）。

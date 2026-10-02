@@ -1,5 +1,5 @@
 import i18n from './i18n';
-import { readBackendError, readLegacyObjectError } from './backendErrorWire';
+import { readBackendError, readLegacyObjectError, readLegacyLlmError } from './backendErrorWire';
 import type { BackendErrorCode } from './backendErrorWire';
 import { resolveI18nPrefix } from './utils';
 
@@ -29,7 +29,34 @@ const BACKEND_ERROR_KEYS = {
   SNAPSHOT_INVALID: 'common:backend_snapshot_invalid',
   SNAPSHOT_OWNERSHIP_MISMATCH: 'common:backend_snapshot_ownership_mismatch',
   SNAPSHOT_ROLLBACK_FAILED: 'common:rollback_failed',
+  LLM_INVALID_REQUEST: 'common:backend_llm_invalid_request',
+  LLM_PROVIDER_NOT_CONFIGURED: 'common:backend_llm_provider_not_configured',
+  LLM_PROVIDER_DISABLED: 'common:backend_llm_provider_disabled',
+  LLM_PROVIDER_NOT_REGISTERED: 'common:backend_llm_provider_not_registered',
+  LLM_CONFIRMATION_CANCELLED: 'common:backend_llm_confirmation_cancelled',
+  LLM_CONFIRMATION_TIMEOUT: 'common:backend_llm_confirmation_timeout',
+  LLM_PROVIDER_READ_FAILED: 'common:backend_llm_provider_read_failed',
+  LLM_PROVIDER_WRITE_FAILED: 'common:backend_llm_provider_write_failed',
+  LLM_NETWORK_FAILED: 'common:backend_llm_network_failed',
+  LLM_TIMEOUT: 'common:backend_llm_timeout',
+  LLM_PROVIDER_REJECTED: 'common:backend_llm_provider_rejected',
+  LLM_PROVIDER_UNAVAILABLE: 'common:backend_llm_provider_unavailable',
+  LLM_RATE_LIMITED: 'common:backend_llm_rate_limited',
+  LLM_RESPONSE_INVALID: 'common:backend_llm_response_invalid',
+  LLM_CONVERSATION_NOT_FOUND: 'common:backend_llm_conversation_not_found',
+  LLM_CONVERSATION_READ_FAILED: 'common:backend_llm_conversation_read_failed',
+  LLM_CONVERSATION_WRITE_FAILED: 'common:backend_llm_conversation_write_failed',
+  LLM_REPLY_SAVE_FAILED: 'common:backend_llm_reply_save_failed',
+  LLM_CONTEXT_READ_FAILED: 'common:backend_llm_context_read_failed',
+  LLM_USAGE_FAILED: 'common:backend_llm_usage_failed',
+  LLM_GUIDE_FAILED: 'common:backend_llm_guide_failed',
+  LLM_EMBEDDING_FAILED: 'common:backend_llm_embedding_failed',
 } satisfies Record<BackendErrorCode, string>;
+
+/** 显示层可使用当前 React 翻译器；机器码在传输与状态层保持原样。 */
+export function getBackendErrorTranslationKey(code: BackendErrorCode): string {
+  return BACKEND_ERROR_KEYS[code];
+}
 
 /** Rust 静态错误串 → i18n key 精确映射表。 */
 const RUST_ERROR_MAP: Record<string, string> = {
@@ -104,7 +131,7 @@ export function translateRustError(msg: string): string | null {
     ? BACKEND_ERROR_KEYS[msg as BackendErrorCode]
     : null;
   if (machineKey) return machineKey;
-  const legacy = readLegacyObjectError(msg);
+  const legacy = readLegacyObjectError(msg) ?? readLegacyLlmError(msg);
   if (legacy) return BACKEND_ERROR_KEYS[legacy.code];
   const key = Object.hasOwn(RUST_ERROR_MAP, msg) ? RUST_ERROR_MAP[msg] : null;
   if (key) return key;

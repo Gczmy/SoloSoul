@@ -287,9 +287,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       } else state.finishStream(identity);
     } catch (error) {
       if (!run.isCurrent()) return;
-      const message =
-        typeof error === 'string' ? error : error instanceof Error ? error.message : String(error);
-      useLlmStore.getState().finishStream(identity, message);
+      useLlmStore.getState().finishStream(identity, error);
     }
   }, [
     input,

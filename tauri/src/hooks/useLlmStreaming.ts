@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { getBackendErrorTranslationKey } from '@/lib/backendError';
 import type { TFunction } from 'i18next';
 import { useLlmStore, selectLlmStream } from '@/stores/llmStore';
 import { notifyConversationSaveFailed } from '@/lib/llm/conversationPersistence';
@@ -25,7 +26,11 @@ export function useLlmStreaming({
   useEffect(() => {
     for (const record of Object.values(streams)) {
       if (record.accountId !== accountId) continue;
-      if (useLlmStore.getState().claimPersistFailure(record)) notifyConversationSaveFailed(t);
+      if (useLlmStore.getState().claimPersistFailure(record))
+        notifyConversationSaveFailed(
+          t,
+          record.persistFailure === 'notSaved' ? 'notSaved' : 'unconfirmed',
+        );
       if (
         record.settled &&
         !record.error &&
@@ -43,7 +48,7 @@ export function useLlmStreaming({
       ? {
           ...message,
           content: stream.error
-            ? `${t('settings:ai_chat_error_prefix')}: ${stream.error}`
+            ? `${t('settings:ai_chat_error_prefix')}: ${t(getBackendErrorTranslationKey(stream.error.code))}`
             : stream.buffer,
           ...(stream.error ? { isError: true } : {}),
         }

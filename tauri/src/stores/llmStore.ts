@@ -1,4 +1,10 @@
 import { create } from 'zustand';
+import {
+  normalizeLlmError,
+  readBackendError,
+  makeBackendError,
+  type BackendError,
+} from '@/lib/backendErrorWire';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
 import { createTypedInvoker } from '@/lib/typedIpc';
@@ -11,7 +17,8 @@ export interface StreamSnapshot extends StreamIdentity {
   assistantMessageId: string;
   messages: ChatMsg[];
   buffer: string;
-  error: string | null;
+  error: BackendError | null;
+  persistFailure: 'notSaved' | 'unconfirmed' | null;
   persistFailed: boolean;
   failureNotified: boolean;
   settled: boolean;
@@ -36,7 +43,7 @@ interface LlmState {
   onChunk: (payload: LlmStreamPayload) => void;
   prepareStream: (identity: StreamIdentity, messages: ChatMsg[]) => void;
   markConversationPersisted: (identity: StreamIdentity) => void;
-  finishStream: (identity: StreamIdentity, error?: string, finalText?: string) => void;
+  finishStream: (identity: StreamIdentity, error?: unknown, finalText?: string) => void;
   markPersistFailure: (identity: StreamIdentity) => void;
   cancelStream: (identity: StreamIdentity, savedHistory?: ChatMsg[]) => void;
   clearCompleted: (identity: StreamIdentity) => void;
@@ -117,6 +124,7 @@ export const useLlmStore = create<LlmState>((set, get) => ({
           buffer: '',
           error: null,
           persistFailed: false,
+          persistFailure: null,
           failureNotified: false,
           settled: false,
           persisted: get().streams[key]?.persisted === true,
@@ -186,7 +194,8 @@ export const useLlmStore = create<LlmState>((set, get) => ({
       !Number.isSafeInteger(payload.sessionGeneration) ||
       payload.sessionGeneration < 0 ||
       typeof payload.chunk !== 'string' ||
-      typeof payload.isDone !== 'boolean'
+      typeof payload.isDone !== 'boolean' ||
+      (payload.failure !== undefined && !readBackendError(payload.failure))
     )
       return;
     const key = keyOf(payload),
@@ -197,8 +206,13 @@ export const useLlmStore = create<LlmState>((set, get) => ({
       (stream.backendGeneration !== null && stream.backendGeneration !== payload.sessionGeneration)
     )
       return;
-    const persistFailed =
-      payload.isDone && payload.error?.startsWith('__LLM_PERSIST_FAILED__') === true;
+    const failure =
+      payload.failure !== undefined
+        ? readBackendError(payload.failure)
+        : payload.error
+          ? normalizeLlmError(payload.error)
+          : null;
+    const persistFailed = payload.isDone && failure?.code === 'LLM_REPLY_SAVE_FAILED';
     set((state) => ({
       streams: {
         ...state.streams,
@@ -206,7 +220,8 @@ export const useLlmStore = create<LlmState>((set, get) => ({
           ...stream,
           backendGeneration: payload.sessionGeneration,
           buffer: stream.buffer + payload.chunk,
-          error: persistFailed ? stream.error : payload.error || stream.error,
+          error: persistFailed ? stream.error : failure || stream.error,
+          persistFailure: persistFailed ? 'notSaved' : stream.persistFailure,
           persistFailed: stream.persistFailed || persistFailed,
         },
       },
@@ -217,6 +232,8 @@ export const useLlmStore = create<LlmState>((set, get) => ({
     const key = keyOf(identity),
       stream = get().streams[key];
     if (!get().isCurrent(identity) || stream.settled) return;
+    const failure = error === undefined ? null : normalizeLlmError(error);
+    const notSaved = failure?.code === 'LLM_REPLY_SAVE_FAILED';
     set((state) => ({
       streams: {
         ...state.streams,
@@ -224,7 +241,9 @@ export const useLlmStore = create<LlmState>((set, get) => ({
           ...stream,
           buffer: finalText ?? stream.buffer,
           settled: true,
-          error: stream.persistFailed ? stream.error : error || stream.error,
+          error: stream.persistFailed || notSaved ? stream.error : failure || stream.error,
+          persistFailed: stream.persistFailed || notSaved,
+          persistFailure: notSaved ? 'notSaved' : stream.persistFailure,
         },
       },
     }));
@@ -234,7 +253,14 @@ export const useLlmStore = create<LlmState>((set, get) => ({
     if (!get().isCurrent(identity)) return;
     const key = keyOf(identity);
     set((state) => ({
-      streams: { ...state.streams, [key]: { ...state.streams[key], persistFailed: true } },
+      streams: {
+        ...state.streams,
+        [key]: {
+          ...state.streams[key],
+          persistFailed: true,
+          persistFailure: state.streams[key].persistFailure ?? 'unconfirmed',
+        },
+      },
     }));
   },
   cancelStream: (identity, savedHistory) => {
@@ -251,7 +277,7 @@ export const useLlmStore = create<LlmState>((set, get) => ({
             messages: savedHistory.map((message) => ({ ...message })),
             assistantMessageId: '',
             buffer: '',
-            error: 'Request cancelled before sending',
+            error: makeBackendError('LLM_CONVERSATION_WRITE_FAILED'),
             persisted: true,
             settled: true,
           },

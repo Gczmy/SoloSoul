@@ -19,7 +19,7 @@ fn messages() -> Vec<Value> {
     vec![json!({"role": "user", "content": USER_TEXT})]
 }
 
-fn provider(id: &str, base_url: String, api_type: ApiType) -> ProviderConfig {
+pub(super) fn provider(id: &str, base_url: String, api_type: ApiType) -> ProviderConfig {
     ProviderConfig {
         id: id.into(),
         name: "RF005 Synthetic Provider".into(),
@@ -32,7 +32,7 @@ fn provider(id: &str, base_url: String, api_type: ApiType) -> ProviderConfig {
     }
 }
 
-fn save_settings(
+pub(super) fn save_settings(
     vault: &VaultStore,
     account: &str,
     providers: Vec<ProviderConfig>,
@@ -63,7 +63,7 @@ fn save_provider(fixture: &StreamFixture, provider: ProviderConfig, key: Option<
     let keys: Vec<_> = key.map(|key| (id.as_str(), key)).into_iter().collect();
     fixture
         .context
-        .with_vault(|vault| {
+        .with_fixture_vault(|vault| {
             save_settings(
                 vault,
                 fixture.context.session.account_id(),
@@ -156,7 +156,9 @@ async fn send_gateway(
     assert_eq!(conversation.messages[1].content, "reply");
     let usage = fixture
         .context
-        .with_vault(|vault| load_stats_from_vault(vault, fixture.context.session.account_id()))
+        .with_fixture_vault(|vault| {
+            load_stats_from_vault(vault, fixture.context.session.account_id())
+        })
         .unwrap();
     assert_eq!(usage.usage_count, 6);
     STATS_MAP
@@ -168,7 +170,7 @@ async fn send_gateway(
 
 async fn reject_before_connect(
     listeners: &[&TcpListener],
-    request: impl Future<Output = Result<(), String>>,
+    request: impl Future<Output = Result<(), BackendError>>,
 ) -> String {
     tokio::pin!(request);
     let connections =
@@ -181,6 +183,7 @@ async fn reject_before_connect(
         },
         _ = tokio::time::sleep(Duration::from_secs(10)) => panic!("Provider gateway rejection timed out"),
     };
+    let error = serde_json::to_string(&error).unwrap();
     assert!(!error.is_empty());
     assert!(!error.contains(KEY_A));
     assert!(!error.contains(KEY_B));
@@ -270,7 +273,7 @@ async fn rf005_saved_provider_controls_openai_and_anthropic_url_model_and_auth()
         decoy.model = "rf005-decoy-model".into();
         fixture
             .context
-            .with_vault(|vault| {
+            .with_fixture_vault(|vault| {
                 save_settings(
                     vault,
                     fixture.context.session.account_id(),
@@ -347,7 +350,7 @@ async fn rf005_unknown_and_disabled_provider_ids_never_fall_back_to_active_provi
         selected.is_enabled = !disabled;
         fixture
             .context
-            .with_vault(|vault| {
+            .with_fixture_vault(|vault| {
                 save_settings(
                     vault,
                     fixture.context.session.account_id(),
@@ -419,7 +422,7 @@ async fn rf005_invalid_saved_profile_configuration_or_key_map_is_rejected() {
         );
         fixture
             .context
-            .with_vault(|vault| {
+            .with_fixture_vault(|vault| {
                 let account = fixture.context.session.account_id();
                 let mut profile = vault.load_profile(account)?.unwrap();
                 if corrupt_kind == "profile-json" {
@@ -456,7 +459,7 @@ async fn rf005_profile_storage_failure_is_not_treated_as_missing_configuration()
     );
     fixture
         .context
-        .with_vault(|vault| {
+        .with_fixture_vault(|vault| {
             let connection = rusqlite::Connection::open(vault.base_path().join("vault.db"))
                 .map_err(|error| error.to_string())?;
             connection
@@ -599,21 +602,21 @@ fn rf905_stream_short_callback_rejects_existing_maintenance_without_updating_ori
         solosoul_core::import_activity::begin_owned_root_maintenance(original.root_owner())
             .unwrap();
     let called = std::sync::atomic::AtomicBool::new(false);
-    let result = context.with_vault(|vault| {
+    let result = context.with_fixture_vault(|vault| {
         called.store(true, std::sync::atomic::Ordering::SeqCst);
         vault.update_profile_prefs(account, |prefs| {
             prefs.insert("rf905-write".into(), json!("must not be written"));
             Ok(())
         })
     });
-    assert_eq!(result.err().as_deref(), Some("IMPORT_DIRECTORY_BUSY"));
+    assert_eq!(result.unwrap_err().code, Code::VaultBusy);
     assert!(!called.load(std::sync::atomic::Ordering::SeqCst));
     let after = original.load_profile(account).unwrap().unwrap();
     assert_eq!(after.data, before.data);
     assert_eq!(after.version, before.version);
     drop(maintenance);
     context
-        .with_vault(|vault| {
+        .with_fixture_vault(|vault| {
             vault.update_profile_prefs(account, |prefs| {
                 prefs.insert("rf905-write".into(), json!("accepted after maintenance"));
                 Ok(())

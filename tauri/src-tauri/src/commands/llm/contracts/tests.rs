@@ -17,6 +17,7 @@ fn rf303_event_identity_and_nullable_error_are_serialized_exactly() {
         chunk: "最后一段正文".into(),
         is_done: true,
         error: None,
+        failure: None,
     };
     let complete = serde_json::to_value(&payload).unwrap();
     assert_eq!(complete, fixture()["complete"]);
@@ -43,6 +44,7 @@ fn rf303_done_is_not_a_persistence_success_or_an_upstream_failure() {
             chunk: String::new(),
             is_done,
             error: Some(error.into()),
+            failure: None,
         };
         assert_eq!(serde_json::to_value(payload).unwrap(), data[key]);
     }
@@ -99,4 +101,51 @@ fn rf303_context_variants_keep_the_existing_camel_case_wire_shape() {
         assert!(serde_json::from_value::<ChatContextSelection>(incomplete).is_err());
     }
     assert!(serde_json::from_value::<ChatContextSelection>(json!({"mode":"unknown"})).is_err());
+}
+
+#[test]
+fn rf317_typed_failure_fixture_and_optional_event_package_match_actual_serde() {
+    use crate::commands::error::{
+        BackendError, BackendErrorCode as Code, BackendErrorStage as Stage,
+    };
+    let fixtures: Value = serde_json::from_str(include_str!("rf317-fixtures.json")).unwrap();
+    for (key, code, stage) in [
+        ("network", Code::LlmNetworkFailed, Stage::Task),
+        ("timeout", Code::LlmTimeout, Stage::Task),
+        ("rejected", Code::LlmProviderRejected, Stage::Read),
+        ("unavailable", Code::LlmProviderUnavailable, Stage::Read),
+        ("rateLimited", Code::LlmRateLimited, Stage::Read),
+        (
+            "providerMissing",
+            Code::LlmProviderNotConfigured,
+            Stage::Read,
+        ),
+        ("providerDisabled", Code::LlmProviderDisabled, Stage::Read),
+        ("expired", Code::SessionExpired, Stage::Read),
+        ("replySaveFailed", Code::LlmReplySaveFailed, Stage::Write),
+        (
+            "conversationReadFailed",
+            Code::LlmConversationReadFailed,
+            Stage::Read,
+        ),
+    ] {
+        assert_eq!(
+            serde_json::to_value(BackendError::new(code).at(stage)).unwrap(),
+            fixtures[key]
+        );
+    }
+    let payload = LlmStreamPayload {
+        account_id: "synthetic-account".into(),
+        session_generation: 42,
+        conversation_id: "synthetic-conversation".into(),
+        request_id: "synthetic-request".into(),
+        chunk: String::new(),
+        is_done: true,
+        error: Some("__LLM_PERSIST_FAILED__: LLM_REPLY_SAVE_FAILED".into()),
+        failure: Some(BackendError::new(Code::LlmReplySaveFailed).at(Stage::Write)),
+    };
+    assert_eq!(
+        serde_json::to_value(payload).unwrap()["failure"],
+        fixtures["replySaveFailed"]
+    );
 }

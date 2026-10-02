@@ -28,6 +28,28 @@ const CODES = {
   SNAPSHOT_INVALID: true,
   SNAPSHOT_OWNERSHIP_MISMATCH: true,
   SNAPSHOT_ROLLBACK_FAILED: true,
+  LLM_INVALID_REQUEST: true,
+  LLM_PROVIDER_NOT_CONFIGURED: true,
+  LLM_PROVIDER_DISABLED: true,
+  LLM_PROVIDER_NOT_REGISTERED: true,
+  LLM_CONFIRMATION_CANCELLED: true,
+  LLM_CONFIRMATION_TIMEOUT: true,
+  LLM_PROVIDER_READ_FAILED: true,
+  LLM_PROVIDER_WRITE_FAILED: true,
+  LLM_NETWORK_FAILED: true,
+  LLM_TIMEOUT: true,
+  LLM_PROVIDER_REJECTED: true,
+  LLM_PROVIDER_UNAVAILABLE: true,
+  LLM_RATE_LIMITED: true,
+  LLM_RESPONSE_INVALID: true,
+  LLM_CONVERSATION_NOT_FOUND: true,
+  LLM_CONVERSATION_READ_FAILED: true,
+  LLM_CONVERSATION_WRITE_FAILED: true,
+  LLM_REPLY_SAVE_FAILED: true,
+  LLM_CONTEXT_READ_FAILED: true,
+  LLM_USAGE_FAILED: true,
+  LLM_GUIDE_FAILED: true,
+  LLM_EMBEDDING_FAILED: true,
 } satisfies Record<BackendErrorCode, true>;
 const STAGES = {
   validate: true,
@@ -122,7 +144,13 @@ export function makeBackendError(code: BackendErrorCode): BackendError {
       code === 'VAULT_BUSY' ||
       code === 'OBJECT_READ_FAILED' ||
       code === 'OBJECT_TEMPLATE_READ_FAILED' ||
-      code === 'SNAPSHOT_READ_FAILED',
+      code === 'SNAPSHOT_READ_FAILED' ||
+      code === 'LLM_NETWORK_FAILED' ||
+      code === 'LLM_TIMEOUT' ||
+      code === 'LLM_PROVIDER_UNAVAILABLE' ||
+      code === 'LLM_RATE_LIMITED' ||
+      code === 'LLM_PROVIDER_READ_FAILED' ||
+      code === 'LLM_CONVERSATION_READ_FAILED',
   };
 }
 /** 仅供旧对象 Host 兼容；新 Host 已知失败由业务阶段直接编码。 */
@@ -157,4 +185,87 @@ export class BackendCommandError extends Error {
 /** 错误日志不保留自由文本，旧域也不能把密码/路径从 IPC catch 写到控制台。 */
 export function backendErrorLogDetails(value: unknown): BackendError | { code: 'LEGACY_ERROR' } {
   return readBackendError(value) ?? readLegacyObjectError(value) ?? { code: 'LEGACY_ERROR' };
+}
+
+/** RF-317：新 Host 仅使用结构化包；文本判定仅供旧版本兼容。 */
+export const LLM_ERROR_COMMANDS = [
+  'llm_get_config',
+  'llm_get_providers',
+  'llm_save_provider',
+  'llm_set_active_provider',
+  'llm_set_ai_features',
+  'llm_set_system_prompt_switch',
+  'llm_set_local_embedding',
+  'llm_accept_risk',
+  'llm_get_api_key',
+  'llm_delete_provider',
+  'llm_check_connection',
+  'llm_test_provider',
+  'llm_list_conversations',
+  'llm_list_trash',
+  'llm_get_conversation',
+  'llm_save_conversation',
+  'llm_soft_delete_conversation',
+  'llm_restore_conversation',
+  'llm_permanent_delete',
+  'llm_rename_conversation',
+  'llm_get_stats',
+  'llm_reset_stats',
+  'llm_send_message_stream',
+  'llm_search_guide_chunks',
+  'llm_rebuild_guide_embeddings',
+  'llm_check_embedding_available',
+] as const satisfies ReadonlyArray<keyof IpcCommandErrors>;
+export function isLlmErrorCommand(command: string): boolean {
+  return (LLM_ERROR_COMMANDS as readonly string[]).includes(command);
+}
+const LEGACY_LLM_CODES: Record<string, BackendErrorCode> = {
+  'No active provider configured': 'LLM_PROVIDER_NOT_CONFIGURED',
+  'No active provider': 'LLM_PROVIDER_NOT_CONFIGURED',
+  'Active provider not found': 'LLM_PROVIDER_NOT_CONFIGURED',
+  'Chat provider is not saved': 'LLM_PROVIDER_NOT_CONFIGURED',
+  'Chat provider configuration is missing': 'LLM_PROVIDER_NOT_CONFIGURED',
+  'Chat provider is disabled': 'LLM_PROVIDER_DISABLED',
+  'Provider is disabled': 'LLM_PROVIDER_DISABLED',
+  'Failed to load chat provider configuration': 'LLM_PROVIDER_READ_FAILED',
+  'Invalid chat provider configuration': 'LLM_PROVIDER_READ_FAILED',
+  'Invalid chat provider credentials': 'LLM_PROVIDER_READ_FAILED',
+  'Not found': 'LLM_CONVERSATION_NOT_FOUND',
+  'No text in Anthropic response': 'LLM_RESPONSE_INVALID',
+  'No content in OpenAI response': 'LLM_RESPONSE_INVALID',
+  登记确认等待超时: 'LLM_CONFIRMATION_TIMEOUT',
+  登记确认对话框未响应: 'LLM_CONFIRMATION_TIMEOUT',
+  '已取消 AI Provider 登记': 'LLM_CONFIRMATION_CANCELLED',
+};
+export function readLegacyLlmError(value: unknown): BackendError | null {
+  const raw = value instanceof Error ? value.message : typeof value === 'string' ? value : null;
+  if (raw === null) return null;
+  if (Object.hasOwn(CODES, raw)) return makeBackendError(raw as BackendErrorCode);
+  const code = Object.hasOwn(LEGACY_LLM_CODES, raw) ? LEGACY_LLM_CODES[raw] : null;
+  if (code) return makeBackendError(code);
+  if (raw.startsWith('__LLM_PERSIST_FAILED__')) return makeBackendError('LLM_REPLY_SAVE_FAILED');
+  const status = /^HTTP (\d{3})(?:\b|:)/.exec(raw)?.[1];
+  if (status)
+    return makeBackendError(
+      status === '429'
+        ? 'LLM_RATE_LIMITED'
+        : status.startsWith('5')
+          ? 'LLM_PROVIDER_UNAVAILABLE'
+          : 'LLM_PROVIDER_REJECTED',
+    );
+  if (/^(?:Request to |Stream error: |Client: )/.test(raw))
+    return makeBackendError('LLM_NETWORK_FAILED');
+  if (/^(?:Parse response from |Parse: )/.test(raw))
+    return makeBackendError('LLM_RESPONSE_INVALID');
+  if (raw.startsWith('base_url 未在当前账户登记'))
+    return makeBackendError('LLM_PROVIDER_NOT_REGISTERED');
+  return null;
+}
+export function normalizeLlmError(value: unknown): BackendError {
+  return (
+    readBackendError(value) ??
+    readLegacyObjectError(value) ??
+    readLegacyLlmError(value) ??
+    makeBackendError('INTERNAL_ERROR')
+  );
 }

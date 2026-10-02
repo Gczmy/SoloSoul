@@ -176,7 +176,7 @@ describe('llmStore request ownership', () => {
     });
     expect(snapshot(owner)).toMatchObject({
       settled: true,
-      error: 'Error: Tauri event error',
+      error: { code: 'INTERNAL_ERROR', safeDetails: null, retryable: false },
       buffer: '',
     });
     expect(isConversationBusy(useLlmStore.getState(), accountId, owner.conversationId)).toBe(false);
@@ -241,7 +241,7 @@ describe('llmStore request ownership', () => {
     useLlmStore.getState().onChunk(chunk(owner, { error: 'HTTP 500: upstream error' }));
     expect(snapshot(owner)).toMatchObject({
       buffer: 'Partial',
-      error: 'HTTP 500: upstream error',
+      error: { code: 'LLM_PROVIDER_UNAVAILABLE', safeDetails: null, retryable: true },
       persistFailed: false,
       settled: false,
     });
