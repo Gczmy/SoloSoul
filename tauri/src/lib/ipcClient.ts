@@ -29,6 +29,8 @@ import {
   isObjectErrorCommand,
   isLlmErrorCommand,
   isTransferErrorCommand,
+  isSyncErrorCommand,
+  normalizeSyncCommandError,
   normalizeTransferError,
   normalizeLlmError,
   makeBackendError,
@@ -180,7 +182,10 @@ export async function invokeCommand<T>(
     }
     if (!isAuthenticated) {
       const err =
-        isObjectErrorCommand(cmd) || isLlmErrorCommand(cmd) || isTransferErrorCommand(cmd)
+        isObjectErrorCommand(cmd) ||
+        isLlmErrorCommand(cmd) ||
+        isTransferErrorCommand(cmd) ||
+        isSyncErrorCommand(cmd)
           ? new BackendCommandError(makeBackendError('VAULT_LOCKED'))
           : new Error('No account is currently unlocked');
       devWarn(`[ipc] '${cmd}' blocked: vault not unlocked`);
@@ -188,7 +193,10 @@ export async function invokeCommand<T>(
     }
   }
   if (opts?.requestIsCurrent && !opts.requestIsCurrent()) {
-    throw isObjectErrorCommand(cmd) || isLlmErrorCommand(cmd) || isTransferErrorCommand(cmd)
+    throw isObjectErrorCommand(cmd) ||
+      isLlmErrorCommand(cmd) ||
+      isTransferErrorCommand(cmd) ||
+      isSyncErrorCommand(cmd)
       ? new BackendCommandError(makeBackendError('SESSION_EXPIRED'))
       : new Error('Request belongs to an expired session');
   }
@@ -201,6 +209,7 @@ export async function invokeCommand<T>(
     return await invoke<T>(cmd, args);
   } catch (err) {
     devWarn(`[ipc] command '${cmd}' failed:`, backendErrorLogDetails(err));
+    if (isSyncErrorCommand(cmd)) throw new BackendCommandError(normalizeSyncCommandError(cmd, err));
     if (isLlmErrorCommand(cmd)) throw new BackendCommandError(normalizeLlmError(err));
     if (isTransferErrorCommand(cmd)) throw new BackendCommandError(normalizeTransferError(err));
     if (readBackendError(err) || isObjectErrorCommand(cmd))

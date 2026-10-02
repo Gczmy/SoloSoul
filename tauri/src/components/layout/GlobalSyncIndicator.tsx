@@ -6,6 +6,8 @@ import { useUiStore } from '@/stores/uiStore';
 import { useSyncStore } from '@/stores/syncStore';
 import { Loader2, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 import { ICON_SIZE, SAFE_AREA_TOP } from '@/lib/constants';
+import { normalizeSyncError } from '@/lib/backendErrorWire';
+import { resolveBackendErrorMessage } from '@/lib/backendError';
 
 interface SyncProgressPayload {
   phase: string;
@@ -78,7 +80,9 @@ export function GlobalSyncIndicator() {
         }, AUTO_HIDE_MS);
       } else if (phase === 'error') {
         setSafSyncState('error');
-        setSafSyncError(message ?? t('common:error'));
+        setSafSyncError(
+          resolveBackendErrorMessage(normalizeSyncError(message, 'SYNC_WRITE_FAILED')),
+        );
         if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
         hideTimeoutRef.current = setTimeout(() => {
           setSafSyncState('idle');

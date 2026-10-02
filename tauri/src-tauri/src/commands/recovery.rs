@@ -4,9 +4,11 @@
 //! 加密通道传送给新设备；新设备创建同名账户后导入数据，从而保证
 //! `account_id` 一致，后续可直接使用 Device Sync。
 
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
 use crate::state::AppState;
 use crate::sync::contracts::RecoveryProgress;
 pub use crate::sync::contracts::{ImportResultSummary, RecoveryHostInfo};
+use crate::sync::errors;
 use solosoul_core::export_import::export::{
     execute_encrypted_export, EncryptedExportRequest, EncryptedExportScope,
 };
@@ -36,81 +38,85 @@ fn get_current_account_name(state: &AppState, account_id: &str) -> Result<String
 pub async fn recovery_host_start(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
-) -> Result<RecoveryHostInfo, String> {
-    let account_id = crate::commands::current_account_optional(&state)
-        .ok_or("No account is currently unlocked")?;
-    let account_name = get_current_account_name(&state, &account_id)?;
+) -> Result<RecoveryHostInfo, BackendError> {
+    let result: Result<RecoveryHostInfo, String> = async {
+        let account_id = crate::commands::current_account_optional(&state)
+            .ok_or("No account is currently unlocked")?;
+        let account_name = get_current_account_name(&state, &account_id)?;
 
-    // P015: IPC/生成边界立即 Zeroizing 包装——恢复密码在主机会话期（最长 5 分钟）
-    // 驻留内存，普通 String 可被内存转储/交换分区还原，进而解密已导出的备份包。
-    let recovery_password = zeroize::Zeroizing::new(generate_recovery_password());
+        // P015: IPC/生成边界立即 Zeroizing 包装——恢复密码在主机会话期（最长 5 分钟）
+        // 驻留内存，普通 String 可被内存转储/交换分区还原，进而解密已导出的备份包。
+        let recovery_password = zeroize::Zeroizing::new(generate_recovery_password());
 
-    // 恢复包的位置由后端生成，走内部导出核心；用户导出 IPC 仍执行目录白名单校验。
-    let export_file = {
-        let svc = state
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        export_recovery_package(&svc, &account_id, &recovery_password)?
-    };
-    let export_path = export_file.to_path_buf();
+        // 恢复包的位置由后端生成，走内部导出核心；用户导出 IPC 仍执行目录白名单校验。
+        let export_file = {
+            let svc = state
+                .vault_service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            export_recovery_package(&svc, &account_id, &recovery_password)?
+        };
+        let export_path = export_file.to_path_buf();
 
-    // 取消并清理之前可能残留的主机（在锁外 join，避免阻塞）
-    cancel_and_cleanup_old_host(&state)?;
+        // 取消并清理之前可能残留的主机（在锁外 join，避免阻塞）
+        cancel_and_cleanup_old_host(&state)?;
 
-    // 启动新的恢复主机（监听所有接口）
-    let host = RecoveryHost::start(
-        "0.0.0.0:0",
-        export_path.clone(),
-        recovery_password,
-        account_id.clone(),
-        account_name.clone(),
-    )?;
-    let info = host.connection_info();
-    let host_cancel = Arc::new(AtomicBool::new(false));
-    let host_cancel_for_thread = host_cancel.clone();
+        // 启动新的恢复主机（监听所有接口）
+        let host = RecoveryHost::start(
+            "0.0.0.0:0",
+            export_path.clone(),
+            recovery_password,
+            account_id.clone(),
+            account_name.clone(),
+        )?;
+        let info = host.connection_info();
+        let host_cancel = Arc::new(AtomicBool::new(false));
+        let host_cancel_for_thread = host_cancel.clone();
 
-    // 注册恢复主机的 mDNS 广告，让局域网内的新设备能自动发现本机
-    #[cfg(desktop)]
-    let mdns_instance_name =
-        advertise_recovery_mdns(&app, &info.fingerprint, &info.display_addr).await?;
-    #[cfg(not(desktop))]
-    let mdns_instance_name: Option<String> = None;
+        // 注册恢复主机的 mDNS 广告，让局域网内的新设备能自动发现本机
+        #[cfg(desktop)]
+        let mdns_instance_name =
+            advertise_recovery_mdns(&app, &info.fingerprint, &info.display_addr).await?;
+        #[cfg(not(desktop))]
+        let mdns_instance_name: Option<String> = None;
 
-    {
-        let mut rec = state.recovery_state.lock().map_err(|e| e.to_string())?;
-        let thread = std::thread::spawn(move || {
-            if let Err(e) = host.run(host_cancel_for_thread) {
-                tracing::warn!("Recovery host session ended: {}", e);
-            }
-            // TempPath 由会话持有；正常结束、取消及线程退栈时均会删除临时包。
-            drop(export_file);
-        });
-        rec.host_cancel = host_cancel;
-        rec.host_thread = Some(thread);
-        rec.export_path = Some(export_path);
-        rec.mdns_instance_name = mdns_instance_name;
+        {
+            let mut rec = state.recovery_state.lock().map_err(|e| e.to_string())?;
+            let thread = std::thread::spawn(move || {
+                if let Err(e) = host.run(host_cancel_for_thread) {
+                    let _ = BackendError::caused_by(Code::SyncRecoveryFailed, Stage::Task, e);
+                }
+                // TempPath 由会话持有；正常结束、取消及线程退栈时均会删除临时包。
+                drop(export_file);
+            });
+            rec.host_cancel = host_cancel;
+            rec.host_thread = Some(thread);
+            rec.export_path = Some(export_path);
+            rec.mdns_instance_name = mdns_instance_name;
+        }
+
+        let qr_payload = serde_json::json!({
+            "t": "rec",
+            "a": info.display_addr,
+            "p": info.pin,
+            "n": info.nonce.clone(),
+            "f": info.fingerprint.clone(),
+            "u": account_id.clone(),
+            "m": account_name.clone()
+        })
+        .to_string();
+
+        Ok(RecoveryHostInfo {
+            display_addr: info.display_addr,
+            bind_addr: info.bind_addr,
+            pin: info.pin,
+            nonce: info.nonce,
+            fingerprint: info.fingerprint,
+            qr_payload,
+        })
     }
-
-    let qr_payload = serde_json::json!({
-        "t": "rec",
-        "a": info.display_addr,
-        "p": info.pin,
-        "n": info.nonce.clone(),
-        "f": info.fingerprint.clone(),
-        "u": account_id.clone(),
-        "m": account_name.clone()
-    })
-    .to_string();
-
-    Ok(RecoveryHostInfo {
-        display_addr: info.display_addr,
-        bind_addr: info.bind_addr,
-        pin: info.pin,
-        nonce: info.nonce,
-        fingerprint: info.fingerprint,
-        qr_payload,
-    })
+    .await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncRecoveryFailed, Stage::Task, cause))
 }
 
 /// 创建仅供恢复传输使用的加密临时包，不接收前端传入的输出路径。
@@ -182,7 +188,7 @@ async fn advertise_recovery_mdns(
             fingerprint,
             display_addr,
         ) {
-            tracing::warn!("Recovery mDNS advertise failed (non-fatal): {}", e);
+            let _ = BackendError::caused_by(Code::SyncDiscoveryFailed, Stage::Discovery, e);
             Ok(None)
         } else {
             Ok(Some(instance_name))
@@ -203,46 +209,50 @@ async fn advertise_recovery_mdns(
 
 /// 取消当前正在运行的恢复主机。
 #[tauri::command]
-pub async fn recovery_host_cancel(state: State<'_, AppState>) -> Result<(), String> {
-    let (thread, path, mdns_name) = {
-        let mut rec = state.recovery_state.lock().map_err(|e| e.to_string())?;
-        rec.host_cancel.store(true, Ordering::SeqCst);
-        (
-            rec.host_thread.take(),
-            rec.export_path.take(),
-            rec.mdns_instance_name.take(),
-        )
-    };
+pub async fn recovery_host_cancel(state: State<'_, AppState>) -> Result<(), BackendError> {
+    let result: Result<(), String> = async {
+        let (thread, path, mdns_name) = {
+            let mut rec = state.recovery_state.lock().map_err(|e| e.to_string())?;
+            rec.host_cancel.store(true, Ordering::SeqCst);
+            (
+                rec.host_thread.take(),
+                rec.export_path.take(),
+                rec.mdns_instance_name.take(),
+            )
+        };
 
-    // 取消 mDNS 广告
-    if let Some(instance_name) = mdns_name {
-        #[cfg(desktop)]
-        {
-            use tauri::Manager;
-            if let Some(daemon_state) = state
-                .handle
-                .try_state::<crate::commands::discovery::SharedDaemon>()
+        // 取消 mDNS 广告
+        if let Some(instance_name) = mdns_name {
+            #[cfg(desktop)]
             {
-                if let Ok(daemon_arc) = daemon_state.get().await {
-                    let guard = daemon_arc.lock().await;
-                    if let Some(daemon) = guard.as_ref() {
-                        let _ = crate::commands::discovery::recovery_stop_advertise(
-                            daemon,
-                            &instance_name,
-                        );
+                use tauri::Manager;
+                if let Some(daemon_state) = state
+                    .handle
+                    .try_state::<crate::commands::discovery::SharedDaemon>()
+                {
+                    if let Ok(daemon_arc) = daemon_state.get().await {
+                        let guard = daemon_arc.lock().await;
+                        if let Some(daemon) = guard.as_ref() {
+                            let _ = crate::commands::discovery::recovery_stop_advertise(
+                                daemon,
+                                &instance_name,
+                            );
+                        }
                     }
                 }
             }
         }
-    }
 
-    if let Some(thread) = thread {
-        let _ = thread.join();
+        if let Some(thread) = thread {
+            let _ = thread.join();
+        }
+        if let Some(path) = path {
+            let _ = std::fs::remove_file(&path);
+        }
+        Ok(())
     }
-    if let Some(path) = path {
-        let _ = std::fs::remove_file(&path);
-    }
-    Ok(())
+    .await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncTaskUnconfirmed, Stage::Task, cause))
 }
 
 /// 创建同身份账户并导入恢复包；旧覆盖参数保留。
@@ -260,98 +270,103 @@ pub async fn recovery_restore_from_host(
     nonce: Option<String>,
     password_hint: Option<String>,
     overwrite: Option<bool>,
-) -> Result<ImportResultSummary, String> {
-    let master_password = zeroize::Zeroizing::new(master_password);
-    if master_password.len() < 8 {
-        return Err("Password must be at least 8 characters".to_string());
-    }
-    validate_recovery_connection(&host_addr, &pin)?;
-    let download = download_recovery_package(
-        &app,
-        &host_addr,
-        &pin,
-        fingerprint.as_deref(),
-        nonce.as_deref(),
-    )
-    .await?;
-    let operation_id = uuid::Uuid::new_v4().to_string();
-    let account_id = download.account_id.clone();
-    let account_name = download.account_name.clone();
-    let downloaded_path = download.downloaded_path.clone();
-    let service = state.vault_service.clone();
-    let (owner, maintenance) = {
-        let svc = service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        let owner = svc.root_owner();
-        // 覆盖参数可能触发删除；即使当前尚无此账户，也先关闭检查后的创建竞态。
-        let maintenance = if overwrite.unwrap_or(false) {
-            let maintenance = solosoul_core::import_activity::begin_owned_root_maintenance(
-                std::sync::Arc::clone(&owner),
-            )?;
-            solosoul_core::import_activity::ensure_imports_idle(
-                owner.root(),
-                Some(&download.account_id),
-            )?;
-            Some(maintenance)
-        } else {
-            None
-        };
-        (owner, maintenance)
-    };
-    if maintenance.is_some() {
-        state.sync_service.disable_and_wait().await?;
-    }
-    let app_for_worker = app.clone();
-    let operation_for_worker = operation_id.clone();
-    let worker = tokio::task::spawn_blocking(move || {
-        let svc = service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
-            return Err("VAULT_ROOT_MISMATCH".to_string());
+) -> Result<ImportResultSummary, BackendError> {
+    let result: Result<ImportResultSummary, String> = async {
+        let master_password = zeroize::Zeroizing::new(master_password);
+        if master_password.len() < 8 {
+            return Err("Password must be at least 8 characters".to_string());
         }
-        create_recovery_account_with_maintenance(
-            &svc,
-            &download.account_id,
-            &download.account_name,
-            &master_password,
-            password_hint.as_deref(),
-            overwrite,
-            &|phase, percent| emit_recovery_progress(&app_for_worker, phase, percent),
-            maintenance,
-        )?;
-        // 创建已建立解锁会话；后续准备/提交始终绑定此令牌，不重新捕获当前账户。
-        let session = svc.capture_session(&download.account_id)?;
-        let outcome = import_downloaded_recovery_for_session(
-            &svc,
-            &session,
-            &download.account_id,
-            download.downloaded_path,
-            download.recovery_password,
-            &operation_for_worker,
-            Some(recovery_import_progress(
-                app_for_worker,
-                operation_for_worker.clone(),
-            )),
-        )?;
-        Ok::<_, String>((session, outcome))
-    })
-    .await
-    .map_err(|_| "Recovery task failed".to_string())?;
-    // worker panic/Err 提交状态未知；也不能回滚删除已创建的账户。
-    let (session, outcome) = worker?;
-    if let Ok(svc) = state.vault_service.read() {
-        notify_recovery_complete(&svc, &session, &outcome, || {
-            state.auto_sync.trigger_debounce()
-        });
+        validate_recovery_connection(&host_addr, &pin)
+            .map_err(|cause| format!("__SYNC_ERR__:recovery_invalid:{cause}"))?;
+        let download = download_recovery_package(
+            &app,
+            &host_addr,
+            &pin,
+            fingerprint.as_deref(),
+            nonce.as_deref(),
+        )
+        .await?;
+        let operation_id = uuid::Uuid::new_v4().to_string();
+        let account_id = download.account_id.clone();
+        let account_name = download.account_name.clone();
+        let downloaded_path = download.downloaded_path.clone();
+        let service = state.vault_service.clone();
+        let (owner, maintenance) = {
+            let svc = service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            let owner = svc.root_owner();
+            // 覆盖参数可能触发删除；即使当前尚无此账户，也先关闭检查后的创建竞态。
+            let maintenance = if overwrite.unwrap_or(false) {
+                let maintenance = solosoul_core::import_activity::begin_owned_root_maintenance(
+                    std::sync::Arc::clone(&owner),
+                )?;
+                solosoul_core::import_activity::ensure_imports_idle(
+                    owner.root(),
+                    Some(&download.account_id),
+                )?;
+                Some(maintenance)
+            } else {
+                None
+            };
+            (owner, maintenance)
+        };
+        if maintenance.is_some() {
+            state.sync_service.disable_and_wait().await?;
+        }
+        let app_for_worker = app.clone();
+        let operation_for_worker = operation_id.clone();
+        let worker = tokio::task::spawn_blocking(move || {
+            let svc = service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
+                return Err("VAULT_ROOT_MISMATCH".to_string());
+            }
+            create_recovery_account_with_maintenance(
+                &svc,
+                &download.account_id,
+                &download.account_name,
+                &master_password,
+                password_hint.as_deref(),
+                overwrite,
+                &|phase, percent| emit_recovery_progress(&app_for_worker, phase, percent),
+                maintenance,
+            )?;
+            // 创建已建立解锁会话；后续准备/提交始终绑定此令牌，不重新捕获当前账户。
+            let session = svc.capture_session(&download.account_id)?;
+            let outcome = import_downloaded_recovery_for_session(
+                &svc,
+                &session,
+                &download.account_id,
+                download.downloaded_path,
+                download.recovery_password,
+                &operation_for_worker,
+                Some(recovery_import_progress(
+                    app_for_worker,
+                    operation_for_worker.clone(),
+                )),
+            )?;
+            Ok::<_, String>((session, outcome))
+        })
+        .await
+        .map_err(|_| "Recovery task failed".to_string())?;
+        // worker panic/Err 提交状态未知；也不能回滚删除已创建的账户。
+        let (session, outcome) = worker?;
+        if let Ok(svc) = state.vault_service.read() {
+            notify_recovery_complete(&svc, &session, &outcome, || {
+                state.auto_sync.trigger_debounce()
+            });
+        }
+        finish_recovery_download(&app, &outcome, &downloaded_path);
+        Ok(ImportResultSummary {
+            outcome,
+            account_id,
+            account_name,
+        })
     }
-    finish_recovery_download(&app, &outcome, &downloaded_path);
-    Ok(ImportResultSummary {
-        outcome,
-        account_id,
-        account_name,
-    })
+    .await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncRecoveryFailed, Stage::Task, cause))
 }
 
 /// 从新的已认证恢复主机会话 Fresh 导入到原账户；无创建、覆盖或重设密码分支。
@@ -365,59 +380,64 @@ pub async fn recovery_restore_existing_from_host(
     pin: String,
     fingerprint: Option<String>,
     nonce: Option<String>,
-) -> Result<ImportResultSummary, String> {
-    validate_recovery_connection(&host_addr, &pin)?;
-    let session = {
-        let svc = state
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        svc.capture_session(&account_id)?
-    };
-    let download = download_recovery_package(
-        &app,
-        &host_addr,
-        &pin,
-        fingerprint.as_deref(),
-        nonce.as_deref(),
-    )
-    .await?;
-    let account_name = download.account_name.clone();
-    let downloaded_path = download.downloaded_path.clone();
-    let original_session = session.clone();
-    let service = state.vault_service.clone();
-    let operation_id = uuid::Uuid::new_v4().to_string();
-    let app_for_worker = app.clone();
-    let outcome = tokio::task::spawn_blocking(move || {
-        let svc = service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        import_downloaded_recovery_for_session(
-            &svc,
-            &original_session,
-            &download.account_id,
-            download.downloaded_path,
-            download.recovery_password,
-            &operation_id,
-            Some(recovery_import_progress(
-                app_for_worker,
-                operation_id.clone(),
-            )),
+) -> Result<ImportResultSummary, BackendError> {
+    let result: Result<ImportResultSummary, String> = async {
+        validate_recovery_connection(&host_addr, &pin)
+            .map_err(|cause| format!("__SYNC_ERR__:recovery_invalid:{cause}"))?;
+        let session = {
+            let svc = state
+                .vault_service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            svc.capture_session(&account_id)?
+        };
+        let download = download_recovery_package(
+            &app,
+            &host_addr,
+            &pin,
+            fingerprint.as_deref(),
+            nonce.as_deref(),
         )
-    })
-    .await
-    .map_err(|_| "Recovery task failed".to_string())??;
-    if let Ok(svc) = state.vault_service.read() {
-        notify_recovery_complete(&svc, &session, &outcome, || {
-            state.auto_sync.trigger_debounce()
-        });
+        .await?;
+        let account_name = download.account_name.clone();
+        let downloaded_path = download.downloaded_path.clone();
+        let original_session = session.clone();
+        let service = state.vault_service.clone();
+        let operation_id = uuid::Uuid::new_v4().to_string();
+        let app_for_worker = app.clone();
+        let outcome = tokio::task::spawn_blocking(move || {
+            let svc = service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            import_downloaded_recovery_for_session(
+                &svc,
+                &original_session,
+                &download.account_id,
+                download.downloaded_path,
+                download.recovery_password,
+                &operation_id,
+                Some(recovery_import_progress(
+                    app_for_worker,
+                    operation_id.clone(),
+                )),
+            )
+        })
+        .await
+        .map_err(|_| "Recovery task failed".to_string())??;
+        if let Ok(svc) = state.vault_service.read() {
+            notify_recovery_complete(&svc, &session, &outcome, || {
+                state.auto_sync.trigger_debounce()
+            });
+        }
+        finish_recovery_download(&app, &outcome, &downloaded_path);
+        Ok(ImportResultSummary {
+            outcome,
+            account_id,
+            account_name,
+        })
     }
-    finish_recovery_download(&app, &outcome, &downloaded_path);
-    Ok(ImportResultSummary {
-        outcome,
-        account_id,
-        account_name,
-    })
+    .await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncRecoveryFailed, Stage::Task, cause))
 }
 
 fn validate_recovery_connection(host_addr: &str, pin: &str) -> Result<(), String> {

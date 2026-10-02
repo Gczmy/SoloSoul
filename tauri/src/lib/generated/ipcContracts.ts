@@ -129,7 +129,32 @@ export type BackendErrorCode =
   | 'IMPORT_OPERATION_ABANDONED'
   | 'IMPORT_OPERATION_CONFLICT'
   | 'IMPORT_READ_FAILED'
-  | 'IMPORT_FAILED';
+  | 'IMPORT_FAILED'
+  | 'SYNC_NOT_ENABLED'
+  | 'SYNC_NOT_RUNNING'
+  | 'SYNC_INVALID_ADDRESS'
+  | 'SYNC_PEER_NOT_FOUND'
+  | 'SYNC_CONNECT_FAILED'
+  | 'SYNC_CONNECT_TIMEOUT'
+  | 'SYNC_CONNECT_REFUSED'
+  | 'SYNC_HANDSHAKE_FAILED'
+  | 'SYNC_PAIRING_PENDING'
+  | 'SYNC_PAIRING_INVALID'
+  | 'SYNC_SESSION_FAILED'
+  | 'SYNC_TASK_UNCONFIRMED'
+  | 'SYNC_ENABLE_FAILED'
+  | 'SYNC_ENABLE_TIMEOUT'
+  | 'SYNC_DISCOVERY_FAILED'
+  | 'SYNC_DISCOVERY_TIMEOUT'
+  | 'SYNC_READ_FAILED'
+  | 'SYNC_WRITE_FAILED'
+  | 'SYNC_CONFLICT_NOT_FOUND'
+  | 'SYNC_CONFLICT_INVALID'
+  | 'SYNC_CONFLICT_FAILED'
+  | 'SYNC_RECOVERY_INVALID'
+  | 'SYNC_RECOVERY_FAILED'
+  | 'SYNC_PERMISSION_DENIED'
+  | 'SYNC_UNSUPPORTED';
 
 export type BackendErrorStage =
   | 'validate'
@@ -146,7 +171,12 @@ export type BackendErrorStage =
   | 'serialize'
   | 'objectSave'
   | 'snapshotSave'
-  | 'audit';
+  | 'audit'
+  | 'connect'
+  | 'handshake'
+  | 'pairing'
+  | 'discovery'
+  | 'conflict';
 
 export type BackupInfo = {
   id: string;
@@ -751,6 +781,8 @@ export type SafeErrorDetails = {
   stage: BackendErrorStage;
   limit?: number;
   completedCount?: number;
+  syncPeerId?: string;
+  sasCode?: string;
 };
 
 export type SnapshotEntry = {
@@ -1172,7 +1204,7 @@ export type IpcCommandErrors = {
   llm_set_system_prompt_switch: BackendError;
   llm_soft_delete_conversation: BackendError;
   llm_test_provider: BackendError;
-  mdns_discover: string;
+  mdns_discover: BackendError;
   object_create: BackendError;
   object_delete: BackendError;
   object_field_suggestions: BackendError;
@@ -1197,34 +1229,34 @@ export type IpcCommandErrors = {
   plugin_uninstall: string;
   plugin_update: string;
   plugin_update_registry: string;
-  recovery_discover_hosts: string;
-  recovery_host_cancel: string;
-  recovery_host_start: string;
-  recovery_restore_existing_from_host: string;
-  recovery_restore_from_host: string;
+  recovery_discover_hosts: BackendError;
+  recovery_host_cancel: BackendError;
+  recovery_host_start: BackendError;
+  recovery_restore_existing_from_host: BackendError;
+  recovery_restore_from_host: BackendError;
   snapshot_count_batch: BackendError;
   snapshot_get_data: BackendError;
   snapshot_list: BackendError;
   snapshot_rollback: BackendError;
-  sync_enable: string;
-  sync_forget_peer: string;
-  sync_generate_qr_payload: string;
-  sync_get_auto_status: string;
-  sync_get_conflict_detail: string;
-  sync_get_status: string;
-  sync_get_ui_prefs_sync: string;
-  sync_list_conflicts: string;
-  sync_listen_addr: string;
-  sync_rename_peer: string;
-  sync_resolve_conflict: string;
-  sync_set_auto_enabled: string;
-  sync_set_ui_prefs_sync: string;
-  sync_trigger_foreground: string;
-  sync_trust_peer: string;
-  sync_with_device: string;
-  vault_sync_background: string;
-  vault_sync_from_remote: string;
-  vault_sync_to_remote: string;
+  sync_enable: BackendError;
+  sync_forget_peer: BackendError;
+  sync_generate_qr_payload: BackendError;
+  sync_get_auto_status: BackendError;
+  sync_get_conflict_detail: BackendError;
+  sync_get_status: BackendError;
+  sync_get_ui_prefs_sync: BackendError;
+  sync_list_conflicts: BackendError;
+  sync_listen_addr: BackendError;
+  sync_rename_peer: BackendError;
+  sync_resolve_conflict: BackendError;
+  sync_set_auto_enabled: BackendError;
+  sync_set_ui_prefs_sync: BackendError;
+  sync_trigger_foreground: BackendError;
+  sync_trust_peer: BackendError;
+  sync_with_device: BackendError;
+  vault_sync_background: BackendError;
+  vault_sync_from_remote: BackendError;
+  vault_sync_to_remote: BackendError;
 };
 
 export type IpcEvents = {

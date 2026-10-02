@@ -16,6 +16,7 @@
 //   let manager = guard.as_ref().ok_or("__SYNC_ERR__:not_enabled")?;
 //   // manager: &SyncManager, 调用方法 .await / .x() 全部明确
 
+use crate::failure::{SyncFailure, SyncFailureKind};
 use crate::manager::SyncManager;
 use crate::shared::{
     audit_log, forget_peer_fallback, get_or_create_sync_identity, known_peers_from_vault,
@@ -193,16 +194,29 @@ impl SyncService {
         &self,
         device_id_or_addr: String,
     ) -> Result<SyncSessionResult, String> {
+        self.sync_with_device_typed(device_id_or_addr)
+            .await
+            .map_err(SyncFailure::into_legacy)
+    }
+    pub async fn sync_with_device_typed(
+        &self,
+        device_id_or_addr: String,
+    ) -> Result<SyncSessionResult, SyncFailure> {
         let (receiver, original_manager) = {
             let guard = self.manager.lock().await;
             // 派发只短暂借用 Manager；Weak 不保活旧 Store/owner。
-            let manager = guard.as_ref().ok_or("__SYNC_ERR__:not_enabled")?;
-            let receiver = manager.dispatch_sync_with_peer(&device_id_or_addr)?;
+            let manager = guard.as_ref().ok_or_else(|| {
+                SyncFailure::new(SyncFailureKind::NotEnabled, "__SYNC_ERR__:not_enabled")
+            })?;
+            let receiver = manager.dispatch_sync_with_peer_typed(&device_id_or_addr)?;
             (receiver, Arc::downgrade(manager))
         };
-        let result = receiver
-            .await
-            .map_err(|e| format!("__SYNC_ERR__:session_failed:{}", e))??;
+        let result = receiver.await.map_err(|e| {
+            SyncFailure::new(
+                SyncFailureKind::TaskUnconfirmed,
+                format!("__SYNC_ERR__:session_failed:{}", e),
+            )
+        })??;
         let table_summary = result
             .data
             .per_table

@@ -5,7 +5,9 @@
 //! 避免多个 `sync_to_remote()` 并发运行。
 
 use super::contracts::SyncProgress;
+use super::errors;
 use crate::attachment_import_plugin::AttachmentImportPluginHandle;
+use crate::commands::error::{BackendErrorCode as Code, BackendErrorStage as Stage};
 use futures::future::BoxFuture;
 use solosoul_core::VaultService;
 use std::path::Path;
@@ -310,7 +312,11 @@ pub async fn run_sync(
                     "sync-progress",
                     SyncProgress {
                         phase: "error".into(),
-                        message: Some(e.clone()),
+                        message: Some(errors::wire_code(&errors::legacy_for(
+                            Code::SyncWriteFailed,
+                            Stage::Write,
+                            e.clone(),
+                        ))),
                         source: Some(source_string(source).into()),
                         silent: Some(silent),
                         ..Default::default()

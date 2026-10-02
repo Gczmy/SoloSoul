@@ -1,10 +1,9 @@
 //! SyncManager: mDNS discovery, TCP listener, and encrypted sync sessions.
 
+use crate::failure::{SyncFailure, SyncFailureKind};
 use crate::identity::sha256_hex_short;
 use crate::noise::NoiseKeys;
-use crate::session::{
-    local_client_type, run_accept_loop, run_initiator_session, wrap_session_error,
-};
+use crate::session::{local_client_type, run_accept_loop, run_initiator_session};
 use crate::transport::SyncTransport;
 use crate::types::{PeerCallback, SessionCompletedCallback, SyncPeerInfo, SyncSessionResult};
 use crate::workers::SyncWorkers;
@@ -433,39 +432,66 @@ impl SyncManager {
         &self,
         device_id_or_addr: &str,
     ) -> Result<SyncSessionReceiver, String> {
+        self.dispatch_sync_with_peer_projected(device_id_or_addr, SyncFailure::into_legacy)
+            .map_err(SyncFailure::into_legacy)
+    }
+    pub(crate) fn dispatch_sync_with_peer_typed(
+        &self,
+        device_id_or_addr: &str,
+    ) -> Result<tokio::sync::oneshot::Receiver<Result<SyncSessionResult, SyncFailure>>, SyncFailure>
+    {
+        self.dispatch_sync_with_peer_projected(device_id_or_addr, |error| error)
+    }
+    /// 两种 API 在同一受管 worker 投影结果，不增加转发任务/Store/owner 保活。
+    fn dispatch_sync_with_peer_projected<E: Send + 'static>(
+        &self,
+        device_id_or_addr: &str,
+        project: impl FnOnce(SyncFailure) -> E + Send + 'static,
+    ) -> Result<tokio::sync::oneshot::Receiver<Result<SyncSessionResult, E>>, SyncFailure> {
         if !self.running.load(Ordering::SeqCst) {
-            // 前端经 resolveBackendErrorMessage 翻译（settings:sync_err_not_running）
-            return Err("__SYNC_ERR__:not_running".to_string());
+            return Err(SyncFailure::new(
+                SyncFailureKind::NotRunning,
+                "__SYNC_ERR__:not_running",
+            ));
         }
         let addr = if let Ok(socket) = device_id_or_addr.parse::<SocketAddr>() {
             socket
         } else {
-            let map = self.discovered.lock().map_err(|e| e.to_string())?;
-            resolve_peer_addr(&map, device_id_or_addr)?
+            let map = self
+                .discovered
+                .lock()
+                .map_err(|e| SyncFailure::new(SyncFailureKind::SessionFailed, e))?;
+            resolve_peer_addr(&map, device_id_or_addr)
+                .map_err(|e| SyncFailure::new(SyncFailureKind::PeerNotFound, e))?
         };
-
         let node_id = self.node_id.clone();
         let account_id = self.account_id.clone();
         let keys = self.keys.clone();
         let vault = self.vault.clone();
         let active_sessions = self.active_sessions.clone();
-
         self.workers
             .spawn_session(vault.clone(), active_sessions, move |permit| {
-                let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
-                    .map_err(|e| format!("__SYNC_ERR__:connect_failed:{}", e))?;
-                permit.track_stream(&stream)?;
-                let mut transport = SyncTransport::from_stream(stream);
-                run_initiator_session(
-                    &mut transport,
-                    &node_id,
-                    &account_id,
-                    &keys,
-                    vault,
-                    addr.to_string(),
-                )
-                .map_err(wrap_session_error)
+                let result = (|| {
+                    let stream =
+                        std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
+                            .map_err(SyncFailure::connection)?;
+                    permit
+                        .track_stream(&stream)
+                        .map_err(SyncFailure::activity)?;
+                    let mut transport = SyncTransport::from_stream(stream);
+                    run_initiator_session(
+                        &mut transport,
+                        &node_id,
+                        &account_id,
+                        &keys,
+                        vault,
+                        addr.to_string(),
+                    )
+                    .map_err(SyncFailure::from_legacy_session)
+                })();
+                result.map_err(project)
             })
+            .map_err(SyncFailure::activity)
     }
 
     /// 仅由 Service 在短 manager 锁验证当前身份后调用，不能写退休或新账户的 Store。
@@ -862,3 +888,7 @@ mod tests {
 #[cfg(test)]
 #[path = "manager_rf905_tests.rs"]
 mod rf905_tests;
+
+#[cfg(test)]
+#[path = "manager_rf319_tests.rs"]
+mod rf319_tests;

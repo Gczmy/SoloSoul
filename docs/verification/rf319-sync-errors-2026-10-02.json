@@ -1,0 +1,453 @@
+{
+  "task": "RF-319",
+  "status": "accepted",
+  "baselineHead": "d0901b8ef0843f5ca100554c4894915b6cb126bf",
+  "commitMessage": "refactor(errors): type synchronization failures [RF-319]",
+  "workspace": "C:\\Users\\40299571\\SoloSoul",
+  "evidenceDirectory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002",
+  "scope": {
+    "ownedPaths": [
+      "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+      "docs/ipc-contract-generation.md",
+      "tauri/crates/solosoul-sync/src/failure.rs",
+      "tauri/crates/solosoul-sync/src/lib.rs",
+      "tauri/crates/solosoul-sync/src/manager.rs",
+      "tauri/crates/solosoul-sync/src/manager_rf319_tests.rs",
+      "tauri/crates/solosoul-sync/src/mobile.rs",
+      "tauri/crates/solosoul-sync/src/service.rs",
+      "tauri/scripts/generate-ipc-contracts.node.mjs",
+      "tauri/src-tauri/src/commands/error.rs",
+      "tauri/src-tauri/src/commands/recovery.rs",
+      "tauri/src-tauri/src/commands/sync.rs",
+      "tauri/src-tauri/src/sync/auto_sync.rs",
+      "tauri/src-tauri/src/sync/cloud_auto_sync.rs",
+      "tauri/src-tauri/src/sync/contracts/rf319-codes.json",
+      "tauri/src-tauri/src/sync/contracts/rf319-fixtures.json",
+      "tauri/src-tauri/src/sync/device_auto_sync.rs",
+      "tauri/src-tauri/src/sync/errors.rs",
+      "tauri/src-tauri/src/sync/ipc.rs",
+      "tauri/src-tauri/src/sync/mod.rs",
+      "tauri/src/components/layout/GlobalSyncIndicator.rf319.test.tsx",
+      "tauri/src/components/layout/GlobalSyncIndicator.tsx",
+      "tauri/src/lib/backendError.ts",
+      "tauri/src/lib/backendErrorWire.ts",
+      "tauri/src/lib/generated/ipcContractManifest.json",
+      "tauri/src/lib/generated/ipcContracts.ts",
+      "tauri/src/lib/ipcClient.ts",
+      "tauri/src/locales/en-US/common.json",
+      "tauri/src/locales/zh-CN/common.json",
+      "tauri/src/stores/safSyncStore.test.ts",
+      "tauri/src/stores/safSyncStore.ts",
+      "tauri/src/stores/syncStore.rf319.test.ts",
+      "tauri/src/stores/syncStore.test.ts",
+      "tauri/src/stores/syncStore.ts",
+      "docs/verification/rf319-sync-errors-2026-10-02.json"
+    ],
+    "finalInputsSha256": {
+      "docs/ipc-contract-generation.md": "3e081053c63039edf852d2c8e6f888de088736bcba7215af340b3a5b44b303be",
+      "tauri/crates/solosoul-sync/src/failure.rs": "2f2f48a97f14436c77fd1bf622991714963ff18b1305060304ec8b9cca866261",
+      "tauri/crates/solosoul-sync/src/lib.rs": "ec3867038666090055b9d46cc31f69ebd4dc079d947dddea16cfff42915dfd3a",
+      "tauri/crates/solosoul-sync/src/manager.rs": "1292d9be97d77b0e0f37a46684ecff767d28e7c90498c195477c2df22839e4a5",
+      "tauri/crates/solosoul-sync/src/manager_rf319_tests.rs": "12c8a8c92efa2ed673e12fc36c7c6a534e925a81f41fae30eb4b84be9eb01499",
+      "tauri/crates/solosoul-sync/src/mobile.rs": "4feaaa6a9220001e351c3bb4bb3cf0ec0e9b147a66f6100bb9d5f19a69554de6",
+      "tauri/crates/solosoul-sync/src/service.rs": "38eac1f14846e1c4879942afbea704dce3c4efa72f0c8dd8db7caf60f546be97",
+      "tauri/scripts/generate-ipc-contracts.node.mjs": "9fd80bef5941ca1f4e3ec03e4be3390f4079669a5f7f5081b7dea47e2b80a403",
+      "tauri/src-tauri/src/commands/error.rs": "e8bc61143168d48937b944a22dd1cd98daff12ce7e94d89eaabab1e372064ea4",
+      "tauri/src-tauri/src/commands/recovery.rs": "a5de7e83eda78b2cad4626f21b6bcdadcbca93e75e0331fa563a6d95b603e362",
+      "tauri/src-tauri/src/commands/sync.rs": "40c4da48adb8d0eb49f0671b9339ce51044ee3220225ebf078cbf662117bc0cb",
+      "tauri/src-tauri/src/sync/auto_sync.rs": "69fae767388b055472e4162ec70314061500e93a1ae02c8a03e69fe4ed733b40",
+      "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "a7d167b87fc5caca1244057e3d7d3211d8596c71fdd10c5f86bddf3450242472",
+      "tauri/src-tauri/src/sync/contracts/rf319-codes.json": "b582d86863a78c29d086ec9f0934837876e9c44df44ee3724af7ab9d0189cfc8",
+      "tauri/src-tauri/src/sync/contracts/rf319-fixtures.json": "a6874fe75f054d439d45aa37f785d0a71318ca134582233bf77b30c5d5a60eff",
+      "tauri/src-tauri/src/sync/device_auto_sync.rs": "fe9366773c915fd5f3716542c036df05496376b585c3d72d8ea0e331ca129591",
+      "tauri/src-tauri/src/sync/errors.rs": "4f366ce22011f8ad3eea90764cf218ec63846e2463f7553f075ad1826e018163",
+      "tauri/src-tauri/src/sync/ipc.rs": "fea19800876e5256370bc0883775f126650e5b5ceac657edfb2a97389fb90016",
+      "tauri/src-tauri/src/sync/mod.rs": "023b911fbe9e8d53a075b5fa19a65fad5ddcf03770b0a8e77d4aa60142b6d0ac",
+      "tauri/src/components/layout/GlobalSyncIndicator.rf319.test.tsx": "2527c0d2a8c9225f83d7fae7f094d7017f43cf70280d9935b306de2b2db8ec16",
+      "tauri/src/components/layout/GlobalSyncIndicator.tsx": "29b5aca03ccb0a31ba67ddf14473cf6856543a48bebfee7ccdd2bf6925a09dbd",
+      "tauri/src/lib/backendError.ts": "d64c2095717ffe15b76fd349e2d1b96f324ecbb01beffa216a6a749f8efb00c7",
+      "tauri/src/lib/backendErrorWire.ts": "f8765f1476da8a5c67c3eac769e04b3455a814d0f064fafcd62fe447038ce070",
+      "tauri/src/lib/generated/ipcContractManifest.json": "4b26e8d355b10270cbb1faf371ea262ed2b99f5230d22ed91447868393f5b979",
+      "tauri/src/lib/generated/ipcContracts.ts": "5993a4a550692ca3441f65b2aee014d8713e6a52576729f55e42689aee6058e6",
+      "tauri/src/lib/ipcClient.ts": "9f932a0591bdece871b786a0a4341e88b40bfd6276e67abf981ab2a3cb2b70dd",
+      "tauri/src/locales/en-US/common.json": "4aaba8e90824a2d06fd7c83e1f7e70ede89ad05d31b57ab9dc362b6fa8ea505b",
+      "tauri/src/locales/zh-CN/common.json": "5dc02aa9f5509bdb199b4a425dae5d5c9b1eb6f95d7c7853c4d9d701b5b58631",
+      "tauri/src/stores/safSyncStore.test.ts": "16a2862ebc74c9a2d67ea39878b10e3a00b32a604dddbc1086f35428906daf9b",
+      "tauri/src/stores/safSyncStore.ts": "6400e8466a66660b0c5e5fb0ac1e4347f11286925319977e48e1e715b5ae78ea",
+      "tauri/src/stores/syncStore.rf319.test.ts": "a82f3d89ae337296a7c12ac9078ee95622019ddf90041e18a9215bea0dcc794a",
+      "tauri/src/stores/syncStore.test.ts": "d71634214fadaef4b18f73bea4ddcfbe6fa1d1de2db19dd68ce3dcd7e12b11b4",
+      "tauri/src/stores/syncStore.ts": "7db2d57d0e376c0f6e574577ed0a8e5311da2f2f821be4a00600e4ce5cfb0569"
+    },
+    "rustInputsSha256": {
+      "tauri/crates/solosoul-sync/src/failure.rs": "2f2f48a97f14436c77fd1bf622991714963ff18b1305060304ec8b9cca866261",
+      "tauri/crates/solosoul-sync/src/lib.rs": "ec3867038666090055b9d46cc31f69ebd4dc079d947dddea16cfff42915dfd3a",
+      "tauri/crates/solosoul-sync/src/manager.rs": "1292d9be97d77b0e0f37a46684ecff767d28e7c90498c195477c2df22839e4a5",
+      "tauri/crates/solosoul-sync/src/manager_rf319_tests.rs": "12c8a8c92efa2ed673e12fc36c7c6a534e925a81f41fae30eb4b84be9eb01499",
+      "tauri/crates/solosoul-sync/src/mobile.rs": "4feaaa6a9220001e351c3bb4bb3cf0ec0e9b147a66f6100bb9d5f19a69554de6",
+      "tauri/crates/solosoul-sync/src/service.rs": "38eac1f14846e1c4879942afbea704dce3c4efa72f0c8dd8db7caf60f546be97",
+      "tauri/src-tauri/src/commands/error.rs": "e8bc61143168d48937b944a22dd1cd98daff12ce7e94d89eaabab1e372064ea4",
+      "tauri/src-tauri/src/commands/recovery.rs": "a5de7e83eda78b2cad4626f21b6bcdadcbca93e75e0331fa563a6d95b603e362",
+      "tauri/src-tauri/src/commands/sync.rs": "40c4da48adb8d0eb49f0671b9339ce51044ee3220225ebf078cbf662117bc0cb",
+      "tauri/src-tauri/src/sync/auto_sync.rs": "69fae767388b055472e4162ec70314061500e93a1ae02c8a03e69fe4ed733b40",
+      "tauri/src-tauri/src/sync/cloud_auto_sync.rs": "a7d167b87fc5caca1244057e3d7d3211d8596c71fdd10c5f86bddf3450242472",
+      "tauri/src-tauri/src/sync/device_auto_sync.rs": "fe9366773c915fd5f3716542c036df05496376b585c3d72d8ea0e331ca129591",
+      "tauri/src-tauri/src/sync/errors.rs": "4f366ce22011f8ad3eea90764cf218ec63846e2463f7553f075ad1826e018163",
+      "tauri/src-tauri/src/sync/ipc.rs": "fea19800876e5256370bc0883775f126650e5b5ceac657edfb2a97389fb90016",
+      "tauri/src-tauri/src/sync/mod.rs": "023b911fbe9e8d53a075b5fa19a65fad5ddcf03770b0a8e77d4aa60142b6d0ac"
+    },
+    "protectedOriginalRawSha256": {
+      "solosoul_cli/src/commands/profile.rs": "e08c0a7b8c9d9270f5764945494634c75d6d81bcba02cc189487965c81fc4e41",
+      "solosoul_cli/src/commands/security.rs": "0133f1ca219910c364dba4a2792452cfb88b05a133243f45765703cbbe146104",
+      "solosoul_cli/src/commands/template.rs": "ed2c08ee422ca9365415723875289cdad12ee2b92746a99a8c46eccac0ad7f95",
+      "solosoul_cli/src/commands/vault_write.rs": "48cb640caca661c289897d9d99a6a8cf4b13bb16abe05b5123fbc30b3bc7a16e",
+      "tauri/crates/solosoul-core/src/process_lock.rs": "48ebf0045f85980ebfc6e0a9ee52d72d2bb394e6f8b12d7107a2362f0d637c34",
+      "tauri/src-tauri/bundles/nsis/assets/header-install.bmp": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+      "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+      "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+      "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": "d1f8f2db3d8aad53e1b955d3fc640374752db1c302d2f2c22d74e9ed356b428f",
+      "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/search-index.json": "cd4beaf09aeda37039a6523e6b86d01374dcced507278a1e76d41bd473b4e8fb",
+      "tauri/src-tauri/gen/android/app/tauri.properties": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+      "tauri/src/hooks/useToastError.ts": "f2da44c3ca3fb50e379051ba762b1712ec19dfa21f9321ecaee3f9ef4fa33968"
+    },
+    "otherTrackedCount": 1829,
+    "gitlinks": {
+      "SoloSoul_plugin_market": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921"
+    }
+  },
+  "checks": [
+    {
+      "name": "front-full-complete",
+      "command": ["npm.cmd", "run", "test"],
+      "exitCode": 0,
+      "elapsedSeconds": 156.96,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\front-full-complete.log",
+      "logSha256": "ece8f4965337c830f05919c1531892a5966fb71ae5e631c13ba07ab7a4d6bcf0"
+    },
+    {
+      "name": "front-types-complete",
+      "command": ["node", "node_modules/typescript/bin/tsc", "--noEmit"],
+      "exitCode": 0,
+      "elapsedSeconds": 28.77,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\front-types-complete.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "front-lint-complete",
+      "command": ["npm.cmd", "run", "lint"],
+      "exitCode": 0,
+      "elapsedSeconds": 39.64,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\front-lint-complete.log",
+      "logSha256": "9ccdcb4482fdd1a0617291405e83ca63932f2a561161d2b94b9a67d00b6bc7e1"
+    },
+    {
+      "name": "format-final",
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "src/lib/backendError.ts",
+        "src/lib/backendErrorWire.ts",
+        "src/lib/ipcClient.ts",
+        "src/stores/syncStore.ts",
+        "src/stores/syncStore.test.ts",
+        "src/stores/syncStore.rf319.test.ts",
+        "src/stores/safSyncStore.ts",
+        "src/stores/safSyncStore.test.ts",
+        "src/components/layout/GlobalSyncIndicator.tsx",
+        "src/components/layout/GlobalSyncIndicator.rf319.test.tsx",
+        "scripts/generate-ipc-contracts.node.mjs",
+        "src/lib/generated/ipcContracts.ts",
+        "src/lib/generated/ipcContractManifest.json",
+        "src-tauri/src/sync/contracts/rf319-codes.json",
+        "src-tauri/src/sync/contracts/rf319-fixtures.json",
+        "src/locales/en-US/common.json",
+        "src/locales/zh-CN/common.json"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.53,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\format-final.log",
+      "logSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "name": "front-format-complete",
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "src/lib/backendErrorWire.ts",
+        "src/stores/syncStore.rf319.test.ts"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.79,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\front-format-complete.log",
+      "logSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "name": "rust-fmt-final",
+      "command": ["cargo", "fmt", "--all", "--", "--check"],
+      "exitCode": 0,
+      "elapsedSeconds": 3.82,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\rust-fmt-final.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "rust-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 22.34,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\rust-clippy-final.log",
+      "logSha256": "386dd38844c189b43f584f42d5f6f0d94e3c8e284aa56de894d1db171203ae92"
+    },
+    {
+      "name": "rust-full",
+      "command": ["cargo", "test", "--locked", "--verbose"],
+      "exitCode": 0,
+      "elapsedSeconds": 708.38,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\rust-full.log",
+      "logSha256": "e88f93e296eb2898bfab230fa1be18fa56ee4a57234f4d5770ef3f92912de7d5"
+    },
+    {
+      "name": "cli-fmt",
+      "command": ["cargo", "fmt", "--all", "--", "--check"],
+      "exitCode": 0,
+      "elapsedSeconds": 8.55,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\cli-fmt.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "cli-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 40.18,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\cli-clippy.log",
+      "logSha256": "dabab99691bb934a8e8b3450b9f606121c1a18e9e95ad620bbc755ff29d56a9b"
+    },
+    {
+      "name": "cli-full",
+      "command": ["cargo", "test", "--locked", "--verbose"],
+      "exitCode": 0,
+      "elapsedSeconds": 480.47,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\cli-full.log",
+      "logSha256": "8b75296a1ed3c03b8e5cc51bdd1979ca948ae2abfbdcbf31a83396e8edeecf4a"
+    },
+    {
+      "name": "contracts-node-complete",
+      "command": ["node", "--test", "scripts/generate-ipc-contracts.node.mjs"],
+      "exitCode": 0,
+      "elapsedSeconds": 161.06,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\contracts-node-complete.log",
+      "logSha256": "e03a52de4eef2fd43066a139cf805e66d91e428e6ab6eb384a54af656aa48f03"
+    },
+    {
+      "name": "contracts-check-final",
+      "command": ["node", "scripts/generate-ipc-contracts.mjs", "--check"],
+      "exitCode": 0,
+      "elapsedSeconds": 9.29,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\contracts-check-final.log",
+      "logSha256": "d177d398fe62b83268888947fa4c243f685ce74480899ad881474c19963207d5"
+    },
+    {
+      "name": "contracts-acl",
+      "command": [
+        "node",
+        "scripts/run-python-check.cjs",
+        "scripts/check_acl_consistency.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.65,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\contracts-acl.log",
+      "logSha256": "baba1ce2ca66c142213eab646971933c0d11d7f52d261fd54af6933303268ff0"
+    },
+    {
+      "name": "contracts-pref",
+      "command": [
+        "node",
+        "scripts/run-python-check.cjs",
+        "scripts/check_pref_keys_sync.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.55,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\contracts-pref.log",
+      "logSha256": "b97b695e75f346b7c1eb942a1de01ca0dbac814cd9f637edfc1d59472fced6c3"
+    },
+    {
+      "name": "contracts-markdown",
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "exitCode": 0,
+      "elapsedSeconds": 29.49,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\contracts-markdown.log",
+      "logSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc"
+    },
+    {
+      "name": "contracts-python",
+      "command": [
+        "python",
+        "-X",
+        "utf8",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_check_acl_consistency.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.34,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\contracts-python.log",
+      "logSha256": "cf289d42c1e36cfe43483a4d97e3b4ef5023e14636588008cdb3368d2fe0f55d"
+    }
+  ],
+  "results": {
+    "frontend": {
+      "files": 250,
+      "vitestPassed": 2131,
+      "nodePassed": 112
+    },
+    "rust": {
+      "passed": 1838,
+      "failed": 0,
+      "originalIgnored": 3
+    },
+    "cli": {
+      "passed": 336,
+      "failed": 0,
+      "originalIgnored": 2
+    },
+    "contracts": {
+      "nodePassed": 21,
+      "generatedCommands": 105,
+      "registeredCommands": 225,
+      "structuredErrorCommands": 81,
+      "legacyCommands": 120,
+      "events": 11
+    }
+  },
+  "priorAttempts": [
+    {
+      "name": "baseline-front",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/stores/syncStore.rf319.test.ts",
+        "--maxWorkers",
+        "2"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 26.12,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\baseline-front.log"
+    },
+    {
+      "name": "directed-front",
+      "command": [
+        "npx.cmd",
+        "vitest",
+        "run",
+        "src/stores/syncStore.rf319.test.ts",
+        "src/stores/syncStore.test.ts",
+        "src/lib/backendError.test.ts",
+        "src/pages/sync/SyncHistoryPanel.test.tsx"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 28.57,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\directed-front.log"
+    },
+    {
+      "name": "types",
+      "command": ["npx.cmd", "tsc", "--noEmit"],
+      "exitCode": 2,
+      "elapsedSeconds": 25.72,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\types.log"
+    },
+    {
+      "name": "format",
+      "command": [
+        "npx.cmd",
+        "prettier",
+        "--check",
+        "src/lib/backendError.ts",
+        "src/lib/backendErrorWire.ts",
+        "src/lib/ipcClient.ts",
+        "src/stores/syncStore.ts",
+        "src/stores/syncStore.test.ts",
+        "src/stores/syncStore.rf319.test.ts",
+        "src/stores/safSyncStore.ts",
+        "src/stores/safSyncStore.test.ts",
+        "src/components/layout/GlobalSyncIndicator.tsx",
+        "src/components/layout/GlobalSyncIndicator.rf319.test.tsx",
+        "scripts/generate-ipc-contracts.node.mjs",
+        "src/lib/generated/ipcContracts.ts",
+        "src/lib/generated/ipcContractManifest.json",
+        "src-tauri/src/sync/contracts/rf319-codes.json",
+        "src-tauri/src/sync/contracts/rf319-fixtures.json",
+        "src/locales/en-US/common.json",
+        "src/locales/zh-CN/common.json"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 22.35,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\format.log"
+    },
+    {
+      "name": "directed-rust",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "rf319",
+        "--",
+        "--nocapture"
+      ],
+      "exitCode": 101,
+      "elapsedSeconds": 577.27,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\directed-rust.log"
+    },
+    {
+      "name": "front-full-final",
+      "command": ["npm.cmd", "run", "test"],
+      "exitCode": 1,
+      "elapsedSeconds": 247.67,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf319-20261002\\front-full-final.log"
+    }
+  ],
+  "corrections": [
+    {
+      "path": "tauri/crates/solosoul-sync/src/failure.rs",
+      "beforeSha": "78f80f7bd7e9ed2da85e08a382922d7fa9ef6b571aa7f385cec105826e317083",
+      "afterSha": "2f2f48a97f14436c77fd1bf622991714963ff18b1305060304ec8b9cca866261",
+      "reason": "A new duplicate 2-second closed-port probe assumed immediate refusal on Windows, but native connect_timeout returned TimedOut correctly. The managed worker uses the production 10-second timeout and passed actual ConnectionRefused and handshake tests. Removed only the redundant new probe; original tests unchanged."
+    },
+    {
+      "reason": "Final source review: old sync details may contain a newline; compatibility reads only the machine token. Two exact legacy lock guards and active-operation guard now retain fixed classes. Rust compilation/test inputs unchanged."
+    }
+  ],
+  "review": {
+    "agent": "root",
+    "independentReview": false,
+    "nativeGuiValidation": false,
+    "mobileCfg": "source reviewed; Windows workspace checks do not compile Android/iOS cfg"
+  },
+  "notes": [
+    "All final Rust production/test inputs remained unchanged during the matching Cargo checks/tests. Subsequent changes were frontend compatibility only and the final default frontend suite, type/lint/format and contract checks passed against final inputs.",
+    "Old String APIs and protocol pairing frames are preserved. This task does not claim removal of all historical Core raw logs.",
+    "No push; existing unrelated changes are not staged."
+  ]
+}

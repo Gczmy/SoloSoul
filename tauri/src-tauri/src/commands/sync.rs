@@ -1,9 +1,11 @@
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
 use crate::state::AppState;
 use crate::sync::contracts::SyncConflictsUpdated;
 pub use crate::sync::contracts::{
     ConflictDetail, ConflictHlc, ConflictSummary, SyncConflictDto, SyncPeer, SyncResult,
     SyncStatus, TableResult,
 };
+use crate::sync::errors;
 use tauri::{Emitter, Manager, State};
 
 /// 记录同步相关操作日志。Vault 未解锁时静默跳过（同步服务本身不依赖 Vault）。
@@ -114,9 +116,13 @@ async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, String>
 
 /// 触发一次前台自动同步。
 #[tauri::command]
-pub async fn sync_trigger_foreground(state: State<'_, AppState>) -> Result<(), String> {
-    state.device_auto_sync.trigger_foreground();
-    Ok(())
+pub async fn sync_trigger_foreground(state: State<'_, AppState>) -> Result<(), BackendError> {
+    let result: Result<(), String> = async {
+        state.device_auto_sync.trigger_foreground();
+        Ok(())
+    }
+    .await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncTaskUnconfirmed, Stage::Task, cause))
 }
 
 fn current_sync_preferences(
@@ -136,61 +142,74 @@ fn current_sync_preferences(
 pub async fn sync_set_auto_enabled(
     state: State<'_, AppState>,
     enabled: bool,
-) -> Result<bool, String> {
-    current_sync_preferences(&state)?;
-    let vault = crate::commands::vault_handle(&state)?;
-    vault.update_device_sync_preferences(|prefs| prefs.auto_sync_enabled = enabled)?;
-    state.auto_sync.trigger_debounce();
-    log_sync_action(
-        &state,
-        if enabled {
-            "auto_sync_enabled"
-        } else {
-            "auto_sync_disabled"
-        },
-        None,
-        None,
-    );
-    Ok(enabled)
+) -> Result<bool, BackendError> {
+    let result: Result<bool, String> = async {
+        current_sync_preferences(&state)?;
+        let vault = crate::commands::vault_handle(&state)?;
+        vault.update_device_sync_preferences(|prefs| prefs.auto_sync_enabled = enabled)?;
+        state.auto_sync.trigger_debounce();
+        log_sync_action(
+            &state,
+            if enabled {
+                "auto_sync_enabled"
+            } else {
+                "auto_sync_disabled"
+            },
+            None,
+            None,
+        );
+        Ok(enabled)
+    }
+    .await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncWriteFailed, Stage::Write, cause))
 }
 
 #[tauri::command]
-pub async fn sync_get_auto_status(state: State<'_, AppState>) -> Result<bool, String> {
-    Ok(current_sync_preferences(&state)?.auto_sync_enabled)
+pub async fn sync_get_auto_status(state: State<'_, AppState>) -> Result<bool, BackendError> {
+    let result: Result<bool, String> =
+        async { Ok(current_sync_preferences(&state)?.auto_sync_enabled) }.await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncReadFailed, Stage::Read, cause))
 }
 
 #[tauri::command]
-pub async fn sync_get_ui_prefs_sync(state: State<'_, AppState>) -> Result<bool, String> {
-    Ok(current_sync_preferences(&state)?.ui_prefs_sync_enabled)
+pub async fn sync_get_ui_prefs_sync(state: State<'_, AppState>) -> Result<bool, BackendError> {
+    let result: Result<bool, String> =
+        async { Ok(current_sync_preferences(&state)?.ui_prefs_sync_enabled) }.await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncReadFailed, Stage::Read, cause))
 }
 
 #[tauri::command]
 pub async fn sync_set_ui_prefs_sync(
     state: State<'_, AppState>,
     enabled: bool,
-) -> Result<bool, String> {
-    current_sync_preferences(&state)?;
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned")?;
-    let _activity = solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
-    let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    vault.update_device_sync_preferences(|prefs| prefs.ui_prefs_sync_enabled = enabled)?;
-    svc.set_ui_prefs_sync_enabled(enabled);
-    drop(svc);
-    state.auto_sync.trigger_debounce();
-    log_sync_action(
-        &state,
-        if enabled {
-            "ui_prefs_sync_enabled"
-        } else {
-            "ui_prefs_sync_disabled"
-        },
-        None,
-        None,
-    );
-    Ok(enabled)
+) -> Result<bool, BackendError> {
+    let result: Result<bool, String> = async {
+        current_sync_preferences(&state)?;
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned")?;
+        let _activity =
+            solosoul_core::import_activity::begin_owned_root_activity(svc.root_owner())?;
+        let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
+        vault.update_device_sync_preferences(|prefs| prefs.ui_prefs_sync_enabled = enabled)?;
+        svc.set_ui_prefs_sync_enabled(enabled);
+        drop(svc);
+        state.auto_sync.trigger_debounce();
+        log_sync_action(
+            &state,
+            if enabled {
+                "ui_prefs_sync_enabled"
+            } else {
+                "ui_prefs_sync_disabled"
+            },
+            None,
+            None,
+        );
+        Ok(enabled)
+    }
+    .await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncWriteFailed, Stage::Write, cause))
 }
 
 /// 为已知设备保存账户内备注，不修改设备广播名/指纹/信任状态。
@@ -199,19 +218,24 @@ pub async fn sync_rename_peer(
     state: State<'_, AppState>,
     peer_node_id: String,
     name: String,
-) -> Result<Option<String>, String> {
-    let vault = crate::commands::vault_handle(&state)?;
-    let name = vault.set_device_name(&peer_node_id, &name)?;
-    state.auto_sync.trigger_debounce();
-    state.device_auto_sync.trigger_data_change();
-    log_sync_action(&state, "sync_peer_renamed", name.as_deref(), None);
-    Ok(name)
+) -> Result<Option<String>, BackendError> {
+    let result: Result<Option<String>, String> = async {
+        let vault = crate::commands::vault_handle(&state)?;
+        let name = vault.set_device_name(&peer_node_id, &name)?;
+        state.auto_sync.trigger_debounce();
+        state.device_auto_sync.trigger_data_change();
+        log_sync_action(&state, "sync_peer_renamed", name.as_deref(), None);
+        Ok(name)
+    }
+    .await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncWriteFailed, Stage::Write, cause))
 }
 
 /// 获取同步状态（发现对端 + 开关状态）。
 #[tauri::command]
-pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, String> {
-    sync_discover(state).await
+pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, BackendError> {
+    let result: Result<SyncStatus, String> = async { sync_discover(state).await }.await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncReadFailed, Stage::Read, cause))
 }
 
 fn parse_hlc_json(s: &str) -> Result<ConflictHlc, String> {
@@ -241,16 +265,16 @@ async fn list_conflicts_impl(state: State<'_, AppState>) -> Result<Vec<ConflictS
         .into_iter()
         .map(|c| {
             // P040：列表兜底保留，但畸形数据必须留痕（warn），不静默
-            let local_hlc = parse_hlc_json(&c.local_hlc_json).unwrap_or_else(|e| {
-                tracing::warn!("[sync] 冲突 {} local HLC 解析失败: {}", c.id, e);
+            let local_hlc = parse_hlc_json(&c.local_hlc_json).unwrap_or_else(|_| {
+                tracing::warn!("[sync] local HLC 解析失败");
                 ConflictHlc {
                     wall_time_ms: 0,
                     counter: 0,
                     node_id: String::new(),
                 }
             });
-            let remote_hlc = parse_hlc_json(&c.remote_hlc_json).unwrap_or_else(|e| {
-                tracing::warn!("[sync] 冲突 {} remote HLC 解析失败: {}", c.id, e);
+            let remote_hlc = parse_hlc_json(&c.remote_hlc_json).unwrap_or_else(|_| {
+                tracing::warn!("[sync] remote HLC 解析失败");
                 ConflictHlc {
                     wall_time_ms: 0,
                     counter: 0,
@@ -275,8 +299,10 @@ async fn list_conflicts_impl(state: State<'_, AppState>) -> Result<Vec<ConflictS
 #[tauri::command]
 pub async fn sync_list_conflicts(
     state: State<'_, AppState>,
-) -> Result<Vec<ConflictSummary>, String> {
-    list_conflicts_impl(state).await
+) -> Result<Vec<ConflictSummary>, BackendError> {
+    let result: Result<Vec<ConflictSummary>, String> =
+        async { list_conflicts_impl(state).await }.await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncReadFailed, Stage::Conflict, cause))
 }
 
 async fn get_conflict_detail_impl(
@@ -346,8 +372,10 @@ async fn get_conflict_detail_impl(
 pub async fn sync_get_conflict_detail(
     state: State<'_, AppState>,
     conflict_id: String,
-) -> Result<ConflictDetail, String> {
-    get_conflict_detail_impl(state, conflict_id).await
+) -> Result<ConflictDetail, BackendError> {
+    let result: Result<ConflictDetail, String> =
+        async { get_conflict_detail_impl(state, conflict_id).await }.await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncConflictInvalid, Stage::Conflict, cause))
 }
 
 async fn resolve_conflict_impl(
@@ -372,8 +400,10 @@ pub async fn sync_resolve_conflict(
     state: State<'_, AppState>,
     conflict_id: String,
     strategy: String,
-) -> Result<bool, String> {
-    resolve_conflict_impl(state, conflict_id, strategy).await
+) -> Result<bool, BackendError> {
+    let result: Result<bool, String> =
+        async { resolve_conflict_impl(state, conflict_id, strategy).await }.await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncConflictFailed, Stage::Conflict, cause))
 }
 
 #[cfg(desktop)]
@@ -471,7 +501,7 @@ pub async fn sync_enable(
             }
             let handle = app2.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
             if let Err(e) = handle.request_permissions() {
-                tracing::warn!("NSD request_permissions failed: {}", e);
+                let _ = BackendError::caused_by(Code::SyncPermissionDenied, Stage::Validate, e);
                 return;
             }
             if let Err(e) = crate::commands::discovery::register_sync_service_blocking(
@@ -482,7 +512,7 @@ pub async fn sync_enable(
                 fingerprint,
                 solosoul_sync::local_client_type().to_string(),
             ) {
-                tracing::warn!("Failed to register NSD sync service: {}", e);
+                let error = BackendError::caused_by(Code::SyncDiscoveryFailed, Stage::Discovery, e);
                 // NSD 注册失败时回滚同步状态，避免半开启。
                 let app3 = app2.clone();
                 tauri::async_runtime::spawn(async move {
@@ -490,7 +520,9 @@ pub async fn sync_enable(
                     let _ = state.sync_service.enable(false).await;
                     let _ = state.handle.emit(
                         "sync-nsd-failed",
-                        crate::sync::contracts::SyncNsdFailed { error: e },
+                        crate::sync::contracts::SyncNsdFailed {
+                            error: errors::wire_code(&error),
+                        },
                     );
                 });
             }
@@ -536,30 +568,36 @@ pub async fn sync_enable(
 /// 返回本地监听地址（`host:port`），与移动端形状一致，供前端状态卡完整展示。
 /// 未启用（端口 0）时返回空串，前端据此隐藏地址行。
 #[tauri::command]
-pub async fn sync_listen_addr(state: State<'_, AppState>) -> Result<String, String> {
-    let port = state.sync_service.listen_port().await;
-    if port == 0 {
-        return Ok(String::new());
+pub async fn sync_listen_addr(state: State<'_, AppState>) -> Result<String, BackendError> {
+    let result: Result<String, String> = async {
+        let port = state.sync_service.listen_port().await;
+        if port == 0 {
+            return Ok(String::new());
+        }
+        let host = solosoul_sync::local_display_ip().unwrap_or_else(|| "127.0.0.1".to_string());
+        Ok(format!("{}:{}", host, port))
     }
-    let host = solosoul_sync::local_display_ip().unwrap_or_else(|| "127.0.0.1".to_string());
-    Ok(format!("{}:{}", host, port))
+    .await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncReadFailed, Stage::Read, cause))
 }
 
 #[cfg(desktop)]
 pub async fn sync_with_device(
     state: State<'_, AppState>,
     device_id: String,
-) -> Result<SyncResult, String> {
+) -> Result<SyncResult, BackendError> {
+    errors::ensure_unlocked(&state)?;
     let result = state
         .sync_service
-        .sync_with_device(device_id.clone())
-        .await?;
+        .sync_with_device_typed(device_id.clone())
+        .await
+        .map_err(errors::typed)?;
     let mut sync_result = SyncResult::from(&result.data);
     if !result.attachments.errors.is_empty() {
         sync_result.summary = format!(
             "{}; attachment errors: {}",
             sync_result.summary,
-            result.attachments.errors.join("; ")
+            result.attachments.errors.len()
         );
     }
     let details = serde_json::json!({
@@ -586,12 +624,14 @@ pub async fn sync_with_device(
 pub async fn sync_with_device(
     state: State<'_, AppState>,
     device_id: String,
-) -> Result<SyncResult, String> {
+) -> Result<SyncResult, BackendError> {
+    errors::ensure_unlocked(&state)?;
     // 移动端手动构造 SyncResult，因为 From<&solosoul_sync::types::ApplyStats> 实现在桌面端。
     let result = state
         .sync_service
-        .sync_with_device(device_id.clone())
-        .await?;
+        .sync_with_device_typed(device_id.clone())
+        .await
+        .map_err(errors::typed)?;
     let stats = &result.data;
     // P001：移动端 conflicts 与桌面端共用统一 DTO（Hlc.node_id 为 [u8;16]，
     // hex 编码为字符串），供前端冲突 UI 跨平台一致消费。
@@ -641,7 +681,7 @@ pub async fn sync_with_device(
         sync_result.summary = format!(
             "{}; attachment errors: {}",
             sync_result.summary,
-            result.attachments.errors.join("; ")
+            result.attachments.errors.len()
         );
     }
     let details = serde_json::json!({
@@ -672,22 +712,26 @@ pub async fn sync_trust_peer(
     peer_node_id: String,
     trusted: bool,
     fingerprint: Option<String>,
-) -> Result<(), String> {
-    state
-        .sync_service
-        .trust_peer(peer_node_id.clone(), trusted, fingerprint)
-        .await?;
-    log_sync_action(
-        &state,
-        if trusted {
-            "sync_peer_trusted"
-        } else {
-            "sync_peer_revoked"
-        },
-        Some(&peer_node_id),
-        None,
-    );
-    Ok(())
+) -> Result<(), BackendError> {
+    let result: Result<(), String> = async {
+        state
+            .sync_service
+            .trust_peer(peer_node_id.clone(), trusted, fingerprint)
+            .await?;
+        log_sync_action(
+            &state,
+            if trusted {
+                "sync_peer_trusted"
+            } else {
+                "sync_peer_revoked"
+            },
+            Some(&peer_node_id),
+            None,
+        );
+        Ok(())
+    }
+    .await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncWriteFailed, Stage::Write, cause))
 }
 
 /// 忘记一个同步对端。
@@ -695,40 +739,48 @@ pub async fn sync_trust_peer(
 pub async fn sync_forget_peer(
     state: State<'_, AppState>,
     peer_node_id: String,
-) -> Result<(), String> {
-    let vault = crate::commands::vault_handle(&state)?;
-    if vault.load_peer_state(&peer_node_id)?.is_some() {
-        vault.set_device_name(&peer_node_id, "")?;
+) -> Result<(), BackendError> {
+    let result: Result<(), String> = async {
+        let vault = crate::commands::vault_handle(&state)?;
+        if vault.load_peer_state(&peer_node_id)?.is_some() {
+            vault.set_device_name(&peer_node_id, "")?;
+        }
+        state.sync_service.forget_peer(peer_node_id.clone()).await?;
+        log_sync_action(&state, "sync_peer_forgotten", Some(&peer_node_id), None);
+        Ok(())
     }
-    state.sync_service.forget_peer(peer_node_id.clone()).await?;
-    log_sync_action(&state, "sync_peer_forgotten", Some(&peer_node_id), None);
-    Ok(())
+    .await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncWriteFailed, Stage::Write, cause))
 }
 
 /// 生成供其他设备扫描以建立同步的二维码 payload。
 /// Payload 格式：{"t":"sync","a":"host:port","f":"fingerprint","n":"deviceName"}
 #[tauri::command]
-pub async fn sync_generate_qr_payload(state: State<'_, AppState>) -> Result<String, String> {
-    let port = state.sync_service.listen_port().await;
-    if port == 0 {
-        // 错误码供前端通过 resolveI18nPrefix 国际化（settings:sync_err_not_enabled）
-        return Err("__SYNC_ERR__:not_enabled".to_string());
+pub async fn sync_generate_qr_payload(state: State<'_, AppState>) -> Result<String, BackendError> {
+    let result: Result<String, String> = async {
+        let port = state.sync_service.listen_port().await;
+        if port == 0 {
+            // 错误码供前端通过 resolveI18nPrefix 国际化（settings:sync_err_not_enabled）
+            return Err("__SYNC_ERR__:not_enabled".to_string());
+        }
+        let fingerprint = state.sync_service.local_fingerprint().await?;
+        // P015: 统一经 solosoul-sync 唯一实现（外联 UDP 选择路由地址，纯本地不阻塞）
+        let host = solosoul_sync::local_display_ip().unwrap_or_else(|| "127.0.0.1".to_string());
+        let device_name = if fingerprint.is_empty() {
+            format!("SoloSoul-{}", port)
+        } else {
+            format!("SoloSoul-{}", &fingerprint[..fingerprint.len().min(8)])
+        };
+        let payload = serde_json::json!({
+            "t": "sync",
+            "a": format!("{}:{}", host, port),
+            "f": fingerprint,
+            "n": device_name,
+        });
+        Ok(payload.to_string())
     }
-    let fingerprint = state.sync_service.local_fingerprint().await?;
-    // P015: 统一经 solosoul-sync 唯一实现（外联 UDP 选择路由地址，纯本地不阻塞）
-    let host = solosoul_sync::local_display_ip().unwrap_or_else(|| "127.0.0.1".to_string());
-    let device_name = if fingerprint.is_empty() {
-        format!("SoloSoul-{}", port)
-    } else {
-        format!("SoloSoul-{}", &fingerprint[..fingerprint.len().min(8)])
-    };
-    let payload = serde_json::json!({
-        "t": "sync",
-        "a": format!("{}:{}", host, port),
-        "f": fingerprint,
-        "n": device_name,
-    });
-    Ok(payload.to_string())
+    .await;
+    result.map_err(|cause| errors::legacy_for(Code::SyncReadFailed, Stage::Read, cause))
 }
 
 #[cfg(all(test, desktop))]

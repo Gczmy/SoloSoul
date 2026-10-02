@@ -142,3 +142,12 @@ Core 的新 typed provider resolver 提供固定类别，原 resolve_chat_provid
 备份恢复沿用顺序写入，拒写时只报告已经成功保存的 completedCount：首条失败为 BACKUP_RESTORE_FAILED/0，已保存前缀为 BACKUP_RESTORE_PARTIAL；备份文件已写出而元数据读取失败使用 BACKUP_METADATA_FAILED。后台变更任务异常使用 TRANSFER_TASK_UNCONFIRMED，不声称零写入、不建议直接重复变更。导入 UI 保留原操作 ID，查询台账后决定恢复或重放原冻结请求。
 
 新前端从实际 typed IPC 集中投影结构化包；旧 __EXPORT_ERR__/__IMPORT_ERR__ 仅在兼容适配层读固定 token 并丢弃 detail，旧域的独立前缀 fixture 保留。可选 completedCount 只接受备份已知 code/stage 的安全整数，其余任意 details 字段丢弃。翻译仍仅在显示层。
+
+
+## 同步结构化错误（RF319）
+
+25 个实际同步/恢复命令返回 BackendError，累计 81 个结构化错误命令。受管连接 worker 按真实 IO ErrorKind 区分超时、连接拒绝及其他连接失败；旧 session 机器前缀在单一兼容入口读取。握手、等待配对、冲突、锁定与未确认任务使用固定 code/stage，cause 不进入 Host 拒绝包或前端历史。
+
+配对专用 syncPeerId/sasCode 字段只在 SYNC_PAIRING_PENDING 的 pairing 阶段接纳，校验节点格式与六位数字；旧版无 SAS 帧仍可读。配对元数据用于当前确认流程，错误诊断不记录节点或 SAS。线上 B→A 配对帧、原成功/恢复结果及 11 个事件字段形状保持。新自动同步/NSD 事件的 string 消息发送机器码，前端兼容旧事件时丢弃自由正文。
+
+Core 保留原 String API/CLI 文案；新 typed dispatch 与旧 API 在同一已登记 worker 中投影，不增加转发任务或 Root 保活。取消 awaiter、停机、会话退休和目录维护的原回归继续运行。历史仍按账户隔离，失败行读取时清除旧 cause，成功统计保持。

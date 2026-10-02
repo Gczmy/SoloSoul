@@ -3,7 +3,8 @@
 //! 移动端不使用桌面端的 mdns-sd，发现层由 Android NSD / iOS Bonjour 插件负责。
 //! 本模块仅负责启动 TCP 监听、接受入站同步连接、以及作为发起方与指定地址同步。
 
-use crate::session::{run_accept_loop, run_initiator_session, wrap_session_error};
+use crate::failure::{SyncFailure, SyncFailureKind};
+use crate::session::{run_accept_loop, run_initiator_session};
 use crate::shared::{
     audit_log, forget_peer_fallback, get_or_create_sync_identity, known_peers_from_vault,
     local_fingerprint_fallback, trust_peer_fallback,
@@ -169,10 +170,20 @@ impl SyncService {
         &self,
         device_id_or_addr: String,
     ) -> Result<SyncSessionResult, String> {
+        self.sync_with_device_typed(device_id_or_addr)
+            .await
+            .map_err(SyncFailure::into_legacy)
+    }
+    pub async fn sync_with_device_typed(
+        &self,
+        device_id_or_addr: String,
+    ) -> Result<SyncSessionResult, SyncFailure> {
         let (node_id, account_id, keys, vault, active_sessions, running, workers) = {
             let guard = self.manager.lock().await;
             // 前端经 resolveBackendErrorMessage 翻译（settings:sync_err_not_enabled）
-            let manager = guard.as_ref().ok_or("__SYNC_ERR__:not_enabled")?;
+            let manager = guard.as_ref().ok_or_else(|| {
+                SyncFailure::new(SyncFailureKind::NotEnabled, "__SYNC_ERR__:not_enabled")
+            })?;
             (
                 manager.node_id.clone(),
                 manager.account_id.clone(),
@@ -185,17 +196,25 @@ impl SyncService {
         };
         if !running.load(Ordering::SeqCst) {
             // 前端经 resolveBackendErrorMessage 翻译（settings:sync_err_not_running）
-            return Err("__SYNC_ERR__:not_running".to_string());
+            return Err(SyncFailure::new(
+                SyncFailureKind::NotRunning,
+                "__SYNC_ERR__:not_running",
+            ));
         }
-        let addr: SocketAddr = device_id_or_addr
-            .parse()
-            .map_err(|e| format!("__SYNC_ERR__:invalid_address:{}", e))?;
+        let addr: SocketAddr = device_id_or_addr.parse().map_err(|e| {
+            SyncFailure::new(
+                SyncFailureKind::InvalidAddress,
+                format!("__SYNC_ERR__:invalid_address:{}", e),
+            )
+        })?;
 
         workers
             .spawn_session(vault.clone(), active_sessions, move |permit| {
                 let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
-                    .map_err(|e| format!("__SYNC_ERR__:connect_failed:{}", e))?;
-                permit.track_stream(&stream)?;
+                    .map_err(SyncFailure::connection)?;
+                permit
+                    .track_stream(&stream)
+                    .map_err(SyncFailure::activity)?;
                 let mut transport = SyncTransport::from_stream(stream);
                 run_initiator_session(
                     &mut transport,
@@ -205,11 +224,17 @@ impl SyncService {
                     vault,
                     addr.to_string(),
                 )
-                .map_err(wrap_session_error)
-            })?
+                .map_err(SyncFailure::from_legacy_session)
+            })
+            .map_err(SyncFailure::activity)?
             .await
             // worker panic 时 sender 关闭（任务 panic/abort）：前端经 resolveBackendErrorMessage 翻译
-            .map_err(|e| format!("__SYNC_ERR__:session_failed:{}", e))?
+            .map_err(|e| {
+                SyncFailure::new(
+                    SyncFailureKind::TaskUnconfirmed,
+                    format!("__SYNC_ERR__:session_failed:{}", e),
+                )
+            })?
     }
 
     /// 列出已持久化的 peers（移动端发现由上层 NSD 插件维护，这里只返回持久化列表）。

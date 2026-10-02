@@ -50,7 +50,7 @@ describe('safSyncStore progress listener lifecycle', () => {
 
     vi.advanceTimersByTime(4000);
     expect(useSafSyncStore.getState().status).toBe('error');
-    expect(useSafSyncStore.getState().error).toBe('second error');
+    expect(useSafSyncStore.getState().error).toBe('SYNC_WRITE_FAILED');
     vi.advanceTimersByTime(1000);
     expect(useSafSyncStore.getState().status).toBe('idle');
     expect(useSafSyncStore.getState().error).toBeNull();
@@ -69,4 +69,14 @@ describe('safSyncStore progress listener lifecycle', () => {
     callbacks[1]({ phase: 'sync_start' });
     expect(useSafSyncStore.getState().status).toBe('syncing');
   });
+});
+
+it('RF319 old and new event errors are safe while silent events remain invisible', async () => {
+  await startListening();
+  callbacks[0]({ phase: 'error', message: '__SYNC_ERR__:connect_failed:RF319_PRIVATE' });
+  expect(useSafSyncStore.getState().error).toBe('SYNC_CONNECT_FAILED');
+  callbacks[0]({ phase: 'error', message: 'SYNC_CONNECT_TIMEOUT' });
+  expect(useSafSyncStore.getState().error).toBe('SYNC_CONNECT_TIMEOUT');
+  callbacks[0]({ phase: 'error', message: 'RF319_PRIVATE', silent: true });
+  expect(useSafSyncStore.getState().error).toBe('SYNC_CONNECT_TIMEOUT');
 });

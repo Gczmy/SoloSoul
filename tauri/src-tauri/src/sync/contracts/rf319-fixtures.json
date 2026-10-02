@@ -1,0 +1,75 @@
+{
+  "timeout": {
+    "code": "SYNC_CONNECT_TIMEOUT",
+    "safeDetails": {
+      "stage": "connect"
+    },
+    "retryable": true
+  },
+  "refused": {
+    "code": "SYNC_CONNECT_REFUSED",
+    "safeDetails": {
+      "stage": "connect"
+    },
+    "retryable": true
+  },
+  "handshake": {
+    "code": "SYNC_HANDSHAKE_FAILED",
+    "safeDetails": {
+      "stage": "handshake"
+    },
+    "retryable": false
+  },
+  "pairing": {
+    "code": "SYNC_PAIRING_PENDING",
+    "safeDetails": {
+      "stage": "pairing",
+      "syncPeerId": "node-B",
+      "sasCode": "482913"
+    },
+    "retryable": false
+  },
+  "legacyPairing": {
+    "code": "SYNC_PAIRING_PENDING",
+    "safeDetails": {
+      "stage": "pairing",
+      "syncPeerId": "node-B"
+    },
+    "retryable": false
+  },
+  "invalidPairing": {
+    "code": "SYNC_PAIRING_INVALID",
+    "safeDetails": {
+      "stage": "pairing"
+    },
+    "retryable": false
+  },
+  "locked": {
+    "code": "VAULT_LOCKED",
+    "safeDetails": {
+      "stage": "read"
+    },
+    "retryable": true
+  },
+  "conflictMissing": {
+    "code": "SYNC_CONFLICT_NOT_FOUND",
+    "safeDetails": {
+      "stage": "conflict"
+    },
+    "retryable": false
+  },
+  "unconfirmed": {
+    "code": "SYNC_TASK_UNCONFIRMED",
+    "safeDetails": {
+      "stage": "task"
+    },
+    "retryable": false
+  },
+  "invalidRecovery": {
+    "code": "SYNC_RECOVERY_INVALID",
+    "safeDetails": {
+      "stage": "validate"
+    },
+    "retryable": false
+  }
+}

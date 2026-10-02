@@ -88,6 +88,31 @@ const CODES = {
   IMPORT_OPERATION_CONFLICT: true,
   IMPORT_READ_FAILED: true,
   IMPORT_FAILED: true,
+  SYNC_NOT_ENABLED: true,
+  SYNC_NOT_RUNNING: true,
+  SYNC_INVALID_ADDRESS: true,
+  SYNC_PEER_NOT_FOUND: true,
+  SYNC_CONNECT_FAILED: true,
+  SYNC_CONNECT_TIMEOUT: true,
+  SYNC_CONNECT_REFUSED: true,
+  SYNC_HANDSHAKE_FAILED: true,
+  SYNC_PAIRING_PENDING: true,
+  SYNC_PAIRING_INVALID: true,
+  SYNC_SESSION_FAILED: true,
+  SYNC_TASK_UNCONFIRMED: true,
+  SYNC_ENABLE_FAILED: true,
+  SYNC_ENABLE_TIMEOUT: true,
+  SYNC_DISCOVERY_FAILED: true,
+  SYNC_DISCOVERY_TIMEOUT: true,
+  SYNC_READ_FAILED: true,
+  SYNC_WRITE_FAILED: true,
+  SYNC_CONFLICT_NOT_FOUND: true,
+  SYNC_CONFLICT_INVALID: true,
+  SYNC_CONFLICT_FAILED: true,
+  SYNC_RECOVERY_INVALID: true,
+  SYNC_RECOVERY_FAILED: true,
+  SYNC_PERMISSION_DENIED: true,
+  SYNC_UNSUPPORTED: true,
 } satisfies Record<BackendErrorCode, true>;
 const STAGES = {
   validate: true,
@@ -105,6 +130,11 @@ const STAGES = {
   objectSave: true,
   snapshotSave: true,
   audit: true,
+  connect: true,
+  handshake: true,
+  pairing: true,
+  discovery: true,
+  conflict: true,
 } satisfies Record<BackendErrorStage, true>;
 const OBJECT_COMMANDS = [
   'object_list',
@@ -146,6 +176,16 @@ export function readBackendError(value: unknown): BackendError | null {
     const stage = own(details, 'stage');
     if (typeof stage !== 'string' || !Object.hasOwn(STAGES, stage)) return null;
     safe.safeDetails = { stage: stage as BackendErrorStage };
+    if (code === 'SYNC_PAIRING_PENDING') {
+      const peer = own(details, 'syncPeerId');
+      const sas = own(details, 'sasCode');
+      if (stage !== 'pairing' || typeof peer !== 'string' || !/^[A-Za-z0-9_.-]{1,128}$/.test(peer))
+        return null;
+      if (sas !== undefined && sas !== null && (typeof sas !== 'string' || !/^\d{6}$/.test(sas)))
+        return null;
+      safe.safeDetails.syncPeerId = peer;
+      if (typeof sas === 'string') safe.safeDetails.sasCode = sas;
+    }
     const limit = own(details, 'limit');
     // 只接纳服务端两项固定上限；任意数字也可能编码用户数据。
     if (code === 'OBJECT_NAME_TOO_LONG' && limit === 200) safe.safeDetails.limit = 200;
@@ -167,11 +207,14 @@ export function readBackendError(value: unknown): BackendError | null {
 const LEGACY_OBJECT_CODES: Record<string, BackendErrorCode> = {
   'No account is currently unlocked': 'VAULT_LOCKED',
   'No account unlocked': 'VAULT_LOCKED',
+  'No account is unlocked': 'VAULT_LOCKED',
+  'Vault is not unlocked': 'VAULT_LOCKED',
   'Vault not unlocked': 'VAULT_LOCKED',
   'Vault is locked': 'VAULT_LOCKED',
   'Request belongs to an expired session': 'SESSION_EXPIRED',
   'Vault session is no longer current': 'SESSION_EXPIRED',
   IMPORT_DIRECTORY_BUSY: 'VAULT_BUSY',
+  IMPORT_OPERATIONS_ACTIVE: 'VAULT_BUSY',
   对象名称不能为空: 'OBJECT_NAME_REQUIRED',
   '对象名称不能超过 200 字符': 'OBJECT_NAME_TOO_LONG',
   '对象属性载荷过大（超过 10 MiB）': 'OBJECT_PAYLOAD_TOO_LARGE',
@@ -205,7 +248,16 @@ export function makeBackendError(code: BackendErrorCode): BackendError {
       code === 'IMPORT_FILE_MISSING' ||
       code === 'IMPORT_PASSWORD_REQUIRED' ||
       code === 'IMPORT_BAD_PASSWORD' ||
-      code === 'IMPORT_DECRYPT_FAILED',
+      code === 'IMPORT_DECRYPT_FAILED' ||
+      code === 'SYNC_NOT_ENABLED' ||
+      code === 'SYNC_NOT_RUNNING' ||
+      code === 'SYNC_CONNECT_FAILED' ||
+      code === 'SYNC_CONNECT_TIMEOUT' ||
+      code === 'SYNC_CONNECT_REFUSED' ||
+      code === 'SYNC_DISCOVERY_FAILED' ||
+      code === 'SYNC_DISCOVERY_TIMEOUT' ||
+      code === 'SYNC_READ_FAILED' ||
+      code === 'SYNC_ENABLE_TIMEOUT',
   };
 }
 /** 仅供旧对象 Host 兼容；新 Host 已知失败由业务阶段直接编码。 */
@@ -239,7 +291,12 @@ export class BackendCommandError extends Error {
 }
 /** 错误日志不保留自由文本，旧域也不能把密码/路径从 IPC catch 写到控制台。 */
 export function backendErrorLogDetails(value: unknown): BackendError | { code: 'LEGACY_ERROR' } {
-  return readBackendError(value) ?? readLegacyObjectError(value) ?? { code: 'LEGACY_ERROR' };
+  const error = readBackendError(value) ?? readLegacyObjectError(value);
+  if (!error) return { code: 'LEGACY_ERROR' };
+  if (error.code === 'SYNC_PAIRING_PENDING' && error.safeDetails) {
+    return { ...error, safeDetails: { stage: error.safeDetails.stage } };
+  }
+  return error;
 }
 
 /** RF-317：新 Host 仅使用结构化包；文本判定仅供旧版本兼容。 */
@@ -395,4 +452,113 @@ export function normalizeTransferError(value: unknown): BackendError {
     readLegacyTransferError(value) ??
     makeBackendError('INTERNAL_ERROR')
   );
+}
+
+/** RF319：机器错误在 Store 保留代码；配对元数据只为当前确认流程提供。 */
+export const SYNC_ERROR_COMMANDS = [
+  'mdns_discover',
+  'recovery_discover_hosts',
+  'recovery_host_cancel',
+  'recovery_host_start',
+  'recovery_restore_existing_from_host',
+  'recovery_restore_from_host',
+  'sync_enable',
+  'sync_forget_peer',
+  'sync_generate_qr_payload',
+  'sync_get_auto_status',
+  'sync_get_conflict_detail',
+  'sync_get_status',
+  'sync_get_ui_prefs_sync',
+  'sync_list_conflicts',
+  'sync_listen_addr',
+  'sync_rename_peer',
+  'sync_resolve_conflict',
+  'sync_set_auto_enabled',
+  'sync_set_ui_prefs_sync',
+  'sync_trigger_foreground',
+  'sync_trust_peer',
+  'sync_with_device',
+  'vault_sync_background',
+  'vault_sync_from_remote',
+  'vault_sync_to_remote',
+] as const satisfies ReadonlyArray<keyof IpcCommandErrors>;
+export function isSyncErrorCommand(command: string): boolean {
+  return (SYNC_ERROR_COMMANDS as readonly string[]).includes(command);
+}
+const LEGACY_SYNC_CODES: Record<string, BackendErrorCode> = {
+  not_enabled: 'SYNC_NOT_ENABLED',
+  not_running: 'SYNC_NOT_RUNNING',
+  invalid_address: 'SYNC_INVALID_ADDRESS',
+  peer_not_found: 'SYNC_PEER_NOT_FOUND',
+  connect_failed: 'SYNC_CONNECT_FAILED',
+  handshake_failed: 'SYNC_HANDSHAKE_FAILED',
+  session_failed: 'SYNC_SESSION_FAILED',
+  enable_timeout: 'SYNC_ENABLE_TIMEOUT',
+  discovery_timeout: 'SYNC_DISCOVERY_TIMEOUT',
+  nsd_failed: 'SYNC_DISCOVERY_FAILED',
+  recovery_invalid: 'SYNC_RECOVERY_INVALID',
+  permission_denied: 'SYNC_PERMISSION_DENIED',
+  unsupported: 'SYNC_UNSUPPORTED',
+};
+export function readLegacySyncError(value: unknown): BackendError | null {
+  const raw = value instanceof Error ? value.message : typeof value === 'string' ? value : null;
+  if (raw === null) return null;
+  if (Object.hasOwn(CODES, raw)) return makeBackendError(raw as BackendErrorCode);
+  const token = /^__SYNC_ERR__:([a-z_]+)(?::([\s\S]*))?$/.exec(raw);
+  if (!token) return null;
+  if (token[1] === 'pairing_pending') {
+    const pair = /^([A-Za-z0-9_.-]{1,128})(?::(\d{6}))?$/.exec(token[2] ?? '');
+    if (!pair) return makeBackendError('SYNC_PAIRING_INVALID');
+    return {
+      code: 'SYNC_PAIRING_PENDING',
+      safeDetails: {
+        stage: 'pairing',
+        syncPeerId: pair[1],
+        ...(pair[2] ? { sasCode: pair[2] } : {}),
+      },
+      retryable: false,
+    };
+  }
+  return makeBackendError(
+    Object.hasOwn(LEGACY_SYNC_CODES, token[1])
+      ? LEGACY_SYNC_CODES[token[1]]
+      : 'SYNC_SESSION_FAILED',
+  );
+}
+export function normalizeSyncError(
+  value: unknown,
+  fallback: BackendErrorCode = 'SYNC_SESSION_FAILED',
+): BackendError {
+  return (
+    readBackendError(value) ??
+    readLegacyObjectError(value) ??
+    readLegacySyncError(value) ??
+    makeBackendError(fallback)
+  );
+}
+
+/** 旧 Host 的非机器正文按命令阶段降级，正文不参与分类。 */
+export function normalizeSyncCommandError(command: string, value: unknown): BackendError {
+  let fallback: BackendErrorCode = 'SYNC_SESSION_FAILED';
+  if (command === 'sync_enable') fallback = 'SYNC_ENABLE_FAILED';
+  else if (command === 'mdns_discover' || command === 'recovery_discover_hosts')
+    fallback = 'SYNC_DISCOVERY_FAILED';
+  else if (
+    command === 'sync_trigger_foreground' ||
+    command === 'recovery_host_cancel' ||
+    command === 'vault_sync_background'
+  )
+    fallback = 'SYNC_TASK_UNCONFIRMED';
+  else if (command.startsWith('recovery_')) fallback = 'SYNC_RECOVERY_FAILED';
+  else if (command === 'sync_resolve_conflict') fallback = 'SYNC_CONFLICT_FAILED';
+  else if (command === 'sync_get_conflict_detail') fallback = 'SYNC_CONFLICT_INVALID';
+  else if (
+    command.startsWith('sync_get_') ||
+    command === 'sync_list_conflicts' ||
+    command === 'sync_listen_addr' ||
+    command === 'sync_generate_qr_payload'
+  )
+    fallback = 'SYNC_READ_FAILED';
+  else if (command !== 'sync_with_device') fallback = 'SYNC_WRITE_FAILED';
+  return normalizeSyncError(value, fallback);
 }

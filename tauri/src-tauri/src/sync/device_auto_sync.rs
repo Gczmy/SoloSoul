@@ -9,6 +9,8 @@
 //! 避免连续写操作产生大量同步请求。
 
 use super::contracts::DeviceSyncAutoStatus;
+use super::errors;
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
 use futures::future::BoxFuture;
 use solosoul_core::VaultService;
 use solosoul_sync::SyncService;
@@ -264,8 +266,8 @@ async fn run_device_sync(
     let peers = match sync_service.known_peers().await {
         Ok(peers) => peers,
         Err(e) => {
-            tracing::warn!("[DeviceAutoSync] failed to list peers: {}", e);
-            return Err(e);
+            let error = BackendError::caused_by(Code::SyncReadFailed, Stage::Read, e);
+            return Err(errors::wire_code(&error));
         }
     };
 
@@ -289,7 +291,7 @@ async fn run_device_sync(
         )
         .ok();
 
-    let mut last_error: Option<String> = None;
+    let mut last_error: Option<BackendError> = None;
     let mut reachable = 0usize;
     let target_count = targets.len();
     for peer in targets {
@@ -305,9 +307,9 @@ async fn run_device_sync(
             continue;
         }
         reachable += 1;
-        if let Err(e) = sync_service.sync_with_device(peer_id.clone()).await {
-            tracing::warn!("[DeviceAutoSync] sync with {} failed: {}", peer_id, e);
-            last_error = Some(e);
+        if let Err(e) = sync_service.sync_with_device_typed(peer_id.clone()).await {
+            let error = errors::typed(e);
+            last_error = Some(error);
             continue;
         }
         tracing::info!("[DeviceAutoSync] sync with {} completed", peer_id);
@@ -325,7 +327,7 @@ async fn run_device_sync(
             match last_error.as_ref() {
                 Some(message) => DeviceSyncAutoStatus::Error {
                     source: source.into(),
-                    message: Some(message.clone()),
+                    message: Some(errors::wire_code(message)),
                 },
                 None => DeviceSyncAutoStatus::Complete {
                     source: source.into(),
@@ -336,7 +338,7 @@ async fn run_device_sync(
         .ok();
 
     if let Some(e) = last_error {
-        return Err(e);
+        return Err(errors::wire_code(&e));
     }
     Ok(())
 }

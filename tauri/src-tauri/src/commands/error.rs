@@ -84,6 +84,31 @@ pub enum BackendErrorCode {
     ImportOperationConflict,
     ImportReadFailed,
     ImportFailed,
+    SyncNotEnabled,
+    SyncNotRunning,
+    SyncInvalidAddress,
+    SyncPeerNotFound,
+    SyncConnectFailed,
+    SyncConnectTimeout,
+    SyncConnectRefused,
+    SyncHandshakeFailed,
+    SyncPairingPending,
+    SyncPairingInvalid,
+    SyncSessionFailed,
+    SyncTaskUnconfirmed,
+    SyncEnableFailed,
+    SyncEnableTimeout,
+    SyncDiscoveryFailed,
+    SyncDiscoveryTimeout,
+    SyncReadFailed,
+    SyncWriteFailed,
+    SyncConflictNotFound,
+    SyncConflictInvalid,
+    SyncConflictFailed,
+    SyncRecoveryInvalid,
+    SyncRecoveryFailed,
+    SyncPermissionDenied,
+    SyncUnsupported,
 }
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -103,6 +128,11 @@ pub enum BackendErrorStage {
     ObjectSave,
     SnapshotSave,
     Audit,
+    Connect,
+    Handshake,
+    Pairing,
+    Discovery,
+    Conflict,
 }
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -112,6 +142,10 @@ pub struct SafeErrorDetails {
     pub limit: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub completed_count: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sync_peer_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sas_code: Option<String>,
 }
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -146,6 +180,15 @@ impl BackendError {
                     | Code::ImportPasswordRequired
                     | Code::ImportBadPassword
                     | Code::ImportDecryptFailed
+                    | Code::SyncNotEnabled
+                    | Code::SyncNotRunning
+                    | Code::SyncConnectFailed
+                    | Code::SyncConnectTimeout
+                    | Code::SyncConnectRefused
+                    | Code::SyncDiscoveryFailed
+                    | Code::SyncDiscoveryTimeout
+                    | Code::SyncReadFailed
+                    | Code::SyncEnableTimeout
             ),
         }
     }
@@ -154,12 +197,23 @@ impl BackendError {
             stage,
             limit: None,
             completed_count: None,
+            sync_peer_id: None,
+            sas_code: None,
         });
         self
     }
     pub fn limit(mut self, limit: u64) -> Self {
         if let Some(details) = &mut self.safe_details {
             details.limit = Some(limit);
+        }
+        self
+    }
+    pub(crate) fn sync_pairing(mut self, peer: &str, sas: Option<&str>) -> Self {
+        if self.code == BackendErrorCode::SyncPairingPending {
+            if let Some(details) = self.safe_details.as_mut() {
+                details.sync_peer_id = Some(peer.into());
+                details.sas_code = sas.map(Into::into);
+            }
         }
         self
     }

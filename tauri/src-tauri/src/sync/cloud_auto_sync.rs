@@ -20,6 +20,8 @@
 //! `spawn_blocking`（锁在阻塞线程内获取/释放），其余仅短暂内联取数。
 
 use super::contracts::{CloudSyncIncoming, CloudSyncStatus};
+use super::errors;
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
 use futures::future::BoxFuture;
 use solosoul_core::cloud_sync::{
     build_latest_index_path, build_snapshot_remote_path, CloudConnector,
@@ -304,10 +306,10 @@ async fn run_cloud_sync_round(
             pre.finish(source_str)?;
         }
         Err(e) => {
-            tracing::warn!("[CloudSync] round failed ({}): {}", source_str, e);
+            let error = errors::legacy_for(Code::SyncWriteFailed, Stage::Write, e.clone());
             let _ = pre.emit(
                 "cloud-sync-status",
-                pre.status_event("error", source_str, Some(e.clone())),
+                pre.status_event("error", source_str, Some(errors::wire_code(&error))),
             );
         }
     }
@@ -375,7 +377,7 @@ impl CloudPreContext {
         payload["sessionGeneration"] = self.session.generation().into();
         self.with_vault(|_| {
             if let Err(e) = (self.emit_event)(name, payload) {
-                tracing::warn!("[CloudSync] event delivery failed: {e}");
+                let _ = BackendError::caused_by(Code::SyncTaskUnconfirmed, Stage::Task, e);
             }
             Ok(())
         })
@@ -766,7 +768,7 @@ async fn detect_and_fetch_incoming(
         pre.check()?;
         let imported = if pre.config.auto_import {
             auto_import_one(pre, file).await.unwrap_or_else(|e| {
-                tracing::warn!("[CloudSync] 自动导入 {:?} 失败: {}", file, e);
+                let _ = BackendError::caused_by(Code::SyncWriteFailed, Stage::Write, e);
                 false
             })
         } else {
@@ -918,7 +920,7 @@ pub(crate) fn finalize_cloud_import(
         }
         vault.set_sys_config(&key, &hlc)?;
         if let Err(error) = std::fs::remove_file(&source) {
-            tracing::warn!("[CloudSync] imported source cleanup failed: {error}");
+            let _ = BackendError::caused_by(Code::SyncWriteFailed, Stage::Write, error);
         }
         Ok(())
     })

@@ -977,7 +977,7 @@ test('RF307 Host error fixtures compile against actual rejection contracts and u
 ${declarations.join('\n')}
 const actual:IpcCommandErrors['object_create']=longName;
 const rollback:IpcCommandErrors['snapshot_rollback']=rollbackMismatch;
-const legacy:IpcCommandErrors['sync_get_status']='old string';
+const legacy:IpcCommandErrors['get_app_info']='old string';
 // @ts-expect-error migrated error is an object, not an English sentence.
 const old:IpcCommandErrors['object_create']='Object not found';
 // @ts-expect-error safeDetails is nullable but required.
@@ -1155,10 +1155,13 @@ test('RF318 all actual transfer errors compile with safe counts and keep ImportO
     const manifest = JSON.parse(await readFile(path.join(root, outputFiles[1]), 'utf8'));
     const llm = manifest.structuredErrorCommands.filter((c) => c.startsWith('llm_'));
     assert.deepEqual(
-      manifest.structuredErrorCommands,
+      manifest.structuredErrorCommands.filter(
+        (c) =>
+          objectSnapshotCommands.includes(c) || llm.includes(c) || transferCommands.includes(c),
+      ),
       [...objectSnapshotCommands, ...llm, ...transferCommands].sort(),
     );
-    assert.equal(manifest.structuredErrorCommands.length, 56);
+    assert.equal(objectSnapshotCommands.length + llm.length + transferCommands.length, 56);
     await copyTypedSources(root);
     const fixture = JSON.parse(
       await readFile(
@@ -1213,6 +1216,110 @@ test('RF318 actual transfer Result or completed-count serde drift fails without 
       'src-tauri/src/commands/error.rs',
       'pub completed_count: Option<u64>',
       'pub completed_count: Option<String>',
+    ],
+  ])
+    await withProductionFixture(async (root) => {
+      const before = await snapshot(root),
+        source = path.join(root, file),
+        original = await readFile(source, 'utf8');
+      assert.ok(original.includes(from));
+      await writeFile(source, original.replace(from, to));
+      await assert.rejects(generateContracts({ root, check: true }), /IPC contract drift/);
+      assert.deepEqual(await snapshot(root), before);
+    });
+});
+
+const syncErrorCommands = [
+  'mdns_discover',
+  'recovery_discover_hosts',
+  'recovery_host_cancel',
+  'recovery_host_start',
+  'recovery_restore_existing_from_host',
+  'recovery_restore_from_host',
+  'sync_enable',
+  'sync_forget_peer',
+  'sync_generate_qr_payload',
+  'sync_get_auto_status',
+  'sync_get_conflict_detail',
+  'sync_get_status',
+  'sync_get_ui_prefs_sync',
+  'sync_list_conflicts',
+  'sync_listen_addr',
+  'sync_rename_peer',
+  'sync_resolve_conflict',
+  'sync_set_auto_enabled',
+  'sync_set_ui_prefs_sync',
+  'sync_trigger_foreground',
+  'sync_trust_peer',
+  'sync_with_device',
+  'vault_sync_background',
+  'vault_sync_from_remote',
+  'vault_sync_to_remote',
+];
+
+test('RF319 actual synchronization rejection contracts preserve pairing and recovery outcomes', async () => {
+  await withProductionFixture(async (root) => {
+    const manifest = JSON.parse(await readFile(path.join(root, outputFiles[1]), 'utf8'));
+    const llm = manifest.structuredErrorCommands.filter((c) => c.startsWith('llm_'));
+    assert.deepEqual(
+      manifest.structuredErrorCommands,
+      [...objectSnapshotCommands, ...llm, ...transferCommands, ...syncErrorCommands].sort(),
+    );
+    assert.equal(manifest.structuredErrorCommands.length, 81);
+    await copyTypedSources(root);
+    const fixture = JSON.parse(
+      await readFile(
+        path.join(workspaceRoot, 'src-tauri/src/sync/contracts/rf319-fixtures.json'),
+        'utf8',
+      ),
+    );
+    const outcomes = JSON.parse(
+      await readFile(
+        path.join(workspaceRoot, 'src-tauri/src/sync/contracts/fixtures.json'),
+        'utf8',
+      ),
+    );
+    const lines = [
+      "import type {BackendError,IpcCommandErrors,IpcCommands} from './src/lib/generated/ipcContracts';",
+    ];
+    for (const [key, value] of Object.entries(fixture))
+      lines.push('const ' + key + '=' + JSON.stringify(value) + ' satisfies BackendError;');
+    for (const command of syncErrorCommands)
+      lines.push(
+        'const ' + command + ':IpcCommandErrors[' + JSON.stringify(command) + ']=handshake;',
+      );
+    for (const key of ['recoveryComplete', 'recoveryPartial', 'recoveryNotCommitted'])
+      lines.push(
+        'const ' +
+          key +
+          '=' +
+          JSON.stringify(outcomes[key]) +
+          " satisfies IpcCommands['recovery_restore_from_host']['result'];",
+      );
+    lines.push(
+      '// @ts-expect-error migrated rejection cannot carry private string.',
+      "const old:IpcCommandErrors['sync_with_device']='private';",
+      '// @ts-expect-error SAS is an optional string, never a number.',
+      "const bad:BackendError={...pairing,safeDetails:{stage:'pairing',syncPeerId:'node',sasCode:482913}};",
+      '// @ts-expect-error arbitrary body does not belong in approved fields.',
+      "const leaked:BackendError={...refused,safeDetails:{stage:'connect',body:'secret'}};",
+      '// @ts-expect-error recovery partial result cannot be collapsed into an error.',
+      'const collapsed:BackendError=recoveryPartial;',
+    );
+    const probe = path.join(root, 'rf319-probe.ts');
+    await writeFile(probe, lines.join('\n'));
+    const result = await compileProbe(root, probe);
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  });
+});
+test('RF319 actual Result and pairing serde drift fail without overwriting generated outputs', async () => {
+  for (const [file, from, to] of [
+    ['src-tauri/src/sync/ipc.rs', 'Result<SyncResult, BackendError>', 'Result<SyncResult, String>'],
+    [
+      'src-tauri/src/commands/error.rs',
+      'pub sas_code: Option<String>',
+      'pub sas_code: Option<u64>',
     ],
   ])
     await withProductionFixture(async (root) => {

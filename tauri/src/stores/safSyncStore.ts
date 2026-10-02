@@ -2,6 +2,7 @@ import type { IpcEvents } from '@/lib/generated/ipcContracts';
 import { create } from 'zustand';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { logger } from '@/lib/logger';
+import { normalizeSyncError, backendErrorLogDetails } from '@/lib/backendErrorWire';
 
 export type SyncProgressPayload = IpcEvents['sync-progress'];
 
@@ -102,7 +103,7 @@ export const useSafSyncStore = create<SafSyncState>((set, get) => {
             set({
               status: 'error',
               phase,
-              error: message ?? '同步失败',
+              error: normalizeSyncError(message, 'SYNC_WRITE_FAILED').code,
             });
             // 5 秒后自动恢复到 idle
             resetTimer = setTimeout(() => {
@@ -140,7 +141,10 @@ export const useSafSyncStore = create<SafSyncState>((set, get) => {
           set({ _unlisten: unlistenFn, _unlistenPromise: null });
         })
         .catch((err) => {
-          logger.error('[safSyncStore] Failed to register sync-progress listener:', err);
+          logger.error(
+            '[safSyncStore] Failed to register sync-progress listener:',
+            backendErrorLogDetails(err),
+          );
           if (get()._unlistenPromise === pending) set({ _unlistenPromise: null });
         });
     },

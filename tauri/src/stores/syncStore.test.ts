@@ -126,7 +126,7 @@ describe('syncStore pairing_pending detection', () => {
 
     const s = useSyncStore.getState();
     expect(s.pairingPendingPeerId).toBeNull();
-    expect(s.error).toContain('__SYNC_ERR__:connect_failed');
+    expect(s.error).toBe('SYNC_CONNECT_FAILED');
   });
 
   it('clearPairingPending resets A-side flow', () => {
@@ -632,7 +632,7 @@ describe('syncStore initNsdFailedListener', () => {
 
     // 错误立即可见；等待 loadStatus 重读后端状态完成
     await vi.waitFor(() => {
-      expect(useSyncStore.getState().error).toBe('__SYNC_ERR__:nsd_failed');
+      expect(useSyncStore.getState().error).toBe('SYNC_DISCOVERY_FAILED');
       expect(useSyncStore.getState().syncEnabled).toBe(false);
     });
     expect(mockInvoke).toHaveBeenCalledWith('sync_get_status');
@@ -689,7 +689,7 @@ describe('syncStore initNsdFailedListener', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockInvoke).toHaveBeenCalledWith('sync_get_status');
-    expect(useSyncStore.getState().error).toBe('__SYNC_ERR__:nsd_failed');
+    expect(useSyncStore.getState().error).toBe('SYNC_DISCOVERY_FAILED');
   });
 });
 
@@ -772,13 +772,13 @@ describe('syncStore activity stamping (timestamp + peer info + failure record)',
     await useSyncStore.getState().syncWithDevice('10.0.0.2:42069');
 
     const s = useSyncStore.getState();
-    expect(s.error).toContain('__SYNC_ERR__:connect_failed');
+    expect(s.error).toBe('SYNC_CONNECT_FAILED');
     // 失败不写 lastResult（不触发「同步完成」toast），但写入失败历史条目
     expect(s.lastResult).toBeNull();
     const entry = s.recentResults[0];
     expect(entry).toBeDefined();
     expect(entry.failed).toBe(true);
-    expect(entry.errorSummary).toContain('connect_failed');
+    expect(entry.errorSummary).toBe('SYNC_CONNECT_FAILED');
     expect(entry.at).toBeGreaterThan(0);
     expect(entry.peerName).toBe('SoloSoul-ab12cd34');
     expect(entry.peerClientType).toBe('android');
@@ -1010,7 +1010,7 @@ describe('syncStore conflict detail and resolution lifecycle', () => {
       conflicts: [summary],
       selectedConflict: detail,
       isLoading: false,
-      error: 'Error: permission denied',
+      error: 'SYNC_CONFLICT_FAILED',
     });
   });
 
@@ -1079,7 +1079,7 @@ describe('syncStore encrypted device names', () => {
   it('propagates save failures and keeps the existing name', async () => {
     mockInvoke.mockRejectedValueOnce(new Error('disk full'));
     await expect(useSyncStore.getState().renamePeer('peer', 'Work Mac')).rejects.toThrow(
-      'disk full',
+      'SYNC_WRITE_FAILED',
     );
     expect(useSyncStore.getState().connectedPeers[0]).toEqual(peer);
   });
@@ -1123,16 +1123,16 @@ describe('syncStore peer mutation feedback', () => {
     const failure = new Error('trust denied');
     mockInvoke.mockRejectedValueOnce(failure);
 
-    await expect(useSyncStore.getState().trustPeer('peer-1', true, 'aabbccdd')).rejects.toBe(
-      failure,
-    );
+    await expect(
+      useSyncStore.getState().trustPeer('peer-1', true, 'aabbccdd'),
+    ).rejects.toMatchObject({ backend: { code: 'SYNC_WRITE_FAILED' } });
     expect(mockInvoke).toHaveBeenCalledWith('sync_trust_peer', {
       peerNodeId: 'peer-1',
       trusted: true,
       fingerprint: 'aabbccdd',
     });
     expect(useSyncStore.getState().connectedPeers[0].trusted).toBe(false);
-    expect(useSyncStore.getState().error).toContain('trust denied');
+    expect(useSyncStore.getState().error).toBe('SYNC_WRITE_FAILED');
     expect(useSyncStore.getState().isLoading).toBe(false);
   });
 
@@ -1161,10 +1161,12 @@ describe('syncStore peer mutation feedback', () => {
     const failure = new Error('forget denied');
     mockInvoke.mockRejectedValueOnce(failure);
 
-    await expect(useSyncStore.getState().forgetPeer('peer-1')).rejects.toBe(failure);
+    await expect(useSyncStore.getState().forgetPeer('peer-1')).rejects.toMatchObject({
+      backend: { code: 'SYNC_WRITE_FAILED' },
+    });
     expect(mockInvoke).toHaveBeenCalledWith('sync_forget_peer', { peerNodeId: 'peer-1' });
     expect(useSyncStore.getState().connectedPeers[0].id).toBe('peer-1');
-    expect(useSyncStore.getState().error).toContain('forget denied');
+    expect(useSyncStore.getState().error).toBe('SYNC_WRITE_FAILED');
     expect(useSyncStore.getState().isLoading).toBe(false);
   });
 
@@ -1415,7 +1417,7 @@ describe('syncStore enable failure feedback', () => {
     await vi.waitFor(() => expect(useSyncStore.getState().syncEnabled).toBe(false));
 
     expect(useSyncStore.getState().isLoading).toBe(false);
-    expect(useSyncStore.getState().error).toContain('NSD permission denied');
+    expect(useSyncStore.getState().error).toBe('SYNC_ENABLE_FAILED');
   });
 
   it('clears an older error during an ordinary successful status refresh', async () => {

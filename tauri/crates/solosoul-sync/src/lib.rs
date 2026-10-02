@@ -12,6 +12,7 @@ pub mod types;
 // 共享模块：协议、Noise、传输、Delta、附件同步逻辑在所有平台可用。
 pub mod attachments;
 pub mod delta;
+pub mod failure;
 pub mod identity;
 pub mod noise;
 pub mod recovery;

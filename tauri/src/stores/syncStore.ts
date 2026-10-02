@@ -17,6 +17,7 @@ import { useTemplateStore } from '@/stores/templateStore';
 import { useTrashStore } from '@/stores/trashStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { logger } from '@/lib/logger';
+import { normalizeSyncError, backendErrorLogDetails } from '@/lib/backendErrorWire';
 
 // 同步历史按账户保存。旧 v1 全局键无法辨认各条记录归属，不再加载或迁移，
 // 避免把其他账户的设备名称及失败摘要显示给当前账户；旧值保留在本机。
@@ -40,8 +41,8 @@ function loadSyncHistory(): SyncResult[] {
     // P028: 容量自愈——读取即按上限截断。早期版本若已写入超过 SYNC_HISTORY_MAX
     // 条（当时无清理逻辑），这里截断后写回，保证 localStorage 不再残留超限旧数据
     // （仅 slice 不写回会留下永久垃圾，随重启反复增长；写回失败静默降级为内存态）。
-    const trimmed = parsed.slice(0, SYNC_HISTORY_MAX) as SyncResult[];
-    if (trimmed.length !== parsed.length) {
+    const trimmed = safeHistory(parsed.slice(0, SYNC_HISTORY_MAX) as SyncResult[]);
+    if (JSON.stringify(trimmed) !== JSON.stringify(parsed)) {
       try {
         localStorage.setItem(key, JSON.stringify(trimmed));
       } catch {
@@ -63,26 +64,50 @@ function refreshDataStores(accountId: string): void {
   useObjectStore
     .getState()
     .loadObjects(accountId, undefined)
-    .catch((err) => logger.warn('[syncStore] object list refresh after inbound sync:', err));
+    .catch((err) =>
+      logger.warn(
+        '[syncStore] object list refresh after inbound sync:',
+        backendErrorLogDetails(err),
+      ),
+    );
   // 详情缓存整体清空（同步可能改动任意对象），下次打开对象时重新拉取
   useObjectStore.setState({ currentObjectCache: {} });
   useTemplateStore
     .getState()
     .loadTemplates()
-    .catch((err) => logger.warn('[syncStore] template refresh after inbound sync:', err));
+    .catch((err) =>
+      logger.warn('[syncStore] template refresh after inbound sync:', backendErrorLogDetails(err)),
+    );
   useTrashStore
     .getState()
     .loadItems(accountId)
-    .catch((err) => logger.warn('[syncStore] trash refresh after inbound sync:', err));
+    .catch((err) =>
+      logger.warn('[syncStore] trash refresh after inbound sync:', backendErrorLogDetails(err)),
+    );
   useProfileStore
     .getState()
     .loadProfile(accountId)
-    .catch((err) => logger.warn('[syncStore] profile refresh after inbound sync:', err));
+    .catch((err) =>
+      logger.warn('[syncStore] profile refresh after inbound sync:', backendErrorLogDetails(err)),
+    );
+}
+
+/** 已失败行只保留机器错误；账户内设备展示信息及成功统计保持。 */
+function safeHistory(results: SyncResult[]): SyncResult[] {
+  return results.map((row) =>
+    row && row.failed
+      ? {
+          ...row,
+          summary: normalizeSyncError(row.errorSummary ?? row.summary).code,
+          errorSummary: normalizeSyncError(row.errorSummary ?? row.summary).code,
+        }
+      : row,
+  );
 }
 
 /** 写入最新同步历史并返回截断后的数组（持久化失败静默降级为纯内存）。 */
 function pushSyncHistory(results: SyncResult[]): SyncResult[] {
-  const next = results.slice(0, SYNC_HISTORY_MAX);
+  const next = safeHistory(results.slice(0, SYNC_HISTORY_MAX));
   const key = currentSyncHistoryKey();
   if (!key) return next;
   try {
@@ -184,7 +209,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
   const enqueueEnable = (task: () => Promise<void>): Promise<void> => {
     const next = enableChain.then(task).catch((err) => {
       // 上游任务失败不应阻断后续任务；错误已在各自任务内处理
-      logger.warn('[syncStore] enable chain task failed:', err);
+      logger.warn('[syncStore] enable chain task failed:', backendErrorLogDetails(err));
     });
     enableChain = next;
     return next;
@@ -227,7 +252,9 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         }));
       } catch (err) {
         if (!request.isCurrent()) return;
-        setCurrent((state) => ({ error: options?.preserveError ? state.error : String(err) }));
+        setCurrent((state) => ({
+          error: options?.preserveError ? state.error : normalizeSyncError(err).code,
+        }));
       }
     },
 
@@ -241,7 +268,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         setCurrent({ listenAddr: get().syncEnabled ? addr : '' });
       } catch (err) {
         if (!request.isCurrent()) return;
-        setCurrent({ error: String(err) });
+        setCurrent({ error: normalizeSyncError(err).code });
       }
     },
 
@@ -285,13 +312,18 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         } catch (err) {
           clearTimeout(timeoutHandle);
           if (!request.isCurrent()) return;
-          setCurrent({ isLoading: false, error: String(err) });
+          setCurrent({ isLoading: false, error: normalizeSyncError(err).code });
           // 超时/失败后主动重读后端状态：Android 上 sync_enable 可能因 NSD 权限弹窗
           // 或命令排队导致超时，但服务端最终可能已切换成功。重读可让开关 UI 与
           // 实际状态保持一致，避免“禁用失败但实际已禁用”的假卡死。
           void get()
             .loadStatus({ preserveError: true })
-            .catch((e2) => logger.warn('[syncStore] status resync after enable error:', e2));
+            .catch((e2) =>
+              logger.warn(
+                '[syncStore] status resync after enable error:',
+                backendErrorLogDetails(e2),
+              ),
+            );
         }
       });
     },
@@ -328,7 +360,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       } catch (err) {
         clearTimeout(timeoutHandle);
         if (!request.isCurrent()) return;
-        setCurrent({ isDiscoveringDevices: false, error: String(err) });
+        setCurrent({ isDiscoveringDevices: false, error: normalizeSyncError(err).code });
       }
     },
 
@@ -359,15 +391,11 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         }));
       } catch (err) {
         if (!request.isCurrent()) return;
-        const raw = String(err);
-        // 对端尚未信任本设备 → 进入双侧确认配对流程（A 侧发起方）。
-        // B 已被 record_peer 持久化（含指纹），重读状态后弹配对卡片。
-        // 新后端返回 `__SYNC_ERR__:pairing_pending:{peerId}:{sas}`（sas = 6 位验证码），
-        // 旧格式 `{peerId}` 亦兼容（无 sasCode）。
-        const pairingMatch = raw.match(/^__SYNC_ERR__:pairing_pending:([^:]+)(?::(\d{6}))?$/);
-        if (pairingMatch) {
-          const peerId = pairingMatch[1];
-          const sasCode = pairingMatch[2] ?? null;
+        const failure = normalizeSyncError(err);
+        const raw = failure.code;
+        if (failure.code === 'SYNC_PAIRING_PENDING' && failure.safeDetails?.syncPeerId) {
+          const peerId = failure.safeDetails.syncPeerId;
+          const sasCode = failure.safeDetails.sasCode ?? null;
           request.assertCurrent();
           await get().loadStatus();
           request.assertCurrent();
@@ -422,7 +450,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         request.assertCurrent();
         setCurrent({ isLoading: false });
       } catch (err) {
-        if (request.isCurrent()) setCurrent({ isLoading: false, error: String(err) });
+        if (request.isCurrent())
+          setCurrent({ isLoading: false, error: normalizeSyncError(err).code });
         throw err;
       }
     },
@@ -438,7 +467,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         request.assertCurrent();
         setCurrent({ isLoading: false });
       } catch (err) {
-        if (request.isCurrent()) setCurrent({ isLoading: false, error: String(err) });
+        if (request.isCurrent())
+          setCurrent({ isLoading: false, error: normalizeSyncError(err).code });
         throw err;
       }
     },
@@ -468,7 +498,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         setCurrent({ autoSyncEnabled: enabled });
       } catch (err) {
         if (!request.isCurrent()) return;
-        setCurrent({ error: String(err) });
+        setCurrent({ error: normalizeSyncError(err).code });
       }
     },
 
@@ -486,7 +516,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         setCurrent({ autoSyncEnabled: result, isLoading: false });
       } catch (err) {
         if (!request.isCurrent()) return;
-        setCurrent({ isLoading: false, error: String(err) });
+        setCurrent({ isLoading: false, error: normalizeSyncError(err).code });
       }
     },
 
@@ -499,7 +529,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         setCurrent({ uiPrefsSyncEnabled: enabled });
       } catch (err) {
         if (!request.isCurrent()) return;
-        setCurrent({ error: String(err) });
+        setCurrent({ error: normalizeSyncError(err).code });
       }
     },
 
@@ -517,7 +547,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         setCurrent({ uiPrefsSyncEnabled: result, isLoading: false });
       } catch (err) {
         if (!request.isCurrent()) return;
-        setCurrent({ isLoading: false, error: String(err) });
+        setCurrent({ isLoading: false, error: normalizeSyncError(err).code });
       }
     },
 
@@ -529,7 +559,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         request.assertCurrent();
       } catch (err) {
         if (!request.isCurrent()) return;
-        setCurrent({ error: String(err) });
+        setCurrent({ error: normalizeSyncError(err).code });
       }
     },
 
@@ -554,7 +584,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         setCurrent({ conflicts, error: null });
       } catch (err) {
         if (!request.isCurrent()) return;
-        setCurrent({ error: String(err) });
+        setCurrent({ error: normalizeSyncError(err).code });
       }
     },
 
@@ -577,7 +607,10 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           get()
             .loadConflicts()
             .catch((err) =>
-              logger.warn('[syncStore] Failed to auto-reload conflicts after event:', err),
+              logger.warn(
+                '[syncStore] Failed to auto-reload conflicts after event:',
+                backendErrorLogDetails(err),
+              ),
             );
         }
       }).then((unlisten) => {
@@ -681,11 +714,21 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         const refreshAfterInbound = (conflicts: number, applied: number, logTag: string) => {
           get()
             .loadStatus()
-            .catch((err) => logger.warn(`[syncStore] status refresh after ${logTag}:`, err));
+            .catch((err) =>
+              logger.warn(
+                `[syncStore] status refresh after ${logTag}:`,
+                backendErrorLogDetails(err),
+              ),
+            );
           if (conflicts > 0) {
             get()
               .loadConflicts()
-              .catch((err) => logger.warn(`[syncStore] conflicts refresh after ${logTag}:`, err));
+              .catch((err) =>
+                logger.warn(
+                  `[syncStore] conflicts refresh after ${logTag}:`,
+                  backendErrorLogDetails(err),
+                ),
+              );
           }
           // P011+P002: 对端有实际数据写入时刷新全部数据 Store，
           // 否则用户停留在工作区时看不到对端同步进来的新增/修改对象。
@@ -794,13 +837,18 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       const setCurrent = request.guardSet<SyncStoreState>(set);
       return listen<IpcEvents['sync-nsd-failed']>('sync-nsd-failed', (event) => {
         if (!request.isCurrent()) return;
-        logger.warn('[syncStore] NSD registration failed:', event.payload?.error);
-        setCurrent({ isLoading: false, error: '__SYNC_ERR__:nsd_failed' });
+        logger.warn('[syncStore] NSD registration failed:', { code: 'SYNC_DISCOVERY_FAILED' });
+        setCurrent({ isLoading: false, error: 'SYNC_DISCOVERY_FAILED' });
         // 立即显示失败原因，并在状态核对期间保留当前错误。若后续操作已清除
         // 错误，迟到的状态核对不能重新写入旧 NSD 错误。
         get()
           .loadStatus({ preserveError: true })
-          .catch((err) => logger.warn('[syncStore] status resync after nsd failure:', err));
+          .catch((err) =>
+            logger.warn(
+              '[syncStore] status resync after nsd failure:',
+              backendErrorLogDetails(err),
+            ),
+          );
       }).then((unlisten) => {
         if (!request.isCurrent()) unlisten();
         return unlisten;
@@ -818,7 +866,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         setCurrent({ selectedConflict: detail, error: null });
       } catch (err) {
         if (!request.isCurrent()) return;
-        setCurrent({ error: String(err) });
+        setCurrent({ error: normalizeSyncError(err).code });
       }
     },
 
@@ -841,7 +889,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         }));
       } catch (err) {
         if (!request.isCurrent()) return;
-        setCurrent({ isLoading: false, error: String(err) });
+        setCurrent({ isLoading: false, error: normalizeSyncError(err).code });
       }
     },
   };
