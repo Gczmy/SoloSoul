@@ -1,0 +1,78 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "fallback",
+  "startedAt": "2026-10-02T21:17:02.577Z",
+  "tests": [
+    {
+      "class": "AndroidGlassInstrumentedTest",
+      "method": "verifiesRequestedEnvironment",
+      "passed": true,
+      "seconds": 2.049
+    },
+    {
+      "class": "AndroidGlassInstrumentedTest",
+      "method": "unsupportedBlurReturnsFallbackWithoutOpeningNativeMenu",
+      "passed": true,
+      "seconds": 3.39
+    },
+    {
+      "class": "AndroidCardSurfaceInstrumentedTest",
+      "method": "lightAndDarkCardsRenderWithoutOverflow",
+      "passed": true,
+      "seconds": 3.579
+    },
+    {
+      "class": "AndroidThemeInstrumentedTest",
+      "method": "systemThemeFollowsLightDarkLight",
+      "passed": true,
+      "seconds": 4.141
+    },
+    {
+      "class": "AndroidThemeInstrumentedTest",
+      "method": "explicitLightSurvivesSystemChanges",
+      "passed": true,
+      "seconds": 4.068
+    },
+    {
+      "class": "AndroidThemeInstrumentedTest",
+      "method": "explicitDarkSurvivesSystemChanges",
+      "passed": true,
+      "seconds": 4.014
+    },
+    {
+      "class": "ResourceInstallerInstrumentedTest",
+      "method": "packagedResourcesInstallAndSecondStartWritesNothing",
+      "passed": true,
+      "seconds": 1.272
+    },
+    {
+      "class": "ResourcePreparationInstrumentedTest",
+      "method": "slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt",
+      "passed": true,
+      "seconds": 3.441
+    },
+    {
+      "class": "ResourcePreparationInstrumentedTest",
+      "method": "errorIsVisibleAndRetryUnblocksRealConsumers",
+      "passed": true,
+      "seconds": 3.718
+    }
+  ],
+  "passed": true,
+  "api": 34,
+  "abi": "arm64-v8a",
+  "artifacts": [
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "sha256": "df73a9afc09d85ad4af5550fa4106a41d43d698002a9532c06cc4aa24db17d5c"
+    },
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+      "sha256": "c97132e95650b29fcbc655edaebc6d4701ae724e0ff67a80ef0b9dd2c7902425"
+    }
+  ],
+  "count": 9,
+  "successes": 9,
+  "finishedAt": "2026-10-02T21:17:33.617Z"
+}

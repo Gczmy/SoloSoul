@@ -1,0 +1,52 @@
+[
+  {
+    "name": "tasks",
+    "command": [
+      "./gradlew",
+      "tasks",
+      "--all"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 3.334446582943201
+  },
+  {
+    "name": "ndk",
+    "command": [
+      "cargo",
+      "ndk",
+      "-t",
+      "aarch64-linux-android",
+      "check"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 4.98930533323437
+  },
+  {
+    "name": "apk",
+    "command": [
+      "npx",
+      "tauri",
+      "android",
+      "build",
+      "--debug",
+      "--target",
+      "aarch64",
+      "--split-per-abi",
+      "--apk",
+      "--ci"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 36.10569491703063
+  },
+  {
+    "name": "test-apk",
+    "command": [
+      "./gradlew",
+      ":app:assembleArm64DebugAndroidTest",
+      "-x",
+      "rustBuildArm64Debug"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 1.2393528749234974
+  }
+]

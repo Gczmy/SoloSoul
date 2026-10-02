@@ -1,0 +1,53 @@
+[
+  {
+    "name": "types",
+    "command": [
+      "node",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 9.779293958097696
+  },
+  {
+    "name": "fixture-types",
+    "command": [
+      "node",
+      "node_modules/typescript/bin/tsc",
+      "-p",
+      "native-regression/card-surfaces/tsconfig.json"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 0.4041190827265382
+  },
+  {
+    "name": "lint",
+    "command": [
+      "npm",
+      "run",
+      "lint"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 4.857004499994218
+  },
+  {
+    "name": "fixture-lint",
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      "native-regression/card-surfaces/main.tsx"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 0.4210576247423887
+  },
+  {
+    "name": "test",
+    "command": [
+      "npm",
+      "run",
+      "test"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 48.066000500228256
+  }
+]

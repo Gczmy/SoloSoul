@@ -1,0 +1,48 @@
+[
+  {
+    "mode": "supported",
+    "command": [
+      "/Users/zzc/.nvm/versions/node/v24.14.0/bin/node",
+      "scripts/android-native-regression.mjs",
+      "--adb",
+      "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+      "--serial",
+      "emulator-5586",
+      "--avd",
+      "SoloSoul_RF201",
+      "--apk",
+      "src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "--test-apk",
+      "src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+      "--output",
+      "/tmp/solosoul-refactor-macos-20261002/rf121-android-supported-frozen",
+      "--mode",
+      "supported"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 40.63200004212558
+  },
+  {
+    "mode": "fallback",
+    "command": [
+      "/Users/zzc/.nvm/versions/node/v24.14.0/bin/node",
+      "scripts/android-native-regression.mjs",
+      "--adb",
+      "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+      "--serial",
+      "emulator-5586",
+      "--avd",
+      "SoloSoul_RF201",
+      "--apk",
+      "src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "--test-apk",
+      "src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+      "--output",
+      "/tmp/solosoul-refactor-macos-20261002/rf121-android-fallback-frozen",
+      "--mode",
+      "fallback"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 31.084846124984324
+  }
+]

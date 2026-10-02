@@ -1,0 +1,90 @@
+{
+  "serial": "emulator-5586",
+  "avd": "SoloSoul_RF201",
+  "mode": "supported",
+  "startedAt": "2026-10-02T21:16:21.942Z",
+  "tests": [
+    {
+      "class": "AndroidGlassInstrumentedTest",
+      "method": "verifiesRequestedEnvironment",
+      "passed": true,
+      "seconds": 2.856
+    },
+    {
+      "class": "AndroidGlassInstrumentedTest",
+      "method": "nativeMenuSelectsExactlyOnceAndPauseCancels",
+      "passed": true,
+      "seconds": 5.057
+    },
+    {
+      "class": "AndroidGlassInstrumentedTest",
+      "method": "cancelledRequestCannotReopenAndBackCancelDoesNotNavigate",
+      "passed": true,
+      "seconds": 3.211
+    },
+    {
+      "class": "AndroidGlassInstrumentedTest",
+      "method": "systemDisablingBlurKeepsExistingMenuReadable",
+      "passed": true,
+      "seconds": 3.554
+    },
+    {
+      "class": "AndroidCardSurfaceInstrumentedTest",
+      "method": "lightAndDarkCardsRenderWithoutOverflow",
+      "passed": true,
+      "seconds": 3.433
+    },
+    {
+      "class": "AndroidThemeInstrumentedTest",
+      "method": "systemThemeFollowsLightDarkLight",
+      "passed": true,
+      "seconds": 4.226
+    },
+    {
+      "class": "AndroidThemeInstrumentedTest",
+      "method": "explicitLightSurvivesSystemChanges",
+      "passed": true,
+      "seconds": 4.271
+    },
+    {
+      "class": "AndroidThemeInstrumentedTest",
+      "method": "explicitDarkSurvivesSystemChanges",
+      "passed": true,
+      "seconds": 3.485
+    },
+    {
+      "class": "ResourceInstallerInstrumentedTest",
+      "method": "packagedResourcesInstallAndSecondStartWritesNothing",
+      "passed": true,
+      "seconds": 1.358
+    },
+    {
+      "class": "ResourcePreparationInstrumentedTest",
+      "method": "slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt",
+      "passed": true,
+      "seconds": 3.617
+    },
+    {
+      "class": "ResourcePreparationInstrumentedTest",
+      "method": "errorIsVisibleAndRetryUnblocksRealConsumers",
+      "passed": true,
+      "seconds": 3.911
+    }
+  ],
+  "passed": true,
+  "api": 34,
+  "abi": "arm64-v8a",
+  "artifacts": [
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "sha256": "df73a9afc09d85ad4af5550fa4106a41d43d698002a9532c06cc4aa24db17d5c"
+    },
+    {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk",
+      "sha256": "c97132e95650b29fcbc655edaebc6d4701ae724e0ff67a80ef0b9dd2c7902425"
+    }
+  ],
+  "count": 11,
+  "successes": 11,
+  "finishedAt": "2026-10-02T21:17:02.528Z"
+}

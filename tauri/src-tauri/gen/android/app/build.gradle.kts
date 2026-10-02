@@ -205,4 +205,23 @@ dependencies {
     androidTestImplementation("com.fasterxml.jackson.core:jackson-databind:2.15.3")
 }
 
+// 仅 Debug：每个原生 Card 验收构建从生产组件生成资源，避免本机遗留 HTML 冒充当前源码。
+val cardFixtureRoot = rootProject.projectDir.resolve("../../..").canonicalFile
+val debugCardAsset = file("src/debug/assets/rf121-card-surfaces.html")
+val stageCardSurfaceFixture = tasks.register<Exec>("stageCardSurfaceFixture") {
+    workingDir(cardFixtureRoot)
+    inputs.dir(cardFixtureRoot.resolve("native-regression/card-surfaces"))
+    inputs.dir(cardFixtureRoot.resolve("src/styles"))
+    inputs.files(listOf("src/components/ui/Card.tsx", "src/components/ui/Card.module.css",
+        "src/components/ui/CardGrid.tsx", "src/components/ui/CardGrid.module.css", "src/lib/androidMaterial.ts",
+        "scripts/build-card-surface-fixture.mjs", "package.json", "package-lock.json").map { cardFixtureRoot.resolve(it) })
+    outputs.file(debugCardAsset)
+    doFirst { debugCardAsset.parentFile.mkdirs() }
+    commandLine(System.getenv("NODE_BINARY") ?: "node", cardFixtureRoot.resolve("scripts/build-card-surface-fixture.mjs").path,
+        debugCardAsset.path, "--replace-debug-asset")
+}
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("DebugAssets") }.configureEach {
+    dependsOn(stageCardSurfaceFixture)
+}
+
 apply(from = "tauri.build.gradle.kts")

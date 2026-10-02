@@ -1,0 +1,35 @@
+[
+  {
+    "platform": "android",
+    "theme": "light",
+    "darkMedia": false,
+    "mounted": true,
+    "startupGone": true,
+    "background": "#F9F9F3",
+    "statusBarLight": true,
+    "navigationBarLight": true,
+    "stage": "system-light"
+  },
+  {
+    "platform": "android",
+    "theme": "dark",
+    "darkMedia": true,
+    "mounted": true,
+    "startupGone": true,
+    "background": "#181D1B",
+    "statusBarLight": false,
+    "navigationBarLight": false,
+    "stage": "system-dark"
+  },
+  {
+    "platform": "android",
+    "theme": "light",
+    "darkMedia": false,
+    "mounted": true,
+    "startupGone": true,
+    "background": "#F9F9F3",
+    "statusBarLight": true,
+    "navigationBarLight": true,
+    "stage": "system-light-again"
+  }
+]

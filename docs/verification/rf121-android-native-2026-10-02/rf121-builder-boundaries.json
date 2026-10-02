@@ -1,0 +1,46 @@
+[
+  {
+    "name": "outside",
+    "command": [
+      "/Users/zzc/.nvm/versions/node/v24.14.0/bin/node",
+      "scripts/build-card-surface-fixture.mjs",
+      "/tmp/solosoul-refactor-macos-20261002/rf121-never-overwrite.html",
+      "--replace-debug-asset"
+    ],
+    "exit_code": 1,
+    "duration_seconds": 0.09980966709554195
+  },
+  {
+    "name": "unmarked",
+    "command": [
+      "/Users/zzc/.nvm/versions/node/v24.14.0/bin/node",
+      "scripts/build-card-surface-fixture.mjs",
+      "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/debug/assets/rf121-card-surfaces.html",
+      "--replace-debug-asset"
+    ],
+    "exit_code": 1,
+    "duration_seconds": 0.19088658317923546
+  },
+  {
+    "name": "symlink",
+    "command": [
+      "/Users/zzc/.nvm/versions/node/v24.14.0/bin/node",
+      "scripts/build-card-surface-fixture.mjs",
+      "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/debug/assets/rf121-card-surfaces.html",
+      "--replace-debug-asset"
+    ],
+    "exit_code": 1,
+    "duration_seconds": 0.17225300008431077
+  },
+  {
+    "name": "owned-replace",
+    "command": [
+      "/Users/zzc/.nvm/versions/node/v24.14.0/bin/node",
+      "scripts/build-card-surface-fixture.mjs",
+      "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/debug/assets/rf121-card-surfaces.html",
+      "--replace-debug-asset"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 0.180330874864012
+  }
+]

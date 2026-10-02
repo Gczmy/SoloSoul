@@ -1,0 +1,134 @@
+[
+  {
+    "theme": "light",
+    "appearance": {
+      "material": "solid",
+      "reduceMotion": false,
+      "highContrast": false
+    },
+    "expectedBackground": "rgb(240, 241, 234)",
+    "cards": [
+      {
+        "surface": "default",
+        "background": "rgb(240, 241, 234)",
+        "expectedBackground": "rgb(240, 241, 234)",
+        "backdropFilter": "none",
+        "color": "rgb(32, 37, 31)",
+        "width": 169.09524536132812,
+        "height": 924.7619018554688,
+        "overflow": false,
+        "visible": true
+      },
+      {
+        "surface": "floating",
+        "background": "rgb(231, 233, 225)",
+        "expectedBackground": "rgb(231, 233, 225)",
+        "backdropFilter": "none",
+        "color": "rgb(32, 37, 31)",
+        "width": 169.09524536132812,
+        "height": 924.7619018554688,
+        "overflow": false,
+        "visible": true
+      }
+    ],
+    "pageOverflow": false,
+    "viewport": {
+      "width": 412,
+      "height": 684
+    },
+    "nativePixels": [
+      {
+        "x": 48,
+        "y": 36.19047737121582,
+        "viewportWidth": 412,
+        "background": "rgb(240, 241, 234)",
+        "pixelX": 125,
+        "pixelY": 157,
+        "pixelRgb": [
+          240,
+          241,
+          234
+        ]
+      },
+      {
+        "x": 227.09524536132812,
+        "y": 36.19047737121582,
+        "viewportWidth": 412,
+        "background": "rgb(231, 233, 225)",
+        "pixelX": 595,
+        "pixelY": 157,
+        "pixelRgb": [
+          231,
+          233,
+          225
+        ]
+      }
+    ]
+  },
+  {
+    "theme": "dark",
+    "appearance": {
+      "material": "solid",
+      "reduceMotion": false,
+      "highContrast": false
+    },
+    "expectedBackground": "rgb(34, 41, 37)",
+    "cards": [
+      {
+        "surface": "default",
+        "background": "rgb(34, 41, 37)",
+        "expectedBackground": "rgb(34, 41, 37)",
+        "backdropFilter": "none",
+        "color": "rgb(229, 233, 224)",
+        "width": 169.09524536132812,
+        "height": 924.7619018554688,
+        "overflow": false,
+        "visible": true
+      },
+      {
+        "surface": "floating",
+        "background": "rgb(48, 57, 52)",
+        "expectedBackground": "rgb(48, 57, 52)",
+        "backdropFilter": "none",
+        "color": "rgb(229, 233, 224)",
+        "width": 169.09524536132812,
+        "height": 924.7619018554688,
+        "overflow": false,
+        "visible": true
+      }
+    ],
+    "pageOverflow": false,
+    "viewport": {
+      "width": 412,
+      "height": 684
+    },
+    "nativePixels": [
+      {
+        "x": 48,
+        "y": 36.19047737121582,
+        "viewportWidth": 412,
+        "background": "rgb(34, 41, 37)",
+        "pixelX": 125,
+        "pixelY": 157,
+        "pixelRgb": [
+          34,
+          41,
+          37
+        ]
+      },
+      {
+        "x": 227.09524536132812,
+        "y": 36.19047737121582,
+        "viewportWidth": 412,
+        "background": "rgb(48, 57, 52)",
+        "pixelX": 595,
+        "pixelY": 157,
+        "pixelRgb": [
+          48,
+          57,
+          52
+        ]
+      }
+    ]
+  }
+]

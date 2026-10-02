@@ -1,0 +1,22 @@
+{
+  "command": [
+    "./gradlew",
+    ":app:testArm64DebugUnitTest",
+    ":app:processArm64ReleaseMainManifest",
+    "-x",
+    "rustBuildArm64Debug",
+    "-x",
+    "rustBuildArm64Release"
+  ],
+  "exit_code": 0,
+  "duration_seconds": 1.8697205833159387,
+  "unit_counts": {
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "unit_task_up_to_date": false,
+  "release_manifest": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/intermediates/merged_manifests/arm64Release/processArm64ReleaseManifest/AndroidManifest.xml",
+  "debug_activities_in_release_manifest": false
+}

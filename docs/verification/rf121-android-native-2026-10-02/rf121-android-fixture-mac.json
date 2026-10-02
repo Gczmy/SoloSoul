@@ -1,0 +1,106 @@
+{
+  "command": [
+    "open",
+    "-n",
+    "-W",
+    "-a",
+    "/tmp/solosoul-refactor-macos-20261002/CardSurfaceRegressionBridge.app",
+    "--stdout",
+    "/tmp/solosoul-refactor-macos-20261002/rf121-android-fixture-mac-stdout.log",
+    "--stderr",
+    "/tmp/solosoul-refactor-macos-20261002/rf121-android-fixture-mac-stderr.log",
+    "--args",
+    "--card-fixture",
+    "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/debug/assets/rf121-card-surfaces.html"
+  ],
+  "launcher_exit_code": 0,
+  "app_exit_code": "not exposed by LaunchServices",
+  "accepted_by_strict_app_checks": true,
+  "reports": [
+    {
+      "appearance": {
+        "highContrast": false,
+        "material": "liquid-glass",
+        "platform": "macos",
+        "reduceMotion": false,
+        "titlebarHeight": 52,
+        "trafficLightsRight": 79
+      },
+      "cards": [
+        {
+          "backdropFilter": "none",
+          "background": "rgb(253, 252, 249)",
+          "color": "rgb(31, 28, 24)",
+          "expectedBackground": "rgb(253, 252, 249)",
+          "height": 487,
+          "overflow": false,
+          "surface": "default",
+          "visible": true,
+          "width": 272
+        },
+        {
+          "backdropFilter": "none",
+          "background": "rgb(253, 252, 249)",
+          "color": "rgb(31, 28, 24)",
+          "expectedBackground": "rgb(253, 252, 249)",
+          "height": 487,
+          "overflow": false,
+          "surface": "floating",
+          "visible": true,
+          "width": 272
+        }
+      ],
+      "expectedBackground": "rgb(253, 252, 249)",
+      "pageOverflow": false,
+      "theme": "light",
+      "viewport": {
+        "height": 800,
+        "width": 1200
+      }
+    },
+    {
+      "appearance": {
+        "highContrast": false,
+        "material": "liquid-glass",
+        "platform": "macos",
+        "reduceMotion": false,
+        "titlebarHeight": 52,
+        "trafficLightsRight": 79
+      },
+      "cards": [
+        {
+          "backdropFilter": "none",
+          "background": "rgb(42, 38, 32)",
+          "color": "rgb(221, 216, 200)",
+          "expectedBackground": "rgb(42, 38, 32)",
+          "height": 487,
+          "overflow": false,
+          "surface": "default",
+          "visible": true,
+          "width": 272
+        },
+        {
+          "backdropFilter": "none",
+          "background": "rgb(42, 38, 32)",
+          "color": "rgb(221, 216, 200)",
+          "expectedBackground": "rgb(42, 38, 32)",
+          "height": 487,
+          "overflow": false,
+          "surface": "floating",
+          "visible": true,
+          "width": 272
+        }
+      ],
+      "expectedBackground": "rgb(42, 38, 32)",
+      "pageOverflow": false,
+      "theme": "dark",
+      "viewport": {
+        "height": 800,
+        "width": 1200
+      }
+    }
+  ],
+  "duration_seconds": 9.367283708881587,
+  "binary_sha256": "92cce782c2985f522e68a2df58e26d68d6bef800994ff69922e93361130513e1",
+  "temporary_bundle_removed": true
+}

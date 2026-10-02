@@ -4,6 +4,7 @@ import { flushSync } from 'react-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { Card } from '../../src/components/ui/Card';
 import { CardGrid } from '../../src/components/ui/CardGrid';
+import { applyAndroidMaterial } from '../../src/lib/androidMaterial';
 import '../../src/styles/tokens.css';
 import '../../src/styles/global.css';
 import '../../src/styles/themes.css';
@@ -14,6 +15,7 @@ import './fixture.css';
 
 declare global {
   interface Window {
+    AndroidCardFixture?: { report: (report: string) => void };
     __runCardSample: (
       theme: 'light' | 'dark',
       appearance: {
@@ -21,15 +23,21 @@ declare global {
         reduceMotion: boolean;
         highContrast: boolean;
       },
+      platform?: 'macos' | 'android',
     ) => Promise<void>;
   }
+}
+
+async function reportSurface(report: unknown) {
+  if (window.AndroidCardFixture) window.AndroidCardFixture.report(JSON.stringify(report));
+  else await invoke('card_surface_report', { report });
 }
 
 flushSync(() =>
   createRoot(document.getElementById('root')!).render(
     <main className="fixture">
       <h1>RF-121 · 原生 Card 验收</h1>
-      <p>合成内容，无账户数据。系统辅助功能由原生窗口返回，不模拟系统设置。</p>
+      <p>合成内容，无账户数据。仅覆盖本轮已记录的平台和辅助功能场景。</p>
       <CardGrid>
         <Card>
           <h2>正文卡片</h2>
@@ -47,11 +55,13 @@ flushSync(() =>
   ),
 );
 
-window.__runCardSample = async (theme, appearance) => {
+window.__runCardSample = async (theme, appearance, platform = 'macos') => {
   const root = document.documentElement;
-  root.dataset.platform = 'macos';
-  root.dataset.desktopPlatform = 'macos';
+  root.dataset.platform = platform;
+  if (platform === 'macos') root.dataset.desktopPlatform = 'macos';
+  else delete root.dataset.desktopPlatform;
   root.dataset.theme = theme;
+  if (platform === 'android') applyAndroidMaterial('ocean');
   root.dataset.nativeMaterial = appearance.material;
   root.dataset.reduceMotion = String(appearance.reduceMotion);
   root.dataset.highContrast = String(appearance.highContrast);
@@ -59,14 +69,12 @@ window.__runCardSample = async (theme, appearance) => {
   // 后台 WebView 的定时器与动画时钟不同步；只在真实绘制帧中采样。
   let frameCount = 0;
   const watchdog = setTimeout(() => {
-    void invoke('card_surface_report', {
-      report: {
-        error: 'paint-frame-timeout',
-        theme,
-        frameCount,
-        visibility: document.visibilityState,
-        focused: document.hasFocus(),
-      },
+    void reportSurface({
+      error: 'paint-frame-timeout',
+      theme,
+      frameCount,
+      visibility: document.visibilityState,
+      focused: document.hasFocus(),
     });
   }, 2500);
   await new Promise<void>((resolve) => {
@@ -88,9 +96,18 @@ window.__runCardSample = async (theme, appearance) => {
   const cards = [...document.querySelectorAll<HTMLElement>('[data-ui-card]')].map((card) => {
     const style = getComputedStyle(card);
     const rect = card.getBoundingClientRect();
+    const expected = document.createElement('span');
+    expected.style.backgroundColor =
+      platform === 'android' && card.dataset.uiCard === 'floating'
+        ? 'var(--md-surface-high, var(--bg-inset))'
+        : 'var(--bg-elevated)';
+    root.append(expected);
+    const expectedBackground = getComputedStyle(expected).backgroundColor;
+    expected.remove();
     return {
       surface: card.dataset.uiCard,
       background: style.backgroundColor,
+      expectedBackground,
       backdropFilter:
         style.getPropertyValue('backdrop-filter') ||
         style.getPropertyValue('-webkit-backdrop-filter'),
@@ -110,5 +127,5 @@ window.__runCardSample = async (theme, appearance) => {
     viewport: { width: innerWidth, height: innerHeight },
   };
   document.getElementById('result')!.textContent = JSON.stringify(report, null, 2);
-  await invoke('card_surface_report', { report });
+  await reportSurface(report);
 };

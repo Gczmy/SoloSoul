@@ -44,6 +44,7 @@ export function casesFor(mode) {
       [glass, 'cancelledRequestCannotReopenAndBackCancelDoesNotNavigate'],
       [glass, 'systemDisablingBlurKeepsExistingMenuReadable'],
     ] : [[glass, 'unsupportedBlurReturnsFallbackWithoutOpeningNativeMenu']]),
+    ['AndroidCardSurfaceInstrumentedTest', 'lightAndDarkCardsRenderWithoutOverflow'],
     ['AndroidThemeInstrumentedTest', 'systemThemeFollowsLightDarkLight'],
     ['AndroidThemeInstrumentedTest', 'explicitLightSurvivesSystemChanges'],
     ['AndroidThemeInstrumentedTest', 'explicitDarkSurvivesSystemChanges'],

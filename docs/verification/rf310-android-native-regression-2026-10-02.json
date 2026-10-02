@@ -577,5 +577,6 @@
       "sha256": "41afb14d02dceabeb1b2afb139ba058a6a5e975b6a207df02ecf1f38e575b861",
       "bytes": 757
     }
-  ]
+  ],
+  "correction_2026_10_02": "重新目测原始两个系统禁用blur截图，均完整显示新建页面和扫描；撤回缺少两行的旧判断，旧 limits 文本作为历史保留。SHA及范围见RF-121 Android补证。"
 }

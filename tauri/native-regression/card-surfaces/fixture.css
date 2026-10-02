@@ -4,6 +4,14 @@ body,
 #root {
   background: transparent;
 }
+html[data-platform='android'] body {
+  background: var(--bg-base);
+  overflow: auto;
+}
+html[data-platform='android'] #root {
+  height: auto;
+  min-height: 100vh;
+}
 .fixture {
   margin: 76px 32px 32px;
   color: var(--text-primary);

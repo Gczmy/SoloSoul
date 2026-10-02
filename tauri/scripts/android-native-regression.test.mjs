@@ -23,8 +23,11 @@ test('only exact successful one-test native report is accepted', () => {
 });
 
 test('supported and fallback lanes execute distinct glass assertions and same system-theme cases', () => {
-  assert.equal(casesFor('supported').length, 10);
-  assert.equal(casesFor('fallback').length, 8);
+  assert.equal(casesFor('supported').length, 11);
+  assert.equal(casesFor('fallback').length, 9);
+  for (const lane of ['supported', 'fallback']) {
+    assert.ok(casesFor(lane).some(([type, method]) => type === 'AndroidCardSurfaceInstrumentedTest' && method === 'lightAndDarkCardsRenderWithoutOverflow'));
+  }
   assert.ok(casesFor('fallback').some(([, name]) => name === 'unsupportedBlurReturnsFallbackWithoutOpeningNativeMenu'));
   assert.equal(casesFor('fallback').filter(([name]) => name === 'AndroidThemeInstrumentedTest').length, 3);
 });

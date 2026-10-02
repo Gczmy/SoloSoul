@@ -1,0 +1,12 @@
+{
+  "command": [
+    "./gradlew",
+    ":app:assembleArm64Debug",
+    ":app:assembleArm64DebugAndroidTest",
+    "-x",
+    "rustBuildArm64Debug"
+  ],
+  "exit_code": 0,
+  "duration_seconds": 2.33025116706267,
+  "scope": "final Kotlin/Debug fixture rebuild; reuses unchanged Rust/JNI verified by preceding standard Tauri Debug build"
+}

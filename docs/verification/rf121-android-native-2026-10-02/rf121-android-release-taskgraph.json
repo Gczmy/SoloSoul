@@ -1,0 +1,13 @@
+{
+  "command": [
+    "./gradlew",
+    ":app:assembleArm64Release",
+    "--dry-run",
+    "-x",
+    "rustBuildArm64Release"
+  ],
+  "exit_code": 0,
+  "debug_fixture_task_present": false,
+  "duration_seconds": 0.9744652919471264,
+  "scope": "Release task graph only; not release APK build"
+}

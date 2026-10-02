@@ -1,14 +1,23 @@
 #!/usr/bin/env node
 // 构建为单个 HTML；无服务器、账户数据、外部请求或正式应用启动代码。
-import { build } from 'vite';
+import { build, normalizePath } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
-import { writeFile } from 'node:fs/promises';
+import { writeFile, lstat, readFile, unlink } from 'node:fs/promises';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const destination = process.argv[2];
-if (!destination)
+const replaceDebugAsset = process.argv[3] === '--replace-debug-asset';
+if (process.argv.length > 4 || (process.argv[3] && !replaceDebugAsset)) throw new Error('未知参数');
+const marker = '<!-- SoloSoul RF-121 generated fixture -->\n';
+const ownedDebugAsset = resolve(
+  root,
+  'src-tauri/gen/android/app/src/debug/assets/rf121-card-surfaces.html',
+);
+if (replaceDebugAsset && resolve(destination ?? '') !== ownedDebugAsset)
+  throw new Error('只能替换专用 Debug 派生资源');
+if (!destination || destination.startsWith('--'))
   throw new Error('用法：node scripts/build-card-surface-fixture.mjs /tmp/card-surfaces.html');
 const result = await build({
   configFile: false,
@@ -30,6 +39,7 @@ const allowed = new Set([
   'components/ui/Card.module.css',
   'components/ui/CardGrid.tsx',
   'components/ui/CardGrid.module.css',
+  'lib/androidMaterial.ts',
   'styles/tokens.css',
   'styles/global.css',
   'styles/themes.css',
@@ -38,9 +48,9 @@ const allowed = new Set([
   'styles/windows-material.css',
 ]);
 const sourceModules = Object.keys(chunks[0].modules)
-  .map((id) => id.split('?')[0])
-  .filter((id) => id.startsWith(resolve(root, 'src') + '/'))
-  .map((id) => id.slice(resolve(root, 'src').length + 1));
+  .map((id) => normalizePath(id.split('?')[0]))
+  .filter((id) => id.startsWith(normalizePath(resolve(root, 'src')) + '/'))
+  .map((id) => id.slice(normalizePath(resolve(root, 'src')).length + 1));
 if (
   sourceModules.some((id) => !allowed.has(id)) ||
   !sourceModules.includes('components/ui/Card.tsx') ||
@@ -49,12 +59,23 @@ if (
   throw new Error(`独立验收入口引用越界或缺少生产组件：${sourceModules.join(', ')}`);
 }
 const css = result.output.filter((item) => item.type === 'asset' && item.fileName.endsWith('.css'));
-const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css
+const html = `${marker}<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css
   .map((item) => item.source)
   .join('\n')
   .replaceAll(
     '</style',
     '<\\/style',
   )}</style></head><body><div id="root"></div><script type="module">${chunks[0].code.replaceAll('</script', '<\\/script')}</script></body></html>`;
+if (replaceDebugAsset) {
+  try {
+    const previous = await lstat(destination);
+    if (!previous.isFile() || !(await readFile(destination, 'utf8')).startsWith(marker)) {
+      throw new Error('拒绝覆盖符号链接或非本生成器资源');
+    }
+    await unlink(destination);
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+}
 await writeFile(destination, html, { flag: 'wx' });
 console.log(`Card fixture: ${destination}; ${Buffer.byteLength(html)} bytes`);

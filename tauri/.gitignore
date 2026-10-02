@@ -35,6 +35,7 @@ src/types/ipc.ts
 # Staged resources for desktop/mobile bundles
 src-tauri/resources-mobile/
 src-tauri/resources-desktop/
+src-tauri/gen/android/app/src/debug/assets/rf121-card-surfaces.html
 
 # Logs
 *.log
