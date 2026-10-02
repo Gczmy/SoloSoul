@@ -4,6 +4,13 @@ import { MemoryRouter } from 'react-router-dom';
 import { OcrSettingsPage } from './OcrSettingsPage';
 
 const mockShowToast = vi.fn();
+const device = vi.hoisted(() => ({ ios: false }));
+vi.mock('@/lib/platform', () => ({
+  isIOSSync: () => device.ios,
+  isMobilePlatformSync: () => device.ios,
+  isMacOSSync: () => false,
+  isAndroidSync: () => false,
+}));
 
 vi.mock('@/components/layout/PageShell', () => ({
   PageShell: ({
@@ -50,6 +57,7 @@ import { prefetchRegistry } from '@/lib/prefetch/registry';
 
 describe('OcrSettingsPage', () => {
   beforeEach(() => {
+    device.ios = false;
     prefetchRegistry.ocrModel.reset();
     vi.clearAllMocks();
     mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
@@ -142,6 +150,7 @@ describe('OcrSettingsPage', () => {
     });
 
     // 更换 mock 后重置 prefetch 缓存，让第二次渲染重新加载（TTL 缓存会跳过 loader）
+    device.ios = false;
     prefetchRegistry.ocrModel.reset();
     render(
       <MemoryRouter>
@@ -159,5 +168,17 @@ describe('OcrSettingsPage', () => {
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('ocr_install_bundled_model', expect.anything());
     });
+  });
+  it('RF-203 iOS 设置明确不支持扫描，不误称使用 Android ML Kit', () => {
+    device.ios = true;
+    render(
+      <MemoryRouter>
+        <OcrSettingsPage />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('ocr:ios_ocr_title')).toBeVisible();
+    expect(screen.getByText('ocr:ios_ocr_unsupported')).toBeVisible();
+    expect(screen.queryByText('ocr:mobile_ocr_description')).not.toBeInTheDocument();
+    expect(mockInvoke).not.toHaveBeenCalled();
   });
 });

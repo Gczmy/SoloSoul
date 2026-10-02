@@ -3,7 +3,8 @@ import type { EventCallback } from '@tauri-apps/api/event';
 import { createOcrScanOperation, type OcrJobEvent } from './ocrScanOperation';
 import { setRequestSession } from './sessionRequests';
 
-const mocks = vi.hoisted(() => ({ ipc: vi.fn(), listen: vi.fn(), unlisten: vi.fn() }));
+const mocks = vi.hoisted(() => ({ ipc: vi.fn(), listen: vi.fn(), unlisten: vi.fn(), ios: false }));
+vi.mock('@/lib/platform', () => ({ isIOSSync: () => mocks.ios }));
 vi.mock('@tauri-apps/api/core', () => ({ invoke: mocks.ipc }));
 vi.mock('@tauri-apps/api/event', () => ({ listen: mocks.listen }));
 
@@ -61,6 +62,7 @@ function emit(
 }
 
 beforeEach(() => {
+  mocks.ios = false;
   setRequestSession(null);
   setRequestSession('rf029-a');
   mocks.ipc.mockReset();
@@ -256,5 +258,21 @@ describe('RF029 OCR 用户操作 helper', () => {
     mocks.ipc.mockRejectedValue(new Error(String(error)));
     const work = track(createOcrScanOperation({ accountId: 'rf029-a' }).run(FILE, 'general'));
     expect(await work).toEqual(expected);
+  });
+});
+
+describe('RF-203 iOS 操作前置门控', () => {
+  it.each(['general', 'mrz'] as const)('%s 不创建桥接任务和进度订阅', async (mode) => {
+    mocks.ios = true;
+    mocks.ipc.mockResolvedValue(RESULT);
+    const onState = vi.fn();
+    const operation = createOcrScanOperation({ accountId: 'rf029-a', onState });
+    expect(await operation.run(FILE, mode)).toEqual({
+      status: 'failed',
+      error: '__OCR_UNSUPPORTED_PLATFORM__',
+    });
+    expect(mocks.ipc).not.toHaveBeenCalled();
+    expect(mocks.listen).not.toHaveBeenCalled();
+    expect(onState).not.toHaveBeenCalled();
   });
 });

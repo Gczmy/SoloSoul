@@ -10,6 +10,7 @@ import { ICON_SIZE } from '@/lib/constants';
 export type ScanMode = 'general' | 'mrz';
 
 interface ScanDropZoneProps {
+  scanSupported?: boolean;
   scanMode: ScanMode;
   onScanModeChange: (mode: ScanMode) => void;
   isScanning: boolean;
@@ -26,6 +27,7 @@ interface ScanDropZoneProps {
  * 数据与回调经 OcrPage 透传（P224-⑤ 拆分）。
  */
 export function ScanDropZone({
+  scanSupported = true,
   scanMode,
   onScanModeChange,
   isScanning,
@@ -58,6 +60,7 @@ export function ScanDropZone({
           {t('ocr:description')}
         </p>
 
+        {!scanSupported && <p role="status">{t('ocr:ios_ocr_unsupported')}</p>}
         {/* Mode toggle */}
         <div
           style={{
@@ -70,7 +73,7 @@ export function ScanDropZone({
           }}
         >
           <button
-            disabled={isScanning}
+            disabled={isScanning || !scanSupported}
             onClick={() => onScanModeChange('general')}
             style={{
               padding: '6px 14px',
@@ -92,7 +95,7 @@ export function ScanDropZone({
             {t('ocr:scan_mode_general')}
           </button>
           <button
-            disabled={isScanning}
+            disabled={isScanning || !scanSupported}
             onClick={() => onScanModeChange('mrz')}
             style={{
               padding: '6px 14px',
@@ -118,13 +121,13 @@ export function ScanDropZone({
         <br />
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center' }}>
-          <Button onClick={onSelectFile} loading={isScanning}>
+          <Button disabled={!scanSupported} onClick={onSelectFile} loading={isScanning}>
             {scanMode === 'mrz' || isMobilePlatform || activeTier === 'vision'
               ? t('ocr:select_image')
               : t('ocr:select_image_or_pdf')}
           </Button>
           {isMobilePlatform && (
-            <Button onClick={onTakePhoto} loading={isScanning}>
+            <Button disabled={!scanSupported} onClick={onTakePhoto} loading={isScanning}>
               {t('ocr:take_photo')}
             </Button>
           )}

@@ -1,4 +1,6 @@
 {
+  "ios_ocr_title": "iOS OCR",
+  "ios_ocr_unsupported": "iOS 暂不支持文字扫描和拍照识别。已有扫描结果仍可查看；请使用 Android、macOS 或 Windows 客户端进行扫描。",
   "title": "OCR 扫描",
   "settings_title": "OCR 设置",
   "description": "使用本地 OCR 模型从图片中提取文字，数据不会离开您的设备。",

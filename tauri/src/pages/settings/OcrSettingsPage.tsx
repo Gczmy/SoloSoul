@@ -10,6 +10,7 @@ import { OcrTierStatusRow } from '@/components/ocr/OcrTierStatusRow';
 import { getTierLabel } from '@/lib/utils';
 import { Trash2 } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
+import { supportsOcrScanSync } from '@/lib/ocrCapabilities';
 import { isMobilePlatformSync } from '@/lib/platform';
 
 export function OcrSettingsPage() {
@@ -18,6 +19,7 @@ export function OcrSettingsPage() {
   const { onError, onSuccess } = useToastError();
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
   const isMobilePlatform = isMobilePlatformSync();
+  const scanSupported = supportsOcrScanSync();
 
   const {
     tiers,
@@ -42,12 +44,10 @@ export function OcrSettingsPage() {
     onDeleteSuccess: onSuccess,
     onDownloadSuccess: onSuccess,
     confirmDownload: ({ message, confirmLabel, cancelLabel, onConfirm }) =>
-      requestConfirm(
-        t('ocr:confirm_download_title'),
-        message,
-        onConfirm,
-        { confirmLabel, cancelLabel },
-      ),
+      requestConfirm(t('ocr:confirm_download_title'), message, onConfirm, {
+        confirmLabel,
+        cancelLabel,
+      }),
   });
   // 状态加载完成（statusMap['small'] 存在）后才判断——否则加载瞬间会误显下载 URL
   // 输入框（含 https placeholder）造成闪烁
@@ -187,12 +187,12 @@ export function OcrSettingsPage() {
         {isMobilePlatform && (
           <Card>
             <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 8 }}>
-              {t('ocr:mobile_ocr_title')}
+              {t(scanSupported ? 'ocr:mobile_ocr_title' : 'ocr:ios_ocr_title')}
             </h3>
             <p
               style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', margin: 0 }}
             >
-              {t('ocr:mobile_ocr_description')}
+              {t(scanSupported ? 'ocr:mobile_ocr_description' : 'ocr:ios_ocr_unsupported')}
             </p>
           </Card>
         )}

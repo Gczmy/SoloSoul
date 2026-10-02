@@ -1,4 +1,6 @@
 {
+  "ios_ocr_title": "iOS OCR",
+  "ios_ocr_unsupported": "Text scanning and camera recognition are not available on iOS yet. Existing scan results remain available; use the Android, macOS or Windows client to scan.",
   "title": "OCR Scan",
   "settings_title": "OCR Settings",
   "description": "Extract text from images or PDFs using the local OCR model. No data leaves your device.",

@@ -1,6 +1,6 @@
 //! 移动端 OCR 插件（Android ML Kit Text Recognition）
 //!
-//! 桌面端无实际功能，仅提供占位句柄以满足类型约束。
+//! iOS/桌面端无移动 OCR 引擎；扫描/拍照入口在查询句柄前返回稳定不支持错误。
 //! Android 端通过 Kotlin 插件调用 ML Kit Text Recognition v2，
 //! 将识别结果映射为与桌面端一致的 `OcrResult` 结构。
 
@@ -14,6 +14,14 @@ use tauri::{
 use tauri::plugin::PluginHandle;
 
 use solosoul_core::ocr::types::{OcrBox, OcrResult};
+
+#[cfg(not(target_os = "android"))]
+pub const OCR_UNSUPPORTED_PLATFORM: &str = "__OCR_UNSUPPORTED_PLATFORM__";
+
+#[cfg(not(target_os = "android"))]
+pub fn unsupported_ocr<T>() -> Result<T, String> {
+    Err(OCR_UNSUPPORTED_PLATFORM.to_string())
+}
 
 /// Android 插件包名。
 #[cfg(target_os = "android")]
@@ -94,7 +102,7 @@ impl<R: Runtime> MobileOcrPluginHandle<R> {
         #[cfg(not(target_os = "android"))]
         {
             let _ = payload;
-            Err("mobile_ocr_scan_image is only supported on Android".to_string())
+            unsupported_ocr()
         }
     }
 
@@ -114,7 +122,7 @@ impl<R: Runtime> MobileOcrPluginHandle<R> {
         }
         #[cfg(not(target_os = "android"))]
         {
-            Err("mobile_ocr_take_photo is only supported on Android".to_string())
+            unsupported_ocr()
         }
     }
 }
@@ -157,14 +165,22 @@ pub async fn mobile_ocr_scan_image<R: Runtime>(
     app: AppHandle<R>,
     file_path: String,
 ) -> Result<OcrResult, String> {
-    // ML Kit 识别是 IO/CPU 密集型操作，放到 spawn_blocking 避免阻塞 tokio runtime
-    let result = tokio::task::spawn_blocking(move || {
-        let handle = app.state::<MobileOcrPluginHandle<R>>();
-        handle.scan_image(ScanImagePayload { file_path })
-    })
-    .await
-    .map_err(|e| format!("mobile ocr task failed: {e}"))??;
-    Ok(result.into())
+    #[cfg(target_os = "android")]
+    {
+        // ML Kit 识别是 IO/CPU 密集型操作，放到 spawn_blocking 避免阻塞 tokio runtime
+        let result = tokio::task::spawn_blocking(move || {
+            let handle = app.state::<MobileOcrPluginHandle<R>>();
+            handle.scan_image(ScanImagePayload { file_path })
+        })
+        .await
+        .map_err(|e| format!("mobile ocr task failed: {e}"))??;
+        Ok(result.into())
+    }
+    #[cfg(not(target_os = "android"))]
+    {
+        let _ = (app, file_path);
+        unsupported_ocr()
+    }
 }
 
 /// 启动系统相机拍照（移动端入口）。
@@ -173,6 +189,42 @@ pub async fn mobile_ocr_scan_image<R: Runtime>(
 pub async fn mobile_ocr_take_photo<R: Runtime>(
     app: AppHandle<R>,
 ) -> Result<Option<String>, String> {
-    let handle = app.state::<MobileOcrPluginHandle<R>>();
-    handle.take_photo().map(|r| r.path)
+    #[cfg(target_os = "android")]
+    {
+        let handle = app.state::<MobileOcrPluginHandle<R>>();
+        handle.take_photo().map(|r| r.path)
+    }
+    #[cfg(not(target_os = "android"))]
+    {
+        let _ = app;
+        unsupported_ocr()
+    }
+}
+
+#[cfg(all(test, not(target_os = "android")))]
+mod tests {
+    use super::*;
+    #[test]
+    fn unsupported_scan_and_camera_use_the_same_stable_error() {
+        let handle = MobileOcrPluginHandle::<tauri::Wry> {
+            _phantom: std::marker::PhantomData,
+        };
+        assert_eq!(
+            handle
+                .scan_image(ScanImagePayload {
+                    file_path: "unused.png".into()
+                })
+                .unwrap_err(),
+            OCR_UNSUPPORTED_PLATFORM
+        );
+        assert_eq!(handle.take_photo().unwrap_err(), OCR_UNSUPPORTED_PLATFORM);
+        assert_eq!(
+            unsupported_ocr::<OcrResult>().unwrap_err(),
+            OCR_UNSUPPORTED_PLATFORM
+        );
+        assert_eq!(
+            unsupported_ocr::<Option<String>>().unwrap_err(),
+            OCR_UNSUPPORTED_PLATFORM
+        );
+    }
 }

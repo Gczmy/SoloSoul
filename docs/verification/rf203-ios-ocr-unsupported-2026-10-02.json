@@ -1,0 +1,767 @@
+{
+  "task": "RF-203",
+  "status": "complete",
+  "base_commit": "b7552ccd",
+  "date": "2026-10-02",
+  "requirements": [
+    "iOS scan_image/MRZ/camera return stable unsupported before Android handle or scan queue",
+    "Page/automatic attachment path/quick scan gate iOS actions and explain why",
+    "Model info and existing management functions retained; no iOS engine added",
+    "Android/desktop scanner bodies unchanged; platform compile and standard Android build pass"
+  ],
+  "inputs": [
+    {
+      "path": "tauri/src-tauri/src/commands/ocr.rs",
+      "sha256": "a90578ff50c0b87aba349ad8ab4323325b5567b8a5f8c1ebe330b776018edb01"
+    },
+    {
+      "path": "tauri/src-tauri/src/mobile_ocr_plugin.rs",
+      "sha256": "872d11c315698300d1832de83acab9973c3fb65d40a2e22bc4f83d933c2deae8"
+    },
+    {
+      "path": "tauri/src/lib/platform.ts",
+      "sha256": "3202a12b9c4f5ca4ad86371435327023b3da362b5f6b1ed7aca27bd689392c82"
+    },
+    {
+      "path": "tauri/src/lib/ocrCapabilities.ts",
+      "sha256": "e322d1e1a9fb0e9400397f0663846975f796a699cb8a7959f16c85c66c11eb39"
+    },
+    {
+      "path": "tauri/src/lib/ocrScanOperation.ts",
+      "sha256": "114bd6f1277b06fb7e9c987041119aee0653f63f989a8a1aeca1a434d3ae1363"
+    },
+    {
+      "path": "tauri/src/lib/ocrScanOperation.test.ts",
+      "sha256": "513ed2c99c30f9ff1195610253e238b1d6a2e9d23e48b27f0a757fe0c834532a"
+    },
+    {
+      "path": "tauri/src/lib/ocrScanMessages.ts",
+      "sha256": "f9cb80dea34c3fee4c7eb1e3e77035ff4bf8c959bb486eeafd782250be43c5fb"
+    },
+    {
+      "path": "tauri/src/pages/scan/OcrPage.tsx",
+      "sha256": "ceee05f58b53757104c327e5e8bc34ff38e9bf0f4765c97fe1a15db4083f2315"
+    },
+    {
+      "path": "tauri/src/pages/scan/OcrPage.test.tsx",
+      "sha256": "4be3c7c09e4bd2b62f0235255f4a18bcbf107684f070e9c0a264c692df4f4a97"
+    },
+    {
+      "path": "tauri/src/pages/scan/ScanDropZone.tsx",
+      "sha256": "18a1d2924f4e3a19e000ac27af3c0180fee91926d93387fc532d11a2a89c8a41"
+    },
+    {
+      "path": "tauri/src/pages/settings/OcrSettingsPage.tsx",
+      "sha256": "3993f76f01566368b14815a32de8bb962460325993e92c69800140df33eec678"
+    },
+    {
+      "path": "tauri/src/pages/settings/OcrSettingsPage.test.tsx",
+      "sha256": "9047a4e80ddfa001a2c1f992b7a34d62b4c900385b444b37a348e09e7c07324a"
+    },
+    {
+      "path": "tauri/src/components/ocr/OcrScanControls.tsx",
+      "sha256": "12fa1a02c503d4abd3967e8ccc8ac03473e75c5385a5dcabb0de9126853dd75d"
+    },
+    {
+      "path": "tauri/src/components/layout/OcrQuickScanPopover.tsx",
+      "sha256": "f29c1b7417cfa55c276c65b98b79098fe97039d269ba82da8dc819c353095639"
+    },
+    {
+      "path": "tauri/src/components/layout/OcrQuickScanPopover.test.tsx",
+      "sha256": "28511f0c404d94360400e5513d97af0ff0e2897a2902368983aa8c4ec92f389f"
+    },
+    {
+      "path": "tauri/src/locales/en-US/ocr.json",
+      "sha256": "19fd6f01df2f123779f83ae3776fa00f8e0e096f2d4cdf02706399da339d8618"
+    },
+    {
+      "path": "tauri/src/locales/zh-CN/ocr.json",
+      "sha256": "2752001de415d4f20d9978aa47d5ac1f5367a26251f571f01f38de27f9f9c119"
+    },
+    {
+      "path": "tauri/src-tauri/resources/docs/guides/zh/ocr_scan.md",
+      "sha256": "52813a03959f32cf71cdf9f1b685ee0322c95fc7fe205f8403a39b0f71436fa6"
+    },
+    {
+      "path": "tauri/src-tauri/resources/docs/guides/en/ocr_scan.md",
+      "sha256": "7948fd2f9b3a9548ad55345b9f48eccbbe0d4919812e394d1ecb7d6412317d5f"
+    },
+    {
+      "path": "tauri/src-tauri/resources/docs/guides/search-index.json",
+      "sha256": "935c4d89405b71af9538f58ef3644c10101f0973938a8caac481e249e570f004"
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/search-index.json",
+      "sha256": "935c4d89405b71af9538f58ef3644c10101f0973938a8caac481e249e570f004"
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/en/ocr_scan.md",
+      "sha256": "7948fd2f9b3a9548ad55345b9f48eccbbe0d4919812e394d1ecb7d6412317d5f"
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/zh/ocr_scan.md",
+      "sha256": "52813a03959f32cf71cdf9f1b685ee0322c95fc7fe205f8403a39b0f71436fa6"
+    }
+  ],
+  "checks": {
+    "rf203-front-red": {
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "src/pages/scan/OcrPage.test.tsx",
+        "src/lib/ocrScanOperation.test.ts"
+      ],
+      "exit_code": 1
+    },
+    "rf203-front-green": {
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "src/pages/scan/OcrPage.test.tsx",
+        "src/lib/ocrScanOperation.test.ts"
+      ],
+      "exit_code": 0
+    },
+    "rf203-front-all-targeted": {
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "src/pages/scan/OcrPage.test.tsx",
+        "src/pages/settings/OcrSettingsPage.test.tsx",
+        "src/components/layout/OcrQuickScanPopover.test.tsx",
+        "src/lib/ocrScanOperation.test.ts"
+      ],
+      "exit_code": 1
+    },
+    "rf203-f-results": [
+      {
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 11.824997166637331
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 4.930226374883205
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test"
+        ],
+        "exit_code": 1,
+        "duration_seconds": 47.96681187534705
+      }
+    ],
+    "rf203-f2-f-results": [
+      {
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 9.942373709287494
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 4.859402124769986
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test"
+        ],
+        "exit_code": 1,
+        "duration_seconds": 64.5349686248228
+      }
+    ],
+    "rf203-f3-f-results": [
+      {
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 14.363398374989629
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 6.922854833770543
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 75.01504679070786
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "check:contracts"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 19.63595808390528
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test:contracts"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 188.99895625002682
+      }
+    ],
+    "rf203-native-results": [
+      {
+        "name": "macos",
+        "command": [
+          "npx",
+          "tauri",
+          "build",
+          "--debug",
+          "--bundles",
+          "app",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 138.25649525038898
+      },
+      {
+        "name": "fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 1.1570605407468975
+      },
+      {
+        "name": "clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 29.175712999887764
+      },
+      {
+        "name": "rust-test",
+        "command": [
+          "cargo",
+          "test",
+          "--verbose",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 216.0702909999527
+      },
+      {
+        "name": "ios-device-check",
+        "command": [
+          "cargo",
+          "check",
+          "--target",
+          "aarch64-apple-ios"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 12.319874332752079
+      },
+      {
+        "name": "ios-sim-check",
+        "command": [
+          "cargo",
+          "check",
+          "--target",
+          "aarch64-apple-ios-sim"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 47.11102533293888
+      },
+      {
+        "name": "ios",
+        "command": [
+          "npm",
+          "run",
+          "tauri:ios:build:sim",
+          "--",
+          "--debug",
+          "--no-sign",
+          "--archive-only",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 169.96743316715583
+      },
+      {
+        "name": "android-stage",
+        "command": [
+          "node",
+          "scripts/stage-mobile-resources.cjs"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.06859787460416555
+      },
+      {
+        "name": "android-check",
+        "command": [
+          "cargo",
+          "ndk",
+          "-t",
+          "aarch64-linux-android",
+          "check"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 6.936262666713446
+      },
+      {
+        "name": "android",
+        "command": [
+          "npx",
+          "tauri",
+          "android",
+          "build",
+          "--debug",
+          "--target",
+          "aarch64",
+          "--split-per-abi",
+          "--apk",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 126.51144629204646
+      }
+    ],
+    "rf203-final-native-results": [
+      {
+        "name": "macos",
+        "command": [
+          "npx",
+          "tauri",
+          "build",
+          "--debug",
+          "--bundles",
+          "app",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 162.10621554218233
+      },
+      {
+        "name": "fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 1.3561545419506729
+      },
+      {
+        "name": "clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 29.054606375284493
+      },
+      {
+        "name": "rust-test",
+        "command": [
+          "cargo",
+          "test",
+          "--verbose",
+          "--no-fail-fast"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 221.24955533305183
+      },
+      {
+        "name": "ios-device-check",
+        "command": [
+          "cargo",
+          "check",
+          "--target",
+          "aarch64-apple-ios"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 5.789834457915276
+      },
+      {
+        "name": "ios-sim-check",
+        "command": [
+          "cargo",
+          "check",
+          "--target",
+          "aarch64-apple-ios-sim"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 27.683261959347874
+      },
+      {
+        "name": "ios",
+        "command": [
+          "npm",
+          "run",
+          "tauri:ios:build:sim",
+          "--",
+          "--debug",
+          "--no-sign",
+          "--archive-only",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 115.67905899975449
+      },
+      {
+        "name": "android-stage",
+        "command": [
+          "node",
+          "scripts/stage-mobile-resources.cjs"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.13315237499773502
+      },
+      {
+        "name": "android-check",
+        "command": [
+          "cargo",
+          "ndk",
+          "-t",
+          "aarch64-linux-android",
+          "check"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 5.961676916573197
+      },
+      {
+        "name": "android",
+        "command": [
+          "npx",
+          "tauri",
+          "android",
+          "build",
+          "--debug",
+          "--target",
+          "aarch64",
+          "--split-per-abi",
+          "--apk",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 100.17737137526274
+      }
+    ],
+    "rf203-storage-runtime-probe": [
+      {
+        "node": "/Users/zzc/.nvm/versions/node/v24.14.0/bin/node",
+        "exit_code": 0,
+        "stdout": "{\"version\":\"v24.14.0\",\"execPath\":\"/Users/zzc/.nvm/versions/node/v24.14.0/bin/node\",\"nativeStorageGetterBefore\":false,\"browserStorageAvailable\":true,\"globalStorageAvailable\":true,\"sameStorage\":true}\n",
+        "stderr": ""
+      },
+      {
+        "node": "/opt/homebrew/bin/node",
+        "exit_code": 1,
+        "stdout": "{\"version\":\"v26.3.0\",\"execPath\":\"/opt/homebrew/Cellar/node/26.3.0/bin/node\",\"nativeStorageGetterBefore\":true,\"browserStorageAvailable\":true,\"globalStorageAvailable\":false,\"sameStorage\":false}\n",
+        "stderr": "(node:69229) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+      }
+    ],
+    "rf203-prettier": {
+      "command": [
+        "npx",
+        "prettier",
+        "--check",
+        "src/lib/platform.ts",
+        "src/lib/ocrCapabilities.ts",
+        "src/lib/ocrScanOperation.ts",
+        "src/lib/ocrScanOperation.test.ts",
+        "src/lib/ocrScanMessages.ts",
+        "src/pages/scan/OcrPage.tsx",
+        "src/pages/scan/OcrPage.test.tsx",
+        "src/pages/scan/ScanDropZone.tsx",
+        "src/pages/settings/OcrSettingsPage.tsx",
+        "src/pages/settings/OcrSettingsPage.test.tsx",
+        "src/components/ocr/OcrScanControls.tsx",
+        "src/components/layout/OcrQuickScanPopover.tsx",
+        "src/components/layout/OcrQuickScanPopover.test.tsx",
+        "src/locales/en-US/ocr.json",
+        "src/locales/zh-CN/ocr.json"
+      ],
+      "exit_code": 0,
+      "output": "Checking formatting...\nAll matched files use Prettier code style!\n"
+    },
+    "rf203-existing-scan-body-check": {
+      "ocr_scan_image-desktop-body-identical": true,
+      "ocr_scan_image-android-body-identical": true,
+      "ocr_scan_mrz-desktop-body-identical": true,
+      "ocr_scan_mrz-android-body-identical": true
+    },
+    "final_contract_check": {
+      "command": [
+        "npm",
+        "run",
+        "check:contracts"
+      ],
+      "exit_code": 0,
+      "output": "\n> solosoul@2.13.2 check:contracts\n> node scripts/generate-ipc-contracts.mjs --check\n\nIPC contracts verified: 105 migrated commands, 120 legacy commands, 11 selected events.\n"
+    }
+  },
+  "artifacts": [
+    {
+      "platform": "macos",
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/bundle/macos/SoloSoul.app/Contents/MacOS/solo_soul",
+      "sha256": "8b3b91a80ebb8973ba2333de70f71745d7bc7f7ee67f640649894fa2118ff42c",
+      "size": 114785952
+    },
+    {
+      "platform": "ios",
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/apple/build/solo_soul_iOS.xcarchive/Products/Applications/SoloSoul.app/SoloSoul",
+      "sha256": "62d6fe0dda433895ac07da24a0bde481544090f4eb67c5d352c2fdb9daa3f6f8",
+      "size": 170215928
+    },
+    {
+      "platform": "android",
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "sha256": "f4428323ef207e7351d8aac7cc0584e8ee6fe769bde16d3536c349806e65a682",
+      "size": 211497559,
+      "zip_crc_valid": true,
+      "jni_sha256": "af64fc346f50ced506e6249b887831721c395db905e6815e50d13226a92deb33",
+      "compiled_jni": "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so"
+    }
+  ],
+  "raw_log_metadata": [
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-f2-full-tests.log",
+      "sha256": "2132a142ae432b8f80bea089037714d3f256b00f86b328fbc72a15a42f6d9f70",
+      "output_tail": "e and forwards guide chunks with the original account\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual ordinary chat entry > keeps populated/empty retrieval and normalizes the actual nullable wire score: {\"result\":[]}\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual ordinary chat entry > keeps populated/empty retrieval and normalizes the actual nullable wire score: {\"result\":[{\"guideId\":\"rf908-guide\",\"guideTitle\":\"合成指南\",\"chunkText\":\"RF908_GUIDE\",\"similarity\":null}]}\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual ordinary chat entry > discards a delayed guide response after lock/switch to null\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual ordinary chat entry > discards a delayed guide response after lock/switch to new-account\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual quick chat entry > uses the saved context switch=true and forwards guide chunks with the original account\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual quick chat entry > uses the saved context switch=false and forwards guide chunks with the original account\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual quick chat entry > keeps populated/empty retrieval and normalizes the actual nullable wire score: {\"result\":[]}\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual quick chat entry > keeps populated/empty retrieval and normalizes the actual nullable wire score: {\"result\":[{\"guideId\":\"rf908-guide\",\"guideTitle\":\"合成指南\",\"chunkText\":\"RF908_GUIDE\",\"similarity\":null}]}\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual quick chat entry > discards a delayed guide response after lock/switch to null\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual quick chat entry > discards a delayed guide response after lock/switch to new-account\nTypeError: Cannot read properties of undefined (reading 'clear')\n ❯ src/lib/llm/guideChatEntries.rf908.test.tsx:135:16\n    133|   vi.clearAllMocks();\n    134|   saved.clear();\n    135|   localStorage.clear();\n       |                ^\n    136|   useLlmStore.getState().reset();\n    137|   fixtures.auth.currentAccount = { id: requests.bound.accountId };\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/314]⎯\n\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual ordinary chat entry > uses the saved context switch=true and forwards guide chunks with the original account\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual ordinary chat entry > uses the saved context switch=false and forwards guide chunks with the original account\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual ordinary chat entry > keeps populated/empty retrieval and normalizes the actual nullable wire score: {\"result\":[]}\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual ordinary chat entry > keeps populated/empty retrieval and normalizes the actual nullable wire score: {\"result\":[{\"guideId\":\"rf908-guide\",\"guideTitle\":\"合成指南\",\"chunkText\":\"RF908_GUIDE\",\"similarity\":null}]}\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual ordinary chat entry > discards a delayed guide response after lock/switch to null\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual ordinary chat entry > discards a delayed guide response after lock/switch to new-account\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual quick chat entry > uses the saved context switch=true and forwards guide chunks with the original account\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual quick chat entry > uses the saved context switch=false and forwards guide chunks with the original account\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual quick chat entry > keeps populated/empty retrieval and normalizes the actual nullable wire score: {\"result\":[]}\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual quick chat entry > keeps populated/empty retrieval and normalizes the actual nullable wire score: {\"result\":[{\"guideId\":\"rf908-guide\",\"guideTitle\":\"合成指南\",\"chunkText\":\"RF908_GUIDE\",\"similarity\":null}]}\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual quick chat entry > discards a delayed guide response after lock/switch to null\n FAIL  src/lib/llm/guideChatEntries.rf908.test.tsx > RF908 actual quick chat entry > discards a delayed guide response after lock/switch to new-account\nTypeError: Cannot read properties of undefined (reading 'clear')\n ❯ src/lib/llm/guideChatEntries.rf908.test.tsx:165:16\n    163|   useLlmStore.getState().reset();\n    164|   setRequestSession(null);\n    165|   localStorage.clear();\n       |                ^\n    166| });\n    167|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/314]⎯\n\n\n Test Files  29 failed | 224 passed (253)\n      Tests  235 failed | 1987 passed (2222)\n   Start at  15:09:07\n   Duration  62.42s (transform 12.23s, setup 28.49s, import 83.58s, tests 75.87s, environment 188.33s)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-f2-lint.log",
+      "sha256": "efbf0bb9a7b5429028016ddad5d8ad0a5c9b9e66a04dc3b0808220cbd33a6859",
+      "output_tail": "\n> solosoul@2.13.2 lint\n> eslint src --ext .ts,.tsx\n\n\n/Users/zzc/PycharmProjects/SoloSoul/tauri/src/stores/syncStore.ts\n  838:71  warning  'event' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars\n\n✖ 1 problem (0 errors, 1 warning)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-f2-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-f3-contract-tests.log",
+      "sha256": "2d3b9add476e8700c287382638ef183bc069341d8b46ad9cfd1e853207039570",
+      "output_tail": "\n> solosoul@2.13.2 test:contracts\n> node --test scripts/generate-ipc-contracts.node.mjs\n\n✔ two real-source generations are byte-identical; check leaves outputs unchanged (1506.2705ms)\n✔ an actual Rust command argument change fails check, and generated arguments reject the old TS call (1320.645125ms)\n✔ missing output fails check without writing files; Rust parsing errors also fail generation (1129.83525ms)\n✔ the actual typed wrapper preserves command and argument correlation across generated commands (654.245875ms)\n✔ RF302 real object and snapshot contracts reject invalid wire calls through direct and session invokers (2272.667083ms)\n✔ RF306 actual plugin contracts preserve SDK channels, resource handles and nullable wire payloads (2205.319875ms)\n✔ RF303 real serde fixtures compile against generated LLM commands and stream events (3045.224083ms)\n✔ RF303 a real stream identity change fails check without overwriting generated outputs (1817.727458ms)\n✔ RF304 real serde transfer fixtures and negative requests compile against generated contracts (3197.183792ms)\n✔ RF304 real default and outcome drift fail check without overwriting outputs (141325.099625ms)\n✔ RF305 real serde sync fixtures compile and reject missing wire identity, nullability and UI fields (3706.525667ms)\n✔ RF305 actual SAS, flattened recovery and platform-command drift cannot overwrite outputs (3306.340291ms)\n✔ RF307 Host error fixtures compile against actual rejection contracts and unsafe wire shapes fail (748.863791ms)\n✔ RF307 actual error serde and Result signature drift fail check without replacing generated files (2640.972083ms)\n✔ RF908 guide retrieval requires the starting account at the actual typed IPC boundary (2087.927417ms)\n✔ RF317 all 26 LLM errors and optional stream failures use the actual Rust contracts (5318.464041ms)\n✔ RF317 actual LLM Result or stream-error serde drift rejects without replacing outputs (2346.517208ms)\n✔ RF318 all actual transfer errors compile with safe counts and keep ImportOutcome separate (820.031542ms)\n✔ RF318 actual transfer Result or completed-count serde drift fails without replacing output (3106.572875ms)\n✔ RF319 actual synchronization rejection contracts preserve pairing and recovery outcomes (817.368959ms)\n✔ RF319 actual Result and pairing serde drift fail without overwriting generated outputs (2012.039459ms)\n✔ RF320 all plugin rejection contracts use real safe fixtures and retain resource/result schemas (748.763583ms)\n✔ RF320 actual plugin Result and stage serde drift fail without replacing outputs (2217.97925ms)\nℹ tests 23\nℹ suites 0\nℹ pass 23\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 188581.34925\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-f3-contracts.log",
+      "sha256": "608e632220457b2603fca01f9c97b3ca478660c6f87bec8b5abb9e94bd9b11e9",
+      "output_tail": "\n> solosoul@2.13.2 check:contracts\n> node scripts/generate-ipc-contracts.mjs --check\n\nIPC contracts verified: 105 migrated commands, 120 legacy commands, 11 selected events.\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-f3-full-tests.log",
+      "sha256": "592c7721095e512b9eddcd56a17217f88513f76e1a327b77efa251146bdd8cae",
+      "output_tail": "st is never overwritten and failed copy remains reviewable (0.030208ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n✔ selected marker binds exact canonical identity, ordinary folder, source version and manifest hash (4.916083ms)\n﹣ browser proof checks actual physical copied EXE and exact recorded FileVersion/ProductVersion (0.066625ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n﹣ modified copied browser bytes cannot be accepted using stale Runtime metadata (0.041042ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n﹣ browser directory junction fallback is rejected even if its version and bytes match the source (0.024333ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n﹣ explicit directory inventory rejects missing empty dirs, case aliases and file conflicts (0.02675ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n﹣ source mutation after copy begins rejects the new runtime and preserves partial evidence (0.021625ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n✔ SDK CLI requires exactly three paths and refuses other experimental/control modes (1.807083ms)\n✔ SDK help starts no native preparation or GUI process (54.733ms)\n✔ SDK streaming preflight rejects older binaries and accepts cross-block feature markers (242.769708ms)\n﹣ old native-perf EXE fails before output creation or any EXE execution (0.083292ms) # Requires the Windows-only SDK diagnostic CLI to reach its offline feature preflight\n✔ SDK launch selects only the run-only native SDK diagnostics contract (0.128209ms)\n✔ requested marker requires exact canonical root, run, PID, port and main window (0.390792ms)\n✔ successful SDK proof returns only validated metadata and protocol calls, never performance metrics or payloads (0.429208ms)\n✔ SDK proof refuses failed, incomplete, wrong-origin, wrong-browser and non-exact protocol calls (0.425708ms)\n✔ SDK source rejects credentials, ports, other origins, malformed values and raw URL exposure (0.196584ms)\n✔ SDK main frame/loader/document guard rejects navigation, children, missing UI container and loading documents (0.231917ms)\n✔ SDK observer must remain valid in the same run/timeOrigin with exact bounded count metadata (2.900667ms)\n✔ SDK proof accepts the deadline boundary but refuses late, negative and absent arrival measurements (0.19725ms)\n✔ SDK identity comparison rejects PID reuse, changed parents/paths and extra processes (0.231042ms)\n✔ SDK marker reading accepts exact owned regular JSON and refuses traversal names, malformed or oversized files (3.988791ms)\n✔ SDK file/directory junctions and non-file proof markers never traverse another folder (1.850125ms)\n✔ SDK proof wait is bounded without callbacks and refuses late files or root interruption (6.595834ms)\n✔ SDK proof lookup must recheck time after the async filesystem query and reject a 45000-to-45001 crossing (0.730833ms)\n✔ 资产 URL 按片段编码版本、空格、中文、井号、问号和百分号 (1.912417ms)\n✔ 拒绝非 HTTPS、userinfo、查询、片段、控制字符和歧义路径 (0.190084ms)\n✔ --no-probe 稳定生成全部 legacy 文件，不发生网络请求，签名和元数据一致 (10.38625ms)\n✔ CDN 覆盖主清单、全部 legacy 清单和 Android URL，现有签名不变 (7.349666ms)\n✔ 网络探测失败只输出诊断，不删减 legacy；探测真实包而非 release 页面 (27.91875ms)\n✔ APK 缺少校验和或签名时拒绝生成，不留下半套清单；桌面独立发布仍有效 (6.149ms)\n✔ 版本中 + 和 prerelease 不被解释为正则；不能匹配旧版本/多个同平台包 (2.427292ms)\n✔ 自定义代理保留固定 legacy id，并拒绝文件路径注入与重复 id (0.306834ms)\n✔ Range 检查接受精确 206、总大小及本地首段，拒绝 200/伪 Range/HTML/截断/错误内容 (1.7145ms)\n✔ 有界读取拒绝未知长度超限流、过大 Content-Length，限制重定向并拒绝 HTTP 降级 (0.803625ms)\n✔ 超时覆盖正文读取，而不只是收到响应头之前 (20.62775ms)\n✔ 远端 metadata 必须与本地候选一致，HTML/过大内容被拒绝 (1.592792ms)\n✔ 完整只读验收脚本检查远端两份 Android metadata、主清单和所有资产 (9.515042ms)\n✔ 本地验收拒绝缺失 legacy、签名不一致、Android asset 大小及命名组合错误 (5.135208ms)\n✔ CLI 离线端到端生成/验收且参数错误退出非零 (161.983417ms)\n✔ counts application, plugin and channel invokes, excludes ordinary fetch and never reads body (5.248208ms)\n✔ forwards fetch errors and return values unchanged (0.591292ms)\n✔ default transport fallback makes the whole total unavailable without suppressing warnings (0.390334ms)\n✔ overflow retains a bounded command list and invalidates the total (48.111ms)\n✔ fetch and warn replacement are sticky failures even after restoration (0.49ms)\n✔ invalid origin, missing run identity and duplicate installation fail closed (0.905208ms)\n✔ snapshot exposes copies rather than mutable counter internals (0.368458ms)\n✔ malformed IPC command cannot silently disappear from a supposedly complete count (0.332583ms)\n✔ document navigation and additional frames invalidate total without recording navigation paths (0.76925ms)\nℹ tests 112\nℹ suites 0\nℹ pass 91\nℹ fail 0\nℹ cancelled 0\nℹ skipped 21\nℹ todo 0\nℹ duration_ms 386.000041\n\n RUN  v4.1.8 /Users/zzc/PycharmProjects/SoloSoul/tauri\n\n\n Test Files  253 passed (253)\n      Tests  2222 passed (2222)\n   Start at  15:14:59\n   Duration  73.03s (transform 16.70s, setup 33.77s, import 107.46s, tests 112.45s, environment 215.60s)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-f3-lint.log",
+      "sha256": "efbf0bb9a7b5429028016ddad5d8ad0a5c9b9e66a04dc3b0808220cbd33a6859",
+      "output_tail": "\n> solosoul@2.13.2 lint\n> eslint src --ext .ts,.tsx\n\n\n/Users/zzc/PycharmProjects/SoloSoul/tauri/src/stores/syncStore.ts\n  838:71  warning  'event' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars\n\n✖ 1 problem (0 errors, 1 warning)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-f3-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-final-native-android-check.log",
+      "sha256": "2a65621985521033d055bc61a874b0c10d67fea9ff22e13a66d28104293034bf",
+      "output_tail": "    Building arm64-v8a (aarch64-linux-android)\nwarning: unused variable: `lock_path`\n  --> crates/solosoul-core/src/process_lock.rs:26:13\n   |\n26 |         let lock_path = base_path.join(\".lock\");\n   |             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_lock_path`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: `solosoul-core` (lib) generated 1 warning (run `cargo fix --lib -p solosoul-core` to apply 1 suggestion)\nwarning: methods `reopen` and `wait_stopping` are never used\n  --> crates/solosoul-sync/src/workers.rs:42:19\n   |\n26 | impl SyncWorkers {\n   | ---------------- methods in this implementation\n...\n42 |     pub(crate) fn reopen(&self) -> Result<(), String> {\n   |                   ^^^^^^\n...\n97 |     pub(crate) async fn wait_stopping(&self) -> Result<(), String> {\n   |                         ^^^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: method `is_finished` is never used\n   --> crates/solosoul-sync/src/workers.rs:303:8\n    |\n296 | impl StopCompletion {\n    | ------------------- method in this implementation\n...\n303 |     fn is_finished(&self) -> bool {\n    |        ^^^^^^^^^^^\n\n   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)\nwarning: `solosoul-sync` (lib) generated 2 warnings\nwarning: unused import: `Manager`\n  --> src-tauri/src/commands/recovery.rs:20:22\n   |\n20 | use tauri::{Emitter, Manager, State};\n   |                      ^^^^^^^\n   |\n   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused import: `tauri::Emitter`\n --> src-tauri/src/setup/mod.rs:6:5\n  |\n6 | use tauri::Emitter;\n  |     ^^^^^^^^^^^^^^\n\nwarning: unused variable: `app`\n  --> src-tauri/src/commands/recovery.rs:39:5\n   |\n39 |     app: tauri::AppHandle,\n   |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused variable: `instance_name`\n   --> src-tauri/src/commands/recovery.rs:225:21\n    |\n225 |         if let Some(instance_name) = mdns_name {\n    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instance_name`\n\nwarning: constant `MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:22:7\n   |\n22 | const MDNS_SERVICE_TYPE: &str = \"_solosoul._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:24:7\n   |\n24 | const RECOVERY_MDNS_SERVICE_TYPE: &str = \"_solosoul_recovery._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `advertise_recovery_mdns` is never used\n   --> src-tauri/src/commands/recovery.rs:202:10\n    |\n202 | async fn advertise_recovery_mdns(\n    |          ^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `poll_accessibility` is never used\n   --> src-tauri/src/commands/window.rs:194:15\n    |\n194 | pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {\n    |               ^^^^^^^^^^^^^^^^^^\n\nwarning: function `setup_spawn_registry_refresh` is never used\n   --> src-tauri/src/setup/mod.rs:252:4\n    |\n252 | fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {\n    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: `solo_soul` (lib) generated 9 warnings (run `cargo fix --lib -p solo_soul` to apply 4 suggestions)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 5.86s\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-final-native-android-stage.log",
+      "sha256": "faf0fc2a86fccd9a4811cd0ef360465bf3789686136e7a13c8f1930c2e0f5d04",
+      "output_tail": "[stage-mobile-resources] 已生成移动端插件市场资源: /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/resources-mobile/SoloSoul_plugin_market\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-final-native-android.log",
+      "sha256": "24c6bb18ceb9d5ebb4be28941e7a2171bb9ab87309c8d5474848dc4b38991800",
+      "output_tail": " warnings\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused import: `Manager`\u001b[0m\n  \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/recovery.rs:20:22\n   \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m20\u001b[0m \u001b[1m\u001b[94m|\u001b[0m use tauri::{Emitter, Manager, State};\n   \u001b[1m\u001b[94m|\u001b[0m                      \u001b[1m\u001b[33m^^^^^^^\u001b[0m\n   \u001b[1m\u001b[94m|\u001b[0m\n   \u001b[1m\u001b[94m= \u001b[0m\u001b[1mnote\u001b[0m: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused import: `tauri::Emitter`\u001b[0m\n \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/setup/mod.rs:6:5\n  \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m6\u001b[0m \u001b[1m\u001b[94m|\u001b[0m use tauri::Emitter;\n  \u001b[1m\u001b[94m|\u001b[0m     \u001b[1m\u001b[33m^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused variable: `app`\u001b[0m\n  \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/recovery.rs:39:5\n   \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m39\u001b[0m \u001b[1m\u001b[94m|\u001b[0m     app: tauri::AppHandle,\n   \u001b[1m\u001b[94m|\u001b[0m     \u001b[1m\u001b[33m^^^\u001b[0m \u001b[1m\u001b[33mhelp: if this is intentional, prefix it with an underscore: `_app`\u001b[0m\n   \u001b[1m\u001b[94m|\u001b[0m\n   \u001b[1m\u001b[94m= \u001b[0m\u001b[1mnote\u001b[0m: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused variable: `instance_name`\u001b[0m\n   \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/recovery.rs:225:21\n    \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m225\u001b[0m \u001b[1m\u001b[94m|\u001b[0m         if let Some(instance_name) = mdns_name {\n    \u001b[1m\u001b[94m|\u001b[0m                     \u001b[1m\u001b[33m^^^^^^^^^^^^^\u001b[0m \u001b[1m\u001b[33mhelp: if this is intentional, prefix it with an underscore: `_instance_name`\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: constant `MDNS_SERVICE_TYPE` is never used\u001b[0m\n  \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/discovery.rs:22:7\n   \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m22\u001b[0m \u001b[1m\u001b[94m|\u001b[0m const MDNS_SERVICE_TYPE: &str = \"_solosoul._tcp.local.\";\n   \u001b[1m\u001b[94m|\u001b[0m       \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^\u001b[0m\n   \u001b[1m\u001b[94m|\u001b[0m\n   \u001b[1m\u001b[94m= \u001b[0m\u001b[1mnote\u001b[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used\u001b[0m\n  \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/discovery.rs:24:7\n   \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m24\u001b[0m \u001b[1m\u001b[94m|\u001b[0m const RECOVERY_MDNS_SERVICE_TYPE: &str = \"_solosoul_recovery._tcp.local.\";\n   \u001b[1m\u001b[94m|\u001b[0m       \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: function `advertise_recovery_mdns` is never used\u001b[0m\n   \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/recovery.rs:202:10\n    \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m202\u001b[0m \u001b[1m\u001b[94m|\u001b[0m async fn advertise_recovery_mdns(\n    \u001b[1m\u001b[94m|\u001b[0m          \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: function `poll_accessibility` is never used\u001b[0m\n   \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/window.rs:194:15\n    \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m194\u001b[0m \u001b[1m\u001b[94m|\u001b[0m pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {\n    \u001b[1m\u001b[94m|\u001b[0m               \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: function `setup_spawn_registry_refresh` is never used\u001b[0m\n   \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/setup/mod.rs:252:4\n    \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m252\u001b[0m \u001b[1m\u001b[94m|\u001b[0m fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {\n    \u001b[1m\u001b[94m|\u001b[0m    \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m: `solo_soul` (lib) generated 9 warnings (run `cargo fix --lib -p solo_soul` to apply 4 suggestions)\n\u001b[1m\u001b[92m    Finished\u001b[0m `dev` profile [optimized + debuginfo] target(s) in 0.87s\n\u001b[1m\u001b[32m        Info\u001b[0m symlinking lib \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" in jniLibs dir \"/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/main/jniLibs/arm64-v8a\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"libandroid.so\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"libdl.so\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"liblog.so\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"libm.so\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"libc.so\"\n\n[Incubating] Problems report is available at: file:///Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/build/reports/problems/problems-report.html\n\nDeprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.\n\nYou can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\nFor more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.\n    Finished 1 APK at:\n        /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-final-native-clippy.log",
+      "sha256": "cb39f6e21f564c2660d6d91f433206a2f0666d4c1e7e3141a98e7d1c49faaaca",
+      "output_tail": "   Compiling objc2-exception-helper v0.1.1\n   Compiling ring v0.17.14\n   Compiling libsqlite3-sys v0.30.1\n   Compiling zstd-sys v2.0.16+zstd.1.5.7\n   Compiling wasmtime-internal-jit-debug v45.0.1\n   Compiling wasmtime v45.0.1\n   Compiling mac-notification-sys v0.6.14\n   Compiling onig_sys v69.9.3\n   Compiling objc2 v0.6.4\n   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)\n    Checking block2 v0.6.2\n    Checking objc2-core-foundation v0.3.2\n    Checking objc2-foundation v0.3.2\n    Checking dispatch2 v0.3.1\n   Compiling rustls v0.23.40\n    Checking rustls-webpki v0.103.13\n   Compiling zstd-safe v7.2.4\n    Checking zstd v0.13.3\n    Checking wasmtime-internal-cache v45.0.1\n    Checking onig v6.5.3\n    Checking tokio-rustls v0.26.4\n    Checking rustls-platform-verifier v0.7.0\n    Checking tokenizers v0.21.4\n    Checking hyper-rustls v0.27.9\n    Checking reqwest v0.12.28\n    Checking reqwest v0.13.4\n    Checking objc2-quartz-core v0.3.2\n    Checking os_info v3.15.0\n    Checking notify-rust v4.17.0\n    Checking objc2-app-kit v0.3.2\n    Checking wiggle v45.0.1\n    Checking wasmtime-wasi-io v45.0.1\n    Checking wasmtime-wasi v45.0.1\n    Checking objc2-web-kit v0.3.2\n    Checking tao v0.35.3\n    Checking muda v0.19.2\n    Checking window-vibrancy v0.6.0\n    Checking objc2-osa-kit v0.3.2\n    Checking rfd v0.16.0\n    Checking window-vibrancy v0.8.0\n    Checking osakit v0.3.1\n    Checking wry v0.55.1\n    Checking tauri-runtime v2.11.2\n    Checking tauri-runtime-wry v2.11.2\n    Checking tauri v2.11.2\n    Checking rusqlite v0.32.1\n    Checking solosoul-vault v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-vault)\n    Checking solosoul-core v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-core)\n    Checking tauri-plugin-fs v2.5.1\n    Checking tauri-plugin-updater v2.10.1\n    Checking tauri-plugin-notification v2.3.3\n    Checking tauri-plugin-shell v2.3.5\n    Checking tauri-plugin-os v2.3.2\n    Checking tauri-plugin-process v2.3.1\n    Checking tauri-plugin-window-state v2.4.1\n    Checking tauri-plugin-dialog v2.7.1\n    Checking solosoul-sync v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-sync)\n    Checking solosoul-plugin v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-plugin)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 28.96s\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-final-native-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-final-native-ios-device-check.log",
+      "sha256": "e8f72e09c244f9a1fbb4a866a9322470a25488d716506bf41d5e5d553e48e4e9",
+      "output_tail": "^^ help: if this is intentional, prefix it with an underscore: `_lock_path`\n\nwarning: `solosoul-core` (lib) generated 2 warnings (run `cargo fix --lib -p solosoul-core` to apply 2 suggestions)\n   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)\nwarning: methods `reopen` and `wait_stopping` are never used\n  --> crates/solosoul-sync/src/workers.rs:42:19\n   |\n26 | impl SyncWorkers {\n   | ---------------- methods in this implementation\n...\n42 |     pub(crate) fn reopen(&self) -> Result<(), String> {\n   |                   ^^^^^^\n...\n97 |     pub(crate) async fn wait_stopping(&self) -> Result<(), String> {\n   |                         ^^^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: method `is_finished` is never used\n   --> crates/solosoul-sync/src/workers.rs:303:8\n    |\n296 | impl StopCompletion {\n    | ------------------- method in this implementation\n...\n303 |     fn is_finished(&self) -> bool {\n    |        ^^^^^^^^^^^\n\nwarning: `solosoul-sync` (lib) generated 2 warnings\nwarning: unused import: `tauri::Emitter`\n  --> src-tauri/src/commands/ocr.rs:39:5\n   |\n39 | use tauri::Emitter;\n   |     ^^^^^^^^^^^^^^\n   |\n   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused import: `Manager`\n  --> src-tauri/src/commands/recovery.rs:20:22\n   |\n20 | use tauri::{Emitter, Manager, State};\n   |                      ^^^^^^^\n\nwarning: unused import: `tauri::Emitter`\n --> src-tauri/src/setup/mod.rs:6:5\n  |\n6 | use tauri::Emitter;\n  |     ^^^^^^^^^^^^^^\n\nwarning: unused variable: `att_key`\n  --> src-tauri/src/commands/attachment/share.rs:36:21\n   |\n36 |     let (path, att, att_key, activity) = {\n   |                     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_att_key`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:411:5\n    |\n411 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `authenticator`\n   --> src-tauri/src/commands/biometric.rs:419:5\n    |\n419 |     authenticator: Option<String>,\n    |     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_authenticator`\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:579:5\n    |\n579 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:723:5\n    |\n723 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `authenticator`\n   --> src-tauri/src/commands/biometric.rs:731:5\n    |\n731 |     authenticator: Option<String>,\n    |     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_authenticator`\n\nwarning: unused variable: `app`\n  --> src-tauri/src/commands/recovery.rs:39:5\n   |\n39 |     app: tauri::AppHandle,\n   |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `instance_name`\n   --> src-tauri/src/commands/recovery.rs:225:21\n    |\n225 |         if let Some(instance_name) = mdns_name {\n    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instance_name`\n\nwarning: constant `SHARE_TEMP_GRACE` is never used\n --> src-tauri/src/commands/attachment/share.rs:7:7\n  |\n7 | const SHARE_TEMP_GRACE: std::time::Duration = std::time::Duration::from_secs(30 * 60);\n  |       ^^^^^^^^^^^^^^^^\n  |\n  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: constant `MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:22:7\n   |\n22 | const MDNS_SERVICE_TYPE: &str = \"_solosoul._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^\n\nwarning: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:24:7\n   |\n24 | const RECOVERY_MDNS_SERVICE_TYPE: &str = \"_solosoul_recovery._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `advertise_recovery_mdns` is never used\n   --> src-tauri/src/commands/recovery.rs:202:10\n    |\n202 | async fn advertise_recovery_mdns(\n    |          ^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `poll_accessibility` is never used\n   --> src-tauri/src/commands/window.rs:194:15\n    |\n194 | pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {\n    |               ^^^^^^^^^^^^^^^^^^\n\nwarning: function `setup_spawn_registry_refresh` is never used\n   --> src-tauri/src/setup/mod.rs:252:4\n    |\n252 | fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {\n    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: `solo_soul` (lib) generated 17 warnings (run `cargo fix --lib -p solo_soul` to apply 11 suggestions)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 5.74s\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-final-native-ios-sim-check.log",
+      "sha256": "48b8d0e540dd04bf53ae92972711e8a0e9b36fddc458f17d9c4e3ae27071d5c0",
+      "output_tail": ".\n97 |     pub(crate) async fn wait_stopping(&self) -> Result<(), String> {\n   |                         ^^^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: method `is_finished` is never used\n   --> crates/solosoul-sync/src/workers.rs:303:8\n    |\n296 | impl StopCompletion {\n    | ------------------- method in this implementation\n...\n303 |     fn is_finished(&self) -> bool {\n    |        ^^^^^^^^^^^\n\nwarning: `solosoul-sync` (lib) generated 2 warnings\n    Checking solosoul-plugin v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-plugin)\n    Checking wry v0.55.1\n    Checking tauri-runtime v2.11.2\n    Checking tao v0.35.3\n    Checking os_info v3.15.0\n    Checking tauri-runtime-wry v2.11.2\n    Checking tauri v2.11.2\n    Checking tauri-plugin-fs v2.5.1\n    Checking tauri-plugin-notification v2.3.3\n    Checking tauri-plugin-process v2.3.1\n    Checking tauri-plugin-shell v2.3.5\n    Checking tauri-plugin-biometric v2.3.2\n    Checking tauri-plugin-os v2.3.2\n    Checking tauri-plugin-dialog v2.7.1\nwarning: unused import: `tauri::Emitter`\n  --> src-tauri/src/commands/ocr.rs:39:5\n   |\n39 | use tauri::Emitter;\n   |     ^^^^^^^^^^^^^^\n   |\n   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused import: `Manager`\n  --> src-tauri/src/commands/recovery.rs:20:22\n   |\n20 | use tauri::{Emitter, Manager, State};\n   |                      ^^^^^^^\n\nwarning: unused import: `tauri::Emitter`\n --> src-tauri/src/setup/mod.rs:6:5\n  |\n6 | use tauri::Emitter;\n  |     ^^^^^^^^^^^^^^\n\nwarning: unused variable: `att_key`\n  --> src-tauri/src/commands/attachment/share.rs:36:21\n   |\n36 |     let (path, att, att_key, activity) = {\n   |                     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_att_key`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:411:5\n    |\n411 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `authenticator`\n   --> src-tauri/src/commands/biometric.rs:419:5\n    |\n419 |     authenticator: Option<String>,\n    |     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_authenticator`\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:579:5\n    |\n579 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:723:5\n    |\n723 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `authenticator`\n   --> src-tauri/src/commands/biometric.rs:731:5\n    |\n731 |     authenticator: Option<String>,\n    |     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_authenticator`\n\nwarning: unused variable: `app`\n  --> src-tauri/src/commands/recovery.rs:39:5\n   |\n39 |     app: tauri::AppHandle,\n   |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `instance_name`\n   --> src-tauri/src/commands/recovery.rs:225:21\n    |\n225 |         if let Some(instance_name) = mdns_name {\n    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instance_name`\n\nwarning: constant `SHARE_TEMP_GRACE` is never used\n --> src-tauri/src/commands/attachment/share.rs:7:7\n  |\n7 | const SHARE_TEMP_GRACE: std::time::Duration = std::time::Duration::from_secs(30 * 60);\n  |       ^^^^^^^^^^^^^^^^\n  |\n  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: constant `MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:22:7\n   |\n22 | const MDNS_SERVICE_TYPE: &str = \"_solosoul._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^\n\nwarning: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:24:7\n   |\n24 | const RECOVERY_MDNS_SERVICE_TYPE: &str = \"_solosoul_recovery._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `advertise_recovery_mdns` is never used\n   --> src-tauri/src/commands/recovery.rs:202:10\n    |\n202 | async fn advertise_recovery_mdns(\n    |          ^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `poll_accessibility` is never used\n   --> src-tauri/src/commands/window.rs:194:15\n    |\n194 | pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {\n    |               ^^^^^^^^^^^^^^^^^^\n\nwarning: function `setup_spawn_registry_refresh` is never used\n   --> src-tauri/src/setup/mod.rs:252:4\n    |\n252 | fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {\n    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: `solo_soul` (lib) generated 17 warnings (run `cargo fix --lib -p solo_soul` to apply 11 suggestions)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 27.64s\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-final-native-ios.log",
+      "sha256": "e32c7587b34c4dac3dce9da419a1e83f0806019415ce2207ba2de391b8fd2db8",
+      "output_tail": " kB\ndist/assets/index-CukGh0Nv.js                            24.51 kB │ gzip:   8.54 kB\ndist/assets/RecoveryReceiveDialog-DkiBYkzv.js            31.54 kB │ gzip:   8.12 kB\ndist/assets/backendError-Bfz7on7R.js                     53.26 kB │ gzip:  18.00 kB\ndist/assets/motion-vendor-D_evokMR.js                   125.02 kB │ gzip:  40.72 kB\ndist/assets/notification-DttaarR7.js                    137.45 kB │ gzip:  41.40 kB\ndist/assets/authStore-rRnfZGCf.js                       310.29 kB │ gzip:  96.14 kB\ndist/assets/markdown-vendor-C08gYRN7.js                 317.99 kB │ gzip:  97.54 kB\ndist/assets/RecoveryQrScanner-DjRZIkiF.js               377.18 kB │ gzip: 111.50 kB\ndist/assets/bootstrapApp-D-4e5om-.js                  1,265.64 kB │ gzip: 336.57 kB\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/vaultDirectory.ts is dynamically imported by src/App/useSessionLifecycle.ts but also statically imported by src/hooks/useOnboarding.ts, src/pages/settings/useVaultDirectory.ts, dynamic import will not move module into another chunk.\n\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/dialog.ts is dynamically imported by src/components/export/ExportSection.tsx, src/components/import/ImportFileSelectorCard.tsx, src/components/object/useAttachmentBatchOps.tsx, src/hooks/useAttachmentManagerBatchOps.ts, src/hooks/useImportState.ts, ... but also statically imported by src/App/useSessionLifecycle.ts, src/components/export/useExportDocumentSection.ts, src/components/layout/OcrQuickScanPopover.tsx, src/components/plugin/PluginResultPanel.tsx, src/components/plugin/WatermarkPluginConfig.tsx, ..., dynamic import will not move module into another chunk.\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/loginAvailabilityPreflight.ts is dynamically imported by src/bootstrapApp.tsx but also statically imported by src/components/settings/BiometricSection.tsx, src/hooks/usePinDisable.ts, src/hooks/usePinSetup.ts, src/pages/auth/useLoginPage.tsx, dynamic import will not move module into another chunk.\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0mnode_modules/@tauri-apps/api/event.js is dynamically imported by src/lib/theme.ts but also statically imported by node_modules/@tauri-apps/api/webview.js, node_modules/@tauri-apps/api/webviewWindow.js, node_modules/@tauri-apps/api/window.js, src/App/useNativeAppEvents.ts, src/App/useSessionLifecycle.ts, ..., dynamic import will not move module into another chunk.\n\n✓ built in 606ms\nSetting version of project solo_soul to: \n    2.13.2.\n\nAlso setting CFBundleVersion key (assuming it exists)\n\nUpdating CFBundleVersion in Info.plist(s)...\n\nUpdated CFBundleVersion in \"solo_soul.xcodeproj/../solo_soul_iOS/Info.plist\" to 2.13.2\n\n\n--- xcodebuild: WARNING: Using the first of multiple matching destinations:\n{ platform:iOS Simulator, id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-iphonesimulator:placeholder, name:Any iOS Simulator Device }\n{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device }\n{ platform:iOS Simulator, arch:arm64, id:362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C, OS:26.3.1, name:SoloSoul RF201 }\n{ platform:iOS Simulator, arch:arm64, id:AA69885C-23B7-472C-A9A8-9EB43BD388CB, OS:26.3.1, name:iPad (A16) }\n{ platform:iOS Simulator, arch:arm64, id:B1B24E21-C3B2-40FC-88EF-0B99B6578D49, OS:26.3.1, name:iPad Air 11-inch (M3) }\n{ platform:iOS Simulator, arch:arm64, id:8A3E3E3B-F5E5-4368-9F0D-D9F32CC86AC2, OS:26.3.1, name:iPad Air 13-inch (M3) }\n{ platform:iOS Simulator, arch:arm64, id:2FA9C8E0-555A-48B7-88F0-653E67552C13, OS:26.3.1, name:iPad Pro 11-inch (M5) }\n{ platform:iOS Simulator, arch:arm64, id:96194A5F-8FD9-496B-BCB8-AEC7FA753A94, OS:26.3.1, name:iPad Pro 13-inch (M5) }\n{ platform:iOS Simulator, arch:arm64, id:6EE0FD73-2A7A-4CD2-BCD1-5B35A1E94EAC, OS:26.3.1, name:iPad mini (A17 Pro) }\n{ platform:iOS Simulator, arch:arm64, id:4B4271F1-5A3A-41B9-B8F1-8325361ECDEF, OS:26.3.1, name:iPhone 16e }\n{ platform:iOS Simulator, arch:arm64, id:0B0B7D51-6745-4255-B446-C9D66DEDB0CE, OS:26.3.1, name:iPhone 17 }\n{ platform:iOS Simulator, arch:arm64, id:D3E8488C-6429-43DD-87B7-F48C43DCC454, OS:26.3.1, name:iPhone 17 Pro }\n{ platform:iOS Simulator, arch:arm64, id:8ABA1583-81D7-4AB5-860E-A046BDE08453, OS:26.3.1, name:iPhone 17 Pro Max }\n{ platform:iOS Simulator, arch:arm64, id:104CE20F-887F-4B3C-AF8D-371E85DD6F50, OS:26.3.1, name:iPhone Air }\n{ platform:macOS, arch:arm64, variant:Designed for [iPad,iPhone], id:00008112-001A618C1E8A201E, name:My Mac }\n        Info connection; remote_addr=127.0.0.1:61183 conn_id=0\n    Finished 1 iOS Bundle at:\n        /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/apple/build/solo_soul_iOS.xcarchive\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-final-native-macos.log",
+      "sha256": "26179c6c602ef5e32e14c6dce3ae035f9955705690654b84c556614d4e14366e",
+      "output_tail": ".29 kB │ gzip:  96.14 kB\ndist/assets/markdown-vendor-C08gYRN7.js                 317.99 kB │ gzip:  97.54 kB\ndist/assets/RecoveryQrScanner-DjRZIkiF.js               377.18 kB │ gzip: 111.50 kB\ndist/assets/bootstrapApp-D-4e5om-.js                  1,265.64 kB │ gzip: 336.57 kB\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/vaultDirectory.ts is dynamically imported by src/App/useSessionLifecycle.ts but also statically imported by src/hooks/useOnboarding.ts, src/pages/settings/useVaultDirectory.ts, dynamic import will not move module into another chunk.\n\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/dialog.ts is dynamically imported by src/components/export/ExportSection.tsx, src/components/import/ImportFileSelectorCard.tsx, src/components/object/useAttachmentBatchOps.tsx, src/hooks/useAttachmentManagerBatchOps.ts, src/hooks/useImportState.ts, ... but also statically imported by src/App/useSessionLifecycle.ts, src/components/export/useExportDocumentSection.ts, src/components/layout/OcrQuickScanPopover.tsx, src/components/plugin/PluginResultPanel.tsx, src/components/plugin/WatermarkPluginConfig.tsx, ..., dynamic import will not move module into another chunk.\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/loginAvailabilityPreflight.ts is dynamically imported by src/bootstrapApp.tsx but also statically imported by src/components/settings/BiometricSection.tsx, src/hooks/usePinDisable.ts, src/hooks/usePinSetup.ts, src/pages/auth/useLoginPage.tsx, dynamic import will not move module into another chunk.\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0mnode_modules/@tauri-apps/api/event.js is dynamically imported by src/lib/theme.ts but also statically imported by node_modules/@tauri-apps/api/webview.js, node_modules/@tauri-apps/api/webviewWindow.js, node_modules/@tauri-apps/api/window.js, src/App/useNativeAppEvents.ts, src/App/useSessionLifecycle.ts, ..., dynamic import will not move module into another chunk.\n\n✓ built in 571ms\n   Compiling objc2-exception-helper v0.1.1\n   Compiling ring v0.17.14\n   Compiling zstd-sys v2.0.16+zstd.1.5.7\n   Compiling wasmtime-internal-jit-debug v45.0.1\n   Compiling libsqlite3-sys v0.30.1\n   Compiling wasmtime v45.0.1\n   Compiling mac-notification-sys v0.6.14\n   Compiling onig_sys v69.9.3\n   Compiling objc2 v0.6.4\n   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)\n   Compiling block2 v0.6.2\n   Compiling objc2-core-foundation v0.3.2\n   Compiling dispatch2 v0.3.1\n   Compiling rustls v0.23.40\n   Compiling objc2-foundation v0.3.2\n   Compiling rustls-webpki v0.103.13\n   Compiling zstd-safe v7.2.4\n   Compiling zstd v0.13.3\n   Compiling wasmtime-internal-cache v45.0.1\n   Compiling onig v6.5.3\n   Compiling tokenizers v0.21.4\n   Compiling tokio-rustls v0.26.4\n   Compiling rustls-platform-verifier v0.7.0\n   Compiling hyper-rustls v0.27.9\n   Compiling reqwest v0.12.28\n   Compiling reqwest v0.13.4\n   Compiling objc2-quartz-core v0.3.2\n   Compiling objc2-app-kit v0.3.2\n   Compiling wiggle v45.0.1\n   Compiling rusqlite v0.32.1\n   Compiling wasmtime-wasi-io v45.0.1\n   Compiling solosoul-vault v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-vault)\n   Compiling solosoul-core v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-core)\n   Compiling wasmtime-wasi v45.0.1\n   Compiling objc2-web-kit v0.3.2\n   Compiling tauri-runtime v2.11.2\n   Compiling wry v0.55.1\n   Compiling tao v0.35.3\n   Compiling window-vibrancy v0.6.0\n   Compiling muda v0.19.2\n   Compiling tauri-runtime-wry v2.11.2\n   Compiling tauri v2.11.2\n   Compiling objc2-osa-kit v0.3.2\n   Compiling osakit v0.3.1\n   Compiling rfd v0.16.0\n   Compiling notify-rust v4.17.0\n   Compiling os_info v3.15.0\n   Compiling solosoul-sync v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-sync)\n   Compiling window-vibrancy v0.8.0\n   Compiling solosoul-plugin v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-plugin)\n   Compiling tauri-plugin-fs v2.5.1\n   Compiling tauri-plugin-dialog v2.7.1\n   Compiling tauri-plugin-updater v2.10.1\n   Compiling tauri-plugin-os v2.3.2\n   Compiling tauri-plugin-window-state v2.4.1\n   Compiling tauri-plugin-shell v2.3.5\n   Compiling tauri-plugin-notification v2.3.3\n   Compiling tauri-plugin-process v2.3.1\n    Finished `dev` profile [optimized + debuginfo] target(s) in 2m 28s\n       Built application at: /Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/solo_soul\n    Bundling SoloSoul.app (/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/bundle/macos/SoloSoul.app)\n    Finished 1 bundle at:\n        /Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/bundle/macos/SoloSoul.app\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-final-native-rust-test.log",
+      "sha256": "0ae53656bfe304c5b3515d0a66c4b5f09fce50a6454d89c0608cb3e6a5339431",
+      "output_tail": "3b62f91c15404.rlib --extern serde=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libserde-3baab7aec792a72c.rlib --extern serde_json=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libserde_json-3080e9c97cf2e833.rlib --extern sha2=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsha2-453608ea2e3edccd.rlib --extern snow=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsnow-758e0160006e6680.rlib --extern solosoul_core=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsolosoul_core-1f88c1a839a022d5.rlib --extern solosoul_sync=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsolosoul_sync-1ce2440b15459ee0.rlib --extern solosoul_vault=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsolosoul_vault-a0b2294623454681.rlib --extern tempfile=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libtempfile-2249c2c0e4d58213.rlib --extern tokio=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libtokio-4dfba2358c853c51.rlib --extern tracing=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libtracing-92568bfb2c7a4af7.rlib --extern uuid=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libuuid-ec678622821b3316.rlib --extern x25519_dalek=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libx25519_dalek-8a8eb44d75edeebc.rlib --extern zeroize=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libzeroize-18c3e7270a94d319.rlib -L dependency=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps -C embed-bitcode=no --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' --error-format human`\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests solosoul_vault\n     Running `rustdoc --edition=2021 --crate-type lib --color auto --crate-name solosoul_vault --test crates/solosoul-vault/src/lib.rs --test-run-directory /Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-vault -L /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/lib/darwin -L native=/Users/zzc/Library/Caches/ort.pyke.io/dfbin/aarch64-apple-darwin/612739f75438dc0a075461e1fb454226b4a1eb175e60a7271ba966bbbb972cd4 -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/libsqlite3-sys-bc8df6a79a232f20/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/mac-notification-sys-b980e0aa1b43f3aa/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/objc2-exception-helper-a08be82134dbdb9a/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/onig_sys-6d7e00e8e10d73b9/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/ring-11d34ed388d14499/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/wasmtime-87307538a705793a/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/wasmtime-internal-jit-debug-7bb7dad0a3175dbd/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/zstd-sys-de8e28d63f961463/out --extern base64=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libbase64-86721ba43638bc14.rlib --extern chrono=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libchrono-dd7451b7f6be8a9d.rlib --extern hex=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libhex-4997e77b2cf78fb5.rlib --extern rusqlite=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/librusqlite-87bc0bb602cfe286.rlib --extern serde=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libserde-3baab7aec792a72c.rlib --extern serde_json=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libserde_json-3080e9c97cf2e833.rlib --extern sha2=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsha2-453608ea2e3edccd.rlib --extern solosoul_crypto=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsolosoul_crypto-f2e9e2682f91d289.rlib --extern solosoul_vault=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsolosoul_vault-a0b2294623454681.rlib --extern tempfile=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libtempfile-2249c2c0e4d58213.rlib --extern tracing=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libtracing-92568bfb2c7a4af7.rlib --extern tracing_subscriber=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libtracing_subscriber-f916a60476533f9a.rlib --extern uuid=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libuuid-ec678622821b3316.rlib --extern zeroize=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libzeroize-18c3e7270a94d319.rlib -L dependency=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps -C embed-bitcode=no --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' --error-format human`\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-front-all-targeted.log",
+      "sha256": "6e9f73ef92424ee6ef2b80b186189257e8689848769efb296930804fae96c636",
+      "output_tail": "\n RUN  v4.1.8 /Users/zzc/PycharmProjects/SoloSoul/tauri\n\n ❯ src/pages/settings/OcrSettingsPage.test.tsx (0 test)\n ❯ src/components/layout/OcrQuickScanPopover.test.tsx (0 test)\n\n⎯⎯⎯⎯⎯⎯ Failed Suites 2 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  src/components/layout/OcrQuickScanPopover.test.tsx [ src/components/layout/OcrQuickScanPopover.test.tsx ]\nError: [vitest] No \"isAndroidSync\" export is defined on the \"@/lib/platform\" mock. Did you forget to return it from \"vi.mock\"?\nIf you need to partially mock a module, you can use \"importOriginal\" helper inside:\n\nvi.mock(import(\"@/lib/platform\"), async (importOriginal) => {\n  const actual = await importOriginal()\n  return {\n    ...actual,\n    // your mocked methods\n  }\n})\n\n ❯ src/lib/prefetch/registry.ts:67:24\n     65|     ttlMs: 0,\n     66|     warmupPolicy: 'afterAuth',\n     67|     enabledOnPlatform: isAndroidSync,\n       |                        ^\n     68|   }),\n     69|   /** OCR 模型状态：移动端用系统 ML Kit 不渲染模型卡片，跳过预热。 */\n ❯ src/components/layout/OcrQuickScanPopover.tsx:10:1\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n FAIL  src/pages/settings/OcrSettingsPage.test.tsx [ src/pages/settings/OcrSettingsPage.test.tsx ]\nError: [vitest] No \"isAndroidSync\" export is defined on the \"@/lib/platform\" mock. Did you forget to return it from \"vi.mock\"?\nIf you need to partially mock a module, you can use \"importOriginal\" helper inside:\n\nvi.mock(import(\"@/lib/platform\"), async (importOriginal) => {\n  const actual = await importOriginal()\n  return {\n    ...actual,\n    // your mocked methods\n  }\n})\n\n ❯ src/lib/prefetch/registry.ts:67:24\n     65|     ttlMs: 0,\n     66|     warmupPolicy: 'afterAuth',\n     67|     enabledOnPlatform: isAndroidSync,\n       |                        ^\n     68|   }),\n     69|   /** OCR 模型状态：移动端用系统 ML Kit 不渲染模型卡片，跳过预热。 */\n ❯ src/hooks/useOcrModelManager.ts:6:1\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\n\n\n Test Files  2 failed | 2 passed (4)\n      Tests  22 passed (22)\n   Start at  15:08:16\n   Duration  2.55s (transform 1.96s, setup 589ms, import 1.20s, tests 909ms, environment 3.40s)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-front-green.log",
+      "sha256": "e19212d3988de54a618a80c0802bdbf0bbbdd4f32d3bc4d135d2d69d7d426038",
+      "output_tail": "\n RUN  v4.1.8 /Users/zzc/PycharmProjects/SoloSoul/tauri\n\n\n Test Files  2 passed (2)\n      Tests  22 passed (22)\n   Start at  15:05:38\n   Duration  1.27s (transform 345ms, setup 239ms, import 396ms, tests 745ms, environment 797ms)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-front-red.log",
+      "sha256": "b6baf74ce314a35807c93a60881799b6bff182ccde789ffce9509eb34c6b5dfc",
+      "output_tail": "ui-card\u001b[39m=\u001b[32m\"default\"\u001b[39m\n          \u001b[36m>\u001b[39m\n            \u001b[36m<div\u001b[39m\n              \u001b[33mstyle\u001b[39m=\u001b[32m\"text-align: center; padding: 24px;\"\u001b[39m\n            \u001b[36m>\u001b[39m\n              \u001b[36m<svg\u001b[39m\n                \u001b[33maria-hidden\u001b[39m=\u001b[32m\"true\"\u001b[39m\n                \u001b[33mclass\u001b[39m=\u001b[32m\"lucide lucide-scan\"\u001b[39m\n                \u001b[33mfill\u001b[39m=\u001b[32m\"none\"\u001b[39m\n                \u001b[33mheight\u001b[39m=\u001b[32m\"48\"\u001b[39m\n                \u001b[33mstroke\u001b[39m=\u001b[32m\"currentColor\"\u001b[39m\n                \u001b[33mstroke-linecap\u001b[39m=\u001b[32m\"round\"\u001b[39m\n                \u001b[33mstroke-linejoin\u001b[39m=\u001b[32m\"round\"\u001b[39m\n                \u001b[33mstroke-width\u001b[39m=\u001b[32m\"2\"\u001b[39m\n                \u001b[33mstyle\u001b[39m=\u001b[32m\"margin-bottom: 12px; opacity: 0.3; color: var(--text-tertiary);\"\u001b[39m\n                \u001b[33mviewBox\u001b[39m=\u001b[32m\"0 0 24 24\"\u001b[39m\n                \u001b[33mwidth\u001b[39m=\u001b[32m\"48\"\u001b[39m\n                \u001b[33mxmlns\u001b[39m=\u001b[32m\"http://www.w3.org/2000/svg\"\u001b[39m\n              \u001b[36m>\u001b[39m\n                \u001b[36m<path\u001b[39m\n                  \u001b[33md\u001b[39m=\u001b[32m\"M3 7V5a2 2 0 0 1 2-2h2\"\u001b[39m\n                \u001b[36m/>\u001b[39m\n                \u001b[36m<path\u001b[39m\n                  \u001b[33md\u001b[39m=\u001b[32m\"M17 3h2a2 2 0 0 1 2 2v2\"\u001b[39m\n                \u001b[36m/>\u001b[39m\n                \u001b[36m<path\u001b[39m\n                  \u001b[33md\u001b[39m=\u001b[32m\"M21 17v2a2 2 0 0 1-2 2h-2\"\u001b[39m\n                \u001b[36m/>\u001b[39m\n                \u001b[36m<path\u001b[39m\n                  \u001b[33md\u001b[39m=\u001b[32m\"M7 21H5a2 2 0 0 1-2-2v-2\"\u001b[39m\n                \u001b[36m/>\u001b[39m\n              \u001b[36m</svg>\u001b[39m\n              \u001b[36m<h2\u001b[39m\n                \u001b[33mstyle\u001b[39m=\u001b[32m\"font-size: var(--text-md); font-weight: 600; margin-bottom: 4px;\"\u001b[39m\n              \u001b[36m>\u001b[39m\n                \u001b[0mocr:title\u001b[0m\n              \u001b[36m</h2>\u001b[39m\n              \u001b[36m<p\u001b[39m\n                \u001b[33mstyle\u001b[39m=\u001b[32m\"font-size: var(--text-body-sm); color: var(--text-secondary); margin-bottom: 16px;\"\u001b[39m\n              \u001b[36m>\u001b[39m\n                \u001b[0mocr:description\u001b[0m\n              \u001b[36m</p>\u001b[39m\n              \u001b[36m<div\u001b[39m\n                \u001b[33mstyle\u001b[39m=\u001b[32m\"display: inline-flex; gap: 4px; padding: 4px; border-radius: 8px; background: var(--bg-toolbar); margin-bottom: 16px;\"\u001b[39m\n              \u001b[36m>\u001b[39m\n                \u001b[36m<button\u001b[39m\n                  \u001b[33mstyle\u001b[39m=\u001b[32m\"padding: 6px 14px; border-radius: 6px; border: 1px solid color-mix(in srgb, var(--accent-primary) 35%, transparent); font-size: var(--text-body-sm); cursor: pointer; background: color-mix(in srgb, var(--accent-primary) 15%, transparent); color: var(--accent-primary); font-weight: 600;\"\u001b[39m\n                \u001b[36m>\u001b[39m\n                  \u001b[0mocr:scan_mode_general\u001b[0m\n                \u001b[36m</button>\u001b[39m\n                \u001b[36m<button\u001b[39m\n                  \u001b[33mstyle\u001b[39m=\u001b[32m\"padding: 6px 14px; border-radius: 6px; border: 1px solid transparent; font-size: var(--text-body-sm); cursor: pointer; background: transparent; color: var(--text-secondary); font-weight: 400;\"\u001b[39m\n                \u001b[36m>\u001b[39m\n                  \u001b[0mocr:scan_mode_mrz\u001b[0m\n                \u001b[36m</button>\u001b[39m\n              \u001b[36m</div>\u001b[39m\n              \u001b[36m<br />\u001b[39m\n              \u001b[36m<div\u001b[39m\n                \u001b[33mstyle\u001b[39m=\u001b[32m\"display: flex; gap: 8px; justify-content: center; align-items: center;\"\u001b[39m\n              \u001b[36m>\u001b[39m\n                \u001b[36m<button\u001b[39m\n                  \u001b[33mclass\u001b[39m=\u001b[32m\"_button_947cf7 \"\u001b[39m\n                  \u001b[33mdata-ui-button\u001b[39m=\u001b[32m\"primary\"\u001b[39m\n                  \u001b[33mdata-ui-intent\u001b[39m=\u001b[32m\"primary\"\u001b[39m\n                  \u001b[33mdata-ui-size\u001b[39m=\u001b[32m\"md\"\u001b[39m\n                \u001b[36m>\u001b[39m\n                  \u001b[0mocr:select_image\u001b[0m\n                \u001b[36m</button>\u001b[39m\n                \u001b[36m<button\u001b[39m\n                  \u001b[33mclass\u001b[39m=\u001b[32m\"_button_947cf7 \"\u001b[39m\n                  \u001b[33mdata-ui-button\u001b[39m=\u001b[32m\"primary\"\u001b[39m\n                  \u001b[33mdata-ui-intent\u001b[39m=\u001b[32m\"primary\"\u001b[39m\n                  \u001b[33mdata-ui-size\u001b[39m=\u001b[32m\"md\"\u001b[39m\n                \u001b[36m>\u001b[39m\n                  \u001b[0mocr:take_photo\u001b[0m\n                \u001b[36m</button>\u001b[39m\n              \u001b[36m</div>\u001b[39m\n            \u001b[36m</div>\u001b[39m\n          \u001b[36m</div>\u001b[39m\n        \u001b[36m</div>\u001b[39m\n      \u001b[36m</div>\u001b[39m\n    \u001b[36m</div>\u001b[39m\n  \u001b[36m</body>\u001b[39m\n\u001b[36m</html>\u001b[39m\n ❯ Proxy.waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27\n ❯ src/pages/scan/OcrPage.test.tsx:334:11\n    332|     device.platform = 'ios'; device.state = { filePath: '/test/attachm…\n    333|     render(<MemoryRouter><OcrPage /></MemoryRouter>);\n    334|     await waitFor(() => expect(screen.getByText('ocr:ios_ocr_unsupport…\n       |           ^\n    335|     expect(mockInvoke.mock.calls.some(([cmd]) => ['ocr_scan_image', 'o…\n    336|     expect(screen.queryByText('ocr:scanning')).not.toBeInTheDocument();\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯\n\n\n Test Files  2 failed (2)\n      Tests  4 failed | 18 passed (22)\n   Start at  15:03:56\n   Duration  2.45s (transform 358ms, setup 254ms, import 428ms, tests 1.75s, environment 1.05s)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-full-tests.log",
+      "sha256": "1eb626dcb77c97b28619897aaf45cbabfa5802570eee545fd939eaf639d8ff23",
+      "output_tail": "ts (0.024416ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n﹣ source mutation after copy begins rejects the new runtime and preserves partial evidence (0.02025ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n✔ SDK CLI requires exactly three paths and refuses other experimental/control modes (1.095917ms)\n✔ SDK help starts no native preparation or GUI process (41.716ms)\n✔ SDK streaming preflight rejects older binaries and accepts cross-block feature markers (139.724ms)\n﹣ old native-perf EXE fails before output creation or any EXE execution (0.079833ms) # Requires the Windows-only SDK diagnostic CLI to reach its offline feature preflight\n✔ SDK launch selects only the run-only native SDK diagnostics contract (0.113709ms)\n✔ requested marker requires exact canonical root, run, PID, port and main window (0.387ms)\n✔ successful SDK proof returns only validated metadata and protocol calls, never performance metrics or payloads (0.395625ms)\n✔ SDK proof refuses failed, incomplete, wrong-origin, wrong-browser and non-exact protocol calls (0.411916ms)\n✔ SDK source rejects credentials, ports, other origins, malformed values and raw URL exposure (0.172875ms)\n✔ SDK main frame/loader/document guard rejects navigation, children, missing UI container and loading documents (0.225334ms)\n✔ SDK observer must remain valid in the same run/timeOrigin with exact bounded count metadata (2.869625ms)\n✔ SDK proof accepts the deadline boundary but refuses late, negative and absent arrival measurements (0.154083ms)\n✔ SDK identity comparison rejects PID reuse, changed parents/paths and extra processes (0.209666ms)\n✔ SDK marker reading accepts exact owned regular JSON and refuses traversal names, malformed or oversized files (3.767375ms)\n✔ SDK file/directory junctions and non-file proof markers never traverse another folder (2.065834ms)\n✔ SDK proof wait is bounded without callbacks and refuses late files or root interruption (6.148375ms)\n✔ SDK proof lookup must recheck time after the async filesystem query and reject a 45000-to-45001 crossing (0.914791ms)\n✔ 资产 URL 按片段编码版本、空格、中文、井号、问号和百分号 (1.087792ms)\n✔ 拒绝非 HTTPS、userinfo、查询、片段、控制字符和歧义路径 (0.183584ms)\n✔ --no-probe 稳定生成全部 legacy 文件，不发生网络请求，签名和元数据一致 (10.59375ms)\n✔ CDN 覆盖主清单、全部 legacy 清单和 Android URL，现有签名不变 (3.813959ms)\n✔ 网络探测失败只输出诊断，不删减 legacy；探测真实包而非 release 页面 (23.062542ms)\n✔ APK 缺少校验和或签名时拒绝生成，不留下半套清单；桌面独立发布仍有效 (3.491125ms)\n✔ 版本中 + 和 prerelease 不被解释为正则；不能匹配旧版本/多个同平台包 (2.575792ms)\n✔ 自定义代理保留固定 legacy id，并拒绝文件路径注入与重复 id (0.323041ms)\n✔ Range 检查接受精确 206、总大小及本地首段，拒绝 200/伪 Range/HTML/截断/错误内容 (1.661875ms)\n✔ 有界读取拒绝未知长度超限流、过大 Content-Length，限制重定向并拒绝 HTTP 降级 (0.788625ms)\n✔ 超时覆盖正文读取，而不只是收到响应头之前 (20.86125ms)\n✔ 远端 metadata 必须与本地候选一致，HTML/过大内容被拒绝 (1.275292ms)\n✔ 完整只读验收脚本检查远端两份 Android metadata、主清单和所有资产 (6.689209ms)\n✔ 本地验收拒绝缺失 legacy、签名不一致、Android asset 大小及命名组合错误 (4.548417ms)\n✔ CLI 离线端到端生成/验收且参数错误退出非零 (130.747042ms)\n✔ counts application, plugin and channel invokes, excludes ordinary fetch and never reads body (4.811875ms)\n✔ forwards fetch errors and return values unchanged (1.185834ms)\n✔ default transport fallback makes the whole total unavailable without suppressing warnings (0.418834ms)\n✔ overflow retains a bounded command list and invalidates the total (35.945209ms)\n✔ fetch and warn replacement are sticky failures even after restoration (0.465208ms)\n✔ invalid origin, missing run identity and duplicate installation fail closed (0.870208ms)\n✔ snapshot exposes copies rather than mutable counter internals (0.362333ms)\n✔ malformed IPC command cannot silently disappear from a supposedly complete count (0.335292ms)\n✔ document navigation and additional frames invalidate total without recording navigation paths (0.776792ms)\nℹ tests 112\nℹ suites 0\nℹ pass 91\nℹ fail 0\nℹ cancelled 0\nℹ skipped 21\nℹ todo 0\nℹ duration_ms 271.180416\n\n RUN  v4.1.8 /Users/zzc/PycharmProjects/SoloSoul/tauri\n\n ❯ src/pages/settings/OcrSettingsPage.test.tsx (0 test)\n\n⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  src/pages/settings/OcrSettingsPage.test.tsx [ src/pages/settings/OcrSettingsPage.test.tsx ]\nError: [vitest] No \"isAndroidSync\" export is defined on the \"@/lib/platform\" mock. Did you forget to return it from \"vi.mock\"?\nIf you need to partially mock a module, you can use \"importOriginal\" helper inside:\n\nvi.mock(import(\"@/lib/platform\"), async (importOriginal) => {\n  const actual = await importOriginal()\n  return {\n    ...actual,\n    // your mocked methods\n  }\n})\n\n ❯ src/lib/prefetch/registry.ts:67:24\n     65|     ttlMs: 0,\n     66|     warmupPolicy: 'afterAuth',\n     67|     enabledOnPlatform: isAndroidSync,\n       |                        ^\n     68|   }),\n     69|   /** OCR 模型状态：移动端用系统 ML Kit 不渲染模型卡片，跳过预热。 */\n ❯ src/hooks/useOcrModelManager.ts:6:1\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed | 252 passed (253)\n      Tests  2216 passed (2216)\n   Start at  15:07:36\n   Duration  46.49s (transform 10.98s, setup 21.47s, import 65.17s, tests 71.95s, environment 132.48s)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-lint.log",
+      "sha256": "efbf0bb9a7b5429028016ddad5d8ad0a5c9b9e66a04dc3b0808220cbd33a6859",
+      "output_tail": "\n> solosoul@2.13.2 lint\n> eslint src --ext .ts,.tsx\n\n\n/Users/zzc/PycharmProjects/SoloSoul/tauri/src/stores/syncStore.ts\n  838:71  warning  'event' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars\n\n✖ 1 problem (0 errors, 1 warning)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-native-android-check.log",
+      "sha256": "ee764daeb1ff4203e49117d938bdf2f90e1ab3bfa11a88252fe33fb817202352",
+      "output_tail": "    Building arm64-v8a (aarch64-linux-android)\nwarning: unused variable: `lock_path`\n  --> crates/solosoul-core/src/process_lock.rs:26:13\n   |\n26 |         let lock_path = base_path.join(\".lock\");\n   |             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_lock_path`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: `solosoul-core` (lib) generated 1 warning (run `cargo fix --lib -p solosoul-core` to apply 1 suggestion)\n   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)\nwarning: methods `reopen` and `wait_stopping` are never used\n  --> crates/solosoul-sync/src/workers.rs:42:19\n   |\n26 | impl SyncWorkers {\n   | ---------------- methods in this implementation\n...\n42 |     pub(crate) fn reopen(&self) -> Result<(), String> {\n   |                   ^^^^^^\n...\n97 |     pub(crate) async fn wait_stopping(&self) -> Result<(), String> {\n   |                         ^^^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: method `is_finished` is never used\n   --> crates/solosoul-sync/src/workers.rs:303:8\n    |\n296 | impl StopCompletion {\n    | ------------------- method in this implementation\n...\n303 |     fn is_finished(&self) -> bool {\n    |        ^^^^^^^^^^^\n\nwarning: `solosoul-sync` (lib) generated 2 warnings\nwarning: unused imports: `current_account` and `vault_handle`\n  --> src-tauri/src/commands/ocr.rs:13:23\n   |\n13 | use crate::commands::{current_account, vault_handle};\n   |                       ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^\n   |\n   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused import: `resolve_model_bundle`\n  --> src-tauri/src/commands/ocr.rs:25:53\n   |\n25 | use solosoul_core::ocr::model::{is_model_installed, resolve_model_bundle};\n   |                                                     ^^^^^^^^^^^^^^^^^^^^\n\nwarning: unused import: `Manager`\n  --> src-tauri/src/commands/recovery.rs:20:22\n   |\n20 | use tauri::{Emitter, Manager, State};\n   |                      ^^^^^^^\n\nwarning: unused import: `tauri::Emitter`\n --> src-tauri/src/setup/mod.rs:6:5\n  |\n6 | use tauri::Emitter;\n  |     ^^^^^^^^^^^^^^\n\nwarning: unused variable: `app`\n  --> src-tauri/src/commands/recovery.rs:39:5\n   |\n39 |     app: tauri::AppHandle,\n   |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused variable: `instance_name`\n   --> src-tauri/src/commands/recovery.rs:225:21\n    |\n225 |         if let Some(instance_name) = mdns_name {\n    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instance_name`\n\nwarning: constant `MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:22:7\n   |\n22 | const MDNS_SERVICE_TYPE: &str = \"_solosoul._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:24:7\n   |\n24 | const RECOVERY_MDNS_SERVICE_TYPE: &str = \"_solosoul_recovery._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `advertise_recovery_mdns` is never used\n   --> src-tauri/src/commands/recovery.rs:202:10\n    |\n202 | async fn advertise_recovery_mdns(\n    |          ^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `poll_accessibility` is never used\n   --> src-tauri/src/commands/window.rs:194:15\n    |\n194 | pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {\n    |               ^^^^^^^^^^^^^^^^^^\n\nwarning: function `setup_spawn_registry_refresh` is never used\n   --> src-tauri/src/setup/mod.rs:252:4\n    |\n252 | fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {\n    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: `solo_soul` (lib) generated 11 warnings (run `cargo fix --lib -p solo_soul` to apply 6 suggestions)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 6.85s\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-native-android-stage.log",
+      "sha256": "faf0fc2a86fccd9a4811cd0ef360465bf3789686136e7a13c8f1930c2e0f5d04",
+      "output_tail": "[stage-mobile-resources] 已生成移动端插件市场资源: /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/resources-mobile/SoloSoul_plugin_market\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-native-android.log",
+      "sha256": "d33a80ff68110056dbdd89952b5191b88b2e3898181fc052295ab738b49b830f",
+      "output_tail": "solve_model_bundle};\n   \u001b[1m\u001b[94m|\u001b[0m                                                     \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused import: `Manager`\u001b[0m\n  \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/recovery.rs:20:22\n   \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m20\u001b[0m \u001b[1m\u001b[94m|\u001b[0m use tauri::{Emitter, Manager, State};\n   \u001b[1m\u001b[94m|\u001b[0m                      \u001b[1m\u001b[33m^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused import: `tauri::Emitter`\u001b[0m\n \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/setup/mod.rs:6:5\n  \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m6\u001b[0m \u001b[1m\u001b[94m|\u001b[0m use tauri::Emitter;\n  \u001b[1m\u001b[94m|\u001b[0m     \u001b[1m\u001b[33m^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused variable: `app`\u001b[0m\n  \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/recovery.rs:39:5\n   \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m39\u001b[0m \u001b[1m\u001b[94m|\u001b[0m     app: tauri::AppHandle,\n   \u001b[1m\u001b[94m|\u001b[0m     \u001b[1m\u001b[33m^^^\u001b[0m \u001b[1m\u001b[33mhelp: if this is intentional, prefix it with an underscore: `_app`\u001b[0m\n   \u001b[1m\u001b[94m|\u001b[0m\n   \u001b[1m\u001b[94m= \u001b[0m\u001b[1mnote\u001b[0m: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused variable: `instance_name`\u001b[0m\n   \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/recovery.rs:225:21\n    \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m225\u001b[0m \u001b[1m\u001b[94m|\u001b[0m         if let Some(instance_name) = mdns_name {\n    \u001b[1m\u001b[94m|\u001b[0m                     \u001b[1m\u001b[33m^^^^^^^^^^^^^\u001b[0m \u001b[1m\u001b[33mhelp: if this is intentional, prefix it with an underscore: `_instance_name`\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: constant `MDNS_SERVICE_TYPE` is never used\u001b[0m\n  \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/discovery.rs:22:7\n   \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m22\u001b[0m \u001b[1m\u001b[94m|\u001b[0m const MDNS_SERVICE_TYPE: &str = \"_solosoul._tcp.local.\";\n   \u001b[1m\u001b[94m|\u001b[0m       \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^\u001b[0m\n   \u001b[1m\u001b[94m|\u001b[0m\n   \u001b[1m\u001b[94m= \u001b[0m\u001b[1mnote\u001b[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used\u001b[0m\n  \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/discovery.rs:24:7\n   \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m24\u001b[0m \u001b[1m\u001b[94m|\u001b[0m const RECOVERY_MDNS_SERVICE_TYPE: &str = \"_solosoul_recovery._tcp.local.\";\n   \u001b[1m\u001b[94m|\u001b[0m       \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: function `advertise_recovery_mdns` is never used\u001b[0m\n   \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/recovery.rs:202:10\n    \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m202\u001b[0m \u001b[1m\u001b[94m|\u001b[0m async fn advertise_recovery_mdns(\n    \u001b[1m\u001b[94m|\u001b[0m          \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: function `poll_accessibility` is never used\u001b[0m\n   \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/window.rs:194:15\n    \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m194\u001b[0m \u001b[1m\u001b[94m|\u001b[0m pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {\n    \u001b[1m\u001b[94m|\u001b[0m               \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: function `setup_spawn_registry_refresh` is never used\u001b[0m\n   \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/setup/mod.rs:252:4\n    \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m252\u001b[0m \u001b[1m\u001b[94m|\u001b[0m fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {\n    \u001b[1m\u001b[94m|\u001b[0m    \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m: `solo_soul` (lib) generated 11 warnings (run `cargo fix --lib -p solo_soul` to apply 6 suggestions)\n\u001b[1m\u001b[92m    Finished\u001b[0m `dev` profile [optimized + debuginfo] target(s) in 17.74s\n\u001b[1m\u001b[32m        Info\u001b[0m symlinking lib \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" in jniLibs dir \"/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/main/jniLibs/arm64-v8a\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"libandroid.so\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"libdl.so\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"liblog.so\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"libm.so\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"libc.so\"\n\n[Incubating] Problems report is available at: file:///Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/build/reports/problems/problems-report.html\n\nDeprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.\n\nYou can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\nFor more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.\n    Finished 1 APK at:\n        /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-native-clippy.log",
+      "sha256": "d210161e5cf98a6ca5218f181c9e316809ad80ec451a1c92b44f185239e44bb5",
+      "output_tail": "   Compiling objc2-exception-helper v0.1.1\n   Compiling ring v0.17.14\n   Compiling libsqlite3-sys v0.30.1\n   Compiling zstd-sys v2.0.16+zstd.1.5.7\n   Compiling wasmtime-internal-jit-debug v45.0.1\n   Compiling wasmtime v45.0.1\n   Compiling mac-notification-sys v0.6.14\n   Compiling onig_sys v69.9.3\n   Compiling objc2 v0.6.4\n   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)\n    Checking block2 v0.6.2\n    Checking objc2-core-foundation v0.3.2\n    Checking objc2-foundation v0.3.2\n    Checking rustls-webpki v0.103.13\n   Compiling rustls v0.23.40\n    Checking dispatch2 v0.3.1\n   Compiling zstd-safe v7.2.4\n    Checking zstd v0.13.3\n    Checking wasmtime-internal-cache v45.0.1\n    Checking onig v6.5.3\n    Checking tokio-rustls v0.26.4\n    Checking rustls-platform-verifier v0.7.0\n    Checking hyper-rustls v0.27.9\n    Checking tokenizers v0.21.4\n    Checking reqwest v0.12.28\n    Checking reqwest v0.13.4\n    Checking objc2-quartz-core v0.3.2\n    Checking os_info v3.15.0\n    Checking notify-rust v4.17.0\n    Checking objc2-app-kit v0.3.2\n    Checking wiggle v45.0.1\n    Checking wasmtime-wasi-io v45.0.1\n    Checking wasmtime-wasi v45.0.1\n    Checking objc2-web-kit v0.3.2\n    Checking tao v0.35.3\n    Checking window-vibrancy v0.6.0\n    Checking muda v0.19.2\n    Checking objc2-osa-kit v0.3.2\n    Checking rfd v0.16.0\n    Checking window-vibrancy v0.8.0\n    Checking rusqlite v0.32.1\n    Checking osakit v0.3.1\n    Checking wry v0.55.1\n    Checking tauri-runtime v2.11.2\n    Checking solosoul-vault v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-vault)\n    Checking tauri-runtime-wry v2.11.2\n    Checking tauri v2.11.2\n    Checking solosoul-core v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-core)\n    Checking solosoul-sync v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-sync)\n    Checking tauri-plugin-fs v2.5.1\n    Checking tauri-plugin-window-state v2.4.1\n    Checking tauri-plugin-notification v2.3.3\n    Checking tauri-plugin-process v2.3.1\n    Checking tauri-plugin-os v2.3.2\n    Checking tauri-plugin-updater v2.10.1\n    Checking tauri-plugin-shell v2.3.5\n    Checking tauri-plugin-dialog v2.7.1\n    Checking solosoul-plugin v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-plugin)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 29.09s\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-native-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-native-ios-device-check.log",
+      "sha256": "91c56b256a3b973f5f72a07ae17a72d44f767f64eb4f5661000f1c0cb716ccab",
+      "output_tail": "n(unused)]`) on by default\n\nwarning: method `is_finished` is never used\n   --> crates/solosoul-sync/src/workers.rs:303:8\n    |\n296 | impl StopCompletion {\n    | ------------------- method in this implementation\n...\n303 |     fn is_finished(&self) -> bool {\n    |        ^^^^^^^^^^^\n\n   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)\nwarning: `solosoul-sync` (lib) generated 2 warnings\nwarning: unused imports: `current_account` and `vault_handle`\n  --> src-tauri/src/commands/ocr.rs:13:23\n   |\n13 | use crate::commands::{current_account, vault_handle};\n   |                       ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^\n   |\n   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused import: `serde_json::json`\n  --> src-tauri/src/commands/ocr.rs:15:5\n   |\n15 | use serde_json::json;\n   |     ^^^^^^^^^^^^^^^^\n\nwarning: unused import: `resolve_model_bundle`\n  --> src-tauri/src/commands/ocr.rs:25:53\n   |\n25 | use solosoul_core::ocr::model::{is_model_installed, resolve_model_bundle};\n   |                                                     ^^^^^^^^^^^^^^^^^^^^\n\nwarning: unused import: `Manager`\n  --> src-tauri/src/commands/recovery.rs:20:22\n   |\n20 | use tauri::{Emitter, Manager, State};\n   |                      ^^^^^^^\n\nwarning: unused import: `tauri::Emitter`\n --> src-tauri/src/setup/mod.rs:6:5\n  |\n6 | use tauri::Emitter;\n  |     ^^^^^^^^^^^^^^\n\nwarning: unused variable: `att_key`\n  --> src-tauri/src/commands/attachment/share.rs:36:21\n   |\n36 |     let (path, att, att_key, activity) = {\n   |                     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_att_key`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:411:5\n    |\n411 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `authenticator`\n   --> src-tauri/src/commands/biometric.rs:419:5\n    |\n419 |     authenticator: Option<String>,\n    |     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_authenticator`\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:579:5\n    |\n579 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:723:5\n    |\n723 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `authenticator`\n   --> src-tauri/src/commands/biometric.rs:731:5\n    |\n731 |     authenticator: Option<String>,\n    |     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_authenticator`\n\nwarning: unused variable: `app`\n  --> src-tauri/src/commands/recovery.rs:39:5\n   |\n39 |     app: tauri::AppHandle,\n   |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `instance_name`\n   --> src-tauri/src/commands/recovery.rs:225:21\n    |\n225 |         if let Some(instance_name) = mdns_name {\n    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instance_name`\n\nwarning: constant `SHARE_TEMP_GRACE` is never used\n --> src-tauri/src/commands/attachment/share.rs:7:7\n  |\n7 | const SHARE_TEMP_GRACE: std::time::Duration = std::time::Duration::from_secs(30 * 60);\n  |       ^^^^^^^^^^^^^^^^\n  |\n  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: constant `MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:22:7\n   |\n22 | const MDNS_SERVICE_TYPE: &str = \"_solosoul._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^\n\nwarning: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:24:7\n   |\n24 | const RECOVERY_MDNS_SERVICE_TYPE: &str = \"_solosoul_recovery._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `run_ocr_job` is never used\n   --> src-tauri/src/commands/ocr.rs:302:10\n    |\n302 | async fn run_ocr_job<T, F, Fut, P>(\n    |          ^^^^^^^^^^^\n\nwarning: function `advertise_recovery_mdns` is never used\n   --> src-tauri/src/commands/recovery.rs:202:10\n    |\n202 | async fn advertise_recovery_mdns(\n    |          ^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `poll_accessibility` is never used\n   --> src-tauri/src/commands/window.rs:194:15\n    |\n194 | pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {\n    |               ^^^^^^^^^^^^^^^^^^\n\nwarning: function `setup_spawn_registry_refresh` is never used\n   --> src-tauri/src/setup/mod.rs:252:4\n    |\n252 | fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {\n    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: `solo_soul` (lib) generated 20 warnings (run `cargo fix --lib -p solo_soul` to apply 13 suggestions)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 12.18s\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-native-ios-sim-check.log",
+      "sha256": "1a208c345c70ef2b17a40bba6cc079dfa3774fe01afb797f1c0c503a5f3cc7a9",
+      "output_tail": " v0.35.3\n    Checking tauri-runtime v2.11.2\n    Checking os_info v3.15.0\n    Checking tauri-runtime-wry v2.11.2\n    Checking tauri v2.11.2\n    Checking tauri-plugin-fs v2.5.1\n    Checking tauri-plugin-os v2.3.2\n    Checking tauri-plugin-notification v2.3.3\n    Checking tauri-plugin-process v2.3.1\n    Checking tauri-plugin-biometric v2.3.2\n    Checking tauri-plugin-shell v2.3.5\n    Checking tauri-plugin-dialog v2.7.1\nwarning: unused imports: `current_account` and `vault_handle`\n  --> src-tauri/src/commands/ocr.rs:13:23\n   |\n13 | use crate::commands::{current_account, vault_handle};\n   |                       ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^\n   |\n   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused import: `serde_json::json`\n  --> src-tauri/src/commands/ocr.rs:15:5\n   |\n15 | use serde_json::json;\n   |     ^^^^^^^^^^^^^^^^\n\nwarning: unused import: `resolve_model_bundle`\n  --> src-tauri/src/commands/ocr.rs:25:53\n   |\n25 | use solosoul_core::ocr::model::{is_model_installed, resolve_model_bundle};\n   |                                                     ^^^^^^^^^^^^^^^^^^^^\n\nwarning: unused import: `Manager`\n  --> src-tauri/src/commands/recovery.rs:20:22\n   |\n20 | use tauri::{Emitter, Manager, State};\n   |                      ^^^^^^^\n\nwarning: unused import: `tauri::Emitter`\n --> src-tauri/src/setup/mod.rs:6:5\n  |\n6 | use tauri::Emitter;\n  |     ^^^^^^^^^^^^^^\n\nwarning: unused variable: `att_key`\n  --> src-tauri/src/commands/attachment/share.rs:36:21\n   |\n36 |     let (path, att, att_key, activity) = {\n   |                     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_att_key`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:411:5\n    |\n411 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `authenticator`\n   --> src-tauri/src/commands/biometric.rs:419:5\n    |\n419 |     authenticator: Option<String>,\n    |     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_authenticator`\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:579:5\n    |\n579 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `app`\n   --> src-tauri/src/commands/biometric.rs:723:5\n    |\n723 |     app: tauri::AppHandle,\n    |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `authenticator`\n   --> src-tauri/src/commands/biometric.rs:731:5\n    |\n731 |     authenticator: Option<String>,\n    |     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_authenticator`\n\nwarning: unused variable: `app`\n  --> src-tauri/src/commands/recovery.rs:39:5\n   |\n39 |     app: tauri::AppHandle,\n   |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n\nwarning: unused variable: `instance_name`\n   --> src-tauri/src/commands/recovery.rs:225:21\n    |\n225 |         if let Some(instance_name) = mdns_name {\n    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instance_name`\n\nwarning: constant `SHARE_TEMP_GRACE` is never used\n --> src-tauri/src/commands/attachment/share.rs:7:7\n  |\n7 | const SHARE_TEMP_GRACE: std::time::Duration = std::time::Duration::from_secs(30 * 60);\n  |       ^^^^^^^^^^^^^^^^\n  |\n  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: constant `MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:22:7\n   |\n22 | const MDNS_SERVICE_TYPE: &str = \"_solosoul._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^\n\nwarning: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:24:7\n   |\n24 | const RECOVERY_MDNS_SERVICE_TYPE: &str = \"_solosoul_recovery._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `run_ocr_job` is never used\n   --> src-tauri/src/commands/ocr.rs:302:10\n    |\n302 | async fn run_ocr_job<T, F, Fut, P>(\n    |          ^^^^^^^^^^^\n\nwarning: function `advertise_recovery_mdns` is never used\n   --> src-tauri/src/commands/recovery.rs:202:10\n    |\n202 | async fn advertise_recovery_mdns(\n    |          ^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `poll_accessibility` is never used\n   --> src-tauri/src/commands/window.rs:194:15\n    |\n194 | pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {\n    |               ^^^^^^^^^^^^^^^^^^\n\nwarning: function `setup_spawn_registry_refresh` is never used\n   --> src-tauri/src/setup/mod.rs:252:4\n    |\n252 | fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {\n    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: `solo_soul` (lib) generated 20 warnings (run `cargo fix --lib -p solo_soul` to apply 13 suggestions)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 47.05s\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-native-ios.log",
+      "sha256": "91c4401f32b1d8be4d9fbe6b6160a526384c7a4a714ce72ff8ae3c18c2316145",
+      "output_tail": " kB\ndist/assets/index-CukGh0Nv.js                            24.51 kB │ gzip:   8.54 kB\ndist/assets/RecoveryReceiveDialog-DkiBYkzv.js            31.54 kB │ gzip:   8.12 kB\ndist/assets/backendError-Bfz7on7R.js                     53.26 kB │ gzip:  18.00 kB\ndist/assets/motion-vendor-D_evokMR.js                   125.02 kB │ gzip:  40.72 kB\ndist/assets/notification-DttaarR7.js                    137.45 kB │ gzip:  41.40 kB\ndist/assets/authStore-rRnfZGCf.js                       310.29 kB │ gzip:  96.14 kB\ndist/assets/markdown-vendor-C08gYRN7.js                 317.99 kB │ gzip:  97.54 kB\ndist/assets/RecoveryQrScanner-DjRZIkiF.js               377.18 kB │ gzip: 111.50 kB\ndist/assets/bootstrapApp-D-4e5om-.js                  1,265.64 kB │ gzip: 336.57 kB\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/vaultDirectory.ts is dynamically imported by src/App/useSessionLifecycle.ts but also statically imported by src/hooks/useOnboarding.ts, src/pages/settings/useVaultDirectory.ts, dynamic import will not move module into another chunk.\n\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/dialog.ts is dynamically imported by src/components/export/ExportSection.tsx, src/components/import/ImportFileSelectorCard.tsx, src/components/object/useAttachmentBatchOps.tsx, src/hooks/useAttachmentManagerBatchOps.ts, src/hooks/useImportState.ts, ... but also statically imported by src/App/useSessionLifecycle.ts, src/components/export/useExportDocumentSection.ts, src/components/layout/OcrQuickScanPopover.tsx, src/components/plugin/PluginResultPanel.tsx, src/components/plugin/WatermarkPluginConfig.tsx, ..., dynamic import will not move module into another chunk.\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/loginAvailabilityPreflight.ts is dynamically imported by src/bootstrapApp.tsx but also statically imported by src/components/settings/BiometricSection.tsx, src/hooks/usePinDisable.ts, src/hooks/usePinSetup.ts, src/pages/auth/useLoginPage.tsx, dynamic import will not move module into another chunk.\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0mnode_modules/@tauri-apps/api/event.js is dynamically imported by src/lib/theme.ts but also statically imported by node_modules/@tauri-apps/api/webview.js, node_modules/@tauri-apps/api/webviewWindow.js, node_modules/@tauri-apps/api/window.js, src/App/useNativeAppEvents.ts, src/App/useSessionLifecycle.ts, ..., dynamic import will not move module into another chunk.\n\n✓ built in 689ms\nSetting version of project solo_soul to: \n    2.13.2.\n\nAlso setting CFBundleVersion key (assuming it exists)\n\nUpdating CFBundleVersion in Info.plist(s)...\n\nUpdated CFBundleVersion in \"solo_soul.xcodeproj/../solo_soul_iOS/Info.plist\" to 2.13.2\n\n\n--- xcodebuild: WARNING: Using the first of multiple matching destinations:\n{ platform:iOS Simulator, id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-iphonesimulator:placeholder, name:Any iOS Simulator Device }\n{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device }\n{ platform:iOS Simulator, arch:arm64, id:362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C, OS:26.3.1, name:SoloSoul RF201 }\n{ platform:iOS Simulator, arch:arm64, id:AA69885C-23B7-472C-A9A8-9EB43BD388CB, OS:26.3.1, name:iPad (A16) }\n{ platform:iOS Simulator, arch:arm64, id:B1B24E21-C3B2-40FC-88EF-0B99B6578D49, OS:26.3.1, name:iPad Air 11-inch (M3) }\n{ platform:iOS Simulator, arch:arm64, id:8A3E3E3B-F5E5-4368-9F0D-D9F32CC86AC2, OS:26.3.1, name:iPad Air 13-inch (M3) }\n{ platform:iOS Simulator, arch:arm64, id:2FA9C8E0-555A-48B7-88F0-653E67552C13, OS:26.3.1, name:iPad Pro 11-inch (M5) }\n{ platform:iOS Simulator, arch:arm64, id:96194A5F-8FD9-496B-BCB8-AEC7FA753A94, OS:26.3.1, name:iPad Pro 13-inch (M5) }\n{ platform:iOS Simulator, arch:arm64, id:6EE0FD73-2A7A-4CD2-BCD1-5B35A1E94EAC, OS:26.3.1, name:iPad mini (A17 Pro) }\n{ platform:iOS Simulator, arch:arm64, id:4B4271F1-5A3A-41B9-B8F1-8325361ECDEF, OS:26.3.1, name:iPhone 16e }\n{ platform:iOS Simulator, arch:arm64, id:0B0B7D51-6745-4255-B446-C9D66DEDB0CE, OS:26.3.1, name:iPhone 17 }\n{ platform:iOS Simulator, arch:arm64, id:D3E8488C-6429-43DD-87B7-F48C43DCC454, OS:26.3.1, name:iPhone 17 Pro }\n{ platform:iOS Simulator, arch:arm64, id:8ABA1583-81D7-4AB5-860E-A046BDE08453, OS:26.3.1, name:iPhone 17 Pro Max }\n{ platform:iOS Simulator, arch:arm64, id:104CE20F-887F-4B3C-AF8D-371E85DD6F50, OS:26.3.1, name:iPhone Air }\n{ platform:macOS, arch:arm64, variant:Designed for [iPad,iPhone], id:00008112-001A618C1E8A201E, name:My Mac }\n        Info connection; remote_addr=127.0.0.1:60030 conn_id=0\n    Finished 1 iOS Bundle at:\n        /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/apple/build/solo_soul_iOS.xcarchive\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-native-macos.log",
+      "sha256": "11884db1ec094691c7468a3443dda425fe3055237ecc0ed8d868cb29db0ccf22",
+      "output_tail": "rScanner-C7HdV_uH.css                1.58 kB │ gzip:   0.51 kB\ndist/assets/photoAlbumPreview-L7zcWlvn.css                2.19 kB │ gzip:   0.58 kB\ndist/assets/index-B_i18wfL.css                            2.54 kB │ gzip:   0.92 kB\ndist/assets/Dialog-DPEeEaeU.css                           5.52 kB │ gzip:   1.69 kB\ndist/assets/bootstrapApp-BOrw7uuk.css                   253.41 kB │ gzip:  36.58 kB\ndist/assets/vaultDirectory-Bp_L4CMj.js                    0.08 kB │ gzip:   0.09 kB\ndist/assets/loginAvailabilityPreflight-CjA2hoBe.js        0.08 kB │ gzip:   0.09 kB\ndist/assets/dialog-DgKW0C0Z.js                            0.10 kB │ gzip:   0.10 kB\ndist/assets/is-prop-valid_framer-motion-BxDZ1s-7.js       0.67 kB │ gzip:   0.44 kB\ndist/assets/rolldown-runtime-Cyuzqnbw.js                  0.82 kB │ gzip:   0.47 kB\ndist/assets/constants-pCts_XNR.js                         1.93 kB │ gzip:   1.07 kB\ndist/assets/core-BAM5JyGC.js                              2.48 kB │ gzip:   1.01 kB\ndist/assets/webviewWindow-BIVLdOon.js                     4.66 kB │ gzip:   1.37 kB\ndist/assets/jsx-runtime-qQv5XnsK.js                       5.13 kB │ gzip:   2.43 kB\ndist/assets/Dialog-XsjtG-pV.js                            7.03 kB │ gzip:   2.74 kB\ndist/assets/react-BIiS95ev.js                             8.12 kB │ gzip:   3.14 kB\ndist/assets/PhotoViewerOverlay-Co5K9vz7.js                8.13 kB │ gzip:   3.06 kB\ndist/assets/photoAlbumPreview-DJFMvTIb.js                12.04 kB │ gzip:   4.61 kB\ndist/assets/window-D5J91SvE.js                           12.99 kB │ gzip:   3.13 kB\ndist/assets/AiQuickChatPopover-Djhj0BvS.js               14.84 kB │ gzip:   4.34 kB\ndist/assets/useLlmChatCore-Bjd4NwXL.js                   20.20 kB │ gzip:   7.38 kB\ndist/assets/index-CukGh0Nv.js                            24.51 kB │ gzip:   8.54 kB\ndist/assets/RecoveryReceiveDialog-DkiBYkzv.js            31.54 kB │ gzip:   8.12 kB\ndist/assets/backendError-Bfz7on7R.js                     53.26 kB │ gzip:  18.00 kB\ndist/assets/motion-vendor-D_evokMR.js                   125.02 kB │ gzip:  40.72 kB\ndist/assets/notification-DttaarR7.js                    137.45 kB │ gzip:  41.40 kB\ndist/assets/authStore-rRnfZGCf.js                       310.29 kB │ gzip:  96.14 kB\ndist/assets/markdown-vendor-C08gYRN7.js                 317.99 kB │ gzip:  97.54 kB\ndist/assets/RecoveryQrScanner-DjRZIkiF.js               377.18 kB │ gzip: 111.50 kB\ndist/assets/bootstrapApp-D-4e5om-.js                  1,265.64 kB │ gzip: 336.57 kB\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/vaultDirectory.ts is dynamically imported by src/App/useSessionLifecycle.ts but also statically imported by src/hooks/useOnboarding.ts, src/pages/settings/useVaultDirectory.ts, dynamic import will not move module into another chunk.\n\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/dialog.ts is dynamically imported by src/components/export/ExportSection.tsx, src/components/import/ImportFileSelectorCard.tsx, src/components/object/useAttachmentBatchOps.tsx, src/hooks/useAttachmentManagerBatchOps.ts, src/hooks/useImportState.ts, ... but also statically imported by src/App/useSessionLifecycle.ts, src/components/export/useExportDocumentSection.ts, src/components/layout/OcrQuickScanPopover.tsx, src/components/plugin/PluginResultPanel.tsx, src/components/plugin/WatermarkPluginConfig.tsx, ..., dynamic import will not move module into another chunk.\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/loginAvailabilityPreflight.ts is dynamically imported by src/bootstrapApp.tsx but also statically imported by src/components/settings/BiometricSection.tsx, src/hooks/usePinDisable.ts, src/hooks/usePinSetup.ts, src/pages/auth/useLoginPage.tsx, dynamic import will not move module into another chunk.\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0mnode_modules/@tauri-apps/api/event.js is dynamically imported by src/lib/theme.ts but also statically imported by node_modules/@tauri-apps/api/webview.js, node_modules/@tauri-apps/api/webviewWindow.js, node_modules/@tauri-apps/api/window.js, src/App/useNativeAppEvents.ts, src/App/useSessionLifecycle.ts, ..., dynamic import will not move module into another chunk.\n\n✓ built in 1.03s\n   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 1m 47s\n       Built application at: /Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/solo_soul\n    Bundling SoloSoul.app (/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/bundle/macos/SoloSoul.app)\n    Finished 1 bundle at:\n        /Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/bundle/macos/SoloSoul.app\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-native-rust-test.log",
+      "sha256": "718f0b7d53f6280d31b0988ab32fb47a4ab215394f1738a53913633d562dc514",
+      "output_tail": "3b62f91c15404.rlib --extern serde=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libserde-3baab7aec792a72c.rlib --extern serde_json=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libserde_json-3080e9c97cf2e833.rlib --extern sha2=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsha2-453608ea2e3edccd.rlib --extern snow=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsnow-758e0160006e6680.rlib --extern solosoul_core=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsolosoul_core-1f88c1a839a022d5.rlib --extern solosoul_sync=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsolosoul_sync-1ce2440b15459ee0.rlib --extern solosoul_vault=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsolosoul_vault-a0b2294623454681.rlib --extern tempfile=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libtempfile-2249c2c0e4d58213.rlib --extern tokio=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libtokio-4dfba2358c853c51.rlib --extern tracing=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libtracing-92568bfb2c7a4af7.rlib --extern uuid=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libuuid-ec678622821b3316.rlib --extern x25519_dalek=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libx25519_dalek-8a8eb44d75edeebc.rlib --extern zeroize=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libzeroize-18c3e7270a94d319.rlib -L dependency=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps -C embed-bitcode=no --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' --error-format human`\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests solosoul_vault\n     Running `rustdoc --edition=2021 --crate-type lib --color auto --crate-name solosoul_vault --test crates/solosoul-vault/src/lib.rs --test-run-directory /Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-vault -L /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/lib/darwin -L native=/Users/zzc/Library/Caches/ort.pyke.io/dfbin/aarch64-apple-darwin/612739f75438dc0a075461e1fb454226b4a1eb175e60a7271ba966bbbb972cd4 -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/libsqlite3-sys-bc8df6a79a232f20/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/mac-notification-sys-b980e0aa1b43f3aa/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/objc2-exception-helper-a08be82134dbdb9a/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/onig_sys-6d7e00e8e10d73b9/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/ring-11d34ed388d14499/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/wasmtime-87307538a705793a/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/wasmtime-internal-jit-debug-7bb7dad0a3175dbd/out -L native=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/build/zstd-sys-de8e28d63f961463/out --extern base64=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libbase64-86721ba43638bc14.rlib --extern chrono=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libchrono-dd7451b7f6be8a9d.rlib --extern hex=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libhex-4997e77b2cf78fb5.rlib --extern rusqlite=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/librusqlite-87bc0bb602cfe286.rlib --extern serde=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libserde-3baab7aec792a72c.rlib --extern serde_json=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libserde_json-3080e9c97cf2e833.rlib --extern sha2=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsha2-453608ea2e3edccd.rlib --extern solosoul_crypto=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsolosoul_crypto-f2e9e2682f91d289.rlib --extern solosoul_vault=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libsolosoul_vault-a0b2294623454681.rlib --extern tempfile=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libtempfile-2249c2c0e4d58213.rlib --extern tracing=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libtracing-92568bfb2c7a4af7.rlib --extern tracing_subscriber=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libtracing_subscriber-f916a60476533f9a.rlib --extern uuid=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libuuid-ec678622821b3316.rlib --extern zeroize=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps/libzeroize-18c3e7270a94d319.rlib -L dependency=/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/deps -C embed-bitcode=no --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' --error-format human`\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf203-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    }
+  ],
+  "probe_source": "import { JSDOM } from '/Users/zzc/PycharmProjects/SoloSoul/tauri/node_modules/jsdom/lib/api.js';\nimport { p as populateGlobal } from '/Users/zzc/PycharmProjects/SoloSoul/tauri/node_modules/vitest/dist/chunks/index.DC7d2Pf8.js';\nconst before = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');\nconst dom = new JSDOM('<html></html>', { url: 'http://localhost:3000' });\npopulateGlobal(globalThis, dom.window, { bindFunctions: true });\nconsole.log(JSON.stringify({ version: process.version, execPath: process.execPath, nativeStorageGetterBefore: !!before?.get, browserStorageAvailable: typeof dom.window.localStorage?.getItem === 'function', globalStorageAvailable: typeof globalThis.localStorage?.getItem === 'function', sameStorage: globalThis.localStorage === dom.window.localStorage }));\nprocess.exitCode = globalThis.localStorage === dom.window.localStorage ? 0 : 1;\n",
+  "counts": {
+    "vitest_files": 253,
+    "vitest_passed": 2222,
+    "node_passed": 91,
+    "node_platform_skipped": 21,
+    "contract_tests_passed": 23,
+    "rust_test_groups": 25,
+    "rust_passed": 1851,
+    "rust_failed": 0,
+    "rust_existing_ignored": 3
+  },
+  "limits": [
+    "iOS device/simulator target checks and unsigned simulator build prove compilation; no new iOS OCR runtime or engine is claimed",
+    "Android build/CRC/JNI verification is not a new camera/ML Kit runtime test",
+    "Node 26.3.0 + current Vitest Storage failure preserved; final F uses installed Node 24.14.0 with default flags/workers/timeouts, CI Node22 unchanged",
+    "Final Rust changes after successful F only restrict unused helper/import cfg; frontend code unchanged",
+    "Mobile warnings remain, including unused tauri::Emitter in ocr.rs after iOS job exclusion; strict all-targets Clippy is desktop, not a claim of warning-free iOS; no warning suppression/dependency upgrades",
+    "No push/publish, installed macOS replacement or production account access"
+  ]
+}

@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { useOcrModelManager } from '@/hooks/useOcrModelManager';
+import { supportsOcrScanSync } from '@/lib/ocrCapabilities';
 import { isMobilePlatformSync } from '@/lib/platform';
 
 import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequests';
@@ -53,6 +54,7 @@ export function OcrPage() {
   const [scanMode, setScanMode] = useState<ScanMode>('general');
 
   const isMobilePlatform = isMobilePlatformSync();
+  const scanSupported = supportsOcrScanSync();
 
   const handleScanError = (error: unknown) => {
     onError(new Error(translateOcrError(error, t)), t('ocr:scan_failed'));
@@ -83,6 +85,7 @@ export function OcrPage() {
     handleInstallBundled,
     handleDownload,
   } = useOcrModelManager({
+    enabled: scanSupported,
     t,
     onError,
     onInstallSuccess: onSuccess,
@@ -123,6 +126,7 @@ export function OcrPage() {
   }, []);
 
   const performScan = async (path: string) => {
+    if (!scanSupported) return;
     if (!guardActiveModelInstalled()) return;
     operationRef.current?.dispose();
     const ticket = requests.current.begin('scan', accountId);
@@ -165,6 +169,7 @@ export function OcrPage() {
   }, [initialFilePath]);
 
   const handleSelectFile = async () => {
+    if (!scanSupported) return;
     const ticket = requests.current.begin('picker', accountId);
     try {
       const { openWithPause } = await import('@/lib/dialog');
@@ -184,6 +189,7 @@ export function OcrPage() {
   };
 
   const handleTakePhoto = async () => {
+    if (!scanSupported) return;
     const ticket = requests.current.begin('picker', accountId);
     setResult(null);
     setMrzResult(null);
@@ -360,6 +366,7 @@ export function OcrPage() {
         />
 
         <ScanDropZone
+          scanSupported={scanSupported}
           scanMode={scanMode}
           onScanModeChange={handleScanModeChange}
           isScanning={isScanning}

@@ -2,12 +2,18 @@
 
 The OCR (Optical Character Recognition) feature lets you extract text from images or PDFs and import it as objects. All recognition runs **locally** — images are never uploaded to any external service.
 
+## Platform support
+
+- **macOS / Windows**: local OCR engines; macOS also provides system Vision. Vision and Android accept images only.
+- **Android**: ML Kit recognizes images selected from files or captured with the camera; PP-OCR model tier selection is unnecessary. MRZ mode retains the fallback to general text recognition.
+- **iOS**: no OCR engine is available yet. File selection, camera recognition and scan modes are disabled with an explanation in the scan page and quick scanner. Attachment paths do not start scanning automatically; existing objects and scan history remain available.
+
 ## Using OCR
 
 1. Enter **OCR Scan** from the sidebar or home page
 2. Choose an input method:
    - **Select File**: pick an image or PDF from your device
-   - **Take Photo**: mobile — capture directly with the camera
+   - **Take Photo**: Android — capture directly with the camera
 3. Pick the scan mode and model tier (see below)
 4. The extracted text is displayed
 5. Review the result and correct it if necessary

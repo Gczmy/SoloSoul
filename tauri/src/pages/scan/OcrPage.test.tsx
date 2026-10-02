@@ -7,6 +7,14 @@ const mockNavigate = vi.fn();
 const mockShowToast = vi.fn();
 const mockCreateObject = vi.fn();
 const mockOpen = vi.fn();
+const device = vi.hoisted(() => ({ platform: 'macos', state: {} as { filePath?: string } }));
+vi.mock('@/lib/platform', () => ({
+  isIOSSync: () => device.platform === 'ios',
+  isAndroidSync: () => device.platform === 'android',
+  isMobilePlatformSync: () => ['ios', 'android'].includes(device.platform),
+  isMacOSSync: () => false,
+  isWindowsSync: () => false,
+}));
 
 vi.mock('@/components/layout/PageShell', () => ({
   PageShell: ({
@@ -34,7 +42,7 @@ vi.mock('react-router-dom', async () => {
   return {
     ...actual,
     useNavigate: () => mockNavigate,
-    useLocation: () => ({ state: {} }),
+    useLocation: () => ({ state: device.state }),
   };
 });
 
@@ -80,6 +88,8 @@ import { prefetchRegistry } from '@/lib/prefetch/registry';
 
 describe('OcrPage', () => {
   beforeEach(() => {
+    device.platform = 'macos';
+    device.state = {};
     prefetchRegistry.ocrModel.reset();
     vi.clearAllMocks();
     mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
@@ -305,5 +315,50 @@ describe('OcrPage', () => {
         }),
       );
     });
+  });
+  it('RF-203 iOS 禁用选图、拍照和模式切换并说明原因', async () => {
+    device.platform = 'ios';
+    render(
+      <MemoryRouter>
+        <OcrPage />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('button', { name: 'ocr:select_image' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'ocr:take_photo' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'ocr:scan_mode_mrz' })).toBeDisabled();
+    expect(screen.getByText('ocr:ios_ocr_unsupported')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'ocr:select_image' }));
+    fireEvent.click(screen.getByRole('button', { name: 'ocr:take_photo' }));
+    expect(mockOpen).not.toHaveBeenCalled();
+    expect(
+      mockInvoke.mock.calls.some(([cmd]) =>
+        ['ocr_scan_image', 'ocr_scan_mrz', 'mobile_ocr_take_photo'].includes(cmd),
+      ),
+    ).toBe(false);
+  });
+  it('RF-203 iOS 传入附件路径也不自动扫描或进入 loading', async () => {
+    device.platform = 'ios';
+    device.state = { filePath: '/test/attachment.png' };
+    render(
+      <MemoryRouter>
+        <OcrPage />
+      </MemoryRouter>,
+    );
+    await waitFor(() => expect(screen.getByText('ocr:ios_ocr_unsupported')).toBeVisible());
+    expect(
+      mockInvoke.mock.calls.some(([cmd]) => ['ocr_scan_image', 'ocr_scan_mrz'].includes(cmd)),
+    ).toBe(false);
+    expect(screen.queryByText('ocr:scanning')).not.toBeInTheDocument();
+  });
+  it('RF-203 Android 保留选图与拍照入口', () => {
+    device.platform = 'android';
+    render(
+      <MemoryRouter>
+        <OcrPage />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('button', { name: 'ocr:select_image' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'ocr:take_photo' })).toBeEnabled();
+    expect(screen.queryByText('ocr:ios_ocr_unsupported')).not.toBeInTheDocument();
   });
 });

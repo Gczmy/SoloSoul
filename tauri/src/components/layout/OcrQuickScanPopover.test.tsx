@@ -8,8 +8,15 @@ const mocks = vi.hoisted(() => ({
   openWithPause: vi.fn(),
   invokeCommand: vi.fn(),
   onError: vi.fn(),
+  ios: false,
 }));
 
+vi.mock('@/lib/platform', () => ({
+  isIOSSync: () => mocks.ios,
+  isMobilePlatformSync: () => mocks.ios,
+  isMacOSSync: () => false,
+  isAndroidSync: () => false,
+}));
 vi.mock('@/lib/dialog', () => ({ openWithPause: mocks.openWithPause }));
 vi.mock('@/lib/ipcClient', () => ({ invokeCommand: mocks.invokeCommand }));
 vi.mock('@/hooks/useToastError', () => ({
@@ -44,6 +51,7 @@ function showPopover(onClose = vi.fn()) {
 }
 
 beforeEach(() => {
+  mocks.ios = false;
   vi.clearAllMocks();
   mocks.invokeCommand.mockResolvedValue(undefined);
   act(() => {
@@ -148,5 +156,19 @@ describe('RF-1029 OCR quick scan interactions', () => {
     fireEvent.click(screen.getByTitle('old.png'));
     expect(useOcrScanStore.getState().currentScanId).toBe('old');
     expect(screen.queryByTitle('new.png')).not.toBeInTheDocument();
+  });
+});
+
+describe('RF-203 iOS 快捷扫描', () => {
+  it('禁用扫描和模型切换，保留历史入口并显示原因', () => {
+    mocks.ios = true;
+    showPopover();
+    expect(screen.getByText('ocr:ios_ocr_unsupported')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'ocr:select_image' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'ocr:scan_mode_mrz' })).toBeDisabled();
+    expect(screen.getByRole('combobox')).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'ocr:select_image' }));
+    expect(mocks.openWithPause).not.toHaveBeenCalled();
+    expect(scan).not.toHaveBeenCalled();
   });
 });

@@ -10,6 +10,7 @@ export function translateOcrError(error: unknown, t: TFunction): string {
     });
   }
   const keys: Record<string, string> = {
+    __OCR_UNSUPPORTED_PLATFORM__: 'ocr:ios_ocr_unsupported',
     __OCR_QUEUE_FULL__: 'ocr:scan_queue_full',
     __OCR_DUPLICATE_TASK__: 'ocr:scan_request_invalid',
     __OCR_INVALID_TASK_ID__: 'ocr:scan_request_invalid',

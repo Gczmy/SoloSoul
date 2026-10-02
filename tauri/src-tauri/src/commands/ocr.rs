@@ -3,15 +3,20 @@
 //! 基于 `solosoul-core::ocr` 的本地 PP-OCRv6 引擎。
 //! 模型文件存放在应用数据目录的 `models/` 下，支持从打包资源复制或运行时下载。
 
-use crate::services::ocr_jobs::{capture_ocr_session, EventSink, OcrJobContext};
+use crate::services::ocr_jobs::capture_ocr_session;
+#[cfg(any(desktop, target_os = "android"))]
+use crate::services::ocr_jobs::{EventSink, OcrJobContext};
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
+#[cfg(any(desktop, target_os = "android"))]
 use solosoul_core::vault_service::VaultSession;
 
 #[cfg(mobile)]
 use crate::commands::mobile_not_supported;
+#[cfg(desktop)]
 use crate::commands::{current_account, vault_handle};
 
+#[cfg(any(desktop, target_os = "android"))]
 use serde_json::json;
 #[cfg(desktop)]
 use solosoul_core::ocr::engine::OcrEngine;
@@ -22,9 +27,12 @@ use solosoul_core::ocr::model::{
 // types 和 model 子模块现在在所有平台上均可用
 use futures::StreamExt;
 use sha2::Digest;
-use solosoul_core::ocr::model::{is_model_installed, resolve_model_bundle};
+use solosoul_core::ocr::model::is_model_installed;
+#[cfg(desktop)]
+use solosoul_core::ocr::model::resolve_model_bundle;
 use solosoul_core::ocr::types::{MrzResult, OcrModelTier, OcrResult};
 use std::path::{Path, PathBuf};
+#[cfg(any(desktop, target_os = "android"))]
 use std::sync::Arc;
 #[cfg(desktop)]
 use std::sync::Mutex;
@@ -299,6 +307,7 @@ pub(crate) fn ensure_pdfium_library_path(app: &tauri::AppHandle) {
 // =============================================================================
 
 /// 统一准入；调用方必须在命令入口捕获 session，不能等待后重新选择当前账户。
+#[cfg(any(desktop, target_os = "android"))]
 async fn run_ocr_job<T, F, Fut, P>(
     state: &AppState,
     session: VaultSession,
@@ -410,7 +419,7 @@ pub async fn ocr_scan_image(
     }).await
 }
 
-#[cfg(mobile)]
+#[cfg(target_os = "android")]
 #[tauri::command]
 pub async fn ocr_scan_image(
     app: tauri::AppHandle,
@@ -452,6 +461,20 @@ pub async fn ocr_scan_image(
         },
     )
     .await
+}
+
+/// iOS 尚无 OCR 引擎：在会话/队列/Android 桥接之前明确返回不支持。
+#[cfg(target_os = "ios")]
+#[tauri::command]
+pub async fn ocr_scan_image(
+    _app: tauri::AppHandle,
+    _state: tauri::State<'_, AppState>,
+    file_path: String,
+    _language: Option<String>,
+    task_id: Option<String>,
+) -> Result<OcrResult, String> {
+    let _ = (file_path, task_id);
+    crate::mobile_ocr_plugin::unsupported_ocr()
 }
 
 /// MRZ 与通用扫描使用同一执行位；None 仍由前端在同一用户操作中受控回退。
@@ -514,7 +537,7 @@ pub async fn ocr_scan_mrz(
     .await
 }
 
-#[cfg(mobile)]
+#[cfg(target_os = "android")]
 #[tauri::command]
 pub async fn ocr_scan_mrz(
     state: tauri::State<'_, AppState>,
@@ -535,6 +558,17 @@ pub async fn ocr_scan_mrz(
         |_, _| Ok(()),
     )
     .await
+}
+
+#[cfg(target_os = "ios")]
+#[tauri::command]
+pub async fn ocr_scan_mrz(
+    _state: tauri::State<'_, AppState>,
+    file_path: String,
+    task_id: Option<String>,
+) -> Result<Option<MrzResult>, String> {
+    let _ = (file_path, task_id);
+    crate::mobile_ocr_plugin::unsupported_ocr()
 }
 
 #[tauri::command]
@@ -588,7 +622,7 @@ pub async fn ocr_list_available_tiers() -> Result<Vec<OcrTierInfo>, String> {
 #[cfg(mobile)]
 #[tauri::command]
 pub async fn ocr_list_available_tiers() -> Result<Vec<OcrTierInfo>, String> {
-    // 移动端 OCR 暂未实现；返回空列表避免页面初始化时弹出未支持提示。
+    // Android 使用 ML Kit，无 PP-OCR 档位；iOS 无扫描引擎。信息查询仍可用。
     Ok(vec![])
 }
 
@@ -602,7 +636,7 @@ pub async fn ocr_get_active_tier(state: tauri::State<'_, AppState>) -> Result<St
 #[cfg(mobile)]
 #[tauri::command]
 pub async fn ocr_get_active_tier(_state: tauri::State<'_, AppState>) -> Result<String, String> {
-    // 移动端 OCR 暂未实现；返回默认值，避免页面初始化时弹出未支持提示。
+    // 移动端保留模型管理协议的默认值，不代表存在本地扫描引擎。
     Ok("small".to_string())
 }
 

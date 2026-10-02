@@ -1,3 +1,4 @@
+import { supportsOcrScanSync } from '@/lib/ocrCapabilities';
 import { useTranslation } from 'react-i18next';
 import { FileText } from 'lucide-react';
 import { OcrScanStatus } from './OcrScanStatus';
@@ -36,15 +37,17 @@ export function OcrScanControls({
   isMobile = false,
 }: OcrScanControlsProps) {
   const { t } = useTranslation(['ocr', 'common']);
+  const scanSupported = supportsOcrScanSync();
 
   return (
     <>
+      {!scanSupported && <p role="status">{t('ocr:ios_ocr_unsupported')}</p>}
       {/* Model selection */}
       <div>
         <select
           value={activeTier}
           onChange={(e) => onTierChange(e.target.value)}
-          disabled={loadingStatus || isScanning}
+          disabled={loadingStatus || isScanning || !scanSupported}
           className="interactive-field"
           style={{
             width: '100%',
@@ -82,7 +85,7 @@ export function OcrScanControls({
       >
         <button
           onClick={() => onScanModeChange('general')}
-          disabled={isScanning}
+          disabled={isScanning || !scanSupported}
           className={
             scanMode === 'general'
               ? 'interactive-segmented segmented-active'
@@ -102,7 +105,7 @@ export function OcrScanControls({
         </button>
         <button
           onClick={() => onScanModeChange('mrz')}
-          disabled={isScanning}
+          disabled={isScanning || !scanSupported}
           className={
             scanMode === 'mrz' ? 'interactive-segmented segmented-active' : 'interactive-segmented'
           }
@@ -124,7 +127,7 @@ export function OcrScanControls({
       <div style={{ textAlign: 'center', padding: '8px 0' }}>
         <button
           onClick={onSelectFile}
-          disabled={isScanning}
+          disabled={isScanning || !scanSupported}
           className="interactive-toolbar"
           style={{
             padding: '10px 20px',

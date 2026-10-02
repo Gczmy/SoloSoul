@@ -125,7 +125,8 @@
     ],
     "start": [
       "ai_chat",
-      "getting_started"
+      "getting_started",
+      "ocr_scan"
     ],
     "beginner": [
       "appearance",
@@ -412,6 +413,7 @@
       "device-sync",
       "getting_started",
       "llm_config",
+      "ocr_scan",
       "security"
     ],
     "动": [
@@ -1917,6 +1919,7 @@
       "getting_started",
       "llm_config",
       "objects",
+      "ocr_scan",
       "plugins",
       "search",
       "security",
@@ -2055,6 +2058,7 @@
       "device-sync",
       "getting_started",
       "objects",
+      "ocr_scan",
       "sensitivity",
       "snapshots",
       "templates",
@@ -2527,6 +2531,7 @@
       "attachments",
       "device-sync",
       "getting_started",
+      "ocr_scan",
       "search",
       "sensitivity",
       "templates",
@@ -2572,8 +2577,7 @@
     "端": [
       "appearance",
       "device-sync",
-      "getting_started",
-      "ocr_scan"
+      "getting_started"
     ],
     "无法访问": [
       "getting_started"
@@ -2888,7 +2892,8 @@
       "backup_restore",
       "device-sync",
       "getting_started",
-      "llm_config"
+      "llm_config",
+      "ocr_scan"
     ],
     "personal": [
       "device-sync",
@@ -3033,6 +3038,7 @@
       "device-sync",
       "export_import",
       "getting_started",
+      "ocr_scan",
       "plugins",
       "search",
       "sensitivity",
@@ -3498,6 +3504,7 @@
       "device-sync",
       "export_import",
       "getting_started",
+      "ocr_scan",
       "security",
       "snapshots",
       "trash"
@@ -4432,7 +4439,6 @@
       "backup_restore",
       "device-sync",
       "objects",
-      "ocr_scan",
       "plugins",
       "trash"
     ],
@@ -4649,6 +4655,7 @@
       "device-sync",
       "export_import",
       "objects",
+      "ocr_scan",
       "security",
       "snapshots",
       "templates",
@@ -4759,6 +4766,7 @@
       "attachments",
       "device-sync",
       "objects",
+      "ocr_scan",
       "sensitivity",
       "snapshots",
       "trash"
@@ -4906,6 +4914,7 @@
       "device-sync",
       "export_import",
       "objects",
+      "ocr_scan",
       "templates"
     ],
     "images": [
@@ -5113,6 +5122,7 @@
     "remain": [
       "attachments",
       "objects",
+      "ocr_scan",
       "templates",
       "workspace"
     ],
@@ -5196,6 +5206,7 @@
       "audit_log",
       "device-sync",
       "objects",
+      "ocr_scan",
       "sensitivity",
       "snapshots",
       "templates",
@@ -5757,6 +5768,7 @@
     ],
     "仍": [
       "device-sync",
+      "ocr_scan",
       "templates",
       "workspace"
     ],
@@ -6439,6 +6451,7 @@
       "appearance",
       "device-sync",
       "llm_config",
+      "ocr_scan",
       "search",
       "security",
       "workspace"
@@ -7504,6 +7517,7 @@
     "原": [
       "audit_log",
       "collections",
+      "ocr_scan",
       "trash"
     ],
     "对象的类型标签显示在对象卡片与详情页上": [
@@ -8308,6 +8322,7 @@
       "biometric",
       "device-sync",
       "llm_config",
+      "ocr_scan",
       "security"
     ],
     "前": [
@@ -8317,6 +8332,7 @@
       "device-sync",
       "export_import",
       "llm_config",
+      "ocr_scan",
       "plugins",
       "security",
       "trash"
@@ -8495,6 +8511,7 @@
       "security"
     ],
     "捷": [
+      "ocr_scan",
       "security"
     ],
     "区域点击": [
@@ -8607,6 +8624,7 @@
     "台": [
       "biometric",
       "device-sync",
+      "ocr_scan",
       "security"
     ],
     "可关闭该开关": [
@@ -8822,6 +8840,7 @@
     ],
     "quick": [
       "biometric",
+      "ocr_scan",
       "security"
     ],
     "alternative": [
@@ -8976,13 +8995,15 @@
       "ocr_scan"
     ],
     "windows": [
-      "biometric"
+      "biometric",
+      "ocr_scan"
     ],
     "hello": [
       "biometric"
     ],
     "android": [
-      "biometric"
+      "biometric",
+      "ocr_scan"
     ],
     "系统生物识别": [
       "biometric"
@@ -9093,7 +9114,8 @@
     ],
     "禁": [
       "biometric",
-      "device-sync"
+      "device-sync",
+      "ocr_scan"
     ],
     "禁用": [
       "biometric"
@@ -9155,6 +9177,7 @@
       "device-sync",
       "export_import",
       "llm_config",
+      "ocr_scan",
       "plugins",
       "trash"
     ],
@@ -9194,7 +9217,8 @@
       "biometric"
     ],
     "platform": [
-      "biometric"
+      "biometric",
+      "ocr_scan"
     ],
     "depending": [
       "biometric"
@@ -9204,7 +9228,8 @@
     ],
     "disabled": [
       "biometric",
-      "device-sync"
+      "device-sync",
+      "ocr_scan"
     ],
     "unavailable": [
       "biometric"
@@ -9226,6 +9251,7 @@
       "appearance",
       "biometric",
       "llm_config",
+      "ocr_scan",
       "plugins"
     ],
     "place": [
@@ -9619,11 +9645,13 @@
     ],
     "路": [
       "backup_restore",
-      "export_import"
+      "export_import",
+      "ocr_scan"
     ],
     "径": [
       "backup_restore",
-      "export_import"
+      "export_import",
+      "ocr_scan"
     ],
     "导入数据": [
       "export_import"
@@ -9848,7 +9876,8 @@
     ],
     "selected": [
       "appearance",
-      "export_import"
+      "export_import",
+      "ocr_scan"
     ],
     "area": [
       "export_import",
@@ -9876,7 +9905,8 @@
       "export_import"
     ],
     "existing": [
-      "export_import"
+      "export_import",
+      "ocr_scan"
     ],
     "duplicates": [
       "export_import"
@@ -10544,7 +10574,8 @@
       "device-sync"
     ],
     "因": [
-      "device-sync"
+      "device-sync",
+      "ocr_scan"
     ],
     "差": [
       "device-sync"
@@ -11643,7 +11674,8 @@
       "device-sync"
     ],
     "没": [
-      "device-sync"
+      "device-sync",
+      "ocr_scan"
     ],
     "数量": [
       "device-sync"
@@ -12030,7 +12062,8 @@
       "device-sync"
     ],
     "fallback": [
-      "device-sync"
+      "device-sync",
+      "ocr_scan"
     ],
     "appear": [
       "device-sync"
@@ -12451,6 +12484,72 @@
     "图片不会上传到任何外部服务": [
       "ocr_scan"
     ],
+    "平台支持": [
+      "ocr_scan"
+    ],
+    "使用本地": [
+      "ocr_scan"
+    ],
+    "引擎": [
+      "ocr_scan"
+    ],
+    "也可使用系统": [
+      "ocr_scan"
+    ],
+    "vision": [
+      "ocr_scan"
+    ],
+    "的输入仅支持图片": [
+      "ocr_scan"
+    ],
+    "ml": [
+      "ocr_scan"
+    ],
+    "kit": [
+      "ocr_scan"
+    ],
+    "识别图片": [
+      "ocr_scan"
+    ],
+    "可选图或拍照": [
+      "ocr_scan"
+    ],
+    "拍": [
+      "ocr_scan"
+    ],
+    "无需切换": [
+      "ocr_scan"
+    ],
+    "pp": [
+      "ocr_scan"
+    ],
+    "模型档位": [
+      "ocr_scan"
+    ],
+    "mrz": [
+      "ocr_scan"
+    ],
+    "模式保留回退通用文字识别的行为": [
+      "ocr_scan"
+    ],
+    "ios": [
+      "ocr_scan"
+    ],
+    "当前没有": [
+      "ocr_scan"
+    ],
+    "扫描页和快捷扫描中的选图": [
+      "ocr_scan"
+    ],
+    "拍照及模式切换已禁用并显示原因": [
+      "ocr_scan"
+    ],
+    "附件路径也不会自动启动扫描": [
+      "ocr_scan"
+    ],
+    "已有对象和扫描历史仍可查看": [
+      "ocr_scan"
+    ],
     "从侧边栏或首页进入": [
       "ocr_scan"
     ],
@@ -12466,10 +12565,7 @@
     "拍照": [
       "ocr_scan"
     ],
-    "拍": [
-      "ocr_scan"
-    ],
-    "移动端可直接调用相机拍摄": [
+    "可直接调用相机拍摄": [
       "ocr_scan"
     ],
     "摄": [
@@ -12506,9 +12602,6 @@
       "ocr_scan"
     ],
     "中的全部文字": [
-      "ocr_scan"
-    ],
-    "mrz": [
       "ocr_scan"
     ],
     "针对护照": [
@@ -12598,9 +12691,6 @@
     "证件照片": [
       "ocr_scan"
     ],
-    "模型档位": [
-      "ocr_scan"
-    ],
     "或扫描页顶部可切换模型档位": [
       "ocr_scan"
     ],
@@ -12671,9 +12761,6 @@
       "ocr_scan"
     ],
     "杂": [
-      "ocr_scan"
-    ],
-    "vision": [
       "ocr_scan"
     ],
     "系统内置引擎": [
@@ -12769,21 +12856,23 @@
       "llm_config",
       "ocr_scan"
     ],
-    "input": [
-      "ai_chat",
+    "support": [
+      "llm_config",
       "ocr_scan"
     ],
-    "method": [
+    "engines": [
       "ocr_scan"
     ],
-    "photo": [
+    "provides": [
       "ocr_scan"
     ],
-    "mobile": [
-      "appearance",
+    "accept": [
       "ocr_scan"
     ],
-    "capture": [
+    "recognizes": [
+      "ocr_scan"
+    ],
+    "captured": [
       "ocr_scan"
     ],
     "camera": [
@@ -12794,6 +12883,51 @@
       "ocr_scan"
     ],
     "tier": [
+      "ocr_scan"
+    ],
+    "selection": [
+      "ocr_scan"
+    ],
+    "unnecessary": [
+      "ocr_scan"
+    ],
+    "retains": [
+      "ocr_scan"
+    ],
+    "general": [
+      "ocr_scan"
+    ],
+    "yet": [
+      "llm_config",
+      "ocr_scan"
+    ],
+    "modes": [
+      "appearance",
+      "ocr_scan"
+    ],
+    "explanation": [
+      "ocr_scan"
+    ],
+    "scanner": [
+      "ocr_scan"
+    ],
+    "paths": [
+      "ocr_scan"
+    ],
+    "scanning": [
+      "ocr_scan"
+    ],
+    "input": [
+      "ai_chat",
+      "ocr_scan"
+    ],
+    "method": [
+      "ocr_scan"
+    ],
+    "photo": [
+      "ocr_scan"
+    ],
+    "capture": [
       "ocr_scan"
     ],
     "extracted": [
@@ -12808,17 +12942,7 @@
     "necessary": [
       "ocr_scan"
     ],
-    "modes": [
-      "appearance",
-      "ocr_scan"
-    ],
-    "general": [
-      "ocr_scan"
-    ],
     "extracts": [
-      "ocr_scan"
-    ],
-    "recognizes": [
       "ocr_scan"
     ],
     "passports": [
@@ -13648,6 +13772,9 @@
       "llm_config",
       "plugins"
     ],
+    "mobile": [
+      "appearance"
+    ],
     "offer": [
       "appearance"
     ],
@@ -14453,9 +14580,6 @@
     "planned": [
       "llm_config"
     ],
-    "yet": [
-      "llm_config"
-    ],
     "embeddings": [
       "llm_config"
     ],
@@ -14497,9 +14621,6 @@
       "llm_config"
     ],
     "parsing": [
-      "llm_config"
-    ],
-    "support": [
       "llm_config"
     ],
     "precise": [

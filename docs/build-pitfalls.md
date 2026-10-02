@@ -184,3 +184,11 @@ npm run tauri:ios:build:sim -- --debug --no-sign --archive-only --ci
 本机 Xcode/iOS SDK 下该入口已构建成功；这不代表真机签名或发布验收。
 Cargo 检查仍使用 `cargo check --target aarch64-apple-ios-sim`，不得一起改成 CLI 选择器。
 构建生成项目文件的版本/格式变化应单独核对，不因这项参数修复提交无关生成文件。
+
+## Node 26 原生 Storage 遮蔽 Vitest 的 jsdom Storage（2026-10-02）
+
+本机不同 shell 启动目录可能分别选中 nvm `24.14.0` 或 Homebrew `26.3.0`。检查 `node --version`、`command -v node`、`command -v npm`，不能只依据其他目录先前打印的版本。
+
+实测当前 Vitest 4.1.8 的 `populateGlobal/getWindowKeys` 不覆盖已存在且不在强制覆盖表中的全局 `localStorage`。Node 26.3.0 提供原生 getter，但未指定存储文件时其值为 undefined；于是 jsdom 的 Storage 存在，测试全局的 Storage 却不可用，出现大量 `clear/setItem/removeItem` 失败。独立探针对 Node 24.14.0 是同一浏览器 Storage，Node 26.3.0 则遮蔽并发出 `--localstorage-file` 提示；记录见 RF-203 验收证据。
+
+本轮使用已安装的 nvm Node 24.14.0 执行原始完整检查，并记录绝对 runtime 路径；CI 仍按既有 Node 22 配置。未更改 Node flags、测试超时/并发配置、Storage mock 或依赖版本。此记录说明当前本地组合的验证边界，不宣称已支持或修复 Node 26。
