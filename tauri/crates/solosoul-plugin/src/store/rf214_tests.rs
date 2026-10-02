@@ -471,8 +471,10 @@ fn rf214_symlink_paths_are_rejected_and_new_files_keep_private_permissions() {
         generation.clone(),
     ] {
         assert_eq!(
-            fs::metadata(path).unwrap().permissions().mode() & 0o777,
-            0o700
+            fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+            0o700,
+            "directory must stay private: {}",
+            path.display()
         );
     }
     for path in [
@@ -492,6 +494,34 @@ fn rf214_symlink_paths_are_rejected_and_new_files_keep_private_permissions() {
     )
     .unwrap();
     assert!(store.load_plugin("private").is_err());
+}
+
+#[cfg(unix)]
+#[test]
+fn rf1066_prepared_generation_is_private_and_cancellation_removes_it() {
+    let root = tempfile::tempdir().unwrap();
+    let store = PluginStore::new_with_data_dir(root.path().to_owned()).unwrap();
+    let bytes = b"private prepared bytes";
+    let prepared = store
+        .prepare_plugin(&rf214_manifest("prepared-private", "1.0.0", bytes), bytes)
+        .unwrap();
+    let generation = match &prepared.kind {
+        PreparedKind::Staged { directory, .. } => directory.path().to_owned(),
+        PreparedKind::Reuse(_) => panic!("new install must stage a generation"),
+    };
+    // 发布前已经写有正文：权限不能等到指针发布后才收紧。
+    assert_eq!(
+        fs::metadata(&generation).unwrap().permissions().mode() & 0o777,
+        0o700
+    );
+    assert_eq!(fs::read(generation.join("plugin.wasm")).unwrap(), bytes);
+    assert!(store.load_plugin("prepared-private").is_err());
+    drop(prepared);
+    assert!(!generation.exists());
+    assert!(!root
+        .path()
+        .join("plugins/prepared-private/current.json")
+        .exists());
 }
 #[cfg(windows)]
 #[test]

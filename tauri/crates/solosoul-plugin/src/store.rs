@@ -243,10 +243,12 @@ impl PluginStore {
             ensure_dir(&plugin_dir)?;
             let versions = plugin_dir.join("versions");
             ensure_dir(&versions)?;
-            let directory = tempfile::Builder::new()
-                .prefix("v-")
-                .rand_bytes(16)
-                .tempdir_in(&versions)?;
+            let mut directory_builder = tempfile::Builder::new();
+            directory_builder.prefix("v-").rand_bytes(16);
+            // tempfile 默认目录权限受 umask 影响；从创建起即限制正文目录访问。
+            #[cfg(unix)]
+            directory_builder.permissions(fs::Permissions::from_mode(0o700));
+            let directory = directory_builder.tempdir_in(&versions)?;
             let pointer = tempfile::Builder::new()
                 .prefix(".current-")
                 .suffix(".tmp")

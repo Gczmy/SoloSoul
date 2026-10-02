@@ -1,0 +1,264 @@
+{
+  "task": "RF-1066",
+  "date": "2026-10-02",
+  "source_head": "34a92120e871d56f7284e3ac09689ad0c19f294b",
+  "environment": {
+    "os": "macOS 26.6 arm64",
+    "rust": "rustup stable 1.95.0",
+    "pdfium_library_path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/resources/pdfium/libpdfium.dylib"
+  },
+  "regression_before": {
+    "exit_code": 101,
+    "passed": 1,
+    "failed": 2,
+    "directory_mode_actual": "0755",
+    "directory_mode_required": "0700",
+    "failures": [
+      "rf214_symlink_paths_are_rejected_and_new_files_keep_private_permissions",
+      "rf1066_prepared_generation_is_private_and_cancellation_removes_it"
+    ],
+    "log_excerpt": "   Compiling solosoul-crypto v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-crypto)\n   Compiling solosoul-vault v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-vault)\n   Compiling solosoul-core v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-core)\n   Compiling solosoul-plugin v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-plugin)\n    Finished `test` profile [optimized + debuginfo] target(s) in 39.29s\n     Running unittests src/mod.rs (target/debug/deps/solosoul_plugin-fb3f2cb408365f97)\n\nrunning 3 tests\ntest manager::workspace_tests::workspace_is_private_at_creation ... ok\n\nthread 'store::rf214_tests::rf1066_prepared_generation_is_private_and_cancellation_removes_it' (236615823) panicked at crates/solosoul-plugin/src/store/rf214_tests.rs:513:5:\nassertion `left == right` failed\n  left: 493\n right: 448\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\nthread 'store::rf214_tests::rf214_symlink_paths_are_rejected_and_new_files_keep_private_permissions' (236615824) panicked at crates/solosoul-plugin/src/store/rf214_tests.rs:473:9:\nassertion `left == right` failed: directory must stay private: /var/folders/qx/ppkvfc_x2yb2d2mh38b4wxkm0000gn/T/.tmpW3G7NP/plugins/private/versions/v-ZGIHhdnupc9fBUhD\n  left: 493\n right: 448\ntest store::rf214_tests::rf1066_prepared_generation_is_private_and_cancellation_removes_it ... FAILED\ntest store::rf214_tests::rf214_symlink_paths_are_rejected_and_new_files_keep_private_permissions ... FAILED\n\nfailures:\n\nfailures:\n    store::rf214_tests::rf1066_prepared_generation_is_private_and_cancellation_removes_it\n    store::rf214_tests::rf214_symlink_paths_are_rejected_and_new_files_keep_private_permissions\n\ntest result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 101 filtered out; finished in 0.07s\n\nerror: test failed, to rerun pass `-p solosoul-plugin --lib`\n"
+  },
+  "checks": [
+    {
+      "name": "plugin",
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "solosoul-plugin",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "started_at": "2026-10-02T10:40:35.947063+00:00",
+      "duration_seconds": 65.47082199994475,
+      "exit_code": 0
+    },
+    {
+      "name": "native-prepare",
+      "command": [
+        "npx",
+        "tauri",
+        "build",
+        "--debug",
+        "--no-bundle",
+        "--ci"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "started_at": "2026-10-02T10:41:41.417397+00:00",
+      "duration_seconds": 100.57384495809674,
+      "exit_code": 0
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "started_at": "2026-10-02T10:43:21.990241+00:00",
+      "duration_seconds": 0.9932193332351744,
+      "exit_code": 0
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "started_at": "2026-10-02T10:43:22.983723+00:00",
+      "duration_seconds": 32.50251129223034,
+      "exit_code": 0
+    },
+    {
+      "name": "rust-test",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "started_at": "2026-10-02T10:43:55.486090+00:00",
+      "duration_seconds": 131.36152204219252,
+      "exit_code": 0
+    },
+    {
+      "name": "cli-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/solosoul_cli",
+      "started_at": "2026-10-02T10:46:06.847870+00:00",
+      "duration_seconds": 0.2801101668737829,
+      "exit_code": 0
+    },
+    {
+      "name": "cli-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/solosoul_cli",
+      "started_at": "2026-10-02T10:46:07.128257+00:00",
+      "duration_seconds": 13.43938620807603,
+      "exit_code": 0
+    },
+    {
+      "name": "cli-test",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/solosoul_cli",
+      "started_at": "2026-10-02T10:46:20.568479+00:00",
+      "duration_seconds": 190.2480449168943,
+      "exit_code": 0
+    },
+    {
+      "name": "markdown",
+      "command": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "started_at": "2026-10-02T10:49:30.814675+00:00",
+      "duration_seconds": 0.8370283329859376,
+      "exit_code": 0
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul",
+      "started_at": "2026-10-02T10:49:31.652030+00:00",
+      "duration_seconds": 0.04096729075536132,
+      "exit_code": 0
+    }
+  ],
+  "counts": {
+    "plugin": {
+      "groups": 2,
+      "passed": 102,
+      "failed": 0,
+      "ignored": 2
+    },
+    "rust-test": {
+      "groups": 25,
+      "passed": 1848,
+      "failed": 0,
+      "ignored": 3
+    },
+    "cli-test": {
+      "groups": 5,
+      "passed": 335,
+      "failed": 0,
+      "ignored": 2
+    }
+  },
+  "logs": [
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1066-cli-clippy.log",
+      "sha256": "8fef4ae1ea3d67c3f1e2f2d48c0eb847e487e76b1512b321cdc22afa6747bcec"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1066-cli-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1066-cli-test.log",
+      "sha256": "5398a5f394104a49138ffd831deb549a3112388bb8c08a89b9efac51a378d31a"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1066-clippy.log",
+      "sha256": "c08be130b661fa8640d9a965db996caf27097d27ffa1e631f8289b95dcf07541"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1066-diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1066-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1066-markdown.log",
+      "sha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1066-native-prepare.log",
+      "sha256": "073037fe9ed4843b04f4d8ca773b56c5bf247158069b21f8b72873f17b0e9b22"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1066-plugin.log",
+      "sha256": "924069c461ac0ed7acc8ba6f4c32e2eccc692179de30d871e3b6363b2366bb22"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1066-red.log",
+      "sha256": "01d8fe5a875b65d88ae195d50fa2fea275591aaaba027ceaa00ac2fff81bd6e9"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1066-runner.log",
+      "sha256": "a9704495887aa93cd8d3c9ee91ac307d6da5d152c23691f43e0c23e2410e5cb4"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1066-rust-test.log",
+      "sha256": "06339226a1eeb4d0f92b25317b15e236fca01d14a4143ddd6da1c119a083da9b"
+    }
+  ],
+  "inputs": {
+    "tauri/crates/solosoul-plugin/src/store/rf214_tests.rs": "3bc7b91e9f1a81224ccb118426ff534aad485d534586af76644c6b21055306b9",
+    "docs/plugin_market/02-runtime.md": "d12af0cb0068a7c10ee174512dffe29f992c3ec994a27aa85d380a3e8759f029",
+    "tauri/crates/solosoul-plugin/src/store.rs": "00569712b3e273adca58023d26a94983a3feebade2bdcd258d6eca127f7054d5"
+  },
+  "preservation": {
+    "initial_raw_files": 1886,
+    "changed_paths": [
+      "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+      "docs/plugin_market/02-runtime.md",
+      "tauri/crates/solosoul-plugin/src/store.rs",
+      "tauri/crates/solosoul-plugin/src/store/rf214_tests.rs"
+    ],
+    "cargo_manifest_restored": true,
+    "unrelated_existing_changes_preserved": true
+  },
+  "limitations": [
+    "Original workspace baseline snapshot sensitivity assertion failure is retained and requires deterministic tie-order investigation; this subsequent passing run does not resolve it.",
+    "No Windows/Android/iOS native runtime acceptance claimed.",
+    "No push or release; no installed user client or production vault modified."
+  ],
+  "review": "Primary agent reviewed scope and tempfile Unix DirBuilder creation permissions; no independent agent review claimed.",
+  "documentation_attempts": [
+    {
+      "command": "node scripts/check-markdown-chunk-boundary.mjs",
+      "cwd": "repository root",
+      "exit_code": 1,
+      "reason": "Wrong working directory: script exists under tauri/scripts."
+    },
+    {
+      "command": "node scripts/check-markdown-chunk-boundary.mjs",
+      "cwd": "tauri",
+      "exit_code": 0
+    }
+  ]
+}
