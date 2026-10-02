@@ -132,8 +132,8 @@ fn check_status(status: OSStatus) -> Result<(), SecError> {
 fn map_write_err(e: SecError) -> BiometricError {
     tracing::error!("iOS Keychain write error: code={} ({})", e.code(), e);
     match e.code() {
-        code if code == errSecAuthFailed as i64 => BiometricError::UserPresenceCancelled,
-        code if code == errSecItemNotFound as i64 => BiometricError::KeychainItemNotFound,
+        code if code == errSecAuthFailed => BiometricError::UserPresenceCancelled,
+        code if code == errSecItemNotFound => BiometricError::KeychainItemNotFound,
         _ => BiometricError::KeychainWriteFailed(e.to_string()),
     }
 }
@@ -141,8 +141,8 @@ fn map_write_err(e: SecError) -> BiometricError {
 fn map_read_err(e: SecError) -> BiometricError {
     tracing::error!("iOS Keychain read error: code={} ({})", e.code(), e);
     match e.code() {
-        code if code == errSecAuthFailed as i64 => BiometricError::UserPresenceCancelled,
-        code if code == errSecItemNotFound as i64 => BiometricError::KeychainItemNotFound,
+        code if code == errSecAuthFailed => BiometricError::UserPresenceCancelled,
+        code if code == errSecItemNotFound => BiometricError::KeychainItemNotFound,
         _ => BiometricError::KeychainReadFailed(e.to_string()),
     }
 }
@@ -295,6 +295,34 @@ impl BiometricStorage for IosBiometricStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // 只检查 OSStatus 类型与错误分类，不访问 Keychain 或触发用户认证。
+    #[test]
+    fn test_ios_status_mapping_preserves_error_categories() {
+        assert!(check_status(errSecSuccess).is_ok());
+        assert_eq!(
+            check_status(errSecAuthFailed).unwrap_err().code(),
+            errSecAuthFailed
+        );
+        for map in [map_write_err, map_read_err] {
+            assert!(matches!(
+                map(SecError::from(errSecAuthFailed)),
+                BiometricError::UserPresenceCancelled
+            ));
+            assert!(matches!(
+                map(SecError::from(errSecItemNotFound)),
+                BiometricError::KeychainItemNotFound
+            ));
+        }
+        assert!(matches!(
+            map_write_err(SecError::from(errSecDuplicateItem)),
+            BiometricError::KeychainWriteFailed(_)
+        ));
+        assert!(matches!(
+            map_read_err(SecError::from(errSecDuplicateItem)),
+            BiometricError::KeychainReadFailed(_)
+        ));
+    }
 
     #[test]
     fn test_ios_storage_key_format() {

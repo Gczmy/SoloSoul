@@ -1,0 +1,245 @@
+{
+  "task": "RF-204",
+  "baseline_commit": "d934306eccf7805662f2d645808667605db0bdcf",
+  "user_authorization": "恢复 RF-204，仅修编译问题并验收",
+  "scope": "仅移除四处 OSStatus 比较的 as i64；命名成功常量、错误分类、认证调用与访问控制不变。",
+  "verification": [
+    {
+      "name": "ios-device",
+      "command": [
+        "cargo",
+        "check",
+        "--target",
+        "aarch64-apple-ios"
+      ],
+      "started_at": "2026-10-02T12:04:40.459333+00:00",
+      "duration_seconds": 25.094383290968835,
+      "exit_code": 0
+    },
+    {
+      "name": "ios-simulator",
+      "command": [
+        "cargo",
+        "check",
+        "--target",
+        "aarch64-apple-ios-sim"
+      ],
+      "started_at": "2026-10-02T12:05:05.554528+00:00",
+      "duration_seconds": 45.593860290944576,
+      "exit_code": 0
+    },
+    {
+      "name": "ios-device-tests",
+      "command": [
+        "cargo",
+        "check",
+        "-p",
+        "solosoul-core",
+        "--tests",
+        "--target",
+        "aarch64-apple-ios"
+      ],
+      "started_at": "2026-10-02T12:05:51.149322+00:00",
+      "duration_seconds": 34.15458475006744,
+      "exit_code": 0
+    },
+    {
+      "name": "ios-simulator-tests",
+      "command": [
+        "cargo",
+        "check",
+        "-p",
+        "solosoul-core",
+        "--tests",
+        "--target",
+        "aarch64-apple-ios-sim"
+      ],
+      "started_at": "2026-10-02T12:06:25.304577+00:00",
+      "duration_seconds": 22.949631249997765,
+      "exit_code": 0
+    },
+    {
+      "name": "macos-build",
+      "command": [
+        "npx",
+        "tauri",
+        "build",
+        "--debug",
+        "--no-bundle",
+        "--ci"
+      ],
+      "started_at": "2026-10-02T12:06:48.254672+00:00",
+      "duration_seconds": 105.86931241722777,
+      "exit_code": 0
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "started_at": "2026-10-02T12:08:34.125259+00:00",
+      "duration_seconds": 1.0028002080507576,
+      "exit_code": 0
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "started_at": "2026-10-02T12:08:35.128352+00:00",
+      "duration_seconds": 28.130443166941404,
+      "exit_code": 0
+    },
+    {
+      "name": "rust-test",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "started_at": "2026-10-02T12:09:03.259248+00:00",
+      "duration_seconds": 133.6198332500644,
+      "exit_code": 0
+    },
+    {
+      "name": "cli-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--",
+        "--check"
+      ],
+      "started_at": "2026-10-02T12:11:16.880479+00:00",
+      "duration_seconds": 0.28428849996998906,
+      "exit_code": 0
+    },
+    {
+      "name": "cli-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "started_at": "2026-10-02T12:11:17.165065+00:00",
+      "duration_seconds": 0.9083651253022254,
+      "exit_code": 0
+    },
+    {
+      "name": "cli-test",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "started_at": "2026-10-02T12:11:18.073782+00:00",
+      "duration_seconds": 180.36624379176646,
+      "exit_code": 0
+    }
+  ],
+  "rust": {
+    "groups": 25,
+    "passed": 1850,
+    "failed": 0,
+    "ignored": 3
+  },
+  "cli": {
+    "groups": 5,
+    "passed": 335,
+    "failed": 0,
+    "ignored": 2
+  },
+  "ios_mapping_regression": "新增状态映射回归在两个 iOS target 均完成 cargo check --tests；未执行 iOS 测试二进制，不声称 Face ID/Touch ID/Keychain 运行验收。",
+  "prior_failures": {
+    "rf201-ios-sim-build.log": "修复前实际无签名模拟器构建进入 Rust，四处比较产生八个 E0308/E0277 诊断。",
+    "rf201-ios-targets.log": "并行双目标曾在 Tauri 插件共享 .tauri/tauri-api 复制失败；本次分别顺序执行两目标，未改 vendor/cache/依赖。"
+  },
+  "limits": [
+    "双目标 cargo check 是编译证据，不是签名、发布或实际生物识别运行证据。",
+    "远端 CI 未运行；现有合并双目标工作流的复制竞争未纳入本次四处类型修复。",
+    "验收工作树同时包含未提交 RF-201 主题修改；该项未关闭且不纳入本提交。"
+  ],
+  "source_sha256": {
+    "tauri/crates/solosoul-core/src/biometric/ios.rs": "b0baa46d0482ef5644f1c1a426d9bb101939f64170385278d85258532d3f8d8b"
+  },
+  "logs": [
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-ios-device.log",
+      "sha256": "ac111ba37a946e970f3df4b205d3dfcbdb07f7684369c2ed7439909f3d51f0eb",
+      "bytes": 8134
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-ios-simulator.log",
+      "sha256": "ac342daff0cbe225ebca0b08838a1c025e8fa2a22432d800bd988b7efcb71e2c",
+      "bytes": 9481
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-ios-device-tests.log",
+      "sha256": "e94d3e7afca66e06004caef75f48cf26cdb691bf651e94dc1444a7d1e404ed66",
+      "bytes": 3973
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-ios-simulator-tests.log",
+      "sha256": "ff10619a6feba47d71d99f7382fcdebca5a497991e6287ed1dd90a21eb793d59",
+      "bytes": 3905
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-macos-build.log",
+      "sha256": "7947e23dcc8dd10d168a825b788d85029933566369459a9e296b61c4005fa5c7",
+      "bytes": 8214
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-clippy.log",
+      "sha256": "8fae12185bb99828568b26c6bbc3df514906d62b4ae14b905602879937c3acf5",
+      "bytes": 2378
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-rust-test.log",
+      "sha256": "078582675497f08cb6e2ec65ef0cfda2cf0d8c0a1f4c80f20880d22963af2d9a",
+      "bytes": 502091
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-cli-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-cli-clippy.log",
+      "sha256": "3fb4c357e099ce4d60cdc4fe4308b22f751bb05485809f35137528350af48811",
+      "bytes": 72
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-cli-test.log",
+      "sha256": "3768cfdb2094500b5f00c6a1bd7df955899cb19a861c0f31ab3606e8f833dc07",
+      "bytes": 52450
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-sim-build.log",
+      "sha256": "47c3bf222acd1e4eca604a0b40645c1010913c096ff8aa682690d0fc6c7e69ac",
+      "bytes": 39589
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-targets.log",
+      "sha256": "0d9e0bff47a7388603359402f9ce5a1e678cf674c52fb95ff8a92918cda4a9b0",
+      "bytes": 16043
+    }
+  ]
+}
