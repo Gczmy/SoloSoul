@@ -147,6 +147,79 @@ fn assert_complete(outcome: &ImportOutcome, objects: usize, snapshots: usize, at
     assert_eq!(outcome.attachment_count, attachments);
     assert!(outcome.error_code.is_none());
 }
+
+#[test]
+fn rf1067_equal_timestamp_package_history_preserves_order_in_both_restore_paths() {
+    let source = Fixture::new();
+    source.local();
+    source.vault.delete_snapshots("rf024-0").unwrap();
+    for version in ["old-critical", "middle-sensitive", "new-public"] {
+        source
+            .vault
+            .save_snapshot_at("rf024-0", "user_edit", version.as_bytes(), version, 1000)
+            .unwrap();
+    }
+    let rows = source
+        .vault
+        .list_snapshots_with_data_batch(&["rf024-0".into()])
+        .unwrap();
+    let snaps: Vec<Value> = rows
+        .into_iter()
+        .map(|(object_id, meta, data)| {
+            json!({
+                "object_id": object_id,
+                "timestamp": meta["timestamp"],
+                "triggered_by": meta["triggeredBy"],
+                "diff_summary": meta["diffSummary"],
+                "data": base64::Engine::encode(&base64::engine::general_purpose::STANDARD, data)
+            })
+        })
+        .collect();
+    assert_eq!(snaps[0]["diff_summary"], "new-public");
+    let expected = ["new-public", "middle-sensitive", "old-critical"];
+    let assert_history = |vault: &VaultStore| {
+        let history = vault.list_snapshots("rf024-0").unwrap();
+        let summaries: Vec<_> = history
+            .iter()
+            .map(|s| s["diffSummary"].as_str().unwrap())
+            .collect();
+        assert_eq!(summaries, expected);
+        for snapshot in history {
+            assert_eq!(snapshot["timestamp"], 1000);
+            assert_eq!(
+                vault
+                    .get_snapshot(snapshot["id"].as_str().unwrap())
+                    .unwrap()
+                    .unwrap(),
+                snapshot["diffSummary"].as_str().unwrap().as_bytes()
+            );
+        }
+    };
+    let direct = Fixture::new();
+    direct.local();
+    direct.vault.delete_snapshots("rf024-0").unwrap();
+    assert_eq!(
+        restore_package_snapshots(&direct.vault, "rf024-0", &snaps),
+        3
+    );
+    assert_history(&direct.vault);
+
+    let target = Fixture::new();
+    let mut contents = payload();
+    contents["snapshots"] = json!(snaps);
+    for object in contents["objects"].as_array_mut().unwrap() {
+        object["properties"]["__attachments"] = json!([]);
+    }
+    let path = package(target.dir.path(), contents, false, false);
+    let outcome = target.run(
+        &path,
+        Fixture::options(AdvancedImportStrategy::Overwrite),
+        &id(),
+    );
+    // 第二个对象没有包历史，现有契约会补一个导入快照。
+    assert_complete(&outcome, 2, 4, 0);
+    assert_history(&target.vault);
+}
 #[test]
 fn rf024_advanced_three_strategies_keep_history_references_preferences_and_local_data() {
     for strategy in [

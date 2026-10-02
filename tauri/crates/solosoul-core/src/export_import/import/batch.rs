@@ -159,10 +159,10 @@ fn inherit_template(
     (id, labels)
 }
 
-/// 新 UUID 按包原数组顺序生成；包快照原 ID 没有写本地旧历史的权限。
+/// 新 UUID 不复用包快照 ID；倒序写入最新在前的包历史，保留同毫秒新旧顺序。
 fn package_history(snaps: &[Value]) -> Vec<ImportSnapshot> {
     let mut decoded = Vec::new();
-    for snap in snaps {
+    for snap in snaps.iter().rev() {
         let Some(encoded) = snap["data"].as_str() else {
             continue;
         };

@@ -586,7 +586,13 @@ fn test_dynamic_group_sensitivity_preserved_in_snapshots_after_template_sync() {
     }))
     .unwrap();
     vault
-        .save_snapshot("obj-dg", "user_edit", &snap1_data, "diff_created")
+        .save_snapshot_at(
+            "obj-dg",
+            "user_edit",
+            &snap1_data,
+            "diff_created",
+            2_000_000_000_000,
+        )
         .unwrap();
 
     // 3. 修改模板动态字段组敏感度为 sensitive
@@ -610,7 +616,13 @@ fn test_dynamic_group_sensitivity_preserved_in_snapshots_after_template_sync() {
     }))
     .unwrap();
     vault
-        .save_snapshot("obj-dg", "template_sync", &snap2_data, "diff_template_sync")
+        .save_snapshot_at(
+            "obj-dg",
+            "template_sync",
+            &snap2_data,
+            "diff_template_sync",
+            2_000_000_000_000,
+        )
         .unwrap();
 
     // 5. 加载两个快照并验证敏感度

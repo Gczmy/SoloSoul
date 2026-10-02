@@ -1,0 +1,307 @@
+{
+  "task": "RF-1067",
+  "date": "2026-10-02",
+  "source_head": "821a07662771e36438f054a1ae15be1688067013",
+  "environment": {
+    "os": "macOS 26.6 arm64",
+    "rust": "rustup stable 1.95.0",
+    "pdfium_library_path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/resources/pdfium/libpdfium.dylib"
+  },
+  "regression_before": {
+    "exit_code": 101,
+    "passed": 0,
+    "failed": 1,
+    "actual": "same timestamp: versions 0..49 returned",
+    "expected": "same timestamp: versions 59..10 returned",
+    "log_excerpt": "   Compiling solosoul-crypto v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-crypto)\n   Compiling solosoul-vault v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-vault)\n    Finished `test` profile [optimized + debuginfo] target(s) in 18.67s\n     Running unittests src/lib.rs (target/debug/deps/solosoul_vault-5a2bf70af6c95dd1)\n\nrunning 1 test\n\nthread 'storage::tests::rf1067_equal_timestamp_history_keeps_latest_50_and_copy_order' (236668246) panicked at crates/solosoul-vault/src/storage/tests.rs:3191:5:\nassertion `left == right` failed\n  left: [\"version-0\", \"version-1\", \"version-2\", \"version-3\", \"version-4\", \"version-5\", \"version-6\", \"version-7\", \"version-8\", \"version-9\", \"version-10\", \"version-11\", \"version-12\", \"version-13\", \"version-14\", \"version-15\", \"version-16\", \"version-17\", \"version-18\", \"version-19\", \"version-20\", \"version-21\", \"version-22\", \"version-23\", \"version-24\", \"version-25\", \"version-26\", \"version-27\", \"version-28\", \"version-29\", \"version-30\", \"version-31\", \"version-32\", \"version-33\", \"version-34\", \"version-35\", \"version-36\", \"version-37\", \"version-38\", \"version-39\", \"version-40\", \"version-41\", \"version-42\", \"version-43\", \"version-44\", \"version-45\", \"version-46\", \"version-47\", \"version-48\", \"version-49\"]\n right: [\"version-59\", \"version-58\", \"version-57\", \"version-56\", \"version-55\", \"version-54\", \"version-53\", \"version-52\", \"version-51\", \"version-50\", \"version-49\", \"version-48\", \"version-47\", \"version-46\", \"version-45\", \"version-44\", \"version-43\", \"version-42\", \"version-41\", \"version-40\", \"version-39\", \"version-38\", \"version-37\", \"version-36\", \"version-35\", \"version-34\", \"version-33\", \"version-32\", \"version-31\", \"version-30\", \"version-29\", \"version-28\", \"version-27\", \"version-26\", \"version-25\", \"version-24\", \"version-23\", \"version-22\", \"version-21\", \"version-20\", \"version-19\", \"version-18\", \"version-17\", \"version-16\", \"version-15\", \"version-14\", \"version-13\", \"version-12\", \"version-11\", \"version-10\"]\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\ntest storage::tests::rf1067_equal_timestamp_history_keeps_latest_50_and_copy_order ... FAILED\n\nfailures:\n\nfailures:\n    storage::tests::rf1067_equal_timestamp_history_keeps_latest_50_and_copy_order\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 311 filtered out; finished in 0.03s\n\nerror: test failed, to rerun pass `-p solosoul-vault --lib`\n"
+  },
+  "preliminary_attempts": [
+    {
+      "exit_code": 101,
+      "test": "rf1067_equal_timestamp_package_history_preserves_order_in_both_restore_paths",
+      "failure": "snapshot_count actual=4, expected=3",
+      "resolution": "Fixture includes a second object without packaged history; existing import contract adds one fallback snapshot. Expected total corrected to 4, with all three same-timestamp versions still checked by order, timestamp and decrypted payload.",
+      "log_note": "Initial targeted.log was reused by final queue. The observed assertion details are preserved here; no separate original raw-log SHA claimed."
+    },
+    {
+      "exit_code": 0,
+      "log": "/tmp/solosoul-refactor-macos-20261002/rf1067-targeted-retry.log",
+      "passed": 2
+    }
+  ],
+  "checks": [
+    {
+      "name": "targeted",
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "solosoul-vault",
+        "-p",
+        "solosoul-core",
+        "--no-fail-fast",
+        "rf1067",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "started_at": "2026-10-02T10:57:58.404732+00:00",
+      "duration_seconds": 76.239303749986,
+      "exit_code": 0
+    },
+    {
+      "name": "native-prepare",
+      "command": [
+        "npx",
+        "tauri",
+        "build",
+        "--debug",
+        "--no-bundle",
+        "--ci"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "started_at": "2026-10-02T10:59:14.644428+00:00",
+      "duration_seconds": 95.86676950007677,
+      "exit_code": 0
+    },
+    {
+      "name": "host-tie",
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "solo_soul",
+        "test_dynamic_group_sensitivity_preserved_in_snapshots_after_template_sync",
+        "--",
+        "--nocapture"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "started_at": "2026-10-02T11:00:50.512754+00:00",
+      "duration_seconds": 89.02324312506244,
+      "exit_code": 0
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "started_at": "2026-10-02T11:02:19.536383+00:00",
+      "duration_seconds": 0.9939703340642154,
+      "exit_code": 0
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "started_at": "2026-10-02T11:02:20.530628+00:00",
+      "duration_seconds": 22.003892959095538,
+      "exit_code": 0
+    },
+    {
+      "name": "rust-test",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "started_at": "2026-10-02T11:02:42.534782+00:00",
+      "duration_seconds": 64.83195516699925,
+      "exit_code": 0
+    },
+    {
+      "name": "cli-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--check"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/solosoul_cli",
+      "started_at": "2026-10-02T11:03:47.367350+00:00",
+      "duration_seconds": 0.2803496248088777,
+      "exit_code": 0
+    },
+    {
+      "name": "cli-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/solosoul_cli",
+      "started_at": "2026-10-02T11:03:47.648009+00:00",
+      "duration_seconds": 5.347019333392382,
+      "exit_code": 0
+    },
+    {
+      "name": "cli-test",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/solosoul_cli",
+      "started_at": "2026-10-02T11:03:52.995352+00:00",
+      "duration_seconds": 199.22126566711813,
+      "exit_code": 0
+    },
+    {
+      "name": "markdown",
+      "command": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul/tauri",
+      "started_at": "2026-10-02T11:07:12.216900+00:00",
+      "duration_seconds": 0.8515777089633048,
+      "exit_code": 0
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/Users/zzc/PycharmProjects/SoloSoul",
+      "started_at": "2026-10-02T11:07:13.068850+00:00",
+      "duration_seconds": 0.0465920832939446,
+      "exit_code": 0
+    }
+  ],
+  "counts": {
+    "targeted": {
+      "groups": 4,
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    "host-tie": {
+      "groups": 6,
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0
+    },
+    "rust-test": {
+      "groups": 25,
+      "passed": 1850,
+      "failed": 0,
+      "ignored": 3
+    },
+    "cli-test": {
+      "groups": 5,
+      "passed": 335,
+      "failed": 0,
+      "ignored": 2
+    }
+  },
+  "logs": [
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-cli-clippy.log",
+      "sha256": "b0da89e8f088588c0bd0bb3432b215703e0d3f774789e8a816e156f32c793869"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-cli-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-cli-test.log",
+      "sha256": "4e0882c5ba302b9b6a669ebaef7efd843e1b6f412e56802e37a5dd0dbd3ebd1e"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-clippy.log",
+      "sha256": "79c24518dec3c65ec2e07f1b458341e2bd11b819ae5593aab90b949eebae8536"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-host-tie.log",
+      "sha256": "d69f386f844d73e17a9f930713be59131283b1d20378a824970d753dde486e1b"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-markdown.log",
+      "sha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-native-prepare.log",
+      "sha256": "cbebd5d2cc5cfb7e65f66732d6da9351943fd0d7135b3aa0f1f7d8257a67d653"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-red.log",
+      "sha256": "b7556186a74ad8d663d4f240f31ec6512c3cf1d7c354552f35df66a8c2416bc7"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-runner.log",
+      "sha256": "aca221cb58ab35e704f6167590e97be0dd25023d2ab69a0d50813b0a7f4f4fd8"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-rust-test.log",
+      "sha256": "dcb05f627f16b56cc58febdd180bf76ef6dcbe2592d46e1b9611e7c4a61334ca"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-targeted-retry.log",
+      "sha256": "c8e8b266b9f21e948bbca58e4be389657a3cbdba99c1741b7cf206a7d8197687"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1067-targeted.log",
+      "sha256": "4d7877a1856b85dae1f4e3cc9f901a7e849508ac041272d48b0b3de8a7494b7d"
+    }
+  ],
+  "inputs": {
+    "docs/design_map/08_对象与模板规范.md": "899824e538ecd2da8a305900848a6ffe8b1b1410d4eb3b2405388ada20fce055",
+    "tauri/crates/solosoul-core/src/export_import/import.rs": "62bc478e01645593beb17d6023df0599cef7a25260496e8b63c1420e245d2b7f",
+    "tauri/crates/solosoul-core/src/export_import/import/batch.rs": "0339a6ff8d46d2fa16c6dc569528966a90ea636f939925f0853523d195438076",
+    "tauri/crates/solosoul-core/src/export_import/import/rf024.rs": "efbd4e59b2c7537ac94ef9e731079aacd67b44e963249938d66ca839388c1274",
+    "tauri/crates/solosoul-vault/src/storage/snapshots.rs": "759754bc822a31c1e8655fdd446edd420253d05f2c06f9a75c3ac170b9522e6d",
+    "tauri/crates/solosoul-vault/src/storage/tests.rs": "1cf53be2c6c9050c1ab66a02b68405a599fe1b2a6e87dde892876f1794a0123c",
+    "tauri/src-tauri/src/commands/object/tests/snapshot.rs": "7d3e2b2e9b061d6cf3cd4fd2a1df58e3436885bbe04bcfda4480e2ca03510b9a"
+  },
+  "preservation": {
+    "initial_raw_files": 1886,
+    "changed_paths": [
+      "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+      "docs/design_map/08_对象与模板规范.md",
+      "docs/plugin_market/02-runtime.md",
+      "tauri/crates/solosoul-core/src/export_import/import.rs",
+      "tauri/crates/solosoul-core/src/export_import/import/batch.rs",
+      "tauri/crates/solosoul-core/src/export_import/import/rf024.rs",
+      "tauri/crates/solosoul-plugin/src/store.rs",
+      "tauri/crates/solosoul-plugin/src/store/rf214_tests.rs",
+      "tauri/crates/solosoul-vault/src/storage/snapshots.rs",
+      "tauri/crates/solosoul-vault/src/storage/tests.rs",
+      "tauri/src-tauri/src/commands/object/tests/snapshot.rs"
+    ],
+    "cargo_manifest_restored": true,
+    "existing_unrelated_raw_files_unchanged": true
+  },
+  "limitations": [
+    "Same-timestamp chronology uses existing local insertion order. Arbitrary external arrays without ordering metadata cannot establish original device chronology.",
+    "Package restore preserves the existing newest-first export contract; timestamp values and encrypted snapshot contents are unchanged.",
+    "No Windows/Android/iOS native UI or performance acceptance claimed.",
+    "No push, release, installed client or production vault changes."
+  ],
+  "review": "Primary agent reviewed list, window ranking, copy and both package restore paths; no independent agent review claimed."
+}

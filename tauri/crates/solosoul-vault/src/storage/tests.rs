@@ -3171,6 +3171,55 @@ fn test_count_snapshots_batch() {
 }
 
 #[test]
+fn rf1067_equal_timestamp_history_keeps_latest_50_and_copy_order() {
+    let (vault, _dir) = setup();
+    let timestamp = 2_000_000_000_000i64;
+    for index in 0..60 {
+        vault
+            .save_snapshot_at(
+                "rf1067",
+                "user_edit",
+                format!("version-{index}").as_bytes(),
+                &format!("version-{index}"),
+                timestamp,
+            )
+            .unwrap();
+    }
+    let expected: Vec<_> = (10..60).rev().map(|n| format!("version-{n}")).collect();
+    let list = vault.list_snapshots("rf1067").unwrap();
+    let summaries: Vec<_> = list
+        .iter()
+        .map(|s| s["diffSummary"].as_str().unwrap())
+        .collect();
+    assert_eq!(summaries, expected);
+    for snapshot in &list {
+        assert_eq!(snapshot["timestamp"], timestamp);
+        assert_eq!(
+            vault
+                .get_snapshot(snapshot["id"].as_str().unwrap())
+                .unwrap()
+                .unwrap(),
+            snapshot["diffSummary"].as_str().unwrap().as_bytes()
+        );
+    }
+    let batch = vault
+        .list_snapshots_with_data_batch(&["rf1067".into()])
+        .unwrap();
+    let batch_summaries: Vec<_> = batch
+        .iter()
+        .map(|(_, meta, _)| meta["diffSummary"].as_str().unwrap())
+        .collect();
+    assert_eq!(batch_summaries, expected);
+    vault.copy_snapshots("rf1067", "rf1067-copy").unwrap();
+    let copy = vault.list_snapshots("rf1067-copy").unwrap();
+    let copy_summaries: Vec<_> = copy
+        .iter()
+        .map(|s| s["diffSummary"].as_str().unwrap())
+        .collect();
+    assert_eq!(copy_summaries, expected);
+}
+
+#[test]
 fn test_list_snapshots_with_data_batch() {
     // P013: 导出打包的批量快照加载——一次 SQL 返回多对象全部快照（含解密 data），
     // 保留单对象 LIMIT 50 语义（窗口函数）。

@@ -76,7 +76,7 @@ impl VaultStore {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn.prepare(
-            "SELECT id, timestamp, triggered_by, diff_summary FROM object_snapshots WHERE object_id=?1 ORDER BY timestamp DESC LIMIT 50"
+            "SELECT id, timestamp, triggered_by, diff_summary FROM object_snapshots WHERE object_id=?1 ORDER BY timestamp DESC, rowid DESC LIMIT 50"
         ).map_err(|e| e.to_string())?;
         let snapshots = stmt
             .query_map(rusqlite::params![object_id], |row| {
@@ -95,7 +95,7 @@ impl VaultStore {
 
     /// P013: 批量加载多对象全部快照（含 data 解密），一次 SQL 替代
     /// 「每对象 list_snapshots + 每快照 get_snapshot」的 N+M 次查询（导出打包场景）。
-    /// 保留单对象 LIMIT 50 语义（ROW_NUMBER 窗口函数按 timestamp DESC 取前 50）。
+    /// 保留单对象 LIMIT 50 语义；同毫秒以本库写入先后决定新旧，不使用随机 UUID 排序。
     /// 返回 `(object_id, meta_json, data_bytes)` 按 object_id 升序、对象内时间倒序。
     pub fn list_snapshots_with_data_batch(
         &self,
@@ -120,9 +120,9 @@ impl VaultStore {
             let sql = format!(
                 "SELECT object_id, id, timestamp, triggered_by, diff_summary, data FROM (\
                  SELECT object_id, id, timestamp, triggered_by, diff_summary, data, \
-                 ROW_NUMBER() OVER (PARTITION BY object_id ORDER BY timestamp DESC) AS rn \
+                 ROW_NUMBER() OVER (PARTITION BY object_id ORDER BY timestamp DESC, rowid DESC) AS rn \
                  FROM object_snapshots WHERE object_id IN ({}) \
-                 ) WHERE rn <= 50",
+                 ) WHERE rn <= 50 ORDER BY object_id ASC, rn ASC",
                 placeholders
             );
             let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
@@ -604,7 +604,7 @@ impl VaultStore {
                 let mut stmt = tx
                     .prepare(
                         "SELECT timestamp, triggered_by, data, diff_summary
-                 FROM object_snapshots WHERE object_id = ?1",
+                 FROM object_snapshots WHERE object_id = ?1 ORDER BY timestamp ASC, rowid ASC",
                     )
                     .map_err(|e| format!("copy_snapshots select: {}", e))?;
                 let rows: Vec<(i64, String, Vec<u8>, String)> = stmt

@@ -904,7 +904,8 @@ fn restore_package_snapshots_tracked(
     result: &mut ImportOutcome,
 ) -> Result<usize, String> {
     let mut restored = 0usize;
-    for snap in snaps {
+    // 导出按最新在前排列；倒序写入保留同毫秒版本的原有新旧顺序（RF-1067）。
+    for snap in snaps.iter().rev() {
         // 原时间戳缺失/非法时回退到当前时间，避免 0 时间戳破坏历史排序
         let timestamp = snap["timestamp"]
             .as_i64()
