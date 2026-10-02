@@ -1,0 +1,13 @@
+{
+  "os": null,
+  "version": null,
+  "build": null,
+  "architecture": null,
+  "cpu": null,
+  "logicalProcessors": null,
+  "ramBytes": null,
+  "python": "3.14.6",
+  "node": "v24.16.0",
+  "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+  "cargo": "cargo 1.96.0 (30a34c682 2026-05-25)"
+}

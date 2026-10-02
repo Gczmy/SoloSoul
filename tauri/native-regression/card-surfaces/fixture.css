@@ -31,3 +31,21 @@ html[data-platform='android'] #root {
   white-space: pre-wrap;
   font-size: 12px;
 }
+
+.fixture-navigation {
+  display: none;
+}
+html[data-platform='windows'] .fixture-navigation {
+  display: block;
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 160px;
+  padding: 24px;
+  color: var(--text-primary);
+}
+html[data-platform='windows'] .fixture {
+  margin: 0 0 0 160px;
+  padding: 24px;
+  min-height: 100vh;
+  background: var(--bg-base);
+}

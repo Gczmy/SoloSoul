@@ -1,0 +1,74 @@
+[
+  {
+    "name": "rf121-fmt-final",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all"
+    ],
+    "exit": 0,
+    "seconds": 7.6111831003800035
+  },
+  {
+    "name": "rf121-example-tests-roundtrip",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--example",
+      "windows_card_surfaces"
+    ],
+    "exit": 0,
+    "seconds": 96.65129749942571
+  },
+  {
+    "name": "rf121-clippy-roundtrip",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--example",
+      "windows_card_surfaces",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 15.80646110046655
+  },
+  {
+    "name": "rf121-build-roundtrip",
+    "command": [
+      "cargo",
+      "build",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--example",
+      "windows_card_surfaces"
+    ],
+    "exit": 0,
+    "seconds": 34.58979189954698
+  },
+  {
+    "name": "rf121-fmt-check-final",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 3.1481229001656175
+  }
+]

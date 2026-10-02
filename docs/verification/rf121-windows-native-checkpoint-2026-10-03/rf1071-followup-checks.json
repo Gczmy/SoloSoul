@@ -1,0 +1,65 @@
+[
+  {
+    "name": "rf1071-workspace-tests-pdfium",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--workspace",
+      "--verbose",
+      "--no-fail-fast"
+    ],
+    "exit": 0,
+    "seconds": 346.3669103998691
+  },
+  {
+    "name": "rf1071-native-tests",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--lib",
+      "native_perf::",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 0,
+    "seconds": 251.2331214994192
+  },
+  {
+    "name": "rf121-example-tests-final",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--example",
+      "windows_card_surfaces"
+    ],
+    "exit": 0,
+    "seconds": 304.21210899949074
+  },
+  {
+    "name": "rf121-example-build",
+    "command": [
+      "cargo",
+      "build",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--example",
+      "windows_card_surfaces"
+    ],
+    "exit": 0,
+    "seconds": 35.31524910032749
+  }
+]

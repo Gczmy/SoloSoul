@@ -1,0 +1,24 @@
+{
+  "frame": {
+    "backdropType": 2,
+    "captionColorReadback": null,
+    "immersiveDarkModeReadback": null,
+    "physicalSize": {
+      "height": 749,
+      "width": 1028
+    },
+    "readbackLimit": "CAPTION_COLOR and USE_IMMERSIVE_DARK_MODE are documented set-only",
+    "scaleFactor": 1.0,
+    "systemCaption": true,
+    "windowTheme": "dark"
+  },
+  "webview": {
+    "background": {
+      "alpha": 0,
+      "blue": 30,
+      "green": 28,
+      "red": 28
+    },
+    "runtimeVersion": "154.0.4258.48"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "unowned_raw_checked": 2132,
+  "unowned_changes": [],
+  "rag_matches_rf1071_commit": true,
+  "tasks": 261,
+  "closed": 249,
+  "waiting": 5,
+  "pending": 7,
+  "new_links_exist": true,
+  "diff_check_exit": 0,
+  "stash": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90 On main: preserve-local-changes-before-github-push-2026-10-02",
+  "markdown_boundary": "earlier this turn exit0; 13 dependencies; implementation unchanged"
+}

@@ -1,0 +1,64 @@
+{
+  "appearance": {
+    "highContrast": false,
+    "material": "mica",
+    "platform": "windows",
+    "reduceMotion": false,
+    "titlebarHeight": 0,
+    "trafficLightsRight": 0
+  },
+  "cards": [
+    {
+      "backdropFilter": "none",
+      "background": "rgb(253, 252, 249)",
+      "color": "rgb(31, 28, 24)",
+      "expectedBackground": "rgb(253, 252, 249)",
+      "height": 556,
+      "overflow": false,
+      "pixelSample": {
+        "x": 196,
+        "y": 113
+      },
+      "surface": "default",
+      "visible": true,
+      "width": 262.65625,
+      "x": 184,
+      "y": 101
+    },
+    {
+      "backdropFilter": "none",
+      "background": "rgb(253, 252, 249)",
+      "color": "rgb(31, 28, 24)",
+      "expectedBackground": "rgb(253, 252, 249)",
+      "height": 556,
+      "overflow": false,
+      "pixelSample": {
+        "x": 474.65625,
+        "y": 113
+      },
+      "surface": "floating",
+      "visible": true,
+      "width": 262.671875,
+      "x": 462.65625,
+      "y": 101
+    }
+  ],
+  "contentBackground": "rgb(250, 250, 246)",
+  "expectedBackground": "rgb(253, 252, 249)",
+  "focused": true,
+  "frameCount": 11,
+  "media": {
+    "forcedColors": false,
+    "reduceTransparency": false
+  },
+  "navigationBackground": "rgba(0, 0, 0, 0)",
+  "pageOverflow": false,
+  "platform": "windows",
+  "sampleId": "initial-light",
+  "theme": "light",
+  "viewport": {
+    "height": 749,
+    "width": 1028
+  },
+  "visibility": "visible"
+}

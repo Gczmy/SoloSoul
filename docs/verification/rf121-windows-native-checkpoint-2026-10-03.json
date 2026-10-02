@@ -1,0 +1,1051 @@
+{
+  "task": "RF-121",
+  "status": "waiting-for-remaining-native-matrix",
+  "checkpoint": "Windows current-host default accessibility passed",
+  "date": "2026-10-03",
+  "base_commit": "a3b1c7fae030932a83085c1310c79aea217645f5",
+  "host": {
+    "os": "Microsoft Windows 11 Enterprise LTSC",
+    "version": "10.0.26100",
+    "build": "26100",
+    "architecture": "64-bit",
+    "cpu": "Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz",
+    "logicalProcessors": 8,
+    "ramBytes": 16951218176
+  },
+  "initial_host_probe": "host.json CIM fields unavailable under non-elevated sandbox; not accepted as hardware proof",
+  "build_mode": "debug independent example; not a performance sample",
+  "freeze": {
+    "tauri/src-tauri/examples/windows_card_surfaces.rs": "cbad49944f05e576cf6c33175f0ea4757f16a98fc366fabdcefab6ebea91349e",
+    "tauri/native-regression/card-surfaces/main.tsx": "e3acf19fa36408ef16ad6acafcdb26dec36cf238f578291660df56a203473e79",
+    "tauri/native-regression/card-surfaces/fixture.css": "ffeeef030b2cb17c3eabcdb6772374c7d7682ee4a01e3ee1cb9029360f79c7b5",
+    "tauri/native-regression/card-surfaces/README.md": "dd8daceefaeeddee2fd0439a5be509225c7a85a00b86933556c560303bc93a75",
+    "tauri/scripts/build-card-surface-fixture.mjs": "13163f86d5595785ab34a996048bcbc649fc71cc6e00f20e4198a6fea5facb79",
+    "tauri/src/components/ui/Card.tsx": "dd92f40093d96975402f389f294b8568ea6c6478594c82763f6a46e534a5a727",
+    "tauri/src/components/ui/Card.module.css": "ea5a064ddfe57d2f606c7718501f23592cf40c993b899382f1b610096870b2e4",
+    "tauri/src/components/ui/CardGrid.tsx": "7f07ca0113ec9a32ffd9367d6fc40c62273aa5f005a2243a5785ee3bf823b638",
+    "tauri/src/components/ui/CardGrid.module.css": "861b8f46b32f48236614052ae6a32e1a46896a9b4d4e35cca711ba81e94c719a",
+    "tauri/src/lib/androidMaterial.ts": "45698fc6056abb0da024bfe7e00d4e660578e29c759648d81c985288d8f972fc",
+    "tauri/src/styles/tokens.css": "d43292dc8edf8b639a9b3268607a882b8b26347f74c3de41bfee37277199bcc3",
+    "tauri/src/styles/global.css": "38702160e25648c21ed13cf47ca5fdb9960a4c1217f2a289505804d0d91d8cd5",
+    "tauri/src/styles/themes.css": "bf661394eff0d15fe3410fa0e76ec5d9282b0f1448685854ac60f252148010d6",
+    "tauri/src/styles/android.css": "e10cdfc7cc759cff447a77584d5fa6971f86a28c194dbf609d1318deaf929d76",
+    "tauri/src/styles/macos-glass.css": "c7fea93717a84ee07ebe9d7b2aac30fe2f41ada2cb04188dd65efd5b1a2f2994",
+    "tauri/src/styles/windows-material.css": "a642e2453e1fb5ad5edf58f0297ee791f213f32b8af30d264964b43b8866a823",
+    "tauri/src-tauri/src/commands/window.rs": "09dc146bd2bf29cb8ec88538d21d23bc99cab3033589fb20c39122443fbd3905",
+    "tauri/src-tauri/src/commands/window/windows.rs": "4d19f5653dcfb69e42e0afbe17a648dc0a0270903800ca0478e86a8484ce6040",
+    "tauri/src-tauri/tauri.windows.conf.json": "f3f617646f1fb25cf1488af2211be9225242b7446e95644de70278853202af3c",
+    "tauri/src-tauri/Cargo.toml": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e",
+    "tauri/Cargo.lock": "eaecbdecd19fcbeddb9d3d9cf5d216f06e6c56ff32cb84aaeabde21c97d74fd5",
+    "exe": "470a928f90722425cfeb3f6ac613429582f5d94a2f8e17e346295a55965aac55",
+    "html": "f8841dd982e0c8dfb53a1b22821b1be5b60df8cb50ecb9ef11ac481dd477f55c"
+  },
+  "run": {
+    "command": [
+      "C:\\Users\\40299571\\SoloSoul\\tauri\\target\\debug\\examples\\windows_card_surfaces.exe",
+      "--card-fixture",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\card-surfaces-final.html",
+      "--output",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-03",
+      "--expect",
+      "mica"
+    ],
+    "pid": 28100,
+    "exit": 0,
+    "seconds": 9.767287299968302,
+    "negative_input_exit": 1,
+    "process_snapshot_exit": 0,
+    "executable_sha256": "470a928f90722425cfeb3f6ac613429582f5d94a2f8e17e346295a55965aac55",
+    "html_sha256": "f8841dd982e0c8dfb53a1b22821b1be5b60df8cb50ecb9ef11ac481dd477f55c",
+    "output": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-03",
+    "system_settings_modified": false,
+    "date": "2026-10-03"
+  },
+  "samples": [
+    {
+      "sample": "initial-light",
+      "theme": "light",
+      "frames": 7,
+      "backdrop_type": 2,
+      "window_theme": "light",
+      "webview_alpha": 0,
+      "runtime_version": "154.0.4258.48",
+      "card_pixels": [
+        {
+          "actual": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "expected": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "surface": "default",
+          "x": 196,
+          "y": 113
+        },
+        {
+          "actual": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "expected": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "surface": "floating",
+          "x": 474,
+          "y": 113
+        }
+      ]
+    },
+    {
+      "sample": "initial-dark",
+      "theme": "dark",
+      "frames": 12,
+      "backdrop_type": 2,
+      "window_theme": "dark",
+      "webview_alpha": 0,
+      "runtime_version": "154.0.4258.48",
+      "card_pixels": [
+        {
+          "actual": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "expected": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "surface": "default",
+          "x": 196,
+          "y": 113
+        },
+        {
+          "actual": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "expected": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "surface": "floating",
+          "x": 474,
+          "y": 113
+        }
+      ]
+    },
+    {
+      "sample": "hide-show-light",
+      "theme": "light",
+      "frames": 12,
+      "backdrop_type": 2,
+      "window_theme": "light",
+      "webview_alpha": 0,
+      "runtime_version": "154.0.4258.48",
+      "card_pixels": [
+        {
+          "actual": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "expected": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "surface": "default",
+          "x": 196,
+          "y": 113
+        },
+        {
+          "actual": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "expected": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "surface": "floating",
+          "x": 474,
+          "y": 113
+        }
+      ]
+    },
+    {
+      "sample": "hide-show-dark",
+      "theme": "dark",
+      "frames": 12,
+      "backdrop_type": 2,
+      "window_theme": "dark",
+      "webview_alpha": 0,
+      "runtime_version": "154.0.4258.48",
+      "card_pixels": [
+        {
+          "actual": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "expected": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "surface": "default",
+          "x": 196,
+          "y": 113
+        },
+        {
+          "actual": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "expected": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "surface": "floating",
+          "x": 474,
+          "y": 113
+        }
+      ]
+    },
+    {
+      "sample": "resize-light",
+      "theme": "light",
+      "frames": 12,
+      "backdrop_type": 2,
+      "window_theme": "light",
+      "webview_alpha": 0,
+      "runtime_version": "154.0.4258.48",
+      "card_pixels": [
+        {
+          "actual": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "expected": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "surface": "default",
+          "x": 196,
+          "y": 113
+        },
+        {
+          "actual": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "expected": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "surface": "floating",
+          "x": 452,
+          "y": 113
+        }
+      ]
+    },
+    {
+      "sample": "resize-dark",
+      "theme": "dark",
+      "frames": 12,
+      "backdrop_type": 2,
+      "window_theme": "dark",
+      "webview_alpha": 0,
+      "runtime_version": "154.0.4258.48",
+      "card_pixels": [
+        {
+          "actual": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "expected": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "surface": "default",
+          "x": 196,
+          "y": 113
+        },
+        {
+          "actual": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "expected": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "surface": "floating",
+          "x": 452,
+          "y": 113
+        }
+      ]
+    },
+    {
+      "sample": "minimize-restore-light",
+      "theme": "light",
+      "frames": 11,
+      "backdrop_type": 2,
+      "window_theme": "light",
+      "webview_alpha": 0,
+      "runtime_version": "154.0.4258.48",
+      "card_pixels": [
+        {
+          "actual": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "expected": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "surface": "default",
+          "x": 196,
+          "y": 113
+        },
+        {
+          "actual": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "expected": [
+            253,
+            252,
+            249,
+            255
+          ],
+          "surface": "floating",
+          "x": 452,
+          "y": 113
+        }
+      ]
+    },
+    {
+      "sample": "minimize-restore-dark",
+      "theme": "dark",
+      "frames": 11,
+      "backdrop_type": 2,
+      "window_theme": "dark",
+      "webview_alpha": 0,
+      "runtime_version": "154.0.4258.48",
+      "card_pixels": [
+        {
+          "actual": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "expected": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "surface": "default",
+          "x": 196,
+          "y": 113
+        },
+        {
+          "actual": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "expected": [
+            42,
+            38,
+            32,
+            255
+          ],
+          "surface": "floating",
+          "x": 452,
+          "y": 113
+        }
+      ]
+    }
+  ],
+  "current_system": {
+    "transparency_enabled": true,
+    "high_contrast": false,
+    "reduce_motion": false,
+    "settings_modified": false
+  },
+  "failures_preserved": [
+    {
+      "run": "01",
+      "exit": 1,
+      "reason": "Appearance comparison treated JS integer 0 as unequal to serde f64 0.0.",
+      "fixed": "Exact identity/boolean checks plus numerical comparison of two geometry fields; added wrong type/value/missing/extra-field regressions."
+    },
+    {
+      "run": "02",
+      "exit": 1,
+      "reason": "DwmGetWindowAttribute rejected the original aggregate query with E_INVALIDARG. The loop included documented set-only dark/caption attributes.",
+      "fixed": "Query only documented gettable SYSTEMBACKDROP_TYPE; use Tauri window theme; keep caption-color/immersive-DWM-color readback unverified."
+    }
+  ],
+  "checks": {
+    "fixture": [
+      {
+        "name": "fixture-types",
+        "command": [
+          "node",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "native-regression/card-surfaces/tsconfig.json"
+        ],
+        "exit": 0,
+        "seconds": 1.5621225833892822
+      },
+      {
+        "name": "fixture-lint",
+        "command": [
+          "node",
+          "node_modules/eslint/bin/eslint.js",
+          "native-regression/card-surfaces/main.tsx"
+        ],
+        "exit": 0,
+        "seconds": 23.851590394973755
+      },
+      {
+        "name": "fixture-build",
+        "command": [
+          "node",
+          "scripts/build-card-surface-fixture.mjs",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\card-surfaces.html"
+        ],
+        "exit": 0,
+        "seconds": 2.4153060913085938
+      }
+    ],
+    "fixture_final": {
+      "command": [
+        "node",
+        "scripts/build-card-surface-fixture.mjs",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\card-surfaces-final.html"
+      ],
+      "exit": 0,
+      "seconds": 3.6639512004330754,
+      "bytes": 249034,
+      "sha256": "f8841dd982e0c8dfb53a1b22821b1be5b60df8cb50ecb9ef11ac481dd477f55c",
+      "matches_previous_html": true
+    },
+    "rust": [
+      {
+        "name": "rf121-supported-fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all"
+        ],
+        "exit": 0,
+        "seconds": 3.22719409968704
+      },
+      {
+        "name": "rf121-supported-tests",
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--features",
+          "native-perf",
+          "--example",
+          "windows_card_surfaces"
+        ],
+        "exit": 0,
+        "seconds": 40.41840979922563
+      },
+      {
+        "name": "rf121-supported-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--features",
+          "native-perf",
+          "--example",
+          "windows_card_surfaces",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "seconds": 7.801616000011563
+      },
+      {
+        "name": "rf121-supported-build",
+        "command": [
+          "cargo",
+          "build",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--features",
+          "native-perf",
+          "--example",
+          "windows_card_surfaces"
+        ],
+        "exit": 0,
+        "seconds": 32.93647299986333
+      },
+      {
+        "name": "rf121-supported-fmt-check",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--check"
+        ],
+        "exit": 0,
+        "seconds": 3.1999765001237392
+      }
+    ],
+    "targeted_rust_tests": {
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0
+    },
+    "production_rust": "This turn RF-1071 full workspace 1858 passed/0 failed/3 original ignored; native-perf 28 passed. Production Rust unchanged after those checks; only this independent example changed. See rf1071-native-rag-imports-2026-10-03.json.",
+    "frontend_business": "No production React/TS/CSS modified. Prior F/WEB evidence retained, not claimed as a new run or other-platform native rerun.",
+    "prettier": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "native-regression/card-surfaces/main.tsx",
+        "native-regression/card-surfaces/fixture.css"
+      ],
+      "exit": 0,
+      "seconds": 0.5250476999208331
+    }
+  },
+  "screenshots_reviewed": [
+    "run-03/initial-light.png",
+    "run-03/initial-dark.png",
+    "run-03/resize-dark.png",
+    "run-03/minimize-restore-light.png"
+  ],
+  "limitations": [
+    "Synthetic navigation/content layout; not full Sidebar/AppBar",
+    "No all-text pixel proof or transient restoration black-frame proof",
+    "Only actual current host accessibility settings",
+    "DWM caption color/immersive dark mode are set-only; no visual titlebar-color proof",
+    "Other-platform accessibility matrices still pending",
+    "PNG contains WebView pixels only; the synthetic navigation capture cannot prove actual composited Mica color.",
+    "Overflow checks cover horizontal wrapping, not every vertical pixel or all text contrast.",
+    "No high-contrast or transparency-off Windows run; no global preference toggled.",
+    "No full production Sidebar/AppBar or other-platform native rerun claimed.",
+    "RF-122 through RF-127 remain gated by RF-121; no task closure or overall goal completion."
+  ],
+  "official_api_reference": "https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute",
+  "performanceMetrics": null,
+  "process_cleanup": {
+    "checkedAt": "2026-10-02T23:21:23.5696909Z",
+    "scope": "fresh CIM independent example and all three owned profile paths",
+    "ownedLiveCount": 0,
+    "processes": []
+  },
+  "artifacts": [
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-01/initial-light-dom.json",
+      "bytes": 1436,
+      "sha256": "2fe46f34835b6f1300a4c92897c9f36c927d5c3020542a810bb04676fcda5114"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-01/result.json",
+      "bytes": 107,
+      "sha256": "8b4735b8ed356944296f1df7b8b7181389891435e2a7875dc7f0b23a6b8eaa7c"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-01/rf121-windows-native-current-01.log.gz",
+      "bytes": 67,
+      "sha256": "5d6878f2f53cd1a0696b6ccee4b07e1f4200bb1a295e168dd966dd949b0761cf",
+      "original_bytes": 47,
+      "original_sha256": "fff04a373e1f35726752d27d3c488bc3e0bed08dc3b882ff81af8aa84a72b568"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-01/rf121-windows-native-current-01-run.json",
+      "bytes": 875,
+      "sha256": "b9580562be4dce2800d51870f641b91eabbb20c51c90c4106a22042ab36bdb01"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-01/rf121-live-processes.json",
+      "bytes": 7629,
+      "sha256": "8f1d24bcf6fc9d882748c1e08a66aaf5afaca39963715aab92b3e802353aa1db"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-01/rf121-negative-input.log.gz",
+      "bytes": 64,
+      "sha256": "c8794718f71bef90f24485987efcc23666188af9e80a2b0939b1940e3d96a403",
+      "original_bytes": 44,
+      "original_sha256": "17609991c490143bf0b898491d0ab922033b1e5dc8fff3d9beec6f9c920e4977"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-02/initial-light-dom.json",
+      "bytes": 1437,
+      "sha256": "f2c06f2a41820965b77e59c6422afeba5792159c74305424c083e49a77668f83"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-02/result.json",
+      "bytes": 107,
+      "sha256": "b91497eaf122b15cbdb46c968f9e73eaf777f89ae397ea981849a2c6328a0b05"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-02/rf121-windows-native-current-02.log.gz",
+      "bytes": 67,
+      "sha256": "87754acdbe48b3c77666df15026c0ef7d9d5eded713c490fe1c422bdf24d05da",
+      "original_bytes": 47,
+      "original_sha256": "9f8fce659655916fc0e6ca0a7fedd5911b3e12760f48f5e0391dabdc49127f47"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-02/rf121-windows-native-current-02-run.json",
+      "bytes": 874,
+      "sha256": "8f1c8b1aebf2f788fee8b0d9899139da4b8e8f71e1889eae50c05a78e499ac0c"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-02/rf121-live-processes-02.json",
+      "bytes": 8576,
+      "sha256": "783b9be206c8789f475fa5bab15337ed12578869a8f9d0792bd29c38534472e4"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-02/rf121-negative-input-02.log.gz",
+      "bytes": 64,
+      "sha256": "c8794718f71bef90f24485987efcc23666188af9e80a2b0939b1940e3d96a403",
+      "original_bytes": 44,
+      "original_sha256": "17609991c490143bf0b898491d0ab922033b1e5dc8fff3d9beec6f9c920e4977"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/hide-show-dark-dom.json",
+      "bytes": 1425,
+      "sha256": "4f15d07973f8e1809d33b71219171060824bda94ba0f9701400ecbe079f97946"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/hide-show-dark-native.json",
+      "bytes": 509,
+      "sha256": "98e06b3c108fb48b89e89ba165e4807eef33b85a234f83dfbd54721946047d08"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/hide-show-dark.png",
+      "bytes": 87182,
+      "sha256": "ac43bc9921bb3090ba06742e14b75f13115787c5196c48cf8d7b5729d62e130b"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/hide-show-light-dom.json",
+      "bytes": 1439,
+      "sha256": "d731102d177eecf5fa9aeed7dbd12794ec7b04a9bc6f7ae1c9cc3b77b07e9aa3"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/hide-show-light-native.json",
+      "bytes": 513,
+      "sha256": "74d9944d3e9c53ad1d123a77ad963f94e83cfacedd055261d826bd96ba48808d"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/hide-show-light.png",
+      "bytes": 86037,
+      "sha256": "206dc0da989848658c7bcbd2f6f64d4e39b01134d31dd5b7841f6020731ddff6"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/initial-dark-dom.json",
+      "bytes": 1423,
+      "sha256": "f85cfbd6ef31b9eca5708f34909e32a46fbe713aa318902a712bf4f4a050ce38"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/initial-dark-native.json",
+      "bytes": 509,
+      "sha256": "98e06b3c108fb48b89e89ba165e4807eef33b85a234f83dfbd54721946047d08"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/initial-dark.png",
+      "bytes": 86927,
+      "sha256": "5137190ee14ecf58ea1910f7a0204c4059aaa12f184777640a75c21d92e85615"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/initial-light-dom.json",
+      "bytes": 1436,
+      "sha256": "2fe46f34835b6f1300a4c92897c9f36c927d5c3020542a810bb04676fcda5114"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/initial-light-native.json",
+      "bytes": 513,
+      "sha256": "74d9944d3e9c53ad1d123a77ad963f94e83cfacedd055261d826bd96ba48808d"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/initial-light.png",
+      "bytes": 85762,
+      "sha256": "828f5f150e577a5139f81df576ffdd493e7ce2dac29ee532887b09e990b3669e"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/minimize-restore-dark-dom.json",
+      "bytes": 1406,
+      "sha256": "4c5a9962f9285bc25b3b931ce3a51bafe251f722ab3100a93921fc46a0122b97"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/minimize-restore-dark-native.json",
+      "bytes": 508,
+      "sha256": "e0a2f6eab26f46e138e83ae01cabb37dc8713635c6bf6cd951df4699c67cd1b8"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/minimize-restore-dark.png",
+      "bytes": 79162,
+      "sha256": "4171e7c923520f2dbf9ae77b6af39064651692fbbd4d318e70ef4d35ffe9859a"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/minimize-restore-light-dom.json",
+      "bytes": 1420,
+      "sha256": "566f19c9860ecd85fba03d7948bf7617e324bc3d68576cd2e8fb9a4660f7ca85"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/minimize-restore-light-native.json",
+      "bytes": 512,
+      "sha256": "96a0f550645de064885960c71c8f97031e358ec2667c3682035b0f32a89d1d1e"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/minimize-restore-light.png",
+      "bytes": 78822,
+      "sha256": "2566bbe09b74e238e2efd15f26be0317d39701014408373243a2ae88b19d290c"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/resize-dark-dom.json",
+      "bytes": 1396,
+      "sha256": "0071419fc74afdc651044f3ae9974785950f7c96f43cc2e9254f27a89d7af65e"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/resize-dark-native.json",
+      "bytes": 508,
+      "sha256": "e0a2f6eab26f46e138e83ae01cabb37dc8713635c6bf6cd951df4699c67cd1b8"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/resize-dark.png",
+      "bytes": 79056,
+      "sha256": "8d3fe3952165abbaa77695f8455a3a2062447ce78287ca20f6ad7a712cd5c96e"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/resize-light-dom.json",
+      "bytes": 1410,
+      "sha256": "2cfd7b057f0d23e97a2dbad62c8c3b7e94e1df9094588cd2b89009b2278e823e"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/resize-light-native.json",
+      "bytes": 512,
+      "sha256": "96a0f550645de064885960c71c8f97031e358ec2667c3682035b0f32a89d1d1e"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/resize-light.png",
+      "bytes": 78857,
+      "sha256": "368e4ff25fd6cfdea23130d5219cbee212352316145622477f2da66116c7e4a2"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/result.json",
+      "bytes": 26974,
+      "sha256": "a5a36e9a6c8809be778ff2f9dabe31ed3c8d862dd8654986b7f58af9a0d53ed5"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/rf121-windows-native-current-03.log.gz",
+      "bytes": 145,
+      "sha256": "93cc55e94d501045ee18368f93656adf8f71d7aaf3ab7251837437e0389de642",
+      "original_bytes": 244,
+      "original_sha256": "b5fc83e29dac1982ab2bad38adf696a97a1f5470fffe5ee0db10250c92170de2"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/rf121-windows-native-current-03-run.json",
+      "bytes": 875,
+      "sha256": "d83fbc44d8285e99aeea327e06c21723c80aa5662f53052ed45624fb446c7cea"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/rf121-live-processes-03.json",
+      "bytes": 8581,
+      "sha256": "f05bfad18d01787f7d8605b745b58bd3cb5b7041822f334c6ebe6ef02fc0c1e7"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/run-03/rf121-negative-input-03.log.gz",
+      "bytes": 64,
+      "sha256": "c8794718f71bef90f24485987efcc23666188af9e80a2b0939b1940e3d96a403",
+      "original_bytes": 44,
+      "original_sha256": "17609991c490143bf0b898491d0ab922033b1e5dc8fff3d9beec6f9c920e4977"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/host.json",
+      "bytes": 296,
+      "sha256": "b5c1e3eb44a5b985c9b3f0a92d7d1f97b7c8b4a4ee7bc8057ca40dccbfb37791"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/host-cim.json",
+      "bytes": 203,
+      "sha256": "5ee9b213a799555b3e831610703667d23d717e9a8fc15ba789f5b106b4613933"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-final-process-cleanup.json",
+      "bytes": 176,
+      "sha256": "4275eb6604e6ca84e24123f09f56a99eb09e8f08ee0ef933a52e163707abad3c"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-windows-inputs.json",
+      "bytes": 2495,
+      "sha256": "c72f221c92e8349cb01b0106f95f9512bea698166e3e11a8d319bd735972a1b9"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-windows-inputs-roundtrip.json",
+      "bytes": 2495,
+      "sha256": "9f3cdc81407bf35c785f7cd3436bef42c67c7fcf4414ce9bf16a55a5e8cd9adf"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-windows-inputs-supported.json",
+      "bytes": 2495,
+      "sha256": "188a839e53746a57bf9e7ef336466816c838edcba1edf382c7140823123f9ef9"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/fixture-checks.json",
+      "bytes": 771,
+      "sha256": "2d4cfebfe3827bfae1130edb0ea0c4895cf63501ca35cda84ae8be7e7fab18f5"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-fixture-final-build.json",
+      "bytes": 370,
+      "sha256": "f64b25355286f6ef0f9340a9e3c57fc7ed4be643f412a97bbb05ac46304e4732"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf1071-followup-checks.json",
+      "bytes": 1188,
+      "sha256": "325485c237908e0a22053116e9fc726d7f348f58b2966ff42ca71f96913c8d74"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-roundtrip-checks.json",
+      "bytes": 1320,
+      "sha256": "368ef2020259465505631968afff09a605256de52d31a80bb546b8bfd951043d"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-supported-checks.json",
+      "bytes": 1318,
+      "sha256": "c0d7b8c288b239648262d992a4d10612bd4bc3c032959db5f36216f4a38807c4"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/fixture-types.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "original_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/fixture-lint.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "original_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/fixture-build.log.gz",
+      "bytes": 227,
+      "sha256": "9fa6029b157c417dfb6b79b94f71201cdf8f2addfcd3efe3d8505ed9c7f1f841",
+      "original_bytes": 256,
+      "original_sha256": "613331694f1078408972d6eba36b62976ec12b029cb9ad0cbc9380381644d7ba"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-fixture-final-build.log.gz",
+      "bytes": 231,
+      "sha256": "138cd0da76b57b0fb831f503361c6a5cd7610c0e4c5c387ff9c50eb4349eb2b6",
+      "original_bytes": 262,
+      "original_sha256": "34ca92224e64a4c29521713bcbe806680d6106e964d44ff63d336dfad926ff84"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-example-tests-final.log.gz",
+      "bytes": 354,
+      "sha256": "98c5aa58833235e04382cb66b3ed6be2416dff93f267350654b337f3ec2aa4df",
+      "original_bytes": 575,
+      "original_sha256": "bb3bd918cf2918f5b90916770ddafd813348dae4c0b5c37c9fe6f62964f5cc2c"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-example-build.log.gz",
+      "bytes": 150,
+      "sha256": "470ade8d12a687496f7265c81d2e2ea1f35bf0bb6f4dabb620add3b0d5280796",
+      "original_bytes": 147,
+      "original_sha256": "12a8939e8e29a57cfb99c9a1de836a28b40b16e27211e1e3711e30959c690b4e"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-example-tests-roundtrip.log.gz",
+      "bytes": 399,
+      "sha256": "52f171308e114c341af21789e63ae2151f9a2fffc884a8f8c41337a01127eb8b",
+      "original_bytes": 673,
+      "original_sha256": "2334e25f1911511737e676289cfd4b4a88916dea470f7a1c5ed2ff21d49db843"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-clippy-roundtrip.log.gz",
+      "bytes": 150,
+      "sha256": "7d9ed5d8cf2b47a33aa7f08539beaad727e14822f64b870f40d1154d85c739f4",
+      "original_bytes": 147,
+      "original_sha256": "2c245953f4ab9bce66ea91fb48eed232e2caa3038c5b7e6a3db49cef77bafca3"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-build-roundtrip.log.gz",
+      "bytes": 150,
+      "sha256": "c4162a9e89c358a8ebfc824863abc743a93c3ad937725e41821f940747671203",
+      "original_bytes": 147,
+      "original_sha256": "e4b2a0f6c2e04444caedd66779c71c9b71a4437ca3a3bb89d15e8531adf21503"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-supported-tests.log.gz",
+      "bytes": 399,
+      "sha256": "90b7d83ef59e04874b195b3d9b8d0b2bae74289a5575b128707b4f14e865e1e8",
+      "original_bytes": 673,
+      "original_sha256": "5b70bb7b43b6b6f0fe2f442a732e713ce01cf3e5a92babcc493ff3ea61d6315b"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-supported-clippy.log.gz",
+      "bytes": 149,
+      "sha256": "56085647bcbd3167132f7be1dcab6384c7fa517ecca57bb001520091c4884c7e",
+      "original_bytes": 146,
+      "original_sha256": "70b99d9ca51ecdb16c26c3c2bfa300662031dfb5627dd3a6dcc319158079338f"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-supported-build.log.gz",
+      "bytes": 149,
+      "sha256": "3e4bd6087d0562ef53710b615ae7840f04d73cac04591e60a345da5a39498490",
+      "original_bytes": 147,
+      "original_sha256": "25e19ced4cd201ed88e536c6b1abe824fbf11f83a2d042dc88eb2508edf6fd9c"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-supported-fmt-check.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "original_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/card-surfaces.html.gz",
+      "bytes": 71447,
+      "sha256": "d9d8d6a38b7b3dd8a4ad0813bcf84d2af55bf1cdc59b595c3c9f2c40f45069b0",
+      "original_bytes": 249034,
+      "original_sha256": "f8841dd982e0c8dfb53a1b22821b1be5b60df8cb50ecb9ef11ac481dd477f55c"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-final-scope-doc.json",
+      "bytes": 433,
+      "sha256": "a8cae7b1c5089ec99855452a0fc5b5634fcd3d8ab532dc4b59bae13d5c8d70b5"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-profile-cleanup.json",
+      "bytes": 776,
+      "sha256": "de89240ae786510b49cc49b7a3da82013b8b68ff75e3aa9a3d19a75ccabaf9da"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-prettier-final.json",
+      "bytes": 249,
+      "sha256": "f2236873fd2f09c03712459ba456c58dd3db2e2c493aca9c853a8e993941c6cf"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/rf121-prettier-final.log.gz",
+      "bytes": 82,
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "original_bytes": 66,
+      "original_sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/verification/rf121-windows-native-checkpoint-2026-10-03/baseline-before.json.gz",
+      "bytes": 104181,
+      "sha256": "cdad913fd4e8ac0304a2c6debf3235b632be1980d24a4d5a0d58ba37b392a6cb",
+      "original_sha256": "f9ad684fd7155a22b37b40fc572eafaecb54ef2950894a437ea0c4548026b476"
+    }
+  ],
+  "pushed": false,
+  "scope_doc_checks": {
+    "unowned_raw_checked": 2132,
+    "unowned_changes": [],
+    "rag_matches_rf1071_commit": true,
+    "tasks": 261,
+    "closed": 249,
+    "waiting": 5,
+    "pending": 7,
+    "new_links_exist": true,
+    "diff_check_exit": 0,
+    "stash": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90 On main: preserve-local-changes-before-github-push-2026-10-02",
+    "markdown_boundary": "earlier this turn exit0; 13 dependencies; implementation unchanged"
+  },
+  "profile_cleanup": {
+    "scope": "only three exact owned fresh profiles; resolved containment checked; reparse entries detached without following",
+    "profiles": [
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-01\\webview-profile",
+        "detached_reparse_entries": [],
+        "removed": true
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-02\\webview-profile",
+        "detached_reparse_entries": [],
+        "removed": true
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-03\\webview-profile",
+        "detached_reparse_entries": [],
+        "removed": true
+      }
+    ]
+  },
+  "post_run_documentation_sha256": {
+    "docs/design_map/10_跨平台视觉规范与主题系统.md": "fa6e761d3aeefcb2cd315011dd7bac91bef0ea352d2962388d18c0b97bc435aa",
+    "docs/design_map/27_平台能力契约.md": "c9c07e3f7af45eed4ac6c305ea52c8e70090963a6ba7132b420302c4442d498e",
+    "tauri/native-regression/card-surfaces/README.md": "4e2132ebe8c5d075cf02b3bce4cf25c21af8a3bb5179b4fd2c4194633eaf5021"
+  }
+}

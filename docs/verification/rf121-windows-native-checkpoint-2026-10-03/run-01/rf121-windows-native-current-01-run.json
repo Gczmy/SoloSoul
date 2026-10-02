@@ -1,0 +1,21 @@
+{
+  "command": [
+    "C:\\Users\\40299571\\SoloSoul\\tauri\\target\\debug\\examples\\windows_card_surfaces.exe",
+    "--card-fixture",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\card-surfaces-final.html",
+    "--output",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-01",
+    "--expect",
+    "mica"
+  ],
+  "pid": 31584,
+  "exit": 1,
+  "seconds": 4.073285799473524,
+  "negative_input_exit": 1,
+  "process_snapshot_exit": 0,
+  "executable_sha256": "2de9c4a59f799ead46f56568587b70bb8370622260505ab0d47d21fde6ee2215",
+  "html_sha256": "f8841dd982e0c8dfb53a1b22821b1be5b60df8cb50ecb9ef11ac481dd477f55c",
+  "output": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-01",
+  "system_settings_modified": false,
+  "date": "2026-10-03"
+}

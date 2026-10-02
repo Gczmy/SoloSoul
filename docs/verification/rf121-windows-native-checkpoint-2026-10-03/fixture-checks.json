@@ -1,0 +1,34 @@
+[
+  {
+    "name": "fixture-types",
+    "command": [
+      "node",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "-p",
+      "native-regression/card-surfaces/tsconfig.json"
+    ],
+    "exit": 0,
+    "seconds": 1.5621225833892822
+  },
+  {
+    "name": "fixture-lint",
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      "native-regression/card-surfaces/main.tsx"
+    ],
+    "exit": 0,
+    "seconds": 23.851590394973755
+  },
+  {
+    "name": "fixture-build",
+    "command": [
+      "node",
+      "scripts/build-card-surface-fixture.mjs",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\card-surfaces.html"
+    ],
+    "exit": 0,
+    "seconds": 2.4153060913085938
+  }
+]

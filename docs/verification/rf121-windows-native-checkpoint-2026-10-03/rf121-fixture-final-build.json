@@ -1,0 +1,12 @@
+{
+  "command": [
+    "node",
+    "scripts/build-card-surface-fixture.mjs",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\card-surfaces-final.html"
+  ],
+  "exit": 0,
+  "seconds": 3.6639512004330754,
+  "bytes": 249034,
+  "sha256": "f8841dd982e0c8dfb53a1b22821b1be5b60df8cb50ecb9ef11ac481dd477f55c",
+  "matches_previous_html": true
+}

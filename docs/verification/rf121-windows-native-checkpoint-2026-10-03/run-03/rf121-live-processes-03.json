@@ -1,0 +1,54 @@
+{
+    "rootPid":  28100,
+    "processes":  [
+                      {
+                          "ProcessId":  28100,
+                          "ParentProcessId":  43980,
+                          "Name":  "windows_card_surfaces.exe",
+                          "CreationDate":  "\/Date(1790983172966)\/",
+                          "CommandLine":  "C:\\Users\\40299571\\SoloSoul\\tauri\\target\\debug\\examples\\windows_card_surfaces.exe --card-fixture C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\card-surfaces-final.html --output C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-03 --expect mica"
+                      },
+                      {
+                          "ProcessId":  39088,
+                          "ParentProcessId":  28100,
+                          "Name":  "msedgewebview2.exe",
+                          "CreationDate":  "\/Date(1790983173086)\/",
+                          "CommandLine":  "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.48\\msedgewebview2.exe\" --embedded-browser-webview=1 --webview-exe-name=windows_card_surfaces.exe --user-data-dir=\"C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-03\\webview-profile\\EBWebView\" --noerrdialogs --embedded-browser-webview-dpi-awareness=2 --autoplay-policy=no-user-gesture-required --disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --lang=en-GB --mojo-named-platform-channel-pipe=28100.41392.3985441426942761442 /pfhostedapp:cf69caa412fc492a60f6f7b2c4a2d7260a7edb92"
+                      },
+                      {
+                          "ProcessId":  34420,
+                          "ParentProcessId":  39088,
+                          "Name":  "msedgewebview2.exe",
+                          "CreationDate":  "\/Date(1790983173203)\/",
+                          "CommandLine":  "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.48\\msedgewebview2.exe\" --type=crashpad-handler --user-data-dir=C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-03\\webview-profile\\EBWebView /prefetch:4 /pfhostedapp:cf69caa412fc492a60f6f7b2c4a2d7260a7edb92 --monitor-self-annotation=ptype=crashpad-handler --database=C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-03\\webview-profile\\EBWebView\\Crashpad --metrics-dir=C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-03\\webview-profile\\EBWebView --annotation=IsOfficialBuild=1 --annotation=channel= --annotation=chromium-version=154.0.8037.58 \"--annotation=exe=C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.48\\msedgewebview2.exe\" --annotation=plat=Win64 \"--annotation=prod=Edge WebView2\" --annotation=ver=154.0.4258.48 --initial-client-data=0x19c,0x1a0,0x1a4,0x178,0x1ac,0x7ffd810883e0,0x7ffd810883f0,0x7ffd81088400"
+                      },
+                      {
+                          "ProcessId":  19720,
+                          "ParentProcessId":  39088,
+                          "Name":  "msedgewebview2.exe",
+                          "CreationDate":  "\/Date(1790983173851)\/",
+                          "CommandLine":  "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.48\\msedgewebview2.exe\" --type=gpu-process --gpu-recent-crash-count=0 --noerrdialogs --user-data-dir=\"C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-03\\webview-profile\\EBWebView\" --webview-exe-name=windows_card_surfaces.exe --embedded-browser-webview=1 --embedded-browser-webview-dpi-awareness=2 --gpu-preferences=WAAAAAAAAADgAAAEAAAAAAAAAAAAAGAAQAAAAAAAAAADAAAAAAAAADgAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAKAAAAAAAAAAoAAAAAAAAAAgAAAAAAAAAEAAAAAIAAAABAAAAAAAAAAgAAAAAAAAACAAAAAAAAAA= --startup-read-main-dll --metrics-shmem-handle=2584,i,5594577099006554818,12853214244964538112,262144 --field-trial-handle=2768,i,16065954971550899022,6007189961339383016,262144 --disable-features=msPdfOOUI,msSmartScreenProtection,msWebOOUI --variations-seed-version --pseudonymization-salt-handle=2772,i,16574605707012111371,15871390937998052118,4 --trace-process-track-uuid=3190708988185955192 --mojo-platform-channel-handle=2764 /prefetch:2 /pfhostedapp:cf69caa412fc492a60f6f7b2c4a2d7260a7edb92"
+                      },
+                      {
+                          "ProcessId":  5520,
+                          "ParentProcessId":  39088,
+                          "Name":  "msedgewebview2.exe",
+                          "CreationDate":  "\/Date(1790983173853)\/",
+                          "CommandLine":  "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.48\\msedgewebview2.exe\" --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-GB --service-sandbox-type=none --noerrdialogs --user-data-dir=\"C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-03\\webview-profile\\EBWebView\" --webview-exe-name=windows_card_surfaces.exe --embedded-browser-webview=1 --embedded-browser-webview-dpi-awareness=2 --startup-read-main-dll --metrics-shmem-handle=2956,i,6713001231981327890,3638010508425350730,524288 --field-trial-handle=2768,i,16065954971550899022,6007189961339383016,262144 --disable-features=msPdfOOUI,msSmartScreenProtection,msWebOOUI --variations-seed-version --pseudonymization-salt-handle=2772,i,16574605707012111371,15871390937998052118,4 --trace-process-track-uuid=3190708989122997041 --mojo-platform-channel-handle=2960 /prefetch:11 /pfhostedapp:cf69caa412fc492a60f6f7b2c4a2d7260a7edb92"
+                      },
+                      {
+                          "ProcessId":  18944,
+                          "ParentProcessId":  39088,
+                          "Name":  "msedgewebview2.exe",
+                          "CreationDate":  "\/Date(1790983173901)\/",
+                          "CommandLine":  "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.48\\msedgewebview2.exe\" --type=utility --utility-sub-type=storage.mojom.StorageService --lang=en-GB --service-sandbox-type=service --noerrdialogs --user-data-dir=\"C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-03\\webview-profile\\EBWebView\" --webview-exe-name=windows_card_surfaces.exe --embedded-browser-webview=1 --embedded-browser-webview-dpi-awareness=2 --startup-read-main-dll --metrics-shmem-handle=3304,i,9615172619417558294,4412364205959417980,524288 --field-trial-handle=2768,i,16065954971550899022,6007189961339383016,262144 --disable-features=msPdfOOUI,msSmartScreenProtection,msWebOOUI --variations-seed-version --pseudonymization-salt-handle=2772,i,16574605707012111371,15871390937998052118,4 --trace-process-track-uuid=3190708990060038890 --mojo-platform-channel-handle=3324 /prefetch:13 /pfhostedapp:cf69caa412fc492a60f6f7b2c4a2d7260a7edb92"
+                      },
+                      {
+                          "ProcessId":  35900,
+                          "ParentProcessId":  39088,
+                          "Name":  "msedgewebview2.exe",
+                          "CreationDate":  "\/Date(1790983174017)\/",
+                          "CommandLine":  "\"C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.48\\msedgewebview2.exe\" --type=renderer --noerrdialogs --user-data-dir=\"C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-03\\webview-profile\\EBWebView\" --webview-exe-name=windows_card_surfaces.exe --embedded-browser-webview=1 --embedded-browser-webview-dpi-awareness=2 --autoplay-policy=no-user-gesture-required --video-capture-use-gpu-memory-buffer --lang=en-GB --js-flags --device-scale-factor=1 --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=5 --ssd-no-pressure-read-main-dll --launch-time-ticks=4925911493957 --metrics-shmem-handle=4860,i,11587017948136647780,18322388142114306105,1048576 --field-trial-handle=2768,i,16065954971550899022,6007189961339383016,262144 --disable-features=msPdfOOUI,msSmartScreenProtection,msWebOOUI --variations-seed-version --pseudonymization-salt-handle=2772,i,16574605707012111371,15871390937998052118,4 --trace-process-track-uuid=3190708990997080739 --mojo-platform-channel-handle=4876 /pfhostedapp:cf69caa412fc492a60f6f7b2c4a2d7260a7edb92 /prefetch:1"
+                      }
+                  ]
+}

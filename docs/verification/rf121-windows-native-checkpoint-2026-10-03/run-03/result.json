@@ -1,0 +1,1056 @@
+{
+  "limitations": [
+    "Synthetic navigation/content layout; not full Sidebar/AppBar",
+    "No all-text pixel proof or transient restoration black-frame proof",
+    "Only actual current host accessibility settings",
+    "DWM caption color/immersive dark mode are set-only; no visual titlebar-color proof",
+    "Other-platform accessibility matrices still pending"
+  ],
+  "requestedMode": "mica",
+  "samples": [
+    {
+      "dom": {
+        "appearance": {
+          "highContrast": false,
+          "material": "mica",
+          "platform": "windows",
+          "reduceMotion": false,
+          "titlebarHeight": 0,
+          "trafficLightsRight": 0
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "expectedBackground": "rgb(253, 252, 249)",
+            "height": 556,
+            "overflow": false,
+            "pixelSample": {
+              "x": 196,
+              "y": 113
+            },
+            "surface": "default",
+            "visible": true,
+            "width": 262.65625,
+            "x": 184,
+            "y": 101
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "expectedBackground": "rgb(253, 252, 249)",
+            "height": 556,
+            "overflow": false,
+            "pixelSample": {
+              "x": 474.65625,
+              "y": 113
+            },
+            "surface": "floating",
+            "visible": true,
+            "width": 262.671875,
+            "x": 462.65625,
+            "y": 101
+          }
+        ],
+        "contentBackground": "rgb(250, 250, 246)",
+        "expectedBackground": "rgb(253, 252, 249)",
+        "focused": true,
+        "frameCount": 7,
+        "media": {
+          "forcedColors": false,
+          "reduceTransparency": false
+        },
+        "navigationBackground": "rgba(0, 0, 0, 0)",
+        "pageOverflow": false,
+        "platform": "windows",
+        "sampleId": "initial-light",
+        "theme": "light",
+        "viewport": {
+          "height": 749,
+          "width": 1028
+        },
+        "visibility": "visible"
+      },
+      "nativeFrame": {
+        "backdropType": 2,
+        "captionColorReadback": null,
+        "immersiveDarkModeReadback": null,
+        "physicalSize": {
+          "height": 749,
+          "width": 1028
+        },
+        "readbackLimit": "CAPTION_COLOR and USE_IMMERSIVE_DARK_MODE are documented set-only",
+        "scaleFactor": 1.0,
+        "systemCaption": true,
+        "windowTheme": "light"
+      },
+      "pixels": {
+        "height": 749,
+        "points": [
+          {
+            "actual": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "expected": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "surface": "default",
+            "x": 196,
+            "y": 113
+          },
+          {
+            "actual": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "expected": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "surface": "floating",
+            "x": 474,
+            "y": 113
+          }
+        ],
+        "scope": "actual WebView pixels; excludes DWM/non-client pixels",
+        "width": 1028
+      },
+      "sampleId": "initial-light",
+      "webview": {
+        "background": {
+          "alpha": 0,
+          "blue": 248,
+          "green": 250,
+          "red": 250
+        },
+        "runtimeVersion": "154.0.4258.48"
+      }
+    },
+    {
+      "dom": {
+        "appearance": {
+          "highContrast": false,
+          "material": "mica",
+          "platform": "windows",
+          "reduceMotion": false,
+          "titlebarHeight": 0,
+          "trafficLightsRight": 0
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "expectedBackground": "rgb(42, 38, 32)",
+            "height": 556,
+            "overflow": false,
+            "pixelSample": {
+              "x": 196,
+              "y": 113
+            },
+            "surface": "default",
+            "visible": true,
+            "width": 262.65625,
+            "x": 184,
+            "y": 101
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "expectedBackground": "rgb(42, 38, 32)",
+            "height": 556,
+            "overflow": false,
+            "pixelSample": {
+              "x": 474.65625,
+              "y": 113
+            },
+            "surface": "floating",
+            "visible": true,
+            "width": 262.671875,
+            "x": 462.65625,
+            "y": 101
+          }
+        ],
+        "contentBackground": "rgb(31, 28, 24)",
+        "expectedBackground": "rgb(42, 38, 32)",
+        "focused": true,
+        "frameCount": 12,
+        "media": {
+          "forcedColors": false,
+          "reduceTransparency": false
+        },
+        "navigationBackground": "rgba(0, 0, 0, 0)",
+        "pageOverflow": false,
+        "platform": "windows",
+        "sampleId": "initial-dark",
+        "theme": "dark",
+        "viewport": {
+          "height": 749,
+          "width": 1028
+        },
+        "visibility": "visible"
+      },
+      "nativeFrame": {
+        "backdropType": 2,
+        "captionColorReadback": null,
+        "immersiveDarkModeReadback": null,
+        "physicalSize": {
+          "height": 749,
+          "width": 1028
+        },
+        "readbackLimit": "CAPTION_COLOR and USE_IMMERSIVE_DARK_MODE are documented set-only",
+        "scaleFactor": 1.0,
+        "systemCaption": true,
+        "windowTheme": "dark"
+      },
+      "pixels": {
+        "height": 749,
+        "points": [
+          {
+            "actual": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "expected": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "surface": "default",
+            "x": 196,
+            "y": 113
+          },
+          {
+            "actual": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "expected": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "surface": "floating",
+            "x": 474,
+            "y": 113
+          }
+        ],
+        "scope": "actual WebView pixels; excludes DWM/non-client pixels",
+        "width": 1028
+      },
+      "sampleId": "initial-dark",
+      "webview": {
+        "background": {
+          "alpha": 0,
+          "blue": 30,
+          "green": 28,
+          "red": 28
+        },
+        "runtimeVersion": "154.0.4258.48"
+      }
+    },
+    {
+      "dom": {
+        "appearance": {
+          "highContrast": false,
+          "material": "mica",
+          "platform": "windows",
+          "reduceMotion": false,
+          "titlebarHeight": 0,
+          "trafficLightsRight": 0
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "expectedBackground": "rgb(253, 252, 249)",
+            "height": 556,
+            "overflow": false,
+            "pixelSample": {
+              "x": 196,
+              "y": 113
+            },
+            "surface": "default",
+            "visible": true,
+            "width": 262.65625,
+            "x": 184,
+            "y": 101
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "expectedBackground": "rgb(253, 252, 249)",
+            "height": 556,
+            "overflow": false,
+            "pixelSample": {
+              "x": 474.65625,
+              "y": 113
+            },
+            "surface": "floating",
+            "visible": true,
+            "width": 262.671875,
+            "x": 462.65625,
+            "y": 101
+          }
+        ],
+        "contentBackground": "rgb(250, 250, 246)",
+        "expectedBackground": "rgb(253, 252, 249)",
+        "focused": true,
+        "frameCount": 12,
+        "media": {
+          "forcedColors": false,
+          "reduceTransparency": false
+        },
+        "navigationBackground": "rgba(0, 0, 0, 0)",
+        "pageOverflow": false,
+        "platform": "windows",
+        "sampleId": "hide-show-light",
+        "theme": "light",
+        "viewport": {
+          "height": 749,
+          "width": 1028
+        },
+        "visibility": "visible"
+      },
+      "nativeFrame": {
+        "backdropType": 2,
+        "captionColorReadback": null,
+        "immersiveDarkModeReadback": null,
+        "physicalSize": {
+          "height": 749,
+          "width": 1028
+        },
+        "readbackLimit": "CAPTION_COLOR and USE_IMMERSIVE_DARK_MODE are documented set-only",
+        "scaleFactor": 1.0,
+        "systemCaption": true,
+        "windowTheme": "light"
+      },
+      "pixels": {
+        "height": 749,
+        "points": [
+          {
+            "actual": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "expected": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "surface": "default",
+            "x": 196,
+            "y": 113
+          },
+          {
+            "actual": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "expected": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "surface": "floating",
+            "x": 474,
+            "y": 113
+          }
+        ],
+        "scope": "actual WebView pixels; excludes DWM/non-client pixels",
+        "width": 1028
+      },
+      "sampleId": "hide-show-light",
+      "webview": {
+        "background": {
+          "alpha": 0,
+          "blue": 248,
+          "green": 250,
+          "red": 250
+        },
+        "runtimeVersion": "154.0.4258.48"
+      }
+    },
+    {
+      "dom": {
+        "appearance": {
+          "highContrast": false,
+          "material": "mica",
+          "platform": "windows",
+          "reduceMotion": false,
+          "titlebarHeight": 0,
+          "trafficLightsRight": 0
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "expectedBackground": "rgb(42, 38, 32)",
+            "height": 556,
+            "overflow": false,
+            "pixelSample": {
+              "x": 196,
+              "y": 113
+            },
+            "surface": "default",
+            "visible": true,
+            "width": 262.65625,
+            "x": 184,
+            "y": 101
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "expectedBackground": "rgb(42, 38, 32)",
+            "height": 556,
+            "overflow": false,
+            "pixelSample": {
+              "x": 474.65625,
+              "y": 113
+            },
+            "surface": "floating",
+            "visible": true,
+            "width": 262.671875,
+            "x": 462.65625,
+            "y": 101
+          }
+        ],
+        "contentBackground": "rgb(31, 28, 24)",
+        "expectedBackground": "rgb(42, 38, 32)",
+        "focused": true,
+        "frameCount": 12,
+        "media": {
+          "forcedColors": false,
+          "reduceTransparency": false
+        },
+        "navigationBackground": "rgba(0, 0, 0, 0)",
+        "pageOverflow": false,
+        "platform": "windows",
+        "sampleId": "hide-show-dark",
+        "theme": "dark",
+        "viewport": {
+          "height": 749,
+          "width": 1028
+        },
+        "visibility": "visible"
+      },
+      "nativeFrame": {
+        "backdropType": 2,
+        "captionColorReadback": null,
+        "immersiveDarkModeReadback": null,
+        "physicalSize": {
+          "height": 749,
+          "width": 1028
+        },
+        "readbackLimit": "CAPTION_COLOR and USE_IMMERSIVE_DARK_MODE are documented set-only",
+        "scaleFactor": 1.0,
+        "systemCaption": true,
+        "windowTheme": "dark"
+      },
+      "pixels": {
+        "height": 749,
+        "points": [
+          {
+            "actual": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "expected": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "surface": "default",
+            "x": 196,
+            "y": 113
+          },
+          {
+            "actual": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "expected": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "surface": "floating",
+            "x": 474,
+            "y": 113
+          }
+        ],
+        "scope": "actual WebView pixels; excludes DWM/non-client pixels",
+        "width": 1028
+      },
+      "sampleId": "hide-show-dark",
+      "webview": {
+        "background": {
+          "alpha": 0,
+          "blue": 30,
+          "green": 28,
+          "red": 28
+        },
+        "runtimeVersion": "154.0.4258.48"
+      }
+    },
+    {
+      "dom": {
+        "appearance": {
+          "highContrast": false,
+          "material": "mica",
+          "platform": "windows",
+          "reduceMotion": false,
+          "titlebarHeight": 0,
+          "trafficLightsRight": 0
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "expectedBackground": "rgb(253, 252, 249)",
+            "height": 766,
+            "overflow": false,
+            "pixelSample": {
+              "x": 196,
+              "y": 113
+            },
+            "surface": "default",
+            "visible": true,
+            "width": 240,
+            "x": 184,
+            "y": 101
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "expectedBackground": "rgb(253, 252, 249)",
+            "height": 766,
+            "overflow": false,
+            "pixelSample": {
+              "x": 452,
+              "y": 113
+            },
+            "surface": "floating",
+            "visible": true,
+            "width": 240,
+            "x": 440,
+            "y": 101
+          }
+        ],
+        "contentBackground": "rgb(250, 250, 246)",
+        "expectedBackground": "rgb(253, 252, 249)",
+        "focused": true,
+        "frameCount": 12,
+        "media": {
+          "forcedColors": false,
+          "reduceTransparency": false
+        },
+        "navigationBackground": "rgba(0, 0, 0, 0)",
+        "pageOverflow": false,
+        "platform": "windows",
+        "sampleId": "resize-light",
+        "theme": "light",
+        "viewport": {
+          "height": 720,
+          "width": 960
+        },
+        "visibility": "visible"
+      },
+      "nativeFrame": {
+        "backdropType": 2,
+        "captionColorReadback": null,
+        "immersiveDarkModeReadback": null,
+        "physicalSize": {
+          "height": 720,
+          "width": 960
+        },
+        "readbackLimit": "CAPTION_COLOR and USE_IMMERSIVE_DARK_MODE are documented set-only",
+        "scaleFactor": 1.0,
+        "systemCaption": true,
+        "windowTheme": "light"
+      },
+      "pixels": {
+        "height": 720,
+        "points": [
+          {
+            "actual": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "expected": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "surface": "default",
+            "x": 196,
+            "y": 113
+          },
+          {
+            "actual": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "expected": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "surface": "floating",
+            "x": 452,
+            "y": 113
+          }
+        ],
+        "scope": "actual WebView pixels; excludes DWM/non-client pixels",
+        "width": 960
+      },
+      "sampleId": "resize-light",
+      "webview": {
+        "background": {
+          "alpha": 0,
+          "blue": 248,
+          "green": 250,
+          "red": 250
+        },
+        "runtimeVersion": "154.0.4258.48"
+      }
+    },
+    {
+      "dom": {
+        "appearance": {
+          "highContrast": false,
+          "material": "mica",
+          "platform": "windows",
+          "reduceMotion": false,
+          "titlebarHeight": 0,
+          "trafficLightsRight": 0
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "expectedBackground": "rgb(42, 38, 32)",
+            "height": 766,
+            "overflow": false,
+            "pixelSample": {
+              "x": 196,
+              "y": 113
+            },
+            "surface": "default",
+            "visible": true,
+            "width": 240,
+            "x": 184,
+            "y": 101
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "expectedBackground": "rgb(42, 38, 32)",
+            "height": 766,
+            "overflow": false,
+            "pixelSample": {
+              "x": 452,
+              "y": 113
+            },
+            "surface": "floating",
+            "visible": true,
+            "width": 240,
+            "x": 440,
+            "y": 101
+          }
+        ],
+        "contentBackground": "rgb(31, 28, 24)",
+        "expectedBackground": "rgb(42, 38, 32)",
+        "focused": true,
+        "frameCount": 12,
+        "media": {
+          "forcedColors": false,
+          "reduceTransparency": false
+        },
+        "navigationBackground": "rgba(0, 0, 0, 0)",
+        "pageOverflow": false,
+        "platform": "windows",
+        "sampleId": "resize-dark",
+        "theme": "dark",
+        "viewport": {
+          "height": 720,
+          "width": 960
+        },
+        "visibility": "visible"
+      },
+      "nativeFrame": {
+        "backdropType": 2,
+        "captionColorReadback": null,
+        "immersiveDarkModeReadback": null,
+        "physicalSize": {
+          "height": 720,
+          "width": 960
+        },
+        "readbackLimit": "CAPTION_COLOR and USE_IMMERSIVE_DARK_MODE are documented set-only",
+        "scaleFactor": 1.0,
+        "systemCaption": true,
+        "windowTheme": "dark"
+      },
+      "pixels": {
+        "height": 720,
+        "points": [
+          {
+            "actual": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "expected": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "surface": "default",
+            "x": 196,
+            "y": 113
+          },
+          {
+            "actual": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "expected": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "surface": "floating",
+            "x": 452,
+            "y": 113
+          }
+        ],
+        "scope": "actual WebView pixels; excludes DWM/non-client pixels",
+        "width": 960
+      },
+      "sampleId": "resize-dark",
+      "webview": {
+        "background": {
+          "alpha": 0,
+          "blue": 30,
+          "green": 28,
+          "red": 28
+        },
+        "runtimeVersion": "154.0.4258.48"
+      }
+    },
+    {
+      "dom": {
+        "appearance": {
+          "highContrast": false,
+          "material": "mica",
+          "platform": "windows",
+          "reduceMotion": false,
+          "titlebarHeight": 0,
+          "trafficLightsRight": 0
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "expectedBackground": "rgb(253, 252, 249)",
+            "height": 766,
+            "overflow": false,
+            "pixelSample": {
+              "x": 196,
+              "y": 113
+            },
+            "surface": "default",
+            "visible": true,
+            "width": 240,
+            "x": 184,
+            "y": 101
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(253, 252, 249)",
+            "color": "rgb(31, 28, 24)",
+            "expectedBackground": "rgb(253, 252, 249)",
+            "height": 766,
+            "overflow": false,
+            "pixelSample": {
+              "x": 452,
+              "y": 113
+            },
+            "surface": "floating",
+            "visible": true,
+            "width": 240,
+            "x": 440,
+            "y": 101
+          }
+        ],
+        "contentBackground": "rgb(250, 250, 246)",
+        "expectedBackground": "rgb(253, 252, 249)",
+        "focused": true,
+        "frameCount": 11,
+        "media": {
+          "forcedColors": false,
+          "reduceTransparency": false
+        },
+        "navigationBackground": "rgba(0, 0, 0, 0)",
+        "pageOverflow": false,
+        "platform": "windows",
+        "sampleId": "minimize-restore-light",
+        "theme": "light",
+        "viewport": {
+          "height": 720,
+          "width": 960
+        },
+        "visibility": "visible"
+      },
+      "nativeFrame": {
+        "backdropType": 2,
+        "captionColorReadback": null,
+        "immersiveDarkModeReadback": null,
+        "physicalSize": {
+          "height": 720,
+          "width": 960
+        },
+        "readbackLimit": "CAPTION_COLOR and USE_IMMERSIVE_DARK_MODE are documented set-only",
+        "scaleFactor": 1.0,
+        "systemCaption": true,
+        "windowTheme": "light"
+      },
+      "pixels": {
+        "height": 720,
+        "points": [
+          {
+            "actual": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "expected": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "surface": "default",
+            "x": 196,
+            "y": 113
+          },
+          {
+            "actual": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "expected": [
+              253,
+              252,
+              249,
+              255
+            ],
+            "surface": "floating",
+            "x": 452,
+            "y": 113
+          }
+        ],
+        "scope": "actual WebView pixels; excludes DWM/non-client pixels",
+        "width": 960
+      },
+      "sampleId": "minimize-restore-light",
+      "webview": {
+        "background": {
+          "alpha": 0,
+          "blue": 248,
+          "green": 250,
+          "red": 250
+        },
+        "runtimeVersion": "154.0.4258.48"
+      }
+    },
+    {
+      "dom": {
+        "appearance": {
+          "highContrast": false,
+          "material": "mica",
+          "platform": "windows",
+          "reduceMotion": false,
+          "titlebarHeight": 0,
+          "trafficLightsRight": 0
+        },
+        "cards": [
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "expectedBackground": "rgb(42, 38, 32)",
+            "height": 766,
+            "overflow": false,
+            "pixelSample": {
+              "x": 196,
+              "y": 113
+            },
+            "surface": "default",
+            "visible": true,
+            "width": 240,
+            "x": 184,
+            "y": 101
+          },
+          {
+            "backdropFilter": "none",
+            "background": "rgb(42, 38, 32)",
+            "color": "rgb(221, 216, 200)",
+            "expectedBackground": "rgb(42, 38, 32)",
+            "height": 766,
+            "overflow": false,
+            "pixelSample": {
+              "x": 452,
+              "y": 113
+            },
+            "surface": "floating",
+            "visible": true,
+            "width": 240,
+            "x": 440,
+            "y": 101
+          }
+        ],
+        "contentBackground": "rgb(31, 28, 24)",
+        "expectedBackground": "rgb(42, 38, 32)",
+        "focused": true,
+        "frameCount": 11,
+        "media": {
+          "forcedColors": false,
+          "reduceTransparency": false
+        },
+        "navigationBackground": "rgba(0, 0, 0, 0)",
+        "pageOverflow": false,
+        "platform": "windows",
+        "sampleId": "minimize-restore-dark",
+        "theme": "dark",
+        "viewport": {
+          "height": 720,
+          "width": 960
+        },
+        "visibility": "visible"
+      },
+      "nativeFrame": {
+        "backdropType": 2,
+        "captionColorReadback": null,
+        "immersiveDarkModeReadback": null,
+        "physicalSize": {
+          "height": 720,
+          "width": 960
+        },
+        "readbackLimit": "CAPTION_COLOR and USE_IMMERSIVE_DARK_MODE are documented set-only",
+        "scaleFactor": 1.0,
+        "systemCaption": true,
+        "windowTheme": "dark"
+      },
+      "pixels": {
+        "height": 720,
+        "points": [
+          {
+            "actual": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "expected": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "surface": "default",
+            "x": 196,
+            "y": 113
+          },
+          {
+            "actual": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "expected": [
+              42,
+              38,
+              32,
+              255
+            ],
+            "surface": "floating",
+            "x": 452,
+            "y": 113
+          }
+        ],
+        "scope": "actual WebView pixels; excludes DWM/non-client pixels",
+        "width": 960
+      },
+      "sampleId": "minimize-restore-dark",
+      "webview": {
+        "background": {
+          "alpha": 0,
+          "blue": 30,
+          "green": 28,
+          "red": 28
+        },
+        "runtimeVersion": "154.0.4258.48"
+      }
+    }
+  ],
+  "scope": "independent Windows production Card and native window appearance",
+  "success": true,
+  "systemSettingsModified": false,
+  "systemTransparencyEnabled": true
+}

@@ -23,7 +23,8 @@ declare global {
         reduceMotion: boolean;
         highContrast: boolean;
       },
-      platform?: 'macos' | 'android',
+      platform?: 'macos' | 'android' | 'windows',
+      sampleId?: string,
     ) => Promise<void>;
   }
 }
@@ -35,30 +36,36 @@ async function reportSurface(report: unknown) {
 
 flushSync(() =>
   createRoot(document.getElementById('root')!).render(
-    <main className="fixture">
-      <h1>RF-121 · 原生 Card 验收</h1>
-      <p>合成内容，无账户数据。仅覆盖本轮已记录的平台和辅助功能场景。</p>
-      <CardGrid>
-        <Card>
-          <h2>正文卡片</h2>
-          <p>设备名称、模板与字段内容</p>
-          <p>中文长内容验证：{'合成字段内容'.repeat(30)}</p>
-        </Card>
-        <Card surface="floating">
-          <h2>浮动卡片</h2>
-          <p>保留清晰的正文表面</p>
-          <p>English long content: {'synthetic attachment metadata '.repeat(20)}</p>
-        </Card>
-      </CardGrid>
-      <output id="result">等待原生检查</output>
-    </main>,
+    <>
+      <aside className="fixture-navigation" data-rf121-navigation>
+        <p>RF-121</p>
+        <p>合成导航区</p>
+      </aside>
+      <main className="fixture" data-rf121-content>
+        <h1>RF-121 · 原生 Card 验收</h1>
+        <p>合成内容，无账户数据。仅覆盖本轮已记录的平台和辅助功能场景。</p>
+        <CardGrid>
+          <Card>
+            <h2>正文卡片</h2>
+            <p>设备名称、模板与字段内容</p>
+            <p>中文长内容验证：{'合成字段内容'.repeat(30)}</p>
+          </Card>
+          <Card surface="floating">
+            <h2>浮动卡片</h2>
+            <p>保留清晰的正文表面</p>
+            <p>English long content: {'synthetic attachment metadata '.repeat(20)}</p>
+          </Card>
+        </CardGrid>
+        <output id="result">等待原生检查</output>
+      </main>
+    </>,
   ),
 );
 
-window.__runCardSample = async (theme, appearance, platform = 'macos') => {
+window.__runCardSample = async (theme, appearance, platform = 'macos', sampleId) => {
   const root = document.documentElement;
   root.dataset.platform = platform;
-  if (platform === 'macos') root.dataset.desktopPlatform = 'macos';
+  if (platform === 'macos' || platform === 'windows') root.dataset.desktopPlatform = platform;
   else delete root.dataset.desktopPlatform;
   root.dataset.theme = theme;
   if (platform === 'android') applyAndroidMaterial('ocean');
@@ -70,6 +77,7 @@ window.__runCardSample = async (theme, appearance, platform = 'macos') => {
   let frameCount = 0;
   const watchdog = setTimeout(() => {
     void reportSurface({
+      ...(sampleId ? { sampleId } : {}),
       error: 'paint-frame-timeout',
       theme,
       frameCount,
@@ -116,9 +124,31 @@ window.__runCardSample = async (theme, appearance, platform = 'macos') => {
       height: rect.height,
       overflow: card.scrollWidth > card.clientWidth + 1,
       visible: rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden',
+      ...(platform === 'windows'
+        ? { x: rect.x, y: rect.y, pixelSample: { x: rect.x + 12, y: rect.y + 12 } }
+        : {}),
     };
   });
   const report = {
+    ...(sampleId ? { sampleId } : {}),
+    ...(platform === 'windows'
+      ? {
+          platform,
+          frameCount,
+          visibility: document.visibilityState,
+          focused: document.hasFocus(),
+          media: {
+            forcedColors: matchMedia('(forced-colors: active)').matches,
+            reduceTransparency: matchMedia('(prefers-reduced-transparency: reduce)').matches,
+          },
+          navigationBackground: getComputedStyle(
+            document.querySelector<HTMLElement>('[data-rf121-navigation]')!,
+          ).backgroundColor,
+          contentBackground: getComputedStyle(
+            document.querySelector<HTMLElement>('[data-rf121-content]')!,
+          ).backgroundColor,
+        }
+      : {}),
     theme,
     appearance,
     expectedBackground,

@@ -1,0 +1,20 @@
+{
+  "scope": "only three exact owned fresh profiles; resolved containment checked; reparse entries detached without following",
+  "profiles": [
+    {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-01\\webview-profile",
+      "detached_reparse_entries": [],
+      "removed": true
+    },
+    {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-02\\webview-profile",
+      "detached_reparse_entries": [],
+      "removed": true
+    },
+    {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002\\windows-native-current-03\\webview-profile",
+      "detached_reparse_entries": [],
+      "removed": true
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "node_modules/prettier/bin/prettier.cjs",
+    "--check",
+    "native-regression/card-surfaces/main.tsx",
+    "native-regression/card-surfaces/fixture.css"
+  ],
+  "exit": 0,
+  "seconds": 0.5250476999208331
+}

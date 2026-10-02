@@ -1,4 +1,4 @@
-# macOS / Android 独立 Card 原生验收入口（RF-121）
+# macOS / Windows / Android 独立 Card 原生验收入口（RF-121）
 
 只引入生产 Card、CardGrid 及表面样式，不启动正式客户端的账户、日志或插件初始化。所有内容均为合成数据。构建脚本检查引用边界，只额外允许无 IPC 的 Android 材质 token helper。测试页只调用独立例程的 `card_surface_report` 或 Debug Activity 的单向报告桥，不能调用正式账户或文件命令。
 
@@ -25,3 +25,26 @@ Debug `merge*DebugAssets` 自动运行构建脚本，生成专用 `src/debug/ass
 `CardSurfaceRegressionActivity` 仅加载这个内联页，禁用网络、文件/内容访问和导航，无 Tauri 初始化或真实账户。instrumented 测试核对默认系统对比度与正常动画，测试浅深色 default/floating Card 的真实帧、长文本溢出、颜色和截图背景像素；使用生产 Android token，不把中性 Card 当作原生玻璃弹窗。
 
 设备驱动两组各加入该用例，总计支持11/回退9项。API34 ARM64 专用模拟器20项通过；默认场景、背景像素不代表辅助功能、全部文本或多端矩阵完成。详见[Android补证](../../../docs/verification/rf121-android-native-checkpoint-2026-10-02.json)。
+
+## Windows 独立验收
+
+`src-tauri/examples/windows_card_surfaces.rs` 复用生产 Windows 窗口配置与材质命令，仅注册合成页的测量报告。独立应用标识、窗口标签和新建输出目录中的 WebView2 profile 与正式客户端分离，不运行正式 setup，不访问账户、日志或插件。使用已有、默认关闭的 `native-perf` SDK 依赖，不新增依赖。
+
+在 Windows 图形会话的 `tauri/` 下，按顺序执行（HTML 和输出目录必须是尚不存在的绝对路径）：
+
+```powershell
+node scripts/build-card-surface-fixture.mjs C:/Temp/rf121-card-surfaces.html
+cargo test --locked -p solo_soul --features native-perf --example windows_card_surfaces
+cargo build --locked -p solo_soul --features native-perf --example windows_card_surfaces
+./target/debug/examples/windows_card_surfaces.exe --card-fixture C:/Temp/rf121-card-surfaces.html --output C:/Temp/rf121-windows-current --expect mica
+```
+
+系统当前确实关闭透明效果或启用高对比度时，将 `--expect` 分别改为 `transparency-off` 或 `high-contrast`，使用新的输出目录。例程只读取系统设置，不切换全局辅助功能；预期与真实设置不符即失败。未实测这些设置时不能记为通过。
+
+每次在浅/深主题下检查首次显示、隐藏恢复、调整尺寸、最小化恢复，共8份报告；断言实际绘制帧、Card token、长文本和页面横向布局、客户区几何。读回 DWM 背景类型、Tauri 窗口主题、系统 caption 和 WebView2 背景 alpha；Mica 必须是实际类型2和透明 WebView，实色回退必须是不透明 WebView。
+
+`CAPTION_COLOR` 和 `USE_IMMERSIVE_DARK_MODE` 在[官方 DWM 属性契约](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute)中只支持 Set，不声称读回或验过标题栏颜色；第一次属性查询失败记录保留。SDK 截图采样两个生产 Card 的背景像素。PNG 仅含 WebView 内容，不含 DWM/非客户区合成；合成导航区不是正式 Sidebar/AppBar，也不证明全部文字像素、恢复中的瞬间黑帧或完整辅助功能矩阵。接受结果需应用 exit0、`result.json` 的 success=true、8份实际 DOM/原生报告与对应 PNG；超时、缺帧、旧报告、断言失败或提前关闭均以 exit1 结束。
+
+运行结束后确认独立例程及其专用 WebView2 子进程已经退出；只清理输出目录内的测试 profile。保留结果、截图及失败记录用于审查，不安装或启动正式客户端。
+
+2026-10-03 Windows11 Enterprise LTSC26100 x64、WebView2 154.0.4258.48 默认辅助功能设置完成8场景，实际 Mica类型2/背景alpha0与16个 Card 背景采样一致。两轮例程开发失败、最终4项回归和完整记录见[Windows补证](../../../docs/verification/rf121-windows-native-checkpoint-2026-10-03.json)。RF-121继续待验多端辅助功能及完整原生合成，不解除后续迁移依赖。
