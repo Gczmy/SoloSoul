@@ -113,6 +113,32 @@ const CODES = {
   SYNC_RECOVERY_FAILED: true,
   SYNC_PERMISSION_DENIED: true,
   SYNC_UNSUPPORTED: true,
+  PLUGIN_CHECKSUM_MISMATCH: true,
+  PLUGIN_CONSENT_DENIED: true,
+  PLUGIN_EXECUTION_FAILED: true,
+  PLUGIN_INVALID_ARGUMENT: true,
+  PLUGIN_INVALID_FIELD: true,
+  PLUGIN_MANIFEST_INVALID: true,
+  PLUGIN_NETWORK_FAILED: true,
+  PLUGIN_NOT_FOUND: true,
+  PLUGIN_RATE_LIMITED: true,
+  PLUGIN_REGISTRY_FAILED: true,
+  PLUGIN_SESSION_EXPIRED: true,
+  PLUGIN_STORE_FAILED: true,
+  PLUGIN_TASK_UNCONFIRMED: true,
+  PLUGIN_VERSION_INCOMPATIBLE: true,
+  PLUGIN_WASM_TOO_LARGE: true,
+  PLUGIN_INSTALL_CANCELLED: true,
+  PLUGIN_INSTALL_ALREADY_STARTED: true,
+  PLUGIN_INVALID_OPERATION: true,
+  PLUGIN_OUTPUT_INVALID: true,
+  PLUGIN_OUTPUT_DENIED: true,
+  PLUGIN_OUTPUT_READ_FAILED: true,
+  PLUGIN_OUTPUT_WRITE_FAILED: true,
+  PLUGIN_OUTPUT_OPEN_FAILED: true,
+  PLUGIN_UNSUPPORTED: true,
+  PLUGIN_READ_FAILED: true,
+  PLUGIN_INSTALL_FAILED: true,
 } satisfies Record<BackendErrorCode, true>;
 const STAGES = {
   validate: true,
@@ -135,6 +161,8 @@ const STAGES = {
   pairing: true,
   discovery: true,
   conflict: true,
+  execute: true,
+  install: true,
 } satisfies Record<BackendErrorStage, true>;
 const OBJECT_COMMANDS = [
   'object_list',
@@ -257,7 +285,11 @@ export function makeBackendError(code: BackendErrorCode): BackendError {
       code === 'SYNC_DISCOVERY_FAILED' ||
       code === 'SYNC_DISCOVERY_TIMEOUT' ||
       code === 'SYNC_READ_FAILED' ||
-      code === 'SYNC_ENABLE_TIMEOUT',
+      code === 'SYNC_ENABLE_TIMEOUT' ||
+      code === 'PLUGIN_READ_FAILED' ||
+      code === 'PLUGIN_REGISTRY_FAILED' ||
+      code === 'PLUGIN_NETWORK_FAILED' ||
+      code === 'PLUGIN_RATE_LIMITED',
   };
 }
 /** 仅供旧对象 Host 兼容；新 Host 已知失败由业务阶段直接编码。 */
@@ -561,4 +593,107 @@ export function normalizeSyncCommandError(command: string, value: unknown): Back
     fallback = 'SYNC_READ_FAILED';
   else if (command !== 'sync_with_device') fallback = 'SYNC_WRITE_FAILED';
   return normalizeSyncError(value, fallback);
+}
+
+export const PLUGIN_ERROR_COMMANDS = [
+  'plugin_list_all',
+  'plugin_list_installed',
+  'plugin_list_attachments',
+  'create_plugin_install',
+  'plugin_install',
+  'plugin_update',
+  'plugin_uninstall',
+  'plugin_run',
+  'plugin_consent_response',
+  'plugin_dialog_response',
+  'plugin_list_sessions',
+  'plugin_audit_log',
+  'plugin_update_registry',
+  'plugin_open_output_file',
+  'plugin_copy_output_file',
+] as const satisfies ReadonlyArray<keyof IpcCommandErrors>;
+
+export function isPluginErrorCommand(command: string): boolean {
+  return (PLUGIN_ERROR_COMMANDS as readonly string[]).includes(command);
+}
+const LEGACY_PLUGIN_CODES: Record<string, BackendErrorCode> = {
+  PLUGIN_INSTALL_CANCELLED: 'PLUGIN_INSTALL_CANCELLED',
+  安装任务已启动: 'PLUGIN_INSTALL_ALREADY_STARTED',
+  用户拒绝授权: 'PLUGIN_CONSENT_DENIED',
+  当前平台暂不支持: 'PLUGIN_UNSUPPORTED',
+  非法文件名: 'PLUGIN_OUTPUT_INVALID',
+  目标目录不存在: 'PLUGIN_OUTPUT_INVALID',
+  输出目录不存在: 'PLUGIN_OUTPUT_INVALID',
+  输出文件不存在: 'PLUGIN_OUTPUT_INVALID',
+  '输出文件位于插件输出目录之外，已拒绝访问': 'PLUGIN_OUTPUT_DENIED',
+  '插件执行失败: 插件会话已失效：Vault 已锁定或授权已过期': 'PLUGIN_SESSION_EXPIRED',
+  '插件执行失败: 插件与会话不匹配': 'PLUGIN_SESSION_EXPIRED',
+  '插件执行失败: Vault 未解锁': 'VAULT_LOCKED',
+  '插件执行失败: 未选择账户': 'VAULT_LOCKED',
+};
+export function normalizePluginError(
+  value: unknown,
+  fallback: BackendErrorCode = 'PLUGIN_EXECUTION_FAILED',
+): BackendError {
+  const packet = readBackendError(value) ?? readLegacyObjectError(value);
+  if (packet) return packet;
+  if (value instanceof DOMException && value.name === 'AbortError')
+    return makeBackendError('PLUGIN_INSTALL_CANCELLED');
+  const raw = value instanceof Error ? value.message : typeof value === 'string' ? value : null;
+  if (raw !== null) {
+    if (Object.hasOwn(CODES, raw)) return makeBackendError(raw as BackendErrorCode);
+    if (Object.hasOwn(LEGACY_PLUGIN_CODES, raw)) return makeBackendError(LEGACY_PLUGIN_CODES[raw]);
+    // 仅集中读取旧 Core 的固定变体前缀；detail 一律丢弃。
+    const old: [string, BackendErrorCode][] = [
+      ['插件未找到:', 'PLUGIN_NOT_FOUND'],
+      ['无效的插件 manifest:', 'PLUGIN_MANIFEST_INVALID'],
+      ['Wasm 文件过大:', 'PLUGIN_WASM_TOO_LARGE'],
+      ['Wasm SHA-256 校验和不匹配', 'PLUGIN_CHECKSUM_MISMATCH'],
+      ['插件版本不兼容:', 'PLUGIN_VERSION_INCOMPATIBLE'],
+      ['非法字段:', 'PLUGIN_INVALID_FIELD'],
+      ['非法参数:', 'PLUGIN_INVALID_ARGUMENT'],
+      ['频率超限', 'PLUGIN_RATE_LIMITED'],
+      ['插件存储错误:', 'PLUGIN_STORE_FAILED'],
+      ['插件注册表错误:', 'PLUGIN_REGISTRY_FAILED'],
+      ['网络错误:', 'PLUGIN_NETWORK_FAILED'],
+    ];
+    const mapped = old.find(([prefix]) => raw.startsWith(prefix));
+    if (mapped) return makeBackendError(mapped[1]);
+  }
+  return makeBackendError(fallback);
+}
+export function normalizePluginCommandError(command: string, value: unknown): BackendError {
+  let fallback: BackendErrorCode = 'PLUGIN_READ_FAILED';
+  if (['plugin_install', 'plugin_update', 'create_plugin_install'].includes(command))
+    fallback = 'PLUGIN_INSTALL_FAILED';
+  else if (command === 'plugin_run') fallback = 'PLUGIN_EXECUTION_FAILED';
+  else if (command === 'plugin_open_output_file') fallback = 'PLUGIN_OUTPUT_OPEN_FAILED';
+  else if (command === 'plugin_copy_output_file') fallback = 'PLUGIN_OUTPUT_WRITE_FAILED';
+  else if (command === 'plugin_uninstall') fallback = 'PLUGIN_STORE_FAILED';
+  else if (command === 'plugin_update_registry') fallback = 'PLUGIN_REGISTRY_FAILED';
+  else if (['plugin_consent_response', 'plugin_dialog_response'].includes(command))
+    fallback = 'PLUGIN_INVALID_ARGUMENT';
+  return normalizePluginError(value, fallback);
+}
+export function isPluginCancellation(value: unknown): boolean {
+  return normalizePluginError(value).code === 'PLUGIN_INSTALL_CANCELLED';
+}
+export function readPluginEventError(jsonData: string): BackendError {
+  try {
+    const parsed: unknown = JSON.parse(jsonData);
+    if (record(parsed)) {
+      const code = own(parsed, 'code');
+      if (
+        typeof code === 'string' &&
+        (code.startsWith('PLUGIN_') ||
+          ['VAULT_LOCKED', 'VAULT_BUSY', 'SESSION_EXPIRED'].includes(code)) &&
+        Object.hasOwn(CODES, code)
+      )
+        return makeBackendError(code as BackendErrorCode);
+      return normalizePluginError(own(parsed, 'message'));
+    }
+  } catch {
+    /* 兼容旧非 JSON 的错误通道。 */
+  }
+  return normalizePluginError(jsonData);
 }

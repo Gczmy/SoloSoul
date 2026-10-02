@@ -1262,10 +1262,22 @@ test('RF319 actual synchronization rejection contracts preserve pairing and reco
     const manifest = JSON.parse(await readFile(path.join(root, outputFiles[1]), 'utf8'));
     const llm = manifest.structuredErrorCommands.filter((c) => c.startsWith('llm_'));
     assert.deepEqual(
-      manifest.structuredErrorCommands,
+      manifest.structuredErrorCommands.filter(
+        (c) =>
+          objectSnapshotCommands.includes(c) ||
+          llm.includes(c) ||
+          transferCommands.includes(c) ||
+          syncErrorCommands.includes(c),
+      ),
       [...objectSnapshotCommands, ...llm, ...transferCommands, ...syncErrorCommands].sort(),
     );
-    assert.equal(manifest.structuredErrorCommands.length, 81);
+    assert.equal(
+      objectSnapshotCommands.length +
+        llm.length +
+        transferCommands.length +
+        syncErrorCommands.length,
+      81,
+    );
     await copyTypedSources(root);
     const fixture = JSON.parse(
       await readFile(
@@ -1326,6 +1338,94 @@ test('RF319 actual Result and pairing serde drift fail without overwriting gener
       const before = await snapshot(root),
         source = path.join(root, file),
         original = await readFile(source, 'utf8');
+      assert.ok(original.includes(from));
+      await writeFile(source, original.replace(from, to));
+      await assert.rejects(generateContracts({ root, check: true }), /IPC contract drift/);
+      assert.deepEqual(await snapshot(root), before);
+    });
+});
+
+const pluginErrorCommands = [
+  'plugin_list_all',
+  'plugin_list_installed',
+  'plugin_list_attachments',
+  'plugin_install',
+  'plugin_update',
+  'plugin_uninstall',
+  'plugin_run',
+  'plugin_consent_response',
+  'plugin_dialog_response',
+  'plugin_list_sessions',
+  'plugin_audit_log',
+  'plugin_update_registry',
+  'plugin_open_output_file',
+  'plugin_copy_output_file',
+];
+
+test('RF320 all plugin rejection contracts use real safe fixtures and retain resource/result schemas', async () => {
+  await withProductionFixture(async (root) => {
+    const manifest = JSON.parse(await readFile(path.join(root, outputFiles[1]), 'utf8'));
+    const llm = manifest.structuredErrorCommands.filter((c) => c.startsWith('llm_'));
+    assert.deepEqual(
+      manifest.structuredErrorCommands,
+      [
+        ...objectSnapshotCommands,
+        ...llm,
+        ...transferCommands,
+        ...syncErrorCommands,
+        ...pluginErrorCommands,
+      ].sort(),
+    );
+    assert.equal(manifest.structuredErrorCommands.length, 95);
+    await copyTypedSources(root);
+    const fixtures = JSON.parse(
+      await readFile(
+        path.join(workspaceRoot, 'src-tauri/src/commands/plugin/contracts/rf320-fixtures.json'),
+        'utf8',
+      ),
+    );
+    const lines = [
+      "import type {BackendError,IpcCommandErrors,IpcCommands,PluginResult,PluginEvent,PluginInstallProgress} from './src/lib/generated/ipcContracts';",
+    ];
+    for (const [name, value] of Object.entries(fixtures))
+      lines.push('const ' + name + '=' + JSON.stringify(value) + ' satisfies BackendError;');
+    for (const command of pluginErrorCommands)
+      lines.push(
+        'const ' + command + ':IpcCommandErrors[' + JSON.stringify(command) + ']=execution;',
+      );
+    lines.push(
+      "const rid:IpcCommands['create_plugin_install']['result']=42;",
+      'const result:PluginResult={exitCode:0,logs:[],results:[],fuelConsumed:3};',
+      "const progress:PluginInstallProgress={phase:'finalizing',percent:98,downloadedBytes:10,totalBytes:null};",
+      '// @ts-expect-error migrated rejection cannot be a private body.',
+      "const raw:IpcCommandErrors['plugin_run']='private field';",
+      '// @ts-expect-error errors must not collapse old result.',
+      'const collapsed:BackendError=result;',
+      '// @ts-expect-error approved error details do not include field or key.',
+      "const leaked:BackendError={...execution,safeDetails:{stage:'execute',fieldId:'private'}};",
+      '// @ts-expect-error resource identifier is still a numeric capability.',
+      "const wrongRid:IpcCommands['create_plugin_install']['result']='resource';",
+    );
+    const probe = path.join(root, 'rf320-probe.ts');
+    await writeFile(probe, lines.join('\n'));
+    const result = await compileProbe(root, probe);
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  });
+});
+test('RF320 actual plugin Result and stage serde drift fail without replacing outputs', async () => {
+  for (const [file, from, to] of [
+    [
+      'src-tauri/src/commands/plugin.rs',
+      'Result<PluginResult, BackendError>',
+      'Result<PluginResult, String>',
+    ],
+    ['src-tauri/src/commands/error.rs', '    Execute,', '    ExecuteChanged,'],
+  ])
+    await withProductionFixture(async (root) => {
+      const before = await snapshot(root);
+      const source = path.join(root, file);
+      const original = await readFile(source, 'utf8');
       assert.ok(original.includes(from));
       await writeFile(source, original.replace(from, to));
       await assert.rejects(generateContracts({ root, check: true }), /IPC contract drift/);

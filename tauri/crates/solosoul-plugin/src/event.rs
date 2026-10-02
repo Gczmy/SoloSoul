@@ -145,6 +145,18 @@ impl PluginEvent {
         }
     }
 
+    /// 新 Host 可以读取固定类别；CLI 继续保留原 message 与外层事件结构。
+    pub fn error_classified(
+        plugin_id: impl Into<String>,
+        message: impl Into<String>,
+        code: &str,
+    ) -> Self {
+        let mut event = Self::error(plugin_id, message);
+        let legacy: serde_json::Value = serde_json::from_str(&event.json_data).unwrap_or_default();
+        event.json_data = serde_json::json!({"message":legacy["message"],"code":code}).to_string();
+        event
+    }
+
     /// 自定义 UI 事件
     pub fn custom(
         plugin_id: impl Into<String>,

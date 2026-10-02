@@ -154,7 +154,33 @@ export type BackendErrorCode =
   | 'SYNC_RECOVERY_INVALID'
   | 'SYNC_RECOVERY_FAILED'
   | 'SYNC_PERMISSION_DENIED'
-  | 'SYNC_UNSUPPORTED';
+  | 'SYNC_UNSUPPORTED'
+  | 'PLUGIN_CHECKSUM_MISMATCH'
+  | 'PLUGIN_CONSENT_DENIED'
+  | 'PLUGIN_EXECUTION_FAILED'
+  | 'PLUGIN_INVALID_ARGUMENT'
+  | 'PLUGIN_INVALID_FIELD'
+  | 'PLUGIN_MANIFEST_INVALID'
+  | 'PLUGIN_NETWORK_FAILED'
+  | 'PLUGIN_NOT_FOUND'
+  | 'PLUGIN_RATE_LIMITED'
+  | 'PLUGIN_REGISTRY_FAILED'
+  | 'PLUGIN_SESSION_EXPIRED'
+  | 'PLUGIN_STORE_FAILED'
+  | 'PLUGIN_TASK_UNCONFIRMED'
+  | 'PLUGIN_VERSION_INCOMPATIBLE'
+  | 'PLUGIN_WASM_TOO_LARGE'
+  | 'PLUGIN_INSTALL_CANCELLED'
+  | 'PLUGIN_INSTALL_ALREADY_STARTED'
+  | 'PLUGIN_INVALID_OPERATION'
+  | 'PLUGIN_OUTPUT_INVALID'
+  | 'PLUGIN_OUTPUT_DENIED'
+  | 'PLUGIN_OUTPUT_READ_FAILED'
+  | 'PLUGIN_OUTPUT_WRITE_FAILED'
+  | 'PLUGIN_OUTPUT_OPEN_FAILED'
+  | 'PLUGIN_UNSUPPORTED'
+  | 'PLUGIN_READ_FAILED'
+  | 'PLUGIN_INSTALL_FAILED';
 
 export type BackendErrorStage =
   | 'validate'
@@ -176,7 +202,9 @@ export type BackendErrorStage =
   | 'handshake'
   | 'pairing'
   | 'discovery'
-  | 'conflict';
+  | 'conflict'
+  | 'execute'
+  | 'install';
 
 export type BackupInfo = {
   id: string;
@@ -1215,20 +1243,20 @@ export type IpcCommandErrors = {
   object_sync_with_template: BackendError;
   object_trash_list: BackendError;
   object_update: BackendError;
-  plugin_audit_log: string;
-  plugin_consent_response: string;
-  plugin_copy_output_file: string;
-  plugin_dialog_response: string;
-  plugin_install: string;
-  plugin_list_all: string;
-  plugin_list_attachments: string;
-  plugin_list_installed: string;
-  plugin_list_sessions: string;
-  plugin_open_output_file: string;
-  plugin_run: string;
-  plugin_uninstall: string;
-  plugin_update: string;
-  plugin_update_registry: string;
+  plugin_audit_log: BackendError;
+  plugin_consent_response: BackendError;
+  plugin_copy_output_file: BackendError;
+  plugin_dialog_response: BackendError;
+  plugin_install: BackendError;
+  plugin_list_all: BackendError;
+  plugin_list_attachments: BackendError;
+  plugin_list_installed: BackendError;
+  plugin_list_sessions: BackendError;
+  plugin_open_output_file: BackendError;
+  plugin_run: BackendError;
+  plugin_uninstall: BackendError;
+  plugin_update: BackendError;
+  plugin_update_registry: BackendError;
   recovery_discover_hosts: BackendError;
   recovery_host_cancel: BackendError;
   recovery_host_start: BackendError;

@@ -31,6 +31,12 @@ import { useUiStore } from '@/stores/uiStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { logger } from '@/lib/logger';
 import i18next from '@/lib/i18n';
+import {
+  normalizePluginError,
+  isPluginCancellation,
+  readPluginEventError,
+  backendErrorLogDetails,
+} from '@/lib/backendErrorWire';
 
 /** P215: 单插件运行日志上限——环形截断，避免不可变累积 `[...logs, x]` 的 O(n²) 拷贝与内存膨胀。 */
 export const MAX_PLUGIN_LOGS = 200;
@@ -109,7 +115,7 @@ function applyPluginRunEvent(next: RunningPlugin, event: RunPluginEvent): Runnin
     case 'error':
       next.completed = true;
       next.toastShown = true;
-      next.error = event.jsonData;
+      next.error = readPluginEventError(event.jsonData).code;
       break;
   }
   return next;
@@ -211,7 +217,10 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       setCurrent({ marketPlugins: list, isLoadingMarket: false });
     } catch (err) {
       if (!request.isCurrent()) return;
-      setCurrent({ error: String(err), isLoadingMarket: false });
+      setCurrent({
+        error: normalizePluginError(err, 'PLUGIN_READ_FAILED').code,
+        isLoadingMarket: false,
+      });
     }
   },
 
@@ -241,7 +250,10 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       setCurrent({ installedPlugins: list, isLoadingInstalled: false });
     } catch (err) {
       if (!request.isCurrent()) return;
-      setCurrent({ error: String(err), isLoadingInstalled: false });
+      setCurrent({
+        error: normalizePluginError(err, 'PLUGIN_READ_FAILED').code,
+        isLoadingInstalled: false,
+      });
     }
   },
 
@@ -275,11 +287,16 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       useTemplateStore
         .getState()
         .loadTemplates()
-        .catch((err) => logger.warn('[pluginStore] installPlugin: template reload failed:', err));
+        .catch((err) =>
+          logger.warn(
+            '[pluginStore] installPlugin: template reload failed:',
+            backendErrorLogDetails(err),
+          ),
+        );
     } catch (err) {
       if (!request.isCurrent()) return;
-      if (!controller.signal.aborted && !String(err).includes('PLUGIN_INSTALL_CANCELLED'))
-        setCurrent({ error: String(err) });
+      if (!controller.signal.aborted && !isPluginCancellation(err))
+        setCurrent({ error: normalizePluginError(err, 'PLUGIN_INSTALL_FAILED').code });
     } finally {
       if (get().installingPlugins[pluginId]?.controller === controller)
         set((state) => {
@@ -319,11 +336,16 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       useTemplateStore
         .getState()
         .loadTemplates()
-        .catch((err) => logger.warn('[pluginStore] updatePlugin: template reload failed:', err));
+        .catch((err) =>
+          logger.warn(
+            '[pluginStore] updatePlugin: template reload failed:',
+            backendErrorLogDetails(err),
+          ),
+        );
     } catch (err) {
       if (!request.isCurrent()) return;
-      if (!controller.signal.aborted && !String(err).includes('PLUGIN_INSTALL_CANCELLED'))
-        setCurrent({ error: String(err) });
+      if (!controller.signal.aborted && !isPluginCancellation(err))
+        setCurrent({ error: normalizePluginError(err, 'PLUGIN_INSTALL_FAILED').code });
     } finally {
       if (get().installingPlugins[pluginId]?.controller === controller)
         set((state) => {
@@ -347,7 +369,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       request.assertCurrent();
     } catch (err) {
       if (!request.isCurrent()) return;
-      setCurrent({ error: String(err) });
+      setCurrent({ error: normalizePluginError(err, 'PLUGIN_STORE_FAILED').code });
     }
   },
 
@@ -426,7 +448,11 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
     } catch (err) {
       if (!request.isCurrent()) return;
       setCurrent((state) => {
-        const next = { ...state.runningPlugins[pluginId], completed: true, error: String(err) };
+        const next = {
+          ...state.runningPlugins[pluginId],
+          completed: true,
+          error: normalizePluginError(err).code,
+        };
         return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
       });
       useUiStore.getState().showToast({
@@ -442,7 +468,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
           ...state.runningPlugins[pluginId],
           completed: true,
           toastShown: true,
-          error: String(err),
+          error: normalizePluginError(err).code,
         };
         return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
       });
@@ -476,7 +502,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       request.assertCurrent();
     } catch (err) {
       if (!request.isCurrent()) return;
-      setCurrent({ error: String(err) });
+      setCurrent({ error: normalizePluginError(err, 'PLUGIN_INVALID_ARGUMENT').code });
       return;
     }
     setCurrent((state) => {
@@ -507,7 +533,10 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       });
     } catch (err) {
       if (!request.isCurrent()) return;
-      setCurrent({ error: String(err), isLoadingMarket: false });
+      setCurrent({
+        error: normalizePluginError(err, 'PLUGIN_REGISTRY_FAILED').code,
+        isLoadingMarket: false,
+      });
       useUiStore.getState().showToast({
         type: 'error',
         message: i18next.t('plugin:refresh_failed', {

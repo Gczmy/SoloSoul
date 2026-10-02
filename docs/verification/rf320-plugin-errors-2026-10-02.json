@@ -1,0 +1,874 @@
+{
+  "task": "RF-320",
+  "status": "verified and closed; single local commit; no push",
+  "baselineHead": "34a18607b094ad397b0d4ab5978b3ea237fcf136",
+  "commitMessage": "refactor(errors): type plugin failures [RF-320]",
+  "workspace": "C:\\Users\\40299571\\SoloSoul",
+  "evidenceDirectory": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002",
+  "scope": {
+    "ownedPaths": [
+      "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+      "docs/ipc-contract-generation.md",
+      "docs/verification/rf320-plugin-errors-2026-10-02.json",
+      "tauri/crates/solosoul-plugin/src/error.rs",
+      "tauri/crates/solosoul-plugin/src/event.rs",
+      "tauri/crates/solosoul-plugin/src/field.rs",
+      "tauri/crates/solosoul-plugin/src/host.rs",
+      "tauri/crates/solosoul-plugin/src/manager.rs",
+      "tauri/crates/solosoul-plugin/src/sandbox.rs",
+      "tauri/scripts/generate-ipc-contracts.node.mjs",
+      "tauri/src-tauri/src/commands/error.rs",
+      "tauri/src-tauri/src/commands/plugin.rs",
+      "tauri/src-tauri/src/commands/plugin/contracts/rf320-fixtures.json",
+      "tauri/src-tauri/src/commands/plugin/rf320_tests.rs",
+      "tauri/src-tauri/src/plugin/errors.rs",
+      "tauri/src-tauri/src/plugin/mod.rs",
+      "tauri/src/components/plugin/PluginQuickPanel.tsx",
+      "tauri/src/components/plugin/shared/PluginLogSection.rf320.test.tsx",
+      "tauri/src/components/plugin/shared/PluginLogSection.tsx",
+      "tauri/src/lib/backendError.ts",
+      "tauri/src/lib/backendErrorWire.ts",
+      "tauri/src/lib/generated/ipcContractManifest.json",
+      "tauri/src/lib/generated/ipcContracts.ts",
+      "tauri/src/lib/ipcClient.ts",
+      "tauri/src/lib/plugin.transport.rf306.test.ts",
+      "tauri/src/lib/plugin.ts",
+      "tauri/src/lib/pluginErrors.rf320.test.ts",
+      "tauri/src/locales/en-US/common.json",
+      "tauri/src/locales/zh-CN/common.json",
+      "tauri/src/stores/pluginStore.test.ts",
+      "tauri/src/stores/pluginStore.ts",
+      "tauri/tools/ipc-contract-gen/tests/rf306.rs"
+    ],
+    "finalInputs": {
+      "docs/ipc-contract-generation.md": "37482e76287a6c0165eb08768c99b31cb382d218e9e06985946ef8296ba78490",
+      "tauri/crates/solosoul-plugin/src/error.rs": "c14fcabcacd8f9aa6833e9f2796f00f9978ef02e0fc0958459b3b6b0e54566e4",
+      "tauri/crates/solosoul-plugin/src/event.rs": "cfd9733359f780b94ab0b08f0e8c3058b5c839d054bf03929b6d6d734cef5a35",
+      "tauri/crates/solosoul-plugin/src/field.rs": "c3d6721b7d54d6cd2b39459c96bac0639f6f9c394a05c268f0188541578c44d3",
+      "tauri/crates/solosoul-plugin/src/host.rs": "88261c47846dfaeb9396f8694f5c8415f2dcf6c8d0c98577456b72f152824f45",
+      "tauri/crates/solosoul-plugin/src/manager.rs": "7f293ca33398b8e87806e2864beb13cab46429c431010700b7ca718431645369",
+      "tauri/crates/solosoul-plugin/src/sandbox.rs": "367123dcb9082883bd4ed94fd37ec979603b5ef9f2b1efc218c0cfa3aa989984",
+      "tauri/scripts/generate-ipc-contracts.node.mjs": "0429f884569bc95c6a112a2bbc6cbab9e2f7af0172b2bca48d742465c657253b",
+      "tauri/src-tauri/src/commands/error.rs": "e88ff7b08c8ab3fd9e0bf3547b7307e0144bbee046e74fc3637d7bc42b8cb171",
+      "tauri/src-tauri/src/commands/plugin.rs": "f102822c548363c09275627ea44dce00478cdf33539b41ee46e6f51afe0c5734",
+      "tauri/src-tauri/src/commands/plugin/contracts/rf320-fixtures.json": "6f4102ed21d6a32b4d2941679e8f7d87495863f62f9866efec345603b308dbd3",
+      "tauri/src-tauri/src/commands/plugin/rf320_tests.rs": "c7e6f3a0a49a66ae19b3c1f1d482d9a51f9f8e818d220ff7328e0dac50ebd49d",
+      "tauri/src-tauri/src/plugin/errors.rs": "65b9ab43aa60029cf48f05d0b1e24b4c78f66bc0730d025b54d94d70eb770562",
+      "tauri/src-tauri/src/plugin/mod.rs": "0f0502ece808dcee2a28249262ef5fa368735c6ef379794ac7d485dbe14e6cf7",
+      "tauri/src/components/plugin/PluginQuickPanel.tsx": "55734b6f553d4ca59e2363352bfa60e77b096d318f3307c722c5bf4bbc8ea250",
+      "tauri/src/components/plugin/shared/PluginLogSection.rf320.test.tsx": "d1f8fe71f7d78aa4eb5340453fb170e069ed0004a129bf209344ad25969f37be",
+      "tauri/src/components/plugin/shared/PluginLogSection.tsx": "35e4d5cbb4199d516e83c4622c87158ea7884e429390432af9c4aef6d464489a",
+      "tauri/src/lib/backendError.ts": "8d52d94c763b752101572875cecdc0e82e39afb374bbbc0e3aec6d60e8793422",
+      "tauri/src/lib/backendErrorWire.ts": "c08deae6f9113fe6bedeed5734657bb68ed459025275cc273556cf6c925285b5",
+      "tauri/src/lib/generated/ipcContractManifest.json": "7dc56db71949860d1aece0558019e9abd4079971852cdef7635dc561eef1f5ec",
+      "tauri/src/lib/generated/ipcContracts.ts": "d49c1d9506aaac2da98d4f40f1b509a9fd47f65c27b6102889f608471a7daa95",
+      "tauri/src/lib/ipcClient.ts": "e208145b267d674bf54e2b774e62de3acb8246ce3013c132dc9054dcb13e7ecc",
+      "tauri/src/lib/plugin.transport.rf306.test.ts": "5b3467d9823cc4f5b1d009fd3bdcfcdb9a523d4515090c9ec280cdc27c5c1127",
+      "tauri/src/lib/plugin.ts": "ee450405e9aa896e096f4b2443f7f3d0320d38c85ab4ca8f2512aa96b15af5b2",
+      "tauri/src/lib/pluginErrors.rf320.test.ts": "983ee5f88cebb614f88f35f37bab270b1c85a79ac7ece09d62f9165de95fc43f",
+      "tauri/src/locales/en-US/common.json": "55140b1f6ecab17d479644f96499a0d24a780cc85a2f45b89371005b9ef1ef7e",
+      "tauri/src/locales/zh-CN/common.json": "222f11f19c986b1b5e5ea6a03d8b00016700a268b7a1ac78bef5d255587a63f3",
+      "tauri/src/stores/pluginStore.test.ts": "e8d4a9ae15270064ac6c363e81bc17524412df465fd66bdf32c3ae7d522104f7",
+      "tauri/src/stores/pluginStore.ts": "37b98d2f6159c121b17cdfc243891b552cc35c638fb8bd4201476b8b7d5425e8",
+      "tauri/tools/ipc-contract-gen/tests/rf306.rs": "0df92655724d047d0fb7e880c725fb1bc3f74d78807058e74a68464487e2af5a"
+    },
+    "finalRustInputs": {
+      "tauri/crates/solosoul-plugin/src/error.rs": "c14fcabcacd8f9aa6833e9f2796f00f9978ef02e0fc0958459b3b6b0e54566e4",
+      "tauri/crates/solosoul-plugin/src/event.rs": "cfd9733359f780b94ab0b08f0e8c3058b5c839d054bf03929b6d6d734cef5a35",
+      "tauri/crates/solosoul-plugin/src/field.rs": "c3d6721b7d54d6cd2b39459c96bac0639f6f9c394a05c268f0188541578c44d3",
+      "tauri/crates/solosoul-plugin/src/host.rs": "88261c47846dfaeb9396f8694f5c8415f2dcf6c8d0c98577456b72f152824f45",
+      "tauri/crates/solosoul-plugin/src/manager.rs": "7f293ca33398b8e87806e2864beb13cab46429c431010700b7ca718431645369",
+      "tauri/crates/solosoul-plugin/src/sandbox.rs": "367123dcb9082883bd4ed94fd37ec979603b5ef9f2b1efc218c0cfa3aa989984",
+      "tauri/src-tauri/src/commands/error.rs": "e88ff7b08c8ab3fd9e0bf3547b7307e0144bbee046e74fc3637d7bc42b8cb171",
+      "tauri/src-tauri/src/commands/plugin.rs": "f102822c548363c09275627ea44dce00478cdf33539b41ee46e6f51afe0c5734",
+      "tauri/src-tauri/src/commands/plugin/rf320_tests.rs": "c7e6f3a0a49a66ae19b3c1f1d482d9a51f9f8e818d220ff7328e0dac50ebd49d",
+      "tauri/src-tauri/src/plugin/errors.rs": "65b9ab43aa60029cf48f05d0b1e24b4c78f66bc0730d025b54d94d70eb770562",
+      "tauri/src-tauri/src/plugin/mod.rs": "0f0502ece808dcee2a28249262ef5fa368735c6ef379794ac7d485dbe14e6cf7",
+      "tauri/tools/ipc-contract-gen/tests/rf306.rs": "0df92655724d047d0fb7e880c725fb1bc3f74d78807058e74a68464487e2af5a"
+    },
+    "protectedRawInputs": {
+      "solosoul_cli/src/commands/profile.rs": "e08c0a7b8c9d9270f5764945494634c75d6d81bcba02cc189487965c81fc4e41",
+      "solosoul_cli/src/commands/security.rs": "0133f1ca219910c364dba4a2792452cfb88b05a133243f45765703cbbe146104",
+      "solosoul_cli/src/commands/template.rs": "ed2c08ee422ca9365415723875289cdad12ee2b92746a99a8c46eccac0ad7f95",
+      "solosoul_cli/src/commands/vault_write.rs": "48cb640caca661c289897d9d99a6a8cf4b13bb16abe05b5123fbc30b3bc7a16e",
+      "tauri/crates/solosoul-core/src/process_lock.rs": "48ebf0045f85980ebfc6e0a9ee52d72d2bb394e6f8b12d7107a2362f0d637c34",
+      "tauri/src-tauri/bundles/nsis/assets/header-install.bmp": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+      "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+      "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+      "tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json": "d1f8f2db3d8aad53e1b955d3fc640374752db1c302d2f2c22d74e9ed356b428f",
+      "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/search-index.json": "cd4beaf09aeda37039a6523e6b86d01374dcced507278a1e76d41bd473b4e8fb",
+      "tauri/src-tauri/gen/android/app/tauri.properties": "edf405ac23359ac312017a0711dafdf1a4d23af99dc8b68237880c7107035ed6",
+      "tauri/src/hooks/useToastError.ts": "f2da44c3ca3fb50e379051ba762b1712ec19dfa21f9321ecaee3f9ef4fa33968"
+    },
+    "otherTrackedStable": 1838,
+    "baselineTrackedCount": 1876,
+    "gitlinks": {
+      "SoloSoul_plugin_market": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921"
+    },
+    "indexInitiallyEmpty": true,
+    "noPush": true,
+    "reportFinalSha256": "ce01975704150b2db22dc60b84418d6938d0dc914c44b4b5f0f6e7edbe49bcc8"
+  },
+  "checks": [
+    {
+      "name": "front-full-final",
+      "command": [
+        "npm.cmd",
+        "run",
+        "test",
+        "--",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile.json=C:/Users/40299571/AppData/Local/Temp/ss-rf320-20261002/front-full-final-results.json"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 125.98,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\front-full-final.log",
+      "logSha256": "b02b7619f17b87c0fe24b2bc9a499288cc3b442ef85ab843cfe86608bdfb8ad2"
+    },
+    {
+      "name": "types-audit-final",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 23.52,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\types-audit-final.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lint-audit-final",
+      "command": [
+        "npm.cmd",
+        "run",
+        "lint"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 12.39,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\lint-audit-final.log",
+      "logSha256": "9ccdcb4482fdd1a0617291405e83ca63932f2a561161d2b94b9a67d00b6bc7e1"
+    },
+    {
+      "name": "front-format-complete",
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "src/lib/backendError.ts",
+        "src/lib/backendErrorWire.ts",
+        "src/lib/ipcClient.ts",
+        "src/lib/plugin.ts",
+        "src/stores/pluginStore.ts",
+        "src/stores/pluginStore.test.ts",
+        "src/lib/plugin.install.test.ts",
+        "src/lib/plugin.transport.rf306.test.ts",
+        "src/lib/pluginErrors.rf320.test.ts",
+        "src/components/plugin/shared/PluginLogSection.tsx",
+        "src/components/plugin/shared/PluginLogSection.rf320.test.tsx",
+        "src/components/plugin/PluginQuickPanel.tsx",
+        "src/locales/zh-CN/common.json",
+        "src/locales/en-US/common.json",
+        "scripts/generate-ipc-contracts.node.mjs",
+        "src/lib/generated/ipcContracts.ts",
+        "src/lib/generated/ipcContractManifest.json",
+        "src-tauri/src/commands/plugin/contracts/rf320-fixtures.json"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.79,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\front-format-complete.log",
+      "logSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "name": "rust-fmt-finalized",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 6.72,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\rust-fmt-finalized.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "rust-clippy-finalized",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 34.62,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\rust-clippy-finalized.log",
+      "logSha256": "fda0ddcf575e29f24d584b0f2fce64b014d862da592443710c391dad92ca5571"
+    },
+    {
+      "name": "rust-full-finalized",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 250.65,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\rust-full-finalized.log",
+      "logSha256": "63a172fa1014837b84fee17ad52afc796b20d6bc70d2147bd5dce27c4c16e903"
+    },
+    {
+      "name": "cli-fmt-final",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 4.54,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\cli-fmt-final.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "cli-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 33.42,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\cli-clippy-final.log",
+      "logSha256": "38c3815dac7020d9b763c8cfa303fe272fc72c8f919cf3affdad7f48b8b4ea7d"
+    },
+    {
+      "name": "cli-full-final",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 486.99,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\cli-full-final.log",
+      "logSha256": "3aecbfebc81f9bd7e5bfa9db0952034925e9badb5645da358f41fdae58cd9209"
+    },
+    {
+      "name": "contracts-node-final",
+      "command": [
+        "node",
+        "--test",
+        "scripts/generate-ipc-contracts.node.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 94.09,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\contracts-node-final.log",
+      "logSha256": "221bef8074df8bd76053a8c2af41c835db399470dd7f3d63230c1a12a1d151b1"
+    },
+    {
+      "name": "contracts-check-final",
+      "command": [
+        "node",
+        "scripts/generate-ipc-contracts.mjs",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.33,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\contracts-check-final.log",
+      "logSha256": "d177d398fe62b83268888947fa4c243f685ce74480899ad881474c19963207d5"
+    },
+    {
+      "name": "contracts-acl",
+      "command": [
+        "node",
+        "scripts/run-python-check.cjs",
+        "scripts/check_acl_consistency.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.21,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\contracts-acl.log",
+      "logSha256": "baba1ce2ca66c142213eab646971933c0d11d7f52d261fd54af6933303268ff0"
+    },
+    {
+      "name": "contracts-pref",
+      "command": [
+        "node",
+        "scripts/run-python-check.cjs",
+        "scripts/check_pref_keys_sync.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.18,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\contracts-pref.log",
+      "logSha256": "b97b695e75f346b7c1eb942a1de01ca0dbac814cd9f637edfc1d59472fced6c3"
+    },
+    {
+      "name": "contracts-markdown",
+      "command": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 2.24,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\contracts-markdown.log",
+      "logSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc"
+    },
+    {
+      "name": "contracts-python",
+      "command": [
+        "python",
+        "-X",
+        "utf8",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_check_acl_consistency.py"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.72,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\contracts-python.log",
+      "logSha256": "89ff5462f7cf3388deb451119b3b61d1b8968373f279ee89501af58fb1a87126"
+    },
+    {
+      "name": "rf306-rust-directed",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solosoul-ipc-contract-gen",
+        "--test",
+        "rf306"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 17.0,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\rf306-rust-directed.log",
+      "logSha256": "f896c3a8bad0b1a648b87671e51e0c3f74622eb0bf667efc5993341a0387050d"
+    },
+    {
+      "name": "contracts-markdown-close",
+      "command": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 8.47,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\contracts-markdown-close.log",
+      "logSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc"
+    }
+  ],
+  "results": {
+    "frontend": {
+      "files": 252,
+      "passed": 2191,
+      "failed": 0,
+      "pending": 0,
+      "jsonReportSha256": "7bf730f4b47627d535503a94b5bc4a104b86e4bd5ae3ef18a48bbccc54c72dca",
+      "nodePassed": 112,
+      "defaultSelectionAndPool": true
+    },
+    "rust": {
+      "passed": 1848,
+      "failed": 0,
+      "ignored": 3,
+      "groups": 25,
+      "groupResults": [
+        {
+          "passed": 772,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 442,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 41,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 25,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 12,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 36,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 102,
+          "failed": 0,
+          "ignored": 2
+        },
+        {
+          "passed": 90,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 311,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        }
+      ]
+    },
+    "cli": {
+      "passed": 336,
+      "failed": 0,
+      "ignored": 2,
+      "groups": 5,
+      "groupResults": [
+        {
+          "passed": 329,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0
+        },
+        {
+          "passed": 5,
+          "failed": 0,
+          "ignored": 1
+        },
+        {
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1
+        }
+      ]
+    },
+    "contracts": {
+      "nodePassed": 23,
+      "typedCommands": 105,
+      "structuredErrorCommands": 95,
+      "actualRegistryCommands": 225,
+      "legacyCommands": 120,
+      "eventContracts": 11,
+      "pluginResultCommands": 14,
+      "numericInstallResourceKept": true
+    },
+    "remainingDependencyAudit": {
+      "task": "RF-320",
+      "state": "RF-320 verified",
+      "total": 255,
+      "closedAfterAcceptance": 234,
+      "externalRoots": [
+        "RF-208",
+        "RF-204",
+        "RF-121",
+        "RF-309",
+        "RF-308",
+        "RF-312"
+      ],
+      "pending": [
+        "RF-201",
+        "RF-112",
+        "RF-203",
+        "RF-122",
+        "RF-123",
+        "RF-124",
+        "RF-125",
+        "RF-126",
+        "RF-127",
+        "RF-205",
+        "RF-206",
+        "RF-207",
+        "RF-310",
+        "RF-314",
+        "RF-311"
+      ],
+      "readyAfterAcceptance": [],
+      "dependencies": {
+        "RF-201": {
+          "parents": [
+            "RF-208"
+          ],
+          "unclosedRoots": [
+            "RF-208"
+          ]
+        },
+        "RF-112": {
+          "parents": [
+            "RF-110",
+            "RF-111",
+            "RF-201"
+          ],
+          "unclosedRoots": [
+            "RF-208"
+          ]
+        },
+        "RF-203": {
+          "parents": [
+            "RF-208"
+          ],
+          "unclosedRoots": [
+            "RF-208"
+          ]
+        },
+        "RF-122": {
+          "parents": [
+            "RF-121",
+            "RF-115",
+            "RF-116"
+          ],
+          "unclosedRoots": [
+            "RF-121"
+          ]
+        },
+        "RF-123": {
+          "parents": [
+            "RF-121",
+            "RF-102",
+            "RF-104"
+          ],
+          "unclosedRoots": [
+            "RF-121"
+          ]
+        },
+        "RF-124": {
+          "parents": [
+            "RF-117",
+            "RF-121"
+          ],
+          "unclosedRoots": [
+            "RF-121"
+          ]
+        },
+        "RF-125": {
+          "parents": [
+            "RF-107",
+            "RF-109",
+            "RF-121",
+            "RF-122"
+          ],
+          "unclosedRoots": [
+            "RF-121"
+          ]
+        },
+        "RF-126": {
+          "parents": [
+            "RF-122"
+          ],
+          "unclosedRoots": [
+            "RF-121"
+          ]
+        },
+        "RF-127": {
+          "parents": [
+            "RF-115",
+            "RF-116",
+            "RF-117",
+            "RF-118",
+            "RF-119",
+            "RF-120",
+            "RF-121",
+            "RF-122",
+            "RF-123",
+            "RF-124",
+            "RF-125",
+            "RF-126"
+          ],
+          "unclosedRoots": [
+            "RF-121"
+          ]
+        },
+        "RF-205": {
+          "parents": [
+            "RF-202",
+            "RF-203",
+            "RF-204"
+          ],
+          "unclosedRoots": [
+            "RF-204",
+            "RF-208"
+          ]
+        },
+        "RF-206": {
+          "parents": [
+            "RF-208"
+          ],
+          "unclosedRoots": [
+            "RF-208"
+          ]
+        },
+        "RF-207": {
+          "parents": [
+            "RF-206",
+            "RF-208"
+          ],
+          "unclosedRoots": [
+            "RF-208"
+          ]
+        },
+        "RF-310": {
+          "parents": [
+            "RF-201",
+            "RF-208"
+          ],
+          "unclosedRoots": [
+            "RF-208"
+          ]
+        },
+        "RF-314": {
+          "parents": [
+            "RF-205"
+          ],
+          "unclosedRoots": [
+            "RF-204",
+            "RF-208"
+          ]
+        },
+        "RF-311": {
+          "parents": [
+            "RF-308",
+            "RF-309",
+            "RF-310"
+          ],
+          "unclosedRoots": [
+            "RF-208",
+            "RF-308",
+            "RF-309"
+          ]
+        }
+      },
+      "constraints": "任务卡前置与3.2 Android构建前置保留；不以浏览器模拟或本机检查代替多端原生/远端CI"
+    }
+  },
+  "priorAttempts": [
+    {
+      "name": "baseline-front",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/lib/pluginErrors.rf320.test.ts"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 25.01,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\baseline-front.log",
+      "logSha256": "7ed83437c2fa62515e6cc0e4f2c39d4aaae118350417b48613c5cb0e61c51fbb"
+    },
+    {
+      "name": "directed-front",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/lib/pluginErrors.rf320.test.ts",
+        "src/components/plugin/shared/PluginLogSection.rf320.test.tsx",
+        "src/lib/plugin.install.test.ts",
+        "src/lib/plugin.transport.rf306.test.ts",
+        "src/stores/pluginStore.test.ts",
+        "src/lib/backendError.test.ts",
+        "src/components/plugin/PluginQuickPanel.test.tsx"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 29.91,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\directed-front.log",
+      "logSha256": "a37796220b03ce8f283d19ab77348132d7b8028f3d2f94e75bd791c7d1d91a17"
+    },
+    {
+      "name": "front-full",
+      "command": [
+        "npm.cmd",
+        "run",
+        "test",
+        "--",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile.json=C:/Users/40299571/AppData/Local/Temp/ss-rf320-20261002/front-full-results.json"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 133.06,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\front-full.log",
+      "logSha256": "a3a69e4562dd3f0d75e801099866d1e0fd7526f31d59dde40afb41d7422f27b5"
+    },
+    {
+      "name": "rust-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 101,
+      "elapsedSeconds": 92.01,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\rust-clippy.log",
+      "logSha256": "f91e804f9ef8a211584222991f60562a7a4d52e941ee37efacdc07d24b3a8035"
+    },
+    {
+      "name": "rust-clippy-final",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 101,
+      "elapsedSeconds": 32.05,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\rust-clippy-final.log",
+      "logSha256": "3fdf18285662f2a1268126e0d9aa4367e33dff8ccf2d97d02113f5035de949b1"
+    },
+    {
+      "name": "rust-full-complete",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--verbose"
+      ],
+      "exitCode": 101,
+      "elapsedSeconds": 616.05,
+      "log": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf320-20261002\\rust-full-complete.log",
+      "logSha256": "f0f02d9b8f8237b62c9bf3dd5b517745513fea6c5a993a754b4c2797cf5c1f75"
+    }
+  ],
+  "corrections": [
+    "The original reproduction leaked a synthetic private native cause into UI.",
+    "Old transport error-identity assertions now check the intended machine packet; resource cleanup assertions remain.",
+    "The new stale-callback test incorrectly assumed a post-invoke gate; it now proves existing callback/pre-invoke guards without changing production scheduling.",
+    "A new assertion incorrectly treated the existing String SessionEventSink result as PluginError; the original rejection assertion was restored.",
+    "Strict Clippy exposed a now-unused private String output adapter; it was removed, with actual typed filesystem containment/copy regression retained.",
+    "The actual plugin integration fixture needed to register BackendError from real Host source after migration; unknown-type rejection remains enforced.",
+    "The final audit added fixed Core failure reasons and sanitized old GUI audit replies; final frontend, types, lint, Rust and CLI cover this addition."
+  ],
+  "review": {
+    "reviewer": "primary agent; no claim of independent peer review",
+    "checks": [
+      "typed Core variants; exact control tokens; no free cause in GUI errors",
+      "real Tauri SDK/native rejection and Channel; resource cancel/commit semantics",
+      "real WASM session expiration/lock/trap/fuel; original host integer ABI",
+      "output canonical containment and real filesystem write refusal",
+      "existing success/progress/consent/result shape retained",
+      "old audit failure body projected; regular authorization audit preserved",
+      "all remaining task dependencies checked"
+    ]
+  },
+  "notes": [
+    "Windows automated unit/contract checks only; no new macOS/Android/iOS native GUI validation claimed.",
+    "R and CLI plus contract generator ran in a single Cargo queue. Default frontend worker configuration was retained.",
+    "Explicit plugin logs and authorized results retain their original payload; this change projects error/rejection/audit-failure causes.",
+    "ESLint completed with 0 errors and the existing syncStore unused-event warning. No test skip or ignore was added.",
+    "Original 12 raw files were preserved and excluded from staging, including normalization-only Git differences."
+  ]
+}

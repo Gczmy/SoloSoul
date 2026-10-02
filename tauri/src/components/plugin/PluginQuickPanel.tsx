@@ -16,7 +16,7 @@ import { isDevOrDebug } from '@/lib/utils';
 import styles from './PluginQuickPanel.module.css';
 import { getNavCardStyle } from '@/components/layout/navCardPosition';
 import { ICON_SIZE } from '@/lib/constants';
-import { resolveBackendErrorMessage } from '@/lib/backendError';
+import { resolvePluginErrorMessage } from '@/lib/backendError';
 import { PluginInstallProgress } from './PluginInstallProgress';
 import { sortPluginsByName } from '@/lib/pluginOrdering';
 
@@ -236,7 +236,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
       {/* Body */}
       {error && (
         <div className={styles.error} role="alert">
-          {t('plugin:operation_failed')}: {resolveBackendErrorMessage(error)}
+          {t('plugin:operation_failed')}: {resolvePluginErrorMessage(error)}
         </div>
       )}
       <div className={styles.body}>

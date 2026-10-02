@@ -77,7 +77,7 @@ impl WasmSandbox {
         _consent_manager: &ConsentManager,
     ) -> Result<PluginResult, PluginError> {
         if host.plugin_id != session.plugin_id || host.session_id != session.id {
-            return Err(PluginError::ExecutionFailed("插件与会话不匹配".into()));
+            return Err(PluginError::SessionExpired("插件与会话不匹配".into()));
         }
         host.field_resolver = Arc::new((*host.field_resolver).clone().with_session(session));
         host.channel = Arc::new(super::event::SessionEventSink {
@@ -134,18 +134,22 @@ impl WasmSandbox {
             Ok(Ok(code)) => code,
             Ok(Err(e)) => {
                 let host = store.into_data().host;
-                let _ = host.channel.send(PluginEvent::error(
+                // call_hook 把错误转成 wasmtime 文本后，再按真实 resolver 状态取类别。
+                host.ensure_live()?;
+                let _ = host.channel.send(PluginEvent::error_classified(
                     &host.plugin_id,
                     format!("Wasm trap: {}", e),
+                    "PLUGIN_EXECUTION_FAILED",
                 ));
                 return Err(PluginError::ExecutionFailed(e.to_string()));
             }
             Err(_) => {
-                let _ = channel.send(PluginEvent::error(
+                let _ = channel.send(PluginEvent::error_classified(
                     &plugin_id,
                     format!("插件 {} 运行时 panic", plugin_name),
+                    "PLUGIN_TASK_UNCONFIRMED",
                 ));
-                return Err(PluginError::ExecutionFailed(
+                return Err(PluginError::TaskUnconfirmed(
                     "插件运行时 panic，已被沙箱捕获".to_string(),
                 ));
             }
@@ -239,20 +243,30 @@ mod tests {
         let module = sandbox.compile(LOG_THEN_RESULT).unwrap();
         let events = Arc::new(Events::default());
         let mut session = PluginSessionManager::new().create("test", 0);
-        assert!(sandbox
-            .execute(
-                &module,
-                host(&session, FieldResolver::new(), events.clone()),
-                &session,
-                &ConsentManager::new()
-            )
-            .is_err());
+        assert_eq!(
+            sandbox
+                .execute(
+                    &module,
+                    host(&session, FieldResolver::new(), events.clone()),
+                    &session,
+                    &ConsentManager::new()
+                )
+                .err()
+                .unwrap()
+                .safe_code(),
+            "PLUGIN_SESSION_EXPIRED"
+        );
         session.expires_at = chrono::Utc::now().timestamp_millis() + 60_000;
         let h = host(&session, FieldResolver::new(), events.clone());
         session.plugin_id = "another-plugin".into();
-        assert!(sandbox
-            .execute(&module, h, &session, &ConsentManager::new())
-            .is_err());
+        assert_eq!(
+            sandbox
+                .execute(&module, h, &session, &ConsentManager::new())
+                .err()
+                .unwrap()
+                .safe_code(),
+            "PLUGIN_SESSION_EXPIRED"
+        );
         assert!(events.values.lock().unwrap().is_empty());
     }
 
@@ -274,14 +288,19 @@ mod tests {
         let sandbox = WasmSandbox::new();
         let module = sandbox.compile(LOG_THEN_RESULT).unwrap();
         let session = PluginSessionManager::new().create("test", 60);
-        assert!(sandbox
-            .execute(
-                &module,
-                host(&session, resolver.clone(), events.clone()),
-                &session,
-                &ConsentManager::new()
-            )
-            .is_err());
+        assert_eq!(
+            sandbox
+                .execute(
+                    &module,
+                    host(&session, resolver.clone(), events.clone()),
+                    &session,
+                    &ConsentManager::new()
+                )
+                .err()
+                .unwrap()
+                .safe_code(),
+            "PLUGIN_SESSION_EXPIRED"
+        );
         assert_eq!(events.values.lock().unwrap().len(), 1);
         assert_eq!(events.values.lock().unwrap()[0].event_type, "log");
         let guarded = crate::event::SessionEventSink {
@@ -312,5 +331,36 @@ mod tests {
             .is_err());
         assert!(start.elapsed() >= std::time::Duration::from_millis(400));
         assert!(events.values.lock().unwrap().is_empty());
+    }
+    #[test]
+    fn rf320_real_wasm_trap_and_fuel_exhaustion_keep_execution_kind() {
+        let mut sandbox = WasmSandbox::new();
+        sandbox.fuel_limit = 100;
+        for wat in [
+            br#"(module (func (export "run") (result i32) unreachable))"#.as_slice(),
+            br#"(module (func (export "run") (result i32) (loop $spin br $spin) i32.const 0))"#
+                .as_slice(),
+        ] {
+            let module = sandbox.compile(wat).unwrap();
+            let session = PluginSessionManager::new().create("test", 60);
+            let events = Arc::new(Events::default());
+            let error = sandbox
+                .execute(
+                    &module,
+                    host(&session, FieldResolver::new(), events.clone()),
+                    &session,
+                    &ConsentManager::new(),
+                )
+                .err()
+                .unwrap();
+            assert_eq!(error.safe_code(), "PLUGIN_EXECUTION_FAILED");
+            let sent = events.values.lock().unwrap();
+            let error_event = sent.iter().find(|e| e.event_type == "error").unwrap();
+            assert_eq!(
+                serde_json::from_str::<serde_json::Value>(&error_event.json_data).unwrap()["code"],
+                "PLUGIN_EXECUTION_FAILED"
+            );
+            assert!(!sent.iter().any(|e| e.event_type == "completed"));
+        }
     }
 }

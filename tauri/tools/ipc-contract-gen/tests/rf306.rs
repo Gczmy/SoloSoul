@@ -157,6 +157,18 @@ fn rf306_channel_uses_output_payload_and_resource_id_is_a_named_handle() {
 fn rf306_real_shared_plugin_crate_and_all_fifteen_actual_command_signatures_generate() {
     let fixture = Fixture::new(include_str!("../../../src-tauri/src/commands/plugin.rs"));
     fixture.shared();
+    // RF320：实际 Host 拒绝类型已迁移，fixture 同样显式注册真实 DTO。
+    let error_source = "src-tauri/src/commands/error.rs";
+    fixture.write(
+        "src-tauri/src/commands/mod.rs",
+        "pub mod plugin; pub mod error;",
+    );
+    fixture.write(
+        error_source,
+        include_str!("../../../src-tauri/src/commands/error.rs"),
+    );
+    let mut types: Vec<_> = SHARED.map(|(path, _)| path).into();
+    types.push(error_source);
     let names = [
         "create_plugin_install",
         "plugin_list_all",
@@ -190,7 +202,7 @@ fn rf306_real_shared_plugin_crate_and_all_fifteen_actual_command_signatures_gene
             serde_json::to_string(&names).unwrap()
         ),
     );
-    fixture.selection(json!({"commands":names.map(|name|json!({"name":name,"source":HOST})),"types":SHARED.map(|(path,_)|path),"events":[],"crates":[PLUGIN_MANIFEST]}));
+    fixture.selection(json!({"commands":names.map(|name|json!({"name":name,"source":HOST})),"types":types,"events":[],"crates":[PLUGIN_MANIFEST]}));
     let generated = fixture.generated();
     assert_eq!(generated.manifest["commands"].as_array().unwrap().len(), 15);
     assert_eq!(generated.manifest["unmigratedCommands"], json!([]));
@@ -199,7 +211,17 @@ fn rf306_real_shared_plugin_crate_and_all_fifteen_actual_command_signatures_gene
         .as_array()
         .unwrap()
         .contains(&json!(PLUGIN_ROOT)));
+    assert_eq!(
+        generated.manifest["structuredErrorCommands"]
+            .as_array()
+            .unwrap()
+            .len(),
+        14
+    );
     let ts = &generated.typescript;
+    assert!(ts.contains("\"plugin_run\": BackendError;"));
+    assert!(ts.contains("\"create_plugin_install\": never;"));
+    assert!(ts.contains("\"PLUGIN_CONSENT_DENIED\""));
     assert!(ts.contains("\"onProgress\": TauriChannel<PluginInstallProgress>;"));
     assert!(ts.contains("\"channel\": TauriChannel<PluginEvent>;"));
     assert!(ts.contains("export type PluginResultPayload = JsonValue;"));

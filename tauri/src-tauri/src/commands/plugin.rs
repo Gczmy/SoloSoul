@@ -1,6 +1,8 @@
 //! 插件系统 Tauri Commands
 
+use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
 use crate::commands::{current_account_optional, vault_handle};
+use crate::plugin::errors;
 use crate::state::AppState;
 use solosoul_plugin::event::PluginEvent;
 use solosoul_plugin::install_progress::{PluginInstallPhase, PluginInstallProgress};
@@ -34,21 +36,40 @@ impl PluginInstallOperation {
             started: AtomicBool::new(false),
         }
     }
+    async fn run_projected<T, E>(
+        &self,
+        future: impl std::future::Future<Output = Result<T, E>>,
+        error: impl Fn(Code) -> E,
+    ) -> Result<T, E> {
+        if self.started.swap(true, Ordering::AcqRel) {
+            return Err(error(Code::PluginInstallAlreadyStarted));
+        }
+        let mut cancel = self.cancelled.subscribe();
+        if *cancel.borrow() {
+            return Err(error(Code::PluginInstallCancelled));
+        }
+        tokio::select! {biased;
+            _=cancel.changed()=>Err(error(Code::PluginInstallCancelled)),
+            result=future=>result,
+        }
+    }
+    async fn run_typed<T>(
+        &self,
+        future: impl std::future::Future<Output = Result<T, BackendError>>,
+    ) -> Result<T, BackendError> {
+        self.run_projected(future, |code| BackendError::new(code).at(Stage::Install))
+            .await
+    }
+    #[cfg(test)]
     async fn run<T>(
         &self,
         future: impl std::future::Future<Output = Result<T, String>>,
     ) -> Result<T, String> {
-        if self.started.swap(true, Ordering::AcqRel) {
-            return Err("安装任务已启动".into());
-        }
-        let mut cancel = self.cancelled.subscribe();
-        if *cancel.borrow() {
-            return Err("PLUGIN_INSTALL_CANCELLED".into());
-        }
-        tokio::select! { biased;
-            _ = cancel.changed() => Err("PLUGIN_INSTALL_CANCELLED".into()),
-            result = future => result,
-        }
+        self.run_projected(future, |code| match code {
+            Code::PluginInstallAlreadyStarted => "安装任务已启动".into(),
+            _ => "PLUGIN_INSTALL_CANCELLED".into(),
+        })
+        .await
     }
 }
 static PLUGIN_INSTALL_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
@@ -73,34 +94,35 @@ pub fn create_plugin_install(webview: Webview) -> ResourceId {
 pub async fn plugin_list_all(
     state: State<'_, AppState>,
     tier: Option<String>,
-) -> Result<Vec<MarketPluginInfo>, String> {
+) -> Result<Vec<MarketPluginInfo>, BackendError> {
     let tier_filter = match tier {
-        Some(t) => Some(PluginTier::parse(&t).ok_or_else(|| format!("非法 tier: {}", t))?),
+        Some(t) => Some(PluginTier::parse(&t).ok_or_else(|| {
+            BackendError::caused_by(Code::PluginInvalidArgument, Stage::Validate, t)
+        })?),
         None => None,
     };
     state
         .plugin_manager
         .list_all(tier_filter)
-        .map_err(|e| e.to_string())
+        .map_err(errors::typed)
 }
 
 #[tauri::command]
 pub async fn plugin_list_installed(
     state: State<'_, AppState>,
-) -> Result<Vec<PluginManifest>, String> {
-    state
-        .plugin_manager
-        .list_installed()
-        .map_err(|e| e.to_string())
+) -> Result<Vec<PluginManifest>, BackendError> {
+    state.plugin_manager.list_installed().map_err(errors::typed)
 }
 
 #[tauri::command]
-pub async fn plugin_list_attachments(state: State<'_, AppState>) -> Result<String, String> {
-    let vault_store = vault_handle(&state)?;
-    let account_id = current_account_optional(&state).ok_or("未选择账户")?;
+pub async fn plugin_list_attachments(state: State<'_, AppState>) -> Result<String, BackendError> {
+    let vault_store = vault_handle(&state)
+        .map_err(|cause| errors::legacy(Code::PluginReadFailed, Stage::Read, cause))?;
+    let account_id = current_account_optional(&state)
+        .ok_or_else(|| BackendError::new(Code::VaultLocked).at(Stage::Read))?;
     let resolver =
         solosoul_plugin::FieldResolver::with_vault(vault_store.store_arc(), account_id, vec![]);
-    resolver.list_attachments().map_err(|e| e.to_string())
+    resolver.list_attachments().map_err(errors::typed)
 }
 
 /// 从 PluginManifest 的 contracts 中提取 (type_id, role_id, default_property_id) 元组列表。
@@ -153,11 +175,7 @@ fn migrate_seed_bindings(state: &AppState, plugin_id: &str) {
             );
         }
         Err(e) => {
-            tracing::warn!(
-                "Plugin install: seed template migration failed for {}: {}",
-                plugin_id,
-                e
-            );
+            let _ = BackendError::caused_by(Code::PluginStoreFailed, Stage::Write, e);
         }
     }
 }
@@ -170,16 +188,18 @@ pub async fn plugin_install(
     version: String,
     operation_id: Option<ResourceId>,
     on_progress: Channel<PluginInstallProgress>,
-) -> Result<PluginInstallResult, String> {
+) -> Result<PluginInstallResult, BackendError> {
     let operation = match operation_id {
         Some(id) => webview
             .resources_table()
             .get::<PluginInstallOperation>(id)
-            .map_err(|e| e.to_string())?,
+            .map_err(|e| {
+                BackendError::caused_by(Code::PluginInvalidOperation, Stage::Validate, e)
+            })?,
         None => Arc::new(PluginInstallOperation::new()),
     };
     let result = operation
-        .run(async {
+        .run_typed(async {
             let _guard = PLUGIN_INSTALL_LOCK.lock().await;
             state
                 .plugin_manager
@@ -187,7 +207,7 @@ pub async fn plugin_install(
                     emit_install_progress(&on_progress, progress);
                 })
                 .await
-                .map_err(|e| e.to_string())
+                .map_err(errors::typed)
         })
         .await?;
     state.auto_sync.trigger_debounce();
@@ -204,16 +224,18 @@ pub async fn plugin_update(
     plugin_id: String,
     operation_id: Option<ResourceId>,
     on_progress: Channel<PluginInstallProgress>,
-) -> Result<PluginInstallResult, String> {
+) -> Result<PluginInstallResult, BackendError> {
     let operation = match operation_id {
         Some(id) => webview
             .resources_table()
             .get::<PluginInstallOperation>(id)
-            .map_err(|e| e.to_string())?,
+            .map_err(|e| {
+                BackendError::caused_by(Code::PluginInvalidOperation, Stage::Validate, e)
+            })?,
         None => Arc::new(PluginInstallOperation::new()),
     };
     let result = operation
-        .run(async {
+        .run_typed(async {
             let _guard = PLUGIN_INSTALL_LOCK.lock().await;
             state
                 .plugin_manager
@@ -221,7 +243,7 @@ pub async fn plugin_update(
                     emit_install_progress(&on_progress, progress);
                 })
                 .await
-                .map_err(|e| e.to_string())
+                .map_err(errors::typed)
         })
         .await?;
     state.auto_sync.trigger_debounce();
@@ -231,12 +253,15 @@ pub async fn plugin_update(
 }
 
 #[tauri::command]
-pub async fn plugin_uninstall(state: State<'_, AppState>, plugin_id: String) -> Result<(), String> {
+pub async fn plugin_uninstall(
+    state: State<'_, AppState>,
+    plugin_id: String,
+) -> Result<(), BackendError> {
     let _guard = PLUGIN_INSTALL_LOCK.lock().await;
     state
         .plugin_manager
         .uninstall(&plugin_id)
-        .map_err(|e| e.to_string())?;
+        .map_err(errors::typed)?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(())
@@ -248,12 +273,18 @@ pub async fn plugin_run(
     plugin_id: String,
     params: HashMap<String, String>,
     channel: Channel<PluginEvent>,
-) -> Result<PluginResult, String> {
+) -> Result<PluginResult, BackendError> {
     // 锁定态仍可运行不读取 Vault 的插件；维护拒绝或锁损坏不能降为无 Vault。
     let vault_activity = match vault_handle(&state) {
         Ok(handle) => Some(handle),
         Err(error) if error == "Vault not unlocked" => None,
-        Err(error) => return Err(error),
+        Err(error) => {
+            return Err(errors::legacy(
+                Code::PluginExecutionFailed,
+                Stage::Execute,
+                error,
+            ))
+        }
     };
     // capsule 保留到 outer function end，覆盖 capture → Core 派发的间隙。
     let vault_store = vault_activity.as_ref().map(|handle| handle.store_arc());
@@ -281,7 +312,7 @@ pub async fn plugin_run(
             attachment_key,
         )
         .await
-        .map_err(|e| e.to_string())
+        .map_err(errors::typed)
 }
 
 #[tauri::command]
@@ -290,12 +321,12 @@ pub async fn plugin_consent_response(
     request_id: String,
     approved: bool,
     value: Option<String>,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     state
         .plugin_manager
         .consent_response(&request_id, approved, value)
         .await
-        .map_err(|e| e.to_string())
+        .map_err(errors::typed)
 }
 
 #[tauri::command]
@@ -303,42 +334,40 @@ pub async fn plugin_dialog_response(
     state: State<'_, AppState>,
     request_id: String,
     value: Option<String>,
-) -> Result<(), String> {
+) -> Result<(), BackendError> {
     state
         .plugin_manager
         .dialog_response(&request_id, value)
         .await
-        .map_err(|e| e.to_string())
+        .map_err(errors::typed)
 }
 
 #[tauri::command]
 pub async fn plugin_list_sessions(
     state: State<'_, AppState>,
-) -> Result<Vec<PluginSession>, String> {
-    state
-        .plugin_manager
-        .list_sessions()
-        .map_err(|e| e.to_string())
+) -> Result<Vec<PluginSession>, BackendError> {
+    state.plugin_manager.list_sessions().map_err(errors::typed)
 }
 
 #[tauri::command]
 pub async fn plugin_audit_log(
     state: State<'_, AppState>,
     limit: Option<usize>,
-) -> Result<Vec<PluginAuditEntry>, String> {
+) -> Result<Vec<PluginAuditEntry>, BackendError> {
     state
         .plugin_manager
         .audit_log(limit)
-        .map_err(|e| e.to_string())
+        .map(|entries| entries.into_iter().map(errors::project_audit).collect())
+        .map_err(errors::typed)
 }
 
 #[tauri::command]
-pub async fn plugin_update_registry(state: State<'_, AppState>) -> Result<(), String> {
+pub async fn plugin_update_registry(state: State<'_, AppState>) -> Result<(), BackendError> {
     state
         .plugin_manager
         .update_registry()
         .await
-        .map_err(|e| e.to_string())
+        .map_err(errors::typed)
 }
 
 /// 校验插件提供的输出文件路径并返回其 canonical 形式（P004/P060 共享）。
@@ -349,28 +378,51 @@ pub async fn plugin_update_registry(state: State<'_, AppState>) -> Result<(), St
 /// 2. `path` 必须真实存在且是普通文件；
 /// 3. `path` 的 canonical 形式必须位于 `output_dir` 的 canonical 之内（防御纵深，
 ///    结合前端输出目录选择器，插件无法写穿其运行时的输出目录）。
-fn resolve_output_file(output_dir: &str, path: &str) -> Result<std::path::PathBuf, String> {
+fn resolve_output_file_with<E>(
+    output_dir: &str,
+    path: &str,
+    error: impl Fn(Code, Stage, String) -> E,
+) -> Result<std::path::PathBuf, E> {
     let out_dir = std::path::Path::new(output_dir);
-    let out_canon = out_dir
-        .canonicalize()
-        .map_err(|e| format!("无法解析输出目录: {}", e))?;
+    let out_canon = out_dir.canonicalize().map_err(|e| {
+        error(
+            Code::PluginOutputReadFailed,
+            Stage::Read,
+            format!("无法解析输出目录: {}", e),
+        )
+    })?;
     if !out_canon.is_dir() {
-        return Err("输出目录不存在".to_string());
+        return Err(error(
+            Code::PluginOutputInvalid,
+            Stage::Validate,
+            "输出目录不存在".to_string(),
+        ));
     }
 
     let p = std::path::Path::new(path);
-    let canon = p
-        .canonicalize()
-        .map_err(|e| format!("无法解析文件: {}", e))?;
+    let canon = p.canonicalize().map_err(|e| {
+        error(
+            Code::PluginOutputReadFailed,
+            Stage::Read,
+            format!("无法解析文件: {}", e),
+        )
+    })?;
     if !canon.is_file() {
-        return Err("输出文件不存在".to_string());
+        return Err(error(
+            Code::PluginOutputInvalid,
+            Stage::Validate,
+            "输出文件不存在".to_string(),
+        ));
     }
     if !canon.starts_with(&out_canon) {
-        return Err("输出文件位于插件输出目录之外，已拒绝访问".to_string());
+        return Err(error(
+            Code::PluginOutputDenied,
+            Stage::Validate,
+            "输出文件位于插件输出目录之外，已拒绝访问".to_string(),
+        ));
     }
     Ok(canon)
 }
-
 /// 打开插件生成的输出文件（P004）。
 ///
 /// 安全约束：插件返回的 `outputPath` 属于不可信数据，此前前端直接 `open(file://)`
@@ -380,17 +432,18 @@ fn resolve_output_file(output_dir: &str, path: &str) -> Result<std::path::PathBu
 /// 同时 `tauri.conf.json` 的 shell.open 正则已移除 `file://` 与绝对路径项（P032），
 /// 即使绕过本命令也无法再经 plugin-shell 打开本地文件。
 #[tauri::command]
-pub fn plugin_open_output_file(output_dir: String, path: String) -> Result<(), String> {
-    let canon = resolve_output_file(&output_dir, &path)?;
+pub fn plugin_open_output_file(output_dir: String, path: String) -> Result<(), BackendError> {
+    let canon = resolve_output_file_with(&output_dir, &path, BackendError::caused_by)?;
 
     #[cfg(any(target_os = "android", target_os = "ios"))]
     {
         let _ = canon;
-        Err("当前平台暂不支持".to_string())
+        Err(BackendError::new(Code::PluginUnsupported).at(Stage::Task))
     }
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
-        opener::open(&canon).map_err(|e| format!("打开文件失败: {}", e))?;
+        opener::open(&canon)
+            .map_err(|e| BackendError::caused_by(Code::PluginOutputOpenFailed, Stage::Task, e))?;
         Ok(())
     }
 }
@@ -410,8 +463,8 @@ pub fn plugin_copy_output_file(
     path: String,
     dest_dir: String,
     file_name: String,
-) -> Result<(), String> {
-    let canon = resolve_output_file(&output_dir, &path)?;
+) -> Result<(), BackendError> {
+    let canon = resolve_output_file_with(&output_dir, &path, BackendError::caused_by)?;
 
     if file_name.is_empty()
         || file_name == "."
@@ -419,18 +472,18 @@ pub fn plugin_copy_output_file(
         || file_name.contains('/')
         || file_name.contains('\\')
     {
-        return Err("非法文件名".to_string());
+        return Err(BackendError::new(Code::PluginOutputInvalid).at(Stage::Validate));
     }
 
     let dir = std::path::Path::new(&dest_dir);
     if !dir.is_dir() {
-        return Err("目标目录不存在".to_string());
+        return Err(BackendError::new(Code::PluginOutputInvalid).at(Stage::Validate));
     }
 
     let dest = dir.join(&file_name);
     std::fs::copy(&canon, &dest)
         .map(|_| ())
-        .map_err(|e| format!("复制文件失败: {}", e))
+        .map_err(|e| BackendError::caused_by(Code::PluginOutputWriteFailed, Stage::Write, e))
 }
 
 #[cfg(test)]
@@ -490,3 +543,7 @@ mod install_operation_tests {
 #[cfg(test)]
 #[path = "plugin/rf306_tests.rs"]
 mod rf306_tests;
+
+#[cfg(test)]
+#[path = "plugin/rf320_tests.rs"]
+mod rf320_tests;

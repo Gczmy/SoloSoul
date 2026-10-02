@@ -117,7 +117,7 @@ impl FieldResolver {
         if self.revoked.load(Ordering::Acquire) || expired || locked {
             self.revoked.store(true, Ordering::Release);
             *self.cache.lock().unwrap_or_else(|e| e.into_inner()) = FieldCache::default();
-            return Err(PluginError::ExecutionFailed(
+            return Err(PluginError::SessionExpired(
                 "插件会话已失效：Vault 已锁定或授权已过期".into(),
             ));
         }
@@ -130,11 +130,11 @@ impl FieldResolver {
         let vault = self
             .vault
             .as_ref()
-            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
+            .ok_or(PluginError::VaultLocked("Vault 未解锁".to_string()))?;
         let account_id = self
             .account_id
             .as_ref()
-            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
+            .ok_or(PluginError::VaultLocked("未选择账户".to_string()))?;
         let mut cache = self
             .cache
             .lock()
@@ -158,11 +158,11 @@ impl FieldResolver {
         let vault = self
             .vault
             .as_ref()
-            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
+            .ok_or(PluginError::VaultLocked("Vault 未解锁".to_string()))?;
         let account_id = self
             .account_id
             .as_ref()
-            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
+            .ok_or(PluginError::VaultLocked("未选择账户".to_string()))?;
         let mut cache = self
             .cache
             .lock()
@@ -189,11 +189,11 @@ impl FieldResolver {
         let vault = self
             .vault
             .as_ref()
-            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
+            .ok_or(PluginError::VaultLocked("Vault 未解锁".to_string()))?;
         let account_id = self
             .account_id
             .as_ref()
-            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
+            .ok_or(PluginError::VaultLocked("未选择账户".to_string()))?;
         let mut cache = self
             .cache
             .lock()
@@ -705,7 +705,7 @@ impl FieldResolver {
         let vault = self
             .vault
             .as_ref()
-            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
+            .ok_or(PluginError::VaultLocked("Vault 未解锁".to_string()))?;
         let objects = self.cached_all_objects()?;
 
         let mut page_objects: Vec<solosoul_vault::ObjectSummary> = Vec::new();
@@ -1200,6 +1200,10 @@ mod tests {
         let clone = resolver.clone();
         vault.lock();
         for r in [&resolver, &clone] {
+            assert_eq!(
+                r.ensure_live().unwrap_err().safe_code(),
+                "PLUGIN_SESSION_EXPIRED"
+            );
             assert!(r.cached_templates().is_err());
             assert!(r.cached_all_objects().is_err());
             assert!(r.cached_objects_by_type("address").is_err());
@@ -1225,6 +1229,14 @@ mod tests {
         let expired = super::super::PluginSessionManager::new().create("test", 0);
         let resolver = resolver.with_session(&expired);
         assert!(resolver.list_objects("address").is_err());
+        assert_eq!(
+            resolver.ensure_live().unwrap_err().safe_code(),
+            "PLUGIN_SESSION_EXPIRED"
+        );
+        assert_eq!(
+            clone.ensure_live().unwrap_err().safe_code(),
+            "PLUGIN_SESSION_EXPIRED"
+        );
         assert!(clone.cached_objects_by_type("address").is_err());
         assert!(resolver.cache.lock().unwrap().objects_by_type.is_empty());
     }

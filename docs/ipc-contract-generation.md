@@ -151,3 +151,11 @@ Core 的新 typed provider resolver 提供固定类别，原 resolve_chat_provid
 配对专用 syncPeerId/sasCode 字段只在 SYNC_PAIRING_PENDING 的 pairing 阶段接纳，校验节点格式与六位数字；旧版无 SAS 帧仍可读。配对元数据用于当前确认流程，错误诊断不记录节点或 SAS。线上 B→A 配对帧、原成功/恢复结果及 11 个事件字段形状保持。新自动同步/NSD 事件的 string 消息发送机器码，前端兼容旧事件时丢弃自由正文。
 
 Core 保留原 String API/CLI 文案；新 typed dispatch 与旧 API 在同一已登记 worker 中投影，不增加转发任务或 Root 保活。取消 awaiter、停机、会话退休和目录维护的原回归继续运行。历史仍按账户隔离，失败行读取时清除旧 cause，成功统计保持。
+
+## 插件结构化错误（RF320）
+
+14 个实际插件 Result 命令返回 BackendError，累计 95 个结构化错误命令；create_plugin_install 保持数值 ResourceId。安装和更新沿用同一资源、取消 watch 与 biased select，下载可取消，同步提交完成后仍返回成功。授权拒绝、会话失效、参数/文件校验、执行失败、安装取消和任务未确认使用独立固定类别；变更类错误不建议盲目重试。
+
+Core PluginError 增加可直接匹配的会话/锁定/任务类别，并保留原 Display 文案供 CLI 与旧调用方使用。Core 错误事件增加 jsonData 内的 code，外层 nullable 字段、结果、进度与 WASM SDK ABI 保持；GUI 通道只投影固定代码并清除错误元数据，正常日志/结果/授权事件保持原样。新审计失败原因记录固定代码，旧审计失败正文在 GUI 返回边界投影；显式插件日志和结果继续按插件原协议返回。
+
+客户端在实际 IPC 和旧通道兼容入口丢弃自由正文，Store 保存机器码，列表与运行详情仅在展示时翻译；没有日志的失败也能在详情区看到提示。旧取消只接纳精确 token 或 AbortError，错误正文含有取消字样不会被当作取消。锁定态仍允许不读取 Vault 的插件，字段读取继续受到原授权/会话隔离、WASM fuel/memory、标准输出黑洞及输出目录 canonical 限制。

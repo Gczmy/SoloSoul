@@ -7,6 +7,7 @@ import type {
   PluginSession,
   PluginAuditEntry,
 } from './generated/ipcContracts';
+import { readBackendError, backendErrorLogDetails } from './backendErrorWire';
 import { pluginCommands } from './plugin';
 import { pluginEvent, pluginResult } from '@/test/pluginFixtures';
 import { useAuthStore } from '@/stores/authStore';
@@ -184,7 +185,7 @@ describe('RF306 typed transport with the real Tauri SDK', () => {
       await pending.promise.catch(() => {});
       expect(settled).toBe(false);
       closed.resolve(null);
-      await expect(task).rejects.toBe(cancelled);
+      await expect(task).rejects.toMatchObject({ backend: { code: 'PLUGIN_INSTALL_CANCELLED' } });
       expect(close).toHaveBeenCalledOnce();
       end(channel);
     } finally {
@@ -229,7 +230,9 @@ describe('RF306 typed transport with the real Tauri SDK', () => {
       return null;
     });
     const close = vi.spyOn(Resource.prototype, 'close');
-    await expect(pluginCommands.update('plugin')).rejects.toBe(failure);
+    await expect(pluginCommands.update('plugin')).rejects.toMatchObject({
+      backend: { code: 'PLUGIN_INSTALL_FAILED' },
+    });
     expect(close).toHaveBeenCalledOnce();
     expect(nativeInvoke).toHaveBeenCalledWith(
       'plugin_update',
@@ -449,4 +452,124 @@ describe('RF306 real PluginStore → typed transport → Channel', () => {
       await newTask;
     }
   });
+});
+
+describe('RF320 actual SDK error transport and legacy channel projection', () => {
+  it('keeps a read-only plugin callable while locked, but sanitizes rejection and channel errors', async () => {
+    useAuthStore.setState({ currentAccount: null, isAuthenticated: false });
+    const pending = deferred<PluginResult>();
+    nativeInvoke.mockImplementation(async (cmd) => (cmd === 'plugin_run' ? pending.promise : null));
+    const onEvent = vi.fn();
+    const task = pluginCommands.run('plugin', {}, onEvent);
+    await vi.waitFor(() =>
+      expect(nativeInvoke).toHaveBeenCalledWith('plugin_run', expect.anything(), undefined),
+    );
+    const channel = channelFor('plugin_run', 'channel');
+    emit(
+      channel,
+      pluginEvent({
+        eventType: 'error',
+        jsonData: JSON.stringify({
+          code: 'PLUGIN_CONSENT_DENIED',
+          message: 'RF320_PRIVATE_FIELD_KEY_PATH',
+          key: 'RF320_PRIVATE_FIELD_KEY_PATH',
+        }),
+        fieldId: 'RF320_PRIVATE_FIELD_KEY_PATH',
+        pluginName: 'RF320_PRIVATE_FIELD_KEY_PATH',
+      }),
+    );
+    expect(onEvent).toHaveBeenCalledOnce();
+    const projected = onEvent.mock.calls[0][0];
+    expect(JSON.stringify(projected)).not.toContain('RF320_PRIVATE');
+    expect(JSON.parse(projected.jsonData)).toEqual({
+      code: 'PLUGIN_CONSENT_DENIED',
+      message: 'PLUGIN_CONSENT_DENIED',
+    });
+    pending.reject(new Error('RF320_PRIVATE_FIELD_KEY_PATH'));
+    const error = await task.catch((e: unknown) => e);
+    expect(readBackendError(error)?.code).toBe('PLUGIN_EXECUTION_FAILED');
+    expect(JSON.stringify(backendErrorLogDetails(error))).not.toContain('RF320_PRIVATE');
+    end(channel);
+  });
+  it('drops stale error callbacks without projecting or storing them', async () => {
+    let current = true;
+    const events = vi.fn();
+    const pending = deferred<PluginResult>();
+    nativeInvoke.mockImplementation(async (cmd) => (cmd === 'plugin_run' ? pending.promise : null));
+    const task = pluginCommands.run('plugin', {}, events, () => current);
+    await vi.waitFor(() =>
+      expect(nativeInvoke).toHaveBeenCalledWith('plugin_run', expect.anything(), undefined),
+    );
+    const channel = channelFor('plugin_run', 'channel');
+    current = false;
+    emit(channel, pluginEvent({ eventType: 'error', jsonData: 'private expired response' }));
+    expect(events).not.toHaveBeenCalled();
+    pending.resolve(pluginResult());
+    await expect(task).resolves.toEqual(pluginResult());
+    await expect(pluginCommands.run('plugin', {}, events, () => current)).rejects.toMatchObject({
+      backend: { code: 'SESSION_EXPIRED' },
+    });
+    expect(nativeInvoke.mock.calls.filter(([cmd]) => cmd === 'plugin_run')).toHaveLength(1);
+    end(channel);
+  });
+  it('stores classified channel errors and retains successful result schema', async () => {
+    const pending = deferred<PluginResult>();
+    nativeInvoke.mockImplementation(async (cmd) => (cmd === 'plugin_run' ? pending.promise : null));
+    const task = usePluginStore.getState().runPlugin('plugin', 'Synthetic Plugin');
+    await vi.waitFor(() =>
+      expect(nativeInvoke).toHaveBeenCalledWith('plugin_run', expect.anything(), undefined),
+    );
+    const channel = channelFor('plugin_run', 'channel');
+    emit(
+      channel,
+      pluginEvent({
+        eventType: 'error',
+        jsonData: JSON.stringify({
+          code: 'PLUGIN_SESSION_EXPIRED',
+          message: 'RF320_PRIVATE_FIELD_KEY_PATH',
+        }),
+      }),
+    );
+    expect(usePluginStore.getState().runningPlugins.plugin.error).toBe('PLUGIN_SESSION_EXPIRED');
+    pending.resolve(pluginResult());
+    await task;
+    expect(usePluginStore.getState().runningPlugins.plugin.error).toBe('PLUGIN_SESSION_EXPIRED');
+    expect(JSON.stringify(usePluginStore.getState().runningPlugins)).not.toContain('RF320_PRIVATE');
+    end(channel);
+  });
+});
+
+it('RF320 actual native audit results project old failure reason but retain normal audit shape', async () => {
+  nativeInvoke.mockResolvedValue([
+    {
+      timestamp: '2001-02-03',
+      pluginId: 'plugin',
+      sessionId: null,
+      action: { action: 'plugin_run_failed', reason: 'RF320_PRIVATE_FIELD_KEY_PATH' },
+    },
+    {
+      timestamp: '2001-02-03',
+      pluginId: 'plugin',
+      sessionId: 'session',
+      action: { action: 'plugin_run_failed', reason: 'PLUGIN_CONSENT_DENIED' },
+    },
+    {
+      timestamp: '2001-02-03',
+      pluginId: 'plugin',
+      sessionId: null,
+      action: { action: 'plugin_run_completed', exit_code: 0 },
+    },
+  ]);
+  const entries = await pluginCommands.auditLog();
+  expect(entries[0].action).toEqual({
+    action: 'plugin_run_failed',
+    reason: 'PLUGIN_EXECUTION_FAILED',
+  });
+  expect(entries[1].action).toEqual({
+    action: 'plugin_run_failed',
+    reason: 'PLUGIN_CONSENT_DENIED',
+  });
+  expect(entries[2].action).toEqual({ action: 'plugin_run_completed', exit_code: 0 });
+  expect(entries[0].sessionId).toBeNull();
+  expect(JSON.stringify(entries)).not.toContain('RF320_PRIVATE');
 });

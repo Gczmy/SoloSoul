@@ -1,0 +1,65 @@
+{
+  "consent": {
+    "code": "PLUGIN_CONSENT_DENIED",
+    "safeDetails": {
+      "stage": "validate"
+    },
+    "retryable": false
+  },
+  "session": {
+    "code": "PLUGIN_SESSION_EXPIRED",
+    "safeDetails": {
+      "stage": "execute"
+    },
+    "retryable": false
+  },
+  "validation": {
+    "code": "PLUGIN_INVALID_FIELD",
+    "safeDetails": {
+      "stage": "validate"
+    },
+    "retryable": false
+  },
+  "execution": {
+    "code": "PLUGIN_EXECUTION_FAILED",
+    "safeDetails": {
+      "stage": "execute"
+    },
+    "retryable": false
+  },
+  "cancelled": {
+    "code": "PLUGIN_INSTALL_CANCELLED",
+    "safeDetails": {
+      "stage": "install"
+    },
+    "retryable": false
+  },
+  "unconfirmed": {
+    "code": "PLUGIN_TASK_UNCONFIRMED",
+    "safeDetails": {
+      "stage": "task"
+    },
+    "retryable": false
+  },
+  "busy": {
+    "code": "VAULT_BUSY",
+    "safeDetails": {
+      "stage": "task"
+    },
+    "retryable": true
+  },
+  "outputDenied": {
+    "code": "PLUGIN_OUTPUT_DENIED",
+    "safeDetails": {
+      "stage": "validate"
+    },
+    "retryable": false
+  },
+  "network": {
+    "code": "PLUGIN_NETWORK_FAILED",
+    "safeDetails": {
+      "stage": "read"
+    },
+    "retryable": true
+  }
+}

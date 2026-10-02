@@ -109,6 +109,32 @@ pub enum BackendErrorCode {
     SyncRecoveryFailed,
     SyncPermissionDenied,
     SyncUnsupported,
+    PluginChecksumMismatch,
+    PluginConsentDenied,
+    PluginExecutionFailed,
+    PluginInvalidArgument,
+    PluginInvalidField,
+    PluginManifestInvalid,
+    PluginNetworkFailed,
+    PluginNotFound,
+    PluginRateLimited,
+    PluginRegistryFailed,
+    PluginSessionExpired,
+    PluginStoreFailed,
+    PluginTaskUnconfirmed,
+    PluginVersionIncompatible,
+    PluginWasmTooLarge,
+    PluginInstallCancelled,
+    PluginInstallAlreadyStarted,
+    PluginInvalidOperation,
+    PluginOutputInvalid,
+    PluginOutputDenied,
+    PluginOutputReadFailed,
+    PluginOutputWriteFailed,
+    PluginOutputOpenFailed,
+    PluginUnsupported,
+    PluginReadFailed,
+    PluginInstallFailed,
 }
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -133,6 +159,8 @@ pub enum BackendErrorStage {
     Pairing,
     Discovery,
     Conflict,
+    Execute,
+    Install,
 }
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -189,6 +217,10 @@ impl BackendError {
                     | Code::SyncDiscoveryTimeout
                     | Code::SyncReadFailed
                     | Code::SyncEnableTimeout
+                    | Code::PluginReadFailed
+                    | Code::PluginRegistryFailed
+                    | Code::PluginNetworkFailed
+                    | Code::PluginRateLimited
             ),
         }
     }

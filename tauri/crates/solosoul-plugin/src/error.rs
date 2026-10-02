@@ -58,6 +58,13 @@ pub enum PluginError {
     /// 网络错误（远程下载失败）
     #[error("网络错误: {0}")]
     NetworkError(String),
+    /// 与原 ExecutionFailed 的 Display 相同，提供新 Host 可用的固定类别。
+    #[error("插件执行失败: {0}")]
+    SessionExpired(String),
+    #[error("插件执行失败: {0}")]
+    VaultLocked(String),
+    #[error("插件执行失败: {0}")]
+    TaskUnconfirmed(String),
 }
 
 impl From<std::io::Error> for PluginError {
@@ -81,5 +88,37 @@ impl From<wasmtime::Error> for PluginError {
 impl From<hex::FromHexError> for PluginError {
     fn from(_: hex::FromHexError) -> Self {
         PluginError::InvalidManifest("非法的十六进制哈希".to_string())
+    }
+}
+
+impl PluginError {
+    /// 固定机器类别；不含字段、路径、密钥或运行时正文。
+    pub fn safe_code(&self) -> &'static str {
+        match self {
+            Self::NotFound(..) => "PLUGIN_NOT_FOUND",
+            Self::InvalidManifest(..) => "PLUGIN_MANIFEST_INVALID",
+            Self::WasmTooLarge(..) => "PLUGIN_WASM_TOO_LARGE",
+            Self::ChecksumMismatch => "PLUGIN_CHECKSUM_MISMATCH",
+            Self::IncompatibleVersion(..) => "PLUGIN_VERSION_INCOMPATIBLE",
+            Self::ExecutionFailed(..) => "PLUGIN_EXECUTION_FAILED",
+            Self::ConsentDenied => "PLUGIN_CONSENT_DENIED",
+            Self::InvalidField(..) => "PLUGIN_INVALID_FIELD",
+            Self::InvalidArgument(..) => "PLUGIN_INVALID_ARGUMENT",
+            Self::RateLimited => "PLUGIN_RATE_LIMITED",
+            Self::StoreError(cause)
+                if matches!(
+                    cause.as_str(),
+                    "IMPORT_DIRECTORY_BUSY" | "IMPORT_OPERATIONS_ACTIVE"
+                ) =>
+            {
+                "VAULT_BUSY"
+            }
+            Self::StoreError(..) => "PLUGIN_STORE_FAILED",
+            Self::RegistryError(..) => "PLUGIN_REGISTRY_FAILED",
+            Self::NetworkError(..) => "PLUGIN_NETWORK_FAILED",
+            Self::SessionExpired(..) => "PLUGIN_SESSION_EXPIRED",
+            Self::TaskUnconfirmed(..) => "PLUGIN_TASK_UNCONFIRMED",
+            Self::VaultLocked(..) => "VAULT_LOCKED",
+        }
     }
 }

@@ -122,7 +122,7 @@ describe('pluginStore Toast behavior', () => {
     const plugin = usePluginStore.getState().runningPlugins['addr-fmt'];
     expect(plugin?.toastShown).toBe(true);
     expect(plugin?.completed).toBe(true);
-    expect(plugin?.error).toContain('Plugin crashed');
+    expect(plugin?.error).toBe('PLUGIN_EXECUTION_FAILED');
   });
 
   it('场景4 — stopPlugin 设置 toastShown 但不触发 Toast', async () => {
@@ -371,7 +371,7 @@ describe('pluginStore dialog response lifecycle', () => {
       .mockResolvedValueOnce(undefined);
 
     await usePluginStore.getState().resolveDialog('example', 'request-1', 'answer');
-    expect(usePluginStore.getState().error).toContain('dialog delivery failed');
+    expect(usePluginStore.getState().error).toBe('PLUGIN_INVALID_ARGUMENT');
     expect(usePluginStore.getState().runningPlugins.example.dialogRequests).toEqual([request]);
 
     await usePluginStore.getState().resolveDialog('example', 'request-1', 'answer');

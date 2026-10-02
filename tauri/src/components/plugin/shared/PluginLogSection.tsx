@@ -4,6 +4,7 @@ import { ExpandableSection } from './ExpandableSection';
 import { CopyButton } from './CopyButton';
 import type { RunningPlugin } from '@/stores/pluginStore';
 import styles from './PluginLogSection.module.css';
+import { resolvePluginErrorMessage } from '@/lib/backendError';
 import { ICON_SIZE } from '@/lib/constants';
 
 interface PluginLogSectionProps {
@@ -83,12 +84,12 @@ export function PluginLogSection({
               </button>
             )}
           </div>
-          {error && <div className={styles.errorText}>{error}</div>}
+          {error && <div className={styles.errorText}>{resolvePluginErrorMessage(error)}</div>}
         </>
       )}
 
       {/* ── Log expandable section ──────────────────────────────────── */}
-      {logs.length > 0 && (
+      {(logs.length > 0 || (variant === 'page' && error)) && (
         <ExpandableSection
           title={t('inline_output', { defaultValue: 'Plugin Log' })}
           count={logs.length}
@@ -118,7 +119,9 @@ export function PluginLogSection({
           </div>
 
           {/* Page variant: error inside collapsible */}
-          {variant === 'page' && error && <div className={styles.inlineError}>{error}</div>}
+          {variant === 'page' && error && (
+            <div className={styles.inlineError}>{resolvePluginErrorMessage(error)}</div>
+          )}
         </ExpandableSection>
       )}
     </>

@@ -11,6 +11,8 @@
 //! P012 方向 B 完成后，本地 `event/host/manager/paths/registry/sandbox`
 //! 六组实现已全部收敛进 crate，此处不再重复实现（单一实现源）。
 
+pub(crate) mod errors;
+
 // 模块路径兼容（如 `solo_soul::plugin::registry::PluginRegistry`）
 pub use solosoul_plugin::{
     audit, consent, error, event, field, host, manager, manifest, paths, rate_limiter, registry,
@@ -58,7 +60,9 @@ impl TauriChannelSink {
 
 impl PluginEventSink for TauriChannelSink {
     fn send(&self, event: PluginEvent) -> Result<(), String> {
-        self.0.send(event).map_err(|e| e.to_string())
+        self.0
+            .send(errors::project_event(event))
+            .map_err(|e| e.to_string())
     }
 }
 

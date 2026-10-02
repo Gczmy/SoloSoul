@@ -751,7 +751,7 @@ impl PluginManager {
             sandbox.execute(&module, host, &session_for_spawn, &consent)
         })
         .await
-        .map_err(|e| PluginError::ExecutionFailed(format!("任务 Join 失败: {}", e)))?;
+        .map_err(|e| PluginError::TaskUnconfirmed(format!("任务 Join 失败: {}", e)))?;
 
         match result {
             Ok(r) => {
@@ -766,12 +766,16 @@ impl PluginManager {
                 Ok(r)
             }
             Err(e) => {
-                let _ = channel.send(PluginEvent::error(plugin_id, e.to_string()));
+                let _ = channel.send(PluginEvent::error_classified(
+                    plugin_id,
+                    e.to_string(),
+                    e.safe_code(),
+                ));
                 self.audit.log(
                     plugin_id,
                     Some(&session.id),
                     PluginAuditAction::PluginRunFailed {
-                        reason: e.to_string(),
+                        reason: e.safe_code().to_string(),
                     },
                 );
                 Err(e)

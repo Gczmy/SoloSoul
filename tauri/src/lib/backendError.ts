@@ -1,5 +1,10 @@
 import i18n from './i18n';
-import { readBackendError, readLegacyObjectError, readLegacyLlmError } from './backendErrorWire';
+import {
+  readBackendError,
+  readLegacyObjectError,
+  readLegacyLlmError,
+  normalizePluginError,
+} from './backendErrorWire';
 import type { BackendErrorCode } from './backendErrorWire';
 import { resolveI18nPrefix } from './utils';
 
@@ -114,6 +119,32 @@ const BACKEND_ERROR_KEYS = {
   SYNC_RECOVERY_FAILED: 'common:backend_sync_recovery_failed',
   SYNC_PERMISSION_DENIED: 'common:backend_sync_permission_denied',
   SYNC_UNSUPPORTED: 'common:backend_sync_unsupported',
+  PLUGIN_CHECKSUM_MISMATCH: 'common:backend_plugin_checksum_mismatch',
+  PLUGIN_CONSENT_DENIED: 'common:backend_plugin_consent_denied',
+  PLUGIN_EXECUTION_FAILED: 'common:backend_plugin_execution_failed',
+  PLUGIN_INVALID_ARGUMENT: 'common:backend_plugin_invalid_argument',
+  PLUGIN_INVALID_FIELD: 'common:backend_plugin_invalid_field',
+  PLUGIN_MANIFEST_INVALID: 'common:backend_plugin_manifest_invalid',
+  PLUGIN_NETWORK_FAILED: 'common:backend_plugin_network_failed',
+  PLUGIN_NOT_FOUND: 'common:backend_plugin_not_found',
+  PLUGIN_RATE_LIMITED: 'common:backend_plugin_rate_limited',
+  PLUGIN_REGISTRY_FAILED: 'common:backend_plugin_registry_failed',
+  PLUGIN_SESSION_EXPIRED: 'common:backend_plugin_session_expired',
+  PLUGIN_STORE_FAILED: 'common:backend_plugin_store_failed',
+  PLUGIN_TASK_UNCONFIRMED: 'common:backend_plugin_task_unconfirmed',
+  PLUGIN_VERSION_INCOMPATIBLE: 'common:backend_plugin_version_incompatible',
+  PLUGIN_WASM_TOO_LARGE: 'common:backend_plugin_wasm_too_large',
+  PLUGIN_INSTALL_CANCELLED: 'common:backend_plugin_install_cancelled',
+  PLUGIN_INSTALL_ALREADY_STARTED: 'common:backend_plugin_install_already_started',
+  PLUGIN_INVALID_OPERATION: 'common:backend_plugin_invalid_operation',
+  PLUGIN_OUTPUT_INVALID: 'common:backend_plugin_output_invalid',
+  PLUGIN_OUTPUT_DENIED: 'common:backend_plugin_output_denied',
+  PLUGIN_OUTPUT_READ_FAILED: 'common:backend_plugin_output_read_failed',
+  PLUGIN_OUTPUT_WRITE_FAILED: 'common:backend_plugin_output_write_failed',
+  PLUGIN_OUTPUT_OPEN_FAILED: 'common:backend_plugin_output_open_failed',
+  PLUGIN_UNSUPPORTED: 'common:backend_plugin_unsupported',
+  PLUGIN_READ_FAILED: 'common:backend_plugin_read_failed',
+  PLUGIN_INSTALL_FAILED: 'common:backend_plugin_install_failed',
 } satisfies Record<BackendErrorCode, string>;
 
 /** 显示层可使用当前 React 翻译器；机器码在传输与状态层保持原样。 */
@@ -289,4 +320,9 @@ export function resolveBackendErrorMessage(err: unknown): string {
 /** 永久删除已提交，但实体文件仍待重试；不能与提交前失败混为一类。 */
 export function isAttachmentCleanupPending(error: unknown): boolean {
   return (error instanceof Error ? error.message : String(error)) === 'attachment_cleanup_pending';
+}
+
+/** 插件错误只显示固定翻译，不展示旧 Host 的字段、路径或正文。 */
+export function resolvePluginErrorMessage(error: unknown): string {
+  return resolveBackendErrorMessage(normalizePluginError(error));
 }

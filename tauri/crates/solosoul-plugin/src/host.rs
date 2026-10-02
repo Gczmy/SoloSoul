@@ -1539,6 +1539,7 @@ fn write_buffer(
 /// 将 `PluginError` 映射为 SDK 错误码
 fn plugin_error_code(err: &PluginError) -> i32 {
     match err {
+        PluginError::VaultLocked(..) => code::VAULT_LOCKED,
         PluginError::ExecutionFailed(msg) if msg.contains("Vault 未解锁") => code::VAULT_LOCKED,
         PluginError::ExecutionFailed(msg) if msg.contains("未选择账户") => code::VAULT_LOCKED,
         PluginError::InvalidField(_) => code::INVALID_FIELD,
@@ -1819,5 +1820,35 @@ mod tests {
         assert_eq!(result.status, 302, "302 应原样返回而非跟随");
         // 未跟随 → 服务器只收到一次请求（不会有对 /target 的第二次请求）
         assert_eq!(hits.load(std::sync::atomic::Ordering::SeqCst), 1);
+    }
+}
+
+#[cfg(test)]
+mod rf320_sdk_error_tests {
+    use super::*;
+    #[test]
+    fn rf320_new_error_variants_preserve_sdk_integer_abi() {
+        for cause in ["Vault 未解锁", "未选择账户"] {
+            assert_eq!(
+                plugin_error_code(&PluginError::VaultLocked(cause.into())),
+                plugin_error_code(&PluginError::ExecutionFailed(cause.into()))
+            );
+            assert_eq!(
+                plugin_error_code(&PluginError::VaultLocked(cause.into())),
+                code::VAULT_LOCKED
+            );
+        }
+        assert_eq!(
+            plugin_error_code(&PluginError::ConsentDenied),
+            code::USER_DENIED
+        );
+        assert_eq!(
+            plugin_error_code(&PluginError::InvalidField("synthetic".into())),
+            code::INVALID_FIELD
+        );
+        assert_eq!(
+            plugin_error_code(&PluginError::SessionExpired("synthetic".into())),
+            code::INVALID_ARGUMENT
+        );
     }
 }

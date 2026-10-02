@@ -1,5 +1,6 @@
 import { invokeTypedCommand } from '@/lib/typedIpc';
 import { Channel, Resource } from '@tauri-apps/api/core';
+import { readPluginEventError, normalizePluginError } from './backendErrorWire';
 import type { ContractRoleBinding } from '@/types/template';
 import type {
   MarketPluginInfo,
@@ -185,7 +186,21 @@ export const pluginCommands = {
   ): Promise<PluginResult> {
     const channel = new Channel<PluginEvent>();
     channel.onmessage = (event) => {
-      if (!requestIsCurrent || requestIsCurrent()) onEvent(event);
+      if (!requestIsCurrent || requestIsCurrent()) {
+        if (event.eventType === 'error') {
+          const failure = readPluginEventError(event.jsonData);
+          onEvent({
+            ...event,
+            jsonData: JSON.stringify({ code: failure.code, message: failure.code }),
+            customType: null,
+            requestId: null,
+            pluginName: null,
+            fieldId: null,
+            fieldLabel: null,
+            sensitivityLevel: null,
+          });
+        } else onEvent(event);
+      }
     };
     return invokeTypedCommand('plugin_run', { pluginId, params, channel }, { requestIsCurrent });
   },
@@ -203,7 +218,15 @@ export const pluginCommands = {
   },
 
   async auditLog(limit?: number): Promise<PluginAuditEntry[]> {
-    return invokeTypedCommand('plugin_audit_log', { limit });
+    const entries = await invokeTypedCommand('plugin_audit_log', { limit });
+    return entries.map((entry) =>
+      entry.action.action === 'plugin_run_failed'
+        ? {
+            ...entry,
+            action: { ...entry.action, reason: normalizePluginError(entry.action.reason).code },
+          }
+        : entry,
+    );
   },
 
   async updateRegistry(): Promise<void> {
