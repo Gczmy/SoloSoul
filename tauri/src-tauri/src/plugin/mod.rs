@@ -74,38 +74,44 @@ impl PluginEventSink for TauriChannelSink {
 ///   因此移动端优先使用该私有目录
 /// - 开发模式（`debug_assertions`）下若不存在，回退到源码相对路径
 pub fn resolve_market_dir(app_handle: Option<&tauri::AppHandle>) -> Result<PathBuf, PluginError> {
-    if let Some(app) = app_handle {
-        #[cfg(target_os = "android")]
-        let resource_dir = app
-            .path()
+    #[cfg(target_os = "android")]
+    {
+        // 目录由后台安装器准备。初始化仅保存固定路径，不能因尚未存在而选择空市场。
+        let app = app_handle
+            .ok_or_else(|| PluginError::RegistryError("Android app handle missing".into()))?;
+        app.path()
             .resolve(".", tauri::path::BaseDirectory::Data)
-            .ok()
-            .map(|d| d.join("app_resources"));
-        #[cfg(not(target_os = "android"))]
-        let resource_dir = app.path().resource_dir().ok();
+            .map(|dir| dir.join("app_resources/SoloSoul_plugin_market"))
+            .map_err(|_| PluginError::RegistryError("Android resource path unavailable".into()))
+    }
+    #[cfg(not(target_os = "android"))]
+    {
+        if let Some(app) = app_handle {
+            let resource_dir = app.path().resource_dir().ok();
 
-        if let Some(resource_dir) = resource_dir {
-            let bundled = resource_dir.join("SoloSoul_plugin_market");
-            if bundled.join("registry.json").exists() || bundled.join("plugins").exists() {
-                return Ok(bundled);
+            if let Some(resource_dir) = resource_dir {
+                let bundled = resource_dir.join("SoloSoul_plugin_market");
+                if bundled.join("registry.json").exists() || bundled.join("plugins").exists() {
+                    return Ok(bundled);
+                }
             }
         }
-    }
 
-    #[cfg(debug_assertions)]
-    {
-        let dev = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .join("SoloSoul_plugin_market");
-        if dev.join("registry.json").exists() || dev.join("plugins").exists() {
-            return Ok(dev);
+        #[cfg(debug_assertions)]
+        {
+            let dev = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("..")
+                .join("..")
+                .join("SoloSoul_plugin_market");
+            if dev.join("registry.json").exists() || dev.join("plugins").exists() {
+                return Ok(dev);
+            }
         }
-    }
 
-    Err(PluginError::RegistryError(
-        "无法定位插件市场目录".to_string(),
-    ))
+        Err(PluginError::RegistryError(
+            "无法定位插件市场目录".to_string(),
+        ))
+    }
 }
 
 /// 基于 Tauri 应用句柄构造插件管理器。

@@ -1,0 +1,795 @@
+{
+  "task": "RF-207",
+  "status": "complete",
+  "base_commit": "c1855779",
+  "date": "2026-10-02",
+  "scope": "后台准备、当前就绪屏障、失败可见可重试、跨 Activity 复用；不阻塞非资源能力",
+  "checks": [
+    {
+      "name": "macos",
+      "command": [
+        "npx",
+        "tauri",
+        "build",
+        "--debug",
+        "--bundles",
+        "app",
+        "--ci"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 109.62955691711977
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.2009557080455124
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 34.64787254203111
+    },
+    {
+      "name": "rust",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 222.85477095795795
+    },
+    {
+      "name": "ndk",
+      "command": [
+        "cargo",
+        "ndk",
+        "-t",
+        "aarch64-linux-android",
+        "check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 9.404407708905637
+    },
+    {
+      "name": "apk",
+      "command": [
+        "npx",
+        "tauri",
+        "android",
+        "build",
+        "--debug",
+        "--target",
+        "aarch64",
+        "--split-per-abi",
+        "--apk",
+        "--ci"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 106.1754476246424
+    },
+    {
+      "name": "unit",
+      "command": [
+        "./gradlew",
+        ":app:testArm64DebugUnitTest",
+        "-x",
+        "rustBuildArm64Debug"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.6189289167523384
+    },
+    {
+      "name": "test-apk",
+      "command": [
+        "./gradlew",
+        ":app:assembleArm64DebugAndroidTest",
+        "-x",
+        "rustBuildArm64Debug"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.9166481252759695
+    }
+  ],
+  "counts": {
+    "R_groups": 25,
+    "R_passed": 1858,
+    "R_failed": 0,
+    "R_ignored": 3,
+    "Kotlin_unit": 10,
+    "Kotlin_unit_failed": 0,
+    "instrumented_cases": 2,
+    "instrumented_passed": 2,
+    "production_WEB_passed": 26
+  },
+  "native": {
+    "serial": "emulator-5586",
+    "name": "SoloSoul_RF201",
+    "api": 34,
+    "abi": "arm64-v8a",
+    "system_night_mode": "no",
+    "accessibility_enabled": 0,
+    "animator_duration_scale": "unset",
+    "slow_copy": {
+      "before": {
+        "guide": "pending",
+        "plugins": "pending",
+        "info": "ready"
+      },
+      "recreated": {
+        "guide": "pending",
+        "plugins": "pending",
+        "info": "ready"
+      },
+      "ready": {
+        "guide": "ready",
+        "plugins": "ready",
+        "info": "ready"
+      },
+      "installCount": 1,
+      "mainFrameDuringInstall": true,
+      "writtenFiles": 89
+    },
+    "error_retry": {
+      "failed": {
+        "guide": "error",
+        "plugins": "error",
+        "info": "ready",
+        "error": "ANDROID_RESOURCES_FAILED"
+      },
+      "recovered": {
+        "guide": "ready",
+        "plugins": "ready",
+        "info": "ready"
+      },
+      "attempts": 2
+    },
+    "trace": {
+      "trace": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-trace-stop-slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt.log",
+      "resource_spans": [
+        {
+          "name": "SoloSoul.resources.enqueue",
+          "tid": 15859,
+          "pid": 15859,
+          "start": 17415.489333,
+          "end": 17415.514405,
+          "duration_ms": 25.072000000363914
+        },
+        {
+          "name": "SoloSoul.resources.enqueue",
+          "tid": 15859,
+          "pid": 15859,
+          "start": 17419.045048,
+          "end": 17419.045057,
+          "duration_ms": 0.008999999408842996
+        },
+        {
+          "name": "SoloSoul.resources.install",
+          "tid": 15888,
+          "pid": 15859,
+          "start": 17415.521095,
+          "end": 17420.252081,
+          "duration_ms": 4730.985999998666
+        }
+      ],
+      "main_frames_during_install": 86,
+      "worker_is_not_main": true,
+      "install_count": 1
+    },
+    "startup": [
+      {
+        "stage": "first",
+        "pid": "16262",
+        "total_ms": 567,
+        "wait_ms": 569,
+        "skipped": false,
+        "written_files": 89
+      },
+      {
+        "stage": "repeat",
+        "pid": "16420",
+        "total_ms": 840,
+        "wait_ms": 844,
+        "skipped": true,
+        "written_files": 0
+      }
+    ]
+  },
+  "integrity": {
+    "apk": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+    "apk_sha256": "50733e2c85de1296c6a28bed80650efad7ed376a85d40f0d2f282fabcb385b2b",
+    "zip_crc": true,
+    "files": 89,
+    "version": "0ea5bd93dd11abafd625e241db82695204a8f502a8cc6f6efe7e8a5a635f3ac1",
+    "jni_matches": true,
+    "jni_sha256": "b775df346f2e86051219b897133b6a453ce4a27bc0a0a1f1230e14f8c5f9c4c7"
+  },
+  "extra_checks": {
+    "acl_commands": 226,
+    "pref_keys": 22,
+    "contracts_migrated": 106,
+    "contracts_legacy": 120,
+    "selected_events": 11,
+    "acl_unit_tests": 12,
+    "doc_markdown_boundary_exit": 0,
+    "diff_check_exit": 0
+  },
+  "history": [
+    "首次整类 instrumentation 在慢复制/绘制/重建场景断言完成后，Activity 收尾出现 EGL_BAD_DISPLAY 与 destroyed mutex native abort，未报告完整 JUnit 成功，原日志保留。",
+    "沿用 RF-201 现有外部逐用例收尾：waitForActivitiesToComplete=false，Activity 保留到 JUnit 报告结束再 force-stop。重建/消费者/帧/失败点击断言全部保留；最终分别 OK (1 test)。",
+    "仅测试 APK 后续调整：增加真实文件读取阻塞、零跳过复制断言及收尾修正。生产 Rust/Kotlin 源码在完整应用构建后未变化，未重新计数 R。"
+  ],
+  "limits": [
+    "macOS Debug 仅构建，不替换/运行用户安装客户端；未访问真实账户。",
+    "单次模拟器启动计时是首次/重复对照，不是分布基准，不用于关闭 RF-312。",
+    "Android 既有编译警告和 R ignored 保留；无签名、发布、推送或远端 CI。",
+    "既有脏资源 registry、诊断文件和生成资源目录保持，不纳入提交。"
+  ],
+  "inputs": [
+    {
+      "path": "docs/design_map/28_Android内置资源安装.md",
+      "sha256": "c69866d363c562f98538d06688476cd878235c7d3958931775405782bff1c94c"
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/MainActivity.kt",
+      "sha256": "dc4159d7cf41aabb010b5748b12605f74664ead3e5ac80746e177a72ee50e1c0"
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/AndroidResources.kt",
+      "sha256": "84b474d16937b240242bcba2b38da88daaa7072d3b57c63a207f2dc671e76f2c"
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/ResourcePreparationCoordinator.kt",
+      "sha256": "5f4a3b936077706dc210e9dfc5955ed04717e3b2e6e9caea53fd0ec848a6fe70"
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/ResourcePreparationPlugin.kt",
+      "sha256": "f95721269ae03eec53ce1908f171c2c87100f1bad7e1adc311177dbb142082cf"
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/test/java/com/solosoul/app/ResourcePreparationCoordinatorTest.kt",
+      "sha256": "7fbadeba879de90eea0657b67fcd86d469ee92abb3cf38309edc92e0e248561d"
+    },
+    {
+      "path": "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/ResourcePreparationInstrumentedTest.kt",
+      "sha256": "ea50590693e79f7705ad4be1d42c467f354396f0a49d20d727dc9e9c14231376"
+    },
+    {
+      "path": "tauri/src-tauri/src/android_resources.rs",
+      "sha256": "d522ff54de9658c1b96cb59374d5eb064ac76596a68aa26711d172eb76a3bb49"
+    },
+    {
+      "path": "tauri/src-tauri/src/lib.rs",
+      "sha256": "31ac64e324c662358b31d234eb5adb92ea803b07ef1c6334aa9e4910aeb3f1aa"
+    },
+    {
+      "path": "tauri/src-tauri/src/setup/mod.rs",
+      "sha256": "553e741a4b8f74191e18ef20f17921c8e76f03698bec1338f5efaa04c2315e33"
+    },
+    {
+      "path": "tauri/src-tauri/src/plugin/mod.rs",
+      "sha256": "c3e32b1576dd950d86e8a42cc6262bb9760d0ee4ec40c90803efebf487b1bd7f"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/plugin.rs",
+      "sha256": "05b77e2c08e279a6e54dd9f09de969d280d282789652084af2b8ce705924b037"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/llm/guide.rs",
+      "sha256": "ad7f323498a159c0c4614f62d71a2835f3771127547f5390669a83bb67120ae5"
+    },
+    {
+      "path": "tauri/src-tauri/src/commands/llm/rag.rs",
+      "sha256": "ad7abd70738075244b8c4ea1279f32ea23c24564826484f0aca9de23a1653c9c"
+    }
+  ],
+  "logs": [
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-apk.log",
+      "sha256": "3aa3a278b7ec5dee1e4653dfe3b772a27f0ff34377dc02bd9fd664d619b520cd",
+      "bytes": 20588
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-clippy.log",
+      "sha256": "b1e63879175ada1de8247545731abf485285b21aad79530a9c0e4434325e453d",
+      "bytes": 2491
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-macos.log",
+      "sha256": "df69faea42904b385ecfc1f22eebbd8850761d56ac039d236ae195dc150069f6",
+      "bytes": 6737
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-ndk-initial.log",
+      "sha256": "2c4938cc6ec2680583168fc91de19a64dec59f70243e9ff107b2cbf452ab5819",
+      "bytes": 4154
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-ndk.log",
+      "sha256": "e04f3581f6b77b83fc6e26c8ae79120165f52ae2cac66971ad9ecef8e2e3334a",
+      "bytes": 4153
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-production-web.log",
+      "sha256": "2c36fd4a18da12efff24f3f15050a4bbab822059819b52551d0ca0959f29f851",
+      "bytes": 8710
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime-final-stop.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime-identity.log",
+      "sha256": "d2567d609a86eb20556af49aaa9986e3f2f5caea93cec451f25bdb7255c5d01a",
+      "bytes": 15
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime-install-test.log",
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7",
+      "bytes": 36
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime-install.log",
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7",
+      "bytes": 36
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime-instrument.log",
+      "sha256": "6dd0d889b81e37b8995dadcebf1457d603f57dc7ae0a62ce23a825c2c75cb603",
+      "bytes": 129
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime-log.log",
+      "sha256": "dc5c04984e9a00c25be6cbf425e41fd573dce66f89ec3efb855687687ffb5160",
+      "bytes": 18041
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime-pid15529.log",
+      "sha256": "8895576e15f8e265dddf37e0c14ded02bb7dc5521534e5b09e00beb9f4197a21",
+      "bytes": 59509
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime-stop.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime-trace-start.log",
+      "sha256": "1b7bb8e629a69f3ce32e8355cf8dc5a8a500c74daee56ff391e56b68045d568f",
+      "bytes": 18
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime-trace-stop.log",
+      "sha256": "cd535b9885a89d731f25671d4fd5de3b1779ca32d3738eb4c3b0d0e56c260f57",
+      "bytes": 18091056
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-errorIsVisibleAndRetryUnblocksRealConsumers.log",
+      "sha256": "245a5f62b5e6f1306822363119b9ce469be24ecf58262840f8ecd1a85ed8f687",
+      "bytes": 84
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-final-stop-errorIsVisibleAndRetryUnblocksRealConsumers.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-final-stop-slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-identity.log",
+      "sha256": "d2567d609a86eb20556af49aaa9986e3f2f5caea93cec451f25bdb7255c5d01a",
+      "bytes": 15
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-install-test.log",
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7",
+      "bytes": 36
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-install.log",
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7",
+      "bytes": 36
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-log-errorIsVisibleAndRetryUnblocksRealConsumers.log",
+      "sha256": "341c3dadc15bde9b5c28c27e557b9a3a6962330972756ef0f1fecf7e9398f6c3",
+      "bytes": 19846
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-log-slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt.log",
+      "sha256": "641f3aa09dfb16035a96a150ec7c228eb01bb00a9c6894397a19e2b3161d6cbd",
+      "bytes": 19044
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-pull-error-retry.log",
+      "sha256": "bc68728e47afeed7eb2c7021415db26f3b0a03895c886f6e3ab934ceadf078b9",
+      "bytes": 125
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-pull-slow-install.log",
+      "sha256": "ae1b57b47eebc5616bcd68a09e2ca788d8dd397dc601210fc46af50bd87b1986",
+      "bytes": 126
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt.log",
+      "sha256": "a7b8f5c5ec786967acadb20129601359a2e3716ddfe845a11eddb4a607b50852",
+      "bytes": 83
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-stop-errorIsVisibleAndRetryUnblocksRealConsumers.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-stop-slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-stop.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-trace-start-errorIsVisibleAndRetryUnblocksRealConsumers.log",
+      "sha256": "1b7bb8e629a69f3ce32e8355cf8dc5a8a500c74daee56ff391e56b68045d568f",
+      "bytes": 18
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-trace-start-slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt.log",
+      "sha256": "1b7bb8e629a69f3ce32e8355cf8dc5a8a500c74daee56ff391e56b68045d568f",
+      "bytes": 18
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-trace-stop-errorIsVisibleAndRetryUnblocksRealConsumers.log",
+      "sha256": "1542d60c52b30ffff7327d1e4b82c78a68bbbf9d48ebf7214b7b171172e95a69",
+      "bytes": 10337258
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-runtime2-trace-stop-slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt.log",
+      "sha256": "1fbfcb520e7fe71d044b341858445e95b10bbdd6ab05ddda924f5dd9d76d6a36",
+      "bytes": 14662858
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-rust.log",
+      "sha256": "c64728fb83750ffe96333f9f7fad45e9aeff368c953b1b8acadf8940f378a2c0",
+      "bytes": 504660
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-startup-first.log",
+      "sha256": "dd67e887e0267ef673443aba1b033a94b157fe8216a5304735e18c42465fc67f",
+      "bytes": 674
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-startup-repeat.log",
+      "sha256": "3422142aaf805f0f8857c66d47673e31cc95224ee23b678d779ff49edd580b75",
+      "bytes": 332
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-test-apk-final.log",
+      "sha256": "a6d9a6970d1a11c8525745c8641bc43f1fe7c2b704b5e9f0d724880d05a368e9",
+      "bytes": 14042
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-test-apk-lifecycle.log",
+      "sha256": "a6d9a6970d1a11c8525745c8641bc43f1fe7c2b704b5e9f0d724880d05a368e9",
+      "bytes": 14042
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-test-apk.log",
+      "sha256": "4c58d3754f013fe7fa693cfa1e151bd2643094f04493e3ee5e043a5bbca65811",
+      "bytes": 14237
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf207-unit.log",
+      "sha256": "ccc399bf8f2fbc6fc4cf8e607f235c9c312c3a806eb0c90445cb68e3bbae015d",
+      "bytes": 9178
+    }
+  ],
+  "runtime_commands": [
+    {
+      "name": "identity",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "getprop",
+        "ro.boot.qemu.avd_name"
+      ],
+      "exit_code": 0,
+      "seconds": 0.056894916109740734
+    },
+    {
+      "name": "stop",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "am",
+        "force-stop",
+        "com.solosoul.app"
+      ],
+      "exit_code": 0,
+      "seconds": 0.04599545896053314
+    },
+    {
+      "name": "install",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "install",
+        "-r",
+        "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk"
+      ],
+      "exit_code": 0,
+      "seconds": 0.9015031671151519
+    },
+    {
+      "name": "install-test",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "install",
+        "-r",
+        "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk"
+      ],
+      "exit_code": 0,
+      "seconds": 0.26401995914056897
+    },
+    {
+      "name": "stop-slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "am",
+        "force-stop",
+        "com.solosoul.app"
+      ],
+      "exit_code": 0,
+      "seconds": 0.05984687525779009
+    },
+    {
+      "name": "trace-start-slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "atrace",
+        "--async_start",
+        "-b",
+        "32768",
+        "gfx",
+        "view",
+        "wm",
+        "am",
+        "-a",
+        "com.solosoul.app"
+      ],
+      "exit_code": 0,
+      "seconds": 0.13754212483763695
+    },
+    {
+      "name": "slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "am",
+        "instrument",
+        "-w",
+        "-e",
+        "waitForActivitiesToComplete",
+        "false",
+        "-e",
+        "class",
+        "com.solosoul.app.ResourcePreparationInstrumentedTest#slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt",
+        "com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner"
+      ],
+      "exit_code": 0,
+      "seconds": 5.700358457863331
+    },
+    {
+      "name": "trace-stop-slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "exec-out",
+        "atrace",
+        "--async_stop"
+      ],
+      "exit_code": 0,
+      "seconds": 0.9938699998892844
+    },
+    {
+      "name": "log-slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "logcat",
+        "-d",
+        "-v",
+        "brief",
+        "-s",
+        "SoloSoul",
+        "AndroidRuntime"
+      ],
+      "exit_code": 0,
+      "seconds": 0.10811983281746507
+    },
+    {
+      "name": "final-stop-slowInstallDoesNotBlockFramesAndRecreationDoesNotDuplicateIt",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "am",
+        "force-stop",
+        "com.solosoul.app"
+      ],
+      "exit_code": 0,
+      "seconds": 0.03364470787346363
+    },
+    {
+      "name": "pull-slow-install",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "pull",
+        "/sdcard/Android/data/com.solosoul.app/files/rf207-slow-install.json",
+        "/tmp/solosoul-refactor-macos-20261002/rf207-slow-install.json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.020406958181411028
+    },
+    {
+      "name": "stop-errorIsVisibleAndRetryUnblocksRealConsumers",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "am",
+        "force-stop",
+        "com.solosoul.app"
+      ],
+      "exit_code": 0,
+      "seconds": 0.0296982079744339
+    },
+    {
+      "name": "trace-start-errorIsVisibleAndRetryUnblocksRealConsumers",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "atrace",
+        "--async_start",
+        "-b",
+        "32768",
+        "gfx",
+        "view",
+        "wm",
+        "am",
+        "-a",
+        "com.solosoul.app"
+      ],
+      "exit_code": 0,
+      "seconds": 0.10057162493467331
+    },
+    {
+      "name": "errorIsVisibleAndRetryUnblocksRealConsumers",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "am",
+        "instrument",
+        "-w",
+        "-e",
+        "waitForActivitiesToComplete",
+        "false",
+        "-e",
+        "class",
+        "com.solosoul.app.ResourcePreparationInstrumentedTest#errorIsVisibleAndRetryUnblocksRealConsumers",
+        "com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner"
+      ],
+      "exit_code": 0,
+      "seconds": 4.123028582893312
+    },
+    {
+      "name": "trace-stop-errorIsVisibleAndRetryUnblocksRealConsumers",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "exec-out",
+        "atrace",
+        "--async_stop"
+      ],
+      "exit_code": 0,
+      "seconds": 0.8588097090832889
+    },
+    {
+      "name": "log-errorIsVisibleAndRetryUnblocksRealConsumers",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "logcat",
+        "-d",
+        "-v",
+        "brief",
+        "-s",
+        "SoloSoul",
+        "AndroidRuntime"
+      ],
+      "exit_code": 0,
+      "seconds": 0.09577650018036366
+    },
+    {
+      "name": "final-stop-errorIsVisibleAndRetryUnblocksRealConsumers",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "am",
+        "force-stop",
+        "com.solosoul.app"
+      ],
+      "exit_code": 0,
+      "seconds": 0.033269249834120274
+    },
+    {
+      "name": "pull-error-retry",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "pull",
+        "/sdcard/Android/data/com.solosoul.app/files/rf207-error-retry.json",
+        "/tmp/solosoul-refactor-macos-20261002/rf207-error-retry.json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.02089283289387822
+    }
+  ]
+}

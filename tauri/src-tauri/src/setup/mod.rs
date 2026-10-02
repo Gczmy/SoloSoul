@@ -178,6 +178,11 @@ fn setup_cleanup_import_temps(app: &tauri::AppHandle) {
     let _ = commands::export_import::import::cleanup_orphan_import_temps(&data_dir);
 }
 fn setup_check_resource_dirs(app: &mut tauri::App) {
+    // Android assets 是 URL 且准备尚可进行中；不将 pending 当作目录丢失。
+    if cfg!(target_os = "android") {
+        tracing::info!("[resources] Android bundled resources prepare in background");
+        return;
+    }
     match app.path().resource_dir() {
         Ok(resource_dir) => {
             if !resource_dir.join("SoloSoul_plugin_market").exists() {
@@ -225,6 +230,7 @@ fn setup_init_state(
     Ok(())
 }
 fn setup_init_resource_dir(app: &mut tauri::App) {
+    crate::android_resources::initialize(app.handle());
     #[cfg(target_os = "android")]
     let resource_dir: Result<PathBuf, String> = match resolve_app_data_dir(app.handle()) {
         Ok(data_dir) => Ok(data_dir.join("app_resources")),

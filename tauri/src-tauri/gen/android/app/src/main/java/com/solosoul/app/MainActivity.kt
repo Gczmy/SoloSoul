@@ -11,8 +11,11 @@ import androidx.core.view.WindowInsetsControllerCompat
 import java.io.File
 import java.io.IOException
 import org.json.JSONObject
+import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : TauriActivity() {
+  private var removeResourceObserver: (() -> Unit)? = null
+  private var resourceErrorNotice: Snackbar? = null
   // 冷启动时 WebView 可能尚未挂树，先把快捷方式 action 暂存到这里，
   // 等 WebView 就绪后通过 tryFlushPendingShortcut 注入前端 sessionStorage。
   private var pendingShortcutAction: String? = null
@@ -44,13 +47,32 @@ class MainActivity : TauriActivity() {
     if (!isInMultiWindowMode) {
       enableEdgeToEdge()
     }
+    android.os.Trace.beginSection("SoloSoul.resources.enqueue")
+    try { AndroidResources.prepare(applicationContext) }
+    finally { android.os.Trace.endSection() }
     super.onCreate(savedInstanceState)
     // 启动时根据系统主题同步状态栏图标颜色，避免 WebView 加载前出现黑白不匹配。
     syncStatusBarStyleWithSystemTheme()
     // 将 APK assets 中的只读资源复制到应用私有文件目录，
     // 供 Rust 后端通过 std::fs 读取（Tauri Android 的 resource_dir 返回 asset:// URL）。
     // 注意：Rust 端使用 BaseDirectory::Data 解析到应用数据目录根，因此目标根目录也必须是 dataDir。
-    extractAssetsToDataDir(assets, dataDir)
+    removeResourceObserver = AndroidResources.observe { state ->
+      runOnUiThread {
+        if (isDestroyed || isFinishing || AndroidResources.snapshot() != state) return@runOnUiThread
+        resourceErrorNotice?.dismiss()
+        resourceErrorNotice = null
+        if (state.status == "error") {
+          val chinese = resources.configuration.locales[0].language == "zh"
+          resourceErrorNotice = Snackbar.make(
+            window.decorView,
+            if (chinese) "帮助与内置插件资源准备失败" else "Help and bundled plugin resources could not be prepared",
+            Snackbar.LENGTH_INDEFINITE
+          ).setAction(if (chinese) "重试" else "Retry") {
+            AndroidResources.prepare(applicationContext, retry = true)
+          }.also { it.show() }
+        }
+      }
+    }
     // 处理快捷方式 intent（冷启动）
     handleShortcutIntent(intent)
     // 延迟重试注入 pending shortcut，以覆盖 WebView 尚未就绪的冷启动场景
@@ -103,6 +125,10 @@ class MainActivity : TauriActivity() {
   }
 
   override fun onDestroy() {
+    removeResourceObserver?.invoke()
+    removeResourceObserver = null
+    resourceErrorNotice?.dismiss()
+    resourceErrorNotice = null
     super.onDestroy()
     shortcutFlushHandler.removeCallbacks(shortcutFlushRunnable)
   }
@@ -190,7 +216,7 @@ class MainActivity : TauriActivity() {
   companion object {
     /** 保持同步就绪语义：只在完整清单校验及目录切换完成后返回。 */
     @JvmStatic
-    fun extractAssetsToDataDir(assetManager: AssetManager, dataDir: File) {
+    fun extractAssetsToDataDir(assetManager: AssetManager, dataDir: File): ResourceInstallResult {
       fun openAsset(path: String): java.io.InputStream = try {
         assetManager.open(path)
       } catch (_: IOException) {
@@ -205,6 +231,7 @@ class MainActivity : TauriActivity() {
       }
       val result = ResourceInstaller(dataDir).install(ResourceManifest(json.getString("version"), files), ::openAsset)
       android.util.Log.i("SoloSoul", "内置资源就绪 version=${result.version} skipped=${result.skipped} writtenFiles=${result.writtenFiles}")
+      return result
     }
   }
 }

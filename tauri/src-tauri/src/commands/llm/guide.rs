@@ -529,6 +529,7 @@ pub fn find_relevant_guides_internal(
 
 #[tauri::command]
 pub async fn guide_load_index() -> Result<GuideIndex, String> {
+    crate::android_resources::await_ready().await?;
     load_guide_index()
 }
 
@@ -537,6 +538,7 @@ pub async fn guide_load_content(
     guide_id: String,
     language: String,
 ) -> Result<GuideContent, String> {
+    crate::android_resources::await_ready().await?;
     let index = load_guide_index()?;
     let entry = index
         .guides
@@ -571,6 +573,7 @@ pub fn load_search_index_impl() -> Result<SearchIndex, String> {
 
 #[tauri::command]
 pub async fn guide_search(query: String, language: String) -> Result<Vec<GuideContent>, String> {
+    crate::android_resources::await_ready().await?;
     let index = load_guide_index()?;
     let search_index = load_search_index_impl()?;
     let tokens: Vec<String> = query

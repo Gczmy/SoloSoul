@@ -330,6 +330,9 @@ pub async fn llm_search_guide_chunks(
     language: String,
     top_k: Option<usize>,
 ) -> Result<Vec<GuideChunk>, BackendError> {
+    crate::android_resources::await_ready()
+        .await
+        .map_err(errors::guide)?;
     let top_k = top_k.unwrap_or(3);
 
     // 1. Load embedding source and existing chunks (sync block)
@@ -842,6 +845,9 @@ pub async fn llm_rebuild_guide_embeddings(
     account_id: String,
     language: String,
 ) -> Result<usize, BackendError> {
+    crate::android_resources::await_ready()
+        .await
+        .map_err(errors::guide)?;
     #[cfg(feature = "native-perf")]
     let models_dir = crate::native_perf::root()
         .map_err(errors::embedding)?

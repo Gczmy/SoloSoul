@@ -1,4 +1,5 @@
 pub mod android_glass_plugin;
+mod android_resources;
 pub mod attachment_import_plugin;
 pub mod commands;
 pub mod fs;
@@ -416,6 +417,7 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(status_bar_plugin::init())
         .plugin(android_glass_plugin::init())
+        .plugin(android_resources::init())
         .plugin(lock_state_plugin::init())
         .plugin(network_status_plugin::init())
         .plugin(attachment_import_plugin::init())

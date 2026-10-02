@@ -72,6 +72,12 @@ impl PluginInstallOperation {
         .await
     }
 }
+async fn await_bundled_resources() -> Result<(), BackendError> {
+    crate::android_resources::await_ready()
+        .await
+        .map_err(|error| errors::typed(solosoul_plugin::error::PluginError::RegistryError(error)))
+}
+
 static PLUGIN_INSTALL_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
 /// 核心包落盘后还需同步状态/迁移绑定；命令真正完成之前保留最后 2%。
@@ -101,6 +107,7 @@ pub async fn plugin_list_all(
         })?),
         None => None,
     };
+    await_bundled_resources().await?;
     state
         .plugin_manager
         .list_all(tier_filter)
@@ -200,6 +207,7 @@ pub async fn plugin_install(
     };
     let result = operation
         .run_typed(async {
+            await_bundled_resources().await?;
             let _guard = PLUGIN_INSTALL_LOCK.lock().await;
             state
                 .plugin_manager
@@ -236,6 +244,7 @@ pub async fn plugin_update(
     };
     let result = operation
         .run_typed(async {
+            await_bundled_resources().await?;
             let _guard = PLUGIN_INSTALL_LOCK.lock().await;
             state
                 .plugin_manager
@@ -363,6 +372,7 @@ pub async fn plugin_audit_log(
 
 #[tauri::command]
 pub async fn plugin_update_registry(state: State<'_, AppState>) -> Result<(), BackendError> {
+    await_bundled_resources().await?;
     state
         .plugin_manager
         .update_registry()
