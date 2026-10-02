@@ -168,3 +168,19 @@ EOF
 | 产物路径 | 以构建脚本 `BUNDLE_BASE` 定义为准 |
 | 日志判断 | 先看 mtime/进程，再读内容；文件名带版本号 |
 | 发布前 | `verify-release-signatures.sh` 全量 PASS 才允许发版 |
+
+
+## iOS 模拟器入口参数（RF-1068，2026-10-02）
+
+Tauri CLI 的 `--target` 接受 `aarch64-sim` 等选择器；
+`aarch64-apple-ios-sim` 是 Cargo/Rust target triple，直接传给 Tauri 会在编译前报
+`invalid value`。`tauri/package.json` 的 `tauri:ios:build:sim` 已使用正确选择器。
+在 `tauri/` 下执行实际无签名模拟器 Debug 验收：
+
+```bash
+npm run tauri:ios:build:sim -- --debug --no-sign --archive-only --ci
+```
+
+本机 Xcode/iOS SDK 下该入口已构建成功；这不代表真机签名或发布验收。
+Cargo 检查仍使用 `cargo check --target aarch64-apple-ios-sim`，不得一起改成 CLI 选择器。
+构建生成项目文件的版本/格式变化应单独核对，不因这项参数修复提交无关生成文件。

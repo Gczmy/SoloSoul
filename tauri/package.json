@@ -14,7 +14,7 @@
     "tauri:android:build:arm": "tauri android build --target aarch64 --target armv7 --apk",
     "tauri:ios:dev": "tauri ios dev",
     "tauri:ios:build": "tauri ios build",
-    "tauri:ios:build:sim": "tauri ios build --target aarch64-apple-ios-sim",
+    "tauri:ios:build:sim": "tauri ios build --target aarch64-sim",
     "lint": "eslint src --ext .ts,.tsx",
     "test": "npm run test:node && vitest run",
     "test:coverage": "npm run test:node && vitest run --coverage --maxWorkers 2 --testTimeout 15000",

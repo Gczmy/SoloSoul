@@ -120,8 +120,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**257**（P1：51；P2：205；P3：1）。
-- 已关闭：**238 / 257**；实际修复（已关闭）：238；排除：0；待验证/阻塞：4（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；待执行：15。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 任务总数：**258**（P1：51；P2：206；P3：1）。
+- 已关闭：**239 / 258**；实际修复（已关闭）：239；排除：0；待验证/阻塞：4（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；待执行：15。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
 - 当前处理：**RF-201（下一项；公共 Rust/CLI 基线已恢复）**。RF-1066、RF-1067 已关闭，原失败及固定同毫秒验证证据保留。RF-208 已补齐 macOS 标准 Debug 构建并关闭；RF-201、RF-203、RF-206 的前置已满足。RF-204 已按用户指令恢复并完成直接编译修复及双目标验收。剩余 4 个待外部验收根与 15 个待执行任务；材质多端实测、远端 CI 与隔离性能证据仍缺。远端完整 CI 和 Android 工作流当前为 disabled_manually，不自动重新启用或推送。保持一项一修复一验证一提交。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
@@ -385,6 +385,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 255 | [RF-1063](#rf-1063) | P1 | KeepBoth 映射使用有效策略与实际选择 | 无（RF-021 预审发现） | [x] 完成 |
 | 256 | [RF-1066](#rf-1066) | P1 | 插件暂存版本目录从创建时使用私有权限 | 无（macOS 公共 Rust 基线发现） | [x] 完成 |
 | 257 | [RF-1067](#rf-1067) | P2 | 同毫秒快照按写入新旧排序并保留恢复顺序 | 无（macOS 公共 Rust 基线发现） | [x] 完成 |
+| 258 | [RF-1068](#rf-1068) | P2 | iOS 模拟器构建脚本使用 CLI 支持的 target 名 | 无（RF-201 构建预检发现） | [x] 完成 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -3463,6 +3464,18 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**`R` + `CLI` + `DOC`。真实 Vault/加密包测试与固定同毫秒 Host 回归，不使用 sleep 避开冲突。
 - **建议提交：**`fix(history): order same-millisecond snapshots consistently [RF-1067]`。
 
+### RF-1068
+
+**iOS 模拟器构建脚本使用 CLI 支持的 target 名** · P2 · 来源：RF-201 构建预检
+
+- **前置：**无；属于构建入口的独立错误。
+- **入口：**`tauri/package.json` 的 `tauri:ios:build:sim`。
+- **执行：**将 Rust target triple `aarch64-apple-ios-sim` 改为当前 Tauri CLI 选择器 `aarch64-sim`；不改变 Cargo target、签名策略、应用版本或部署平台。
+- **验收：**旧 npm 入口实测 exit 2 / invalid target；修正后实际 npm 入口接受参数并进入模拟器构建，结果和环境/编译阻塞如实保留。不得把只打印 --help 当成构建通过。
+- **验证配置：**实际 npm 入口 + `DOC`；必要构建与 RF-201 共用，但不据入口修复关闭原生主题验收。
+- **当前状态：**已完成。实际 npm 无签名模拟器 Debug 构建 exit0；Cargo triple 与签名策略不变，详见本日记录。
+- **建议提交：**`fix(build): use supported iOS simulator selector [RF-1068]`。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -5940,3 +5953,9 @@ git commit -m "<任务卡的提交标题>"
 - 四项顺序 iOS 检查均 exit 0：客户端 `cargo check --target aarch64-apple-ios`、`cargo check --target aarch64-apple-ios-sim`，Core `cargo check -p solosoul-core --tests` 的相应两目标。此前一次合并双目标因 Tauri 插件共享 `.tauri/tauri-api` 复制竞争失败；原日志保留，本次顺序验收，不修改 vendor、依赖或现有 CI 工作流，不声称远端 CI 已通过。
 - macOS 标准 Debug 构建、R 格式与严格 all-targets Clippy 均通过；R 全量 **1,850 passed / 0 failed / 3 既有 ignored（25 组）**。CLI 格式、严格 all-targets Clippy、全量 **335 passed / 0 failed / 2 既有 ignored** 均通过。按现有构建流程临时准备的 Cargo macOS feature 已恢复原字节；未安装或替换用户旧版客户端。
 - canonical 生物识别规范已同步编译边界；DOC Markdown 依赖边界及 diff 检查通过。原始退出码、时间、日志 SHA 与范围限制见 [RF-204 验收记录](verification/rf204-ios-status-compile-2026-10-02.json)。本项 `[x]` 关闭；RF-201 原生主题验收仍进行中，未包含在本提交；不推送。
+
+### RF-1068 执行记录（2026-10-02，完成）
+
+- 基线 `4c3dc279`。旧 npm 入口真实执行在进入构建前报 `invalid value`（记录 exit2），当前 Tauri CLI 明确列出 `aarch64`、`aarch64-sim`、`x86_64`。仅将 `tauri:ios:build:sim` 参数改为 `aarch64-sim`；Cargo/Rust triple、应用版本、依赖、签名策略不变。
+- 通过修正后的实际 npm 入口运行 `npm run tauri:ios:build:sim -- --debug --no-sign --archive-only --ci`，完整模拟器原生构建 **exit0 / 44.95s**，未用 `--help` 代替。生成的两个已知 Xcode 项目文件已保存输出后恢复原字节；未安装到用户既有设备或替换客户端。
+- [入口及原始日志证据](verification/rf1068-ios-npm-selector-2026-10-02.json)与构建排坑规范同步。DOC Markdown 边界及 diff 检查通过。本项独立本地提交，不推送；RF-201 原生主题验收仍单独整理。

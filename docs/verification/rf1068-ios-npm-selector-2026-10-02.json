@@ -1,0 +1,44 @@
+{
+  "task": "RF-1068",
+  "baseline_commit": "4c3dc279",
+  "old_entry": "tauri ios build --target aarch64-apple-ios-sim",
+  "old_outcome": "原入口实测 invalid value，CLI 列出的选择器为 aarch64、aarch64-sim、x86_64；先前执行记录退出码2。",
+  "new_entry": "tauri ios build --target aarch64-sim",
+  "native_build": {
+    "command": [
+      "npm",
+      "run",
+      "tauri:ios:build:sim",
+      "--",
+      "--debug",
+      "--no-sign",
+      "--archive-only",
+      "--ci"
+    ],
+    "exit_code": 0,
+    "started_at": "2026-10-02T12:26:15.005799+00:00",
+    "duration_seconds": 44.95255674980581,
+    "generated_tracked_changes": [
+      "src-tauri/gen/apple/solo_soul.xcodeproj/project.pbxproj",
+      "src-tauri/gen/apple/solo_soul_iOS/Info.plist"
+    ]
+  },
+  "scope": "仅修改 npm CLI 选择器；Cargo triple、依赖、签名策略、版本不变。",
+  "limits": [
+    "运行验收是 --debug --no-sign --archive-only；不代表签名或发布。",
+    "不据此关闭 RF-201 原生主题验收。",
+    "生成项目文件的已知变化原字节恢复；未替换用户安装应用。"
+  ],
+  "logs": [
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-script-preflight.log",
+      "bytes": 293,
+      "sha256": "66aba801cef93b9db86c3ea628967b6dd29d43cecb174a96718dadce28058f13"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1068-npm-ios-build.log",
+      "bytes": 8073,
+      "sha256": "29dc28fbe5dc5afa52bc5ffd128f239425e160b28d63ae397248a5a5fbd51ce7"
+    }
+  ]
+}
