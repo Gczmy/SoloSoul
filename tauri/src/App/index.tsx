@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import { BrowserRouter } from 'react-router-dom';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { AccountInfo } from '@/lib/ipc';
@@ -18,6 +19,7 @@ import { initPlatform } from '@/lib/platform';
 import { syncPlaintextPref } from '@/stores/settingsStore';
 
 function App() {
+  useApplyThemeFromSettings();
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
     try {
       return localStorage.getItem(ST_ONBOARDING_SEEN) === 'true';

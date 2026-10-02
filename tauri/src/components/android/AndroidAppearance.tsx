@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Sun, Moon, Monitor, Check } from 'lucide-react';
@@ -8,7 +7,6 @@ import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSettingAction } from '@/hooks/useSettingAction';
 import { useAuthStore } from '@/stores/authStore';
-import { applyTheme, getSystemTheme } from '@/lib/theme';
 import { ANDROID_PALETTES, androidMaterialTokens } from '@/lib/androidMaterial';
 import { ANDROID_GLASS_MODES } from '@/lib/androidGlass';
 
@@ -26,24 +24,6 @@ export function AndroidAppearance() {
     })),
   );
   const update = useSettingAction();
-  useEffect(() => {
-    let active = true;
-    void (async () => {
-      const resolvedSystemTheme = theme === 'system' ? await getSystemTheme() : undefined;
-      if (!active) return;
-      await applyTheme({
-        preset:
-          theme === 'system' ? 'system' : theme === 'dark' ? 'warm-stone-dark' : 'warm-stone-light',
-        accentColor,
-        backgroundType: 'solid',
-        backgroundValue: '',
-        resolvedSystemTheme,
-      });
-    })();
-    return () => {
-      active = false;
-    };
-  }, [theme, accentColor]);
   return (
     <PageShell title={t('settings:items.theme_appearance')} onBack={() => navigate('/settings')}>
       <div className="android-page" style={{ maxWidth: 640 }}>

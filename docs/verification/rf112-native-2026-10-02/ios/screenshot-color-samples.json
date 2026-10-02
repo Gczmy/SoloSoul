@@ -1,0 +1,61 @@
+{
+  "command": [
+    "swift",
+    "/tmp/solosoul-refactor-macos-20261002/rf201-png-color-probe.swift",
+    "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence"
+  ],
+  "exit_code": 0,
+  "anchor": {
+    "x": 10,
+    "y": 250,
+    "color_space": "deviceRGB"
+  },
+  "colors": {
+    "dark-dark.png": [
+      41,
+      37,
+      32
+    ],
+    "dark-light-again.png": [
+      41,
+      37,
+      32
+    ],
+    "dark-light.png": [
+      41,
+      37,
+      32
+    ],
+    "light-dark.png": [
+      249,
+      249,
+      245
+    ],
+    "light-light-again.png": [
+      249,
+      249,
+      245
+    ],
+    "light-light.png": [
+      249,
+      249,
+      245
+    ],
+    "system-dark.png": [
+      41,
+      37,
+      32
+    ],
+    "system-light-again.png": [
+      249,
+      249,
+      245
+    ],
+    "system-light.png": [
+      249,
+      249,
+      245
+    ]
+  },
+  "assertions_passed": true
+}

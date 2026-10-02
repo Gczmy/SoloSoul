@@ -32,7 +32,7 @@ vi.mock('@/lib/prefetch/warmup', () => ({
 }));
 vi.mock('@/lib/startupScreen', () => ({ dismissStartupScreen: vi.fn(() => () => {}) }));
 vi.mock('@/hooks/useAutoLock', () => ({ useAutoLock: () => {} }));
-vi.mock('@/hooks/useApplyThemeFromSettings', () => ({ useApplyThemeFromSettings: () => {} }));
+import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 
 function NativeHarness() {
   const navigate = useNavigate();
@@ -41,6 +41,7 @@ function NativeHarness() {
 }
 
 function ThemeHarness() {
+  useApplyThemeFromSettings();
   const navigate = useNavigate();
   useNativeAppEvents({ navigate, isAuthenticated: false });
   return null;
@@ -93,6 +94,8 @@ describe('RF201 系统事件不会覆盖显式主题', () => {
     );
     try {
       await waitFor(() => expect(callbacks).toHaveLength(1));
+      await act(async () => {});
+      vi.mocked(applyTheme).mockClear();
       act(() => {
         callbacks[0]('dark');
         callbacks[0]('light');
@@ -327,7 +330,7 @@ describe('RF-114 应用生命周期', () => {
     expect(order).toEqual(['profile', 'settings']);
 
     await act(async () => finishSettings());
-    await waitFor(() => expect(order).toEqual(['profile', 'settings', 'theme', 'custom-pages']));
+    await waitFor(() => expect(order).toEqual(['profile', 'settings', 'custom-pages']));
     view.unmount();
   });
 });

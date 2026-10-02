@@ -8,7 +8,7 @@ import { backendErrorLogDetails } from '@/lib/backendErrorWire';
 import { z } from 'zod';
 import i18next, { detectSystemLanguage } from '@/lib/i18n';
 import type { TrashRetentionPeriod } from '@/stores/trashStore';
-import { applyTheme } from '@/lib/theme';
+import { themeController } from '@/lib/themeController';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
 import { ST_UI_PREFS } from '@/lib/constants';
 import { logger } from '@/lib/logger';
@@ -365,20 +365,23 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           if (cached.defaultDarkTheme) p.defaultDarkTheme = cached.defaultDarkTheme;
           p = read.merge(p, get().settings);
           request.assertCurrent();
-          await applyTheme({
-            preset:
-              p.theme === 'dark'
-                ? 'warm-stone-dark'
-                : p.theme === 'light'
-                  ? 'warm-stone-light'
-                  : 'system',
-            accentColor: p.accentColor,
-            customAccentHex: p.customAccentHex,
-            backgroundType: 'solid',
-            backgroundValue: '',
-            defaultLightTheme: p.defaultLightTheme,
-            defaultDarkTheme: p.defaultDarkTheme,
-          });
+          await themeController.applyStartup(
+            {
+              preset:
+                p.theme === 'dark'
+                  ? 'warm-stone-dark'
+                  : p.theme === 'light'
+                    ? 'warm-stone-light'
+                    : 'system',
+              accentColor: p.accentColor,
+              customAccentHex: p.customAccentHex,
+              backgroundType: 'solid',
+              backgroundValue: '',
+              defaultLightTheme: p.defaultLightTheme,
+              defaultDarkTheme: p.defaultDarkTheme,
+            },
+            request.isCurrent,
+          );
           request.assertCurrent();
           setCurrent({ settings: read.merge(p, get().settings) });
         }
@@ -416,20 +419,23 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (prefs.defaultDarkTheme) parsed.defaultDarkTheme = prefs.defaultDarkTheme;
       parsed = read.merge(parsed, get().settings);
       request.assertCurrent();
-      await applyTheme({
-        preset:
-          parsed.theme === 'dark'
-            ? 'warm-stone-dark'
-            : parsed.theme === 'light'
-              ? 'warm-stone-light'
-              : 'system',
-        accentColor: parsed.accentColor,
-        customAccentHex: parsed.customAccentHex,
-        backgroundType: 'solid',
-        backgroundValue: '',
-        defaultLightTheme: parsed.defaultLightTheme,
-        defaultDarkTheme: parsed.defaultDarkTheme,
-      });
+      await themeController.applyStartup(
+        {
+          preset:
+            parsed.theme === 'dark'
+              ? 'warm-stone-dark'
+              : parsed.theme === 'light'
+                ? 'warm-stone-light'
+                : 'system',
+          accentColor: parsed.accentColor,
+          customAccentHex: parsed.customAccentHex,
+          backgroundType: 'solid',
+          backgroundValue: '',
+          defaultLightTheme: parsed.defaultLightTheme,
+          defaultDarkTheme: parsed.defaultDarkTheme,
+        },
+        request.isCurrent,
+      );
       request.assertCurrent();
       parsed = read.merge(parsed, get().settings);
       setCurrent({ settings: parsed });
@@ -657,6 +663,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       }
       if (!session.isCurrent()) return { status: 'stale' };
       lane.confirmed = value;
+      // 确认基线与乐观值分离：成功写入也须通知应用级主题订阅者。
+      if (session.isCurrent()) set({});
       // 真实提交的旧写也要镜像；同键镜像在队列内有序执行，不能夹带新乐观值。
       if (CACHE_PREF_KEYS.has(key)) {
         writeUiPrefsCache(confirmedSettings(get().settings));

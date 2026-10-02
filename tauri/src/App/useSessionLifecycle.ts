@@ -6,7 +6,6 @@ import { createSessionRequests, onRequestSessionChange } from '@/lib/sessionRequ
 import { trackAsyncListener } from '@/lib/asyncListener';
 import { dismissStartupScreen } from '@/lib/startupScreen';
 import { warmupPrefetchRegistry, resetPrefetchRegistry } from '@/lib/prefetch/warmup';
-import { getSystemTheme, applyTheme } from '@/lib/theme';
 import { confirmWithPause } from '@/lib/dialog';
 import { initLlmNotificationListener } from '@/lib/notification';
 import { setGlobalNavigate } from '@/lib/navigation';
@@ -16,7 +15,6 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useLlmStore } from '@/stores/llmStore';
 import { useUiStore } from '@/stores/uiStore';
-import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import { useAutoLock } from '@/hooks/useAutoLock';
 
 const settingsRequests = createSessionRequests();
@@ -128,26 +126,6 @@ export function useSessionLifecycle({
         .loadSettings(account.id)
         .then(async () => {
           if (!active || !request.isCurrent()) return;
-          const s = useSettingsStore.getState().settings;
-          const resolvedSystemTheme = s.theme === 'system' ? await getSystemTheme() : undefined;
-          if (!active || !request.isCurrent()) return;
-          await applyTheme({
-            preset:
-              s.theme === 'dark'
-                ? 'warm-stone-dark'
-                : s.theme === 'light'
-                  ? 'warm-stone-light'
-                  : 'system',
-            accentColor: s.accentColor,
-            customAccentHex: s.customAccentHex,
-            backgroundType: s.backgroundType,
-            backgroundValue: s.backgroundValue,
-            defaultLightTheme: s.defaultLightTheme,
-            defaultDarkTheme: s.defaultDarkTheme,
-            resolvedSystemTheme:
-              typeof resolvedSystemTheme === 'string' ? resolvedSystemTheme : undefined,
-          });
-          if (!active || !request.isCurrent()) return;
           try {
             await useSettingsStore.getState().loadCustomPages(account.id);
           } catch (err) {
@@ -163,7 +141,6 @@ export function useSessionLifecycle({
     };
   }, [isAuthenticated, accountId]);
 
-  useApplyThemeFromSettings();
   useAutoLock();
 
   useEffect(() => {

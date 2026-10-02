@@ -335,3 +335,24 @@ describe('RF110 applyTheme 单次解析与各外观输出一致性', () => {
     },
   );
 });
+
+describe('RF-112 最后交付边界', () => {
+  it('系统查询期间撤销请求，不修改 DOM 或提交原生主题', async () => {
+    let resolve!: (mode: string) => void;
+    systemTheme(
+      () =>
+        new Promise((done) => {
+          resolve = done;
+        }),
+    );
+    let current = true;
+    const pending = applyTheme(config(), () => current);
+    current = false;
+    resolve('dark');
+    await pending;
+    expect(document.documentElement.dataset.theme).toBeUndefined();
+    expect(document.documentElement.style.getPropertyValue('--bg-base')).toBe('');
+    expect(syncNativeAppearance).not.toHaveBeenCalled();
+    expect(invoke.mock.calls.filter(([command]) => command === 'set_status_bar_style')).toEqual([]);
+  });
+});

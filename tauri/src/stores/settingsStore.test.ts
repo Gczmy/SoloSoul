@@ -101,9 +101,11 @@ describe('settingsStore', () => {
       expect(applyTheme).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({ accentColor: 'custom', customAccentHex: '#17382A' }),
+        expect.any(Function),
       );
       expect(applyTheme).toHaveBeenLastCalledWith(
         expect.objectContaining({ accentColor: 'custom', customAccentHex: '#ffffff' }),
+        expect.any(Function),
       );
       expect(useSettingsStore.getState().settings.customAccentHex).toBe('#ffffff');
       expect(JSON.parse(localStorageData['solosoul_ui_prefs']).customAccentHex).toBe('#ffffff');

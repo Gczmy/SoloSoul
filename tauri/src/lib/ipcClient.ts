@@ -95,7 +95,7 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   // ── 启动期系统 / UI 命令（App 初始化、主题、语言、偏好、更新检查）──
   'get_app_info',
   'get_system_locale',
-  // 登录页/引导页挂载即应用主题（useApplyThemeFromSettings，默认 theme=
+  // 应用根挂载即协调主题（ThemeController，默认 theme=
   // 'system' 时 getSystemTheme 与 applyTheme 内部都会调本命令）——未解锁时
   // 不豁免则主题应用被守卫拦截且产生 unhandled rejection
   'get_system_theme',

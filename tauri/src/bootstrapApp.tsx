@@ -1,4 +1,5 @@
 import React from 'react';
+import { prepareThemeController } from '@/lib/appThemeController';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles/tokens.css';
@@ -32,6 +33,7 @@ export async function mountApplication(): Promise<void> {
     .catch((err) => logger.warn('[main] Login availability preflight failed:', err));
   await initI18n();
   await initPlatform().catch((err) => logger.warn('[main] Platform init failed:', err));
+  prepareThemeController();
   await useSettingsStore.getState().loadUiPreferences();
   document.documentElement.dataset.userReduceMotion = String(
     useSettingsStore.getState().settings.reduceMotion,

@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore, LAST_ACCOUNT_KEY } from '@/stores/authStore';
-import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import type { AccountInfo } from '@/lib/ipc';
 
 import {
@@ -28,7 +27,6 @@ export type { LoginMethod } from '@/lib/loginMethodCache';
  * useLoginIconBar。
  */
 export function useLoginPage() {
-  useApplyThemeFromSettings();
   const navigate = useNavigate();
   // P022: useShallow 字段级选择——避免 store 无关字段（error/backendError）翻转时整页重渲染
   const { checkHasAccount, listAccounts, hasAccount, isAuthenticated, isLoading, accounts } =

@@ -5,9 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { listen } from '@tauri-apps/api/event';
 import { trackAsyncListener } from '@/lib/asyncListener';
 import { observeNativeWindowLayout, refreshNativeAppearance } from '@/lib/nativeWindow';
-import { listenForSystemTheme, applyTheme } from '@/lib/theme';
 import { logger } from '@/lib/logger';
-import { useSettingsStore } from '@/stores/settingsStore';
 import { useSafSyncStore } from '@/stores/safSyncStore';
 import { useUiStore } from '@/stores/uiStore';
 
@@ -69,31 +67,6 @@ export function useNativeAppEvents({
       dispose();
     };
   }, [isAuthenticated, t]);
-
-  useEffect(() => {
-    let active = true;
-    const dispose = trackAsyncListener(
-      listenForSystemTheme((mode) => {
-        if (!active) return;
-        const s = useSettingsStore.getState().settings;
-        if (s.theme !== 'system') return;
-        void applyTheme({
-          preset: 'system',
-          accentColor: s.accentColor,
-          customAccentHex: s.customAccentHex,
-          backgroundType: s.backgroundType,
-          backgroundValue: s.backgroundValue,
-          defaultLightTheme: s.defaultLightTheme,
-          defaultDarkTheme: s.defaultDarkTheme,
-          resolvedSystemTheme: mode,
-        });
-      }),
-    );
-    return () => {
-      active = false;
-      dispose();
-    };
-  }, []);
 
   useEffect(() => {
     const handleShortcut = () => {

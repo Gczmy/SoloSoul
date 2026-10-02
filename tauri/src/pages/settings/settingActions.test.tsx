@@ -3,6 +3,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { invoke } from '@tauri-apps/api/core';
+import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { applyTheme, getSystemTheme } from '@/lib/theme';
@@ -23,6 +24,7 @@ vi.mock('@/lib/i18n', () => ({
 vi.mock('@/lib/theme', () => ({
   applyTheme: vi.fn(async () => {}),
   getSystemTheme: vi.fn(async () => 'light' as const),
+  listenForSystemTheme: vi.fn(async () => () => {}),
 }));
 vi.mock('@/lib/platform', () => ({
   isMobilePlatformSync: () => false,
@@ -52,8 +54,20 @@ function deferred<T>() {
 
 const defaults = useSettingsStore.getInitialState().settings;
 const mockInvoke = vi.mocked(invoke);
+function ThemeOwner() {
+  useApplyThemeFromSettings();
+  return null;
+}
 function renderPage(page: ReactNode) {
-  return render(<MemoryRouter>{page}</MemoryRouter>);
+  const view = render(
+    <>
+      <ThemeOwner />
+      <MemoryRouter>{page}</MemoryRouter>
+    </>,
+  );
+  // 初始确认主题已应用；下面检验的是用户编辑触发的交付。
+  vi.mocked(applyTheme).mockClear();
+  return view;
 }
 function writes() {
   return mockInvoke.mock.calls.filter(([cmd]) => cmd === 'user_data_update_preference');
@@ -121,6 +135,7 @@ describe('RF111 真实 Store 设置交互', () => {
 
     expect(applyTheme).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({ preset: 'warm-stone-dark', accentColor: 'ocean' }),
+      expect.any(Function),
     );
     expect(useSettingsStore.getState().settings).toMatchObject({
       theme: 'dark',
@@ -159,6 +174,7 @@ describe('RF111 真实 Store 设置交互', () => {
     });
     expect(applyTheme).toHaveBeenCalledWith(
       expect.objectContaining({ preset: 'warm-stone-light', defaultDarkTheme: 'deep-ocean' }),
+      expect.any(Function),
     );
     expect(screen.getByRole('radio', { name: /common:theme.light/ })).toBeChecked();
   });
@@ -177,7 +193,13 @@ describe('RF111 真实 Store 设置交互', () => {
       useSettingsStore.setState({ settings: { ...defaults, theme: 'dark', accentColor: 'rose' } });
     });
     await act(async () => mode.resolve('light'));
-    expect(applyTheme).not.toHaveBeenCalled();
+    expect(vi.mocked(applyTheme).mock.calls.some(([config]) => config.preset === 'system')).toBe(
+      false,
+    );
+    expect(applyTheme).toHaveBeenLastCalledWith(
+      expect.objectContaining({ preset: 'warm-stone-dark', accentColor: 'rose' }),
+      expect.any(Function),
+    );
     expect(showToast).not.toHaveBeenCalled();
     expect(useSettingsStore.getState().settings).toMatchObject({
       theme: 'dark',
@@ -195,7 +217,10 @@ describe('RF111 真实 Store 设置交互', () => {
     await waitFor(() => expect(applyTheme).toHaveBeenCalledTimes(1));
     await act(async () => mode.resolve('light'));
     expect(applyTheme).toHaveBeenCalledTimes(1);
-    expect(applyTheme).toHaveBeenCalledWith(expect.objectContaining({ preset: 'warm-stone-dark' }));
+    expect(applyTheme).toHaveBeenCalledWith(
+      expect.objectContaining({ preset: 'warm-stone-dark' }),
+      expect.any(Function),
+    );
     expect(showToast).not.toHaveBeenCalled();
   });
 
@@ -215,6 +240,7 @@ describe('RF111 真实 Store 设置交互', () => {
         accentColor: 'forest',
         resolvedSystemTheme: 'dark',
       }),
+      expect.any(Function),
     );
     expect(showToast).not.toHaveBeenCalled();
   });
@@ -260,30 +286,26 @@ describe('RF111 真实 Store 设置交互', () => {
     expect(showToast).not.toHaveBeenCalled();
   });
 
-  it('Android 保留乐观应用，并在保存失败后通过 Store 回滚恢复原主题', async () => {
+  it('Android 仅应用确认主题，保存失败恢复选中状态且不交付失败主题', async () => {
     const write = deferred<void>();
     mockInvoke.mockImplementation(async (cmd) => {
       if (cmd === 'user_data_update_preference') return write.promise;
     });
     renderPage(<AndroidAppearance />);
-    await waitFor(() => expect(applyTheme).toHaveBeenCalledTimes(1));
-    vi.mocked(applyTheme).mockClear();
     fireEvent.click(screen.getByRole('button', { name: 'material.theme_dark' }));
-    await waitFor(() =>
-      expect(applyTheme).toHaveBeenCalledWith(
-        expect.objectContaining({ preset: 'warm-stone-dark' }),
-      ),
+    expect(screen.getByRole('button', { name: 'material.theme_dark' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
     );
     await waitFor(() => expect(writes()).toHaveLength(1));
+    expect(applyTheme).not.toHaveBeenCalled();
     await act(async () => write.reject(new Error('disk full')));
     await waitFor(() => expect(showToast).toHaveBeenCalledTimes(1));
     expect(screen.getByRole('button', { name: 'material.theme_light' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
-    expect(applyTheme).toHaveBeenLastCalledWith(
-      expect.objectContaining({ preset: 'warm-stone-light' }),
-    );
+    expect(applyTheme).not.toHaveBeenCalled();
     expect(mockInvoke.mock.calls.some(([cmd]) => cmd === 'ui_update_preference')).toBe(false);
   });
 });

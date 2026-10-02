@@ -5,7 +5,6 @@ import { useShallow } from 'zustand/react/shallow';
 import i18next from 'i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
-import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
@@ -15,7 +14,6 @@ import { translateRustError } from '@/lib/rustErrors';
 import styles from './LoginPage.module.css';
 
 export function BootstrapPage() {
-  useApplyThemeFromSettings();
   const navigate = useNavigate();
   // P022: useShallow 字段级选择——避免 store 无关字段翻转时整页重渲染
   const { bootstrap, isLoading, error } = useAuthStore(

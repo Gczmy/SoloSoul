@@ -1,0 +1,1414 @@
+{
+  "task": "RF-112",
+  "status": "awaiting_native_macos_lock_unlock",
+  "base_commit": "af334ed2",
+  "date": "2026-10-02",
+  "inputs": [
+    {
+      "path": "tauri/src/lib/themeController.ts",
+      "sha256": "50c9cb7ea202143a02b2d8b4cf2b6ad09925a67e321fbacfe2ac4efafd787a70"
+    },
+    {
+      "path": "tauri/src/lib/themeController.test.ts",
+      "sha256": "ac8beacabcaff4a5229c5c75bc679911c11936f9c26606200ff1ea5be106b6a5"
+    },
+    {
+      "path": "tauri/src/lib/appThemeController.ts",
+      "sha256": "142ec8a17d37c453330791e570a631d0d21ec4bae5adb955a1b8f45b7665e5a7"
+    },
+    {
+      "path": "tauri/src/lib/theme.ts",
+      "sha256": "8973302a06419064b8af64c74996b96b817e77200a76d36c54d8da03a1237d32"
+    },
+    {
+      "path": "tauri/src/lib/theme.test.ts",
+      "sha256": "0c23e5df71b45d7f1f0ebd449cfe6af2176764120d67a78285bf6e4c356446b9"
+    },
+    {
+      "path": "tauri/src/hooks/useApplyThemeFromSettings.ts",
+      "sha256": "dbd171ebc6b2ae10792fa413cf253a6330e79997a3725317d6e10ef586b17055"
+    },
+    {
+      "path": "tauri/src/hooks/useApplyThemeFromSettings.test.ts",
+      "sha256": "af024312df25983e10a9cd5801ef29a91f36b4ae19cfe21d535108cbe59a1e94"
+    },
+    {
+      "path": "tauri/src/stores/settingsStore.ts",
+      "sha256": "83a459397d0de2f7eff017d96b8a3bd9ab572ebc67a8be7ffe603fcd9cea889a"
+    },
+    {
+      "path": "tauri/src/stores/settingsStore.test.ts",
+      "sha256": "2e81db72b24a5d9d5c5e292780395d411b592c61488fdf751d0639aea07fb0dd"
+    },
+    {
+      "path": "tauri/src/App/index.tsx",
+      "sha256": "3e188f621b5f76c668e576acb87c71dbc468ed872f48f8930c4e39fe1b5ea058"
+    },
+    {
+      "path": "tauri/src/App/appLifecycle.test.tsx",
+      "sha256": "f15151ffd5b7d4caebe1218911fd5b64ad7d27f790f7c4f0f71749df6c0335f1"
+    },
+    {
+      "path": "tauri/src/App/useNativeAppEvents.ts",
+      "sha256": "4239ca2eb288c7c473aede98c6b4500f5862ed6524ac67ea5456692bac94c925"
+    },
+    {
+      "path": "tauri/src/App/useSessionLifecycle.ts",
+      "sha256": "4ac1e4b03a6e9846779df320d5750e9a403ebaa0b7fdddb4b71ad9bb4d543671"
+    },
+    {
+      "path": "tauri/src/bootstrapApp.tsx",
+      "sha256": "1bc235d6637004231519554a0d6b995781d3595633963c467f2dcb8349d53e12"
+    },
+    {
+      "path": "tauri/src/components/android/AndroidAppearance.tsx",
+      "sha256": "11640ad05152e47a5044e5dfa408637c7f95846ba1a22c6844876a6aabebf2df"
+    },
+    {
+      "path": "tauri/src/pages/auth/useLoginPage.tsx",
+      "sha256": "6922218df4cb22567352ce8d7ce82557272487c85bfb0cd93694b5554faa1a72"
+    },
+    {
+      "path": "tauri/src/pages/auth/BootstrapPage.tsx",
+      "sha256": "84bb334f6083e3cd151f26dbeae7998464f2cb16681f8ba510346534f1b8b58c"
+    },
+    {
+      "path": "tauri/src/pages/settings/AppearanceSettingsPage.tsx",
+      "sha256": "f499047c9f9927be21ce0fa2151a68260baf4f973249f97159d57c756e9843c0"
+    },
+    {
+      "path": "tauri/src/pages/settings/settingActions.test.tsx",
+      "sha256": "33b92ffb4b87b0454fb842b73ae3009a894edbc4dbcccf769eff8934dad8af58"
+    },
+    {
+      "path": "tauri/src/lib/ipcClient.ts",
+      "sha256": "156416626af2be96c5d493b3733d29d16f52e9424ce336e0b6db8f638d4e8105"
+    }
+  ],
+  "checks": {
+    "rf112-f-results": [
+      {
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit_code": 2,
+        "duration_seconds": 9.649407458957285
+      }
+    ],
+    "rf112-f2-f-results": [
+      {
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 9.785832208115608
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 4.615459874738008
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test"
+        ],
+        "exit_code": 1,
+        "duration_seconds": 45.43454295769334
+      }
+    ],
+    "rf112-f3-f-results": [
+      {
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 10.925569583196193
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 4.845576167106628
+      },
+      {
+        "command": [
+          "npm",
+          "run",
+          "test"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 76.30278545897454
+      }
+    ],
+    "rf112-web-results": [
+      {
+        "name": "native-theme-chromium",
+        "command": [
+          "npx",
+          "playwright",
+          "test",
+          "e2e/native-theme.spec.ts",
+          "e2e/appearance-layout.spec.ts",
+          "e2e/login-method-layout.spec.ts",
+          "--project=chromium",
+          "--output=/tmp/solosoul-refactor-macos-20261002/rf112-web-chromium"
+        ],
+        "started_at": "2026-10-02T13:48:21.612050+00:00",
+        "duration_seconds": 26.196282416116446,
+        "exit_code": 0
+      },
+      {
+        "name": "native-theme-mobile",
+        "command": [
+          "npx",
+          "playwright",
+          "test",
+          "e2e/native-theme.spec.ts",
+          "--project=mobile",
+          "--grep",
+          "RF-201|模拟 IPC=",
+          "--output=/tmp/solosoul-refactor-macos-20261002/rf112-web-mobile"
+        ],
+        "started_at": "2026-10-02T13:48:47.808934+00:00",
+        "duration_seconds": 14.51251587504521,
+        "exit_code": 1
+      },
+      {
+        "name": "production",
+        "command": [
+          "npm",
+          "run",
+          "test:e2e:production"
+        ],
+        "started_at": "2026-10-02T13:49:02.321989+00:00",
+        "duration_seconds": 12.503446457907557,
+        "exit_code": 0
+      }
+    ],
+    "rf112-web-mobile-repeat": {
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/native-theme.spec.ts",
+        "--project=mobile",
+        "--grep",
+        "RF-201|模拟 IPC=",
+        "--output=/tmp/solosoul-refactor-macos-20261002/rf112-web-mobile-repeat"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 6.90257470915094
+    },
+    "rf112-native-results": [
+      {
+        "name": "macos",
+        "command": [
+          "npx",
+          "tauri",
+          "build",
+          "--debug",
+          "--bundles",
+          "app",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 105.89071241719648
+      },
+      {
+        "name": "ios",
+        "command": [
+          "npm",
+          "run",
+          "tauri:ios:build:sim",
+          "--",
+          "--debug",
+          "--no-sign",
+          "--archive-only",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 45.802268291823566
+      },
+      {
+        "name": "android-stage",
+        "command": [
+          "node",
+          "scripts/stage-mobile-resources.cjs"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.07773116696625948
+      },
+      {
+        "name": "android-check",
+        "command": [
+          "cargo",
+          "ndk",
+          "-t",
+          "aarch64-linux-android",
+          "check"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 7.390547832939774
+      },
+      {
+        "name": "android",
+        "command": [
+          "npx",
+          "tauri",
+          "android",
+          "build",
+          "--debug",
+          "--target",
+          "aarch64",
+          "--split-per-abi",
+          "--apk",
+          "--ci"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 49.3699591672048
+      }
+    ],
+    "rf112-instrumentation-results": [
+      {
+        "name": "gradle-tasks",
+        "command": [
+          "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/gradlew",
+          "tasks",
+          "--all"
+        ],
+        "started_at": "2026-10-02T13:55:39.799131+00:00",
+        "duration_seconds": 2.639770250301808,
+        "exit_code": 0,
+        "process_exit_code": 0,
+        "assertion_passed": true
+      },
+      {
+        "name": "test-build",
+        "command": [
+          "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/gradlew",
+          ":app:assembleArm64DebugAndroidTest",
+          "-x",
+          ":app:rustBuildArm64Debug"
+        ],
+        "started_at": "2026-10-02T13:55:42.439176+00:00",
+        "duration_seconds": 1.6413368750363588,
+        "exit_code": 0,
+        "process_exit_code": 0,
+        "assertion_passed": true
+      },
+      {
+        "name": "apk-install",
+        "command": [
+          "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+          "-s",
+          "emulator-5586",
+          "install",
+          "-r",
+          "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk"
+        ],
+        "started_at": "2026-10-02T13:55:44.081024+00:00",
+        "duration_seconds": 1.103872041683644,
+        "exit_code": 0,
+        "process_exit_code": 0,
+        "assertion_passed": true
+      },
+      {
+        "name": "test-apk-install",
+        "command": [
+          "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+          "-s",
+          "emulator-5586",
+          "install",
+          "-r",
+          "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk"
+        ],
+        "started_at": "2026-10-02T13:55:45.185411+00:00",
+        "duration_seconds": 0.17528658313676715,
+        "exit_code": 0,
+        "process_exit_code": 0,
+        "assertion_passed": true
+      },
+      {
+        "name": "force-stop-systemThemeFollowsLightDarkLight",
+        "command": [
+          "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+          "-s",
+          "emulator-5586",
+          "shell",
+          "am",
+          "force-stop",
+          "com.solosoul.app"
+        ],
+        "started_at": "2026-10-02T13:55:45.361291+00:00",
+        "duration_seconds": 0.06492941686883569,
+        "exit_code": 0,
+        "process_exit_code": 0,
+        "assertion_passed": true
+      },
+      {
+        "name": "systemThemeFollowsLightDarkLight",
+        "command": [
+          "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+          "-s",
+          "emulator-5586",
+          "shell",
+          "am",
+          "instrument",
+          "-w",
+          "-e",
+          "waitForActivitiesToComplete",
+          "false",
+          "-e",
+          "class",
+          "com.solosoul.app.AndroidThemeInstrumentedTest#systemThemeFollowsLightDarkLight",
+          "com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner"
+        ],
+        "started_at": "2026-10-02T13:55:45.426483+00:00",
+        "duration_seconds": 6.7947261249646544,
+        "exit_code": 0,
+        "process_exit_code": 0,
+        "assertion_passed": true
+      },
+      {
+        "name": "force-stop-explicitLightSurvivesSystemChanges",
+        "command": [
+          "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+          "-s",
+          "emulator-5586",
+          "shell",
+          "am",
+          "force-stop",
+          "com.solosoul.app"
+        ],
+        "started_at": "2026-10-02T13:55:52.221956+00:00",
+        "duration_seconds": 0.10409620823338628,
+        "exit_code": 0,
+        "process_exit_code": 0,
+        "assertion_passed": true
+      },
+      {
+        "name": "explicitLightSurvivesSystemChanges",
+        "command": [
+          "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+          "-s",
+          "emulator-5586",
+          "shell",
+          "am",
+          "instrument",
+          "-w",
+          "-e",
+          "waitForActivitiesToComplete",
+          "false",
+          "-e",
+          "class",
+          "com.solosoul.app.AndroidThemeInstrumentedTest#explicitLightSurvivesSystemChanges",
+          "com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner"
+        ],
+        "started_at": "2026-10-02T13:55:52.326611+00:00",
+        "duration_seconds": 5.990466541144997,
+        "exit_code": 0,
+        "process_exit_code": 0,
+        "assertion_passed": true
+      },
+      {
+        "name": "force-stop-explicitDarkSurvivesSystemChanges",
+        "command": [
+          "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+          "-s",
+          "emulator-5586",
+          "shell",
+          "am",
+          "force-stop",
+          "com.solosoul.app"
+        ],
+        "started_at": "2026-10-02T13:55:58.317640+00:00",
+        "duration_seconds": 0.06714729219675064,
+        "exit_code": 0,
+        "process_exit_code": 0,
+        "assertion_passed": true
+      },
+      {
+        "name": "explicitDarkSurvivesSystemChanges",
+        "command": [
+          "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+          "-s",
+          "emulator-5586",
+          "shell",
+          "am",
+          "instrument",
+          "-w",
+          "-e",
+          "waitForActivitiesToComplete",
+          "false",
+          "-e",
+          "class",
+          "com.solosoul.app.AndroidThemeInstrumentedTest#explicitDarkSurvivesSystemChanges",
+          "com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner"
+        ],
+        "started_at": "2026-10-02T13:55:58.385102+00:00",
+        "duration_seconds": 4.637402582913637,
+        "exit_code": 0,
+        "process_exit_code": 0,
+        "assertion_passed": true
+      }
+    ],
+    "rf112-ios-theme-results": [
+      {
+        "name": "system-terminate",
+        "command": [
+          "xcrun",
+          "simctl",
+          "terminate",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 3
+      },
+      {
+        "name": "system-initial-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-launch",
+        "command": [
+          "xcrun",
+          "simctl",
+          "launch",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-light-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-light-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-light-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/system-light.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-dark-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "dark"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-dark-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-dark-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/system-dark.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-light-again-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-light-again-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-light-again-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/system-light-again.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-terminate",
+        "command": [
+          "xcrun",
+          "simctl",
+          "terminate",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-initial-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-launch",
+        "command": [
+          "xcrun",
+          "simctl",
+          "launch",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-light-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-light-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-light-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/light-light.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-dark-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "dark"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-dark-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-dark-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/light-dark.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-light-again-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-light-again-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-light-again-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/light-light-again.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-terminate",
+        "command": [
+          "xcrun",
+          "simctl",
+          "terminate",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-initial-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-launch",
+        "command": [
+          "xcrun",
+          "simctl",
+          "launch",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-light-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-light-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-light-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/dark-light.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-dark-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "dark"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-dark-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-dark-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/dark-dark.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-light-again-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-light-again-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-light-again-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/dark-light-again.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "final-terminate",
+        "command": [
+          "xcrun",
+          "simctl",
+          "terminate",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "restore-initial-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "rf112-ios-current-install": {
+      "serial": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+      "built_bundle": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/apple/build/solo_soul_iOS.xcarchive/Products/Applications/SoloSoul.app",
+      "installed_bundle": "/Users/zzc/Library/Developer/CoreSimulator/Devices/362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C/data/Containers/Bundle/Application/C557DF03-A096-42B0-BDF5-1653689F9508/SoloSoul.app",
+      "executable_sha256": "14ae8a796756d527a0819e6daca93d5a920e1f0f07505992eb0aa832921363c0"
+    },
+    "rf112-android-artifact": {
+      "apk": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+      "size": 211493783,
+      "apk_sha256": "52d7f051df43412741247eb223b151b831937923e9405450fc69df79b578ef37",
+      "jni_sha256": "a4b2615c612f584cb010a3f98579c06fa3c9c5ec6a11d6ef00ff01675edd8b8c",
+      "native": "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so",
+      "zip_crc_valid": true
+    }
+  },
+  "raw_log_metadata": [
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-f2-f2-full-tests.log",
+      "sha256": "6e02202a93b5ac4661155b48f90e97bcbb48ccf0b1860cbae7c95d91f91dbaf1",
+      "output_tail": "39m\n                \u001b[33mclass\u001b[39m=\u001b[32m\"android-theme-option\"\u001b[39m\n                \u001b[33mtype\u001b[39m=\u001b[32m\"button\"\u001b[39m\n              \u001b[36m>\u001b[39m\n                \u001b[0mmaterial.glass_local\u001b[0m\n              \u001b[36m</button>\u001b[39m\n              \u001b[36m<button\u001b[39m\n                \u001b[33maria-pressed\u001b[39m=\u001b[32m\"false\"\u001b[39m\n                \u001b[33mclass\u001b[39m=\u001b[32m\"android-theme-option\"\u001b[39m\n                \u001b[33mtype\u001b[39m=\u001b[32m\"button\"\u001b[39m\n              \u001b[36m>\u001b[39m\n                \u001b[0mmaterial.glass_enhanced\u001b[0m\n              \u001b[36m</button>\u001b[39m\n            \u001b[36m</div>\u001b[39m\n            \u001b[36m<p\u001b[39m\n              \u001b[33mclass\u001b[39m=\u001b[32m\"android-material-description\"\u001b[39m\n            \u001b[36m>\u001b[39m\n              \u001b[0mmaterial.glass_local_desc\u001b[0m\n            \u001b[36m</p>\u001b[39m\n          \u001b[36m</section>\u001b[39m\n          \u001b[36m<section\u001b[39m\n            \u001b[33mclass\u001b[39m=\u001b[32m\"android-theme-section\"\u001b[39m\n          \u001b[36m>\u001b[39m\n            \u001b[36m<label\u001b[39m\n              \u001b[33mclass\u001b[39m=\u001b[32m\"android-switch-row\"\u001b[39m\n            \u001b[36m>\u001b[39m\n              \u001b[36m<span>\u001b[39m\n                \u001b[36m<strong>\u001b[39m\n                  \u001b[0mmaterial.reduce_motion\u001b[0m\n                \u001b[36m</strong>\u001b[39m\n                \u001b[36m<small>\u001b[39m\n                  \u001b[0mmaterial.reduce_motion_desc\u001b[0m\n                \u001b[36m</small>\u001b[39m\n              \u001b[36m</span>\u001b[39m\n              \u001b[36m<span\u001b[39m\n                \u001b[33mclass\u001b[39m=\u001b[32m\"_control_eb8351\"\u001b[39m\n                \u001b[33mdata-ui-checkbox\u001b[39m=\u001b[32m\"true\"\u001b[39m\n                \u001b[33mstyle\u001b[39m=\u001b[32m\"--checkbox-size: 14px; --checkbox-radius: 3px;\"\u001b[39m\n              \u001b[36m>\u001b[39m\n                \u001b[36m<input\u001b[39m\n                  \u001b[33maria-checked\u001b[39m=\u001b[32m\"false\"\u001b[39m\n                  \u001b[33maria-label\u001b[39m=\u001b[32m\"material.reduce_motion\"\u001b[39m\n                  \u001b[33mclass\u001b[39m=\u001b[32m\"_input_eb8351\"\u001b[39m\n                  \u001b[33mdata-testid\u001b[39m=\u001b[32m\"select-checkbox\"\u001b[39m\n                  \u001b[33mtype\u001b[39m=\u001b[32m\"checkbox\"\u001b[39m\n                \u001b[36m/>\u001b[39m\n                \u001b[36m<span\u001b[39m\n                  \u001b[33maria-hidden\u001b[39m=\u001b[32m\"true\"\u001b[39m\n                  \u001b[33mclass\u001b[39m=\u001b[32m\"_visual_eb8351\"\u001b[39m\n                  \u001b[33mdata-checkbox-visual\u001b[39m=\u001b[32m\"true\"\u001b[39m\n                \u001b[36m>\u001b[39m\n                  \u001b[36m<svg\u001b[39m\n                    \u001b[33mfill\u001b[39m=\u001b[32m\"none\"\u001b[39m\n                    \u001b[33mstroke\u001b[39m=\u001b[32m\"currentColor\"\u001b[39m\n                    \u001b[33mstroke-linecap\u001b[39m=\u001b[32m\"round\"\u001b[39m\n                    \u001b[33mstroke-linejoin\u001b[39m=\u001b[32m\"round\"\u001b[39m\n                    \u001b[33mstroke-width\u001b[39m=\u001b[32m\"3\"\u001b[39m\n                    \u001b[33mviewBox\u001b[39m=\u001b[32m\"0 0 24 24\"\u001b[39m\n                  \u001b[36m>\u001b[39m\n                    \u001b[36m<polyline\u001b[39m\n                      \u001b[33mpoints\u001b[39m=\u001b[32m\"20 6 9 17 4 12\"\u001b[39m\n                    \u001b[36m/>\u001b[39m\n                  \u001b[36m</svg>\u001b[39m\n                \u001b[36m</span>\u001b[39m\n              \u001b[36m</span>\u001b[39m\n            \u001b[36m</label>\u001b[39m\n          \u001b[36m</section>\u001b[39m\n          \u001b[36m<section\u001b[39m\n            \u001b[33mclass\u001b[39m=\u001b[32m\"android-theme-section\"\u001b[39m\n          \u001b[36m>\u001b[39m\n            \u001b[36m<h2>\u001b[39m\n              \u001b[0msettings:items.language\u001b[0m\n            \u001b[36m</h2>\u001b[39m\n            \u001b[36m<div\u001b[39m\n              \u001b[33mclass\u001b[39m=\u001b[32m\"android-theme-options\"\u001b[39m\n              \u001b[33mstyle\u001b[39m=\u001b[32m\"grid-template-columns: repeat(2,minmax(0,1fr));\"\u001b[39m\n            \u001b[36m>\u001b[39m\n              \u001b[36m<button\u001b[39m\n                \u001b[33maria-pressed\u001b[39m=\u001b[32m\"false\"\u001b[39m\n                \u001b[33mclass\u001b[39m=\u001b[32m\"android-theme-option\"\u001b[39m\n                \u001b[33mtype\u001b[39m=\u001b[32m\"button\"\u001b[39m\n              \u001b[36m>\u001b[39m\n                \u001b[0m简体中文\u001b[0m\n              \u001b[36m</button>\u001b[39m\n              \u001b[36m<button\u001b[39m\n                \u001b[33maria-pressed\u001b[39m=\u001b[32m\"true\"\u001b[39m\n                \u001b[33mclass\u001b[39m=\u001b[32m\"android-theme-option\"\u001b[39m\n                \u001b[33mtype\u001b[39m=\u001b[32m\"button\"\u001b[39m\n              \u001b[36m>\u001b[39m\n                \u001b[0mEnglish\u001b[0m\n              \u001b[36m</button>\u001b[39m\n            \u001b[36m</div>\u001b[39m\n          \u001b[36m</section>\u001b[39m\n        \u001b[36m</div>\u001b[39m\n      \u001b[36m</div>\u001b[39m\n    \u001b[36m</div>\u001b[39m\n  \u001b[36m</body>\u001b[39m\n\u001b[36m</html>\u001b[39m\n ❯ src/pages/settings/settingActions.test.tsx:269:44\n    267|     });\n    268|     renderPage(<AndroidAppearance />);\n    269|     await waitFor(() => expect(applyTheme).toHaveBeenCalledTimes(1));\n       |                                            ^\n    270|     vi.mocked(applyTheme).mockClear();\n    271|     fireEvent.click(screen.getByRole('button', { name: 'material.theme…\n ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12\n ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77\n ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯\n\n\n Test Files  1 failed | 252 passed (253)\n      Tests  6 failed | 2209 passed (2215)\n   Start at  14:46:08\n   Duration  44.09s (transform 11.61s, setup 19.29s, import 63.77s, tests 76.13s, environment 116.17s)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-f2-f2-lint.log",
+      "sha256": "efbf0bb9a7b5429028016ddad5d8ad0a5c9b9e66a04dc3b0808220cbd33a6859",
+      "output_tail": "\n> solosoul@2.13.2 lint\n> eslint src --ext .ts,.tsx\n\n\n/Users/zzc/PycharmProjects/SoloSoul/tauri/src/stores/syncStore.ts\n  838:71  warning  'event' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars\n\n✖ 1 problem (0 errors, 1 warning)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-f2-f2-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-f3-full-tests.log",
+      "sha256": "67cc561c5267f1f52306227f7fe84de8ef530cf80fa04a8f2d010938d81484df",
+      "output_tail": "ritten and failed copy remains reviewable (0.026959ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n✔ selected marker binds exact canonical identity, ordinary folder, source version and manifest hash (2.151792ms)\n﹣ browser proof checks actual physical copied EXE and exact recorded FileVersion/ProductVersion (0.04475ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n﹣ modified copied browser bytes cannot be accepted using stale Runtime metadata (0.044209ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n﹣ browser directory junction fallback is rejected even if its version and bytes match the source (0.02125ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n﹣ explicit directory inventory rejects missing empty dirs, case aliases and file conflicts (0.023709ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n﹣ source mutation after copy begins rejects the new runtime and preserves partial evidence (0.020042ms) # Requires Windows drive and extended paths for physical owned Runtime fixtures\n✔ SDK CLI requires exactly three paths and refuses other experimental/control modes (1.047875ms)\n✔ SDK help starts no native preparation or GUI process (61.590375ms)\n✔ SDK streaming preflight rejects older binaries and accepts cross-block feature markers (325.411292ms)\n﹣ old native-perf EXE fails before output creation or any EXE execution (0.092084ms) # Requires the Windows-only SDK diagnostic CLI to reach its offline feature preflight\n✔ SDK launch selects only the run-only native SDK diagnostics contract (0.136875ms)\n✔ requested marker requires exact canonical root, run, PID, port and main window (0.418167ms)\n✔ successful SDK proof returns only validated metadata and protocol calls, never performance metrics or payloads (0.436875ms)\n✔ SDK proof refuses failed, incomplete, wrong-origin, wrong-browser and non-exact protocol calls (0.448875ms)\n✔ SDK source rejects credentials, ports, other origins, malformed values and raw URL exposure (0.170917ms)\n✔ SDK main frame/loader/document guard rejects navigation, children, missing UI container and loading documents (0.215875ms)\n✔ SDK observer must remain valid in the same run/timeOrigin with exact bounded count metadata (3.950458ms)\n✔ SDK proof accepts the deadline boundary but refuses late, negative and absent arrival measurements (0.514166ms)\n✔ SDK identity comparison rejects PID reuse, changed parents/paths and extra processes (0.557125ms)\n✔ SDK marker reading accepts exact owned regular JSON and refuses traversal names, malformed or oversized files (8.208542ms)\n✔ SDK file/directory junctions and non-file proof markers never traverse another folder (5.231042ms)\n✔ SDK proof wait is bounded without callbacks and refuses late files or root interruption (11.534959ms)\n✔ SDK proof lookup must recheck time after the async filesystem query and reject a 45000-to-45001 crossing (1.44275ms)\n✔ 资产 URL 按片段编码版本、空格、中文、井号、问号和百分号 (1.135208ms)\n✔ 拒绝非 HTTPS、userinfo、查询、片段、控制字符和歧义路径 (0.203333ms)\n✔ --no-probe 稳定生成全部 legacy 文件，不发生网络请求，签名和元数据一致 (13.315958ms)\n✔ CDN 覆盖主清单、全部 legacy 清单和 Android URL，现有签名不变 (4.265458ms)\n✔ 网络探测失败只输出诊断，不删减 legacy；探测真实包而非 release 页面 (24.272583ms)\n✔ APK 缺少校验和或签名时拒绝生成，不留下半套清单；桌面独立发布仍有效 (5.578542ms)\n✔ 版本中 + 和 prerelease 不被解释为正则；不能匹配旧版本/多个同平台包 (2.729292ms)\n✔ 自定义代理保留固定 legacy id，并拒绝文件路径注入与重复 id (0.337417ms)\n✔ Range 检查接受精确 206、总大小及本地首段，拒绝 200/伪 Range/HTML/截断/错误内容 (1.805791ms)\n✔ 有界读取拒绝未知长度超限流、过大 Content-Length，限制重定向并拒绝 HTTP 降级 (0.848375ms)\n✔ 超时覆盖正文读取，而不只是收到响应头之前 (20.709333ms)\n✔ 远端 metadata 必须与本地候选一致，HTML/过大内容被拒绝 (1.441334ms)\n✔ 完整只读验收脚本检查远端两份 Android metadata、主清单和所有资产 (8.456ms)\n✔ 本地验收拒绝缺失 legacy、签名不一致、Android asset 大小及命名组合错误 (12.332125ms)\n✔ CLI 离线端到端生成/验收且参数错误退出非零 (194.304625ms)\n✔ counts application, plugin and channel invokes, excludes ordinary fetch and never reads body (3.822917ms)\n✔ forwards fetch errors and return values unchanged (0.578208ms)\n✔ default transport fallback makes the whole total unavailable without suppressing warnings (0.813042ms)\n✔ overflow retains a bounded command list and invalidates the total (44.925375ms)\n✔ fetch and warn replacement are sticky failures even after restoration (0.732208ms)\n✔ invalid origin, missing run identity and duplicate installation fail closed (0.934875ms)\n✔ snapshot exposes copies rather than mutable counter internals (0.505542ms)\n✔ malformed IPC command cannot silently disappear from a supposedly complete count (0.454541ms)\n✔ document navigation and additional frames invalidate total without recording navigation paths (0.866458ms)\nℹ tests 112\nℹ suites 0\nℹ pass 91\nℹ fail 0\nℹ cancelled 0\nℹ skipped 21\nℹ todo 0\nℹ duration_ms 498.223917\n\n RUN  v4.1.8 /Users/zzc/PycharmProjects/SoloSoul/tauri\n\n\n Test Files  253 passed (253)\n      Tests  2215 passed (2215)\n   Start at  14:48:24\n   Duration  73.96s (transform 20.15s, setup 29.68s, import 108.47s, tests 144.45s, environment 191.64s)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-f3-lint.log",
+      "sha256": "efbf0bb9a7b5429028016ddad5d8ad0a5c9b9e66a04dc3b0808220cbd33a6859",
+      "output_tail": "\n> solosoul@2.13.2 lint\n> eslint src --ext .ts,.tsx\n\n\n/Users/zzc/PycharmProjects/SoloSoul/tauri/src/stores/syncStore.ts\n  838:71  warning  'event' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars\n\n✖ 1 problem (0 errors, 1 warning)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-f3-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-hook-baseline.log",
+      "sha256": "2cb3fa4b55e2bcfe9e86161e8ae4a51abdadf378d212cf6c915dcff792f5f578",
+      "output_tail": "\n RUN  v4.1.8 /Users/zzc/PycharmProjects/SoloSoul/tauri\n\n\n Test Files  1 passed (1)\n      Tests  3 passed (3)\n   Start at  14:25:50\n   Duration  955ms (transform 73ms, setup 138ms, import 48ms, tests 67ms, environment 574ms)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-hook-red.log",
+      "sha256": "ace956694e060dbc23afd7a1dc8f7f88e8731ee1f268a78ceae71cf8b7e5fd5d",
+      "output_tail": "\n RUN  v4.1.8 /Users/zzc/PycharmProjects/SoloSoul/tauri\n\n ❯ src/hooks/useApplyThemeFromSettings.test.ts (5 tests | 2 failed) 71ms\n     × 挂载后设置已切到 light，旧 system 解析不得应用 5ms\n     × 卸载后到达的 system 解析不得应用 1ms\n\n Test Files  1 failed (1)\n      Tests  2 failed | 3 passed (5)\n   Start at  14:26:26\n   Duration  896ms (transform 60ms, setup 114ms, import 47ms, tests 71ms, environment 526ms)\n\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  src/hooks/useApplyThemeFromSettings.test.ts > RF-112 旧异步系统主题不得回填 > 挂载后设置已切到 light，旧 system 解析不得应用\nAssertionError: expected \"vi.fn()\" to not be called with arguments: [ ObjectContaining{…} ]\n\nReceived:\n\n  1st vi.fn() call:\n\n  [\n-   ObjectContaining {\n+   {\n+     \"accentColor\": \"custom\",\n+     \"backgroundType\": \"solid\",\n+     \"backgroundValue\": \"\",\n+     \"customAccentHex\": \"#777777\",\n+     \"defaultDarkTheme\": \"warm-stone-dark\",\n+     \"defaultLightTheme\": \"warm-stone\",\n      \"preset\": \"system\",\n+     \"resolvedSystemTheme\": \"dark\",\n    },\n  ]\n\n\nNumber of calls: 1\n\n ❯ src/hooks/useApplyThemeFromSettings.test.ts:61:28\n     59|     settings.theme = 'light';\n     60|     await act(async () => resolve('dark'));\n     61|     expect(applyTheme).not.toHaveBeenCalledWith(expect.objectContainin…\n       |                            ^\n     62|   });\n     63|\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯\n\n FAIL  src/hooks/useApplyThemeFromSettings.test.ts > RF-112 旧异步系统主题不得回填 > 卸载后到达的 system 解析不得应用\nAssertionError: expected \"vi.fn()\" to not be called at all, but actually been called 1 times\n\nReceived:\n\n  1st vi.fn() call:\n\n    Array [\n      Object {\n        \"accentColor\": \"custom\",\n        \"backgroundType\": \"solid\",\n        \"backgroundValue\": \"\",\n        \"customAccentHex\": \"#777777\",\n        \"defaultDarkTheme\": \"warm-stone-dark\",\n        \"defaultLightTheme\": \"warm-stone\",\n        \"preset\": \"system\",\n        \"resolvedSystemTheme\": \"dark\",\n      },\n    ]\n\n\nNumber of calls: 1\n\n ❯ src/hooks/useApplyThemeFromSettings.test.ts:76:28\n     74|     hook.unmount();\n     75|     await act(async () => resolve('dark'));\n     76|     expect(applyTheme).not.toHaveBeenCalled();\n       |                            ^\n     77|   });\n     78| });\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-instrumentation-apk-install.log",
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7",
+      "output_tail": "Performing Streamed Install\nSuccess\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-instrumentation-explicitDarkSurvivesSystemChanges.log",
+      "sha256": "98aff110c823cf37fd173717f8f08b6255a10c199764f7a21e8bb17313869c4a",
+      "output_tail": "\ncom.solosoul.app.AndroidThemeInstrumentedTest:s_glBindAttribLocation: bind attrib 0 name position\ns_glBindAttribLocation: bind attrib 1 name color\ns_glBindAttribLocation: bind attrib 2 name localCoord\n.\n\nTime: 3.62\n\nOK (1 test)\n\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-instrumentation-explicitLightSurvivesSystemChanges.log",
+      "sha256": "ae974f814fb5445b8b37553ca5ff2bbd349e5aa874195a8064721da579b5cfcb",
+      "output_tail": "\ncom.solosoul.app.AndroidThemeInstrumentedTest:s_glBindAttribLocation: bind attrib 0 name position\ns_glBindAttribLocation: bind attrib 1 name color\ns_glBindAttribLocation: bind attrib 2 name localCoord\n.\n\nTime: 4.645\n\nOK (1 test)\n\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-instrumentation-force-stop-explicitDarkSurvivesSystemChanges.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-instrumentation-force-stop-explicitLightSurvivesSystemChanges.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-instrumentation-force-stop-systemThemeFollowsLightDarkLight.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-instrumentation-gradle-tasks.log",
+      "sha256": "7fc676bced8aac463601048221995bc023cb2076c40f584d679e0fef73abeb5f",
+      "output_tail": "he x86Release variant\napp:validateSigningArm64Debug\napp:validateSigningArm64DebugAndroidTest\napp:validateSigningArmDebug\napp:validateSigningArmDebugAndroidTest\ntauri-android:validateSigningDebugAndroidTest\ntauri-plugin-biometric:validateSigningDebugAndroidTest\ntauri-plugin-dialog:validateSigningDebugAndroidTest\ntauri-plugin-fs:validateSigningDebugAndroidTest\ntauri-plugin-notification:validateSigningDebugAndroidTest\ntauri-plugin-shell:validateSigningDebugAndroidTest\napp:validateSigningUniversalDebug\napp:validateSigningUniversalDebugAndroidTest\napp:validateSigningX86_64Debug\napp:validateSigningX86_64DebugAndroidTest\napp:validateSigningX86Debug\napp:validateSigningX86DebugAndroidTest\ntauri-android:verifyReleaseResources\ntauri-plugin-biometric:verifyReleaseResources\ntauri-plugin-dialog:verifyReleaseResources\ntauri-plugin-fs:verifyReleaseResources\ntauri-plugin-notification:verifyReleaseResources\ntauri-plugin-shell:verifyReleaseResources\napp:writeArm64DebugAndroidTestSigningConfigVersions\napp:writeArm64DebugApplicationId\napp:writeArm64DebugAppMetadata\napp:writeArm64DebugModuleMetadata\napp:writeArm64DebugSigningConfigVersions\napp:writeArm64ReleaseApplicationId\napp:writeArm64ReleaseAppMetadata\napp:writeArm64ReleaseModuleMetadata\napp:writeArm64ReleaseSigningConfigVersions\napp:writeArmDebugAndroidTestSigningConfigVersions\napp:writeArmDebugApplicationId\napp:writeArmDebugAppMetadata\napp:writeArmDebugModuleMetadata\napp:writeArmDebugSigningConfigVersions\napp:writeArmReleaseApplicationId\napp:writeArmReleaseAppMetadata\napp:writeArmReleaseModuleMetadata\napp:writeArmReleaseSigningConfigVersions\ntauri-android:writeDebugAarMetadata\ntauri-plugin-biometric:writeDebugAarMetadata\ntauri-plugin-dialog:writeDebugAarMetadata\ntauri-plugin-fs:writeDebugAarMetadata\ntauri-plugin-notification:writeDebugAarMetadata\ntauri-plugin-shell:writeDebugAarMetadata\ntauri-android:writeDebugAndroidTestSigningConfigVersions\ntauri-plugin-biometric:writeDebugAndroidTestSigningConfigVersions\ntauri-plugin-dialog:writeDebugAndroidTestSigningConfigVersions\ntauri-plugin-fs:writeDebugAndroidTestSigningConfigVersions\ntauri-plugin-notification:writeDebugAndroidTestSigningConfigVersions\ntauri-plugin-shell:writeDebugAndroidTestSigningConfigVersions\ntauri-android:writeDebugLintModelMetadata\ntauri-plugin-biometric:writeDebugLintModelMetadata\ntauri-plugin-dialog:writeDebugLintModelMetadata\ntauri-plugin-fs:writeDebugLintModelMetadata\ntauri-plugin-notification:writeDebugLintModelMetadata\ntauri-plugin-shell:writeDebugLintModelMetadata\ntauri-android:writeReleaseAarMetadata\ntauri-plugin-biometric:writeReleaseAarMetadata\ntauri-plugin-dialog:writeReleaseAarMetadata\ntauri-plugin-fs:writeReleaseAarMetadata\ntauri-plugin-notification:writeReleaseAarMetadata\ntauri-plugin-shell:writeReleaseAarMetadata\ntauri-android:writeReleaseLintModelMetadata\ntauri-plugin-biometric:writeReleaseLintModelMetadata\ntauri-plugin-dialog:writeReleaseLintModelMetadata\ntauri-plugin-fs:writeReleaseLintModelMetadata\ntauri-plugin-notification:writeReleaseLintModelMetadata\ntauri-plugin-shell:writeReleaseLintModelMetadata\napp:writeUniversalDebugAndroidTestSigningConfigVersions\napp:writeUniversalDebugApplicationId\napp:writeUniversalDebugAppMetadata\napp:writeUniversalDebugModuleMetadata\napp:writeUniversalDebugSigningConfigVersions\napp:writeUniversalReleaseApplicationId\napp:writeUniversalReleaseAppMetadata\napp:writeUniversalReleaseModuleMetadata\napp:writeUniversalReleaseSigningConfigVersions\napp:writeX86_64DebugAndroidTestSigningConfigVersions\napp:writeX86_64DebugApplicationId\napp:writeX86_64DebugAppMetadata\napp:writeX86_64DebugModuleMetadata\napp:writeX86_64DebugSigningConfigVersions\napp:writeX86_64ReleaseApplicationId\napp:writeX86_64ReleaseAppMetadata\napp:writeX86_64ReleaseModuleMetadata\napp:writeX86_64ReleaseSigningConfigVersions\napp:writeX86DebugAndroidTestSigningConfigVersions\napp:writeX86DebugApplicationId\napp:writeX86DebugAppMetadata\napp:writeX86DebugModuleMetadata\napp:writeX86DebugSigningConfigVersions\napp:writeX86ReleaseApplicationId\napp:writeX86ReleaseAppMetadata\napp:writeX86ReleaseModuleMetadata\napp:writeX86ReleaseSigningConfigVersions\napp:zipApksForArm64Debug\napp:zipApksForArm64Release\napp:zipApksForArmDebug\napp:zipApksForArmRelease\napp:zipApksForUniversalDebug\napp:zipApksForUniversalRelease\napp:zipApksForX86_64Debug\napp:zipApksForX86_64Release\napp:zipApksForX86Debug\napp:zipApksForX86Release\n\n[Incubating] Problems report is available at: file:///Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/build/reports/problems/problems-report.html\n\nDeprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.\n\nYou can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\nFor more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.\n\nBUILD SUCCESSFUL in 2s\n5 actionable tasks: 1 executed, 4 up-to-date\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-instrumentation-systemThemeFollowsLightDarkLight.log",
+      "sha256": "17f0ee0cf60f299b5598c7a038e360d86dc4a0cbec3dab46b18e3577eec0f90e",
+      "output_tail": "\ncom.solosoul.app.AndroidThemeInstrumentedTest:s_glBindAttribLocation: bind attrib 0 name position\ns_glBindAttribLocation: bind attrib 1 name color\ns_glBindAttribLocation: bind attrib 2 name localCoord\n.\n\nTime: 5.375\n\nOK (1 test)\n\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-instrumentation-test-apk-install.log",
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7",
+      "output_tail": "Performing Streamed Install\nSuccess\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-instrumentation-test-build.log",
+      "sha256": "e9d3efeee929a8ef96359125c44fcb5f5a9d2969407313db909d51468e37a20b",
+      "output_tail": "ri-android:compileDebugShaders NO-SOURCE\n> Task :tauri-android:generateDebugAssets UP-TO-DATE\n> Task :tauri-android:mergeDebugAssets UP-TO-DATE\n> Task :tauri-plugin-biometric:mergeDebugShaders UP-TO-DATE\n> Task :tauri-plugin-biometric:compileDebugShaders NO-SOURCE\n> Task :tauri-plugin-biometric:generateDebugAssets UP-TO-DATE\n> Task :tauri-plugin-biometric:mergeDebugAssets UP-TO-DATE\n> Task :tauri-plugin-dialog:mergeDebugShaders UP-TO-DATE\n> Task :tauri-plugin-dialog:compileDebugShaders NO-SOURCE\n> Task :tauri-plugin-dialog:generateDebugAssets UP-TO-DATE\n> Task :tauri-plugin-dialog:mergeDebugAssets UP-TO-DATE\n> Task :tauri-plugin-fs:mergeDebugShaders UP-TO-DATE\n> Task :tauri-plugin-fs:compileDebugShaders NO-SOURCE\n> Task :tauri-plugin-fs:generateDebugAssets UP-TO-DATE\n> Task :tauri-plugin-fs:mergeDebugAssets UP-TO-DATE\n> Task :tauri-plugin-notification:mergeDebugShaders UP-TO-DATE\n> Task :tauri-plugin-notification:compileDebugShaders NO-SOURCE\n> Task :tauri-plugin-notification:generateDebugAssets UP-TO-DATE\n> Task :tauri-plugin-notification:mergeDebugAssets UP-TO-DATE\n> Task :tauri-plugin-shell:mergeDebugShaders UP-TO-DATE\n> Task :tauri-plugin-shell:compileDebugShaders NO-SOURCE\n> Task :tauri-plugin-shell:generateDebugAssets UP-TO-DATE\n> Task :tauri-plugin-shell:mergeDebugAssets UP-TO-DATE\n> Task :app:mergeArm64DebugAndroidTestAssets UP-TO-DATE\n> Task :app:compressArm64DebugAndroidTestAssets UP-TO-DATE\n> Task :app:processArm64DebugAndroidTestJavaRes UP-TO-DATE\n> Task :tauri-android:processDebugJavaRes UP-TO-DATE\n> Task :tauri-plugin-biometric:processDebugJavaRes UP-TO-DATE\n> Task :tauri-plugin-dialog:processDebugJavaRes UP-TO-DATE\n> Task :tauri-plugin-fs:processDebugJavaRes UP-TO-DATE\n> Task :tauri-plugin-notification:processDebugJavaRes UP-TO-DATE\n> Task :tauri-plugin-shell:processDebugJavaRes UP-TO-DATE\n> Task :app:mergeArm64DebugAndroidTestJavaResource UP-TO-DATE\n> Task :app:checkArm64DebugAndroidTestDuplicateClasses UP-TO-DATE\n> Task :app:desugarArm64DebugAndroidTestFileDependencies UP-TO-DATE\n> Task :app:mergeExtDexArm64DebugAndroidTest UP-TO-DATE\n> Task :tauri-plugin-biometric:bundleLibRuntimeToDirDebug UP-TO-DATE\n> Task :tauri-plugin-dialog:bundleLibRuntimeToDirDebug UP-TO-DATE\n> Task :tauri-plugin-fs:bundleLibRuntimeToDirDebug UP-TO-DATE\n> Task :tauri-plugin-notification:bundleLibRuntimeToDirDebug UP-TO-DATE\n> Task :tauri-plugin-shell:bundleLibRuntimeToDirDebug UP-TO-DATE\n> Task :tauri-android:bundleLibRuntimeToDirDebug UP-TO-DATE\n> Task :app:dexBuilderArm64DebugAndroidTest UP-TO-DATE\n> Task :app:mergeProjectDexArm64DebugAndroidTest UP-TO-DATE\n> Task :app:mergeArm64DebugAndroidTestJniLibFolders UP-TO-DATE\n> Task :app:mergeArm64DebugJniLibFolders UP-TO-DATE\n> Task :tauri-android:mergeDebugJniLibFolders UP-TO-DATE\n> Task :tauri-android:mergeDebugNativeLibs NO-SOURCE\n> Task :tauri-android:copyDebugJniLibsProjectOnly UP-TO-DATE\n> Task :tauri-plugin-biometric:mergeDebugJniLibFolders UP-TO-DATE\n> Task :tauri-plugin-biometric:mergeDebugNativeLibs NO-SOURCE\n> Task :tauri-plugin-biometric:copyDebugJniLibsProjectOnly UP-TO-DATE\n> Task :tauri-plugin-dialog:mergeDebugJniLibFolders UP-TO-DATE\n> Task :app:mergeLibDexArm64DebugAndroidTest UP-TO-DATE\n> Task :tauri-plugin-dialog:mergeDebugNativeLibs NO-SOURCE\n> Task :tauri-plugin-dialog:copyDebugJniLibsProjectOnly UP-TO-DATE\n> Task :tauri-plugin-fs:mergeDebugJniLibFolders UP-TO-DATE\n> Task :tauri-plugin-fs:mergeDebugNativeLibs NO-SOURCE\n> Task :tauri-plugin-fs:copyDebugJniLibsProjectOnly UP-TO-DATE\n> Task :tauri-plugin-notification:mergeDebugJniLibFolders UP-TO-DATE\n> Task :tauri-plugin-notification:mergeDebugNativeLibs NO-SOURCE\n> Task :tauri-plugin-notification:copyDebugJniLibsProjectOnly UP-TO-DATE\n> Task :tauri-plugin-shell:mergeDebugJniLibFolders UP-TO-DATE\n> Task :tauri-plugin-shell:mergeDebugNativeLibs NO-SOURCE\n> Task :tauri-plugin-shell:copyDebugJniLibsProjectOnly UP-TO-DATE\n> Task :app:mergeArm64DebugNativeLibs UP-TO-DATE\n> Task :app:mergeArm64DebugAndroidTestNativeLibs NO-SOURCE\n> Task :app:stripArm64DebugAndroidTestDebugSymbols NO-SOURCE\n> Task :app:validateSigningArm64DebugAndroidTest UP-TO-DATE\n> Task :app:writeArm64DebugAndroidTestSigningConfigVersions UP-TO-DATE\n> Task :app:packageArm64DebugAndroidTest UP-TO-DATE\n> Task :app:createArm64DebugAndroidTestApkListingFileRedirect UP-TO-DATE\n> Task :app:assembleArm64DebugAndroidTest UP-TO-DATE\n\n[Incubating] Problems report is available at: file:///Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/build/reports/problems/problems-report.html\n\nDeprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.\n\nYou can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\nFor more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.\n\nBUILD SUCCESSFUL in 1s\n170 actionable tasks: 8 executed, 162 up-to-date\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-color.log",
+      "sha256": "827f58e50410759d813bf234586de08c086e99b4bc622d77d421e7c2b26943e1",
+      "output_tail": "dark-dark.png: [41, 37, 32]\ndark-light-again.png: [41, 37, 32]\ndark-light.png: [41, 37, 32]\nlight-dark.png: [249, 249, 245]\nlight-light-again.png: [249, 249, 245]\nlight-light.png: [249, 249, 245]\nsystem-dark.png: [41, 37, 32]\nsystem-light-again.png: [249, 249, 245]\nsystem-light.png: [249, 249, 245]\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-dark-dark-appearance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-dark-dark-read.log",
+      "sha256": "3d1cfa6deae9416413e1ad818dbc4dcb3169a755a4d080780d403a46c89fa122",
+      "output_tail": "dark\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-dark-dark-screenshot.log",
+      "sha256": "2af7551d2f5d74ea11fdc2a13f1fc8a90c1ebfee8209a2cc0a18b79f7fb6e79c",
+      "output_tail": "Detected file type 'PNG' from extension\nWrote screenshot to: /tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/dark-dark.png\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-dark-initial-appearance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-dark-launch.log",
+      "sha256": "dde7e1bc3970236744c5d3fbb2866f3fd51a590940777c91b7309745beafe000",
+      "output_tail": "com.solosoul.app: 57311\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-dark-light-again-appearance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-dark-light-again-read.log",
+      "sha256": "00be490dace2ce959d7af6676ed67f78d1f9c8a58174447b1d6d96168f386166",
+      "output_tail": "light\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-dark-light-again-screenshot.log",
+      "sha256": "6ee280b35b56cf791059ad8485a7d2877289b2276c07c07589a9f0548e3a04ea",
+      "output_tail": "Detected file type 'PNG' from extension\nWrote screenshot to: /tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/dark-light-again.png\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-dark-light-appearance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-dark-light-read.log",
+      "sha256": "00be490dace2ce959d7af6676ed67f78d1f9c8a58174447b1d6d96168f386166",
+      "output_tail": "light\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-dark-light-screenshot.log",
+      "sha256": "fcee9c8337ce08d31611e54aea11052da11c55bee9e4fbc7b81d84e746f8e683",
+      "output_tail": "Detected file type 'PNG' from extension\nWrote screenshot to: /tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/dark-light.png\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-dark-terminate.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-final-terminate.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-light-dark-appearance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-light-dark-read.log",
+      "sha256": "3d1cfa6deae9416413e1ad818dbc4dcb3169a755a4d080780d403a46c89fa122",
+      "output_tail": "dark\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-light-dark-screenshot.log",
+      "sha256": "f199d2436ec51a6f647e09a3dd27d7b5b9e687de3f9a7e868eb3698cc5a26444",
+      "output_tail": "Detected file type 'PNG' from extension\nWrote screenshot to: /tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/light-dark.png\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-light-initial-appearance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-light-launch.log",
+      "sha256": "64d8872129646c51c0f7f68ec30f428650cfd0e960f6eeb61dd90888517dd9eb",
+      "output_tail": "com.solosoul.app: 57166\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-light-light-again-appearance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-light-light-again-read.log",
+      "sha256": "00be490dace2ce959d7af6676ed67f78d1f9c8a58174447b1d6d96168f386166",
+      "output_tail": "light\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-light-light-again-screenshot.log",
+      "sha256": "bbe30ee87d6d7626691e301a53e99a256776cdfa84f30243f732e1b65b6413dd",
+      "output_tail": "Detected file type 'PNG' from extension\nWrote screenshot to: /tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/light-light-again.png\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-light-light-appearance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-light-light-read.log",
+      "sha256": "00be490dace2ce959d7af6676ed67f78d1f9c8a58174447b1d6d96168f386166",
+      "output_tail": "light\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-light-light-screenshot.log",
+      "sha256": "b2780c2f9e8d86c2f8735bbc913abed70850435246d0d8f8827132eee2b75b9c",
+      "output_tail": "Detected file type 'PNG' from extension\nWrote screenshot to: /tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/light-light.png\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-light-terminate.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-restore-initial-appearance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-system-dark-appearance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-system-dark-read.log",
+      "sha256": "3d1cfa6deae9416413e1ad818dbc4dcb3169a755a4d080780d403a46c89fa122",
+      "output_tail": "dark\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-system-dark-screenshot.log",
+      "sha256": "b91d7c61e388961f08fc3636b005c2b7395a287091b8bc8fb60c9302f4a6d883",
+      "output_tail": "Detected file type 'PNG' from extension\nWrote screenshot to: /tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/system-dark.png\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-system-initial-appearance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-system-launch.log",
+      "sha256": "bdadbb0826936f648898f1be35892d919403d7acc45c25dd66e904bbf35f932a",
+      "output_tail": "com.solosoul.app: 57013\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-system-light-again-appearance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-system-light-again-read.log",
+      "sha256": "00be490dace2ce959d7af6676ed67f78d1f9c8a58174447b1d6d96168f386166",
+      "output_tail": "light\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-system-light-again-screenshot.log",
+      "sha256": "dc868c29c6d86a800402ea5926578c0b8233d6164e2e6dc6ed5c9a8e33c3955b",
+      "output_tail": "Detected file type 'PNG' from extension\nWrote screenshot to: /tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/system-light-again.png\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-system-light-appearance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-system-light-read.log",
+      "sha256": "00be490dace2ce959d7af6676ed67f78d1f9c8a58174447b1d6d96168f386166",
+      "output_tail": "light\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-system-light-screenshot.log",
+      "sha256": "57697f57e1a367e74330f26c6de694a735420c23bdd19d13ae702d3faae7de1e",
+      "output_tail": "Detected file type 'PNG' from extension\nWrote screenshot to: /tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-evidence/system-light.png\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-ios-theme-system-terminate.log",
+      "sha256": "ea5d91c0e2f619f8d68e967d78072f8e96f45346ea8815d2d59795f1b67156bf",
+      "output_tail": "An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):\nSimulator device failed to terminate com.solosoul.app.\nfound nothing to terminate\nUnderlying error (domain=NSPOSIXErrorDomain, code=3):\n\tThe request to terminate \"com.solosoul.app\" failed. found nothing to terminate\n\tfound nothing to terminate\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-native-android-check.log",
+      "sha256": "685b9acb5be1da53a286e04a0aa5e1a5def7c053d722b62c6a44668f749bb748",
+      "output_tail": "    Building arm64-v8a (aarch64-linux-android)\nwarning: unused variable: `lock_path`\n  --> crates/solosoul-core/src/process_lock.rs:26:13\n   |\n26 |         let lock_path = base_path.join(\".lock\");\n   |             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_lock_path`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: `solosoul-core` (lib) generated 1 warning (run `cargo fix --lib -p solosoul-core` to apply 1 suggestion)\nwarning: methods `reopen` and `wait_stopping` are never used\n  --> crates/solosoul-sync/src/workers.rs:42:19\n   |\n26 | impl SyncWorkers {\n   | ---------------- methods in this implementation\n...\n42 |     pub(crate) fn reopen(&self) -> Result<(), String> {\n   |                   ^^^^^^\n...\n97 |     pub(crate) async fn wait_stopping(&self) -> Result<(), String> {\n   |                         ^^^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: method `is_finished` is never used\n   --> crates/solosoul-sync/src/workers.rs:303:8\n    |\n296 | impl StopCompletion {\n    | ------------------- method in this implementation\n...\n303 |     fn is_finished(&self) -> bool {\n    |        ^^^^^^^^^^^\n\n   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)\nwarning: `solosoul-sync` (lib) generated 2 warnings\nwarning: unused imports: `current_account` and `vault_handle`\n  --> src-tauri/src/commands/ocr.rs:13:23\n   |\n13 | use crate::commands::{current_account, vault_handle};\n   |                       ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^\n   |\n   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused import: `resolve_model_bundle`\n  --> src-tauri/src/commands/ocr.rs:25:53\n   |\n25 | use solosoul_core::ocr::model::{is_model_installed, resolve_model_bundle};\n   |                                                     ^^^^^^^^^^^^^^^^^^^^\n\nwarning: unused import: `Manager`\n  --> src-tauri/src/commands/recovery.rs:20:22\n   |\n20 | use tauri::{Emitter, Manager, State};\n   |                      ^^^^^^^\n\nwarning: unused import: `tauri::Emitter`\n --> src-tauri/src/setup/mod.rs:6:5\n  |\n6 | use tauri::Emitter;\n  |     ^^^^^^^^^^^^^^\n\nwarning: unused variable: `app`\n  --> src-tauri/src/commands/recovery.rs:39:5\n   |\n39 |     app: tauri::AppHandle,\n   |     ^^^ help: if this is intentional, prefix it with an underscore: `_app`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused variable: `instance_name`\n   --> src-tauri/src/commands/recovery.rs:225:21\n    |\n225 |         if let Some(instance_name) = mdns_name {\n    |                     ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instance_name`\n\nwarning: constant `MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:22:7\n   |\n22 | const MDNS_SERVICE_TYPE: &str = \"_solosoul._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^\n   |\n   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used\n  --> src-tauri/src/commands/discovery.rs:24:7\n   |\n24 | const RECOVERY_MDNS_SERVICE_TYPE: &str = \"_solosoul_recovery._tcp.local.\";\n   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `advertise_recovery_mdns` is never used\n   --> src-tauri/src/commands/recovery.rs:202:10\n    |\n202 | async fn advertise_recovery_mdns(\n    |          ^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: function `poll_accessibility` is never used\n   --> src-tauri/src/commands/window.rs:194:15\n    |\n194 | pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {\n    |               ^^^^^^^^^^^^^^^^^^\n\nwarning: function `setup_spawn_registry_refresh` is never used\n   --> src-tauri/src/setup/mod.rs:252:4\n    |\n252 | fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {\n    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\nwarning: `solo_soul` (lib) generated 11 warnings (run `cargo fix --lib -p solo_soul` to apply 6 suggestions)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 7.15s\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-native-android-stage.log",
+      "sha256": "faf0fc2a86fccd9a4811cd0ef360465bf3789686136e7a13c8f1930c2e0f5d04",
+      "output_tail": "[stage-mobile-resources] 已生成移动端插件市场资源: /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/resources-mobile/SoloSoul_plugin_market\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-native-android.log",
+      "sha256": "f37bbe501cfebf3c1a3d61e5d9e8518836a76ebc874d00210763bd7e12eeaea1",
+      "output_tail": "solve_model_bundle};\n   \u001b[1m\u001b[94m|\u001b[0m                                                     \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused import: `Manager`\u001b[0m\n  \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/recovery.rs:20:22\n   \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m20\u001b[0m \u001b[1m\u001b[94m|\u001b[0m use tauri::{Emitter, Manager, State};\n   \u001b[1m\u001b[94m|\u001b[0m                      \u001b[1m\u001b[33m^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused import: `tauri::Emitter`\u001b[0m\n \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/setup/mod.rs:6:5\n  \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m6\u001b[0m \u001b[1m\u001b[94m|\u001b[0m use tauri::Emitter;\n  \u001b[1m\u001b[94m|\u001b[0m     \u001b[1m\u001b[33m^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused variable: `app`\u001b[0m\n  \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/recovery.rs:39:5\n   \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m39\u001b[0m \u001b[1m\u001b[94m|\u001b[0m     app: tauri::AppHandle,\n   \u001b[1m\u001b[94m|\u001b[0m     \u001b[1m\u001b[33m^^^\u001b[0m \u001b[1m\u001b[33mhelp: if this is intentional, prefix it with an underscore: `_app`\u001b[0m\n   \u001b[1m\u001b[94m|\u001b[0m\n   \u001b[1m\u001b[94m= \u001b[0m\u001b[1mnote\u001b[0m: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: unused variable: `instance_name`\u001b[0m\n   \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/recovery.rs:225:21\n    \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m225\u001b[0m \u001b[1m\u001b[94m|\u001b[0m         if let Some(instance_name) = mdns_name {\n    \u001b[1m\u001b[94m|\u001b[0m                     \u001b[1m\u001b[33m^^^^^^^^^^^^^\u001b[0m \u001b[1m\u001b[33mhelp: if this is intentional, prefix it with an underscore: `_instance_name`\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: constant `MDNS_SERVICE_TYPE` is never used\u001b[0m\n  \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/discovery.rs:22:7\n   \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m22\u001b[0m \u001b[1m\u001b[94m|\u001b[0m const MDNS_SERVICE_TYPE: &str = \"_solosoul._tcp.local.\";\n   \u001b[1m\u001b[94m|\u001b[0m       \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^\u001b[0m\n   \u001b[1m\u001b[94m|\u001b[0m\n   \u001b[1m\u001b[94m= \u001b[0m\u001b[1mnote\u001b[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: constant `RECOVERY_MDNS_SERVICE_TYPE` is never used\u001b[0m\n  \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/discovery.rs:24:7\n   \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m24\u001b[0m \u001b[1m\u001b[94m|\u001b[0m const RECOVERY_MDNS_SERVICE_TYPE: &str = \"_solosoul_recovery._tcp.local.\";\n   \u001b[1m\u001b[94m|\u001b[0m       \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: function `advertise_recovery_mdns` is never used\u001b[0m\n   \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/recovery.rs:202:10\n    \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m202\u001b[0m \u001b[1m\u001b[94m|\u001b[0m async fn advertise_recovery_mdns(\n    \u001b[1m\u001b[94m|\u001b[0m          \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: function `poll_accessibility` is never used\u001b[0m\n   \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/commands/window.rs:194:15\n    \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m194\u001b[0m \u001b[1m\u001b[94m|\u001b[0m pub(crate) fn poll_accessibility(app: &tauri::AppHandle) {\n    \u001b[1m\u001b[94m|\u001b[0m               \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m\u001b[1m: function `setup_spawn_registry_refresh` is never used\u001b[0m\n   \u001b[1m\u001b[94m--> \u001b[0msrc-tauri/src/setup/mod.rs:252:4\n    \u001b[1m\u001b[94m|\u001b[0m\n\u001b[1m\u001b[94m252\u001b[0m \u001b[1m\u001b[94m|\u001b[0m fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {\n    \u001b[1m\u001b[94m|\u001b[0m    \u001b[1m\u001b[33m^^^^^^^^^^^^^^^^^^^^^^^^^^^^\u001b[0m\n\n\u001b[1m\u001b[33mwarning\u001b[0m: `solo_soul` (lib) generated 11 warnings (run `cargo fix --lib -p solo_soul` to apply 6 suggestions)\n\u001b[1m\u001b[92m    Finished\u001b[0m `dev` profile [optimized + debuginfo] target(s) in 12.46s\n\u001b[1m\u001b[32m        Info\u001b[0m symlinking lib \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" in jniLibs dir \"/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/src/main/jniLibs/arm64-v8a\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"libandroid.so\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"libdl.so\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"liblog.so\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"libm.so\"\n\u001b[1m\u001b[32m        Info\u001b[0m \"/Users/zzc/PycharmProjects/SoloSoul/tauri/target/aarch64-linux-android/debug/libsolo_soul.so\" requires shared lib \"libc.so\"\n\n[Incubating] Problems report is available at: file:///Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/build/reports/problems/problems-report.html\n\nDeprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.\n\nYou can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\nFor more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.\n    Finished 1 APK at:\n        /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-native-ios.log",
+      "sha256": "4409bef955f49d443494cb07f3a81e90ec9dadef0b8730be68c223aa0315c733",
+      "output_tail": " kB\ndist/assets/index-B3IHtX8u.js                            24.51 kB │ gzip:   8.55 kB\ndist/assets/RecoveryReceiveDialog-CPba-k6T.js            31.54 kB │ gzip:   8.12 kB\ndist/assets/backendError-zIG4iwbw.js                     53.26 kB │ gzip:  18.00 kB\ndist/assets/motion-vendor-BSeZbJXq.js                   125.02 kB │ gzip:  40.72 kB\ndist/assets/notification-CrnPAPH7.js                    137.41 kB │ gzip:  41.37 kB\ndist/assets/authStore-Bo5oUdPj.js                       309.90 kB │ gzip:  96.01 kB\ndist/assets/markdown-vendor-Bp4lH6Qk.js                 317.99 kB │ gzip:  97.54 kB\ndist/assets/RecoveryQrScanner-DxxINuGn.js               377.18 kB │ gzip: 111.50 kB\ndist/assets/bootstrapApp-7uTl74WO.js                  1,265.07 kB │ gzip: 336.38 kB\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/vaultDirectory.ts is dynamically imported by src/App/useSessionLifecycle.ts but also statically imported by src/hooks/useOnboarding.ts, src/pages/settings/useVaultDirectory.ts, dynamic import will not move module into another chunk.\n\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/dialog.ts is dynamically imported by src/components/export/ExportSection.tsx, src/components/import/ImportFileSelectorCard.tsx, src/components/object/useAttachmentBatchOps.tsx, src/hooks/useAttachmentManagerBatchOps.ts, src/hooks/useImportState.ts, ... but also statically imported by src/App/useSessionLifecycle.ts, src/components/export/useExportDocumentSection.ts, src/components/layout/OcrQuickScanPopover.tsx, src/components/plugin/PluginResultPanel.tsx, src/components/plugin/WatermarkPluginConfig.tsx, ..., dynamic import will not move module into another chunk.\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/loginAvailabilityPreflight.ts is dynamically imported by src/bootstrapApp.tsx but also statically imported by src/components/settings/BiometricSection.tsx, src/hooks/usePinDisable.ts, src/hooks/usePinSetup.ts, src/pages/auth/useLoginPage.tsx, dynamic import will not move module into another chunk.\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0mnode_modules/@tauri-apps/api/event.js is dynamically imported by src/lib/theme.ts but also statically imported by node_modules/@tauri-apps/api/webview.js, node_modules/@tauri-apps/api/webviewWindow.js, node_modules/@tauri-apps/api/window.js, src/App/useNativeAppEvents.ts, src/App/useSessionLifecycle.ts, ..., dynamic import will not move module into another chunk.\n\n✓ built in 611ms\nSetting version of project solo_soul to: \n    2.13.2.\n\nAlso setting CFBundleVersion key (assuming it exists)\n\nUpdating CFBundleVersion in Info.plist(s)...\n\nUpdated CFBundleVersion in \"solo_soul.xcodeproj/../solo_soul_iOS/Info.plist\" to 2.13.2\n\n\n--- xcodebuild: WARNING: Using the first of multiple matching destinations:\n{ platform:iOS Simulator, id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-iphonesimulator:placeholder, name:Any iOS Simulator Device }\n{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device }\n{ platform:iOS Simulator, arch:arm64, id:362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C, OS:26.3.1, name:SoloSoul RF201 }\n{ platform:iOS Simulator, arch:arm64, id:AA69885C-23B7-472C-A9A8-9EB43BD388CB, OS:26.3.1, name:iPad (A16) }\n{ platform:iOS Simulator, arch:arm64, id:B1B24E21-C3B2-40FC-88EF-0B99B6578D49, OS:26.3.1, name:iPad Air 11-inch (M3) }\n{ platform:iOS Simulator, arch:arm64, id:8A3E3E3B-F5E5-4368-9F0D-D9F32CC86AC2, OS:26.3.1, name:iPad Air 13-inch (M3) }\n{ platform:iOS Simulator, arch:arm64, id:2FA9C8E0-555A-48B7-88F0-653E67552C13, OS:26.3.1, name:iPad Pro 11-inch (M5) }\n{ platform:iOS Simulator, arch:arm64, id:96194A5F-8FD9-496B-BCB8-AEC7FA753A94, OS:26.3.1, name:iPad Pro 13-inch (M5) }\n{ platform:iOS Simulator, arch:arm64, id:6EE0FD73-2A7A-4CD2-BCD1-5B35A1E94EAC, OS:26.3.1, name:iPad mini (A17 Pro) }\n{ platform:iOS Simulator, arch:arm64, id:4B4271F1-5A3A-41B9-B8F1-8325361ECDEF, OS:26.3.1, name:iPhone 16e }\n{ platform:iOS Simulator, arch:arm64, id:0B0B7D51-6745-4255-B446-C9D66DEDB0CE, OS:26.3.1, name:iPhone 17 }\n{ platform:iOS Simulator, arch:arm64, id:D3E8488C-6429-43DD-87B7-F48C43DCC454, OS:26.3.1, name:iPhone 17 Pro }\n{ platform:iOS Simulator, arch:arm64, id:8ABA1583-81D7-4AB5-860E-A046BDE08453, OS:26.3.1, name:iPhone 17 Pro Max }\n{ platform:iOS Simulator, arch:arm64, id:104CE20F-887F-4B3C-AF8D-371E85DD6F50, OS:26.3.1, name:iPhone Air }\n{ platform:macOS, arch:arm64, variant:Designed for [iPad,iPhone], id:00008112-001A618C1E8A201E, name:My Mac }\n        Info connection; remote_addr=127.0.0.1:58105 conn_id=0\n    Finished 1 iOS Bundle at:\n        /Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/apple/build/solo_soul_iOS.xcarchive\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-native-macos.log",
+      "sha256": "4bb6abeb0e0d1750e9d07febb19d7cd7760a72f5d4d051e724823e51903407cd",
+      "output_tail": ".90 kB │ gzip:  96.01 kB\ndist/assets/markdown-vendor-Bp4lH6Qk.js                 317.99 kB │ gzip:  97.54 kB\ndist/assets/RecoveryQrScanner-DxxINuGn.js               377.18 kB │ gzip: 111.50 kB\ndist/assets/bootstrapApp-7uTl74WO.js                  1,265.07 kB │ gzip: 336.38 kB\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/vaultDirectory.ts is dynamically imported by src/App/useSessionLifecycle.ts but also statically imported by src/hooks/useOnboarding.ts, src/pages/settings/useVaultDirectory.ts, dynamic import will not move module into another chunk.\n\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/dialog.ts is dynamically imported by src/components/export/ExportSection.tsx, src/components/import/ImportFileSelectorCard.tsx, src/components/object/useAttachmentBatchOps.tsx, src/hooks/useAttachmentManagerBatchOps.ts, src/hooks/useImportState.ts, ... but also statically imported by src/App/useSessionLifecycle.ts, src/components/export/useExportDocumentSection.ts, src/components/layout/OcrQuickScanPopover.tsx, src/components/plugin/PluginResultPanel.tsx, src/components/plugin/WatermarkPluginConfig.tsx, ..., dynamic import will not move module into another chunk.\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/lib/loginAvailabilityPreflight.ts is dynamically imported by src/bootstrapApp.tsx but also statically imported by src/components/settings/BiometricSection.tsx, src/hooks/usePinDisable.ts, src/hooks/usePinSetup.ts, src/pages/auth/useLoginPage.tsx, dynamic import will not move module into another chunk.\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0mnode_modules/@tauri-apps/api/event.js is dynamically imported by src/lib/theme.ts but also statically imported by node_modules/@tauri-apps/api/webview.js, node_modules/@tauri-apps/api/webviewWindow.js, node_modules/@tauri-apps/api/window.js, src/App/useNativeAppEvents.ts, src/App/useSessionLifecycle.ts, ..., dynamic import will not move module into another chunk.\n\n✓ built in 590ms\n   Compiling objc2-exception-helper v0.1.1\n   Compiling ring v0.17.14\n   Compiling zstd-sys v2.0.16+zstd.1.5.7\n   Compiling wasmtime-internal-jit-debug v45.0.1\n   Compiling libsqlite3-sys v0.30.1\n   Compiling wasmtime v45.0.1\n   Compiling mac-notification-sys v0.6.14\n   Compiling onig_sys v69.9.3\n   Compiling objc2 v0.6.4\n   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)\n   Compiling block2 v0.6.2\n   Compiling objc2-core-foundation v0.3.2\n   Compiling dispatch2 v0.3.1\n   Compiling objc2-foundation v0.3.2\n   Compiling rustls v0.23.40\n   Compiling zstd-safe v7.2.4\n   Compiling rustls-webpki v0.103.13\n   Compiling zstd v0.13.3\n   Compiling wasmtime-internal-cache v45.0.1\n   Compiling onig v6.5.3\n   Compiling tokenizers v0.21.4\n   Compiling tokio-rustls v0.26.4\n   Compiling rustls-platform-verifier v0.7.0\n   Compiling hyper-rustls v0.27.9\n   Compiling reqwest v0.12.28\n   Compiling reqwest v0.13.4\n   Compiling objc2-quartz-core v0.3.2\n   Compiling objc2-app-kit v0.3.2\n   Compiling rusqlite v0.32.1\n   Compiling solosoul-vault v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-vault)\n   Compiling wasmtime-wasi-io v45.0.1\n   Compiling solosoul-core v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-core)\n   Compiling wiggle v45.0.1\n   Compiling objc2-web-kit v0.3.2\n   Compiling tauri-runtime v2.11.2\n   Compiling wry v0.55.1\n   Compiling tao v0.35.3\n   Compiling muda v0.19.2\n   Compiling window-vibrancy v0.6.0\n   Compiling objc2-osa-kit v0.3.2\n   Compiling tauri-runtime-wry v2.11.2\n   Compiling tauri v2.11.2\n   Compiling osakit v0.3.1\n   Compiling rfd v0.16.0\n   Compiling notify-rust v4.17.0\n   Compiling wasmtime-wasi v45.0.1\n   Compiling os_info v3.15.0\n   Compiling solosoul-sync v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-sync)\n   Compiling window-vibrancy v0.8.0\n   Compiling tauri-plugin-fs v2.5.1\n   Compiling tauri-plugin-dialog v2.7.1\n   Compiling tauri-plugin-os v2.3.2\n   Compiling tauri-plugin-updater v2.10.1\n   Compiling tauri-plugin-notification v2.3.3\n   Compiling tauri-plugin-shell v2.3.5\n   Compiling tauri-plugin-window-state v2.4.1\n   Compiling tauri-plugin-process v2.3.1\n   Compiling solosoul-plugin v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/crates/solosoul-plugin)\n    Finished `dev` profile [optimized + debuginfo] target(s) in 1m 33s\n       Built application at: /Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/solo_soul\n    Bundling SoloSoul.app (/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/bundle/macos/SoloSoul.app)\n    Finished 1 bundle at:\n        /Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/bundle/macos/SoloSoul.app\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-setting-interactions.log",
+      "sha256": "5fe21ac99c0fddedaca2f522b6097538f5f99c001e2fc8d6418674e5471442ad",
+      "output_tail": "\n RUN  v4.1.8 /Users/zzc/PycharmProjects/SoloSoul/tauri\n\n\n Test Files  1 passed (1)\n      Tests  10 passed (10)\n   Start at  14:47:38\n   Duration  1.28s (transform 188ms, setup 89ms, import 276ms, tests 584ms, environment 266ms)\n\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-tsc.log",
+      "sha256": "b90af33063b0bf74f83a0ab70ea56759268f2b9ca8df8fdefa752127e4f064a1",
+      "output_tail": "src/lib/themeController.test.ts(152,43): error TS2345: Argument of type '(callback: (mode: \"light\" | \"dark\") => void) => Promise<() => void>' is not assignable to parameter of type '(callback: (mode: \"light\" | \"dark\") => void) => Promise<Mock<Procedure>>'.\n  Type 'Promise<() => void>' is not assignable to type 'Promise<Mock<Procedure>>'.\n    Type '() => void' is not assignable to type 'Mock<Procedure>'.\n      Type '() => void' is not assignable to type 'MockInstance<Procedure>'.\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-web-mobile-repeat.log",
+      "sha256": "8baaf2d8172a2ed2e86e7f11cf507bb6da33d9b6770d7a300e85e43f52b5f5cc",
+      "output_tail": "\u001b[2m[WebServer] \u001b[22m(node:47350) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n\u001b[2m[WebServer] \u001b[22m(Use `node --trace-warnings ...` to show where the warning was created)\n\nRunning 8 tests using 4 workers\n\n(node:47352) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:47354) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:47351) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:47353) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:47352) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:47354) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:47351) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:47353) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\u001b[2m[WebServer] \u001b[22m2:50:26 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')\n\u001b[2m[WebServer] \u001b[22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:176:12)\n\u001b[2m[WebServer] \u001b[22m    at async http://localhost:1420/src/stores/updateStore.ts:74:44\n\u001b[2m[WebServer] \u001b[22m2:50:26 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')\n\u001b[2m[WebServer] \u001b[22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:176:12)\n\u001b[2m[WebServer] \u001b[22m    at async http://localhost:1420/src/stores/updateStore.ts:74:44\n  ✓  3 [mobile] › e2e/native-theme.spec.ts:95:3 › system 主题在模拟 IPC=dark、媒体查询=light 时保持一致 (2.6s)\n  ✓  1 [mobile] › e2e/native-theme.spec.ts:95:3 › system 主题在模拟 IPC=light、媒体查询=dark 时保持一致 (2.6s)\n  ✓  4 [mobile] › e2e/native-theme.spec.ts:218:5 › RF-201 android light：移动端跟随媒体并保留显式偏好 (2.6s)\n  ✓  2 [mobile] › e2e/native-theme.spec.ts:218:5 › RF-201 android system：移动端跟随媒体并保留显式偏好 (2.7s)\n\u001b[2m[WebServer] \u001b[22m2:50:28 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')\n\u001b[2m[WebServer] \u001b[22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:176:12)\n\u001b[2m[WebServer] \u001b[22m    at async http://localhost:1420/src/stores/updateStore.ts:74:44\n  ✓  8 [mobile] › e2e/native-theme.spec.ts:218:5 › RF-201 ios dark：移动端跟随媒体并保留显式偏好 (1.9s)\n  ✓  5 [mobile] › e2e/native-theme.spec.ts:218:5 › RF-201 android dark：移动端跟随媒体并保留显式偏好 (2.1s)\n  ✓  6 [mobile] › e2e/native-theme.spec.ts:218:5 › RF-201 ios system：移动端跟随媒体并保留显式偏好 (2.1s)\n  ✓  7 [mobile] › e2e/native-theme.spec.ts:218:5 › RF-201 ios light：移动端跟随媒体并保留显式偏好 (2.4s)\n\n  8 passed (6.4s)\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-web-native-theme-chromium.log",
+      "sha256": "828177272d4be7d00e0b22ae37a6b199a6198f25c7afcc4ec2b5db2b196a53d7",
+      "output_tail": "s ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:46272) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:46269) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:46269) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ✓   1 [chromium] › e2e/appearance-layout.spec.ts:7:5 › windows 1280px 外观页共享壳尺寸，配色面板不压缩表单 (5.6s)\n  ✓   2 [chromium] › e2e/appearance-layout.spec.ts:7:5 › macos 1280px 外观页共享壳尺寸，配色面板不压缩表单 (5.7s)\n  ✓   4 [chromium] › e2e/appearance-layout.spec.ts:7:5 › windows 800px 外观页共享壳尺寸，配色面板不压缩表单 (5.8s)\n  ✓   3 [chromium] › e2e/appearance-layout.spec.ts:7:5 › macos 800px 外观页共享壳尺寸，配色面板不压缩表单 (5.9s)\n\u001b[2m[WebServer] \u001b[22m2:48:33 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')\n\u001b[2m[WebServer] \u001b[22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:176:12)\n\u001b[2m[WebServer] \u001b[22m    at async http://localhost:1420/src/stores/updateStore.ts:74:44\n\u001b[2m[WebServer] \u001b[22m2:48:33 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')\n\u001b[2m[WebServer] \u001b[22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:176:12)\n\u001b[2m[WebServer] \u001b[22m    at async http://localhost:1420/src/stores/updateStore.ts:74:44\n  ✓   5 [chromium] › e2e/login-method-layout.spec.ts:59:3 › android 390px: login methods stay compact and PIN stays inside the card (3.3s)\n  ✓   6 [chromium] › e2e/login-method-layout.spec.ts:59:3 › android 320px: login methods stay compact and PIN stays inside the card (3.3s)\n  ✓   7 [chromium] › e2e/login-method-layout.spec.ts:59:3 › ios 390px: login methods stay compact and PIN stays inside the card (3.5s)\n  ✓   8 [chromium] › e2e/login-method-layout.spec.ts:59:3 › macos 1100px: login methods stay compact and PIN stays inside the card (3.7s)\n  ✓  10 [chromium] › e2e/native-theme.spec.ts:95:3 › system 主题在模拟 IPC=dark、媒体查询=light 时保持一致 (2.6s)\n  ✓   9 [chromium] › e2e/login-method-layout.spec.ts:59:3 › windows 1100px: login methods stay compact and PIN stays inside the card (2.7s)\n  ✓  11 [chromium] › e2e/native-theme.spec.ts:95:3 › system 主题在模拟 IPC=light、媒体查询=dark 时保持一致 (2.9s)\n  ✓  12 [chromium] › e2e/native-theme.spec.ts:127:3 › Windows Mica warm-stone-dark 登录背景不叠加主题色 (4.1s)\n  ✓  13 [chromium] › e2e/native-theme.spec.ts:127:3 › Windows Mica deep-ocean 登录背景不叠加主题色 (2.8s)\n  ✓  14 [chromium] › e2e/native-theme.spec.ts:127:3 › Windows Mica forest-night 登录背景不叠加主题色 (3.9s)\n  ✓  15 [chromium] › e2e/native-theme.spec.ts:127:3 › Windows Mica soft-cream 登录背景不叠加主题色 (4.0s)\n  ✓  16 [chromium] › e2e/native-theme.spec.ts:151:1 › 同一深色模式切换配色后，Mica 外壳仍不叠加主题色 (2.8s)\n  ✓  17 [chromium] › e2e/native-theme.spec.ts:179:1 › 无 Mica 时采用当前主题实色，不受首帧缓存颜色锁定 (2.6s)\n  ✓  18 [chromium] › e2e/native-theme.spec.ts:192:1 › Windows 实色回退仍能区分外壳和正文 (2.8s)\n\u001b[2m[WebServer] \u001b[22m2:48:44 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')\n\u001b[2m[WebServer] \u001b[22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:176:12)\n\u001b[2m[WebServer] \u001b[22m    at async http://localhost:1420/src/stores/updateStore.ts:74:44\n  ✓  19 [chromium] › e2e/native-theme.spec.ts:203:1 › Windows 强制颜色模式关闭透明背景并保留正文边界 (3.0s)\n\u001b[2m[WebServer] \u001b[22m2:48:44 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')\n\u001b[2m[WebServer] \u001b[22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:176:12)\n\u001b[2m[WebServer] \u001b[22m    at async http://localhost:1420/src/stores/updateStore.ts:74:44\n  ✓  20 [chromium] › e2e/native-theme.spec.ts:218:5 › RF-201 android system：移动端跟随媒体并保留显式偏好 (3.3s)\n  ✓  21 [chromium] › e2e/native-theme.spec.ts:218:5 › RF-201 android light：移动端跟随媒体并保留显式偏好 (2.8s)\n\u001b[2m[WebServer] \u001b[22m2:48:45 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')\n\u001b[2m[WebServer] \u001b[22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:176:12)\n\u001b[2m[WebServer] \u001b[22m    at async http://localhost:1420/src/stores/updateStore.ts:74:44\n  ✓  22 [chromium] › e2e/native-theme.spec.ts:218:5 › RF-201 android dark：移动端跟随媒体并保留显式偏好 (2.3s)\n  ✓  23 [chromium] › e2e/native-theme.spec.ts:218:5 › RF-201 ios system：移动端跟随媒体并保留显式偏好 (2.1s)\n  ✓  24 [chromium] › e2e/native-theme.spec.ts:218:5 › RF-201 ios light：移动端跟随媒体并保留显式偏好 (2.3s)\n  ✓  25 [chromium] › e2e/native-theme.spec.ts:218:5 › RF-201 ios dark：移动端跟随媒体并保留显式偏好 (2.3s)\n\n  25 passed (25.4s)\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-web-native-theme-mobile.log",
+      "sha256": "172b862f1a1a3f38b3b6774594f17e94cdf9eb8ad4f1a97b33a1fa402075b57b",
+      "output_tail": "een')\u001b[22m\n    \u001b[2m    14 × locator resolved to 1 element\u001b[22m\n    \u001b[2m       - unexpected value \"1\"\u001b[22m\n\n\n       99 |     await mockTheme(page, schemeId, 'mica', systemMode);\n      100 |     await page.goto('/login');\n    > 101 |     await expect(page.locator('#startup-screen')).toHaveCount(0);\n          |                                                   ^\n      102 |     expect(\n      103 |       await page.evaluate(() => window.matchMedia('(prefers-color-scheme: dark)').matches),\n      104 |     ).toBe(mediaMode === 'dark');\n        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/native-theme.spec.ts:101:51\n\n    Error Context: ../../../../../tmp/solosoul-refactor-macos-20261002/rf112-web-mobile/native-theme-system-主题在模拟-IPC-dark、媒体查询-light-时保持一致-mobile/error-context.md\n\n  2) [mobile] › e2e/native-theme.spec.ts:95:3 › system 主题在模拟 IPC=light、媒体查询=dark 时保持一致 ─────────────\n\n    Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\n    Locator:  locator('#startup-screen')\n    Expected: \u001b[32m0\u001b[39m\n    Received: \u001b[31m1\u001b[39m\n    Timeout:  5000ms\n\n    Call log:\n    \u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n    \u001b[2m  - waiting for locator('#startup-screen')\u001b[22m\n    \u001b[2m    14 × locator resolved to 1 element\u001b[22m\n    \u001b[2m       - unexpected value \"1\"\u001b[22m\n\n\n       99 |     await mockTheme(page, schemeId, 'mica', systemMode);\n      100 |     await page.goto('/login');\n    > 101 |     await expect(page.locator('#startup-screen')).toHaveCount(0);\n          |                                                   ^\n      102 |     expect(\n      103 |       await page.evaluate(() => window.matchMedia('(prefers-color-scheme: dark)').matches),\n      104 |     ).toBe(mediaMode === 'dark');\n        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/native-theme.spec.ts:101:51\n\n    Error Context: ../../../../../tmp/solosoul-refactor-macos-20261002/rf112-web-mobile/native-theme-system-主题在模拟-IPC-light、媒体查询-dark-时保持一致-mobile/error-context.md\n\n  3) [mobile] › e2e/native-theme.spec.ts:218:5 › RF-201 android system：移动端跟随媒体并保留显式偏好 ──────────────\n\n    Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\n    Locator:  locator('#startup-screen')\n    Expected: \u001b[32m0\u001b[39m\n    Received: \u001b[31m1\u001b[39m\n    Timeout:  5000ms\n\n    Call log:\n    \u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n    \u001b[2m  - waiting for locator('#startup-screen')\u001b[22m\n    \u001b[2m    14 × locator resolved to 1 element\u001b[22m\n    \u001b[2m       - unexpected value \"1\"\u001b[22m\n\n\n      227 |       await page.goto('/login');\n      228 |       const root = page.locator('html');\n    > 229 |       await expect(page.locator('#startup-screen')).toHaveCount(0);\n          |                                                     ^\n      230 |       await expect(root).toHaveAttribute('data-platform', platform);\n      231 |       for (const mode of ['light', 'dark', 'light'] as const) {\n      232 |         await page.emulateMedia({ colorScheme: mode });\n        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/native-theme.spec.ts:229:53\n\n    Error Context: ../../../../../tmp/solosoul-refactor-macos-20261002/rf112-web-mobile/native-theme-RF-201-android-system：移动端跟随媒体并保留显式偏好-mobile/error-context.md\n\n  4) [mobile] › e2e/native-theme.spec.ts:218:5 › RF-201 android light：移动端跟随媒体并保留显式偏好 ───────────────\n\n    Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\n    Locator:  locator('#startup-screen')\n    Expected: \u001b[32m0\u001b[39m\n    Received: \u001b[31m1\u001b[39m\n    Timeout:  5000ms\n\n    Call log:\n    \u001b[2m  - Expect \"toHaveCount\" with timeout 5000ms\u001b[22m\n    \u001b[2m  - waiting for locator('#startup-screen')\u001b[22m\n    \u001b[2m    14 × locator resolved to 1 element\u001b[22m\n    \u001b[2m       - unexpected value \"1\"\u001b[22m\n\n\n      227 |       await page.goto('/login');\n      228 |       const root = page.locator('html');\n    > 229 |       await expect(page.locator('#startup-screen')).toHaveCount(0);\n          |                                                     ^\n      230 |       await expect(root).toHaveAttribute('data-platform', platform);\n      231 |       for (const mode of ['light', 'dark', 'light'] as const) {\n      232 |         await page.emulateMedia({ colorScheme: mode });\n        at /Users/zzc/PycharmProjects/SoloSoul/tauri/e2e/native-theme.spec.ts:229:53\n\n    Error Context: ../../../../../tmp/solosoul-refactor-macos-20261002/rf112-web-mobile/native-theme-RF-201-android-light：移动端跟随媒体并保留显式偏好-mobile/error-context.md\n\n  4 failed\n    [mobile] › e2e/native-theme.spec.ts:95:3 › system 主题在模拟 IPC=dark、媒体查询=light 时保持一致 ──────────────\n    [mobile] › e2e/native-theme.spec.ts:95:3 › system 主题在模拟 IPC=light、媒体查询=dark 时保持一致 ──────────────\n    [mobile] › e2e/native-theme.spec.ts:218:5 › RF-201 android system：移动端跟随媒体并保留显式偏好 ───────────────\n    [mobile] › e2e/native-theme.spec.ts:218:5 › RF-201 android light：移动端跟随媒体并保留显式偏好 ────────────────\n  4 passed (13.4s)\n"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf112-web-production.log",
+      "sha256": "9458c11c8b7af3fcdb467caffb0239cf8154fe669696a14967dc245c4497c4d9",
+      "output_tail": "ted by src/bootstrapApp.tsx but also statically imported by src/components/settings/BiometricSection.tsx, src/hooks/usePinDisable.ts, src/hooks/usePinSetup.ts, src/pages/auth/useLoginPage.tsx, dynamic import will not move module into another chunk.\n\u001b[2m[WebServer] \u001b[22m\n\u001b[2m[WebServer] \u001b[22m\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0mnode_modules/@tauri-apps/api/event.js is dynamically imported by src/lib/theme.ts but also statically imported by node_modules/@tauri-apps/api/webview.js, node_modules/@tauri-apps/api/webviewWindow.js, node_modules/@tauri-apps/api/window.js, src/App/useNativeAppEvents.ts, src/App/useSessionLifecycle.ts, ..., dynamic import will not move module into another chunk.\n\u001b[2m[WebServer] \u001b[22m\n\u001b[2m[WebServer] \u001b[22m(node:46723) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n\u001b[2m[WebServer] \u001b[22m(Use `node --trace-warnings ...` to show where the warning was created)\n\u001b[2m[WebServer] \u001b[22m(node:46763) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n\u001b[2m[WebServer] \u001b[22m(Use `node --trace-warnings ...` to show where the warning was created)\n\nRunning 26 tests using 4 workers\n\n(node:46771) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:46770) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:46771) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:46773) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:46772) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:46770) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:46772) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:46773) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n  ✓   4 [chromium] › e2e/csp-ipc.production.spec.ts:121:1 › 各端配置继承受限 CSP 和自动 nonce/hash 注入 (9ms)\n  ✓   1 [chromium] › e2e/csp-ipc.production.spec.ts:75:1 › 去除本地 IPC 来源的旧 CSP 在请求发送前阻断连接 (202ms)\n  ✓   3 [chromium] › e2e/csp-ipc.production.spec.ts:93:1 › 生产 CSP 仍阻断外部地址、其他 localhost 和非 IPC 端口 (188ms)\n  ✓   2 [chromium] › e2e/csp-ipc.production.spec.ts:56:1 › 生产 CSP 允许 Windows 本地 IPC 请求 (359ms)\n  ✓   6 [chromium] › e2e/native-theme.spec.ts:95:3 › system 主题在模拟 IPC=light、媒体查询=dark 时保持一致 (1.1s)\n  ✓   5 [chromium] › e2e/native-theme.spec.ts:95:3 › system 主题在模拟 IPC=dark、媒体查询=light 时保持一致 (1.3s)\n  ✓   8 [chromium] › e2e/native-theme.spec.ts:127:3 › Windows Mica warm-stone-dark 登录背景不叠加主题色 (1.8s)\n  ✓   7 [chromium] › e2e/native-theme.spec.ts:127:3 › Windows Mica deep-ocean 登录背景不叠加主题色 (2.1s)\n  ✓   9 [chromium] › e2e/native-theme.spec.ts:127:3 › Windows Mica forest-night 登录背景不叠加主题色 (1.6s)\n  ✓  10 [chromium] › e2e/native-theme.spec.ts:127:3 › Windows Mica soft-cream 登录背景不叠加主题色 (1.2s)\n  ✓  11 [chromium] › e2e/native-theme.spec.ts:151:1 › 同一深色模式切换配色后，Mica 外壳仍不叠加主题色 (1.2s)\n  ✓  13 [chromium] › e2e/native-theme.spec.ts:192:1 › Windows 实色回退仍能区分外壳和正文 (738ms)\n  ✓  12 [chromium] › e2e/native-theme.spec.ts:179:1 › 无 Mica 时采用当前主题实色，不受首帧缓存颜色锁定 (1.1s)\n  ✓  14 [chromium] › e2e/native-theme.spec.ts:203:1 › Windows 强制颜色模式关闭透明背景并保留正文边界 (858ms)\n  ✓  18 [chromium] › e2e/native-theme.spec.ts:218:5 › RF-201 ios system：移动端跟随媒体并保留显式偏好 (808ms)\n  ✓  15 [chromium] › e2e/native-theme.spec.ts:218:5 › RF-201 android system：移动端跟随媒体并保留显式偏好 (1.2s)\n  ✓  16 [chromium] › e2e/native-theme.spec.ts:218:5 › RF-201 android light：移动端跟随媒体并保留显式偏好 (1.3s)\n  ✓  17 [chromium] › e2e/native-theme.spec.ts:218:5 › RF-201 android dark：移动端跟随媒体并保留显式偏好 (1.4s)\n  ✓  19 [chromium] › e2e/native-theme.spec.ts:218:5 › RF-201 ios light：移动端跟随媒体并保留显式偏好 (725ms)\n  ✓  20 [chromium] › e2e/native-theme.spec.ts:218:5 › RF-201 ios dark：移动端跟随媒体并保留显式偏好 (674ms)\n  ✓  21 [chromium] › e2e/production-startup.spec.ts:5:1 › 生产包完成启动并正常渲染 Markdown (699ms)\n  ✓  22 [chromium] › e2e/release-notes.production.spec.ts:86:3 › windows：横幅与关于页的表格和长文件名保持在内容区 (1.4s)\n  ✓  23 [chromium] › e2e/release-notes.production.spec.ts:107:3 › windows：强制更新说明的表格保持在弹窗内 (1.1s)\n  ✓  25 [chromium] › e2e/release-notes.production.spec.ts:107:3 › android：强制更新说明的表格保持在弹窗内 (822ms)\n  ✓  24 [chromium] › e2e/release-notes.production.spec.ts:86:3 › android：横幅与关于页的表格和长文件名保持在内容区 (1.1s)\n  ✓  26 [chromium] › e2e/release-notes.production.spec.ts:123:1 › 横幅不依赖额外 Markdown 桥接模块，断开旧动态入口仍直接渲染表格 (980ms)\n\n  26 passed (11.6s)\n"
+    }
+  ],
+  "native_binaries": {
+    "macos": {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/bundle/macos/SoloSoul.app/Contents/MacOS/solo_soul",
+      "size": 114786272,
+      "sha256": "5a12e4b0e9f1312ebca381847607041d32c0613caec0aef21de5eb8e9e671e1e"
+    },
+    "ios": {
+      "path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/apple/build/solo_soul_iOS.xcarchive/Products/Applications/SoloSoul.app/SoloSoul",
+      "size": 170650232,
+      "sha256": "14ae8a796756d527a0819e6daca93d5a920e1f0f07505992eb0aa832921363c0"
+    }
+  },
+  "artifacts": [
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/android/rf201-dark-dark.png",
+      "sha256": "a809157f43354d6224519e3a51ef5eb3ea7605f441580cbec9601e91bd11eb4b",
+      "size": 151237
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/android/rf201-dark-light-again.png",
+      "sha256": "e341fc1c91393878aa3a2425f33a67b0b347c7b7226852bd03ec08cce07150b2",
+      "size": 151244
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/android/rf201-dark-light.png",
+      "sha256": "c3f13f5ccce5c10ff911484109641ae7795f5a2d1e901221c21c84da8276d765",
+      "size": 40813
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/android/rf201-dark.json",
+      "sha256": "725cff3c40ea0ae57bffdde190c851b3c9398ad79735e7d95f808a0315890b88",
+      "size": 738
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/android/rf201-light-dark.png",
+      "sha256": "b9be4b58024000669b0098191b871dfd11f89101ff58bd59e6c1e24d447bec1e",
+      "size": 152447
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/android/rf201-light-light-again.png",
+      "sha256": "b9be4b58024000669b0098191b871dfd11f89101ff58bd59e6c1e24d447bec1e",
+      "size": 152447
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/android/rf201-light-light.png",
+      "sha256": "b9be4b58024000669b0098191b871dfd11f89101ff58bd59e6c1e24d447bec1e",
+      "size": 152447
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/android/rf201-light.json",
+      "sha256": "67cf5fa8d3c415561df01ed7d318c1e2a63fb44dfd3243ace9d98678f9b81c8c",
+      "size": 738
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/android/rf201-system-dark.png",
+      "sha256": "e7a1c69f431a9926612f389ae4319d4dba0cf84be63d083b0cf09a19308787c9",
+      "size": 152438
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/android/rf201-system-light-again.png",
+      "sha256": "2de2b0358d61b8290f6f7b0c62e72334ca3dccf64a7c0a54509254067cd5fb86",
+      "size": 142724
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/android/rf201-system-light.png",
+      "sha256": "10e5867aa97e2ba3598d86aea819e42bed65577771f4fdfd9e273addf177d255",
+      "size": 124038
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/android/rf201-system.json",
+      "sha256": "cfc5b58f61e636c2b589d2c76686710e971989fdcd3f91f00d66116d0dae2328",
+      "size": 742
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/ios/dark-dark.png",
+      "sha256": "b7630e4c84093ec1d6edc717f5accd2c7cef13fed087a484e3a2fd603a1f045a",
+      "size": 142367
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/ios/dark-light-again.png",
+      "sha256": "b7630e4c84093ec1d6edc717f5accd2c7cef13fed087a484e3a2fd603a1f045a",
+      "size": 142367
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/ios/dark-light.png",
+      "sha256": "b7630e4c84093ec1d6edc717f5accd2c7cef13fed087a484e3a2fd603a1f045a",
+      "size": 142367
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/ios/light-dark.png",
+      "sha256": "555c19db005211ab358f48af94d2e693c3718ee21ea82dafed616ffbf1ca38ab",
+      "size": 144777
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/ios/light-light-again.png",
+      "sha256": "555c19db005211ab358f48af94d2e693c3718ee21ea82dafed616ffbf1ca38ab",
+      "size": 144777
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/ios/light-light.png",
+      "sha256": "555c19db005211ab358f48af94d2e693c3718ee21ea82dafed616ffbf1ca38ab",
+      "size": 144777
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/ios/screenshot-color-samples.json",
+      "sha256": "49634aae8407fb1a181a3aaf0d75468a0d0d918cdc2d8a5de50c716e1fe367e1",
+      "size": 898
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/ios/system-dark.png",
+      "sha256": "6da019b96a5faa90d34a887212d4a9262a49692b3c0c242857db397e1579500c",
+      "size": 141192
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/ios/system-light-again.png",
+      "sha256": "555c19db005211ab358f48af94d2e693c3718ee21ea82dafed616ffbf1ca38ab",
+      "size": 144777
+    },
+    {
+      "path": "docs/verification/rf112-native-2026-10-02/ios/system-light.png",
+      "sha256": "555c19db005211ab358f48af94d2e693c3718ee21ea82dafed616ffbf1ca38ab",
+      "size": 144777
+    }
+  ],
+  "counts": {
+    "vitest_files": 253,
+    "vitest_passed": 2215,
+    "node_passed": 91,
+    "node_platform_skipped": 21,
+    "web_chromium": 25,
+    "web_mobile_repeat": 8,
+    "web_production": 26,
+    "android_instrumented_tests": 3,
+    "android_stages": 9,
+    "ios_screenshot_stages": 9
+  },
+  "limits": [
+    "macOS Debug build passed; native lock/unlock restore has NOT been exercised in isolated app-data",
+    "Android/iOS tested system/light/dark on dedicated simulators without accounts; native account switch and desktop lock/unlock are not implied",
+    "iOS evidence is screenshot/system-appearance/color comparison, not DOM assertions or XCTest; CJK boxes remain RF-1069",
+    "Initial mobile browser run: 4 startup timeouts / 4 passed; unchanged independent repeat 8 passed, root cause not proven",
+    "No Rust source change; full Rust tests were not rerun for RF-112",
+    "Only comment in ipcClient.ts changed after full F and during native build; no functional source changed after successful final F",
+    "No push, publish, installed macOS replacement or production account access"
+  ]
+}

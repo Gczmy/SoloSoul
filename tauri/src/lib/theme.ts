@@ -99,7 +99,7 @@ export async function getSystemTheme(): Promise<'light' | 'dark'> {
 }
 
 /** Full theme application: mode (data-theme attr) + accent color + active scheme */
-export async function applyTheme(config: ThemeConfig) {
+export async function applyTheme(config: ThemeConfig, isCurrent: () => boolean = () => true) {
   const root = document.documentElement;
 
   // 一次解析后由 DOM、色板和原生栏共用，避免 IPC 与 WebView 主题不一致。
@@ -109,6 +109,8 @@ export async function applyTheme(config: ThemeConfig) {
       : config.preset === 'warm-stone-dark'
         ? 'dark'
         : 'light';
+  // 系统解析可能跨越偏好、账户或挂载代次；必须在写 DOM/原生参数之前检查。
+  if (!isCurrent()) return;
   const activeScheme = resolveActiveScheme(
     config.preset,
     config.defaultLightTheme || 'warm-stone',

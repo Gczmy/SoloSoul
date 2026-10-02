@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSettingAction } from '@/hooks/useSettingAction';
 import { useAuthStore } from '@/stores/authStore';
-import { applyTheme, getSystemTheme } from '@/lib/theme';
+import { getSystemTheme } from '@/lib/theme';
 import { getSchemeById } from '@/lib/themeSchemes';
 import { useTranslation } from 'react-i18next';
 import { ThemeSchemePanel } from '@/components/settings/ThemeSchemePanel';
@@ -16,7 +16,7 @@ import { isMobilePlatformSync, isAndroidSync } from '@/lib/platform';
 import { AndroidAppearance } from '@/components/android/AndroidAppearance';
 import { Palette, PanelTop, PanelBottom, PanelLeft, PanelRight } from 'lucide-react';
 import type { ThemeScheme } from '@/lib/themeSchemes';
-import type { AppSettings, SettingWriteResult } from '@/stores/settingsStore';
+import type { AppSettings } from '@/stores/settingsStore';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { ICON_SIZE } from '@/lib/constants';
 import styles from './AppearanceSettingsPage.module.css';
@@ -63,41 +63,11 @@ export function AppearanceSettingsPage() {
     getSchemeById(settings.defaultDarkTheme)?.nameKey.replace('settings:', '') as string,
   );
 
-  // P128: ②③ 副本写入统一由 settingsStore.updateSetting（P129 集中化 helper）负责，
-  // 本页不再直接写 localStorage / ui_update_preference，杜绝第 5 个漂移写入点。
-  const applySavedSettings = async (
-    result: SettingWriteResult,
-    additionalIsCurrent: () => boolean = () => true,
-  ) => {
-    if (result.status !== 'saved' || !result.isCurrent() || !additionalIsCurrent()) return;
-    const theme = useSettingsStore.getState().getConfirmedSettings().theme;
-    const resolvedSystemTheme = theme === 'system' ? await getSystemTheme() : undefined;
-    if (!result.isCurrent() || !additionalIsCurrent()) return;
-    // 解析期间其他键可能已保存；取最新已确认快照，排除尚未落库的乐观值。
-    const current = useSettingsStore.getState().getConfirmedSettings();
-    await applyTheme({
-      preset:
-        current.theme === 'dark'
-          ? 'warm-stone-dark'
-          : current.theme === 'light'
-            ? 'warm-stone-light'
-            : 'system',
-      accentColor: current.accentColor,
-      customAccentHex: current.customAccentHex,
-      backgroundType: 'solid',
-      backgroundValue: '',
-      defaultLightTheme: current.defaultLightTheme,
-      defaultDarkTheme: current.defaultDarkTheme,
-      resolvedSystemTheme: current.theme === 'system' ? resolvedSystemTheme : undefined,
-    });
-  };
-
   const handlePresetChange = async (preset: 'light' | 'dark' | 'system') => {
-    await applySavedSettings(await updateSetting(accountId, 'theme', preset));
+    await updateSetting(accountId, 'theme', preset);
   };
-
   const handleAccentChange = async (accent: AccentPreset) => {
-    await applySavedSettings(await updateSetting(accountId, 'accentColor', accent));
+    await updateSetting(accountId, 'accentColor', accent);
   };
 
   const handleSelectScheme = async (scheme: ThemeScheme) => {
@@ -115,12 +85,10 @@ export function AppearanceSettingsPage() {
       if (themeResult.status === 'stale' || !themeResult.isCurrent() || !schemeResult.isCurrent())
         return;
       if (themeResult.status === 'saved') {
-        await applySavedSettings(themeResult, schemeResult.isCurrent);
         return;
       }
       // 模式保存失败时，色板已落库；仅应用回滚后的当前配置，保留这部分成功。
     }
-    await applySavedSettings(schemeResult);
   };
 
   if (isAndroidSync()) return <AndroidAppearance />;
