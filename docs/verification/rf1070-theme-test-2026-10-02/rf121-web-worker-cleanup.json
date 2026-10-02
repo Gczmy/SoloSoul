@@ -1,0 +1,7 @@
+{
+  "pid": 9968,
+  "parent_pid": 9932,
+  "scope": "own Playwright worker after framework 300000ms stop timeout and failed force-kill; no live tests remain",
+  "signal": "SIGKILL",
+  "sent": true
+}

@@ -1,0 +1,23 @@
+{
+  "task": "RF-1070",
+  "cause": "过时 E2E 期待桌面主题事件覆盖 Android WebView matchMedia，与 RF-201 已验收契约相反。",
+  "changes": "使用实际媒体查询切色，发送相反桌面事件并等待绘制帧，保持 shader/导航断言。",
+  "before": "Node24 与隔离 Node22 均30通过/1失败；Node24另有worker退出超时，仅清理本轮确认进程。",
+  "after": {
+    "exit_code": 0,
+    "passed": 31,
+    "skipped": 0,
+    "node": "22.23.3",
+    "project": "chromium",
+    "workers": 1
+  },
+  "shared_frontend_checks": "本轮此前已运行 TypeScript/ESLint、256文件2240 Vitest和99 Node通过/21原有Windows跳过；本项仅修改E2E测试，无生产代码变更。",
+  "files": {
+    "rf1070-web-fixed.log": "8e9065f63567ac4806ab16390c4e6c0e595410667805686144c72491989d889c",
+    "rf121-node22-runtime.json": "85043400b50ecb6d905919b2bb3230a0dc151d44c920c97a0a889c4549c7195c",
+    "rf121-web-worker-cleanup.json": "1c31e8a024723c472cc28d2c136e7e2ca17ddcfb4e6abe3ed2e8d9b612a26114",
+    "rf121-android-web.log.gz": "2e57f27d9cb13970362384387811056eff8e05ec93402ec2c19f8cedb52b13aa",
+    "rf121-android-web-node22.log.gz": "1feb889ae59d35a8c81f6831f8f9de82c55e2a64be9952bf903a63ab0ea8196c"
+  },
+  "raw_log_encoding": "两个失败日志含终端尾空格，gzip保留原始字节；解压后的原日志SHA见归档历史。"
+}

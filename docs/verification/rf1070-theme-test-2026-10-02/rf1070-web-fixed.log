@@ -1,0 +1,143 @@
+[2m[WebServer] [22m(node:15263) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 31 tests using 1 worker
+
+(node:15269) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:15269) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m10:34:19 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:19 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+  ✓   1 [chromium] › e2e/android-material.spec.ts:77:1 › Android navigation stays mounted and icons keep their geometry (2.1s)
+[2m[WebServer] [22m10:34:20 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:20 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+  ✓   2 [chromium] › e2e/android-material.spec.ts:95:1 › responsive surfaces and navigation rail have no horizontal overflow (825ms)
+[2m[WebServer] [22m10:34:21 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:21 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+  ✓   3 [chromium] › e2e/android-material.spec.ts:114:1 › page sheets keep focus, stay within the viewport and preserve create/edit routes (3.2s)
+[2m[WebServer] [22m10:34:24 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:24 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:25 PM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓   4 [chromium] › e2e/android-material.spec.ts:229:1 › all objects, filters, search, details and contextual creation reuse business routes (2.4s)
+[2m[WebServer] [22m10:34:26 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:26 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:27 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:27 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:27 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+  ✓   5 [chromium] › e2e/android-material.spec.ts:251:1 › appearance persists across reload and a locked vault drops cached names (1.5s)
+[2m[WebServer] [22m10:34:28 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:28 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:29 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:29 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+  ✓   6 [chromium] › e2e/android-material.spec.ts:279:1 › glass switches retain navigation geometry, forced colors use solid surfaces (1.5s)
+[2m[WebServer] [22m10:34:29 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:29 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+  ✓   7 [chromium] › e2e/android-material.spec.ts:303:1 › enhanced home has its final artwork on the first visible frame after navigation (2.4s)
+[2m[WebServer] [22m10:34:32 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:32 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:33 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+  ✓   8 [chromium] › e2e/android-material.spec.ts:334:1 › liquid artwork recovers context loss, stops when hidden and clears on lock (1.7s)
+[2m[WebServer] [22m10:34:33 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:34 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+  ✓   9 [chromium] › e2e/android-material.spec.ts:373:1 › enhanced glass follows Android WebView system theme and ignores desktop theme events (1.5s)
+[2m[WebServer] [22m10:34:35 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:35 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:35 PM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓  10 [chromium] › e2e/android-material.spec.ts:438:1 › native menu returns contextual actions and uses web fallback when unavailable (1.3s)
+[2m[WebServer] [22m10:34:36 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:36 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+[2m[WebServer] [22m10:34:37 PM [vite] (client) [console.warn] [updater] android check failed: TypeError: Cannot read properties of undefined (reading 'latestVersion')
+[2m[WebServer] [22m    at androidCheckForUpdate (http://localhost:1420/src/lib/updater.ts:177:12)
+[2m[WebServer] [22m    at async http://localhost:1420/src/stores/updateStore.ts:94:65
+  ✓  11 [chromium] › e2e/android-material.spec.ts:481:1 › late native menu results cannot navigate after route change or lock (1.1s)
+  ✓  12 [chromium] › e2e/desktop-shell.spec.ts:18:3 › left 侧栏展开、折叠、切页及快捷卡片位置 (1.5s)
+  ✓  13 [chromium] › e2e/desktop-shell.spec.ts:18:3 › right 侧栏展开、折叠、切页及快捷卡片位置 (1.5s)
+[2m[WebServer] [22m10:34:41 PM [vite] (client) [console.warn] [AppRoutes] SAF vault directory access revoked
+  ✓  14 [chromium] › e2e/desktop-shell.spec.ts:99:1 › 窄视口继续使用底部导航，桌面展开状态不挤占内容 (712ms)
+  ✓  15 [chromium] › e2e/desktop-shell.spec.ts:111:3 › top 导航保持横向布局 (736ms)
+  ✓  16 [chromium] › e2e/desktop-shell.spec.ts:111:3 › bottom 导航保持横向布局 (793ms)
+  ✓  17 [chromium] › e2e/desktop-shell.spec.ts:150:1 › 深色主题和减少动态效果在最小桌面窗口保持可用 (1.0s)
+  ✓  18 [chromium] › e2e/home-navigation.spec.ts:46:3 › Identity 返回首页不卸载窗口布局 (970ms)
+  ✓  19 [chromium] › e2e/home-navigation.spec.ts:46:3 › Settings 返回首页不卸载窗口布局 (923ms)
+  ✓  20 [chromium] › e2e/home-navigation.spec.ts:46:3 › Search 返回首页不卸载窗口布局 (890ms)
+  ✓  21 [chromium] › e2e/home-navigation.spec.ts:46:3 › Trash 返回首页不卸载窗口布局 (916ms)
+  ✓  22 [chromium] › e2e/home-navigation.spec.ts:46:3 › Attachments 返回首页不卸载窗口布局 (891ms)
+  ✓  23 [chromium] › e2e/home-navigation.spec.ts:46:3 › OCR 返回首页不卸载窗口布局 (914ms)
+  ✓  24 [chromium] › e2e/home-navigation.spec.ts:46:3 › Device Sync 返回首页不卸载窗口布局 (921ms)
+  ✓  25 [chromium] › e2e/home-navigation.spec.ts:46:3 › Help 返回首页不卸载窗口布局 (1.0s)
+[2m[WebServer] [22m10:34:51 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:34:51 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:34:51 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓  26 [chromium] › e2e/home-navigation.spec.ts:46:3 › AI Chat 返回首页不卸载窗口布局 (938ms)
+[2m[WebServer] [22m10:34:53 PM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓  27 [chromium] › e2e/macos-glass.spec.ts:99:3 › light AppBar 平面按钮保持原生标题栏尺寸与操作 (1.2s)
+[2m[WebServer] [22m10:34:55 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:34:55 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:34:55 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓  28 [chromium] › e2e/macos-glass.spec.ts:136:3 › light 侧栏浮层与对象二级对话框保持可点击和视口定位 (3.7s)
+[2m[WebServer] [22m10:34:58 PM [vite] (client) [console.warn] [ObjectEditor] Load field suggestions failed: {"code":"LEGACY_ERROR"}
+  ✓  29 [chromium] › e2e/macos-glass.spec.ts:99:3 › dark AppBar 平面按钮保持原生标题栏尺寸与操作 (1.3s)
+[2m[WebServer] [22m10:35:00 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:35:00 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+[2m[WebServer] [22m10:35:00 PM [vite] (client) [console.warn] [useLlmChatCore] Load config failed: Cannot read properties of undefined (reading 'activeProviderId')
+  ✓  30 [chromium] › e2e/macos-glass.spec.ts:136:3 › dark 侧栏浮层与对象二级对话框保持可点击和视口定位 (3.7s)
+  ✓  31 [chromium] › e2e/macos-glass.spec.ts:196:1 › 小窗口菜单与辅助功能回退保持键盘操作及清晰表面 (963ms)
+
+  31 passed (48.4s)

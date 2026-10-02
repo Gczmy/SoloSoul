@@ -370,7 +370,7 @@ test('liquid artwork recovers context loss, stops when hidden and clears on lock
   await expect(art).toHaveCount(0);
 });
 
-test('enhanced glass follows the applied native theme when WebView media queries disagree', async ({
+test('enhanced glass follows Android WebView system theme and ignores desktop theme events', async ({
   page,
 }) => {
   await selectGlass(page, 'Enhanced glass');
@@ -380,15 +380,26 @@ test('enhanced glass follows the applied native theme when WebView media queries
   await expect(art).toHaveAttribute('data-liquid-ready', 'true');
 
   for (const theme of ['dark', 'light'] as const) {
-    // 原生深浅主题可能与 Android WebView 的 matchMedia 返回值相反。
-    await page.emulateMedia({ colorScheme: theme === 'dark' ? 'light' : 'dark' });
-    await page.evaluate(async (mode) => {
-      await (window as any).__TAURI_INTERNALS__.invoke('plugin:event|emit', {
-        event: 'system-theme-changed',
-        // 测试桥直接转发 callback 数据，因此传入原生事件信封。
-        payload: { event: 'system-theme-changed', id: 0, payload: mode },
-      });
-    }, theme);
+    // RF-201：移动端的系统主题以真实 WebView 媒体查询为准。
+    await page.emulateMedia({ colorScheme: theme });
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+    // 相反的桌面专用通知不能覆盖已解析的 Android 主题。
+    await page.evaluate(
+      async (mode) => {
+        await (window as any).__TAURI_INTERNALS__.invoke('plugin:event|emit', {
+          event: 'system-theme-changed',
+          // 测试桥直接转发 callback 数据，因此传入原生事件信封。
+          payload: { event: 'system-theme-changed', id: 0, payload: mode },
+        });
+      },
+      theme === 'dark' ? 'light' : 'dark',
+    );
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        ),
+    );
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
 
     const checkSurface = async () => {
