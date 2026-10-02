@@ -2,15 +2,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ThemeConfig } from '@/types';
 import { getSchemeById } from './themeSchemes';
 
-const { invoke, syncNativeAppearance, platform } = vi.hoisted(() => ({
+const { invoke, syncNativeAppearance, platform, listen } = vi.hoisted(() => ({
   invoke: vi.fn(),
   syncNativeAppearance: vi.fn(),
   platform: vi.fn(),
+  listen: vi.fn(),
 }));
 
 vi.mock('./ipcClient', () => ({ invokeCommand: invoke }));
 vi.mock('./nativeWindow', () => ({ syncNativeAppearance }));
 vi.mock('@tauri-apps/plugin-os', () => ({ platform }));
+vi.mock('@tauri-apps/api/event', () => ({ listen }));
 
 const SYSTEM_QUERY = '(prefers-color-scheme: dark)';
 const LIGHT_SCHEME = 'clean-slate';
@@ -92,12 +94,84 @@ beforeEach(async () => {
   invoke.mockReset();
   syncNativeAppearance.mockReset().mockResolvedValue(undefined);
   platform.mockReset().mockReturnValue('windows');
+  listen.mockReset().mockResolvedValue(vi.fn());
   vi.spyOn(window, 'matchMedia').mockClear();
   mediaTheme('light');
   systemTheme(() => Promise.resolve('dark'));
   // 平台识别、色板、强调色和 Android 材质均运行真实实现；只替换平台 API 边界。
   await (await import('./platform')).initPlatform();
   applyTheme = (await import('./theme')).applyTheme;
+});
+
+describe('RF201 移动端真实系统来源与单一事件源', () => {
+  async function mobileTheme(os: 'android' | 'ios') {
+    vi.resetModules();
+    platform.mockReturnValue(os);
+    await (await import('./platform')).initPlatform();
+    return import('./theme');
+  }
+
+  it.each([
+    ['android', 'light'],
+    ['android', 'dark'],
+    ['ios', 'light'],
+    ['ios', 'dark'],
+  ] as const)('%s 初始 %s 使用 WebView，忽略相反的 IPC 值', async (os, mode) => {
+    const theme = await mobileTheme(os);
+    mediaTheme(mode);
+    systemTheme(() => Promise.resolve(mode === 'dark' ? 'light' : 'dark'));
+    expect(await theme.getSystemTheme()).toBe(mode);
+    expect(systemCalls()).toHaveLength(0);
+  });
+
+  it.each(['android', 'ios'] as const)('%s 切色只注册 media 监听且释放同一回调', async (os) => {
+    const theme = await mobileTheme(os);
+    const callbacks = new Set<(event: MediaQueryListEvent) => void>();
+    const mq = {
+      matches: false,
+      media: SYSTEM_QUERY,
+      addEventListener: vi.fn((_: string, callback: (e: MediaQueryListEvent) => void) => {
+        callbacks.add(callback);
+      }),
+      removeEventListener: vi.fn((_: string, callback: (e: MediaQueryListEvent) => void) => {
+        callbacks.delete(callback);
+      }),
+    } as unknown as MediaQueryList;
+    vi.mocked(window.matchMedia).mockReturnValue(mq);
+    const changed = vi.fn();
+    const dispose = await theme.listenForSystemTheme(changed);
+    expect(listen).not.toHaveBeenCalled();
+    expect(callbacks.size).toBe(1);
+    for (const matches of [true, false]) {
+      for (const callback of callbacks) callback({ matches } as MediaQueryListEvent);
+    }
+    expect(changed.mock.calls).toEqual([['dark'], ['light']]);
+    dispose();
+    expect(callbacks.size).toBe(0);
+    expect(mq.removeEventListener).toHaveBeenCalledWith(
+      'change',
+      vi.mocked(mq.addEventListener).mock.calls[0][1],
+    );
+    expect(systemCalls()).toHaveLength(0);
+  });
+
+  it('桌面仍由原生事件驱动，注册失败才回退 media', async () => {
+    const theme = await import('./theme');
+    const nativeDispose = vi.fn();
+    listen.mockResolvedValueOnce(nativeDispose);
+    const changed = vi.fn();
+    const dispose = await theme.listenForSystemTheme(changed);
+    expect(listen).toHaveBeenCalledWith('system-theme-changed', expect.any(Function));
+    expect(window.matchMedia).not.toHaveBeenCalled();
+    const callback = listen.mock.calls[0][1];
+    callback({ payload: 'dark' });
+    expect(changed).toHaveBeenCalledWith('dark');
+    dispose();
+    expect(nativeDispose).toHaveBeenCalledOnce();
+    listen.mockRejectedValueOnce(new Error('IPC unavailable'));
+    await theme.listenForSystemTheme(changed);
+    expect(window.matchMedia).toHaveBeenCalledWith(SYSTEM_QUERY);
+  });
 });
 
 afterEach(() => {

@@ -308,6 +308,7 @@ fn setup_detect_locale() {
         locale_flag
     );
 }
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 fn setup_spawn_theme_polling(app: &tauri::AppHandle) {
     let app_handle = app.clone();
     tauri::async_runtime::spawn(async move {

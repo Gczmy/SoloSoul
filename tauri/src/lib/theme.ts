@@ -8,7 +8,7 @@ import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { logger } from './logger';
 import { withTimeout } from './withTimeout';
 import { syncNativeAppearance } from './nativeWindow';
-import { isAndroidSync } from './platform';
+import { isAndroidSync, isMobilePlatformSync } from './platform';
 import { applyAndroidMaterial } from './androidMaterial';
 import { applyAccentTextColors, customAccentHover } from './accentContrast';
 
@@ -83,10 +83,12 @@ function applyAccentColor(accent: AccentPreset, customHex?: string) {
   root.style.removeProperty('--accent-hover');
 }
 
-/** Query the Rust backend for the actual OS theme.
- *  This is the fallback when window.matchMedia('prefers-color-scheme') does not
- *  work correctly inside the Tauri WebView (e.g. on macOS). */
+/** 移动端使用 WebView 的真实系统外观；桌面优先使用 Rust 检测，IPC 不可用时回退。 */
 export async function getSystemTheme(): Promise<'light' | 'dark'> {
+  // 移动端由 WebView 提供真实系统外观；不能采用后端的占位检测结果。
+  if (isMobilePlatformSync()) {
+    return window.matchMedia(SYSTEM_DARK_MQ).matches ? 'dark' : 'light';
+  }
   try {
     const mode = await withTimeout(invoke<string>('get_system_theme'), 600);
     return mode === 'dark' ? 'dark' : 'light';
@@ -128,16 +130,21 @@ export async function applyTheme(config: ThemeConfig) {
   void syncStatusBarStyle(resolvedMode);
 }
 
-/** Listen for system theme changes (4.3.5) via Tauri Event from Rust backend.
- *  The Rust side polls dark-light::detect() every second and emits
- *  'system-theme-changed' when the OS theme changes.
- *  Returns an unlisten function that should be called on cleanup.
- *  Falls back to window.matchMedia in non-Tauri environments.
- *  Callers should check their own settings (e.g. settings.theme === 'system')
- *  before applying changes. */
+/** 同一媒体查询同时负责移动端切色和桌面 IPC 不可用时的回退。 */
+function listenForMediaTheme(onThemeChange: (mode: 'light' | 'dark') => void): () => void {
+  const mq = window.matchMedia(SYSTEM_DARK_MQ);
+  const listener = (e: MediaQueryListEvent) => onThemeChange(e.matches ? 'dark' : 'light');
+  mq.addEventListener('change', listener);
+  return () => mq.removeEventListener('change', listener);
+}
+
+/** 移动端只监听 WebView；桌面优先监听原生轮询事件。
+ * 调用者仅在跟随系统时应用事件，卸载时释放返回的监听。 */
 export async function listenForSystemTheme(
   onThemeChange: (mode: 'light' | 'dark') => void,
 ): Promise<() => void> {
+  // 移动端没有桌面轮询事件；Tauri listen 成功不代表这个事件源存在。
+  if (isMobilePlatformSync()) return listenForMediaTheme(onThemeChange);
   try {
     const { listen } = await import('@tauri-apps/api/event');
     const unlisten = await listen<string>('system-theme-changed', (event) => {
@@ -147,9 +154,6 @@ export async function listenForSystemTheme(
     return unlisten;
   } catch {
     // Fallback for non-Tauri environments (browser, Storybook, tests)
-    const mq = window.matchMedia(SYSTEM_DARK_MQ);
-    const listener = (e: MediaQueryListEvent) => onThemeChange(e.matches ? 'dark' : 'light');
-    mq.addEventListener('change', listener);
-    return () => mq.removeEventListener('change', listener);
+    return listenForMediaTheme(onThemeChange);
   }
 }

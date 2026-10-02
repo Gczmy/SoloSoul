@@ -1,0 +1,12 @@
+{
+  "availableFontFamilies": 86,
+  "fallbackFont": ".PingFangUITextSC-Regular",
+  "glyphs": [
+    2347,
+    3353,
+    232,
+    501
+  ],
+  "hasCJKGlyphs": true,
+  "systemFont": ".SFUI-Regular"
+}

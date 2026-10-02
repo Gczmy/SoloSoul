@@ -11,7 +11,7 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUiStore } from '@/stores/uiStore';
 import { useLlmStore } from '@/stores/llmStore';
-import { applyTheme } from '@/lib/theme';
+import { applyTheme, listenForSystemTheme } from '@/lib/theme';
 import { useNativeAppEvents } from './useNativeAppEvents';
 import { useSessionLifecycle } from './useSessionLifecycle';
 
@@ -20,7 +20,7 @@ vi.mock('@/lib/nativeWindow', () => ({
   refreshNativeAppearance: vi.fn(),
 }));
 vi.mock('@/lib/theme', () => ({
-  listenForSystemTheme: () => Promise.resolve(() => {}),
+  listenForSystemTheme: vi.fn(async () => () => {}),
   applyTheme: vi.fn(),
   getSystemTheme: vi.fn(),
 }));
@@ -37,6 +37,12 @@ vi.mock('@/hooks/useApplyThemeFromSettings', () => ({ useApplyThemeFromSettings:
 function NativeHarness() {
   const navigate = useNavigate();
   useNativeAppEvents({ navigate, isAuthenticated: true });
+  return null;
+}
+
+function ThemeHarness() {
+  const navigate = useNavigate();
+  useNativeAppEvents({ navigate, isAuthenticated: false });
   return null;
 }
 
@@ -63,7 +69,49 @@ afterEach(() => {
   useUiStore.setState({ toasts: [], safAuthRevoked: false, safAuthToastShown: false });
   vi.mocked(listen).mockReset();
   vi.mocked(invoke).mockReset();
+  vi.mocked(listenForSystemTheme)
+    .mockReset()
+    .mockResolvedValue(() => {});
   vi.restoreAllMocks();
+});
+
+describe('RF201 系统事件不会覆盖显式主题', () => {
+  it.each(['light', 'dark', 'system'] as const)('%s 设置下处理切色与卸载', async (preset) => {
+    const previous = useSettingsStore.getState().settings;
+    const callbacks: Array<Parameters<typeof listenForSystemTheme>[0]> = [];
+    vi.mocked(listen).mockResolvedValue(() => {});
+    vi.mocked(applyTheme).mockClear();
+    vi.mocked(listenForSystemTheme).mockImplementation(async (callback) => {
+      callbacks.push(callback);
+      return () => {};
+    });
+    useSettingsStore.setState({ settings: { ...previous, theme: preset } });
+    const view = render(
+      <MemoryRouter>
+        <ThemeHarness />
+      </MemoryRouter>,
+    );
+    try {
+      await waitFor(() => expect(callbacks).toHaveLength(1));
+      act(() => {
+        callbacks[0]('dark');
+        callbacks[0]('light');
+      });
+      if (preset === 'system') {
+        expect(
+          vi.mocked(applyTheme).mock.calls.map(([config]) => config.resolvedSystemTheme),
+        ).toEqual(['dark', 'light']);
+      } else {
+        expect(applyTheme).not.toHaveBeenCalled();
+      }
+      view.unmount();
+      act(() => callbacks[0]('dark'));
+      expect(applyTheme).toHaveBeenCalledTimes(preset === 'system' ? 2 : 0);
+    } finally {
+      view.unmount();
+      useSettingsStore.setState({ settings: previous });
+    }
+  });
 });
 
 describe('RF-114 应用生命周期', () => {

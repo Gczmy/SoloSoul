@@ -8,13 +8,15 @@ async function mockTheme(
   schemeId: string,
   material = 'mica',
   systemMode?: 'light' | 'dark',
+  platform: 'windows' | 'android' | 'ios' = 'windows',
 ) {
   const scheme = getSchemeById(schemeId)!;
   await page.addInitScript({
     content:
       readFileSync('e2e/fixtures/tauriMock.js', 'utf8') +
       `
-    window.__MOCK_PLATFORM__ = 'windows';
+    window.__MOCK_PLATFORM__ = '${platform}';
+    window.__RF201_SYSTEM_IPC_COUNT__ = 0;
     localStorage.setItem('i18nextLng', 'en-US');
     const prefs = ${JSON.stringify({
       theme: systemMode ? 'system' : scheme.mode,
@@ -42,6 +44,10 @@ async function mockTheme(
     const originalInvoke = window.__TAURI_INTERNALS__.invoke;
     window.__TAURI_INTERNALS__.invoke = async (cmd, args) => {
       // 通用 fixture 对该命令固定返回 light，因此在外层模拟原生系统结果。
+      if (cmd === 'get_system_theme' && '${platform}' !== 'windows') {
+        window.__RF201_SYSTEM_IPC_COUNT__ += 1;
+        return systemMode ?? 'dark';
+      }
       if (cmd === 'get_system_theme' && systemMode !== null) return systemMode;
       if (cmd === 'set_status_bar_style') {
         document.documentElement.dataset.statusBarStyle = args.payload.style;
@@ -204,3 +210,43 @@ test('Windows 强制颜色模式关闭透明背景并保留正文边界', async 
   await expect(page.locator('main')).toHaveCSS('outline-style', 'solid');
   await expect(page.locator('main')).toHaveCSS('outline-width', '1px');
 });
+
+// RF-201：验证真实页面订阅 media 事件；模拟 IPC 故意给出相反主题，不能成为移动端来源。
+// 浏览器只证明 DOM/事件/参数链路，原生状态栏与系统切色另有设备验收。
+for (const platform of ['android', 'ios'] as const) {
+  for (const preset of ['system', 'light', 'dark'] as const) {
+    test(`RF-201 ${platform} ${preset}：移动端跟随媒体并保留显式偏好`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: 'light' });
+      await mockTheme(
+        page,
+        preset === 'dark' ? 'warm-stone-dark' : 'warm-stone',
+        'solid',
+        preset === 'system' ? 'dark' : undefined,
+        platform,
+      );
+      await page.goto('/login');
+      const root = page.locator('html');
+      await expect(page.locator('#startup-screen')).toHaveCount(0);
+      await expect(root).toHaveAttribute('data-platform', platform);
+      for (const mode of ['light', 'dark', 'light'] as const) {
+        await page.emulateMedia({ colorScheme: mode });
+        await expect
+          .poll(() => page.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches))
+          .toBe(mode === 'dark');
+        // 等待两次真实绘制机会，避免显式主题断言抢在 media 事件交付之前。
+        await page.evaluate(
+          () =>
+            new Promise<void>((resolve) =>
+              requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+            ),
+        );
+        const expected = preset === 'system' ? mode : preset;
+        await expect(root).toHaveAttribute('data-theme', expected);
+        await expect(root).toHaveAttribute('data-status-bar-style', expected);
+        expect(await page.evaluate(() => Reflect.get(window, '__RF201_SYSTEM_IPC_COUNT__'))).toBe(
+          0,
+        );
+      }
+    });
+  }
+}

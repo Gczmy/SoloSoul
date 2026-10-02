@@ -44,12 +44,12 @@ pub fn get_ui_language() -> Option<String> {
 }
 
 /// 获取系统外观主题（light / dark）。
-/// 桌面端使用 dark_light 检测；移动端由前端 CSS media query 决定，此处返回固定值。
+/// 桌面端使用 dark_light 检测；移动端由 WebView media query 接管，不返回伪检测结果。
 #[tauri::command]
 pub fn get_system_theme() -> Result<String, String> {
     #[cfg(any(target_os = "android", target_os = "ios"))]
     {
-        Ok("dark".to_string())
+        Err("SYSTEM_THEME_WEBVIEW_REQUIRED".to_string())
     }
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
@@ -123,6 +123,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn test_get_system_theme_returns_dark_or_light() {
         let theme = get_system_theme();
         match theme {
@@ -135,6 +136,15 @@ mod tests {
                 assert!(e.contains("Failed to detect system theme"));
             }
         }
+    }
+
+    #[test]
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    fn rf201_mobile_system_theme_requires_webview() {
+        assert_eq!(
+            get_system_theme().unwrap_err(),
+            "SYSTEM_THEME_WEBVIEW_REQUIRED"
+        );
     }
 
     #[cfg(not(target_os = "windows"))]

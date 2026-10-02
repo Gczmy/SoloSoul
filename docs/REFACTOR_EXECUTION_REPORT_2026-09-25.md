@@ -1,6 +1,6 @@
 # SoloSoul 重构修复执行报告
 
-> 最后更新：2026-10-02（RF-1066/RF-1067 基线缺陷及 RF-204 iOS 直接编译修复验收完成）
+> 最后更新：2026-10-02（RF-201 移动端系统主题原生验收完成；RF-1068 构建入口已关闭，新增 RF-1069 字形定位）
 > 当前分支：`main`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
 > 修复轮次：第 1 轮，执行中。Cua 接入继续暂缓。
 
@@ -120,9 +120,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**258**（P1：51；P2：206；P3：1）。
-- 已关闭：**239 / 258**；实际修复（已关闭）：239；排除：0；待验证/阻塞：4（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；待执行：15。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**RF-201（下一项；公共 Rust/CLI 基线已恢复）**。RF-1066、RF-1067 已关闭，原失败及固定同毫秒验证证据保留。RF-208 已补齐 macOS 标准 Debug 构建并关闭；RF-201、RF-203、RF-206 的前置已满足。RF-204 已按用户指令恢复并完成直接编译修复及双目标验收。剩余 4 个待外部验收根与 15 个待执行任务；材质多端实测、远端 CI 与隔离性能证据仍缺。远端完整 CI 和 Android 工作流当前为 disabled_manually，不自动重新启用或推送。保持一项一修复一验证一提交。
+- 任务总数：**259**（P1：51；P2：207；P3：1）。
+- 已关闭：**240 / 259**；实际修复（已关闭）：240；排除：0；待验证/阻塞：4（RF-308本地门槛与CI配置已达但缺远端运行日志，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；待执行：15。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**RF-112（下一项；RF-201 移动端系统来源已完成原生与构建验收）**。RF-204、RF-1068 已独立修复验证提交；RF-208/201 前置已满足。新登记 RF-1069 iOS 中文方框定位，独立 CoreText 探针有字形，不直接归因为系统缺字体。剩余 4 个待外部验收根与 15 个待执行任务；材质多端实测、远端 CI 与隔离性能证据仍缺。远端完整 CI 和 Android 工作流当前为 disabled_manually，不自动启用、推送或发布；保持一项一修复一验证一提交。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -156,7 +156,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 26 | [RF-021](#rf-021) | P1 | 对象模板与历史按导入批次事务提交 | [RF-018](#rf-018)、[RF-019](#rf-019)、[RF-020](#rf-020)、[RF-1063](#rf-1063) | [x] 完成 |
 | 27 | [RF-022](#rf-022) | P1 | 附件导入可恢复且同一任务重试幂等 | [RF-020](#rf-020)、[RF-021](#rf-021) | [x] 完成 |
 | 28 | [RF-208](#rf-208) | P2 | 移除 Android 构建的本机 JDK 路径依赖 | 无 | [x] 完成 |
-| 29 | [RF-201](#rf-201) | P1 | 修正移动端跟随系统的主题来源 | [RF-208](#rf-208) | [ ] 待执行 |
+| 29 | [RF-201](#rf-201) | P1 | 修正移动端跟随系统的主题来源 | [RF-208](#rf-208) | [x] 完成 |
 | 30 | [RF-110](#rf-110) | P1 | 同次主题应用只解析一次系统模式 | 无 | [x] 完成 |
 | 31 | [RF-111](#rf-111) | P1 | 设置保存失败返回明确结果并反馈用户 | 无 | [x] 完成 |
 | 32 | [RF-112](#rf-112) | P1 | ThemeController 成为唯一主题应用协调器 | [RF-110](#rf-110)、[RF-111](#rf-111)、[RF-201](#rf-201) | [ ] 待执行 |
@@ -386,6 +386,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 256 | [RF-1066](#rf-1066) | P1 | 插件暂存版本目录从创建时使用私有权限 | 无（macOS 公共 Rust 基线发现） | [x] 完成 |
 | 257 | [RF-1067](#rf-1067) | P2 | 同毫秒快照按写入新旧排序并保留恢复顺序 | 无（macOS 公共 Rust 基线发现） | [x] 完成 |
 | 258 | [RF-1068](#rf-1068) | P2 | iOS 模拟器构建脚本使用 CLI 支持的 target 名 | 无（RF-201 构建预检发现） | [x] 完成 |
+| 259 | [RF-1069](#rf-1069) | P2 | 定位 iOS 原生中文字符方框并修复或证明环境限制 | 无（RF-201 原生验收发现） | [ ] 待执行 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -1091,6 +1092,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **执行：**移动端不再把固定 dark 当成成功检测结果；使用真实原生主题事件或明确让前端 matchMedia 接管，并为同一平台只保留一个系统主题事件源。保留桌面检测和登录前主题缓存。
 - **验收：**Android/iOS 系统浅色→深色→浅色均可更新；跟随系统才响应事件，显式 light/dark 不被覆盖；IPC 不可用有回退，无每秒固定 dark 覆盖。
 - **验证配置：**`F` + `R` + `IOS` + `NATIVE` + `ANDROID_BUILD`。**定向验证：**扩展 theme/native-theme 测试，模拟原生与 WebView 相反值；移动设备执行跟随系统切换。
+- **当前状态：**已完成，F/R/双 iOS target/标准 Android Debug 构建、Android 三项原生测试与 iOS 九阶段当前二进制切色通过。异步应用协调仍属 RF-112；中文方框另有 RF-1069，不混入主题范围。
 - **建议提交：**`fix(theme): resolve mobile system appearance [RF-201]`。
 
 ### RF-202
@@ -3475,6 +3477,18 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**实际 npm 入口 + `DOC`；必要构建与 RF-201 共用，但不据入口修复关闭原生主题验收。
 - **当前状态：**已完成。实际 npm 无签名模拟器 Debug 构建 exit0；Cargo triple 与签名策略不变，详见本日记录。
 - **建议提交：**`fix(build): use supported iOS simulator selector [RF-1068]`。
+
+### RF-1069
+
+**定位 iOS 原生中文字符方框并修复或证明环境限制** · P2 · 来源：RF-201 原生验收
+
+- **前置：**无；与系统主题来源分开处理。
+- **入口：**`tauri/src/styles/global.css`、`tokens.css` 的字体栈，iOS 生成工程/打包资源与原生 WebView 的实际渲染。
+- **已观察：**专用 iPhone17/iOS26.3.1 模拟器的原生创建账户页，中文显示方框、Latin/SVG 图标正常。独立同设备 CoreText 探针可以使用 `.PingFangUITextSC-Regular` 并取得四个非零中文字形，因此不能直接认定“系统没有中文字库”。尚未确定应用字体栈、WebView 回退、打包或模拟器环境根因。
+- **执行：**核对原生 WebView 真实文字/编码/计算字体、打包资源和系统字体；以最小原生对照复现定位。确认应用缺陷再做对应修复；若为环境限制，保留对照和范围证据后按规则处理，不通过改默认语言隐藏中文问题。
+- **验收：**原生实际中文标题、字段标签、按钮可读；若为环境问题，明确适用环境、实际对照与应用无需改动的证据。截图、CoreText 探针与原始日志见 `docs/verification/rf201-native-2026-10-02/ios/`。
+- **验证配置：**`DOC` + `IOS` + `NATIVE`；修改前端则加 `F`/`WEB`，修改共享核心则加 `R`/`CLI`。
+- **建议提交：**`fix(ios): resolve native Chinese glyph rendering [RF-1069]`。
 
 ## 7. 每项执行记录模板
 
@@ -5946,6 +5960,12 @@ git commit -m "<任务卡的提交标题>"
 - 定向 2 passed；macOS 标准 Debug build、Host 同毫秒回归、Rust fmt、严格 all-targets Clippy、25 组完整 Rust 1850 passed / 0 failed / 3 既有 ignored 均通过。CLI fmt、严格 all-targets Clippy、全量 335 passed / 0 failed / 2 既有 ignored 通过；Markdown 与 diff 检查通过。验证期间 8 个输入 SHA 一致，官方 CLI 的通用 feature 变更精确恢复；初始 RAW 核对除 RF-1066/RF-1067 的 11 个输入外均不变，用户原有资源副本与诊断文件保留不暂存。
 - [真实复现、检查与限制](verification/rf1067-snapshot-tie-order-2026-10-02.json)同步保存；规范说明本库写入顺序和最新在前的包约定，无法从任意外部无序历史重建原设备先后。主 Agent 完成范围/源码复核，不声称独立复审、其他平台原生 UI 或性能验收。校正新增任务后的总数/优先级统计为 257（P1 51、P2 205、P3 1）。本项独立本地提交（以 RF-1067 检索），不推送；累计 237/257 已关闭、4 待外部验证、1 暂缓、15 待执行，下一项 RF-201。
 
+### RF-201 macOS 执行记录（2026-10-02，进行中）
+
+- 公共 Rust/CLI 基线的 RF-1066/RF-1067 已各自修复、验证并独立提交。移动端主题回归修复前 6 failed / 13 passed，确认相反 IPC 值覆盖真实 WebView，以及错误订阅桌面事件的问题。
+- Android/iOS 初始读取和事件改为同一个 WebView media 来源；移动端 Rust getter 明确返回 SYSTEM_THEME_WEBVIEW_REQUIRED，桌面检测及 IPC 回退保持。移动端原本没有调用桌面轮询启动器，本项只把该函数编译边界也明确为桌面。应用 Hook 原有显式偏好守卫保留，新增真实 Hook 切色/卸载回归。
+- 主题定向 19 passed，真实 Hook 集成 27 passed；完整前端 252 文件、2201 passed，标准 macOS Debug 构建及全量 Rust 1850 passed 均通过。Android 标准 APK/JNI 已核对，专用 API34 ARM64 设备三项原生主题回归、九阶段 DOM/media/状态栏断言已获明确 JUnit 通过；测试装置冷启动与 Activity 收尾失败日志保留，最终截图仍需稳定绘制核对。iOS 无签名模拟器原生构建 exit0；用户已恢复 RF-204 且该项验收提交完成（见后续记录）。RF-201 的专用 iPhone17/iOS26.3.1 模拟器九阶段命令及截图已完成；已目测跟随系统 light/dark 与显式 light 在系统 dark、显式 dark 在系统 light 的正确外观。截图另发现中文字符方框，需独立核实字体；其余截图复核、Android 稳定绘制证据和构建入口 RF-1068 仍待整理，不提前关闭。使用专用测试设备和合成数据，不覆盖用户安装客户端或账户。
+
 ### RF-204 恢复执行与关闭记录（2026-10-02）
 
 - 用户明确指令：“恢复 RF-204，仅修编译问题并验收”，撤销此前暂缓。基线 `d934306e`。实际无签名 iOS 构建已进入 Rust，确认四处 `SecError::code()`（i32）与 `errSecAuthFailed` / `errSecItemNotFound as i64` 比较不兼容；移除这四处转换，保留已补齐的 `errSecSuccess`、认证调用、访问控制、错误分类和存储策略。
@@ -5959,3 +5979,13 @@ git commit -m "<任务卡的提交标题>"
 - 基线 `4c3dc279`。旧 npm 入口真实执行在进入构建前报 `invalid value`（记录 exit2），当前 Tauri CLI 明确列出 `aarch64`、`aarch64-sim`、`x86_64`。仅将 `tauri:ios:build:sim` 参数改为 `aarch64-sim`；Cargo/Rust triple、应用版本、依赖、签名策略不变。
 - 通过修正后的实际 npm 入口运行 `npm run tauri:ios:build:sim -- --debug --no-sign --archive-only --ci`，完整模拟器原生构建 **exit0 / 44.95s**，未用 `--help` 代替。生成的两个已知 Xcode 项目文件已保存输出后恢复原字节；未安装到用户既有设备或替换客户端。
 - [入口及原始日志证据](verification/rf1068-ios-npm-selector-2026-10-02.json)与构建排坑规范同步。DOC Markdown 边界及 diff 检查通过。本项独立本地提交，不推送；RF-201 原生主题验收仍单独整理。
+
+### RF-201 关闭记录（2026-10-02，完成）
+
+- 修复前定向 **6 failed / 13 passed**，修复后主题 19 passed；真实应用 Hook 集成 27 passed。移动端初始读取/监听统一为 WebView media，Rust getter 明确要求 WebView 而非伪 dark；桌面 IPC、回退和轮询保持，移动端轮询函数不编译。未引入第二个移动端系统事件源。
+- 最终 F：TypeScript、Lint、Prettier 均通过；Vitest **252 文件 / 2201 passed / 0 failed**，独立 Node 测试 **91 passed / 21 平台 skipped**。新增真实页面 Android/iOS 三种偏好及相反 IPC 回归；浏览器 **chromium 16 / mobile 适用范围 8 / production 26 passed**。原来将 Windows 桌面布局全套跑手机 viewport 得到 2 passed/8 failed，失败均依赖桌面侧栏/桌面边界；保留原日志，改用适用范围并增加六个真正的移动平台用例，不改业务布局迁就测试。
+- R 与官方 macOS Debug 构建沿用本轮已含相同生产源码的 RF-204 验收：严格 all-targets Clippy/fmt、25 组 **1850 passed / 0 failed / 3 既有 ignored**。iOS 真机/模拟器客户端检查均通过，RF-1068 修正后的实际 npm 无签名模拟器构建 exit0。未改该源码后的重复全量测试不另算成果。
+- Android 标准 ARM64 Debug 构建和 NDK check 通过；APK ZIP CRC、打包 JNI 与实际 Rust build 一致。专用 API34 ARM64 模拟器 **三项 instrumented 测试 / 九阶段**均明确 `OK (1 test)`，检查真实挂载页面、media、DOM 和状态/导航栏图标；shell exit0 不替代 JUnit。冷启动空 WebView、null 求值、最后 Activity 导致同进程 JUnit 提前退出的装置失败均留存，使用 AndroidX 既有收尾参数和外部独立进程清理。JVM 单元任务 exit0 但 **NO-SOURCE/0 tests**，不报为测试通过。启动合成截图可能仍有启动层，原生栏/DOM 断言和后续截图为实际证据，不仅凭首图认定通过。
+- iOS 专用 iPhone17/iOS26.3.1 模拟器当前 npm 产物 **system/light/dark 各浅→深→浅九阶段**系统状态、截图和颜色交叉检查符合预期。后续构建产生不同二进制，已重新安装并核对完整 executable SHA；重装又更换数据 UUID，最初旧容器复验无效并保留日志，改为实时读取当前容器后重新完成九阶段。只改专用设备登录前偏好，恢复原字节及初始系统外观，不创建账户或触碰用户安装/数据。未将截图验收虚称为 iOS JUnit/DOM 或真机实测。
+- [完整输入/日志 SHA、产物及九阶段原生证据](verification/rf201-mobile-system-theme-2026-10-02.json)和视觉规范已同步。iOS 中文方框单列 RF-1069：同设备 CoreText 有 `.PingFangUITextSC-Regular` 字形，尚需 WebView/字体栈定位，不隐藏问题或断言系统缺字库。本项主题范围已满足，RF-112 的请求代次、StrictMode、账户切换和锁定恢复尚未关闭。
+- DOC 链接/任务 ID/统计及 Markdown 边界、diff 检查通过；生产输入 SHA 与最终检查冻结值一致，保留既有 Android 资源副本、两个诊断包及自动生成未跟踪目录。本项独立本地提交，不推送；累计 **240/259** 关闭、4 待外部验证、0 暂缓、15 待执行。

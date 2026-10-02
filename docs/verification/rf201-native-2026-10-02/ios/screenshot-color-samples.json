@@ -1,0 +1,54 @@
+{
+  "scope": "当前 npm 构建的九阶段专用模拟器截图；只读固定坐标背景采样，不是 DOM 或字体验收",
+  "coordinate": {
+    "x": 10,
+    "y": 250
+  },
+  "samples": {
+    "dark-dark.png": [
+      41,
+      37,
+      32
+    ],
+    "dark-light-again.png": [
+      41,
+      37,
+      32
+    ],
+    "dark-light.png": [
+      41,
+      37,
+      32
+    ],
+    "light-dark.png": [
+      249,
+      249,
+      245
+    ],
+    "light-light-again.png": [
+      249,
+      249,
+      245
+    ],
+    "light-light.png": [
+      249,
+      249,
+      245
+    ],
+    "system-dark.png": [
+      41,
+      37,
+      32
+    ],
+    "system-light-again.png": [
+      249,
+      249,
+      245
+    ],
+    "system-light.png": [
+      249,
+      249,
+      245
+    ]
+  }
+}

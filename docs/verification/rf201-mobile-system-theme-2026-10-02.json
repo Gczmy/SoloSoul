@@ -1,0 +1,1677 @@
+{
+  "task": "RF-201",
+  "baseline_commit": "d934306e",
+  "finalization_head": "1eb3b5632b21421f4232dbff69d9bd486124fa2a",
+  "source_sha256": {
+    "tauri/src/lib/theme.ts": "26407e9df149e04f63b89a62ccb5afd05efb0131f9774f7261b5c938e30be8ea",
+    "tauri/src/lib/theme.test.ts": "25fd3f1b42ed9da686840a5b48c4d2e91b940a3ac796c35be2c3883d2d2dcb17",
+    "tauri/src/App/appLifecycle.test.tsx": "ac399d8f2fb59813986f6cf20956c607b160320818c8b0b077f1312541ea835f",
+    "tauri/src-tauri/src/commands/system.rs": "d1f816a9166b9fd9e48f4af8533209f04ac0d68e93127833bac0c109e4339e35",
+    "tauri/src-tauri/src/setup/mod.rs": "17a0f7b3340f42c33dc2ea8891eed0ea23fa1c8f7ed370c7392cc81ca937da1d",
+    "tauri/e2e/native-theme.spec.ts": "1f698c8146466706f5bef45343e4e69d7e8cc79454aae49d4c9927023113f76c",
+    "tauri/src-tauri/gen/android/app/src/androidTest/java/com/solosoul/app/AndroidThemeInstrumentedTest.kt": "686b79b9c0aa7c82a70856bbac01716e8e8f8e3e81d96364ec3e0117bdcdb292"
+  },
+  "behavior": "Android/iOS initial system theme and subscription exclusively use WebView media; desktop IPC fallback unchanged. Mobile Rust getter explicitly errors instead of false dark.",
+  "front": [
+    {
+      "name": "rf201-front-final-types",
+      "command": [
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "started_at": "2026-10-02T12:40:34.110841+00:00",
+      "finished_at": "2026-10-02T12:40:44.554781+00:00",
+      "duration_seconds": 10.443975917063653,
+      "exit_code": 0
+    },
+    {
+      "name": "rf201-front-final-lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "started_at": "2026-10-02T12:40:44.555427+00:00",
+      "finished_at": "2026-10-02T12:40:49.458058+00:00",
+      "duration_seconds": 4.902649290859699,
+      "exit_code": 0
+    },
+    {
+      "name": "rf201-front-final-test-default",
+      "command": [
+        "npm",
+        "run",
+        "test"
+      ],
+      "started_at": "2026-10-02T12:40:49.458491+00:00",
+      "finished_at": "2026-10-02T12:41:37.108931+00:00",
+      "duration_seconds": 47.65039400011301,
+      "exit_code": 0
+    }
+  ],
+  "front_counts": {
+    "vitest_files": 252,
+    "vitest_passed": 2201,
+    "node_passed": 91,
+    "node_skipped": 21
+  },
+  "web": [
+    {
+      "name": "native-theme-chromium",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/native-theme.spec.ts",
+        "--project=chromium",
+        "--output=/tmp/solosoul-refactor-macos-20261002/rf201-web-final-chromium"
+      ],
+      "started_at": "2026-10-02T12:38:21.642284+00:00",
+      "duration_seconds": 13.731110957916826,
+      "exit_code": 0
+    },
+    {
+      "name": "native-theme-mobile",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/native-theme.spec.ts",
+        "--project=mobile",
+        "--grep",
+        "RF-201|模拟 IPC=",
+        "--output=/tmp/solosoul-refactor-macos-20261002/rf201-web-final-mobile"
+      ],
+      "started_at": "2026-10-02T12:38:35.374263+00:00",
+      "duration_seconds": 7.413004249799997,
+      "exit_code": 0
+    },
+    {
+      "name": "production",
+      "command": [
+        "npm",
+        "run",
+        "test:e2e:production"
+      ],
+      "started_at": "2026-10-02T12:38:42.787901+00:00",
+      "duration_seconds": 8.208885625004768,
+      "exit_code": 0
+    }
+  ],
+  "web_counts": {
+    "chromium": 16,
+    "mobile_applicable": 8,
+    "production": 26
+  },
+  "rust_verification": [
+    {
+      "name": "macos-build",
+      "command": [
+        "npx",
+        "tauri",
+        "build",
+        "--debug",
+        "--no-bundle",
+        "--ci"
+      ],
+      "started_at": "2026-10-02T12:06:48.254672+00:00",
+      "duration_seconds": 105.86931241722777,
+      "exit_code": 0
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "started_at": "2026-10-02T12:08:34.125259+00:00",
+      "duration_seconds": 1.0028002080507576,
+      "exit_code": 0
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "started_at": "2026-10-02T12:08:35.128352+00:00",
+      "duration_seconds": 28.130443166941404,
+      "exit_code": 0
+    },
+    {
+      "name": "rust-test",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "started_at": "2026-10-02T12:09:03.259248+00:00",
+      "duration_seconds": 133.6198332500644,
+      "exit_code": 0
+    }
+  ],
+  "rust_counts": {
+    "passed": 1850,
+    "failed": 0,
+    "ignored": 3
+  },
+  "ios_target_checks": [
+    {
+      "name": "ios-device",
+      "command": [
+        "cargo",
+        "check",
+        "--target",
+        "aarch64-apple-ios"
+      ],
+      "started_at": "2026-10-02T12:04:40.459333+00:00",
+      "duration_seconds": 25.094383290968835,
+      "exit_code": 0
+    },
+    {
+      "name": "ios-simulator",
+      "command": [
+        "cargo",
+        "check",
+        "--target",
+        "aarch64-apple-ios-sim"
+      ],
+      "started_at": "2026-10-02T12:05:05.554528+00:00",
+      "duration_seconds": 45.593860290944576,
+      "exit_code": 0
+    }
+  ],
+  "ios_native_build": {
+    "command": [
+      "npm",
+      "run",
+      "tauri:ios:build:sim",
+      "--",
+      "--debug",
+      "--no-sign",
+      "--archive-only",
+      "--ci"
+    ],
+    "exit_code": 0,
+    "started_at": "2026-10-02T12:26:15.005799+00:00",
+    "duration_seconds": 44.95255674980581,
+    "generated_tracked_changes": [
+      "src-tauri/gen/apple/solo_soul.xcodeproj/project.pbxproj",
+      "src-tauri/gen/apple/solo_soul_iOS/Info.plist"
+    ]
+  },
+  "android_build": [
+    {
+      "name": "android-stage",
+      "command": [
+        "node",
+        "scripts/stage-mobile-resources.cjs"
+      ],
+      "started_at": "2026-10-02T11:33:48.152326+00:00",
+      "duration_seconds": 0.2270258329808712,
+      "exit_code": 0
+    },
+    {
+      "name": "android-check",
+      "command": [
+        "cargo",
+        "ndk",
+        "-t",
+        "aarch64-linux-android",
+        "check"
+      ],
+      "started_at": "2026-10-02T11:33:48.379663+00:00",
+      "duration_seconds": 7.622731584124267,
+      "exit_code": 0
+    },
+    {
+      "name": "android-build",
+      "command": [
+        "npx",
+        "tauri",
+        "android",
+        "build",
+        "--debug",
+        "--target",
+        "aarch64",
+        "--split-per-abi",
+        "--apk",
+        "--ci"
+      ],
+      "started_at": "2026-10-02T11:33:56.002669+00:00",
+      "duration_seconds": 65.87653766572475,
+      "exit_code": 0
+    }
+  ],
+  "android_apk": {
+    "apk": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk",
+    "apk_sha256": "1891c083095f7f84da6e5f18c592eddbe992ad956dd99bdc0cab7c27a71c8296",
+    "apk_size": 122887361,
+    "native_library_sha256": "00aae5acda86b8bf033d37859340a541e1b8f8c7b254230dd34d14ef53e2a821",
+    "native_library_matches_build": true,
+    "iOS_generated_changes_restored": [
+      "tauri/src-tauri/gen/apple/solo_soul.xcodeproj/project.pbxproj",
+      "tauri/src-tauri/gen/apple/solo_soul_iOS/Info.plist"
+    ]
+  },
+  "android_native": [
+    {
+      "name": "gradle-tasks",
+      "command": [
+        "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/gradlew",
+        "tasks",
+        "--all"
+      ],
+      "started_at": "2026-10-02T12:26:48.184412+00:00",
+      "duration_seconds": 3.2601004582829773,
+      "exit_code": 0,
+      "process_exit_code": 0,
+      "assertion_passed": true
+    },
+    {
+      "name": "test-build",
+      "command": [
+        "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/gradlew",
+        ":app:assembleArm64DebugAndroidTest",
+        "-x",
+        ":app:rustBuildArm64Debug"
+      ],
+      "started_at": "2026-10-02T12:26:51.444866+00:00",
+      "duration_seconds": 3.334896417334676,
+      "exit_code": 0,
+      "process_exit_code": 0,
+      "assertion_passed": true
+    },
+    {
+      "name": "apk-install",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "install",
+        "-r",
+        "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk"
+      ],
+      "started_at": "2026-10-02T12:26:54.780254+00:00",
+      "duration_seconds": 0.8255761247128248,
+      "exit_code": 0,
+      "process_exit_code": 0,
+      "assertion_passed": true
+    },
+    {
+      "name": "test-apk-install",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "install",
+        "-r",
+        "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/app/build/outputs/apk/androidTest/arm64/debug/app-arm64-debug-androidTest.apk"
+      ],
+      "started_at": "2026-10-02T12:26:55.606305+00:00",
+      "duration_seconds": 0.17534287506714463,
+      "exit_code": 0,
+      "process_exit_code": 0,
+      "assertion_passed": true
+    },
+    {
+      "name": "force-stop-systemThemeFollowsLightDarkLight",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "am",
+        "force-stop",
+        "com.solosoul.app"
+      ],
+      "started_at": "2026-10-02T12:26:55.781888+00:00",
+      "duration_seconds": 0.06487833289429545,
+      "exit_code": 0,
+      "process_exit_code": 0,
+      "assertion_passed": true
+    },
+    {
+      "name": "systemThemeFollowsLightDarkLight",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "am",
+        "instrument",
+        "-w",
+        "-e",
+        "waitForActivitiesToComplete",
+        "false",
+        "-e",
+        "class",
+        "com.solosoul.app.AndroidThemeInstrumentedTest#systemThemeFollowsLightDarkLight",
+        "com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner"
+      ],
+      "started_at": "2026-10-02T12:26:55.847029+00:00",
+      "duration_seconds": 5.974061917047948,
+      "exit_code": 0,
+      "process_exit_code": 0,
+      "assertion_passed": true
+    },
+    {
+      "name": "force-stop-explicitLightSurvivesSystemChanges",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "am",
+        "force-stop",
+        "com.solosoul.app"
+      ],
+      "started_at": "2026-10-02T12:27:01.827572+00:00",
+      "duration_seconds": 0.2525201248936355,
+      "exit_code": 0,
+      "process_exit_code": 0,
+      "assertion_passed": true
+    },
+    {
+      "name": "explicitLightSurvivesSystemChanges",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "am",
+        "instrument",
+        "-w",
+        "-e",
+        "waitForActivitiesToComplete",
+        "false",
+        "-e",
+        "class",
+        "com.solosoul.app.AndroidThemeInstrumentedTest#explicitLightSurvivesSystemChanges",
+        "com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner"
+      ],
+      "started_at": "2026-10-02T12:27:02.080418+00:00",
+      "duration_seconds": 4.693755666259676,
+      "exit_code": 0,
+      "process_exit_code": 0,
+      "assertion_passed": true
+    },
+    {
+      "name": "force-stop-explicitDarkSurvivesSystemChanges",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "am",
+        "force-stop",
+        "com.solosoul.app"
+      ],
+      "started_at": "2026-10-02T12:27:06.774510+00:00",
+      "duration_seconds": 0.062140040565282106,
+      "exit_code": 0,
+      "process_exit_code": 0,
+      "assertion_passed": true
+    },
+    {
+      "name": "explicitDarkSurvivesSystemChanges",
+      "command": [
+        "/Users/zzc/Library/Android/sdk/platform-tools/adb",
+        "-s",
+        "emulator-5586",
+        "shell",
+        "am",
+        "instrument",
+        "-w",
+        "-e",
+        "waitForActivitiesToComplete",
+        "false",
+        "-e",
+        "class",
+        "com.solosoul.app.AndroidThemeInstrumentedTest#explicitDarkSurvivesSystemChanges",
+        "com.solosoul.app.test/androidx.test.runner.AndroidJUnitRunner"
+      ],
+      "started_at": "2026-10-02T12:27:06.836965+00:00",
+      "duration_seconds": 4.269637374673039,
+      "exit_code": 0,
+      "process_exit_code": 0,
+      "assertion_passed": true
+    }
+  ],
+  "android_stage_records": {
+    "rf201-dark.json": [
+      {
+        "platform": "android",
+        "theme": "dark",
+        "darkMedia": false,
+        "mounted": true,
+        "startupGone": true,
+        "background": "#181D1B",
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "stage": "dark-light"
+      },
+      {
+        "platform": "android",
+        "theme": "dark",
+        "darkMedia": true,
+        "mounted": true,
+        "startupGone": true,
+        "background": "#181D1B",
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "stage": "dark-dark"
+      },
+      {
+        "platform": "android",
+        "theme": "dark",
+        "darkMedia": false,
+        "mounted": true,
+        "startupGone": true,
+        "background": "#181D1B",
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "stage": "dark-light-again"
+      }
+    ],
+    "rf201-system.json": [
+      {
+        "platform": "android",
+        "theme": "light",
+        "darkMedia": false,
+        "mounted": true,
+        "startupGone": true,
+        "background": "#F9F9F3",
+        "statusBarLight": true,
+        "navigationBarLight": true,
+        "stage": "system-light"
+      },
+      {
+        "platform": "android",
+        "theme": "dark",
+        "darkMedia": true,
+        "mounted": true,
+        "startupGone": true,
+        "background": "#181D1B",
+        "statusBarLight": false,
+        "navigationBarLight": false,
+        "stage": "system-dark"
+      },
+      {
+        "platform": "android",
+        "theme": "light",
+        "darkMedia": false,
+        "mounted": true,
+        "startupGone": true,
+        "background": "#F9F9F3",
+        "statusBarLight": true,
+        "navigationBarLight": true,
+        "stage": "system-light-again"
+      }
+    ],
+    "rf201-light.json": [
+      {
+        "platform": "android",
+        "theme": "light",
+        "darkMedia": false,
+        "mounted": true,
+        "startupGone": true,
+        "background": "#F9F9F3",
+        "statusBarLight": true,
+        "navigationBarLight": true,
+        "stage": "light-light"
+      },
+      {
+        "platform": "android",
+        "theme": "light",
+        "darkMedia": true,
+        "mounted": true,
+        "startupGone": true,
+        "background": "#F9F9F3",
+        "statusBarLight": true,
+        "navigationBarLight": true,
+        "stage": "light-dark"
+      },
+      {
+        "platform": "android",
+        "theme": "light",
+        "darkMedia": false,
+        "mounted": true,
+        "startupGone": true,
+        "background": "#F9F9F3",
+        "statusBarLight": true,
+        "navigationBarLight": true,
+        "stage": "light-light-again"
+      }
+    ]
+  },
+  "android_jvm_unit": {
+    "result": {
+      "command": [
+        "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/android/gradlew",
+        ":app:testArm64DebugUnitTest",
+        "-x",
+        ":app:rustBuildArm64Debug"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.8764422503300011
+    },
+    "tests": 0,
+    "note": "Gradle testArm64DebugUnitTest NO-SOURCE, not claimed as tests passed; actual new Kotlin regression is three instrumentation cases."
+  },
+  "ios_native_runtime": {
+    "simulator": "iPhone17 / iOS26.3.1",
+    "serial": "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+    "stages": 9,
+    "commands": [
+      {
+        "name": "system-terminate",
+        "command": [
+          "xcrun",
+          "simctl",
+          "terminate",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 3
+      },
+      {
+        "name": "system-initial-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-launch",
+        "command": [
+          "xcrun",
+          "simctl",
+          "launch",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-light-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-light-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-light-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-evidence/system-light.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-dark-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "dark"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-dark-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-dark-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-evidence/system-dark.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-light-again-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-light-again-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "system-light-again-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-evidence/system-light-again.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-terminate",
+        "command": [
+          "xcrun",
+          "simctl",
+          "terminate",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-initial-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-launch",
+        "command": [
+          "xcrun",
+          "simctl",
+          "launch",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-light-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-light-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-light-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-evidence/light-light.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-dark-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "dark"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-dark-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-dark-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-evidence/light-dark.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-light-again-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-light-again-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "light-light-again-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-evidence/light-light-again.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-terminate",
+        "command": [
+          "xcrun",
+          "simctl",
+          "terminate",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-initial-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-launch",
+        "command": [
+          "xcrun",
+          "simctl",
+          "launch",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-light-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-light-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-light-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-evidence/dark-light.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-dark-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "dark"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-dark-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-dark-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-evidence/dark-dark.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-light-again-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-light-again-read",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "dark-light-again-screenshot",
+        "command": [
+          "xcrun",
+          "simctl",
+          "io",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "screenshot",
+          "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-evidence/dark-light-again.png"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "final-terminate",
+        "command": [
+          "xcrun",
+          "simctl",
+          "terminate",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "com.solosoul.app"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "restore-initial-appearance",
+        "command": [
+          "xcrun",
+          "simctl",
+          "ui",
+          "362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C",
+          "appearance",
+          "light"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "screenshot_background_samples": {
+      "dark-dark.png": [
+        41,
+        37,
+        32
+      ],
+      "dark-light-again.png": [
+        41,
+        37,
+        32
+      ],
+      "dark-light.png": [
+        41,
+        37,
+        32
+      ],
+      "light-dark.png": [
+        249,
+        249,
+        245
+      ],
+      "light-light-again.png": [
+        249,
+        249,
+        245
+      ],
+      "light-light.png": [
+        249,
+        249,
+        245
+      ],
+      "system-dark.png": [
+        41,
+        37,
+        32
+      ],
+      "system-light-again.png": [
+        249,
+        249,
+        245
+      ],
+      "system-light.png": [
+        249,
+        249,
+        245
+      ]
+    },
+    "note": "first terminate exit3 because no running process; all appearance/launch/screenshot commands exit0, preference bytes and initial appearance restored. Visual inspection and same-anchor read-only color samples, not an iOS JUnit/DOM assertion.",
+    "binary": {
+      "installed_path": "/Users/zzc/Library/Developer/CoreSimulator/Devices/362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C/data/Containers/Bundle/Application/820F8E3B-1C5D-4929-9DD5-13073CE34DC0/SoloSoul.app/SoloSoul",
+      "built_path": "/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri/gen/apple/build/solo_soul_iOS.xcarchive/Products/Applications/SoloSoul.app/SoloSoul",
+      "installed_sha256": "64a5a3524ebf1e9a7b54bfa6fc522122d15d512602808ba56fbe164685ebdd74",
+      "built_sha256": "64a5a3524ebf1e9a7b54bfa6fc522122d15d512602808ba56fbe164685ebdd74",
+      "matches_latest_built": true
+    },
+    "data_container": "/Users/zzc/Library/Developer/CoreSimulator/Devices/362BC1AE-06B5-4ADE-BAA8-E36935C4AE2C/data/Containers/Data/Application/555AB311-0F54-4A24-B0D2-787653808994"
+  },
+  "limits": [
+    "Browser tests mock IPC and do not prove material rendering. Windows desktop-only cases are not applicable to mobile shell; original broad mobile run (2 passed/8 failed) retained, proper scope plus added mobile cases passed.",
+    "Android screenshot compositor may still include startup layer at initial frame; acceptance relies on actual loaded WebView DOM/media plus native status/navigation icon assertions and later screenshots, not splash-only appearance.",
+    "iOS Chinese glyph boxes observed in separate RF-1069; CoreText diagnostic finds glyphs. Theme scope is verified, not general iOS UI/typography or biometric certification.",
+    "Native device evidence is isolated simulators, not physical-device, all-OS-version or remote-CI evidence.",
+    "Request generation, StrictMode ownership and account transition races remain RF-112."
+  ],
+  "prior_failures": [
+    "theme red:6 failed/13 passed; fixed targeted:19 passed",
+    "original Android main-thread WebView readiness assertion/null evaluation and Activity/JUnit process shutdown failures retained; no zero shell exit substituted for success",
+    "old multi-target plugin copying and iOS status type failures resolved by sequential checks and independently committed RF-204",
+    "extra first font/color probe used unavailable Python PIL; successful local CoreText/AppKit read-only probes retained",
+    "Installed iOS binary differed after later npm build; reinstalled current archive and matched full executable hash. Reinstall changed data-container UUID, cached fixture path made one nine-stage rerun invalid; preserved that run, resolved container dynamically, and repeated current-binary nine stages successfully."
+  ],
+  "logs": [
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-theme-red.log",
+      "bytes": 3314,
+      "sha256": "87c026028004233ed94d78989a840e0617c0a0c12cebd07bbd29f0e793cfa5cf"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-theme-green.log",
+      "bytes": 229,
+      "sha256": "900f6a5a1e250992efe198d6fc4fd157bd75cb22fe5484c6b9185a99483159de"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-theme-integration.log",
+      "bytes": 413,
+      "sha256": "94abfb80098db55171c0379ed689301c28edd0462758c762636c3ca24a0a47e7"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-front-final-types.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-front-final-lint.log",
+      "bytes": 284,
+      "sha256": "efbf0bb9a7b5429028016ddad5d8ad0a5c9b9e66a04dc3b0808220cbd33a6859"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-front-final-test-default.log",
+      "bytes": 337637,
+      "sha256": "d697b967787e57374fd2ba739189918735f12125fd5bf0b4d6f26baa0699bd62"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-web-final-native-theme-chromium.log",
+      "bytes": 2128,
+      "sha256": "6f2173ed68a351305f95de05f1b5f5609ba25e02773545ee9f9d70a103d9ce92"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-web-final-native-theme-mobile.log",
+      "bytes": 1085,
+      "sha256": "b771e242ad34da8aa6803244cfb56610b5d208615e49543eb16a10a16f2be020"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-web-final-production.log",
+      "bytes": 5514,
+      "sha256": "84faa66d0ffe91131f1c1036d2a3572fa542516e99add2fc47c407d355e9983a"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-web-native-theme-mobile.log",
+      "bytes": 11528,
+      "sha256": "60afc634521023b6d4c9dcf57aa6b5cfc13c2c1101141044e81a1b9b7f921dde"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-android-unit.log",
+      "bytes": 9099,
+      "sha256": "79140260fcbd3f1bee5133a9b3182e26b47ea86b8d8a964c79619c2d384c14a8"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf1068-npm-ios-build.log",
+      "bytes": 8073,
+      "sha256": "29dc28fbe5dc5afa52bc5ffd128f239425e160b28d63ae397248a5a5fbd51ce7"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-colors.log",
+      "bytes": 300,
+      "sha256": "827f58e50410759d813bf234586de08c086e99b4bc622d77d421e7c2b26943e1"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-font-probe.log",
+      "bytes": 150,
+      "sha256": "f12009a2ccba7478cb6566e5c21d7ed3c0c34202eb1467cac2e28032ac3f8c69"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-stable-gradle-tasks.log",
+      "bytes": 149433,
+      "sha256": "7fc676bced8aac463601048221995bc023cb2076c40f584d679e0fef73abeb5f"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-stable-test-build.log",
+      "bytes": 14035,
+      "sha256": "4ae804818fc2a535c16ecd72a4626cf1f9bd7755b96b6eb6a68e826e00e734e8"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-stable-apk-install.log",
+      "bytes": 36,
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-stable-test-apk-install.log",
+      "bytes": 36,
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-stable-force-stop-systemThemeFollowsLightDarkLight.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-stable-systemThemeFollowsLightDarkLight.log",
+      "bytes": 230,
+      "sha256": "e9dfb208274df16b470142bbdb0f1e8ae919d33f1b456f4b2814ded3b1f01fb3"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-stable-force-stop-explicitLightSurvivesSystemChanges.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-stable-explicitLightSurvivesSystemChanges.log",
+      "bytes": 232,
+      "sha256": "3b29e1290bf3b11186119bdbd9bd30123f057113c3b9bb3bae6d4dea149f06ff"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-stable-force-stop-explicitDarkSurvivesSystemChanges.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-stable-explicitDarkSurvivesSystemChanges.log",
+      "bytes": 232,
+      "sha256": "bf3a5094a18096aa050a89a50b75ae781313b447d1932633c019b9cf8fd87773"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-systemThemeFollowsLightDarkLight.log",
+      "bytes": 1631,
+      "sha256": "50f409d2c8f4cf2547e0e8ccd31d051b215f62b5daa6a38279042f4db2800b9d"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-retry-systemThemeFollowsLightDarkLight.log",
+      "bytes": 276,
+      "sha256": "53735ce16cdb8ef1726ba7a4c095638b4d55b232f80984ba3ecc45b0a01060f2"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-final-systemThemeFollowsLightDarkLight.log",
+      "bytes": 277,
+      "sha256": "e21ca82b40e94adeee326649197284200806a2befbe6c7e57ec1b4931060d178"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-accepted-systemThemeFollowsLightDarkLight.log",
+      "bytes": 232,
+      "sha256": "2b0884e596126f98ad0d57ce29ce4f44bf0ef8cacedbcc0953ed3906dfbaafde"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-visible-systemThemeFollowsLightDarkLight.log",
+      "bytes": 232,
+      "sha256": "06389f42e3e842d748146ea6fe84a751cc99e2eaba320b29bdf390c7c22ad43e"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-explicitLightSurvivesSystemChanges.log",
+      "bytes": 121,
+      "sha256": "648dc788ab8ba5f41c17a91d19cf8882badb76b0730d43b3675b451c9afda4fe"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-retry-explicitLightSurvivesSystemChanges.log",
+      "bytes": 276,
+      "sha256": "53735ce16cdb8ef1726ba7a4c095638b4d55b232f80984ba3ecc45b0a01060f2"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-final-explicitLightSurvivesSystemChanges.log",
+      "bytes": 232,
+      "sha256": "e8aefc44b8e3aae4cbaecaf5d0f29ac3c19b7e1d2460ff713b3c54d927765b4f"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-accepted-explicitLightSurvivesSystemChanges.log",
+      "bytes": 232,
+      "sha256": "b98b308669653f20fe01da784d55c612a5073a78eadcbb7294d84ff9d60de0bb"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-visible-explicitLightSurvivesSystemChanges.log",
+      "bytes": 232,
+      "sha256": "1eca51d1a4ad3028ebefc5f784ba15ce96b40a4184e78be694fb675d0ca11e3f"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-explicitDarkSurvivesSystemChanges.log",
+      "bytes": 868,
+      "sha256": "9692e6fc5ae3543c8e6ce9695f15849f6ea6769b3b30c5d91eab6cefb04b6fd3"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-retry-explicitDarkSurvivesSystemChanges.log",
+      "bytes": 276,
+      "sha256": "53735ce16cdb8ef1726ba7a4c095638b4d55b232f80984ba3ecc45b0a01060f2"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-final-explicitDarkSurvivesSystemChanges.log",
+      "bytes": 232,
+      "sha256": "7d26412beee24ff4ccec6dcc92429c03e9d73b1f39db6dc8bbffb1e5b784c7a1"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-accepted-explicitDarkSurvivesSystemChanges.log",
+      "bytes": 232,
+      "sha256": "ffe88168aa68bc7d829a50408776604b4d7078b7eed2158588e806be63dd0f5f"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-instrumentation-visible-explicitDarkSurvivesSystemChanges.log",
+      "bytes": 232,
+      "sha256": "eee12f0c96ca55a248524dcd92e1684d4719db7f2b7213595e133ff9e170b643"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-android-stage.log",
+      "bytes": 155,
+      "sha256": "faf0fc2a86fccd9a4811cd0ef360465bf3789686136e7a13c8f1930c2e0f5d04"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-android-check.log",
+      "bytes": 4493,
+      "sha256": "4c6b9212017c591212ebd61c2f2be75f98821a00f17f353b04648915ef7d3688"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-android-build.log",
+      "bytes": 22007,
+      "sha256": "46187578093672e7ac5f9c5b2971e78bf2c6922682cd97074ddc10974baf2a66"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-macos-build.log",
+      "bytes": 8214,
+      "sha256": "7947e23dcc8dd10d168a825b788d85029933566369459a9e296b61c4005fa5c7"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-fmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-clippy.log",
+      "bytes": 2378,
+      "sha256": "8fae12185bb99828568b26c6bbc3df514906d62b4ae14b905602879937c3acf5"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-rust-test.log",
+      "bytes": 502091,
+      "sha256": "078582675497f08cb6e2ec65ef0cfda2cf0d8c0a1f4c80f20880d22963af2d9a"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-ios-device.log",
+      "bytes": 8134,
+      "sha256": "ac111ba37a946e970f3df4b205d3dfcbdb07f7684369c2ed7439909f3d51f0eb"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf204-ios-simulator.log",
+      "bytes": 9481,
+      "sha256": "ac342daff0cbe225ebca0b08838a1c025e8fa2a22432d800bd988b7efcb71e2c"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-reinstall-preflight.json",
+      "bytes": 245,
+      "sha256": "c490dbe4c6e76a25837e467626b348f78b8ae3ce87869a8782dca1ccfdbccf65"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-reinstall.json",
+      "bytes": 374,
+      "sha256": "500aa88a7562fbd732c4f092bd118fbd4f9c61649a9acb0560e6d9c6aaca2bba"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-reinstall.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-final-results.json",
+      "bytes": 8605,
+      "sha256": "0e0c72bf06167fa30049130d2aebcb7d9835952b432f437fe4cf15b778513597"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-final-colors.log",
+      "bytes": 303,
+      "sha256": "9323505b7e01e4606b36b2dbd4c1f1b869d7badc3f378d73a85696ec99cda8d0"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-current-colors.log",
+      "bytes": 300,
+      "sha256": "827f58e50410759d813bf234586de08c086e99b4bc622d77d421e7c2b26943e1"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-results.json",
+      "bytes": 8623,
+      "sha256": "e974434e9569b32628a2c0af61abe8aeb2199c68bc139945a8e9e8853d8c47a5"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-system-terminate.log",
+      "bytes": 329,
+      "sha256": "ea5d91c0e2f619f8d68e967d78072f8e96f45346ea8815d2d59795f1b67156bf"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-system-initial-appearance.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-system-launch.log",
+      "bytes": 24,
+      "sha256": "77c54238287c8b61579046195fcc6e78b08f640c0b8e04b63cfa536d93dc1200"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-system-light-appearance.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-system-light-read.log",
+      "bytes": 6,
+      "sha256": "00be490dace2ce959d7af6676ed67f78d1f9c8a58174447b1d6d96168f386166"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-system-light-screenshot.log",
+      "bytes": 149,
+      "sha256": "909b4034e2f221498dc21eb3262dc45937d784d149cab97dd25a317fe1291dea"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-system-dark-appearance.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-system-dark-read.log",
+      "bytes": 5,
+      "sha256": "3d1cfa6deae9416413e1ad818dbc4dcb3169a755a4d080780d403a46c89fa122"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-system-dark-screenshot.log",
+      "bytes": 148,
+      "sha256": "8615e5d054abfa442d8df226df17658c016c662cbc90b9561b6342765f929c12"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-system-light-again-appearance.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-system-light-again-read.log",
+      "bytes": 6,
+      "sha256": "00be490dace2ce959d7af6676ed67f78d1f9c8a58174447b1d6d96168f386166"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-system-light-again-screenshot.log",
+      "bytes": 155,
+      "sha256": "ae6f014263840198cf05be88c3c95979db73fc275d51e4c12cd39bf56d9b2350"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-light-terminate.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-light-initial-appearance.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-light-launch.log",
+      "bytes": 24,
+      "sha256": "39537da08b0444c5746d5bdbda3e70b6c365ec88472bb8a6bfcdb3009072b10d"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-light-light-appearance.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-light-light-read.log",
+      "bytes": 6,
+      "sha256": "00be490dace2ce959d7af6676ed67f78d1f9c8a58174447b1d6d96168f386166"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-light-light-screenshot.log",
+      "bytes": 148,
+      "sha256": "b9f088e0271b2f3504218f5be2225d53fbafdfdae4934c0480f37671eda4bbc1"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-light-dark-appearance.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-light-dark-read.log",
+      "bytes": 5,
+      "sha256": "3d1cfa6deae9416413e1ad818dbc4dcb3169a755a4d080780d403a46c89fa122"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-light-dark-screenshot.log",
+      "bytes": 147,
+      "sha256": "04fdd1991d2f733b1c9d18fe052db592d70462d2e4480cedc12e2ed18ec65f5e"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-light-light-again-appearance.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-light-light-again-read.log",
+      "bytes": 6,
+      "sha256": "00be490dace2ce959d7af6676ed67f78d1f9c8a58174447b1d6d96168f386166"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-light-light-again-screenshot.log",
+      "bytes": 154,
+      "sha256": "f8850d9fa42b6208d982786c734e34901469e5e976a0f8d38a2b2fbeb68687f3"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-dark-terminate.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-dark-initial-appearance.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-dark-launch.log",
+      "bytes": 24,
+      "sha256": "1d97540e06695d993ac1413c628098be5352c61b004984f74e81a754cc2eb268"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-dark-light-appearance.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-dark-light-read.log",
+      "bytes": 6,
+      "sha256": "00be490dace2ce959d7af6676ed67f78d1f9c8a58174447b1d6d96168f386166"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-dark-light-screenshot.log",
+      "bytes": 147,
+      "sha256": "423e0990fd99cbdfefcd95ab3e3142dc7883af7ebd75ca4b6e2e16b8f11bf032"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-dark-dark-appearance.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-dark-dark-read.log",
+      "bytes": 5,
+      "sha256": "3d1cfa6deae9416413e1ad818dbc4dcb3169a755a4d080780d403a46c89fa122"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-dark-dark-screenshot.log",
+      "bytes": 146,
+      "sha256": "454b916e3c87315855bf9e3b94ed092057ee62f748bcf6b1ba9b232080dee25a"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-dark-light-again-appearance.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-dark-light-again-read.log",
+      "bytes": 6,
+      "sha256": "00be490dace2ce959d7af6676ed67f78d1f9c8a58174447b1d6d96168f386166"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-dark-light-again-screenshot.log",
+      "bytes": 153,
+      "sha256": "524a840b6f27736a10be54a941901781a67a4f581452551cf07c3bcedfcc9524"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-final-terminate.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/solosoul-refactor-macos-20261002/rf201-ios-theme-current-restore-initial-appearance.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/android/rf201-dark-dark.png",
+      "bytes": 150256,
+      "sha256": "0667348a8370b0be0635da90eac0503b2ba4cb4b05331b099436c61d85835256"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/android/rf201-dark-light-again.png",
+      "bytes": 150256,
+      "sha256": "0667348a8370b0be0635da90eac0503b2ba4cb4b05331b099436c61d85835256"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/android/rf201-dark-light.png",
+      "bytes": 118392,
+      "sha256": "39ade0ed70d923d6bdf879675a96a021b9f7dac7fc97b3c1f4a8bd0dfda72a5f"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/android/rf201-dark.json",
+      "bytes": 738,
+      "sha256": "725cff3c40ea0ae57bffdde190c851b3c9398ad79735e7d95f808a0315890b88"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/android/rf201-light-dark.png",
+      "bytes": 152000,
+      "sha256": "9f71e272447cbad0dece2d5f55edb2100027b145fedeabe902f2a1a2b094a766"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/android/rf201-light-light-again.png",
+      "bytes": 151997,
+      "sha256": "46393b65dc9478c7ea4ebdd2eb9e505dbcccf2434bee27b61c38c09e4da25ffc"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/android/rf201-light-light.png",
+      "bytes": 123880,
+      "sha256": "6cf0b8d442706d0185d3655aac03f2ffca98bf89a2f17db9b7d7626cf004c7c8"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/android/rf201-light.json",
+      "bytes": 738,
+      "sha256": "67cf5fa8d3c415561df01ed7d318c1e2a63fb44dfd3243ace9d98678f9b81c8c"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/android/rf201-system-dark.png",
+      "bytes": 150241,
+      "sha256": "64a7522dafa5b5564aff396ccbe2d41ec05e7492ff72e48f55f5b0cf09ddc35e"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/android/rf201-system-light-again.png",
+      "bytes": 151987,
+      "sha256": "1334bde1ea28a91c8fce5ef8a8368b6087f78fc5e85b7cd3718190511897f9cb"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/android/rf201-system-light.png",
+      "bytes": 124329,
+      "sha256": "3cd2bcb10c278c6a70f453e36c7526fc01004f2a25885452e726ff40532d3419"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/android/rf201-system.json",
+      "bytes": 742,
+      "sha256": "cfc5b58f61e636c2b589d2c76686710e971989fdcd3f91f00d66116d0dae2328"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/ios/dark-dark.png",
+      "bytes": 142918,
+      "sha256": "2ee3880a4152b83f8304936b71e15375713d6123d1a77af6e266f9422215ffca"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/ios/dark-light-again.png",
+      "bytes": 142918,
+      "sha256": "2ee3880a4152b83f8304936b71e15375713d6123d1a77af6e266f9422215ffca"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/ios/dark-light.png",
+      "bytes": 142918,
+      "sha256": "2ee3880a4152b83f8304936b71e15375713d6123d1a77af6e266f9422215ffca"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/ios/font-probe-result.json",
+      "bytes": 194,
+      "sha256": "a61b69cb4cecd7f8f548c4d18dacb80ed7ce516ebefe3d7eb76550b3053fd242"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/ios/light-dark.png",
+      "bytes": 145596,
+      "sha256": "e7bae2e403708b2f64bfad956d406c6655e02bc68f455d9109e1b119f43cef1c"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/ios/light-light-again.png",
+      "bytes": 146423,
+      "sha256": "e0eaf829b4db6d0e04000e01c52a7420689685b778727c2fbd2e4b379af7772c"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/ios/light-light.png",
+      "bytes": 145596,
+      "sha256": "e7bae2e403708b2f64bfad956d406c6655e02bc68f455d9109e1b119f43cef1c"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/ios/rf201-ios-font-probe.swift",
+      "bytes": 851,
+      "sha256": "22da9ee5c835c5eacc2210183c1e5fc21ef54f0a90ca2257696d3cc97b33eb1a"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/ios/screenshot-color-samples.json",
+      "bytes": 777,
+      "sha256": "4c7cdace35e4a566d147964aa86849fdf3c42668ae68c5db4997a45c37b81f62"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/ios/system-dark.png",
+      "bytes": 142222,
+      "sha256": "6c4dff16c044c5bd45560813cf327724798a7c3f74c27766cedbe13621d9d98d"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/ios/system-light-again.png",
+      "bytes": 145670,
+      "sha256": "d99baa21abc56f0e0326b098c07892c04653e13360e9806217d80c85867ba3b9"
+    },
+    {
+      "path": "docs/verification/rf201-native-2026-10-02/ios/system-light.png",
+      "bytes": 145644,
+      "sha256": "aa5f420e02d3275048bd5d3ae7f724cd77d642dcb799b37f9af31dcb01fe9556"
+    }
+  ]
+}
