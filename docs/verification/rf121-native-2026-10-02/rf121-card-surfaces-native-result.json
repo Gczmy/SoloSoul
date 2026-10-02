@@ -1,0 +1,17 @@
+{
+  "command": [
+    "cargo",
+    "run",
+    "-p",
+    "solo_soul",
+    "--example",
+    "macos_window_appearance",
+    "--",
+    "--unthrottled",
+    "--card-fixture",
+    "/tmp/solosoul-refactor-macos-20261002/rf121-card-surfaces-diagnostic.html"
+  ],
+  "exit_code": 1,
+  "duration_seconds": 13.520314333960414,
+  "temporary_macos_private_feature": true
+}

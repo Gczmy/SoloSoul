@@ -1,0 +1,13 @@
+{
+  "command": [
+    "cargo",
+    "run",
+    "-p",
+    "solo_soul",
+    "--example",
+    "macos_window_appearance"
+  ],
+  "exit_code": 0,
+  "duration_seconds": 33.75875220820308,
+  "temporary_macos_private_feature": true
+}

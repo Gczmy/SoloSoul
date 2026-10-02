@@ -1,0 +1,20 @@
+   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)
+    Finished `dev` profile [optimized + debuginfo] target(s) in 2.96s
+     Running `target/debug/examples/macos_window_appearance --card-fixture /tmp/solosoul-refactor-macos-20261002/rf121-card-surfaces.html`
+[appearance] material=liquid-glass; native-only=false; unthrottled=false
+[appearance +65.785333ms] focused=true; native-only=false; unthrottled=false
+[appearance +2.477173958s] focused=false; native-only=false; unthrottled=false
+[appearance +2.477258083s] focused=true; native-only=false; unthrottled=false
+[appearance +3.649373791s] focused=false; native-only=false; unthrottled=false
+[appearance +3.649528958s] focused=true; native-only=false; unthrottled=false
+[appearance] fullscreen=true; titlebar-height=52; traffic-lights-right=14
+[appearance] fullscreen=false; titlebar-height=52; traffic-lights-right=79
+PASS: full-window WebView, native button hit testing, stable WebView/material/drag-view/buttons, theme sync, hide/show, resize, fullscreen, titlebar controls and drag boundary
+[card-surface] {"appearance":{"highContrast":false,"material":"liquid-glass","platform":"macos","reduceMotion":false,"titlebarHeight":52,"trafficLightsRight":79},"cards":[{"backdropFilter":"none","background":"rgb(253, 252, 249)","color":"rgb(31, 28, 24)","height":487,"overflow":false,"surface":"default","visible":true,"width":272},{"backdropFilter":"none","background":"rgb(253, 252, 249)","color":"rgb(31, 28, 24)","height":487,"overflow":false,"surface":"floating","visible":true,"width":272}],"expectedBackground":"rgb(253, 252, 249)","pageOverflow":false,"theme":"light","viewport":{"height":800,"width":1200}}
+
+thread 'tokio-rt-worker' (237769911) panicked at src-tauri/examples/macos_window_appearance.rs:373:25:
+assertion `left == right` failed
+  left: Object {"highContrast": Bool(false), "material": String("liquid-glass"), "platform": String("macos"), "reduceMotion": Bool(false), "titlebarHeight": Number(52), "trafficLightsRight": Number(79)}
+ right: Object {"highContrast": Bool(false), "material": String("liquid-glass"), "platform": String("macos"), "reduceMotion": Bool(false), "titlebarHeight": Number(52.0), "trafficLightsRight": Number(79.0)}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAIL: native window regression did not complete: Ok(Err(JoinError(JoinError::Panic(Id(9), "assertion `left == right` failed\n  left: Object {\"highContrast\": Bool(false), \"material\": String(\"liquid-glass\"), \"platform\": String(\"macos\"), \"reduceMotion\": Bool(false), \"titlebarHeight\": Number(52), \"trafficLightsRight\": Number(79)}\n right: Object {\"highContrast\": Bool(false), \"material\": String(\"liquid-glass\"), \"platform\": String(\"macos\"), \"reduceMotion\": Bool(false), \"titlebarHeight\": Number(52.0), \"trafficLightsRight\": Number(79.0)}", ...))))

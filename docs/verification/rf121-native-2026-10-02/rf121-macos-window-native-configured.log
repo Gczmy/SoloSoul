@@ -1,0 +1,7 @@
+   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)
+    Finished `dev` profile [optimized + debuginfo] target(s) in 24.93s
+     Running `target/debug/examples/macos_window_appearance`
+[appearance] material=liquid-glass; native-only=false; unthrottled=false
+[appearance] fullscreen=true; titlebar-height=52; traffic-lights-right=79
+[appearance] fullscreen=false; titlebar-height=52; traffic-lights-right=79
+PASS: full-window WebView, native button hit testing, stable WebView/material/drag-view/buttons, theme sync, hide/show, resize, fullscreen, titlebar controls and drag boundary

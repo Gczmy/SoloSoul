@@ -1,0 +1,12 @@
+   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)
+    Finished `dev` profile [optimized + debuginfo] target(s) in 2.34s
+     Running `target/debug/examples/macos_window_appearance --card-fixture /tmp/solosoul-refactor-macos-20261002/rf121-card-surfaces-painted.html`
+[appearance] material=liquid-glass; native-only=false; unthrottled=false
+[appearance] fullscreen=true; titlebar-height=52; traffic-lights-right=79
+[appearance] fullscreen=false; titlebar-height=52; traffic-lights-right=79
+PASS: full-window WebView, native button hit testing, stable WebView/material/drag-view/buttons, theme sync, hide/show, resize, fullscreen, titlebar controls and drag boundary
+
+thread 'tokio-rt-worker' (237778624) panicked at src-tauri/examples/macos_window_appearance.rs:372:36:
+Card 页面未返回测量: Elapsed(())
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAIL: native window regression did not complete: Ok(Err(JoinError(JoinError::Panic(Id(9), "Card 页面未返回测量: Elapsed(())", ...))))

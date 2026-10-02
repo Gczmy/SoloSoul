@@ -1,0 +1,11 @@
+[appearance] material=liquid-glass; native-only=false; unthrottled=false
+[appearance +5.49981925s] focused=true; native-only=false; unthrottled=false
+[appearance] fullscreen=true; titlebar-height=52; traffic-lights-right=14
+[appearance] fullscreen=false; titlebar-height=52; traffic-lights-right=79
+PASS: full-window WebView, native button hit testing, stable WebView/material/drag-view/buttons, theme sync, hide/show, resize, fullscreen, titlebar controls and drag boundary
+[card-native] visible=true; occlusion=NSWindowOcclusionState(8194); webview-hidden=false; app-active=true; activation-policy=NSApplicationActivationPolicy(0)
+
+thread 'tokio-rt-worker' (237788465) panicked at src-tauri/examples/macos_window_appearance.rs:382:36:
+Card 页面未返回测量: Elapsed(())
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAIL: native window regression did not complete: Ok(Err(JoinError(JoinError::Panic(Id(9), "Card 页面未返回测量: Elapsed(())", ...))))

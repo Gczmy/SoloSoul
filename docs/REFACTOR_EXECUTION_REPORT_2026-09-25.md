@@ -122,7 +122,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 - 任务总数：**259**（P1：51；P2：207；P3：1）。
 - 已关闭：**247 / 259**；实际修复（已关闭）：247；排除：0；待验证/阻塞：5（RF-112缺隔离macOS锁定恢复，RF-308本地门槛与CI配置已达但缺远端运行日志，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**RF-112（下一项；复核 macOS 专用隔离锁定/恢复验收条件）**。RF-310 `0425454b`、RF-314 `bce556a9` 已提交；RF-1069 本项独立本地提交（使用 ID 检索）。累计 247/259 关闭、5 待验证、7 待执行；其余待执行项依赖未关闭的原生材质/远端 CI，不能提前关闭 goal。继续保留用户客户端和账户、工作流禁用状态，不自动推送或发布。
+- 当前处理：**RF-121（补充 macOS 独立原生窗口/真实 Card 验证；绘制帧停滞，仍待验证）**。用户确认暂无隔离 macOS 用户/虚拟机，RF-112 锁定恢复保留待验证。RF-310 `0425454b`、RF-314 `bce556a9`、RF-1069 `41936a28` 已提交；RF-121 本轮证据独立本地提交（使用 ID 检索）。累计 247/259 关闭、5 待验证、7 待执行；其余待执行项依赖未关闭的原生材质/远端 CI，不能提前关闭 goal。继续保留用户客户端和账户、工作流禁用状态，不自动推送或发布。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -6094,3 +6094,14 @@ git commit -m "<任务卡的提交标题>"
 - 实际客户端 WebView 只读 DOM 采集最终 exit0：UTF-8、platform=ios、body/H1/字段/有文字按钮计算字体均以 PingFang SC 开头，未采集输入值。LLDB 前四次类型/内联符号冲突日志保留；最后在显式主线程执行查询，未为诊断改变产品逻辑。测试 UI 偏好恢复原字节，测试应用终止，无密码输入/账户创建或真实账户访问。
 - F：TypeScript/lint exit0，完整 Vitest **256 文件 / 2240 passed / 0 failed**；独立 Node **99 passed / 0 failed / 21 既有 Windows 专有 skipped**。生产 WEB **26 passed**；iOS device/sim 顺序 check、实际 npm 无签名模拟器构建全部 exit0（构建198.02s），两个生成 Xcode 文件恢复原字节。CSS Prettier、DOC/引用与 diff 检查通过；既有移动编译警告保留。
 - 视觉规范和平台矩阵同步本次证明范围，独立对照源、截图、实际 DOM、产物/源码/日志 SHA 见 [RF-1069 证据](verification/rf1069-ios-chinese-font-2026-10-02.json)。仅单一专用模拟器，未宣称真机或全部 iOS 版本。该项关闭，独立本地提交，不推送；累计 **247/259 关闭、5 待验证、7 待执行**。
+
+### RF-112 / RF-121 当前可执行验证记录（2026-10-02）
+
+- 用户确认“暂无，继续当前可执行的验证”：没有独立 macOS 用户或虚拟机。普通客户端的日志/插件目录不由测试 Vault 路径完全隔离，未启动正式客户端、访问真实账户或扩展 Windows-only native-perf。RF-112 继续 `[!]`。
+- macOS26.6 ARM64 上执行已有 `macos_window_appearance` 独立原生例程：身份为 `com.solosoul.appearance-regression`，无 Vault、正式 setup/日志/插件。原生 Liquid Glass、微量白底 alpha0.001、WebView 全窗覆盖、交通灯命中、52px 拖拽边界、主题重复同步、隐藏恢复/缩放/全屏几何检查通过。几何通过不等于恢复无瞬间黑帧。
+- 新增[独立 Card 入口](../tauri/native-regression/card-surfaces/README.md)，引用真实 Card/CardGrid、CSS Modules 和生产表面样式；构建引用白名单禁止夹带其他生产 TS 模块。只注册测量报告命令，不开放正式 IPC。辅助功能值来自宿主原生命令，不用模拟 flag 冒充系统高对比度/减少透明度。
+- Card 早期定时器采样曾测得浅/深色正确，后续复测捕获暗色 token 已变化而 Card 仍为浅色；不接受旧色或定时器结果。改为实际绘制帧采样后，独立 WKWebView 曾 visibility hidden/0帧，最终窗口可见、WebView 未隐藏、app-active=false、文档 visible/仅1帧，2.5秒 watchdog 返回 `paint-frame-timeout`，严格断言 exit1。`--unthrottled` 诊断也未解决；没有伪造成功或将此直接归因为生产 bug。
+- 同时修正原生例程失败出口：旧 mock Context 的 `app.exit(1)` 在两次断言失败时实际返回0；现改为明确 process exit1。用缺少报告的合成 HTML 负向检查确认 exit1。保留这些失败原始记录，不计为通过。
+- 本轮只修改独立验收入口和文档，生产 Card/平台样式/IPC/账户源码未改。fixture TypeScript、ESLint、Prettier、Node syntax、workspace fmt、严格例程 Clippy 通过；已有 F/WEB/R 业务结果未受本项影响，不重复记作新运行。原生 Card 检查失败，RF-121 不满足 NATIVE，不关闭，也不解除 RF-122～127 依赖。
+- 只读复核远端：ci_cd.yml、build-android.yml 仍 disabled_manually，pr_check.yml active 但最近运行列表为空。不启用、不触发、不推送/发布；RF-308/309 缺远端证据的边界保持。
+- [设备、命令、真实退出码、失败历史及源码/日志 SHA](verification/rf121-macos-native-checkpoint-2026-10-02.json)已归档。独立本地提交（使用 RF-121 检索）；累计仍 **247/259关闭、5待验证、7待执行**。其余原生平台、辅助功能和 Android 绘制疑点尚未验收，goal 保持未完成。

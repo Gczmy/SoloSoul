@@ -5,12 +5,24 @@
 //! --vibrancy 在回归检查后替换为始终活跃的传统毛玻璃，供前后台切换对照。
 //! 玻璃底色 alpha=0.001 用于修复后台恢复闪黑，必须跨主题/尺寸/材质切换保留。
 //! 几何断言只验证恢复后的布局，不证明恢复过程没有瞬间黑帧。
+//! --card-fixture /tmp/card-surfaces.html 另验生产 Card 的原生 WebView 表面；
+//! HTML 由 scripts/build-card-surface-fixture.mjs 生成，不载入正式应用初始化。
 
 #[cfg(target_os = "macos")]
 use solo_soul::commands::window;
 
 #[cfg(target_os = "macos")]
-struct RegressionAssets;
+struct RegressionAssets(String);
+
+#[cfg(target_os = "macos")]
+struct CardReports(tokio::sync::mpsc::UnboundedSender<serde_json::Value>);
+
+#[cfg(target_os = "macos")]
+#[tauri::command]
+fn card_surface_report(report: serde_json::Value, state: tauri::State<'_, CardReports>) {
+    // 只回传测试页的合成 DOM 测量，不开放文件、账户或通用脚本调用。
+    let _ = state.0.send(report);
+}
 
 #[cfg(target_os = "macos")]
 const HTML: &str = r#"<!doctype html><meta charset="utf-8"><style>
@@ -22,14 +34,14 @@ const HTML: &str = r#"<!doctype html><meta charset="utf-8"><style>
 
 #[cfg(target_os = "macos")]
 impl tauri::Assets<tauri::Wry> for RegressionAssets {
-    fn get(&self, _: &tauri::utils::assets::AssetKey) -> Option<std::borrow::Cow<'_, [u8]>> {
-        Some(std::borrow::Cow::Borrowed(HTML.as_bytes()))
+    fn get(&self, key: &tauri::utils::assets::AssetKey) -> Option<std::borrow::Cow<'_, [u8]>> {
+        (key.as_ref() == "/index.html").then_some(std::borrow::Cow::Borrowed(self.0.as_bytes()))
     }
 
     fn iter(&self) -> Box<tauri::utils::assets::AssetsIter<'_>> {
         Box::new(std::iter::once((
             "index.html".into(),
-            HTML.as_bytes().into(),
+            self.0.as_bytes().into(),
         )))
     }
 
@@ -248,10 +260,34 @@ fn main() {
     let native_only = std::env::args().any(|arg| arg == "--native-only");
     let unthrottled = std::env::args().any(|arg| arg == "--unthrottled");
     let vibrancy = std::env::args().any(|arg| arg == "--vibrancy");
-    let mut context = tauri::test::mock_context(RegressionAssets);
+    let args: Vec<_> = std::env::args().collect();
+    let fixture = args
+        .iter()
+        .position(|arg| arg == "--card-fixture")
+        .map(|index| {
+            let path = args.get(index + 1).expect("--card-fixture 需要 HTML 路径");
+            let metadata = std::fs::symlink_metadata(path).expect("fixture 必须存在");
+            assert!(
+                metadata.is_file() && metadata.len() < 2 * 1024 * 1024,
+                "fixture 必须是小于 2 MiB 的普通 HTML 文件，禁止符号链接"
+            );
+            std::fs::read_to_string(path).expect("fixture 必须为 UTF-8")
+        });
+    assert!(
+        fixture.is_none() || (!native_only && !vibrancy),
+        "Card 验收不可隐藏 WebView 或替换生产材质"
+    );
+    let card_fixture = fixture.is_some();
+    let passed = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let checked = passed.clone();
+    let (report_tx, mut report_rx) = tokio::sync::mpsc::unbounded_channel();
+    let mut context =
+        tauri::test::mock_context(RegressionAssets(fixture.unwrap_or_else(|| HTML.into())));
     context.config_mut().identifier = "com.solosoul.appearance-regression".into();
     context.config_mut().app.macos_private_api = true;
     tauri::Builder::default()
+        .manage(CardReports(report_tx))
+        .invoke_handler(tauri::generate_handler![card_surface_report])
         .setup(move |app| {
             // 使用生产 macOS 配置，避免测试里的标题栏配置与发布包分离。
             let config: serde_json::Value =
@@ -325,6 +361,53 @@ fn main() {
                 }
                 check_titlebar_controls(&window).await;
                 println!("PASS: full-window WebView, native button hit testing, stable WebView/material/drag-view/buttons, theme sync, hide/show, resize, fullscreen, titlebar controls and drag boundary");
+                if card_fixture {
+                    // 表面采样要求前台绘制，后台恢复几何仍由上面的独立场景覆盖。
+                    window.set_focus().unwrap();
+                    window.with_webview(|native| {
+                        let application = objc2_app_kit::NSApplication::sharedApplication(
+                            objc2::MainThreadMarker::new().unwrap());
+                        // SAFETY: 仅在主线程读取当前测试窗口的可见状态。
+                        let native_window = unsafe { &*native.ns_window().cast::<objc2_app_kit::NSWindow>() };
+                        let webview = unsafe { &*native.inner().cast::<objc2_app_kit::NSView>() };
+                        println!("[card-native] visible={}; occlusion={:?}; webview-hidden={}; app-active={}; activation-policy={:?}",
+                            native_window.isVisible(), native_window.occlusionState(), webview.isHiddenOrHasHiddenAncestor(),
+                            application.isActive(), application.activationPolicy());
+                    }).unwrap();
+                    for (theme, color) in [("light", light), ("dark", dark)] {
+                        let native = window::set_titlebar_color(window.clone(), color).await.unwrap();
+                        let appearance = serde_json::to_string(&native).unwrap();
+                        window.eval(format!("window.__runCardSample('{theme}', {appearance})")).unwrap();
+                        let report = tokio::time::timeout(Duration::from_secs(5), report_rx.recv())
+                            .await.expect("Card 页面未返回测量").expect("Card 报告通道关闭");
+                        println!("[card-surface] {report}");
+                        assert!(report.get("error").is_none(), "真实绘制帧未完成，不接受定时器或旧颜色测量");
+                        assert_eq!(report["theme"], theme);
+                        let expected = serde_json::to_value(native).unwrap();
+                        for field in ["material", "platform", "reduceMotion", "highContrast"] {
+                            assert_eq!(report["appearance"][field], expected[field]);
+                        }
+                        // JavaScript 将 52.0 序列化成 52；按数值比较布局，不比较 JSON 数字字面量。
+                        for field in ["titlebarHeight", "trafficLightsRight"] {
+                            assert_eq!(report["appearance"][field].as_f64(), expected[field].as_f64());
+                        }
+                        assert_eq!(report["pageOverflow"], false, "测试页不得横向溢出");
+                        let cards = report["cards"].as_array().expect("卡片测量必须是数组");
+                        assert_eq!(cards.len(), 2, "必须加载两个真实 Card");
+                        for (card, surface) in cards.iter().zip(["default", "floating"]) {
+                            assert_eq!(card["surface"], surface);
+                            assert_eq!(card["visible"], true);
+                            assert_eq!(card["overflow"], false, "长内容不得撑宽卡片");
+                            assert_eq!(card["background"], report["expectedBackground"], "正文表面遵循生产 token");
+                            assert_ne!(card["color"], card["background"], "文字不得与背景同色");
+                            if surface == "floating" {
+                                assert!(card["backdropFilter"] == "none" || card["backdropFilter"] == "",
+                                    "浮动正文卡片保持清晰表面");
+                            }
+                        }
+                    }
+                    println!("PASS: production Card/CardGrid in native WKWebView, light/dark surfaces and long-content geometry; accessibility settings sampled from this host only");
+                }
                 if vibrancy {
                     if appearance.material == "solid" {
                         println!("SKIP: vibrancy comparison respects accessibility settings requiring a solid background");
@@ -345,11 +428,14 @@ fn main() {
             tauri::async_runtime::spawn(async move {
                 match tokio::time::timeout(Duration::from_secs(30), checks).await {
                     Ok(Ok(())) => {
+                        checked.store(true, std::sync::atomic::Ordering::SeqCst);
                         if !manual { app.exit(0); }
                     }
                     failure => {
                         eprintln!("FAIL: native window regression did not complete: {failure:?}");
-                        app.exit(1);
+                        // macOS 测试 Context 的 app.exit(1) 会被运行循环转为 exit0。
+                        // 独立回归进程直接返回失败，不允许外部驱动将断言失败记为通过。
+                        std::process::exit(1);
                     }
                 }
             });
@@ -357,6 +443,9 @@ fn main() {
         })
         .run(context)
         .expect("macOS appearance regression app failed");
+    if !passed.load(std::sync::atomic::Ordering::SeqCst) {
+        std::process::exit(1);
+    }
 }
 
 #[cfg(not(target_os = "macos"))]

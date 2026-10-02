@@ -1,0 +1,16 @@
+{
+  "command": [
+    "cargo",
+    "clippy",
+    "-p",
+    "solo_soul",
+    "--example",
+    "macos_window_appearance",
+    "--",
+    "-D",
+    "warnings"
+  ],
+  "exit_code": 0,
+  "duration_seconds": 1.6908797919750214,
+  "temporary_macos_private_feature": true
+}

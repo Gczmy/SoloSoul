@@ -1,0 +1,27 @@
+   Compiling solo_soul v2.13.2 (/Users/zzc/PycharmProjects/SoloSoul/tauri/src-tauri)
+error: unnecessary closure used with `bool::then`
+  --> src-tauri/examples/macos_window_appearance.rs:38:9
+   |
+38 |         (key.as_ref() == "/index.html").then(|| std::borrow::Cow::Borrowed(self.0.as_bytes()))
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#unnecessary_lazy_evaluations
+   = note: `-D clippy::unnecessary-lazy-evaluations` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_lazy_evaluations)]`
+help: use `then_some` instead
+   |
+38 -         (key.as_ref() == "/index.html").then(|| std::borrow::Cow::Borrowed(self.0.as_bytes()))
+38 +         (key.as_ref() == "/index.html").then_some(std::borrow::Cow::Borrowed(self.0.as_bytes()))
+   |
+
+error: the borrowed expression implements the required traits
+   --> src-tauri/examples/macos_window_appearance.rs:368:37
+    |
+368 |                         window.eval(&format!("window.__runCardSample('{theme}', {appearance})")).unwrap();
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: change this to: `format!("window.__runCardSample('{theme}', {appearance})")`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.95.0/index.html#needless_borrows_for_generic_args
+    = note: `-D clippy::needless-borrows-for-generic-args` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_borrows_for_generic_args)]`
+
+error: could not compile `solo_soul` (example "macos_window_appearance") due to 2 previous errors

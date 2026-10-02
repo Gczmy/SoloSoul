@@ -1,0 +1,255 @@
+{
+  "task": "RF-121",
+  "baseline_commit": "41936a28",
+  "status": "awaiting native card rendering and full three-platform/accessibility matrix; not closed",
+  "user_isolation_reply": "暂无，继续当前可执行的验证",
+  "rf112_status": "awaiting dedicated macOS user/VM lock/unlock; no production client or accounts accessed",
+  "environment": {
+    "os": "macOS26.6",
+    "arch": "arm64",
+    "identifier": "com.solosoul.appearance-regression",
+    "material": "liquid-glass",
+    "highContrast": false,
+    "reduceMotion": false,
+    "reduced_transparency": "not enabled; no global accessibility preferences changed"
+  },
+  "window_geometry": {
+    "name": "window-final",
+    "command": [
+      "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/examples/macos_window_appearance"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "duration_seconds": 8.116441915743053
+  },
+  "negative_missing_report": {
+    "name": "negative-final",
+    "command": [
+      "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/examples/macos_window_appearance",
+      "--card-fixture",
+      "/tmp/solosoul-refactor-macos-20261002/rf121-invalid-card-fixture.html"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "duration_seconds": 13.14288504095748
+  },
+  "card_run": {
+    "command": [
+      "cargo",
+      "run",
+      "-p",
+      "solo_soul",
+      "--example",
+      "macos_window_appearance",
+      "--",
+      "--unthrottled",
+      "--card-fixture",
+      "/tmp/solosoul-refactor-macos-20261002/rf121-card-surfaces-diagnostic.html"
+    ],
+    "exit_code": 1,
+    "duration_seconds": 13.520314333960414,
+    "temporary_macos_private_feature": true
+  },
+  "card_final_result": {
+    "accepted": false,
+    "native_window_visible": true,
+    "webview_hidden": false,
+    "application_active": false,
+    "activation_policy": 0,
+    "document_visibility": "visible",
+    "frame_count": 1,
+    "error": "paint-frame-timeout",
+    "watchdog_ms": 2500,
+    "unthrottled_diagnostic": true
+  },
+  "checks": [
+    {
+      "name": "fixture-types",
+      "command": [
+        "/Users/zzc/.nvm/versions/node/v24.14.0/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--ignoreConfig",
+        "--noEmit",
+        "--jsx",
+        "react-jsx",
+        "--moduleResolution",
+        "bundler",
+        "--module",
+        "esnext",
+        "--target",
+        "es2022",
+        "--lib",
+        "es2022,dom,dom.iterable",
+        "--skipLibCheck",
+        "native-regression/card-surfaces/main.tsx",
+        "vite-env.d.ts"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.5753095829859376
+    },
+    {
+      "name": "fixture-lint",
+      "command": [
+        "/Users/zzc/.nvm/versions/node/v24.14.0/bin/node",
+        "node_modules/eslint/bin/eslint.js",
+        "native-regression/card-surfaces/main.tsx"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.7251094998791814
+    },
+    {
+      "name": "rust-fmt",
+      "command": [
+        "/Users/zzc/.rustup/toolchains/stable-aarch64-apple-darwin/bin/cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.0606031673960388
+    },
+    {
+      "name": "script-syntax",
+      "command": [
+        "/Users/zzc/.nvm/versions/node/v24.14.0/bin/node",
+        "--check",
+        "scripts/build-card-surface-fixture.mjs"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.02452533273026347
+    },
+    {
+      "name": "fixture-prettier",
+      "command": [
+        "/Users/zzc/.nvm/versions/node/v24.14.0/bin/node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "native-regression/card-surfaces/main.tsx",
+        "native-regression/card-surfaces/fixture.css",
+        "scripts/build-card-surface-fixture.mjs"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.13583887508139014
+    },
+    {
+      "name": "strict example clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "-p",
+        "solo_soul",
+        "--example",
+        "macos_window_appearance",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.6908797919750214,
+      "temporary_macos_private_feature": true
+    }
+  ],
+  "history": {
+    "attempt1": "asset path missing leading slash; no report, test failed but old app.exit(1) returned0",
+    "attempt2": "JS 52 versus Rust52.0 JSON equality mismatch; test failed but old app.exit(1) returned0",
+    "attempt3": "timer sample dark token changed, Card old light color; proper exit1",
+    "attempt4": "requestAnimationFrame stalled, proper exit1",
+    "attempt5": "unthrottled mode did not resolve stalled frames, proper exit1",
+    "attempt6": "NSApplication activation request did not resolve; removed from final code, proper exit1",
+    "attempt7": "watchdog hidden document, zero frames, proper exit1",
+    "final": "native visible/document visible, one frame, watchdog failure, proper exit1"
+  },
+  "limits": [
+    "No stable Card paint acceptance",
+    "No screenshot or pixel/no-black-frame acceptance",
+    "No real OS high contrast/reduce transparency matrix",
+    "No Windows or Android Card acceptance in this run",
+    "Production Card and platform styles unchanged; prior F/WEB/R results not rerun or counted as new"
+  ],
+  "remote_read_only": {
+    "workflows": [
+      {
+        "path": ".github/workflows/build-android.yml",
+        "state": "disabled_manually"
+      },
+      {
+        "path": ".github/workflows/ci_cd.yml",
+        "state": "disabled_manually"
+      },
+      {
+        "path": ".github/workflows/plugin_release.yml",
+        "state": "disabled_manually"
+      },
+      {
+        "path": ".github/workflows/pr_check.yml",
+        "state": "active"
+      }
+    ],
+    "recent_pr_runs": [],
+    "enabled_dispatched_pushed": false
+  },
+  "temporary_manifest_restored": true,
+  "generated_html": {
+    "path": "/tmp/solosoul-refactor-macos-20261002/rf121-card-surfaces-diagnostic.html",
+    "sha256": "a2c96307ecc1139c7039a8750e9e45d3f73eae8c28832333a57c7896ba456a8e",
+    "bytes": 245681
+  },
+  "compiled_example_sha256": "92cce782c2985f522e68a2df58e26d68d6bef800994ff69922e93361130513e1",
+  "source_sha256": {
+    "tauri/src-tauri/examples/macos_window_appearance.rs": "8c0f271c6d84afd845d02ee06d363a3917e45b4f0f3560e03acb21fc25f5c4e6",
+    "tauri/native-regression/card-surfaces/main.tsx": "7b3124695f79274d87fc9283a3cbd26ee156f19c6d3cd1e57987bc40edaaeaed",
+    "tauri/native-regression/card-surfaces/fixture.css": "7bd034c3fd1008d37a1882de9dbe1994c294b920fd2cfd1249f5ea280aea9514",
+    "tauri/scripts/build-card-surface-fixture.mjs": "2ae5a43955ad959b37a745cf43d4d4a1d29459e77eb692a2afbeb604d1a85bfc",
+    "tauri/src/components/ui/Card.tsx": "dd92f40093d96975402f389f294b8568ea6c6478594c82763f6a46e534a5a727",
+    "tauri/src/components/ui/Card.module.css": "72cfa50f72e623ae011bb217b68fc1b3e8066368dba14b75c76570c74019abd2",
+    "tauri/src/components/ui/CardGrid.tsx": "1d3390b2357418c63ddf952d574cac1a722829f30316cea1448c044b2a07135f",
+    "tauri/src/components/ui/CardGrid.module.css": "198a78e3368749d912395026bef054390a8a61adf971e106d21576c04f59f691",
+    "tauri/src/styles/global.css": "5aef81bb265218276da67312b62a29f97a7e17be40c2847a81e10bdcafbd2a7d",
+    "tauri/src/styles/themes.css": "bf661394eff0d15fe3410fa0e76ec5d9282b0f1448685854ac60f252148010d6",
+    "tauri/src/styles/tokens.css": "a47ebf854a2ba1685ef8db8ab63ba50d4be02bc1bd4efc7fa33ddaba18da44a8",
+    "tauri/src/styles/macos-glass.css": "c7fea93717a84ee07ebe9d7b2aac30fe2f41ada2cb04188dd65efd5b1a2f2994",
+    "tauri/src/styles/windows-material.css": "a642e2453e1fb5ad5edf58f0297ee791f213f32b8af30d264964b43b8866a823",
+    "tauri/src/styles/android.css": "e10cdfc7cc759cff447a77584d5fa6971f86a28c194dbf609d1318deaf929d76",
+    "tauri/src-tauri/src/commands/window.rs": "92d9f552eed966cedd12ae8a9dcfbcb8f1be4b68048339dcdbb7bf58b488a333",
+    "tauri/src-tauri/src/commands/window/macos.rs": "c50cd5f002b587ec917aa55b80181fc9219a93ad7f72b56664b499d321be745b",
+    "tauri/src-tauri/Cargo.toml": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e"
+  },
+  "artifact_sha256": {
+    "rf121-native-2026-10-02/rf121-card-surfaces-clippy-attempt1.log": "d87bcab77c9b80f5e4608dac44770ea040a6a6c33aabc977cbb3e83c2f8a79a0",
+    "rf121-native-2026-10-02/rf121-card-surfaces-clippy-result.json": "c6fe967bd45a296c528cb3b2ad61a78d863f078145fd9cfc1b7c506b5b20b165",
+    "rf121-native-2026-10-02/rf121-card-surfaces-clippy.log": "273b0af1d5e8c39c2982fca10e8ab137d447d66db26a9ddb3a5a586c264823a6",
+    "rf121-native-2026-10-02/rf121-card-surfaces-native-attempt1.log": "e63da42c66dbbff4c7d26d237f3bd0f55a23e818baf35029681db79b4da8c515",
+    "rf121-native-2026-10-02/rf121-card-surfaces-native-attempt2.log": "fcd47c320cec21797998f9bdd977a48445ca72abadd5ad039fc15179328e7417",
+    "rf121-native-2026-10-02/rf121-card-surfaces-native-attempt3-result.json": "3332bddaf306a0710a89b756cb440ea3b486bc3dfbe157308a0f405b1f50a3d9",
+    "rf121-native-2026-10-02/rf121-card-surfaces-native-attempt3.log": "b01b01f081d144b8b17d9cf0fad11de9db1eb82a3e40777109b691732e6d2906",
+    "rf121-native-2026-10-02/rf121-card-surfaces-native-attempt4-result.json": "8caa9b2ba0d58a00e1ffd45c2bffe05941de1939835e3cd25d9edac7b12138a9",
+    "rf121-native-2026-10-02/rf121-card-surfaces-native-attempt4.log": "69d734d9330e645d98b491d21bc74c4087030ff76ccc7ab639bea25bf54b2e8d",
+    "rf121-native-2026-10-02/rf121-card-surfaces-native-attempt5-result.json": "2afbc2abd8e5beb22ed7bcd32f1c74ce06f361013315dc161a1795d238f4c039",
+    "rf121-native-2026-10-02/rf121-card-surfaces-native-attempt5.log": "e6f175031c9542c77fa1949df3f8c1fa61e934b93804c32b0321ba45c5ca0b9a",
+    "rf121-native-2026-10-02/rf121-card-surfaces-native-attempt6-result.json": "0e4099b393a5d8abee8992637de200a44cb57721b22e1e19ee8ce3689899c37d",
+    "rf121-native-2026-10-02/rf121-card-surfaces-native-attempt6.log": "2331710913c7a55f6120a878944dd661982ae1bc7f78ab599e32c411367122a5",
+    "rf121-native-2026-10-02/rf121-card-surfaces-native-attempt7.log": "2d9589a363d9d0286db0a857a2b16af6893fc81b7917841d191fb7a6a1b3f237",
+    "rf121-native-2026-10-02/rf121-card-surfaces-native-result.json": "15bcc0682c27f828d5c45dd4aedebb0d92977bdb00220834c5bf5d319882035b",
+    "rf121-native-2026-10-02/rf121-card-surfaces-native.log": "3ae5416747f63e75338d11cec3055e4e8e76b189e29202d4545d00b7912e4e92",
+    "rf121-native-2026-10-02/rf121-fixture-checks.json": "5bea68959980919c3f0727f36296650052cc35657050588633fec68829573481",
+    "rf121-native-2026-10-02/rf121-fixture-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rf121-native-2026-10-02/rf121-fixture-prettier.log": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+    "rf121-native-2026-10-02/rf121-fixture-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rf121-native-2026-10-02/rf121-macos-window-native-configured.log": "3da4c8d5d9c56549a75b8f572b05f78b05e6bd66f4a32e1ce92a693bf897a46c",
+    "rf121-native-2026-10-02/rf121-macos-window-native-result.json": "5497b8e6ecd3484c62278c5d45452e50d36d9d75d040ca2a3165d23f412fffa4",
+    "rf121-native-2026-10-02/rf121-native-controls.json": "83943386895610c77127643af1b0c160842d10b89f8cd8a1a971e95a0ebde6bc",
+    "rf121-native-2026-10-02/rf121-negative-final.log": "0c2d25cb4c90fdfb6b7c9b94a0af7353caff085df8276f3d63a9a0fbf6b5ad9a",
+    "rf121-native-2026-10-02/rf121-pr-runs.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "rf121-native-2026-10-02/rf121-rust-fmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rf121-native-2026-10-02/rf121-script-syntax.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rf121-native-2026-10-02/rf121-window-final.log": "43096c658aeb264e067bac0c5c092327c6d6c771b1298924cc92f255aa7fdfaf",
+    "rf121-native-2026-10-02/rf121-workflows.json": "a3c806b4d773d7d6848952861a797d1af9dcf3b3a0ccb4010ff97a14aa494ab5",
+    "rf121-native-2026-10-02/run-rf121-card-surfaces.py": "459256fb98e8bb5fec8ad420329b6e35c9634f071924711f7bac475b8d5a6c02",
+    "rf121-native-2026-10-02/rf121-macos-window-native.log.gz": "d5ce52fee83e2d7113420950589eb8d8551d9a7414b1175d8e33016845496205"
+  },
+  "raw_log_archive": {
+    "path": "rf121-native-2026-10-02/rf121-macos-window-native.log.gz",
+    "uncompressed_sha256": "c684eab09c2e4a3d3522b24c9ced1b778422cd976ae06062e9883808253ca463",
+    "reason": "Preserve exact raw compiler whitespace without staged diff whitespace violations"
+  }
+}

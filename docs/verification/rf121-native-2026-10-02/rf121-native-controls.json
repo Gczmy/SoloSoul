@@ -1,0 +1,22 @@
+[
+  {
+    "name": "window-final",
+    "command": [
+      "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/examples/macos_window_appearance"
+    ],
+    "exit_code": 0,
+    "expected_exit_code": 0,
+    "duration_seconds": 8.116441915743053
+  },
+  {
+    "name": "negative-final",
+    "command": [
+      "/Users/zzc/PycharmProjects/SoloSoul/tauri/target/debug/examples/macos_window_appearance",
+      "--card-fixture",
+      "/tmp/solosoul-refactor-macos-20261002/rf121-invalid-card-fixture.html"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "duration_seconds": 13.14288504095748
+  }
+]

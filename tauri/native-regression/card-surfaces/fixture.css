@@ -1,0 +1,25 @@
+/* 仅布局测试页；不覆盖 Card 的颜色、边框、阴影或透明度。 */
+html,
+body,
+#root {
+  background: transparent;
+}
+.fixture {
+  margin: 76px 32px 32px;
+  color: var(--text-primary);
+}
+.fixture h1 {
+  font-size: 24px;
+}
+.fixture h2 {
+  font-size: 18px;
+}
+.fixture p {
+  margin: 12px 0;
+}
+.fixture output {
+  display: block;
+  margin-top: 24px;
+  white-space: pre-wrap;
+  font-size: 12px;
+}
