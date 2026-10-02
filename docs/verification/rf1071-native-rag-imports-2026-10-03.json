@@ -1,0 +1,213 @@
+{
+  "task": "RF-1071",
+  "status": "closed",
+  "started": "2026-10-02",
+  "completed": "2026-10-03",
+  "base_commit": "521ce52f4ab14d7b22694dc476287891982f68e1",
+  "root_cause": "Code/Stage are used only in cfg(not(feature=\"native-perf\")) branches, so native-perf strict Clippy rejects unconditional aliases.",
+  "change": {
+    "path": "tauri/src-tauri/src/commands/llm/rag.rs",
+    "sha256": "128640f6475a2f3746c88b07e51bfba7ddbdf1e87ae711c90a2005cb182b8927",
+    "exact_conditional_import_only": true,
+    "runtime_bodies_unchanged": true
+  },
+  "checks": [
+    {
+      "name": "rf1071-native-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 39.300015926361084
+    },
+    {
+      "name": "rf1071-default-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 37.13282656669617
+    },
+    {
+      "name": "rf1071-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 2.5555672645568848
+    },
+    {
+      "name": "rf1071-workspace-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "exit": 101,
+      "seconds": 839.4713459014893
+    },
+    {
+      "name": "rf1071-workspace-tests-pdfium",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "exit": 0,
+      "seconds": 346.3669103998691
+    },
+    {
+      "name": "rf1071-native-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--lib",
+        "native_perf::",
+        "--",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "seconds": 251.2331214994192
+    }
+  ],
+  "test_results": {
+    "initial_workspace": {
+      "groups": 25,
+      "passed": 1840,
+      "failed": 18,
+      "ignored": 3
+    },
+    "final_workspace": {
+      "groups": 25,
+      "passed": 1858,
+      "failed": 0,
+      "ignored": 3
+    },
+    "native_perf": {
+      "groups": 1,
+      "passed": 28,
+      "failed": 0,
+      "ignored": 0
+    }
+  },
+  "environment_failure": {
+    "initial_exit": 101,
+    "failed_tests": 18,
+    "cause": "Existing PDFium DLL was not visible from Core test cwd; LoadLibraryError 126.",
+    "resolution": {
+      "path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+      "sha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e",
+      "scope": "validation child processes only; no global environment changes"
+    },
+    "no_tests_skipped_or_modified": true
+  },
+  "scope": {
+    "owned": [
+      "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+      "tauri/native-regression/card-surfaces/README.md",
+      "tauri/native-regression/card-surfaces/fixture.css",
+      "tauri/native-regression/card-surfaces/main.tsx",
+      "tauri/src-tauri/examples/windows_card_surfaces.rs",
+      "tauri/src-tauri/src/commands/llm/rag.rs"
+    ],
+    "unowned_changes": [],
+    "stash": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90 On main: preserve-local-changes-before-github-push-2026-10-02"
+  },
+  "host": {
+    "os": "Microsoft Windows 11 Enterprise LTSC",
+    "version": "10.0.26100",
+    "build": "26100",
+    "architecture": "64-bit",
+    "cpu": "Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz",
+    "logicalProcessors": 8,
+    "ramBytes": 16951218176
+  },
+  "logs": [
+    {
+      "name": "rust-clippy-first",
+      "path": "docs/verification/rf1071-native-rag-imports-2026-10-03/rust-clippy-first.log.gz",
+      "original_bytes": 973,
+      "sha256": "dd4c5e40720d831950b967f5d5cc4bd991d7ed65b116a24262df4fdcb7999858",
+      "gzip_sha256": "a2c11517f5222394bf6dde6d3b32167a2faf0da989fd1019953ba36aba85003d"
+    },
+    {
+      "name": "rf1071-native-clippy",
+      "path": "docs/verification/rf1071-native-rag-imports-2026-10-03/rf1071-native-clippy.log.gz",
+      "original_bytes": 147,
+      "sha256": "b7e9e1b6971aee10542de525cd350c295999bc90094fd97e3e9aee8b6243a6ac",
+      "gzip_sha256": "45e5219b62616376a4f5b88fbe2a1660f9f2b07c743a594a77d2c2d645202315"
+    },
+    {
+      "name": "rf1071-default-clippy",
+      "path": "docs/verification/rf1071-native-rag-imports-2026-10-03/rf1071-default-clippy.log.gz",
+      "original_bytes": 621,
+      "sha256": "531c8487df3299191b48d22128b3af49f27200eb38c75c3acc2a4c18bd2e25ad",
+      "gzip_sha256": "663741d5f48895791505e6432fdc109d766af7526115d164342dad40266f93ad"
+    },
+    {
+      "name": "rf1071-fmt",
+      "path": "docs/verification/rf1071-native-rag-imports-2026-10-03/rf1071-fmt.log.gz",
+      "original_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "name": "rf1071-workspace-tests",
+      "path": "docs/verification/rf1071-native-rag-imports-2026-10-03/rf1071-workspace-tests.log.gz",
+      "original_bytes": 873876,
+      "sha256": "22df30119ee1f615475ab76dbcf7b54f1d7015aa4a199ef6af03e8fd2a6ad082",
+      "gzip_sha256": "a1c99088551713064ab7baa36322202a804a2e2435de2eff1d725a52fe579c5c"
+    },
+    {
+      "name": "rf1071-workspace-tests-pdfium",
+      "path": "docs/verification/rf1071-native-rag-imports-2026-10-03/rf1071-workspace-tests-pdfium.log.gz",
+      "original_bytes": 771376,
+      "sha256": "3af52486fbad79aea7542039e8a16050f08da2493af0e07a8bd30c8bd1a38deb",
+      "gzip_sha256": "b339821cf75f6b7134131d8503afc2a0777fc0e02f20903e5008f85fb96849ef"
+    },
+    {
+      "name": "rf1071-native-tests",
+      "path": "docs/verification/rf1071-native-rag-imports-2026-10-03/rf1071-native-tests.log.gz",
+      "original_bytes": 11556,
+      "sha256": "aa983689b5fbc8088ee8c86b17664c40b266f528b392461dcfdda58fa6f29cba",
+      "gzip_sha256": "110c9688d083ebfc26a05be7d7fb8e8376a5e9c264a7d4a376b4a2db55b58c50"
+    }
+  ],
+  "boundaries": [
+    "No dependency, lockfile or production runtime behavior changes.",
+    "RF-121 fixture/README/example development remains unstaged and is not this fix.",
+    "No new native GUI, other-platform or remote CI pass claimed here.",
+    "Original stash preserved; no automatic push."
+  ]
+}

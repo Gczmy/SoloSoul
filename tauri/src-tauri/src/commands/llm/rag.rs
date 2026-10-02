@@ -1,6 +1,8 @@
 use super::errors;
 use super::errors::vault_handle;
-use crate::commands::error::{BackendError, BackendErrorCode as Code, BackendErrorStage as Stage};
+use crate::commands::error::BackendError;
+#[cfg(not(feature = "native-perf"))]
+use crate::commands::error::{BackendErrorCode as Code, BackendErrorStage as Stage};
 use crate::state::AppState;
 use solosoul_vault::VaultStore;
 use tauri::State;
