@@ -1,0 +1,98 @@
+{
+  "task": "RF-1086",
+  "status": "waiting-actual-apple-pr-compile",
+  "baseline": "15b7d546081802d8d0a0808b1fa2eda87649b2b7",
+  "original_failure": {
+    "run_id": 37157849541,
+    "job_id": 111304900008,
+    "tested_head": "c7b752978bf9342109705d1ed386fe44f75cb3c2",
+    "exit": 101,
+    "error": "failed to copy tauri-api / create directory .tauri/tauri-api / File exists (os error 17)"
+  },
+  "root_cause_inference": "Concurrent target build scripts remove/recreate the same plugin Swift directory. Actual EEXIST agrees with locked non-atomic copy_folder implementation.",
+  "upstream": {
+    "version": "tauri-plugin 2.6.2",
+    "crate_sha256": "e126abc9e84e35cdfd01596140a73a1850cdb0df0a23acf0185776c30b469a6e",
+    "vcs_sha": "499df79be65ef8c0670abc0207cd9e37b55d8491",
+    "source_bytes_verified_from_crate": true,
+    "raw_source_sha256": "9cd2465dbb95ac3aac28385b733b954dc890bdd543c3c15f1e4e2cf083f730b3",
+    "web_fetch": "Exact upstream web cache miss; use checksum-verified locked Cargo source."
+  },
+  "change": "Only split original dual-target check into two ordered commands. Both targets/default features/dependencies, remaining job and other jobs retained.",
+  "first_format_failure": "Windows writer emitted CRLF; explicit LF restored before checks. No command/body changes beyond intended split.",
+  "checks": [
+    {
+      "name": "yaml-format",
+      "args": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "--single-quote",
+        "../.github/workflows/pr_check.yml"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "actionlint",
+      "args": [
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf311-share-ci-20261003\\actionlint.exe",
+        "-color",
+        ".github/workflows/ci_cd.yml",
+        ".github/workflows/pr_check.yml",
+        ".github/workflows/build-android.yml"
+      ],
+      "exit": 0
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1086-ios-target-sequencing-2026-10-03/baseline.json.gz",
+      "sha256": "90b61f4fcfabaee24f54bb3d163b26223ee179831beecb955ff338f80ff95040",
+      "rawSha256": "9a30be9d87a363a993807a6f0c86f65de064451372bc24dc5d8c01e315f6ce94"
+    },
+    {
+      "path": "docs/verification/rf1086-ios-target-sequencing-2026-10-03/workflow-before.yml.gz",
+      "sha256": "d79ece5cbffa853655364d7ae98f94abf6dd9cad6818952dd4e449ffa46e9618",
+      "rawSha256": "71b93ce7649fff80479718f5d6706093e896d81b1cf650d6c4d0493beccbf2d5"
+    },
+    {
+      "path": "docs/verification/rf1086-ios-target-sequencing-2026-10-03/locked-upstream-mobile.rs.gz",
+      "sha256": "0b0cfd42c88c6fddb28f005fa9081b87fa15cee854d2a6b27d1ca338f30f3335",
+      "rawSha256": "9cd2465dbb95ac3aac28385b733b954dc890bdd543c3c15f1e4e2cf083f730b3"
+    },
+    {
+      "path": "docs/verification/rf1086-ios-target-sequencing-2026-10-03/locked-biometric-build.rs.gz",
+      "sha256": "5f89cac967b149939b9bdec6b3cc451b2597dab1a25825ecdf966403f27f4f9e",
+      "rawSha256": "91915f83c328e49fd4b74cc30a5cee79adaef1f2b3de8f92fa85fb168681b0a4"
+    },
+    {
+      "path": "docs/verification/rf1086-ios-target-sequencing-2026-10-03/checks.json.gz",
+      "sha256": "17aa46adb56d119c35d152f6964d6822e328badecf6985c137a094ef52ea04ef",
+      "rawSha256": "bc927733db83dbf2ecb996af36b9f4b4b674ad7e605aeb663fcb5af87064d176"
+    },
+    {
+      "path": "docs/verification/rf1086-ios-target-sequencing-2026-10-03/yaml-format.log.gz",
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/verification/rf1086-ios-target-sequencing-2026-10-03/yaml-format-first-failed.log.gz",
+      "sha256": "f573f24a8225ecd1821c006527a480b9c897d0670c74464ce96f0f5826f7dd37",
+      "rawSha256": "3e09c092669045b3e4ba80a5529d9e92d1eb25d2dfad26fe52fed43c5b46b258"
+    },
+    {
+      "path": "docs/verification/rf1086-ios-target-sequencing-2026-10-03/actionlint.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1086-ios-target-sequencing-2026-10-03/apple-failure.log.gz",
+      "sha256": "49a61439e56a90332d41160bca23622d6c4d2a7491be2eb48fad1ddf5e17f43a",
+      "rawSha256": "c5a3ac8cc5cbfa230f33eb894d21c5ddb22ccd1a3a286c42f41ab0f5e972f394"
+    }
+  ],
+  "limits": [
+    "Windows static validation is not iOS compilation; actual Apple PR rerun required.",
+    "Keychain device/account verification remains separate."
+  ]
+}

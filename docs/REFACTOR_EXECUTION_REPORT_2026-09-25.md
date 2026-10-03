@@ -120,9 +120,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**275**（P1：51；P2：223；P3：1）。
-- 已关闭：**264 / 275**；实际修复（已关闭）：264；排除：0；待验证/阻塞：5（RF-1084完整Linux R已通过待PR语言采样，RF-311共享CI待实际PR运行，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**无实施任务；完成剩余分项验收后运行真实PR**。
+- 任务总数：**276**（P1：51；P2：224；P3：1）。
+- 已关闭：**264 / 276**；实际修复（已关闭）：264；排除：0；待验证/阻塞：6（RF-1086双iOS目标顺序已修待Apple PR，RF-1084完整Linux R已通过待PR语言采样，RF-311共享CI待实际PR运行，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**无实施任务；调查侧栏悬停独立flaky后更新实际PR**。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -403,6 +403,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 273 | [RF-1083](#rf-1083) | P2 | 插件生命周期E2E遵循可见交互与请求响应闭环 | 无（旧导航/提前完成mock发现） | [x] 完成 |
 | 274 | [RF-1084](#rf-1084) | P2 | 系统语言测试接受C/POSIX及仅语言标识 | 无（真实Linux CI失败） | [!] 待PR语言环境采样 |
 | 275 | [RF-1085](#rf-1085) | P2 | 插件快捷面板E2E使用结构化错误与固定译文 | 无（真实浏览器协议fixture失败） | [x] 完成 |
+| 276 | [RF-1086](#rf-1086) | P2 | iOS设备与模拟器编译顺序执行 | 无（实际PR插件目录并发失败） | [!] 待实际Apple编译 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -3686,6 +3687,18 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**F、WEB（插件快捷面板两项目）、DOC；无生产/原生改动，不重复R。
 - **建议提交：**`test(plugin): align install mocks with structured errors [RF-1085]`。
 
+
+### RF-1086
+
+**iOS设备与模拟器编译顺序执行** · P2 · 来源：实际PR37157849541/job111304900008，biometric构建复制.tauri/tauri-api目录时报File exists，exit101
+
+- **前置：**无；RF-311实际PR验收受此阻塞。
+- **入口：**`.github/workflows/pr_check.yml` Cargo check (iOS targets)；锁定tauri-plugin2.6.2的src/build/mobile.rs。
+- **执行：**原单进程双target改为两条按目标顺序执行的cargo check；仍覆盖aarch64-apple-ios及aarch64-apple-ios-sim。不删除插件、关闭feature、增加ignore或降低检查；生产依赖和Cargo.lock不改。
+- **验收：**锁定crate归档SHA/源码核对，YAML/actionlint、命令/顺序检查通过；实际macos-latest两个原目标编译通过，后续macOS严格Clippy/future-keychain/完整R继续执行。编译不替代硬件Keychain验收。
+- **验证配置：**DOC、YAML静态检查、实际PR Apple编译；纯CI编排不重复未受影响本地F/R。
+- **建议提交：**`ci(ios): check device and simulator targets sequentially [RF-1086]`。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -6561,3 +6574,9 @@ git commit -m "<任务卡的提交标题>"
 - PR #2 / CI37157849547 / job111304900208，源码c7b75297，320px完整词/同行、16px空间及两短屏共4例均首次通过。整移动job success，实际308 passed/1 flaky/0 failed/19原skip，328项保留；flaky来自sidebar-tools右侧悬停命中断言，单独调查，不能写成全量零flaky。
 - 同一精确PR前端action覆盖率/TypeScript/lint成功：256文件2240 Vitest、103 Node通过/21原平台skip，26生产启动通过；HTML附件已下载核验。原本机F与两个项目8项证据保留。
 - [证据](verification/rf1081-risk-panel-2026-10-03.json)追加完整实际日志、步骤、逐例结果及Git blob核对。本次仅DOC补验，边界/diff通过，用户stash保持。按风险弹窗范围关闭，累计264/275；不证明原生Android合成。独立提交（本提交，以RF-1081检索）。
+
+### RF-1086 执行记录（2026-10-03，待实际Apple编译）
+
+- 实际PR37157849541/job111304900008在biometric构建复制Swift依赖目录时EEXIST/exit101，尚未进入签名检查或macOS后续门禁。锁定tauri-plugin2.6.2归档SHA与Cargo.lock相同，源码逐字核对，copy_folder删除后create_dir非原子；双target并行写同一插件目录是与错误一致的根因推断。
+- 仅将原两target单条cargo check改为两条顺序执行，设备/模拟器目标、全部feature/依赖、macOS Clippy/future-keychain/完整测试及所有其他job保持。首次格式失败为Windows写入CRLF，显式LF后格式/actionlint/DOC检查通过，不以静态检查替代Apple编译。
+- [证据](verification/rf1086-ios-target-sequencing-2026-10-03.json)保留完整失败、锁定上游MIT源码、归档SHA、原workflow和检查。精确上游网页缓存未命中，采用已核对的Cargo原始包。状态[!]，264/276不增；独立提交（本提交，以RF-1086检索）。

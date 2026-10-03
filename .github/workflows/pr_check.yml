@@ -93,7 +93,9 @@ jobs:
       - name: Cargo check (iOS targets)
         run: |
           cd tauri
-          cargo check --target aarch64-apple-ios --target aarch64-apple-ios-sim
+          # 两目标插件构建会改同一Swift依赖目录，按目标顺序编译。
+          cargo check --target aarch64-apple-ios
+          cargo check --target aarch64-apple-ios-sim
 
       - name: Check formatting
         run: |
