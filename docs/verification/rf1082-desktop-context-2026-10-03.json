@@ -1,0 +1,238 @@
+{
+  "task": "RF-1082",
+  "status": "context-fix-verified-waiting-separate-plugin-mock-fix-and-linux-ci",
+  "date": "2026-10-03",
+  "base_commit": "f1be6cc0a575ae7ff8be1774251ee33239900949",
+  "fix": {
+    "pure_desktop_files": 10,
+    "mixed_platform_files": 2,
+    "original_test_bodies_identical_after_removing_insertions": true,
+    "full_mobile_inventory_before_after": 327,
+    "new_skip_or_retry_changes": false,
+    "plugin_lifecycle_excluded": true,
+    "android_ios_contexts_unchanged": true
+  },
+  "frontend": [
+    {
+      "name": "format",
+      "args": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "e2e/desktop-card-position.spec.ts",
+        "e2e/desktop-controls.spec.ts",
+        "e2e/macos-glass.spec.ts",
+        "e2e/macos-titlebar.spec.ts",
+        "e2e/navigation-keyboard.spec.ts",
+        "e2e/object-ruler.spec.ts",
+        "e2e/plugin-quick-panel.spec.ts",
+        "e2e/search-protection.spec.ts",
+        "e2e/sidebar-tools.spec.ts",
+        "e2e/toolbar-actions.spec.ts",
+        "e2e/native-theme.spec.ts",
+        "e2e/macos-preview-titlebar.spec.ts"
+      ],
+      "exit": 0,
+      "seconds": 0.7820039996877313
+    },
+    {
+      "name": "tsc",
+      "args": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "seconds": 30.401596600189805
+    },
+    {
+      "name": "lint",
+      "args": [
+        "npm.cmd",
+        "run",
+        "lint"
+      ],
+      "exit": 0,
+      "seconds": 38.60063850041479
+    },
+    {
+      "name": "full-frontend",
+      "args": [
+        "npm.cmd",
+        "run",
+        "test"
+      ],
+      "exit": 0,
+      "seconds": 231.79872609954327
+    }
+  ],
+  "counts": {
+    "vitest_files": 256,
+    "vitest_passed": 2240,
+    "node_passed": 123,
+    "original_node_skipped": 1
+  },
+  "browser": {
+    "result": {
+      "exit": 1,
+      "seconds": 1171.6951174996793,
+      "args": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/desktop-card-position.spec.ts",
+        "e2e/desktop-controls.spec.ts",
+        "e2e/macos-glass.spec.ts",
+        "e2e/macos-titlebar.spec.ts",
+        "e2e/navigation-keyboard.spec.ts",
+        "e2e/object-ruler.spec.ts",
+        "e2e/plugin-quick-panel.spec.ts",
+        "e2e/search-protection.spec.ts",
+        "e2e/sidebar-tools.spec.ts",
+        "e2e/toolbar-actions.spec.ts",
+        "e2e/native-theme.spec.ts",
+        "e2e/macos-preview-titlebar.spec.ts",
+        "--project=mobile",
+        "--project=chromium",
+        "--config",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1082-desktop-context-20261003\\playwright.config.mjs"
+      ],
+      "node": "24.16.0",
+      "browser": "installed Edge",
+      "retries": 2,
+      "workers": 1
+    },
+    "passed": 310,
+    "failed": 4,
+    "flaky": 0,
+    "all_failures": "Both macOS/Windows in both projects reject bare mock string Download timed out, normalized to LEGACY_ERROR. Assertion retained; separate fix required."
+  },
+  "discarded_proposals": [
+    "v1 incorrectly widened mixed Android cases and hit diagnostic port URL mismatch; never applied.",
+    "v2 stopped at outdated plugin lifecycle hidden navigation; final patch excludes lifecycle."
+  ],
+  "user_progress_correction": "Initial chromium project passed statement incorrect; both project failures retained.",
+  "archive_resume": "First archive attempt used nonexistent guessed diagnostic filename and stopped before report/proof changes; enumerated exact diagnostic.log and verified existing gzip bytes before resume.",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/baseline.json.gz",
+      "sha256": "5bd7c573d907a4bc5b410c5b781ee5aa814b0d45d3c9029d4ef97011cd770375",
+      "rawSha256": "a56feb14821b354a1ebeb069ad9d8da8607c0cba35dac0614159f531403f3b80"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/source-before.json.gz",
+      "sha256": "42c6a35e26aea44b73f83640df126bd903f83fca43a11c3501bd46394e82cc01",
+      "rawSha256": "d7304ca427926456b2e8881bb6cd9960c2786c812aec89bfb4ba9c71b6d79f02"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/insertions.json.gz",
+      "sha256": "b7b7349405c4558e4c038ac638ed774b350354ae28f50920047ad7bb2ff1e52a",
+      "rawSha256": "2bebb8d940933b00a52ef5af2622c65038961f30617c8f31f8b5bf23cb81c4d4"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/changed-files.json.gz",
+      "sha256": "77ce8f6dc2bffa6642c56b54b4331a1115697939563497be85f9ac42f0e25c56",
+      "rawSha256": "eade5b8e3afe3bb6e029a625e71cb7724953be45c7627b8ffa08ee4d2e1d1075"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/inventory-before.json.gz",
+      "sha256": "6dd43c3b7cd694794e6c9f96c8011f7e2cfc81cde5564f6e9330474a5fe65480",
+      "rawSha256": "90f561fa5ae3773c2b39e56261e3a936ee15d75c9bffdaeceaf9d4c601f8b4e2"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/inventory-after.json.gz",
+      "sha256": "3375a983312bf1844ddf55c2221d63c5eefea467b515b0e6c8e313430734c325",
+      "rawSha256": "9cc8c4e5b2dada7ce899e2a2e72b426c498c9ca565ffc011e0c1fa00f682df90"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/format-write.log.gz",
+      "sha256": "2a3001fe1e17e55c680f055242fefa7f2f328ea487bc89f1eb0bc58df2d58d3f",
+      "rawSha256": "e66d34ff269a7fcfae74369bddb3f190414a604e66fb65fda93d180cae790f12"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/checks.json.gz",
+      "sha256": "0f280387d4d0b71af853f172cb8c018a22f5771b4abf0aee20038200e3fa1ed0",
+      "rawSha256": "07bf4436a3f8910c7648162d291d422133a5663c82cd000377a94b363a147c8a"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/format.log.gz",
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/tsc.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/lint.log.gz",
+      "sha256": "aa834ac37a9c357bc906de67d2278f1c2d7079872ad9ba2641fa9baac6177b67",
+      "rawSha256": "9ccdcb4482fdd1a0617291405e83ca63932f2a561161d2b94b9a67d00b6bc7e1"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/full-frontend.log.gz",
+      "sha256": "e2ce8380007dc56e4edbad48d33cb863e74b9b606fc46a11dd7d95637cfb101f",
+      "rawSha256": "113f8563bd183529051979da853ba9559ff1953ef949006421347fdc00ebad37"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/web.log.gz",
+      "sha256": "88e52fb9a9a27ec391c3c5b13a74c04bedbf725af7092ec9b1896e4c54cc462e",
+      "rawSha256": "aa6e7c0a18486791923f1cdd3dc5f78cee8a0812be05f6b2c96f7f15d4a8b502"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/web-result.json.gz",
+      "sha256": "393f8d59f9be37ba389c8ece6f32c969600c5152144d0a31653385341c779be1",
+      "rawSha256": "4a78c5a5fd15660a5557a19f0209ecaf6cbcf24c2e75bfbd85dec4d598b0286f"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/original-mobile-suite.log.gz",
+      "sha256": "b1cb031c36e9215326a0a3448c52eeb7b3225a5dd1fd6a0c8c41561f4bcc05c1",
+      "rawSha256": "7db01111cc96c4ad46995870f3296efcd9c9ed3b0bf22d9ccbd836d96f0a0f0d"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/remaining-plugin-error-0.md.gz",
+      "sha256": "0069e14575836ff2c1b86e641962ffa8c62c982451522b2e62e1a277ef34cb13",
+      "rawSha256": "bcb8a928fe0e510f2ce9cd299920e82457dd495602b8705c4534668fc9d4d141"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/remaining-plugin-error-1.md.gz",
+      "sha256": "4714527b3743dcac4816ca094f6a4fb053c2695d34b2a45d4ee83f49cf97e0c8",
+      "rawSha256": "e2baf598258fa2122ad578212b0ad54a6d83539c35bd52f69f39e9ef5203c6f0"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/proposal-v1-candidate-runtime.log.gz",
+      "sha256": "d38d9af682f684b434e7782c129a86ec751f403386cbfe8102abd36e786acfc4",
+      "rawSha256": "f516a6e23a312e0172c4aa5d55c6c6c9e1cec32db5baf868c4895139be689fbd"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/proposal-v1-candidate-runtime-result.json.gz",
+      "sha256": "3bc389f9c645e35cd07446b32259d7781dd5cab9006c9ecd2cce0bc62df839aa",
+      "rawSha256": "f3f6e58be0ea4c7ab734f27b2c9fdec31c38b676b36e714632bbd5bd14b3f9fd"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/proposal-v1-proposal-checks.json.gz",
+      "sha256": "453f4f8decf5a8953de3388dc5cf5996a51c204b74ad2826b1e78294f8450505",
+      "rawSha256": "a1281a87fb8367fac6c159d4381fe6b51c07355cf98e6bfe8c52a9213a0b4acf"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/proposal-v2-candidate-runtime.log.gz",
+      "sha256": "9210a47e2afa192ae64141d6af2dcf6b31fec9c9c8bf1ae06675464dd8e12449",
+      "rawSha256": "0abcd19ef7ec9be4f4958913ef0ddeb04e17170644d544a1547d18548573c4dd"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/proposal-v2-candidate-runtime-result.json.gz",
+      "sha256": "b0ac80e9fb99bbda37bb2eb22bc989052127c98a8e85fb496e472eed3aeedcc1",
+      "rawSha256": "3c0e39a610e3a94df0af6c638f409534a4f5e1806b270e4ebcdf0f5b11d2a5d9"
+    },
+    {
+      "path": "docs/verification/rf1082-desktop-context-2026-10-03/proposal-v2-proposal-checks.json.gz",
+      "sha256": "c9ee6a3aab4f61dfe438079c17c6d32c70111ec03cbbbeaa5bb925204090ad8f",
+      "rawSha256": "704f7f6673aad4111a82f06e444d14b444057531f86a3286b9d0ba26bf95a824"
+    }
+  ],
+  "limits": [
+    "Full browser gate failed; task not closed.",
+    "Node24 / Edge local; actual Linux Node22 Chromium rerun needed.",
+    "mobile project desktop scenarios are not native Android coverage."
+  ]
+}

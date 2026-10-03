@@ -1,6 +1,9 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { login, setupTauriMock } from './fixtures/auth';
 
+// 桌面侧栏和鼠标场景显式使用桌面环境；各用例仍可自行测试窄视口。
+test.use({ viewport: { width: 1280, height: 720 }, isMobile: false, hasTouch: false });
+
 async function setupMac(page: Page, theme: 'light' | 'dark') {
   await setupTauriMock(page);
   await page.addInitScript((theme) => {

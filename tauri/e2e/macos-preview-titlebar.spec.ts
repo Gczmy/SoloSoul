@@ -2,6 +2,10 @@ import { test, expect, type Locator, type Page } from '@playwright/test';
 import { setupTauriMock, login } from './fixtures/auth';
 
 async function setupPreview(page: Page, platform = 'macos', kind = 'text', theme = 'light') {
+  // 混合平台文件仅调整桌面预览，保留Android/iOS视口与触摸上下文。
+  if (platform === 'macos' || platform === 'windows') {
+    await page.setViewportSize({ width: 1280, height: 720 });
+  }
   await setupTauriMock(page);
   await page.addInitScript(
     ({ platform, kind, theme }) => {

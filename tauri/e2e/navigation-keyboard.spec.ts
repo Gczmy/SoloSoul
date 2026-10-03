@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { login } from './fixtures/auth';
 
+// 桌面侧栏和鼠标场景显式使用桌面环境；各用例仍可自行测试窄视口。
+test.use({ viewport: { width: 1280, height: 720 }, isMobile: false, hasTouch: false });
+
 for (const position of ['left', 'right', 'top', 'bottom']) {
   test(`${position} 折叠工具区退出 Tab 顺序，键盘可展开并用 Escape 返回`, async ({ page }) => {
     await page.addInitScript({
