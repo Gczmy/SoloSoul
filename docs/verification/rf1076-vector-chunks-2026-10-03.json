@@ -1,6 +1,6 @@
 {
   "task": "RF-1076",
-  "status": "waiting-for-remote-rust-1.99-clippy",
+  "status": "completed",
   "date": "2026-10-03",
   "base_commit": "606918a2d0e0e3ee2f924c33462e086121a06007",
   "trigger": {
@@ -131,6 +131,35 @@
       "path": "docs/verification/rf1076-vector-chunks-2026-10-03/job-111247917347.log.gz",
       "sha256": "e0221b7160f2812355f127fbd87f93cb76850bc70f3149edebcf8fe8ec3fb22c",
       "rawSha256": "5eb9275f711c590d9d53b13547ff1ca59bff25135542f1f046b2954391fb64f8"
+    },
+    {
+      "path": "docs/verification/rf1076-vector-chunks-2026-10-03/job-111277389255.log.gz",
+      "sha256": "4fc549b37af8f7e73b39cc854bdf92cfd29ce792d12f47f6f3cab82d53270eec",
+      "rawSha256": "c08b2b0e45c626cdfc0b26ba4449fb0d26742b81ed98468a6286a8d5cc091e7c"
+    },
+    {
+      "path": "docs/verification/rf1076-vector-chunks-2026-10-03/remote-acceptance.json.gz",
+      "sha256": "0308a0c42753c06e39ca6f29f8a3e64cd84f83a305ad01f3eb193a5585226ed9",
+      "rawSha256": "07c83910b83dad77ea4010ae4ec40fe95974711220be184b981efef616f59518"
     }
-  ]
+  ],
+  "remote_acceptance": {
+    "tested_sha": "aa40ac117a5d6781df2f048995802abe4549e764",
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37148546263",
+    "job_id": 111277389255,
+    "rust": "1.99.0",
+    "clippy": "success",
+    "fmt": "success",
+    "host_unit_passed": 778,
+    "host_unit_failed": 1,
+    "overall_job_conclusion": "failure",
+    "independent_failure": "system locale assertion rejects C",
+    "criterion": "远端Rust1.99严格Clippy实际success；现有向量3项回归与本地完整R已通过，RF-1080后匹配1.99完整R1858/0/3同样通过。as_chunks语法修复与循环/查询主体保持；Linux本轮单独语言测试失败保留。",
+    "source_identical_git_blobs": {
+      "tauri/crates/solosoul-vault/src/storage/metadata.rs": {
+        "git_blob_sha256": "2ed8c2b32fa84c4ec0c4bfd44b9c72c731eab666c41a361b7942d94baf925807",
+        "working_raw_sha256": "dc86f34d911a13b00ff7316515a1bc1589a57d1b37bafc6c57bafceb6247be17"
+      }
+    }
+  }
 }
