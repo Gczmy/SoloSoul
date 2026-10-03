@@ -1,6 +1,6 @@
 {
   "task": "RF-1078",
-  "status": "waiting-for-remote-rust-1.99-clippy",
+  "status": "completed",
   "date": "2026-10-03",
   "base_commit": "96f1a2cb5a7dd098dd5209350cf1258f210005f9",
   "trigger": {
@@ -223,6 +223,39 @@
       "path": "docs/verification/rf1078-async-trait-2026-10-03/job-111254651777.log.gz",
       "sha256": "dc7c0494d7b0b3ae82b2b75cec5242c187a4cf00e2fb7b7e949b47f741920ff7",
       "rawSha256": "c54704de7c98b93d29c06233d0c78a6379a044b4d404d67f7f9006b66a5386e3"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/job-111277389255.log.gz",
+      "sha256": "4fc549b37af8f7e73b39cc854bdf92cfd29ce792d12f47f6f3cab82d53270eec",
+      "rawSha256": "c08b2b0e45c626cdfc0b26ba4449fb0d26742b81ed98468a6286a8d5cc091e7c"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/remote-acceptance.json.gz",
+      "sha256": "c8c0445c6cdbdd6b38a63d417120a17e925bbd41a0bf6c9ea149c14d8f8e7c16",
+      "rawSha256": "3735aad30e1009594fb92ed2e5fc6215f164892e5f489794bee3a1b59dadce5f"
     }
-  ]
+  ],
+  "remote_acceptance": {
+    "tested_sha": "aa40ac117a5d6781df2f048995802abe4549e764",
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37148546263",
+    "job_id": 111277389255,
+    "rust": "1.99.0",
+    "clippy": "success",
+    "fmt": "success",
+    "host_unit_passed": 778,
+    "host_unit_failed": 1,
+    "overall_job_conclusion": "failure",
+    "independent_failure": "system locale assertion rejects C",
+    "criterion": "远端Rust1.99严格Clippy实际success，double_must_use冲突消失。原完整R/native-perf/CLI检查与锁文件逐包核对通过；RF-1080匹配1.99完整GUI1858/0/3、CLI336/0/2通过。Linux语言断言失败与本项宏修复分开记录。",
+    "source_identical_git_blobs": {
+      "tauri/Cargo.lock": {
+        "git_blob_sha256": "2cc2fd3e220ad7fa968a2140207ebf5367760fb97868c414adc776d62a495d1d",
+        "working_raw_sha256": "2cc2fd3e220ad7fa968a2140207ebf5367760fb97868c414adc776d62a495d1d"
+      },
+      "solosoul_cli/Cargo.lock": {
+        "git_blob_sha256": "08c59be9b020f69edcadb1cc7431d61d421c67c7f1a354d2a5df418bb37ea13f",
+        "working_raw_sha256": "08c59be9b020f69edcadb1cc7431d61d421c67c7f1a354d2a5df418bb37ea13f"
+      }
+    }
+  }
 }
