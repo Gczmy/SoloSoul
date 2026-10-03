@@ -1,6 +1,6 @@
 {
   "task": "RF-1084",
-  "status": "linux-full-r-passed-waiting-explicit-locale-observation-in-pr",
+  "status": "complete-real-linux-c-locale-full-r-verified",
   "baseline": "c2091ef366dceb5b8820538bafcc60d2fc927471",
   "source_sha256": "154072b3d3f602f8a38de310e64d911698aac62d785c0cde0930d80f90b46c62",
   "production_functions_identical": true,
@@ -224,6 +224,46 @@
     ],
     "limits": [
       "Actual PR must record current Linux locale; this Windows static check does not claim C observation."
+    ]
+  },
+  "pr_acceptance": {
+    "run_id": 37157849547,
+    "job_id": 111304900082,
+    "tested_head": "c7b752978bf9342109705d1ed386fe44f75cb3c2",
+    "locale_inputs": {
+      "LANGUAGE": "<unset>",
+      "LC_ALL": "<unset>",
+      "LC_MESSAGES": "<unset>",
+      "LANG": "C.UTF-8"
+    },
+    "full_r": {
+      "groups": 25,
+      "passed": 1858,
+      "failed": 0,
+      "original_ignored": 3
+    },
+    "original_test_passed": true,
+    "protected_git_blobs": {
+      "tauri/src-tauri/src/commands/system.rs": "005c01b626021034404e765f033cb4fe2fa79bd4",
+      "tauri/Cargo.lock": "0b028136e673f82dd1409528d6c70c9e31fbeae9",
+      ".github/workflows/ci_cd.yml": "53fb39e3bd6ddb43f25e17ad6400db12344c219f"
+    },
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1084-system-locale-2026-10-03/pr-acceptance/remote-acceptance.json.gz",
+        "sha256": "0b6bf7973557f959364d789dc3be22e420105bb0c720b1f14b90eb780436cf32",
+        "rawSha256": "98b690360aa1c407dec6843a894783c2f349b30aa1ada2a4d6d11ac9c814b5f0"
+      },
+      {
+        "path": "docs/verification/rf1084-system-locale-2026-10-03/pr-acceptance/baseline.json.gz",
+        "sha256": "443196ebcbaf9c5564ab41995d70139237c03dcc651c3862f6eb9ebc1420d461",
+        "rawSha256": "25a03de734946534ad9438058019e0cee64916498cce57b1c4357143ff04a7f8"
+      },
+      {
+        "path": "docs/verification/rf1084-system-locale-2026-10-03/pr-acceptance/linux-full-r.log.gz",
+        "sha256": "cff991d8493b0e8fbd8ff287d562bf0dc7cb01f255c89af2a0f0583036a70ef8",
+        "rawSha256": "cd72cac558c1dfee724278b549a4564d5815faa7a375d72597da0a80b7a82965"
+      }
     ]
   }
 }
