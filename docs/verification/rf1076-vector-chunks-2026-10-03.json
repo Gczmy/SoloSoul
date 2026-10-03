@@ -1,0 +1,136 @@
+{
+  "task": "RF-1076",
+  "status": "waiting-for-remote-rust-1.99-clippy",
+  "date": "2026-10-03",
+  "base_commit": "606918a2d0e0e3ee2f924c33462e086121a06007",
+  "trigger": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37138522079",
+    "job_id": 111247917347,
+    "step": "Run Clippy",
+    "exit": 101,
+    "lint": "clippy::chunks_exact_to_as_chunks",
+    "source": "crates/solosoul-vault/src/storage/metadata.rs:352"
+  },
+  "fix": "Only replace chunks_exact(4) with as_chunks::<4>().0.iter() and copy each four-byte array into from_ne_bytes. Native endian, ignored remainder, SQL and stored/output shapes preserved; strict gate and toolchain unchanged.",
+  "facts": {
+    "full_r": {
+      "groups": 25,
+      "passed": 1858,
+      "failed": 0,
+      "ignored": 3
+    },
+    "existing_vector_regressions": [
+      "test storage::tests::test_clear_guide_embeddings ... ok",
+      "test storage::tests::test_count_guide_embeddings ... ok",
+      "test storage::tests::test_guide_embedding_roundtrip ... ok"
+    ],
+    "ignored_original": [
+      "test field::tests::test_field_metadata ... ignored, legacy field_parse feature removed — requires contracts",
+      "test field::tests::test_resolve_legacy_unchanged ... ignored, legacy field_parse feature removed — requires contracts",
+      "test p025_hold_baseline_large_dataset ... ignored, P025 Phase 3 数据收集工具：--ignored 手动运行（约 2s，大数据集）"
+    ],
+    "only_decoder_chain_changed": true,
+    "local_toolchain": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "remote_toolchain": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "official_references": [
+      "https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#chunks_exact_to_as_chunks",
+      "https://doc.rust-lang.org/std/primitive.slice.html#method.as_chunks"
+    ],
+    "remote_corrected_clippy": "pending"
+  },
+  "checks": [
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 2.9138080002740026
+    },
+    {
+      "name": "strict-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 102.00788140017539
+    },
+    {
+      "name": "full-r",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose"
+      ],
+      "exit": 0,
+      "seconds": 691.3943956997246
+    },
+    {
+      "name": "native-perf-strict-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 63.52370269969106
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1076-vector-chunks-2026-10-03/baseline.json.gz",
+      "sha256": "4f4a78ea606febc237e934b8352a73d57770d2f97a4831ed0728cb8e6ab91f71",
+      "rawSha256": "479e56763dcbcc81a755cef30d4b6e1a603354e33ed9e481d58c14be0ef53d70"
+    },
+    {
+      "path": "docs/verification/rf1076-vector-chunks-2026-10-03/facts.json.gz",
+      "sha256": "1971c410390020af64ff3940f2e4a295d592ec5f90ccdc3d8313ae70cc7b93a4",
+      "rawSha256": "27e98315cadd228c147014d2fef53564d5601d4f5401df75d7c399aa0b0a4693"
+    },
+    {
+      "path": "docs/verification/rf1076-vector-chunks-2026-10-03/checks.json.gz",
+      "sha256": "d805b7f68b5a2df72cfded7b5ef39ca47e27ace34e878c2e2d86f6bec73a5db3",
+      "rawSha256": "4a7d93f4d99a2d8cff33610d1045f76499eb5b555282aa29299fb80b2d46cb34"
+    },
+    {
+      "path": "docs/verification/rf1076-vector-chunks-2026-10-03/fmt.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1076-vector-chunks-2026-10-03/strict-clippy.log.gz",
+      "sha256": "c035e9bfefceaca13299b65d5ba030087e0a2763b10fa94398525acfa3ef5a4e",
+      "rawSha256": "85192fe66a7e0654c815683ec7bf3b0fd53055dc23f940e859287de1991e503c"
+    },
+    {
+      "path": "docs/verification/rf1076-vector-chunks-2026-10-03/full-r.log.gz",
+      "sha256": "51a44279dbe81264b62ac56d962afca88d3f080e5eb4b5bc32dd5d10ffb834cc",
+      "rawSha256": "19a7961e3486534f9fe7005f6b3cbc312f3f01c7f97a533c86ebb7bbcc0456f1"
+    },
+    {
+      "path": "docs/verification/rf1076-vector-chunks-2026-10-03/native-perf-strict-clippy.log.gz",
+      "sha256": "850fff7a71d347fee04da27c64450d8a7630187bbfd96c9d90dd689bd9f3fa55",
+      "rawSha256": "d1421e7d610732b62b0ed9752995ff4c355a7e15c32020f1e23ca74b8cd879e6"
+    },
+    {
+      "path": "docs/verification/rf1076-vector-chunks-2026-10-03/job-111247917347.log.gz",
+      "sha256": "e0221b7160f2812355f127fbd87f93cb76850bc70f3149edebcf8fe8ec3fb22c",
+      "rawSha256": "5eb9275f711c590d9d53b13547ff1ca59bff25135542f1f046b2954391fb64f8"
+    }
+  ]
+}
