@@ -1,6 +1,6 @@
 {
   "task": "RF-1077",
-  "status": "waiting-for-actual-linux-host-ci",
+  "status": "complete-actual-target-ci-verified",
   "date": "2026-10-03",
   "base_commit": "a5adab9cb6ffe9bb6132fffeae7cc88ab2568ed6",
   "finding": "Linux overlay declares ignored OCR and staged desktop plugin directories absent in fresh checkout; job lacked staging. This is a static cross-platform finding from RF-1075, not an observed Linux resource failure.",
@@ -96,5 +96,66 @@
       "sha256": "e590f6e3c1ded6934695c1426d49fd3485fd789eb725c256a71e858e677f08d6",
       "rawSha256": "72b3c14790c9da2c149befc602feb2999404b1746ea7ff92177d5ff9856371b7"
     }
-  ]
+  ],
+  "remote_acceptance": {
+    "run_id": 37154255151,
+    "tested_head": "cfa2cb5107fd9470a78fc6d21fca7dec2b427744",
+    "baseline_head": "40e174d8f935ba8c8acd26a622c0fc360c6fcacb",
+    "job_ids": [
+      111294255165
+    ],
+    "counts": {
+      "111294255165": {
+        "groups": 25,
+        "passed": 1858,
+        "failed": 0,
+        "original_ignored": 3
+      }
+    },
+    "protected_sources": {
+      "job:rust-test": "a5b7da3a8c45d48c6e0f8af839efbcc9ae6551e2132a371eb1b3e0bc55454052",
+      "tauri/scripts/stage-desktop-resources.cjs": {
+        "git_blob": "555918a002b491922a31b3469436c709d2b81a14",
+        "sha256": "2f98b1f876989a0f8becd927d4b27991e39744719f5a8daebd4a1365b2718253"
+      },
+      "tauri/src-tauri/tauri.linux.conf.json": {
+        "git_blob": "078dcf32171f647ad64f5350e56b822aeea8f93e",
+        "sha256": "438d8e2636b513cc66e5e6b749a081d9d92c7f04d7f173fdb60aaba495c95e4a"
+      },
+      "tauri/src-tauri/tauri.conf.json": {
+        "git_blob": "7fc2c134b7048b8d1441ef6ea5715923f8a426c9",
+        "sha256": "506c84287ce6a46a0d4f4157bd12906b7ffdc3f2e13c44d629303087c5d46899"
+      },
+      "tauri/src-tauri/build.rs": {
+        "git_blob": "945cc66716f8ef76910bad4129df6fb0d46b95da",
+        "sha256": "cf3f33631e73df6c39c9f62cec3bbc227491bbbe97ac3a8c4665786ead30acc2"
+      },
+      "tauri/Cargo.lock": {
+        "git_blob": "0b028136e673f82dd1409528d6c70c9e31fbeae9",
+        "sha256": "2cc2fd3e220ad7fa968a2140207ebf5367760fb97868c414adc776d62a495d1d"
+      },
+      "tauri/src-tauri/Cargo.toml": {
+        "git_blob": "1f3925f7e497ba1f953cb969d8ab1b5deab3f541",
+        "sha256": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e"
+      }
+    },
+    "conclusion": "Linux Rust1.99严格Clippy、资源准备与完整Host/Workspace通过；1858 passed/0 failed/3原ignored（Host779单测+8集成）。单测OCR标记不能用于Release或证明模型推理。",
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1077-linux-unit-resources-2026-10-03/round6-acceptance/baseline.json.gz",
+        "sha256": "56e348a758905e1a9cb147243dd80a9e98525e25b8457428a0b167aef33b94ba",
+        "rawSha256": "828c926f82f5e3a1814a3e9fba21a4425b25176642f03f39f985351a957d1e98"
+      },
+      {
+        "path": "docs/verification/rf1077-linux-unit-resources-2026-10-03/round6-acceptance/remote-acceptance.json.gz",
+        "sha256": "3626aea3fbf72a6c5f6d42ab63d79b1242692833fdc58a1a6c7c0e673752c5ea",
+        "rawSha256": "91f7c23eca7e63168419ee68b3d4102a6f057970b3953557d6e028f2ef8c9d41"
+      },
+      {
+        "path": "docs/verification/rf1077-linux-unit-resources-2026-10-03/round6-acceptance/job-111294255165.log.gz",
+        "sha256": "439bfa196e9acc722b9ff2d6eed12bc4d34bd8d9e998bdb4cbb369d62758c3c1",
+        "rawSha256": "4e7595f6675edb6a7a37db551440c032655d1b66d48bdaabaaccb20f322a1580"
+      }
+    ]
+  }
 }
