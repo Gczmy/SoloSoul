@@ -1,6 +1,6 @@
 {
   "task": "RF-1085",
-  "status": "waiting-real-linux-mobile-ci",
+  "status": "complete-actual-target-ci-verified",
   "baseline": "f65fce50649095925920665b6bb83b77b5e662cc",
   "source_sha256": "35d51e789c6819dc89e0fb29fcb25f536d93e4629522cdada4ef4cd7915e2378",
   "production_raw_unchanged": {
@@ -151,5 +151,47 @@
       "sha256": "728b96f9bc2205970cd73a2f9ca0fb8217037e320c19cab2743a40a8f9090e83",
       "rawSha256": "8929af5902700f7e941e24ad49fa4638a15340d7083f7a8ce402c2cb18856c6c"
     }
-  ]
+  ],
+  "remote_acceptance": {
+    "run_id": 37154255151,
+    "tested_head": "cfa2cb5107fd9470a78fc6d21fca7dec2b427744",
+    "baseline_head": "912d55a69a6d307474b84c1e07d7e42cbce8a0e5",
+    "job_ids": [
+      111294255088
+    ],
+    "counts": {
+      "whole_mobile": {
+        "passed": 307,
+        "failed": 1,
+        "original_skipped": 19
+      },
+      "scoped_passed": 8,
+      "scoped_original_skips": 0,
+      "whole_job_passed": false
+    },
+    "protected_sources": {
+      "tauri/e2e/plugin-quick-panel.spec.ts": {
+        "git_blob": "ba0950547db268cfaaba2cf3eb57bc679658c423",
+        "sha256": "35d51e789c6819dc89e0fb29fcb25f536d93e4629522cdada4ef4cd7915e2378"
+      }
+    },
+    "conclusion": "插件快捷面板原8例在实际Linux Node22/Chromium mobile全部通过，完整固定译文、取消/重试/进度/安装断言保留。整个移动job仍307/1/19，唯一RF-1081滚动条失败不属于本项。",
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1085-plugin-error-fixture-2026-10-03/round6-acceptance/baseline.json.gz",
+        "sha256": "f36217abefbea069221eabbfd9a40c21f26b3b840239f67562a47215212843e2",
+        "rawSha256": "e5f8c9221d243ec3d2908d3eec511c0c68ad923335d50487120c9552e7756b0a"
+      },
+      {
+        "path": "docs/verification/rf1085-plugin-error-fixture-2026-10-03/round6-acceptance/remote-acceptance.json.gz",
+        "sha256": "b94c82802716cf1af5d223c8ab9ecae5f6c57062db2a17f303ca7b9447fe5202",
+        "rawSha256": "eec298843bc2e6f9ec92735c79b377a0f62b4daf458862edb151e3a197d2c0e8"
+      },
+      {
+        "path": "docs/verification/rf1085-plugin-error-fixture-2026-10-03/round6-acceptance/job-111294255088.log.gz",
+        "sha256": "9e791aa9def1dad6e985170d121f7fb44d0bb912752db1b8bd480257046ef11e",
+        "rawSha256": "9013346693463e431a0b07c6d310fe7e693e712bbf481d9a829707c8869d8d24"
+      }
+    ]
+  }
 }
