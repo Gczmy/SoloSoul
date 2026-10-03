@@ -1,0 +1,112 @@
+[
+  {
+    "name": "node-format",
+    "command": [
+      "node",
+      "node_modules/prettier/bin/prettier.cjs",
+      "--write",
+      "scripts/native-perf-ui-root.node.test.mjs"
+    ],
+    "exit": 0,
+    "seconds": 0.7417443003505468
+  },
+  {
+    "name": "node-format-check",
+    "command": [
+      "node",
+      "node_modules/prettier/bin/prettier.cjs",
+      "--check",
+      "scripts/native-perf-ui-root.node.test.mjs"
+    ],
+    "exit": 0,
+    "seconds": 0.21849900018423796
+  },
+  {
+    "name": "node-tests",
+    "command": [
+      "node",
+      "--test",
+      "scripts/native-perf-run.test.mjs",
+      "scripts/native-perf-diagnose.test.mjs",
+      "scripts/native-perf-runtime.test.mjs",
+      "scripts/native-perf-sdk-cdp.test.mjs",
+      "src-tauri/src/native_perf/observer.node.test.mjs",
+      "scripts/native-perf-ui-root.node.test.mjs"
+    ],
+    "exit": 0,
+    "seconds": 11.836930399760604
+  },
+  {
+    "name": "rust-fmt",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all"
+    ],
+    "exit": 0,
+    "seconds": 7.370604199357331
+  },
+  {
+    "name": "rust-native-tests",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--lib",
+      "native_perf::",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 0,
+    "seconds": 182.8716323999688
+  },
+  {
+    "name": "rust-native-clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 38.69361039996147
+  },
+  {
+    "name": "rust-fmt-check",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 3.0017810007557273
+  },
+  {
+    "name": "release-build",
+    "command": [
+      "node",
+      "node_modules/@tauri-apps/cli/tauri.js",
+      "build",
+      "--config",
+      "src-tauri/tauri.native-perf.conf.json",
+      "--features",
+      "native-perf",
+      "--no-bundle",
+      "--ci"
+    ],
+    "exit": 0,
+    "seconds": 926.7443598993123
+  }
+]

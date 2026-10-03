@@ -1,0 +1,41 @@
+{
+  "binding": {
+    "frameCreatedEvents": 0,
+    "loaderId": "56841B078A23FAF131389B4E50CAACE4",
+    "mainFrameId": "8441B4C20DFEBAEADABF1D0C01B2332B",
+    "navigationEvents": 0,
+    "source": "http://tauri.localhost/",
+    "timeOriginMs": null
+  },
+  "browserPid": 30100,
+  "calls": [
+    "Page.getFrameTree",
+    "Runtime.evaluate"
+  ],
+  "document": null,
+  "elapsedMs": 7,
+  "expectedOrigin": "http://tauri.localhost",
+  "mode": "sdk-cdp",
+  "observer": null,
+  "performanceSample": false,
+  "pid": 34476,
+  "port": 61526,
+  "reason": "document-ui-root-absent",
+  "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001",
+  "runId": "317544faeba44f37b5d1388cbbf4793e",
+  "schemaVersion": 1,
+  "scope": "windows-native-sdk-cdp-diagnostic",
+  "stage": "evaluation",
+  "success": false,
+  "uiRootDiagnostic": {
+    "classification": "root-empty-before-react-mount",
+    "reactMountMarked": false,
+    "rootExists": true,
+    "rootHasChildren": false,
+    "schemaVersion": 1,
+    "scope": "windows-native-ui-root-diagnostic",
+    "startupScreenPresent": true,
+    "startupState": "loading"
+  },
+  "windowLabel": "main"
+}

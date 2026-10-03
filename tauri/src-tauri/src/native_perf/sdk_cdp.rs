@@ -28,14 +28,26 @@ const MAX_ELAPSED_MS: u128 = 20_000;
 const FRAME_METHOD: &str = "Page.getFrameTree";
 const EVALUATE_METHOD: &str = "Runtime.evaluate";
 // 固定仅读表达式；不取 input.value、DOM 文本、账户数据或 IPC body。
-const EXPRESSION: &str = r#"(() => ({
-  origin: location.origin, href: location.href, documentUrl: document.URL,
-  readyState: document.readyState, mainFrame: window.top === window,
-  frameCount: document.querySelectorAll('iframe,frame').length,
-  uiRootPresent: Boolean(document.getElementById('root')?.hasChildNodes()),
-  timeOriginMs: performance.timeOrigin, atMs: performance.now(),
-  observer: window.__SOLOSOUL_NATIVE_PERF__?.snapshot()
-}))()"#;
+const EXPRESSION: &str = r#"(() => {
+  const root = document.getElementById('root');
+  const screen = document.getElementById('startup-screen');
+  const state = screen?.dataset.state;
+  const rootHasChildren = Boolean(root?.hasChildNodes());
+  return {
+    origin: location.origin, href: location.href, documentUrl: document.URL,
+    readyState: document.readyState, mainFrame: window.top === window,
+    frameCount: document.querySelectorAll('iframe,frame').length,
+    uiRootPresent: rootHasChildren,
+    uiRootDiagnostic: {
+      schemaVersion: 1, rootExists: Boolean(root), rootHasChildren,
+      reactMountMarked: performance.getEntriesByName('solosoul:react-mount', 'mark').length > 0,
+      startupScreenPresent: Boolean(screen),
+      startupState: ['loading', 'error', 'ready'].includes(state) ? state : 'unavailable'
+    },
+    timeOriginMs: performance.timeOrigin, atMs: performance.now(),
+    observer: window.__SOLOSOUL_NATIVE_PERF__?.snapshot()
+  };
+})()"#;
 
 pub(super) fn claim_request(config: &RuntimeConfig) -> Result<(), String> {
     if !config.sdk_cdp
@@ -152,6 +164,7 @@ struct Capture {
     binding: Option<Value>,
     document: Option<Value>,
     observer: Option<Value>,
+    ui_root_diagnostic: Option<Value>,
 }
 impl Default for Capture {
     fn default() -> Self {
@@ -164,6 +177,7 @@ impl Default for Capture {
             binding: None,
             document: None,
             observer: None,
+            ui_root_diagnostic: None,
         }
     }
 }
@@ -340,6 +354,46 @@ fn parse_evaluation(
         observer.clone(),
         payload["timeOriginMs"].clone(),
     ))
+}
+
+// 仅在已通过文档绑定、被原有 root 条件拒绝时保存白名单结构；
+// 不解释错误原因，不接纳私有原值，也不改变 parse_evaluation 的成功标准。
+fn ui_root_diagnostic(value: &Value) -> Option<Value> {
+    let payload = &value["result"]["value"];
+    let probe = &payload["uiRootDiagnostic"];
+    if payload["uiRootPresent"] != false
+        || probe.as_object()?.len() != 6
+        || probe["schemaVersion"] != 1
+    {
+        return None;
+    }
+    let root_exists = probe["rootExists"].as_bool()?;
+    let root_has_children = probe["rootHasChildren"].as_bool()?;
+    let react_mount_marked = probe["reactMountMarked"].as_bool()?;
+    let startup_screen_present = probe["startupScreenPresent"].as_bool()?;
+    let startup_state = probe["startupState"].as_str()?;
+    if root_has_children
+        || !matches!(startup_state, "loading" | "error" | "ready" | "unavailable")
+        || (!startup_screen_present && startup_state != "unavailable")
+    {
+        return None;
+    }
+    let classification = if !root_exists {
+        "root-container-absent"
+    } else if react_mount_marked {
+        "react-mount-marked-root-empty"
+    } else if startup_state == "error" {
+        "startup-error-before-react-mount"
+    } else {
+        "root-empty-before-react-mount"
+    };
+    Some(json!({
+        "schemaVersion": 1, "scope": "windows-native-ui-root-diagnostic",
+        "rootExists": root_exists, "rootHasChildren": root_has_children,
+        "reactMountMarked": react_mount_marked,
+        "startupScreenPresent": startup_screen_present, "startupState": startup_state,
+        "classification": classification,
+    }))
 }
 
 /// SDK 提供有效 NUL 结尾缓冲区。先限制原始 UTF-16 和转换后 UTF-8 字节，
@@ -547,6 +601,9 @@ impl Session {
                     capture.binding.as_mut().unwrap()["timeOriginMs"] = time_origin;
                 }
                 Err(reason) => {
+                    if reason == "document-ui-root-absent" {
+                        self.capture.borrow_mut().ui_root_diagnostic = ui_root_diagnostic(&value);
+                    }
                     self.finish(false, "evaluation", Some(reason));
                     return;
                 }
@@ -669,14 +726,20 @@ fn proof_value(
     reason: Option<&str>,
     elapsed_ms: u128,
 ) -> Value {
-    json!({
+    let mut proof = json!({
         "schemaVersion": 1, "scope": "windows-native-sdk-cdp-diagnostic", "mode": "sdk-cdp",
         "performanceSample": false, "root": config.root, "runId": config.run_id,
         "pid": std::process::id(), "port": config.port, "windowLabel": "main",
         "browserPid": browser_pid, "expectedOrigin": EXPECTED_ORIGIN, "success": success,
         "stage": stage, "reason": reason, "calls": capture.calls, "binding": capture.binding,
         "document": capture.document, "observer": capture.observer, "elapsedMs": elapsed_ms as u64,
-    })
+    });
+    if !success && reason == Some("document-ui-root-absent") {
+        if let Some(diagnostic) = &capture.ui_root_diagnostic {
+            proof["uiRootDiagnostic"] = diagnostic.clone();
+        }
+    }
+    proof
 }
 fn publish_early_failure(config: &RuntimeConfig, start: Instant, reason: &'static str) {
     publish(
@@ -708,6 +771,7 @@ fn bounded_proof(proof: &Value) -> Result<Value, &'static str> {
     failure["binding"] = Value::Null;
     failure["document"] = Value::Null;
     failure["observer"] = Value::Null;
+    failure.as_object_mut().unwrap().remove("uiRootDiagnostic");
     if serde_json::to_vec_pretty(&failure)
         .map_err(|_| "proof-serialization-failed")?
         .len()
@@ -962,6 +1026,85 @@ mod tests {
             "document-origin-mismatch"
         );
         assert!(parse_evaluation(&valid, SOURCE, RUN_ID).is_ok());
+    }
+    #[test]
+    fn sdk_cdp_ui_root_diagnostic_is_typed_bounded_and_does_not_accept_failed_document() {
+        let mut value = evaluation();
+        value["result"]["value"]["uiRootPresent"] = json!(false);
+        value["result"]["value"]["uiRootDiagnostic"] = json!({
+            "schemaVersion": 1, "rootExists": true, "rootHasChildren": false,
+            "reactMountMarked": false, "startupScreenPresent": true, "startupState": "loading",
+        });
+        let expected = "root-empty-before-react-mount";
+        assert_eq!(
+            ui_root_diagnostic(&value).unwrap()["classification"],
+            expected
+        );
+        assert_eq!(
+            parse_evaluation(&value, SOURCE, RUN_ID).unwrap_err(),
+            "document-ui-root-absent"
+        );
+        for (key, changed, expected) in [
+            ("rootExists", json!(false), "root-container-absent"),
+            (
+                "reactMountMarked",
+                json!(true),
+                "react-mount-marked-root-empty",
+            ),
+            (
+                "startupState",
+                json!("error"),
+                "startup-error-before-react-mount",
+            ),
+        ] {
+            let mut variant = value.clone();
+            variant["result"]["value"]["uiRootDiagnostic"][key] = changed;
+            assert_eq!(
+                ui_root_diagnostic(&variant).unwrap()["classification"],
+                expected
+            );
+        }
+        for (key, changed) in [
+            ("rootExists", json!("private-root-sentinel")),
+            ("reactMountMarked", json!(null)),
+            ("startupState", json!("private-state-sentinel")),
+            ("startupScreenPresent", json!(false)),
+            ("rootHasChildren", json!(true)),
+            ("schemaVersion", json!(2)),
+            ("private", json!("private-extra-sentinel")),
+        ] {
+            let mut variant = value.clone();
+            variant["result"]["value"]["uiRootDiagnostic"][key] = changed;
+            assert!(ui_root_diagnostic(&variant).is_none());
+        }
+        let mut missing = value.clone();
+        missing["result"]["value"]["uiRootDiagnostic"]
+            .as_object_mut()
+            .unwrap()
+            .remove("rootExists");
+        assert!(ui_root_diagnostic(&missing).is_none());
+        value["result"]["value"]["uiRootPresent"] = json!(true);
+        assert!(ui_root_diagnostic(&value).is_none());
+    }
+    #[test]
+    fn sdk_cdp_failed_ui_root_probe_never_changes_success_or_other_failure_proofs() {
+        let owned = tempfile::tempdir().unwrap();
+        let config = test_config(&owned.path().canonicalize().unwrap());
+        let capture = Capture {
+            ui_root_diagnostic: Some(json!({"classification": "root-container-absent"})),
+            ..Default::default()
+        };
+        for (success, reason, contains) in [
+            (false, Some("document-ui-root-absent"), true),
+            (false, Some("document-origin-mismatch"), false),
+            (true, None, false),
+        ] {
+            let proof = proof_value(&config, Some(1), &capture, success, "evaluation", reason, 1);
+            assert_eq!(proof.get("uiRootDiagnostic").is_some(), contains);
+            assert_eq!(proof["success"], success);
+            assert!(proof["document"].is_null());
+            assert!(proof["observer"].is_null());
+        }
     }
     #[test]
     fn sdk_cdp_callback_is_bounded_before_copy_and_strict_utf16_json() {
