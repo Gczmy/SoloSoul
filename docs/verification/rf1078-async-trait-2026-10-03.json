@@ -1,0 +1,228 @@
+{
+  "task": "RF-1078",
+  "status": "waiting-for-remote-rust-1.99-clippy",
+  "date": "2026-10-03",
+  "base_commit": "96f1a2cb5a7dd098dd5209350cf1258f210005f9",
+  "trigger": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37140797984",
+    "job_id": 111254651777,
+    "lint": "clippy::double_must_use",
+    "methods": 8,
+    "cause": "async-trait 0.1.89 generates additional must_use on future-returning methods"
+  },
+  "facts": {
+    "unrelated_tracked_files_unchanged": 2354,
+    "stash_preserved": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90",
+    "local_rust": "1.96.0",
+    "remote_rust": "1.99.0",
+    "lock_scope": "Only async-trait 0.1.89 -> 0.1.92 and necessary compile-time syn 3.0.6; manifests and all other packages identical",
+    "remote_validation": "pending",
+    "official_references": [
+      "https://github.com/dtolnay/async-trait/releases/tag/0.1.92",
+      "https://github.com/dtolnay/async-trait/pull/303/files"
+    ],
+    "full_r": {
+      "groups": 25,
+      "passed": 1858,
+      "failed": 0,
+      "ignored": 3,
+      "original_ignored": [
+        "test field::tests::test_field_metadata ... ignored, legacy field_parse feature removed — requires contracts",
+        "test field::tests::test_resolve_legacy_unchanged ... ignored, legacy field_parse feature removed — requires contracts",
+        "test p025_hold_baseline_large_dataset ... ignored, P025 Phase 3 数据收集工具：--ignored 手动运行（约 2s，大数据集）"
+      ]
+    },
+    "cli": {
+      "groups": 5,
+      "passed": 336,
+      "failed": 0,
+      "ignored": 2,
+      "original_ignored": [
+        "test rf905_subprocess_fixture ... ignored, RF905 child-only subprocess fixture; parent tests invoke it explicitly",
+        "test src\\i18n\\mod.rs - i18n::t (line 160) ... ignored"
+      ]
+    }
+  },
+  "checks": [
+    {
+      "name": "fmt",
+      "cwd": "tauri",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 2.6808286998420954
+    },
+    {
+      "name": "strict-clippy",
+      "cwd": "tauri",
+      "command": [
+        "cargo",
+        "clippy",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 108.85325350053608
+    },
+    {
+      "name": "full-r",
+      "cwd": "tauri",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose"
+      ],
+      "exit": 0,
+      "seconds": 1030.8713618004695
+    },
+    {
+      "name": "native-perf-strict-clippy",
+      "cwd": "tauri",
+      "command": [
+        "cargo",
+        "clippy",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 93.18438380025327
+    },
+    {
+      "name": "cli-fmt",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "fmt",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 2.2358912006020546
+    },
+    {
+      "name": "cli-strict-clippy",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 61.01105280034244
+    },
+    {
+      "name": "cli-full",
+      "cwd": "solosoul_cli",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "exit": 0,
+      "seconds": 596.4497342994437
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/baseline.json.gz",
+      "sha256": "201c3bccbe17e76c75ebb332d4fb9b85965e94aecb34e006010916a5b53e7340",
+      "rawSha256": "6b46c0b748516302be19fc114f26dbb29f2b5d164c6ba5384b8d944b75b93ffb"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/dependency-diff.json.gz",
+      "sha256": "4b87292f20a1cc71def503fd582dab9dd43716aeaf17182f7bcc58bea8f082a4",
+      "rawSha256": "282c3fd12bde2b5a5c06e15e84748ce4dc924dc51ccf42dfe22602629ca27016"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/update-results.json.gz",
+      "sha256": "b64effdbd225cd8672076413c99dac0dd504ce9f55d58c0cf504fb832412ef74",
+      "rawSha256": "3644b97f851edeb8ad7adf688735a6bd77ea06b3237f4d80e7467700f5510491"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/checks.json.gz",
+      "sha256": "431116288fd34471242ef2e819c617d8e0485ef2330e2decfe0aec97c77b5a8d",
+      "rawSha256": "7597e5f6928df18c8e5541a53b7e40e318e186a32e4cca38f9ef03c4f9850fdd"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/facts.json.gz",
+      "sha256": "5d3c9edae9a9359b63482a784ed8a26c0b805afefaa0e794cc79337369d15b2d",
+      "rawSha256": "26516d0fa738dc93458f712f5f0ea522f7ac9a0e8b27424fce0fc5b80dfe847d"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/tauri-Cargo.lock.before.gz",
+      "sha256": "cb9da7253f9c6ae7ec7aa3691bb70d7eecafe9c9c989d6769efb24cc97f74863",
+      "rawSha256": "eaecbdecd19fcbeddb9d3d9cf5d216f06e6c56ff32cb84aaeabde21c97d74fd5"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/solosoul_cli-Cargo.lock.before.gz",
+      "sha256": "f1543fdedff32dbd0541c9ab8fb9cbd9fe687a80be2bff9643d0c48729c7601e",
+      "rawSha256": "22471a02bc24517dbf100732902287e5908a520c5c0e747b62f83d10cb30b71d"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/tauri-update.log.gz",
+      "sha256": "bae4d21fdf84e96d16e797e268a52214174ac1bfd971b3077cd7c78694f479f6",
+      "rawSha256": "7faaba371215fa3001493663a55cb8f37d11cabf02b3c75149c1180f1d35a39e"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/solosoul_cli-update.log.gz",
+      "sha256": "94354cfc495f391fb7b349f98c78fe9bd50ed16f8c22d4361f23b87eb318eed5",
+      "rawSha256": "a524f5cd9c50b7a3b7ce19af1bae523a75f9dcf5274bc96ed83810aebefca6e1"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/fmt.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/strict-clippy.log.gz",
+      "sha256": "f9be548df404b5718762d05bcfd4f074467a9b615f196a5c391e1e2717fd21c2",
+      "rawSha256": "3ffede863c57966f0110109515b6aadd187dae041404469d7725ae1d961b70fe"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/full-r.log.gz",
+      "sha256": "d785db71fdf67dc7649fb7f3c08a9c630575d6d3b1c1b15f1ab00049316cffd7",
+      "rawSha256": "5dbdc42ae059c54c1bd8d4b2edb67e44c0d8ee1a4dbd67ca226242e3d1ddbd1d"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/native-perf-strict-clippy.log.gz",
+      "sha256": "a79cea1e7bd3bb2aafb39efee6d1c5a0a680d316d803773de52d56732a35851c",
+      "rawSha256": "f76162428dd790fa1ef94321b0a0685094c8eb8088621685a4ba2d7c07118875"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/cli-fmt.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/cli-strict-clippy.log.gz",
+      "sha256": "389c8324d0b304ef29dc8f06f259dce290501b75d9a7c73c273bb6b3b752cba6",
+      "rawSha256": "a5c77bbf69b173e455af1e088e12df3d0015440eeb4882b3d2e466407a81b400"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/cli-full.log.gz",
+      "sha256": "1a3184c926675f2241e53e528299bb7b23d81b59d43a484f93ec42b44987a992",
+      "rawSha256": "44f89849ef43de73ed6e960ef787e1ffae444c889af837a8bb999ac6ce4ae9af"
+    },
+    {
+      "path": "docs/verification/rf1078-async-trait-2026-10-03/job-111254651777.log.gz",
+      "sha256": "dc7c0494d7b0b3ae82b2b75cec5242c187a4cf00e2fb7b7e949b47f741920ff7",
+      "rawSha256": "c54704de7c98b93d29c06233d0c78a6379a044b4d404d67f7f9006b66a5386e3"
+    }
+  ]
+}
