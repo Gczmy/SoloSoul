@@ -1,6 +1,6 @@
 {
   "task": "RF-1074",
-  "status": "waiting-for-remote-cli-tests",
+  "status": "complete",
   "date": "2026-10-03",
   "base_commit": "712227db00c62605772424394980288aacfa16e6",
   "failure": {
@@ -59,7 +59,31 @@
       "path": "docs/verification/rf1074-cli-pdfium-2026-10-03/job-111237127795.log.gz",
       "sha256": "0f74b11c9f958a535f1fee5f04b4f57461b2b266aeb425dc01463eb70bd5f144",
       "rawSha256": "5acda0fc7397b53f3e791436188e653b6ffc6353914c256fca7bacfb613dd514"
+    },
+    {
+      "path": "docs/verification/rf1074-cli-pdfium-2026-10-03/accepted-remote-cli.log.gz",
+      "sha256": "8619ed6d051d8c1d3c4da0e189514b3855af79025938f163db306400eecd7969",
+      "rawSha256": "9be971630f08c6befeabfb8e1ab3786503e74b392e3b1c1f44bf544a9315d4b7"
+    },
+    {
+      "path": "docs/verification/rf1074-cli-pdfium-2026-10-03/accepted-remote-cli.json.gz",
+      "sha256": "af0a7548f47d7a278f74109bde4990ab04243a584b8e5d4e2eb2291099c754b4",
+      "rawSha256": "fdcaf54f984c9d897bb3ed15d4614f7b159ad8ae0b0d02178fc7ac89d52cd3e5"
     }
   ],
-  "new_remote_result": "pending"
+  "new_remote_result": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37138522079",
+    "head_sha": "6723063e4b0bbcaa4031ba36f2e13a1052d03250",
+    "job_id": 111247917178,
+    "conclusion": "success",
+    "test_counts": {
+      "groups": 5,
+      "passed": 335,
+      "failed": 0,
+      "ignored": 2
+    },
+    "failed_pdf_regression": "actually passed",
+    "pr_workflow_run": "not performed; same prep code statically checked in pr_check.yml",
+    "whole_ci": "not claimed; Linux failed and Windows still running"
+  }
 }
