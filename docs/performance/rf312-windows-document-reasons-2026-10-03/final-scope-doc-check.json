@@ -1,0 +1,34 @@
+{
+  "checked_unowned_tracked_raw_files": 2130,
+  "unowned_mismatches": [],
+  "original_stash": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90",
+  "scope_unexpected_paths": [],
+  "task_index_count": 261,
+  "task_card_count": 261,
+  "states": {
+    "x": 249,
+    "!": 5,
+    " ": 7
+  },
+  "prior_rf1071_rf121_commits_preserved": true,
+  "new_artifacts_only_rf312": true,
+  "markdown_dependency_boundary": {
+    "exit": 0,
+    "dependencies": 13
+  },
+  "initial_scope_probes": [
+    {
+      "python_exit": 1,
+      "reason": "Git quoted two non-ASCII already-committed RF-121 paths; corrected parser with process-only core.quotepath=false."
+    },
+    {
+      "python_exit": 1,
+      "reason": "Baseline stash SHA has trailing newline; normalized whitespace after raw file hashes matched."
+    },
+    {
+      "python_exit": 1,
+      "reason": "Index has sequence column and linked IDs; corrected row parser to actual format. All 261 cards preserved."
+    }
+  ],
+  "probe_failures_are_verifier_parsing_only": true
+}

@@ -1,0 +1,75 @@
+[
+  {
+    "name": "fmt",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all"
+    ],
+    "exit": 0,
+    "seconds": 3.7440603002905846
+  },
+  {
+    "name": "native-tests",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--lib",
+      "native_perf::",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 0,
+    "seconds": 159.56065940018743
+  },
+  {
+    "name": "native-clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 87.71259230002761
+  },
+  {
+    "name": "fmt-check",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 5.030380699783564
+  },
+  {
+    "name": "release-build",
+    "command": [
+      "node",
+      "node_modules/@tauri-apps/cli/tauri.js",
+      "build",
+      "--config",
+      "src-tauri/tauri.native-perf.conf.json",
+      "--features",
+      "native-perf",
+      "--no-bundle",
+      "--ci"
+    ],
+    "exit": 0,
+    "seconds": 1185.865383299999
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "head": "f39f28fcfd93197cb2a8f67352469d81c6f853f7",
+  "source_sha256": "cd51d093646ce062b23d976447bb8a7198c699607f33d80d778e8a18300b7231",
+  "fixture": "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100",
+  "fixture_files": {
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\accounts.bak": "1e86e48cf79510489a907415a8147ec92c4692b0a621cf6178487ccbc3f1aa02",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\accounts.json": "625ecbe50d1d2455df06b9050ad465e504b477c389de2aeeb2c4eafbc38482fa",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\rf312-fixture.json": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\ui_preferences.json": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\acc_rf312_100\\config.json": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\acc_rf312_100\\vault.db": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100\\acc_rf312_100\\vault.db.pre_enc.bak": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "command": [
+    "node",
+    "scripts/native-perf-sdk-cdp.mjs",
+    "--exe",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\solo_soul.exe",
+    "--fixture",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100",
+    "--output",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\sdk-doc-reasons-01"
+  ],
+  "exit": 1,
+  "seconds": 29.508010399527848,
+  "scope": "one fresh read-only SDK diagnostic; no performance metrics or UI/password actions"
+}

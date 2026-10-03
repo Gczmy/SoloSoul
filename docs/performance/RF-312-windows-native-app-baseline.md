@@ -196,3 +196,31 @@ SDK协议请求单列 `sdkProtocolCalls`，不计入Tauri invoke。单次observe
 一次新隔离100对象实测使用默认154.0.4258.37，exit1；两个SDK方法均取得成功HRESULT且可解析的有界JSON回调，Page.getFrameTree校验主frame、loader与Source。Runtime.evaluate在聚合document条件被拒，`stage=evaluation/reason=document-mismatch`、native elapsed8ms，proof在spawn后1704ms被观察；这些时间是诊断边界，不能当启动/就绪/性能时延。失败proof的document/observer/timeOrigin为空，原始被拒值未保存，所以具体不符项和根因未知；Finished门闩不保证异步初始化/React已渲染只是源码事实，不能认定这就是本次原因。observer/timeOrigin和读取后身份校验未完成，runner `sdkProtocolCalls=null`、`performanceMetrics=null`；未重跑或放宽要求。
 
 原runner `cleanupIntegrity=false/unverifiedDescendants=true` 保留。额外fresh CIM确认9个记录PID和本轮owned命令行都不存在，随后仅清理三个精确owned目录；原始四个native标记/proof已存档。首次删除前普通/扩展路径比较误拒保留，确认同一本地绝对路径身份后非递归解除目录内缓存junction，再清理临时目录。源14文件与用户3张NSIS图片SHA保持，EXE/95资源与原始输出/日志保留。[完整本轮证据](rf312-windows-sdk-cdp-2026-09-30.json)包含授权、所有失败/最终检查、source/resource/EXE SHA、原始proof与独立收尾。下一步先为文档聚合拒绝增加固定枚举子原因，不保存拒绝值，再验证新构建；本次失败不可覆盖或改成成功。RF-312仍[!]、208/249不变，尚缺成功文档绑定、完整UI行程及多端性能验收。
+
+## 固定文档拒绝码诊断（2026-10-03）
+
+上一轮 `document-mismatch` 未指出哪个条件不符。本轮仅在非默认 native-perf 的 Runtime.evaluate 校验中拆分固定拒绝码；原有成功条件、检查顺序、load/setup 门闩、一次协议调用限制和采样时机不变。不保存被拒绝的 URL、DOM、时间或 observer 原值，也不把失败转换成成功。
+
+| 固定 reason | 首个不符条件 |
+| --- | --- |
+| document-result-type | SDK 返回值类型不是 object |
+| document-payload-type | 值不是 JSON object |
+| document-origin-mismatch | origin 与预期应用 origin 不同 |
+| document-href-mismatch | href 与已绑定 Source 不同 |
+| document-url-mismatch | document URL 与已绑定 Source 不同 |
+| document-ready-state | 文档状态不是 complete |
+| document-not-main-frame | 不是主窗口文档 |
+| document-child-frames | 存在子 frame 或 frame 数缺失/类型不符 |
+| document-ui-root-absent | 原有 uiRootPresent 条件未满足；不能单凭此码区分容器不存在和容器无子节点 |
+| document-clock-invalid | 采样时钟缺失或不是有限非负数 |
+
+成功 proof 的字段和 observer/timeOrigin 要求保持。Node runner 仍拒绝任何 native success=false 的 proof；SDK诊断继续 performanceMetrics=null。新增回归验证每种实际拒绝、多个不符项的固定优先级以及私有哨兵值不出现在 reason；原有回归不删改。实际结果如下，不从固定码推断应用根因。
+
+
+同一源冻结的非默认 Release 构建 exit0（约19m46s，Rust18m57s，TypeScript/Vite通过），新 EXE SHA `8a2a6c42850c07afa64317e4a8ca7db9e6663bb405f8d179d0225fbb2d2ac2af`；94份公开资源和相邻运行库逐份复制/复核，不新增依赖。原生29项、Node五文件97项、严格native all-target Clippy和fmt均通过；新增1项覆盖10种拒绝条件、固定优先级和私有哨兵值不外泄。默认完整R沿用本轮RF-1071的1858通过/0失败/3既有ignored，后续改动仅在非默认原生诊断内，不重复称新运行。
+
+一次 fresh 隔离100对象 SDK诊断 exit1，实际 WebView2 **154.0.4258.48**；两个只读协议方法回调完成，首个拒绝为 `stage=evaluation/reason=document-ui-root-absent`。此前的返回类型、origin/href/document URL、complete、主文档和无子frame条件均通过。原生边界elapsed6ms、spawn后2122ms观察到proof，均不能当作启动或就绪性能。失败proof仍不保存拒绝值，document/observer/timeOrigin为空，Node未接纳完整protocol次数和读取后成功身份验证，performanceMetrics=null。
+
+本次已将聚合原因缩小到原有 `Boolean(document.getElementById('root')?.hasChildNodes())` 条件。尚未区分根容器缺失/无子节点，也未证明初始化失败或异步React挂载时序；不得以此认定产品空白根因，更不能放宽规则、延迟重试后冒充成功样本。下一步单独增加有界只读根容器/挂载状态诊断，再决定如何建立真实UI就绪边界。
+
+原runner清理integrity完整、unverifiedDescendants=false；收尾fresh CIM确认9个记录PID与owned应用/WebView进程均不存在。首轮过宽命令行扫描匹配到两个执行检查的PowerShell宿主，已保留并收窄核验范围，没有结束任何额外进程。公开100对象源7文件、12份源码/依赖冻结、EXE及94资源SHA保持。原始失败proof、现场身份、全部检查日志与清理范围见[本轮结构化证据](rf312-windows-document-reasons-2026-10-03.json)。RF-312保持[!]，仍缺成功文档绑定、真实UI行程及多端性能验收；本轮诊断改进独立本地提交，不推送。

@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-10-03T00:16:51.8831518Z",
+  "matchingProcessCount": 0,
+  "matchingProcesses": [],
+  "recordedPids": [
+    6260,
+    2864,
+    18264,
+    18824,
+    36196,
+    6392,
+    5224,
+    12864,
+    27396
+  ],
+  "scope": "fresh CIM immediately before cleanup; both current task prefixes/identifier limited to app and WebView names, plus all RF-312 recorded PIDs"
+}

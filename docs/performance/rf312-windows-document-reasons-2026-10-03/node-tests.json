@@ -1,0 +1,13 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "scripts/native-perf-run.test.mjs",
+    "scripts/native-perf-diagnose.test.mjs",
+    "scripts/native-perf-runtime.test.mjs",
+    "scripts/native-perf-sdk-cdp.test.mjs",
+    "src-tauri/src/native_perf/observer.node.test.mjs"
+  ],
+  "exit": 0,
+  "seconds": 13.949133300222456
+}

@@ -291,18 +291,36 @@ fn parse_evaluation(
     }
     let result = &value["result"];
     let payload = &result["value"];
-    if result["type"] != "object"
-        || !payload.is_object()
-        || payload["origin"] != EXPECTED_ORIGIN
-        || payload["href"] != source
-        || payload["documentUrl"] != source
-        || payload["readyState"] != "complete"
-        || payload["mainFrame"] != true
-        || payload["frameCount"] != 0
-        || payload["uiRootPresent"] != true
-        || finite_nonnegative(&payload["atMs"]).is_none()
-    {
-        return Err("document-mismatch");
+    // 只输出固定拒绝码，不保存被拒绝的 URL、DOM、时间或 observer 原值。
+    if result["type"] != "object" {
+        return Err("document-result-type");
+    }
+    if !payload.is_object() {
+        return Err("document-payload-type");
+    }
+    if payload["origin"] != EXPECTED_ORIGIN {
+        return Err("document-origin-mismatch");
+    }
+    if payload["href"] != source {
+        return Err("document-href-mismatch");
+    }
+    if payload["documentUrl"] != source {
+        return Err("document-url-mismatch");
+    }
+    if payload["readyState"] != "complete" {
+        return Err("document-ready-state");
+    }
+    if payload["mainFrame"] != true {
+        return Err("document-not-main-frame");
+    }
+    if payload["frameCount"] != 0 {
+        return Err("document-child-frames");
+    }
+    if payload["uiRootPresent"] != true {
+        return Err("document-ui-root-absent");
+    }
+    if finite_nonnegative(&payload["atMs"]).is_none() {
+        return Err("document-clock-invalid");
     }
     let observer = &payload["observer"];
     if observer["schemaVersion"] != 1
@@ -883,6 +901,67 @@ mod tests {
         bad["result"]["subtype"] = json!("null");
         bad["result"]["value"] = Value::Null;
         assert!(parse_evaluation(&bad, SOURCE, RUN_ID).is_err());
+    }
+    #[test]
+    fn sdk_cdp_document_rejections_are_distinct_fixed_codes_without_rejected_values() {
+        let valid = evaluation();
+        for (key, rejected, expected) in [
+            (
+                "origin",
+                json!("private-origin-sentinel"),
+                "document-origin-mismatch",
+            ),
+            (
+                "href",
+                json!("private-href-sentinel"),
+                "document-href-mismatch",
+            ),
+            (
+                "documentUrl",
+                json!("private-url-sentinel"),
+                "document-url-mismatch",
+            ),
+            (
+                "readyState",
+                json!("private-state-sentinel"),
+                "document-ready-state",
+            ),
+            ("mainFrame", json!(false), "document-not-main-frame"),
+            ("frameCount", json!(1), "document-child-frames"),
+            ("uiRootPresent", json!(false), "document-ui-root-absent"),
+            (
+                "atMs",
+                json!("private-clock-sentinel"),
+                "document-clock-invalid",
+            ),
+        ] {
+            let mut changed = valid.clone();
+            changed["result"]["value"][key] = rejected;
+            let reason = parse_evaluation(&changed, SOURCE, RUN_ID).unwrap_err();
+            assert_eq!(reason, expected);
+            assert!(!reason.contains("private"));
+        }
+        let mut result_type = valid.clone();
+        result_type["result"]["type"] = json!("private-type-sentinel");
+        assert_eq!(
+            parse_evaluation(&result_type, SOURCE, RUN_ID).unwrap_err(),
+            "document-result-type"
+        );
+        let mut payload_type = valid.clone();
+        payload_type["result"]["value"] = json!("private-payload-sentinel");
+        assert_eq!(
+            parse_evaluation(&payload_type, SOURCE, RUN_ID).unwrap_err(),
+            "document-payload-type"
+        );
+        // 第一个不符项确定，不依赖把被拒绝的值发布给诊断调用方。
+        let mut multiple = valid.clone();
+        multiple["result"]["value"]["origin"] = json!("private-origin-sentinel");
+        multiple["result"]["value"]["uiRootPresent"] = json!(false);
+        assert_eq!(
+            parse_evaluation(&multiple, SOURCE, RUN_ID).unwrap_err(),
+            "document-origin-mismatch"
+        );
+        assert!(parse_evaluation(&valid, SOURCE, RUN_ID).is_ok());
     }
     #[test]
     fn sdk_cdp_callback_is_bounded_before_copy_and_strict_utf16_json() {

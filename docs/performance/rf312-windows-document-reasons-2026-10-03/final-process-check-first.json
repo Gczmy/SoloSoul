@@ -1,0 +1,35 @@
+{
+  "observedAt": "2026-10-03T00:09:03.0238324Z",
+  "method": "fresh Win32_Process CIM; recorded PIDs and exact owned executable/profile/identifier",
+  "recordedPids": [
+    6260,
+    2864,
+    18264,
+    18824,
+    36196,
+    6392,
+    5224,
+    12864,
+    27396
+  ],
+  "matchingProcessCount": 2,
+  "matchingProcesses": [
+    {
+      "ProcessId": 5320,
+      "ParentProcessId": 27708,
+      "CreationDate": "2026-10-03T01:09:00.542423+01:00",
+      "ExecutablePath": "C:\\Users\\40299571\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe"
+    },
+    {
+      "ProcessId": 41652,
+      "ParentProcessId": 27708,
+      "CreationDate": "2026-10-03T01:09:00.799034+01:00",
+      "ExecutablePath": "C:\\Users\\40299571\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe"
+    }
+  ],
+  "originalCleanupIntegrity": {
+    "complete": true,
+    "reason": null
+  },
+  "originalUnverifiedDescendants": false
+}

@@ -1,0 +1,21 @@
+{
+  "predicates_identical": true,
+  "predicate_order_identical": true,
+  "other_execution_and_existing_tests_unchanged": true,
+  "new_regression_count": 1,
+  "native_tests_passed": 29,
+  "node_tests_passed": 97,
+  "code_values": [
+    "document-result-type",
+    "document-payload-type",
+    "document-origin-mismatch",
+    "document-href-mismatch",
+    "document-url-mismatch",
+    "document-ready-state",
+    "document-not-main-frame",
+    "document-child-frames",
+    "document-ui-root-absent",
+    "document-clock-invalid"
+  ],
+  "raw_rejected_values_not_saved": true
+}

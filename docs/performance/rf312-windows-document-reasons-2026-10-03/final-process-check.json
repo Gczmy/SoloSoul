@@ -1,0 +1,23 @@
+{
+  "observedAt": "2026-10-03T00:09:38.6392691Z",
+  "method": "fresh Win32_Process CIM; all recorded PIDs, plus solo_soul/msedgewebview2 with exact owned executable/profile/identifier",
+  "recordedPids": [
+    6260,
+    2864,
+    18264,
+    18824,
+    36196,
+    6392,
+    5224,
+    12864,
+    27396
+  ],
+  "matchingProcessCount": 0,
+  "matchingProcesses": [],
+  "initialProbeNote": "First broad command-line scan matched two verification PowerShell hosts containing the query literal; no app/browser or recorded PID matched and no process was stopped. Preserved first probe separately.",
+  "originalCleanupIntegrity": {
+    "complete": true,
+    "reason": null
+  },
+  "originalUnverifiedDescendants": false
+}

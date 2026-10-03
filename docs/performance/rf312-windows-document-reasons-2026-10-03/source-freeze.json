@@ -1,0 +1,14 @@
+{
+  "tauri/src-tauri/src/native_perf/sdk_cdp.rs": "5f7c90a2d15a96f26bbca188258a083ab81ea08570593e5dd3233867ae3aee1f",
+  "tauri/src-tauri/src/native_perf.rs": "e21598f14ce202b8ee9aae61db4ab8cd43502e63fbf90f0d7b26e692273aab0a",
+  "tauri/src-tauri/src/lib.rs": "1deaafb600aaa8c8987ef52a241158dfbcc5feb98382d6efa465f1e041ea5bdf",
+  "tauri/src-tauri/src/main.rs": "9f92a119ed4fd31dd30638b6b5b11f997cd327df28faa9a460dff11a1553bde5",
+  "tauri/src-tauri/Cargo.toml": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e",
+  "tauri/Cargo.lock": "eaecbdecd19fcbeddb9d3d9cf5d216f06e6c56ff32cb84aaeabde21c97d74fd5",
+  "tauri/src-tauri/tauri.native-perf.conf.json": "d8c99c935b83b62187d61e72258cbc9239ad97a0cf482cde789444814cfa4810",
+  "tauri/package.json": "8aa8199c397a0b06b1e1882a93a4f26621bf9486f67bef2c122781cff1a98f05",
+  "tauri/package-lock.json": "ee6d2e5a81745fcf7f4eeb7318d562a4b3edbe711177f25ec44f457ddf791c90",
+  "tauri/scripts/native-perf-sdk-cdp.mjs": "53c27904bddedc3df9eed6fe4506b28a0bd7f3aa52a3c19346fba6c661b21264",
+  "tauri/scripts/native-perf-run.mjs": "9c7cbba52b8d29719f187ee07867991b25db4a76d350e31deda59c6676b53329",
+  "tauri/src-tauri/src/native_perf/observer.js": "d3e0328a134b64ac389236c9dd5bdb4d7cc5e63bdf03e98e4bee7337e8bca337"
+}

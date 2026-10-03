@@ -1,0 +1,31 @@
+{
+  "binding": {
+    "frameCreatedEvents": 0,
+    "loaderId": "FAEA254D97F4011A7BB47363E689A54F",
+    "mainFrameId": "4539B6161F3E82788066E1780C7BEEF6",
+    "navigationEvents": 0,
+    "source": "http://tauri.localhost/",
+    "timeOriginMs": null
+  },
+  "browserPid": 2864,
+  "calls": [
+    "Page.getFrameTree",
+    "Runtime.evaluate"
+  ],
+  "document": null,
+  "elapsedMs": 6,
+  "expectedOrigin": "http://tauri.localhost",
+  "mode": "sdk-cdp",
+  "observer": null,
+  "performanceSample": false,
+  "pid": 6260,
+  "port": 57944,
+  "reason": "document-ui-root-absent",
+  "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\sdk-doc-reasons-01\\sample-001",
+  "runId": "7e6453acd92947668ce2de3ba191633b",
+  "schemaVersion": 1,
+  "scope": "windows-native-sdk-cdp-diagnostic",
+  "stage": "evaluation",
+  "success": false,
+  "windowLabel": "main"
+}

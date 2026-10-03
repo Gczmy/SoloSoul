@@ -1,0 +1,40 @@
+{
+  "verification": "All archived bounded evidence SHA verified before removal; fresh CIM zero; exact manifest paths and resolved parents verified; reparse entries unlinked without traversal.",
+  "removed": [
+    {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\sdk-doc-reasons-01\\sample-001",
+      "resolved_absolute": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\sdk-doc-reasons-01\\sample-001",
+      "verified_parent": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\sdk-doc-reasons-01",
+      "status": "removed",
+      "reparse_entries_unlinked_without_following": [
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\sdk-doc-reasons-01\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5"
+      ]
+    },
+    {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.7e6453acd92947668ce2de3ba191633b",
+      "resolved_absolute": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.7e6453acd92947668ce2de3ba191633b",
+      "verified_parent": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming",
+      "status": "removed",
+      "reparse_entries_unlinked_without_following": []
+    },
+    {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.7e6453acd92947668ce2de3ba191633b",
+      "resolved_absolute": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.7e6453acd92947668ce2de3ba191633b",
+      "verified_parent": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local",
+      "status": "removed",
+      "reparse_entries_unlinked_without_following": []
+    },
+    {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002",
+      "resolved_absolute": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf121-windows-20261002",
+      "verified_parent": "C:\\Users\\40299571\\AppData\\Local\\Temp",
+      "status": "removed",
+      "reparse_entries_unlinked_without_following": []
+    }
+  ],
+  "retained": [
+    "Fresh RF-312 diagnostic binary/public resources for next bounded diagnosis.",
+    "Pre-existing source fixtures and previous RF-312 failures.",
+    "Original stash and recovery zip."
+  ]
+}

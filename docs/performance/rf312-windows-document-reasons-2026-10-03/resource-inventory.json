@@ -1,0 +1,566 @@
+[
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\index.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\index.json",
+    "bytes": 7474,
+    "sha256": "1bf5e302ea76c7ed8a315cb1b4a1f31e292f44caa219a7ae02752c143e3cc98f"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\search-index.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\search-index.json",
+    "bytes": 271069,
+    "sha256": "d8b6c658d214e326e3b73ebe3729a8b93b5d00244f78464b5da6b7a50cd0110e"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\ai_chat.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\ai_chat.md",
+    "bytes": 2272,
+    "sha256": "759a4d1acecb958ca6f85a9fed7038f9211cb1df99b59128634bb1d5892b334d"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\appearance.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\appearance.md",
+    "bytes": 2439,
+    "sha256": "36cbf213c9e571a948e9eaa3f40853defb7c4b9fba383aeffe230077d65bfc0c"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\attachments.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\attachments.md",
+    "bytes": 1483,
+    "sha256": "b213f76a1e53e4fc3226160c5f5f0afc78614285aac99940600bc467463d5ebf"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\audit_log.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\audit_log.md",
+    "bytes": 1503,
+    "sha256": "dcebb62e1badad6597de43a35c0283861479ce604c3987df7a4f6eafb9b59ece"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\backup_restore.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\backup_restore.md",
+    "bytes": 1547,
+    "sha256": "b66fb9c2560f123a347ab731299f4028e38e86f0c80b9ecbed2ba9f75c3d7d9c"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\biometric.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\biometric.md",
+    "bytes": 2173,
+    "sha256": "6f7bc0c5678b944773b445f679d76ae6d06df1c30149a228e4da6bb15810ebb5"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\collections.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\collections.md",
+    "bytes": 1555,
+    "sha256": "644483684412849eb6a253a66215299f6a76a240af4d593a1cf9f797d12d2d47"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\device_sync.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\device_sync.md",
+    "bytes": 9641,
+    "sha256": "e94308e6828f65077d3ce363d136245b18be76d164f77406058d71c88d4ee91c"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\export_import.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\export_import.md",
+    "bytes": 2063,
+    "sha256": "4cd9932a57890d592a51f2635c27012a47458f5e3b8eb1c7a65e44995dcb1573"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\getting_started.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\getting_started.md",
+    "bytes": 2197,
+    "sha256": "c6b1bc57d17d82af8ef646d33a45de79f52971310e177a5437e0a01a879f836c"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\llm_config.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\llm_config.md",
+    "bytes": 2179,
+    "sha256": "1f3323a10327d781fcb686e96894050f30406335a1d0da5cd429475f0c7d71ba"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\objects.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\objects.md",
+    "bytes": 1674,
+    "sha256": "0ba34cc1b895208f4c4c4fafd011981bfbf7e79b337b430a4daf206a6fd3c658"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\ocr_scan.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\ocr_scan.md",
+    "bytes": 3803,
+    "sha256": "809d9be07823560bd97795af34aa7b035fdd26708c6ad406e6541d259865dfdc"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\plugins.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\plugins.md",
+    "bytes": 1925,
+    "sha256": "f3617a845ecd1bbaf414a071bd74c812a26f8fb1814c4506defe90ba42623bc4"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\search.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\search.md",
+    "bytes": 1147,
+    "sha256": "51182a06744aedd57ce8757dbbb2f848f669509772b7ffe377f4131b1c8584aa"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\security.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\security.md",
+    "bytes": 2600,
+    "sha256": "18988107d850df08e1b8ccbdfb6103c5cb31cee4dc1f6523c10bb262d991ac29"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\sensitivity.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\sensitivity.md",
+    "bytes": 2071,
+    "sha256": "511b8108edc7d68709254d6dcacc9208a49305f82baed23b1ac0af02cd2ddc5b"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\snapshots.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\snapshots.md",
+    "bytes": 1741,
+    "sha256": "2e961d6fd9ff3ea34ab331dcc83fa846e4557a375144f0a2086a1ec75ae3ccc0"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\templates.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\templates.md",
+    "bytes": 2863,
+    "sha256": "003433811d6bcfc2401bd17b4e49b6f648cd6d752e52a9ce5a43a29119cf9623"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\trash.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\trash.md",
+    "bytes": 1532,
+    "sha256": "d7e632a87aaedf91d4be5f4aeff8126a0bad5b3e551410e257cf5e06bde991bc"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\en\\workspace.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\en\\workspace.md",
+    "bytes": 1723,
+    "sha256": "150c78c4606d5a5c97aaeec953f4e1c8984e19ca7b6555f525676ac110cca132"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\ai_chat.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\ai_chat.md",
+    "bytes": 2166,
+    "sha256": "6e24099d3cb055476d6c895cea3846206cd1d1f684a3107bc3ab6e905619560c"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\appearance.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\appearance.md",
+    "bytes": 2361,
+    "sha256": "7826865b0904fa2936d265b99f31cab750940c8d535825efe825e5cce8ea5f62"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\attachments.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\attachments.md",
+    "bytes": 1294,
+    "sha256": "2d6a5c831c9a8d2ac5604bf09c2a9960995f7530b42629c97a250ac27b858a40"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\audit_log.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\audit_log.md",
+    "bytes": 1406,
+    "sha256": "a8c3e9fffb6571468bd2e3d06e4d1d71d7f9e3741426a05363ecfd241f8e14b2"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\backup_restore.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\backup_restore.md",
+    "bytes": 1395,
+    "sha256": "9f710390ebca4d4e99354c7894e7d34d78a2f9b302e7b23806664237d76e9d3d"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\biometric.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\biometric.md",
+    "bytes": 1915,
+    "sha256": "750a8b1b68a9acdac5bd534fbbd423a15bd4c1c3af967ae672e7df4a1ec02c6c"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\collections.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\collections.md",
+    "bytes": 1477,
+    "sha256": "0f95169cbcf9c851f61df3a622d799273a4ecf277f1d3df12e9f56acda52f775"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\device_sync.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\device_sync.md",
+    "bytes": 9462,
+    "sha256": "6f9fabf8ec89b3e1b8e62e194aa5605a78c51a44324bd945d9f7c6b1aaf474dd"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\export_import.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\export_import.md",
+    "bytes": 1851,
+    "sha256": "8e518e3f2e18460dc2d74aa8edda698f1fd98362b7044798242f9f623a860188"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\getting_started.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\getting_started.md",
+    "bytes": 2079,
+    "sha256": "fe4a4562689778641bc7520ec9ab5283f1efccabab2ddbc1a198a40307cdd963"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\llm_config.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\llm_config.md",
+    "bytes": 2063,
+    "sha256": "c12ae9cbf56f47b4aae2779cb13eb47d110815703d01702abe2057dc0e36629d"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\objects.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\objects.md",
+    "bytes": 1551,
+    "sha256": "58bbcc1a88e32c4a8932d39329375e26d8dcf69b118a289dd0aa9c7edab7da0c"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\ocr_scan.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\ocr_scan.md",
+    "bytes": 3438,
+    "sha256": "31dc7c5407418ff60c6aa6e5688a3591e5980513e338c551e7a3bc3f276ab7eb"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\plugins.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\plugins.md",
+    "bytes": 1643,
+    "sha256": "f616f6465a23c6cc51b86e356bfb376e387611795516165224e86c8ba909ea88"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\search.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\search.md",
+    "bytes": 1057,
+    "sha256": "d6c34e2dee985a433b922c5c2559c2f4effbe0325506629ba345da25c4e7962a"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\security.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\security.md",
+    "bytes": 2337,
+    "sha256": "400a2e6cda0fbcca57293c04eedc76d0c51406b99fec819996bbee5e129fe6d6"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\sensitivity.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\sensitivity.md",
+    "bytes": 1901,
+    "sha256": "65eff8d74b1330934131d1f3e00f6d7c9badae3e62e241c84b4a6baccaec2707"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\snapshots.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\snapshots.md",
+    "bytes": 1718,
+    "sha256": "23f5e9ea50018043a83c56072ebda07d47c29fb692c84fcf3e5e1c708a8625e0"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\templates.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\templates.md",
+    "bytes": 2635,
+    "sha256": "c8aac2698d85becf8dec9b82d0cf3f0b7fd382488466527d42900700339d9b35"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\trash.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\trash.md",
+    "bytes": 1446,
+    "sha256": "5382891e30e13ad4c99fefcd9c30711dfe93fb4253cc939baa65470321dda7e1"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\docs\\guides\\zh\\workspace.md",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\docs\\guides\\zh\\workspace.md",
+    "bytes": 1584,
+    "sha256": "d1e262cb06acd4b66919e5577726abb938492d01bc04c96f45f9e5dcfe8e68f2"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\pdfium\\pdfium.dll",
+    "bytes": 7213568,
+    "sha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\models\\pp-ocr-v6-small\\det\\inference.onnx",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\models\\pp-ocr-v6-small\\det\\inference.onnx",
+    "bytes": 9880512,
+    "sha256": "d73e0058b7a8086bbd57f3d10b8bcd4ff95363f67e06e2762b5e814fe9c9410e"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\models\\pp-ocr-v6-small\\det\\inference.yml",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\models\\pp-ocr-v6-small\\det\\inference.yml",
+    "bytes": 885,
+    "sha256": "193f435274bf9f0b5f71a929bbfbcf148282df7e633b34e7c373e8f44741b516"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\models\\pp-ocr-v6-small\\rec\\inference.onnx",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\models\\pp-ocr-v6-small\\rec\\inference.onnx",
+    "bytes": 21159378,
+    "sha256": "5435fd747c9e0efe15a96d0b378d5bd157e9492ed8fd80edf08f30d02fa24634"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\models\\pp-ocr-v6-small\\rec\\inference.yml",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\models\\pp-ocr-v6-small\\rec\\inference.yml",
+    "bytes": 150579,
+    "sha256": "ab078671bb49f06228eadccd34f1bb501e157f7a047095ffb943ba81512c77d1"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\registry.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\registry.json",
+    "bytes": 64649,
+    "sha256": "2cdf029c336621b5ddef50c0eb5315c3d9f7282780a30ce7353ccccfc06b6d42"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.address-fmt\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.address-fmt\\manifest.json",
+    "bytes": 2986,
+    "sha256": "0f909e7ccf07ab984d0696cd31e3b3a7d64b9e33b953c533f537109917b2cca6"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.address-fmt\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.address-fmt\\plugin.wasm",
+    "bytes": 196536,
+    "sha256": "b2f110dfebc3c52ec4c96fbea74dedbfe8cbdb4da5bdc46a1e1258dc9b6dc3e9"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.calendar-events\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.calendar-events\\manifest.json",
+    "bytes": 1160,
+    "sha256": "41f60a89f635b61af476de98fcaede8ee815fe82ad4c06209b3b76ea182ca2f6"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.calendar-events\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.calendar-events\\plugin.wasm",
+    "bytes": 77124,
+    "sha256": "02dcf893500f1600fc810e86c22a017af04ea906cdada96359fe4cb56b18b990"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.cloud-packager\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.cloud-packager\\manifest.json",
+    "bytes": 1402,
+    "sha256": "98f2ac21b26c4c6b3332fda8d088892976cdd4be9d90c7ca19ff1bf6c50d3e2f"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.cloud-packager\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.cloud-packager\\plugin.wasm",
+    "bytes": 40384,
+    "sha256": "e535bba7c7504835a5521b2f09b6d295f50646d15cef83017fd7642427391995"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.contact-exporter\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.contact-exporter\\manifest.json",
+    "bytes": 2380,
+    "sha256": "7fc1cb6dc635b8cf8be96b97de9b70db32ecca0e320b9fbec009eef3eb8e9a30"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.contact-exporter\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.contact-exporter\\plugin.wasm",
+    "bytes": 61415,
+    "sha256": "7cfc149ad364d80af3b3f7681d8bac05ac2ba5e03e77e6509e25c79cd0d47093"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.data-completeness\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.data-completeness\\manifest.json",
+    "bytes": 1632,
+    "sha256": "c646a42714680e60c623226b1780f29afee3933642593500fe5c0097d7d8f5f7"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.data-completeness\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.data-completeness\\plugin.wasm",
+    "bytes": 70238,
+    "sha256": "f57f33553cf2a886591e8948427e1a64d05edc2ef2746b1f7308a3ec271bfdf3"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.digital-will\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.digital-will\\manifest.json",
+    "bytes": 1397,
+    "sha256": "f0719dca4152c84626dd92a1abec320a12a380c8414be2e2a1618c6c1a41f535"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.digital-will\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.digital-will\\plugin.wasm",
+    "bytes": 68837,
+    "sha256": "c888303bed30ccc187e59ad2383a28ed4aaf75438276978ad31421ce2a4558dc"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.doc-checklist\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.doc-checklist\\manifest.json",
+    "bytes": 2409,
+    "sha256": "98a6aaaa947aab9bc8ed39fea2b5696f389247d2989f459755eb148996876e95"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.doc-checklist\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.doc-checklist\\plugin.wasm",
+    "bytes": 134994,
+    "sha256": "bac2dc3491edfb2955f9fd48d855b518c3c6be71ebabe80a1727cc074430e376"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.emergency-card\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.emergency-card\\manifest.json",
+    "bytes": 1318,
+    "sha256": "2acee9106a571e7cdf40267d22c7416d3d3ef8bad209c8c2b919853a1e03c4f7"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.emergency-card\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.emergency-card\\plugin.wasm",
+    "bytes": 64742,
+    "sha256": "757d9eaf06138c6a25ffe924eed9fef3cdc0851a5fa8da92eadc04417341c1d5"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.expiry-guardian\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.expiry-guardian\\manifest.json",
+    "bytes": 1855,
+    "sha256": "a16d07294c769bd417fa2991e603c170085993d9146e53d8035c20fb78abfd59"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.expiry-guardian\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.expiry-guardian\\plugin.wasm",
+    "bytes": 187321,
+    "sha256": "25822e1aeae9d9fe3fb857555b4ca4eb66d8a302ac8b09fb60b79cb601a89aa9"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.form-prefiller\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.form-prefiller\\manifest.json",
+    "bytes": 2885,
+    "sha256": "c2699f69e9c21b540c02c33032d85def2942615416e44a86ad636b73249862c1"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.form-prefiller\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.form-prefiller\\plugin.wasm",
+    "bytes": 107209,
+    "sha256": "d20f21114593a9881494dfab24bdc348fbcf2c9ae443aef48ad0a37a9e8bda7f"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.id-validator\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.id-validator\\manifest.json",
+    "bytes": 1221,
+    "sha256": "dedd5d7d5b39e3501e25e8d445c1a8cafa7aa4f821a7a19cdbd95ed704668713"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.id-validator\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.id-validator\\plugin.wasm",
+    "bytes": 69584,
+    "sha256": "837fb20fbf49060c3934f6d19b93899b16fe7373feeb1148a08591606b3b60db"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.identity-timeline\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.identity-timeline\\manifest.json",
+    "bytes": 2492,
+    "sha256": "4e4cefc40b0fe67f7ecc72c0c3148ccce95922b72a5a65eb90e4d44b6142bb09"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.identity-timeline\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.identity-timeline\\plugin.wasm",
+    "bytes": 81859,
+    "sha256": "64b911abcb33a4f7d8048abc13c655ebc0c45d512a0b8ba81c758951b7fbc20f"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.mrz-encoder\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.mrz-encoder\\manifest.json",
+    "bytes": 1258,
+    "sha256": "4bb1321b6a4e8ed21af40cb19e13ac265a324c610433e70cdf366fdc449fc655"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.mrz-encoder\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.mrz-encoder\\plugin.wasm",
+    "bytes": 100349,
+    "sha256": "930788cc4fe3118a5ecdc9cb2c4c2d978124fecb69d926291664359e74d26ad7"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.namecard-gen\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.namecard-gen\\manifest.json",
+    "bytes": 1316,
+    "sha256": "3b32116f969039e974866426c10fcedc06c32048116df14118b3fb58d5fdcf37"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.namecard-gen\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.namecard-gen\\plugin.wasm",
+    "bytes": 82785,
+    "sha256": "d569178214a9539d62299998ea15e67fef82a1ec5e1d1da137d35ec1333a73e3"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.packing-list\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.packing-list\\manifest.json",
+    "bytes": 1147,
+    "sha256": "fd724f21514bb5ee2ef2462e7f170b87cb023f8f1e244c0b4e5dba6f6fddca61"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.packing-list\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.packing-list\\plugin.wasm",
+    "bytes": 102723,
+    "sha256": "dfe71453f814a9e6e0bf3a64363a75e348774515acaff91305911d468e56df55"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.phone-fmt\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.phone-fmt\\manifest.json",
+    "bytes": 1062,
+    "sha256": "e0fa082fc3d106adf56ba89737ea329967e31d6201860703ee9b90ce70e437c8"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.phone-fmt\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.phone-fmt\\plugin.wasm",
+    "bytes": 90973,
+    "sha256": "bd31d94ad9c59867262183944ec4e4421395f090e94d3086054d87d5ff0d8876"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.resume-builder\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.resume-builder\\manifest.json",
+    "bytes": 3306,
+    "sha256": "718fd933131037afc97172b7b38f362ee1a1e0b84ebf2b7dce38f0216ff088a7"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.resume-builder\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.resume-builder\\plugin.wasm",
+    "bytes": 67021,
+    "sha256": "4325de8b5a5448f67ffaff9399eb79faec2b501c4b0f903a7150d9f030fec71c"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.tax-profile\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.tax-profile\\manifest.json",
+    "bytes": 2192,
+    "sha256": "8ad851653c7ca9c6fab9a679ba784b9d2d55babd7d81ab4845d63f17564f8835"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.tax-profile\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.tax-profile\\plugin.wasm",
+    "bytes": 66933,
+    "sha256": "dfd712d102e13dfccf6bcf9843786a826573db20ee8014b741d39a688532b359"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.totp-gen\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.totp-gen\\manifest.json",
+    "bytes": 1527,
+    "sha256": "c920d70201d43b06d94368bef6bf2855baf8ca79975423e6cde1c5aa57ca64af"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.totp-gen\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.totp-gen\\plugin.wasm",
+    "bytes": 84324,
+    "sha256": "8a70925af2a5fd79d356b28c88a0b7baa9fb31e1ea1ee0d02df32aa55c9c2ae5"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.travel-footprint\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.travel-footprint\\manifest.json",
+    "bytes": 1469,
+    "sha256": "1b4a5d71a036d9b4d9fbf49de68d56874d2a1bc3d435a1533e1c081102b4131b"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.travel-footprint\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.travel-footprint\\plugin.wasm",
+    "bytes": 194287,
+    "sha256": "513201f5e807a7fefb36ef594a6fedf0e2a83fe4245f0b211387ae7c840c75b3"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.watermark\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.watermark\\manifest.json",
+    "bytes": 1139,
+    "sha256": "c4cee8ce0bec056692033f8a845271be7a481235e5a0799b51be5cafd91c2b4a"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.watermark\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\com.solosoul.official.watermark\\plugin.wasm",
+    "bytes": 195620,
+    "sha256": "ad9ef08f4f2f15a41f55b48a7d7b86e2350db3e908f9e2b3c8231dbcac0c4465"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\slotgo\\manifest.json",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\slotgo\\manifest.json",
+    "bytes": 1113,
+    "sha256": "d410e52d59c5546e86ef1eb47859d61c7c607ac736c971720ad4151e1bb841dc"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources-desktop\\SoloSoul_plugin_market\\plugins\\slotgo\\plugin.wasm",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-doc-reasons-20261003\\bin\\SoloSoul_plugin_market\\plugins\\slotgo\\plugin.wasm",
+    "bytes": 61332,
+    "sha256": "602aebe3ba81c142f726dcc4e8acc818491c905f374e37cd1fbdcc32eca3cb48"
+  }
+]
