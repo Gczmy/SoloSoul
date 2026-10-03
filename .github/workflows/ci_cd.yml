@@ -133,6 +133,27 @@ jobs:
           pkg-config --atleast-version=2.70 glib-2.0
           pkg-config --exists gtk+-3.0 webkit2gtk-4.1
 
+      # 仅用于Host静态检查/单测，不含真实OCR模型，不能用于Release。
+      - name: Setup Node for resource staging
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Stage desktop plugin resources for Host checks
+        working-directory: tauri
+        run: node scripts/stage-desktop-resources.cjs
+
+      - name: Prepare unit-test OCR resource layout
+        working-directory: tauri
+        run: |
+          fixture_directory='src-tauri/resources/models/pp-ocr-v6-small'
+          if [[ -e "$fixture_directory" || -L "$fixture_directory" ]]; then
+            echo 'Expected a fresh unit-test resource directory; refusing to overwrite real models' >&2
+            exit 1
+          fi
+          mkdir -p -- "$fixture_directory"
+          printf '%s\n' 'CI unit-test resource layout only. No OCR model. Never package this fixture.' > "$fixture_directory/UNIT_TEST_FIXTURE.txt"
+
       - name: Check formatting
         run: |
           cd tauri

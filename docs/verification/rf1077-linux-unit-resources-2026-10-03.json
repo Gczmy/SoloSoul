@@ -1,0 +1,100 @@
+{
+  "task": "RF-1077",
+  "status": "waiting-for-actual-linux-host-ci",
+  "date": "2026-10-03",
+  "base_commit": "a5adab9cb6ffe9bb6132fffeae7cc88ab2568ed6",
+  "finding": "Linux overlay declares ignored OCR and staged desktop plugin directories absent in fresh checkout; job lacked staging. This is a static cross-platform finding from RF-1075, not an observed Linux resource failure.",
+  "fix": "Linux Host checking/unit job declares Node22, reuses real plugin stage script, creates clearly marked no-model OCR layout only in fresh directory. No production config, model, test, release or Windows job change.",
+  "checks": {
+    "yaml_parse": "locked Prettier passed",
+    "bash_syntax_exit": 0,
+    "stage_exit": 0,
+    "plugin_files_exact_sha": {
+      "plugins/com.solosoul.official.address-fmt/manifest.json": "0f909e7ccf07ab984d0696cd31e3b3a7d64b9e33b953c533f537109917b2cca6",
+      "plugins/com.solosoul.official.address-fmt/plugin.wasm": "b2f110dfebc3c52ec4c96fbea74dedbfe8cbdb4da5bdc46a1e1258dc9b6dc3e9",
+      "plugins/com.solosoul.official.calendar-events/manifest.json": "41f60a89f635b61af476de98fcaede8ee815fe82ad4c06209b3b76ea182ca2f6",
+      "plugins/com.solosoul.official.calendar-events/plugin.wasm": "02dcf893500f1600fc810e86c22a017af04ea906cdada96359fe4cb56b18b990",
+      "plugins/com.solosoul.official.cloud-packager/manifest.json": "98f2ac21b26c4c6b3332fda8d088892976cdd4be9d90c7ca19ff1bf6c50d3e2f",
+      "plugins/com.solosoul.official.cloud-packager/plugin.wasm": "e535bba7c7504835a5521b2f09b6d295f50646d15cef83017fd7642427391995",
+      "plugins/com.solosoul.official.contact-exporter/manifest.json": "7fc1cb6dc635b8cf8be96b97de9b70db32ecca0e320b9fbec009eef3eb8e9a30",
+      "plugins/com.solosoul.official.contact-exporter/plugin.wasm": "7cfc149ad364d80af3b3f7681d8bac05ac2ba5e03e77e6509e25c79cd0d47093",
+      "plugins/com.solosoul.official.data-completeness/manifest.json": "c646a42714680e60c623226b1780f29afee3933642593500fe5c0097d7d8f5f7",
+      "plugins/com.solosoul.official.data-completeness/plugin.wasm": "f57f33553cf2a886591e8948427e1a64d05edc2ef2746b1f7308a3ec271bfdf3",
+      "plugins/com.solosoul.official.digital-will/manifest.json": "f0719dca4152c84626dd92a1abec320a12a380c8414be2e2a1618c6c1a41f535",
+      "plugins/com.solosoul.official.digital-will/plugin.wasm": "c888303bed30ccc187e59ad2383a28ed4aaf75438276978ad31421ce2a4558dc",
+      "plugins/com.solosoul.official.doc-checklist/manifest.json": "98a6aaaa947aab9bc8ed39fea2b5696f389247d2989f459755eb148996876e95",
+      "plugins/com.solosoul.official.doc-checklist/plugin.wasm": "bac2dc3491edfb2955f9fd48d855b518c3c6be71ebabe80a1727cc074430e376",
+      "plugins/com.solosoul.official.emergency-card/manifest.json": "2acee9106a571e7cdf40267d22c7416d3d3ef8bad209c8c2b919853a1e03c4f7",
+      "plugins/com.solosoul.official.emergency-card/plugin.wasm": "757d9eaf06138c6a25ffe924eed9fef3cdc0851a5fa8da92eadc04417341c1d5",
+      "plugins/com.solosoul.official.expiry-guardian/manifest.json": "a16d07294c769bd417fa2991e603c170085993d9146e53d8035c20fb78abfd59",
+      "plugins/com.solosoul.official.expiry-guardian/plugin.wasm": "25822e1aeae9d9fe3fb857555b4ca4eb66d8a302ac8b09fb60b79cb601a89aa9",
+      "plugins/com.solosoul.official.form-prefiller/manifest.json": "c2699f69e9c21b540c02c33032d85def2942615416e44a86ad636b73249862c1",
+      "plugins/com.solosoul.official.form-prefiller/plugin.wasm": "d20f21114593a9881494dfab24bdc348fbcf2c9ae443aef48ad0a37a9e8bda7f",
+      "plugins/com.solosoul.official.id-validator/manifest.json": "dedd5d7d5b39e3501e25e8d445c1a8cafa7aa4f821a7a19cdbd95ed704668713",
+      "plugins/com.solosoul.official.id-validator/plugin.wasm": "837fb20fbf49060c3934f6d19b93899b16fe7373feeb1148a08591606b3b60db",
+      "plugins/com.solosoul.official.identity-timeline/manifest.json": "4e4cefc40b0fe67f7ecc72c0c3148ccce95922b72a5a65eb90e4d44b6142bb09",
+      "plugins/com.solosoul.official.identity-timeline/plugin.wasm": "64b911abcb33a4f7d8048abc13c655ebc0c45d512a0b8ba81c758951b7fbc20f",
+      "plugins/com.solosoul.official.mrz-encoder/manifest.json": "4bb1321b6a4e8ed21af40cb19e13ac265a324c610433e70cdf366fdc449fc655",
+      "plugins/com.solosoul.official.mrz-encoder/plugin.wasm": "930788cc4fe3118a5ecdc9cb2c4c2d978124fecb69d926291664359e74d26ad7",
+      "plugins/com.solosoul.official.namecard-gen/manifest.json": "3b32116f969039e974866426c10fcedc06c32048116df14118b3fb58d5fdcf37",
+      "plugins/com.solosoul.official.namecard-gen/plugin.wasm": "d569178214a9539d62299998ea15e67fef82a1ec5e1d1da137d35ec1333a73e3",
+      "plugins/com.solosoul.official.packing-list/manifest.json": "fd724f21514bb5ee2ef2462e7f170b87cb023f8f1e244c0b4e5dba6f6fddca61",
+      "plugins/com.solosoul.official.packing-list/plugin.wasm": "dfe71453f814a9e6e0bf3a64363a75e348774515acaff91305911d468e56df55",
+      "plugins/com.solosoul.official.phone-fmt/manifest.json": "e0fa082fc3d106adf56ba89737ea329967e31d6201860703ee9b90ce70e437c8",
+      "plugins/com.solosoul.official.phone-fmt/plugin.wasm": "bd31d94ad9c59867262183944ec4e4421395f090e94d3086054d87d5ff0d8876",
+      "plugins/com.solosoul.official.resume-builder/manifest.json": "718fd933131037afc97172b7b38f362ee1a1e0b84ebf2b7dce38f0216ff088a7",
+      "plugins/com.solosoul.official.resume-builder/plugin.wasm": "4325de8b5a5448f67ffaff9399eb79faec2b501c4b0f903a7150d9f030fec71c",
+      "plugins/com.solosoul.official.tax-profile/manifest.json": "8ad851653c7ca9c6fab9a679ba784b9d2d55babd7d81ab4845d63f17564f8835",
+      "plugins/com.solosoul.official.tax-profile/plugin.wasm": "dfd712d102e13dfccf6bcf9843786a826573db20ee8014b741d39a688532b359",
+      "plugins/com.solosoul.official.totp-gen/manifest.json": "c920d70201d43b06d94368bef6bf2855baf8ca79975423e6cde1c5aa57ca64af",
+      "plugins/com.solosoul.official.totp-gen/plugin.wasm": "8a70925af2a5fd79d356b28c88a0b7baa9fb31e1ea1ee0d02df32aa55c9c2ae5",
+      "plugins/com.solosoul.official.travel-footprint/manifest.json": "1b4a5d71a036d9b4d9fbf49de68d56874d2a1bc3d435a1533e1c081102b4131b",
+      "plugins/com.solosoul.official.travel-footprint/plugin.wasm": "513201f5e807a7fefb36ef594a6fedf0e2a83fe4245f0b211387ae7c840c75b3",
+      "plugins/com.solosoul.official.watermark/manifest.json": "c4cee8ce0bec056692033f8a845271be7a481235e5a0799b51be5cafd91c2b4a",
+      "plugins/com.solosoul.official.watermark/plugin.wasm": "ad9ef08f4f2f15a41f55b48a7d7b86e2350db3e908f9e2b3c8231dbcac0c4465",
+      "plugins/slotgo/manifest.json": "d410e52d59c5546e86ef1eb47859d61c7c607ac736c971720ad4151e1bb841dc",
+      "plugins/slotgo/plugin.wasm": "602aebe3ba81c142f726dcc4e8acc818491c905f374e37cd1fbdcc32eca3cb48"
+    },
+    "registry_identical": true,
+    "fresh_layout_exit": 0,
+    "existing_layout_exit": 1,
+    "marker_unchanged": true,
+    "declared_linux_paths_present": true,
+    "release_and_windows_jobs_unchanged": true,
+    "remote_linux_validation": "pending",
+    "finding": "static resource declaration/checkout mismatch; no actual Linux resource failure claimed"
+  },
+  "local_r": "RF-1076 complete 1858/0/3; only YAML and docs changed since, not rerun or claimed as new",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1077-linux-unit-resources-2026-10-03/baseline.json.gz",
+      "sha256": "d3c86e4e52a82c6f8121bc19ec6d0e2ab23fd6df10c6487cf982d9478a1c8837",
+      "rawSha256": "9ca73962b4dc2ce4c89fef34d8b55923e7a507a5485127136f5756d8427c9969"
+    },
+    {
+      "path": "docs/verification/rf1077-linux-unit-resources-2026-10-03/unit-layout.sh.gz",
+      "sha256": "69911cf8293a323280b75dae7a067c2c5992a8f245857038d922aafe56bdabac",
+      "rawSha256": "fea15aae92c9105c77f02230cbe23438dd18db91c7c673c6ef21f0ee39680208"
+    },
+    {
+      "path": "docs/verification/rf1077-linux-unit-resources-2026-10-03/checks.json.gz",
+      "sha256": "082caf6fe9450fc514164a6cb909e458938f95aba30ad14a95c0f6e7ce82f4ac",
+      "rawSha256": "498a69ebdef2574313be5857e71d0c6ee6275dd15d0503ad32f1dcb9a2d5c0dd"
+    },
+    {
+      "path": "docs/verification/rf1077-linux-unit-resources-2026-10-03/stage.log.gz",
+      "sha256": "959f1f6f3d20ce1f79974847436c3ddfb8df86f89e8504b7125b3c4350eb93a3",
+      "rawSha256": "ba797339a585bad614f86f4f7e5d59e3545b6a2b1246f82ca97e876d1803e711"
+    },
+    {
+      "path": "docs/verification/rf1077-linux-unit-resources-2026-10-03/fresh.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1077-linux-unit-resources-2026-10-03/existing.log.gz",
+      "sha256": "e590f6e3c1ded6934695c1426d49fd3485fd789eb725c256a71e858e677f08d6",
+      "rawSha256": "72b3c14790c9da2c149befc602feb2999404b1746ea7ff92177d5ff9856371b7"
+    }
+  ]
+}
