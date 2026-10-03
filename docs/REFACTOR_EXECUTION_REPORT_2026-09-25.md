@@ -120,9 +120,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**272**（P1：51；P2：220；P3：1）。
-- 已关闭：**258 / 272**；实际修复（已关闭）：258；排除：0；待验证/阻塞：7（RF-1082环境已修但插件错误mock/远端待验，RF-1081本地通过待Linux移动CI，RF-1079待真实Linux Host编译运行（Windows已通过），RF-1077待实际Linux Host资源验收，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**依验收条款逐项补齐Linux严格Clippy证据；随后RF-1083插件生命周期**。
+- 任务总数：**273**（P1：51；P2：221；P3：1）。
+- 已关闭：**258 / 273**；实际修复（已关闭）：258；排除：0；待验证/阻塞：8（RF-1083插件生命周期本地通过待Linux移动CI，RF-1082环境已修但插件错误mock/远端待验，RF-1081本地通过待Linux移动CI，RF-1079待真实Linux Host编译运行（Windows已通过），RF-1077待实际Linux Host资源验收，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**无实施任务；下一项RF-1084修正Linux C语言环境测试假设**。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -400,6 +400,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 270 | [RF-1080](#rf-1080) | P2 | 发现设备Map直接遍历values | 无（第四轮真实Linux Clippy发现） | [x] 完成 |
 | 271 | [RF-1081](#rf-1081) | P2 | 风险确认弹窗在短屏内滚动并保持操作可达 | 无（实际移动CI越界发现） | [!] 待Linux移动CI验收 |
 | 272 | [RF-1082](#rf-1082) | P2 | 桌面E2E场景声明正确视口与指针环境 | 无（真实移动CI桌面用例失败发现） | [!] 待独立mock修复及Linux验收 |
+| 273 | [RF-1083](#rf-1083) | P2 | 插件生命周期E2E遵循可见交互与请求响应闭环 | 无（旧导航/提前完成mock发现） | [!] 待Linux移动CI验收 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -3650,6 +3651,17 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**F、WEB（本项12文件两项目）、DOC，真实Linux移动CI提交后复跑。
 - **建议提交：**`test(e2e): declare desktop viewport and pointer context [RF-1082]`。
 
+### RF-1083
+
+**插件生命周期E2E遵循可见交互与请求响应闭环** · P2 · 来源：旧隐藏侧栏导航及固定计时结束mock不能验收当前完整插件交互
+
+- **前置：**无，不包含RF-1082视口环境或快捷面板错误格式。
+- **入口：**`tauri/e2e/fixtures/auth.ts`；`tauri/e2e/plugin-lifecycle.spec.ts`。
+- **执行：**从首页可见Plugins卡片导航；运行mock发出真实请求后等plugin_dialog_response才完成，不按固定计时吞请求；响应后展开默认折叠日志再检查start，保留全部安装/禁用tier/对话框/结果断言及原超时。
+- **验收：**原两个用例在chromium/mobile通过；新增响应requestId和值精确断言，原清单/retry/skip保持。真实Linux移动CI复跑，不改业务UI/IPC或生产错误展示。
+- **验证配置：**F、WEB（plugin-lifecycle两项目）、DOC；不重复未受影响R。
+- **建议提交：**`test(plugin): follow visible lifecycle and await dialog response [RF-1083]`。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -6451,3 +6463,9 @@ git commit -m "<任务卡的提交标题>"
 - [Linux run37148546263/job111277389255](https://github.com/Gczmy/SoloSoul/actions/runs/37148546263/job/111277389255)，源码aa40ac117a5d6781df2f048995802abe4549e764，实际Rust1.99.0，fmt与严格Clippy success。远端Rust1.99严格Clippy实际success，for_kv_map冲突消失。原匹配1.99完整GUI1858/0/3（sync90通过）、CLI336/0/2通过，Map循环主体逐字保持。Linux语言断言失败不归入该等价遍历修复。
 - [结构化证据](verification/rf1080-peer-map-2026-10-03.json)保留原失败/本地检查，新增完整远端原始日志、精确job步骤与Git blob SHA；原系统语言失败完整保留。RF-1077/RF-1079要求完整Host通过，继续待验，没有把本次整个Linux job改记为成功。
 - 本次仅DOC验收更新，Markdown依赖边界与diff检查通过，业务/workflow与用户stash保持。按本项既定验收条款关闭，累计258/272；独立提交（本提交，以RF-1080检索）。
+
+### RF-1083 执行记录（2026-10-03）
+
+- 基线5a28509a。首页main内可见Plugins入口导航；mock仅在收到plugin_dialog_response后发结果和completed，新增dlg-1/Playwright响应精确断言，响应后展开Plugin Log并保留start/done可见断言。原两个用例、tier禁用、安装/弹窗/结果断言及超时/retry/skip保持，生产UI/IPC不改。
+- WEB两个项目4/4通过，无flaky；F格式/TypeScript/lint/默认npm test全部exit0，256文件/2240项Vitest与123项Node通过，原Windows符号链接权限skip1保持。移动清单仍327项。
+- [验证证据](verification/rf1083-plugin-lifecycle-2026-10-03.json)保留前两版失败提案、最终提案及实际源码检查完整日志；本机Node24.16/Edge不能替代Linux Node22/Chromium，状态待真实移动CI。独立提交（本提交，以RF-1083检索）。

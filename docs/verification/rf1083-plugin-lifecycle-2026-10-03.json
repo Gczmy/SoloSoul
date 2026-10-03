@@ -1,0 +1,192 @@
+{
+  "task": "RF-1083",
+  "status": "waiting-real-linux-mobile-ci",
+  "baseline": "5a28509aacde7ee435e998c331775e33d8b3a403",
+  "source": {
+    "tauri/e2e/fixtures/auth.ts": "be700e15e9a055b7d65c73beb830155612eaa55ebbd871bfcc5d9f1108b38463",
+    "tauri/e2e/plugin-lifecycle.spec.ts": "6019da687d41eb02a1885dec08b22f8a1aa15633b68b93fe5031a6d563372e68"
+  },
+  "change": "Use visible home Plugins action; plugin_run waits for matching dialog response, assert request id and value, expand log before original visibility assertions. Original two tests and install/tier/dialog/result assertions preserved.",
+  "checks": [
+    {
+      "name": "format",
+      "args": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "e2e/fixtures/auth.ts",
+        "e2e/plugin-lifecycle.spec.ts"
+      ],
+      "exit": 0,
+      "seconds": 0.6799547001719475
+    },
+    {
+      "name": "tsc",
+      "args": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "seconds": 23.673258599825203
+    },
+    {
+      "name": "lint",
+      "args": [
+        "npm.cmd",
+        "run",
+        "lint"
+      ],
+      "exit": 0,
+      "seconds": 34.599819200113416
+    },
+    {
+      "name": "full-frontend",
+      "args": [
+        "npm.cmd",
+        "run",
+        "test"
+      ],
+      "exit": 0,
+      "seconds": 177.30420519970357
+    }
+  ],
+  "frontend": {
+    "vitestFiles": 256,
+    "vitestPassed": 2240,
+    "nodePassed": 123,
+    "nodeFailed": 0,
+    "nodeSkipped": 1,
+    "skipReason": "original Windows symlink privilege limitation"
+  },
+  "web": {
+    "exit": 0,
+    "seconds": 25.180009899660945,
+    "args": [
+      "node",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/plugin-lifecycle.spec.ts",
+      "--project=mobile",
+      "--project=chromium",
+      "--config",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1083-plugin-lifecycle-20261003\\playwright.config.mjs"
+    ],
+    "node": "24.16.0",
+    "browser": "installed Edge",
+    "retries": 2,
+    "workers": 1,
+    "passed": 4,
+    "failed": 0,
+    "flaky": 0,
+    "mobileListed": 327,
+    "targetBoundary": "Windows Node24.16 installed Edge under existing chromium/mobile projects; not actual Linux Node22 Chromium CI"
+  },
+  "discarded_proposals": {
+    "v1": "4 failed; Tools only expands desktop sidebar and absent in mocked macOS mobile",
+    "v2": "1 passed, 1 flaky, 2 failed; fixed timer ends before response and start log is collapsed; isolated HMR port bind failed",
+    "v3": "4 passed; validated request-response closure; original assertion semantics preserved"
+  },
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/web.log.gz",
+      "sha256": "a468f44eda1ee3a26cba0f4f55ae6629642b9b62693d17db3bfdcd495ebb1ebd",
+      "rawSha256": "59c4e95efb044858449cabd8c21422c0cca40ba288fe8a84cec8f5eb90995a1b"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/web-result.json.gz",
+      "sha256": "34f08cbbc1dad0738ad937f34a5c9b5d0d1bee904f5be8d20cb0c1f07c621573",
+      "rawSha256": "739a534923879da1991e8632fbb92cc1828bde7fa39463d310d794db9300dbcd"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/web-owned-process.json.gz",
+      "sha256": "49fe619e29f6ed7b3b58c7089991192922e279684556ab1604e692db0976afef",
+      "rawSha256": "5db6739df07d1576933577cff6a9b83875824d4370806a09f5d6839ad8b84eda"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/checks.json.gz",
+      "sha256": "9b6677a41316d610f1eb377b6379becb77b8cab1e2890eb81400930aac4a4f99",
+      "rawSha256": "5de894732a7abdcb2e414c02215254ea49afb72bcb12e92eaa6e1bf4cc295970"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/format.log.gz",
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/tsc.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/lint.log.gz",
+      "sha256": "aa834ac37a9c357bc906de67d2278f1c2d7079872ad9ba2641fa9baac6177b67",
+      "rawSha256": "9ccdcb4482fdd1a0617291405e83ca63932f2a561161d2b94b9a67d00b6bc7e1"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/full-frontend.log.gz",
+      "sha256": "6c54edac68e105c822462341de91ac72716aa1ff0b262b2ea84d57fbfbc466dc",
+      "rawSha256": "9e213599fef4f661f6ecce404ce50739fd7766622e08680b406732c4b45498ab"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/source-before.json.gz",
+      "sha256": "3e60665538ef53d73bf1ad693304c63e21c3d98bd36c8cc3af60bc56fc92d22d",
+      "rawSha256": "254511dd11dbbcd05e4cb51ccf495edf45bec12fe238d7c75fdc0ff7208f79b5"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/mobile-inventory.json.gz",
+      "sha256": "f343f0b931af4d32ecbeb78091a72e6a1d03a1eec189cf7e9b662560b700d9ef",
+      "rawSha256": "26ebafa99448728b2e77804f7af4cfc9a35756dd65cf8e65ab8f487bf8cdeea0"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/playwright.config.mjs.gz",
+      "sha256": "6a4e9b3a4eb7fba08426273945fb8d8b48a57bf29a1e7d9f0a5bbeea2ef49949",
+      "rawSha256": "32835174406af825a710647d86fb4afce7484d731d37d395d71d3547386f23f7"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/proposal-v1-candidate-runtime.log.gz",
+      "sha256": "cc3622f59a0ea75e08a1a780a448a74ae428990624f31ffc97cfa2c73ebb34ea",
+      "rawSha256": "a789f9cbe5f1ef1b49e0ee088a661f8381a77499984c7c9eb92726f3e31c7672"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/proposal-v1-result.json.gz",
+      "sha256": "257a0e6453567b1daf16da787474f7f4203f5855c31f42c123fd5699a9fb73d7",
+      "rawSha256": "8e9b67def58252ee86144901ef12170d16dc86d7bfd3eee6dec6e9993377f6dd"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/proposal-v1-owned-process.json.gz",
+      "sha256": "35d3b22439c41de6388e9c58e1ef5bb970f74ef951d534799b01dadc37b237e8",
+      "rawSha256": "eb3ff188da276af328fdae949ac836c73327f576afa1664c18036f14dd4ada9b"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/proposal-v2-candidate-runtime.log.gz",
+      "sha256": "72084b77e0f977bab157806fc5050d623275f27df61c2048dddf35eb92813107",
+      "rawSha256": "cdd62c0b468e71970de0aaf362a0df058c966eaa22f7f40f3ca3bb674ea0b78c"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/proposal-v2-result.json.gz",
+      "sha256": "ab91dbb9042f38ab87eb3d0a4f817c9ce020c11bac764d13d04856f56704f344",
+      "rawSha256": "24f1ea04cb7fa2d5f2aabd9b759698c374c8f1de0e389ddd2dc20cf991f1f6a6"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/proposal-v2-owned-process.json.gz",
+      "sha256": "d230be7a8059e7b717152c56854bc654087d7977bf49d55d967a57eb1f217ed7",
+      "rawSha256": "54771a871e1026f8fdbd22c1b8d00860a5a86b8fc313985575499b7abd768337"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/proposal-v3-candidate-runtime.log.gz",
+      "sha256": "ea67ab42c802b518ceddf7622f6a9ec05fefe2b4bdf44b495e595b1d2f706202",
+      "rawSha256": "490932457778d3ebcbd40be5496416da2ebadfc60c2256b465b1617644021388"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/proposal-v3-result.json.gz",
+      "sha256": "212fe6c1aff6d498c698a0a28cb1fbb7e04aaccb75d9f632c4f1784594e29a5e",
+      "rawSha256": "aa292c0380bd321bf5984b5c0b185da0fe97747bcef0adc3120ad34f58e18071"
+    },
+    {
+      "path": "docs/verification/rf1083-plugin-lifecycle-2026-10-03/proposal-v3-owned-process.json.gz",
+      "sha256": "dc17f8d030b8f785f311761520ebeb10394fa90d0babdd62e1e6d89bc02191ec",
+      "rawSha256": "2ff894826cdd5ca4cf87175509e83ff7633a7fdacd972567a4f5a0d18050ad84"
+    }
+  ]
+}

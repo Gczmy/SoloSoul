@@ -13,6 +13,9 @@ export async function login(page: Page) {
 }
 
 export async function navigateToPlugins(page: Page) {
-  await page.locator('[aria-label="Plugins"]').click();
+  await page
+    .getByRole('main')
+    .getByRole('button', { name: /^Plugins(?: |$)/ })
+    .click();
   await page.waitForURL('/plugins', { timeout: 10000 });
 }
