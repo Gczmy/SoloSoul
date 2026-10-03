@@ -1,6 +1,6 @@
 {
   "task": "RF-1080",
-  "status": "waiting-for-remote-linux-rust-1.99",
+  "status": "completed",
   "date": "2026-10-03",
   "base_commit": "fbcbe83387810357cc9018b9b670145deda901bb",
   "trigger": {
@@ -194,6 +194,35 @@
       "path": "docs/verification/rf1080-peer-map-2026-10-03/job-111264959982.log.gz",
       "sha256": "825814e203956a88487fdb8cc3bf0c904ea2eb0f9e98dd40c5e12d6a7708803a",
       "rawSha256": "f0a85d1b9cbe645b5412dad008b2ce1a2d85ef3d8d60c569e4665bc162d2333d"
+    },
+    {
+      "path": "docs/verification/rf1080-peer-map-2026-10-03/job-111277389255.log.gz",
+      "sha256": "4fc549b37af8f7e73b39cc854bdf92cfd29ce792d12f47f6f3cab82d53270eec",
+      "rawSha256": "c08b2b0e45c626cdfc0b26ba4449fb0d26742b81ed98468a6286a8d5cc091e7c"
+    },
+    {
+      "path": "docs/verification/rf1080-peer-map-2026-10-03/remote-acceptance.json.gz",
+      "sha256": "0d36385b9a6db0693d63952c1d040d0a0e3d6839423be497a29c6d931ce680e5",
+      "rawSha256": "3d7bc5f7bc2f7da1e274591a82dc45e328d3a412708c93fa96db7884ba7649ca"
     }
-  ]
+  ],
+  "remote_acceptance": {
+    "tested_sha": "aa40ac117a5d6781df2f048995802abe4549e764",
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37148546263",
+    "job_id": 111277389255,
+    "rust": "1.99.0",
+    "clippy": "success",
+    "fmt": "success",
+    "host_unit_passed": 778,
+    "host_unit_failed": 1,
+    "overall_job_conclusion": "failure",
+    "independent_failure": "system locale assertion rejects C",
+    "criterion": "远端Rust1.99严格Clippy实际success，for_kv_map冲突消失。原匹配1.99完整GUI1858/0/3（sync90通过）、CLI336/0/2通过，Map循环主体逐字保持。Linux语言断言失败不归入该等价遍历修复。",
+    "source_identical_git_blobs": {
+      "tauri/crates/solosoul-sync/src/manager.rs": {
+        "git_blob_sha256": "03d9c6bae42b995bf0b86384a70ea1ef107de8dfb2a9e30960375e2c123fee29",
+        "working_raw_sha256": "53a5b8d9e549a379dce4327386bce96347efb505d27da9b84cc4b8b5025e684c"
+      }
+    }
+  }
 }
