@@ -48,3 +48,5 @@ cargo build --locked -p solo_soul --features native-perf --example windows_card_
 运行结束后确认独立例程及其专用 WebView2 子进程已经退出；只清理输出目录内的测试 profile。保留结果、截图及失败记录用于审查，不安装或启动正式客户端。
 
 2026-10-03 Windows11 Enterprise LTSC26100 x64、WebView2 154.0.4258.48 默认辅助功能设置完成8场景，实际 Mica类型2/背景alpha0与16个 Card 背景采样一致。两轮例程开发失败、最终4项回归和完整记录见[Windows补证](../../../docs/verification/rf121-windows-native-checkpoint-2026-10-03.json)。RF-121继续待验多端辅助功能及完整原生合成，不解除后续迁移依赖。
+
+关闭透明效果与恢复Mica可使用 `python scripts/run-windows-card-transparency.py --exe <冻结例程绝对路径> --fixture <生成HTML绝对路径> --output <新绝对目录>`。它逐组finally恢复并核对原快照，只启动独立例程。2026-10-03最终16场景通过；[辅助功能补证](../../../docs/verification/rf121-windows-accessibility-checkpoint-2026-10-03.json)同时保留首轮高对比恢复失败。高对比切换会更改系统主题/默认方案，后续仅在可还原的隔离Windows会话进行，当前工具不切换该设置。
