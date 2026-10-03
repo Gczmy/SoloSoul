@@ -121,8 +121,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**270**（P1：51；P2：218；P3：1）。
-- 已关闭：**253 / 270**；实际修复（已关闭）：253；排除：0；待验证/阻塞：10（RF-1080待实际Linux1.99严格Clippy复跑，RF-1079待真实Linux/Windows Host编译运行，RF-1078待远端Rust1.99宏修复验收，RF-1077待实际Linux Host资源验收，RF-1076待远端Rust1.99严格Clippy，RF-1073 Linux CI依赖待远端重验，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**RF-309：登记真实Windows CI验收；Linux复跑同时进行**。
+- 已关闭：**254 / 270**；实际修复（已关闭）：254；排除：0；待验证/阻塞：9（RF-1080待实际Linux1.99严格Clippy复跑，RF-1079待真实Linux/Windows Host编译运行，RF-1078待远端Rust1.99宏修复验收，RF-1077待实际Linux Host资源验收，RF-1076待远端Rust1.99严格Clippy，RF-1073 Linux CI依赖待远端重验，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**移动端风险确认弹窗越界，先登记单项；Linux复跑同时进行**。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -205,7 +205,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 75 | [RF-305](#rf-305) | P2 | 迁移同步 IPC 与事件契约 | [RF-301](#rf-301)、[RF-003](#rf-003) | [x] 完成 |
 | 76 | [RF-306](#rf-306) | P2 | 迁移插件 IPC 与资源事件契约 | [RF-301](#rf-301) | [x] 完成 |
 | 77 | [RF-307](#rf-307) | P2 | 建立结构化后端错误并迁移对象用例 | [RF-301](#rf-301)、[RF-302](#rf-302) | [x] 已关闭 |
-| 78 | [RF-309](#rf-309) | P2 | 建立 Windows Rust 关键用例执行门禁 | 无 | [!] 待验证 Windows CI |
+| 78 | [RF-309](#rf-309) | P2 | 建立 Windows Rust 关键用例执行门禁 | 无 | [x] 完成 |
 | 79 | [RF-310](#rf-310) | P2 | 把 Android 原生回归接入明确的设备任务 | [RF-201](#rf-201)、[RF-208](#rf-208) | [x] 完成 |
 | 80 | [RF-313](#rf-313) | P2 | 修正 canonical 架构与安全事实文档 | 无 | [x] 完成 |
 | 81 | [RF-314](#rf-314) | P2 | 建立平台能力与验收证据矩阵 | [RF-205](#rf-205) | [x] 完成 |
@@ -6379,3 +6379,11 @@ git commit -m "<任务卡的提交标题>"
 - Vault/core六组764 passed / 0 failed / 1原有ignored；Host七组788 passed / 0 failed / 0 ignored。共1552通过；首轮Host未执行的失败日志和实际失败附件仍保留。
 - [结构化证据](verification/rf1075-windows-unit-resources-2026-10-03.json)新增成功原始日志与job元数据，gzip解压逐字复核及原始/压缩SHA256均记录。这里只验收单测资源目录，不代表真实OCR模型推理、Release打包或设备运行。
 - DOC与Markdown依赖边界检查通过，未改业务、workflow、正式配置、manifest或用户stash。本项关闭253/270，一项一提交（本提交，以RF-1075检索）。
+
+### RF-309 远端验收记录（2026-10-03）
+
+- Windows Rust Regression Tests实际windows-latest job111264960054、[run37144291766](https://github.com/Gczmy/SoloSoul/actions/runs/37144291766/job/111264960054) success，源码fbcbe833，Rust1.99.0。Vault/core764 passed / 0 failed / 1原有ignored；Host788 passed / 0 failed / 0 ignored，两组真实运行并exit0，没有把构建成功或零用例当测试通过。
+- 首轮真实失败job111237127731上传windows-rust-test-logs附件11279350530，core.log与host.log已下载、服务器digest/实际SHA及ZIP CRC核对；本次成功无需失败附件，原失败记录保留。
+- [结构化验收](verification/rf309-ci-windows-2026-10-03.json)引用成功日志和失败附件，记录正式配置与Common Controls v6进程manifest源码SHA，实际测试commit与当前HEAD的Git blob逐字相同。本地CRLF单独留原始SHA，首轮原始文件对Git blob断言因换行差异失败后按Git blob复核，不隐去操作错误。
+- 本次仅补证，不改变Release安全配置、不提交二进制、不放宽门禁。本地R/CLI最近匹配1.99检查见RF-1080：1858与336项通过，与远端Windows fbcbe833证据分别记录。DOC/Markdown边界/差异检查通过，非本项源码和用户stash保持。
+- RF-309关闭，累计254/270。RF-311的Windows前置已满足，但实际PR与全平台覆盖验收仍需推进，不能由本次证据推断完成。独立提交（本提交，以RF-309检索）。
