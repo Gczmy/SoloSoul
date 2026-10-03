@@ -6267,3 +6267,8 @@ git commit -m "<任务卡的提交标题>"
 - 第一轮Windows Vault/core六组764通过/0失败/1原有ignored，Host在构建时缺Git忽略的OCR目录而exit101，未进入测试。真实失败日志附件11279350530已经上传、下载并与服务端SHA一致，不将Core通过当作Host通过。
 - 仅Windows单测job建立明确无OCR模型的资源目录标记；隔离路径首次创建exit0，第二次拒绝覆盖exit1且原标记SHA不变。三项打包/发布job逐字保持，生产配置、manifest和测试入口不改；真实模型/Release验收仍未证明。
 - YAML解析、隔离行为和DOC通过，[失败附件与本项证据](verification/rf1075-windows-unit-resources-2026-10-03.json)独立归档；保持[!]待Host远端真实执行。累计251/265；提交：本提交，使用RF-1075检索。
+
+### RF-1072 远端补证（2026-10-03）
+
+- 第二轮手动CI37138522079在6723063e实际执行Incremental IPC Contract Check（job111247917394）并成功：23生成器回归通过/0失败/0跳过，生成漂移检查、226命令ACL核验及12项ACL回归通过。严格解析器与生成输出保持，补证不扩大为整条CI成功。
+- 原始日志和精确提交/步骤元数据已追加至[原证据](verification/rf1072-contract-import-2026-10-03.json)。本次只回填该项远端证明，状态仍关闭、累计251/265不变；按RF-1072独立提交。

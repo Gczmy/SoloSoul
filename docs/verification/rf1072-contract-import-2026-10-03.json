@@ -246,7 +246,30 @@
       "path": "docs/verification/rf1072-contract-import-2026-10-03/job-111237127803.log.gz",
       "sha256": "63274719600f79c411c5c06000ff779c9c6d61705728e74425fc5377863974b8",
       "rawSha256": "e8fc66945bed7e082f8c1a8c1a7231d3cca6c32512ce028b0da6476d2ffee42d"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/remote-contract-job.log.gz",
+      "sha256": "b350625efe5f85e1d36d9026b86b1aaad15966732f190fd4eca803c23338b357",
+      "rawSha256": "c5a7a6a6b54ccc58cb25942684f4a0784692efbf43826b5e3bdc183236d5bb24"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/remote-contract-job.json.gz",
+      "sha256": "ee597bb35852a003e9c62b561df1df1265038520e6c9a13ce813f20711bac815",
+      "rawSha256": "9d85b630f4fb46f481fe5c6d166e6c4cbebe1e776759a34bfa3befe82c4623b2"
     }
   ],
-  "new_remote_contract_run_pending": true
+  "new_remote_contract_run_pending": false,
+  "remote_contract": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37138522079",
+    "head_sha": "6723063e4b0bbcaa4031ba36f2e13a1052d03250",
+    "job_id": 111247917394,
+    "conclusion": "success",
+    "generator_tests": 23,
+    "passed": 23,
+    "failed": 0,
+    "skipped": 0,
+    "acl_unit_tests": 12,
+    "registered_commands": 226,
+    "generated_check": "passed"
+  }
 }
