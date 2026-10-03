@@ -276,6 +276,39 @@ test('Android risk actions keep complete words and touch targets at 320px', asyn
   await page.screenshot({ path: test.info().outputPath('risk-320.png'), animations: 'disabled' });
 });
 
+for (const viewport of [
+  { width: 320, height: 400 },
+  { width: 640, height: 320 },
+])
+  test(`Android risk actions remain reachable at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await navigate(page, '/settings/llm');
+    const feature = page.locator('label').filter({ hasText: 'AI Chat' });
+    await feature.click();
+    const risk = page.locator('[data-macos-glass-backdrop]');
+    const panel = risk.locator('[data-macos-glass="panel"]');
+    await expect(panel).toBeVisible();
+    const bounds = await panel.boundingBox();
+    expect(bounds!.y).toBeGreaterThanOrEqual(16);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height - 16);
+    expect(await panel.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(
+      true,
+    );
+    const enable = risk.getByRole('button', { name: 'Enable AI Features', exact: true });
+    await expect(enable).toBeDisabled();
+    await risk.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(risk).toBeHidden();
+    await feature.click();
+    await expect(enable).toBeDisabled();
+    await risk.getByRole('checkbox').check();
+    await expect(enable).toBeEnabled();
+    await enable.click();
+    await expect(risk).toBeHidden();
+    await expect(feature.getByRole('checkbox')).toBeChecked();
+  });
+
 test('Android template and data dialogs keep actions reachable on narrow screens', async ({
   page,
 }) => {

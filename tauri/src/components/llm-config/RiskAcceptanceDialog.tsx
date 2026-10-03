@@ -37,6 +37,8 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
           padding: '28px clamp(16px, 5vw, 32px)',
           maxWidth: 400,
           width: '90%',
+          maxHeight: 'calc(100% - 32px)',
+          overflowY: 'auto',
           boxShadow: 'var(--shadow-lg)',
           border: '1px solid var(--border-subtle)',
         }}
