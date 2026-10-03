@@ -1,0 +1,159 @@
+{
+  "task": "RF-1079",
+  "status": "waiting-for-actual-linux-and-windows-host-ci",
+  "date": "2026-10-03",
+  "base_commit": "f892bc7db17073b22556c358c1305b367bba367e",
+  "trigger": {
+    "finding": "actual Windows Host compile failure, not runtime/DLL or test assertion",
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37138522079",
+    "head_sha": "6723063e4b0bbcaa4031ba36f2e13a1052d03250",
+    "job_id": 111247917296,
+    "core": {
+      "groups": 6,
+      "passed": 764,
+      "failed": 0,
+      "ignored": 1
+    },
+    "host_tests_run": 0,
+    "host_exit": 101,
+    "unit_ocr_prep": "success",
+    "failure_artifact": {
+      "id": 11280507111,
+      "sha256": "96f019e501f54084c29276b26ca3dbba6db0133a3290e96342d86e3c3463493a",
+      "server_digest": "sha256:96f019e501f54084c29276b26ca3dbba6db0133a3290e96342d86e3c3463493a",
+      "members": [
+        "core.log",
+        "host.log"
+      ]
+    },
+    "operator_read_error": "Guessed gen-nsis-assets.mjs read exit1; package actual generate-nsis-assets.py examined; not a product failure."
+  },
+  "facts": {
+    "yaml_exit": 0,
+    "release_jobs_unchanged": true,
+    "changed_jobs": [
+      "rust-test",
+      "windows-rust-test"
+    ],
+    "dist_files": 35,
+    "dist_bytes": 3032187,
+    "index_sha256": "7ed65f3bc1cfca911e3594192c46a2c1a7952ce3a6baa97499b74e0202add985",
+    "generated_restored": [
+      {
+        "path": "tauri/src-tauri/bundles/nsis/assets/header-install.bmp",
+        "before": "a8043888dccfe4bb4a892d2a7098ccc3041738d5c972ae19b0488cdf6b7a432c",
+        "after_build": "ebafc6856b2bbd91902ed18e5d07564be87c2f0127eb2e3c744200485c70bb22",
+        "restored": true
+      },
+      {
+        "path": "tauri/src-tauri/bundles/nsis/assets/header-uninstall.bmp",
+        "before": "46568409f5c7b1c27e1424f7f8d0f7a5421cb3d6dd2e2dc7f2afcf63ba062a90",
+        "after_build": "61aa19110ad51b20807f21b0bc8c77ed01033d89ec68089acfe15978fa2c46cc",
+        "restored": true
+      },
+      {
+        "path": "tauri/src-tauri/bundles/nsis/assets/welcome-sidebar.bmp",
+        "before": "a86d85077a00ecb0f33f9ab9d9c73483e7aaf8f9f434ee20f7d7ce625c7f786a",
+        "after_build": "d5582b57b0e0fb1b075104f6fb194b0902f576f9a05cfc998fc67d0372183f9c",
+        "restored": true
+      },
+      {
+        "path": "tauri/src-tauri/gen/android/app/src/main/assets/docs/guides/search-index.json",
+        "before": "d8b6c658d214e326e3b73ebe3729a8b93b5d00244f78464b5da6b7a50cd0110e",
+        "after_build": "d8b6c658d214e326e3b73ebe3729a8b93b5d00244f78464b5da6b7a50cd0110e",
+        "restored": true
+      },
+      {
+        "path": "tauri/src-tauri/resources/docs/guides/search-index.json",
+        "before": "d8b6c658d214e326e3b73ebe3729a8b93b5d00244f78464b5da6b7a50cd0110e",
+        "after_build": "a7ae55e10012abcb6a23a0ea9775bbc968346f7e9527e132fb6737ec380f2ae3",
+        "restored": true
+      }
+    ],
+    "unrelated_tracked_unchanged": 2331,
+    "stash_preserved": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90",
+    "local_build": {
+      "exit": 0,
+      "seconds": 28.73352809995413,
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ]
+    },
+    "remote_linux_host": "pending",
+    "remote_windows_host": "pending"
+  },
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/baseline.json.gz",
+      "sha256": "0bab555832ee354493f735725eb9bb1f90da8a15f952d8c47751c28e4825e8a2",
+      "rawSha256": "a59d555139ab76a058c44056e90628c709349ed04a1d5176f2782707165737e9"
+    },
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/rf1079-frontend-dist-proposed.patch.gz",
+      "sha256": "cd6cbfdfb9ff45832487921e68fa143fff670117b5fd6db11621282e285d988f",
+      "rawSha256": "93071e7051ca95afbb033a62d31ae2265a6c72510b008ee925926fbf1cec4a1f"
+    },
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/rf1079-proposal-checks.json.gz",
+      "sha256": "15a526e7813e1aa04bdeee6c1e709a102d5a680ea699530b12ba71d923b63f2e",
+      "rawSha256": "b48322366d95f38632dcb68ae1bd4814fce3431b3fe1363e3dab5439dffe0dc9"
+    },
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/rf1079-trigger.json.gz",
+      "sha256": "ecd293b7833b4e855f295a89a1a91875b52c670f8f46519f5c62d0691739f6e5",
+      "rawSha256": "f46d609307abc555effeb1c9d1c318aadc66617e29a2b05453860218390d1b83"
+    },
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/operator-preflight-error.json.gz",
+      "sha256": "6743d54642113700f25a6f88a1a756e0bd362f2e533d4df2457a7f49b9185837",
+      "rawSha256": "f0bf8c227ee098ee03a85265cccb364ce711d6a97cc497c4e45822bc976d6504"
+    },
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/generated-restoration.json.gz",
+      "sha256": "80a47ed39d875c56bf6d5b94a03ff348a10585c027dbe30f124a16e5a38db6f6",
+      "rawSha256": "28a8f9ac5ebea2b4415a1e28ef7ab4b7b6376b09ed5424a6bcdeebd8f9ecffff"
+    },
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/build-result.json.gz",
+      "sha256": "c66ba334bf50014dfba98a5188efafd5c847c490f997c65bd01e7f44bb1edb73",
+      "rawSha256": "088276935e7d69ce651058d5d2bdaf05710ff4e35fc12deffe27199889e6a15b"
+    },
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/build-start.json.gz",
+      "sha256": "63653a5e7ee0c0ab6430fa32de94e63cf27409c001cb7be81304aae6ef6ea8df",
+      "rawSha256": "d43314209e2939a9559df5114f832c62b6f176516a9b1fcb5319ae0e802d86f1"
+    },
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/build.log.gz",
+      "sha256": "7d65391d20355280d773599fd77c2a271f856501babc6cf044a6fa90e6b37e1a",
+      "rawSha256": "7c36940ee7c451c8c25a26b6b6060c615b9b5a8e9241e47edb947ced4da3c943"
+    },
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/facts.json.gz",
+      "sha256": "e3bf29ee00715c27ade65d3809fd1e84b6894f621312a2d1af2108a9686b9bff",
+      "rawSha256": "a14b03655e3007af040a2c73ee98ab94ce4a5474f21ec40452a9f6458cec40fb"
+    },
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/yaml-parse.log.gz",
+      "sha256": "161ea89be98e526bfe62248bf9216c6052e2028283bd9c28e07a21a2cf0aa419",
+      "rawSha256": "54e893b8320bbd77dcb91435c315e2443b920dd47f181878d2800a105ff99fda"
+    },
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/job-111247917296.log.gz",
+      "sha256": "e3cd1cc441b33ea2e6da3dbf5e60e93ffad4d0864025aaf9aaa7fce804df8f48",
+      "rawSha256": "f9a49816560a1d89f6639b87ad6dbbff1a374e6e885f0ddbace4ea2c27506d68"
+    },
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/artifact-11280507111.zip.gz",
+      "sha256": "1b26a86e7ea2a4cd2312064aa083d038c1d9f3c6641d04dd87a321123d5b5ba0",
+      "rawSha256": "96f019e501f54084c29276b26ca3dbba6db0133a3290e96342d86e3c3463493a"
+    },
+    {
+      "path": "docs/verification/rf1079-frontend-dist-2026-10-03/job-111254651882.log.gz",
+      "sha256": "3154328c7e28a19dd6b5e8a4a86530e30d365ce02c25130c2f5c496fec10c5b8",
+      "rawSha256": "57a0e3bc995a23a5233aa2435635c7229b2d5cf8041aef6f91ef9faa23e5f455"
+    }
+  ]
+}

@@ -139,6 +139,15 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      # generate_context!在默认custom-protocol下需要真实frontendDist。
+      - name: Install Host frontend build dependencies
+        working-directory: tauri
+        run: npm ci
+
+      - name: Build frontend assets for Host checks
+        working-directory: tauri
+        run: npm run build
+
       - name: Stage desktop plugin resources for Host checks
         working-directory: tauri
         run: node scripts/stage-desktop-resources.cjs
@@ -198,6 +207,15 @@ jobs:
       # RF-1060：真实 Windows 回归，不能由 Ubuntu 上的专有用例跳过代替。
       - name: Run Node regression tests (Windows)
         run: npm run test:node
+
+      # generate_context!在默认custom-protocol下需要真实frontendDist。
+      - name: Install Host frontend build dependencies
+        working-directory: tauri
+        run: npm ci
+
+      - name: Build frontend assets for Host checks
+        working-directory: tauri
+        run: npm run build
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable

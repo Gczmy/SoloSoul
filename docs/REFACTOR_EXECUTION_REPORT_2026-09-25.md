@@ -120,9 +120,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**268**（P1：51；P2：216；P3：1）。
-- 已关闭：**252 / 268**；实际修复（已关闭）：252；排除：0；待验证/阻塞：9（RF-1078待远端Rust1.99宏修复验收，RF-1077待实际Linux Host资源验收，RF-1076待远端Rust1.99严格Clippy，RF-1075 Windows Host资源夹具待远端重验，RF-1073 Linux CI依赖待远端重验，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**RF-1078本地通过，待远端1.99验收；下一项RF-1079补齐Host真实前端构建产物**。
+- 任务总数：**269**（P1：51；P2：217；P3：1）。
+- 已关闭：**252 / 269**；实际修复（已关闭）：252；排除：0；待验证/阻塞：10（RF-1079待真实Linux/Windows Host编译运行，RF-1078待远端Rust1.99宏修复验收，RF-1077待实际Linux Host资源验收，RF-1076待远端Rust1.99严格Clippy，RF-1075 Windows Host资源夹具待远端重验，RF-1073 Linux CI依赖待远端重验，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**RF-1079本地生产构建通过；在验证分支复跑RF-309及Linux Host验收**。远端main保持。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -396,6 +396,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 266 | [RF-1076](#rf-1076) | P2 | 向量解码使用固定数组块兼容严格Clippy | 无（Linux真实CI新规则发现） | [!] 待验证：本地R通过，远端1.99待验 |
 | 267 | [RF-1077](#rf-1077) | P2 | Linux Host单测准备声明的OCR与插件资源目录 | 无（与Windows同类声明的静态核对） | [!] 待验证：隔离准备通过，待Linux真实运行 |
 | 268 | [RF-1078](#rf-1078) | P2 | 采用async-trait首次修复生成must_use冲突的版本 | 无（第三轮真实Linux Clippy发现） | [!] 待远端1.99严格Clippy |
+| 269 | [RF-1079](#rf-1079) | P2 | 在Host检查前构建真实frontendDist | 无（Windows CI实际编译失败） | [!] 待真实Linux/Windows Host |
 
 ## 5. 原报告到执行任务的映射
 
@@ -3600,6 +3601,18 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**R、CORE、CLI、DOC、实际Linux CI；不写镜像宏实现测试。
 - **建议提交：**`build(rust): adopt upstream async-trait lint fix [RF-1078]`。
 
+### RF-1079
+
+**在Host检查前构建真实frontendDist** · P2 · 来源：CI37138522079 Windows job111247917296；第三轮同样失败
+
+- **前置：**无。
+- **入口：**`.github/workflows/ci_cd.yml` 的Linux与Windows Host测试job。
+- **影响：**Windows Core764项通过，但Host的默认custom-protocol `generate_context!` 因声明的`../dist`不存在而编译失败，尚未启动Host测试。Linux同源默认配置为静态同类缺口，不称已有Linux实跑失败。
+- **执行：**沿用Node22，Host检查前在tauri运行npm ci和真实npm run build；不用空目录、假index或禁用custom-protocol，保持Release和全部测试配置。
+- **验收：**YAML解析/顺序、真实前端构建、原始失败附件digest；实际Linux严格Clippy及Host、Windows Core/Host通过后关闭。
+- **验证配置：**DOC、实际Linux/Windows CI；YAML改动不重复未受影响的R。
+- **建议提交：**`ci(host): build real frontend assets before Rust checks [RF-1079]`。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -6334,3 +6347,9 @@ git commit -m "<任务卡的提交标题>"
 - 第三轮真实Linux job111254651777在八个CloudConnector异步方法报double_must_use；属性由async-trait0.1.89自动生成。采用上游首次包含删除多余属性修复的0.1.92，仅两个独立锁文件更新该包及必要编译期syn3.0.6，其余包逐项相等；业务trait、清单、严格门禁不变。
 - 本地Rust1.96：workspace fmt、默认严格Clippy、完整R **1858 passed/0 failed/3原有ignored**、native-perf全targets严格Clippy全部exit0；CLI fmt、全targets严格Clippy和完整测试 **336 passed/0 failed/2原有ignored** 全部exit0。未受影响前端不重跑，不将本地结果替代远端1.99。
 - [原始失败、两个锁文件差异与七项检查](verification/rf1078-async-trait-2026-10-03.json)归档；保持[!]，累计252/268关闭、9待验证、7待执行。独立提交本提交（按RF-1078检索）。
+
+### RF-1079 Host真实前端产物（2026-10-03，待远端验收）
+
+- 第二轮Windows Core764项通过，Host因frontendDist ../dist不存在编译退出101、未执行测试；第三轮同样原因。归档真实失败附件11280507111并核对server digest。Linux同源配置缺口为静态推断，保留其更早宏lint失败边界。
+- 两个Host job在检查前运行npm ci和真实npm run build，沿用Node22；默认custom-protocol、Rust清单、全部测试与三项发布job保持。YAML解析/顺序、完整本地生产构建exit0（28.73s），真实dist索引与资源存在；NSIS/搜索索引五个已知生成目标逐字恢复，stash与无关跟踪文件不变。
+- [原始失败、完整构建和配置检查](verification/rf1079-frontend-dist-2026-10-03.json)归档。保持[!]，累计252/269关闭、10待验证、7待执行；按RF-1079独立提交，随后实际远端验收，不重复未受影响的R。
