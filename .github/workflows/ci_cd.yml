@@ -286,6 +286,13 @@ jobs:
       - name: Run Clippy
         run: cargo clippy --all-targets -- -D warnings
 
+      - name: Prepare PDFium for CLI tests
+        working-directory: tauri
+        run: |
+          bash scripts/download-pdfium.sh
+          test -s src-tauri/resources/pdfium/libpdfium.so
+          echo "PDFIUM_LIBRARY_PATH=$PWD/src-tauri/resources/pdfium/libpdfium.so" >> "$GITHUB_ENV"
+
       - name: Run CLI Tests
         run: cargo test --verbose --no-fail-fast
 
