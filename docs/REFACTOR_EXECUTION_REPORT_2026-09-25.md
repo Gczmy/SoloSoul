@@ -120,9 +120,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**262**（P1：51；P2：210；P3：1）。
-- 已关闭：**251 / 262**；实际修复（已关闭）：251；排除：0；待验证/阻塞：4（RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**下一项补齐Linux CI开发库，随后CLI PDFium环境**。RF-1072严格契约修复已验证；RF-309 Windows原任务仍运行，RF-308已关闭。
+- 任务总数：**263**（P1：51；P2：211；P3：1）。
+- 已关闭：**251 / 263**；实际修复（已关闭）：251；排除：0；待验证/阻塞：5（RF-1073 Linux CI依赖待远端重验，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**RF-1073 Linux依赖配置已补，待远端重验；下一项CLI PDFium环境**。RF-309原Windows任务仍运行。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -390,6 +390,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 260 | [RF-1070](#rf-1070) | P2 | 修正 Android 主题 E2E 的旧桌面事件预期 | RF-201 | [x] 完成 |
 | 261 | [RF-1071](#rf-1071) | P2 | 修正原生验收 feature 的 RAG 条件导入 | 无 | [x] 已关闭 |
 | 262 | [RF-1072](#rf-1072) | P2 | RAG 原生验收导入兼容严格 IPC 契约生成器 | RF-1071（远端契约失败发现） | [x] 完成 |
+| 263 | [RF-1073](#rf-1073) | P2 | Linux Rust CI 显式准备 Tauri Host 开发库 | 无（真实CI缺glib发现） | [!] 待验证：已补配置，待远端编译 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -3522,6 +3523,18 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **建议提交：**`fix(contract): keep RAG imports compatible with strict parsing [RF-1072]`。
 
 
+### RF-1073
+
+**Linux Rust CI显式准备Tauri Host开发库** · P2 · 来源：CI37134827271 job111237127716
+
+- **前置：**无。
+- **入口：**`.github/workflows/ci_cd.yml` 的Linux rust-test。
+- **影响：**真实ubuntu-latest Clippy在glib-sys构建时exit101，缺glib-2.0.pc；尚未运行Host测试。
+- **执行：**在编译前安装官方Tauri Linux开发依赖，验证glib最低版本和GTK/WebKit pkg-config条目。保留job名称、格式/Clippy/测试门禁、发布条件和Cargo依赖。
+- **验收：**YAML及步骤顺序可解析；远端安装与pkg-config检查通过，真实Clippy/Host测试继续执行。不能以Windows检查代替Linux证明。
+- **验证配置：**DOC与实际Linux CI。
+- **建议提交：**`ci(linux): install explicit Host development prerequisites [RF-1073]`。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -6212,3 +6225,8 @@ git commit -m "<任务卡的提交标题>"
 - 远端契约job23项中19项失败，本地同源码check也exit1。仅将RAG三处已有错误映射改用完整类型路径，移除cfg修饰的Code/Stage导入；严格拒绝规则、错误码、分支行为与两份生成输出不变。
 - 契约check、23项/0失败/0跳过回归、默认fmt/严格Clippy、完整R **1858通过/0失败/3原有ignored、25组**及native-perf all-targets严格Clippy通过；ACL、偏好键、ACL单测、Markdown13依赖检查通过。偏好键首次误用不存在脚本exit1，改用package.json真实入口exit0，调用错误记录保留。
 - [失败与修复验证](verification/rf1072-contract-import-2026-10-03.json)独立归档；新远端契约运行待后续CI补证，不混入Linux依赖或CLI环境修改。累计251/262；提交：本提交，使用RF-1072检索。
+
+### RF-1073 Linux CI依赖补齐（2026-10-03，待远端验收）
+
+- 真实Linux Clippy缺glib-2.0.pc，job exit101，Host测试未执行。仅在Linux rust-test编译前加入官方Tauri开发依赖安装，并检查glib最低2.70及GTK3/WebKit pkg-config；原job名称、格式/Clippy/测试、发布条件和Cargo清单不变。
+- 锁定Prettier解析YAML、抽取安装步骤的bash -n及DOC检查通过；Windows不替代Linux实测，保持[!]待验证。记录见[RF-1073](verification/rf1073-linux-prerequisites-2026-10-03.json)，累计251/263；提交：本提交，使用RF-1073检索。

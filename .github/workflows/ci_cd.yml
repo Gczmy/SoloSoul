@@ -124,6 +124,15 @@ jobs:
         with:
           workspaces: tauri/src-tauri
 
+      - name: Install Linux Host development dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential pkg-config libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev
+          pkg-config --atleast-version=2.70 glib-2.0
+          pkg-config --exists gtk+-3.0 webkit2gtk-4.1
+
       - name: Check formatting
         run: |
           cd tauri

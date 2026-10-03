@@ -1,0 +1,44 @@
+{
+  "task": "RF-1073",
+  "status": "waiting-for-remote-linux-validation",
+  "date": "2026-10-03",
+  "base_commit": "c23834ef9c543538ebe79ac8020e57fbb01078f8",
+  "failure": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37134827271",
+    "job_id": 111237127716,
+    "step": "Run Clippy",
+    "exit": 101,
+    "reason": "glib-sys: missing glib-2.0.pc; no Host tests ran"
+  },
+  "fix": "Install official Linux Tauri development prerequisites before Clippy; check glib >=2.70 plus GTK3/WebKit pkg-config entries. No application dependency or gate changed.",
+  "reference": "https://v2.tauri.app/start/prerequisites/#linux",
+  "static_checks": {
+    "yaml": "parsed with locked Prettier",
+    "bash_syntax_exit": 0,
+    "real_linux_ci": "pending",
+    "production_check_repeated": false
+  },
+  "new_remote_run": "pending",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1073-linux-prerequisites-2026-10-03/baseline.json.gz",
+      "sha256": "9d894b226601cc91250dd32ce449c0e7f938d4ebd461df61b0b9dbe9b9ca4840",
+      "rawSha256": "8516bb42babc2544c8ff4633b4fe65fd0f14d136ab6ed0cba841108ce4b3d5eb"
+    },
+    {
+      "path": "docs/verification/rf1073-linux-prerequisites-2026-10-03/linux-dependencies.sh.gz",
+      "sha256": "ccd883c1a6fcc7d258204c098962bdd3a2d9e66c0535c7dc6a2e6176079b2c99",
+      "rawSha256": "24a4a4e44e94dc53260bb17e0463649ec327b591effcff2914a02eab8f823358"
+    },
+    {
+      "path": "docs/verification/rf1073-linux-prerequisites-2026-10-03/static-checks.json.gz",
+      "sha256": "30fd85a97130414ea93c2f68d7b957a2f36c8292d9bcbf01add976a3049681a1",
+      "rawSha256": "0a307b2afa388eaa65e3c69f4c458699d7f51fe8063aef8be946a34cc641b2ac"
+    },
+    {
+      "path": "docs/verification/rf1073-linux-prerequisites-2026-10-03/job-111237127716.log.gz",
+      "sha256": "1e31d65c80d259bf9f69ab95b4ed8d5dcb00dce4fdb09aaf40b8dd8a6e174ecf",
+      "rawSha256": "9ba5e14e8f55c2f005a6985aad61496f0ec9c59804c0ac3f52d852239c853f6c"
+    }
+  ]
+}
