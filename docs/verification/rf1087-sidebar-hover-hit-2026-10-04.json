@@ -1,0 +1,200 @@
+{
+  "task": "RF-1087",
+  "status": "waiting-actual-linux-first-attempt",
+  "baseline": "1c9389b412839e3af81f815bc8193e57c669d558",
+  "original_failure": {
+    "run": 37157849547,
+    "job": 111304900208,
+    "tested_head": "c7b752978bf9342109705d1ed386fe44f75cb3c2",
+    "result": "308 passed / 1 flaky / 19 original skips",
+    "case": "right expanded sidebar hover center-point hit check first false, retry passes"
+  },
+  "change": "Poll original actual center-point hit predicate until clipped reveal animation permits hitting each tool. No production change, fixed sleep, timeout/retry change, skipped/deleted test.",
+  "predicate_ast": {
+    "equal": true,
+    "method": "TypeScript callback AST, ignoring formatting and source positions",
+    "sha256": "ea240abdb160e08a5cae0030d2d1bbde039c7e880e4b195730b270a043afaeaf"
+  },
+  "checks": [
+    {
+      "name": "format",
+      "args": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "e2e/sidebar-tools.spec.ts"
+      ],
+      "exit": 0,
+      "seconds": 0.5888394005596638,
+      "owned_pid": 38320
+    },
+    {
+      "name": "tsc",
+      "args": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "seconds": 39.85207000002265,
+      "owned_pid": 40516
+    },
+    {
+      "name": "lint",
+      "args": [
+        "npm.cmd",
+        "run",
+        "lint"
+      ],
+      "exit": 0,
+      "seconds": 65.22920100018382,
+      "owned_pid": 39428
+    },
+    {
+      "name": "full-frontend-bounded-workers",
+      "args": [
+        "npm.cmd",
+        "run",
+        "test",
+        "--",
+        "--maxWorkers",
+        "2"
+      ],
+      "exit": 0,
+      "seconds": 392.464915599674,
+      "owned_pid": 21760,
+      "test_count_or_timeout_changes": false
+    }
+  ],
+  "web": {
+    "projects": [
+      "chromium",
+      "mobile"
+    ],
+    "browser": "installed Microsoft Edge",
+    "passed": 46,
+    "flaky": 0,
+    "failed": 0,
+    "original_file_all_cases": true
+  },
+  "inventory_mobile": 328,
+  "full_F": {
+    "node_passed": 123,
+    "node_failed": 0,
+    "original_node_skip": 1,
+    "vitest_files": 256,
+    "vitest_passed": 2240,
+    "vitest_failed": 0,
+    "command": "npm run test -- --maxWorkers 2",
+    "original_testTimeout_ms": 5000,
+    "default_attempts": [
+      {
+        "exit": 1,
+        "failure": "ObjectWorkspacePage loads next workspace page / 5000ms timeout"
+      },
+      {
+        "exit": 1,
+        "failure": "PairingPanel RF022 authenticated entry / 5000ms timeout"
+      }
+    ],
+    "limit": "Do not claim unbounded npm run test passed. Two workers are a resource bound; all cases and original test timeout preserved."
+  },
+  "unrelated_runtime_error": "WEB log also revealed non-Node relatedTarget passed to Node.contains in TopFunctionBar; separate next task, no zero-runtime-error claim.",
+  "frozen_non_owned_paths": 2571,
+  "stash_unchanged": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/baseline.json.gz",
+      "sha256": "4d4402d8680af8e17227a14e0895ddc498c49e1ca5e53196a2fe4535d084f045",
+      "rawSha256": "d36b49a80e4973668df53769f42c08bd42f64d0eb4c5104f49c067c1cf29788f"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/source-before.ts.gz",
+      "sha256": "711b6d7a74657b7f5f87a1c44441fd79267bb870a92572f433ec179bf769222f",
+      "rawSha256": "18e055125336043b0a18892b483d2aab4043e939f412829f5a2b246ab2cdb38d"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/playwright.config.mjs.gz",
+      "sha256": "9e66fdc7d54a085033a1fa0ae9f5bbed10eb009899d10d411d6a78f60e92ea89",
+      "rawSha256": "414d78f6a0c104975c7f0fa79972e7847de07f2124b29aa536628a13fbc6a102"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/predicate-ast-check.json.gz",
+      "sha256": "a3a87c16cb30be164a83b652c86682ae7be47edbeca1f594c95d20419dec08fb",
+      "rawSha256": "1b406a38ddefa3c16f11805223104fe4a4efd3041cc6be685824b32ba600e8ef"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/mobile-list.json.gz",
+      "sha256": "bee0c3c86569227c4f29cbd826dae22a694a64c855561ca0ec7541380086d2e3",
+      "rawSha256": "afedd38d67013f3180250364e5fdc9b36e882ea630a2704dd8de6df569093762"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/mobile-inventory.json.gz",
+      "sha256": "bf6d177738ab5928da95ec5f82cffeb86f2fbc3db9ce09ae243af6aaf95ae49f",
+      "rawSha256": "daaa539b44e2cab585deebd5d4525fd548474723ca993bc44259969f2ef45981"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/web-checks.json.gz",
+      "sha256": "9c5544c1184b4f1b39db44451d53fc722fd57f42db87b7835028ba5dbdbb86b3",
+      "rawSha256": "58594fffbeb8094b74ecc5ed29a5e71129b6d725939ab88c66d221d245ee1d7d"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/web.log.gz",
+      "sha256": "37792defd45e86ff6a598ff78171f23f3ab758e3686ff027aba9633dea7f1afc",
+      "rawSha256": "b799c68f818f406ad98c6b0cfc0f92c57f23b25a01b029a345b3ed6ad5b62277"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/f-checks.json.gz",
+      "sha256": "441a03ba1c6a5710a4eb9feb52f097e59fdc0198fd3d99f536a6191af5127b85",
+      "rawSha256": "d7f27ca2678b0058c1316435f6eb8093a54743bae3dadf5f1bd9710046e68e03"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/full-frontend.log.gz",
+      "sha256": "49015413cac1d676c0927673b7da0b2a337a44700cfaf1c4f8c7ebdac3fcf741",
+      "rawSha256": "e199ba94da0eca5d4c721489a2f968e946f195b7d97c8e10e26c8e6166d18fbb"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/f-final-checks.json.gz",
+      "sha256": "ccc1bb9810cf69188b2947b628948863d4dcf02b4410f7eadb2a7e90a1219dc5",
+      "rawSha256": "19a6d6cf8ff5ab033facfdc5bfdddb7b70b14a0d7c46c980a6c62eca03e24cce"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/full-frontend-rerun.log.gz",
+      "sha256": "60c8416186cb94303b2f3d22b72ad16fa69ef1ac173e58badcf82e45aa1b0b92",
+      "rawSha256": "d1b691fe0709150ac351b25d63793186656d9ff5512b7b93994320ad99fd2e59"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/f-bounded-checks.json.gz",
+      "sha256": "7f7a472a6e987a4719c62bc7b2af8e2d5b11e1da3b702fcd8d884a43f20fafc0",
+      "rawSha256": "e002c90e9e1a4535e0d73618eb59d794ef3abd8646c0089c0b5ae2c893c17e68"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/full-frontend-bounded.log.gz",
+      "sha256": "df5472f92e81d1d4612d5a0e01488cc7fae80434c8c305baf5f624186f2643d7",
+      "rawSha256": "7cd9552e04c42ce76e41ca0996d91a15e88800d4d8d8ceba3bb72124b44b3152"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/format.log.gz",
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/tsc.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/lint.log.gz",
+      "sha256": "aa834ac37a9c357bc906de67d2278f1c2d7079872ad9ba2641fa9baac6177b67",
+      "rawSha256": "9ccdcb4482fdd1a0617291405e83ca63932f2a561161d2b94b9a67d00b6bc7e1"
+    },
+    {
+      "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/actual-linux-mobile-first-pr.log.gz",
+      "sha256": "ef2a0b7604ec69c238699156f74b32fc95e78d36ff47c6ffea99857eada2d7bd",
+      "rawSha256": "e2b2c6007ddc0256f8d6acaba89af00c5397adb82c6302690742242fc02071aa"
+    }
+  ],
+  "limits": [
+    "Windows Edge is not actual Linux/Android native validation; actual Linux left/right first attempts required."
+  ]
+}

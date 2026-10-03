@@ -97,12 +97,17 @@ for (const position of ['left', 'right'] as const) {
     await expect(buttons).toHaveCount(10);
     for (const button of await buttons.all()) {
       await expect(button).toBeInViewport();
-      expect(
-        await button.evaluate((element) => {
-          const r = element.getBoundingClientRect();
-          return element.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
-        }),
-      ).toBe(true);
+      // aria展开和可见性先于裁剪动画完成；等待真实中心点可命中，不跳过交互检查。
+      await expect
+        .poll(() =>
+          button.evaluate((element) => {
+            const r = element.getBoundingClientRect();
+            return element.contains(
+              document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2),
+            );
+          }),
+        )
+        .toBe(true);
     }
     // 原生玻璃下不能透出重叠的导航文字；裁剪只影响绘制，不改变布局。
     expect(
