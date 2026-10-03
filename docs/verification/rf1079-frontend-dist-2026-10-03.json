@@ -1,6 +1,6 @@
 {
   "task": "RF-1079",
-  "status": "waiting-for-actual-linux-and-windows-host-ci",
+  "status": "complete-actual-target-ci-verified",
   "date": "2026-10-03",
   "base_commit": "f892bc7db17073b22556c358c1305b367bba367e",
   "trigger": {
@@ -155,5 +155,79 @@
       "sha256": "3154328c7e28a19dd6b5e8a4a86530e30d365ce02c25130c2f5c496fec10c5b8",
       "rawSha256": "57a0e3bc995a23a5233aa2435635c7229b2d5cf8041aef6f91ef9faa23e5f455"
     }
-  ]
+  ],
+  "remote_acceptance": {
+    "run_id": 37154255151,
+    "tested_head": "cfa2cb5107fd9470a78fc6d21fca7dec2b427744",
+    "baseline_head": "33e2330afb727cc575f275ca6ad72b4c597670f5",
+    "job_ids": [
+      111294255165,
+      111294255131
+    ],
+    "counts": {
+      "111294255165": {
+        "groups": 25,
+        "passed": 1858,
+        "failed": 0,
+        "original_ignored": 3
+      },
+      "111294255131": {
+        "groups": 13,
+        "passed": 1552,
+        "failed": 0,
+        "original_ignored": 1
+      }
+    },
+    "protected_sources": {
+      "job:rust-test": "a5b7da3a8c45d48c6e0f8af839efbcc9ae6551e2132a371eb1b3e0bc55454052",
+      "job:windows-rust-test": "279b1ce3f8b2d971bc223d2600b7612ba25e8c0dcd88559f744471cccafcc972",
+      "tauri/scripts/stage-desktop-resources.cjs": {
+        "git_blob": "555918a002b491922a31b3469436c709d2b81a14",
+        "sha256": "2f98b1f876989a0f8becd927d4b27991e39744719f5a8daebd4a1365b2718253"
+      },
+      "tauri/src-tauri/tauri.linux.conf.json": {
+        "git_blob": "078dcf32171f647ad64f5350e56b822aeea8f93e",
+        "sha256": "438d8e2636b513cc66e5e6b749a081d9d92c7f04d7f173fdb60aaba495c95e4a"
+      },
+      "tauri/src-tauri/tauri.conf.json": {
+        "git_blob": "7fc2c134b7048b8d1441ef6ea5715923f8a426c9",
+        "sha256": "506c84287ce6a46a0d4f4157bd12906b7ffdc3f2e13c44d629303087c5d46899"
+      },
+      "tauri/src-tauri/build.rs": {
+        "git_blob": "945cc66716f8ef76910bad4129df6fb0d46b95da",
+        "sha256": "cf3f33631e73df6c39c9f62cec3bbc227491bbbe97ac3a8c4665786ead30acc2"
+      },
+      "tauri/Cargo.lock": {
+        "git_blob": "0b028136e673f82dd1409528d6c70c9e31fbeae9",
+        "sha256": "2cc2fd3e220ad7fa968a2140207ebf5367760fb97868c414adc776d62a495d1d"
+      },
+      "tauri/src-tauri/Cargo.toml": {
+        "git_blob": "1f3925f7e497ba1f953cb969d8ab1b5deab3f541",
+        "sha256": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e"
+      }
+    },
+    "conclusion": "Linux真实frontendDist构建、严格Clippy、完整Workspace1858/0/3通过；Windows Core/Host1552/0/1通过，Host780单测+8集成。保持默认custom-protocol与正式构建，三项Release均skip，无发布。",
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1079-frontend-dist-2026-10-03/round6-acceptance/baseline.json.gz",
+        "sha256": "8ddc8a550b31261a7d493b4eebbde93c0846c4a24961df6cdab4e068320ed6a0",
+        "rawSha256": "18218b62f2f750ebf64e6481e74e91b679452fd11dcb927fd24537f93f36bb2e"
+      },
+      {
+        "path": "docs/verification/rf1079-frontend-dist-2026-10-03/round6-acceptance/remote-acceptance.json.gz",
+        "sha256": "5a67a070e1243251da2e7d98e0bc945b8d1a4d82eb4bd6a9d75d76c35f35db1e",
+        "rawSha256": "35d709057530f9bd400a2513c8a46e213f9155c820c9df15766f34845667ccf2"
+      },
+      {
+        "path": "docs/verification/rf1079-frontend-dist-2026-10-03/round6-acceptance/job-111294255165.log.gz",
+        "sha256": "439bfa196e9acc722b9ff2d6eed12bc4d34bd8d9e998bdb4cbb369d62758c3c1",
+        "rawSha256": "4e7595f6675edb6a7a37db551440c032655d1b66d48bdaabaaccb20f322a1580"
+      },
+      {
+        "path": "docs/verification/rf1079-frontend-dist-2026-10-03/round6-acceptance/job-111294255131.log.gz",
+        "sha256": "0e95cf2d86da636ea95410c52d2c270b8296bc97ab4a4e867b2fe034f6135fac",
+        "rawSha256": "55cf98b0678ad127a671460b0edac7b097d2b1cefc12693170785ec7f4ee82bb"
+      }
+    ]
+  }
 }
