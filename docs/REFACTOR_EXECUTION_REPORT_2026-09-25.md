@@ -120,9 +120,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**274**（P1：51；P2：222；P3：1）。
-- 已关闭：**258 / 274**；实际修复（已关闭）：258；排除：0；待验证/阻塞：9（RF-1084本地完整R通过待Linux C环境，RF-1083插件生命周期本地通过待Linux移动CI，RF-1082环境已修但插件错误mock/远端待验，RF-1081本地通过待Linux移动CI，RF-1079待真实Linux Host编译运行（Windows已通过），RF-1077待实际Linux Host资源验收，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**无实施任务；下一项RF-1085插件快捷面板结构化错误fixture**。
+- 任务总数：**275**（P1：51；P2：223；P3：1）。
+- 已关闭：**258 / 275**；实际修复（已关闭）：258；排除：0；待验证/阻塞：10（RF-1085错误fixture本地通过待Linux移动CI，RF-1084本地完整R通过待Linux C环境，RF-1083插件生命周期本地通过待Linux移动CI，RF-1082环境已修但插件错误mock/远端待验，RF-1081本地通过待Linux移动CI，RF-1079待真实Linux Host编译运行（Windows已通过），RF-1077待实际Linux Host资源验收，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**无实施任务；准备新精确HEAD真实CI验收Linux Host与全量移动E2E**。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -402,6 +402,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 272 | [RF-1082](#rf-1082) | P2 | 桌面E2E场景声明正确视口与指针环境 | 无（真实移动CI桌面用例失败发现） | [!] 待独立mock修复及Linux验收 |
 | 273 | [RF-1083](#rf-1083) | P2 | 插件生命周期E2E遵循可见交互与请求响应闭环 | 无（旧导航/提前完成mock发现） | [!] 待Linux移动CI验收 |
 | 274 | [RF-1084](#rf-1084) | P2 | 系统语言测试接受C/POSIX及仅语言标识 | 无（真实Linux CI失败） | [!] 待Linux C环境验收 |
+| 275 | [RF-1085](#rf-1085) | P2 | 插件快捷面板E2E使用结构化错误与固定译文 | 无（真实浏览器协议fixture失败） | [!] 待Linux移动CI验收 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -3674,6 +3675,17 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**R（fmt、匹配1.99严格Clippy、完整cargo test）、DOC；无共享Core/CLI/前端改动，不重复独立检查。
 - **建议提交：**`test(system): accept locale identifiers without region [RF-1084]`。
 
+### RF-1085
+
+**插件快捷面板E2E使用结构化错误与固定译文** · P2 · 来源：RF-1082完整WEB 310 passed/4 failed，旧fixture裸字符串不符合RF-306/RF-320错误契约
+
+- **前置：**无；与RF-1082桌面环境和RF-1083插件弹窗生命周期分项。
+- **入口：**`tauri/e2e/plugin-quick-panel.spec.ts`；生成的BackendError及PLUGIN_NETWORK_FAILED固定译文。
+- **执行：**安装失败/取消mock使用正式code/safeDetails/retryable结构；网络失败断言改为既定固定译文，保留失败展示/取消/重试清空/进度/安装状态全流程。禁止展示裸主机错误或虚构timeout code，生产UI与错误解析不改。
+- **验收：**原8用例在chromium/mobile共16项通过，无新增skip/放宽超时；原进度/取消/重试等断言保留，错误译文使用完整文本精确断言；真实Linux全量移动CI复跑。
+- **验证配置：**F、WEB（插件快捷面板两项目）、DOC；无生产/原生改动，不重复R。
+- **建议提交：**`test(plugin): align install mocks with structured errors [RF-1085]`。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -6487,3 +6499,9 @@ git commit -m "<任务卡的提交标题>"
 - 基线c2091ef3。真实Linux唯一Host失败是测试把C环境和仅语言标签认作无效；核对锁定sys-locale0.3.2 Unix转换及上游语言-only用例。仅修正原测试的地区分隔符假设，保持非空及标识字符检查；生产函数逐字不变，无环境覆盖/语言伪映射/新增ignore。
 - 本次fmt、Rust1.99严格Clippy exit0；首次完整R因runner把PDFIUM_LIBRARY_PATH配成目录而exit101（Host780/0、Core425/18），保留失败日志；改为现有DLL完整路径后重跑完整cargo test --verbose exit0；25组/1858 passed/0 failed/3原ignore，原系统语言测试通过。默认rustfmt1.96不改工具链默认，Clippy/测试显式匹配远端1.99。
 - [证据](verification/rf1084-system-locale-2026-10-03.json)保留远端C原失败、锁定上游源码及完整本地日志；Windows通过不能替代Linux C，状态待下一轮真实CI；RF-1077/RF-1079继续待完整Host。独立提交（本提交，以RF-1084检索）。
+
+### RF-1085 执行记录（2026-10-03）
+
+- 基线f65fce50。插件安装/取消mock改为生成的BackendError结构，使用已有PLUGIN_NETWORK_FAILED/PLUGIN_INSTALL_CANCELLED，safeDetails:null。原Download timed out透传断言不符合当前固定译文契约，改为完整固定网络失败文本精确断言；保留取消无错误、重试清空、进度、安装完成/列表等全部交互断言。生产解析/store/UI/译文逐字不变。
+- WEB原8用例在chromium/mobile共16/16通过，无flaky；F格式/TypeScript/lint/默认npm test全部exit0，256文件/2240项Vitest、123项Node通过，原Windows符号链接权限skip1保持。
+- [证据](verification/rf1085-plugin-error-fixture-2026-10-03.json)保留原RF-1082四失败入口及本次完整日志、原fixture和生产文件冻结SHA。本机Node24.16/Edge不代替Linux Node22/Chromium，待下一轮实际移动CI。独立提交（本提交，以RF-1085检索）。

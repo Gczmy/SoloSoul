@@ -1,0 +1,155 @@
+{
+  "task": "RF-1085",
+  "status": "waiting-real-linux-mobile-ci",
+  "baseline": "f65fce50649095925920665b6bb83b77b5e662cc",
+  "source_sha256": "35d51e789c6819dc89e0fb29fcb25f536d93e4629522cdada4ef4cd7915e2378",
+  "production_raw_unchanged": {
+    "tauri/src/lib/generated/ipcContracts.ts": "ea8b06b0a551fad617374dbbcd632d6239c553c910d18801eec64b25b423dcd2",
+    "tauri/src/lib/backendErrorWire.ts": "c08deae6f9113fe6bedeed5734657bb68ed459025275cc273556cf6c925285b5",
+    "tauri/src/lib/backendError.ts": "8d52d94c763b752101572875cecdc0e82e39afb374bbbc0e3aec6d60e8793422",
+    "tauri/src/stores/pluginStore.ts": "37b98d2f6159c121b17cdfc243891b552cc35c638fb8bd4201476b8b7d5425e8",
+    "tauri/src/components/plugin/PluginQuickPanel.tsx": "55734b6f553d4ca59e2363352bfa60e77b096d318f3307c722c5bf4bbc8ea250",
+    "tauri/src/locales/en-US/common.json": "55140b1f6ecab17d479644f96499a0d24a780cc85a2f45b89371005b9ef1ef7e"
+  },
+  "cause": "Bare Download timed out mock is an unsupported legacy error; production intentionally shows fixed translated messages, not host raw detail.",
+  "fixture_contract": {
+    "network": {
+      "code": "PLUGIN_NETWORK_FAILED",
+      "safeDetails": null,
+      "retryable": true
+    },
+    "cancel": {
+      "code": "PLUGIN_INSTALL_CANCELLED",
+      "safeDetails": null,
+      "retryable": false
+    }
+  },
+  "error_assertion": "Exact complete Plugin operation failed: The plugin download connection failed. Try again later. replaces obsolete raw-string expectation; all progress, cancellation, retry clearing, installed-list and interaction assertions retained.",
+  "checks": [
+    {
+      "name": "format",
+      "args": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "e2e/plugin-quick-panel.spec.ts"
+      ],
+      "exit": 0,
+      "seconds": 0.35979050025343895
+    },
+    {
+      "name": "tsc",
+      "args": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "seconds": 22.219539100304246
+    },
+    {
+      "name": "lint",
+      "args": [
+        "npm.cmd",
+        "run",
+        "lint"
+      ],
+      "exit": 0,
+      "seconds": 32.48634309973568
+    },
+    {
+      "name": "full-frontend",
+      "args": [
+        "npm.cmd",
+        "run",
+        "test"
+      ],
+      "exit": 0,
+      "seconds": 191.14482450019568
+    }
+  ],
+  "frontend": {
+    "vitestFiles": 256,
+    "vitestPassed": 2240,
+    "nodePassed": 123,
+    "nodeFailed": 0,
+    "nodeSkipped": 1,
+    "skipReason": "original Windows symlink privilege limitation"
+  },
+  "web": {
+    "exit": 0,
+    "seconds": 77.0574454003945,
+    "args": [
+      "node",
+      "node_modules/@playwright/test/cli.js",
+      "test",
+      "e2e/plugin-quick-panel.spec.ts",
+      "--project=mobile",
+      "--project=chromium",
+      "--config",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1085-plugin-error-fixture-20261003\\playwright.config.mjs"
+    ],
+    "node": "24.16.0",
+    "browser": "installed Edge",
+    "retries": 2,
+    "workers": 1,
+    "passed": 16,
+    "failed": 0,
+    "flaky": 0,
+    "originalTests": 8,
+    "boundary": "Windows Node24.16 Edge; Linux Node22 Chromium still pending"
+  },
+  "before_failure_proof": "docs/verification/rf1082-desktop-context-2026-10-03.json",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1085-plugin-error-fixture-2026-10-03/web.log.gz",
+      "sha256": "8f0989fe763690c93305f2b07fec077a5e88fe36431a48aba6d2ec8c28beb215",
+      "rawSha256": "a45acc92b46845298cf0fe075b47c1bb05c8047bc8a3ec5dd79a7823fcb4f1dc"
+    },
+    {
+      "path": "docs/verification/rf1085-plugin-error-fixture-2026-10-03/web-result.json.gz",
+      "sha256": "2131bf059521040d160b996eca1b9788c2fd3b24473434653951a1f626a143b1",
+      "rawSha256": "8f6bf4aa6b85b50ab22df08846ec246f7daad1a38ebfb1eccee2c1b0453e13f1"
+    },
+    {
+      "path": "docs/verification/rf1085-plugin-error-fixture-2026-10-03/web-owned-process.json.gz",
+      "sha256": "e6364961e1e1000fba5f366cd3d242b6d4db840de890eebbec3b51d612833f68",
+      "rawSha256": "49444481c143cdffd0f38b9322e68ad7beeb0a39f029a809757c2793919a363a"
+    },
+    {
+      "path": "docs/verification/rf1085-plugin-error-fixture-2026-10-03/checks.json.gz",
+      "sha256": "abcfcefc6e68af5d0cc5ee3a1f83e159c01f199ba76e6e70d21eb15adc533141",
+      "rawSha256": "c94cbb598e803f45e19929576a47c18c6252163ede1e01984a3ec468cb139bc1"
+    },
+    {
+      "path": "docs/verification/rf1085-plugin-error-fixture-2026-10-03/format.log.gz",
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/verification/rf1085-plugin-error-fixture-2026-10-03/tsc.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1085-plugin-error-fixture-2026-10-03/lint.log.gz",
+      "sha256": "aa834ac37a9c357bc906de67d2278f1c2d7079872ad9ba2641fa9baac6177b67",
+      "rawSha256": "9ccdcb4482fdd1a0617291405e83ca63932f2a561161d2b94b9a67d00b6bc7e1"
+    },
+    {
+      "path": "docs/verification/rf1085-plugin-error-fixture-2026-10-03/full-frontend.log.gz",
+      "sha256": "63588c9c3690b6526abf89490bde41aa1ddaaa978d1cd4f9e3f9905075b02126",
+      "rawSha256": "9190d2864df3984acd7b94af7c1cde4e107ef2ff39aff6645907af5c7f8dc778"
+    },
+    {
+      "path": "docs/verification/rf1085-plugin-error-fixture-2026-10-03/source-before.ts.gz",
+      "sha256": "d232b1d82a2bbe5bdf82900a627a7d2032ca35e4441ae89db4615610adc5d838",
+      "rawSha256": "50f05636b66784d012371d7ed472e50bf125f4c9926f6767fda8f5fad1086ad0"
+    },
+    {
+      "path": "docs/verification/rf1085-plugin-error-fixture-2026-10-03/playwright.config.mjs.gz",
+      "sha256": "728b96f9bc2205970cd73a2f9ca0fb8217037e320c19cab2743a40a8f9090e83",
+      "rawSha256": "8929af5902700f7e941e24ad49fa4638a15340d7083f7a8ce402c2cb18856c6c"
+    }
+  ]
+}
