@@ -1,6 +1,6 @@
 {
   "task": "RF-1075",
-  "status": "waiting-for-actual-remote-host-tests",
+  "status": "completed",
   "date": "2026-10-03",
   "base_commit": "1ce2ddac425b01e958b030539372169272803b95",
   "failure": {
@@ -31,7 +31,7 @@
       "ignored": 1
     },
     "first_host_tests_run": 0,
-    "remote_corrected_host": "pending"
+    "remote_corrected_host": "passed"
   },
   "artifacts": [
     {
@@ -72,6 +72,36 @@
         "core.log",
         "host.log"
       ]
+    },
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/job-111264960054.log.gz",
+      "sha256": "0237d26751161a32471e728febfac4a331c773e27e5867a0df4b7078693ab0de",
+      "rawSha256": "41c69ea826400663cb5319bb558a45f47c9f959a1aa909f6e37b33cad5107a7c"
+    },
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/remote-acceptance.json.gz",
+      "sha256": "2118bb88f43665eb4a86c0ccca9bd3027df89f7b11a9956787c0d15c6defd093",
+      "rawSha256": "b17422bc622aee0c2346b858aabe77f0c38608ebe5500a595a4e99e22060d40c"
     }
-  ]
+  ],
+  "remote_acceptance": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37144291766",
+    "job_id": 111264960054,
+    "tested_sha": "fbcbe83387810357cc9018b9b670145deda901bb",
+    "rust": "1.99.0",
+    "conclusion": "success",
+    "core": {
+      "groups": 6,
+      "passed": 764,
+      "failed": 0,
+      "ignored": 1
+    },
+    "host": {
+      "groups": 7,
+      "passed": 788,
+      "failed": 0,
+      "ignored": 0
+    },
+    "scope": "unit-test resource layout; not real OCR inference or Release acceptance"
+  }
 }

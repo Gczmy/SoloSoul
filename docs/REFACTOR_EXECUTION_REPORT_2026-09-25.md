@@ -121,8 +121,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**270**（P1：51；P2：218；P3：1）。
-- 已关闭：**252 / 270**；实际修复（已关闭）：252；排除：0；待验证/阻塞：11（RF-1080待实际Linux1.99严格Clippy复跑，RF-1079待真实Linux/Windows Host编译运行，RF-1078待远端Rust1.99宏修复验收，RF-1077待实际Linux Host资源验收，RF-1076待远端Rust1.99严格Clippy，RF-1075 Windows Host资源夹具待远端重验，RF-1073 Linux CI依赖待远端重验，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**RF-1080本地完整通过，复跑Linux CI；依次登记RF-1075、RF-309真实Windows验收**。
+- 已关闭：**253 / 270**；实际修复（已关闭）：253；排除：0；待验证/阻塞：10（RF-1080待实际Linux1.99严格Clippy复跑，RF-1079待真实Linux/Windows Host编译运行，RF-1078待远端Rust1.99宏修复验收，RF-1077待实际Linux Host资源验收，RF-1076待远端Rust1.99严格Clippy，RF-1073 Linux CI依赖待远端重验，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**RF-309：登记真实Windows CI验收；Linux复跑同时进行**。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -392,7 +392,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 262 | [RF-1072](#rf-1072) | P2 | RAG 原生验收导入兼容严格 IPC 契约生成器 | RF-1071（远端契约失败发现） | [x] 完成 |
 | 263 | [RF-1073](#rf-1073) | P2 | Linux Rust CI 显式准备 Tauri Host 开发库 | 无（真实CI缺glib发现） | [!] 待验证：已补配置，待远端编译 |
 | 264 | [RF-1074](#rf-1074) | P2 | CLI CI 为真实 PDF 回归准备 PDFium | 无（真实CLI CI失败发现） | [x] 已关闭 |
-| 265 | [RF-1075](#rf-1075) | P2 | Windows Rust 单测 job 准备明确标注的资源目录夹具 | 无（真实Host构建失败发现） | [!] 待验证：配置已补，待Host真实执行 |
+| 265 | [RF-1075](#rf-1075) | P2 | Windows Rust 单测 job 准备明确标注的资源目录夹具 | 无（真实Host构建失败发现） | [x] 完成 |
 | 266 | [RF-1076](#rf-1076) | P2 | 向量解码使用固定数组块兼容严格Clippy | 无（Linux真实CI新规则发现） | [!] 待验证：本地R通过，远端1.99待验 |
 | 267 | [RF-1077](#rf-1077) | P2 | Linux Host单测准备声明的OCR与插件资源目录 | 无（与Windows同类声明的静态核对） | [!] 待验证：隔离准备通过，待Linux真实运行 |
 | 268 | [RF-1078](#rf-1078) | P2 | 采用async-trait首次修复生成must_use冲突的版本 | 无（第三轮真实Linux Clippy发现） | [!] 待远端1.99严格Clippy |
@@ -6372,3 +6372,10 @@ git commit -m "<任务卡的提交标题>"
 - 第四轮Linux Rust1.99 job111264959982因for_kv_map失败；仅一行改为map.values()，过滤、持久化读取、投影和返回主体逐字保持，不加allow。
 - 独立安装1.99.0匹配远端，默认1.96.0保持；fmt、1.99严格Clippy、完整R **1858/0/3原有ignored**（同步90/0/0）；CLI fmt、1.99全targets严格Clippy与完整CLI **336/0/2原有ignored** 全部exit0。
 - [原始失败、源码范围、工具链和六项检查](verification/rf1080-peer-map-2026-10-03.json)归档，保持[!]待真实Linux复跑；累计252/270关闭、11待验证、7待执行。按RF-1080独立提交，再逐项回填Windows实际通过证据，不将整条CI标成功。
+
+### RF-1075 远端验收记录（2026-10-03）
+
+- 实际GitHub windows-latest：[run 37144291766](https://github.com/Gczmy/SoloSoul/actions/runs/37144291766/job/111264960054)，测试源码`fbcbe83387810357cc9018b9b670145deda901bb`，Rust1.99.0，job111264960054完成且success。真实frontendDist构建、无模型资源准备和测试步骤均exit0。
+- Vault/core六组764 passed / 0 failed / 1原有ignored；Host七组788 passed / 0 failed / 0 ignored。共1552通过；首轮Host未执行的失败日志和实际失败附件仍保留。
+- [结构化证据](verification/rf1075-windows-unit-resources-2026-10-03.json)新增成功原始日志与job元数据，gzip解压逐字复核及原始/压缩SHA256均记录。这里只验收单测资源目录，不代表真实OCR模型推理、Release打包或设备运行。
+- DOC与Markdown依赖边界检查通过，未改业务、workflow、正式配置、manifest或用户stash。本项关闭253/270，一项一提交（本提交，以RF-1075检索）。
