@@ -1,8 +1,6 @@
 use super::errors;
 use super::errors::vault_handle;
 use crate::commands::error::BackendError;
-#[cfg(not(feature = "native-perf"))]
-use crate::commands::error::{BackendErrorCode as Code, BackendErrorStage as Stage};
 use crate::state::AppState;
 use solosoul_vault::VaultStore;
 use tauri::State;
@@ -345,7 +343,13 @@ pub async fn llm_search_guide_chunks(
     #[cfg(not(feature = "native-perf"))]
     let models_dir = tauri::Manager::path(&state.handle)
         .resolve("models", tauri::path::BaseDirectory::LocalData)
-        .map_err(|cause| BackendError::caused_by(Code::LlmEmbeddingFailed, Stage::Read, cause))?;
+        .map_err(|cause| {
+            BackendError::caused_by(
+                crate::commands::error::BackendErrorCode::LlmEmbeddingFailed,
+                crate::commands::error::BackendErrorStage::Read,
+                cause,
+            )
+        })?;
 
     let (source, chunks) = {
         let vault = vault_handle(&state)?;
@@ -857,7 +861,13 @@ pub async fn llm_rebuild_guide_embeddings(
     #[cfg(not(feature = "native-perf"))]
     let models_dir = tauri::Manager::path(&state.handle)
         .resolve("models", tauri::path::BaseDirectory::LocalData)
-        .map_err(|cause| BackendError::caused_by(Code::LlmEmbeddingFailed, Stage::Read, cause))?;
+        .map_err(|cause| {
+            BackendError::caused_by(
+                crate::commands::error::BackendErrorCode::LlmEmbeddingFailed,
+                crate::commands::error::BackendErrorStage::Read,
+                cause,
+            )
+        })?;
 
     // 1. Extract embedding source and chunk guides (sync, vault guard released after this block)
     let (source, raw_chunks) = {
@@ -930,7 +940,13 @@ pub async fn llm_check_embedding_available(
     #[cfg(not(feature = "native-perf"))]
     let models_dir = tauri::Manager::path(&state.handle)
         .resolve("models", tauri::path::BaseDirectory::LocalData)
-        .map_err(|cause| BackendError::caused_by(Code::LlmEmbeddingFailed, Stage::Read, cause))?;
+        .map_err(|cause| {
+            BackendError::caused_by(
+                crate::commands::error::BackendErrorCode::LlmEmbeddingFailed,
+                crate::commands::error::BackendErrorStage::Read,
+                cause,
+            )
+        })?;
 
     let source = {
         let vault = vault_handle(&state)?;
