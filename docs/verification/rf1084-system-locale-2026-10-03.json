@@ -1,0 +1,145 @@
+{
+  "task": "RF-1084",
+  "status": "waiting-real-linux-c-locale-ci",
+  "baseline": "c2091ef366dceb5b8820538bafcc60d2fc927471",
+  "source_sha256": "154072b3d3f602f8a38de310e64d911698aac62d785c0cde0930d80f90b46c62",
+  "production_functions_identical": true,
+  "operator_failure": {
+    "original_error": "Runner configured PDFIUM_LIBRARY_PATH as directory instead of complete DLL file.",
+    "original_exit": 101,
+    "original_host_unit": {
+      "passed": 780,
+      "failed": 0
+    },
+    "original_core": {
+      "passed": 425,
+      "failed": 18,
+      "root": "PDFium loading failed"
+    },
+    "corrected_pdfium_library_path": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+    "dll_sha256": "e66bd5aefc2829f12ef41227f83a6ec6d60673ec77ef64153a05e7ffbae9072e",
+    "source_modified": false
+  },
+  "root_cause": "Incorrect test assumption requires region separator; locked sys-locale0.3.2 accepts C/POSIX and language-only values. Assert nonempty identifier characters instead; no production locale mapping, environment overwrite or ignore.",
+  "checks": [
+    {
+      "name": "fmt",
+      "args": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 3.228554300032556
+    },
+    {
+      "name": "strict-clippy-1.99",
+      "args": [
+        "cargo",
+        "+1.99.0",
+        "clippy",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 84.39868419989944
+    },
+    {
+      "name": "full-r-1.99",
+      "args": [
+        "cargo",
+        "+1.99.0",
+        "test",
+        "--verbose"
+      ],
+      "exit": 101,
+      "seconds": 518.0394863002002
+    },
+    {
+      "name": "full-r-corrected-1.99",
+      "args": [
+        "cargo",
+        "+1.99.0",
+        "test",
+        "--verbose"
+      ],
+      "exit": 0,
+      "seconds": 298.036775900051
+    }
+  ],
+  "full_r": {
+    "groups": 25,
+    "passed": 1858,
+    "failed": 0,
+    "ignored": 3
+  },
+  "default_rustfmt": "1.96.0 existing default; Rust Clippy/full R explicitly +1.99.0",
+  "local_platform": "Windows x86_64; actual Linux C locale recheck pending",
+  "original_ignored": [
+    "test field::tests::test_field_metadata ... ignored, legacy field_parse feature removed — requires contracts",
+    "test field::tests::test_resolve_legacy_unchanged ... ignored, legacy field_parse feature removed — requires contracts",
+    "test p025_hold_baseline_large_dataset ... ignored, P025 Phase 3 数据收集工具：--ignored 手动运行（约 2s，大数据集）"
+  ],
+  "remote_before": {
+    "url": "https://github.com/Gczmy/SoloSoul/actions/runs/37148546263/job/111277389255",
+    "tested_sha": "aa40ac117a5d6781df2f048995802abe4549e764",
+    "host_unit_passed": 778,
+    "host_unit_failed": 1,
+    "locale": "C"
+  },
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1084-system-locale-2026-10-03/checks.json.gz",
+      "sha256": "b93ede7dc1ef7c684a8bf879c6627f88edb4a2d59e46cd5ab35f4f23d1b805ac",
+      "rawSha256": "6d2e2fc93f38622283a26827c35750a2e223c0c72633dba3cd0cf568e7fbe5df"
+    },
+    {
+      "path": "docs/verification/rf1084-system-locale-2026-10-03/fmt.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1084-system-locale-2026-10-03/strict-clippy-1.99.log.gz",
+      "sha256": "b7ea5cc04d0ca41ba53bb9109a02b0e88245565329e0861b35c7c75bfca9fecc",
+      "rawSha256": "533044974162e5a49ee3e7e174b85ab0f1a485e602d967ae49e95b7c8f5b437b"
+    },
+    {
+      "path": "docs/verification/rf1084-system-locale-2026-10-03/full-r-1.99.log.gz",
+      "sha256": "83528b616828749fb129f96dee28b7cc99b46f584dcef4bdbb52934b8603c371",
+      "rawSha256": "dd0e3606064894e3c04ad4bbb37b084afcea2a7966d4ad3d06b6a4f84639547a"
+    },
+    {
+      "path": "docs/verification/rf1084-system-locale-2026-10-03/full-r-corrected-1.99.log.gz",
+      "sha256": "967b487b56f8cd1f8a38d10c15b1171f5777d6352f4314ac8ae5d3038179f593",
+      "rawSha256": "101cd4c03102200d7e8eb39bddcc619999e527948f253fe6511379fd6c4097e8"
+    },
+    {
+      "path": "docs/verification/rf1084-system-locale-2026-10-03/first-failed-checks.json.gz",
+      "sha256": "38905754059c3f5930ff6a5346c52ae1853920f92b785dbe263debcaba764680",
+      "rawSha256": "9886ad7629a710238d90dae592cd6abf7df1adeb1ab34a7b2e8a3fd4782a03fb"
+    },
+    {
+      "path": "docs/verification/rf1084-system-locale-2026-10-03/operator-correction.json.gz",
+      "sha256": "7058b3b5dd64f75ecd0588ee8830101cf5af7c5d5c1af44adcb414ced0528ac5",
+      "rawSha256": "5be2420d23d28bea8ca7e3db72b44a363819dcaabdc8e4ddc8c74f81e51461d4"
+    },
+    {
+      "path": "docs/verification/rf1084-system-locale-2026-10-03/system.before.rs.gz",
+      "sha256": "5f2460e26822fc0260856d8fb0b40094f721398becf34678673517c5a2c32796",
+      "rawSha256": "74d83f889102b0e759b46fd7da635389e862a4e51dc869cf0b0a72d915139432"
+    },
+    {
+      "path": "docs/verification/rf1084-system-locale-2026-10-03/sys-locale-unix.rs.gz",
+      "sha256": "4ec78af80acd707d4661fa92d334c8d69986482a5d8c008c77e777b42b6b5b11",
+      "rawSha256": "8dbccf2181ee1d96808ef14346d8507a49c170754bf5c68b909a073e51945280"
+    },
+    {
+      "path": "docs/verification/rf1084-system-locale-2026-10-03/linux-before-job-111277389255.log.gz",
+      "sha256": "4fc549b37af8f7e73b39cc854bdf92cfd29ce792d12f47f6f3cab82d53270eec",
+      "rawSha256": "c08b2b0e45c626cdfc0b26ba4449fb0d26742b81ed98468a6286a8d5cc091e7c"
+    }
+  ]
+}
