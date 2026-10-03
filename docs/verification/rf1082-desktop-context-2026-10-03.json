@@ -1,6 +1,6 @@
 {
   "task": "RF-1082",
-  "status": "context-fix-verified-waiting-separate-plugin-mock-fix-and-linux-ci",
+  "status": "complete-actual-target-ci-verified",
   "date": "2026-10-03",
   "base_commit": "f1be6cc0a575ae7ff8be1774251ee33239900949",
   "fix": {
@@ -234,5 +234,91 @@
     "Full browser gate failed; task not closed.",
     "Node24 / Edge local; actual Linux Node22 Chromium rerun needed.",
     "mobile project desktop scenarios are not native Android coverage."
-  ]
+  ],
+  "remote_acceptance": {
+    "run_id": 37154255151,
+    "tested_head": "cfa2cb5107fd9470a78fc6d21fca7dec2b427744",
+    "baseline_head": "c952916145e727034ef0c6cd8b6c54d2c53b7223",
+    "job_ids": [
+      111294255088
+    ],
+    "counts": {
+      "whole_mobile": {
+        "passed": 307,
+        "failed": 1,
+        "original_skipped": 19
+      },
+      "scoped_passed": 157,
+      "scoped_original_skips": 0,
+      "whole_job_passed": false
+    },
+    "protected_sources": {
+      "tauri/e2e/desktop-card-position.spec.ts": {
+        "git_blob": "747cff8f76129ac6123b33e1146bd4a6576056bf",
+        "sha256": "94eed20178b1d2c60046e6f32c9642c3be7f137007a671a98cb98f7cd4b9de7a"
+      },
+      "tauri/e2e/desktop-controls.spec.ts": {
+        "git_blob": "290609b12c574d0af7940b233f594bb75863100c",
+        "sha256": "e5fddeae5b8345c2e215ea45725d9305d32b5bcfb02f9472cff9acd8ef221602"
+      },
+      "tauri/e2e/macos-glass.spec.ts": {
+        "git_blob": "c86d53a52815ca6d309f9c7e6be5656e41f7322b",
+        "sha256": "aebb6e40aab5610cbb4cea2d4faa440bd3a1276d5608b5aa80c31192017f663d"
+      },
+      "tauri/e2e/macos-preview-titlebar.spec.ts": {
+        "git_blob": "d3a7b8979afa7f1fdab4f04535d4fe41ce240910",
+        "sha256": "0a5607cbd77f6d27fd62b2fcdf3b3e9976fa31e66839cd3219a2fec80ad66fb5"
+      },
+      "tauri/e2e/macos-titlebar.spec.ts": {
+        "git_blob": "330d21d0f58f0dee42a1a20f74f38b0d4f4ea143",
+        "sha256": "25f3ecca84d3f1b89ba56bb35cafb233de1dbfbe942f29ec65f62cb3c8249b7c"
+      },
+      "tauri/e2e/native-theme.spec.ts": {
+        "git_blob": "f48810c48255a4f5b54e9062f0aa3291a87952ce",
+        "sha256": "8103f16be2ddefcd7111c8e6068370c051c40d7cb78b6a5766a82c74dc914852"
+      },
+      "tauri/e2e/navigation-keyboard.spec.ts": {
+        "git_blob": "8fdafddb894bbed09f1d980d629cdd3c8c3b2e55",
+        "sha256": "4be46cd1b085d675cbe20ab49c917384b8c0bc08e78ad5238f8681c17ca13dc7"
+      },
+      "tauri/e2e/object-ruler.spec.ts": {
+        "git_blob": "0e607099ee1e29481bb853a345678c36b50e28f8",
+        "sha256": "657c1c1fa21d585a20536fddc93a65d55bab47f8440ec61afebf702452acf5e6"
+      },
+      "tauri/e2e/plugin-quick-panel.spec.ts": {
+        "git_blob": "ba0950547db268cfaaba2cf3eb57bc679658c423",
+        "sha256": "35d51e789c6819dc89e0fb29fcb25f536d93e4629522cdada4ef4cd7915e2378"
+      },
+      "tauri/e2e/search-protection.spec.ts": {
+        "git_blob": "0dc55e920973a1f572d287039210a1fbd676ba2d",
+        "sha256": "eadd6a9bf521d939650519878921570126994a5381faeb3ca6b5c8a197928c78"
+      },
+      "tauri/e2e/sidebar-tools.spec.ts": {
+        "git_blob": "3ebd18110b366315ea45d17d32e0006409dd056b",
+        "sha256": "18e055125336043b0a18892b483d2aab4043e939f412829f5a2b246ab2cdb38d"
+      },
+      "tauri/e2e/toolbar-actions.spec.ts": {
+        "git_blob": "6c983b30d3b38eef21c15832c8fca18bbf0814e2",
+        "sha256": "549bc7083c9afa32abca9e0db71bcec714accf76b15be46aed8828b6d7e7147b"
+      }
+    },
+    "conclusion": "12个相关E2E文件的实际Linux mobile结果已核对，原桌面上下文与断言保持；原插件快捷面板失败已由RF-1085结构化fixture修正且8例在同次CI通过。整个移动job仍307/1/19，唯一RF-1081滚动条失败不属于本项。",
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1082-desktop-context-2026-10-03/round6-acceptance/baseline.json.gz",
+        "sha256": "bf9819cc1806b1e4e0b60a3bc2636e1865938c54e6820d3c1a2f98355ffbe535",
+        "rawSha256": "18b7499944f8963bc27b10bb7289b4edabaf041b11e123cad862deaa6f1e9cac"
+      },
+      {
+        "path": "docs/verification/rf1082-desktop-context-2026-10-03/round6-acceptance/remote-acceptance.json.gz",
+        "sha256": "2c6ea37f5eec64f0e1eebd890348e5bffcae2e260ce147aaadea986b2e4fa689",
+        "rawSha256": "26911a717d571fd4169d465a03a9ff581c55bdf7d85f052d25b96b3d4cd175d2"
+      },
+      {
+        "path": "docs/verification/rf1082-desktop-context-2026-10-03/round6-acceptance/job-111294255088.log.gz",
+        "sha256": "9e791aa9def1dad6e985170d121f7fb44d0bb912752db1b8bd480257046ef11e",
+        "rawSha256": "9013346693463e431a0b07c6d310fe7e693e712bbf481d9a829707c8869d8d24"
+      }
+    ]
+  }
 }
