@@ -1,6 +1,6 @@
 {
   "task": "RF-1081",
-  "status": "waiting-actual-linux-pr-after-scrollbar-fix",
+  "status": "complete-actual-linux-risk-regressions-verified",
   "date": "2026-10-03",
   "base_commit": "91ec8187cfff77a4c7e77ef65e1138c5d028800b",
   "remote_failure": {
@@ -432,6 +432,45 @@
     "limits": [
       "Reserved gutter is a browser layout regression, not native Android/device/system setting evidence.",
       "Local Node24.16/installed Edge does not replace Linux Node22/Chromium PR rerun."
+    ]
+  },
+  "pr_acceptance": {
+    "run_id": 37157849547,
+    "job_id": 111304900208,
+    "tested_head": "c7b752978bf9342109705d1ed386fe44f75cb3c2",
+    "risk_first_attempt_passed": 4,
+    "whole_mobile": {
+      "passed": 308,
+      "flaky": 1,
+      "failed": 0,
+      "original_skipped": 19,
+      "inventory": 328
+    },
+    "unrelated_flaky": "sidebar-tools right expanded hover hit test; preserve and handle separately",
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/pr-acceptance/remote-acceptance.json.gz",
+        "sha256": "3574e6e7c518f324827c43d76918f1ec8e1133eafa188f9060616a32c5729aaa",
+        "rawSha256": "4f6fe5bd4b94e677cda8f96dc5d6dbc111d93aef3e225b788373fe4f720867a6"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/pr-acceptance/baseline.json.gz",
+        "sha256": "50c24ad9825f5d1124239531f670158f43926da53f3b443572822e91ee7b35cf",
+        "rawSha256": "35e14a14b5c64e2aad561a82dca9a55f06d0ad1c3c5ec69a6333c460bb6e929e"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/pr-acceptance/mobile.log.gz",
+        "sha256": "ef2a0b7604ec69c238699156f74b32fc95e78d36ff47c6ffea99857eada2d7bd",
+        "rawSha256": "e2b2c6007ddc0256f8d6acaba89af00c5397adb82c6302690742242fc02071aa"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/pr-acceptance/frontend.log.gz",
+        "sha256": "9fac9a38853401d8dba738c233eb2f762007d262d5c816d2d0bad69887dbfae2",
+        "rawSha256": "ed225373ad5495fc6afbd0753609e6dff28dbc60669bbe0f97aab0404bbdc436"
+      }
+    ],
+    "limits": [
+      "No native Android material/graphics evidence claim."
     ]
   }
 }
