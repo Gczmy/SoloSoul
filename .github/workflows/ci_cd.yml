@@ -156,6 +156,10 @@ jobs:
       - name: Run Rust Tests
         run: |
           cd tauri
+          # 只读记录sys-locale的四个输入，不覆盖真实语言环境。
+          printf '%s\n' "LANGUAGE=${LANGUAGE-<unset>}" "LC_ALL=${LC_ALL-<unset>}" \
+            "LC_MESSAGES=${LC_MESSAGES-<unset>}" "LANG=${LANG-<unset>}"
+          locale
           cargo test --verbose
 
   # Windows Host 测试必须实际启动测试程序，不能由 Linux 测试或 Windows 打包代替。

@@ -1,6 +1,6 @@
 {
   "task": "RF-1084",
-  "status": "waiting-real-linux-c-locale-ci",
+  "status": "linux-full-r-passed-waiting-explicit-locale-observation-in-pr",
   "baseline": "c2091ef366dceb5b8820538bafcc60d2fc927471",
   "source_sha256": "154072b3d3f602f8a38de310e64d911698aac62d785c0cde0930d80f90b46c62",
   "production_functions_identical": true,
@@ -141,5 +141,89 @@
       "sha256": "4fc549b37af8f7e73b39cc854bdf92cfd29ce792d12f47f6f3cab82d53270eec",
       "rawSha256": "c08b2b0e45c626cdfc0b26ba4449fb0d26742b81ed98468a6286a8d5cc091e7c"
     }
-  ]
+  ],
+  "locale_observation_followup": {
+    "base_commit": "241dcb7fc503586219f845057aefa6d9b0ac9ea1",
+    "operator_error": "First temporary editor string interpreted shell newline/backslash, making YAML invalid. Failed format log/YAML preserved; raw literal corrected before static revalidation or commit.",
+    "round6": {
+      "run_id": 37154255151,
+      "job_id": 111294255165,
+      "tested_head": "cfa2cb5107fd9470a78fc6d21fca7dec2b427744",
+      "passed": 1858,
+      "failed": 0,
+      "original_ignored": 3,
+      "original_locale_test_passed": true,
+      "explicit_c_environment_not_logged": true
+    },
+    "change": "Read only LANGUAGE/LC_ALL/LC_MESSAGES/LANG and locale immediately before unchanged cargo test --verbose; no exports/environment normalization/production or test source changes.",
+    "checks": [
+      {
+        "name": "yaml-format",
+        "args": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "--single-quote",
+          "../.github/workflows/ci_cd.yml"
+        ],
+        "exit": 0
+      },
+      {
+        "name": "actionlint",
+        "args": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf311-share-ci-20261003\\actionlint.exe",
+          "-color",
+          ".github/workflows/ci_cd.yml",
+          ".github/workflows/pr_check.yml",
+          ".github/workflows/build-android.yml"
+        ],
+        "exit": 0
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1084-system-locale-2026-10-03/locale-observation/baseline.json.gz",
+        "sha256": "2ffd13985fdc0034225dc283d14df7d14e3522dff2696ab4b8fe295638b20f18",
+        "rawSha256": "2ef60393e20e0739d3b44a168bf47d1f4cd6cbf59338466e896b847dd6838a05"
+      },
+      {
+        "path": "docs/verification/rf1084-system-locale-2026-10-03/locale-observation/workflow-before.yml.gz",
+        "sha256": "e86a474236ee8b9db4e973a5345dc66541f63322f6f8961cdf35fbe416f05dfd",
+        "rawSha256": "e6eae51a929b319afc5046ff4a4930db4cff53dff1445071a057dbd335e2ccf9"
+      },
+      {
+        "path": "docs/verification/rf1084-system-locale-2026-10-03/locale-observation/checks.json.gz",
+        "sha256": "9b29aa3f54cecd6a876a22e62e436e48d37b1ab09fda67cc00beeeb1d98a65bc",
+        "rawSha256": "8f156741b0a0c5071f101a1b4c557152527281d52fab9dce8d4e41aba1c4a8b3"
+      },
+      {
+        "path": "docs/verification/rf1084-system-locale-2026-10-03/locale-observation/yaml-format.log.gz",
+        "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+        "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+      },
+      {
+        "path": "docs/verification/rf1084-system-locale-2026-10-03/locale-observation/actionlint.log.gz",
+        "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+        "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "docs/verification/rf1084-system-locale-2026-10-03/locale-observation/yaml-format-first-failed.log.gz",
+        "sha256": "5cc04429a6616bbc478a8279feaf38cb8a111432914c0ba33097758c9a53b776",
+        "rawSha256": "538c3d5ad270654dd2af490db60d45b31b4edb9cfad5575e7d7ae5b27aa4d745"
+      },
+      {
+        "path": "docs/verification/rf1084-system-locale-2026-10-03/locale-observation/workflow-first-invalid.yml.gz",
+        "sha256": "9c4ce6ed1190fe501d58992db19f140f7b9e0398fc28621f516d9daf0a7a862d",
+        "rawSha256": "823abcaa57007da9410bf1dccc49de194d49dfadeb1e6d8108c0d169fe94200d"
+      },
+      {
+        "path": "docs/verification/rf1084-system-locale-2026-10-03/locale-observation/linux-round6.log.gz",
+        "sha256": "439bfa196e9acc722b9ff2d6eed12bc4d34bd8d9e998bdb4cbb369d62758c3c1",
+        "rawSha256": "4e7595f6675edb6a7a37db551440c032655d1b66d48bdaabaaccb20f322a1580"
+      }
+    ],
+    "limits": [
+      "Actual PR must record current Linux locale; this Windows static check does not claim C observation."
+    ]
+  }
 }
