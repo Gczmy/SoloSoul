@@ -14,7 +14,8 @@ env:
 jobs:
   # 增量 IPC 契约独立检查：只编译纯 Rust 生成工具，不编译 Tauri Host。
   contract-check:
-    name: Incremental IPC Contract Check
+    name: ${{ github.event_name == 'pull_request' && 'Incremental IPC Contract Check (delegated to PR Checks)' || 'Incremental IPC Contract Check' }}
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -59,7 +60,8 @@ jobs:
   # Job 1: Frontend Checks (TypeScript, Lint, Unit Tests)
   # ============================================================
   frontend-check:
-    name: Frontend Checks
+    name: ${{ github.event_name == 'pull_request' && 'Frontend Checks (delegated to PR Checks)' || 'Frontend Checks' }}
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -68,39 +70,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Shared frontend validation
+        uses: ./.github/actions/check-frontend
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: tauri/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check
-        run: npx tsc --noEmit
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Unit tests with coverage gate
-        run: npm run test:coverage
-
-      - name: Upload frontend coverage report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-coverage
-          path: tauri/coverage/
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Install production smoke browser
-        run: npx playwright install --with-deps chromium
-
-      - name: Production startup smoke test
-        run: npm run test:e2e:production
+          node_version: ${{ env.NODE_VERSION }}
 
   # ============================================================
   # Job 2: Rust Checks & Tests
@@ -274,7 +247,8 @@ jobs:
   # Job 2b: Plugin Market Registry Check
   # ============================================================
   plugin-market-check:
-    name: Plugin Market Registry Check
+    name: ${{ github.event_name == 'pull_request' && 'Plugin Market Registry Check (delegated to PR Checks)' || 'Plugin Market Registry Check' }}
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -313,39 +287,20 @@ jobs:
   # Job 3: SoloSoul CLI Checks
   # ============================================================
   cli-check:
-    name: SoloSoul CLI (Rust Format, Clippy & Tests)
+    name: ${{ github.event_name == 'pull_request' && 'SoloSoul CLI (Rust Format, Clippy & Tests) (delegated to PR Checks)' || 'SoloSoul CLI (Rust Format, Clippy & Tests)' }}
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: solosoul_cli
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Shared cli validation
+        uses: ./.github/actions/check-cli
         with:
-          toolchain: ${{ env.RUST_VERSION }}
-
-      - name: Cache cargo (solosoul_cli)
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: solosoul_cli
-
-      - name: Check formatting
-        run: cargo fmt --check
-
-      - name: Run Clippy
-        run: cargo clippy --all-targets -- -D warnings
-
-      - name: Prepare PDFium for CLI tests
-        working-directory: tauri
-        run: |
-          bash scripts/download-pdfium.sh
-          test -s src-tauri/resources/pdfium/libpdfium.so
-          echo "PDFIUM_LIBRARY_PATH=$PWD/src-tauri/resources/pdfium/libpdfium.so" >> "$GITHUB_ENV"
-
-      - name: Run CLI Tests
-        run: cargo test --verbose --no-fail-fast
+          rust_version: ${{ env.RUST_VERSION }}
 
   # ============================================================
   # Job 4: Build macOS Release (master push only)

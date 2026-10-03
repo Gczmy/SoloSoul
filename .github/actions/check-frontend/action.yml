@@ -1,0 +1,55 @@
+name: SoloSoul frontend validation
+description: Shared frontend gates for Ubuntu CI and PR jobs
+inputs:
+  node_version:
+    description: Toolchain version supplied by the caller
+    required: true
+    default: '22'
+runs:
+  using: composite
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node_version }}
+        cache: 'npm'
+        cache-dependency-path: tauri/package-lock.json
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: tauri
+      run: npm ci
+
+    - name: Type check
+      shell: bash
+      working-directory: tauri
+      run: npx tsc --noEmit
+
+    - name: Lint
+      shell: bash
+      working-directory: tauri
+      run: npm run lint
+
+    - name: Unit tests with coverage gate
+      shell: bash
+      working-directory: tauri
+      run: npm run test:coverage
+
+    - name: Upload frontend coverage report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-coverage
+        path: tauri/coverage/
+        if-no-files-found: error
+        retention-days: 7
+
+    - name: Install production smoke browser
+      shell: bash
+      working-directory: tauri
+      run: npx playwright install --with-deps chromium
+
+    - name: Production startup smoke test
+      shell: bash
+      working-directory: tauri
+      run: npm run test:e2e:production

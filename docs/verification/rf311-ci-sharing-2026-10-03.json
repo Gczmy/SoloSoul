@@ -1,0 +1,413 @@
+{
+  "task": "RF-311",
+  "status": "waiting-actual-pr-workflow",
+  "baseline": "cfa2cb5107fd9470a78fc6d21fca7dec2b427744",
+  "source_sha256": {
+    ".github/actions/check-frontend/action.yml": "0ba4022a666dfc5c8ca03f7ef7096ca3d24ab54fb1181bd3961a1d65dcfa477a",
+    ".github/actions/check-cli/action.yml": "db16a9277e552bc33ded97027494134367caf692576cc04e5f93aebee7203cbe",
+    ".github/workflows/ci_cd.yml": "126ea361a244467e27dca37e909c3c495bbc2819a01ca4573c5e2583b1b7739b",
+    ".github/workflows/pr_check.yml": "59f58d0c75c32a361ff5e120397a77a49dbaea121d812a2843278fd59d9b8428"
+  },
+  "checks": [
+    {
+      "name": "yaml-format",
+      "args": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "--single-quote",
+        "../.github/actions/check-frontend/action.yml",
+        "../.github/actions/check-cli/action.yml",
+        "../.github/workflows/ci_cd.yml",
+        "../.github/workflows/pr_check.yml"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "actionlint",
+      "args": [
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf311-share-ci-20261003\\actionlint.exe",
+        "-color",
+        ".github/workflows/ci_cd.yml",
+        ".github/workflows/pr_check.yml",
+        ".github/workflows/build-android.yml"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "markdown-boundary",
+      "args": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "diff-check",
+      "args": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.safecrlf=false",
+        "-c",
+        "core.quotepath=false",
+        "diff",
+        "--check"
+      ],
+      "exit": 0
+    }
+  ],
+  "job_map": [
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "contract-check",
+      "before_name": "Incremental IPC Contract Check",
+      "after_name_expression": "${{ github.event_name == 'pull_request' && 'Incremental IPC Contract Check (delegated to PR Checks)' || 'Incremental IPC Contract Check' }}",
+      "pr_execution": "delegated once to original PR Checks job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": false,
+      "before_block_sha256": "df73d664d599109ef7b6e0af2b42184b171345260e50fe3e62774b156b33dc3d",
+      "after_block_sha256": "2b2190528c6e8f2c17005cc691db97dc0e5e80f38babbb5735cbcc6dfb244172"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "frontend-check",
+      "before_name": "Frontend Checks",
+      "after_name_expression": "${{ github.event_name == 'pull_request' && 'Frontend Checks (delegated to PR Checks)' || 'Frontend Checks' }}",
+      "pr_execution": "delegated once to original PR Checks job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": false,
+      "before_block_sha256": "a46e89ba8adb3b1daf35305749fee7b02ccd8a5cedeb48a095f728cff4c39a09",
+      "after_block_sha256": "bcbd0376b94e3f4f0f079fd5b7a2cc78f38a325887cca37d6c687e14f0194f14"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "rust-test",
+      "before_name": "Rust Unit Tests",
+      "after_name_expression": "Rust Unit Tests",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "7f0ad229c227bba085ebec1834c2bef57caa44b94fc494619944d09d659e7ea8",
+      "after_block_sha256": "7f0ad229c227bba085ebec1834c2bef57caa44b94fc494619944d09d659e7ea8"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "windows-rust-test",
+      "before_name": "Windows Rust Regression Tests",
+      "after_name_expression": "Windows Rust Regression Tests",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "windows-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "4974b547410acae5adc978cfa68519bc2b50279c9425d3b98aa7580c16f461f2",
+      "after_block_sha256": "4974b547410acae5adc978cfa68519bc2b50279c9425d3b98aa7580c16f461f2"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "plugin-market-check",
+      "before_name": "Plugin Market Registry Check",
+      "after_name_expression": "${{ github.event_name == 'pull_request' && 'Plugin Market Registry Check (delegated to PR Checks)' || 'Plugin Market Registry Check' }}",
+      "pr_execution": "delegated once to original PR Checks job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": false,
+      "before_block_sha256": "95f844e2f26ae95d375d936819bc63e32196c7c6397902a079bd75a4781e87cf",
+      "after_block_sha256": "c576a914b9ae199b937b637b3023eec33b677067b15f4aeae70a5f3461555cf0"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "cli-check",
+      "before_name": "SoloSoul CLI (Rust Format, Clippy & Tests)",
+      "after_name_expression": "${{ github.event_name == 'pull_request' && 'SoloSoul CLI (Rust Format, Clippy & Tests) (delegated to PR Checks)' || 'SoloSoul CLI (Rust Format, Clippy & Tests)' }}",
+      "pr_execution": "delegated once to original PR Checks job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": false,
+      "before_block_sha256": "7ca5ec1b50553445253c59d0abaabead5ab03ad2ba7dcd09c6e462b843eb842b",
+      "after_block_sha256": "cb0836a4681a4ead98d1dd6f2ed255af57a593edad131cc5068a69b2e467cd4d"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "build-macos",
+      "before_name": "Build macOS Release",
+      "after_name_expression": "Build macOS Release",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "macos-latest"
+      ],
+      "needs": [
+        "[contract-check]"
+      ],
+      "identical_job_block": true,
+      "before_block_sha256": "2f2c514b82d307bf2b950c22a6d79645a612a1ca0d1b59e161cbc417d97e054e",
+      "after_block_sha256": "2f2c514b82d307bf2b950c22a6d79645a612a1ca0d1b59e161cbc417d97e054e"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "build-windows",
+      "before_name": "Build Windows Release",
+      "after_name_expression": "Build Windows Release",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "windows-latest"
+      ],
+      "needs": [
+        "[contract-check]"
+      ],
+      "identical_job_block": true,
+      "before_block_sha256": "d24cd362f8ef1cb754b5570bbbf54deda886333e575b4ed294c3aae7aca5bd07",
+      "after_block_sha256": "d24cd362f8ef1cb754b5570bbbf54deda886333e575b4ed294c3aae7aca5bd07"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "mobile-e2e-smoke",
+      "before_name": "Mobile E2E Smoke Tests",
+      "after_name_expression": "Mobile E2E Smoke Tests",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "cafcd1796e5aacb6677550b3b692f7c57d2548c21a4d2795e33d856562fabc71",
+      "after_block_sha256": "cafcd1796e5aacb6677550b3b692f7c57d2548c21a4d2795e33d856562fabc71"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "release",
+      "before_name": "Create Release Draft",
+      "after_name_expression": "Create Release Draft",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [
+        "[build-macos, build-windows, windows-rust-test]"
+      ],
+      "identical_job_block": true,
+      "before_block_sha256": "e2465eeda47bc483b01ce68d5d8389daa60ee56fdfce83f4a7b075ae6ec7af82",
+      "after_block_sha256": "e2465eeda47bc483b01ce68d5d8389daa60ee56fdfce83f4a7b075ae6ec7af82"
+    },
+    {
+      "workflow": "pr_check.yml",
+      "job_id": "contract-check",
+      "before_name": "Incremental IPC Contract Check",
+      "after_name_expression": "Incremental IPC Contract Check",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "df73d664d599109ef7b6e0af2b42184b171345260e50fe3e62774b156b33dc3d",
+      "after_block_sha256": "df73d664d599109ef7b6e0af2b42184b171345260e50fe3e62774b156b33dc3d"
+    },
+    {
+      "workflow": "pr_check.yml",
+      "job_id": "frontend-check",
+      "before_name": "Frontend TypeScript & Lint",
+      "after_name_expression": "Frontend TypeScript & Lint",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": false,
+      "before_block_sha256": "7a8d36f7f54c078a9ff85d67ff484ddd6824c8bd59a702ac3608848fbc8e2c31",
+      "after_block_sha256": "5e1738866e9081e54e6317df849260be2fef4db2a39c28615c05916b70363661"
+    },
+    {
+      "workflow": "pr_check.yml",
+      "job_id": "rust-check",
+      "before_name": "Rust Format, Clippy & Tests",
+      "after_name_expression": "Rust Format, Clippy & Tests",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "macos-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "281b8a2c0aff92bf5e49e1a6702bcdad4034beb39fea474741dbe823097c3cb4",
+      "after_block_sha256": "281b8a2c0aff92bf5e49e1a6702bcdad4034beb39fea474741dbe823097c3cb4"
+    },
+    {
+      "workflow": "pr_check.yml",
+      "job_id": "plugin-market-check",
+      "before_name": "Plugin Market Registry Check",
+      "after_name_expression": "Plugin Market Registry Check",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "95f844e2f26ae95d375d936819bc63e32196c7c6397902a079bd75a4781e87cf",
+      "after_block_sha256": "95f844e2f26ae95d375d936819bc63e32196c7c6397902a079bd75a4781e87cf"
+    },
+    {
+      "workflow": "pr_check.yml",
+      "job_id": "cli-check",
+      "before_name": "SoloSoul CLI (Rust Format, Clippy & Tests)",
+      "after_name_expression": "SoloSoul CLI (Rust Format, Clippy & Tests)",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": false,
+      "before_block_sha256": "a2be0f154753645521b9d900b14e09c682e221e980de916b2669c648293c7fc6",
+      "after_block_sha256": "8b965b8ae3a8dc212ad616d975d4283634189d5d3cce9805bd404e2b7539f209"
+    },
+    {
+      "workflow": "build-android.yml",
+      "job_id": "android-native",
+      "before_name": "Native Android API 34 (${{ matrix.glass }})",
+      "after_name_expression": "Native Android API 34 (${{ matrix.glass }})",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "868f55fcab5fc116a882da23a6853f2a2e78bb1de6d80b5ece13d048b9c37241",
+      "after_block_sha256": "868f55fcab5fc116a882da23a6853f2a2e78bb1de6d80b5ece13d048b9c37241"
+    },
+    {
+      "workflow": "build-android.yml",
+      "job_id": "build-android",
+      "before_name": "build-android",
+      "after_name_expression": "build-android",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "6ca55a1f3446663484f83b6b7925f6f6a171df0a8e49456563c4146002cc3d93",
+      "after_block_sha256": "6ca55a1f3446663484f83b6b7925f6f6a171df0a8e49456563c4146002cc3d93"
+    },
+    {
+      "workflow": "build-android.yml",
+      "job_id": "build-android-release",
+      "before_name": "Build Android Release AAB",
+      "after_name_expression": "Build Android Release AAB",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "b3fb3f25108a16ed5eedb38b7a9f5661ad3dc575ba4cb4661349914ce09126fa",
+      "after_block_sha256": "b3fb3f25108a16ed5eedb38b7a9f5661ad3dc575ba4cb4661349914ce09126fa"
+    }
+  ],
+  "original_commands_identical_after_expansion": true,
+  "scope": "Share local frontend/CLI composite actions. PR Checks owns frontend coverage+production smoke, CLI, contract and registry once; duplicate CI PR jobs have distinct delegated names and unchanged IDs. Linux/Windows/macOS-iOS/Android/release bodies and all triggers preserved.",
+  "coverage": "PR now runs existing test:coverage gate, thresholds/excludes unmodified, HTML artifact retained; main/manual same checks.",
+  "protected_checks": "Read-only GitHub main protection query: no protection (404), no rulesets. Executed check names retained; duplicate skipped contexts disambiguated.",
+  "local_unaffected_business_checks": {
+    "F": "rf1085-plugin-error-fixture-2026-10-03.json: 256/2240 Vitest, Node123/0/originalSkip1, all four checks exit0",
+    "R": "rf1084-system-locale-2026-10-03.json: corrected matching Rust1.99 full1858/0/originalIgnore3",
+    "CLI_CONTRACT": "actual cfa2cb51 CI run37154255151 succeeded; source retained. New shared workflow execution still requires actual PR."
+  },
+  "pending_actual_pr": true,
+  "known_other_ci_failure": "cfa2cb51 mobile307 passed/1 risk same-row failed/19 original skips; do not attribute old workflow run to new shared actions; RF1081 pending correction.",
+  "official_action_reference": "https://docs.github.com/en/actions/tutorials/create-actions/create-a-composite-action",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/checks.json.gz",
+      "sha256": "a718993a18374986be592e1262c4416ca48b36e1af88cea8ce6c0344de8ecca8",
+      "rawSha256": "1997ddd7278d372f9f46417cb68a32e4a78535fb921149108cffadf35b53cbfa"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/actionlint.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/actionlint-result.json.gz",
+      "sha256": "bf1f3f95de2814ee3525dbf6a7cd9b4cf5ebd573bd3d3b867ea6d18247c4adc7",
+      "rawSha256": "719ffe63feba436406e2519e52c24a30c87e2650a921cd7bb194a4bf3cf3cea8"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/actionlint-origin.json.gz",
+      "sha256": "139d26dbeb647ce8c8b001d1951faddfaacd6109216119687cb45ebbff8c68a9",
+      "rawSha256": "3ca351047dc43134cc1c57cd957356fae1827c39945d81f61d4d207b784f718c"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/job-map.json.gz",
+      "sha256": "fb1e402cbccc27cb7dc09ce37dd48cd0aeadc0546ea0263bdcac6f423e3be9f0",
+      "rawSha256": "3ec3ba669b5cfe017f41da41effd5332f3f2b8b6017fd863dc876eb8e80aee04"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/source-preservation.json.gz",
+      "sha256": "b94f051616437efc3f5a3167a1e1fae1ea79995de08b3d2ad666a54629950d1f",
+      "rawSha256": "e9638eb99693bcf3d023c9d7a23b56b8e515ce837259488f7b354a6c88d4de77"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/yaml-format.log.gz",
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/markdown-boundary.log.gz",
+      "sha256": "c16c6514d45e8adcb5ee3a75bb38ae0e1950a842eb0ca278a2816334f7739e7b",
+      "rawSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/diff-check.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/ci_cd.yml.before.gz",
+      "sha256": "476b60b97c13d3b3e80e2fd1319438c11b73a7a856f63d1791d82c4037da5911",
+      "rawSha256": "585fb4ee6f6250638ad93350ad6ef3a26dd2fe73360e8bf5d0adfad9538f4840"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/pr_check.yml.before.gz",
+      "sha256": "9f5602db026101c7ca937d326b361b4ec26b613086d832828f7b082c279d16b6",
+      "rawSha256": "61ec2baa7588139ba562531466ed76761a2d362428f38d4a82756255ca2606fa"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/build-android.yml.before.gz",
+      "sha256": "57e47287dc3190d492bfca607555f59983f0c0ea8ea9ed8d63008419a248ae6a",
+      "rawSha256": "f4b1588d6d137403df4e31b025bb4815acd911ca252afd751dcac11ea6f0e9a3"
+    }
+  ]
+}

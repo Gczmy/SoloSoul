@@ -60,32 +60,13 @@ jobs:
       run:
         working-directory: tauri
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Shared frontend validation
+        uses: ./.github/actions/check-frontend
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: tauri/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check
-        run: npx tsc --noEmit
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Unit tests
-        run: npm run test
-
-      - name: Install production smoke browser
-        run: npx playwright install --with-deps chromium
-
-      - name: Production startup smoke test
-        run: npm run test:e2e:production
+          node_version: ${{ env.NODE_VERSION }}
 
   rust-check:
     name: Rust Format, Clippy & Tests
@@ -191,30 +172,10 @@ jobs:
       run:
         working-directory: solosoul_cli
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Shared cli validation
+        uses: ./.github/actions/check-cli
         with:
-          toolchain: ${{ env.RUST_VERSION }}
-
-      - name: Cache cargo (solosoul_cli)
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: solosoul_cli
-
-      - name: Check formatting
-        run: cargo fmt --check
-
-      - name: Run Clippy
-        run: cargo clippy --all-targets -- -D warnings
-
-      - name: Prepare PDFium for CLI tests
-        working-directory: tauri
-        run: |
-          bash scripts/download-pdfium.sh
-          test -s src-tauri/resources/pdfium/libpdfium.so
-          echo "PDFIUM_LIBRARY_PATH=$PWD/src-tauri/resources/pdfium/libpdfium.so" >> "$GITHUB_ENV"
-
-      - name: Run CLI Tests
-        run: cargo test --verbose --no-fail-fast
+          rust_version: ${{ env.RUST_VERSION }}
