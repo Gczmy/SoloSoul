@@ -197,6 +197,18 @@ jobs:
           bash scripts/download-pdfium.sh
           node ../scripts/verify-windows-pdfium.mjs src-tauri/resources/pdfium/pdfium.dll
 
+      # OCR 模型被 Git 忽略；此 job 只跑单测，不执行真实模型推理或打包。
+      # Tauri 构建仍要求声明的资源目录存在，夹具不得用于 Release job。
+      - name: Prepare unit-test OCR resource layout
+        shell: pwsh
+        run: |
+          $fixtureDirectory = Join-Path $PWD 'src-tauri/resources/models/pp-ocr-v6-small'
+          if (Test-Path -LiteralPath $fixtureDirectory) {
+            throw 'Expected a fresh unit-test resource directory; refusing to overwrite real models'
+          }
+          New-Item -ItemType Directory -Path $fixtureDirectory | Out-Null
+          Set-Content -LiteralPath (Join-Path $fixtureDirectory 'UNIT_TEST_FIXTURE.txt') -Encoding utf8 -Value 'CI unit-test resource layout only. No OCR model. Never package this fixture.'
+
       - name: Run Windows Vault, core and Host tests
         shell: bash
         timeout-minutes: 90
