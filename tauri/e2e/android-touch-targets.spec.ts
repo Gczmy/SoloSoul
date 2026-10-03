@@ -276,6 +276,46 @@ test('Android risk actions keep complete words and touch targets at 320px', asyn
   await page.screenshot({ path: test.info().outputPath('risk-320.png'), animations: 'disabled' });
 });
 
+test('Android risk actions keep full labels beside a reserved scrollbar gutter', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await navigate(page, '/settings/llm');
+  await page.locator('label').filter({ hasText: 'AI Chat' }).click();
+  const risk = page.locator('[data-macos-glass-backdrop]');
+  const panel = risk.locator('[data-macos-glass="panel"]');
+  await expect(panel).toBeVisible();
+  // 在各宿主上固定预留经典滚动条占用的16px内容空间，不依赖系统浮动滚动条设置。
+  await panel.evaluate((element) => {
+    const padding = parseFloat(getComputedStyle(element).paddingInlineEnd);
+    element.style.paddingInlineEnd = `${padding + 16}px`;
+  });
+  const cancel = risk.getByRole('button', { name: 'Cancel', exact: true });
+  const enable = risk.getByRole('button', { name: 'Enable AI Features', exact: true });
+  await cancel.scrollIntoViewIfNeeded();
+  const cancelBox = await cancel.boundingBox();
+  const enableBox = await enable.boundingBox();
+  expect(cancelBox!.y).toBe(enableBox!.y);
+  for (const button of [cancel, enable]) {
+    const bounds = await button.boundingBox();
+    expect(bounds!.width).toBeGreaterThanOrEqual(48);
+    expect(bounds!.height).toBeGreaterThanOrEqual(48);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(304);
+    expect(
+      await button.evaluate((element) => {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        return range.getClientRects().length === 1 && element.scrollWidth <= element.clientWidth;
+      }),
+    ).toBe(true);
+  }
+  await expect(enable).toBeDisabled();
+  await risk.getByRole('checkbox').check();
+  await expect(enable).toBeEnabled();
+  await enable.click();
+  await expect(risk).toBeHidden();
+});
+
 for (const viewport of [
   { width: 320, height: 400 },
   { width: 640, height: 320 },

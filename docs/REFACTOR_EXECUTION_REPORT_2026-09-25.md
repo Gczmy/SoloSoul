@@ -121,8 +121,8 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 ## 4. 修复进度与执行索引
 
 - 任务总数：**275**（P1：51；P2：223；P3：1）。
-- 已关闭：**258 / 275**；实际修复（已关闭）：258；排除：0；待验证/阻塞：11（RF-311共享CI待实际PR运行，RF-1085错误fixture本地通过待Linux移动CI，RF-1084本地完整R通过待Linux C环境，RF-1083插件生命周期本地通过待Linux移动CI，RF-1082环境已修但插件错误mock/远端待验，RF-1081本地通过待Linux移动CI，RF-1079待真实Linux Host编译运行（Windows已通过），RF-1077待实际Linux Host资源验收，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**无实施任务；先按真实CI分项补验，再修RF-1081滚动条下按钮同行回归**。
+- 已关闭：**258 / 275**；实际修复（已关闭）：258；排除：0；待验证/阻塞：11（RF-1081滚动条跟进本地通过待实际Linux PR，RF-311共享CI待实际PR运行，RF-1085错误fixture本地通过待Linux移动CI，RF-1084本地完整R通过待Linux C环境，RF-1083插件生命周期本地通过待Linux移动CI，RF-1082环境已修但插件错误mock/远端待验，RF-1079待真实Linux Host编译运行（Windows已通过），RF-1077待实际Linux Host资源验收，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**无实施任务；按实际CI分项补验，再运行真实PR验证RF-311及滚动条修复**。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -398,7 +398,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 268 | [RF-1078](#rf-1078) | P2 | 采用async-trait首次修复生成must_use冲突的版本 | 无（第三轮真实Linux Clippy发现） | [x] 完成 |
 | 269 | [RF-1079](#rf-1079) | P2 | 在Host检查前构建真实frontendDist | 无（Windows CI实际编译失败） | [!] 待真实Linux/Windows Host |
 | 270 | [RF-1080](#rf-1080) | P2 | 发现设备Map直接遍历values | 无（第四轮真实Linux Clippy发现） | [x] 完成 |
-| 271 | [RF-1081](#rf-1081) | P2 | 风险确认弹窗在短屏内滚动并保持操作可达 | 无（实际移动CI越界发现） | [!] 待Linux移动CI验收 |
+| 271 | [RF-1081](#rf-1081) | P2 | 风险确认弹窗在短屏内滚动并保持操作可达 | 无（实际移动CI越界发现） | [!] 待Linux滚动条复验 |
 | 272 | [RF-1082](#rf-1082) | P2 | 桌面E2E场景声明正确视口与指针环境 | 无（真实移动CI桌面用例失败发现） | [!] 待独立mock修复及Linux验收 |
 | 273 | [RF-1083](#rf-1083) | P2 | 插件生命周期E2E遵循可见交互与请求响应闭环 | 无（旧导航/提前完成mock发现） | [!] 待Linux移动CI验收 |
 | 274 | [RF-1084](#rf-1084) | P2 | 系统语言测试接受C/POSIX及仅语言标识 | 无（真实Linux CI失败） | [!] 待Linux C环境验收 |
@@ -3649,7 +3649,7 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **前置：**无；不修产品响应布局，不包含插件生命周期旧导航夹具。
 - **入口：**10个纯桌面E2E文件及native-theme、macos-preview-titlebar的桌面分支。
 - **执行：**纯桌面测试显式1280×720、isMobile=false、hasTouch=false；混合文件只调整Windows/macOS视口，Android/iOS原项目上下文保持。原用例主动设置的窄视口保留。
-- **验收：**全部测试正文与断言保持，完整mobile清单327项（含RF-1081新增2项）一致，无新增skip或改变retry；受影响场景分别跑chromium/mobile。项目名mobile中的桌面模拟不得记为Android设备覆盖。
+- **验收：**全部测试正文与断言保持，完整mobile清单原327项保持，RF-1081滚动条回归新增1项后328项，无新增skip或改变retry；受影响场景分别跑chromium/mobile。项目名mobile中的桌面模拟不得记为Android设备覆盖。
 - **验证配置：**F、WEB（本项12文件两项目）、DOC，真实Linux移动CI提交后复跑。
 - **建议提交：**`test(e2e): declare desktop viewport and pointer context [RF-1082]`。
 
@@ -6512,3 +6512,10 @@ git commit -m "<任务卡的提交标题>"
 - Linux/Windows/macOS含iOS/future-keychain、Android三lane、Release全部job正文以及所有触发条件/工具版本逐字保持；18个job完整前后对照见[结构化证据](verification/rf311-ci-sharing-2026-10-03.json)。当前main无保护规则，实际执行check名称仍兼容保留。初次formatter默认双引号变化已修正回原单引号，保护区域重新逐字核对。
 - 便携actionlint1.7.12由官方release取回并核对公开SHA256/ZIP CRC，无系统安装或新仓库依赖。YAML格式、actionlint、Markdown边界、diff检查exit0。业务源码冻结，未重复已通过且不受YAML改变影响的本地F/R；新CI执行仍须实际PR覆盖F/R/CLI/CONTRACT，状态待验，不能以静态YAML检查关闭。
 - 运行中的旧cfa2cb51 CI已取得完整Linux1858/0/3与CLI/前端/契约成功；移动仍307/1/19，唯一是RF-1081风险按钮滚动条下换行，单独继续修，不混入本项。独立提交（本提交，以RF-311检索）。
+
+### RF-1081 滚动条跟进记录（2026-10-03，待实际Linux PR复验）
+
+- 第六轮真实Linux移动job111294255088为307 passed/1 failed/19原skip；唯一失败在320px风险按钮同行，三次cancel y459.3125、enable y515.3125。短竖屏/横屏均通过，原日志和错误上下文完整保留。
+- 新增固定预留16px内容空间的布局回归，不改系统滚动条设置；原实现在两个项目均换行，6 passed/2 failed。仅将两个操作按钮横向留白收至clamp(12px, 3.75vw, 20px)，保留48px触控目标、完整标签、必要换行与风险勾选门禁。
+- 修后chromium/mobile共8 passed/0 failed/0 flaky；旧320px和两个短屏测试正文逐字保持。默认F全部exit0：格式/TypeScript/lint、256文件2240 Vitest、123 Node通过及原1项Windows符号链接权限skip。移动清单原327项保留并新增1项为328，无新skip/retry变化。
+- [证据](verification/rf1081-risk-panel-2026-10-03.json)追加本次失败/成功与完整检查SHA，旧证据保持。仅为本机Edge布局证据，真实Linux PR仍须复验，状态[!]，258/275不增；用户stash和非本项源码保持。独立提交（本提交，以RF-1081检索）。
