@@ -164,7 +164,12 @@ export function WorkspaceObjectRuler(props: WorkspaceObjectRulerProps) {
         closeTimer.current = setTimeout(() => setHoveredId(null), 120);
       }}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) closePreview();
+        if (
+          !(
+            event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)
+          )
+        )
+          closePreview();
       }}
     >
       <span id={hintId} className={styles.srOnly}>

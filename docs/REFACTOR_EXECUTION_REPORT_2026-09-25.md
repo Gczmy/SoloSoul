@@ -120,9 +120,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**277**（P1：51；P2：225；P3：1）。
-- 已关闭：**265 / 277**；实际修复（已关闭）：265；排除：0；待验证/阻塞：6（RF-1087命中等待本地通过待Linux首次通过，RF-1086双iOS目标顺序已修待Apple PR，RF-311共享CI待实际PR运行，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**无；RF-1087已修待实际Linux首次通过，下一项排查非Node relatedTarget异常**。
+- 任务总数：**278**（P1：51；P2：226；P3：1）。
+- 已关闭：**265 / 278**；实际修复（已关闭）：265；排除：0；待验证/阻塞：7（RF-1088 DOM守卫本地通过待Linux，RF-1087命中等待本地通过待Linux首次通过，RF-1086双iOS目标顺序已修待Apple PR，RF-311共享CI待实际PR运行，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**无；RF-1088已修待Linux，下一项处理原动画采样时序**。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -405,6 +405,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 275 | [RF-1085](#rf-1085) | P2 | 插件快捷面板E2E使用结构化错误与固定译文 | 无（真实浏览器协议fixture失败） | [x] 完成 |
 | 276 | [RF-1086](#rf-1086) | P2 | iOS设备与模拟器编译顺序执行 | 无（实际PR插件目录并发失败） | [!] 待实际Apple编译 |
 | 277 | [RF-1087](#rf-1087) | P2 | 侧栏工具命中断言等待展开动画 | 无（实际PR首次失败后重试通过） | [!] 待实际Linux首次通过 |
+| 278 | [RF-1088](#rf-1088) | P2 | 导航/尺标离开事件安全检查relatedTarget | 无（实际WEB异常发现） | [!] 待实际Linux |
 
 ## 5. 原报告到执行任务的映射
 
@@ -3712,6 +3713,17 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**F、WEB（原sidebar-tools全部用例两项目）、DOC，实际Linux PR复验。
 - **建议提交：**`test(sidebar): await actual tool hit targets after reveal [RF-1087]`。
 
+### RF-1088
+
+**导航/尺标离开事件安全检查relatedTarget** · P2 · 来源：RF-1087实际WEB记录TopFunctionBar.contains传入Window抛TypeError；同根因扫描命中WorkspaceObjectRuler焦点离开处理
+
+- **前置：**无；与RF-1087动画命中断言分项。
+- **入口：**`tauri/src/components/layout/TopFunctionBar.tsx`、`tauri/src/components/workspace/WorkspaceObjectRuler.tsx`。SecondaryActionBar/AddPagePopover已检查Node，不改。
+- **执行：**调用contains前用instanceof Node缩窄relatedTarget；null/Window按离开处理，区域内Node保持展开/预览，已有卡片打开例外保持。
+- **验收：**top/bottom鼠标离开到Window、尺标focusout到Window的真实DOM事件旧代码失败/新代码通过且无pageerror；区域内切换保持，原侧栏/尺标全部用例两项目通过。mobile原328保留，仅新增3例到331，不改timeout/retry/skip。
+- **验证配置：**F、WEB（sidebar-tools/object-ruler原全部及新回归两项目）、DOC，Linux实际PR复验。
+- **建议提交：**`fix(ui): guard non-Node related targets before containment [RF-1088]`。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -6607,3 +6619,11 @@ git commit -m "<任务卡的提交标题>"
 - 本机Windows/Node24.16/安装Edge原sidebar-tools两项目46 passed/0 flaky/0 failed，mobile完整清单328项保持。WEB同时暴露TopFunctionBar非Node relatedTarget传给contains的异常，留下一项独立处理，不记为零运行异常。
 - Prettier/TypeScript/lint通过。默认完整F两次exit1，分别为ObjectWorkspacePage和PairingPanel原5000ms超时，保留全部失败日志；资源并发限制2后同一完整入口exit0：123 Node passed/0 failed/1原Windows权限skip、256文件2240 Vitest passed。未增加超时、过滤用例或改Vitest配置，不能写成默认并发已修好。
 - [证据](verification/rf1087-sidebar-hover-hit-2026-10-04.json)含实际Linux原flaky、两次F失败、完整通过、AST与清单SHA。非本项文件/用户stash保持；本项[!]待Linux对应两例首次通过，265/277不增。独立提交（本提交，以RF-1087检索）。
+
+
+### RF-1088 执行记录（2026-10-04，待实际Linux）
+
+- 先在原生产代码发送mouseout/focusout且relatedTarget=Window：两项目6例全部失败，contains实际抛TypeError、工具栏/预览不收起。只在TopFunctionBar和WorkspaceObjectRuler加入Node类型守卫；同样6例首次通过、pageerror为0；尺标内部焦点切换、敏感字段掩码和原卡片打开例外保持。其他已有守卫不改。
+- 原侧栏/尺标两项目全量66例exit0：65 passed/1原动画采样flaky/0 failed，不能写成零flaky。原采样getAnimations未找到两条活动过渡，可能已结束，需下一项独立核验；原全部断言保持。mobile原328保留，仅加3项到331。
+- Prettier/TypeScript/lint通过；Node24完整2 workers首轮2238/2、浏览器退出后2239/1，均保留原5000ms超时失败。临时Node22官方ZIP/SHA验证且系统/依赖未改；Windows裸命令首次误解析为24，仅停止该无效验证树并保留记录。绝对路径及子shell确认22.23.3后，同完整入口2 workers exit0：256文件2240 Vitest、123 Node passed/0 failed/1原权限skip，仍5000ms、无过滤/新增skip。运行时对比不直接证明Node24产品缺陷。
+- [证据](verification/rf1088-related-target-2026-10-04.json)含旧代码、六项失败/通过、完整WEB/F所有尝试、官方校验和及331项清单。非本项文件和用户stash保持；本项[!]待实际Linux，不代验原生材质，265/278不增。独立提交（本提交，以RF-1088检索）。

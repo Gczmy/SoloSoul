@@ -298,3 +298,23 @@ test('尺标触控板小幅输入累计为完整刻度，缩放后也保持整�
     animations: 'disabled',
   });
 });
+
+test('RF1088 尺标焦点切换保持预览，离开窗口安全收起', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const ticks = page
+    .getByRole('navigation', { name: 'Object ruler' })
+    .locator('[data-ruler-index]');
+  const preview = page.getByRole('region', { name: 'Object preview' });
+  await ticks.nth(2).focus();
+  await expect(preview).toContainText('Object 03');
+  await ticks.nth(3).focus();
+  await expect(preview).toBeVisible();
+  await expect(preview).toContainText('Object 04');
+  expect(await preview.innerHTML()).not.toContain('SECRET-');
+  await ticks.nth(3).evaluate((element) => {
+    element.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: window }));
+  });
+  await expect(preview).toHaveCount(0);
+  expect(errors).toEqual([]);
+});

@@ -554,3 +554,19 @@ test('系统和应用减少动态效果时，工具菜单立即展开/收起', a
     await expect(menu).toBeHidden();
   }
 });
+
+for (const position of ['top', 'bottom'] as const) {
+  test(`RF1088 ${position} 工具栏离开窗口安全收起`, async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await setupSidebar(page, position);
+    const tools = page.getByRole('button', { name: 'Tools', exact: true });
+    await tools.hover();
+    await expect(tools).toHaveAttribute('aria-expanded', 'true');
+    await tools.evaluate((element) => {
+      element.dispatchEvent(new MouseEvent('mouseout', { bubbles: true, relatedTarget: window }));
+    });
+    await expect(tools).toHaveAttribute('aria-expanded', 'false');
+    expect(errors).toEqual([]);
+  });
+}
