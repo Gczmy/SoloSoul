@@ -619,7 +619,7 @@ fn ui_root_diagnostic(value: &Value) -> Option<Value> {
 
 /// SDK 提供有效 NUL 结尾缓冲区。先限制原始 UTF-16 和转换后 UTF-8 字节，
 /// 再分配 owned String；借用 PCWSTR 从不释放，不使用无界 as_wide/to_string。
-unsafe fn bounded_callback_json(source: &PCWSTR) -> Result<Value, &'static str> {
+pub(super) unsafe fn bounded_callback_json(source: &PCWSTR) -> Result<Value, &'static str> {
     if source.is_null() {
         return Err("empty-callback");
     }
@@ -900,7 +900,7 @@ fn invalidate_weak(weak: &Weak<Session>, reason: &'static str) {
         session.event(reason);
     }
 }
-fn sdk_binding(core: &ICoreWebView2) -> Result<(u32, String), ()> {
+pub(super) fn sdk_binding(core: &ICoreWebView2) -> Result<(u32, String), ()> {
     let mut pid = 0;
     unsafe { core.BrowserProcessId(&mut pid) }.map_err(|_| ())?;
     let mut source = PWSTR::null();
@@ -1044,6 +1044,8 @@ mod tests {
             run_id: RUN_ID.into(),
             chromium_log: None,
             sdk_cdp: true,
+            sdk_journey: false,
+            object_count: 100,
         }
     }
     fn frame() -> Value {

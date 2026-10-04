@@ -1,0 +1,20 @@
+{
+  "scope": "stricter Node evidence schema only; native binary and measured phases unchanged",
+  "success": true,
+  "runs": [
+    {
+      "run": "sdk-spa-100",
+      "revalidatedSamples": 5,
+      "sourceUnchanged": true,
+      "reportSha256": "7d03fc6d02b3c97915bad7acabc839ba5e05efe595c4a2186160cd3f71d4a3dc",
+      "metricsUnchanged": true
+    },
+    {
+      "run": "sdk-spa-5000",
+      "revalidatedSamples": 5,
+      "sourceUnchanged": true,
+      "reportSha256": "04ce4e8ddf9974b92e9feab04c17a1de0d43b3b0075cbacd0a790f85166024b6",
+      "metricsUnchanged": true
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "defaultBuild": false,
+  "inputMethod": "SDK-CDP-Input",
+  "objectCount": 100,
+  "pid": 30480,
+  "port": 52266,
+  "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-002",
+  "runId": "cb1deaf219e04356ae561b330885e636",
+  "schemaVersion": 1,
+  "scope": "windows-native-sdk-ui-journey-requested"
+}

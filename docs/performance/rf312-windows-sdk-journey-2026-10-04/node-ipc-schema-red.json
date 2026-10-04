@@ -1,0 +1,4 @@
+{
+  "exit": 1,
+  "expectedFailure": "IPC summary rejects an extra private field"
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "path": "tauri/src-tauri/src/lib.rs",
+    "sha256": "5136824fd149a1dd75ab8d23a68185dee24873d2b8ea6dc288ff926c46822c09"
+  },
+  {
+    "path": "tauri/src-tauri/src/native_perf.rs",
+    "sha256": "a7827b5bc1c6af95e52ca662d11b3e3adb2a399e5733875d7f8bab90d12e7c12"
+  },
+  {
+    "path": "tauri/src-tauri/src/native_perf/sdk_cdp.rs",
+    "sha256": "ebc5cbd810c4bc218c7542b3522558204247aff9fca13f5e7d9a9f2996ab9cfd"
+  },
+  {
+    "path": "tauri/src-tauri/src/native_perf/sdk_journey.rs",
+    "sha256": "fa73c0000b731b051c81e98a4327598c995ed1ac728ee7e796b2abe0421c2b23"
+  },
+  {
+    "path": "tauri/src-tauri/src/native_perf/sdk_journey.js",
+    "sha256": "5909227490bc706b61609b1f90f43aeee8feb6568e7a140be165a1cfa08d7c59"
+  },
+  {
+    "path": "tauri/src-tauri/src/native_perf/preflight_tests.rs",
+    "sha256": "0758ae6cbdda08ab5cb4a4db7793fcd738dfcbc3777505d84dd912189f94adb4"
+  },
+  {
+    "path": "tauri/src-tauri/Cargo.toml",
+    "sha256": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e"
+  },
+  {
+    "path": "tauri/Cargo.toml",
+    "sha256": "2b6bb7efb8c19dcf30d412ace48ab59ff81e3834a023e5fa1e6a366bef4d3430"
+  },
+  {
+    "path": "tauri/Cargo.lock",
+    "sha256": "2cc2fd3e220ad7fa968a2140207ebf5367760fb97868c414adc776d62a495d1d"
+  },
+  {
+    "path": "tauri/src-tauri/tauri.conf.json",
+    "sha256": "7d7fc8afcbe54235ca5828e7a8dad32d5547f15237e1bb5cf29d65752980ca3f"
+  },
+  {
+    "path": "tauri/src-tauri/tauri.native-perf.conf.json",
+    "sha256": "d8c99c935b83b62187d61e72258cbc9239ad97a0cf482cde789444814cfa4810"
+  },
+  {
+    "path": "tauri/package.json",
+    "sha256": "8aa8199c397a0b06b1e1882a93a4f26621bf9486f67bef2c122781cff1a98f05"
+  },
+  {
+    "path": "tauri/package-lock.json",
+    "sha256": "ee6d2e5a81745fcf7f4eeb7318d562a4b3edbe711177f25ec44f457ddf791c90"
+  },
+  {
+    "path": "tauri/scripts/native-perf-run.mjs",
+    "sha256": "dbe6ffdf034084d5cea0f073681f8710b79aa6b8dd203afa3e7d1e567cec9247"
+  },
+  {
+    "path": "tauri/scripts/native-perf-sdk-journey.mjs",
+    "sha256": "70cd0aeab60a5aa14f394075b1d1b21714a8fa65adf99d7a6fff1a867f3ff6c6"
+  },
+  {
+    "path": "tauri/scripts/native-perf-sdk-journey.test.mjs",
+    "sha256": "0bbc591ed5db3099b2667dc045d9c8ac115a24a967ca0eae7c2fa4bf2bf3639c"
+  },
+  {
+    "path": "tauri/scripts/native-perf-run.test.mjs",
+    "sha256": "9901cce888c1900cd127585809f20bcea604339b2a0ec29772321a8118255df1"
+  },
+  {
+    "path": "tauri/scripts/run-node-tests.mjs",
+    "sha256": "e6b0f530310fe1c38d2348db8f545cc5c1f6c63ee391fa68d1f8cd762d8cc76c"
+  }
+]

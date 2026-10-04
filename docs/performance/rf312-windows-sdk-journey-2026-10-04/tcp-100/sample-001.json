@@ -1,0 +1,211 @@
+{
+  "index": 1,
+  "startedAt": "2026-10-04T20:47:59.126Z",
+  "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\tcp-100\\sample-001",
+  "success": false,
+  "activePhase": "startup",
+  "phases": [
+    {
+      "name": "startup",
+      "success": false,
+      "durationMs": 60242.457800000004,
+      "error": "CDP attachment failed: browserType.connectOverCDP: connect ECONNREFUSED 127.0.0.1:54892",
+      "ipc": {
+        "attempts": null,
+        "commands": null,
+        "reason": "Startup did not reach a verified native login document"
+      },
+      "memory": {
+        "observedAt": "2026-10-04T20:49:10.750Z",
+        "collectionMs": 1328.329500000007,
+        "workingSetBytes": 577110016,
+        "reason": null,
+        "userDataDirectoryMatches": true,
+        "browserDataChecks": [
+          {
+            "pid": 38376,
+            "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\tcp-100\\sample-001\\webview",
+            "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\tcp-100\\sample-001\\webview\\EBWebView",
+            "matchesExpected": true,
+            "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\tcp-100\\sample-001\\webview\\EBWebView",
+            "reason": null
+          }
+        ],
+        "browserDataFilesystem": {
+          "valid": true,
+          "reason": null
+        },
+        "processCount": 8,
+        "processes": [
+          {
+            "pid": 38204,
+            "parentPid": 27320,
+            "creationMs": 1791146889183,
+            "executableName": "solo_soul.exe",
+            "workingSetBytes": 111222784,
+            "privateBytes": 51527680,
+            "cpuMs": 1125,
+            "reason": null
+          },
+          {
+            "pid": 38376,
+            "parentPid": 38204,
+            "creationMs": 1791146889817,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 183754752,
+            "privateBytes": 74592256,
+            "cpuMs": 2000,
+            "reason": null
+          },
+          {
+            "pid": 21324,
+            "parentPid": 38376,
+            "creationMs": 1791146890556,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 44015616,
+            "privateBytes": 13164544,
+            "cpuMs": 265.625,
+            "reason": null
+          },
+          {
+            "pid": 12052,
+            "parentPid": 38376,
+            "creationMs": 1791146890552,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 80945152,
+            "privateBytes": 49356800,
+            "cpuMs": 593.75,
+            "reason": null
+          },
+          {
+            "pid": 30412,
+            "parentPid": 38376,
+            "creationMs": 1791146889941,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 21118976,
+            "privateBytes": 3600384,
+            "cpuMs": 46.875,
+            "reason": null
+          },
+          {
+            "pid": 41760,
+            "parentPid": 38376,
+            "creationMs": 1791146891824,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 25526272,
+            "privateBytes": 8146944,
+            "cpuMs": 62.5,
+            "reason": null
+          },
+          {
+            "pid": 15120,
+            "parentPid": 38376,
+            "creationMs": 1791146890759,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 89427968,
+            "privateBytes": 42840064,
+            "cpuMs": 734.375,
+            "reason": null
+          },
+          {
+            "pid": 22524,
+            "parentPid": 38376,
+            "creationMs": 1791146890602,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 21098496,
+            "privateBytes": 7905280,
+            "cpuMs": 109.375,
+            "reason": null
+          }
+        ]
+      }
+    }
+  ],
+  "unsupported": [
+    {
+      "name": "ocr",
+      "reason": "This stage has not prepared an OCR input and UI sampling journey; no inference metric is fabricated"
+    },
+    {
+      "name": "attachment-preview",
+      "reason": "Verified fixture has no attachment; no preview metric is fabricated"
+    },
+    {
+      "name": "system-sleep-resume",
+      "reason": "This runner measures application lock/reunlock, not Windows system sleep"
+    }
+  ],
+  "prepare": {
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "durationMs": 10038
+  },
+  "appVersion": "2.13.2",
+  "identifier": "com.solosoul.rf312perf.4865098273ec489c9ef3c89eb607abea",
+  "runId": "4865098273ec489c9ef3c89eb607abea",
+  "processId": 38204,
+  "cdp": {
+    "port": 54892,
+    "attachStartedAfterSpawnMs": 100.99829999999929,
+    "attachMs": null,
+    "connectedAfterSpawnMs": null,
+    "transport": "real-WebView2-CDP"
+  },
+  "error": "CDP attachment failed: browserType.connectOverCDP: connect ECONNREFUSED 127.0.0.1:54892",
+  "failedPhase": "startup",
+  "cleanup": {
+    "cleanup": [
+      {
+        "status": "terminated",
+        "pid": 41760
+      },
+      {
+        "status": "terminated",
+        "pid": 15120
+      },
+      {
+        "status": "terminated",
+        "pid": 22524
+      },
+      {
+        "status": "terminated",
+        "pid": 21324
+      },
+      {
+        "status": "terminated",
+        "pid": 12052
+      },
+      {
+        "status": "terminated",
+        "pid": 30412
+      },
+      {
+        "status": "terminated",
+        "pid": 38376
+      },
+      {
+        "status": "terminated",
+        "pid": 38204
+      }
+    ],
+    "unverifiedDescendants": true
+  },
+  "ownedProcessExit": {
+    "exitCode": 4294967295,
+    "signal": null,
+    "error": null
+  },
+  "applicationExit": {
+    "exitCode": 4294967295,
+    "signal": null,
+    "error": null
+  },
+  "cleanupIntegrity": {
+    "complete": false,
+    "reason": "Owned process cleanup or exit could not be fully verified; further samples were stopped"
+  },
+  "cleanupIncomplete": true,
+  "ownedChildHandleReleased": false,
+  "finishedAt": "2026-10-04T20:49:14.193Z"
+}

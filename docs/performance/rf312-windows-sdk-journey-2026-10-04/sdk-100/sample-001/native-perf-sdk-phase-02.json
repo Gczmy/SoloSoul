@@ -1,0 +1,48 @@
+{
+  "durationMs": 3135.6168000000002,
+  "fromAtMs": 916.3000001907347,
+  "inputTrust": {
+    "pointer": 2,
+    "text": 1,
+    "untrusted": 0
+  },
+  "ipc": {
+    "attempts": 38,
+    "commands": {
+      "attachment_count_stats": 1,
+      "backup_list": 1,
+      "desktop_prepare_update": 1,
+      "export_get_scope_tree": 1,
+      "get_lock_pending": 1,
+      "get_vault_stats": 1,
+      "llm_get_config": 1,
+      "llm_get_providers": 1,
+      "login": 1,
+      "object_trash_list": 1,
+      "ocr_get_active_tier": 1,
+      "ocr_list_available_tiers": 1,
+      "plugin:event|listen": 5,
+      "plugin:event|unlisten": 1,
+      "plugin:lock-state|registerListener": 1,
+      "plugin:lock-state|register_listener": 1,
+      "plugin_list_all": 1,
+      "plugin_list_installed": 1,
+      "profile_load": 1,
+      "set_status_bar_style": 2,
+      "set_titlebar_color": 2,
+      "sync_get_auto_status": 2,
+      "sync_get_status": 1,
+      "sync_get_ui_prefs_sync": 2,
+      "sync_list_conflicts": 1,
+      "sync_listen_addr": 1,
+      "template_list": 1,
+      "user_data_get_preferences": 1,
+      "vault_check_directory": 1,
+      "vault_list_accounts": 1
+    },
+    "reason": null
+  },
+  "name": "password-unlock",
+  "success": true,
+  "toAtMs": 19365.300000190735
+}

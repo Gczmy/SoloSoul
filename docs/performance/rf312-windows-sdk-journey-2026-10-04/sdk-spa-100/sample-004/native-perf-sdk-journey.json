@@ -1,0 +1,2577 @@
+{
+  "binding": {
+    "frameCreatedEvents": 0,
+    "loaderId": "683ED8C49B519362D2BAAECE6CC7C7BD",
+    "mainFrameId": "11FDD53CF93F17DCB40E1003404204C9",
+    "navigationEvents": 0,
+    "source": "http://tauri.localhost/login",
+    "timeOriginMs": null
+  },
+  "browserPid": 28596,
+  "calls": [
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Input.dispatchMouseEvent",
+    "Input.dispatchMouseEvent",
+    "Input.insertText",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Input.dispatchMouseEvent",
+    "Input.dispatchMouseEvent",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Input.dispatchMouseEvent",
+    "Input.dispatchMouseEvent",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Input.dispatchMouseEvent",
+    "Input.dispatchMouseEvent",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Input.dispatchMouseEvent",
+    "Input.dispatchMouseEvent",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Input.dispatchMouseEvent",
+    "Input.dispatchMouseEvent",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Input.dispatchMouseEvent",
+    "Input.dispatchMouseEvent",
+    "Input.insertText",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Input.dispatchMouseEvent",
+    "Input.dispatchMouseEvent",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Input.dispatchMouseEvent",
+    "Input.dispatchMouseEvent",
+    "Input.insertText",
+    "Runtime.evaluate",
+    "Page.getFrameTree",
+    "Input.dispatchMouseEvent",
+    "Input.dispatchMouseEvent",
+    "Runtime.evaluate",
+    "Page.getFrameTree"
+  ],
+  "elapsedMs": 14546.9165,
+  "failedStep": null,
+  "inputMethod": "SDK-CDP-Input",
+  "ipcAll": {
+    "attempts": 548,
+    "commands": {
+      "attachment_count_batch": 1,
+      "attachment_count_stats": 3,
+      "backup_list": 2,
+      "biometric_check_availability": 4,
+      "check_has_account": 3,
+      "desktop_prepare_update": 4,
+      "dismiss_lock_mask": 2,
+      "export_get_scope_tree": 2,
+      "get_lock_pending": 2,
+      "get_platform_capabilities": 1,
+      "get_system_locale": 1,
+      "get_vault_stats": 2,
+      "llm_get_config": 2,
+      "llm_get_providers": 2,
+      "lock": 1,
+      "login": 2,
+      "object_list": 3,
+      "object_trash_list": 2,
+      "ocr_get_active_tier": 2,
+      "ocr_get_model_status": 4,
+      "ocr_install_bundled_model_with_progress": 1,
+      "ocr_list_available_tiers": 2,
+      "pin_check_availability": 1,
+      "plugin:event|listen": 223,
+      "plugin:event|unlisten": 213,
+      "plugin:lock-state|registerListener": 1,
+      "plugin:lock-state|register_listener": 2,
+      "plugin_list_all": 2,
+      "plugin_list_installed": 2,
+      "profile_load": 2,
+      "search_unified": 1,
+      "set_status_bar_style": 8,
+      "set_titlebar_color": 7,
+      "show_main_window": 1,
+      "snapshot_count_batch": 1,
+      "sync_get_auto_status": 4,
+      "sync_get_status": 2,
+      "sync_get_ui_prefs_sync": 4,
+      "sync_list_conflicts": 2,
+      "sync_listen_addr": 2,
+      "template_list": 3,
+      "ui_get_preferences": 2,
+      "ui_update_preference": 7,
+      "user_data_get_preferences": 2,
+      "vault_check_directory": 2,
+      "vault_list_accounts": 6
+    },
+    "reason": null
+  },
+  "lastProbe": {
+    "atMs": 14754.599999427795,
+    "frameCount": 0,
+    "href": "http://tauri.localhost/",
+    "inputTrust": {
+      "pointer": 10,
+      "text": 3,
+      "untrusted": 0
+    },
+    "observer": {
+      "commands": [
+        {
+          "atMs": 167.69999980926514,
+          "command": "set_titlebar_color"
+        },
+        {
+          "atMs": 309,
+          "command": "get_system_locale"
+        },
+        {
+          "atMs": 309.69999980926514,
+          "command": "show_main_window"
+        },
+        {
+          "atMs": 316.69999980926514,
+          "command": "get_platform_capabilities"
+        },
+        {
+          "atMs": 353.3999996185303,
+          "command": "ui_get_preferences"
+        },
+        {
+          "atMs": 359.19999980926514,
+          "command": "set_status_bar_style"
+        },
+        {
+          "atMs": 359.69999980926514,
+          "command": "set_titlebar_color"
+        },
+        {
+          "atMs": 401.29999923706055,
+          "command": "ocr_get_model_status"
+        },
+        {
+          "atMs": 403.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 417.79999923706055,
+          "command": "check_has_account"
+        },
+        {
+          "atMs": 419.8999996185303,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 421.0999994277954,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 422,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 422.79999923706055,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 426.5999994277954,
+          "command": "set_status_bar_style"
+        },
+        {
+          "atMs": 427.5,
+          "command": "ui_get_preferences"
+        },
+        {
+          "atMs": 428.19999980926514,
+          "command": "vault_list_accounts"
+        },
+        {
+          "atMs": 433,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 433.8999996185303,
+          "command": "desktop_prepare_update"
+        },
+        {
+          "atMs": 440.3999996185303,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 470.5,
+          "command": "set_titlebar_color"
+        },
+        {
+          "atMs": 472.8999996185303,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 473.29999923706055,
+          "command": "ocr_install_bundled_model_with_progress"
+        },
+        {
+          "atMs": 477,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 483.19999980926514,
+          "command": "vault_list_accounts"
+        },
+        {
+          "atMs": 483.79999923706055,
+          "command": "dismiss_lock_mask"
+        },
+        {
+          "atMs": 484.19999980926514,
+          "command": "check_has_account"
+        },
+        {
+          "atMs": 484.5,
+          "command": "biometric_check_availability"
+        },
+        {
+          "atMs": 485.69999980926514,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 540.0999994277954,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 542.3999996185303,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 560.5,
+          "command": "biometric_check_availability"
+        },
+        {
+          "atMs": 561.0999994277954,
+          "command": "pin_check_availability"
+        },
+        {
+          "atMs": 1093.3999996185305,
+          "command": "set_titlebar_color"
+        },
+        {
+          "atMs": 7282.89999961853,
+          "command": "login"
+        },
+        {
+          "atMs": 10638.39999961853,
+          "command": "vault_list_accounts"
+        },
+        {
+          "atMs": 10646.89999961853,
+          "command": "set_status_bar_style"
+        },
+        {
+          "atMs": 10648.599999427795,
+          "command": "set_status_bar_style"
+        },
+        {
+          "atMs": 10655.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 10655.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 10657,
+          "command": "plugin:lock-state|register_listener"
+        },
+        {
+          "atMs": 10657.5,
+          "command": "get_lock_pending"
+        },
+        {
+          "atMs": 10720.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 10721.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 10722.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 10722.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 10733.79999923706,
+          "command": "desktop_prepare_update"
+        },
+        {
+          "atMs": 10739,
+          "command": "set_titlebar_color"
+        },
+        {
+          "atMs": 10762.29999923706,
+          "command": "profile_load"
+        },
+        {
+          "atMs": 10762.699999809263,
+          "command": "user_data_get_preferences"
+        },
+        {
+          "atMs": 10763.099999427795,
+          "command": "sync_get_auto_status"
+        },
+        {
+          "atMs": 10763.39999961853,
+          "command": "sync_get_ui_prefs_sync"
+        },
+        {
+          "atMs": 10763.699999809263,
+          "command": "attachment_count_stats"
+        },
+        {
+          "atMs": 10764.199999809263,
+          "command": "plugin:lock-state|registerListener"
+        },
+        {
+          "atMs": 10765.29999923706,
+          "command": "vault_check_directory"
+        },
+        {
+          "atMs": 10778.099999427795,
+          "command": "ui_update_preference"
+        },
+        {
+          "atMs": 10791.79999923706,
+          "command": "ui_update_preference"
+        },
+        {
+          "atMs": 10793.099999427795,
+          "command": "ocr_get_active_tier"
+        },
+        {
+          "atMs": 10794.79999923706,
+          "command": "ocr_list_available_tiers"
+        },
+        {
+          "atMs": 10795.39999961853,
+          "command": "get_vault_stats"
+        },
+        {
+          "atMs": 10795.89999961853,
+          "command": "backup_list"
+        },
+        {
+          "atMs": 10796.199999809263,
+          "command": "export_get_scope_tree"
+        },
+        {
+          "atMs": 10796.79999923706,
+          "command": "llm_get_config"
+        },
+        {
+          "atMs": 10797.099999427795,
+          "command": "llm_get_providers"
+        },
+        {
+          "atMs": 10797.39999961853,
+          "command": "template_list"
+        },
+        {
+          "atMs": 10798.199999809263,
+          "command": "object_trash_list"
+        },
+        {
+          "atMs": 10798.599999427795,
+          "command": "plugin_list_all"
+        },
+        {
+          "atMs": 10798.89999961853,
+          "command": "plugin_list_installed"
+        },
+        {
+          "atMs": 10799.199999809263,
+          "command": "sync_get_status"
+        },
+        {
+          "atMs": 10799.599999427795,
+          "command": "sync_listen_addr"
+        },
+        {
+          "atMs": 10799.89999961853,
+          "command": "sync_get_auto_status"
+        },
+        {
+          "atMs": 10800.29999923706,
+          "command": "sync_get_ui_prefs_sync"
+        },
+        {
+          "atMs": 10800.599999427795,
+          "command": "sync_list_conflicts"
+        },
+        {
+          "atMs": 10812.5,
+          "command": "ocr_get_model_status"
+        },
+        {
+          "atMs": 10813,
+          "command": "ocr_get_model_status"
+        },
+        {
+          "atMs": 10813.29999923706,
+          "command": "ocr_get_model_status"
+        },
+        {
+          "atMs": 10821.699999809263,
+          "command": "ui_update_preference"
+        },
+        {
+          "atMs": 10840.5,
+          "command": "ui_update_preference"
+        },
+        {
+          "atMs": 10935.89999961853,
+          "command": "ui_update_preference"
+        },
+        {
+          "atMs": 10960.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 10961.89999961853,
+          "command": "biometric_check_availability"
+        },
+        {
+          "atMs": 10962.29999923706,
+          "command": "vault_list_accounts"
+        },
+        {
+          "atMs": 10963.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 10988.599999427795,
+          "command": "ui_update_preference"
+        },
+        {
+          "atMs": 10989.79999923706,
+          "command": "template_list"
+        },
+        {
+          "atMs": 10990.29999923706,
+          "command": "object_list"
+        },
+        {
+          "atMs": 10998.79999923706,
+          "command": "ui_update_preference"
+        },
+        {
+          "atMs": 11018.599999427795,
+          "command": "object_list"
+        },
+        {
+          "atMs": 11050.199999809263,
+          "command": "object_list"
+        },
+        {
+          "atMs": 11191.699999809263,
+          "command": "snapshot_count_batch"
+        },
+        {
+          "atMs": 11192.39999961853,
+          "command": "attachment_count_batch"
+        },
+        {
+          "atMs": 11193.79999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11195.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11196,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11197,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11197.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11198,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11198.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11199,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11199.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11200.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11202,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11202.79999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11203.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11204.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11205,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11207.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11207.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11209.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11212.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11213.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11218,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11218.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11219.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11220.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11223.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11224.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11225,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11225.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11226.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11227.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11227.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11231.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11233.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11234.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11235.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11236.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11236.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11237.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11237.79999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11238.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11238.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11239.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11239.79999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11241.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11242.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11243.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11243.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11244,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11244.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11245.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11313.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11314.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11315.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11316.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11320.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11321.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11322.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11322.79999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11323.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11323.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11324,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11324.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11324.79999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11325.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11325.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11325.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11326.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11326.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11326.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11327.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11327.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11328.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11328.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11329.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11329.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11330.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11331,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11331.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11332.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11332.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11333.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11334.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11335,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11335.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11358.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11360.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11361.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11373.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11373.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11374.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11374.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11374.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11375.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11375.79999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11376.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11376.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11377.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11377.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11378.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11379.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11389.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11391.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11393.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11394.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11395.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11396.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11397.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11398.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11398.79999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11400.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11400.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11401.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11402,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11403.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11404.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11406.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11407.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11408.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11409.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11410.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11410.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11411.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11411.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11412.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11413.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11414.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11416.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11417.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11418.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11419,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11419.79999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11420.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11421.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11422.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11432.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11433,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11434.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11439.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11443.79999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11444.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11445.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11446.79999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11447.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11447.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11448.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11450.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11450.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11451.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11452.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11454,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11457.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11477.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11478.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11488.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11494.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11495.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11496.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11496.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11497.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11497.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11497.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11498.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11499.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11499.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11499.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11500.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11501,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11501.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11501.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11501.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11502.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11502.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11503,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11503.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11503.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11504,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11504.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11504.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11505,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11505.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11505.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11505.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11506.29999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11506.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11507.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11507.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11508.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11514.5,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11515.79999923706,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11518.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11522.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11524.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11525.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11526.099999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11527.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11528,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11528.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11530,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11530.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11531.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11531.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11531.89999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 11532.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11532.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11533,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11533.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11533.699999809263,
+          "command": "attachment_count_stats"
+        },
+        {
+          "atMs": 11550.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11553,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11553.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11554,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11557.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11557.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11558.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11558.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11560.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11561,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11561.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11561.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11562.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11562.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11562.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11563.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11563.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11564.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11564.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11564.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11565.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11565.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11565.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11566,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11566.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11566.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11567.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11567.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11568,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11568.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11568.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11569.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11570.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11570.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11571.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11571.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11572.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11572.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11572.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11573.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11574.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11574.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11575,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11575.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11576.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11576.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11576.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11577.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11577.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11578.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11578.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11578.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11579.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11579.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11579.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11580.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11580.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11581.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11581.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11581.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11582,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11582.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11582.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11582.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11584.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11585.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11585.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11586.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11586.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11586.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11587.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11587.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11587.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11589.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11589.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11589.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11590.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11590.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11590.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11591.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11596.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11596.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11597.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11598,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11599,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11599.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11599.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11600.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11600.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11601,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11601.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11601.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11603.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11603.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11603.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11604.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11605.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11605.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11606,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11606.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11607,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11607.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11607.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11607.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11610.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11611.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11612.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11613.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11614.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11616.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11617.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11618.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11619.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11620.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11620.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11621.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11621.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11621.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11622.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11622.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11623,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11623.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11623.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11624,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11624.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11624.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11625.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11625.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11626.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11626.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11627,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11627.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11629.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11629.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11632.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11633,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11633.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11633.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11634.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11634.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11635.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11635.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11635.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11636.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11636.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11637.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11637.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11637.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11638,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11638.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11638.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11638.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11641.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11642.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11642.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11642.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11646.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11647,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11647.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11647.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11648.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11648.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11649,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11649.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11649.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11650.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11650.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11651,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11651.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11651.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11652.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11652.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11652.699999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11653.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11653.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11653.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11654.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11654.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11654.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11655.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11655.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11656,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11656.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11656.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11657.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11657.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11658.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11658.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11659,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11659.199999809263,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11659.599999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11659.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11660.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11660.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11660.79999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11661.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11725.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 11726.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 12145.39999961853,
+          "command": "search_unified"
+        },
+        {
+          "atMs": 12293.29999923706,
+          "command": "set_status_bar_style"
+        },
+        {
+          "atMs": 12294.099999427795,
+          "command": "set_status_bar_style"
+        },
+        {
+          "atMs": 12294.5,
+          "command": "lock"
+        },
+        {
+          "atMs": 12299.39999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 12300,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 12300.89999961853,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 12301.29999923706,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 12305.099999427795,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 12305.599999427795,
+          "command": "vault_list_accounts"
+        },
+        {
+          "atMs": 12306.199999809263,
+          "command": "dismiss_lock_mask"
+        },
+        {
+          "atMs": 12306.599999427795,
+          "command": "check_has_account"
+        },
+        {
+          "atMs": 12306.89999961853,
+          "command": "biometric_check_availability"
+        },
+        {
+          "atMs": 12307.39999961853,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 12307.79999923706,
+          "command": "desktop_prepare_update"
+        },
+        {
+          "atMs": 12309.29999923706,
+          "command": "set_titlebar_color"
+        },
+        {
+          "atMs": 12467.29999923706,
+          "command": "login"
+        },
+        {
+          "atMs": 14671.199999809263,
+          "command": "vault_list_accounts"
+        },
+        {
+          "atMs": 14677.099999427795,
+          "command": "set_status_bar_style"
+        },
+        {
+          "atMs": 14677.89999961853,
+          "command": "set_status_bar_style"
+        },
+        {
+          "atMs": 14681.599999427795,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 14682.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 14682.79999923706,
+          "command": "plugin:lock-state|register_listener"
+        },
+        {
+          "atMs": 14684.099999427795,
+          "command": "get_lock_pending"
+        },
+        {
+          "atMs": 14697.5,
+          "command": "plugin:event|unlisten"
+        },
+        {
+          "atMs": 14698.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 14698.699999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 14699.199999809263,
+          "command": "plugin:event|listen"
+        },
+        {
+          "atMs": 14701.5,
+          "command": "desktop_prepare_update"
+        },
+        {
+          "atMs": 14702.599999427795,
+          "command": "set_titlebar_color"
+        },
+        {
+          "atMs": 14711.39999961853,
+          "command": "profile_load"
+        },
+        {
+          "atMs": 14712,
+          "command": "user_data_get_preferences"
+        },
+        {
+          "atMs": 14712.599999427795,
+          "command": "sync_get_auto_status"
+        },
+        {
+          "atMs": 14713.199999809263,
+          "command": "sync_get_ui_prefs_sync"
+        },
+        {
+          "atMs": 14713.599999427795,
+          "command": "attachment_count_stats"
+        },
+        {
+          "atMs": 14714.199999809263,
+          "command": "vault_check_directory"
+        },
+        {
+          "atMs": 14714.699999809263,
+          "command": "ocr_get_active_tier"
+        },
+        {
+          "atMs": 14715.89999961853,
+          "command": "ocr_list_available_tiers"
+        },
+        {
+          "atMs": 14716.29999923706,
+          "command": "get_vault_stats"
+        },
+        {
+          "atMs": 14716.79999923706,
+          "command": "backup_list"
+        },
+        {
+          "atMs": 14717.199999809263,
+          "command": "export_get_scope_tree"
+        },
+        {
+          "atMs": 14717.599999427795,
+          "command": "llm_get_config"
+        },
+        {
+          "atMs": 14717.79999923706,
+          "command": "llm_get_providers"
+        },
+        {
+          "atMs": 14718.199999809263,
+          "command": "template_list"
+        },
+        {
+          "atMs": 14718.699999809263,
+          "command": "object_trash_list"
+        },
+        {
+          "atMs": 14719,
+          "command": "plugin_list_all"
+        },
+        {
+          "atMs": 14719.29999923706,
+          "command": "plugin_list_installed"
+        },
+        {
+          "atMs": 14719.5,
+          "command": "sync_get_status"
+        },
+        {
+          "atMs": 14719.89999961853,
+          "command": "sync_listen_addr"
+        },
+        {
+          "atMs": 14720.199999809263,
+          "command": "sync_get_auto_status"
+        },
+        {
+          "atMs": 14720.599999427795,
+          "command": "sync_get_ui_prefs_sync"
+        },
+        {
+          "atMs": 14720.79999923706,
+          "command": "sync_list_conflicts"
+        }
+      ],
+      "installedAtMs": 141.69999980926514,
+      "invalidReasons": [],
+      "maxEvents": 16384,
+      "observedCount": 548,
+      "runId": "dc9899eee0064d69b51accffd7289330",
+      "schemaVersion": 1,
+      "scope": "windows-native-tauri-invoke-observer",
+      "timeOriginMs": 1791152555293.6,
+      "total": 548,
+      "valid": true
+    },
+    "origin": "http://tauri.localhost",
+    "outcome": "ready",
+    "rootPresent": true,
+    "runId": "dc9899eee0064d69b51accffd7289330",
+    "schemaVersion": 1,
+    "scope": "windows-native-sdk-ui-probe",
+    "step": "home",
+    "target": null,
+    "timeOriginMs": 1791152555293.6
+  },
+  "objectCount": 100,
+  "phases": [
+    {
+      "durationMs": 1854.139,
+      "fromAtMs": 0,
+      "inputTrust": {
+        "pointer": 0,
+        "text": 0,
+        "untrusted": 0
+      },
+      "ipc": {
+        "attempts": 33,
+        "commands": {
+          "biometric_check_availability": 2,
+          "check_has_account": 2,
+          "desktop_prepare_update": 1,
+          "dismiss_lock_mask": 1,
+          "get_platform_capabilities": 1,
+          "get_system_locale": 1,
+          "ocr_get_model_status": 1,
+          "ocr_install_bundled_model_with_progress": 1,
+          "pin_check_availability": 1,
+          "plugin:event|listen": 9,
+          "plugin:event|unlisten": 3,
+          "set_status_bar_style": 2,
+          "set_titlebar_color": 3,
+          "show_main_window": 1,
+          "ui_get_preferences": 2,
+          "vault_list_accounts": 2
+        },
+        "reason": null
+      },
+      "name": "startup",
+      "success": true,
+      "toAtMs": 660.8999996185303
+    },
+    {
+      "durationMs": 3576.6156,
+      "fromAtMs": 660.8999996185303,
+      "inputTrust": {
+        "pointer": 2,
+        "text": 1,
+        "untrusted": 0
+      },
+      "ipc": {
+        "attempts": 23,
+        "commands": {
+          "attachment_count_stats": 1,
+          "desktop_prepare_update": 1,
+          "get_lock_pending": 1,
+          "login": 1,
+          "plugin:event|listen": 5,
+          "plugin:event|unlisten": 1,
+          "plugin:lock-state|registerListener": 1,
+          "plugin:lock-state|register_listener": 1,
+          "profile_load": 1,
+          "set_status_bar_style": 2,
+          "set_titlebar_color": 2,
+          "sync_get_auto_status": 1,
+          "sync_get_ui_prefs_sync": 1,
+          "ui_update_preference": 1,
+          "user_data_get_preferences": 1,
+          "vault_check_directory": 1,
+          "vault_list_accounts": 1
+        },
+        "reason": null
+      },
+      "name": "password-unlock",
+      "success": true,
+      "toAtMs": 10779.29999923706
+    },
+    {
+      "durationMs": 536.2709,
+      "fromAtMs": 10779.29999923706,
+      "inputTrust": {
+        "pointer": 4,
+        "text": 1,
+        "untrusted": 0
+      },
+      "ipc": {
+        "attempts": 85,
+        "commands": {
+          "attachment_count_batch": 1,
+          "backup_list": 1,
+          "biometric_check_availability": 1,
+          "export_get_scope_tree": 1,
+          "get_vault_stats": 1,
+          "llm_get_config": 1,
+          "llm_get_providers": 1,
+          "object_list": 3,
+          "object_trash_list": 1,
+          "ocr_get_active_tier": 1,
+          "ocr_get_model_status": 3,
+          "ocr_list_available_tiers": 1,
+          "plugin:event|listen": 51,
+          "plugin:event|unlisten": 1,
+          "plugin_list_all": 1,
+          "plugin_list_installed": 1,
+          "snapshot_count_batch": 1,
+          "sync_get_auto_status": 1,
+          "sync_get_status": 1,
+          "sync_get_ui_prefs_sync": 1,
+          "sync_list_conflicts": 1,
+          "sync_listen_addr": 1,
+          "template_list": 2,
+          "ui_update_preference": 6,
+          "vault_list_accounts": 1
+        },
+        "reason": null
+      },
+      "name": "workspace",
+      "success": true,
+      "toAtMs": 11257.29999923706
+    },
+    {
+      "durationMs": 451.20349999999996,
+      "fromAtMs": 11772.89999961853,
+      "inputTrust": {
+        "pointer": 7,
+        "text": 2,
+        "untrusted": 0
+      },
+      "ipc": {
+        "attempts": 1,
+        "commands": {
+          "search_unified": 1
+        },
+        "reason": null
+      },
+      "name": "search-needle",
+      "success": true,
+      "toAtMs": 12224.199999809263
+    },
+    {
+      "durationMs": 121.0177,
+      "fromAtMs": 12224.199999809263,
+      "inputTrust": {
+        "pointer": 8,
+        "text": 2,
+        "untrusted": 0
+      },
+      "ipc": {
+        "attempts": 15,
+        "commands": {
+          "biometric_check_availability": 1,
+          "check_has_account": 1,
+          "desktop_prepare_update": 1,
+          "dismiss_lock_mask": 1,
+          "lock": 1,
+          "plugin:event|listen": 1,
+          "plugin:event|unlisten": 5,
+          "set_status_bar_style": 2,
+          "set_titlebar_color": 1,
+          "vault_list_accounts": 1
+        },
+        "reason": null
+      },
+      "name": "application-lock",
+      "success": true,
+      "toAtMs": 12348.89999961853
+    },
+    {
+      "durationMs": 2423.6952,
+      "fromAtMs": 12348.89999961853,
+      "inputTrust": {
+        "pointer": 10,
+        "text": 3,
+        "untrusted": 0
+      },
+      "ipc": {
+        "attempts": 36,
+        "commands": {
+          "attachment_count_stats": 1,
+          "backup_list": 1,
+          "desktop_prepare_update": 1,
+          "export_get_scope_tree": 1,
+          "get_lock_pending": 1,
+          "get_vault_stats": 1,
+          "llm_get_config": 1,
+          "llm_get_providers": 1,
+          "login": 1,
+          "object_trash_list": 1,
+          "ocr_get_active_tier": 1,
+          "ocr_list_available_tiers": 1,
+          "plugin:event|listen": 5,
+          "plugin:event|unlisten": 1,
+          "plugin:lock-state|register_listener": 1,
+          "plugin_list_all": 1,
+          "plugin_list_installed": 1,
+          "profile_load": 1,
+          "set_status_bar_style": 2,
+          "set_titlebar_color": 1,
+          "sync_get_auto_status": 2,
+          "sync_get_status": 1,
+          "sync_get_ui_prefs_sync": 2,
+          "sync_list_conflicts": 1,
+          "sync_listen_addr": 1,
+          "template_list": 1,
+          "user_data_get_preferences": 1,
+          "vault_check_directory": 1,
+          "vault_list_accounts": 1
+        },
+        "reason": null
+      },
+      "name": "password-reunlock",
+      "success": true,
+      "toAtMs": 14754.599999427795
+    }
+  ],
+  "pid": 29132,
+  "port": 59779,
+  "reason": null,
+  "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-spa-100\\sample-004",
+  "runId": "dc9899eee0064d69b51accffd7289330",
+  "schemaVersion": 1,
+  "scope": "windows-native-sdk-ui-journey",
+  "success": true,
+  "timeOriginMs": 1791152555293.6,
+  "unmeasured": [
+    "OCR",
+    "attachment-preview",
+    "system-sleep",
+    "same-profile-warm-start",
+    "other-platforms"
+  ]
+}

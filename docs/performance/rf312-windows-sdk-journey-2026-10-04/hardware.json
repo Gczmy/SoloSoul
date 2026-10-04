@@ -1,0 +1,31 @@
+{
+  "sampledAt": "2026-10-04T21:33:59.2934935Z",
+  "cpu": [
+    {
+      "Name": "Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz",
+      "NumberOfCores": 8,
+      "NumberOfLogicalProcessors": 8
+    }
+  ],
+  "memory": [
+    {
+      "TotalPhysicalMemory": 16951218176
+    }
+  ],
+  "os": [
+    {
+      "Caption": "Microsoft Windows 11 Enterprise LTSC",
+      "Version": "10.0.26100",
+      "BuildNumber": "26100"
+    }
+  ],
+  "display": [
+    {
+      "Name": "Intel(R) UHD Graphics 630",
+      "DriverVersion": "31.0.101.2135",
+      "CurrentHorizontalResolution": 1024,
+      "CurrentVerticalResolution": 768,
+      "CurrentRefreshRate": 60
+    }
+  ]
+}

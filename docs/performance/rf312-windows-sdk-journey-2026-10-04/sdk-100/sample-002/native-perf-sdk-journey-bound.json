@@ -1,0 +1,18 @@
+{
+  "binding": {
+    "frameCreatedEvents": 0,
+    "loaderId": "EE3617E3F1EB0E2D02867790393A9002",
+    "mainFrameId": "6D4583C7BF778233214294B31A1E2B63",
+    "navigationEvents": 0,
+    "source": "http://tauri.localhost/login",
+    "timeOriginMs": null
+  },
+  "browserPid": 30776,
+  "pid": 30480,
+  "port": 52266,
+  "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\sdk-100\\sample-002",
+  "runId": "cb1deaf219e04356ae561b330885e636",
+  "schemaVersion": 1,
+  "scope": "windows-native-sdk-ui-bound",
+  "timeOriginMs": 1791150309652.9
+}

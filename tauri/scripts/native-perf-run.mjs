@@ -701,6 +701,8 @@ export async function rejectDiagnosticBenchmark(root) {
     'native-perf-chromium-log.json',
     'native-perf-sdk-cdp-requested.json',
     'native-perf-sdk-cdp.json',
+    'native-perf-sdk-journey-requested.json',
+    'native-perf-sdk-journey.json',
   ]) {
     try {
       await lstat(path.join(root, filename));

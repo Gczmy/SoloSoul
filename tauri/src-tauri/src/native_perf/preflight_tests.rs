@@ -568,6 +568,8 @@ fn copied_runtime_config(parent: &Path) -> RuntimeConfig {
         run_id: "a".repeat(32),
         chromium_log: None,
         sdk_cdp: false,
+        sdk_journey: false,
+        object_count: 100,
     }
 }
 
@@ -1065,6 +1067,7 @@ fn native_perf_sdk_cdp_is_exclusive_run_only_and_preserves_browser_flags() {
         parse_args(&valid),
         Ok(Mode::Run {
             sdk_cdp: true,
+            sdk_journey: false,
             chromium_log: false,
             ordinary_tmp: false,
             copied_runtime: None,
@@ -1105,4 +1108,44 @@ fn native_perf_sdk_cdp_is_exclusive_run_only_and_preserves_browser_flags() {
     assert_eq!(marker["port"], config.port);
     assert_eq!(marker["windowLabel"], "main");
     assert!(sdk_cdp::claim_request(&config).is_err());
+}
+
+#[test]
+fn sdk_journey_args_are_exclusive_and_never_prepare() {
+    let run = args(&[
+        "--native-perf-root",
+        "C:/owned",
+        "--native-perf-port",
+        "9222",
+        "--native-perf-journey",
+        "sdk-input",
+    ]);
+    assert!(matches!(
+        parse_args(&run),
+        Ok(Mode::Run {
+            sdk_journey: true,
+            sdk_cdp: false,
+            chromium_log: false,
+            ..
+        })
+    ));
+    for tail in [
+        args(&["--native-perf-journey", "sdk-input"]),
+        args(&["--native-perf-diagnostics", "sdk-cdp"]),
+        args(&["--native-perf-diagnostics", "chromium-log"]),
+        args(&["--native-perf-runtime", "C:/runtime"]),
+    ] {
+        let mut bad = run.clone();
+        bad.extend(tail);
+        assert!(parse_args(&bad).is_err());
+    }
+    assert!(parse_args(&args(&[
+        "--native-perf-prepare",
+        "C:/owned",
+        "--fixture",
+        "C:/fixture",
+        "--native-perf-journey",
+        "sdk-input"
+    ]))
+    .is_err());
 }

@@ -483,20 +483,29 @@ pub fn run() {
             )
             .setup(move |app| {
                 let sdk_diagnostic = native_perf::sdk_cdp::Diagnostic::new(&perf);
+                let sdk_journey = native_perf::sdk_journey::Journey::new(&perf);
                 let mut window_builder =
                     tauri::WebviewWindowBuilder::from_config(app, &window_config)?
                         .data_directory(perf.webview.clone())
                         .additional_browser_args(&browser_args)
                         .devtools(true);
-                if let Some(diagnostic) = sdk_diagnostic.clone() {
-                    window_builder = window_builder.on_page_load(move |window, payload| {
-                        diagnostic.page_loaded(window, payload);
-                    });
-                }
+                let loaded_diagnostic = sdk_diagnostic.clone();
+                let loaded_journey = sdk_journey.clone();
+                window_builder = window_builder.on_page_load(move |window, payload| {
+                    if let Some(diagnostic) = &loaded_diagnostic {
+                        diagnostic.page_loaded(window.clone(), payload.clone());
+                    }
+                    if let Some(journey) = &loaded_journey {
+                        journey.page_loaded(window, payload);
+                    }
+                });
                 let window = window_builder.build()?;
                 setup::setup_app(app)?;
                 if let Some(diagnostic) = sdk_diagnostic {
-                    diagnostic.setup_completed(window);
+                    diagnostic.setup_completed(window.clone());
+                }
+                if let Some(journey) = sdk_journey {
+                    journey.setup_completed(window);
                 }
                 Ok(())
             })

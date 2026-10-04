@@ -1,0 +1,6 @@
+{
+  "firstAttemptExit": 1,
+  "reason": "Boundary check refused scalar Target indexed as a character; stopped during inspection before mutation",
+  "correction": "Normalize Target to an array and take its first complete path",
+  "recursiveDeletionPerformedOnFirstAttempt": false
+}
