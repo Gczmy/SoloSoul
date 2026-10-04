@@ -1,6 +1,6 @@
 {
   "task": "RF-1086",
-  "status": "waiting-actual-apple-pr-compile",
+  "status": "completed",
   "baseline": "15b7d546081802d8d0a0808b1fa2eda87649b2b7",
   "original_failure": {
     "run_id": 37157849541,
@@ -91,7 +91,59 @@
       "rawSha256": "c5a3ac8cc5cbfa230f33eb894d21c5ddb22ccd1a3a286c42f41ab0f5e972f394"
     }
   ],
-  "limits": [
+  "actual_apple_acceptance": {
+    "task": "RF-1086",
+    "tested_head": "4715b6676eb42520494deee7dc34a500762db90f",
+    "run": 37166565587,
+    "job": 111330569834,
+    "targets": [
+      "aarch64-apple-ios",
+      "aarch64-apple-ios-sim"
+    ],
+    "step": {
+      "name": "Cargo check (iOS targets)",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 11,
+      "started_at": "2026-10-04T00:59:01Z",
+      "completed_at": "2026-10-04T01:04:56Z"
+    },
+    "shell": "/bin/bash -e",
+    "successful_finish_lines": [
+      "2026-10-04T01:02:25.2789280Z     Finished `dev` profile [optimized + debuginfo] target(s) in 3m 23s",
+      "2026-10-04T01:04:56.8166350Z     Finished `dev` profile [optimized + debuginfo] target(s) in 2m 31s"
+    ],
+    "both_targets_actually_compiled": true,
+    "original_swift_EEXIST_absent": true,
+    "overall_job": "failure in subsequent macOS Clippy build configuration: global tauri allowlist feature mismatch",
+    "limits": [
+      "Two-target compilation closes only RF-1086. RF-1090 and RF-311 remain pending complete macOS gates.",
+      "No signed hardware/Keychain acceptance claim."
+    ],
+    "source_binding": {
+      "tauri": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+      ".github/workflows/pr_check.yml": "673279ecfeee1d0be212d61c8acbd27e57bc99c9",
+      "SoloSoul_plugin_market": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921"
+    },
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1086-ios-target-sequencing-2026-10-03/pr-round3-acceptance/apple-job.log.gz",
+        "sha256": "9a0770257ebf1b406c8c49df82f069a1f049b4205ea0c016e488179b4a470ce0",
+        "rawSha256": "3e1aee316817d26a14c729d15d5108ca210150bd5e7d9cee6ccd20fd0475815e"
+      },
+      {
+        "path": "docs/verification/rf1086-ios-target-sequencing-2026-10-03/pr-round3-acceptance/jobs-snapshot.json.gz",
+        "sha256": "7213afc56b1a653b4622c1fb5ac416575f68547c555301006a6059f91fb6374b",
+        "rawSha256": "aadb1a194c86db9f29867e90905ac039ab7b4550c97c864b6972cae54b8de0de"
+      },
+      {
+        "path": "docs/verification/rf1086-ios-target-sequencing-2026-10-03/pr-round3-acceptance/acceptance.json.gz",
+        "sha256": "3d85920ce218e8f4500c3b035080e03dbb1349542806ff68bd33bc53338ba9ed",
+        "rawSha256": "e7bb8f818b402ec12eb2ed523efbae3283a0ce8629c273719ae316c0bfa47e8d"
+      }
+    ]
+  },
+  "original_validation_limits": [
     "Windows static validation is not iOS compilation; actual Apple PR rerun required.",
     "Keychain device/account verification remains separate."
   ]
