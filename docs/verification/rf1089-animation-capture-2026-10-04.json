@@ -1,6 +1,6 @@
 {
   "task": "RF-1089",
-  "status": "waiting-actual-linux-first-attempt",
+  "status": "completed",
   "baseline": "c52c8d672ef7d6316a1cf22fd83ef8ddee19ca79",
   "original_flaky": "RF1088 full WEB original macos expanded mobile sampler found no active matching menu/zone transitions then retry passed.",
   "diagnostic": {
@@ -170,8 +170,120 @@
       "rawSha256": "0eda4bb3c5876b7f10aa5646f14c8714cc6504692bc44cad55c17a389427fa94"
     }
   ],
-  "limits": [
+  "original_validation_limits": [
     "Actual Linux four animation cases must pass first attempts before closing.",
     "Browser tests do not validate native macOS/Android materials."
-  ]
+  ],
+  "actual_linux_acceptance": {
+    "task": "RF-1089",
+    "tested_head": "ab5a167b179de00bdd9c24dda7b588c030b1e65d",
+    "accepted_from_head": "c693ed8bcc79d4a147cfcd2499459d462991d1b7",
+    "pr": "https://github.com/Gczmy/SoloSoul/pull/2",
+    "run": 37164080869,
+    "job": 111323318852,
+    "source_binding": {
+      "tauri": {
+        "tested_object": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "current_object": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "equal": true
+      },
+      ".github/workflows/ci_cd.yml": {
+        "tested_object": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "current_object": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "equal": true
+      },
+      "SoloSoul_plugin_market": {
+        "tested_object": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "current_object": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "equal": true
+      },
+      ".github/actions/check-frontend/action.yml": {
+        "tested_object": "00895928c5a84d0bf1583d25433f2848f1b6f007",
+        "current_object": "00895928c5a84d0bf1583d25433f2848f1b6f007",
+        "equal": true
+      }
+    },
+    "whole_mobile": {
+      "inventory": 331,
+      "passed": 312,
+      "flaky": 0,
+      "failed": 0,
+      "original_skipped": 19
+    },
+    "first_attempt_cases": [
+      {
+        "inventory_index": 294,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:21:19.0123874Z   ✓  294 [mobile] › e2e/sidebar-tools.spec.ts:535:5 › macos 展开侧栏工具沿底边向上展开、向下收起且不缩放按钮 (3.2s)"
+      },
+      {
+        "inventory_index": 295,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:21:22.6803644Z   ✓  295 [mobile] › e2e/sidebar-tools.spec.ts:535:5 › macos 折叠侧栏工具沿底边向上展开、向下收起且不缩放按钮 (3.7s)"
+      },
+      {
+        "inventory_index": 296,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:21:26.2967681Z   ✓  296 [mobile] › e2e/sidebar-tools.spec.ts:535:5 › windows 展开侧栏工具沿底边向上展开、向下收起且不缩放按钮 (3.6s)"
+      },
+      {
+        "inventory_index": 297,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:21:29.9821655Z   ✓  297 [mobile] › e2e/sidebar-tools.spec.ts:535:5 › windows 折叠侧栏工具沿底边向上展开、向下收起且不缩放按钮 (3.7s)"
+      }
+    ],
+    "frontend": {
+      "run": 37164080866,
+      "job": 111323318744,
+      "vitest_files": 256,
+      "vitest_passed": 2240,
+      "node_passed": 103,
+      "node_failed": 0,
+      "original_linux_platform_skips": 21,
+      "production_e2e_passed": 26,
+      "coverage": [
+        85.59,
+        72.9,
+        80.6,
+        87.47
+      ],
+      "thresholds": [
+        80,
+        70,
+        80,
+        80
+      ],
+      "profile": "Original CI Node22 full F including coverage, TypeScript and lint; original CI testTimeout unchanged, distinct from local 5000ms."
+    },
+    "overall": {
+      "ci_cd": "success",
+      "pr_checks": "failure: Apple iOS resource missing, separate RF-1090"
+    },
+    "limits": [
+      "Linux browser CI does not establish native Android/macOS material acceptance.",
+      "Original local/earlier CI failures and flaky runs remain in task proof."
+    ],
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1089-animation-capture-2026-10-04/pr-round2-acceptance/acceptance.json.gz",
+        "sha256": "aa699f2d1061a16339aa939fd9c61e05d8552820a26e63190c6cbb07921cbe68",
+        "rawSha256": "5eb406e00f41120d2503bc1998dda0384708736032517da70edfe7ab64858d31"
+      },
+      {
+        "path": "docs/verification/rf1089-animation-capture-2026-10-04/pr-round2-acceptance/jobs-snapshot.json.gz",
+        "sha256": "284fd411df8215d44ee33324494694331092f653854931b2377923d0db00b5c4",
+        "rawSha256": "3d787958c5c95b7543d9e6ebb55a9b6080c1d7601c072079db5b93c42f1caa8f"
+      },
+      {
+        "path": "docs/verification/rf1089-animation-capture-2026-10-04/pr-round2-acceptance/mobile.log.gz",
+        "sha256": "78141a4bad7b79399b3a90244a74bc8a2dbf6201ea01167e297942f130a14e16",
+        "rawSha256": "9f6a2bb39d49f75a9a278047d5a22e7381f8a2dafd3d3fef3c9c22fa440ee087"
+      },
+      {
+        "path": "docs/verification/rf1089-animation-capture-2026-10-04/pr-round2-acceptance/frontend.log.gz",
+        "sha256": "11a9ca7b7f36f7acd9f90aa4c10889ed21a17fba2017795901bc5c28e77a493a",
+        "rawSha256": "6817ea6def74242418d72622b549b37046a3bb199acde91ed36768c47fd3bbfe"
+      }
+    ]
+  }
 }
