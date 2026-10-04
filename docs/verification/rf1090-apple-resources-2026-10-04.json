@@ -1,6 +1,6 @@
 {
   "task": "RF-1090",
-  "status": "waiting-actual-apple-all-checks",
+  "status": "completed",
   "baseline": "ab5a167b179de00bdd9c24dda7b588c030b1e65d",
   "failure": {
     "run": 37164080866,
@@ -232,7 +232,169 @@
       "rawSha256": "740191970c5095728f6d0dade417ff0feaea28cfcb55eba25dc4bbbbeaa77258"
     }
   ],
-  "limits": [
+  "actual_apple_acceptance": {
+    "task": "RF-1090",
+    "tested_head": "b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1",
+    "accepted_from_head": "b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1",
+    "pr": "https://github.com/Gczmy/SoloSoul/pull/2",
+    "run": 37167923614,
+    "job": 111334689834,
+    "result": "success",
+    "steps": [
+      {
+        "name": "Install Apple frontend build dependencies",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-04T01:25:00Z",
+        "completed_at": "2026-10-04T01:25:06Z"
+      },
+      {
+        "name": "Build frontend assets for Apple checks",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-04T01:25:06Z",
+        "completed_at": "2026-10-04T01:25:24Z"
+      },
+      {
+        "name": "Prepare unit-test OCR resource layout",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-04T01:25:24Z",
+        "completed_at": "2026-10-04T01:25:24Z"
+      },
+      {
+        "name": "Prepare PDFium for Rust tests",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-04T01:25:24Z",
+        "completed_at": "2026-10-04T01:25:25Z"
+      },
+      {
+        "name": "Cargo check (iOS targets)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-10-04T01:25:29Z",
+        "completed_at": "2026-10-04T01:31:57Z"
+      },
+      {
+        "name": "Align macOS check manifest with platform features",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-10-04T01:31:57Z",
+        "completed_at": "2026-10-04T01:31:58Z"
+      },
+      {
+        "name": "Check formatting",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-10-04T01:31:58Z",
+        "completed_at": "2026-10-04T01:31:59Z"
+      },
+      {
+        "name": "Run Clippy",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-10-04T01:31:59Z",
+        "completed_at": "2026-10-04T01:34:35Z"
+      },
+      {
+        "name": "Check future-keychain feature compiles (macOS)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-10-04T01:34:35Z",
+        "completed_at": "2026-10-04T01:35:10Z"
+      },
+      {
+        "name": "Run Rust Tests",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 16,
+        "started_at": "2026-10-04T01:35:10Z",
+        "completed_at": "2026-10-04T01:48:06Z"
+      },
+      {
+        "name": "Check ACL consistency",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 17,
+        "started_at": "2026-10-04T01:48:06Z",
+        "completed_at": "2026-10-04T01:48:07Z"
+      }
+    ],
+    "actual_macos_R": {
+      "groups": 25,
+      "passed": 1858,
+      "failed": 0,
+      "original_ignored": 3
+    },
+    "source_binding": {
+      "tauri": {
+        "tested": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "current": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "equal": true
+      },
+      "solosoul_cli": {
+        "tested": "ee3b7943026b1bb1a7d3a10284fbf71f75bb19be",
+        "current": "ee3b7943026b1bb1a7d3a10284fbf71f75bb19be",
+        "equal": true
+      },
+      "SoloSoul_plugin_market": {
+        "tested": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "current": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "equal": true
+      },
+      ".github/workflows/pr_check.yml": {
+        "tested": "34a288323c75067fcd6036eccfb1cf0c7c96b32a",
+        "current": "34a288323c75067fcd6036eccfb1cf0c7c96b32a",
+        "equal": true
+      },
+      ".github/workflows/ci_cd.yml": {
+        "tested": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "current": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "equal": true
+      },
+      ".github/actions": {
+        "tested": "c9ba394df31d3486b3cdac354b69c92c342dfffb",
+        "current": "c9ba394df31d3486b3cdac354b69c92c342dfffb",
+        "equal": true
+      }
+    },
+    "both_ios_targets_compiled": true,
+    "macos_strict_clippy_passed": true,
+    "future_keychain_compilation_passed": true,
+    "ACL_passed": true,
+    "limits": [
+      "CI unit-test OCR directory does not prove OCR model inference or release packaging.",
+      "No signed hardware/Keychain or native material/performance acceptance claim."
+    ],
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1090-apple-resources-2026-10-04/pr-round4-acceptance/apple-job.log.gz",
+        "sha256": "6f8893e82f9a06d793d56a92f59958d85e889d9530e1d398300de3047f932225",
+        "rawSha256": "ad8bdb8bd17c874bdd3b0b9d1cb012cd4ee9e2a78309bfad5adddd0dd712005b"
+      },
+      {
+        "path": "docs/verification/rf1090-apple-resources-2026-10-04/pr-round4-acceptance/jobs-snapshot.json.gz",
+        "sha256": "9e6788f8258d802f4786c7ae5bdffc8bcac2d2a952af32a74acca837800f7f33",
+        "rawSha256": "3f229940e01630d2e8173a25749f21b624f29d87f296890b190fc37adf19f8f1"
+      },
+      {
+        "path": "docs/verification/rf1090-apple-resources-2026-10-04/pr-round4-acceptance/acceptance.json.gz",
+        "sha256": "9e1751b0ea8b25a27e61a0a150a1623fe5ce9900f1563e692957c2cf5d11e04b",
+        "rawSha256": "103a4d9e77620170e854d201b60f1660f10da89226f42e35a51054b953f09cf9"
+      }
+    ]
+  },
+  "original_validation_limits": [
     "Windows Node22 real build/layout is not iOS or macOS compilation. Actual Apple two targets, strict Clippy, future-keychain and fullR required.",
     "Real mac-arm64 PDFium asset only downloaded/extracted to verify declared layout; not loaded on Windows. Original Darwin downloader must run in Apple job.",
     "OCR unit fixture has no model and is not for Release or inference."
