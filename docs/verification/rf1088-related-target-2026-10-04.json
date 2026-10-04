@@ -1,6 +1,6 @@
 {
   "task": "RF-1088",
-  "status": "waiting-actual-linux-pr",
+  "status": "completed",
   "baseline": "71fd1ef2cbfb155085aafb586ac617e6dc588a86",
   "root_cause": "Mouse/focus relatedTarget is an EventTarget and may be Window; an unchecked TypeScript cast does not make it a Node. contains then throws before close handling.",
   "change": "Two instanceof Node guards; internal Node remains inside, null/Window considered outside. Existing card-open exception, preview masking and other guarded components unchanged.",
@@ -335,8 +335,115 @@
       "rawSha256": "95117cbbdb081d9d0cc11b7dbca37d132e52c101cee2460de2ddff166caa73d8"
     }
   ],
-  "limits": [
+  "original_validation_limits": [
     "Full WEB has one original animation sampler flaky; follow up independently.",
     "Local Edge does not replace actual Linux PR or native material validation."
-  ]
+  ],
+  "actual_linux_acceptance": {
+    "task": "RF-1088",
+    "tested_head": "ab5a167b179de00bdd9c24dda7b588c030b1e65d",
+    "accepted_from_head": "b164152c07bbc1978f5e72903ad7396a312ad9e8",
+    "pr": "https://github.com/Gczmy/SoloSoul/pull/2",
+    "run": 37164080869,
+    "job": 111323318852,
+    "source_binding": {
+      "tauri": {
+        "tested_object": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "current_object": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "equal": true
+      },
+      ".github/workflows/ci_cd.yml": {
+        "tested_object": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "current_object": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "equal": true
+      },
+      "SoloSoul_plugin_market": {
+        "tested_object": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "current_object": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "equal": true
+      },
+      ".github/actions/check-frontend/action.yml": {
+        "tested_object": "00895928c5a84d0bf1583d25433f2848f1b6f007",
+        "current_object": "00895928c5a84d0bf1583d25433f2848f1b6f007",
+        "equal": true
+      }
+    },
+    "whole_mobile": {
+      "inventory": 331,
+      "passed": 312,
+      "flaky": 0,
+      "failed": 0,
+      "original_skipped": 19
+    },
+    "first_attempt_cases": [
+      {
+        "inventory_index": 262,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:19:44.8851669Z   ✓  262 [mobile] › e2e/object-ruler.spec.ts:302:1 › RF1088 尺标焦点切换保持预览，离开窗口安全收起 (2.4s)"
+      },
+      {
+        "inventory_index": 299,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:21:34.0164902Z   ✓  299 [mobile] › e2e/sidebar-tools.spec.ts:597:3 › RF1088 top 工具栏离开窗口安全收起 (1.9s)"
+      },
+      {
+        "inventory_index": 300,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:21:35.8857657Z   ✓  300 [mobile] › e2e/sidebar-tools.spec.ts:597:3 › RF1088 bottom 工具栏离开窗口安全收起 (1.9s)"
+      }
+    ],
+    "frontend": {
+      "run": 37164080866,
+      "job": 111323318744,
+      "vitest_files": 256,
+      "vitest_passed": 2240,
+      "node_passed": 103,
+      "node_failed": 0,
+      "original_linux_platform_skips": 21,
+      "production_e2e_passed": 26,
+      "coverage": [
+        85.59,
+        72.9,
+        80.6,
+        87.47
+      ],
+      "thresholds": [
+        80,
+        70,
+        80,
+        80
+      ],
+      "profile": "Original CI Node22 full F including coverage, TypeScript and lint; original CI testTimeout unchanged, distinct from local 5000ms."
+    },
+    "overall": {
+      "ci_cd": "success",
+      "pr_checks": "failure: Apple iOS resource missing, separate RF-1090"
+    },
+    "limits": [
+      "Linux browser CI does not establish native Android/macOS material acceptance.",
+      "Original local/earlier CI failures and flaky runs remain in task proof."
+    ],
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1088-related-target-2026-10-04/pr-round2-acceptance/acceptance.json.gz",
+        "sha256": "a3ec6f442d0caa61059a49c2f228166e743e68398342e45f9c2338d732b8d28b",
+        "rawSha256": "d5162fee6354442ae9a7ebefa037d2cf346c0d8eda54a0639bb0444aaedff455"
+      },
+      {
+        "path": "docs/verification/rf1088-related-target-2026-10-04/pr-round2-acceptance/jobs-snapshot.json.gz",
+        "sha256": "284fd411df8215d44ee33324494694331092f653854931b2377923d0db00b5c4",
+        "rawSha256": "3d787958c5c95b7543d9e6ebb55a9b6080c1d7601c072079db5b93c42f1caa8f"
+      },
+      {
+        "path": "docs/verification/rf1088-related-target-2026-10-04/pr-round2-acceptance/mobile.log.gz",
+        "sha256": "78141a4bad7b79399b3a90244a74bc8a2dbf6201ea01167e297942f130a14e16",
+        "rawSha256": "9f6a2bb39d49f75a9a278047d5a22e7381f8a2dafd3d3fef3c9c22fa440ee087"
+      },
+      {
+        "path": "docs/verification/rf1088-related-target-2026-10-04/pr-round2-acceptance/frontend.log.gz",
+        "sha256": "11a9ca7b7f36f7acd9f90aa4c10889ed21a17fba2017795901bc5c28e77a493a",
+        "rawSha256": "6817ea6def74242418d72622b549b37046a3bb199acde91ed36768c47fd3bbfe"
+      }
+    ]
+  }
 }
