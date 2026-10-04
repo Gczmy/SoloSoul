@@ -1,0 +1,73 @@
+{
+  "task": "RF-1073",
+  "status": "completed",
+  "date": "2026-10-03",
+  "base_commit": "c23834ef9c543538ebe79ac8020e57fbb01078f8",
+  "failure": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37134827271",
+    "job_id": 111237127716,
+    "step": "Run Clippy",
+    "exit": 101,
+    "reason": "glib-sys: missing glib-2.0.pc; no Host tests ran"
+  },
+  "fix": "Install official Linux Tauri development prerequisites before Clippy; check glib >=2.70 plus GTK3/WebKit pkg-config entries. No application dependency or gate changed.",
+  "reference": "https://v2.tauri.app/start/prerequisites/#linux",
+  "static_checks": {
+    "yaml": "parsed with locked Prettier",
+    "bash_syntax_exit": 0,
+    "real_linux_ci": "pending",
+    "production_check_repeated": false
+  },
+  "new_remote_run": "pending",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1073-linux-prerequisites-2026-10-03/baseline.json.gz",
+      "sha256": "9d894b226601cc91250dd32ce449c0e7f938d4ebd461df61b0b9dbe9b9ca4840",
+      "rawSha256": "8516bb42babc2544c8ff4633b4fe65fd0f14d136ab6ed0cba841108ce4b3d5eb"
+    },
+    {
+      "path": "docs/verification/rf1073-linux-prerequisites-2026-10-03/linux-dependencies.sh.gz",
+      "sha256": "ccd883c1a6fcc7d258204c098962bdd3a2d9e66c0535c7dc6a2e6176079b2c99",
+      "rawSha256": "24a4a4e44e94dc53260bb17e0463649ec327b591effcff2914a02eab8f823358"
+    },
+    {
+      "path": "docs/verification/rf1073-linux-prerequisites-2026-10-03/static-checks.json.gz",
+      "sha256": "30fd85a97130414ea93c2f68d7b957a2f36c8292d9bcbf01add976a3049681a1",
+      "rawSha256": "0a307b2afa388eaa65e3c69f4c458699d7f51fe8063aef8be946a34cc641b2ac"
+    },
+    {
+      "path": "docs/verification/rf1073-linux-prerequisites-2026-10-03/job-111237127716.log.gz",
+      "sha256": "1e31d65c80d259bf9f69ab95b4ed8d5dcb00dce4fdb09aaf40b8dd8a6e174ecf",
+      "rawSha256": "9ba5e14e8f55c2f005a6985aad61496f0ec9c59804c0ac3f52d852239c853f6c"
+    },
+    {
+      "path": "docs/verification/rf1073-linux-prerequisites-2026-10-03/job-111277389255.log.gz",
+      "sha256": "4fc549b37af8f7e73b39cc854bdf92cfd29ce792d12f47f6f3cab82d53270eec",
+      "rawSha256": "c08b2b0e45c626cdfc0b26ba4449fb0d26742b81ed98468a6286a8d5cc091e7c"
+    },
+    {
+      "path": "docs/verification/rf1073-linux-prerequisites-2026-10-03/remote-acceptance.json.gz",
+      "sha256": "4ce9edcdc9a9f398a3fcb9b122963cb39880e3a2afbae3e2e5a94e08ad4cd480",
+      "rawSha256": "a3092b3aa38531689a2aa4cd5b4b836816fa088f01ccc559f5a7bb1b3e51f8de"
+    }
+  ],
+  "remote_acceptance": {
+    "tested_sha": "aa40ac117a5d6781df2f048995802abe4549e764",
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37148546263",
+    "job_id": 111277389255,
+    "rust": "1.99.0",
+    "clippy": "success",
+    "fmt": "success",
+    "host_unit_passed": 778,
+    "host_unit_failed": 1,
+    "overall_job_conclusion": "failure",
+    "independent_failure": "system locale assertion rejects C",
+    "criterion": "Ubuntu开发库安装、glib最低版本及GTK/WebKit pkg-config检查实际success，Rust1.99严格Clippy通过，Host实际编译并执行779项（778通过/1语言测试失败）。本项验收要求系统库/编译及Host测试继续执行，已满足；不称整个Linux job成功。",
+    "source_identical_git_blobs": {
+      ".github/workflows/ci_cd.yml": {
+        "git_blob_sha256": "ad56a61f8f7a410251e3cfbe7a1041496933fb775a35b5b275b085564fd2dc5d",
+        "working_raw_sha256": "585fb4ee6f6250638ad93350ad6ef3a26dd2fe73360e8bf5d0adfad9538f4840"
+      }
+    }
+  }
+}

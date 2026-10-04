@@ -1,0 +1,632 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "date": "2026-10-03",
+  "base_commit": "80ad860b4117735db813fb35a714ff90a97e2ed6",
+  "status": "waiting-for-ui-ready-boundary-and-native-performance-matrix",
+  "source_freeze": {
+    "tauri/src-tauri/src/native_perf/sdk_cdp.rs": "e2794728d3ec58b36768acf1ce20687b57c3301f0419a024687f2280881c0706",
+    "tauri/scripts/native-perf-ui-root.node.test.mjs": "f9570895bc96544348bd658ded6eeb2f6e851fa4d7dd76da49b742bb95b6c839",
+    "tauri/src-tauri/src/native_perf.rs": "e21598f14ce202b8ee9aae61db4ab8cd43502e63fbf90f0d7b26e692273aab0a",
+    "tauri/src-tauri/src/lib.rs": "1deaafb600aaa8c8987ef52a241158dfbcc5feb98382d6efa465f1e041ea5bdf",
+    "tauri/src-tauri/src/main.rs": "9f92a119ed4fd31dd30638b6b5b11f997cd327df28faa9a460dff11a1553bde5",
+    "tauri/src-tauri/Cargo.toml": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e",
+    "tauri/Cargo.lock": "eaecbdecd19fcbeddb9d3d9cf5d216f06e6c56ff32cb84aaeabde21c97d74fd5",
+    "tauri/src-tauri/tauri.native-perf.conf.json": "d8c99c935b83b62187d61e72258cbc9239ad97a0cf482cde789444814cfa4810",
+    "tauri/package.json": "8aa8199c397a0b06b1e1882a93a4f26621bf9486f67bef2c122781cff1a98f05",
+    "tauri/package-lock.json": "ee6d2e5a81745fcf7f4eeb7318d562a4b3edbe711177f25ec44f457ddf791c90",
+    "tauri/scripts/native-perf-sdk-cdp.mjs": "53c27904bddedc3df9eed6fe4506b28a0bd7f3aa52a3c19346fba6c661b21264",
+    "tauri/scripts/native-perf-run.mjs": "9c7cbba52b8d29719f187ee07867991b25db4a76d350e31deda59c6676b53329",
+    "tauri/src-tauri/src/native_perf/observer.js": "d3e0328a134b64ac389236c9dd5bdb4d7cc5e63bdf03e98e4bee7337e8bca337",
+    "tauri/src/bootstrapApp.tsx": "2d9ddc75cd3e580724f30b91c36a82506e9a8ba5a08dbb1399112af87d083100",
+    "tauri/public/startup.js": "98450ee4f0796d0398c527ec7c52c2f5ffcf4d74025921ede1c22beeb51c728b"
+  },
+  "test_runner_freeze": {
+    "path": "tauri/scripts/run-node-tests.mjs",
+    "sha256": "be4a648eb64605f7d5677a41f8560c9e1cc3b3263871461dff4f33079bb64cb5",
+    "modified_after_release": "Only explicit test file list plus file-local format changed; not a Release build/runtime input. Original Release source/package/lock freeze remains unchanged."
+  },
+  "acceptance_review": {
+    "original_document_acceptance_and_predicate_order_unchanged": true,
+    "original_load_setup_one_shot_gate_unchanged": true,
+    "original_health_guard_dispatch_and_two_call_budget_unchanged": true,
+    "original_source_and_frame_validation_unchanged": true,
+    "read_only_expression_only_adds_fixed_boolean_and_enum_fields": true,
+    "successful_proof_keeps_original_shape": true,
+    "other_rejection_proofs_keep_original_shape": true,
+    "root_probe_only_after_original_document_binding_preconditions_pass": true,
+    "root_probe_types_extra_keys_and_inconsistent_values_rejected": true,
+    "no_DOM_text_input_values_account_data_or_raw_private_values_read_or_saved": true,
+    "node_tests": 101,
+    "resources": 94,
+    "resource_bytes": 41090280,
+    "react_mount_marker_boundary": "mark occurs immediately before createRoot/render call; does not prove render call success or DOM commit."
+  },
+  "checks": [
+    {
+      "name": "node-format",
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--write",
+        "scripts/native-perf-ui-root.node.test.mjs"
+      ],
+      "exit": 0,
+      "seconds": 0.7417443003505468
+    },
+    {
+      "name": "node-format-check",
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "scripts/native-perf-ui-root.node.test.mjs"
+      ],
+      "exit": 0,
+      "seconds": 0.21849900018423796
+    },
+    {
+      "name": "node-tests",
+      "command": [
+        "node",
+        "--test",
+        "scripts/native-perf-run.test.mjs",
+        "scripts/native-perf-diagnose.test.mjs",
+        "scripts/native-perf-runtime.test.mjs",
+        "scripts/native-perf-sdk-cdp.test.mjs",
+        "src-tauri/src/native_perf/observer.node.test.mjs",
+        "scripts/native-perf-ui-root.node.test.mjs"
+      ],
+      "exit": 0,
+      "seconds": 11.836930399760604
+    },
+    {
+      "name": "rust-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all"
+      ],
+      "exit": 0,
+      "seconds": 7.370604199357331
+    },
+    {
+      "name": "rust-native-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--lib",
+        "native_perf::",
+        "--",
+        "--test-threads=1"
+      ],
+      "exit": 0,
+      "seconds": 182.8716323999688
+    },
+    {
+      "name": "rust-native-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 38.69361039996147
+    },
+    {
+      "name": "rust-fmt-check",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 3.0017810007557273
+    },
+    {
+      "name": "release-build",
+      "command": [
+        "node",
+        "node_modules/@tauri-apps/cli/tauri.js",
+        "build",
+        "--config",
+        "src-tauri/tauri.native-perf.conf.json",
+        "--features",
+        "native-perf",
+        "--no-bundle",
+        "--ci"
+      ],
+      "exit": 0,
+      "seconds": 926.7443598993123
+    }
+  ],
+  "native_tests": {
+    "passed": 31,
+    "failed": 0,
+    "ignored": 0,
+    "new": 2
+  },
+  "node_subset": {
+    "passed": 101,
+    "failed": 0,
+    "skipped": 0,
+    "new": 4
+  },
+  "node_full_runner": {
+    "checks": [
+      {
+        "name": "node-runner-format",
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "scripts/run-node-tests.mjs"
+        ],
+        "exit": 1,
+        "seconds": 0.39317560009658337
+      },
+      {
+        "name": "node-runner-format-write",
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--write",
+          "scripts/run-node-tests.mjs"
+        ],
+        "exit": 0,
+        "seconds": 0.20004929974675179
+      },
+      {
+        "name": "node-runner-format-final",
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "scripts/run-node-tests.mjs"
+        ],
+        "exit": 0,
+        "seconds": 0.194021699950099
+      },
+      {
+        "name": "node-full-runner",
+        "command": [
+          "node",
+          "scripts/run-node-tests.mjs"
+        ],
+        "exit": 0,
+        "seconds": 12.080864399671555
+      }
+    ],
+    "tests": 124,
+    "passed": 123,
+    "failed": 0,
+    "skipped": 1,
+    "skip_detail": "Existing stage-mobile-resources symbolic-link negative case skipped because current Windows account lacks symbolic-link creation privilege; all four new root-probe cases ran. First runner format check exit1 (CRLF); file-local Prettier repaired formatting and final check exit0; script diff only adds the new explicit test file."
+  },
+  "default_R": {
+    "new_run": false,
+    "reference": "../verification/rf1071-native-rag-imports-2026-10-03.json",
+    "passed": 1858,
+    "failed": 0,
+    "ignored": 3,
+    "limitation": "Default runtime and dependency files unchanged; Windows non-default SDK module and independent Node test list changed."
+  },
+  "diagnostic": {
+    "run": {
+      "command": [
+        "node",
+        "scripts/native-perf-sdk-cdp.mjs",
+        "--exe",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\bin\\solo_soul.exe",
+        "--fixture",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100",
+        "--output",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01"
+      ],
+      "exit": 1,
+      "seconds": 28.501056499779224,
+      "scope": "one fresh read-only SDK diagnostic; no UI/password actions or performance metrics"
+    },
+    "reason": "document-ui-root-absent",
+    "success": false,
+    "uiRootDiagnostic": {
+      "classification": "root-empty-before-react-mount",
+      "reactMountMarked": false,
+      "rootExists": true,
+      "rootHasChildren": false,
+      "schemaVersion": 1,
+      "scope": "windows-native-ui-root-diagnostic",
+      "startupScreenPresent": true,
+      "startupState": "loading"
+    },
+    "elapsedMs": 7,
+    "proofArrivedAfterSpawnMs": 2329,
+    "actual_browser_version": "154.0.4258.48",
+    "performanceMetrics": null,
+    "acceptedSdkProtocolCalls": null,
+    "document": null,
+    "observer": null,
+    "timeOriginMs": null,
+    "post_proof_success_identity_validation": false
+  },
+  "finding": "At this bound one-shot observation the root exists but is empty, the React mount-call mark is not present and the startup screen is loading. It is not a missing root container or observed startup error. Later readiness, the specific pending bootstrap step and successful React rendering remain unproven.",
+  "next_step": "Define a bounded explicit UI-ready diagnostic boundary after actual React content is committed; preserve this early observation and distinguish readiness waits from performance samples. No arbitrary delay/retry or reduced root/observer requirement.",
+  "binary": [
+    {
+      "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\target\\release\\solo_soul.exe",
+      "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\bin\\solo_soul.exe",
+      "bytes": 101640192,
+      "sha256": "84b6e069b3e2402bda32072def4a439af957dc57ab174ee1d68b62dd4c906340"
+    },
+    {
+      "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\target\\release\\DirectML.dll",
+      "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\bin\\DirectML.dll",
+      "bytes": 18527776,
+      "sha256": "9c9e6d822561c6c41b90e6994b3e8857cf1d66dbfb1e0c4c799c7c89b4e92da1"
+    }
+  ],
+  "public_resources": {
+    "count": 94,
+    "bytes": 41090280,
+    "inventory": "resource-inventory.json"
+  },
+  "preservation": {
+    "fixture_source_7_files_unchanged": true,
+    "source_freeze_15_paths_unchanged": true,
+    "dependencies_unchanged": true,
+    "old_failures_and_stash_preserved": true,
+    "no_production_frontend_change": true
+  },
+  "cleanup": {
+    "original": {
+      "cleanup": [
+        {
+          "status": "already-exited",
+          "pid": 41656
+        },
+        {
+          "status": "terminated",
+          "pid": 35896
+        },
+        {
+          "status": "terminated",
+          "pid": 42600
+        },
+        {
+          "status": "terminated",
+          "pid": 8876
+        },
+        {
+          "status": "terminated",
+          "pid": 41108
+        },
+        {
+          "status": "terminated",
+          "pid": 38236
+        },
+        {
+          "status": "terminated",
+          "pid": 27788
+        },
+        {
+          "status": "terminated",
+          "pid": 30100
+        },
+        {
+          "status": "terminated",
+          "pid": 34476
+        }
+      ],
+      "unverifiedDescendants": false
+    },
+    "integrity": {
+      "complete": true,
+      "reason": null
+    },
+    "fresh_cim": {
+      "observedAt": "2026-10-03T15:15:11.8802651Z",
+      "method": "fresh CIM; all recorded PID and exact owned app/browser profiles",
+      "recordedPids": [
+        34476,
+        30100,
+        35896,
+        42600,
+        27788,
+        38236,
+        41108,
+        41656,
+        8876
+      ],
+      "matchingProcessCount": 0,
+      "matchingProcesses": []
+    },
+    "exact_owned_directories": [
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001",
+        "resolved": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001",
+        "verified_parent": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01",
+        "status": "removed",
+        "unlinked_reparse_entries_without_following": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5"
+        ]
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.317544faeba44f37b5d1388cbbf4793e",
+        "resolved": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.317544faeba44f37b5d1388cbbf4793e",
+        "verified_parent": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming",
+        "status": "removed",
+        "unlinked_reparse_entries_without_following": []
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.317544faeba44f37b5d1388cbbf4793e",
+        "resolved": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.317544faeba44f37b5d1388cbbf4793e",
+        "verified_parent": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local",
+        "status": "removed",
+        "unlinked_reparse_entries_without_following": []
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "source": "baseline.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/baseline.json.gz",
+      "original_bytes": 294886,
+      "original_sha256": "2fbfde2595256eb84716efa7bf25160fc7a467d06bd397dbaa31f96bb0cbdd43",
+      "stored_bytes": 109391,
+      "stored_sha256": "1b97170f5d058df4bdfd34bfda9ec9a6b90991ca91309ec647543e9f2bfd11ca"
+    },
+    {
+      "source": "source-freeze.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/source-freeze.json",
+      "original_bytes": 1594,
+      "original_sha256": "c686c280a956261b7cd2da27d72515ac1a2bc12727d72e7b400061e5cf2618c8",
+      "stored_bytes": 1594,
+      "stored_sha256": "c686c280a956261b7cd2da27d72515ac1a2bc12727d72e7b400061e5cf2618c8"
+    },
+    {
+      "source": "runner-freeze.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/runner-freeze.json",
+      "original_bytes": 324,
+      "original_sha256": "e8560919d30b542d7236f683f356b37b116e14a0b1f9e37ca73a41c029312d49",
+      "stored_bytes": 324,
+      "stored_sha256": "e8560919d30b542d7236f683f356b37b116e14a0b1f9e37ca73a41c029312d49"
+    },
+    {
+      "source": "acceptance-review.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/acceptance-review.json",
+      "original_bytes": 895,
+      "original_sha256": "4ffba49630bf3e3c6b207c5c656f2d9e0e3713ce9a425a5a49ca96110b2b4772",
+      "stored_bytes": 895,
+      "stored_sha256": "4ffba49630bf3e3c6b207c5c656f2d9e0e3713ce9a425a5a49ca96110b2b4772"
+    },
+    {
+      "source": "checks.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/checks.json",
+      "original_bytes": 2277,
+      "original_sha256": "006a5bf886eb1f752875cf52f43262486806700c0377d7f1c5be9cf286b282a2",
+      "stored_bytes": 2277,
+      "stored_sha256": "006a5bf886eb1f752875cf52f43262486806700c0377d7f1c5be9cf286b282a2"
+    },
+    {
+      "source": "node-runner-checks.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/node-runner-checks.json",
+      "original_bytes": 913,
+      "original_sha256": "db0c575b3bb8d54f668bb6d82c3189b3eae7cca10b77b23c678990fd35769f03",
+      "stored_bytes": 913,
+      "stored_sha256": "db0c575b3bb8d54f668bb6d82c3189b3eae7cca10b77b23c678990fd35769f03"
+    },
+    {
+      "source": "binary-inventory.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/binary-inventory.json",
+      "original_bytes": 632,
+      "original_sha256": "4e6ccd3e83ed14515d44093faffcf1cabe0cdc9705182e1af0b97da3c2f8206e",
+      "stored_bytes": 632,
+      "stored_sha256": "4e6ccd3e83ed14515d44093faffcf1cabe0cdc9705182e1af0b97da3c2f8206e"
+    },
+    {
+      "source": "resource-inventory.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/resource-inventory.json",
+      "original_bytes": 53439,
+      "original_sha256": "6b04b75398dad8a464425be466d3d0e2fbfd4609f0a1629f7be59331b39aa2b2",
+      "stored_bytes": 53439,
+      "stored_sha256": "6b04b75398dad8a464425be466d3d0e2fbfd4609f0a1629f7be59331b39aa2b2"
+    },
+    {
+      "source": "sdk-diagnostic-run.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/sdk-diagnostic-run.json",
+      "original_bytes": 573,
+      "original_sha256": "71fb71c47a160d5e7ecc77803b5d2e846625a6e48d83bf68ac77fabad088a17d",
+      "stored_bytes": 573,
+      "stored_sha256": "71fb71c47a160d5e7ecc77803b5d2e846625a6e48d83bf68ac77fabad088a17d"
+    },
+    {
+      "source": "final-process-check.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/final-process-check.json",
+      "original_bytes": 326,
+      "original_sha256": "7d114dace4c3bfc5c5419923d33a004a9a51db80f4e0db9e22817b738d17565c",
+      "stored_bytes": 326,
+      "stored_sha256": "7d114dace4c3bfc5c5419923d33a004a9a51db80f4e0db9e22817b738d17565c"
+    },
+    {
+      "source": "node-format.log",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/node-format.log.gz",
+      "original_bytes": 47,
+      "original_sha256": "ec0ac8bd911ce1220d264b89b506613044b5f3303d32e33a1758c8f949dbae61",
+      "stored_bytes": 67,
+      "stored_sha256": "6934269dc70331104536a76f39dbe6c2e0ec02c5934adb5d0d4c952fc64cf5d3"
+    },
+    {
+      "source": "node-format-check.log",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/node-format-check.log.gz",
+      "original_bytes": 66,
+      "original_sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "stored_bytes": 82,
+      "stored_sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5"
+    },
+    {
+      "source": "node-tests.log",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/node-tests.log.gz",
+      "original_bytes": 10143,
+      "original_sha256": "0fecadadaaa1c84afd21d5bcc42eee914948f04dcf8bff0a17116ebc2d3e6dff",
+      "stored_bytes": 4087,
+      "stored_sha256": "8809dc1073236afbf5f42472d2265ec6e1bbe47eb4f2877e9026b46905d9bba9"
+    },
+    {
+      "source": "rust-fmt.log",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/rust-fmt.log.gz",
+      "original_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 20,
+      "stored_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "rust-native-tests.log",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/rust-native-tests.log.gz",
+      "original_bytes": 11911,
+      "original_sha256": "0c0ba853be85b78d732453879faf1ddf62ea92f59da67f282ee13d780e23eb5d",
+      "stored_bytes": 1628,
+      "stored_sha256": "dfeb074465ffda0618729941b4e540be3efd05c156b09aa58f5f50ebd0c8c282"
+    },
+    {
+      "source": "rust-native-clippy.log",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/rust-native-clippy.log.gz",
+      "original_bytes": 147,
+      "original_sha256": "895ec3766f9299222f7caee2257881059f52d9c91dfd98390c9d2f9bd11a2fca",
+      "stored_bytes": 150,
+      "stored_sha256": "003403e8aa523d4df4ece43a68cd3d13f8d61af7ca0a5b9e7ee10f681c2b4f78"
+    },
+    {
+      "source": "rust-fmt-check.log",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/rust-fmt-check.log.gz",
+      "original_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stored_bytes": 20,
+      "stored_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "source": "release-build.log",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/release-build.log.gz",
+      "original_bytes": 6411,
+      "original_sha256": "d31143ca2e55f52e87dd2a7d127e4e1f6a0ae8e214d24fbe4723f8d881890f9a",
+      "stored_bytes": 2344,
+      "stored_sha256": "a06c7a9e94ce3a280502a2012817450c4b684d669fddddea8dbadb41a86bba4d"
+    },
+    {
+      "source": "sdk-diagnostic.log",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/sdk-diagnostic.log.gz",
+      "original_bytes": 153,
+      "original_sha256": "93c355f580bcc494e5674fdfaf865a9076cc49d9c038f5257e2ac36dd1b4ae4e",
+      "stored_bytes": 144,
+      "stored_sha256": "e7b981d78c75ac8789e79df22403282e803b35ddd382c247729a841f2f61e7ab"
+    },
+    {
+      "source": "node-runner-format-first.log",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/node-runner-format-first.log.gz",
+      "original_bytes": 141,
+      "original_sha256": "6eee4d51b5ae49e5ac9598ae731620b9b2ce95d594b2c954264c9a52b3135cac",
+      "stored_bytes": 133,
+      "stored_sha256": "d0679c5c8c7c86dff9796c3f1d8ab97341ff681833b06cfb5482b3bef97ea4cc"
+    },
+    {
+      "source": "node-runner-format-write.log",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/node-runner-format-write.log.gz",
+      "original_bytes": 32,
+      "original_sha256": "e8d8612ee370e3d72a894e3f7a237711793fb0fd8d231e87051f91ecfd7e7883",
+      "stored_bytes": 52,
+      "stored_sha256": "498de0fde3703375ff2690b4884cdf8dc56c8d6d22b2b6dd7cd7ad301a37f1e6"
+    },
+    {
+      "source": "node-runner-format-final.log",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/node-runner-format-final.log.gz",
+      "original_bytes": 66,
+      "original_sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "stored_bytes": 82,
+      "stored_sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5"
+    },
+    {
+      "source": "node-full-runner.log",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/node-full-runner.log.gz",
+      "original_bytes": 12755,
+      "original_sha256": "32da8125a18b22620db47f00e1c733085796064e8d7be930981eda5670ebbe16",
+      "stored_bytes": 5787,
+      "stored_sha256": "7fd37f87b2222c98b5352f037245599fafbaf3cedb91a6ee05619547585704fe"
+    },
+    {
+      "source": "sdk-root-state-01/native-perf-sdk-cdp-diagnostics.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/sdk-root-state-01/native-perf-sdk-cdp-diagnostics.json",
+      "original_bytes": 16112,
+      "original_sha256": "7b9a15e01a2a58493e93857113b16d70ed40da53dee93c6def65273e7a1bc7ac",
+      "stored_bytes": 16112,
+      "stored_sha256": "7b9a15e01a2a58493e93857113b16d70ed40da53dee93c6def65273e7a1bc7ac"
+    },
+    {
+      "source": "sdk-root-state-01/sample-001/native-perf-owned.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/sdk-root-state-01/sample-001/native-perf-owned.json",
+      "original_bytes": 3372,
+      "original_sha256": "7b0bc74253b26bdb00ddd670b0db2602f5bb4bf60e8937f98945c5152ca1535b",
+      "stored_bytes": 3372,
+      "stored_sha256": "7b0bc74253b26bdb00ddd670b0db2602f5bb4bf60e8937f98945c5152ca1535b"
+    },
+    {
+      "source": "sdk-root-state-01/sample-001/native-perf-consumed.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/sdk-root-state-01/sample-001/native-perf-consumed.json",
+      "original_bytes": 271,
+      "original_sha256": "8e8201dbb7a91c1fb4756298d092d3c9c9cd285cebb60acc8d76a95ce950ccd3",
+      "stored_bytes": 271,
+      "stored_sha256": "8e8201dbb7a91c1fb4756298d092d3c9c9cd285cebb60acc8d76a95ce950ccd3"
+    },
+    {
+      "source": "sdk-root-state-01/sample-001/native-perf-sdk-cdp-requested.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/sdk-root-state-01/sample-001/native-perf-sdk-cdp-requested.json",
+      "original_bytes": 351,
+      "original_sha256": "053ba58e56a920b9efe3c014ea1b37b1cb166d8b056b91810ea7380007091c5a",
+      "stored_bytes": 351,
+      "stored_sha256": "053ba58e56a920b9efe3c014ea1b37b1cb166d8b056b91810ea7380007091c5a"
+    },
+    {
+      "source": "sdk-root-state-01/sample-001/native-perf-sdk-cdp.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/sdk-root-state-01/sample-001/native-perf-sdk-cdp.json",
+      "original_bytes": 1185,
+      "original_sha256": "4cb3e42170cbcc1239efc5e440d7f2780cb04c1d1c9376529d7227f8c487b532",
+      "stored_bytes": 1185,
+      "stored_sha256": "4cb3e42170cbcc1239efc5e440d7f2780cb04c1d1c9376529d7227f8c487b532"
+    },
+    {
+      "source": "cache-cleanup.json",
+      "path": "docs/performance/rf312-windows-ui-root-2026-10-03/cache-cleanup.json",
+      "original_bytes": 1743,
+      "original_sha256": "a08ad866d2677e425f9f52112a42bad88c23191dd929a7e52093e265bb34e136",
+      "stored_bytes": 1743,
+      "stored_sha256": "a08ad866d2677e425f9f52112a42bad88c23191dd929a7e52093e265bb34e136"
+    }
+  ],
+  "scope": {
+    "unchanged_unowned_tracked_raw": 2243,
+    "mismatches": [],
+    "stash_unchanged": true,
+    "task_index_cards": 261,
+    "states": {
+      "x": 249,
+      "!": 5,
+      " ": 7
+    },
+    "markdown_dependency_boundary": {
+      "exit": 0,
+      "dependencies": 13
+    }
+  }
+}

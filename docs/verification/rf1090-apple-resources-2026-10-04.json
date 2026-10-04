@@ -1,0 +1,402 @@
+{
+  "task": "RF-1090",
+  "status": "completed",
+  "baseline": "ab5a167b179de00bdd9c24dda7b588c030b1e65d",
+  "failure": {
+    "run": 37164080866,
+    "job": 111323318631,
+    "head": "ab5a167b179de00bdd9c24dda7b588c030b1e65d",
+    "target": "aarch64-apple-ios",
+    "error": "build.rs resource path resources-mobile/SoloSoul_plugin_market/plugins does not exist",
+    "exit": 101,
+    "simulator_not_reached": true,
+    "original_EEXIST_absent_this_run": true
+  },
+  "change": "Add Node22/npm ci/real npm run build for declared mobile and desktop resources and frontendDist; add guarded explicitly no-model OCR unit layout. Move original real PDFium preparation before target checks. All original gate bodies and other jobs unchanged.",
+  "semantic_freeze": {
+    "old_steps": 11,
+    "new_steps": 15,
+    "all_original_step_bodies_same": true,
+    "only_new_steps": [
+      "- name: Setup Node for Apple check resources",
+      "- name: Install Apple frontend build dependencies",
+      "- name: Build frontend assets for Apple checks",
+      "- name: Prepare unit-test OCR resource layout"
+    ],
+    "PDFium_original_body_moved_before_all_target_checks": true,
+    "other_original_step_order_kept": true,
+    "both_original_iOS_commands_kept": true,
+    "other_jobs_byte_equal": true
+  },
+  "static": {
+    "yaml_format": 0,
+    "actionlint": 0
+  },
+  "isolated_build": [
+    {
+      "name": "npm-ci",
+      "args": [
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1088-related-target-20261004\\node22\\node-v22.23.3-win-x64\\node.exe",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1088-related-target-20261004\\node22\\node-v22.23.3-win-x64\\node_modules\\npm\\bin\\npm-cli.js",
+        "ci"
+      ],
+      "exit": 0,
+      "seconds": 37.709921499714255,
+      "owned_pid": 29752
+    },
+    {
+      "name": "real-build",
+      "args": [
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1088-related-target-20261004\\node22\\node-v22.23.3-win-x64\\node.exe",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1088-related-target-20261004\\node22\\node-v22.23.3-win-x64\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build"
+      ],
+      "exit": 0,
+      "seconds": 73.23563829995692,
+      "owned_pid": 36124
+    }
+  ],
+  "layout": {
+    "real_build": true,
+    "runtime_files": [
+      {
+        "directory": "resources-mobile",
+        "files": 45,
+        "all_match_source": true
+      },
+      {
+        "directory": "resources-desktop",
+        "files": 45,
+        "all_match_source": true
+      }
+    ],
+    "declared_overlay_paths": [
+      {
+        "config": "tauri.ios.conf.json",
+        "resource": "resources-mobile/SoloSoul_plugin_market/plugins",
+        "exists": true
+      },
+      {
+        "config": "tauri.ios.conf.json",
+        "resource": "resources-mobile/SoloSoul_plugin_market/registry.json",
+        "exists": true
+      },
+      {
+        "config": "tauri.macos.conf.json",
+        "resource": "resources/pdfium",
+        "exists": true
+      },
+      {
+        "config": "tauri.macos.conf.json",
+        "resource": "resources/models/pp-ocr-v6-small",
+        "exists": true
+      },
+      {
+        "config": "tauri.macos.conf.json",
+        "resource": "resources-desktop/SoloSoul_plugin_market/plugins",
+        "exists": true
+      },
+      {
+        "config": "tauri.macos.conf.json",
+        "resource": "resources-desktop/SoloSoul_plugin_market/registry.json",
+        "exists": true
+      }
+    ],
+    "frontend_index_sha256": "3414e264828add9c8a15f9d192e057173ee74777881475b95343c8ad2c797e78",
+    "referenced_assets": [
+      "/assets/index-CskjALY1.js",
+      "/assets/rolldown-runtime-Cyuzqnbw.js",
+      "/assets/core-BAM5JyGC.js",
+      "/assets/react-SqCrPCpP.js",
+      "/assets/index-B_i18wfL.css",
+      "/assets/128x128@2x-lsnePcND.png"
+    ],
+    "all_referenced_assets_exist": true,
+    "ocr_model_files": 0,
+    "ocr_explicit_marker_only": true,
+    "local_actual_Apple_compile": false,
+    "pdfium_asset_not_loaded": true
+  },
+  "ocr_guard": [
+    {
+      "name": "layout-fresh",
+      "exit": 0,
+      "expected": 0,
+      "existing_marker_kept": true
+    },
+    {
+      "name": "layout-existing-refused",
+      "exit": 1,
+      "expected": 1,
+      "existing_marker_kept": true
+    }
+  ],
+  "source_frozen_non_owned": 2604,
+  "stash_unchanged": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90",
+  "workflow_after_sha256": "f662b049f878a5e7e674eb508687f7ff2a8a82df08661965fc08588f08aa4530",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/baseline.json.gz",
+      "sha256": "bce49ace5baa654768638fdad0812d88b0a5940367fa88bc0769d20a9742a8e2",
+      "rawSha256": "2b264536b3720cbd43aaceb915599ca07364443170b3808a3f9e3190df92532b"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/workflow-before.yml.gz",
+      "sha256": "2ae307bd2425cff112aff04ef3e52da7c161c61e15b31f3ee50d8a0403e7d612",
+      "rawSha256": "f1005c64ce6e8dc7192a92b38baea86b79b0ea2b44b90baac6cb14531a67849c"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/static-checks.json.gz",
+      "sha256": "8a09876a35076bb385ae806f1765df1fe77e58083263eeedf6181bd16aa0026a",
+      "rawSha256": "54888e60a09842fed339b6dfd403264bcd1b5a1ac609528fe89daf63101cc629"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/yaml-format.log.gz",
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/actionlint.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/job-semantic-freeze.json.gz",
+      "sha256": "f4486910d97015cbefc02d78dc6b4d49bc0cafd11f84d2865f0ae9ca29bc9529",
+      "rawSha256": "31c9987e1f2cbb0c812de3edffddf20ebcdfbebae2da24c5bbc0d06c0c72ea28"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/build-checks.json.gz",
+      "sha256": "4c50f90bc39e36eae384248aabdb209cea9a324eb3170217182fd19fa70fe8fd",
+      "rawSha256": "1757bffafae0b48fa5f72cc2b6eae3c3350422dcc486e9c89676955e3a1d46e0"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/npm-ci.log.gz",
+      "sha256": "8c88f9e6a6683d7db57afd47c5c77d66d5d40800fb58f8b091523a0fcc341fe7",
+      "rawSha256": "e95669acaba794c1d3cee91d159a69e86da231cf9f3fb56c09c4a2eb695f186f"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/real-build.log.gz",
+      "sha256": "032d47662a87c7919d56507c8aa7568e9a2ffd21be29b05d44721482764f982f",
+      "rawSha256": "c846ddbf24a56c0f035d8d5a1a08618b8c4b492e696fdb52ae280aff9883feb1"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/clean-source-missing-resources.json.gz",
+      "sha256": "cfde35176d942f14f1856a5eb0d86bf25374ad67a7af3ab4c1b88d608d92a37c",
+      "rawSha256": "fb9d37c8574eed4b504d2e387638ff1992e00978457ffd1381c13193dfb9b4ef"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/submodule-runtime-inputs.json.gz",
+      "sha256": "2b9a8bf50313fddc4ef51ecbeba33102ccea404be4fee8d9672b45befd376934",
+      "rawSha256": "509b8d83bedd4cf2c89840a8f15168b4da0d6b13c740eb1407e2df34adbb245a"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/layout-verification.json.gz",
+      "sha256": "9b04794b3646dc5d7b4dd7a4bdc0cdda8d0d3fb36870ac0e0283e34d99c11cde",
+      "rawSha256": "96bea19b7a7452d09be4ff36a73ef565fc5a377d6f81ac686b0e25163e84b685"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/ocr-layout-checks.json.gz",
+      "sha256": "9f044f2114339f41c8d6ff126a386fc10abdfe1fd287344bd9e278d11f216f34",
+      "rawSha256": "6373a28d9a549ae9a0f4824aa5824296b08c86c44a4b98782b40eb676b173ec5"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/ocr-layout-exact.sh.gz",
+      "sha256": "cfaf41836ba385e09725e1def98bd630c46b2ae109e6d78e59e2d9068e8680e0",
+      "rawSha256": "d72ed0a5b9e4d54fa670fa40ffe6f5528b080430ac1c08a1643ce9690ad182b0"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/layout-fresh.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/layout-existing-refused.log.gz",
+      "sha256": "a90326892289f5ff7dcfa4c7be0b2650c233bda8ff2f75a6a9c00461df6e1857",
+      "rawSha256": "eb5fe475a4031bc8674a7444044a50a4a55d711bc2a1e6719db2f58319e7dbbc"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/mac-pdfium-layout-only.json.gz",
+      "sha256": "6c3946a5d44ce7fbd84e778542d5be907a7d85dccae090c76f52196aa4bed924",
+      "rawSha256": "9988e8370c1b689a54eba991c4dbcf8b897f51efa4788e3e4db45df347de818c"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/build.py.gz",
+      "sha256": "b66046f4fa233f1b0ea0abe6a0d0edffd1dd485fff8158eaafaa5bb3df60b217",
+      "rawSha256": "6a29dffb24a036bb5a669a077ece5076b80c8204a5ee92eedd10bb0fd5376af4"
+    },
+    {
+      "path": "docs/verification/rf1090-apple-resources-2026-10-04/actual-apple-resource-failure.log.gz",
+      "sha256": "3652b542f152f8553b87f5e915e01e3c3610df87d2a896857d7b5ce38cae82f0",
+      "rawSha256": "740191970c5095728f6d0dade417ff0feaea28cfcb55eba25dc4bbbbeaa77258"
+    }
+  ],
+  "actual_apple_acceptance": {
+    "task": "RF-1090",
+    "tested_head": "b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1",
+    "accepted_from_head": "b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1",
+    "pr": "https://github.com/Gczmy/SoloSoul/pull/2",
+    "run": 37167923614,
+    "job": 111334689834,
+    "result": "success",
+    "steps": [
+      {
+        "name": "Install Apple frontend build dependencies",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-04T01:25:00Z",
+        "completed_at": "2026-10-04T01:25:06Z"
+      },
+      {
+        "name": "Build frontend assets for Apple checks",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-04T01:25:06Z",
+        "completed_at": "2026-10-04T01:25:24Z"
+      },
+      {
+        "name": "Prepare unit-test OCR resource layout",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-04T01:25:24Z",
+        "completed_at": "2026-10-04T01:25:24Z"
+      },
+      {
+        "name": "Prepare PDFium for Rust tests",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-04T01:25:24Z",
+        "completed_at": "2026-10-04T01:25:25Z"
+      },
+      {
+        "name": "Cargo check (iOS targets)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-10-04T01:25:29Z",
+        "completed_at": "2026-10-04T01:31:57Z"
+      },
+      {
+        "name": "Align macOS check manifest with platform features",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-10-04T01:31:57Z",
+        "completed_at": "2026-10-04T01:31:58Z"
+      },
+      {
+        "name": "Check formatting",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-10-04T01:31:58Z",
+        "completed_at": "2026-10-04T01:31:59Z"
+      },
+      {
+        "name": "Run Clippy",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-10-04T01:31:59Z",
+        "completed_at": "2026-10-04T01:34:35Z"
+      },
+      {
+        "name": "Check future-keychain feature compiles (macOS)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-10-04T01:34:35Z",
+        "completed_at": "2026-10-04T01:35:10Z"
+      },
+      {
+        "name": "Run Rust Tests",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 16,
+        "started_at": "2026-10-04T01:35:10Z",
+        "completed_at": "2026-10-04T01:48:06Z"
+      },
+      {
+        "name": "Check ACL consistency",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 17,
+        "started_at": "2026-10-04T01:48:06Z",
+        "completed_at": "2026-10-04T01:48:07Z"
+      }
+    ],
+    "actual_macos_R": {
+      "groups": 25,
+      "passed": 1858,
+      "failed": 0,
+      "original_ignored": 3
+    },
+    "source_binding": {
+      "tauri": {
+        "tested": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "current": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "equal": true
+      },
+      "solosoul_cli": {
+        "tested": "ee3b7943026b1bb1a7d3a10284fbf71f75bb19be",
+        "current": "ee3b7943026b1bb1a7d3a10284fbf71f75bb19be",
+        "equal": true
+      },
+      "SoloSoul_plugin_market": {
+        "tested": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "current": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "equal": true
+      },
+      ".github/workflows/pr_check.yml": {
+        "tested": "34a288323c75067fcd6036eccfb1cf0c7c96b32a",
+        "current": "34a288323c75067fcd6036eccfb1cf0c7c96b32a",
+        "equal": true
+      },
+      ".github/workflows/ci_cd.yml": {
+        "tested": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "current": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "equal": true
+      },
+      ".github/actions": {
+        "tested": "c9ba394df31d3486b3cdac354b69c92c342dfffb",
+        "current": "c9ba394df31d3486b3cdac354b69c92c342dfffb",
+        "equal": true
+      }
+    },
+    "both_ios_targets_compiled": true,
+    "macos_strict_clippy_passed": true,
+    "future_keychain_compilation_passed": true,
+    "ACL_passed": true,
+    "limits": [
+      "CI unit-test OCR directory does not prove OCR model inference or release packaging.",
+      "No signed hardware/Keychain or native material/performance acceptance claim."
+    ],
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1090-apple-resources-2026-10-04/pr-round4-acceptance/apple-job.log.gz",
+        "sha256": "6f8893e82f9a06d793d56a92f59958d85e889d9530e1d398300de3047f932225",
+        "rawSha256": "ad8bdb8bd17c874bdd3b0b9d1cb012cd4ee9e2a78309bfad5adddd0dd712005b"
+      },
+      {
+        "path": "docs/verification/rf1090-apple-resources-2026-10-04/pr-round4-acceptance/jobs-snapshot.json.gz",
+        "sha256": "9e6788f8258d802f4786c7ae5bdffc8bcac2d2a952af32a74acca837800f7f33",
+        "rawSha256": "3f229940e01630d2e8173a25749f21b624f29d87f296890b190fc37adf19f8f1"
+      },
+      {
+        "path": "docs/verification/rf1090-apple-resources-2026-10-04/pr-round4-acceptance/acceptance.json.gz",
+        "sha256": "9e1751b0ea8b25a27e61a0a150a1623fe5ce9900f1563e692957c2cf5d11e04b",
+        "rawSha256": "103a4d9e77620170e854d201b60f1660f10da89226f42e35a51054b953f09cf9"
+      }
+    ]
+  },
+  "original_validation_limits": [
+    "Windows Node22 real build/layout is not iOS or macOS compilation. Actual Apple two targets, strict Clippy, future-keychain and fullR required.",
+    "Real mac-arm64 PDFium asset only downloaded/extracted to verify declared layout; not loaded on Windows. Original Darwin downloader must run in Apple job.",
+    "OCR unit fixture has no model and is not for Release or inference."
+  ]
+}

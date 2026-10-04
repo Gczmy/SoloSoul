@@ -1,0 +1,289 @@
+{
+  "task": "RF-1089",
+  "status": "completed",
+  "baseline": "c52c8d672ef7d6316a1cf22fd83ef8ddee19ca79",
+  "original_flaky": "RF1088 full WEB original macos expanded mobile sampler found no active matching menu/zone transitions then retry passed.",
+  "diagnostic": {
+    "delay_ms": 600,
+    "old_sampler_failed": 2,
+    "new_capture_passed": 2,
+    "projects": [
+      "chromium",
+      "mobile"
+    ],
+    "diagnostic_only_retries": 0,
+    "delay_absent_from_formal_source": true,
+    "limits": "Controlled elapsed-time reproduction supports late sampling as a cause; it does not measure original flaky inter-process elapsed time."
+  },
+  "change": "Listen to real original clip-path transitionrun before hover/move. Pause both original transitions immediately, wait both captured, then use original sampling callback including original duration,15/50/85% times,pause/finish and all geometry assertions. No production CSS/source/timing/timeout/retry/skip change.",
+  "sampler_ast": {
+    "equal": true,
+    "method": "Original sampleMenuSweep async evaluate callback AST; only transition capture and readiness added outside",
+    "sha256": "21a68ca4cc5cb4a802eb4b5406eab501f3eec5df96672f84a2187099c60ad284"
+  },
+  "web_full": {
+    "passed": 50,
+    "flaky": 0,
+    "failed": 0,
+    "all_original_sidebar_cases": true,
+    "stock_CI_retries": 2,
+    "runtime": "verified explicit Node22.23.3 / installed Edge",
+    "checks": [
+      {
+        "name": "web-full",
+        "args": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1088-related-target-20261004\\node22\\node-v22.23.3-win-x64\\node.exe",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "e2e/sidebar-tools.spec.ts",
+          "--project=chromium",
+          "--project=mobile",
+          "--config",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1089-animation-capture-20261004\\playwright.config.mjs"
+        ],
+        "exit": 0,
+        "seconds": 185.66133579984307,
+        "owned_pid": 42988
+      }
+    ]
+  },
+  "inventory_mobile": {
+    "count": 331,
+    "exact_previous_cases_equal": true
+  },
+  "full_F_reused": {
+    "source_baseline": "c52c8d672ef7d6316a1cf22fd83ef8ddee19ca79",
+    "full_F_evidence": "docs/verification/rf1088-related-target-2026-10-04.json",
+    "runtime": "v22.23.3",
+    "vitest": 2240,
+    "node": 123,
+    "original_Node_skip": 1,
+    "input_paths_frozen": 2583,
+    "only_changed_inputs": [
+      "e2e/sidebar-tools.spec.ts outside Vitest/frontend tsconfig",
+      "execution report"
+    ],
+    "original_application_units_configs_identical": true,
+    "reason_no_repeat": "No application/unit/config input changed; full original WEB covers actual E2E logic, latest real PR will also run full F."
+  },
+  "source_after_sha256": "e51c36c5947884697a200eb3a2d0d81327b061c1efd1ce52f03f0f9abec56e22",
+  "stash_unchanged": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/baseline.json.gz",
+      "sha256": "6b54588480251b1e0850d186d6151e2928637647b90e77f8172d4441ccb987e3",
+      "rawSha256": "1ce73a55c214a005a228bcb426cd40e23d716e95be0febfe10428a2aa05aee61"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/source-before.ts.gz",
+      "sha256": "f1d912669da4518e295903ea982c277ee38fd0d869396a6a806412fc17b01f2e",
+      "rawSha256": "014043f3aa385ede75d17efd2eb3e1aadaaeb0a1b15eb7f26ce710a4176b8011"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/source-negative-delay.ts.gz",
+      "sha256": "7c2f8d5b3f3f98763a17d3d5c2f059c2526d12f3d129bf534ddfc44f1bcd4bed",
+      "rawSha256": "7295b5f12d72d2cbeb5a22f784736559ed96fdb78d86f616263245ffeb9f6047"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/source-positive-delay.ts.gz",
+      "sha256": "598813d9c7bd0474dee04323f1c9da4c7b501aa800ac2c37c0e057ad0e9c8147",
+      "rawSha256": "ba0c31383d125a474e157c995c99c303aaa6175d3d9c82a1a5387e9101b981ce"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/playwright.config.mjs.gz",
+      "sha256": "92d15bd7819a1efaa015c4a89f45a9a426909c80ce7e189e4f5e2506556ce0dd",
+      "rawSha256": "1b4e8857cccfda91fd443d396fccc9155fcb676157e5b5d7ae6a0e900b031189"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/run.py.gz",
+      "sha256": "c58cba9e62bfc2ddb206ccdccbe312719c8721394a83aa054000fea1de3d497c",
+      "rawSha256": "566c93aa766a3ba4cc1b7e6a3e9a7454ffbbf4c72c60b5f2976f94e04100f83a"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/negative-checks.json.gz",
+      "sha256": "f86a8925f28e87a290fb01b762c62baa75e7e3339e71bf64b97b3de51fb4b655",
+      "rawSha256": "2da43f52641ed6edc7261559d3a681eee477182df628284ce980d481e44734e4"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/web-negative.log.gz",
+      "sha256": "91ac0c714d57ae002dfaf30f257f6702bb8509bdb8b76aacd11cf19e290e3ede",
+      "rawSha256": "2617ba3509eb268f2fb4d9740f6c6c0080b5e8ed7eae1e98dfd961eeb22dd07a"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/positive-checks.json.gz",
+      "sha256": "b3c18f23cc072a586d20675858d0851fc1c9100473d099faf9b6c65e613aa938",
+      "rawSha256": "ca4e3fe7ef66ef93d8b2a978b973a8045b9769ce06af148a3d12be42682c4a26"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/web-positive.log.gz",
+      "sha256": "962ed80f545af0b3ea0a025bc19387b4fe02421fa81e3f4f6c5c4d0bb2b6e834",
+      "rawSha256": "66ee0b570973d175f226bcfed6733a919babf9f5a36f53c1d0d75d583d52ff45"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/web-checks.json.gz",
+      "sha256": "e41ecfee56753ba325f8cbc585cd141d01557aa4c6e16570c1c4ee713f56bc2a",
+      "rawSha256": "fe00eb67f4708349a0795c493a7c9b5f72466d478383e8473200f0ead66c556a"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/web-full.log.gz",
+      "sha256": "2d9f60838b8bb7a1700140686055de60120b59e12c3c62e2064b0394c2586655",
+      "rawSha256": "0b965a38512c098f4997b86c88ff32c27d0530e9889b390fbc32f98fb58ab4e9"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/sampler-ast-check.json.gz",
+      "sha256": "76eb7c42963d31d7254fd3b61b62de94dd499096542b1e3501e60d112afb69f8",
+      "rawSha256": "59b5b9ec33664053606199a221cafa2be7772596c1e5720b970de1828466b667"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/ast-check.mjs.gz",
+      "sha256": "a9931b5dd17c006f75e7515b2ac2ccacd2399819c7c0ae63c897b76b12189242",
+      "rawSha256": "ade446a754619b90a2b320acf011b4f95c63ccc404cfaa2572b88e0a1686514a"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/F-input-freeze.json.gz",
+      "sha256": "ce868dd273376ff995af02c6a7cddc3b3d575484e05e8f5233448d71c2888c4c",
+      "rawSha256": "01212082f266a644549b11c48034ab89c64e946cc12e88e313845df083f2013f"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/mobile-list.json.gz",
+      "sha256": "2a54f4bf9a5883905d1b33bfab2f2f3b594b9210afa1b7f46c5901d3632397fa",
+      "rawSha256": "9413d5e62206a4326f0b61f9d9f280a8aa4563ec322d9bd1b4dd9364e0765aa8"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/mobile-inventory.json.gz",
+      "sha256": "8722c136ad2c7655cedf43093ca00681d60ba243fc5f27e43d0c2358e4c96472",
+      "rawSha256": "1df5eccd34167fdcd4864e3cbe72222dfa979cffb5bed09ff9edb403c5c105e6"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/format.log.gz",
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/negative-context-0.md.gz",
+      "sha256": "3ccdc7f14fb708ccb2690cfd905cd33068eefe83932493b8b52153c0fd16343c",
+      "rawSha256": "0eda4bb3c5876b7f10aa5646f14c8714cc6504692bc44cad55c17a389427fa94"
+    },
+    {
+      "path": "docs/verification/rf1089-animation-capture-2026-10-04/negative-context-1.md.gz",
+      "sha256": "3ccdc7f14fb708ccb2690cfd905cd33068eefe83932493b8b52153c0fd16343c",
+      "rawSha256": "0eda4bb3c5876b7f10aa5646f14c8714cc6504692bc44cad55c17a389427fa94"
+    }
+  ],
+  "original_validation_limits": [
+    "Actual Linux four animation cases must pass first attempts before closing.",
+    "Browser tests do not validate native macOS/Android materials."
+  ],
+  "actual_linux_acceptance": {
+    "task": "RF-1089",
+    "tested_head": "ab5a167b179de00bdd9c24dda7b588c030b1e65d",
+    "accepted_from_head": "c693ed8bcc79d4a147cfcd2499459d462991d1b7",
+    "pr": "https://github.com/Gczmy/SoloSoul/pull/2",
+    "run": 37164080869,
+    "job": 111323318852,
+    "source_binding": {
+      "tauri": {
+        "tested_object": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "current_object": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "equal": true
+      },
+      ".github/workflows/ci_cd.yml": {
+        "tested_object": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "current_object": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "equal": true
+      },
+      "SoloSoul_plugin_market": {
+        "tested_object": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "current_object": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "equal": true
+      },
+      ".github/actions/check-frontend/action.yml": {
+        "tested_object": "00895928c5a84d0bf1583d25433f2848f1b6f007",
+        "current_object": "00895928c5a84d0bf1583d25433f2848f1b6f007",
+        "equal": true
+      }
+    },
+    "whole_mobile": {
+      "inventory": 331,
+      "passed": 312,
+      "flaky": 0,
+      "failed": 0,
+      "original_skipped": 19
+    },
+    "first_attempt_cases": [
+      {
+        "inventory_index": 294,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:21:19.0123874Z   ✓  294 [mobile] › e2e/sidebar-tools.spec.ts:535:5 › macos 展开侧栏工具沿底边向上展开、向下收起且不缩放按钮 (3.2s)"
+      },
+      {
+        "inventory_index": 295,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:21:22.6803644Z   ✓  295 [mobile] › e2e/sidebar-tools.spec.ts:535:5 › macos 折叠侧栏工具沿底边向上展开、向下收起且不缩放按钮 (3.7s)"
+      },
+      {
+        "inventory_index": 296,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:21:26.2967681Z   ✓  296 [mobile] › e2e/sidebar-tools.spec.ts:535:5 › windows 展开侧栏工具沿底边向上展开、向下收起且不缩放按钮 (3.6s)"
+      },
+      {
+        "inventory_index": 297,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:21:29.9821655Z   ✓  297 [mobile] › e2e/sidebar-tools.spec.ts:535:5 › windows 折叠侧栏工具沿底边向上展开、向下收起且不缩放按钮 (3.7s)"
+      }
+    ],
+    "frontend": {
+      "run": 37164080866,
+      "job": 111323318744,
+      "vitest_files": 256,
+      "vitest_passed": 2240,
+      "node_passed": 103,
+      "node_failed": 0,
+      "original_linux_platform_skips": 21,
+      "production_e2e_passed": 26,
+      "coverage": [
+        85.59,
+        72.9,
+        80.6,
+        87.47
+      ],
+      "thresholds": [
+        80,
+        70,
+        80,
+        80
+      ],
+      "profile": "Original CI Node22 full F including coverage, TypeScript and lint; original CI testTimeout unchanged, distinct from local 5000ms."
+    },
+    "overall": {
+      "ci_cd": "success",
+      "pr_checks": "failure: Apple iOS resource missing, separate RF-1090"
+    },
+    "limits": [
+      "Linux browser CI does not establish native Android/macOS material acceptance.",
+      "Original local/earlier CI failures and flaky runs remain in task proof."
+    ],
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1089-animation-capture-2026-10-04/pr-round2-acceptance/acceptance.json.gz",
+        "sha256": "aa699f2d1061a16339aa939fd9c61e05d8552820a26e63190c6cbb07921cbe68",
+        "rawSha256": "5eb406e00f41120d2503bc1998dda0384708736032517da70edfe7ab64858d31"
+      },
+      {
+        "path": "docs/verification/rf1089-animation-capture-2026-10-04/pr-round2-acceptance/jobs-snapshot.json.gz",
+        "sha256": "284fd411df8215d44ee33324494694331092f653854931b2377923d0db00b5c4",
+        "rawSha256": "3d787958c5c95b7543d9e6ebb55a9b6080c1d7601c072079db5b93c42f1caa8f"
+      },
+      {
+        "path": "docs/verification/rf1089-animation-capture-2026-10-04/pr-round2-acceptance/mobile.log.gz",
+        "sha256": "78141a4bad7b79399b3a90244a74bc8a2dbf6201ea01167e297942f130a14e16",
+        "rawSha256": "9f6a2bb39d49f75a9a278047d5a22e7381f8a2dafd3d3fef3c9c22fa440ee087"
+      },
+      {
+        "path": "docs/verification/rf1089-animation-capture-2026-10-04/pr-round2-acceptance/frontend.log.gz",
+        "sha256": "11a9ca7b7f36f7acd9f90aa4c10889ed21a17fba2017795901bc5c28e77a493a",
+        "rawSha256": "6817ea6def74242418d72622b549b37046a3bb199acde91ed36768c47fd3bbfe"
+      }
+    ]
+  }
+}

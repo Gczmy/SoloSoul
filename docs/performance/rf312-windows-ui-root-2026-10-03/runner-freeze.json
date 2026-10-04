@@ -1,0 +1,5 @@
+{
+  "path": "tauri/scripts/run-node-tests.mjs",
+  "sha256": "be4a648eb64605f7d5677a41f8560c9e1cc3b3263871461dff4f33079bb64cb5",
+  "modified_after_release": "Only explicit test file list plus file-local format changed; not a Release build/runtime input. Original Release source/package/lock freeze remains unchanged."
+}

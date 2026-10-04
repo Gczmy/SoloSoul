@@ -1,0 +1,14 @@
+[
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\target\\release\\solo_soul.exe",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\bin\\solo_soul.exe",
+    "bytes": 101640192,
+    "sha256": "84b6e069b3e2402bda32072def4a439af957dc57ab174ee1d68b62dd4c906340"
+  },
+  {
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\target\\release\\DirectML.dll",
+    "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\bin\\DirectML.dll",
+    "bytes": 18527776,
+    "sha256": "9c9e6d822561c6c41b90e6994b3e8857cf1d66dbfb1e0c4c799c7c89b4e92da1"
+  }
+]

@@ -1,0 +1,571 @@
+{
+  "task": "RF-1091",
+  "status": "completed",
+  "baseline": "c521925c65db7e5cd1b963c5873d8b7febce9783",
+  "original_failure": {
+    "run": 37166565587,
+    "job": 111330569834,
+    "tested_head": "4715b6676eb42520494deee7dc34a500762db90f",
+    "stage": "Run Clippy / Tauri build script",
+    "error": "global tauri features does not match macOSPrivateApi allowlist",
+    "exit": 101,
+    "both_ios_targets_passed": true
+  },
+  "root_cause": "Locked tauri-build2.6.2 selects dependencies.tauri before target.macOS tauri. Existing actual Mac target enables private API, but global declaration features=[] fails the metadata check.",
+  "change": "Add one guarded Mac CI-only manifest preparation step after both iOS checks and before unchanged macOS gates. Mirror existing target feature to global declaration. Tracked Cargo.toml/config/lock and other jobs unchanged.",
+  "isolation": {
+    "cases": [
+      {
+        "name": "real-manifest",
+        "exit": 0,
+        "expected_pass": true,
+        "bytes_unchanged_when_refused": false,
+        "enabled_features_unchanged_when_prepared": true,
+        "idempotent_when_prepared": true
+      },
+      {
+        "name": "off-platform-refused",
+        "exit": 1,
+        "expected_pass": false,
+        "bytes_unchanged_when_refused": true,
+        "enabled_features_unchanged_when_prepared": false,
+        "idempotent_when_prepared": false
+      },
+      {
+        "name": "disabled-platform-config-refused",
+        "exit": 1,
+        "expected_pass": false,
+        "bytes_unchanged_when_refused": true,
+        "enabled_features_unchanged_when_prepared": false,
+        "idempotent_when_prepared": false
+      },
+      {
+        "name": "version-drift-refused",
+        "exit": 1,
+        "expected_pass": false,
+        "bytes_unchanged_when_refused": true,
+        "enabled_features_unchanged_when_prepared": false,
+        "idempotent_when_prepared": false
+      },
+      {
+        "name": "target-feature-missing-refused",
+        "exit": 1,
+        "expected_pass": false,
+        "bytes_unchanged_when_refused": true,
+        "enabled_features_unchanged_when_prepared": false,
+        "idempotent_when_prepared": false
+      },
+      {
+        "name": "declaration-drift-refused",
+        "exit": 1,
+        "expected_pass": false,
+        "bytes_unchanged_when_refused": true,
+        "enabled_features_unchanged_when_prepared": false,
+        "idempotent_when_prepared": false
+      },
+      {
+        "name": "other-common-features-preserved",
+        "exit": 0,
+        "expected_pass": true,
+        "bytes_unchanged_when_refused": false,
+        "enabled_features_unchanged_when_prepared": true,
+        "idempotent_when_prepared": true
+      }
+    ],
+    "original_upstream_global_feature_check": "fails: macos-private-api missing",
+    "prepared_upstream_global_feature_check": "passes: existing target feature mirrored",
+    "before_enabled_macos_features": [
+      "macos-private-api"
+    ],
+    "after_enabled_macos_features": [
+      "macos-private-api"
+    ],
+    "limits": [
+      "Windows structural cases impersonate Darwin only within isolated Python process, not actual Mac Cargo compilation."
+    ]
+  },
+  "resolved_graph": {
+    "actual_cargo_version": "1.99.0",
+    "target": "aarch64-apple-darwin",
+    "resolved_dependency_graph_identical": true,
+    "tauri_nodes": [
+      {
+        "id": "registry+https://github.com/rust-lang/crates.io-index#tauri@2.11.2",
+        "features": [
+          "common-controls-v6",
+          "compression",
+          "custom-protocol",
+          "dbus",
+          "default",
+          "dynamic-acl",
+          "macos-private-api",
+          "tauri-runtime-wry",
+          "test",
+          "webkit2gtk",
+          "webview2-com",
+          "wry",
+          "x11"
+        ]
+      }
+    ],
+    "isolated_lock_bytes_frozen_across_both_repeat_calls": "5703db68c8e33505493906548f97f2d6f23dede2a9ff43225eacff9fc8ad3269",
+    "lock_semantics_identical_to_archive": true,
+    "original_commands": [
+      {
+        "stage": "before",
+        "exit": 0,
+        "seconds": 28.806959100067616
+      },
+      {
+        "stage": "after",
+        "exit": 0,
+        "seconds": 1.422686199657619
+      }
+    ],
+    "repeat_commands": [
+      {
+        "stage": "before-repeat",
+        "exit": 0,
+        "seconds": 1.3902291003614664
+      },
+      {
+        "stage": "after-repeat",
+        "exit": 0,
+        "seconds": 1.0848260996863246
+      }
+    ],
+    "probe_corrections": [
+      "First graph equality succeeded; lock raw equality failed due Cargo-normalized LF versus CRLF archived source.",
+      "Second expected raw Git equality also failed for same reason; no version/dependency change.",
+      "Repeated both calls after initial normalization; lock bytes frozen and resolved graph equal."
+    ],
+    "tracked_lock_unchanged": true,
+    "limits": [
+      "Cargo metadata resolution on Windows does not provide Mac SDK compilation."
+    ]
+  },
+  "semantic_freeze": {
+    "original_steps": 15,
+    "final_steps": 16,
+    "all_original_bodies_unchanged": true,
+    "other_jobs_unchanged": true,
+    "after_both_ios_before_macos": true,
+    "exact_tested_python": true,
+    "method": "Step blocks and all non-target job text with newline/blank/comment normalization; YAML syntax separately checked by actionlint",
+    "unavailable_optional_parser_probes": [
+      "Python PyYAML absent",
+      "Node yaml/js-yaml absent; no dependencies installed"
+    ]
+  },
+  "source_freeze": {
+    "tauri": {
+      "baseline": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+      "current": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+      "equal": true
+    },
+    ".github/workflows/ci_cd.yml": {
+      "baseline": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+      "current": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+      "equal": true
+    },
+    ".github/workflows/build-android.yml": {
+      "baseline": "4560a5845e7b6ff8d334659b59c8b76948ecb0ac",
+      "current": "4560a5845e7b6ff8d334659b59c8b76948ecb0ac",
+      "equal": true
+    },
+    "solosoul_cli": {
+      "baseline": "ee3b7943026b1bb1a7d3a10284fbf71f75bb19be",
+      "current": "ee3b7943026b1bb1a7d3a10284fbf71f75bb19be",
+      "equal": true
+    },
+    "SoloSoul_plugin_market": {
+      "baseline": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+      "current": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+      "equal": true
+    }
+  },
+  "checks": [
+    {
+      "name": "yaml-format",
+      "args": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "--single-quote",
+        "../.github/workflows/pr_check.yml"
+      ],
+      "exit": 0,
+      "seconds": 0.22123949974775314
+    },
+    {
+      "name": "actionlint",
+      "args": [
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf311-share-ci-20261003\\actionlint.exe",
+        ".github/workflows/pr_check.yml"
+      ],
+      "exit": 0,
+      "seconds": 0.07956460025161505
+    },
+    {
+      "name": "markdown-boundary",
+      "args": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "exit": 0,
+      "seconds": 7.643982599489391
+    }
+  ],
+  "upstream": {
+    "package": "tauri-build",
+    "version": "2.6.2",
+    "crate_checksum": "4aa1f9055fc23919a54e4e125052bed16ed04aef0487086e758fe01a67b451c7",
+    "raw_source_sha256": "cec69394f757f678a0cdec398c86b51947d4e02b13a2052c088a44bf25f9a72c",
+    "official_config": "https://v2.tauri.app/reference/config/#macosprivateapi",
+    "check_behavior": "find_dependency selects global dependencies.tauri before macOS target dependency; check_features compares declared feature list to merged platform app config"
+  },
+  "stash_unchanged": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/actionlint.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/after-metadata.json.gz",
+      "sha256": "00e33b0b64df1fdf6b7b9a7b74be51e33b93859fdfa6384d2e4a3fa7a5f8545a",
+      "rawSha256": "f49b4678af4e5067a9694da5e28f5a25b54bb51e4a918fcaec5a28cadce627b4"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/after-metadata.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/after-repeat-metadata.json.gz",
+      "sha256": "00e33b0b64df1fdf6b7b9a7b74be51e33b93859fdfa6384d2e4a3fa7a5f8545a",
+      "rawSha256": "f49b4678af4e5067a9694da5e28f5a25b54bb51e4a918fcaec5a28cadce627b4"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/after-repeat-metadata.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/baseline.json.gz",
+      "sha256": "c2b78dd2f287ff1b53a25e92117f671f295992d10abca9dffe06e965f86e223f",
+      "rawSha256": "d9869784135bf7c05370e36a5ca41c51b0cbc8c53cb1347605b200b4589840cd"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/before-metadata.json.gz",
+      "sha256": "40400ecb4594dbae97ff1f9565362597f82fd152b9ae2a6991c924ee75c6ab8c",
+      "rawSha256": "bf9626724b1ebabca0e4ab78f088f268e7b9772b65601d7113232321fae91590"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/before-metadata.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/before-repeat-metadata.json.gz",
+      "sha256": "40400ecb4594dbae97ff1f9565362597f82fd152b9ae2a6991c924ee75c6ab8c",
+      "rawSha256": "bf9626724b1ebabca0e4ab78f088f268e7b9772b65601d7113232321fae91590"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/before-repeat-metadata.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/checks.json.gz",
+      "sha256": "91bbd5cfa5ac5eb4cdffdf0b5a0875f202281a25f19ab3e8c2cfe745e0831e50",
+      "rawSha256": "7fdb2f780b50699c179f37cdf5881b9a9ee58799d58a08d57cb0fe09910a6bb9"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/declaration-drift-refused.log.gz",
+      "sha256": "0ed63c5492c50da4a228d2ac9b369ac3c223f0b3d0456cea171eece9aefe859c",
+      "rawSha256": "3fdc64cd9ba29204eb84309d60b30555153d5e2df92d605ad2cb09435e49311b"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/disabled-platform-config-refused.log.gz",
+      "sha256": "9568eaeafce0405c2ce48dc65fea019bedc613ec996d703be36e36113b201a70",
+      "rawSha256": "63a78c6abd501007d5425debddcaf5e6b6b4b2558d9d54152907a65cb9ed6857"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/isolation-cases.json.gz",
+      "sha256": "24b45083f0c02223057856645787be264f97a7068e7202a25ffc56aa89d3b2cb",
+      "rawSha256": "3c90a3f105768c69984b3921d7e42f82bc00f3d1067cfd4c3840c584a09c759b"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/job-semantic-freeze.json.gz",
+      "sha256": "b558fddb03d8092f563eb7c7bba816fef890b41120558aadbca0a2d49e07cfcc",
+      "rawSha256": "aeadd108b6e02f0803d63e96114f9df9a3b1e0ee2e861ba7bbb822abdbd3e933"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/manifest-before.toml.gz",
+      "sha256": "66300c583a38a71c26e2b6bef69d8986f450477f1a3a2c4bdd3bae0b7ce4dae2",
+      "rawSha256": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/markdown-boundary.log.gz",
+      "sha256": "c16c6514d45e8adcb5ee3a75bb38ae0e1950a842eb0ca278a2816334f7739e7b",
+      "rawSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/metadata-checks.json.gz",
+      "sha256": "790375d90f1a6bfbd80e07e7bdbc646a9a2d151a42f7cd79a86891ced33156e6",
+      "rawSha256": "07b6ca387f2d728fb60d42e88b18a8acbf67e0a7117813bd9b041d558a89c1db"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/off-platform-refused.log.gz",
+      "sha256": "e70aacd0c3b967cae2419880092e607e3d6aa92382db8f793a70441792158635",
+      "rawSha256": "114d89d3ec71d006ce3f1634c3dbcccbbd5850438df1233ec7c23d7f22cb0f56"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/other-common-features-preserved.log.gz",
+      "sha256": "4b8317aa3fc01889e1165ccfaa58dcdb439d605d9d33a2f948ff05a79fa2e79b",
+      "rawSha256": "c0679c7bf6737fb54046c95ed7cbc8091cd9131419dd116a9d96bb829d855ff8"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/prepare-checkout.log.gz",
+      "sha256": "4b8317aa3fc01889e1165ccfaa58dcdb439d605d9d33a2f948ff05a79fa2e79b",
+      "rawSha256": "c0679c7bf6737fb54046c95ed7cbc8091cd9131419dd116a9d96bb829d855ff8"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/prepare-exact.py.gz",
+      "sha256": "7144b13b84964d46b4f1e8dd09fec62204aa7adde42f7e01555c0b05c3762b1c",
+      "rawSha256": "ccb4908dea80398dcb3660e4dfdfdc97419b0650e2c205b768b63d19683bb96b"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/probe-corrections.json.gz",
+      "sha256": "3d850b9fa43a0a6567b41989c8c199ae4624b71dfa030ee521557c6dbc43323b",
+      "rawSha256": "87a6e2308807972c39a8e514a8a9dfcc4e6262fc3b6070846ffe25fac283e20b"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/real-manifest.log.gz",
+      "sha256": "4b8317aa3fc01889e1165ccfaa58dcdb439d605d9d33a2f948ff05a79fa2e79b",
+      "rawSha256": "c0679c7bf6737fb54046c95ed7cbc8091cd9131419dd116a9d96bb829d855ff8"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/repeat-metadata.py.gz",
+      "sha256": "0de599712dfad881086b850e4f19976857b6b9b17d23bbabb40519be25fb7873",
+      "rawSha256": "bb7dc51a6e81d9314a19330d00a6ffcb70c3e1d5198a061b916d7e5b38dbef96"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/resolved-feature-graph.json.gz",
+      "sha256": "7fa7b877d2ee91bfc2f6c38910ffeeb59031ad087b2216288fc7ab8e46d5706e",
+      "rawSha256": "b0c0c6ece56d1f94c48627f49ceeacc1b71efd2fbb22153d4fd4883f66000158"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/source-freeze.json.gz",
+      "sha256": "6393231cc46d3f781990923bc48c1871565559d85edc2ed1ec10d14ec70c8c11",
+      "rawSha256": "2ca347b7d2816a021dfbd2830b15f4c2226b4f573942c5a17199b292d65f3e1e"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/target-feature-missing-refused.log.gz",
+      "sha256": "7602be367eeafdc8cd6da40252771b2b2e6bb3c2bb90063628861ac3b3f4f68e",
+      "rawSha256": "922fc1eb07e296132a7eef22361ad9b60fda55796c25c240ec76a080645f5d72"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/upstream-manifest.rs.gz",
+      "sha256": "c345a7cc1d32cf6bacf88da832224e9e7e25ad09542a236d35241461cb46a4f7",
+      "rawSha256": "cec69394f757f678a0cdec398c86b51947d4e02b13a2052c088a44bf25f9a72c"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/upstream-origin.json.gz",
+      "sha256": "fca4146de402a33980d6628d4d25413025a21cfaaa82923a74f8a71b93678e4f",
+      "rawSha256": "9e056bbe026e78a7d36233d2f18688c1e2be6dd5a30ef2758b4d55f354e1be86"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/validate.py.gz",
+      "sha256": "0404d2e76cb2e4258afa3e37cb30d33b6c1313aae6010698d2980639a42c1c44",
+      "rawSha256": "a151621735143a5d07871ba607c3a6eceecf600c7eb27d76d823c922b99c30d0"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/version-drift-refused.log.gz",
+      "sha256": "7602be367eeafdc8cd6da40252771b2b2e6bb3c2bb90063628861ac3b3f4f68e",
+      "rawSha256": "922fc1eb07e296132a7eef22361ad9b60fda55796c25c240ec76a080645f5d72"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/workflow-before.yml.gz",
+      "sha256": "dabe81e9d15c4de3bd17f2c5355e60a2a75cf24489ea30b30723e0ead74d4618",
+      "rawSha256": "f662b049f878a5e7e674eb508687f7ff2a8a82df08661965fc08588f08aa4530"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/yaml-format.log.gz",
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/actual-apple-failure.log.gz",
+      "sha256": "9a0770257ebf1b406c8c49df82f069a1f049b4205ea0c016e488179b4a470ce0",
+      "rawSha256": "3e1aee316817d26a14c729d15d5108ca210150bd5e7d9cee6ccd20fd0475815e"
+    }
+  ],
+  "actual_apple_acceptance": {
+    "task": "RF-1091",
+    "tested_head": "b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1",
+    "accepted_from_head": "b35b0f8946d78996c41d874bfcae18ebffda8ca6",
+    "pr": "https://github.com/Gczmy/SoloSoul/pull/2",
+    "run": 37167923614,
+    "job": 111334689834,
+    "result": "success",
+    "steps": [
+      {
+        "name": "Install Apple frontend build dependencies",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-04T01:25:00Z",
+        "completed_at": "2026-10-04T01:25:06Z"
+      },
+      {
+        "name": "Build frontend assets for Apple checks",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-04T01:25:06Z",
+        "completed_at": "2026-10-04T01:25:24Z"
+      },
+      {
+        "name": "Prepare unit-test OCR resource layout",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-04T01:25:24Z",
+        "completed_at": "2026-10-04T01:25:24Z"
+      },
+      {
+        "name": "Prepare PDFium for Rust tests",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-04T01:25:24Z",
+        "completed_at": "2026-10-04T01:25:25Z"
+      },
+      {
+        "name": "Cargo check (iOS targets)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-10-04T01:25:29Z",
+        "completed_at": "2026-10-04T01:31:57Z"
+      },
+      {
+        "name": "Align macOS check manifest with platform features",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-10-04T01:31:57Z",
+        "completed_at": "2026-10-04T01:31:58Z"
+      },
+      {
+        "name": "Check formatting",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-10-04T01:31:58Z",
+        "completed_at": "2026-10-04T01:31:59Z"
+      },
+      {
+        "name": "Run Clippy",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-10-04T01:31:59Z",
+        "completed_at": "2026-10-04T01:34:35Z"
+      },
+      {
+        "name": "Check future-keychain feature compiles (macOS)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-10-04T01:34:35Z",
+        "completed_at": "2026-10-04T01:35:10Z"
+      },
+      {
+        "name": "Run Rust Tests",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 16,
+        "started_at": "2026-10-04T01:35:10Z",
+        "completed_at": "2026-10-04T01:48:06Z"
+      },
+      {
+        "name": "Check ACL consistency",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 17,
+        "started_at": "2026-10-04T01:48:06Z",
+        "completed_at": "2026-10-04T01:48:07Z"
+      }
+    ],
+    "actual_macos_R": {
+      "groups": 25,
+      "passed": 1858,
+      "failed": 0,
+      "original_ignored": 3
+    },
+    "source_binding": {
+      "tauri": {
+        "tested": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "current": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "equal": true
+      },
+      "solosoul_cli": {
+        "tested": "ee3b7943026b1bb1a7d3a10284fbf71f75bb19be",
+        "current": "ee3b7943026b1bb1a7d3a10284fbf71f75bb19be",
+        "equal": true
+      },
+      "SoloSoul_plugin_market": {
+        "tested": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "current": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "equal": true
+      },
+      ".github/workflows/pr_check.yml": {
+        "tested": "34a288323c75067fcd6036eccfb1cf0c7c96b32a",
+        "current": "34a288323c75067fcd6036eccfb1cf0c7c96b32a",
+        "equal": true
+      },
+      ".github/workflows/ci_cd.yml": {
+        "tested": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "current": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "equal": true
+      },
+      ".github/actions": {
+        "tested": "c9ba394df31d3486b3cdac354b69c92c342dfffb",
+        "current": "c9ba394df31d3486b3cdac354b69c92c342dfffb",
+        "equal": true
+      }
+    },
+    "both_ios_targets_compiled": true,
+    "macos_strict_clippy_passed": true,
+    "future_keychain_compilation_passed": true,
+    "ACL_passed": true,
+    "limits": [
+      "CI unit-test OCR directory does not prove OCR model inference or release packaging.",
+      "No signed hardware/Keychain or native material/performance acceptance claim."
+    ],
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/pr-round4-acceptance/apple-job.log.gz",
+        "sha256": "6f8893e82f9a06d793d56a92f59958d85e889d9530e1d398300de3047f932225",
+        "rawSha256": "ad8bdb8bd17c874bdd3b0b9d1cb012cd4ee9e2a78309bfad5adddd0dd712005b"
+      },
+      {
+        "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/pr-round4-acceptance/jobs-snapshot.json.gz",
+        "sha256": "9e6788f8258d802f4786c7ae5bdffc8bcac2d2a952af32a74acca837800f7f33",
+        "rawSha256": "3f229940e01630d2e8173a25749f21b624f29d87f296890b190fc37adf19f8f1"
+      },
+      {
+        "path": "docs/verification/rf1091-macos-cargo-allowlist-2026-10-04/pr-round4-acceptance/acceptance.json.gz",
+        "sha256": "9cc05efc9b25c31c273da034b3c81cec736496d0dd53deb26e414b963879f0da",
+        "rawSha256": "3f428e40172faceeb3ff02dda7763ccf24fbf7e9c0eb7535ee867f1a24473e8e"
+      }
+    ]
+  },
+  "original_validation_limits": [
+    "No real Mac SDK compiled locally. Actual Apple dual-target, strict Clippy/future-keychain/full R/ACL required.",
+    "Existing developer-account/hardware Keychain deferral does not waive compilation."
+  ]
+}

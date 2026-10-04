@@ -1,6 +1,6 @@
 # SoloSoul 重构修复执行报告
 
-> 最后更新：2026-10-03（RF-1071已关闭，RF-121 Windows默认设置补证通过，RF-312已定位首个文档拒绝条件）
+> 最后更新：2026-10-04（CI收敛、Apple编译和侧栏补验完成；剩余原生实测及依赖项）
 > 当前分支：`main`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
 > 修复轮次：第 1 轮，执行中。Cua 接入继续暂缓。
 
@@ -64,7 +64,7 @@
 | CONTRACT | `tauri/` | `npm run check:acl`；`npm run check:pref-keys`；`node scripts/check-markdown-chunk-boundary.mjs`；`npm run check:contracts`；`npm run test:contracts`；`python -m unittest discover -s scripts -p test_check_acl_consistency.py`。 |
 | WEB | `tauri/` | 卡片列出的 Playwright 用例，分别按适用的 `--project=chromium`/`--project=mobile` 运行；启动/路由/IPC/主题变化另跑 `npm run test:e2e:production`。 |
 | COVERAGE | `tauri/` | `npm run test -- --coverage`，保存覆盖率报告和阈值结果；不得将未运行的阈值配置视为已达标。 |
-| IOS | macOS 上的 `tauri/` | 安装需要的 Rust targets 后 `cargo check --target aarch64-apple-ios --target aarch64-apple-ios-sim`；原生桥接改动另执行 `npm run tauri:ios:build:sim` 和相关运行验收。 |
+| IOS | macOS 上的 `tauri/` | 安装需要的 Rust targets 后，顺序执行 `cargo check --target aarch64-apple-ios`、`cargo check --target aarch64-apple-ios-sim`；原生桥接改动另执行 `npm run tauri:ios:build:sim` 和相关运行验收。 |
 | ANDROID_BUILD | `tauri/` 与生成 Android 工程 | 下节 Android target check、Debug 构建及本项 Kotlin 单元检查；需要 SDK/NDK/JDK，不默认要求连接玻璃设备。 |
 | ANDROID_NATIVE | 生成 Android 工程与设备 | 在已验证 Debug 构建上运行任务指定的 instrumented/设备场景；RF-310 必须执行现有玻璃原生测试。记录 ABI/API、测试计数与跳过项。 |
 | NATIVE | 对应平台图形会话 | 原生应用或例程中的具体操作，记录 OS、设备、构建 ID、主题/辅助功能设置和结果；无统一跨平台替代命令。 |
@@ -120,9 +120,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**261**（P1：51；P2：209；P3：1）。
-- 已关闭：**249 / 261**；实际修复（已关闭）：249；排除：0；待验证/阻塞：5（RF-112缺隔离macOS锁定恢复，RF-308本地门槛与CI配置已达但缺远端运行日志，RF-121缺多端原生材质实测，RF-309缺远端Windows CI证据，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：7。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**RF-312后续根容器/挂载状态只读排查**。本轮固定拒绝码与一次新隔离诊断已独立提交，尚未得到成功性能样本；RF-121完整多端辅助功能、RF-112隔离macOS、RF-308/309远端CI缺口保留，不自动推送发布。
+- 任务总数：**281**（P1：51；P2：229；P3：1）。
+- 已关闭：**272 / 281**；实际修复（已关闭）：272；排除：0；待验证/阻塞：3（RF-112、RF-121、RF-312）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088、RF-1089、RF-1090、RF-1091（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**无；剩余原生实测及RF-121依赖项**。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -205,14 +205,14 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 75 | [RF-305](#rf-305) | P2 | 迁移同步 IPC 与事件契约 | [RF-301](#rf-301)、[RF-003](#rf-003) | [x] 完成 |
 | 76 | [RF-306](#rf-306) | P2 | 迁移插件 IPC 与资源事件契约 | [RF-301](#rf-301) | [x] 完成 |
 | 77 | [RF-307](#rf-307) | P2 | 建立结构化后端错误并迁移对象用例 | [RF-301](#rf-301)、[RF-302](#rf-302) | [x] 已关闭 |
-| 78 | [RF-309](#rf-309) | P2 | 建立 Windows Rust 关键用例执行门禁 | 无 | [!] 待验证 Windows CI |
+| 78 | [RF-309](#rf-309) | P2 | 建立 Windows Rust 关键用例执行门禁 | 无 | [x] 完成 |
 | 79 | [RF-310](#rf-310) | P2 | 把 Android 原生回归接入明确的设备任务 | [RF-201](#rf-201)、[RF-208](#rf-208) | [x] 完成 |
 | 80 | [RF-313](#rf-313) | P2 | 修正 canonical 架构与安全事实文档 | 无 | [x] 完成 |
 | 81 | [RF-314](#rf-314) | P2 | 建立平台能力与验收证据矩阵 | [RF-205](#rf-205) | [x] 完成 |
 | 82 | [RF-315](#rf-315) | P2 | 对齐 LLM 数据流与隐私说明 | [RF-100](#rf-100)、[RF-004](#rf-004)、[RF-005](#rf-005) | [x] 完成 |
 | 83 | [RF-316](#rf-316) | P2 | 诊断并稳定默认前端测试运行入口 | 无 | [x] 完成 |
-| 84 | [RF-308](#rf-308) | P2 | 接入有实际执行证据的覆盖率门禁 | [RF-316](#rf-316) | [!] 待验证：本地门槛与CI配置已达，待远端日志 |
-| 85 | [RF-311](#rf-311) | P2 | 收敛重复 CI 步骤且保持平台覆盖 | [RF-308](#rf-308)、[RF-309](#rf-309)、[RF-310](#rf-310) | [ ] 待执行 |
+| 84 | [RF-308](#rf-308) | P2 | 接入有实际执行证据的覆盖率门禁 | [RF-316](#rf-316) | [x] 完成 |
+| 85 | [RF-311](#rf-311) | P2 | 收敛重复 CI 步骤且保持平台覆盖 | [RF-308](#rf-308)、[RF-309](#rf-309)、[RF-310](#rf-310) | [x] 完成 |
 | 86 | [RF-317](#rf-317) | P2 | 迁移 LLM 结构化错误 | [RF-303](#rf-303)、[RF-307](#rf-307) | [x] 完成 |
 | 87 | [RF-318](#rf-318) | P2 | 迁移备份与导入导出结构化错误 | [RF-304](#rf-304)、[RF-307](#rf-307) | [x] 完成 |
 | 88 | [RF-319](#rf-319) | P2 | 迁移同步结构化错误 | [RF-305](#rf-305)、[RF-307](#rf-307) | [x] 已关闭 |
@@ -389,6 +389,26 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 259 | [RF-1069](#rf-1069) | P2 | 定位 iOS 原生中文字符方框并修复或证明环境限制 | 无（RF-201 原生验收发现） | [x] 完成 |
 | 260 | [RF-1070](#rf-1070) | P2 | 修正 Android 主题 E2E 的旧桌面事件预期 | RF-201 | [x] 完成 |
 | 261 | [RF-1071](#rf-1071) | P2 | 修正原生验收 feature 的 RAG 条件导入 | 无 | [x] 已关闭 |
+| 262 | [RF-1072](#rf-1072) | P2 | RAG 原生验收导入兼容严格 IPC 契约生成器 | RF-1071（远端契约失败发现） | [x] 完成 |
+| 263 | [RF-1073](#rf-1073) | P2 | Linux Rust CI 显式准备 Tauri Host 开发库 | 无（真实CI缺glib发现） | [x] 完成 |
+| 264 | [RF-1074](#rf-1074) | P2 | CLI CI 为真实 PDF 回归准备 PDFium | 无（真实CLI CI失败发现） | [x] 已关闭 |
+| 265 | [RF-1075](#rf-1075) | P2 | Windows Rust 单测 job 准备明确标注的资源目录夹具 | 无（真实Host构建失败发现） | [x] 完成 |
+| 266 | [RF-1076](#rf-1076) | P2 | 向量解码使用固定数组块兼容严格Clippy | 无（Linux真实CI新规则发现） | [x] 完成 |
+| 267 | [RF-1077](#rf-1077) | P2 | Linux Host单测准备声明的OCR与插件资源目录 | 无（与Windows同类声明的静态核对） | [x] 完成 |
+| 268 | [RF-1078](#rf-1078) | P2 | 采用async-trait首次修复生成must_use冲突的版本 | 无（第三轮真实Linux Clippy发现） | [x] 完成 |
+| 269 | [RF-1079](#rf-1079) | P2 | 在Host检查前构建真实frontendDist | 无（Windows CI实际编译失败） | [x] 完成 |
+| 270 | [RF-1080](#rf-1080) | P2 | 发现设备Map直接遍历values | 无（第四轮真实Linux Clippy发现） | [x] 完成 |
+| 271 | [RF-1081](#rf-1081) | P2 | 风险确认弹窗在短屏内滚动并保持操作可达 | 无（实际移动CI越界发现） | [x] 完成 |
+| 272 | [RF-1082](#rf-1082) | P2 | 桌面E2E场景声明正确视口与指针环境 | 无（真实移动CI桌面用例失败发现） | [x] 完成 |
+| 273 | [RF-1083](#rf-1083) | P2 | 插件生命周期E2E遵循可见交互与请求响应闭环 | 无（旧导航/提前完成mock发现） | [x] 完成 |
+| 274 | [RF-1084](#rf-1084) | P2 | 系统语言测试接受C/POSIX及仅语言标识 | 无（真实Linux CI失败） | [x] 完成 |
+| 275 | [RF-1085](#rf-1085) | P2 | 插件快捷面板E2E使用结构化错误与固定译文 | 无（真实浏览器协议fixture失败） | [x] 完成 |
+| 276 | [RF-1086](#rf-1086) | P2 | iOS设备与模拟器编译顺序执行 | 无（实际PR插件目录并发失败） | [x] 完成 |
+| 277 | [RF-1087](#rf-1087) | P2 | 侧栏工具命中断言等待展开动画 | 无（实际PR首次失败后重试通过） | [x] 完成 |
+| 278 | [RF-1088](#rf-1088) | P2 | 导航/尺标离开事件安全检查relatedTarget | 无（实际WEB异常发现） | [x] 完成 |
+| 279 | [RF-1089](#rf-1089) | P2 | 侧栏真实动画开始时捕获，避免晚采样丢失 | 无（RF-1088全量WEB原动画用例flaky） | [x] 完成 |
+| 280 | [RF-1090](#rf-1090) | P2 | Apple检查job编译前完整准备资源 | 无（实际iOS缺移动插件目录失败） | [x] 完成 |
+| 281 | [RF-1091](#rf-1091) | P2 | macOS直接Cargo检查准备一致的Tauri声明 | 无（实际macOS allowlist失败） | [x] 完成 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -3509,6 +3529,238 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验收：**默认构建与 native-perf 验收构建均通过严格 Clippy；现有 RAG 与原生诊断回归通过。适用 R，纯条件导入不新增镜像测试。
 - **建议提交：**`fix(build): scope RAG error imports to active branches [RF-1071]`。
 
+### RF-1072
+
+**RAG 原生验收导入兼容严格 IPC 契约生成器** · P2 · 来源：CI 37134827271 / 本地同源复现
+
+- **前置：**RF-1071。
+- **入口：**`tauri/src-tauri/src/commands/llm/rag.rs`。
+- **影响：**RF-1071 的条件 use 虽通过 Rust 默认/原生 feature 检查，严格契约解析拒绝 attributed use，远端23项契约测试有19失败，本地 check 同样exit1。
+- **执行：**移除带cfg的类型别名导入，在三处已有非native-perf错误映射中使用完整类型路径。不扩大解析器接受范围，不改错误码/返回契约/业务行为。
+- **验收：**契约check与现有23项Node回归通过、生成输出零差异；默认R及native-perf严格Clippy通过。
+- **建议提交：**`fix(contract): keep RAG imports compatible with strict parsing [RF-1072]`。
+
+
+### RF-1073
+
+**Linux Rust CI显式准备Tauri Host开发库** · P2 · 来源：CI37134827271 job111237127716
+
+- **前置：**无。
+- **入口：**`.github/workflows/ci_cd.yml` 的Linux rust-test。
+- **影响：**真实ubuntu-latest Clippy在glib-sys构建时exit101，缺glib-2.0.pc；尚未运行Host测试。
+- **执行：**在编译前安装官方Tauri Linux开发依赖，验证glib最低版本和GTK/WebKit pkg-config条目。保留job名称、格式/Clippy/测试门禁、发布条件和Cargo依赖。
+- **验收：**YAML及步骤顺序可解析；远端安装与pkg-config检查通过，真实Clippy/Host测试继续执行。不能以Windows检查代替Linux证明。
+- **验证配置：**DOC与实际Linux CI。
+- **建议提交：**`ci(linux): install explicit Host development prerequisites [RF-1073]`。
+
+### RF-1074
+
+**CLI CI为真实PDF回归准备PDFium** · P2 · 来源：CI37134827271 job111237127795
+
+- **前置：**无。
+- **入口：**`.github/workflows/ci_cd.yml`、`.github/workflows/pr_check.yml` 的cli-check。
+- **影响：**真实Linux CLI单测327通过/1失败，真实多页PDF取消回归因未设置PDFIUM_LIBRARY_PATH未进入识别；不是产品断言回退。
+- **执行：**复用现有按平台下载脚本，检查动态库非空，将绝对库路径写入该job的GITHUB_ENV；下载步骤显式在tauri工作目录执行，CLI测试保持solosoul_cli目录。两个CLI job同源补齐，不跳过PDF测试。
+- **验收：**YAML/工作目录/步骤顺序与Shell语法通过；真实远端PDF回归及完整CLI测试通过。保留原测试与阈值，不提交本机动态库。
+- **验证配置：**DOC与实际Linux CLI CI。
+- **建议提交：**`ci(cli): prepare PDFium for real PDF regression tests [RF-1074]`。
+
+### RF-1075
+
+**Windows Rust单测job准备明确标注的资源目录夹具** · P2 · 来源：CI37134827271 Windows job111237127731
+
+- **前置：**无。
+- **入口：**`.github/workflows/ci_cd.yml` windows-rust-test。
+- **影响：**Vault/core实际通过，Host因Git忽略的pp-ocr-v6-small目录缺失在Tauri构建时exit101，没有运行Host测试；失败附件实际上传。
+- **执行：**仅单测job在干净目录生成带明确无模型标记的资源布局夹具，已有目录即拒绝覆盖。保持正式Windows配置、manifest、测试入口与失败日志；不更改Release job、不提交ONNX/本机二进制。
+- **验收：**实际Windows Host测试运行且通过；夹具只属于单测准备，不能作为模型推理或Release资源验收。YAML与隔离路径行为核验不能替代远端Host。
+- **验证配置：**DOC、隔离资源布局检查、实际Windows CI。
+- **建议提交：**`ci(windows): prepare explicit unit-test resource layout [RF-1075]`。
+
+### RF-1076
+
+**向量解码使用固定数组块兼容严格Clippy** · P2 · 来源：CI37138522079 Linux job111247917347
+
+- **前置：**无。
+- **入口：**`tauri/crates/solosoul-vault/src/storage/metadata.rs` list_guide_embeddings。
+- **影响：**Linux依赖安装成功，Rust1.99严格Clippy在固定chunks_exact(4)退出101，Host测试尚未执行。
+- **执行：**改用as_chunks::<4>().0.iter()读取固定数组，保持from_ne_bytes、尾部不足4字节的现有忽略行为和数据库查询/输出；不放宽-D warnings或变更工具链。
+- **验收：**现有向量存取回归和完整R通过；远端同版本严格Clippy通过。当前本地1.96通过不能替代远端1.99。
+- **验证配置：**R、CORE、实际Linux CI、DOC；不为等价语法迁移新增镜像测试。
+- **建议提交：**`refactor(vault): decode vector bytes as fixed array chunks [RF-1076]`。
+
+### RF-1077
+
+**Linux Host单测准备声明的OCR与插件资源目录** · P2 · 来源：RF-1075同类资源声明的跨平台静态复核
+
+- **前置：**无。
+- **入口：**`.github/workflows/ci_cd.yml` rust-test；`tauri/src-tauri/tauri.linux.conf.json`。
+- **影响：**Linux配置声明Git忽略的OCR/桌面插件资源目录，干净checkout不存在，现有job未准备。当前Linux在更早的Clippy规则处退出，未把静态发现冒充真实Linux失败。
+- **执行：**复用现有插件精简脚本；单测job创建明确无模型的OCR目录标记，已有目录拒绝覆盖。声明Node版本，保持正式配置、测试与Release job。
+- **验收：**隔离目录行为/实际资源SHA核对通过，真实Linux严格Clippy与完整Host测试通过；夹具不能证明模型推理或Release。
+- **验证配置：**隔离布局检查、实际Linux CI、DOC；纯CI准备不重复未受影响的本地完整R。
+- **建议提交：**`ci(linux): stage declared resources for Host unit checks [RF-1077]`。
+
+### RF-1078
+
+**采用async-trait首次修复生成must_use冲突的版本** · P2 · 来源：CI37140797984 Linux job111254651777
+
+- **前置：**无。
+- **入口：**`tauri/Cargo.lock`、`solosoul_cli/Cargo.lock`；现有async-trait版本约束不改。
+- **影响：**Rust1.99 Clippy在CloudConnector的八个异步方法报double_must_use，属性由0.1.89宏自动添加，不是手写业务属性。上游0.1.92首次修复（0.1.90已yanked，0.1.91尚无该修复）。
+- **执行：**两个锁文件精确更新async-trait至0.1.92并仅接受必要的syn3；核对无无关依赖升级，保持业务trait/实现、Cargo清单与严格Clippy门禁，不加入allow。
+- **验收：**默认完整R、native-perf严格Clippy、完整CLI及远端1.99严格Clippy通过；记录syn3为编译期依赖，不冒充所有平台原生验收。
+- **验证配置：**R、CORE、CLI、DOC、实际Linux CI；不写镜像宏实现测试。
+- **建议提交：**`build(rust): adopt upstream async-trait lint fix [RF-1078]`。
+
+### RF-1079
+
+**在Host检查前构建真实frontendDist** · P2 · 来源：CI37138522079 Windows job111247917296；第三轮同样失败
+
+- **前置：**无。
+- **入口：**`.github/workflows/ci_cd.yml` 的Linux与Windows Host测试job。
+- **影响：**Windows Core764项通过，但Host的默认custom-protocol `generate_context!` 因声明的`../dist`不存在而编译失败，尚未启动Host测试。Linux同源默认配置为静态同类缺口，不称已有Linux实跑失败。
+- **执行：**沿用Node22，Host检查前在tauri运行npm ci和真实npm run build；不用空目录、假index或禁用custom-protocol，保持Release和全部测试配置。
+- **验收：**YAML解析/顺序、真实前端构建、原始失败附件digest；实际Linux严格Clippy及Host、Windows Core/Host通过后关闭。
+- **验证配置：**DOC、实际Linux/Windows CI；YAML改动不重复未受影响的R。
+- **建议提交：**`ci(host): build real frontend assets before Rust checks [RF-1079]`。
+
+### RF-1080
+
+**发现设备Map直接遍历values** · P2 · 来源：CI37144291766 Linux job111264959982
+
+- **前置：**无。
+- **入口：**`tauri/crates/solosoul-sync/src/manager.rs::known_peers`。
+- **影响：**Rust1.99严格Clippy的for_kv_map阻塞同步crate：现有循环弃用键，仅读取peer值。
+- **执行：**仅把`for (_, p) in map.iter()`改为`for p in map.values()`，保留锁、过滤、数据投影、持久化查询与返回规则；不加allow或降低门禁。
+- **验收：**现有同步/peer相关回归与完整R、共享CLI检查通过，核对循环主体逐字保持；远端1.99严格Clippy通过后关闭。
+- **验证配置：**R、CORE、CLI、DOC、实际Linux CI；不添加镜像循环的测试。
+- **建议提交：**`refactor(sync): iterate discovered peer values directly [RF-1080]`。
+
+### RF-1081
+
+**风险确认弹窗在短屏内滚动并保持操作可达** · P2 · 来源：真实移动CI37138522079，320×568风险面板顶部y=-4.15625
+
+- **前置：**无；不扩大为RF-122～127的全局Dialog迁移。
+- **入口：**`tauri/src/components/llm-config/RiskAcceptanceDialog.tsx`；`tauri/e2e/android-touch-targets.spec.ts`。
+- **执行：**限制面板最大高度并提供纵向滚动，保留风险文字、48px触控目标与风险勾选后才可启用行为。
+- **验收：**保留既有320px完整词/同排按钮断言；新增短竖屏与横屏取消、勾选、启用可达回归。真实Linux移动CI修复后重跑，Windows Edge只作本地证据。
+- **验证配置：**F、WEB（风险用例，chromium与mobile），DOC；不重新运行未受影响Rust测试。
+- **建议提交：**`fix(ui): contain risk acceptance panel on short screens [RF-1081]`。
+
+### RF-1082
+
+**桌面E2E场景声明正确视口与指针环境** · P2 · 来源：真实移动CI桌面侧栏/鼠标场景继承390px触摸环境，期望的桌面导航不存在
+
+- **前置：**无；不修产品响应布局，不包含插件生命周期旧导航夹具。
+- **入口：**10个纯桌面E2E文件及native-theme、macos-preview-titlebar的桌面分支。
+- **执行：**纯桌面测试显式1280×720、isMobile=false、hasTouch=false；混合文件只调整Windows/macOS视口，Android/iOS原项目上下文保持。原用例主动设置的窄视口保留。
+- **验收：**全部测试正文与断言保持，完整mobile清单原327项保持，RF-1081滚动条回归新增1项后328项，无新增skip或改变retry；受影响场景分别跑chromium/mobile。项目名mobile中的桌面模拟不得记为Android设备覆盖。
+- **验证配置：**F、WEB（本项12文件两项目）、DOC，真实Linux移动CI提交后复跑。
+- **建议提交：**`test(e2e): declare desktop viewport and pointer context [RF-1082]`。
+
+### RF-1083
+
+**插件生命周期E2E遵循可见交互与请求响应闭环** · P2 · 来源：旧隐藏侧栏导航及固定计时结束mock不能验收当前完整插件交互
+
+- **前置：**无，不包含RF-1082视口环境或快捷面板错误格式。
+- **入口：**`tauri/e2e/fixtures/auth.ts`；`tauri/e2e/plugin-lifecycle.spec.ts`。
+- **执行：**从首页可见Plugins卡片导航；运行mock发出真实请求后等plugin_dialog_response才完成，不按固定计时吞请求；响应后展开默认折叠日志再检查start，保留全部安装/禁用tier/对话框/结果断言及原超时。
+- **验收：**原两个用例在chromium/mobile通过；新增响应requestId和值精确断言，原清单/retry/skip保持。真实Linux移动CI复跑，不改业务UI/IPC或生产错误展示。
+- **验证配置：**F、WEB（plugin-lifecycle两项目）、DOC；不重复未受影响R。
+- **建议提交：**`test(plugin): follow visible lifecycle and await dialog response [RF-1083]`。
+
+### RF-1084
+
+**系统语言测试接受C/POSIX及仅语言标识** · P2 · 来源：真实Linux Rust1.99 job111277389255单项失败，778 passed/1 failed
+
+- **前置：**无；RF-1077/RF-1079完整Host验收受该失败阻塞。
+- **入口：**`tauri/src-tauri/src/commands/system.rs`的`test_get_system_locale_returns_locale`；锁定sys-locale0.3.2 Unix实现。
+- **执行：**保留非空检查，校验语言标识字符，允许C/POSIX及仅语言；不要求地区分隔符，不更改真实OS语言、CI环境变量、生产语言映射或新增ignore。
+- **验收：**生产函数逐字不变；本地匹配1.99完整R通过；真实Linux保留C环境执行原测试并完成Host，不以Windows本地通过替代Linux。
+- **验证配置：**R（fmt、匹配1.99严格Clippy、完整cargo test）、DOC；无共享Core/CLI/前端改动，不重复独立检查。
+- **建议提交：**`test(system): accept locale identifiers without region [RF-1084]`。
+
+### RF-1085
+
+**插件快捷面板E2E使用结构化错误与固定译文** · P2 · 来源：RF-1082完整WEB 310 passed/4 failed，旧fixture裸字符串不符合RF-306/RF-320错误契约
+
+- **前置：**无；与RF-1082桌面环境和RF-1083插件弹窗生命周期分项。
+- **入口：**`tauri/e2e/plugin-quick-panel.spec.ts`；生成的BackendError及PLUGIN_NETWORK_FAILED固定译文。
+- **执行：**安装失败/取消mock使用正式code/safeDetails/retryable结构；网络失败断言改为既定固定译文，保留失败展示/取消/重试清空/进度/安装状态全流程。禁止展示裸主机错误或虚构timeout code，生产UI与错误解析不改。
+- **验收：**原8用例在chromium/mobile共16项通过，无新增skip/放宽超时；原进度/取消/重试等断言保留，错误译文使用完整文本精确断言；真实Linux全量移动CI复跑。
+- **验证配置：**F、WEB（插件快捷面板两项目）、DOC；无生产/原生改动，不重复R。
+- **建议提交：**`test(plugin): align install mocks with structured errors [RF-1085]`。
+
+
+### RF-1086
+
+**iOS设备与模拟器编译顺序执行** · P2 · 来源：实际PR37157849541/job111304900008，biometric构建复制.tauri/tauri-api目录时报File exists，exit101
+
+- **前置：**无；RF-311实际PR验收受此阻塞。
+- **入口：**`.github/workflows/pr_check.yml` Cargo check (iOS targets)；锁定tauri-plugin2.6.2的src/build/mobile.rs。
+- **执行：**原单进程双target改为两条按目标顺序执行的cargo check；仍覆盖aarch64-apple-ios及aarch64-apple-ios-sim。不删除插件、关闭feature、增加ignore或降低检查；生产依赖和Cargo.lock不改。
+- **验收：**锁定crate归档SHA/源码核对，YAML/actionlint、命令/顺序检查通过；实际macos-latest两个原目标编译通过，后续macOS严格Clippy/future-keychain/完整R继续执行。编译不替代硬件Keychain验收。
+- **验证配置：**DOC、YAML静态检查、实际PR Apple编译；纯CI编排不重复未受影响本地F/R。
+- **建议提交：**`ci(ios): check device and simulator targets sequentially [RF-1086]`。
+
+
+### RF-1087
+
+**侧栏工具命中断言等待展开动画** · P2 · 来源：实际PR mobile job111304900208，right悬停中心点命中首次false，重试通过，整套308 passed/1 flaky/19原skip
+
+- **前置：**无；与RF-1082桌面指针环境分项。
+- **入口：**`tauri/e2e/sidebar-tools.spec.ts`；SideNavigation.module.css的420ms同步clip-path过渡。
+- **执行：**展开aria状态/可见性先于裁剪完成；原每按钮中心点命中条件改用现有expect.poll等待实际满足。保留10按钮、几何/材质/视口/clip条件、点击导航和完整断言；不睡固定时间、不关闭动画、不加skip或放宽测试timeout/retry，不改生产CSS/事件。
+- **验收：**中心点计算与命中条件保持（AST核对），生产源码冻结；原文件两项目全量通过及完整mobile328清单保持，真实Linux对应两例首次通过后关闭；job成功有flaky时如实记录。
+- **验证配置：**F、WEB（原sidebar-tools全部用例两项目）、DOC，实际Linux PR复验。
+- **建议提交：**`test(sidebar): await actual tool hit targets after reveal [RF-1087]`。
+
+### RF-1088
+
+**导航/尺标离开事件安全检查relatedTarget** · P2 · 来源：RF-1087实际WEB记录TopFunctionBar.contains传入Window抛TypeError；同根因扫描命中WorkspaceObjectRuler焦点离开处理
+
+- **前置：**无；与RF-1087动画命中断言分项。
+- **入口：**`tauri/src/components/layout/TopFunctionBar.tsx`、`tauri/src/components/workspace/WorkspaceObjectRuler.tsx`。SecondaryActionBar/AddPagePopover已检查Node，不改。
+- **执行：**调用contains前用instanceof Node缩窄relatedTarget；null/Window按离开处理，区域内Node保持展开/预览，已有卡片打开例外保持。
+- **验收：**top/bottom鼠标离开到Window、尺标focusout到Window的真实DOM事件旧代码失败/新代码通过且无pageerror；区域内切换保持，原侧栏/尺标全部用例两项目通过。mobile原328保留，仅新增3例到331，不改timeout/retry/skip。
+- **验证配置：**F、WEB（sidebar-tools/object-ruler原全部及新回归两项目）、DOC，Linux实际PR复验。
+- **建议提交：**`fix(ui): guard non-Node related targets before containment [RF-1088]`。
+
+### RF-1089
+
+**侧栏真实动画开始时捕获，避免晚采样丢失** · P2 · 来源：RF-1088完整WEB的macos展开mobile动画采样首次未找到两条活动过渡，重试通过
+
+- **前置：**无；与RF-1087中心点等待和RF-1088生产DOM守卫分项。
+- **入口：**`tauri/e2e/sidebar-tools.spec.ts`的sampleMenuSweep及四个平台/折叠状态组合。
+- **执行：**先用仅诊断的600ms读取延迟核验晚采样问题；正式用例在真实hover/move前监听原clip-path transitionrun，捕获并暂停菜单/导航两动画，仍由原采样器读取原duration/三中间帧并finish。正式代码不加固定延迟或改CSS/动画时长；不移除原“必须同时动画”及几何/不缩放/快速反向/减少动态效果断言。
+- **验收：**同样600ms诊断旧采样失败/新捕获通过；正式侧栏两项目50例全部首次通过、mobile原331项保持，生产源码与原采样callback AST保持；实际Linux四动画例首次通过后关闭。
+- **验证配置：**WEB（诊断及原sidebar-tools全部两项目）、Prettier、DOC；未修改应用/单测/配置，RF-1088完整F输入逐字冻结后复用，并在实际PR复验。
+- **建议提交：**`test(sidebar): capture real transitions before sampling [RF-1089]`。
+
+### RF-1090
+
+**Apple检查job编译前完整准备资源** · P2 · 来源：PR37164080866/job111323318631在aarch64-apple-ios设备目标build.rs报resources-mobile插件目录不存在，exit101；原Swift EEXIST本轮未出现
+
+- **前置：**无；RF-1086双目标编译和RF-311完整PR待本项。
+- **入口：**`.github/workflows/pr_check.yml`的rust-check；现有npm build、stage-mobile/stage-desktop、tauri.ios/macos资源声明及原PDFium步骤。
+- **执行：**在双目标及macOS检查前提供同版本Node22、npm ci和真实npm run build（内含两端真实插件staging）；以已有明确无模型单测OCR布局满足macOS声明，拒绝覆盖已有目录；原真实PDFium准备步骤前移以满足macOS资源目录。iOS两目标、默认feature、future-keychain、Clippy/完整R/ACL及其他job保持。
+- **验收：**干净隔离源码先确认缺移动资源；锁定依赖真实build后，移动/桌面插件逐文件匹配实际子模块、dist为真实构建且macOS目录声明齐备；OCR布局无模型且已有目录拒绝覆盖。YAML/actionlint与源码冻结通过；实际Apple双目标、后续macOS门禁通过后关闭。
+- **验证配置：**DOC、YAML静态、隔离真实资源/前端构建、实际Apple PR；只改CI准备，不重复已通过且输入未改的本地F/R。单测标记不能用于Release或模型推理验收。
+- **建议提交：**`ci(apple): stage declared resources before target checks [RF-1090]`。
+
+### RF-1091
+
+**macOS直接Cargo检查准备一致的Tauri声明** · P2 · 来源：PR37166565587/job111330569834，双iOS通过后macOS Clippy构建脚本allowlist失败
+
+- **前置：**无；与RF-1090资源准备分项。
+- **入口：**`.github/workflows/pr_check.yml` rust-check；锁定tauri-build2.6.2 manifest校验；Cargo.toml的通用及macOS专属tauri声明。
+- **执行：**在两iOS目标之后、macOS检查之前，仅在该Mac CI checkout将已启用的macos-private-api target feature同步至通用声明；平台/配置/既有target声明和版本须校验，非macOS拒绝。跟踪Cargo.toml/lock不修改，macOS实际依赖feature集合不变；原严格Clippy/future-keychain/全量R/ACL保留。
+- **验收：**原上游校验模型确实失败、同步后通过，Mac启用feature集合一致；未预期平台/配置/声明拒绝且不写文件；幂等；其他job、两iOS命令、配置/依赖/业务源码冻结。实际Apple原双目标和所有后续门禁通过后关闭。
+- **验证配置：**DOC、YAML/actionlint、隔离正反例与原上游源码/归档SHA、实际Apple PR；纯CI声明准备不重复未改变的本地F/R。
+- **建议提交：**`ci(macos): align declared Tauri features for direct checks [RF-1091]`。
+
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -6170,3 +6422,309 @@ git commit -m "<任务卡的提交标题>"
 - 该码不能区分根容器缺失和无子节点，也不能证明初始化失败或异步挂载时序。下一步只读区分根容器/挂载状态并确定真实UI就绪边界，保留本次失败与原校验；当前不改变全路由加载策略、重试或降低条件。
 - 原runner清理完整，额外fresh CIM核验9记录PID与owned应用/WebView进程均不存在；首轮命令行过宽误匹配检查PowerShell宿主的记录保留，没有结束额外进程。公开源7文件、既有stash及旧诊断失败证据保持；缓存仅在身份与绝对路径核对后清理。完整[复跑/口径](performance/RF-312-windows-native-app-baseline.md)和[源码/构建/实测/日志/收尾证据](performance/rf312-windows-document-reasons-2026-10-03.json)已归档。
 - 本项独立本地提交（本提交，以RF-312检索），不推送，只暂存本项SDK源码、报告与证据。RF-312仍[!]，累计249/261关闭、5待验证、7待执行，整体目标尚未完成；RF-121～127、远端CI和其他平台性能前置不解除。
+
+
+### RF-312 阶段执行记录（2026-10-03，根容器与挂载调用点只读诊断完成）
+
+- 基线 `80ad860b`，已有3项提交已推送。仅扩展非默认SDK只读表达式，保存白名单根结构/挂载调用点标记/启动层状态；只有原文档身份条件通过且root校验失败时发布严格类型化辅助诊断。原parse_evaluation逐字一致，load/setup一次门闩、身份guard、两次协议调用与成功/其他失败proof保持；不读取DOM文本、input、账户或原始错误详情。
+- 新增2项Rust回归与4项Node实际表达式VM回归，覆盖结构分型、私有状态归一化、类型/额外键/矛盾状态拒绝，以及成功/其他失败不附带辅助字段；加入固定Node runner。原生31通过/0失败/0ignored、Node六文件101通过/0失败/0skip、完整runner123通过/0失败/1既有符号链接权限skip。首次runner格式exit1保留，定向格式后exit0；严格Clippy/fmt通过。
+- 实际非默认Release exit0（Rust14m38s），TypeScript/Vite通过；EXE SHA `84b6e069b3e2402bda32072def4a439af957dc57ab174ee1d68b62dd4c906340`。15份源码/依赖和94公开资源SHA保持，构建后的runner测试清单变化另冻结，不冒充Release输入；默认R沿用本轮未受影响的1858通过/0失败/3原有ignored。
+- 一次fresh100对象原生诊断exit1，实际WebView2 154.0.4258.48；`document-ui-root-absent` 分类为 **root-empty-before-react-mount**：根存在/无子节点、挂载调用点标记未出现、启动层存在且loading。原生elapsed7ms/spawn后2329ms观察proof不作为性能；document/observer/timeOrigin为空，完整protocol次数未接纳，performanceMetrics=null。
+- 已排除本次根容器缺失和已观察到的启动层错误；尚未证明后续能正常挂载、具体等待步骤或初始化失败根因。挂载mark在createRoot/render前，不等于调用成功或DOM commit。下一步建立真实内容提交后的有界UI就绪诊断边界；当前不放宽条件、不追加任意延迟重试或改全路由策略。
+- fresh CIM确认9记录PID和owned应用/WebView均不存在；归档后核对manifest/绝对父路径/reparse边界，仅清理本轮3个owned目录。公开源7文件、依赖、旧失败和原stash保持。完整[口径](performance/RF-312-windows-native-app-baseline.md)与[原始失败/检查/SHA/清理证据](performance/rf312-windows-ui-root-2026-10-03.json)归档；本项独立本地提交（按RF-312检索），随后转RF-121。累计249/261关闭、5待验证、7待执行不变。
+
+### 2026-10-03 · RF-121 Windows辅助功能补证
+
+- 在冻结独立例程与20项生产输入不变的前提下，关闭透明效果与恢复Mica的最终16场景均通过；分别实色alpha255、DWM类型2/透明alpha0，浅深主题、隐藏/缩放/最小化恢复及Card背景像素一致。新增工具只切换透明度，不切换高对比。
+- 第一轮高对比的8份原生报告通过（HighContrast/forcedColors实际启用、实色背景），但完整编排exit1：关闭后颜色异步恢复且原空方案名变为High Contrast Black。当前高对比关闭、透明度及31项颜色与原值一致，方案名称仍有差异；保留失败和恢复尝试，不宣称完整设置恢复。后续高对比矩阵在隔离会话验收。
+- [补证与原始档案](verification/rf121-windows-accessibility-checkpoint-2026-10-03.json)记录32个实际原生采样（两次关闭透明效果各8、高对比8、Mica8），最终工具16项/0失败；PNG只覆盖WebView，不代表DWM非客户区或全部Sidebar/AppBar。RF-121仍待多端辅助功能/完整合成，维持249/261，不解除RF-122–127。
+- 本次未改生产Rust/TS，不重跑未受影响的F/R/WEB；脚本语法、实际例程、文件范围与DOC检查作为本次验证。提交：本提交，使用RF-121检索。
+
+### RF-308 远端验收完成（2026-10-03）
+
+- 独立分支 `codex/rf308-rf309-validation-20261003` 的 `f56b8a1d` 手动运行 [CI 37134827271](https://github.com/Gczmy/SoloSoul/actions/runs/37134827271)，Frontend Checks job111237127704实际成功。TypeScript、Lint、正式coverage及26项生产启动测试通过；Vitest256文件/2240项通过、0失败/0跳过，Node124项中103通过/21项平台跳过、0失败，跳过原因保留。
+- 四门槛80/70/80/80保持，实测statements85.58%（18019/21054）、branches72.90%（8901/12209）、functions80.57%（3269/4057）、lines87.46%（16711/19105）；frontend-coverage附件11278456801实际上传并下载，555项HTML/资源档案校验。与既有真实自动锁定测试撤除反证共同满足验收；不声称每个单独分支都有独立门禁。
+- [完整证据](verification/rf308-ci-coverage-2026-10-03.json)保留job步骤/原始日志/报告SHA。该前端job成功不代表整条CI成功：Linux缺glib和IPC生成器拒绝条件导入均已失败，Windows仍运行。工作流已恢复disabled_manually，手动事件跳过打包/发布，远端main保持80ad860b；RF-308独立关闭，累计250/261。提交：本提交，使用RF-308检索。
+
+### RF-1072 执行完成（2026-10-03）
+
+- 远端契约job23项中19项失败，本地同源码check也exit1。仅将RAG三处已有错误映射改用完整类型路径，移除cfg修饰的Code/Stage导入；严格拒绝规则、错误码、分支行为与两份生成输出不变。
+- 契约check、23项/0失败/0跳过回归、默认fmt/严格Clippy、完整R **1858通过/0失败/3原有ignored、25组**及native-perf all-targets严格Clippy通过；ACL、偏好键、ACL单测、Markdown13依赖检查通过。偏好键首次误用不存在脚本exit1，改用package.json真实入口exit0，调用错误记录保留。
+- [失败与修复验证](verification/rf1072-contract-import-2026-10-03.json)独立归档；新远端契约运行待后续CI补证，不混入Linux依赖或CLI环境修改。累计251/262；提交：本提交，使用RF-1072检索。
+
+### RF-1073 Linux CI依赖补齐（2026-10-03，待远端验收）
+
+- 真实Linux Clippy缺glib-2.0.pc，job exit101，Host测试未执行。仅在Linux rust-test编译前加入官方Tauri开发依赖安装，并检查glib最低2.70及GTK3/WebKit pkg-config；原job名称、格式/Clippy/测试、发布条件和Cargo清单不变。
+- 锁定Prettier解析YAML、抽取安装步骤的bash -n及DOC检查通过；Windows不替代Linux实测，保持[!]待验证。记录见[RF-1073](verification/rf1073-linux-prerequisites-2026-10-03.json)，累计251/263；提交：本提交，使用RF-1073检索。
+
+### RF-1074 CLI PDFium环境补齐（2026-10-03，待远端验收）
+
+- 真实CLI job单测327通过/1失败，真实多页PDF取消回归因缺PDFIUM_LIBRARY_PATH未进入识别。两个现有Linux CLI job复用平台下载器、验证so非空并将绝对路径写入GITHUB_ENV；准备在tauri目录，测试继续solosoul_cli目录，保留全部测试，不提交本机DLL。
+- 两份YAML解析、工作目录/顺序断言、两段bash -n与DOC通过；[原始失败和配置证据](verification/rf1074-cli-pdfium-2026-10-03.json)归档，真实新CI尚待运行。累计251/264，保持[!]；提交：本提交，使用RF-1074检索。
+
+### RF-1075 Windows单测资源布局（2026-10-03，待远端验收）
+
+- 第一轮Windows Vault/core六组764通过/0失败/1原有ignored，Host在构建时缺Git忽略的OCR目录而exit101，未进入测试。真实失败日志附件11279350530已经上传、下载并与服务端SHA一致，不将Core通过当作Host通过。
+- 仅Windows单测job建立明确无OCR模型的资源目录标记；隔离路径首次创建exit0，第二次拒绝覆盖exit1且原标记SHA不变。三项打包/发布job逐字保持，生产配置、manifest和测试入口不改；真实模型/Release验收仍未证明。
+- YAML解析、隔离行为和DOC通过，[失败附件与本项证据](verification/rf1075-windows-unit-resources-2026-10-03.json)独立归档；保持[!]待Host远端真实执行。累计251/265；提交：本提交，使用RF-1075检索。
+
+### RF-1072 远端补证（2026-10-03）
+
+- 第二轮手动CI37138522079在6723063e实际执行Incremental IPC Contract Check（job111247917394）并成功：23生成器回归通过/0失败/0跳过，生成漂移检查、226命令ACL核验及12项ACL回归通过。严格解析器与生成输出保持，补证不扩大为整条CI成功。
+- 原始日志和精确提交/步骤元数据已追加至[原证据](verification/rf1072-contract-import-2026-10-03.json)。本次只回填该项远端证明，状态仍关闭、累计251/265不变；按RF-1072独立提交。
+
+### RF-1076 固定数组块解码（2026-10-03，待远端1.99验收）
+
+- 第二轮Linux依赖已安装成功，Rust1.99严格Clippy在Vault固定chunks_exact(4)失败。仅替换该解码链为as_chunks::<4>().0.iter()及数组复制；from_ne_bytes、SQL、数据库字节和尾部不足4字节的既有忽略行为保持。没有allow、工具链降级或门槛变化。
+- 本地1.96默认fmt/严格Clippy、完整R **1858通过/0失败/3原有ignored、25组**与native-perf all-targets严格Clippy均exit0；三个既有向量存取回归实际通过，逐字核对其余源码不变。不新增镜像实现测试。
+- [真实失败与本轮检查](verification/rf1076-vector-chunks-2026-10-03.json)归档，当前本地通过不替代远端1.99，保持[!]。累计251/266；按RF-1076独立提交。
+
+### RF-1074 远端验收与关闭（2026-10-03）
+
+- 第二轮CI37138522079、6723063e的CLI job111247917178实际成功：格式/严格Clippy/PDFium准备/完整CLI全部通过，五组335通过/0失败/2原有ignored；首次失败的真实多页PDF取消与worker join后清理回归实际ok，没有新增跳过。
+- [原始日志与精确job步骤](verification/rf1074-cli-pdfium-2026-10-03.json)回填，两个既有ignored的边界保留。pr_check的同源准备配置已静态检查，本轮未运行PR；CLI成功不代表整条CI成功。RF-1074独立关闭，累计252/266；按该ID独立提交。
+
+### RF-1077 Linux单测资源布局（2026-10-03，待实际Linux验收）
+
+- 根据RF-1075跨平台静态核对：Linux覆盖配置声明Git忽略的OCR与桌面插件目录，干净checkout没有，现有job未准备。当前实际Linux运行在更早的Clippy规则处停止，明确不声称已经观察到此资源构建失败。
+- 仅Linux Host检查/单测job声明Node22、复用现有插件精简脚本、生成明确无模型的OCR目录标记。隔离准备exit0，44个真实插件文件SHA及registry逐字一致，第二次准备拒绝覆盖exit1且标记不变；全部Linux覆盖资源路径存在。Windows与三项打包/发布job逐字一致。
+- YAML解析、bash语法、隔离行为与DOC通过，[完整静态/实际准备证据](verification/rf1077-linux-unit-resources-2026-10-03.json)归档。仅CI准备修改，沿用未受影响的RF-1076完整R，不冒充重跑；真实Linux严格Clippy与完整Host尚待下一轮，保持[!]。累计252/267；按RF-1077独立提交。
+
+### RF-1078 最小上游宏修复（2026-10-03，待远端1.99验收）
+
+- 第三轮真实Linux job111254651777在八个CloudConnector异步方法报double_must_use；属性由async-trait0.1.89自动生成。采用上游首次包含删除多余属性修复的0.1.92，仅两个独立锁文件更新该包及必要编译期syn3.0.6，其余包逐项相等；业务trait、清单、严格门禁不变。
+- 本地Rust1.96：workspace fmt、默认严格Clippy、完整R **1858 passed/0 failed/3原有ignored**、native-perf全targets严格Clippy全部exit0；CLI fmt、全targets严格Clippy和完整测试 **336 passed/0 failed/2原有ignored** 全部exit0。未受影响前端不重跑，不将本地结果替代远端1.99。
+- [原始失败、两个锁文件差异与七项检查](verification/rf1078-async-trait-2026-10-03.json)归档；保持[!]，累计252/268关闭、9待验证、7待执行。独立提交本提交（按RF-1078检索）。
+
+### RF-1079 Host真实前端产物（2026-10-03，待远端验收）
+
+- 第二轮Windows Core764项通过，Host因frontendDist ../dist不存在编译退出101、未执行测试；第三轮同样原因。归档真实失败附件11280507111并核对server digest。Linux同源配置缺口为静态推断，保留其更早宏lint失败边界。
+- 两个Host job在检查前运行npm ci和真实npm run build，沿用Node22；默认custom-protocol、Rust清单、全部测试与三项发布job保持。YAML解析/顺序、完整本地生产构建exit0（28.73s），真实dist索引与资源存在；NSIS/搜索索引五个已知生成目标逐字恢复，stash与无关跟踪文件不变。
+- [原始失败、完整构建和配置检查](verification/rf1079-frontend-dist-2026-10-03.json)归档。保持[!]，累计252/269关闭、10待验证、7待执行；按RF-1079独立提交，随后实际远端验收，不重复未受影响的R。
+
+### RF-1080 Map值遍历（2026-10-03，待远端Linux复跑）
+
+- 第四轮Linux Rust1.99 job111264959982因for_kv_map失败；仅一行改为map.values()，过滤、持久化读取、投影和返回主体逐字保持，不加allow。
+- 独立安装1.99.0匹配远端，默认1.96.0保持；fmt、1.99严格Clippy、完整R **1858/0/3原有ignored**（同步90/0/0）；CLI fmt、1.99全targets严格Clippy与完整CLI **336/0/2原有ignored** 全部exit0。
+- [原始失败、源码范围、工具链和六项检查](verification/rf1080-peer-map-2026-10-03.json)归档，保持[!]待真实Linux复跑；累计252/270关闭、11待验证、7待执行。按RF-1080独立提交，再逐项回填Windows实际通过证据，不将整条CI标成功。
+
+### RF-1075 远端验收记录（2026-10-03）
+
+- 实际GitHub windows-latest：[run 37144291766](https://github.com/Gczmy/SoloSoul/actions/runs/37144291766/job/111264960054)，测试源码`fbcbe83387810357cc9018b9b670145deda901bb`，Rust1.99.0，job111264960054完成且success。真实frontendDist构建、无模型资源准备和测试步骤均exit0。
+- Vault/core六组764 passed / 0 failed / 1原有ignored；Host七组788 passed / 0 failed / 0 ignored。共1552通过；首轮Host未执行的失败日志和实际失败附件仍保留。
+- [结构化证据](verification/rf1075-windows-unit-resources-2026-10-03.json)新增成功原始日志与job元数据，gzip解压逐字复核及原始/压缩SHA256均记录。这里只验收单测资源目录，不代表真实OCR模型推理、Release打包或设备运行。
+- DOC与Markdown依赖边界检查通过，未改业务、workflow、正式配置、manifest或用户stash。本项关闭253/270，一项一提交（本提交，以RF-1075检索）。
+
+### RF-309 远端验收记录（2026-10-03）
+
+- Windows Rust Regression Tests实际windows-latest job111264960054、[run37144291766](https://github.com/Gczmy/SoloSoul/actions/runs/37144291766/job/111264960054) success，源码fbcbe833，Rust1.99.0。Vault/core764 passed / 0 failed / 1原有ignored；Host788 passed / 0 failed / 0 ignored，两组真实运行并exit0，没有把构建成功或零用例当测试通过。
+- 首轮真实失败job111237127731上传windows-rust-test-logs附件11279350530，core.log与host.log已下载、服务器digest/实际SHA及ZIP CRC核对；本次成功无需失败附件，原失败记录保留。
+- [结构化验收](verification/rf309-ci-windows-2026-10-03.json)引用成功日志和失败附件，记录正式配置与Common Controls v6进程manifest源码SHA，实际测试commit与当前HEAD的Git blob逐字相同。本地CRLF单独留原始SHA，首轮原始文件对Git blob断言因换行差异失败后按Git blob复核，不隐去操作错误。
+- 本次仅补证，不改变Release安全配置、不提交二进制、不放宽门禁。本地R/CLI最近匹配1.99检查见RF-1080：1858与336项通过，与远端Windows fbcbe833证据分别记录。DOC/Markdown边界/差异检查通过，非本项源码和用户stash保持。
+- RF-309关闭，累计254/270。RF-311的Windows前置已满足，但实际PR与全平台覆盖验收仍需推进，不能由本次证据推断完成。独立提交（本提交，以RF-309检索）。
+
+### RF-1081 执行记录（2026-10-03，待Linux移动验收）
+
+- 真实Linux移动CI320×568面板y=-4.15625越界；新增320×400与640×320操作回归，在原实现下两项均失败，顶部分别-61.65625、-69.265625，原retries2不变。
+- 仅增加面板最大高度calc(100% - 32px)与纵向overflow:auto。短屏保持16px上下空间、内容可滚动；原勾选后才能启用行为、风险文字和按钮不变。既有320px完整词、48px目标、同排按钮断言逐字保持。
+- 本地Node24.16.0/Edge，两项目共6项通过，0失败/0flaky；取消、重新打开、勾选与启用均实际点击。320px截图已视觉检查；不声称原生Android合成器验收。
+- F全部通过：TypeScript、Lint（原1warning）、修改文件Prettier；默认npm run test，256文件2240 Vitest、123 Node通过，1项原有Windows符号链接权限跳过保持。首轮格式失败保留，格式修正后复验；未扩大Rust检查。
+- [完整证据](verification/rf1081-risk-panel-2026-10-03.json)保留原CI失败、修复前失败/修复后成功、全部检查、源码与截图SHA；无本项以外源码变化，用户stash保持。Linux移动CI尚待提交后复跑，状态[!]，254/271不增。独立提交（本提交，以RF-1081检索）。
+
+### RF-1082 执行记录（2026-10-03，未关闭）
+
+- 10个纯桌面文件显式1280×720/fine pointer环境；2个混合文件仅为Windows/macOS设置桌面视口，Android/iOS项目参数及原主动窄屏场景保持。删除本项插入段后12个文件正文/断言与基线逐字相同；完整mobile清单327项保持，无新增skip/更改retry。插件生命周期文件单独修复。
+- F通过：TypeScript、Lint（原1warning）、Prettier；默认完整256文件2240 Vitest、123 Node通过，1项原有符号链接权限跳过保持。
+- WEB两项目314项实际运行：310 passed / 4 failed / 0 flaky，1171.70s，exit1。4项是两平台/两项目相同下载超时断言：测试裸字符串被当前IPC归为LEGACY_ERROR，显示未完成安装通用提示；原断言保留并另项处理，不把整个门禁写为成功。此前“桌面项目已通过”表述已明确更正，原失败与两项目结果全部留存。
+- [完整证据](verification/rf1082-desktop-context-2026-10-03.json)包含原mobile侧栏失败、未应用v1/v2提案失败、源码/清单前后比较、全部实际检查和当前错误快照。初次归档文件名错误停止于临时证据写入，枚举实际diagnostic.log并逐字复核已生成gzip后继续；无测试结果被覆盖。只是浏览器环境修复，不证明原生材质；Linux移动CI仍须复跑。
+- 本项保持[!]，254/272不增，非本项源码和用户stash保持。一项一提交（本提交，以RF-1082检索）；后续mock修复不混入本次提交。
+
+### RF-1073 远端验收记录（2026-10-03）
+
+- [Linux run37148546263/job111277389255](https://github.com/Gczmy/SoloSoul/actions/runs/37148546263/job/111277389255)，源码aa40ac117a5d6781df2f048995802abe4549e764，实际Rust1.99.0，fmt与严格Clippy success。Ubuntu开发库安装、glib最低版本及GTK/WebKit pkg-config检查实际success，Rust1.99严格Clippy通过，Host实际编译并执行779项（778通过/1语言测试失败）。本项验收要求系统库/编译及Host测试继续执行，已满足；不称整个Linux job成功。
+- [结构化证据](verification/rf1073-linux-prerequisites-2026-10-03.json)保留原失败/本地检查，新增完整远端原始日志、精确job步骤与Git blob SHA；原系统语言失败完整保留。RF-1077/RF-1079要求完整Host通过，继续待验，没有把本次整个Linux job改记为成功。
+- 本次仅DOC验收更新，Markdown依赖边界与diff检查通过，业务/workflow与用户stash保持。按本项既定验收条款关闭，累计255/272；独立提交（本提交，以RF-1073检索）。
+
+### RF-1076 远端验收记录（2026-10-03）
+
+- [Linux run37148546263/job111277389255](https://github.com/Gczmy/SoloSoul/actions/runs/37148546263/job/111277389255)，源码aa40ac117a5d6781df2f048995802abe4549e764，实际Rust1.99.0，fmt与严格Clippy success。远端Rust1.99严格Clippy实际success；现有向量3项回归与本地完整R已通过，RF-1080后匹配1.99完整R1858/0/3同样通过。as_chunks语法修复与循环/查询主体保持；Linux本轮单独语言测试失败保留。
+- [结构化证据](verification/rf1076-vector-chunks-2026-10-03.json)保留原失败/本地检查，新增完整远端原始日志、精确job步骤与Git blob SHA；原系统语言失败完整保留。RF-1077/RF-1079要求完整Host通过，继续待验，没有把本次整个Linux job改记为成功。
+- 本次仅DOC验收更新，Markdown依赖边界与diff检查通过，业务/workflow与用户stash保持。按本项既定验收条款关闭，累计256/272；独立提交（本提交，以RF-1076检索）。
+
+### RF-1078 远端验收记录（2026-10-03）
+
+- [Linux run37148546263/job111277389255](https://github.com/Gczmy/SoloSoul/actions/runs/37148546263/job/111277389255)，源码aa40ac117a5d6781df2f048995802abe4549e764，实际Rust1.99.0，fmt与严格Clippy success。远端Rust1.99严格Clippy实际success，double_must_use冲突消失。原完整R/native-perf/CLI检查与锁文件逐包核对通过；RF-1080匹配1.99完整GUI1858/0/3、CLI336/0/2通过。Linux语言断言失败与本项宏修复分开记录。
+- [结构化证据](verification/rf1078-async-trait-2026-10-03.json)保留原失败/本地检查，新增完整远端原始日志、精确job步骤与Git blob SHA；原系统语言失败完整保留。RF-1077/RF-1079要求完整Host通过，继续待验，没有把本次整个Linux job改记为成功。
+- 本次仅DOC验收更新，Markdown依赖边界与diff检查通过，业务/workflow与用户stash保持。按本项既定验收条款关闭，累计257/272；独立提交（本提交，以RF-1078检索）。
+
+### RF-1080 远端验收记录（2026-10-03）
+
+- [Linux run37148546263/job111277389255](https://github.com/Gczmy/SoloSoul/actions/runs/37148546263/job/111277389255)，源码aa40ac117a5d6781df2f048995802abe4549e764，实际Rust1.99.0，fmt与严格Clippy success。远端Rust1.99严格Clippy实际success，for_kv_map冲突消失。原匹配1.99完整GUI1858/0/3（sync90通过）、CLI336/0/2通过，Map循环主体逐字保持。Linux语言断言失败不归入该等价遍历修复。
+- [结构化证据](verification/rf1080-peer-map-2026-10-03.json)保留原失败/本地检查，新增完整远端原始日志、精确job步骤与Git blob SHA；原系统语言失败完整保留。RF-1077/RF-1079要求完整Host通过，继续待验，没有把本次整个Linux job改记为成功。
+- 本次仅DOC验收更新，Markdown依赖边界与diff检查通过，业务/workflow与用户stash保持。按本项既定验收条款关闭，累计258/272；独立提交（本提交，以RF-1080检索）。
+
+### RF-1083 执行记录（2026-10-03）
+
+- 基线5a28509a。首页main内可见Plugins入口导航；mock仅在收到plugin_dialog_response后发结果和completed，新增dlg-1/Playwright响应精确断言，响应后展开Plugin Log并保留start/done可见断言。原两个用例、tier禁用、安装/弹窗/结果断言及超时/retry/skip保持，生产UI/IPC不改。
+- WEB两个项目4/4通过，无flaky；F格式/TypeScript/lint/默认npm test全部exit0，256文件/2240项Vitest与123项Node通过，原Windows符号链接权限skip1保持。移动清单仍327项。
+- [验证证据](verification/rf1083-plugin-lifecycle-2026-10-03.json)保留前两版失败提案、最终提案及实际源码检查完整日志；本机Node24.16/Edge不能替代Linux Node22/Chromium，状态待真实移动CI。独立提交（本提交，以RF-1083检索）。
+
+### RF-1084 执行记录（2026-10-03）
+
+- 基线c2091ef3。真实Linux唯一Host失败是测试把C环境和仅语言标签认作无效；核对锁定sys-locale0.3.2 Unix转换及上游语言-only用例。仅修正原测试的地区分隔符假设，保持非空及标识字符检查；生产函数逐字不变，无环境覆盖/语言伪映射/新增ignore。
+- 本次fmt、Rust1.99严格Clippy exit0；首次完整R因runner把PDFIUM_LIBRARY_PATH配成目录而exit101（Host780/0、Core425/18），保留失败日志；改为现有DLL完整路径后重跑完整cargo test --verbose exit0；25组/1858 passed/0 failed/3原ignore，原系统语言测试通过。默认rustfmt1.96不改工具链默认，Clippy/测试显式匹配远端1.99。
+- [证据](verification/rf1084-system-locale-2026-10-03.json)保留远端C原失败、锁定上游源码及完整本地日志；Windows通过不能替代Linux C，状态待下一轮真实CI；RF-1077/RF-1079继续待完整Host。独立提交（本提交，以RF-1084检索）。
+
+### RF-1085 执行记录（2026-10-03）
+
+- 基线f65fce50。插件安装/取消mock改为生成的BackendError结构，使用已有PLUGIN_NETWORK_FAILED/PLUGIN_INSTALL_CANCELLED，safeDetails:null。原Download timed out透传断言不符合当前固定译文契约，改为完整固定网络失败文本精确断言；保留取消无错误、重试清空、进度、安装完成/列表等全部交互断言。生产解析/store/UI/译文逐字不变。
+- WEB原8用例在chromium/mobile共16/16通过，无flaky；F格式/TypeScript/lint/默认npm test全部exit0，256文件/2240项Vitest、123项Node通过，原Windows符号链接权限skip1保持。
+- [证据](verification/rf1085-plugin-error-fixture-2026-10-03.json)保留原RF-1082四失败入口及本次完整日志、原fixture和生产文件冻结SHA。本机Node24.16/Edge不代替Linux Node22/Chromium，待下一轮实际移动CI。独立提交（本提交，以RF-1085检索）。
+
+### RF-311 执行记录（2026-10-03）
+
+- 基线cfa2cb51。前端/CLI步骤迁至仓库内两个composite action，所有原检查命令逐条等价；PR共用检查归PR Checks一次执行，CI重复PR job保留ID并用不同delegated名称，避免同名skipped状态干扰实际CLI失败。主分支/手动共用检查和原名保留。PR采用既有test:coverage与HTML附件，80/70/80/80门槛/排除保持。
+- Linux/Windows/macOS含iOS/future-keychain、Android三lane、Release全部job正文以及所有触发条件/工具版本逐字保持；18个job完整前后对照见[结构化证据](verification/rf311-ci-sharing-2026-10-03.json)。当前main无保护规则，实际执行check名称仍兼容保留。初次formatter默认双引号变化已修正回原单引号，保护区域重新逐字核对。
+- 便携actionlint1.7.12由官方release取回并核对公开SHA256/ZIP CRC，无系统安装或新仓库依赖。YAML格式、actionlint、Markdown边界、diff检查exit0。业务源码冻结，未重复已通过且不受YAML改变影响的本地F/R；新CI执行仍须实际PR覆盖F/R/CLI/CONTRACT，状态待验，不能以静态YAML检查关闭。
+- 运行中的旧cfa2cb51 CI已取得完整Linux1858/0/3与CLI/前端/契约成功；移动仍307/1/19，唯一是RF-1081风险按钮滚动条下换行，单独继续修，不混入本项。独立提交（本提交，以RF-311检索）。
+
+### RF-1081 滚动条跟进记录（2026-10-03，待实际Linux PR复验）
+
+- 第六轮真实Linux移动job111294255088为307 passed/1 failed/19原skip；唯一失败在320px风险按钮同行，三次cancel y459.3125、enable y515.3125。短竖屏/横屏均通过，原日志和错误上下文完整保留。
+- 新增固定预留16px内容空间的布局回归，不改系统滚动条设置；原实现在两个项目均换行，6 passed/2 failed。仅将两个操作按钮横向留白收至clamp(12px, 3.75vw, 20px)，保留48px触控目标、完整标签、必要换行与风险勾选门禁。
+- 修后chromium/mobile共8 passed/0 failed/0 flaky；旧320px和两个短屏测试正文逐字保持。默认F全部exit0：格式/TypeScript/lint、256文件2240 Vitest、123 Node通过及原1项Windows符号链接权限skip。移动清单原327项保留并新增1项为328，无新skip/retry变化。
+- [证据](verification/rf1081-risk-panel-2026-10-03.json)追加本次失败/成功与完整检查SHA，旧证据保持。仅为本机Edge布局证据，真实Linux PR仍须复验，状态[!]，258/275不增；用户stash和非本项源码保持。独立提交（本提交，以RF-1081检索）。
+
+### RF-1077 第六轮真实CI验收记录（2026-10-03）
+
+- [实际运行37154255151](https://github.com/Gczmy/SoloSoul/actions/runs/37154255151)，源码`cfa2cb5107fd9470a78fc6d21fca7dec2b427744`。Linux Rust1.99严格Clippy、资源准备与完整Host/Workspace通过；1858 passed/0 failed/3原ignored（Host779单测+8集成）。单测OCR标记不能用于Release或证明模型推理。
+- [结构化证据](verification/rf1077-linux-unit-resources-2026-10-03.json)保留原失败/本地验证，追加完整目标job日志、实际计数、精确job步骤与相关源码Git blob/SHA。当前业务源码或相应job正文与验收版本逐字核对，未以旧运行验收新源码。
+- 本次仅DOC补验，Markdown边界与diff检查通过，用户stash保持；按本项完成定义关闭，累计259/275。独立提交（本提交，以RF-1077检索）。
+
+### RF-1079 第六轮真实CI验收记录（2026-10-03）
+
+- [实际运行37154255151](https://github.com/Gczmy/SoloSoul/actions/runs/37154255151)，源码`cfa2cb5107fd9470a78fc6d21fca7dec2b427744`。Linux真实frontendDist构建、严格Clippy、完整Workspace1858/0/3通过；Windows Core/Host1552/0/1通过，Host780单测+8集成。保持默认custom-protocol与正式构建，三项Release均skip，无发布。
+- [结构化证据](verification/rf1079-frontend-dist-2026-10-03.json)保留原失败/本地验证，追加完整目标job日志、实际计数、精确job步骤与相关源码Git blob/SHA。当前业务源码或相应job正文与验收版本逐字核对，未以旧运行验收新源码。
+- 本次仅DOC补验，Markdown边界与diff检查通过，用户stash保持；按本项完成定义关闭，累计260/275。独立提交（本提交，以RF-1079检索）。
+
+### RF-1082 第六轮真实CI验收记录（2026-10-03）
+
+- [实际运行37154255151](https://github.com/Gczmy/SoloSoul/actions/runs/37154255151)，源码`cfa2cb5107fd9470a78fc6d21fca7dec2b427744`。12个相关E2E文件的实际Linux mobile结果已核对，原桌面上下文与断言保持；原插件快捷面板失败已由RF-1085结构化fixture修正且8例在同次CI通过。整个移动job仍307/1/19，唯一RF-1081滚动条失败不属于本项。
+- [结构化证据](verification/rf1082-desktop-context-2026-10-03.json)保留原失败/本地验证，追加完整目标job日志、实际计数、精确job步骤与相关源码Git blob/SHA。当前业务源码或相应job正文与验收版本逐字核对，未以旧运行验收新源码。
+- 本次仅DOC补验，Markdown边界与diff检查通过，用户stash保持；按本项完成定义关闭，累计261/275。独立提交（本提交，以RF-1082检索）。
+
+### RF-1083 第六轮真实CI验收记录（2026-10-03）
+
+- [实际运行37154255151](https://github.com/Gczmy/SoloSoul/actions/runs/37154255151)，源码`cfa2cb5107fd9470a78fc6d21fca7dec2b427744`。原插件生命周期两个用例在实际Linux Node22/Chromium mobile全部通过，requestId/值精确响应与请求完成闭环已运行。整个移动job仍307/1/19，唯一RF-1081滚动条失败不属于本项。
+- [结构化证据](verification/rf1083-plugin-lifecycle-2026-10-03.json)保留原失败/本地验证，追加完整目标job日志、实际计数、精确job步骤与相关源码Git blob/SHA。当前业务源码或相应job正文与验收版本逐字核对，未以旧运行验收新源码。
+- 本次仅DOC补验，Markdown边界与diff检查通过，用户stash保持；按本项完成定义关闭，累计262/275。独立提交（本提交，以RF-1083检索）。
+
+### RF-1084 语言环境证据跟进（2026-10-03）
+
+- 第六轮实际Linux完整R1858 passed/0 failed/3原ignored，原系统语言测试通过；日志没有打印LANG/LC变量，不能把成功推断成已显式采到C。
+- 仅在原Rust测试步骤前只读输出sys-locale的LANGUAGE/LC_ALL/LC_MESSAGES/LANG及locale，不export、不改环境、不做语言转换，原cargo test --verbose与全部测试源码保持。YAML格式/actionlint及DOC检查通过；该YAML观测补充不重复已通过且未受影响的本地R。
+- [证据](verification/rf1084-system-locale-2026-10-03.json)保留真实Linux成功日志及采样差距，等待实际PR记录真实语言环境后验收。状态[!]，262/275不增。独立提交（本提交，以RF-1084检索）。
+
+### RF-1085 第六轮真实CI验收记录（2026-10-03）
+
+- [实际运行37154255151](https://github.com/Gczmy/SoloSoul/actions/runs/37154255151)，源码`cfa2cb5107fd9470a78fc6d21fca7dec2b427744`。插件快捷面板原8例在实际Linux Node22/Chromium mobile全部通过，完整固定译文、取消/重试/进度/安装断言保留。整个移动job仍307/1/19，唯一RF-1081滚动条失败不属于本项。
+- [结构化证据](verification/rf1085-plugin-error-fixture-2026-10-03.json)保留原失败/本地验证，追加完整目标job日志、实际计数、精确job步骤与相关源码Git blob/SHA。当前业务源码或相应job正文与验收版本逐字核对，未以旧运行验收新源码。
+- 本次仅DOC补验，Markdown边界与diff检查通过，用户stash保持；按本项完成定义关闭，累计263/275。独立提交（本提交，以RF-1085检索）。
+
+### RF-1081 实际PR Linux验收（2026-10-03）
+
+- PR #2 / CI37157849547 / job111304900208，源码c7b75297，320px完整词/同行、16px空间及两短屏共4例均首次通过。整移动job success，实际308 passed/1 flaky/0 failed/19原skip，328项保留；flaky来自sidebar-tools右侧悬停命中断言，单独调查，不能写成全量零flaky。
+- 同一精确PR前端action覆盖率/TypeScript/lint成功：256文件2240 Vitest、103 Node通过/21原平台skip，26生产启动通过；HTML附件已下载核验。原本机F与两个项目8项证据保留。
+- [证据](verification/rf1081-risk-panel-2026-10-03.json)追加完整实际日志、步骤、逐例结果及Git blob核对。本次仅DOC补验，边界/diff通过，用户stash保持。按风险弹窗范围关闭，累计264/275；不证明原生Android合成。独立提交（本提交，以RF-1081检索）。
+
+### RF-1086 执行记录（2026-10-03，待实际Apple编译）
+
+- 实际PR37157849541/job111304900008在biometric构建复制Swift依赖目录时EEXIST/exit101，尚未进入签名检查或macOS后续门禁。锁定tauri-plugin2.6.2归档SHA与Cargo.lock相同，源码逐字核对，copy_folder删除后create_dir非原子；双target并行写同一插件目录是与错误一致的根因推断。
+- 仅将原两target单条cargo check改为两条顺序执行，设备/模拟器目标、全部feature/依赖、macOS Clippy/future-keychain/完整测试及所有其他job保持。首次格式失败为Windows写入CRLF，显式LF后格式/actionlint/DOC检查通过，不以静态检查替代Apple编译。
+- [证据](verification/rf1086-ios-target-sequencing-2026-10-03.json)保留完整失败、锁定上游MIT源码、归档SHA、原workflow和检查。精确上游网页缓存未命中，采用已核对的Cargo原始包。状态[!]，264/276不增；独立提交（本提交，以RF-1086检索）。
+
+### RF-1084 实际PR C语言环境验收（2026-10-03）
+
+- PR #2 / CI37157849547 / Linux job111304900082，源码c7b75297。只读采样LANG=C.UTF-8，LANGUAGE/LC_ALL/LC_MESSAGES均未设置；根据锁定sys-locale0.3.2移除编码后缀的实现，实际输入映射为C。没有覆盖CI语言或伪造地区标签。
+- 原test_get_system_locale_returns_locale在真实Linux通过，fmt/严格Clippy/完整R success；1858 passed/0 failed/3原ignored，Host779单测+8集成。生产函数、原测试及Linux job与验收源码Git blob一致。
+- [证据](verification/rf1084-system-locale-2026-10-03.json)保留原C失败、本地完整R/首轮runner失败、先前缺采样及本次完整实际日志、四变量和步骤。DOC边界/diff通过，用户stash保持；本项关闭，累计265/276，Apple独立失败仍待修。独立提交（本提交，以RF-1084检索）。
+
+
+### RF-1087 执行记录（2026-10-04，待实际Linux首次通过）
+
+- 实际PR mobile首次right悬停中心点命中false、重试通过；只将一次性检查改为expect.poll等待420ms裁剪过渡的真实命中状态，TypeScript callback AST一致。10按钮及原几何/材质/导航断言、生产源码、timeout/retry/skip全部保持。
+- 本机Windows/Node24.16/安装Edge原sidebar-tools两项目46 passed/0 flaky/0 failed，mobile完整清单328项保持。WEB同时暴露TopFunctionBar非Node relatedTarget传给contains的异常，留下一项独立处理，不记为零运行异常。
+- Prettier/TypeScript/lint通过。默认完整F两次exit1，分别为ObjectWorkspacePage和PairingPanel原5000ms超时，保留全部失败日志；资源并发限制2后同一完整入口exit0：123 Node passed/0 failed/1原Windows权限skip、256文件2240 Vitest passed。未增加超时、过滤用例或改Vitest配置，不能写成默认并发已修好。
+- [证据](verification/rf1087-sidebar-hover-hit-2026-10-04.json)含实际Linux原flaky、两次F失败、完整通过、AST与清单SHA。非本项文件/用户stash保持；本项[!]待Linux对应两例首次通过，265/277不增。独立提交（本提交，以RF-1087检索）。
+
+
+### RF-1088 执行记录（2026-10-04，待实际Linux）
+
+- 先在原生产代码发送mouseout/focusout且relatedTarget=Window：两项目6例全部失败，contains实际抛TypeError、工具栏/预览不收起。只在TopFunctionBar和WorkspaceObjectRuler加入Node类型守卫；同样6例首次通过、pageerror为0；尺标内部焦点切换、敏感字段掩码和原卡片打开例外保持。其他已有守卫不改。
+- 原侧栏/尺标两项目全量66例exit0：65 passed/1原动画采样flaky/0 failed，不能写成零flaky。原采样getAnimations未找到两条活动过渡，可能已结束，需下一项独立核验；原全部断言保持。mobile原328保留，仅加3项到331。
+- Prettier/TypeScript/lint通过；Node24完整2 workers首轮2238/2、浏览器退出后2239/1，均保留原5000ms超时失败。临时Node22官方ZIP/SHA验证且系统/依赖未改；Windows裸命令首次误解析为24，仅停止该无效验证树并保留记录。绝对路径及子shell确认22.23.3后，同完整入口2 workers exit0：256文件2240 Vitest、123 Node passed/0 failed/1原权限skip，仍5000ms、无过滤/新增skip。运行时对比不直接证明Node24产品缺陷。
+- [证据](verification/rf1088-related-target-2026-10-04.json)含旧代码、六项失败/通过、完整WEB/F所有尝试、官方校验和及331项清单。非本项文件和用户stash保持；本项[!]待实际Linux，不代验原生材质，265/278不增。独立提交（本提交，以RF-1088检索）。
+
+
+### RF-1089 执行记录（2026-10-04，待实际Linux首次通过）
+
+- 仅诊断地在真实hover后延迟600ms：旧采样两项目2例均未找到活动菜单/导航过渡、失败。监听真实transitionrun并在开始时暂停原两条clip-path动画后，同样600ms两例首次通过；该受控复现支持晚采样原因，没有测量原flaky实际跨进程时长。
+- 正式代码去掉全部诊断延迟；采样callback AST相同，原duration、15/50/85%采样、同时动画/方向/底边/导航裁剪/按钮不缩放/快速反向/减少动态效果断言保持。监听捕获完成后移除，未生成替代动画或改420ms。原侧栏两项目50 passed/0 flaky/0 failed，mobile331清单逐例一致。
+- 修改文件Prettier通过；应用/单测/配置均按基线逐字SHA冻结，完整F输入未改变，复用RF-1088显式Node22的2240 Vitest/123 Node/1原skip，不重复未受影响单测；实际PR会同头复验完整F。
+- [证据](verification/rf1089-animation-capture-2026-10-04.json)保留原源码、受控失败/通过、正式全量、callback AST、输入冻结及清单。用户stash保持；状态[!]待Linux四动画例首次通过，265/279不增。独立提交（本提交，以RF-1089检索）。
+
+
+### RF-1090 执行记录（2026-10-04，待实际Apple全门禁）
+
+- 最新PR37164080866/job111323318631的原Swift EEXIST未重现，设备目标随后在build.rs缺resources-mobile插件目录失败/exit101，模拟器未运行；RF-1086双目标仍待验收。静态核对同job后续macOS另需桌面插件、模型目录、PDFium目录及默认custom-protocol真实frontendDist。
+- 只增加Node22、npm ci、真实npm build和原Linux同式的明确无模型OCR布局四准备步骤，原真实PDFium步骤提前；原所有step正文、双目标、default feature、future-keychain、严格Clippy/完整R/ACL及其他job保持，语义核对与YAML/actionlint通过。
+- Git archive基线建立干净隔离源码，复制实际干净子模块f55fc4b5的45个已跟踪运行文件；原移动资源/dist缺失确认。Node22锁定npm ci exit0(37.71s)、真实build exit0(73.24s)；移动/桌面各45文件逐SHA匹配，6个前端索引资源引用有效。原OCR守卫新目录成功/已有目录exit1拒绝覆盖且标记保持；目录仅标记、0模型。下载原URL的真实Macarm64 PDFium仅核对资源布局，不在Windows加载；6项Apple overlay目录/文件齐备，AppleSDK编译仍须实跑。
+- [证据](verification/rf1090-apple-resources-2026-10-04.json)保留完整实际失败、原workflow、所有检查、45文件清单和布局；非本项源码/配置/用户stash保持。纯CI准备不重复未改F/R，状态[!]待实际Apple全门禁，265/280不增。独立提交（本提交，以RF-1090检索）。
+
+### RF-1087 实际PR Linux验收（2026-10-04）
+
+- PR #2 / [CI37164080869](https://github.com/Gczmy/SoloSoul/actions/runs/37164080869) / mobile job111323318852，源码`ab5a167b179de00bdd9c24dda7b588c030b1e65d`。左右侧栏悬停命中两例首次通过，原10按钮中心点与点击导航断言保留。完整mobile为312 passed/0 flaky/0 failed/19原skip，331项清单保持。
+- 同头前端job111323318744成功：256文件2240 Vitest、103 Node/21原Linux平台skip、26生产启动；覆盖率85.59/72.90/80.60/87.47达到原80/70/80/80门槛，原超时配置保持。整个PR Checks仍因Apple资源准备失败，不扩展为全PR成功。
+- [证据](verification/rf1087-sidebar-hover-hit-2026-10-04.json)保留所有原失败与flaky，追加完整实际日志、逐例结果和整个tauri树/相应CI配置/子模块Git对象一致性。DOC边界/diff与统计通过，用户stash保持；本项关闭，累计266/280。独立提交（本提交，以RF-1087检索）；不证明原生材质。
+
+### RF-1088 实际PR Linux验收（2026-10-04）
+
+- PR #2 / [CI37164080869](https://github.com/Gczmy/SoloSoul/actions/runs/37164080869) / mobile job111323318852，源码`ab5a167b179de00bdd9c24dda7b588c030b1e65d`。尺标focusout到Window、top/bottom鼠标离开到Window三例首次通过，区域内焦点与原收起/掩码检查保留。完整mobile为312 passed/0 flaky/0 failed/19原skip，331项清单保持。
+- 同头前端job111323318744成功：256文件2240 Vitest、103 Node/21原Linux平台skip、26生产启动；覆盖率85.59/72.90/80.60/87.47达到原80/70/80/80门槛，原超时配置保持。整个PR Checks仍因Apple资源准备失败，不扩展为全PR成功。
+- [证据](verification/rf1088-related-target-2026-10-04.json)保留所有原失败与flaky，追加完整实际日志、逐例结果和整个tauri树/相应CI配置/子模块Git对象一致性。DOC边界/diff与统计通过，用户stash保持；本项关闭，累计267/280。独立提交（本提交，以RF-1088检索）；不证明原生材质。
+
+### RF-1089 实际PR Linux验收（2026-10-04）
+
+- PR #2 / [CI37164080869](https://github.com/Gczmy/SoloSoul/actions/runs/37164080869) / mobile job111323318852，源码`ab5a167b179de00bdd9c24dda7b588c030b1e65d`。macOS/Windows各展开/折叠四个真实动画采样用例首次通过，原三帧几何/同步/不缩放断言保持。完整mobile为312 passed/0 flaky/0 failed/19原skip，331项清单保持。
+- 同头前端job111323318744成功：256文件2240 Vitest、103 Node/21原Linux平台skip、26生产启动；覆盖率85.59/72.90/80.60/87.47达到原80/70/80/80门槛，原超时配置保持。整个PR Checks仍因Apple资源准备失败，不扩展为全PR成功。
+- [证据](verification/rf1089-animation-capture-2026-10-04.json)保留所有原失败与flaky，追加完整实际日志、逐例结果和整个tauri树/相应CI配置/子模块Git对象一致性。DOC边界/diff与统计通过，用户stash保持；本项关闭，累计268/280。独立提交（本提交，以RF-1089检索）；不证明原生材质。
+
+### RF-1086 实际Apple双目标验收（2026-10-04）
+
+- PR #2 / [PR37166565587](https://github.com/Gczmy/SoloSoul/actions/runs/37166565587) / Apple job111330569834，源码`4715b6676eb42520494deee7dc34a500762db90f`。设备aarch64-apple-ios完成3m23s、模拟器aarch64-apple-ios-sim完成2m31s；原两条默认feature cargo check顺序实跑且步骤success，原Swift EEXIST未再出现。
+- 后续macOS Clippy在构建脚本的tauri feature/allowlist检查失败，future-keychain/完整R/ACL未运行；不记为Apple完整job成功。下一独立问题登记修复，RF-1090和RF-311继续待验。
+- [证据](verification/rf1086-ios-target-sequencing-2026-10-03.json)保留初始Swift失败并追加完整实际Apple日志、两次Finished与精确步骤/源码绑定。DOC边界/diff和统计通过、用户stash保持；按双目标编译范围关闭，累计269/280。独立提交（本提交，以RF-1086检索），不证明签名设备或硬件Keychain。
+
+### RF-1091 执行记录（2026-10-04，待实际Apple全门禁）
+
+- 实际Apple job111330569834双iOS/格式通过，macOS Clippy构建脚本报feature/allowlist不一致。锁定tauri-build2.6.2包SHA核验；其find_dependency优先通用tauri声明，现有macOS target已启用private API但通用features为空，属于声明校验不一致。
+- 只新增一个Mac CI准备步骤，在双iOS后将target已启用feature同步到通用声明，验证Darwin/现有配置/版本/目标声明与完整结构后才写入该临时checkout。跟踪Cargo.toml/lock/config和业务源码不改；原15步骤正文/顺序及其他job保持。YAML/actionlint/DOC通过。
+- 隔离7组正反例通过，幂等且异常拒绝时字节保持。真实Rust1.99 cargo metadata --locked --filter-platform aarch64-apple-darwin原/后resolved图一致，重复核验中锁字节一致；初次锁原始字节断言受CRLF到LF归一化影响，后续两次探针转义错误和不可用可选YAML解析器记录保留，均未改项目依赖。
+- [证据](verification/rf1091-macos-cargo-allowlist-2026-10-04.json)含实际失败、原上游源码/包SHA、准备脚本/正反例、四次Cargo解析、静态检查及所有输入冻结。此为CI准备，不重复未变化的本地F/R；实际Apple全部原门禁仍须运行。用户stash保持，269/281不增，独立提交（本提交，以RF-1091检索）。
+
+### RF-1090 实际Apple验收（2026-10-04）
+
+- PR #2 / [PR37167923614](https://github.com/Gczmy/SoloSoul/actions/runs/37167923614) / Apple job111334689834，源码`b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1`。真实npm ci/build、移动/桌面资源与无模型OCR布局、真实PDFium准备全部通过；两iOS和后续macOS全部原门禁通过。实际Mac完整R 1858 passed/0 failed/3原ignored；本项全部门禁success。
+- [证据](verification/rf1090-apple-resources-2026-10-04.json)保留原失败/探针/静态及隔离验证，追加完整Apple日志、精确步骤与当前源码/配置Git对象绑定。仅DOC补验，边界/diff/统计和用户stash通过；累计270/281，独立提交（本提交，以RF-1090检索）。无硬件Keychain、原生材质或模型推理验收声明。
+
+### RF-1091 实际Apple验收（2026-10-04）
+
+- PR #2 / [PR37167923614](https://github.com/Gczmy/SoloSoul/actions/runs/37167923614) / Apple job111334689834，源码`b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1`。真实Darwin上的临时manifest准备成功，原两iOS先行检查保持；后续macOS严格Clippy/future-keychain/完整R/ACL全部通过。实际Mac完整R 1858 passed/0 failed/3原ignored；本项全部门禁success。
+- [证据](verification/rf1091-macos-cargo-allowlist-2026-10-04.json)保留原失败/探针/静态及隔离验证，追加完整Apple日志、精确步骤与当前源码/配置Git对象绑定。仅DOC补验，边界/diff/统计和用户stash通过；累计271/281，独立提交（本提交，以RF-1091检索）。无硬件Keychain、原生材质或模型推理验收声明。
+
+### RF-311 实际PR门禁与最终对照验收（2026-10-04）
+
+- [PR37167923614](https://github.com/Gczmy/SoloSoul/actions/runs/37167923614)在源码`b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1`五job全部success：前端256文件2240 Vitest、103 Node/21原Linux平台skip、26生产启动；覆盖率85.58/72.90/80.57/87.46达到原门槛，555成员/548 HTML附件已校验服务端SHA和CRC。CLI335/0/2原ignored；IPC、registry及实际Apple双iOS/严格Clippy/future-keychain/完整R/ACL通过，MacR 1858/0/3原ignored。
+- [CI37166565582](https://github.com/Gczmy/SoloSoul/actions/runs/37166565582)源码4715b667全部success：Linux1858/0/3、Windows1552/0/1原ignored，mobile312 passed/0 flaky/0 failed/19原skip，331清单。整个应用/CLI/子模块、CI/CD和共用action与本轮逐Git对象一致；后续差异仅Mac准备和DOC。不能写成存在同头合并CI运行。
+- 18 job对照保留并列明独立平台后续修复；原Release三正文与Android三job保持。实际main保护为false/rules为空，没有删除既有受保护检查；重复PR检查委派一次，原主分支/手动入口与失败/coverage附件保留。CI/CD原disabled及PR原active已恢复，没有发布或合并。
+- [证据](verification/rf311-ci-sharing-2026-10-03.json)包含所有实际完整成功日志、三次Apple失败、精确源码绑定、最新HTML和job/设置对照；旧失败和flaky证据保留。DOC边界/diff/统计通过、用户stash保持；本项关闭，累计272/281。独立提交（本提交，以RF-311检索）。RF-112/121/312原生验收以及RF-122～127依赖继续未完成。

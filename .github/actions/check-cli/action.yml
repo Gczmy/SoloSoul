@@ -1,0 +1,42 @@
+name: SoloSoul CLI validation
+description: Shared cli gates for Ubuntu CI and PR jobs
+inputs:
+  rust_version:
+    description: Toolchain version supplied by the caller
+    required: true
+    default: 'stable'
+runs:
+  using: composite
+  steps:
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: ${{ inputs.rust_version }}
+
+    - name: Cache cargo (solosoul_cli)
+      uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: solosoul_cli
+
+    - name: Check formatting
+      shell: bash
+      working-directory: solosoul_cli
+      run: cargo fmt --check
+
+    - name: Run Clippy
+      shell: bash
+      working-directory: solosoul_cli
+      run: cargo clippy --all-targets -- -D warnings
+
+    - name: Prepare PDFium for CLI tests
+      working-directory: tauri
+      shell: bash
+      run: |
+        bash scripts/download-pdfium.sh
+        test -s src-tauri/resources/pdfium/libpdfium.so
+        echo "PDFIUM_LIBRARY_PATH=$PWD/src-tauri/resources/pdfium/libpdfium.so" >> "$GITHUB_ENV"
+
+    - name: Run CLI Tests
+      shell: bash
+      working-directory: solosoul_cli
+      run: cargo test --verbose --no-fail-fast

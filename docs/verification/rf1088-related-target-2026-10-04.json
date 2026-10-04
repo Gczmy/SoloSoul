@@ -1,0 +1,449 @@
+{
+  "task": "RF-1088",
+  "status": "completed",
+  "baseline": "71fd1ef2cbfb155085aafb586ac617e6dc588a86",
+  "root_cause": "Mouse/focus relatedTarget is an EventTarget and may be Window; an unchecked TypeScript cast does not make it a Node. contains then throws before close handling.",
+  "change": "Two instanceof Node guards; internal Node remains inside, null/Window considered outside. Existing card-open exception, preview masking and other guarded components unchanged.",
+  "negative": {
+    "failed": 6,
+    "passed": 0,
+    "source_unmodified": true,
+    "projects": [
+      "chromium",
+      "mobile"
+    ],
+    "diagnostic_retries": 0
+  },
+  "positive_targeted": {
+    "passed": 6,
+    "failed": 0,
+    "flaky": 0,
+    "pageerrors": 0,
+    "same_events_and_assertions": true,
+    "diagnostic_retries": 0
+  },
+  "web_full": {
+    "passed": 65,
+    "flaky": 1,
+    "failed": 0,
+    "total": 66,
+    "original_retries": 2,
+    "original_timeout_unchanged": true,
+    "unrelated_flaky": "Original sampler found no matching active menu/zone transitions. Cross-process delay exceeding420ms is a hypothesis to verify in RF-1089.",
+    "related_contains_errors": 0
+  },
+  "full_F": {
+    "checks": [
+      {
+        "name": "format",
+        "args": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "src/components/layout/TopFunctionBar.tsx",
+          "src/components/workspace/WorkspaceObjectRuler.tsx",
+          "e2e/sidebar-tools.spec.ts",
+          "e2e/object-ruler.spec.ts"
+        ],
+        "exit": 0,
+        "seconds": 0.6725661000236869,
+        "owned_pid": 26240
+      },
+      {
+        "name": "tsc",
+        "args": [
+          "node",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit"
+        ],
+        "exit": 0,
+        "seconds": 34.16856789961457,
+        "owned_pid": 22052
+      },
+      {
+        "name": "lint",
+        "args": [
+          "npm.cmd",
+          "run",
+          "lint"
+        ],
+        "exit": 0,
+        "seconds": 44.63710829988122,
+        "owned_pid": 5856
+      },
+      {
+        "name": "node22-exact-version",
+        "args": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1088-related-target-20261004\\node22\\node-v22.23.3-win-x64\\node.exe",
+          "--version"
+        ],
+        "exit": 0,
+        "seconds": 0.16108580026775599,
+        "owned_pid": 34488
+      },
+      {
+        "name": "full-frontend-node22-exact",
+        "args": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1088-related-target-20261004\\node22\\node-v22.23.3-win-x64\\node.exe",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1088-related-target-20261004\\node22\\node-v22.23.3-win-x64\\node_modules\\npm\\bin\\npm-cli.js",
+          "run",
+          "test",
+          "--",
+          "--maxWorkers",
+          "2"
+        ],
+        "exit": 0,
+        "seconds": 483.2608864996582,
+        "owned_pid": 40860
+      }
+    ],
+    "runtime": "v22.23.3 Windows x64 verified explicit executable and nested npm shell",
+    "command": "npm run test -- --maxWorkers 2",
+    "node_passed": 123,
+    "node_failed": 0,
+    "original_node_skip": 1,
+    "vitest_files": 256,
+    "vitest_passed": 2240,
+    "vitest_failed": 0,
+    "testTimeout_ms": 5000,
+    "test_count_or_timeout_change": false,
+    "prior_Node24_attempts": [
+      {
+        "exit": 1,
+        "vitest_passed": 2238,
+        "vitest_failed": 2,
+        "detail": "PairingPanel original5000ms timeout plus subsequent empty-DOM failure"
+      },
+      {
+        "exit": 1,
+        "vitest_passed": 2239,
+        "vitest_failed": 1,
+        "detail": "ObjectWorkspacePage original5000ms timeout"
+      }
+    ],
+    "invalid_runtime_comparison": "Bare executable Windows Popen selected Node24 despite intended child PATH; only owned validation tree stopped, partial output preserved. Absolute Node22 and child shell then verified.",
+    "limits": "Passing Node22 after failed Node24 attempts is an observation, not proof Node24 itself is a product defect."
+  },
+  "mobile_inventory": {
+    "before": 328,
+    "after": 331,
+    "original_kept": true,
+    "only_added": [
+      [
+        "object-ruler.spec.ts",
+        "RF1088 尺标焦点切换保持预览，离开窗口安全收起",
+        "mobile"
+      ],
+      [
+        "sidebar-tools.spec.ts",
+        "RF1088 bottom 工具栏离开窗口安全收起",
+        "mobile"
+      ],
+      [
+        "sidebar-tools.spec.ts",
+        "RF1088 top 工具栏离开窗口安全收起",
+        "mobile"
+      ]
+    ]
+  },
+  "runtime_source": {
+    "source": "https://nodejs.org/dist/latest-v22.x/SHASUMS256.txt",
+    "zipUrl": "https://nodejs.org/dist/latest-v22.x/node-v22.23.3-win-x64.zip",
+    "file": "node-v22.23.3-win-x64.zip",
+    "sha256": "2b0ff57b049cda1bbcea2240eec20467018713c1efe1f7360c2681859b90ed71",
+    "bytes": 35574076,
+    "crc_ok": true,
+    "system_install_changed": false
+  },
+  "source_after_sha256": {
+    "tauri/src/components/layout/TopFunctionBar.tsx": "6360238dad446d81edf3b1fede4c9a4d41072da422dcb861db829d3c46ae0c28",
+    "tauri/src/components/workspace/WorkspaceObjectRuler.tsx": "d7574a4e62ca28232046c37cb93b1843c36ff55873d4353e7ec27267f074aed9",
+    "tauri/e2e/sidebar-tools.spec.ts": "014043f3aa385ede75d17efd2eb3e1aadaaeb0a1b15eb7f26ce710a4176b8011",
+    "tauri/e2e/object-ruler.spec.ts": "e1aae5f5b5860b60fe904a03dc00231fcbb619234d060e97001083ffa991529f"
+  },
+  "non_owned_files_frozen": 2545,
+  "stash_unchanged": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/baseline.json.gz",
+      "sha256": "d4a2352760abf8e0f966a7ed8f118c666bc5c3c0e99695dcde176d820d08ff1e",
+      "rawSha256": "1926b99a5d4755e0e42fd5d3de7f3182b9b218ed730f24d37310c5ec1a9cad17"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/TopFunctionBar.tsx.before.gz",
+      "sha256": "ef8b34812b338b77b0257e8774d4f4143ef06209eea17a3a20dc8b9572ffc8da",
+      "rawSha256": "c78b900ee853327daf3ea3a2ccbd951387fac656b2ffeff85a30f1367af4fb8b"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/WorkspaceObjectRuler.tsx.before.gz",
+      "sha256": "997b7260281fa528f5b4cb676db05a82c8cf72ce67e46116cae4291b198c2f11",
+      "rawSha256": "cc1df5583b5eebb2ff7b23aa535888dabd32341d65ffe64da205fec92f0953bf"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/sidebar-tools.spec.ts.before.gz",
+      "sha256": "524bb7a68d497234391ab0eb6b2b14f648acf9712630f2806ec7f3c208a1d5a0",
+      "rawSha256": "92125aeded73c592ce553c11c65f938c92e7f6663355c8835ea20bec37a5146a"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/object-ruler.spec.ts.before.gz",
+      "sha256": "32d02994d5a0995d8c490063cbd6b77fc6efd9414db50a17bfabdbb7344f11c5",
+      "rawSha256": "657c1c1fa21d585a20536fddc93a65d55bab47f8440ec61afebf702452acf5e6"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/playwright.config.mjs.gz",
+      "sha256": "a79541d96e73857e6001822f5da9b29bf6ac69d042216cd44e3e1deeec5d9ba1",
+      "rawSha256": "f6c617a46a371dd92dca245b3ac24dbd223e6311d02f942f5cae6c150f49f2a4"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/negative-checks.json.gz",
+      "sha256": "08ccff1ce42bb473ca4d11036c711ca56cccb376b660e6a889a0896a944125ac",
+      "rawSha256": "6c5c2b91187e079ae53f608f0ef53d2d79f1e347597f8022add52fe50f7affe0"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/web-negative.log.gz",
+      "sha256": "f4e3579ac2157e8a8657d76c680897063d364884645d020ba24964c9d9faf96b",
+      "rawSha256": "2a04e00e93b2d817ac572db5d6abeb8cac3f0691ce83cd630a4370e9b9d5becc"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/positive-checks.json.gz",
+      "sha256": "420bbb7b2841cd335d83effb2aefdb695ae4f0f9d4d93432fdeea6d20d4ac363",
+      "rawSha256": "64b478fc36783fd5542415730d240c9de7cb5e65ebbc8d959653527de82a26b7"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/web-positive.log.gz",
+      "sha256": "7108d6533c609854525fb30a9ddb0ce524f4a29a0ae02156d93fa170414be5dd",
+      "rawSha256": "c10bc714b5c43381fdc41ac6a51644804e82a5ca53fcd7771cbf7bc0b253545e"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/web-checks.json.gz",
+      "sha256": "eeade9a43314a53269f25a86a2e74638be181812e6dc4bc22733f07a8604a85a",
+      "rawSha256": "a46fc58e98d8593952cab513f765516603e689548e180d591bb48ffb1e9bf962"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/web-full.log.gz",
+      "sha256": "a025d895346328931707efefdf3681d84c687f0a94dadd9ecde84d5f855b8909",
+      "rawSha256": "210b0c194501ff0c788d9c264b42bf6598d2498fbf68981fc5ac68b0378b20e6"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/f-checks.json.gz",
+      "sha256": "87735eb2e0f447a48be710b8ae915b57039de470455cf456d4ca86807686f33f",
+      "rawSha256": "e3f6c05005a66f2889065e2c70aeb9ce6462d45aec32ef7fa0566f7ce1dfc088"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/format.log.gz",
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/tsc.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/lint.log.gz",
+      "sha256": "aa834ac37a9c357bc906de67d2278f1c2d7079872ad9ba2641fa9baac6177b67",
+      "rawSha256": "9ccdcb4482fdd1a0617291405e83ca63932f2a561161d2b94b9a67d00b6bc7e1"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/full-frontend.log.gz",
+      "sha256": "ddf05535fbeac30d6f7dea3f1c5084be31eefbdd1d1253f7a36efab4aa3837e5",
+      "rawSha256": "ca53dfe39aac1e99ad18534d5b7c3b8c4260867455b7f60dfdf577558f7cff18"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/f-serial-checks.json.gz",
+      "sha256": "16d6cdd94959be6e9f30fce1ab79335e1d426ec35e27f4067be153ee739c4e2e",
+      "rawSha256": "dd3809d450b038a5059c1d4c2a3be16df51cc58612b093bb2361647a5af2c4a3"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/full-frontend-serial.log.gz",
+      "sha256": "ed61cc77f24c0c15675644cbca2c42a908da6293053d51dda5897f76bbec412d",
+      "rawSha256": "e61c4b4225795674884425dd4732e6cf69481d6dfcdc9cc45217be9b0e846cd4"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/f-node22-checks.json.gz",
+      "sha256": "b7b5a72d53da8b2ece3aa0277fb574a4532931444332c1262dabe64c9fe22bcc",
+      "rawSha256": "3a31d1e9a55d668e7c51935bc4743506c931a59b7a4610d5f3f7bd827b80330a"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/node22-version.log.gz",
+      "sha256": "4bf4255b9239692ac67ecff8b836cc17c54c3809af9e2b49481a0dc43787777c",
+      "rawSha256": "1e818e7c43f4b13c1e913709e2425959af4b584c0bd6693bb6b5f31c29afd5e0"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/full-frontend-node22.log.gz",
+      "sha256": "90759353e8dcce2f8c35f93158cb2c4e424fa3ac86c533c04ac9395e04ada54f",
+      "rawSha256": "4f26ef11c2ab430154e7a134857e6ea47e464d52537497f042f1c81652d9e4b3"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/node22-wrong-lookup.json.gz",
+      "sha256": "c4da2937016c964f48900a82a98c4f8c716ff72c9a3bae6b79abbf29c72e93c3",
+      "rawSha256": "344c81a724dbcbd1fa9de3c7b60c0ff76d2497ee6fad31a7ed70ab80be65bb0a"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/stop-wrong-runtime.log.gz",
+      "sha256": "7394960407535fb730f385fd405859e7f5fa7143c1c18116fecceffc4817e248",
+      "rawSha256": "fa090dc7dc7534d4c9b6690bcbd905b14a63ade6be933111156426af7490b946"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/node22-runtime.json.gz",
+      "sha256": "10b48d7bdb01fc4182589154538bd532a14160828ff04436304eb1556749fcb0",
+      "rawSha256": "d00c23e038876cd5a2992b43bdf871bb0fd001bd82f9865aaefa0a97c323c142"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/node22-shasums.txt.gz",
+      "sha256": "3b1e88d69d537e38a41720a243938e316aba25d8732776af09a30a9b76bb052d",
+      "rawSha256": "4fe99a2ba9d552a6f51c13ed68fb11104cfa5df601aec616be689253a8139e7a"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/node22-child-shell-version.json.gz",
+      "sha256": "0bb28f65c0a510b44acc40b3c67fa8537ea9e8205f076b4042a1fc1b7c037526",
+      "rawSha256": "33cc92d32edf5b3e8c432e38bb671aaa32c9b503cc75cffa79c8f2afe64d786d"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/f-node22-exact-checks.json.gz",
+      "sha256": "687d6a14e8cb1cae464de79441302f490031ad29ab1b1fd2769532f04c23c693",
+      "rawSha256": "8e93ba696778bffc298c68a292cbfc144f08073d21ac35da903b4c40815afedb"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/node22-exact-version.log.gz",
+      "sha256": "f55bb1be8b8c509908321dc76ab301dddf1030e010b2eccafcdda19918219732",
+      "rawSha256": "0dad4e5704ab68f2268ed07a191ec93206ada146353e90fc27eb51787ad7cfd9"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/full-frontend-node22-exact.log.gz",
+      "sha256": "3e6a3fac899fa4eee9039e76c4de1132fd4e0d63cb01e746956d3d60b3408b88",
+      "rawSha256": "014f0f1d69c24a418a042e6c0eb18b9ee50e5879f3f3f1f911fd5a2b30118537"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/mobile-list.json.gz",
+      "sha256": "79c2402f704367ba6e1924d380023ab8d0f3a0c6db867b6ee87df7a80d2c9391",
+      "rawSha256": "f873c05795032ad2db7d48fd530e309e2b031bfeaa022fccff2b5754be846ef1"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/mobile-inventory.json.gz",
+      "sha256": "ba0c00adcd24e03c24f9919b99b6bffe7c11a4cb479e8db4cf6fb086cf6b525f",
+      "rawSha256": "3b0970232894edd6a075ca49c18170cf4f4f501a64a5ae0bce355868f183cc45"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/owned-process-sample.json.gz",
+      "sha256": "f362fc73981eab43814bb58274ed91722a3a9dea1549055ada4d085bcaed4bf4",
+      "rawSha256": "acace8f3f2173fbfe27f9f37c51f01d7a64f1d7ccf0fba14ef0e176127dfebb4"
+    },
+    {
+      "path": "docs/verification/rf1088-related-target-2026-10-04/run.py.gz",
+      "sha256": "49d08344ecb4afdb8370d24b72ce0d63eb2e6bd89f8f3b1d12218d69c7ce4556",
+      "rawSha256": "95117cbbdb081d9d0cc11b7dbca37d132e52c101cee2460de2ddff166caa73d8"
+    }
+  ],
+  "original_validation_limits": [
+    "Full WEB has one original animation sampler flaky; follow up independently.",
+    "Local Edge does not replace actual Linux PR or native material validation."
+  ],
+  "actual_linux_acceptance": {
+    "task": "RF-1088",
+    "tested_head": "ab5a167b179de00bdd9c24dda7b588c030b1e65d",
+    "accepted_from_head": "b164152c07bbc1978f5e72903ad7396a312ad9e8",
+    "pr": "https://github.com/Gczmy/SoloSoul/pull/2",
+    "run": 37164080869,
+    "job": 111323318852,
+    "source_binding": {
+      "tauri": {
+        "tested_object": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "current_object": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "equal": true
+      },
+      ".github/workflows/ci_cd.yml": {
+        "tested_object": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "current_object": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "equal": true
+      },
+      "SoloSoul_plugin_market": {
+        "tested_object": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "current_object": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "equal": true
+      },
+      ".github/actions/check-frontend/action.yml": {
+        "tested_object": "00895928c5a84d0bf1583d25433f2848f1b6f007",
+        "current_object": "00895928c5a84d0bf1583d25433f2848f1b6f007",
+        "equal": true
+      }
+    },
+    "whole_mobile": {
+      "inventory": 331,
+      "passed": 312,
+      "flaky": 0,
+      "failed": 0,
+      "original_skipped": 19
+    },
+    "first_attempt_cases": [
+      {
+        "inventory_index": 262,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:19:44.8851669Z   ✓  262 [mobile] › e2e/object-ruler.spec.ts:302:1 › RF1088 尺标焦点切换保持预览，离开窗口安全收起 (2.4s)"
+      },
+      {
+        "inventory_index": 299,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:21:34.0164902Z   ✓  299 [mobile] › e2e/sidebar-tools.spec.ts:597:3 › RF1088 top 工具栏离开窗口安全收起 (1.9s)"
+      },
+      {
+        "inventory_index": 300,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:21:35.8857657Z   ✓  300 [mobile] › e2e/sidebar-tools.spec.ts:597:3 › RF1088 bottom 工具栏离开窗口安全收起 (1.9s)"
+      }
+    ],
+    "frontend": {
+      "run": 37164080866,
+      "job": 111323318744,
+      "vitest_files": 256,
+      "vitest_passed": 2240,
+      "node_passed": 103,
+      "node_failed": 0,
+      "original_linux_platform_skips": 21,
+      "production_e2e_passed": 26,
+      "coverage": [
+        85.59,
+        72.9,
+        80.6,
+        87.47
+      ],
+      "thresholds": [
+        80,
+        70,
+        80,
+        80
+      ],
+      "profile": "Original CI Node22 full F including coverage, TypeScript and lint; original CI testTimeout unchanged, distinct from local 5000ms."
+    },
+    "overall": {
+      "ci_cd": "success",
+      "pr_checks": "failure: Apple iOS resource missing, separate RF-1090"
+    },
+    "limits": [
+      "Linux browser CI does not establish native Android/macOS material acceptance.",
+      "Original local/earlier CI failures and flaky runs remain in task proof."
+    ],
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1088-related-target-2026-10-04/pr-round2-acceptance/acceptance.json.gz",
+        "sha256": "a3ec6f442d0caa61059a49c2f228166e743e68398342e45f9c2338d732b8d28b",
+        "rawSha256": "d5162fee6354442ae9a7ebefa037d2cf346c0d8eda54a0639bb0444aaedff455"
+      },
+      {
+        "path": "docs/verification/rf1088-related-target-2026-10-04/pr-round2-acceptance/jobs-snapshot.json.gz",
+        "sha256": "284fd411df8215d44ee33324494694331092f653854931b2377923d0db00b5c4",
+        "rawSha256": "3d787958c5c95b7543d9e6ebb55a9b6080c1d7601c072079db5b93c42f1caa8f"
+      },
+      {
+        "path": "docs/verification/rf1088-related-target-2026-10-04/pr-round2-acceptance/mobile.log.gz",
+        "sha256": "78141a4bad7b79399b3a90244a74bc8a2dbf6201ea01167e297942f130a14e16",
+        "rawSha256": "9f6a2bb39d49f75a9a278047d5a22e7381f8a2dafd3d3fef3c9c22fa440ee087"
+      },
+      {
+        "path": "docs/verification/rf1088-related-target-2026-10-04/pr-round2-acceptance/frontend.log.gz",
+        "sha256": "11a9ca7b7f36f7acd9f90aa4c10889ed21a17fba2017795901bc5c28e77a493a",
+        "rawSha256": "6817ea6def74242418d72622b549b37046a3bb199acde91ed36768c47fd3bbfe"
+      }
+    ]
+  }
+}

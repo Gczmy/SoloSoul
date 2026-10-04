@@ -10,6 +10,8 @@ async function mockTheme(
   systemMode?: 'light' | 'dark',
   platform: 'windows' | 'android' | 'ios' = 'windows',
 ) {
+  // 仅Windows材质场景使用桌面视口，保留Android/iOS项目环境。
+  if (platform === 'windows') await page.setViewportSize({ width: 1280, height: 720 });
   const scheme = getSchemeById(schemeId)!;
   await page.addInitScript({
     content:

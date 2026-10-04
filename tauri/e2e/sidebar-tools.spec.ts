@@ -1,6 +1,9 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { login, setupTauriMock } from './fixtures/auth';
 
+// 桌面侧栏和鼠标场景显式使用桌面环境；各用例仍可自行测试窄视口。
+test.use({ viewport: { width: 1280, height: 720 }, isMobile: false, hasTouch: false });
+
 async function setupSidebar(
   page: Page,
   position: 'left' | 'right' | 'top' | 'bottom',
@@ -94,12 +97,17 @@ for (const position of ['left', 'right'] as const) {
     await expect(buttons).toHaveCount(10);
     for (const button of await buttons.all()) {
       await expect(button).toBeInViewport();
-      expect(
-        await button.evaluate((element) => {
-          const r = element.getBoundingClientRect();
-          return element.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
-        }),
-      ).toBe(true);
+      // aria展开和可见性先于裁剪动画完成；等待真实中心点可命中，不跳过交互检查。
+      await expect
+        .poll(() =>
+          button.evaluate((element) => {
+            const r = element.getBoundingClientRect();
+            return element.contains(
+              document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2),
+            );
+          }),
+        )
+        .toBe(true);
     }
     // 原生玻璃下不能透出重叠的导航文字；裁剪只影响绘制，不改变布局。
     expect(
@@ -452,7 +460,43 @@ test('工具入口支持点击、键盘和 Escape，关闭后菜单退出 Tab �
 });
 
 // 暂停真实 CSS transition 采样中间帧，验证展开/收起方向，而非只检查最终 class。
+async function armMenuSweep(menu: Locator) {
+  await menu.evaluate((element) => {
+    const nav = element.closest('nav')!;
+    const zone = nav.querySelector('[class*="primaryZone"]')!;
+    const capture = { menu: false, zone: false };
+    (element as HTMLElement & { __menuSweepCapture?: typeof capture }).__menuSweepCapture = capture;
+    // 在真实过渡开始时暂停，避免跨进程读取时420ms动画已经结束。
+    const onRun = (event: TransitionEvent) => {
+      if (event.propertyName !== 'clip-path' || (event.target !== element && event.target !== zone))
+        return;
+      const target = event.target === element ? element : zone;
+      const animation = target
+        .getAnimations()
+        .find(
+          (value) => value instanceof CSSTransition && value.transitionProperty === 'clip-path',
+        );
+      if (!animation) return;
+      animation.pause();
+      if (target === element) capture.menu = true;
+      else capture.zone = true;
+      if (capture.menu && capture.zone) nav.removeEventListener('transitionrun', onRun);
+    };
+    nav.addEventListener('transitionrun', onRun);
+  });
+}
+
 async function sampleMenuSweep(menu: Locator) {
+  await expect
+    .poll(() =>
+      menu.evaluate((element) => {
+        const capture = (
+          element as HTMLElement & { __menuSweepCapture?: { menu: boolean; zone: boolean } }
+        ).__menuSweepCapture;
+        return Boolean(capture?.menu && capture.zone);
+      }),
+    )
+    .toBe(true);
   return menu.evaluate(async (element) => {
     const zone = element.closest('nav')!.querySelector('[class*="primaryZone"]')!;
     const animation = element
@@ -498,6 +542,7 @@ for (const platform of ['macos', 'windows']) {
       const tools = nav.getByRole('button', { name: 'Tools', exact: true });
       const menu = nav.locator('[data-sidebar-tools]');
       const toggleBounds = await tools.boundingBox();
+      await armMenuSweep(menu);
       await tools.hover();
       const buttonBounds = await menu.locator('button').first().boundingBox();
       const opening = await sampleMenuSweep(menu);
@@ -505,6 +550,7 @@ for (const platform of ['macos', 'windows']) {
       expect(opening[1].top).toBeGreaterThan(opening[2].top);
       expect(await menu.locator('button').first().boundingBox()).toEqual(buttonBounds);
       await expect(menu).toHaveCSS('opacity', '1');
+      await armMenuSweep(menu);
       await page.mouse.move(640, 400);
       await expect(menu).toHaveJSProperty('inert', true);
       const closing = await sampleMenuSweep(menu);
@@ -546,3 +592,19 @@ test('系统和应用减少动态效果时，工具菜单立即展开/收起', a
     await expect(menu).toBeHidden();
   }
 });
+
+for (const position of ['top', 'bottom'] as const) {
+  test(`RF1088 ${position} 工具栏离开窗口安全收起`, async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await setupSidebar(page, position);
+    const tools = page.getByRole('button', { name: 'Tools', exact: true });
+    await tools.hover();
+    await expect(tools).toHaveAttribute('aria-expanded', 'true');
+    await tools.evaluate((element) => {
+      element.dispatchEvent(new MouseEvent('mouseout', { bubbles: true, relatedTarget: window }));
+    });
+    await expect(tools).toHaveAttribute('aria-expanded', 'false');
+    expect(errors).toEqual([]);
+  });
+}

@@ -1,0 +1,270 @@
+{
+  "task": "RF-308",
+  "status": "complete",
+  "date": "2026-10-03",
+  "tested_commit": "f56b8a1db926c1290134e01c3846b06a6b8304d1",
+  "validation_branch": "codex/rf308-rf309-validation-20261003",
+  "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37134827271",
+  "run_id": 37134827271,
+  "event": "workflow_dispatch",
+  "job": {
+    "id": 111237127704,
+    "run_id": 37134827271,
+    "workflow_name": "SoloSoul CI/CD",
+    "head_branch": "codex/rf308-rf309-validation-20261003",
+    "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37134827271",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOSJBl2c8AAAAZ5j_eGA",
+    "head_sha": "f56b8a1db926c1290134e01c3846b06a6b8304d1",
+    "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111237127704",
+    "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37134827271/job/111237127704",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-10-03T15:53:15Z",
+    "started_at": "2026-10-03T15:53:17Z",
+    "completed_at": "2026-10-03T15:57:12Z",
+    "name": "Frontend Checks",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-03T15:53:17Z",
+        "completed_at": "2026-10-03T15:53:18Z"
+      },
+      {
+        "name": "Checkout",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-03T15:53:18Z",
+        "completed_at": "2026-10-03T15:53:22Z"
+      },
+      {
+        "name": "Setup Node",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-03T15:53:22Z",
+        "completed_at": "2026-10-03T15:53:23Z"
+      },
+      {
+        "name": "Install dependencies",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-10-03T15:53:23Z",
+        "completed_at": "2026-10-03T15:53:28Z"
+      },
+      {
+        "name": "Type check",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-10-03T15:53:28Z",
+        "completed_at": "2026-10-03T15:53:41Z"
+      },
+      {
+        "name": "Lint",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-03T15:53:41Z",
+        "completed_at": "2026-10-03T15:53:48Z"
+      },
+      {
+        "name": "Unit tests with coverage gate",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-03T15:53:48Z",
+        "completed_at": "2026-10-03T15:56:27Z"
+      },
+      {
+        "name": "Upload frontend coverage report",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-03T15:56:27Z",
+        "completed_at": "2026-10-03T15:56:29Z"
+      },
+      {
+        "name": "Install production smoke browser",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-03T15:56:29Z",
+        "completed_at": "2026-10-03T15:56:51Z"
+      },
+      {
+        "name": "Production startup smoke test",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-10-03T15:56:51Z",
+        "completed_at": "2026-10-03T15:57:08Z"
+      },
+      {
+        "name": "Post Setup Node",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 19,
+        "started_at": "2026-10-03T15:57:08Z",
+        "completed_at": "2026-10-03T15:57:10Z"
+      },
+      {
+        "name": "Post Checkout",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 20,
+        "started_at": "2026-10-03T15:57:10Z",
+        "completed_at": "2026-10-03T15:57:10Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 21,
+        "started_at": "2026-10-03T15:57:10Z",
+        "completed_at": "2026-10-03T15:57:10Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111237127704",
+    "labels": [
+      "ubuntu-latest"
+    ],
+    "runner_id": 1000001273,
+    "runner_name": "GitHub Actions 1000001273",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions"
+  },
+  "coverage_artifact": {
+    "id": 11278456801,
+    "node_id": "MDg6QXJ0aWZhY3QxMTI3ODQ1NjgwMQ==",
+    "name": "frontend-coverage",
+    "size_in_bytes": 2454486,
+    "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/artifacts/11278456801",
+    "archive_download_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/artifacts/11278456801/zip",
+    "expired": false,
+    "digest": "sha256:958871fd7bb76e28c64414f622cbcfcb0abe97227f5eeedb15641112b42f4acf",
+    "created_at": "2026-10-03T15:56:29Z",
+    "updated_at": "2026-10-03T15:56:29Z",
+    "expires_at": "2026-10-10T15:56:27Z",
+    "workflow_run": {
+      "id": 37134827271,
+      "repository_id": 1217422809,
+      "head_repository_id": 1217422809,
+      "head_branch": "codex/rf308-rf309-validation-20261003",
+      "head_sha": "f56b8a1db926c1290134e01c3846b06a6b8304d1"
+    }
+  },
+  "coverage_metrics": {
+    "statements": {
+      "pct": 85.58,
+      "covered": 18019,
+      "total": 21054
+    },
+    "branches": {
+      "pct": 72.9,
+      "covered": 8901,
+      "total": 12209
+    },
+    "functions": {
+      "pct": 80.57,
+      "covered": 3269,
+      "total": 4057
+    },
+    "lines": {
+      "pct": 87.46,
+      "covered": 16711,
+      "total": 19105
+    }
+  },
+  "coverage_gate": {
+    "statements": 80,
+    "branches": 70,
+    "functions": 80,
+    "lines": 80
+  },
+  "frontend_results": {
+    "vitest_files": 256,
+    "vitest_passed": 2240,
+    "vitest_failed": 0,
+    "vitest_skipped": 0,
+    "node_tests": 124,
+    "node_passed": 103,
+    "node_failed": 0,
+    "node_skipped": 21,
+    "node_skip_lines": [
+      "2026-10-03T15:53:48.6305805Z ok 27 - older logging EXE is rejected before output creation or native preparation/GUI execution # SKIP Requires the Windows-only diagnostic CLI to reach its offline feature preflight",
+      "2026-10-03T15:53:48.6309142Z ok 28 - runtime CLI requires source/version, logging and one experimental variable # SKIP Requires Windows drive-absolute Runtime source arguments",
+      "2026-10-03T15:53:48.6389581Z ok 31 - old EXE is rejected before Runtime inspection, copying, output creation or native execution # SKIP Requires Windows drive arguments and the Windows-only Runtime diagnostic CLI",
+      "2026-10-03T15:53:48.6741028Z ok 50 - WebView2 exact owned directories reject filesystem junction redirection # SKIP Requires Windows WebView2 UDF paths for physical filesystem and junction checks",
+      "2026-10-03T15:53:48.7439300Z ok 54 - PowerShell 5.1 cleanup consumes a flat JSON identity list and rejects changed identities offline # SKIP Requires Windows PowerShell 5.1 for the offline cleanup script",
+      "2026-10-03T15:53:48.7441963Z ok 55 - fixed PowerShell ownership/memory script parses without executing CIM or termination # SKIP Requires Windows PowerShell 5.1 parser",
+      "2026-10-03T15:53:48.7531022Z ok 61 - real inspection accepts only the explicit installed Evergreen folder and rejects others before signatures # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:48.7534753Z ok 62 - full Runtime tree copies real files and empty directories, with an exclusive bound manifest # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:48.7551182Z ok 63 - Runtime reuse cannot replace the runtime folder or previously published manifest # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:48.7554685Z ok 64 - changed source files are rejected before Runtime creation and failures keep evidence # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:48.7557461Z ok 65 - source junctions are rejected without traversing or writing their other directory # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:48.7560522Z ok 66 - ownership mismatches refuse copied Runtime writes and cannot publish evidence into another root # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:48.7563073Z ok 67 - core declarations and physical PE architecture are both checked before copying # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:48.7573421Z ok 68 - bounded and exact Runtime file proof rejects duplicate paths, excess bytes and missing core # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:48.7633509Z ok 69 - preexisting Runtime manifest is never overwritten and failed copy remains reviewable # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:48.7641412Z ok 71 - browser proof checks actual physical copied EXE and exact recorded FileVersion/ProductVersion # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:48.7645371Z ok 72 - modified copied browser bytes cannot be accepted using stale Runtime metadata # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:48.7649888Z ok 73 - browser directory junction fallback is rejected even if its version and bytes match the source # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:48.7654260Z ok 74 - explicit directory inventory rejects missing empty dirs, case aliases and file conflicts # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:48.7664000Z ok 75 - source mutation after copy begins rejects the new runtime and preserves partial evidence # SKIP Requires Windows drive and extended paths for physical owned Runtime fixtures",
+      "2026-10-03T15:53:49.0441536Z ok 79 - old native-perf EXE fails before output creation or any EXE execution # SKIP Requires the Windows-only SDK diagnostic CLI to reach its offline feature preflight"
+    ],
+    "production_smoke_passed": 26
+  },
+  "risk_counterproof": "rf308-risk-gate-windows-2026-09-30.json; original thresholds unchanged; removed automatic-lock test family causes coverage exit1; restoration exit0. Not a claim that every single branch independently triggers global gate.",
+  "workflow_state_restored": "disabled_manually",
+  "whole_workflow_status_at_checkpoint": "in_progress; Linux missing glib and IPC conditional import failures independently tracked; Frontend Checks succeeded",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf308-ci-coverage-2026-10-03/baseline.json.gz",
+      "sha256": "222efac54c61701a0cee90cf2002dedad5b44c8f89e0c2f1a4daaf132db357a6",
+      "rawSha256": "c8890b9f83e19e45a33299097f2f5143a45e2ac4f1238c0bb496b85f54e035a4"
+    },
+    {
+      "path": "docs/verification/rf308-ci-coverage-2026-10-03/branch-push.json.gz",
+      "sha256": "940741c6a1711fb9655dd88f0f1ab5f377482fd6811f09b49e03e9115279a1f2",
+      "rawSha256": "6806b9407dafa295401f66426709c8fce35351b03ff5cb9f3f7a437a386596ea"
+    },
+    {
+      "path": "docs/verification/rf308-ci-coverage-2026-10-03/workflow-original.json.gz",
+      "sha256": "cd0ff35e481465fb3ec56d8dea882327d8e6bc9bc9a89f55e63a697e9733dd76",
+      "rawSha256": "36810ad6943e4640b99c4ff60a9e21e91f5426c30a3431f526cfa0e1d6a476cd"
+    },
+    {
+      "path": "docs/verification/rf308-ci-coverage-2026-10-03/workflow-enabled.json.gz",
+      "sha256": "c32be867394ded5f11e4e3c351dd1af3bd316f2fb65f03f68a6f004b6e09fa9d",
+      "rawSha256": "e7a0efc05932d0479cbce640aa040a96c565df880b8b9ec6b498a206a1fe0184"
+    },
+    {
+      "path": "docs/verification/rf308-ci-coverage-2026-10-03/dispatch.json.gz",
+      "sha256": "a2f8aeaceb19c9136f018d52b031d61e06f4f915a86749391aa520124ef1a8b5",
+      "rawSha256": "ccac6588fae7934c380d0f5333307ef559010fb8c7dc172057cf43fc82be8c1f"
+    },
+    {
+      "path": "docs/verification/rf308-ci-coverage-2026-10-03/job-111237127704.log.gz",
+      "sha256": "d6ea48249508b65b7729089330ccfe642fdbc55d22c29c59156593e3d929ef6f",
+      "rawSha256": "00049b1776ee62a7ebf015e55f8d0a8dedd05d2487a8a021af94a5cc2191caf9"
+    },
+    {
+      "path": "docs/verification/rf308-ci-coverage-2026-10-03/workflow-restored-1791042866684674200.json.gz",
+      "sha256": "cc8f6318499b9fa6d2f603a8cdb8e1f53c6195d84b07f62d5a4a6b06d3ba4a72",
+      "rawSha256": "b03e9cc0cbab265b2e2ddfd35521430b7c9613843abfabad9c5b5740182ecc11"
+    },
+    {
+      "path": "docs/verification/rf308-ci-coverage-2026-10-03/frontend-coverage.zip",
+      "sha256": "958871fd7bb76e28c64414f622cbcfcb0abe97227f5eeedb15641112b42f4acf"
+    }
+  ],
+  "scope": "remote F+coverage+production smoke; no claimed native UI evidence",
+  "main_remote_unchanged": "80ad860b4117735db813fb35a714ff90a97e2ed6"
+}

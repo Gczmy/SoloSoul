@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { login } from './fixtures/auth';
 
+// 桌面侧栏和鼠标场景显式使用桌面环境；各用例仍可自行测试窄视口。
+test.use({ viewport: { width: 1280, height: 720 }, isMobile: false, hasTouch: false });
+
 for (const width of [800, 390]) {
   test(`${width}px 更多操作键盘可达，指南打开后可关闭并保留主操作`, async ({ page }) => {
     await page.setViewportSize({ width, height: 720 });

@@ -1,0 +1,494 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "windows-native-sdk-cdp-diagnostics",
+  "startedAt": "2026-10-03T15:08:33.456Z",
+  "platform": "win32",
+  "osRelease": "10.0.26100",
+  "nodeVersion": "v24.16.0",
+  "hashes": {
+    "exe": "84b6e069b3e2402bda32072def4a439af957dc57ab174ee1d68b62dd4c906340",
+    "sdkScript": "53c27904bddedc3df9eed6fe4506b28a0bd7f3aa52a3c19346fba6c661b21264",
+    "runner": "9c7cbba52b8d29719f187ee07867991b25db4a76d350e31deda59c6676b53329",
+    "diagnostic": "785f9384b7a5c7824387dd79501d0e435885ba75820214c9c2691b1eed73bdb0",
+    "processHelper": "3a677e151deb5d66cc6cec7856a6be2cde829994f1f8ac734af66bf6ae2ff68a"
+  },
+  "binaryPreflight": {
+    "method": "streaming-ascii-marker-check",
+    "matchedMarkers": [
+      "windows-native-perf-owned",
+      "windows-native-perf-ready",
+      "windows-native-perf-consumed",
+      "--native-perf-prepare"
+    ],
+    "bytesScanned": 73400320,
+    "guarantee": "Excludes accidental default builds; not a binary signature or trust guarantee"
+  },
+  "sdkPreflight": {
+    "method": "streaming-sdk-cdp-feature-marker",
+    "limitation": "Excludes old builds; not a signature or trust guarantee"
+  },
+  "fixture": {
+    "accountId": "acc_rf312_100",
+    "accountName": "Performance Fixture",
+    "buildProfile": "release",
+    "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+    "expectedSearchMatches": 5,
+    "fixture": "deterministic-20th-object-property-match",
+    "generator": "solosoul-core/examples/perf_baseline",
+    "includesAttachments": false,
+    "includesOcrFixture": false,
+    "includesProfile": true,
+    "includesUiPreferences": true,
+    "kdf": {
+      "iterations": 3,
+      "memoryKiB": 65536,
+      "parallelism": 4
+    },
+    "objectCount": 100,
+    "schemaVersion": 1,
+    "scope": "synthetic-native-vault-fixture",
+    "searchQuery": "needle"
+  },
+  "sourceBefore": [
+    {
+      "path": "acc_rf312_100/config.json",
+      "bytes": 669,
+      "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+    },
+    {
+      "path": "acc_rf312_100/vault.db",
+      "bytes": 266240,
+      "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+    },
+    {
+      "path": "acc_rf312_100/vault.db.pre_enc.bak",
+      "bytes": 4096,
+      "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+    },
+    {
+      "path": "accounts.bak",
+      "bytes": 189,
+      "sha256": "1e86e48cf79510489a907415a8147ec92c4692b0a621cf6178487ccbc3f1aa02"
+    },
+    {
+      "path": "accounts.json",
+      "bytes": 189,
+      "sha256": "625ecbe50d1d2455df06b9050ad465e504b477c389de2aeeb2c4eafbc38482fa"
+    },
+    {
+      "path": "rf312-fixture.json",
+      "bytes": 667,
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "ui_preferences.json",
+      "bytes": 221,
+      "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+    }
+  ],
+  "performanceMetrics": null,
+  "sdkProtocolCalls": null,
+  "success": false,
+  "limitation": "One read-only SDK protocol diagnostic; no TCP/HTTP CDP endpoint connection/attach, password/UI actions, benchmark or full-session IPC metrics",
+  "prepare": {
+    "exitCode": 0,
+    "signal": null,
+    "error": null
+  },
+  "owned": {
+    "appVersion": "2.13.2",
+    "fixture": {
+      "accountId": "acc_rf312_100",
+      "files": [
+        {
+          "relativePath": "acc_rf312_100\\config.json",
+          "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+        },
+        {
+          "relativePath": "acc_rf312_100\\vault.db",
+          "sha256": "ce5936ff0974d02ea2a122a3104f767f01fb136c5062ba0c25f8fad7ce5174ee"
+        },
+        {
+          "relativePath": "accounts.json",
+          "sha256": "375ba82c012e1bb2837ecd17c9753e1c5035274527c82659d71df559f5d6e38b"
+        },
+        {
+          "relativePath": "rf312-fixture.json",
+          "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+        },
+        {
+          "relativePath": "ui_preferences.json",
+          "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+        }
+      ],
+      "marker": {
+        "accountId": "acc_rf312_100",
+        "accountName": "Performance Fixture",
+        "buildProfile": "release",
+        "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+        "expectedSearchMatches": 5,
+        "fixture": "deterministic-20th-object-property-match",
+        "generator": "solosoul-core/examples/perf_baseline",
+        "includesAttachments": false,
+        "includesOcrFixture": false,
+        "includesProfile": true,
+        "includesUiPreferences": true,
+        "kdf": {
+          "iterations": 3,
+          "memoryKiB": 65536,
+          "parallelism": 4
+        },
+        "objectCount": 100,
+        "schemaVersion": 1,
+        "scope": "synthetic-native-vault-fixture",
+        "searchQuery": "needle"
+      },
+      "objectCount": 100,
+      "searchMatches": 5
+    },
+    "fixtureSource": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100",
+    "identifier": "com.solosoul.rf312perf.317544faeba44f37b5d1388cbbf4793e",
+    "local": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.317544faeba44f37b5d1388cbbf4793e",
+    "nativePerfFeature": true,
+    "ownedPaths": [
+      "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001",
+      "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.317544faeba44f37b5d1388cbbf4793e",
+      "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.317544faeba44f37b5d1388cbbf4793e"
+    ],
+    "preparationStatus": "ready",
+    "profile": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001\\profile",
+    "roaming": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.317544faeba44f37b5d1388cbbf4793e",
+    "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001",
+    "runId": "317544faeba44f37b5d1388cbbf4793e",
+    "schemaVersion": 1,
+    "scope": "windows-native-perf-owned",
+    "vault": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001\\vault",
+    "webview": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001\\webview"
+  },
+  "port": 61526,
+  "processId": 34476,
+  "proofArrivedAfterSpawnMs": 2329,
+  "beforeOwnedSnapshot": {
+    "observedAt": "2026-10-03T15:08:53.196Z",
+    "collectionMs": 1713.4794999999976,
+    "workingSetBytes": 618258432,
+    "reason": null,
+    "userDataDirectoryMatches": true,
+    "browserDataChecks": [
+      {
+        "pid": 30100,
+        "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001\\webview",
+        "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001\\webview\\EBWebView",
+        "matchesExpected": true,
+        "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001\\webview\\EBWebView",
+        "reason": null
+      }
+    ],
+    "browserDataFilesystem": {
+      "valid": true,
+      "reason": null
+    },
+    "processCount": 9,
+    "processes": [
+      {
+        "pid": 34476,
+        "parentPid": 33908,
+        "creationMs": 1791040129156,
+        "executableName": "solo_soul.exe",
+        "workingSetBytes": 96313344,
+        "privateBytes": 51675136,
+        "cpuMs": 656.25,
+        "reason": null
+      },
+      {
+        "pid": 30100,
+        "parentPid": 34476,
+        "creationMs": 1791040129535,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 170577920,
+        "privateBytes": 72081408,
+        "cpuMs": 1421.875,
+        "reason": null
+      },
+      {
+        "pid": 35896,
+        "parentPid": 30100,
+        "creationMs": 1791040131350,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 25497600,
+        "privateBytes": 8208384,
+        "cpuMs": 46.875,
+        "reason": null
+      },
+      {
+        "pid": 42600,
+        "parentPid": 30100,
+        "creationMs": 1791040130365,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 95567872,
+        "privateBytes": 51572736,
+        "cpuMs": 421.875,
+        "reason": null
+      },
+      {
+        "pid": 27788,
+        "parentPid": 30100,
+        "creationMs": 1791040129654,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 11296768,
+        "privateBytes": 2543616,
+        "cpuMs": 46.875,
+        "reason": null
+      },
+      {
+        "pid": 38236,
+        "parentPid": 30100,
+        "creationMs": 1791040130182,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 103477248,
+        "privateBytes": 72613888,
+        "cpuMs": 578.125,
+        "reason": null
+      },
+      {
+        "pid": 41108,
+        "parentPid": 30100,
+        "creationMs": 1791040130187,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 45318144,
+        "privateBytes": 13045760,
+        "cpuMs": 312.5,
+        "reason": null
+      },
+      {
+        "pid": 41656,
+        "parentPid": 30100,
+        "creationMs": 1791040131351,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 49278976,
+        "privateBytes": 17850368,
+        "cpuMs": 328.125,
+        "reason": null
+      },
+      {
+        "pid": 8876,
+        "parentPid": 30100,
+        "creationMs": 1791040130228,
+        "executableName": "msedgewebview2.exe",
+        "workingSetBytes": 20930560,
+        "privateBytes": 7868416,
+        "cpuMs": 93.75,
+        "reason": null
+      }
+    ]
+  },
+  "beforeProcessDiagnostics": {
+    "mode": "live",
+    "listeners": [],
+    "liveQueriesPerformed": true,
+    "success": true,
+    "scope": "windows-native-perf-process-diagnostics",
+    "identityVerified": true,
+    "listenersReason": null,
+    "reason": null,
+    "schemaVersion": 1,
+    "processes": [
+      {
+        "parentPid": 33908,
+        "token": {
+          "integrityRid": 8192,
+          "integrityLabel": "Medium",
+          "isAppContainer": false,
+          "reason": null
+        },
+        "executablePath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\bin\\solo_soul.exe",
+        "packageFamilyName": {
+          "value": null,
+          "status": "unpackaged",
+          "reason": null
+        },
+        "role": "root",
+        "version": {
+          "fileVersion": "2.13.2",
+          "productVersion": "2.13.2",
+          "reason": null
+        },
+        "browserFlags": {
+          "port": null,
+          "logging": {
+            "reason": null,
+            "logFileMatched": null,
+            "flagsMatched": null,
+            "requested": false
+          },
+          "reason": "Not applicable to the host root process",
+          "address": null,
+          "observedDirectory": null,
+          "userDataDirectoryMatched": null
+        },
+        "pid": 34476,
+        "creationMs": 1791040129156,
+        "identityMatched": true
+      },
+      {
+        "parentPid": 34476,
+        "token": {
+          "integrityRid": 8192,
+          "integrityLabel": "Medium",
+          "isAppContainer": false,
+          "reason": null
+        },
+        "executablePath": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\154.0.4258.48\\msedgewebview2.exe",
+        "packageFamilyName": {
+          "value": null,
+          "status": "unpackaged",
+          "reason": null
+        },
+        "role": "browser",
+        "version": {
+          "fileVersion": "154.0.4258.48",
+          "productVersion": "154.0.4258.48",
+          "reason": null
+        },
+        "browserFlags": {
+          "port": 61526,
+          "logging": {
+            "reason": null,
+            "logFileMatched": null,
+            "flagsMatched": null,
+            "requested": false
+          },
+          "reason": null,
+          "address": "127.0.0.1",
+          "observedDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001\\webview\\EBWebView",
+          "userDataDirectoryMatched": true
+        },
+        "pid": 30100,
+        "creationMs": 1791040129535,
+        "identityMatched": true
+      }
+    ]
+  },
+  "consumed": {
+    "pid": 34476,
+    "port": 61526,
+    "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001",
+    "runId": "317544faeba44f37b5d1388cbbf4793e",
+    "schemaVersion": 1,
+    "scope": "windows-native-perf-consumed"
+  },
+  "requested": {
+    "schemaVersion": 1,
+    "scope": "windows-native-sdk-cdp-requested",
+    "mode": "sdk-cdp",
+    "performanceSample": false,
+    "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001",
+    "runId": "317544faeba44f37b5d1388cbbf4793e",
+    "pid": 34476,
+    "port": 61526,
+    "windowLabel": "main"
+  },
+  "reason": "Native SDK protocol did not complete successfully; owned failure evidence is retained",
+  "nativeSdkFailure": {
+    "success": false,
+    "stage": "evaluation",
+    "reason": "document-ui-root-absent",
+    "calls": [
+      "Page.getFrameTree",
+      "Runtime.evaluate"
+    ],
+    "elapsedMs": 7,
+    "limitation": "Rejected native proof; raw fields remain only in its owned evidence file"
+  },
+  "cleanup": {
+    "cleanup": [
+      {
+        "status": "already-exited",
+        "pid": 41656
+      },
+      {
+        "status": "terminated",
+        "pid": 35896
+      },
+      {
+        "status": "terminated",
+        "pid": 42600
+      },
+      {
+        "status": "terminated",
+        "pid": 8876
+      },
+      {
+        "status": "terminated",
+        "pid": 41108
+      },
+      {
+        "status": "terminated",
+        "pid": 38236
+      },
+      {
+        "status": "terminated",
+        "pid": 27788
+      },
+      {
+        "status": "terminated",
+        "pid": 30100
+      },
+      {
+        "status": "terminated",
+        "pid": 34476
+      }
+    ],
+    "unverifiedDescendants": false
+  },
+  "ownedProcessExit": {
+    "exitCode": 4294967295,
+    "signal": null,
+    "error": null
+  },
+  "cleanupIntegrity": {
+    "complete": true,
+    "reason": null
+  },
+  "sourceAfter": [
+    {
+      "path": "acc_rf312_100/config.json",
+      "bytes": 669,
+      "sha256": "c569f12184166fccbf0cd9f8f3a0c0385cdf509257e4c2e3f5358fd247213d0f"
+    },
+    {
+      "path": "acc_rf312_100/vault.db",
+      "bytes": 266240,
+      "sha256": "e061df8bc22ba9889fb524b4c86301c88e82c6023a72337f4b39f54048f46239"
+    },
+    {
+      "path": "acc_rf312_100/vault.db.pre_enc.bak",
+      "bytes": 4096,
+      "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+    },
+    {
+      "path": "accounts.bak",
+      "bytes": 189,
+      "sha256": "1e86e48cf79510489a907415a8147ec92c4692b0a621cf6178487ccbc3f1aa02"
+    },
+    {
+      "path": "accounts.json",
+      "bytes": 189,
+      "sha256": "625ecbe50d1d2455df06b9050ad465e504b477c389de2aeeb2c4eafbc38482fa"
+    },
+    {
+      "path": "rf312-fixture.json",
+      "bytes": 667,
+      "sha256": "e7216c7bcab6afd4ea5e11769f0bdd1f5dc04f0064369e0060ff8f75b3083d38"
+    },
+    {
+      "path": "ui_preferences.json",
+      "bytes": 221,
+      "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+    }
+  ],
+  "sourceUnchanged": true,
+  "interrupted": false,
+  "finishedAt": "2026-10-03T15:09:01.192Z"
+}

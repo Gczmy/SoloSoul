@@ -159,3 +159,7 @@ Core 保留原 String API/CLI 文案；新 typed dispatch 与旧 API 在同一�
 Core PluginError 增加可直接匹配的会话/锁定/任务类别，并保留原 Display 文案供 CLI 与旧调用方使用。Core 错误事件增加 jsonData 内的 code，外层 nullable 字段、结果、进度与 WASM SDK ABI 保持；GUI 通道只投影固定代码并清除错误元数据，正常日志/结果/授权事件保持原样。新审计失败原因记录固定代码，旧审计失败正文在 GUI 返回边界投影；显式插件日志和结果继续按插件原协议返回。
 
 客户端在实际 IPC 和旧通道兼容入口丢弃自由正文，Store 保存机器码，列表与运行详情仅在展示时翻译；没有日志的失败也能在详情区看到提示。旧取消只接纳精确 token 或 AbortError，错误正文含有取消字样不会被当作取消。锁定态仍允许不读取 Vault 的插件，字段读取继续受到原授权/会话隔离、WASM fuel/memory、标准输出黑洞及输出目录 canonical 限制。
+
+## RAG原生验收分支的导入约束（RF-1072）
+
+严格解析器拒绝文件级带条件属性的 `use`，避免按当前宿主配置猜测契约来源。RAG中仅普通构建使用的错误枚举在已有非native-perf分支内采用完整类型路径，共享 `BackendError` 保持无条件导入。给选定契约源码修改导入时应同时运行契约check和回归；[失败与修复证据](verification/rf1072-contract-import-2026-10-03.json)证明两份生成输出没有变化。

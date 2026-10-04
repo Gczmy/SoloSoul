@@ -224,3 +224,24 @@ SDK协议请求单列 `sdkProtocolCalls`，不计入Tauri invoke。单次observe
 本次已将聚合原因缩小到原有 `Boolean(document.getElementById('root')?.hasChildNodes())` 条件。尚未区分根容器缺失/无子节点，也未证明初始化失败或异步React挂载时序；不得以此认定产品空白根因，更不能放宽规则、延迟重试后冒充成功样本。下一步单独增加有界只读根容器/挂载状态诊断，再决定如何建立真实UI就绪边界。
 
 原runner清理integrity完整、unverifiedDescendants=false；收尾fresh CIM确认9个记录PID与owned应用/WebView进程均不存在。首轮过宽命令行扫描匹配到两个执行检查的PowerShell宿主，已保留并收窄核验范围，没有结束任何额外进程。公开100对象源7文件、12份源码/依赖冻结、EXE及94资源SHA保持。原始失败proof、现场身份、全部检查日志与清理范围见[本轮结构化证据](rf312-windows-document-reasons-2026-10-03.json)。RF-312保持[!]，仍缺成功文档绑定、真实UI行程及多端性能验收；本轮诊断改进独立本地提交，不推送。
+
+
+## 根容器与 React 挂载调用点诊断（2026-10-03）
+
+本轮仍在同一个有界、一次性的 Runtime.evaluate 中仅读取结构状态，根条件不满足后增加 `uiRootDiagnostic`。诊断只保存根容器存在/有子节点、`solosoul:react-mount` 标记是否出现、启动层存在，以及白名单 `loading/error/ready/unavailable`；不读取 DOM 文本、input.value、localStorage、账户数据或原始错误详情。仅在已有文档身份条件通过、原条件返回 `document-ui-root-absent` 后由 Rust 严格校验类型、键数和逻辑一致性；不符时不保存这份辅助诊断，原失败仍保留。成功 proof 和其他拒绝的字段形状保持。
+
+| classification | 本次可观察的结构状态 |
+| --- | --- |
+| root-container-absent | 根容器不存在 |
+| root-empty-before-react-mount | 根容器存在但无子节点，挂载调用点标记尚未出现；不能区分模块加载、等待初始化或尚未被启动层记录的失败 |
+| react-mount-marked-root-empty | 已出现挂载调用点标记但根仍无子节点；不证明 createRoot/render 调用成功或 React commit 已完成 |
+| startup-error-before-react-mount | 挂载调用点标记未出现，启动层已记录 error；不区分 timeout/initialization-failed/backend-unavailable |
+
+`performance.mark('solosoul:react-mount')` 位于生产 createRoot/render 调用之前；此观测不是 UI 就绪或性能指标。启动层 phase/reason 位于闭包，仅渲染到诊断文本，故本轮不读取它们。若后续需要更细原因，必须另设固定的只读契约，不抓取文本来反推敏感信息。Node runner 继续拒绝失败 proof，不放宽校验、增加任意延迟或重试；本轮实际结果如下。
+
+
+最终原生31通过/0失败/0ignored、六文件Node101通过/0失败/0skip；将4项新Node回归加入固定runner后，完整runner124项中123通过、0失败、1既有符号链接权限skip。首次runner格式检查exit1（CRLF），定向Prettier后exit0，实际diff只新增一条测试路径；原始记录保留。严格native all-target Clippy与fmt通过。实际非默认Release exit0，Rust14m38s、总约15m27s，TypeScript/Vite通过；EXE SHA `84b6e069b3e2402bda32072def4a439af957dc57ab174ee1d68b62dd4c906340`，15份源码/依赖冻结与94公开资源SHA保持。runner只改测试文件清单，发生于构建后，另存SHA；它不是Release输入，不声称其参加了该构建。默认R沿用未受非默认诊断变化影响的本轮RF-1071结果1858通过/0失败/3原有ignored。
+
+一次 fresh 100对象诊断exit1，WebView2 154.0.4258.48；SDK回调取得，仍是 `document-ui-root-absent`，新增分类 **root-empty-before-react-mount**：rootExists=true/rootHasChildren=false/reactMountMarked=false/startupScreenPresent=true/startupState=loading。采样时根容器存在，挂载调用点标记未出现，启动层未记录错误；不能扩张为以后正常挂载或“产品初始化失败”的结论。原生elapsed7ms/spawn后2329ms观察proof只作边界计时，document/observer/timeOrigin为空，performanceMetrics=null，完整SDK次数和成功读取后身份验证仍未接纳。
+
+下一步需要明确在真实React内容提交后产生的有界UI就绪诊断边界，保留本次早期观测，不以任意等待/重试冒充性能样本。未改变生产启动代码或全路由加载策略。原runner清理完整，fresh CIM确认9个记录PID和owned应用/WebView进程不存在；原始proof存档后，核对manifest、绝对父路径与reparse边界，仅清理3个本轮owned目录。公开源7文件、旧失败、依赖与stash保持。[本轮完整证据](rf312-windows-ui-root-2026-10-03.json)保存全部检查、格式首败、原生失败和清理。RF-312仍[!]，本项独立提交后转RF-121 Windows辅助功能补证。
