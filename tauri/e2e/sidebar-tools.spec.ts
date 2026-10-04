@@ -460,7 +460,43 @@ test('工具入口支持点击、键盘和 Escape，关闭后菜单退出 Tab �
 });
 
 // 暂停真实 CSS transition 采样中间帧，验证展开/收起方向，而非只检查最终 class。
+async function armMenuSweep(menu: Locator) {
+  await menu.evaluate((element) => {
+    const nav = element.closest('nav')!;
+    const zone = nav.querySelector('[class*="primaryZone"]')!;
+    const capture = { menu: false, zone: false };
+    (element as HTMLElement & { __menuSweepCapture?: typeof capture }).__menuSweepCapture = capture;
+    // 在真实过渡开始时暂停，避免跨进程读取时420ms动画已经结束。
+    const onRun = (event: TransitionEvent) => {
+      if (event.propertyName !== 'clip-path' || (event.target !== element && event.target !== zone))
+        return;
+      const target = event.target === element ? element : zone;
+      const animation = target
+        .getAnimations()
+        .find(
+          (value) => value instanceof CSSTransition && value.transitionProperty === 'clip-path',
+        );
+      if (!animation) return;
+      animation.pause();
+      if (target === element) capture.menu = true;
+      else capture.zone = true;
+      if (capture.menu && capture.zone) nav.removeEventListener('transitionrun', onRun);
+    };
+    nav.addEventListener('transitionrun', onRun);
+  });
+}
+
 async function sampleMenuSweep(menu: Locator) {
+  await expect
+    .poll(() =>
+      menu.evaluate((element) => {
+        const capture = (
+          element as HTMLElement & { __menuSweepCapture?: { menu: boolean; zone: boolean } }
+        ).__menuSweepCapture;
+        return Boolean(capture?.menu && capture.zone);
+      }),
+    )
+    .toBe(true);
   return menu.evaluate(async (element) => {
     const zone = element.closest('nav')!.querySelector('[class*="primaryZone"]')!;
     const animation = element
@@ -506,6 +542,7 @@ for (const platform of ['macos', 'windows']) {
       const tools = nav.getByRole('button', { name: 'Tools', exact: true });
       const menu = nav.locator('[data-sidebar-tools]');
       const toggleBounds = await tools.boundingBox();
+      await armMenuSweep(menu);
       await tools.hover();
       const buttonBounds = await menu.locator('button').first().boundingBox();
       const opening = await sampleMenuSweep(menu);
@@ -513,6 +550,7 @@ for (const platform of ['macos', 'windows']) {
       expect(opening[1].top).toBeGreaterThan(opening[2].top);
       expect(await menu.locator('button').first().boundingBox()).toEqual(buttonBounds);
       await expect(menu).toHaveCSS('opacity', '1');
+      await armMenuSweep(menu);
       await page.mouse.move(640, 400);
       await expect(menu).toHaveJSProperty('inert', true);
       const closing = await sampleMenuSweep(menu);
