@@ -130,6 +130,58 @@ jobs:
           cargo check --target aarch64-apple-ios
           cargo check --target aarch64-apple-ios-sim
 
+      # tauri-build优先读取通用声明；这里只同步Mac已启用feature，不改依赖图。
+      - name: Align macOS check manifest with platform features
+        working-directory: tauri
+        run: |
+          python3 - <<'PY'
+          import copy
+          import json
+          import platform
+          import re
+          import sys
+          import tomllib
+          from pathlib import Path
+
+          if platform.system() != "Darwin":
+              raise SystemExit("macOS check manifest preparation requires Darwin")
+
+          path = Path("src-tauri/Cargo.toml")
+          config = json.loads(Path("src-tauri/tauri.macos.conf.json").read_text())
+          if config.get("app", {}).get("macOSPrivateApi") is not True:
+              raise SystemExit("Expected existing macOS private API configuration")
+
+          source = path.read_text()
+          manifest = tomllib.loads(source)
+          common = manifest["dependencies"]["tauri"]
+          mac = manifest["target"]['cfg(target_os = "macos")']["dependencies"]["tauri"]
+          if common.get("version") != mac.get("version") or "macos-private-api" not in mac.get("features", []):
+              raise SystemExit("Expected matching existing macOS tauri dependency")
+
+          features = common.get("features", [])
+          updated = list(dict.fromkeys([*features, "macos-private-api"]))
+          if set(features) | set(mac["features"]) != set(updated) | set(mac["features"]):
+              raise SystemExit("Preparation must preserve enabled macOS feature set")
+
+          section = re.search(r"(?ms)^\[dependencies\]\n(.*?)(?=^\[|\Z)", source)
+          if section is None:
+              raise SystemExit("Expected general dependency section")
+          match = re.search(r"(?m)^tauri = \{[^\n]*features = (\[[^\n]*?\])[^\n]*\}$", section[1])
+          if match is None:
+              raise SystemExit("Expected existing inline tauri feature declaration")
+          start = section.start(1) + match.start(1)
+          end = section.start(1) + match.end(1)
+          prepared = source[:start] + json.dumps(updated) + source[end:]
+          expected = copy.deepcopy(manifest)
+          expected["dependencies"]["tauri"]["features"] = updated
+          if tomllib.loads(prepared) != expected:
+              raise SystemExit("Unexpected manifest change outside feature declaration")
+
+          if prepared != source:
+              path.write_text(prepared)
+          print(f"Python {sys.version.split()[0]}: macOS check declaration aligned; enabled features unchanged")
+          PY
+
       - name: Check formatting
         run: |
           cd tauri

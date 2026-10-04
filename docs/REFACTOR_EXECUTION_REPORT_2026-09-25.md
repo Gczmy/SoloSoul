@@ -120,9 +120,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**280**（P1：51；P2：228；P3：1）。
-- 已关闭：**269 / 280**；实际修复（已关闭）：269；排除：0；待验证/阻塞：5（RF-112、RF-121、RF-311、RF-312、RF-1090）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088、RF-1089、RF-1090（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**无；RF-1090已修待Apple，按项补验已通过的Linux侧栏修复**。
+- 任务总数：**281**（P1：51；P2：229；P3：1）。
+- 已关闭：**269 / 281**；实际修复（已关闭）：269；排除：0；待验证/阻塞：6（RF-112、RF-121、RF-311、RF-312、RF-1090、RF-1091）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088、RF-1089、RF-1090、RF-1091（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**无；RF-1091已修待实际Apple门禁**。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -408,6 +408,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 278 | [RF-1088](#rf-1088) | P2 | 导航/尺标离开事件安全检查relatedTarget | 无（实际WEB异常发现） | [x] 完成 |
 | 279 | [RF-1089](#rf-1089) | P2 | 侧栏真实动画开始时捕获，避免晚采样丢失 | 无（RF-1088全量WEB原动画用例flaky） | [x] 完成 |
 | 280 | [RF-1090](#rf-1090) | P2 | Apple检查job编译前完整准备资源 | 无（实际iOS缺移动插件目录失败） | [!] 待实际Apple门禁 |
+| 281 | [RF-1091](#rf-1091) | P2 | macOS直接Cargo检查准备一致的Tauri声明 | 无（实际macOS allowlist失败） | [!] 待实际Apple门禁 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -3748,6 +3749,18 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**DOC、YAML静态、隔离真实资源/前端构建、实际Apple PR；只改CI准备，不重复已通过且输入未改的本地F/R。单测标记不能用于Release或模型推理验收。
 - **建议提交：**`ci(apple): stage declared resources before target checks [RF-1090]`。
 
+### RF-1091
+
+**macOS直接Cargo检查准备一致的Tauri声明** · P2 · 来源：PR37166565587/job111330569834，双iOS通过后macOS Clippy构建脚本allowlist失败
+
+- **前置：**无；与RF-1090资源准备分项。
+- **入口：**`.github/workflows/pr_check.yml` rust-check；锁定tauri-build2.6.2 manifest校验；Cargo.toml的通用及macOS专属tauri声明。
+- **执行：**在两iOS目标之后、macOS检查之前，仅在该Mac CI checkout将已启用的macos-private-api target feature同步至通用声明；平台/配置/既有target声明和版本须校验，非macOS拒绝。跟踪Cargo.toml/lock不修改，macOS实际依赖feature集合不变；原严格Clippy/future-keychain/全量R/ACL保留。
+- **验收：**原上游校验模型确实失败、同步后通过，Mac启用feature集合一致；未预期平台/配置/声明拒绝且不写文件；幂等；其他job、两iOS命令、配置/依赖/业务源码冻结。实际Apple原双目标和所有后续门禁通过后关闭。
+- **验证配置：**DOC、YAML/actionlint、隔离正反例与原上游源码/归档SHA、实际Apple PR；纯CI声明准备不重复未改变的本地F/R。
+- **建议提交：**`ci(macos): align declared Tauri features for direct checks [RF-1091]`。
+
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -6691,3 +6704,10 @@ git commit -m "<任务卡的提交标题>"
 - PR #2 / [PR37166565587](https://github.com/Gczmy/SoloSoul/actions/runs/37166565587) / Apple job111330569834，源码`4715b6676eb42520494deee7dc34a500762db90f`。设备aarch64-apple-ios完成3m23s、模拟器aarch64-apple-ios-sim完成2m31s；原两条默认feature cargo check顺序实跑且步骤success，原Swift EEXIST未再出现。
 - 后续macOS Clippy在构建脚本的tauri feature/allowlist检查失败，future-keychain/完整R/ACL未运行；不记为Apple完整job成功。下一独立问题登记修复，RF-1090和RF-311继续待验。
 - [证据](verification/rf1086-ios-target-sequencing-2026-10-03.json)保留初始Swift失败并追加完整实际Apple日志、两次Finished与精确步骤/源码绑定。DOC边界/diff和统计通过、用户stash保持；按双目标编译范围关闭，累计269/280。独立提交（本提交，以RF-1086检索），不证明签名设备或硬件Keychain。
+
+### RF-1091 执行记录（2026-10-04，待实际Apple全门禁）
+
+- 实际Apple job111330569834双iOS/格式通过，macOS Clippy构建脚本报feature/allowlist不一致。锁定tauri-build2.6.2包SHA核验；其find_dependency优先通用tauri声明，现有macOS target已启用private API但通用features为空，属于声明校验不一致。
+- 只新增一个Mac CI准备步骤，在双iOS后将target已启用feature同步到通用声明，验证Darwin/现有配置/版本/目标声明与完整结构后才写入该临时checkout。跟踪Cargo.toml/lock/config和业务源码不改；原15步骤正文/顺序及其他job保持。YAML/actionlint/DOC通过。
+- 隔离7组正反例通过，幂等且异常拒绝时字节保持。真实Rust1.99 cargo metadata --locked --filter-platform aarch64-apple-darwin原/后resolved图一致，重复核验中锁字节一致；初次锁原始字节断言受CRLF到LF归一化影响，后续两次探针转义错误和不可用可选YAML解析器记录保留，均未改项目依赖。
+- [证据](verification/rf1091-macos-cargo-allowlist-2026-10-04.json)含实际失败、原上游源码/包SHA、准备脚本/正反例、四次Cargo解析、静态检查及所有输入冻结。此为CI准备，不重复未变化的本地F/R；实际Apple全部原门禁仍须运行。用户stash保持，269/281不增，独立提交（本提交，以RF-1091检索）。
