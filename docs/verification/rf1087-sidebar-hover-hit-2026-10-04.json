@@ -1,6 +1,6 @@
 {
   "task": "RF-1087",
-  "status": "waiting-actual-linux-first-attempt",
+  "status": "completed",
   "baseline": "1c9389b412839e3af81f815bc8193e57c669d558",
   "original_failure": {
     "run": 37157849547,
@@ -194,7 +194,109 @@
       "rawSha256": "e2b2c6007ddc0256f8d6acaba89af00c5397adb82c6302690742242fc02071aa"
     }
   ],
-  "limits": [
+  "original_validation_limits": [
     "Windows Edge is not actual Linux/Android native validation; actual Linux left/right first attempts required."
-  ]
+  ],
+  "actual_linux_acceptance": {
+    "task": "RF-1087",
+    "tested_head": "ab5a167b179de00bdd9c24dda7b588c030b1e65d",
+    "accepted_from_head": "98cc439ab1eea6f7e8ab2b5141e8e2145c9e0442",
+    "pr": "https://github.com/Gczmy/SoloSoul/pull/2",
+    "run": 37164080869,
+    "job": 111323318852,
+    "source_binding": {
+      "tauri": {
+        "tested_object": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "current_object": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "equal": true
+      },
+      ".github/workflows/ci_cd.yml": {
+        "tested_object": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "current_object": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "equal": true
+      },
+      "SoloSoul_plugin_market": {
+        "tested_object": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "current_object": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "equal": true
+      },
+      ".github/actions/check-frontend/action.yml": {
+        "tested_object": "00895928c5a84d0bf1583d25433f2848f1b6f007",
+        "current_object": "00895928c5a84d0bf1583d25433f2848f1b6f007",
+        "equal": true
+      }
+    },
+    "whole_mobile": {
+      "inventory": 331,
+      "passed": 312,
+      "flaky": 0,
+      "failed": 0,
+      "original_skipped": 19
+    },
+    "first_attempt_cases": [
+      {
+        "inventory_index": 276,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:20:29.1200836Z   ✓  276 [mobile] › e2e/sidebar-tools.spec.ts:69:3 › left 展开侧栏悬停显示全部工具，入口及主导航不移动 (3.6s)"
+      },
+      {
+        "inventory_index": 277,
+        "first_attempt": true,
+        "raw_log_line": "2026-10-04T00:20:32.6506247Z   ✓  277 [mobile] › e2e/sidebar-tools.spec.ts:69:3 › right 展开侧栏悬停显示全部工具，入口及主导航不移动 (3.5s)"
+      }
+    ],
+    "frontend": {
+      "run": 37164080866,
+      "job": 111323318744,
+      "vitest_files": 256,
+      "vitest_passed": 2240,
+      "node_passed": 103,
+      "node_failed": 0,
+      "original_linux_platform_skips": 21,
+      "production_e2e_passed": 26,
+      "coverage": [
+        85.59,
+        72.9,
+        80.6,
+        87.47
+      ],
+      "thresholds": [
+        80,
+        70,
+        80,
+        80
+      ],
+      "profile": "Original CI Node22 full F including coverage, TypeScript and lint; original CI testTimeout unchanged, distinct from local 5000ms."
+    },
+    "overall": {
+      "ci_cd": "success",
+      "pr_checks": "failure: Apple iOS resource missing, separate RF-1090"
+    },
+    "limits": [
+      "Linux browser CI does not establish native Android/macOS material acceptance.",
+      "Original local/earlier CI failures and flaky runs remain in task proof."
+    ],
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/pr-round2-acceptance/acceptance.json.gz",
+        "sha256": "f1c17c98ba4ce0ffe9d5a194ea9bf5a26f28d094b4e5b8e849583b118a8cc95b",
+        "rawSha256": "1d4132f7284f9779afa34684b3078acc1eacba705a81288d44b8c24b3068235e"
+      },
+      {
+        "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/pr-round2-acceptance/jobs-snapshot.json.gz",
+        "sha256": "284fd411df8215d44ee33324494694331092f653854931b2377923d0db00b5c4",
+        "rawSha256": "3d787958c5c95b7543d9e6ebb55a9b6080c1d7601c072079db5b93c42f1caa8f"
+      },
+      {
+        "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/pr-round2-acceptance/mobile.log.gz",
+        "sha256": "78141a4bad7b79399b3a90244a74bc8a2dbf6201ea01167e297942f130a14e16",
+        "rawSha256": "9f6a2bb39d49f75a9a278047d5a22e7381f8a2dafd3d3fef3c9c22fa440ee087"
+      },
+      {
+        "path": "docs/verification/rf1087-sidebar-hover-hit-2026-10-04/pr-round2-acceptance/frontend.log.gz",
+        "sha256": "11a9ca7b7f36f7acd9f90aa4c10889ed21a17fba2017795901bc5c28e77a493a",
+        "rawSha256": "6817ea6def74242418d72622b549b37046a3bb199acde91ed36768c47fd3bbfe"
+      }
+    ]
+  }
 }
