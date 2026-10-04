@@ -1,0 +1,15 @@
+{
+  "command": [
+    "node",
+    "scripts/native-perf-sdk-cdp.mjs",
+    "--exe",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\bin\\solo_soul.exe",
+    "--fixture",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100",
+    "--output",
+    "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\sdk-handoff-01"
+  ],
+  "exit": 1,
+  "seconds": 40.909206099808216,
+  "scope": "one fresh read-only SDK diagnostic; no UI/password actions or performance metrics"
+}

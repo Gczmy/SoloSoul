@@ -1,0 +1,1210 @@
+{
+  "task": "RF-312",
+  "date": "2026-10-04",
+  "status": "ui-handoff-document-binding-validated; full-performance-baseline-pending",
+  "baseCommit": "ede87e5d0add4f901b0efe674384b8adfde6c7f2",
+  "branch": "codex/rf312-ui-commit-boundary",
+  "scope": "Windows non-default SDK diagnostic and fixed public startup handoff metadata; no route strategy or business UI flow changes",
+  "changes": [
+    "Reuse existing post-commit two-frame startup handoff; expose fixed phase/state/reason only",
+    "Install one diagnostic-only readiness control script and fixed local event; bind document after handoff",
+    "Preserve two read-only CDP calls, all source/frame/loader/browser guards and native20s/Node45s budgets",
+    "Validate bounded readiness schema in both Rust and Node; retain all rejected variants"
+  ],
+  "tools": {
+    "node": "v24.16.0",
+    "cargo": "cargo 1.96.0 (30a34c682 2026-05-25)",
+    "rust": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "formatToolchain": "cargo 1.99.0 (5f94df478 2026-08-27)"
+  },
+  "checks": {
+    "frontend": [
+      {
+        "name": "prettier",
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "src/lib/startupScreen.ts",
+          "src/lib/startupScreen.test.ts",
+          "src/bootstrapApp.tsx",
+          "public/startup.js",
+          "scripts/native-perf-ui-root.node.test.mjs",
+          "scripts/native-perf-sdk-cdp.mjs",
+          "scripts/native-perf-sdk-cdp.test.mjs"
+        ],
+        "exit": 0,
+        "seconds": 0.6329156002029777
+      },
+      {
+        "name": "type-check",
+        "command": [
+          "node",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit"
+        ],
+        "exit": 0,
+        "seconds": 25.059775500558317
+      },
+      {
+        "name": "lint",
+        "command": [
+          "node",
+          "node_modules/eslint/bin/eslint.js",
+          "src",
+          "--ext",
+          ".ts,.tsx"
+        ],
+        "exit": 0,
+        "seconds": 35.17407209984958
+      },
+      {
+        "name": "node-full",
+        "command": [
+          "node",
+          "scripts/run-node-tests.mjs"
+        ],
+        "exit": 0,
+        "seconds": 24.029086999595165
+      },
+      {
+        "name": "front-full",
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "--maxWorkers",
+          "2"
+        ],
+        "exit": 0,
+        "seconds": 426.63947559986264
+      }
+    ],
+    "rustAndFirstRelease": [
+      {
+        "name": "rust-fmt-1.99",
+        "command": [
+          "cargo",
+          "+1.99.0",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit": 0,
+        "seconds": 23.801707100123167,
+        "rustToolchain": "1.99.0"
+      },
+      {
+        "name": "rust-native-tests",
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--features",
+          "native-perf",
+          "--lib",
+          "native_perf::",
+          "--",
+          "--test-threads=1"
+        ],
+        "exit": 0,
+        "seconds": 326.93517899978906,
+        "rustToolchain": "1.96.0 default preserved"
+      },
+      {
+        "name": "rust-native-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--features",
+          "native-perf",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "seconds": 38.339784999378026,
+        "rustToolchain": "1.96.0 default preserved"
+      },
+      {
+        "name": "rust-default-tests",
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "--workspace"
+        ],
+        "exit": 0,
+        "seconds": 918.7857284005731,
+        "rustToolchain": "1.96.0 default preserved"
+      },
+      {
+        "name": "rust-default-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--workspace",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "seconds": 113.83964349981397,
+        "rustToolchain": "1.96.0 default preserved"
+      },
+      {
+        "name": "release-build",
+        "command": [
+          "node",
+          "node_modules/@tauri-apps/cli/tauri.js",
+          "build",
+          "--config",
+          "src-tauri/tauri.native-perf.conf.json",
+          "--features",
+          "native-perf",
+          "--no-bundle",
+          "--ci"
+        ],
+        "exit": 0,
+        "seconds": 1417.509296500124,
+        "rustToolchain": "1.96.0 default preserved"
+      }
+    ],
+    "finalGate": [
+      {
+        "name": "gate-node-full",
+        "command": [
+          "node",
+          "scripts/run-node-tests.mjs"
+        ],
+        "exit": 0,
+        "seconds": 13.21462990064174
+      },
+      {
+        "name": "gate-format",
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "scripts/native-perf-ui-gate.node.test.mjs",
+          "scripts/run-node-tests.mjs"
+        ],
+        "exit": 0,
+        "seconds": 0.23457029927521944
+      },
+      {
+        "name": "gate-rust-fmt",
+        "command": [
+          "cargo",
+          "+1.99.0",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit": 0,
+        "seconds": 5.758574199862778
+      },
+      {
+        "name": "gate-rust-native-tests",
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--features",
+          "native-perf",
+          "--lib",
+          "native_perf::",
+          "--",
+          "--test-threads=1"
+        ],
+        "exit": 0,
+        "seconds": 192.68419570010155
+      },
+      {
+        "name": "gate-rust-native-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--features",
+          "native-perf",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "seconds": 27.726755099371076
+      },
+      {
+        "name": "gate-release-build",
+        "command": [
+          "node",
+          "node_modules/@tauri-apps/cli/tauri.js",
+          "build",
+          "--config",
+          "src-tauri/tauri.native-perf.conf.json",
+          "--features",
+          "native-perf",
+          "--no-bundle",
+          "--ci"
+        ],
+        "exit": 0,
+        "seconds": 910.9496712004766
+      }
+    ],
+    "productionE2EFirst": {
+      "name": "production-e2e",
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "playwright.production.config.ts"
+      ],
+      "exit": 1,
+      "seconds": 107.25759010016918
+    },
+    "productionE2EFinal": [
+      {
+        "name": "e2e-format",
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "e2e/production-startup.spec.ts"
+        ],
+        "exit": 0,
+        "seconds": 0.4351784000173211,
+        "channel": "chrome",
+        "testInputSha256": "c483382accc58d1b3ac4699c3b8b1b1cf63e929ffc4872f8eba51f730cd12ad0"
+      },
+      {
+        "name": "production-e2e-final",
+        "command": [
+          "node",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "playwright.production.config.ts",
+          "--workers",
+          "2"
+        ],
+        "exit": 0,
+        "seconds": 55.074988099746406,
+        "channel": "chrome",
+        "testInputSha256": "c483382accc58d1b3ac4699c3b8b1b1cf63e929ffc4872f8eba51f730cd12ad0"
+      }
+    ],
+    "red": [
+      {
+        "name": "node-red",
+        "command": [
+          "node",
+          "--test",
+          "scripts/native-perf-ui-root.node.test.mjs"
+        ],
+        "exit": 1,
+        "seconds": 0.29896430019289255
+      },
+      {
+        "name": "handoff-red",
+        "command": [
+          "node",
+          "node_modules/vitest/vitest.mjs",
+          "run",
+          "src/lib/startupScreen.test.ts",
+          "--maxWorkers",
+          "1"
+        ],
+        "exit": 1,
+        "seconds": 31.024305500090122
+      }
+    ]
+  },
+  "validationScope": {
+    "vitest": {
+      "files": 256,
+      "passed": 2241,
+      "failed": 0,
+      "reusedAfterGateChange": "Frontend source unchanged; later edits only non-default Rust SDK control and Node test runner"
+    },
+    "nodeFinal": {
+      "passed": 134,
+      "failed": 0,
+      "skipped": 1,
+      "skip": "existing Windows symlink privilege case"
+    },
+    "rustDefault": {
+      "groups": 25,
+      "passed": 1858,
+      "failed": 0,
+      "ignored": 3,
+      "reusedAfterGateChange": "later Rust edits inside the non-default native-perf module only; default cfg unchanged; PDFIUM_LIBRARY_PATH provided only to test child"
+    },
+    "rustNativeFinal": {
+      "passed": 36,
+      "failed": 0,
+      "ignored": 0
+    },
+    "productionE2E": {
+      "passed": 26,
+      "failed": 0,
+      "channel": "installed Chrome; original default retries and timeouts; workers2"
+    },
+    "sourceFreezeFinalFiles": 22,
+    "publicResources": 94,
+    "publicFixtureFiles": 7
+  },
+  "failuresPreserved": [
+    {
+      "stage": "red",
+      "evidence": "red-checks.json"
+    },
+    {
+      "stage": "first production E2E",
+      "reason": "Playwright headless shell absent; 1 passed/25 browser launches failed",
+      "resolution": "existing SOLOSOUL_E2E_CHANNEL=chrome configuration; final26 passed"
+    },
+    {
+      "stage": "toolchain setup",
+      "reason": "initial1.99 rustfmt component missing before setup; raw command output remains in chat, no raw log available",
+      "resolution": "install1.99 rustfmt/clippy; global default1.96 unchanged"
+    },
+    {
+      "stage": "first actual SDK run",
+      "reason": "source-changed; no UI metadata accepted",
+      "evidence": "sdk-handoff-01/sample-001/native-perf-sdk-cdp.json"
+    },
+    {
+      "stage": "cache cleanup",
+      "reason": "own preflight stopped before deletion on INetCache reparse children",
+      "resolution": "exact in-root junction targets verified and unlinked without recursion; all7 owned directories then removed",
+      "evidence": "cleanup-first-reparse.json"
+    },
+    {
+      "stage": "staged diff check",
+      "exit": 2,
+      "reason": "raw CRLF JSON preserved with -text was reported as trailing CR whitespace",
+      "resolution": "retain byte-exact originals as .json.gz; provide LF JSON views; rerun unchanged strict diff checks",
+      "evidence": "staged-diff-first.log.gz"
+    }
+  ],
+  "runs": {
+    "first": {
+      "command": [
+        "node",
+        "scripts/native-perf-sdk-cdp.mjs",
+        "--exe",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\bin\\solo_soul.exe",
+        "--fixture",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100",
+        "--output",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\sdk-handoff-01"
+      ],
+      "exit": 1,
+      "seconds": 40.909206099808216,
+      "scope": "one fresh read-only SDK diagnostic; no UI/password actions or performance metrics"
+    },
+    "final": {
+      "command": [
+        "node",
+        "scripts/native-perf-sdk-cdp.mjs",
+        "--exe",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\bin-gate\\solo_soul.exe",
+        "--fixture",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\solosoul-rf312-native-fixtures-20260930\\vault100",
+        "--output",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\sdk-handoff-02"
+      ],
+      "exit": 0,
+      "seconds": 35.73665430024266,
+      "scope": "one fresh read-only SDK diagnostic for corrected handoff gate; first failed variant remains preserved; no UI/password actions or performance metrics"
+    }
+  },
+  "finalBinding": {
+    "source": "http://tauri.localhost/login",
+    "mainFrameId": "B72EB5B32F5DF5F3143AA7127FA61784",
+    "loaderId": "A2EF2F4701CB833DADA9160E87F22917",
+    "timeOriginMs": 1791136976579.3,
+    "navigationEvents": 0,
+    "frameCreatedEvents": 0
+  },
+  "finalUiReadyDiagnostic": {
+    "boundary": "startup-handoff",
+    "finalHandoffMarked": true,
+    "finalStartup": {
+      "phase": "accounts",
+      "reason": "none",
+      "state": "ready"
+    },
+    "finalUiRootPresent": true,
+    "initialHandoffMarked": true,
+    "initialStartup": {
+      "phase": "accounts",
+      "reason": "none",
+      "state": "ready"
+    },
+    "initialUiRootPresent": true,
+    "outcome": "handoff",
+    "schemaVersion": 1
+  },
+  "sdkProtocolCalls": [
+    "Page.getFrameTree",
+    "Runtime.evaluate"
+  ],
+  "browserVersion": "154.0.4258.53",
+  "performanceMetrics": null,
+  "limitations": [
+    "One accepted synthetic100-object UI diagnostic, not a repeated GUI performance sample",
+    "Native elapsed344ms includes readiness gate; arrival2971ms and runner wall time are boundary timing, not startup benchmarks",
+    "No UI password action, OCR/preview, lock/sleep restoration,5000-object journey or median/tail GUI data",
+    "TCP CDP availability not rechecked; SDK success does not prove TCP endpoint availability",
+    "macOS/Android performance and RF121 accessibility/compositor matrices remain pending",
+    "No remote CI claimed for this local commit; Rust1.96 runtime checks and1.99 formatting recorded separately"
+  ],
+  "processChecks": [
+    "first-final-process-check.json",
+    "gate-final-process-check.json"
+  ],
+  "artifacts": [
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/baseline.json.gz",
+      "bytes": 130464,
+      "sha256": "de4fd3ea2b635dc0120049e71685ffe540e9a2c4404a3844e45bec0b8b559b9a",
+      "originalBytes": 368058,
+      "originalSha256": "8731ba5cf1ff01c614ca14b855a6e6903b70a66b8d8412ce53c991bc107e5d8d"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/binary-inventory-gate.json",
+      "bytes": 626,
+      "sha256": "1617d28e849ab88952f8971f8bfd41fc80f6b520c7fac607409d62a90d120514",
+      "originalBytes": 640,
+      "originalSha256": "f79aa2a1e0b40905916ae93fd0b7ef3139a08eba9616caacec64330353cfa510",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/binary-inventory-gate.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/binary-inventory.json",
+      "bytes": 616,
+      "sha256": "d8ec5df2d855a825bb854ecfe5610d4403ec3432deb9da4ad575521b11ed51bb",
+      "originalBytes": 630,
+      "originalSha256": "5dc18bb7829dedae0c367a7e516bb8952f569464faa919c1f6700874703a8b10",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/binary-inventory.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/first-final-process-check.json",
+      "bytes": 281,
+      "sha256": "e077ee15ae0c00ac9163c3925fa98d0bc2cea0259c0c13702321300bf6a5fa53",
+      "originalBytes": 298,
+      "originalSha256": "f05457ecf7ca579c9f9bf649e86e2e643ba120a72b101b21d9bbbc0fe17f419a",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/first-final-process-check.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/frontend-checks.json",
+      "bytes": 1201,
+      "sha256": "e106431c9991cfbc8b44a3b60199ad43de040cebe48e4da8177991ed5d27b88a",
+      "originalBytes": 1263,
+      "originalSha256": "1519431cd4b1517201c7e93fa1fa0bcc1f9e08f867415f97594105408d461b39",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/frontend-checks.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/gate-checks.json",
+      "bytes": 1587,
+      "sha256": "5e5b65172da37a5d8bf42c5e7fb53079a1d301699d0b56fae222ee0c7642c2e2",
+      "originalBytes": 1675,
+      "originalSha256": "2c20e41ebfb7b68517f573b83552e91f495dbe1ab6ca73d9249fba3a8a51c44e",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/gate-checks.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/gate-final-process-check.json",
+      "bytes": 280,
+      "sha256": "d61af55fc31c35ce3489c5b7531ab3d1cac1c3c3cad0523d5be660f034d5e974",
+      "originalBytes": 297,
+      "originalSha256": "014c0c271a1807204b55248355c8135a941f701db929ecb62fddd0d543b2f888",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/gate-final-process-check.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/pre-diagnostic-integrity.json",
+      "bytes": 133,
+      "sha256": "7182f66a53d1512423cc3b55e7e91c875a25487f05d1198edcf9cb698c4edd2e",
+      "originalBytes": 140,
+      "originalSha256": "d7d79ae38e74d0dd5a805e3a5aaddfd9a33afe8d78b2d7384180c8f09f97b5b2",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/pre-diagnostic-integrity.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/preservation-midrun.json",
+      "bytes": 562,
+      "sha256": "8173a419e0f58414dd50078bf6dc03c0a14967661c9b46f445b7f8681a2599e3",
+      "originalBytes": 579,
+      "originalSha256": "47acc86fbad190d41108812dbe992d504632d00c59c65d4f246bb36a9846fc92",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/preservation-midrun.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/production-e2e-final.json",
+      "bytes": 741,
+      "sha256": "fea432bee0096fd70ed92ab18e281ad1410bfc7d185a42ebecec9924c399f8f7",
+      "originalBytes": 772,
+      "originalSha256": "88e9cd2ae36e3bcca4520686bc62d3463692acb184a9e6724a7772ad4c8dc53e",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/production-e2e-final.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/production-e2e.json",
+      "bytes": 219,
+      "sha256": "5afd803eac9ae6c92705540435e234a05c993c3ee998c8024df00c5623aa4ddd",
+      "originalBytes": 231,
+      "originalSha256": "899bf79140d799088fb2df4c47a1fba648659ba51bfc06b5ee817807b4fcbe2e",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/production-e2e.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/public-fixture-before.json",
+      "bytes": 1214,
+      "sha256": "0d60e1b44536c7879309d6dc3a2cddc392c27c97108cb7c12052975d4265b10e",
+      "originalBytes": 1254,
+      "originalSha256": "6ce314a290d98819f90eda5510bd53ef3eef20b69c2568844803a37a9992d919",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/public-fixture-before.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/red-checks.json",
+      "bytes": 437,
+      "sha256": "0a4dc9df4b972148b2c9fd4f4c9071e833e1d5e4e0789655d62c01b401be804c",
+      "originalBytes": 462,
+      "originalSha256": "eb8d5acfab1c87cd2e45fe4f0313d81359decef6bf4550b2e8947cc796a07e1a",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/red-checks.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/resource-inventory-gate.json",
+      "bytes": 37609,
+      "sha256": "0c3fb2a028a5c302adfe5a7625b61e53aa104b9714044899e69e1bd65bd6ced5",
+      "originalBytes": 38175,
+      "originalSha256": "420aa8f71075e9bfff1d56e3abeee3d18b516597dddadad7edad217b8891a66e",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/resource-inventory-gate.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/resource-inventory.json",
+      "bytes": 37139,
+      "sha256": "c8e385c9cc5737760e909c2fd3c76a57cf5cae0adbe8aa3912013df52b5e384d",
+      "originalBytes": 37705,
+      "originalSha256": "079489b660491fb4533ad881eb321990908f0a8aeb59e3ba7e436c9a1db743d0",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/resource-inventory.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/rust-build-checks.json",
+      "bytes": 1847,
+      "sha256": "e024f2cf37b368d334bebfbc92649e6e325b16e2d9f8bfa20b19a6d105cf99de",
+      "originalBytes": 1946,
+      "originalSha256": "a5f89c286a475811ad073f9f9bb819b3fe91d50b3087bf2ac75d4bd634b626b0",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/rust-build-checks.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-diagnostic-run-gate.json",
+      "bytes": 624,
+      "sha256": "856ff5d9001ee84e1b4c82e8bc37c7a200559b3defb46c29b6522393be6d3452",
+      "originalBytes": 639,
+      "originalSha256": "e9a578c3c2aba1f9d71ef7bf41500373412d1538723ff98d3a6437d1cbd99dca",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-diagnostic-run-gate.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-diagnostic-run.json",
+      "bytes": 553,
+      "sha256": "35c2bfdf58acb5f61abcc4533a47f587d9f8afa40e0e64356bb37b4579f457d4",
+      "originalBytes": 568,
+      "originalSha256": "c0ff481b4f577b498c318d000b64d0be4d8bdc655884b3e9cf6efc4b115c5ca3",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-diagnostic-run.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/source-freeze-gate.json",
+      "bytes": 3469,
+      "sha256": "52c0c47e0783d333b3d507d3627e80ddde5719056a8a798f7ecb1c3893dea307",
+      "originalBytes": 3581,
+      "originalSha256": "e71f270e48a7e4518dbc587b3e660b2668dddb831692bb1b666f1f2226c5b1c5",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/source-freeze-gate.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/source-freeze.json",
+      "bytes": 3297,
+      "sha256": "b3113da795fddb90b45a89df84cddcde413533f0f97c6ae6248a469b2954490e",
+      "originalBytes": 3404,
+      "originalSha256": "2f4a8a7b965b3809972b4bf595ec35fbb03c9013dda0395d388d5a59a670f183",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/source-freeze.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/tool-versions.json",
+      "bytes": 184,
+      "sha256": "78c4ea23240859283a7c63770b16aa7e889a76bc7e591dd85585f2a8c131480e",
+      "originalBytes": 190,
+      "originalSha256": "af8e6c11c2ea0739c56e4f372644ed3d6a036a0eb0961a0e43c19cc61a14f3f7",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/tool-versions.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/e2e-format.log.gz",
+      "bytes": 82,
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "originalBytes": 66,
+      "originalSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/front-full.log.gz",
+      "bytes": 509,
+      "sha256": "7f5942937dd572c33539f991c0b9ef132fdcb49a25f6098558dec4528f40549e",
+      "originalBytes": 607,
+      "originalSha256": "79ac00bba79cf1fe41a6fe232c8f354d52329d18af26d5092879078c4d7810c9"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/gate-format.log.gz",
+      "bytes": 82,
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "originalBytes": 66,
+      "originalSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/gate-node-full.log.gz",
+      "bytes": 6135,
+      "sha256": "7491984a8910babb4a9b1efee409057b636e5991635f9ea182b1014b58e88344",
+      "originalBytes": 13786,
+      "originalSha256": "90ec91ebd0e55c9d1cd09a3277b252fb2988bb75bf4c1ae4f4e206142211f542"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/gate-release-build.log.gz",
+      "bytes": 2354,
+      "sha256": "45e73685f0978b69e8dccc56717dab8e7eef4771ad37c0f02f179aaff9c11854",
+      "originalBytes": 6411,
+      "originalSha256": "1508430239ff9d89e2e4875df0b69ee5c9f22537c8567fe70dba4c6392e5019f"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/gate-rust-fmt.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/gate-rust-native-clippy.log.gz",
+      "bytes": 150,
+      "sha256": "94fb4d6721752fcdce0c920b4b246d93ecaa4163182a875c00ce0f2925e3423c",
+      "originalBytes": 147,
+      "originalSha256": "ce7fdbdd40c60e3de16bf973c9cb0d4179e40a92f3c4276a9bc784c30d0c335a"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/gate-rust-native-tests.log.gz",
+      "bytes": 1755,
+      "sha256": "400bd6af3a3b54ce2e466ab1637234dd0be2787da4537bb83f6959d0906121d2",
+      "originalBytes": 12454,
+      "originalSha256": "44cc683bd655f981087a7b1b01285bbe6d84f7999ff0487fe997a84a1ba359b2"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/handoff-red.log.gz",
+      "bytes": 553,
+      "sha256": "39e54fe8e621a134e00171cc150d359fed869ef9873faca1e7bed201791b8eb1",
+      "originalBytes": 1091,
+      "originalSha256": "4fb8bad91d180e30a8e39aea0330a013a3df0a3129146d94b8a0f1767da8d96c"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/lint.log.gz",
+      "bytes": 202,
+      "sha256": "e3ccfc0b0c8bd33816d157c4a8deb0f7432ed17e975abbe7060d530049f9134d",
+      "originalBytes": 222,
+      "originalSha256": "8adafb303995011573be7e26d4a61c7fe77e00f366b56a9f6fa3c464c0456361"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/node-full.log.gz",
+      "bytes": 5999,
+      "sha256": "ee7120c23348b1034255186a20c4a3877e7afc6cdda5602d5ace14533ed4d046",
+      "originalBytes": 13350,
+      "originalSha256": "5d25a82b459ff1e60282f04436d68f71978bfb681ba8d7a4acbb21bc99b8e713"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/node-red.log.gz",
+      "bytes": 909,
+      "sha256": "be45de616eb90592b849be68cab1d1f0d71b62f9aee68807dfbf930f02dc2d19",
+      "originalBytes": 2926,
+      "originalSha256": "fa2f69542f3415dc4541d5ed9a90d8645f8f38ea86871c00eb56ef896a9fc2d3"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/prettier.log.gz",
+      "bytes": 82,
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "originalBytes": 66,
+      "originalSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/production-e2e-final.log.gz",
+      "bytes": 2093,
+      "sha256": "a547d492d839d36095e46228f445fc207dbdfe4e8cbe503d0355886da785981e",
+      "originalBytes": 7236,
+      "originalSha256": "052e2c3b204f2bb65ee1d5284411a2441245e7b9ab6a2cee7f35a886657f0ebc"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/production-e2e.log.gz",
+      "bytes": 3445,
+      "sha256": "c8125bea58753603e10a8f7e6f1bfb98ed34199e551c281c0fda005dd5df0c54",
+      "originalBytes": 51675,
+      "originalSha256": "923e27d692e4b5f87ac72adb9c33f523c9fce91169baf290c5d2d8354155f25a"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/release-build.log.gz",
+      "bytes": 2457,
+      "sha256": "577d76e1a9c98c62e24745919e7e587467d24a8b7fd019cbf02ed91e76132646",
+      "originalBytes": 6970,
+      "originalSha256": "b561072edc070022433da64ca263e9f79ec07ecf6a73e7b94e5acee004afe75e"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/rust-default-clippy.log.gz",
+      "bytes": 206,
+      "sha256": "03b54c5c562178682a930895bff9f1e8fa6bf10bcaf583e4492a9045a8b71203",
+      "originalBytes": 517,
+      "originalSha256": "b94eddf52f58fb54c74843897b6ca4c90366f0a66024e34fbcc7d5c6d124edd1"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/rust-default-tests.log.gz",
+      "bytes": 68049,
+      "sha256": "acabff914a0ba05605cbc60e0c206d5cafc1264f3ca61fc73f611d1dcbf46118",
+      "originalBytes": 687076,
+      "originalSha256": "458ae624bdbe66a3c2d0971386eeb54ec5ab5d381904d2a20f81b1f6068dbebb"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/rust-fmt-1.99.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/rust-native-clippy.log.gz",
+      "bytes": 175,
+      "sha256": "648b8b3fa89d8121edf118d0d1327d23b64fd7f0d6f88fe5a686d8c5d9a7c69b",
+      "originalBytes": 238,
+      "originalSha256": "482b2f9c3226ab1fbbee19412962ae95acddbca8bd4cb9f3ff00498d26d55408"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/rust-native-tests.log.gz",
+      "bytes": 1724,
+      "sha256": "29a0a1bd3efbcdeb0100afdeca552d08ad638b73ce3a3bb62ab6f6a9c644d375",
+      "originalBytes": 12343,
+      "originalSha256": "dc62b143214d021252ad00adeee6ca1e23bf36b1fd21ac1f0fc979aa27287bd5"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-diagnostic-gate.log.gz",
+      "bytes": 148,
+      "sha256": "f598c459c19cf7031e65a02624210bb97d8e01f9b3e701dec5139a070616c378",
+      "originalBytes": 149,
+      "originalSha256": "e46095c60a25c5f1ddaa19b819a2d0b4628bf7bcf0651145d7a619e2ffa0cb76"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-diagnostic.log.gz",
+      "bytes": 148,
+      "sha256": "9bae840a761fc699c40ef9e6f0d6b12574223740d82242ca39181a92f4e4b24b",
+      "originalBytes": 149,
+      "originalSha256": "df08ac5b84124f29f810fe910bd081a461cbb9004c55689d004fb1b93ccae680"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/type-check.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-handoff-01/native-perf-sdk-cdp-diagnostics.json",
+      "bytes": 16045,
+      "sha256": "f0a54070761b5a93c43cf55d037bda25a3a9f9189838127637cd7c34755186cf",
+      "originalBytes": 16045,
+      "originalSha256": "f0a54070761b5a93c43cf55d037bda25a3a9f9189838127637cd7c34755186cf"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-handoff-01/sample-001/native-perf-sdk-cdp.json",
+      "bytes": 864,
+      "sha256": "1e88a62715ecba465dee56ce7cdd6642cb2ad3694871ef5c9217c67e90bc495e",
+      "originalBytes": 864,
+      "originalSha256": "1e88a62715ecba465dee56ce7cdd6642cb2ad3694871ef5c9217c67e90bc495e"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-handoff-01/sample-001/native-perf-sdk-cdp-requested.json",
+      "bytes": 347,
+      "sha256": "dce6c4b498ca1ef0fc1165731cceb7c32788e4c69e771b25030f637fb3d88ec1",
+      "originalBytes": 347,
+      "originalSha256": "dce6c4b498ca1ef0fc1165731cceb7c32788e4c69e771b25030f637fb3d88ec1"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-handoff-01/sample-001/native-perf-owned.json",
+      "bytes": 3352,
+      "sha256": "629c2b885a369fd75b31a99c95cf1733ced5d112f61fbbf4afb92e97e42551a3",
+      "originalBytes": 3352,
+      "originalSha256": "629c2b885a369fd75b31a99c95cf1733ced5d112f61fbbf4afb92e97e42551a3"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-handoff-01/sample-001/native-perf-consumed.json",
+      "bytes": 267,
+      "sha256": "56aac1d5c88e877438eda0a686e7590e54b57ca9c01d497c36ea2e387cfc97b6",
+      "originalBytes": 267,
+      "originalSha256": "56aac1d5c88e877438eda0a686e7590e54b57ca9c01d497c36ea2e387cfc97b6"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-handoff-02/native-perf-sdk-cdp-diagnostics.json",
+      "bytes": 26939,
+      "sha256": "7c81d73ada86f5164dcb3a24e089949566b68113646c1ac4cc97b8b96321fee2",
+      "originalBytes": 26939,
+      "originalSha256": "7c81d73ada86f5164dcb3a24e089949566b68113646c1ac4cc97b8b96321fee2"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-handoff-02/sample-001/native-perf-sdk-cdp.json",
+      "bytes": 4925,
+      "sha256": "deb9f88bd22fbd011dfcb6822538c78d102b146328efd75218aa8a338c0c268e",
+      "originalBytes": 4925,
+      "originalSha256": "deb9f88bd22fbd011dfcb6822538c78d102b146328efd75218aa8a338c0c268e"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-handoff-02/sample-001/native-perf-sdk-cdp-requested.json",
+      "bytes": 347,
+      "sha256": "79236895872fdc9d39bea9f42aab1a5e9a3c81a7390eabbdde7842e5fa24da18",
+      "originalBytes": 347,
+      "originalSha256": "79236895872fdc9d39bea9f42aab1a5e9a3c81a7390eabbdde7842e5fa24da18"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-handoff-02/sample-001/native-perf-owned.json",
+      "bytes": 3352,
+      "sha256": "a8da10cc8b195a085930970b7b5ba7e947b3bcda0215f77a86e0460c2428bd4e",
+      "originalBytes": 3352,
+      "originalSha256": "a8da10cc8b195a085930970b7b5ba7e947b3bcda0215f77a86e0460c2428bd4e"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-handoff-02/sample-001/native-perf-consumed.json",
+      "bytes": 267,
+      "sha256": "55acf3bf1e3d616f306d3fde6b810cb1c72ed6b6701dcb1cf207ed3f2732a43b",
+      "originalBytes": 267,
+      "originalSha256": "55acf3bf1e3d616f306d3fde6b810cb1c72ed6b6701dcb1cf207ed3f2732a43b"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/.gitattributes",
+      "bytes": 79,
+      "sha256": "cdaada6dc60db74ae056958e7530bb4943f609cf1ad8b36a24673711de4be8c4",
+      "originalBytes": 79,
+      "originalSha256": "cdaada6dc60db74ae056958e7530bb4943f609cf1ad8b36a24673711de4be8c4"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/cache-cleanup.json",
+      "bytes": 1449,
+      "sha256": "6ce6480360c067515f65614d2b0f603711fb498ae6d729261b1832c92ccd2a60",
+      "originalBytes": 1483,
+      "originalSha256": "34c0c223d064623fae39ce790b37f9ba0bc25f82fd58a78d91e016d9294085d4",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/cache-cleanup.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/cleanup-first-reparse.json",
+      "bytes": 969,
+      "sha256": "566b77e5720e4231e85619b6a1444edc0f0ea0e43e5f5cff552f90eb548114cd",
+      "originalBytes": 986,
+      "originalSha256": "7e603fc886e254540d56649bb50371ef96ec289a487ce10cef8e436383e44829",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/cleanup-first-reparse.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/junction-cleanup.json",
+      "bytes": 968,
+      "sha256": "c21215419b033e4ed975e5283c615a30d3d5c74b7977fab337953255d7d9e17a",
+      "originalBytes": 985,
+      "originalSha256": "549f0b7eff00c04b3935415a316040117b97cca397a4fecd86f5fb10cdd1fb87",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/junction-cleanup.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/preservation-final.json",
+      "bytes": 1003,
+      "sha256": "03558d5fdcd8cf3ff7146b092fd378b598ecffe64836e918acc7e1717f8d8243",
+      "originalBytes": 1003,
+      "originalSha256": "03558d5fdcd8cf3ff7146b092fd378b598ecffe64836e918acc7e1717f8d8243"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/doc-checks.json",
+      "bytes": 436,
+      "sha256": "16fd7525483594c13f66e100938d37eb485e3ed32d47f1d9839323d3b6a613a4",
+      "originalBytes": 461,
+      "originalSha256": "7b151d67b1f02e5a851e27aabc7c330b4edd4857f04b89c1274371e7be37e1ec",
+      "normalization": "LF JSON view; byte-exact original retained in sibling .json.gz",
+      "rawArtifact": "docs/performance/rf312-windows-ui-handoff-2026-10-04/doc-checks.json.gz"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/markdown-boundary.log.gz",
+      "bytes": 110,
+      "sha256": "c16c6514d45e8adcb5ee3a75bb38ae0e1950a842eb0ca278a2816334f7739e7b",
+      "originalBytes": 93,
+      "originalSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/diff-check.log.gz",
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/staged-diff-first.log.gz",
+      "bytes": 24303,
+      "sha256": "0ea540d6644b4061208957641e4a479eadd2c9cb4f0b4f8011d1116514c8315e",
+      "originalBytes": 298491,
+      "originalSha256": "45c272cd97fd8a77341975acd8d61c1c045026f69ab327e679b6d3f4c2f12516"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/binary-inventory-gate.json.gz",
+      "bytes": 312,
+      "sha256": "0538e2cb9872ce49d1e11aa862676aaf4d71f7748d9146b062ee974e617a6b45",
+      "originalBytes": 640,
+      "originalSha256": "f79aa2a1e0b40905916ae93fd0b7ef3139a08eba9616caacec64330353cfa510"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/binary-inventory.json.gz",
+      "bytes": 308,
+      "sha256": "1d0aca1dc5b772e07a26876631b3e793b885bc6e19dc3040cc838230ff2bd3e6",
+      "originalBytes": 630,
+      "originalSha256": "5dc18bb7829dedae0c367a7e516bb8952f569464faa919c1f6700874703a8b10"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/first-final-process-check.json.gz",
+      "bytes": 217,
+      "sha256": "3f7f7736c2035c65aea7d93eaae110694b4158a56ae90d5f7d0bcf396d76bb0f",
+      "originalBytes": 298,
+      "originalSha256": "f05457ecf7ca579c9f9bf649e86e2e643ba120a72b101b21d9bbbc0fe17f419a"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/frontend-checks.json.gz",
+      "bytes": 413,
+      "sha256": "d624b25a66717fdc95b591a4f6a7ef080eb81ee78bd40e8fe230cbde80070ad3",
+      "originalBytes": 1263,
+      "originalSha256": "1519431cd4b1517201c7e93fa1fa0bcc1f9e08f867415f97594105408d461b39"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/gate-checks.json.gz",
+      "bytes": 488,
+      "sha256": "2716a675d54c452febbafa3c42d6223169fd708d019b1108b2315d74c5b542d7",
+      "originalBytes": 1675,
+      "originalSha256": "2c20e41ebfb7b68517f573b83552e91f495dbe1ab6ca73d9249fba3a8a51c44e"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/gate-final-process-check.json.gz",
+      "bytes": 215,
+      "sha256": "c488febdd26c48232ee26e827754aaad6c5fe6374e5d532a89fff927449c41f4",
+      "originalBytes": 297,
+      "originalSha256": "014c0c271a1807204b55248355c8135a941f701db929ecb62fddd0d543b2f888"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/pre-diagnostic-integrity.json.gz",
+      "bytes": 96,
+      "sha256": "f6c14cf94abe826ed344ecbdeca92b8c119d403720f0d306bef6c00aa2d281d1",
+      "originalBytes": 140,
+      "originalSha256": "d7d79ae38e74d0dd5a805e3a5aaddfd9a33afe8d78b2d7384180c8f09f97b5b2"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/preservation-midrun.json.gz",
+      "bytes": 300,
+      "sha256": "17f19f2d3c8571150cd15ccd83c7ae917ede6e32efbaaa402826e5fcc1c9d801",
+      "originalBytes": 579,
+      "originalSha256": "47acc86fbad190d41108812dbe992d504632d00c59c65d4f246bb36a9846fc92"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/production-e2e-final.json.gz",
+      "bytes": 334,
+      "sha256": "a5dc8a1c06764648c3d1ccc421fc865bc627cfa9642bf3337196eb1ab9301ed5",
+      "originalBytes": 772,
+      "originalSha256": "88e9cd2ae36e3bcca4520686bc62d3463692acb184a9e6724a7772ad4c8dc53e"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/production-e2e.json.gz",
+      "bytes": 167,
+      "sha256": "567a27ec1dde027f52d16bd7d4e1fef75c8f723d8148b4064edb5a7dd791617b",
+      "originalBytes": 231,
+      "originalSha256": "899bf79140d799088fb2df4c47a1fba648659ba51bfc06b5ee817807b4fcbe2e"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/public-fixture-before.json.gz",
+      "bytes": 566,
+      "sha256": "4062af6d08ee8b1d2ed30848e770cac71411a3bd29d4365b7288eaff4b0b052d",
+      "originalBytes": 1254,
+      "originalSha256": "6ce314a290d98819f90eda5510bd53ef3eef20b69c2568844803a37a9992d919"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/red-checks.json.gz",
+      "bytes": 245,
+      "sha256": "cfaa0b799156b4bf538279ea72d4ff19fa12a1463df7fd6082660a75f469a2e6",
+      "originalBytes": 462,
+      "originalSha256": "eb8d5acfab1c87cd2e45fe4f0313d81359decef6bf4550b2e8947cc796a07e1a"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/resource-inventory-gate.json.gz",
+      "bytes": 6081,
+      "sha256": "065354d87df48689e91a023a7a8621b0aa21db5965d685b47f18e17334bd126d",
+      "originalBytes": 38175,
+      "originalSha256": "420aa8f71075e9bfff1d56e3abeee3d18b516597dddadad7edad217b8891a66e"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/resource-inventory.json.gz",
+      "bytes": 6079,
+      "sha256": "7cd7fc468645c9e0d9c3dc4912ca879193014bfcd5faf22e547e9fe7b839c587",
+      "originalBytes": 37705,
+      "originalSha256": "079489b660491fb4533ad881eb321990908f0a8aeb59e3ba7e436c9a1db743d0"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/rust-build-checks.json.gz",
+      "bytes": 477,
+      "sha256": "d8622341e6e39dfa96fd134611e495a85f1b1b4120f07e2e3d02ce60f19deba3",
+      "originalBytes": 1946,
+      "originalSha256": "a5f89c286a475811ad073f9f9bb819b3fe91d50b3087bf2ac75d4bd634b626b0"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-diagnostic-run-gate.json.gz",
+      "bytes": 359,
+      "sha256": "46eb012efe3c569a259dc4ea3356b46c79578d0d27dfe436f554816ab97bfb62",
+      "originalBytes": 639,
+      "originalSha256": "e9a578c3c2aba1f9d71ef7bf41500373412d1538723ff98d3a6437d1cbd99dca"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/sdk-diagnostic-run.json.gz",
+      "bytes": 318,
+      "sha256": "9cde1502baa5f61bd83faf8261c7b1cf8327ef1c50cc7ba725f735b41b0c1260",
+      "originalBytes": 568,
+      "originalSha256": "c0ff481b4f577b498c318d000b64d0be4d8bdc655884b3e9cf6efc4b115c5ca3"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/source-freeze-gate.json.gz",
+      "bytes": 1325,
+      "sha256": "44b74e4f039709dadf822fdd6216cd2295927db1f9790b03e395c14c99375cc3",
+      "originalBytes": 3581,
+      "originalSha256": "e71f270e48a7e4518dbc587b3e660b2668dddb831692bb1b666f1f2226c5b1c5"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/source-freeze.json.gz",
+      "bytes": 1269,
+      "sha256": "3ba9b3450d70c88aa2a562b784907e8b66e0beb83bb23f187800bbc5b73c0a4f",
+      "originalBytes": 3404,
+      "originalSha256": "2f4a8a7b965b3809972b4bf595ec35fbb03c9013dda0395d388d5a59a670f183"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/tool-versions.json.gz",
+      "bytes": 148,
+      "sha256": "f3a9216a832eef518994e9d263da73e6b76e6a6893db129e531ca7326cec504b",
+      "originalBytes": 190,
+      "originalSha256": "af8e6c11c2ea0739c56e4f372644ed3d6a036a0eb0961a0e43c19cc61a14f3f7"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/cache-cleanup.json.gz",
+      "bytes": 363,
+      "sha256": "c3506b96bb7c3d982f5830e5b741159f82c7831d36c434cbf6cfe77d3aa3e4ad",
+      "originalBytes": 1483,
+      "originalSha256": "34c0c223d064623fae39ce790b37f9ba0bc25f82fd58a78d91e016d9294085d4"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/cleanup-first-reparse.json.gz",
+      "bytes": 305,
+      "sha256": "540857d2d8496f6050d1aff006219082bbcba023c5cfda90b5b7ee8ed8c99208",
+      "originalBytes": 986,
+      "originalSha256": "7e603fc886e254540d56649bb50371ef96ec289a487ce10cef8e436383e44829"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/junction-cleanup.json.gz",
+      "bytes": 303,
+      "sha256": "35f43dde42e808ab56e8fa78745cefd54d7a788c260cabb0726630f0ba1d645d",
+      "originalBytes": 985,
+      "originalSha256": "549f0b7eff00c04b3935415a316040117b97cca397a4fecd86f5fb10cdd1fb87"
+    },
+    {
+      "path": "docs/performance/rf312-windows-ui-handoff-2026-10-04/doc-checks.json.gz",
+      "bytes": 254,
+      "sha256": "256569a615558244b667586153730af319e7f7fd004b78e46af3d74b0660ce65",
+      "originalBytes": 461,
+      "originalSha256": "7b151d67b1f02e5a851e27aabc7c330b4edd4857f04b89c1274371e7be37e1ec"
+    }
+  ],
+  "pushed": false,
+  "artifactBytePreservation": "Archive-local -text disables Git EOL conversion; CRLF originals remain as sibling .json.gz with LF JSON views. All staged blob hashes must match.",
+  "cleanup": {
+    "ownedCachesRemoved": 6,
+    "supersededCandidateRemoved": true,
+    "finalCandidateRetainedForNextDiagnostics": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\bin-gate",
+    "initialAttemptStoppedOnReparse": true,
+    "resolution": "two exact INetCache junctions target same owned root; link-only removal verified target preserved; then ordinary-dir cleanup",
+    "publicSourceAndEarlierEvidencePreserved": true
+  },
+  "preservation": {
+    "baselineTrackedFiles": 2745,
+    "changedTrackedPaths": [
+      "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+      "docs/performance/RF-312-windows-native-app-baseline.md",
+      "tauri/e2e/production-startup.spec.ts",
+      "tauri/public/startup.js",
+      "tauri/scripts/native-perf-sdk-cdp.mjs",
+      "tauri/scripts/native-perf-sdk-cdp.test.mjs",
+      "tauri/scripts/native-perf-ui-root.node.test.mjs",
+      "tauri/scripts/run-node-tests.mjs",
+      "tauri/src-tauri/src/native_perf/sdk_cdp.rs",
+      "tauri/src/bootstrapApp.tsx",
+      "tauri/src/lib/startupScreen.test.ts",
+      "tauri/src/lib/startupScreen.ts"
+    ],
+    "unexpectedTrackedChanges": [],
+    "stashUnchanged": true,
+    "protectedStash": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90",
+    "submoduleUnchanged": true,
+    "submoduleHead": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+    "selectedFinalFreezeMatches": true,
+    "publicSourceFilesUnchanged": 7,
+    "defaultRustGateScope": "sdk_cdp module excluded unless native-perf Windows; default cfg unchanged"
+  },
+  "docChecks": [
+    {
+      "name": "markdown-boundary",
+      "command": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "exit": 0,
+      "seconds": 8.925754100084305
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.2362959999591112
+    }
+  ]
+}

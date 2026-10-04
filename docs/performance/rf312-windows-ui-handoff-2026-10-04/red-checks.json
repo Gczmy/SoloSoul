@@ -1,0 +1,25 @@
+[
+  {
+    "name": "node-red",
+    "command": [
+      "node",
+      "--test",
+      "scripts/native-perf-ui-root.node.test.mjs"
+    ],
+    "exit": 1,
+    "seconds": 0.29896430019289255
+  },
+  {
+    "name": "handoff-red",
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "src/lib/startupScreen.test.ts",
+      "--maxWorkers",
+      "1"
+    ],
+    "exit": 1,
+    "seconds": 31.024305500090122
+  }
+]

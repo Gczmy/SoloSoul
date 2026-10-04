@@ -71,10 +71,30 @@
     elapsed = Math.round(performance.now() - started);
     clearTimers();
     render();
+    window.dispatchEvent(new Event('solosoul:startup-state'));
   }
   window.__SOLOSOUL_STARTUP__ = {
     phase: function (next) {
       if (state === 'loading') phase = next;
+    },
+    // 仅读固定状态码；不暴露诊断文本、账户、偏好或原始错误。
+    diagnostic: function () {
+      return {
+        schemaVersion: 1,
+        state: state,
+        phase:
+          ['application', 'i18n', 'platform', 'capabilities', 'preferences', 'accounts'].indexOf(
+            phase,
+          ) >= 0
+            ? phase
+            : 'unavailable',
+        reason:
+          reason === ''
+            ? 'none'
+            : ['timeout', 'initialization-failed', 'backend-unavailable'].indexOf(reason) >= 0
+              ? reason
+              : 'unavailable',
+      };
     },
     active: function () {
       return state === 'loading';
@@ -85,6 +105,7 @@
       state = 'ready';
       clearTimers();
       render();
+      window.dispatchEvent(new Event('solosoul:startup-state'));
       return true;
     },
   };

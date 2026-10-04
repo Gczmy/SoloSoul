@@ -1,7 +1,10 @@
 declare global {
   interface Window {
     __SOLOSOUL_STARTUP__?: {
-      phase(next: 'application' | 'preferences' | 'accounts'): void;
+      phase(
+        next: 'application' | 'i18n' | 'platform' | 'capabilities' | 'preferences' | 'accounts',
+      ): void;
+      diagnostic(): { schemaVersion: 1; state: string; phase: string; reason: string };
       active(): boolean;
       fail(reason: 'timeout' | 'initialization-failed' | 'backend-unavailable'): void;
       ready(): boolean;
@@ -22,6 +25,8 @@ export function dismissStartupScreen(): () => void {
       screen.dataset.ready = 'true';
       screen.setAttribute('aria-hidden', 'true');
       performance.mark('solosoul:startup-dismissed');
+      // RF312：仅通知已有的提交后双帧交接，不把createRoot调用当作UI就绪。
+      window.dispatchEvent(new Event('solosoul:startup-handoff'));
       const reducedMotion =
         matchMedia('(prefers-reduced-motion: reduce)').matches ||
         document.documentElement.dataset.reduceMotion === 'true';

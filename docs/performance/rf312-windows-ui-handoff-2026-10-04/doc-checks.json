@@ -1,0 +1,25 @@
+[
+  {
+    "name": "markdown-boundary",
+    "command": [
+      "node",
+      "scripts/check-markdown-chunk-boundary.mjs"
+    ],
+    "exit": 0,
+    "seconds": 8.925754100084305
+  },
+  {
+    "name": "diff-check",
+    "command": [
+      "git",
+      "-c",
+      "safe.directory=C:/Users/40299571/SoloSoul",
+      "-c",
+      "core.safecrlf=false",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 0.2362959999591112
+  }
+]

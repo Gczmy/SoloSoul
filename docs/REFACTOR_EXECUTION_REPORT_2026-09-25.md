@@ -1,7 +1,7 @@
 # SoloSoul 重构修复执行报告
 
-> 最后更新：2026-10-04（CI收敛、Apple编译和侧栏补验完成；剩余原生实测及依赖项）
-> 当前分支：`main`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
+> 最后更新：2026-10-04（RF-312 Windows真实UI交接与文档绑定阶段完成）
+> 当前分支：`codex/rf312-ui-commit-boundary`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
 > 修复轮次：第 1 轮，执行中。Cua 接入继续暂缓。
 
 ## 1. 文档用途与执行边界
@@ -122,7 +122,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 - 任务总数：**281**（P1：51；P2：229；P3：1）。
 - 已关闭：**272 / 281**；实际修复（已关闭）：272；排除：0；待验证/阻塞：3（RF-112、RF-121、RF-312）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088、RF-1089、RF-1090、RF-1091（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**无；剩余原生实测及RF-121依赖项**。
+- 当前处理：**无；RF-312交接后文档绑定已验证，完整性能基线与RF-121隔离原生矩阵待续**。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -217,7 +217,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 87 | [RF-318](#rf-318) | P2 | 迁移备份与导入导出结构化错误 | [RF-304](#rf-304)、[RF-307](#rf-307) | [x] 完成 |
 | 88 | [RF-319](#rf-319) | P2 | 迁移同步结构化错误 | [RF-305](#rf-305)、[RF-307](#rf-307) | [x] 已关闭 |
 | 89 | [RF-320](#rf-320) | P2 | 迁移插件结构化错误 | [RF-306](#rf-306)、[RF-307](#rf-307) | [x] 已关闭 |
-| 90 | [RF-312](#rf-312) | P3 | 建立可重跑的性能基线与下一步决策 | 无 | [!] 待验证多端应用性能 |
+| 90 | [RF-312](#rf-312) | P3 | 建立可重跑的性能基线与下一步决策 | 无 | [!] 待验证完整UI行程与多端性能；交接后绑定已通过 |
 | 91 | [RF-900](#rf-900) | P2 | CLI 中文断言测试显式隔离系统语言 | 无（Rust 任务验收前优先处理） | [x] 完成 |
 | 92 | [RF-901](#rf-901) | P2 | Windows GUI Rust 测试嵌入 Common Controls 清单 | 无（R 配置恢复前优先处理） | [x] 完成 |
 | 93 | [RF-902](#rf-902) | P2 | 生产启动冒烟使用当前桌面更新契约 | 无（生产包检查恢复前优先处理） | [x] 完成 |
@@ -6728,3 +6728,13 @@ git commit -m "<任务卡的提交标题>"
 - [CI37166565582](https://github.com/Gczmy/SoloSoul/actions/runs/37166565582)源码4715b667全部success：Linux1858/0/3、Windows1552/0/1原ignored，mobile312 passed/0 flaky/0 failed/19原skip，331清单。整个应用/CLI/子模块、CI/CD和共用action与本轮逐Git对象一致；后续差异仅Mac准备和DOC。不能写成存在同头合并CI运行。
 - 18 job对照保留并列明独立平台后续修复；原Release三正文与Android三job保持。实际main保护为false/rules为空，没有删除既有受保护检查；重复PR检查委派一次，原主分支/手动入口与失败/coverage附件保留。CI/CD原disabled及PR原active已恢复，没有发布或合并。
 - [证据](verification/rf311-ci-sharing-2026-10-03.json)包含所有实际完整成功日志、三次Apple失败、精确源码绑定、最新HTML和job/设置对照；旧失败和flaky证据保留。DOC边界/diff/统计通过、用户stash保持；本项关闭，累计272/281。独立提交（本提交，以RF-311检索）。RF-112/121/312原生验收以及RF-122～127依赖继续未完成。
+
+
+### RF-312 阶段执行记录（2026-10-04，真实交接后文档绑定完成）
+
+- 复用账户状态确认后已有双帧启动层交接，增加固定交接事件和只读阶段诊断；不改变启动时长、路由加载策略或业务UI流程。新增回归在旧实现上实际失败，修正后原用例及新增等待/终止/超时/隐私边界通过。
+- 首版一次真实合成100对象SDK运行exit1：在旧绑定中等待交接时，被原SourceChanged守卫拒绝。修正为仅SDK模式的一次固定控制事件门闩，交接后才获取当前主文档身份；保留两个只读协议调用、全部原校验、原生20秒/Node45秒预算与失败证据，没有重复启动同一候选筛选结果。
+- 最终非默认Release exit0；22份关键输入和94公开资源SHA保持。一次新隔离诊断runner exit0，WebView2 154.0.4258.53，实际`/login`主文档与frame/loader/browser/timeOrigin/observer绑定全部接纳；固定诊断outcome=handoff，根内容/交接标记true、accounts/ready/none。此证明交接后当前文档可绑定，不是完整UI行程或性能验收。
+- F：TypeScript/ESLint/格式、256文件/2241 Vitest通过；续改只涉及非默认Rust控制脚本与Node测试清单，前端源码保持。最终完整Node134 passed/0 failed/1既有权限skip，原生36 passed/0 failed/0 ignored、严格native all-target Clippy与fmt通过。完整默认R25组/1858 passed/0 failed/3原有ignored和严格workspace all-target Clippy通过，续改的默认cfg不变；PDFium仅给测试子进程提供DLL路径。生产WEB首轮缺浏览器失败已保留；按已有Chrome配置重跑26 passed，含提交后交接单次通知。
+- 两轮公开7文件源保持，runner清理完整，fresh CIM各9记录PID及owned应用/WebView均不存在。原始source-changed、实际成功proof、源码/构建/工具版本/检查/SHA/清理记录见[证据](performance/rf312-windows-ui-handoff-2026-10-04.json)与[复跑说明](performance/RF-312-windows-native-app-baseline.md)。不把elapsed344ms、proof到达2971ms或runner壁钟当作启动性能；performanceMetrics=null。
+- 本项独立本地提交（按RF-312检索），不推送。RF-312保持[!]，累计272/281已关闭、3待验证、6待执行；RF-112的隔离macOS恢复、RF-121可恢复隔离会话中的原生无障碍/合成矩阵，以及RF-312完整多端重复样本尚缺，不解除RF-122至127前置。

@@ -1,0 +1,2 @@
+# Preserve raw diagnostic bytes and SHA across Windows/Unix checkouts.
+* -text

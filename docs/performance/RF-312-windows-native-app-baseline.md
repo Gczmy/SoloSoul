@@ -1,6 +1,6 @@
 # RF-312 Windows 原生应用采样（2026-09-30）
 
-本记录定义并执行真实 Tauri Release 与 WebView2 界面采样，只使用 [RF-312 合成 Vault](RF-312-native-vault-baseline.md)。`native-perf` 是非默认 Windows feature；默认构建的入口、数据目录和路由加载保持原行为。当前尚无成功GUI样本，CDP连接仍被拒绝；Windows阶段不足以关闭 RF-312：OCR、附件预览、系统睡眠恢复及 macOS/Android 尚未取得同口径数据。
+本记录定义并执行真实 Tauri Release 与 WebView2 界面采样，只使用 [RF-312 合成 Vault](RF-312-native-vault-baseline.md)。`native-perf` 是非默认 Windows feature；默认构建的入口、数据目录和路由加载保持原行为。当前尚无成功GUI性能样本，TCP CDP连接仍被拒绝；2026-10-04已取得一次SDK交接后文档绑定诊断；Windows阶段不足以关闭 RF-312：OCR、附件预览、系统睡眠恢复及 macOS/Android 尚未取得同口径数据。
 
 ## 隔离入口
 
@@ -245,3 +245,28 @@ SDK协议请求单列 `sdkProtocolCalls`，不计入Tauri invoke。单次observe
 一次 fresh 100对象诊断exit1，WebView2 154.0.4258.48；SDK回调取得，仍是 `document-ui-root-absent`，新增分类 **root-empty-before-react-mount**：rootExists=true/rootHasChildren=false/reactMountMarked=false/startupScreenPresent=true/startupState=loading。采样时根容器存在，挂载调用点标记未出现，启动层未记录错误；不能扩张为以后正常挂载或“产品初始化失败”的结论。原生elapsed7ms/spawn后2329ms观察proof只作边界计时，document/observer/timeOrigin为空，performanceMetrics=null，完整SDK次数和成功读取后身份验证仍未接纳。
 
 下一步需要明确在真实React内容提交后产生的有界UI就绪诊断边界，保留本次早期观测，不以任意等待/重试冒充性能样本。未改变生产启动代码或全路由加载策略。原runner清理完整，fresh CIM确认9个记录PID和owned应用/WebView进程不存在；原始proof存档后，核对manifest、绝对父路径与reparse边界，仅清理3个本轮owned目录。公开源7文件、旧失败、依赖与stash保持。[本轮完整证据](rf312-windows-ui-root-2026-10-03.json)保存全部检查、格式首败、原生失败和清理。RF-312仍[!]，本项独立提交后转RF-121 Windows辅助功能补证。
+
+
+## 真实 UI 交接后的文档绑定（2026-10-04）
+
+React 的挂载调用点不能代替提交后的内容。复用 `useSessionLifecycle` 已有的账户状态确认与双 `requestAnimationFrame` 交接：`solosoul:startup-dismissed` 后发出固定 `solosoul:startup-handoff` 事件，不改变原交接时长。启动层增加只读 `diagnostic()`，仅返回 schemaVersion 与白名单 phase/state/reason；新增 i18n/platform/capabilities 阶段，不读取 DOM 文本、input、偏好、账户或原始错误。
+
+首版在旧文档绑定后，通过一次 `Runtime.evaluate` 的 Promise 等待真实交接（[`awaitPromise`](https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#method-evaluate)）；原有身份守卫严格拒绝了启动期间的 `source-changed`，exit1。失败结果不含迟到的 UI 状态。结合 BrowserRouter 认证重定向代码与修正轮最终 `/login` 绑定，这支持初始化导航与采样时机竞争的判断；首轮没有保存被拒绝的目的 URL，不能单凭它确定导航目的。
+
+修正后仅在显式 SDK 诊断模式安装一次固定控制脚本：注册交接/错误监听后立即检查，防止交接早于安装；8秒渲染器定时器只报告超时，不宣告成功。固定内部事件携带4个受限字段，不读业务 IPC body；Native 的一次性监听、原20秒总预算和原子门闩避免迟到通知/超时并发开启重复采样。真实交接后才获取主 WebView 并安装原身份守卫，仍恰好调用 `Page.getFrameTree`、`Runtime.evaluate` 各一次。控制通知只决定开始时机；成功仍要求原 source/frame/loader/browser/timeOrigin/observer 条件，以及新 UI 交接条件全部成立。等待开始后再次导航仍拒绝。此控制流不进入默认构建或普通 benchmark；SDK requested/proof 标记仍令 benchmark 拒绝该轮。
+
+`uiReadyDiagnostic` 严格限定9个键，嵌套阶段各3键；Rust 与 Node 均拒绝额外键、未知私有值、缺失标记和提前就绪。一次 evaluate 保留其初始/最终固定结构。最终采样开始于交接之后，所以两端观察均已就绪；先前空根与本轮 source-changed 原始失败单独保留，不能把这些观察拼成一次性能样本。
+
+```powershell
+node scripts/native-perf-sdk-cdp.mjs --exe <new-owned-bin>/solo_soul.exe --fixture <public-fixture>/vault100 --output <new-owned-output>
+node scripts/run-node-tests.mjs
+cargo test --locked -p solo_soul --features native-perf --lib native_perf:: -- --test-threads=1
+```
+
+最终 Node **134 passed / 0 failed / 1既有符号链接权限skip**；原生 **36 passed / 0 failed / 0 ignored**，严格 all-target Clippy、1.99 fmt及定向格式通过。本轮前端 **256文件/2241 Vitest**、TypeScript/ESLint通过；门闩续改未修改这些前端源码。完整默认R **25组/1858 passed/0 failed/3原有ignored**、严格workspace/all-target Clippy通过，PDFium路径仅提供给测试子进程；续改仅在非默认模块内，默认R沿用同轮结果。生产WEB首轮缺Playwright headless shell导致1 passed/25启动失败；按已有配置复用Chrome后26 passed，包括生产交接只发一次的断言。Node24、Rust1.96测试/Clippy/Release与1.99格式版本分别记录，不称未执行的远端CI。
+
+两版非默认Release均exit0；首版总23m38s，修正版总15m11s、Rust14m18s。最终EXE SHA `5d79a67c8a4f502faa9fcfc4ab23d1a60036936beeafdd6a9d27080beb836e5c`；22份关键源码/配置/依赖冻结、94公开资源和运行库逐份核验。每版只进行一次新的合成100对象诊断：首版source-changed保留；修正版runner **exit0**，WebView2 **154.0.4258.53**，当前`/login`主文档、零子frame与原frame/loader/browser/timeOrigin身份检查全部接纳，outcome=handoff、根内容和交接标记均为true，启动阶段accounts/ready/none。
+
+原生elapsed344ms包含交接门闩；spawn后2971ms观察到proof与runner总35.74s均不能当作启动性能。`performanceMetrics=null`，没有GUI性能样本、中位数或尾部指标。两轮公开源均保持、runner清理完整，独立fresh CIM各确认9个记录PID及owned应用/WebView均不存在。RF-312仍[!]：Windows真实UI行程、重复100/5000对象采样、OCR/预览/锁定睡眠恢复及多平台数据待完成；RF-121至127的材质前置不解除。源码、实际失败、全部检查和收尾记录见[本轮结构化证据](rf312-windows-ui-handoff-2026-10-04.json)。
+
+归档目录以独立 `.gitattributes` 保留字节与SHA；CRLF原件另存 `.json.gz`，配套LF JSON视图。首次暂存检查对原CRLF报尾随空白的失败与修正均保留，严格检查规则保持。清理首轮在INetCache junction处停止、未删除数据；确认两个链接仅指向各自owned根内的IE缓存后单独解除链接，重新检查无reparse并清理6个本轮数据/cache根和被替代候选。最新候选保留供后续诊断，公开源、旧轮证据及stash保持。清理首败与修正过程均归档。

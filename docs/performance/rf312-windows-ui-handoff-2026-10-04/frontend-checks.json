@@ -1,0 +1,62 @@
+[
+  {
+    "name": "prettier",
+    "command": [
+      "node",
+      "node_modules/prettier/bin/prettier.cjs",
+      "--check",
+      "src/lib/startupScreen.ts",
+      "src/lib/startupScreen.test.ts",
+      "src/bootstrapApp.tsx",
+      "public/startup.js",
+      "scripts/native-perf-ui-root.node.test.mjs",
+      "scripts/native-perf-sdk-cdp.mjs",
+      "scripts/native-perf-sdk-cdp.test.mjs"
+    ],
+    "exit": 0,
+    "seconds": 0.6329156002029777
+  },
+  {
+    "name": "type-check",
+    "command": [
+      "node",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit"
+    ],
+    "exit": 0,
+    "seconds": 25.059775500558317
+  },
+  {
+    "name": "lint",
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      "src",
+      "--ext",
+      ".ts,.tsx"
+    ],
+    "exit": 0,
+    "seconds": 35.17407209984958
+  },
+  {
+    "name": "node-full",
+    "command": [
+      "node",
+      "scripts/run-node-tests.mjs"
+    ],
+    "exit": 0,
+    "seconds": 24.029086999595165
+  },
+  {
+    "name": "front-full",
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--maxWorkers",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 426.63947559986264
+  }
+]

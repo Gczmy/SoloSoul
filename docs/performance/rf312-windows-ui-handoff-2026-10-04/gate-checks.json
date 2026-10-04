@@ -1,0 +1,88 @@
+[
+  {
+    "name": "gate-node-full",
+    "command": [
+      "node",
+      "scripts/run-node-tests.mjs"
+    ],
+    "exit": 0,
+    "seconds": 13.21462990064174
+  },
+  {
+    "name": "gate-format",
+    "command": [
+      "node",
+      "node_modules/prettier/bin/prettier.cjs",
+      "--check",
+      "scripts/native-perf-ui-gate.node.test.mjs",
+      "scripts/run-node-tests.mjs"
+    ],
+    "exit": 0,
+    "seconds": 0.23457029927521944
+  },
+  {
+    "name": "gate-rust-fmt",
+    "command": [
+      "cargo",
+      "+1.99.0",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 5.758574199862778
+  },
+  {
+    "name": "gate-rust-native-tests",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--lib",
+      "native_perf::",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 0,
+    "seconds": 192.68419570010155
+  },
+  {
+    "name": "gate-rust-native-clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 27.726755099371076
+  },
+  {
+    "name": "gate-release-build",
+    "command": [
+      "node",
+      "node_modules/@tauri-apps/cli/tauri.js",
+      "build",
+      "--config",
+      "src-tauri/tauri.native-perf.conf.json",
+      "--features",
+      "native-perf",
+      "--no-bundle",
+      "--ci"
+    ],
+    "exit": 0,
+    "seconds": 910.9496712004766
+  }
+]

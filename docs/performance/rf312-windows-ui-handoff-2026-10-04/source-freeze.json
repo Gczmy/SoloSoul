@@ -1,0 +1,107 @@
+[
+  {
+    "path": "tauri/src/bootstrapApp.tsx",
+    "bytes": 2443,
+    "sha256": "088ae63f2bc752c73085ac59eca9c238baa512d7aeb4c430f64619b64b3b673c"
+  },
+  {
+    "path": "tauri/src/lib/startupScreen.ts",
+    "bytes": 1806,
+    "sha256": "ff59f8f18ce56acc84bcadf01058b4021d05bd4434e38fbc7fce2f9ac0a32e79"
+  },
+  {
+    "path": "tauri/src/lib/startupScreen.test.ts",
+    "bytes": 2551,
+    "sha256": "e67261a44f27368c6e9b9540a95fc959a229db824a5bf6aed0fea9827b78aa45"
+  },
+  {
+    "path": "tauri/public/startup.js",
+    "bytes": 4457,
+    "sha256": "68d25462a7c45eb0fa841ce6da8547021d53483e359fd0515e3fe1e0a1ce1c6a"
+  },
+  {
+    "path": "tauri/src-tauri/src/native_perf/sdk_cdp.rs",
+    "bytes": 55735,
+    "sha256": "f25eca9393fd7010a9462dbfec97b2524a97727218defb0bfd5f582d24b9a4e8"
+  },
+  {
+    "path": "tauri/scripts/native-perf-sdk-cdp.mjs",
+    "bytes": 22851,
+    "sha256": "cf3831c014ded51e72b3ead0e1d3075d823f30d5ac087fffac308b30fbb4916a"
+  },
+  {
+    "path": "tauri/scripts/native-perf-sdk-cdp.test.mjs",
+    "bytes": 18562,
+    "sha256": "06d62b5bbfd854a76baacd5c65fddd4310399c10cfbd1d4740b3d5ced224133b"
+  },
+  {
+    "path": "tauri/scripts/native-perf-ui-root.node.test.mjs",
+    "bytes": 8974,
+    "sha256": "38354d71fccd71f66db5cf8e8b01f87f0caa1d790ef6d191f1abcd0611bc140c"
+  },
+  {
+    "path": "tauri/e2e/production-startup.spec.ts",
+    "bytes": 2784,
+    "sha256": "c483382accc58d1b3ac4699c3b8b1b1cf63e929ffc4872f8eba51f730cd12ad0"
+  },
+  {
+    "path": "tauri/src-tauri/tauri.native-perf.conf.json",
+    "bytes": 318,
+    "sha256": "d8c99c935b83b62187d61e72258cbc9239ad97a0cf482cde789444814cfa4810"
+  },
+  {
+    "path": "tauri/src-tauri/tauri.conf.json",
+    "bytes": 3270,
+    "sha256": "7d7fc8afcbe54235ca5828e7a8dad32d5547f15237e1bb5cf29d65752980ca3f"
+  },
+  {
+    "path": "tauri/src-tauri/tauri.windows.conf.json",
+    "bytes": 931,
+    "sha256": "f3f617646f1fb25cf1488af2211be9225242b7446e95644de70278853202af3c"
+  },
+  {
+    "path": "tauri/src-tauri/Cargo.toml",
+    "bytes": 4807,
+    "sha256": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e"
+  },
+  {
+    "path": "tauri/src-tauri/build.rs",
+    "bytes": 3139,
+    "sha256": "8fb23072eee178c093586786e0548e61365e57f5a84858e7abe1744a5cce42c6"
+  },
+  {
+    "path": "tauri/Cargo.toml",
+    "bytes": 1918,
+    "sha256": "2b6bb7efb8c19dcf30d412ace48ab59ff81e3834a023e5fa1e6a366bef4d3430"
+  },
+  {
+    "path": "tauri/Cargo.lock",
+    "bytes": 244517,
+    "sha256": "2cc2fd3e220ad7fa968a2140207ebf5367760fb97868c414adc776d62a495d1d"
+  },
+  {
+    "path": "tauri/package.json",
+    "bytes": 3860,
+    "sha256": "8aa8199c397a0b06b1e1882a93a4f26621bf9486f67bef2c122781cff1a98f05"
+  },
+  {
+    "path": "tauri/package-lock.json",
+    "bytes": 228652,
+    "sha256": "ee6d2e5a81745fcf7f4eeb7318d562a4b3edbe711177f25ec44f457ddf791c90"
+  },
+  {
+    "path": "tauri/src-tauri/src/native_perf.rs",
+    "bytes": 27482,
+    "sha256": "e21598f14ce202b8ee9aae61db4ab8cd43502e63fbf90f0d7b26e692273aab0a"
+  },
+  {
+    "path": "tauri/src-tauri/src/native_perf/observer.js",
+    "bytes": 3472,
+    "sha256": "d3e0328a134b64ac389236c9dd5bdb4d7cc5e63bdf03e98e4bee7337e8bca337"
+  },
+  {
+    "path": "tauri/scripts/run-node-tests.mjs",
+    "bytes": 1267,
+    "sha256": "be4a648eb64605f7d5677a41f8560c9e1cc3b3263871461dff4f33079bb64cb5"
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "mode": "sdk-cdp",
+  "performanceSample": false,
+  "pid": 37032,
+  "port": 58193,
+  "root": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\sdk-handoff-01\\sample-001",
+  "runId": "6666fabd07a24c74b9b7a2106182764d",
+  "schemaVersion": 1,
+  "scope": "windows-native-sdk-cdp-requested",
+  "windowLabel": "main"
+}

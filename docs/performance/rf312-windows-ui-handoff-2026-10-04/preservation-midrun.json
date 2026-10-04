@@ -1,0 +1,17 @@
+{
+  "baselineTrackedFiles": 2745,
+  "changed": [
+    "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+    "tauri/e2e/production-startup.spec.ts",
+    "tauri/public/startup.js",
+    "tauri/scripts/native-perf-sdk-cdp.mjs",
+    "tauri/scripts/native-perf-sdk-cdp.test.mjs",
+    "tauri/scripts/native-perf-ui-root.node.test.mjs",
+    "tauri/src-tauri/src/native_perf/sdk_cdp.rs",
+    "tauri/src/bootstrapApp.tsx",
+    "tauri/src/lib/startupScreen.test.ts",
+    "tauri/src/lib/startupScreen.ts"
+  ],
+  "unexpectedChanges": [],
+  "selectedSourceFreezeMatches": true
+}

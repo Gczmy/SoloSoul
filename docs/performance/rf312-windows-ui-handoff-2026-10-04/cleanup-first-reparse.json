@@ -1,0 +1,17 @@
+{
+  "status": "first cleanup stopped before deletion on child reparse boundary",
+  "items": [
+    {
+      "FullName": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\sdk-handoff-01\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "LinkType": "Junction",
+      "Target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\sdk-handoff-01\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "Attributes": 9238
+    },
+    {
+      "FullName": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\sdk-handoff-02\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+      "LinkType": "Junction",
+      "Target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ui-commit-20261004\\sdk-handoff-02\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+      "Attributes": 9238
+    }
+  ]
+}

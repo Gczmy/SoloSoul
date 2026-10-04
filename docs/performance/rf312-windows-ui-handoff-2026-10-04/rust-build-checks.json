@@ -1,0 +1,99 @@
+[
+  {
+    "name": "rust-fmt-1.99",
+    "command": [
+      "cargo",
+      "+1.99.0",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 23.801707100123167,
+    "rustToolchain": "1.99.0"
+  },
+  {
+    "name": "rust-native-tests",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--lib",
+      "native_perf::",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 0,
+    "seconds": 326.93517899978906,
+    "rustToolchain": "1.96.0 default preserved"
+  },
+  {
+    "name": "rust-native-clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "-p",
+      "solo_soul",
+      "--features",
+      "native-perf",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 38.339784999378026,
+    "rustToolchain": "1.96.0 default preserved"
+  },
+  {
+    "name": "rust-default-tests",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "--workspace"
+    ],
+    "exit": 0,
+    "seconds": 918.7857284005731,
+    "rustToolchain": "1.96.0 default preserved"
+  },
+  {
+    "name": "rust-default-clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "--workspace",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit": 0,
+    "seconds": 113.83964349981397,
+    "rustToolchain": "1.96.0 default preserved"
+  },
+  {
+    "name": "release-build",
+    "command": [
+      "node",
+      "node_modules/@tauri-apps/cli/tauri.js",
+      "build",
+      "--config",
+      "src-tauri/tauri.native-perf.conf.json",
+      "--features",
+      "native-perf",
+      "--no-bundle",
+      "--ci"
+    ],
+    "exit": 0,
+    "seconds": 1417.509296500124,
+    "rustToolchain": "1.96.0 default preserved"
+  }
+]
