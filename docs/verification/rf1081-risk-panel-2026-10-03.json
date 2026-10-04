@@ -1,0 +1,476 @@
+{
+  "task": "RF-1081",
+  "status": "complete-actual-linux-risk-regressions-verified",
+  "date": "2026-10-03",
+  "base_commit": "91ec8187cfff77a4c7e77ef65e1138c5d028800b",
+  "remote_failure": {
+    "run_id": 37138522079,
+    "job_id": 111247917358,
+    "viewport": [
+      320,
+      568
+    ],
+    "panel_top": -4.15625,
+    "retries": 2
+  },
+  "fix": "Only panel maxHeight calc(100% - 32px) and vertical overflow auto. Original callbacks, risk copy, checkbox and touch targets unchanged.",
+  "before_regression": {
+    "result": {
+      "args": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/android-touch-targets.spec.ts",
+        "--grep",
+        "Android risk actions remain reachable",
+        "--project=mobile",
+        "--config",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1081-risk-panel-20261003\\playwright.config.mjs"
+      ],
+      "exit": 1,
+      "seconds": 37.29518699925393,
+      "node": "v24.16.0",
+      "browser": "installed Edge; not Linux Chromium CI"
+    },
+    "failed": 2,
+    "panel_top_portrait": -61.65625,
+    "panel_top_landscape": -69.265625
+  },
+  "after_regression": {
+    "result": {
+      "args": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/android-touch-targets.spec.ts",
+        "--grep",
+        "Android risk actions",
+        "--project=mobile",
+        "--project=chromium",
+        "--config",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1081-risk-panel-20261003\\playwright.config.mjs"
+      ],
+      "exit": 0,
+      "seconds": 24.71698149945587,
+      "node": "v24.16.0",
+      "browser": "installed Edge; not Linux Chromium CI"
+    },
+    "passed": 6,
+    "failed": 0,
+    "flaky": 0,
+    "contexts": [
+      "chromium",
+      "mobile"
+    ],
+    "actions": [
+      "cancel",
+      "reopen",
+      "checkbox",
+      "enable-gating",
+      "enable"
+    ]
+  },
+  "frontend_checks": [
+    {
+      "name": "format",
+      "args": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "src/components/llm-config/RiskAcceptanceDialog.tsx",
+        "e2e/android-touch-targets.spec.ts"
+      ],
+      "exit": 0,
+      "seconds": 0.4048824002966285
+    },
+    {
+      "name": "tsc",
+      "args": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "exit": 0,
+      "seconds": 22.310809799470007
+    },
+    {
+      "name": "lint",
+      "args": [
+        "npm.cmd",
+        "run",
+        "lint"
+      ],
+      "exit": 0,
+      "seconds": 38.32938710041344
+    },
+    {
+      "name": "full-frontend",
+      "args": [
+        "npm.cmd",
+        "run",
+        "test"
+      ],
+      "exit": 0,
+      "seconds": 182.47237390000373
+    }
+  ],
+  "full_counts": {
+    "vitest_files": 256,
+    "vitest_passed": 2240,
+    "failed": 0,
+    "node_passed": 123,
+    "original_node_skipped": 1
+  },
+  "original_risk_assertions_identical": true,
+  "first_format_failure_preserved": true,
+  "visual_review": "320px mobile screenshot inspected: complete copy and same-row action labels; not native device evidence.",
+  "source_sha256": {
+    "tauri/src/components/llm-config/RiskAcceptanceDialog.tsx": "7cecb5150ec873fe8dbcad9edcea037f5c2abce42099a39631be692a62224512",
+    "tauri/e2e/android-touch-targets.spec.ts": "3aa8b321a0cdb99790ebbea1a75a76810dca8d7ac255c12bdf313b431afabc02"
+  },
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/baseline.json.gz",
+      "sha256": "4e3481a34ff5e4450d1594468137157767c1087bbdecc4e3cdb3def89f7ff06d",
+      "rawSha256": "fb2ab36b56245e4062413cbf9796e5fcfc386932f14963c25eb90804cf89acd8"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/dialog.before.tsx.gz",
+      "sha256": "aafe50b79e546025116be75967def8681ec69dd8399c9163baba66532210d0c0",
+      "rawSha256": "90cac15c55ae28c251801c9ab8f1afac729ec441727e3e433b90b87b3481d24c"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/regression.before.ts.gz",
+      "sha256": "a29287973baa74f67912e2e17af031fbad008ebd8754b169bcc7ee23a3ae1440",
+      "rawSha256": "c9d5e820eaeb94e61ee0a879c0308551c11ed31a19b300fd535a9b6b86bd7903"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/before.log.gz",
+      "sha256": "e3a0166ee00a23639a31a125661e508a436fc8a0436cc177261f910d32fa5561",
+      "rawSha256": "cb439b138ac255baec6821abc584c0357439d99bf56e4b7a2f0e04d17c9fc5b7"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/before-result.json.gz",
+      "sha256": "9529a9f166f86e9701fa26c089b0a4fe12e493f17b8bfa119cce288686f58a93",
+      "rawSha256": "e22faa916ee98ad324255bbaa4c66efab4daed245f9fa002c37bf3c4869f47f1"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/after.log.gz",
+      "sha256": "0ce956d13eb07739d5ac0c2877446c5040906fffe6d751986b41a89ea0fc0aaa",
+      "rawSha256": "38aa37ca01dd990b292610f0902bedf539bc9754f9f824786f6d73c5c48c61fb"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/after-result.json.gz",
+      "sha256": "87f34f381c6bc791b43f931b113a6fa4e795c211b6b93852b908fc6eb17867c5",
+      "rawSha256": "d609b73d8fe063980d386a89ab558f2b7dda1da5291e943993c780ccd99fb06e"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/checks.json.gz",
+      "sha256": "dea32fd447276119b95e8c2fd642fdb509869b3afa05218a56876b1d9e18c30d",
+      "rawSha256": "37f741e3702af84cf1c68ecfa23321f7f11ef141eb5fd4e77b55099ec8948dbe"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/format-first-failed.log.gz",
+      "sha256": "1d9d6f39cf2fe01124e81a1bdf3b4b6f326e74267b8d2b9d4127d53606302fea",
+      "rawSha256": "4f657d32205e314e842fdcfb994eff135f9341c27e9f0e51ebef1b90cd8d2abd"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/checks-first-failed.json.gz",
+      "sha256": "995837c3e0c0eda3e5e73e586e9694e569e919eface08d08d4ced7d7edc2252d",
+      "rawSha256": "c761f06da25eadc6fce9480dd923f60ed39d3ac39202092385b24eda776ff114"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/format.log.gz",
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/tsc.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/lint.log.gz",
+      "sha256": "aa834ac37a9c357bc906de67d2278f1c2d7079872ad9ba2641fa9baac6177b67",
+      "rawSha256": "9ccdcb4482fdd1a0617291405e83ca63932f2a561161d2b94b9a67d00b6bc7e1"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/full-frontend.log.gz",
+      "sha256": "043f1ae807db715f6bfef68178a32534e62a4e665a34cd57f5ec69194bac0e09",
+      "rawSha256": "0101878229c540fdb25ab9246bff8489bba841b8a97ccdc311319a94dbe2cd3c"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/remote-before-error-context.md.gz",
+      "sha256": "539637bd6ed3d6e886941477a7128660216599df0f7974a9063f2fa607c20753",
+      "rawSha256": "8103e758682a48ac7b6b722c43aacc6bcac7b233705f20e7acd40d6e33fa40bf"
+    },
+    {
+      "path": "docs/verification/rf1081-risk-panel-2026-10-03/risk-320-mobile.png",
+      "sha256": "6b30d5f595c71113a8445b813f4ce09bc4df53e112ba0a3d0ce6019032f0e96f"
+    }
+  ],
+  "limits": [
+    "Local Node24.16.0 / installed Edge; Linux Node22 Chromium rerun required.",
+    "No native Android compositing or global dialog migration claim."
+  ],
+  "scrollbar_followup": {
+    "base_commit": "156264997f6161281c40c06f82c050842f3d10ba",
+    "remote_failure": {
+      "run_id": 37154255151,
+      "job_id": 111294255088,
+      "tested_head": "cfa2cb5107fd9470a78fc6d21fca7dec2b427744",
+      "passed": 307,
+      "failed": 1,
+      "original_skipped": 19,
+      "cancel_y": 459.3125,
+      "enable_y": 515.3125,
+      "attempts": 3
+    },
+    "fix": "Only both action buttons use responsive inline padding clamp(12px, 3.75vw, 20px). Panel scroll/checkbox/48px targets/wrapping fallback remain.",
+    "before_regression": {
+      "result": {
+        "exit": 1,
+        "seconds": 143.38981120008975,
+        "args": [
+          "node",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "e2e/android-touch-targets.spec.ts",
+          "--grep",
+          "Android risk actions",
+          "--project=mobile",
+          "--project=chromium",
+          "--config",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1081-scrollbar-followup-20261003\\playwright.config.mjs"
+        ],
+        "node": "24.16.0",
+        "browser": "installed Edge",
+        "retries": 2,
+        "workers": 1
+      },
+      "passed": 6,
+      "failed": 2,
+      "reserved_content_width": 16,
+      "contexts": [
+        "chromium",
+        "mobile"
+      ]
+    },
+    "after_regression": {
+      "result": {
+        "exit": 0,
+        "seconds": 41.51077590044588,
+        "args": [
+          "node",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "e2e/android-touch-targets.spec.ts",
+          "--grep",
+          "Android risk actions",
+          "--project=mobile",
+          "--project=chromium",
+          "--config",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1081-scrollbar-followup-20261003\\playwright.config.mjs"
+        ],
+        "node": "24.16.0",
+        "browser": "installed Edge",
+        "retries": 2,
+        "workers": 1
+      },
+      "passed": 8,
+      "failed": 0,
+      "flaky": 0,
+      "contexts": [
+        "chromium",
+        "mobile"
+      ]
+    },
+    "frontend_checks": [
+      {
+        "name": "format",
+        "args": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "src/components/llm-config/RiskAcceptanceDialog.tsx",
+          "e2e/android-touch-targets.spec.ts"
+        ],
+        "exit": 0,
+        "seconds": 0.386986899189651
+      },
+      {
+        "name": "tsc",
+        "args": [
+          "node",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit"
+        ],
+        "exit": 0,
+        "seconds": 26.830193299800158
+      },
+      {
+        "name": "lint",
+        "args": [
+          "npm.cmd",
+          "run",
+          "lint"
+        ],
+        "exit": 0,
+        "seconds": 34.53673790022731
+      },
+      {
+        "name": "full-frontend",
+        "args": [
+          "npm.cmd",
+          "run",
+          "test"
+        ],
+        "exit": 0,
+        "seconds": 191.5790577000007
+      }
+    ],
+    "full_counts": {
+      "vitest_files": 256,
+      "vitest_passed": 2240,
+      "node_passed": 123,
+      "failed": 0,
+      "original_node_skipped": 1
+    },
+    "mobile_inventory": 328,
+    "original_test_bodies_identical": true,
+    "source_sha256": {
+      "tauri/src/components/llm-config/RiskAcceptanceDialog.tsx": "4e64185f9b3b95b1434d883fb9abd641600c5d41ae8a797e69f4abdd894a02c5",
+      "tauri/e2e/android-touch-targets.spec.ts": "16cce5ec003409f206c596552ace1c39f43161a79001458f01c19f7903e5778f"
+    },
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/baseline.json.gz",
+        "sha256": "b7fe7552f33ff390f1f0f096aee45b5cf038dc26787f72af1496f50acbd06487",
+        "rawSha256": "468a4fae940a8700a05dd9ac9d9a954e536db355803a817ec9827e6ffd32d4ac"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/source-before.json.gz",
+        "sha256": "1e245afdcca955fefc62c5cc3ab7172ce2d7d3a3233a7f6e53ec30844a742209",
+        "rawSha256": "e64feb58fba63be90daec599bb0cdf9b5ce48fc4c7206f02271de312b8382e93"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/checks.json.gz",
+        "sha256": "8ff9d29ea21c492b6f4ee5a4cccd21450c81f65ba9320bad629ff423b7f44271",
+        "rawSha256": "2eb82e92a47963e5afc6597dd6d22725257922572c5a7d1e47ac5c07cc5ec459"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/web-before.log.gz",
+        "sha256": "73a3dc91a96c186dfbfef201df628d898e1e5fbeebe5151dd9d96b48bc018091",
+        "rawSha256": "f9cc9362b949231d51b1007f41996e017a8580d714a6e77f33d7e1121a55dd66"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/web-before-result.json.gz",
+        "sha256": "2c21078f9cad87ece33878f406ced5dfd3a6cd6f863e7e43a754f556358d195f",
+        "rawSha256": "f0bf65018231f26b613f72741f7cc8b2d06c809f5bc457de00019bfda4c6e2e2"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/web-before-owned-process.json.gz",
+        "sha256": "a22db454eaad8231f76eced9bed3f0b9273cc5519f7d36f37377f9761da0e055",
+        "rawSha256": "1b026fc55d68fe012fd8598a3fb57922fc86362d7fe27aef29a9789fa795c5ac"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/web.log.gz",
+        "sha256": "aa6bcce8c4a5efbf763900eff33a4d4618d5abc29e3f0fb9c32806a1036e4f09",
+        "rawSha256": "a15e6af8a9a5d3dba8c12a714e6c46d5f0c730571b30d1ee1524734a331e5cc9"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/web-result.json.gz",
+        "sha256": "d12d0ad99b147ad616e82879b515d831d58b4859bbe73c0d5078a81b2edddabe",
+        "rawSha256": "fa3f31747f3fbf9ce8a35786caf908379d5ec84df2c79374812ec13aad0fdc4d"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/web-owned-process.json.gz",
+        "sha256": "3e5c72b4dbf9661e6e15d01c4cbec4b33f60b9bbd9d49b7aa91d72cf8db47a38",
+        "rawSha256": "2c3daacd8ddb56a51dc5b53bbda7a1ccfc75935ac1ef32f161f7fe393e3e01f6"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/format.log.gz",
+        "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+        "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/tsc.log.gz",
+        "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+        "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/lint.log.gz",
+        "sha256": "aa834ac37a9c357bc906de67d2278f1c2d7079872ad9ba2641fa9baac6177b67",
+        "rawSha256": "9ccdcb4482fdd1a0617291405e83ca63932f2a561161d2b94b9a67d00b6bc7e1"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/full-frontend.log.gz",
+        "sha256": "f2d1f48ebee84f267414847c9525a685615be91ef72a666e2f89a0519fb1c708",
+        "rawSha256": "5d78077d9f87aec6b7c9028ecd58325055d95b4ce61746ce6cdda5f58b98e953"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/playwright.config.mjs.gz",
+        "sha256": "b199c01af80afcde3f0302ec5fb032666cfdafb74f7559d5c33d0c8a75206d36",
+        "rawSha256": "11036178989b5ea168cb6d64453e92bc3f79270efcb065917fe338ac99c3d324"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/mobile-inventory.json.gz",
+        "sha256": "50f1225ace43f05cfb7b00ee0fa82f11a7cb2be6d8d128bbb21b219d930c5a9b",
+        "rawSha256": "3e2463cc2a0167a848ddba514214027a601361ba06ed57d8e9eb65592057905a"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/linux-mobile-before.log.gz",
+        "sha256": "9e791aa9def1dad6e985170d121f7fb44d0bb912752db1b8bd480257046ef11e",
+        "rawSha256": "9013346693463e431a0b07c6d310fe7e693e712bbf481d9a829707c8869d8d24"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/scrollbar-followup/linux-risk-before-context.md.gz",
+        "sha256": "8cb64cd53802b3810c99bb21b7c9db230d924ac9fef306a2c9e56511da619333",
+        "rawSha256": "fedaa5cfacfd88108aab2647afcb5ff764b4ea990b12bae660ec31584ce3e71f"
+      }
+    ],
+    "limits": [
+      "Reserved gutter is a browser layout regression, not native Android/device/system setting evidence.",
+      "Local Node24.16/installed Edge does not replace Linux Node22/Chromium PR rerun."
+    ]
+  },
+  "pr_acceptance": {
+    "run_id": 37157849547,
+    "job_id": 111304900208,
+    "tested_head": "c7b752978bf9342109705d1ed386fe44f75cb3c2",
+    "risk_first_attempt_passed": 4,
+    "whole_mobile": {
+      "passed": 308,
+      "flaky": 1,
+      "failed": 0,
+      "original_skipped": 19,
+      "inventory": 328
+    },
+    "unrelated_flaky": "sidebar-tools right expanded hover hit test; preserve and handle separately",
+    "artifacts": [
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/pr-acceptance/remote-acceptance.json.gz",
+        "sha256": "3574e6e7c518f324827c43d76918f1ec8e1133eafa188f9060616a32c5729aaa",
+        "rawSha256": "4f6fe5bd4b94e677cda8f96dc5d6dbc111d93aef3e225b788373fe4f720867a6"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/pr-acceptance/baseline.json.gz",
+        "sha256": "50c24ad9825f5d1124239531f670158f43926da53f3b443572822e91ee7b35cf",
+        "rawSha256": "35e14a14b5c64e2aad561a82dca9a55f06d0ad1c3c5ec69a6333c460bb6e929e"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/pr-acceptance/mobile.log.gz",
+        "sha256": "ef2a0b7604ec69c238699156f74b32fc95e78d36ff47c6ffea99857eada2d7bd",
+        "rawSha256": "e2b2c6007ddc0256f8d6acaba89af00c5397adb82c6302690742242fc02071aa"
+      },
+      {
+        "path": "docs/verification/rf1081-risk-panel-2026-10-03/pr-acceptance/frontend.log.gz",
+        "sha256": "9fac9a38853401d8dba738c233eb2f762007d262d5c816d2d0bad69887dbfae2",
+        "rawSha256": "ed225373ad5495fc6afbd0753609e6dff28dbc60669bbe0f97aab0404bbdc436"
+      }
+    ],
+    "limits": [
+      "No native Android material/graphics evidence claim."
+    ]
+  }
+}

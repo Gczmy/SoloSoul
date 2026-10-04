@@ -148,7 +148,10 @@ export function TopFunctionBar({
   // the header triggers collapse.
   const handleMouseLeave = useCallback(
     (e: MouseEvent) => {
-      if (hoverZoneRef.current && !hoverZoneRef.current.contains(e.relatedTarget as Node)) {
+      if (
+        hoverZoneRef.current &&
+        !(e.relatedTarget instanceof Node && hoverZoneRef.current.contains(e.relatedTarget))
+      ) {
         if (!isAnyCardOpen) setHovering(false);
       }
     },

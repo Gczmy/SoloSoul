@@ -1,0 +1,89 @@
+{
+  "task": "RF-1074",
+  "status": "complete",
+  "date": "2026-10-03",
+  "base_commit": "712227db00c62605772424394980288aacfa16e6",
+  "failure": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37134827271",
+    "job_id": 111237127795,
+    "step": "Run CLI Tests",
+    "exit": 101,
+    "unit_passed": 327,
+    "unit_failed": 1,
+    "failed_test": "commands::ocr::rf215_pdf_tests::rf215_cancel_real_multipage_pdf_keeps_pages_until_worker_join_then_cleans",
+    "reason": "real PDF pipeline did not reach recognition; PDFIUM_LIBRARY_PATH is required"
+  },
+  "fix": "Reuse platform downloader in tauri directory; verify library nonempty; export absolute path via job GITHUB_ENV; preserve actual CLI tests in solosoul_cli directory. Both existing Linux CLI jobs updated. No tests skipped or DLL committed.",
+  "static_checks": [
+    {
+      "workflow": "ci_cd.yml",
+      "yaml_parse": "locked Prettier passed",
+      "bash_syntax_exit": 0,
+      "cli_workdir": "solosoul_cli",
+      "prep_workdir": "tauri",
+      "order": "prep before actual tests",
+      "remote_result": "pending"
+    },
+    {
+      "workflow": "pr_check.yml",
+      "yaml_parse": "locked Prettier passed",
+      "bash_syntax_exit": 0,
+      "cli_workdir": "solosoul_cli",
+      "prep_workdir": "tauri",
+      "order": "prep before actual tests",
+      "remote_result": "pending"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1074-cli-pdfium-2026-10-03/baseline.json.gz",
+      "sha256": "c6823fc4cf3f5abdf6f0e665d9ba125cf857ab574030f5ac7be8c827a98f58c9",
+      "rawSha256": "b479ff54c05c1f204c21bf28a2f1f405a654532d4bdf979c0ae493b7a17b1727"
+    },
+    {
+      "path": "docs/verification/rf1074-cli-pdfium-2026-10-03/ci_cd.yml.sh.gz",
+      "sha256": "adf83cc452b93a628efec2ddb8bca21fb52360ca7697f43f881c46bf19678ebf",
+      "rawSha256": "177d59bc7581c6988f4925370fbf41fee3f9865f807d4e09b1ceb6a9238bbe13"
+    },
+    {
+      "path": "docs/verification/rf1074-cli-pdfium-2026-10-03/pr_check.yml.sh.gz",
+      "sha256": "adf83cc452b93a628efec2ddb8bca21fb52360ca7697f43f881c46bf19678ebf",
+      "rawSha256": "177d59bc7581c6988f4925370fbf41fee3f9865f807d4e09b1ceb6a9238bbe13"
+    },
+    {
+      "path": "docs/verification/rf1074-cli-pdfium-2026-10-03/static-checks.json.gz",
+      "sha256": "17a92fc22a4d058ea6e1543754411a7cb0bbfa00855dd37620865421a0e9e6f6",
+      "rawSha256": "df1bb8176a7051e75db43866ab3d03fee29401a610b569916f8e6b2a46efbc11"
+    },
+    {
+      "path": "docs/verification/rf1074-cli-pdfium-2026-10-03/job-111237127795.log.gz",
+      "sha256": "0f74b11c9f958a535f1fee5f04b4f57461b2b266aeb425dc01463eb70bd5f144",
+      "rawSha256": "5acda0fc7397b53f3e791436188e653b6ffc6353914c256fca7bacfb613dd514"
+    },
+    {
+      "path": "docs/verification/rf1074-cli-pdfium-2026-10-03/accepted-remote-cli.log.gz",
+      "sha256": "8619ed6d051d8c1d3c4da0e189514b3855af79025938f163db306400eecd7969",
+      "rawSha256": "9be971630f08c6befeabfb8e1ab3786503e74b392e3b1c1f44bf544a9315d4b7"
+    },
+    {
+      "path": "docs/verification/rf1074-cli-pdfium-2026-10-03/accepted-remote-cli.json.gz",
+      "sha256": "af0a7548f47d7a278f74109bde4990ab04243a584b8e5d4e2eb2291099c754b4",
+      "rawSha256": "fdcaf54f984c9d897bb3ed15d4614f7b159ad8ae0b0d02178fc7ac89d52cd3e5"
+    }
+  ],
+  "new_remote_result": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37138522079",
+    "head_sha": "6723063e4b0bbcaa4031ba36f2e13a1052d03250",
+    "job_id": 111247917178,
+    "conclusion": "success",
+    "test_counts": {
+      "groups": 5,
+      "passed": 335,
+      "failed": 0,
+      "ignored": 2
+    },
+    "failed_pdf_regression": "actually passed",
+    "pr_workflow_run": "not performed; same prep code statically checked in pr_check.yml",
+    "whole_ci": "not claimed; Linux failed and Windows still running"
+  }
+}

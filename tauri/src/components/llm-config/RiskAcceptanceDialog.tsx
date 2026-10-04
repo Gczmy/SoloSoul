@@ -37,6 +37,8 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
           padding: '28px clamp(16px, 5vw, 32px)',
           maxWidth: 400,
           width: '90%',
+          maxHeight: 'calc(100% - 32px)',
+          overflowY: 'auto',
           boxShadow: 'var(--shadow-lg)',
           border: '1px solid var(--border-subtle)',
         }}
@@ -92,10 +94,18 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
           {t('settings:ai_risk_agree')}
         </label>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' }}>
-          <Button variant="secondary" onClick={onClose} style={{ flexShrink: 0 }}>
+          <Button
+            variant="secondary"
+            onClick={onClose}
+            style={{ flexShrink: 0, paddingInline: 'clamp(12px, 3.75vw, 20px)' }}
+          >
             {t('common:cancel')}
           </Button>
-          <Button onClick={onAccept} disabled={!riskChecked} style={{ flexShrink: 0 }}>
+          <Button
+            onClick={onAccept}
+            disabled={!riskChecked}
+            style={{ flexShrink: 0, paddingInline: 'clamp(12px, 3.75vw, 20px)' }}
+          >
             {t('settings:ai_enable')}
           </Button>
         </div>

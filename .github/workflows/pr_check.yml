@@ -60,32 +60,13 @@ jobs:
       run:
         working-directory: tauri
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Shared frontend validation
+        uses: ./.github/actions/check-frontend
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: tauri/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check
-        run: npx tsc --noEmit
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Unit tests
-        run: npm run test
-
-      - name: Install production smoke browser
-        run: npx playwright install --with-deps chromium
-
-      - name: Production startup smoke test
-        run: npm run test:e2e:production
+          node_version: ${{ env.NODE_VERSION }}
 
   rust-check:
     name: Rust Format, Clippy & Tests
@@ -105,6 +86,39 @@ jobs:
         with:
           workspaces: tauri/src-tauri
 
+      # iOS/macOS的资源声明也在cargo check阶段验证；沿用真实构建和staging。
+      - name: Setup Node for Apple check resources
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Apple frontend build dependencies
+        working-directory: tauri
+        run: npm ci
+
+      - name: Build frontend assets for Apple checks
+        working-directory: tauri
+        run: npm run build
+
+      # 仅Rust检查/单测的资源布局，无真实OCR模型，不能用于Release。
+      - name: Prepare unit-test OCR resource layout
+        working-directory: tauri
+        run: |
+          fixture_directory='src-tauri/resources/models/pp-ocr-v6-small'
+          if [[ -e "$fixture_directory" || -L "$fixture_directory" ]]; then
+            echo 'Expected a fresh unit-test resource directory; refusing to overwrite real models' >&2
+            exit 1
+          fi
+          mkdir -p -- "$fixture_directory"
+          printf '%s\n' 'CI unit-test resource layout only. No OCR model. Never package this fixture.' > "$fixture_directory/UNIT_TEST_FIXTURE.txt"
+
+      - name: Prepare PDFium for Rust tests
+        working-directory: tauri
+        run: |
+          bash scripts/download-pdfium.sh
+          test -s src-tauri/resources/pdfium/libpdfium.dylib
+          echo "PDFIUM_LIBRARY_PATH=$PWD/src-tauri/resources/pdfium/libpdfium.dylib" >> "$GITHUB_ENV"
+
       - name: Setup Rust targets
         run: |
           rustup target add aarch64-apple-ios aarch64-apple-ios-sim
@@ -112,7 +126,61 @@ jobs:
       - name: Cargo check (iOS targets)
         run: |
           cd tauri
-          cargo check --target aarch64-apple-ios --target aarch64-apple-ios-sim
+          # 两目标插件构建会改同一Swift依赖目录，按目标顺序编译。
+          cargo check --target aarch64-apple-ios
+          cargo check --target aarch64-apple-ios-sim
+
+      # tauri-build优先读取通用声明；这里只同步Mac已启用feature，不改依赖图。
+      - name: Align macOS check manifest with platform features
+        working-directory: tauri
+        run: |
+          python3 - <<'PY'
+          import copy
+          import json
+          import platform
+          import re
+          import sys
+          import tomllib
+          from pathlib import Path
+
+          if platform.system() != "Darwin":
+              raise SystemExit("macOS check manifest preparation requires Darwin")
+
+          path = Path("src-tauri/Cargo.toml")
+          config = json.loads(Path("src-tauri/tauri.macos.conf.json").read_text())
+          if config.get("app", {}).get("macOSPrivateApi") is not True:
+              raise SystemExit("Expected existing macOS private API configuration")
+
+          source = path.read_text()
+          manifest = tomllib.loads(source)
+          common = manifest["dependencies"]["tauri"]
+          mac = manifest["target"]['cfg(target_os = "macos")']["dependencies"]["tauri"]
+          if common.get("version") != mac.get("version") or "macos-private-api" not in mac.get("features", []):
+              raise SystemExit("Expected matching existing macOS tauri dependency")
+
+          features = common.get("features", [])
+          updated = list(dict.fromkeys([*features, "macos-private-api"]))
+          if set(features) | set(mac["features"]) != set(updated) | set(mac["features"]):
+              raise SystemExit("Preparation must preserve enabled macOS feature set")
+
+          section = re.search(r"(?ms)^\[dependencies\]\n(.*?)(?=^\[|\Z)", source)
+          if section is None:
+              raise SystemExit("Expected general dependency section")
+          match = re.search(r"(?m)^tauri = \{[^\n]*features = (\[[^\n]*?\])[^\n]*\}$", section[1])
+          if match is None:
+              raise SystemExit("Expected existing inline tauri feature declaration")
+          start = section.start(1) + match.start(1)
+          end = section.start(1) + match.end(1)
+          prepared = source[:start] + json.dumps(updated) + source[end:]
+          expected = copy.deepcopy(manifest)
+          expected["dependencies"]["tauri"]["features"] = updated
+          if tomllib.loads(prepared) != expected:
+              raise SystemExit("Unexpected manifest change outside feature declaration")
+
+          if prepared != source:
+              path.write_text(prepared)
+          print(f"Python {sys.version.split()[0]}: macOS check declaration aligned; enabled features unchanged")
+          PY
 
       - name: Check formatting
         run: |
@@ -130,13 +198,6 @@ jobs:
         run: |
           cd tauri
           cargo check -p solosoul-core --features future-keychain
-
-      - name: Prepare PDFium for Rust tests
-        working-directory: tauri
-        run: |
-          bash scripts/download-pdfium.sh
-          test -s src-tauri/resources/pdfium/libpdfium.dylib
-          echo "PDFIUM_LIBRARY_PATH=$PWD/src-tauri/resources/pdfium/libpdfium.dylib" >> "$GITHUB_ENV"
 
       - name: Run Rust Tests
         run: |
@@ -191,23 +252,10 @@ jobs:
       run:
         working-directory: solosoul_cli
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Shared cli validation
+        uses: ./.github/actions/check-cli
         with:
-          toolchain: ${{ env.RUST_VERSION }}
-
-      - name: Cache cargo (solosoul_cli)
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: solosoul_cli
-
-      - name: Check formatting
-        run: cargo fmt --check
-
-      - name: Run Clippy
-        run: cargo clippy --all-targets -- -D warnings
-
-      - name: Run CLI Tests
-        run: cargo test --verbose --no-fail-fast
+          rust_version: ${{ env.RUST_VERSION }}

@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { login } from './fixtures/auth';
 
+// 桌面侧栏和鼠标场景显式使用桌面环境；各用例仍可自行测试窄视口。
+test.use({ viewport: { width: 1280, height: 720 }, isMobile: false, hasTouch: false });
+
 test.beforeEach(async ({ page }, testInfo) => {
   await page.addInitScript({
     content:
@@ -294,4 +297,24 @@ test('尺标触控板小幅输入累计为完整刻度，缩放后也保持整�
     path: 'test-results/object-ruler-whole-ticks.png',
     animations: 'disabled',
   });
+});
+
+test('RF1088 尺标焦点切换保持预览，离开窗口安全收起', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const ticks = page
+    .getByRole('navigation', { name: 'Object ruler' })
+    .locator('[data-ruler-index]');
+  const preview = page.getByRole('region', { name: 'Object preview' });
+  await ticks.nth(2).focus();
+  await expect(preview).toContainText('Object 03');
+  await ticks.nth(3).focus();
+  await expect(preview).toBeVisible();
+  await expect(preview).toContainText('Object 04');
+  expect(await preview.innerHTML()).not.toContain('SECRET-');
+  await ticks.nth(3).evaluate((element) => {
+    element.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: window }));
+  });
+  await expect(preview).toHaveCount(0);
+  expect(errors).toEqual([]);
 });

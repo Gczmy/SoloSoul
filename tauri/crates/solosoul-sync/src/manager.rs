@@ -509,7 +509,7 @@ impl SyncManager {
         let mut out = Vec::new();
         let now = Instant::now();
         let map = self.discovered.lock().map_err(|e| e.to_string())?;
-        for (_, p) in map.iter() {
+        for p in map.values() {
             if now.duration_since(p.last_seen).as_secs() > PEER_MAX_AGE_SECS {
                 continue;
             }

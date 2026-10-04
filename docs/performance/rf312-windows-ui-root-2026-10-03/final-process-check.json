@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-10-03T15:15:11.8802651Z",
+  "method": "fresh CIM; all recorded PID and exact owned app/browser profiles",
+  "recordedPids": [
+    34476,
+    30100,
+    35896,
+    42600,
+    27788,
+    38236,
+    41108,
+    41656,
+    8876
+  ],
+  "matchingProcessCount": 0,
+  "matchingProcesses": []
+}

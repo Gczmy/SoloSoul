@@ -1,0 +1,25 @@
+[
+  {
+    "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001",
+    "resolved": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001",
+    "verified_parent": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01",
+    "status": "removed",
+    "unlinked_reparse_entries_without_following": [
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-root-state-20261003\\sdk-root-state-01\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5"
+    ]
+  },
+  {
+    "path": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.317544faeba44f37b5d1388cbbf4793e",
+    "resolved": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.317544faeba44f37b5d1388cbbf4793e",
+    "verified_parent": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming",
+    "status": "removed",
+    "unlinked_reparse_entries_without_following": []
+  },
+  {
+    "path": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.317544faeba44f37b5d1388cbbf4793e",
+    "resolved": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.317544faeba44f37b5d1388cbbf4793e",
+    "verified_parent": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local",
+    "status": "removed",
+    "unlinked_reparse_entries_without_following": []
+  }
+]

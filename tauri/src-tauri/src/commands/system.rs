@@ -486,9 +486,11 @@ mod tests {
         // Sync command — no await needed
         if let Ok(l) = &locale {
             assert!(!l.is_empty());
+            // sys-locale 在 Unix 可返回 C/POSIX 或仅语言标识，不能强制地区分隔符。
             assert!(
-                l.contains('-') || l.contains('_'),
-                "expected locale like en-US or en_US, got: {}",
+                l.chars()
+                    .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_'),
+                "locale should contain only identifier characters, got: {}",
                 l
             );
         }

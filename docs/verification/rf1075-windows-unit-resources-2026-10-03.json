@@ -1,0 +1,107 @@
+{
+  "task": "RF-1075",
+  "status": "completed",
+  "date": "2026-10-03",
+  "base_commit": "1ce2ddac425b01e958b030539372169272803b95",
+  "failure": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37134827271",
+    "job_id": 111237127731,
+    "core": {
+      "groups": 6,
+      "passed": 764,
+      "failed": 0,
+      "ignored": 1
+    },
+    "host_tests_run": 0,
+    "host_exit": 101,
+    "reason": "Tauri Windows resource path resources/models/pp-ocr-v6-small absent in fresh checkout",
+    "logs_artifact_id": 11279350530
+  },
+  "fix": "Only Windows unit job creates explicit text marker in fresh ignored resource directory; existing directory refuses overwrite. Production config, manifest, tests and Release jobs unchanged. Fixture contains no OCR model and cannot be packaged.",
+  "checks": {
+    "yaml_parse": "locked Prettier passed",
+    "fresh_layout_exit": 0,
+    "existing_layout_exit": 1,
+    "existing_marker_unchanged": true,
+    "release_jobs_unchanged": true,
+    "first_ci_core_counts": {
+      "groups": 6,
+      "passed": 764,
+      "failed": 0,
+      "ignored": 1
+    },
+    "first_host_tests_run": 0,
+    "remote_corrected_host": "passed"
+  },
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/baseline.json.gz",
+      "sha256": "dab1ffe90635eea2c10f9dbe9d701b186f0db3937d30d3299a3ddaab2880e97c",
+      "rawSha256": "ee3e98e8fbde99c73b4a19b77b2e2f4887e9c0c7cf8625ed62b37f6debf6fc8a"
+    },
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/unit-layout.ps1.gz",
+      "sha256": "48edc9daa58990bf76ae0ccd4c3c09a9a5ffcf4d4480b21572e7b6a797f67c62",
+      "rawSha256": "abee358c90b4954c74706e7a74790caa330c420af62724ebfb464cc393e4ca85"
+    },
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/checks.json.gz",
+      "sha256": "3c20fca64fb46646dd76497c1cc63e5c9b1575db36588f25aad83b0b0d2a1962",
+      "rawSha256": "9886b783d8ca0b12c9f0eec8223a8f9c44da916b55d18ba8783a70f9176bf64f"
+    },
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/fresh-run.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/existing-run.log.gz",
+      "sha256": "0c6c0a4f76c884c407955fecbd05e0d0f6d9f99a3260f5179c384d986d424fe8",
+      "rawSha256": "ba0549b11be4f6a6d19d20c18d179a91a6930c196112ad11e6601ec2ee1b729a"
+    },
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/job-111237127731.log.gz",
+      "sha256": "f9f34552261bba49a0ff31534312e5597e04495b96c61cc12965a01f75ec4e4a",
+      "rawSha256": "054123390e7e8ca3f7c12376e9d1f711db9b7dbe5d7bd4c28cf4481a71449226"
+    },
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/windows-rust-test-logs.zip",
+      "sha256": "fc48abdc8ebdea2d63598e94a65ddc9ad39f30d59adc9cd4825f051ed3d97d20",
+      "githubDigest": "sha256:fc48abdc8ebdea2d63598e94a65ddc9ad39f30d59adc9cd4825f051ed3d97d20",
+      "members": [
+        "core.log",
+        "host.log"
+      ]
+    },
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/job-111264960054.log.gz",
+      "sha256": "0237d26751161a32471e728febfac4a331c773e27e5867a0df4b7078693ab0de",
+      "rawSha256": "41c69ea826400663cb5319bb558a45f47c9f959a1aa909f6e37b33cad5107a7c"
+    },
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/remote-acceptance.json.gz",
+      "sha256": "2118bb88f43665eb4a86c0ccca9bd3027df89f7b11a9956787c0d15c6defd093",
+      "rawSha256": "b17422bc622aee0c2346b858aabe77f0c38608ebe5500a595a4e99e22060d40c"
+    }
+  ],
+  "remote_acceptance": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37144291766",
+    "job_id": 111264960054,
+    "tested_sha": "fbcbe83387810357cc9018b9b670145deda901bb",
+    "rust": "1.99.0",
+    "conclusion": "success",
+    "core": {
+      "groups": 6,
+      "passed": 764,
+      "failed": 0,
+      "ignored": 1
+    },
+    "host": {
+      "groups": 7,
+      "passed": 788,
+      "failed": 0,
+      "ignored": 0
+    },
+    "scope": "unit-test resource layout; not real OCR inference or Release acceptance"
+  }
+}

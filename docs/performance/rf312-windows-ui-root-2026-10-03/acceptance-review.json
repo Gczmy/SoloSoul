@@ -1,0 +1,16 @@
+{
+  "original_document_acceptance_and_predicate_order_unchanged": true,
+  "original_load_setup_one_shot_gate_unchanged": true,
+  "original_health_guard_dispatch_and_two_call_budget_unchanged": true,
+  "original_source_and_frame_validation_unchanged": true,
+  "read_only_expression_only_adds_fixed_boolean_and_enum_fields": true,
+  "successful_proof_keeps_original_shape": true,
+  "other_rejection_proofs_keep_original_shape": true,
+  "root_probe_only_after_original_document_binding_preconditions_pass": true,
+  "root_probe_types_extra_keys_and_inconsistent_values_rejected": true,
+  "no_DOM_text_input_values_account_data_or_raw_private_values_read_or_saved": true,
+  "node_tests": 101,
+  "resources": 94,
+  "resource_bytes": 41090280,
+  "react_mount_marker_boundary": "mark occurs immediately before createRoot/render call; does not prove render call success or DOM commit."
+}

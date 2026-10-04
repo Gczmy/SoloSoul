@@ -1,0 +1,1877 @@
+{
+  "task": "RF-311",
+  "status": "completed",
+  "baseline": "cfa2cb5107fd9470a78fc6d21fca7dec2b427744",
+  "source_sha256": {
+    ".github/actions/check-frontend/action.yml": "0ba4022a666dfc5c8ca03f7ef7096ca3d24ab54fb1181bd3961a1d65dcfa477a",
+    ".github/actions/check-cli/action.yml": "db16a9277e552bc33ded97027494134367caf692576cc04e5f93aebee7203cbe",
+    ".github/workflows/ci_cd.yml": "126ea361a244467e27dca37e909c3c495bbc2819a01ca4573c5e2583b1b7739b",
+    ".github/workflows/pr_check.yml": "59f58d0c75c32a361ff5e120397a77a49dbaea121d812a2843278fd59d9b8428"
+  },
+  "checks": [
+    {
+      "name": "yaml-format",
+      "args": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "--single-quote",
+        "../.github/actions/check-frontend/action.yml",
+        "../.github/actions/check-cli/action.yml",
+        "../.github/workflows/ci_cd.yml",
+        "../.github/workflows/pr_check.yml"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "actionlint",
+      "args": [
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf311-share-ci-20261003\\actionlint.exe",
+        "-color",
+        ".github/workflows/ci_cd.yml",
+        ".github/workflows/pr_check.yml",
+        ".github/workflows/build-android.yml"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "markdown-boundary",
+      "args": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "diff-check",
+      "args": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.safecrlf=false",
+        "-c",
+        "core.quotepath=false",
+        "diff",
+        "--check"
+      ],
+      "exit": 0
+    }
+  ],
+  "job_map": [
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "contract-check",
+      "before_name": "Incremental IPC Contract Check",
+      "after_name_expression": "${{ github.event_name == 'pull_request' && 'Incremental IPC Contract Check (delegated to PR Checks)' || 'Incremental IPC Contract Check' }}",
+      "pr_execution": "delegated once to original PR Checks job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": false,
+      "before_block_sha256": "df73d664d599109ef7b6e0af2b42184b171345260e50fe3e62774b156b33dc3d",
+      "after_block_sha256": "2b2190528c6e8f2c17005cc691db97dc0e5e80f38babbb5735cbcc6dfb244172"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "frontend-check",
+      "before_name": "Frontend Checks",
+      "after_name_expression": "${{ github.event_name == 'pull_request' && 'Frontend Checks (delegated to PR Checks)' || 'Frontend Checks' }}",
+      "pr_execution": "delegated once to original PR Checks job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": false,
+      "before_block_sha256": "a46e89ba8adb3b1daf35305749fee7b02ccd8a5cedeb48a095f728cff4c39a09",
+      "after_block_sha256": "bcbd0376b94e3f4f0f079fd5b7a2cc78f38a325887cca37d6c687e14f0194f14"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "rust-test",
+      "before_name": "Rust Unit Tests",
+      "after_name_expression": "Rust Unit Tests",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "7f0ad229c227bba085ebec1834c2bef57caa44b94fc494619944d09d659e7ea8",
+      "after_block_sha256": "7f0ad229c227bba085ebec1834c2bef57caa44b94fc494619944d09d659e7ea8"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "windows-rust-test",
+      "before_name": "Windows Rust Regression Tests",
+      "after_name_expression": "Windows Rust Regression Tests",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "windows-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "4974b547410acae5adc978cfa68519bc2b50279c9425d3b98aa7580c16f461f2",
+      "after_block_sha256": "4974b547410acae5adc978cfa68519bc2b50279c9425d3b98aa7580c16f461f2"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "plugin-market-check",
+      "before_name": "Plugin Market Registry Check",
+      "after_name_expression": "${{ github.event_name == 'pull_request' && 'Plugin Market Registry Check (delegated to PR Checks)' || 'Plugin Market Registry Check' }}",
+      "pr_execution": "delegated once to original PR Checks job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": false,
+      "before_block_sha256": "95f844e2f26ae95d375d936819bc63e32196c7c6397902a079bd75a4781e87cf",
+      "after_block_sha256": "c576a914b9ae199b937b637b3023eec33b677067b15f4aeae70a5f3461555cf0"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "cli-check",
+      "before_name": "SoloSoul CLI (Rust Format, Clippy & Tests)",
+      "after_name_expression": "${{ github.event_name == 'pull_request' && 'SoloSoul CLI (Rust Format, Clippy & Tests) (delegated to PR Checks)' || 'SoloSoul CLI (Rust Format, Clippy & Tests)' }}",
+      "pr_execution": "delegated once to original PR Checks job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": false,
+      "before_block_sha256": "7ca5ec1b50553445253c59d0abaabead5ab03ad2ba7dcd09c6e462b843eb842b",
+      "after_block_sha256": "cb0836a4681a4ead98d1dd6f2ed255af57a593edad131cc5068a69b2e467cd4d"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "build-macos",
+      "before_name": "Build macOS Release",
+      "after_name_expression": "Build macOS Release",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "macos-latest"
+      ],
+      "needs": [
+        "[contract-check]"
+      ],
+      "identical_job_block": true,
+      "before_block_sha256": "2f2c514b82d307bf2b950c22a6d79645a612a1ca0d1b59e161cbc417d97e054e",
+      "after_block_sha256": "2f2c514b82d307bf2b950c22a6d79645a612a1ca0d1b59e161cbc417d97e054e"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "build-windows",
+      "before_name": "Build Windows Release",
+      "after_name_expression": "Build Windows Release",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "windows-latest"
+      ],
+      "needs": [
+        "[contract-check]"
+      ],
+      "identical_job_block": true,
+      "before_block_sha256": "d24cd362f8ef1cb754b5570bbbf54deda886333e575b4ed294c3aae7aca5bd07",
+      "after_block_sha256": "d24cd362f8ef1cb754b5570bbbf54deda886333e575b4ed294c3aae7aca5bd07"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "mobile-e2e-smoke",
+      "before_name": "Mobile E2E Smoke Tests",
+      "after_name_expression": "Mobile E2E Smoke Tests",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "cafcd1796e5aacb6677550b3b692f7c57d2548c21a4d2795e33d856562fabc71",
+      "after_block_sha256": "cafcd1796e5aacb6677550b3b692f7c57d2548c21a4d2795e33d856562fabc71"
+    },
+    {
+      "workflow": "ci_cd.yml",
+      "job_id": "release",
+      "before_name": "Create Release Draft",
+      "after_name_expression": "Create Release Draft",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [
+        "[build-macos, build-windows, windows-rust-test]"
+      ],
+      "identical_job_block": true,
+      "before_block_sha256": "e2465eeda47bc483b01ce68d5d8389daa60ee56fdfce83f4a7b075ae6ec7af82",
+      "after_block_sha256": "e2465eeda47bc483b01ce68d5d8389daa60ee56fdfce83f4a7b075ae6ec7af82"
+    },
+    {
+      "workflow": "pr_check.yml",
+      "job_id": "contract-check",
+      "before_name": "Incremental IPC Contract Check",
+      "after_name_expression": "Incremental IPC Contract Check",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "df73d664d599109ef7b6e0af2b42184b171345260e50fe3e62774b156b33dc3d",
+      "after_block_sha256": "df73d664d599109ef7b6e0af2b42184b171345260e50fe3e62774b156b33dc3d"
+    },
+    {
+      "workflow": "pr_check.yml",
+      "job_id": "frontend-check",
+      "before_name": "Frontend TypeScript & Lint",
+      "after_name_expression": "Frontend TypeScript & Lint",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": false,
+      "before_block_sha256": "7a8d36f7f54c078a9ff85d67ff484ddd6824c8bd59a702ac3608848fbc8e2c31",
+      "after_block_sha256": "5e1738866e9081e54e6317df849260be2fef4db2a39c28615c05916b70363661"
+    },
+    {
+      "workflow": "pr_check.yml",
+      "job_id": "rust-check",
+      "before_name": "Rust Format, Clippy & Tests",
+      "after_name_expression": "Rust Format, Clippy & Tests",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "macos-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "281b8a2c0aff92bf5e49e1a6702bcdad4034beb39fea474741dbe823097c3cb4",
+      "after_block_sha256": "281b8a2c0aff92bf5e49e1a6702bcdad4034beb39fea474741dbe823097c3cb4"
+    },
+    {
+      "workflow": "pr_check.yml",
+      "job_id": "plugin-market-check",
+      "before_name": "Plugin Market Registry Check",
+      "after_name_expression": "Plugin Market Registry Check",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "95f844e2f26ae95d375d936819bc63e32196c7c6397902a079bd75a4781e87cf",
+      "after_block_sha256": "95f844e2f26ae95d375d936819bc63e32196c7c6397902a079bd75a4781e87cf"
+    },
+    {
+      "workflow": "pr_check.yml",
+      "job_id": "cli-check",
+      "before_name": "SoloSoul CLI (Rust Format, Clippy & Tests)",
+      "after_name_expression": "SoloSoul CLI (Rust Format, Clippy & Tests)",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": false,
+      "before_block_sha256": "a2be0f154753645521b9d900b14e09c682e221e980de916b2669c648293c7fc6",
+      "after_block_sha256": "8b965b8ae3a8dc212ad616d975d4283634189d5d3cce9805bd404e2b7539f209"
+    },
+    {
+      "workflow": "build-android.yml",
+      "job_id": "android-native",
+      "before_name": "Native Android API 34 (${{ matrix.glass }})",
+      "after_name_expression": "Native Android API 34 (${{ matrix.glass }})",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "868f55fcab5fc116a882da23a6853f2a2e78bb1de6d80b5ece13d048b9c37241",
+      "after_block_sha256": "868f55fcab5fc116a882da23a6853f2a2e78bb1de6d80b5ece13d048b9c37241"
+    },
+    {
+      "workflow": "build-android.yml",
+      "job_id": "build-android",
+      "before_name": "build-android",
+      "after_name_expression": "build-android",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "6ca55a1f3446663484f83b6b7925f6f6a171df0a8e49456563c4146002cc3d93",
+      "after_block_sha256": "6ca55a1f3446663484f83b6b7925f6f6a171df0a8e49456563c4146002cc3d93"
+    },
+    {
+      "workflow": "build-android.yml",
+      "job_id": "build-android-release",
+      "before_name": "Build Android Release AAB",
+      "after_name_expression": "Build Android Release AAB",
+      "pr_execution": "same named job",
+      "push_manual_execution": "same named job",
+      "runner": [
+        "ubuntu-latest"
+      ],
+      "needs": [],
+      "identical_job_block": true,
+      "before_block_sha256": "b3fb3f25108a16ed5eedb38b7a9f5661ad3dc575ba4cb4661349914ce09126fa",
+      "after_block_sha256": "b3fb3f25108a16ed5eedb38b7a9f5661ad3dc575ba4cb4661349914ce09126fa"
+    }
+  ],
+  "original_commands_identical_after_expansion": true,
+  "scope": "Share local frontend/CLI composite actions. PR Checks owns frontend coverage+production smoke, CLI, contract and registry once; duplicate CI PR jobs have distinct delegated names and unchanged IDs. Linux/Windows/macOS-iOS/Android/release bodies and all triggers preserved.",
+  "coverage": "PR now runs existing test:coverage gate, thresholds/excludes unmodified, HTML artifact retained; main/manual same checks.",
+  "protected_checks": "Read-only GitHub main protection query: no protection (404), no rulesets. Executed check names retained; duplicate skipped contexts disambiguated.",
+  "local_unaffected_business_checks": {
+    "F": "rf1085-plugin-error-fixture-2026-10-03.json: 256/2240 Vitest, Node123/0/originalSkip1, all four checks exit0",
+    "R": "rf1084-system-locale-2026-10-03.json: corrected matching Rust1.99 full1858/0/originalIgnore3",
+    "CLI_CONTRACT": "actual cfa2cb51 CI run37154255151 succeeded; source retained. New shared workflow execution still requires actual PR."
+  },
+  "pending_actual_pr": false,
+  "known_other_ci_failure": "cfa2cb51 mobile307 passed/1 risk same-row failed/19 original skips; do not attribute old workflow run to new shared actions; RF1081 pending correction.",
+  "official_action_reference": "https://docs.github.com/en/actions/tutorials/create-actions/create-a-composite-action",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/checks.json.gz",
+      "sha256": "a718993a18374986be592e1262c4416ca48b36e1af88cea8ce6c0344de8ecca8",
+      "rawSha256": "1997ddd7278d372f9f46417cb68a32e4a78535fb921149108cffadf35b53cbfa"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/actionlint.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/actionlint-result.json.gz",
+      "sha256": "bf1f3f95de2814ee3525dbf6a7cd9b4cf5ebd573bd3d3b867ea6d18247c4adc7",
+      "rawSha256": "719ffe63feba436406e2519e52c24a30c87e2650a921cd7bb194a4bf3cf3cea8"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/actionlint-origin.json.gz",
+      "sha256": "139d26dbeb647ce8c8b001d1951faddfaacd6109216119687cb45ebbff8c68a9",
+      "rawSha256": "3ca351047dc43134cc1c57cd957356fae1827c39945d81f61d4d207b784f718c"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/job-map.json.gz",
+      "sha256": "fb1e402cbccc27cb7dc09ce37dd48cd0aeadc0546ea0263bdcac6f423e3be9f0",
+      "rawSha256": "3ec3ba669b5cfe017f41da41effd5332f3f2b8b6017fd863dc876eb8e80aee04"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/source-preservation.json.gz",
+      "sha256": "b94f051616437efc3f5a3167a1e1fae1ea79995de08b3d2ad666a54629950d1f",
+      "rawSha256": "e9638eb99693bcf3d023c9d7a23b56b8e515ce837259488f7b354a6c88d4de77"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/yaml-format.log.gz",
+      "sha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5",
+      "rawSha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/markdown-boundary.log.gz",
+      "sha256": "c16c6514d45e8adcb5ee3a75bb38ae0e1950a842eb0ca278a2816334f7739e7b",
+      "rawSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/diff-check.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/ci_cd.yml.before.gz",
+      "sha256": "476b60b97c13d3b3e80e2fd1319438c11b73a7a856f63d1791d82c4037da5911",
+      "rawSha256": "585fb4ee6f6250638ad93350ad6ef3a26dd2fe73360e8bf5d0adfad9538f4840"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/pr_check.yml.before.gz",
+      "sha256": "9f5602db026101c7ca937d326b361b4ec26b613086d832828f7b082c279d16b6",
+      "rawSha256": "61ec2baa7588139ba562531466ed76761a2d362428f38d4a82756255ca2606fa"
+    },
+    {
+      "path": "docs/verification/rf311-ci-sharing-2026-10-03/build-android.yml.before.gz",
+      "sha256": "57e47287dc3190d492bfca607555f59983f0c0ea8ea9ed8d63008419a248ae6a",
+      "rawSha256": "f4b1588d6d137403df4e31b025bb4815acd911ca252afd751dcac11ea6f0e9a3"
+    }
+  ],
+  "actual_pr_acceptance": {
+    "task": "RF-311",
+    "tested_pr_head": "b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1",
+    "accepted_from_head": "e11a6e1c298ea958852e76640208ea62586ffb40",
+    "actual_pr": {
+      "url": "https://github.com/Gczmy/SoloSoul/pull/2",
+      "run": 37167923614,
+      "result": "success",
+      "jobs": [
+        {
+          "id": 111334689671,
+          "run_id": 37167923614,
+          "workflow_name": "SoloSoul PR Checks",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37167923614",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ7BCLhw",
+          "head_sha": "b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111334689671",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37167923614/job/111334689671",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-04T01:24:38Z",
+          "started_at": "2026-10-04T01:24:40Z",
+          "completed_at": "2026-10-04T01:24:52Z",
+          "name": "Plugin Market Registry Check",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-04T01:24:41Z",
+              "completed_at": "2026-10-04T01:24:42Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-04T01:24:42Z",
+              "completed_at": "2026-10-04T01:24:48Z"
+            },
+            {
+              "name": "Set up Python",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-04T01:24:48Z",
+              "completed_at": "2026-10-04T01:24:49Z"
+            },
+            {
+              "name": "Validate submodule registry.json",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-10-04T01:24:49Z",
+              "completed_at": "2026-10-04T01:24:49Z"
+            },
+            {
+              "name": "Check submodule pointer is clean",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-04T01:24:49Z",
+              "completed_at": "2026-10-04T01:24:49Z"
+            },
+            {
+              "name": "Post Set up Python",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-10-04T01:24:49Z",
+              "completed_at": "2026-10-04T01:24:49Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "started_at": "2026-10-04T01:24:49Z",
+              "completed_at": "2026-10-04T01:24:49Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11,
+              "started_at": "2026-10-04T01:24:49Z",
+              "completed_at": "2026-10-04T01:24:49Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111334689671",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": 1000001471,
+          "runner_name": "GitHub Actions 1000001471",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        },
+        {
+          "id": 111334689802,
+          "run_id": 37167923614,
+          "workflow_name": "SoloSoul PR Checks",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37167923614",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ7BCMCg",
+          "head_sha": "b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111334689802",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37167923614/job/111334689802",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-04T01:24:39Z",
+          "started_at": "2026-10-04T01:24:40Z",
+          "completed_at": "2026-10-04T01:30:26Z",
+          "name": "Frontend TypeScript & Lint",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-04T01:24:41Z",
+              "completed_at": "2026-10-04T01:24:42Z"
+            },
+            {
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-04T01:24:42Z",
+              "completed_at": "2026-10-04T01:24:44Z"
+            },
+            {
+              "name": "Shared frontend validation",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-04T01:24:44Z",
+              "completed_at": "2026-10-04T01:30:24Z"
+            },
+            {
+              "name": "Post Shared frontend validation",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-04T01:30:24Z",
+              "completed_at": "2026-10-04T01:30:24Z"
+            },
+            {
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-04T01:30:24Z",
+              "completed_at": "2026-10-04T01:30:25Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-04T01:30:25Z",
+              "completed_at": "2026-10-04T01:30:25Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111334689802",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": 1000001472,
+          "runner_name": "GitHub Actions 1000001472",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        },
+        {
+          "id": 111334689820,
+          "run_id": 37167923614,
+          "workflow_name": "SoloSoul PR Checks",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37167923614",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ7BCMHA",
+          "head_sha": "b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111334689820",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37167923614/job/111334689820",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-04T01:24:39Z",
+          "started_at": "2026-10-04T01:24:41Z",
+          "completed_at": "2026-10-04T01:30:12Z",
+          "name": "SoloSoul CLI (Rust Format, Clippy & Tests)",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-04T01:24:42Z",
+              "completed_at": "2026-10-04T01:24:43Z"
+            },
+            {
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-04T01:24:43Z",
+              "completed_at": "2026-10-04T01:24:45Z"
+            },
+            {
+              "name": "Shared cli validation",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-04T01:24:45Z",
+              "completed_at": "2026-10-04T01:30:10Z"
+            },
+            {
+              "name": "Post Shared cli validation",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-04T01:30:10Z",
+              "completed_at": "2026-10-04T01:30:10Z"
+            },
+            {
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-04T01:30:10Z",
+              "completed_at": "2026-10-04T01:30:10Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-04T01:30:10Z",
+              "completed_at": "2026-10-04T01:30:10Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111334689820",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": 1000001473,
+          "runner_name": "GitHub Actions 1000001473",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        },
+        {
+          "id": 111334689834,
+          "run_id": 37167923614,
+          "workflow_name": "SoloSoul PR Checks",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37167923614",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ7BCMKg",
+          "head_sha": "b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111334689834",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37167923614/job/111334689834",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-04T01:24:39Z",
+          "started_at": "2026-10-04T01:24:44Z",
+          "completed_at": "2026-10-04T01:48:34Z",
+          "name": "Rust Format, Clippy & Tests",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-04T01:24:44Z",
+              "completed_at": "2026-10-04T01:24:46Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-04T01:24:46Z",
+              "completed_at": "2026-10-04T01:24:52Z"
+            },
+            {
+              "name": "Setup Rust",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-04T01:24:52Z",
+              "completed_at": "2026-10-04T01:24:59Z"
+            },
+            {
+              "name": "Cache cargo",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-10-04T01:24:59Z",
+              "completed_at": "2026-10-04T01:25:00Z"
+            },
+            {
+              "name": "Setup Node for Apple check resources",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-04T01:25:00Z",
+              "completed_at": "2026-10-04T01:25:00Z"
+            },
+            {
+              "name": "Install Apple frontend build dependencies",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-04T01:25:00Z",
+              "completed_at": "2026-10-04T01:25:06Z"
+            },
+            {
+              "name": "Build frontend assets for Apple checks",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-04T01:25:06Z",
+              "completed_at": "2026-10-04T01:25:24Z"
+            },
+            {
+              "name": "Prepare unit-test OCR resource layout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-10-04T01:25:24Z",
+              "completed_at": "2026-10-04T01:25:24Z"
+            },
+            {
+              "name": "Prepare PDFium for Rust tests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-10-04T01:25:24Z",
+              "completed_at": "2026-10-04T01:25:25Z"
+            },
+            {
+              "name": "Setup Rust targets",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "started_at": "2026-10-04T01:25:25Z",
+              "completed_at": "2026-10-04T01:25:29Z"
+            },
+            {
+              "name": "Cargo check (iOS targets)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11,
+              "started_at": "2026-10-04T01:25:29Z",
+              "completed_at": "2026-10-04T01:31:57Z"
+            },
+            {
+              "name": "Align macOS check manifest with platform features",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12,
+              "started_at": "2026-10-04T01:31:57Z",
+              "completed_at": "2026-10-04T01:31:58Z"
+            },
+            {
+              "name": "Check formatting",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13,
+              "started_at": "2026-10-04T01:31:58Z",
+              "completed_at": "2026-10-04T01:31:59Z"
+            },
+            {
+              "name": "Run Clippy",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14,
+              "started_at": "2026-10-04T01:31:59Z",
+              "completed_at": "2026-10-04T01:34:35Z"
+            },
+            {
+              "name": "Check future-keychain feature compiles (macOS)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15,
+              "started_at": "2026-10-04T01:34:35Z",
+              "completed_at": "2026-10-04T01:35:10Z"
+            },
+            {
+              "name": "Run Rust Tests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 16,
+              "started_at": "2026-10-04T01:35:10Z",
+              "completed_at": "2026-10-04T01:48:06Z"
+            },
+            {
+              "name": "Check ACL consistency",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17,
+              "started_at": "2026-10-04T01:48:06Z",
+              "completed_at": "2026-10-04T01:48:07Z"
+            },
+            {
+              "name": "Post Setup Node for Apple check resources",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 32,
+              "started_at": "2026-10-04T01:48:07Z",
+              "completed_at": "2026-10-04T01:48:07Z"
+            },
+            {
+              "name": "Post Cache cargo",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 33,
+              "started_at": "2026-10-04T01:48:07Z",
+              "completed_at": "2026-10-04T01:48:31Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 34,
+              "started_at": "2026-10-04T01:48:31Z",
+              "completed_at": "2026-10-04T01:48:32Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 35,
+              "started_at": "2026-10-04T01:48:32Z",
+              "completed_at": "2026-10-04T01:48:33Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111334689834",
+          "labels": [
+            "macos-latest"
+          ],
+          "runner_id": 1000001475,
+          "runner_name": "GitHub Actions 1000001475",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        },
+        {
+          "id": 111334689870,
+          "run_id": 37167923614,
+          "workflow_name": "SoloSoul PR Checks",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37167923614",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ7BCMTg",
+          "head_sha": "b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111334689870",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37167923614/job/111334689870",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-04T01:24:39Z",
+          "started_at": "2026-10-04T01:24:40Z",
+          "completed_at": "2026-10-04T01:26:17Z",
+          "name": "Incremental IPC Contract Check",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-04T01:24:41Z",
+              "completed_at": "2026-10-04T01:24:42Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-04T01:24:42Z",
+              "completed_at": "2026-10-04T01:24:44Z"
+            },
+            {
+              "name": "Setup Node",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-04T01:24:44Z",
+              "completed_at": "2026-10-04T01:24:46Z"
+            },
+            {
+              "name": "Setup Rust",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-10-04T01:24:46Z",
+              "completed_at": "2026-10-04T01:24:55Z"
+            },
+            {
+              "name": "Setup Python",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-04T01:24:55Z",
+              "completed_at": "2026-10-04T01:24:55Z"
+            },
+            {
+              "name": "Install contract formatting dependencies",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-04T01:24:55Z",
+              "completed_at": "2026-10-04T01:25:03Z"
+            },
+            {
+              "name": "Test contract generator",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-04T01:25:03Z",
+              "completed_at": "2026-10-04T01:26:13Z"
+            },
+            {
+              "name": "Check generated IPC contracts",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-10-04T01:26:13Z",
+              "completed_at": "2026-10-04T01:26:14Z"
+            },
+            {
+              "name": "Check ACL and incremental command coverage",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-10-04T01:26:14Z",
+              "completed_at": "2026-10-04T01:26:14Z"
+            },
+            {
+              "name": "Test ACL contract comparison",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "started_at": "2026-10-04T01:26:14Z",
+              "completed_at": "2026-10-04T01:26:14Z"
+            },
+            {
+              "name": "Post Setup Python",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18,
+              "started_at": "2026-10-04T01:26:14Z",
+              "completed_at": "2026-10-04T01:26:15Z"
+            },
+            {
+              "name": "Post Setup Node",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19,
+              "started_at": "2026-10-04T01:26:15Z",
+              "completed_at": "2026-10-04T01:26:15Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20,
+              "started_at": "2026-10-04T01:26:15Z",
+              "completed_at": "2026-10-04T01:26:15Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21,
+              "started_at": "2026-10-04T01:26:15Z",
+              "completed_at": "2026-10-04T01:26:15Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111334689870",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": 1000001474,
+          "runner_name": "GitHub Actions 1000001474",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        }
+      ]
+    },
+    "actual_ci": {
+      "tested_head": "4715b6676eb42520494deee7dc34a500762db90f",
+      "run": 37166565582,
+      "result": "success",
+      "jobs": [
+        {
+          "id": 111330569845,
+          "run_id": 37166565582,
+          "workflow_name": "SoloSoul CI/CD",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37166565582",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ69GudQ",
+          "head_sha": "4715b6676eb42520494deee7dc34a500762db90f",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111330569845",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37166565582/job/111330569845",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-04T00:58:14Z",
+          "started_at": "2026-10-04T00:58:17Z",
+          "completed_at": "2026-10-04T01:10:54Z",
+          "name": "Mobile E2E Smoke Tests",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-04T00:58:18Z",
+              "completed_at": "2026-10-04T00:58:19Z"
+            },
+            {
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-04T00:58:19Z",
+              "completed_at": "2026-10-04T00:58:25Z"
+            },
+            {
+              "name": "Check if mobile files changed",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-04T00:58:25Z",
+              "completed_at": "2026-10-04T00:58:27Z"
+            },
+            {
+              "name": "Skip if no mobile changes",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 4,
+              "started_at": "2026-10-04T00:58:27Z",
+              "completed_at": "2026-10-04T00:58:27Z"
+            },
+            {
+              "name": "Setup Node",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-04T00:58:27Z",
+              "completed_at": "2026-10-04T00:58:30Z"
+            },
+            {
+              "name": "Install dependencies",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-04T00:58:30Z",
+              "completed_at": "2026-10-04T00:58:36Z"
+            },
+            {
+              "name": "Install Playwright browsers",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-04T00:58:36Z",
+              "completed_at": "2026-10-04T00:58:46Z"
+            },
+            {
+              "name": "Run mobile smoke E2E tests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-10-04T00:58:46Z",
+              "completed_at": "2026-10-04T01:10:52Z"
+            },
+            {
+              "name": "Upload Playwright report on failure",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 9,
+              "started_at": "2026-10-04T01:10:52Z",
+              "completed_at": "2026-10-04T01:10:52Z"
+            },
+            {
+              "name": "Post Setup Node",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17,
+              "started_at": "2026-10-04T01:10:52Z",
+              "completed_at": "2026-10-04T01:10:52Z"
+            },
+            {
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18,
+              "started_at": "2026-10-04T01:10:52Z",
+              "completed_at": "2026-10-04T01:10:52Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19,
+              "started_at": "2026-10-04T01:10:52Z",
+              "completed_at": "2026-10-04T01:10:52Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111330569845",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": 1000001413,
+          "runner_name": "GitHub Actions 1000001413",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        },
+        {
+          "id": 111330569979,
+          "run_id": 37166565582,
+          "workflow_name": "SoloSoul CI/CD",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37166565582",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ69Gu-w",
+          "head_sha": "4715b6676eb42520494deee7dc34a500762db90f",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111330569979",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37166565582/job/111330569979",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-04T00:58:14Z",
+          "started_at": "2026-10-04T00:58:17Z",
+          "completed_at": "2026-10-04T01:25:14Z",
+          "name": "Windows Rust Regression Tests",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-04T00:58:19Z",
+              "completed_at": "2026-10-04T00:58:22Z"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-04T00:58:22Z",
+              "completed_at": "2026-10-04T00:58:36Z"
+            },
+            {
+              "name": "Setup Node",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-04T00:58:36Z",
+              "completed_at": "2026-10-04T00:58:40Z"
+            },
+            {
+              "name": "Run Node regression tests (Windows)",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-10-04T00:58:40Z",
+              "completed_at": "2026-10-04T00:58:51Z"
+            },
+            {
+              "name": "Install Host frontend build dependencies",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-04T00:58:51Z",
+              "completed_at": "2026-10-04T00:59:09Z"
+            },
+            {
+              "name": "Build frontend assets for Host checks",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-04T00:59:09Z",
+              "completed_at": "2026-10-04T00:59:30Z"
+            },
+            {
+              "name": "Setup Rust",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-04T00:59:30Z",
+              "completed_at": "2026-10-04T00:59:47Z"
+            },
+            {
+              "name": "Cache cargo",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-10-04T00:59:47Z",
+              "completed_at": "2026-10-04T01:00:49Z"
+            },
+            {
+              "name": "Stage desktop plugin resources",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-10-04T01:00:49Z",
+              "completed_at": "2026-10-04T01:00:50Z"
+            },
+            {
+              "name": "Prepare Windows PDFium",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "started_at": "2026-10-04T01:00:50Z",
+              "completed_at": "2026-10-04T01:00:51Z"
+            },
+            {
+              "name": "Prepare unit-test OCR resource layout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11,
+              "started_at": "2026-10-04T01:00:51Z",
+              "completed_at": "2026-10-04T01:00:51Z"
+            },
+            {
+              "name": "Run Windows Vault, core and Host tests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12,
+              "started_at": "2026-10-04T01:00:51Z",
+              "completed_at": "2026-10-04T01:25:09Z"
+            },
+            {
+              "name": "Upload Windows Rust failure logs",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 13,
+              "started_at": "2026-10-04T01:25:09Z",
+              "completed_at": "2026-10-04T01:25:09Z"
+            },
+            {
+              "name": "Post Cache cargo",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 24,
+              "started_at": "2026-10-04T01:25:09Z",
+              "completed_at": "2026-10-04T01:25:10Z"
+            },
+            {
+              "name": "Post Setup Node",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 25,
+              "started_at": "2026-10-04T01:25:10Z",
+              "completed_at": "2026-10-04T01:25:10Z"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 26,
+              "started_at": "2026-10-04T01:25:10Z",
+              "completed_at": "2026-10-04T01:25:12Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 27,
+              "started_at": "2026-10-04T01:25:12Z",
+              "completed_at": "2026-10-04T01:25:12Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111330569979",
+          "labels": [
+            "windows-latest"
+          ],
+          "runner_id": 1000001408,
+          "runner_name": "GitHub Actions 1000001408",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        },
+        {
+          "id": 111330569984,
+          "run_id": 37166565582,
+          "workflow_name": "SoloSoul CI/CD",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37166565582",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ69GvAA",
+          "head_sha": "4715b6676eb42520494deee7dc34a500762db90f",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111330569984",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37166565582/job/111330569984",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-04T00:58:14Z",
+          "started_at": "2026-10-04T00:58:16Z",
+          "completed_at": "2026-10-04T01:12:19Z",
+          "name": "Rust Unit Tests",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1,
+              "started_at": "2026-10-04T00:58:17Z",
+              "completed_at": "2026-10-04T00:58:19Z"
+            },
+            {
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2,
+              "started_at": "2026-10-04T00:58:19Z",
+              "completed_at": "2026-10-04T00:58:24Z"
+            },
+            {
+              "name": "Setup Rust",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3,
+              "started_at": "2026-10-04T00:58:24Z",
+              "completed_at": "2026-10-04T00:58:32Z"
+            },
+            {
+              "name": "Cache cargo",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4,
+              "started_at": "2026-10-04T00:58:32Z",
+              "completed_at": "2026-10-04T00:58:35Z"
+            },
+            {
+              "name": "Install Linux Host development dependencies",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5,
+              "started_at": "2026-10-04T00:58:35Z",
+              "completed_at": "2026-10-04T00:59:18Z"
+            },
+            {
+              "name": "Setup Node for resource staging",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6,
+              "started_at": "2026-10-04T00:59:18Z",
+              "completed_at": "2026-10-04T00:59:18Z"
+            },
+            {
+              "name": "Install Host frontend build dependencies",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7,
+              "started_at": "2026-10-04T00:59:18Z",
+              "completed_at": "2026-10-04T00:59:24Z"
+            },
+            {
+              "name": "Build frontend assets for Host checks",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8,
+              "started_at": "2026-10-04T00:59:24Z",
+              "completed_at": "2026-10-04T00:59:39Z"
+            },
+            {
+              "name": "Stage desktop plugin resources for Host checks",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9,
+              "started_at": "2026-10-04T00:59:39Z",
+              "completed_at": "2026-10-04T00:59:40Z"
+            },
+            {
+              "name": "Prepare unit-test OCR resource layout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10,
+              "started_at": "2026-10-04T00:59:40Z",
+              "completed_at": "2026-10-04T00:59:40Z"
+            },
+            {
+              "name": "Check formatting",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11,
+              "started_at": "2026-10-04T00:59:40Z",
+              "completed_at": "2026-10-04T00:59:41Z"
+            },
+            {
+              "name": "Run Clippy",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12,
+              "started_at": "2026-10-04T00:59:41Z",
+              "completed_at": "2026-10-04T01:01:45Z"
+            },
+            {
+              "name": "Prepare PDFium for Rust tests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13,
+              "started_at": "2026-10-04T01:01:45Z",
+              "completed_at": "2026-10-04T01:01:45Z"
+            },
+            {
+              "name": "Run Rust Tests",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14,
+              "started_at": "2026-10-04T01:01:45Z",
+              "completed_at": "2026-10-04T01:12:14Z"
+            },
+            {
+              "name": "Post Setup Node for resource staging",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 26,
+              "started_at": "2026-10-04T01:12:15Z",
+              "completed_at": "2026-10-04T01:12:15Z"
+            },
+            {
+              "name": "Post Cache cargo",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 27,
+              "started_at": "2026-10-04T01:12:15Z",
+              "completed_at": "2026-10-04T01:12:15Z"
+            },
+            {
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 28,
+              "started_at": "2026-10-04T01:12:15Z",
+              "completed_at": "2026-10-04T01:12:15Z"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 29,
+              "started_at": "2026-10-04T01:12:15Z",
+              "completed_at": "2026-10-04T01:12:15Z"
+            }
+          ],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111330569984",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": 1000001412,
+          "runner_name": "GitHub Actions 1000001412",
+          "runner_group_id": 0,
+          "runner_group_name": "GitHub Actions"
+        },
+        {
+          "id": 111330570435,
+          "run_id": 37166565582,
+          "workflow_name": "SoloSoul CI/CD",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37166565582",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ69Gwww",
+          "head_sha": "4715b6676eb42520494deee7dc34a500762db90f",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111330570435",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37166565582/job/111330570435",
+          "status": "completed",
+          "conclusion": "skipped",
+          "created_at": "2026-10-04T00:58:14Z",
+          "started_at": "2026-10-04T00:58:14Z",
+          "completed_at": "2026-10-04T00:58:14Z",
+          "name": "github.event_name == 'pull_request' && 'Plugin Market Registry Check (delegated to PR Checks)' || 'Plugin Market Registry Check'",
+          "steps": [],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111330570435",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": null,
+          "runner_name": null,
+          "runner_group_id": null,
+          "runner_group_name": null
+        },
+        {
+          "id": 111330570439,
+          "run_id": 37166565582,
+          "workflow_name": "SoloSoul CI/CD",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37166565582",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ69Gwxw",
+          "head_sha": "4715b6676eb42520494deee7dc34a500762db90f",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111330570439",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37166565582/job/111330570439",
+          "status": "completed",
+          "conclusion": "skipped",
+          "created_at": "2026-10-04T00:58:14Z",
+          "started_at": "2026-10-04T00:58:14Z",
+          "completed_at": "2026-10-04T00:58:14Z",
+          "name": "github.event_name == 'pull_request' && 'Incremental IPC Contract Check (delegated to PR Checks)' || 'Incremental IPC Contract Check'",
+          "steps": [],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111330570439",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": null,
+          "runner_name": null,
+          "runner_group_id": null,
+          "runner_group_name": null
+        },
+        {
+          "id": 111330570478,
+          "run_id": 37166565582,
+          "workflow_name": "SoloSoul CI/CD",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37166565582",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ69Gw7g",
+          "head_sha": "4715b6676eb42520494deee7dc34a500762db90f",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111330570478",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37166565582/job/111330570478",
+          "status": "completed",
+          "conclusion": "skipped",
+          "created_at": "2026-10-04T00:58:14Z",
+          "started_at": "2026-10-04T00:58:14Z",
+          "completed_at": "2026-10-04T00:58:14Z",
+          "name": "github.event_name == 'pull_request' && 'SoloSoul CLI (Rust Format, Clippy & Tests) (delegated to PR Checks)' || 'SoloSoul CLI (Rust Format, Clippy & Tests)'",
+          "steps": [],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111330570478",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": null,
+          "runner_name": null,
+          "runner_group_id": null,
+          "runner_group_name": null
+        },
+        {
+          "id": 111330570776,
+          "run_id": 37166565582,
+          "workflow_name": "SoloSoul CI/CD",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37166565582",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ69GyGA",
+          "head_sha": "4715b6676eb42520494deee7dc34a500762db90f",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111330570776",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37166565582/job/111330570776",
+          "status": "completed",
+          "conclusion": "skipped",
+          "created_at": "2026-10-04T00:58:15Z",
+          "started_at": "2026-10-04T00:58:15Z",
+          "completed_at": "2026-10-04T00:58:14Z",
+          "name": "Build Windows Release",
+          "steps": [],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111330570776",
+          "labels": [
+            "windows-latest"
+          ],
+          "runner_id": null,
+          "runner_name": null,
+          "runner_group_id": null,
+          "runner_group_name": null
+        },
+        {
+          "id": 111330570903,
+          "run_id": 37166565582,
+          "workflow_name": "SoloSoul CI/CD",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37166565582",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ69Gylw",
+          "head_sha": "4715b6676eb42520494deee7dc34a500762db90f",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111330570903",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37166565582/job/111330570903",
+          "status": "completed",
+          "conclusion": "skipped",
+          "created_at": "2026-10-04T00:58:15Z",
+          "started_at": "2026-10-04T00:58:15Z",
+          "completed_at": "2026-10-04T00:58:14Z",
+          "name": "Build macOS Release",
+          "steps": [],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111330570903",
+          "labels": [
+            "macos-latest"
+          ],
+          "runner_id": null,
+          "runner_name": null,
+          "runner_group_id": null,
+          "runner_group_name": null
+        },
+        {
+          "id": 111330593421,
+          "run_id": 37166565582,
+          "workflow_name": "SoloSoul CI/CD",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37166565582",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ69IKjQ",
+          "head_sha": "4715b6676eb42520494deee7dc34a500762db90f",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111330593421",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37166565582/job/111330593421",
+          "status": "completed",
+          "conclusion": "skipped",
+          "created_at": "2026-10-04T00:58:23Z",
+          "started_at": "2026-10-04T00:58:23Z",
+          "completed_at": "2026-10-04T00:58:14Z",
+          "name": "github.event_name == 'pull_request' && 'Frontend Checks (delegated to PR Checks)' || 'Frontend Checks'",
+          "steps": [],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111330593421",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": null,
+          "runner_name": null,
+          "runner_group_id": null,
+          "runner_group_name": null
+        },
+        {
+          "id": 111334780392,
+          "run_id": 37166565582,
+          "workflow_name": "SoloSoul CI/CD",
+          "head_branch": "codex/rf308-rf309-validation-20261003",
+          "run_url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/runs/37166565582",
+          "run_attempt": 1,
+          "node_id": "CR_kwDOSJBl2c8AAAAZ7BHt6A",
+          "head_sha": "4715b6676eb42520494deee7dc34a500762db90f",
+          "url": "https://api.github.com/repos/Gczmy/SoloSoul/actions/jobs/111334780392",
+          "html_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37166565582/job/111334780392",
+          "status": "completed",
+          "conclusion": "skipped",
+          "created_at": "2026-10-04T01:25:14Z",
+          "started_at": "2026-10-04T01:25:14Z",
+          "completed_at": "2026-10-04T01:25:14Z",
+          "name": "Create Release Draft",
+          "steps": [],
+          "check_run_url": "https://api.github.com/repos/Gczmy/SoloSoul/check-runs/111334780392",
+          "labels": [
+            "ubuntu-latest"
+          ],
+          "runner_id": null,
+          "runner_name": null,
+          "runner_group_id": null,
+          "runner_group_name": null
+        }
+      ],
+      "same_application_and_CI_inputs_as_current": true
+    },
+    "source_binding": {
+      "tauri": {
+        "tested": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "accepted": "c85647fc28d7974e82a5044ee4e5a17a8398f5d6",
+        "equal": true
+      },
+      "solosoul_cli": {
+        "tested": "ee3b7943026b1bb1a7d3a10284fbf71f75bb19be",
+        "accepted": "ee3b7943026b1bb1a7d3a10284fbf71f75bb19be",
+        "equal": true
+      },
+      "SoloSoul_plugin_market": {
+        "tested": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "accepted": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921",
+        "equal": true
+      },
+      ".github/actions": {
+        "tested": "c9ba394df31d3486b3cdac354b69c92c342dfffb",
+        "accepted": "c9ba394df31d3486b3cdac354b69c92c342dfffb",
+        "equal": true
+      },
+      ".github/workflows/ci_cd.yml": {
+        "tested": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "accepted": "53fb39e3bd6ddb43f25e17ad6400db12344c219f",
+        "equal": true
+      },
+      ".github/workflows/pr_check.yml": {
+        "tested": "34a288323c75067fcd6036eccfb1cf0c7c96b32a",
+        "accepted": "34a288323c75067fcd6036eccfb1cf0c7c96b32a",
+        "equal": true
+      },
+      ".github/workflows/build-android.yml": {
+        "tested": "4560a5845e7b6ff8d334659b59c8b76948ecb0ac",
+        "accepted": "4560a5845e7b6ff8d334659b59c8b76948ecb0ac",
+        "equal": true
+      }
+    },
+    "frontend": {
+      "vitest_files": 256,
+      "vitest_passed": 2240,
+      "node_passed": 103,
+      "original_node_platform_skip": 21,
+      "production_passed": 26,
+      "coverage": [
+        85.58,
+        72.9,
+        80.57,
+        87.46
+      ],
+      "original_thresholds": [
+        80,
+        70,
+        80,
+        80
+      ],
+      "html": {
+        "id": 11289842095,
+        "name": "frontend-coverage",
+        "sha256": "3ad5919c50993f349b2e8d5357c8cc9f93432cad2aa942c81ab785708c82a90f",
+        "server_digest_matches": true,
+        "entries": 555,
+        "html": 548,
+        "CRC_error": null,
+        "tested_head": "b6acbee8ae08ad8e3a7de597b4b3affa59c0ebd1"
+      }
+    },
+    "linux": {
+      "job": 111330569984,
+      "groups": 25,
+      "passed": 1858,
+      "failed": 0,
+      "original_ignored": 3
+    },
+    "windows": {
+      "job": 111330569979,
+      "groups": 13,
+      "passed": 1552,
+      "failed": 0,
+      "original_ignored": 1
+    },
+    "mobile": {
+      "passed": 312,
+      "flaky": 0,
+      "failed": 0,
+      "original_skipped": 19,
+      "inventory": 331
+    },
+    "macos": {
+      "passed": 1858,
+      "failed": 0,
+      "original_ignored": 3
+    },
+    "cli": {
+      "passed": 335,
+      "failed": 0,
+      "original_ignored": 2
+    },
+    "contract_and_registry": "Both actual PR jobs succeeded",
+    "final_job_count": 18,
+    "followup_platform_changes": [
+      "RF-1084 readonly Linux locale observation",
+      "RF-1086 sequential original iOS checks",
+      "RF-1090 original resources preparation",
+      "RF-1091 Mac CI-only declaration alignment; resolved graph unchanged"
+    ],
+    "protected_contexts": {
+      "protected": false,
+      "rules": [],
+      "existing_required_context_removed": false
+    },
+    "release_android": "Original release bodies and three Android jobs preserved, no release executed",
+    "workflow_states_restored": true,
+    "limits": [
+      "Original failures, retries, ignores/skips and prior evidence remain available.",
+      "Latest Apple actual PR and same-input Linux/Windows/mobile actual PR are source-bound independently; do not invent a combined same-head CI run.",
+      "No native material/performance or signed hardware Keychain acceptance.",
+      "Docs-only acceptance commit does not change any tested source/config inputs."
+    ],
+    "artifacts": [
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/acceptance.json.gz",
+        "sha256": "f3cf9ee188fb3ab7ba3dd4e83b8483082078ad45873eb48ee0aaa297189f9afa",
+        "rawSha256": "48b69bd53d070a22787abbc6ac38fd9d2d7df272cae936b39013948552a12465"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/pr-jobs.json.gz",
+        "sha256": "9e6788f8258d802f4786c7ae5bdffc8bcac2d2a952af32a74acca837800f7f33",
+        "rawSha256": "3f229940e01630d2e8173a25749f21b624f29d87f296890b190fc37adf19f8f1"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/ci-jobs.json.gz",
+        "sha256": "45b086d6e89ed33565e70e1a9d884e5037dccf85e0596d22a0627307ca5afcb7",
+        "rawSha256": "73d95f9691db32bf829e8708cbd65de3238d8f414dc9ebd0dc500d1063eebb93"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/check-contexts.json.gz",
+        "sha256": "2d1e985676282787af7860336fcb1a9b29e7e33da48f62858ae596c057816b27",
+        "rawSha256": "434fc0b286e40d894dded19c2770b2232effe892f69ed0952bc1d999d3d9b5dc"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/final-job-freeze.json.gz",
+        "sha256": "469e252319236c4388c0719503780aa11ff1e2ce5667fa49e7f4cced44bd7cc3",
+        "rawSha256": "408564da84eb2b0b9e53345d348c0f9271ef38eede783dcffbbeb1eb08e7f5cd"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/round3-evidence.json.gz",
+        "sha256": "0dd6e2adb86bfb49f1ed93a87f1bc61b184fd6d4660d27de0e94425e8deca53b",
+        "rawSha256": "0b2b07fc8e43d7ba7e7ec4c987b094489e9a1ae2f837fe657f48d88407563725"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/frontend-evidence.json.gz",
+        "sha256": "d5f4d1d38b0fe52fa4357201a9740c72e3edbb2f077590c8ce9abd34886a5bcb",
+        "rawSha256": "c58f10b012dee5de936f37bfb9396bad2c7ad9e445f46b7653d2b3acbe925aac"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/job-111334689671.log.gz",
+        "sha256": "3693f0a3c93eba1f672d2e379c6ddc0f59518fb829dae9de573c31170a1227a9",
+        "rawSha256": "3a0d0fabdff62a73cc3a9866245a034b9eea7e8a147d85bf1188621b7296110a"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/job-111334689802.log.gz",
+        "sha256": "5950b252997484d6400694457069e508252705ea027f02980ce9da2890e005f3",
+        "rawSha256": "919aef1e3e2eece0e88e56a4cdde8be5f66a12f0da9fc2c787d97340c3f126df"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/job-111334689820.log.gz",
+        "sha256": "38d92d46d64b0ac729d563c86915333b1e1f0729dde15e0a05fcba37599be9a8",
+        "rawSha256": "f5cf069d02e43cac2b4a40977979e8b55149ddb5f6a2f8661e9d94199999bfb8"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/job-111334689834.log.gz",
+        "sha256": "6f8893e82f9a06d793d56a92f59958d85e889d9530e1d398300de3047f932225",
+        "rawSha256": "ad8bdb8bd17c874bdd3b0b9d1cb012cd4ee9e2a78309bfad5adddd0dd712005b"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/job-111334689870.log.gz",
+        "sha256": "ab1bf15ebc48ffb061e7250ee34827c1190fc34807294955889ca04014b85993",
+        "rawSha256": "e67b23963f357f3abb9950a98771a08acb65be8bcbde6500dff9515204010a52"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/job-111330569845.log.gz",
+        "sha256": "b49f6562bfa624a7a40770e3ea49401338cec7e89df07a22edd0ba1e89c88f4e",
+        "rawSha256": "ac34a31f2ed5e112e292b231771baed810cd1ef656623259ff2ac5e97790fa83"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/job-111330569979.log.gz",
+        "sha256": "2aaea462df83ee956f5be9eb52e04ed5d76ed862eb193ed968940b6949ede295",
+        "rawSha256": "a380da17e658ecd48afef71fd8420e16c9cad73e1cfa71cf0a3a56c39a2c7b6c"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/job-111330569984.log.gz",
+        "sha256": "311d9491631c3718db7e8f1ca928487dbd4b67c94c51df9889641af24c314265",
+        "rawSha256": "faa7cd5f2cb9942701b8a071608db921e367d3d5ab88375c4ffc69927be8dc80"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/original-apple-swift-failure.log.gz",
+        "sha256": "49a61439e56a90332d41160bca23622d6c4d2a7491be2eb48fad1ddf5e17f43a",
+        "rawSha256": "c5a3ac8cc5cbfa230f33eb894d21c5ddb22ccd1a3a286c42f41ab0f5e972f394"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/original-apple-resource-failure.log.gz",
+        "sha256": "3652b542f152f8553b87f5e915e01e3c3610df87d2a896857d7b5ce38cae82f0",
+        "rawSha256": "740191970c5095728f6d0dade417ff0feaea28cfcb55eba25dc4bbbbeaa77258"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/original-apple-allowlist-failure.log.gz",
+        "sha256": "9a0770257ebf1b406c8c49df82f069a1f049b4205ea0c016e488179b4a470ce0",
+        "rawSha256": "3e1aee316817d26a14c729d15d5108ca210150bd5e7d9cee6ccd20fd0475815e"
+      },
+      {
+        "path": "docs/verification/rf311-ci-sharing-2026-10-03/actual-pr-acceptance-2026-10-04/coverage-html.zip.gz",
+        "sha256": "aa7ae1d218f81699cc62b3c8a45e63735d7e8a84de45fa5bdd0b42e748b29e42",
+        "rawSha256": "3ad5919c50993f349b2e8d5357c8cc9f93432cad2aa942c81ab785708c82a90f"
+      }
+    ]
+  }
+}

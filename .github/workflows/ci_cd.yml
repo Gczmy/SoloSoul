@@ -14,7 +14,8 @@ env:
 jobs:
   # 增量 IPC 契约独立检查：只编译纯 Rust 生成工具，不编译 Tauri Host。
   contract-check:
-    name: Incremental IPC Contract Check
+    name: ${{ github.event_name == 'pull_request' && 'Incremental IPC Contract Check (delegated to PR Checks)' || 'Incremental IPC Contract Check' }}
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -59,7 +60,8 @@ jobs:
   # Job 1: Frontend Checks (TypeScript, Lint, Unit Tests)
   # ============================================================
   frontend-check:
-    name: Frontend Checks
+    name: ${{ github.event_name == 'pull_request' && 'Frontend Checks (delegated to PR Checks)' || 'Frontend Checks' }}
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -68,39 +70,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Shared frontend validation
+        uses: ./.github/actions/check-frontend
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: tauri/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check
-        run: npx tsc --noEmit
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Unit tests with coverage gate
-        run: npm run test:coverage
-
-      - name: Upload frontend coverage report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-coverage
-          path: tauri/coverage/
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Install production smoke browser
-        run: npx playwright install --with-deps chromium
-
-      - name: Production startup smoke test
-        run: npm run test:e2e:production
+          node_version: ${{ env.NODE_VERSION }}
 
   # ============================================================
   # Job 2: Rust Checks & Tests
@@ -124,6 +97,45 @@ jobs:
         with:
           workspaces: tauri/src-tauri
 
+      - name: Install Linux Host development dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential pkg-config libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev
+          pkg-config --atleast-version=2.70 glib-2.0
+          pkg-config --exists gtk+-3.0 webkit2gtk-4.1
+
+      # 仅用于Host静态检查/单测，不含真实OCR模型，不能用于Release。
+      - name: Setup Node for resource staging
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # generate_context!在默认custom-protocol下需要真实frontendDist。
+      - name: Install Host frontend build dependencies
+        working-directory: tauri
+        run: npm ci
+
+      - name: Build frontend assets for Host checks
+        working-directory: tauri
+        run: npm run build
+
+      - name: Stage desktop plugin resources for Host checks
+        working-directory: tauri
+        run: node scripts/stage-desktop-resources.cjs
+
+      - name: Prepare unit-test OCR resource layout
+        working-directory: tauri
+        run: |
+          fixture_directory='src-tauri/resources/models/pp-ocr-v6-small'
+          if [[ -e "$fixture_directory" || -L "$fixture_directory" ]]; then
+            echo 'Expected a fresh unit-test resource directory; refusing to overwrite real models' >&2
+            exit 1
+          fi
+          mkdir -p -- "$fixture_directory"
+          printf '%s\n' 'CI unit-test resource layout only. No OCR model. Never package this fixture.' > "$fixture_directory/UNIT_TEST_FIXTURE.txt"
+
       - name: Check formatting
         run: |
           cd tauri
@@ -144,6 +156,10 @@ jobs:
       - name: Run Rust Tests
         run: |
           cd tauri
+          # 只读记录sys-locale的四个输入，不覆盖真实语言环境。
+          printf '%s\n' "LANGUAGE=${LANGUAGE-<unset>}" "LC_ALL=${LC_ALL-<unset>}" \
+            "LC_MESSAGES=${LC_MESSAGES-<unset>}" "LANG=${LANG-<unset>}"
+          locale
           cargo test --verbose
 
   # Windows Host 测试必须实际启动测试程序，不能由 Linux 测试或 Windows 打包代替。
@@ -169,6 +185,15 @@ jobs:
       - name: Run Node regression tests (Windows)
         run: npm run test:node
 
+      # generate_context!在默认custom-protocol下需要真实frontendDist。
+      - name: Install Host frontend build dependencies
+        working-directory: tauri
+        run: npm ci
+
+      - name: Build frontend assets for Host checks
+        working-directory: tauri
+        run: npm run build
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -187,6 +212,18 @@ jobs:
         run: |
           bash scripts/download-pdfium.sh
           node ../scripts/verify-windows-pdfium.mjs src-tauri/resources/pdfium/pdfium.dll
+
+      # OCR 模型被 Git 忽略；此 job 只跑单测，不执行真实模型推理或打包。
+      # Tauri 构建仍要求声明的资源目录存在，夹具不得用于 Release job。
+      - name: Prepare unit-test OCR resource layout
+        shell: pwsh
+        run: |
+          $fixtureDirectory = Join-Path $PWD 'src-tauri/resources/models/pp-ocr-v6-small'
+          if (Test-Path -LiteralPath $fixtureDirectory) {
+            throw 'Expected a fresh unit-test resource directory; refusing to overwrite real models'
+          }
+          New-Item -ItemType Directory -Path $fixtureDirectory | Out-Null
+          Set-Content -LiteralPath (Join-Path $fixtureDirectory 'UNIT_TEST_FIXTURE.txt') -Encoding utf8 -Value 'CI unit-test resource layout only. No OCR model. Never package this fixture.'
 
       - name: Run Windows Vault, core and Host tests
         shell: bash
@@ -214,7 +251,8 @@ jobs:
   # Job 2b: Plugin Market Registry Check
   # ============================================================
   plugin-market-check:
-    name: Plugin Market Registry Check
+    name: ${{ github.event_name == 'pull_request' && 'Plugin Market Registry Check (delegated to PR Checks)' || 'Plugin Market Registry Check' }}
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -253,32 +291,20 @@ jobs:
   # Job 3: SoloSoul CLI Checks
   # ============================================================
   cli-check:
-    name: SoloSoul CLI (Rust Format, Clippy & Tests)
+    name: ${{ github.event_name == 'pull_request' && 'SoloSoul CLI (Rust Format, Clippy & Tests) (delegated to PR Checks)' || 'SoloSoul CLI (Rust Format, Clippy & Tests)' }}
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: solosoul_cli
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Shared cli validation
+        uses: ./.github/actions/check-cli
         with:
-          toolchain: ${{ env.RUST_VERSION }}
-
-      - name: Cache cargo (solosoul_cli)
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: solosoul_cli
-
-      - name: Check formatting
-        run: cargo fmt --check
-
-      - name: Run Clippy
-        run: cargo clippy --all-targets -- -D warnings
-
-      - name: Run CLI Tests
-        run: cargo test --verbose --no-fail-fast
+          rust_version: ${{ env.RUST_VERSION }}
 
   # ============================================================
   # Job 4: Build macOS Release (master push only)

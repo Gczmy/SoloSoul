@@ -1,0 +1,275 @@
+{
+  "task": "RF-1072",
+  "status": "complete",
+  "date": "2026-10-03",
+  "base_commit": "9212dc7abd9c934db1e8ef1f21ad54c164985a17",
+  "trigger": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37134827271",
+    "job_id": 111237127803,
+    "tests": 23,
+    "passed": 4,
+    "failed": 19,
+    "reason": "rag.rs: conditional/attributed use is unsupported"
+  },
+  "before": {
+    "command": [
+      "node",
+      "scripts/generate-ipc-contracts.mjs",
+      "--check"
+    ],
+    "exit": 1,
+    "seconds": 15.054059399291873
+  },
+  "fix": "Remove cfg-attributed Code/Stage import; use complete enum paths in three existing non-native-perf branches. No parser relaxation, allow, error code, wire shape or generated output change.",
+  "checks": [
+    {
+      "name": "contracts-check",
+      "command": [
+        "node",
+        "scripts/generate-ipc-contracts.mjs",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 1.616801300086081
+    },
+    {
+      "name": "contracts-tests",
+      "command": [
+        "node",
+        "--test",
+        "scripts/generate-ipc-contracts.node.mjs"
+      ],
+      "exit": 0,
+      "seconds": 100.10023530013859
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 2.741541700437665
+    },
+    {
+      "name": "default-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 112.60443270020187
+    },
+    {
+      "name": "default-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--verbose"
+      ],
+      "exit": 0,
+      "seconds": 748.2364782001823
+    },
+    {
+      "name": "native-perf-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 61.95188659988344
+    },
+    {
+      "name": "acl",
+      "command": [
+        "python",
+        "scripts/check_acl_consistency.py"
+      ],
+      "exit": 0,
+      "seconds": 0.10260790027678013
+    },
+    {
+      "name": "pref-keys",
+      "command": [
+        "node",
+        "scripts/check-pref-keys.mjs"
+      ],
+      "exit": 1,
+      "seconds": 0.1360446996986866
+    },
+    {
+      "name": "pref-keys-correct-entry",
+      "command": [
+        "npm.cmd",
+        "run",
+        "check:pref-keys"
+      ],
+      "exit": 0,
+      "seconds": 2.480677700601518
+    },
+    {
+      "name": "acl-tests",
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts",
+        "-p",
+        "test_check_acl_consistency.py"
+      ],
+      "exit": 0,
+      "seconds": 0.6072127996012568
+    },
+    {
+      "name": "markdown",
+      "command": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "exit": 0,
+      "seconds": 8.1068941000849
+    }
+  ],
+  "operator_error": "First supplementary pref-key invocation guessed nonexistent script (exit1); actual package.json entry exit0. Preserved as invocation error, not a product failure.",
+  "default_r_totals": {
+    "groups": 25,
+    "passed": 1858,
+    "failed": 0,
+    "ignored": 3
+  },
+  "ignored_original": [
+    "test field::tests::test_field_metadata ... ignored, legacy field_parse feature removed — requires contracts",
+    "test field::tests::test_resolve_legacy_unchanged ... ignored, legacy field_parse feature removed — requires contracts",
+    "test p025_hold_baseline_large_dataset ... ignored, P025 Phase 3 数据收集工具：--ignored 手动运行（约 2s，大数据集）"
+  ],
+  "contract_tests": {
+    "tests": 23,
+    "passed": 23,
+    "failed": 0,
+    "skipped": 0
+  },
+  "generated_outputs_unchanged": true,
+  "pdfium": "existing PDFIUM_LIBRARY_PATH set only in validation child",
+  "artifacts": [
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/acl-tests.log.gz",
+      "sha256": "5fed7545176ca37c80f6b5dec3869e88f2305d2e64177eb6e4c4936f66f2a47f",
+      "rawSha256": "cae6de04df0f2a99135cff473b981317aaec57f17f77b8ce24282dff57c14514"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/acl.log.gz",
+      "sha256": "b7beb803be88782066bc95beb265f135230b74365b0c3522dfc89fdf9f217279",
+      "rawSha256": "010e2ea2f1b1e4744d10cac49161b2e1820aa68579b154ee86e4bf8cc8f84fa9"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/baseline.json.gz",
+      "sha256": "375fb67c5d949938a17807f18046dc1e94bf8f2cd3420ffa46af0ed93965dd2e",
+      "rawSha256": "8fa54513f1c419db7ae745ba983aa3558f3195ea98f4ab4a927be555ec9af983"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/before.json.gz",
+      "sha256": "aa5a86e5c03a9029eefe21a822632f9a7d8c020c63be34eebbe1b46e4402fce5",
+      "rawSha256": "504a5cb30501b1421ad385b5236662f94f3939576fd6b8c43d45e352ac29b1c1"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/before.log.gz",
+      "sha256": "43964c89a81f42a7a1d1feb34015796e31e470044183dfcc6b0f36c7e63c6420",
+      "rawSha256": "d43ead69db05f0e5edfdd5e7ec7fe25b4eadeadc4f8489c8b3cbd6c431570d73"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/checks.json.gz",
+      "sha256": "648a576b9a745d3db8061b1b2d398a70407ca423665cd12fb301ac040f78e0eb",
+      "rawSha256": "4fd3d2b906ea83b0d80b24ea31c013674c6662ff31318c4bd48f3118e000b933"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/contracts-check.log.gz",
+      "sha256": "609a78281a0972075763fa079cbb9785252c80c6c374e299aa5769e3ea5c0bdb",
+      "rawSha256": "92b785e99ecafb3851dca3df3caa18e1d30b5d3ec80e219cda5a7d3cb19119ca"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/contracts-tests.log.gz",
+      "sha256": "d3d64d6151504a9e1ac4de956095e4b142efde418821180b1989d78a3db0f3ec",
+      "rawSha256": "14fb02158ab67e7618c8250fb2385f7d78b966afcfda1e0a73cde1eff96fc71c"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/default-clippy.log.gz",
+      "sha256": "5bef82cf9e6f88ee42376ea0cabbac4db26b25794e0ac48a458929ad2f733ddd",
+      "rawSha256": "9675cdad1c8aafee942dc7c9309da230415e07c37dc960d5a21390b3a4403078"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/default-tests.log.gz",
+      "sha256": "6b9b04317d6321a3d14c6c3e78fedf5f636e8a4d9f62ba56eb8fe4ae82ae16d4",
+      "rawSha256": "dd893408d6ba1469b73ff90f920ac5531030fdebf05c930324cc9ac904e45721"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/fmt.log.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/markdown.log.gz",
+      "sha256": "c16c6514d45e8adcb5ee3a75bb38ae0e1950a842eb0ca278a2816334f7739e7b",
+      "rawSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/native-perf-clippy.log.gz",
+      "sha256": "56918e1d38b54dc943715fe699447be95f4a11192cdf7a69f8cc7845d3ad3d24",
+      "rawSha256": "892598f911902d6aca787d7cc6e738b17c5bcc5177b799a1f2e9a2c177b42a5e"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/pref-keys-correct-entry.log.gz",
+      "sha256": "21d75d624ab2bdec31c0ba322b9204750a1f439e528b96b3a7c899c46b2b1b7f",
+      "rawSha256": "108a5a292db9f29147ac67a2fe97eebedfddaa179e8d2fdfdb2477b8759dd796"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/pref-keys.log.gz",
+      "sha256": "4498043a6849b183afd8555dd75d90861b4e906c5069dfb29a68c4a25abc8929",
+      "rawSha256": "2e7a5b1debb917373173cbc09651ff63d186e2b1befd218b99183cb4f6992d14"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/job-111237127803.log.gz",
+      "sha256": "63274719600f79c411c5c06000ff779c9c6d61705728e74425fc5377863974b8",
+      "rawSha256": "e8fc66945bed7e082f8c1a8c1a7231d3cca6c32512ce028b0da6476d2ffee42d"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/remote-contract-job.log.gz",
+      "sha256": "b350625efe5f85e1d36d9026b86b1aaad15966732f190fd4eca803c23338b357",
+      "rawSha256": "c5a7a6a6b54ccc58cb25942684f4a0784692efbf43826b5e3bdc183236d5bb24"
+    },
+    {
+      "path": "docs/verification/rf1072-contract-import-2026-10-03/remote-contract-job.json.gz",
+      "sha256": "ee597bb35852a003e9c62b561df1df1265038520e6c9a13ce813f20711bac815",
+      "rawSha256": "9d85b630f4fb46f481fe5c6d166e6c4cbebe1e776759a34bfa3befe82c4623b2"
+    }
+  ],
+  "new_remote_contract_run_pending": false,
+  "remote_contract": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37138522079",
+    "head_sha": "6723063e4b0bbcaa4031ba36f2e13a1052d03250",
+    "job_id": 111247917394,
+    "conclusion": "success",
+    "generator_tests": 23,
+    "passed": 23,
+    "failed": 0,
+    "skipped": 0,
+    "acl_unit_tests": 12,
+    "registered_commands": 226,
+    "generated_check": "passed"
+  }
+}

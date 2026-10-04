@@ -88,39 +88,27 @@ test('installs a plugin and runs it through dialog response', async ({ page }) =
           return { pluginId: window.__E2E_PLUGIN_ID__, version: '1.0.0' };
         },
         plugin_run: (_args, emit, finish) => {
-          setTimeout(() => {
-            emit({
-              eventType: 'log',
-              jsonData: JSON.stringify({ id: '1', level: 'info', message: 'start', timestamp: Date.now() }),
-            });
-          }, 50);
-          setTimeout(() => {
-            emit({
-              eventType: 'dialog_request',
-              requestId: 'dlg-1',
-              pluginId: window.__E2E_PLUGIN_ID__,
-              pluginName: window.__E2E_PLUGIN_NAME__,
-              jsonData: JSON.stringify({
-                type: 'input',
-                title: 'Your Name',
-                message: 'Please enter your name.',
-                placeholder: 'Name',
-              }),
-            });
-          }, 100);
-          setTimeout(() => {
-            emit({
-              eventType: 'result',
-              jsonData: JSON.stringify({ type: 'text', content: 'done' }),
-            });
-          }, 600);
-          setTimeout(() => {
+          // 后端在响应之前保持运行，不能用固定计时提前吞掉请求。
+          window.__E2E_FINISH_PLUGIN__ = (response) => {
+            window.__E2E_DIALOG_RESPONSE__ = response;
+            emit({ eventType: 'result', jsonData: JSON.stringify({ type: 'text', content: 'done' }) });
             emit({ eventType: 'completed', jsonData: JSON.stringify({ exitCode: 0 }) });
             finish({ exitCode: 0, logs: [], results: [{ type: 'text', content: 'done' }], fuelConsumed: 0 });
-          }, 1200);
+          };
+          emit({
+            eventType: 'log',
+            jsonData: JSON.stringify({ id: '1', level: 'info', message: 'start', timestamp: Date.now() }),
+          });
+          emit({
+            eventType: 'dialog_request',
+            requestId: 'dlg-1',
+            pluginId: window.__E2E_PLUGIN_ID__,
+            pluginName: window.__E2E_PLUGIN_NAME__,
+            jsonData: JSON.stringify({ type: 'input', title: 'Your Name', message: 'Please enter your name.', placeholder: 'Name' }),
+          });
         },
         plugin_consent_response: () => undefined,
-        plugin_dialog_response: () => undefined,
+        plugin_dialog_response: (response) => window.__E2E_FINISH_PLUGIN__(response),
         plugin_audit_log: () => [],
       };
     `,
@@ -131,17 +119,31 @@ test('installs a plugin and runs it through dialog response', async ({ page }) =
 
   // Install the plugin.
   await page.getByRole('button', { name: 'Install', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Run', exact: true })).toBeVisible({ timeout: 5000 });
+  await expect(page.getByRole('button', { name: 'Run', exact: true })).toBeVisible({
+    timeout: 5000,
+  });
   await expect(page.getByText('Installed').first()).toBeVisible();
 
   // Run the plugin.
   await page.getByRole('button', { name: 'Run', exact: true }).click();
-  await expect(page.locator('text=start')).toBeVisible({ timeout: 5000 });
 
   // Dialog appears.
-  await expect(page.getByRole('heading', { name: 'Your Name', exact: true })).toBeVisible({ timeout: 5000 });
+  await expect(page.getByRole('heading', { name: 'Your Name', exact: true })).toBeVisible({
+    timeout: 5000,
+  });
   await page.locator('input[placeholder="Name"]').fill('Playwright');
   await page.locator('button:has-text("Confirm")').click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as unknown as { __E2E_DIALOG_RESPONSE__?: { requestId: string; value: string } })
+            .__E2E_DIALOG_RESPONSE__,
+      ),
+    )
+    .toEqual({ requestId: 'dlg-1', value: 'Playwright' });
+  await page.locator('summary').filter({ hasText: 'Plugin Log' }).click();
+  await expect(page.locator('text=start')).toBeVisible({ timeout: 5000 });
 
   // Result is rendered.
   await expect(page.locator('text=done')).toBeVisible({ timeout: 5000 });

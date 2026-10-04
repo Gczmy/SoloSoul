@@ -1,0 +1,44 @@
+[
+  {
+    "name": "node-runner-format",
+    "command": [
+      "node",
+      "node_modules/prettier/bin/prettier.cjs",
+      "--check",
+      "scripts/run-node-tests.mjs"
+    ],
+    "exit": 1,
+    "seconds": 0.39317560009658337
+  },
+  {
+    "name": "node-runner-format-write",
+    "command": [
+      "node",
+      "node_modules/prettier/bin/prettier.cjs",
+      "--write",
+      "scripts/run-node-tests.mjs"
+    ],
+    "exit": 0,
+    "seconds": 0.20004929974675179
+  },
+  {
+    "name": "node-runner-format-final",
+    "command": [
+      "node",
+      "node_modules/prettier/bin/prettier.cjs",
+      "--check",
+      "scripts/run-node-tests.mjs"
+    ],
+    "exit": 0,
+    "seconds": 0.194021699950099
+  },
+  {
+    "name": "node-full-runner",
+    "command": [
+      "node",
+      "scripts/run-node-tests.mjs"
+    ],
+    "exit": 0,
+    "seconds": 12.080864399671555
+  }
+]

@@ -1,6 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { login, setupTauriMock } from './fixtures/auth';
 import type { PluginInstallProgress } from '../src/lib/plugin';
+import type { BackendError } from '../src/lib/generated/ipcContracts';
+
+// 桌面侧栏和鼠标场景显式使用桌面环境；各用例仍可自行测试窄视口。
+test.use({ viewport: { width: 1280, height: 720 }, isMobile: false, hasTouch: false });
 
 async function openPluginPanel(page: Page) {
   await page
@@ -20,7 +24,7 @@ async function setupPlugin(page: Page, platform: 'macos' | 'windows', initiallyI
       let installed = initiallyInstalled;
       let operationId = 0;
       let pending:
-        | { rid: number; resolve: () => void; reject: (error: string) => void }
+        | { rid: number; resolve: () => void; reject: (error: BackendError) => void }
         | undefined;
       const installCalls: string[] = [];
       let reportProgress: ((progress: PluginInstallProgress) => void) | undefined;
@@ -51,7 +55,7 @@ async function setupPlugin(page: Page, platform: 'macos' | 'windows', initiallyI
         ) => {
           reportProgress?.({ percent, phase, downloadedBytes: percent * 10, totalBytes: 1000 });
         },
-        __E2E_FINISH_INSTALL__: (error?: string) => {
+        __E2E_FINISH_INSTALL__: (error?: BackendError) => {
           const operation = pending;
           pending = undefined;
           if (!operation) throw new Error('No pending install');
@@ -99,7 +103,11 @@ async function setupPlugin(page: Page, platform: 'macos' | 'windows', initiallyI
             if (pending?.rid === rid) {
               const operation = pending;
               pending = undefined;
-              operation.reject('PLUGIN_INSTALL_CANCELLED');
+              operation.reject({
+                code: 'PLUGIN_INSTALL_CANCELLED',
+                safeDetails: null,
+                retryable: false,
+              });
             }
           },
           plugin_uninstall: ({ pluginId }: { pluginId: string }) => {
@@ -129,11 +137,11 @@ async function expectInstallCalls(page: Page, count: number) {
     .toBe(count);
 }
 
-async function finishInstall(page: Page, error?: string) {
+async function finishInstall(page: Page, error?: BackendError) {
   await page.evaluate(
     (error) =>
       (
-        window as unknown as { __E2E_FINISH_INSTALL__: (error?: string) => void }
+        window as unknown as { __E2E_FINISH_INSTALL__: (error?: BackendError) => void }
       ).__E2E_FINISH_INSTALL__(error),
     error,
   );
@@ -195,8 +203,14 @@ for (const platform of ['macos', 'windows'] as const) {
     await expect(panel.getByRole('alert')).toHaveCount(0);
     await install.click();
     await expectInstallCalls(page, 2);
-    await finishInstall(page, 'Download timed out');
-    await expect(panel.getByRole('alert')).toContainText('Download timed out');
+    await finishInstall(page, {
+      code: 'PLUGIN_NETWORK_FAILED',
+      safeDetails: null,
+      retryable: true,
+    });
+    await expect(panel.getByRole('alert')).toHaveText(
+      'Plugin operation failed: The plugin download connection failed. Try again later.',
+    );
     await expect(install).toBeVisible();
     await install.click();
     await expectInstallCalls(page, 3);

@@ -1,0 +1,96 @@
+{
+  "task": "RF-309",
+  "status": "completed",
+  "date": "2026-10-03",
+  "remote_acceptance": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37144291766",
+    "job_id": 111264960054,
+    "tested_sha": "fbcbe83387810357cc9018b9b670145deda901bb",
+    "rust": "1.99.0",
+    "conclusion": "success",
+    "core": {
+      "groups": 6,
+      "passed": 764,
+      "failed": 0,
+      "ignored": 1
+    },
+    "host": {
+      "groups": 7,
+      "passed": 788,
+      "failed": 0,
+      "ignored": 0
+    },
+    "scope": "unit-test resource layout; not real OCR inference or Release acceptance"
+  },
+  "failed_run_upload_verified": {
+    "run_url": "https://github.com/Gczmy/SoloSoul/actions/runs/37134827271",
+    "job_id": 111237127731,
+    "artifact_id": 11279350530,
+    "archive": {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/windows-rust-test-logs.zip",
+      "sha256": "fc48abdc8ebdea2d63598e94a65ddc9ad39f30d59adc9cd4825f051ed3d97d20",
+      "githubDigest": "sha256:fc48abdc8ebdea2d63598e94a65ddc9ad39f30d59adc9cd4825f051ed3d97d20",
+      "members": [
+        "core.log",
+        "host.log"
+      ]
+    },
+    "crc_verified": true
+  },
+  "formal_config_identical_git_blobs_since_tested_sha": {
+    "tauri/src-tauri/build.rs": {
+      "working_file_raw_sha256": "8fb23072eee178c093586786e0548e61365e57f5a84858e7abe1744a5cce42c6",
+      "identical_tested_and_current_git_blob_sha256": "cf3f33631e73df6c39c9f62cec3bbc227491bbbe97ac3a8c4665786ead30acc2"
+    },
+    "tauri/src-tauri/tauri.conf.json": {
+      "working_file_raw_sha256": "7d7fc8afcbe54235ca5828e7a8dad32d5547f15237e1bb5cf29d65752980ca3f",
+      "identical_tested_and_current_git_blob_sha256": "506c84287ce6a46a0d4f4157bd12906b7ffdc3f2e13c44d629303087c5d46899"
+    },
+    "tauri/src-tauri/tauri.windows.conf.json": {
+      "working_file_raw_sha256": "f3f617646f1fb25cf1488af2211be9225242b7446e95644de70278853202af3c",
+      "identical_tested_and_current_git_blob_sha256": "dc476a2f280b081380e9b4b29de1e2a906fa9e9d99d9f0c2e87c9a52077e4637"
+    },
+    "tauri/src-tauri/Cargo.toml": {
+      "working_file_raw_sha256": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e",
+      "identical_tested_and_current_git_blob_sha256": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e"
+    },
+    ".github/workflows/ci_cd.yml": {
+      "working_file_raw_sha256": "585fb4ee6f6250638ad93350ad6ef3a26dd2fe73360e8bf5d0adfad9538f4840",
+      "identical_tested_and_current_git_blob_sha256": "ad56a61f8f7a410251e3cfbe7a1041496933fb775a35b5b275b085564fd2dc5d"
+    }
+  },
+  "checks": {
+    "actual_core_host_execution": true,
+    "both_test_exit_codes_zero": true,
+    "failure_logs_real_upload_and_crc": true,
+    "acceptance_source_changes": false,
+    "markdown_boundary_exit": 0,
+    "diff_check_exit": 0
+  },
+  "evidence": [
+    {
+      "path": "docs/verification/rf309-ci-windows-2026-10-03/remote-acceptance.json.gz",
+      "sha256": "3e86f888d4eedd2ee9325c62f77d6e863fca0728d125bb04d4596d883c12a389",
+      "rawSha256": "be6ae5d4856f6958f2447c22e85c9ca1f2d53bf1f92200e3dd91dc3f5da5ef55"
+    },
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03.json",
+      "sha256": "fc0a9d3e58ba50600aa71515306a492dd50a3970d0717b1b3066d4782458b0a5"
+    },
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/job-111264960054.log.gz",
+      "sha256": "0237d26751161a32471e728febfac4a331c773e27e5867a0df4b7078693ab0de",
+      "rawSha256": "41c69ea826400663cb5319bb558a45f47c9f959a1aa909f6e37b33cad5107a7c"
+    },
+    {
+      "path": "docs/verification/rf1075-windows-unit-resources-2026-10-03/remote-acceptance.json.gz",
+      "sha256": "2118bb88f43665eb4a86c0ccca9bd3027df89f7b11a9956787c0d15c6defd093",
+      "rawSha256": "b17422bc622aee0c2346b858aabe77f0c38608ebe5500a595a4e99e22060d40c"
+    }
+  ],
+  "limits": [
+    "Windows Rust execution gate only; Mobile CI still has failures.",
+    "No actual PR-specific workflow execution is inferred.",
+    "No real OCR model, packaging or native UI acceptance."
+  ]
+}
