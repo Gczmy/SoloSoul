@@ -64,7 +64,7 @@
 | CONTRACT | `tauri/` | `npm run check:acl`；`npm run check:pref-keys`；`node scripts/check-markdown-chunk-boundary.mjs`；`npm run check:contracts`；`npm run test:contracts`；`python -m unittest discover -s scripts -p test_check_acl_consistency.py`。 |
 | WEB | `tauri/` | 卡片列出的 Playwright 用例，分别按适用的 `--project=chromium`/`--project=mobile` 运行；启动/路由/IPC/主题变化另跑 `npm run test:e2e:production`。 |
 | COVERAGE | `tauri/` | `npm run test -- --coverage`，保存覆盖率报告和阈值结果；不得将未运行的阈值配置视为已达标。 |
-| IOS | macOS 上的 `tauri/` | 安装需要的 Rust targets 后 `cargo check --target aarch64-apple-ios --target aarch64-apple-ios-sim`；原生桥接改动另执行 `npm run tauri:ios:build:sim` 和相关运行验收。 |
+| IOS | macOS 上的 `tauri/` | 安装需要的 Rust targets 后，顺序执行 `cargo check --target aarch64-apple-ios`、`cargo check --target aarch64-apple-ios-sim`；原生桥接改动另执行 `npm run tauri:ios:build:sim` 和相关运行验收。 |
 | ANDROID_BUILD | `tauri/` 与生成 Android 工程 | 下节 Android target check、Debug 构建及本项 Kotlin 单元检查；需要 SDK/NDK/JDK，不默认要求连接玻璃设备。 |
 | ANDROID_NATIVE | 生成 Android 工程与设备 | 在已验证 Debug 构建上运行任务指定的 instrumented/设备场景；RF-310 必须执行现有玻璃原生测试。记录 ABI/API、测试计数与跳过项。 |
 | NATIVE | 对应平台图形会话 | 原生应用或例程中的具体操作，记录 OS、设备、构建 ID、主题/辅助功能设置和结果；无统一跨平台替代命令。 |
@@ -120,9 +120,9 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 ## 4. 修复进度与执行索引
 
-- 任务总数：**279**（P1：51；P2：227；P3：1）。
-- 已关闭：**265 / 279**；实际修复（已关闭）：265；排除：0；待验证/阻塞：8（RF-1089真实动画捕获本地通过待Linux，RF-1088 DOM守卫本地通过待Linux，RF-1087命中等待本地通过待Linux首次通过，RF-1086双iOS目标顺序已修待Apple PR，RF-311实际PR待Apple全门禁，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088、RF-1089（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**无；RF-1086/1087/1088/1089已修待更新现有PR实际验收**。
+- 任务总数：**280**（P1：51；P2：228；P3：1）。
+- 已关闭：**265 / 280**；实际修复（已关闭）：265；排除：0；待验证/阻塞：9（RF-1090 Apple资源准备已修待实际编译，RF-1089真实动画捕获本地通过待Linux，RF-1088 DOM守卫本地通过待Linux，RF-1087命中等待本地通过待Linux首次通过，RF-1086双iOS目标顺序已修待Apple PR，RF-311实际PR待Apple全门禁，RF-112缺隔离macOS锁定恢复，RF-121缺多端原生材质实测，RF-312缺多端应用性能实测）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088、RF-1089、RF-1090（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
+- 当前处理：**无；RF-1090已修待Apple，按项补验已通过的Linux侧栏修复**。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -407,6 +407,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 277 | [RF-1087](#rf-1087) | P2 | 侧栏工具命中断言等待展开动画 | 无（实际PR首次失败后重试通过） | [!] 待实际Linux首次通过 |
 | 278 | [RF-1088](#rf-1088) | P2 | 导航/尺标离开事件安全检查relatedTarget | 无（实际WEB异常发现） | [!] 待实际Linux |
 | 279 | [RF-1089](#rf-1089) | P2 | 侧栏真实动画开始时捕获，避免晚采样丢失 | 无（RF-1088全量WEB原动画用例flaky） | [!] 待实际Linux首次通过 |
+| 280 | [RF-1090](#rf-1090) | P2 | Apple检查job编译前完整准备资源 | 无（实际iOS缺移动插件目录失败） | [!] 待实际Apple门禁 |
 
 ## 5. 原报告到执行任务的映射
 
@@ -3736,6 +3737,17 @@ R18 本轮明确迁移对象/快照、LLM、备份/导入导出、同步和插�
 - **验证配置：**WEB（诊断及原sidebar-tools全部两项目）、Prettier、DOC；未修改应用/单测/配置，RF-1088完整F输入逐字冻结后复用，并在实际PR复验。
 - **建议提交：**`test(sidebar): capture real transitions before sampling [RF-1089]`。
 
+### RF-1090
+
+**Apple检查job编译前完整准备资源** · P2 · 来源：PR37164080866/job111323318631在aarch64-apple-ios设备目标build.rs报resources-mobile插件目录不存在，exit101；原Swift EEXIST本轮未出现
+
+- **前置：**无；RF-1086双目标编译和RF-311完整PR待本项。
+- **入口：**`.github/workflows/pr_check.yml`的rust-check；现有npm build、stage-mobile/stage-desktop、tauri.ios/macos资源声明及原PDFium步骤。
+- **执行：**在双目标及macOS检查前提供同版本Node22、npm ci和真实npm run build（内含两端真实插件staging）；以已有明确无模型单测OCR布局满足macOS声明，拒绝覆盖已有目录；原真实PDFium准备步骤前移以满足macOS资源目录。iOS两目标、默认feature、future-keychain、Clippy/完整R/ACL及其他job保持。
+- **验收：**干净隔离源码先确认缺移动资源；锁定依赖真实build后，移动/桌面插件逐文件匹配实际子模块、dist为真实构建且macOS目录声明齐备；OCR布局无模型且已有目录拒绝覆盖。YAML/actionlint与源码冻结通过；实际Apple双目标、后续macOS门禁通过后关闭。
+- **验证配置：**DOC、YAML静态、隔离真实资源/前端构建、实际Apple PR；只改CI准备，不重复已通过且输入未改的本地F/R。单测标记不能用于Release或模型推理验收。
+- **建议提交：**`ci(apple): stage declared resources before target checks [RF-1090]`。
+
 ## 7. 每项执行记录模板
 
 选中任务时填写“当前处理”，完成后在本节按 ID 追加记录，并更新索引中的状态和统计。报告状态更新与本项代码/测试放入同一提交；不要以未运行的上轮测试作为本次验收证据。
@@ -6647,3 +6659,11 @@ git commit -m "<任务卡的提交标题>"
 - 正式代码去掉全部诊断延迟；采样callback AST相同，原duration、15/50/85%采样、同时动画/方向/底边/导航裁剪/按钮不缩放/快速反向/减少动态效果断言保持。监听捕获完成后移除，未生成替代动画或改420ms。原侧栏两项目50 passed/0 flaky/0 failed，mobile331清单逐例一致。
 - 修改文件Prettier通过；应用/单测/配置均按基线逐字SHA冻结，完整F输入未改变，复用RF-1088显式Node22的2240 Vitest/123 Node/1原skip，不重复未受影响单测；实际PR会同头复验完整F。
 - [证据](verification/rf1089-animation-capture-2026-10-04.json)保留原源码、受控失败/通过、正式全量、callback AST、输入冻结及清单。用户stash保持；状态[!]待Linux四动画例首次通过，265/279不增。独立提交（本提交，以RF-1089检索）。
+
+
+### RF-1090 执行记录（2026-10-04，待实际Apple全门禁）
+
+- 最新PR37164080866/job111323318631的原Swift EEXIST未重现，设备目标随后在build.rs缺resources-mobile插件目录失败/exit101，模拟器未运行；RF-1086双目标仍待验收。静态核对同job后续macOS另需桌面插件、模型目录、PDFium目录及默认custom-protocol真实frontendDist。
+- 只增加Node22、npm ci、真实npm build和原Linux同式的明确无模型OCR布局四准备步骤，原真实PDFium步骤提前；原所有step正文、双目标、default feature、future-keychain、严格Clippy/完整R/ACL及其他job保持，语义核对与YAML/actionlint通过。
+- Git archive基线建立干净隔离源码，复制实际干净子模块f55fc4b5的45个已跟踪运行文件；原移动资源/dist缺失确认。Node22锁定npm ci exit0(37.71s)、真实build exit0(73.24s)；移动/桌面各45文件逐SHA匹配，6个前端索引资源引用有效。原OCR守卫新目录成功/已有目录exit1拒绝覆盖且标记保持；目录仅标记、0模型。下载原URL的真实Macarm64 PDFium仅核对资源布局，不在Windows加载；6项Apple overlay目录/文件齐备，AppleSDK编译仍须实跑。
+- [证据](verification/rf1090-apple-resources-2026-10-04.json)保留完整实际失败、原workflow、所有检查、45文件清单和布局；非本项源码/配置/用户stash保持。纯CI准备不重复未改F/R，状态[!]待实际Apple全门禁，265/280不增。独立提交（本提交，以RF-1090检索）。

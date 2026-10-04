@@ -86,6 +86,39 @@ jobs:
         with:
           workspaces: tauri/src-tauri
 
+      # iOS/macOS的资源声明也在cargo check阶段验证；沿用真实构建和staging。
+      - name: Setup Node for Apple check resources
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Apple frontend build dependencies
+        working-directory: tauri
+        run: npm ci
+
+      - name: Build frontend assets for Apple checks
+        working-directory: tauri
+        run: npm run build
+
+      # 仅Rust检查/单测的资源布局，无真实OCR模型，不能用于Release。
+      - name: Prepare unit-test OCR resource layout
+        working-directory: tauri
+        run: |
+          fixture_directory='src-tauri/resources/models/pp-ocr-v6-small'
+          if [[ -e "$fixture_directory" || -L "$fixture_directory" ]]; then
+            echo 'Expected a fresh unit-test resource directory; refusing to overwrite real models' >&2
+            exit 1
+          fi
+          mkdir -p -- "$fixture_directory"
+          printf '%s\n' 'CI unit-test resource layout only. No OCR model. Never package this fixture.' > "$fixture_directory/UNIT_TEST_FIXTURE.txt"
+
+      - name: Prepare PDFium for Rust tests
+        working-directory: tauri
+        run: |
+          bash scripts/download-pdfium.sh
+          test -s src-tauri/resources/pdfium/libpdfium.dylib
+          echo "PDFIUM_LIBRARY_PATH=$PWD/src-tauri/resources/pdfium/libpdfium.dylib" >> "$GITHUB_ENV"
+
       - name: Setup Rust targets
         run: |
           rustup target add aarch64-apple-ios aarch64-apple-ios-sim
@@ -113,13 +146,6 @@ jobs:
         run: |
           cd tauri
           cargo check -p solosoul-core --features future-keychain
-
-      - name: Prepare PDFium for Rust tests
-        working-directory: tauri
-        run: |
-          bash scripts/download-pdfium.sh
-          test -s src-tauri/resources/pdfium/libpdfium.dylib
-          echo "PDFIUM_LIBRARY_PATH=$PWD/src-tauri/resources/pdfium/libpdfium.dylib" >> "$GITHUB_ENV"
 
       - name: Run Rust Tests
         run: |
