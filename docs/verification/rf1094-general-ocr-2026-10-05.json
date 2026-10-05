@@ -1,0 +1,401 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1094",
+  "status": "closed",
+  "at": "2026-10-05T19:31:54.005549+00:00",
+  "baseline": {
+    "at": "2026-10-05T19:18:06.643161+00:00",
+    "head": "eb54869d9326609f260866156238bb08ce0204db",
+    "before": {
+      "tauri/crates/solosoul-core/src/ocr/engine.rs": "dcd0eb255b2a6c1bab1dc921da73cf3ced2484577ebaf6aebabc6b2d6c36dbe8",
+      "tauri/crates/solosoul-core/src/ocr/postprocess.rs": "f9cf052adf07ce291580e40be38cfc3f692591b4db3c6a3a504835994257bfa1",
+      "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md": "f00f6628350cb8df4f09c3bb696467afc74b0fac89e9ef160fbf7b6a1782b7d4"
+    },
+    "rf312PendingPreserved": {
+      "tauri/scripts/native-perf-sdk-journey.mjs": "3e46add33dd5597b3d7161ade8aa72084f9e22f980d8053193b09718525e0f4a",
+      "tauri/scripts/run-node-tests.mjs": "b35a91e3f57b089d10b2a78b2e138da0365e313d258d68125a6ce2362026836b",
+      "tauri/src-tauri/src/native_perf.rs": "a820a845fe88fb63fb540888f0c1c2e4f7892356a4c03ecdfb821a38b33ef569",
+      "tauri/src-tauri/src/native_perf/preflight_tests.rs": "35faf68a327c5a80d9bb0bd7c856f5b79a7e18f0510955183246e10993101193",
+      "tauri/src-tauri/src/native_perf/sdk_cdp.rs": "56eb2be30f8ee2c317c1ef54a52fa36c199d2fb7a3d05df35391339c0fd08835",
+      "tauri/src-tauri/src/native_perf/sdk_journey.js": "ca92d0a8585783b815f1fddafe4c4b186239616f8457b08c20ac59563293829f",
+      "tauri/src-tauri/src/native_perf/sdk_journey.rs": "2a8704a81aa7080710dceaf7a38b197300a8c71b1ebddb4d86d325dd65c63a1d",
+      "tauri/src-tauri/src/native_perf/startup.rs": "1df3340b467a6d538ea0c6bd64d8992e280309b55f2f1d768b869f3bd7c5faab",
+      "tauri/scripts/native-perf-ocr-contract.mjs": "4a81442c8d97034d948b4d062d40d778d7f1e15a7f2fa5d3b8f8aa1f350e0ce2",
+      "tauri/scripts/native-perf-ocr.mjs": "ab8618eb106d0a2b1b3a216bb55f153f0166d2a560d6134b8ee74c255062f43e",
+      "tauri/scripts/native-perf-ocr.test.mjs": "f922572c64ba00248cb0bad87476794e4f0d8b64082b563f0740f31d5173c611",
+      "tauri/src-tauri/src/native_perf/sdk_ocr.rs": "9072a1742933500345fe8fd255bf7ea3113f723e0402f069b934bc6374f72268",
+      "tauri/src-tauri/src/native_perf/sdk_ocr_picker.rs": "fdb12a0d6ece63111e593bdaeea5e8ad5a3a22d3d75cadbbe691e23dac37b490"
+    },
+    "stash": "dd695bba03ce1ea274185d4cc9ed0e69501b3d90",
+    "submodule": "f55fc4b5a257cb8d7d9273168c3fd05b01b9d921 SoloSoul_plugin_market (expiry-guardian-v1.0.0-123-gf55fc4b)"
+  },
+  "problem": "General OCR unconditionally applied MRZ OCR-B substitutions after confidence filtering",
+  "observedRed": {
+    "decoderExpected": "Hello SoloSoul OCR CCCE",
+    "decoderActual": "He11o So1oSou1 0CR <<<<",
+    "publicImageActual": "He11oPP-0CRv6\nSo1oSou10CR\n1234567890",
+    "publicImageExpectedNormalized": "helloppocrv6solosoulocr1234567890",
+    "bothFailedWithAssertion": true
+  },
+  "fix": {
+    "general": "CTC plus original confidence filtering, no MRZ substitutions",
+    "mrz": "Dedicated single-line decoder retains original correction function and thresholds",
+    "mrzCorrectionBodyByteUnchanged": true,
+    "engineFileSha256": "62cd6a129b5b08bf1db1f1eef7725ef678499c678afc48e489f9f63ec4f57a47",
+    "postprocessFileSha256": "db532de80590ed1272eed5a769359105204ced25d15f9a33d467ea147bbbfe2c"
+  },
+  "checks": {
+    "red-general-ctc": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--lib",
+        "general_decode_preserves_letters_and_repeated_ce",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "pid": 36756,
+      "exitCode": 101,
+      "elapsedSeconds": 117.32375288009644,
+      "finishedAt": "2026-10-05T19:20:53.075255+00:00"
+    },
+    "red-public-image": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--lib",
+        "test_ocr_end_to_end",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "pid": 2988,
+      "exitCode": 101,
+      "elapsedSeconds": 2.2640578746795654,
+      "finishedAt": "2026-10-05T19:20:55.358305+00:00"
+    },
+    "green-core-tests": {
+      "command": ["cargo", "test", "--locked", "-p", "solosoul-core", "--lib"],
+      "pid": 8700,
+      "exitCode": 0,
+      "elapsedSeconds": 68.51231098175049,
+      "finishedAt": "2026-10-05T19:24:18.981369+00:00"
+    },
+    "green-core-clippy": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "pid": 23380,
+      "exitCode": 0,
+      "elapsedSeconds": 60.43164372444153,
+      "finishedAt": "2026-10-05T19:25:19.413886+00:00"
+    },
+    "green-fmt-check": {
+      "command": ["cargo", "+1.99.0", "fmt", "--all", "--", "--check"],
+      "pid": 15432,
+      "exitCode": 0,
+      "elapsedSeconds": 4.310985565185547,
+      "finishedAt": "2026-10-05T19:25:23.725677+00:00"
+    },
+    "green-diff-check": {
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "pid": 25332,
+      "exitCode": 0,
+      "elapsedSeconds": 0.5135288238525391,
+      "finishedAt": "2026-10-05T19:25:24.240311+00:00"
+    }
+  },
+  "coreTests": {
+    "passed": 446,
+    "failed": 0,
+    "ignored": 0,
+    "includesRealSmallModelImage": true
+  },
+  "publicInputsUnchanged": {
+    "imageSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+    "models": {
+      "det/inference.onnx": "d73e0058b7a8086bbd57f3d10b8bcd4ff95363f67e06e2762b5e814fe9c9410e",
+      "det/inference.yml": "193f435274bf9f0b5f71a929bbfbcf148282df7e633b34e7c373e8f44741b516",
+      "rec/inference.onnx": "5435fd747c9e0efe15a96d0b378d5bd157e9492ed8fd80edf08f30d02fa24634",
+      "rec/inference.yml": "ab078671bb49f06228eadccd34f1bb501e157f7a047095ffb943ba81512c77d1"
+    }
+  },
+  "nativeTrigger": {
+    "build": {
+      "at": "2026-10-05T19:09:20.592074+00:00",
+      "exe": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\bin\\solo_soul.exe",
+      "bytes": 103415296,
+      "sha256": "68f15acc614f8e5e0b75622078d4841de30e8d844c031af6b1247ce378b2b204",
+      "frozenInputsUnchanged": 459,
+      "resourcesUnchanged": 94,
+      "markers": [
+        "--native-perf-media-prepare",
+        "windows-native-sdk-media-journey-requested",
+        "windows-native-sdk-ocr-journey-requested",
+        "windows-native-sdk-startup-requested",
+        "windows-native-sdk-pdf-first-page-requested",
+        "windows-native-sdk-pdf-cipher-binding-requested",
+        "windows-native-sdk-pdf-frame-stability-requested"
+      ],
+      "previousPdfBuildsPreserved": 8,
+      "publicSourcesUnchanged": 171
+    },
+    "failedGroup": {
+      "at": "2026-10-05T19:26:56.364003+00:00",
+      "sourceUnchanged": true,
+      "cleanupComplete": true,
+      "requested": 3,
+      "completed": 3,
+      "acceptedPerformanceMetrics": null,
+      "samples": [
+        {
+          "index": 1,
+          "result": "failed",
+          "step": "ocrResultText",
+          "reason": "probe-timeout",
+          "scanAttempts": 1,
+          "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+          "nativePickerControls": 47,
+          "nativePickerClosed": true,
+          "timeoutRoute": "http://tauri.localhost/ocr",
+          "metrics": null
+        },
+        {
+          "index": 2,
+          "result": "failed",
+          "step": "ocrResultText",
+          "reason": "probe-timeout",
+          "scanAttempts": 1,
+          "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+          "nativePickerControls": 47,
+          "nativePickerClosed": true,
+          "timeoutRoute": "http://tauri.localhost/ocr",
+          "metrics": null
+        },
+        {
+          "index": 3,
+          "result": "failed",
+          "step": "ocrResultText",
+          "reason": "probe-timeout",
+          "scanAttempts": 1,
+          "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+          "nativePickerControls": 47,
+          "nativePickerClosed": true,
+          "timeoutRoute": "http://tauri.localhost/ocr",
+          "metrics": null
+        }
+      ],
+      "publicSelectedImagesPreserved": 3,
+      "nativePickerStructureObserved": true,
+      "fullFirstOcrAcceptance": false
+    },
+    "freshExits": {
+      "at": "2026-10-05T19:28:59.4750737Z",
+      "scope": "RF-312 initial OCR failed group",
+      "identities": [
+        {
+          "pid": 17996,
+          "creationMs": 1791227410195,
+          "executableName": "solo_soul.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 13432,
+          "creationMs": 1791227411770,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 34716,
+          "creationMs": 1791227413319,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 39488,
+          "creationMs": 1791227413318,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 36800,
+          "creationMs": 1791227412437,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 32872,
+          "creationMs": 1791227412464,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 19608,
+          "creationMs": 1791227411873,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 42436,
+          "creationMs": 1791227412438,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 40768,
+          "creationMs": 1791227412606,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 17656,
+          "creationMs": 1791227488523,
+          "executableName": "solo_soul.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 15132,
+          "creationMs": 1791227490027,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 23712,
+          "creationMs": 1791227490494,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 14692,
+          "creationMs": 1791227491358,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 14848,
+          "creationMs": 1791227491359,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 35876,
+          "creationMs": 1791227490588,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 15356,
+          "creationMs": 1791227490452,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 16528,
+          "creationMs": 1791227490457,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 28104,
+          "creationMs": 1791227490080,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 17252,
+          "creationMs": 1791227565672,
+          "executableName": "solo_soul.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 25840,
+          "creationMs": 1791227567120,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 39164,
+          "creationMs": 1791227567168,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 27568,
+          "creationMs": 1791227567517,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 35880,
+          "creationMs": 1791227567520,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 4140,
+          "creationMs": 1791227567562,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 21648,
+          "creationMs": 1791227567659,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 20368,
+          "creationMs": 1791227568262,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 28272,
+          "creationMs": 1791227568261,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        }
+      ],
+      "complete": true,
+      "processesTerminated": 0,
+      "cacheRemovalPerformed": false
+    },
+    "acceptedPerformanceMetrics": null
+  },
+  "preservation": {
+    "rf312PendingFiles": 13,
+    "stashUnchanged": true,
+    "submoduleUnchanged": true
+  },
+  "rawArchiveIndex": "rf1094-general-ocr-2026-10-05/index.json",
+  "rawArchiveFiles": 83,
+  "limits": [
+    "Full GUI first-OCR acceptance must be repeated with a new frozen Release under RF-312",
+    "No macOS/Android visual or performance acceptance claimed",
+    "RF-112/121 and RF-122 through RF-127 gates remain unchanged"
+  ],
+  "pushPerformed": false
+}
