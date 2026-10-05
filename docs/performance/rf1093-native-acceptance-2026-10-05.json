@@ -1,0 +1,348 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1093",
+  "date": "2026-10-05",
+  "baseCommit": "8290e07812b27ecfaee6e7d40452ed6639dd0af8",
+  "branch": "codex/rf1093-native-acceptance",
+  "status": "complete: existing null-memory fix and required same-EXE 100/5000 native groups verified",
+  "codeChanged": false,
+  "checkedSourceExactMatchToOriginalRegression": [
+    {
+      "path": "tauri/scripts/native-perf-run.mjs",
+      "bytes": 61104,
+      "sha256": "76b1ea30e8bcc7f6414ac3d01c5cb44288bdf8ddec28a0ebf5b039ca6d76dc39"
+    },
+    {
+      "path": "tauri/scripts/native-perf-memory.mjs",
+      "bytes": 10601,
+      "sha256": "959ad8fbb30a23057f578241a2961af40e41bb464a11b9271824574da25d0157"
+    },
+    {
+      "path": "tauri/scripts/native-perf-memory.test.mjs",
+      "bytes": 24796,
+      "sha256": "52c44887404b9eca0de8d8382d234c8d0c4abb906e27200d29e5029fdc8df615"
+    }
+  ],
+  "originalRegression": {
+    "source": "rf1093-null-memory-2026-10-05.json",
+    "actualPowerShellScenarios": [
+      "null absent",
+      "private-only absent",
+      "working-set-only absent",
+      "null live",
+      "null reused PID",
+      "null query error",
+      "null root",
+      "null default",
+      "throw absent",
+      "throw live",
+      "changed identity live",
+      "valid",
+      "valid zero"
+    ],
+    "count": 13,
+    "behavior": "only explicit memory-series verified descendants absent from one fresh CIM can be exited; root/default/live/reused/query-failure reject; valid zero remains legitimate reading"
+  },
+  "latestFullNodeRegression": {
+    "source": "rf312-windows-timeout-diagnostics-2026-10-05.json",
+    "total": 158,
+    "passed": 157,
+    "failed": 0,
+    "existingSkipped": 1,
+    "sourceUnchanged": true
+  },
+  "sameExeNativeAcceptance": {
+    "source": "rf1092-native-acceptance-2026-10-05.json",
+    "exeSha256": "b4b29934563ae668ccda5d3ec5cefb9b01397f552d99f7e07e0e8345d1b3bf88",
+    "objects": [100, 5000],
+    "samplesEach": 5,
+    "memoryIntervalMs": 2000,
+    "validPoints": 115,
+    "selectedSubsetsUsed": false,
+    "priorFailuresRetained": true
+  },
+  "confirmedExitedRecords": [
+    {
+      "objects": 100,
+      "sample": 1,
+      "point": 9,
+      "record": {
+        "pid": 13948,
+        "parentPid": 31368,
+        "creationMs": 1791168575692,
+        "executableName": "icacls.exe",
+        "exitConfirmedAtMs": 1791168577151,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 100,
+      "sample": 1,
+      "point": 9,
+      "record": {
+        "pid": 37312,
+        "parentPid": 13948,
+        "creationMs": 1791168575703,
+        "executableName": "conhost.exe",
+        "exitConfirmedAtMs": 1791168577009,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 100,
+      "sample": 2,
+      "point": 5,
+      "record": {
+        "pid": 32460,
+        "parentPid": 22768,
+        "creationMs": 1791168593039,
+        "executableName": "msedgewebview2.exe",
+        "exitConfirmedAtMs": 1791168598793,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 100,
+      "sample": 3,
+      "point": 5,
+      "record": {
+        "pid": 16252,
+        "parentPid": 19976,
+        "creationMs": 1791168617076,
+        "executableName": "msedgewebview2.exe",
+        "exitConfirmedAtMs": 1791168623491,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 100,
+      "sample": 3,
+      "point": 6,
+      "record": {
+        "pid": 19136,
+        "parentPid": 1224,
+        "creationMs": 1791168624810,
+        "executableName": "icacls.exe",
+        "exitConfirmedAtMs": 1791168625914,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 100,
+      "sample": 3,
+      "point": 6,
+      "record": {
+        "pid": 29272,
+        "parentPid": 19136,
+        "creationMs": 1791168624829,
+        "executableName": "conhost.exe",
+        "exitConfirmedAtMs": 1791168625778,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 100,
+      "sample": 5,
+      "point": 7,
+      "record": {
+        "pid": 41436,
+        "parentPid": 38252,
+        "creationMs": 1791168679482,
+        "executableName": "icacls.exe",
+        "exitConfirmedAtMs": 1791168680765,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 100,
+      "sample": 5,
+      "point": 7,
+      "record": {
+        "pid": 32392,
+        "parentPid": 41436,
+        "creationMs": 1791168679499,
+        "executableName": "conhost.exe",
+        "exitConfirmedAtMs": 1791168680603,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 5000,
+      "sample": 1,
+      "point": 8,
+      "record": {
+        "pid": 43332,
+        "parentPid": 25360,
+        "creationMs": 1791169653972,
+        "executableName": "icacls.exe",
+        "exitConfirmedAtMs": 1791169655884,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 5000,
+      "sample": 1,
+      "point": 8,
+      "record": {
+        "pid": 26976,
+        "parentPid": 43332,
+        "creationMs": 1791169653991,
+        "executableName": "conhost.exe",
+        "exitConfirmedAtMs": 1791169656034,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 5000,
+      "sample": 2,
+      "point": 5,
+      "record": {
+        "pid": 9884,
+        "parentPid": 7744,
+        "creationMs": 1791169681321,
+        "executableName": "msedgewebview2.exe",
+        "exitConfirmedAtMs": 1791169687206,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 5000,
+      "sample": 2,
+      "point": 9,
+      "record": {
+        "pid": 7652,
+        "parentPid": 12072,
+        "creationMs": 1791169693942,
+        "executableName": "icacls.exe",
+        "exitConfirmedAtMs": 1791169695883,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 5000,
+      "sample": 2,
+      "point": 9,
+      "record": {
+        "pid": 27776,
+        "parentPid": 7652,
+        "creationMs": 1791169693956,
+        "executableName": "conhost.exe",
+        "exitConfirmedAtMs": 1791169695729,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 5000,
+      "sample": 3,
+      "point": 8,
+      "record": {
+        "pid": 30636,
+        "parentPid": 27936,
+        "creationMs": 1791169734880,
+        "executableName": "icacls.exe",
+        "exitConfirmedAtMs": 1791169736081,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 5000,
+      "sample": 3,
+      "point": 8,
+      "record": {
+        "pid": 17324,
+        "parentPid": 30636,
+        "creationMs": 1791169734905,
+        "executableName": "conhost.exe",
+        "exitConfirmedAtMs": 1791169736228,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 5000,
+      "sample": 3,
+      "point": 10,
+      "record": {
+        "pid": 10960,
+        "parentPid": 27936,
+        "creationMs": 1791169738503,
+        "executableName": "icacls.exe",
+        "exitConfirmedAtMs": 1791169739785,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 5000,
+      "sample": 3,
+      "point": 10,
+      "record": {
+        "pid": 21420,
+        "parentPid": 10960,
+        "creationMs": 1791169738516,
+        "executableName": "conhost.exe",
+        "exitConfirmedAtMs": 1791169739924,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 5000,
+      "sample": 4,
+      "point": 9,
+      "record": {
+        "pid": 22668,
+        "parentPid": 13860,
+        "creationMs": 1791169770773,
+        "executableName": "icacls.exe",
+        "exitConfirmedAtMs": 1791169772221,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 5000,
+      "sample": 4,
+      "point": 9,
+      "record": {
+        "pid": 4172,
+        "parentPid": 22668,
+        "creationMs": 1791169770783,
+        "executableName": "conhost.exe",
+        "exitConfirmedAtMs": 1791169772057,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    },
+    {
+      "objects": 5000,
+      "sample": 5,
+      "point": 5,
+      "record": {
+        "pid": 32016,
+        "parentPid": 25800,
+        "creationMs": 1791169790352,
+        "executableName": "msedgewebview2.exe",
+        "exitConfirmedAtMs": 1791169796064,
+        "reason": "Process exited before memory collection; absence confirmed by fresh CIM"
+      }
+    }
+  ],
+  "exitRecordFormat": "six identity/confirmation fields only; memory values omitted, exited PID excluded from live aggregate; actual PowerShell regression verifies internal numeric nulls",
+  "noRootExitRecords": true,
+  "noZeroSubstitution": true,
+  "originalIntermittentUiTimeout": "unresolved in RF-312; accepted groups do not prove root-cause fix",
+  "rawEvidenceIndices": [
+    "rf1093-null-memory-2026-10-05/index.json",
+    "rf312-windows-timeout-diagnostics-2026-10-05/index.json",
+    "rf1092-native-acceptance-2026-10-05/index.json"
+  ],
+  "preservation": {
+    "sourceFreezeExactMatch": 13,
+    "publicFixturesExactMatch": 14,
+    "stashUnchanged": true,
+    "submoduleUnchanged": true,
+    "ownedProcessCleanupAlreadyVerified": true
+  },
+  "limits": [
+    "sampled maximum is not continuous peak",
+    "target 2000ms does not guarantee resolution",
+    "RF-112/RF-121 native gates and RF-122 through RF-127 dependencies unchanged"
+  ],
+  "push": false
+}
