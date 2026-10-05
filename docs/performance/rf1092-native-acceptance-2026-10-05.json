@@ -1,0 +1,1040 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1092",
+  "relatedTask": "RF-1093; reviewed separately after this independent closure",
+  "date": "2026-10-05",
+  "baseCommit": "27062b4df5bfa46928db7949c6ed54300d7f3404",
+  "branch": "codex/rf1092-native-acceptance",
+  "status": "RF-1092 native acceptance complete; RF-312 original intermittent UI timeout still unresolved",
+  "codeChanged": false,
+  "acceptance": {
+    "at": "2026-10-05T03:11:25.686459+00:00",
+    "groups": [
+      {
+        "objectCount": 100,
+        "report": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\native-perf-sdk-journey-results.json",
+        "reportSha256": "9a067a8e3530bc67c8ded68fb6f438ab70c0cf1ca150f6c90d161d538cb853aa",
+        "samples": 5,
+        "uiSuccesses": 5,
+        "memoryCompleteSamples": 5,
+        "totalPoints": 52,
+        "validPoints": 52,
+        "sourceUnchanged": true,
+        "cleanupComplete": true,
+        "exeSha256": "b4b29934563ae668ccda5d3ec5cefb9b01397f552d99f7e07e0e8345d1b3bf88",
+        "memoryIntervalMs": 2000,
+        "queryMedianMs": 1055.8174,
+        "queryMaximumMs": 2003.915399999998,
+        "maximumActualStartIntervalMs": 2064,
+        "confirmedExitedObservations": 8,
+        "memorySummary": {
+          "samplesRequested": 5,
+          "successfulSamples": 5,
+          "medianObservedMaximumWorkingSetBytes": 638676992,
+          "p95ObservedMaximumWorkingSetBytes": 682344448
+        },
+        "uiSummary": [
+          {
+            "name": "startup",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 1977.0781,
+            "p95Ms": 2361.287
+          },
+          {
+            "name": "password-unlock",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 2193.0624000000003,
+            "p95Ms": 2227.673
+          },
+          {
+            "name": "workspace",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 403.0335,
+            "p95Ms": 554.4981
+          },
+          {
+            "name": "search-needle",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 439.68620000000004,
+            "p95Ms": 477.5154
+          },
+          {
+            "name": "application-lock",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 148.8322,
+            "p95Ms": 162.13469999999998
+          },
+          {
+            "name": "password-reunlock",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 2297.1031000000003,
+            "p95Ms": 5267.4997
+          }
+        ]
+      },
+      {
+        "objectCount": 5000,
+        "report": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\native-perf-sdk-journey-results.json",
+        "reportSha256": "ad1a9bf9e91cc78f0c46bfbc06d492c47c0c8c47826ebefa458d3c15c0095494",
+        "samples": 5,
+        "uiSuccesses": 5,
+        "memoryCompleteSamples": 5,
+        "totalPoints": 63,
+        "validPoints": 63,
+        "sourceUnchanged": true,
+        "cleanupComplete": true,
+        "exeSha256": "b4b29934563ae668ccda5d3ec5cefb9b01397f552d99f7e07e0e8345d1b3bf88",
+        "memoryIntervalMs": 2000,
+        "queryMedianMs": 1203.6310999999987,
+        "queryMaximumMs": 5868.519100000005,
+        "maximumActualStartIntervalMs": 5868,
+        "confirmedExitedObservations": 12,
+        "memorySummary": {
+          "samplesRequested": 5,
+          "successfulSamples": 5,
+          "medianObservedMaximumWorkingSetBytes": 722055168,
+          "p95ObservedMaximumWorkingSetBytes": 818315264
+        },
+        "uiSummary": [
+          {
+            "name": "startup",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 2280.8925000000004,
+            "p95Ms": 2768.7521
+          },
+          {
+            "name": "password-unlock",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 2804.2025000000003,
+            "p95Ms": 5102.4698
+          },
+          {
+            "name": "workspace",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 964.5325,
+            "p95Ms": 1529.2832999999998
+          },
+          {
+            "name": "search-needle",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 536.9666,
+            "p95Ms": 544.2419
+          },
+          {
+            "name": "application-lock",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 154.71779999999998,
+            "p95Ms": 178.6141
+          },
+          {
+            "name": "password-reunlock",
+            "successfulSamples": 5,
+            "requestedSamples": 5,
+            "medianMs": 2780.5327,
+            "p95Ms": 5670.8548
+          }
+        ]
+      }
+    ],
+    "sameExe": true,
+    "sameFrozenInputs": true,
+    "2000msOnly": true,
+    "accepted100CommittedArchive": {
+      "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\sdk-timeout-100\\native-perf-sdk-journey-results.json",
+      "relativePath": "sdk-timeout-100/native-perf-sdk-journey-results.json",
+      "archivePath": "sdk-timeout-100/native-perf-sdk-journey-results.json.gz",
+      "rawBytes": 814903,
+      "rawSha256": "9a067a8e3530bc67c8ded68fb6f438ab70c0cf1ca150f6c90d161d538cb853aa",
+      "gzipBytes": 59754,
+      "gzipSha256": "e7c273d20b76f5867567de4091a3fa335c32feaddb1f3c2c1332f53256b41d43"
+    },
+    "priorFailuresRetained": true,
+    "originalHomeTimeoutRootCause": "unresolved; no timeout in these accepted groups"
+  },
+  "sourceFreeze": {
+    "at": "2026-10-05T02:31:39.091080+00:00",
+    "files": [
+      {
+        "path": "tauri/Cargo.lock",
+        "bytes": 244517,
+        "sha256": "2cc2fd3e220ad7fa968a2140207ebf5367760fb97868c414adc776d62a495d1d"
+      },
+      {
+        "path": "tauri/scripts/native-perf-memory.mjs",
+        "bytes": 10601,
+        "sha256": "959ad8fbb30a23057f578241a2961af40e41bb464a11b9271824574da25d0157"
+      },
+      {
+        "path": "tauri/scripts/native-perf-memory.test.mjs",
+        "bytes": 24796,
+        "sha256": "52c44887404b9eca0de8d8382d234c8d0c4abb906e27200d29e5029fdc8df615"
+      },
+      {
+        "path": "tauri/scripts/native-perf-run.mjs",
+        "bytes": 61104,
+        "sha256": "76b1ea30e8bcc7f6414ac3d01c5cb44288bdf8ddec28a0ebf5b039ca6d76dc39"
+      },
+      {
+        "path": "tauri/scripts/native-perf-sdk-journey.mjs",
+        "bytes": 21275,
+        "sha256": "a8ed918cbe468d8920ec9448f13c91181c292dc987dea04e468383e0152b2420"
+      },
+      {
+        "path": "tauri/scripts/native-perf-sdk-journey.test.mjs",
+        "bytes": 11047,
+        "sha256": "7ee0ed82db53f145a7ddcdd04cf0b882f0308aac30bf259072c97fc7353fb10c"
+      },
+      {
+        "path": "tauri/scripts/run-node-tests.mjs",
+        "bytes": 1401,
+        "sha256": "8b97f1691a9e7c4c99ab10e2c8387616fab20228a2ae9afe92de566ec76a6980"
+      },
+      {
+        "path": "tauri/src-tauri/Cargo.toml",
+        "bytes": 4807,
+        "sha256": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf.rs",
+        "bytes": 28184,
+        "sha256": "a7827b5bc1c6af95e52ca662d11b3e3adb2a399e5733875d7f8bab90d12e7c12"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf/sdk_journey.js",
+        "bytes": 6023,
+        "sha256": "0fb71df82382c67f114e4ea8e9439b74195b2d9834d9a13510cf6813d913b30a"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf/sdk_journey.rs",
+        "bytes": 42541,
+        "sha256": "7d8e01b71eee07edf0f65beced0cb62b533c9fa47ac0a49cbcff155fbdbaa2dc"
+      },
+      {
+        "path": "tauri/src-tauri/tauri.conf.json",
+        "bytes": 3270,
+        "sha256": "7d7fc8afcbe54235ca5828e7a8dad32d5547f15237e1bb5cf29d65752980ca3f"
+      },
+      {
+        "path": "tauri/src-tauri/tauri.native-perf.conf.json",
+        "bytes": 318,
+        "sha256": "d8c99c935b83b62187d61e72258cbc9239ad97a0cf482cde789444814cfa4810"
+      }
+    ]
+  },
+  "exe": {
+    "at": "2026-10-05T02:48:42.816535+00:00",
+    "source": "C:\\Users\\40299571\\SoloSoul\\tauri\\target\\release\\solo_soul.exe",
+    "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-timeout-20261005\\bin\\solo_soul.exe",
+    "bytes": 101873152,
+    "sha256": "b4b29934563ae668ccda5d3ec5cefb9b01397f552d99f7e07e0e8345d1b3bf88",
+    "sourceFreezeUnchanged": true,
+    "buildReceipt": {
+      "finished": "2026-10-05T02:48:10.1823217Z",
+      "exitCode": 0,
+      "started": "2026-10-05T02:31:00.1960207Z",
+      "command": "npx tauri build --config src-tauri/tauri.native-perf.conf.json --features native-perf --no-bundle --ci"
+    },
+    "previousExePreserved": true
+  },
+  "checksReused": {
+    "source": "rf312-windows-timeout-diagnostics-2026-10-05.json",
+    "sourceFreezeExactMatch": true,
+    "nodeFull": "157 pass, 0 fail, 1 existing symbolic-link privilege skip",
+    "nativeRust": "46 pass, 0 fail, 0 ignored",
+    "strictClippy": "exit 0",
+    "reason": "same unchanged source; this stage adds native evidence and documents only"
+  },
+  "queryCountEvidence": {
+    "source": "rf1092-owned-cim-batching-2026-10-05.json",
+    "explicitMemorySeriesOwnedCommandLineQueries": 1,
+    "defaultQueriesUnchanged": 3,
+    "realPowerShellRegressionCases": 6,
+    "ownershipChecksRelaxed": false
+  },
+  "priorEvidence": [
+    "rf1092-owned-cim-batching-2026-10-05.json",
+    "rf1093-null-memory-2026-10-05.json",
+    "rf312-windows-timeout-diagnostics-2026-10-05.json"
+  ],
+  "interpretation": [
+    "Required same-EXE 100/5000 five-sample 2000ms groups now complete, without using 1000ms contrast or selected subsets.",
+    "Earlier failed groups retained; new successes do not prove original intermittent UI timeout fixed.",
+    "Query medians 1055.82/1203.63ms; 5000 maximum collection about 5868.52ms, so target interval does not guarantee resolution.",
+    "This is measurement-query overhead improvement; no claim of business latency improvement or true continuous memory peak."
+  ],
+  "finalProcessCheck": {
+    "at": "2026-10-05T03:11:26.6503658Z",
+    "queryProperties": ["ProcessId", "CreationDate", "Name"],
+    "identityDefinition": "PID + CreationDate Unix milliseconds + executable basename",
+    "noneOwnedLive": true,
+    "checks": [
+      {
+        "pid": 25360,
+        "creationMs": 1791169640954,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 43668,
+        "creationMs": 1791169642711,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 21312,
+        "creationMs": 1791169643501,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 17528,
+        "creationMs": 1791169643814,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 27940,
+        "creationMs": 1791169642825,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 19796,
+        "creationMs": 1791169644926,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 9576,
+        "creationMs": 1791169644927,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 20044,
+        "creationMs": 1791169643520,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 25192,
+        "creationMs": 1791169643656,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 43332,
+        "creationMs": 1791169653972,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 26976,
+        "creationMs": 1791169653991,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 26180,
+        "creationMs": 1791169653427,
+        "executableName": "SGBizLauncher.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 43428,
+        "creationMs": 1791169660981,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 4564,
+        "creationMs": 1791169661059,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 12072,
+        "creationMs": 1791169679784,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 7744,
+        "creationMs": 1791169680140,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 9884,
+        "creationMs": 1791169681321,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 10608,
+        "creationMs": 1791169680585,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 12716,
+        "creationMs": 1791169680216,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 6000,
+        "creationMs": 1791169680602,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 2920,
+        "creationMs": 1791169680641,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 36408,
+        "creationMs": 1791169680773,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 7464,
+        "creationMs": 1791169681319,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 31632,
+        "creationMs": 1791169688066,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 35592,
+        "creationMs": 1791169688084,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 7652,
+        "creationMs": 1791169693942,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 27776,
+        "creationMs": 1791169693956,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 31948,
+        "creationMs": 1791169695115,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 39420,
+        "creationMs": 1791169695128,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 27936,
+        "creationMs": 1791169715969,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 33388,
+        "creationMs": 1791169717577,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 22616,
+        "creationMs": 1791169718258,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 20876,
+        "creationMs": 1791169719358,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 31784,
+        "creationMs": 1791169718412,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 38344,
+        "creationMs": 1791169718218,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 18996,
+        "creationMs": 1791169718202,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 42744,
+        "creationMs": 1791169717652,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 34684,
+        "creationMs": 1791169719359,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 30636,
+        "creationMs": 1791169734880,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 17324,
+        "creationMs": 1791169734905,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 10960,
+        "creationMs": 1791169738503,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 21420,
+        "creationMs": 1791169738516,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 13860,
+        "creationMs": 1791169756195,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 26860,
+        "creationMs": 1791169756445,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 11140,
+        "creationMs": 1791169758705,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 40144,
+        "creationMs": 1791169758704,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 7148,
+        "creationMs": 1791169757008,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 40160,
+        "creationMs": 1791169756888,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 19352,
+        "creationMs": 1791169756500,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 22988,
+        "creationMs": 1791169756850,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 17512,
+        "creationMs": 1791169756848,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 26916,
+        "creationMs": 1791169767009,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 22668,
+        "creationMs": 1791169770773,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 4172,
+        "creationMs": 1791169770783,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 40924,
+        "creationMs": 1791169787039,
+        "executableName": "solo_soul.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 25800,
+        "creationMs": 1791169789195,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 10176,
+        "creationMs": 1791169789627,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 16108,
+        "creationMs": 1791169789745,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 22584,
+        "creationMs": 1791169789231,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 32016,
+        "creationMs": 1791169790352,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 29804,
+        "creationMs": 1791169789629,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 21640,
+        "creationMs": 1791169789653,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 18728,
+        "creationMs": 1791169790351,
+        "executableName": "msedgewebview2.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 32936,
+        "creationMs": 1791169797174,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 28728,
+        "creationMs": 1791169797189,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 28824,
+        "creationMs": 1791169803385,
+        "executableName": "icacls.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      },
+      {
+        "pid": 17156,
+        "creationMs": 1791169803396,
+        "executableName": "conhost.exe",
+        "sameIdentityLive": false,
+        "unverifiableCurrentPidPresent": false,
+        "currentPidPresent": false
+      }
+    ],
+    "extraProcessesTerminated": 0
+  },
+  "cleanup": {
+    "at": "2026-10-05T03:11:31.6612781Z",
+    "targets": [
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.3b734339c12f4993ba79bd49a74af3a9",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.3b734339c12f4993ba79bd49a74af3a9",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.ae8f35bbcccf4ef59f60c7b4a8ef4eb6",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.ae8f35bbcccf4ef59f60c7b4a8ef4eb6",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.22b472ddf1b74564adf824857c37a184",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.22b472ddf1b74564adf824857c37a184",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.efcf01bc9a854b6ba1ea3b346f8cb6cc",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.efcf01bc9a854b6ba1ea3b346f8cb6cc",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\app-data",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\models",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\plugins",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\profile",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\temp",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\webview",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.d2544c61012644a9a920242592a35e08",
+        "removed": true
+      },
+      {
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.d2544c61012644a9a920242592a35e08",
+        "removed": true
+      }
+    ],
+    "unlinked": [
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+        "operation": "unlink-only",
+        "targetTraversed": false
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+        "operation": "unlink-only",
+        "targetTraversed": false
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+        "operation": "unlink-only",
+        "targetTraversed": false
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-004\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+        "operation": "unlink-only",
+        "targetTraversed": false
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "target": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1092-native-accept-20261005\\sdk-5000\\sample-005\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE",
+        "operation": "unlink-only",
+        "targetTraversed": false
+      }
+    ],
+    "preserved": [
+      "vault",
+      "native markers",
+      "raw sample reports",
+      "public fixtures",
+      "reusable binary/resources"
+    ]
+  },
+  "preservation": {
+    "at": "2026-10-05T03:14:22.343197+00:00",
+    "unrelatedRawShaMatches": 4227,
+    "frozenInputsUnchanged": 13,
+    "publicFixtureFilesUnchanged": 14,
+    "publicResourcesUnchanged": 94,
+    "stashUnchanged": true,
+    "submoduleUnchanged": true,
+    "exeUnchanged": true
+  },
+  "rawArchive": {
+    "index": "rf1092-native-acceptance-2026-10-05/index.json",
+    "encoding": "byte-exact gzip; metadata LF"
+  },
+  "push": false
+}
