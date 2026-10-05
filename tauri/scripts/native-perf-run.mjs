@@ -514,8 +514,12 @@ foreach ($row in $owned.Values) {
     $workingSet = $process.WorkingSet64; $privateBytes=$process.PrivateMemorySize64; $cpuMs=$process.TotalProcessorTime.TotalMilliseconds
   } catch {
     $reason = 'Process memory or identity unavailable'
-    # 仅显式连续采样允许识别已退出后代。一次固定 fresh CIM 核验仍有 PID 时拒绝，不能当作已退出。
-    if ($action -eq 'memory-series' -and $row.pid -ne $expectedPid) {
+  }
+  # 短命进程的内存属性可能为空但不抛异常；仅连续采样将此情况纳入同一次退出核验。
+  if ($action -eq 'memory-series' -and ($reason -or $null -eq $workingSet -or $null -eq $privateBytes)) {
+    if (!$reason) { $reason = 'Process memory reading incomplete' }
+    # 一次固定 fresh CIM 核验仍有 PID 时拒绝；根进程和默认采样不走后代退出确认。
+    if ($row.pid -ne $expectedPid) {
       try {
         $remaining = @(Get-CimInstance Win32_Process -Filter ("ProcessId = " + $row.pid) -Property ProcessId,CreationDate,ExecutablePath)
         if ($remaining.Count -eq 0) {

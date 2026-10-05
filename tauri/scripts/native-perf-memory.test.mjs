@@ -497,3 +497,102 @@ ${ownedProcesses.PROCESS_SCRIPT.replace(
     }
   },
 );
+
+test(
+  'actual memory block confirms null properties only for absent descendants and keeps default/root/live failures',
+  { skip: process.platform === 'win32' ? false : 'Requires Windows PowerShell 5.1' },
+  () => {
+    const source = ownedProcesses.PROCESS_SCRIPT;
+    const block = source.slice(
+      source.indexOf('$processes = @()'),
+      source.indexOf('$result = @{rootVerified=$true'),
+    );
+    const provider = '$process = [Diagnostics.Process]::GetProcessById($row.pid)';
+    assert.equal(block.split(provider).length, 2);
+    for (const scenario of [
+      'null-absent',
+      'private-only-absent',
+      'working-set-only-absent',
+      'null-live',
+      'null-reused',
+      'null-query-error',
+      'null-root',
+      'null-default',
+      'throw-absent',
+      'throw-live',
+      'identity-changed-live',
+      'valid',
+      'valid-zero',
+    ]) {
+      const absent = scenario.endsWith('-absent');
+      const defaultMode = scenario === 'null-default';
+      const root = scenario === 'null-root';
+      const valid = scenario.startsWith('valid');
+      const script = `
+$ErrorActionPreference='Stop'
+$stamp=[DateTime]::UtcNow
+$expectedPid=${root ? 2147483200 : 100}
+$action='${defaultMode ? 'sample' : 'memory-series'}'
+$owned=@{2147483200=@{pid=2147483200;creationMs=([DateTimeOffset]$stamp).ToUnixTimeMilliseconds();executablePath='C:\\owned\\icacls.exe';name='icacls.exe'}}
+$ws=${valid || scenario === 'private-only-absent' ? (scenario === 'valid-zero' ? '0' : '4096') : '$null'}
+$private=${valid || scenario === 'working-set-only-absent' ? (scenario === 'valid-zero' ? '0' : '8192') : '$null'}
+$fakeProcess=[PSCustomObject]@{StartTime=$stamp;WorkingSet64=$ws;PrivateMemorySize64=$private;TotalProcessorTime=[PSCustomObject]@{TotalMilliseconds=15.625}}
+if ('${scenario}' -like 'throw-*') {
+  $fakeProcess | Add-Member -Force -MemberType ScriptProperty -Name WorkingSet64 -Value {throw 'simulated getter failure'}
+}
+if ('${scenario}' -eq 'identity-changed-live') {$fakeProcess.StartTime=$stamp.AddMilliseconds(1)}
+$script:queries=@()
+function Get-CimInstance { param($ClassName,$Filter,$Property)
+  $script:queries+=@([ordered]@{filter=$Filter;properties=$Property})
+  if ('${scenario}' -eq 'null-query-error') {throw 'simulated CIM failure'}
+  $freshCreation=$stamp; $freshPath='C:\\owned\\icacls.exe'
+  if ('${scenario}' -eq 'null-reused') {$freshCreation=$stamp.AddMilliseconds(1);$freshPath='C:\\foreign\\other.exe'}
+  ${absent ? '' : '[PSCustomObject]@{ProcessId=2147483200;CreationDate=$freshCreation;ExecutablePath=$freshPath}'}
+}
+${block.replace(provider, '$process = $fakeProcess')}
+@{rows=$processes;queries=$script:queries} | ConvertTo-Json -Depth 5 -Compress
+`;
+      const dir = mkdtempSync(path.join(os.tmpdir(), 'rf1093-memory-block-'));
+      const file = path.join(dir, 'probe.ps1');
+      writeFileSync(file, '\uFEFF' + script, 'utf8');
+      let result;
+      try {
+        result = spawnSync(
+          'powershell.exe',
+          ['-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', file],
+          { windowsHide: true, encoding: 'utf8', timeout: 15000 },
+        );
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+      assert.equal(result.status, 0, scenario + result.stdout + result.stderr);
+      assert.equal(result.stderr.trim(), '', scenario + result.stderr);
+      const value = JSON.parse(result.stdout.replace(/^\uFEFF/, '').trim());
+      const row = value.rows[0];
+      assert.equal(value.rows.length, 1, scenario);
+      assert.equal(row.memoryStatus === 'confirmed-exited', absent, scenario);
+      assert.equal(value.queries.length, valid || defaultMode || root ? 0 : 1, scenario);
+      for (const query of value.queries) {
+        assert.equal(query.filter, 'ProcessId = 2147483200', scenario);
+        assert.deepEqual(query.properties, ['ProcessId', 'CreationDate', 'ExecutablePath']);
+      }
+      if (absent) {
+        assert.equal(row.workingSetBytes, null);
+        assert.equal(row.privateBytes, null);
+        assert.equal(row.cpuMs, null);
+        assert.ok(Number.isFinite(row.exitConfirmedAtMs));
+        assert.equal(
+          row.reason,
+          'Process exited before memory collection; absence confirmed by fresh CIM',
+        );
+      } else if (valid) {
+        assert.equal(row.reason, null);
+        assert.equal(row.workingSetBytes, scenario === 'valid-zero' ? 0 : 4096);
+      } else {
+        assert.equal(row.memoryStatus, undefined);
+        assert.equal(row.workingSetBytes, null);
+        assert.equal(defaultMode ? row.reason === null : typeof row.reason === 'string', true);
+      }
+    }
+  },
+);

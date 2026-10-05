@@ -379,3 +379,20 @@ node scripts/native-perf-sdk-journey.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe'
 完整Node155项：154通过、0失败、1既有Windows文件symlink权限跳过；源/EXE冻结保持，Rust/Vitest/production E2E未重跑。216记录身份fresh CIM均无owned活进程；仅删除160精确核验缓存，20链接解除且不遍历目标，保留公开源、Vault/markers/reports、EXE和94资源。报告RF-1092继续待验证，不能据此关闭RF-312。
 
 [结构化证据](rf1092-owned-cim-batching-2026-10-05.json)与[原始档案索引](rf1092-owned-cim-batching-2026-10-05/index.json)保存四个完整批次、所有失败、原生marker/每点读数、检查/冻结和收尾。复跑命令沿用上一节，输出必须另建，不能复用consumed root。当前建议先执行RF-1093，再完善SDK失败诊断并复验100组；之后推进同profile受控进程热启动、公开OCR/预览及KDF/存储/React/SDK归因。外部原生材质/辅助功能矩阵与macOS隔离恢复仍独立等待。
+
+
+## 2026-10-05 · RF-1093 空内存属性退出核验阶段
+
+仅显式memory-series的缺失workingSet/privateBytes属性与读取异常共用一次fresh CIM缺席确认；仅已验证后代PID不存在才记录退出，数值保持null。活PID、复用/身份变化或查询失败仍拒绝；根进程和默认采样/清理保持。没有增加Process.Refresh调用。真实PS13场景通过，完整Node156项为155通过/0失败/1既有symlink权限跳过。
+
+| 指标 | 100对象 | 5000对象 |
+| --- | --- | --- |
+| UI成功 / 内存完整 | 4/5 / 4/5 | 5/5 / 5/5 |
+| 有效读数 / 全部 | 72/72 | 59/59 |
+| 查询中位 / 最大（ms） | 1002.8 / 2460.9 | 1290.5 / 9006.1 |
+| 已确认退出后代观察次数 | 8 | 8 |
+| 整组验收 | 拒绝，sample-003再次解锁后home超时 | 通过 |
+
+同一EXE、公开源、2秒间隔均冻结；所有131点有效，100的after-journey覆盖仍因UI未完成而不完整，整组acceptedPerformanceMetrics=null。不得从有效读数推断整行程已通过。5000一次查询约9秒，仍是非原子采样工作集，非连续真实峰值；非受控A/B、不宣称业务加速。
+
+[证据](rf1093-null-memory-2026-10-05.json)与[原始索引](rf1093-null-memory-2026-10-05/index.json)包含全部样本、源码/EXE冻结、检查与清理。fresh CIM114身份无owned活进程；仅删除80核验缓存，10链接解除且不遍历目标；公开源、94资源及EXE、Vault/markers/reports保留。RF-1092/1093均等待100整组验收，RF-312继续未完成。下一本地工作是保留身份/主frame校验后的超时诊断及有限焦点/可见性状态，定位SDK/UI失败；正常成功判定、超时和业务IPC规则保持，再推进热启动与OCR/预览等缺失场景。
