@@ -139,7 +139,7 @@
         (hit === node || node.contains(hit)),
     };
   }
-  return {
+  const probe = {
     schemaVersion: 1,
     scope: 'windows-native-sdk-ui-probe',
     runId,
@@ -155,4 +155,18 @@
     inputTrust: window.__SOLOSOUL_SDK_JOURNEY_INPUTS__.snapshot(),
     observer: window.__SOLOSOUL_NATIVE_PERF__?.snapshot(),
   };
+  if (result === 'timeout') {
+    const submit = targets.submit();
+    probe.timeoutState = {
+      focused: document.hasFocus(),
+      visibility: document.visibilityState,
+      viewportWidth: innerWidth,
+      viewportHeight: innerHeight,
+      homeVisible: home(),
+      passwordVisible: visible(input()),
+      submitVisible: visible(submit),
+      submitDisabled: Boolean(submit?.disabled),
+    };
+  }
+  return probe;
 })();

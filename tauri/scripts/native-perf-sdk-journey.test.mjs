@@ -253,3 +253,90 @@ test('rejected, interrupted or source-invalid samples never enter SDK performanc
     1,
   );
 });
+
+test('timeout diagnostic cannot make a failed or extra-field SDK proof successful', () => {
+  const { bound, proof } = fixture();
+  proof.timeoutDiagnostic = { frameVerified: true, probe: { outcome: 'timeout' } };
+  assert.throws(() => checkJourney(proof, owned, bound, { objectCount: 100 }));
+  proof.success = false;
+  proof.reason = 'probe-timeout';
+  assert.throws(() => checkJourney(proof, owned, bound, { objectCount: 100 }));
+  assert.equal(
+    summarizeJourneys([{ success: false, nativeProof: proof, phases: proof.phases }], 5)[0]
+      .medianMs,
+    null,
+  );
+});
+
+test('actual timed-out SDK probe captures only bounded UI state without reading credentials or sending input', async () => {
+  const element = {
+    disabled: false,
+    getBoundingClientRect: () => ({ x: 10, y: 10, width: 100, height: 40 }),
+  };
+  Object.defineProperty(element, 'value', {
+    get() {
+      throw new Error('credential read');
+    },
+    set() {
+      throw new Error('credential write');
+    },
+  });
+  element.click = () => {
+    throw new Error('DOM click');
+  };
+  const observer = fixture().proof.lastProbe.observer;
+  const window = {
+    __SOLOSOUL_NATIVE_PERF_RUN_ID__: runId,
+    __SOLOSOUL_NATIVE_PERF__: { snapshot: () => observer },
+    addEventListener: () => {},
+  };
+  window.top = window;
+  let clock = 0;
+  const context = {
+    window,
+    document: {
+      hasFocus: () => false,
+      visibilityState: 'hidden',
+      getElementById: (id) => (id === 'root' ? { hasChildNodes: () => true } : null),
+      querySelectorAll: (selector) =>
+        ['[data-login-method-region="password"] input', '[data-login-password-submit]'].includes(
+          selector,
+        )
+          ? [element]
+          : [],
+    },
+    location: {
+      pathname: '/login',
+      origin: 'http://tauri.localhost',
+      href: 'http://tauri.localhost/login',
+    },
+    performance: { now: () => (clock++ === 0 ? 0 : 45001), timeOrigin: 10 },
+    getComputedStyle: () => ({ visibility: 'visible', display: 'block' }),
+    requestAnimationFrame: (callback) => queueMicrotask(callback),
+    innerWidth: 1024,
+    innerHeight: 768,
+  };
+  const source = await readFile(
+    new URL('../src-tauri/src/native_perf/sdk_journey.js', import.meta.url),
+    'utf8',
+  );
+  const raw = await vm.runInNewContext(
+    source.replace('__REQUEST__', JSON.stringify({ step: 'home', runId, objectCount: 100 })),
+    context,
+  );
+  const result = JSON.parse(JSON.stringify(raw));
+  assert.equal(result.outcome, 'timeout');
+  assert.deepEqual(result.timeoutState, {
+    focused: false,
+    visibility: 'hidden',
+    viewportWidth: 1024,
+    viewportHeight: 768,
+    homeVisible: false,
+    passwordVisible: true,
+    submitVisible: true,
+    submitDisabled: false,
+  });
+  assert.equal(Object.keys(result).length, 15);
+  assert.deepEqual(result.inputTrust, { pointer: 0, text: 0, untrusted: 0 });
+  assert.equal(JSON.stringify(result).includes('sentinel'), false);
+});

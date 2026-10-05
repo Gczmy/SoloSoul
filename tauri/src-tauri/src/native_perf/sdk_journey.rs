@@ -192,6 +192,7 @@ struct Capture {
     calls: Vec<&'static str>,
     phases: Vec<Value>,
     last: Option<Value>,
+    timeout_diagnostic: Option<Value>,
     step: &'static str,
 }
 impl Capture {
@@ -356,7 +357,17 @@ impl Capture {
                 json!({"expression":expression,"returnByValue":true,"awaitPromise":true}),
             )
             .await?;
-        let probe = validate_probe(&raw, step, &self.config.run_id, self.time_origin.as_ref())?;
+        let probe = match validate_probe(&raw, step, &self.config.run_id, self.time_origin.as_ref())
+        {
+            Ok(probe) => probe,
+            Err(reason) => {
+                if reason == "probe-timeout" {
+                    // 失败仍失败；仅保留重新核验身份与主frame后的有限诊断。
+                    let _ = self.remember_timeout(&raw, step).await;
+                }
+                return Err(reason);
+            }
+        };
         // 每个操作前后都核实同一主frame与loader；SPA Source变化只允许固定应用路径。
         if let Some(expected) = self.frame.clone() {
             let tree = self.protocol("Page.getFrameTree", json!({})).await?;
@@ -369,6 +380,14 @@ impl Capture {
         }
         self.last = Some(probe.clone());
         Ok(probe)
+    }
+    async fn remember_timeout(&mut self, raw: &Value, step: &str) -> Outcome<()> {
+        let expected = self.frame.clone().ok_or("sdk-binding-unavailable")?;
+        let clock = self.time_origin.clone().ok_or("sdk-binding-unavailable")?;
+        let (probe, state) = validate_timeout_snapshot(raw, step, &self.config.run_id, &clock)?;
+        let tree = self.protocol("Page.getFrameTree", json!({})).await?;
+        self.timeout_diagnostic = Some(bind_timeout_diagnostic(probe, state, &expected, &tree)?);
+        Ok(())
     }
     async fn click(&mut self, target: &'static str) -> Outcome<()> {
         let probe = self.probe(target).await?;
@@ -561,12 +580,22 @@ fn validate_probe(
     if probe["outcome"] == "document-mismatch" {
         return Err("probe-document-mismatch");
     }
+    validate_probe_fields(probe, step, run_id, time_origin, "ready")
+}
+
+fn validate_probe_fields(
+    probe: &Value,
+    step: &str,
+    run_id: &str,
+    time_origin: Option<&Value>,
+    outcome: &str,
+) -> Outcome<Value> {
     if probe.as_object().map_or(0, |v| v.len()) != 14
         || probe["schemaVersion"] != 1
         || probe["scope"] != "windows-native-sdk-ui-probe"
         || probe["runId"] != run_id
         || probe["step"] != step
-        || probe["outcome"] != "ready"
+        || probe["outcome"] != outcome
         || probe["origin"] != "http://tauri.localhost"
         || probe["rootPresent"] != true
         || probe["frameCount"] != 0
@@ -614,6 +643,65 @@ fn validate_probe(
     }
     Ok(probe.clone())
 }
+// 与成功探针共用全部身份、时钟、事件和payload拒绝规则；timeout不转换为ready。
+fn validate_timeout_snapshot(
+    raw: &Value,
+    step: &str,
+    run_id: &str,
+    clock: &Value,
+) -> Outcome<(Value, Value)> {
+    if raw.get("exceptionDetails").is_some() || raw["result"]["type"] != "object" {
+        return Err("probe-evaluation-failed");
+    }
+    let mut probe = raw["result"]["value"].clone();
+    let state = probe
+        .as_object_mut()
+        .ok_or("probe-invalid")?
+        .remove("timeoutState")
+        .ok_or("probe-invalid")?;
+    let probe = validate_probe_fields(&probe, step, run_id, Some(clock), "timeout")?;
+    if state.as_object().map_or(0, |v| v.len()) != 8
+        || !state["visibility"]
+            .as_str()
+            .is_some_and(|s| matches!(s, "visible" | "hidden"))
+        || [
+            "focused",
+            "homeVisible",
+            "passwordVisible",
+            "submitVisible",
+            "submitDisabled",
+        ]
+        .iter()
+        .any(|key| !state[key].is_boolean())
+        || ["viewportWidth", "viewportHeight"].iter().any(|key| {
+            state[key]
+                .as_f64()
+                .is_none_or(|n| !n.is_finite() || n <= 0.0 || n > 16384.0)
+        })
+        || probe.to_string().len() > 262_144
+    {
+        return Err("probe-invalid");
+    }
+    Ok((probe, state))
+}
+
+fn bind_timeout_diagnostic(
+    probe: Value,
+    state: Value,
+    expected: &Value,
+    tree: &Value,
+) -> Outcome<Value> {
+    let frame = parse_frame(tree, probe["href"].as_str().ok_or("probe-invalid")?)?;
+    if frame["mainFrameId"] != expected["mainFrameId"] || frame["loaderId"] != expected["loaderId"]
+    {
+        return Err("document-replaced");
+    }
+    Ok(
+        json!({"schemaVersion":1,"scope":"windows-native-sdk-ui-timeout","frameVerified":true,
+        "probe":probe,"state":state}),
+    )
+}
+
 fn validate_observer(value: &Value, run_id: &str, time_origin: &Value) -> Outcome<()> {
     let commands = value["commands"].as_array().ok_or("observer-invalid")?;
     if value.as_object().map_or(0, |v| v.len()) != 11
@@ -675,6 +763,7 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
         calls: vec![],
         phases: vec![],
         last: None,
+        timeout_diagnostic: None,
         step: "startup",
     };
     let mut outcome = tokio::time::timeout(Duration::from_millis(MAX_RUN_MS), capture.journey())
@@ -687,13 +776,20 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
         outcome = Err(reason);
     }
     let ipc_all=capture.last.as_ref().and_then(|last|ipc_delta(&json!({"commands":[],"timeOriginMs":last["timeOriginMs"],"runId":capture.config.run_id}),&last["observer"]).ok());
-    let proof = json!({"schemaVersion":1,"scope":"windows-native-sdk-ui-journey","runId":capture.config.run_id,
+    let mut proof = json!({"schemaVersion":1,"scope":"windows-native-sdk-ui-journey","runId":capture.config.run_id,
         "root":capture.config.root,"pid":std::process::id(),"port":capture.config.port,"objectCount":capture.config.object_count,
         "browserPid":capture.browser_pid,"binding":capture.frame,"timeOriginMs":capture.time_origin,
         "inputMethod":"SDK-CDP-Input","success":outcome.is_ok(),"reason":outcome.err(),"failedStep":if outcome.is_err(){Some(capture.step)}else{None},
         "calls":capture.calls,"phases":capture.phases,"lastProbe":capture.last,"ipcAll":ipc_all,
         "elapsedMs":capture.started.elapsed().as_secs_f64()*1000.0,
         "unmeasured":["OCR","attachment-preview","system-sleep","same-profile-warm-start","other-platforms"]});
+    if let Some(diagnostic) = capture
+        .timeout_diagnostic
+        .take()
+        .filter(|_| outcome == Err("probe-timeout"))
+    {
+        proof["timeoutDiagnostic"] = diagnostic;
+    }
     let _ = publish(&capture.config.root, PROOF_FILE, &proof);
 }
 
@@ -799,6 +895,101 @@ mod probe_tests {
             validate_probe(&future, "home", "abc", Some(&json!(10))).unwrap_err(),
             "observer-invalid"
         );
+    }
+    fn timed_probe() -> Value {
+        let mut timed = probe();
+        timed["result"]["value"]["outcome"] = json!("timeout");
+        timed["result"]["value"]["timeoutState"] = json!({
+            "focused":false,"visibility":"visible","viewportWidth":1024,"viewportHeight":768,
+            "homeVisible":false,"passwordVisible":true,"submitVisible":true,"submitDisabled":false
+        });
+        timed
+    }
+    #[test]
+    fn timeout_diagnostic_requires_exact_identity_and_keeps_failure_outcome() {
+        let timed = timed_probe();
+        assert_eq!(
+            validate_probe(&timed, "home", "abc", Some(&json!(10))).unwrap_err(),
+            "probe-timeout"
+        );
+        let (value, state) = validate_timeout_snapshot(&timed, "home", "abc", &json!(10)).unwrap();
+        assert_eq!(value["outcome"], "timeout");
+        assert_eq!(state["focused"], false);
+        assert!(value.get("timeoutState").is_none());
+        for (key, bad) in [
+            ("runId", json!("other")),
+            ("step", json!("submit")),
+            ("origin", json!("http://other")),
+            ("href", json!("http://other/login")),
+            ("timeOriginMs", json!(11)),
+            ("frameCount", json!(1)),
+            ("outcome", json!("ready")),
+            ("private", json!("sentinel")),
+        ] {
+            let mut changed = timed.clone();
+            changed["result"]["value"][key] = bad;
+            assert!(
+                validate_timeout_snapshot(&changed, "home", "abc", &json!(10)).is_err(),
+                "{key}"
+            );
+        }
+        let mut payload = timed.clone();
+        payload["result"]["value"]["observer"]["commands"][0]["payload"] = json!("sentinel");
+        assert!(validate_timeout_snapshot(&payload, "home", "abc", &json!(10)).is_err());
+        let mut future = timed;
+        future["result"]["value"]["observer"]["commands"][0]["atMs"] = json!(4);
+        assert!(validate_timeout_snapshot(&future, "home", "abc", &json!(10)).is_err());
+    }
+    #[test]
+    fn timeout_diagnostic_state_is_bounded_and_unknown_data_is_rejected() {
+        for (key, bad) in [
+            ("private", json!("sentinel")),
+            ("focused", json!("false")),
+            ("visibility", json!("other")),
+            ("viewportWidth", json!(0)),
+            ("viewportHeight", json!(16385)),
+            ("submitDisabled", json!(null)),
+        ] {
+            let mut changed = timed_probe();
+            changed["result"]["value"]["timeoutState"][key] = bad;
+            assert!(
+                validate_timeout_snapshot(&changed, "home", "abc", &json!(10)).is_err(),
+                "{key}"
+            );
+        }
+        let mut oversized = timed_probe();
+        let observer = &mut oversized["result"]["value"]["observer"];
+        observer["commands"] = json!(vec![json!({"command":"a".repeat(200),"atMs":1}); 5000]);
+        observer["total"] = json!(5000);
+        observer["observedCount"] = json!(5000);
+        assert!(validate_timeout_snapshot(&oversized, "home", "abc", &json!(10)).is_err());
+    }
+    #[test]
+    fn timeout_diagnostic_requires_the_same_single_main_frame_and_loader() {
+        let (probe, state) =
+            validate_timeout_snapshot(&timed_probe(), "home", "abc", &json!(10)).unwrap();
+        let expected = json!({"mainFrameId":"FRAME","loaderId":"LOADER"});
+        let tree = json!({"frameTree":{"frame":{"id":"FRAME","loaderId":"LOADER","url":"http://tauri.localhost/","securityOrigin":"http://tauri.localhost"}}});
+        let diagnostic =
+            bind_timeout_diagnostic(probe.clone(), state.clone(), &expected, &tree).unwrap();
+        assert_eq!(diagnostic["frameVerified"], true);
+        assert_eq!(diagnostic["probe"]["outcome"], "timeout");
+        for (key, bad) in [
+            ("id", json!("OTHER")),
+            ("loaderId", json!("OTHER")),
+            ("url", json!("http://tauri.localhost/login")),
+            ("parentId", json!("PARENT")),
+            ("securityOrigin", json!("http://other")),
+        ] {
+            let mut changed = tree.clone();
+            changed["frameTree"]["frame"][key] = bad;
+            assert!(
+                bind_timeout_diagnostic(probe.clone(), state.clone(), &expected, &changed).is_err()
+            );
+        }
+        let mut child = tree;
+        child["frameTree"]["childFrames"] = json!([{}]);
+        assert!(bind_timeout_diagnostic(probe, state, &expected, &child).is_err());
     }
     #[test]
     fn fixed_probe_timeout_never_becomes_success() {
