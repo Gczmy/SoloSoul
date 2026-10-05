@@ -1,0 +1,2371 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "stage": "公开媒体数据集生成、源仅读重开及 owned 副本路径重定位",
+  "at": "2026-10-05T07:10:04.013596+00:00",
+  "baseline": "37545f3c7775d2067636ac66599fa570eb323dfb",
+  "codeScope": "solosoul-core perf_baseline example only; production GUI/IPC untouched",
+  "releaseExecutable": {
+    "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+    "sha256": "9898b4f9059d1dd289bb96889f8e5c9fa15698fef2a7ab7441bb0c09a7067093",
+    "bytes": 23451136,
+    "inputs": {
+      "crates/solosoul-core/examples/perf_baseline.rs": "8e650919fe2d4530f5fcdbd612324e7a65644ef9555db9805e2b916ea3b7e404",
+      "crates/solosoul-core/examples/perf_baseline/fixture.rs": "ab77dab6695ff53e1ac78fa6597196e451d7db12a6ad93ff684db3d2e0505247",
+      "crates/solosoul-core/examples/perf_baseline/media.rs": "7b5933d50e96597c43b7a133c85e13f17c5748f5055aa9e9c62acfa46a2b133e",
+      "Cargo.lock": "2cc2fd3e220ad7fa968a2140207ebf5367760fb97868c414adc776d62a495d1d",
+      "Cargo.toml": "2b6bb7efb8c19dcf30d412ace48ab59ff81e3834a023e5fa1e6a366bef4d3430",
+      "crates/solosoul-core/Cargo.toml": "37e2d4c6a8257dd420ab39ac57d04e6a4f1c52f46230a779b5db199c13c31949"
+    },
+    "build": {
+      "command": [
+        "cargo",
+        "build",
+        "--locked",
+        "--release",
+        "-p",
+        "solosoul-core",
+        "--example",
+        "perf_baseline"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 237.97070789989084,
+      "finishedAt": "2026-10-05T06:58:11.293814+00:00",
+      "log": "media-release-build.log"
+    }
+  },
+  "debugExecutable": {
+    "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline_debug.exe",
+    "sha256": "7fe6a36eff674f0e253366ec396ddce2d4e400ba4e9e2b8251fd4ba59bbcc046",
+    "bytes": 23128064
+  },
+  "checks": {
+    "media-example-tests-first.json": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--example",
+        "perf_baseline",
+        "--",
+        "--test-threads=1"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 97.14646869990975,
+      "finishedAt": "2026-10-05T06:50:21.046796+00:00",
+      "log": "media-example-tests-first.log"
+    },
+    "media-example-tests-final.json": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--example",
+        "perf_baseline",
+        "--",
+        "--test-threads=1"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 18.596053400076926,
+      "finishedAt": "2026-10-05T06:53:56.449731+00:00",
+      "log": "media-example-tests-final.log"
+    },
+    "media-example-clippy.json": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--example",
+        "perf_baseline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 16.84615710005164,
+      "finishedAt": "2026-10-05T06:54:13.310929+00:00",
+      "log": "media-example-clippy.log"
+    },
+    "media-release-build.json": {
+      "command": [
+        "cargo",
+        "build",
+        "--locked",
+        "--release",
+        "-p",
+        "solosoul-core",
+        "--example",
+        "perf_baseline"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 237.97070789989084,
+      "finishedAt": "2026-10-05T06:58:11.293814+00:00",
+      "log": "media-release-build.log"
+    },
+    "media-debug-build.json": {
+      "command": [
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--example",
+        "perf_baseline"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 45.201578199863434,
+      "finishedAt": "2026-10-05T07:03:08.957912+00:00",
+      "log": "media-debug-build.log"
+    },
+    "static-checks.json": [
+      {
+        "name": "fmt",
+        "command": [
+          "cargo",
+          "+1.99.0",
+          "fmt",
+          "--all",
+          "--check"
+        ],
+        "cwd": "C:\\Users\\40299571\\SoloSoul\\tauri",
+        "exitCode": 0,
+        "durationSeconds": 12.706974799744785,
+        "log": "fmt.log"
+      },
+      {
+        "name": "diff",
+        "command": [
+          "git",
+          "-c",
+          "safe.directory=C:/Users/40299571/SoloSoul",
+          "-c",
+          "core.safecrlf=false",
+          "diff",
+          "--check"
+        ],
+        "cwd": "C:\\Users\\40299571\\SoloSoul",
+        "exitCode": 0,
+        "durationSeconds": 0.1772384000942111,
+        "log": "diff.log"
+      },
+      {
+        "name": "new-doc-format",
+        "command": [
+          "C:\\Users\\40299571\\SoloSoul\\tauri\\node_modules\\.bin\\prettier.cmd",
+          "--write",
+          "docs/performance/RF-312-media-fixture-contract.md"
+        ],
+        "cwd": "C:\\Users\\40299571\\SoloSoul",
+        "exitCode": 0,
+        "durationSeconds": 0.7678447999060154,
+        "log": "new-doc-format.log"
+      }
+    ],
+    "precommit-integrity.json": {
+      "at": "2026-10-05T07:07:38.729971+00:00",
+      "unrelatedTrackedFilesUnchanged": 4481,
+      "allowedChangedTrackedFiles": [
+        "tauri/crates/solosoul-core/examples/perf_baseline.rs",
+        "tauri/crates/solosoul-core/examples/perf_baseline/fixture.rs"
+      ],
+      "legacyFixtureFilesUnchanged": 14,
+      "frozenInputsUnchanged": 6,
+      "releaseAndDebugExecutablesUnchanged": true,
+      "stashPreserved": true,
+      "submodulePreservedAndClean": true,
+      "pushPerformed": false
+    },
+    "owned-process-exit.json": {
+      "processCount": 0,
+      "scope": "fresh owned media executable absence",
+      "at": "2026-10-05T07:08:09.2956313Z",
+      "expectedPaths": [
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline_debug.exe"
+      ]
+    },
+    "documentationFinal": {
+      "at": "2026-10-05T07:12:04.799316+00:00",
+      "taskIndexCountsVerified": {
+        "total": 283,
+        "closed": 274,
+        "waiting": 3,
+        "pending": 6
+      },
+      "newLinksResolved": true,
+      "markdownFencesBalanced": true,
+      "byteExactArchivesVerified": 87,
+      "gitDiffCheckExitCode": 0,
+      "scope": "documentation/evidence checks only; native UI remains unmeasured"
+    }
+  },
+  "actualFixtureAcceptance": {
+    "scope": "public-media-fixture-real-release-generation-and-read-only-reopen",
+    "at": "2026-10-05T07:05:40.281843+00:00",
+    "success": true,
+    "executableSha256": "9898b4f9059d1dd289bb96889f8e5c9fa15698fef2a7ab7441bb0c09a7067093",
+    "positiveReleaseCases": 11,
+    "positiveDebugPrerequisiteCases": 1,
+    "expectedRejections": 5,
+    "objects": [
+      100,
+      5000
+    ],
+    "attachmentsEach": 4,
+    "allSourceFilesUnchanged": true,
+    "legacy14FilesUnchanged": true,
+    "legacyContractEqualToFrozenV1": true,
+    "existingOutputUnchangedOnRejection": true,
+    "developmentFixtureRejectedBeforeOutputCreation": true,
+    "releaseDefaultAndSecureZeroBothProduction": true,
+    "historicalFailures": [
+      "release-driver-first-failure.json"
+    ],
+    "nativeUiMeasured": false,
+    "performanceMeasured": false,
+    "results": [
+      {
+        "name": "generate-100",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--media-fixture-output",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault100",
+          "--objects",
+          "100"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "durationSeconds": 5.869088400155306,
+        "finishedAt": "2026-10-05T07:00:06.303906+00:00",
+        "stdout": "generate-100.stdout.log",
+        "stderr": "generate-100.stderr.log",
+        "result": {
+          "fixturePath": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault100",
+          "manifest": {
+            "attachments": [
+              {
+                "id": "att_cbcad012-0bf7-41c8-9db7-bce1bde45f50",
+                "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png"
+              },
+              {
+                "id": "att_903366b1-f067-42c2-ba7f-8b6b373fc1aa",
+                "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf"
+              },
+              {
+                "id": "att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099",
+                "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf"
+              },
+              {
+                "id": "att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a",
+                "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt"
+              }
+            ],
+            "baseFixture": {
+              "accountId": "acc_rf312_100",
+              "accountName": "Performance Fixture",
+              "buildProfile": "release",
+              "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+              "expectedSearchMatches": 5,
+              "fixture": "deterministic-20th-object-property-match",
+              "generator": "solosoul-core/examples/perf_baseline",
+              "includesAttachments": false,
+              "includesOcrFixture": false,
+              "includesProfile": true,
+              "includesUiPreferences": true,
+              "kdf": {
+                "iterations": 3,
+                "memoryKiB": 65536,
+                "parallelism": 4
+              },
+              "objectCount": 100,
+              "schemaVersion": 1,
+              "scope": "synthetic-native-vault-fixture",
+              "searchQuery": "needle"
+            },
+            "closedFiles": [
+              {
+                "relativePath": "acc_rf312_100/config.json",
+                "sha256": "0fb530cd137c9085ace3b1e8002bf5f9a85b5cfb20a048430cc122be561a6dd9"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db",
+                "sha256": "d6ceac18f5cd9731a5f2b8d330c0b042df3b500ff63f7b5140f51740b4681dda"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "f6328e2ade2daa052c2a0d66c5f2aeffba915421a3bf4ed3072639c5174c6521"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+                "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+                "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+                "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+                "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "generator": "solosoul-core/examples/perf_baseline --media-fixture-output",
+            "includesAttachments": true,
+            "includesOcrFixture": true,
+            "mediaObjectId": "obj_perf_00000000",
+            "publicAssets": [
+              {
+                "bytes": 6274,
+                "fileName": "ocr_test.png",
+                "mimeType": "image/png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "fileName": "text_only.pdf",
+                "mimeType": "application/pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "fileName": "scanned.pdf",
+                "mimeType": "application/pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "fileName": "preview.txt",
+                "mimeType": "text/plain",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "schemaVersion": 2,
+            "scope": "synthetic-native-media-vault-fixture"
+          },
+          "nativeUiMeasured": false,
+          "scope": "synthetic-media-fixture-generation",
+          "success": true,
+          "verification": {
+            "allObjectContentsVerified": 100,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_100",
+              "objectCount": 100,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 5,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": false,
+            "sourceFileProofs": [
+              {
+                "relativePath": ".lock",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "relativePath": "acc_rf312_100/config.json",
+                "sha256": "0fb530cd137c9085ace3b1e8002bf5f9a85b5cfb20a048430cc122be561a6dd9"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db",
+                "sha256": "d6ceac18f5cd9731a5f2b8d330c0b042df3b500ff63f7b5140f51740b4681dda"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db.pre_enc.bak",
+                "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+              },
+              {
+                "relativePath": "accounts.bak",
+                "sha256": "549e5e0c0964d812f45f85c849aa66731c5f12449ae0fb26d814480642efa797"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "f6328e2ade2daa052c2a0d66c5f2aeffba915421a3bf4ed3072639c5174c6521"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+                "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+                "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+                "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+                "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "sourceFilesUnchanged": true,
+            "sourcePathsCleared": true,
+            "success": true
+          }
+        }
+      },
+      {
+        "name": "generate-5000",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--media-fixture-output",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault5000",
+          "--objects",
+          "5000"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "durationSeconds": 6.669805699959397,
+        "finishedAt": "2026-10-05T07:00:12.998766+00:00",
+        "stdout": "generate-5000.stdout.log",
+        "stderr": "generate-5000.stderr.log",
+        "result": {
+          "fixturePath": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault5000",
+          "manifest": {
+            "attachments": [
+              {
+                "id": "att_965411e7-6595-45f5-b972-1369c082ce00",
+                "relativePath": "attachments/obj_perf_00000000/att_965411e7-6595-45f5-b972-1369c082ce00/ocr_test.png"
+              },
+              {
+                "id": "att_255b1fea-d898-4032-b9f2-50a5c4a2dead",
+                "relativePath": "attachments/obj_perf_00000000/att_255b1fea-d898-4032-b9f2-50a5c4a2dead/text_only.pdf"
+              },
+              {
+                "id": "att_8f446f8f-ca10-4658-93eb-a93756fba963",
+                "relativePath": "attachments/obj_perf_00000000/att_8f446f8f-ca10-4658-93eb-a93756fba963/scanned.pdf"
+              },
+              {
+                "id": "att_81c08e5c-21c5-4a99-a132-6cc36b9827ad",
+                "relativePath": "attachments/obj_perf_00000000/att_81c08e5c-21c5-4a99-a132-6cc36b9827ad/preview.txt"
+              }
+            ],
+            "baseFixture": {
+              "accountId": "acc_rf312_5000",
+              "accountName": "Performance Fixture",
+              "buildProfile": "release",
+              "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+              "expectedSearchMatches": 250,
+              "fixture": "deterministic-20th-object-property-match",
+              "generator": "solosoul-core/examples/perf_baseline",
+              "includesAttachments": false,
+              "includesOcrFixture": false,
+              "includesProfile": true,
+              "includesUiPreferences": true,
+              "kdf": {
+                "iterations": 3,
+                "memoryKiB": 65536,
+                "parallelism": 4
+              },
+              "objectCount": 5000,
+              "schemaVersion": 1,
+              "scope": "synthetic-native-vault-fixture",
+              "searchQuery": "needle"
+            },
+            "closedFiles": [
+              {
+                "relativePath": "acc_rf312_5000/config.json",
+                "sha256": "9308cb8dd7859ae02fe84a14fe58680f98bdaf5fcc2b0be6131560997fe379af"
+              },
+              {
+                "relativePath": "acc_rf312_5000/vault.db",
+                "sha256": "80eab6283da3d877a3bc46d68546688700dc84ece38a2d141a5491f508bfbc2e"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "8bedd59cac9e92bc13fdec00cfb045b3a3a2e3ee011e9508c71d62e143f56eed"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_255b1fea-d898-4032-b9f2-50a5c4a2dead/text_only.pdf",
+                "sha256": "bfe688cdf2d2e4a8a800540eac2b829d7e34bb83616015d47a33eb5ebfe306d8"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_81c08e5c-21c5-4a99-a132-6cc36b9827ad/preview.txt",
+                "sha256": "07d97636ebd42863af5d1864eb3d4c707d7413738e425d831563ccaf6e2cc365"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_8f446f8f-ca10-4658-93eb-a93756fba963/scanned.pdf",
+                "sha256": "1bee3cd7732684c2dba5c0818679267dbc0c72150b59231f1fc6b557cdad92e6"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_965411e7-6595-45f5-b972-1369c082ce00/ocr_test.png",
+                "sha256": "d867534665caed1a3ff1948ba8ad44b8c4f84141e6825a4a1efa1b6ad20c618f"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "generator": "solosoul-core/examples/perf_baseline --media-fixture-output",
+            "includesAttachments": true,
+            "includesOcrFixture": true,
+            "mediaObjectId": "obj_perf_00000000",
+            "publicAssets": [
+              {
+                "bytes": 6274,
+                "fileName": "ocr_test.png",
+                "mimeType": "image/png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "fileName": "text_only.pdf",
+                "mimeType": "application/pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "fileName": "scanned.pdf",
+                "mimeType": "application/pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "fileName": "preview.txt",
+                "mimeType": "text/plain",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "schemaVersion": 2,
+            "scope": "synthetic-native-media-vault-fixture"
+          },
+          "nativeUiMeasured": false,
+          "scope": "synthetic-media-fixture-generation",
+          "success": true,
+          "verification": {
+            "allObjectContentsVerified": 5000,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_5000",
+              "objectCount": 5000,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 250,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": false,
+            "sourceFileProofs": [
+              {
+                "relativePath": ".lock",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "relativePath": "acc_rf312_5000/config.json",
+                "sha256": "9308cb8dd7859ae02fe84a14fe58680f98bdaf5fcc2b0be6131560997fe379af"
+              },
+              {
+                "relativePath": "acc_rf312_5000/vault.db",
+                "sha256": "80eab6283da3d877a3bc46d68546688700dc84ece38a2d141a5491f508bfbc2e"
+              },
+              {
+                "relativePath": "acc_rf312_5000/vault.db.pre_enc.bak",
+                "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+              },
+              {
+                "relativePath": "accounts.bak",
+                "sha256": "6aea4759be6922f61a28eb23092f6d0c2044893fe03583227cf06335b7db3233"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "8bedd59cac9e92bc13fdec00cfb045b3a3a2e3ee011e9508c71d62e143f56eed"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_255b1fea-d898-4032-b9f2-50a5c4a2dead/text_only.pdf",
+                "sha256": "bfe688cdf2d2e4a8a800540eac2b829d7e34bb83616015d47a33eb5ebfe306d8"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_81c08e5c-21c5-4a99-a132-6cc36b9827ad/preview.txt",
+                "sha256": "07d97636ebd42863af5d1864eb3d4c707d7413738e425d831563ccaf6e2cc365"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_8f446f8f-ca10-4658-93eb-a93756fba963/scanned.pdf",
+                "sha256": "1bee3cd7732684c2dba5c0818679267dbc0c72150b59231f1fc6b557cdad92e6"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_965411e7-6595-45f5-b972-1369c082ce00/ocr_test.png",
+                "sha256": "d867534665caed1a3ff1948ba8ad44b8c4f84141e6825a4a1efa1b6ad20c618f"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "sourceFilesUnchanged": true,
+            "sourcePathsCleared": true,
+            "success": true
+          }
+        }
+      },
+      {
+        "name": "verify-100",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--verify-media-fixture",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault100"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "durationSeconds": 0.7653075000271201,
+        "finishedAt": "2026-10-05T07:00:13.799804+00:00",
+        "stdout": "verify-100.stdout.log",
+        "stderr": "verify-100.stderr.log",
+        "result": {
+          "fixturePath": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault100",
+          "nativeUiMeasured": false,
+          "scope": "synthetic-media-fixture-read-only-verification",
+          "success": true,
+          "verification": {
+            "allObjectContentsVerified": 100,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_100",
+              "objectCount": 100,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 5,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": false,
+            "sourceFileProofs": [
+              {
+                "relativePath": ".lock",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "relativePath": "acc_rf312_100/config.json",
+                "sha256": "0fb530cd137c9085ace3b1e8002bf5f9a85b5cfb20a048430cc122be561a6dd9"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db",
+                "sha256": "d6ceac18f5cd9731a5f2b8d330c0b042df3b500ff63f7b5140f51740b4681dda"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db.pre_enc.bak",
+                "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+              },
+              {
+                "relativePath": "accounts.bak",
+                "sha256": "549e5e0c0964d812f45f85c849aa66731c5f12449ae0fb26d814480642efa797"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "f6328e2ade2daa052c2a0d66c5f2aeffba915421a3bf4ed3072639c5174c6521"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+                "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+                "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+                "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+                "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+              },
+              {
+                "relativePath": "rf312-media-fixture.json",
+                "sha256": "7494761aa50e11a0028fec0a721e53b1b41afc65eaf104f2c4843cb13b4813b0"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "sourceFilesUnchanged": true,
+            "sourcePathsCleared": true,
+            "success": true
+          }
+        }
+      },
+      {
+        "name": "verify-5000",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--verify-media-fixture",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault5000"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "durationSeconds": 0.7831937996670604,
+        "finishedAt": "2026-10-05T07:00:14.593845+00:00",
+        "stdout": "verify-5000.stdout.log",
+        "stderr": "verify-5000.stderr.log",
+        "result": {
+          "fixturePath": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault5000",
+          "nativeUiMeasured": false,
+          "scope": "synthetic-media-fixture-read-only-verification",
+          "success": true,
+          "verification": {
+            "allObjectContentsVerified": 5000,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_5000",
+              "objectCount": 5000,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 250,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": false,
+            "sourceFileProofs": [
+              {
+                "relativePath": ".lock",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "relativePath": "acc_rf312_5000/config.json",
+                "sha256": "9308cb8dd7859ae02fe84a14fe58680f98bdaf5fcc2b0be6131560997fe379af"
+              },
+              {
+                "relativePath": "acc_rf312_5000/vault.db",
+                "sha256": "80eab6283da3d877a3bc46d68546688700dc84ece38a2d141a5491f508bfbc2e"
+              },
+              {
+                "relativePath": "acc_rf312_5000/vault.db.pre_enc.bak",
+                "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+              },
+              {
+                "relativePath": "accounts.bak",
+                "sha256": "6aea4759be6922f61a28eb23092f6d0c2044893fe03583227cf06335b7db3233"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "8bedd59cac9e92bc13fdec00cfb045b3a3a2e3ee011e9508c71d62e143f56eed"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_255b1fea-d898-4032-b9f2-50a5c4a2dead/text_only.pdf",
+                "sha256": "bfe688cdf2d2e4a8a800540eac2b829d7e34bb83616015d47a33eb5ebfe306d8"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_81c08e5c-21c5-4a99-a132-6cc36b9827ad/preview.txt",
+                "sha256": "07d97636ebd42863af5d1864eb3d4c707d7413738e425d831563ccaf6e2cc365"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_8f446f8f-ca10-4658-93eb-a93756fba963/scanned.pdf",
+                "sha256": "1bee3cd7732684c2dba5c0818679267dbc0c72150b59231f1fc6b557cdad92e6"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_965411e7-6595-45f5-b972-1369c082ce00/ocr_test.png",
+                "sha256": "d867534665caed1a3ff1948ba8ad44b8c4f84141e6825a4a1efa1b6ad20c618f"
+              },
+              {
+                "relativePath": "rf312-media-fixture.json",
+                "sha256": "b4f6fb30477cbd0a9d4d73c1176113f3848580a77e083763b652655e35982d12"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "sourceFilesUnchanged": true,
+            "sourcePathsCleared": true,
+            "success": true
+          }
+        }
+      },
+      {
+        "name": "copy-100",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--copy-media-fixture",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault100",
+          "--media-fixture-output",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\copy100"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "durationSeconds": 1.3646021001040936,
+        "finishedAt": "2026-10-05T07:00:15.969399+00:00",
+        "stdout": "copy-100.stdout.log",
+        "stderr": "copy-100.stderr.log",
+        "result": {
+          "fixturePath": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\copy100",
+          "nativeUiMeasured": false,
+          "rebase": {
+            "allObjectContentsVerified": 100,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_100",
+              "objectCount": 100,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 5,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": true,
+            "sourcePathsCleared": true,
+            "success": true
+          },
+          "scope": "synthetic-media-fixture-owned-copy",
+          "sourceFilesUnchanged": true,
+          "sourceFixture": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault100",
+          "sourceVerification": {
+            "allObjectContentsVerified": 100,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_100",
+              "objectCount": 100,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 5,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": false,
+            "sourceFileProofs": [
+              {
+                "relativePath": ".lock",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "relativePath": "acc_rf312_100/config.json",
+                "sha256": "0fb530cd137c9085ace3b1e8002bf5f9a85b5cfb20a048430cc122be561a6dd9"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db",
+                "sha256": "d6ceac18f5cd9731a5f2b8d330c0b042df3b500ff63f7b5140f51740b4681dda"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db.pre_enc.bak",
+                "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+              },
+              {
+                "relativePath": "accounts.bak",
+                "sha256": "549e5e0c0964d812f45f85c849aa66731c5f12449ae0fb26d814480642efa797"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "f6328e2ade2daa052c2a0d66c5f2aeffba915421a3bf4ed3072639c5174c6521"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+                "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+                "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+                "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+                "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+              },
+              {
+                "relativePath": "rf312-media-fixture.json",
+                "sha256": "7494761aa50e11a0028fec0a721e53b1b41afc65eaf104f2c4843cb13b4813b0"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "sourceFilesUnchanged": true,
+            "sourcePathsCleared": true,
+            "success": true
+          },
+          "success": true,
+          "verification": {
+            "allObjectContentsVerified": 100,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_100",
+              "objectCount": 100,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 5,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": false,
+            "sourceFileProofs": [
+              {
+                "relativePath": ".lock",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "relativePath": "acc_rf312_100/config.json",
+                "sha256": "0fb530cd137c9085ace3b1e8002bf5f9a85b5cfb20a048430cc122be561a6dd9"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db",
+                "sha256": "7cb27044926c69ffd9ddf8a5c3e8d055f2fa530c62df6edc0d1ddd73745d74f0"
+              },
+              {
+                "relativePath": "accounts.bak",
+                "sha256": "3c32c7bd07abc4c5bfaf3f2dadd2e55be195870d05aeb9268d66a5d3e199015c"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "9d1eece129b76b195791d32387a15ddce3b6d2af71fc277a02fa37b900c0a38b"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+                "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+                "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+                "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+                "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "sourceFilesUnchanged": true,
+            "sourcePathsCleared": true,
+            "success": true
+          }
+        }
+      },
+      {
+        "name": "copy-5000",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--copy-media-fixture",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault5000",
+          "--media-fixture-output",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\copy5000"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "durationSeconds": 2.0349930999800563,
+        "finishedAt": "2026-10-05T07:00:18.016583+00:00",
+        "stdout": "copy-5000.stdout.log",
+        "stderr": "copy-5000.stderr.log",
+        "result": {
+          "fixturePath": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\copy5000",
+          "nativeUiMeasured": false,
+          "rebase": {
+            "allObjectContentsVerified": 5000,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_5000",
+              "objectCount": 5000,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 250,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": true,
+            "sourcePathsCleared": true,
+            "success": true
+          },
+          "scope": "synthetic-media-fixture-owned-copy",
+          "sourceFilesUnchanged": true,
+          "sourceFixture": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault5000",
+          "sourceVerification": {
+            "allObjectContentsVerified": 5000,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_5000",
+              "objectCount": 5000,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 250,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": false,
+            "sourceFileProofs": [
+              {
+                "relativePath": ".lock",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "relativePath": "acc_rf312_5000/config.json",
+                "sha256": "9308cb8dd7859ae02fe84a14fe58680f98bdaf5fcc2b0be6131560997fe379af"
+              },
+              {
+                "relativePath": "acc_rf312_5000/vault.db",
+                "sha256": "80eab6283da3d877a3bc46d68546688700dc84ece38a2d141a5491f508bfbc2e"
+              },
+              {
+                "relativePath": "acc_rf312_5000/vault.db.pre_enc.bak",
+                "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+              },
+              {
+                "relativePath": "accounts.bak",
+                "sha256": "6aea4759be6922f61a28eb23092f6d0c2044893fe03583227cf06335b7db3233"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "8bedd59cac9e92bc13fdec00cfb045b3a3a2e3ee011e9508c71d62e143f56eed"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_255b1fea-d898-4032-b9f2-50a5c4a2dead/text_only.pdf",
+                "sha256": "bfe688cdf2d2e4a8a800540eac2b829d7e34bb83616015d47a33eb5ebfe306d8"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_81c08e5c-21c5-4a99-a132-6cc36b9827ad/preview.txt",
+                "sha256": "07d97636ebd42863af5d1864eb3d4c707d7413738e425d831563ccaf6e2cc365"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_8f446f8f-ca10-4658-93eb-a93756fba963/scanned.pdf",
+                "sha256": "1bee3cd7732684c2dba5c0818679267dbc0c72150b59231f1fc6b557cdad92e6"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_965411e7-6595-45f5-b972-1369c082ce00/ocr_test.png",
+                "sha256": "d867534665caed1a3ff1948ba8ad44b8c4f84141e6825a4a1efa1b6ad20c618f"
+              },
+              {
+                "relativePath": "rf312-media-fixture.json",
+                "sha256": "b4f6fb30477cbd0a9d4d73c1176113f3848580a77e083763b652655e35982d12"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "sourceFilesUnchanged": true,
+            "sourcePathsCleared": true,
+            "success": true
+          },
+          "success": true,
+          "verification": {
+            "allObjectContentsVerified": 5000,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_5000",
+              "objectCount": 5000,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 250,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": false,
+            "sourceFileProofs": [
+              {
+                "relativePath": ".lock",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "relativePath": "acc_rf312_5000/config.json",
+                "sha256": "9308cb8dd7859ae02fe84a14fe58680f98bdaf5fcc2b0be6131560997fe379af"
+              },
+              {
+                "relativePath": "acc_rf312_5000/vault.db",
+                "sha256": "ab23e7f520142c2ffe6ccf6385b44a88c340a5d58ae5cf80e3cd2ca4a571c849"
+              },
+              {
+                "relativePath": "accounts.bak",
+                "sha256": "313623b2505107d88e9a91dc61effbe716fadae76d5ba1736d1b078aba70c101"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "0a8936b1f32b97185b18e4bd67c8e441142770476abe694b6f45b98483a76e95"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_255b1fea-d898-4032-b9f2-50a5c4a2dead/text_only.pdf",
+                "sha256": "bfe688cdf2d2e4a8a800540eac2b829d7e34bb83616015d47a33eb5ebfe306d8"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_81c08e5c-21c5-4a99-a132-6cc36b9827ad/preview.txt",
+                "sha256": "07d97636ebd42863af5d1864eb3d4c707d7413738e425d831563ccaf6e2cc365"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_8f446f8f-ca10-4658-93eb-a93756fba963/scanned.pdf",
+                "sha256": "1bee3cd7732684c2dba5c0818679267dbc0c72150b59231f1fc6b557cdad92e6"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_965411e7-6595-45f5-b972-1369c082ce00/ocr_test.png",
+                "sha256": "d867534665caed1a3ff1948ba8ad44b8c4f84141e6825a4a1efa1b6ad20c618f"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "sourceFilesUnchanged": true,
+            "sourcePathsCleared": true,
+            "success": true
+          }
+        }
+      },
+      {
+        "name": "verify-copy-100",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--verify-media-fixture",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\copy100"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "durationSeconds": 0.4231451004743576,
+        "finishedAt": "2026-10-05T07:00:18.450710+00:00",
+        "stdout": "verify-copy-100.stdout.log",
+        "stderr": "verify-copy-100.stderr.log",
+        "result": {
+          "fixturePath": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\copy100",
+          "nativeUiMeasured": false,
+          "scope": "synthetic-media-fixture-read-only-verification",
+          "success": true,
+          "verification": {
+            "allObjectContentsVerified": 100,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_100",
+              "objectCount": 100,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 5,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": false,
+            "sourceFileProofs": [
+              {
+                "relativePath": ".lock",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "relativePath": "acc_rf312_100/config.json",
+                "sha256": "0fb530cd137c9085ace3b1e8002bf5f9a85b5cfb20a048430cc122be561a6dd9"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db",
+                "sha256": "7cb27044926c69ffd9ddf8a5c3e8d055f2fa530c62df6edc0d1ddd73745d74f0"
+              },
+              {
+                "relativePath": "accounts.bak",
+                "sha256": "3c32c7bd07abc4c5bfaf3f2dadd2e55be195870d05aeb9268d66a5d3e199015c"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "9d1eece129b76b195791d32387a15ddce3b6d2af71fc277a02fa37b900c0a38b"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+                "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+                "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+                "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+                "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+              },
+              {
+                "relativePath": "rf312-media-fixture.json",
+                "sha256": "8f42d0b7ecc9f0ce34e4f365203350f9eadb07cd508fed7d9116a32537e5626a"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "sourceFilesUnchanged": true,
+            "sourcePathsCleared": true,
+            "success": true
+          }
+        }
+      },
+      {
+        "name": "verify-copy-5000",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--verify-media-fixture",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\copy5000"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "durationSeconds": 1.0255757002159953,
+        "finishedAt": "2026-10-05T07:00:19.486041+00:00",
+        "stdout": "verify-copy-5000.stdout.log",
+        "stderr": "verify-copy-5000.stderr.log",
+        "result": {
+          "fixturePath": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\copy5000",
+          "nativeUiMeasured": false,
+          "scope": "synthetic-media-fixture-read-only-verification",
+          "success": true,
+          "verification": {
+            "allObjectContentsVerified": 5000,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_5000",
+              "objectCount": 5000,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 250,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": false,
+            "sourceFileProofs": [
+              {
+                "relativePath": ".lock",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "relativePath": "acc_rf312_5000/config.json",
+                "sha256": "9308cb8dd7859ae02fe84a14fe58680f98bdaf5fcc2b0be6131560997fe379af"
+              },
+              {
+                "relativePath": "acc_rf312_5000/vault.db",
+                "sha256": "ab23e7f520142c2ffe6ccf6385b44a88c340a5d58ae5cf80e3cd2ca4a571c849"
+              },
+              {
+                "relativePath": "accounts.bak",
+                "sha256": "313623b2505107d88e9a91dc61effbe716fadae76d5ba1736d1b078aba70c101"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "0a8936b1f32b97185b18e4bd67c8e441142770476abe694b6f45b98483a76e95"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_255b1fea-d898-4032-b9f2-50a5c4a2dead/text_only.pdf",
+                "sha256": "bfe688cdf2d2e4a8a800540eac2b829d7e34bb83616015d47a33eb5ebfe306d8"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_81c08e5c-21c5-4a99-a132-6cc36b9827ad/preview.txt",
+                "sha256": "07d97636ebd42863af5d1864eb3d4c707d7413738e425d831563ccaf6e2cc365"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_8f446f8f-ca10-4658-93eb-a93756fba963/scanned.pdf",
+                "sha256": "1bee3cd7732684c2dba5c0818679267dbc0c72150b59231f1fc6b557cdad92e6"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_965411e7-6595-45f5-b972-1369c082ce00/ocr_test.png",
+                "sha256": "d867534665caed1a3ff1948ba8ad44b8c4f84141e6825a4a1efa1b6ad20c618f"
+              },
+              {
+                "relativePath": "rf312-media-fixture.json",
+                "sha256": "dca7e5b5de2dcc2c465cdeefa5061cad47de7d08af444ac26626214c8255e50e"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "sourceFilesUnchanged": true,
+            "sourcePathsCleared": true,
+            "success": true
+          }
+        }
+      },
+      {
+        "name": "reject-existing-output",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--copy-media-fixture",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault100",
+          "--media-fixture-output",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\copy100"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 1,
+        "expectedExitCode": 1,
+        "durationSeconds": 0.4933399995788932,
+        "finishedAt": "2026-10-05T07:00:19.994498+00:00",
+        "stdout": "reject-existing-output.stdout.log",
+        "stderr": "reject-existing-output.stderr.log"
+      },
+      {
+        "name": "reject-relative-output",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--media-fixture-output",
+          "relative-output",
+          "--objects",
+          "100"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 1,
+        "expectedExitCode": 1,
+        "durationSeconds": 0.04206059966236353,
+        "finishedAt": "2026-10-05T07:00:20.037333+00:00",
+        "stdout": "reject-relative-output.stdout.log",
+        "stderr": "reject-relative-output.stderr.log"
+      },
+      {
+        "name": "reject-mixed-mode",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--verify-media-fixture",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault100",
+          "--objects",
+          "100"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 1,
+        "expectedExitCode": 1,
+        "durationSeconds": 0.0414129002019763,
+        "finishedAt": "2026-10-05T07:00:20.079444+00:00",
+        "stdout": "reject-mixed-mode.stdout.log",
+        "stderr": "reject-mixed-mode.stderr.log"
+      },
+      {
+        "name": "legacy-control-generate",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--fixture-output",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\legacy100-control",
+          "--objects",
+          "100"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "durationSeconds": 0.9862142000347376,
+        "finishedAt": "2026-10-05T07:05:24.469428+00:00",
+        "stdout": "legacy-control-generate.stdout.log",
+        "stderr": "legacy-control-generate.stderr.log",
+        "result": {
+          "fixturePath": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\legacy100-control",
+          "manifest": {
+            "accountId": "acc_rf312_100",
+            "accountName": "Performance Fixture",
+            "buildProfile": "release",
+            "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+            "expectedSearchMatches": 5,
+            "fixture": "deterministic-20th-object-property-match",
+            "generator": "solosoul-core/examples/perf_baseline",
+            "includesAttachments": false,
+            "includesOcrFixture": false,
+            "includesProfile": true,
+            "includesUiPreferences": true,
+            "kdf": {
+              "iterations": 3,
+              "memoryKiB": 65536,
+              "parallelism": 4
+            },
+            "objectCount": 100,
+            "schemaVersion": 1,
+            "scope": "synthetic-native-vault-fixture",
+            "searchQuery": "needle"
+          },
+          "scope": "synthetic-fixture-generation",
+          "success": true,
+          "verification": {
+            "accountCount": 1,
+            "accountId": "acc_rf312_100",
+            "objectCount": 100,
+            "objectIdsVerified": true,
+            "profileVerified": true,
+            "scope": "synthetic-fixture-reopen-verification",
+            "searchMatches": 5,
+            "searchResultIdsVerified": true,
+            "success": true,
+            "uiPreferencesVerified": true
+          }
+        }
+      },
+      {
+        "name": "legacy-control-verify",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--verify-fixture",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\legacy100-control"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "durationSeconds": 0.22726320009678602,
+        "finishedAt": "2026-10-05T07:05:24.722705+00:00",
+        "stdout": "legacy-control-verify.stdout.log",
+        "stderr": "legacy-control-verify.stderr.log",
+        "result": {
+          "accountCount": 1,
+          "accountId": "acc_rf312_100",
+          "fixturePath": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\legacy100-control",
+          "objectCount": 100,
+          "objectIdsVerified": true,
+          "profileVerified": true,
+          "scope": "synthetic-fixture-reopen-verification",
+          "searchMatches": 5,
+          "searchResultIdsVerified": true,
+          "success": true,
+          "uiPreferencesVerified": true
+        }
+      },
+      {
+        "name": "release-default-production",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--media-fixture-output",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\release-default-100",
+          "--objects",
+          "100"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": null
+        },
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "durationSeconds": 1.080871100537479,
+        "finishedAt": "2026-10-05T07:05:25.812956+00:00",
+        "stdout": "release-default-production.stdout.log",
+        "stderr": "release-default-production.stderr.log",
+        "result": {
+          "fixturePath": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\release-default-100",
+          "manifest": {
+            "attachments": [
+              {
+                "id": "att_9d7fd4ad-8f1a-4c54-9f20-1d99da43bf57",
+                "relativePath": "attachments/obj_perf_00000000/att_9d7fd4ad-8f1a-4c54-9f20-1d99da43bf57/ocr_test.png"
+              },
+              {
+                "id": "att_53496ae3-c88f-4130-a478-4bcc1c2776fd",
+                "relativePath": "attachments/obj_perf_00000000/att_53496ae3-c88f-4130-a478-4bcc1c2776fd/text_only.pdf"
+              },
+              {
+                "id": "att_cbdc7185-f840-4669-bd60-a7391451dbef",
+                "relativePath": "attachments/obj_perf_00000000/att_cbdc7185-f840-4669-bd60-a7391451dbef/scanned.pdf"
+              },
+              {
+                "id": "att_a678f318-d910-41ef-8930-9836d10f8ef6",
+                "relativePath": "attachments/obj_perf_00000000/att_a678f318-d910-41ef-8930-9836d10f8ef6/preview.txt"
+              }
+            ],
+            "baseFixture": {
+              "accountId": "acc_rf312_100",
+              "accountName": "Performance Fixture",
+              "buildProfile": "release",
+              "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+              "expectedSearchMatches": 5,
+              "fixture": "deterministic-20th-object-property-match",
+              "generator": "solosoul-core/examples/perf_baseline",
+              "includesAttachments": false,
+              "includesOcrFixture": false,
+              "includesProfile": true,
+              "includesUiPreferences": true,
+              "kdf": {
+                "iterations": 3,
+                "memoryKiB": 65536,
+                "parallelism": 4
+              },
+              "objectCount": 100,
+              "schemaVersion": 1,
+              "scope": "synthetic-native-vault-fixture",
+              "searchQuery": "needle"
+            },
+            "closedFiles": [
+              {
+                "relativePath": "acc_rf312_100/config.json",
+                "sha256": "bfd857f0257124f8e4c347fb651383a3ce2796a61b5ece8a95d6fc8a63d6b38a"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db",
+                "sha256": "d5d55cf330c1ad1ed47ac151989cf71074647ede21597d01bd56173bdaaf4104"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "ce2169d932240560d32ba378af8b601eab0eac31aab5688cf5249beac6fc3a48"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_53496ae3-c88f-4130-a478-4bcc1c2776fd/text_only.pdf",
+                "sha256": "ce553a61796c90a2d7b783e9ed7bf467c1571e010d82b621a6009359f1858f6f"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_9d7fd4ad-8f1a-4c54-9f20-1d99da43bf57/ocr_test.png",
+                "sha256": "1b0aadca474dcfe66dac1eb411ffeb53b9c799d8a8d4ab048c8e71e196eded5c"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_a678f318-d910-41ef-8930-9836d10f8ef6/preview.txt",
+                "sha256": "befc92b04219c1a8f7864cb2e7ad632128801f8730896cd2bd500c7e1b49dca7"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_cbdc7185-f840-4669-bd60-a7391451dbef/scanned.pdf",
+                "sha256": "006b2b3ed72de429133cf23298e26cb1b3469d795c791a93edc32fadd285014b"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "generator": "solosoul-core/examples/perf_baseline --media-fixture-output",
+            "includesAttachments": true,
+            "includesOcrFixture": true,
+            "mediaObjectId": "obj_perf_00000000",
+            "publicAssets": [
+              {
+                "bytes": 6274,
+                "fileName": "ocr_test.png",
+                "mimeType": "image/png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "fileName": "text_only.pdf",
+                "mimeType": "application/pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "fileName": "scanned.pdf",
+                "mimeType": "application/pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "fileName": "preview.txt",
+                "mimeType": "text/plain",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "schemaVersion": 2,
+            "scope": "synthetic-native-media-vault-fixture"
+          },
+          "nativeUiMeasured": false,
+          "scope": "synthetic-media-fixture-generation",
+          "success": true,
+          "verification": {
+            "allObjectContentsVerified": 100,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_100",
+              "objectCount": 100,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 5,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": false,
+            "sourceFileProofs": [
+              {
+                "relativePath": ".lock",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "relativePath": "acc_rf312_100/config.json",
+                "sha256": "bfd857f0257124f8e4c347fb651383a3ce2796a61b5ece8a95d6fc8a63d6b38a"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db",
+                "sha256": "d5d55cf330c1ad1ed47ac151989cf71074647ede21597d01bd56173bdaaf4104"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db.pre_enc.bak",
+                "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+              },
+              {
+                "relativePath": "accounts.bak",
+                "sha256": "1a8a3aa139dd233449d0b2d3820de90015aa1110f25de4b6067ffe0e839c7d13"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "ce2169d932240560d32ba378af8b601eab0eac31aab5688cf5249beac6fc3a48"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_53496ae3-c88f-4130-a478-4bcc1c2776fd/text_only.pdf",
+                "sha256": "ce553a61796c90a2d7b783e9ed7bf467c1571e010d82b621a6009359f1858f6f"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_9d7fd4ad-8f1a-4c54-9f20-1d99da43bf57/ocr_test.png",
+                "sha256": "1b0aadca474dcfe66dac1eb411ffeb53b9c799d8a8d4ab048c8e71e196eded5c"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_a678f318-d910-41ef-8930-9836d10f8ef6/preview.txt",
+                "sha256": "befc92b04219c1a8f7864cb2e7ad632128801f8730896cd2bd500c7e1b49dca7"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_cbdc7185-f840-4669-bd60-a7391451dbef/scanned.pdf",
+                "sha256": "006b2b3ed72de429133cf23298e26cb1b3469d795c791a93edc32fadd285014b"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "sourceFilesUnchanged": true,
+            "sourcePathsCleared": true,
+            "success": true
+          }
+        }
+      },
+      {
+        "name": "debug-development-generate",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline_debug.exe",
+          "--media-fixture-output",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\debug-development-100",
+          "--objects",
+          "100"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "0"
+        },
+        "exitCode": 0,
+        "expectedExitCode": 0,
+        "durationSeconds": 14.014699999243021,
+        "finishedAt": "2026-10-05T07:05:39.845302+00:00",
+        "stdout": "debug-development-generate.stdout.log",
+        "stderr": "debug-development-generate.stderr.log",
+        "result": {
+          "fixturePath": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\debug-development-100",
+          "manifest": {
+            "attachments": [
+              {
+                "id": "att_ff07ead2-8d6e-4f4f-a1cb-ba6617e8615a",
+                "relativePath": "attachments/obj_perf_00000000/att_ff07ead2-8d6e-4f4f-a1cb-ba6617e8615a/ocr_test.png"
+              },
+              {
+                "id": "att_bb3b509c-a9f6-4a8b-be16-6b031bd30538",
+                "relativePath": "attachments/obj_perf_00000000/att_bb3b509c-a9f6-4a8b-be16-6b031bd30538/text_only.pdf"
+              },
+              {
+                "id": "att_4a260a63-ed89-4ed9-9c58-6eef69df822d",
+                "relativePath": "attachments/obj_perf_00000000/att_4a260a63-ed89-4ed9-9c58-6eef69df822d/scanned.pdf"
+              },
+              {
+                "id": "att_c9f89ef3-11fd-4bb0-a828-5404c6844be6",
+                "relativePath": "attachments/obj_perf_00000000/att_c9f89ef3-11fd-4bb0-a828-5404c6844be6/preview.txt"
+              }
+            ],
+            "baseFixture": {
+              "accountId": "acc_rf312_100",
+              "accountName": "Performance Fixture",
+              "buildProfile": "debug",
+              "determinism": "object-content-only; salt, encryption nonce and account/profile timestamps vary",
+              "expectedSearchMatches": 5,
+              "fixture": "deterministic-20th-object-property-match",
+              "generator": "solosoul-core/examples/perf_baseline",
+              "includesAttachments": false,
+              "includesOcrFixture": false,
+              "includesProfile": true,
+              "includesUiPreferences": true,
+              "kdf": {
+                "iterations": 2,
+                "memoryKiB": 8192,
+                "parallelism": 4
+              },
+              "objectCount": 100,
+              "schemaVersion": 1,
+              "scope": "synthetic-native-vault-fixture",
+              "searchQuery": "needle"
+            },
+            "closedFiles": [
+              {
+                "relativePath": "acc_rf312_100/config.json",
+                "sha256": "0a0c87396345db7e901bb368d8e389780b6abc1bf3190dd8afef9f23a3fb8423"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db",
+                "sha256": "80396f5932512885d56625933beffcb0b88d2c3e3fcf730aab18acef1b6b6d7e"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "d9a7a6dae787e0a8556a6a81ff0ca161d49f8a15fee6f5532b259378f7ec2441"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_4a260a63-ed89-4ed9-9c58-6eef69df822d/scanned.pdf",
+                "sha256": "94ce06045e8539d668095d656c10146a7f39d67f553e303b93d004374ff79cc5"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_bb3b509c-a9f6-4a8b-be16-6b031bd30538/text_only.pdf",
+                "sha256": "a0cc2a36ede9e5c0a39dfd636f1cc0aa2779dcb28e4cd18cc08d817d39a88e38"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_c9f89ef3-11fd-4bb0-a828-5404c6844be6/preview.txt",
+                "sha256": "769dc5f5719ed621026e4044e2821a22749acbe32172126f667c16d623b1ec34"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_ff07ead2-8d6e-4f4f-a1cb-ba6617e8615a/ocr_test.png",
+                "sha256": "2ddc0018e481be6bfe3078c50e32556d13364e7b6ccd363aa5fb2ec1bb2bf30e"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "generator": "solosoul-core/examples/perf_baseline --media-fixture-output",
+            "includesAttachments": true,
+            "includesOcrFixture": true,
+            "mediaObjectId": "obj_perf_00000000",
+            "publicAssets": [
+              {
+                "bytes": 6274,
+                "fileName": "ocr_test.png",
+                "mimeType": "image/png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "fileName": "text_only.pdf",
+                "mimeType": "application/pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "fileName": "scanned.pdf",
+                "mimeType": "application/pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "fileName": "preview.txt",
+                "mimeType": "text/plain",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "schemaVersion": 2,
+            "scope": "synthetic-native-media-vault-fixture"
+          },
+          "nativeUiMeasured": false,
+          "scope": "synthetic-media-fixture-generation",
+          "success": true,
+          "verification": {
+            "allObjectContentsVerified": 100,
+            "attachmentCount": 4,
+            "attachments": [
+              {
+                "bytes": 6274,
+                "encrypted": true,
+                "fileName": "ocr_test.png",
+                "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+              },
+              {
+                "bytes": 3035,
+                "encrypted": true,
+                "fileName": "text_only.pdf",
+                "sha256": "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+              },
+              {
+                "bytes": 1921,
+                "encrypted": true,
+                "fileName": "scanned.pdf",
+                "sha256": "8fda928a9940813a4a245a2db1e943c64b4e717d20274f9b4f27ee5b9b3fc4a1"
+              },
+              {
+                "bytes": 71,
+                "encrypted": true,
+                "fileName": "preview.txt",
+                "sha256": "24602f12d06466931694ba59d04f040af0334a63d28b10ac83f07ea5b16e0339"
+              }
+            ],
+            "baseVerification": {
+              "accountCount": 1,
+              "accountId": "acc_rf312_100",
+              "objectCount": 100,
+              "objectIdsVerified": true,
+              "profileVerified": true,
+              "scope": "synthetic-fixture-reopen-verification",
+              "searchMatches": 5,
+              "searchResultIdsVerified": true,
+              "success": true,
+              "uiPreferencesVerified": true
+            },
+            "metadataPathsVerified": true,
+            "rebasedOnOwnedCopy": false,
+            "sourceFileProofs": [
+              {
+                "relativePath": ".lock",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              {
+                "relativePath": "acc_rf312_100/config.json",
+                "sha256": "0a0c87396345db7e901bb368d8e389780b6abc1bf3190dd8afef9f23a3fb8423"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db",
+                "sha256": "80396f5932512885d56625933beffcb0b88d2c3e3fcf730aab18acef1b6b6d7e"
+              },
+              {
+                "relativePath": "acc_rf312_100/vault.db.pre_enc.bak",
+                "sha256": "1fe8f6113488865c546d2faa55b21482662ce4be19d4f505eeefa09bc3131489"
+              },
+              {
+                "relativePath": "accounts.bak",
+                "sha256": "5c6db78b89e6d26fb5bdec7f3542319f4ff41d8cba194648bef88d78dc880ad5"
+              },
+              {
+                "relativePath": "accounts.json",
+                "sha256": "d9a7a6dae787e0a8556a6a81ff0ca161d49f8a15fee6f5532b259378f7ec2441"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_4a260a63-ed89-4ed9-9c58-6eef69df822d/scanned.pdf",
+                "sha256": "94ce06045e8539d668095d656c10146a7f39d67f553e303b93d004374ff79cc5"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_bb3b509c-a9f6-4a8b-be16-6b031bd30538/text_only.pdf",
+                "sha256": "a0cc2a36ede9e5c0a39dfd636f1cc0aa2779dcb28e4cd18cc08d817d39a88e38"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_c9f89ef3-11fd-4bb0-a828-5404c6844be6/preview.txt",
+                "sha256": "769dc5f5719ed621026e4044e2821a22749acbe32172126f667c16d623b1ec34"
+              },
+              {
+                "relativePath": "attachments/obj_perf_00000000/att_ff07ead2-8d6e-4f4f-a1cb-ba6617e8615a/ocr_test.png",
+                "sha256": "2ddc0018e481be6bfe3078c50e32556d13364e7b6ccd363aa5fb2ec1bb2bf30e"
+              },
+              {
+                "relativePath": "ui_preferences.json",
+                "sha256": "c9bc519cbd62e58d758f14f3247b222ea676707c59f3044658fc168542b6bb58"
+              }
+            ],
+            "sourceFilesUnchanged": true,
+            "sourcePathsCleared": true,
+            "success": true
+          }
+        }
+      },
+      {
+        "name": "release-reject-real-development-verify",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--verify-media-fixture",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\debug-development-100"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 1,
+        "expectedExitCode": 1,
+        "durationSeconds": 0.3229175992310047,
+        "finishedAt": "2026-10-05T07:05:40.186090+00:00",
+        "stdout": "release-reject-real-development-verify.stdout.log",
+        "stderr": "release-reject-real-development-verify.stderr.log"
+      },
+      {
+        "name": "release-reject-real-development-copy",
+        "command": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin\\perf_baseline.exe",
+          "--copy-media-fixture",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\debug-development-100",
+          "--media-fixture-output",
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\must-not-exist-rejected-copy"
+        ],
+        "environment": {
+          "SOLOSOUL_SECURE": "1"
+        },
+        "exitCode": 1,
+        "expectedExitCode": 1,
+        "durationSeconds": 0.04116650018841028,
+        "finishedAt": "2026-10-05T07:05:40.228202+00:00",
+        "stdout": "release-reject-real-development-copy.stdout.log",
+        "stderr": "release-reject-real-development-copy.stderr.log"
+      }
+    ],
+    "preservedPaths": [
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault100",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault5000",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\copy100",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\copy5000",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\legacy100-control",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\release-default-100",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\must-not-exist-dev",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\debug-development-100",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\bin"
+    ]
+  },
+  "historicalFailures": [
+    {
+      "phase": "first release validation driver",
+      "terminalExitCode": 1,
+      "reason": "incorrect driver assumption: release KdfConfig::from_env returns production with SOLOSOUL_SECURE=0",
+      "observed": {
+        "exitCode": 0,
+        "expectedExitCode": 1,
+        "kdf": {
+          "iterations": 3,
+          "memoryKiB": 65536,
+          "parallelism": 4
+        },
+        "output": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\must-not-exist-dev"
+      },
+      "productionCodeChanged": false,
+      "acceptedAsNegativeCase": false,
+      "nextAction": "generate actual debug development-KDF fixture; release verify and copy must reject before writes"
+    }
+  ],
+  "archiveIndex": "rf312-media-fixtures-2026-10-05/index.json",
+  "byteExactOriginalCount": 88,
+  "scopeLimitations": {
+    "nativeUiMeasured": false,
+    "ocrInferenceMeasured": false,
+    "previewRenderMeasured": false,
+    "performanceDistributionReported": false,
+    "sourceDataNotChanged": true,
+    "legacyFixtureContractUnchanged": true
+  },
+  "remainingLocalWork": [
+    "Windows owned media fixture integration into native-perf",
+    "real image/text attachment-preview repeated samples with IPC/memory",
+    "owned native OCR dialog input and OCR repeated samples",
+    "KDF/storage/React/SDK attribution",
+    "investigate original intermittent home timeout"
+  ],
+  "remainingExternalWork": [
+    "RF-112 isolated macOS lock/unlock/theme recovery",
+    "RF-121 native compositor/accessibility/recovery matrix",
+    "RF-312 system sleep and other-platform performance"
+  ],
+  "reportCounts": {
+    "total": 283,
+    "closed": 274,
+    "waiting": 3,
+    "pending": 6
+  },
+  "goalStatus": "active",
+  "pushPerformed": false
+}

@@ -4,6 +4,8 @@
 
 #[path = "perf_baseline/fixture.rs"]
 mod fixture;
+#[path = "perf_baseline/media.rs"]
+mod media;
 
 use solosoul_core::VaultService;
 use solosoul_vault::ObjectRecord;
@@ -115,6 +117,9 @@ where
 }
 
 fn run() -> Result<serde_json::Value, String> {
+    if let Some(result) = media::run_if_requested() {
+        return result;
+    }
     if let Some(result) = fixture::run_if_requested() {
         return result;
     }

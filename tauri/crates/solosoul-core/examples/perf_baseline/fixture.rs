@@ -85,7 +85,7 @@ fn ui_preferences() -> Value {
     })
 }
 
-fn manifest(count: usize, kdf: KdfConfig, build_profile: &str) -> Value {
+pub(super) fn manifest(count: usize, kdf: KdfConfig, build_profile: &str) -> Value {
     json!({
         "schemaVersion": 1,
         "scope": "synthetic-native-vault-fixture",
@@ -110,7 +110,7 @@ fn manifest(count: usize, kdf: KdfConfig, build_profile: &str) -> Value {
     })
 }
 
-fn create_output(path: &Path) -> Result<PathBuf, String> {
+pub(super) fn create_output(path: &Path) -> Result<PathBuf, String> {
     if !path.is_absolute() {
         return Err("--fixture-output requires an absolute new directory".into());
     }
@@ -132,7 +132,7 @@ fn create_output(path: &Path) -> Result<PathBuf, String> {
     Ok(output)
 }
 
-fn write_new_json(path: &Path, value: &Value) -> Result<(), String> {
+pub(super) fn write_new_json(path: &Path, value: &Value) -> Result<(), String> {
     let parent = path
         .parent()
         .ok_or_else(|| "fixture JSON requires a parent directory".to_string())?;
@@ -144,7 +144,7 @@ fn write_new_json(path: &Path, value: &Value) -> Result<(), String> {
     Ok(())
 }
 
-fn generate(path: &Path, count: usize) -> Result<Value, String> {
+pub(super) fn populate(path: &Path, count: usize) -> Result<(PathBuf, Value), String> {
     let output = create_output(path)?;
     let account_id = format!("acc_rf312_{count}");
     let service = VaultService::with_base_path(output.clone());
@@ -173,6 +173,11 @@ fn generate(path: &Path, count: usize) -> Result<Value, String> {
             "release"
         },
     );
+    Ok((output, marker))
+}
+
+fn generate(path: &Path, count: usize) -> Result<Value, String> {
+    let (output, marker) = populate(path, count)?;
     let checks = verify_data(&output, &marker)?;
     // 完成标记最后原子发布；错误时保留新目录供检查，不删除任意输入路径。
     write_new_json(&output.join(MARKER_NAME), &marker)?;
@@ -185,7 +190,7 @@ fn generate(path: &Path, count: usize) -> Result<Value, String> {
     }))
 }
 
-fn require_path(path: &Path, directory: bool) -> Result<(), String> {
+pub(super) fn require_path(path: &Path, directory: bool) -> Result<(), String> {
     let metadata = std::fs::symlink_metadata(path)
         .map_err(|error| format!("missing fixture path {}: {error}", path.display()))?;
     let is_link = metadata.file_type().is_symlink();
@@ -205,7 +210,7 @@ fn require_path(path: &Path, directory: bool) -> Result<(), String> {
     Ok(())
 }
 
-fn read_json(path: &Path) -> Result<Value, String> {
+pub(super) fn read_json(path: &Path) -> Result<Value, String> {
     require_path(path, false)?;
     let bytes = std::fs::read(path).map_err(|e| e.to_string())?;
     serde_json::from_slice(&bytes).map_err(|e| format!("invalid fixture JSON: {e}"))
@@ -223,7 +228,7 @@ fn verify(path: &Path) -> Result<Value, String> {
     Ok(checks)
 }
 
-fn verify_data(base: &Path, marker: &Value) -> Result<Value, String> {
+pub(super) fn verify_data(base: &Path, marker: &Value) -> Result<Value, String> {
     let count = marker["objectCount"]
         .as_u64()
         .and_then(|count| usize::try_from(count).ok())
