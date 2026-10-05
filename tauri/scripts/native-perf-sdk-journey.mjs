@@ -112,6 +112,7 @@ export async function journeyBinaryPreflight(exe, media = false, pdfDiagnostic =
       'windows-native-sdk-pdf-diagnostic-requested',
       'windows-native-sdk-pdf-target-diagnostic-requested',
       'windows-native-sdk-pdf-component-diagnostic-requested',
+      'windows-native-sdk-pdf-structure-diagnostic-requested',
     );
   const found = new Set();
   const overlap = Math.max(...required.map((s) => s.length));
@@ -549,8 +550,8 @@ async function sample(options, index, shouldStop) {
       ? checkPdfDiagnostic(result.nativeProof, owned, bound, options.manifest)
       : checkJourney(result.nativeProof, owned, bound, options.manifest, options.media);
     if (options.pdfDiagnostic) {
-      if (proof.pdfDiagnostic.schemaVersion !== 3)
-        throw new Error('Current PDF diagnostic requires component-session evidence');
+      if (proof.pdfDiagnostic.schemaVersion !== 4)
+        throw new Error('Current PDF diagnostic requires bounded structure evidence');
       const screenshot = proof.pdfDiagnostic.screenshot;
       const file = path.join(root, screenshot.fileName);
       const stat = await lstat(file);

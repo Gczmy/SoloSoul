@@ -183,7 +183,13 @@ async function viewer(
   let frames = 0;
   const context = {
     location: { href: url },
-    document: { querySelectorAll: () => (view ? [view] : []) },
+    document: {
+      querySelectorAll: () => (view ? [view] : []),
+      readyState: 'complete',
+      visibilityState: 'visible',
+      createTreeWalker: () => ({ nextNode: () => null }),
+    },
+    NodeFilter: { SHOW_ELEMENT: 1 },
     performance: { timeOrigin: 150 },
     requestAnimationFrame: (fn) => {
       frames++;
@@ -464,4 +470,152 @@ test('PDF v3 refuses lifecycle widening and missing actual SDK trace', () => {
     update(i.proof);
     assert.throws(() => checkPdfDiagnostic(i.proof, i.owned, i.bound, i.fixture));
   }
+});
+
+function emptyStructure() {
+  return {
+    schemaVersion: 1,
+    scope: 'windows-native-sdk-pdf-structure',
+    documentReadyState: 'complete',
+    visibilityState: 'visible',
+    scannedElements: 0,
+    openShadowRoots: 0,
+    truncated: false,
+    counts: { embed: 0, object: 0, iframe: 0, canvas: 0, pdfViewer: 0, customElements: 0 },
+    customTags: [],
+    embeds: [],
+    canvases: [],
+  };
+}
+function structureInputs() {
+  const i = componentInputs(),
+    d = i.proof.pdfDiagnostic,
+    t = d.targetDiagnostic;
+  d.schemaVersion = 4;
+  t.schemaVersion = 3;
+  for (const c of t.candidates) {
+    c.state.schemaVersion = 2;
+    c.state.structure = emptyStructure();
+    const root = { ...c.frame, parentId: null };
+    c.frameTrees = { before: [root], after: [{ ...root }] };
+  }
+  return i;
+}
+test('PDF v4 accepts bounded structural metadata and both frame trees without performance promotion', () => {
+  const i = structureInputs();
+  assert.equal(checkPdfDiagnostic(i.proof, i.owned, i.bound, i.fixture), i.proof);
+  assert.equal(i.proof.pdfDiagnostic.performanceMetrics, null);
+});
+test('PDF v4 rejects structural payloads, impossible counts, budget widening and unbound frame identity', () => {
+  for (const update of [
+    (c) => (c.state.structure.text = 'PRIVATE'),
+    (c) => (c.state.structure.counts.iframe = 1),
+    (c) => (c.state.structure.scannedElements = 513),
+    (c) => (c.state.structure.openShadowRoots = 9),
+    (c) => (c.state.structure.customTags = ['private tag']),
+    (c) =>
+      (c.state.structure.embeds = [
+        { kind: 'iframe', sourceClass: 'PRIVATE', visible: true, width: 1, height: 1 },
+      ]),
+    (c) => (c.frameTrees.before[0].id = 'FOREIGN'),
+    (c) => (c.frameTrees.after[0].loaderId = 'REPLACED'),
+    (c) => (c.frameTrees.after[0].url = 'PRIVATE'),
+    (c) =>
+      c.frameTrees.after.push({ id: 'C', parentId: 'FOREIGN', loaderId: null, urlClass: 'other' }),
+    (c) => c.frameTrees.before.push({ ...c.frameTrees.before[0] }),
+    (c) => {
+      const a = c.frameTrees.after;
+      for (let n = 0; n < 4; n++)
+        a.push({ id: 'CHILD' + n, parentId: a.at(-1).id, loaderId: null, urlClass: 'owned-pdf' });
+    },
+  ]) {
+    const i = structureInputs();
+    update(i.proof.pdfDiagnostic.targetDiagnostic.candidates[0]);
+    assert.throws(() => checkPdfDiagnostic(i.proof, i.owned, i.bound, i.fixture));
+  }
+});
+async function structuralProbe(nodes, shadows = new Map()) {
+  const document = {
+    readyState: 'complete',
+    visibilityState: 'visible',
+    querySelectorAll: () => [],
+    createTreeWalker: (root) => {
+      const list = root === document ? nodes : shadows.get(root) || [];
+      let i = 0;
+      return { nextNode: () => list[i++] || null };
+    },
+  };
+  const ctx = {
+    document,
+    location: { href: 'COMP' },
+    NodeFilter: { SHOW_ELEMENT: 1 },
+    performance: { timeOrigin: 1 },
+    URL,
+    innerWidth: 1000,
+    innerHeight: 800,
+    getComputedStyle: () => ({ display: 'block', visibility: 'visible' }),
+    setTimeout: () => 1,
+    clearTimeout: () => {},
+  };
+  const raw = await vm.runInNewContext(
+    viewerSource.replace(
+      '__REQUEST__',
+      JSON.stringify({ expectedUrl: 'COMP', expectedPdfUrl: 'PDF' }),
+    ),
+    ctx,
+  );
+  return JSON.parse(JSON.stringify(raw));
+}
+function element(localName, extra = {}) {
+  const e = {
+    localName,
+    shadowRoot: null,
+    getBoundingClientRect: () => ({
+      width: 100,
+      height: 40,
+      right: 100,
+      bottom: 40,
+      left: 0,
+      top: 0,
+    }),
+    ...extra,
+  };
+  for (const key of ['id', 'className', 'textContent', 'innerHTML', 'outerHTML'])
+    Object.defineProperty(e, key, {
+      get() {
+        throw new Error('private payload accessed');
+      },
+    });
+  return e;
+}
+test('actual structure probe classifies bound embeds and open shadows without reading private payloads', async () => {
+  const shadow = {},
+    nodes = [element('edge-viewer', { shadowRoot: shadow }), element('iframe', { src: 'PDF' })];
+  const result = await structuralProbe(
+    nodes,
+    new Map([[shadow, [element('canvas', { width: 500, height: 600 })]]]),
+  );
+  assert.deepEqual(result.structure.customTags, ['edge-viewer']);
+  assert.equal(result.structure.openShadowRoots, 1);
+  assert.equal(result.structure.scannedElements, 3);
+  assert.equal(result.structure.embeds[0].sourceClass, 'owned-pdf');
+  assert.equal(result.structure.canvases[0].visible, true);
+  assert.equal(result.viewerPresent, false);
+  assert.equal(result.loadSucceeded, null);
+  assert.equal(JSON.stringify(result).includes('PRIVATE'), false);
+});
+test('actual structure probe bounds element and shadow traversal and reports truncation', async () => {
+  const nodes = Array.from({ length: 600 }, () => element('div'));
+  const result = await structuralProbe(nodes);
+  assert.equal(result.structure.scannedElements, 512);
+  assert.equal(result.structure.truncated, true);
+  const map = new Map(),
+    hosts = Array.from({ length: 10 }, () => {
+      const s = {};
+      map.set(s, [element('span')]);
+      return element('edge-viewer', { shadowRoot: s });
+    });
+  const shadowResult = await structuralProbe(hosts, map);
+  assert.equal(shadowResult.structure.openShadowRoots, 8);
+  assert.equal(shadowResult.structure.truncated, true);
 });

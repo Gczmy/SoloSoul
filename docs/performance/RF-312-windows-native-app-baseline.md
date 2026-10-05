@@ -470,3 +470,8 @@ node scripts/native-perf-startup.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --f
 ### 2026-10-05 · PDF 组件 session 诊断
 
 三份实际 owned 组件附加诊断通过，11 份组件探针均确认文档一致，但没有观察到既定 viewer 加载 API。Native 打开起点、观察时刻、显式解除、GUI 关闭和订阅清理已记录；PDF 自动就绪和重复性能仍未验收。检查为 80 项原生回归、严格 Clippy 与 187 项 Node 通过（1 项既有权限跳过），完整口径见 [PDF 诊断](RF-312-native-pdf-diagnostic.md)、[结构化证据](rf312-windows-pdf-component-2026-10-05.json)和[原件索引](rf312-windows-pdf-component-2026-10-05/index.json)。下一步从实际组件结构和 owned PDF 子 frame 建立可靠就绪观察，再继续 OCR 与归因；RF-312 保持未完成。
+
+
+### 2026-10-05 · PDF 实际结构诊断
+
+三份 fresh owned 结构诊断通过，10份组件候选记录 loading→complete 变化及可见embed；没有读到PDF viewer/canvas/加载状态。所有前后frame树稳定，未知子来源只分类。十二份原生公开截图一致，正文区域像素匹配仅完成离线可行性检查；下一步在固定素材、视口和源文档身份下实际验证首屏可见门禁并记录截图开销。84项原生回归、严格Clippy和191项Node通过（1项既有权限跳过），完整口径见[PDF诊断](RF-312-native-pdf-diagnostic.md)、[结构化结果](rf312-windows-pdf-structure-2026-10-05.json)与[原件索引](rf312-windows-pdf-structure-2026-10-05/index.json)。PDF性能、OCR、归因、睡眠及多端缺口保持。

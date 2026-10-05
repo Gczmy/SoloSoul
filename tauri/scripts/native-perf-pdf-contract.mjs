@@ -1,5 +1,6 @@
 /** RF-312：PDF能力诊断严格校验；永不输出PDF性能分布。 */
 import { normalizeWindowsPath } from './native-perf-run.mjs';
+import { pdfStructureValid, pdfFrameTreesValid } from './native-perf-pdf-structure-contract.mjs';
 export const PDF_UNMEASURED = Object.freeze([
   'PDF-performance',
   'OCR',
@@ -31,8 +32,9 @@ const viewerStateValid = (s) =>
       'pageCount',
       'paintedFrames',
       'timeOriginMs',
+      ...(s?.schemaVersion === 2 ? ['structure'] : []),
     ]) ||
-    s.schemaVersion !== 1 ||
+    ![1, 2].includes(s.schemaVersion) ||
     s.scope !== 'windows-native-sdk-pdf-viewer-candidate' ||
     s.documentMatches !== true ||
     ['viewerPresent', 'loadSucceededMethodPresent', 'documentDimensionsPresent'].some(
@@ -48,7 +50,8 @@ const viewerStateValid = (s) =>
     ![0, 2].includes(s.paintedFrames) ||
     (s.paintedFrames === 2 && s.loadSucceeded !== true) ||
     !Number.isFinite(s.timeOriginMs) ||
-    s.timeOriginMs <= 0
+    s.timeOriginMs <= 0 ||
+    (s.schemaVersion === 2 && !pdfStructureValid(s.structure))
   );
 export function checkPdfDiagnostic(v, owned, bound, fixture) {
   if (
@@ -112,7 +115,7 @@ export function checkPdfDiagnostic(v, owned, bound, fixture) {
           ...(v.pdfDiagnostic?.schemaVersion >= 2
             ? ['Target.getTargetInfo', 'Target.getTargets', 'Target.setAutoAttach']
             : []),
-          ...(v.pdfDiagnostic?.schemaVersion === 3
+          ...(v.pdfDiagnostic?.schemaVersion >= 3
             ? ['Target.attachToTarget', 'Target.detachFromTarget']
             : []),
         ].includes(m),
@@ -145,9 +148,9 @@ export function checkPdfDiagnostic(v, owned, bound, fixture) {
       'frameCreatedEvents',
       'contextWatchCleaned',
       ...(d?.schemaVersion >= 2 ? ['targetDiagnostic'] : []),
-      ...(d?.schemaVersion === 3 ? ['openingStartedAtMs'] : []),
+      ...(d?.schemaVersion >= 3 ? ['openingStartedAtMs'] : []),
     ]) ||
-    ![1, 2, 3].includes(d.schemaVersion) ||
+    ![1, 2, 3, 4].includes(d.schemaVersion) ||
     d.scope !== 'windows-native-sdk-public-pdf-capability' ||
     d.assetSha256 !== 'ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe' ||
     d.renderVerified !== false ||
@@ -219,7 +222,8 @@ export function checkPdfDiagnostic(v, owned, bound, fixture) {
           f.urlClass === c.originClass &&
           ['owned-pdf', 'component-extension'].includes(f.urlClass),
       ) ||
-      !viewerStateValid(s)
+      !viewerStateValid(s) ||
+      s.schemaVersion !== (d.schemaVersion >= 4 ? 2 : 1)
     )
       throw new Error('PDF renderer candidate proof rejected');
     const seen = observed[candidate.snapshotIndex];
@@ -282,7 +286,7 @@ export function checkPdfDiagnostic(v, owned, bound, fixture) {
   )
     throw new Error('PDF screenshot proof rejected');
   if (
-    d.schemaVersion === 3 &&
+    d.schemaVersion >= 3 &&
     (!Number.isFinite(d.openingStartedAtMs) ||
       d.openingStartedAtMs <= 0 ||
       d.openingStartedAtMs > v.elapsedMs)
@@ -292,7 +296,8 @@ export function checkPdfDiagnostic(v, owned, bound, fixture) {
     checkRelatedTargets(
       d.targetDiagnostic,
       v.calls,
-      d.schemaVersion === 3 ? { opening: d.openingStartedAtMs, elapsed: v.elapsedMs } : null,
+      d.schemaVersion >= 3 ? { opening: d.openingStartedAtMs, elapsed: v.elapsedMs } : null,
+      d.schemaVersion >= 4,
     );
   return v;
 }
@@ -323,7 +328,7 @@ const targetValid = (t) =>
   ['parentId', 'openerId', 'parentFrameId', 'browserContextId'].every(
     (k) => t[k] === null || id(t[k]),
   );
-function checkRelatedTargets(d, calls, timing) {
+function checkRelatedTargets(d, calls, timing, structure) {
   if (
     !exact(d, [
       'schemaVersion',
@@ -338,7 +343,7 @@ function checkRelatedTargets(d, calls, timing) {
       'watcherCleaned',
       ...(timing ? ['componentAttachment'] : []),
     ]) ||
-    d.schemaVersion !== (timing ? 2 : 1) ||
+    d.schemaVersion !== (structure ? 3 : timing ? 2 : 1) ||
     d.scope !== 'windows-native-sdk-pdf-related-targets' ||
     !targetValid(d.mainTarget) ||
     d.mainTarget.type !== 'page' ||
@@ -405,6 +410,7 @@ function checkRelatedTargets(d, calls, timing) {
         'frame',
         'state',
         ...(timing ? ['observedAtMs'] : []),
+        ...(structure ? ['frameTrees'] : []),
       ]) ||
       !Number.isInteger(c.snapshotIndex) ||
       c.snapshotIndex < 0 ||
@@ -423,6 +429,8 @@ function checkRelatedTargets(d, calls, timing) {
           t.urlClass === f.urlClass,
       ) ||
       !viewerStateValid(c.state) ||
+      c.state.schemaVersion !== (structure ? 2 : 1) ||
+      (structure && !pdfFrameTreesValid(c.frameTrees, f)) ||
       (timing &&
         (!Number.isFinite(c.observedAtMs) ||
           c.observedAtMs < timing.opening ||

@@ -1,7 +1,7 @@
 //! 固定公开PDF的related target/session诊断；只记录分类，不保存URL、标题或文档文本。
 use super::super::super::sdk_cdp::bounded_callback_json;
 use super::super::{Capture, Outcome};
-use super::{candidate, identifier, url_class, APP, VIEWER};
+use super::{candidate, identifier, structure, url_class, APP, VIEWER};
 use serde_json::{json, Value};
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
@@ -321,7 +321,7 @@ impl Broker {
             let frame = session_frame(&before, &current.url, pdf)?;
             let expression = VIEWER.replace(
                 "__REQUEST__",
-                &json!({"expectedUrl":current.url}).to_string(),
+                &json!({"expectedUrl":current.url,"expectedPdfUrl":pdf}).to_string(),
             );
             let raw = self
                 .call(
@@ -338,7 +338,8 @@ impl Broker {
             if session_frame(&after, &current.url, pdf)? != frame {
                 return Err("pdf-session-document-replaced");
             }
-            c.pdf_diagnostic.as_mut().unwrap()["targetDiagnostic"]["candidates"].as_array_mut().unwrap().push(json!({"snapshotIndex":index,"sessionId":session.id,"targetId":current.proof["id"],"frame":frame,"state":state,"observedAtMs":c.started.elapsed().as_secs_f64()*1000.0}));
+            let trees = json!({"before":structure::frames(&before,&frame,pdf)?,"after":structure::frames(&after,&frame,pdf)?});
+            c.pdf_diagnostic.as_mut().unwrap()["targetDiagnostic"]["candidates"].as_array_mut().unwrap().push(json!({"snapshotIndex":index,"sessionId":session.id,"targetId":current.proof["id"],"frame":frame,"state":state,"observedAtMs":c.started.elapsed().as_secs_f64()*1000.0,"frameTrees":trees}));
         }
         self.publish(c, count);
         Ok(())
@@ -412,7 +413,7 @@ fn session_frame(raw: &Value, url: &str, pdf: &str) -> Outcome<Value> {
     Ok(json!({"id":f["id"],"loaderId":f["loaderId"],"urlClass":url_class(url,pdf)}))
 }
 pub(super) fn empty() -> Value {
-    json!({"schemaVersion":2,"scope":"windows-native-sdk-pdf-related-targets","mainTarget":null,"snapshots":[],"relatedSessions":[],"candidates":[],"sessionCalls":[],"eventCount":0,"autoAttachCleaned":false,"watcherCleaned":false,"componentAttachment":null})
+    json!({"schemaVersion":3,"scope":"windows-native-sdk-pdf-related-targets","mainTarget":null,"snapshots":[],"relatedSessions":[],"candidates":[],"sessionCalls":[],"eventCount":0,"autoAttachCleaned":false,"watcherCleaned":false,"componentAttachment":null})
 }
 #[cfg(test)]
 mod tests {

@@ -16,6 +16,8 @@ use webview2_com::Microsoft::Web::WebView2::Win32::{
 };
 use webview2_com::{CoTaskMemPWSTR, DevToolsProtocolEventReceivedEventHandler};
 use windows::core::{Interface, PCWSTR, PWSTR};
+#[path = "sdk_pdf_structure.rs"]
+mod structure;
 #[path = "sdk_pdf_targets.rs"]
 mod targets;
 const DOM: &str = include_str!("sdk_pdf_dom.js");
@@ -278,8 +280,8 @@ async fn dom(c: &mut Capture, phase: &str, pdf: &str) -> Outcome<Value> {
 fn candidate(raw: &Value) -> Outcome<Value> {
     let v = &raw["result"]["value"];
     if raw.get("exceptionDetails").is_some()
-        || v.as_object().map_or(0, |v| v.len()) != 10
-        || v["schemaVersion"] != 1
+        || v.as_object().map_or(0, |v| v.len()) != 11
+        || v["schemaVersion"] != 2
         || v["scope"] != "windows-native-sdk-pdf-viewer-candidate"
         || v["documentMatches"] != true
         || [
@@ -298,6 +300,7 @@ fn candidate(raw: &Value) -> Outcome<Value> {
         || (v["loadSucceededMethodPresent"] == false && !v["loadSucceeded"].is_null())
         || (v["documentDimensionsPresent"] == true) == v["pageCount"].is_null()
         || (v["paintedFrames"] == 2 && v["loadSucceeded"] != true)
+        || !structure::valid(&v["structure"])
     {
         return Err("pdf-renderer-candidate-invalid");
     }
@@ -370,7 +373,10 @@ async fn inspect(
             let url = find(&raw["frameTree"], id).ok_or("pdf-context-frame-unbound")?["url"]
                 .as_str()
                 .ok_or("pdf-frame-invalid")?;
-            let expression = VIEWER.replace("__REQUEST__", &json!({"expectedUrl":url}).to_string());
+            let expression = VIEWER.replace(
+                "__REQUEST__",
+                &json!({"expectedUrl":url,"expectedPdfUrl":pdf}).to_string(),
+            );
             let result=c.protocol("Runtime.evaluate",json!({"expression":expression,"uniqueContextId":context["uniqueId"],"returnByValue":true,"awaitPromise":true})).await?;
             let value = candidate(&result)?;
             let after = c.protocol("Page.getFrameTree", json!({})).await?;
@@ -448,7 +454,7 @@ pub(super) async fn diagnose(c: &mut Capture) -> Outcome<()> {
         encoded_component(file.to_str().ok_or("pdf-prelaunch-resource-unavailable")?)
     );
     c.pdf_diagnostic = Some(
-        json!({"schemaVersion":3,"scope":"windows-native-sdk-public-pdf-capability","assetSha256":"ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe","renderVerified":false,"performanceMetrics":null,"frameSnapshots":[],"contexts":[],"readinessCandidates":[],"openedDom":null,"closedDom":null,"screenshot":null,"mainVerifiedAfterClose":false,"frameCreatedEvents":0,"contextWatchCleaned":false,"targetDiagnostic":targets::empty(),"openingStartedAtMs":null}),
+        json!({"schemaVersion":4,"scope":"windows-native-sdk-public-pdf-capability","assetSha256":"ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe","renderVerified":false,"performanceMetrics":null,"frameSnapshots":[],"contexts":[],"readinessCandidates":[],"openedDom":null,"closedDom":null,"screenshot":null,"mainVerifiedAfterClose":false,"frameCreatedEvents":0,"contextWatchCleaned":false,"targetDiagnostic":targets::empty(),"openingStartedAtMs":null}),
     );
     let events = Arc::new(Mutex::new(vec![]));
     watch(c, events.clone()).await?;
@@ -554,7 +560,8 @@ mod tests {
     }
     #[test]
     fn pdf_renderer_candidates_are_typed_and_do_not_prove_final_rendering() {
-        let good = json!({"result":{"value":{"schemaVersion":1,"scope":"windows-native-sdk-pdf-viewer-candidate","documentMatches":true,"viewerPresent":false,"loadSucceededMethodPresent":false,"loadSucceeded":null,"documentDimensionsPresent":false,"pageCount":null,"paintedFrames":0,"timeOriginMs":1}}});
+        let mut good = json!({"result":{"value":{"schemaVersion":2,"scope":"windows-native-sdk-pdf-viewer-candidate","documentMatches":true,"viewerPresent":false,"loadSucceededMethodPresent":false,"loadSucceeded":null,"documentDimensionsPresent":false,"pageCount":null,"paintedFrames":0,"timeOriginMs":1}}});
+        good["result"]["value"]["structure"] = structure::tests::empty();
         assert!(candidate(&good).is_ok());
         for (key, value) in [
             ("documentMatches", json!(false)),

@@ -44,7 +44,7 @@ const CHILD_DIRS: &[&str] = &[
 // RF-312：离线检查依赖完整字节标记。优化器可能把参数比较内联成机器指令，
 // 因此在预检入口保留不透明引用；仅此非默认功能的模块包含该标记块。
 #[used]
-static BINARY_FEATURE_MARKERS: &[u8] = b"--native-perf-prepare\0windows-native-perf-owned\0windows-native-perf-ready\0windows-native-perf-consumed\0windows-native-sdk-startup-requested\0windows-native-sdk-startup-restart-ticket\0--native-perf-media-prepare\0windows-native-sdk-media-journey-requested\0windows-native-sdk-pdf-diagnostic-requested\0windows-native-sdk-pdf-target-diagnostic-requested\0windows-native-sdk-pdf-component-diagnostic-requested";
+static BINARY_FEATURE_MARKERS: &[u8] = b"--native-perf-prepare\0windows-native-perf-owned\0windows-native-perf-ready\0windows-native-perf-consumed\0windows-native-sdk-startup-requested\0windows-native-sdk-startup-restart-ticket\0--native-perf-media-prepare\0windows-native-sdk-media-journey-requested\0windows-native-sdk-pdf-diagnostic-requested\0windows-native-sdk-pdf-target-diagnostic-requested\0windows-native-sdk-pdf-component-diagnostic-requested\0windows-native-sdk-pdf-structure-diagnostic-requested";
 
 static RUNTIME: OnceLock<RuntimeConfig> = OnceLock::new();
 

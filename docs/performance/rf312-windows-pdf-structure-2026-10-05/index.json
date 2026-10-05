@@ -1,0 +1,1160 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "at": "2026-10-05T15:25:58.906044+00:00",
+  "format": "gzip byte-exact originals; original newlines retained; index uses LF and archives use -text",
+  "files": [
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\actual-pdf-review.json",
+      "relativeOriginal": "actual-pdf-review.json",
+      "bytes": 93382,
+      "sha256": "7bb137ac1ed05939e432b1dd67296ce883842c37d8426771a4aa13f966459b73",
+      "archive": "raw/actual-pdf-review.json.gz",
+      "archiveBytes": 4034,
+      "archiveSha256": "002c77c8c2b1c6204954cd2b1bade05ffaf042363d0356df773842a3c0576c2d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\archive-pdf.py",
+      "relativeOriginal": "archive-pdf.py",
+      "bytes": 2248,
+      "sha256": "3aea49adad60603f99acc2de6f7fcb8c843c0af3bfc0d233c2b428f961d96419",
+      "archive": "raw/archive-pdf.py.gz",
+      "archiveBytes": 1022,
+      "archiveSha256": "de3bc6f3eccbdd15c7c9fe5262bbc5778b2c43f49a4036c5733e9a088913275a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\baseline.json",
+      "relativeOriginal": "baseline.json",
+      "bytes": 55630,
+      "sha256": "cfda9ee05fc2f6107fe365f2977199415e59cbe144df761726d027f6e858c5e5",
+      "archive": "raw/baseline.json.gz",
+      "archiveBytes": 22935,
+      "archiveSha256": "f76020532d24e6a11cff71a6ea507af8caa715e35f1c9f192cbf008567d699c9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\build-checkpoint.json",
+      "relativeOriginal": "build-checkpoint.json",
+      "bytes": 733,
+      "sha256": "8ec3581881a8d8a74e254491514c219929ac54f46dc18b90fa2eb1df18f5373a",
+      "archive": "raw/build-checkpoint.json.gz",
+      "archiveBytes": 386,
+      "archiveSha256": "918ebca19c72802ac26149e9488885eb78cf5c182fa665a1795d43baa21d1843"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\build-release.py",
+      "relativeOriginal": "build-release.py",
+      "bytes": 3855,
+      "sha256": "aa49f504c8ac4e12073a177da84903cdfb80338508ac0c7cd55805093a48aef5",
+      "archive": "raw/build-release.py.gz",
+      "archiveBytes": 1497,
+      "archiveSha256": "24a4561ac5658e4cf74d5a6e4d0f424014da4f530ff9ca876b04aa26e310e8ec"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\cleanup-pdf.ps1",
+      "relativeOriginal": "cleanup-pdf.ps1",
+      "bytes": 8388,
+      "sha256": "c4cccde19c22b5a5c0b4b8738ce6fc2a5ee79b493bfa97b49144bfb5da147308",
+      "archive": "raw/cleanup-pdf.ps1.gz",
+      "archiveBytes": 2960,
+      "archiveSha256": "f26e1f391359784e7d08ee9b9ee039e5b3ead74d4d78023f89f3052c2e1a2f58"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\component-observation-summary.json",
+      "relativeOriginal": "component-observation-summary.json",
+      "bytes": 20223,
+      "sha256": "e0b6551f9b7ba6695f8d5d66d5e758438a22cbb8beba88c8f780e33231dc3aa3",
+      "archive": "raw/component-observation-summary.json.gz",
+      "archiveBytes": 1240,
+      "archiveSha256": "a08c5b66c91484824f78a27d7bbc3d38bd226b7537a10c7c819a8d07b2755632"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\depth-js-format.receipt.json",
+      "relativeOriginal": "depth-js-format.receipt.json",
+      "bytes": 297,
+      "sha256": "2dfe4233204606b77bda13f47ffbb531f0cabc83447c22a32b19acb7065e3ae6",
+      "archive": "raw/depth-js-format.receipt.json.gz",
+      "archiveBytes": 217,
+      "archiveSha256": "f0109b7b979cb91478f57819b680d8c93ab7b1f60a48b83f369d19477b9e337b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\depth-js-format.stderr.log",
+      "relativeOriginal": "depth-js-format.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/depth-js-format.stderr.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\depth-js-format.stdout.log",
+      "relativeOriginal": "depth-js-format.stdout.log",
+      "bytes": 93,
+      "sha256": "32c79c0a4e26c2ac0a663f963ac21ec8090c02dc71983d04c0e56dd25b7968b3",
+      "archive": "raw/depth-js-format.stdout.log.gz",
+      "archiveBytes": 88,
+      "archiveSha256": "a4e363256a6476cbebf8091f12725812535dfc4911c1d71d8e21b0874a9643cc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\doc-boundary.live.json",
+      "relativeOriginal": "doc-boundary.live.json",
+      "bytes": 129,
+      "sha256": "ef9b49ee5d225ea2169a3e529b56f3400c199995769ad4d1e11aa61c9a317215",
+      "archive": "raw/doc-boundary.live.json.gz",
+      "archiveBytes": 137,
+      "archiveSha256": "c7652bbbe2be5a5cfeddbfa9b1eed006b1145ce50374502189be79614dfc5c4a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\doc-boundary.receipt.json",
+      "relativeOriginal": "doc-boundary.receipt.json",
+      "bytes": 218,
+      "sha256": "84af29dc3069e03e36fda0b1617d6c5b6de3d1aebaabd82bf8a435bc941218c3",
+      "archive": "raw/doc-boundary.receipt.json.gz",
+      "archiveBytes": 188,
+      "archiveSha256": "d05ad33dee0057989e8178978ebde79150e9bea566c4eede92a3329867aa127d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\doc-boundary.stderr.log",
+      "relativeOriginal": "doc-boundary.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/doc-boundary.stderr.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\doc-boundary.stdout.log",
+      "relativeOriginal": "doc-boundary.stdout.log",
+      "bytes": 93,
+      "sha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc",
+      "archive": "raw/doc-boundary.stdout.log.gz",
+      "archiveBytes": 110,
+      "archiveSha256": "c16c6514d45e8adcb5ee3a75bb38ae0e1950a842eb0ca278a2816334f7739e7b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\doc-diff.live.json",
+      "relativeOriginal": "doc-diff.live.json",
+      "bytes": 182,
+      "sha256": "978b79d8683ca802aa333661c42d1220b31d32856acea23a7ca69142d260e3ac",
+      "archive": "raw/doc-diff.live.json.gz",
+      "archiveBytes": 168,
+      "archiveSha256": "5548608c9e259185f4889e7c912b22ae0baf21533ab1d7debcafcda5f3dd9f02"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\doc-diff.receipt.json",
+      "relativeOriginal": "doc-diff.receipt.json",
+      "bytes": 296,
+      "sha256": "1772bab011883325e958e79db5cbb4fe074ce9f2acc476e9bb1fb42c3a0f66a5",
+      "archive": "raw/doc-diff.receipt.json.gz",
+      "archiveBytes": 223,
+      "archiveSha256": "3e40005c592aa82d7a2d7de3b6b342c1458e110d12f3d78fa7e7be6c6d302162"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\doc-diff.stderr.log",
+      "relativeOriginal": "doc-diff.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/doc-diff.stderr.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\doc-diff.stdout.log",
+      "relativeOriginal": "doc-diff.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/doc-diff.stdout.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\doc-format.live.json",
+      "relativeOriginal": "doc-format.live.json",
+      "bytes": 259,
+      "sha256": "9bbb823b146557054fb12800822cedd4e163add748b91bc1f6eab809c669678f",
+      "archive": "raw/doc-format.live.json.gz",
+      "archiveBytes": 204,
+      "archiveSha256": "4025202a1b7ea9ec8cfdefd8a14578aebf4bc10d70c6b7f1691c3607afb6fdb2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\doc-format.receipt.json",
+      "relativeOriginal": "doc-format.receipt.json",
+      "bytes": 362,
+      "sha256": "4de9a77ce08ccbae7f5a0de6f363926732d004c28c7b2cdc8519ca1079d3f527",
+      "archive": "raw/doc-format.receipt.json.gz",
+      "archiveBytes": 252,
+      "archiveSha256": "78a626dc6bcf749486044a3516297a6c12cfdb51dfdecc0d1f1132133ba2d35c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\doc-format.stderr.log",
+      "relativeOriginal": "doc-format.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/doc-format.stderr.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\doc-format.stdout.log",
+      "relativeOriginal": "doc-format.stdout.log",
+      "bytes": 128,
+      "sha256": "3465a505d44e35b4c87dec05100065a2cd87c1b6d5aab271876336c07a3d6346",
+      "archive": "raw/doc-format.stdout.log.gz",
+      "archiveBytes": 119,
+      "archiveSha256": "9cad8c8d637064b403eea9846d1e6ab1a2aca6b4fcec07a58ceb059973a5c552"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\edit-structure.py",
+      "relativeOriginal": "edit-structure.py",
+      "bytes": 6968,
+      "sha256": "e9119af9c262b54873bb0e278a15fcd3ecaf53ba983d4e8110270286b6409a66",
+      "archive": "raw/edit-structure.py.gz",
+      "archiveBytes": 2430,
+      "archiveSha256": "15a39c592f8648d25a6b5d5a5ec2f3d6de89c6723b158e31a241f694fbe7520a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-diff-check.live.json",
+      "relativeOriginal": "final-structure-diff-check.live.json",
+      "bytes": 181,
+      "sha256": "051bf96e170dc33b4be80e43e06f30221ba7d83660fd6d47a01c17361cc7931c",
+      "archive": "raw/final-structure-diff-check.live.json.gz",
+      "archiveBytes": 167,
+      "archiveSha256": "086720ae2da959b20a4617c39a088c12ac3c55af5ed84318049d2bb10e133550"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-diff-check.receipt.json",
+      "relativeOriginal": "final-structure-diff-check.receipt.json",
+      "bytes": 296,
+      "sha256": "a6ed3c7f46bee301d427a7371321caedc96f37478589ee440f2c7aefeefa2aea",
+      "archive": "raw/final-structure-diff-check.receipt.json.gz",
+      "archiveBytes": 224,
+      "archiveSha256": "5eb21a0c5b79af9971fff0ec3b77e69bb3d4629aefdc3fa4167953644c90a803"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-diff-check.stderr.log",
+      "relativeOriginal": "final-structure-diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/final-structure-diff-check.stderr.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-diff-check.stdout.log",
+      "relativeOriginal": "final-structure-diff-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/final-structure-diff-check.stdout.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-fmt-check.live.json",
+      "relativeOriginal": "final-structure-fmt-check.live.json",
+      "bytes": 129,
+      "sha256": "cc83d2b327873ae33396b2ec7fc3295dfe775ac5bac3084bcdc33b9737bcc4a6",
+      "archive": "raw/final-structure-fmt-check.live.json.gz",
+      "archiveBytes": 129,
+      "archiveSha256": "99f889f7165c2ed8a56a596855ba7dd2cab768e9072b2a905ce9c7a3fac063ee"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-fmt-check.receipt.json",
+      "relativeOriginal": "final-structure-fmt-check.receipt.json",
+      "bytes": 237,
+      "sha256": "b2d155d44518c9d8fd9400a2c482ba6cecd93adb5d281efcae41c6f45a498f34",
+      "archive": "raw/final-structure-fmt-check.receipt.json.gz",
+      "archiveBytes": 180,
+      "archiveSha256": "ac96046bd13a828a48faa0d0e7c64b5ac9d7db284be49e9bcee5ab2851ec8f8f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-fmt-check.stderr.log",
+      "relativeOriginal": "final-structure-fmt-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/final-structure-fmt-check.stderr.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-fmt-check.stdout.log",
+      "relativeOriginal": "final-structure-fmt-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/final-structure-fmt-check.stdout.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-fmt-write.live.json",
+      "relativeOriginal": "final-structure-fmt-write.live.json",
+      "bytes": 112,
+      "sha256": "cb83fcb313a236d8a82d8d5b20fba0ea5dbed5f97d547c34e3b4210c9995e0b7",
+      "archive": "raw/final-structure-fmt-write.live.json.gz",
+      "archiveBytes": 117,
+      "archiveSha256": "782d967df5f2799c923da01e07f94e3ba417c9072726037f4facd3ea397d4330"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-fmt-write.receipt.json",
+      "relativeOriginal": "final-structure-fmt-write.receipt.json",
+      "bytes": 210,
+      "sha256": "e3276929e8949bc1dcc67292ce8fd72202197da8010284a59c61fc60649864f6",
+      "archive": "raw/final-structure-fmt-write.receipt.json.gz",
+      "archiveBytes": 172,
+      "archiveSha256": "6b18f407bc119d175becdcda82d66303ab89fcf489ae89689546ab35f40749a0"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-fmt-write.stderr.log",
+      "relativeOriginal": "final-structure-fmt-write.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/final-structure-fmt-write.stderr.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-fmt-write.stdout.log",
+      "relativeOriginal": "final-structure-fmt-write.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/final-structure-fmt-write.stdout.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-js-format-check.live.json",
+      "relativeOriginal": "final-structure-js-format-check.live.json",
+      "bytes": 465,
+      "sha256": "01879235885a8165b0650da284dfce3d845c5960e382266e3c463eb7df7e53f9",
+      "archive": "raw/final-structure-js-format-check.live.json.gz",
+      "archiveBytes": 240,
+      "archiveSha256": "fe14f59366e67f74776262612b6d39d258861ecf1be6a9926230c41efaadf5b0"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-js-format-check.receipt.json",
+      "relativeOriginal": "final-structure-js-format-check.receipt.json",
+      "bytes": 599,
+      "sha256": "d0f3e13f0ce9e64702809ed5ce81b3b5d503e61d2c032037be3937917fd00188",
+      "archive": "raw/final-structure-js-format-check.receipt.json.gz",
+      "archiveBytes": 293,
+      "archiveSha256": "54e03a75c0c49c634489c695dd635b16aad9ac33ed17a935902864f7a928134f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-js-format-check.stderr.log",
+      "relativeOriginal": "final-structure-js-format-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/final-structure-js-format-check.stderr.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-js-format-check.stdout.log",
+      "relativeOriginal": "final-structure-js-format-check.stdout.log",
+      "bytes": 66,
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "archive": "raw/final-structure-js-format-check.stdout.log.gz",
+      "archiveBytes": 82,
+      "archiveSha256": "6cd316ae8e81df0ff79776205007450fac3d62e1ba8e884e169e326d7955ebe5"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-js-format-write.live.json",
+      "relativeOriginal": "final-structure-js-format-write.live.json",
+      "bytes": 464,
+      "sha256": "97485541f27c12f8f75f78c5085cd43338c1280fb6a05d6cfc0826b6237df655",
+      "archive": "raw/final-structure-js-format-write.live.json.gz",
+      "archiveBytes": 238,
+      "archiveSha256": "dccd156fec15d732b369d9550e9f4cbc784367d765cb68bdedd467d8f19dc9e0"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-js-format-write.receipt.json",
+      "relativeOriginal": "final-structure-js-format-write.receipt.json",
+      "bytes": 598,
+      "sha256": "04209a4192bb920b7853f575be548fb59f71daab9527b8c3cc030a560282766b",
+      "archive": "raw/final-structure-js-format-write.receipt.json.gz",
+      "archiveBytes": 292,
+      "archiveSha256": "2c3cc7e531a1adc8b715b237168219df0503a8decd0ad7df2be740368c252fc8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-js-format-write.stderr.log",
+      "relativeOriginal": "final-structure-js-format-write.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/final-structure-js-format-write.stderr.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-js-format-write.stdout.log",
+      "relativeOriginal": "final-structure-js-format-write.stdout.log",
+      "bytes": 391,
+      "sha256": "f454486e29db01d7a87a7b9e31e2479641bc79f1a1f3948c6c87e4bd43d21758",
+      "archive": "raw/final-structure-js-format-write.stdout.log.gz",
+      "archiveBytes": 181,
+      "archiveSha256": "262241e7cef64a3713e65af0163866dcc9557d53a0b81fc6fa74783ed4ebb569"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-native-clippy.live.json",
+      "relativeOriginal": "final-structure-native-clippy.live.json",
+      "bytes": 196,
+      "sha256": "4122808c5da54cae4f0ed5878d57c7c48e322c0f597550d5d78b4d5387212fbb",
+      "archive": "raw/final-structure-native-clippy.live.json.gz",
+      "archiveBytes": 167,
+      "archiveSha256": "4deec3e40f775fad4581423a1ec7beab9f9bd38e30eb003a3b90e7c6ba294d32"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-native-clippy.receipt.json",
+      "relativeOriginal": "final-structure-native-clippy.receipt.json",
+      "bytes": 330,
+      "sha256": "8878ddc54d147a33c65f4bcec62dd4c840fee207e3747d6b12ff7c5966524c70",
+      "archive": "raw/final-structure-native-clippy.receipt.json.gz",
+      "archiveBytes": 223,
+      "archiveSha256": "8b6b7e9d2c103a7f7f9441395f1cfc8a6bf2cb6057263d425f3096be926e5afc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-native-clippy.stderr.log",
+      "relativeOriginal": "final-structure-native-clippy.stderr.log",
+      "bytes": 147,
+      "sha256": "b45671eeec5c3413061b942f511d76fa8ba2b97ac242650afad51417f7e7214c",
+      "archive": "raw/final-structure-native-clippy.stderr.log.gz",
+      "archiveBytes": 150,
+      "archiveSha256": "6abef0ec5b0935c396e2342a4f47bc8dafb912d9da484a94e62747a517d1cd30"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-native-clippy.stdout.log",
+      "relativeOriginal": "final-structure-native-clippy.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/final-structure-native-clippy.stdout.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-native-tests.live.json",
+      "relativeOriginal": "final-structure-native-tests.live.json",
+      "bytes": 203,
+      "sha256": "c2cbedfc646bc9d04c335364477b180724dda509b7d177535a5ff2ca0452625e",
+      "archive": "raw/final-structure-native-tests.live.json.gz",
+      "archiveBytes": 166,
+      "archiveSha256": "8f861da789bb9485793e462798c3ecc3cfcaa7bb05a30112b37f4bc7f6244d3f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-native-tests.receipt.json",
+      "relativeOriginal": "final-structure-native-tests.receipt.json",
+      "bytes": 337,
+      "sha256": "269ed2f1fb02aaa847215948b21a6eca7219c6c8d37e863032f206a324eb1610",
+      "archive": "raw/final-structure-native-tests.receipt.json.gz",
+      "archiveBytes": 220,
+      "archiveSha256": "888cffd0785f18229558483d170c006b26e18c5d0a15342ff4fd932c77dd89bc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-native-tests.stderr.log",
+      "relativeOriginal": "final-structure-native-tests.stderr.log",
+      "bytes": 233,
+      "sha256": "b236cb1a2743ea9ac71b945cba8d15f4167a96aabfea207c24e7f75d4e409ef2",
+      "archive": "raw/final-structure-native-tests.stderr.log.gz",
+      "archiveBytes": 200,
+      "archiveSha256": "c45864be838a0f47a4e04aff1d042b51252579d63ef6b3efd9cb9940fec48428"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-native-tests.stdout.log",
+      "relativeOriginal": "final-structure-native-tests.stdout.log",
+      "bytes": 34712,
+      "sha256": "28764f12d3d70d42cbe1b11a42af03a3d76e4f436ef328146275861daa50887a",
+      "archive": "raw/final-structure-native-tests.stdout.log.gz",
+      "archiveBytes": 3427,
+      "archiveSha256": "c96620691bcb316ed5ffd2a145d8821e907994110852648200d94029c2109279"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-node-tests.live.json",
+      "relativeOriginal": "final-structure-node-tests.live.json",
+      "bytes": 114,
+      "sha256": "7d052202442771346d8aa57916ef6df9ce84152c8e5d22d7d7fa23eead953c4a",
+      "archive": "raw/final-structure-node-tests.live.json.gz",
+      "archiveBytes": 120,
+      "archiveSha256": "6ead207798dbfc0eec842b3b8764c51403c93adf57d92339705f19724de172b4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-node-tests.receipt.json",
+      "relativeOriginal": "final-structure-node-tests.receipt.json",
+      "bytes": 202,
+      "sha256": "e30a7908e0b10d86be391a37be052f8388c55fca458d077a6dd53a538dad3861",
+      "archive": "raw/final-structure-node-tests.receipt.json.gz",
+      "archiveBytes": 175,
+      "archiveSha256": "0265a6e82966d15a2598e149c81f9ee7bac9249fa144cf8798b4e49af0c0e95b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-node-tests.stderr.log",
+      "relativeOriginal": "final-structure-node-tests.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/final-structure-node-tests.stderr.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\final-structure-node-tests.stdout.log",
+      "relativeOriginal": "final-structure-node-tests.stdout.log",
+      "bytes": 19345,
+      "sha256": "24f642c40510551e79d12283e166b8ee4f7e1ffe954176a2eefebb1b92600019",
+      "archive": "raw/final-structure-node-tests.stdout.log.gz",
+      "archiveBytes": 8064,
+      "archiveSha256": "dfa7458c7a7f891e8972f6bb2f591199d0bf6e12322b20e03b391d59a5b2bab0"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\implementation-correction.json",
+      "relativeOriginal": "implementation-correction.json",
+      "bytes": 540,
+      "sha256": "7f8a36742ab195189cfe2b062cd05137312806d1da85352f70f219910ba9c30d",
+      "archive": "raw/implementation-correction.json.gz",
+      "archiveBytes": 384,
+      "archiveSha256": "873e4e26e83c8b2f885b04f3fc6604f92ad984e847c0460ac18124c089050e98"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\initial-pdf-node.stderr.log",
+      "relativeOriginal": "initial-pdf-node.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/initial-pdf-node.stderr.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\initial-pdf-node.stdout.log",
+      "relativeOriginal": "initial-pdf-node.stdout.log",
+      "bytes": 1736,
+      "sha256": "186b6334c4e8508e46905c6d863c51580a50f3d02749dcff0027bbb1ef01f0e5",
+      "archive": "raw/initial-pdf-node.stdout.log.gz",
+      "archiveBytes": 825,
+      "archiveSha256": "1e946b7e9608d039cfd0374398e94419f3edfbbb470c936ab46cc2ff46b4d9ad"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\legacy-proof-review.json",
+      "relativeOriginal": "legacy-proof-review.json",
+      "bytes": 2457,
+      "sha256": "c79e77827395ff4637b1918d0f068ffd499b9c8e38c16a8f994db5fdf973eb8a",
+      "archive": "raw/legacy-proof-review.json.gz",
+      "archiveBytes": 364,
+      "archiveSha256": "cccc814a14040c2a1dd0b4d92edfaa31fecc54955b1fe9cf02ca0543d22117d3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\next-item-state.json",
+      "relativeOriginal": "next-item-state.json",
+      "bytes": 740,
+      "sha256": "750cf3c4eca7eb616dfacb34598f7df42ece1cfd7d53857505949310cf8e608a",
+      "archive": "raw/next-item-state.json.gz",
+      "archiveBytes": 442,
+      "archiveSha256": "6e3eb3d63db7ce6656baf7a7a986e289a96a5c402ede1b209d3ca39f22dc1f7a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\observation-review.json",
+      "relativeOriginal": "observation-review.json",
+      "bytes": 563,
+      "sha256": "430c9c6209094d55dafcc323948b35b7ec410522e204399324d7c7e123e9fc9d",
+      "archive": "raw/observation-review.json.gz",
+      "archiveBytes": 339,
+      "archiveSha256": "6fac27d77a258c6fed0fa9e24315ec3d2b2ebce38c9e960301cf9ac0cfe0cd55"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\pdf-cache-cleanup.json",
+      "relativeOriginal": "pdf-cache-cleanup.json",
+      "bytes": 9405,
+      "sha256": "dfc86e42bb027a3ba1dd75dcff00e3acb075779873a4ca995d6a48edf6ed44ad",
+      "archive": "raw/pdf-cache-cleanup.json.gz",
+      "archiveBytes": 1027,
+      "archiveSha256": "0e25baa42d46e680689ca512c42b596ed9670cddb8a4c933095ff8b60fe0881f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\pdf-identity-scope.json",
+      "relativeOriginal": "pdf-identity-scope.json",
+      "bytes": 3578,
+      "sha256": "9ef675025df2102dbd6ff86c512fe947136de420ca27751d801ef6918f45c0f3",
+      "archive": "raw/pdf-identity-scope.json.gz",
+      "archiveBytes": 530,
+      "archiveSha256": "e960cf50ae467d7d79208551342f01f500870b7d12aac9db1e927dc4567093a2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\pdf100.live.json",
+      "relativeOriginal": "pdf100.live.json",
+      "bytes": 446,
+      "sha256": "530bebc8965b185a77696d94c1509a54411d6bafde6e6e16c6519728e1d2aa57",
+      "archive": "raw/pdf100.live.json.gz",
+      "archiveBytes": 250,
+      "archiveSha256": "e945be5d77fefc02f8ba148458f139b20105bbf52ba3f01262d4647f101f2bb4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\pdf100.receipt.json",
+      "relativeOriginal": "pdf100.receipt.json",
+      "bytes": 575,
+      "sha256": "a939d59bd12b3581273566f950507e4530fdebde89bf36e7f6165693942441e9",
+      "archive": "raw/pdf100.receipt.json.gz",
+      "archiveBytes": 301,
+      "archiveSha256": "9f866ea064a9495c3907e66b4c89fc8528ec309f6d3cf4bb1feb07af1fdb2d53"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\pdf100.stderr.log",
+      "relativeOriginal": "pdf100.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/pdf100.stderr.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\pdf100.stdout.log",
+      "relativeOriginal": "pdf100.stdout.log",
+      "bytes": 215,
+      "sha256": "8d1e2a0017e575a98115c6e687774b0cfbea6a2f1ddc25aedaacf9a38cd83280",
+      "archive": "raw/pdf100.stdout.log.gz",
+      "archiveBytes": 162,
+      "archiveSha256": "22e55bf85bbc69a4a57340eb77c8c4297683a333d5e8feb2cd88462b8d210473"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\pixel-readiness-feasibility.json",
+      "relativeOriginal": "pixel-readiness-feasibility.json",
+      "bytes": 2635,
+      "sha256": "b713efa79db0f67b20684200f7cc229680573623d828c5ea2295101d434b6e14",
+      "archive": "raw/pixel-readiness-feasibility.json.gz",
+      "archiveBytes": 896,
+      "archiveSha256": "fb1ca851246782e10687d1a7cb27b6689d846bf63faeae70dd3ebf17eb0ca4aa"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\pixel-readiness-feasibility.py",
+      "relativeOriginal": "pixel-readiness-feasibility.py",
+      "bytes": 4247,
+      "sha256": "c3e36043b6da56d33f87daef268d2b7deeae4f497c35b90b33b036a63b0e620f",
+      "archive": "raw/pixel-readiness-feasibility.py.gz",
+      "archiveBytes": 1939,
+      "archiveSha256": "265271fd060830374446f88772ec0d1d8ef6568e386e16062c110469f21938ec"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\post-cleanup-review.json",
+      "relativeOriginal": "post-cleanup-review.json",
+      "bytes": 149,
+      "sha256": "5e1be127de04a269bd7c479a5643db57fc3b03bdcd6581d1449a1f7e57574803",
+      "archive": "raw/post-cleanup-review.json.gz",
+      "archiveBytes": 142,
+      "archiveSha256": "f9a2b3155f5bd339fb34508c65ec3e476e76e4e593308d4b741fd2a96f675585"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\prearchive-scope-review.json",
+      "relativeOriginal": "prearchive-scope-review.json",
+      "bytes": 360,
+      "sha256": "27999fc4bdaf9696b877b4ea76f80696d5a1f38caab3e9e5bc94f9924ae3f553",
+      "archive": "raw/prearchive-scope-review.json.gz",
+      "archiveBytes": 283,
+      "archiveSha256": "5ef5f2f5afffcfc63c0277206d4388d9dfd9e070d696a4a2d074dfdfd830445c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\public-source-freeze.json",
+      "relativeOriginal": "public-source-freeze.json",
+      "bytes": 31830,
+      "sha256": "1c892f07c2c08fca2d904f024fff0015559c386f921753e7b6444c4a6570310f",
+      "archive": "raw/public-source-freeze.json.gz",
+      "archiveBytes": 7087,
+      "archiveSha256": "6369c32aa4ba2ac762353a1fed1f51a6c9b9e820d18029dbb743e4b7a2953948"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\release-build.live.json",
+      "relativeOriginal": "release-build.live.json",
+      "bytes": 242,
+      "sha256": "8ab3ca35c2214e2d06dc1ccc204cc449a7c2473008c05679d0e0530d01127733",
+      "archive": "raw/release-build.live.json.gz",
+      "archiveBytes": 170,
+      "archiveSha256": "7ac4b9e15ead3d7a00d6a9d9053eb8a49d57ef26bab26a5b1e7ea378ea38c23f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\release-build.receipt.json",
+      "relativeOriginal": "release-build.receipt.json",
+      "bytes": 299,
+      "sha256": "f9fa4b86a96397c3cddd9837f158c0b1532cda41eb5bd3c234460254043b8c97",
+      "archive": "raw/release-build.receipt.json.gz",
+      "archiveBytes": 204,
+      "archiveSha256": "413aadadc1b773ebbeaac34b4b56213fd6ec7c7106deb6fe4fddef8883a6f890"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\release-build.stderr.log",
+      "relativeOriginal": "release-build.stderr.log",
+      "bytes": 686,
+      "sha256": "391f8f309d6a33172dc96cd199168fca2adc6d0ad55c35b1cad90078f98857a0",
+      "archive": "raw/release-build.stderr.log.gz",
+      "archiveBytes": 348,
+      "archiveSha256": "467cd8a284864a2714009e51affe4d12d33043a546981822b2bac33d6ea18223"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\release-build.stdout.log",
+      "relativeOriginal": "release-build.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/release-build.stdout.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\resource-freeze.json",
+      "relativeOriginal": "resource-freeze.json",
+      "bytes": 47498,
+      "sha256": "00394064d51ba32d8a4ca2f6b29396a0d23a1cdb43dfffebf1af592644816a9c",
+      "archive": "raw/resource-freeze.json.gz",
+      "archiveBytes": 6716,
+      "archiveSha256": "c6674f4ed927165fdae84993e5e6a5ecc473e67aeb8e8ea5aced5754d2f1b84b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\review-actual.py",
+      "relativeOriginal": "review-actual.py",
+      "bytes": 3587,
+      "sha256": "730be827897857f25cf47c832c248a784bced07c6318eb3c5b8b148143506c95",
+      "archive": "raw/review-actual.py.gz",
+      "archiveBytes": 1469,
+      "archiveSha256": "0dfaacc794d80c42d256db0e03abd9e0fb21094e98ac8a517fd1f176978e2301"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\review-legacy.mjs",
+      "relativeOriginal": "review-legacy.mjs",
+      "bytes": 1512,
+      "sha256": "fc5ff978f88664bc4f6046ebe40099e864204d4a2f0e091bf1f173e88705b433",
+      "archive": "raw/review-legacy.mjs.gz",
+      "archiveBytes": 689,
+      "archiveSha256": "ef4ffc357d9fd6d75318f329baccbc11ddb2310d053fe27576f8029eead14c41"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\run-checks-final.py",
+      "relativeOriginal": "run-checks-final.py",
+      "bytes": 2261,
+      "sha256": "6dc1393a74b0699617548dce672f873ecbc7938b903a68ce4af999ec86226ac4",
+      "archive": "raw/run-checks-final.py.gz",
+      "archiveBytes": 935,
+      "archiveSha256": "e7a88bc9e4ad88b6475015d9ee51bf9236e83e70ab76348639ce4be5329e501a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\run-checks.py",
+      "relativeOriginal": "run-checks.py",
+      "bytes": 2213,
+      "sha256": "44f0e58ca161dc3522f11f79a3c766234cd5bf5e7580c1004de5343555a7c30c",
+      "archive": "raw/run-checks.py.gz",
+      "archiveBytes": 929,
+      "archiveSha256": "6212f9904f68d0fb894cca85b621de0a958d8353912dae37000cafd6b1136d10"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\run-doc-checks.py",
+      "relativeOriginal": "run-doc-checks.py",
+      "bytes": 1460,
+      "sha256": "0bcdc1ef8aeba3bc671c72166c09d0afbc9e5d4d59711f60d33034a07f3daa3e",
+      "archive": "raw/run-doc-checks.py.gz",
+      "archiveBytes": 767,
+      "archiveSha256": "1e27f9d0177bd22713cb69d7cb965f429a1bc96a444b47aee95636ec9bd8f6dc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\run-pdf.py",
+      "relativeOriginal": "run-pdf.py",
+      "bytes": 2304,
+      "sha256": "6e84d8f46f4fca181b754835edad50e070a34c0bd5ff5274d280ddde614fd439",
+      "archive": "raw/run-pdf.py.gz",
+      "archiveBytes": 1009,
+      "archiveSha256": "e70ceb979821fef114ccdc8cd273c95ee5cb946efcc5ae91003bd22950c288ab"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\native-perf-sdk-journey-results.json",
+      "relativeOriginal": "samples100/native-perf-sdk-journey-results.json",
+      "bytes": 410135,
+      "sha256": "7c6fd64b748f389fb7fd3436291555d499468cddf5d18a6d8b9885907bb4802d",
+      "archive": "raw/samples100/native-perf-sdk-journey-results.json.gz",
+      "archiveBytes": 33784,
+      "archiveSha256": "424147163ddca58270c9a40846c644ea886911b6932a6e396f59e2016972847b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\native-perf-consumed.json",
+      "relativeOriginal": "samples100/sample-001/native-perf-consumed.json",
+      "bytes": 267,
+      "sha256": "4e888460d03654132fd74d05e62878cdc97c48f72fc6416794968866123bccd5",
+      "archive": "raw/samples100/sample-001/native-perf-consumed.json.gz",
+      "archiveBytes": 221,
+      "archiveSha256": "1987fe562f98ddad5c1cecc40a99792b530751e135918f7205ee4afbc64e71b4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\native-perf-owned.json",
+      "relativeOriginal": "samples100/sample-001/native-perf-owned.json",
+      "bytes": 7751,
+      "sha256": "021f646bd82f24b1fafb88e2b51e0e7f477b483706112b20f6eb701b8456ce4f",
+      "archive": "raw/samples100/sample-001/native-perf-owned.json.gz",
+      "archiveBytes": 1889,
+      "archiveSha256": "74b30ed8ce5858fdd380b3bc680798145deef16bb55595231e31493e259559c6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "relativeOriginal": "samples100/sample-001/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "fb31ba6514fb7877f8b09bd020e2a39b4cb3f8cadc5d080456618610366758a6",
+      "archive": "raw/samples100/sample-001/native-perf-sdk-journey-authorized.json.gz",
+      "archiveBytes": 152,
+      "archiveSha256": "a3e788089dcad3ed397ed351e619badac8935b8a80eda13523ef6d2fbe88b5d1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100/sample-001/native-perf-sdk-journey-bound.json",
+      "bytes": 578,
+      "sha256": "5dbb53d583cf9d7380e39cce2b8d8f8c572814e852fafac8bb81de5f68ccfdb7",
+      "archive": "raw/samples100/sample-001/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 397,
+      "archiveSha256": "d327ace46b7851835a0b8ae738360607cd280471425abd75a1c476e391f5224f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100/sample-001/native-perf-sdk-journey-requested.json",
+      "bytes": 363,
+      "sha256": "e2823f26af69892472ec5e4d21cac7d2f4ec8c42295f0f403efa266ef8b56018",
+      "archive": "raw/samples100/sample-001/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 279,
+      "archiveSha256": "c173bbfa4c1a2f887bc3513af8e19a3ccd3d70362ebee423841b87b4c972e554"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100/sample-001/native-perf-sdk-journey.json",
+      "bytes": 88911,
+      "sha256": "4da140e2d523c9379d6b4f13e5092ba935710bdb53c8aa45de4ddef65dbcb71b",
+      "archive": "raw/samples100/sample-001/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 6683,
+      "archiveSha256": "f21decf6ee321b4c381f21818cb7ac8d2a8714796435812ad12c57bc6bd9cb5b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\native-perf-sdk-pdf-screenshot.png",
+      "relativeOriginal": "samples100/sample-001/native-perf-sdk-pdf-screenshot.png",
+      "bytes": 34024,
+      "sha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9",
+      "archive": "raw/samples100/sample-001/native-perf-sdk-pdf-screenshot.png.gz",
+      "archiveBytes": 31059,
+      "archiveSha256": "ef5d876aa7fae7f7ff29b2fbbfb7420fc2a1fbd457208fcd535ccfb8322bcde8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100/sample-001/native-perf-sdk-phase-01.json",
+      "bytes": 818,
+      "sha256": "42bdfde2b6bab0fb4b82d9af0810852b739a156659e77af728a873d72baad66a",
+      "archive": "raw/samples100/sample-001/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 404,
+      "archiveSha256": "be0c197aaaa6a744326e3e6cf4c9a33ae0ca934717c6e0c4661ed08b9ef0986a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\native-perf-sdk-phase-02.json",
+      "relativeOriginal": "samples100/sample-001/native-perf-sdk-phase-02.json",
+      "bytes": 1173,
+      "sha256": "26944198454392e2d44541ec5265dc0e1888eb35d869ed72cb5e920680029e46",
+      "archive": "raw/samples100/sample-001/native-perf-sdk-phase-02.json.gz",
+      "archiveBytes": 497,
+      "archiveSha256": "4b7d6e25b5462293b136e8058f5b1910a4b1b57b16d1f21c16f0e2537487df71"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\native-perf-sdk-phase-03.json",
+      "relativeOriginal": "samples100/sample-001/native-perf-sdk-phase-03.json",
+      "bytes": 704,
+      "sha256": "777cffa99bc9655ea58e5e8de71fff10225e57247b0c67669fca5581d0cc0695",
+      "archive": "raw/samples100/sample-001/native-perf-sdk-phase-03.json.gz",
+      "archiveBytes": 363,
+      "archiveSha256": "9ddeec121e573f90ac870280f4aec886f1fbe6dbc71088abf6b1024e4b51729d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001\\native-perf-sdk-phase-04.json",
+      "relativeOriginal": "samples100/sample-001/native-perf-sdk-phase-04.json",
+      "bytes": 428,
+      "sha256": "82d9b338a3dff554d645116a46e6283513c0bfd888f273f76cec62dc6afab9c7",
+      "archive": "raw/samples100/sample-001/native-perf-sdk-phase-04.json.gz",
+      "archiveBytes": 251,
+      "archiveSha256": "92b868fe1bbc04878fc4702a6a26e9be5359c3684009342e911effaa56dfbc64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-001.json",
+      "relativeOriginal": "samples100/sample-001.json",
+      "bytes": 117791,
+      "sha256": "e4e329fed66f33886b7fa5067f92310a663ff5703b26ab2d79390bbfc1e22649",
+      "archive": "raw/samples100/sample-001.json.gz",
+      "archiveBytes": 11009,
+      "archiveSha256": "51cce39a4641517401d1842f2dc33dd44a36f701258e8897aef67f046013bf9f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\native-perf-consumed.json",
+      "relativeOriginal": "samples100/sample-002/native-perf-consumed.json",
+      "bytes": 267,
+      "sha256": "b9fdccd8c43430697a522b2c8ff2dbe3cc4db1b5d6a19dff1e291fa813518657",
+      "archive": "raw/samples100/sample-002/native-perf-consumed.json.gz",
+      "archiveBytes": 221,
+      "archiveSha256": "7391de759c7640e9eaa7e5150c17d1536c0fa9b0d16b8a674f1f2d7b0b85cf11"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\native-perf-owned.json",
+      "relativeOriginal": "samples100/sample-002/native-perf-owned.json",
+      "bytes": 7751,
+      "sha256": "2421e3f6d89dcd8099804b81c1dd035b3cc3f4fa1ad950f14208f1905c71961a",
+      "archive": "raw/samples100/sample-002/native-perf-owned.json.gz",
+      "archiveBytes": 1889,
+      "archiveSha256": "f534f0e2cd6fa3e4c16ce632e5799401c6ecbc88f88fc05cc594b32695a04fea"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "relativeOriginal": "samples100/sample-002/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "d148c5fbf091469c22b094648c0a084a8761c1ab7320ff2156a99ad4c7878ea7",
+      "archive": "raw/samples100/sample-002/native-perf-sdk-journey-authorized.json.gz",
+      "archiveBytes": 150,
+      "archiveSha256": "03fd9d642747555635cc68b10612f95b8fd4852d7c39daff48c93f8f30283646"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100/sample-002/native-perf-sdk-journey-bound.json",
+      "bytes": 578,
+      "sha256": "5f8c732c34610854518f6527d0a7d176558a510b5ad3501287ddbbdcb62a5502",
+      "archive": "raw/samples100/sample-002/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 395,
+      "archiveSha256": "b01f0ec5d76a7d5073af9fa82aac253b273afb9820dd8a0b7aa48442f520d8b9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100/sample-002/native-perf-sdk-journey-requested.json",
+      "bytes": 363,
+      "sha256": "a00958f3d9451b0b0bc82617df926f17da2f55976dc333f440dbec35bca5345f",
+      "archive": "raw/samples100/sample-002/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 278,
+      "archiveSha256": "2aff4e8ee4a6e8bb94ec9950e44ed0800aa32bde01a44239cd6ea6fe83bd128e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100/sample-002/native-perf-sdk-journey.json",
+      "bytes": 85432,
+      "sha256": "9d47cbeeaaacd9fb1a58a03dce3da2a2bbdf7cbc09359eb68bad77f1b11f204c",
+      "archive": "raw/samples100/sample-002/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 6638,
+      "archiveSha256": "c9e8458265377e70ece53a822b88e461c3c234ba7baf6033762c54b00249bf03"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\native-perf-sdk-pdf-screenshot.png",
+      "relativeOriginal": "samples100/sample-002/native-perf-sdk-pdf-screenshot.png",
+      "bytes": 34024,
+      "sha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9",
+      "archive": "raw/samples100/sample-002/native-perf-sdk-pdf-screenshot.png.gz",
+      "archiveBytes": 31059,
+      "archiveSha256": "ef5d876aa7fae7f7ff29b2fbbfb7420fc2a1fbd457208fcd535ccfb8322bcde8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100/sample-002/native-perf-sdk-phase-01.json",
+      "bytes": 827,
+      "sha256": "7d2a92823def97eb0c288ebff11134f20b29d3102e982e6326c2d454d6c8d932",
+      "archive": "raw/samples100/sample-002/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 410,
+      "archiveSha256": "876ad285274e37ef8ff56a2589f240feb9828f8691f40b6feb5c32ea83d41d35"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\native-perf-sdk-phase-02.json",
+      "relativeOriginal": "samples100/sample-002/native-perf-sdk-phase-02.json",
+      "bytes": 1295,
+      "sha256": "1cda3c55bc91e03402ad02eacd6f19be6b45fbe78e8f24fb97b027697ac58930",
+      "archive": "raw/samples100/sample-002/native-perf-sdk-phase-02.json.gz",
+      "archiveBytes": 527,
+      "archiveSha256": "61ad3f3f92cffc0c8fde849bdbd58ca8f2b5c48caf2e5e460b1106d94c0feab6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\native-perf-sdk-phase-03.json",
+      "relativeOriginal": "samples100/sample-002/native-perf-sdk-phase-03.json",
+      "bytes": 609,
+      "sha256": "8e55bc8a8ce38f4a830c6a886622a721e90398a82c1da0e86ca2d48040116820",
+      "archive": "raw/samples100/sample-002/native-perf-sdk-phase-03.json.gz",
+      "archiveBytes": 329,
+      "archiveSha256": "326311eb832b1f94989c466a7aa237100630cf2ce8e012e033137de72aaab905"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002\\native-perf-sdk-phase-04.json",
+      "relativeOriginal": "samples100/sample-002/native-perf-sdk-phase-04.json",
+      "bytes": 428,
+      "sha256": "a2802ce4cfe21aca0a5affcf174a25e0e182a1a546995cf260fba025ea876af6",
+      "archive": "raw/samples100/sample-002/native-perf-sdk-phase-04.json.gz",
+      "archiveBytes": 256,
+      "archiveSha256": "ba126a527250cc1afcea0b378efd37717b03060229b5d1f3b026e70d56e67ad6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-002.json",
+      "relativeOriginal": "samples100/sample-002.json",
+      "bytes": 114130,
+      "sha256": "1c9aa0a958e1f11df5bb1e589cda8924242b5f6e3e66a3830b4c012aeb9d17fa",
+      "archive": "raw/samples100/sample-002.json.gz",
+      "archiveBytes": 11019,
+      "archiveSha256": "56e21ad759f17ee40b001cc01ef7c0c50a56ceef459e44cadc7765e46e4ff44c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\native-perf-consumed.json",
+      "relativeOriginal": "samples100/sample-003/native-perf-consumed.json",
+      "bytes": 267,
+      "sha256": "570508db0e20e42b40f045ce1d4ccb39cb1a22df13bff7d4f50a6554fbaf4e0c",
+      "archive": "raw/samples100/sample-003/native-perf-consumed.json.gz",
+      "archiveBytes": 221,
+      "archiveSha256": "64b198dc70b5519f0835d1fd3bf11a097f813fcf105f9e5b6a1d6418e83bbdb5"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\native-perf-owned.json",
+      "relativeOriginal": "samples100/sample-003/native-perf-owned.json",
+      "bytes": 7751,
+      "sha256": "51c3c863071e147cdcc3580e02bc51283937347eb3861ff7546f09dec0a25001",
+      "archive": "raw/samples100/sample-003/native-perf-owned.json.gz",
+      "archiveBytes": 1888,
+      "archiveSha256": "4c0800990de1d145a87aa229f7830f0d78397a49946deafd9f50b1400bb1812d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "relativeOriginal": "samples100/sample-003/native-perf-sdk-journey-authorized.json",
+      "bytes": 164,
+      "sha256": "e19c77206fbdb0e5d11a14d261bef0cb797251f2c3e39957492c92bcd735b6b6",
+      "archive": "raw/samples100/sample-003/native-perf-sdk-journey-authorized.json.gz",
+      "archiveBytes": 150,
+      "archiveSha256": "7f83b28f9a57b752351b7b0e790d86246245ebee48c5b5b78bcfeb4fa7012927"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\native-perf-sdk-journey-bound.json",
+      "relativeOriginal": "samples100/sample-003/native-perf-sdk-journey-bound.json",
+      "bytes": 578,
+      "sha256": "a51a89bb954625502db21fb20eecaac95c9f9e603127ee80d838a7933b0dd69e",
+      "archive": "raw/samples100/sample-003/native-perf-sdk-journey-bound.json.gz",
+      "archiveBytes": 399,
+      "archiveSha256": "f1d3c6ee35fe933823bae8cb644a6470548a263d8d2b4057c24f7cce941206fe"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\native-perf-sdk-journey-requested.json",
+      "relativeOriginal": "samples100/sample-003/native-perf-sdk-journey-requested.json",
+      "bytes": 363,
+      "sha256": "c240c18b49112c581a8de7a3bbbc1b04ea14a541d04594d625d1ea84dc97d26c",
+      "archive": "raw/samples100/sample-003/native-perf-sdk-journey-requested.json.gz",
+      "archiveBytes": 278,
+      "archiveSha256": "7ff71edab63fc6f5b91122c3f91228f6dac22fcbb33728965f2ce698caeb1300"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\native-perf-sdk-journey.json",
+      "relativeOriginal": "samples100/sample-003/native-perf-sdk-journey.json",
+      "bytes": 91929,
+      "sha256": "247866eb8de1110dc6c8a4c35136e14ebe1961b1edd72f45e3ecf4768f4258f4",
+      "archive": "raw/samples100/sample-003/native-perf-sdk-journey.json.gz",
+      "archiveBytes": 6735,
+      "archiveSha256": "9498077eed2dbf7b9c17885edfbbcd62826872e2b527ac28445f81795c2ff84a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\native-perf-sdk-pdf-screenshot.png",
+      "relativeOriginal": "samples100/sample-003/native-perf-sdk-pdf-screenshot.png",
+      "bytes": 34024,
+      "sha256": "5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9",
+      "archive": "raw/samples100/sample-003/native-perf-sdk-pdf-screenshot.png.gz",
+      "archiveBytes": 31059,
+      "archiveSha256": "ef5d876aa7fae7f7ff29b2fbbfb7420fc2a1fbd457208fcd535ccfb8322bcde8"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\native-perf-sdk-phase-01.json",
+      "relativeOriginal": "samples100/sample-003/native-perf-sdk-phase-01.json",
+      "bytes": 827,
+      "sha256": "a3d919b8dd8eaf561754c45422f16071dbedbc901016f04b587111ced7f1898c",
+      "archive": "raw/samples100/sample-003/native-perf-sdk-phase-01.json.gz",
+      "archiveBytes": 410,
+      "archiveSha256": "cb1d65b9d802ea944d964cc33e8dcd7ad5cf5a5e9d50f01b9ecda048fee374de"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\native-perf-sdk-phase-02.json",
+      "relativeOriginal": "samples100/sample-003/native-perf-sdk-phase-02.json",
+      "bytes": 1173,
+      "sha256": "d9eedeeb02fa5b1612067781db50793a505f948d1f8022a39b5c290d1ce4ab43",
+      "archive": "raw/samples100/sample-003/native-perf-sdk-phase-02.json.gz",
+      "archiveBytes": 501,
+      "archiveSha256": "10daf4158cf85d188ec4e218bf0976368f2144f9316b03bad2c7073160cb8252"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\native-perf-sdk-phase-03.json",
+      "relativeOriginal": "samples100/sample-003/native-perf-sdk-phase-03.json",
+      "bytes": 704,
+      "sha256": "9d3f90c04ed2879135f0aa4de175af453258f6137f5792c6f8197478582c84a3",
+      "archive": "raw/samples100/sample-003/native-perf-sdk-phase-03.json.gz",
+      "archiveBytes": 369,
+      "archiveSha256": "6aa67bac5ce068f6df2c594063e74cd1cb626fca5a5bd119b40735c855e110db"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003\\native-perf-sdk-phase-04.json",
+      "relativeOriginal": "samples100/sample-003/native-perf-sdk-phase-04.json",
+      "bytes": 439,
+      "sha256": "c1cea02d5bbd44ea6fa88c95f4d79027e28bc1a1b07b29c7d6c3c34f96d13815",
+      "archive": "raw/samples100/sample-003/native-perf-sdk-phase-04.json.gz",
+      "archiveBytes": 259,
+      "archiveSha256": "4ef9412238cdc0e97934c6f88a887b241ff050f0fe50abee2e52d2754f72218c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\samples100\\sample-003.json",
+      "relativeOriginal": "samples100/sample-003.json",
+      "bytes": 120967,
+      "sha256": "4e8a28a3517d06b0740a56e6136d9d8efa354ca2044722636239a48cdced5cee",
+      "archive": "raw/samples100/sample-003.json.gz",
+      "archiveBytes": 11106,
+      "archiveSha256": "de48d1024bfe1fe77609145b4fe143e0732022cff709e37e579150b1518c96a4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\source-freeze.json",
+      "relativeOriginal": "source-freeze.json",
+      "bytes": 54913,
+      "sha256": "d8aa07bb66167b5e2cb169302c6fe635f14d38123ac5869408269d2ff066b489",
+      "archive": "raw/source-freeze.json.gz",
+      "archiveBytes": 22530,
+      "archiveSha256": "33d4d6467446868644897f565e883e69361627c85c10eddb3810bfa9c0528ef4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\structure-fmt-write.live.json",
+      "relativeOriginal": "structure-fmt-write.live.json",
+      "bytes": 112,
+      "sha256": "1e4f57b2c1da82ffa17f50d78f779fae3a07361cbd946a3ebea10125af9b1feb",
+      "archive": "raw/structure-fmt-write.live.json.gz",
+      "archiveBytes": 118,
+      "archiveSha256": "9bd89c96357730bff4d91832dc431d0234fec62583dd9229a6725fbc279d77ae"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\structure-fmt-write.receipt.json",
+      "relativeOriginal": "structure-fmt-write.receipt.json",
+      "bytes": 211,
+      "sha256": "b4ce5b10709e655681b3da3ecca77da301c11ab16c65d479303723eb6dd55b3d",
+      "archive": "raw/structure-fmt-write.receipt.json.gz",
+      "archiveBytes": 173,
+      "archiveSha256": "c423d87c3619690053d9846f14892a6a5dd4fb0f453bf370897d36ec17708fb6"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\structure-fmt-write.stderr.log",
+      "relativeOriginal": "structure-fmt-write.stderr.log",
+      "bytes": 5812,
+      "sha256": "b18583a3aaa47506bd5605c909049bac3457d0830d1bebc104e19293a587f325",
+      "archive": "raw/structure-fmt-write.stderr.log.gz",
+      "archiveBytes": 469,
+      "archiveSha256": "b7e807e0015e7719d1a7c98b25306db2f874c9cb8ac3454d87c500da8e91c5f2"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\structure-fmt-write.stdout.log",
+      "relativeOriginal": "structure-fmt-write.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "raw/structure-fmt-write.stdout.log.gz",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\verify-final.py",
+      "relativeOriginal": "verify-final.py",
+      "bytes": 2646,
+      "sha256": "79af54718b98f871c2f575ae4f2696a514e33a5959195feffbae4ae1129eb9d5",
+      "archive": "raw/verify-final.py.gz",
+      "archiveBytes": 1339,
+      "archiveSha256": "08d4635da3e086e0405c7372a26ecfcac5c82577856c46a3e5779ac9d58af53e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\visual-review.json",
+      "relativeOriginal": "visual-review.json",
+      "bytes": 475,
+      "sha256": "4a73d3784638af3db927a607f3728b68ef5766691a00a2822d00c4b8668df9cd",
+      "archive": "raw/visual-review.json.gz",
+      "archiveBytes": 347,
+      "archiveSha256": "3df56c6f1facdfeee3c48fb5ed30a5e2304303ed3d788280b6fc76891c8aecbb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-pdf-structure-20261005\\write-evidence.py",
+      "relativeOriginal": "write-evidence.py",
+      "bytes": 4308,
+      "sha256": "2c3b85c65c147e9f46553fe02d08e73c673d082a8f9d2366042e7af085ee082b",
+      "archive": "raw/write-evidence.py.gz",
+      "archiveBytes": 1800,
+      "archiveSha256": "83af6420c379d8c2606a624abec81ab34ad5d77f8cc816f0c371a3f012cf9855"
+    }
+  ]
+}
