@@ -421,3 +421,29 @@ node scripts/native-perf-sdk-journey.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe'
 [独立RF-1093证据](rf1093-native-acceptance-2026-10-05.json)核对原13个真实PowerShell场景及相同源码SHA、最新完整Node结果和同EXE100/5000各5次2000ms整组。115/115点有效；20条确认退出观察只含身份/确认字段、非root且不在存活集合，内存/CPU数值省略，原PowerShell回归验证内部置null，没有零替代。原失败组和最新原件全部保留，没有移除进程身份、查询失败或根进程拒绝规则。
 
 RF-1092与RF-1093分别独立验收提交；RF-312原偶发home超时仍未解决。下一本地场景为同profile受控进程热启动（需要新的明确启动授权/身份契约，不能清除consumed marker重用旧证明）、公开OCR/附件预览及KDF/存储/React/SDK性能归因。外部平台与材质前置保持。
+
+
+## 2026-10-05 · RF-312同profile受控进程启动Windows阶段
+
+使用同一Release EXE `3d9461e92d87412bd85b522342d895e439a40fabc8a0f2da739ba9c9bcbf8316`，100/5000对象各5对，累计20次成功原生启动。每对首次使用新私有profile，随后确认该应用及WebView进程退出，在保留Vault、WebView与profile目录的情况下再次启动；EXE和identifier保持，第二次使用独立runId、PID、端口、主frame、loader及timeOrigin。旧consumed保留，重启票据独立且只消费一次。全部输入均为只读，未读取或写入密码。
+
+| 对象数 | 样本量 | 新profile中位 / p95（ms） | 同profile重启中位 / p95（ms） |
+|---|---|---|---|
+| 100 | 5 对 | 1705.05 / 3690.51 | 1360.44 / 1487.43 |
+| 5000 | 5 对 | 1510.34 / 2397.44 | 1545.30 / 2022.05 |
+
+计时从原生runtime配置到可见、启用的主密码登录表单、两帧及SDK绑定，不包括OS spawn、准备/预检，包含SDK开销；不是纯渲染时间，也不是OS冷启动。没有清空OS缓存。每组n=5，nearest-rank p95为最大值；5000对象两类中位数接近，不能推断同profile必然更快或据此启动产品优化。工作集是登录就绪后驱动核验前后快照，不是启动峰值；本组没有执行密码解锁、OCR、预览或睡眠。
+
+首次EXE被离线标记门禁拒绝，未启动GUI；第二版首个原生样本在重启预检失败，整组0接受、metrics为null。原因是正常更新器保存了公开`updateSources`缓存，而旧契约要求UI文件原始字节不变。仅热启动分支允许该生产者缓存：固定八项偏好保持，缓存字段/时间/地址来自编译配置及允许候选，停止回执和票据绑定首次退出后的实际UI文件SHA；其余Vault/config/accounts/marker必须逐字节保持。旧首次启动预检仍严格。所有失败、旧EXE和原始证明均保留，没有重置profile、删除consumed或筛选成功子集。
+
+复跑沿用本文件的公开fixture准备和打包资源复制步骤，构建与命令如下；每个output必须新建，脚本内部负责两次启动及核验：
+
+```powershell
+cargo build --locked --release -p solo_soul --features native-perf
+node scripts/native-perf-startup.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --fixture 'C:\TEMP\rf312-fixtures\vault100' --output 'C:\TEMP\rf312\warm-100' --samples 5
+node scripts/native-perf-startup.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --fixture 'C:\TEMP\rf312-fixtures\vault5000' --output 'C:\TEMP\rf312\warm-5000' --samples 5
+```
+
+51项native Rust测试、固定Node入口166通过/0失败/1既有权限跳过、严格Clippy、格式及Release构建通过。74个构建输入不变，14个公开源、11份Vault的不可变文件、282份资源副本及四版EXE核对通过，stash和子模块保持。fresh CIM复核188个记录身份退出；首次清理遇到私有`Content.IE5`联接，在删除前拒绝，原错误与脚本保留；最终精确解除11个私有联接并删除88个缓存目录，不遍历联接目标，保留Vault和所有证明。
+
+[完整结构化证据](rf312-windows-warm-start-2026-10-05.json)与[逐字节原始索引](rf312-windows-warm-start-2026-10-05/index.json)保存207份gzip原件，包括全部失败/成功、源码冻结、检查、构建和清理。RF-312整体仍未完成：下一本地项是公开OCR/附件预览原生测量和KDF/存储/React/SDK归因；原偶发home超时原因仍未确定。系统睡眠、多端性能以及RF-112/121外部原生验收和RF-122～127前置保持未完成。独立本地提交，不推送，goal继续active。

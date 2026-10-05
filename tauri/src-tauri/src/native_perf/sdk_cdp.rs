@@ -1045,6 +1045,7 @@ mod tests {
             chromium_log: None,
             sdk_cdp: true,
             sdk_journey: false,
+            startup: None,
             object_count: 100,
         }
     }

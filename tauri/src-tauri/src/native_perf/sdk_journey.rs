@@ -43,12 +43,12 @@ pub(super) fn claim_request(config: &RuntimeConfig) -> Result<(), String> {
         .set(Instant::now())
         .map_err(|_| "SDK journey already requested")?;
     write_new_json(
-        &config.root.join(REQUESTED_FILE),
+        &config.evidence_root().join(REQUESTED_FILE),
         &json!({
-            "schemaVersion": 1, "scope": "windows-native-sdk-ui-journey-requested",
+            "schemaVersion": 1, "scope": if config.startup.is_some() { "windows-native-sdk-startup-requested" } else { "windows-native-sdk-ui-journey-requested" },
             "root": config.root, "runId": config.run_id, "pid": std::process::id(),
             "port": config.port, "objectCount": config.object_count,
-            "inputMethod": "SDK-CDP-Input", "defaultBuild": false,
+            "inputMethod": if config.startup.is_some() { "SDK-CDP-read-only" } else { "SDK-CDP-Input" }, "defaultBuild": false,
         }),
     )
 }
@@ -197,6 +197,11 @@ struct Capture {
 }
 impl Capture {
     async fn protocol(&mut self, method: &'static str, parameters: Value) -> Outcome<Value> {
+        if self.config.startup.is_some()
+            && !matches!(method, "Runtime.evaluate" | "Page.getFrameTree")
+        {
+            return Err("startup-input-forbidden");
+        }
         if self.calls.len() >= MAX_CALLS || self.started.elapsed().as_millis() > MAX_RUN_MS.into() {
             return Err("sdk-budget-exceeded");
         }
@@ -348,7 +353,7 @@ impl Capture {
         self.step = step;
         let expression = PROBE.replace(
             "__REQUEST__",
-            &json!({"step":step,"runId":self.config.run_id,"objectCount":self.config.object_count})
+            &json!({"step":step,"runId":self.config.run_id,"objectCount":self.config.object_count,"readOnlyStartup":self.config.startup.is_some()})
                 .to_string(),
         );
         let raw = self
@@ -432,7 +437,7 @@ impl Capture {
         self.phases.push(json!({"name":name,"success":true,"durationMs":began.elapsed().as_secs_f64()*1000.0,
             "ipc":ipc,"inputTrust":after["inputTrust"],"fromAtMs":before["atMs"],"toAtMs":after["atMs"]}));
         publish(
-            &self.config.root,
+            self.config.evidence_root(),
             &format!("native-perf-sdk-phase-{:02}.json", self.phases.len()),
             self.phases.last().unwrap(),
         )
@@ -444,7 +449,7 @@ impl Capture {
         let zero = json!({"observer":{"commands":[],"timeOriginMs":startup["timeOriginMs"],"runId":self.config.run_id,"valid":true},"atMs":0});
         self.record("startup", beginning, &zero)?;
         publish(
-            &self.config.root,
+            self.config.evidence_root(),
             "native-perf-sdk-journey-bound.json",
             &json!({
                 "schemaVersion":1,"scope":"windows-native-sdk-ui-bound","runId":self.config.run_id,
@@ -452,6 +457,9 @@ impl Capture {
                 "browserPid":self.browser_pid,"binding":self.frame,"timeOriginMs":self.time_origin,
             }),
         )?;
+        if self.config.startup.is_some() {
+            return Ok(());
+        }
         self.await_authorization().await?;
         let before = self.last.clone().unwrap();
         let began = Instant::now();
@@ -583,7 +591,7 @@ fn validate_probe(
     validate_probe_fields(probe, step, run_id, time_origin, "ready")
 }
 
-fn validate_probe_fields(
+pub(super) fn validate_probe_fields(
     probe: &Value,
     step: &str,
     run_id: &str,
@@ -732,7 +740,7 @@ fn validate_observer(value: &Value, run_id: &str, time_origin: &Value) -> Outcom
     }
     Ok(())
 }
-fn ipc_delta(before: &Value, after: &Value) -> Outcome<Value> {
+pub(super) fn ipc_delta(before: &Value, after: &Value) -> Outcome<Value> {
     let a = before["commands"].as_array().ok_or("observer-invalid")?;
     let b = after["commands"].as_array().ok_or("observer-invalid")?;
     if before["timeOriginMs"] != after["timeOriginMs"]
@@ -783,6 +791,12 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
         "calls":capture.calls,"phases":capture.phases,"lastProbe":capture.last,"ipcAll":ipc_all,
         "elapsedMs":capture.started.elapsed().as_secs_f64()*1000.0,
         "unmeasured":["OCR","attachment-preview","system-sleep","same-profile-warm-start","other-platforms"]});
+    if let Some(startup) = &capture.config.startup {
+        proof["scope"] = json!("windows-native-sdk-startup");
+        proof["inputMethod"] = json!("SDK-CDP-read-only");
+        proof["startup"] = json!(startup);
+        proof["unmeasured"] = super::startup::unmeasured(startup.generation);
+    }
     if let Some(diagnostic) = capture
         .timeout_diagnostic
         .take()
@@ -790,7 +804,7 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
     {
         proof["timeoutDiagnostic"] = diagnostic;
     }
-    let _ = publish(&capture.config.root, PROOF_FILE, &proof);
+    let _ = publish(capture.config.evidence_root(), PROOF_FILE, &proof);
 }
 
 fn publish(root: &std::path::Path, name: &str, value: &Value) -> Outcome<()> {

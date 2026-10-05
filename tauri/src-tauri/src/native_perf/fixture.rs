@@ -66,7 +66,55 @@ fn marker(count: usize, build_profile: &str) -> Value {
     })
 }
 
+// 启动后只承认正常更新器写入的公开缓存；固定的八项外观/引导偏好仍逐项相等。
+fn check_startup_preferences(value: &Value) -> Result<(), String> {
+    let mut actual = value.clone();
+    let cache = actual
+        .as_object_mut()
+        .ok_or("invalid startup UI preferences")?
+        .remove("updateSources");
+    if actual != ui_preferences() {
+        return Err("startup changed fixed UI preferences".into());
+    }
+    let Some(cache) = cache else {
+        return Ok(());
+    };
+    let sources = crate::commands::update::native_perf_cache_candidates()?;
+    if !cache.as_object().is_some_and(|m| {
+        m.len() == 3
+            && ["manifest", "release", "lastChannel"]
+                .iter()
+                .all(|key| m.contains_key(*key))
+    }) || !["manifest", "release"].contains(&cache["lastChannel"].as_str().unwrap_or(""))
+        || cache[cache["lastChannel"].as_str().unwrap()].is_null()
+    {
+        return Err("invalid startup update-source cache".into());
+    }
+    for channel in ["manifest", "release"] {
+        let slot = &cache[channel];
+        if slot.is_null() {
+            continue;
+        }
+        if slot.as_object().map(|m| m.len()) != Some(2)
+            || slot["url"].as_str().is_none()
+            || !sources[channel]
+                .as_array()
+                .is_some_and(|urls| urls.contains(&slot["url"]))
+            || !slot["probedAt"]
+                .as_i64()
+                .is_some_and(|at| at > 0 && at <= chrono::Utc::now().timestamp())
+        {
+            return Err("startup update-source cache is not an allowed bounded source".into());
+        }
+    }
+    Ok(())
+}
+
 pub(super) fn check_contract(base: &Path) -> Result<Contract, String> {
+    check_contract_mode(base, false)
+}
+
+fn check_contract_mode(base: &Path, startup: bool) -> Result<Contract, String> {
     require_regular(base, true)?;
     let value = read_json(&base.join(MARKER))?;
     let count = value["objectCount"]
@@ -108,9 +156,14 @@ pub(super) fn check_contract(base: &Path) -> Result<Contract, String> {
     if accounts.as_array().map(Vec::len) != Some(1)
         || accounts[0]["id"] != account_id
         || accounts[0]["name"] != ACCOUNT_NAME
-        || read_json(&base.join("ui_preferences.json"))? != ui_preferences()
     {
         return Err("native-perf fixture account catalog/UI preferences mismatch".into());
+    }
+    let preferences = read_json(&base.join("ui_preferences.json"))?;
+    if startup {
+        check_startup_preferences(&preferences)?;
+    } else if preferences != ui_preferences() {
+        return Err("native-perf fixture UI preferences mismatch".into());
     }
     let files = closed_files(base, &account_id)?;
     Ok(Contract {
@@ -262,11 +315,32 @@ pub(super) fn verify_copy(base: &Path, contract: &Contract) -> Result<Proof, Str
 }
 
 pub(super) fn check_proof(base: &Path, proof: &Proof, contract: &Contract) -> Result<(), String> {
+    check_proof_mode(base, proof, contract, false)
+}
+
+pub(super) fn check_startup_proof(base: &Path, proof: &Proof) -> Result<(), String> {
+    let contract = check_contract_mode(base, true)?;
+    check_proof_mode(base, proof, &contract, true)
+}
+
+fn check_proof_mode(
+    base: &Path,
+    proof: &Proof,
+    contract: &Contract,
+    startup: bool,
+) -> Result<(), String> {
+    let current = file_proofs(base, &contract.account_id)?;
+    let files_match = proof.files.len() == current.len()
+        && proof.files.iter().zip(&current).all(|(original, actual)| {
+            original.relative_path == actual.relative_path
+                && (original.sha256 == actual.sha256
+                    || (startup && actual.relative_path == Path::new("ui_preferences.json")))
+        });
     if proof.account_id != contract.account_id
         || proof.object_count != contract.count
         || proof.search_matches != contract.count.div_ceil(20)
         || proof.marker != contract.marker
-        || proof.files != file_proofs(base, &contract.account_id)?
+        || !files_match
     {
         return Err(
             "prepared synthetic fixture differs from the independently verified copy".into(),
@@ -318,4 +392,44 @@ pub(super) fn write_test_fixture(base: &Path) {
     drop(service);
     super::write_new_json(&base.join("ui_preferences.json"), &ui_preferences()).unwrap();
     super::write_new_json(&base.join(MARKER), &marker(100, "debug")).unwrap();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn startup_cache_preserves_preferences_and_rejects_unknown_sources_and_fields() {
+        let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+        let sources = crate::commands::update::native_perf_cache_candidates().unwrap();
+        let url = sources["manifest"][0].clone();
+        let mut valid = ui_preferences();
+        valid["updateSources"] = json!({"manifest":{"url":url,"probedAt":chrono::Utc::now().timestamp()},"release":null,"lastChannel":"manifest"});
+        assert!(check_startup_preferences(&ui_preferences()).is_ok());
+        assert!(check_startup_preferences(&valid).is_ok());
+        let mut bad = valid.clone();
+        bad["theme"] = json!("dark");
+        assert!(check_startup_preferences(&bad).is_err());
+        let mut bad = valid.clone();
+        bad["updateSources"]["manifest"]["url"] = json!("https://unapproved.invalid/latest.json");
+        assert!(check_startup_preferences(&bad).is_err());
+        let mut bad = valid.clone();
+        bad["updateSources"]["manifest"]["probedAt"] = json!(chrono::Utc::now().timestamp() + 3600);
+        assert!(check_startup_preferences(&bad).is_err());
+        let mut bad = valid.clone();
+        bad["updateSources"]["manifest"]["private"] = json!("sentinel");
+        assert!(check_startup_preferences(&bad).is_err());
+        let mut bad = valid.clone();
+        bad["updateSources"]
+            .as_object_mut()
+            .unwrap()
+            .remove("release");
+        bad["updateSources"]["private"] = Value::Null;
+        assert!(check_startup_preferences(&bad).is_err());
+        let mut bad = valid.clone();
+        bad["updateSources"]["lastChannel"] = json!("release");
+        assert!(check_startup_preferences(&bad).is_err());
+        let mut bad = valid;
+        bad["unknown"] = Value::Null;
+        assert!(check_startup_preferences(&bad).is_err());
+    }
 }

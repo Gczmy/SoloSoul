@@ -76,6 +76,43 @@ fn download_candidates(url: &str) -> Vec<String> {
     candidates
 }
 
+/// 仅可选原生性能工具使用：缓存必须指向与更新器相同的允许候选。
+#[cfg(all(target_os = "windows", feature = "native-perf"))]
+pub(crate) fn native_perf_cache_candidates() -> Result<serde_json::Value, String> {
+    let sources = UpdateSources::load()?;
+    let proxies = proxy_prefixes();
+    let mut manifest = sources.manifest_endpoints.clone();
+    let config: serde_json::Value =
+        serde_json::from_str(include_str!("../../tauri.conf.json")).map_err(|e| e.to_string())?;
+    let configured = config["plugins"]["updater"]["endpoints"]
+        .as_array()
+        .ok_or("native-perf updater endpoints unavailable")?;
+    for endpoint in configured.iter().filter_map(|v| v.as_str()) {
+        if !endpoint.contains("/https://") || proxies.iter().any(|p| endpoint.starts_with(p)) {
+            manifest.push(endpoint.to_string());
+        }
+    }
+    manifest.extend(proxies.iter().map(|p| {
+        format!("{p}https://github.com/Gczmy/SoloSoul/releases/latest/download/latest.json")
+    }));
+    let mut release = sources.release_endpoints(None)?;
+    release.extend(download_candidates(
+        "https://github.com/Gczmy/SoloSoul/releases/latest/download/release.json",
+    ));
+    release.extend(download_candidates(GITHUB_API));
+    for candidates in [&mut manifest, &mut release] {
+        let mut seen = std::collections::HashSet::new();
+        candidates.retain(|value| seen.insert(value.clone()));
+        if candidates.len() > 128 {
+            return Err("native-perf update sources exceed bounds".into());
+        }
+        for candidate in candidates.iter() {
+            secure_url(candidate)?;
+        }
+    }
+    Ok(serde_json::json!({"manifest":manifest,"release":release}))
+}
+
 /// 小清单请求错峰竞速，校验完整响应后才采用；不会被“返回 200 但正文停流”锁住。
 async fn read_small_response(
     client: &reqwest::Client,

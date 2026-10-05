@@ -1,7 +1,7 @@
 // RF-312 SDK固定UI探针：只返回公开fixture的结构、坐标与无payload的IPC计数。
 // 输入由原生Input协议发送；这里不调用click、写value或调用业务IPC。
 (async () => {
-  const { step, runId, objectCount } = __REQUEST__;
+  const { step, runId, objectCount, readOnlyStartup = false } = __REQUEST__;
   const expectedCards = Math.min(50, Math.ceil(objectCount / 20));
   const visible = (node) => {
     if (!node) return false;
@@ -62,7 +62,9 @@
   };
   const conditions = {
     startup: () =>
-      locked() && performance.getEntriesByName('solosoul:startup-dismissed', 'mark').length === 1,
+      locked() &&
+      (!readOnlyStartup || (visible(targets.submit()) && !targets.submit().disabled)) &&
+      performance.getEntriesByName('solosoul:startup-dismissed', 'mark').length === 1,
     home,
     workspace: () =>
       location.pathname === '/workspace' &&
