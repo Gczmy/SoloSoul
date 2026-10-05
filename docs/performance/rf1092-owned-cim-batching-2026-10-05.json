@@ -1,0 +1,388 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1092",
+  "date": "2026-10-05",
+  "baseCommit": "4e23a11c8efe35d154d15bb5874df6e8b858e8de",
+  "branch": "codex/rf1092-owned-cim-batching",
+  "status": "code implemented and Node regression passed; waiting for fully accepted 100-object native validation",
+  "codeScope": "explicit memory-series only; batch verified-owned WebView PID-filtered command-line CIM reads; default/cleanup, row identity, unique browser and exact UDF guards unchanged",
+  "exe": {
+    "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\bin-spa\\solo_soul.exe",
+    "sha256": "25d6ef51565a1ee1c9b40d3842304ac4260f9ea51e8605933e800e6cb82722ef",
+    "bytes": 101859328
+  },
+  "measurementSourceFreeze": {
+    "at": "2026-10-05T01:02:28.743504+00:00",
+    "files": [
+      {
+        "path": "tauri/scripts/native-perf-memory.mjs",
+        "bytes": 10601,
+        "sha256": "959ad8fbb30a23057f578241a2961af40e41bb464a11b9271824574da25d0157"
+      },
+      {
+        "path": "tauri/scripts/native-perf-memory.test.mjs",
+        "bytes": 20132,
+        "sha256": "2e967f4aee94e2ee7fb49d11cee2b1dfff0d22af1c14eb999b7f1876cf9e5dc6"
+      },
+      {
+        "path": "tauri/scripts/native-perf-sdk-journey.mjs",
+        "bytes": 21275,
+        "sha256": "a8ed918cbe468d8920ec9448f13c91181c292dc987dea04e468383e0152b2420"
+      },
+      {
+        "path": "tauri/scripts/run-node-tests.mjs",
+        "bytes": 1401,
+        "sha256": "8b97f1691a9e7c4c99ab10e2c8387616fab20228a2ae9afe92de566ec76a6980"
+      },
+      {
+        "path": "tauri/scripts/native-perf-run.mjs",
+        "bytes": 60864,
+        "sha256": "ee5f8497ec8bd6fc3fb4817488e54206d30412a396a98ad05ae9d59cbb08d0c1"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf.rs",
+        "bytes": 28184,
+        "sha256": "a7827b5bc1c6af95e52ca662d11b3e3adb2a399e5733875d7f8bab90d12e7c12"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf/sdk_journey.rs",
+        "bytes": 34823,
+        "sha256": "fa73c0000b731b051c81e98a4327598c995ed1ac728ee7e796b2abe0421c2b23"
+      },
+      {
+        "path": "tauri/src-tauri/src/native_perf/sdk_journey.js",
+        "bytes": 5592,
+        "sha256": "5909227490bc706b61609b1f90f43aeee8feb6568e7a140be165a1cfa08d7c59"
+      },
+      {
+        "path": "tauri/src-tauri/Cargo.toml",
+        "bytes": 4807,
+        "sha256": "99b9989688588e09304e29cddb6f295940ba3c98a91a2b32f55c47a5a1bea35e"
+      },
+      {
+        "path": "tauri/Cargo.lock",
+        "bytes": 244517,
+        "sha256": "2cc2fd3e220ad7fa968a2140207ebf5367760fb97868c414adc776d62a495d1d"
+      },
+      {
+        "path": "tauri/src-tauri/tauri.conf.json",
+        "bytes": 3270,
+        "sha256": "7d7fc8afcbe54235ca5828e7a8dad32d5547f15237e1bb5cf29d65752980ca3f"
+      }
+    ],
+    "exe": {
+      "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-journey-20261004\\bin-spa\\solo_soul.exe",
+      "sha256": "25d6ef51565a1ee1c9b40d3842304ac4260f9ea51e8605933e800e6cb82722ef",
+      "bytes": 101859328
+    }
+  },
+  "hardware": {
+    "video": {
+      "Name": "Intel(R) UHD Graphics 630",
+      "DriverVersion": "31.0.101.2135",
+      "CurrentHorizontalResolution": 1024,
+      "CurrentVerticalResolution": 768,
+      "CurrentRefreshRate": 60
+    },
+    "os": {
+      "Caption": "Microsoft Windows 11 Enterprise LTSC",
+      "Version": "10.0.26100",
+      "BuildNumber": "26100"
+    },
+    "cpu": {
+      "Name": "Intel(R) Core(TM) i7-9700 CPU @ 3.00GHz",
+      "NumberOfCores": 8,
+      "NumberOfLogicalProcessors": 8
+    },
+    "at": "2026-10-05T01:02:27.3615525Z",
+    "memory": {
+      "TotalPhysicalMemory": 16951218176
+    }
+  },
+  "measurements": {
+    "at": "2026-10-05T01:18:44.821870+00:00",
+    "sourceFreezeUnchanged": true,
+    "ordering": "100 initial -> 5000 -> 100 confirmation -> 100 replicate; all failures preserved",
+    "groups": [
+      {
+        "run": "sdk-batch-100",
+        "count": 100,
+        "success": false,
+        "samples": 5,
+        "uiSuccesses": 4,
+        "memoryComplete": 4,
+        "sourceUnchanged": true,
+        "cleanupComplete": true,
+        "totalPoints": 77,
+        "validPoints": 77,
+        "pointsPerSample": [12, 11, 30, 11, 13],
+        "collectionMedianMs": 1094.5671000000002,
+        "collectionMaximumMs": 3366.2393999999986,
+        "maximumActualStartIntervalMs": 3367,
+        "confirmedExitedObservations": 10,
+        "startupIdentityRefreshes": 2,
+        "baselineCollectionMedianMs": 1709.0753999999997,
+        "acceptedPerformanceMetrics": null,
+        "failures": [
+          {
+            "index": 3,
+            "uiSuccess": false,
+            "memoryComplete": false,
+            "error": "SDK UI journey proof rejected",
+            "nativeReason": "probe-timeout",
+            "nativeFailedStep": "home",
+            "memoryReason": "Memory coverage or identity validation is incomplete"
+          }
+        ],
+        "medianQueryReductionPercent": 35.95559915027737
+      },
+      {
+        "run": "sdk-batch-5000",
+        "count": 5000,
+        "success": true,
+        "samples": 5,
+        "uiSuccesses": 5,
+        "memoryComplete": 5,
+        "sourceUnchanged": true,
+        "cleanupComplete": true,
+        "totalPoints": 55,
+        "validPoints": 55,
+        "pointsPerSample": [12, 12, 10, 10, 11],
+        "collectionMedianMs": 1127.143299999996,
+        "collectionMaximumMs": 2860.003999999999,
+        "maximumActualStartIntervalMs": 2875,
+        "confirmedExitedObservations": 12,
+        "startupIdentityRefreshes": 1,
+        "baselineCollectionMedianMs": 1818.9370000000054,
+        "acceptedPerformanceMetrics": {
+          "memorySummary": {
+            "samplesRequested": 5,
+            "successfulSamples": 5,
+            "medianObservedMaximumWorkingSetBytes": 721223680,
+            "p95ObservedMaximumWorkingSetBytes": 732225536
+          },
+          "phaseSummary": [
+            {
+              "name": "startup",
+              "successfulSamples": 5,
+              "requestedSamples": 5,
+              "medianMs": 1559.401,
+              "p95Ms": 2050.9399
+            },
+            {
+              "name": "password-unlock",
+              "successfulSamples": 5,
+              "requestedSamples": 5,
+              "medianMs": 2272.64,
+              "p95Ms": 2932.4175
+            },
+            {
+              "name": "workspace",
+              "successfulSamples": 5,
+              "requestedSamples": 5,
+              "medianMs": 1003.2366,
+              "p95Ms": 1186.0341
+            },
+            {
+              "name": "search-needle",
+              "successfulSamples": 5,
+              "requestedSamples": 5,
+              "medianMs": 515.3027,
+              "p95Ms": 553.2662
+            },
+            {
+              "name": "application-lock",
+              "successfulSamples": 5,
+              "requestedSamples": 5,
+              "medianMs": 124.83130000000001,
+              "p95Ms": 174.8012
+            },
+            {
+              "name": "password-reunlock",
+              "successfulSamples": 5,
+              "requestedSamples": 5,
+              "medianMs": 2133.1892,
+              "p95Ms": 2382.7892
+            }
+          ]
+        },
+        "failures": [],
+        "medianQueryReductionPercent": 38.03285655303109
+      },
+      {
+        "run": "sdk-batch-confirmed-100",
+        "count": 100,
+        "success": false,
+        "samples": 5,
+        "uiSuccesses": 4,
+        "memoryComplete": 4,
+        "sourceUnchanged": true,
+        "cleanupComplete": true,
+        "totalPoints": 67,
+        "validPoints": 67,
+        "pointsPerSample": [10, 10, 27, 10, 10],
+        "collectionMedianMs": 977.9999000000025,
+        "collectionMaximumMs": 2269.202799999999,
+        "maximumActualStartIntervalMs": 2320,
+        "confirmedExitedObservations": 7,
+        "startupIdentityRefreshes": 5,
+        "baselineCollectionMedianMs": 1709.0753999999997,
+        "acceptedPerformanceMetrics": null,
+        "failures": [
+          {
+            "index": 3,
+            "uiSuccess": false,
+            "memoryComplete": false,
+            "error": "SDK UI journey proof rejected",
+            "nativeReason": "probe-timeout",
+            "nativeFailedStep": "home",
+            "memoryReason": "Memory coverage or identity validation is incomplete"
+          }
+        ],
+        "medianQueryReductionPercent": 42.77608231912983
+      },
+      {
+        "run": "sdk-batch-replicate-100",
+        "count": 100,
+        "success": false,
+        "samples": 5,
+        "uiSuccesses": 5,
+        "memoryComplete": 4,
+        "sourceUnchanged": true,
+        "cleanupComplete": true,
+        "totalPoints": 56,
+        "validPoints": 55,
+        "pointsPerSample": [12, 11, 10, 13, 10],
+        "collectionMedianMs": 1160.098,
+        "collectionMaximumMs": 6281.343699999998,
+        "maximumActualStartIntervalMs": 6281,
+        "confirmedExitedObservations": 11,
+        "startupIdentityRefreshes": 6,
+        "baselineCollectionMedianMs": 1709.0753999999997,
+        "acceptedPerformanceMetrics": null,
+        "failures": [
+          {
+            "index": 1,
+            "uiSuccess": true,
+            "memoryComplete": false,
+            "error": null,
+            "nativeReason": null,
+            "nativeFailedStep": null,
+            "memoryReason": "Memory coverage or identity validation is incomplete"
+          }
+        ],
+        "medianQueryReductionPercent": 32.12130956890491
+      }
+    ]
+  },
+  "checks": {
+    "node": {
+      "command": "node scripts/run-node-tests.mjs",
+      "exitCode": 0,
+      "finished": "2026-10-05T01:02:03.7251859Z",
+      "started": "2026-10-05T01:01:50.1380985Z"
+    },
+    "result": {
+      "tests": 155,
+      "passed": 154,
+      "failed": 0,
+      "skipped": 1,
+      "skipReason": "existing Windows file symlink privilege limitation"
+    },
+    "regression": "6 cases execute actual PROCESS_SCRIPT in isolated Windows PowerShell 5.1; default 3 owned-only command-line queries, memory-series 1; changed creation/path, duplicate browser and wrong UDF reject",
+    "red": "batch-regression-red2.log has intended 3 != 1 assertion before batch implementation; initial red.log is authoring command-length failure, not product regression",
+    "unchangedChecks": "production Rust/frontend/dependencies unchanged; no fresh Rust/Vitest/production E2E claimed",
+    "format": {
+      "command": "prettier --check changed Node scripts and structured evidence",
+      "started": "2026-10-05T01:24:32.5769716Z",
+      "exitCode": 0,
+      "finished": "2026-10-05T01:24:33.3646942Z"
+    },
+    "markdownBoundary": {
+      "started": "2026-10-05T01:25:30.9566183Z",
+      "exitCode": 0,
+      "finished": "2026-10-05T01:25:47.5537074Z",
+      "command": "node scripts/check-markdown-chunk-boundary.mjs"
+    },
+    "docArchiveCheck": {
+      "taskRows": 283,
+      "taskCards": 283,
+      "states": {
+        "[x]": 272,
+        "[!]": 4,
+        "[ ]": 7
+      },
+      "priorities": {
+        "P1": 51,
+        "P2": 231,
+        "P3": 1
+      },
+      "localLinksVerified": 184,
+      "archiveOriginalsVerified": 284,
+      "sourceFreezeUnchanged": true,
+      "exitCode": 0
+    },
+    "diffCheckExitCode": 0
+  },
+  "knownRemaining": [
+    {
+      "task": "RF-1093",
+      "finding": "icacls.exe properties can be null without Refresh throwing; catch-only exit confirmation is not run; memory sample correctly rejected",
+      "evidence": "sdk-batch-replicate-100/sample-001.json, memorySeries sample 7; icacls.exe PID37504 creation1791162867952; workingSetBytes/privateBytes null, reason null"
+    },
+    {
+      "task": "RF-312",
+      "finding": "two home probe-timeouts after submit; one initial unlock, one reunlock; lastProbe only preceding successful probe, final UI outcome not captured",
+      "acceptance": "failed groups remain rejected; no timeout increase, extra clicks or changed business acceptance"
+    }
+  ],
+  "preservation": {
+    "at": "2026-10-05T01:21:00.192852+00:00",
+    "base": "4e23a11c8efe35d154d15bb5874df6e8b858e8de",
+    "trackedBaseline": 3588,
+    "unrelatedFilesVerified": 3584,
+    "allowedChanged": [
+      "docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+      "tauri/scripts/native-perf-memory.test.mjs",
+      "tauri/scripts/native-perf-run.mjs"
+    ],
+    "publicFixtureFilesVerified": 14,
+    "resourcesAndTargetsVerified": 94,
+    "exeVerified": true,
+    "protectedStashPreserved": true,
+    "submodulePreserved": true,
+    "noPush": true
+  },
+  "finalProcessCheck": {
+    "path": "rf1092-owned-cim-batching-2026-10-05/final-process-check.json.gz",
+    "verifiedIdentities": 216,
+    "noneOwnedLive": true,
+    "extraProcessesTerminated": 0
+  },
+  "cleanup": {
+    "path": "rf1092-owned-cim-batching-2026-10-05/cleanup-result.json.gz",
+    "removedCaches": 160,
+    "unlinkedOnly": 20,
+    "targetsTraversed": false,
+    "preserved": [
+      "Vaults",
+      "native markers",
+      "raw reports",
+      "public sources",
+      "EXE and resources"
+    ]
+  },
+  "rawArchive": {
+    "path": "rf1092-owned-cim-batching-2026-10-05/index.json",
+    "originals": 292,
+    "originalBytes": 8585252,
+    "byteExact": true
+  },
+  "limitations": [
+    "Only 5000-object group is fully accepted; 100-object groups retain acceptedPerformanceMetrics=null.",
+    "Query timings are collector wall cost; before/after groups not randomized A/B and do not establish application latency improvement.",
+    "Same existing production-feature EXE and immutable public fixture sources; no same-profile warm restart, OCR/media, OS sleep or other-platform performance acceptance."
+  ],
+  "push": false,
+  "preservationFinal": "rf1092-owned-cim-batching-2026-10-05/preservation-final.json.gz"
+}

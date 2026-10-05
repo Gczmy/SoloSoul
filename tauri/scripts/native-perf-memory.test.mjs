@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { setTimeout as pause } from 'node:timers/promises';
 import { spawnSync } from 'node:child_process';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { MemorySampler, memoryReading, parseJourneyArgs } from './native-perf-memory.mjs';
 import { summarizeJourneys } from './native-perf-sdk-journey.mjs';
 import * as ownedProcesses from './native-perf-run.mjs';
@@ -375,6 +378,122 @@ ${ownedProcesses.PROCESS_SCRIPT}
         assert.equal(value.ownershipRefreshes[0].status, 'candidate-fresh-identity-verified');
       if (scenario === 'absent')
         assert.equal(value.ownershipRefreshes[0].status, 'candidate-confirmed-absent');
+    }
+  },
+);
+
+test(
+  'batched owned browser details preserve identity and UDF gates without querying foreign command lines',
+  { skip: process.platform === 'win32' ? false : 'Requires Windows PowerShell 5.1' },
+  () => {
+    for (const scenario of [
+      'default',
+      'batch',
+      'changed-time',
+      'changed-path',
+      'duplicate-browser',
+      'wrong-udf',
+    ]) {
+      const script = `
+$stamp=[DateTime]::UtcNow
+$script:commandQueries=@()
+$script:foreignRead=$false
+$rootRow=[PSCustomObject]@{ProcessId=2147483500;ParentProcessId=1;CreationDate=$stamp;ExecutablePath='C:\\owned\\root.exe';Name='root.exe'}
+$browser=[PSCustomObject]@{ProcessId=2147483504;ParentProcessId=2147483500;CreationDate=$stamp.AddMilliseconds(1);ExecutablePath='C:\\runtime\\msedgewebview2.exe';Name='msedgewebview2.exe'}
+$gpu=[PSCustomObject]@{ProcessId=2147483508;ParentProcessId=2147483504;CreationDate=$stamp.AddMilliseconds(2);ExecutablePath='C:\\runtime\\msedgewebview2.exe';Name='msedgewebview2.exe'}
+$renderer=[PSCustomObject]@{ProcessId=2147483512;ParentProcessId=2147483504;CreationDate=$stamp.AddMilliseconds(3);ExecutablePath='C:\\runtime\\msedgewebview2.exe';Name='msedgewebview2.exe'}
+$foreign=[PSCustomObject]@{ProcessId=2147483516;ParentProcessId=1;CreationDate=$stamp;ExecutablePath='C:\\foreign\\msedgewebview2.exe';Name='msedgewebview2.exe'}
+$script:allFake=@($rootRow,$browser,$gpu,$renderer,$foreign)
+function Get-CimInstance { param($ClassName,$Filter,$Property)
+  if (!$Filter) {
+    if ($Property -contains 'CommandLine') { $script:foreignRead=$true }
+    $script:allFake; return
+  }
+  $ids=@([regex]::Matches($Filter,'ProcessId\\s*=\\s*([0-9]+)') | ForEach-Object {[int]$_.Groups[1].Value})
+  if ($Property -contains 'CommandLine') {
+    $script:commandQueries+=@{filter=$Filter;ids=$ids}
+    if ($ids -contains 2147483516) { $script:foreignRead=$true }
+  }
+  foreach ($row in $script:allFake | Where-Object {$ids -contains [int]$_.ProcessId}) {
+    $detail=$row.PSObject.Copy()
+    if ($Property -contains 'CommandLine') {
+      $command=if($row.ProcessId -eq 2147483504){'msedgewebview2.exe --user-data-dir="C:\\owned\\webview\\EBWebView"'}else{'msedgewebview2.exe --type=renderer'}
+      if ('${scenario}' -eq 'duplicate-browser' -and $row.ProcessId -eq 2147483508) {$command='msedgewebview2.exe --user-data-dir="C:\\owned\\webview\\EBWebView"'}
+      if ('${scenario}' -eq 'wrong-udf' -and $row.ProcessId -eq 2147483504) {$command='msedgewebview2.exe --user-data-dir="C:\\foreign\\profile"'}
+      $detail | Add-Member -NotePropertyName CommandLine -NotePropertyValue $command
+      if ($row.ProcessId -eq 2147483504 -and '${scenario}' -eq 'changed-time') {$detail.CreationDate=$stamp.AddMilliseconds(99)}
+      if ($row.ProcessId -eq 2147483504 -and '${scenario}' -eq 'changed-path') {$detail.ExecutablePath='C:\\foreign\\msedgewebview2.exe'}
+    }
+    $detail
+  }
+}
+[Environment]::SetEnvironmentVariable('SOLOSOUL_NATIVE_PERF_STARTED',([DateTimeOffset]$stamp).ToUnixTimeMilliseconds().ToString())
+${ownedProcesses.PROCESS_SCRIPT.replace(
+  '$result | ConvertTo-Json -Depth 5 -Compress',
+  '$result.commandQueries=$script:commandQueries; $result.foreignRead=$script:foreignRead; $result | ConvertTo-Json -Depth 5 -Compress',
+)}
+`;
+      const scriptRoot = mkdtempSync(path.join(os.tmpdir(), 'rf1092-cim-block-'));
+      const scriptPath = path.join(scriptRoot, 'probe.ps1');
+      writeFileSync(scriptPath, '\uFEFF' + script, 'utf8');
+      let result;
+      try {
+        result = spawnSync(
+          'powershell.exe',
+          [
+            '-NoLogo',
+            '-NoProfile',
+            '-NonInteractive',
+            '-ExecutionPolicy',
+            'Bypass',
+            '-File',
+            scriptPath,
+          ],
+          {
+            windowsHide: true,
+            encoding: 'utf8',
+            timeout: 15000,
+            env: {
+              ...process.env,
+              SOLOSOUL_NATIVE_PERF_PID: '2147483500',
+              SOLOSOUL_NATIVE_PERF_EXE: 'C:\\owned\\root.exe',
+              SOLOSOUL_NATIVE_PERF_ACTION: scenario === 'default' ? 'sample' : 'memory-series',
+              SOLOSOUL_NATIVE_PERF_WEBVIEW_ROOT: 'C:\\owned\\webview',
+              SOLOSOUL_NATIVE_PERF_BROWSER_DATA_DIRECTORY: 'C:\\owned\\webview\\EBWebView',
+            },
+          },
+        );
+      } finally {
+        rmSync(scriptRoot, { recursive: true, force: true });
+      }
+      assert.equal(
+        result.status,
+        0,
+        scenario + (result.error?.message ?? '') + result.stdout + result.stderr,
+      );
+      const value = JSON.parse(result.stdout.replace(/^\uFEFF/, '').trim());
+      assert.equal(value.rootVerified, true, scenario);
+      assert.equal(value.foreignRead, false, scenario);
+      assert.equal(value.commandQueries.length, scenario === 'default' ? 3 : 1, scenario);
+      const ids = value.commandQueries.flatMap((query) => query.ids).sort((a, b) => a - b);
+      assert.deepEqual(ids, [2147483504, 2147483508, 2147483512], scenario);
+      assert.equal(
+        value.userDataDirectoryMatches,
+        ['default', 'batch'].includes(scenario),
+        scenario,
+      );
+      assert.equal(
+        value.browserDataChecks.length,
+        scenario === 'duplicate-browser'
+          ? 2
+          : ['changed-time', 'changed-path'].includes(scenario)
+            ? 0
+            : 1,
+        scenario,
+      );
+      if (scenario === 'wrong-udf')
+        assert.equal(value.browserDataChecks[0].observedDirectory, null);
+      assert.equal(result.stdout.includes('CommandLine'), false);
     }
   },
 );

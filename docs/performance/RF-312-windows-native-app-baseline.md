@@ -361,3 +361,21 @@ node scripts/native-perf-sdk-journey.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe'
 完整 Node 检查 154 项：153 passed/0 failed/1 既有 Windows 文件 symlink 权限跳过；Prettier、DOC 边界和 diff 检查通过。本次 Node 工具变化未重跑未受影响的 Rust、Vitest 或 production E2E，不把历史结果记作新验收。14 个公开源文件、3,329 文件基线中的非本项源码、用户 stash 和子模块保持。fresh CIM 按 PID/创建时间/可执行名核对 213 个记录身份及 owned 目录，未发现匹配活进程；未结束额外进程，不把该复查改写为第二候选原清理通过。仅清理 128 个已核对的 private cache，16 个链接只解除链接且未遍历目标，保留 Vault/markers/reports 和可复用 EXE/资源。
 
 [本轮结构化证据](rf312-windows-memory-series-2026-10-05.json)和[逐字节原始档案索引](rf312-windows-memory-series-2026-10-05/index.json)包含两个原失败批次、两个最终批次、每点读数、进程/目录身份、源码冻结、检查与清理；gzip 保存原 BOM/CRLF，不用规范化 JSON 替代原件。RF-312 继续 `[!]`，累计 272/281：同 profile 进程热启动、公开 OCR/附件预览、系统睡眠及多端数据仍缺。查询耗时已足以影响采样分辨率，可继续优化 owned-only 查询并记录同口径前后数据；业务延迟的 KDF/存储/React/SDK 归因继续待做。
+
+
+## 2026-10-05 · RF-1092 owned CIM批量查询阶段（100对象未通过整组验收）
+
+只在显式memory-series中将已验证WebView PID构成整数过滤，一次读取命令行；逐行身份、唯一browser和精确UDF仍验证，默认采样与清理保持。Windows实际PowerShell回归证明默认3次、批量1次查询且不读取foreign命令行。沿用同一EXE（SHA `25d6ef51565a1ee1c9b40d3842304ac4260f9ea51e8605933e800e6cb82722ef`）、公开100/5000源、2秒目标间隔及既有新root/profile流程，未改生产Rust/前端/依赖。
+
+| 批次（执行顺序） | UI成功 / 内存完整 | 有效读数 / 全部 | 查询中位 / 最大（ms） | 整组验收 |
+| --- | --- | --- | --- | --- |
+| 100初组 | 4/5 / 4/5 | 77/77 | 1094.6 / 3366.2 | 拒绝，sample-003再次解锁后home超时 |
+| 5000 | 5/5 / 5/5 | 55/55 | 1127.1 / 2860.0 | 通过 |
+| 100确认 | 4/5 / 4/5 | 67/67 | 978.0 / 2269.2 | 拒绝，sample-003首次解锁后home超时 |
+| 100重复 | 5/5 / 4/5 | 55/56 | 1160.1 / 6281.3 | 拒绝，sample-001短命icacls空内存属性 |
+
+5000组相对之前同机器冻结基线1818.9ms的查询中位下降38.0%，最大由3852.9ms变为2860.0ms。三组100数据仅诊断查询成本，acceptedPerformanceMetrics=null；未丢弃失败后拼成5个成功样本。SDK超时报告只保留先前成功探针，不能从其事件数推断最终点击/登录状态，需要补受限失败诊断。icacls空属性不抛异常使catch内退出确认漏跑，登记[RF-1093](../REFACTOR_EXECUTION_REPORT_2026-09-25.md#rf-1093)。查询仍非原子、采样最大值非系统连续峰值；这不是业务延迟优化或受控交叉A/B。
+
+完整Node155项：154通过、0失败、1既有Windows文件symlink权限跳过；源/EXE冻结保持，Rust/Vitest/production E2E未重跑。216记录身份fresh CIM均无owned活进程；仅删除160精确核验缓存，20链接解除且不遍历目标，保留公开源、Vault/markers/reports、EXE和94资源。报告RF-1092继续待验证，不能据此关闭RF-312。
+
+[结构化证据](rf1092-owned-cim-batching-2026-10-05.json)与[原始档案索引](rf1092-owned-cim-batching-2026-10-05/index.json)保存四个完整批次、所有失败、原生marker/每点读数、检查/冻结和收尾。复跑命令沿用上一节，输出必须另建，不能复用consumed root。当前建议先执行RF-1093，再完善SDK失败诊断并复验100组；之后推进同profile受控进程热启动、公开OCR/预览及KDF/存储/React/SDK归因。外部原生材质/辅助功能矩阵与macOS隔离恢复仍独立等待。
