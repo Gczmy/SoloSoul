@@ -48,7 +48,7 @@ pub(super) fn claim_request(config: &RuntimeConfig) -> Result<(), String> {
     write_new_json(
         &config.evidence_root().join(REQUESTED_FILE),
         &json!({
-            "schemaVersion": 1, "scope": if config.startup.is_some() { "windows-native-sdk-startup-requested" } else if config.pdf_diagnostic { "windows-native-sdk-pdf-diagnostic-requested" } else if config.media_journey { "windows-native-sdk-media-journey-requested" } else { "windows-native-sdk-ui-journey-requested" },
+            "schemaVersion": 1, "scope": if config.startup.is_some() { "windows-native-sdk-startup-requested" } else if config.pdf_preview { "windows-native-sdk-pdf-first-page-requested" } else if config.pdf_diagnostic { "windows-native-sdk-pdf-diagnostic-requested" } else if config.media_journey { "windows-native-sdk-media-journey-requested" } else { "windows-native-sdk-ui-journey-requested" },
             "root": config.root, "runId": config.run_id, "pid": std::process::id(),
             "port": config.port, "objectCount": config.object_count,
             "inputMethod": if config.startup.is_some() { "SDK-CDP-read-only" } else { "SDK-CDP-Input" }, "defaultBuild": false,
@@ -195,6 +195,7 @@ struct Capture {
     pdf_frame_window: Arc<AtomicBool>,
     pdf_frame_events: Arc<AtomicU32>,
     pdf_diagnostic: Option<Value>,
+    pdf_preview: Option<Value>,
     tokens: Option<(i64, i64, i64)>,
     calls: Vec<&'static str>,
     phases: Vec<Value>,
@@ -231,7 +232,11 @@ fn pdf_lifecycle_allowed(pdf: bool, startup: bool, window: bool, method: &str) -
         && matches!(method, "Target.attachToTarget" | "Target.detachFromTarget")
 }
 fn pdf_source_required(session: bool, method: &str) -> bool {
-    session || matches!(method, "Target.attachToTarget" | "Target.detachFromTarget")
+    session
+        || matches!(
+            method,
+            "Target.attachToTarget" | "Target.detachFromTarget" | "Page.captureScreenshot"
+        )
 }
 impl Capture {
     async fn pdf_lifecycle(&mut self, method: &'static str, parameters: Value) -> Outcome<Value> {
@@ -389,7 +394,7 @@ impl Capture {
         let invalidated = self.invalidated.clone();
         let pdf_window = self.pdf_frame_window.clone();
         let pdf_events = self.pdf_frame_events.clone();
-        let pdf_mode = self.config.pdf_diagnostic;
+        let pdf_mode = self.config.pdf_diagnostic || self.config.pdf_preview;
         self.window
             .with_webview(move |platform| {
                 let result = (|| -> Outcome<_> {
@@ -600,6 +605,9 @@ impl Capture {
             self.record("attachment-list", began, &before)?;
             if self.config.pdf_diagnostic {
                 return pdf::diagnose(self).await;
+            }
+            if self.config.pdf_preview {
+                return pdf::preview(self).await;
             }
             for (target, ready, phase) in [
                 (
@@ -997,6 +1005,7 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
         pdf_frame_window: Arc::new(AtomicBool::new(false)),
         pdf_frame_events: Arc::new(AtomicU32::new(0)),
         pdf_diagnostic: None,
+        pdf_preview: None,
         tokens: None,
         calls: vec![],
         phases: vec![],
@@ -1037,6 +1046,18 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
         proof["pdfDiagnostic"] = capture.pdf_diagnostic.take().unwrap_or(Value::Null);
         proof["ipcAll"] = Value::Null;
         proof["unmeasured"] = json!(["PDF-performance", "OCR", "system-sleep", "other-platforms"]);
+    }
+    if capture.config.pdf_preview {
+        proof["scope"] = json!("windows-native-sdk-pdf-first-page");
+        proof["pdfPreview"] = capture.pdf_preview.take().unwrap_or(Value::Null);
+        proof["ipcAll"] = Value::Null;
+        proof["unmeasured"] = json!([
+            "PDF-other-pages",
+            "PDF-general-documents",
+            "OCR",
+            "system-sleep",
+            "other-platforms"
+        ]);
     }
     if let Some(startup) = &capture.config.startup {
         proof["scope"] = json!("windows-native-sdk-startup");
@@ -1095,6 +1116,7 @@ mod tests {
         assert!(pdf_source_required(true, "Runtime.evaluate"));
         assert!(pdf_source_required(false, "Target.attachToTarget"));
         assert!(pdf_source_required(false, "Target.detachFromTarget"));
+        assert!(pdf_source_required(false, "Page.captureScreenshot"));
         assert!(!pdf_source_required(false, "Runtime.evaluate"));
         assert!(!pdf_source_required(false, "Input.insertText"));
     }

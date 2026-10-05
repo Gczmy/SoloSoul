@@ -475,3 +475,10 @@ node scripts/native-perf-startup.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --f
 ### 2026-10-05 · PDF 实际结构诊断
 
 三份 fresh owned 结构诊断通过，10份组件候选记录 loading→complete 变化及可见embed；没有读到PDF viewer/canvas/加载状态。所有前后frame树稳定，未知子来源只分类。十二份原生公开截图一致，正文区域像素匹配仅完成离线可行性检查；下一步在固定素材、视口和源文档身份下实际验证首屏可见门禁并记录截图开销。84项原生回归、严格Clippy和191项Node通过（1项既有权限跳过），完整口径见[PDF诊断](RF-312-native-pdf-diagnostic.md)、[结构化结果](rf312-windows-pdf-structure-2026-10-05.json)与[原件索引](rf312-windows-pdf-structure-2026-10-05/index.json)。PDF性能、OCR、归因、睡眠及多端缺口保持。
+
+
+## 2026-10-05 固定公开 PDF 首屏文字可见验收
+
+100/5000对象各三次完整原生行程通过，固定公开PDF正文区域经连续稳定截图和独立PNG解码核验。前面三轮失败组完整保留；第三轮虽三份原生证明通过，因事后进程快照超时整组仍判失败，此后用同一EXE完整重跑，未使用成功子集或延长预算。
+
+[首屏口径、观测分布及限制](RF-312-native-pdf-first-page.md)、[结构化验收](rf312-windows-pdf-first-page-2026-10-05.json)与[完整原始证据](rf312-windows-pdf-first-page-2026-10-05/index.json)可复核。结果不覆盖其他页/任意PDF、OCR、系统睡眠或多端；RF-312继续待验证，下一阶段为实际OCR和性能归因，偶发首页及采样超时仍保留待查。独立本地提交，不推送。

@@ -38,6 +38,28 @@ pub(super) struct Proof {
 
 // 本方法只消费 consume 已严格验过的证明，不在GUI写入之后重读封闭文件摘要。
 impl Proof {
+    // 准备阶段已解密核验公开素材；GUI阶段只保留其物理密文摘要，不能拿明文摘要验磁盘文件。
+    pub(super) fn pdf_ciphertext_sha256(&self, vault: &Path) -> Result<String, String> {
+        let path = self.pdf_resource_path(vault)?;
+        let relative = path
+            .strip_prefix(vault)
+            .map_err(|_| "PDF resource left owned vault")?;
+        let matches: Vec<_> = self
+            .files
+            .iter()
+            .filter(|f| f.relative_path == relative)
+            .collect();
+        if matches.len() != 1
+            || matches[0].sha256.len() != 64
+            || !matches[0]
+                .sha256
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        {
+            return Err("PDF ciphertext digest requires exactly one checked file proof".into());
+        }
+        Ok(matches[0].sha256.clone())
+    }
     pub(super) fn pdf_resource_path(&self, vault: &Path) -> Result<PathBuf, String> {
         let marker = &self.marker;
         if marker["schemaVersion"] != 2
@@ -540,6 +562,33 @@ mod pdf_binding_tests {
             files: vec![],
             marker: json!({"schemaVersion":2,"scope":"synthetic-native-media-vault-fixture","publicAssets":[{}, {"fileName":"text_only.pdf","sha256":"ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"}],"attachments":[{}, {"id":id,"relativePath":format!("attachments/obj_perf_00000000/{id}/text_only.pdf")}]}),
         }
+    }
+    #[test]
+    fn pdf_ciphertext_digest_is_bound_to_exact_prechecked_file_not_plaintext_asset() {
+        let vault = Path::new("C:/owned/vault");
+        let mut v = proof();
+        assert!(v.pdf_ciphertext_sha256(vault).is_err());
+        let relative = v
+            .pdf_resource_path(vault)
+            .unwrap()
+            .strip_prefix(vault)
+            .unwrap()
+            .to_path_buf();
+        let digest = "b".repeat(64);
+        v.files.push(FileProof {
+            relative_path: relative.clone(),
+            sha256: digest.clone(),
+        });
+        assert_eq!(v.pdf_ciphertext_sha256(vault).unwrap(), digest);
+        assert_ne!(
+            v.pdf_ciphertext_sha256(vault).unwrap(),
+            v.marker["publicAssets"][1]["sha256"]
+        );
+        v.files.push(FileProof {
+            relative_path: relative,
+            sha256: digest,
+        });
+        assert!(v.pdf_ciphertext_sha256(vault).is_err());
     }
     #[test]
     fn prelaunch_pdf_binding_survives_legitimate_mutable_file_changes_without_revalidation() {

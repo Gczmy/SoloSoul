@@ -83,3 +83,10 @@ v4 沿用组件附加和所有 owner/PID/source/主文档/frame/loader/输入门
 下一阶段用现有 image 依赖验证有界的固定公开首屏像素观察，保持源数据、窗口/进程/文档/loader/视口尺寸一致，记录截图调用开销并重复原生采样。接受范围只覆盖此公开素材的首屏可见性，不能扩展为任意 PDF 全页加载完成。若视口或字体不同须如实失败，不自动用运行结果替换参考。
 
 fresh CIM 核验 30 个记录身份退出，仅清理 24 个精确 owned 缓存及三个链接；12 份附件密文、全部 Vault/证明/截图/旧 EXE、公开源与冻结输入保持。[结构化结果](rf312-windows-pdf-structure-2026-10-05.json)和[逐字节原件索引](rf312-windows-pdf-structure-2026-10-05/index.json)保存全过程。`diagnosticOnly=true`、`renderVerified=false`、`performanceMetrics=null` 和空汇总保持；RF-312 未关闭，OCR、归因、首页偶发超时、睡眠和多端缺口保留。
+
+
+## 2026-10-05 固定公开 PDF 首屏文字可见验收
+
+100/5000对象各三次完整原生行程通过，固定公开PDF正文区域经连续稳定截图和独立PNG解码核验。前面三轮失败组完整保留；第三轮虽三份原生证明通过，因事后进程快照超时整组仍判失败，此后用同一EXE完整重跑，未使用成功子集或延长预算。
+
+[首屏口径、观测分布及限制](RF-312-native-pdf-first-page.md)、[结构化验收](rf312-windows-pdf-first-page-2026-10-05.json)与[完整原始证据](rf312-windows-pdf-first-page-2026-10-05/index.json)可复核。结果不覆盖其他页/任意PDF、OCR、系统睡眠或多端；RF-312继续待验证，下一阶段为实际OCR和性能归因，偶发首页及采样超时仍保留待查。独立本地提交，不推送。

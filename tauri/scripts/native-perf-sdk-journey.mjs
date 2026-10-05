@@ -32,6 +32,12 @@ import { sameSdkIdentities } from './native-perf-sdk-cdp.mjs';
 import { verifyPreparedMediaFiles } from './native-perf-media-contract.mjs';
 import { MemorySampler, parseJourneyArgs } from './native-perf-memory.mjs';
 import { checkPdfDiagnostic, PDF_UNMEASURED } from './native-perf-pdf-contract.mjs';
+import {
+  checkPdfFirstPage,
+  summarizePdfFirstPage,
+  PDF_PREVIEW_UNMEASURED,
+} from './native-perf-pdf-preview-contract.mjs';
+import { inspectPdfPixels } from './native-perf-pdf-pixels.mjs';
 
 export const PHASES = Object.freeze([
   'startup',
@@ -103,7 +109,12 @@ const validTrust = (value) =>
   Object.values(value).every((n) => Number.isSafeInteger(n) && n >= 0 && n <= 128) &&
   value.untrusted === 0;
 const MARKER = 'windows-native-sdk-ui-journey-requested';
-export async function journeyBinaryPreflight(exe, media = false, pdfDiagnostic = false) {
+export async function journeyBinaryPreflight(
+  exe,
+  media = false,
+  pdfDiagnostic = false,
+  pdfPreview = false,
+) {
   const required = media
     ? ['--native-perf-media-prepare', 'windows-native-sdk-media-journey-requested']
     : [MARKER];
@@ -113,6 +124,12 @@ export async function journeyBinaryPreflight(exe, media = false, pdfDiagnostic =
       'windows-native-sdk-pdf-target-diagnostic-requested',
       'windows-native-sdk-pdf-component-diagnostic-requested',
       'windows-native-sdk-pdf-structure-diagnostic-requested',
+    );
+  if (pdfPreview)
+    required.push(
+      'windows-native-sdk-pdf-first-page-requested',
+      'windows-native-sdk-pdf-cipher-binding-requested',
+      'windows-native-sdk-pdf-frame-stability-requested',
     );
   const found = new Set();
   const overlap = Math.max(...required.map((s) => s.length));
@@ -490,7 +507,13 @@ async function sample(options, index, shouldStop) {
         '--native-perf-port',
         String(port),
         '--native-perf-journey',
-        options.pdfDiagnostic ? 'sdk-pdf-diagnostic' : options.media ? 'sdk-media' : 'sdk-input',
+        options.pdfDiagnostic
+          ? 'sdk-pdf-diagnostic'
+          : options.pdfPreview
+            ? 'sdk-pdf-preview'
+            : options.media
+              ? 'sdk-media'
+              : 'sdk-input',
       ],
       env,
     );
@@ -548,7 +571,9 @@ async function sample(options, index, shouldStop) {
     );
     const proof = options.pdfDiagnostic
       ? checkPdfDiagnostic(result.nativeProof, owned, bound, options.manifest)
-      : checkJourney(result.nativeProof, owned, bound, options.manifest, options.media);
+      : options.pdfPreview
+        ? checkPdfFirstPage(result.nativeProof, owned, bound, options.manifest)
+        : checkJourney(result.nativeProof, owned, bound, options.manifest, options.media);
     if (options.pdfDiagnostic) {
       if (proof.pdfDiagnostic.schemaVersion !== 4)
         throw new Error('Current PDF diagnostic requires bounded structure evidence');
@@ -564,6 +589,23 @@ async function sample(options, index, shouldStop) {
       )
         throw new Error('PDF screenshot bytes differ from native proof');
     }
+    if (options.pdfPreview) {
+      for (const screenshot of proof.pdfPreview.samples) {
+        const file = path.join(root, screenshot.fileName),
+          stat = await lstat(file);
+        if (
+          !stat.isFile() ||
+          stat.isSymbolicLink() ||
+          stat.size !== screenshot.bytes ||
+          normalizeWindowsPath(await realpath(file)) !== normalizeWindowsPath(file) ||
+          (await sha256(file)) !== screenshot.sha256
+        )
+          throw new Error('PDF first-page screenshot bytes differ from native proof');
+        const pixels = inspectPdfPixels(await readFile(file));
+        if (Object.keys(pixels).some((k) => pixels[k] !== screenshot[k]))
+          throw new Error('Independent PDF pixel decoder differs from native proof');
+      }
+    }
     result.afterSnapshot = await (memorySampler
       ? memorySampler.checkpoint('after-journey')
       : owner.sample());
@@ -571,7 +613,7 @@ async function sample(options, index, shouldStop) {
     const after = selectDiagnosticIdentities(owner, result.afterSnapshot);
     sameSdkIdentities(before, after);
     result.afterProcessDiagnostics = await processDiagnostics(after, owned);
-    result.phases = options.pdfDiagnostic ? [] : proof.phases;
+    result.phases = options.pdfDiagnostic || options.pdfPreview ? [] : proof.phases;
     if (options.pdfDiagnostic) result.diagnosticOnly = true;
     result.ipcAll = proof.ipcAll;
     result.success = true;
@@ -608,22 +650,28 @@ async function sample(options, index, shouldStop) {
   return result;
 }
 export async function main(args = process.argv.slice(2), mode = 'sdk-input') {
-  if (!['sdk-input', 'sdk-media', 'sdk-pdf-diagnostic'].includes(mode))
+  if (!['sdk-input', 'sdk-media', 'sdk-pdf-diagnostic', 'sdk-pdf-preview'].includes(mode))
     throw new Error('Unsupported SDK measurement mode');
   const pdfDiagnostic = mode === 'sdk-pdf-diagnostic';
-  const media = mode === 'sdk-media' || pdfDiagnostic;
+  const pdfPreview = mode === 'sdk-pdf-preview';
+  const media = mode === 'sdk-media' || pdfDiagnostic || pdfPreview;
   const parsed = parseJourneyArgs(args);
   if (parsed.help) {
     process.stdout.write(
-      `Usage: node scripts/${pdfDiagnostic ? 'native-perf-pdf-diagnostic' : media ? 'native-perf-media' : 'native-perf-sdk-journey'}.mjs --exe ABS --fixture ABS --output NEW_ABS --samples N [--memory-interval-ms 1000..10000] (N >= 3)\n`,
+      `Usage: node scripts/${pdfDiagnostic ? 'native-perf-pdf-diagnostic' : pdfPreview ? 'native-perf-pdf-preview' : media ? 'native-perf-media' : 'native-perf-sdk-journey'}.mjs --exe ABS --fixture ABS --output NEW_ABS --samples N [--memory-interval-ms 1000..10000] (N >= 3)\n`,
     );
     return 0;
   }
   if (process.platform !== 'win32') throw new Error('SDK UI journey is Windows only');
   if (pdfDiagnostic && parsed.memoryIntervalMs !== null)
     throw new Error('PDF capability diagnostic forbids memory/performance sampling');
-  const options = { ...(await validateInputs(parsed, { media })), media, pdfDiagnostic },
-    preflight = await journeyBinaryPreflight(options.exe, media, pdfDiagnostic),
+  const options = {
+      ...(await validateInputs(parsed, { media })),
+      media,
+      pdfDiagnostic,
+      pdfPreview,
+    },
+    preflight = await journeyBinaryPreflight(options.exe, media, pdfDiagnostic, pdfPreview),
     sourceBefore = await inventory(options.fixture);
   await mkdir(options.output);
   const report = {
@@ -631,9 +679,11 @@ export async function main(args = process.argv.slice(2), mode = 'sdk-input') {
     task: 'RF-312',
     scope: pdfDiagnostic
       ? 'windows-native-sdk-pdf-capability-diagnostic'
-      : media
-        ? 'windows-native-sdk-media-performance'
-        : 'windows-native-sdk-input-performance',
+      : pdfPreview
+        ? 'windows-native-sdk-public-pdf-first-page-performance'
+        : media
+          ? 'windows-native-sdk-media-performance'
+          : 'windows-native-sdk-input-performance',
     ...(pdfDiagnostic ? { diagnosticOnly: true, performanceMetrics: null } : {}),
     startedAt: new Date().toISOString(),
     samplesRequested: options.samples,
@@ -656,7 +706,17 @@ export async function main(args = process.argv.slice(2), mode = 'sdk-input') {
           ? 'verified owned Windows working sets before input and after journey; no peak-memory claim'
           : 'nonoverlapping verified owned process-tree queries from launch through final UI checkpoint; actual intervals and collection windows recorded; sampled observed maximum is not a continuous peak',
       ipc: 'real Tauri fetch observer; names/counts only; invalid or changed prefix rejects sample',
-      unmeasured: pdfDiagnostic ? PDF_UNMEASURED : unmeasuredFor(media),
+      unmeasured: pdfDiagnostic
+        ? PDF_UNMEASURED
+        : pdfPreview
+          ? PDF_PREVIEW_UNMEASURED
+          : unmeasuredFor(media),
+      ...(pdfPreview
+        ? {
+            pdfFirstPage:
+              'native Instant before SDK preview pointer input to two public text-mask captures at least 250ms apart, with current main document/embed identity checked before and after each capture; includes SDK, decode and polling overhead; earlier image publication may contribute; excludes final image publication, close action, other pages and arbitrary PDFs',
+          }
+        : {}),
     },
   };
   let interrupted = false;
@@ -689,7 +749,7 @@ export async function main(args = process.argv.slice(2), mode = 'sdk-input') {
     }
     report.summary = pdfDiagnostic
       ? []
-      : (media ? summarizeMediaJourneys : summarizeJourneys)(
+      : (pdfPreview ? summarizePdfFirstPage : media ? summarizeMediaJourneys : summarizeJourneys)(
           report.samples,
           options.samples,
           report.sourceUnchanged && !interrupted,

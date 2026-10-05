@@ -571,7 +571,9 @@ fn copied_runtime_config(parent: &Path) -> RuntimeConfig {
         sdk_journey: false,
         media_journey: false,
         pdf_diagnostic: false,
+        pdf_preview: false,
         pdf_resource: None,
+        pdf_ciphertext_sha256: None,
         startup: None,
         object_count: 100,
     }
@@ -1074,6 +1076,7 @@ fn native_perf_sdk_cdp_is_exclusive_run_only_and_preserves_browser_flags() {
             sdk_journey: false,
             media_journey: false,
             pdf_diagnostic: false,
+            pdf_preview: false,
             chromium_log: false,
             ordinary_tmp: false,
             copied_runtime: None,
@@ -1265,6 +1268,7 @@ fn native_perf_media_mode_is_explicit_and_exclusive() {
         Ok(Mode::Run {
             media_journey: true,
             pdf_diagnostic: false,
+            pdf_preview: false,
             sdk_journey: true,
             startup_only: false,
             ..
@@ -1357,6 +1361,7 @@ fn native_perf_pdf_diagnostic_is_explicit_media_only_and_exclusive() {
         Ok(Mode::Run {
             media_journey: true,
             pdf_diagnostic: true,
+            pdf_preview: false,
             sdk_journey: true,
             startup_only: false,
             ..
@@ -1384,8 +1389,41 @@ fn native_perf_pdf_diagnostic_is_explicit_media_only_and_exclusive() {
             parse_args(&ordinary),
             Ok(Mode::Run {
                 pdf_diagnostic: false,
+                pdf_preview: false,
                 ..
             })
         ));
+    }
+}
+
+#[test]
+fn native_perf_pdf_first_page_mode_is_explicit_and_keeps_diagnostic_exclusive() {
+    let base = args(&[
+        "--native-perf-root",
+        "C:/owned",
+        "--native-perf-port",
+        "9222",
+        "--native-perf-journey",
+        "sdk-pdf-preview",
+    ]);
+    assert!(matches!(
+        parse_args(&base),
+        Ok(Mode::Run {
+            sdk_journey: true,
+            media_journey: true,
+            pdf_preview: true,
+            pdf_diagnostic: false,
+            startup_only: false,
+            ..
+        })
+    ));
+    for extra in [
+        args(&["--native-perf-restart", "startup"]),
+        args(&["--native-perf-diagnostics", "sdk-cdp"]),
+        args(&["--native-perf-journey", "sdk-pdf-diagnostic"]),
+    ] {
+        let mut bad = base.clone();
+        bad.extend(extra);
+        assert!(parse_args(&bad).is_err());
     }
 }

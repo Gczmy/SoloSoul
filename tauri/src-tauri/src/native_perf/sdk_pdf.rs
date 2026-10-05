@@ -16,8 +16,13 @@ use webview2_com::Microsoft::Web::WebView2::Win32::{
 };
 use webview2_com::{CoTaskMemPWSTR, DevToolsProtocolEventReceivedEventHandler};
 use windows::core::{Interface, PCWSTR, PWSTR};
+#[path = "sdk_pdf_pixels.rs"]
+mod pixels;
 #[path = "sdk_pdf_structure.rs"]
 mod structure;
+pub(super) async fn preview(c: &mut Capture) -> Outcome<()> {
+    pixels::run(c).await
+}
 #[path = "sdk_pdf_targets.rs"]
 mod targets;
 const DOM: &str = include_str!("sdk_pdf_dom.js");

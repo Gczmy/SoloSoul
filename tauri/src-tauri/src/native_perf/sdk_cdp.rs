@@ -1047,7 +1047,9 @@ mod tests {
             sdk_journey: false,
             media_journey: false,
             pdf_diagnostic: false,
+            pdf_preview: false,
             pdf_resource: None,
+            pdf_ciphertext_sha256: None,
             startup: None,
             object_count: 100,
         }
