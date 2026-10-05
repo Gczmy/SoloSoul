@@ -4,7 +4,9 @@ use super::sdk_cdp::{bounded_callback_json, sdk_binding};
 use super::{checked_dir, write_new_json, RuntimeConfig};
 use serde_json::{json, Value};
 use std::cell::{Cell, RefCell};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+#[path = "sdk_pdf.rs"]
+mod pdf;
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
 use tauri::{webview::PageLoadPayload, Manager, WebviewWindow};
@@ -45,7 +47,7 @@ pub(super) fn claim_request(config: &RuntimeConfig) -> Result<(), String> {
     write_new_json(
         &config.evidence_root().join(REQUESTED_FILE),
         &json!({
-            "schemaVersion": 1, "scope": if config.startup.is_some() { "windows-native-sdk-startup-requested" } else if config.media_journey { "windows-native-sdk-media-journey-requested" } else { "windows-native-sdk-ui-journey-requested" },
+            "schemaVersion": 1, "scope": if config.startup.is_some() { "windows-native-sdk-startup-requested" } else if config.pdf_diagnostic { "windows-native-sdk-pdf-diagnostic-requested" } else if config.media_journey { "windows-native-sdk-media-journey-requested" } else { "windows-native-sdk-ui-journey-requested" },
             "root": config.root, "runId": config.run_id, "pid": std::process::id(),
             "port": config.port, "objectCount": config.object_count,
             "inputMethod": if config.startup.is_some() { "SDK-CDP-read-only" } else { "SDK-CDP-Input" }, "defaultBuild": false,
@@ -189,6 +191,9 @@ struct Capture {
     frame: Option<Value>,
     time_origin: Option<Value>,
     invalidated: Arc<AtomicBool>,
+    pdf_frame_window: Arc<AtomicBool>,
+    pdf_frame_events: Arc<AtomicU32>,
+    pdf_diagnostic: Option<Value>,
     tokens: Option<(i64, i64, i64)>,
     calls: Vec<&'static str>,
     phases: Vec<Value>,
@@ -290,6 +295,9 @@ impl Capture {
     async fn bind(&mut self, probe: &Value) -> Outcome<()> {
         let (sender, receiver) = oneshot::channel();
         let invalidated = self.invalidated.clone();
+        let pdf_window = self.pdf_frame_window.clone();
+        let pdf_events = self.pdf_frame_events.clone();
+        let pdf_mode = self.config.pdf_diagnostic;
         self.window
             .with_webview(move |platform| {
                 let result = (|| -> Outcome<_> {
@@ -314,7 +322,13 @@ impl Capture {
                         Ok(())
                     }));
                     let frame = FrameCreatedEventHandler::create(Box::new(move |_, _| {
-                        invalidated.store(true, Ordering::SeqCst);
+                        // 旧行程仍拒绝全部子frame；仅固定PDF诊断窗口可观察至多4次创建。
+                        if !(pdf_mode
+                            && pdf_window.load(Ordering::SeqCst)
+                            && pdf_events.fetch_add(1, Ordering::SeqCst) < 4)
+                        {
+                            invalidated.store(true, Ordering::SeqCst);
+                        }
                         Ok(())
                     }));
                     let (mut nav, mut proc, mut child) = (0, 0, 0);
@@ -492,6 +506,9 @@ impl Capture {
             self.click("attachmentsCard").await?;
             self.probe("attachments").await?;
             self.record("attachment-list", began, &before)?;
+            if self.config.pdf_diagnostic {
+                return pdf::diagnose(self).await;
+            }
             for (target, ready, phase) in [
                 (
                     "imagePreview",
@@ -885,6 +902,9 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
         frame: None,
         time_origin: None,
         invalidated: Arc::new(AtomicBool::new(false)),
+        pdf_frame_window: Arc::new(AtomicBool::new(false)),
+        pdf_frame_events: Arc::new(AtomicU32::new(0)),
+        pdf_diagnostic: None,
         tokens: None,
         calls: vec![],
         phases: vec![],
@@ -918,6 +938,13 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
             "same-profile-warm-start",
             "other-platforms"
         ]);
+    }
+    if capture.config.pdf_diagnostic {
+        proof["scope"] = json!("windows-native-sdk-pdf-diagnostic");
+        proof["diagnosticOnly"] = json!(true);
+        proof["pdfDiagnostic"] = capture.pdf_diagnostic.take().unwrap_or(Value::Null);
+        proof["ipcAll"] = Value::Null;
+        proof["unmeasured"] = json!(["PDF-performance", "OCR", "system-sleep", "other-platforms"]);
     }
     if let Some(startup) = &capture.config.startup {
         proof["scope"] = json!("windows-native-sdk-startup");

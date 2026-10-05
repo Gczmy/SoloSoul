@@ -398,6 +398,8 @@ pub(super) fn consume_restart(
         sdk_cdp: false,
         sdk_journey: false,
         media_journey: false,
+        pdf_diagnostic: false,
+        pdf_resource: None,
         object_count: owned.fixture.object_count,
         startup: Some(launch(root, &owned.run_id, 2)),
     })

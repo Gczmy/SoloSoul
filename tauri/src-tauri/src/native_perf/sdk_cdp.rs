@@ -1046,6 +1046,8 @@ mod tests {
             sdk_cdp: true,
             sdk_journey: false,
             media_journey: false,
+            pdf_diagnostic: false,
+            pdf_resource: None,
             startup: None,
             object_count: 100,
         }

@@ -63,3 +63,8 @@ Windows 11 Enterprise LTSC 26100、i7-9700（8 核）、约 16 GiB RAM、WebView
 62 项原生回归、7 项共享示例回归、严格 Clippy、格式与 Release 构建通过；固定 Node 入口 175 通过、0 失败、1 项既有 Windows symlink 权限跳过。两组原件、源摘要、冻结输入、失败检查与清理记录见[结构化证据](rf312-windows-media-preview-2026-10-05.json)和[逐字节原件索引](rf312-windows-media-preview-2026-10-05/index.json)。
 
 RF-312 仍未完成。下一本地项是实际 PDF 渲染与 OCR 测量，再进行 KDF/存储/React/SDK 归因；原偶发首页超时、多端和睡眠缺口保持，RF-112/121 及 RF-122～127 的前置不解除。
+
+
+## PDF 后续能力诊断（2026-10-05）
+
+100 对象三次独立 PDF 能力诊断已完成，可见正文的三份截图相同，但主 session 未暴露 PDF 子 frame/context。详见[实际诊断与证据](RF-312-native-pdf-diagnostic.md)。该范围保持空性能指标，不并入本页图片/文本分布；下一步先建立可靠 PDF 就绪门禁，再补 PDF/OCR 测量与归因。

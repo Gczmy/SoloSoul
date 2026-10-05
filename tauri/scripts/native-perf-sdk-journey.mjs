@@ -31,6 +31,7 @@ import {
 import { sameSdkIdentities } from './native-perf-sdk-cdp.mjs';
 import { verifyPreparedMediaFiles } from './native-perf-media-contract.mjs';
 import { MemorySampler, parseJourneyArgs } from './native-perf-memory.mjs';
+import { checkPdfDiagnostic, PDF_UNMEASURED } from './native-perf-pdf-contract.mjs';
 
 export const PHASES = Object.freeze([
   'startup',
@@ -102,10 +103,11 @@ const validTrust = (value) =>
   Object.values(value).every((n) => Number.isSafeInteger(n) && n >= 0 && n <= 128) &&
   value.untrusted === 0;
 const MARKER = 'windows-native-sdk-ui-journey-requested';
-export async function journeyBinaryPreflight(exe, media = false) {
+export async function journeyBinaryPreflight(exe, media = false, pdfDiagnostic = false) {
   const required = media
     ? ['--native-perf-media-prepare', 'windows-native-sdk-media-journey-requested']
     : [MARKER];
+  if (pdfDiagnostic) required.push('windows-native-sdk-pdf-diagnostic-requested');
   const found = new Set();
   const overlap = Math.max(...required.map((s) => s.length));
   let tail = '';
@@ -482,7 +484,7 @@ async function sample(options, index, shouldStop) {
         '--native-perf-port',
         String(port),
         '--native-perf-journey',
-        options.media ? 'sdk-media' : 'sdk-input',
+        options.pdfDiagnostic ? 'sdk-pdf-diagnostic' : options.media ? 'sdk-media' : 'sdk-input',
       ],
       env,
     );
@@ -538,7 +540,22 @@ async function sample(options, index, shouldStop) {
       shouldStop,
       310000,
     );
-    const proof = checkJourney(result.nativeProof, owned, bound, options.manifest, options.media);
+    const proof = options.pdfDiagnostic
+      ? checkPdfDiagnostic(result.nativeProof, owned, bound, options.manifest)
+      : checkJourney(result.nativeProof, owned, bound, options.manifest, options.media);
+    if (options.pdfDiagnostic) {
+      const screenshot = proof.pdfDiagnostic.screenshot;
+      const file = path.join(root, screenshot.fileName);
+      const stat = await lstat(file);
+      if (
+        !stat.isFile() ||
+        stat.isSymbolicLink() ||
+        stat.size !== screenshot.bytes ||
+        normalizeWindowsPath(await realpath(file)) !== normalizeWindowsPath(file) ||
+        (await sha256(file)) !== screenshot.sha256
+      )
+        throw new Error('PDF screenshot bytes differ from native proof');
+    }
     result.afterSnapshot = await (memorySampler
       ? memorySampler.checkpoint('after-journey')
       : owner.sample());
@@ -546,7 +563,8 @@ async function sample(options, index, shouldStop) {
     const after = selectDiagnosticIdentities(owner, result.afterSnapshot);
     sameSdkIdentities(before, after);
     result.afterProcessDiagnostics = await processDiagnostics(after, owned);
-    result.phases = proof.phases;
+    result.phases = options.pdfDiagnostic ? [] : proof.phases;
+    if (options.pdfDiagnostic) result.diagnosticOnly = true;
     result.ipcAll = proof.ipcAll;
     result.success = true;
   } catch (error) {
@@ -582,25 +600,33 @@ async function sample(options, index, shouldStop) {
   return result;
 }
 export async function main(args = process.argv.slice(2), mode = 'sdk-input') {
-  if (!['sdk-input', 'sdk-media'].includes(mode))
+  if (!['sdk-input', 'sdk-media', 'sdk-pdf-diagnostic'].includes(mode))
     throw new Error('Unsupported SDK measurement mode');
-  const media = mode === 'sdk-media';
+  const pdfDiagnostic = mode === 'sdk-pdf-diagnostic';
+  const media = mode === 'sdk-media' || pdfDiagnostic;
   const parsed = parseJourneyArgs(args);
   if (parsed.help) {
     process.stdout.write(
-      `Usage: node scripts/${media ? 'native-perf-media' : 'native-perf-sdk-journey'}.mjs --exe ABS --fixture ABS --output NEW_ABS --samples N [--memory-interval-ms 1000..10000] (N >= 3)\n`,
+      `Usage: node scripts/${pdfDiagnostic ? 'native-perf-pdf-diagnostic' : media ? 'native-perf-media' : 'native-perf-sdk-journey'}.mjs --exe ABS --fixture ABS --output NEW_ABS --samples N [--memory-interval-ms 1000..10000] (N >= 3)\n`,
     );
     return 0;
   }
   if (process.platform !== 'win32') throw new Error('SDK UI journey is Windows only');
-  const options = { ...(await validateInputs(parsed, { media })), media },
-    preflight = await journeyBinaryPreflight(options.exe, media),
+  if (pdfDiagnostic && parsed.memoryIntervalMs !== null)
+    throw new Error('PDF capability diagnostic forbids memory/performance sampling');
+  const options = { ...(await validateInputs(parsed, { media })), media, pdfDiagnostic },
+    preflight = await journeyBinaryPreflight(options.exe, media, pdfDiagnostic),
     sourceBefore = await inventory(options.fixture);
   await mkdir(options.output);
   const report = {
     schemaVersion: 1,
     task: 'RF-312',
-    scope: media ? 'windows-native-sdk-media-performance' : 'windows-native-sdk-input-performance',
+    scope: pdfDiagnostic
+      ? 'windows-native-sdk-pdf-capability-diagnostic'
+      : media
+        ? 'windows-native-sdk-media-performance'
+        : 'windows-native-sdk-input-performance',
+    ...(pdfDiagnostic ? { diagnosticOnly: true, performanceMetrics: null } : {}),
     startedAt: new Date().toISOString(),
     samplesRequested: options.samples,
     nodeVersion: process.version,
@@ -622,7 +648,7 @@ export async function main(args = process.argv.slice(2), mode = 'sdk-input') {
           ? 'verified owned Windows working sets before input and after journey; no peak-memory claim'
           : 'nonoverlapping verified owned process-tree queries from launch through final UI checkpoint; actual intervals and collection windows recorded; sampled observed maximum is not a continuous peak',
       ipc: 'real Tauri fetch observer; names/counts only; invalid or changed prefix rejects sample',
-      unmeasured: unmeasuredFor(media),
+      unmeasured: pdfDiagnostic ? PDF_UNMEASURED : unmeasuredFor(media),
     },
   };
   let interrupted = false;
@@ -653,11 +679,13 @@ export async function main(args = process.argv.slice(2), mode = 'sdk-input') {
       report.sourceUnchanged = false;
       report.sourceProofError = safeError(error);
     }
-    report.summary = (media ? summarizeMediaJourneys : summarizeJourneys)(
-      report.samples,
-      options.samples,
-      report.sourceUnchanged && !interrupted,
-    );
+    report.summary = pdfDiagnostic
+      ? []
+      : (media ? summarizeMediaJourneys : summarizeJourneys)(
+          report.samples,
+          options.samples,
+          report.sourceUnchanged && !interrupted,
+        );
     if (options.memoryIntervalMs !== null) {
       const accepted =
         report.sourceUnchanged &&

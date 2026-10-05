@@ -36,6 +36,36 @@ pub(super) struct Proof {
     files: Vec<FileProof>,
 }
 
+// 本方法只消费 consume 已严格验过的证明，不在GUI写入之后重读封闭文件摘要。
+impl Proof {
+    pub(super) fn pdf_resource_path(&self, vault: &Path) -> Result<PathBuf, String> {
+        let marker = &self.marker;
+        if marker["schemaVersion"] != 2
+            || marker["scope"] != "synthetic-native-media-vault-fixture"
+            || marker["publicAssets"][1]["fileName"] != "text_only.pdf"
+            || marker["publicAssets"][1]["sha256"]
+                != "ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"
+        {
+            return Err("PDF resource requires the checked public media proof".into());
+        }
+        let descriptor = &marker["attachments"][1];
+        let relative = descriptor["relativePath"]
+            .as_str()
+            .ok_or("missing public PDF path")?;
+        let id = descriptor["id"]
+            .as_str()
+            .ok_or("missing public PDF attachment ID")?;
+        if id
+            .strip_prefix("att_")
+            .is_none_or(|v| uuid::Uuid::parse_str(v).is_err())
+            || relative != format!("attachments/obj_perf_00000000/{id}/text_only.pdf")
+        {
+            return Err("PDF path differs from its fixed public resource".into());
+        }
+        Ok(vault.join(relative))
+    }
+}
+
 fn ui_preferences() -> Value {
     json!({
         "theme": "light", "accentColor": "ocean", "customAccentHex": "",
@@ -495,5 +525,51 @@ mod tests {
         let mut bad = valid;
         bad["unknown"] = Value::Null;
         assert!(check_startup_preferences(&bad).is_err());
+    }
+}
+
+#[cfg(test)]
+mod pdf_binding_tests {
+    use super::*;
+    fn proof() -> Proof {
+        let id = "att_00000000-0000-0000-0000-000000000001";
+        Proof {
+            account_id: "acc_rf312_100".into(),
+            object_count: 100,
+            search_matches: 5,
+            files: vec![],
+            marker: json!({"schemaVersion":2,"scope":"synthetic-native-media-vault-fixture","publicAssets":[{}, {"fileName":"text_only.pdf","sha256":"ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe"}],"attachments":[{}, {"id":id,"relativePath":format!("attachments/obj_perf_00000000/{id}/text_only.pdf")}]}),
+        }
+    }
+    #[test]
+    fn prelaunch_pdf_binding_survives_legitimate_mutable_file_changes_without_revalidation() {
+        let temp = tempfile::tempdir().unwrap();
+        let vault = temp.path().join("vault");
+        fs::create_dir(&vault).unwrap();
+        let source = proof();
+        let expected = source.pdf_resource_path(&vault).unwrap();
+        fs::write(
+            vault.join("ui_preferences.json"),
+            "GUI changed preferences after input",
+        )
+        .unwrap();
+        fs::write(
+            vault.join("config.json"),
+            "GUI wrote account state after unlock",
+        )
+        .unwrap();
+        assert_eq!(source.pdf_resource_path(&vault).unwrap(), expected);
+        assert!(expected.starts_with(&vault));
+    }
+    #[test]
+    fn prelaunch_pdf_binding_rejects_different_resource_digest_uuid_and_traversal() {
+        let vault = Path::new("C:/owned/vault");
+        for (key,value) in [("relativePath",json!("../private.pdf")),("id",json!("att_../../private")),("relativePath",json!("attachments/obj_perf_00000000/att_00000000-0000-0000-0000-000000000001/scanned.pdf"))] {let mut v=proof();v.marker["attachments"][1][key]=value;assert!(v.pdf_resource_path(vault).is_err());}
+        let mut bad = proof();
+        bad.marker["publicAssets"][1]["sha256"] = json!("private");
+        assert!(bad.pdf_resource_path(vault).is_err());
+        let mut legacy = proof();
+        legacy.marker["schemaVersion"] = json!(1);
+        assert!(legacy.pdf_resource_path(vault).is_err());
     }
 }

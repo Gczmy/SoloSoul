@@ -44,7 +44,7 @@ const CHILD_DIRS: &[&str] = &[
 // RF-312：离线检查依赖完整字节标记。优化器可能把参数比较内联成机器指令，
 // 因此在预检入口保留不透明引用；仅此非默认功能的模块包含该标记块。
 #[used]
-static BINARY_FEATURE_MARKERS: &[u8] = b"--native-perf-prepare\0windows-native-perf-owned\0windows-native-perf-ready\0windows-native-perf-consumed\0windows-native-sdk-startup-requested\0windows-native-sdk-startup-restart-ticket\0--native-perf-media-prepare\0windows-native-sdk-media-journey-requested";
+static BINARY_FEATURE_MARKERS: &[u8] = b"--native-perf-prepare\0windows-native-perf-owned\0windows-native-perf-ready\0windows-native-perf-consumed\0windows-native-sdk-startup-requested\0windows-native-sdk-startup-restart-ticket\0--native-perf-media-prepare\0windows-native-sdk-media-journey-requested\0windows-native-sdk-pdf-diagnostic-requested";
 
 static RUNTIME: OnceLock<RuntimeConfig> = OnceLock::new();
 
@@ -60,6 +60,8 @@ pub struct RuntimeConfig {
     pub sdk_cdp: bool,
     pub sdk_journey: bool,
     pub media_journey: bool,
+    pub pdf_diagnostic: bool,
+    pub pdf_resource: Option<PathBuf>,
     pub object_count: usize,
     pub startup: Option<startup::Launch>,
 }
@@ -228,6 +230,7 @@ enum Mode {
         sdk_cdp: bool,
         sdk_journey: bool,
         media_journey: bool,
+        pdf_diagnostic: bool,
         startup_only: bool,
         restart: bool,
     },
@@ -301,6 +304,7 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
         sdk_cdp,
         sdk_journey,
         media_journey,
+        pdf_diagnostic,
         startup_only,
         restart,
     } = mode
@@ -323,6 +327,7 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
     config.sdk_cdp = sdk_cdp;
     config.sdk_journey = sdk_journey;
     config.media_journey = media_journey;
+    config.pdf_diagnostic = pdf_diagnostic;
     if sdk_journey {
         sdk_journey::claim_request(&config)?;
     }
@@ -416,6 +421,7 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
     let mut prepare_root = None;
     let mut media_prepare = false;
     let mut media_journey = false;
+    let mut pdf_diagnostic = false;
     let mut run_root = None;
     let mut input_fixture = None;
     let mut port = None;
@@ -466,11 +472,15 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
             }
             "--native-perf-journey"
                 if !sdk_journey
-                    && (value == "sdk-input" || value == "sdk-startup" || value == "sdk-media") =>
+                    && (value == "sdk-input"
+                        || value == "sdk-startup"
+                        || value == "sdk-media"
+                        || value == "sdk-pdf-diagnostic") =>
             {
                 sdk_journey = true;
                 startup_only = value == "sdk-startup";
-                media_journey = value == "sdk-media";
+                media_journey = value == "sdk-media" || value == "sdk-pdf-diagnostic";
+                pdf_diagnostic = value == "sdk-pdf-diagnostic";
             }
             "--native-perf-diagnostics"
                 if !chromium_log
@@ -540,6 +550,7 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
             sdk_cdp,
             sdk_journey,
             media_journey,
+            pdf_diagnostic,
             startup_only,
             restart,
         }),
@@ -759,6 +770,11 @@ fn consume_mode(
     if ready != expected_ready {
         return Err("native-perf ready marker does not match owned manifest".into());
     }
+    let pdf_resource = if media {
+        Some(manifest.fixture.pdf_resource_path(&manifest.vault)?)
+    } else {
+        None
+    };
     // 只检查 loopback 端口未被占用；关闭监听后仍有竞争，runner 必须再核对 PID/runId。
     let probe = TcpListener::bind(("127.0.0.1", port))
         .map_err(|e| format!("native-perf CDP port is unavailable: {e}"))?;
@@ -786,6 +802,8 @@ fn consume_mode(
         sdk_cdp: false,
         sdk_journey: false,
         media_journey: media,
+        pdf_diagnostic: false,
+        pdf_resource,
         object_count: manifest.fixture.object_count,
         startup: None,
     })

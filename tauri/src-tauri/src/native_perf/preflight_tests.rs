@@ -570,6 +570,8 @@ fn copied_runtime_config(parent: &Path) -> RuntimeConfig {
         sdk_cdp: false,
         sdk_journey: false,
         media_journey: false,
+        pdf_diagnostic: false,
+        pdf_resource: None,
         startup: None,
         object_count: 100,
     }
@@ -1071,6 +1073,7 @@ fn native_perf_sdk_cdp_is_exclusive_run_only_and_preserves_browser_flags() {
             sdk_cdp: true,
             sdk_journey: false,
             media_journey: false,
+            pdf_diagnostic: false,
             chromium_log: false,
             ordinary_tmp: false,
             copied_runtime: None,
@@ -1261,6 +1264,7 @@ fn native_perf_media_mode_is_explicit_and_exclusive() {
         ])),
         Ok(Mode::Run {
             media_journey: true,
+            pdf_diagnostic: false,
             sdk_journey: true,
             startup_only: false,
             ..
@@ -1336,4 +1340,52 @@ fn native_perf_media_preparation_binds_raw_bytes_and_preserves_v1_rejection() {
         sha256_file(&source.join("acc_rf312_100/vault.db")).unwrap(),
         db_hash
     );
+}
+
+#[test]
+fn native_perf_pdf_diagnostic_is_explicit_media_only_and_exclusive() {
+    let base = args(&[
+        "--native-perf-root",
+        "C:/owned",
+        "--native-perf-port",
+        "9222",
+        "--native-perf-journey",
+        "sdk-pdf-diagnostic",
+    ]);
+    assert!(matches!(
+        parse_args(&base),
+        Ok(Mode::Run {
+            media_journey: true,
+            pdf_diagnostic: true,
+            sdk_journey: true,
+            startup_only: false,
+            ..
+        })
+    ));
+    for extra in [
+        args(&["--native-perf-restart", "startup"]),
+        args(&["--native-perf-diagnostics", "sdk-cdp"]),
+        args(&["--native-perf-journey", "sdk-media"]),
+    ] {
+        let mut input = base.clone();
+        input.extend(extra);
+        assert!(parse_args(&input).is_err());
+    }
+    for mode in ["sdk-media", "sdk-input", "sdk-startup"] {
+        let ordinary = args(&[
+            "--native-perf-root",
+            "C:/owned",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-journey",
+            mode,
+        ]);
+        assert!(matches!(
+            parse_args(&ordinary),
+            Ok(Mode::Run {
+                pdf_diagnostic: false,
+                ..
+            })
+        ));
+    }
 }
