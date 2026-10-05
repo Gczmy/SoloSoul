@@ -316,6 +316,8 @@ async fn inspect(
     topology(&tree, &expected, pdf)?;
     c.pdf_frame_window.store(true, Ordering::SeqCst);
     broker.start(c, pdf).await?;
+    c.pdf_diagnostic.as_mut().unwrap()["openingStartedAtMs"] =
+        json!(c.started.elapsed().as_secs_f64() * 1000.0);
     for kind in ["mousePressed", "mouseReleased"] {
         c.protocol("Input.dispatchMouseEvent",json!({"type":kind,"x":target["target"]["x"],"y":target["target"]["y"],"button":"left","clickCount":1})).await?;
     }
@@ -414,6 +416,7 @@ async fn inspect(
         .map_err(|_| "pdf-screenshot-publication-failed")?;
     c.pdf_diagnostic.as_mut().unwrap()["screenshot"] = json!({"fileName":"native-perf-sdk-pdf-screenshot.png","bytes":bytes.len(),"sha256":format!("{:x}",Sha256::digest(&bytes)),"scope":"owned-public-fixture-WebView-pixels; excludes-DWM"});
     let opened = dom(c, "opened", pdf).await?;
+    broker.detach_component(c).await?;
     for kind in ["mousePressed", "mouseReleased"] {
         c.protocol("Input.dispatchMouseEvent",json!({"type":kind,"x":opened["target"]["x"],"y":opened["target"]["y"],"button":"left","clickCount":1})).await?;
     }
@@ -445,7 +448,7 @@ pub(super) async fn diagnose(c: &mut Capture) -> Outcome<()> {
         encoded_component(file.to_str().ok_or("pdf-prelaunch-resource-unavailable")?)
     );
     c.pdf_diagnostic = Some(
-        json!({"schemaVersion":2,"scope":"windows-native-sdk-public-pdf-capability","assetSha256":"ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe","renderVerified":false,"performanceMetrics":null,"frameSnapshots":[],"contexts":[],"readinessCandidates":[],"openedDom":null,"closedDom":null,"screenshot":null,"mainVerifiedAfterClose":false,"frameCreatedEvents":0,"contextWatchCleaned":false,"targetDiagnostic":targets::empty()}),
+        json!({"schemaVersion":3,"scope":"windows-native-sdk-public-pdf-capability","assetSha256":"ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe","renderVerified":false,"performanceMetrics":null,"frameSnapshots":[],"contexts":[],"readinessCandidates":[],"openedDom":null,"closedDom":null,"screenshot":null,"mainVerifiedAfterClose":false,"frameCreatedEvents":0,"contextWatchCleaned":false,"targetDiagnostic":targets::empty(),"openingStartedAtMs":null}),
     );
     let events = Arc::new(Mutex::new(vec![]));
     watch(c, events.clone()).await?;

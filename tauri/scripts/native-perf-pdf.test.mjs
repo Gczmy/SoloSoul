@@ -362,3 +362,106 @@ test('PDF v2 refuses target payload leakage, unsafe methods and cleanup failures
     assert.throws(() => checkPdfDiagnostic(i.proof, i.owned, i.bound, i.fixture));
   }
 });
+
+function componentInputs() {
+  const i = targetInputs(),
+    d = i.proof.pdfDiagnostic,
+    t = d.targetDiagnostic;
+  d.schemaVersion = 3;
+  d.openingStartedAtMs = 1;
+  t.schemaVersion = 2;
+  t.mainTarget.browserContextId = 'CTX';
+  t.relatedSessions[0].target.browserContextId = 'CTX';
+  t.relatedSessions[0].target.parentId = 'APP';
+  const component = {
+    id: 'COMP',
+    type: 'webview',
+    urlClass: 'component-extension',
+    attached: false,
+    parentId: 'APP',
+    openerId: null,
+    parentFrameId: null,
+    browserContextId: 'CTX',
+  };
+  for (const snapshot of t.snapshots) snapshot.targets.push(component);
+  t.relatedSessions.push({
+    sessionId: 'CS',
+    parentSessionId: '',
+    target: { ...component, attached: true },
+    active: false,
+    enabled: true,
+  });
+  for (const candidate of t.candidates) candidate.observedAtMs = 2;
+  t.candidates.push({
+    snapshotIndex: 0,
+    sessionId: 'CS',
+    targetId: 'COMP',
+    frame: { id: 'CF', loaderId: 'CL', urlClass: 'component-extension' },
+    state: structuredClone(t.candidates[0].state),
+    observedAtMs: 3,
+  });
+  const calls = [
+    'Runtime.enable',
+    'Target.getTargetInfo',
+    'Page.getFrameTree',
+    'Runtime.evaluate',
+    'Page.getFrameTree',
+  ].map((method) => ({ sessionId: 'CS', method }));
+  t.sessionCalls.push(...calls);
+  t.componentAttachment = {
+    target: component,
+    sessionId: 'CS',
+    beforeSnapshotIndex: 0,
+    parentVerified: true,
+    browserContextVerified: true,
+    detached: true,
+    detachMode: 'explicit-reply',
+  };
+  i.proof.calls.push(
+    'Target.getTargetInfo',
+    'Target.attachToTarget',
+    ...calls.map((c) => c.method),
+    'Target.detachFromTarget',
+  );
+  return i;
+}
+test('PDF v3 binds one observed component, explicit detach and native observation clock without promoting rendering', () => {
+  const i = componentInputs();
+  assert.equal(checkPdfDiagnostic(i.proof, i.owned, i.bound, i.fixture), i.proof);
+  assert.equal(i.proof.pdfDiagnostic.renderVerified, false);
+  assert.equal(i.proof.pdfDiagnostic.performanceMetrics, null);
+});
+test('PDF v3 rejects mismatched main parent, context, session, observation or detach evidence', () => {
+  for (const update of [
+    (d) => (d.targetDiagnostic.componentAttachment.target.parentId = 'FOREIGN'),
+    (d) => (d.targetDiagnostic.componentAttachment.target.browserContextId = 'FOREIGN'),
+    (d) => (d.targetDiagnostic.mainTarget.browserContextId = null),
+    (d) => (d.targetDiagnostic.componentAttachment.target.attached = true),
+    (d) => (d.targetDiagnostic.componentAttachment.sessionId = 'FOREIGN'),
+    (d) => (d.targetDiagnostic.componentAttachment.beforeSnapshotIndex = 4),
+    (d) => (d.targetDiagnostic.componentAttachment.parentVerified = false),
+    (d) => (d.targetDiagnostic.componentAttachment.detached = false),
+    (d) => (d.targetDiagnostic.componentAttachment.detachMode = 'pending'),
+    (d) => d.targetDiagnostic.candidates.pop(),
+    (d) => (d.openingStartedAtMs = 0),
+    (d) => (d.targetDiagnostic.candidates[0].observedAtMs = 0),
+    (d) => (d.targetDiagnostic.candidates[0].observedAtMs = 11),
+  ]) {
+    const i = componentInputs();
+    update(i.proof.pdfDiagnostic);
+    assert.throws(() => checkPdfDiagnostic(i.proof, i.owned, i.bound, i.fixture));
+  }
+});
+test('PDF v3 refuses lifecycle widening and missing actual SDK trace', () => {
+  for (const update of [
+    (p) => p.calls.push('Target.createTarget'),
+    (p) => p.calls.push('Target.closeTarget'),
+    (p) => p.calls.splice(p.calls.indexOf('Target.attachToTarget'), 1),
+    (p) => p.calls.splice(p.calls.indexOf('Target.detachFromTarget'), 1),
+    (p) => (p.pdfDiagnostic.targetDiagnostic.componentAttachment.target.privateUrl = 'PRIVATE'),
+  ]) {
+    const i = componentInputs();
+    update(i.proof);
+    assert.throws(() => checkPdfDiagnostic(i.proof, i.owned, i.bound, i.fixture));
+  }
+});

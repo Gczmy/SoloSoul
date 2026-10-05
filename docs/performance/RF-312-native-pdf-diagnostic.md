@@ -4,7 +4,7 @@
 
 ## 入口与范围
 
-以 `native-perf` 非默认 Windows feature 构建 Release。当前驱动要求新增的 `windows-native-sdk-pdf-target-diagnostic-requested` 二进制标记与内部 `pdfDiagnostic.schemaVersion=2`；旧 v1 证明继续支持离线校验，重跑旧诊断须使用 `1295be05` 的匹配驱动与源码。独立入口 `node scripts/native-perf-pdf-diagnostic.mjs --exe ABS_EXE --fixture ABS_MEDIA_SOURCE --output NEW_ABS_OUTPUT --samples 3` 创建并核验新 owned 副本；不复用已消费的证明。源数据只读，GUI、WebView2、插件、模型、日志和 Known Folder 保持已有隔离规则。默认 GUI、前端、旧 SDK 行程、启动模式和依赖不修改。
+以 `native-perf` 非默认 Windows feature 构建 Release。当前驱动要求 `windows-native-sdk-pdf-component-diagnostic-requested` 二进制标记与内部 `pdfDiagnostic.schemaVersion=3`；旧 v1/v2 证明继续支持离线校验，重跑旧诊断分别须使用 `1295be05` / `a093e732` 的匹配驱动与源码。独立入口 `node scripts/native-perf-pdf-diagnostic.mjs --exe ABS_EXE --fixture ABS_MEDIA_SOURCE --output NEW_ABS_OUTPUT --samples 3` 创建并核验新 owned 副本；不复用已消费的证明。源数据只读，GUI、WebView2、插件、模型、日志和 Known Folder 保持已有隔离规则。默认 GUI、前端、旧 SDK 行程、启动模式和依赖不修改。
 
 使用真实 SDK 输入完成主密码解锁、对象工作区和附件列表，然后点击固定 `text_only.pdf`。主文档、进程、frame、loader、时钟和输入可信性继续核验。只有 PDF 操作期间允许有界子 frame 创建，原行程仍拒绝子 frame。保存四次 frame 快照、实际上下文候选和 viewport PNG，再真实关闭预览并复核原主文档，移除事件订阅。
 
@@ -51,3 +51,19 @@ Windows 11 Enterprise LTSC 26100、i7-9700（8 核）、约 16 GiB RAM、WebView
 fresh CIM 确认 30 个记录身份已退出；本轮没有额外未知创建时间的清理 PID。核对 absolute owned 路径及 reparse 边界后，清理 24 个缓存目录、解除三个链接；全部 Vault、证明、截图、EXE、94 份资源、171 份公开媒体源文件和 12 份副本附件密文保持。原 stash、子模块与旧 PDF 构建保持，不推送。
 
 [结构化验收](rf312-windows-pdf-targets-2026-10-05.json)和[逐字节原始索引](rf312-windows-pdf-targets-2026-10-05/index.json)记录完整检查、冻结、构建、三份原生证明、截图与清理。`diagnosticOnly=true`、`renderVerified=false`、`performanceMetrics=null` 和空汇总保持；本阶段仅验收相关目标/session 诊断，RF-312 继续未完成。下一步验证上述主目标关联及 browser context 后受控附加组件 webview，读取固定 viewer 状态，再定义 PDF 就绪门禁；OCR、性能归因、原偶发首页超时、睡眠及多端缺口保留。
+
+## 2026-10-05 · 组件 webview 受控附加实测
+
+v3 只对实际观察到的唯一 `component-extension` webview 附加：主目标必须为当前应用 page，组件 `parentId` 和非空 `browserContextId` 必须分别与主目标一致，且已有活跃的 directly-related owned PDF iframe。附加前重新读取同一目标，绑定实际 SDK 返回的 sessionId 与主 session 的附加事件；固定 viewer 探针前后复核目标、frame 和 loader。真实关闭预览前显式解除组件 session，再取消自动附加和两族订阅。未创建或关闭协议目标，没有子 session 输入；默认前端与依赖不修改。
+
+80 项原生回归、严格 Clippy、Rust/JS 格式和 diff 检查通过。Node 188 项中 187 通过、0 失败、1 项既有 Windows symlink 权限跳过；另以当前 v3 合同实际接受旧 v1/v2 的六份原生证明。Release exit0，994.79 秒，EXE SHA `61333412d672dc61dcb2ea98c0cb492c66fab67b3d3f135092a7c2337f13b6b7`；446 项源码输入、94 份资源冻结并保持。
+
+100 对象源的三个 fresh owned 副本诊断均通过，组壁钟 194.30 秒。各 99/107/107 次 SDK 调用、26/34/34 次 session 调用，组件候选为 3/4/4 份，共 11 份。首样本第零次目标快照只有主目标，后续才出现组件；另两份首快照即已观察到，未丢弃这一差异。三次均用 SDK 成功回复显式解除组件，清理状态明确为 `explicit-reply`，不将它记作收到解除事件。
+
+11 份组件候选 `documentMatches=true`，但 `viewerPresent=false`、`loadSucceededMethodPresent=false`、页数与加载状态为空、绘制帧为零；同组 owned PDF iframe 也未提供该 viewer API。此结果确认目标关联、协议可达与固定探针的观察，不提供自动就绪或性能验收。微软的 [WebView2 PDF 阅读器策略文档](https://learn.microsoft.com/en-us/deployedge/microsoft-edge-webview-policies#newpdfreaderwebview2list)描述可配置的 PDF 阅读器版本，但本轮未核验本机策略或引擎，不能从 API 缺失推断具体版本。下一步调查当前组件的有界 DOM 结构、同一 PDF 子 frame 和实际可用的就绪信号。
+
+Native 单调时钟在真实打开输入前保存起点，每份候选保存观察时间，所有观察均位于本次打开到诊断结束之间。记录保留实际时刻；探针未观察到加载成功，因此不计算 PDF 延迟、中位数或尾部指标。`diagnosticOnly=true`、`renderVerified=false`、`performanceMetrics=null` 和空汇总保持。
+
+三份 PNG 各 34,024 字节，SHA 均为 `5ffffdfc3c9f4a9db05a3170f5df71d07da13ce35a6528ffb011a435ff54b4c9`，与 v1/v2 实测相同。实际查看第一份，可见公开 PDF 第一页正文、1 of 2 指示与备份提醒，另两份字节相同；这是截图时可见性的人工证据。fresh CIM 核验 29 个记录进程身份退出，仅清理 24 个精确 owned 缓存目录和三个缓存链接，不结束额外进程。全部 Vault、证明、EXE、资源、171 份公开源文件、12 份副本附件密文及旧 PDF 构建保持。
+
+[结构化验收](rf312-windows-pdf-component-2026-10-05.json)和[逐字节原件索引](rf312-windows-pdf-component-2026-10-05/index.json)保存检查、冻结、Release、三份原生样本、时钟与清理。本阶段仅验收组件 session 诊断；RF-312 继续未完成。OCR 真实文件选择与首次推理、性能归因、偶发首页超时、系统睡眠及多端缺口保留。

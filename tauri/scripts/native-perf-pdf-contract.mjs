@@ -109,8 +109,11 @@ export function checkPdfDiagnostic(v, owned, bound, fixture) {
           'Page.captureScreenshot',
           'Input.dispatchMouseEvent',
           'Input.insertText',
-          ...(v.pdfDiagnostic?.schemaVersion === 2
+          ...(v.pdfDiagnostic?.schemaVersion >= 2
             ? ['Target.getTargetInfo', 'Target.getTargets', 'Target.setAutoAttach']
+            : []),
+          ...(v.pdfDiagnostic?.schemaVersion === 3
+            ? ['Target.attachToTarget', 'Target.detachFromTarget']
             : []),
         ].includes(m),
     ) ||
@@ -141,9 +144,10 @@ export function checkPdfDiagnostic(v, owned, bound, fixture) {
       'mainVerifiedAfterClose',
       'frameCreatedEvents',
       'contextWatchCleaned',
-      ...(d?.schemaVersion === 2 ? ['targetDiagnostic'] : []),
+      ...(d?.schemaVersion >= 2 ? ['targetDiagnostic'] : []),
+      ...(d?.schemaVersion === 3 ? ['openingStartedAtMs'] : []),
     ]) ||
-    ![1, 2].includes(d.schemaVersion) ||
+    ![1, 2, 3].includes(d.schemaVersion) ||
     d.scope !== 'windows-native-sdk-public-pdf-capability' ||
     d.assetSha256 !== 'ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe' ||
     d.renderVerified !== false ||
@@ -277,7 +281,19 @@ export function checkPdfDiagnostic(v, owned, bound, fixture) {
     screenshot.scope !== 'owned-public-fixture-WebView-pixels; excludes-DWM'
   )
     throw new Error('PDF screenshot proof rejected');
-  if (d.schemaVersion === 2) checkRelatedTargets(d.targetDiagnostic, v.calls);
+  if (
+    d.schemaVersion === 3 &&
+    (!Number.isFinite(d.openingStartedAtMs) ||
+      d.openingStartedAtMs <= 0 ||
+      d.openingStartedAtMs > v.elapsedMs)
+  )
+    throw new Error('PDF opening observation clock rejected');
+  if (d.schemaVersion >= 2)
+    checkRelatedTargets(
+      d.targetDiagnostic,
+      v.calls,
+      d.schemaVersion === 3 ? { opening: d.openingStartedAtMs, elapsed: v.elapsedMs } : null,
+    );
   return v;
 }
 
@@ -307,7 +323,7 @@ const targetValid = (t) =>
   ['parentId', 'openerId', 'parentFrameId', 'browserContextId'].every(
     (k) => t[k] === null || id(t[k]),
   );
-function checkRelatedTargets(d, calls) {
+function checkRelatedTargets(d, calls, timing) {
   if (
     !exact(d, [
       'schemaVersion',
@@ -320,8 +336,9 @@ function checkRelatedTargets(d, calls) {
       'eventCount',
       'autoAttachCleaned',
       'watcherCleaned',
+      ...(timing ? ['componentAttachment'] : []),
     ]) ||
-    d.schemaVersion !== 1 ||
+    d.schemaVersion !== (timing ? 2 : 1) ||
     d.scope !== 'windows-native-sdk-pdf-related-targets' ||
     !targetValid(d.mainTarget) ||
     d.mainTarget.type !== 'page' ||
@@ -381,7 +398,14 @@ function checkRelatedTargets(d, calls) {
     const row = sessions.get(c.sessionId),
       f = c.frame;
     if (
-      !exact(c, ['snapshotIndex', 'sessionId', 'targetId', 'frame', 'state']) ||
+      !exact(c, [
+        'snapshotIndex',
+        'sessionId',
+        'targetId',
+        'frame',
+        'state',
+        ...(timing ? ['observedAtMs'] : []),
+      ]) ||
       !Number.isInteger(c.snapshotIndex) ||
       c.snapshotIndex < 0 ||
       c.snapshotIndex > 3 ||
@@ -399,11 +423,63 @@ function checkRelatedTargets(d, calls) {
           t.urlClass === f.urlClass,
       ) ||
       !viewerStateValid(c.state) ||
+      (timing &&
+        (!Number.isFinite(c.observedAtMs) ||
+          c.observedAtMs < timing.opening ||
+          c.observedAtMs > timing.elapsed)) ||
       seen[c.snapshotIndex].has(c.sessionId) ||
       seen[c.snapshotIndex].size >= 2
     )
       throw new Error('PDF session candidate binding rejected');
     seen[c.snapshotIndex].add(c.sessionId);
+  }
+  if (timing) {
+    const a = d.componentAttachment,
+      row = sessions.get(a?.sessionId);
+    if (
+      !exact(a, [
+        'target',
+        'sessionId',
+        'beforeSnapshotIndex',
+        'parentVerified',
+        'browserContextVerified',
+        'detached',
+        'detachMode',
+      ]) ||
+      !targetValid(a.target) ||
+      a.target.type !== 'webview' ||
+      a.target.urlClass !== 'component-extension' ||
+      a.target.attached !== false ||
+      a.target.parentId !== d.mainTarget.id ||
+      !id(d.mainTarget.browserContextId) ||
+      a.target.browserContextId !== d.mainTarget.browserContextId ||
+      a.parentVerified !== true ||
+      a.browserContextVerified !== true ||
+      a.detached !== true ||
+      !['event', 'explicit-reply'].includes(a.detachMode) ||
+      !Number.isInteger(a.beforeSnapshotIndex) ||
+      a.beforeSnapshotIndex < 0 ||
+      a.beforeSnapshotIndex > 3 ||
+      !row ||
+      row.target.id !== a.target.id ||
+      row.target.type !== 'webview' ||
+      row.target.urlClass !== 'component-extension' ||
+      row.target.parentId !== d.mainTarget.id ||
+      row.target.browserContextId !== d.mainTarget.browserContextId ||
+      !d.snapshots[a.beforeSnapshotIndex].targets.some(
+        (t) => targetValid(t) && Object.keys(a.target).every((k) => t[k] === a.target[k]),
+      ) ||
+      !d.candidates.some(
+        (c) =>
+          c.sessionId === a.sessionId &&
+          c.targetId === a.target.id &&
+          c.frame.urlClass === 'component-extension',
+      ) ||
+      calls.filter((m) => m === 'Target.attachToTarget').length !== 1 ||
+      calls.filter((m) => m === 'Target.detachFromTarget').length !==
+        (a.detachMode === 'explicit-reply' ? 1 : 0)
+    )
+      throw new Error('PDF component binding or explicit detach rejected');
   }
   for (const call of d.sessionCalls) {
     if (

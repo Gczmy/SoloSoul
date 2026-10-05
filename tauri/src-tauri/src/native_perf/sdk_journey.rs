@@ -225,7 +225,26 @@ fn pdf_session_allowed(
                 | "Target.getTargetInfo"
         )
 }
+fn pdf_lifecycle_allowed(pdf: bool, startup: bool, window: bool, method: &str) -> bool {
+    pdf && !startup
+        && window
+        && matches!(method, "Target.attachToTarget" | "Target.detachFromTarget")
+}
+fn pdf_source_required(session: bool, method: &str) -> bool {
+    session || matches!(method, "Target.attachToTarget" | "Target.detachFromTarget")
+}
 impl Capture {
+    async fn pdf_lifecycle(&mut self, method: &'static str, parameters: Value) -> Outcome<Value> {
+        if !pdf_lifecycle_allowed(
+            self.config.pdf_diagnostic,
+            self.config.startup.is_some(),
+            self.pdf_frame_window.load(Ordering::SeqCst),
+            method,
+        ) {
+            return Err("pdf-lifecycle-call-forbidden");
+        }
+        self.protocol_inner(None, method, parameters).await
+    }
     async fn protocol(&mut self, method: &'static str, parameters: Value) -> Outcome<Value> {
         self.protocol_inner(None, method, parameters).await
     }
@@ -291,6 +310,8 @@ impl Capture {
                     return;
                 };
                 if !allowed_source(&source)
+                    || (pdf_source_required(session.is_some(), method)
+                        && source != "http://tauri.localhost/settings/attachments")
                     || expected_pid.is_some_and(|expected| pid != expected)
                     || pid == 0
                 {
@@ -1047,6 +1068,36 @@ fn publish(root: &std::path::Path, name: &str, value: &Value) -> Outcome<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn pdf_lifecycle_and_session_source_require_exclusive_active_pdf_document() {
+        assert!(pdf_lifecycle_allowed(
+            true,
+            false,
+            true,
+            "Target.attachToTarget"
+        ));
+        assert!(pdf_lifecycle_allowed(
+            true,
+            false,
+            true,
+            "Target.detachFromTarget"
+        ));
+        for (pdf, startup, window, method) in [
+            (false, false, true, "Target.attachToTarget"),
+            (true, true, true, "Target.attachToTarget"),
+            (true, false, false, "Target.attachToTarget"),
+            (true, false, true, "Target.closeTarget"),
+            (true, false, true, "Target.createTarget"),
+            (true, false, true, "Input.insertText"),
+        ] {
+            assert!(!pdf_lifecycle_allowed(pdf, startup, window, method));
+        }
+        assert!(pdf_source_required(true, "Runtime.evaluate"));
+        assert!(pdf_source_required(false, "Target.attachToTarget"));
+        assert!(pdf_source_required(false, "Target.detachFromTarget"));
+        assert!(!pdf_source_required(false, "Runtime.evaluate"));
+        assert!(!pdf_source_required(false, "Input.insertText"));
+    }
     #[test]
     fn pdf_session_calls_require_exclusive_active_window_and_read_only_methods() {
         assert!(pdf_session_allowed(

@@ -14,6 +14,8 @@ use webview2_com::Microsoft::Web::WebView2::Win32::{
 };
 use webview2_com::{CoTaskMemPWSTR, DevToolsProtocolEventReceivedEventHandler};
 use windows::core::{Interface, PCWSTR, PWSTR};
+#[path = "sdk_pdf_component.rs"]
+mod component;
 thread_local! { static WATCH: RefCell<Vec<(ICoreWebView2DevToolsProtocolEventReceiver,i64)>> = const { RefCell::new(Vec::new()) }; }
 #[derive(Clone)]
 struct Target {
@@ -40,6 +42,7 @@ pub(super) struct Broker {
     calls: Vec<Value>,
     installed: bool,
     auto: bool,
+    component: Option<component::Attachment>,
 }
 fn info(v: &Value, pdf: &str) -> Outcome<Target> {
     let url = v["url"].as_str().ok_or("pdf-target-info-invalid")?;
@@ -118,6 +121,7 @@ impl Broker {
             calls: Vec::new(),
             installed: false,
             auto: false,
+            component: None,
         }
     }
     pub(super) async fn start(&mut self, c: &mut Capture, pdf: &str) -> Outcome<()> {
@@ -210,6 +214,14 @@ impl Broker {
                 _ => {}
             }
         }
+        // 明确解除命令的成功回复也是session结束依据，不假称已收到回调。
+        if let Some(attachment) = &self.component {
+            if attachment.detached() {
+                if let Some(row) = sessions.get_mut(attachment.session()) {
+                    row.active = false;
+                }
+            }
+        }
         self.sessions = sessions;
         Ok(events.len())
     }
@@ -259,12 +271,15 @@ impl Broker {
         {
             return Err("pdf-main-target-unlisted");
         }
+        self.sync()?;
+        self.attach_component(c, pdf, &main, list, &targets, index)
+            .await?;
         let count = self.sync()?;
         c.pdf_diagnostic.as_mut().unwrap()["targetDiagnostic"]["snapshots"]
             .as_array_mut()
             .unwrap()
             .push(json!({"snapshotIndex":index,"mainVerified":true,"targets":targets}));
-        let selected: Vec<_> = self
+        let mut selected: Vec<_> = self
             .sessions
             .values()
             .filter(|x| {
@@ -274,9 +289,10 @@ impl Broker {
                     && ["owned-pdf", "component-extension"]
                         .contains(&x.target.proof["urlClass"].as_str().unwrap_or(""))
             })
-            .take(2)
             .cloned()
             .collect();
+        selected.sort_by_key(|x| self.component.as_ref().is_none_or(|a| a.session() != x.id));
+        selected.truncate(2);
         for session in selected {
             if !targets.iter().any(|t| {
                 t["id"] == session.target.proof["id"]
@@ -322,7 +338,7 @@ impl Broker {
             if session_frame(&after, &current.url, pdf)? != frame {
                 return Err("pdf-session-document-replaced");
             }
-            c.pdf_diagnostic.as_mut().unwrap()["targetDiagnostic"]["candidates"].as_array_mut().unwrap().push(json!({"snapshotIndex":index,"sessionId":session.id,"targetId":current.proof["id"],"frame":frame,"state":state}));
+            c.pdf_diagnostic.as_mut().unwrap()["targetDiagnostic"]["candidates"].as_array_mut().unwrap().push(json!({"snapshotIndex":index,"sessionId":session.id,"targetId":current.proof["id"],"frame":frame,"state":state,"observedAtMs":c.started.elapsed().as_secs_f64()*1000.0}));
         }
         self.publish(c, count);
         Ok(())
@@ -333,8 +349,10 @@ impl Broker {
         d["relatedSessions"] = json!(related);
         d["sessionCalls"] = json!(self.calls);
         d["eventCount"] = json!(count);
+        d["componentAttachment"] = self.component.as_ref().map_or(Value::Null, |x| x.proof());
     }
     pub(super) async fn finish(&mut self, c: &mut Capture) -> Outcome<()> {
+        let component_outcome = self.detach_component(c).await;
         let mut outcome = Ok(());
         if self.auto {
             outcome = c
@@ -379,6 +397,10 @@ impl Broker {
         }
         let count = self.sync()?;
         self.publish(c, count);
+        component_outcome?;
+        if self.component.is_none() {
+            return Err("pdf-component-not-observed");
+        }
         outcome
     }
 }
@@ -390,7 +412,7 @@ fn session_frame(raw: &Value, url: &str, pdf: &str) -> Outcome<Value> {
     Ok(json!({"id":f["id"],"loaderId":f["loaderId"],"urlClass":url_class(url,pdf)}))
 }
 pub(super) fn empty() -> Value {
-    json!({"schemaVersion":1,"scope":"windows-native-sdk-pdf-related-targets","mainTarget":null,"snapshots":[],"relatedSessions":[],"candidates":[],"sessionCalls":[],"eventCount":0,"autoAttachCleaned":false,"watcherCleaned":false})
+    json!({"schemaVersion":2,"scope":"windows-native-sdk-pdf-related-targets","mainTarget":null,"snapshots":[],"relatedSessions":[],"candidates":[],"sessionCalls":[],"eventCount":0,"autoAttachCleaned":false,"watcherCleaned":false,"componentAttachment":null})
 }
 #[cfg(test)]
 mod tests {
