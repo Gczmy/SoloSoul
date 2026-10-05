@@ -572,6 +572,7 @@ fn copied_runtime_config(parent: &Path) -> RuntimeConfig {
         media_journey: false,
         pdf_diagnostic: false,
         pdf_preview: false,
+        ocr_journey: false,
         pdf_resource: None,
         pdf_ciphertext_sha256: None,
         startup: None,
@@ -1425,5 +1426,62 @@ fn native_perf_pdf_first_page_mode_is_explicit_and_keeps_diagnostic_exclusive() 
         let mut bad = base.clone();
         bad.extend(extra);
         assert!(parse_args(&bad).is_err());
+    }
+}
+
+#[test]
+fn native_perf_first_ocr_is_exclusive_and_never_aliases_preview_or_startup() {
+    let base = args(&[
+        "--native-perf-root",
+        "C:/owned",
+        "--native-perf-port",
+        "9222",
+        "--native-perf-journey",
+        "sdk-ocr",
+    ]);
+    assert!(matches!(
+        parse_args(&base),
+        Ok(Mode::Run {
+            sdk_journey: true,
+            media_journey: true,
+            ocr_journey: true,
+            pdf_preview: false,
+            pdf_diagnostic: false,
+            startup_only: false,
+            ..
+        })
+    ));
+    for extra in [
+        args(&["--native-perf-restart", "startup"]),
+        args(&["--native-perf-diagnostics", "sdk-cdp"]),
+        args(&["--native-perf-journey", "sdk-media"]),
+        args(&["--native-perf-journey", "sdk-pdf-preview"]),
+    ] {
+        let mut bad = base.clone();
+        bad.extend(extra);
+        assert!(parse_args(&bad).is_err());
+    }
+    for mode in [
+        "sdk-input",
+        "sdk-media",
+        "sdk-pdf-preview",
+        "sdk-pdf-diagnostic",
+        "sdk-startup",
+    ] {
+        let input = args(&[
+            "--native-perf-root",
+            "C:/owned",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-journey",
+            mode,
+        ]);
+        assert!(matches!(
+            parse_args(&input),
+            Ok(Mode::Run {
+                ocr_journey: false,
+                ..
+            })
+        ));
     }
 }

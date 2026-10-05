@@ -44,7 +44,7 @@ const CHILD_DIRS: &[&str] = &[
 // RF-312：离线检查依赖完整字节标记。优化器可能把参数比较内联成机器指令，
 // 因此在预检入口保留不透明引用；仅此非默认功能的模块包含该标记块。
 #[used]
-static BINARY_FEATURE_MARKERS: &[u8] = b"--native-perf-prepare\0windows-native-perf-owned\0windows-native-perf-ready\0windows-native-perf-consumed\0windows-native-sdk-startup-requested\0windows-native-sdk-startup-restart-ticket\0--native-perf-media-prepare\0windows-native-sdk-media-journey-requested\0windows-native-sdk-pdf-diagnostic-requested\0windows-native-sdk-pdf-target-diagnostic-requested\0windows-native-sdk-pdf-component-diagnostic-requested\0windows-native-sdk-pdf-structure-diagnostic-requested\0windows-native-sdk-pdf-first-page-requested\0windows-native-sdk-pdf-cipher-binding-requested\0windows-native-sdk-pdf-frame-stability-requested";
+static BINARY_FEATURE_MARKERS: &[u8] = b"--native-perf-prepare\0windows-native-perf-owned\0windows-native-perf-ready\0windows-native-perf-consumed\0windows-native-sdk-startup-requested\0windows-native-sdk-startup-restart-ticket\0--native-perf-media-prepare\0windows-native-sdk-media-journey-requested\0windows-native-sdk-pdf-diagnostic-requested\0windows-native-sdk-pdf-target-diagnostic-requested\0windows-native-sdk-pdf-component-diagnostic-requested\0windows-native-sdk-pdf-structure-diagnostic-requested\0windows-native-sdk-pdf-first-page-requested\0windows-native-sdk-pdf-cipher-binding-requested\0windows-native-sdk-pdf-frame-stability-requested\0windows-native-sdk-ocr-journey-requested";
 
 static RUNTIME: OnceLock<RuntimeConfig> = OnceLock::new();
 
@@ -62,6 +62,7 @@ pub struct RuntimeConfig {
     pub media_journey: bool,
     pub pdf_diagnostic: bool,
     pub pdf_preview: bool,
+    pub ocr_journey: bool,
     pub pdf_resource: Option<PathBuf>,
     pub pdf_ciphertext_sha256: Option<String>,
     pub object_count: usize,
@@ -234,6 +235,7 @@ enum Mode {
         media_journey: bool,
         pdf_diagnostic: bool,
         pdf_preview: bool,
+        ocr_journey: bool,
         startup_only: bool,
         restart: bool,
     },
@@ -309,6 +311,7 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
         media_journey,
         pdf_diagnostic,
         pdf_preview,
+        ocr_journey,
         startup_only,
         restart,
     } = mode
@@ -333,6 +336,10 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
     config.media_journey = media_journey;
     config.pdf_diagnostic = pdf_diagnostic;
     config.pdf_preview = pdf_preview;
+    config.ocr_journey = ocr_journey;
+    if ocr_journey {
+        sdk_journey::prepare_ocr_input(&config)?;
+    }
     if sdk_journey {
         sdk_journey::claim_request(&config)?;
     }
@@ -428,6 +435,7 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
     let mut media_journey = false;
     let mut pdf_diagnostic = false;
     let mut pdf_preview = false;
+    let mut ocr_journey = false;
     let mut run_root = None;
     let mut input_fixture = None;
     let mut port = None;
@@ -482,15 +490,18 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
                         || value == "sdk-startup"
                         || value == "sdk-media"
                         || value == "sdk-pdf-diagnostic"
-                        || value == "sdk-pdf-preview") =>
+                        || value == "sdk-pdf-preview"
+                        || value == "sdk-ocr") =>
             {
                 sdk_journey = true;
                 startup_only = value == "sdk-startup";
                 media_journey = value == "sdk-media"
                     || value == "sdk-pdf-diagnostic"
-                    || value == "sdk-pdf-preview";
+                    || value == "sdk-pdf-preview"
+                    || value == "sdk-ocr";
                 pdf_diagnostic = value == "sdk-pdf-diagnostic";
                 pdf_preview = value == "sdk-pdf-preview";
+                ocr_journey = value == "sdk-ocr";
             }
             "--native-perf-diagnostics"
                 if !chromium_log
@@ -562,6 +573,7 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
             media_journey,
             pdf_diagnostic,
             pdf_preview,
+            ocr_journey,
             startup_only,
             restart,
         }),
@@ -820,6 +832,7 @@ fn consume_mode(
         media_journey: media,
         pdf_diagnostic: false,
         pdf_preview: false,
+        ocr_journey: false,
         pdf_resource,
         pdf_ciphertext_sha256,
         object_count: manifest.fixture.object_count,

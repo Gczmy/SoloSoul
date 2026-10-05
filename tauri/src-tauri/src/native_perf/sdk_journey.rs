@@ -5,8 +5,13 @@ use super::{checked_dir, write_new_json, RuntimeConfig};
 use serde_json::{json, Value};
 use std::cell::{Cell, RefCell};
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+#[path = "sdk_ocr.rs"]
+mod ocr;
 #[path = "sdk_pdf.rs"]
 mod pdf;
+pub(super) fn prepare_ocr_input(config: &RuntimeConfig) -> Result<(), String> {
+    ocr::prepare(config)
+}
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
 use tauri::{webview::PageLoadPayload, Manager, WebviewWindow};
@@ -48,7 +53,7 @@ pub(super) fn claim_request(config: &RuntimeConfig) -> Result<(), String> {
     write_new_json(
         &config.evidence_root().join(REQUESTED_FILE),
         &json!({
-            "schemaVersion": 1, "scope": if config.startup.is_some() { "windows-native-sdk-startup-requested" } else if config.pdf_preview { "windows-native-sdk-pdf-first-page-requested" } else if config.pdf_diagnostic { "windows-native-sdk-pdf-diagnostic-requested" } else if config.media_journey { "windows-native-sdk-media-journey-requested" } else { "windows-native-sdk-ui-journey-requested" },
+            "schemaVersion": 1, "scope": if config.startup.is_some() { "windows-native-sdk-startup-requested" } else if config.ocr_journey { "windows-native-sdk-ocr-journey-requested" } else if config.pdf_preview { "windows-native-sdk-pdf-first-page-requested" } else if config.pdf_diagnostic { "windows-native-sdk-pdf-diagnostic-requested" } else if config.media_journey { "windows-native-sdk-media-journey-requested" } else { "windows-native-sdk-ui-journey-requested" },
             "root": config.root, "runId": config.run_id, "pid": std::process::id(),
             "port": config.port, "objectCount": config.object_count,
             "inputMethod": if config.startup.is_some() { "SDK-CDP-read-only" } else { "SDK-CDP-Input" }, "defaultBuild": false,
@@ -148,6 +153,7 @@ fn allowed_source(source: &str) -> bool {
             | "http://tauri.localhost/workspace?section=identity"
             | "http://tauri.localhost/search"
             | "http://tauri.localhost/settings/attachments"
+            | "http://tauri.localhost/ocr"
     )
 }
 fn parse_frame(value: &Value, source: &str) -> Outcome<Value> {
@@ -196,6 +202,7 @@ struct Capture {
     pdf_frame_events: Arc<AtomicU32>,
     pdf_diagnostic: Option<Value>,
     pdf_preview: Option<Value>,
+    ocr: Option<Value>,
     tokens: Option<(i64, i64, i64)>,
     calls: Vec<&'static str>,
     phases: Vec<Value>,
@@ -465,7 +472,7 @@ impl Capture {
         self.step = step;
         let expression = PROBE.replace(
             "__REQUEST__",
-            &json!({"step":step,"runId":self.config.run_id,"objectCount":self.config.object_count,"readOnlyStartup":self.config.startup.is_some(),"mediaJourney":self.config.media_journey})
+            &json!({"step":step,"runId":self.config.run_id,"objectCount":self.config.object_count,"readOnlyStartup":self.config.startup.is_some(),"mediaJourney":self.config.media_journey,"ocrJourney":self.config.ocr_journey})
                 .to_string(),
         );
         let raw = self
@@ -559,6 +566,9 @@ impl Capture {
         if matches!(name, "attachment-image-preview" | "attachment-text-preview") {
             phase["mediaEndState"] = after["media"].clone();
         }
+        if name == "first-ocr" {
+            phase["ocrEndState"] = after["ocr"].clone();
+        }
         self.phases.push(phase);
         publish(
             self.config.evidence_root(),
@@ -597,6 +607,9 @@ impl Capture {
         self.record("workspace", began, &before)?;
         self.click("homeButton").await?;
         self.probe("home").await?;
+        if self.config.ocr_journey {
+            return ocr::run(self).await;
+        }
         if self.config.media_journey {
             let before = self.last.clone().unwrap();
             let began = Instant::now();
@@ -754,7 +767,8 @@ pub(super) fn validate_probe_fields(
     outcome: &str,
 ) -> Outcome<Value> {
     let media = outcome == "ready" && matches!(step, "imagePreviewReady" | "textPreviewReady");
-    if probe.as_object().map_or(0, |v| v.len()) != if media { 15 } else { 14 }
+    let ocr_result = outcome == "ready" && step == "ocrResultReady";
+    if probe.as_object().map_or(0, |v| v.len()) != if media || ocr_result { 15 } else { 14 }
         || probe["schemaVersion"] != 1
         || probe["scope"] != "windows-native-sdk-ui-probe"
         || probe["runId"] != run_id
@@ -780,6 +794,12 @@ pub(super) fn validate_probe_fields(
             || !probe["target"].is_null()
         {
             return Err("media-end-state-invalid");
+        }
+    }
+    if ocr_result {
+        ocr::validate_end_state(&probe["ocr"])?;
+        if probe["href"] != "http://tauri.localhost/ocr" || !probe["target"].is_null() {
+            return Err("ocr-public-result-invalid");
         }
     }
     validate_observer(&probe["observer"], run_id, &probe["timeOriginMs"])?;
@@ -822,7 +842,12 @@ pub(super) fn validate_probe_fields(
 fn media_scroll_step(step: &str) -> bool {
     matches!(
         step,
-        "attachmentsCard" | "imagePreview" | "textPreview" | "searchCard"
+        "attachmentsCard"
+            | "imagePreview"
+            | "textPreview"
+            | "searchCard"
+            | "ocrCard"
+            | "ocrResultText"
     )
 }
 fn validate_scroll_target(target: &Value, step: &str) -> Outcome<()> {
@@ -1006,6 +1031,7 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
         pdf_frame_events: Arc::new(AtomicU32::new(0)),
         pdf_diagnostic: None,
         pdf_preview: None,
+        ocr: None,
         tokens: None,
         calls: vec![],
         phases: vec![],
@@ -1055,6 +1081,18 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
             "PDF-other-pages",
             "PDF-general-documents",
             "OCR",
+            "system-sleep",
+            "other-platforms"
+        ]);
+    }
+    if capture.config.ocr_journey {
+        proof["scope"] = json!("windows-native-sdk-first-ocr");
+        proof["inputMethod"] = json!("SDK-CDP-Input+owned-Win32-picker");
+        proof["ocr"] = capture.ocr.take().unwrap_or(Value::Null);
+        proof["unmeasured"] = json!([
+            "OCR-general-images",
+            "OCR-PDF",
+            "OCR-engine-stage-attribution",
             "system-sleep",
             "other-platforms"
         ]);

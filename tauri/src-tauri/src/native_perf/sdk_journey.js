@@ -1,7 +1,14 @@
 // RF-312 SDK固定UI探针：只返回公开fixture的结构、坐标与无payload的IPC计数。
 // 输入由原生Input协议发送；这里不调用click、写value或调用业务IPC。
 (async () => {
-  const { step, runId, objectCount, readOnlyStartup = false, mediaJourney = false } = __REQUEST__;
+  const {
+    step,
+    runId,
+    objectCount,
+    readOnlyStartup = false,
+    mediaJourney = false,
+    ocrJourney = false,
+  } = __REQUEST__;
   const expectedCards = Math.min(50, Math.ceil(objectCount / 20));
   const visible = (node) => {
     if (!node) return false;
@@ -69,8 +76,54 @@
     }
     return null;
   };
+  const ocrCard = () =>
+    unique(
+      [...document.querySelectorAll('[data-shell-content] [data-ui-card][role="button"]')].filter(
+        (node) =>
+          visible(node) &&
+          [...node.querySelectorAll('h1,h2,h3,h4,h5,h6')].some(
+            (title) => title.textContent.trim() === 'OCR',
+          ),
+      ),
+    );
+  const ocrResultText = () => {
+    if (location.pathname !== '/ocr') return null;
+    const cards = [...document.querySelectorAll('[data-shell-content] [data-ui-card]')].filter(
+      (card) => [...card.querySelectorAll('h3')].some((h) => h.textContent.trim() === 'Result'),
+    );
+    const card = unique(cards);
+    if (!card) return null;
+    return unique(
+      [...card.querySelectorAll('div')].filter(
+        (node) =>
+          node.style.whiteSpace === 'pre-wrap' &&
+          visible(node) &&
+          node.textContent.length <= 256 &&
+          node.textContent.replace(/[^a-z0-9]/gi, '').toLowerCase() ===
+            'helloppocrv6solosoulocr1234567890',
+      ),
+    );
+  };
+  const resultOnscreen = () => {
+    const node = ocrResultText();
+    if (!node) return false;
+    const r = node.getBoundingClientRect(),
+      x = r.x + r.width / 2,
+      y = r.y + r.height / 2,
+      hit = document.elementFromPoint(x, y);
+    return (
+      x >= 0 && y >= 0 && x < innerWidth && y < innerHeight && (hit === node || node.contains(hit))
+    );
+  };
+  const scans = () =>
+    window.__SOLOSOUL_NATIVE_PERF__
+      ?.snapshot()
+      ?.commands?.filter((v) => v.command === 'ocr_scan_image').length;
   const targets = {
     attachmentsCard: mediaCard,
+    ocrCard,
+    ocrSelect: () => button('[data-shell-content]', 'Select Image or PDF'),
+    ocrResultText,
     imagePreview: () => previewButton('ocr_test.png'),
     textPreview: () => previewButton('preview.txt'),
     previewClose: () => button('[data-testid="attachment-preview-overlay"]', 'Close'),
@@ -104,6 +157,14 @@
       (!readOnlyStartup || (visible(targets.submit()) && !targets.submit().disabled)) &&
       performance.getEntriesByName('solosoul:startup-dismissed', 'mark').length === 1,
     home,
+    ocrReady: () =>
+      location.pathname === '/ocr' &&
+      visible(targets.ocrSelect()) &&
+      !targets.ocrSelect().disabled &&
+      button('[data-shell-content]', 'General')?.style.fontWeight === '600' &&
+      scans() === 0 &&
+      !ocrResultText(),
+    ocrResultReady: () => location.pathname === '/ocr' && resultOnscreen() && scans() === 1,
     attachments: () =>
       location.pathname === '/settings/attachments' &&
       !overlay() &&
@@ -149,6 +210,11 @@
     ].includes(step)
   )
     throw new Error('unsupported-media-step');
+  if (
+    !ocrJourney &&
+    ['ocrCard', 'ocrSelect', 'ocrResultText', 'ocrReady', 'ocrResultReady'].includes(step)
+  )
+    throw new Error('unsupported-ocr-step');
   const result = await new Promise((resolve) => {
     const began = performance.now();
     const check = () => {
@@ -229,7 +295,14 @@
     // 仅固定媒体行程目标可请求滚轮；这里只提供经命中检查的几何，不写 scrollTop。
     if (
       mediaJourney &&
-      ['attachmentsCard', 'imagePreview', 'textPreview', 'searchCard'].includes(step) &&
+      [
+        'attachmentsCard',
+        'imagePreview',
+        'textPreview',
+        'searchCard',
+        'ocrCard',
+        'ocrResultText',
+      ].includes(step) &&
       !target.actionable &&
       !node.disabled
     ) {
@@ -285,6 +358,17 @@
       height: image ? 200 : 0,
       visible: true,
       paintedFrames: 2,
+    };
+  }
+  if (result === 'ready' && step === 'ocrResultReady') {
+    probe.ocr = {
+      kind: 'fixed-public-image',
+      text: ocrResultText().textContent,
+      normalizedText: 'helloppocrv6solosoulocr1234567890',
+      visible: true,
+      paintedFrames: 2,
+      tier: 'small',
+      firstScanInvokeCount: scans(),
     };
   }
   if (result === 'timeout') {

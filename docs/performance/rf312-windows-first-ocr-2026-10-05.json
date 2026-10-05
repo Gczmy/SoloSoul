@@ -1,0 +1,931 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "at": "2026-10-05T20:40:52.475309+00:00",
+  "baselineHead": "6baee57486ed1cb24a19af6f9a222bf2a27711cb",
+  "build": {
+    "at": "2026-10-05T20:13:10.269629+00:00",
+    "exe": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\bin-final\\solo_soul.exe",
+    "bytes": 103414784,
+    "sha256": "dc7ccb7bbb6f40088bf2d76e44d001536211773fb1e90d6c0d62292ca3f1c239",
+    "frozenInputsUnchanged": 459,
+    "resourcesUnchanged": 94,
+    "markers": [
+      "--native-perf-media-prepare",
+      "windows-native-sdk-media-journey-requested",
+      "windows-native-sdk-ocr-journey-requested",
+      "windows-native-sdk-startup-requested",
+      "windows-native-sdk-pdf-first-page-requested",
+      "windows-native-sdk-pdf-cipher-binding-requested",
+      "windows-native-sdk-pdf-frame-stability-requested"
+    ],
+    "previousPdfBuildsPreserved": 8,
+    "publicSourcesUnchanged": 171
+  },
+  "checks": {
+    "nativeTestsPassed": 96,
+    "nativeTestsFilteredOut": 779,
+    "nodeTests": 205,
+    "nodePassed": 204,
+    "nodeFailed": 0,
+    "nodeSkipped": 1,
+    "nodeSkipReason": "existing Windows symlink permission case",
+    "receipts": {
+      "ocr-corrected-native-tests": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--features",
+          "native-perf",
+          "--lib",
+          "native_perf",
+          "--",
+          "--test-threads=1"
+        ],
+        "pid": 8716,
+        "exitCode": 0,
+        "elapsedSeconds": 245.6562991142273,
+        "finishedAt": "2026-10-05T19:46:20.586094+00:00"
+      },
+      "ocr-corrected-native-clippy": {
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--features",
+          "native-perf",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "pid": 30276,
+        "exitCode": 0,
+        "elapsedSeconds": 41.4536714553833,
+        "finishedAt": "2026-10-05T19:47:02.060491+00:00"
+      },
+      "ocr-corrected-fmt-check": {
+        "command": ["cargo", "+1.99.0", "fmt", "--all", "--", "--check"],
+        "pid": 21052,
+        "exitCode": 0,
+        "elapsedSeconds": 4.489515066146851,
+        "finishedAt": "2026-10-05T19:47:06.552482+00:00"
+      },
+      "ocr-first-node-tests": {
+        "command": ["node", "scripts/run-node-tests.mjs"],
+        "pid": 25288,
+        "exitCode": 0,
+        "elapsedSeconds": 22.772550582885742,
+        "finishedAt": "2026-10-05T18:35:35.419265+00:00"
+      },
+      "ocr-first-js-format-check": {
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "scripts/native-perf-sdk-journey.mjs",
+          "scripts/native-perf-ocr.mjs",
+          "scripts/native-perf-ocr-contract.mjs",
+          "scripts/native-perf-ocr.test.mjs",
+          "scripts/run-node-tests.mjs",
+          "src-tauri/src/native_perf/sdk_journey.js"
+        ],
+        "pid": 33224,
+        "exitCode": 0,
+        "elapsedSeconds": 0.4334754943847656,
+        "finishedAt": "2026-10-05T18:35:35.853661+00:00"
+      },
+      "ocr-first-diff-check": {
+        "command": [
+          "git",
+          "-c",
+          "safe.directory=C:/Users/40299571/SoloSoul",
+          "-c",
+          "core.safecrlf=false",
+          "diff",
+          "--check"
+        ],
+        "pid": 31904,
+        "exitCode": 0,
+        "elapsedSeconds": 0.15445375442504883,
+        "finishedAt": "2026-10-05T18:35:36.009331+00:00"
+      }
+    },
+    "documentation": {
+      "at": "2026-10-05T20:43:24.364375+00:00",
+      "taskRows": 284,
+      "uniqueCards": 284,
+      "statusCounts": {
+        "[x]": 275,
+        "[!]": 3,
+        "[ ]": 6,
+        "[~]": 0
+      },
+      "localLinksValid": 188,
+      "rawOriginalsVerified": 340,
+      "priorRf1094OriginalsVerified": 83,
+      "frozenInputsUnchanged": 459,
+      "stashAndSubmodulePreserved": true,
+      "diffCheck": 0,
+      "rf312Complete": false
+    },
+    "markdownBoundary": {
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "pid": 20120,
+      "exitCode": 0,
+      "elapsedSeconds": 8.503694295883179,
+      "finishedAt": "2026-10-05T20:45:19.197597+00:00",
+      "priorAttempt": "default sandbox EPERM writing node_modules/.vite-temp bundled Vite config; this retry authorizes required temporary writes"
+    }
+  },
+  "scope": "Windows fixed public PNG/default small/first per process; DOM + two rAF + viewport hit; no screenshot pixel acceptance",
+  "accepted100": {
+    "requested": 3,
+    "successful": 3,
+    "summary": [
+      {
+        "name": "pickerOpenedObservedMs",
+        "requestedSamples": 3,
+        "successfulSamples": 3,
+        "medianMs": 1328.8138000000017,
+        "p95Ms": 1506.253200000001
+      },
+      {
+        "name": "pickerSelectionClosedMs",
+        "requestedSamples": 3,
+        "successfulSamples": 3,
+        "medianMs": 1089.8212999999996,
+        "p95Ms": 1119.8826999999983
+      },
+      {
+        "name": "firstOcrResultObservedMs",
+        "requestedSamples": 3,
+        "successfulSamples": 3,
+        "medianMs": 1840.0885999999991,
+        "p95Ms": 4073.931700000001
+      },
+      {
+        "name": "totalOcrObservedMs",
+        "requestedSamples": 3,
+        "successfulSamples": 3,
+        "medianMs": 3157.944300000001,
+        "p95Ms": 5434.197900000001
+      }
+    ],
+    "actualReview": {
+      "at": "2026-10-05T20:22:39.673740+00:00",
+      "success": true,
+      "publicFilesUnchanged": 171,
+      "frozenInputsUnchanged": 459,
+      "resourcesUnchanged": 94,
+      "previousBuildsPreserved": 9,
+      "ownedAttachmentCiphertextsUnchanged": [
+        {
+          "index": 1,
+          "ciphertextsUnchanged": [
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+              "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+              "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+              "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+              "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "ciphertextsUnchanged": [
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+              "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+              "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+              "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+              "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "ciphertextsUnchanged": [
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+              "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+              "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+              "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+              "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+            }
+          ]
+        }
+      ],
+      "scope": "fixed public PNG/default small/first per process",
+      "summary": [
+        {
+          "name": "pickerOpenedObservedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 3,
+          "medianMs": 1328.8138000000017,
+          "p95Ms": 1506.253200000001
+        },
+        {
+          "name": "pickerSelectionClosedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 3,
+          "medianMs": 1089.8212999999996,
+          "p95Ms": 1119.8826999999983
+        },
+        {
+          "name": "firstOcrResultObservedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 3,
+          "medianMs": 1840.0885999999991,
+          "p95Ms": 4073.931700000001
+        },
+        {
+          "name": "totalOcrObservedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 3,
+          "medianMs": 3157.944300000001,
+          "p95Ms": 5434.197900000001
+        }
+      ],
+      "samples": [
+        {
+          "index": 1,
+          "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+          "result": {
+            "firstScanInvokeCount": 1,
+            "kind": "fixed-public-image",
+            "normalizedText": "helloppocrv6solosoulocr1234567890",
+            "paintedFrames": 2,
+            "text": "HelloPP-OCRv6\nSoloSoulOCR\n1234567890",
+            "tier": "small",
+            "visible": true
+          },
+          "ocrMetrics": {
+            "firstOcrResultObservedMs": 1613.5965999999971,
+            "pickerOpenedObservedMs": 1506.253200000001,
+            "pickerSelectionClosedMs": 720.3598999999995,
+            "totalOcrObservedMs": 3157.944300000001
+          },
+          "controls": 47,
+          "sdkCalls": 51
+        },
+        {
+          "index": 2,
+          "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+          "result": {
+            "firstScanInvokeCount": 1,
+            "kind": "fixed-public-image",
+            "normalizedText": "helloppocrv6solosoulocr1234567890",
+            "paintedFrames": 2,
+            "text": "HelloPP-OCRv6\nSoloSoulOCR\n1234567890",
+            "tier": "small",
+            "visible": true
+          },
+          "ocrMetrics": {
+            "firstOcrResultObservedMs": 1840.0885999999991,
+            "pickerOpenedObservedMs": 1222.3507000000009,
+            "pickerSelectionClosedMs": 1089.8212999999996,
+            "totalOcrObservedMs": 3091.7122
+          },
+          "controls": 47,
+          "sdkCalls": 51
+        },
+        {
+          "index": 3,
+          "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+          "result": {
+            "firstScanInvokeCount": 1,
+            "kind": "fixed-public-image",
+            "normalizedText": "helloppocrv6solosoulocr1234567890",
+            "paintedFrames": 2,
+            "text": "HelloPP-OCRv6\nSoloSoulOCR\n1234567890",
+            "tier": "small",
+            "visible": true
+          },
+          "ocrMetrics": {
+            "firstOcrResultObservedMs": 4073.931700000001,
+            "pickerOpenedObservedMs": 1328.8138000000017,
+            "pickerSelectionClosedMs": 1119.8826999999983,
+            "totalOcrObservedMs": 5434.197900000001
+          },
+          "controls": 47,
+          "sdkCalls": 51
+        }
+      ]
+    },
+    "postCacheReview": {
+      "at": "2026-10-05T20:26:01.860795+00:00",
+      "group": "samples100-final",
+      "complete": true,
+      "verifiedIdentities": 27,
+      "removedCachePaths": 24,
+      "unlinkedEntries": 3,
+      "preservedLogs": 3,
+      "roots": [
+        {
+          "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\samples100-final\\sample-001",
+          "vaultFilesUnchanged": 13,
+          "publicInputUnchanged": true
+        },
+        {
+          "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\samples100-final\\sample-002",
+          "vaultFilesUnchanged": 13,
+          "publicInputUnchanged": true
+        },
+        {
+          "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\samples100-final\\sample-003",
+          "vaultFilesUnchanged": 13,
+          "publicInputUnchanged": true
+        }
+      ],
+      "inputsUnchanged": 459,
+      "publicFilesUnchanged": 171,
+      "resourcesUnchanged": 94,
+      "previousExesPreserved": 9,
+      "processesTerminated": 0
+    }
+  },
+  "failed5000Groups": {
+    "samples5000-final": {
+      "requested": 3,
+      "nativeOcrSuccesses": 2,
+      "acceptedMetrics": null,
+      "summary": [
+        {
+          "name": "pickerOpenedObservedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 0,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "pickerSelectionClosedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 0,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "firstOcrResultObservedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 0,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "totalOcrObservedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 0,
+          "medianMs": null,
+          "p95Ms": null
+        }
+      ],
+      "failureReview": {
+        "at": "2026-10-05T20:36:07.093551+00:00",
+        "requested": 3,
+        "acceptedPerformanceMetrics": null,
+        "summary": [
+          {
+            "name": "pickerOpenedObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 0,
+            "medianMs": null,
+            "p95Ms": null
+          },
+          {
+            "name": "pickerSelectionClosedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 0,
+            "medianMs": null,
+            "p95Ms": null
+          },
+          {
+            "name": "firstOcrResultObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 0,
+            "medianMs": null,
+            "p95Ms": null
+          },
+          {
+            "name": "totalOcrObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 0,
+            "medianMs": null,
+            "p95Ms": null
+          }
+        ],
+        "sourceUnchanged": true,
+        "samples": [
+          {
+            "index": 1,
+            "nativeSuccess": true,
+            "rawReason": null,
+            "scanAttempts": 1,
+            "driverError": null,
+            "processSnapshotReason": null,
+            "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+          },
+          {
+            "index": 2,
+            "nativeSuccess": true,
+            "rawReason": null,
+            "scanAttempts": 1,
+            "driverError": null,
+            "processSnapshotReason": null,
+            "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+          },
+          {
+            "index": 3,
+            "nativeSuccess": false,
+            "rawReason": "input-authorization-timeout",
+            "scanAttempts": 0,
+            "driverError": "No exact verified owned browser directory; process diagnostics refused",
+            "processSnapshotReason": "PowerShell sample timed out after 15000ms; no stderr error detail",
+            "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+          }
+        ],
+        "publicInputCopies": [
+          {
+            "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\samples5000-final\\sample-003\\profile\\Documents\\ocr_test.png",
+            "copy": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\samples5000-final\\sample-003\\native-perf-ocr-input.png",
+            "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+          }
+        ],
+        "rootCauseResolved": false
+      },
+      "postCacheReview": {
+        "at": "2026-10-05T20:37:51.672267+00:00",
+        "group": "samples5000-final",
+        "complete": true,
+        "verifiedIdentities": 26,
+        "removedCachePaths": 24,
+        "unlinkedEntries": 3,
+        "preservedLogs": 3,
+        "roots": [
+          {
+            "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\samples5000-final\\sample-001",
+            "vaultFilesUnchanged": 13,
+            "publicInputUnchanged": true
+          },
+          {
+            "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\samples5000-final\\sample-002",
+            "vaultFilesUnchanged": 13,
+            "publicInputUnchanged": true
+          },
+          {
+            "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\samples5000-final\\sample-003",
+            "vaultFilesUnchanged": 11,
+            "publicInputUnchanged": true
+          }
+        ],
+        "inputsUnchanged": 459,
+        "publicFilesUnchanged": 171,
+        "resourcesUnchanged": 94,
+        "previousExesPreserved": 9,
+        "processesTerminated": 0
+      }
+    },
+    "samples5000-final-repeat": {
+      "requested": 3,
+      "nativeOcrSuccesses": 2,
+      "acceptedMetrics": null,
+      "summary": [
+        {
+          "name": "pickerOpenedObservedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 0,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "pickerSelectionClosedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 0,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "firstOcrResultObservedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 0,
+          "medianMs": null,
+          "p95Ms": null
+        },
+        {
+          "name": "totalOcrObservedMs",
+          "requestedSamples": 3,
+          "successfulSamples": 0,
+          "medianMs": null,
+          "p95Ms": null
+        }
+      ],
+      "failureReview": {
+        "at": "2026-10-05T20:36:15.845266+00:00",
+        "requested": 3,
+        "acceptedPerformanceMetrics": null,
+        "summary": [
+          {
+            "name": "pickerOpenedObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 0,
+            "medianMs": null,
+            "p95Ms": null
+          },
+          {
+            "name": "pickerSelectionClosedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 0,
+            "medianMs": null,
+            "p95Ms": null
+          },
+          {
+            "name": "firstOcrResultObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 0,
+            "medianMs": null,
+            "p95Ms": null
+          },
+          {
+            "name": "totalOcrObservedMs",
+            "requestedSamples": 3,
+            "successfulSamples": 0,
+            "medianMs": null,
+            "p95Ms": null
+          }
+        ],
+        "sourceUnchanged": true,
+        "samples": [
+          {
+            "index": 1,
+            "nativeSuccess": false,
+            "rawReason": "document-invalidated",
+            "scanAttempts": 0,
+            "driverError": "No exact verified owned browser directory; process diagnostics refused",
+            "processSnapshotReason": "PowerShell sample timed out after 15000ms; no stderr error detail",
+            "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+          },
+          {
+            "index": 2,
+            "nativeSuccess": true,
+            "rawReason": null,
+            "scanAttempts": 1,
+            "driverError": null,
+            "processSnapshotReason": null,
+            "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+          },
+          {
+            "index": 3,
+            "nativeSuccess": true,
+            "rawReason": null,
+            "scanAttempts": 1,
+            "driverError": null,
+            "processSnapshotReason": null,
+            "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+          }
+        ],
+        "publicInputCopies": [
+          {
+            "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\samples5000-final-repeat\\sample-001\\profile\\Documents\\ocr_test.png",
+            "copy": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\samples5000-final-repeat\\sample-001\\native-perf-ocr-input.png",
+            "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa"
+          }
+        ],
+        "rootCauseResolved": false
+      },
+      "postCacheReview": {
+        "at": "2026-10-05T20:40:12.053735+00:00",
+        "group": "samples5000-final-repeat",
+        "complete": true,
+        "verifiedIdentities": 25,
+        "removedCachePaths": 24,
+        "unlinkedEntries": 3,
+        "preservedLogs": 3,
+        "roots": [
+          {
+            "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\samples5000-final-repeat\\sample-001",
+            "vaultFilesUnchanged": 11,
+            "publicInputUnchanged": true
+          },
+          {
+            "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\samples5000-final-repeat\\sample-002",
+            "vaultFilesUnchanged": 13,
+            "publicInputUnchanged": true
+          },
+          {
+            "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\samples5000-final-repeat\\sample-003",
+            "vaultFilesUnchanged": 13,
+            "publicInputUnchanged": true
+          }
+        ],
+        "inputsUnchanged": 459,
+        "publicFilesUnchanged": 171,
+        "resourcesUnchanged": 94,
+        "previousExesPreserved": 9,
+        "processesTerminated": 0
+      }
+    }
+  },
+  "oldOriginalFailure": {
+    "requested": 3,
+    "failed": 3,
+    "acceptedMetrics": null,
+    "independentProductFix": "RF-1094 / 6baee574",
+    "priorRawEvidence": "../verification/rf1094-general-ocr-2026-10-05/index.json",
+    "cacheReview": {
+      "at": "2026-10-05T19:53:36.071248+00:00",
+      "cleanupComplete": true,
+      "verifiedIdentities": 27,
+      "removedCachePaths": 24,
+      "logsPreserved": 3,
+      "roots": [
+        {
+          "sample": 1,
+          "attachmentCiphertextsUnchanged": 4,
+          "publicInputPreserved": true,
+          "vaultRetainedCurrentInventory": [
+            {
+              "relativePath": ".lock",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "relativePath": "acc_rf312_100/config.json",
+              "bytes": 669,
+              "sha256": "0fb530cd137c9085ace3b1e8002bf5f9a85b5cfb20a048430cc122be561a6dd9"
+            },
+            {
+              "relativePath": "acc_rf312_100/vault.db",
+              "bytes": 303104,
+              "sha256": "4b0e96bdd185aa2fbc626f19f2fe142c7f4093287f47e767b5a8290db734c1bd"
+            },
+            {
+              "relativePath": "acc_rf312_100/vault.db-shm",
+              "bytes": 32768,
+              "sha256": "6f166dcf6df0207d6254c03008dae44dc07edc5a808f10ece67e33d6068d9a7a"
+            },
+            {
+              "relativePath": "acc_rf312_100/vault.db-wal",
+              "bytes": 78312,
+              "sha256": "42dac56a020b96ea10094aa650424cb1bb0330ebec2d0a49654eb01d96fcb2e4"
+            },
+            {
+              "relativePath": "accounts.bak",
+              "bytes": 189,
+              "sha256": "d2bd08ee2c322f070a7fe89312926374d948bd5458062715999d3ecc9c48da1c"
+            },
+            {
+              "relativePath": "accounts.json",
+              "bytes": 189,
+              "sha256": "32eeb87db430c2740475847da388cb6524b6cef2bcb2f848b74a39da42b41508"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+              "bytes": 112,
+              "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+              "bytes": 1962,
+              "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+              "bytes": 3076,
+              "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+              "bytes": 6315,
+              "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+            },
+            {
+              "relativePath": "rf312-media-fixture.json",
+              "bytes": 3883,
+              "sha256": "17bb5f14256672db24bc6f9f8be7058f78b2d0ca22f3ac81f0263d72c5b5faff"
+            },
+            {
+              "relativePath": "ui_preferences.json",
+              "bytes": 429,
+              "sha256": "bb11f7f089ca2e6def9dc1745944182c34708f8fe5a4c3a250e61e41f7f44adb"
+            }
+          ],
+          "fixturePreparationDifferences": [
+            "accounts.json",
+            "ui_preferences.json"
+          ]
+        },
+        {
+          "sample": 2,
+          "attachmentCiphertextsUnchanged": 4,
+          "publicInputPreserved": true,
+          "vaultRetainedCurrentInventory": [
+            {
+              "relativePath": ".lock",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "relativePath": "acc_rf312_100/config.json",
+              "bytes": 669,
+              "sha256": "0fb530cd137c9085ace3b1e8002bf5f9a85b5cfb20a048430cc122be561a6dd9"
+            },
+            {
+              "relativePath": "acc_rf312_100/vault.db",
+              "bytes": 303104,
+              "sha256": "19322792f61f22833199eb42e0c516cd642adc69f6ddfa41746c1a07dc487685"
+            },
+            {
+              "relativePath": "acc_rf312_100/vault.db-shm",
+              "bytes": 32768,
+              "sha256": "3a0e6d5e0970ba24afc9453fbbfd8606c5cd76ce70c33e7fd70566d3bda5922d"
+            },
+            {
+              "relativePath": "acc_rf312_100/vault.db-wal",
+              "bytes": 78312,
+              "sha256": "b52dbf0f35c83cb2783c609a9ce5e3ccb36b4f41c3f7abf490d566cad8a0b684"
+            },
+            {
+              "relativePath": "accounts.bak",
+              "bytes": 189,
+              "sha256": "b6210cb0c7c4841c7e08c9a5a509c331faeef0725d67d759d885ff52ca4f5836"
+            },
+            {
+              "relativePath": "accounts.json",
+              "bytes": 189,
+              "sha256": "8a2ae0366365049cd8141a3bc029b7a7338b6475668ef267cba84daa746e5e04"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+              "bytes": 112,
+              "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+              "bytes": 1962,
+              "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+              "bytes": 3076,
+              "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+              "bytes": 6315,
+              "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+            },
+            {
+              "relativePath": "rf312-media-fixture.json",
+              "bytes": 3883,
+              "sha256": "d114aff23635e99b5aa9c4d203c5df28ac4e93e45f100faff1d914de418d12de"
+            },
+            {
+              "relativePath": "ui_preferences.json",
+              "bytes": 429,
+              "sha256": "feffa596d5991687b7f47e8e419640e0dc867a7590a0cb6133ba7680e82ff444"
+            }
+          ],
+          "fixturePreparationDifferences": [
+            "accounts.json",
+            "ui_preferences.json"
+          ]
+        },
+        {
+          "sample": 3,
+          "attachmentCiphertextsUnchanged": 4,
+          "publicInputPreserved": true,
+          "vaultRetainedCurrentInventory": [
+            {
+              "relativePath": ".lock",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "relativePath": "acc_rf312_100/config.json",
+              "bytes": 669,
+              "sha256": "0fb530cd137c9085ace3b1e8002bf5f9a85b5cfb20a048430cc122be561a6dd9"
+            },
+            {
+              "relativePath": "acc_rf312_100/vault.db",
+              "bytes": 303104,
+              "sha256": "b95ae8bb0630153d794f085e12e1424a0d434586685bb2c009eddfd9018e83af"
+            },
+            {
+              "relativePath": "acc_rf312_100/vault.db-shm",
+              "bytes": 32768,
+              "sha256": "ba28f6ff6114f00cd43e7f45aacb48a533c32e0f6199edeeae46eb061dff3776"
+            },
+            {
+              "relativePath": "acc_rf312_100/vault.db-wal",
+              "bytes": 78312,
+              "sha256": "a109b9c450b15d0fd56b8fcdd4bd57ae03f4ad733943f907dfc571d1b4c6e3b6"
+            },
+            {
+              "relativePath": "accounts.bak",
+              "bytes": 189,
+              "sha256": "5f31e53f3261dba4976b67b1b2d48ccac422476b2dce502270795eb19f304dca"
+            },
+            {
+              "relativePath": "accounts.json",
+              "bytes": 186,
+              "sha256": "0bd94f9ca49b6c9d0b998318f5b9749a5d323b81b2d8618b1220f8958d08e512"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_3245a9a6-d3d1-444b-a6f6-ec716f00ec8a/preview.txt",
+              "bytes": 112,
+              "sha256": "90c1d764bee6b0d81e2c6f3867e3d2cf6ced447e399be00f7fbda6cc0f3ba72e"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_7f1c87c5-97aa-4b5d-bd57-9b2aa4022099/scanned.pdf",
+              "bytes": 1962,
+              "sha256": "4aaed44970ad7c4a4dee9dc24e0951f10f021621a6ee01045dc2d8529dd10cc4"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_903366b1-f067-42c2-ba7f-8b6b373fc1aa/text_only.pdf",
+              "bytes": 3076,
+              "sha256": "5b82883def5173b547a92d73ecac2bbbb4ce54015625999c9298e6b19bd1451a"
+            },
+            {
+              "relativePath": "attachments/obj_perf_00000000/att_cbcad012-0bf7-41c8-9db7-bce1bde45f50/ocr_test.png",
+              "bytes": 6315,
+              "sha256": "197fb16b0a592077429a4703febcafb61f502321036a37889336ae2488aa288a"
+            },
+            {
+              "relativePath": "rf312-media-fixture.json",
+              "bytes": 3883,
+              "sha256": "557a879408ba4618ab0d8716c6391c8244a8bc9d880aca832b575127131ba48a"
+            },
+            {
+              "relativePath": "ui_preferences.json",
+              "bytes": 429,
+              "sha256": "d83c6d2bfaa071aa2aba0a67b304503d95d3acb3d01ce1a2fdd6c7d42bec8199"
+            }
+          ],
+          "fixturePreparationDifferences": [
+            "accounts.json",
+            "ui_preferences.json"
+          ]
+        }
+      ],
+      "rf1094OriginalsStillByteExact": 83,
+      "processesTerminated": 0,
+      "comparisonScope": "Attachment ciphertexts compared to prepared fixture; current vault inventory retained. accounts.json differs from preparation after native app execution; no pre-cleanup whole-vault inventory exists, so no whole-vault before/after equality claim."
+    }
+  },
+  "freshCleanup": {
+    "pidBirthIdentities": 63,
+    "additionalCleanupPidsWithoutStoredBirth": 15,
+    "removedCachePaths": 72,
+    "unlinkedEntries": 9,
+    "newGroups": 3,
+    "vaultInventoriesPreserved": true,
+    "attachmentCiphertextsUnchanged": 36,
+    "noAdditionalProcessesTerminated": true
+  },
+  "unmeasured": [
+    "5000 whole-group accepted OCR performance",
+    "PowerShell startup/query/serialization timeout root cause",
+    "OCR-general-images",
+    "OCR-PDF",
+    "OCR-engine-stage-attribution",
+    "system-sleep",
+    "other-platforms",
+    "original-home-timeout-root-cause"
+  ],
+  "rawArchiveCount": 344,
+  "rf312Complete": false,
+  "remotePushPerformed": false
+}

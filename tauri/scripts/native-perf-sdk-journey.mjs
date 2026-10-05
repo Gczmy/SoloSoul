@@ -38,6 +38,12 @@ import {
   PDF_PREVIEW_UNMEASURED,
 } from './native-perf-pdf-preview-contract.mjs';
 import { inspectPdfPixels } from './native-perf-pdf-pixels.mjs';
+import {
+  checkOcrJourney,
+  summarizeOcrJourneys,
+  verifyPublicOcrInput,
+  OCR_UNMEASURED,
+} from './native-perf-ocr-contract.mjs';
 
 export const PHASES = Object.freeze([
   'startup',
@@ -114,6 +120,7 @@ export async function journeyBinaryPreflight(
   media = false,
   pdfDiagnostic = false,
   pdfPreview = false,
+  ocr = false,
 ) {
   const required = media
     ? ['--native-perf-media-prepare', 'windows-native-sdk-media-journey-requested']
@@ -131,6 +138,7 @@ export async function journeyBinaryPreflight(
       'windows-native-sdk-pdf-cipher-binding-requested',
       'windows-native-sdk-pdf-frame-stability-requested',
     );
+  if (ocr) required.push('windows-native-sdk-ocr-journey-requested');
   const found = new Set();
   const overlap = Math.max(...required.map((s) => s.length));
   let tail = '';
@@ -511,9 +519,11 @@ async function sample(options, index, shouldStop) {
           ? 'sdk-pdf-diagnostic'
           : options.pdfPreview
             ? 'sdk-pdf-preview'
-            : options.media
-              ? 'sdk-media'
-              : 'sdk-input',
+            : options.ocr
+              ? 'sdk-ocr'
+              : options.media
+                ? 'sdk-media'
+                : 'sdk-input',
       ],
       env,
     );
@@ -558,6 +568,7 @@ async function sample(options, index, shouldStop) {
       browserPid: bound.browserPid,
     };
     await newJson(path.join(root, '.native-perf-sdk-journey-authorized.tmp'), authorization);
+    if (options.ocr) result.ocrInputBefore = await verifyPublicOcrInput(root);
     await rename(
       path.join(root, '.native-perf-sdk-journey-authorized.tmp'),
       path.join(root, 'native-perf-sdk-journey-authorized.json'),
@@ -573,7 +584,9 @@ async function sample(options, index, shouldStop) {
       ? checkPdfDiagnostic(result.nativeProof, owned, bound, options.manifest)
       : options.pdfPreview
         ? checkPdfFirstPage(result.nativeProof, owned, bound, options.manifest)
-        : checkJourney(result.nativeProof, owned, bound, options.manifest, options.media);
+        : options.ocr
+          ? checkOcrJourney(result.nativeProof, owned, bound, options.manifest)
+          : checkJourney(result.nativeProof, owned, bound, options.manifest, options.media);
     if (options.pdfDiagnostic) {
       if (proof.pdfDiagnostic.schemaVersion !== 4)
         throw new Error('Current PDF diagnostic requires bounded structure evidence');
@@ -606,6 +619,7 @@ async function sample(options, index, shouldStop) {
           throw new Error('Independent PDF pixel decoder differs from native proof');
       }
     }
+    if (options.ocr) result.ocrInputAfter = await verifyPublicOcrInput(root, true);
     result.afterSnapshot = await (memorySampler
       ? memorySampler.checkpoint('after-journey')
       : owner.sample());
@@ -650,15 +664,18 @@ async function sample(options, index, shouldStop) {
   return result;
 }
 export async function main(args = process.argv.slice(2), mode = 'sdk-input') {
-  if (!['sdk-input', 'sdk-media', 'sdk-pdf-diagnostic', 'sdk-pdf-preview'].includes(mode))
+  if (
+    !['sdk-input', 'sdk-media', 'sdk-pdf-diagnostic', 'sdk-pdf-preview', 'sdk-ocr'].includes(mode)
+  )
     throw new Error('Unsupported SDK measurement mode');
   const pdfDiagnostic = mode === 'sdk-pdf-diagnostic';
   const pdfPreview = mode === 'sdk-pdf-preview';
-  const media = mode === 'sdk-media' || pdfDiagnostic || pdfPreview;
+  const ocr = mode === 'sdk-ocr';
+  const media = mode === 'sdk-media' || pdfDiagnostic || pdfPreview || ocr;
   const parsed = parseJourneyArgs(args);
   if (parsed.help) {
     process.stdout.write(
-      `Usage: node scripts/${pdfDiagnostic ? 'native-perf-pdf-diagnostic' : pdfPreview ? 'native-perf-pdf-preview' : media ? 'native-perf-media' : 'native-perf-sdk-journey'}.mjs --exe ABS --fixture ABS --output NEW_ABS --samples N [--memory-interval-ms 1000..10000] (N >= 3)\n`,
+      `Usage: node scripts/${pdfDiagnostic ? 'native-perf-pdf-diagnostic' : pdfPreview ? 'native-perf-pdf-preview' : ocr ? 'native-perf-ocr' : media ? 'native-perf-media' : 'native-perf-sdk-journey'}.mjs --exe ABS --fixture ABS --output NEW_ABS --samples N [--memory-interval-ms 1000..10000] (N >= 3)\n`,
     );
     return 0;
   }
@@ -670,8 +687,9 @@ export async function main(args = process.argv.slice(2), mode = 'sdk-input') {
       media,
       pdfDiagnostic,
       pdfPreview,
+      ocr,
     },
-    preflight = await journeyBinaryPreflight(options.exe, media, pdfDiagnostic, pdfPreview),
+    preflight = await journeyBinaryPreflight(options.exe, media, pdfDiagnostic, pdfPreview, ocr),
     sourceBefore = await inventory(options.fixture);
   await mkdir(options.output);
   const report = {
@@ -681,9 +699,11 @@ export async function main(args = process.argv.slice(2), mode = 'sdk-input') {
       ? 'windows-native-sdk-pdf-capability-diagnostic'
       : pdfPreview
         ? 'windows-native-sdk-public-pdf-first-page-performance'
-        : media
-          ? 'windows-native-sdk-media-performance'
-          : 'windows-native-sdk-input-performance',
+        : ocr
+          ? 'windows-native-sdk-public-first-ocr-performance'
+          : media
+            ? 'windows-native-sdk-media-performance'
+            : 'windows-native-sdk-input-performance',
     ...(pdfDiagnostic ? { diagnosticOnly: true, performanceMetrics: null } : {}),
     startedAt: new Date().toISOString(),
     samplesRequested: options.samples,
@@ -710,7 +730,15 @@ export async function main(args = process.argv.slice(2), mode = 'sdk-input') {
         ? PDF_UNMEASURED
         : pdfPreview
           ? PDF_PREVIEW_UNMEASURED
-          : unmeasuredFor(media),
+          : ocr
+            ? OCR_UNMEASURED
+            : unmeasuredFor(media),
+      ...(ocr
+        ? {
+            firstOcr:
+              'native Instant around genuine SDK Select-file, owned foreground native filename edit/Open button, and fixed public result in viewport after two frames and same-frame binding; picker timestamps separated; first-result latency includes modal close, IPC, queue, first model load/inference, rendering, SDK and bounded scrolling; not a pure inference benchmark',
+          }
+        : {}),
       ...(pdfPreview
         ? {
             pdfFirstPage:
@@ -749,7 +777,13 @@ export async function main(args = process.argv.slice(2), mode = 'sdk-input') {
     }
     report.summary = pdfDiagnostic
       ? []
-      : (pdfPreview ? summarizePdfFirstPage : media ? summarizeMediaJourneys : summarizeJourneys)(
+      : (pdfPreview
+          ? summarizePdfFirstPage
+          : ocr
+            ? summarizeOcrJourneys
+            : media
+              ? summarizeMediaJourneys
+              : summarizeJourneys)(
           report.samples,
           options.samples,
           report.sourceUnchanged && !interrupted,

@@ -1048,6 +1048,7 @@ mod tests {
             media_journey: false,
             pdf_diagnostic: false,
             pdf_preview: false,
+            ocr_journey: false,
             pdf_resource: None,
             pdf_ciphertext_sha256: None,
             startup: None,
