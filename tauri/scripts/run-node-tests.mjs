@@ -12,6 +12,7 @@ const files = [
   'scripts/native-perf-ui-root.node.test.mjs',
   'scripts/native-perf-ui-gate.node.test.mjs',
   'scripts/native-perf-sdk-journey.test.mjs',
+  'scripts/native-perf-memory.test.mjs',
   'src-tauri/src/native_perf/observer.node.test.mjs',
   'scripts/update-distribution.test.js',
   'scripts/stage-mobile-resources.test.cjs',

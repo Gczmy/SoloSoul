@@ -317,3 +317,47 @@ node scripts/native-perf-sdk-journey.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe'
 当前决策：5000 对象的工作区/解锁中位数较高，需分离 KDF、存储读取、React 与 SDK 时间才能确定主因。IPC 中 listen/unlisten 占比较高；[WorkspaceObjectCard](../../tauri/src/pages/workspace/WorkspaceObjectCard.tsx) 每卡片调用 [useDragToAttach](../../tauri/src/hooks/useDragToAttach.ts)，后者逐卡片注册窗口拖拽订阅，作为共享订阅的后续剖析候选。现有五次样本未证明这些订阅主导延迟，暂不新增瓶颈修复 ID，也不据此改全路由加载或分页策略。
 
 [本轮完整结构化证据](rf312-windows-sdk-journey-2026-10-04.json)链接原始报告、逐样本 native markers/proofs、构建/检查/保全/清理和 SHA；CRLF 原件压缩保留，LF JSON 仅为阅读视图。RF-312 仍为 `[!]`：首次 OCR/附件预览、系统睡眠、同 profile 进程热启动、内存峰值及 macOS/Android 同口径样本待续；当前应用锁定/再次解锁不能替代这些场景，RF-121至127前置不解除。
+
+
+## Windows owned 进程树内存持续采样（2026-10-05）
+
+新增显式 `--memory-interval-ms 1000..10000`，不传参数时沿用两点采样。该模式从应用进程启动开始串行查询，到最后一个 UI 检查完成后停止并等待在途查询，再做清理。周期采样和输入前/行程后检查使用同一队列，不重叠、不追补积压采样。每个读数保留开始/结束时刻、查询耗时、进程身份、工作集与 UDF 校验。缺读数、身份变更、未知活后代、目录不符、样本超限或清理失败的样本不进入统计；不回写历史失败为成功。
+
+复用上一节 Release EXE，SHA-256 `25d6ef51565a1ee1c9b40d3842304ac4260f9ea51e8605933e800e6cb82722ef`；仅修改 Node 测量工具，未重编译原生应用。Rust、嵌入 JS、配置与依赖输入 SHA 保持。设备仍为 i7-9700/16GB/UHD630、Windows 11 Enterprise LTSC 26100、WebView2 154.0.4258.53，显示器 1024×768/60Hz；未将显示分辨率当作 CSS viewport。公开 100/5000 对象、生产 KDF、每次新 root/profile/UDF 和固定六阶段口径保持，目标间隔 2000ms，两组各 5/5 完整成功。
+
+| 指标 | 100 对象 | 5000 对象 |
+| --- | --- | --- |
+| 采样最大工作集中位 / p95（MiB） | 606.6 / 655.9 | 681.4 / 682.7 |
+| 有效读数 / 全部读数 | 52 / 52 | 53 / 53 |
+| 每样本读数 | 13, 9, 10, 10, 10 | 13, 10, 10, 10, 10 |
+| 查询耗时中位 / 最大（ms） | 1709.1 / 13173.6 | 1818.9 / 3852.9 |
+| 实际 start-to-start 最大间隔（ms） | 13175 | 3860 |
+| 已确认退出的后代观察次数 | 20 | 18 |
+
+**这里的最大值只是在有效查询窗口中观察到的 owned 工作集之和，不是系统真实连续峰值或进程树独占内存。** 共享页可能重复计入，读数逐进程取得，查询窗口不是原子快照；100 组一次查询约 13.2s，不能声称始终每 2s 取得一次读数。查询耗时是工具壁钟成本，不证明应用受到相同幅度的减速。n=5 的 nearest-rank p95 等于最大值。单进程、短生命周期子进程及整个查询间隙内的峰值仍可能漏采。
+
+| 开启采样的 UI 阶段 | 100 对象：中位 / p95（ms） | 5000 对象：中位 / p95（ms） |
+| --- | --- | --- |
+| 启动至登录就绪 | 1608.3 / 2211.9 | 1502.1 / 1871.6 |
+| 主密码解锁至首页 | 2256.3 / 2581.1 | 2427.8 / 2869.0 |
+| 工作区 Clear 至首屏 50 卡片 | 465.7 / 511.0 | 900.3 / 980.0 |
+| needle 搜索至结果卡片 | 436.0 / 453.4 | 506.2 / 543.1 |
+| 应用锁定至登录 | 139.9 / 335.1 | 127.2 / 166.4 |
+| 再次主密码解锁至首页 | 3830.2 / 6379.6 | 2275.4 / 5407.2 |
+
+上述时延含 SDK 和采样开销，未进行受控交叉 A/B，不据此宣称比上一节更快或更慢。十个样本均为 59 次固定 SDK 调用、10 pointer/3 input/0 untrusted；完整 IPC 次数及原始阶段分布在证据中，不新增已确认的业务瓶颈 ID。
+
+首版 100 对象请求五次、五次 UI 成功，但短生命周期 `icacls.exe`/`conhost.exe` 在 CIM 发现后退出，内存读数缺失，全部拒绝。显式连续采样增加一次固定 fresh CIM 复核：只有后代 PID 已不存在，才作为退出事件单列，不伪造零内存，也不接受还活着但不可核验的进程。默认查询和清理保持严格。第二候选请求五次、仅执行一次：启动身份字段缺失使归属检查不完整，末尾周期查询又超时，原 cleanupIntegrity=false 保留并停止批次。
+
+对启动缺字段候选增加至多一次即时身份复核，要求当前父 PID/创建时间仍符合；已消失但身份不全的候选不承接活孤儿归属。最终两组没有触发该复核分支，其正反例由真实 PowerShell 脚本隔离回归验证，不能据此声称每次现场缺字段均会恢复。38 次已确认退出后代观察保留在最终有效读数中。
+
+复跑沿用上节 Release 构建和 fixture 准备步骤，输出必须新建：
+
+```powershell
+node scripts/native-perf-sdk-journey.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --fixture 'C:\TEMP\rf312-fixtures\vault100' --output 'C:\TEMP\rf312\memory-100' --samples 5 --memory-interval-ms 2000
+node scripts/native-perf-sdk-journey.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --fixture 'C:\TEMP\rf312-fixtures\vault5000' --output 'C:\TEMP\rf312\memory-5000' --samples 5 --memory-interval-ms 2000
+```
+
+完整 Node 检查 154 项：153 passed/0 failed/1 既有 Windows 文件 symlink 权限跳过；Prettier、DOC 边界和 diff 检查通过。本次 Node 工具变化未重跑未受影响的 Rust、Vitest 或 production E2E，不把历史结果记作新验收。14 个公开源文件、3,329 文件基线中的非本项源码、用户 stash 和子模块保持。fresh CIM 按 PID/创建时间/可执行名核对 213 个记录身份及 owned 目录，未发现匹配活进程；未结束额外进程，不把该复查改写为第二候选原清理通过。仅清理 128 个已核对的 private cache，16 个链接只解除链接且未遍历目标，保留 Vault/markers/reports 和可复用 EXE/资源。
+
+[本轮结构化证据](rf312-windows-memory-series-2026-10-05.json)和[逐字节原始档案索引](rf312-windows-memory-series-2026-10-05/index.json)包含两个原失败批次、两个最终批次、每点读数、进程/目录身份、源码冻结、检查与清理；gzip 保存原 BOM/CRLF，不用规范化 JSON 替代原件。RF-312 继续 `[!]`，累计 272/281：同 profile 进程热启动、公开 OCR/附件预览、系统睡眠及多端数据仍缺。查询耗时已足以影响采样分辨率，可继续优化 owned-only 查询并记录同口径前后数据；业务延迟的 KDF/存储/React/SDK 归因继续待做。

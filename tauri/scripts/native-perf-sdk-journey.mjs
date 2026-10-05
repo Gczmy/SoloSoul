@@ -7,7 +7,6 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as pause } from 'node:timers/promises';
 import {
-  parseArgs,
   validateInputs,
   sha256,
   newJson,
@@ -30,6 +29,7 @@ import {
   processDiagnostics,
 } from './native-perf-diagnose.mjs';
 import { sameSdkIdentities } from './native-perf-sdk-cdp.mjs';
+import { MemorySampler, parseJourneyArgs } from './native-perf-memory.mjs';
 
 export const PHASES = Object.freeze([
   'startup',
@@ -361,7 +361,7 @@ async function inventory(root) {
 async function sample(options, index, shouldStop) {
   const root = path.join(options.output, 'sample-' + String(index).padStart(3, '0'));
   const result = { index, root, success: false, phases: [], startedAt: new Date().toISOString() };
-  let owner, completion, launch;
+  let owner, completion, launch, memorySampler;
   const env = { ...process.env };
   delete env.SOLOSOUL_REGISTRY_PUBKEY;
   try {
@@ -406,6 +406,14 @@ async function sample(options, index, shouldStop) {
     if (!launch.child.pid) throw new Error('SDK UI application did not spawn');
     result.processId = launch.child.pid;
     owner = new OwnedProcess(launch.child, options.exe, launchedAt, owned.webview);
+    if (options.memoryIntervalMs !== null)
+      memorySampler = new MemorySampler({
+        sample: () => owner.sample({ confirmExitedDescendants: true }),
+        intervalMs: options.memoryIntervalMs,
+        launchedAt,
+        pid: launch.child.pid,
+        exe: options.exe,
+      }).start();
     const bound = checkBound(
       await waitOwned(root, 'native-perf-sdk-journey-bound.json', launch.child, shouldStop, 65000),
       owned,
@@ -413,7 +421,9 @@ async function sample(options, index, shouldStop) {
       port,
     );
     result.bound = bound;
-    result.beforeSnapshot = await owner.sample();
+    result.beforeSnapshot = await (memorySampler
+      ? memorySampler.checkpoint('before-input')
+      : owner.sample());
     const before = selectDiagnosticIdentities(owner, result.beforeSnapshot);
     if (before[1].pid !== bound.browserPid)
       throw new Error('SDK browser does not match verified owned browser before input');
@@ -445,7 +455,10 @@ async function sample(options, index, shouldStop) {
       310000,
     );
     const proof = checkJourney(result.nativeProof, owned, bound, options.manifest);
-    result.afterSnapshot = await owner.sample();
+    result.afterSnapshot = await (memorySampler
+      ? memorySampler.checkpoint('after-journey')
+      : owner.sample());
+    if (memorySampler) result.memorySeries = await memorySampler.finish(bound.browserPid);
     const after = selectDiagnosticIdentities(owner, result.afterSnapshot);
     sameSdkIdentities(before, after);
     result.afterProcessDiagnostics = await processDiagnostics(after, owned);
@@ -455,6 +468,11 @@ async function sample(options, index, shouldStop) {
   } catch (error) {
     result.error = safeError(error);
   } finally {
+    if (memorySampler) {
+      result.uiSuccess = result.success;
+      result.memorySeries ??= await memorySampler.finish(result.bound?.browserPid);
+      if (!result.memorySeries.complete) result.success = false;
+    }
     if (owner) result.cleanup = await owner.cleanup();
     if (completion)
       result.ownedProcessExit = await deadline(completion, 6000, 'Owned SDK journey exit').catch(
@@ -480,10 +498,10 @@ async function sample(options, index, shouldStop) {
   return result;
 }
 export async function main(args = process.argv.slice(2)) {
-  const parsed = parseArgs(args);
+  const parsed = parseJourneyArgs(args);
   if (parsed.help) {
     process.stdout.write(
-      'Usage: node scripts/native-perf-sdk-journey.mjs --exe ABS --fixture ABS --output NEW_ABS --samples N (N >= 3)\n',
+      'Usage: node scripts/native-perf-sdk-journey.mjs --exe ABS --fixture ABS --output NEW_ABS --samples N [--memory-interval-ms 1000..10000] (N >= 3)\n',
     );
     return 0;
   }
@@ -505,13 +523,16 @@ export async function main(args = process.argv.slice(2)) {
     fixture: options.manifest,
     sourceBefore,
     samples: [],
+    memoryIntervalMs: options.memoryIntervalMs,
     definitions: {
       startup:
         'native runtime configuration to public login form plus two frames and SDK document binding; excludes OS spawn and includes SDK overhead',
       actions:
         'native Instant around fixed browser Input actions, visible end state, two frames and same-frame SDK checks; includes SDK overhead',
       memory:
-        'verified owned Windows working sets before input and after journey; no peak-memory claim',
+        options.memoryIntervalMs === null
+          ? 'verified owned Windows working sets before input and after journey; no peak-memory claim'
+          : 'nonoverlapping verified owned process-tree queries from launch through final UI checkpoint; actual intervals and collection windows recorded; sampled observed maximum is not a continuous peak',
       ipc: 'real Tauri fetch observer; names/counts only; invalid or changed prefix rejects sample',
       unmeasured: [
         'OCR',
@@ -555,6 +576,27 @@ export async function main(args = process.argv.slice(2)) {
       options.samples,
       report.sourceUnchanged && !interrupted,
     );
+    if (options.memoryIntervalMs !== null) {
+      const accepted =
+        report.sourceUnchanged && !interrupted
+          ? report.samples.filter((sample) => sample.success && sample.memorySeries?.complete)
+          : [];
+      const values = accepted
+        .map((sample) => sample.memorySeries.observedMaximumWorkingSetBytes)
+        .sort((a, b) => a - b);
+      report.memorySummary = {
+        samplesRequested: options.samples,
+        successfulSamples: values.length,
+        medianObservedMaximumWorkingSetBytes: values.length
+          ? (values[Math.floor((values.length - 1) / 2)] +
+              values[Math.ceil((values.length - 1) / 2)]) /
+            2
+          : null,
+        p95ObservedMaximumWorkingSetBytes: values.length
+          ? values[Math.ceil(values.length * 0.95) - 1]
+          : null,
+      };
+    }
     report.success =
       !interrupted &&
       report.sourceUnchanged &&
