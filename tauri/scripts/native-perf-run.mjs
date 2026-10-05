@@ -491,20 +491,16 @@ function NormalizePath($value) {
 if ($expectedWebview -and $expectedBrowserData) {
   $ownedBrowsers = @($owned.Values | Where-Object { $_.name -ieq 'msedgewebview2.exe' })
   $browserDetails = @()
-  if ($action -eq 'memory-series' -and $ownedBrowsers.Count -gt 0) {
+  if ($ownedBrowsers.Count -gt 0) {
     # 仅对已核验的PID集合读取命令行；不在全进程查询中增加CommandLine，不缓存归属。
     $ownedFilter = ($ownedBrowsers | ForEach-Object { "ProcessId = " + [int]$_.pid }) -join ' OR '
     $browserDetails = @(Get-CimInstance Win32_Process -Filter $ownedFilter -Property ProcessId,CreationDate,ExecutablePath,CommandLine)
   }
   foreach ($ownedBrowser in $ownedBrowsers) {
     # 仅已验证的自有WebView2后代才读取CommandLine，且不输出原始内容或非受控路径。
-    if ($action -eq 'memory-series') {
-      $matchingDetails = @($browserDetails | Where-Object { [int]$_.ProcessId -eq $ownedBrowser.pid })
-      if ($matchingDetails.Count -ne 1) { continue }
-      $details = $matchingDetails[0]
-    } else {
-      $details = Get-CimInstance Win32_Process -Filter ("ProcessId = " + $ownedBrowser.pid) -Property ProcessId,CreationDate,ExecutablePath,CommandLine
-    }
+    $matchingDetails = @($browserDetails | Where-Object { [int]$_.ProcessId -eq $ownedBrowser.pid })
+    if ($matchingDetails.Count -ne 1) { continue }
+    $details = $matchingDetails[0]
     $detailsIdentity = Identity $details
     if (!$detailsIdentity -or $detailsIdentity.creationMs -ne $ownedBrowser.creationMs -or $detailsIdentity.executablePath -ine $ownedBrowser.executablePath) { continue }
     $command = [string]$details.CommandLine

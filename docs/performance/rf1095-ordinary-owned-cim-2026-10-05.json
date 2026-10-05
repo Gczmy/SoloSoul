@@ -1,0 +1,1436 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1095",
+  "date": "2026-10-05",
+  "baseCommit": "0c1d5a3f7e6062e8501ceed10e4d806f49e1925e",
+  "branch": "codex/rf312-warm-start",
+  "status": "accepted ordinary and memory-series query batching; RF-312 remains incomplete",
+  "scope": "External sampler only; unchanged frozen application/production resources; default strict memory, 15000ms query budget and cleanup gates preserved",
+  "sourceFreeze": {
+    "at": "2026-10-05T21:04:01.653504+00:00",
+    "parentHead": "0c1d5a3f7e6062e8501ceed10e4d806f49e1925e",
+    "inputs": {
+      "tauri/scripts/native-perf-run.mjs": "e541faa58c3b99a075506f82ccc248ff3ce833964a0258947c635b9cad748cb9",
+      "tauri/scripts/native-perf-memory.test.mjs": "040dac00bb8e02570b9a502e82440dc28f0888e5be53fde655df3a6383673563"
+    }
+  },
+  "exeSha256": "dc7ccb7bbb6f40088bf2d76e44d001536211773fb1e90d6c0d62292ca3f1c239",
+  "preChangeReadOnlyTrials": [
+    {
+      "index": 1,
+      "kind": "legacy",
+      "elapsedMs": 2038.6723999999995,
+      "firstStageMs": 798.2373000000007,
+      "timedOut": false,
+      "rootVerified": true,
+      "exactUdf": true,
+      "queryCount": 9,
+      "commandLineQueryCount": 8,
+      "events": [
+        {
+          "kind": "script-start",
+          "scriptElapsedMs": 6.7995
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 0,
+          "commandLineQuery": false,
+          "filtered": false,
+          "index": 1,
+          "scriptElapsedMs": 108.4726
+        },
+        {
+          "commandLineQuery": false,
+          "elapsedMs": 238.8152,
+          "index": 1,
+          "filtered": false,
+          "kind": "cim-end",
+          "returnedRows": 436,
+          "requestedPidCount": 0,
+          "scriptElapsedMs": 338.9891
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 2,
+          "scriptElapsedMs": 447.6659
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 98.0436,
+          "index": 2,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 545.6923
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 3,
+          "scriptElapsedMs": 555.3665
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 94.1387,
+          "index": 3,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 649.5365
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 4,
+          "scriptElapsedMs": 653.0663000000001
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 89.7294,
+          "index": 4,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 742.8616000000001
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 5,
+          "scriptElapsedMs": 762.89
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 89.7739,
+          "index": 5,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 852.6632000000001
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 6,
+          "scriptElapsedMs": 856.7634
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 96.36550000000001,
+          "index": 6,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 953.1328000000001
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 7,
+          "scriptElapsedMs": 975.0622000000001
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 110.37580000000001,
+          "index": 7,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 1067.2486000000001
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 8,
+          "scriptElapsedMs": 1070.1134
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 86.16420000000001,
+          "index": 8,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 1156.2245
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 9,
+          "scriptElapsedMs": 1159.5799
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 86.57000000000001,
+          "index": 9,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 1246.0391
+        },
+        {
+          "kind": "serialization-start",
+          "scriptElapsedMs": 1286.8316
+        },
+        {
+          "kind": "serialization-end",
+          "scriptElapsedMs": 1290.6649
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "kind": "candidate",
+      "elapsedMs": 1574.9831999999988,
+      "firstStageMs": 907.2639999999992,
+      "timedOut": false,
+      "rootVerified": true,
+      "exactUdf": true,
+      "queryCount": 2,
+      "commandLineQueryCount": 1,
+      "events": [
+        {
+          "kind": "script-start",
+          "scriptElapsedMs": 5.9973
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 0,
+          "commandLineQuery": false,
+          "filtered": false,
+          "index": 1,
+          "scriptElapsedMs": 102.0175
+        },
+        {
+          "commandLineQuery": false,
+          "elapsedMs": 259.2385,
+          "index": 1,
+          "filtered": false,
+          "kind": "cim-end",
+          "returnedRows": 437,
+          "requestedPidCount": 0,
+          "scriptElapsedMs": 354.0992
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 7,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 2,
+          "scriptElapsedMs": 466.4571
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 114.00080000000001,
+          "index": 2,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 7,
+          "requestedPidCount": 7,
+          "scriptElapsedMs": 580.4624
+        },
+        {
+          "kind": "serialization-start",
+          "scriptElapsedMs": 689.5077
+        },
+        {
+          "kind": "serialization-end",
+          "scriptElapsedMs": 695.5303
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "kind": "legacy",
+      "elapsedMs": 1455.2123000000029,
+      "firstStageMs": 378.32130000000325,
+      "timedOut": false,
+      "rootVerified": true,
+      "exactUdf": true,
+      "queryCount": 8,
+      "commandLineQueryCount": 7,
+      "events": [
+        {
+          "kind": "script-start",
+          "scriptElapsedMs": 5.1164000000000005
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 0,
+          "commandLineQuery": false,
+          "filtered": false,
+          "index": 1,
+          "scriptElapsedMs": 93.988
+        },
+        {
+          "commandLineQuery": false,
+          "elapsedMs": 230.7006,
+          "index": 1,
+          "filtered": false,
+          "kind": "cim-end",
+          "returnedRows": 434,
+          "requestedPidCount": 0,
+          "scriptElapsedMs": 318.0414
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 2,
+          "scriptElapsedMs": 407.44140000000004
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 86.2964,
+          "index": 2,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 493.6095
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 3,
+          "scriptElapsedMs": 502.2499
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 87.8803,
+          "index": 3,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 590.0151000000001
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 4,
+          "scriptElapsedMs": 593.4345000000001
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 83.77770000000001,
+          "index": 4,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 677.1991
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 5,
+          "scriptElapsedMs": 698.3264
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 86.9204,
+          "index": 5,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 785.2415000000001
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 6,
+          "scriptElapsedMs": 789.123
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 87.35350000000001,
+          "index": 6,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 876.3649
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 7,
+          "scriptElapsedMs": 880.7608
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 98.74860000000001,
+          "index": 7,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 979.4362000000001
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 1,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 8,
+          "scriptElapsedMs": 982.5824
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 87.3267,
+          "index": 8,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 1,
+          "requestedPidCount": 1,
+          "scriptElapsedMs": 1069.8968
+        },
+        {
+          "kind": "serialization-start",
+          "scriptElapsedMs": 1108.7695
+        },
+        {
+          "kind": "serialization-end",
+          "scriptElapsedMs": 1113.9725
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "kind": "candidate",
+      "elapsedMs": 1374.0678000000044,
+      "firstStageMs": 699.3304000000026,
+      "timedOut": false,
+      "rootVerified": true,
+      "exactUdf": true,
+      "queryCount": 2,
+      "commandLineQueryCount": 1,
+      "events": [
+        {
+          "kind": "script-start",
+          "scriptElapsedMs": 6.2491
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 0,
+          "commandLineQuery": false,
+          "filtered": false,
+          "index": 1,
+          "scriptElapsedMs": 148.99530000000001
+        },
+        {
+          "commandLineQuery": false,
+          "elapsedMs": 302.3157,
+          "index": 1,
+          "filtered": false,
+          "kind": "cim-end",
+          "returnedRows": 442,
+          "requestedPidCount": 0,
+          "scriptElapsedMs": 441.4449
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 7,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 2,
+          "scriptElapsedMs": 536.4845
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 91.0442,
+          "index": 2,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 7,
+          "requestedPidCount": 7,
+          "scriptElapsedMs": 627.7598
+        },
+        {
+          "kind": "serialization-start",
+          "scriptElapsedMs": 736.7299
+        },
+        {
+          "kind": "serialization-end",
+          "scriptElapsedMs": 741.8638000000001
+        }
+      ]
+    }
+  ],
+  "implementedReadOnlyTrials": [
+    {
+      "index": 1,
+      "kind": "implemented",
+      "elapsedMs": 1342.1762000000017,
+      "firstStageMs": 775.9988000000012,
+      "timedOut": false,
+      "rootVerified": true,
+      "exactUdf": true,
+      "queryCount": 2,
+      "commandLineQueryCount": 1,
+      "events": [
+        {
+          "kind": "script-start",
+          "scriptElapsedMs": 4.6416
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 0,
+          "commandLineQuery": false,
+          "filtered": false,
+          "index": 1,
+          "scriptElapsedMs": 98.0681
+        },
+        {
+          "commandLineQuery": false,
+          "elapsedMs": 227.58450000000002,
+          "index": 1,
+          "filtered": false,
+          "kind": "cim-end",
+          "returnedRows": 424,
+          "requestedPidCount": 0,
+          "scriptElapsedMs": 318.93620000000004
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 8,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 2,
+          "scriptElapsedMs": 414.9458
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 88.8827,
+          "index": 2,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 8,
+          "requestedPidCount": 8,
+          "scriptElapsedMs": 503.7957
+        },
+        {
+          "kind": "serialization-start",
+          "scriptElapsedMs": 588.4744000000001
+        },
+        {
+          "kind": "serialization-end",
+          "scriptElapsedMs": 608.3372
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "kind": "implemented",
+      "elapsedMs": 893.3426,
+      "firstStageMs": 363.02690000000075,
+      "timedOut": false,
+      "rootVerified": true,
+      "exactUdf": true,
+      "queryCount": 2,
+      "commandLineQueryCount": 1,
+      "events": [
+        {
+          "kind": "script-start",
+          "scriptElapsedMs": 5.957800000000001
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 0,
+          "commandLineQuery": false,
+          "filtered": false,
+          "index": 1,
+          "scriptElapsedMs": 90.43430000000001
+        },
+        {
+          "commandLineQuery": false,
+          "elapsedMs": 205.4576,
+          "index": 1,
+          "filtered": false,
+          "kind": "cim-end",
+          "returnedRows": 423,
+          "requestedPidCount": 0,
+          "scriptElapsedMs": 288.432
+        },
+        {
+          "kind": "cim-start",
+          "requestedPidCount": 7,
+          "commandLineQuery": true,
+          "filtered": true,
+          "index": 2,
+          "scriptElapsedMs": 381.0715
+        },
+        {
+          "commandLineQuery": true,
+          "elapsedMs": 91.69420000000001,
+          "index": 2,
+          "filtered": true,
+          "kind": "cim-end",
+          "returnedRows": 7,
+          "requestedPidCount": 7,
+          "scriptElapsedMs": 472.70950000000005
+        },
+        {
+          "kind": "serialization-start",
+          "scriptElapsedMs": 547.1757
+        },
+        {
+          "kind": "serialization-end",
+          "scriptElapsedMs": 551.8841
+        }
+      ]
+    }
+  ],
+  "strictDefaultSamples": [
+    {
+      "index": 1,
+      "elapsedMs": 954.8120000000017,
+      "snapshot": {
+        "observedAt": "2026-10-05T21:06:12.356Z",
+        "collectionMs": 954.7688999999991,
+        "workingSetBytes": 628785152,
+        "reason": null,
+        "userDataDirectoryMatches": true,
+        "browserDataChecks": [
+          {
+            "pid": 34452,
+            "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\webview",
+            "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\webview\\EBWebView",
+            "matchesExpected": true,
+            "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\webview\\EBWebView",
+            "reason": null
+          }
+        ],
+        "browserDataFilesystem": {
+          "valid": true,
+          "reason": null
+        },
+        "processCount": 9,
+        "processes": [
+          {
+            "pid": 31792,
+            "parentPid": 2776,
+            "creationMs": 1791234366079,
+            "executableName": "solo_soul.exe",
+            "workingSetBytes": 96747520,
+            "privateBytes": 52064256,
+            "cpuMs": 828.125,
+            "reason": null
+          },
+          {
+            "pid": 34452,
+            "parentPid": 31792,
+            "creationMs": 1791234367916,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 178569216,
+            "privateBytes": 75849728,
+            "cpuMs": 1656.25,
+            "reason": null
+          },
+          {
+            "pid": 43988,
+            "parentPid": 34452,
+            "creationMs": 1791234368359,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 45035520,
+            "privateBytes": 13086720,
+            "cpuMs": 250,
+            "reason": null
+          },
+          {
+            "pid": 30812,
+            "parentPid": 34452,
+            "creationMs": 1791234367967,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 11198464,
+            "privateBytes": 2543616,
+            "cpuMs": 31.25,
+            "reason": null
+          },
+          {
+            "pid": 40620,
+            "parentPid": 34452,
+            "creationMs": 1791234368529,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 97386496,
+            "privateBytes": 52785152,
+            "cpuMs": 437.5,
+            "reason": null
+          },
+          {
+            "pid": 33060,
+            "parentPid": 34452,
+            "creationMs": 1791234369224,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 48951296,
+            "privateBytes": 17833984,
+            "cpuMs": 203.125,
+            "reason": null
+          },
+          {
+            "pid": 32808,
+            "parentPid": 34452,
+            "creationMs": 1791234369222,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 25346048,
+            "privateBytes": 8212480,
+            "cpuMs": 78.125,
+            "reason": null
+          },
+          {
+            "pid": 22516,
+            "parentPid": 34452,
+            "creationMs": 1791234368403,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 20705280,
+            "privateBytes": 7798784,
+            "cpuMs": 78.125,
+            "reason": null
+          },
+          {
+            "pid": 26328,
+            "parentPid": 34452,
+            "creationMs": 1791234368357,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 104845312,
+            "privateBytes": 73822208,
+            "cpuMs": 640.625,
+            "reason": null
+          }
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "elapsedMs": 914.8297999999995,
+      "snapshot": {
+        "observedAt": "2026-10-05T21:06:13.272Z",
+        "collectionMs": 914.8068000000021,
+        "workingSetBytes": 628854784,
+        "reason": null,
+        "userDataDirectoryMatches": true,
+        "browserDataChecks": [
+          {
+            "pid": 34452,
+            "apiUserDataFolder": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\webview",
+            "expectedBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\webview\\EBWebView",
+            "matchesExpected": true,
+            "actualBrowserDataDirectory": "\\\\?\\C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\webview\\EBWebView",
+            "reason": null
+          }
+        ],
+        "browserDataFilesystem": {
+          "valid": true,
+          "reason": null
+        },
+        "processCount": 9,
+        "processes": [
+          {
+            "pid": 31792,
+            "parentPid": 2776,
+            "creationMs": 1791234366079,
+            "executableName": "solo_soul.exe",
+            "workingSetBytes": 96817152,
+            "privateBytes": 52064256,
+            "cpuMs": 828.125,
+            "reason": null
+          },
+          {
+            "pid": 34452,
+            "parentPid": 31792,
+            "creationMs": 1791234367916,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 178458624,
+            "privateBytes": 75714560,
+            "cpuMs": 1671.875,
+            "reason": null
+          },
+          {
+            "pid": 43988,
+            "parentPid": 34452,
+            "creationMs": 1791234368359,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 45035520,
+            "privateBytes": 13086720,
+            "cpuMs": 250,
+            "reason": null
+          },
+          {
+            "pid": 30812,
+            "parentPid": 34452,
+            "creationMs": 1791234367967,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 11198464,
+            "privateBytes": 2543616,
+            "cpuMs": 31.25,
+            "reason": null
+          },
+          {
+            "pid": 40620,
+            "parentPid": 34452,
+            "creationMs": 1791234368529,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 97492992,
+            "privateBytes": 53071872,
+            "cpuMs": 437.5,
+            "reason": null
+          },
+          {
+            "pid": 33060,
+            "parentPid": 34452,
+            "creationMs": 1791234369224,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 48951296,
+            "privateBytes": 17833984,
+            "cpuMs": 203.125,
+            "reason": null
+          },
+          {
+            "pid": 32808,
+            "parentPid": 34452,
+            "creationMs": 1791234369222,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 25346048,
+            "privateBytes": 8212480,
+            "cpuMs": 78.125,
+            "reason": null
+          },
+          {
+            "pid": 22516,
+            "parentPid": 34452,
+            "creationMs": 1791234368403,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 20705280,
+            "privateBytes": 7798784,
+            "cpuMs": 78.125,
+            "reason": null
+          },
+          {
+            "pid": 26328,
+            "parentPid": 34452,
+            "creationMs": 1791234368357,
+            "executableName": "msedgewebview2.exe",
+            "workingSetBytes": 104849408,
+            "privateBytes": 73822208,
+            "cpuMs": 640.625,
+            "reason": null
+          }
+        ]
+      }
+    }
+  ],
+  "regression": {
+    "red": {
+      "command": [
+        "node",
+        "--test",
+        "--test-name-pattern=batched owned browser details",
+        "scripts/native-perf-memory.test.mjs"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 1.1261539459228516,
+      "finishedAt": "2026-10-05T21:03:18.472160+00:00",
+      "sourceSha256": "040dac00bb8e02570b9a502e82440dc28f0888e5be53fde655df3a6383673563"
+    },
+    "green": {
+      "command": [
+        "node",
+        "--test",
+        "--test-name-pattern=batched owned browser details",
+        "scripts/native-perf-memory.test.mjs"
+      ],
+      "pid": 1068,
+      "exitCode": 0,
+      "elapsedSeconds": 9.967412948608398,
+      "finishedAt": "2026-10-05T21:04:11.642031+00:00"
+    },
+    "cases": 14,
+    "actions": ["sample", "memory-series"],
+    "scenarios": [
+      "valid",
+      "changed-time",
+      "changed-path",
+      "duplicate-browser",
+      "wrong-udf",
+      "duplicate-details",
+      "missing-details"
+    ],
+    "foreignCommandLinesRead": false
+  },
+  "node": {
+    "receipt": {
+      "command": ["node", "scripts/run-node-tests.mjs"],
+      "pid": 40484,
+      "exitCode": 0,
+      "elapsedSeconds": 27.550995111465454,
+      "finishedAt": "2026-10-05T21:04:39.202289+00:00"
+    },
+    "tests": 205,
+    "pass": 204,
+    "fail": 0,
+    "skipped": 1,
+    "skipReason": "Existing Windows file symlink creation permission"
+  },
+  "cleanup": {
+    "at": "2026-10-05T21:09:24.1740677Z",
+    "stageRoot": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005",
+    "roots": [
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002"
+    ],
+    "verifiedIdentities": [
+      {
+        "pid": 16588,
+        "creationMs": 1791233897343,
+        "executableName": "solo_soul.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 42548,
+        "creationMs": 1791233899085,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 12904,
+        "creationMs": 1791233900642,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 5844,
+        "creationMs": 1791233899759,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 36708,
+        "creationMs": 1791233899713,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 10732,
+        "creationMs": 1791233899712,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 38828,
+        "creationMs": 1791233899185,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 40408,
+        "creationMs": 1791233899942,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 13376,
+        "creationMs": 1791233900641,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 31792,
+        "creationMs": 1791234366079,
+        "executableName": "solo_soul.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 34452,
+        "creationMs": 1791234367916,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 43988,
+        "creationMs": 1791234368359,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 30812,
+        "creationMs": 1791234367967,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 40620,
+        "creationMs": 1791234368529,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 33060,
+        "creationMs": 1791234369224,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 32808,
+        "creationMs": 1791234369222,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 22516,
+        "creationMs": 1791234368403,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 26328,
+        "creationMs": 1791234368357,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 3432,
+        "creationMs": null,
+        "executableName": null,
+        "status": "absent; cleanup-only PID without stored birth"
+      },
+      {
+        "pid": 14520,
+        "creationMs": null,
+        "executableName": null,
+        "status": "absent; cleanup-only PID without stored birth"
+      },
+      {
+        "pid": 22156,
+        "creationMs": null,
+        "executableName": null,
+        "status": "absent; cleanup-only PID without stored birth"
+      },
+      {
+        "pid": 23596,
+        "creationMs": null,
+        "executableName": null,
+        "status": "absent; cleanup-only PID without stored birth"
+      },
+      {
+        "pid": 25012,
+        "creationMs": null,
+        "executableName": null,
+        "status": "absent; cleanup-only PID without stored birth"
+      },
+      {
+        "pid": 26164,
+        "creationMs": null,
+        "executableName": null,
+        "status": "absent; cleanup-only PID without stored birth"
+      }
+    ],
+    "removedCachePaths": [
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.259ef3b85db343f39b29cedbf836e645",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.893ff424cf44405e8651c709ef73dda1",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.259ef3b85db343f39b29cedbf836e645",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.893ff424cf44405e8651c709ef73dda1",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\app-data",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\models",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\plugins",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\profile",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\temp",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\webview",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\app-data",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\models",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\plugins",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\profile",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\temp",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\webview"
+    ],
+    "unlinkedCacheEntries": [
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "linkType": "Junction",
+        "targets": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+        ]
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "linkType": "Junction",
+        "targets": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+        ]
+      }
+    ],
+    "preservedLogs": [
+      {
+        "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\app-data\\logs\\app.log",
+        "copy": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\preserved-app-logs\\app.log",
+        "sha256": "3ecbb2d9692d7f492e680beefea66cadfb24ed8a61f5a00d39469750b5199243"
+      },
+      {
+        "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\app-data\\logs\\app.log",
+        "copy": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\preserved-app-logs\\app.log",
+        "sha256": "15c30f9088b07f54b1feab57b9f7fad55ba4ea5113044bab3c9720e40c9166df"
+      }
+    ],
+    "preserved": [
+      "Vault",
+      "all proofs and reports",
+      "all EXEs and resources",
+      "source fixtures"
+    ],
+    "processesTerminated": 0,
+    "complete": true
+  },
+  "postCleanup": {
+    "at": "2026-10-05T21:09:53.826188+00:00",
+    "roots": [
+      {
+        "root": "probe-001",
+        "vaultFiles": 11,
+        "wholeVaultUnchangedAcrossCacheCleanup": true,
+        "publicPngPreserved": true
+      },
+      {
+        "root": "probe-002",
+        "vaultFiles": 11,
+        "wholeVaultUnchangedAcrossCacheCleanup": true,
+        "publicPngPreserved": true
+      }
+    ],
+    "sourceInputsVerified": 459,
+    "publicFilesVerified": 171,
+    "frozenExeUnchanged": true,
+    "cacheReceipt": {
+      "at": "2026-10-05T21:09:24.1740677Z",
+      "stageRoot": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005",
+      "roots": [
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002"
+      ],
+      "verifiedIdentities": [
+        {
+          "pid": 16588,
+          "creationMs": 1791233897343,
+          "executableName": "solo_soul.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 42548,
+          "creationMs": 1791233899085,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 12904,
+          "creationMs": 1791233900642,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 5844,
+          "creationMs": 1791233899759,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 36708,
+          "creationMs": 1791233899713,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 10732,
+          "creationMs": 1791233899712,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 38828,
+          "creationMs": 1791233899185,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 40408,
+          "creationMs": 1791233899942,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 13376,
+          "creationMs": 1791233900641,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 31792,
+          "creationMs": 1791234366079,
+          "executableName": "solo_soul.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 34452,
+          "creationMs": 1791234367916,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 43988,
+          "creationMs": 1791234368359,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 30812,
+          "creationMs": 1791234367967,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 40620,
+          "creationMs": 1791234368529,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 33060,
+          "creationMs": 1791234369224,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 32808,
+          "creationMs": 1791234369222,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 22516,
+          "creationMs": 1791234368403,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 26328,
+          "creationMs": 1791234368357,
+          "executableName": "msedgewebview2.exe",
+          "status": "absent"
+        },
+        {
+          "pid": 3432,
+          "creationMs": null,
+          "executableName": null,
+          "status": "absent; cleanup-only PID without stored birth"
+        },
+        {
+          "pid": 14520,
+          "creationMs": null,
+          "executableName": null,
+          "status": "absent; cleanup-only PID without stored birth"
+        },
+        {
+          "pid": 22156,
+          "creationMs": null,
+          "executableName": null,
+          "status": "absent; cleanup-only PID without stored birth"
+        },
+        {
+          "pid": 23596,
+          "creationMs": null,
+          "executableName": null,
+          "status": "absent; cleanup-only PID without stored birth"
+        },
+        {
+          "pid": 25012,
+          "creationMs": null,
+          "executableName": null,
+          "status": "absent; cleanup-only PID without stored birth"
+        },
+        {
+          "pid": 26164,
+          "creationMs": null,
+          "executableName": null,
+          "status": "absent; cleanup-only PID without stored birth"
+        }
+      ],
+      "removedCachePaths": [
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.259ef3b85db343f39b29cedbf836e645",
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.893ff424cf44405e8651c709ef73dda1",
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.259ef3b85db343f39b29cedbf836e645",
+        "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.893ff424cf44405e8651c709ef73dda1",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\app-data",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\models",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\plugins",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\profile",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\temp",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\webview",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\app-data",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\models",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\plugins",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\profile",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\temp",
+        "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\webview"
+      ],
+      "unlinkedCacheEntries": [
+        {
+          "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+          "linkType": "Junction",
+          "targets": [
+            "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+          ]
+        },
+        {
+          "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+          "linkType": "Junction",
+          "targets": [
+            "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+          ]
+        }
+      ],
+      "preservedLogs": [
+        {
+          "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\app-data\\logs\\app.log",
+          "copy": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-001\\preserved-app-logs\\app.log",
+          "sha256": "3ecbb2d9692d7f492e680beefea66cadfb24ed8a61f5a00d39469750b5199243"
+        },
+        {
+          "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\app-data\\logs\\app.log",
+          "copy": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-cim-stages-20261005\\probe-002\\preserved-app-logs\\app.log",
+          "sha256": "15c30f9088b07f54b1feab57b9f7fad55ba4ea5113044bab3c9720e40c9166df"
+        }
+      ],
+      "preserved": [
+        "Vault",
+        "all proofs and reports",
+        "all EXEs and resources",
+        "source fixtures"
+      ],
+      "processesTerminated": 0,
+      "complete": true
+    }
+  },
+  "resources": {
+    "at": "2026-10-05T21:07:28.212459+00:00",
+    "sourceAndCopyRecordsVerified": 94,
+    "helperSchemaCorrection": "oldExeSha256 is a single digest, not a path map; no old EXE collection claim added"
+  },
+  "noLoginOrScan": true,
+  "limitations": [
+    "Four pre-change alternating and two implemented instrumented diagnostic samples are not a performance distribution",
+    "Observed N+1 query elimination does not establish the cause of previous 15000ms timeouts",
+    "5000-object OCR whole-group acceptance, original home timeout and RF-312 stage attribution remain pending",
+    "Raw native proof is expected to fail startup while input authorization is withheld; document-invalidated after cleanup is not an independent product finding",
+    "PowerShell 5.1 cache cleanup refused junction metadata before deletion; the unchanged exact link checks passed with PowerShell 7.6.5"
+  ],
+  "rawIndex": "rf1095-ordinary-owned-cim-2026-10-05/index.json",
+  "docChecks": {
+    "doc-boundary": {
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "pid": 22628,
+      "exitCode": 0,
+      "elapsedSeconds": 8.88044548034668,
+      "finishedAt": "2026-10-05T21:12:53.375691+00:00"
+    },
+    "final-format": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "scripts/native-perf-run.mjs",
+        "scripts/native-perf-memory.test.mjs",
+        "../docs/performance/rf1095-ordinary-owned-cim-2026-10-05.json",
+        "../docs/performance/rf1095-ordinary-owned-cim-2026-10-05/index.json"
+      ],
+      "pid": 38728,
+      "exitCode": 1,
+      "elapsedSeconds": 0.530480146408081,
+      "finishedAt": "2026-10-05T21:12:53.906965+00:00"
+    },
+    "final-format-corrected": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "scripts/native-perf-run.mjs",
+        "scripts/native-perf-memory.test.mjs",
+        "../docs/performance/rf1095-ordinary-owned-cim-2026-10-05.json",
+        "../docs/performance/rf1095-ordinary-owned-cim-2026-10-05/index.json"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.5462996959686279,
+      "finishedAt": "2026-10-05T21:13:43.097066+00:00"
+    },
+    "diff-check": {
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.1898045539855957,
+      "finishedAt": "2026-10-05T21:13:43.287388+00:00"
+    }
+  },
+  "docReview": {
+    "at": "2026-10-05T21:15:07.048383+00:00",
+    "taskRows": 285,
+    "uniqueCards": 285,
+    "statusCounts": {
+      "[x]": 276,
+      "[!]": 3,
+      "[ ]": 6,
+      "[~]": 0
+    },
+    "localLinksValid": 236,
+    "verifiedRawOriginalCounts": {
+      "docs/performance/rf1095-ordinary-owned-cim-2026-10-05": 85,
+      "docs/performance/rf312-windows-first-ocr-2026-10-05": 344,
+      "docs/verification/rf1094-general-ocr-2026-10-05": 83
+    },
+    "helperSchemaCorrections": [
+      "resource oldExeSha256 is a single digest; no collection claim made",
+      "Earlier archive schemas use files/archive/sha256/bytes; corrected validator reads their original fields"
+    ],
+    "rf312Complete": false
+  }
+}
