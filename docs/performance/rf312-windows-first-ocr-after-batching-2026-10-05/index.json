@@ -1,0 +1,615 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "Byte-exact successful 5000 whole first-OCR group after RF-1095, public input, proofs, source/resource freezes, checks and cleanup; old failures remain separate",
+  "files": [
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\baseline.json",
+      "archive": "raw/baseline.json.gz",
+      "bytes": 1736,
+      "sha256": "603d50f1f98734cf987273da9176c2ed6d8a1659be52ac8547315c91a60f0073",
+      "archiveBytes": 882,
+      "archiveSha256": "7631d2df24e0a03eaa6d822a6427978cb73f34b4837065de8e8f56ad00a5e422"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\build-checkpoint-final.json",
+      "archive": "raw/build-checkpoint-final.json.gz",
+      "bytes": 738,
+      "sha256": "a5ba797a48acb17248116272a254ecf006b6140aa0ba117b2f544b9fa657597d",
+      "archiveBytes": 403,
+      "archiveSha256": "c517fbd5c88d8236c3234578f55040c1dca0b07c6769417cd32838f379ed98f4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\cleanup-ocr-caches.ps1",
+      "archive": "raw/cleanup-ocr-caches.ps1.gz",
+      "bytes": 9835,
+      "sha256": "b614eddfe08c8f530aa154684cb21fd9726250180e6997df1645e04ae99d755f",
+      "archiveBytes": 3407,
+      "archiveSha256": "23a439f2dc27e17ecbf2d79792cffe596e9a328a9c65b70c7a5b27dc54c61eaf"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\metrics-recalculation.json",
+      "archive": "raw/metrics-recalculation.json.gz",
+      "bytes": 1339,
+      "sha256": "50d3cd7728e896412a106692a052e0166c22e27a82aa91fb02acf4e2e2cb97a0",
+      "archiveBytes": 424,
+      "archiveSha256": "7e164dc0929eced1c07dc508efda5df7f939840d03d76555c8364b7846c03c78"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\ocr5000.live.json",
+      "archive": "raw/ocr5000.live.json.gz",
+      "bytes": 505,
+      "sha256": "8d501be44885badadc7d390024deb621aefa973d987d1adc4e6c375884133189",
+      "archiveBytes": 265,
+      "archiveSha256": "f6ead69c5b13982bb0558eb044c5aa29f3332ff283f1dca5efe2e6c1cd650f8c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\ocr5000.receipt.json",
+      "archive": "raw/ocr5000.receipt.json.gz",
+      "bytes": 565,
+      "sha256": "60e4a64b7677cd22b36ee24443a5ac427fa4a4f6c58c65e294ce663b1bd0feb2",
+      "archiveBytes": 303,
+      "archiveSha256": "efab2766626e3b5da1109ae5c2c9b2900ac20972eed5caf76ab46a866747835a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\ocr5000.stderr.log",
+      "archive": "raw/ocr5000.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\ocr5000.stdout.log",
+      "archive": "raw/ocr5000.stdout.log.gz",
+      "bytes": 219,
+      "sha256": "7577357ea82fbf130750b1b9a3601f99806f8f29fe34f138fa07510d78375d74",
+      "archiveBytes": 165,
+      "archiveSha256": "cebd2a34b20c4e21a086d313cdc854cb047f27d120314cf4c4649200e32a727b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\prior-builds.json",
+      "archive": "raw/prior-builds.json.gz",
+      "bytes": 2193,
+      "sha256": "f3833bb2272895c4d8a4f069d8a2e540bb59b56671458a8b1ad9abc373e6d834",
+      "archiveBytes": 833,
+      "archiveSha256": "9870b9ef203657ea54c8355aca36d356ff2946b8e1f00edbb8c78db24ba8da12"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\public-source-freeze-final.json",
+      "archive": "raw/public-source-freeze-final.json.gz",
+      "bytes": 31830,
+      "sha256": "d0ebcf5264f434dd23fab9cb21ebe7e52744d7b4f14403bac1f35f2dee8d7bd3",
+      "archiveBytes": 7088,
+      "archiveSha256": "2bf04d1fa1d6cdb27e0a78a5d943e5b8309bdc21136b36f8c3366956b4383a50"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\resource-freeze-final.json",
+      "archive": "raw/resource-freeze-final.json.gz",
+      "bytes": 47404,
+      "sha256": "4a528f4cc9bf5e3435a649c525313ca8d9dfa15413e973f162149b81aa976e0a",
+      "archiveBytes": 6720,
+      "archiveSha256": "89a2c13c972af9dbccb4d185c4568f151400d8bdf6156e6e154efed3cce1581b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\review-actual-ocr.py",
+      "archive": "raw/review-actual-ocr.py.gz",
+      "bytes": 5957,
+      "sha256": "5178ff4aecdc0fa61014d54ab36673cefb87f99fb0a14d85f098b8b77275381e",
+      "archiveBytes": 2386,
+      "archiveSha256": "24fef384f09b2fe74c78a1a0661d1a8a8d4fe4356fab8ef4637f10c99eb35407"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\review-post-cache.py",
+      "archive": "raw/review-post-cache.py.gz",
+      "bytes": 2791,
+      "sha256": "eb6c67bfcfb3afb154c54d773fb531c9955d55adc1b4f858eb9b772582117fdb",
+      "archiveBytes": 1207,
+      "archiveSha256": "c10040eb381bb2f48fbfd0b38f23171134ad8a610b08c18bf8b9b42b52f2825d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\run-whole-ocr.py",
+      "archive": "raw/run-whole-ocr.py.gz",
+      "bytes": 2212,
+      "sha256": "ac2c58f9a0cf4a5ba69fe3cb0aeabf1b7570314d274f5b3b7436fc2e57b49e1c",
+      "archiveBytes": 979,
+      "archiveSha256": "89882fe95d28e94cf23fdc6af51210fb4a57c3596b2b0260bef0b0e9c5567cb9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000-actual-ocr-review.json",
+      "archive": "raw/samples5000-actual-ocr-review.json.gz",
+      "bytes": 6045,
+      "sha256": "c43449f26adabf83c50b0c80e2f877e01d976182fcef39ba8ffa0b5854a7d451",
+      "archiveBytes": 1176,
+      "archiveSha256": "28a19677a4dfe09ddaca32b3fdf5eebead2b67d6e5d684115f7757a94e5dea51"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000-cache-cleanup.json",
+      "archive": "raw/samples5000-cache-cleanup.json.gz",
+      "bytes": 10325,
+      "sha256": "1f90d7b1ff6c0111dedc7ba7bec116cce25cf2426e6f73777350ba58b1f61fc4",
+      "archiveBytes": 1218,
+      "archiveSha256": "be65d49da197f445126e8dbada9d34921b04d3059e8fe66470b0c2d75906fc5e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000-identity-scope.json",
+      "archive": "raw/samples5000-identity-scope.json.gz",
+      "bytes": 3233,
+      "sha256": "b91c5176e29d0c6f8424e9d29bfd00271ca8d7b7d2b5daca53024bec5fbdcd08",
+      "archiveBytes": 490,
+      "archiveSha256": "3e9c78bdb7f99b939457232d9ed147fe461f20089b6559d0a18d93b0d3bc390a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000-post-cache-review.json",
+      "archive": "raw/samples5000-post-cache-review.json.gz",
+      "bytes": 957,
+      "sha256": "43fccaa4e3af607deef4382209cdf0de7a8aad8d4463bceb8051ad25a0a5153c",
+      "archiveBytes": 357,
+      "archiveSha256": "a5cc9bb2f33cdc105f33cd26f12081fa09f344231cf8ee97d4e0d35aa4d9e590"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000-pre-cache-vault-freeze.json",
+      "archive": "raw/samples5000-pre-cache-vault-freeze.json.gz",
+      "bytes": 8404,
+      "sha256": "2b9cd0df1552004560cccb09c8460511f74f95395be4714d7bf5fe487e37c270",
+      "archiveBytes": 1713,
+      "archiveSha256": "7c9a82587bfeaf39cfb632bb14a248df8ccecd03edb3eeb2e5d208b7677a0246"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\source-freeze.json",
+      "archive": "raw/source-freeze.json.gz",
+      "bytes": 57815,
+      "sha256": "ac38ec89c2b2386182670f7a39e7c157e454af3df5f9fb0e986eddae6fb0613d",
+      "archiveBytes": 23389,
+      "archiveSha256": "75bb581ecd6745670c8fcea882f6e8422b7e4597b3499492025a9a1464eae991"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\native-perf-sdk-journey-results.json",
+      "archive": "raw/samples5000/native-perf-sdk-journey-results.json.gz",
+      "bytes": 373709,
+      "sha256": "4579913310083bbf658fc9f16b5393ef9d64992bc62a3c0a4f9467ea3dcd1cb9",
+      "archiveBytes": 34133,
+      "archiveSha256": "963b4e9264c1ed055e219ac964bc9c5a27b1d0a16224582769a73d36e6708a01"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001.json",
+      "archive": "raw/samples5000/sample-001.json.gz",
+      "bytes": 106103,
+      "sha256": "e97b3c0a0bbd12043a99b994e03305d4d608069b91be67dd6187f8d6344a3fc0",
+      "archiveBytes": 11476,
+      "archiveSha256": "2088bc3c4a7bccf316476a6b8b0d6184e13415b40e35e10cc1c932143f069112"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002.json",
+      "archive": "raw/samples5000/sample-002.json.gz",
+      "bytes": 105805,
+      "sha256": "91961d8af00d18e03933fdf4e92f8f3d4ac8038339d02ec9f7054ae320b0247c",
+      "archiveBytes": 11528,
+      "archiveSha256": "937dc218c6c2be819fd68ef02bb8e53c8b475a94694690bb2daeb8038ad1a476"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003.json",
+      "archive": "raw/samples5000/sample-003.json.gz",
+      "bytes": 105956,
+      "sha256": "84ecc4e0a43d7cc704bf1c422b20e1245cabb0def2c8f0ea58dea31b6bc6be29",
+      "archiveBytes": 11502,
+      "archiveSha256": "fef53fcdaa60d9b949031b00d9d3e384ca2b2720fbecbdfcca418605f39c235c"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\native-perf-consumed.json",
+      "archive": "raw/samples5000/sample-001/native-perf-consumed.json.gz",
+      "bytes": 271,
+      "sha256": "f61b555596bb3b7064db032bb71fc8e588b1790b960d46adaafd944604e7e758",
+      "archiveBytes": 223,
+      "archiveSha256": "a67313e61dc5bbc0352de32c4d3e55f111ba7de6ad413b096262dce2d18dc0de"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\native-perf-ocr-input.png",
+      "archive": "raw/samples5000/sample-001/native-perf-ocr-input.png.gz",
+      "bytes": 6274,
+      "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+      "archiveBytes": 3159,
+      "archiveSha256": "3f630a750f186a7ecf6ede12504c9c5faac1493170261bddf68f29239c01c0ac"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\native-perf-ocr-picker-structure.json",
+      "archive": "raw/samples5000/sample-001/native-perf-ocr-picker-structure.json.gz",
+      "bytes": 8730,
+      "sha256": "bc60d04497bf44d379f8175be94f9759e7b3eb20c7532295eb8fd74b3866b944",
+      "archiveBytes": 1094,
+      "archiveSha256": "446394842ac76d31d3b29fe359213df8a8a99dc91f2f04237fe04e31882eea53"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\native-perf-owned.json",
+      "archive": "raw/samples5000/sample-001/native-perf-owned.json.gz",
+      "bytes": 7784,
+      "sha256": "18002f633d47623a07dd6da3231414c580e8fd7e73b3211ff49af37b2e09e188",
+      "archiveBytes": 1892,
+      "archiveSha256": "d92cb51c98f14e05c6c32f4c726996a11b4c6ccedb5259d3ba7cb22aa6836884"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/samples5000/sample-001/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "f4d9819905d0aaf59f61b0b94420767c75c04ef970ea50115008e5de2cb6aef7",
+      "archiveBytes": 151,
+      "archiveSha256": "800151ee8ad4051cfa800895b824a1c5e81d8f662c4aaa2e4afbfdd1209e2bdb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/samples5000/sample-001/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 582,
+      "sha256": "859c827711d984da54f3fd3eed567e4491c23fd33bd9940907949032080e43fc",
+      "archiveBytes": 397,
+      "archiveSha256": "06dc6ed33d371f2813242598304ec87cf156efb3212a07e3cce933e13e3d03c1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/samples5000/sample-001/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 365,
+      "sha256": "254724ee6f5c4b2ebb81c9618fe82e030ae199859b4951f4590fcc2ab63c5716",
+      "archiveBytes": 280,
+      "archiveSha256": "01344f42ab201be019eff0ea24afe99bf3a24d0943a206a43aaed22f17e47982"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\native-perf-sdk-journey.json",
+      "archive": "raw/samples5000/sample-001/native-perf-sdk-journey.json.gz",
+      "bytes": 71861,
+      "sha256": "8d0f4889957190b2e585051e352bf4d27e2e8e284da3ddcff8f17cf4298459af",
+      "archiveBytes": 6256,
+      "archiveSha256": "dc0ee16d95b9992b5587706f49ca66ae78e4d3545b40a04389d5afb7273963e3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\native-perf-sdk-phase-01.json",
+      "archive": "raw/samples5000/sample-001/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "510aadd2f3ee7898cdb3c03c6282d44c46e06f81ff9ecd0c657e691fdcc9d4c0",
+      "archiveBytes": 404,
+      "archiveSha256": "df467833e0ab4d08d8966214236fa885df58ad6fcb594c2c480d4b5494620a64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\native-perf-sdk-phase-02.json",
+      "archive": "raw/samples5000/sample-001/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1174,
+      "sha256": "2bdda777023b69484294dda33e0c7560f491bb09cdc20942614537c8d5f2ae9e",
+      "archiveBytes": 497,
+      "archiveSha256": "659052122f024986a53d15600f0d4c8d4b377f9f357e296fa65dbe9345c50002"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\native-perf-sdk-phase-03.json",
+      "archive": "raw/samples5000/sample-001/native-perf-sdk-phase-03.json.gz",
+      "bytes": 696,
+      "sha256": "5a81fcd30a6f1d31cfab32de38b9d2e2a14c9914d61857e55aa7c99fbafbf2a1",
+      "archiveBytes": 360,
+      "archiveSha256": "b2daa31fecb57100b6734398ffcd9222c3336e59bff9523abe24129f6043d316"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\native-perf-sdk-phase-04.json",
+      "archive": "raw/samples5000/sample-001/native-perf-sdk-phase-04.json.gz",
+      "bytes": 358,
+      "sha256": "8e958b6a2eae876085dd74cd946fa7a6aff99bc9fe6793bef3534c9b05787aee",
+      "archiveBytes": 226,
+      "archiveSha256": "2041d2c02487e886bbc7cab2c8212aa2c03d7951cac000a5236324b2bdcf95cb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\native-perf-sdk-phase-05.json",
+      "archive": "raw/samples5000/sample-001/native-perf-sdk-phase-05.json.gz",
+      "bytes": 815,
+      "sha256": "70fafc16406be3b63519a4f7af751f6d9c78248992126857b8288976580b2d98",
+      "archiveBytes": 426,
+      "archiveSha256": "28026649f4c458f918009cebd924808cdb8cb1c41da8547600140345ed281f58"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\preserved-app-logs\\app.log",
+      "archive": "raw/samples5000/sample-001/preserved-app-logs/app.log.gz",
+      "bytes": 1863,
+      "sha256": "5fd82b7db53c36be050a5f7e946f34505e200a81924fe50b8c30d3f9a1aa5b77",
+      "archiveBytes": 794,
+      "archiveSha256": "699304b335a659a74da0dcea2bcb6755bd356d2ca70213fc07c12995ba88e7f1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\native-perf-consumed.json",
+      "archive": "raw/samples5000/sample-002/native-perf-consumed.json.gz",
+      "bytes": 271,
+      "sha256": "a5e38d4ed20a543882552dc564bc3ffa77f480516464cd218ef49af87d765aa3",
+      "archiveBytes": 222,
+      "archiveSha256": "a2531673abf235a44383d649cdd293efadb83317b7508d3f5ae1946924aa4a3a"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\native-perf-ocr-input.png",
+      "archive": "raw/samples5000/sample-002/native-perf-ocr-input.png.gz",
+      "bytes": 6274,
+      "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+      "archiveBytes": 3159,
+      "archiveSha256": "3f630a750f186a7ecf6ede12504c9c5faac1493170261bddf68f29239c01c0ac"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\native-perf-ocr-picker-structure.json",
+      "archive": "raw/samples5000/sample-002/native-perf-ocr-picker-structure.json.gz",
+      "bytes": 8731,
+      "sha256": "b385fc58d182fcb6b7913bd7387e919b3f046524723eca9b8819546fa0baab34",
+      "archiveBytes": 1095,
+      "archiveSha256": "87d0a2fa032649b7cb1b866d5d61b8e41f4528b05b571c05fdc53fd217d31582"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\native-perf-owned.json",
+      "archive": "raw/samples5000/sample-002/native-perf-owned.json.gz",
+      "bytes": 7784,
+      "sha256": "797146132420cdfb9029a4f51c5396d16c792919fb75c6be52065e585fc07e21",
+      "archiveBytes": 1894,
+      "archiveSha256": "1be24143a9df3fbdb7ecd7c2eafebf9fda142e79431da7a97e840ef3a061b47e"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/samples5000/sample-002/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "b40d417b6a4de6ce5321f60a302c58b492e14ccf6c647f30411dfe37ef3c9dcf",
+      "archiveBytes": 151,
+      "archiveSha256": "7671cfc73902ff62798ce488fcacd31499db9faf99dbe5c7bb074833f6546f64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/samples5000/sample-002/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 582,
+      "sha256": "839b4cd1f9b71970e38e852e4e183d17ff92f74ca25f9579e27bbfbb5b4d98ea",
+      "archiveBytes": 400,
+      "archiveSha256": "944f395ee1bc9c4922ed2e12600e40ea04f79d9518eb5b9c18533121c6502681"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/samples5000/sample-002/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 365,
+      "sha256": "96ab5f0512623dc9e36b97cf771f369e28a4fbe689fbbc50c3645c2cf7addc49",
+      "archiveBytes": 279,
+      "archiveSha256": "80fb8cd491bf84c4bde8a31a56fa119fb5807d03d522f07ef7780285f580abdf"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\native-perf-sdk-journey.json",
+      "archive": "raw/samples5000/sample-002/native-perf-sdk-journey.json.gz",
+      "bytes": 71619,
+      "sha256": "d5bf3b2fefd9972cbc941ea2a91ee100f34976996b6a56dca21186638ba07354",
+      "archiveBytes": 6257,
+      "archiveSha256": "66b9a2d50cbe61090bb26c4fbc9e8aad12d663e357fe32bc020d3602be8c6afb"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\native-perf-sdk-phase-01.json",
+      "archive": "raw/samples5000/sample-002/native-perf-sdk-phase-01.json.gz",
+      "bytes": 828,
+      "sha256": "fe82d57e87416da0d62dfb283961a98377640cc2c770360955ccaf9407f7311f",
+      "archiveBytes": 408,
+      "archiveSha256": "0f5b43b447c12c13b3ddc98241476b01e250d707a6f4c5c9040a99aa4fb2dd5d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\native-perf-sdk-phase-02.json",
+      "archive": "raw/samples5000/sample-002/native-perf-sdk-phase-02.json.gz",
+      "bytes": 1221,
+      "sha256": "5ebb7a0603d571aeb2694161fbb323e2457809b9d5faa2c5f791021fe615314e",
+      "archiveBytes": 500,
+      "archiveSha256": "78fa15c8a2e8b663ac451a5775756a338545fbc7005840d76b2ecae7ee840741"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\native-perf-sdk-phase-03.json",
+      "archive": "raw/samples5000/sample-002/native-perf-sdk-phase-03.json.gz",
+      "bytes": 588,
+      "sha256": "580fe5e579245cea2f9c3c64d5baff23230b9f5114f748781ad4213d315a8843",
+      "archiveBytes": 326,
+      "archiveSha256": "91207fd5c2961801084460686f34894f6bef16fc4e10747b8ba01872a2b4fd62"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\native-perf-sdk-phase-04.json",
+      "archive": "raw/samples5000/sample-002/native-perf-sdk-phase-04.json.gz",
+      "bytes": 359,
+      "sha256": "b699296f3619d5d82ac77f06b0aade214483b9dd0bfb4b8abbf504fcc741a619",
+      "archiveBytes": 228,
+      "archiveSha256": "26c93f01b7abd5242eeb1246692558dd066d7728e640d8ae4e68c77eda74539f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\native-perf-sdk-phase-05.json",
+      "archive": "raw/samples5000/sample-002/native-perf-sdk-phase-05.json.gz",
+      "bytes": 815,
+      "sha256": "6aba4f1fc2a54ba7b066b59a92ab219a6695175ad7c507a73df383180d099faa",
+      "archiveBytes": 417,
+      "archiveSha256": "273c02de2554e4a72e363fd87ab965a6e5b6c0e9102f2294daa32aefda97e0bc"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\preserved-app-logs\\app.log",
+      "archive": "raw/samples5000/sample-002/preserved-app-logs/app.log.gz",
+      "bytes": 1863,
+      "sha256": "e3632cfcbd0ae1dcb7d0450def05237011a9076ab952d80d685c5bfc3f39b528",
+      "archiveBytes": 793,
+      "archiveSha256": "9413d7893e6e7e10cee468473353a5c42242bcff678ced985630aeba5f62f2a4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\native-perf-consumed.json",
+      "archive": "raw/samples5000/sample-003/native-perf-consumed.json.gz",
+      "bytes": 271,
+      "sha256": "dbbad08bb7f0d23927587148607e5375a92bdc43912460d4f1e51ecedc003c97",
+      "archiveBytes": 224,
+      "archiveSha256": "8c9b21686b63331bca52faaa5fc853b96b2f30589a30a097073537b0bc105f51"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\native-perf-ocr-input.png",
+      "archive": "raw/samples5000/sample-003/native-perf-ocr-input.png.gz",
+      "bytes": 6274,
+      "sha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+      "archiveBytes": 3159,
+      "archiveSha256": "3f630a750f186a7ecf6ede12504c9c5faac1493170261bddf68f29239c01c0ac"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\native-perf-ocr-picker-structure.json",
+      "archive": "raw/samples5000/sample-003/native-perf-ocr-picker-structure.json.gz",
+      "bytes": 8713,
+      "sha256": "a80fad84d4728b6da103c0416a4c32a83b360f14b04cf42d4f2573f193a506c0",
+      "archiveBytes": 1090,
+      "archiveSha256": "cbd851efa83b5c7e2d3c6a94aa380c99ae0a18f9b294e9bce859633a5cb737b3"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\native-perf-owned.json",
+      "archive": "raw/samples5000/sample-003/native-perf-owned.json.gz",
+      "bytes": 7784,
+      "sha256": "01824b63743c3a4d63a1da71f472cd74ac90f00210e15d9d6b3ce592c73af60f",
+      "archiveBytes": 1892,
+      "archiveSha256": "1d9133204a31989fb31787216c9fc1f9be7e359de2a4c397f9cb9cccab4edda4"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\native-perf-sdk-journey-authorized.json",
+      "archive": "raw/samples5000/sample-003/native-perf-sdk-journey-authorized.json.gz",
+      "bytes": 164,
+      "sha256": "f7372c78e31ab5ed80fabc9241f8f88c2f35d6f173586d5489f065842f4a24c4",
+      "archiveBytes": 150,
+      "archiveSha256": "cff9d1cbd3f1575ea57e5652fc0404fc9c5a961cd11dbc5311197edf05f94376"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\native-perf-sdk-journey-bound.json",
+      "archive": "raw/samples5000/sample-003/native-perf-sdk-journey-bound.json.gz",
+      "bytes": 582,
+      "sha256": "39a7c7f32a1801e4720b45b08c6baf98e77631bb0b78dfbf68b407ad6ed6965b",
+      "archiveBytes": 400,
+      "archiveSha256": "138a9cc4cd95432dba176354b3c3f3c71c13f327ee3ad170877bd5fcb82e2e0f"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\native-perf-sdk-journey-requested.json",
+      "archive": "raw/samples5000/sample-003/native-perf-sdk-journey-requested.json.gz",
+      "bytes": 365,
+      "sha256": "81245e3e492d0bb584a84d01111a6bb3475d60e87fa65d9ee285b16ca6443466",
+      "archiveBytes": 282,
+      "archiveSha256": "2fb6395ae85ae4da553f22b6472af6d2fdb39f15eed8a2426fe610e8846aa989"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\native-perf-sdk-journey.json",
+      "archive": "raw/samples5000/sample-003/native-perf-sdk-journey.json.gz",
+      "bytes": 71728,
+      "sha256": "569bf100f0b2a321273f2afe7efa5b51e83623e826c2ba028bd2a0288be163fc",
+      "archiveBytes": 6237,
+      "archiveSha256": "76bc3febe0c1ce5585d4c620a99854e3f84afef80aba95c53f5a8e436e009bf9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\native-perf-sdk-phase-01.json",
+      "archive": "raw/samples5000/sample-003/native-perf-sdk-phase-01.json.gz",
+      "bytes": 818,
+      "sha256": "b33636711ab2dcd7b77540158781048e345a3b10cf9e02b500fd2e72f3f0a099",
+      "archiveBytes": 405,
+      "archiveSha256": "cee61575968fa6557cf8984d12c029567f1a8e2d620087bac3c3c0f8cc57fc08"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\native-perf-sdk-phase-02.json",
+      "archive": "raw/samples5000/sample-003/native-perf-sdk-phase-02.json.gz",
+      "bytes": 868,
+      "sha256": "e4a06101f6cb7d38748f102bca5e472cc34e5c650217b674791e6ccd4da50b95",
+      "archiveBytes": 407,
+      "archiveSha256": "295fa092c4db9d0331f1079c04ac74a38e4562be35b5a422e31a316724e49a6d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\native-perf-sdk-phase-03.json",
+      "archive": "raw/samples5000/sample-003/native-perf-sdk-phase-03.json.gz",
+      "bytes": 1006,
+      "sha256": "53b3dfaafdf63fe88e34c6c42ce54645d7693fa1f0877faf65edf045189bbeff",
+      "archiveBytes": 433,
+      "archiveSha256": "21c13d749f0eb325a143d9bd3b75e861e89105ef9f2fd13194f6548bb8ca6efa"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\native-perf-sdk-phase-04.json",
+      "archive": "raw/samples5000/sample-003/native-perf-sdk-phase-04.json.gz",
+      "bytes": 346,
+      "sha256": "94ce2d46749fc573e137d33dafbf68e09abc8575bc730d2eb892a83abb500b3f",
+      "archiveBytes": 218,
+      "archiveSha256": "93cc369189447ece5a773675d6478b9abeeeb1b0471088a6630b458a40839d59"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\native-perf-sdk-phase-05.json",
+      "archive": "raw/samples5000/sample-003/native-perf-sdk-phase-05.json.gz",
+      "bytes": 801,
+      "sha256": "0950b90c4e5eb166fe95344582f070dab912ad8eb698f38fbf38e07955b06fa8",
+      "archiveBytes": 414,
+      "archiveSha256": "5ed68b542144a843a9bfa52aa84b2b19edba036593c27628e29e450e2937a77d"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\preserved-app-logs\\app.log",
+      "archive": "raw/samples5000/sample-003/preserved-app-logs/app.log.gz",
+      "bytes": 1863,
+      "sha256": "78920bccc8f476fd9ca697fa877dde3b5b2d6d1d6d9a951e3e0758ffbf6dcd7b",
+      "archiveBytes": 792,
+      "archiveSha256": "0232f96b7083efd6bec668b4d655917ad356c0f42c9b7a4eb8c97292a34fd5ab"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\diff-check.receipt.json",
+      "archive": "raw/diff-check.receipt.json.gz",
+      "bytes": 280,
+      "sha256": "19d2b602bb7370513894e91529564ae9cc4a31cc30fc548a4acc92eea71b6d32",
+      "archiveBytes": 213,
+      "archiveSha256": "d22d420b395571f0b8054eff520ba53fed601e7c7ed737fbf2357c4e5f7f19d1"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\diff-check.stderr.log",
+      "archive": "raw/diff-check.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\diff-check.stdout.log",
+      "archive": "raw/diff-check.stdout.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\doc-boundary.receipt.json",
+      "archive": "raw/doc-boundary.receipt.json.gz",
+      "bytes": 200,
+      "sha256": "b08198414acf0c832c101d4d7a12b84f833f970b1e4b0465ca19552c8c09ee48",
+      "archiveBytes": 178,
+      "archiveSha256": "0e9141d970b7507949e2584966c7f6e26251d8f7be1deb055bb63a01aa6e2fb9"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\doc-boundary.stderr.log",
+      "archive": "raw/doc-boundary.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\doc-boundary.stdout.log",
+      "archive": "raw/doc-boundary.stdout.log.gz",
+      "bytes": 93,
+      "sha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc",
+      "archiveBytes": 110,
+      "archiveSha256": "c16c6514d45e8adcb5ee3a75bb38ae0e1950a842eb0ca278a2816334f7739e7b"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\doc-format.receipt.json",
+      "archive": "raw/doc-format.receipt.json.gz",
+      "bytes": 441,
+      "sha256": "fe3bad6c3cfb564f78f7784c9bdf431040fbea40b6de55fe13c8e3749f44a007",
+      "archiveBytes": 255,
+      "archiveSha256": "a477e925e33c1b956b6aaee260c5cb2a49d4ad2787517827102e527dd7b8af59"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\doc-format.stderr.log",
+      "archive": "raw/doc-format.stderr.log.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archiveBytes": 20,
+      "archiveSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\doc-format.stdout.log",
+      "archive": "raw/doc-format.stdout.log.gz",
+      "bytes": 220,
+      "sha256": "33366874837ad41e2dd95872a17b45aa75101e39a4a0713679f234860ae6184a",
+      "archiveBytes": 133,
+      "archiveSha256": "bcb8a1ef5a0cdda12bcfde4e311c88a385eeb8f3b8003e9632626c13472b21dd"
+    },
+    {
+      "original": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\final-doc-review.json",
+      "archive": "raw/final-doc-review.json.gz",
+      "bytes": 549,
+      "sha256": "16c7b77d040a85f7a9020b77e985d6712025c40e42fe9080e97f49a7997d7877",
+      "archiveBytes": 311,
+      "archiveSha256": "828e965dd5afd78d5a68369a3de935561f1fb9848c497d9d78019350bdff7450"
+    }
+  ]
+}

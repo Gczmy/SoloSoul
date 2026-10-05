@@ -1,0 +1,609 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "date": "2026-10-05",
+  "baseCommit": "31e5234df3d11be0d87e5999675bf30b548c1e1b",
+  "branch": "codex/rf312-warm-start",
+  "status": "Windows 5000-object first OCR group accepted; RF-312 remains incomplete",
+  "samplerFixCommit": "31e5234df3d11be0d87e5999675bf30b548c1e1b",
+  "baseline": {
+    "at": "2026-10-05T21:16:25.307713+00:00",
+    "head": "31e5234df3d11be0d87e5999675bf30b548c1e1b",
+    "clean": true,
+    "exe": {
+      "at": "2026-10-05T20:13:10.269629+00:00",
+      "exe": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\bin-final\\solo_soul.exe",
+      "bytes": 103414784,
+      "sha256": "dc7ccb7bbb6f40088bf2d76e44d001536211773fb1e90d6c0d62292ca3f1c239",
+      "frozenInputsUnchanged": 459,
+      "resourcesUnchanged": 94,
+      "markers": [
+        "--native-perf-media-prepare",
+        "windows-native-sdk-media-journey-requested",
+        "windows-native-sdk-ocr-journey-requested",
+        "windows-native-sdk-startup-requested",
+        "windows-native-sdk-pdf-first-page-requested",
+        "windows-native-sdk-pdf-cipher-binding-requested",
+        "windows-native-sdk-pdf-frame-stability-requested"
+      ],
+      "previousPdfBuildsPreserved": 8,
+      "publicSourcesUnchanged": 171
+    },
+    "sourceInputsVerified": 459,
+    "resourcesVerified": 94,
+    "publicFilesVerified": 171,
+    "changedSinceAppBuild": {
+      "tauri/scripts/native-perf-memory.test.mjs": {
+        "before": "52c44887404b9eca0de8d8382d234c8d0c4abb906e27200d29e5029fdc8df615",
+        "after": "040dac00bb8e02570b9a502e82440dc28f0888e5be53fde655df3a6383673563"
+      },
+      "tauri/scripts/native-perf-run.mjs": {
+        "before": "85993dd93ee133cab547247a5adee28fce8437a3336b066d9f2463985e35c7be",
+        "after": "e541faa58c3b99a075506f82ccc248ff3ce833964a0258947c635b9cad748cb9"
+      }
+    },
+    "purpose": "Whole 5000 first OCR repeat after independently accepted RF-1095 sampler batching; unchanged EXE, input, strict guards and budgets",
+    "priorFailuresPreserved": "docs/performance/rf312-windows-first-ocr-2026-10-05.json"
+  },
+  "driverReceipt": {
+    "command": [
+      "node",
+      "scripts/native-perf-ocr.mjs",
+      "--exe",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-20261005\\bin-final\\solo_soul.exe",
+      "--fixture",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-media-20261005\\vault5000",
+      "--output",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000",
+      "--samples",
+      "3"
+    ],
+    "pid": 38116,
+    "exitCode": 0,
+    "elapsedSeconds": 145.62082052230835,
+    "finishedAt": "2026-10-05T21:18:51.414646+00:00"
+  },
+  "actualOcrReview": {
+    "at": "2026-10-05T21:20:02.227899+00:00",
+    "success": true,
+    "publicFilesUnchanged": 171,
+    "frozenInputsUnchanged": 459,
+    "resourcesUnchanged": 94,
+    "previousBuildsPreserved": 9,
+    "ownedAttachmentCiphertextsUnchanged": [
+      {
+        "index": 1,
+        "ciphertextsUnchanged": [
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_255b1fea-d898-4032-b9f2-50a5c4a2dead/text_only.pdf",
+            "sha256": "bfe688cdf2d2e4a8a800540eac2b829d7e34bb83616015d47a33eb5ebfe306d8"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_81c08e5c-21c5-4a99-a132-6cc36b9827ad/preview.txt",
+            "sha256": "07d97636ebd42863af5d1864eb3d4c707d7413738e425d831563ccaf6e2cc365"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_8f446f8f-ca10-4658-93eb-a93756fba963/scanned.pdf",
+            "sha256": "1bee3cd7732684c2dba5c0818679267dbc0c72150b59231f1fc6b557cdad92e6"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_965411e7-6595-45f5-b972-1369c082ce00/ocr_test.png",
+            "sha256": "d867534665caed1a3ff1948ba8ad44b8c4f84141e6825a4a1efa1b6ad20c618f"
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "ciphertextsUnchanged": [
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_255b1fea-d898-4032-b9f2-50a5c4a2dead/text_only.pdf",
+            "sha256": "bfe688cdf2d2e4a8a800540eac2b829d7e34bb83616015d47a33eb5ebfe306d8"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_81c08e5c-21c5-4a99-a132-6cc36b9827ad/preview.txt",
+            "sha256": "07d97636ebd42863af5d1864eb3d4c707d7413738e425d831563ccaf6e2cc365"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_8f446f8f-ca10-4658-93eb-a93756fba963/scanned.pdf",
+            "sha256": "1bee3cd7732684c2dba5c0818679267dbc0c72150b59231f1fc6b557cdad92e6"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_965411e7-6595-45f5-b972-1369c082ce00/ocr_test.png",
+            "sha256": "d867534665caed1a3ff1948ba8ad44b8c4f84141e6825a4a1efa1b6ad20c618f"
+          }
+        ]
+      },
+      {
+        "index": 3,
+        "ciphertextsUnchanged": [
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_255b1fea-d898-4032-b9f2-50a5c4a2dead/text_only.pdf",
+            "sha256": "bfe688cdf2d2e4a8a800540eac2b829d7e34bb83616015d47a33eb5ebfe306d8"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_81c08e5c-21c5-4a99-a132-6cc36b9827ad/preview.txt",
+            "sha256": "07d97636ebd42863af5d1864eb3d4c707d7413738e425d831563ccaf6e2cc365"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_8f446f8f-ca10-4658-93eb-a93756fba963/scanned.pdf",
+            "sha256": "1bee3cd7732684c2dba5c0818679267dbc0c72150b59231f1fc6b557cdad92e6"
+          },
+          {
+            "relativePath": "attachments/obj_perf_00000000/att_965411e7-6595-45f5-b972-1369c082ce00/ocr_test.png",
+            "sha256": "d867534665caed1a3ff1948ba8ad44b8c4f84141e6825a4a1efa1b6ad20c618f"
+          }
+        ]
+      }
+    ],
+    "scope": "fixed public PNG/default small/first per process",
+    "summary": [
+      {
+        "name": "pickerOpenedObservedMs",
+        "requestedSamples": 3,
+        "successfulSamples": 3,
+        "medianMs": 1596.9502000000011,
+        "p95Ms": 2454.468200000001
+      },
+      {
+        "name": "pickerSelectionClosedMs",
+        "requestedSamples": 3,
+        "successfulSamples": 3,
+        "medianMs": 1111.1422000000002,
+        "p95Ms": 1119.6318999999985
+      },
+      {
+        "name": "firstOcrResultObservedMs",
+        "requestedSamples": 3,
+        "successfulSamples": 3,
+        "medianMs": 1871.1038999999964,
+        "p95Ms": 1893.8439000000017
+      },
+      {
+        "name": "totalOcrObservedMs",
+        "requestedSamples": 3,
+        "successfulSamples": 3,
+        "medianMs": 3547.5978000000014,
+        "p95Ms": 4371.9030999999995
+      }
+    ],
+    "samples": [
+      {
+        "index": 1,
+        "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+        "result": {
+          "firstScanInvokeCount": 1,
+          "kind": "fixed-public-image",
+          "normalizedText": "helloppocrv6solosoulocr1234567890",
+          "paintedFrames": 2,
+          "text": "HelloPP-OCRv6\nSoloSoulOCR\n1234567890",
+          "tier": "small",
+          "visible": true
+        },
+        "ocrMetrics": {
+          "firstOcrResultObservedMs": 1861.9040000000005,
+          "pickerOpenedObservedMs": 2454.468200000001,
+          "pickerSelectionClosedMs": 963.9783000000007,
+          "totalOcrObservedMs": 4371.9030999999995
+        },
+        "controls": 47,
+        "sdkCalls": 51
+      },
+      {
+        "index": 2,
+        "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+        "result": {
+          "firstScanInvokeCount": 1,
+          "kind": "fixed-public-image",
+          "normalizedText": "helloppocrv6solosoulocr1234567890",
+          "paintedFrames": 2,
+          "text": "HelloPP-OCRv6\nSoloSoulOCR\n1234567890",
+          "tier": "small",
+          "visible": true
+        },
+        "ocrMetrics": {
+          "firstOcrResultObservedMs": 1893.8439000000017,
+          "pickerOpenedObservedMs": 1596.9502000000011,
+          "pickerSelectionClosedMs": 1119.6318999999985,
+          "totalOcrObservedMs": 3547.5978000000014
+        },
+        "controls": 47,
+        "sdkCalls": 51
+      },
+      {
+        "index": 3,
+        "inputSha256": "56a9d54d9b70a3ee1b22e0b08b755b6cfc15ee125df4b11d52f8523583dcacaa",
+        "result": {
+          "firstScanInvokeCount": 1,
+          "kind": "fixed-public-image",
+          "normalizedText": "helloppocrv6solosoulocr1234567890",
+          "paintedFrames": 2,
+          "text": "HelloPP-OCRv6\nSoloSoulOCR\n1234567890",
+          "tier": "small",
+          "visible": true
+        },
+        "ocrMetrics": {
+          "firstOcrResultObservedMs": 1871.1038999999964,
+          "pickerOpenedObservedMs": 1348.849400000001,
+          "pickerSelectionClosedMs": 1111.1422000000002,
+          "totalOcrObservedMs": 3269.3841999999986
+        },
+        "controls": 47,
+        "sdkCalls": 51
+      }
+    ]
+  },
+  "metricsRecalculated": [
+    {
+      "name": "pickerOpenedObservedMs",
+      "valuesMs": [2454.468200000001, 1596.9502000000011, 1348.849400000001],
+      "medianMs": 1596.9502000000011,
+      "p95Ms": 2454.468200000001,
+      "p95Definition": "Maximum of three observations"
+    },
+    {
+      "name": "pickerSelectionClosedMs",
+      "valuesMs": [963.9783000000007, 1119.6318999999985, 1111.1422000000002],
+      "medianMs": 1111.1422000000002,
+      "p95Ms": 1119.6318999999985,
+      "p95Definition": "Maximum of three observations"
+    },
+    {
+      "name": "firstOcrResultObservedMs",
+      "valuesMs": [1861.9040000000005, 1893.8439000000017, 1871.1038999999964],
+      "medianMs": 1871.1038999999964,
+      "p95Ms": 1893.8439000000017,
+      "p95Definition": "Maximum of three observations"
+    },
+    {
+      "name": "totalOcrObservedMs",
+      "valuesMs": [4371.9030999999995, 3547.5978000000014, 3269.3841999999986],
+      "medianMs": 3547.5978000000014,
+      "p95Ms": 4371.9030999999995,
+      "p95Definition": "Maximum of three observations"
+    }
+  ],
+  "cleanup": {
+    "at": "2026-10-05T21:20:10.7585365Z",
+    "stageRoot": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005",
+    "roots": [
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003"
+    ],
+    "verifiedIdentities": [
+      {
+        "pid": 24132,
+        "creationMs": 1791235006516,
+        "executableName": "solo_soul.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 18360,
+        "creationMs": 1791235008235,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 492,
+        "creationMs": 1791235008871,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 5472,
+        "creationMs": 1791235009076,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 30604,
+        "creationMs": 1791235008910,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 32264,
+        "creationMs": 1791235009893,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 42252,
+        "creationMs": 1791235008870,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 5920,
+        "creationMs": 1791235008330,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 35056,
+        "creationMs": 1791235009891,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 11844,
+        "creationMs": 1791235052929,
+        "executableName": "solo_soul.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 21288,
+        "creationMs": 1791235054607,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 42792,
+        "creationMs": 1791235055281,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 340,
+        "creationMs": 1791235055554,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 15192,
+        "creationMs": 1791235055338,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 27568,
+        "creationMs": 1791235054868,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 40936,
+        "creationMs": 1791235057637,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 39452,
+        "creationMs": 1791235057639,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 40568,
+        "creationMs": 1791235055283,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 20464,
+        "creationMs": 1791235104666,
+        "executableName": "solo_soul.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 28440,
+        "creationMs": 1791235106241,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 27656,
+        "creationMs": 1791235106640,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 17124,
+        "creationMs": 1791235106805,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 34060,
+        "creationMs": 1791235106684,
+        "executableName": "msedgewebview2.exe",
+        "status": "pid-reused-with-different-creation"
+      },
+      {
+        "pid": 30180,
+        "creationMs": 1791235106294,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 21492,
+        "creationMs": 1791235107702,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 33036,
+        "creationMs": 1791235107504,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      },
+      {
+        "pid": 29920,
+        "creationMs": 1791235106644,
+        "executableName": "msedgewebview2.exe",
+        "status": "absent"
+      }
+    ],
+    "removedCachePaths": [
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.15577c8f157540bca7f0290b11b5add4",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.4c95737739e04514a75c5587e29ef024",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Local\\com.solosoul.rf312perf.93210c6ea6a9458fb1b3e112150ee766",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.15577c8f157540bca7f0290b11b5add4",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.4c95737739e04514a75c5587e29ef024",
+      "C:\\Users\\40299571\\AppData\\Local\\Packages\\OpenAI.Codex_2p2nqsd0c76g0\\LocalCache\\Roaming\\com.solosoul.rf312perf.93210c6ea6a9458fb1b3e112150ee766",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\app-data",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\models",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\plugins",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\profile",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\temp",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\webview",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\app-data",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\models",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\plugins",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\profile",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\temp",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\webview",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\app-data",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\models",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\plugins",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\profile",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\temp",
+      "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\webview"
+    ],
+    "unlinkedCacheEntries": [
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "linkType": "Junction",
+        "targets": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+        ]
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "linkType": "Junction",
+        "targets": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+        ]
+      },
+      {
+        "path": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.IE5",
+        "linkType": "Junction",
+        "targets": [
+          "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\profile\\AppData\\Local\\Microsoft\\Windows\\INetCache\\IE"
+        ]
+      }
+    ],
+    "preservedLogs": [
+      {
+        "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\app-data\\logs\\app.log",
+        "copy": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001\\preserved-app-logs\\app.log",
+        "sha256": "5fd82b7db53c36be050a5f7e946f34505e200a81924fe50b8c30d3f9a1aa5b77"
+      },
+      {
+        "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\app-data\\logs\\app.log",
+        "copy": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002\\preserved-app-logs\\app.log",
+        "sha256": "e3632cfcbd0ae1dcb7d0450def05237011a9076ab952d80d685c5bfc3f39b528"
+      },
+      {
+        "source": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\app-data\\logs\\app.log",
+        "copy": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003\\preserved-app-logs\\app.log",
+        "sha256": "78920bccc8f476fd9ca697fa877dde3b5b2d6d1d6d9a951e3e0758ffbf6dcd7b"
+      }
+    ],
+    "preserved": [
+      "Vault",
+      "all proofs and reports",
+      "all EXEs and resources",
+      "source fixtures"
+    ],
+    "processesTerminated": 0,
+    "complete": true
+  },
+  "postCleanup": {
+    "at": "2026-10-05T21:20:15.809497+00:00",
+    "group": "samples5000",
+    "complete": true,
+    "verifiedIdentities": 27,
+    "removedCachePaths": 24,
+    "unlinkedEntries": 3,
+    "preservedLogs": 3,
+    "roots": [
+      {
+        "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-001",
+        "vaultFilesUnchanged": 13,
+        "publicInputUnchanged": true
+      },
+      {
+        "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-002",
+        "vaultFilesUnchanged": 13,
+        "publicInputUnchanged": true
+      },
+      {
+        "root": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-ocr-after-rf1095-20261005\\samples5000\\sample-003",
+        "vaultFilesUnchanged": 13,
+        "publicInputUnchanged": true
+      }
+    ],
+    "inputsUnchanged": 459,
+    "publicFilesUnchanged": 171,
+    "resourcesUnchanged": 94,
+    "previousExesPreserved": 9,
+    "processesTerminated": 0
+  },
+  "priorFailedGroups": "rf312-windows-first-ocr-2026-10-05.json",
+  "priorFailureDisposition": "Both failed 5000 groups retain null metrics and all original proof; new complete group does not replace their failure records",
+  "limitations": [
+    "n=3 P95 is the maximum observation, not an estimate of general tail latency",
+    "Metrics include model loading, inference, React rendering, SDK and observation overhead",
+    "First per process on a fresh profile; no OS cache clearing or cold-cache claim",
+    "DOM/two-frame/viewport readiness, not screenshot-pixel or DWM proof",
+    "This successful group after batching does not establish the complete cause or universal resolution of earlier sampler timeouts",
+    "Original intermittent home timeout, KDF/storage/React/SDK stage attribution and full multi-platform baselines remain pending"
+  ],
+  "rf312Complete": false,
+  "rawIndex": "rf312-windows-first-ocr-after-batching-2026-10-05/index.json",
+  "docChecks": {
+    "doc-format": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--write",
+        "../docs/performance/RF-312-native-first-ocr.md",
+        "../docs/performance/rf312-windows-first-ocr-after-batching-2026-10-05.json",
+        "../docs/performance/rf312-windows-first-ocr-after-batching-2026-10-05/index.json"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 1.4419968128204346,
+      "finishedAt": "2026-10-05T21:23:19.370782+00:00"
+    },
+    "doc-boundary": {
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "exitCode": 0,
+      "elapsedSeconds": 32.01265025138855,
+      "finishedAt": "2026-10-05T21:23:51.390928+00:00"
+    },
+    "diff-check": {
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "elapsedSeconds": 0.49575352668762207,
+      "finishedAt": "2026-10-05T21:23:51.887526+00:00"
+    }
+  },
+  "docReview": {
+    "at": "2026-10-05T21:23:57.969383+00:00",
+    "taskRows": 285,
+    "statusCounts": {
+      "[x]": 276,
+      "[!]": 3,
+      "[ ]": 6,
+      "[~]": 0
+    },
+    "localLinksValid": 196,
+    "rawOriginalCountsVerified": {
+      "docs/performance/rf312-windows-first-ocr-after-batching-2026-10-05": 66,
+      "docs/performance/rf1095-ordinary-owned-cim-2026-10-05": 101,
+      "docs/performance/rf312-windows-first-ocr-2026-10-05": 344,
+      "docs/verification/rf1094-general-ocr-2026-10-05": 83
+    },
+    "inputsUnchanged": 459,
+    "rf312Complete": false
+  }
+}
