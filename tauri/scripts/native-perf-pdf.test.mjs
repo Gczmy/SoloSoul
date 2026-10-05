@@ -245,3 +245,120 @@ test('actual viewer expression rejects replaced document and does not call its m
   assert.equal(result.viewerPresent, false);
   assert.equal(result.loadSucceeded, null);
 });
+
+function targetInputs(withSession = true) {
+  const i = inputs();
+  const target = (id, type, urlClass) => ({
+    id,
+    type,
+    urlClass,
+    attached: true,
+    parentId: null,
+    openerId: null,
+    parentFrameId: null,
+    browserContextId: null,
+  });
+  const main = target('APP', 'page', 'application'),
+    pdf = target('DOC', 'iframe', 'owned-pdf');
+  const state = {
+    schemaVersion: 1,
+    scope: 'windows-native-sdk-pdf-viewer-candidate',
+    documentMatches: true,
+    viewerPresent: true,
+    loadSucceededMethodPresent: true,
+    loadSucceeded: true,
+    documentDimensionsPresent: true,
+    pageCount: 2,
+    paintedFrames: 2,
+    timeOriginMs: 150,
+  };
+  i.proof.pdfDiagnostic.schemaVersion = 2;
+  i.proof.pdfDiagnostic.targetDiagnostic = {
+    schemaVersion: 1,
+    scope: 'windows-native-sdk-pdf-related-targets',
+    mainTarget: main,
+    snapshots: Array.from({ length: 4 }, (_, snapshotIndex) => ({
+      snapshotIndex,
+      mainVerified: true,
+      targets: withSession ? [main, pdf] : [main],
+    })),
+    relatedSessions: withSession
+      ? [{ sessionId: 'SESSION', parentSessionId: '', target: pdf, active: false, enabled: true }]
+      : [],
+    candidates: withSession
+      ? [
+          {
+            snapshotIndex: 0,
+            sessionId: 'SESSION',
+            targetId: 'DOC',
+            frame: { id: 'F', loaderId: 'L', urlClass: 'owned-pdf' },
+            state,
+          },
+        ]
+      : [],
+    sessionCalls: withSession
+      ? [
+          'Runtime.enable',
+          'Target.getTargetInfo',
+          'Page.getFrameTree',
+          'Runtime.evaluate',
+          'Page.getFrameTree',
+        ].map((method) => ({ sessionId: 'SESSION', method }))
+      : [],
+    eventCount: withSession ? 2 : 0,
+    autoAttachCleaned: true,
+    watcherCleaned: true,
+  };
+  i.proof.calls.push(
+    'Target.getTargetInfo',
+    'Target.setAutoAttach',
+    ...Array.from({ length: 4 }, () => ['Target.getTargetInfo', 'Target.getTargets']).flat(),
+    ...i.proof.pdfDiagnostic.targetDiagnostic.sessionCalls.map((c) => c.method),
+    'Target.setAutoAttach',
+  );
+  return i;
+}
+test('PDF v2 accepts bounded direct sessions or empty topology without claiming rendering', () => {
+  for (const withSession of [true, false]) {
+    const i = targetInputs(withSession);
+    assert.equal(checkPdfDiagnostic(i.proof, i.owned, i.bound, i.fixture), i.proof);
+    assert.equal(i.proof.pdfDiagnostic.renderVerified, false);
+  }
+});
+test('PDF v2 refuses foreign, repeated, active or unlisted session identities', () => {
+  for (const update of [
+    (d) => (d.relatedSessions[0].parentSessionId = 'FOREIGN'),
+    (d) => d.relatedSessions.push(structuredClone(d.relatedSessions[0])),
+    (d) => (d.relatedSessions[0].active = true),
+    (d) => (d.relatedSessions[0].target.id = 'APP'),
+    (d) => (d.candidates[0].sessionId = 'FOREIGN'),
+    (d) => (d.candidates[0].targetId = 'FOREIGN'),
+    (d) => d.snapshots[0].targets.pop(),
+    (d) => (d.snapshots[0].targets[1].urlClass = 'other'),
+    (d) => d.candidates.push(structuredClone(d.candidates[0])),
+    (d) => (d.candidates[0].frame.loaderId = 'BAD SPACE'),
+  ]) {
+    const i = targetInputs();
+    update(i.proof.pdfDiagnostic.targetDiagnostic);
+    assert.throws(() => checkPdfDiagnostic(i.proof, i.owned, i.bound, i.fixture));
+  }
+});
+test('PDF v2 refuses target payload leakage, unsafe methods and cleanup failures', () => {
+  for (const update of [
+    (d) => (d.mainTarget.url = 'PRIVATE'),
+    (d) => (d.relatedSessions[0].target.title = 'PRIVATE'),
+    (d) => (d.sessionCalls[0].method = 'Input.dispatchMouseEvent'),
+    (d) => (d.sessionCalls[0].method = 'Target.createTarget'),
+    (d) => (d.sessionCalls[0].sessionId = 'FOREIGN'),
+    (d) => (d.autoAttachCleaned = false),
+    (d) => (d.watcherCleaned = false),
+    (d) => (d.candidates[0].state.documentMatches = false),
+    (d) => (d.candidates[0].state.loadSucceededMethodPresent = false),
+    (d) => (d.eventCount = 65),
+    (d) => (d.snapshots[0].mainVerified = false),
+  ]) {
+    const i = targetInputs();
+    update(i.proof.pdfDiagnostic.targetDiagnostic);
+    assert.throws(() => checkPdfDiagnostic(i.proof, i.owned, i.bound, i.fixture));
+  }
+});

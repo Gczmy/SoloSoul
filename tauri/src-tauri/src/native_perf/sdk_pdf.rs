@@ -10,9 +10,14 @@ use std::io::Write;
 use std::sync::{atomic::Ordering, Arc, Mutex};
 use std::time::Duration;
 use tokio::sync::oneshot;
-use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2DevToolsProtocolEventReceiver;
+use webview2_com::Microsoft::Web::WebView2::Win32::{
+    ICoreWebView2DevToolsProtocolEventReceivedEventArgs2,
+    ICoreWebView2DevToolsProtocolEventReceiver,
+};
 use webview2_com::{CoTaskMemPWSTR, DevToolsProtocolEventReceivedEventHandler};
-use windows::core::{PCWSTR, PWSTR};
+use windows::core::{Interface, PCWSTR, PWSTR};
+#[path = "sdk_pdf_targets.rs"]
+mod targets;
 const DOM: &str = include_str!("sdk_pdf_dom.js");
 const VIEWER: &str = include_str!("sdk_pdf_viewer.js");
 const APP: &str = "http://tauri.localhost/settings/attachments";
@@ -108,8 +113,21 @@ async fn watch(c: &Capture, events: Arc<Mutex<Vec<Value>>>) -> Outcome<()> {
                         .map_err(|_| "pdf-context-watch-unavailable")?;
                 let handler =
                     DevToolsProtocolEventReceivedEventHandler::create(Box::new(move |_, args| {
-                        let parsed = (|| -> Outcome<Value> {
+                        let parsed = (|| -> Outcome<Option<Value>> {
                             let args = args.ok_or("pdf-context-event-invalid")?;
+                            let args2 = args
+                                .cast::<ICoreWebView2DevToolsProtocolEventReceivedEventArgs2>()
+                                .map_err(|_| "pdf-context-session-unavailable")?;
+                            let mut session = PWSTR::null();
+                            let hr = unsafe { args2.SessionId(&mut session) };
+                            let owned = CoTaskMemPWSTR::from(session);
+                            hr.map_err(|_| "pdf-context-event-invalid")?;
+                            let session = unsafe { targets::session_id(session) }?;
+                            drop(owned);
+                            // 该订阅只归档主session上下文；子session由broker独立绑定。
+                            if !session.is_empty() {
+                                return Ok(None);
+                            }
                             let mut raw = PWSTR::null();
                             let hr = unsafe { args.ParameterObjectAsJson(&mut raw) };
                             // SDK分配的字符串由RAII释放；先限制长度，再复制JSON。
@@ -117,10 +135,11 @@ async fn watch(c: &Capture, events: Arc<Mutex<Vec<Value>>>) -> Outcome<()> {
                             hr.map_err(|_| "pdf-context-event-invalid")?;
                             let value = unsafe { bounded_callback_json(&PCWSTR(raw.0)) }?;
                             drop(owned);
-                            context_event(&value)
+                            context_event(&value).map(Some)
                         })();
                         match (parsed, events.lock()) {
-                            (Ok(value), Ok(mut list)) if list.len() < 64 => list.push(value),
+                            (Ok(Some(value)), Ok(mut list)) if list.len() < 64 => list.push(value),
+                            (Ok(None), _) => {}
                             _ => invalid.store(true, Ordering::SeqCst),
                         }
                         Ok(())
@@ -284,13 +303,19 @@ fn candidate(raw: &Value) -> Outcome<Value> {
     }
     Ok(v.clone())
 }
-async fn inspect(c: &mut Capture, events: &Arc<Mutex<Vec<Value>>>, pdf: &str) -> Outcome<()> {
+async fn inspect(
+    c: &mut Capture,
+    events: &Arc<Mutex<Vec<Value>>>,
+    pdf: &str,
+    broker: &mut targets::Broker,
+) -> Outcome<()> {
     let target = dom(c, "target", pdf).await?;
     let tree = c.protocol("Page.getFrameTree", json!({})).await?;
     parse_frame(&tree, APP)?;
     let expected = c.frame.clone().ok_or("pdf-binding-unavailable")?;
     topology(&tree, &expected, pdf)?;
     c.pdf_frame_window.store(true, Ordering::SeqCst);
+    broker.start(c, pdf).await?;
     for kind in ["mousePressed", "mouseReleased"] {
         c.protocol("Input.dispatchMouseEvent",json!({"type":kind,"x":target["target"]["x"],"y":target["target"]["y"],"button":"left","clickCount":1})).await?;
     }
@@ -355,6 +380,7 @@ async fn inspect(c: &mut Capture, events: &Arc<Mutex<Vec<Value>>>, pdf: &str) ->
                 .unwrap()
                 .push(json!({"snapshotIndex":snapshot_index,"context":context,"state":value}));
         }
+        broker.sample(c, pdf, snapshot_index).await?;
     }
     let raw = c
         .protocol(
@@ -419,22 +445,28 @@ pub(super) async fn diagnose(c: &mut Capture) -> Outcome<()> {
         encoded_component(file.to_str().ok_or("pdf-prelaunch-resource-unavailable")?)
     );
     c.pdf_diagnostic = Some(
-        json!({"schemaVersion":1,"scope":"windows-native-sdk-public-pdf-capability","assetSha256":"ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe","renderVerified":false,"performanceMetrics":null,"frameSnapshots":[],"contexts":[],"readinessCandidates":[],"openedDom":null,"closedDom":null,"screenshot":null,"mainVerifiedAfterClose":false,"frameCreatedEvents":0,"contextWatchCleaned":false}),
+        json!({"schemaVersion":2,"scope":"windows-native-sdk-public-pdf-capability","assetSha256":"ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe","renderVerified":false,"performanceMetrics":null,"frameSnapshots":[],"contexts":[],"readinessCandidates":[],"openedDom":null,"closedDom":null,"screenshot":null,"mainVerifiedAfterClose":false,"frameCreatedEvents":0,"contextWatchCleaned":false,"targetDiagnostic":targets::empty()}),
     );
     let events = Arc::new(Mutex::new(vec![]));
     watch(c, events.clone()).await?;
+    let mut broker = targets::Broker::new();
     let outcome = async {
         c.protocol("Runtime.enable", json!({})).await?;
-        inspect(c, &events, &pdf).await
+        inspect(c, &events, &pdf, &mut broker).await
     }
     .await;
+    let target_cleanup = broker.finish(c).await;
     c.pdf_frame_window.store(false, Ordering::SeqCst);
     let cleanup = unwatch(c).await;
     c.pdf_diagnostic.as_mut().unwrap()["contextWatchCleaned"] = json!(cleanup.is_ok());
+    // 两族订阅清理都执行，不因其中一次失败而遗留另一族。
+    let runtime_cleanup = c.protocol("Runtime.disable", json!({})).await;
+    outcome?;
+    target_cleanup?;
     cleanup?;
     // 诊断的固定协议订阅结束；旧输入与只读测量从未启用它。
-    c.protocol("Runtime.disable", json!({})).await?;
-    outcome
+    runtime_cleanup?;
+    Ok(())
 }
 #[cfg(test)]
 mod tests {

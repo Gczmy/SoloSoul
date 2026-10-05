@@ -1,6 +1,6 @@
 # SoloSoul 重构修复执行报告
 
-> 最后更新：2026-10-05（RF-312 Windows图片/文本预览与PDF能力诊断已验收；继续PDF就绪门禁、OCR与归因）
+> 最后更新：2026-10-05（RF-312 Windows PDF相关目标/session诊断已验收；继续组件webview、PDF就绪、OCR与归因）
 > 当前分支：`codex/rf312-warm-start`；调查基线：`f77c0e20`，执行时重新读取 HEAD。
 > 修复轮次：第 1 轮，执行中。Cua 接入继续暂缓。
 
@@ -122,7 +122,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 
 - 任务总数：**283**（P1：51；P2：231；P3：1）。
 - 已关闭：**274 / 283**；实际修复（已关闭）：274；排除：0；待验证/阻塞：3（RF-112、RF-121、RF-312）；暂缓：0；进行中：0；待执行：6。原计划 90 项，执行中新增 RF-900、RF-901、RF-902、RF-903、RF-905、RF-906、RF-907、RF-908、RF-909、RF-910、RF-911、RF-912、RF-913、RF-914、RF-915、RF-916、RF-917、RF-918、RF-919、RF-920、RF-921、RF-922、RF-923、RF-924、RF-925、RF-926、RF-927、RF-928、RF-929、RF-930、RF-931、RF-932、RF-933、RF-934、RF-935、RF-936、RF-937、RF-938、RF-939、RF-940、RF-941、RF-942、RF-943、RF-944、RF-945、RF-946、RF-947、RF-948、RF-949、RF-950、RF-951、RF-952、RF-953、RF-954、RF-955、RF-956、RF-957、RF-958、RF-959、RF-960、RF-961、RF-962、RF-963、RF-964、RF-965、RF-966、RF-967、RF-968、RF-969、RF-970、RF-971、RF-972、RF-973、RF-974、RF-975、RF-976、RF-977、RF-978、RF-979、RF-980、RF-981、RF-982、RF-983、RF-984、RF-985、RF-986、RF-987、RF-988、RF-989、RF-990、RF-991、RF-992、RF-993、RF-994、RF-995、RF-996、RF-997、RF-998、RF-999、RF-1000、RF-1001、RF-1002、RF-1003、RF-1004、RF-1005、RF-1006、RF-1007、RF-1008、RF-1009、RF-1010、RF-1011、RF-1012、RF-1013、RF-1014、RF-1015、RF-1016、RF-1017、RF-1018、RF-1019、RF-1020、RF-1021、RF-1022、RF-1023、RF-1024、RF-1025、RF-1026、RF-1027、RF-1028、RF-1029、RF-1030、RF-1031、RF-1032、RF-1033、RF-1034、RF-1035、RF-1036、RF-1038、RF-1037、RF-1039、RF-1040、RF-1041、RF-1042、RF-1043、RF-1044、RF-1045、RF-1046、RF-1047、RF-1048、RF-1049、RF-1050、RF-1051、RF-1052、RF-1053、RF-1054、RF-1055、RF-1056、RF-1057、RF-1058、RF-1059、RF-1060、RF-1061、RF-1062、RF-1064、RF-1065、RF-1063、RF-1066、RF-1067、RF-1068、RF-1069、RF-1070、RF-1071、RF-1072、RF-1073、RF-1074、RF-1075、RF-1076、RF-1077、RF-1078、RF-1079、RF-1080、RF-1081、RF-1082、RF-1083、RF-1084、RF-1085、RF-1086、RF-1087、RF-1088、RF-1089、RF-1090、RF-1091、RF-1092、RF-1093（RF-904 仅保留编号，改密目录疑点尚待真实复现，未登记为任务）。
-- 当前处理：**RF-312：Windows原生PDF就绪门禁、首次OCR及KDF/存储/React/SDK性能归因；图片/文本预览与PDF能力诊断已验收，原偶发首页超时保留未解决记录**。
+- 当前处理：**RF-312：Windows原生PDF组件webview与就绪门禁、首次OCR及KDF/存储/React/SDK性能归因；图片/文本预览、PDF能力与相关session诊断已验收，原偶发首页超时保留未解决记录**。
 - 编号按领域分段，不代表优先级；下表已按依赖和风险排序。RF-101、RF-019 等基础项虽标 P2，可因 P1 依赖先执行。
 - 默认一项完成后再进入下一项；同文件关联任务串行实施。下表是初始推荐顺序，续跑时跳过已关闭项，对环境阻塞项保留记录并选择无依赖任务。
 
@@ -217,7 +217,7 @@ adb shell am instrument -w -e class com.solosoul.app.AndroidGlassInstrumentedTes
 | 87 | [RF-318](#rf-318) | P2 | 迁移备份与导入导出结构化错误 | [RF-304](#rf-304)、[RF-307](#rf-307) | [x] 完成 |
 | 88 | [RF-319](#rf-319) | P2 | 迁移同步结构化错误 | [RF-305](#rf-305)、[RF-307](#rf-307) | [x] 已关闭 |
 | 89 | [RF-320](#rf-320) | P2 | 迁移插件结构化错误 | [RF-306](#rf-306)、[RF-307](#rf-307) | [x] 已关闭 |
-| 90 | [RF-312](#rf-312) | P3 | 建立可重跑的性能基线与下一步决策 | 无 | [!] 待验证OCR/预览、系统睡眠与多端性能；公开媒体数据集、Windows图片/文本预览与PDF能力诊断、同profile启动、SDK六阶段及内存采样已通过 |
+| 90 | [RF-312](#rf-312) | P3 | 建立可重跑的性能基线与下一步决策 | 无 | [!] 待验证OCR/预览、系统睡眠与多端性能；公开媒体数据集、Windows图片/文本预览、PDF能力与相关session诊断、同profile启动、SDK六阶段及内存采样已通过 |
 | 91 | [RF-900](#rf-900) | P2 | CLI 中文断言测试显式隔离系统语言 | 无（Rust 任务验收前优先处理） | [x] 完成 |
 | 92 | [RF-901](#rf-901) | P2 | Windows GUI Rust 测试嵌入 Common Controls 清单 | 无（R 配置恢复前优先处理） | [x] 完成 |
 | 93 | [RF-902](#rf-902) | P2 | 生产启动冒烟使用当前桌面更新契约 | 无（生产包检查恢复前优先处理） | [x] 完成 |
@@ -6866,3 +6866,12 @@ git commit -m "<任务卡的提交标题>"
 - 主 session 实际没有 PDF 子 frame/context，四次快照均为空、候选零；人工可见不替代自动就绪或加载延迟验收。`diagnosticOnly=true`、`renderVerified=false`、`performanceMetrics=null`、汇总为空。下一本地项为受限 related target/session 调查及 PDF 就绪门禁，再继续 OCR 与归因。
 - fresh CIM 另核验 53 个记录进程身份及三个额外清理 PID 已退出，仅清理 48 个 owned 缓存目录、解除六个链接；全部 Vault、证明、截图、源码/资源冻结、公开源与旧构建保持。详细口径与[全部证据](performance/RF-312-native-pdf-diagnostic.md)可复核。
 - 本项独立本地提交，不推送。RF-312 仍 `[!]`，累计 274/283、3 待验证、6 待执行保持；RF-112/121 外部验收与 RF-122～127 前置不解除，goal 继续 active。
+
+
+### RF-312 Windows PDF 相关目标/session 诊断验收（2026-10-05）
+
+- 上一目标轮只核对剩余项，没有新增修复；重新核对健康工作副本与草稿后，接入有界直接相关 session broker。仅非默认 `native-perf` 的独立 PDF 模式启用；保持旧门禁、默认前端和依赖，主 session 与子 session 上下文分开归档，两族订阅清理均执行。v2 合同严格核验目标/session/快照、只读方法与清理，不写原始 URL、标题或正文；三份旧实际 v1 证明仍可离线核验。
+- 75 项原生回归、严格 Clippy、Rust/JS 格式/diff 均通过；Node 184 passed / 0 failed / 1 既有权限跳过。445 项输入、94 份资源绑定的新 Release exit0；100 对象三个新 owned 副本均完成诊断，每次 87 次 SDK 调用、17 次子 session 调用，事件与自动附加清理通过。
+- 实际直接相关 PDF iframe 四次候选文档一致，但没有 viewer API/加载状态/页数；另有 `component-extension` webview 的 parentId 指向主目标、browser context 相同、attached=false，其下另有 owned PDF iframe。下一步验证并受控附加该组件，未附加目标只分类记录，不将协议成功或人工截图当作自动就绪。
+- 三张截图字节相同、可见公开 PDF 正文和两页指示，与旧 v1 摘要相同；`diagnosticOnly=true`、`renderVerified=false`、`performanceMetrics=null`、空汇总保持。fresh CIM 核验 30 个身份退出，清理 24 个精确缓存目录并解除三个链接；全部 Vault、证明、截图、旧构建、公开源和 12 份副本附件密文保持。
+- [口径与全部证据](performance/RF-312-native-pdf-diagnostic.md)可复核。本阶段独立本地提交（本提交，以 RF-312 检索），不推送；RF-312 继续 `[!]`，累计 274/283、3 待验证、6 待执行保持。RF-112/121 与 RF-122～127 前置不解除，整体 goal 继续 active。

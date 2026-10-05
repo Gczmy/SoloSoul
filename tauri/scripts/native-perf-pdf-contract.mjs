@@ -17,6 +17,39 @@ const trust = (v) =>
   exact(v, ['pointer', 'text', 'untrusted']) &&
   Object.values(v).every((n) => Number.isSafeInteger(n) && n >= 0 && n <= 128) &&
   v.untrusted === 0;
+
+const viewerStateValid = (s) =>
+  !(
+    !exact(s, [
+      'schemaVersion',
+      'scope',
+      'documentMatches',
+      'viewerPresent',
+      'loadSucceededMethodPresent',
+      'loadSucceeded',
+      'documentDimensionsPresent',
+      'pageCount',
+      'paintedFrames',
+      'timeOriginMs',
+    ]) ||
+    s.schemaVersion !== 1 ||
+    s.scope !== 'windows-native-sdk-pdf-viewer-candidate' ||
+    s.documentMatches !== true ||
+    ['viewerPresent', 'loadSucceededMethodPresent', 'documentDimensionsPresent'].some(
+      (k) => typeof s[k] !== 'boolean',
+    ) ||
+    !(s.loadSucceeded === null || typeof s.loadSucceeded === 'boolean') ||
+    (s.loadSucceededMethodPresent === false && s.loadSucceeded !== null) ||
+    !(
+      s.pageCount === null ||
+      (Number.isInteger(s.pageCount) && s.pageCount >= 0 && s.pageCount <= 100)
+    ) ||
+    s.documentDimensionsPresent !== (s.pageCount !== null) ||
+    ![0, 2].includes(s.paintedFrames) ||
+    (s.paintedFrames === 2 && s.loadSucceeded !== true) ||
+    !Number.isFinite(s.timeOriginMs) ||
+    s.timeOriginMs <= 0
+  );
 export function checkPdfDiagnostic(v, owned, bound, fixture) {
   if (
     !exact(v, [
@@ -76,6 +109,9 @@ export function checkPdfDiagnostic(v, owned, bound, fixture) {
           'Page.captureScreenshot',
           'Input.dispatchMouseEvent',
           'Input.insertText',
+          ...(v.pdfDiagnostic?.schemaVersion === 2
+            ? ['Target.getTargetInfo', 'Target.getTargets', 'Target.setAutoAttach']
+            : []),
         ].includes(m),
     ) ||
     v.calls.filter((m) => m === 'Input.insertText').length !== 1 ||
@@ -105,8 +141,9 @@ export function checkPdfDiagnostic(v, owned, bound, fixture) {
       'mainVerifiedAfterClose',
       'frameCreatedEvents',
       'contextWatchCleaned',
+      ...(d?.schemaVersion === 2 ? ['targetDiagnostic'] : []),
     ]) ||
-    d.schemaVersion !== 1 ||
+    ![1, 2].includes(d.schemaVersion) ||
     d.scope !== 'windows-native-sdk-public-pdf-capability' ||
     d.assetSha256 !== 'ca60313e25ffa64f848d86780201a9570a0dbcb3bf733bfb5e4a65ed73f4fdfe' ||
     d.renderVerified !== false ||
@@ -178,34 +215,7 @@ export function checkPdfDiagnostic(v, owned, bound, fixture) {
           f.urlClass === c.originClass &&
           ['owned-pdf', 'component-extension'].includes(f.urlClass),
       ) ||
-      !exact(s, [
-        'schemaVersion',
-        'scope',
-        'documentMatches',
-        'viewerPresent',
-        'loadSucceededMethodPresent',
-        'loadSucceeded',
-        'documentDimensionsPresent',
-        'pageCount',
-        'paintedFrames',
-        'timeOriginMs',
-      ]) ||
-      s.schemaVersion !== 1 ||
-      s.scope !== 'windows-native-sdk-pdf-viewer-candidate' ||
-      s.documentMatches !== true ||
-      ['viewerPresent', 'loadSucceededMethodPresent', 'documentDimensionsPresent'].some(
-        (k) => typeof s[k] !== 'boolean',
-      ) ||
-      !(s.loadSucceeded === null || typeof s.loadSucceeded === 'boolean') ||
-      !(
-        s.pageCount === null ||
-        (Number.isInteger(s.pageCount) && s.pageCount >= 0 && s.pageCount <= 100)
-      ) ||
-      s.documentDimensionsPresent !== (s.pageCount !== null) ||
-      ![0, 2].includes(s.paintedFrames) ||
-      (s.paintedFrames === 2 && s.loadSucceeded !== true) ||
-      !Number.isFinite(s.timeOriginMs) ||
-      s.timeOriginMs <= 0
+      !viewerStateValid(s)
     )
       throw new Error('PDF renderer candidate proof rejected');
     const seen = observed[candidate.snapshotIndex];
@@ -267,5 +277,147 @@ export function checkPdfDiagnostic(v, owned, bound, fixture) {
     screenshot.scope !== 'owned-public-fixture-WebView-pixels; excludes-DWM'
   )
     throw new Error('PDF screenshot proof rejected');
+  if (d.schemaVersion === 2) checkRelatedTargets(d.targetDiagnostic, v.calls);
   return v;
+}
+
+const URL_CLASSES = ['application', 'owned-pdf', 'component-extension', 'blank', 'other'];
+const SESSION_METHODS = [
+  'Runtime.enable',
+  'Runtime.disable',
+  'Runtime.evaluate',
+  'Page.getFrameTree',
+  'Target.getTargetInfo',
+];
+const targetValid = (t) =>
+  exact(t, [
+    'id',
+    'type',
+    'urlClass',
+    'attached',
+    'parentId',
+    'openerId',
+    'parentFrameId',
+    'browserContextId',
+  ]) &&
+  id(t.id) &&
+  ['page', 'iframe', 'webview', 'other'].includes(t.type) &&
+  URL_CLASSES.includes(t.urlClass) &&
+  typeof t.attached === 'boolean' &&
+  ['parentId', 'openerId', 'parentFrameId', 'browserContextId'].every(
+    (k) => t[k] === null || id(t[k]),
+  );
+function checkRelatedTargets(d, calls) {
+  if (
+    !exact(d, [
+      'schemaVersion',
+      'scope',
+      'mainTarget',
+      'snapshots',
+      'relatedSessions',
+      'candidates',
+      'sessionCalls',
+      'eventCount',
+      'autoAttachCleaned',
+      'watcherCleaned',
+    ]) ||
+    d.schemaVersion !== 1 ||
+    d.scope !== 'windows-native-sdk-pdf-related-targets' ||
+    !targetValid(d.mainTarget) ||
+    d.mainTarget.type !== 'page' ||
+    d.mainTarget.urlClass !== 'application' ||
+    !Array.isArray(d.snapshots) ||
+    d.snapshots.length !== 4 ||
+    !Array.isArray(d.relatedSessions) ||
+    d.relatedSessions.length > 4 ||
+    !Array.isArray(d.candidates) ||
+    d.candidates.length > 8 ||
+    !Array.isArray(d.sessionCalls) ||
+    d.sessionCalls.length > 64 ||
+    !Number.isSafeInteger(d.eventCount) ||
+    d.eventCount < 0 ||
+    d.eventCount > 64 ||
+    d.autoAttachCleaned !== true ||
+    d.watcherCleaned !== true ||
+    calls.filter((m) => m === 'Target.setAutoAttach').length !== 2 ||
+    calls.filter((m) => m === 'Target.getTargets').length !== 4
+  )
+    throw new Error('PDF related-target scope or cleanup rejected');
+  for (const [index, snapshot] of d.snapshots.entries()) {
+    if (
+      !exact(snapshot, ['snapshotIndex', 'mainVerified', 'targets']) ||
+      snapshot.snapshotIndex !== index ||
+      snapshot.mainVerified !== true ||
+      !Array.isArray(snapshot.targets) ||
+      snapshot.targets.length > 8 ||
+      snapshot.targets.some((t) => !targetValid(t)) ||
+      new Set(snapshot.targets.map((t) => t.id)).size !== snapshot.targets.length ||
+      !snapshot.targets.some(
+        (t) => t.id === d.mainTarget.id && t.type === 'page' && t.urlClass === 'application',
+      )
+    )
+      throw new Error('PDF observed target snapshot rejected');
+  }
+  const sessions = new Map(),
+    targets = new Set();
+  for (const row of d.relatedSessions) {
+    if (
+      !exact(row, ['sessionId', 'parentSessionId', 'target', 'active', 'enabled']) ||
+      !id(row.sessionId) ||
+      row.parentSessionId !== '' ||
+      !targetValid(row.target) ||
+      row.target.id === d.mainTarget.id ||
+      row.active !== false ||
+      typeof row.enabled !== 'boolean' ||
+      sessions.has(row.sessionId) ||
+      targets.has(row.target.id)
+    )
+      throw new Error('PDF direct related-session identity rejected');
+    sessions.set(row.sessionId, row);
+    targets.add(row.target.id);
+  }
+  const seen = Array.from({ length: 4 }, () => new Set());
+  for (const c of d.candidates) {
+    const row = sessions.get(c.sessionId),
+      f = c.frame;
+    if (
+      !exact(c, ['snapshotIndex', 'sessionId', 'targetId', 'frame', 'state']) ||
+      !Number.isInteger(c.snapshotIndex) ||
+      c.snapshotIndex < 0 ||
+      c.snapshotIndex > 3 ||
+      !row ||
+      row.enabled !== true ||
+      c.targetId !== row.target.id ||
+      !exact(f, ['id', 'loaderId', 'urlClass']) ||
+      !id(f.id) ||
+      !id(f.loaderId) ||
+      !['owned-pdf', 'component-extension'].includes(f.urlClass) ||
+      !d.snapshots[c.snapshotIndex].targets.some(
+        (t) =>
+          t.id === c.targetId &&
+          ['page', 'iframe', 'webview'].includes(t.type) &&
+          t.urlClass === f.urlClass,
+      ) ||
+      !viewerStateValid(c.state) ||
+      seen[c.snapshotIndex].has(c.sessionId) ||
+      seen[c.snapshotIndex].size >= 2
+    )
+      throw new Error('PDF session candidate binding rejected');
+    seen[c.snapshotIndex].add(c.sessionId);
+  }
+  for (const call of d.sessionCalls) {
+    if (
+      !exact(call, ['sessionId', 'method']) ||
+      !sessions.has(call.sessionId) ||
+      !SESSION_METHODS.includes(call.method)
+    )
+      throw new Error('PDF session method or identity rejected');
+  }
+  for (const method of SESSION_METHODS) {
+    if (
+      d.sessionCalls.filter((c) => c.method === method).length >
+      calls.filter((m) => m === method).length
+    )
+      throw new Error('PDF session calls exceed actual SDK trace');
+  }
 }

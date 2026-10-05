@@ -107,7 +107,11 @@ export async function journeyBinaryPreflight(exe, media = false, pdfDiagnostic =
   const required = media
     ? ['--native-perf-media-prepare', 'windows-native-sdk-media-journey-requested']
     : [MARKER];
-  if (pdfDiagnostic) required.push('windows-native-sdk-pdf-diagnostic-requested');
+  if (pdfDiagnostic)
+    required.push(
+      'windows-native-sdk-pdf-diagnostic-requested',
+      'windows-native-sdk-pdf-target-diagnostic-requested',
+    );
   const found = new Set();
   const overlap = Math.max(...required.map((s) => s.length));
   let tail = '';
@@ -544,6 +548,8 @@ async function sample(options, index, shouldStop) {
       ? checkPdfDiagnostic(result.nativeProof, owned, bound, options.manifest)
       : checkJourney(result.nativeProof, owned, bound, options.manifest, options.media);
     if (options.pdfDiagnostic) {
+      if (proof.pdfDiagnostic.schemaVersion !== 2)
+        throw new Error('Current PDF diagnostic requires related-target evidence');
       const screenshot = proof.pdfDiagnostic.screenshot;
       const file = path.join(root, screenshot.fileName);
       const stat = await lstat(file);

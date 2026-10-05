@@ -13,7 +13,8 @@ use tauri::{webview::PageLoadPayload, Manager, WebviewWindow};
 use tokio::sync::oneshot;
 use webview2_com::Microsoft::Web::WebView2::Win32::{
     ICoreWebView2CallDevToolsProtocolMethodCompletedHandler,
-    ICoreWebView2CallDevToolsProtocolMethodCompletedHandler_Impl, ICoreWebView2_4,
+    ICoreWebView2CallDevToolsProtocolMethodCompletedHandler_Impl, ICoreWebView2_11,
+    ICoreWebView2_4,
 };
 use webview2_com::{
     FrameCreatedEventHandler, NavigationStartingEventHandler, ProcessFailedEventHandler,
@@ -201,8 +202,57 @@ struct Capture {
     timeout_diagnostic: Option<Value>,
     step: &'static str,
 }
+fn pdf_session_allowed(
+    pdf: bool,
+    startup: bool,
+    window: bool,
+    session: &str,
+    method: &str,
+) -> bool {
+    pdf && !startup
+        && window
+        && !session.is_empty()
+        && session.len() <= 128
+        && session
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b"_-.:".contains(&b))
+        && matches!(
+            method,
+            "Runtime.enable"
+                | "Runtime.disable"
+                | "Runtime.evaluate"
+                | "Page.getFrameTree"
+                | "Target.getTargetInfo"
+        )
+}
 impl Capture {
     async fn protocol(&mut self, method: &'static str, parameters: Value) -> Outcome<Value> {
+        self.protocol_inner(None, method, parameters).await
+    }
+    async fn pdf_session(
+        &mut self,
+        session: &str,
+        method: &'static str,
+        parameters: Value,
+    ) -> Outcome<Value> {
+        if !pdf_session_allowed(
+            self.config.pdf_diagnostic,
+            self.config.startup.is_some(),
+            self.pdf_frame_window.load(Ordering::SeqCst),
+            session,
+            method,
+        ) {
+            return Err("pdf-session-call-forbidden");
+        }
+        self.protocol_inner(Some(session.to_owned()), method, parameters)
+            .await
+    }
+    async fn protocol_inner(
+        &mut self,
+        session: Option<String>,
+        method: &'static str,
+        parameters: Value,
+    ) -> Outcome<Value> {
         if self.config.startup.is_some()
             && !matches!(method, "Runtime.evaluate" | "Page.getFrameTree")
         {
@@ -257,6 +307,17 @@ impl Capture {
                     .encode_utf16()
                     .chain(Some(0))
                     .collect();
+                let session_core = if session.is_some() {
+                    match core.cast::<ICoreWebView2_11>() {
+                        Ok(core) => Some(core),
+                        Err(_) => {
+                            fail(sender, "pdf-session-interface-unavailable");
+                            return;
+                        }
+                    }
+                } else {
+                    None
+                };
                 let completion: ICoreWebView2CallDevToolsProtocolMethodCompletedHandler =
                     Completion {
                         sender: RefCell::new(Some(sender)),
@@ -266,11 +327,21 @@ impl Capture {
                     .into();
                 // HRESULT失败时丢弃handler会关闭oneshot；调用方固定拒绝，不重试。
                 let _ = unsafe {
-                    core.CallDevToolsProtocolMethod(
-                        PCWSTR(method_wide.as_ptr()),
-                        PCWSTR(parameter_wide.as_ptr()),
-                        &completion,
-                    )
+                    if let (Some(session_core), Some(session)) = (session_core, session) {
+                        let session_wide: Vec<_> = session.encode_utf16().chain(Some(0)).collect();
+                        session_core.CallDevToolsProtocolMethodForSession(
+                            PCWSTR(session_wide.as_ptr()),
+                            PCWSTR(method_wide.as_ptr()),
+                            PCWSTR(parameter_wide.as_ptr()),
+                            &completion,
+                        )
+                    } else {
+                        core.CallDevToolsProtocolMethod(
+                            PCWSTR(method_wide.as_ptr()),
+                            PCWSTR(parameter_wide.as_ptr()),
+                            &completion,
+                        )
+                    }
                 };
             })
             .map_err(|_| "sdk-dispatch-failed")?;
@@ -976,6 +1047,27 @@ fn publish(root: &std::path::Path, name: &str, value: &Value) -> Outcome<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn pdf_session_calls_require_exclusive_active_window_and_read_only_methods() {
+        assert!(pdf_session_allowed(
+            true,
+            false,
+            true,
+            "SESSION",
+            "Runtime.evaluate"
+        ));
+        for (pdf, startup, window, session, method) in [
+            (false, false, true, "SESSION", "Runtime.evaluate"),
+            (true, true, true, "SESSION", "Runtime.evaluate"),
+            (true, false, false, "SESSION", "Runtime.evaluate"),
+            (true, false, true, "", "Runtime.evaluate"),
+            (true, false, true, "BAD SPACE", "Runtime.evaluate"),
+            (true, false, true, "SESSION", "Input.insertText"),
+            (true, false, true, "SESSION", "Target.createTarget"),
+        ] {
+            assert!(!pdf_session_allowed(pdf, startup, window, session, method));
+        }
+    }
     #[test]
     fn sdk_journey_only_allows_fixed_app_routes() {
         for source in [
