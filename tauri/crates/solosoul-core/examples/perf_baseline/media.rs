@@ -536,6 +536,32 @@ fn copy(path: &Path, output: &Path) -> Result<Value, String> {
     )
 }
 
+#[allow(dead_code)] // CLI 与非默认原生功能共享入口。
+pub(crate) fn native_manifest(path: &Path) -> Result<Value, String> {
+    let (_, m) = checked_input(path)?;
+    serde_json::to_value(m).map_err(|e| e.to_string())
+}
+#[allow(dead_code)] // CLI 与非默认原生功能共享入口。
+pub(crate) fn native_copy(source: &Path, output: &Path) -> Result<Value, String> {
+    copy(source, output)
+}
+
+#[cfg(test)]
+#[allow(dead_code)]
+pub(crate) fn native_test_fixture(path: &Path) -> Result<(), String> {
+    generate(path, 100)?;
+    let mut marker = fixture::read_json(&path.join(MARKER))?;
+    // 原生单测使用真实生产 KDF 的合成数据；Debug 构建仅改测试标记。
+    marker["baseFixture"]["buildProfile"] = json!("release");
+    fs::write(
+        path.join(MARKER),
+        serde_json::to_vec_pretty(&marker).map_err(|e| e.to_string())?,
+    )
+    .map_err(|e| e.to_string())?;
+    native_manifest(path)?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -680,3 +706,5 @@ mod tests {
             .contains("object content mismatch"));
     }
 }
+
+// 原生 benchmark 共用相同纯数据合同，默认应用不包含这些入口。

@@ -569,6 +569,7 @@ fn copied_runtime_config(parent: &Path) -> RuntimeConfig {
         chromium_log: None,
         sdk_cdp: false,
         sdk_journey: false,
+        media_journey: false,
         startup: None,
         object_count: 100,
     }
@@ -1069,6 +1070,7 @@ fn native_perf_sdk_cdp_is_exclusive_run_only_and_preserves_browser_flags() {
         Ok(Mode::Run {
             sdk_cdp: true,
             sdk_journey: false,
+            media_journey: false,
             chromium_log: false,
             ordinary_tmp: false,
             copied_runtime: None,
@@ -1234,5 +1236,104 @@ fn native_perf_warm_ticket_preserves_fixture_and_legacy_consume_and_is_one_use()
         )
         .unwrap(),
         serde_json::to_value(owner.fixture).unwrap()
+    );
+}
+
+#[test]
+fn native_perf_media_mode_is_explicit_and_exclusive() {
+    assert!(matches!(
+        parse_args(&args(&[
+            "--native-perf-media-prepare",
+            "C:/new",
+            "--fixture",
+            "C:/media"
+        ])),
+        Ok(Mode::MediaPrepare { .. })
+    ));
+    assert!(matches!(
+        parse_args(&args(&[
+            "--native-perf-root",
+            "C:/owned",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-journey",
+            "sdk-media"
+        ])),
+        Ok(Mode::Run {
+            media_journey: true,
+            sdk_journey: true,
+            startup_only: false,
+            ..
+        })
+    ));
+    for extra in [
+        args(&["--native-perf-restart", "startup"]),
+        args(&["--native-perf-diagnostics", "sdk-cdp"]),
+        args(&["--native-perf-journey", "sdk-input"]),
+    ] {
+        let mut run = args(&[
+            "--native-perf-root",
+            "C:/owned",
+            "--native-perf-port",
+            "9222",
+            "--native-perf-journey",
+            "sdk-media",
+        ]);
+        run.extend(extra);
+        assert!(parse_args(&run).is_err());
+    }
+    assert!(parse_args(&args(&[
+        "--native-perf-media-prepare",
+        "C:/new",
+        "--native-perf-prepare",
+        "C:/other",
+        "--fixture",
+        "C:/media"
+    ]))
+    .is_err());
+}
+#[test]
+fn native_perf_media_preparation_binds_raw_bytes_and_preserves_v1_rejection() {
+    let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+    let old = std::env::var_os("SOLOSOUL_SECURE");
+    std::env::set_var("SOLOSOUL_SECURE", "1");
+    let work = tempfile::tempdir().unwrap();
+    let source = work.path().join("source");
+    media_fixture::write_test_fixture(&source);
+    match old {
+        Some(v) => std::env::set_var("SOLOSOUL_SECURE", v),
+        None => std::env::remove_var("SOLOSOUL_SECURE"),
+    };
+    let folders = folders(work.path());
+    let marker_hash = sha256_file(&source.join("rf312-media-fixture.json")).unwrap();
+    let db_hash = sha256_file(&source.join("acc_rf312_100/vault.db")).unwrap();
+    let legacy = work.path().join("legacy-rejected");
+    assert!(prepare(&legacy, &source, &folders).is_err());
+    assert!(!legacy.exists());
+    let output = work.path().join("owned");
+    let value = prepare_mode(&output, &source, &folders, true).unwrap();
+    assert_eq!(value["success"], true);
+    let root = output.canonicalize().unwrap();
+    assert!(checked_manifest(&root, &folders).is_err());
+    let proof = checked_manifest_mode(&root, &folders, false, true).unwrap();
+    assert_eq!(proof.fixture.object_count, 100);
+    let file = root.join("vault/acc_rf312_100/vault.db");
+    let original = fs::read(&file).unwrap();
+    let mut tampered = original.clone();
+    tampered[100] ^= 1;
+    fs::write(&file, &tampered).unwrap();
+    assert!(consume_mode(&root, free_port(), &folders, true).is_err());
+    assert!(!root.join(CONSUMED_FILE).exists());
+    fs::write(&file, original).unwrap();
+    let config = consume_mode(&root, free_port(), &folders, true).unwrap();
+    assert!(config.media_journey);
+    assert!(consume_mode(&root, free_port(), &folders, true).is_err());
+    assert_eq!(
+        sha256_file(&source.join("rf312-media-fixture.json")).unwrap(),
+        marker_hash
+    );
+    assert_eq!(
+        sha256_file(&source.join("acc_rf312_100/vault.db")).unwrap(),
+        db_hash
     );
 }

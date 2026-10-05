@@ -1,7 +1,7 @@
 // RF-312 SDK固定UI探针：只返回公开fixture的结构、坐标与无payload的IPC计数。
 // 输入由原生Input协议发送；这里不调用click、写value或调用业务IPC。
 (async () => {
-  const { step, runId, objectCount, readOnlyStartup = false } = __REQUEST__;
+  const { step, runId, objectCount, readOnlyStartup = false, mediaJourney = false } = __REQUEST__;
   const expectedCards = Math.min(50, Math.ceil(objectCount / 20));
   const visible = (node) => {
     if (!node) return false;
@@ -35,7 +35,45 @@
     !document.getElementById('desktop-navigation') &&
     document.querySelectorAll('[data-login-card]').length === 1 &&
     document.querySelector('[data-login-card]').textContent.includes('Performance Fixture');
+  const publicText = 'RF-312 public synthetic attachment preview.\nHello SoloSoul 1234567890.\n';
+  const overlay = () =>
+    unique(
+      [...document.querySelectorAll('[data-testid="attachment-preview-overlay"]')].filter(visible),
+    );
+  const previewImage = () =>
+    overlay() && unique([...overlay().querySelectorAll('img[alt="ocr_test.png"]')].filter(visible));
+  const previewText = () =>
+    overlay() && unique([...overlay().querySelectorAll('pre')].filter(visible));
+  const mediaCard = () =>
+    unique(
+      [...document.querySelectorAll('[data-shell-content] [data-ui-card][role="button"]')].filter(
+        (node) =>
+          visible(node) &&
+          [...node.querySelectorAll('h1,h2,h3,h4,h5,h6')].some(
+            (title) => title.textContent.trim() === 'Attachments',
+          ),
+      ),
+    );
+  const previewButton = (name) => {
+    const checkbox = unique(
+      [...document.querySelectorAll('input[type="checkbox"]')].filter(
+        (node) => node.getAttribute('aria-label') === name,
+      ),
+    );
+    let row = checkbox?.parentElement;
+    while (row && row !== document.body) {
+      const buttons = [...row.querySelectorAll('button[title="Preview"]')].filter(visible);
+      if (buttons.length === 1) return buttons[0];
+      if (buttons.length > 1) return null;
+      row = row.parentElement;
+    }
+    return null;
+  };
   const targets = {
+    attachmentsCard: mediaCard,
+    imagePreview: () => previewButton('ocr_test.png'),
+    textPreview: () => previewButton('preview.txt'),
+    previewClose: () => button('[data-testid="attachment-preview-overlay"]', 'Close'),
     password: input,
     submit: () =>
       unique([...document.querySelectorAll('[data-login-password-submit]')].filter(visible)),
@@ -66,6 +104,26 @@
       (!readOnlyStartup || (visible(targets.submit()) && !targets.submit().disabled)) &&
       performance.getEntriesByName('solosoul:startup-dismissed', 'mark').length === 1,
     home,
+    attachments: () =>
+      location.pathname === '/settings/attachments' &&
+      !overlay() &&
+      [...document.querySelectorAll('button[title="Preview"]')].filter(visible).length === 4 &&
+      visible(targets.imagePreview()) &&
+      visible(targets.textPreview()),
+    imagePreviewReady: () => {
+      const img = previewImage();
+      return (
+        location.pathname === '/settings/attachments' &&
+        visible(overlay()) &&
+        img?.complete === true &&
+        img.naturalWidth === 500 &&
+        img.naturalHeight === 200
+      );
+    },
+    textPreviewReady: () =>
+      location.pathname === '/settings/attachments' &&
+      visible(overlay()) &&
+      previewText()?.textContent === publicText,
     workspace: () =>
       location.pathname === '/workspace' &&
       !location.search &&
@@ -78,6 +136,19 @@
   };
   if (!Object.hasOwn(targets, step) && !Object.hasOwn(conditions, step))
     throw new Error('unsupported-step');
+  if (
+    !mediaJourney &&
+    [
+      'attachmentsCard',
+      'imagePreview',
+      'textPreview',
+      'previewClose',
+      'attachments',
+      'imagePreviewReady',
+      'textPreviewReady',
+    ].includes(step)
+  )
+    throw new Error('unsupported-media-step');
   const result = await new Promise((resolve) => {
     const began = performance.now();
     const check = () => {
@@ -95,13 +166,28 @@
         return;
       }
       if (Object.hasOwn(conditions, step) ? conditions[step]() : visible(targets[step]())) {
-        requestAnimationFrame(() =>
-          requestAnimationFrame(() => {
-            if (Object.hasOwn(conditions, step) ? conditions[step]() : visible(targets[step]()))
-              resolve('ready');
-            else check();
-          }),
-        );
+        const decode =
+          step === 'imagePreviewReady'
+            ? previewImage()
+                .decode()
+                .then(
+                  () => true,
+                  () => false,
+                )
+            : Promise.resolve(true);
+        decode.then((decoded) => {
+          if (!decoded) {
+            requestAnimationFrame(check);
+            return;
+          }
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => {
+              if (Object.hasOwn(conditions, step) ? conditions[step]() : visible(targets[step]()))
+                resolve('ready');
+              else check();
+            }),
+          );
+        });
       } else requestAnimationFrame(check);
     };
     check();
@@ -140,6 +226,38 @@
         !node.disabled &&
         (hit === node || node.contains(hit)),
     };
+    // 仅固定媒体行程目标可请求滚轮；这里只提供经命中检查的几何，不写 scrollTop。
+    if (
+      mediaJourney &&
+      ['attachmentsCard', 'imagePreview', 'textPreview', 'searchCard'].includes(step) &&
+      !target.actionable &&
+      !node.disabled
+    ) {
+      const content = document.querySelector('[data-shell-content]');
+      if (content && content.contains(node) && content.scrollHeight > content.clientHeight) {
+        const box = content.getBoundingClientRect();
+        const clipTop = Math.max(0, box.top),
+          clipBottom = Math.min(innerHeight, box.bottom);
+        const wheelX = Math.min(innerWidth - 1, Math.max(0, box.left + box.width / 2));
+        const wheelY = (clipTop + clipBottom) / 2;
+        const wheelHit = document.elementFromPoint(wheelX, wheelY);
+        if (
+          clipBottom > clipTop &&
+          (y < clipTop || y >= clipBottom) &&
+          wheelHit &&
+          content.contains(wheelHit)
+        )
+          target.scroll = {
+            x: wheelX,
+            y: wheelY,
+            deltaY: Math.max(-600, Math.min(600, y - wheelY)),
+            viewportWidth: innerWidth,
+            viewportHeight: innerHeight,
+            clipTop,
+            clipBottom,
+          };
+      }
+    }
   }
   const probe = {
     schemaVersion: 1,
@@ -157,6 +275,18 @@
     inputTrust: window.__SOLOSOUL_SDK_JOURNEY_INPUTS__.snapshot(),
     observer: window.__SOLOSOUL_NATIVE_PERF__?.snapshot(),
   };
+  if (result === 'ready' && ['imagePreviewReady', 'textPreviewReady'].includes(step)) {
+    const image = step === 'imagePreviewReady';
+    probe.media = {
+      kind: image ? 'image' : 'text',
+      decoded: image,
+      textMatches: !image,
+      width: image ? 500 : 0,
+      height: image ? 200 : 0,
+      visible: true,
+      paintedFrames: 2,
+    };
+  }
   if (result === 'timeout') {
     const submit = targets.submit();
     probe.timeoutState = {

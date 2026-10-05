@@ -397,6 +397,7 @@ pub(super) fn consume_restart(
         chromium_log: None,
         sdk_cdp: false,
         sdk_journey: false,
+        media_journey: false,
         object_count: owned.fixture.object_count,
         startup: Some(launch(root, &owned.run_id, 2)),
     })

@@ -3,6 +3,7 @@
 compile_error!("native-perf is supported only on Windows");
 
 mod fixture;
+mod media_fixture;
 #[cfg(test)]
 mod preflight_tests;
 mod runtime;
@@ -43,7 +44,7 @@ const CHILD_DIRS: &[&str] = &[
 // RF-312：离线检查依赖完整字节标记。优化器可能把参数比较内联成机器指令，
 // 因此在预检入口保留不透明引用；仅此非默认功能的模块包含该标记块。
 #[used]
-static BINARY_FEATURE_MARKERS: &[u8] = b"--native-perf-prepare\0windows-native-perf-owned\0windows-native-perf-ready\0windows-native-perf-consumed\0windows-native-sdk-startup-requested\0windows-native-sdk-startup-restart-ticket";
+static BINARY_FEATURE_MARKERS: &[u8] = b"--native-perf-prepare\0windows-native-perf-owned\0windows-native-perf-ready\0windows-native-perf-consumed\0windows-native-sdk-startup-requested\0windows-native-sdk-startup-restart-ticket\0--native-perf-media-prepare\0windows-native-sdk-media-journey-requested";
 
 static RUNTIME: OnceLock<RuntimeConfig> = OnceLock::new();
 
@@ -58,6 +59,7 @@ pub struct RuntimeConfig {
     pub chromium_log: Option<PathBuf>,
     pub sdk_cdp: bool,
     pub sdk_journey: bool,
+    pub media_journey: bool,
     pub object_count: usize,
     pub startup: Option<startup::Launch>,
 }
@@ -210,6 +212,10 @@ enum Mode {
         root: PathBuf,
         fixture: PathBuf,
     },
+    MediaPrepare {
+        root: PathBuf,
+        fixture: PathBuf,
+    },
     WarmPrepare {
         root: PathBuf,
     },
@@ -221,6 +227,7 @@ enum Mode {
         copied_runtime: Option<PathBuf>,
         sdk_cdp: bool,
         sdk_journey: bool,
+        media_journey: bool,
         startup_only: bool,
         restart: bool,
     },
@@ -250,16 +257,20 @@ struct OwnedManifest {
 /// 准备模式在任何 Tauri Builder 创建之前返回；调用方打印并退出。
 pub fn prepare_from_args() -> Option<Result<Value, String>> {
     let args: Vec<_> = std::env::args_os().skip(1).collect();
-    if !args
-        .iter()
-        .any(|arg| arg == "--native-perf-prepare" || arg == "--native-perf-warm-prepare")
-    {
+    if !args.iter().any(|arg| {
+        arg == "--native-perf-prepare"
+            || arg == "--native-perf-warm-prepare"
+            || arg == "--native-perf-media-prepare"
+    }) {
         return None;
     }
     Some(parse_args(&args).and_then(|mode| match mode {
         Mode::Prepare { root, fixture } => {
             let folders = KnownFolders::resolve()?;
             prepare(&root, &fixture, &folders)
+        }
+        Mode::MediaPrepare { root, fixture } => {
+            prepare_mode(&root, &fixture, &KnownFolders::resolve()?, true)
         }
         Mode::WarmPrepare { root } => startup::prepare_restart(&root, &KnownFolders::resolve()?),
         Mode::Run { .. } => Err("prepare mode is required".into()),
@@ -289,6 +300,7 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
         copied_runtime,
         sdk_cdp,
         sdk_journey,
+        media_journey,
         startup_only,
         restart,
     } = mode
@@ -299,13 +311,18 @@ pub fn configure_runtime() -> Result<RuntimeConfig, String> {
     let mut config = if restart {
         startup::consume_restart(&root, port, &folders)?
     } else {
-        consume(&root, port, &folders)?
+        if media_journey {
+            consume_mode(&root, port, &folders, true)?
+        } else {
+            consume(&root, port, &folders)?
+        }
     };
     if startup_only && !restart {
         startup::configure_initial(&mut config)?;
     }
     config.sdk_cdp = sdk_cdp;
     config.sdk_journey = sdk_journey;
+    config.media_journey = media_journey;
     if sdk_journey {
         sdk_journey::claim_request(&config)?;
     }
@@ -397,6 +414,8 @@ fn is_webview_override(key: &std::ffi::OsStr) -> bool {
 fn parse_args(args: &[OsString]) -> Result<Mode, String> {
     std::hint::black_box(BINARY_FEATURE_MARKERS);
     let mut prepare_root = None;
+    let mut media_prepare = false;
+    let mut media_journey = false;
     let mut run_root = None;
     let mut input_fixture = None;
     let mut port = None;
@@ -423,6 +442,10 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
             "--native-perf-prepare" if prepare_root.is_none() => {
                 prepare_root = Some(PathBuf::from(value))
             }
+            "--native-perf-media-prepare" if prepare_root.is_none() => {
+                prepare_root = Some(PathBuf::from(value));
+                media_prepare = true;
+            }
             "--native-perf-warm-prepare" if warm_prepare_root.is_none() => {
                 warm_prepare_root = Some(PathBuf::from(value))
             }
@@ -442,10 +465,12 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
                 );
             }
             "--native-perf-journey"
-                if !sdk_journey && (value == "sdk-input" || value == "sdk-startup") =>
+                if !sdk_journey
+                    && (value == "sdk-input" || value == "sdk-startup" || value == "sdk-media") =>
             {
                 sdk_journey = true;
                 startup_only = value == "sdk-startup";
+                media_journey = value == "sdk-media";
             }
             "--native-perf-diagnostics"
                 if !chromium_log
@@ -496,7 +521,11 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
                 && copied_runtime.is_none()
                 && !restart
             {
-                return Ok(Mode::Prepare { root, fixture });
+                return Ok(if media_prepare {
+                    Mode::MediaPrepare { root, fixture }
+                } else {
+                    Mode::Prepare { root, fixture }
+                });
             }
         }
         return Err("prepare requires only a new root and fixture".into());
@@ -510,6 +539,7 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
             copied_runtime,
             sdk_cdp,
             sdk_journey,
+            media_journey,
             startup_only,
             restart,
         }),
@@ -520,12 +550,24 @@ fn parse_args(args: &[OsString]) -> Result<Mode, String> {
 }
 
 fn prepare(root: &Path, source: &Path, folders: &KnownFolders) -> Result<Value, String> {
+    prepare_mode(root, source, folders, false)
+}
+fn prepare_mode(
+    root: &Path,
+    source: &Path,
+    folders: &KnownFolders,
+    media: bool,
+) -> Result<Value, String> {
     if !source.is_absolute() {
         return Err("--fixture requires an absolute verified synthetic fixture".into());
     }
     let source = checked_dir(source)?;
     // 拷贝前仅读取公开 marker/config，拒绝非合成或不完整输入。
-    let contract = fixture::check_contract(&source)?;
+    let contract = if media {
+        fixture::check_media_contract(&source)?
+    } else {
+        fixture::check_contract(&source)?
+    };
     let candidate = new_root_candidate(root)?;
     if candidate.starts_with(&source) {
         return Err("native-perf root must be outside the read-only source fixture".into());
@@ -562,10 +604,14 @@ fn prepare(root: &Path, source: &Path, folders: &KnownFolders) -> Result<Value, 
         create_new_dir(&root.join(child))?;
     }
     let vault = root.join("vault");
-    create_new_dir(&vault)?;
-    fixture::copy_closed_fixture(&source, &vault, &contract)?;
-    // 解锁验证只操作新副本，准备模式完成后退出；不预热 GUI 测量进程。
-    let proof = fixture::verify_copy(&vault, &contract)?;
+    let proof = if media {
+        media_fixture::copy(&source, &vault)?;
+        fixture::verify_media_copy(&vault, &contract)?
+    } else {
+        create_new_dir(&vault)?;
+        fixture::copy_closed_fixture(&source, &vault, &contract)?;
+        fixture::verify_copy(&vault, &contract)?
+    };
     let manifest = OwnedManifest {
         schema_version: 1,
         scope: "windows-native-perf-owned".into(),
@@ -616,17 +662,18 @@ fn prepare(root: &Path, source: &Path, folders: &KnownFolders) -> Result<Value, 
 }
 
 fn checked_manifest(root: &Path, folders: &KnownFolders) -> Result<OwnedManifest, String> {
-    checked_manifest_mode(root, folders, false)
+    checked_manifest_mode(root, folders, false, false)
 }
 
 fn checked_startup_manifest(root: &Path, folders: &KnownFolders) -> Result<OwnedManifest, String> {
-    checked_manifest_mode(root, folders, true)
+    checked_manifest_mode(root, folders, true, false)
 }
 
 fn checked_manifest_mode(
     root: &Path,
     folders: &KnownFolders,
     startup: bool,
+    media: bool,
 ) -> Result<OwnedManifest, String> {
     let root = checked_dir(root)?;
     let manifest: OwnedManifest = serde_json::from_value(read_json(&root.join(OWNED_FILE))?)
@@ -669,7 +716,9 @@ fn checked_manifest_mode(
     for child in CHILD_DIRS {
         checked_dir(&root.join(child))?;
     }
-    if startup {
+    if media {
+        fixture::check_media_proof(&manifest.vault, &manifest.fixture)?;
+    } else if startup {
         fixture::check_startup_proof(&manifest.vault, &manifest.fixture)?;
     } else {
         let contract = fixture::check_contract(&manifest.vault)?;
@@ -679,6 +728,14 @@ fn checked_manifest_mode(
 }
 
 fn consume(root: &Path, port: u16, folders: &KnownFolders) -> Result<RuntimeConfig, String> {
+    consume_mode(root, port, folders, false)
+}
+fn consume_mode(
+    root: &Path,
+    port: u16,
+    folders: &KnownFolders,
+    media: bool,
+) -> Result<RuntimeConfig, String> {
     if !root.is_absolute() {
         return Err("--native-perf-root requires an absolute prepared root".into());
     }
@@ -687,7 +744,11 @@ fn consume(root: &Path, port: u16, folders: &KnownFolders) -> Result<RuntimeConf
         return Err("native-perf prepared root has already been consumed".into());
     }
     let ready = read_json(&root.join(READY_FILE))?;
-    let manifest = checked_manifest(&root, folders)?;
+    let manifest = if media {
+        checked_manifest_mode(&root, folders, false, true)?
+    } else {
+        checked_manifest(&root, folders)?
+    };
     let expected_ready = json!({
         "schemaVersion": 1,
         "scope": "windows-native-perf-ready",
@@ -724,6 +785,7 @@ fn consume(root: &Path, port: u16, folders: &KnownFolders) -> Result<RuntimeConf
         chromium_log: None,
         sdk_cdp: false,
         sdk_journey: false,
+        media_journey: media,
         object_count: manifest.fixture.object_count,
         startup: None,
     })

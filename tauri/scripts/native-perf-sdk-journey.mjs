@@ -29,6 +29,7 @@ import {
   processDiagnostics,
 } from './native-perf-diagnose.mjs';
 import { sameSdkIdentities } from './native-perf-sdk-cdp.mjs';
+import { verifyPreparedMediaFiles } from './native-perf-media-contract.mjs';
 import { MemorySampler, parseJourneyArgs } from './native-perf-memory.mjs';
 
 export const PHASES = Object.freeze([
@@ -39,6 +40,29 @@ export const PHASES = Object.freeze([
   'application-lock',
   'password-reunlock',
 ]);
+export const MEDIA_PHASES = Object.freeze([
+  ...PHASES.slice(0, 3),
+  'attachment-list',
+  'attachment-image-preview',
+  'attachment-text-preview',
+  ...PHASES.slice(3),
+]);
+export const unmeasuredFor = (media) => [
+  'OCR',
+  media ? 'PDF-preview' : 'attachment-preview',
+  'system-sleep',
+  'same-profile-warm-start',
+  'other-platforms',
+];
+const expectedMedia = (image) => ({
+  kind: image ? 'image' : 'text',
+  decoded: image,
+  textMatches: !image,
+  width: image ? 500 : 0,
+  height: image ? 200 : 0,
+  visible: true,
+  paintedFrames: 2,
+});
 const METHODS = new Set([
   'Page.getFrameTree',
   'Runtime.evaluate',
@@ -78,17 +102,23 @@ const validTrust = (value) =>
   Object.values(value).every((n) => Number.isSafeInteger(n) && n >= 0 && n <= 128) &&
   value.untrusted === 0;
 const MARKER = 'windows-native-sdk-ui-journey-requested';
-export async function journeyBinaryPreflight(exe) {
+export async function journeyBinaryPreflight(exe, media = false) {
+  const required = media
+    ? ['--native-perf-media-prepare', 'windows-native-sdk-media-journey-requested']
+    : [MARKER];
+  const found = new Set();
+  const overlap = Math.max(...required.map((s) => s.length));
   let tail = '';
   for await (const chunk of createReadStream(exe)) {
     const text = tail + chunk.toString('latin1');
-    if (text.includes(MARKER))
+    for (const marker of required) if (text.includes(marker)) found.add(marker);
+    if (found.size === required.length)
       return {
         present: true,
-        marker: MARKER,
+        marker: media ? required : MARKER,
         limitation: 'feature marker; not executable trust or signature verification',
       };
-    tail = text.slice(-MARKER.length);
+    tail = text.slice(-overlap);
   }
   throw new Error('SDK journey requires its rebuilt native-perf EXE; no application started');
 }
@@ -124,7 +154,8 @@ export function checkBound(value, owned, pid, port) {
     throw new Error('SDK journey document binding mismatch');
   return value;
 }
-export function checkJourney(value, owned, bound, fixture) {
+export function checkJourney(value, owned, bound, fixture, media = false) {
+  const phases = media ? MEDIA_PHASES : PHASES;
   if (
     !exactKeys(value, [
       'schemaVersion',
@@ -149,7 +180,8 @@ export function checkJourney(value, owned, bound, fixture) {
       'unmeasured',
     ]) ||
     value?.schemaVersion !== 1 ||
-    value.scope !== 'windows-native-sdk-ui-journey' ||
+    value.scope !==
+      (media ? 'windows-native-sdk-media-journey' : 'windows-native-sdk-ui-journey') ||
     value.success !== true ||
     value.reason !== null ||
     value.failedStep !== null ||
@@ -162,14 +194,7 @@ export function checkJourney(value, owned, bound, fixture) {
     !Number.isFinite(value.elapsedMs) ||
     value.elapsedMs < 0 ||
     value.elapsedMs > 310000 ||
-    JSON.stringify(value.unmeasured) !==
-      JSON.stringify([
-        'OCR',
-        'attachment-preview',
-        'system-sleep',
-        'same-profile-warm-start',
-        'other-platforms',
-      ]) ||
+    JSON.stringify(value.unmeasured) !== JSON.stringify(unmeasuredFor(media)) ||
     value.inputMethod !== 'SDK-CDP-Input' ||
     value.timeOriginMs !== bound.timeOriginMs ||
     !validBinding(value.binding) ||
@@ -180,11 +205,13 @@ export function checkJourney(value, owned, bound, fixture) {
     !value.calls.includes('Input.dispatchMouseEvent') ||
     value.calls.filter((call) => call === 'Input.insertText').length !== 3 ||
     !Array.isArray(value.phases) ||
-    value.phases.length !== PHASES.length
+    value.phases.length !== phases.length
   )
     throw new Error('SDK UI journey proof rejected');
-  for (let index = 0; index < PHASES.length; index++) {
+  for (let index = 0; index < phases.length; index++) {
     const phase = value.phases[index];
+    const preview =
+      media && ['attachment-image-preview', 'attachment-text-preview'].includes(phase.name);
     if (
       !exactKeys(phase, [
         'name',
@@ -194,8 +221,9 @@ export function checkJourney(value, owned, bound, fixture) {
         'inputTrust',
         'fromAtMs',
         'toAtMs',
+        ...(preview ? ['mediaEndState'] : []),
       ]) ||
-      phase.name !== PHASES[index] ||
+      phase.name !== phases[index] ||
       phase.success !== true ||
       !Number.isFinite(phase.durationMs) ||
       phase.durationMs < 0 ||
@@ -218,6 +246,16 @@ export function checkJourney(value, owned, bound, fixture) {
         phase.ipc.attempts
     )
       throw new Error('SDK phase timing/IPC/trust proof rejected');
+    if (preview) {
+      const image = phase.name === 'attachment-image-preview';
+      const expected = expectedMedia(image);
+      if (
+        !exactKeys(phase.mediaEndState, Object.keys(expected)) ||
+        Object.keys(expected).some((k) => phase.mediaEndState[k] !== expected[k]) ||
+        !(phase.ipc.commands[image ? 'fs_read_file_as_data_url' : 'fs_read_file_as_text'] >= 1)
+      )
+        throw new Error('SDK decoded/painted public media end state rejected');
+    }
   }
   const last = value.lastProbe;
   if (
@@ -310,6 +348,46 @@ export function summarizeJourneys(samples, requestedSamples, integrity = true) {
     requestedSamples,
   );
 }
+export function summarizeMediaJourneys(samples, requestedSamples, integrity = true) {
+  const complete =
+    integrity &&
+    samples.length === requestedSamples &&
+    samples.every(
+      (s) =>
+        s.success === true &&
+        s.cleanupIntegrity?.complete === true &&
+        Array.isArray(s.phases) &&
+        s.phases.length === MEDIA_PHASES.length &&
+        s.phases.every(
+          (p, i) =>
+            p.name === MEDIA_PHASES[i] &&
+            p.success === true &&
+            Number.isFinite(p.durationMs) &&
+            p.durationMs >= 0,
+        ),
+    );
+  return MEDIA_PHASES.map((name) => {
+    const values = complete
+      ? samples
+          .map((s) => s.phases.find((p) => p.name === name))
+          .filter((p) => p?.success && Number.isFinite(p.durationMs) && p.durationMs >= 0)
+          .map((p) => p.durationMs)
+          .sort((a, b) => a - b)
+      : [];
+    const valid = values.length === requestedSamples;
+    return {
+      name,
+      successfulSamples: valid ? values.length : 0,
+      requestedSamples,
+      medianMs: valid
+        ? (values[Math.floor((values.length - 1) / 2)] +
+            values[Math.ceil((values.length - 1) / 2)]) /
+          2
+        : null,
+      p95Ms: valid ? values[Math.ceil(values.length * 0.95) - 1] : null,
+    };
+  });
+}
 async function readOwned(root, filename) {
   if (!FILES.has(filename)) throw new Error('Unsupported owned marker');
   const file = path.join(root, filename),
@@ -368,7 +446,12 @@ async function sample(options, index, shouldStop) {
     const at = Date.now(),
       prepare = startChild(
         options.exe,
-        ['--native-perf-prepare', root, '--fixture', options.fixture],
+        [
+          options.media ? '--native-perf-media-prepare' : '--native-perf-prepare',
+          root,
+          '--fixture',
+          options.fixture,
+        ],
         env,
       );
     completion = prepare.completion;
@@ -385,6 +468,7 @@ async function sample(options, index, shouldStop) {
       options.manifest,
       options.fixture,
     );
+    if (options.media) await verifyPreparedMediaFiles(owned, options.mediaManifest);
     result.owned = owned;
     const port = await unusedPort();
     result.port = port;
@@ -398,7 +482,7 @@ async function sample(options, index, shouldStop) {
         '--native-perf-port',
         String(port),
         '--native-perf-journey',
-        'sdk-input',
+        options.media ? 'sdk-media' : 'sdk-input',
       ],
       env,
     );
@@ -454,7 +538,7 @@ async function sample(options, index, shouldStop) {
       shouldStop,
       310000,
     );
-    const proof = checkJourney(result.nativeProof, owned, bound, options.manifest);
+    const proof = checkJourney(result.nativeProof, owned, bound, options.manifest, options.media);
     result.afterSnapshot = await (memorySampler
       ? memorySampler.checkpoint('after-journey')
       : owner.sample());
@@ -497,23 +581,26 @@ async function sample(options, index, shouldStop) {
   }
   return result;
 }
-export async function main(args = process.argv.slice(2)) {
+export async function main(args = process.argv.slice(2), mode = 'sdk-input') {
+  if (!['sdk-input', 'sdk-media'].includes(mode))
+    throw new Error('Unsupported SDK measurement mode');
+  const media = mode === 'sdk-media';
   const parsed = parseJourneyArgs(args);
   if (parsed.help) {
     process.stdout.write(
-      'Usage: node scripts/native-perf-sdk-journey.mjs --exe ABS --fixture ABS --output NEW_ABS --samples N [--memory-interval-ms 1000..10000] (N >= 3)\n',
+      `Usage: node scripts/${media ? 'native-perf-media' : 'native-perf-sdk-journey'}.mjs --exe ABS --fixture ABS --output NEW_ABS --samples N [--memory-interval-ms 1000..10000] (N >= 3)\n`,
     );
     return 0;
   }
   if (process.platform !== 'win32') throw new Error('SDK UI journey is Windows only');
-  const options = await validateInputs(parsed),
-    preflight = await journeyBinaryPreflight(options.exe),
+  const options = { ...(await validateInputs(parsed, { media })), media },
+    preflight = await journeyBinaryPreflight(options.exe, media),
     sourceBefore = await inventory(options.fixture);
   await mkdir(options.output);
   const report = {
     schemaVersion: 1,
     task: 'RF-312',
-    scope: 'windows-native-sdk-input-performance',
+    scope: media ? 'windows-native-sdk-media-performance' : 'windows-native-sdk-input-performance',
     startedAt: new Date().toISOString(),
     samplesRequested: options.samples,
     nodeVersion: process.version,
@@ -521,6 +608,7 @@ export async function main(args = process.argv.slice(2)) {
     exeSha256: await sha256(options.exe),
     preflight,
     fixture: options.manifest,
+    ...(media ? { mediaFixture: options.mediaManifest } : {}),
     sourceBefore,
     samples: [],
     memoryIntervalMs: options.memoryIntervalMs,
@@ -534,13 +622,7 @@ export async function main(args = process.argv.slice(2)) {
           ? 'verified owned Windows working sets before input and after journey; no peak-memory claim'
           : 'nonoverlapping verified owned process-tree queries from launch through final UI checkpoint; actual intervals and collection windows recorded; sampled observed maximum is not a continuous peak',
       ipc: 'real Tauri fetch observer; names/counts only; invalid or changed prefix rejects sample',
-      unmeasured: [
-        'OCR',
-        'attachment-preview',
-        'system-sleep',
-        'same-profile-warm-start',
-        'other-platforms',
-      ],
+      unmeasured: unmeasuredFor(media),
     },
   };
   let interrupted = false;
@@ -571,14 +653,17 @@ export async function main(args = process.argv.slice(2)) {
       report.sourceUnchanged = false;
       report.sourceProofError = safeError(error);
     }
-    report.summary = summarizeJourneys(
+    report.summary = (media ? summarizeMediaJourneys : summarizeJourneys)(
       report.samples,
       options.samples,
       report.sourceUnchanged && !interrupted,
     );
     if (options.memoryIntervalMs !== null) {
       const accepted =
-        report.sourceUnchanged && !interrupted
+        report.sourceUnchanged &&
+        !interrupted &&
+        (!media ||
+          (report.samples.length === options.samples && report.samples.every((s) => s.success)))
           ? report.samples.filter((sample) => sample.success && sample.memorySeries?.complete)
           : [];
       const values = accepted

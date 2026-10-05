@@ -45,7 +45,7 @@ pub(super) fn claim_request(config: &RuntimeConfig) -> Result<(), String> {
     write_new_json(
         &config.evidence_root().join(REQUESTED_FILE),
         &json!({
-            "schemaVersion": 1, "scope": if config.startup.is_some() { "windows-native-sdk-startup-requested" } else { "windows-native-sdk-ui-journey-requested" },
+            "schemaVersion": 1, "scope": if config.startup.is_some() { "windows-native-sdk-startup-requested" } else if config.media_journey { "windows-native-sdk-media-journey-requested" } else { "windows-native-sdk-ui-journey-requested" },
             "root": config.root, "runId": config.run_id, "pid": std::process::id(),
             "port": config.port, "objectCount": config.object_count,
             "inputMethod": if config.startup.is_some() { "SDK-CDP-read-only" } else { "SDK-CDP-Input" }, "defaultBuild": false,
@@ -144,6 +144,7 @@ fn allowed_source(source: &str) -> bool {
             | "http://tauri.localhost/workspace"
             | "http://tauri.localhost/workspace?section=identity"
             | "http://tauri.localhost/search"
+            | "http://tauri.localhost/settings/attachments"
     )
 }
 fn parse_frame(value: &Value, source: &str) -> Outcome<Value> {
@@ -353,7 +354,7 @@ impl Capture {
         self.step = step;
         let expression = PROBE.replace(
             "__REQUEST__",
-            &json!({"step":step,"runId":self.config.run_id,"objectCount":self.config.object_count,"readOnlyStartup":self.config.startup.is_some()})
+            &json!({"step":step,"runId":self.config.run_id,"objectCount":self.config.object_count,"readOnlyStartup":self.config.startup.is_some(),"mediaJourney":self.config.media_journey})
                 .to_string(),
         );
         let raw = self
@@ -395,26 +396,34 @@ impl Capture {
         Ok(())
     }
     async fn click(&mut self, target: &'static str) -> Outcome<()> {
-        let probe = self.probe(target).await?;
-        let point = &probe["target"];
-        if point["actionable"] != true
-            || !point["x"]
-                .as_f64()
-                .is_some_and(|x| x.is_finite() && x >= 0.0)
-            || !point["y"]
-                .as_f64()
-                .is_some_and(|y| y.is_finite() && y >= 0.0)
-        {
-            return Err("target-not-actionable");
+        for attempt in 0..=3 {
+            let probe = self.probe(target).await?;
+            let point = &probe["target"];
+            if point["actionable"] != true {
+                if attempt == 3 || !self.config.media_journey || !media_scroll_step(target) {
+                    return Err("target-not-actionable");
+                }
+                validate_scroll_target(point, target)?;
+                let wheel = &point["scroll"];
+                self.protocol("Input.dispatchMouseEvent",json!({"type":"mouseWheel","x":wheel["x"],"y":wheel["y"],"deltaX":0,"deltaY":wheel["deltaY"]})).await?;
+                continue;
+            }
+            if ["x", "y"].iter().any(|key| {
+                point[key]
+                    .as_f64()
+                    .is_none_or(|n| !n.is_finite() || n < 0.0)
+            }) {
+                return Err("target-not-actionable");
+            }
+            for kind in ["mousePressed", "mouseReleased"] {
+                self.protocol(
+                    "Input.dispatchMouseEvent",
+                    json!({"type":kind,"x":point["x"],"y":point["y"],"button":"left","clickCount":1}),
+                ).await?;
+            }
+            return Ok(());
         }
-        for kind in ["mousePressed", "mouseReleased"] {
-            self.protocol(
-                "Input.dispatchMouseEvent",
-                json!({"type":kind,"x":point["x"],"y":point["y"],"button":"left","clickCount":1}),
-            )
-            .await?;
-        }
-        Ok(())
+        Err("target-not-actionable")
     }
     async fn insert(&mut self, text: &'static str) -> Outcome<()> {
         if !matches!(text, PASSWORD | "needle") {
@@ -434,8 +443,12 @@ impl Capture {
     fn record(&mut self, name: &'static str, began: Instant, before: &Value) -> Outcome<()> {
         let after = self.last.as_ref().ok_or("probe-invalid")?;
         let ipc = ipc_delta(&before["observer"], &after["observer"])?;
-        self.phases.push(json!({"name":name,"success":true,"durationMs":began.elapsed().as_secs_f64()*1000.0,
-            "ipc":ipc,"inputTrust":after["inputTrust"],"fromAtMs":before["atMs"],"toAtMs":after["atMs"]}));
+        let mut phase = json!({"name":name,"success":true,"durationMs":began.elapsed().as_secs_f64()*1000.0,
+            "ipc":ipc,"inputTrust":after["inputTrust"],"fromAtMs":before["atMs"],"toAtMs":after["atMs"]});
+        if matches!(name, "attachment-image-preview" | "attachment-text-preview") {
+            phase["mediaEndState"] = after["media"].clone();
+        }
+        self.phases.push(phase);
         publish(
             self.config.evidence_root(),
             &format!("native-perf-sdk-phase-{:02}.json", self.phases.len()),
@@ -473,6 +486,31 @@ impl Capture {
         self.record("workspace", began, &before)?;
         self.click("homeButton").await?;
         self.probe("home").await?;
+        if self.config.media_journey {
+            let before = self.last.clone().unwrap();
+            let began = Instant::now();
+            self.click("attachmentsCard").await?;
+            self.probe("attachments").await?;
+            self.record("attachment-list", began, &before)?;
+            for (target, ready, phase) in [
+                (
+                    "imagePreview",
+                    "imagePreviewReady",
+                    "attachment-image-preview",
+                ),
+                ("textPreview", "textPreviewReady", "attachment-text-preview"),
+            ] {
+                let before = self.last.clone().unwrap();
+                let began = Instant::now();
+                self.click(target).await?;
+                self.probe(ready).await?;
+                self.record(phase, began, &before)?;
+                self.click("previewClose").await?;
+                self.probe("attachments").await?;
+            }
+            self.click("homeButton").await?;
+            self.probe("home").await?;
+        }
         self.click("searchCard").await?;
         self.probe("searchInput").await?;
         let before = self.last.clone().unwrap();
@@ -598,7 +636,8 @@ pub(super) fn validate_probe_fields(
     time_origin: Option<&Value>,
     outcome: &str,
 ) -> Outcome<Value> {
-    if probe.as_object().map_or(0, |v| v.len()) != 14
+    let media = outcome == "ready" && matches!(step, "imagePreviewReady" | "textPreviewReady");
+    if probe.as_object().map_or(0, |v| v.len()) != if media { 15 } else { 14 }
         || probe["schemaVersion"] != 1
         || probe["scope"] != "windows-native-sdk-ui-probe"
         || probe["runId"] != run_id
@@ -618,18 +657,30 @@ pub(super) fn validate_probe_fields(
     {
         return Err("probe-invalid");
     }
+    if media {
+        validate_media_end_state(&probe["media"], step)?;
+        if probe["href"] != "http://tauri.localhost/settings/attachments"
+            || !probe["target"].is_null()
+        {
+            return Err("media-end-state-invalid");
+        }
+    }
     validate_observer(&probe["observer"], run_id, &probe["timeOriginMs"])?;
     let target = &probe["target"];
+    let scrolling = target.get("scroll").is_some();
     if !target.is_null()
-        && (target.as_object().map_or(0, |v| v.len()) != 3
+        && (target.as_object().map_or(0, |v| v.len()) != if scrolling { 4 } else { 3 }
             || !target["actionable"].is_boolean()
             || ["x", "y"].iter().any(|key| {
                 target[key]
                     .as_f64()
-                    .is_none_or(|n| !n.is_finite() || n < 0.0)
+                    .is_none_or(|n| !n.is_finite() || n < if scrolling { -16384.0 } else { 0.0 })
             }))
     {
         return Err("probe-invalid");
+    }
+    if scrolling {
+        validate_scroll_target(target, step)?;
     }
     let at = probe["atMs"].as_f64().unwrap();
     if probe["observer"]["installedAtMs"].as_f64().unwrap() > at
@@ -650,6 +701,73 @@ pub(super) fn validate_probe_fields(
         return Err("input-trust-mismatch");
     }
     Ok(probe.clone())
+}
+fn media_scroll_step(step: &str) -> bool {
+    matches!(
+        step,
+        "attachmentsCard" | "imagePreview" | "textPreview" | "searchCard"
+    )
+}
+fn validate_scroll_target(target: &Value, step: &str) -> Outcome<()> {
+    let wheel = &target["scroll"];
+    let n = |key| wheel[key].as_f64().filter(|v| v.is_finite());
+    if !media_scroll_step(step)
+        || target["actionable"] != false
+        || wheel.as_object().map_or(0, |v| v.len()) != 7
+    {
+        return Err("scroll-target-invalid");
+    }
+    let (Some(x), Some(y), Some(delta), Some(width), Some(height), Some(top), Some(bottom)) = (
+        n("x"),
+        n("y"),
+        n("deltaY"),
+        n("viewportWidth"),
+        n("viewportHeight"),
+        n("clipTop"),
+        n("clipBottom"),
+    ) else {
+        return Err("scroll-target-invalid");
+    };
+    let point_x = target["x"].as_f64().ok_or("scroll-target-invalid")?;
+    let point_y = target["y"].as_f64().ok_or("scroll-target-invalid")?;
+    if !(1.0..=16384.0).contains(&width)
+        || !(1.0..=16384.0).contains(&height)
+        || x < 0.0
+        || x >= width
+        || y < 0.0
+        || y >= height
+        || top < 0.0
+        || bottom > height
+        || bottom <= top
+        || y < top
+        || y >= bottom
+        || delta.abs() < 1.0
+        || delta.abs() > 600.0
+        || !point_x.is_finite()
+        || !point_y.is_finite()
+        || point_x < 0.0
+        || point_x >= width
+        || point_y.abs() > 16384.0
+        || !(point_y < top || point_y >= bottom)
+        || (point_y >= bottom && delta <= 0.0)
+        || (point_y < top && delta >= 0.0)
+    {
+        return Err("scroll-target-invalid");
+    }
+    Ok(())
+}
+fn validate_media_end_state(value: &Value, step: &str) -> Outcome<()> {
+    let expected = match step {
+        "imagePreviewReady" => json!({"kind":"image","decoded":true,"textMatches":false,
+            "width":500,"height":200,"visible":true,"paintedFrames":2}),
+        "textPreviewReady" => json!({"kind":"text","decoded":false,"textMatches":true,
+            "width":0,"height":0,"visible":true,"paintedFrames":2}),
+        _ => return Err("media-end-state-invalid"),
+    };
+    if *value != expected {
+        return Err("media-end-state-invalid");
+    }
+    Ok(())
 }
 // 与成功探针共用全部身份、时钟、事件和payload拒绝规则；timeout不转换为ready。
 fn validate_timeout_snapshot(
@@ -791,6 +909,16 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
         "calls":capture.calls,"phases":capture.phases,"lastProbe":capture.last,"ipcAll":ipc_all,
         "elapsedMs":capture.started.elapsed().as_secs_f64()*1000.0,
         "unmeasured":["OCR","attachment-preview","system-sleep","same-profile-warm-start","other-platforms"]});
+    if capture.config.media_journey {
+        proof["scope"] = json!("windows-native-sdk-media-journey");
+        proof["unmeasured"] = json!([
+            "OCR",
+            "PDF-preview",
+            "system-sleep",
+            "same-profile-warm-start",
+            "other-platforms"
+        ]);
+    }
     if let Some(startup) = &capture.config.startup {
         proof["scope"] = json!("windows-native-sdk-startup");
         proof["inputMethod"] = json!("SDK-CDP-read-only");
@@ -1045,5 +1173,74 @@ mod frame_tests {
         let mut children = tree;
         children["frameTree"]["childFrames"] = json!([{}]);
         assert!(parse_frame(&children, source).is_err());
+    }
+}
+
+#[cfg(test)]
+mod media_tests {
+    use super::*;
+    #[test]
+    fn bounded_scroll_is_only_for_known_offscreen_media_targets() {
+        let target = json!({"x":439,"y":770.03125,"actionable":false,"scroll":{"x":440,"y":380,"deltaY":390,"viewportWidth":1000,"viewportHeight":800,"clipTop":80,"clipBottom":680}});
+        assert!(validate_scroll_target(&target, "attachmentsCard").is_ok());
+        let mut up = target.clone();
+        up["y"] = json!(-10);
+        up["scroll"]["deltaY"] = json!(-390);
+        assert!(validate_scroll_target(&up, "imagePreview").is_ok());
+        for step in [
+            "password",
+            "submit",
+            "home",
+            "imagePreviewReady",
+            "lockButton",
+        ] {
+            assert!(validate_scroll_target(&target, step).is_err());
+        }
+        for (key, value) in [
+            ("deltaY", json!(0)),
+            ("deltaY", json!(601)),
+            ("deltaY", json!(-100)),
+            ("x", json!(1000)),
+            ("viewportHeight", json!(20000)),
+            ("clipTop", json!(-1)),
+            ("clipBottom", json!(900)),
+            ("private", json!("sentinel")),
+        ] {
+            let mut bad = target.clone();
+            bad["scroll"][key] = value;
+            assert!(validate_scroll_target(&bad, "attachmentsCard").is_err());
+        }
+        let mut bad = target.clone();
+        bad["y"] = json!(300);
+        assert!(validate_scroll_target(&bad, "attachmentsCard").is_err());
+    }
+    #[test]
+    fn media_end_state_requires_exact_decoded_dimensions_text_and_frames() {
+        for (step, expected) in [
+            (
+                "imagePreviewReady",
+                json!({"kind":"image","decoded":true,"textMatches":false,"width":500,"height":200,"visible":true,"paintedFrames":2}),
+            ),
+            (
+                "textPreviewReady",
+                json!({"kind":"text","decoded":false,"textMatches":true,"width":0,"height":0,"visible":true,"paintedFrames":2}),
+            ),
+        ] {
+            assert!(validate_media_end_state(&expected, step).is_ok());
+            for key in ["decoded", "textMatches", "visible"] {
+                let mut bad = expected.clone();
+                bad[key] = json!(!bad[key].as_bool().unwrap());
+                assert!(validate_media_end_state(&bad, step).is_err());
+            }
+            for key in ["width", "height", "paintedFrames"] {
+                let mut bad = expected.clone();
+                bad[key] = json!(bad[key].as_u64().unwrap() + 1);
+                assert!(validate_media_end_state(&bad, step).is_err());
+            }
+            let mut bad = expected.clone();
+            bad["payload"] = json!("sentinel");
+            assert!(validate_media_end_state(&bad, step).is_err());
+            assert!(validate_media_end_state(&expected, "home").is_err());
+        }
     }
 }

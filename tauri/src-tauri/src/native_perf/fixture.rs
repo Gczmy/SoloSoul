@@ -349,6 +349,70 @@ fn check_proof_mode(
     Ok(())
 }
 
+pub(super) fn check_media_contract(base: &Path) -> Result<Contract, String> {
+    let marker = super::media_fixture::marker(base)?;
+    let count = marker["baseFixture"]["objectCount"]
+        .as_u64()
+        .ok_or("media count missing")? as usize;
+    let mut files: Vec<PathBuf> = marker["closedFiles"]
+        .as_array()
+        .ok_or("media files missing")?
+        .iter()
+        .map(|f| {
+            f["relativePath"]
+                .as_str()
+                .map(PathBuf::from)
+                .ok_or("media path missing")
+        })
+        .collect::<Result<_, _>>()?;
+    files.push(PathBuf::from("rf312-media-fixture.json"));
+    files.sort();
+    Ok(Contract {
+        count,
+        account_id: format!("acc_rf312_{count}"),
+        marker,
+        files,
+    })
+}
+pub(super) fn verify_media_copy(base: &Path, source: &Contract) -> Result<Proof, String> {
+    let own = check_media_contract(base)?;
+    for key in ["baseFixture", "publicAssets", "attachments"] {
+        if own.marker[key] != source.marker[key] {
+            return Err("owned media contract differs from source".into());
+        }
+    }
+    let files = own
+        .files
+        .iter()
+        .map(|relative_path| {
+            Ok(FileProof {
+                relative_path: relative_path.clone(),
+                sha256: sha256_file(&base.join(relative_path))?,
+            })
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    Ok(Proof {
+        account_id: own.account_id,
+        object_count: own.count,
+        search_matches: own.count.div_ceil(20),
+        marker: own.marker,
+        files,
+    })
+}
+pub(super) fn check_media_proof(base: &Path, proof: &Proof) -> Result<(), String> {
+    let c = check_media_contract(base)?;
+    let actual = verify_media_copy(base, &c)?;
+    if proof.account_id != actual.account_id
+        || proof.object_count != actual.object_count
+        || proof.search_matches != actual.search_matches
+        || proof.marker != actual.marker
+        || proof.files != actual.files
+    {
+        return Err("owned media bytes differ from prepared proof".into());
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 pub(super) fn write_test_fixture(base: &Path) {
     use solosoul_vault::{ObjectRecord, Profile};

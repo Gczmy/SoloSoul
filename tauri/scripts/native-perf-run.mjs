@@ -144,13 +144,21 @@ export async function nativePerfPreflight(exe, chunkSize = 64 * 1024) {
   };
 }
 
-export async function validateInputs(options) {
+export async function validateInputs(options, { media = false } = {}) {
   const exe = await regularPath(options.exe, false);
   if (path.extname(exe).toLowerCase() !== '.exe') throw new Error('--exe must be a Windows .exe');
   const binaryPreflight = await nativePerfPreflight(exe);
   const fixture = await regularPath(options.fixture, true);
-  const markerPath = await regularPath(path.join(fixture, 'rf312-fixture.json'), false);
-  const manifest = validateFixtureManifest(JSON.parse(await readFile(markerPath, 'utf8')));
+  const markerPath = await regularPath(
+    path.join(fixture, media ? 'rf312-media-fixture.json' : 'rf312-fixture.json'),
+    false,
+  );
+  const mediaManifest = media
+    ? await (await import('./native-perf-media-contract.mjs')).readMediaManifest(fixture)
+    : null;
+  const manifest = media
+    ? mediaManifest.baseFixture
+    : validateFixtureManifest(JSON.parse(await readFile(markerPath, 'utf8')));
   await regularPath(path.join(fixture, manifest.accountId), true);
   await regularPath(path.join(fixture, manifest.accountId, 'vault.db'), false);
   await regularPath(path.join(fixture, manifest.accountId, 'config.json'), false);
@@ -168,7 +176,15 @@ export async function validateInputs(options) {
   } catch (error) {
     if (error.code !== 'ENOENT') throw error;
   }
-  return { ...options, exe, fixture, manifest, markerPath, binaryPreflight };
+  return {
+    ...options,
+    exe,
+    fixture,
+    manifest,
+    markerPath,
+    binaryPreflight,
+    ...(media ? { mediaManifest } : {}),
+  };
 }
 
 export function normalizeWindowsPath(value) {
