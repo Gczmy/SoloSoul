@@ -505,6 +505,34 @@ impl Capture {
         self.last = Some(probe.clone());
         Ok(probe)
     }
+    async fn auth_diagnostic(&mut self) -> Outcome<Value> {
+        let expected = self.frame.clone().ok_or("auth-binding-unavailable")?;
+        let origin = self.time_origin.clone().ok_or("auth-binding-unavailable")?;
+        let raw=self.protocol("Runtime.evaluate",json!({"expression":"(() => ({auth:window.__SOLOSOUL_NATIVE_PERF__.authSnapshot(),source:location.href}))()","returnByValue":true})).await?;
+        let envelope = &raw["result"]["value"];
+        if raw.get("exceptionDetails").is_some()
+            || envelope.as_object().map_or(0, |v| v.len()) != 2
+            || !envelope["source"].as_str().is_some_and(allowed_source)
+            || !super::auth_contract::frontend(&envelope["auth"], &self.config.run_id, &origin)
+        {
+            return Err("auth-frontend-invalid");
+        }
+        let tree = self.protocol("Page.getFrameTree", json!({})).await?;
+        let frame = parse_frame(&tree, envelope["source"].as_str().unwrap())?;
+        if frame["mainFrameId"] != expected["mainFrameId"]
+            || frame["loaderId"] != expected["loaderId"]
+        {
+            return Err("auth-document-replaced");
+        }
+        let backend = super::auth_trace::snapshot(&self.config.run_id);
+        if !super::auth_contract::backend(&backend, &self.config.run_id) {
+            return Err("auth-backend-invalid");
+        }
+        Ok(
+            json!({"schemaVersion":1,"scope":"windows-native-auth-attribution","runId":self.config.run_id,"pid":std::process::id(),"binding":frame,"timeOriginMs":origin,"frontend":envelope["auth"],"backend":backend}),
+        )
+    }
+
     async fn remember_timeout(&mut self, raw: &Value, step: &str) -> Outcome<()> {
         let expected = self.frame.clone().ok_or("sdk-binding-unavailable")?;
         let clock = self.time_origin.clone().ok_or("sdk-binding-unavailable")?;
@@ -1044,6 +1072,32 @@ async fn run(config: RuntimeConfig, window: WebviewWindow) {
         .unwrap_or(Err("sdk-budget-exceeded"));
     if capture.invalidated.load(Ordering::SeqCst) {
         outcome = Err("document-invalidated");
+    }
+    if outcome.is_ok() || outcome == Err("probe-timeout") {
+        match capture.auth_diagnostic().await {
+            Ok(diagnostic) => {
+                if publish(
+                    capture.config.evidence_root(),
+                    "native-perf-auth-attribution.json",
+                    &diagnostic,
+                )
+                .is_err()
+                    && outcome.is_ok()
+                {
+                    outcome = Err("auth-publication-failed");
+                }
+            }
+            Err(reason) => {
+                let _ = publish(
+                    capture.config.evidence_root(),
+                    "native-perf-auth-attribution-rejected.json",
+                    &json!({"schemaVersion":1,"scope":"windows-native-auth-attribution-rejected","runId":capture.config.run_id,"reason":reason}),
+                );
+                if outcome.is_ok() {
+                    outcome = Err("auth-diagnostic-invalid");
+                }
+            }
+        }
     }
     if let Err(reason) = capture.release_guards().await {
         outcome = Err(reason);

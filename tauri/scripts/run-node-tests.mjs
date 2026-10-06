@@ -16,6 +16,7 @@ const files = [
   'scripts/native-perf-pdf.test.mjs',
   'scripts/native-perf-pdf-preview.test.mjs',
   'scripts/native-perf-ocr.test.mjs',
+  'scripts/native-perf-auth-attribution.test.mjs',
   'scripts/native-perf-startup.test.mjs',
   'scripts/native-perf-memory.test.mjs',
   'src-tauri/src/native_perf/observer.node.test.mjs',

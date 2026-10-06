@@ -495,3 +495,10 @@ node scripts/native-perf-startup.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --f
 两个诊断没有输入授权、登录或扫描。strict owned 退出后，fresh CIM 验证 18 条 PID/birth 身份退出，并确认六个无存量 birth 的辅助 PID 不在运行；只清理 16 个精确缓存路径和两个已核验链接，22 个 Vault 文件与两份公开图片、日志副本保持。缓存工具第一次由 PowerShell 5.1 在链接信息为空时拒绝，未删除；使用已核验的 PowerShell 7.6.5 和相同路径/链接校验后完成。原生清理由 runner 终止自有进程，缓存工具未终止额外进程。
 
 [结构化证据](rf1095-ordinary-owned-cim-2026-10-05.json)与[逐字节原件](rf1095-ordinary-owned-cim-2026-10-05/index.json)包含全部对照、红绿测、严格默认读数、冻结与清理。RF-1095 独立提交；RF-312 仍待 5000 整组 OCR、原首页超时及阶段归因，旧失败保持，RF-112/121 和 RF-122～127 前置不解除。
+
+
+## 2026-10-06 · 认证阶段原生观测
+
+100/5000各三个完整六阶段样本、每次两条finished认证流通过。响应头、前端真实await、同步状态写入和后端阶段分开记录；原Promise/隐私/身份/预算规则保持。带观测器的数据仅作归因，performanceMetrics=null，不替代旧无观测器基线。
+
+十二次账户写入调用1803.06～5258.70ms、KDF127.61～198.92ms；写入内部的原子写/权限设置尚待拆分。两类时钟不相减、嵌套时长不相加、同步set不等于React绘制，未证明旧首页超时根因。[完整口径](RF-312-native-auth-attribution.md)、[结构化验收](rf312-windows-auth-attribution-2026-10-06.json)和[所有原件](rf312-windows-auth-attribution-2026-10-06/index.json)保留成功与失败、红绿回归、冻结和清理。RF-312下一本地项为账户写入和Windows RF-121完整窗口合成；首页超时/睡眠/多端及其他任务前置保持。独立本地提交，不推送。

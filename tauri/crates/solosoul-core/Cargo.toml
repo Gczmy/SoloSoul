@@ -15,6 +15,9 @@ description = "Shared core logic for SoloSoul GUI and CLI (vault lifecycle, temp
 # 启用方式：solosoul-core 的 consumers 声明 features = ["future-keychain"]。
 future-keychain = []
 
+# RF-312：仅由隔离原生性能consumer启用，不在默认/CLI编译面。
+native-perf = []
+
 # P024: 媒体重依赖（OCR / PDFium / 水印）feature 门控——仅真正需要的消费者才编译。
 # - 默认全开（src-tauri 不变，保持全部媒体能力）；
 # - solosoul-sync 声明 `default-features = false`（仅用 vault_service/path_util，

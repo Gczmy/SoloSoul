@@ -17,6 +17,8 @@ pub mod biometric;
 pub mod export_import;
 pub mod import_activity;
 pub mod llm;
+#[cfg(feature = "native-perf")]
+pub mod native_perf_unlock;
 pub mod objects;
 pub mod orphan_cleanup;
 pub mod path_util;

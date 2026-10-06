@@ -124,7 +124,7 @@ tauri = { version = "2", features = ["test"] }
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
 mobile = []
-native-perf = ["tauri/devtools", "dep:webview2-com", "dep:windows-core"]
+native-perf = ["tauri/devtools", "dep:webview2-com", "dep:windows-core", "solosoul-core/native-perf"]
 
 [lib]
 name = "solo_soul"

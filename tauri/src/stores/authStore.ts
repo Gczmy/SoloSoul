@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { AccountInfo } from '@/lib/ipc';
 import { logger } from '@/lib/logger';
+import { beginNativeAuthTrace } from '@/lib/nativePerfAuth';
 
 export const LAST_ACCOUNT_KEY = 'solosoul_last_account_id';
 
@@ -122,15 +123,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   login: async (accountId, password) => {
+    const mark = beginNativeAuthTrace();
     set({ isLoading: true, error: null });
     try {
-      await invoke<void>('login', { accountId: accountId, password });
+      mark?.('login-await-start');
+      try {
+        await invoke<void>('login', { accountId: accountId, password });
+        mark?.('login-await-ok');
+      } catch (err) {
+        mark?.('login-await-error');
+        throw err;
+      }
       // Try to refresh account list, but do not fail authentication if the
       // refresh request errors (e.g. transient backend lock contention).
       let accounts: AccountInfo[] = [];
       try {
+        mark?.('accounts-await-start');
         accounts = (await invoke<AccountInfo[]>('vault_list_accounts')) || [];
+        mark?.('accounts-await-ok');
       } catch (err) {
+        mark?.('accounts-await-error');
         // Keep authentication state even if the account-list refresh fails.
         // P227: 登录后的账户列表刷新失败属可接受降级，但留痕便于排查。
         logger.warn('[authStore] account list refresh after login failed:', err);
@@ -144,6 +156,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME =
         performance.now();
 
+      mark?.('state-set-start');
       set({
         isAuthenticated: true,
         currentAccount: account,
@@ -151,6 +164,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
       });
 
+      mark?.('state-set-done');
       // 解锁后延迟检查备份提醒，避免启动时立即弹权限/通知
       // P228: accountId 注入，避免静态依赖 notification 形成循环
       const unlockedAccountId = account.id;
@@ -159,7 +173,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           .then((m) => m.checkBackupReminder(unlockedAccountId))
           .catch((err) => logger.warn('[authStore] backup reminder check failed:', err));
       }, 2000);
+      mark?.('finished');
     } catch (err) {
+      mark?.('failed');
       set({ error: String(err), isLoading: false });
     }
   },

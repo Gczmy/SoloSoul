@@ -78,6 +78,12 @@ pub async fn login(
     account_id: String,
     password: String,
 ) -> Result<(), String> {
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    let perf_attempt = crate::native_perf::auth_trace::begin_login(&account_id);
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    let perf = perf_attempt.as_ref().map(|attempt| attempt.handle());
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    let perf_root = perf.as_ref().and_then(|trace| trace.span("root-read"));
     // P031: 密码以 Zeroizing<String> 接收，使用完毕后立即安全清零。
     let password = Zeroizing::new(password);
     // Run the CPU-intensive KDF and synchronous vault IO on the blocking pool
@@ -87,12 +93,39 @@ pub async fn login(
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?
         .root_owner();
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    {
+        crate::native_perf::auth_trace::complete(perf_root);
+        if let Some(trace) = &perf {
+            trace.verify_root(owner.root());
+        }
+    }
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    let perf_admission = perf
+        .as_ref()
+        .and_then(|trace| trace.span("maintenance-admission"));
     // 排队前独占维护准入；旧监听真实退出后，同一许可交给实际密码 worker。
     let maintenance = solosoul_core::import_activity::begin_owned_root_maintenance(
         std::sync::Arc::clone(&owner),
     )?;
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    crate::native_perf::auth_trace::complete(perf_admission);
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    let perf_sync = perf.as_ref().and_then(|trace| trace.span("sync-disable"));
     state.sync_service.disable_and_wait().await?;
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    crate::native_perf::auth_trace::complete(perf_sync);
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    let perf_queue = perf.as_ref().and_then(|trace| trace.span("blocking-queue"));
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    let perf_worker = perf.clone();
     tokio::task::spawn_blocking(move || {
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        crate::native_perf::auth_trace::complete(perf_queue);
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        let perf_read = perf_worker
+            .as_ref()
+            .and_then(|trace| trace.span("worker-vault-read"));
         let _owner = std::sync::Arc::clone(&owner);
         let svc = vault_service
             .read()
@@ -100,7 +133,23 @@ pub async fn login(
         if !std::sync::Arc::ptr_eq(&svc.root_owner(), &owner) {
             return Err("VAULT_ROOT_MISMATCH".to_string());
         }
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        crate::native_perf::auth_trace::complete(perf_read);
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        let perf_core = perf_worker
+            .as_ref()
+            .and_then(|trace| trace.span("core-unlock"));
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        let _core_observer = perf_worker.as_ref().map(|trace| {
+            solosoul_core::native_perf_unlock::observe(std::sync::Arc::new(trace.clone()))
+        });
         svc.unlock_secure_with_maintenance(&account_id, &password, &maintenance)?;
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        crate::native_perf::auth_trace::complete(perf_core);
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        let perf_audit = perf_worker
+            .as_ref()
+            .and_then(|trace| trace.span("audit-call"));
         if let Some(vg) = svc.get_vault_store() {
             let vault = vg.as_ref();
             {
@@ -115,13 +164,26 @@ pub async fn login(
                 );
             }
         }
+        #[cfg(all(feature = "native-perf", target_os = "windows"))]
+        crate::native_perf::auth_trace::complete(perf_audit);
         Ok::<_, String>(())
     })
     .await
     .map_err(|e| format!("Login task failed: {}", e))??;
 
     // 登录成功后自动清理过期回收站项目（失败不影响登录结果）
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    let perf_dispatch = perf
+        .as_ref()
+        .and_then(|trace| trace.span("cleanup-dispatch"));
     run_expired_trash_cleanup(&state);
+    #[cfg(all(feature = "native-perf", target_os = "windows"))]
+    {
+        crate::native_perf::auth_trace::complete(perf_dispatch);
+        if let Some(attempt) = perf_attempt {
+            attempt.complete();
+        }
+    }
 
     Ok(())
 }
