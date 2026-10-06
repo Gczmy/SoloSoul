@@ -115,6 +115,9 @@ function proof() {
       'Input.dispatchMouseEvent',
       'Runtime.evaluate',
       'Page.getFrameTree',
+      // 完成 PDF 关闭后仍需读取认证快照并核对同一主文档。
+      'Runtime.evaluate',
+      'Page.getFrameTree',
     ],
     phases: ['startup', 'password-unlock', 'workspace', 'attachment-list'].map((name) => ({
       name,
@@ -242,6 +245,23 @@ test('independent decoder rejects blank, partial text, corrupt CRC and allocatio
 });
 test('strict complete first-page native proof accepts repeated observations', () =>
   assert.equal(check(proof()).pdfPreview.renderVerified, true));
+test('PDF protocol rejects missing, reordered or extra final authentication guards', () => {
+  const edits = [
+    (v) => v.calls.splice(-2),
+    (v) => v.calls.splice(-1),
+    (v) => v.calls.splice(-2, 1),
+    (v) => v.calls.splice(-2, 2, 'Page.getFrameTree', 'Runtime.evaluate'),
+    (v) => v.calls.push('Runtime.evaluate', 'Page.getFrameTree'),
+    (v) => v.calls.splice(-4, 1),
+    (v) => v.calls.splice(-2, 0, 'Page.captureScreenshot'),
+  ];
+  for (const edit of edits) {
+    const v = proof();
+    edit(v);
+    assert.throws(() => check(v), /protocol guards|fixed contract/);
+  }
+});
+
 test('identity, source, private payload, PNG proof and time tampering fail', () => {
   const edits = [
     (v) => v.pid++,

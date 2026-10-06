@@ -312,6 +312,9 @@ export function checkPdfFirstPage(v, owned, bound, fixture) {
     'Input.dispatchMouseEvent',
     'Runtime.evaluate',
     'Page.getFrameTree',
+    // SDK 行程完成后读取认证诊断，并再次验证同一主 frame / loader。
+    'Runtime.evaluate',
+    'Page.getFrameTree',
   ];
   if (JSON.stringify(v.calls.slice(-tail.length)) !== JSON.stringify(tail))
     throw new Error('PDF screenshot protocol guards or order rejected');
