@@ -29,3 +29,50 @@ pub(super) fn copy(source: &Path, output: &Path) -> Result<(), String> {
 pub(super) fn write_test_fixture(path: &Path) {
     media::native_test_fixture(path).unwrap();
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn completion_marker_uses_persisted_kdf_after_environment_change() {
+        let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+        struct RestoreSecure(Option<std::ffi::OsString>);
+        impl Drop for RestoreSecure {
+            fn drop(&mut self) {
+                match self.0.take() {
+                    Some(value) => std::env::set_var("SOLOSOUL_SECURE", value),
+                    None => std::env::remove_var("SOLOSOUL_SECURE"),
+                }
+            }
+        }
+        let _restore = RestoreSecure(std::env::var_os("SOLOSOUL_SECURE"));
+        // 显式覆盖两个方向，复现创建账户与发布标记之间的环境变化。
+        for (before, after) in [("0", "1"), ("1", "0")] {
+            std::env::set_var("SOLOSOUL_SECURE", before);
+            let temporary = tempfile::tempdir().unwrap();
+            let base = temporary.path().join("fixture");
+            let (_, original) = fixture::populate(&base, 100).unwrap();
+            let config_path = base.join("acc_rf312_100/config.json");
+            let config_before = std::fs::read(&config_path).unwrap();
+            let config: solosoul_core::vault_service::AccountConfig =
+                serde_json::from_slice(&config_before).unwrap();
+            let kdf = config.kdf_config();
+            std::env::set_var("SOLOSOUL_SECURE", after);
+            let marker = fixture::completed_manifest(&base, 100).unwrap();
+            assert_eq!(
+                marker, original,
+                "KDF environment changed {before} -> {after}"
+            );
+            assert_eq!(
+                marker["kdf"],
+                serde_json::json!({"memoryKiB":kdf.memory_kb,"iterations":kdf.iterations,"parallelism":kdf.parallelism})
+            );
+            assert_eq!(std::fs::read(&config_path).unwrap(), config_before);
+            assert_eq!(
+                fixture::verify_data(&base, &marker).unwrap()["success"],
+                true
+            );
+        }
+    }
+}

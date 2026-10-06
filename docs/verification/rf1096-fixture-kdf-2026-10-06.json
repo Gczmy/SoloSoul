@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 1,
+  "taskId": "RF-1096",
+  "at": "2026-10-06T01:15:22.553477+00:00",
+  "baseCommit": "de8576d9ba94e2b4973b3f43a3edc82ffedcbebd",
+  "success": true,
+  "problem": "fixture marker reread environment after account selected and persisted its KDF",
+  "deterministicRegression": {
+    "oldExitCode": 101,
+    "directions": [
+      "development to production environment",
+      "production to development environment"
+    ],
+    "green": {
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0
+    },
+    "configurationBytesPreserved": true,
+    "reopenVerification": true
+  },
+  "originalFailure": {
+    "passed": 94,
+    "failed": 5,
+    "exitCode": 101,
+    "isolatedMediaPassed": 7
+  },
+  "checks": {
+    "fixture-kdf-green": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--lib",
+        "completion_marker_uses_persisted_kdf_after_environment_change"
+      ],
+      "pid": 42104,
+      "exitCode": 0,
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "elapsedSeconds": 144.17730474472046,
+      "at": "2026-10-06T00:55:34.085439+00:00"
+    },
+    "fixture-native-tests": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--lib",
+        "native_perf"
+      ],
+      "pid": 38196,
+      "exitCode": 0,
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "elapsedSeconds": 22.907471895217896,
+      "at": "2026-10-06T00:55:57.575055+00:00"
+    },
+    "fixture-core-example": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--example",
+        "perf_baseline"
+      ],
+      "pid": 14852,
+      "exitCode": 0,
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "elapsedSeconds": 61.101765394210815,
+      "at": "2026-10-06T00:56:58.845559+00:00"
+    },
+    "fixture-native-clippy": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--features",
+        "native-perf",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "pid": 21996,
+      "exitCode": 0,
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "elapsedSeconds": 54.72379922866821,
+      "at": "2026-10-06T00:58:18.954544+00:00"
+    },
+    "fixture-default-tests": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--verbose",
+        "--no-fail-fast"
+      ],
+      "pid": 36044,
+      "exitCode": 0,
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "elapsedSeconds": 908.8861737251282,
+      "at": "2026-10-06T01:13:27.926400+00:00"
+    },
+    "fixture-default-clippy": {
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "pid": 5408,
+      "exitCode": 0,
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "elapsedSeconds": 70.3614592552185,
+      "at": "2026-10-06T01:14:38.421579+00:00"
+    },
+    "fixture-rust-fmt": {
+      "command": [
+        "cargo",
+        "+1.99.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "pid": 33852,
+      "exitCode": 0,
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "elapsedSeconds": 6.1642069816589355,
+      "at": "2026-10-06T01:14:46.135460+00:00"
+    }
+  },
+  "testTotals": {
+    "fixture-kdf-green": {
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0
+    },
+    "fixture-native-tests": {
+      "passed": 100,
+      "failed": 0,
+      "ignored": 0
+    },
+    "fixture-core-example": {
+      "passed": 7,
+      "failed": 0,
+      "ignored": 0
+    },
+    "fixture-default-tests": {
+      "passed": 1861,
+      "failed": 0,
+      "ignored": 3
+    }
+  },
+  "fixedSourceHashes": {
+    "tauri/crates/solosoul-core/examples/perf_baseline/fixture.rs": "87a46b6cbec6a7db9f6de9bbee4358e52ab474c9f7d0f9677841ce8a003d2c39",
+    "tauri/src-tauri/src/native_perf/media_fixture.rs": "f5d86592d85811c7a14f5f09e67038e8833954e99b2be0ba59b56153d2132221"
+  },
+  "pendingAccountSourceHashes": {
+    "tauri/crates/solosoul-core/src/native_perf_unlock.rs": "66e559e5343a798e70506cee19a41f71e45a7bc55a299f35f599385d09d28742",
+    "tauri/crates/solosoul-core/src/vault_service/account.rs": "1db46614bd02a59b69e877ad8942f75e05d0f7eb190b1caa444da3977e491ddb",
+    "tauri/scripts/native-perf-auth-attribution.test.mjs": "1f15486c66d7779283baef2635b3dc49ccc19764a11e3d8c8c3c264d5c1d7888",
+    "tauri/scripts/native-perf-auth-contract.mjs": "f2898ffe69b7e727aef2cc53671ce7afa8ebcaf0cfd17556d75dbcac37c40480",
+    "tauri/src-tauri/src/native_perf/auth_contract.rs": "ed7e86eb88b00f68708c61469f5ea1a8e3e031e500bbf28cef88de3f3e03a6cc"
+  },
+  "pendingAccountInstrumentationExcludedFromCommit": true,
+  "checkedSourceInputs": 1314,
+  "productionKdfAndReleaseGatesUnchanged": true,
+  "frontendAndCliProductionUnchanged": true,
+  "toolchain": {
+    "cargo": "1.96.0",
+    "rustc": "1.96.0",
+    "rustfmt": "1.99.0",
+    "node": "24.16.0",
+    "git": "2.54.0.windows.1"
+  },
+  "originalBudgetsAndAssertionsPreserved": true,
+  "rawArchive": {
+    "index": "rf1096-fixture-kdf-2026-10-06/index.json",
+    "records": 45,
+    "indexSha256": "42cd1d7d6dc9b5782e1cef2357ab1a56de9e442faadd6ff0007714345fb34ce3"
+  },
+  "unclosed": [
+    "RF-112",
+    "RF-121",
+    "RF-312",
+    "RF-122 through RF-127"
+  ],
+  "documentationVerification": {
+    "taskLinksAndArchives": {
+      "success": true,
+      "taskRows": 286,
+      "closed": 277,
+      "waiting": 3,
+      "pending": 6,
+      "priorities": {
+        "P1": 51,
+        "P2": 234,
+        "P3": 1
+      },
+      "relativeLinksChecked": 204,
+      "originalArchivesVerified": 45
+    },
+    "markdownBoundary": {
+      "command": [
+        "node",
+        "scripts/check-markdown-chunk-boundary.mjs"
+      ],
+      "pid": 27900,
+      "exitCode": 0,
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "elapsedSeconds": 26.935853719711304,
+      "at": "2026-10-06T01:16:41.877012+00:00"
+    },
+    "markdownBoundaryOutput": "[check-markdown-chunk-boundary] OK: 13 个解析/渲染依赖与核心同处 markdown-vendor\n",
+    "diffCheck": {
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/40299571/SoloSoul",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "pid": 41436,
+      "exitCode": 0,
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "elapsedSeconds": 26.88121747970581,
+      "at": "2026-10-06T01:16:41.797628+00:00"
+    }
+  }
+}

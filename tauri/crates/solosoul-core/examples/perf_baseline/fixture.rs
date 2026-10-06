@@ -164,16 +164,25 @@ pub(super) fn populate(path: &Path, count: usize) -> Result<(PathBuf, Value), St
     service.lock();
     drop(service);
     write_new_json(&output.join("ui_preferences.json"), &ui_preferences())?;
-    let marker = manifest(
+    let marker = completed_manifest(&output, count)?;
+    Ok((output, marker))
+}
+
+pub(super) fn completed_manifest(base: &Path, count: usize) -> Result<Value, String> {
+    // 账户创建已决定实际 KDF；环境在后续写入期间变化不能改写完成标记。
+    let config: AccountConfig = serde_json::from_value(read_json(
+        &base.join(format!("acc_rf312_{count}")).join("config.json"),
+    )?)
+    .map_err(|e| format!("invalid fixture account config: {e}"))?;
+    Ok(manifest(
         count,
-        KdfConfig::from_env(),
+        config.kdf_config(),
         if cfg!(debug_assertions) {
             "debug"
         } else {
             "release"
         },
-    );
-    Ok((output, marker))
+    ))
 }
 
 fn generate(path: &Path, count: usize) -> Result<Value, String> {

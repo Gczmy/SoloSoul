@@ -1,0 +1,367 @@
+{
+  "schemaVersion": 1,
+  "taskId": "RF-1096",
+  "encoding": "gzip with mtime=0; exact original bytes",
+  "records": [
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\add-red-regression.py",
+      "archivePath": "add-red-regression.py.gz",
+      "rawBytes": 3228,
+      "rawSha256": "b0a593eb2e763c05fb45c07bc57aba7818786b794b729d5a4adf8b2723a27653",
+      "gzipBytes": 1393,
+      "gzipSha256": "548d1e23f85e959500b473c37983ddf0d304f716f09cf479b11516ae5ae8a7eb"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\baseline.json",
+      "archivePath": "baseline.json.gz",
+      "rawBytes": 1383,
+      "rawSha256": "340f7e44a2ae0c8964340a20c4fe4480681b8ad21e6037e5bf820f0aa073e20a",
+      "gzipBytes": 784,
+      "gzipSha256": "d1ef9c297240149653e1569500e75ccc5de5702e228987cefcfedb6226d95b21"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\before\\docs\\REFACTOR_EXECUTION_REPORT_2026-09-25.md",
+      "archivePath": "before/docs/REFACTOR_EXECUTION_REPORT_2026-09-25.md.gz",
+      "rawBytes": 1031784,
+      "rawSha256": "d74ce36d6ffe2d5d722e4094471eafd567ff0fdbfafec2f3be4ccdd191c22dcd",
+      "gzipBytes": 343041,
+      "gzipSha256": "bcfde168cce1ed067021a115b4e2ed14546d2fefbf139658c189086c85711371"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\before\\docs\\performance\\RF-312-media-fixture-contract.md",
+      "archivePath": "before/docs/performance/RF-312-media-fixture-contract.md.gz",
+      "rawBytes": 3851,
+      "rawSha256": "cac2be3c77218fbccf3123fe9cd46a85f6695feeb53cb24928bf3f8100b7e157",
+      "gzipBytes": 2163,
+      "gzipSha256": "a5ffb6156c6d59e2cd8f681e7ba9c0d3586845a5e91878ef6bd519723a61f545"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\before\\tauri\\crates\\solosoul-core\\examples\\perf_baseline\\fixture.rs",
+      "archivePath": "before/tauri/crates/solosoul-core/examples/perf_baseline/fixture.rs.gz",
+      "rawBytes": 12786,
+      "rawSha256": "ab77dab6695ff53e1ac78fa6597196e451d7db12a6ad93ff684db3d2e0505247",
+      "gzipBytes": 4144,
+      "gzipSha256": "b8c0230e088a4b322cb9d116e3b968599c325a33a98298db8f2fa40aa4770eea"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\before\\tauri\\src-tauri\\src\\native_perf\\media_fixture.rs",
+      "archivePath": "before/tauri/src-tauri/src/native_perf/media_fixture.rs.gz",
+      "rawBytes": 1151,
+      "rawSha256": "1441330640841ebebb1d13842401eafc0db5204f8ba28eb0255ea03848751454",
+      "gzipBytes": 643,
+      "gzipSha256": "e76708c049859afe86e60597735dc4385fc77f0254e35046ff486e5df9c23217"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\check-fixture-kdf.py",
+      "archivePath": "check-fixture-kdf.py.gz",
+      "rawBytes": 1736,
+      "rawSha256": "0f2e313c46dc88426aa14266fa483b8aead3382fac268432b51dfe43c999947f",
+      "gzipBytes": 795,
+      "gzipSha256": "069b4fa3302f3f1a4bba417983cf447a2b6298b4eda710b188ae9bd616390ffa"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\check-source-freeze.json",
+      "archivePath": "check-source-freeze.json.gz",
+      "rawBytes": 159611,
+      "rawSha256": "85bc5b29cb289b0512215b3e41db263895d7ddad6f91dcf87f44d5dec2484402",
+      "gzipBytes": 64623,
+      "gzipSha256": "ca9adff7f048971ce999fdfa0bd92bf5fc3b751ad2190ea958cb6aa479767fcc"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\finish-fixture-task.py",
+      "archivePath": "finish-fixture-task.py.gz",
+      "rawBytes": 8182,
+      "rawSha256": "5776a235d616853f138665a92fb949bb2aabc6ed063700134926868785ee95ca",
+      "gzipBytes": 3587,
+      "gzipSha256": "165e509c4a0928b077741344a42e172055515a8b109d0f81497b6e3c8cfd5315"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fix-marker.py",
+      "archivePath": "fix-marker.py.gz",
+      "rawBytes": 1294,
+      "rawSha256": "76bfc647fbfb146aa49ae1fbc303ccd47c3dbb104fdb78bf63d03b932b298776",
+      "gzipBytes": 782,
+      "gzipSha256": "82af2a3f103a4c76ffe2a2c03ad9021ba6adab287f00324562af25a7a7a2a420"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-core-example.receipt.json",
+      "archivePath": "fixture-core-example.receipt.json.gz",
+      "rawBytes": 353,
+      "rawSha256": "dd02247325958819581a97614471f62d590491f26c392794d4e269724c3a7c2e",
+      "gzipBytes": 289,
+      "gzipSha256": "a2f183c0b2c0c33849a8267cabcf88c7552a297c86be77f031c1bd220d67e35e"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-core-example.stderr.log",
+      "archivePath": "fixture-core-example.stderr.log.gz",
+      "rawBytes": 271,
+      "rawSha256": "27220f628d95407efb8fc3269f141a0ac46a8fe872b59008ee5a6aa7a5fa78ee",
+      "gzipBytes": 215,
+      "gzipSha256": "deb663e448587ce3d6f7bf7669c77d812b6b37fe95251c81076c875d6ae4b400"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-core-example.stdout.log",
+      "archivePath": "fixture-core-example.stdout.log.gz",
+      "rawBytes": 13576,
+      "rawSha256": "83635fda4a0b97a3ba824add60718182521ef5b9697a5d78c2882a52e6e9f5c0",
+      "gzipBytes": 859,
+      "gzipSha256": "48f511a8c326d9ad285e0fd531f35d0e364f09ccd31c2e0819310ff921fb071d"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-default-clippy.receipt.json",
+      "archivePath": "fixture-default-clippy.receipt.json.gz",
+      "rawBytes": 355,
+      "rawSha256": "c518559d3f71ab74520ee8be6b74cb125eddb99e619f8aab49b9c8f5cca87ffa",
+      "gzipBytes": 289,
+      "gzipSha256": "6526da5ee3fb7dcf7532c6cbb639db41f1f947c7e2ca7f1c90bd17b7ddcb42cb"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-default-clippy.stderr.log",
+      "archivePath": "fixture-default-clippy.stderr.log.gz",
+      "rawBytes": 424,
+      "rawSha256": "d47428db8d1110918338f990a09b5748724246856028ca1683bfb1a97370acef",
+      "gzipBytes": 191,
+      "gzipSha256": "3f0b87247cc1c83f7f8352ea21b88f5d21fb13fc0ce0f205b2bb885795f957aa"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-default-clippy.stdout.log",
+      "archivePath": "fixture-default-clippy.stdout.log.gz",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzipBytes": 20,
+      "gzipSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-default-tests.receipt.json",
+      "archivePath": "fixture-default-tests.receipt.json.gz",
+      "rawBytes": 345,
+      "rawSha256": "54a570a0026c48211bd55ba6af4ef3e827afbee99ca9727e354f297593ea0345",
+      "gzipBytes": 285,
+      "gzipSha256": "1f55f1f357cc38104f820d8306fec0f1da893cebe15980bab97e78e125ab10b3"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-default-tests.stderr.log",
+      "archivePath": "fixture-default-tests.stderr.log.gz",
+      "rawBytes": 182614,
+      "rawSha256": "fc7bc32e28d5346dd27cd900100480ea0af7f2bc11e88a8f950e3827c130f248",
+      "gzipBytes": 12381,
+      "gzipSha256": "d1d4aa1d440b178e674044837a19d0656473ee6612603883355079f7dda46bd1"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-default-tests.stdout.log",
+      "archivePath": "fixture-default-tests.stdout.log.gz",
+      "rawBytes": 684324,
+      "rawSha256": "1233aadab562ee7e768959e583b2f1a9ad9b2e2c516e3f689e8381c11ec8e3cb",
+      "gzipBytes": 66902,
+      "gzipSha256": "f1958589c066716befabb6510e192896733041d75b2edcddb4e2d7934b493a4a"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-kdf-green.receipt.json",
+      "archivePath": "fixture-kdf-green.receipt.json.gz",
+      "rawBytes": 422,
+      "rawSha256": "62b1c857f8fc7de89d6daab256d284a68bba30ffb7011ebe6771c7c2ffa5f38f",
+      "gzipBytes": 327,
+      "gzipSha256": "bba66360bf95d72dd4d35477800af8831fb95f0a654e21a91e669fd17e0fab00"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-kdf-green.stderr.log",
+      "archivePath": "fixture-kdf-green.stderr.log.gz",
+      "rawBytes": 233,
+      "rawSha256": "7472f6aff122765c8231b1b8bf1035a25e712ed2a4444db4d75f9d1cf77e24f9",
+      "gzipBytes": 199,
+      "gzipSha256": "1b87a8870c43822ae7c87f773a76a95eb9a0250ca59306613c90561c20f1f6a4"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-kdf-green.stdout.log",
+      "archivePath": "fixture-kdf-green.stdout.log.gz",
+      "rawBytes": 1991,
+      "rawSha256": "9d76fd2bd892143f2c9efa26ddd1cab1dde0025d590b32c7f88c6d2529ef717b",
+      "gzipBytes": 336,
+      "gzipSha256": "931a1eddbd52bdc0c6d3ada61920deb61307c7450af3d42a14f346b64a5187cd"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-kdf-red.receipt.json",
+      "archivePath": "fixture-kdf-red.receipt.json.gz",
+      "rawBytes": 423,
+      "rawSha256": "86aab98d1f176e0c5aaab38aca62874c00468a356bd5cf955e23dcfcf3dc7e59",
+      "gzipBytes": 328,
+      "gzipSha256": "28ed2a14ef4f41721b751c08abe4b90cc4a0d09287f196649e3417abe9bd016f"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-kdf-red.stderr.log",
+      "archivePath": "fixture-kdf-red.stderr.log.gz",
+      "rawBytes": 288,
+      "rawSha256": "b9f69418768ea7b812a7b3c8ce259220e8d741572e7811fd544ab65fa8911774",
+      "gzipBytes": 233,
+      "gzipSha256": "22429bba7c884fcdfbe491bf2f0fd8d91fffc087ea5a3622293a57c085dc16c4"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-kdf-red.stdout.log",
+      "archivePath": "fixture-kdf-red.stdout.log.gz",
+      "rawBytes": 2933,
+      "rawSha256": "c56f77df3fa437ee37055d4eede2267b970c459b7b262ef3a1ec1bda5a8874a1",
+      "gzipBytes": 881,
+      "gzipSha256": "ba24e32fb1000289419393ece2ba9bd805f2582522ba03a32a235fb16d3c6b8f"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-native-clippy.receipt.json",
+      "archivePath": "fixture-native-clippy.receipt.json.gz",
+      "rawBytes": 386,
+      "rawSha256": "f8f96e707a1a11b54b4b14285058afd70d9c529aeff5c52ae4306bcd99268298",
+      "gzipBytes": 306,
+      "gzipSha256": "2c16b4a239df7595741e02319650229ae9b6d4156a7fa63a0ca3153492f8969b"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-native-clippy.stderr.log",
+      "archivePath": "fixture-native-clippy.stderr.log.gz",
+      "rawBytes": 424,
+      "rawSha256": "d9ade294cc5c9c65b3d18a86071e9da83aaae04e40838fae4a2799d5f9594d71",
+      "gzipBytes": 191,
+      "gzipSha256": "2f8ed70780e663eba10aab2a99c055860b3dd6df958f151ab4861e3f11358e07"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-native-clippy.stdout.log",
+      "archivePath": "fixture-native-clippy.stdout.log.gz",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzipBytes": 20,
+      "gzipSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-native-tests.receipt.json",
+      "archivePath": "fixture-native-tests.receipt.json.gz",
+      "rawBytes": 372,
+      "rawSha256": "986fb74ed9a38a4846996f8dbbf9a1a172124b38a4cb0093cd49640d187b18b8",
+      "gzipBytes": 293,
+      "gzipSha256": "bc102abf5d085a20949753f6e71a08d444eaf7d0038f459077bcaabef2ac6a8e"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-native-tests.stderr.log",
+      "archivePath": "fixture-native-tests.stderr.log.gz",
+      "rawBytes": 156,
+      "rawSha256": "557be1b9fd96e02a9b4dda22d7537e5c3f79a402df4b7709c580ebcb4e0f0e78",
+      "gzipBytes": 150,
+      "gzipSha256": "52e3eb18caf6da1c8d551695aaaac86d70afbd3a3cbcc7abac6627fc85b572e5"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-native-tests.stdout.log",
+      "archivePath": "fixture-native-tests.stdout.log.gz",
+      "rawBytes": 38337,
+      "rawSha256": "6d1ddda24a520331e47e5e64e4fb584119767fb9b0ab8606c0a274d44d040604",
+      "gzipBytes": 3994,
+      "gzipSha256": "6ede3f4deb91b1edd3dc4b68c31e4a6903dcbeea991d956e3648a462250a52bf"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-rust-fmt.receipt.json",
+      "archivePath": "fixture-rust-fmt.receipt.json.gz",
+      "rawBytes": 324,
+      "rawSha256": "9154064bd4128504c4aee8fa67af8e0fd9fa1711acd38db9e4692c46de0da0ec",
+      "gzipBytes": 269,
+      "gzipSha256": "a386bde417b952386f38c7d0f805378997d5b69aadd9b049f1c9896eb75c8144"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-rust-fmt.stderr.log",
+      "archivePath": "fixture-rust-fmt.stderr.log.gz",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzipBytes": 20,
+      "gzipSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-rust-fmt.stdout.log",
+      "archivePath": "fixture-rust-fmt.stdout.log.gz",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzipBytes": 20,
+      "gzipSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-media-isolated.receipt.json",
+      "archivePath": "original-account-native-media-isolated.receipt.json.gz",
+      "rawBytes": 401,
+      "rawSha256": "3eff9063e3e8451864b2ca2f64ff7c265eb5f055975529abed7cd578e7012910",
+      "gzipBytes": 309,
+      "gzipSha256": "e05ec8cbaa1610a3456ac7d9a24317d330c25e95093e6cb94553871103c12448"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-media-isolated.stderr.log",
+      "archivePath": "original-account-native-media-isolated.stderr.log.gz",
+      "rawBytes": 233,
+      "rawSha256": "21683cdc2103111fd7812a74398a1b47c9ef5f60259a5b8f1eb49ffdb5264cb7",
+      "gzipBytes": 200,
+      "gzipSha256": "30543b4aa8a190d6da641afa9bcda4df9d0ed545fbcf3836ad453816ebee251c"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-media-isolated.stdout.log",
+      "archivePath": "original-account-native-media-isolated.stdout.log.gz",
+      "rawBytes": 13774,
+      "rawSha256": "e2033c1727cb53391b0907abd1888f132615fe649f79149aa3e8bd25b4ff25db",
+      "gzipBytes": 874,
+      "gzipSha256": "ea3f1b1034b7e5bef6e6261ba63542aaa4cbb780d909b57df0eef12f4a8f6de4"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-tests.receipt.json",
+      "archivePath": "original-account-native-tests.receipt.json.gz",
+      "rawBytes": 373,
+      "rawSha256": "19b6631352e680b33c459ea2db124d1cc67944e540f8a5cccc03c75a40eb0655",
+      "gzipBytes": 295,
+      "gzipSha256": "f1d31d70e95b662f9f5e5057bc0fff8af25a50a8bd5a06d7365323aad012d265"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-tests.stderr.log",
+      "archivePath": "original-account-native-tests.stderr.log.gz",
+      "rawBytes": 565,
+      "rawSha256": "7d9f29b9d93063036f2e12fb00c50e6e0154f5fe9b86dc8434c05df8878a4ca3",
+      "gzipBytes": 273,
+      "gzipSha256": "dac0d8a3e72f878a4565e7d16e87c2abdc24fd2a67c46e31790aab16d4be0457"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\account-native-tests.stdout.log",
+      "archivePath": "original-account-native-tests.stdout.log.gz",
+      "rawBytes": 30946,
+      "rawSha256": "57d041489a5483730697345da1fe12ae6d8c75700ca163d72aec48a456657029",
+      "gzipBytes": 3986,
+      "gzipSha256": "f49ad05e9235d63d47fb65b4386aecc5fd2e65e3d9761fda1c1ea63c791fda6d"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\register-task.py",
+      "archivePath": "register-task.py.gz",
+      "rawBytes": 3704,
+      "rawSha256": "759fce510a69cbfa41482d7cf7b6d521785733ce4167e73bbdb7ac007de880c4",
+      "gzipBytes": 2020,
+      "gzipSha256": "7ab8b0f30717a07ac68b5fb7407e45173ee5d0def2c69cf777b0283e56f92f5b"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\required-checks.json",
+      "archivePath": "required-checks.json.gz",
+      "rawBytes": 3864,
+      "rawSha256": "5e18f3ead12a30af925f8a082a1af8f8c24158103fe8492f606e424f6ff73110",
+      "gzipBytes": 790,
+      "gzipSha256": "5c74e7db44075efd8a70c50fe59b9859bc7b41597e5ef4a3d84e801dd908a034"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\run-check.py",
+      "archivePath": "run-check.py.gz",
+      "rawBytes": 1570,
+      "rawSha256": "66bcd33dc004033a56ebf116baab36759d86727468903f8d3a381c39055f01ce",
+      "gzipBytes": 761,
+      "gzipSha256": "61b3e9d8e989e22622a74b9ea600b403837275aa83d9f16b95a8ec3bdc56793a"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\stage-fixture-task.py",
+      "archivePath": "stage-fixture-task.py.gz",
+      "rawBytes": 2362,
+      "rawSha256": "2f53bec6a34b35f41ecddb92a736cb7fb4d2cdde533942459ee188436332b13b",
+      "gzipBytes": 1148,
+      "gzipSha256": "6bd38b80283691623600f881d2f2ab39181fa32c6f769a86fc2b2f4e004184fa"
+    },
+    {
+      "originalPath": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\verify-fixture-docs.py",
+      "archivePath": "verify-fixture-docs.py.gz",
+      "rawBytes": 1902,
+      "rawSha256": "402846636de641e049d927a44f0ee6d38648012e428c94ec9577f71ef05334da",
+      "gzipBytes": 950,
+      "gzipSha256": "3d0de7687f7c5a14393d8b9840af1a1fb54e8b422ea91573de5580091c280995"
+    }
+  ]
+}
