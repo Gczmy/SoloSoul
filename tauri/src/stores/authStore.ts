@@ -16,6 +16,11 @@ export function saveLastAccountId(accountId: string) {
   }
 }
 
+export interface AuthenticationAttempt {
+  isCurrent: () => boolean;
+  cancel: () => void;
+}
+
 interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -26,7 +31,7 @@ interface AuthState {
   backendError: boolean;
 
   checkHasAccount: () => Promise<void>;
-  listAccounts: () => Promise<void>;
+  listAccounts: (attempt?: AuthenticationAttempt) => Promise<void>;
   refreshCurrentAccount: () => Promise<void>;
   bootstrap: (
     name: string,
@@ -34,7 +39,7 @@ interface AuthState {
     locale: string,
     passwordHint?: string,
   ) => Promise<void>;
-  login: (accountId: string, password: string) => Promise<void>;
+  login: (accountId: string, password: string, attempt?: AuthenticationAttempt) => Promise<void>;
   logout: () => Promise<void>;
   /** 锁定 Vault（收敛自 vaultStore.lock）。无论后端调用成功与否都重置认证状态。 */
   lock: () => Promise<void>;
@@ -45,9 +50,22 @@ interface AuthState {
   clearError: () => void;
 }
 
-// 密码登录/创建账户的异步结果只能提交到发起时的认证代次。
+// 各解锁方式和创建账户的异步结果只能提交到发起时的认证代次。
 // lock/logout 即使发生在未认证状态，也必须使正在等待的解锁失效。
 let authGeneration = 0;
+
+/** 页面持有请求身份；只允许当前请求取消自己的 loading，不影响后来的登录。 */
+export function beginAuthenticationAttempt(): AuthenticationAttempt {
+  const generation = ++authGeneration;
+  return {
+    isCurrent: () => generation === authGeneration,
+    cancel: () => {
+      if (generation !== authGeneration) return;
+      authGeneration += 1;
+      useAuthStore.setState({ isLoading: false });
+    },
+  };
+}
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
@@ -69,9 +87,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  listAccounts: async () => {
+  listAccounts: async (attempt) => {
+    if (attempt && !attempt.isCurrent()) return;
     try {
       const accounts = await invoke<AccountInfo[]>('vault_list_accounts');
+      if (attempt && !attempt.isCurrent()) return;
       const currentId = get().currentAccount?.id;
       const refreshed = currentId ? accounts.find((a) => a.id === currentId) : null;
       set({
@@ -81,6 +101,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         backendError: false,
       });
     } catch (err) {
+      if (attempt && !attempt.isCurrent()) return;
       // Surface the error so the user can report it; vault may be locked.
       set({
         error: String(err),
@@ -128,8 +149,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  login: async (accountId, password) => {
-    const generation = ++authGeneration;
+  login: async (accountId, password, attempt = beginAuthenticationAttempt()) => {
+    if (!attempt.isCurrent()) return;
     const mark = beginNativeAuthTrace();
     set({ isLoading: true, error: null });
     try {
@@ -141,7 +162,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         mark?.('login-await-error');
         throw err;
       }
-      if (generation !== authGeneration) {
+      if (!attempt.isCurrent()) {
         mark?.('failed');
         return;
       }
@@ -156,10 +177,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         mark?.('accounts-await-error');
         // Keep authentication state even if the account-list refresh fails.
         // P227: 登录后的账户列表刷新失败属可接受降级，但留痕便于排查。
-        if (generation === authGeneration)
+        if (attempt.isCurrent())
           logger.warn('[authStore] account list refresh after login failed:', err);
       }
-      if (generation !== authGeneration) {
+      if (!attempt.isCurrent()) {
         mark?.('failed');
         return;
       }
@@ -192,7 +213,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       mark?.('finished');
     } catch (err) {
       mark?.('failed');
-      if (generation === authGeneration) set({ error: String(err), isLoading: false });
+      if (attempt.isCurrent()) set({ error: String(err), isLoading: false });
     }
   },
 

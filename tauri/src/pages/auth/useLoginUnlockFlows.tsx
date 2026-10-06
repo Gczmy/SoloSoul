@@ -1,9 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useLayoutEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { useAuthStore, saveLastAccountId } from '@/stores/authStore';
+import {
+  useAuthStore,
+  saveLastAccountId,
+  beginAuthenticationAttempt,
+  type AuthenticationAttempt,
+} from '@/stores/authStore';
 import type { AccountInfo } from '@/lib/ipc';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { translateRustError } from '@/lib/rustErrors';
@@ -63,14 +68,67 @@ export function useLoginUnlockFlows({
   const [pinInputKey, setPinInputKey] = useState(0);
   const pinInputRef = useRef<PinInputHandle>(null);
 
-  // P034: 组件卸载时清空密码 state（登录成功导航离开 / 锁定返回登录页时缩短驻留）
-  useEffect(() => {
-    return () => setPassword('');
-  }, []);
+  const mounted = useRef(false);
+  const activeAccountId = useRef(selectedAccountId);
+  const pendingAttempt = useRef<{
+    method: 'pin' | 'biometric' | 'password';
+    request: AuthenticationAttempt;
+  } | null>(null);
+
+  // 账户切换在提交阶段立即失效旧请求；卸载只取消自己仍持有的请求。
+  useLayoutEffect(() => {
+    mounted.current = true;
+    activeAccountId.current = selectedAccountId;
+    setPinUnlocking(false);
+    setBioLoading(false);
+    setPassword('');
+    setPinError(null);
+    setBioError(null);
+    setSubmitError(null);
+    setPasswordFieldError(null);
+    const unsubscribe = useAuthStore.subscribe((state) => {
+      if (pendingAttempt.current && !pendingAttempt.current.request.isCurrent()) {
+        pendingAttempt.current = null;
+        setPinUnlocking(false);
+        setBioLoading(false);
+      } else if (
+        pendingAttempt.current?.method === 'password' &&
+        state.isAuthenticated &&
+        !state.isLoading &&
+        state.currentAccount?.id === selectedAccountId
+      ) {
+        // 认证已提交，正常导航不取消后续安全标志刷新；锁定仍使请求失效。
+        pendingAttempt.current = null;
+      }
+    });
+    return () => {
+      mounted.current = false;
+      unsubscribe();
+      pendingAttempt.current?.request.cancel();
+      pendingAttempt.current = null;
+    };
+  }, [selectedAccountId]);
+
+  const beginUnlock = useCallback(
+    (method: 'pin' | 'biometric' | 'password') => {
+      if (!mounted.current || !selectedAccountId || activeAccountId.current !== selectedAccountId)
+        return;
+      const previous = pendingAttempt.current;
+      // React 状态尚未刷新时，也不能重复提交同一种解锁。
+      if (previous?.method === method && previous.request.isCurrent()) return;
+      previous?.request.cancel();
+      const request = beginAuthenticationAttempt();
+      pendingAttempt.current = { method, request };
+      return request;
+    },
+    [selectedAccountId],
+  );
 
   const handlePinComplete = useCallback(
     async (pin: string) => {
       if (!selectedAccountId || pinUnlocking) return;
+      const attempt = beginUnlock('pin');
+      if (!attempt) return;
       setPinUnlocking(true);
       setPinError(null);
       const t0 = performance.now();
@@ -82,6 +140,7 @@ export function useLoginUnlockFlows({
           location: 'login_page',
           action: 'unlock',
         });
+        if (!attempt.isCurrent()) return;
         (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
         saveLastAccountId(acc.id);
         // P015: 收敛到 authStore action，不再直改 setState
@@ -95,6 +154,7 @@ export function useLoginUnlockFlows({
         }, 2000);
         navigate('/');
       } catch (e) {
+        if (!attempt.isCurrent()) return;
         const msg = String(e);
         if (msg.includes('__PIN_ERR__:locked')) {
           setPinError(t('auth:pin_locked'));
@@ -108,13 +168,18 @@ export function useLoginUnlockFlows({
         }
         // 清空 PinInput 控件状态
         setPinInputKey((k) => k + 1);
-        setPinUnlocking(false);
+      } finally {
+        if (attempt.isCurrent()) {
+          pendingAttempt.current = null;
+          setPinUnlocking(false);
+        }
       }
     },
-    [selectedAccountId, pinUnlocking, t, navigate, setPinAvailable, setLoginMethod],
+    [selectedAccountId, pinUnlocking, t, navigate, setPinAvailable, setLoginMethod, beginUnlock],
   );
 
   const handleBiometricUnlock = useCallback(async () => {
+    if (!mounted.current || activeAccountId.current !== selectedAccountId) return;
     if (!selectedAccountId || bioLoading) return;
     // 系统生物识别处于临时锁定状态：不发起原生提示，直接显示警告并降级到主密码
     if (bioLockout) {
@@ -122,9 +187,10 @@ export function useLoginUnlockFlows({
       setLoginMethod('password');
       return;
     }
+    const attempt = beginUnlock('biometric');
+    if (!attempt) return;
     setBioLoading(true);
     setBioError(null);
-    let success = false;
     const t0 = performance.now();
     try {
       await invoke('biometric_unlock', {
@@ -133,14 +199,17 @@ export function useLoginUnlockFlows({
         action: 'unlock',
         biometryType: biometryTypeRaw,
       });
+      if (!attempt.isCurrent()) return;
       // Vault already unlocked — set auth state directly
       // 原生解锁已成功；账户列表刷新失败不能再把已打开的 Vault 当作登录失败。
       let accs: AccountInfo[] | undefined;
       try {
         accs = (await invoke<AccountInfo[]>('vault_list_accounts')) || [];
       } catch (err) {
-        logger.warn('[LoginPage] account list refresh after biometric unlock failed:', err);
+        if (attempt.isCurrent())
+          logger.warn('[LoginPage] account list refresh after biometric unlock failed:', err);
       }
+      if (!attempt.isCurrent()) return;
       const knownAccounts = accs ?? useAuthStore.getState().accounts;
       const acc = knownAccounts.find((a) => a.id === selectedAccountId) || {
         id: selectedAccountId,
@@ -149,7 +218,6 @@ export function useLoginUnlockFlows({
       saveLastAccountId(acc.id);
       // P015: 收敛到 authStore action，不再直改 setState
       useAuthStore.getState().completeUnlock(acc, accs);
-      success = true;
       (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
       // 生物识别解锁后延迟检查备份提醒（P228: accountId 注入，避免循环依赖）
       const bioUnlockedAccountId = acc.id;
@@ -161,6 +229,7 @@ export function useLoginUnlockFlows({
       // Navigate immediately to avoid showing the biometric UI after success
       navigate('/');
     } catch (e) {
+      if (!attempt.isCurrent()) return;
       const msg = String(e);
       if (
         msg.toLowerCase().includes('cancelled') ||
@@ -178,7 +247,10 @@ export function useLoginUnlockFlows({
         setLoginMethod('password');
       }
     } finally {
-      if (!success) setBioLoading(false);
+      if (attempt.isCurrent()) {
+        pendingAttempt.current = null;
+        setBioLoading(false);
+      }
     }
   }, [
     selectedAccountId,
@@ -189,10 +261,12 @@ export function useLoginUnlockFlows({
     bioLockout,
     setBioLockout,
     setLoginMethod,
+    beginUnlock,
   ]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
+    if (!mounted.current || activeAccountId.current !== selectedAccountId) return;
     clearError();
     setBioError(null);
     setSubmitError(null);
@@ -208,42 +282,50 @@ export function useLoginUnlockFlows({
       setPasswordErrorTick((n) => n + 1);
       return;
     }
-    await login(selectedAccountId, password);
-    // 后端密码类错误（Invalid password / Verify failed）：i18n 后挂到输入框行内；
-    // 其他后端错误回退到 submitError（独立错误区展示），避免被静默丢弃
-    const state = useAuthStore.getState();
-    if (state.error) {
-      const translated = translateRustError(state.error);
-      if (translated === 'common:invalid_password' || translated === 'common:verify_failed') {
-        setPasswordFieldError(t(translated));
-        setPasswordErrorTick((n) => n + 1);
-      } else {
-        // 非密码错误：清除可能残留的主密码行内错误，避免与 submitError 同时展示
-        setPasswordFieldError(null);
-        setSubmitError(translated ? t(translated) : state.error);
+    const attempt = beginUnlock('password');
+    if (!attempt) return;
+    try {
+      await login(selectedAccountId, password, attempt);
+      if (!attempt.isCurrent()) return;
+      // 后端密码类错误（Invalid password / Verify failed）：i18n 后挂到输入框行内；
+      // 其他后端错误回退到 submitError（独立错误区展示），避免被静默丢弃
+      const state = useAuthStore.getState();
+      if (state.error) {
+        const translated = translateRustError(state.error);
+        if (translated === 'common:invalid_password' || translated === 'common:verify_failed') {
+          setPasswordFieldError(t(translated));
+          setPasswordErrorTick((n) => n + 1);
+        } else {
+          // 非密码错误：清除可能残留的主密码行内错误，避免与 submitError 同时展示
+          setPasswordFieldError(null);
+          setSubmitError(translated ? t(translated) : state.error);
+        }
       }
-    }
-    // P034: 登录成功立即清空密码 state（JS 堆不可清零，尽早缩短驻留窗口）
-    if (!state.error) {
-      setPassword('');
-    }
-    // 从已有外部目录登录后，config.json 中可能残留旧的安全标志（biometric/pin enabled），
-    // 但实际 KeyStore 凭证和 PIN 文件已被卸载清除。立即复位这些标志，
-    // 避免用户在安全设置中看到「已启用」但实际无法使用的状态。
-    if (
-      fromExisting &&
-      !state.error &&
-      state.isAuthenticated &&
-      state.currentAccount?.id === selectedAccountId
-    ) {
-      try {
-        await invoke('reset_security_flags', { accountId: selectedAccountId });
-        // 刷新账户列表，让 currentAccount 反映新的 hasBiometricHistory/hasPinHistory 标志，
-        // 同时让安全设置页在重新进入时读取到最新的可用性状态。
-        await listAccounts();
-      } catch {
-        // 重置失败不阻断登录流程，用户下次启动时再试
+      // P034: 登录成功立即清空密码 state（JS 堆不可清零，尽早缩短驻留窗口）
+      if (!state.error) {
+        setPassword('');
       }
+      // 从已有外部目录登录后，config.json 中可能残留旧的安全标志（biometric/pin enabled），
+      // 但实际 KeyStore 凭证和 PIN 文件已被卸载清除。立即复位这些标志，
+      // 避免用户在安全设置中看到「已启用」但实际无法使用的状态。
+      if (
+        fromExisting &&
+        !state.error &&
+        state.isAuthenticated &&
+        state.currentAccount?.id === selectedAccountId
+      ) {
+        try {
+          await invoke('reset_security_flags', { accountId: selectedAccountId });
+          if (!attempt.isCurrent()) return;
+          // 刷新账户列表，让 currentAccount 反映新的 hasBiometricHistory/hasPinHistory 标志，
+          // 同时让安全设置页在重新进入时读取到最新的可用性状态。
+          await listAccounts(attempt);
+        } catch {
+          // 重置失败不阻断登录流程，用户下次启动时再试
+        }
+      }
+    } finally {
+      if (pendingAttempt.current?.request === attempt) pendingAttempt.current = null;
     }
   };
 
