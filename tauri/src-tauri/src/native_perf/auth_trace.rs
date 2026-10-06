@@ -2,13 +2,16 @@
 use super::RUNTIME;
 use serde::Serialize;
 use serde_json::{json, Value};
-use solosoul_core::native_perf_unlock::{UnlockObserver, UnlockStage};
+use solosoul_core::native_perf_unlock::{
+    PermissionOutcome, PermissionTarget, UnlockObserver, UnlockStage,
+};
 use std::path::Path;
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Instant;
 
 const MAX_ATTEMPTS: usize = 64;
 const MAX_STAGES: usize = 128;
+pub(super) const MAX_PERMISSION_COMMANDS: usize = 64;
 static RECORDS: OnceLock<Arc<Mutex<Records>>> = OnceLock::new();
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -29,7 +32,19 @@ struct AttemptRecord {
     outcome: &'static str,
     stages: Vec<StageRecord>,
 }
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PermissionRecord {
+    attempt_id: u32,
+    stage_token: u32,
+    kind: &'static str,
+    at_ms: f64,
+    outcome: &'static str,
+    exit_code: Option<i32>,
+    os_error: Option<i32>,
+}
 struct Records {
+    permission_commands: Vec<PermissionRecord>,
     clock: Instant,
     attempts: Vec<AttemptRecord>,
     invalid_reasons: Vec<&'static str>,
@@ -37,6 +52,7 @@ struct Records {
 impl Records {
     fn new() -> Self {
         Self {
+            permission_commands: Vec::new(),
             clock: Instant::now(),
             attempts: Vec::new(),
             invalid_reasons: Vec::new(),
@@ -184,6 +200,76 @@ impl UnlockObserver for Handle {
     fn end(&self, token: u32, completed: bool) {
         self.end_named(token, completed);
     }
+    fn permission(&self, target: PermissionTarget, outcome: PermissionOutcome) {
+        let Ok(mut rows) = self.records.lock() else {
+            return;
+        };
+        let attempt = &rows.attempts[self.index];
+        if !attempt.root_verified {
+            rows.invalidate("permission-root-unverified");
+            return;
+        }
+        if attempt.kind != "login" {
+            rows.invalidate("permission-attempt-kind-invalid");
+            return;
+        }
+        let matching: Vec<_> = attempt
+            .stages
+            .iter()
+            .enumerate()
+            .filter(|(_, stage)| stage.name == target.stage().name() && stage.outcome == "running")
+            .map(|(index, _)| index as u32)
+            .collect();
+        // 同一个 worker 的其他权限操作不属于账户清单两个观测阶段。
+        if matching.is_empty() {
+            return;
+        }
+        if matching.len() != 1 {
+            rows.invalidate("permission-stage-ambiguous");
+            return;
+        }
+        let attempt_id = attempt.id;
+        let stage_token = matching[0];
+        if rows.permission_commands.len() >= MAX_PERMISSION_COMMANDS {
+            rows.invalidate("permission-command-overflow");
+            return;
+        }
+        if rows
+            .permission_commands
+            .iter()
+            .any(|row| row.attempt_id == attempt_id && row.stage_token == stage_token)
+        {
+            rows.invalidate("permission-command-duplicate");
+            return;
+        }
+        let (name, exit_code, os_error) = match outcome {
+            PermissionOutcome::UsernameUnavailable => ("username-unavailable", None, None),
+            PermissionOutcome::InvalidUsername => ("invalid-username", None, None),
+            PermissionOutcome::SpawnError { os_error } => ("spawn-error", None, os_error),
+            PermissionOutcome::Exited {
+                code: Some(0),
+                success: true,
+            } => ("success", Some(0), None),
+            PermissionOutcome::Exited {
+                code,
+                success: false,
+            } if code != Some(0) => ("exit-failure", code, None),
+            _ => {
+                rows.invalidate("permission-status-inconsistent");
+                return;
+            }
+        };
+        let at_ms = rows.at();
+        rows.permission_commands.push(PermissionRecord {
+            attempt_id,
+            stage_token,
+            kind: target.name(),
+            at_ms,
+            outcome: name,
+            exit_code,
+            os_error,
+        });
+    }
 }
 impl Span {
     pub fn complete(mut self) {
@@ -200,16 +286,33 @@ pub fn complete(span: Option<Span>) {
         span.complete();
     }
 }
-pub fn snapshot(run_id: &str) -> Value {
+// 两份诊断在同一把锁下捕获，使用同一时刻，避免部分 worker 更新导致错配。
+pub fn snapshots(run_id: &str) -> (Value, Value) {
     let records = RECORDS.get_or_init(|| Arc::new(Mutex::new(Records::new())));
     match records.lock() {
-        Ok(rows) => json!({"schemaVersion":1,"scope":"windows-native-auth-backend","runId":run_id,
-            "clockScope":"process-monotonic","atMs":rows.at(),"valid":rows.invalid_reasons.is_empty() && rows.attempts.iter().all(|row|row.root_verified),
-            "invalidReasons":rows.invalid_reasons,"maxAttempts":MAX_ATTEMPTS,"maxStages":MAX_STAGES,"attempts":rows.attempts}),
-        Err(_) => json!({"schemaVersion":1,"scope":"windows-native-auth-backend","runId":run_id,
-            "clockScope":"process-monotonic","atMs":0.0,"valid":false,"invalidReasons":["trace-lock-poisoned"],"maxAttempts":MAX_ATTEMPTS,"maxStages":MAX_STAGES,"attempts":[]}),
+        Ok(rows) => snapshots_from(&rows, run_id),
+        Err(_) => (
+            json!({"schemaVersion":1,"scope":"windows-native-auth-backend","runId":run_id,
+                "clockScope":"process-monotonic","atMs":0.0,"valid":false,"invalidReasons":["trace-lock-poisoned"],"maxAttempts":MAX_ATTEMPTS,"maxStages":MAX_STAGES,"attempts":[]}),
+            json!({"schemaVersion":1,"scope":"windows-native-permission-commands","runId":run_id,"pid":std::process::id(),
+                "clockScope":"process-monotonic","atMs":0.0,"valid":false,"invalidReasons":["trace-lock-poisoned"],"maxCommands":MAX_PERMISSION_COMMANDS,"commands":[]}),
+        ),
     }
 }
+fn snapshots_from(rows: &Records, run_id: &str) -> (Value, Value) {
+    let at = rows.at();
+    let valid =
+        rows.invalid_reasons.is_empty() && rows.attempts.iter().all(|row| row.root_verified);
+    (
+        json!({"schemaVersion":1,"scope":"windows-native-auth-backend","runId":run_id,
+            "clockScope":"process-monotonic","atMs":at,"valid":valid,
+            "invalidReasons":rows.invalid_reasons,"maxAttempts":MAX_ATTEMPTS,"maxStages":MAX_STAGES,"attempts":rows.attempts}),
+        json!({"schemaVersion":1,"scope":"windows-native-permission-commands","runId":run_id,"pid":std::process::id(),
+            "clockScope":"process-monotonic","atMs":at,"valid":valid,
+            "invalidReasons":rows.invalid_reasons,"maxCommands":MAX_PERMISSION_COMMANDS,"commands":rows.permission_commands}),
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -243,5 +346,151 @@ mod tests {
         assert_eq!(rows.attempts[0].stages[1].outcome, "interrupted");
         let value = serde_json::to_value(&rows.attempts).unwrap();
         assert!(!value.to_string().contains("password"));
+    }
+    fn permission_handle(root_verified: bool) -> Handle {
+        let records = Arc::new(Mutex::new(Records::new()));
+        records.lock().unwrap().attempts.push(AttemptRecord {
+            id: 1,
+            kind: "login",
+            root_verified,
+            started_at_ms: 0.0,
+            ended_at_ms: None,
+            outcome: "running",
+            stages: Vec::new(),
+        });
+        Handle { records, index: 0 }
+    }
+    #[test]
+    fn permission_outcomes_bind_active_stage_and_capture_both_snapshots_atomically() {
+        let handle = permission_handle(true);
+        handle.permission(
+            PermissionTarget::File,
+            PermissionOutcome::SpawnError { os_error: Some(5) },
+        );
+        assert!(handle
+            .records
+            .lock()
+            .unwrap()
+            .permission_commands
+            .is_empty());
+        let token = handle
+            .begin(UnlockStage::AccountManifestPermission)
+            .unwrap();
+        handle.permission(
+            PermissionTarget::File,
+            PermissionOutcome::SpawnError { os_error: Some(5) },
+        );
+        handle.end(token, false);
+        let rows = handle.records.lock().unwrap();
+        let (backend, permissions) = snapshots_from(&rows, "public-run-id");
+        assert_eq!(backend["atMs"], permissions["atMs"]);
+        assert_eq!(
+            backend["attempts"][0]["stages"][0]["outcome"],
+            "interrupted"
+        );
+        assert_eq!(permissions["commands"][0]["outcome"], "spawn-error");
+        assert_eq!(permissions["commands"][0]["osError"], 5);
+        assert!(permissions["commands"][0]["exitCode"].is_null());
+        assert_eq!(permissions["commands"][0]["attemptId"], 1);
+        assert_eq!(permissions["commands"][0]["stageToken"], token);
+        assert_eq!(
+            backend["attempts"][0]["stages"][0]
+                .as_object()
+                .unwrap()
+                .len(),
+            4
+        );
+        assert_eq!(permissions["commands"][0].as_object().unwrap().len(), 7);
+        assert!(!permissions.to_string().contains("password"));
+    }
+    #[test]
+    fn permission_outcomes_reject_unverified_root_duplicate_and_inconsistent_status() {
+        let wrong = permission_handle(false);
+        wrong.begin(UnlockStage::AccountManifestPermission).unwrap();
+        wrong.permission(PermissionTarget::File, PermissionOutcome::InvalidUsername);
+        assert!(wrong.records.lock().unwrap().permission_commands.is_empty());
+        assert_eq!(
+            wrong.records.lock().unwrap().invalid_reasons,
+            ["permission-root-unverified"]
+        );
+        let handle = permission_handle(true);
+        handle
+            .begin(UnlockStage::AccountDirectoryPermission)
+            .unwrap();
+        handle.permission(
+            PermissionTarget::Directory,
+            PermissionOutcome::Exited {
+                code: Some(0),
+                success: true,
+            },
+        );
+        handle.permission(
+            PermissionTarget::Directory,
+            PermissionOutcome::Exited {
+                code: Some(0),
+                success: true,
+            },
+        );
+        assert_eq!(handle.records.lock().unwrap().permission_commands.len(), 1);
+        assert_eq!(
+            handle.records.lock().unwrap().invalid_reasons,
+            ["permission-command-duplicate"]
+        );
+        let bad = permission_handle(true);
+        bad.begin(UnlockStage::AccountManifestPermission).unwrap();
+        bad.permission(
+            PermissionTarget::File,
+            PermissionOutcome::Exited {
+                code: Some(5),
+                success: true,
+            },
+        );
+        assert!(bad.records.lock().unwrap().permission_commands.is_empty());
+        assert_eq!(
+            bad.records.lock().unwrap().invalid_reasons,
+            ["permission-status-inconsistent"]
+        );
+    }
+    #[test]
+    fn permission_outcomes_reject_ambiguous_stage_and_bounded_overflow() {
+        let ambiguous = permission_handle(true);
+        ambiguous
+            .begin(UnlockStage::AccountManifestPermission)
+            .unwrap();
+        ambiguous
+            .begin(UnlockStage::AccountManifestPermission)
+            .unwrap();
+        ambiguous.permission(
+            PermissionTarget::File,
+            PermissionOutcome::UsernameUnavailable,
+        );
+        assert_eq!(
+            ambiguous.records.lock().unwrap().invalid_reasons,
+            ["permission-stage-ambiguous"]
+        );
+        let full = permission_handle(true);
+        full.begin(UnlockStage::AccountManifestPermission).unwrap();
+        let mut rows = full.records.lock().unwrap();
+        for i in 0..MAX_PERMISSION_COMMANDS {
+            rows.permission_commands.push(PermissionRecord {
+                attempt_id: i as u32 + 2,
+                stage_token: 0,
+                kind: "file",
+                at_ms: 0.0,
+                outcome: "invalid-username",
+                exit_code: None,
+                os_error: None,
+            });
+        }
+        drop(rows);
+        full.permission(PermissionTarget::File, PermissionOutcome::InvalidUsername);
+        assert_eq!(
+            full.records.lock().unwrap().permission_commands.len(),
+            MAX_PERMISSION_COMMANDS
+        );
+        assert_eq!(
+            full.records.lock().unwrap().invalid_reasons,
+            ["permission-command-overflow"]
+        );
     }
 }

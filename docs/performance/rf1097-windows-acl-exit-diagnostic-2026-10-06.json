@@ -1,0 +1,101 @@
+{
+  "at": "2026-10-06T04:19:14.904577+00:00",
+  "targetedDiagnosticComplete": true,
+  "oldFailureReproduced": false,
+  "originalFailureRootCauseKnown": false,
+  "originalFailedGroupPreserved": true,
+  "originalProofsVerified": 191,
+  "sourceAndHelpersPreserved": true,
+  "wholeDiagnosticSamples": 3,
+  "completedLoginAttempts": 6,
+  "actualRetainedIcaclsExitCodes": 12,
+  "nonzeroExitCodes": 0,
+  "originalFailedGroupAccepted": false,
+  "applicationPerformanceAccepted": false,
+  "aclEquivalenceAccepted": false,
+  "readonlyAclDescriptors": 45,
+  "originalAclMismatchStillPresent": true,
+  "candidateObservedAclTargetsMatchExpected": true,
+  "noRawBodiesOrSidOrSddl": true,
+  "observerSnapshotWallMs": 24912.723499999975,
+  "observerSnapshotWallMsIsNotCpuTime": true,
+  "observerOverheadPreventsPerformanceAcceptance": true,
+  "samples": [
+    {
+      "sample": 1,
+      "parentPid": 27900,
+      "sameWindowsClockParentBirthMatched": true,
+      "completeLoginAttempts": 2,
+      "permissionSubstagesCompleted": 4,
+      "retainedChildExitCodes": [0, 0, 0, 0]
+    },
+    {
+      "sample": 2,
+      "parentPid": 32264,
+      "sameWindowsClockParentBirthMatched": true,
+      "completeLoginAttempts": 2,
+      "permissionSubstagesCompleted": 4,
+      "retainedChildExitCodes": [0, 0, 0, 0]
+    },
+    {
+      "sample": 3,
+      "parentPid": 23320,
+      "sameWindowsClockParentBirthMatched": true,
+      "completeLoginAttempts": 2,
+      "permissionSubstagesCompleted": 4,
+      "retainedChildExitCodes": [0, 0, 0, 0]
+    }
+  ],
+  "nextAction": "Use a non-default fixed safe error outcome observation to capture the actual permission-helper failure category; external handles cannot reconstruct historical unlogged spawn errors.",
+  "task": "RF-1097",
+  "head": "ed23f897604eedd6cfe5d3f4afef9efc0cf9cf6e",
+  "oldGuiSha256": "8e52df464c854aa1f96703c9b62f24df9f36e4688bc33867086629d8cbeade2f",
+  "candidateGuiSha256": "5dc57156bff8f99b91688ff25e68a2d335b915947bff4e914bcd4ebcd603060a",
+  "freshTerminalIdentities": 148,
+  "freshTerminalAllOldIdentitiesAbsentOrReused": true,
+  "cacheCleanupPerformed": false,
+  "rawIndex": "rf1097-windows-acl-exit-diagnostic-2026-10-06/index.json",
+  "rawEntries": 153,
+  "originalFailureRawSha256": "9ca8728283c79214666f43d88f143600d67e28d8613949d0659326469a418351",
+  "requiredCheckCounts": {
+    "success": true,
+    "testCounts": {
+      "windowless-default-tests": [1861, 0, 3],
+      "windowless-native-tests": [100, 0, 0],
+      "windowless-core-native": [2, 0, 0],
+      "windowless-cli-tests": [336, 0, 2]
+    }
+  },
+  "sources": [
+    "https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getexitcodeprocess",
+    "https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes",
+    "https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-createtoolhelp32snapshot",
+    "https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject"
+  ],
+  "commitStatus": "RF-1097 remains in progress; no task commit or push performed",
+  "documentChecks": [
+    {
+      "label": "owned-acl-exit-doc-format",
+      "command": [
+        "node",
+        "C:\\Users\\40299571\\SoloSoul\\tauri\\node_modules\\prettier\\bin\\prettier.cjs",
+        "--write",
+        "C:\\Users\\40299571\\SoloSoul\\docs\\performance\\RF-1097-windows-acl-exit-diagnostic.md",
+        "C:\\Users\\40299571\\SoloSoul\\docs\\performance\\rf1097-windows-acl-exit-diagnostic-2026-10-06.json",
+        "C:\\Users\\40299571\\SoloSoul\\docs\\performance\\rf1097-windows-acl-exit-diagnostic-2026-10-06\\index.json"
+      ],
+      "exitCode": 0,
+      "receiptSha256": "a06d362858a4f2202714c0087904e259db751d1941e44b163036add3b64afee5",
+      "stdoutSha256": "8846066be245ece093214e0f68b872492ad25579b467abfc9e92d6f45e314381",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "owned-acl-exit-markdown-boundary",
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "exitCode": 0,
+      "receiptSha256": "f0dd752f0346ed7540b20b25964d568d244cb331c67760a5df8081d6d0ec4445",
+      "stdoutSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -42,9 +42,44 @@ impl UnlockStage {
         }
     }
 }
+/// 仅非默认测量功能使用；类型中不承载路径、用户名或错误正文。
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PermissionTarget {
+    Directory,
+    File,
+}
+impl PermissionTarget {
+    pub fn stage(self) -> UnlockStage {
+        match self {
+            Self::Directory => UnlockStage::AccountDirectoryPermission,
+            Self::File => UnlockStage::AccountManifestPermission,
+        }
+    }
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Directory => "directory",
+            Self::File => "file",
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PermissionOutcome {
+    UsernameUnavailable,
+    InvalidUsername,
+    SpawnError { os_error: Option<i32> },
+    Exited { code: Option<i32>, success: bool },
+}
 pub trait UnlockObserver: Send + Sync {
     fn begin(&self, stage: UnlockStage) -> Option<u32>;
     fn end(&self, token: u32, completed: bool);
+    fn permission(&self, _target: PermissionTarget, _outcome: PermissionOutcome) {}
+}
+/// 只通知当前 blocking worker 的观察器；默认功能没有此模块。
+pub fn permission(target: PermissionTarget, outcome: PermissionOutcome) {
+    let observer = OBSERVER.with(|slot| slot.borrow().as_ref().cloned());
+    if let Some(observer) = observer {
+        observer.permission(target, outcome);
+    }
 }
 thread_local! {
     static OBSERVER: RefCell<Option<Arc<dyn UnlockObserver>>> = const { RefCell::new(None) };
@@ -180,5 +215,72 @@ mod tests {
         svc.lock();
         svc.unlock("acc_nativeperf", "public-password").unwrap();
         assert_eq!(*recorder.0.lock().unwrap(), rows);
+    }
+    #[derive(Default)]
+    struct PermissionRecorder(Mutex<Vec<(PermissionTarget, PermissionOutcome)>>);
+    impl UnlockObserver for PermissionRecorder {
+        fn begin(&self, _stage: UnlockStage) -> Option<u32> {
+            None
+        }
+        fn end(&self, _token: u32, _completed: bool) {}
+        fn permission(&self, target: PermissionTarget, outcome: PermissionOutcome) {
+            self.0.lock().unwrap().push((target, outcome));
+        }
+    }
+    #[test]
+    fn typed_permission_callbacks_remain_thread_local_and_restore_after_panic() {
+        let outer = Arc::new(PermissionRecorder::default());
+        let nested = Arc::new(PermissionRecorder::default());
+        let guard = observe(outer.clone());
+        permission(
+            PermissionTarget::Directory,
+            PermissionOutcome::Exited {
+                code: Some(0),
+                success: true,
+            },
+        );
+        std::thread::spawn(|| {
+            permission(PermissionTarget::File, PermissionOutcome::InvalidUsername)
+        })
+        .join()
+        .unwrap();
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _scope = observe(nested.clone());
+            permission(
+                PermissionTarget::File,
+                PermissionOutcome::UsernameUnavailable,
+            );
+            panic!("synthetic nested scope");
+        }));
+        assert!(result.is_err());
+        permission(
+            PermissionTarget::File,
+            PermissionOutcome::SpawnError { os_error: Some(5) },
+        );
+        drop(guard);
+        permission(PermissionTarget::File, PermissionOutcome::InvalidUsername);
+        assert_eq!(
+            *outer.0.lock().unwrap(),
+            [
+                (
+                    PermissionTarget::Directory,
+                    PermissionOutcome::Exited {
+                        code: Some(0),
+                        success: true
+                    }
+                ),
+                (
+                    PermissionTarget::File,
+                    PermissionOutcome::SpawnError { os_error: Some(5) }
+                )
+            ]
+        );
+        assert_eq!(
+            *nested.0.lock().unwrap(),
+            [(
+                PermissionTarget::File,
+                PermissionOutcome::UsernameUnavailable
+            )]
+        );
     }
 }

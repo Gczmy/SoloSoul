@@ -6,6 +6,7 @@ mod auth_contract;
 pub mod auth_trace;
 mod fixture;
 mod media_fixture;
+mod permission_contract;
 #[cfg(test)]
 mod preflight_tests;
 mod runtime;

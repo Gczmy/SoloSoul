@@ -524,10 +524,24 @@ impl Capture {
         {
             return Err("auth-document-replaced");
         }
-        let backend = super::auth_trace::snapshot(&self.config.run_id);
+        let (backend, permissions) = super::auth_trace::snapshots(&self.config.run_id);
         if !super::auth_contract::backend(&backend, &self.config.run_id) {
             return Err("auth-backend-invalid");
         }
+        if !super::permission_contract::valid(
+            &permissions,
+            &backend,
+            &self.config.run_id,
+            std::process::id(),
+        ) {
+            return Err("permission-diagnostic-invalid");
+        }
+        publish(
+            self.config.evidence_root(),
+            "native-perf-permission-commands.json",
+            &permissions,
+        )
+        .map_err(|_| "permission-publication-failed")?;
         Ok(
             json!({"schemaVersion":1,"scope":"windows-native-auth-attribution","runId":self.config.run_id,"pid":std::process::id(),"binding":frame,"timeOriginMs":origin,"frontend":envelope["auth"],"backend":backend}),
         )
