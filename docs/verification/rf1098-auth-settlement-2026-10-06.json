@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-1098",
+  "baseCommit": "157e75f9be39cc02f10f2962590d4ea50d754a92",
+  "createdAt": "2026-10-06T08:15:57.394471+00:00",
+  "scope": "frontend password login/bootstrap result settlement",
+  "sourceSha256": {
+    "tauri/src/stores/authStore.ts": "b5a2330d07fe33a5376b933983844d5024cdbbd63f78ea55bc0abe727c279857",
+    "tauri/src/stores/authStore.race.test.ts": "feacb9c0ceaf586051b2c3a892f101cd438a183758e23ef645c2d6a504a0ada1"
+  },
+  "red": {
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "src/stores/authStore.race.test.ts"
+    ],
+    "exitCode": 1,
+    "elapsedSeconds": 32.12111473083496
+  },
+  "correctedTestFailures": {
+    "targeted": {
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "src/stores/authStore.race.test.ts",
+        "src/stores/authStore.test.ts",
+        "src/stores/sessionIsolation.test.ts",
+        "src/lib/sessionRequests.test.ts"
+      ],
+      "exitCode": 1,
+      "elapsedSeconds": 30.676686763763428
+    },
+    "typescript": {
+      "command": ["node", "node_modules/typescript/bin/tsc", "--noEmit"],
+      "cwd": "C:/Users/40299571/SoloSoul/tauri",
+      "exitCode": 2,
+      "elapsedSeconds": 26.23675513267517
+    },
+    "notes": [
+      "Two timer assertions assumed no unrelated global timers; corrected to compare before/after expired settlement.",
+      "Tauri InvokeArgs union requires property presence narrowing."
+    ],
+    "markdownWriteContext": {
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "exitCode": 1,
+      "reason": "EPERM: operation not permitted writing C:/Users/40299571/SoloSoul/tauri/node_modules/.vite-temp/vite.config.ts.timestamp-1791274634577-30e8942fd0acd8.mjs",
+      "context": "workspace-write command cannot write effective C checkout; no automatic approval rejection"
+    }
+  },
+  "checks": {
+    "typescript": {
+      "command": ["node", "node_modules/typescript/bin/tsc", "--noEmit"],
+      "cwd": "C:/Users/40299571/SoloSoul/tauri",
+      "exitCode": 0,
+      "elapsedSeconds": 24.312342643737793
+    },
+    "lint": {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "src",
+        "--ext",
+        ".ts,.tsx"
+      ],
+      "cwd": "C:/Users/40299571/SoloSoul/tauri",
+      "exitCode": 0,
+      "elapsedSeconds": 37.80333113670349
+    },
+    "frontend-full": {
+      "command": ["npm.cmd", "run", "test"],
+      "cwd": "C:/Users/40299571/SoloSoul/tauri",
+      "exitCode": 0,
+      "elapsedSeconds": 208.11058259010315
+    },
+    "format": {
+      "command": [
+        "node",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "src/stores/authStore.ts",
+        "src/stores/authStore.race.test.ts"
+      ],
+      "cwd": "C:/Users/40299571/SoloSoul/tauri",
+      "exitCode": 0,
+      "elapsedSeconds": 0.4267582893371582
+    },
+    "markdown": {
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "cwd": "C:/Users/40299571/SoloSoul/tauri",
+      "exitCode": 0,
+      "elapsedSeconds": 4.3826048374176025
+    },
+    "markdownFinal": {
+      "command": ["node", "scripts/check-markdown-chunk-boundary.mjs"],
+      "exitCode": 0,
+      "elapsedSeconds": 1.907597303390503,
+      "context": "authorized host command"
+    }
+  },
+  "vitest": {
+    "filesPassed": 257,
+    "testsPassed": 2261,
+    "raceCases": 17,
+    "failed": 0
+  },
+  "node": {
+    "passed": 215,
+    "failed": 0,
+    "skipped": 1,
+    "skipUnchanged": true
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 1,
+    "warning": "Existing unused event in unchanged syncStore.ts"
+  },
+  "unverified": [
+    "backend command cancellation or native runtime effects",
+    "PIN/biometric caller async lifecycle",
+    "historical home timeout cause",
+    "RF-112/121/312 closure"
+  ],
+  "rawIndex": "rf1098-auth-settlement-2026-10-06/index.json",
+  "rawArchive": "rf1098-auth-settlement-2026-10-06/raw.tar.gz",
+  "archiveVerifiedMembers": 32
+}

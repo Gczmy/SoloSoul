@@ -100,6 +100,7 @@ interface AuthState {
 - `backendError` 标记后端不可用，防止 `hasAccount = null` 时误跳引导页
 - `bootstrap` 额外接收 `locale` 和 `passwordHint`
 - `login` 成功后刷新 `accounts` 列表，但刷新失败不阻断认证状态
+- **RF-1098 认证结果代次**：密码 `login` 和 `bootstrap` 捕获发起时的认证代次；新密码登录、创建账户、`lock`、`logout` 或 `completeUnlock` 使旧代次失效。即使当前尚未认证，锁定/退出仍失效旧请求并立即清除 `isLoading`。每个等待点之后先复核，旧成功/失败不得回填认证、最近账户、错误或 loading，也不得调度旧登录提醒；正常账户列表刷新失败仍允许当前登录成功。此机制只约束前端结果提交，不取消已发送的后端命令，也不证明 PIN/生物识别调用者自身的异步生命周期已受保护。
 - 未使用 `immer` 中间件
 
 ---
