@@ -35,10 +35,22 @@ const stages = new Set([
   'kdf',
   'verify',
   'account-write-call',
+  'account-manifest-serialize',
+  'account-directory-create',
+  'account-directory-permission',
+  'account-manifest-atomic-write',
+  'account-manifest-permission',
   'kdf-upgrade',
   'vault-open',
   'session-publish',
   'pin-reset-call',
+]);
+const accountSubsteps = Object.freeze([
+  'account-manifest-serialize',
+  'account-directory-create',
+  'account-directory-permission',
+  'account-manifest-atomic-write',
+  'account-manifest-permission',
 ]);
 const commandKind = Object.freeze({ login: 'login', vault_list_accounts: 'accounts-refresh' });
 function reject(message) {
@@ -235,6 +247,24 @@ export function checkAuthAttribution(v, owned, bound) {
       )
         reject('Authentication backend stage rejected');
       prior = stage.startedAtMs;
+    }
+    const children = attempt.stages.filter((s) => accountSubsteps.includes(s.name));
+    if (children.length) {
+      const parents = attempt.stages.filter((s) => s.name === 'account-write-call');
+      if (parents.length !== 1 || children.length > accountSubsteps.length)
+        reject('Account write substep parent or count rejected');
+      const parent = parents[0],
+        parentEnd = parent.endedAtMs ?? n.atMs;
+      for (const [i, child] of children.entries()) {
+        if (
+          child.name !== accountSubsteps[i] ||
+          child.startedAtMs < parent.startedAtMs ||
+          (child.endedAtMs ?? n.atMs) > parentEnd ||
+          (i &&
+            (children[i - 1].endedAtMs === null || children[i - 1].endedAtMs > child.startedAtMs))
+        )
+          reject('Account write substep order or containment rejected');
+      }
     }
   }
   return v;

@@ -1,0 +1,3799 @@
+{
+  "schemaVersion": 1,
+  "task": "RF-312",
+  "scope": "windows-native-account-write-attribution-acceptance",
+  "date": "2026-10-06",
+  "stageAccepted": true,
+  "taskClosed": false,
+  "diagnosticOnly": true,
+  "performanceMetrics": null,
+  "oldHomeTimeoutReproduced": false,
+  "oldHomeTimeoutRootCauseEstablished": false,
+  "instrumentation": {
+    "fixedStageTokens": [
+      "account-manifest-serialize",
+      "account-directory-create",
+      "account-directory-permission",
+      "account-manifest-atomic-write",
+      "account-manifest-permission"
+    ],
+    "backendDefaultFeatureEnabled": false,
+    "defaultAccountSaveTokensUnchanged": true,
+    "defaultPermissionArgumentsOrFlagsChanged": false,
+    "frontendChangedFromPriorAcceptedStage": false,
+    "requestResponseBodyOrPrivatePathRecorded": false,
+    "frontBackendClocksSubtracted": false,
+    "nestedDurationsAdded": false,
+    "onlyDisjointSiblingsSummed": true,
+    "concurrentAccountsSamplesUnpaired": 0,
+    "completedMeans": "call returned; ACL command status and filesystem durability not independently established"
+  },
+  "frozenBuild": {
+    "at": "2026-10-06T01:58:03.564742+00:00",
+    "exe": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf312-account-write-20261006\\bin\\solo_soul.exe",
+    "bytes": 103524352,
+    "sha256": "8e52df464c854aa1f96703c9b62f24df9f36e4688bc33867086629d8cbeade2f",
+    "sourceInputsUnchanged": 1314,
+    "frontendFilesUnchanged": 35,
+    "resourcesUnchanged": 94,
+    "publicFilesUnchanged": 185,
+    "previousBuildsPreserved": 11,
+    "markers": [
+      "windows-native-auth-attribution",
+      "account-manifest-serialize",
+      "account-directory-create",
+      "account-directory-permission",
+      "account-manifest-atomic-write",
+      "account-manifest-permission"
+    ]
+  },
+  "sourceFreeze": {
+    "file": "rf312-windows-account-write-attribution-2026-10-06/raw/source-freeze.json.gz",
+    "sha256": "f3ce18ae7cc830c98ca6c4257ef51462d63a00329272d69d226f92779a7a5a66",
+    "baseCommit": "1f5aca647f3a1f64fc1727f2388ef3876eceea1b",
+    "inputs": 1314,
+    "changedPriorAcceptedInputs": [
+      "tauri/crates/solosoul-core/examples/perf_baseline/fixture.rs",
+      "tauri/crates/solosoul-core/src/native_perf_unlock.rs",
+      "tauri/crates/solosoul-core/src/vault_service/account.rs",
+      "tauri/scripts/native-perf-auth-attribution.test.mjs",
+      "tauri/scripts/native-perf-auth-contract.mjs",
+      "tauri/src-tauri/src/native_perf/auth_contract.rs",
+      "tauri/src-tauri/src/native_perf/media_fixture.rs"
+    ],
+    "thisStageFiles": {
+      "tauri/crates/solosoul-core/src/native_perf_unlock.rs": "66e559e5343a798e70506cee19a41f71e45a7bc55a299f35f599385d09d28742",
+      "tauri/crates/solosoul-core/src/vault_service/account.rs": "1db46614bd02a59b69e877ad8942f75e05d0f7eb190b1caa444da3977e491ddb",
+      "tauri/src-tauri/src/native_perf/auth_contract.rs": "ed7e86eb88b00f68708c61469f5ea1a8e3e031e500bbf28cef88de3f3e03a6cc",
+      "tauri/scripts/native-perf-auth-contract.mjs": "f2898ffe69b7e727aef2cc53671ce7afa8ebcaf0cfd17556d75dbcac37c40480",
+      "tauri/scripts/native-perf-auth-attribution.test.mjs": "1f15486c66d7779283baef2635b3dc49ccc19764a11e3d8c8c3c264d5c1d7888"
+    }
+  },
+  "unaffectedDefaultAndFrontend": {
+    "at": "2026-10-06T00:28:24.016750+00:00",
+    "success": true,
+    "defaultAccountSaveTokensUnchanged": true,
+    "defaultFunctionTokenSha256": "e6aeb2d8765ee7e682f7e1f0140a01c90356636640ec3bfea8ffe7ce02a8aa90",
+    "excludedNondefaultStatements": 10,
+    "frontendSourceInputsUnchanged": 884,
+    "frontendDistUnchanged": 35,
+    "frontendEvidence": "docs/performance/rf312-windows-auth-attribution-2026-10-06.json",
+    "frontendChecksNotRepeated": true,
+    "changedDependencies": 0
+  },
+  "checks": {
+    "at": "2026-10-06T01:30:07.568485+00:00",
+    "success": true,
+    "checks": {
+      "account-pdfium-pe": {
+        "command": [
+          "node",
+          "../scripts/verify-windows-pdfium.mjs",
+          "src-tauri/resources/pdfium/pdfium.dll"
+        ],
+        "pid": 34944,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 0.1282494068145752,
+        "at": "2026-10-06T00:24:44.521957+00:00"
+      },
+      "account-js-format": {
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "scripts/native-perf-auth-contract.mjs",
+          "scripts/native-perf-auth-attribution.test.mjs"
+        ],
+        "pid": 40356,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 0.34375500679016113,
+        "at": "2026-10-06T00:24:45.083697+00:00"
+      },
+      "account-core-feature": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solosoul-core",
+          "--features",
+          "native-perf",
+          "--lib",
+          "native_perf_unlock"
+        ],
+        "pid": 14676,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 96.52774095535278,
+        "at": "2026-10-06T00:26:25.844735+00:00"
+      },
+      "account-node-target": {
+        "command": [
+          "node",
+          "--test",
+          "scripts/native-perf-auth-attribution.test.mjs"
+        ],
+        "pid": 40948,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 0.527639627456665,
+        "at": "2026-10-06T00:22:27.775854+00:00"
+      },
+      "account-node-full": {
+        "command": [
+          "node",
+          "scripts/run-node-tests.mjs"
+        ],
+        "pid": 42060,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 34.455145597457886,
+        "at": "2026-10-06T00:23:02.332690+00:00"
+      },
+      "account-cli-fmt": {
+        "command": [
+          "cargo",
+          "+1.99.0",
+          "fmt",
+          "--manifest-path",
+          "../solosoul_cli/Cargo.toml",
+          "--",
+          "--check"
+        ],
+        "pid": 14636,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 5.548257112503052,
+        "at": "2026-10-06T01:19:44.666573+00:00"
+      },
+      "account-cli-clippy": {
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--manifest-path",
+          "../solosoul_cli/Cargo.toml",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "pid": 14772,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 68.81637215614319,
+        "at": "2026-10-06T01:20:53.590571+00:00"
+      },
+      "account-cli-tests": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "--manifest-path",
+          "../solosoul_cli/Cargo.toml",
+          "--verbose",
+          "--no-fail-fast"
+        ],
+        "pid": 33940,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 553.6691942214966,
+        "at": "2026-10-06T01:30:07.360367+00:00"
+      },
+      "account-rust-fmt": {
+        "command": [
+          "cargo",
+          "+1.99.0",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "pid": 33852,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 6.1642069816589355,
+        "at": "2026-10-06T01:14:46.135460+00:00",
+        "reusedFromRF1096": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-rust-fmt.receipt.json"
+      },
+      "account-native-tests": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "solo_soul",
+          "--features",
+          "native-perf",
+          "--lib",
+          "native_perf"
+        ],
+        "pid": 38196,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 22.907471895217896,
+        "at": "2026-10-06T00:55:57.575055+00:00",
+        "reusedFromRF1096": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-native-tests.receipt.json"
+      },
+      "account-native-clippy": {
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--workspace",
+          "--all-targets",
+          "--features",
+          "native-perf",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "pid": 21996,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 54.72379922866821,
+        "at": "2026-10-06T00:58:18.954544+00:00",
+        "reusedFromRF1096": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-native-clippy.receipt.json"
+      },
+      "account-default-tests": {
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "--workspace",
+          "--verbose",
+          "--no-fail-fast"
+        ],
+        "pid": 36044,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 908.8861737251282,
+        "at": "2026-10-06T01:13:27.926400+00:00",
+        "reusedFromRF1096": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-default-tests.receipt.json"
+      },
+      "account-default-clippy": {
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--workspace",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "pid": 5408,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 70.3614592552185,
+        "at": "2026-10-06T01:14:38.421579+00:00",
+        "reusedFromRF1096": "C:\\Users\\40299571\\AppData\\Local\\Temp\\ss-rf1096-fixture-kdf-20261006\\fixture-default-clippy.receipt.json"
+      }
+    },
+    "independentFixtureFix": {
+      "commit": "1f5aca647f3a1f64fc1727f2388ef3876eceea1b",
+      "evidence": "C:\\Users\\40299571\\SoloSoul\\docs\\verification\\rf1096-fixture-kdf-2026-10-06.json",
+      "sha256": "d24dea981f5535c5fd63b6ea816b168de4a08e9dbdf3d9016b45452a24dc4580",
+      "sourceFiles": {
+        "tauri/crates/solosoul-core/examples/perf_baseline/fixture.rs": "87a46b6cbec6a7db9f6de9bbee4358e52ab474c9f7d0f9677841ce8a003d2c39",
+        "tauri/src-tauri/src/native_perf/media_fixture.rs": "f5d86592d85811c7a14f5f09e67038e8833954e99b2be0ba59b56153d2132221"
+      }
+    },
+    "sourceReuseVerified": true,
+    "frontendChanged": false,
+    "frontendChecksReferencedFromPriorAcceptedStage": true,
+    "priorFailuresPreserved": [
+      "account-node-red",
+      "account-core-red",
+      "account-native-tests"
+    ],
+    "originalBudgetsPreserved": true
+  },
+  "testCounts": {
+    "account-default-tests": {
+      "passed": 1861,
+      "failed": 0,
+      "ignored": 3
+    },
+    "account-native-tests": {
+      "passed": 100,
+      "failed": 0,
+      "ignored": 0
+    },
+    "account-cli-tests": {
+      "passed": 336,
+      "failed": 0,
+      "ignored": 2
+    },
+    "account-core-feature": {
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    "node": {
+      "passed": 215,
+      "failed": 0,
+      "skipped": 1
+    }
+  },
+  "frontendChecksReusedFrom": {
+    "evidence": "rf312-windows-auth-attribution-2026-10-06.json",
+    "sha256": "7dd95db89cdbd2be27855c279ed9cc9964b6a9db9ecfbe8fd531bb5468013757",
+    "sourceInputsUnchanged": 884,
+    "distInputsUnchanged": 35,
+    "rerunClaimed": false
+  },
+  "groups": [
+    {
+      "objectCount": 100,
+      "samplesRequested": 3,
+      "wholeSamplesAccepted": 3,
+      "diagnosticOnly": true,
+      "performanceMetrics": null,
+      "samples": [
+        {
+          "index": 1,
+          "runId": "69a1b8a8c6fb47f2b80b581b161250a5",
+          "pid": 39300,
+          "sdkCalls": 61,
+          "finalUiProbeInvokeCount": 548,
+          "authSnapshotInvokeCount": 553,
+          "flows": [
+            {
+              "flowId": 1,
+              "login": {
+                "headersDelayMs": 1949.2000007629395,
+                "promiseWaitMs": 1953.6999998092651,
+                "afterHeadersToAwaitMs": 4.299999237060547,
+                "invokeSeq": 35
+              },
+              "accounts": {
+                "headersDelayMs": 21.300000190736682,
+                "promiseWaitMs": 21.600000381469727,
+                "afterHeadersToAwaitMs": 0.19999980926331773,
+                "invokeSeq": 36
+              },
+              "stateWriteMs": 2.1000003814733645,
+              "accountWriteSubsteps": {
+                "parentDurationMs": 1786.478,
+                "children": [
+                  {
+                    "name": "account-manifest-serialize",
+                    "durationMs": 0.009300000000621367
+                  },
+                  {
+                    "name": "account-directory-create",
+                    "durationMs": 0.3272999999999229
+                  },
+                  {
+                    "name": "account-directory-permission",
+                    "durationMs": 868.3197999999984
+                  },
+                  {
+                    "name": "account-manifest-atomic-write",
+                    "durationMs": 2.9195999999992637
+                  },
+                  {
+                    "name": "account-manifest-permission",
+                    "durationMs": 914.8829000000005
+                  }
+                ],
+                "sumOfDisjointChildrenMs": 1786.4588999999987,
+                "unattributedGapMs": 0.019100000001344597,
+                "sameBackendClock": true,
+                "nestedStageDurationsAdded": false
+              },
+              "backendAttemptMs": 1920.4366,
+              "backendStages": [
+                {
+                  "name": "root-read",
+                  "durationMs": 0.004500000000007276
+                },
+                {
+                  "name": "maintenance-admission",
+                  "durationMs": 0.2025999999996202
+                },
+                {
+                  "name": "sync-disable",
+                  "durationMs": 0.022199999999429565
+                },
+                {
+                  "name": "blocking-queue",
+                  "durationMs": 0.02580000000034488
+                },
+                {
+                  "name": "worker-vault-read",
+                  "durationMs": 0.0010000000002037268
+                },
+                {
+                  "name": "core-unlock",
+                  "durationMs": 1918.1180000000013
+                },
+                {
+                  "name": "recovery",
+                  "durationMs": 0.05540000000019063
+                },
+                {
+                  "name": "precheck",
+                  "durationMs": 0.18779999999969732
+                },
+                {
+                  "name": "master-config",
+                  "durationMs": 0.15630000000055588
+                },
+                {
+                  "name": "kdf",
+                  "durationMs": 128.3649000000005
+                },
+                {
+                  "name": "verify",
+                  "durationMs": 0.018599999999423744
+                },
+                {
+                  "name": "account-write-call",
+                  "durationMs": 1786.478
+                },
+                {
+                  "name": "account-manifest-serialize",
+                  "durationMs": 0.009300000000621367
+                },
+                {
+                  "name": "account-directory-create",
+                  "durationMs": 0.3272999999999229
+                },
+                {
+                  "name": "account-directory-permission",
+                  "durationMs": 868.3197999999984
+                },
+                {
+                  "name": "account-manifest-atomic-write",
+                  "durationMs": 2.9195999999992637
+                },
+                {
+                  "name": "account-manifest-permission",
+                  "durationMs": 914.8829000000005
+                },
+                {
+                  "name": "vault-open",
+                  "durationMs": 2.5609000000022206
+                },
+                {
+                  "name": "session-publish",
+                  "durationMs": 0.1132000000015978
+                },
+                {
+                  "name": "pin-reset-call",
+                  "durationMs": 0.16379999999844586
+                },
+                {
+                  "name": "audit-call",
+                  "durationMs": 1.9724999999998545
+                },
+                {
+                  "name": "cleanup-dispatch",
+                  "durationMs": 0.018500000000130967
+                }
+              ]
+            },
+            {
+              "flowId": 2,
+              "login": {
+                "headersDelayMs": 1907.3999996185303,
+                "promiseWaitMs": 1907.9000005722064,
+                "afterHeadersToAwaitMs": 0.40000057220640883,
+                "invokeSeq": 513
+              },
+              "accounts": {
+                "headersDelayMs": 12.800000190733044,
+                "promiseWaitMs": 13.099999427793591,
+                "afterHeadersToAwaitMs": 0.1999998092669557,
+                "invokeSeq": 514
+              },
+              "stateWriteMs": 1.3000001907366823,
+              "accountWriteSubsteps": {
+                "parentDurationMs": 1751.4444000000003,
+                "children": [
+                  {
+                    "name": "account-manifest-serialize",
+                    "durationMs": 0.003299999998489511
+                  },
+                  {
+                    "name": "account-directory-create",
+                    "durationMs": 0.3177000000014232
+                  },
+                  {
+                    "name": "account-directory-permission",
+                    "durationMs": 818.643
+                  },
+                  {
+                    "name": "account-manifest-atomic-write",
+                    "durationMs": 3.106999999999971
+                  },
+                  {
+                    "name": "account-manifest-permission",
+                    "durationMs": 929.3614999999991
+                  }
+                ],
+                "sumOfDisjointChildrenMs": 1751.432499999999,
+                "unattributedGapMs": 0.011900000001332955,
+                "sameBackendClock": true,
+                "nestedStageDurationsAdded": false
+              },
+              "backendAttemptMs": 1885.4305000000004,
+              "backendStages": [
+                {
+                  "name": "root-read",
+                  "durationMs": 0.0008999999990919605
+                },
+                {
+                  "name": "maintenance-admission",
+                  "durationMs": 0.18920000000071013
+                },
+                {
+                  "name": "sync-disable",
+                  "durationMs": 0.0036000000000058208
+                },
+                {
+                  "name": "blocking-queue",
+                  "durationMs": 0.017599999999220017
+                },
+                {
+                  "name": "worker-vault-read",
+                  "durationMs": 0.0010000000002037268
+                },
+                {
+                  "name": "core-unlock",
+                  "durationMs": 1883.0756000000001
+                },
+                {
+                  "name": "recovery",
+                  "durationMs": 0.05019999999785796
+                },
+                {
+                  "name": "precheck",
+                  "durationMs": 0.13540000000102737
+                },
+                {
+                  "name": "master-config",
+                  "durationMs": 0.09299999999893771
+                },
+                {
+                  "name": "kdf",
+                  "durationMs": 128.9452999999994
+                },
+                {
+                  "name": "verify",
+                  "durationMs": 0.0076999999982945155
+                },
+                {
+                  "name": "account-write-call",
+                  "durationMs": 1751.4444000000003
+                },
+                {
+                  "name": "account-manifest-serialize",
+                  "durationMs": 0.003299999998489511
+                },
+                {
+                  "name": "account-directory-create",
+                  "durationMs": 0.3177000000014232
+                },
+                {
+                  "name": "account-directory-permission",
+                  "durationMs": 818.643
+                },
+                {
+                  "name": "account-manifest-atomic-write",
+                  "durationMs": 3.106999999999971
+                },
+                {
+                  "name": "account-manifest-permission",
+                  "durationMs": 929.3614999999991
+                },
+                {
+                  "name": "vault-open",
+                  "durationMs": 2.188299999999799
+                },
+                {
+                  "name": "session-publish",
+                  "durationMs": 0.059599999998681596
+                },
+                {
+                  "name": "pin-reset-call",
+                  "durationMs": 0.1393000000007305
+                },
+                {
+                  "name": "audit-call",
+                  "durationMs": 2.0692999999992026
+                },
+                {
+                  "name": "cleanup-dispatch",
+                  "durationMs": 0.008299999997689156
+                }
+              ]
+            }
+          ],
+          "accountsBackendPairing": {
+            "command": "vault_list_accounts",
+            "paired": true,
+            "reason": null,
+            "pairs": [
+              {
+                "invokeSeq": 17,
+                "attemptId": 1
+              },
+              {
+                "invokeSeq": 25,
+                "attemptId": 2
+              },
+              {
+                "invokeSeq": 36,
+                "attemptId": 4
+              },
+              {
+                "invokeSeq": 85,
+                "attemptId": 5
+              },
+              {
+                "invokeSeq": 506,
+                "attemptId": 6
+              },
+              {
+                "invokeSeq": 514,
+                "attemptId": 8
+              }
+            ]
+          }
+        },
+        {
+          "index": 2,
+          "runId": "4eb0f443ee92421c849bb5d87d14344e",
+          "pid": 34440,
+          "sdkCalls": 61,
+          "finalUiProbeInvokeCount": 548,
+          "authSnapshotInvokeCount": 552,
+          "flows": [
+            {
+              "flowId": 1,
+              "login": {
+                "headersDelayMs": 1700.2999992370605,
+                "promiseWaitMs": 1700.6999998092651,
+                "afterHeadersToAwaitMs": 0.3000001907348633,
+                "invokeSeq": 35
+              },
+              "accounts": {
+                "headersDelayMs": 335.8999996185303,
+                "promiseWaitMs": 336.19999980926514,
+                "afterHeadersToAwaitMs": 0.19999980926513672,
+                "invokeSeq": 36
+              },
+              "stateWriteMs": 2.1999998092651367,
+              "accountWriteSubsteps": {
+                "parentDurationMs": 1508.0496999999996,
+                "children": [
+                  {
+                    "name": "account-manifest-serialize",
+                    "durationMs": 0.0072000000000116415
+                  },
+                  {
+                    "name": "account-directory-create",
+                    "durationMs": 0.26490000000012515
+                  },
+                  {
+                    "name": "account-directory-permission",
+                    "durationMs": 959.6887999999999
+                  },
+                  {
+                    "name": "account-manifest-atomic-write",
+                    "durationMs": 3.3433999999988373
+                  },
+                  {
+                    "name": "account-manifest-permission",
+                    "durationMs": 544.7278999999999
+                  }
+                ],
+                "sumOfDisjointChildrenMs": 1508.0321999999987,
+                "unattributedGapMs": 0.017500000000836735,
+                "sameBackendClock": true,
+                "nestedStageDurationsAdded": false
+              },
+              "backendAttemptMs": 1640.4729000000007,
+              "backendStages": [
+                {
+                  "name": "root-read",
+                  "durationMs": 0.0029999999997016857
+                },
+                {
+                  "name": "maintenance-admission",
+                  "durationMs": 0.176499999999578
+                },
+                {
+                  "name": "sync-disable",
+                  "durationMs": 0.01190000000042346
+                },
+                {
+                  "name": "blocking-queue",
+                  "durationMs": 0.014700000000630098
+                },
+                {
+                  "name": "worker-vault-read",
+                  "durationMs": 0.001999999999497959
+                },
+                {
+                  "name": "core-unlock",
+                  "durationMs": 1638.3010999999997
+                },
+                {
+                  "name": "recovery",
+                  "durationMs": 0.059600000000500586
+                },
+                {
+                  "name": "precheck",
+                  "durationMs": 0.44610000000011496
+                },
+                {
+                  "name": "master-config",
+                  "durationMs": 0.46150000000034197
+                },
+                {
+                  "name": "kdf",
+                  "durationMs": 126.0005999999994
+                },
+                {
+                  "name": "verify",
+                  "durationMs": 0.016200000000935688
+                },
+                {
+                  "name": "account-write-call",
+                  "durationMs": 1508.0496999999996
+                },
+                {
+                  "name": "account-manifest-serialize",
+                  "durationMs": 0.0072000000000116415
+                },
+                {
+                  "name": "account-directory-create",
+                  "durationMs": 0.26490000000012515
+                },
+                {
+                  "name": "account-directory-permission",
+                  "durationMs": 959.6887999999999
+                },
+                {
+                  "name": "account-manifest-atomic-write",
+                  "durationMs": 3.3433999999988373
+                },
+                {
+                  "name": "account-manifest-permission",
+                  "durationMs": 544.7278999999999
+                },
+                {
+                  "name": "vault-open",
+                  "durationMs": 2.6637000000000626
+                },
+                {
+                  "name": "session-publish",
+                  "durationMs": 0.1113999999997759
+                },
+                {
+                  "name": "pin-reset-call",
+                  "durationMs": 0.4756999999999607
+                },
+                {
+                  "name": "audit-call",
+                  "durationMs": 1.8829999999998108
+                },
+                {
+                  "name": "cleanup-dispatch",
+                  "durationMs": 0.014699999999720603
+                }
+              ]
+            },
+            {
+              "flowId": 2,
+              "login": {
+                "headersDelayMs": 1967.0999994277936,
+                "promiseWaitMs": 1967.4000005722046,
+                "afterHeadersToAwaitMs": 0.20000076294127211,
+                "invokeSeq": 513
+              },
+              "accounts": {
+                "headersDelayMs": 20.399999618530273,
+                "promiseWaitMs": 20.899999618532092,
+                "afterHeadersToAwaitMs": 0.30000019073668227,
+                "invokeSeq": 514
+              },
+              "stateWriteMs": 1.2999992370587279,
+              "accountWriteSubsteps": {
+                "parentDurationMs": 1805.2034000000003,
+                "children": [
+                  {
+                    "name": "account-manifest-serialize",
+                    "durationMs": 0.0023999999993975507
+                  },
+                  {
+                    "name": "account-directory-create",
+                    "durationMs": 0.2532000000010157
+                  },
+                  {
+                    "name": "account-directory-permission",
+                    "durationMs": 855.9544999999998
+                  },
+                  {
+                    "name": "account-manifest-atomic-write",
+                    "durationMs": 3.43579999999929
+                  },
+                  {
+                    "name": "account-manifest-permission",
+                    "durationMs": 945.545900000001
+                  }
+                ],
+                "sumOfDisjointChildrenMs": 1805.1918000000005,
+                "unattributedGapMs": 0.011599999999816646,
+                "sameBackendClock": true,
+                "nestedStageDurationsAdded": false
+              },
+              "backendAttemptMs": 1941.5210000000006,
+              "backendStages": [
+                {
+                  "name": "root-read",
+                  "durationMs": 0.0011000000013154931
+                },
+                {
+                  "name": "maintenance-admission",
+                  "durationMs": 0.21899999999914144
+                },
+                {
+                  "name": "sync-disable",
+                  "durationMs": 0.0031999999991967343
+                },
+                {
+                  "name": "blocking-queue",
+                  "durationMs": 0.03230000000075961
+                },
+                {
+                  "name": "worker-vault-read",
+                  "durationMs": 0.0011999999987892807
+                },
+                {
+                  "name": "core-unlock",
+                  "durationMs": 1939.149800000001
+                },
+                {
+                  "name": "recovery",
+                  "durationMs": 0.06879999999910069
+                },
+                {
+                  "name": "precheck",
+                  "durationMs": 0.19050000000061118
+                },
+                {
+                  "name": "master-config",
+                  "durationMs": 0.4753000000018801
+                },
+                {
+                  "name": "kdf",
+                  "durationMs": 130.84830000000147
+                },
+                {
+                  "name": "verify",
+                  "durationMs": 0.006600000000617001
+                },
+                {
+                  "name": "account-write-call",
+                  "durationMs": 1805.2034000000003
+                },
+                {
+                  "name": "account-manifest-serialize",
+                  "durationMs": 0.0023999999993975507
+                },
+                {
+                  "name": "account-directory-create",
+                  "durationMs": 0.2532000000010157
+                },
+                {
+                  "name": "account-directory-permission",
+                  "durationMs": 855.9544999999998
+                },
+                {
+                  "name": "account-manifest-atomic-write",
+                  "durationMs": 3.43579999999929
+                },
+                {
+                  "name": "account-manifest-permission",
+                  "durationMs": 945.545900000001
+                },
+                {
+                  "name": "vault-open",
+                  "durationMs": 2.1336000000010245
+                },
+                {
+                  "name": "session-publish",
+                  "durationMs": 0.06730000000061409
+                },
+                {
+                  "name": "pin-reset-call",
+                  "durationMs": 0.1444999999985157
+                },
+                {
+                  "name": "audit-call",
+                  "durationMs": 2.0487000000011903
+                },
+                {
+                  "name": "cleanup-dispatch",
+                  "durationMs": 0.006799999999202555
+                }
+              ]
+            }
+          ],
+          "accountsBackendPairing": {
+            "command": "vault_list_accounts",
+            "paired": true,
+            "reason": null,
+            "pairs": [
+              {
+                "invokeSeq": 17,
+                "attemptId": 1
+              },
+              {
+                "invokeSeq": 25,
+                "attemptId": 2
+              },
+              {
+                "invokeSeq": 36,
+                "attemptId": 4
+              },
+              {
+                "invokeSeq": 85,
+                "attemptId": 5
+              },
+              {
+                "invokeSeq": 506,
+                "attemptId": 6
+              },
+              {
+                "invokeSeq": 514,
+                "attemptId": 8
+              }
+            ]
+          }
+        },
+        {
+          "index": 3,
+          "runId": "d32cd702a65a4fc586bbe05cb3f39ef3",
+          "pid": 15940,
+          "sdkCalls": 61,
+          "finalUiProbeInvokeCount": 548,
+          "authSnapshotInvokeCount": 552,
+          "flows": [
+            {
+              "flowId": 1,
+              "login": {
+                "headersDelayMs": 2025.1000003814697,
+                "promiseWaitMs": 2026.6999998092651,
+                "afterHeadersToAwaitMs": 1.5999994277954102,
+                "invokeSeq": 35
+              },
+              "accounts": {
+                "headersDelayMs": 241.80000019073486,
+                "promiseWaitMs": 242.10000038146973,
+                "afterHeadersToAwaitMs": 0.19999980926513672,
+                "invokeSeq": 36
+              },
+              "stateWriteMs": 2.0,
+              "accountWriteSubsteps": {
+                "parentDurationMs": 1827.0543000000007,
+                "children": [
+                  {
+                    "name": "account-manifest-serialize",
+                    "durationMs": 0.007999999999810825
+                  },
+                  {
+                    "name": "account-directory-create",
+                    "durationMs": 0.31849999999940337
+                  },
+                  {
+                    "name": "account-directory-permission",
+                    "durationMs": 902.7437999999993
+                  },
+                  {
+                    "name": "account-manifest-atomic-write",
+                    "durationMs": 2.9428999999990992
+                  },
+                  {
+                    "name": "account-manifest-permission",
+                    "durationMs": 921.0212999999994
+                  }
+                ],
+                "sumOfDisjointChildrenMs": 1827.034499999997,
+                "unattributedGapMs": 0.019800000003669993,
+                "sameBackendClock": true,
+                "nestedStageDurationsAdded": false
+              },
+              "backendAttemptMs": 1971.5924999999997,
+              "backendStages": [
+                {
+                  "name": "root-read",
+                  "durationMs": 0.0023999999993975507
+                },
+                {
+                  "name": "maintenance-admission",
+                  "durationMs": 0.3312000000005355
+                },
+                {
+                  "name": "sync-disable",
+                  "durationMs": 0.03220000000055734
+                },
+                {
+                  "name": "blocking-queue",
+                  "durationMs": 0.0397000000002663
+                },
+                {
+                  "name": "worker-vault-read",
+                  "durationMs": 0.001299999999901047
+                },
+                {
+                  "name": "core-unlock",
+                  "durationMs": 1968.8964000000005
+                },
+                {
+                  "name": "recovery",
+                  "durationMs": 0.1334999999999127
+                },
+                {
+                  "name": "precheck",
+                  "durationMs": 0.22959999999966385
+                },
+                {
+                  "name": "master-config",
+                  "durationMs": 0.14329999999972642
+                },
+                {
+                  "name": "kdf",
+                  "durationMs": 138.11619999999948
+                },
+                {
+                  "name": "verify",
+                  "durationMs": 0.019699999999829743
+                },
+                {
+                  "name": "account-write-call",
+                  "durationMs": 1827.0543000000007
+                },
+                {
+                  "name": "account-manifest-serialize",
+                  "durationMs": 0.007999999999810825
+                },
+                {
+                  "name": "account-directory-create",
+                  "durationMs": 0.31849999999940337
+                },
+                {
+                  "name": "account-directory-permission",
+                  "durationMs": 902.7437999999993
+                },
+                {
+                  "name": "account-manifest-atomic-write",
+                  "durationMs": 2.9428999999990992
+                },
+                {
+                  "name": "account-manifest-permission",
+                  "durationMs": 921.0212999999994
+                },
+                {
+                  "name": "vault-open",
+                  "durationMs": 2.9149999999999636
+                },
+                {
+                  "name": "session-publish",
+                  "durationMs": 0.11519999999927677
+                },
+                {
+                  "name": "pin-reset-call",
+                  "durationMs": 0.15069999999923311
+                },
+                {
+                  "name": "audit-call",
+                  "durationMs": 2.2204000000010637
+                },
+                {
+                  "name": "cleanup-dispatch",
+                  "durationMs": 0.012600000000020373
+                }
+              ]
+            },
+            {
+              "flowId": 2,
+              "login": {
+                "headersDelayMs": 2017.3999996185303,
+                "promiseWaitMs": 2017.800000190733,
+                "afterHeadersToAwaitMs": 0.3000001907330443,
+                "invokeSeq": 513
+              },
+              "accounts": {
+                "headersDelayMs": 19.40000057220277,
+                "promiseWaitMs": 19.899999618532092,
+                "afterHeadersToAwaitMs": 0.3999996185320924,
+                "invokeSeq": 514
+              },
+              "stateWriteMs": 1.5999994277972291,
+              "accountWriteSubsteps": {
+                "parentDurationMs": 1858.5170999999991,
+                "children": [
+                  {
+                    "name": "account-manifest-serialize",
+                    "durationMs": 0.002699999999094871
+                  },
+                  {
+                    "name": "account-directory-create",
+                    "durationMs": 0.29830000000038126
+                  },
+                  {
+                    "name": "account-directory-permission",
+                    "durationMs": 921.2764999999999
+                  },
+                  {
+                    "name": "account-manifest-atomic-write",
+                    "durationMs": 3.2753000000011525
+                  },
+                  {
+                    "name": "account-manifest-permission",
+                    "durationMs": 933.6517000000003
+                  }
+                ],
+                "sumOfDisjointChildrenMs": 1858.504500000001,
+                "unattributedGapMs": 0.012599999998201383,
+                "sameBackendClock": true,
+                "nestedStageDurationsAdded": false
+              },
+              "backendAttemptMs": 1984.5501999999979,
+              "backendStages": [
+                {
+                  "name": "root-read",
+                  "durationMs": 0.0008999999990919605
+                },
+                {
+                  "name": "maintenance-admission",
+                  "durationMs": 0.18249999999898137
+                },
+                {
+                  "name": "sync-disable",
+                  "durationMs": 0.003800000000410364
+                },
+                {
+                  "name": "blocking-queue",
+                  "durationMs": 0.016200000000026193
+                },
+                {
+                  "name": "worker-vault-read",
+                  "durationMs": 0.0009000000009109499
+                },
+                {
+                  "name": "core-unlock",
+                  "durationMs": 1982.2193000000007
+                },
+                {
+                  "name": "recovery",
+                  "durationMs": 0.04379999999946449
+                },
+                {
+                  "name": "precheck",
+                  "durationMs": 0.12930000000233122
+                },
+                {
+                  "name": "master-config",
+                  "durationMs": 0.10829999999805295
+                },
+                {
+                  "name": "kdf",
+                  "durationMs": 120.86130000000048
+                },
+                {
+                  "name": "verify",
+                  "durationMs": 0.007100000000718865
+                },
+                {
+                  "name": "account-write-call",
+                  "durationMs": 1858.5170999999991
+                },
+                {
+                  "name": "account-manifest-serialize",
+                  "durationMs": 0.002699999999094871
+                },
+                {
+                  "name": "account-directory-create",
+                  "durationMs": 0.29830000000038126
+                },
+                {
+                  "name": "account-directory-permission",
+                  "durationMs": 921.2764999999999
+                },
+                {
+                  "name": "account-manifest-atomic-write",
+                  "durationMs": 3.2753000000011525
+                },
+                {
+                  "name": "account-manifest-permission",
+                  "durationMs": 933.6517000000003
+                },
+                {
+                  "name": "vault-open",
+                  "durationMs": 2.3254999999990105
+                },
+                {
+                  "name": "session-publish",
+                  "durationMs": 0.05889999999817519
+                },
+                {
+                  "name": "pin-reset-call",
+                  "durationMs": 0.15530000000217115
+                },
+                {
+                  "name": "audit-call",
+                  "durationMs": 2.079699999998411
+                },
+                {
+                  "name": "cleanup-dispatch",
+                  "durationMs": 0.006300000000919681
+                }
+              ]
+            }
+          ],
+          "accountsBackendPairing": {
+            "command": "vault_list_accounts",
+            "paired": true,
+            "reason": null,
+            "pairs": [
+              {
+                "invokeSeq": 17,
+                "attemptId": 1
+              },
+              {
+                "invokeSeq": 26,
+                "attemptId": 2
+              },
+              {
+                "invokeSeq": 36,
+                "attemptId": 4
+              },
+              {
+                "invokeSeq": 85,
+                "attemptId": 5
+              },
+              {
+                "invokeSeq": 506,
+                "attemptId": 6
+              },
+              {
+                "invokeSeq": 514,
+                "attemptId": 8
+              }
+            ]
+          }
+        }
+      ],
+      "summary": [
+        {
+          "name": "flow1:login-await",
+          "n": 3,
+          "medianMs": 1953.6999998092651,
+          "p95Ms": 2026.6999998092651,
+          "samplesMs": [
+            1953.6999998092651,
+            1700.6999998092651,
+            2026.6999998092651
+          ]
+        },
+        {
+          "name": "flow1:login-after-headers",
+          "n": 3,
+          "medianMs": 1.5999994277954102,
+          "p95Ms": 4.299999237060547,
+          "samplesMs": [
+            4.299999237060547,
+            0.3000001907348633,
+            1.5999994277954102
+          ]
+        },
+        {
+          "name": "flow1:accounts-await",
+          "n": 3,
+          "medianMs": 242.10000038146973,
+          "p95Ms": 336.19999980926514,
+          "samplesMs": [
+            21.600000381469727,
+            336.19999980926514,
+            242.10000038146973
+          ]
+        },
+        {
+          "name": "flow1:state-write",
+          "n": 3,
+          "medianMs": 2.1000003814733645,
+          "p95Ms": 2.1999998092651367,
+          "samplesMs": [
+            2.1000003814733645,
+            2.1999998092651367,
+            2.0
+          ]
+        },
+        {
+          "name": "flow1:backend-attempt",
+          "n": 3,
+          "medianMs": 1920.4366,
+          "p95Ms": 1971.5924999999997,
+          "samplesMs": [
+            1920.4366,
+            1640.4729000000007,
+            1971.5924999999997
+          ]
+        },
+        {
+          "name": "flow1:root-read",
+          "n": 3,
+          "medianMs": 0.0029999999997016857,
+          "p95Ms": 0.004500000000007276,
+          "samplesMs": [
+            0.004500000000007276,
+            0.0029999999997016857,
+            0.0023999999993975507
+          ]
+        },
+        {
+          "name": "flow1:maintenance-admission",
+          "n": 3,
+          "medianMs": 0.2025999999996202,
+          "p95Ms": 0.3312000000005355,
+          "samplesMs": [
+            0.2025999999996202,
+            0.176499999999578,
+            0.3312000000005355
+          ]
+        },
+        {
+          "name": "flow1:sync-disable",
+          "n": 3,
+          "medianMs": 0.022199999999429565,
+          "p95Ms": 0.03220000000055734,
+          "samplesMs": [
+            0.022199999999429565,
+            0.01190000000042346,
+            0.03220000000055734
+          ]
+        },
+        {
+          "name": "flow1:blocking-queue",
+          "n": 3,
+          "medianMs": 0.02580000000034488,
+          "p95Ms": 0.0397000000002663,
+          "samplesMs": [
+            0.02580000000034488,
+            0.014700000000630098,
+            0.0397000000002663
+          ]
+        },
+        {
+          "name": "flow1:worker-vault-read",
+          "n": 3,
+          "medianMs": 0.001299999999901047,
+          "p95Ms": 0.001999999999497959,
+          "samplesMs": [
+            0.0010000000002037268,
+            0.001999999999497959,
+            0.001299999999901047
+          ]
+        },
+        {
+          "name": "flow1:core-unlock",
+          "n": 3,
+          "medianMs": 1918.1180000000013,
+          "p95Ms": 1968.8964000000005,
+          "samplesMs": [
+            1918.1180000000013,
+            1638.3010999999997,
+            1968.8964000000005
+          ]
+        },
+        {
+          "name": "flow1:recovery",
+          "n": 3,
+          "medianMs": 0.059600000000500586,
+          "p95Ms": 0.1334999999999127,
+          "samplesMs": [
+            0.05540000000019063,
+            0.059600000000500586,
+            0.1334999999999127
+          ]
+        },
+        {
+          "name": "flow1:precheck",
+          "n": 3,
+          "medianMs": 0.22959999999966385,
+          "p95Ms": 0.44610000000011496,
+          "samplesMs": [
+            0.18779999999969732,
+            0.44610000000011496,
+            0.22959999999966385
+          ]
+        },
+        {
+          "name": "flow1:master-config",
+          "n": 3,
+          "medianMs": 0.15630000000055588,
+          "p95Ms": 0.46150000000034197,
+          "samplesMs": [
+            0.15630000000055588,
+            0.46150000000034197,
+            0.14329999999972642
+          ]
+        },
+        {
+          "name": "flow1:kdf",
+          "n": 3,
+          "medianMs": 128.3649000000005,
+          "p95Ms": 138.11619999999948,
+          "samplesMs": [
+            128.3649000000005,
+            126.0005999999994,
+            138.11619999999948
+          ]
+        },
+        {
+          "name": "flow1:verify",
+          "n": 3,
+          "medianMs": 0.018599999999423744,
+          "p95Ms": 0.019699999999829743,
+          "samplesMs": [
+            0.018599999999423744,
+            0.016200000000935688,
+            0.019699999999829743
+          ]
+        },
+        {
+          "name": "flow1:account-write-call",
+          "n": 3,
+          "medianMs": 1786.478,
+          "p95Ms": 1827.0543000000007,
+          "samplesMs": [
+            1786.478,
+            1508.0496999999996,
+            1827.0543000000007
+          ]
+        },
+        {
+          "name": "flow1:account-manifest-serialize",
+          "n": 3,
+          "medianMs": 0.007999999999810825,
+          "p95Ms": 0.009300000000621367,
+          "samplesMs": [
+            0.009300000000621367,
+            0.0072000000000116415,
+            0.007999999999810825
+          ]
+        },
+        {
+          "name": "flow1:account-directory-create",
+          "n": 3,
+          "medianMs": 0.31849999999940337,
+          "p95Ms": 0.3272999999999229,
+          "samplesMs": [
+            0.3272999999999229,
+            0.26490000000012515,
+            0.31849999999940337
+          ]
+        },
+        {
+          "name": "flow1:account-directory-permission",
+          "n": 3,
+          "medianMs": 902.7437999999993,
+          "p95Ms": 959.6887999999999,
+          "samplesMs": [
+            868.3197999999984,
+            959.6887999999999,
+            902.7437999999993
+          ]
+        },
+        {
+          "name": "flow1:account-manifest-atomic-write",
+          "n": 3,
+          "medianMs": 2.9428999999990992,
+          "p95Ms": 3.3433999999988373,
+          "samplesMs": [
+            2.9195999999992637,
+            3.3433999999988373,
+            2.9428999999990992
+          ]
+        },
+        {
+          "name": "flow1:account-manifest-permission",
+          "n": 3,
+          "medianMs": 914.8829000000005,
+          "p95Ms": 921.0212999999994,
+          "samplesMs": [
+            914.8829000000005,
+            544.7278999999999,
+            921.0212999999994
+          ]
+        },
+        {
+          "name": "flow1:vault-open",
+          "n": 3,
+          "medianMs": 2.6637000000000626,
+          "p95Ms": 2.9149999999999636,
+          "samplesMs": [
+            2.5609000000022206,
+            2.6637000000000626,
+            2.9149999999999636
+          ]
+        },
+        {
+          "name": "flow1:session-publish",
+          "n": 3,
+          "medianMs": 0.1132000000015978,
+          "p95Ms": 0.11519999999927677,
+          "samplesMs": [
+            0.1132000000015978,
+            0.1113999999997759,
+            0.11519999999927677
+          ]
+        },
+        {
+          "name": "flow1:pin-reset-call",
+          "n": 3,
+          "medianMs": 0.16379999999844586,
+          "p95Ms": 0.4756999999999607,
+          "samplesMs": [
+            0.16379999999844586,
+            0.4756999999999607,
+            0.15069999999923311
+          ]
+        },
+        {
+          "name": "flow1:audit-call",
+          "n": 3,
+          "medianMs": 1.9724999999998545,
+          "p95Ms": 2.2204000000010637,
+          "samplesMs": [
+            1.9724999999998545,
+            1.8829999999998108,
+            2.2204000000010637
+          ]
+        },
+        {
+          "name": "flow1:cleanup-dispatch",
+          "n": 3,
+          "medianMs": 0.014699999999720603,
+          "p95Ms": 0.018500000000130967,
+          "samplesMs": [
+            0.018500000000130967,
+            0.014699999999720603,
+            0.012600000000020373
+          ]
+        },
+        {
+          "name": "flow2:login-await",
+          "n": 3,
+          "medianMs": 1967.4000005722046,
+          "p95Ms": 2017.800000190733,
+          "samplesMs": [
+            1907.9000005722064,
+            1967.4000005722046,
+            2017.800000190733
+          ]
+        },
+        {
+          "name": "flow2:login-after-headers",
+          "n": 3,
+          "medianMs": 0.3000001907330443,
+          "p95Ms": 0.40000057220640883,
+          "samplesMs": [
+            0.40000057220640883,
+            0.20000076294127211,
+            0.3000001907330443
+          ]
+        },
+        {
+          "name": "flow2:accounts-await",
+          "n": 3,
+          "medianMs": 19.899999618532092,
+          "p95Ms": 20.899999618532092,
+          "samplesMs": [
+            13.099999427793591,
+            20.899999618532092,
+            19.899999618532092
+          ]
+        },
+        {
+          "name": "flow2:state-write",
+          "n": 3,
+          "medianMs": 1.3000001907366823,
+          "p95Ms": 1.5999994277972291,
+          "samplesMs": [
+            1.3000001907366823,
+            1.2999992370587279,
+            1.5999994277972291
+          ]
+        },
+        {
+          "name": "flow2:backend-attempt",
+          "n": 3,
+          "medianMs": 1941.5210000000006,
+          "p95Ms": 1984.5501999999979,
+          "samplesMs": [
+            1885.4305000000004,
+            1941.5210000000006,
+            1984.5501999999979
+          ]
+        },
+        {
+          "name": "flow2:root-read",
+          "n": 3,
+          "medianMs": 0.0008999999990919605,
+          "p95Ms": 0.0011000000013154931,
+          "samplesMs": [
+            0.0008999999990919605,
+            0.0011000000013154931,
+            0.0008999999990919605
+          ]
+        },
+        {
+          "name": "flow2:maintenance-admission",
+          "n": 3,
+          "medianMs": 0.18920000000071013,
+          "p95Ms": 0.21899999999914144,
+          "samplesMs": [
+            0.18920000000071013,
+            0.21899999999914144,
+            0.18249999999898137
+          ]
+        },
+        {
+          "name": "flow2:sync-disable",
+          "n": 3,
+          "medianMs": 0.0036000000000058208,
+          "p95Ms": 0.003800000000410364,
+          "samplesMs": [
+            0.0036000000000058208,
+            0.0031999999991967343,
+            0.003800000000410364
+          ]
+        },
+        {
+          "name": "flow2:blocking-queue",
+          "n": 3,
+          "medianMs": 0.017599999999220017,
+          "p95Ms": 0.03230000000075961,
+          "samplesMs": [
+            0.017599999999220017,
+            0.03230000000075961,
+            0.016200000000026193
+          ]
+        },
+        {
+          "name": "flow2:worker-vault-read",
+          "n": 3,
+          "medianMs": 0.0010000000002037268,
+          "p95Ms": 0.0011999999987892807,
+          "samplesMs": [
+            0.0010000000002037268,
+            0.0011999999987892807,
+            0.0009000000009109499
+          ]
+        },
+        {
+          "name": "flow2:core-unlock",
+          "n": 3,
+          "medianMs": 1939.149800000001,
+          "p95Ms": 1982.2193000000007,
+          "samplesMs": [
+            1883.0756000000001,
+            1939.149800000001,
+            1982.2193000000007
+          ]
+        },
+        {
+          "name": "flow2:recovery",
+          "n": 3,
+          "medianMs": 0.05019999999785796,
+          "p95Ms": 0.06879999999910069,
+          "samplesMs": [
+            0.05019999999785796,
+            0.06879999999910069,
+            0.04379999999946449
+          ]
+        },
+        {
+          "name": "flow2:precheck",
+          "n": 3,
+          "medianMs": 0.13540000000102737,
+          "p95Ms": 0.19050000000061118,
+          "samplesMs": [
+            0.13540000000102737,
+            0.19050000000061118,
+            0.12930000000233122
+          ]
+        },
+        {
+          "name": "flow2:master-config",
+          "n": 3,
+          "medianMs": 0.10829999999805295,
+          "p95Ms": 0.4753000000018801,
+          "samplesMs": [
+            0.09299999999893771,
+            0.4753000000018801,
+            0.10829999999805295
+          ]
+        },
+        {
+          "name": "flow2:kdf",
+          "n": 3,
+          "medianMs": 128.9452999999994,
+          "p95Ms": 130.84830000000147,
+          "samplesMs": [
+            128.9452999999994,
+            130.84830000000147,
+            120.86130000000048
+          ]
+        },
+        {
+          "name": "flow2:verify",
+          "n": 3,
+          "medianMs": 0.007100000000718865,
+          "p95Ms": 0.0076999999982945155,
+          "samplesMs": [
+            0.0076999999982945155,
+            0.006600000000617001,
+            0.007100000000718865
+          ]
+        },
+        {
+          "name": "flow2:account-write-call",
+          "n": 3,
+          "medianMs": 1805.2034000000003,
+          "p95Ms": 1858.5170999999991,
+          "samplesMs": [
+            1751.4444000000003,
+            1805.2034000000003,
+            1858.5170999999991
+          ]
+        },
+        {
+          "name": "flow2:account-manifest-serialize",
+          "n": 3,
+          "medianMs": 0.002699999999094871,
+          "p95Ms": 0.003299999998489511,
+          "samplesMs": [
+            0.003299999998489511,
+            0.0023999999993975507,
+            0.002699999999094871
+          ]
+        },
+        {
+          "name": "flow2:account-directory-create",
+          "n": 3,
+          "medianMs": 0.29830000000038126,
+          "p95Ms": 0.3177000000014232,
+          "samplesMs": [
+            0.3177000000014232,
+            0.2532000000010157,
+            0.29830000000038126
+          ]
+        },
+        {
+          "name": "flow2:account-directory-permission",
+          "n": 3,
+          "medianMs": 855.9544999999998,
+          "p95Ms": 921.2764999999999,
+          "samplesMs": [
+            818.643,
+            855.9544999999998,
+            921.2764999999999
+          ]
+        },
+        {
+          "name": "flow2:account-manifest-atomic-write",
+          "n": 3,
+          "medianMs": 3.2753000000011525,
+          "p95Ms": 3.43579999999929,
+          "samplesMs": [
+            3.106999999999971,
+            3.43579999999929,
+            3.2753000000011525
+          ]
+        },
+        {
+          "name": "flow2:account-manifest-permission",
+          "n": 3,
+          "medianMs": 933.6517000000003,
+          "p95Ms": 945.545900000001,
+          "samplesMs": [
+            929.3614999999991,
+            945.545900000001,
+            933.6517000000003
+          ]
+        },
+        {
+          "name": "flow2:vault-open",
+          "n": 3,
+          "medianMs": 2.188299999999799,
+          "p95Ms": 2.3254999999990105,
+          "samplesMs": [
+            2.188299999999799,
+            2.1336000000010245,
+            2.3254999999990105
+          ]
+        },
+        {
+          "name": "flow2:session-publish",
+          "n": 3,
+          "medianMs": 0.059599999998681596,
+          "p95Ms": 0.06730000000061409,
+          "samplesMs": [
+            0.059599999998681596,
+            0.06730000000061409,
+            0.05889999999817519
+          ]
+        },
+        {
+          "name": "flow2:pin-reset-call",
+          "n": 3,
+          "medianMs": 0.1444999999985157,
+          "p95Ms": 0.15530000000217115,
+          "samplesMs": [
+            0.1393000000007305,
+            0.1444999999985157,
+            0.15530000000217115
+          ]
+        },
+        {
+          "name": "flow2:audit-call",
+          "n": 3,
+          "medianMs": 2.0692999999992026,
+          "p95Ms": 2.079699999998411,
+          "samplesMs": [
+            2.0692999999992026,
+            2.0487000000011903,
+            2.079699999998411
+          ]
+        },
+        {
+          "name": "flow2:cleanup-dispatch",
+          "n": 3,
+          "medianMs": 0.006799999999202555,
+          "p95Ms": 0.008299999997689156,
+          "samplesMs": [
+            0.008299999997689156,
+            0.006799999999202555,
+            0.006300000000919681
+          ]
+        }
+      ],
+      "cleanup": {
+        "at": "2026-10-06T02:03:36.680912+00:00",
+        "success": true,
+        "wholeSamples": 3,
+        "vaultFilesUnchanged": 27,
+        "topLevelArtifactsUnchanged": 39,
+        "groupReportsUnchanged": 2,
+        "preservedLogs": 3,
+        "recordedIdentitiesChecked": 27,
+        "removedPrivateCachePaths": 24,
+        "unlinkedPrivateCacheEntries": 3,
+        "processesTerminatedByCacheTool": 0,
+        "sourceAndFrontendFrozen": true,
+        "publicSourcesAndPreviousBuildsUnchanged": true,
+        "resourcesUnchanged": true
+      }
+    },
+    {
+      "objectCount": 5000,
+      "samplesRequested": 3,
+      "wholeSamplesAccepted": 3,
+      "diagnosticOnly": true,
+      "performanceMetrics": null,
+      "samples": [
+        {
+          "index": 1,
+          "runId": "c827ca563c7c45a7b5b90d8d839ceb63",
+          "pid": 39268,
+          "sdkCalls": 61,
+          "finalUiProbeInvokeCount": 542,
+          "authSnapshotInvokeCount": 559,
+          "flows": [
+            {
+              "flowId": 1,
+              "login": {
+                "headersDelayMs": 2068.300000190735,
+                "promiseWaitMs": 2069.0,
+                "afterHeadersToAwaitMs": 0.6000003814697266,
+                "invokeSeq": 35
+              },
+              "accounts": {
+                "headersDelayMs": 211.4000005722046,
+                "promiseWaitMs": 211.69999980926514,
+                "afterHeadersToAwaitMs": 0.19999980926513672,
+                "invokeSeq": 36
+              },
+              "stateWriteMs": 2.1999998092651367,
+              "accountWriteSubsteps": {
+                "parentDurationMs": 1879.4545999999991,
+                "children": [
+                  {
+                    "name": "account-manifest-serialize",
+                    "durationMs": 0.011599999999816646
+                  },
+                  {
+                    "name": "account-directory-create",
+                    "durationMs": 0.39760000000023865
+                  },
+                  {
+                    "name": "account-directory-permission",
+                    "durationMs": 943.8962000000001
+                  },
+                  {
+                    "name": "account-manifest-atomic-write",
+                    "durationMs": 3.6593999999995503
+                  },
+                  {
+                    "name": "account-manifest-permission",
+                    "durationMs": 931.4620999999997
+                  }
+                ],
+                "sumOfDisjointChildrenMs": 1879.4268999999995,
+                "unattributedGapMs": 0.027699999999640568,
+                "sameBackendClock": true,
+                "nestedStageDurationsAdded": false
+              },
+              "backendAttemptMs": 1998.7356,
+              "backendStages": [
+                {
+                  "name": "root-read",
+                  "durationMs": 0.006300000000010186
+                },
+                {
+                  "name": "maintenance-admission",
+                  "durationMs": 0.15530000000035216
+                },
+                {
+                  "name": "sync-disable",
+                  "durationMs": 0.021300000000337604
+                },
+                {
+                  "name": "blocking-queue",
+                  "durationMs": 0.03600000000005821
+                },
+                {
+                  "name": "worker-vault-read",
+                  "durationMs": 0.001399999999193824
+                },
+                {
+                  "name": "core-unlock",
+                  "durationMs": 1996.4915
+                },
+                {
+                  "name": "recovery",
+                  "durationMs": 0.05639999999948486
+                },
+                {
+                  "name": "precheck",
+                  "durationMs": 0.1356999999989057
+                },
+                {
+                  "name": "master-config",
+                  "durationMs": 0.09879999999975553
+                },
+                {
+                  "name": "kdf",
+                  "durationMs": 113.63080000000082
+                },
+                {
+                  "name": "verify",
+                  "durationMs": 0.025599999999030842
+                },
+                {
+                  "name": "account-write-call",
+                  "durationMs": 1879.4545999999991
+                },
+                {
+                  "name": "account-manifest-serialize",
+                  "durationMs": 0.011599999999816646
+                },
+                {
+                  "name": "account-directory-create",
+                  "durationMs": 0.39760000000023865
+                },
+                {
+                  "name": "account-directory-permission",
+                  "durationMs": 943.8962000000001
+                },
+                {
+                  "name": "account-manifest-atomic-write",
+                  "durationMs": 3.6593999999995503
+                },
+                {
+                  "name": "account-manifest-permission",
+                  "durationMs": 931.4620999999997
+                },
+                {
+                  "name": "vault-open",
+                  "durationMs": 2.79240000000118
+                },
+                {
+                  "name": "session-publish",
+                  "durationMs": 0.11660000000028958
+                },
+                {
+                  "name": "pin-reset-call",
+                  "durationMs": 0.16380000000026484
+                },
+                {
+                  "name": "audit-call",
+                  "durationMs": 1.9420000000000073
+                },
+                {
+                  "name": "cleanup-dispatch",
+                  "durationMs": 0.01569999999992433
+                }
+              ]
+            },
+            {
+              "flowId": 2,
+              "login": {
+                "headersDelayMs": 1959,
+                "promiseWaitMs": 1959.300000190733,
+                "afterHeadersToAwaitMs": 0.19999980926331773,
+                "invokeSeq": 517
+              },
+              "accounts": {
+                "headersDelayMs": 212.5,
+                "promiseWaitMs": 212.80000019073668,
+                "afterHeadersToAwaitMs": 0.19999980926331773,
+                "invokeSeq": 518
+              },
+              "stateWriteMs": 1.5,
+              "accountWriteSubsteps": {
+                "parentDurationMs": 1766.448800000002,
+                "children": [
+                  {
+                    "name": "account-manifest-serialize",
+                    "durationMs": 0.002500000000509317
+                  },
+                  {
+                    "name": "account-directory-create",
+                    "durationMs": 0.2650000000012369
+                  },
+                  {
+                    "name": "account-directory-permission",
+                    "durationMs": 862.0971000000009
+                  },
+                  {
+                    "name": "account-manifest-atomic-write",
+                    "durationMs": 2.9912999999996828
+                  },
+                  {
+                    "name": "account-manifest-permission",
+                    "durationMs": 901.0815000000002
+                  }
+                ],
+                "sumOfDisjointChildrenMs": 1766.4374000000025,
+                "unattributedGapMs": 0.011399999999412103,
+                "sameBackendClock": true,
+                "nestedStageDurationsAdded": false
+              },
+              "backendAttemptMs": 1901.2167000000009,
+              "backendStages": [
+                {
+                  "name": "root-read",
+                  "durationMs": 0.0010000000020227162
+                },
+                {
+                  "name": "maintenance-admission",
+                  "durationMs": 0.23000000000138243
+                },
+                {
+                  "name": "sync-disable",
+                  "durationMs": 0.004499999999097781
+                },
+                {
+                  "name": "blocking-queue",
+                  "durationMs": 0.02410000000054424
+                },
+                {
+                  "name": "worker-vault-read",
+                  "durationMs": 0.0010999999994965037
+                },
+                {
+                  "name": "core-unlock",
+                  "durationMs": 1898.5467000000008
+                },
+                {
+                  "name": "recovery",
+                  "durationMs": 0.0922999999984313
+                },
+                {
+                  "name": "precheck",
+                  "durationMs": 0.15800000000126602
+                },
+                {
+                  "name": "master-config",
+                  "durationMs": 0.10590000000047439
+                },
+                {
+                  "name": "kdf",
+                  "durationMs": 128.98419999999896
+                },
+                {
+                  "name": "verify",
+                  "durationMs": 0.006900000000314321
+                },
+                {
+                  "name": "account-write-call",
+                  "durationMs": 1766.448800000002
+                },
+                {
+                  "name": "account-manifest-serialize",
+                  "durationMs": 0.002500000000509317
+                },
+                {
+                  "name": "account-directory-create",
+                  "durationMs": 0.2650000000012369
+                },
+                {
+                  "name": "account-directory-permission",
+                  "durationMs": 862.0971000000009
+                },
+                {
+                  "name": "account-manifest-atomic-write",
+                  "durationMs": 2.9912999999996828
+                },
+                {
+                  "name": "account-manifest-permission",
+                  "durationMs": 901.0815000000002
+                },
+                {
+                  "name": "vault-open",
+                  "durationMs": 2.5416999999997643
+                },
+                {
+                  "name": "session-publish",
+                  "durationMs": 0.06300000000010186
+                },
+                {
+                  "name": "pin-reset-call",
+                  "durationMs": 0.13450000000011642
+                },
+                {
+                  "name": "audit-call",
+                  "durationMs": 2.362200000001394
+                },
+                {
+                  "name": "cleanup-dispatch",
+                  "durationMs": 0.006699999999909778
+                }
+              ]
+            }
+          ],
+          "accountsBackendPairing": {
+            "command": "vault_list_accounts",
+            "paired": true,
+            "reason": null,
+            "pairs": [
+              {
+                "invokeSeq": 17,
+                "attemptId": 1
+              },
+              {
+                "invokeSeq": 25,
+                "attemptId": 2
+              },
+              {
+                "invokeSeq": 36,
+                "attemptId": 4
+              },
+              {
+                "invokeSeq": 83,
+                "attemptId": 5
+              },
+              {
+                "invokeSeq": 510,
+                "attemptId": 6
+              },
+              {
+                "invokeSeq": 518,
+                "attemptId": 8
+              }
+            ]
+          }
+        },
+        {
+          "index": 2,
+          "runId": "ccd3db28739d4265be37c627e088e1fb",
+          "pid": 35836,
+          "sdkCalls": 61,
+          "finalUiProbeInvokeCount": 548,
+          "authSnapshotInvokeCount": 553,
+          "flows": [
+            {
+              "flowId": 1,
+              "login": {
+                "headersDelayMs": 1897.5999994277954,
+                "promiseWaitMs": 1902.2000007629395,
+                "afterHeadersToAwaitMs": 4.40000057220459,
+                "invokeSeq": 35
+              },
+              "accounts": {
+                "headersDelayMs": 243.0999994277954,
+                "promiseWaitMs": 243.5,
+                "afterHeadersToAwaitMs": 0.20000076293945312,
+                "invokeSeq": 36
+              },
+              "stateWriteMs": 2.3000001907348633,
+              "accountWriteSubsteps": {
+                "parentDurationMs": 1741.8161,
+                "children": [
+                  {
+                    "name": "account-manifest-serialize",
+                    "durationMs": 0.007600000000820728
+                  },
+                  {
+                    "name": "account-directory-create",
+                    "durationMs": 0.22069999999985157
+                  },
+                  {
+                    "name": "account-directory-permission",
+                    "durationMs": 816.5479999999998
+                  },
+                  {
+                    "name": "account-manifest-atomic-write",
+                    "durationMs": 2.8454000000001543
+                  },
+                  {
+                    "name": "account-manifest-permission",
+                    "durationMs": 922.1761999999999
+                  }
+                ],
+                "sumOfDisjointChildrenMs": 1741.7979000000005,
+                "unattributedGapMs": 0.018199999999524152,
+                "sameBackendClock": true,
+                "nestedStageDurationsAdded": false
+              },
+              "backendAttemptMs": 1870.9760999999999,
+              "backendStages": [
+                {
+                  "name": "root-read",
+                  "durationMs": 0.005099999998492422
+                },
+                {
+                  "name": "maintenance-admission",
+                  "durationMs": 0.6505999999999403
+                },
+                {
+                  "name": "sync-disable",
+                  "durationMs": 0.14369999999962602
+                },
+                {
+                  "name": "blocking-queue",
+                  "durationMs": 0.029099999999743886
+                },
+                {
+                  "name": "worker-vault-read",
+                  "durationMs": 0.0016000000005078618
+                },
+                {
+                  "name": "core-unlock",
+                  "durationMs": 1867.6395000000002
+                },
+                {
+                  "name": "recovery",
+                  "durationMs": 0.09769999999934953
+                },
+                {
+                  "name": "precheck",
+                  "durationMs": 0.663300000000163
+                },
+                {
+                  "name": "master-config",
+                  "durationMs": 0.30099999999947613
+                },
+                {
+                  "name": "kdf",
+                  "durationMs": 121.64189999999962
+                },
+                {
+                  "name": "verify",
+                  "durationMs": 0.025599999999940337
+                },
+                {
+                  "name": "account-write-call",
+                  "durationMs": 1741.8161
+                },
+                {
+                  "name": "account-manifest-serialize",
+                  "durationMs": 0.007600000000820728
+                },
+                {
+                  "name": "account-directory-create",
+                  "durationMs": 0.22069999999985157
+                },
+                {
+                  "name": "account-directory-permission",
+                  "durationMs": 816.5479999999998
+                },
+                {
+                  "name": "account-manifest-atomic-write",
+                  "durationMs": 2.8454000000001543
+                },
+                {
+                  "name": "account-manifest-permission",
+                  "durationMs": 922.1761999999999
+                },
+                {
+                  "name": "vault-open",
+                  "durationMs": 2.788900000000467
+                },
+                {
+                  "name": "session-publish",
+                  "durationMs": 0.11040000000048167
+                },
+                {
+                  "name": "pin-reset-call",
+                  "durationMs": 0.16649999999935972
+                },
+                {
+                  "name": "audit-call",
+                  "durationMs": 2.436700000000201
+                },
+                {
+                  "name": "cleanup-dispatch",
+                  "durationMs": 0.012399999998706335
+                }
+              ]
+            },
+            {
+              "flowId": 2,
+              "login": {
+                "headersDelayMs": 1480.6000003814697,
+                "promiseWaitMs": 1481.1000003814697,
+                "afterHeadersToAwaitMs": 0.5,
+                "invokeSeq": 513
+              },
+              "accounts": {
+                "headersDelayMs": 19.300000190733044,
+                "promiseWaitMs": 19.5,
+                "afterHeadersToAwaitMs": 0.1999998092669557,
+                "invokeSeq": 514
+              },
+              "stateWriteMs": 1.1999998092633177,
+              "accountWriteSubsteps": {
+                "parentDurationMs": 1330.8331000000017,
+                "children": [
+                  {
+                    "name": "account-manifest-serialize",
+                    "durationMs": 0.0031000000017229468
+                  },
+                  {
+                    "name": "account-directory-create",
+                    "durationMs": 0.23400000000037835
+                  },
+                  {
+                    "name": "account-directory-permission",
+                    "durationMs": 796.4128000000019
+                  },
+                  {
+                    "name": "account-manifest-atomic-write",
+                    "durationMs": 3.246499999999287
+                  },
+                  {
+                    "name": "account-manifest-permission",
+                    "durationMs": 530.9261000000006
+                  }
+                ],
+                "sumOfDisjointChildrenMs": 1330.8225000000039,
+                "unattributedGapMs": 0.01059999999779393,
+                "sameBackendClock": true,
+                "nestedStageDurationsAdded": false
+              },
+              "backendAttemptMs": 1452.7616000000016,
+              "backendStages": [
+                {
+                  "name": "root-read",
+                  "durationMs": 0.0012999999980820576
+                },
+                {
+                  "name": "maintenance-admission",
+                  "durationMs": 0.2580999999991036
+                },
+                {
+                  "name": "sync-disable",
+                  "durationMs": 0.004999999999199645
+                },
+                {
+                  "name": "blocking-queue",
+                  "durationMs": 0.041799999999057036
+                },
+                {
+                  "name": "worker-vault-read",
+                  "durationMs": 0.0013000000017200364
+                },
+                {
+                  "name": "core-unlock",
+                  "durationMs": 1450.2110000000011
+                },
+                {
+                  "name": "recovery",
+                  "durationMs": 0.08230000000003201
+                },
+                {
+                  "name": "precheck",
+                  "durationMs": 0.29689999999754946
+                },
+                {
+                  "name": "master-config",
+                  "durationMs": 0.1584999999995489
+                },
+                {
+                  "name": "kdf",
+                  "durationMs": 116.38130000000092
+                },
+                {
+                  "name": "verify",
+                  "durationMs": 0.007300000001123408
+                },
+                {
+                  "name": "account-write-call",
+                  "durationMs": 1330.8331000000017
+                },
+                {
+                  "name": "account-manifest-serialize",
+                  "durationMs": 0.0031000000017229468
+                },
+                {
+                  "name": "account-directory-create",
+                  "durationMs": 0.23400000000037835
+                },
+                {
+                  "name": "account-directory-permission",
+                  "durationMs": 796.4128000000019
+                },
+                {
+                  "name": "account-manifest-atomic-write",
+                  "durationMs": 3.246499999999287
+                },
+                {
+                  "name": "account-manifest-permission",
+                  "durationMs": 530.9261000000006
+                },
+                {
+                  "name": "vault-open",
+                  "durationMs": 2.2155000000002474
+                },
+                {
+                  "name": "session-publish",
+                  "durationMs": 0.0716999999986001
+                },
+                {
+                  "name": "pin-reset-call",
+                  "durationMs": 0.14950000000135333
+                },
+                {
+                  "name": "audit-call",
+                  "durationMs": 2.160299999999552
+                },
+                {
+                  "name": "cleanup-dispatch",
+                  "durationMs": 0.011100000001533772
+                }
+              ]
+            }
+          ],
+          "accountsBackendPairing": {
+            "command": "vault_list_accounts",
+            "paired": true,
+            "reason": null,
+            "pairs": [
+              {
+                "invokeSeq": 17,
+                "attemptId": 1
+              },
+              {
+                "invokeSeq": 25,
+                "attemptId": 2
+              },
+              {
+                "invokeSeq": 36,
+                "attemptId": 4
+              },
+              {
+                "invokeSeq": 84,
+                "attemptId": 5
+              },
+              {
+                "invokeSeq": 506,
+                "attemptId": 6
+              },
+              {
+                "invokeSeq": 514,
+                "attemptId": 8
+              }
+            ]
+          }
+        },
+        {
+          "index": 3,
+          "runId": "510f7c45ab1f48c88362e8f79b7a05ee",
+          "pid": 12708,
+          "sdkCalls": 61,
+          "finalUiProbeInvokeCount": 548,
+          "authSnapshotInvokeCount": 553,
+          "flows": [
+            {
+              "flowId": 1,
+              "login": {
+                "headersDelayMs": 2093.3999996185303,
+                "promiseWaitMs": 2093.5,
+                "afterHeadersToAwaitMs": 0.10000038146972656,
+                "invokeSeq": 35
+              },
+              "accounts": {
+                "headersDelayMs": 226.79999923706055,
+                "promiseWaitMs": 227.10000038146973,
+                "afterHeadersToAwaitMs": 0.20000076293945312,
+                "invokeSeq": 36
+              },
+              "stateWriteMs": 2.3000001907366823,
+              "accountWriteSubsteps": {
+                "parentDurationMs": 1918.6002999999992,
+                "children": [
+                  {
+                    "name": "account-manifest-serialize",
+                    "durationMs": 0.009000000000014552
+                  },
+                  {
+                    "name": "account-directory-create",
+                    "durationMs": 0.29279999999926076
+                  },
+                  {
+                    "name": "account-directory-permission",
+                    "durationMs": 864.9710999999998
+                  },
+                  {
+                    "name": "account-manifest-atomic-write",
+                    "durationMs": 3.004800000000614
+                  },
+                  {
+                    "name": "account-manifest-permission",
+                    "durationMs": 1050.2867999999999
+                  }
+                ],
+                "sumOfDisjointChildrenMs": 1918.5644999999995,
+                "unattributedGapMs": 0.035799999999653664,
+                "sameBackendClock": true,
+                "nestedStageDurationsAdded": false
+              },
+              "backendAttemptMs": 2046.790100000001,
+              "backendStages": [
+                {
+                  "name": "root-read",
+                  "durationMs": 0.005200000000513683
+                },
+                {
+                  "name": "maintenance-admission",
+                  "durationMs": 0.18319999999948777
+                },
+                {
+                  "name": "sync-disable",
+                  "durationMs": 0.013599999999314605
+                },
+                {
+                  "name": "blocking-queue",
+                  "durationMs": 0.02299999999922875
+                },
+                {
+                  "name": "worker-vault-read",
+                  "durationMs": 0.002199999999902502
+                },
+                {
+                  "name": "core-unlock",
+                  "durationMs": 2044.3286000000007
+                },
+                {
+                  "name": "recovery",
+                  "durationMs": 0.07269999999971333
+                },
+                {
+                  "name": "precheck",
+                  "durationMs": 0.16569999999865104
+                },
+                {
+                  "name": "master-config",
+                  "durationMs": 0.12780000000020664
+                },
+                {
+                  "name": "kdf",
+                  "durationMs": 122.2507000000005
+                },
+                {
+                  "name": "verify",
+                  "durationMs": 0.041700000000673754
+                },
+                {
+                  "name": "account-write-call",
+                  "durationMs": 1918.6002999999992
+                },
+                {
+                  "name": "account-manifest-serialize",
+                  "durationMs": 0.009000000000014552
+                },
+                {
+                  "name": "account-directory-create",
+                  "durationMs": 0.29279999999926076
+                },
+                {
+                  "name": "account-directory-permission",
+                  "durationMs": 864.9710999999998
+                },
+                {
+                  "name": "account-manifest-atomic-write",
+                  "durationMs": 3.004800000000614
+                },
+                {
+                  "name": "account-manifest-permission",
+                  "durationMs": 1050.2867999999999
+                },
+                {
+                  "name": "vault-open",
+                  "durationMs": 2.782000000000153
+                },
+                {
+                  "name": "session-publish",
+                  "durationMs": 0.11359999999876891
+                },
+                {
+                  "name": "pin-reset-call",
+                  "durationMs": 0.1493000000000393
+                },
+                {
+                  "name": "audit-call",
+                  "durationMs": 2.1655999999993583
+                },
+                {
+                  "name": "cleanup-dispatch",
+                  "durationMs": 0.013199999999415013
+                }
+              ]
+            },
+            {
+              "flowId": 2,
+              "login": {
+                "headersDelayMs": 1921.0,
+                "promiseWaitMs": 1921.300000190733,
+                "afterHeadersToAwaitMs": 0.3000001907330443,
+                "invokeSeq": 513
+              },
+              "accounts": {
+                "headersDelayMs": 2.900000572206409,
+                "promiseWaitMs": 4.399999618530273,
+                "afterHeadersToAwaitMs": 1.3999996185302734,
+                "invokeSeq": 514
+              },
+              "stateWriteMs": 1.2999992370605469,
+              "accountWriteSubsteps": {
+                "parentDurationMs": 1758.2042000000001,
+                "children": [
+                  {
+                    "name": "account-manifest-serialize",
+                    "durationMs": 0.0030999999999039574
+                  },
+                  {
+                    "name": "account-directory-create",
+                    "durationMs": 0.27150000000074215
+                  },
+                  {
+                    "name": "account-directory-permission",
+                    "durationMs": 817.7338
+                  },
+                  {
+                    "name": "account-manifest-atomic-write",
+                    "durationMs": 3.246399999999994
+                  },
+                  {
+                    "name": "account-manifest-permission",
+                    "durationMs": 936.9375
+                  }
+                ],
+                "sumOfDisjointChildrenMs": 1758.1923000000006,
+                "unattributedGapMs": 0.011899999999513966,
+                "sameBackendClock": true,
+                "nestedStageDurationsAdded": false
+              },
+              "backendAttemptMs": 1881.5663999999997,
+              "backendStages": [
+                {
+                  "name": "root-read",
+                  "durationMs": 0.0009999999983847374
+                },
+                {
+                  "name": "maintenance-admission",
+                  "durationMs": 0.17009999999936554
+                },
+                {
+                  "name": "sync-disable",
+                  "durationMs": 0.0033000000003085006
+                },
+                {
+                  "name": "blocking-queue",
+                  "durationMs": 0.01599999999962165
+                },
+                {
+                  "name": "worker-vault-read",
+                  "durationMs": 0.0007999999997991836
+                },
+                {
+                  "name": "core-unlock",
+                  "durationMs": 1879.1261000000013
+                },
+                {
+                  "name": "recovery",
+                  "durationMs": 0.04670000000078289
+                },
+                {
+                  "name": "precheck",
+                  "durationMs": 0.12739999999939755
+                },
+                {
+                  "name": "master-config",
+                  "durationMs": 0.16920000000027358
+                },
+                {
+                  "name": "kdf",
+                  "durationMs": 118.02170000000115
+                },
+                {
+                  "name": "verify",
+                  "durationMs": 0.007700000000113505
+                },
+                {
+                  "name": "account-write-call",
+                  "durationMs": 1758.2042000000001
+                },
+                {
+                  "name": "account-manifest-serialize",
+                  "durationMs": 0.0030999999999039574
+                },
+                {
+                  "name": "account-directory-create",
+                  "durationMs": 0.27150000000074215
+                },
+                {
+                  "name": "account-directory-permission",
+                  "durationMs": 817.7338
+                },
+                {
+                  "name": "account-manifest-atomic-write",
+                  "durationMs": 3.246399999999994
+                },
+                {
+                  "name": "account-manifest-permission",
+                  "durationMs": 936.9375
+                },
+                {
+                  "name": "vault-open",
+                  "durationMs": 2.3030999999973574
+                },
+                {
+                  "name": "session-publish",
+                  "durationMs": 0.09820000000036089
+                },
+                {
+                  "name": "pin-reset-call",
+                  "durationMs": 0.13659999999981665
+                },
+                {
+                  "name": "audit-call",
+                  "durationMs": 2.199399999999514
+                },
+                {
+                  "name": "cleanup-dispatch",
+                  "durationMs": 0.007100000000718865
+                }
+              ]
+            }
+          ],
+          "accountsBackendPairing": {
+            "command": "vault_list_accounts",
+            "paired": true,
+            "reason": null,
+            "pairs": [
+              {
+                "invokeSeq": 17,
+                "attemptId": 1
+              },
+              {
+                "invokeSeq": 28,
+                "attemptId": 2
+              },
+              {
+                "invokeSeq": 36,
+                "attemptId": 4
+              },
+              {
+                "invokeSeq": 82,
+                "attemptId": 5
+              },
+              {
+                "invokeSeq": 506,
+                "attemptId": 6
+              },
+              {
+                "invokeSeq": 514,
+                "attemptId": 8
+              }
+            ]
+          }
+        }
+      ],
+      "summary": [
+        {
+          "name": "flow1:login-await",
+          "n": 3,
+          "medianMs": 2069.0,
+          "p95Ms": 2093.5,
+          "samplesMs": [
+            2069.0,
+            1902.2000007629395,
+            2093.5
+          ]
+        },
+        {
+          "name": "flow1:login-after-headers",
+          "n": 3,
+          "medianMs": 0.6000003814697266,
+          "p95Ms": 4.40000057220459,
+          "samplesMs": [
+            0.6000003814697266,
+            4.40000057220459,
+            0.10000038146972656
+          ]
+        },
+        {
+          "name": "flow1:accounts-await",
+          "n": 3,
+          "medianMs": 227.10000038146973,
+          "p95Ms": 243.5,
+          "samplesMs": [
+            211.69999980926514,
+            243.5,
+            227.10000038146973
+          ]
+        },
+        {
+          "name": "flow1:state-write",
+          "n": 3,
+          "medianMs": 2.3000001907348633,
+          "p95Ms": 2.3000001907366823,
+          "samplesMs": [
+            2.1999998092651367,
+            2.3000001907348633,
+            2.3000001907366823
+          ]
+        },
+        {
+          "name": "flow1:backend-attempt",
+          "n": 3,
+          "medianMs": 1998.7356,
+          "p95Ms": 2046.790100000001,
+          "samplesMs": [
+            1998.7356,
+            1870.9760999999999,
+            2046.790100000001
+          ]
+        },
+        {
+          "name": "flow1:root-read",
+          "n": 3,
+          "medianMs": 0.005200000000513683,
+          "p95Ms": 0.006300000000010186,
+          "samplesMs": [
+            0.006300000000010186,
+            0.005099999998492422,
+            0.005200000000513683
+          ]
+        },
+        {
+          "name": "flow1:maintenance-admission",
+          "n": 3,
+          "medianMs": 0.18319999999948777,
+          "p95Ms": 0.6505999999999403,
+          "samplesMs": [
+            0.15530000000035216,
+            0.6505999999999403,
+            0.18319999999948777
+          ]
+        },
+        {
+          "name": "flow1:sync-disable",
+          "n": 3,
+          "medianMs": 0.021300000000337604,
+          "p95Ms": 0.14369999999962602,
+          "samplesMs": [
+            0.021300000000337604,
+            0.14369999999962602,
+            0.013599999999314605
+          ]
+        },
+        {
+          "name": "flow1:blocking-queue",
+          "n": 3,
+          "medianMs": 0.029099999999743886,
+          "p95Ms": 0.03600000000005821,
+          "samplesMs": [
+            0.03600000000005821,
+            0.029099999999743886,
+            0.02299999999922875
+          ]
+        },
+        {
+          "name": "flow1:worker-vault-read",
+          "n": 3,
+          "medianMs": 0.0016000000005078618,
+          "p95Ms": 0.002199999999902502,
+          "samplesMs": [
+            0.001399999999193824,
+            0.0016000000005078618,
+            0.002199999999902502
+          ]
+        },
+        {
+          "name": "flow1:core-unlock",
+          "n": 3,
+          "medianMs": 1996.4915,
+          "p95Ms": 2044.3286000000007,
+          "samplesMs": [
+            1996.4915,
+            1867.6395000000002,
+            2044.3286000000007
+          ]
+        },
+        {
+          "name": "flow1:recovery",
+          "n": 3,
+          "medianMs": 0.07269999999971333,
+          "p95Ms": 0.09769999999934953,
+          "samplesMs": [
+            0.05639999999948486,
+            0.09769999999934953,
+            0.07269999999971333
+          ]
+        },
+        {
+          "name": "flow1:precheck",
+          "n": 3,
+          "medianMs": 0.16569999999865104,
+          "p95Ms": 0.663300000000163,
+          "samplesMs": [
+            0.1356999999989057,
+            0.663300000000163,
+            0.16569999999865104
+          ]
+        },
+        {
+          "name": "flow1:master-config",
+          "n": 3,
+          "medianMs": 0.12780000000020664,
+          "p95Ms": 0.30099999999947613,
+          "samplesMs": [
+            0.09879999999975553,
+            0.30099999999947613,
+            0.12780000000020664
+          ]
+        },
+        {
+          "name": "flow1:kdf",
+          "n": 3,
+          "medianMs": 121.64189999999962,
+          "p95Ms": 122.2507000000005,
+          "samplesMs": [
+            113.63080000000082,
+            121.64189999999962,
+            122.2507000000005
+          ]
+        },
+        {
+          "name": "flow1:verify",
+          "n": 3,
+          "medianMs": 0.025599999999940337,
+          "p95Ms": 0.041700000000673754,
+          "samplesMs": [
+            0.025599999999030842,
+            0.025599999999940337,
+            0.041700000000673754
+          ]
+        },
+        {
+          "name": "flow1:account-write-call",
+          "n": 3,
+          "medianMs": 1879.4545999999991,
+          "p95Ms": 1918.6002999999992,
+          "samplesMs": [
+            1879.4545999999991,
+            1741.8161,
+            1918.6002999999992
+          ]
+        },
+        {
+          "name": "flow1:account-manifest-serialize",
+          "n": 3,
+          "medianMs": 0.009000000000014552,
+          "p95Ms": 0.011599999999816646,
+          "samplesMs": [
+            0.011599999999816646,
+            0.007600000000820728,
+            0.009000000000014552
+          ]
+        },
+        {
+          "name": "flow1:account-directory-create",
+          "n": 3,
+          "medianMs": 0.29279999999926076,
+          "p95Ms": 0.39760000000023865,
+          "samplesMs": [
+            0.39760000000023865,
+            0.22069999999985157,
+            0.29279999999926076
+          ]
+        },
+        {
+          "name": "flow1:account-directory-permission",
+          "n": 3,
+          "medianMs": 864.9710999999998,
+          "p95Ms": 943.8962000000001,
+          "samplesMs": [
+            943.8962000000001,
+            816.5479999999998,
+            864.9710999999998
+          ]
+        },
+        {
+          "name": "flow1:account-manifest-atomic-write",
+          "n": 3,
+          "medianMs": 3.004800000000614,
+          "p95Ms": 3.6593999999995503,
+          "samplesMs": [
+            3.6593999999995503,
+            2.8454000000001543,
+            3.004800000000614
+          ]
+        },
+        {
+          "name": "flow1:account-manifest-permission",
+          "n": 3,
+          "medianMs": 931.4620999999997,
+          "p95Ms": 1050.2867999999999,
+          "samplesMs": [
+            931.4620999999997,
+            922.1761999999999,
+            1050.2867999999999
+          ]
+        },
+        {
+          "name": "flow1:vault-open",
+          "n": 3,
+          "medianMs": 2.788900000000467,
+          "p95Ms": 2.79240000000118,
+          "samplesMs": [
+            2.79240000000118,
+            2.788900000000467,
+            2.782000000000153
+          ]
+        },
+        {
+          "name": "flow1:session-publish",
+          "n": 3,
+          "medianMs": 0.11359999999876891,
+          "p95Ms": 0.11660000000028958,
+          "samplesMs": [
+            0.11660000000028958,
+            0.11040000000048167,
+            0.11359999999876891
+          ]
+        },
+        {
+          "name": "flow1:pin-reset-call",
+          "n": 3,
+          "medianMs": 0.16380000000026484,
+          "p95Ms": 0.16649999999935972,
+          "samplesMs": [
+            0.16380000000026484,
+            0.16649999999935972,
+            0.1493000000000393
+          ]
+        },
+        {
+          "name": "flow1:audit-call",
+          "n": 3,
+          "medianMs": 2.1655999999993583,
+          "p95Ms": 2.436700000000201,
+          "samplesMs": [
+            1.9420000000000073,
+            2.436700000000201,
+            2.1655999999993583
+          ]
+        },
+        {
+          "name": "flow1:cleanup-dispatch",
+          "n": 3,
+          "medianMs": 0.013199999999415013,
+          "p95Ms": 0.01569999999992433,
+          "samplesMs": [
+            0.01569999999992433,
+            0.012399999998706335,
+            0.013199999999415013
+          ]
+        },
+        {
+          "name": "flow2:login-await",
+          "n": 3,
+          "medianMs": 1921.300000190733,
+          "p95Ms": 1959.300000190733,
+          "samplesMs": [
+            1959.300000190733,
+            1481.1000003814697,
+            1921.300000190733
+          ]
+        },
+        {
+          "name": "flow2:login-after-headers",
+          "n": 3,
+          "medianMs": 0.3000001907330443,
+          "p95Ms": 0.5,
+          "samplesMs": [
+            0.19999980926331773,
+            0.5,
+            0.3000001907330443
+          ]
+        },
+        {
+          "name": "flow2:accounts-await",
+          "n": 3,
+          "medianMs": 19.5,
+          "p95Ms": 212.80000019073668,
+          "samplesMs": [
+            212.80000019073668,
+            19.5,
+            4.399999618530273
+          ]
+        },
+        {
+          "name": "flow2:state-write",
+          "n": 3,
+          "medianMs": 1.2999992370605469,
+          "p95Ms": 1.5,
+          "samplesMs": [
+            1.5,
+            1.1999998092633177,
+            1.2999992370605469
+          ]
+        },
+        {
+          "name": "flow2:backend-attempt",
+          "n": 3,
+          "medianMs": 1881.5663999999997,
+          "p95Ms": 1901.2167000000009,
+          "samplesMs": [
+            1901.2167000000009,
+            1452.7616000000016,
+            1881.5663999999997
+          ]
+        },
+        {
+          "name": "flow2:root-read",
+          "n": 3,
+          "medianMs": 0.0010000000020227162,
+          "p95Ms": 0.0012999999980820576,
+          "samplesMs": [
+            0.0010000000020227162,
+            0.0012999999980820576,
+            0.0009999999983847374
+          ]
+        },
+        {
+          "name": "flow2:maintenance-admission",
+          "n": 3,
+          "medianMs": 0.23000000000138243,
+          "p95Ms": 0.2580999999991036,
+          "samplesMs": [
+            0.23000000000138243,
+            0.2580999999991036,
+            0.17009999999936554
+          ]
+        },
+        {
+          "name": "flow2:sync-disable",
+          "n": 3,
+          "medianMs": 0.004499999999097781,
+          "p95Ms": 0.004999999999199645,
+          "samplesMs": [
+            0.004499999999097781,
+            0.004999999999199645,
+            0.0033000000003085006
+          ]
+        },
+        {
+          "name": "flow2:blocking-queue",
+          "n": 3,
+          "medianMs": 0.02410000000054424,
+          "p95Ms": 0.041799999999057036,
+          "samplesMs": [
+            0.02410000000054424,
+            0.041799999999057036,
+            0.01599999999962165
+          ]
+        },
+        {
+          "name": "flow2:worker-vault-read",
+          "n": 3,
+          "medianMs": 0.0010999999994965037,
+          "p95Ms": 0.0013000000017200364,
+          "samplesMs": [
+            0.0010999999994965037,
+            0.0013000000017200364,
+            0.0007999999997991836
+          ]
+        },
+        {
+          "name": "flow2:core-unlock",
+          "n": 3,
+          "medianMs": 1879.1261000000013,
+          "p95Ms": 1898.5467000000008,
+          "samplesMs": [
+            1898.5467000000008,
+            1450.2110000000011,
+            1879.1261000000013
+          ]
+        },
+        {
+          "name": "flow2:recovery",
+          "n": 3,
+          "medianMs": 0.08230000000003201,
+          "p95Ms": 0.0922999999984313,
+          "samplesMs": [
+            0.0922999999984313,
+            0.08230000000003201,
+            0.04670000000078289
+          ]
+        },
+        {
+          "name": "flow2:precheck",
+          "n": 3,
+          "medianMs": 0.15800000000126602,
+          "p95Ms": 0.29689999999754946,
+          "samplesMs": [
+            0.15800000000126602,
+            0.29689999999754946,
+            0.12739999999939755
+          ]
+        },
+        {
+          "name": "flow2:master-config",
+          "n": 3,
+          "medianMs": 0.1584999999995489,
+          "p95Ms": 0.16920000000027358,
+          "samplesMs": [
+            0.10590000000047439,
+            0.1584999999995489,
+            0.16920000000027358
+          ]
+        },
+        {
+          "name": "flow2:kdf",
+          "n": 3,
+          "medianMs": 118.02170000000115,
+          "p95Ms": 128.98419999999896,
+          "samplesMs": [
+            128.98419999999896,
+            116.38130000000092,
+            118.02170000000115
+          ]
+        },
+        {
+          "name": "flow2:verify",
+          "n": 3,
+          "medianMs": 0.007300000001123408,
+          "p95Ms": 0.007700000000113505,
+          "samplesMs": [
+            0.006900000000314321,
+            0.007300000001123408,
+            0.007700000000113505
+          ]
+        },
+        {
+          "name": "flow2:account-write-call",
+          "n": 3,
+          "medianMs": 1758.2042000000001,
+          "p95Ms": 1766.448800000002,
+          "samplesMs": [
+            1766.448800000002,
+            1330.8331000000017,
+            1758.2042000000001
+          ]
+        },
+        {
+          "name": "flow2:account-manifest-serialize",
+          "n": 3,
+          "medianMs": 0.0030999999999039574,
+          "p95Ms": 0.0031000000017229468,
+          "samplesMs": [
+            0.002500000000509317,
+            0.0031000000017229468,
+            0.0030999999999039574
+          ]
+        },
+        {
+          "name": "flow2:account-directory-create",
+          "n": 3,
+          "medianMs": 0.2650000000012369,
+          "p95Ms": 0.27150000000074215,
+          "samplesMs": [
+            0.2650000000012369,
+            0.23400000000037835,
+            0.27150000000074215
+          ]
+        },
+        {
+          "name": "flow2:account-directory-permission",
+          "n": 3,
+          "medianMs": 817.7338,
+          "p95Ms": 862.0971000000009,
+          "samplesMs": [
+            862.0971000000009,
+            796.4128000000019,
+            817.7338
+          ]
+        },
+        {
+          "name": "flow2:account-manifest-atomic-write",
+          "n": 3,
+          "medianMs": 3.246399999999994,
+          "p95Ms": 3.246499999999287,
+          "samplesMs": [
+            2.9912999999996828,
+            3.246499999999287,
+            3.246399999999994
+          ]
+        },
+        {
+          "name": "flow2:account-manifest-permission",
+          "n": 3,
+          "medianMs": 901.0815000000002,
+          "p95Ms": 936.9375,
+          "samplesMs": [
+            901.0815000000002,
+            530.9261000000006,
+            936.9375
+          ]
+        },
+        {
+          "name": "flow2:vault-open",
+          "n": 3,
+          "medianMs": 2.3030999999973574,
+          "p95Ms": 2.5416999999997643,
+          "samplesMs": [
+            2.5416999999997643,
+            2.2155000000002474,
+            2.3030999999973574
+          ]
+        },
+        {
+          "name": "flow2:session-publish",
+          "n": 3,
+          "medianMs": 0.0716999999986001,
+          "p95Ms": 0.09820000000036089,
+          "samplesMs": [
+            0.06300000000010186,
+            0.0716999999986001,
+            0.09820000000036089
+          ]
+        },
+        {
+          "name": "flow2:pin-reset-call",
+          "n": 3,
+          "medianMs": 0.13659999999981665,
+          "p95Ms": 0.14950000000135333,
+          "samplesMs": [
+            0.13450000000011642,
+            0.14950000000135333,
+            0.13659999999981665
+          ]
+        },
+        {
+          "name": "flow2:audit-call",
+          "n": 3,
+          "medianMs": 2.199399999999514,
+          "p95Ms": 2.362200000001394,
+          "samplesMs": [
+            2.362200000001394,
+            2.160299999999552,
+            2.199399999999514
+          ]
+        },
+        {
+          "name": "flow2:cleanup-dispatch",
+          "n": 3,
+          "medianMs": 0.007100000000718865,
+          "p95Ms": 0.011100000001533772,
+          "samplesMs": [
+            0.006699999999909778,
+            0.011100000001533772,
+            0.007100000000718865
+          ]
+        }
+      ],
+      "cleanup": {
+        "at": "2026-10-06T02:03:40.318805+00:00",
+        "success": true,
+        "wholeSamples": 3,
+        "vaultFilesUnchanged": 27,
+        "topLevelArtifactsUnchanged": 39,
+        "groupReportsUnchanged": 2,
+        "preservedLogs": 3,
+        "recordedIdentitiesChecked": 27,
+        "removedPrivateCachePaths": 24,
+        "unlinkedPrivateCacheEntries": 3,
+        "processesTerminatedByCacheTool": 0,
+        "sourceAndFrontendFrozen": true,
+        "publicSourcesAndPreviousBuildsUnchanged": true,
+        "resourcesUnchanged": true
+      }
+    }
+  ],
+  "attribution": {
+    "accountWriteAttempts": [
+      {
+        "objectCount": 100,
+        "sampleIndex": 1,
+        "flowId": 1,
+        "parentMs": 1786.478,
+        "permissionCallsMs": 1783.202699999999,
+        "permissionCallsRatio": 0.998166616101625,
+        "unattributedGapMs": 0.019100000001344597
+      },
+      {
+        "objectCount": 100,
+        "sampleIndex": 1,
+        "flowId": 2,
+        "parentMs": 1751.4444000000003,
+        "permissionCallsMs": 1748.004499999999,
+        "permissionCallsRatio": 0.9980359639164103,
+        "unattributedGapMs": 0.011900000001332955
+      },
+      {
+        "objectCount": 100,
+        "sampleIndex": 2,
+        "flowId": 1,
+        "parentMs": 1508.0496999999996,
+        "permissionCallsMs": 1504.4166999999998,
+        "permissionCallsRatio": 0.9975909282034937,
+        "unattributedGapMs": 0.017500000000836735
+      },
+      {
+        "objectCount": 100,
+        "sampleIndex": 2,
+        "flowId": 2,
+        "parentMs": 1805.2034000000003,
+        "permissionCallsMs": 1801.5004000000008,
+        "permissionCallsRatio": 0.9979487076082398,
+        "unattributedGapMs": 0.011599999999816646
+      },
+      {
+        "objectCount": 100,
+        "sampleIndex": 3,
+        "flowId": 1,
+        "parentMs": 1827.0543000000007,
+        "permissionCallsMs": 1823.7650999999987,
+        "permissionCallsRatio": 0.9981997250984812,
+        "unattributedGapMs": 0.019800000003669993
+      },
+      {
+        "objectCount": 100,
+        "sampleIndex": 3,
+        "flowId": 2,
+        "parentMs": 1858.5170999999991,
+        "permissionCallsMs": 1854.9282000000003,
+        "permissionCallsRatio": 0.9980689443212555,
+        "unattributedGapMs": 0.012599999998201383
+      },
+      {
+        "objectCount": 5000,
+        "sampleIndex": 1,
+        "flowId": 1,
+        "parentMs": 1879.4545999999991,
+        "permissionCallsMs": 1875.3582999999999,
+        "permissionCallsRatio": 0.9978204847299854,
+        "unattributedGapMs": 0.027699999999640568
+      },
+      {
+        "objectCount": 5000,
+        "sampleIndex": 1,
+        "flowId": 2,
+        "parentMs": 1766.448800000002,
+        "permissionCallsMs": 1763.178600000001,
+        "permissionCallsRatio": 0.9981487150943742,
+        "unattributedGapMs": 0.011399999999412103
+      },
+      {
+        "objectCount": 5000,
+        "sampleIndex": 2,
+        "flowId": 1,
+        "parentMs": 1741.8161,
+        "permissionCallsMs": 1738.7241999999997,
+        "permissionCallsRatio": 0.9982248987134748,
+        "unattributedGapMs": 0.018199999999524152
+      },
+      {
+        "objectCount": 5000,
+        "sampleIndex": 2,
+        "flowId": 2,
+        "parentMs": 1330.8331000000017,
+        "permissionCallsMs": 1327.3389000000025,
+        "permissionCallsRatio": 0.9973744265903822,
+        "unattributedGapMs": 0.01059999999779393
+      },
+      {
+        "objectCount": 5000,
+        "sampleIndex": 3,
+        "flowId": 1,
+        "parentMs": 1918.6002999999992,
+        "permissionCallsMs": 1915.2578999999996,
+        "permissionCallsRatio": 0.9982578966551816,
+        "unattributedGapMs": 0.035799999999653664
+      },
+      {
+        "objectCount": 5000,
+        "sampleIndex": 3,
+        "flowId": 2,
+        "parentMs": 1758.2042000000001,
+        "permissionCallsMs": 1754.6713,
+        "permissionCallsRatio": 0.9979906202021357,
+        "unattributedGapMs": 0.011899999999513966
+      }
+    ],
+    "permissionCallsFractionRange": [
+      0.9973744265903822,
+      0.9982578966551816
+    ],
+    "permissionSpawnRootCauseEstablished": false,
+    "controlledOptimizationComparisonComplete": false
+  },
+  "preservationTotals": {
+    "vaultFilesUnchanged": 54,
+    "topLevelArtifactsUnchanged": 78,
+    "preservedLogs": 6,
+    "recordedIdentitiesChecked": 54,
+    "removedPrivateCachePaths": 48,
+    "unlinkedPrivateCacheEntries": 6
+  },
+  "failuresPreserved": {
+    "nodeContractRed": {
+      "command": [
+        "node",
+        "--test",
+        "scripts/native-perf-auth-attribution.test.mjs"
+      ],
+      "pid": 43280,
+      "exitCode": 1,
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "elapsedSeconds": 0.6263234615325928,
+      "at": "2026-10-06T00:18:33.387580+00:00"
+    },
+    "coreMissingSubstepsRed": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solosoul-core",
+        "--features",
+        "native-perf",
+        "--lib",
+        "native_perf_unlock"
+      ],
+      "pid": 35824,
+      "exitCode": 101,
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "elapsedSeconds": 78.46382403373718,
+      "at": "2026-10-06T00:20:04.936619+00:00"
+    },
+    "originalNativeMediaFailure": {
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "solo_soul",
+        "--features",
+        "native-perf",
+        "--lib",
+        "native_perf"
+      ],
+      "pid": 37200,
+      "exitCode": 101,
+      "environment": {
+        "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+        "CARGO_BUILD_JOBS": "2"
+      },
+      "elapsedSeconds": 413.1123015880585,
+      "at": "2026-10-06T00:33:19.346410+00:00"
+    },
+    "independentFixtureFix": {
+      "commit": "1f5aca647f3a1f64fc1727f2388ef3876eceea1b",
+      "evidence": "C:\\Users\\40299571\\SoloSoul\\docs\\verification\\rf1096-fixture-kdf-2026-10-06.json",
+      "sha256": "d24dea981f5535c5fd63b6ea816b168de4a08e9dbdf3d9016b45452a24dc4580",
+      "sourceFiles": {
+        "tauri/crates/solosoul-core/examples/perf_baseline/fixture.rs": "87a46b6cbec6a7db9f6de9bbee4358e52ab474c9f7d0f9677841ce8a003d2c39",
+        "tauri/src-tauri/src/native_perf/media_fixture.rs": "f5d86592d85811c7a14f5f09e67038e8833954e99b2be0ba59b56153d2132221"
+      }
+    },
+    "cleanupHelperAuthoringFailure": {
+      "at": "2026-10-06T01:25:28.936780+00:00",
+      "phase": "temporary cleanup helper authoring",
+      "reason": "incorrect flat archive path; committed index stores helpers under raw/",
+      "pythonExitCode": 1,
+      "outerPowerShellExitCode": 0,
+      "sourceOrCacheMutationsBeforeFailure": false,
+      "preservedDiagnostic": "AssertionError: C:\\Users\\40299571\\SoloSoul\\docs\\performance\\rf312-windows-auth-attribution-2026-10-06\\cleanup-auth-caches.ps1.gz"
+    },
+    "documentHelperAuthoringFailure": {
+      "authoringOnly": true,
+      "exitCode": 1,
+      "reason": "nested triple-quoted Python source string ended before embedded Markdown; syntax rejected before helper file creation",
+      "exception": "SyntaxError: invalid character Chinese comma U+FF0C",
+      "productOrCacheMutation": false,
+      "correctedHelperAstValid": true
+    }
+  },
+  "rawArchive": {
+    "index": "rf312-windows-account-write-attribution-2026-10-06/index.json",
+    "files": 220,
+    "allDecompressedBytesVerified": true
+  },
+  "remaining": [
+    "controlled evidence before any permission-command optimization",
+    "old intermittent home timeout",
+    "system sleep coverage",
+    "same-scope multiplatform distributions",
+    "RF-112 isolated macOS restoration",
+    "RF-121 full native material matrix",
+    "RF-122 to RF-127 dependencies"
+  ],
+  "localCommitOnly": true,
+  "pushed": false,
+  "documentationChecks": {
+    "account-doc-format": {
+      "receipt": {
+        "command": [
+          "node",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--write",
+          "../docs/performance/RF-312-native-account-write-attribution.md"
+        ],
+        "pid": 40064,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 0.887423038482666,
+        "at": "2026-10-06T02:05:23.910603+00:00"
+      },
+      "stdout": "../docs/performance/RF-312-native-account-write-attribution.md 88ms\n",
+      "stdoutSha256": "0a98ee6a7ddfb3cd58e7b0d9a544e556439b625cbb0d01999f7f8d4dec0c9bb1",
+      "stderr": "",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "account-doc-boundary": {
+      "receipt": {
+        "command": [
+          "node",
+          "scripts/check-markdown-chunk-boundary.mjs"
+        ],
+        "pid": 22972,
+        "exitCode": 0,
+        "environment": {
+          "PDFIUM_LIBRARY_PATH": "C:\\Users\\40299571\\SoloSoul\\tauri\\src-tauri\\resources\\pdfium\\pdfium.dll",
+          "CARGO_BUILD_JOBS": "2"
+        },
+        "elapsedSeconds": 9.60339903831482,
+        "at": "2026-10-06T02:05:42.955590+00:00"
+      },
+      "stdout": "[check-markdown-chunk-boundary] OK: 13 个解析/渲染依赖与核心同处 markdown-vendor\n",
+      "stdoutSha256": "9b7f0ef0c8c5a21910b8f150e48ed1880169b0dfdc85608adb1a544ccd476dbc",
+      "stderr": "",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "documentationVerification": {
+    "at": "2026-10-06T02:06:34.513599+00:00",
+    "success": true,
+    "rawArchivesVerified": 220,
+    "rawBytesVerified": 4118935,
+    "wholeNativeSamples": 6,
+    "accountWriteAttemptsIndependentlyRecomputed": 12,
+    "states": {
+      "closed": 277,
+      "waiting": 3,
+      "pending": 6
+    },
+    "relativeLinksChecked": 259,
+    "taskStillOpen": true,
+    "sixDependencyGatesRetained": true,
+    "sourceFreezeVerified": true,
+    "stashAndSubmodulePreserved": true,
+    "diffCheckPassed": true
+  }
+}

@@ -29,11 +29,59 @@ const BACK_STAGES: &[&str] = &[
     "kdf",
     "verify",
     "account-write-call",
+    "account-manifest-serialize",
+    "account-directory-create",
+    "account-directory-permission",
+    "account-manifest-atomic-write",
+    "account-manifest-permission",
     "kdf-upgrade",
     "vault-open",
     "session-publish",
     "pin-reset-call",
 ];
+const ACCOUNT_SUBSTEPS: &[&str] = &[
+    "account-manifest-serialize",
+    "account-directory-create",
+    "account-directory-permission",
+    "account-manifest-atomic-write",
+    "account-manifest-permission",
+];
+fn account_substeps(stages: &[Value], at: f64) -> bool {
+    let children: Vec<_> = stages
+        .iter()
+        .filter(|s| {
+            s["name"]
+                .as_str()
+                .is_some_and(|n| ACCOUNT_SUBSTEPS.contains(&n))
+        })
+        .collect();
+    if children.is_empty() {
+        return true;
+    }
+    let parents: Vec<_> = stages
+        .iter()
+        .filter(|s| s["name"] == "account-write-call")
+        .collect();
+    if parents.len() != 1 || children.len() > ACCOUNT_SUBSTEPS.len() {
+        return false;
+    }
+    let parent = parents[0];
+    let start = parent["startedAtMs"].as_f64().unwrap();
+    let end = parent["endedAtMs"].as_f64().unwrap_or(at);
+    let mut previous_end = Some(start);
+    for (i, child) in children.iter().enumerate() {
+        let child_start = child["startedAtMs"].as_f64().unwrap();
+        if child["name"] != ACCOUNT_SUBSTEPS[i]
+            || child_start < start
+            || child["endedAtMs"].as_f64().unwrap_or(at) > end
+            || previous_end.is_none_or(|prior| prior > child_start)
+        {
+            return false;
+        }
+        previous_end = child["endedAtMs"].as_f64();
+    }
+    true
+}
 fn exact(value: &Value, keys: &[&str]) -> bool {
     value
         .as_object()
@@ -229,6 +277,9 @@ pub fn backend(value: &Value, run_id: &str) -> bool {
             }
             previous = stage["startedAtMs"].as_f64().unwrap();
         }
+        if !account_substeps(stages, at) {
+            return false;
+        }
     }
     true
 }
@@ -302,6 +353,18 @@ mod tests {
             *changed.pointer_mut(pointer).unwrap() = bad;
             assert!(!backend(&changed, "abc"));
         }
+        let mut with_children = good.clone();
+        with_children["attempts"][0]["stages"].as_array_mut().unwrap().extend([
+            json!({"name":"account-write-call","startedAtMs":4,"endedAtMs":7,"outcome":"completed"}),
+            json!({"name":"account-manifest-serialize","startedAtMs":5,"endedAtMs":6,"outcome":"completed"}),
+        ]);
+        assert!(backend(&with_children, "abc"));
+        let mut escaped = with_children.clone();
+        escaped["attempts"][0]["stages"][2]["endedAtMs"] = json!(5.5);
+        assert!(!backend(&escaped, "abc"));
+        let mut wrong_order = with_children.clone();
+        wrong_order["attempts"][0]["stages"][3]["name"] = json!("account-directory-create");
+        assert!(!backend(&wrong_order, "abc"));
         let mut leaked = good.clone();
         leaked["attempts"][0]["password"] = json!("sentinel");
         assert!(!backend(&leaked, "abc"));

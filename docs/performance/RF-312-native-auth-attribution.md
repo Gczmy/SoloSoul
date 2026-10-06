@@ -51,3 +51,8 @@ node scripts/native-perf-auth-attribution.mjs --exe C:\rf312\bin\solo_soul.exe -
 ```
 
 [结构化验收](rf312-windows-auth-attribution-2026-10-06.json)及[287份逐字节原件](rf312-windows-auth-attribution-2026-10-06/index.json)包含所有成功、失败、红绿回归、冻结和清理证据；不含EXE/模型/DLL、Vault物理文件或缓存树。旧首页超时、系统睡眠和完整多端同口径验收未完成；RF-312继续待验证，RF-112/121和RF-122～127前置保持。按本阶段独立本地提交，不推送。
+
+
+## 2026-10-06 · 账户清单写入内部归因补证
+
+五个固定子阶段的两档完整样本、独立时钟复算及失败/检查/保全原件已归档，见[当前归因记录](RF-312-native-account-write-attribution.md)。该记录补充本阶段，不覆盖旧失败或替代无观测器基线；首页超时根因、受控优化效果、睡眠、多端与材质前置仍未关闭。

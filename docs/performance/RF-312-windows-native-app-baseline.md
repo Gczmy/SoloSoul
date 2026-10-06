@@ -502,3 +502,8 @@ node scripts/native-perf-startup.mjs --exe 'C:\TEMP\rf312\bin\solo_soul.exe' --f
 100/5000各三个完整六阶段样本、每次两条finished认证流通过。响应头、前端真实await、同步状态写入和后端阶段分开记录；原Promise/隐私/身份/预算规则保持。带观测器的数据仅作归因，performanceMetrics=null，不替代旧无观测器基线。
 
 十二次账户写入调用1803.06～5258.70ms、KDF127.61～198.92ms；写入内部的原子写/权限设置尚待拆分。两类时钟不相减、嵌套时长不相加、同步set不等于React绘制，未证明旧首页超时根因。[完整口径](RF-312-native-auth-attribution.md)、[结构化验收](rf312-windows-auth-attribution-2026-10-06.json)和[所有原件](rf312-windows-auth-attribution-2026-10-06/index.json)保留成功与失败、红绿回归、冻结和清理。RF-312下一本地项为账户写入和Windows RF-121完整窗口合成；首页超时/睡眠/多端及其他任务前置保持。独立本地提交，不推送。
+
+
+## 2026-10-06 · 账户清单写入内部归因补证
+
+五个固定子阶段的两档完整样本、独立时钟复算及失败/检查/保全原件已归档，见[当前归因记录](RF-312-native-account-write-attribution.md)。该记录补充本阶段，不覆盖旧失败或替代无观测器基线；首页超时根因、受控优化效果、睡眠、多端与材质前置仍未关闭。

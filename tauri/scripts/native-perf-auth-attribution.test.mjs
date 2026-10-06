@@ -207,3 +207,38 @@ test('auth binary preflight rejects old build and accepts explicit marker across
 test('authentication delegate uses an accepted mode of the real six-phase SDK runner', async () => {
   assert.equal(await runAuthenticationJourney(['--help']), 0);
 });
+
+test('account write substeps remain fixed and bounded and cannot enter account refresh or carry private details', () => {
+  const v = fixture();
+  const names = [
+    'account-manifest-serialize',
+    'account-directory-create',
+    'account-directory-permission',
+    'account-manifest-atomic-write',
+    'account-manifest-permission',
+  ];
+  v.backend.attempts[0].stages = [
+    { name: 'account-write-call', startedAtMs: 5001, endedAtMs: 5009, outcome: 'completed' },
+    ...names.map((name, i) => ({
+      name,
+      startedAtMs: 5002 + i,
+      endedAtMs: 5003 + i,
+      outcome: 'completed',
+    })),
+  ];
+  const report = describeAuthAttribution(v, owned, bound);
+  assert.equal(report.backend.attempts[0].stages.length, 6);
+  assert.equal(report.performanceMetrics, null);
+  for (const mutate of [
+    (q) => (q.backend.attempts[0].kind = 'accounts-refresh'),
+    (q) => (q.backend.attempts[0].stages[1].name = 'icacls private-path'),
+    (q) => (q.backend.attempts[0].stages[1].path = 'private-path'),
+    (q) => (q.backend.attempts[0].stages[1].endedAtMs = 5011),
+    (q) => (q.backend.attempts[0].stages[0].endedAtMs = 5005),
+    (q) => (q.backend.attempts[0].stages[1].name = 'account-directory-create'),
+  ]) {
+    const q = structuredClone(v);
+    mutate(q);
+    assert.throws(() => checkAuthAttribution(q, owned, bound));
+  }
+});

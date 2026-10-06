@@ -11,6 +11,11 @@ pub enum UnlockStage {
     Kdf,
     Verify,
     AccountWriteCall,
+    AccountManifestSerialize,
+    AccountDirectoryCreate,
+    AccountDirectoryPermission,
+    AccountManifestAtomicWrite,
+    AccountManifestPermission,
     KdfUpgrade,
     VaultOpen,
     SessionPublish,
@@ -25,6 +30,11 @@ impl UnlockStage {
             Self::Kdf => "kdf",
             Self::Verify => "verify",
             Self::AccountWriteCall => "account-write-call",
+            Self::AccountManifestSerialize => "account-manifest-serialize",
+            Self::AccountDirectoryCreate => "account-directory-create",
+            Self::AccountDirectoryPermission => "account-directory-permission",
+            Self::AccountManifestAtomicWrite => "account-manifest-atomic-write",
+            Self::AccountManifestPermission => "account-manifest-permission",
             Self::KdfUpgrade => "kdf-upgrade",
             Self::VaultOpen => "vault-open",
             Self::SessionPublish => "session-publish",
@@ -134,10 +144,18 @@ mod tests {
             .unwrap();
         svc.lock();
         let recorder = Arc::new(Recorder::default());
+        let before: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(svc.base_path().join("accounts.json")).unwrap())
+                .unwrap();
         let scope = observe(recorder.clone());
         svc.unlock("acc_nativeperf", "public-password").unwrap();
         drop(scope);
         assert!(svc.get_vault_store().is_some());
+        let persisted: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(svc.base_path().join("accounts.json")).unwrap())
+                .unwrap();
+        assert_eq!(persisted[0]["id"], "acc_nativeperf");
+        assert_ne!(persisted[0]["last_accessed"], before[0]["last_accessed"]);
         let rows = recorder.0.lock().unwrap().clone();
         for name in [
             "recovery",
@@ -147,6 +165,11 @@ mod tests {
             "verify",
             "vault-open",
             "session-publish",
+            "account-manifest-serialize",
+            "account-directory-create",
+            "account-directory-permission",
+            "account-manifest-atomic-write",
+            "account-manifest-permission",
         ] {
             assert_eq!(
                 rows.iter().filter(|row| row.0 == name && row.1).count(),

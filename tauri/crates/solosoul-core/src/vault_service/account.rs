@@ -1,6 +1,8 @@
 //! VaultService 账户 CRUD 域（P025 拆分）。
 //! 账户生命周期：列出/创建/删除/重命名/安全标志复位。
 use super::*;
+#[cfg(feature = "native-perf")]
+use crate::native_perf_unlock::{complete as perf_complete, stage as perf_stage, UnlockStage};
 use solosoul_crypto::kdf::{derive_key, generate_salt, KdfConfig};
 use solosoul_vault::{VaultConfig, VaultStore};
 
@@ -39,15 +41,35 @@ impl super::VaultService {
     }
 
     pub(crate) fn save_accounts(&self) -> Result<(), String> {
+        #[cfg(feature = "native-perf")]
+        let serialize_stage = perf_stage(UnlockStage::AccountManifestSerialize);
         let cache = self.accounts_cache.read().map_err(|e| e.to_string())?;
         let list: Vec<&AccountEntry> = cache.values().collect();
         let content = serde_json::to_string_pretty(&list).map_err(|e| e.to_string())?;
+        #[cfg(feature = "native-perf")]
+        perf_complete(serialize_stage);
+        #[cfg(feature = "native-perf")]
+        let create_stage = perf_stage(UnlockStage::AccountDirectoryCreate);
         self.fs.create_dir_all("")?;
+        #[cfg(feature = "native-perf")]
+        perf_complete(create_stage);
+        #[cfg(feature = "native-perf")]
+        let directory_permission_stage = perf_stage(UnlockStage::AccountDirectoryPermission);
         self.ensure_private_dir("")?;
+        #[cfg(feature = "native-perf")]
+        perf_complete(directory_permission_stage);
         let rel = self.accounts_file_rel();
         // P135: 账户清单同样关键——原子写避免截断后 load_accounts 静默清空。
+        #[cfg(feature = "native-perf")]
+        let write_stage = perf_stage(UnlockStage::AccountManifestAtomicWrite);
         self.fs.write_file_atomic(rel, content.as_bytes())?;
+        #[cfg(feature = "native-perf")]
+        perf_complete(write_stage);
+        #[cfg(feature = "native-perf")]
+        let file_permission_stage = perf_stage(UnlockStage::AccountManifestPermission);
         self.ensure_private_file(rel)?;
+        #[cfg(feature = "native-perf")]
+        perf_complete(file_permission_stage);
         Ok(())
     }
 
