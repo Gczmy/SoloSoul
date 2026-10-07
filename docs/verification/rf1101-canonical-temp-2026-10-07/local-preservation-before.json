@@ -1,0 +1,4 @@
+{
+  "dirty_status": " M tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/registry.json\n?? tauri/bugreport-sdk_gphone16k_arm64-CP21.260306.017.A1-2026-08-13-10-27-56.zip\n?? tauri/bugreport-sdk_gphone16k_arm64-CP21.260306.017.A1-2026-08-13-10-31-20.zip\n?? tauri/scripts/__pycache__/\n?? tauri/src-tauri/gen/android/app/src/main/assets/SoloSoul_plugin_market/plugins/com.solosoul.official.cloud-packager/\n?? tauri/src-tauri/gen/apple/assets/\n",
+  "registry_sha256": "3b92f2172677c1cb8424ed976b7b83198370f18ad6dccf871527b373e4e41b94"
+}

@@ -1,6 +1,6 @@
 {
   "task": "RF-1101",
-  "status": "macOS修复验证通过，Windows CI待验证",
+  "status": "已关闭：macOS红绿与真实Windows CI均通过；PR #3已合并",
   "cause": "临时目录可为别名（macOS /var到/private，Windows runner临时路径可能是短名）；测试未解析真实路径，与严格真实路径守卫冲突。",
   "scope": "仅两份测试四处临时目录先realpath再mkdtemp；生产身份/文件/字节校验和拒绝断言不变。",
   "macos": {
@@ -21,8 +21,91 @@
     "tauri/scripts/native-perf-ocr.test.mjs": "737a0f08655674a9bd515ce0799b9e326a4a81e50bbf74752f4ecd0e03d2912d"
   },
   "raw_sha256": {
+    "cli-ci-fixed.log.gz": "39282d5c1eee664c1ec944540007a5d674def5d4f16cd2f3d3d7c9a04d5b20ee",
     "media-ocr-macos-red.log.gz": "ac2dde59088e4704395af55655825a167e00828d2c4c0e06fd3aed864766b830",
     "node-macos-green.log.gz": "91553f3edd1db94d6bd3bebe5f871f03e5d09ac7561299a8fd04dbbd73df7a12",
-    "windows-node-failure.log.gz": "ca37b903054380eb1d871b20e8b480d8802e110c7077807eeec1a921b0027b37"
-  }
+    "mobile-ci-fixed.log.gz": "0f6abbfb5aea1aaa71b94f2f78e201b5dc80cde45cfeacb352109942673edb12",
+    "macos-rust-ci-fixed.log.gz": "251b548dc3e5af13b5e848af84ee7af745de07ad31ff86517079119382d8f1f6",
+    "full-ci-before.json": "2f9b87be1cff0b14ea6561fc767c350a59359b39c666bed75a7f72e6ac223880",
+    "frontend-ci-fixed.log.gz": "4b35ce21617eb8ae1b81e266cb46fa3c1a2a5b241c3ab6c33103f1b2c6c2c1ed",
+    "local-preservation-after.json": "e266070dcc2298081fc2658b862f3d7a8b16660498841f06f57efbc38e405431",
+    "full-ci-before-failed.log.gz": "d2e11ed63cadd7004e3804beda0bf82561b0dd48966a05e9f52b9c2310d9712e",
+    "linux-rust-ci-fixed.log.gz": "e12ba3148043d86555efe86a29b58df5e6d4e008ec361844b6f8481f22125364",
+    "pr-ci-after.json": "ca50899cb88d8d2d9158040200ecfc09750bcff34d1a3617437d2424652cd70e",
+    "windows-ci-fixed.log.gz": "0cfd676b5a72d7e3663f10d011ed3b7a1755150b024b32c9df41789d561ef0ba",
+    "local-preservation-before.json": "e266070dcc2298081fc2658b862f3d7a8b16660498841f06f57efbc38e405431",
+    "pr-merged.json": "2fff33c52b285da83b41d4ded05ea083064b4b632be10f809bf8f4d52cd0c933",
+    "windows-node-failure.log.gz": "ca37b903054380eb1d871b20e8b480d8802e110c7077807eeec1a921b0027b37",
+    "full-ci-after.json": "34b8508e628bca50ddf384f1447d4ca192852e297c9947f587f34da73be8f136"
+  },
+  "windows_after": {
+    "run": 37643858368,
+    "job": 112869390839,
+    "head": "d4055ead5cdbbc5fb896e31990b097c875d5887d",
+    "node_passed": 217,
+    "node_failed": 0,
+    "node_skipped": 0,
+    "rust_selected_packages": [
+      "solosoul-vault",
+      "solosoul-core",
+      "solo_soul"
+    ],
+    "rust_passed": 1555,
+    "rust_failed": 0,
+    "rust_ignored": 1
+  },
+  "pr_checks": {
+    "run": 37643832420,
+    "conclusion": "success",
+    "macos_rust": {
+      "passed": 1861,
+      "failed": 0,
+      "ignored": 3
+    },
+    "ios": "aarch64-apple-ios与aarch64-apple-ios-sim检查通过",
+    "macos_keychain_feature": "future-keychain检查通过"
+  },
+  "full_ci": {
+    "run": 37643858368,
+    "conclusion": "success",
+    "linux_rust": {
+      "passed": 1861,
+      "failed": 0,
+      "ignored": 3
+    },
+    "linux_cli": {
+      "passed": 335,
+      "failed": 0,
+      "ignored": 2
+    },
+    "vitest": {
+      "files": 258,
+      "passed": 2311
+    },
+    "production_web_passed": 26,
+    "mobile_web": {
+      "passed": 312,
+      "existing_skips": 19
+    },
+    "installers_and_release": "按事件条件跳过，未发布",
+    "workflow_state_restored": "disabled_manually"
+  },
+  "merge": {
+    "mergeCommit": {
+      "oid": "0e5a3ad1096a5c9e056b56c40e961158da3c0e88"
+    },
+    "mergedAt": "2026-10-07T16:36:45Z",
+    "state": "MERGED",
+    "url": "https://github.com/Gczmy/SoloSoul/pull/3"
+  },
+  "cleanup": {
+    "local_and_remote_feature_branch_deleted": true,
+    "uncommitted_state_and_registry_bytes_preserved": true,
+    "managed_worktree_archive": "已通过list_artifacts确认archived_worktree，专用worktree清理完成"
+  },
+  "limits": [
+    "Windows检查由远端Windows runner执行；本机是macOS。",
+    "原生材质、硬件认证及性能矩阵不由CI单测/浏览器替代。",
+    "RF-112、RF-121、RF-312和依赖的六项仍未完成。"
+  ]
 }
